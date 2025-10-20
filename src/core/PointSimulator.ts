@@ -46,7 +46,8 @@ export class PointSimulator {
         serveResult.winner!,
         shots,
         serveResult.pointType!,
-        matchState
+        matchState,
+        serveResult.serveType
       );
     }
 
@@ -65,7 +66,7 @@ export class PointSimulator {
     const winner = rallyResult.winner;
     const pointType = rallyResult.pointType;
 
-    return this.createPointResult(winner, shots, pointType, matchState);
+    return this.createPointResult(winner, shots, pointType, matchState, serveResult.serveType);
   }
 
   /**
@@ -83,6 +84,7 @@ export class PointSimulator {
     winner?: 'server' | 'returner';
     pointType?: 'ace' | 'double_fault';
     nextShooter?: 'server' | 'returner';
+    serveType: 'first' | 'second';
   } {
     const shots: ShotDetail[] = [];
 
@@ -94,42 +96,57 @@ export class PointSimulator {
       firstServeContext
     );
 
-    const firstServeShot: ShotDetail = {
-      shotType: 'serve_first',
-      shooter: 'server',
-      success: firstServeResult.success,
-      quality: firstServeResult.quality,
-      outcome: firstServeResult.outcome,
-      statUsed: firstServeResult.statUsed,
-      modifiers: firstServeResult.modifiers,
-      timestamp: Date.now(),
-      shotNumber: shotNumber,
-      context: firstServeContext,
-    };
-
-    shots.push(firstServeShot);
-
     // Check first serve result
     if (firstServeResult.outcome === 'winner') {
-      // Ace!
+      // Ace on first serve
+      const firstServeShot: ShotDetail = {
+        shotType: 'serve_first',
+        shooter: 'server',
+        success: firstServeResult.success,
+        quality: firstServeResult.quality,
+        outcome: firstServeResult.outcome,
+        statUsed: firstServeResult.statUsed,
+        modifiers: firstServeResult.modifiers,
+        timestamp: Date.now(),
+        shotNumber: 1,
+        context: firstServeContext,
+      };
+      shots.push(firstServeShot);
+
       return {
         shots,
         pointEnded: true,
         winner: 'server',
         pointType: 'ace',
+        serveType: 'first',
       };
     }
 
     if (firstServeResult.outcome === 'in_play') {
       // Good first serve, returner gets to return
+      const firstServeShot: ShotDetail = {
+        shotType: 'serve_first',
+        shooter: 'server',
+        success: firstServeResult.success,
+        quality: firstServeResult.quality,
+        outcome: firstServeResult.outcome,
+        statUsed: firstServeResult.statUsed,
+        modifiers: firstServeResult.modifiers,
+        timestamp: Date.now(),
+        shotNumber: 1,
+        context: firstServeContext,
+      };
+      shots.push(firstServeShot);
+
       return {
         shots,
         pointEnded: false,
         nextShooter: 'returner',
+        serveType: 'first',
       };
     }
 
-    // First serve was an error, try second serve
+    // First serve was a fault, try second serve
     const secondServeContext = this.createServeContext(matchState, false);
     const secondServeResult = this.shotCalculator.calculateShotSuccess(
       server,
@@ -146,7 +163,7 @@ export class PointSimulator {
       statUsed: secondServeResult.statUsed,
       modifiers: secondServeResult.modifiers,
       timestamp: Date.now(),
-      shotNumber: shotNumber + 1,
+      shotNumber: 1, // Second serve is shot #1 when it starts the rally
       context: secondServeContext,
     };
 
@@ -160,6 +177,7 @@ export class PointSimulator {
         pointEnded: true,
         winner: 'server',
         pointType: 'ace',
+        serveType: 'second',
       };
     }
 
@@ -170,6 +188,7 @@ export class PointSimulator {
         pointEnded: true,
         winner: 'returner',
         pointType: 'double_fault',
+        serveType: 'second',
       };
     }
 
@@ -178,6 +197,7 @@ export class PointSimulator {
       shots,
       pointEnded: false,
       nextShooter: 'returner',
+      serveType: 'second',
     };
   }
 
@@ -422,7 +442,8 @@ export class PointSimulator {
     winner: 'server' | 'returner',
     shots: ShotDetail[],
     pointType: 'ace' | 'winner' | 'forced_error' | 'unforced_error' | 'double_fault',
-    matchState: MatchState
+    matchState: MatchState,
+    serveType: 'first' | 'second'
   ): PointResult {
     const rallyLength = shots.length;
     const keyShot = this.identifyKeyShot(shots);
@@ -441,6 +462,7 @@ export class PointSimulator {
       pointType,
       duration,
       statistics,
+      serveType,
     };
   }
 
@@ -452,9 +474,11 @@ export class PointSimulator {
     const winnerShot = shots.find(shot => shot.outcome === 'winner');
     if (winnerShot) return winnerShot;
 
-    // Error shot that ended the point
-    const errorShot = shots.find(shot => shot.outcome === 'error');
-    if (errorShot) return errorShot;
+    // Error shot that ended the point (last shot if it's an error)
+    const lastShot = shots[shots.length - 1];
+    if (lastShot && lastShot.outcome === 'error') {
+      return lastShot;
+    }
 
     // Highest quality shot in the rally
     return shots.reduce((best, current) =>

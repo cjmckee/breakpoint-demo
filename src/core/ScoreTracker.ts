@@ -26,8 +26,8 @@ export class ScoreTracker {
   private createInitialScore(matchFormat: MatchFormat): MatchScore {
     return {
       sets: [{
-        server: 0,
-        returner: 0,
+        player: 0,
+        opponent: 0,
         winner: undefined,
         isComplete: false,
       }],
@@ -59,7 +59,10 @@ export class ScoreTracker {
     // Check if game is complete
     if (this.isGameComplete()) {
       const gameWinner = this.getGameWinner();
-      this.addGameToSet(gameWinner!);
+
+      // Convert game winner from server/returner to player/opponent
+      const gameWinnerAsPlayer = this.convertFromServerReturner(gameWinner!);
+      this.addGameToSet(gameWinnerAsPlayer);
 
       // Reset current game
       this.score.currentGame = {
@@ -85,8 +88,8 @@ export class ScoreTracker {
         } else {
           // Start new set
           this.score.sets.push({
-            server: 0,
-            returner: 0,
+            player: 0,
+            opponent: 0,
             winner: undefined,
             isComplete: false,
           });
@@ -164,13 +167,13 @@ export class ScoreTracker {
   /**
    * Add game to current set
    */
-  private addGameToSet(winner: 'server' | 'returner'): void {
+  private addGameToSet(winner: 'player' | 'opponent'): void {
     const currentSet = this.getCurrentSet();
 
-    if (winner === 'server') {
-      currentSet.server++;
+    if (winner === 'player') {
+      currentSet.player++;
     } else {
-      currentSet.returner++;
+      currentSet.opponent++;
     }
   }
 
@@ -182,25 +185,32 @@ export class ScoreTracker {
     const gamesPerSet = this.score.matchFormat.gamesPerSet;
 
     // Standard set win: 6+ games with 2+ game margin
-    if ((currentSet.server >= gamesPerSet && currentSet.server - currentSet.returner >= 2) ||
-        (currentSet.returner >= gamesPerSet && currentSet.returner - currentSet.server >= 2)) {
+    if ((currentSet.player >= gamesPerSet && currentSet.player - currentSet.opponent >= 2) ||
+        (currentSet.opponent >= gamesPerSet && currentSet.opponent - currentSet.player >= 2)) {
       return true;
     }
 
-    // Special case: 7-5 wins
-    if ((currentSet.server === gamesPerSet + 1 && currentSet.returner === gamesPerSet - 1) ||
-        (currentSet.returner === gamesPerSet + 1 && currentSet.server === gamesPerSet - 1)) {
+    // Special case: 7-5 or 7-6 wins
+    if ((currentSet.player === gamesPerSet + 1 && currentSet.opponent >= gamesPerSet - 1) ||
+        (currentSet.opponent === gamesPerSet + 1 && currentSet.player >= gamesPerSet - 1)) {
       return true;
     }
 
-    // Tiebreak scenario (6-6) - for now, just award to next game winner
-    // TODO: Implement proper tiebreak if needed
+    // If tiebreaks are enabled and we reach 6-6, next game winner takes set 7-6
     if (this.score.matchFormat.enableTiebreaks &&
-        currentSet.server === this.score.matchFormat.tiebreakAt &&
-        currentSet.returner === this.score.matchFormat.tiebreakAt) {
+        currentSet.player === this.score.matchFormat.tiebreakAt &&
+        currentSet.opponent === this.score.matchFormat.tiebreakAt) {
       // Next game winner takes the set
-      return (currentSet.server > this.score.matchFormat.tiebreakAt ||
-              currentSet.returner > this.score.matchFormat.tiebreakAt);
+      return (currentSet.player > this.score.matchFormat.tiebreakAt ||
+              currentSet.opponent > this.score.matchFormat.tiebreakAt);
+    }
+
+    // Without tiebreaks, if we reach 6-6, next game winner takes set 7-6
+    if (!this.score.matchFormat.enableTiebreaks &&
+        currentSet.player === gamesPerSet &&
+        currentSet.opponent === gamesPerSet) {
+      // Next game winner takes the set
+      return (currentSet.player > gamesPerSet || currentSet.opponent > gamesPerSet);
     }
 
     return false;
@@ -209,28 +219,20 @@ export class ScoreTracker {
   /**
    * Get the winner of the current set
    */
-  private getSetWinner(): 'server' | 'returner' | undefined {
+  private getSetWinner(): 'player' | 'opponent' | undefined {
     const currentSet = this.getCurrentSet();
     const gamesPerSet = this.score.matchFormat.gamesPerSet;
 
-    if ((currentSet.server >= gamesPerSet && currentSet.server - currentSet.returner >= 2) ||
-        (currentSet.server === gamesPerSet + 1 && currentSet.returner === gamesPerSet - 1)) {
-      return 'server';
+    // Player wins with 2+ game margin or 7-5/7-6
+    if ((currentSet.player >= gamesPerSet && currentSet.player - currentSet.opponent >= 2) ||
+        (currentSet.player === gamesPerSet + 1 && currentSet.opponent >= gamesPerSet - 1)) {
+      return 'player';
     }
 
-    if ((currentSet.returner >= gamesPerSet && currentSet.returner - currentSet.returner >= 2) ||
-        (currentSet.returner === gamesPerSet + 1 && currentSet.server === gamesPerSet - 1)) {
-      return 'returner';
-    }
-
-    // Tiebreak winner
-    if (this.score.matchFormat.enableTiebreaks) {
-      if (currentSet.server > this.score.matchFormat.tiebreakAt) {
-        return 'server';
-      }
-      if (currentSet.returner > this.score.matchFormat.tiebreakAt) {
-        return 'returner';
-      }
+    // Opponent wins with 2+ game margin or 7-5/7-6
+    if ((currentSet.opponent >= gamesPerSet && currentSet.opponent - currentSet.player >= 2) ||
+        (currentSet.opponent === gamesPerSet + 1 && currentSet.player >= gamesPerSet - 1)) {
+      return 'opponent';
     }
 
     return undefined;
@@ -243,10 +245,10 @@ export class ScoreTracker {
     const setsToWin = Math.ceil(this.score.matchFormat.bestOfSets / 2);
     const completedSets = this.score.sets.filter(set => set.isComplete);
 
-    const serverSetsWon = completedSets.filter(set => set.winner === 'server').length;
-    const returnerSetsWon = completedSets.filter(set => set.winner === 'returner').length;
+    const playerSetsWon = completedSets.filter(set => set.winner === 'player').length;
+    const opponentSetsWon = completedSets.filter(set => set.winner === 'opponent').length;
 
-    return serverSetsWon >= setsToWin || returnerSetsWon >= setsToWin;
+    return playerSetsWon >= setsToWin || opponentSetsWon >= setsToWin;
   }
 
   /**
@@ -256,14 +258,14 @@ export class ScoreTracker {
     const setsToWin = Math.ceil(this.score.matchFormat.bestOfSets / 2);
     const completedSets = this.score.sets.filter(set => set.isComplete);
 
-    const serverSetsWon = completedSets.filter(set => set.winner === 'server').length;
-    const returnerSetsWon = completedSets.filter(set => set.winner === 'returner').length;
+    const playerSetsWon = completedSets.filter(set => set.winner === 'player').length;
+    const opponentSetsWon = completedSets.filter(set => set.winner === 'opponent').length;
 
-    if (serverSetsWon >= setsToWin) {
-      return this.score.currentServer; // Current server is the match winner
+    if (playerSetsWon >= setsToWin) {
+      return 'player';
     }
-    if (returnerSetsWon >= setsToWin) {
-      return this.score.currentServer === 'player' ? 'opponent' : 'player';
+    if (opponentSetsWon >= setsToWin) {
+      return 'opponent';
     }
 
     return undefined;
@@ -287,6 +289,16 @@ export class ScoreTracker {
   }
 
   /**
+   * Convert server/returner to player/opponent based on current server
+   */
+  private convertFromServerReturner(winner: 'server' | 'returner'): 'player' | 'opponent' {
+    if (winner === 'server') {
+      return this.score.currentServer;
+    }
+    return this.score.currentServer === 'player' ? 'opponent' : 'player';
+  }
+
+  /**
    * Get current set
    */
   private getCurrentSet(): SetScore {
@@ -302,6 +314,17 @@ export class ScoreTracker {
    */
   public getScore(): MatchScore {
     return { ...this.score }; // Return copy to prevent mutations
+  }
+
+  /**
+   * Get current set games in player/opponent format
+   */
+  public getCurrentSetGames(): { player: number; opponent: number } {
+    const currentSet = this.getCurrentSet();
+    return {
+      player: currentSet.player,
+      opponent: currentSet.opponent,
+    };
   }
 
   /**
@@ -326,9 +349,11 @@ export class ScoreTracker {
       }
     };
 
+    const playerGames = currentSet.player;
+    const opponentGames = currentSet.opponent;
+
+    // Determine if player is currently serving
     const playerIsServer = this.score.currentServer === 'player';
-    const playerGames = playerIsServer ? currentSet.server : currentSet.returner;
-    const opponentGames = playerIsServer ? currentSet.returner : currentSet.server;
 
     let playerPoints, opponentPoints;
 
@@ -429,8 +454,8 @@ export class ScoreTracker {
 
     // Set point: either player can win the set with this game
     const gamesPerSet = this.score.matchFormat.gamesPerSet;
-    if ((currentSet.server >= gamesPerSet - 1 && currentSet.returner <= gamesPerSet - 2) ||
-        (currentSet.returner >= gamesPerSet - 1 && currentSet.server <= gamesPerSet - 2)) {
+    if ((currentSet.player >= gamesPerSet - 1 && currentSet.opponent <= gamesPerSet - 2) ||
+        (currentSet.opponent >= gamesPerSet - 1 && currentSet.player <= gamesPerSet - 2)) {
       return true;
     }
 
@@ -438,15 +463,44 @@ export class ScoreTracker {
     if (this.isSetComplete()) {
       const setsToWin = Math.ceil(this.score.matchFormat.bestOfSets / 2);
       const completedSets = this.score.sets.filter(set => set.isComplete);
-      const serverSetsWon = completedSets.filter(set => set.winner === 'server').length;
-      const returnerSetsWon = completedSets.filter(set => set.winner === 'returner').length;
+      const playerSetsWon = completedSets.filter(set => set.winner === 'player').length;
+      const opponentSetsWon = completedSets.filter(set => set.winner === 'opponent').length;
 
-      if (serverSetsWon === setsToWin - 1 || returnerSetsWon === setsToWin - 1) {
+      if (playerSetsWon === setsToWin - 1 || opponentSetsWon === setsToWin - 1) {
         return true;
       }
     }
 
     return false;
+  }
+
+  /**
+   * Check if current point is a break point and for which player
+   * Returns 'player' if player has break point, 'opponent' if opponent has break point, undefined otherwise
+   */
+  public getBreakPointFor(): 'player' | 'opponent' | undefined {
+    const game = this.score.currentGame;
+
+    // A break point is when the returner can win the game
+    // The returner needs 1 point to win the game while the server is serving
+
+    if (this.score.currentServer === 'player') {
+      // Player is serving, opponent can break
+      // Opponent needs to be one point away from winning (returner needs 4 points with 2+ point margin)
+      if ((game.returner === 3 && game.server < 3) || // 0-40, 15-40, 30-40
+          (game.advantage === 'returner')) { // Advantage returner
+        return 'opponent';
+      }
+    } else {
+      // Opponent is serving, player can break
+      // Player needs to be one point away from winning (returner needs 4 points with 2+ point margin)
+      if ((game.returner === 3 && game.server < 3) || // 0-40, 15-40, 30-40
+          (game.advantage === 'returner')) { // Advantage returner
+        return 'player';
+      }
+    }
+
+    return undefined;
   }
 
   /**

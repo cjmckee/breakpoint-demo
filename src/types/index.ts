@@ -154,6 +154,7 @@ export interface PointResult {
   pointType: 'ace' | 'winner' | 'forced_error' | 'unforced_error' | 'double_fault';
   duration: number; // seconds
   statistics: PointStatistics;
+  serveType: 'first' | 'second'; // Which serve started the rally (if second, first was a fault)
 }
 
 /**
@@ -187,10 +188,10 @@ export interface GameScore {
  * Tennis set score
  */
 export interface SetScore {
-  server: number;    // Games won by server in current set
-  returner: number;  // Games won by returner in current set
+  player: number;    // Games won by player in current set
+  opponent: number;  // Games won by opponent in current set
   tiebreak?: TiebreakScore;
-  winner?: 'server' | 'returner';
+  winner?: 'player' | 'opponent';
   isComplete: boolean;
 }
 
@@ -305,13 +306,17 @@ export interface MatchStatistics {
 
   // Service statistics
   firstServePercentage: { player: number; opponent: number };
+  secondServePercentage: { player: number; opponent: number };
   firstServePointsWon: { player: number; opponent: number };
   secondServePointsWon: { player: number; opponent: number };
+  breakPointOpportunities: { player: number; opponent: number };
   breakPointsConverted: { player: number; opponent: number };
 
   // Rally statistics
   averageRallyLength: number;
   longestRally: number;
+  averageRallyLengthWon: { player: number; opponent: number };
+  longestRallyWon: { player: number; opponent: number };
   netPointsWon: { player: number; opponent: number };
 
   // Shot type breakdown
