@@ -50,6 +50,8 @@ export class MatchStatistics {
       },
       winners: { player: 0, opponent: 0 },
       errors: { player: 0, opponent: 0 },
+      unforcedErrors: { player: 0, opponent: 0 },
+      forcedErrors: { player: 0, opponent: 0 },
       aces: { player: 0, opponent: 0 },
       doubleFaults: { player: 0, opponent: 0 },
       firstServePercentage: { player: 0, opponent: 0 },
@@ -82,7 +84,7 @@ export class MatchStatistics {
     this.updateBasicStatistics(pointResult, currentServer);
 
     // Update shot-specific statistics (need point winner for net point tracking)
-    this.updateShotStatistics(pointResult.shots, pointResult.winner);
+    this.updateShotStatistics(pointResult.shots, pointResult.winner, currentServer);
 
     // Update rally statistics
     this.updateRallyStatistics(pointResult, currentServer);
@@ -124,9 +126,14 @@ export class MatchStatistics {
         this.statistics.winners[winner]++;
         break;
       case 'forced_error':
+        const loserForced = winner === 'player' ? 'opponent' : 'player';
+        this.statistics.errors[loserForced]++;
+        this.statistics.forcedErrors[loserForced]++;
+        break;
       case 'unforced_error':
-        const loser = winner === 'player' ? 'opponent' : 'player';
-        this.statistics.errors[loser]++;
+        const loserUnforced = winner === 'player' ? 'opponent' : 'player';
+        this.statistics.errors[loserUnforced]++;
+        this.statistics.unforcedErrors[loserUnforced]++;
         break;
     }
   }
@@ -134,12 +141,13 @@ export class MatchStatistics {
   /**
    * Update shot-specific statistics
    */
-  private updateShotStatistics(shots: ShotDetail[], pointWinner: 'server' | 'returner'): void {
+  private updateShotStatistics(shots: ShotDetail[], pointWinner: 'server' | 'returner', currentServer: 'player' | 'opponent'): void {
     // Track if there was a net approach in this point
     let netApproachBy: 'server' | 'returner' | undefined = undefined;
 
     shots.forEach(shot => {
-      const player = shot.shooter === 'server' ? 'player' : 'opponent'; // Simplified for now
+      // Correctly map shooter to player/opponent based on who was serving
+      const player = shot.shooter === 'server' ? currentServer : (currentServer === 'player' ? 'opponent' : 'player');
       const shotType = shot.shotType;
 
       // Initialize shot type stats if not exists
@@ -149,6 +157,8 @@ export class MatchStatistics {
           successful: { player: 0, opponent: 0 },
           winners: { player: 0, opponent: 0 },
           errors: { player: 0, opponent: 0 },
+          unforcedErrors: { player: 0, opponent: 0 },
+          forcedErrors: { player: 0, opponent: 0 },
         };
       }
 
@@ -165,6 +175,12 @@ export class MatchStatistics {
         }
       } else {
         stats.errors[player]++;
+        // Track forced vs unforced errors
+        if (shot.errorType === 'unforced') {
+          stats.unforcedErrors[player]++;
+        } else if (shot.errorType === 'forced') {
+          stats.forcedErrors[player]++;
+        }
       }
 
       // Track if this shot involved net play
@@ -175,7 +191,7 @@ export class MatchStatistics {
 
     // Count net point won if there was net play and that player won
     if (netApproachBy && netApproachBy === pointWinner) {
-      const player = netApproachBy === 'server' ? 'player' : 'opponent';
+      const player = netApproachBy === 'server' ? currentServer : (currentServer === 'player' ? 'opponent' : 'player');
       this.statistics.netPointsWon[player]++;
     }
   }

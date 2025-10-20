@@ -306,91 +306,156 @@ function displayMatchResult(result: any, player1Name: string, player2Name: strin
     statsContent.innerHTML = `
       <div class="stat-line">
         <span>Total Points</span>
-        <span>${stats.totalPoints?.player ?? -1}</span>
-        <span>${stats.totalPoints?.opponent ?? -1}</span>
+        <span class="player-stat">${stats.totalPoints?.player ?? -1}</span>
+        <span class="opponent-stat">${stats.totalPoints?.opponent ?? -1}</span>
       </div>
       <div class="stat-line">
         <span>Aces</span>
-        <span>${stats.aces?.player ?? -1}</span>
-        <span>${stats.aces?.opponent ?? -1}</span>
+        <span class="player-stat">${stats.aces?.player ?? -1}</span>
+        <span class="opponent-stat">${stats.aces?.opponent ?? -1}</span>
       </div>
       <div class="stat-line">
         <span>Double Faults</span>
-        <span>${stats.doubleFaults?.player ?? -1}</span>
-        <span>${stats.doubleFaults?.opponent ?? -1}</span>
+        <span class="player-stat">${stats.doubleFaults?.player ?? -1}</span>
+        <span class="opponent-stat">${stats.doubleFaults?.opponent ?? -1}</span>
       </div>
       <div class="stat-line">
         <span>Winners</span>
-        <span>${stats.winners?.player ?? -1}</span>
-        <span>${stats.winners?.opponent ?? -1}</span>
+        <span class="player-stat">${stats.winners?.player ?? -1}</span>
+        <span class="opponent-stat">${stats.winners?.opponent ?? -1}</span>
       </div>
       <div class="stat-line">
-        <span>Errors</span>
-        <span>${stats.errors?.player ?? -1}</span>
-        <span>${stats.errors?.opponent ?? -1}</span>
+        <span>Total Errors</span>
+        <span class="player-stat">${stats.errors?.player ?? -1}</span>
+        <span class="opponent-stat">${stats.errors?.opponent ?? -1}</span>
+      </div>
+      <div class="stat-line">
+        <span>Unforced Errors</span>
+        <span class="player-stat">${stats.unforcedErrors?.player ?? -1}</span>
+        <span class="opponent-stat">${stats.unforcedErrors?.opponent ?? -1}</span>
+      </div>
+      <div class="stat-line">
+        <span>Forced Errors</span>
+        <span class="player-stat">${stats.forcedErrors?.player ?? -1}</span>
+        <span class="opponent-stat">${stats.forcedErrors?.opponent ?? -1}</span>
       </div>
       <div class="stat-line">
         <span>First Serve %</span>
-        <span>${stats.firstServePercentage?.player?.toFixed(1) ?? '-1.0'}%</span>
-        <span>${stats.firstServePercentage?.opponent?.toFixed(1) ?? '-1.0'}%</span>
+        <span class="player-stat">${stats.firstServePercentage?.player?.toFixed(1) ?? '-1.0'}%</span>
+        <span class="opponent-stat">${stats.firstServePercentage?.opponent?.toFixed(1) ?? '-1.0'}%</span>
       </div>
       <div class="stat-line">
         <span>First Serve Points Won</span>
-        <span>${stats.firstServePointsWon?.player ?? -1}</span>
-        <span>${stats.firstServePointsWon?.opponent ?? -1}</span>
+        <span class="player-stat">${stats.firstServePointsWon?.player ?? -1}</span>
+        <span class="opponent-stat">${stats.firstServePointsWon?.opponent ?? -1}</span>
       </div>
       <div class="stat-line">
         <span>Second Serve %</span>
-        <span>${stats.secondServePercentage?.player?.toFixed(1) ?? '-1.0'}%</span>
-        <span>${stats.secondServePercentage?.opponent?.toFixed(1) ?? '-1.0'}%</span>
+        <span class="player-stat">${stats.secondServePercentage?.player?.toFixed(1) ?? '-1.0'}%</span>
+        <span class="opponent-stat">${stats.secondServePercentage?.opponent?.toFixed(1) ?? '-1.0'}%</span>
       </div>
       <div class="stat-line">
         <span>Second Serve Points Won</span>
-        <span>${stats.secondServePointsWon?.player ?? -1}</span>
-        <span>${stats.secondServePointsWon?.opponent ?? -1}</span>
+        <span class="player-stat">${stats.secondServePointsWon?.player ?? -1}</span>
+        <span class="opponent-stat">${stats.secondServePointsWon?.opponent ?? -1}</span>
       </div>
       <div class="stat-line">
         <span>Points Won on Serve</span>
-        <span>${stats.pointsWon?.player?.serve ?? -1}</span>
-        <span>${stats.pointsWon?.opponent?.serve ?? -1}</span>
+        <span class="player-stat">${stats.pointsWon?.player?.serve ?? -1}</span>
+        <span class="opponent-stat">${stats.pointsWon?.opponent?.serve ?? -1}</span>
       </div>
       <div class="stat-line">
         <span>Points Won on Return</span>
-        <span>${stats.pointsWon?.player?.return ?? -1}</span>
-        <span>${stats.pointsWon?.opponent?.return ?? -1}</span>
+        <span class="player-stat">${stats.pointsWon?.player?.return ?? -1}</span>
+        <span class="opponent-stat">${stats.pointsWon?.opponent?.return ?? -1}</span>
       </div>
       <div class="stat-line">
         <span>Break Points Converted</span>
-        <span>${stats.breakPointsConverted?.player ?? -1}/${stats.breakPointOpportunities?.player ?? -1}</span>
-        <span>${stats.breakPointsConverted?.opponent ?? -1}/${stats.breakPointOpportunities?.opponent ?? -1}</span>
+        <span class="player-stat">${stats.breakPointsConverted?.player ?? -1}/${stats.breakPointOpportunities?.player ?? -1}</span>
+        <span class="opponent-stat">${stats.breakPointsConverted?.opponent ?? -1}/${stats.breakPointOpportunities?.opponent ?? -1}</span>
       </div>
       <div class="stat-line">
         <span>Net Points Won</span>
-        <span>${stats.netPointsWon?.player ?? -1}</span>
-        <span>${stats.netPointsWon?.opponent ?? -1}</span>
+        <span class="player-stat">${stats.netPointsWon?.player ?? -1}</span>
+        <span class="opponent-stat">${stats.netPointsWon?.opponent ?? -1}</span>
       </div>
       <div class="stat-line">
         <span>Avg Rally Length (Overall)</span>
-        <span>${stats.averageRallyLength?.toFixed(1) ?? '-1.0'}</span>
-        <span>${stats.averageRallyLength?.toFixed(1) ?? '-1.0'}</span>
+        <span class="player-stat">${stats.averageRallyLength?.toFixed(1) ?? '-1.0'}</span>
+        <span class="opponent-stat">${stats.averageRallyLength?.toFixed(1) ?? '-1.0'}</span>
       </div>
       <div class="stat-line">
         <span>Avg Rally Length Won</span>
-        <span>${stats.averageRallyLengthWon?.player?.toFixed(1) ?? '-1.0'}</span>
-        <span>${stats.averageRallyLengthWon?.opponent?.toFixed(1) ?? '-1.0'}</span>
+        <span class="player-stat">${stats.averageRallyLengthWon?.player?.toFixed(1) ?? '-1.0'}</span>
+        <span class="opponent-stat">${stats.averageRallyLengthWon?.opponent?.toFixed(1) ?? '-1.0'}</span>
       </div>
       <div class="stat-line">
         <span>Longest Rally (Overall)</span>
-        <span>${stats.longestRally ?? -1}</span>
-        <span>${stats.longestRally ?? -1}</span>
+        <span class="player-stat">${stats.longestRally ?? -1}</span>
+        <span class="opponent-stat">${stats.longestRally ?? -1}</span>
       </div>
       <div class="stat-line">
         <span>Longest Rally Won</span>
-        <span>${stats.longestRallyWon?.player ?? -1}</span>
-        <span>${stats.longestRallyWon?.opponent ?? -1}</span>
+        <span class="player-stat">${stats.longestRallyWon?.player ?? -1}</span>
+        <span class="opponent-stat">${stats.longestRallyWon?.opponent ?? -1}</span>
       </div>
     `;
   }
+
+  // Display shot type statistics
+  displayShotTypeStats(stats, player1Name, player2Name);
+}
+
+function displayShotTypeStats(stats: any, player1Name: string, player2Name: string) {
+  const shotStatsDiv = document.getElementById('shot-stats-content');
+  if (!shotStatsDiv || !stats?.shotTypeStats) return;
+
+  // Debug: log shot stats to console
+  console.log('Shot Type Stats:', stats.shotTypeStats);
+
+  // Group shot types by category
+  const groundstrokes = ['forehand', 'backhand', 'topspin_forehand', 'topspin_backhand', 'slice_forehand', 'slice_backhand'];
+  const serves = ['serve_first', 'serve_second', 'kick_serve'];
+  const returns = ['return_forehand', 'return_backhand', 'return_winner'];
+  const netPlay = ['volley_forehand', 'volley_backhand', 'half_volley', 'overhead'];
+  const approaches = ['forehand_approach', 'backhand_approach'];
+  const tactical = ['drop_shot', 'lob', 'angle_shot', 'passing_shot', 'down_the_line', 'cross_court', 'defensive_slice', 'defensive_overhead', 'short_angle'];
+  const winners = ['forehand_winner', 'backhand_winner'];
+
+  let html = '<div class="stat-line shot-detail header"><span>Shot Type</span><span>P1 Att</span><span>P2 Att</span><span>P1 Err</span><span>P2 Err</span><span>P1 Win</span><span>P2 Win</span></div>';
+
+  const addShotCategory = (categoryName: string, shotTypes: string[]) => {
+    const relevantShots = shotTypes.filter(type => stats.shotTypeStats[type]);
+    if (relevantShots.length === 0) return;
+
+    html += `<div class="stat-category">${categoryName}</div>`;
+    relevantShots.forEach(shotType => {
+      const shotStats = stats.shotTypeStats[shotType];
+      const displayName = shotType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+
+      html += `
+        <div class="stat-line shot-detail">
+          <span class="shot-name">${displayName}</span>
+          <span class="player-stat">${shotStats.attempts?.player ?? -1}</span>
+          <span class="opponent-stat">${shotStats.attempts?.opponent ?? -1}</span>
+          <span class="player-stat">${shotStats.unforcedErrors?.player ?? -1}/${shotStats.errors?.player ?? -1}</span>
+          <span class="opponent-stat">${shotStats.unforcedErrors?.opponent ?? -1}/${shotStats.errors?.opponent ?? -1}</span>
+          <span class="player-stat">${shotStats.winners?.player ?? -1}</span>
+          <span class="opponent-stat">${shotStats.winners?.opponent ?? -1}</span>
+        </div>
+      `;
+    });
+  };
+
+  addShotCategory('GROUNDSTROKES', groundstrokes);
+  addShotCategory('SERVES', serves);
+  addShotCategory('RETURNS', returns);
+  addShotCategory('APPROACH SHOTS', approaches);
+  addShotCategory('NET PLAY', netPlay);
+  addShotCategory('WINNERS', winners);
+  addShotCategory('TACTICAL SHOTS', tactical);
+
+  shotStatsDiv.innerHTML = html;
 }
 
 // Initialize displays on page load

@@ -136,6 +136,7 @@ export interface ShotDetail {
   success: boolean;
   quality: number;
   outcome: 'winner' | 'in_play' | 'error';
+  errorType?: 'forced' | 'unforced'; // Only set when outcome is 'error'
   statUsed: string;
   modifiers: ShotModifiers;
   timestamp: number;
@@ -301,6 +302,8 @@ export interface MatchStatistics {
   // Shot breakdown
   winners: { player: number; opponent: number };
   errors: { player: number; opponent: number };
+  unforcedErrors: { player: number; opponent: number };
+  forcedErrors: { player: number; opponent: number };
   aces: { player: number; opponent: number };
   doubleFaults: { player: number; opponent: number };
 
@@ -326,6 +329,8 @@ export interface MatchStatistics {
       successful: { player: number; opponent: number };
       winners: { player: number; opponent: number };
       errors: { player: number; opponent: number };
+      unforcedErrors: { player: number; opponent: number };
+      forcedErrors: { player: number; opponent: number };
     };
   };
 

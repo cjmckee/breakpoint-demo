@@ -219,6 +219,7 @@ export class PointSimulator {
     const shots: ShotDetail[] = [];
     let currentShooter = firstShooter;
     let shotNumber = startingShotNumber;
+    let previousShot: ShotDetail | null = null;
     const maxRallyLength = 30; // Prevent infinite rallies
 
     while (shotNumber - startingShotNumber < maxRallyLength) {
@@ -238,6 +239,12 @@ export class PointSimulator {
         shotContext
       );
 
+      // Determine if this error is forced or unforced based on opponent's previous shot
+      let errorType: 'forced' | 'unforced' | undefined;
+      if (shotResult.outcome === 'error') {
+        errorType = this.classifyError(previousShot, shotContext);
+      }
+
       // Create shot detail
       const shotDetail: ShotDetail = {
         shotType,
@@ -245,6 +252,7 @@ export class PointSimulator {
         success: shotResult.success,
         quality: shotResult.quality,
         outcome: shotResult.outcome,
+        errorType,
         statUsed: shotResult.statUsed,
         modifiers: shotResult.modifiers,
         timestamp: Date.now(),
@@ -265,15 +273,16 @@ export class PointSimulator {
 
       if (shotResult.outcome === 'error') {
         const opponent = currentShooter === 'server' ? 'returner' : 'server';
-        const errorType = rallyLength <= 3 ? 'unforced_error' : 'forced_error';
+        const pointType = errorType === 'forced' ? 'forced_error' : 'unforced_error';
         return {
           shots,
           winner: opponent,
-          pointType: errorType,
+          pointType,
         };
       }
 
       // Shot was successful and in play, continue rally
+      previousShot = shotDetail;
       currentShooter = currentShooter === 'server' ? 'returner' : 'server';
       shotNumber++;
     }
@@ -285,6 +294,32 @@ export class PointSimulator {
       winner,
       pointType: 'forced_error',
     };
+  }
+
+  /**
+   * Classify an error as forced or unforced based on the opponent's previous shot
+   * Forced error: Opponent hit a great shot that made it very difficult
+   * Unforced error: Player made a mistake on a routine shot
+   */
+  private classifyError(previousShot: ShotDetail | null, currentContext: ShotContext): 'forced' | 'unforced' {
+    // No previous shot (e.g., return error) - likely unforced
+    if (!previousShot) {
+      return 'unforced';
+    }
+
+    // If opponent's previous shot was high quality (>70) or context is hard/extreme, it's forced
+    if (previousShot.quality >= 70 || currentContext.difficulty === 'hard' || currentContext.difficulty === 'extreme') {
+      return 'forced';
+    }
+
+    // If context was easy/normal and opponent's shot quality was mediocre, it's unforced
+    if ((currentContext.difficulty === 'easy' || currentContext.difficulty === 'normal') && previousShot.quality < 60) {
+      return 'unforced';
+    }
+
+    // Middle ground - opponent hit a decent shot (60-70 quality) on normal difficulty
+    // This is a judgment call - we'll consider it forced if quality >= 65
+    return previousShot.quality >= 65 ? 'forced' : 'unforced';
   }
 
   /**
