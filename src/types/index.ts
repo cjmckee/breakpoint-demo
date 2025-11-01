@@ -57,31 +57,41 @@ export type ShotType =
   | 'serve_second'
   | 'forehand'
   | 'backhand'
-  | 'forehand_winner'
-  | 'backhand_winner'
+  | 'forehand_power'
+  | 'backhand_power'
   | 'forehand_approach'
   | 'backhand_approach'
   | 'volley_forehand'
   | 'volley_backhand'
-  | 'half_volley'
+  | 'half_volley_forehand'
+  | 'half_volley_backhand'
   | 'overhead'
   | 'defensive_overhead'
-  | 'drop_shot'
-  | 'short_angle'
+  | 'drop_shot_forehand'
+  | 'drop_shot_backhand'
+  | 'short_angle_forehand'
+  | 'short_angle_backhand'
   | 'slice_forehand'
   | 'slice_backhand'
-  | 'defensive_slice'
+  | 'defensive_slice_forehand'
+  | 'defensive_slice_backhand'
   | 'return_forehand'
   | 'return_backhand'
-  | 'return_winner'
+  | 'return_forehand_power'
+  | 'return_backhand_power'
   | 'topspin_forehand'
   | 'topspin_backhand'
   | 'kick_serve'
-  | 'angle_shot'
-  | 'down_the_line'
-  | 'cross_court'
-  | 'lob'
-  | 'passing_shot';
+  | 'angle_shot_forehand'
+  | 'angle_shot_backhand'
+  | 'down_the_line_forehand'
+  | 'down_the_line_backhand'
+  | 'cross_court_forehand'
+  | 'cross_court_backhand'
+  | 'lob_forehand'
+  | 'lob_backhand'
+  | 'passing_shot_forehand'
+  | 'passing_shot_backhand';
 
 /**
  * Context for shot difficulty calculation
@@ -282,6 +292,75 @@ export interface ScoreSnapshot {
   setScore: SetScore;
   currentServer: 'player' | 'opponent';
   momentum: number;
+}
+
+/**
+ * Comprehensive match data for rally analysis by sub-agent
+ * Includes all shots, contexts, player stats, and outcomes
+ */
+export interface MatchAnalysisData {
+  // Match metadata
+  matchId: string;
+  timestamp: number;
+  courtSurface: CourtSurface;
+  matchFormat: MatchFormat;
+
+  // Player information
+  player: {
+    name: string;
+    stats: PlayerStats;
+    playStyle: PlayStyle;
+    overallRating: number;
+  };
+
+  opponent: {
+    name: string;
+    stats: PlayerStats;
+    playStyle: PlayStyle;
+    overallRating: number;
+  };
+
+  // Match outcome
+  winner: 'player' | 'opponent';
+  finalScore: string;
+  duration: number;
+
+  // Complete point-by-point data
+  points: PointAnalysisData[];
+
+  // Aggregate statistics
+  statistics: MatchStatistics;
+
+  // Score progression
+  scoreProgression: ScoreSnapshot[];
+}
+
+/**
+ * Detailed data for a single point including all shots and context
+ */
+export interface PointAnalysisData {
+  pointNumber: number;
+  server: 'player' | 'opponent';
+  winner: 'player' | 'opponent';
+  pointType: 'ace' | 'winner' | 'forced_error' | 'unforced_error' | 'double_fault';
+  serveType: 'first' | 'second';
+  rallyLength: number;
+  duration: number;
+
+  // All shots in this point
+  shots: ShotDetail[];
+
+  // Key shot that decided the point
+  keyShot?: ShotDetail;
+
+  // Match state when point started
+  matchState: {
+    pressure: 'low' | 'medium' | 'high';
+    momentum: number;
+    isKeyMoment: boolean;
+    gameScore: GameScore;
+    setScore: SetScore;
+  };
 }
 
 // =======================

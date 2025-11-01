@@ -5,9 +5,11 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc && node dist/test/basic-validation.js",
-    "test": "tsc && node dist/test/basic-validation.js",
+    "build": "tsc -p tsconfig.browser.json",
+    "build:node": "tsc -p tsconfig.node.json",
+    "dev": "npm run build:node && node dist/test/basic-validation.js",
+    "test": "npm run build:node && node dist/test/basic-validation.js",
+    "test:rally": "npm run build:node && node dist/test/testRallyAnalysis.js",
     "clean": "rimraf dist",
     "start": "node dist/index.js",
     "serve": "vite"

@@ -358,10 +358,10 @@ export class MatchStatistics {
         actualPerformance = this.calculateServePerformance();
         break;
       case 'forehand':
-        actualPerformance = this.calculateShotPerformance(['forehand', 'forehand_winner', 'topspin_forehand']);
+        actualPerformance = this.calculateShotPerformance(['forehand', 'forehand_power', 'topspin_forehand']);
         break;
       case 'backhand':
-        actualPerformance = this.calculateShotPerformance(['backhand', 'backhand_winner', 'topspin_backhand']);
+        actualPerformance = this.calculateShotPerformance(['backhand', 'backhand_power', 'topspin_backhand']);
         break;
       case 'return':
         actualPerformance = this.calculateReturnPerformance();

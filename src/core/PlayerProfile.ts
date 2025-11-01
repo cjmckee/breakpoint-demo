@@ -106,45 +106,55 @@ export class PlayerProfile implements IPlayerProfile {
 
       // Forehand shots
       'forehand': 'forehand',
-      'forehand_winner': 'forehand',
+      'forehand_power': 'forehand',
       'forehand_approach': 'forehand',
       'topspin_forehand': 'forehand',
 
       // Backhand shots
       'backhand': 'backhand',
-      'backhand_winner': 'backhand',
+      'backhand_power': 'backhand',
       'backhand_approach': 'backhand',
       'topspin_backhand': 'backhand',
 
       // Volleys
       'volley_forehand': 'volley',
       'volley_backhand': 'volley',
-      'half_volley': 'volley',
+      'half_volley_forehand': 'volley',
+      'half_volley_backhand': 'volley',
 
       // Overhead shots
       'overhead': 'overhead',
       'defensive_overhead': 'overhead',
 
       // Drop shots
-      'drop_shot': 'drop_shot',
-      'short_angle': 'drop_shot',
+      'drop_shot_forehand': 'drop_shot',
+      'drop_shot_backhand': 'drop_shot',
+      'short_angle_forehand': 'drop_shot',
+      'short_angle_backhand': 'drop_shot',
 
       // Slice shots
       'slice_forehand': 'slice',
       'slice_backhand': 'slice',
-      'defensive_slice': 'slice',
+      'defensive_slice_forehand': 'slice',
+      'defensive_slice_backhand': 'slice',
 
       // Returns
       'return_forehand': 'return',
       'return_backhand': 'return',
-      'return_winner': 'return',
+      'return_forehand_power': 'return',
+      'return_backhand_power': 'return',
 
       // Placement shots
-      'angle_shot': 'placement',
-      'down_the_line': 'placement',
-      'cross_court': 'placement',
-      'lob': 'placement',
-      'passing_shot': 'placement',
+      'angle_shot_forehand': 'placement',
+      'angle_shot_backhand': 'placement',
+      'down_the_line_forehand': 'placement',
+      'down_the_line_backhand': 'placement',
+      'cross_court_forehand': 'placement',
+      'cross_court_backhand': 'placement',
+      'lob_forehand': 'placement',
+      'lob_backhand': 'placement',
+      'passing_shot_forehand': 'placement',
+      'passing_shot_backhand': 'placement',
     };
 
     const statName = shotStatMapping[shotType];

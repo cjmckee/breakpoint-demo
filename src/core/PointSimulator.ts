@@ -418,7 +418,8 @@ export class PointSimulator {
     // Return shots (first shot after serve)
     if (rallyLength === 1) {
       if (playStyle.aggression > 70) {
-        return 'return_winner'; // Aggressive return
+        // Aggressive power return - choose forehand or backhand
+        return Math.random() < 0.5 ? 'return_forehand_power' : 'return_backhand_power';
       }
       return Math.random() < 0.5 ? 'return_forehand' : 'return_backhand';
     }
@@ -426,7 +427,7 @@ export class PointSimulator {
     // Early rally (shots 2-4)
     if (rallyLength <= 4) {
       if (playStyle.aggression > 80 && Math.random() < 0.3) {
-        return Math.random() < 0.5 ? 'forehand_winner' : 'backhand_winner';
+        return Math.random() < 0.5 ? 'forehand_power' : 'backhand_power';
       }
 
       if (playStyle.netApproach > 70 && Math.random() < 0.4) {
@@ -445,13 +446,16 @@ export class PointSimulator {
 
       // Tactical shots for variety-focused players
       if (shooterProfile.stats.mental.shot_variety > 70 && Math.random() < 0.2) {
-        const tacticalShots: ShotType[] = ['drop_shot', 'lob', 'angle_shot'];
+        const isForehand = Math.random() < 0.5;
+        const tacticalShots: ShotType[] = isForehand
+          ? ['drop_shot_forehand', 'lob_forehand', 'angle_shot_forehand']
+          : ['drop_shot_backhand', 'lob_backhand', 'angle_shot_backhand'];
         return tacticalShots[Math.floor(Math.random() * tacticalShots.length)];
       }
 
-      // Regular groundstrokes with occasional winners
+      // Regular groundstrokes with occasional power shots
       if (playStyle.aggression > 60 && Math.random() < 0.25) {
-        return Math.random() < 0.5 ? 'forehand_winner' : 'backhand_winner';
+        return Math.random() < 0.5 ? 'forehand_power' : 'backhand_power';
       }
 
       return Math.random() < 0.5 ? 'forehand' : 'backhand';
@@ -459,7 +463,10 @@ export class PointSimulator {
 
     // Long rally (shots 11+) - more defensive, occasional desperation shots
     if (rallyLength > 15 && Math.random() < 0.3) {
-      return Math.random() < 0.5 ? 'defensive_slice' : 'lob';
+      const isForehand = Math.random() < 0.5;
+      return Math.random() < 0.5
+        ? (isForehand ? 'defensive_slice_forehand' : 'defensive_slice_backhand')
+        : (isForehand ? 'lob_forehand' : 'lob_backhand');
     }
 
     // Mostly defensive groundstrokes in long rallies
@@ -543,9 +550,12 @@ export class PointSimulator {
       return counts;
     }, {} as Record<ShotType, number>);
 
-    const dominantShot = Object.entries(shotCounts).reduce((dominant, [shotType, count]) =>
-      count > (shotCounts[dominant as ShotType] || 0) ? shotType as ShotType : dominant as ShotType
+    const dominantShotEntry = Object.entries(shotCounts).reduce((dominant, [shotType, count]) =>
+      count > dominant[1] ? [shotType, count] as [string, number] : dominant,
+      ['', 0] as [string, number]
     );
+
+    const dominantShot = dominantShotEntry[0] as ShotType;
 
     return {
       totalShots,
@@ -554,7 +564,7 @@ export class PointSimulator {
       netApproaches,
       rallyExchanges,
       pressureMoments,
-      dominantShot: shotCounts[dominantShot] > 1 ? dominantShot : undefined,
+      dominantShot: dominantShotEntry[1] > 1 ? dominantShot : undefined,
     };
   }
 }

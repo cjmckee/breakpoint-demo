@@ -13,6 +13,9 @@ import type {
   ShotModifiers,
   PlayerStats,
   PlayStyle,
+  TechnicalStats,
+  PhysicalStats,
+  MentalStats,
 } from '../types/index.js';
 import { PlayerProfile } from './PlayerProfile.js';
 
@@ -55,11 +58,11 @@ const SHOT_RANGES = {
  * Shot type classifications for applying bonuses
  */
 const SHOT_CLASSIFICATIONS = {
-  powerShots: ['serve_first', 'forehand_winner', 'backhand_winner', 'overhead', 'passing_shot'],
+  powerShots: ['serve_first', 'forehand_power', 'backhand_power', 'return_forehand_power', 'return_backhand_power', 'overhead', 'passing_shot_forehand', 'passing_shot_backhand'],
   spinShots: ['topspin_forehand', 'topspin_backhand', 'kick_serve', 'slice_forehand', 'slice_backhand'],
-  placementShots: ['drop_shot', 'angle_shot', 'down_the_line', 'cross_court', 'lob'],
-  netShots: ['volley_forehand', 'volley_backhand', 'half_volley'],
-  defensiveShots: ['defensive_slice', 'defensive_overhead', 'return_forehand', 'return_backhand'],
+  placementShots: ['drop_shot_forehand', 'drop_shot_backhand', 'angle_shot_forehand', 'angle_shot_backhand', 'down_the_line_forehand', 'down_the_line_backhand', 'cross_court_forehand', 'cross_court_backhand', 'lob_forehand', 'lob_backhand', 'short_angle_forehand', 'short_angle_backhand'],
+  netShots: ['volley_forehand', 'volley_backhand', 'half_volley_forehand', 'half_volley_backhand'],
+  defensiveShots: ['defensive_slice_forehand', 'defensive_slice_backhand', 'defensive_overhead', 'return_forehand', 'return_backhand'],
 } as const;
 
 export class ShotCalculator {
@@ -359,7 +362,7 @@ export class ShotCalculator {
   /**
    * Get the primary stat name that influences a shot type
    */
-  private getPrimaryStatName(shotType: ShotType): string {
+  private getPrimaryStatName(shotType: ShotType): keyof TechnicalStats | keyof PhysicalStats | keyof MentalStats {
     // Simplified mapping for display purposes
     if (shotType.includes('serve')) return 'serve';
     if (shotType.includes('forehand')) return 'forehand';

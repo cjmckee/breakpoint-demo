@@ -416,11 +416,11 @@ function displayShotTypeStats(stats: any, player1Name: string, player2Name: stri
   // Group shot types by category
   const groundstrokes = ['forehand', 'backhand', 'topspin_forehand', 'topspin_backhand', 'slice_forehand', 'slice_backhand'];
   const serves = ['serve_first', 'serve_second', 'kick_serve'];
-  const returns = ['return_forehand', 'return_backhand', 'return_winner'];
-  const netPlay = ['volley_forehand', 'volley_backhand', 'half_volley', 'overhead'];
+  const returns = ['return_forehand', 'return_backhand', 'return_forehand_power', 'return_backhand_power'];
+  const netPlay = ['volley_forehand', 'volley_backhand', 'half_volley_forehand', 'half_volley_backhand', 'overhead'];
   const approaches = ['forehand_approach', 'backhand_approach'];
-  const tactical = ['drop_shot', 'lob', 'angle_shot', 'passing_shot', 'down_the_line', 'cross_court', 'defensive_slice', 'defensive_overhead', 'short_angle'];
-  const winners = ['forehand_winner', 'backhand_winner'];
+  const tactical = ['drop_shot_forehand', 'drop_shot_backhand', 'lob_forehand', 'lob_backhand', 'angle_shot_forehand', 'angle_shot_backhand', 'passing_shot_forehand', 'passing_shot_backhand', 'down_the_line_forehand', 'down_the_line_backhand', 'cross_court_forehand', 'cross_court_backhand', 'defensive_slice_forehand', 'defensive_slice_backhand', 'defensive_overhead', 'short_angle_forehand', 'short_angle_backhand'];
+  const powerShots = ['forehand_power', 'backhand_power', 'return_forehand_power', 'return_backhand_power'];
 
   let html = '<div class="stat-line shot-detail header"><span>Shot Type</span><span>P1 Att</span><span>P2 Att</span><span>P1 Err</span><span>P2 Err</span><span>P1 Win</span><span>P2 Win</span></div>';
 
@@ -452,7 +452,7 @@ function displayShotTypeStats(stats: any, player1Name: string, player2Name: stri
   addShotCategory('RETURNS', returns);
   addShotCategory('APPROACH SHOTS', approaches);
   addShotCategory('NET PLAY', netPlay);
-  addShotCategory('WINNERS', winners);
+  addShotCategory('POWER SHOTS', powerShots);
   addShotCategory('TACTICAL SHOTS', tactical);
 
   shotStatsDiv.innerHTML = html;

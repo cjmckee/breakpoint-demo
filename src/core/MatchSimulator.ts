@@ -11,6 +11,9 @@ import type {
   MatchFormat,
   CourtSurface,
   ScoreSnapshot,
+  MatchAnalysisData,
+  PointAnalysisData,
+  PointResult,
 } from '../types/index.js';
 import { PlayerProfile } from './PlayerProfile.js';
 import { PointSimulator } from './PointSimulator.js';
@@ -34,6 +37,7 @@ export class MatchSimulator {
   // Match state
   private matchState: MatchState;
   private scoreProgression: ScoreSnapshot[] = [];
+  private pointResults: PointResult[] = [];
   private startTime: number;
 
   constructor(config: MatchConfig) {
@@ -126,6 +130,9 @@ export class MatchSimulator {
       returnerProfile,
       this.matchState
     );
+
+    // Store point result for later analysis
+    this.pointResults.push(pointResult);
 
     // Add point to score tracker
     const pointWinner = this.convertPointWinner(pointResult.winner, currentServer);
@@ -370,6 +377,83 @@ export class MatchSimulator {
    */
   public getStatistics() {
     return this.matchStatistics.getStatistics();
+  }
+
+  /**
+   * Export comprehensive match data for analysis by sub-agent
+   * Includes all shots, contexts, player stats, and outcomes
+   */
+  public exportMatchData(): MatchAnalysisData {
+    const winner = this.scoreTracker.getWinner()!;
+    const finalScore = this.scoreTracker.getScoreString();
+
+    // Convert point results to analysis format
+    const points: PointAnalysisData[] = this.pointResults.map((pointResult, index) => {
+      // Determine the server for this point
+      // This is a simplification - in reality we'd need to track this during simulation
+      const server: 'player' | 'opponent' = index % 2 === 0 ? 'player' : 'opponent';
+
+      // Convert winner from server/returner to player/opponent
+      const pointWinner = pointResult.winner === 'server' ? server :
+                          (server === 'player' ? 'opponent' : 'player');
+
+      // Get the score snapshot for this point (if available)
+      const scoreSnapshot = this.scoreProgression[index];
+
+      return {
+        pointNumber: index + 1,
+        server,
+        winner: pointWinner,
+        pointType: pointResult.pointType,
+        serveType: pointResult.serveType,
+        rallyLength: pointResult.rallyLength,
+        duration: pointResult.duration,
+        shots: pointResult.shots,
+        keyShot: pointResult.keyShot,
+        matchState: scoreSnapshot ? {
+          pressure: this.matchState.pressure,
+          momentum: scoreSnapshot.momentum,
+          isKeyMoment: this.matchState.isKeyMoment,
+          gameScore: scoreSnapshot.gameScore,
+          setScore: scoreSnapshot.setScore,
+        } : {
+          pressure: 'low',
+          momentum: 0,
+          isKeyMoment: false,
+          gameScore: { server: 0, returner: 0, isDeuce: false },
+          setScore: { player: 0, opponent: 0, isComplete: false },
+        },
+      };
+    });
+
+    return {
+      matchId: `match_${Date.now()}`,
+      timestamp: Date.now(),
+      courtSurface: this.config.courtSurface,
+      matchFormat: this.scoreTracker.getScore().matchFormat,
+
+      player: {
+        name: this.config.player.name,
+        stats: this.config.player.stats,
+        playStyle: this.config.player.playStyle,
+        overallRating: this.config.player.overallRating,
+      },
+
+      opponent: {
+        name: this.config.opponent.name,
+        stats: this.config.opponent.stats,
+        playStyle: this.config.opponent.playStyle,
+        overallRating: this.config.opponent.overallRating,
+      },
+
+      winner,
+      finalScore,
+      duration: Math.round(this.matchState.matchLength),
+
+      points,
+      statistics: this.matchStatistics.getStatistics(),
+      scoreProgression: this.scoreProgression,
+    };
   }
 
   /**

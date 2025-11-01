@@ -144,15 +144,15 @@ interface ShotResult {
 
 **Primary Stat Influences:**
 - **serve** → serve_first, serve_second
-- **forehand** → forehand, forehand_winner, forehand_approach
-- **backhand** → backhand, backhand_winner, backhand_approach
-- **volley** → volley_forehand, volley_backhand, half_volley
+- **forehand** → forehand, forehand_power, forehand_approach
+- **backhand** → backhand, backhand_power, backhand_approach
+- **volley** → volley_forehand, volley_backhand, half_volley_forehand, half_volley_backhand
 - **overhead** → overhead, defensive_overhead
-- **drop_shot** → drop_shot, short_angle
-- **slice** → slice_forehand, slice_backhand, defensive_slice
-- **return** → return_forehand, return_backhand, return_winner
+- **drop_shot** → drop_shot_forehand, drop_shot_backhand, short_angle_forehand, short_angle_backhand
+- **slice** → slice_forehand, slice_backhand, defensive_slice_forehand, defensive_slice_backhand
+- **return** → return_forehand, return_backhand, return_forehand_power, return_backhand_power
 - **spin** → topspin_shots (affects all groundstrokes), kick_serve
-- **placement** → angle_shots, down_the_line, cross_court
+- **placement** → angle_shot_forehand, angle_shot_backhand, down_the_line_forehand, down_the_line_backhand, cross_court_forehand, cross_court_backhand, lob_forehand, lob_backhand, passing_shot_forehand, passing_shot_backhand
 
 **Secondary Stat Influences:**
 - **speed** → defensive retrieval, wide shot coverage, net approach speed
