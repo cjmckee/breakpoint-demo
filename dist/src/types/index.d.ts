@@ -29,7 +29,7 @@ export interface MentalStats {
     offensive: number;
     defensive: number;
 }
-export type ShotType = 'serve_first' | 'serve_second' | 'forehand' | 'backhand' | 'forehand_power' | 'backhand_power' | 'forehand_approach' | 'backhand_approach' | 'volley_forehand' | 'volley_backhand' | 'half_volley_forehand' | 'half_volley_backhand' | 'overhead' | 'defensive_overhead' | 'drop_shot_forehand' | 'drop_shot_backhand' | 'short_angle_forehand' | 'short_angle_backhand' | 'slice_forehand' | 'slice_backhand' | 'defensive_slice_forehand' | 'defensive_slice_backhand' | 'return_forehand' | 'return_backhand' | 'return_forehand_power' | 'return_backhand_power' | 'topspin_forehand' | 'topspin_backhand' | 'kick_serve' | 'angle_shot_forehand' | 'angle_shot_backhand' | 'down_the_line_forehand' | 'down_the_line_backhand' | 'cross_court_forehand' | 'cross_court_backhand' | 'lob_forehand' | 'lob_backhand' | 'passing_shot_forehand' | 'passing_shot_backhand';
+export type ShotType = 'serve_first' | 'serve_second' | 'kick_serve' | 'forehand' | 'backhand' | 'forehand_power' | 'backhand_power' | 'forehand_approach' | 'backhand_approach' | 'volley_forehand' | 'volley_backhand' | 'half_volley_forehand' | 'half_volley_backhand' | 'overhead' | 'defensive_overhead' | 'drop_shot_forehand' | 'drop_shot_backhand' | 'short_angle_forehand' | 'short_angle_backhand' | 'angle_shot_forehand' | 'angle_shot_backhand' | 'slice_forehand' | 'slice_backhand' | 'defensive_slice_forehand' | 'defensive_slice_backhand' | 'return_forehand' | 'return_backhand' | 'return_forehand_power' | 'return_backhand_power' | 'topspin_forehand' | 'topspin_backhand' | 'down_the_line_forehand' | 'down_the_line_backhand' | 'cross_court_forehand' | 'cross_court_backhand' | 'lob_forehand' | 'lob_backhand' | 'passing_shot_forehand' | 'passing_shot_backhand';
 export interface ShotContext {
     difficulty: 'easy' | 'normal' | 'hard' | 'extreme';
     pressure: 'low' | 'medium' | 'high';
@@ -40,13 +40,48 @@ export interface ShotContext {
     ballHeight: 'low' | 'medium' | 'high';
     ballSpeed: 'slow' | 'medium' | 'fast';
 }
+export type CourtPosition = 'well_positioned' | 'slightly_off' | 'way_out_wide' | 'way_back_deep' | 'at_net' | 'recovering';
+export interface BallQuality {
+    spin: 'flat' | 'topspin' | 'slice' | 'heavy_topspin';
+    timeAvailable: 'plenty' | 'normal' | 'rushed';
+    baseQuality: number;
+}
+export interface ShotPreference {
+    forehandProbability: number;
+    preferredSide: 'forehand' | 'backhand' | 'balanced';
+    runAroundBackhand: boolean;
+    strongShotStat: number;
+    weakShotStat: number;
+}
+export interface TacticalOpportunity {
+    attackOpportunity: 'none' | 'low' | 'medium' | 'high';
+    netApproachSuitable: boolean;
+    winnerAttemptSuitable: boolean;
+    defensiveRequired: boolean;
+    tacticalShotSuitable: boolean;
+    recommendedAggression: number;
+}
+export interface RallyState {
+    rallyLength: number;
+    lastShotQuality: number;
+    lastShotType: ShotType;
+    shooterPosition: CourtPosition;
+    opponentPosition: CourtPosition;
+    ballQuality: BallQuality;
+}
+export interface QualityThresholds {
+    winner: number;
+    inPlay: number;
+    forcedError: number;
+}
 export interface ShotResult {
     success: boolean;
-    outcome: 'winner' | 'in_play' | 'error';
+    outcome: 'winner' | 'in_play' | 'forced_error' | 'unforced_error' | 'error';
     quality: number;
     shotType: ShotType;
     statUsed: keyof PlayerStats['technical'] | keyof PlayerStats['physical'] | keyof PlayerStats['mental'];
     modifiers: ShotModifiers;
+    thresholds?: QualityThresholds;
 }
 export interface ShotModifiers {
     spinBonus: number;
@@ -57,19 +92,21 @@ export interface ShotModifiers {
     pressureModifier: number;
     rallyLengthModifier: number;
     finalAdjustment: number;
+    serveVariance?: number;
 }
 export interface ShotDetail {
     shotType: ShotType;
     shooter: 'server' | 'returner';
     success: boolean;
     quality: number;
-    outcome: 'winner' | 'in_play' | 'error';
+    outcome: 'winner' | 'in_play' | 'error' | 'forced_error' | 'unforced_error';
     errorType?: 'forced' | 'unforced';
     statUsed: string;
     modifiers: ShotModifiers;
     timestamp: number;
     shotNumber: number;
     context: ShotContext;
+    thresholds?: QualityThresholds;
 }
 export interface PointResult {
     winner: 'server' | 'returner';

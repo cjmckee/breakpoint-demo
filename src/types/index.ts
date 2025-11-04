@@ -51,45 +51,73 @@ export interface MentalStats {
 
 /**
  * All possible shot types in tennis simulation
+ * All shots have forehand and backhand representations except serve and overhead
  */
 export type ShotType =
+  // Serves (no forehand/backhand distinction)
   | 'serve_first'
   | 'serve_second'
+  | 'kick_serve'
+
+  // Basic groundstrokes
   | 'forehand'
   | 'backhand'
+
+  // Power shots
   | 'forehand_power'
   | 'backhand_power'
+
+  // Approach shots
   | 'forehand_approach'
   | 'backhand_approach'
+
+  // Volleys
   | 'volley_forehand'
   | 'volley_backhand'
   | 'half_volley_forehand'
   | 'half_volley_backhand'
+
+  // Overheads (no forehand/backhand distinction)
   | 'overhead'
   | 'defensive_overhead'
+
+  // Drop shots
   | 'drop_shot_forehand'
   | 'drop_shot_backhand'
+
+  // Angle shots
   | 'short_angle_forehand'
   | 'short_angle_backhand'
+  | 'angle_shot_forehand'
+  | 'angle_shot_backhand'
+
+  // Slice shots
   | 'slice_forehand'
   | 'slice_backhand'
   | 'defensive_slice_forehand'
   | 'defensive_slice_backhand'
+
+  // Returns
   | 'return_forehand'
   | 'return_backhand'
   | 'return_forehand_power'
   | 'return_backhand_power'
+
+  // Topspin shots
   | 'topspin_forehand'
   | 'topspin_backhand'
-  | 'kick_serve'
-  | 'angle_shot_forehand'
-  | 'angle_shot_backhand'
+
+  // Directional shots
   | 'down_the_line_forehand'
   | 'down_the_line_backhand'
   | 'cross_court_forehand'
   | 'cross_court_backhand'
+
+  // Lobs
   | 'lob_forehand'
   | 'lob_backhand'
+
+  // Passing shots
   | 'passing_shot_forehand'
   | 'passing_shot_backhand';
 
@@ -107,16 +135,87 @@ export interface ShotContext {
   ballSpeed: 'slow' | 'medium' | 'fast';
 }
 
+// =======================
+// SHOT SELECTION SYSTEM
+// =======================
+
+/**
+ * Court position for both shooter and opponent
+ * Unified type that handles positioning on court
+ */
+export type CourtPosition =
+  | 'well_positioned'     // Centered, ready, good coverage
+  | 'slightly_off'        // A bit off center or slightly back
+  | 'way_out_wide'        // Pushed wide to deuce or ad side
+  | 'way_back_deep'       // Pushed behind baseline
+  | 'at_net'              // At the net (player or opponent)
+  | 'recovering';         // In transition, moving to position
+
+/**
+ * Simplified incoming ball characteristics
+ * Used to determine shot difficulty and options
+ */
+export interface BallQuality {
+  spin: 'flat' | 'topspin' | 'slice' | 'heavy_topspin';
+  timeAvailable: 'plenty' | 'normal' | 'rushed';
+  baseQuality: number; // 0-100, combines speed/placement/depth
+}
+
+/**
+ * Shot preference based on forehand/backhand stat differential
+ */
+export interface ShotPreference {
+  forehandProbability: number; // 0.3-0.7 based on stat differential
+  preferredSide: 'forehand' | 'backhand' | 'balanced';
+  runAroundBackhand: boolean; // If FH much stronger, run around BH
+  strongShotStat: number; // The better stat value
+  weakShotStat: number; // The weaker stat value
+}
+
+/**
+ * Tactical opportunity evaluation from current situation
+ */
+export interface TacticalOpportunity {
+  attackOpportunity: 'none' | 'low' | 'medium' | 'high';
+  netApproachSuitable: boolean;
+  winnerAttemptSuitable: boolean;
+  defensiveRequired: boolean;
+  tacticalShotSuitable: boolean; // drop shot, lob, angle
+  recommendedAggression: number; // 0-100
+}
+
+/**
+ * Complete rally state for shot selection
+ */
+export interface RallyState {
+  rallyLength: number;
+  lastShotQuality: number; // 0-100 from previous ShotResult
+  lastShotType: ShotType;
+  shooterPosition: CourtPosition;
+  opponentPosition: CourtPosition;
+  ballQuality: BallQuality; // Incoming ball characteristics
+}
+
+/**
+ * Quality thresholds for determining shot outcomes
+ */
+export interface QualityThresholds {
+  winner: number;         // Quality needed for winner
+  inPlay: number;         // Quality needed to succeed
+  forcedError: number;    // Below this = forced error (vs unforced)
+}
+
 /**
  * Result of a shot attempt
  */
 export interface ShotResult {
   success: boolean;
-  outcome: 'winner' | 'in_play' | 'error';
+  outcome: 'winner' | 'in_play' | 'forced_error' | 'unforced_error' | 'error';
   quality: number; // 0-100
   shotType: ShotType;
   statUsed: keyof PlayerStats['technical'] | keyof PlayerStats['physical'] | keyof PlayerStats['mental'];
   modifiers: ShotModifiers;
+  thresholds?: QualityThresholds; // NEW: for transparency and debugging
 }
 
 /**
@@ -131,6 +230,7 @@ export interface ShotModifiers {
   pressureModifier: number;
   rallyLengthModifier: number;
   finalAdjustment: number;
+  serveVariance?: number;  // NEW: track serve-specific variance applied
 }
 
 // =======================
@@ -145,13 +245,14 @@ export interface ShotDetail {
   shooter: 'server' | 'returner';
   success: boolean;
   quality: number;
-  outcome: 'winner' | 'in_play' | 'error';
-  errorType?: 'forced' | 'unforced'; // Only set when outcome is 'error'
+  outcome: 'winner' | 'in_play' | 'error' | 'forced_error' | 'unforced_error';
+  errorType?: 'forced' | 'unforced'; // Deprecated: use outcome instead
   statUsed: string;
   modifiers: ShotModifiers;
   timestamp: number;
   shotNumber: number;
   context: ShotContext;
+  thresholds?: QualityThresholds; // NEW: for transparency and match analysis
 }
 
 /**

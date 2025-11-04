@@ -10,17 +10,25 @@ import type {
   ShotDetail,
   ShotContext,
   ShotType,
+  ShotResult,
   MatchState,
   PointStatistics,
+  RallyState,
+  CourtPosition,
+  BallQuality,
+  TacticalOpportunity,
 } from '../types/index.js';
 import { PlayerProfile } from './PlayerProfile.js';
 import { ShotCalculator } from './ShotCalculator.js';
+import { ShotSelector } from './ShotSelector.js';
 
 export class PointSimulator {
   private shotCalculator: ShotCalculator;
+  private shotSelector: ShotSelector;
 
   constructor() {
     this.shotCalculator = new ShotCalculator();
+    this.shotSelector = new ShotSelector();
   }
 
   /**
@@ -93,7 +101,10 @@ export class PointSimulator {
     const firstServeResult = this.shotCalculator.calculateShotSuccess(
       server,
       'serve_first',
-      firstServeContext
+      firstServeContext,
+      returner,                    // NEW: opponent profile
+      'well_positioned',           // NEW: returner position
+      undefined                    // NEW: no incoming shot for serve
     );
 
     // Check first serve result
@@ -110,6 +121,7 @@ export class PointSimulator {
         timestamp: Date.now(),
         shotNumber: 1,
         context: firstServeContext,
+        thresholds: firstServeResult.thresholds,
       };
       shots.push(firstServeShot);
 
@@ -135,6 +147,7 @@ export class PointSimulator {
         timestamp: Date.now(),
         shotNumber: 1,
         context: firstServeContext,
+        thresholds: firstServeResult.thresholds,
       };
       shots.push(firstServeShot);
 
@@ -151,7 +164,10 @@ export class PointSimulator {
     const secondServeResult = this.shotCalculator.calculateShotSuccess(
       server,
       'serve_second',
-      secondServeContext
+      secondServeContext,
+      returner,                    // NEW: opponent profile
+      'well_positioned',           // NEW: returner position
+      undefined                    // NEW: no incoming shot for serve
     );
 
     const secondServeShot: ShotDetail = {
@@ -165,6 +181,7 @@ export class PointSimulator {
       timestamp: Date.now(),
       shotNumber: 1, // Second serve is shot #1 when it starts the rally
       context: secondServeContext,
+      thresholds: secondServeResult.thresholds,
     };
 
     shots.push(secondServeShot);
@@ -222,27 +239,64 @@ export class PointSimulator {
     let previousShot: ShotDetail | null = null;
     const maxRallyLength = 30; // Prevent infinite rallies
 
+    // NEW: Track court positions throughout rally
+    let serverPosition: CourtPosition = 'well_positioned';
+    let returnerPosition: CourtPosition = 'well_positioned';
+
     while (shotNumber - startingShotNumber < maxRallyLength) {
       const shooterProfile = currentShooter === 'server' ? server : returner;
+      const opponentProfile = currentShooter === 'server' ? returner : server;
       const rallyLength = shotNumber - startingShotNumber + 1;
 
-      // Select shot type based on situation and player style
-      const shotType = this.selectShotType(shooterProfile, rallyLength, matchState);
+      // NEW: Get current positions
+      const shooterPosition = currentShooter === 'server' ? serverPosition : returnerPosition;
+      const opponentPosition = currentShooter === 'server' ? returnerPosition : serverPosition;
+
+      // NEW: Calculate ball quality from previous shot
+      const ballQuality = this.calculateBallQuality(previousShot);
+
+      // NEW: Build rally state for shot selection
+      const rallyState: RallyState = {
+        rallyLength,
+        lastShotQuality: previousShot?.quality ?? 50,
+        lastShotType: previousShot?.shotType ?? 'serve_first',
+        shooterPosition,
+        opponentPosition,
+        ballQuality,
+      };
+
+      // NEW: Use ShotSelector instead of old selectShotType
+      const shotType = this.shotSelector.selectShot(
+        shooterProfile,
+        opponentProfile,
+        rallyState,
+        matchState
+      );
 
       // Create context for this shot
       const shotContext = this.createRallyContext(rallyLength, matchState, shooterProfile);
 
-      // Calculate shot result
+      // NEW: Calculate tactical opportunity for ShotCalculator
+      const tacticalOpportunity = this.evaluateTacticalOpportunity(rallyState);
+
+      // Calculate shot result with new threshold system
       const shotResult = this.shotCalculator.calculateShotSuccess(
         shooterProfile,
         shotType,
-        shotContext
+        shotContext,
+        opponentProfile,                    // NEW: required opponent profile
+        opponentPosition,                   // NEW: required opponent position
+        previousShot ?? undefined,          // NEW: previous shot for incoming quality (convert null to undefined)
+        ballQuality,                        // Legacy parameter (optional)
+        tacticalOpportunity                 // Optional tactical context
       );
 
-      // Determine if this error is forced or unforced based on opponent's previous shot
+      // Error classification now handled by threshold system
       let errorType: 'forced' | 'unforced' | undefined;
-      if (shotResult.outcome === 'error') {
-        errorType = this.classifyError(previousShot, shotContext);
+      if (shotResult.outcome === 'forced_error') {
+        errorType = 'forced';
+      } else if (shotResult.outcome === 'unforced_error') {
+        errorType = 'unforced';
       }
 
       // Create shot detail
@@ -258,6 +312,7 @@ export class PointSimulator {
         timestamp: Date.now(),
         shotNumber,
         context: shotContext,
+        thresholds: shotResult.thresholds, // NEW: include thresholds for analysis
       };
 
       shots.push(shotDetail);
@@ -271,7 +326,7 @@ export class PointSimulator {
         };
       }
 
-      if (shotResult.outcome === 'error') {
+      if (shotResult.outcome === 'forced_error' || shotResult.outcome === 'unforced_error' || shotResult.outcome === 'error') {
         const opponent = currentShooter === 'server' ? 'returner' : 'server';
         const pointType = errorType === 'forced' ? 'forced_error' : 'unforced_error';
         return {
@@ -283,6 +338,20 @@ export class PointSimulator {
 
       // Shot was successful and in play, continue rally
       previousShot = shotDetail;
+
+      // NEW: Update opponent position based on this shot
+      const newOpponentPosition = this.updateCourtPosition(
+        shotResult,
+        shotType,
+        opponentPosition
+      );
+
+      if (currentShooter === 'server') {
+        returnerPosition = newOpponentPosition;
+      } else {
+        serverPosition = newOpponentPosition;
+      }
+
       currentShooter = currentShooter === 'server' ? 'returner' : 'server';
       shotNumber++;
     }
@@ -406,75 +475,135 @@ export class PointSimulator {
   }
 
   /**
-   * Select appropriate shot type based on situation and player style
+   * Calculate ball quality from previous shot result and type
+   * Derives spin, timeAvailable, and baseQuality from shot characteristics
    */
-  private selectShotType(
-    shooterProfile: PlayerProfile,
-    rallyLength: number,
-    matchState: MatchState
-  ): ShotType {
-    const playStyle = shooterProfile.playStyle;
-
-    // Return shots (first shot after serve)
-    if (rallyLength === 1) {
-      if (playStyle.aggression > 70) {
-        // Aggressive power return - choose forehand or backhand
-        return Math.random() < 0.5 ? 'return_forehand_power' : 'return_backhand_power';
-      }
-      return Math.random() < 0.5 ? 'return_forehand' : 'return_backhand';
+  private calculateBallQuality(previousShot: ShotDetail | null): BallQuality {
+    if (!previousShot) {
+      // No previous shot (e.g., first shot after serve) - neutral ball
+      return {
+        spin: 'flat',
+        timeAvailable: 'normal',
+        baseQuality: 50,
+      };
     }
 
-    // Early rally (shots 2-4)
-    if (rallyLength <= 4) {
-      if (playStyle.aggression > 80 && Math.random() < 0.3) {
-        return Math.random() < 0.5 ? 'forehand_power' : 'backhand_power';
-      }
+    const { shotType, quality, success } = previousShot;
 
-      if (playStyle.netApproach > 70 && Math.random() < 0.4) {
-        return Math.random() < 0.5 ? 'forehand_approach' : 'backhand_approach';
-      }
-
-      return Math.random() < 0.6 ? 'forehand' : 'backhand';
+    // Derive spin from shot type
+    let spin: BallQuality['spin'];
+    if (shotType.includes('slice') || shotType.includes('defensive_slice')) {
+      spin = 'slice';
+    } else if (shotType.includes('topspin') || shotType.includes('kick')) {
+      spin = quality >= 70 ? 'heavy_topspin' : 'topspin';
+    } else if (shotType.includes('power')) {
+      spin = 'flat';
+    } else {
+      spin = 'topspin'; // Default for most groundstrokes
     }
 
-    // Mid rally (shots 5-10)
-    if (rallyLength <= 10) {
-      // Net players try to get to net
-      if (playStyle.netApproach > 60 && Math.random() < 0.3) {
-        return Math.random() < 0.5 ? 'volley_forehand' : 'volley_backhand';
-      }
-
-      // Tactical shots for variety-focused players
-      if (shooterProfile.stats.mental.shot_variety > 70 && Math.random() < 0.2) {
-        const isForehand = Math.random() < 0.5;
-        const tacticalShots: ShotType[] = isForehand
-          ? ['drop_shot_forehand', 'lob_forehand', 'angle_shot_forehand']
-          : ['drop_shot_backhand', 'lob_backhand', 'angle_shot_backhand'];
-        return tacticalShots[Math.floor(Math.random() * tacticalShots.length)];
-      }
-
-      // Regular groundstrokes with occasional power shots
-      if (playStyle.aggression > 60 && Math.random() < 0.25) {
-        return Math.random() < 0.5 ? 'forehand_power' : 'backhand_power';
-      }
-
-      return Math.random() < 0.5 ? 'forehand' : 'backhand';
+    // Derive time available from shot quality and type
+    let timeAvailable: BallQuality['timeAvailable'];
+    if (quality >= 80 || shotType.includes('power')) {
+      timeAvailable = 'rushed'; // Fast, powerful shots
+    } else if (quality < 50 || shotType.includes('slice') || shotType.includes('lob')) {
+      timeAvailable = 'plenty'; // Slow, loopy shots
+    } else {
+      timeAvailable = 'normal';
     }
 
-    // Long rally (shots 11+) - more defensive, occasional desperation shots
-    if (rallyLength > 15 && Math.random() < 0.3) {
-      const isForehand = Math.random() < 0.5;
-      return Math.random() < 0.5
-        ? (isForehand ? 'defensive_slice_forehand' : 'defensive_slice_backhand')
-        : (isForehand ? 'lob_forehand' : 'lob_backhand');
+    // Base quality is the shot quality with some randomness
+    const randomVariance = (Math.random() - 0.5) * 10; // ±5 points
+    const baseQuality = Math.max(0, Math.min(100, quality + randomVariance));
+
+    return {
+      spin,
+      timeAvailable,
+      baseQuality,
+    };
+  }
+
+  /**
+   * Update opponent court position based on shot result
+   * High quality shots push opponent out of position
+   */
+  private updateCourtPosition(
+    shotResult: ShotResult,
+    shotType: ShotType,
+    currentPosition: CourtPosition
+  ): CourtPosition {
+    // If shot was an error, opponent doesn't need to move (they won the point)
+    if (!shotResult.success) return currentPosition;
+
+    const quality = shotResult.quality;
+
+    // Approach shots and volleys put shooter at net
+    if (shotType.includes('approach') || shotType.includes('volley')) {
+      // This is updating opponent position - if shooter approaches, opponent faces net player
+      return currentPosition; // Opponent stays where they are
     }
 
-    // Mostly defensive groundstrokes in long rallies
-    if (playStyle.consistency > 60) {
-      return Math.random() < 0.5 ? 'slice_forehand' : 'slice_backhand';
+    // High quality shots push opponent out of position
+    if (quality >= 85) {
+      if (shotType.includes('angle') || shotType.includes('passing')) {
+        return 'way_out_wide';
+      }
+      if (shotType.includes('lob') || quality >= 90) {
+        return 'way_back_deep';
+      }
+      return 'slightly_off';
     }
 
-    return Math.random() < 0.5 ? 'forehand' : 'backhand';
+    // Good shots create some advantage
+    if (quality >= 70) {
+      return 'slightly_off';
+    }
+
+    // Weak shots let opponent recover
+    if (quality < 50) {
+      return 'well_positioned';
+    }
+
+    // Medium shots: opponent recovers slightly
+    if (currentPosition === 'way_out_wide' || currentPosition === 'way_back_deep') {
+      return 'recovering';
+    }
+    if (currentPosition === 'recovering') {
+      return 'slightly_off';
+    }
+
+    return 'well_positioned';
+  }
+
+  /**
+   * Evaluate tactical opportunity from rally state
+   * (Simplified version - ShotSelector has the full implementation)
+   */
+  private evaluateTacticalOpportunity(rallyState: RallyState): TacticalOpportunity {
+    const { opponentPosition, lastShotQuality, ballQuality } = rallyState;
+
+    // Attack opportunity scoring (simplified)
+    let attackScore = 0;
+
+    if (opponentPosition === 'way_out_wide') attackScore += 40;
+    if (opponentPosition === 'way_back_deep') attackScore += 35;
+    if (opponentPosition === 'recovering') attackScore += 30;
+    if (lastShotQuality >= 70) attackScore += 20;
+    if (ballQuality.baseQuality < 50) attackScore += 15;
+
+    const defensiveRequired =
+      ballQuality.timeAvailable === 'rushed' ||
+      ballQuality.baseQuality >= 80 ||
+      opponentPosition === 'at_net';
+
+    return {
+      attackOpportunity: attackScore >= 60 ? 'high' : attackScore >= 35 ? 'medium' : 'low',
+      netApproachSuitable: attackScore >= 40 && !defensiveRequired,
+      winnerAttemptSuitable: attackScore >= 30 && !defensiveRequired,
+      defensiveRequired,
+      tacticalShotSuitable: !defensiveRequired,
+      recommendedAggression: Math.min(100, attackScore),
+    };
   }
 
   /**

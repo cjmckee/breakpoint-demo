@@ -99,22 +99,22 @@ export class PlayerProfile implements IPlayerProfile {
    */
   public getStatForShot(shotType: ShotType): number {
     const shotStatMapping: Record<ShotType, keyof PlayerStats['technical']> = {
-      // Serves
+      // Serves (no forehand/backhand distinction)
       'serve_first': 'serve',
       'serve_second': 'serve',
       'kick_serve': 'serve',
 
-      // Forehand shots
+      // Basic groundstrokes
       'forehand': 'forehand',
-      'forehand_power': 'forehand',
-      'forehand_approach': 'forehand',
-      'topspin_forehand': 'forehand',
-
-      // Backhand shots
       'backhand': 'backhand',
+
+      // Power shots
+      'forehand_power': 'forehand',
       'backhand_power': 'backhand',
+
+      // Approach shots
+      'forehand_approach': 'forehand',
       'backhand_approach': 'backhand',
-      'topspin_backhand': 'backhand',
 
       // Volleys
       'volley_forehand': 'volley',
@@ -122,15 +122,19 @@ export class PlayerProfile implements IPlayerProfile {
       'half_volley_forehand': 'volley',
       'half_volley_backhand': 'volley',
 
-      // Overhead shots
+      // Overheads (no forehand/backhand distinction)
       'overhead': 'overhead',
       'defensive_overhead': 'overhead',
 
       // Drop shots
       'drop_shot_forehand': 'drop_shot',
       'drop_shot_backhand': 'drop_shot',
+
+      // Angle shots
       'short_angle_forehand': 'drop_shot',
       'short_angle_backhand': 'drop_shot',
+      'angle_shot_forehand': 'placement',
+      'angle_shot_backhand': 'placement',
 
       // Slice shots
       'slice_forehand': 'slice',
@@ -144,15 +148,21 @@ export class PlayerProfile implements IPlayerProfile {
       'return_forehand_power': 'return',
       'return_backhand_power': 'return',
 
-      // Placement shots
-      'angle_shot_forehand': 'placement',
-      'angle_shot_backhand': 'placement',
+      // Topspin shots
+      'topspin_forehand': 'forehand',
+      'topspin_backhand': 'backhand',
+
+      // Directional shots
       'down_the_line_forehand': 'placement',
       'down_the_line_backhand': 'placement',
       'cross_court_forehand': 'placement',
       'cross_court_backhand': 'placement',
+
+      // Lobs
       'lob_forehand': 'placement',
       'lob_backhand': 'placement',
+
+      // Passing shots
       'passing_shot_forehand': 'placement',
       'passing_shot_backhand': 'placement',
     };

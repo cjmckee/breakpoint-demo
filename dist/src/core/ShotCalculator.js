@@ -1,15 +1,5 @@
+import { RELATIVE_QUALITY_REQUIREMENTS, MIN_QUALITY_FLOORS, OUTCOME_MULTIPLIERS, SERVE_BASELINE, OPPONENT_STAT_ADJUSTMENTS, POSITION_ADJUSTMENTS, SERVE_VARIANCE, SERVE_BONUSES, getShotCategory, } from '../config/shotThresholds.js';
 const SHOT_RANGES = {
-    baseSuccessRates: {
-        easy: { min: 45, max: 95 },
-        normal: { min: 30, max: 90 },
-        hard: { min: 15, max: 85 },
-        extreme: { min: 5, max: 60 },
-    },
-    winnerRates: {
-        aggressive: { min: 3, max: 45 },
-        balanced: { min: 2, max: 35 },
-        defensive: { min: 1, max: 25 },
-    },
     pressureModifiers: {
         low: { min: 1.0, max: 1.05 },
         medium: { min: 0.75, max: 1.0 },
@@ -30,44 +20,121 @@ const SHOT_CLASSIFICATIONS = {
     defensiveShots: ['defensive_slice_forehand', 'defensive_slice_backhand', 'defensive_overhead', 'return_forehand', 'return_backhand'],
 };
 export class ShotCalculator {
-    calculateShotSuccess(shooterProfile, shotType, context) {
+    calculateShotSuccess(shooterProfile, shotType, context, opponentProfile, opponentPosition, incomingShot, ballQuality, tacticalOpportunity) {
         const primaryStat = shooterProfile.getStatForShot(shotType);
-        const modifiers = this.calculateModifiers(shooterProfile, shotType, context);
-        const adjustedStat = this.applyModifiers(primaryStat, modifiers);
-        const baseSuccessRate = this.calculateBaseSuccessRate(adjustedStat, context.difficulty);
-        const finalSuccessRate = Math.min(98, Math.max(2, baseSuccessRate));
-        const outcome = this.determineOutcome(finalSuccessRate, adjustedStat, shooterProfile.playStyle, shotType);
+        const modifiers = this.calculateModifiers(shooterProfile, shotType, context, incomingShot, ballQuality, tacticalOpportunity, opponentPosition);
+        const quality = this.applyModifiers(primaryStat, modifiers);
+        let outcome;
+        let thresholds;
+        if (shotType.includes('serve')) {
+            const serveOutcome = this.determineServeOutcome(quality, shotType, opponentProfile.stats.technical.return);
+            outcome = serveOutcome.outcome;
+            thresholds = serveOutcome.thresholds;
+        }
+        else {
+            const incomingQuality = incomingShot?.quality ?? 50;
+            thresholds = this.calculateQualityRequirements(incomingQuality, shotType, opponentProfile.stats, opponentPosition);
+            outcome = this.determineOutcome(quality, thresholds);
+        }
         return {
-            success: outcome.outcome !== 'error',
-            outcome: outcome.outcome,
-            quality: adjustedStat,
+            success: outcome === 'winner' || outcome === 'in_play',
+            outcome,
+            quality,
             shotType,
             statUsed: this.getPrimaryStatName(shotType),
             modifiers,
+            thresholds,
         };
     }
-    calculateBaseSuccessRate(statValue, difficulty) {
-        const range = SHOT_RANGES.baseSuccessRates[difficulty];
-        const successRate = range.min + (statValue / 100) * (range.max - range.min);
-        return successRate;
+    calculateQualityRequirements(incomingQuality, shotType, opponentStats, opponentPosition) {
+        const baseMultiplier = RELATIVE_QUALITY_REQUIREMENTS[shotType];
+        const baseRequirement = incomingQuality * baseMultiplier;
+        const shotCategory = getShotCategory(shotType);
+        const minFloor = MIN_QUALITY_FLOORS[shotCategory];
+        let inPlayReq = Math.max(baseRequirement, minFloor);
+        const defensiveAdj = (opponentStats.mental.defensive - 50) * OPPONENT_STAT_ADJUSTMENTS.defensive;
+        inPlayReq += defensiveAdj;
+        const speedAdj = (opponentStats.physical.speed - 50) * OPPONENT_STAT_ADJUSTMENTS.speed;
+        inPlayReq += speedAdj;
+        const positionAdj = POSITION_ADJUSTMENTS[opponentPosition];
+        inPlayReq += positionAdj;
+        return {
+            winner: inPlayReq * OUTCOME_MULTIPLIERS.winner,
+            inPlay: inPlayReq,
+            forcedError: inPlayReq * OUTCOME_MULTIPLIERS.forcedError,
+        };
     }
-    calculateModifiers(shooterProfile, shotType, context) {
+    determineOutcome(quality, thresholds) {
+        if (quality >= thresholds.winner)
+            return 'winner';
+        if (quality >= thresholds.inPlay)
+            return 'in_play';
+        if (quality >= thresholds.forcedError)
+            return 'forced_error';
+        return 'unforced_error';
+    }
+    determineServeOutcome(serveQuality, serveType, opponentReturnStat) {
+        const baseline = SERVE_BASELINE[serveType];
+        const serveIn = serveQuality >= baseline.inPlayThreshold;
+        if (!serveIn) {
+            return {
+                outcome: 'error',
+                thresholds: {
+                    winner: opponentReturnStat * baseline.aceMultiplier,
+                    inPlay: baseline.inPlayThreshold,
+                    forcedError: 0,
+                },
+            };
+        }
+        const aceThreshold = opponentReturnStat * baseline.aceMultiplier;
+        const isAce = serveQuality >= aceThreshold;
+        return {
+            outcome: isAce ? 'winner' : 'in_play',
+            thresholds: {
+                winner: aceThreshold,
+                inPlay: baseline.inPlayThreshold,
+                forcedError: 0,
+            },
+        };
+    }
+    calculateModifiers(shooterProfile, shotType, context, incomingShot, ballQuality, tacticalOpportunity, opponentPosition) {
         const stats = shooterProfile.stats;
         const playStyle = shooterProfile.playStyle;
-        const spinBonus = this.calculateSpinBonus(shotType, stats.technical.spin);
+        let spinBonus = this.calculateSpinBonus(shotType, stats.technical.spin);
         const placementBonus = this.calculatePlacementBonus(shotType, stats.technical.placement);
-        const physicalModifier = this.calculatePhysicalModifier(shotType, context, stats.physical);
-        const mentalModifier = this.calculateMentalModifier(context, stats.mental, playStyle);
+        let physicalModifier = this.calculatePhysicalModifier(shotType, context, stats.physical);
+        let mentalModifier = this.calculateMentalModifier(context, stats.mental, playStyle);
+        let serveVariance = 0;
+        if (shotType === 'serve_first') {
+            const offensiveBonus = (stats.mental.offensive / 100) * SERVE_BONUSES.first.offensive;
+            const strengthBonus = (stats.physical.strength / 100) * SERVE_BONUSES.first.strength;
+            const spinBonusServe = (stats.technical.spin / 100) * SERVE_BONUSES.first.spin;
+            physicalModifier *= (1 + offensiveBonus + strengthBonus);
+            spinBonus += spinBonusServe * 100;
+            serveVariance = (Math.random() - 0.5) * 2 * SERVE_VARIANCE.first;
+        }
+        else if (shotType === 'serve_second' || shotType === 'kick_serve') {
+            const consistencyBonus = (playStyle.consistency / 100) * SERVE_BONUSES.second.consistency;
+            const spinBonusServe = (stats.technical.spin / 100) * SERVE_BONUSES.second.spin;
+            const defensiveBonus = (stats.mental.defensive / 100) * SERVE_BONUSES.second.defensive;
+            mentalModifier *= (1 + consistencyBonus + defensiveBonus);
+            spinBonus += spinBonusServe * 100;
+            serveVariance = (Math.random() - 0.5) * 2 * SERVE_VARIANCE.second;
+        }
         const difficultyModifier = this.getDifficultyModifier(context.difficulty);
         const pressureModifier = this.getPressureModifier(context.pressure, stats.mental.focus);
         const rallyLengthModifier = this.getRallyLengthModifier(context.rallyLength, stats.physical.stamina);
+        const ballQualityModifier = this.getBallQualityModifier(ballQuality, stats.physical);
+        const tacticalModifier = this.getTacticalModifier(shotType, tacticalOpportunity, opponentPosition);
         const finalAdjustment = (1 + spinBonus / 100) *
             (1 + placementBonus / 100) *
             physicalModifier *
             mentalModifier *
             difficultyModifier *
             pressureModifier *
-            rallyLengthModifier;
+            rallyLengthModifier *
+            ballQualityModifier *
+            tacticalModifier;
         return {
             spinBonus,
             placementBonus,
@@ -77,6 +144,7 @@ export class ShotCalculator {
             pressureModifier,
             rallyLengthModifier,
             finalAdjustment,
+            serveVariance,
         };
     }
     calculateSpinBonus(shotType, spinStat) {
@@ -156,29 +224,11 @@ export class ShotCalculator {
         return range.min + (staminaStat / 100) * (range.max - range.min);
     }
     applyModifiers(baseStat, modifiers) {
-        return Math.min(100, Math.max(0, baseStat * modifiers.finalAdjustment));
-    }
-    determineOutcome(successRate, adjustedStat, playStyle, shotType) {
-        const roll = Math.random() * 100;
-        if (roll > successRate) {
-            return { outcome: 'error' };
+        let quality = baseStat * modifiers.finalAdjustment;
+        if (modifiers.serveVariance !== undefined) {
+            quality += modifiers.serveVariance;
         }
-        const playStyleCategory = this.getPlayStyleCategory(playStyle);
-        const winnerRange = SHOT_RANGES.winnerRates[playStyleCategory];
-        const baseWinnerProbability = winnerRange.min + (adjustedStat / 100) * (winnerRange.max - winnerRange.min);
-        const shotTypeBonus = SHOT_CLASSIFICATIONS.powerShots.includes(shotType) ? 1.3 : 1.0;
-        const finalWinnerProbability = baseWinnerProbability * shotTypeBonus;
-        if (roll < finalWinnerProbability) {
-            return { outcome: 'winner' };
-        }
-        return { outcome: 'in_play' };
-    }
-    getPlayStyleCategory(playStyle) {
-        if (playStyle.aggression >= 70)
-            return 'aggressive';
-        if (playStyle.aggression <= 40)
-            return 'defensive';
-        return 'balanced';
+        return Math.min(100, Math.max(0, quality));
     }
     getPrimaryStatName(shotType) {
         if (shotType.includes('serve'))
@@ -201,11 +251,64 @@ export class ShotCalculator {
             return 'placement';
         return 'placement';
     }
+    getBallQualityModifier(ballQuality, physical) {
+        if (!ballQuality)
+            return 1.0;
+        let modifier = 1.0;
+        if (ballQuality.timeAvailable === 'rushed') {
+            const rushHandling = (physical.speed + physical.agility) / 2;
+            modifier *= 0.6 + (rushHandling / 100) * 0.4;
+        }
+        else if (ballQuality.timeAvailable === 'plenty') {
+            modifier *= 1.05;
+        }
+        if (ballQuality.baseQuality >= 80) {
+            modifier *= 0.85;
+        }
+        else if (ballQuality.baseQuality >= 60) {
+            modifier *= 0.95;
+        }
+        else if (ballQuality.baseQuality < 40) {
+            modifier *= 1.1;
+        }
+        return modifier;
+    }
+    getTacticalModifier(shotType, tacticalOpportunity, opponentPosition) {
+        if (!tacticalOpportunity || !opponentPosition)
+            return 1.0;
+        let modifier = 1.0;
+        if (shotType.includes('passing_shot')) {
+            if (opponentPosition === 'at_net') {
+                modifier *= 0.8;
+            }
+        }
+        if (shotType.includes('drop_shot')) {
+            if (opponentPosition === 'way_back_deep') {
+                modifier *= 1.2;
+            }
+            else if (opponentPosition === 'at_net') {
+                modifier *= 0.7;
+            }
+        }
+        if (SHOT_CLASSIFICATIONS.powerShots.includes(shotType)) {
+            if (tacticalOpportunity.attackOpportunity === 'high') {
+                modifier *= 1.15;
+            }
+            else if (tacticalOpportunity.attackOpportunity === 'low') {
+                modifier *= 0.95;
+            }
+        }
+        if (SHOT_CLASSIFICATIONS.defensiveShots.includes(shotType)) {
+            if (tacticalOpportunity.defensiveRequired) {
+                modifier *= 1.1;
+            }
+        }
+        return modifier;
+    }
     explainShotCalculation(shooterProfile, shotType, context) {
         const primaryStat = shooterProfile.getStatForShot(shotType);
         const modifiers = this.calculateModifiers(shooterProfile, shotType, context);
-        const adjustedStat = this.applyModifiers(primaryStat, modifiers);
-        const baseSuccessRate = this.calculateBaseSuccessRate(adjustedStat, context.difficulty);
+        const quality = this.applyModifiers(primaryStat, modifiers);
         let explanation = `Shot Calculation for ${shotType}:\n`;
         explanation += `Primary Stat (${this.getPrimaryStatName(shotType)}): ${primaryStat}\n`;
         explanation += `Difficulty: ${context.difficulty} (×${modifiers.difficultyModifier})\n`;
@@ -217,25 +320,26 @@ export class ShotCalculator {
         if (modifiers.placementBonus > 0) {
             explanation += `Placement Bonus: +${modifiers.placementBonus.toFixed(1)}%\n`;
         }
+        if (modifiers.serveVariance) {
+            explanation += `Serve Variance: ${modifiers.serveVariance > 0 ? '+' : ''}${modifiers.serveVariance.toFixed(1)}\n`;
+        }
         explanation += `Physical Modifier: ×${modifiers.physicalModifier.toFixed(3)}\n`;
         explanation += `Mental Modifier: ×${modifiers.mentalModifier.toFixed(3)}\n`;
         explanation += `Final Adjustment: ×${modifiers.finalAdjustment.toFixed(3)}\n`;
-        explanation += `Adjusted Stat: ${adjustedStat.toFixed(1)}\n`;
-        explanation += `Success Rate: ${baseSuccessRate.toFixed(1)}%\n`;
+        explanation += `Final Quality: ${quality.toFixed(1)}\n`;
+        explanation += `\nNOTE: Outcome determined by quality vs thresholds (varies by opponent)\n`;
         return explanation;
     }
     calculateStatImpact(shooterProfile, shotType, context, statImprovement) {
         const beforeStat = shooterProfile.getStatForShot(shotType);
         const beforeModifiers = this.calculateModifiers(shooterProfile, shotType, context);
-        const beforeAdjusted = this.applyModifiers(beforeStat, beforeModifiers);
-        const beforeRate = this.calculateBaseSuccessRate(beforeAdjusted, context.difficulty);
+        const beforeQuality = this.applyModifiers(beforeStat, beforeModifiers);
         const afterStat = Math.min(100, beforeStat + statImprovement);
-        const afterAdjusted = this.applyModifiers(afterStat, beforeModifiers);
-        const afterRate = this.calculateBaseSuccessRate(afterAdjusted, context.difficulty);
+        const afterQuality = this.applyModifiers(afterStat, beforeModifiers);
         return {
-            beforeRate,
-            afterRate,
-            improvement: afterRate - beforeRate,
+            beforeRate: beforeQuality,
+            afterRate: afterQuality,
+            improvement: afterQuality - beforeQuality,
         };
     }
 }

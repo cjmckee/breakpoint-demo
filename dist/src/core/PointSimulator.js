@@ -1,8 +1,11 @@
 import { ShotCalculator } from './ShotCalculator.js';
+import { ShotSelector } from './ShotSelector.js';
 export class PointSimulator {
     shotCalculator;
+    shotSelector;
     constructor() {
         this.shotCalculator = new ShotCalculator();
+        this.shotSelector = new ShotSelector();
     }
     simulatePoint(server, returner, matchState) {
         const shots = [];
@@ -23,7 +26,7 @@ export class PointSimulator {
     simulateServe(server, returner, matchState, pointId, shotNumber) {
         const shots = [];
         const firstServeContext = this.createServeContext(matchState, true);
-        const firstServeResult = this.shotCalculator.calculateShotSuccess(server, 'serve_first', firstServeContext);
+        const firstServeResult = this.shotCalculator.calculateShotSuccess(server, 'serve_first', firstServeContext, returner, 'well_positioned', undefined);
         if (firstServeResult.outcome === 'winner') {
             const firstServeShot = {
                 shotType: 'serve_first',
@@ -36,6 +39,7 @@ export class PointSimulator {
                 timestamp: Date.now(),
                 shotNumber: 1,
                 context: firstServeContext,
+                thresholds: firstServeResult.thresholds,
             };
             shots.push(firstServeShot);
             return {
@@ -58,6 +62,7 @@ export class PointSimulator {
                 timestamp: Date.now(),
                 shotNumber: 1,
                 context: firstServeContext,
+                thresholds: firstServeResult.thresholds,
             };
             shots.push(firstServeShot);
             return {
@@ -68,7 +73,7 @@ export class PointSimulator {
             };
         }
         const secondServeContext = this.createServeContext(matchState, false);
-        const secondServeResult = this.shotCalculator.calculateShotSuccess(server, 'serve_second', secondServeContext);
+        const secondServeResult = this.shotCalculator.calculateShotSuccess(server, 'serve_second', secondServeContext, returner, 'well_positioned', undefined);
         const secondServeShot = {
             shotType: 'serve_second',
             shooter: 'server',
@@ -80,6 +85,7 @@ export class PointSimulator {
             timestamp: Date.now(),
             shotNumber: 1,
             context: secondServeContext,
+            thresholds: secondServeResult.thresholds,
         };
         shots.push(secondServeShot);
         if (secondServeResult.outcome === 'winner') {
@@ -113,15 +119,33 @@ export class PointSimulator {
         let shotNumber = startingShotNumber;
         let previousShot = null;
         const maxRallyLength = 30;
+        let serverPosition = 'well_positioned';
+        let returnerPosition = 'well_positioned';
         while (shotNumber - startingShotNumber < maxRallyLength) {
             const shooterProfile = currentShooter === 'server' ? server : returner;
+            const opponentProfile = currentShooter === 'server' ? returner : server;
             const rallyLength = shotNumber - startingShotNumber + 1;
-            const shotType = this.selectShotType(shooterProfile, rallyLength, matchState);
+            const shooterPosition = currentShooter === 'server' ? serverPosition : returnerPosition;
+            const opponentPosition = currentShooter === 'server' ? returnerPosition : serverPosition;
+            const ballQuality = this.calculateBallQuality(previousShot);
+            const rallyState = {
+                rallyLength,
+                lastShotQuality: previousShot?.quality ?? 50,
+                lastShotType: previousShot?.shotType ?? 'serve_first',
+                shooterPosition,
+                opponentPosition,
+                ballQuality,
+            };
+            const shotType = this.shotSelector.selectShot(shooterProfile, opponentProfile, rallyState, matchState);
             const shotContext = this.createRallyContext(rallyLength, matchState, shooterProfile);
-            const shotResult = this.shotCalculator.calculateShotSuccess(shooterProfile, shotType, shotContext);
+            const tacticalOpportunity = this.evaluateTacticalOpportunity(rallyState);
+            const shotResult = this.shotCalculator.calculateShotSuccess(shooterProfile, shotType, shotContext, opponentProfile, opponentPosition, previousShot ?? undefined, ballQuality, tacticalOpportunity);
             let errorType;
-            if (shotResult.outcome === 'error') {
-                errorType = this.classifyError(previousShot, shotContext);
+            if (shotResult.outcome === 'forced_error') {
+                errorType = 'forced';
+            }
+            else if (shotResult.outcome === 'unforced_error') {
+                errorType = 'unforced';
             }
             const shotDetail = {
                 shotType,
@@ -135,6 +159,7 @@ export class PointSimulator {
                 timestamp: Date.now(),
                 shotNumber,
                 context: shotContext,
+                thresholds: shotResult.thresholds,
             };
             shots.push(shotDetail);
             if (shotResult.outcome === 'winner') {
@@ -144,7 +169,7 @@ export class PointSimulator {
                     pointType: 'winner',
                 };
             }
-            if (shotResult.outcome === 'error') {
+            if (shotResult.outcome === 'forced_error' || shotResult.outcome === 'unforced_error' || shotResult.outcome === 'error') {
                 const opponent = currentShooter === 'server' ? 'returner' : 'server';
                 const pointType = errorType === 'forced' ? 'forced_error' : 'unforced_error';
                 return {
@@ -154,6 +179,13 @@ export class PointSimulator {
                 };
             }
             previousShot = shotDetail;
+            const newOpponentPosition = this.updateCourtPosition(shotResult, shotType, opponentPosition);
+            if (currentShooter === 'server') {
+                returnerPosition = newOpponentPosition;
+            }
+            else {
+                serverPosition = newOpponentPosition;
+            }
             currentShooter = currentShooter === 'server' ? 'returner' : 'server';
             shotNumber++;
         }
@@ -242,49 +274,100 @@ export class PointSimulator {
             ballSpeed: 'medium',
         };
     }
-    selectShotType(shooterProfile, rallyLength, matchState) {
-        const playStyle = shooterProfile.playStyle;
-        if (rallyLength === 1) {
-            if (playStyle.aggression > 70) {
-                return Math.random() < 0.5 ? 'return_forehand_power' : 'return_backhand_power';
-            }
-            return Math.random() < 0.5 ? 'return_forehand' : 'return_backhand';
+    calculateBallQuality(previousShot) {
+        if (!previousShot) {
+            return {
+                spin: 'flat',
+                timeAvailable: 'normal',
+                baseQuality: 50,
+            };
         }
-        if (rallyLength <= 4) {
-            if (playStyle.aggression > 80 && Math.random() < 0.3) {
-                return Math.random() < 0.5 ? 'forehand_power' : 'backhand_power';
-            }
-            if (playStyle.netApproach > 70 && Math.random() < 0.4) {
-                return Math.random() < 0.5 ? 'forehand_approach' : 'backhand_approach';
-            }
-            return Math.random() < 0.6 ? 'forehand' : 'backhand';
+        const { shotType, quality, success } = previousShot;
+        let spin;
+        if (shotType.includes('slice') || shotType.includes('defensive_slice')) {
+            spin = 'slice';
         }
-        if (rallyLength <= 10) {
-            if (playStyle.netApproach > 60 && Math.random() < 0.3) {
-                return Math.random() < 0.5 ? 'volley_forehand' : 'volley_backhand';
-            }
-            if (shooterProfile.stats.mental.shot_variety > 70 && Math.random() < 0.2) {
-                const isForehand = Math.random() < 0.5;
-                const tacticalShots = isForehand
-                    ? ['drop_shot_forehand', 'lob_forehand', 'angle_shot_forehand']
-                    : ['drop_shot_backhand', 'lob_backhand', 'angle_shot_backhand'];
-                return tacticalShots[Math.floor(Math.random() * tacticalShots.length)];
-            }
-            if (playStyle.aggression > 60 && Math.random() < 0.25) {
-                return Math.random() < 0.5 ? 'forehand_power' : 'backhand_power';
-            }
-            return Math.random() < 0.5 ? 'forehand' : 'backhand';
+        else if (shotType.includes('topspin') || shotType.includes('kick')) {
+            spin = quality >= 70 ? 'heavy_topspin' : 'topspin';
         }
-        if (rallyLength > 15 && Math.random() < 0.3) {
-            const isForehand = Math.random() < 0.5;
-            return Math.random() < 0.5
-                ? (isForehand ? 'defensive_slice_forehand' : 'defensive_slice_backhand')
-                : (isForehand ? 'lob_forehand' : 'lob_backhand');
+        else if (shotType.includes('power')) {
+            spin = 'flat';
         }
-        if (playStyle.consistency > 60) {
-            return Math.random() < 0.5 ? 'slice_forehand' : 'slice_backhand';
+        else {
+            spin = 'topspin';
         }
-        return Math.random() < 0.5 ? 'forehand' : 'backhand';
+        let timeAvailable;
+        if (quality >= 80 || shotType.includes('power')) {
+            timeAvailable = 'rushed';
+        }
+        else if (quality < 50 || shotType.includes('slice') || shotType.includes('lob')) {
+            timeAvailable = 'plenty';
+        }
+        else {
+            timeAvailable = 'normal';
+        }
+        const randomVariance = (Math.random() - 0.5) * 10;
+        const baseQuality = Math.max(0, Math.min(100, quality + randomVariance));
+        return {
+            spin,
+            timeAvailable,
+            baseQuality,
+        };
+    }
+    updateCourtPosition(shotResult, shotType, currentPosition) {
+        if (!shotResult.success)
+            return currentPosition;
+        const quality = shotResult.quality;
+        if (shotType.includes('approach') || shotType.includes('volley')) {
+            return currentPosition;
+        }
+        if (quality >= 85) {
+            if (shotType.includes('angle') || shotType.includes('passing')) {
+                return 'way_out_wide';
+            }
+            if (shotType.includes('lob') || quality >= 90) {
+                return 'way_back_deep';
+            }
+            return 'slightly_off';
+        }
+        if (quality >= 70) {
+            return 'slightly_off';
+        }
+        if (quality < 50) {
+            return 'well_positioned';
+        }
+        if (currentPosition === 'way_out_wide' || currentPosition === 'way_back_deep') {
+            return 'recovering';
+        }
+        if (currentPosition === 'recovering') {
+            return 'slightly_off';
+        }
+        return 'well_positioned';
+    }
+    evaluateTacticalOpportunity(rallyState) {
+        const { opponentPosition, lastShotQuality, ballQuality } = rallyState;
+        let attackScore = 0;
+        if (opponentPosition === 'way_out_wide')
+            attackScore += 40;
+        if (opponentPosition === 'way_back_deep')
+            attackScore += 35;
+        if (opponentPosition === 'recovering')
+            attackScore += 30;
+        if (lastShotQuality >= 70)
+            attackScore += 20;
+        if (ballQuality.baseQuality < 50)
+            attackScore += 15;
+        const defensiveRequired = ballQuality.timeAvailable === 'rushed' ||
+            ballQuality.baseQuality >= 80 ||
+            opponentPosition === 'at_net';
+        return {
+            attackOpportunity: attackScore >= 60 ? 'high' : attackScore >= 35 ? 'medium' : 'low',
+            netApproachSuitable: attackScore >= 40 && !defensiveRequired,
+            winnerAttemptSuitable: attackScore >= 30 && !defensiveRequired,
+            defensiveRequired,
+            tacticalShotSuitable: !defensiveRequired,
+            recommendedAggression: Math.min(100, attackScore),
+        };
     }
     createPointResult(winner, shots, pointType, matchState, serveType) {
         const rallyLength = shots.length;
