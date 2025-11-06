@@ -270,13 +270,14 @@ export class ShotSelector {
   ): boolean {
     const aggression = shooter.playStyle.aggression;
     const playStyleType = shooter.playStyle.type;
+    const offensive = shooter.stats.mental.offensive;
 
-    // Base probability by playstyle
+    // Base probability by playstyle (increased for aggressive players)
     let baseProbability = 0;
     if (playStyleType === 'aggressive') {
-      baseProbability = 0.25; // 25% for aggressive players
+      baseProbability = 0.35; // 35% for aggressive players (increased from 25%)
     } else if (playStyleType === 'all_court') {
-      baseProbability = 0.15; // 15% for all-court
+      baseProbability = 0.20; // 20% for all-court (increased from 15%)
     } else if (playStyleType === 'serve_volley') {
       baseProbability = 0.12; // 12% for serve-volley (prefer net game)
     } else if (playStyleType === 'counterpuncher') {
@@ -286,9 +287,17 @@ export class ShotSelector {
       baseProbability = 0.05; // 5% for defensive players
     }
 
+    // Additional boost for high offensive stat (scales 0-10% extra)
+    baseProbability += (offensive / 100) * 0.10;
+
+    // Aggressive players attempt power shots early in rallies (3-5 shots)
+    if (aggression >= 75 && rallyState.rallyLength >= 3 && rallyState.rallyLength <= 5) {
+      baseProbability *= 1.5; // 50% boost to go for early winners
+    }
+
     if (!opportunity.winnerAttemptSuitable) {
-      // Aggressive players sometimes go for it anyway
-      if (aggression >= 80 && Math.random() < 0.15) {
+      // Aggressive players go for it anyway more often
+      if (aggression >= 80 && Math.random() < 0.25) { // Increased from 0.15
         return true;
       }
       return false;
@@ -302,7 +311,7 @@ export class ShotSelector {
 
     if (rallyState.lastShotQuality >= 85) probability *= 1.4;
 
-    return Math.random() < Math.min(0.85, probability);
+    return Math.random() < Math.min(0.90, probability); // Increased cap from 0.85
   }
 
   /**

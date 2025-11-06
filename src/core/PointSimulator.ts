@@ -35,6 +35,7 @@ export class PointSimulator {
    * Simulate a complete point between server and returner
    */
   public simulatePoint(
+    currentServer: 'player' | 'opponent',
     server: PlayerProfile,
     returner: PlayerProfile,
     matchState: MatchState
@@ -51,6 +52,7 @@ export class PointSimulator {
     // If serve sequence ended the point, return result
     if (serveResult.pointEnded) {
       return this.createPointResult(
+        currentServer,
         serveResult.winner!,
         shots,
         serveResult.pointType!,
@@ -60,12 +62,13 @@ export class PointSimulator {
     }
 
     // Step 2: Rally sequence (if serve was successful)
+    // We need to pass the serve quality
     const rallyResult = this.simulateRally(
+      shots[0],
       server,
       returner,
       matchState,
       pointId,
-      shotNumber,
       serveResult.nextShooter!
     );
     shots.push(...rallyResult.shots);
@@ -74,7 +77,7 @@ export class PointSimulator {
     const winner = rallyResult.winner;
     const pointType = rallyResult.pointType;
 
-    return this.createPointResult(winner, shots, pointType, matchState, serveResult.serveType);
+    return this.createPointResult(currentServer, winner, shots, pointType, matchState, serveResult.serveType);
   }
 
   /**
@@ -93,6 +96,7 @@ export class PointSimulator {
     pointType?: 'ace' | 'double_fault';
     nextShooter?: 'server' | 'returner';
     serveType: 'first' | 'second';
+    quality: number;
   } {
     const shots: ShotDetail[] = [];
 
@@ -131,6 +135,7 @@ export class PointSimulator {
         winner: 'server',
         pointType: 'ace',
         serveType: 'first',
+        quality: firstServeResult.quality,
       };
     }
 
@@ -156,6 +161,7 @@ export class PointSimulator {
         pointEnded: false,
         nextShooter: 'returner',
         serveType: 'first',
+        quality: firstServeResult.quality,
       };
     }
 
@@ -195,6 +201,7 @@ export class PointSimulator {
         winner: 'server',
         pointType: 'ace',
         serveType: 'second',
+        quality: secondServeResult.quality,
       };
     }
 
@@ -206,6 +213,7 @@ export class PointSimulator {
         winner: 'returner',
         pointType: 'double_fault',
         serveType: 'second',
+        quality: secondServeResult.quality,
       };
     }
 
@@ -215,6 +223,7 @@ export class PointSimulator {
       pointEnded: false,
       nextShooter: 'returner',
       serveType: 'second',
+      quality: secondServeResult.quality,
     };
   }
 
@@ -222,11 +231,11 @@ export class PointSimulator {
    * Simulate the rally after a successful serve
    */
   private simulateRally(
+    serveShot: ShotDetail,
     server: PlayerProfile,
     returner: PlayerProfile,
     matchState: MatchState,
     pointId: string,
-    startingShotNumber: number,
     firstShooter: 'server' | 'returner'
   ): {
     shots: ShotDetail[];
@@ -235,18 +244,18 @@ export class PointSimulator {
   } {
     const shots: ShotDetail[] = [];
     let currentShooter = firstShooter;
-    let shotNumber = startingShotNumber;
-    let previousShot: ShotDetail | null = null;
+    let shotNumber = 1; // This is return of serve, serve is shot 0
+    let previousShot: ShotDetail = serveShot; // all rallies will at least begin with a serve
     const maxRallyLength = 30; // Prevent infinite rallies
 
     // NEW: Track court positions throughout rally
     let serverPosition: CourtPosition = 'well_positioned';
     let returnerPosition: CourtPosition = 'well_positioned';
 
-    while (shotNumber - startingShotNumber < maxRallyLength) {
+    while (shotNumber < maxRallyLength) {
       const shooterProfile = currentShooter === 'server' ? server : returner;
       const opponentProfile = currentShooter === 'server' ? returner : server;
-      const rallyLength = shotNumber - startingShotNumber + 1;
+      const rallyLength = shotNumber;
 
       // NEW: Get current positions
       const shooterPosition = currentShooter === 'server' ? serverPosition : returnerPosition;
@@ -258,8 +267,8 @@ export class PointSimulator {
       // NEW: Build rally state for shot selection
       const rallyState: RallyState = {
         rallyLength,
-        lastShotQuality: previousShot?.quality ?? 50,
-        lastShotType: previousShot?.shotType ?? 'serve_first',
+        lastShotQuality: previousShot.quality,
+        lastShotType: previousShot.shotType,
         shooterPosition,
         opponentPosition,
         ballQuality,
@@ -286,7 +295,7 @@ export class PointSimulator {
         shotContext,
         opponentProfile,                    // NEW: required opponent profile
         opponentPosition,                   // NEW: required opponent position
-        previousShot ?? undefined,          // NEW: previous shot for incoming quality (convert null to undefined)
+        previousShot,                       // NEW: previous shot for incoming quality
         ballQuality,                        // Legacy parameter (optional)
         tacticalOpportunity                 // Optional tactical context
       );
@@ -610,6 +619,7 @@ export class PointSimulator {
    * Create complete point result with statistics
    */
   private createPointResult(
+    server: 'player' | 'opponent',
     winner: 'server' | 'returner',
     shots: ShotDetail[],
     pointType: 'ace' | 'winner' | 'forced_error' | 'unforced_error' | 'double_fault',
@@ -626,6 +636,7 @@ export class PointSimulator {
     const duration = Math.round(baseDuration * rallyCostMultiplier);
 
     return {
+      server,
       winner,
       shots,
       rallyLength,

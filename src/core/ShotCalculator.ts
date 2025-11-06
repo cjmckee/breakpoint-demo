@@ -26,12 +26,16 @@ import { PlayerProfile } from './PlayerProfile.js';
 import {
   RELATIVE_QUALITY_REQUIREMENTS,
   MIN_QUALITY_FLOORS,
+  MINIMUM_WINNER_THRESHOLDS,
   OUTCOME_MULTIPLIERS,
   SERVE_BASELINE,
   OPPONENT_STAT_ADJUSTMENTS,
   POSITION_ADJUSTMENTS,
   SERVE_VARIANCE,
+  RETURN_VARIANCE,
+  RALLY_SHOT_VARIANCE,
   SERVE_BONUSES,
+  TOTAL_MODIFIER_CAPS,
   getShotCategory,
 } from '../config/shotThresholds.js';
 
@@ -50,9 +54,9 @@ const SHOT_RANGES = {
   // Rally length fatigue ranges (multiplier based on stamina stat)
   rallyLengthModifiers: {
     short: { min: 1.0, max: 1.0 },     // 0-5 shots, no fatigue effect
-    medium: { min: 0.85, max: 1.0 },   // 6-10 shots
-    long: { min: 0.70, max: 1.0 },     // 11-20 shots
-    extreme: { min: 0.50, max: 1.0 },  // 20+ shots
+    medium: { min: 0.90, max: 1.0 },   // 6-10 shots
+    long: { min: 0.80, max: 1.0 },     // 11-15 shots
+    extreme: { min: 0.75, max: 1.0 },  // 16+ shots
   },
 } as const;
 
@@ -91,6 +95,8 @@ export class ShotCalculator {
     ballQuality?: BallQuality,
     tacticalOpportunity?: TacticalOpportunity
   ): ShotResult {
+    console.log('Calculating shot success for', shotType);
+    console.log('Incoming shot quality:', incomingShot?.quality);
     // Step 1: Get primary stat for this shot type
     const primaryStat = shooterProfile.getStatForShot(shotType);
 
@@ -122,8 +128,12 @@ export class ShotCalculator {
       outcome = serveOutcome.outcome;
       thresholds = serveOutcome.thresholds;
     } else {
+      if (!incomingShot) {
+        throw new Error('Incoming shot is required for non-serve shots to calculate quality thresholds.');
+      }
+      
       // Regular shots use relative quality system
-      const incomingQuality = incomingShot?.quality ?? 50; // Default if no incoming shot
+      const incomingQuality = incomingShot.quality;
 
       thresholds = this.calculateQualityRequirements(
         incomingQuality,
@@ -134,6 +144,9 @@ export class ShotCalculator {
 
       outcome = this.determineOutcome(quality, thresholds);
     }
+
+    console.log('Shot quality:', quality.toFixed(1), 'Outcome:', outcome);
+    console.log('Quality thresholds:', thresholds);
 
     return {
       success: outcome === 'winner' || outcome === 'in_play',
@@ -176,11 +189,21 @@ export class ShotCalculator {
     const positionAdj = POSITION_ADJUSTMENTS[opponentPosition];
     inPlayReq += positionAdj;
 
+    // Get category-specific outcome multipliers
+    const multipliers = OUTCOME_MULTIPLIERS[shotCategory];
+
+    // Calculate winner threshold with minimum floor
+    const calculatedWinner = inPlayReq * multipliers.winner;
+    const winnerThreshold = Math.max(
+      calculatedWinner,
+      MINIMUM_WINNER_THRESHOLDS[shotCategory]
+    );
+
     // Calculate derived thresholds
     return {
-      winner: inPlayReq * OUTCOME_MULTIPLIERS.winner,
-      inPlay: inPlayReq,
-      forcedError: inPlayReq * OUTCOME_MULTIPLIERS.forcedError,
+      winner: winnerThreshold,
+      inPlay: inPlayReq * multipliers.inPlay,
+      forcedError: inPlayReq * multipliers.forcedError,
     };
   }
 
@@ -266,26 +289,62 @@ export class ShotCalculator {
     let serveVariance = 0;
     if (shotType === 'serve_first') {
       // First serve: offensive, strength-based, high variance
-      const offensiveBonus = (stats.mental.offensive / 100) * SERVE_BONUSES.first.offensive;
-      const strengthBonus = (stats.physical.strength / 100) * SERVE_BONUSES.first.strength;
-      const spinBonusServe = (stats.technical.spin / 100) * SERVE_BONUSES.first.spin;
+      // Apply individual caps to prevent excessive stacking
+      const offensiveBonus = Math.min(
+        (stats.mental.offensive / 100) * SERVE_BONUSES.first.offensive.multiplier,
+        SERVE_BONUSES.first.offensive.maxBonus
+      );
+      const strengthBonus = Math.min(
+        (stats.physical.strength / 100) * SERVE_BONUSES.first.strength.multiplier,
+        SERVE_BONUSES.first.strength.maxBonus
+      );
+      const spinBonusServe = Math.min(
+        (stats.technical.spin / 100) * SERVE_BONUSES.first.spin.multiplier,
+        SERVE_BONUSES.first.spin.maxBonus
+      );
 
       physicalModifier *= (1 + offensiveBonus + strengthBonus);
       spinBonus += spinBonusServe * 100; // Convert to percentage
 
-      // High variance for first serve
-      serveVariance = (Math.random() - 0.5) * 2 * SERVE_VARIANCE.first; // ±20
+      // Variance for first serve
+      serveVariance = (Math.random() - 0.5) * 2 * SERVE_VARIANCE.first;
     } else if (shotType === 'serve_second' || shotType === 'kick_serve') {
       // Second serve: consistency, spin-based, low variance
-      const consistencyBonus = (playStyle.consistency / 100) * SERVE_BONUSES.second.consistency;
-      const spinBonusServe = (stats.technical.spin / 100) * SERVE_BONUSES.second.spin;
-      const defensiveBonus = (stats.mental.defensive / 100) * SERVE_BONUSES.second.defensive;
+      // Apply individual caps
+      const consistencyBonus = Math.min(
+        (playStyle.consistency / 100) * SERVE_BONUSES.second.consistency.multiplier,
+        SERVE_BONUSES.second.consistency.maxBonus
+      );
+      const spinBonusServe = Math.min(
+        (stats.technical.spin / 100) * SERVE_BONUSES.second.spin.multiplier,
+        SERVE_BONUSES.second.spin.maxBonus
+      );
+      const defensiveBonus = Math.min(
+        (stats.mental.defensive / 100) * SERVE_BONUSES.second.defensive.multiplier,
+        SERVE_BONUSES.second.defensive.maxBonus
+      );
 
       mentalModifier *= (1 + consistencyBonus + defensiveBonus);
       spinBonus += spinBonusServe * 100;
 
-      // Low variance for second serve
-      serveVariance = (Math.random() - 0.5) * 2 * SERVE_VARIANCE.second; // ±8
+      // Variance for second serve
+      serveVariance = (Math.random() - 0.5) * 2 * SERVE_VARIANCE.second;
+    }
+
+    // Return-specific variance
+    let returnVariance = 0;
+    if (shotType.includes('return')) {
+      returnVariance = (Math.random() - 0.5) * 2 * RETURN_VARIANCE;
+    }
+
+    // Rally shot variance (applies to all non-serve, non-return shots)
+    let rallyVariance = 0;
+    if (!shotType.includes('serve') && !shotType.includes('return') && incomingShot) {
+      // Base variance + additional based on incoming shot quality
+      const incomingQuality = incomingShot.quality;
+      const totalVariance = RALLY_SHOT_VARIANCE.base +
+        (incomingQuality / 100) * RALLY_SHOT_VARIANCE.qualityMultiplier;
+      rallyVariance = (Math.random() - 0.5) * 2 * totalVariance;
     }
 
     // Situational modifiers
@@ -298,7 +357,7 @@ export class ShotCalculator {
     const tacticalModifier = this.getTacticalModifier(shotType, tacticalOpportunity, opponentPosition);
 
     // Combine all modifiers into final adjustment
-    const finalAdjustment =
+    let finalAdjustment =
       (1 + spinBonus / 100) *
       (1 + placementBonus / 100) *
       physicalModifier *
@@ -308,6 +367,15 @@ export class ShotCalculator {
       rallyLengthModifier *
       ballQualityModifier *
       tacticalModifier;
+
+    // Apply total modifier cap based on shot type
+    if (shotType.includes('serve')) {
+      finalAdjustment = Math.min(finalAdjustment, TOTAL_MODIFIER_CAPS.serve);
+    } else if (shotType.includes('return')) {
+      finalAdjustment = Math.min(finalAdjustment, TOTAL_MODIFIER_CAPS.return);
+    } else {
+      finalAdjustment = Math.min(finalAdjustment, TOTAL_MODIFIER_CAPS.rally);
+    }
 
     return {
       spinBonus,
@@ -319,6 +387,8 @@ export class ShotCalculator {
       rallyLengthModifier,
       finalAdjustment,
       serveVariance,
+      returnVariance,
+      rallyVariance,
     };
   }
 
@@ -452,7 +522,7 @@ export class ShotCalculator {
       range = SHOT_RANGES.rallyLengthModifiers.short;
     } else if (rallyLength <= 10) {
       range = SHOT_RANGES.rallyLengthModifiers.medium;
-    } else if (rallyLength <= 20) {
+    } else if (rallyLength <= 15) {
       range = SHOT_RANGES.rallyLengthModifiers.long;
     } else {
       range = SHOT_RANGES.rallyLengthModifiers.extreme;
@@ -464,7 +534,7 @@ export class ShotCalculator {
 
   /**
    * Apply all modifiers to base stat (keeping it within 0-100 range)
-   * Includes serve variance if applicable
+   * Includes serve/return/rally variance if applicable
    */
   private applyModifiers(baseStat: number, modifiers: ShotModifiers): number {
     let quality = baseStat * modifiers.finalAdjustment;
@@ -472,6 +542,16 @@ export class ShotCalculator {
     // Apply serve variance if present
     if (modifiers.serveVariance !== undefined) {
       quality += modifiers.serveVariance;
+    }
+
+    // Apply return variance if present
+    if (modifiers.returnVariance !== undefined) {
+      quality += modifiers.returnVariance;
+    }
+
+    // Apply rally variance if present
+    if (modifiers.rallyVariance !== undefined) {
+      quality += modifiers.rallyVariance;
     }
 
     return Math.min(100, Math.max(0, quality));

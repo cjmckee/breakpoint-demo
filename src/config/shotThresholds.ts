@@ -98,14 +98,53 @@ export const MIN_QUALITY_FLOORS = {
 };
 
 /**
+ * Minimum winner thresholds by shot category
+ *
+ * Even against very weak incoming shots, you need minimum quality to hit a winner.
+ * This prevents situations where after long rallies with degraded quality,
+ * the first shot hit becomes an automatic winner.
+ *
+ * Example: After a quality-26 shot, defensive slice would normally only need
+ * quality 30 to win. With floor of 55, it now needs quality 55+ to be a winner.
+ */
+export const MINIMUM_WINNER_THRESHOLDS = {
+  defensive: 55,    // Even perfect setup, defensive shot needs 55+ quality to win
+  neutral: 50,      // Regular shots need 50+ quality to be winners
+  offensive: 45,    // Power shots can win with 45+ quality (lower floor, high reward)
+};
+
+/**
  * Outcome multipliers for determining winners and forced errors
  *
- * winner: Need this multiple of in-play requirement to hit winner
- * forcedError: Below this multiple of requirement = forced error (vs unforced)
+ * Different shot categories have different winner multipliers:
+ * - Defensive shots: EASY to keep in play, HARD to hit winners (high multiplier)
+ * - Offensive shots: HARDER to keep in play, EASIER to hit winners (low multiplier)
+ * - Neutral shots: Balanced
+ *
+ * This creates realistic shot dynamics: defensive slices extend rallies but rarely win,
+ * power shots are risky but can win points if executed well.
  */
 export const OUTCOME_MULTIPLIERS = {
-  winner: 2.5,        // Need 2.5x the requirement for winner (harder to hit winners)
-  forcedError: 0.7,   // Below 70% of requirement = forced error
+  // Defensive shots: slices, lobs, defensive overheads
+  defensive: {
+    inPlay: 1.0,        // Base requirement (easiest to keep in play)
+    winner: 3.0,        // Need 3x the requirement for winner (hard but possible)
+    forcedError: 0.7,   // Below 70% = forced error
+  },
+
+  // Neutral shots: regular groundstrokes, volleys
+  neutral: {
+    inPlay: 1.0,        // Base requirement
+    winner: 2.0,        // Need 2x the requirement for winner (moderate)
+    forcedError: 0.7,   // Below 70% = forced error
+  },
+
+  // Offensive shots: power shots, overheads, passing shots, angles
+  offensive: {
+    inPlay: 1.0,        // Base requirement
+    winner: 1.5,        // Need 1.5x the requirement for winner (high reward)
+    forcedError: 0.7,   // Below 70% = forced error
+  },
 };
 
 /**
@@ -117,18 +156,18 @@ export const OUTCOME_MULTIPLIERS = {
  */
 export const SERVE_BASELINE = {
   serve_first: {
-    inPlayThreshold: 50,      // Need 50+ quality to get first serve in
-    aceMultiplier: 1.20,      // Ace if quality > (opponent return × 1.20)
-    // Example: vs return:85 → need 102 quality for ace (very rare)
+    inPlayThreshold: 45,      // Need 45+ quality to get first serve in (slightly easier)
+    aceMultiplier: 1.10,      // Ace if quality > (opponent return × 1.10)
+    // Example: vs return:80 → need 88 quality for ace (achievable!)
   },
   serve_second: {
-    inPlayThreshold: 40,      // Easier to get second serve in
-    aceMultiplier: 1.30,      // Much harder to ace on second serve
-    // Example: vs return:85 → need 110.5 quality for ace (impossible!)
+    inPlayThreshold: 35,      // Easier to get second serve in
+    aceMultiplier: 1.20,      // Harder to ace on second serve but possible
+    // Example: vs return:80 → need 96 quality for ace (rare but possible)
   },
   kick_serve: {
-    inPlayThreshold: 45,      // Between first and second
-    aceMultiplier: 1.25,      // Slightly harder to ace than first serve
+    inPlayThreshold: 40,      // Between first and second
+    aceMultiplier: 1.15,      // Slightly harder to ace than first serve
   },
 };
 
@@ -137,11 +176,14 @@ export const SERVE_BASELINE = {
  *
  * How opponent's stats affect quality requirements.
  * Formula: (opponentStat - 50) × multiplier
+ *
+ * Increased from previous values to make high-stat opponents meaningfully harder to beat.
+ * Example: opponent defensive 90 → (90-50) × 0.25 = +10 to winner threshold
  */
 export const OPPONENT_STAT_ADJUSTMENTS = {
-  defensive: 0.10,   // Defensive stat makes winners harder
-  speed: 0.05,       // Speed helps cover court
-  return: 0.15,      // Return stat makes aces harder (serves only)
+  defensive: 0.25,   // Defensive stat makes winners harder (increased from 0.10)
+  speed: 0.10,       // Speed helps cover court (increased from 0.05)
+  return: 0.20,      // Return stat makes aces harder, serves only (increased from 0.15)
 };
 
 /**
@@ -171,9 +213,32 @@ export const POSITION_ADJUSTMENTS: Record<CourtPosition, number> = {
  * Keep reasonable to avoid constant 100 quality or negative quality.
  */
 export const SERVE_VARIANCE = {
-  first: 12,    // ±12 quality variance on first serve
-  second: 6,    // ±6 quality variance on second serve
+  first: 8,     // ±8 quality variance on first serve (reduced from 12)
+  second: 4,    // ±4 quality variance on second serve (reduced from 6)
 };
+
+/**
+ * Return variance (quality randomness)
+ *
+ * Applied as ±variance to return quality.
+ * Adds realistic variation to returns instead of constant quality values.
+ */
+export const RETURN_VARIANCE = 6;  // ±6 quality variance on returns
+
+/**
+ * Rally shot variance (quality randomness)
+ *
+ * Applied as ±variance to all rally shots (not serves/returns).
+ * Base variance + additional variance based on incoming shot quality.
+ * High quality incoming shots make it harder to respond consistently.
+ *
+ * Formula: baseVariance + (incomingQuality / 100) * qualityMultiplier
+ * Example: vs quality 80 shot → 4 + (80/100) * 6 = 4 + 4.8 = ±8.8 variance
+ */
+export const RALLY_SHOT_VARIANCE = {
+  base: 4,              // Base ±4 variance on all rally shots
+  qualityMultiplier: 6, // Additional variance based on incoming shot quality
+};  // Creates realistic errors independent of fatigue
 
 /**
  * Serve stat bonuses
@@ -183,19 +248,34 @@ export const SERVE_VARIANCE = {
  * Second serve: consistency, spin-based
  *
  * IMPORTANT: These are multipliers applied to physicalModifier, not direct additions.
+ * Each bonus is capped individually to prevent extreme stacking.
  * Keep them small to avoid quality hitting 100 constantly.
  */
 export const SERVE_BONUSES = {
   first: {
-    offensive: 0.08,    // offensive stat × 0.08 bonus (80 offensive = +6.4% modifier)
-    strength: 0.06,     // strength stat × 0.06 bonus (85 strength = +5.1% modifier)
-    spin: 0.04,         // spin stat × 0.04 bonus (70 spin = +2.8% modifier)
+    offensive: { multiplier: 0.08, maxBonus: 0.05 },   // Max 5% bonus from offensive
+    strength: { multiplier: 0.06, maxBonus: 0.04 },    // Max 4% bonus from strength
+    spin: { multiplier: 0.04, maxBonus: 0.03 },        // Max 3% bonus from spin
   },
   second: {
-    consistency: 0.10,  // consistency (playStyle) × 0.10 bonus
-    spin: 0.08,         // spin stat × 0.08 bonus
-    defensive: 0.05,    // defensive stat × 0.05 bonus
+    consistency: { multiplier: 0.10, maxBonus: 0.06 }, // Max 6% bonus from consistency
+    spin: { multiplier: 0.08, maxBonus: 0.05 },        // Max 5% bonus from spin
+    defensive: { multiplier: 0.05, maxBonus: 0.03 },   // Max 3% bonus from defensive
   },
+};
+
+/**
+ * Total modifier caps
+ *
+ * Maximum total modifier allowed after all bonuses are combined.
+ * Prevents exponential stacking of multiple bonuses.
+ *
+ * Example: serve stat 75 × 115% cap = 86.25 max (before variance)
+ */
+export const TOTAL_MODIFIER_CAPS = {
+  serve: 1.15,    // Max 115% total modifier for serves (prevents constant 100 quality)
+  return: 1.20,   // Max 120% total modifier for returns
+  rally: 1.25,    // Max 125% total modifier for rally shots
 };
 
 /**

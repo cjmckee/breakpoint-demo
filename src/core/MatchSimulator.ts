@@ -126,6 +126,7 @@ export class MatchSimulator {
 
     // Simulate the point
     const pointResult = this.pointSimulator.simulatePoint(
+      currentServer,
       serverProfile,
       returnerProfile,
       this.matchState
@@ -389,12 +390,10 @@ export class MatchSimulator {
 
     // Convert point results to analysis format
     const points: PointAnalysisData[] = this.pointResults.map((pointResult, index) => {
-      // Determine the server for this point
-      // This is a simplification - in reality we'd need to track this during simulation
-      const server: 'player' | 'opponent' = index % 2 === 0 ? 'player' : 'opponent';
+      const {server, winner} = pointResult;
 
       // Convert winner from server/returner to player/opponent
-      const pointWinner = pointResult.winner === 'server' ? server :
+      const pointWinner = winner === 'server' ? server :
                           (server === 'player' ? 'opponent' : 'player');
 
       // Get the score snapshot for this point (if available)

@@ -230,7 +230,9 @@ export interface ShotModifiers {
   pressureModifier: number;
   rallyLengthModifier: number;
   finalAdjustment: number;
-  serveVariance?: number;  // NEW: track serve-specific variance applied
+  serveVariance?: number;   // Serve-specific variance applied
+  returnVariance?: number;  // Return-specific variance applied
+  rallyVariance?: number;   // Rally-specific variance applied (based on incoming shot quality)
 }
 
 // =======================
@@ -259,6 +261,7 @@ export interface ShotDetail {
  * Result of simulating a single point
  */
 export interface PointResult {
+  server: 'player' | 'opponent';
   winner: 'server' | 'returner';
   shots: ShotDetail[];
   rallyLength: number;
