@@ -1,0 +1,80 @@
+/* App-specific styles */
+
+.container-responsive {
+  @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+
+/* Grid utilities for responsive layouts */
+.grid-mobile-2 {
+  @apply grid grid-cols-1 sm:grid-cols-2;
+}
+
+/* Touch-friendly spacing for mobile */
+.touch-spacing {
+  @apply space-y-4 sm:space-y-3;
+}
+
+.touch-target {
+  @apply min-w-[44px] min-h-[44px];
+}
+
+/* Stat bar animations */
+.stat-bar {
+  @apply relative h-6 bg-pixel-secondary rounded-full overflow-hidden border border-pixel-accent;
+}
+
+.stat-bar-fill {
+  @apply h-full bg-pixel-success transition-all duration-300;
+}
+
+/* Energy/mood indicators */
+.energy-bar {
+  @apply stat-bar;
+}
+
+.mood-indicator {
+  @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+}
+
+.mood-positive {
+  @apply bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300;
+}
+
+.mood-neutral {
+  @apply bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300;
+}
+
+.mood-negative {
+  @apply bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300;
+}
+
+/* Modal overlay */
+.modal-overlay {
+  @apply fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4;
+}
+
+.modal-content {
+  @apply bg-pixel-primary border-2 border-pixel-accent rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto;
+}
+
+/* Notification styles */
+.notification {
+  @apply fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg border-2 z-50;
+  @apply transition-all duration-300 ease-in-out;
+}
+
+.notification-success {
+  @apply bg-pixel-success border-pixel-success text-white;
+}
+
+.notification-error {
+  @apply bg-pixel-error border-pixel-error text-white;
+}
+
+.notification-warning {
+  @apply bg-pixel-warning border-pixel-warning text-white;
+}
+
+.notification-info {
+  @apply bg-pixel-secondary border-pixel-accent text-pixel-text;
+}

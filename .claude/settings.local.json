@@ -10,7 +10,12 @@
       "Bash(npm run build:node:*)",
       "Bash(/dev/null)",
       "Bash(xargs cat:*)",
-      "Read(//c/Users/Cody/Documents/gitroot/ai-slop-gaming/**)"
+      "Read(//c/Users/Cody/Documents/gitroot/ai-slop-gaming/**)",
+      "Bash(npm install:*)",
+      "Bash(npx tailwindcss:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(pkill:*)"
     ],
     "deny": [],
     "ask": []
