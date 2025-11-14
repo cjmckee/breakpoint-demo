@@ -15,6 +15,7 @@ export declare class MatchSimulator {
     private matchState;
     private scoreProgression;
     private pointResults;
+    private pointKeyMoments;
     private startTime;
     constructor(config: MatchConfig);
     simulateMatch(): MatchResult;

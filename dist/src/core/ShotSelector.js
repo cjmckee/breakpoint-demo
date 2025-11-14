@@ -1,9 +1,14 @@
+import { TacticalAnalyzer } from './TacticalAnalyzer.js';
 export class ShotSelector {
+    tacticalAnalyzer;
+    constructor() {
+        this.tacticalAnalyzer = new TacticalAnalyzer();
+    }
     selectShot(shooter, opponent, rallyState, matchState) {
         const playStyle = shooter.playStyle;
-        const { rallyLength, opponentPosition } = rallyState;
+        const { rallyLength, opponentPosition, shooterPosition } = rallyState;
         const shotPreference = this.calculateShotPreference(shooter);
-        const opportunity = this.evaluateTacticalSituation(rallyState);
+        const opportunity = this.tacticalAnalyzer.evaluateTacticalSituation(rallyState, shooterPosition);
         if (rallyLength === 1) {
             if (playStyle.aggression > 80 && Math.random() < 0.3) {
                 return Math.random() < shotPreference.forehandProbability
@@ -82,52 +87,6 @@ export class ShotSelector {
             weakShotStat: Math.min(fh, bh),
         };
     }
-    evaluateTacticalSituation(rallyState) {
-        const { opponentPosition, lastShotQuality, ballQuality, rallyLength } = rallyState;
-        let attackScore = 0;
-        if (opponentPosition === 'way_out_wide')
-            attackScore += 40;
-        if (opponentPosition === 'way_back_deep')
-            attackScore += 35;
-        if (opponentPosition === 'recovering')
-            attackScore += 30;
-        if (opponentPosition === 'slightly_off')
-            attackScore += 15;
-        if (lastShotQuality >= 80)
-            attackScore += 30;
-        if (lastShotQuality >= 60)
-            attackScore += 15;
-        if (ballQuality.baseQuality < 40)
-            attackScore += 20;
-        if (ballQuality.baseQuality < 60)
-            attackScore += 10;
-        if (ballQuality.timeAvailable === 'plenty')
-            attackScore += 15;
-        const defensiveRequired = ballQuality.timeAvailable === 'rushed' ||
-            ballQuality.baseQuality >= 80 ||
-            opponentPosition === 'at_net' ||
-            lastShotQuality < 30;
-        let attackLevel;
-        if (attackScore >= 70)
-            attackLevel = 'high';
-        else if (attackScore >= 40)
-            attackLevel = 'medium';
-        else if (attackScore >= 20)
-            attackLevel = 'low';
-        else
-            attackLevel = 'none';
-        return {
-            attackOpportunity: attackLevel,
-            netApproachSuitable: attackScore >= 40 &&
-                rallyLength >= 3 &&
-                !defensiveRequired,
-            winnerAttemptSuitable: attackScore >= 30 && !defensiveRequired,
-            defensiveRequired,
-            tacticalShotSuitable: rallyLength >= 5 &&
-                ballQuality.timeAvailable !== 'rushed',
-            recommendedAggression: Math.min(100, attackScore),
-        };
-    }
     shouldApproachNet(shooter, opportunity, rallyState) {
         const netApproachStat = shooter.playStyle.netApproach;
         const playStyleType = shooter.playStyle.type;
@@ -163,12 +122,13 @@ export class ShotSelector {
     shouldAttemptWinner(shooter, opportunity, rallyState) {
         const aggression = shooter.playStyle.aggression;
         const playStyleType = shooter.playStyle.type;
+        const offensive = shooter.stats.mental.offensive;
         let baseProbability = 0;
         if (playStyleType === 'aggressive') {
-            baseProbability = 0.25;
+            baseProbability = 0.35;
         }
         else if (playStyleType === 'all_court') {
-            baseProbability = 0.15;
+            baseProbability = 0.20;
         }
         else if (playStyleType === 'serve_volley') {
             baseProbability = 0.12;
@@ -179,8 +139,12 @@ export class ShotSelector {
         else {
             baseProbability = 0.05;
         }
+        baseProbability += (offensive / 100) * 0.10;
+        if (aggression >= 75 && rallyState.rallyLength >= 3 && rallyState.rallyLength <= 5) {
+            baseProbability *= 1.5;
+        }
         if (!opportunity.winnerAttemptSuitable) {
-            if (aggression >= 80 && Math.random() < 0.15) {
+            if (aggression >= 80 && Math.random() < 0.25) {
                 return true;
             }
             return false;
@@ -194,7 +158,7 @@ export class ShotSelector {
             probability *= 1.2;
         if (rallyState.lastShotQuality >= 85)
             probability *= 1.4;
-        return Math.random() < Math.min(0.85, probability);
+        return Math.random() < Math.min(0.90, probability);
     }
     shouldUseTacticalShot(shooter, rallyState, opportunity) {
         const shotVariety = shooter.stats.mental.shot_variety;

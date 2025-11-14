@@ -9,6 +9,7 @@ export class MatchSimulator {
     matchState;
     scoreProgression = [];
     pointResults = [];
+    pointKeyMoments = [];
     startTime;
     constructor(config) {
         this.config = config;
@@ -54,9 +55,12 @@ export class MatchSimulator {
         const currentServer = this.scoreTracker.getCurrentServer();
         const serverProfile = currentServer === 'player' ? this.config.player : this.config.opponent;
         const returnerProfile = currentServer === 'player' ? this.config.opponent : this.config.player;
+        const isKeyMomentBeforePoint = this.scoreTracker.isKeyMoment();
         const breakPointFor = this.scoreTracker.getBreakPointFor();
-        const pointResult = this.pointSimulator.simulatePoint(serverProfile, returnerProfile, this.matchState);
+        this.matchState.isKeyMoment = isKeyMomentBeforePoint;
+        const pointResult = this.pointSimulator.simulatePoint(currentServer, serverProfile, returnerProfile, this.matchState);
         this.pointResults.push(pointResult);
+        this.pointKeyMoments.push(isKeyMomentBeforePoint);
         const pointWinner = this.convertPointWinner(pointResult.winner, currentServer);
         this.scoreTracker.addPoint(pointWinner);
         this.matchStatistics.addPointResult(pointResult, currentServer, breakPointFor);
@@ -79,18 +83,21 @@ export class MatchSimulator {
         this.matchState.matchLength = elapsed;
     }
     updateMomentum() {
-        const recentPoints = this.scoreProgression.slice(-5);
+        const recentPoints = this.pointResults.slice(-5);
         if (recentPoints.length === 0) {
             this.matchState.momentum = 0;
             return;
         }
         let playerPoints = 0;
         let opponentPoints = 0;
-        recentPoints.forEach(snapshot => {
-            if (Math.random() > 0.5)
+        recentPoints.forEach(pointResult => {
+            const pointWinner = this.convertPointWinner(pointResult.winner, pointResult.server);
+            if (pointWinner === 'player') {
                 playerPoints++;
-            else
+            }
+            else {
                 opponentPoints++;
+            }
         });
         const totalPoints = playerPoints + opponentPoints;
         this.matchState.momentum = totalPoints > 0 ?
@@ -206,8 +213,8 @@ export class MatchSimulator {
         const winner = this.scoreTracker.getWinner();
         const finalScore = this.scoreTracker.getScoreString();
         const points = this.pointResults.map((pointResult, index) => {
-            const server = index % 2 === 0 ? 'player' : 'opponent';
-            const pointWinner = pointResult.winner === 'server' ? server :
+            const { server, winner } = pointResult;
+            const pointWinner = winner === 'server' ? server :
                 (server === 'player' ? 'opponent' : 'player');
             const scoreSnapshot = this.scoreProgression[index];
             return {
@@ -220,10 +227,11 @@ export class MatchSimulator {
                 duration: pointResult.duration,
                 shots: pointResult.shots,
                 keyShot: pointResult.keyShot,
+                statistics: pointResult.statistics,
                 matchState: scoreSnapshot ? {
                     pressure: this.matchState.pressure,
                     momentum: scoreSnapshot.momentum,
-                    isKeyMoment: this.matchState.isKeyMoment,
+                    isKeyMoment: this.pointKeyMoments[index] || false,
                     gameScore: scoreSnapshot.gameScore,
                     setScore: scoreSnapshot.setScore,
                 } : {

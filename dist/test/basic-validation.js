@@ -40,8 +40,8 @@ function testStatCorrelation() {
     const baselineServeSuccess = [];
     const improvedServeSuccess = [];
     for (let i = 0; i < 100; i++) {
-        const baselineResult = shotCalculator.calculateShotSuccess(player1, 'serve_first', context);
-        const improvedResult = shotCalculator.calculateShotSuccess(player2, 'serve_first', context);
+        const baselineResult = shotCalculator.calculateShotSuccess(player1, 'serve_first', context, player2, 'well_positioned', undefined);
+        const improvedResult = shotCalculator.calculateShotSuccess(player2, 'serve_first', context, player1, 'well_positioned', undefined);
         baselineServeSuccess.push(baselineResult.success ? 1 : 0);
         improvedServeSuccess.push(improvedResult.success ? 1 : 0);
     }

@@ -1,4 +1,4 @@
-import { RELATIVE_QUALITY_REQUIREMENTS, MIN_QUALITY_FLOORS, OUTCOME_MULTIPLIERS, SERVE_BASELINE, OPPONENT_STAT_ADJUSTMENTS, POSITION_ADJUSTMENTS, SERVE_VARIANCE, SERVE_BONUSES, getShotCategory, } from '../config/shotThresholds.js';
+import { RELATIVE_QUALITY_REQUIREMENTS, MIN_QUALITY_FLOORS, MINIMUM_WINNER_THRESHOLDS, OUTCOME_MULTIPLIERS, SERVE_BASELINE, OPPONENT_STAT_ADJUSTMENTS, POSITION_ADJUSTMENTS, SERVE_VARIANCE, RETURN_VARIANCE, RALLY_SHOT_VARIANCE, SERVE_BONUSES, TOTAL_MODIFIER_CAPS, getShotCategory, } from '../config/shotThresholds.js';
 const SHOT_RANGES = {
     pressureModifiers: {
         low: { min: 1.0, max: 1.05 },
@@ -7,9 +7,9 @@ const SHOT_RANGES = {
     },
     rallyLengthModifiers: {
         short: { min: 1.0, max: 1.0 },
-        medium: { min: 0.85, max: 1.0 },
-        long: { min: 0.70, max: 1.0 },
-        extreme: { min: 0.50, max: 1.0 },
+        medium: { min: 0.90, max: 1.0 },
+        long: { min: 0.80, max: 1.0 },
+        extreme: { min: 0.75, max: 1.0 },
     },
 };
 const SHOT_CLASSIFICATIONS = {
@@ -21,6 +21,8 @@ const SHOT_CLASSIFICATIONS = {
 };
 export class ShotCalculator {
     calculateShotSuccess(shooterProfile, shotType, context, opponentProfile, opponentPosition, incomingShot, ballQuality, tacticalOpportunity) {
+        console.log('Calculating shot success for', shotType);
+        console.log('Incoming shot quality:', incomingShot?.quality);
         const primaryStat = shooterProfile.getStatForShot(shotType);
         const modifiers = this.calculateModifiers(shooterProfile, shotType, context, incomingShot, ballQuality, tacticalOpportunity, opponentPosition);
         const quality = this.applyModifiers(primaryStat, modifiers);
@@ -32,10 +34,15 @@ export class ShotCalculator {
             thresholds = serveOutcome.thresholds;
         }
         else {
-            const incomingQuality = incomingShot?.quality ?? 50;
+            if (!incomingShot) {
+                throw new Error('Incoming shot is required for non-serve shots to calculate quality thresholds.');
+            }
+            const incomingQuality = incomingShot.quality;
             thresholds = this.calculateQualityRequirements(incomingQuality, shotType, opponentProfile.stats, opponentPosition);
             outcome = this.determineOutcome(quality, thresholds);
         }
+        console.log('Shot quality:', quality.toFixed(1), 'Outcome:', outcome);
+        console.log('Quality thresholds:', thresholds);
         return {
             success: outcome === 'winner' || outcome === 'in_play',
             outcome,
@@ -58,10 +65,13 @@ export class ShotCalculator {
         inPlayReq += speedAdj;
         const positionAdj = POSITION_ADJUSTMENTS[opponentPosition];
         inPlayReq += positionAdj;
+        const multipliers = OUTCOME_MULTIPLIERS[shotCategory];
+        const calculatedWinner = inPlayReq * multipliers.winner;
+        const winnerThreshold = Math.max(calculatedWinner, MINIMUM_WINNER_THRESHOLDS[shotCategory]);
         return {
-            winner: inPlayReq * OUTCOME_MULTIPLIERS.winner,
-            inPlay: inPlayReq,
-            forcedError: inPlayReq * OUTCOME_MULTIPLIERS.forcedError,
+            winner: winnerThreshold,
+            inPlay: inPlayReq * multipliers.inPlay,
+            forcedError: inPlayReq * multipliers.forcedError,
         };
     }
     determineOutcome(quality, thresholds) {
@@ -102,31 +112,42 @@ export class ShotCalculator {
         const playStyle = shooterProfile.playStyle;
         let spinBonus = this.calculateSpinBonus(shotType, stats.technical.spin);
         const placementBonus = this.calculatePlacementBonus(shotType, stats.technical.placement);
-        let physicalModifier = this.calculatePhysicalModifier(shotType, context, stats.physical);
-        let mentalModifier = this.calculateMentalModifier(context, stats.mental, playStyle);
+        let physicalModifier = this.calculatePhysicalModifier(shotType, context, stats.physical, ballQuality);
+        let mentalModifier = this.calculateMentalModifier(context, stats.mental, playStyle, opponentPosition);
         let serveVariance = 0;
         if (shotType === 'serve_first') {
-            const offensiveBonus = (stats.mental.offensive / 100) * SERVE_BONUSES.first.offensive;
-            const strengthBonus = (stats.physical.strength / 100) * SERVE_BONUSES.first.strength;
-            const spinBonusServe = (stats.technical.spin / 100) * SERVE_BONUSES.first.spin;
+            const offensiveBonus = Math.min((stats.mental.offensive / 100) * SERVE_BONUSES.first.offensive.multiplier, SERVE_BONUSES.first.offensive.maxBonus);
+            const strengthBonus = Math.min((stats.physical.strength / 100) * SERVE_BONUSES.first.strength.multiplier, SERVE_BONUSES.first.strength.maxBonus);
+            const spinBonusServe = Math.min((stats.technical.spin / 100) * SERVE_BONUSES.first.spin.multiplier, SERVE_BONUSES.first.spin.maxBonus);
             physicalModifier *= (1 + offensiveBonus + strengthBonus);
             spinBonus += spinBonusServe * 100;
             serveVariance = (Math.random() - 0.5) * 2 * SERVE_VARIANCE.first;
         }
         else if (shotType === 'serve_second' || shotType === 'kick_serve') {
-            const consistencyBonus = (playStyle.consistency / 100) * SERVE_BONUSES.second.consistency;
-            const spinBonusServe = (stats.technical.spin / 100) * SERVE_BONUSES.second.spin;
-            const defensiveBonus = (stats.mental.defensive / 100) * SERVE_BONUSES.second.defensive;
+            const consistencyBonus = Math.min((playStyle.consistency / 100) * SERVE_BONUSES.second.consistency.multiplier, SERVE_BONUSES.second.consistency.maxBonus);
+            const spinBonusServe = Math.min((stats.technical.spin / 100) * SERVE_BONUSES.second.spin.multiplier, SERVE_BONUSES.second.spin.maxBonus);
+            const defensiveBonus = Math.min((stats.mental.defensive / 100) * SERVE_BONUSES.second.defensive.multiplier, SERVE_BONUSES.second.defensive.maxBonus);
             mentalModifier *= (1 + consistencyBonus + defensiveBonus);
             spinBonus += spinBonusServe * 100;
             serveVariance = (Math.random() - 0.5) * 2 * SERVE_VARIANCE.second;
+        }
+        let returnVariance = 0;
+        if (shotType.includes('return')) {
+            returnVariance = (Math.random() - 0.5) * 2 * RETURN_VARIANCE;
+        }
+        let rallyVariance = 0;
+        if (!shotType.includes('serve') && !shotType.includes('return') && incomingShot) {
+            const incomingQuality = incomingShot.quality;
+            const totalVariance = RALLY_SHOT_VARIANCE.base +
+                (incomingQuality / 100) * RALLY_SHOT_VARIANCE.qualityMultiplier;
+            rallyVariance = (Math.random() - 0.5) * 2 * totalVariance;
         }
         const difficultyModifier = this.getDifficultyModifier(context.difficulty);
         const pressureModifier = this.getPressureModifier(context.pressure, stats.mental.focus);
         const rallyLengthModifier = this.getRallyLengthModifier(context.rallyLength, stats.physical.stamina);
         const ballQualityModifier = this.getBallQualityModifier(ballQuality, stats.physical);
         const tacticalModifier = this.getTacticalModifier(shotType, tacticalOpportunity, opponentPosition);
-        const finalAdjustment = (1 + spinBonus / 100) *
+        let finalAdjustment = (1 + spinBonus / 100) *
             (1 + placementBonus / 100) *
             physicalModifier *
             mentalModifier *
@@ -135,6 +156,15 @@ export class ShotCalculator {
             rallyLengthModifier *
             ballQualityModifier *
             tacticalModifier;
+        if (shotType.includes('serve')) {
+            finalAdjustment = Math.min(finalAdjustment, TOTAL_MODIFIER_CAPS.serve);
+        }
+        else if (shotType.includes('return')) {
+            finalAdjustment = Math.min(finalAdjustment, TOTAL_MODIFIER_CAPS.return);
+        }
+        else {
+            finalAdjustment = Math.min(finalAdjustment, TOTAL_MODIFIER_CAPS.rally);
+        }
         return {
             spinBonus,
             placementBonus,
@@ -145,6 +175,8 @@ export class ShotCalculator {
             rallyLengthModifier,
             finalAdjustment,
             serveVariance,
+            returnVariance,
+            rallyVariance,
         };
     }
     calculateSpinBonus(shotType, spinStat) {
@@ -159,7 +191,7 @@ export class ShotCalculator {
         }
         return (placementStat / 100) * 15;
     }
-    calculatePhysicalModifier(shotType, context, physical) {
+    calculatePhysicalModifier(shotType, context, physical, ballQuality) {
         let modifier = 1.0;
         if (SHOT_CLASSIFICATIONS.defensiveShots.includes(shotType) ||
             context.courtPosition === 'defensive') {
@@ -170,24 +202,21 @@ export class ShotCalculator {
             const strengthModifier = 0.9 + (physical.strength / 100) * 0.2;
             modifier *= strengthModifier;
         }
-        if (SHOT_CLASSIFICATIONS.netShots.includes(shotType) ||
-            context.timeAvailable === 'rushed') {
+        const isRushed = ballQuality?.timeAvailable === 'rushed';
+        if (SHOT_CLASSIFICATIONS.netShots.includes(shotType) || isRushed) {
             const agilityModifier = 0.85 + (physical.agility / 100) * 0.3;
             modifier *= agilityModifier;
         }
         return modifier;
     }
-    calculateMentalModifier(context, mental, playStyle) {
+    calculateMentalModifier(context, mental, playStyle, opponentPosition) {
         let modifier = 1.0;
-        if (context.opponentPosition === 'excellent') {
+        if (opponentPosition === 'at_net' || opponentPosition === 'well_positioned') {
             const anticipationModifier = 0.8 + (mental.anticipation / 100) * 0.2;
             modifier *= anticipationModifier;
         }
-        const tacticalShots = [...SHOT_CLASSIFICATIONS.placementShots, 'drop_shot', 'lob'];
-        if (tacticalShots.some(shot => context.toString().includes(shot))) {
-            const varietyModifier = 0.9 + (mental.shot_variety / 100) * 0.2;
-            modifier *= varietyModifier;
-        }
+        const varietyModifier = 0.9 + (mental.shot_variety / 100) * 0.2;
+        modifier *= varietyModifier;
         if (playStyle.aggression > 70 && SHOT_CLASSIFICATIONS.powerShots.length > 0) {
             const offensiveModifier = 1.0 + (mental.offensive / 100) * 0.1;
             modifier *= offensiveModifier;
@@ -215,7 +244,7 @@ export class ShotCalculator {
         else if (rallyLength <= 10) {
             range = SHOT_RANGES.rallyLengthModifiers.medium;
         }
-        else if (rallyLength <= 20) {
+        else if (rallyLength <= 15) {
             range = SHOT_RANGES.rallyLengthModifiers.long;
         }
         else {
@@ -227,6 +256,12 @@ export class ShotCalculator {
         let quality = baseStat * modifiers.finalAdjustment;
         if (modifiers.serveVariance !== undefined) {
             quality += modifiers.serveVariance;
+        }
+        if (modifiers.returnVariance !== undefined) {
+            quality += modifiers.returnVariance;
+        }
+        if (modifiers.rallyVariance !== undefined) {
+            quality += modifiers.rallyVariance;
         }
         return Math.min(100, Math.max(0, quality));
     }

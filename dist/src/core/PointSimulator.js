@@ -1,13 +1,16 @@
 import { ShotCalculator } from './ShotCalculator.js';
 import { ShotSelector } from './ShotSelector.js';
+import { TacticalAnalyzer } from './TacticalAnalyzer.js';
 export class PointSimulator {
     shotCalculator;
     shotSelector;
+    tacticalAnalyzer;
     constructor() {
         this.shotCalculator = new ShotCalculator();
         this.shotSelector = new ShotSelector();
+        this.tacticalAnalyzer = new TacticalAnalyzer();
     }
-    simulatePoint(server, returner, matchState) {
+    simulatePoint(currentServer, server, returner, matchState) {
         const shots = [];
         const pointId = `point_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         let shotNumber = 1;
@@ -15,13 +18,13 @@ export class PointSimulator {
         shots.push(...serveResult.shots);
         shotNumber += serveResult.shots.length;
         if (serveResult.pointEnded) {
-            return this.createPointResult(serveResult.winner, shots, serveResult.pointType, matchState, serveResult.serveType);
+            return this.createPointResult(currentServer, serveResult.winner, shots, serveResult.pointType, matchState, serveResult.serveType);
         }
-        const rallyResult = this.simulateRally(server, returner, matchState, pointId, shotNumber, serveResult.nextShooter);
+        const rallyResult = this.simulateRally(shots[0], server, returner, matchState, pointId, serveResult.nextShooter);
         shots.push(...rallyResult.shots);
         const winner = rallyResult.winner;
         const pointType = rallyResult.pointType;
-        return this.createPointResult(winner, shots, pointType, matchState, serveResult.serveType);
+        return this.createPointResult(currentServer, winner, shots, pointType, matchState, serveResult.serveType);
     }
     simulateServe(server, returner, matchState, pointId, shotNumber) {
         const shots = [];
@@ -48,6 +51,7 @@ export class PointSimulator {
                 winner: 'server',
                 pointType: 'ace',
                 serveType: 'first',
+                quality: firstServeResult.quality,
             };
         }
         if (firstServeResult.outcome === 'in_play') {
@@ -70,6 +74,7 @@ export class PointSimulator {
                 pointEnded: false,
                 nextShooter: 'returner',
                 serveType: 'first',
+                quality: firstServeResult.quality,
             };
         }
         const secondServeContext = this.createServeContext(matchState, false);
@@ -95,6 +100,7 @@ export class PointSimulator {
                 winner: 'server',
                 pointType: 'ace',
                 serveType: 'second',
+                quality: secondServeResult.quality,
             };
         }
         if (secondServeResult.outcome === 'error') {
@@ -104,6 +110,7 @@ export class PointSimulator {
                 winner: 'returner',
                 pointType: 'double_fault',
                 serveType: 'second',
+                quality: secondServeResult.quality,
             };
         }
         return {
@@ -111,35 +118,36 @@ export class PointSimulator {
             pointEnded: false,
             nextShooter: 'returner',
             serveType: 'second',
+            quality: secondServeResult.quality,
         };
     }
-    simulateRally(server, returner, matchState, pointId, startingShotNumber, firstShooter) {
+    simulateRally(serveShot, server, returner, matchState, pointId, firstShooter) {
         const shots = [];
         let currentShooter = firstShooter;
-        let shotNumber = startingShotNumber;
-        let previousShot = null;
+        let shotNumber = 1;
+        let previousShot = serveShot;
         const maxRallyLength = 30;
         let serverPosition = 'well_positioned';
         let returnerPosition = 'well_positioned';
-        while (shotNumber - startingShotNumber < maxRallyLength) {
+        while (shotNumber < maxRallyLength) {
             const shooterProfile = currentShooter === 'server' ? server : returner;
             const opponentProfile = currentShooter === 'server' ? returner : server;
-            const rallyLength = shotNumber - startingShotNumber + 1;
+            const rallyLength = shotNumber;
             const shooterPosition = currentShooter === 'server' ? serverPosition : returnerPosition;
             const opponentPosition = currentShooter === 'server' ? returnerPosition : serverPosition;
             const ballQuality = this.calculateBallQuality(previousShot);
             const rallyState = {
                 rallyLength,
-                lastShotQuality: previousShot?.quality ?? 50,
-                lastShotType: previousShot?.shotType ?? 'serve_first',
+                lastShotQuality: previousShot.quality,
+                lastShotType: previousShot.shotType,
                 shooterPosition,
                 opponentPosition,
                 ballQuality,
             };
             const shotType = this.shotSelector.selectShot(shooterProfile, opponentProfile, rallyState, matchState);
-            const shotContext = this.createRallyContext(rallyLength, matchState, shooterProfile);
-            const tacticalOpportunity = this.evaluateTacticalOpportunity(rallyState);
-            const shotResult = this.shotCalculator.calculateShotSuccess(shooterProfile, shotType, shotContext, opponentProfile, opponentPosition, previousShot ?? undefined, ballQuality, tacticalOpportunity);
+            const shotContext = this.createRallyContext(rallyLength, matchState, shooterPosition, rallyState.ballQuality, rallyState.opponentPosition);
+            const tacticalOpportunity = this.tacticalAnalyzer.evaluateTacticalSituation(rallyState, shooterPosition);
+            const shotResult = this.shotCalculator.calculateShotSuccess(shooterProfile, shotType, shotContext, opponentProfile, opponentPosition, previousShot, ballQuality, tacticalOpportunity);
             let errorType;
             if (shotResult.outcome === 'forced_error') {
                 errorType = 'forced';
@@ -179,11 +187,14 @@ export class PointSimulator {
                 };
             }
             previousShot = shotDetail;
-            const newOpponentPosition = this.updateCourtPosition(shotResult, shotType, opponentPosition);
+            const newOpponentPosition = this.updateOpponentPosition(shotResult, shotType, opponentPosition);
+            const newShooterPosition = this.updateShooterPosition(shotResult, shotType, shooterPosition, rallyLength, previousShot.quality);
             if (currentShooter === 'server') {
+                serverPosition = newShooterPosition;
                 returnerPosition = newOpponentPosition;
             }
             else {
+                returnerPosition = newShooterPosition;
                 serverPosition = newOpponentPosition;
             }
             currentShooter = currentShooter === 'server' ? 'returner' : 'server';
@@ -222,26 +233,10 @@ export class PointSimulator {
             pressure,
             courtPosition: 'baseline',
             rallyLength: 1,
-            opponentPosition: 'good',
-            timeAvailable: 'plenty',
-            ballHeight: 'medium',
-            ballSpeed: 'medium',
         };
     }
-    createRallyContext(rallyLength, matchState, shooterProfile) {
-        let difficulty;
-        if (rallyLength <= 3) {
-            difficulty = 'easy';
-        }
-        else if (rallyLength <= 8) {
-            difficulty = 'normal';
-        }
-        else if (rallyLength <= 15) {
-            difficulty = 'hard';
-        }
-        else {
-            difficulty = 'extreme';
-        }
+    createRallyContext(rallyLength, matchState, shooterPosition, ballQuality, opponentPosition) {
+        const difficulty = this.calculateShotDifficulty(shooterPosition, opponentPosition, ballQuality, rallyLength);
         let pressure = 'low';
         if (matchState.isKeyMoment) {
             pressure = 'high';
@@ -250,29 +245,74 @@ export class PointSimulator {
             pressure = 'medium';
         }
         let courtPosition = 'baseline';
-        if (shooterProfile.playStyle.netApproach > 70 && rallyLength >= 3) {
+        if (shooterPosition === 'at_net') {
             courtPosition = 'net';
         }
-        else if (rallyLength > 12) {
+        else if (shooterPosition === 'way_back_deep' || rallyLength > 12) {
             courtPosition = 'defensive';
-        }
-        let timeAvailable = 'normal';
-        if (rallyLength > 15) {
-            timeAvailable = 'rushed';
-        }
-        else if (rallyLength < 4) {
-            timeAvailable = 'plenty';
         }
         return {
             difficulty,
             pressure,
             courtPosition,
             rallyLength,
-            opponentPosition: 'good',
-            timeAvailable,
-            ballHeight: 'medium',
-            ballSpeed: 'medium',
         };
+    }
+    calculateShotDifficulty(shooterPosition, opponentPosition, ballQuality, rallyLength) {
+        let difficultyScore = 0;
+        if (shooterPosition === 'way_out_wide' || shooterPosition === 'way_back_deep') {
+            difficultyScore += 30;
+        }
+        else if (shooterPosition === 'recovering') {
+            difficultyScore += 20;
+        }
+        else if (shooterPosition === 'slightly_off') {
+            difficultyScore += 10;
+        }
+        if (ballQuality) {
+            if (ballQuality.baseQuality >= 85) {
+                difficultyScore += 25;
+            }
+            else if (ballQuality.baseQuality >= 70) {
+                difficultyScore += 15;
+            }
+            if (ballQuality.timeAvailable === 'rushed') {
+                difficultyScore += 20;
+            }
+            else if (ballQuality.timeAvailable === 'plenty') {
+                difficultyScore -= 10;
+            }
+            if (ballQuality.spin === 'heavy_topspin') {
+                difficultyScore += 10;
+            }
+        }
+        if (opponentPosition === 'at_net') {
+            difficultyScore += 25;
+        }
+        else if (opponentPosition === 'well_positioned') {
+            difficultyScore += 5;
+        }
+        if (opponentPosition === 'way_out_wide' || opponentPosition === 'way_back_deep') {
+            difficultyScore -= 15;
+        }
+        if (rallyLength && rallyLength > 15) {
+            difficultyScore += 10;
+        }
+        else if (rallyLength && rallyLength > 10) {
+            difficultyScore += 5;
+        }
+        if (difficultyScore < 0) {
+            return 'easy';
+        }
+        else if (difficultyScore < 30) {
+            return 'normal';
+        }
+        else if (difficultyScore < 60) {
+            return 'hard';
+        }
+        else {
+            return 'extreme';
+        }
     }
     calculateBallQuality(previousShot) {
         if (!previousShot) {
@@ -290,31 +330,88 @@ export class PointSimulator {
         else if (shotType.includes('topspin') || shotType.includes('kick')) {
             spin = quality >= 70 ? 'heavy_topspin' : 'topspin';
         }
-        else if (shotType.includes('power')) {
+        else if (shotType.includes('power') || shotType.includes('serve_first')) {
             spin = 'flat';
         }
         else {
             spin = 'topspin';
         }
         let timeAvailable;
-        if (quality >= 80 || shotType.includes('power')) {
+        if (shotType.includes('power') || shotType.includes('passing_shot')) {
+            timeAvailable = quality >= 70 ? 'rushed' : 'normal';
+        }
+        else if (shotType.includes('lob')) {
+            timeAvailable = 'plenty';
+        }
+        else if (shotType.includes('drop_shot')) {
+            timeAvailable = 'plenty';
+        }
+        else if (shotType.includes('slice') || shotType.includes('defensive')) {
+            timeAvailable = 'plenty';
+        }
+        else if (shotType.includes('approach') || shotType.includes('volley')) {
+            timeAvailable = quality >= 70 ? 'rushed' : 'normal';
+        }
+        else if (quality >= 80) {
             timeAvailable = 'rushed';
         }
-        else if (quality < 50 || shotType.includes('slice') || shotType.includes('lob')) {
+        else if (quality < 50) {
             timeAvailable = 'plenty';
         }
         else {
             timeAvailable = 'normal';
         }
+        let qualityModifier = 0;
+        if (shotType.includes('lob') && quality < 70)
+            qualityModifier -= 5;
+        if (shotType.includes('drop_shot') && quality < 60)
+            qualityModifier -= 5;
+        if (shotType.includes('angle') || shotType.includes('passing'))
+            qualityModifier += 5;
         const randomVariance = (Math.random() - 0.5) * 10;
-        const baseQuality = Math.max(0, Math.min(100, quality + randomVariance));
+        const baseQuality = Math.max(0, Math.min(100, quality + randomVariance + qualityModifier));
         return {
             spin,
             timeAvailable,
             baseQuality,
         };
     }
-    updateCourtPosition(shotResult, shotType, currentPosition) {
+    updateShooterPosition(shotResult, shotType, currentPosition, rallyLength, incomingQuality) {
+        if (!shotResult.success)
+            return currentPosition;
+        if (shotType.includes('approach')) {
+            return 'at_net';
+        }
+        if (shotType.includes('volley') || shotType.includes('overhead')) {
+            return 'at_net';
+        }
+        if (shotType.includes('drop_shot') && shotResult.quality >= 60) {
+            return 'recovering';
+        }
+        if (shotType.includes('defensive') || shotType.includes('lob')) {
+            return 'way_back_deep';
+        }
+        if (incomingQuality >= 80) {
+            return currentPosition === 'at_net' ? 'at_net' : 'slightly_off';
+        }
+        if (rallyLength > 12) {
+            return currentPosition === 'at_net' ? 'at_net' : 'well_positioned';
+        }
+        if (shotResult.quality >= 70) {
+            return currentPosition === 'at_net' ? 'at_net' : 'well_positioned';
+        }
+        if (shotResult.quality < 50) {
+            return currentPosition === 'at_net' ? 'at_net' : 'slightly_off';
+        }
+        if (currentPosition === 'way_out_wide' || currentPosition === 'way_back_deep') {
+            return 'recovering';
+        }
+        if (currentPosition === 'recovering') {
+            return 'well_positioned';
+        }
+        return currentPosition;
+    }
+    updateOpponentPosition(shotResult, shotType, currentPosition) {
         if (!shotResult.success)
             return currentPosition;
         const quality = shotResult.quality;
@@ -344,32 +441,7 @@ export class PointSimulator {
         }
         return 'well_positioned';
     }
-    evaluateTacticalOpportunity(rallyState) {
-        const { opponentPosition, lastShotQuality, ballQuality } = rallyState;
-        let attackScore = 0;
-        if (opponentPosition === 'way_out_wide')
-            attackScore += 40;
-        if (opponentPosition === 'way_back_deep')
-            attackScore += 35;
-        if (opponentPosition === 'recovering')
-            attackScore += 30;
-        if (lastShotQuality >= 70)
-            attackScore += 20;
-        if (ballQuality.baseQuality < 50)
-            attackScore += 15;
-        const defensiveRequired = ballQuality.timeAvailable === 'rushed' ||
-            ballQuality.baseQuality >= 80 ||
-            opponentPosition === 'at_net';
-        return {
-            attackOpportunity: attackScore >= 60 ? 'high' : attackScore >= 35 ? 'medium' : 'low',
-            netApproachSuitable: attackScore >= 40 && !defensiveRequired,
-            winnerAttemptSuitable: attackScore >= 30 && !defensiveRequired,
-            defensiveRequired,
-            tacticalShotSuitable: !defensiveRequired,
-            recommendedAggression: Math.min(100, attackScore),
-        };
-    }
-    createPointResult(winner, shots, pointType, matchState, serveType) {
+    createPointResult(server, winner, shots, pointType, matchState, serveType) {
         const rallyLength = shots.length;
         const keyShot = this.identifyKeyShot(shots);
         const statistics = this.calculatePointStatistics(shots);
@@ -377,6 +449,7 @@ export class PointSimulator {
         const rallyCostMultiplier = rallyLength > 10 ? 1.5 : 1.0;
         const duration = Math.round(baseDuration * rallyCostMultiplier);
         return {
+            server,
             winner,
             shots,
             rallyLength,

@@ -21,14 +21,17 @@ import type {
 import { PlayerProfile } from './PlayerProfile.js';
 import { ShotCalculator } from './ShotCalculator.js';
 import { ShotSelector } from './ShotSelector.js';
+import { TacticalAnalyzer } from './TacticalAnalyzer.js';
 
 export class PointSimulator {
   private shotCalculator: ShotCalculator;
   private shotSelector: ShotSelector;
+  private tacticalAnalyzer: TacticalAnalyzer;
 
   constructor() {
     this.shotCalculator = new ShotCalculator();
     this.shotSelector = new ShotSelector();
+    this.tacticalAnalyzer = new TacticalAnalyzer();
   }
 
   /**
@@ -282,11 +285,20 @@ export class PointSimulator {
         matchState
       );
 
-      // Create context for this shot
-      const shotContext = this.createRallyContext(rallyLength, matchState, shooterProfile);
+      // Create context for this shot (using actual ball quality and opponent position)
+      const shotContext = this.createRallyContext(
+        rallyLength,
+        matchState,
+        shooterPosition,
+        rallyState.ballQuality,
+        rallyState.opponentPosition
+      );
 
-      // NEW: Calculate tactical opportunity for ShotCalculator
-      const tacticalOpportunity = this.evaluateTacticalOpportunity(rallyState);
+      // Calculate tactical opportunity using unified analyzer
+      const tacticalOpportunity = this.tacticalAnalyzer.evaluateTacticalSituation(
+        rallyState,
+        shooterPosition
+      );
 
       // Calculate shot result with new threshold system
       const shotResult = this.shotCalculator.calculateShotSuccess(
@@ -348,16 +360,27 @@ export class PointSimulator {
       // Shot was successful and in play, continue rally
       previousShot = shotDetail;
 
-      // NEW: Update opponent position based on this shot
-      const newOpponentPosition = this.updateCourtPosition(
+      // Update both shooter and opponent positions based on this shot
+      const newOpponentPosition = this.updateOpponentPosition(
         shotResult,
         shotType,
         opponentPosition
       );
 
+      const newShooterPosition = this.updateShooterPosition(
+        shotResult,
+        shotType,
+        shooterPosition,
+        rallyLength,
+        previousShot.quality
+      );
+
+      // Update positions for both players
       if (currentShooter === 'server') {
+        serverPosition = newShooterPosition;
         returnerPosition = newOpponentPosition;
       } else {
+        returnerPosition = newShooterPosition;
         serverPosition = newOpponentPosition;
       }
 
@@ -420,32 +443,27 @@ export class PointSimulator {
       pressure,
       courtPosition: 'baseline',
       rallyLength: 1,
-      opponentPosition: 'good',
-      timeAvailable: 'plenty',
-      ballHeight: 'medium',
-      ballSpeed: 'medium',
     };
   }
 
   /**
    * Create context for rally shots
+   * Uses actual situation to determine difficulty, not just rally length
    */
   private createRallyContext(
     rallyLength: number,
     matchState: MatchState,
-    shooterProfile: PlayerProfile
+    shooterPosition: CourtPosition,
+    ballQuality?: BallQuality,
+    opponentPosition?: CourtPosition
   ): ShotContext {
-    // Difficulty increases with rally length
-    let difficulty: ShotContext['difficulty'];
-    if (rallyLength <= 3) {
-      difficulty = 'easy';
-    } else if (rallyLength <= 8) {
-      difficulty = 'normal';
-    } else if (rallyLength <= 15) {
-      difficulty = 'hard';
-    } else {
-      difficulty = 'extreme';
-    }
+    // Calculate difficulty based on actual situation
+    const difficulty = this.calculateShotDifficulty(
+      shooterPosition,
+      opponentPosition,
+      ballQuality,
+      rallyLength
+    );
 
     // Pressure from match situation
     let pressure: ShotContext['pressure'] = 'low';
@@ -455,20 +473,12 @@ export class PointSimulator {
       pressure = 'medium';
     }
 
-    // Court position based on play style
+    // Court position comes from actual position tracking
     let courtPosition: ShotContext['courtPosition'] = 'baseline';
-    if (shooterProfile.playStyle.netApproach > 70 && rallyLength >= 3) {
+    if (shooterPosition === 'at_net') {
       courtPosition = 'net';
-    } else if (rallyLength > 12) {
+    } else if (shooterPosition === 'way_back_deep' || rallyLength > 12) {
       courtPosition = 'defensive';
-    }
-
-    // Time pressure increases with rally length
-    let timeAvailable: ShotContext['timeAvailable'] = 'normal';
-    if (rallyLength > 15) {
-      timeAvailable = 'rushed';
-    } else if (rallyLength < 4) {
-      timeAvailable = 'plenty';
     }
 
     return {
@@ -476,16 +486,97 @@ export class PointSimulator {
       pressure,
       courtPosition,
       rallyLength,
-      opponentPosition: 'good',
-      timeAvailable,
-      ballHeight: 'medium',
-      ballSpeed: 'medium',
     };
+  }
+
+  /**
+   * Calculate shot difficulty based on multiple factors
+   *
+   * Factors:
+   * - Shooter position (out of position = harder)
+   * - Incoming ball quality (high quality = harder)
+   * - Time available (rushed = harder)
+   * - Opponent position (at net = harder)
+   * - Rally length (fatigue factor)
+   */
+  private calculateShotDifficulty(
+    shooterPosition?: CourtPosition,
+    opponentPosition?: CourtPosition,
+    ballQuality?: BallQuality,
+    rallyLength?: number
+  ): ShotContext['difficulty'] {
+    let difficultyScore = 0;
+
+    // Shooter position difficulty
+    if (shooterPosition === 'way_out_wide' || shooterPosition === 'way_back_deep') {
+      difficultyScore += 30; // Very difficult position
+    } else if (shooterPosition === 'recovering') {
+      difficultyScore += 20; // Moving, not set
+    } else if (shooterPosition === 'slightly_off') {
+      difficultyScore += 10; // Slightly harder
+    }
+    // well_positioned = 0, at_net = 0 (neutral/good)
+
+    // Incoming ball quality difficulty
+    if (ballQuality) {
+      if (ballQuality.baseQuality >= 85) {
+        difficultyScore += 25; // Excellent shot against us
+      } else if (ballQuality.baseQuality >= 70) {
+        difficultyScore += 15; // Good shot
+      }
+
+      // Time pressure
+      if (ballQuality.timeAvailable === 'rushed') {
+        difficultyScore += 20; // Very little time
+      } else if (ballQuality.timeAvailable === 'plenty') {
+        difficultyScore -= 10; // Extra time to set up
+      }
+
+      // Heavy spin is harder to handle
+      if (ballQuality.spin === 'heavy_topspin') {
+        difficultyScore += 10;
+      }
+    }
+
+    // Opponent position difficulty
+    if (opponentPosition === 'at_net') {
+      difficultyScore += 25; // Must hit past net player
+    } else if (opponentPosition === 'well_positioned') {
+      difficultyScore += 5; // Harder to find opening
+    }
+    // Opponent out of position makes it easier
+    if (opponentPosition === 'way_out_wide' || opponentPosition === 'way_back_deep') {
+      difficultyScore -= 15; // Easier with opponent out of position
+    }
+
+    // Rally length fatigue (minor factor)
+    if (rallyLength && rallyLength > 15) {
+      difficultyScore += 10; // Fatigue sets in
+    } else if (rallyLength && rallyLength > 10) {
+      difficultyScore += 5;
+    }
+
+    // Convert score to difficulty level
+    // Scores roughly: <0 = easy, 0-30 = normal, 30-60 = hard, 60+ = extreme
+    if (difficultyScore < 0) {
+      return 'easy';
+    } else if (difficultyScore < 30) {
+      return 'normal';
+    } else if (difficultyScore < 60) {
+      return 'hard';
+    } else {
+      return 'extreme';
+    }
   }
 
   /**
    * Calculate ball quality from previous shot result and type
    * Derives spin, timeAvailable, and baseQuality from shot characteristics
+   *
+   * Ball quality represents the incoming ball's properties:
+   * - spin: How the ball is spinning (affects bounce and trajectory)
+   * - timeAvailable: How much time the opponent has to react
+   * - baseQuality: Overall quality/difficulty of the incoming shot
    */
   private calculateBallQuality(previousShot: ShotDetail | null): BallQuality {
     if (!previousShot) {
@@ -505,25 +596,57 @@ export class PointSimulator {
       spin = 'slice';
     } else if (shotType.includes('topspin') || shotType.includes('kick')) {
       spin = quality >= 70 ? 'heavy_topspin' : 'topspin';
-    } else if (shotType.includes('power')) {
+    } else if (shotType.includes('power') || shotType.includes('serve_first')) {
       spin = 'flat';
     } else {
       spin = 'topspin'; // Default for most groundstrokes
     }
 
-    // Derive time available from shot quality and type
+    // Derive time available from shot quality and type - ENHANCED
     let timeAvailable: BallQuality['timeAvailable'];
-    if (quality >= 80 || shotType.includes('power')) {
-      timeAvailable = 'rushed'; // Fast, powerful shots
-    } else if (quality < 50 || shotType.includes('slice') || shotType.includes('lob')) {
-      timeAvailable = 'plenty'; // Slow, loopy shots
+
+    // Power shots and aces give very little time
+    if (shotType.includes('power') || shotType.includes('passing_shot')) {
+      timeAvailable = quality >= 70 ? 'rushed' : 'normal';
+    }
+    // Lobs give lots of time (high, arcing trajectory)
+    else if (shotType.includes('lob')) {
+      timeAvailable = 'plenty'; // Always plenty of time for lobs
+    }
+    // Drop shots also give time but opponent must cover distance
+    else if (shotType.includes('drop_shot')) {
+      timeAvailable = 'plenty'; // Short ball with time but requires movement
+    }
+    // Slice shots are slower, give more time
+    else if (shotType.includes('slice') || shotType.includes('defensive')) {
+      timeAvailable = 'plenty';
+    }
+    // Approach shots and volleys are typically aggressive
+    else if (shotType.includes('approach') || shotType.includes('volley')) {
+      timeAvailable = quality >= 70 ? 'rushed' : 'normal';
+    }
+    // General quality-based determination
+    else if (quality >= 80) {
+      timeAvailable = 'rushed'; // Elite shot
+    } else if (quality < 50) {
+      timeAvailable = 'plenty'; // Weak shot
     } else {
       timeAvailable = 'normal';
     }
 
     // Base quality is the shot quality with some randomness
+    // Add shot-type specific modifiers
+    let qualityModifier = 0;
+
+    // Lobs and drop shots reduce perceived quality (easier to handle)
+    if (shotType.includes('lob') && quality < 70) qualityModifier -= 5;
+    if (shotType.includes('drop_shot') && quality < 60) qualityModifier -= 5;
+
+    // Angle shots and passing shots increase difficulty
+    if (shotType.includes('angle') || shotType.includes('passing')) qualityModifier += 5;
+
     const randomVariance = (Math.random() - 0.5) * 10; // ±5 points
-    const baseQuality = Math.max(0, Math.min(100, quality + randomVariance));
+    const baseQuality = Math.max(0, Math.min(100, quality + randomVariance + qualityModifier));
 
     return {
       spin,
@@ -533,10 +656,76 @@ export class PointSimulator {
   }
 
   /**
+   * Update shooter's court position based on the shot they just took
+   * Tracks movement to net, defensive positioning, and recovery
+   */
+  private updateShooterPosition(
+    shotResult: ShotResult,
+    shotType: ShotType,
+    currentPosition: CourtPosition,
+    rallyLength: number,
+    incomingQuality: number
+  ): CourtPosition {
+    // If shot was an error, position doesn't matter (point is over)
+    if (!shotResult.success) return currentPosition;
+
+    // Approach shots and volleys move shooter to net
+    if (shotType.includes('approach')) {
+      return 'at_net';
+    }
+
+    // Volleys and net shots keep player at net
+    if (shotType.includes('volley') || shotType.includes('overhead')) {
+      return 'at_net';
+    }
+
+    // Drop shots often move player forward
+    if (shotType.includes('drop_shot') && shotResult.quality >= 60) {
+      return 'recovering'; // Moving toward net but not there yet
+    }
+
+    // Defensive shots push player back
+    if (shotType.includes('defensive') || shotType.includes('lob')) {
+      return 'way_back_deep';
+    }
+
+    // High quality incoming shots force defensive position
+    if (incomingQuality >= 80) {
+      return currentPosition === 'at_net' ? 'at_net' : 'slightly_off';
+    }
+
+    // Long rallies tend to push players back to baseline
+    if (rallyLength > 12) {
+      return currentPosition === 'at_net' ? 'at_net' : 'well_positioned';
+    }
+
+    // Good shot quality allows recovery to good position
+    if (shotResult.quality >= 70) {
+      // Unless at net, recover to well positioned
+      return currentPosition === 'at_net' ? 'at_net' : 'well_positioned';
+    }
+
+    // Weak shots leave player vulnerable
+    if (shotResult.quality < 50) {
+      return currentPosition === 'at_net' ? 'at_net' : 'slightly_off';
+    }
+
+    // Default: maintain or recover toward good position
+    if (currentPosition === 'way_out_wide' || currentPosition === 'way_back_deep') {
+      return 'recovering';
+    }
+    if (currentPosition === 'recovering') {
+      return 'well_positioned';
+    }
+
+    return currentPosition;
+  }
+
+  /**
    * Update opponent court position based on shot result
    * High quality shots push opponent out of position
    */
-  private updateCourtPosition(
+  private updateOpponentPosition(
     shotResult: ShotResult,
     shotType: ShotType,
     currentPosition: CourtPosition
@@ -584,36 +773,6 @@ export class PointSimulator {
     return 'well_positioned';
   }
 
-  /**
-   * Evaluate tactical opportunity from rally state
-   * (Simplified version - ShotSelector has the full implementation)
-   */
-  private evaluateTacticalOpportunity(rallyState: RallyState): TacticalOpportunity {
-    const { opponentPosition, lastShotQuality, ballQuality } = rallyState;
-
-    // Attack opportunity scoring (simplified)
-    let attackScore = 0;
-
-    if (opponentPosition === 'way_out_wide') attackScore += 40;
-    if (opponentPosition === 'way_back_deep') attackScore += 35;
-    if (opponentPosition === 'recovering') attackScore += 30;
-    if (lastShotQuality >= 70) attackScore += 20;
-    if (ballQuality.baseQuality < 50) attackScore += 15;
-
-    const defensiveRequired =
-      ballQuality.timeAvailable === 'rushed' ||
-      ballQuality.baseQuality >= 80 ||
-      opponentPosition === 'at_net';
-
-    return {
-      attackOpportunity: attackScore >= 60 ? 'high' : attackScore >= 35 ? 'medium' : 'low',
-      netApproachSuitable: attackScore >= 40 && !defensiveRequired,
-      winnerAttemptSuitable: attackScore >= 30 && !defensiveRequired,
-      defensiveRequired,
-      tacticalShotSuitable: !defensiveRequired,
-      recommendedAggression: Math.min(100, attackScore),
-    };
-  }
 
   /**
    * Create complete point result with statistics

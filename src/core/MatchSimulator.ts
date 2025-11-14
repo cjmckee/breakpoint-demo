@@ -38,6 +38,7 @@ export class MatchSimulator {
   private matchState: MatchState;
   private scoreProgression: ScoreSnapshot[] = [];
   private pointResults: PointResult[] = [];
+  private pointKeyMoments: boolean[] = []; // Track isKeyMoment status for each point
   private startTime: number;
 
   constructor(config: MatchConfig) {
@@ -121,8 +122,12 @@ export class MatchSimulator {
     const serverProfile = currentServer === 'player' ? this.config.player : this.config.opponent;
     const returnerProfile = currentServer === 'player' ? this.config.opponent : this.config.player;
 
-    // Check if this is a break point opportunity
+    // IMPORTANT: Capture key moment status BEFORE the point is played
+    const isKeyMomentBeforePoint = this.scoreTracker.isKeyMoment();
     const breakPointFor = this.scoreTracker.getBreakPointFor();
+
+    // Update match state with current key moment status
+    this.matchState.isKeyMoment = isKeyMomentBeforePoint;
 
     // Simulate the point
     const pointResult = this.pointSimulator.simulatePoint(
@@ -132,10 +137,11 @@ export class MatchSimulator {
       this.matchState
     );
 
-    // Store point result for later analysis
+    // Store point result and key moment status for later analysis
     this.pointResults.push(pointResult);
+    this.pointKeyMoments.push(isKeyMomentBeforePoint);
 
-    // Add point to score tracker
+    // Add point to score tracker (this changes the score)
     const pointWinner = this.convertPointWinner(pointResult.winner, currentServer);
     this.scoreTracker.addPoint(pointWinner);
 
@@ -181,11 +187,11 @@ export class MatchSimulator {
 
   /**
    * Update momentum based on recent results
+   * Tracks last 5 points won by each player
    */
   private updateMomentum(): void {
-    // Simplified momentum calculation
     // Positive momentum favors player, negative favors opponent
-    const recentPoints = this.scoreProgression.slice(-5); // Last 5 points
+    const recentPoints = this.pointResults.slice(-5); // Last 5 points
 
     if (recentPoints.length === 0) {
       this.matchState.momentum = 0;
@@ -195,14 +201,20 @@ export class MatchSimulator {
     let playerPoints = 0;
     let opponentPoints = 0;
 
-    // Count recent point winners (simplified)
-    recentPoints.forEach(snapshot => {
-      // This is a simplified calculation - in reality we'd track actual point winners
-      if (Math.random() > 0.5) playerPoints++;
-      else opponentPoints++;
+    // Count recent point winners from actual point results
+    recentPoints.forEach(pointResult => {
+      const pointWinner = this.convertPointWinner(pointResult.winner, pointResult.server);
+      if (pointWinner === 'player') {
+        playerPoints++;
+      } else {
+        opponentPoints++;
+      }
     });
 
     // Convert to -100 to +100 scale
+    // playerPoints = 5, opponentPoints = 0 → momentum = 100
+    // playerPoints = 0, opponentPoints = 5 → momentum = -100
+    // playerPoints = 3, opponentPoints = 2 → momentum = 20
     const totalPoints = playerPoints + opponentPoints;
     this.matchState.momentum = totalPoints > 0 ?
       ((playerPoints - opponentPoints) / totalPoints) * 100 : 0;
@@ -409,10 +421,11 @@ export class MatchSimulator {
         duration: pointResult.duration,
         shots: pointResult.shots,
         keyShot: pointResult.keyShot,
+        statistics: pointResult.statistics,
         matchState: scoreSnapshot ? {
           pressure: this.matchState.pressure,
           momentum: scoreSnapshot.momentum,
-          isKeyMoment: this.matchState.isKeyMoment,
+          isKeyMoment: this.pointKeyMoments[index] || false, // Use saved key moment status
           gameScore: scoreSnapshot.gameScore,
           setScore: scoreSnapshot.setScore,
         } : {

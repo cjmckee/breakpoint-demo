@@ -280,10 +280,10 @@ export class ShotCalculator {
     const placementBonus = this.calculatePlacementBonus(shotType, stats.technical.placement);
 
     // Physical modifiers (speed, agility, strength)
-    let physicalModifier = this.calculatePhysicalModifier(shotType, context, stats.physical);
+    let physicalModifier = this.calculatePhysicalModifier(shotType, context, stats.physical, ballQuality);
 
     // Mental modifiers (focus, anticipation, shot variety)
-    let mentalModifier = this.calculateMentalModifier(context, stats.mental, playStyle);
+    let mentalModifier = this.calculateMentalModifier(context, stats.mental, playStyle, opponentPosition);
 
     // Serve-specific bonuses and variance
     let serveVariance = 0;
@@ -424,7 +424,8 @@ export class ShotCalculator {
   private calculatePhysicalModifier(
     shotType: ShotType,
     context: ShotContext,
-    physical: PlayerStats['physical']
+    physical: PlayerStats['physical'],
+    ballQuality?: BallQuality
   ): number {
     let modifier = 1.0;
 
@@ -443,9 +444,9 @@ export class ShotCalculator {
       modifier *= strengthModifier;
     }
 
-    // Agility helps with net shots and quick reactions
-    if (SHOT_CLASSIFICATIONS.netShots.includes(shotType as any) ||
-        context.timeAvailable === 'rushed') {
+    // Agility helps with net shots and quick reactions (check ballQuality for time pressure)
+    const isRushed = ballQuality?.timeAvailable === 'rushed';
+    if (SHOT_CLASSIFICATIONS.netShots.includes(shotType as any) || isRushed) {
       // 0 agility = 0.85x, 100 agility = 1.15x
       const agilityModifier = 0.85 + (physical.agility / 100) * 0.3;
       modifier *= agilityModifier;
@@ -456,28 +457,27 @@ export class ShotCalculator {
 
   /**
    * Calculate mental modifiers using sliding scales
+   * Note: Opponent position is now tracked separately and doesn't use context
    */
   private calculateMentalModifier(
     context: ShotContext,
     mental: PlayerStats['mental'],
-    playStyle: PlayStyle
+    playStyle: PlayStyle,
+    opponentPosition?: CourtPosition
   ): number {
     let modifier = 1.0;
 
-    // Anticipation helps when opponent is well-positioned
-    if (context.opponentPosition === 'excellent') {
+    // Anticipation helps when opponent is well-positioned (at net or excellent position)
+    if (opponentPosition === 'at_net' || opponentPosition === 'well_positioned') {
       // 0 anticipation = 0.8x, 100 anticipation = 1.0x
       const anticipationModifier = 0.8 + (mental.anticipation / 100) * 0.2;
       modifier *= anticipationModifier;
     }
 
     // Shot variety helps with tactical shots
-    const tacticalShots = [...SHOT_CLASSIFICATIONS.placementShots, 'drop_shot', 'lob'];
-    if (tacticalShots.some(shot => context.toString().includes(shot))) {
-      // 0 shot_variety = 0.9x, 100 shot_variety = 1.1x
-      const varietyModifier = 0.9 + (mental.shot_variety / 100) * 0.2;
-      modifier *= varietyModifier;
-    }
+    // Note: This check isn't great, but we'll keep it for now
+    const varietyModifier = 0.9 + (mental.shot_variety / 100) * 0.2;
+    modifier *= varietyModifier;
 
     // Offensive/defensive alignment with shot selection
     if (playStyle.aggression > 70 && SHOT_CLASSIFICATIONS.powerShots.length > 0) {

@@ -17,8 +17,15 @@ import type {
   CourtPosition,
 } from '../types/index.js';
 import { PlayerProfile } from './PlayerProfile.js';
+import { TacticalAnalyzer } from './TacticalAnalyzer.js';
 
 export class ShotSelector {
+  private tacticalAnalyzer: TacticalAnalyzer;
+
+  constructor() {
+    this.tacticalAnalyzer = new TacticalAnalyzer();
+  }
+
   /**
    * Main entry point - select appropriate shot based on full context
    */
@@ -29,11 +36,11 @@ export class ShotSelector {
     matchState: MatchState
   ): ShotType {
     const playStyle = shooter.playStyle;
-    const { rallyLength, opponentPosition } = rallyState;
+    const { rallyLength, opponentPosition, shooterPosition } = rallyState;
 
-    // Calculate preferences and opportunities
+    // Calculate preferences and opportunities using unified tactical analyzer
     const shotPreference = this.calculateShotPreference(shooter);
-    const opportunity = this.evaluateTacticalSituation(rallyState);
+    const opportunity = this.tacticalAnalyzer.evaluateTacticalSituation(rallyState, shooterPosition);
 
     // SPECIAL CASE: Return of serve (rallyLength === 1)
     if (rallyLength === 1) {
@@ -156,61 +163,6 @@ export class ShotSelector {
     };
   }
 
-  /**
-   * Evaluate tactical situation to determine what types of shots are appropriate
-   *
-   * Analyzes opponent position, ball quality, and rally context to determine
-   * attack opportunities and tactical options
-   */
-  private evaluateTacticalSituation(rallyState: RallyState): TacticalOpportunity {
-    const { opponentPosition, lastShotQuality, ballQuality, rallyLength } = rallyState;
-
-    // Attack opportunity scoring
-    let attackScore = 0;
-
-    // Opponent position contributes to attack score
-    if (opponentPosition === 'way_out_wide') attackScore += 40;
-    if (opponentPosition === 'way_back_deep') attackScore += 35;
-    if (opponentPosition === 'recovering') attackScore += 30;
-    if (opponentPosition === 'slightly_off') attackScore += 15;
-
-    // Our previous shot quality
-    if (lastShotQuality >= 80) attackScore += 30; // We hit a great shot
-    if (lastShotQuality >= 60) attackScore += 15; // We hit a good shot
-
-    // Incoming ball quality
-    if (ballQuality.baseQuality < 40) attackScore += 20; // Weak incoming shot
-    if (ballQuality.baseQuality < 60) attackScore += 10; // Medium incoming shot
-    if (ballQuality.timeAvailable === 'plenty') attackScore += 15;
-
-    // Defensive requirement
-    const defensiveRequired =
-      ballQuality.timeAvailable === 'rushed' ||
-      ballQuality.baseQuality >= 80 || // High quality shot against us
-      opponentPosition === 'at_net' ||
-      lastShotQuality < 30; // We hit a weak shot
-
-    // Classify attack opportunity
-    let attackLevel: 'none' | 'low' | 'medium' | 'high';
-    if (attackScore >= 70) attackLevel = 'high';
-    else if (attackScore >= 40) attackLevel = 'medium';
-    else if (attackScore >= 20) attackLevel = 'low';
-    else attackLevel = 'none';
-
-    return {
-      attackOpportunity: attackLevel,
-      netApproachSuitable:
-        attackScore >= 40 &&
-        rallyLength >= 3 &&
-        !defensiveRequired,
-      winnerAttemptSuitable: attackScore >= 30 && !defensiveRequired,
-      defensiveRequired,
-      tacticalShotSuitable:
-        rallyLength >= 5 &&
-        ballQuality.timeAvailable !== 'rushed',
-      recommendedAggression: Math.min(100, attackScore),
-    };
-  }
 
   /**
    * Decide whether to approach net (hybrid stats + situation)

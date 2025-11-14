@@ -123,16 +123,14 @@ export type ShotType =
 
 /**
  * Context for shot difficulty calculation
+ * Note: Ball characteristics (speed, height, time) are tracked in BallQuality
+ * Note: Opponent position is passed separately to shot calculator
  */
 export interface ShotContext {
   difficulty: 'easy' | 'normal' | 'hard' | 'extreme';
   pressure: 'low' | 'medium' | 'high';
   courtPosition: 'baseline' | 'net' | 'defensive';
   rallyLength: number;
-  opponentPosition: 'poor' | 'good' | 'excellent';
-  timeAvailable: 'plenty' | 'normal' | 'rushed';
-  ballHeight: 'low' | 'medium' | 'high';
-  ballSpeed: 'slow' | 'medium' | 'fast';
 }
 
 // =======================
@@ -456,6 +454,9 @@ export interface PointAnalysisData {
 
   // Key shot that decided the point
   keyShot?: ShotDetail;
+
+  // Point statistics
+  statistics?: PointStatistics;
 
   // Match state when point started
   matchState: {

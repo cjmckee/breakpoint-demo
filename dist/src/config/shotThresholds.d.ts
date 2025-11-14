@@ -5,9 +5,27 @@ export declare const MIN_QUALITY_FLOORS: {
     neutral: number;
     defensive: number;
 };
+export declare const MINIMUM_WINNER_THRESHOLDS: {
+    defensive: number;
+    neutral: number;
+    offensive: number;
+};
 export declare const OUTCOME_MULTIPLIERS: {
-    winner: number;
-    forcedError: number;
+    defensive: {
+        inPlay: number;
+        winner: number;
+        forcedError: number;
+    };
+    neutral: {
+        inPlay: number;
+        winner: number;
+        forcedError: number;
+    };
+    offensive: {
+        inPlay: number;
+        winner: number;
+        forcedError: number;
+    };
 };
 export declare const SERVE_BASELINE: {
     serve_first: {
@@ -33,16 +51,44 @@ export declare const SERVE_VARIANCE: {
     first: number;
     second: number;
 };
+export declare const RETURN_VARIANCE = 6;
+export declare const RALLY_SHOT_VARIANCE: {
+    base: number;
+    qualityMultiplier: number;
+};
 export declare const SERVE_BONUSES: {
     first: {
-        offensive: number;
-        strength: number;
-        spin: number;
+        offensive: {
+            multiplier: number;
+            maxBonus: number;
+        };
+        strength: {
+            multiplier: number;
+            maxBonus: number;
+        };
+        spin: {
+            multiplier: number;
+            maxBonus: number;
+        };
     };
     second: {
-        consistency: number;
-        spin: number;
-        defensive: number;
+        consistency: {
+            multiplier: number;
+            maxBonus: number;
+        };
+        spin: {
+            multiplier: number;
+            maxBonus: number;
+        };
+        defensive: {
+            multiplier: number;
+            maxBonus: number;
+        };
     };
+};
+export declare const TOTAL_MODIFIER_CAPS: {
+    serve: number;
+    return: number;
+    rally: number;
 };
 export declare function getShotCategory(shotType: ShotType): 'offensive' | 'neutral' | 'defensive';

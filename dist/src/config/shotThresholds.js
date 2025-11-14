@@ -44,28 +44,46 @@ export const MIN_QUALITY_FLOORS = {
     neutral: 15,
     defensive: 10,
 };
+export const MINIMUM_WINNER_THRESHOLDS = {
+    defensive: 55,
+    neutral: 50,
+    offensive: 45,
+};
 export const OUTCOME_MULTIPLIERS = {
-    winner: 2.5,
-    forcedError: 0.7,
+    defensive: {
+        inPlay: 1.0,
+        winner: 3.0,
+        forcedError: 0.7,
+    },
+    neutral: {
+        inPlay: 1.0,
+        winner: 2.0,
+        forcedError: 0.7,
+    },
+    offensive: {
+        inPlay: 1.0,
+        winner: 1.5,
+        forcedError: 0.7,
+    },
 };
 export const SERVE_BASELINE = {
     serve_first: {
-        inPlayThreshold: 50,
-        aceMultiplier: 1.20,
+        inPlayThreshold: 45,
+        aceMultiplier: 1.10,
     },
     serve_second: {
-        inPlayThreshold: 40,
-        aceMultiplier: 1.30,
+        inPlayThreshold: 35,
+        aceMultiplier: 1.20,
     },
     kick_serve: {
-        inPlayThreshold: 45,
-        aceMultiplier: 1.25,
+        inPlayThreshold: 40,
+        aceMultiplier: 1.15,
     },
 };
 export const OPPONENT_STAT_ADJUSTMENTS = {
-    defensive: 0.10,
-    speed: 0.05,
-    return: 0.15,
+    defensive: 0.25,
+    speed: 0.10,
+    return: 0.20,
 };
 export const POSITION_ADJUSTMENTS = {
     'well_positioned': +3,
@@ -76,20 +94,30 @@ export const POSITION_ADJUSTMENTS = {
     'at_net': +10,
 };
 export const SERVE_VARIANCE = {
-    first: 12,
-    second: 6,
+    first: 8,
+    second: 4,
+};
+export const RETURN_VARIANCE = 6;
+export const RALLY_SHOT_VARIANCE = {
+    base: 4,
+    qualityMultiplier: 6,
 };
 export const SERVE_BONUSES = {
     first: {
-        offensive: 0.08,
-        strength: 0.06,
-        spin: 0.04,
+        offensive: { multiplier: 0.08, maxBonus: 0.05 },
+        strength: { multiplier: 0.06, maxBonus: 0.04 },
+        spin: { multiplier: 0.04, maxBonus: 0.03 },
     },
     second: {
-        consistency: 0.10,
-        spin: 0.08,
-        defensive: 0.05,
+        consistency: { multiplier: 0.10, maxBonus: 0.06 },
+        spin: { multiplier: 0.08, maxBonus: 0.05 },
+        defensive: { multiplier: 0.05, maxBonus: 0.03 },
     },
+};
+export const TOTAL_MODIFIER_CAPS = {
+    serve: 1.15,
+    return: 1.20,
+    rally: 1.25,
 };
 export function getShotCategory(shotType) {
     const shotStr = shotType.toString();

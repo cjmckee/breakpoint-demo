@@ -7,7 +7,10 @@
       "Bash(timeout 30 npx tsx:*)",
       "Bash(timeout 60 npx tsx:*)",
       "Bash(cat:*)",
-      "Bash(npm run build:node:*)"
+      "Bash(npm run build:node:*)",
+      "Bash(/dev/null)",
+      "Bash(xargs cat:*)",
+      "Read(//c/Users/Cody/Documents/gitroot/ai-slop-gaming/**)"
     ],
     "deny": [],
     "ask": []

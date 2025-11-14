@@ -35,10 +35,6 @@ export interface ShotContext {
     pressure: 'low' | 'medium' | 'high';
     courtPosition: 'baseline' | 'net' | 'defensive';
     rallyLength: number;
-    opponentPosition: 'poor' | 'good' | 'excellent';
-    timeAvailable: 'plenty' | 'normal' | 'rushed';
-    ballHeight: 'low' | 'medium' | 'high';
-    ballSpeed: 'slow' | 'medium' | 'fast';
 }
 export type CourtPosition = 'well_positioned' | 'slightly_off' | 'way_out_wide' | 'way_back_deep' | 'at_net' | 'recovering';
 export interface BallQuality {
@@ -93,6 +89,8 @@ export interface ShotModifiers {
     rallyLengthModifier: number;
     finalAdjustment: number;
     serveVariance?: number;
+    returnVariance?: number;
+    rallyVariance?: number;
 }
 export interface ShotDetail {
     shotType: ShotType;
@@ -109,6 +107,7 @@ export interface ShotDetail {
     thresholds?: QualityThresholds;
 }
 export interface PointResult {
+    server: 'player' | 'opponent';
     winner: 'server' | 'returner';
     shots: ShotDetail[];
     rallyLength: number;
@@ -224,6 +223,7 @@ export interface PointAnalysisData {
     duration: number;
     shots: ShotDetail[];
     keyShot?: ShotDetail;
+    statistics?: PointStatistics;
     matchState: {
         pressure: 'low' | 'medium' | 'high';
         momentum: number;
