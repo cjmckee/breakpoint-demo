@@ -221,18 +221,18 @@ export class MatchOrchestrator {
 
     // Check for match point
     if (this.isMatchPoint(score, 'player')) {
-      return server === 'player' ? 'match-point-player-serve' : 'match-point-opponent';
+      return server === 'player' ? 'match-point-player-serve' : 'match-point-player-return';
     }
     if (this.isMatchPoint(score, 'opponent')) {
-      return server === 'player' ? 'match-point-opponent' : 'match-point-player-serve';
+      return server === 'player' ? 'match-point-opponent' : 'match-point-opponent-return';
     }
 
     // Check for set point
     if (this.isSetPoint(score, 'player')) {
-      return server === 'player' ? 'set-point-player-serve' : 'set-point-opponent';
+      return server === 'player' ? 'set-point-player-serve' : 'set-point-player-return';
     }
     if (this.isSetPoint(score, 'opponent')) {
-      return server === 'player' ? 'set-point-opponent' : 'set-point-player-serve';
+      return server === 'player' ? 'set-point-opponent' : 'set-point-opponent-return';
     }
 
     // Check for break point
@@ -688,9 +688,13 @@ export class MatchOrchestrator {
       'break-point-serve': `Break Point Against - ${game}`,
       'break-point-return': `Break Point For You - ${game}`,
       'set-point-player-serve': `Set Point On Your Serve - ${game}`,
-      'set-point-opponent': `Set Point Against - ${game}`,
+      'set-point-player-return': `Set Point On Your Return - ${game}`,
+      'set-point-opponent-serve': `Set Point Against - ${game}`,
+      'set-point-opponent-return': `Set Point Against - ${game}`,
       'match-point-player-serve': `MATCH POINT! - ${game}`,
-      'match-point-opponent': `Match Point Against! - ${game}`,
+      'match-point-player-return': `MATCH POINT! - ${game}`,
+      'match-point-opponent-serve': `Match Point Against! - ${game}`,
+      'match-point-opponent-return': `Match Point Against! - ${game}`,
     };
     return typeMap[type];
   }

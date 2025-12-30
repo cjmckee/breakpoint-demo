@@ -31,9 +31,13 @@ export type KeyMomentType =
   | 'break-point-serve'
   | 'break-point-return'
   | 'set-point-player-serve'
-  | 'set-point-opponent'
+  | 'set-point-player-return'
+  | 'set-point-opponent-serve'
+  | 'set-point-opponent-return'
   | 'match-point-player-serve'
-  | 'match-point-opponent';
+  | 'match-point-player-return'
+  | 'match-point-opponent-serve'
+  | 'match-point-opponent-return';
 
 export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
   'break-point-serve': [
@@ -253,7 +257,61 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
     },
   ],
 
-  'set-point-opponent': [
+  'set-point-player-return': [
+    {
+      id: 'aggressive_return',
+      emoji: '🎯',
+      name: 'Aggressive return',
+      description: 'Take control with a powerful return',
+      riskLevel: 'high',
+      playerStatWeights: {
+        primary: 'return',
+        primaryWeight: 0.4,
+        secondary: [
+          { stat: 'strength', weight: 0.3 },
+          { stat: 'focus', weight: 0.2 },
+        ],
+      },
+      opponentStatWeights: {
+        primary: 'serve',
+        primaryWeight: 0.5,
+        secondary: [
+          { stat: 'placement', weight: 0.4 },
+          { stat: 'offensive', weight: 0.3 },
+        ],
+      },
+      shotOutcomes: {
+        success: { outcome: 'winner', shotType: 'return', shooter: 'player' },
+        failure: { outcome: 'unforced_error', shotType: 'return', shooter: 'player' },
+      },
+    },
+    {
+      id: 'steady_return',
+      emoji: '⚖️',
+      name: 'Steady and reliable',
+      description: "Don't overthink it, just get it in with good pace",
+      riskLevel: 'low',
+      playerStatWeights: {
+        primary: 'return',
+        primaryWeight: 0.5,
+        secondary: [
+          { stat: 'focus', weight: 0.3 },
+          { stat: 'defensive', weight: 0.2 },
+        ],
+      },
+      opponentStatWeights: {
+        primary: 'serve',
+        primaryWeight: 0.6,
+        secondary: [{ stat: 'offensive', weight: 0.4 }],
+      },
+      shotOutcomes: {
+        success: { outcome: 'forced_error', shotType: 'return', shooter: 'opponent' },
+        failure: { outcome: 'forced_error', shotType: 'forehand', shooter: 'player' },
+      },
+    }
+  ],
+
+  'set-point-opponent-serve': [
     {
       id: 'defensive_rally_setup',
       emoji: '🛡️',
@@ -308,6 +366,90 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       shotOutcomes: {
         success: { outcome: 'winner', shotType: 'forehand', shooter: 'player' },
         failure: { outcome: 'unforced_error', shotType: 'backhand', shooter: 'player' },
+      },
+    },
+  ],
+
+  'set-point-opponent-return': [
+    {
+      id: 'defensive_return',
+      emoji: '🛡️',
+      name: 'Defensive return',
+      description: 'Focus on consistency and placement to neutralize the serve',
+      riskLevel: 'low',
+      playerStatWeights: {
+        primary: 'return',
+        primaryWeight: 0.4,
+        secondary: [
+          { stat: 'defensive', weight: 0.3 },
+          { stat: 'focus', weight: 0.2 },
+        ],
+      },
+      opponentStatWeights: {
+        primary: 'serve',
+        primaryWeight: 0.5,
+        secondary: [
+          { stat: 'placement', weight: 0.4 },
+          { stat: 'offensive', weight: 0.3 },
+        ],
+      },
+      shotOutcomes: {
+        success: { outcome: 'forced_error', shotType: 'return', shooter: 'opponent' },
+        failure: { outcome: 'unforced_error', shotType: 'return', shooter: 'player' },
+      },
+    },
+    {
+      id: 'slice_return',
+      emoji: '🪄',
+      name: 'Slice return',
+      description: 'Use a slice to change the pace and angle of the return',
+      riskLevel: 'medium',
+      playerStatWeights: {
+        primary: 'return',
+        primaryWeight: 0.4,
+        secondary: [
+          { stat: 'slice', weight: 0.3 },
+          { stat: 'focus', weight: 0.2 },
+        ],
+      },
+      opponentStatWeights: {
+        primary: 'serve',
+        primaryWeight: 0.5,
+        secondary: [
+          { stat: 'placement', weight: 0.4 },
+          { stat: 'offensive', weight: 0.3 },
+        ],
+      },
+      shotOutcomes: {
+        success: { outcome: 'forced_error', shotType: 'return', shooter: 'opponent' },
+        failure: { outcome: 'unforced_error', shotType: 'return', shooter: 'player' },
+      },
+    },
+    {
+      id: 'aggressive_return',
+      emoji: '🎯',
+      name: 'Aggressive return',
+      description: 'Take control with a powerful return',
+      riskLevel: 'high',
+      playerStatWeights: {
+        primary: 'return',
+        primaryWeight: 0.4,
+        secondary: [
+          { stat: 'strength', weight: 0.3 },
+          { stat: 'focus', weight: 0.2 },
+        ],
+      },
+      opponentStatWeights: {
+        primary: 'serve',
+        primaryWeight: 0.5,
+        secondary: [
+          { stat: 'placement', weight: 0.4 },
+          { stat: 'offensive', weight: 0.3 },
+        ],
+      },
+      shotOutcomes: {
+        success: { outcome: 'winner', shotType: 'return', shooter: 'player' },
+        failure: { outcome: 'unforced_error', shotType: 'return', shooter: 'player' },
       },
     },
   ],
@@ -368,7 +510,115 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
     },
   ],
 
-  'match-point-opponent': [
+  'match-point-player-return': [
+    {
+      id: 'aggressive_return',
+      emoji: '🎯',
+      name: 'Aggressive return',
+      description: 'Take control with a powerful return',
+      riskLevel: 'high',
+      playerStatWeights: {
+        primary: 'return',
+        primaryWeight: 0.4,
+        secondary: [
+          { stat: 'strength', weight: 0.3 },
+          { stat: 'focus', weight: 0.2 },
+        ],
+      },
+      opponentStatWeights: {
+        primary: 'serve',
+        primaryWeight: 0.5,
+        secondary: [
+          { stat: 'placement', weight: 0.4 },
+          { stat: 'offensive', weight: 0.3 },
+        ],
+      },
+      shotOutcomes: {
+        success: { outcome: 'winner', shotType: 'return', shooter: 'player' },
+        failure: { outcome: 'unforced_error', shotType: 'return', shooter: 'player' },
+      },
+    },
+    {
+      id: 'steady_return',
+      emoji: '⚖️',
+      name: 'Steady and reliable',
+      description: "Don't overthink it, just get it in with good pace",
+      riskLevel: 'low',
+      playerStatWeights: {
+        primary: 'return',
+        primaryWeight: 0.5,
+        secondary: [
+          { stat: 'focus', weight: 0.3 },
+          { stat: 'defensive', weight: 0.2 },
+        ],
+      },
+      opponentStatWeights: {
+        primary: 'serve',
+        primaryWeight: 0.6,
+        secondary: [{ stat: 'offensive', weight: 0.4 }],
+      },
+      shotOutcomes: {
+        success: { outcome: 'forced_error', shotType: 'return', shooter: 'opponent' },
+        failure: { outcome: 'forced_error', shotType: 'forehand', shooter: 'player' },
+      },
+    }
+  ],
+
+  'match-point-opponent-serve': [
+    {
+      id: 'aggressive_serve',
+      emoji: '🎯',
+      name: 'Aggressive serve',
+      description: 'Go for the big serve to take control',
+      riskLevel: 'high',
+      playerStatWeights: {
+        primary: 'serve',
+        primaryWeight: 0.4,
+        secondary: [
+          { stat: 'placement', weight: 0.3 },
+          { stat: 'focus', weight: 0.2 },
+        ],
+      },
+      opponentStatWeights: {
+        primary: 'return',
+        primaryWeight: 0.5,
+        secondary: [
+          { stat: 'speed', weight: 0.4 },
+          { stat: 'anticipation', weight: 0.3 },
+        ],
+      },
+      shotOutcomes: {
+        success: { outcome: 'ace', shotType: 'serve', shooter: 'opponent' },
+        failure: { outcome: 'double_fault', shotType: 'serve', shooter: 'opponent' },
+      },
+    },
+    {
+      id: 'steady_serve',
+      emoji: '⚖️',
+      name: 'Steady and reliable',
+      description: "Don't overthink it, just get it in with good pace",
+      riskLevel: 'low',
+      playerStatWeights: {
+        primary: 'serve',
+        primaryWeight: 0.5,
+        secondary: [
+          { stat: 'focus', weight: 0.3 },
+          { stat: 'defensive', weight: 0.2 },
+        ],
+      },
+      opponentStatWeights: {
+        primary: 'return',
+        primaryWeight: 0.6,
+        secondary: [{ stat: 'offensive', weight: 0.4 }],
+      },
+      shotOutcomes: {
+        success: { outcome: 'forced_error', shotType: 'serve', shooter: 'opponent' },
+        failure: { outcome: 'forced_error', shotType: 'forehand', shooter: 'player' },
+      },
+    }
+  ],
+
+  'match-point-opponent-return': [
     {
       id: 'desperate_winner_attempt',
       emoji: '🎯',

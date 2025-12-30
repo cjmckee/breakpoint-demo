@@ -119,7 +119,7 @@ export interface TierConfig {
 
 export const TIER_CONFIGS: Record<TrainingSessionTier, TierConfig> = {
   bronze: { statMultiplier: 1, abilityChance: 0 },
-  silver: { statMultiplier: 1.5, abilityChance: 0 },
+  silver: { statMultiplier: 1, abilityChance: 0 },
   gold: { statMultiplier: 2, abilityChance: 0 },
   diamond: { statMultiplier: 3, abilityChance: 30 },
 };

@@ -108,7 +108,8 @@ export class MatchStatistics {
     // Points won by serve/return
     if (pointResult.winner === 'server') {
       this.statistics.pointsWon[currentServer].serve++;
-    } else {
+    } else if (pointResult.pointType !== 'double_fault') {
+      // Only count as return point won if it wasn't a double fault
       const returner = currentServer === 'player' ? 'opponent' : 'player';
       this.statistics.pointsWon[returner].return++;
     }
@@ -286,7 +287,8 @@ export class MatchStatistics {
     if (pointResult.winner === 'server') {
       if (isFirstServeIn) {
         this.statistics.firstServePointsWon[currentServer]++;
-      } else {
+      } else if (pointResult.serveType === 'second' && pointResult.pointType !== 'double_fault') {
+        // Only count second serve points won if it wasn't a double fault
         this.statistics.secondServePointsWon[currentServer]++;
       }
     }

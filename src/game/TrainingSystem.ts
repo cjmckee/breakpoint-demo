@@ -183,12 +183,18 @@ export class TrainingSystem {
       scaledStatBoosts[stat] = Math.round(baseBoost * tierConfig.statMultiplier);
     }
 
+    // Calculate energy cost - silver tier gets 15 energy discount
+    let finalEnergyCost = config.energyCost;
+    if (finalTier === 'silver') {
+      finalEnergyCost = Math.max(5, config.energyCost - 15); // Minimum 5 energy
+    }
+
     return {
       id: `${sessionType}-${Date.now()}`,  // Unique ID for UI
       sessionType,
       category: config.category,
       tier: finalTier,
-      energyCost: config.energyCost,
+      energyCost: finalEnergyCost,
       timeSlotsRequired: 1,
       statBoosts: scaledStatBoosts,
       statMultiplier: tierConfig.statMultiplier,  // Include multiplier for UI

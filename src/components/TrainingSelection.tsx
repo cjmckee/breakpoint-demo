@@ -83,7 +83,7 @@ export const TrainingSelection: React.FC = () => {
         <Card title="Training Sessions" className="mb-6">
           <p className="text-pixel-text-muted mb-4">
             Choose a training session to improve your skills. Higher tier sessions give
-            better rewards but cost more energy.
+            better rewards. Silver tier sessions cost less energy!
           </p>
 
           {availableSessions.length === 0 && (
@@ -137,8 +137,9 @@ export const TrainingSelection: React.FC = () => {
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between text-sm">
                     <span className="text-pixel-text-muted">Energy Cost:</span>
-                    <span className="font-bold text-pixel-text">
+                    <span className={`font-bold ${session.tier === 'silver' ? 'text-green-500' : 'text-pixel-text'}`}>
                       {session.energyCost}
+                      {session.tier === 'silver' && ' (Reduced!)'}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
