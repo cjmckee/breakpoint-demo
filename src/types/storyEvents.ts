@@ -4,6 +4,7 @@
  */
 
 import type { Activity } from './game';
+import type { Challenge } from './challenges';
 
 // ============================================================================
 // STORY EVENT TAGS
@@ -97,6 +98,9 @@ export interface StoryEventOutcome {
     relationshipChanges?: Record<string, number>;
     abilitiesGained?: string[];
   };
+
+  // Challenges assigned by this outcome
+  challengesAssigned?: Challenge[];
 }
 
 // ============================================================================

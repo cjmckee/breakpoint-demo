@@ -17,12 +17,14 @@ import {
   TimeSlot,
 } from '../types/game';
 import type { StoryEvent, StoryEventTag, StoryEventOption } from '../types/storyEvents';
+import type { Challenge } from '../types/challenges';
 import { PlayerManager } from '../game/PlayerManager';
 import { TrainingSystem } from '../game/TrainingSystem';
 import { TimeManager } from '../game/TimeManager';
 import { SaveManager } from '../game/SaveManager';
 import { StoryEventManager } from '../game/StoryEventManager';
 import { PrerequisiteChecker } from '../game/PrerequisiteChecker';
+import { ChallengeManager } from '../game/ChallengeManager';
 
 interface GameState {
   // Player data
@@ -46,6 +48,10 @@ interface GameState {
   relationships: Record<string, number>;
   storyEventTriggerChance: number;
   pendingStoryEvent: StoryEvent | null;
+
+  // Challenge state
+  activeChallenges: Challenge[];
+  completedChallenges: string[];
 
   // UI state
   isInitialized: boolean;
@@ -76,6 +82,12 @@ interface GameState {
   updateRelationship: (character: string, change: number) => void;
   setStoryEventTriggerChance: (chance: number) => void;
   getAvailableEventOptions: () => StoryEventOption[];
+
+  // Challenge actions
+  assignChallenge: (challenge: Challenge) => void;
+  updateChallengeProgress: (challengeId: string) => void;
+  completeChallenge: (challengeId: string) => void;
+  checkChallengeCompletion: () => void;
 }
 
 const initialCalendar = TimeManager.createCalendar();
@@ -105,6 +117,10 @@ export const useGameStore = create<GameState>()(
       relationships: {},
       storyEventTriggerChance: 20,
       pendingStoryEvent: null,
+
+      // Challenge initial state
+      activeChallenges: [],
+      completedChallenges: [],
 
       isInitialized: false,
       currentScreen: 'welcome',
@@ -231,6 +247,9 @@ export const useGameStore = create<GameState>()(
           activityHistory: [result, ...get().activityHistory].slice(0, 50),
           showTrainingResultModal: true, // Flag to show modal when we navigate to main menu
         });
+
+        // Check for challenge completion after stat changes
+        get().checkChallengeCompletion();
 
         // Auto-save
         get().saveGame();
@@ -372,13 +391,19 @@ export const useGameStore = create<GameState>()(
           highlights: [], // TODO: Add highlights from key moments
         };
 
-        // Update player stats
+        // Update player stats and match history
         const updatedPlayer = { ...player };
         Object.entries(statChanges).forEach(([stat, value]) => {
           if (stat in updatedPlayer.stats) {
             (updatedPlayer.stats as any)[stat] += value;
           }
         });
+
+        // Update match counts
+        updatedPlayer.matchesPlayed = (updatedPlayer.matchesPlayed || 0) + 1;
+        if (result === 'win') {
+          updatedPlayer.matchesWon = (updatedPlayer.matchesWon || 0) + 1;
+        }
 
         // Deduct energy cost
         const newEnergy = Math.max(0, currentStatus.energy - 30);
@@ -397,6 +422,9 @@ export const useGameStore = create<GameState>()(
             lastActivity: matchResult,
           },
         });
+
+        // Check for challenge completion after match
+        get().checkChallengeCompletion();
 
         // Explicitly save to ensure persistence
         console.log('Match result added to history:', matchResult);
@@ -594,6 +622,13 @@ export const useGameStore = create<GameState>()(
           newCalendar.currentTimeSlot = targetSlot as TimeSlot;
         }
 
+        // Assign challenges if any
+        if (outcome.challengesAssigned) {
+          outcome.challengesAssigned.forEach((challenge) => {
+            get().assignChallenge(challenge);
+          });
+        }
+
         // Update state
         set({
           player: updatedPlayer,
@@ -610,6 +645,9 @@ export const useGameStore = create<GameState>()(
           activityHistory: [result, ...get().activityHistory].slice(0, 50),
           pendingStoryEvent: null,
         });
+
+        // Check for challenge completion after state changes
+        get().checkChallengeCompletion();
 
         // Auto-save
         get().saveGame();
@@ -637,6 +675,9 @@ export const useGameStore = create<GameState>()(
         relationships[character] = Math.max(0, Math.min(100, current + change));
 
         set({ relationships });
+
+        // Check for challenge completion after relationship change
+        get().checkChallengeCompletion();
       },
 
       // Set story event trigger chance
@@ -658,6 +699,134 @@ export const useGameStore = create<GameState>()(
           calendar: gameState.calendar,
         });
       },
+
+      // Challenge Actions
+
+      // Assign a new challenge to the player
+      assignChallenge: (challenge: Challenge) => {
+        const { activeChallenges } = get();
+
+        // Don't add if already active or completed
+        const alreadyActive = activeChallenges.some((c) => c.id === challenge.id);
+        const alreadyCompleted = get().completedChallenges.includes(challenge.id);
+
+        if (alreadyActive || alreadyCompleted) {
+          return;
+        }
+
+        set({
+          activeChallenges: [...activeChallenges, challenge],
+        });
+
+        get().saveGame();
+      },
+
+      // Update progress for a specific challenge
+      updateChallengeProgress: (challengeId: string) => {
+        const { player, activeChallenges, relationships, calendar } = get();
+        if (!player) return;
+
+        const challengeIndex = activeChallenges.findIndex((c) => c.id === challengeId);
+        if (challengeIndex === -1) return;
+
+        const challenge = activeChallenges[challengeIndex];
+        const gameState = { relationships, calendar };
+
+        // Calculate new progress
+        const newProgress = ChallengeManager.updateProgress(challenge, player, gameState);
+
+        // Update challenge with new progress
+        const updatedChallenges = [...activeChallenges];
+        updatedChallenges[challengeIndex] = {
+          ...challenge,
+          progress: newProgress,
+          status: newProgress.isComplete ? 'completed' : 'active',
+          completedAt: newProgress.isComplete && !challenge.completedAt
+            ? new Date().toISOString()
+            : challenge.completedAt,
+        };
+
+        set({ activeChallenges: updatedChallenges });
+      },
+
+      // Complete a challenge and apply rewards
+      completeChallenge: (challengeId: string) => {
+        const { player, activeChallenges, relationships } = get();
+        if (!player) return;
+
+        const challengeIndex = activeChallenges.findIndex((c) => c.id === challengeId);
+        if (challengeIndex === -1) return;
+
+        const challenge = activeChallenges[challengeIndex];
+
+        // Apply rewards
+        let updatedPlayer = ChallengeManager.applyRewards(challenge, player);
+
+        // Apply relationship changes from reward
+        const updatedRelationships = { ...relationships };
+        if (challenge.reward.relationshipChanges) {
+          Object.entries(challenge.reward.relationshipChanges).forEach(([char, change]) => {
+            const current = updatedRelationships[char] || 0;
+            updatedRelationships[char] = Math.max(0, Math.min(100, current + change));
+          });
+        }
+
+        // Mark challenge as claimed and remove from active list
+        const remainingChallenges = activeChallenges.filter((c) => c.id !== challengeId);
+        const completedChallenges = [...get().completedChallenges, challengeId];
+
+        set({
+          player: updatedPlayer,
+          relationships: updatedRelationships,
+          activeChallenges: remainingChallenges,
+          completedChallenges,
+        });
+
+        get().saveGame();
+      },
+
+      // Check all active challenges for completion
+      checkChallengeCompletion: () => {
+        const { player, activeChallenges, relationships, calendar } = get();
+        if (!player || activeChallenges.length === 0) return;
+
+        const gameState = { relationships, calendar };
+        let hasUpdates = false;
+
+        const updatedChallenges = activeChallenges.map((challenge) => {
+          // Skip if already completed
+          if (challenge.status === 'completed') return challenge;
+
+          // Calculate new progress
+          const newProgress = ChallengeManager.updateProgress(challenge, player, gameState);
+
+          // Check if newly completed
+          if (newProgress.isComplete) {
+            hasUpdates = true;
+            return {
+              ...challenge,
+              progress: newProgress,
+              status: 'completed' as const,
+              completedAt: new Date().toISOString(),
+            };
+          }
+
+          // Update progress even if not complete
+          if (newProgress.completionPercentage !== challenge.progress.completionPercentage) {
+            hasUpdates = true;
+            return {
+              ...challenge,
+              progress: newProgress,
+            };
+          }
+
+          return challenge;
+        });
+
+        if (hasUpdates) {
+          set({ activeChallenges: updatedChallenges });
+        }
+      },
     }),
     {
       name: 'tennis-rpg-game-store',
@@ -673,6 +842,10 @@ export const useGameStore = create<GameState>()(
         completedStoryEventChoices: state.completedStoryEventChoices,
         relationships: state.relationships,
         storyEventTriggerChance: state.storyEventTriggerChance,
+
+        // Challenge persistence
+        activeChallenges: state.activeChallenges,
+        completedChallenges: state.completedChallenges,
       }),
     }
   )

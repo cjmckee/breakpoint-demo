@@ -5,6 +5,7 @@
 
 import type { PlayerStats } from './index.js';
 import type { StoryEventResult } from './storyEvents.js';
+import type { Item } from './items.js';
 
 export type { PlayerStats };
 
@@ -258,6 +259,7 @@ export interface Player {
   name: string;
   stats: PlayerStats;
   abilities: Ability[];
+  items?: Item[];
   level: number;
   experience: number;
   matchesPlayed?: number;

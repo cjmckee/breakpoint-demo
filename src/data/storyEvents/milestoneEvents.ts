@@ -4,6 +4,7 @@
  */
 
 import type { StoryEvent } from '../../types/storyEvents';
+import { ChallengeManager } from '../../game/ChallengeManager';
 
 export const milestoneEvents: StoryEvent[] = [
   {
@@ -28,6 +29,46 @@ export const milestoneEvents: StoryEvent[] = [
         energyChange: 0,
         relationshipChanges: { coach_gonzalez: 15 },
       },
+      challengesAssigned: [
+        ChallengeManager.createChallenge({
+          id: 'milestone_challenge_ten_wins',
+          name: 'Pursuit of Excellence',
+          description: 'Your winning streak has proven you can compete. Now push yourself to reach 10 total match wins to establish yourself as a serious competitor.',
+          requirements: [
+            {
+              type: 'matchCount',
+              targetWins: 10,
+              description: 'Win 10 total matches',
+            },
+          ],
+          reward: {
+            modifiers: {
+              statBoosts: {
+                focus: 5,
+                offensive: 5,
+                defensive: 5,
+              },
+            },
+            items: [
+              {
+                name: 'Champion Wristband',
+                description: 'A symbolic wristband marking your rise from beginner to competitor. Wear it with pride.',
+                type: 'lucky',
+                modifiers: {
+                  statBoosts: {
+                    focus: 3,
+                  },
+                },
+              },
+            ],
+            experience: 200,
+          },
+          source: {
+            type: 'story',
+            eventId: 'first_winning_streak',
+          },
+        }),
+      ],
     },
   },
 

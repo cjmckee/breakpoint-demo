@@ -10,6 +10,7 @@ import { Button } from './ui/Button';
 import { StatusBar } from './StatusBar';
 import { PlayerStatsDisplay } from './PlayerStatsDisplay';
 import { RecentActivities } from './RecentActivities';
+import { ActiveChallenges } from './ActiveChallenges';
 import { TrainingResultModal } from './TrainingResultModal';
 import { StoryEventModal } from './StoryEventModal';
 import { StoryEventResultModal } from './StoryEventResultModal';
@@ -204,8 +205,9 @@ export const MainMenu: React.FC = () => {
             <PlayerStatsDisplay />
           </div>
 
-          {/* Recent Activities - 1 column */}
-          <div className="lg:col-span-1">
+          {/* Recent Activities and Challenges - 1 column */}
+          <div className="lg:col-span-1 space-y-6">
+            <ActiveChallenges />
             <RecentActivities />
           </div>
         </div>

@@ -4,6 +4,8 @@
  */
 
 import type { StoryEvent } from '../../types/storyEvents';
+import { ChallengeManager } from '../../game/ChallengeManager';
+import { AbilityName } from '../../types/game';
 
 export const coachEvents: StoryEvent[] = [
   {
@@ -25,6 +27,65 @@ export const coachEvents: StoryEvent[] = [
         energyChange: -10,
         relationshipChanges: { coach_gonzalez: 25 },
       },
+      challengesAssigned: [
+        ChallengeManager.createChallenge({
+          id: 'challenge_forehand_fundamentals',
+          name: 'Forehand Fundamentals',
+          description: 'Coach Gonzalez wants you to master the basics of the forehand. Train your forehand stat to 30.',
+          requirements: [
+            {
+              type: 'statThreshold',
+              statName: 'forehand',
+              targetValue: 30,
+              description: 'Reach 30 Forehand',
+            },
+          ],
+          reward: {
+            modifiers: {
+              statBoosts: {
+                placement: 5,
+                spin: 3,
+              },
+            },
+            relationshipChanges: {
+              coach_gonzalez: 10,
+            },
+            experience: 50,
+          },
+          source: {
+            type: 'story',
+            eventId: 'coach_first_meeting',
+          },
+        }),
+        ChallengeManager.createChallenge({
+          id: 'challenge_first_victories',
+          name: 'First Victories',
+          description: 'Coach Gonzalez challenges you to prove yourself on the court. Win your first 3 matches.',
+          requirements: [
+            {
+              type: 'matchCount',
+              targetWins: 3,
+              description: 'Win 3 matches',
+            },
+          ],
+          reward: {
+            modifiers: {
+              statBoosts: {
+                focus: 5,
+                anticipation: 5,
+              },
+            },
+            relationshipChanges: {
+              coach_gonzalez: 15,
+            },
+            experience: 100,
+          },
+          source: {
+            type: 'story',
+            eventId: 'coach_first_meeting',
+          },
+        }),
+      ],
     },
   },
 
@@ -54,6 +115,38 @@ export const coachEvents: StoryEvent[] = [
             energyChange: -20,
             relationshipChanges: { coach_gonzalez: 15 },
           },
+          challengesAssigned: [
+            ChallengeManager.createChallenge({
+              id: 'coach_challenge_serve_mastery',
+              name: "Coach's Challenge: Serve Mastery",
+              description: 'Coach Gonzalez wants you to develop your serve to professional level. Reach 40 serve stat to prove your dedication.',
+              requirements: [
+                {
+                  type: 'statThreshold',
+                  statName: 'serve',
+                  targetValue: 40,
+                  description: 'Reach 40 Serve',
+                },
+              ],
+              reward: {
+                abilities: [AbilityName.HEAVY_HITTER],
+                modifiers: {
+                  statBoosts: {
+                    serve: 5,
+                    strength: 3,
+                  },
+                },
+                relationshipChanges: {
+                  coach_gonzalez: 20,
+                },
+                experience: 100,
+              },
+              source: {
+                type: 'story',
+                eventId: 'coach_training_focus',
+              },
+            }),
+          ],
         },
       },
       {
@@ -69,6 +162,45 @@ export const coachEvents: StoryEvent[] = [
             energyChange: -20,
             relationshipChanges: { coach_gonzalez: 15 },
           },
+          challengesAssigned: [
+            ChallengeManager.createChallenge({
+              id: 'coach_challenge_baseline_warrior',
+              name: "Coach's Challenge: Baseline Warrior",
+              description: 'Coach Gonzalez challenges you to become a complete baseline player. Develop both forehand and backhand to 35.',
+              requirements: [
+                {
+                  type: 'statThreshold',
+                  statName: 'forehand',
+                  targetValue: 35,
+                  description: 'Reach 35 Forehand',
+                },
+                {
+                  type: 'statThreshold',
+                  statName: 'backhand',
+                  targetValue: 35,
+                  description: 'Reach 35 Backhand',
+                },
+              ],
+              reward: {
+                abilities: [AbilityName.BASELINER],
+                modifiers: {
+                  statBoosts: {
+                    placement: 5,
+                    defensive: 5,
+                    stamina: 3,
+                  },
+                },
+                relationshipChanges: {
+                  coach_gonzalez: 20,
+                },
+                experience: 125,
+              },
+              source: {
+                type: 'story',
+                eventId: 'coach_training_focus',
+              },
+            }),
+          ],
         },
       },
       {
@@ -84,6 +216,178 @@ export const coachEvents: StoryEvent[] = [
             energyChange: -15,
             relationshipChanges: { coach_gonzalez: 20 },
           },
+          challengesAssigned: [
+            ChallengeManager.createChallenge({
+              id: 'coach_challenge_mental_edge',
+              name: "Coach's Challenge: Mental Edge",
+              description: 'Coach Gonzalez wants you to develop the mental fortitude of a champion. Prove yourself by winning 5 matches and reaching 40 focus.',
+              requirements: [
+                {
+                  type: 'matchCount',
+                  targetWins: 5,
+                  description: 'Win 5 matches',
+                },
+                {
+                  type: 'statThreshold',
+                  statName: 'focus',
+                  targetValue: 40,
+                  description: 'Reach 40 Focus',
+                },
+              ],
+              reward: {
+                abilities: [AbilityName.CLUTCH],
+                modifiers: {
+                  statBoosts: {
+                    focus: 5,
+                    anticipation: 5,
+                    offensive: 3,
+                  },
+                },
+                relationshipChanges: {
+                  coach_gonzalez: 25,
+                },
+                experience: 150,
+              },
+              source: {
+                type: 'story',
+                eventId: 'coach_training_focus',
+              },
+            }),
+          ],
+        },
+      },
+    ],
+  },
+
+  {
+    id: 'coach_balanced_development',
+    name: 'Building a Complete Game',
+    tags: ['coach', 'training', 'decision'],
+    timeSlotsRequired: 2,
+    prerequisites: {
+      completedEvents: ['coach_first_meeting'],
+      minDay: 10,
+    },
+    skippable: true,
+    description: 'Coach Gonzalez emphasizes the importance of developing all aspects of your game.',
+    dialogue: `Coach Gonzalez: "You're making good progress, but a truly great player needs balance. You can specialize, but you can't have glaring weaknesses. Let's work on rounding out your game."`,
+    characters: ['coach_gonzalez'],
+    options: [
+      {
+        id: 'focus_groundstrokes',
+        text: 'Balance Groundstrokes',
+        emoji: '⚖️',
+        description: 'Work on becoming equally strong on both wings',
+        outcome: {
+          resultText: 'You dedicate equal time to both forehand and backhand. Coach Gonzalez helps you build consistency across both shots, eliminating the predictability of having a weaker side.',
+          effects: {
+            statBoosts: { forehand: 3, backhand: 3, shotVariety: 2 },
+            moodChange: 10,
+            energyChange: -20,
+            relationshipChanges: { coach_gonzalez: 15 },
+          },
+          challengesAssigned: [
+            ChallengeManager.createChallenge({
+              id: 'challenge_balanced_approach',
+              name: 'Balanced Approach',
+              description: 'Coach Gonzalez wants you to become a well-rounded player. Raise both forehand and backhand to 25.',
+              requirements: [
+                {
+                  type: 'statThreshold',
+                  statName: 'forehand',
+                  targetValue: 25,
+                  description: 'Reach 25 Forehand',
+                },
+                {
+                  type: 'statThreshold',
+                  statName: 'backhand',
+                  targetValue: 25,
+                  description: 'Reach 25 Backhand',
+                },
+              ],
+              reward: {
+                modifiers: {
+                  statBoosts: {
+                    shotVariety: 8,
+                    placement: 4,
+                  },
+                },
+                relationshipChanges: {
+                  coach_gonzalez: 15,
+                },
+                experience: 120,
+              },
+              source: {
+                type: 'story',
+                eventId: 'coach_balanced_development',
+              },
+            }),
+          ],
+        },
+      },
+      {
+        id: 'focus_fitness',
+        text: 'Athletic Foundation',
+        emoji: '💪',
+        description: 'Build your physical conditioning',
+        outcome: {
+          resultText: 'Coach Gonzalez introduces you to a strength and conditioning program. You work on explosive speed, endurance, and recovery. Your body starts to feel like a finely-tuned machine.',
+          effects: {
+            statBoosts: { speed: 4, stamina: 4, agility: 2 },
+            moodChange: 10,
+            energyChange: -25,
+            relationshipChanges: { coach_gonzalez: 15 },
+          },
+          challengesAssigned: [
+            ChallengeManager.createChallenge({
+              id: 'challenge_athletic_foundation',
+              name: 'Athletic Foundation',
+              description: 'Coach Gonzalez challenges you to build elite-level fitness. Reach 30 in both speed and stamina.',
+              requirements: [
+                {
+                  type: 'statThreshold',
+                  statName: 'speed',
+                  targetValue: 30,
+                  description: 'Reach 30 Speed',
+                },
+                {
+                  type: 'statThreshold',
+                  statName: 'stamina',
+                  targetValue: 30,
+                  description: 'Reach 30 Stamina',
+                },
+              ],
+              reward: {
+                modifiers: {
+                  statBoosts: {
+                    agility: 5,
+                    recovery: 5,
+                  },
+                },
+                items: [
+                  {
+                    name: 'Training Headband',
+                    description: 'A lightweight headband that helps you stay focused during intense rallies.',
+                    type: 'equipment',
+                    modifiers: {
+                      statBoosts: {
+                        focus: 2,
+                        stamina: 2,
+                      },
+                    },
+                  },
+                ],
+                relationshipChanges: {
+                  coach_gonzalez: 20,
+                },
+                experience: 150,
+              },
+              source: {
+                type: 'story',
+                eventId: 'coach_balanced_development',
+              },
+            }),
+          ],
         },
       },
     ],

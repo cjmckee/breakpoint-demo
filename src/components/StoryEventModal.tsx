@@ -108,19 +108,19 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
                   disabled={!isAvailable}
                   className={`
                     w-full p-4 rounded border-2 text-left transition
-                    ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white'}
-                    ${!isAvailable ? 'opacity-50 cursor-not-allowed' : 'hover:border-blue-300 cursor-pointer'}
+                    ${isSelected ? 'border-blue-500 bg-blue-100' : 'border-gray-400 bg-white'}
+                    ${!isAvailable ? 'opacity-50 cursor-not-allowed' : 'hover:border-blue-400 hover:bg-gray-50 cursor-pointer'}
                   `}
                 >
                   <div className="flex items-center gap-3">
                     {option.emoji && <span className="text-3xl">{option.emoji}</span>}
                     <div className="flex-1">
-                      <div className="font-bold text-lg">{option.text}</div>
+                      <div className="font-bold text-lg text-gray-900">{option.text}</div>
                       {option.description && (
-                        <div className="text-sm text-gray-600 mt-1">{option.description}</div>
+                        <div className="text-sm text-gray-700 mt-1">{option.description}</div>
                       )}
                       {!isAvailable && (
-                        <div className="text-sm text-red-600 mt-1 font-semibold">
+                        <div className="text-sm text-red-700 mt-1 font-semibold">
                           ❌ Requirements not met
                         </div>
                       )}
@@ -129,12 +129,12 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
 
                   {/* Preview effects when selected */}
                   {isSelected && option.outcome.effects && (
-                    <div className="mt-3 pt-3 border-t text-sm">
-                      <div className="font-semibold mb-2">Effects Preview:</div>
+                    <div className="mt-3 pt-3 border-t border-gray-300 text-sm">
+                      <div className="font-semibold mb-2 text-gray-900">Effects Preview:</div>
                       <div className="grid grid-cols-1 gap-1">
                         {option.outcome.effects.statBoosts &&
                           Object.keys(option.outcome.effects.statBoosts).length > 0 && (
-                            <div className="text-green-600">
+                            <div className="text-green-700 font-medium">
                               📈 Stats: +
                               {Object.entries(option.outcome.effects.statBoosts)
                                 .map(([k, v]) => `${k}: +${v}`)
@@ -146,8 +146,8 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
                             <div
                               className={
                                 option.outcome.effects.moodChange > 0
-                                  ? 'text-green-600'
-                                  : 'text-red-600'
+                                  ? 'text-green-700 font-medium'
+                                  : 'text-red-700 font-medium'
                               }
                             >
                               {option.outcome.effects.moodChange > 0 ? '😊' : '😞'} Mood:{' '}
@@ -160,8 +160,8 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
                             <div
                               className={
                                 option.outcome.effects.energyChange > 0
-                                  ? 'text-green-600'
-                                  : 'text-orange-600'
+                                  ? 'text-green-700 font-medium'
+                                  : 'text-orange-700 font-medium'
                               }
                             >
                               ⚡ Energy:{' '}
@@ -171,7 +171,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
                           )}
                         {option.outcome.effects.relationshipChanges &&
                           Object.keys(option.outcome.effects.relationshipChanges).length > 0 && (
-                            <div className="text-purple-600">
+                            <div className="text-purple-700 font-medium">
                               💜 Relationships:{' '}
                               {Object.entries(option.outcome.effects.relationshipChanges)
                                 .map(([char, val]) => `${char}: ${val > 0 ? '+' : ''}${val}`)
@@ -180,7 +180,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
                           )}
                         {option.outcome.effects.abilitiesGained &&
                           option.outcome.effects.abilitiesGained.length > 0 && (
-                            <div className="text-yellow-600">
+                            <div className="text-yellow-700 font-semibold">
                               🌟 New Abilities:{' '}
                               {option.outcome.effects.abilitiesGained.join(', ')}
                             </div>
