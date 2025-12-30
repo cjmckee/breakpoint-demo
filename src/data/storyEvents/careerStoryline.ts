@@ -110,7 +110,7 @@ export const careerEvents: StoryEvent[] = [
             statBoosts: { focus: 2 },
             moodChange: 15,
             energyChange: -5,
-            relationshipChanges: { coach_martinez: 10 },
+            relationshipChanges: { coach_gonzalez: 10 },
           },
         },
       },
