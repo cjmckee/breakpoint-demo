@@ -18,8 +18,9 @@ import {
   MatchScore,
   MatchState as KeyMomentMatchState,
 } from '../types/keyMoments';
-import { PlayerStats } from '../types/game';
+import { PlayerStats, Ability } from '../types/game';
 import { MatchStatistics as IMatchStatistics, MatchState, PointResult } from '../types';
+import { AbilitySystem } from './AbilitySystem';
 
 export class MatchOrchestrator {
   private keyMomentsTriggered = 0;
@@ -31,14 +32,59 @@ export class MatchOrchestrator {
   private cancelled = false;
 
   /**
+   * Apply ability stat boosts to player stats
+   * Only applies during match - does not permanently modify player stats
+   */
+  private applyAbilityBoosts(baseStats: PlayerStats, abilities?: Ability[]): PlayerStats {
+    if (!abilities || abilities.length === 0) {
+      return baseStats;
+    }
+
+    // Calculate total boosts from all abilities
+    const totalBoosts = AbilitySystem.calculateTotalBoosts(abilities);
+
+    // Create a copy of stats with boosts applied
+    const boostedStats: PlayerStats = {
+      technical: { ...baseStats.technical },
+      physical: { ...baseStats.physical },
+      mental: { ...baseStats.mental },
+    };
+
+    // Apply boosts to each stat
+    for (const [stat, boost] of Object.entries(totalBoosts)) {
+      if (!boost) continue;
+
+      // Map flat stat names to nested structure
+      if (stat in boostedStats.technical) {
+        const key = stat as keyof typeof boostedStats.technical;
+        boostedStats.technical[key] = Math.min(100, boostedStats.technical[key] + boost);
+      } else if (stat in boostedStats.physical) {
+        const key = stat as keyof typeof boostedStats.physical;
+        boostedStats.physical[key] = Math.min(100, boostedStats.physical[key] + boost);
+      } else if (stat in boostedStats.mental) {
+        const key = stat as keyof typeof boostedStats.mental;
+        boostedStats.mental[key] = Math.min(100, boostedStats.mental[key] + boost);
+      }
+    }
+
+    return boostedStats;
+  }
+
+  /**
    * Simulate an interactive match with key moments
    */
   async simulateInteractiveMatch(config: InteractiveMatchConfig): Promise<MatchScore> {
     // Store match format
     (this as any).matchFormat = config.matchFormat || 'best-of-3';
 
+    // Apply ability boosts to player stats (only for the duration of the match)
+    const playerStatsWithAbilities = this.applyAbilityBoosts(
+      config.playerStats,
+      config.playerAbilities
+    );
+
     // Initialize match simulator with PlayerProfile objects
-    const player = new PlayerProfile('player', 'Player', config.playerStats);
+    const player = new PlayerProfile('player', 'Player', playerStatsWithAbilities);
     const opponent = new PlayerProfile('opponent', 'Opponent', config.opponentStats);
 
     const matchSim = new MatchSimulator({
@@ -250,24 +296,73 @@ export class MatchOrchestrator {
   ): PointResult {
     const winner = keyMomentResult.pointWinner === currentServer ? 'server' as const : 'returner' as const;
 
-    // Determine point type based on outcome
+    // Determine point type based on shotOutcome.outcome (not the resolution outcome)
+    const shotOutcomeType = keyMomentResult.shotOutcome.outcome;
     let pointType: PointResult['pointType'] = 'winner'; // Default to winner for key moments
-    if (keyMomentResult.outcome.includes('ace')) {
+    let serveType: 'first' | 'second' = 'first';
+
+    if (shotOutcomeType === 'ace') {
       pointType = 'ace';
-    } else if (keyMomentResult.outcome.includes('winner')) {
+    } else if (shotOutcomeType === 'double_fault') {
+      pointType = 'double_fault';
+      serveType = 'second'; // Double fault means second serve failed
+    } else if (shotOutcomeType === 'winner' || shotOutcomeType === 'forced_error') {
       pointType = 'winner';
-    } else if (keyMomentResult.outcome.includes('error') || keyMomentResult.outcome.includes('failure')) {
+    } else if (shotOutcomeType === 'error' || shotOutcomeType === 'unforced_error') {
       pointType = winner === 'returner' ? 'forced_error' : 'unforced_error';
     }
 
-    // Create a synthetic point result with minimal shot data
+    // Determine serve shot type based on key moment shot type
+    const serveShotType = keyMomentResult.shotOutcome.shotType;
+    const isServe = serveShotType === 'serve' || serveShotType === 'serve_first' || serveShotType === 'serve_second';
+
+    // Create synthetic shots array to ensure serve statistics are tracked
+    // This is needed because MatchStatistics.updateServiceStatistics checks the shots array
+    const shots: any[] = [];
+
+    if (isServe || pointType === 'ace' || pointType === 'double_fault') {
+      // Add a synthetic serve shot
+      const serveShotOutcome =
+        pointType === 'ace' ? 'winner' as const :
+        pointType === 'double_fault' ? 'error' as const :
+        'in_play' as const;
+
+      shots.push({
+        shotType: serveType === 'first' ? 'serve_first' : 'serve_second',
+        shooter: 'server' as const,
+        success: serveShotOutcome !== 'error',
+        quality: 70, // Arbitrary quality for key moments
+        outcome: serveShotOutcome,
+        statUsed: 'serve',
+        modifiers: {
+          spinBonus: 0,
+          placementBonus: 0,
+          physicalModifier: 0,
+          mentalModifier: 0,
+          difficultyModifier: 0,
+          pressureModifier: 0,
+          rallyLengthModifier: 0,
+          finalAdjustment: 0,
+        },
+        timestamp: Date.now(),
+        shotNumber: 1,
+        context: {
+          difficulty: 'normal' as const,
+          pressure: 'high' as const, // Key moments are high pressure
+          courtPosition: 'baseline' as const,
+          rallyLength: 1,
+        },
+      });
+    }
+
+    // Create a synthetic point result with serve shot data
     return {
       server: currentServer,
       winner,
       pointType,
-      shots: [], // Key moments don't have shot-by-shot data
+      shots,
       rallyLength: 3, // Estimated average for key moments
-      serveType: 'first' as const,
+      serveType,
       duration: 5, // Estimated duration in seconds
       statistics: {
         totalShots: 3,
@@ -541,8 +636,16 @@ export class MatchOrchestrator {
 
   private isSetWon(set: { player: number; opponent: number }): boolean {
     const { player, opponent } = set;
-    // Win at 6 games with 2-game lead, or 7-5, or tiebreak at 7-6
-    return (player >= 6 && player - opponent >= 2) || (opponent >= 6 && opponent - player >= 2);
+
+    // Win at 6 games with 2-game lead (e.g., 6-4, 6-3, 6-2, 6-1, 6-0)
+    if (player >= 6 && player - opponent >= 2) return true;
+    if (opponent >= 6 && opponent - player >= 2) return true;
+
+    // Win at 7-6 (after tiebreak at 6-6)
+    // Once either player reaches 7, the set is over
+    if (player === 7 || opponent === 7) return true;
+
+    return false;
   }
 
   private getSetWinner(set: { player: number; opponent: number }): 'player' | 'opponent' {

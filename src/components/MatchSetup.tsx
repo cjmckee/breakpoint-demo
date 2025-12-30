@@ -170,9 +170,10 @@ export const MatchSetup: React.FC = () => {
   }
 
   const handleStartMatch = async () => {
-    // Start the match with player and opponent stats (both already nested)
+    // Start the match with player stats, abilities, and opponent stats
     await startMatch({
       playerStats: player.stats,
+      playerAbilities: player.abilities, // Pass player abilities to apply during match
       opponentStats: selectedOpponent.stats as PlayerStats,
       surface: selectedSurface,
       mood: currentStatus.mood,

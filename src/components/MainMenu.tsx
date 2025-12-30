@@ -3,16 +3,33 @@
  * Hub for player activities and navigation
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { StatusBar } from './StatusBar';
 import { PlayerStatsDisplay } from './PlayerStatsDisplay';
 import { RecentActivities } from './RecentActivities';
+import { TrainingResultModal } from './TrainingResultModal';
+import type { TrainingResult } from '../types/game';
+import { TimeSlot } from '../types/game';
 
 export const MainMenu: React.FC = () => {
-  const { player, currentStatus, setScreen, rest } = useGameStore();
+  const player = useGameStore((state) => state.player);
+  const currentStatus = useGameStore((state) => state.currentStatus);
+  const calendar = useGameStore((state) => state.calendar);
+  const setScreen = useGameStore((state) => state.setScreen);
+  const rest = useGameStore((state) => state.rest);
+  const showTrainingResultModal = useGameStore((state) => state.showTrainingResultModal);
+  const clearTrainingResultModal = useGameStore((state) => state.clearTrainingResultModal);
+
+  // Check if it's night time - only rest/next day action allowed
+  const isNightTime = calendar.currentTimeSlot === TimeSlot.NIGHT;
+
+  // Get training result from last activity if modal should be shown
+  const trainingResult = showTrainingResultModal && currentStatus.lastActivity?.type === 'training'
+    ? (currentStatus.lastActivity as TrainingResult)
+    : null;
 
   if (!player) {
     return null;
@@ -45,6 +62,10 @@ export const MainMenu: React.FC = () => {
     },
   ];
 
+  const handleCloseTrainingModal = () => {
+    clearTrainingResultModal();
+  };
+
   return (
     <div className="min-h-screen bg-pixel-bg">
       <StatusBar />
@@ -64,16 +85,35 @@ export const MainMenu: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           {activities.map((activity) => {
             const canAfford = currentStatus.energy >= activity.energyCost;
+            const isRestButton = activity.id === 'rest';
+
+            // During night time, disable all activities except rest
+            const isDisabled = isNightTime
+              ? !isRestButton
+              : (!canAfford && activity.energyCost > 0);
+
+            // Get button text
+            let buttonText = activity.title;
+            if (isNightTime && isRestButton) {
+              buttonText = 'Next Day';
+            } else if (!canAfford && activity.energyCost > 0) {
+              buttonText = 'Not Enough Energy';
+            }
+
+            // Get button variant - use success for "Next Day" button
+            const buttonVariant = (isNightTime && isRestButton) ? 'success' : 'primary';
 
             return (
               <Card key={activity.id} padding="md" className="flex flex-col">
                 <div className="text-center mb-4">
                   <div className="text-6xl mb-3">{activity.emoji}</div>
                   <h2 className="text-2xl font-bold text-pixel-text mb-2">
-                    {activity.title}
+                    {isNightTime && isRestButton ? 'Next Day' : activity.title}
                   </h2>
                   <p className="text-sm text-pixel-text-muted mb-3">
-                    {activity.description}
+                    {isNightTime && isRestButton
+                      ? 'Rest and advance to the next day'
+                      : activity.description}
                   </p>
                   {activity.energyCost > 0 && (
                     <div className="text-sm text-pixel-text-muted">
@@ -84,14 +124,12 @@ export const MainMenu: React.FC = () => {
 
                 <div className="mt-auto">
                   <Button
-                    variant="primary"
+                    variant={buttonVariant}
                     fullWidth
                     onClick={activity.action}
-                    disabled={!canAfford && activity.energyCost > 0}
+                    disabled={isDisabled}
                   >
-                    {!canAfford && activity.energyCost > 0
-                      ? 'Not Enough Energy'
-                      : activity.title}
+                    {buttonText}
                   </Button>
                 </div>
               </Card>
@@ -112,6 +150,13 @@ export const MainMenu: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Training Result Modal */}
+      <TrainingResultModal
+        isOpen={showTrainingResultModal}
+        onClose={handleCloseTrainingModal}
+        result={trainingResult}
+      />
     </div>
   );
 };

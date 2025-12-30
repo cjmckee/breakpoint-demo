@@ -9,6 +9,8 @@ import { useGameStore } from '../stores/gameStore';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { KeyMomentResultToast } from './KeyMomentResultToast';
+import { CourtVisualization } from './CourtVisualization';
+import { AbilityDisplay } from './AbilityDisplay';
 
 interface MatchStats {
   aces: number;
@@ -25,8 +27,10 @@ export const LiveMatchViewer: React.FC = () => {
   const isWaitingForChoice = useMatchStore((state) => state.isWaitingForChoice);
   const currentScore = useMatchStore((state) => state.currentScore);
   const matchHistory = useMatchStore((state) => state.matchHistory);
+  const matchConfig = useMatchStore((state) => state.matchConfig);
   const endMatch = useMatchStore((state) => state.endMatch);
   const setScreen = useGameStore((state) => state.setScreen);
+  const player = useGameStore((state) => state.player);
 
   // Default score if not available
   const score = currentScore || {
@@ -167,6 +171,29 @@ export const LiveMatchViewer: React.FC = () => {
             </div>
           </div>
         </Card>
+
+        {/* Court Visualization */}
+        {matchConfig && currentScore && (
+          <CourtVisualization
+            courtSurface={matchConfig.surface}
+            score={currentScore}
+            server={currentScore.server}
+            momentum={0} // TODO: Track momentum in match state
+            stamina={matchConfig.energy}
+            maxStamina={100}
+            opponentName={matchConfig.opponentStats?.name || 'Opponent'}
+          />
+        )}
+
+        {/* Active Abilities */}
+        {player?.abilities && player.abilities.length > 0 && (
+          <Card title="Active Abilities" className="bg-pixel-accent bg-opacity-10 border-pixel-accent">
+            <p className="text-sm text-pixel-text-muted mb-4">
+              These abilities are currently boosting your stats during this match.
+            </p>
+            <AbilityDisplay abilities={player.abilities} />
+          </Card>
+        )}
 
         {/* Match Statistics */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

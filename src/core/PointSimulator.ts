@@ -432,12 +432,14 @@ export class PointSimulator {
     const difficulty = isFirstServe ? 'normal' : 'hard';
 
     // Pressure based on match situation
+    // Serves are less affected by pressure than rally shots (you control the serve)
     let pressure: ShotContext['pressure'] = 'low';
     if (matchState.isKeyMoment) {
-      pressure = 'high';
-    } else if (matchState.pressure === 'medium' || matchState.pressure === 'high') {
-      pressure = 'medium';
+      pressure = 'medium'; // Key moments: medium pressure (not high - serves are self-initiated)
+    } else if (matchState.pressure === 'high') {
+      pressure = 'low'; // High match pressure: only low serve pressure
     }
+    // Otherwise: stay at low pressure (default)
 
     return {
       difficulty,

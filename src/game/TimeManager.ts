@@ -41,6 +41,7 @@ export class TimeManager {
 
   /**
    * Advance to next day
+   * Energy is not restored automatically - only through rest action
    */
   static advanceDay(calendar: GameCalendar): GameCalendar {
     const daysPerSeason = 90; // ~3 months
@@ -52,7 +53,7 @@ export class TimeManager {
         currentSeason: calendar.currentSeason + 1,
         currentDay: 1,
         currentTimeSlot: TimeSlot.MORNING,
-        energy: calendar.maxEnergy, // Restore energy overnight
+        // Energy is not restored - managed by rest action
       };
     }
 
@@ -60,7 +61,7 @@ export class TimeManager {
       ...calendar,
       currentDay: calendar.currentDay + 1,
       currentTimeSlot: TimeSlot.MORNING,
-      energy: calendar.maxEnergy, // Restore energy overnight
+      // Energy is not restored - managed by rest action
     };
   }
 

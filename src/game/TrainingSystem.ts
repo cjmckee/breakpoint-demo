@@ -175,11 +175,14 @@ export class TrainingSystem {
 
     if (session.tier === 'diamond' && session.ability) {
       const abilityRoll = this.rollForAbility(session);
+      // Always store roll details for UI display
+      roll = abilityRoll.roll;
+      threshold = abilityRoll.threshold;
+      baseChance = abilityRoll.baseChance;
+
+      // Only set ability gained if successful
       if (abilityRoll.success && abilityRoll.abilityName) {
         abilityGained = abilityRoll.abilityName;
-        roll = abilityRoll.roll;
-        threshold = abilityRoll.threshold;
-        baseChance = abilityRoll.baseChance;
       }
     }
 

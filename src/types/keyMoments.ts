@@ -5,6 +5,7 @@
 
 import { TacticalOption, KeyMomentType } from '../data/tacticalOptions';
 import { KeyMomentResult } from '../game/KeyMomentResolver';
+import { Ability } from './game';
 
 /**
  * Key Moment Data
@@ -78,6 +79,7 @@ export interface MatchScore {
 export interface InteractiveMatchConfig {
   playerStats: any; // PlayerProfile from core
   opponentStats: any; // PlayerProfile from core
+  playerAbilities?: Ability[]; // Player abilities to apply during match
   surface: 'hard' | 'clay' | 'grass' | 'carpet';
 
   // Game state context

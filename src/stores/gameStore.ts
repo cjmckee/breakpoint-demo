@@ -14,6 +14,7 @@ import {
   RestResult,
   ActivityResult,
   CurrentStatus,
+  TimeSlot,
 } from '../types/game';
 import { PlayerManager } from '../game/PlayerManager';
 import { TrainingSystem } from '../game/TrainingSystem';
@@ -33,15 +34,20 @@ interface GameState {
   // Activity history
   activityHistory: ActivityResult[];
 
+  // Training sessions (generated per time slot, regenerated when calendar changes)
+  currentTrainingSessions: TrainingSession[];
+
   // UI state
   isInitialized: boolean;
   currentScreen: 'welcome' | 'player-creation' | 'main-menu' | 'training' | 'match' | 'rest';
+  showTrainingResultModal: boolean;
 
   // Actions
   initializeGame: () => void;
   createPlayer: (name: string, playstyle: 'offensive' | 'defensive' | 'balanced') => void;
   selectTraining: (session: TrainingSession) => void;
   executeTraining: () => void;
+  applyTrainingResult: (result: TrainingResult) => Player;
   advanceTime: () => void;
   rest: () => void;
   updateMood: (change: number) => void;
@@ -50,6 +56,8 @@ interface GameState {
   loadGame: (saveId: string) => void;
   resetGame: () => void;
   setScreen: (screen: GameState['currentScreen']) => void;
+  clearTrainingResultModal: () => void;
+  getAvailableTrainingSessions: () => TrainingSession[];
 }
 
 const initialCalendar = TimeManager.createCalendar();
@@ -59,6 +67,10 @@ const initialStatus: CurrentStatus = {
   lastActivity: null,
 };
 
+const defaultRestEnergy = 20;
+const defaultSleepBonus = 30;
+const defaultMoodBonus = 5;
+
 export const useGameStore = create<GameState>()(
   persist(
     (set, get) => ({
@@ -67,8 +79,10 @@ export const useGameStore = create<GameState>()(
       calendar: initialCalendar,
       currentStatus: initialStatus,
       activityHistory: [],
+      currentTrainingSessions: [],
       isInitialized: false,
       currentScreen: 'welcome',
+      showTrainingResultModal: false,
 
       // Initialize game (check for auto-save)
       initializeGame: () => {
@@ -94,8 +108,13 @@ export const useGameStore = create<GameState>()(
       // Create new player
       createPlayer: (name: string, playstyle: 'offensive' | 'defensive' | 'balanced') => {
         const player = PlayerManager.createPlayer(name, playstyle);
+
+        // Generate initial training sessions
+        const initialSessions = TrainingSystem.getAvailableTrainingSessions(player, 0);
+
         set({
           player,
+          currentTrainingSessions: initialSessions,
           currentScreen: 'main-menu',
         });
 
@@ -158,17 +177,49 @@ export const useGameStore = create<GameState>()(
         get().saveGame();
       },
 
+      // Apply training result (called from UI with specific session result)
+      applyTrainingResult: (result: TrainingResult): Player => {
+        const { player, currentStatus } = get();
+        if (!player) throw new Error('No player found');
+
+        // Apply stat boosts to player
+        const updatedPlayer = PlayerManager.applyStatBoosts(player, result.statBoosts);
+
+        // Check for ability gained
+        let finalPlayer = updatedPlayer;
+        if (result.abilityGained) {
+          finalPlayer = PlayerManager.addAbility(updatedPlayer, result.abilityGained);
+        }
+
+        // Update energy and mood
+        const newEnergy = Math.max(0, currentStatus.energy - result.energyCost);
+        const newMood = Math.max(-100, Math.min(100, currentStatus.mood + result.moodChange));
+
+        set({
+          player: finalPlayer,
+          currentStatus: {
+            energy: newEnergy,
+            mood: newMood,
+            lastActivity: result,
+          },
+          activityHistory: [result, ...get().activityHistory].slice(0, 50),
+          showTrainingResultModal: true, // Flag to show modal when we navigate to main menu
+        });
+
+        // Auto-save
+        get().saveGame();
+
+        return finalPlayer;
+      },
+
       // Advance time slot
       advanceTime: () => {
-        const { calendar, currentStatus } = get();
+        const { player, calendar, currentStatus } = get();
 
         const newCalendar = TimeManager.advanceTimeSlot(calendar);
 
-        // If day changed, restore energy to 100
-        let newEnergy = currentStatus.energy;
-        if (newCalendar.currentDay !== calendar.currentDay) {
-          newEnergy = 100;
-        }
+        // No automatic energy restoration when advancing time
+        const newEnergy = currentStatus.energy;
 
         // Decay mood toward neutral (simple decay)
         let newMood = currentStatus.mood;
@@ -178,6 +229,11 @@ export const useGameStore = create<GameState>()(
           newMood = Math.min(0, newMood + 5);
         }
 
+        // Generate new training sessions for the new time slot
+        const newTrainingSessions = player
+          ? TrainingSystem.getAvailableTrainingSessions(player, newMood)
+          : [];
+
         set({
           calendar: newCalendar,
           currentStatus: {
@@ -185,6 +241,7 @@ export const useGameStore = create<GameState>()(
             energy: newEnergy,
             mood: newMood,
           },
+          currentTrainingSessions: newTrainingSessions,
         });
 
         // Auto-save
@@ -193,10 +250,15 @@ export const useGameStore = create<GameState>()(
 
       // Rest (restore energy)
       rest: () => {
-        const { currentStatus } = get();
+        const { currentStatus, calendar } = get();
 
-        const energyRestored = 20;
-        const newEnergy = Math.min(100, currentStatus.energy + energyRestored);
+        // Regular rest gives 20 energy
+        // If it's night time (which will advance to next day), add 30 bonus for sleeping
+        const isNightTime = calendar.currentTimeSlot === TimeSlot.NIGHT;
+        const restEnergy = defaultRestEnergy;
+        const sleepBonus = isNightTime ? defaultSleepBonus : 0;
+        const totalEnergyRestored = restEnergy + sleepBonus;
+        const newEnergy = Math.min(100, currentStatus.energy + totalEnergyRestored);
 
         const restResult: RestResult = {
           id: `rest-${Date.now()}`,
@@ -205,9 +267,9 @@ export const useGameStore = create<GameState>()(
           timestamp: new Date().toISOString(),
           timeSlotsUsed: 1,
           energyCost: 0,
-          moodResult: 5,
-          restType: 'moderate',
-          energyRestored,
+          moodResult: defaultMoodBonus,
+          restType: isNightTime ? 'deep' : 'moderate',
+          energyRestored: totalEnergyRestored,
         };
 
         set({
@@ -358,6 +420,17 @@ export const useGameStore = create<GameState>()(
       setScreen: (screen: GameState['currentScreen']) => {
         set({ currentScreen: screen });
       },
+
+      // Clear training result modal flag
+      clearTrainingResultModal: () => {
+        set({ showTrainingResultModal: false });
+      },
+
+      // Get available training sessions (returns cached sessions for current time slot)
+      getAvailableTrainingSessions: (): TrainingSession[] => {
+        const { currentTrainingSessions } = get();
+        return currentTrainingSessions;
+      },
     }),
     {
       name: 'tennis-rpg-game-store',
@@ -366,6 +439,7 @@ export const useGameStore = create<GameState>()(
         calendar: state.calendar,
         currentStatus: state.currentStatus,
         activityHistory: state.activityHistory,
+        currentTrainingSessions: state.currentTrainingSessions,
       }),
     }
   )

@@ -8,6 +8,7 @@ import { useGameStore } from '../stores/gameStore';
 import { Card } from './ui/Card';
 import { StatCard } from './StatCard';
 import { StatBar } from './StatBar';
+import { AbilityDisplay } from './AbilityDisplay';
 
 export const PlayerStatsDisplay: React.FC = () => {
   const player = useGameStore((state) => state.player);
@@ -104,44 +105,7 @@ export const PlayerStatsDisplay: React.FC = () => {
           <h4 className="font-semibold text-pixel-text-muted text-sm pb-2 mb-3">
             Abilities
           </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-            {player.abilities.map((ability, idx) => {
-              const rarityColors = {
-                common: 'border-blue-500 bg-blue-500 bg-opacity-10',
-                uncommon: 'border-green-500 bg-green-500 bg-opacity-10',
-                rare: 'border-purple-500 bg-purple-500 bg-opacity-10',
-                legendary: 'border-orange-500 bg-orange-500 bg-opacity-10',
-              };
-
-              const rarityColor =
-                rarityColors[ability.rarity as keyof typeof rarityColors] ||
-                rarityColors.common;
-
-              return (
-                <div
-                  key={idx}
-                  className={`border-4 ${rarityColor} p-3 transition-all hover:scale-105`}
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <h5 className="font-bold text-pixel-text text-sm">
-                      {ability.name}
-                    </h5>
-                    <span className="text-xs px-2 py-0.5 bg-pixel-bg border-2 border-pixel-border text-pixel-text">
-                      Lv.{ability.level}
-                    </span>
-                  </div>
-                  <div className="text-xs text-pixel-text-muted mb-2 capitalize">
-                    {ability.rarity} rarity
-                  </div>
-                  {ability.description && (
-                    <p className="text-xs text-pixel-text leading-relaxed">
-                      {ability.description}
-                    </p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+          <AbilityDisplay abilities={player.abilities} />
         </div>
       )}
     </Card>

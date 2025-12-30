@@ -103,6 +103,8 @@ export class ShotCalculator {
       console.log('🎾 SERVE CALCULATION START');
       console.log('  Serve stat (primary):', primaryStat);
       console.log('  Player name:', shooterProfile.name);
+      console.log('  Player energy:', shooterProfile.energy);
+      console.log('  Player form:', shooterProfile.form);
     }
 
     // Step 2: Derive ball quality from incoming shot (if available)
@@ -122,8 +124,13 @@ export class ShotCalculator {
     // Log modifiers for serves
     if (shotType.includes('serve')) {
       console.log('  Modifiers:', {
+        spinBonus: modifiers.spinBonus.toFixed(3),
+        placementBonus: modifiers.placementBonus.toFixed(3),
         physicalModifier: modifiers.physicalModifier.toFixed(3),
         mentalModifier: modifiers.mentalModifier.toFixed(3),
+        difficultyModifier: modifiers.difficultyModifier.toFixed(3),
+        pressureModifier: modifiers.pressureModifier.toFixed(3),
+        rallyLengthModifier: modifiers.rallyLengthModifier.toFixed(3),
         finalAdjustment: modifiers.finalAdjustment.toFixed(3),
         serveVariance: modifiers.serveVariance?.toFixed(1) || 'N/A',
       });

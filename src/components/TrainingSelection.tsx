@@ -3,33 +3,28 @@
  * Shows available training sessions and allows player to choose one
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { TrainingSystem } from '../game/TrainingSystem';
-import { TrainingSession, TrainingResult } from '../types/game';
-import { PlayerManager } from '../game/PlayerManager';
+import { TrainingSession } from '../types/game';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
-import { TrainingResultModal } from './TrainingResultModal';
 import { StatChangeIndicator, useStatChanges } from './StatChangeIndicator';
 
 export const TrainingSelection: React.FC = () => {
   const player = useGameStore((state) => state.player);
   const currentStatus = useGameStore((state) => state.currentStatus);
   const setScreen = useGameStore((state) => state.setScreen);
+  const getAvailableTrainingSessions = useGameStore((state) => state.getAvailableTrainingSessions);
 
-  const [lastTrainingResult, setLastTrainingResult] = useState<TrainingResult | null>(null);
-  const [showResultModal, setShowResultModal] = useState(false);
   const { statChanges, addStatChange } = useStatChanges();
 
   if (!player) {
     return null;
   }
 
-  const availableSessions = useMemo(
-    () => TrainingSystem.getAvailableTrainingSessions(player, currentStatus.mood),
-    [player, currentStatus.mood]
-  );
+  // Get training sessions for this time slot (will be cached until time slot changes)
+  const availableSessions = getAvailableTrainingSessions();
 
   const handleSelectSession = (session: TrainingSession) => {
     const result = TrainingSystem.executeTraining(
@@ -45,17 +40,14 @@ export const TrainingSelection: React.FC = () => {
       }
     });
 
-    // Store result and show modal
-    setLastTrainingResult(result);
-    setShowResultModal(true);
+    // Apply the training result to the store (this updates player stats, energy, mood)
+    useGameStore.getState().applyTrainingResult(result);
 
-    // Execute training in store (this updates the actual player stats)
-    useGameStore.getState().executeTraining();
-  };
+    // Advance time after training
+    useGameStore.getState().advanceTime();
 
-  const handleCloseResultModal = () => {
-    setShowResultModal(false);
-    setLastTrainingResult(null);
+    // Navigate to main menu
+    setScreen('main-menu');
   };
 
   const getTierColor = (tier: string): string => {
@@ -193,13 +185,6 @@ export const TrainingSelection: React.FC = () => {
             ))}
           </div>
         </Card>
-
-        {/* Training Result Modal */}
-        <TrainingResultModal
-          isOpen={showResultModal}
-          onClose={handleCloseResultModal}
-          result={lastTrainingResult}
-        />
 
         {/* Stat Change Indicators */}
         <StatChangeIndicator changes={statChanges} />
