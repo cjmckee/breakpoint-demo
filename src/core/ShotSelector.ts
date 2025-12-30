@@ -276,7 +276,7 @@ export class ShotSelector {
     rallyState: RallyState,
     opportunity: TacticalOpportunity
   ): { use: boolean; type?: 'drop_shot' | 'lob' | 'angle_shot' } {
-    const shotVariety = shooter.stats.mental.shot_variety;
+    const shotVariety = shooter.stats.mental.shotVariety;
 
     // Only high-variety players use tactical shots frequently
     if (shotVariety < 50) return { use: false };

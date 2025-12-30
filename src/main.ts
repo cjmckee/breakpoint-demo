@@ -12,61 +12,61 @@ const ARCHETYPES = {
   beginner: {
     technical: {
       serve: 25, forehand: 30, backhand: 25, volley: 20, overhead: 20,
-      drop_shot: 15, slice: 20, return: 30, spin: 20, placement: 20
+      dropShot: 15, slice: 20, return: 30, spin: 20, placement: 20
     },
     physical: {
       speed: 35, stamina: 40, strength: 30, agility: 30, recovery: 35
     },
     mental: {
-      focus: 25, anticipation: 25, shot_variety: 20, offensive: 30, defensive: 40
+      focus: 25, anticipation: 25, shotVariety: 20, offensive: 30, defensive: 40
     }
   },
   baseline: {
     technical: {
       serve: 50, forehand: 70, backhand: 70, volley: 35, overhead: 40,
-      drop_shot: 45, slice: 60, return: 65, spin: 65, placement: 60
+      dropShot: 45, slice: 60, return: 65, spin: 65, placement: 60
     },
     physical: {
       speed: 60, stamina: 70, strength: 55, agility: 55, recovery: 65
     },
     mental: {
-      focus: 60, anticipation: 60, shot_variety: 55, offensive: 45, defensive: 75
+      focus: 60, anticipation: 60, shotVariety: 55, offensive: 45, defensive: 75
     }
   },
   aggressive: {
     technical: {
       serve: 75, forehand: 80, backhand: 65, volley: 70, overhead: 75,
-      drop_shot: 50, slice: 55, return: 55, spin: 60, placement: 65
+      dropShot: 50, slice: 55, return: 55, spin: 60, placement: 65
     },
     physical: {
       speed: 65, stamina: 55, strength: 80, agility: 65, recovery: 60
     },
     mental: {
-      focus: 65, anticipation: 60, shot_variety: 65, offensive: 85, defensive: 35
+      focus: 65, anticipation: 60, shotVariety: 65, offensive: 85, defensive: 35
     }
   },
   serveVolley: {
     technical: {
       serve: 85, forehand: 60, backhand: 55, volley: 85, overhead: 80,
-      drop_shot: 55, slice: 65, return: 50, spin: 50, placement: 70
+      dropShot: 55, slice: 65, return: 50, spin: 50, placement: 70
     },
     physical: {
       speed: 70, stamina: 60, strength: 70, agility: 75, recovery: 65
     },
     mental: {
-      focus: 70, anticipation: 70, shot_variety: 70, offensive: 75, defensive: 50
+      focus: 70, anticipation: 70, shotVariety: 70, offensive: 75, defensive: 50
     }
   },
   defensive: {
     technical: {
       serve: 45, forehand: 65, backhand: 75, volley: 40, overhead: 45,
-      drop_shot: 50, slice: 75, return: 80, spin: 70, placement: 65
+      dropShot: 50, slice: 75, return: 80, spin: 70, placement: 65
     },
     physical: {
       speed: 80, stamina: 85, strength: 45, agility: 80, recovery: 85
     },
     mental: {
-      focus: 80, anticipation: 80, shot_variety: 65, offensive: 25, defensive: 90
+      focus: 80, anticipation: 80, shotVariety: 65, offensive: 25, defensive: 90
     }
   }
 };
@@ -158,8 +158,8 @@ window.getPlayerStats = (player: string): PlayerStats => {
       forehand: getValue('forehand'),
       backhand: getValue('backhand'),
       volley: getValue('volley'),
-      overhead: 50, // Not in UI, use default
-      drop_shot: 50,
+      overhead: 50,
+      dropShot: 50,
       slice: 50,
       return: getValue('return'),
       spin: 50,
@@ -175,7 +175,7 @@ window.getPlayerStats = (player: string): PlayerStats => {
     mental: {
       focus: getValue('focus'),
       anticipation: 50,
-      shot_variety: 50,
+      shotVariety: 50,
       offensive: getValue('offensive'),
       defensive: getValue('defensive'),
     },

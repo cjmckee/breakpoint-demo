@@ -13,6 +13,7 @@ import { PlayerStats } from '../types/game';
 import { TacticalOption } from '../data/tacticalOptions';
 import { MatchOrchestrator } from '../game/MatchOrchestrator';
 import { KeyMomentResult } from '../game/KeyMomentResolver';
+import { MatchStatistics as IMatchStatistics } from '../types';
 
 interface MatchState {
   // Match configuration
@@ -21,15 +22,22 @@ interface MatchState {
 
   // Match progress
   currentScore: MatchScore | null;
+  finalScore: MatchScore | null;
+  showMatchResults: boolean;
   matchHistory: Array<{
     pointNumber: number;
     winner: 'player' | 'opponent';
     score: MatchScore;
   }>;
 
+  // Match statistics
+  matchStatistics: IMatchStatistics | null;
+
   // Key moments
   currentKeyMoment: KeyMoment | null;
   isWaitingForChoice: boolean;
+  lastKeyMomentResult: KeyMomentResult | null;
+  showKeyMomentResult: boolean;
   keyMomentHistory: Array<{
     keyMoment: KeyMoment;
     chosenOption: TacticalOption;
@@ -45,6 +53,9 @@ interface MatchState {
   // Actions
   startMatch: (config: InteractiveMatchConfig) => Promise<void>;
   handleKeyMomentChoice: (option: TacticalOption) => void;
+  setKeyMomentResult: (result: KeyMomentResult) => void;
+  hideKeyMomentResult: () => void;
+  hideMatchResults: () => void;
   endMatch: () => void;
   resetMatch: () => void;
 }
@@ -54,9 +65,14 @@ export const useMatchStore = create<MatchState>((set, get) => ({
   isMatchActive: false,
   matchConfig: null,
   currentScore: null,
+  finalScore: null,
+  showMatchResults: false,
   matchHistory: [],
+  matchStatistics: null,
   currentKeyMoment: null,
   isWaitingForChoice: false,
+  lastKeyMomentResult: null,
+  showKeyMomentResult: false,
   keyMomentHistory: [],
   orchestrator: null,
   keyMomentResolver: null,
@@ -82,6 +98,14 @@ export const useMatchStore = create<MatchState>((set, get) => ({
         });
       },
 
+      // Key moment result callback - shows result after choice
+      onKeyMomentResult: (result: KeyMomentResult) => {
+        set({
+          lastKeyMomentResult: result,
+          showKeyMomentResult: true,
+        });
+      },
+
       // Score update callback
       onScoreUpdate: (score: MatchScore) => {
         set({ currentScore: score });
@@ -89,9 +113,15 @@ export const useMatchStore = create<MatchState>((set, get) => ({
 
       // Match complete callback
       onMatchComplete: (finalScore: MatchScore) => {
+        // Get statistics from orchestrator
+        const statistics = orchestrator.getMatchStatistics();
+
         set({
           currentScore: finalScore,
+          finalScore: finalScore,
+          matchStatistics: statistics,
           isMatchActive: false,
+          showMatchResults: true,
           currentKeyMoment: null,
           isWaitingForChoice: false,
         });
@@ -104,13 +134,16 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       orchestrator,
       currentScore: null,
       matchHistory: [],
+      matchStatistics: null,
       keyMomentHistory: [],
     });
 
     // Start match simulation (async)
     try {
       const finalScore = await orchestrator.simulateInteractiveMatch(matchConfig);
-      set({ currentScore: finalScore });
+      // Get final statistics
+      const statistics = orchestrator.getMatchStatistics();
+      set({ currentScore: finalScore, matchStatistics: statistics });
     } catch (error) {
       console.error('Match simulation error:', error);
       set({
@@ -144,8 +177,38 @@ export const useMatchStore = create<MatchState>((set, get) => ({
     set({ keyMomentResolver: null });
   },
 
+  // Set key moment result (called by orchestrator after resolving)
+  setKeyMomentResult: (result: KeyMomentResult) => {
+    set({
+      lastKeyMomentResult: result,
+      showKeyMomentResult: true,
+    });
+  },
+
+  // Hide key moment result
+  hideKeyMomentResult: () => {
+    set({
+      showKeyMomentResult: false,
+      lastKeyMomentResult: null,
+    });
+  },
+
+  // Hide match results
+  hideMatchResults: () => {
+    set({
+      showMatchResults: false,
+    });
+  },
+
   // End match early
   endMatch: () => {
+    const { orchestrator } = get();
+
+    // Cancel the ongoing match simulation
+    if (orchestrator) {
+      orchestrator.cancelMatch();
+    }
+
     set({
       isMatchActive: false,
       currentKeyMoment: null,
@@ -156,11 +219,19 @@ export const useMatchStore = create<MatchState>((set, get) => ({
 
   // Reset match state
   resetMatch: () => {
+    const { orchestrator } = get();
+
+    // Cancel the ongoing match simulation
+    if (orchestrator) {
+      orchestrator.cancelMatch();
+    }
+
     set({
       isMatchActive: false,
       matchConfig: null,
       currentScore: null,
       matchHistory: [],
+      matchStatistics: null,
       currentKeyMoment: null,
       isWaitingForChoice: false,
       keyMomentHistory: [],

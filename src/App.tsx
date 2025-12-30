@@ -1,12 +1,23 @@
 import React, { useEffect } from 'react';
 import './App.css';
 import { useGameStore } from './stores/gameStore';
+import { useMatchStore } from './stores/matchStore';
 import { PlayerCreation } from './components/PlayerCreation';
 import { MainMenu } from './components/MainMenu';
 import { TrainingSelection } from './components/TrainingSelection';
+import { MatchSetup } from './components/MatchSetup';
+import { LiveMatchViewer } from './components/LiveMatchViewer';
+import { KeyMomentModal } from './components/KeyMomentModal';
+import { MatchSummaryModal } from './components/MatchSummaryModal';
 
 function App() {
   const { isInitialized, currentScreen, initializeGame } = useGameStore();
+  const isMatchActive = useMatchStore((state) => state.isMatchActive);
+  const currentKeyMoment = useMatchStore((state) => state.currentKeyMoment);
+  const isWaitingForChoice = useMatchStore((state) => state.isWaitingForChoice);
+  const showMatchResults = useMatchStore((state) => state.showMatchResults);
+  const finalScore = useMatchStore((state) => state.finalScore);
+  const hideMatchResults = useMatchStore((state) => state.hideMatchResults);
 
   useEffect(() => {
     if (!isInitialized) {
@@ -60,16 +71,20 @@ function App() {
       return <TrainingSelection />;
 
     case 'match':
+      // If match is active, show live viewer, otherwise show setup
       return (
-        <div className="min-h-screen bg-pixel-bg text-pixel-text flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-6xl mb-4">🎾</div>
-            <p className="text-xl font-bold">Match Mode Coming Soon!</p>
-            <p className="text-pixel-text-muted mt-2">
-              Interactive matches with key moments will be available in Phase 5
-            </p>
-          </div>
-        </div>
+        <>
+          {isMatchActive ? <LiveMatchViewer /> : <MatchSetup />}
+          <KeyMomentModal
+            isOpen={isWaitingForChoice}
+            keyMoment={currentKeyMoment}
+          />
+          <MatchSummaryModal
+            isOpen={showMatchResults}
+            onClose={hideMatchResults}
+            finalScore={finalScore}
+          />
+        </>
       );
 
     case 'rest':

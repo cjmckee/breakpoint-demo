@@ -152,22 +152,30 @@ export const OUTCOME_MULTIPLIERS = {
  *
  * Serves don't have incoming shots, so use absolute thresholds.
  * inPlayThreshold: Quality needed to get serve in
- * aceMultiplier: Multiplied by opponent's return stat to determine ace threshold
+ * aceThresholdBase: Minimum quality for ace (ensures ace is always harder than inPlay)
+ * aceReturnMultiplier: Additional difficulty based on opponent return stat
+ *   Final ace threshold = aceThresholdBase + (opponentReturn × aceReturnMultiplier)
  */
 export const SERVE_BASELINE = {
   serve_first: {
-    inPlayThreshold: 45,      // Need 45+ quality to get first serve in (slightly easier)
-    aceMultiplier: 1.10,      // Ace if quality > (opponent return × 1.10)
-    // Example: vs return:80 → need 88 quality for ace (achievable!)
+    inPlayThreshold: 30,      // Need 30+ quality to get first serve in (achievable with stats 25-50)
+    aceThresholdBase: 55,     // Minimum quality for ace (ensures ace is always harder than getting serve in)
+    aceReturnMultiplier: 0.5, // Additional difficulty based on opponent return
+    // Example: vs return:25 → need 55 + 12.5 = 67.5 for ace
+    // Example: vs return:50 → need 55 + 25 = 80 for ace
   },
   serve_second: {
-    inPlayThreshold: 35,      // Easier to get second serve in
-    aceMultiplier: 1.20,      // Harder to ace on second serve but possible
-    // Example: vs return:80 → need 96 quality for ace (rare but possible)
+    inPlayThreshold: 20,      // Easier to get second serve in
+    aceThresholdBase: 70,     // Much higher base for second serve aces (very rare)
+    aceReturnMultiplier: 0.6, // Additional difficulty based on opponent return
+    // Example: vs return:25 → need 70 + 15 = 85 for ace (difficult)
+    // Example: vs return:50 → need 70 + 30 = 100 for ace (nearly impossible)
   },
   kick_serve: {
-    inPlayThreshold: 40,      // Between first and second
-    aceMultiplier: 1.15,      // Slightly harder to ace than first serve
+    inPlayThreshold: 25,      // Between first and second
+    aceThresholdBase: 60,     // Between first and second serve
+    aceReturnMultiplier: 0.55,
+    // Example: vs return:50 → need 60 + 27.5 = 87.5 for ace
   },
 };
 

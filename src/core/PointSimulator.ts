@@ -109,9 +109,9 @@ export class PointSimulator {
       server,
       'serve_first',
       firstServeContext,
-      returner,                    // NEW: opponent profile
-      'well_positioned',           // NEW: returner position
-      undefined                    // NEW: no incoming shot for serve
+      returner,
+      'well_positioned',
+      undefined
     );
 
     // Check first serve result
@@ -174,9 +174,9 @@ export class PointSimulator {
       server,
       'serve_second',
       secondServeContext,
-      returner,                    // NEW: opponent profile
-      'well_positioned',           // NEW: returner position
-      undefined                    // NEW: no incoming shot for serve
+      returner,
+      'well_positioned',
+      undefined
     );
 
     const secondServeShot: ShotDetail = {
@@ -260,21 +260,18 @@ export class PointSimulator {
       const opponentProfile = currentShooter === 'server' ? returner : server;
       const rallyLength = shotNumber;
 
-      // NEW: Get current positions
+      // Get current positions
       const shooterPosition = currentShooter === 'server' ? serverPosition : returnerPosition;
       const opponentPosition = currentShooter === 'server' ? returnerPosition : serverPosition;
 
-      // NEW: Calculate ball quality from previous shot
-      const ballQuality = this.calculateBallQuality(previousShot);
-
-      // NEW: Build rally state for shot selection
+      // Build rally state for shot selection (ballQuality needed for RallyState)
       const rallyState: RallyState = {
         rallyLength,
         lastShotQuality: previousShot.quality,
         lastShotType: previousShot.shotType,
         shooterPosition,
         opponentPosition,
-        ballQuality,
+        ballQuality: this.shotCalculator.calculateBallQuality(previousShot),
       };
 
       // NEW: Use ShotSelector instead of old selectShotType
@@ -300,16 +297,15 @@ export class PointSimulator {
         shooterPosition
       );
 
-      // Calculate shot result with new threshold system
+      // Calculate shot result with threshold system
       const shotResult = this.shotCalculator.calculateShotSuccess(
         shooterProfile,
         shotType,
         shotContext,
-        opponentProfile,                    // NEW: required opponent profile
-        opponentPosition,                   // NEW: required opponent position
-        previousShot,                       // NEW: previous shot for incoming quality
-        ballQuality,                        // Legacy parameter (optional)
-        tacticalOpportunity                 // Optional tactical context
+        opponentProfile,
+        opponentPosition,
+        previousShot,
+        tacticalOpportunity
       );
 
       // Error classification now handled by threshold system
@@ -383,6 +379,11 @@ export class PointSimulator {
         returnerPosition = newShooterPosition;
         serverPosition = newOpponentPosition;
       }
+
+      console.log('Current shooter:', currentShooter);
+      console.log('Current shot number:', shotNumber);
+      console.log('Shooter position:', shooterPosition);
+      console.log('Opponent position:', opponentPosition);
 
       currentShooter = currentShooter === 'server' ? 'returner' : 'server';
       shotNumber++;
@@ -567,92 +568,6 @@ export class PointSimulator {
     } else {
       return 'extreme';
     }
-  }
-
-  /**
-   * Calculate ball quality from previous shot result and type
-   * Derives spin, timeAvailable, and baseQuality from shot characteristics
-   *
-   * Ball quality represents the incoming ball's properties:
-   * - spin: How the ball is spinning (affects bounce and trajectory)
-   * - timeAvailable: How much time the opponent has to react
-   * - baseQuality: Overall quality/difficulty of the incoming shot
-   */
-  private calculateBallQuality(previousShot: ShotDetail | null): BallQuality {
-    if (!previousShot) {
-      // No previous shot (e.g., first shot after serve) - neutral ball
-      return {
-        spin: 'flat',
-        timeAvailable: 'normal',
-        baseQuality: 50,
-      };
-    }
-
-    const { shotType, quality, success } = previousShot;
-
-    // Derive spin from shot type
-    let spin: BallQuality['spin'];
-    if (shotType.includes('slice') || shotType.includes('defensive_slice')) {
-      spin = 'slice';
-    } else if (shotType.includes('topspin') || shotType.includes('kick')) {
-      spin = quality >= 70 ? 'heavy_topspin' : 'topspin';
-    } else if (shotType.includes('power') || shotType.includes('serve_first')) {
-      spin = 'flat';
-    } else {
-      spin = 'topspin'; // Default for most groundstrokes
-    }
-
-    // Derive time available from shot quality and type - ENHANCED
-    let timeAvailable: BallQuality['timeAvailable'];
-
-    // Power shots and aces give very little time
-    if (shotType.includes('power') || shotType.includes('passing_shot')) {
-      timeAvailable = quality >= 70 ? 'rushed' : 'normal';
-    }
-    // Lobs give lots of time (high, arcing trajectory)
-    else if (shotType.includes('lob')) {
-      timeAvailable = 'plenty'; // Always plenty of time for lobs
-    }
-    // Drop shots also give time but opponent must cover distance
-    else if (shotType.includes('drop_shot')) {
-      timeAvailable = 'plenty'; // Short ball with time but requires movement
-    }
-    // Slice shots are slower, give more time
-    else if (shotType.includes('slice') || shotType.includes('defensive')) {
-      timeAvailable = 'plenty';
-    }
-    // Approach shots and volleys are typically aggressive
-    else if (shotType.includes('approach') || shotType.includes('volley')) {
-      timeAvailable = quality >= 70 ? 'rushed' : 'normal';
-    }
-    // General quality-based determination
-    else if (quality >= 80) {
-      timeAvailable = 'rushed'; // Elite shot
-    } else if (quality < 50) {
-      timeAvailable = 'plenty'; // Weak shot
-    } else {
-      timeAvailable = 'normal';
-    }
-
-    // Base quality is the shot quality with some randomness
-    // Add shot-type specific modifiers
-    let qualityModifier = 0;
-
-    // Lobs and drop shots reduce perceived quality (easier to handle)
-    if (shotType.includes('lob') && quality < 70) qualityModifier -= 5;
-    if (shotType.includes('drop_shot') && quality < 60) qualityModifier -= 5;
-
-    // Angle shots and passing shots increase difficulty
-    if (shotType.includes('angle') || shotType.includes('passing')) qualityModifier += 5;
-
-    const randomVariance = (Math.random() - 0.5) * 10; // ±5 points
-    const baseQuality = Math.max(0, Math.min(100, quality + randomVariance + qualityModifier));
-
-    return {
-      spin,
-      timeAvailable,
-      baseQuality,
-    };
   }
 
   /**

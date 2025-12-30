@@ -95,40 +95,52 @@ export class KeyMomentResolver {
     );
     const finalProbability = baseProbability;
 
+    console.log('Player score:', playerScore);
+    console.log('Opponent score:', opponentScore);
+    console.log('Base probability (before adjustments):', baseProbability.toFixed(1));
+    console.log('Final probability (after all adjustments):', finalProbability.toFixed(1));
+
     // Roll for outcome (0-100)
     const roll = Math.random() * 100;
+
+    // Calculate critical ranges
+    // Base 10% + bonus based on probability (10% of the respective probability)
+    const critSuccessRange = 10 + (finalProbability * 0.1);  // Higher skill = more crit success
+    const critFailureRange = 10 + ((100 - finalProbability) * 0.1);  // Lower skill = more crit failure
+    const critFailureThreshold = 100 - critFailureRange;  // Start of crit failure range
+
+    console.log('Critical success range:', `0-${critSuccessRange.toFixed(1)}`);
+    console.log('Critical failure range:', `${critFailureThreshold.toFixed(1)}-100`);
 
     // Determine outcome type
     let outcome: OutcomeType;
     let shotOutcome;
     let pointWinner: 'player' | 'opponent';
 
-    if (roll <= 10) {
-      // Critical failure (10% chance)
+    if (roll <= critSuccessRange) {
+      // Critical success (minimum 10% + skill bonus)
+      outcome = 'critical-success';
+      shotOutcome = option.shotOutcomes.success;
+      pointWinner = 'player';
+    } else if (roll >= critFailureThreshold) {
+      // Critical failure (minimum 10% + difficulty bonus)
       outcome = 'critical-failure';
       shotOutcome = option.shotOutcomes.failure;
       pointWinner = 'opponent';
     } else if (roll <= finalProbability) {
-      // Success
-      if (roll <= finalProbability * 0.1) {
-        // Critical success (10% of success rolls)
-        outcome = 'critical-success';
-      } else {
-        outcome = 'success';
-      }
+      // Regular success
+      outcome = 'success';
       shotOutcome = option.shotOutcomes.success;
       pointWinner = 'player';
-    } else if (roll >= 90) {
-      // Critical failure at high end (10% chance)
-      outcome = 'critical-failure';
-      shotOutcome = option.shotOutcomes.failure;
-      pointWinner = 'opponent';
     } else {
       // Regular failure
       outcome = 'failure';
       shotOutcome = option.shotOutcomes.failure;
       pointWinner = 'opponent';
     }
+
+    console.log('Roll result:', roll.toFixed(1));
+    console.log('Outcome:', outcome);
 
     return {
       outcome,
@@ -172,22 +184,30 @@ export class KeyMomentResolver {
 
   /**
    * Get stat value by name (case-insensitive, handles camelCase/snake_case)
+   * Now handles nested PlayerStats structure (technical/physical/mental)
    */
   private static getStatValue(stats: PlayerStats, statName: string): number {
     // Normalize stat name (handle both camelCase and snake_case)
     const normalizedName = statName.toLowerCase().replace(/_/g, '');
 
-    // Try exact match first
-    if (statName in stats) {
-      const value = (stats as any)[statName];
-      return typeof value === 'number' ? value : 0;
-    }
+    // Search through all categories: technical, physical, mental
+    const categories = ['technical', 'physical', 'mental'] as const;
 
-    // Try case-insensitive match
-    for (const key of Object.keys(stats)) {
-      if (key.toLowerCase().replace(/_/g, '') === normalizedName) {
-        const value = (stats as any)[key];
+    for (const category of categories) {
+      const categoryStats = stats[category];
+
+      // Try exact match first
+      if (statName in categoryStats) {
+        const value = (categoryStats as any)[statName];
         return typeof value === 'number' ? value : 0;
+      }
+
+      // Try case-insensitive match
+      for (const key of Object.keys(categoryStats)) {
+        if (key.toLowerCase().replace(/_/g, '') === normalizedName) {
+          const value = (categoryStats as any)[key];
+          return typeof value === 'number' ? value : 0;
+        }
       }
     }
 

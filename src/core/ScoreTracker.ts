@@ -206,11 +206,12 @@ export class ScoreTracker {
     }
 
     // Without tiebreaks, if we reach 6-6, next game winner takes set 7-6
+    // (temporary until tiebreaker is implemented)
     if (!this.score.matchFormat.enableTiebreaks &&
         currentSet.player === gamesPerSet &&
         currentSet.opponent === gamesPerSet) {
-      // Next game winner takes the set
-      return (currentSet.player > gamesPerSet || currentSet.opponent > gamesPerSet);
+      // If anyone has won a game past 6-6, they win the set
+      return (currentSet.player >= gamesPerSet + 1 || currentSet.opponent >= gamesPerSet + 1);
     }
 
     return false;

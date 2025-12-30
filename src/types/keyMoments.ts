@@ -86,6 +86,7 @@ export interface InteractiveMatchConfig {
 
   // Callbacks
   onKeyMoment?: KeyMomentCallback;
+  onKeyMomentResult?: (result: any) => void; // Called after key moment is resolved
   onScoreUpdate?: ScoreUpdateCallback;
   onPointComplete?: (result: PointResult) => void;
   onMatchComplete?: (finalScore: MatchScore) => void;
@@ -93,6 +94,7 @@ export interface InteractiveMatchConfig {
   // Options
   enableKeyMoments: boolean;
   keyMomentsPerMatch?: number; // Default: 5-10
+  matchFormat?: 'best-of-1' | 'best-of-3' | 'best-of-5'; // Default: best-of-3
 }
 
 /**

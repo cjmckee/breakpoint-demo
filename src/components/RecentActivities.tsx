@@ -46,7 +46,7 @@ export const RecentActivities: React.FC = () => {
         <p className="text-pixel-text-muted text-center py-8">No recent activities</p>
       ) : (
         <div className="space-y-3 max-h-96 overflow-y-auto">
-          {activityHistory.slice(-10).reverse().map((activity, idx) => (
+          {activityHistory.slice(0, 10).map((activity, idx) => (
             <div
               key={`${activity.timestamp}-${idx}`}
               className={`border-2 ${getActivityColor(activity.type)} p-3 transition-all hover:scale-105`}
@@ -104,6 +104,41 @@ export const RecentActivities: React.FC = () => {
                   <span className="text-xs text-green-500 font-bold">
                     +{activity.energyRestored} Energy Restored
                   </span>
+                </div>
+              )}
+
+              {/* Match specific details */}
+              {activity.type === 'match' && 'opponent' in activity && (
+                <div className="mt-2 pt-2 border-t-2 border-pixel-border">
+                  <div className="text-xs space-y-1">
+                    <div className="flex justify-between items-center">
+                      <span className="text-pixel-text-muted">Opponent:</span>
+                      <span className="text-pixel-text font-bold">{activity.opponent}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-pixel-text-muted">Score:</span>
+                      <span className="text-pixel-text font-bold">{activity.score}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-pixel-text-muted">Result:</span>
+                      <span className={`font-bold ${
+                        activity.result === 'win'
+                          ? 'text-green-500'
+                          : activity.result === 'loss'
+                          ? 'text-red-500'
+                          : 'text-yellow-500'
+                      }`}>
+                        {activity.result === 'win' ? '✓ WIN' : activity.result === 'loss' ? '✗ LOSS' : 'DRAW'}
+                      </span>
+                    </div>
+                    {activity.experienceGained > 0 && (
+                      <div className="mt-2">
+                        <span className="text-xs px-2 py-0.5 bg-blue-500 bg-opacity-20 border border-blue-500 text-blue-500 font-bold">
+                          +{activity.experienceGained} XP
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

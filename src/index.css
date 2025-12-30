@@ -1,9 +1,9 @@
+/* Import game font - optional, can be loaded from CDN */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import game font - optional, can be loaded from CDN */
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 :root {
   font-family: 'Press Start 2P', monospace;

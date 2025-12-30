@@ -3,46 +3,13 @@
  * Ported from ai-slop-gaming and adapted for ai-slop-tennis
  */
 
+import type { PlayerStats } from './index.js';
+
+export type { PlayerStats };
+
 // ============================================================================
-// PLAYER STATS
+// STAT BOOSTS
 // ============================================================================
-
-export interface PlayerStats {
-  // Technical Skills
-  serve: number;
-  forehand: number;
-  backhand: number;
-  volley: number;
-  overhead: number;
-  dropShot: number;
-  slice: number;
-  return: number;
-  spin: number;
-  placement: number;
-  shotVariety: number;
-
-  // Physical Attributes
-  speed: number;
-  stamina: number;
-  strength: number;
-  agility: number;
-  recovery: number;
-
-  // Mental Attributes
-  focus: number;
-  anticipation: number;
-
-  // Playstyle
-  offensive: number;
-  defensive: number;
-
-  // Experience
-  matchExperience: number;
-  tournamentExperience: number;
-
-  // Abilities
-  abilities: Ability[];
-}
 
 export interface StatBoosts {
   serve?: number;
@@ -274,6 +241,7 @@ export interface Player {
   id: string;
   name: string;
   stats: PlayerStats;
+  abilities: Ability[];
   level: number;
   experience: number;
   createdAt: string;
@@ -339,40 +307,32 @@ export interface DeleteSaveResponse {
 // ============================================================================
 
 export const DEFAULT_PLAYER_STATS: PlayerStats = {
-  // Technical Skills - all start at 20
-  serve: 20,
-  forehand: 20,
-  backhand: 20,
-  volley: 20,
-  overhead: 20,
-  dropShot: 20,
-  slice: 20,
-  return: 20,
-  spin: 20,
-  placement: 20,
-  shotVariety: 20,
-
-  // Physical Attributes - all start at 20
-  speed: 20,
-  stamina: 20,
-  strength: 20,
-  agility: 20,
-  recovery: 20,
-
-  // Mental Attributes - all start at 20
-  focus: 20,
-  anticipation: 20,
-
-  // Playstyle - all start at 20
-  offensive: 20,
-  defensive: 20,
-
-  // Experience - start at 0
-  matchExperience: 0,
-  tournamentExperience: 0,
-
-  // Abilities - start empty
-  abilities: [],
+  technical: {
+    serve: 20,
+    forehand: 20,
+    backhand: 20,
+    volley: 20,
+    overhead: 20,
+    dropShot: 20,
+    slice: 20,
+    return: 20,
+    spin: 20,
+    placement: 20,
+  },
+  physical: {
+    speed: 20,
+    stamina: 20,
+    strength: 20,
+    agility: 20,
+    recovery: 20,
+  },
+  mental: {
+    focus: 20,
+    anticipation: 20,
+    shotVariety: 20,
+    offensive: 20,
+    defensive: 20,
+  },
 };
 
 export const DEFAULT_CALENDAR: GameCalendar = {

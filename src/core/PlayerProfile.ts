@@ -56,7 +56,7 @@ export class PlayerProfile implements IPlayerProfile {
         backhand: 25,
         volley: 25,
         overhead: 25,
-        drop_shot: 25,
+        dropShot: 25,
         slice: 25,
         return: 25,
         spin: 25,
@@ -72,7 +72,7 @@ export class PlayerProfile implements IPlayerProfile {
       mental: {
         focus: 25,
         anticipation: 25,
-        shot_variety: 25,
+        shotVariety: 25,
         offensive: 25,
         defensive: 25,
       },
@@ -127,12 +127,12 @@ export class PlayerProfile implements IPlayerProfile {
       'defensive_overhead': 'overhead',
 
       // Drop shots
-      'drop_shot_forehand': 'drop_shot',
-      'drop_shot_backhand': 'drop_shot',
+      'drop_shot_forehand': 'dropShot',
+      'drop_shot_backhand': 'dropShot',
 
       // Angle shots
-      'short_angle_forehand': 'drop_shot',
-      'short_angle_backhand': 'drop_shot',
+      'short_angle_forehand': 'dropShot',
+      'short_angle_backhand': 'dropShot',
       'angle_shot_forehand': 'placement',
       'angle_shot_backhand': 'placement',
 
@@ -435,7 +435,7 @@ export class PlayerProfile implements IPlayerProfile {
         backhand: generateStat(),
         volley: generateStat(),
         overhead: generateStat(),
-        drop_shot: generateStat(),
+        dropShot: generateStat(),
         slice: generateStat(),
         return: generateStat(),
         spin: generateStat(),
@@ -451,7 +451,7 @@ export class PlayerProfile implements IPlayerProfile {
       mental: {
         focus: generateStat(),
         anticipation: generateStat(),
-        shot_variety: generateStat(),
+        shotVariety: generateStat(),
         offensive: generateStat(),
         defensive: generateStat(),
       },

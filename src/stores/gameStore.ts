@@ -45,6 +45,7 @@ interface GameState {
   advanceTime: () => void;
   rest: () => void;
   updateMood: (change: number) => void;
+  addMatchResult: (result: 'win' | 'loss', opponent: string, score: string, surface: string) => void;
   saveGame: (saveName?: string) => void;
   loadGame: (saveId: string) => void;
   resetGame: () => void;
@@ -149,7 +150,7 @@ export const useGameStore = create<GameState>()(
             mood: newMood,
             lastActivity: result,
           },
-          activityHistory: [...get().activityHistory, result],
+          activityHistory: [result, ...get().activityHistory].slice(0, 50),
           currentScreen: 'main-menu',
         });
 
@@ -216,7 +217,7 @@ export const useGameStore = create<GameState>()(
             mood: Math.min(100, currentStatus.mood + 5),
             lastActivity: restResult,
           },
-          activityHistory: [...get().activityHistory, restResult],
+          activityHistory: [restResult, ...get().activityHistory].slice(0, 50),
           currentScreen: 'main-menu',
         });
 
@@ -238,6 +239,76 @@ export const useGameStore = create<GameState>()(
             mood: newMood,
           },
         });
+      },
+
+      // Add match result to activity history
+      addMatchResult: (result: 'win' | 'loss', opponent: string, score: string, surface: string) => {
+        const { player, calendar, activityHistory, currentStatus } = get();
+        if (!player) return;
+
+        // Calculate experience and stat gains
+        const experienceGained = result === 'win' ? 50 : 25;
+        const statChanges: Record<string, number> = {};
+
+        // Award small stat gains for match experience
+        if (result === 'win') {
+          statChanges.matchExperience = 3;
+          statChanges.focus = 1;
+          statChanges.anticipation = 1;
+        } else {
+          statChanges.matchExperience = 1;
+        }
+
+        // Create match activity result
+        const matchResult: ActivityResult = {
+          id: `match-${Date.now()}`,
+          type: 'match',
+          source: 'match_activity',
+          timestamp: new Date().toISOString(),
+          timeSlotsUsed: 1,
+          energyCost: 30,
+          moodResult: result === 'win' ? 15 : -10,
+          opponent,
+          result,
+          score,
+          duration: 60, // TODO: Calculate actual duration
+          courtSurface: surface as 'hard' | 'clay' | 'grass' | 'carpet',
+          statChanges,
+          experienceGained,
+          matchType: 'friendly',
+          highlights: [], // TODO: Add highlights from key moments
+        };
+
+        // Update player stats
+        const updatedPlayer = { ...player };
+        Object.entries(statChanges).forEach(([stat, value]) => {
+          if (stat in updatedPlayer.stats) {
+            (updatedPlayer.stats as any)[stat] += value;
+          }
+        });
+
+        // Deduct energy cost
+        const newEnergy = Math.max(0, currentStatus.energy - 30);
+
+        // Update mood based on result
+        const moodChange = result === 'win' ? 15 : -10;
+        const newMood = Math.max(-100, Math.min(100, currentStatus.mood + moodChange));
+
+        set({
+          player: updatedPlayer,
+          activityHistory: [matchResult, ...activityHistory].slice(0, 50),
+          currentStatus: {
+            ...currentStatus,
+            energy: newEnergy,
+            mood: newMood,
+            lastActivity: matchResult,
+          },
+        });
+
+        // Explicitly save to ensure persistence
+        console.log('Match result added to history:', matchResult);
+        console.log('New activity history length:', [matchResult, ...activityHistory].length);
+        get().saveGame();
       },
 
       // Save game

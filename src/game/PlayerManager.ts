@@ -17,23 +17,31 @@ export class PlayerManager {
    * Create a new player with default stats and optional playstyle
    */
   static createPlayer(name: string, playstyle?: 'offensive' | 'defensive' | 'balanced'): Player {
-    const baseStats = { ...DEFAULT_PLAYER_STATS };
+    const baseStats: PlayerStats = {
+      technical: { ...DEFAULT_PLAYER_STATS.technical },
+      physical: { ...DEFAULT_PLAYER_STATS.physical },
+      mental: { ...DEFAULT_PLAYER_STATS.mental },
+    };
 
     // Apply playstyle bonuses
     if (playstyle === 'offensive') {
-      baseStats.forehand += 5;
-      baseStats.backhand += 5;
-      baseStats.strength += 3;
+      baseStats.technical.forehand += 5;
+      baseStats.technical.backhand += 5;
+      baseStats.physical.strength += 3;
     } else if (playstyle === 'defensive') {
-      baseStats.speed += 5;
-      baseStats.stamina += 5;
-      baseStats.defensive += 3;
+      baseStats.physical.speed += 5;
+      baseStats.physical.stamina += 5;
+      baseStats.mental.defensive += 3;
     } else if (playstyle === 'balanced') {
       // Small bonus to all stats
-      Object.keys(baseStats).forEach((key) => {
-        if (key !== 'abilities' && typeof baseStats[key as keyof PlayerStats] === 'number') {
-          (baseStats as any)[key] += 3;
-        }
+      Object.keys(baseStats.technical).forEach((key) => {
+        (baseStats.technical as any)[key] += 3;
+      });
+      Object.keys(baseStats.physical).forEach((key) => {
+        (baseStats.physical as any)[key] += 3;
+      });
+      Object.keys(baseStats.mental).forEach((key) => {
+        (baseStats.mental as any)[key] += 3;
       });
     }
 
@@ -41,6 +49,7 @@ export class PlayerManager {
       id: this.generateId(),
       name,
       stats: baseStats,
+      abilities: [],
       level: 1,
       experience: 0,
       createdAt: new Date().toISOString(),
@@ -53,7 +62,11 @@ export class PlayerManager {
    */
   static createPlayerWithStats(name: string, stats: Partial<PlayerStats>): Player {
     const player = this.createPlayer(name);
-    player.stats = { ...DEFAULT_PLAYER_STATS, ...stats };
+    player.stats = {
+      technical: { ...DEFAULT_PLAYER_STATS.technical, ...stats.technical },
+      physical: { ...DEFAULT_PLAYER_STATS.physical, ...stats.physical },
+      mental: { ...DEFAULT_PLAYER_STATS.mental, ...stats.mental },
+    };
     return player;
   }
 
@@ -61,12 +74,25 @@ export class PlayerManager {
    * Apply stat boosts to a player
    */
   static applyStatBoosts(player: Player, boosts: StatBoosts): Player {
-    const updatedStats = { ...player.stats };
+    const updatedStats: PlayerStats = {
+      technical: { ...player.stats.technical },
+      physical: { ...player.stats.physical },
+      mental: { ...player.stats.mental },
+    };
 
     for (const [stat, boost] of Object.entries(boosts)) {
-      if (boost && stat in updatedStats && stat !== 'abilities') {
-        const currentValue = updatedStats[stat as keyof PlayerStats] as number;
-        updatedStats[stat as keyof PlayerStats] = Math.min(100, currentValue + boost) as any;
+      if (!boost) continue;
+
+      // Map flat stat names to nested structure
+      if (stat in updatedStats.technical) {
+        const key = stat as keyof typeof updatedStats.technical;
+        updatedStats.technical[key] = Math.min(100, updatedStats.technical[key] + boost);
+      } else if (stat in updatedStats.physical) {
+        const key = stat as keyof typeof updatedStats.physical;
+        updatedStats.physical[key] = Math.min(100, updatedStats.physical[key] + boost);
+      } else if (stat in updatedStats.mental) {
+        const key = stat as keyof typeof updatedStats.mental;
+        updatedStats.mental[key] = Math.min(100, updatedStats.mental[key] + boost);
       }
     }
 
@@ -91,7 +117,7 @@ export class PlayerManager {
       return player;
     }
 
-    const existingAbility = player.stats.abilities.find(a => a.name === ability.name);
+    const existingAbility = player.abilities.find(a => a.name === ability.name);
 
     if (existingAbility) {
       // Upgrade existing ability
@@ -99,15 +125,12 @@ export class PlayerManager {
     }
 
     // Add new ability
-    const updatedAbilities = [...player.stats.abilities, ability];
+    const updatedAbilities = [...player.abilities, ability];
 
     // Apply ability stat boosts
     const playerWithAbility = {
       ...player,
-      stats: {
-        ...player.stats,
-        abilities: updatedAbilities,
-      },
+      abilities: updatedAbilities,
       updatedAt: new Date().toISOString(),
     };
 
@@ -118,13 +141,13 @@ export class PlayerManager {
    * Upgrade an existing ability level
    */
   static upgradeAbility(player: Player, abilityName: string): Player {
-    const abilityIndex = player.stats.abilities.findIndex(a => a.name === abilityName);
+    const abilityIndex = player.abilities.findIndex(a => a.name === abilityName);
 
     if (abilityIndex === -1) {
       return player;
     }
 
-    const ability = player.stats.abilities[abilityIndex];
+    const ability = player.abilities[abilityIndex];
     if (ability.level >= 5) {
       return player; // Max level reached
     }
@@ -142,15 +165,12 @@ export class PlayerManager {
       }
     }
 
-    const updatedAbilities = [...player.stats.abilities];
+    const updatedAbilities = [...player.abilities];
     updatedAbilities[abilityIndex] = upgradedAbility;
 
     const playerWithUpgrade = {
       ...player,
-      stats: {
-        ...player.stats,
-        abilities: updatedAbilities,
-      },
+      abilities: updatedAbilities,
       updatedAt: new Date().toISOString(),
     };
 
@@ -211,11 +231,11 @@ export class PlayerManager {
     secondary: string;
   } {
     const styles = {
-      aggressive: stats.offensive + stats.serve + stats.strength,
-      defensive: stats.defensive + stats.speed + stats.stamina,
-      allCourt: stats.offensive + stats.defensive + stats.shotVariety,
-      serveVolley: stats.serve + stats.volley + stats.speed,
-      counterpuncher: stats.defensive + stats.return + stats.anticipation,
+      aggressive: stats.mental.offensive + stats.technical.serve + stats.physical.strength,
+      defensive: stats.mental.defensive + stats.physical.speed + stats.physical.stamina,
+      allCourt: stats.mental.offensive + stats.mental.defensive + stats.mental.shotVariety,
+      serveVolley: stats.technical.serve + stats.technical.volley + stats.physical.speed,
+      counterpuncher: stats.mental.defensive + stats.technical.return + stats.mental.anticipation,
     };
 
     const sorted = Object.entries(styles).sort((a, b) => b[1] - a[1]);
@@ -235,33 +255,15 @@ export class PlayerManager {
     mental: number;
     total: number;
   } {
-    const technical =
-      stats.serve +
-      stats.forehand +
-      stats.backhand +
-      stats.volley +
-      stats.overhead +
-      stats.dropShot +
-      stats.slice +
-      stats.return +
-      stats.spin +
-      stats.placement +
-      stats.shotVariety;
-
-    const physical =
-      stats.speed +
-      stats.stamina +
-      stats.strength +
-      stats.agility +
-      stats.recovery;
-
-    const mental = stats.focus + stats.anticipation;
+    const technical = Object.values(stats.technical).reduce((sum: number, val: number) => sum + val, 0);
+    const physical = Object.values(stats.physical).reduce((sum: number, val: number) => sum + val, 0);
+    const mental = Object.values(stats.mental).reduce((sum: number, val: number) => sum + val, 0);
 
     return {
       technical,
       physical,
       mental,
-      total: technical + physical + mental + stats.offensive + stats.defensive,
+      total: technical + physical + mental,
     };
   }
 
@@ -269,11 +271,13 @@ export class PlayerManager {
    * Validate player stats (all must be 0-100)
    */
   static validateStats(stats: PlayerStats): boolean {
-    const statValues = Object.entries(stats)
-      .filter(([key]) => key !== 'abilities')
-      .map(([_, value]) => value as number);
+    const allValues = [
+      ...Object.values(stats.technical),
+      ...Object.values(stats.physical),
+      ...Object.values(stats.mental),
+    ];
 
-    return statValues.every(value => value >= 0 && value <= 100);
+    return allValues.every(value => value >= 0 && value <= 100);
   }
 
   /**

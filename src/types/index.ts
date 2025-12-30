@@ -22,7 +22,7 @@ export interface TechnicalStats {
   backhand: number;     // Backhand groundstroke effectiveness
   volley: number;       // Net play effectiveness
   overhead: number;     // Overhead/smash shots
-  drop_shot: number;    // Drop shot placement and execution
+  dropShot: number;     // Drop shot placement and execution
   slice: number;        // Slice shot effectiveness (defensive shots)
   return: number;       // Return of serve capability
   spin: number;         // Topspin application affecting ball physics
@@ -40,7 +40,7 @@ export interface PhysicalStats {
 export interface MentalStats {
   focus: number;        // Concentration under pressure and key moments
   anticipation: number; // Reading opponent shots and positioning
-  shot_variety: number; // Tactical shot selection and strategic options
+  shotVariety: number;  // Tactical shot selection and strategic options
   offensive: number;    // Aggressive play style effectiveness
   defensive: number;    // Defensive play style effectiveness
 }

@@ -28,53 +28,36 @@ export const PlayerStatsDisplay: React.FC = () => {
     {
       name: 'Technical Skills',
       stats: [
-        { key: 'serve', label: 'Serve', value: stats.serve },
-        { key: 'forehand', label: 'Forehand', value: stats.forehand },
-        { key: 'backhand', label: 'Backhand', value: stats.backhand },
-        { key: 'volley', label: 'Volley', value: stats.volley },
-        { key: 'overhead', label: 'Overhead', value: stats.overhead },
-        { key: 'dropShot', label: 'Drop Shot', value: stats.dropShot },
-        { key: 'slice', label: 'Slice', value: stats.slice },
-        { key: 'return', label: 'Return', value: stats.return },
-        { key: 'spin', label: 'Spin', value: stats.spin },
-        { key: 'placement', label: 'Placement', value: stats.placement },
-        { key: 'shotVariety', label: 'Shot Variety', value: stats.shotVariety },
+        { key: 'serve', label: 'Serve', value: stats.technical.serve },
+        { key: 'forehand', label: 'Forehand', value: stats.technical.forehand },
+        { key: 'backhand', label: 'Backhand', value: stats.technical.backhand },
+        { key: 'volley', label: 'Volley', value: stats.technical.volley },
+        { key: 'overhead', label: 'Overhead', value: stats.technical.overhead },
+        { key: 'dropShot', label: 'Drop Shot', value: stats.technical.dropShot },
+        { key: 'slice', label: 'Slice', value: stats.technical.slice },
+        { key: 'return', label: 'Return', value: stats.technical.return },
+        { key: 'spin', label: 'Spin', value: stats.technical.spin },
+        { key: 'placement', label: 'Placement', value: stats.technical.placement },
       ],
     },
     {
       name: 'Physical Stats',
       stats: [
-        { key: 'speed', label: 'Speed', value: stats.speed },
-        { key: 'stamina', label: 'Stamina', value: stats.stamina },
-        { key: 'strength', label: 'Strength', value: stats.strength },
-        { key: 'agility', label: 'Agility', value: stats.agility },
-        { key: 'recovery', label: 'Recovery', value: stats.recovery },
+        { key: 'speed', label: 'Speed', value: stats.physical.speed },
+        { key: 'stamina', label: 'Stamina', value: stats.physical.stamina },
+        { key: 'strength', label: 'Strength', value: stats.physical.strength },
+        { key: 'agility', label: 'Agility', value: stats.physical.agility },
+        { key: 'recovery', label: 'Recovery', value: stats.physical.recovery },
       ],
     },
     {
       name: 'Mental Stats',
       stats: [
-        { key: 'focus', label: 'Focus', value: stats.focus },
-        { key: 'anticipation', label: 'Anticipation', value: stats.anticipation },
-        { key: 'offensive', label: 'Offensive', value: stats.offensive },
-        { key: 'defensive', label: 'Defensive', value: stats.defensive },
-      ],
-    },
-    {
-      name: 'Experience',
-      stats: [
-        {
-          key: 'matchExperience',
-          label: 'Match Experience',
-          value: stats.matchExperience,
-          isExperience: true,
-        },
-        {
-          key: 'tournamentExperience',
-          label: 'Tournament Experience',
-          value: stats.tournamentExperience,
-          isExperience: true,
-        },
+        { key: 'focus', label: 'Focus', value: stats.mental.focus },
+        { key: 'anticipation', label: 'Anticipation', value: stats.mental.anticipation },
+        { key: 'shotVariety', label: 'Shot Variety', value: stats.mental.shotVariety },
+        { key: 'offensive', label: 'Offensive', value: stats.mental.offensive },
+        { key: 'defensive', label: 'Defensive', value: stats.mental.defensive },
       ],
     },
   ];
@@ -116,13 +99,13 @@ export const PlayerStatsDisplay: React.FC = () => {
       </div>
 
       {/* Abilities Section */}
-      {stats.abilities && stats.abilities.length > 0 && (
+      {player.abilities && player.abilities.length > 0 && (
         <div className="mt-6 pt-6 border-t-4 border-pixel-border">
           <h4 className="font-semibold text-pixel-text-muted text-sm pb-2 mb-3">
             Abilities
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-            {stats.abilities.map((ability, idx) => {
+            {player.abilities.map((ability, idx) => {
               const rarityColors = {
                 common: 'border-blue-500 bg-blue-500 bg-opacity-10',
                 uncommon: 'border-green-500 bg-green-500 bg-opacity-10',

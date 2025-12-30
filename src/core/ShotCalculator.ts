@@ -81,8 +81,7 @@ export class ShotCalculator {
    * @param context - Shot context (difficulty, pressure, etc.)
    * @param opponentProfile - Opponent player (required for defensive stats, return stat)
    * @param opponentPosition - Opponent's court position (required for threshold adjustments)
-   * @param incomingShot - Previous shot (for incoming quality), undefined for serves
-   * @param ballQuality - Optional incoming ball characteristics (legacy, prefer incomingShot)
+   * @param incomingShot - Previous shot (for incoming quality and ball characteristics), undefined for serves
    * @param tacticalOpportunity - Optional tactical situation evaluation
    */
   public calculateShotSuccess(
@@ -92,7 +91,6 @@ export class ShotCalculator {
     opponentProfile: PlayerProfile,
     opponentPosition: CourtPosition,
     incomingShot?: ShotDetail,
-    ballQuality?: BallQuality,
     tacticalOpportunity?: TacticalOpportunity
   ): ShotResult {
     console.log('Calculating shot success for', shotType);
@@ -100,7 +98,17 @@ export class ShotCalculator {
     // Step 1: Get primary stat for this shot type
     const primaryStat = shooterProfile.getStatForShot(shotType);
 
-    // Step 2: Calculate all modifiers
+    // Log serve stat for debugging
+    if (shotType.includes('serve')) {
+      console.log('🎾 SERVE CALCULATION START');
+      console.log('  Serve stat (primary):', primaryStat);
+      console.log('  Player name:', shooterProfile.name);
+    }
+
+    // Step 2: Derive ball quality from incoming shot (if available)
+    const ballQuality = incomingShot ? this.calculateBallQuality(incomingShot) : undefined;
+
+    // Step 3: Calculate all modifiers
     const modifiers = this.calculateModifiers(
       shooterProfile,
       shotType,
@@ -111,8 +119,24 @@ export class ShotCalculator {
       opponentPosition
     );
 
+    // Log modifiers for serves
+    if (shotType.includes('serve')) {
+      console.log('  Modifiers:', {
+        physicalModifier: modifiers.physicalModifier.toFixed(3),
+        mentalModifier: modifiers.mentalModifier.toFixed(3),
+        finalAdjustment: modifiers.finalAdjustment.toFixed(3),
+        serveVariance: modifiers.serveVariance?.toFixed(1) || 'N/A',
+      });
+    }
+
     // Step 3: Apply modifiers to get shot quality
     const quality = this.applyModifiers(primaryStat, modifiers);
+
+    // Log quality calculation for serves
+    if (shotType.includes('serve')) {
+      console.log('  Base quality (stat × finalAdjustment):', (primaryStat * modifiers.finalAdjustment).toFixed(1));
+      console.log('  Final quality (after variance):', quality.toFixed(1));
+    }
 
     // Step 4: Determine outcome based on shot type
     let outcome: 'winner' | 'in_play' | 'forced_error' | 'unforced_error' | 'error';
@@ -168,14 +192,20 @@ export class ShotCalculator {
     opponentStats: PlayerStats,
     opponentPosition: CourtPosition
   ): QualityThresholds {
+    console.log('Calculate quality requirements')
     // Get base multiplier for this shot type
     const baseMultiplier = RELATIVE_QUALITY_REQUIREMENTS[shotType];
     const baseRequirement = incomingQuality * baseMultiplier;
 
+    console.log('  Base requirement:', baseRequirement.toFixed(1));
+    console.log('  Base multiplier:', baseMultiplier.toFixed(1));
+
     // Apply minimum floor
     const shotCategory = getShotCategory(shotType);
     const minFloor = MIN_QUALITY_FLOORS[shotCategory];
-    let inPlayReq = Math.max(baseRequirement, minFloor);
+    let inPlayReq = baseRequirement;
+
+    console.log('  Base In-play requirement (pre-floor):', inPlayReq.toFixed(1));
 
     // Opponent defensive stat adjustment
     const defensiveAdj = (opponentStats.mental.defensive - 50) * OPPONENT_STAT_ADJUSTMENTS.defensive;
@@ -189,8 +219,16 @@ export class ShotCalculator {
     const positionAdj = POSITION_ADJUSTMENTS[opponentPosition];
     inPlayReq += positionAdj;
 
+    console.log('  In-play requirement (after position adjustment):', inPlayReq.toFixed(1));
+
+    inPlayReq = Math.max(inPlayReq, minFloor);
+
+    console.log('  In-play requirement (after adjustments):', inPlayReq.toFixed(1));
+
     // Get category-specific outcome multipliers
     const multipliers = OUTCOME_MULTIPLIERS[shotCategory];
+
+    console.log('  Outcome multipliers:', multipliers);
 
     // Calculate winner threshold with minimum floor
     const calculatedWinner = inPlayReq * multipliers.winner;
@@ -198,6 +236,8 @@ export class ShotCalculator {
       calculatedWinner,
       MINIMUM_WINNER_THRESHOLDS[shotCategory]
     );
+
+    console.log('  Winner threshold (after adjustments):', winnerThreshold.toFixed(1));
 
     // Calculate derived thresholds
     return {
@@ -230,14 +270,29 @@ export class ShotCalculator {
   ): { outcome: 'winner' | 'in_play' | 'error'; thresholds: QualityThresholds } {
     const baseline = SERVE_BASELINE[serveType];
 
+    console.log('  🎯 SERVE OUTCOME DETERMINATION');
+    console.log('  Serve type:', serveType);
+    console.log('  Opponent return stat:', opponentReturnStat);
+    console.log('  Config inPlayThreshold:', baseline.inPlayThreshold);
+    console.log('  Config aceThresholdBase:', baseline.aceThresholdBase);
+    console.log('  Config aceReturnMultiplier:', baseline.aceReturnMultiplier);
+
     // Check if serve is in
     const serveIn = serveQuality >= baseline.inPlayThreshold;
 
+    // Calculate ace threshold: base + (opponent return × multiplier)
+    // This ensures ace is ALWAYS harder than getting the serve in
+    const aceThreshold = baseline.aceThresholdBase + (opponentReturnStat * baseline.aceReturnMultiplier);
+
+    console.log('  Calculated ace threshold:', aceThreshold.toFixed(1));
+    console.log('  Quality vs inPlay:', serveQuality.toFixed(1), '>=', baseline.inPlayThreshold, '→', serveIn ? 'IN' : 'FAULT');
+
     if (!serveIn) {
+      console.log('  ❌ SERVE FAULT');
       return {
         outcome: 'error',
         thresholds: {
-          winner: opponentReturnStat * baseline.aceMultiplier,
+          winner: aceThreshold,
           inPlay: baseline.inPlayThreshold,
           forcedError: 0, // Not applicable for serves
         },
@@ -245,8 +300,14 @@ export class ShotCalculator {
     }
 
     // Check for ace
-    const aceThreshold = opponentReturnStat * baseline.aceMultiplier;
     const isAce = serveQuality >= aceThreshold;
+    console.log('  Quality vs ace:', serveQuality.toFixed(1), '>=', aceThreshold.toFixed(1), '→', isAce ? 'ACE!' : 'in play');
+
+    if (isAce) {
+      console.log('  🔥 ACE!');
+    } else {
+      console.log('  ✅ Serve in play');
+    }
 
     return {
       outcome: isAce ? 'winner' : 'in_play',
@@ -476,7 +537,7 @@ export class ShotCalculator {
 
     // Shot variety helps with tactical shots
     // Note: This check isn't great, but we'll keep it for now
-    const varietyModifier = 0.9 + (mental.shot_variety / 100) * 0.2;
+    const varietyModifier = 0.9 + (mental.shotVariety / 100) * 0.2;
     modifier *= varietyModifier;
 
     // Offensive/defensive alignment with shot selection
@@ -568,12 +629,92 @@ export class ShotCalculator {
     if (shotType.includes('backhand')) return 'backhand';
     if (shotType.includes('volley')) return 'volley';
     if (shotType.includes('overhead')) return 'overhead';
-    if (shotType.includes('drop')) return 'drop_shot';
+    if (shotType.includes('drop')) return 'dropShot';
     if (shotType.includes('slice')) return 'slice';
     if (shotType.includes('return')) return 'return';
     if (shotType.includes('angle') || shotType.includes('lob')) return 'placement';
 
-    return 'placement'; // Default fallback
+    return 'placement';
+  }
+
+  /**
+   * Calculate ball quality from previous shot result and type
+   * Derives spin, timeAvailable, and baseQuality from shot characteristics
+   *
+   * Ball quality represents the incoming ball's properties:
+   * - spin: How the ball is spinning (affects bounce and trajectory)
+   * - timeAvailable: How much time the opponent has to react
+   * - baseQuality: Overall quality/difficulty of the incoming shot
+   *
+   * This is public so other components (like PointSimulator) can use it
+   * to derive ball quality for RallyState
+   */
+  public calculateBallQuality(previousShot: ShotDetail): BallQuality {
+    const { shotType, quality } = previousShot;
+
+    // Derive spin from shot type
+    let spin: BallQuality['spin'];
+    if (shotType.includes('slice') || shotType.includes('defensive_slice')) {
+      spin = 'slice';
+    } else if (shotType.includes('topspin') || shotType.includes('kick')) {
+      spin = quality >= 70 ? 'heavy_topspin' : 'topspin';
+    } else if (shotType.includes('power') || shotType.includes('serve_first')) {
+      spin = 'flat';
+    } else {
+      spin = 'topspin'; // Default for most groundstrokes
+    }
+
+    // Derive time available from shot quality and type - ENHANCED
+    let timeAvailable: BallQuality['timeAvailable'];
+
+    // Power shots and aces give very little time
+    if (shotType.includes('power') || shotType.includes('passing_shot')) {
+      timeAvailable = quality >= 70 ? 'rushed' : 'normal';
+    }
+    // Lobs give lots of time (high, arcing trajectory)
+    else if (shotType.includes('lob')) {
+      timeAvailable = 'plenty'; // Always plenty of time for lobs
+    }
+    // Drop shots also give time but opponent must cover distance
+    else if (shotType.includes('drop_shot')) {
+      timeAvailable = 'plenty'; // Short ball with time but requires movement
+    }
+    // Slice shots are slower, give more time
+    else if (shotType.includes('slice') || shotType.includes('defensive')) {
+      timeAvailable = 'plenty';
+    }
+    // Approach shots and volleys are typically aggressive
+    else if (shotType.includes('approach') || shotType.includes('volley')) {
+      timeAvailable = quality >= 70 ? 'rushed' : 'normal';
+    }
+    // General quality-based determination
+    else if (quality >= 80) {
+      timeAvailable = 'rushed'; // Elite shot
+    } else if (quality < 50) {
+      timeAvailable = 'plenty'; // Weak shot
+    } else {
+      timeAvailable = 'normal';
+    }
+
+    // Base quality is the shot quality with some randomness
+    // Add shot-type specific modifiers
+    let qualityModifier = 0;
+
+    // Lobs and drop shots reduce perceived quality (easier to handle)
+    if (shotType.includes('lob') && quality < 70) qualityModifier -= 5;
+    if (shotType.includes('drop_shot') && quality < 60) qualityModifier -= 5;
+
+    // Angle shots and passing shots increase difficulty
+    if (shotType.includes('angle') || shotType.includes('passing')) qualityModifier += 5;
+
+    const randomVariance = (Math.random() - 0.5) * 10; // ±5 points
+    const baseQuality = Math.max(0, Math.min(100, quality + randomVariance + qualityModifier));
+
+    return {
+      spin,
+      timeAvailable,
+      baseQuality,
+    };
   }
 
   /**
@@ -633,7 +774,7 @@ export class ShotCalculator {
     }
 
     // Drop shots are easier when opponent is back
-    if (shotType.includes('drop_shot')) {
+    if (shotType.includes('drop')) {
       if (opponentPosition === 'way_back_deep') {
         modifier *= 1.2; // 20% easier when opponent is deep
       } else if (opponentPosition === 'at_net') {

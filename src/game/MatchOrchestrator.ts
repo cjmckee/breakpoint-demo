@@ -7,28 +7,36 @@
 import { MatchSimulator } from '../core/MatchSimulator';
 import { ScoreTracker } from '../core/ScoreTracker';
 import { PlayerProfile } from '../core/PlayerProfile';
-import { KeyMomentResolver } from './KeyMomentResolver';
+import { MatchStatistics } from '../core/MatchStatistics';
+import { PointSimulator } from '../core/PointSimulator';
+import { KeyMomentResolver, KeyMomentResult } from './KeyMomentResolver';
 import { getOptionsForSituation, KeyMomentType } from '../data/tacticalOptions';
 import {
   KeyMoment,
   KeyMomentCallback,
   InteractiveMatchConfig,
   MatchScore,
-  MatchState,
-  PointResult,
+  MatchState as KeyMomentMatchState,
 } from '../types/keyMoments';
 import { PlayerStats } from '../types/game';
+import { MatchStatistics as IMatchStatistics, MatchState, PointResult } from '../types';
 
 export class MatchOrchestrator {
   private keyMomentsTriggered = 0;
   private pointsPlayed = 0;
   private momentum = 0;
   private pressure = 0;
+  private matchStatistics: MatchStatistics | null = null;
+  private pointSimulator: PointSimulator | null = null;
+  private cancelled = false;
 
   /**
    * Simulate an interactive match with key moments
    */
   async simulateInteractiveMatch(config: InteractiveMatchConfig): Promise<MatchScore> {
+    // Store match format
+    (this as any).matchFormat = config.matchFormat || 'best-of-3';
+
     // Initialize match simulator with PlayerProfile objects
     const player = new PlayerProfile('player', 'Player', config.playerStats);
     const opponent = new PlayerProfile('opponent', 'Opponent', config.opponentStats);
@@ -39,6 +47,10 @@ export class MatchOrchestrator {
       courtSurface: config.surface,
     });
 
+    // Initialize statistics tracker
+    this.matchStatistics = new MatchStatistics(player, opponent);
+    this.pointSimulator = new PointSimulator();
+
     // Initialize score tracker
     const scoreTracker = new ScoreTracker();
 
@@ -47,7 +59,7 @@ export class MatchOrchestrator {
     let currentScore: MatchScore = this.initializeScore();
 
     // Main match loop - simulate point by point
-    while (!isComplete) {
+    while (!isComplete && !this.cancelled) {
       // Check if this should be a key moment
       const shouldTriggerKeyMoment =
         config.enableKeyMoments &&
@@ -73,9 +85,23 @@ export class MatchOrchestrator {
           }
         );
 
+        // Notify UI of key moment result
+        if (config.onKeyMomentResult) {
+          config.onKeyMomentResult(result);
+        }
+
         // Apply result to score
         const pointWinner = result.pointWinner;
         currentScore = this.updateScore(currentScore, pointWinner);
+
+        // Track statistics for key moment (create synthetic PointResult)
+        if (this.matchStatistics) {
+          const pointResult = this.createPointResultFromKeyMoment(result, currentScore.server);
+          const breakPointFor = this.isBreakPoint(currentScore)
+            ? (currentScore.server === 'player' ? 'opponent' : 'player')
+            : undefined;
+          this.matchStatistics.addPointResult(pointResult, currentScore.server, breakPointFor);
+        }
 
         // Update momentum based on outcome
         this.updateMomentum(pointWinner, result.outcome);
@@ -83,8 +109,12 @@ export class MatchOrchestrator {
         this.keyMomentsTriggered++;
       } else {
         // NORMAL SIMULATION
-        // Use existing match simulator to determine point
-        const pointWinner = this.simulatePoint(matchSim, currentScore);
+        // Use point simulator to determine point with full statistics
+        const pointResult = this.simulatePointWithStats(matchSim, currentScore);
+        const pointWinner = pointResult.winner === 'server'
+          ? currentScore.server
+          : (currentScore.server === 'player' ? 'opponent' : 'player');
+
         currentScore = this.updateScore(currentScore, pointWinner);
 
         // Update momentum
@@ -103,6 +133,12 @@ export class MatchOrchestrator {
 
       // Check if match is complete
       isComplete = this.isMatchComplete(currentScore);
+
+      // Add delay between points for visual updates (500ms)
+      // Skip delay if match is complete to show final score immediately
+      if (!isComplete) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
     }
 
     // Match complete callback
@@ -206,16 +242,134 @@ export class MatchOrchestrator {
   }
 
   /**
-   * Simulate a normal point (without key moment)
+   * Create a PointResult from a key moment resolution
    */
-  private simulatePoint(
+  private createPointResultFromKeyMoment(
+    keyMomentResult: KeyMomentResult,
+    currentServer: 'player' | 'opponent'
+  ): PointResult {
+    const winner = keyMomentResult.pointWinner === currentServer ? 'server' as const : 'returner' as const;
+
+    // Determine point type based on outcome
+    let pointType: PointResult['pointType'] = 'winner'; // Default to winner for key moments
+    if (keyMomentResult.outcome.includes('ace')) {
+      pointType = 'ace';
+    } else if (keyMomentResult.outcome.includes('winner')) {
+      pointType = 'winner';
+    } else if (keyMomentResult.outcome.includes('error') || keyMomentResult.outcome.includes('failure')) {
+      pointType = winner === 'returner' ? 'forced_error' : 'unforced_error';
+    }
+
+    // Create a synthetic point result with minimal shot data
+    return {
+      server: currentServer,
+      winner,
+      pointType,
+      shots: [], // Key moments don't have shot-by-shot data
+      rallyLength: 3, // Estimated average for key moments
+      serveType: 'first' as const,
+      duration: 5, // Estimated duration in seconds
+      statistics: {
+        totalShots: 3,
+        winnerCount: pointType === 'winner' || pointType === 'ace' ? 1 : 0,
+        errorCount: pointType === 'unforced_error' || pointType === 'forced_error' ? 1 : 0,
+        netApproaches: 0,
+        rallyExchanges: 1,
+        pressureMoments: 1, // Key moments are pressure situations
+      },
+    };
+  }
+
+  /**
+   * Simulate a normal point using the full PointSimulator
+   * This ensures realistic shot-by-shot simulation and accurate statistics
+   */
+  private simulatePointWithStats(
     matchSim: MatchSimulator,
     score: MatchScore
-  ): 'player' | 'opponent' {
-    // Simple simulation based on stats
-    // In a full implementation, this would call the actual PointSimulator
-    const random = Math.random();
-    return random < 0.5 ? 'player' : 'opponent';
+  ): PointResult {
+    if (!this.pointSimulator) {
+      throw new Error('PointSimulator not initialized');
+    }
+
+    const playerProfile = (matchSim as any).config.player;
+    const opponentProfile = (matchSim as any).config.opponent;
+    const currentServer = score.server;
+
+    // Determine server and returner profiles
+    const serverProfile = currentServer === 'player' ? playerProfile : opponentProfile;
+    const returnerProfile = currentServer === 'player' ? opponentProfile : playerProfile;
+
+    // Convert MatchScore to MatchState format expected by PointSimulator
+    const matchState: MatchState = {
+      score: {
+        sets: score.sets.map(s => ({
+          player: s.player,
+          opponent: s.opponent,
+          tiebreak: undefined,
+          winner: undefined,
+          isComplete: false,
+        })),
+        currentGame: {
+          server: score.currentGame[currentServer],
+          returner: score.currentGame[currentServer === 'player' ? 'opponent' : 'player'],
+          advantage: null,
+          isDeuce: false,
+        },
+        currentServer: currentServer,
+        isMatchComplete: score.isComplete,
+        winner: score.winner,
+        matchFormat: {
+          bestOfSets: (this as any).matchFormat === 'best-of-1' ? 1 : (this as any).matchFormat === 'best-of-3' ? 3 : 5,
+          gamesPerSet: 6,
+          enableTiebreaks: true,
+          tiebreakAt: 6,
+        },
+      },
+      currentServer: currentServer,
+      courtSurface: (matchSim as any).config.courtSurface,
+      momentum: this.momentum,
+      pressure: this.pressure > 60 ? 'high' as const : this.pressure > 30 ? 'medium' as const : 'low' as const,
+      matchLength: this.pointsPlayed * 0.5, // Rough estimate: 30 seconds per point
+      pointsPlayed: this.pointsPlayed,
+      isKeyMoment: false,
+    };
+
+    // Use PointSimulator to simulate the point
+    const pointResult = this.pointSimulator.simulatePoint(
+      currentServer,
+      serverProfile,
+      returnerProfile,
+      matchState
+    );
+
+    // Track statistics
+    if (this.matchStatistics) {
+      const breakPointFor = this.isBreakPoint(score)
+        ? (score.server === 'player' ? 'opponent' : 'player')
+        : undefined;
+      this.matchStatistics.addPointResult(pointResult, currentServer, breakPointFor);
+    }
+
+    return pointResult;
+  }
+
+  /**
+   * Get match statistics (call after match is complete)
+   */
+  public getMatchStatistics(): IMatchStatistics | null {
+    if (this.matchStatistics) {
+      this.matchStatistics.finalizeStatistics();
+      return this.matchStatistics.getStatistics();
+    }
+    return null;
+  }
+
+  /**
+   * Cancel the ongoing match simulation
+   */
+  public cancelMatch(): void {
+    this.cancelled = true;
   }
 
   /**
@@ -255,14 +409,18 @@ export class MatchOrchestrator {
         // Reset set score
         newScore.currentSet = { player: 0, opponent: 0 };
 
-        // Check if match is won (best of 3 sets, need 2)
+        // Check if match is won based on format
         const playerSets = newScore.sets.filter(s => s.player > s.opponent).length;
         const opponentSets = newScore.sets.filter(s => s.opponent > s.player).length;
 
-        if (playerSets === 2) {
+        // Store matchFormat in instance variable during startMatch
+        const format = (this as any).matchFormat || 'best-of-3';
+        const setsToWin = format === 'best-of-1' ? 1 : format === 'best-of-3' ? 2 : 3;
+
+        if (playerSets === setsToWin) {
           newScore.isComplete = true;
           newScore.winner = 'player';
-        } else if (opponentSets === 2) {
+        } else if (opponentSets === setsToWin) {
           newScore.isComplete = true;
           newScore.winner = 'opponent';
         }
@@ -359,8 +517,18 @@ export class MatchOrchestrator {
     const playerScore = game[player];
     const opponentScore = game[player === 'player' ? 'opponent' : 'player'];
 
-    // Win at 4 points with 2-point lead, or at deuce with 1-point lead
-    return playerScore >= 3 && playerScore >= opponentScore;
+    // Can win game if:
+    // - At 40-30 or better (player has 3+, opponent has <= 2)
+    // - OR at advantage (both have 3+, player is ahead by 1)
+    if (playerScore >= 3 && opponentScore <= 2) {
+      return true; // 40-0, 40-15, 40-30
+    }
+
+    if (playerScore >= 4 && opponentScore >= 3 && playerScore > opponentScore) {
+      return true; // Advantage after deuce
+    }
+
+    return false;
   }
 
   private isGameWon(game: { player: number; opponent: number }): boolean {
