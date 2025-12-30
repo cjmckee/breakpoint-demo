@@ -130,6 +130,7 @@ export interface StoryEvent {
 
   // Availability
   prerequisites: StoryEventPrerequisite;
+  skippable: boolean;              // Whether player can skip this event
 
   // Narrative content
   description: string;

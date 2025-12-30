@@ -12,6 +12,7 @@ export const coachEvents: StoryEvent[] = [
     tags: ['coach', 'intro'],
     timeSlotsRequired: 1,
     prerequisites: {},
+    skippable: false,
     description: 'A local tennis coach has taken interest in your development.',
     dialogue: `Coach Martinez: "I've been watching you play. You have raw talent, but you need guidance to reach your full potential. Let me help you develop your game properly."`,
     characters: ['coach_martinez'],
@@ -35,6 +36,7 @@ export const coachEvents: StoryEvent[] = [
     prerequisites: {
       completedEvents: ['coach_first_meeting'],
     },
+    skippable: true,
     description: 'Coach Martinez wants to know what aspect of your game to prioritize in training.',
     dialogue: `Coach Martinez: "Everyone has different strengths and weaknesses. Tell me - what do you want to focus on developing? We'll build a training program around your choice."`,
     characters: ['coach_martinez'],

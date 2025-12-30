@@ -112,13 +112,13 @@ export const MainMenu: React.FC = () => {
       <div className="max-w-6xl mx-auto p-4">
         {/* Story Event Notification */}
         {isEventPending && pendingStoryEvent && (
-          <Card className="mb-6 border-4 border-yellow-400 bg-yellow-50">
+          <Card className="mb-6 border-4 border-yellow-400 bg-yellow-600">
             <div className="flex items-center gap-4">
               <span className="text-5xl">📖</span>
               <div className="flex-1">
-                <h2 className="text-2xl font-bold text-pixel-text mb-1">Story Event Available!</h2>
-                <p className="text-lg text-pixel-text">{pendingStoryEvent.name}</p>
-                <p className="text-sm text-pixel-text-muted mt-1">{pendingStoryEvent.description}</p>
+                <h2 className="text-2xl font-bold text-white mb-1">Story Event Available!</h2>
+                <p className="text-lg text-white">{pendingStoryEvent.name}</p>
+                <p className="text-sm text-gray-200 mt-1">{pendingStoryEvent.description}</p>
               </div>
               <Button onClick={() => setShowStoryModal(true)} variant="primary" size="lg">
                 Begin Event

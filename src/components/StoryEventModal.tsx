@@ -83,9 +83,11 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
       {isLinearEvent ? (
         // Linear event - just show continue button
         <div className="flex justify-end gap-2">
-          <Button onClick={onClose} variant="secondary">
-            Skip Event
-          </Button>
+          {event.skippable && (
+            <Button onClick={onClose} variant="secondary">
+              Skip Event
+            </Button>
+          )}
           <Button onClick={handleContinue} variant="primary">
             Continue
           </Button>
@@ -192,9 +194,11 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button onClick={onClose} variant="secondary">
-              Cancel
-            </Button>
+            {event.skippable && (
+              <Button onClick={onClose} variant="secondary">
+                Cancel
+              </Button>
+            )}
             <Button onClick={handleContinue} variant="primary" disabled={!selectedOptionId}>
               Confirm Choice
             </Button>

@@ -30,7 +30,10 @@ export class StoryEventManager {
   ): StoryEvent[] {
     console.log(`🔍 Getting eligible events for player: ${player.id}, tag: ${tag}`);
 
-    
+    console.log('completed events:', gameState.completedStoryEvents);
+    console.log('event choices:', gameState.completedStoryEventChoices);
+    console.log('relationships:', gameState.relationships);
+
     // Get all events (or filtered by tag)
     const allEvents = tag
       ? StoryEventRepository.getEventsByTag(tag)

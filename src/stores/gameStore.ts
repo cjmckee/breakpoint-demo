@@ -616,8 +616,18 @@ export const useGameStore = create<GameState>()(
       },
 
       // Cancel/dismiss pending story event
+      // When skipping an event, mark it as completed so it doesn't show up again
       cancelStoryEvent: () => {
-        set({ pendingStoryEvent: null });
+        const { pendingStoryEvent, completedStoryEvents } = get();
+
+        if (pendingStoryEvent) {
+          set({
+            pendingStoryEvent: null,
+            completedStoryEvents: [...completedStoryEvents, pendingStoryEvent.id],
+          });
+        } else {
+          set({ pendingStoryEvent: null });
+        }
       },
 
       // Update character relationship

@@ -15,6 +15,7 @@ export const milestoneEvents: StoryEvent[] = [
       minMatchesWon: 5,
       excludedEvents: ['first_winning_streak'], // Only trigger once
     },
+    skippable: false,
     description: 'You\'ve won five matches in a row - your best streak yet!',
     dialogue: `Coach Martinez: "Five wins in a row! Do you know what this means? You're not just getting lucky anymore - you're consistently outplaying your opponents. This is the breakthrough we've been working toward!"`,
     characters: ['coach_martinez'],
@@ -41,6 +42,7 @@ export const milestoneEvents: StoryEvent[] = [
       completedEvents: ['sponsor_first_offer'],
       completedEventChoices: { sponsor_first_offer: 'accept_immediately' },
     },
+    skippable: true,
     description: 'Your sponsor offers you access to professional-grade equipment and custom racquet fitting.',
     dialogue: `Sponsor Rep: "We want to give you the best tools to succeed. We're offering you a full professional equipment package - custom-fitted racquet, premium strings, and professional-grade shoes. Our team will work with you to find the perfect setup for your game."`,
     characters: ['sponsor_rep'],
