@@ -38,6 +38,7 @@ interface MatchState {
   isWaitingForChoice: boolean;
   lastKeyMomentResult: KeyMomentResult | null;
   showKeyMomentResult: boolean;
+  lastChosenOption: TacticalOption | null; // Track the last chosen option
   keyMomentHistory: Array<{
     keyMoment: KeyMoment;
     chosenOption: TacticalOption;
@@ -73,6 +74,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
   isWaitingForChoice: false,
   lastKeyMomentResult: null,
   showKeyMomentResult: false,
+  lastChosenOption: null,
   keyMomentHistory: [],
   orchestrator: null,
   keyMomentResolver: null,
@@ -100,10 +102,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
 
       // Key moment result callback - shows result after choice
       onKeyMomentResult: (result: KeyMomentResult) => {
-        set({
-          lastKeyMomentResult: result,
-          showKeyMomentResult: true,
-        });
+        get().setKeyMomentResult(result);
       },
 
       // Score update callback
@@ -136,6 +135,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       matchHistory: [],
       matchStatistics: null,
       keyMomentHistory: [],
+      lastChosenOption: null,
     });
 
     // Start match simulation (async)
@@ -163,11 +163,10 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       return;
     }
 
-    // Save to history (result will be added after resolution)
-    // For now, just save the choice
+    // Store the chosen option and keep currentKeyMoment for setKeyMomentResult
     set({
       isWaitingForChoice: false,
-      currentKeyMoment: null,
+      lastChosenOption: option,
     });
 
     // Resolve the promise with the chosen option
@@ -179,9 +178,25 @@ export const useMatchStore = create<MatchState>((set, get) => ({
 
   // Set key moment result (called by orchestrator after resolving)
   setKeyMomentResult: (result: KeyMomentResult) => {
+    const { currentKeyMoment, lastChosenOption, keyMomentHistory } = get();
+
+    if (!currentKeyMoment || !lastChosenOption) {
+      console.error('setKeyMomentResult called without currentKeyMoment or lastChosenOption in state');
+      return;
+    }
+
+    const historyEntry = {
+      keyMoment: currentKeyMoment,
+      chosenOption: lastChosenOption,
+      result: result,
+    };
+
     set({
       lastKeyMomentResult: result,
       showKeyMomentResult: true,
+      keyMomentHistory: [...keyMomentHistory, historyEntry],
+      currentKeyMoment: null,
+      lastChosenOption: null, // Clear after adding to history
     });
   },
 
@@ -234,6 +249,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       matchStatistics: null,
       currentKeyMoment: null,
       isWaitingForChoice: false,
+      lastChosenOption: null,
       keyMomentHistory: [],
       orchestrator: null,
       keyMomentResolver: null,

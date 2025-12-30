@@ -203,7 +203,7 @@ export class MatchOrchestrator {
     config: InteractiveMatchConfig
   ): boolean {
     // Don't exceed max key moments per match
-    const maxKeyMoments = config.keyMomentsPerMatch || 8;
+    const maxKeyMoments = config.keyMomentsPerMatch || 30;
     if (this.keyMomentsTriggered >= maxKeyMoments) {
       return false;
     }
@@ -224,7 +224,7 @@ export class MatchOrchestrator {
       return server === 'player' ? 'match-point-player-serve' : 'match-point-player-return';
     }
     if (this.isMatchPoint(score, 'opponent')) {
-      return server === 'player' ? 'match-point-opponent' : 'match-point-opponent-return';
+      return server === 'player' ? 'match-point-opponent-serve' : 'match-point-opponent-return';
     }
 
     // Check for set point
@@ -232,7 +232,7 @@ export class MatchOrchestrator {
       return server === 'player' ? 'set-point-player-serve' : 'set-point-player-return';
     }
     if (this.isSetPoint(score, 'opponent')) {
-      return server === 'player' ? 'set-point-opponent' : 'set-point-opponent-return';
+      return server === 'player' ? 'set-point-opponent-serve' : 'set-point-opponent-return';
     }
 
     // Check for break point
@@ -604,8 +604,13 @@ export class MatchOrchestrator {
       player === 'player' ? s.player > s.opponent : s.opponent > s.player
     ).length;
 
-    // Need 1 set already won, and this is set point
-    return playerSets === 1 && this.isSetPoint(score, player);
+    // Determine sets needed to win based on match format
+    const format = (this as any).matchFormat || 'best-of-3';
+    const setsToWin = format === 'best-of-1' ? 1 : format === 'best-of-3' ? 2 : 3;
+
+    // Match point if: winning this set would win the match
+    // That means: player has (setsToWin - 1) sets already, and this is set point
+    return playerSets === (setsToWin - 1) && this.isSetPoint(score, player);
   }
 
   private canWinGame(game: { player: number; opponent: number }, player: 'player' | 'opponent'): boolean {
@@ -703,10 +708,14 @@ export class MatchOrchestrator {
     const descriptions: Record<KeyMomentType, string> = {
       'break-point-serve': 'A critical moment to hold your serve!',
       'break-point-return': 'Your chance to break serve and take control!',
-      'set-point-player-serve': 'One point away from winning the set!',
-      'set-point-opponent': 'Fight to stay in this set!',
-      'match-point-player-serve': 'This is it! One point for victory!',
-      'match-point-opponent': 'Everything on the line - save this match point!',
+      'set-point-player-serve': 'One serve away from winning the set! Stay focused!',
+      'set-point-player-return': 'A chance here to break for the set! Find your rhythm!',
+      'set-point-opponent-serve': 'Fight to stay in this set! A great serve can pull you back in it!',
+      'set-point-opponent-return': 'Fight to stay in this set! You need to get this ball back!',
+      'match-point-player-serve': 'This is it! One point for victory! One last push!',
+      'match-point-player-return': 'Deep breath. Focus on the return. One more time!',
+      'match-point-opponent-serve': 'Everything on the line - this serve is crucial!',
+      'match-point-opponent-return': 'This is match point! Anything to get it back over!',
     };
     return descriptions[type];
   }
