@@ -11,6 +11,8 @@ import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { StatChangeIndicator, useStatChanges } from './StatChangeIndicator';
 
+const defaultAbilityChance = 0.3;
+
 export const TrainingSelection: React.FC = () => {
   const player = useGameStore((state) => state.player);
   const currentStatus = useGameStore((state) => state.currentStatus);
@@ -145,10 +147,10 @@ export const TrainingSelection: React.FC = () => {
                       x{session.statMultiplier}
                     </span>
                   </div>
-                  {session.ability && (
+                  {session.tier === 'diamond' && session.ability && (
                     <div className="flex justify-between text-sm">
                       <span className="text-pixel-text-muted">Ability Chance:</span>
-                      <span className="font-bold text-cyan-400">30%</span>
+                      <span className="font-bold text-cyan-400">{defaultAbilityChance * 100}%</span>
                     </div>
                   )}
                 </div>

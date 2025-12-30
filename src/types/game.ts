@@ -55,13 +55,24 @@ export interface Modifiers {
 }
 
 export const AbilityName = {
+  // common
   BASELINER: 'baseliner',
   NETCRASHER: 'netcrasher',
   SLIDER: 'slider',
   CLUTCH: 'clutch',
   HEAVY_HITTER: 'heavy_hitter',
+  OVERHEAD_SMASH: 'overhead_smash',
+  RANGY_RETURN: 'rangy_return',
+  SPIN_MASTER: 'spin_master',
+  NATIONAL_ICON: 'national_icon',
+
+  // uncommon
   SPEED_DEMON: 'speed_demon',
+
+  // rare
   MENTAL_FORTITUDE: 'mental_fortitude',
+
+  // legendary
   LEGENDARY_FOCUS: 'legendary_focus',
 } as const;
 
@@ -74,7 +85,11 @@ export type TrainingSessionType =
   | 'serve_volley_training'
   | 'footwork_training'
   | 'sports_psychology'
-  | 'strength_training';
+  | 'strength_training'
+  | 'overhead_academy'
+  | 'return_rapidfire'
+  | 'spin_specialist'
+  | 'remote_coaching';
 
 export type TrainingCategory = 'technical' | 'physical' | 'mental';
 

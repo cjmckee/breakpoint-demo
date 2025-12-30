@@ -104,6 +104,83 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       'Increases forehand stat by 3 and strength by 5. Adds extra pace to your shots.',
   },
 
+  [AbilityName.OVERHEAD_SMASH]: {
+    name: AbilityName.OVERHEAD_SMASH,
+    level: 1,
+    rarity: 'common',
+    modifiers: {
+      statBoosts: {
+        overhead: 5,
+        strength: 3,
+      },
+      additional: {
+        smash_power: 2,
+      },
+    },
+    description:
+      'You have a powerful overhead smash that can finish points in an instant.',
+    effects:
+      'Increases overhead stat by 5 and strength by 3. Adds extra power to your smashes.',
+  },
+
+  [AbilityName.RANGY_RETURN]: {
+    name: AbilityName.RANGY_RETURN,
+    level: 1,
+    rarity: 'common',
+    modifiers: {
+      statBoosts: {
+        return: 5,
+        anticipation: 3,
+      },
+      additional: {
+        reach: 2,
+      },
+    },
+    description:
+      'Your exceptional reach allows you to return even the most difficult shots.',
+    effects:
+      'Increases return stat by 5 and anticipation by 3. Adds extra reach to your returns.',
+  },
+
+  [AbilityName.SPIN_MASTER]: {
+    name: AbilityName.SPIN_MASTER,
+    level: 1,
+    rarity: 'common',
+    modifiers: {
+      statBoosts: {
+        spin: 5,
+        placement: 3,
+      },
+      additional: {
+        side_spin: 2,
+      },
+    },
+    description:
+      'You can put an incredible amount of spin on the ball, making it difficult for opponents to predict its trajectory.',
+    effects:
+      'Increases spin stat by 5 and placement by 3. Adds extra side spin to your spin shots.',
+  },
+
+  [AbilityName.NATIONAL_ICON]: {
+    name: AbilityName.NATIONAL_ICON,
+    level: 1,
+    rarity: 'common',
+    modifiers: {
+      statBoosts: {
+        focus: 4,
+        anticipation: 4,
+        shotVariety: 2,
+      },
+      additional: {
+        adaptable: 2,
+      },
+    },
+    description:
+      'You are popular among fans and players alike. You get some extra free perks.',
+    effects:
+      'Increases focus and anticipation by 4. Boosts shot variety and adaptability.',
+  },
+
   // ==================== UNCOMMON ABILITIES ====================
   [AbilityName.SPEED_DEMON]: {
     name: AbilityName.SPEED_DEMON,

@@ -91,6 +91,51 @@ const TRAINING_SESSION_CONFIGS: Record<TrainingSessionType, TrainingConfig> = {
     ability: AbilityName.HEAVY_HITTER,
     description: 'Build power and endurance',
   },
+  overhead_academy: {
+    name: 'Overhead Academy',
+    category: 'physical',
+    energyCost: 25,
+    statBoosts: {
+      overhead: 2,
+      offensive: 1,
+    },
+    ability: AbilityName.OVERHEAD_SMASH,
+    description: 'Master closing out the point at the net',
+  },
+  return_rapidfire: {
+    name: 'Return Rapidfire',
+    category: 'physical',
+    energyCost: 35,
+    statBoosts: {
+      return: 2,
+      defensive: 1
+    },
+    ability: AbilityName.RANGY_RETURN,
+    description: 'Improve return of serve and defensive play',
+  },
+  spin_specialist: {
+    name: 'Spin Specialist',
+    category: 'technical',
+    energyCost: 30,
+    statBoosts: {
+      spin: 2,
+      dropShot: 1
+    },
+    ability: AbilityName.SPIN_MASTER,
+    description: 'Practice the art of spin shots',
+  },
+  remote_coaching: {
+    name: 'Remote Coaching',
+    category: 'mental',
+    energyCost: 15,
+    statBoosts: {
+      recovery: 1,
+      offensive: 1,
+      defensive: 1
+    },
+    ability: AbilityName.NATIONAL_ICON,
+    description: 'Receive coaching tips and strategies from a famous coach online',
+  }
 };
 
 export class TrainingSystem {
@@ -350,15 +395,11 @@ export class TrainingSystem {
 
   /**
    * Get available session types, excluding the last one trained
+   * Automatically uses all configured training types
    */
   private static getAvailableSessionTypes(excludedType?: TrainingSessionType): TrainingSessionType[] {
-    const allTypes: TrainingSessionType[] = [
-      'groundstroke_training',
-      'serve_volley_training',
-      'footwork_training',
-      'sports_psychology',
-      'strength_training',
-    ];
+    // Get all training types from the configurations
+    const allTypes = Object.keys(TRAINING_SESSION_CONFIGS) as TrainingSessionType[];
 
     if (excludedType) {
       return allTypes.filter(type => type !== excludedType);
