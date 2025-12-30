@@ -11,7 +11,10 @@ import { StatusBar } from './StatusBar';
 import { PlayerStatsDisplay } from './PlayerStatsDisplay';
 import { RecentActivities } from './RecentActivities';
 import { TrainingResultModal } from './TrainingResultModal';
+import { StoryEventModal } from './StoryEventModal';
+import { StoryEventResultModal } from './StoryEventResultModal';
 import type { TrainingResult } from '../types/game';
+import type { StoryEventResult } from '../types/storyEvents';
 import { TimeSlot } from '../types/game';
 
 export const MainMenu: React.FC = () => {
@@ -23,13 +26,49 @@ export const MainMenu: React.FC = () => {
   const showTrainingResultModal = useGameStore((state) => state.showTrainingResultModal);
   const clearTrainingResultModal = useGameStore((state) => state.clearTrainingResultModal);
 
+  // Story event state and actions
+  const pendingStoryEvent = useGameStore((state) => state.pendingStoryEvent);
+  const executeStoryEvent = useGameStore((state) => state.executeStoryEvent);
+  const cancelStoryEvent = useGameStore((state) => state.cancelStoryEvent);
+  const getAvailableEventOptions = useGameStore((state) => state.getAvailableEventOptions);
+
+  const [showStoryModal, setShowStoryModal] = useState(false);
+  const [showStoryResultModal, setShowStoryResultModal] = useState(false);
+
   // Check if it's night time - only rest/next day action allowed
   const isNightTime = calendar.currentTimeSlot === TimeSlot.NIGHT;
+
+  // Check if story event is pending
+  const isEventPending = pendingStoryEvent !== null;
 
   // Get training result from last activity if modal should be shown
   const trainingResult = showTrainingResultModal && currentStatus.lastActivity?.type === 'training'
     ? (currentStatus.lastActivity as TrainingResult)
     : null;
+
+  // Get story event result from last activity
+  const storyEventResult =
+    currentStatus.lastActivity && currentStatus.lastActivity.type === 'story'
+      ? (currentStatus.lastActivity as StoryEventResult)
+      : null;
+
+  // Open story modal when event becomes pending
+  useEffect(() => {
+    if (isEventPending) {
+      setShowStoryModal(true);
+    }
+  }, [isEventPending]);
+
+  const handleExecuteEvent = (eventId: string, optionId?: string) => {
+    executeStoryEvent(eventId, optionId);
+    setShowStoryModal(false);
+    setShowStoryResultModal(true);
+  };
+
+  const handleCancelEvent = () => {
+    cancelStoryEvent();
+    setShowStoryModal(false);
+  };
 
   if (!player) {
     return null;
@@ -71,6 +110,23 @@ export const MainMenu: React.FC = () => {
       <StatusBar />
 
       <div className="max-w-6xl mx-auto p-4">
+        {/* Story Event Notification */}
+        {isEventPending && pendingStoryEvent && (
+          <Card className="mb-6 border-4 border-yellow-400 bg-yellow-50">
+            <div className="flex items-center gap-4">
+              <span className="text-5xl">📖</span>
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold text-pixel-text mb-1">Story Event Available!</h2>
+                <p className="text-lg text-pixel-text">{pendingStoryEvent.name}</p>
+                <p className="text-sm text-pixel-text-muted mt-1">{pendingStoryEvent.description}</p>
+              </div>
+              <Button onClick={() => setShowStoryModal(true)} variant="primary" size="lg">
+                Begin Event
+              </Button>
+            </div>
+          </Card>
+        )}
+
         {/* Welcome Message */}
         <Card className="mb-6">
           <h1 className="text-3xl font-bold text-pixel-text mb-2">
@@ -87,14 +143,18 @@ export const MainMenu: React.FC = () => {
             const canAfford = currentStatus.energy >= activity.energyCost;
             const isRestButton = activity.id === 'rest';
 
-            // During night time, disable all activities except rest
-            const isDisabled = isNightTime
-              ? !isRestButton
-              : (!canAfford && activity.energyCost > 0);
+            // Disable all activities when event is pending or during night time (except rest)
+            const isDisabled = isEventPending
+              ? true
+              : isNightTime
+                ? !isRestButton
+                : (!canAfford && activity.energyCost > 0);
 
             // Get button text
             let buttonText = activity.title;
-            if (isNightTime && isRestButton) {
+            if (isEventPending) {
+              buttonText = 'Event Pending';
+            } else if (isNightTime && isRestButton) {
               buttonText = 'Next Day';
             } else if (!canAfford && activity.energyCost > 0) {
               buttonText = 'Not Enough Energy';
@@ -157,6 +217,26 @@ export const MainMenu: React.FC = () => {
         onClose={handleCloseTrainingModal}
         result={trainingResult}
       />
+
+      {/* Story Event Modal */}
+      {pendingStoryEvent && (
+        <StoryEventModal
+          isOpen={showStoryModal}
+          onClose={handleCancelEvent}
+          event={pendingStoryEvent}
+          availableOptions={getAvailableEventOptions()}
+          onSelectOption={handleExecuteEvent}
+        />
+      )}
+
+      {/* Story Event Result Modal */}
+      {storyEventResult && (
+        <StoryEventResultModal
+          isOpen={showStoryResultModal}
+          onClose={() => setShowStoryResultModal(false)}
+          result={storyEventResult}
+        />
+      )}
     </div>
   );
 };

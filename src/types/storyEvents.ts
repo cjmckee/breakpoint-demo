@@ -1,0 +1,172 @@
+/**
+ * Story Event Type Definitions
+ * Comprehensive types for the story event system
+ */
+
+import type { Activity } from './game';
+
+// ============================================================================
+// STORY EVENT TAGS
+// ============================================================================
+
+export type StoryEventTag =
+  // Relationships
+  | 'coach'
+  | 'rival'
+  | 'family'
+  | 'romance'
+  | 'friend'
+
+  // Career
+  | 'sponsor'
+  | 'media'
+  | 'tournament'
+  | 'agent'
+
+  // Development
+  | 'training'
+  | 'injury'
+  | 'mental'
+  | 'equipment'
+
+  // Narrative
+  | 'intro'
+  | 'decision'
+  | 'milestone'
+  | 'conflict'
+  | 'celebration';
+
+// ============================================================================
+// STORY EVENT PREREQUISITES
+// ============================================================================
+
+export interface StoryEventPrerequisite {
+  // Stat requirements
+  stats?: {
+    [statName: string]: {
+      min?: number;
+      max?: number;
+    };
+  };
+
+  // Relationship requirements
+  relationships?: {
+    [characterId: string]: {
+      min?: number;
+      max?: number;
+    };
+  };
+
+  // Event completion requirements
+  completedEvents?: string[];      // Must have completed these events
+  excludedEvents?: string[];       // Must NOT have completed these events
+
+  // Choice-based requirements (for branching storylines)
+  completedEventChoices?: Record<string, string>;  // eventId -> optionId that must have been chosen
+  excludedEventChoices?: Record<string, string>;   // eventId -> optionId that blocks this event
+
+  // Time/season requirements
+  minDay?: number;
+  maxDay?: number;
+  minSeason?: number;
+
+  // Ability requirements
+  hasAbilities?: string[];
+  lacksAbilities?: string[];
+
+  // Match history requirements
+  minMatchesPlayed?: number;
+  minMatchesWon?: number;
+}
+
+// ============================================================================
+// STORY EVENT OUTCOME
+// ============================================================================
+
+export interface StoryEventOutcome {
+  // Narrative text shown after choice
+  resultText: string;
+  dialogue?: string;               // Optional additional dialogue
+
+  // Effects applied to player
+  effects: {
+    statBoosts?: Record<string, number>;
+    statDecreases?: Record<string, number>;
+    moodChange?: number;
+    energyChange?: number;
+    relationshipChanges?: Record<string, number>;
+    abilitiesGained?: string[];
+  };
+}
+
+// ============================================================================
+// STORY EVENT OPTION (PLAYER CHOICES)
+// ============================================================================
+
+export interface StoryEventOption {
+  id: string;                      // Unique within the event (e.g., 'accept_offer', 'decline')
+  text: string;                    // Button text
+  description?: string;            // Tooltip/subtitle explaining the choice
+  emoji?: string;                  // Optional emoji for visual distinction
+
+  // Requirements to show this option
+  prerequisites?: StoryEventPrerequisite;
+
+  // Outcome when selected
+  outcome: StoryEventOutcome;
+}
+
+// ============================================================================
+// STORY EVENT (MAIN DEFINITION)
+// ============================================================================
+
+export interface StoryEvent {
+  id: string;
+  name: string;
+  tags: StoryEventTag[];           // Multiple tags for flexible categorization
+
+  // Timing
+  timeSlotsRequired: 1 | 2 | 3;
+
+  // Availability
+  prerequisites: StoryEventPrerequisite;
+
+  // Narrative content
+  description: string;
+  dialogue?: string;               // Initial dialogue before choices
+
+  // Characters involved
+  characters: string[];
+
+  // Player choices (if any)
+  options: StoryEventOption[];     // Empty array = linear event with only defaultOutcome
+
+  // For linear events (no choices)
+  defaultOutcome?: StoryEventOutcome;  // Used when options.length === 0
+}
+
+// ============================================================================
+// STORY EVENT RESULT (ACTIVITY RESULT)
+// ============================================================================
+
+export interface StoryEventResult extends Activity {
+  type: 'story';
+  source: 'story_event';
+
+  // Event details
+  eventId: string;
+  eventName: string;
+  tags: StoryEventTag[];
+
+  // Choice made (if applicable)
+  selectedOptionId?: string;
+  selectedOptionText?: string;
+
+  // Outcome applied
+  resultText: string;
+
+  // Effects (for display in history/modal)
+  statChanges: Record<string, number>;
+  relationshipChanges: Record<string, number>;
+  abilitiesGained: string[];
+}

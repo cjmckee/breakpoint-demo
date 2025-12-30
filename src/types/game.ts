@@ -4,6 +4,7 @@
  */
 
 import type { PlayerStats } from './index.js';
+import type { StoryEventResult } from './storyEvents.js';
 
 export type { PlayerStats };
 
@@ -246,7 +247,7 @@ export interface RestResult extends Activity {
   stressReduction?: number;
 }
 
-export type ActivityResult = TrainingResult | MatchResult | RestResult;
+export type ActivityResult = TrainingResult | MatchResult | RestResult | StoryEventResult;
 
 // ============================================================================
 // PLAYER & GAME STATE
@@ -259,6 +260,8 @@ export interface Player {
   abilities: Ability[];
   level: number;
   experience: number;
+  matchesPlayed?: number;
+  matchesWon?: number;
   createdAt: string;
   updatedAt: string;
 }

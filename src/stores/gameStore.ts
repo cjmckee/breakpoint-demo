@@ -16,10 +16,13 @@ import {
   CurrentStatus,
   TimeSlot,
 } from '../types/game';
+import type { StoryEvent, StoryEventTag, StoryEventOption } from '../types/storyEvents';
 import { PlayerManager } from '../game/PlayerManager';
 import { TrainingSystem } from '../game/TrainingSystem';
 import { TimeManager } from '../game/TimeManager';
 import { SaveManager } from '../game/SaveManager';
+import { StoryEventManager } from '../game/StoryEventManager';
+import { PrerequisiteChecker } from '../game/PrerequisiteChecker';
 
 interface GameState {
   // Player data
@@ -36,6 +39,13 @@ interface GameState {
 
   // Training sessions (generated per time slot, regenerated when calendar changes)
   currentTrainingSessions: TrainingSession[];
+
+  // Story event state
+  completedStoryEvents: string[];
+  completedStoryEventChoices: Record<string, string>;
+  relationships: Record<string, number>;
+  storyEventTriggerChance: number;
+  pendingStoryEvent: StoryEvent | null;
 
   // UI state
   isInitialized: boolean;
@@ -58,6 +68,14 @@ interface GameState {
   setScreen: (screen: GameState['currentScreen']) => void;
   clearTrainingResultModal: () => void;
   getAvailableTrainingSessions: () => TrainingSession[];
+
+  // Story event actions
+  checkForStoryEvent: (tag?: StoryEventTag, customChance?: number) => void;
+  executeStoryEvent: (eventId: string, optionId?: string) => void;
+  cancelStoryEvent: () => void;
+  updateRelationship: (character: string, change: number) => void;
+  setStoryEventTriggerChance: (chance: number) => void;
+  getAvailableEventOptions: () => StoryEventOption[];
 }
 
 const initialCalendar = TimeManager.createCalendar();
@@ -80,6 +98,14 @@ export const useGameStore = create<GameState>()(
       currentStatus: initialStatus,
       activityHistory: [],
       currentTrainingSessions: [],
+
+      // Story event initial state
+      completedStoryEvents: [],
+      completedStoryEventChoices: {},
+      relationships: {},
+      storyEventTriggerChance: 20,
+      pendingStoryEvent: null,
+
       isInitialized: false,
       currentScreen: 'welcome',
       showTrainingResultModal: false,
@@ -243,6 +269,11 @@ export const useGameStore = create<GameState>()(
           },
           currentTrainingSessions: newTrainingSessions,
         });
+
+        // Check for story event at start of new slot (except NIGHT)
+        if (newCalendar.currentTimeSlot !== TimeSlot.NIGHT) {
+          get().checkForStoryEvent();
+        }
 
         // Auto-save
         get().saveGame();
@@ -431,6 +462,192 @@ export const useGameStore = create<GameState>()(
         const { currentTrainingSessions } = get();
         return currentTrainingSessions;
       },
+
+      // Story Event Actions
+
+      // Check if a story event should trigger
+      checkForStoryEvent: (tag?: StoryEventTag, customChance?: number) => {
+        const { player, storyEventTriggerChance, pendingStoryEvent } = get();
+
+        // Don't trigger if event already pending
+        if (pendingStoryEvent) return;
+
+        // Don't trigger if no player
+        if (!player) return;
+
+        // Roll for trigger
+        const chance = customChance ?? storyEventTriggerChance;
+        const roll = Math.random() * 100;
+        const triggered = roll < chance;
+
+        console.log(`[Story Event] Roll: ${roll.toFixed(2)} vs ${chance}% chance - ${triggered ? 'TRIGGERED ✓' : 'Not triggered ✗'}`);
+
+        if (!triggered) {
+          return;
+        }
+
+        // Get eligible events
+        const gameState = get();
+        const eligibleEvents = StoryEventManager.getEligibleEvents(
+          player,
+          {
+            completedStoryEvents: gameState.completedStoryEvents,
+            completedStoryEventChoices: gameState.completedStoryEventChoices,
+            relationships: gameState.relationships,
+            calendar: gameState.calendar,
+          },
+          tag
+        );
+
+        console.log(`[Story Event] Eligible events (${eligibleEvents.length}):`, eligibleEvents.map(e => e.name));
+
+        // Select random event
+        const selectedEvent = StoryEventManager.selectRandomEvent(eligibleEvents);
+
+        if (selectedEvent) {
+          console.log(`[Story Event] Selected: "${selectedEvent.name}"`);
+          set({ pendingStoryEvent: selectedEvent });
+        } else {
+          console.log(`[Story Event] No eligible events available`);
+        }
+      },
+
+      // Execute story event with player's choice
+      executeStoryEvent: (eventId: string, optionId?: string) => {
+        const { player, pendingStoryEvent, calendar } = get();
+
+        if (!player || !pendingStoryEvent) return;
+        if (pendingStoryEvent.id !== eventId) return;
+
+        // Get selected option (if any)
+        const selectedOption = optionId
+          ? pendingStoryEvent.options.find((opt) => opt.id === optionId) || null
+          : null;
+
+        // Execute event
+        const gameState = get();
+        const result = StoryEventManager.executeStoryEvent(
+          pendingStoryEvent,
+          selectedOption,
+          player,
+          {
+            completedStoryEvents: gameState.completedStoryEvents,
+            completedStoryEventChoices: gameState.completedStoryEventChoices,
+            relationships: gameState.relationships,
+            calendar: gameState.calendar,
+          }
+        );
+
+        // Get outcome for applying effects
+        const outcome = StoryEventManager.getOutcome(pendingStoryEvent, selectedOption);
+
+        // Apply stat changes to player
+        let updatedPlayer = { ...player };
+        if (outcome.effects.statBoosts) {
+          updatedPlayer = PlayerManager.applyStatBoosts(updatedPlayer, outcome.effects.statBoosts);
+        }
+
+        // Apply abilities
+        if (outcome.effects.abilitiesGained) {
+          for (const abilityName of outcome.effects.abilitiesGained) {
+            updatedPlayer = PlayerManager.addAbility(updatedPlayer, abilityName);
+          }
+        }
+
+        // Update relationships
+        const updatedRelationships = { ...get().relationships };
+        if (outcome.effects.relationshipChanges) {
+          Object.entries(outcome.effects.relationshipChanges).forEach(([char, change]) => {
+            const current = updatedRelationships[char] || 0;
+            updatedRelationships[char] = Math.max(0, Math.min(100, current + change));
+          });
+        }
+
+        // Track event completion and choice
+        const updatedCompletedEvents = [...get().completedStoryEvents, eventId];
+        const updatedCompletedChoices = { ...get().completedStoryEventChoices };
+        if (optionId) {
+          updatedCompletedChoices[eventId] = optionId;
+        }
+
+        // Update energy and mood
+        const currentStatus = get().currentStatus;
+        const newEnergy = Math.max(
+          0,
+          Math.min(100, currentStatus.energy + (outcome.effects.energyChange || 0))
+        );
+        const newMood = Math.max(
+          -100,
+          Math.min(100, currentStatus.mood + (outcome.effects.moodChange || 0))
+        );
+
+        // Handle time slot consumption with overflow protection
+        const slotsToAdvance = pendingStoryEvent.timeSlotsRequired;
+        const currentSlot = calendar.currentTimeSlot;
+        const targetSlot = currentSlot + slotsToAdvance;
+
+        const newCalendar = { ...calendar };
+        if (targetSlot > TimeSlot.NIGHT) {
+          // Would overflow to next day - cap at NIGHT
+          newCalendar.currentTimeSlot = TimeSlot.NIGHT;
+        } else {
+          newCalendar.currentTimeSlot = targetSlot as TimeSlot;
+        }
+
+        // Update state
+        set({
+          player: updatedPlayer,
+          completedStoryEvents: updatedCompletedEvents,
+          completedStoryEventChoices: updatedCompletedChoices,
+          relationships: updatedRelationships,
+          currentStatus: {
+            ...currentStatus,
+            energy: newEnergy,
+            mood: newMood,
+            lastActivity: result,
+          },
+          calendar: newCalendar,
+          activityHistory: [result, ...get().activityHistory].slice(0, 50),
+          pendingStoryEvent: null,
+        });
+
+        // Auto-save
+        get().saveGame();
+      },
+
+      // Cancel/dismiss pending story event
+      cancelStoryEvent: () => {
+        set({ pendingStoryEvent: null });
+      },
+
+      // Update character relationship
+      updateRelationship: (character: string, change: number) => {
+        const relationships = { ...get().relationships };
+        const current = relationships[character] || 0;
+        relationships[character] = Math.max(0, Math.min(100, current + change));
+
+        set({ relationships });
+      },
+
+      // Set story event trigger chance
+      setStoryEventTriggerChance: (chance: number) => {
+        set({ storyEventTriggerChance: Math.max(0, Math.min(100, chance)) });
+      },
+
+      // Get available options for pending event
+      getAvailableEventOptions: (): StoryEventOption[] => {
+        const { player, pendingStoryEvent } = get();
+
+        if (!player || !pendingStoryEvent) return [];
+
+        const gameState = get();
+        return PrerequisiteChecker.getAvailableOptions(pendingStoryEvent, player, {
+          completedStoryEvents: gameState.completedStoryEvents,
+          completedStoryEventChoices: gameState.completedStoryEventChoices,
+          relationships: gameState.relationships,
+          calendar: gameState.calendar,
+        });
+      },
     }),
     {
       name: 'tennis-rpg-game-store',
@@ -440,6 +657,12 @@ export const useGameStore = create<GameState>()(
         currentStatus: state.currentStatus,
         activityHistory: state.activityHistory,
         currentTrainingSessions: state.currentTrainingSessions,
+
+        // Story event persistence
+        completedStoryEvents: state.completedStoryEvents,
+        completedStoryEventChoices: state.completedStoryEventChoices,
+        relationships: state.relationships,
+        storyEventTriggerChance: state.storyEventTriggerChance,
       }),
     }
   )
