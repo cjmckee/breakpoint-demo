@@ -17,11 +17,11 @@ export const romanceEvents: StoryEvent[] = [
     },
     skippable: true,
     description: 'You meet someone interesting at a local tournament.',
-    dialogue: `Alex: "Great match out there! I saw that backhand winner on match point - incredible shot. I've been working on my own backhand technique. Maybe we could practice together sometime?"`,
-    characters: ['alex'],
+    dialogue: [['alex_romance', 'Great match out there! I saw that backhand winner on match point - incredible shot. I\'ve been working on my own backhand technique. Maybe we could practice together sometime?']],
+    characters: ['alex_romance'],
     options: [],
     defaultOutcome: {
-      resultText: 'You chat with Alex about tennis for a while. They seem genuinely interested in your tennis journey and share some of their own experiences. You exchange contact information before parting ways.',
+      resultText: ['You chat with ', { characterId: 'alex_romance' }, ' about tennis for a while. They seem genuinely interested in your tennis journey and share some of their own experiences. You exchange contact information before parting ways.'],
       effects: {
         moodChange: 20,
         energyChange: 0,
@@ -41,8 +41,8 @@ export const romanceEvents: StoryEvent[] = [
     },
     skippable: true,
     description: 'Alex invites you to grab coffee after practice.',
-    dialogue: `Alex: "Hey! I know this great café near the courts. Want to go after we finish up here? My treat!"`,
-    characters: ['alex'],
+    dialogue: [['alex_romance', 'Hey! I know this great café near the courts. Want to go after we finish up here? My treat!']],
+    characters: ['alex_romance'],
     options: [
       {
         id: 'serious_talk',
@@ -50,7 +50,7 @@ export const romanceEvents: StoryEvent[] = [
         emoji: '🎾',
         description: 'Keep the conversation focused on tennis',
         outcome: {
-          resultText: 'You have a deep conversation about your tennis ambitions over coffee. Alex shares their own competitive experiences and offers helpful advice based on what they\'ve learned. You gain valuable insights into tournament preparation.',
+          resultText: ['You have a deep conversation about your tennis ambitions over coffee. ', { characterId: 'alex_romance' }, ' shares their own competitive experiences and offers helpful advice based on what they\'ve learned. You gain valuable insights into tournament preparation.'],
           effects: {
             statBoosts: { focus: 2, anticipation: 1 },
             moodChange: 15,
@@ -65,7 +65,7 @@ export const romanceEvents: StoryEvent[] = [
         emoji: '☕',
         description: 'Learn more about Alex as a person',
         outcome: {
-          resultText: 'You spend a relaxed afternoon learning about each other beyond tennis. Alex has a great sense of humor and you find yourself laughing a lot. The conversation flows naturally, and you discover you have a lot in common.',
+          resultText: ['You spend a relaxed afternoon learning about each other beyond tennis. ', { characterId: 'alex_romance' }, ' has a great sense of humor and you find yourself laughing a lot. The conversation flows naturally, and you discover you have a lot in common.'],
           effects: {
             moodChange: 25,
             energyChange: 0,
@@ -79,7 +79,7 @@ export const romanceEvents: StoryEvent[] = [
         emoji: '📅',
         description: 'Too busy with training right now',
         outcome: {
-          resultText: 'You explain that you need to focus on training right now and ask if you can reschedule. Alex seems understanding but you can tell they\'re a bit disappointed.',
+          resultText: ['You explain that you need to focus on training right now and ask if you can reschedule. ', { characterId: 'alex_romance' }, ' seems understanding but you can tell they\'re a bit disappointed.'],
           effects: {
             statBoosts: { focus: 1 },
             moodChange: 0,

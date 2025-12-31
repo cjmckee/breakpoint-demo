@@ -53,12 +53,12 @@ export const MainMenu: React.FC = () => {
       ? (currentStatus.lastActivity as StoryEventResult)
       : null;
 
-  // Open story modal when event becomes pending
+  // Open story modal when event becomes pending, but only after training modal is dismissed
   useEffect(() => {
-    if (isEventPending) {
+    if (isEventPending && !showTrainingResultModal) {
       setShowStoryModal(true);
     }
-  }, [isEventPending]);
+  }, [isEventPending, showTrainingResultModal]);
 
   const handleExecuteEvent = (eventId: string, optionId?: string) => {
     executeStoryEvent(eventId, optionId);
@@ -104,6 +104,11 @@ export const MainMenu: React.FC = () => {
 
   const handleCloseTrainingModal = () => {
     clearTrainingResultModal();
+
+    // If there's a pending story event, show it now that training modal is dismissed
+    if (isEventPending) {
+      setShowStoryModal(true);
+    }
   };
 
   return (

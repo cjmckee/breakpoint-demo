@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
 import type { StoryEvent, StoryEventOption } from '../types/storyEvents';
+import { getCharacterName } from '../data/characters';
 
 interface StoryEventModalProps {
   isOpen: boolean;
@@ -24,8 +25,17 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
   onSelectOption,
 }) => {
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
+  const [currentDialogueIndex, setCurrentDialogueIndex] = useState<number>(0);
 
   const isLinearEvent = event.options.length === 0;
+  const hasDialogue = event.dialogue && event.dialogue.length > 0;
+  const allDialogueShown = !hasDialogue || currentDialogueIndex >= event.dialogue.length - 1;
+
+  const handleContinueDialogue = () => {
+    if (hasDialogue && currentDialogueIndex < event.dialogue!.length) {
+      setCurrentDialogueIndex(currentDialogueIndex + 1);
+    }
+  };
 
   const handleContinue = () => {
     if (isLinearEvent) {
@@ -59,9 +69,28 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
       </div>
 
       {/* Dialogue */}
-      {event.dialogue && (
+      {hasDialogue && currentDialogueIndex < event.dialogue!.length && (
         <div className="bg-gray-700 text-white p-4 rounded mb-6 border-l-4 border-blue-500">
-          <p className="italic">"{event.dialogue}"</p>
+          {(() => {
+            const [characterId, text] = event.dialogue![currentDialogueIndex];
+            const characterName = getCharacterName(characterId);
+
+            return (
+              <>
+                {characterName && (
+                  <div className="font-bold text-blue-300 mb-2">{characterName}</div>
+                )}
+                <p className={characterName ? 'ml-2' : 'italic'} style={{ whiteSpace: 'pre-line' }}>
+                  {characterName ? `"${text}"` : text}
+                </p>
+              </>
+            );
+          })()}
+          {currentDialogueIndex < event.dialogue!.length - 1 && (
+            <div className="text-xs text-gray-400 mt-2">
+              ({currentDialogueIndex + 1} / {event.dialogue!.length})
+            </div>
+          )}
         </div>
       )}
 
@@ -79,23 +108,32 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
         </div>
       )}
 
-      {/* Options or Continue Button */}
-      {isLinearEvent ? (
-        // Linear event - just show continue button
+      {/* Show dialogue continue button if not all dialogue shown */}
+      {!allDialogueShown ? (
         <div className="flex justify-end gap-2">
-          {event.skippable && (
-            <Button onClick={onClose} variant="secondary">
-              Skip Event
-            </Button>
-          )}
-          <Button onClick={handleContinue} variant="primary">
+          <Button onClick={handleContinueDialogue} variant="primary">
             Continue
           </Button>
         </div>
       ) : (
-        // Choice event - show options
-        <div>
-          <h3 className="font-bold mb-3 text-lg">Choose your action:</h3>
+        <>
+          {/* Options or Continue Button */}
+          {isLinearEvent ? (
+            // Linear event - just show continue button
+            <div className="flex justify-end gap-2">
+              {event.skippable && (
+                <Button onClick={onClose} variant="secondary">
+                  Skip Event
+                </Button>
+              )}
+              <Button onClick={handleContinue} variant="primary">
+                Continue
+              </Button>
+            </div>
+          ) : (
+            // Choice event - show options
+            <div>
+              <h3 className="font-bold mb-3 text-lg">Choose your action:</h3>
           <div className="space-y-3 mb-6">
             {event.options.map((option) => {
               const isAvailable = availableOptions.some((o) => o.id === option.id);
@@ -204,6 +242,8 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
             </Button>
           </div>
         </div>
+          )}
+        </>
       )}
     </Modal>
   );

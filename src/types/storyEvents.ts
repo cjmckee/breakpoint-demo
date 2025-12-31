@@ -7,6 +7,32 @@ import type { Activity } from './game';
 import type { Challenge } from './challenges';
 
 // ============================================================================
+// TEXT FORMATTING SYSTEM
+// ============================================================================
+
+/**
+ * Formatted text segment - either plain text or a character reference
+ */
+export type TextSegment = string | { characterId: string };
+
+/**
+ * Formatted text - array of text segments with character references
+ * Example: ["You meet ", { characterId: "coach_gonzalez" }, " at the courts."]
+ * Renders as: "You meet Coach Gonzalez at the courts." (with name highlighted)
+ */
+export type FormattedText = TextSegment[];
+
+// ============================================================================
+// DIALOGUE SYSTEM
+// ============================================================================
+
+/**
+ * Dialogue line with speaker and text
+ * [characterId, text] - characterId can be null for narration
+ */
+export type DialogueLine = [string | null, string];
+
+// ============================================================================
 // STORY EVENT TAGS
 // ============================================================================
 
@@ -86,8 +112,8 @@ export interface StoryEventPrerequisite {
 
 export interface StoryEventOutcome {
   // Narrative text shown after choice
-  resultText: string;
-  dialogue?: string;               // Optional additional dialogue
+  resultText: FormattedText;           // Formatted text with character references
+  dialogue?: DialogueLine[];           // Optional additional dialogue with speakers
 
   // Effects applied to player
   effects: {
@@ -138,7 +164,7 @@ export interface StoryEvent {
 
   // Narrative content
   description: string;
-  dialogue?: string;               // Initial dialogue before choices
+  dialogue?: DialogueLine[];       // Dialogue lines with speaker and text
 
   // Characters involved
   characters: string[];
@@ -168,7 +194,7 @@ export interface StoryEventResult extends Activity {
   selectedOptionText?: string;
 
   // Outcome applied
-  resultText: string;
+  resultText: FormattedText;
 
   // Effects (for display in history/modal)
   statChanges: Record<string, number>;

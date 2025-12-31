@@ -7,6 +7,8 @@ import React from 'react';
 import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
 import type { StoryEventResult } from '../types/storyEvents';
+import { FormattedText } from './FormattedText';
+import { getCharacterName } from '../data/characters';
 
 interface StoryEventResultModalProps {
   isOpen: boolean;
@@ -39,7 +41,9 @@ export const StoryEventResultModal: React.FC<StoryEventResultModalProps> = ({
 
       {/* Result text */}
       <div className="bg-gray-700 text-white p-4 rounded mb-6">
-        <p className="text-lg">{result.resultText}</p>
+        <p className="text-lg">
+          <FormattedText content={result.resultText} />
+        </p>
       </div>
 
       {/* Effects */}
@@ -83,7 +87,7 @@ export const StoryEventResultModal: React.FC<StoryEventResultModalProps> = ({
                       value > 0 ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'
                     }`}
                   >
-                    {char.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}:{' '}
+                    {getCharacterName(char) || char.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}:{' '}
                     {value > 0 ? '+' : ''}
                     {value}
                   </div>

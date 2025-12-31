@@ -809,7 +809,11 @@ export const useGameStore = create<GameState>()(
 
       // Assign a new challenge to the player
       assignChallenge: (challenge: Challenge) => {
-        const { activeChallenges } = get();
+        const { player, activeChallenges, relationships, calendar } = get();
+
+        if (!player) {
+          throw new Error('Cannot assign challenge: no player exists');
+        }
 
         // Don't add if already active or completed
         const alreadyActive = activeChallenges.some((c) => c.id === challenge.id);
@@ -819,8 +823,19 @@ export const useGameStore = create<GameState>()(
           return;
         }
 
+        // Calculate initial progress before assigning
+        const gameState = { relationships, calendar };
+        const initialProgress = ChallengeManager.updateProgress(challenge, player, gameState);
+
+        const challengeWithProgress: Challenge = {
+          ...challenge,
+          progress: initialProgress,
+          status: initialProgress.isComplete ? 'completed' : 'active',
+          completedAt: initialProgress.isComplete ? new Date().toISOString() : undefined,
+        };
+
         set({
-          activeChallenges: [...activeChallenges, challenge],
+          activeChallenges: [...activeChallenges, challengeWithProgress],
         });
 
         get().saveGame();

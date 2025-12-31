@@ -16,11 +16,11 @@ export const coachEvents: StoryEvent[] = [
     prerequisites: {},
     skippable: false,
     description: 'A local tennis coach has taken interest in your development.',
-    dialogue: `Coach Gonzalez: "I've been watching you play. You have raw talent, but you need guidance to reach your full potential. Let me help you develop your game properly."`,
+    dialogue: [['coach_gonzalez', 'I\'ve been watching you play. You have raw talent, but you need guidance to reach your full potential. Let me help you develop your game properly.']],
     characters: ['coach_gonzalez'],
     options: [],
     defaultOutcome: {
-      resultText: 'You spend an hour with Coach Gonzalez discussing your goals and tennis philosophy. He shares valuable insights about the mental side of the game and proper training techniques.',
+      resultText: ['You spend an hour with ', { characterId: 'coach_gonzalez' }, ' discussing your goals and tennis philosophy. He shares valuable insights about the mental side of the game and proper training techniques.'],
       effects: {
         statBoosts: { focus: 2, anticipation: 1 },
         moodChange: 15,
@@ -99,7 +99,7 @@ export const coachEvents: StoryEvent[] = [
     },
     skippable: true,
     description: 'Coach Gonzalez wants to know what aspect of your game to prioritize in training.',
-    dialogue: `Coach Gonzalez: "Everyone has different strengths and weaknesses. Tell me - what do you want to focus on developing? We'll build a training program around your choice."`,
+    dialogue: [['coach_gonzalez', 'Everyone has different strengths and weaknesses. Tell me - what do you want to focus on developing? We\'ll build a training program around your choice.']],
     characters: ['coach_gonzalez'],
     options: [
       {
@@ -108,7 +108,7 @@ export const coachEvents: StoryEvent[] = [
         emoji: '🚀',
         description: 'Focus on developing a dominant serve',
         outcome: {
-          resultText: 'You spend intensive sessions working on serve technique. Coach Gonzalez helps you generate more power while maintaining accuracy. Your serve becomes a real weapon.',
+          resultText: ['You spend intensive sessions working on serve technique. ', { characterId: 'coach_gonzalez' }, ' helps you generate more power while maintaining accuracy. Your serve becomes a real weapon.'],
           effects: {
             statBoosts: { serve: 5, strength: 3 },
             moodChange: 10,
@@ -155,7 +155,7 @@ export const coachEvents: StoryEvent[] = [
         emoji: '🎯',
         description: 'Improve groundstrokes and consistency',
         outcome: {
-          resultText: 'You work tirelessly on groundstroke mechanics. Coach Gonzalez refines your technique on both wings. Your forehand and backhand both show marked improvement.',
+          resultText: ['You work tirelessly on groundstroke mechanics. ', { characterId: 'coach_gonzalez' }, ' refines your technique on both wings. Your forehand and backhand both show marked improvement.'],
           effects: {
             statBoosts: { forehand: 4, backhand: 4, defensive: 2 },
             moodChange: 10,
@@ -209,7 +209,7 @@ export const coachEvents: StoryEvent[] = [
         emoji: '🧠',
         description: 'Develop focus and competitive mindset',
         outcome: {
-          resultText: 'Coach Gonzalez introduces you to sports psychology techniques. You learn breathing exercises, visualization methods, and how to stay focused under pressure. The mental game is just as important as the physical.',
+          resultText: [{ characterId: 'coach_gonzalez' }, ' introduces you to sports psychology techniques. You learn breathing exercises, visualization methods, and how to stay focused under pressure. The mental game is just as important as the physical.'],
           effects: {
             statBoosts: { focus: 5, anticipation: 3, offensive: 2 },
             moodChange: 15,
@@ -270,7 +270,7 @@ export const coachEvents: StoryEvent[] = [
     },
     skippable: true,
     description: 'Coach Gonzalez emphasizes the importance of developing all aspects of your game.',
-    dialogue: `Coach Gonzalez: "You're making good progress, but a truly great player needs balance. You can specialize, but you can't have glaring weaknesses. Let's work on rounding out your game."`,
+    dialogue: [['coach_gonzalez', 'You\'re making good progress, but a truly great player needs balance. You can specialize, but you can\'t have glaring weaknesses. Let\'s work on rounding out your game.']],
     characters: ['coach_gonzalez'],
     options: [
       {
@@ -279,7 +279,7 @@ export const coachEvents: StoryEvent[] = [
         emoji: '⚖️',
         description: 'Work on becoming equally strong on both wings',
         outcome: {
-          resultText: 'You dedicate equal time to both forehand and backhand. Coach Gonzalez helps you build consistency across both shots, eliminating the predictability of having a weaker side.',
+          resultText: ['You dedicate equal time to both forehand and backhand. ', { characterId: 'coach_gonzalez' }, ' helps you build consistency across both shots, eliminating the predictability of having a weaker side.'],
           effects: {
             statBoosts: { forehand: 3, backhand: 3, shotVariety: 2 },
             moodChange: 10,
@@ -331,7 +331,7 @@ export const coachEvents: StoryEvent[] = [
         emoji: '💪',
         description: 'Build your physical conditioning',
         outcome: {
-          resultText: 'Coach Gonzalez introduces you to a strength and conditioning program. You work on explosive speed, endurance, and recovery. Your body starts to feel like a finely-tuned machine.',
+          resultText: [{ characterId: 'coach_gonzalez' }, ' introduces you to a strength and conditioning program. You work on explosive speed, endurance, and recovery. Your body starts to feel like a finely-tuned machine.'],
           effects: {
             statBoosts: { speed: 4, stamina: 4, agility: 2 },
             moodChange: 10,
