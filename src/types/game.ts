@@ -225,18 +225,56 @@ export interface TrainingResult extends Activity {
   moodChange: number;  // Mood change from training
 }
 
+// ============================================================================
+// MATCH REWARDS SYSTEM
+// ============================================================================
+
+export type OpponentTier = 1 | 2 | 3 | 4;
+
+export type PerformanceLevel = 'excellent' | 'good' | 'average' | 'bad';
+
+export interface PerformanceRewardBreakdown {
+  servingScore: number;
+  returningScore: number;
+  rallyScore: number;
+  netPlayScore: number;
+  mentalScore: number;
+  overallScore: number;
+
+  rewardedCategories: {
+    serving?: StatBoosts;
+    returning?: StatBoosts;
+    rallying?: StatBoosts;
+    netPlay?: StatBoosts;
+    mental?: StatBoosts;
+  };
+}
+
+export interface MatchReward {
+  statBoosts: StatBoosts;
+  moodChange: number;
+  energyChange?: number;
+  experience: number;
+  abilitiesGained?: Ability[];
+  itemsGained?: Item[];
+  performanceBreakdown: PerformanceRewardBreakdown;
+}
+
 export interface MatchResult extends Activity {
   type: 'match';
   source: 'match_activity';
   opponent: string;
+  opponentTier?: OpponentTier;
   result: 'win' | 'loss' | 'draw';
   score: string;
   duration: number;
   courtSurface: 'hard' | 'clay' | 'grass' | 'carpet';
-  statChanges: Record<string, number>;
+  statChanges: StatBoosts;
   experienceGained: number;
   matchType: 'friendly' | 'tournament' | 'league';
   highlights: string[];
+  reward?: MatchReward;
+  tierUnlocked?: OpponentTier | null;
 }
 
 export interface RestResult extends Activity {

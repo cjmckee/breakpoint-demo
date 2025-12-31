@@ -15,9 +15,11 @@ import {
   ActivityResult,
   CurrentStatus,
   TimeSlot,
+  OpponentTier,
 } from '../types/game';
 import type { StoryEvent, StoryEventTag, StoryEventOption } from '../types/storyEvents';
 import type { Challenge } from '../types/challenges';
+import type { MatchStatistics } from '../types/index';
 import { PlayerManager } from '../game/PlayerManager';
 import { TrainingSystem } from '../game/TrainingSystem';
 import { TimeManager } from '../game/TimeManager';
@@ -25,6 +27,7 @@ import { SaveManager } from '../game/SaveManager';
 import { StoryEventManager } from '../game/StoryEventManager';
 import { PrerequisiteChecker } from '../game/PrerequisiteChecker';
 import { ChallengeManager } from '../game/ChallengeManager';
+import { MatchRewardSystem } from '../game/MatchRewardSystem';
 
 interface GameState {
   // Player data
@@ -53,6 +56,9 @@ interface GameState {
   activeChallenges: Challenge[];
   completedChallenges: string[];
 
+  // Opponent tier progression
+  unlockedTiers: OpponentTier[];
+
   // UI state
   isInitialized: boolean;
   currentScreen: 'welcome' | 'player-creation' | 'main-menu' | 'training' | 'match' | 'rest';
@@ -67,7 +73,15 @@ interface GameState {
   advanceTime: () => void;
   rest: () => void;
   updateMood: (change: number) => void;
-  addMatchResult: (result: 'win' | 'loss', opponent: string, score: string, surface: string) => void;
+  addMatchResult: (
+    result: 'win' | 'loss',
+    opponent: string,
+    opponentTier: OpponentTier,
+    score: string,
+    surface: string,
+    matchStatistics: MatchStatistics
+  ) => void;
+  unlockNextTier: () => OpponentTier | null;
   saveGame: (saveName?: string) => void;
   loadGame: (saveId: string) => void;
   resetGame: () => void;
@@ -123,6 +137,9 @@ export const useGameStore = create<GameState>()(
       // Challenge initial state
       activeChallenges: [],
       completedChallenges: [],
+
+      // Opponent tier progression initial state
+      unlockedTiers: [1],  // Start with only tier 1 unlocked
 
       isInitialized: false,
       currentScreen: 'welcome',
@@ -361,83 +378,115 @@ export const useGameStore = create<GameState>()(
         });
       },
 
-      // Add match result to activity history
-      addMatchResult: (result: 'win' | 'loss', opponent: string, score: string, surface: string) => {
-        const { player, calendar, activityHistory, currentStatus } = get();
+      // Add match result to activity history with rewards
+      addMatchResult: (
+        result: 'win' | 'loss',
+        opponent: string,
+        opponentTier: OpponentTier,
+        score: string,
+        surface: string,
+        matchStatistics: MatchStatistics
+      ) => {
+        const { player, currentStatus } = get();
         if (!player) return;
 
-        // Calculate experience and stat gains
-        const experienceGained = result === 'win' ? 50 : 25;
-        const statChanges: Record<string, number> = {};
+        const isWin = result === 'win';
 
-        // Award small stat gains for match experience
-        if (result === 'win') {
-          statChanges.matchExperience = 3;
-          statChanges.focus = 1;
-          statChanges.anticipation = 1;
-        } else {
-          statChanges.matchExperience = 1;
+        // Calculate rewards directly from match statistics
+        const rewards = MatchRewardSystem.calculateRewards(
+          matchStatistics,
+          opponentTier,
+          isWin
+        );
+
+        // Apply stat boosts
+        let updatedPlayer = PlayerManager.applyStatBoosts(player, rewards.statBoosts);
+
+        // Apply abilities
+        if (rewards.abilitiesGained && rewards.abilitiesGained.length > 0) {
+          for (const ability of rewards.abilitiesGained) {
+            updatedPlayer = PlayerManager.addAbility(updatedPlayer, ability);
+          }
         }
 
-        // Create match activity result
-        const matchResult: ActivityResult = {
+        // Apply items (if item system exists)
+        // TODO: Implement item application when item system is ready
+        // if (rewards.itemsGained && rewards.itemsGained.length > 0) {
+        //   updatedPlayer.items = [...(updatedPlayer.items || []), ...rewards.itemsGained];
+        // }
+
+        // Update match counts
+        updatedPlayer.matchesPlayed = (updatedPlayer.matchesPlayed || 0) + 1;
+        if (isWin) {
+          updatedPlayer.matchesWon = (updatedPlayer.matchesWon || 0) + 1;
+        }
+
+        // Update energy (deduct match cost)
+        const newEnergy = Math.max(0, currentStatus.energy - 30);
+
+        // Update mood from rewards
+        const newMood = Math.max(-100, Math.min(100, currentStatus.mood + rewards.moodChange));
+
+        // Check for tier unlock (only on win)
+        let tierUnlocked: OpponentTier | null = null;
+        if (isWin) {
+          tierUnlocked = get().unlockNextTier();
+        }
+
+        // Create match activity result with rewards
+        const matchActivity: ActivityResult = {
           id: `match-${Date.now()}`,
           type: 'match',
           source: 'match_activity',
           timestamp: new Date().toISOString(),
           timeSlotsUsed: 1,
           energyCost: 30,
-          moodResult: result === 'win' ? 15 : -10,
+          moodResult: rewards.moodChange,
           opponent,
-          result,
+          opponentTier,
+          result: isWin ? 'win' : 'loss',
           score,
-          duration: 60, // TODO: Calculate actual duration
+          duration: 60, // Matches are approximately 60 minutes
           courtSurface: surface as 'hard' | 'clay' | 'grass' | 'carpet',
-          statChanges,
-          experienceGained,
+          statChanges: rewards.statBoosts,
+          experienceGained: rewards.experience,
           matchType: 'friendly',
           highlights: [], // TODO: Add highlights from key moments
+          reward: rewards,
+          tierUnlocked,
         };
-
-        // Update player stats and match history
-        const updatedPlayer = { ...player };
-        Object.entries(statChanges).forEach(([stat, value]) => {
-          if (stat in updatedPlayer.stats) {
-            (updatedPlayer.stats as any)[stat] += value;
-          }
-        });
-
-        // Update match counts
-        updatedPlayer.matchesPlayed = (updatedPlayer.matchesPlayed || 0) + 1;
-        if (result === 'win') {
-          updatedPlayer.matchesWon = (updatedPlayer.matchesWon || 0) + 1;
-        }
-
-        // Deduct energy cost
-        const newEnergy = Math.max(0, currentStatus.energy - 30);
-
-        // Update mood based on result
-        const moodChange = result === 'win' ? 15 : -10;
-        const newMood = Math.max(-100, Math.min(100, currentStatus.mood + moodChange));
 
         set({
           player: updatedPlayer,
-          activityHistory: [matchResult, ...activityHistory].slice(0, 50),
           currentStatus: {
-            ...currentStatus,
             energy: newEnergy,
             mood: newMood,
-            lastActivity: matchResult,
+            lastActivity: matchActivity,
           },
+          activityHistory: [matchActivity, ...get().activityHistory].slice(0, 50),
         });
 
-        // Check for challenge completion after match
+        // Check for challenge completion after stat changes
         get().checkChallengeCompletion();
 
-        // Explicitly save to ensure persistence
-        console.log('Match result added to history:', matchResult);
-        console.log('New activity history length:', [matchResult, ...activityHistory].length);
+        // Auto-save
+        console.log('Match result added with rewards:', matchActivity);
         get().saveGame();
+      },
+
+      // Unlock next tier (only if winning against current max unlocked tier)
+      unlockNextTier: () => {
+        const { unlockedTiers } = get();
+        const maxUnlocked = Math.max(...unlockedTiers);
+        const nextTier = (maxUnlocked + 1) as OpponentTier;
+
+        if (nextTier <= 4 && !unlockedTiers.includes(nextTier)) {
+          set({
+            unlockedTiers: [...unlockedTiers, nextTier].sort() as OpponentTier[],
+          });
+          return nextTier;
+        }
+        return null;
       },
 
       // Save game
@@ -966,6 +1015,9 @@ export const useGameStore = create<GameState>()(
         // Challenge persistence
         activeChallenges: state.activeChallenges,
         completedChallenges: state.completedChallenges,
+
+        // Opponent tier progression
+        unlockedTiers: state.unlockedTiers,
       }),
     }
   )

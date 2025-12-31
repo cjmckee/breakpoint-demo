@@ -8,14 +8,14 @@ import { useGameStore } from '../stores/gameStore';
 import { useMatchStore } from '../stores/matchStore';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
-import { PlayerStats } from '../types/game';
+import { PlayerStats, OpponentTier } from '../types/game';
 
 type CourtSurface = 'hard' | 'clay' | 'grass' | 'carpet';
 
 interface OpponentPreset {
   name: string;
   description: string;
-  difficulty: 'easy' | 'medium' | 'hard' | 'expert';
+  tier: OpponentTier;
   stats: Partial<PlayerStats>;
 }
 
@@ -23,7 +23,7 @@ const OPPONENT_PRESETS: OpponentPreset[] = [
   {
     name: 'Club Player',
     description: 'Local club player, great for practice',
-    difficulty: 'easy',
+    tier: 1,
     stats: {
       technical: {
         serve: 30,
@@ -56,7 +56,7 @@ const OPPONENT_PRESETS: OpponentPreset[] = [
   {
     name: 'Regional Competitor',
     description: 'Strong regional player with solid fundamentals',
-    difficulty: 'medium',
+    tier: 2,
     stats: {
       technical: {
         serve: 50,
@@ -89,7 +89,7 @@ const OPPONENT_PRESETS: OpponentPreset[] = [
   {
     name: 'Tour Professional',
     description: 'Professional tour player, very challenging',
-    difficulty: 'hard',
+    tier: 3,
     stats: {
       technical: {
         serve: 70,
@@ -120,9 +120,9 @@ const OPPONENT_PRESETS: OpponentPreset[] = [
     },
   },
   {
-    name: 'World Champion',
-    description: 'Elite champion, ultimate challenge',
-    difficulty: 'expert',
+    name: 'Retired World Champion',
+    description: 'Elite champion, ultimate challenge. He\'s a little old.',
+    tier: 4,
     stats: {
       technical: {
         serve: 90,
@@ -157,6 +157,7 @@ const OPPONENT_PRESETS: OpponentPreset[] = [
 export const MatchSetup: React.FC = () => {
   const player = useGameStore((state) => state.player);
   const currentStatus = useGameStore((state) => state.currentStatus);
+  const unlockedTiers = useGameStore((state) => state.unlockedTiers || [1]);
   const setScreen = useGameStore((state) => state.setScreen);
   const startMatch = useMatchStore((state) => state.startMatch);
 
@@ -175,6 +176,8 @@ export const MatchSetup: React.FC = () => {
       playerStats: player.stats,
       playerAbilities: player.abilities, // Pass player abilities to apply during match
       opponentStats: selectedOpponent.stats as PlayerStats,
+      opponentName: selectedOpponent.name,
+      opponentTier: selectedOpponent.tier,
       surface: selectedSurface,
       mood: currentStatus.mood,
       energy: currentStatus.energy,
@@ -189,20 +192,34 @@ export const MatchSetup: React.FC = () => {
 
   const matchEnergyCost = 30;
   const canAfford = currentStatus.energy >= matchEnergyCost;
+  const canPlayMatch = canAfford && unlockedTiers.includes(selectedOpponent.tier);
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'easy':
+  const getTierColor = (tier: OpponentTier) => {
+    switch (tier) {
+      case 1:
         return 'border-green-500 bg-green-500 bg-opacity-10';
-      case 'medium':
+      case 2:
         return 'border-yellow-500 bg-yellow-500 bg-opacity-10';
-      case 'hard':
+      case 3:
         return 'border-orange-500 bg-orange-500 bg-opacity-10';
-      case 'expert':
+      case 4:
         return 'border-red-500 bg-red-500 bg-opacity-10';
       default:
         return 'border-pixel-border';
     }
+  };
+
+  const getTierLabel = (tier: OpponentTier): string => {
+    switch (tier) {
+      case 1: return 'Club';
+      case 2: return 'Regional';
+      case 3: return 'Professional';
+      case 4: return 'Tournament Champion';
+    }
+  };
+
+  const isOpponentUnlocked = (tier: OpponentTier): boolean => {
+    return unlockedTiers.includes(tier);
   };
 
   const getSurfaceEmoji = (surface: CourtSurface) => {
@@ -255,53 +272,67 @@ export const MatchSetup: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {OPPONENT_PRESETS.map((opponent) => {
                 const isSelected = selectedOpponent.name === opponent.name;
+                const isUnlocked = isOpponentUnlocked(opponent.tier);
                 return (
                   <button
                     key={opponent.name}
-                    onClick={() => setSelectedOpponent(opponent)}
-                    className={`p-4 border-4 text-left transition-all ${
-                      isSelected
+                    onClick={() => isUnlocked && setSelectedOpponent(opponent)}
+                    disabled={!isUnlocked}
+                    className={`p-4 border-4 text-left transition-all relative ${
+                      !isUnlocked
+                        ? 'opacity-50 cursor-not-allowed border-pixel-border bg-pixel-bg'
+                        : isSelected
                         ? 'border-pixel-accent bg-pixel-accent bg-opacity-20'
-                        : getDifficultyColor(opponent.difficulty)
-                    } hover:scale-105`}
+                        : getTierColor(opponent.tier)
+                    } ${isUnlocked && 'hover:scale-105'}`}
                   >
+                    {!isUnlocked && (
+                      <div className="absolute top-2 right-2 text-3xl">
+                        🔒
+                      </div>
+                    )}
                     <div className="flex justify-between items-start mb-2">
                       <h4 className="text-lg font-bold text-pixel-text">
                         {opponent.name}
                       </h4>
                       <span className="text-xs px-2 py-1 bg-pixel-bg border-2 border-pixel-border text-pixel-text uppercase">
-                        {opponent.difficulty}
+                        {getTierLabel(opponent.tier)}
                       </span>
                     </div>
                     <p className="text-sm text-pixel-text-muted mb-3">
-                      {opponent.description}
+                      {isUnlocked
+                        ? opponent.description
+                        : `Beat ${OPPONENT_PRESETS[opponent.tier - 2]?.name || 'previous tier'} to unlock!`
+                      }
                     </p>
-                    <div className="grid grid-cols-4 gap-2 text-xs">
-                      <div>
-                        <div className="text-pixel-text-muted">Serve</div>
-                        <div className="font-bold text-pixel-text">
-                          {opponent.stats.technical?.serve}
+                    {isUnlocked && (
+                      <div className="grid grid-cols-4 gap-2 text-xs">
+                        <div>
+                          <div className="text-pixel-text-muted">Serve</div>
+                          <div className="font-bold text-pixel-text">
+                            {opponent.stats.technical?.serve}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-pixel-text-muted">Forehand</div>
+                          <div className="font-bold text-pixel-text">
+                            {opponent.stats.technical?.forehand}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-pixel-text-muted">Speed</div>
+                          <div className="font-bold text-pixel-text">
+                            {opponent.stats.physical?.speed}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-pixel-text-muted">Focus</div>
+                          <div className="font-bold text-pixel-text">
+                            {opponent.stats.mental?.focus}
+                          </div>
                         </div>
                       </div>
-                      <div>
-                        <div className="text-pixel-text-muted">Forehand</div>
-                        <div className="font-bold text-pixel-text">
-                          {opponent.stats.technical?.forehand}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-pixel-text-muted">Speed</div>
-                        <div className="font-bold text-pixel-text">
-                          {opponent.stats.physical?.speed}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-pixel-text-muted">Focus</div>
-                        <div className="font-bold text-pixel-text">
-                          {opponent.stats.mental?.focus}
-                        </div>
-                      </div>
-                    </div>
+                    )}
                   </button>
                 );
               })}
@@ -343,12 +374,14 @@ export const MatchSetup: React.FC = () => {
               size="lg"
               fullWidth
               onClick={handleStartMatch}
-              disabled={!canAfford}
+              disabled={!canPlayMatch}
             >
-              {canAfford ? (
-                <>🎾 Start Match vs {selectedOpponent.name}</>
-              ) : (
+              {!isOpponentUnlocked(selectedOpponent.tier) ? (
+                <>🔒 Opponent Locked</>
+              ) : !canAfford ? (
                 <>Not Enough Energy (Need {matchEnergyCost})</>
+              ) : (
+                <>🎾 Start Match vs {selectedOpponent.name}</>
               )}
             </Button>
           </div>

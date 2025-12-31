@@ -79,6 +79,8 @@ export interface MatchScore {
 export interface InteractiveMatchConfig {
   playerStats: any; // PlayerProfile from core
   opponentStats: any; // PlayerProfile from core
+  opponentName?: string; // Opponent's display name
+  opponentTier?: number; // Opponent tier (1-4) for reward calculation
   playerAbilities?: Ability[]; // Player abilities to apply during match
   surface: 'hard' | 'clay' | 'grass' | 'carpet';
 
