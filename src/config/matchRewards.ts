@@ -6,6 +6,7 @@
  */
 
 import type { StatBoosts } from '../types/game';
+import { AbilityRarity } from '../types/game';
 
 // ============================================================================
 // OPPONENT TIER TYPE
@@ -74,16 +75,31 @@ export const CATEGORY_STAT_BOOSTS: Record<string, Record<PerformanceLevel, StatB
 // ============================================================================
 // ABILITY DROP RATES (% chance per rarity)
 // ============================================================================
-export const ABILITY_DROP_RATES: Record<OpponentTier, {
-  common: number;
-  uncommon: number;
-  rare: number;
-  legendary: number;
-}> = {
-  1: { common: 5, uncommon: 0, rare: 0, legendary: 0 },
-  2: { common: 10, uncommon: 3, rare: 0, legendary: 0 },
-  3: { common: 15, uncommon: 8, rare: 2, legendary: 0 },
-  4: { common: 20, uncommon: 12, rare: 5, legendary: 1 },
+export const ABILITY_DROP_RATES: Record<OpponentTier, Record<AbilityRarity, number>> = {
+  1: {
+    [AbilityRarity.COMMON]: 5,
+    [AbilityRarity.UNCOMMON]: 0,
+    [AbilityRarity.RARE]: 0,
+    [AbilityRarity.LEGENDARY]: 0
+  },
+  2: {
+    [AbilityRarity.COMMON]: 10,
+    [AbilityRarity.UNCOMMON]: 3,
+    [AbilityRarity.RARE]: 0,
+    [AbilityRarity.LEGENDARY]: 0
+  },
+  3: {
+    [AbilityRarity.COMMON]: 15,
+    [AbilityRarity.UNCOMMON]: 8,
+    [AbilityRarity.RARE]: 2,
+    [AbilityRarity.LEGENDARY]: 0
+  },
+  4: {
+    [AbilityRarity.COMMON]: 20,
+    [AbilityRarity.UNCOMMON]: 12,
+    [AbilityRarity.RARE]: 5,
+    [AbilityRarity.LEGENDARY]: 1
+  },
 };
 
 // ============================================================================

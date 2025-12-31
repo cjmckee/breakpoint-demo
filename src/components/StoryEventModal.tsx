@@ -28,11 +28,12 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
   const [currentDialogueIndex, setCurrentDialogueIndex] = useState<number>(0);
 
   const isLinearEvent = event.options.length === 0;
-  const hasDialogue = event.dialogue && event.dialogue.length > 0;
-  const allDialogueShown = !hasDialogue || currentDialogueIndex >= event.dialogue.length - 1;
+  const {dialogue} = event;
+  const hasDialogue = dialogue && dialogue.length > 0;
+  const allDialogueShown = !hasDialogue || currentDialogueIndex >= dialogue.length - 1;
 
   const handleContinueDialogue = () => {
-    if (hasDialogue && currentDialogueIndex < event.dialogue!.length) {
+    if (hasDialogue && currentDialogueIndex < dialogue!.length) {
       setCurrentDialogueIndex(currentDialogueIndex + 1);
     }
   };
@@ -69,10 +70,10 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
       </div>
 
       {/* Dialogue */}
-      {hasDialogue && currentDialogueIndex < event.dialogue!.length && (
+      {hasDialogue && currentDialogueIndex < dialogue!.length && (
         <div className="bg-gray-700 text-white p-4 rounded mb-6 border-l-4 border-blue-500">
           {(() => {
-            const [characterId, text] = event.dialogue![currentDialogueIndex];
+            const [characterId, text] = dialogue![currentDialogueIndex];
             const characterName = getCharacterName(characterId);
 
             return (
@@ -86,9 +87,9 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
               </>
             );
           })()}
-          {currentDialogueIndex < event.dialogue!.length - 1 && (
+          {currentDialogueIndex < dialogue!.length - 1 && (
             <div className="text-xs text-gray-400 mt-2">
-              ({currentDialogueIndex + 1} / {event.dialogue!.length})
+              ({currentDialogueIndex + 1} / {dialogue!.length})
             </div>
           )}
         </div>

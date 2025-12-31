@@ -6,7 +6,9 @@
  */
 
 import type { MatchStatistics } from '../types/index';
-import type { MatchReward, PerformanceRewardBreakdown, StatBoosts, Ability, Item } from '../types/game';
+import type { MatchReward, PerformanceRewardBreakdown, StatBoosts, Ability } from '../types/game';
+import type { Item } from '../types/items';
+import { AbilityRarity } from '../types/game';
 import type { OpponentTier, PerformanceLevel } from '../config/matchRewards';
 import {
   TIER_REWARD_MULTIPLIERS,
@@ -354,7 +356,7 @@ export class MatchRewardSystem {
     // Roll for each rarity tier
     for (const [rarity, rate] of Object.entries(dropRates)) {
       if (rate > 0 && Math.random() * 100 < rate) {
-        const ability = AbilitySystem.getRandomAbilityByRarity(rarity as 'common' | 'uncommon' | 'rare' | 'legendary');
+        const ability = AbilitySystem.getRandomAbilityByRarity(rarity as AbilityRarity);
         if (ability) {
           abilities.push(ability);
         }

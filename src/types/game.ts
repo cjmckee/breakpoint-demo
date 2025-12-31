@@ -3,9 +3,9 @@
  * Ported from ai-slop-gaming and adapted for ai-slop-tennis
  */
 
-import type { PlayerStats } from './index.js';
-import type { StoryEventResult } from './storyEvents.js';
-import type { Item } from './items.js';
+import type { PlayerStats } from './index';
+import type { StoryEventResult } from './storyEvents';
+import type { Item } from './items';
 
 export type { PlayerStats };
 
@@ -40,7 +40,12 @@ export interface StatBoosts {
 // ABILITIES SYSTEM
 // ============================================================================
 
-export type AbilityRarity = 'common' | 'uncommon' | 'rare' | 'legendary';
+export enum AbilityRarity {
+  COMMON = 'common',
+  UNCOMMON = 'uncommon',
+  RARE = 'rare',
+  LEGENDARY = 'legendary',
+}
 
 export interface Ability {
   name: string;

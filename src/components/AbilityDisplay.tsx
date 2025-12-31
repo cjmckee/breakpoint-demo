@@ -4,16 +4,17 @@
  */
 
 import React, { useState, useCallback, useMemo } from 'react';
-import type { Ability, AbilityRarity } from '../types/game';
+import type { Ability } from '../types/game';
+import { AbilityRarity } from '../types/game';
 
 interface AbilityDisplayProps {
   abilities: Ability[];
 }
 
 // Get rarity-specific styling
-const getRarityStyle = (rarity: AbilityRarity = 'common') => {
+const getRarityStyle = (rarity: AbilityRarity = AbilityRarity.COMMON) => {
   switch (rarity) {
-    case 'legendary':
+    case AbilityRarity.LEGENDARY:
       return {
         borderColor: 'border-orange-500',
         bgColor: 'bg-gradient-to-br from-orange-100 to-orange-200',
@@ -23,7 +24,7 @@ const getRarityStyle = (rarity: AbilityRarity = 'common') => {
         animation: 'animate-pixel-glow',
         hoverEffect: 'hover:shadow-xl hover:shadow-orange-500/40 hover:scale-[1.3] hover:z-50',
       };
-    case 'rare':
+    case AbilityRarity.RARE:
       return {
         borderColor: 'border-purple-500',
         bgColor: 'bg-gradient-to-br from-purple-100 to-purple-200',
@@ -33,7 +34,7 @@ const getRarityStyle = (rarity: AbilityRarity = 'common') => {
         animation: '',
         hoverEffect: 'hover:shadow-lg hover:shadow-purple-500/35 hover:scale-105 hover:z-50',
       };
-    case 'uncommon':
+    case AbilityRarity.UNCOMMON:
       return {
         borderColor: 'border-green-500',
         bgColor: 'bg-gradient-to-br from-green-100 to-green-200',
@@ -57,13 +58,13 @@ const getRarityStyle = (rarity: AbilityRarity = 'common') => {
 };
 
 // Get rarity label for display
-const getRarityLabel = (rarity: AbilityRarity = 'common') => {
+const getRarityLabel = (rarity: AbilityRarity = AbilityRarity.COMMON) => {
   switch (rarity) {
-    case 'legendary':
+    case AbilityRarity.LEGENDARY:
       return 'Legendary';
-    case 'rare':
+    case AbilityRarity.RARE:
       return 'Rare';
-    case 'uncommon':
+    case AbilityRarity.UNCOMMON:
       return 'Uncommon';
     default:
       return 'Common';
@@ -127,11 +128,11 @@ export const AbilityDisplay: React.FC<AbilityDisplayProps> = ({ abilities }) => 
               bg-pixel-primary/95 backdrop-blur-sm border-4 p-6 max-w-lg pointer-events-auto animate-pixel-scale shadow-xl
               rounded-lg
               ${
-                hoveredAbility.rarity === 'legendary'
+                hoveredAbility.rarity === AbilityRarity.LEGENDARY
                   ? 'border-orange-500'
-                  : hoveredAbility.rarity === 'rare'
+                  : hoveredAbility.rarity === AbilityRarity.RARE
                     ? 'border-purple-500'
-                    : hoveredAbility.rarity === 'uncommon'
+                    : hoveredAbility.rarity === AbilityRarity.UNCOMMON
                       ? 'border-green-500'
                       : 'border-blue-500'
               }
@@ -145,11 +146,11 @@ export const AbilityDisplay: React.FC<AbilityDisplayProps> = ({ abilities }) => 
                 className={`text-xs px-2 py-1 rounded text-white font-bold`}
                 style={{
                   backgroundColor:
-                    hoveredAbility.rarity === 'legendary'
+                    hoveredAbility.rarity === AbilityRarity.LEGENDARY
                       ? '#ea580c'
-                      : hoveredAbility.rarity === 'rare'
+                      : hoveredAbility.rarity === AbilityRarity.RARE
                         ? '#a855f7'
-                        : hoveredAbility.rarity === 'uncommon'
+                        : hoveredAbility.rarity === AbilityRarity.UNCOMMON
                           ? '#22c55e'
                           : '#3b82f6',
                 }}

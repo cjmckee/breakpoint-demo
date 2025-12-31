@@ -18,7 +18,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
   [AbilityName.BASELINER]: {
     name: AbilityName.BASELINER,
     level: 1,
-    rarity: 'common',
+    rarity: AbilityRarity.COMMON,
     modifiers: {
       statBoosts: {
         forehand: 3,
@@ -37,7 +37,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
   [AbilityName.NETCRASHER]: {
     name: AbilityName.NETCRASHER,
     level: 1,
-    rarity: 'common',
+    rarity: AbilityRarity.COMMON,
     modifiers: {
       statBoosts: {
         serve: 3,
@@ -53,7 +53,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
   [AbilityName.SLIDER]: {
     name: AbilityName.SLIDER,
     level: 1,
-    rarity: 'common',
+    rarity: AbilityRarity.COMMON,
     modifiers: {
       statBoosts: {
         speed: 3,
@@ -71,7 +71,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
   [AbilityName.CLUTCH]: {
     name: AbilityName.CLUTCH,
     level: 1,
-    rarity: 'common',
+    rarity: AbilityRarity.COMMON,
     modifiers: {
       statBoosts: {
         focus: 3,
@@ -88,7 +88,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
   [AbilityName.HEAVY_HITTER]: {
     name: AbilityName.HEAVY_HITTER,
     level: 1,
-    rarity: 'common',
+    rarity: AbilityRarity.COMMON,
     modifiers: {
       statBoosts: {
         forehand: 3,
@@ -107,7 +107,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
   [AbilityName.OVERHEAD_SMASH]: {
     name: AbilityName.OVERHEAD_SMASH,
     level: 1,
-    rarity: 'common',
+    rarity: AbilityRarity.COMMON,
     modifiers: {
       statBoosts: {
         overhead: 5,
@@ -126,7 +126,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
   [AbilityName.RANGY_RETURN]: {
     name: AbilityName.RANGY_RETURN,
     level: 1,
-    rarity: 'common',
+    rarity: AbilityRarity.COMMON,
     modifiers: {
       statBoosts: {
         return: 5,
@@ -145,7 +145,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
   [AbilityName.SPIN_MASTER]: {
     name: AbilityName.SPIN_MASTER,
     level: 1,
-    rarity: 'common',
+    rarity: AbilityRarity.COMMON,
     modifiers: {
       statBoosts: {
         spin: 5,
@@ -164,7 +164,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
   [AbilityName.NATIONAL_ICON]: {
     name: AbilityName.NATIONAL_ICON,
     level: 1,
-    rarity: 'common',
+    rarity: AbilityRarity.COMMON,
     modifiers: {
       statBoosts: {
         focus: 4,
@@ -185,7 +185,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
   [AbilityName.SPEED_DEMON]: {
     name: AbilityName.SPEED_DEMON,
     level: 1,
-    rarity: 'uncommon',
+    rarity: AbilityRarity.UNCOMMON,
     modifiers: {
       statBoosts: {
         speed: 5,
@@ -207,7 +207,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
   [AbilityName.MENTAL_FORTITUDE]: {
     name: AbilityName.MENTAL_FORTITUDE,
     level: 1,
-    rarity: 'rare',
+    rarity: AbilityRarity.RARE,
     modifiers: {
       statBoosts: {
         focus: 8,
@@ -230,7 +230,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
   [AbilityName.LEGENDARY_FOCUS]: {
     name: AbilityName.LEGENDARY_FOCUS,
     level: 1,
-    rarity: 'legendary',
+    rarity: AbilityRarity.LEGENDARY,
     modifiers: {
       statBoosts: {
         focus: 10,
@@ -303,6 +303,20 @@ export class AbilitySystem {
     return Object.values(ABILITY_DEFINITIONS).filter(
       ability => ability.rarity === rarity
     );
+  }
+
+  /**
+   * Get a random ability of a specific rarity
+   */
+  static getRandomAbilityByRarity(rarity: AbilityRarity): Ability | null {
+    const abilities = this.getAbilitiesByRarity(rarity);
+
+    if (abilities.length === 0) {
+      return null;
+    }
+
+    const randomIndex = Math.floor(Math.random() * abilities.length);
+    return abilities[randomIndex];
   }
 
   /**
