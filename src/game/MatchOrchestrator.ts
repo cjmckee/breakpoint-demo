@@ -19,7 +19,7 @@ import {
   MatchState as KeyMomentMatchState,
 } from '../types/keyMoments';
 import { PlayerStats, Ability } from '../types/game';
-import { MatchStatistics as IMatchStatistics, MatchState, PointResult } from '../types';
+import { MatchStatistics as IMatchStatistics, MatchState, PointResult, PointType } from '../types';
 import { AbilitySystem } from './AbilitySystem';
 
 export class MatchOrchestrator {
@@ -288,6 +288,150 @@ export class MatchOrchestrator {
   }
 
   /**
+   * Synthesize realistic shot sequence for a key moment point
+   * This ensures statistics match what a real simulated point would produce
+   */
+  private synthesizeRallyShots(
+    shotOutcome: { outcome: PointType; shotType: string; shooter: 'player' | 'opponent' },
+    pointWinner: 'player' | 'opponent',
+    currentServer: 'player' | 'opponent'
+  ): { shots: any[]; serveType: 'first' | 'second' } {
+    const shots: any[] = [];
+    const timestamp = Date.now();
+    let shotNumber = 1;
+    let serveType: 'first' | 'second' = 'first';
+
+    // Helper to create a shot detail
+    const createShot = (
+      shotType: string,
+      shooter: 'server' | 'returner',
+      success: boolean,
+      outcome: string,
+      quality: number = 70
+    ) => ({
+      shotType,
+      shooter,
+      success,
+      quality,
+      outcome,
+      statUsed: shotType.includes('serve') ? 'serve' :
+                shotType.includes('forehand') ? 'forehand' :
+                shotType.includes('backhand') ? 'backhand' : 'forehand',
+      modifiers: {
+        spinBonus: 0,
+        placementBonus: 0,
+        physicalModifier: 0,
+        mentalModifier: 0,
+        difficultyModifier: 0,
+        pressureModifier: 0,
+        rallyLengthModifier: 0,
+        finalAdjustment: 0,
+      },
+      timestamp: timestamp + shotNumber * 100,
+      shotNumber: shotNumber++,
+      context: {
+        difficulty: 'normal' as const,
+        pressure: 'high' as const,
+        courtPosition: 'baseline' as const,
+        rallyLength: shotNumber - 1,
+      },
+    });
+
+    // Determine winner in server/returner terms
+    const winnerRole = pointWinner === currentServer ? 'server' as const : 'returner' as const;
+
+    // Generate shots based on outcome type
+    switch (shotOutcome.outcome) {
+      case PointType.ACE:
+        // ACE: Just the serve
+        shots.push(createShot('serve_first', 'server', true, 'winner', 85));
+        serveType = 'first';
+        break;
+
+      case PointType.DOUBLE_FAULT:
+        // DOUBLE_FAULT: First serve fault, then second serve fault
+        shots.push(createShot('serve_first', 'server', false, 'error', 30));
+        shots.push(createShot('serve_second', 'server', false, 'error', 35));
+        serveType = 'second';
+        break;
+
+      case PointType.WINNER:
+        // WINNER: Serve + return + winner shot (3-5 shots)
+        // Serve (successful first serve)
+        shots.push(createShot('serve_first', 'server', true, 'in_play', 75));
+        serveType = 'first';
+
+        // Return
+        shots.push(createShot('return_forehand', 'returner', true, 'in_play', 65));
+
+        // 1-3 rally shots before winner
+        const rallyShots = 1 + Math.floor(Math.random() * 3); // 1-3 rally shots
+        for (let i = 0; i < rallyShots - 1; i++) {
+          const isServerShot = i % 2 === 0;
+          shots.push(createShot(
+            isServerShot ? 'forehand' : 'backhand',
+            isServerShot ? 'server' : 'returner',
+            true,
+            'in_play',
+            70
+          ));
+        }
+
+        // Final winner shot
+        shots.push(createShot(
+          shotOutcome.shotType,
+          winnerRole,
+          true,
+          'winner',
+          90
+        ));
+        break;
+
+      case PointType.FORCED_ERROR:
+      case PointType.UNFORCED_ERROR:
+        // ERROR: Serve + return + rally ending in error
+        // Serve (successful first serve)
+        shots.push(createShot('serve_first', 'server', true, 'in_play', 75));
+        serveType = 'first';
+
+        // Return
+        shots.push(createShot('return_forehand', 'returner', true, 'in_play', 65));
+
+        // 1-3 rally shots before error
+        const rallyErrorShots = 1 + Math.floor(Math.random() * 3);
+        for (let i = 0; i < rallyErrorShots - 1; i++) {
+          const isServerShot = i % 2 === 0;
+          shots.push(createShot(
+            isServerShot ? 'forehand' : 'backhand',
+            isServerShot ? 'server' : 'returner',
+            true,
+            'in_play',
+            70
+          ));
+        }
+
+        // Final error shot (loser makes the error)
+        const loserRole = pointWinner === currentServer ? 'returner' as const : 'server' as const;
+        shots.push(createShot(
+          shotOutcome.shotType,
+          loserRole,
+          false,
+          shotOutcome.outcome === PointType.FORCED_ERROR ? 'forced_error' : 'unforced_error',
+          40
+        ));
+        break;
+
+      default:
+        // Fallback: simple serve + rally
+        shots.push(createShot('serve_first', 'server', true, 'in_play', 75));
+        shots.push(createShot('forehand', winnerRole, true, 'winner', 80));
+        serveType = 'first';
+    }
+
+    return { shots, serveType };
+  }
+
+  /**
    * Create a PointResult from a key moment resolution
    */
   private createPointResultFromKeyMoment(
@@ -295,81 +439,43 @@ export class MatchOrchestrator {
     currentServer: 'player' | 'opponent'
   ): PointResult {
     const winner = keyMomentResult.pointWinner === currentServer ? 'server' as const : 'returner' as const;
+    const pointType = keyMomentResult.shotOutcome.outcome;
 
-    // Determine point type based on shotOutcome.outcome (not the resolution outcome)
-    const shotOutcomeType = keyMomentResult.shotOutcome.outcome;
-    let pointType: PointResult['pointType'] = 'winner'; // Default to winner for key moments
-    let serveType: 'first' | 'second' = 'first';
+    // Synthesize realistic shot sequence
+    const { shots, serveType } = this.synthesizeRallyShots(
+      keyMomentResult.shotOutcome,
+      keyMomentResult.pointWinner,
+      currentServer
+    );
 
-    if (shotOutcomeType === 'ace') {
-      pointType = 'ace';
-    } else if (shotOutcomeType === 'double_fault') {
-      pointType = 'double_fault';
-      serveType = 'second'; // Double fault means second serve failed
-    } else if (shotOutcomeType === 'winner' || shotOutcomeType === 'forced_error') {
-      pointType = 'winner';
-    } else if (shotOutcomeType === 'error' || shotOutcomeType === 'unforced_error') {
-      pointType = winner === 'returner' ? 'forced_error' : 'unforced_error';
-    }
+    // Calculate statistics from actual shots
+    const rallyLength = shots.length;
+    const winnerCount = shots.filter(s => s.outcome === PointType.ACE || s.outcome === PointType.WINNER).length;
+    const errorCount = shots.filter(s =>
+      s.outcome === PointType.FAULT ||
+      s.outcome === PointType.FORCED_ERROR ||
+      s.outcome === PointType.UNFORCED_ERROR
+    ).length;
+    const netApproaches = shots.filter(s => s.shotType.includes('volley')).length;
+    const rallyExchanges = Math.floor(rallyLength / 2);
 
-    // Determine serve shot type based on key moment shot type
-    const serveShotType = keyMomentResult.shotOutcome.shotType;
-    const isServe = serveShotType === 'serve' || serveShotType === 'serve_first' || serveShotType === 'serve_second';
+    // Estimate duration: 2-3 seconds per shot
+    const duration = Math.round(rallyLength * 2.5);
 
-    // Create synthetic shots array to ensure serve statistics are tracked
-    // This is needed because MatchStatistics.updateServiceStatistics checks the shots array
-    const shots: any[] = [];
-
-    if (isServe || pointType === 'ace' || pointType === 'double_fault') {
-      // Add a synthetic serve shot
-      const serveShotOutcome =
-        pointType === 'ace' ? 'winner' as const :
-        pointType === 'double_fault' ? 'error' as const :
-        'in_play' as const;
-
-      shots.push({
-        shotType: serveType === 'first' ? 'serve_first' : 'serve_second',
-        shooter: 'server' as const,
-        success: serveShotOutcome !== 'error',
-        quality: 70, // Arbitrary quality for key moments
-        outcome: serveShotOutcome,
-        statUsed: 'serve',
-        modifiers: {
-          spinBonus: 0,
-          placementBonus: 0,
-          physicalModifier: 0,
-          mentalModifier: 0,
-          difficultyModifier: 0,
-          pressureModifier: 0,
-          rallyLengthModifier: 0,
-          finalAdjustment: 0,
-        },
-        timestamp: Date.now(),
-        shotNumber: 1,
-        context: {
-          difficulty: 'normal' as const,
-          pressure: 'high' as const, // Key moments are high pressure
-          courtPosition: 'baseline' as const,
-          rallyLength: 1,
-        },
-      });
-    }
-
-    // Create a synthetic point result with serve shot data
     return {
       server: currentServer,
       winner,
       pointType,
       shots,
-      rallyLength: 3, // Estimated average for key moments
+      rallyLength,
       serveType,
-      duration: 5, // Estimated duration in seconds
+      duration,
       statistics: {
-        totalShots: 3,
-        winnerCount: pointType === 'winner' || pointType === 'ace' ? 1 : 0,
-        errorCount: pointType === 'unforced_error' || pointType === 'forced_error' ? 1 : 0,
-        netApproaches: 0,
-        rallyExchanges: 1,
+        totalShots: rallyLength,
+        winnerCount,
+        errorCount,
+        netApproaches,
+        rallyExchanges,
         pressureMoments: 1, // Key moments are pressure situations
       },
     };

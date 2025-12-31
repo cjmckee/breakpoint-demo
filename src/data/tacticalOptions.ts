@@ -4,6 +4,8 @@
  * Ported from ai-slop-gaming tactical options
  */
 
+import { PointType } from '../types';
+
 export interface TacticalOption {
   id: string;
   emoji: string;
@@ -21,8 +23,8 @@ export interface TacticalOption {
     secondary: Array<{ stat: string; weight: number }>;
   };
   shotOutcomes: {
-    success: { outcome: string; shotType: string; shooter: 'player' | 'opponent' };
-    failure: { outcome: string; shotType: string; shooter: 'player' | 'opponent' };
+    success: { outcome: PointType; shotType: string; shooter: 'player' | 'opponent' };
+    failure: { outcome: PointType; shotType: string; shooter: 'player' | 'opponent' };
   };
   successProbability?: number; // Calculated dynamically
 }
@@ -65,8 +67,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         ],
       },
       shotOutcomes: {
-        success: { outcome: 'ace', shotType: 'serve', shooter: 'player' },
-        failure: { outcome: 'double_fault', shotType: 'serve', shooter: 'player' },
+        success: { outcome: PointType.ACE, shotType: 'serve', shooter: 'player' },
+        failure: { outcome: PointType.DOUBLE_FAULT, shotType: 'serve', shooter: 'player' },
       },
     },
     {
@@ -93,8 +95,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         ],
       },
       shotOutcomes: {
-        success: { outcome: 'ace', shotType: 'serve', shooter: 'player' },
-        failure: { outcome: 'double_fault', shotType: 'serve', shooter: 'player' },
+        success: { outcome: PointType.ACE, shotType: 'serve', shooter: 'player' },
+        failure: { outcome: PointType.DOUBLE_FAULT, shotType: 'serve', shooter: 'player' },
       },
     },
     {
@@ -114,8 +116,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         secondary: [{ stat: 'forehand', weight: 0.4 }],
       },
       shotOutcomes: {
-        success: { outcome: 'forced_error', shotType: 'serve', shooter: 'player' },
-        failure: { outcome: 'forced_error', shotType: 'forehand', shooter: 'opponent' },
+        success: { outcome: PointType.FORCED_ERROR, shotType: 'serve', shooter: 'player' },
+        failure: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
       },
     },
   ],
@@ -145,8 +147,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         ],
       },
       shotOutcomes: {
-        success: { outcome: 'winner', shotType: 'return', shooter: 'player' },
-        failure: { outcome: 'unforced_error', shotType: 'return', shooter: 'player' },
+        success: { outcome: PointType.WINNER, shotType: 'return', shooter: 'player' },
+        failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
       },
     },
     {
@@ -169,8 +171,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         secondary: [{ stat: 'offensive', weight: 0.4 }],
       },
       shotOutcomes: {
-        success: { outcome: 'unforced_error', shotType: 'backhand', shooter: 'opponent' },
-        failure: { outcome: 'unforced_error', shotType: 'return', shooter: 'player' },
+        success: { outcome: PointType.UNFORCED_ERROR, shotType: 'backhand', shooter: 'opponent' },
+        failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
       },
     },
     {
@@ -197,8 +199,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         ],
       },
       shotOutcomes: {
-        success: { outcome: 'forced_error', shotType: 'forehand', shooter: 'opponent' },
-        failure: { outcome: 'unforced_error', shotType: 'return', shooter: 'player' },
+        success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
+        failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
       },
     },
   ],
@@ -227,8 +229,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         ],
       },
       shotOutcomes: {
-        success: { outcome: 'ace', shotType: 'serve', shooter: 'player' },
-        failure: { outcome: 'double_fault', shotType: 'serve', shooter: 'player' },
+        success: { outcome: PointType.ACE, shotType: 'serve', shooter: 'player' },
+        failure: { outcome: PointType.DOUBLE_FAULT, shotType: 'serve', shooter: 'player' },
       },
     },
     {
@@ -251,8 +253,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         secondary: [{ stat: 'offensive', weight: 0.4 }],
       },
       shotOutcomes: {
-        success: { outcome: 'forced_error', shotType: 'serve', shooter: 'opponent' },
-        failure: { outcome: 'forced_error', shotType: 'forehand', shooter: 'player' },
+        success: { outcome: PointType.FORCED_ERROR, shotType: 'serve', shooter: 'opponent' },
+        failure: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'player' },
       },
     },
   ],
@@ -281,8 +283,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         ],
       },
       shotOutcomes: {
-        success: { outcome: 'winner', shotType: 'return', shooter: 'player' },
-        failure: { outcome: 'unforced_error', shotType: 'return', shooter: 'player' },
+        success: { outcome: PointType.WINNER, shotType: 'return', shooter: 'player' },
+        failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
       },
     },
     {
@@ -305,8 +307,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         secondary: [{ stat: 'offensive', weight: 0.4 }],
       },
       shotOutcomes: {
-        success: { outcome: 'forced_error', shotType: 'return', shooter: 'opponent' },
-        failure: { outcome: 'forced_error', shotType: 'forehand', shooter: 'player' },
+        success: { outcome: PointType.FORCED_ERROR, shotType: 'return', shooter: 'opponent' },
+        failure: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'player' },
       },
     }
   ],
@@ -336,8 +338,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         ],
       },
       shotOutcomes: {
-        success: { outcome: 'unforced_error', shotType: 'forehand', shooter: 'opponent' },
-        failure: { outcome: 'unforced_error', shotType: 'return', shooter: 'player' },
+        success: { outcome: PointType.UNFORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
+        failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
       },
     },
     {
@@ -364,8 +366,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         ],
       },
       shotOutcomes: {
-        success: { outcome: 'winner', shotType: 'forehand', shooter: 'player' },
-        failure: { outcome: 'unforced_error', shotType: 'backhand', shooter: 'player' },
+        success: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'player' },
+        failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'backhand', shooter: 'player' },
       },
     },
   ],
@@ -394,8 +396,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         ],
       },
       shotOutcomes: {
-        success: { outcome: 'forced_error', shotType: 'return', shooter: 'opponent' },
-        failure: { outcome: 'unforced_error', shotType: 'return', shooter: 'player' },
+        success: { outcome: PointType.FORCED_ERROR, shotType: 'return', shooter: 'opponent' },
+        failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
       },
     },
     {
@@ -421,8 +423,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         ],
       },
       shotOutcomes: {
-        success: { outcome: 'forced_error', shotType: 'return', shooter: 'opponent' },
-        failure: { outcome: 'unforced_error', shotType: 'return', shooter: 'player' },
+        success: { outcome: PointType.FORCED_ERROR, shotType: 'return', shooter: 'opponent' },
+        failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
       },
     },
     {
@@ -448,8 +450,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         ],
       },
       shotOutcomes: {
-        success: { outcome: 'winner', shotType: 'return', shooter: 'player' },
-        failure: { outcome: 'unforced_error', shotType: 'return', shooter: 'player' },
+        success: { outcome: PointType.WINNER, shotType: 'return', shooter: 'player' },
+        failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
       },
     },
   ],
@@ -479,8 +481,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         ],
       },
       shotOutcomes: {
-        success: { outcome: 'ace', shotType: 'serve', shooter: 'player' },
-        failure: { outcome: 'double_fault', shotType: 'serve', shooter: 'player' },
+        success: { outcome: PointType.ACE, shotType: 'serve', shooter: 'player' },
+        failure: { outcome: PointType.DOUBLE_FAULT, shotType: 'serve', shooter: 'player' },
       },
     },
     {
@@ -504,8 +506,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         secondary: [{ stat: 'offensive', weight: 0.4 }],
       },
       shotOutcomes: {
-        success: { outcome: 'forced_error', shotType: 'serve', shooter: 'opponent' },
-        failure: { outcome: 'double_fault', shotType: 'serve', shooter: 'player' },
+        success: { outcome: PointType.FORCED_ERROR, shotType: 'serve', shooter: 'opponent' },
+        failure: { outcome: PointType.DOUBLE_FAULT, shotType: 'serve', shooter: 'player' },
       },
     },
   ],
@@ -534,8 +536,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         ],
       },
       shotOutcomes: {
-        success: { outcome: 'winner', shotType: 'return', shooter: 'player' },
-        failure: { outcome: 'unforced_error', shotType: 'return', shooter: 'player' },
+        success: { outcome: PointType.WINNER, shotType: 'return', shooter: 'player' },
+        failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
       },
     },
     {
@@ -558,8 +560,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         secondary: [{ stat: 'offensive', weight: 0.4 }],
       },
       shotOutcomes: {
-        success: { outcome: 'forced_error', shotType: 'return', shooter: 'opponent' },
-        failure: { outcome: 'forced_error', shotType: 'forehand', shooter: 'player' },
+        success: { outcome: PointType.FORCED_ERROR, shotType: 'return', shooter: 'opponent' },
+        failure: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'player' },
       },
     }
   ],
@@ -588,8 +590,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         ],
       },
       shotOutcomes: {
-        success: { outcome: 'ace', shotType: 'serve', shooter: 'opponent' },
-        failure: { outcome: 'double_fault', shotType: 'serve', shooter: 'opponent' },
+        success: { outcome: PointType.ACE, shotType: 'serve', shooter: 'opponent' },
+        failure: { outcome: PointType.DOUBLE_FAULT, shotType: 'serve', shooter: 'opponent' },
       },
     },
     {
@@ -612,8 +614,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         secondary: [{ stat: 'offensive', weight: 0.4 }],
       },
       shotOutcomes: {
-        success: { outcome: 'forced_error', shotType: 'serve', shooter: 'opponent' },
-        failure: { outcome: 'forced_error', shotType: 'forehand', shooter: 'player' },
+        success: { outcome: PointType.FORCED_ERROR, shotType: 'serve', shooter: 'opponent' },
+        failure: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'player' },
       },
     }
   ],
@@ -643,8 +645,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         ],
       },
       shotOutcomes: {
-        success: { outcome: 'winner', shotType: 'return', shooter: 'player' },
-        failure: { outcome: 'unforced_error', shotType: 'return', shooter: 'player' },
+        success: { outcome: PointType.WINNER, shotType: 'return', shooter: 'player' },
+        failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
       },
     },
     {
@@ -671,8 +673,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         ],
       },
       shotOutcomes: {
-        success: { outcome: 'forced_error', shotType: 'forehand', shooter: 'opponent' },
-        failure: { outcome: 'forced_error', shotType: 'backhand', shooter: 'player' },
+        success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
+        failure: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'player' },
       },
     },
   ],

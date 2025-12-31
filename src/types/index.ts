@@ -208,7 +208,7 @@ export interface QualityThresholds {
  */
 export interface ShotResult {
   success: boolean;
-  outcome: 'winner' | 'in_play' | 'forced_error' | 'unforced_error' | 'error';
+  outcome: PointType;
   quality: number; // 0-100
   shotType: ShotType;
   statUsed: keyof PlayerStats['technical'] | keyof PlayerStats['physical'] | keyof PlayerStats['mental'];
@@ -245,7 +245,7 @@ export interface ShotDetail {
   shooter: 'server' | 'returner';
   success: boolean;
   quality: number;
-  outcome: 'winner' | 'in_play' | 'error' | 'forced_error' | 'unforced_error';
+  outcome: PointType;
   errorType?: 'forced' | 'unforced'; // Deprecated: use outcome instead
   statUsed: string;
   modifiers: ShotModifiers;
@@ -253,6 +253,16 @@ export interface ShotDetail {
   shotNumber: number;
   context: ShotContext;
   thresholds?: QualityThresholds; // NEW: for transparency and match analysis
+}
+
+export enum PointType {
+  ACE = 'ace',
+  WINNER = 'winner',
+  FORCED_ERROR = 'forced_error',
+  UNFORCED_ERROR = 'unforced_error',
+  DOUBLE_FAULT = 'double_fault',
+  FAULT = 'fault', // Serve fault (first or second serve that doesn't end the point)
+  IN_PLAY = 'in_play'
 }
 
 /**
@@ -264,7 +274,7 @@ export interface PointResult {
   shots: ShotDetail[];
   rallyLength: number;
   keyShot?: ShotDetail; // The decisive shot
-  pointType: 'ace' | 'winner' | 'forced_error' | 'unforced_error' | 'double_fault';
+  pointType: PointType;
   duration: number; // seconds
   statistics: PointStatistics;
   serveType: 'first' | 'second'; // Which serve started the rally (if second, first was a fault)
@@ -444,7 +454,7 @@ export interface PointAnalysisData {
   pointNumber: number;
   server: 'player' | 'opponent';
   winner: 'player' | 'opponent';
-  pointType: 'ace' | 'winner' | 'forced_error' | 'unforced_error' | 'double_fault';
+  pointType: PointType;
   serveType: 'first' | 'second';
   rallyLength: number;
   duration: number;

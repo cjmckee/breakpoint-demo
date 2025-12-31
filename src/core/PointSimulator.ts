@@ -5,7 +5,7 @@
  * for transparent, stat-based tennis gameplay.
  */
 
-import type {
+import {
   PointResult,
   ShotDetail,
   ShotContext,
@@ -17,6 +17,7 @@ import type {
   CourtPosition,
   BallQuality,
   TacticalOpportunity,
+  PointType,
 } from '../types/index.js';
 import { PlayerProfile } from './PlayerProfile.js';
 import { ShotCalculator } from './ShotCalculator.js';
@@ -96,7 +97,7 @@ export class PointSimulator {
     shots: ShotDetail[];
     pointEnded: boolean;
     winner?: 'server' | 'returner';
-    pointType?: 'ace' | 'double_fault';
+    pointType?: PointType.ACE | PointType.DOUBLE_FAULT;
     nextShooter?: 'server' | 'returner';
     serveType: 'first' | 'second';
     quality: number;
@@ -115,7 +116,7 @@ export class PointSimulator {
     );
 
     // Check first serve result
-    if (firstServeResult.outcome === 'winner') {
+    if (firstServeResult.outcome === PointType.ACE) {
       // Ace on first serve
       const firstServeShot: ShotDetail = {
         shotType: 'serve_first',
@@ -136,13 +137,13 @@ export class PointSimulator {
         shots,
         pointEnded: true,
         winner: 'server',
-        pointType: 'ace',
+        pointType: PointType.ACE,
         serveType: 'first',
         quality: firstServeResult.quality,
       };
     }
 
-    if (firstServeResult.outcome === 'in_play') {
+    if (firstServeResult.outcome === PointType.IN_PLAY) {
       // Good first serve, returner gets to return
       const firstServeShot: ShotDetail = {
         shotType: 'serve_first',
@@ -196,25 +197,25 @@ export class PointSimulator {
     shots.push(secondServeShot);
 
     // Check second serve result
-    if (secondServeResult.outcome === 'winner') {
+    if (secondServeResult.outcome === PointType.ACE) {
       // Ace on second serve (rare but possible)
       return {
         shots,
         pointEnded: true,
         winner: 'server',
-        pointType: 'ace',
+        pointType: PointType.ACE,
         serveType: 'second',
         quality: secondServeResult.quality,
       };
     }
 
-    if (secondServeResult.outcome === 'error') {
+    if (secondServeResult.outcome === PointType.FAULT) {
       // Double fault
       return {
         shots,
         pointEnded: true,
         winner: 'returner',
-        pointType: 'double_fault',
+        pointType: PointType.DOUBLE_FAULT,
         serveType: 'second',
         quality: secondServeResult.quality,
       };
@@ -243,7 +244,7 @@ export class PointSimulator {
   ): {
     shots: ShotDetail[];
     winner: 'server' | 'returner';
-    pointType: 'winner' | 'forced_error' | 'unforced_error';
+    pointType: PointType.WINNER | PointType.FORCED_ERROR | PointType.UNFORCED_ERROR;
   } {
     const shots: ShotDetail[] = [];
     let currentShooter = firstShooter;
@@ -310,9 +311,9 @@ export class PointSimulator {
 
       // Error classification now handled by threshold system
       let errorType: 'forced' | 'unforced' | undefined;
-      if (shotResult.outcome === 'forced_error') {
+      if (shotResult.outcome === PointType.FORCED_ERROR) {
         errorType = 'forced';
-      } else if (shotResult.outcome === 'unforced_error') {
+      } else if (shotResult.outcome === PointType.UNFORCED_ERROR) {
         errorType = 'unforced';
       }
 
@@ -335,17 +336,17 @@ export class PointSimulator {
       shots.push(shotDetail);
 
       // Check if point ended
-      if (shotResult.outcome === 'winner') {
+      if (shotResult.outcome === PointType.WINNER) {
         return {
           shots,
           winner: currentShooter,
-          pointType: 'winner',
+          pointType: PointType.WINNER,
         };
       }
 
-      if (shotResult.outcome === 'forced_error' || shotResult.outcome === 'unforced_error' || shotResult.outcome === 'error') {
+      if (shotResult.outcome === PointType.FORCED_ERROR || shotResult.outcome === PointType.UNFORCED_ERROR || shotResult.outcome === PointType.FAULT) {
         const opponent = currentShooter === 'server' ? 'returner' : 'server';
-        const pointType = errorType === 'forced' ? 'forced_error' : 'unforced_error';
+        const pointType = errorType === 'forced' ? PointType.FORCED_ERROR : PointType.UNFORCED_ERROR;
         return {
           shots,
           winner: opponent,
@@ -394,7 +395,7 @@ export class PointSimulator {
     return {
       shots,
       winner,
-      pointType: 'forced_error',
+      pointType: PointType.FORCED_ERROR,
     };
   }
 
@@ -698,7 +699,7 @@ export class PointSimulator {
     server: 'player' | 'opponent',
     winner: 'server' | 'returner',
     shots: ShotDetail[],
-    pointType: 'ace' | 'winner' | 'forced_error' | 'unforced_error' | 'double_fault',
+    pointType: PointType,
     matchState: MatchState,
     serveType: 'first' | 'second'
   ): PointResult {
@@ -728,13 +729,13 @@ export class PointSimulator {
    * Identify the most important shot in the point
    */
   private identifyKeyShot(shots: ShotDetail[]): ShotDetail | undefined {
-    // Winner shot is always key
-    const winnerShot = shots.find(shot => shot.outcome === 'winner');
+    // Ace or winner shot is always key
+    const winnerShot = shots.find(shot => shot.outcome === PointType.ACE || shot.outcome === PointType.WINNER);
     if (winnerShot) return winnerShot;
 
     // Error shot that ended the point (last shot if it's an error)
     const lastShot = shots[shots.length - 1];
-    if (lastShot && lastShot.outcome === 'error') {
+    if (lastShot && lastShot.outcome === PointType.FAULT) {
       return lastShot;
     }
 
@@ -749,8 +750,8 @@ export class PointSimulator {
    */
   private calculatePointStatistics(shots: ShotDetail[]): PointStatistics {
     const totalShots = shots.length;
-    const winnerCount = shots.filter(shot => shot.outcome === 'winner').length;
-    const errorCount = shots.filter(shot => shot.outcome === 'error').length;
+    const winnerCount = shots.filter(shot => shot.outcome === PointType.ACE || shot.outcome === PointType.WINNER).length;
+    const errorCount = shots.filter(shot => shot.outcome === PointType.FAULT).length;
     const netApproaches = shots.filter(shot =>
       shot.shotType.includes('volley') ||
       shot.shotType.includes('approach')

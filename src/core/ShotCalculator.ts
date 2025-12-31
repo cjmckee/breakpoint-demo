@@ -22,6 +22,7 @@ import type {
   QualityThresholds,
   ShotDetail,
 } from '../types/index.js';
+import { PointType } from '../types/index.js';
 import { PlayerProfile } from './PlayerProfile.js';
 import {
   RELATIVE_QUALITY_REQUIREMENTS,
@@ -146,7 +147,7 @@ export class ShotCalculator {
     }
 
     // Step 4: Determine outcome based on shot type
-    let outcome: 'winner' | 'in_play' | 'forced_error' | 'unforced_error' | 'error';
+    let outcome: PointType;
     let thresholds: QualityThresholds;
 
     if (shotType.includes('serve')) {
@@ -180,7 +181,7 @@ export class ShotCalculator {
     console.log('Quality thresholds:', thresholds);
 
     return {
-      success: outcome === 'winner' || outcome === 'in_play',
+      success: outcome === PointType.ACE || outcome === PointType.WINNER || outcome === PointType.IN_PLAY,
       outcome,
       quality,
       shotType,
@@ -260,11 +261,11 @@ export class ShotCalculator {
   private determineOutcome(
     quality: number,
     thresholds: QualityThresholds
-  ): 'winner' | 'in_play' | 'forced_error' | 'unforced_error' {
-    if (quality >= thresholds.winner) return 'winner';
-    if (quality >= thresholds.inPlay) return 'in_play';
-    if (quality >= thresholds.forcedError) return 'forced_error';
-    return 'unforced_error';
+  ): PointType {
+    if (quality >= thresholds.winner) return PointType.WINNER;
+    if (quality >= thresholds.inPlay) return PointType.IN_PLAY;
+    if (quality >= thresholds.forcedError) return PointType.FORCED_ERROR;
+    return PointType.UNFORCED_ERROR;
   }
 
   /**
@@ -274,7 +275,7 @@ export class ShotCalculator {
     serveQuality: number,
     serveType: 'serve_first' | 'serve_second' | 'kick_serve',
     opponentReturnStat: number
-  ): { outcome: 'winner' | 'in_play' | 'error'; thresholds: QualityThresholds } {
+  ): { outcome: PointType; thresholds: QualityThresholds } {
     const baseline = SERVE_BASELINE[serveType];
 
     console.log('  🎯 SERVE OUTCOME DETERMINATION');
@@ -297,7 +298,7 @@ export class ShotCalculator {
     if (!serveIn) {
       console.log('  ❌ SERVE FAULT');
       return {
-        outcome: 'error',
+        outcome: PointType.FAULT,
         thresholds: {
           winner: aceThreshold,
           inPlay: baseline.inPlayThreshold,
@@ -317,7 +318,7 @@ export class ShotCalculator {
     }
 
     return {
-      outcome: isAce ? 'winner' : 'in_play',
+      outcome: isAce ? PointType.ACE : PointType.IN_PLAY,
       thresholds: {
         winner: aceThreshold,
         inPlay: baseline.inPlayThreshold,

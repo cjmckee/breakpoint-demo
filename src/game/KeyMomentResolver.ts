@@ -5,6 +5,7 @@
  */
 
 import { TacticalOption } from '../data/tacticalOptions';
+import { PointType } from '../types';
 import { PlayerStats } from '../types/game';
 
 export type OutcomeType = 'critical-success' | 'success' | 'failure' | 'critical-failure';
@@ -19,7 +20,7 @@ export interface KeyMomentResult {
   finalProbability: number; // After modifiers
   pointWinner: 'player' | 'opponent';
   shotOutcome: {
-    outcome: string; // 'winner', 'ace', 'error', etc.
+    outcome: PointType; // 'ace', 'winner', 'forced_error', etc.
     shotType: string; // 'serve', 'forehand', etc.
     shooter: 'player' | 'opponent';
   };

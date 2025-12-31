@@ -5,15 +5,16 @@
  * to prove that player stats directly influence match outcomes.
  */
 
-import type {
-  MatchStatistics as IMatchStatistics,
-  PlayerPerformance,
-  MatchSummary,
-  PointResult,
-  ShotDetail,
-  ShotType,
-  StatName,
-  PlayerStats,
+import {
+  type MatchStatistics as IMatchStatistics,
+  type PlayerPerformance,
+  type MatchSummary,
+  type PointResult,
+  type ShotDetail,
+  type ShotType,
+  type StatName,
+  type PlayerStats,
+  PointType,
 } from '../types/index.js';
 import { PlayerProfile } from './PlayerProfile.js';
 
@@ -171,7 +172,7 @@ export class MatchStatistics {
       // Count outcome
       if (shot.success) {
         stats.successful[player]++;
-        if (shot.outcome === 'winner') {
+        if (shot.outcome === PointType.WINNER) {
           stats.winners[player]++;
         }
       } else {
@@ -265,8 +266,8 @@ export class MatchStatistics {
     // Track second serve attempt (only when first serve was a fault)
     if (pointResult.serveType === 'second') {
       const secondServeShot = shots.find(shot => shot.shotType === 'serve_second')!;
-      // Second serve is "in" if it's not an error (can be 'in_play' or 'winner' for ace)
-      const isSecondServeIn = secondServeShot.outcome !== 'error';
+      // Second serve is "in" if it's not an error (can be 'in_play' or 'ace')
+      const isSecondServeIn = secondServeShot.outcome === PointType.IN_PLAY || secondServeShot.outcome === PointType.ACE;
 
       this.secondServeAttempts[currentServer]++;
 

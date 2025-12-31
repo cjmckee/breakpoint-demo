@@ -4,11 +4,11 @@
  */
 
 import React from 'react';
-import type { FormattedText, TextSegment } from '../types/storyEvents';
+import type { FormattedText as FormattedTextType, TextSegment } from '../types/storyEvents';
 import { getCharacterName } from '../data/characters';
 
 interface FormattedTextProps {
-  content: FormattedText;
+  content: FormattedTextType;
   className?: string;
 }
 
