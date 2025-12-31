@@ -117,7 +117,7 @@ export const useGameStore = create<GameState>()(
       completedStoryEvents: [],
       completedStoryEventChoices: {},
       relationships: {},
-      storyEventTriggerChance: 20,
+      storyEventTriggerChance: 40,
       pendingStoryEvent: null,
 
       // Challenge initial state
