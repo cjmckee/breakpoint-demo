@@ -16,28 +16,100 @@ import type { Player, GameCalendar } from '../types/game';
 
 export class StoryEventManager {
   /**
-   * Get all events the player currently qualifies for
+   * Get a specific event by ID if player qualifies for it
+   * Returns the event if eligible, null otherwise
    */
-  static getEligibleEvents(
+  static getEligibleEventById(
+    eventId: string,
     player: Player,
     gameState: {
       completedStoryEvents: string[];
       completedStoryEventChoices: Record<string, string>;
       relationships: Record<string, number>;
       calendar: GameCalendar;
-    },
-    tag?: StoryEventTag
+    }
+  ): StoryEvent | null {
+    console.log(`🔍 Getting event by ID: ${eventId}`);
+
+    // Get event from repository
+    const event = StoryEventRepository.getEventById(eventId);
+    if (!event) {
+      console.log(`❌ Event not found: ${eventId}`);
+      return null;
+    }
+
+    // Skip if already completed
+    if (gameState.completedStoryEvents.includes(event.id)) {
+      console.log(`❌ Event already completed: ${eventId}`);
+      return null;
+    }
+
+    // Check prerequisites
+    const isEligible = PrerequisiteChecker.checkAllPrerequisites(
+      event.prerequisites,
+      player,
+      gameState
+    );
+
+    if (!isEligible) {
+      console.log(`❌ Event prerequisites not met: ${eventId}`);
+      return null;
+    }
+
+    console.log(`✅ Event eligible: ${event.name}`);
+    return event;
+  }
+
+  /**
+   * Get all events matching a specific tag that the player qualifies for
+   */
+  static getEligibleEventsByTag(
+    tag: StoryEventTag,
+    player: Player,
+    gameState: {
+      completedStoryEvents: string[];
+      completedStoryEventChoices: Record<string, string>;
+      relationships: Record<string, number>;
+      calendar: GameCalendar;
+    }
   ): StoryEvent[] {
-    console.log(`🔍 Getting eligible events for player: ${player.id}, tag: ${tag}`);
+    console.log(`🔍 Getting eligible events for tag: ${tag}`);
+
+    // Get events by tag
+    const taggedEvents = StoryEventRepository.getEventsByTag(tag);
+
+    // Filter by prerequisites
+    return taggedEvents.filter((event) => {
+      // Skip if already completed
+      if (gameState.completedStoryEvents.includes(event.id)) {
+        return false;
+      }
+
+      // Check prerequisites
+      return PrerequisiteChecker.checkAllPrerequisites(event.prerequisites, player, gameState);
+    });
+  }
+
+  /**
+   * Get all events the player currently qualifies for (no tag filter)
+   */
+  static getAllEligibleEvents(
+    player: Player,
+    gameState: {
+      completedStoryEvents: string[];
+      completedStoryEventChoices: Record<string, string>;
+      relationships: Record<string, number>;
+      calendar: GameCalendar;
+    }
+  ): StoryEvent[] {
+    console.log(`🔍 Getting all eligible events for player: ${player.id}`);
 
     console.log('completed events:', gameState.completedStoryEvents);
     console.log('event choices:', gameState.completedStoryEventChoices);
     console.log('relationships:', gameState.relationships);
 
-    // Get all events (or filtered by tag)
-    const allEvents = tag
-      ? StoryEventRepository.getEventsByTag(tag)
-      : StoryEventRepository.getAllEvents();
+    // Get all events
+    const allEvents = StoryEventRepository.getAllEvents();
 
     console.log('all events:', allEvents);
     // Filter by prerequisites

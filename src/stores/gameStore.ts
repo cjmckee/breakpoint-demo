@@ -76,7 +76,9 @@ interface GameState {
   getAvailableTrainingSessions: () => TrainingSession[];
 
   // Story event actions
-  checkForStoryEvent: (tag?: StoryEventTag, customChance?: number) => void;
+  checkForStoryEventById: (eventId: string) => void;
+  checkForStoryEventByTag: (tag: StoryEventTag, customChance?: number) => void;
+  checkForRandomStoryEvent: (customChance?: number) => void;
   executeStoryEvent: (eventId: string, optionId?: string) => void;
   cancelStoryEvent: () => void;
   updateRelationship: (character: string, change: number) => void;
@@ -162,6 +164,12 @@ export const useGameStore = create<GameState>()(
 
         // Auto-save after player creation
         get().saveGame();
+
+        // Trigger welcome event (guaranteed, no probability roll)
+        // Use setTimeout to ensure state is fully updated before checking for event
+        setTimeout(() => {
+          get().checkForStoryEventById('welcome_to_tennis_rpg');
+        }, 0);
       },
 
       // Select training session (doesn't execute yet)
@@ -289,9 +297,9 @@ export const useGameStore = create<GameState>()(
           currentTrainingSessions: newTrainingSessions,
         });
 
-        // Check for story event at start of new slot (except NIGHT)
+        // Check for random story event at start of new slot (except NIGHT)
         if (newCalendar.currentTimeSlot !== TimeSlot.NIGHT) {
-          get().checkForStoryEvent();
+          get().checkForRandomStoryEvent();
         }
 
         // Auto-save
@@ -493,8 +501,55 @@ export const useGameStore = create<GameState>()(
 
       // Story Event Actions
 
-      // Check if a story event should trigger
-      checkForStoryEvent: (tag?: StoryEventTag, customChance?: number) => {
+      /**
+       * Check for a specific story event by ID
+       * Triggers immediately if player is eligible (no probability roll)
+       * Use case: Guaranteed story events (like welcome event)
+       */
+      checkForStoryEventById: (eventId: string) => {
+        const { player, pendingStoryEvent } = get();
+
+        // Don't trigger if event already pending
+        if (pendingStoryEvent) {
+          console.log(`[Story Event] Event already pending: ${pendingStoryEvent.id}`);
+          return;
+        }
+
+        // Don't trigger if no player
+        if (!player) {
+          console.log(`[Story Event] No player exists`);
+          return;
+        }
+
+        console.log(`[Story Event] Checking for event by ID: ${eventId}`);
+
+        // Get specific event
+        const gameState = get();
+        const event = StoryEventManager.getEligibleEventById(
+          eventId,
+          player,
+          {
+            completedStoryEvents: gameState.completedStoryEvents,
+            completedStoryEventChoices: gameState.completedStoryEventChoices,
+            relationships: gameState.relationships,
+            calendar: gameState.calendar,
+          }
+        );
+
+        if (event) {
+          console.log(`[Story Event] ✅ Triggered: "${event.name}"`);
+          set({ pendingStoryEvent: event });
+        } else {
+          console.log(`[Story Event] ❌ Event not eligible: ${eventId}`);
+        }
+      },
+
+      /**
+       * Check for story events matching a specific tag
+       * Randomly selects from eligible events with that tag
+       * Use case: Tag-specific random events (e.g., coach events, romance events)
+       */
+      checkForStoryEventByTag: (tag: StoryEventTag, customChance?: number) => {
         const { player, storyEventTriggerChance, pendingStoryEvent } = get();
 
         // Don't trigger if event already pending
@@ -508,26 +563,76 @@ export const useGameStore = create<GameState>()(
         const roll = Math.random() * 100;
         const triggered = roll < chance;
 
-        console.log(`[Story Event] Roll: ${roll.toFixed(2)} vs ${chance}% chance - ${triggered ? 'TRIGGERED ✓' : 'Not triggered ✗'}`);
+        console.log(`[Story Event] Tag: ${tag} | Roll: ${roll.toFixed(2)} vs ${chance}% - ${triggered ? 'TRIGGERED ✓' : 'Not triggered ✗'}`);
 
         if (!triggered) {
           return;
         }
 
-        // Get eligible events
+        // Get eligible events for this tag
         const gameState = get();
-        const eligibleEvents = StoryEventManager.getEligibleEvents(
+        const eligibleEvents = StoryEventManager.getEligibleEventsByTag(
+          tag,
           player,
           {
             completedStoryEvents: gameState.completedStoryEvents,
             completedStoryEventChoices: gameState.completedStoryEventChoices,
             relationships: gameState.relationships,
             calendar: gameState.calendar,
-          },
-          tag
+          }
         );
 
-        console.log(`[Story Event] Eligible events (${eligibleEvents.length}):`, eligibleEvents.map(e => e.name));
+        console.log(`[Story Event] Eligible events with tag '${tag}' (${eligibleEvents.length}):`, eligibleEvents.map(e => e.name));
+
+        // Select random event
+        const selectedEvent = StoryEventManager.selectRandomEvent(eligibleEvents);
+
+        if (selectedEvent) {
+          console.log(`[Story Event] Selected: "${selectedEvent.name}"`);
+          set({ pendingStoryEvent: selectedEvent });
+        } else {
+          console.log(`[Story Event] No eligible events available for tag: ${tag}`);
+        }
+      },
+
+      /**
+       * Check for any random story event
+       * Randomly selects from all eligible events
+       * Use case: General random events during time advancement
+       */
+      checkForRandomStoryEvent: (customChance?: number) => {
+        const { player, storyEventTriggerChance, pendingStoryEvent } = get();
+
+        // Don't trigger if event already pending
+        if (pendingStoryEvent) return;
+
+        // Don't trigger if no player
+        if (!player) return;
+
+        // Roll for trigger
+        const chance = customChance ?? storyEventTriggerChance;
+        const roll = Math.random() * 100;
+        const triggered = roll < chance;
+
+        console.log(`[Story Event] Random | Roll: ${roll.toFixed(2)} vs ${chance}% - ${triggered ? 'TRIGGERED ✓' : 'Not triggered ✗'}`);
+
+        if (!triggered) {
+          return;
+        }
+
+        // Get all eligible events
+        const gameState = get();
+        const eligibleEvents = StoryEventManager.getAllEligibleEvents(
+          player,
+          {
+            completedStoryEvents: gameState.completedStoryEvents,
+            completedStoryEventChoices: gameState.completedStoryEventChoices,
+            relationships: gameState.relationships,
+            calendar: gameState.calendar,
+          }
+        );
+
+        console.log(`[Story Event] All eligible events (${eligibleEvents.length}):`, eligibleEvents.map(e => e.name));
 
         // Select random event
         const selectedEvent = StoryEventManager.selectRandomEvent(eligibleEvents);

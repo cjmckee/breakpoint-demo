@@ -130,7 +130,7 @@ export interface StoryEvent {
   tags: StoryEventTag[];           // Multiple tags for flexible categorization
 
   // Timing
-  timeSlotsRequired: 1 | 2 | 3;
+  timeSlotsRequired: 0 | 1 | 2 | 3;
 
   // Availability
   prerequisites: StoryEventPrerequisite;

@@ -4,6 +4,7 @@
  */
 
 import type { StoryEvent, StoryEventTag } from '../../types/storyEvents';
+import { welcomeEvents } from './welcomeEvents';
 import { coachEvents } from './coachStoryline';
 import { romanceEvents } from './romanceStoryline';
 import { careerEvents } from './careerStoryline';
@@ -13,6 +14,7 @@ import { milestoneEvents } from './milestoneEvents';
 
 // Combine all events from different storylines
 const ALL_EVENTS: StoryEvent[] = [
+  ...welcomeEvents,
   ...coachEvents,
   ...romanceEvents,
   ...careerEvents,
