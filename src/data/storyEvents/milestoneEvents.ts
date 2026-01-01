@@ -18,8 +18,10 @@ export const milestoneEvents: StoryEvent[] = [
     },
     skippable: false,
     description: 'You\'ve won your first match!',
-    dialogue: [['coach_gonzalez', ['Congratulations on your first win! It may not have been pretty, but a win is a win. In fact, don\'t look at the stats. It was not pretty.']],
-              ['coach_gonzalez', ['You\'ve moved off the bottom rung of the ladder now. To the second bottom rung. Progress.']]],
+    dialogue: [
+      ['coach_gonzalez', ['Congratulations on your first win! It may not have been pretty, but a win is a win. In fact, don\'t look at the stats. It was not pretty.']],
+      ['coach_gonzalez', ['You\'ve moved off the bottom rung of the ladder now. To the second bottom rung. Progress.']],
+    ],
     characters: ['coach_gonzalez'],
     options: [],
     defaultOutcome: {
@@ -46,7 +48,9 @@ export const milestoneEvents: StoryEvent[] = [
     },
     skippable: false,
     description: 'You\'ve won three matches in a row - your best streak yet!',
-    dialogue: [['coach_gonzalez', ['Three wins in a row! Do you know what this means? You\'re not just getting lucky anymore - you\'re consistently outplaying your opponents. This is the breakthrough we\'ve been working toward!']]],
+    dialogue: [
+      ['coach_gonzalez', ['Three wins in a row! Do you know what this means? You\'re not just getting lucky anymore - you\'re consistently outplaying your opponents. This is the breakthrough we\'ve been working toward!']],
+    ],
     characters: ['coach_gonzalez'],
     options: [],
     defaultOutcome: {
@@ -113,7 +117,9 @@ export const milestoneEvents: StoryEvent[] = [
     },
     skippable: true,
     description: 'Your sponsor offers you access to professional-grade equipment and custom racquet fitting.',
-    dialogue: [['sponsor_rep', ['We want to give you the best tools to succeed. We\'re offering you a full professional equipment package - custom-fitted racquet, premium strings, and professional-grade shoes. Our team will work with you to find the perfect setup for your game.']]],
+    dialogue: [
+      ['sponsor_rep', ['We want to give you the best tools to succeed. We\'re offering you a full professional equipment package - custom-fitted racquet, premium strings, and professional-grade shoes. Our team will work with you to find the perfect setup for your game.']],
+    ],
     characters: ['sponsor_rep'],
     options: [
       {

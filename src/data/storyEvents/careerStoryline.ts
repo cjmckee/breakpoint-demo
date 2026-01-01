@@ -17,7 +17,9 @@ export const careerEvents: StoryEvent[] = [
     },
     skippable: true,
     description: 'A local sports equipment company has noticed your recent wins and wants to sponsor you.',
-    dialogue: [['sponsor_rep', ['We\'ve been watching your progress, and we\'re impressed. We\'d like to offer you a sponsorship deal - free equipment and a small monthly stipend in exchange for wearing our gear and doing some promotional appearances. What do you say?']]],
+    dialogue: [
+      ['sponsor_rep', ['We\'ve been watching your progress, and we\'re impressed. We\'d like to offer you a sponsorship deal - free equipment and a small monthly stipend in exchange for wearing our gear and doing some promotional appearances. What do you say?']],
+    ],
     characters: ['sponsor_rep'],
     options: [
       {
@@ -79,10 +81,12 @@ export const careerEvents: StoryEvent[] = [
     },
     skippable: true,
     description: 'A local sports journalist wants to interview you about your tennis journey.',
-    dialogue: [['journalist', ['Our audience absolutely loves your story. What can you tell us about', {characterId: 'jordan_rival'}, '?']],
-              ['player', ['I- Oh? What?']],
-              ['journalist', [{characterId: 'jordan_rival'}, 'has been one of the hottest prospects in tennis, both figuratively and literally.']],
-              ['journalist', ['How did you two meet? Is there a story behind your rivalry? What does he smell like?']]],
+    dialogue: [
+      ['journalist', ['Our audience absolutely loves your story. What can you tell us about', {characterId: 'jordan_rival'}, '?']],
+      ['player', ['I- Oh? What?']],
+      ['journalist', [{characterId: 'jordan_rival'}, 'has been one of the hottest prospects in tennis, both figuratively and literally.']],
+      ['journalist', ['How did you two meet? Is there a story behind your rivalry? What does he smell like?']],
+    ],
     characters: ['journalist'],
     options: [],
     defaultOutcome: {
@@ -107,8 +111,10 @@ export const careerEvents: StoryEvent[] = [
     },
     skippable: true,
     description: 'A sports agent approaches you with an offer to represent you professionally.',
-    dialogue: [['agent', ['I\'ve been following your career. You have real potential, and I\'d like to help you reach it. I can handle sponsorships, tournament entries, and career planning.']],
-              ['agent', ['With my connections, I can open doors you didn\'t know existed. You won\'t even have to bother with', {characterId: 'coach_gonzalez'}, 'ever again. Are you interested?']]],
+    dialogue: [
+      ['agent', ['I\'ve been following your career. You have real potential, and I\'d like to help you reach it. I can handle sponsorships, tournament entries, and career planning.']],
+      ['agent', ['With my connections, I can open doors you didn\'t know existed. You won\'t even have to bother with', {characterId: 'coach_gonzalez'}, 'ever again. Are you interested?']],
+    ],
     characters: ['agent'],
     options: [
       {
@@ -166,7 +172,9 @@ export const careerEvents: StoryEvent[] = [
     },
     skippable: false,
     description: 'You receive an invitation to compete in a regional tournament with stronger competition.',
-    dialogue: [['tournament_director', ['Based on your recent performances, we\'d like to invite you to our regional tournament next month. It\'s a step up in competition, but we think you\'re ready for the challenge.']]],
+    dialogue: [
+      ['tournament_director', ['Based on your recent performances, we\'d like to invite you to our regional tournament next month. It\'s a step up in competition, but we think you\'re ready for the challenge.']],
+    ],
     characters: ['tournament_director'],
     options: [],
     defaultOutcome: {

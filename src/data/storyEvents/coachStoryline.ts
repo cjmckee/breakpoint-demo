@@ -16,10 +16,12 @@ export const coachEvents: StoryEvent[] = [
     prerequisites: {},
     skippable: false,
     description: 'One of the academy\'s tennis coaches has taken interest in your development.',
-    dialogue: [['coach_gonzalez', ['I\'ve been watching you play. You have some raw talent, but you\'re going to need a lot of work to compete at this level.']],
-              ['coach_gonzalez', ['I mean, look around. A former top 10 under-16 player over there. That guy played for Spain in the junior Olympics. And she\'s a two-time national champion committed to Duke now.']],
-              ['coach_gonzalez', ['And that guy... he\'s the #4 rated player in a country I\'ve never even heard of.']],
-              ['coach_gonzalez', ['You have a long way to go, kid. But I think I can help.']]],
+    dialogue: [
+      ['coach_gonzalez', ['I\'ve been watching you play. You have some raw talent, but you\'re going to need a lot of work to compete at this level.']],
+      ['coach_gonzalez', ['I mean, look around. A former top 10 under-16 player over there. That guy played for Spain in the junior Olympics. And she\'s a two-time national champion committed to Duke now.']],
+      ['coach_gonzalez', ['And that guy... he\'s the #4 rated player in a country I\'ve never even heard of.']],
+      ['coach_gonzalez', ['You have a long way to go, kid. But I think I can help.']],
+    ],
     characters: ['coach_gonzalez'],
     options: [],
     defaultOutcome: {
@@ -102,8 +104,10 @@ export const coachEvents: StoryEvent[] = [
     },
     skippable: true,
     description: 'Coach Gonzalez wants to know what aspect of your game to prioritize in training.',
-    dialogue: [['coach_gonzalez', ['Everyone has different strengths and weaknesses. You - you have many weaknesses.']],
-               ['coach_gonzalez', ['Let\'s take one of those weaknesses and make it just average!']]],
+    dialogue: [
+      ['coach_gonzalez', ['Everyone has different strengths and weaknesses. You - you have many weaknesses.']],
+      ['coach_gonzalez', ['Let\'s take one of those weaknesses and make it just average!']],
+    ],
     characters: ['coach_gonzalez'],
     options: [
       {
@@ -269,7 +273,9 @@ export const coachEvents: StoryEvent[] = [
     },
     skippable: true,
     description: 'Coach Gonzalez emphasizes the importance of developing all aspects of your game.',
-    dialogue: [['coach_gonzalez', ['You\'re making good progress, but a truly great player needs balance. You can specialize, but you can\'t have glaring weaknesses. Let\'s work on rounding out your game.']]],
+    dialogue: [
+      ['coach_gonzalez', ['You\'re making good progress, but a truly great player needs balance. You can specialize, but you can\'t have glaring weaknesses. Let\'s work on rounding out your game.']],
+    ],
     characters: ['coach_gonzalez'],
     options: [
       {

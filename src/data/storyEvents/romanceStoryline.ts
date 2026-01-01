@@ -17,7 +17,9 @@ export const romanceEvents: StoryEvent[] = [
     },
     skippable: true,
     description: 'You meet someone interesting at a local tournament.',
-    dialogue: [['alex_romance', 'Great match out there! I saw that backhand winner on match point - incredible shot. I\'ve been working on my own backhand technique. Maybe we could practice together sometime?']],
+    dialogue: [
+      ['alex_romance', ['Great match out there! I saw that backhand winner on match point - incredible shot. I\'ve been working on my own backhand technique. Maybe we could practice together sometime?']],
+    ],
     characters: ['alex_romance'],
     options: [],
     defaultOutcome: {
@@ -41,7 +43,9 @@ export const romanceEvents: StoryEvent[] = [
     },
     skippable: true,
     description: 'Alex invites you to grab coffee after practice.',
-    dialogue: [['alex_romance', 'Hey! I know this great café near the courts. Want to go after we finish up here? My treat!']],
+    dialogue: [
+      ['alex_romance', ['Hey! I know this great café near the courts. Want to go after we finish up here? My treat!']],
+    ],
     characters: ['alex_romance'],
     options: [
       {

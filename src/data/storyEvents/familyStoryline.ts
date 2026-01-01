@@ -17,7 +17,9 @@ export const familyEvents: StoryEvent[] = [
     },
     skippable: true,
     description: 'Your family surprises you by coming to watch one of your matches.',
-    dialogue: [['parent', ['We\'re so proud of how hard you\'ve been working. We wanted to be here to support you. And it just happens to be near the mall!']]],
+    dialogue: [
+      ['parent', ['We\'re so proud of how hard you\'ve been working. We wanted to be here to support you. And it just happens to be near the mall!']],
+    ],
     characters: ['parent'],
     options: [],
     defaultOutcome: {
@@ -42,7 +44,9 @@ export const familyEvents: StoryEvent[] = [
     },
     skippable: true,
     description: 'Your family reveals they\'ve been making financial sacrifices to support your tennis career.',
-    dialogue: [['parent', ['We need to talk about something. We\'ve been using our savings to help with your training costs - equipment, coaching fees, tournament entries. We believe in you, but it\'s been tight. We\'re not asking you to quit, but we wanted you to know the reality of what we\'re investing in your dream.']]],
+    dialogue: [
+      ['parent', ['We need to talk about something. We\'ve been using our savings to help with your training costs - equipment, coaching fees, tournament entries. We believe in you, but it\'s been tight. We\'re not asking you to quit, but we wanted you to know the reality of what we\'re investing in your dream.']],
+    ],
     characters: ['parent'],
     options: [
       {
