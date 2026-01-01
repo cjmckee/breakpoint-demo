@@ -58,9 +58,16 @@ export const CHARACTERS: Record<string, Character> = {
 /**
  * Get character display name by ID
  * Returns the character name or a fallback if not found
+ * Special case: 'player' returns the actual player's name
  */
-export function getCharacterName(characterId: string | null): string | null {
+export function getCharacterName(characterId: string | null, playerName?: string): string | null {
   if (!characterId) return null;
+
+  // Handle special 'player' character ID
+  if (characterId === 'player') {
+    return playerName || 'You';
+  }
+
   return CHARACTERS[characterId]?.name || characterId.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
 }
 

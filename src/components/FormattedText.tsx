@@ -6,6 +6,7 @@
 import React from 'react';
 import type { FormattedText as FormattedTextType, TextSegment } from '../types/storyEvents';
 import { getCharacterName } from '../data/characters';
+import { usePlayerName } from '../hooks/usePlayerName';
 
 interface FormattedTextProps {
   content: FormattedTextType;
@@ -25,6 +26,9 @@ interface FormattedTextProps {
  * Renders: "You meet Coach Gonzalez at the courts." (with name highlighted)
  */
 export const FormattedText: React.FC<FormattedTextProps> = ({ content, className = '' }) => {
+  // Get player name for character references
+  const playerName = usePlayerName();
+
   return (
     <span className={className}>
       {content.map((segment: TextSegment, index: number) => {
@@ -34,7 +38,7 @@ export const FormattedText: React.FC<FormattedTextProps> = ({ content, className
         }
 
         // Character reference segment
-        const characterName = getCharacterName(segment.characterId);
+        const characterName = getCharacterName(segment.characterId, playerName);
         return (
           <span
             key={index}

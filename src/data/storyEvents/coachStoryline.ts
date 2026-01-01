@@ -15,14 +15,17 @@ export const coachEvents: StoryEvent[] = [
     timeSlotsRequired: 1,
     prerequisites: {},
     skippable: false,
-    description: 'A local tennis coach has taken interest in your development.',
-    dialogue: [['coach_gonzalez', 'I\'ve been watching you play. You have raw talent, but you need guidance to reach your full potential. Let me help you develop your game properly.']],
+    description: 'One of the academy\'s tennis coaches has taken interest in your development.',
+    dialogue: [['coach_gonzalez', ['I\'ve been watching you play. You have some raw talent, but you\'re going to need a lot of work to compete at this level.']],
+              ['coach_gonzalez', ['I mean, look around. A former top 10 under-16 player over there. That guy played for Spain in the junior Olympics. And she\'s a two-time national champion committed to Duke now.']],
+              ['coach_gonzalez', ['And that guy... he\'s the #4 rated player in a country I\'ve never even heard of.']],
+              ['coach_gonzalez', ['You have a long way to go, kid. But I think I can help.']]],
     characters: ['coach_gonzalez'],
     options: [],
     defaultOutcome: {
-      resultText: ['You spend an hour with ', { characterId: 'coach_gonzalez' }, ' discussing your goals and tennis philosophy. He shares valuable insights about the mental side of the game and proper training techniques.'],
+      resultText: ['You spend an hour listening to ', { characterId: 'coach_gonzalez' }, ' talk about his tennis experiences and what it takes to be the best. You realize you haven\'t even gotten a word in since you sat down. But you find it oddly helpful.'],
       effects: {
-        statBoosts: { focus: 2, anticipation: 1 },
+        statChanges: { focus: 2, anticipation: 1 },
         moodChange: 15,
         energyChange: -10,
         relationshipChanges: { coach_gonzalez: 25 },
@@ -60,7 +63,7 @@ export const coachEvents: StoryEvent[] = [
         ChallengeManager.createChallenge({
           id: 'challenge_first_victories',
           name: 'First Victories',
-          description: 'Coach Gonzalez challenges you to prove yourself on the court. Win your first 3 matches.',
+          description: 'Coach Gonzalez challenges you to use what you\'ve learned on the court. Win three matches.',
           requirements: [
             {
               type: 'matchCount',
@@ -99,7 +102,8 @@ export const coachEvents: StoryEvent[] = [
     },
     skippable: true,
     description: 'Coach Gonzalez wants to know what aspect of your game to prioritize in training.',
-    dialogue: [['coach_gonzalez', 'Everyone has different strengths and weaknesses. Tell me - what do you want to focus on developing? We\'ll build a training program around your choice.']],
+    dialogue: [['coach_gonzalez', ['Everyone has different strengths and weaknesses. You - you have many weaknesses.']],
+               ['coach_gonzalez', ['Let\'s take one of those weaknesses and make it just average!']]],
     characters: ['coach_gonzalez'],
     options: [
       {
@@ -108,9 +112,9 @@ export const coachEvents: StoryEvent[] = [
         emoji: '🚀',
         description: 'Focus on developing a dominant serve',
         outcome: {
-          resultText: ['You spend intensive sessions working on serve technique. ', { characterId: 'coach_gonzalez' }, ' helps you generate more power while maintaining accuracy. Your serve becomes a real weapon.'],
+          resultText: ['You spend intensive sessions working on serve technique. ', { characterId: 'coach_gonzalez' }, ' helps you generate more power while maintaining accuracy. Your serve improves noticeably.'],
           effects: {
-            statBoosts: { serve: 5, strength: 3 },
+            statChanges: { serve: 5, strength: 3 },
             moodChange: 10,
             energyChange: -20,
             relationshipChanges: { coach_gonzalez: 15 },
@@ -119,7 +123,7 @@ export const coachEvents: StoryEvent[] = [
             ChallengeManager.createChallenge({
               id: 'coach_challenge_serve_mastery',
               name: "Coach's Challenge: Serve Mastery",
-              description: 'Coach Gonzalez wants you to develop your serve to professional level. Reach 40 serve stat to prove your dedication.',
+              description: 'Coach Gonzalez wants you to develop your serve to a passable level. Train your serve to 40.',
               requirements: [
                 {
                   type: 'statThreshold',
@@ -157,7 +161,7 @@ export const coachEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You work tirelessly on groundstroke mechanics. ', { characterId: 'coach_gonzalez' }, ' refines your technique on both wings. Your forehand and backhand both show marked improvement.'],
           effects: {
-            statBoosts: { forehand: 4, backhand: 4, defensive: 2 },
+            statChanges: { forehand: 4, backhand: 4, defensive: 2 },
             moodChange: 10,
             energyChange: -20,
             relationshipChanges: { coach_gonzalez: 15 },
@@ -166,7 +170,7 @@ export const coachEvents: StoryEvent[] = [
             ChallengeManager.createChallenge({
               id: 'coach_challenge_baseline_warrior',
               name: "Coach's Challenge: Baseline Warrior",
-              description: 'Coach Gonzalez challenges you to become a complete baseline player. Develop both forehand and backhand to 35.',
+              description: 'Coach Gonzalez challenges you to become a complete baseline player. Train both forehand and backhand to 35.',
               requirements: [
                 {
                   type: 'statThreshold',
@@ -211,7 +215,7 @@ export const coachEvents: StoryEvent[] = [
         outcome: {
           resultText: [{ characterId: 'coach_gonzalez' }, ' introduces you to sports psychology techniques. You learn breathing exercises, visualization methods, and how to stay focused under pressure. The mental game is just as important as the physical.'],
           effects: {
-            statBoosts: { focus: 5, anticipation: 3, offensive: 2 },
+            statChanges: { focus: 5, anticipation: 3, offensive: 2 },
             moodChange: 15,
             energyChange: -15,
             relationshipChanges: { coach_gonzalez: 20 },
@@ -220,13 +224,8 @@ export const coachEvents: StoryEvent[] = [
             ChallengeManager.createChallenge({
               id: 'coach_challenge_mental_edge',
               name: "Coach's Challenge: Mental Edge",
-              description: 'Coach Gonzalez wants you to develop the mental fortitude of a champion. Prove yourself by winning 5 matches and reaching 40 focus.',
+              description: 'Coach Gonzalez wants you to develop the mental fortitude of a champion. Train your focus to 40.',
               requirements: [
-                {
-                  type: 'matchCount',
-                  targetWins: 5,
-                  description: 'Win 5 matches',
-                },
                 {
                   type: 'statThreshold',
                   statName: 'focus',
@@ -270,7 +269,7 @@ export const coachEvents: StoryEvent[] = [
     },
     skippable: true,
     description: 'Coach Gonzalez emphasizes the importance of developing all aspects of your game.',
-    dialogue: [['coach_gonzalez', 'You\'re making good progress, but a truly great player needs balance. You can specialize, but you can\'t have glaring weaknesses. Let\'s work on rounding out your game.']],
+    dialogue: [['coach_gonzalez', ['You\'re making good progress, but a truly great player needs balance. You can specialize, but you can\'t have glaring weaknesses. Let\'s work on rounding out your game.']]],
     characters: ['coach_gonzalez'],
     options: [
       {
@@ -281,7 +280,7 @@ export const coachEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You dedicate equal time to both forehand and backhand. ', { characterId: 'coach_gonzalez' }, ' helps you build consistency across both shots, eliminating the predictability of having a weaker side.'],
           effects: {
-            statBoosts: { forehand: 3, backhand: 3, shotVariety: 2 },
+            statChanges: { forehand: 3, backhand: 3, shotVariety: 2 },
             moodChange: 10,
             energyChange: -20,
             relationshipChanges: { coach_gonzalez: 15 },
@@ -290,19 +289,19 @@ export const coachEvents: StoryEvent[] = [
             ChallengeManager.createChallenge({
               id: 'challenge_balanced_approach',
               name: 'Balanced Approach',
-              description: 'Coach Gonzalez wants you to become a well-rounded player. Raise both forehand and backhand to 25.',
+              description: 'Coach Gonzalez wants you to become a well-rounded player. Raise both forehand and backhand to 40.',
               requirements: [
                 {
                   type: 'statThreshold',
                   statName: 'forehand',
-                  targetValue: 25,
-                  description: 'Reach 25 Forehand',
+                  targetValue: 40,
+                  description: 'Reach 40 Forehand',
                 },
                 {
                   type: 'statThreshold',
                   statName: 'backhand',
-                  targetValue: 25,
-                  description: 'Reach 25 Backhand',
+                  targetValue: 40,
+                  description: 'Reach 40 Backhand',
                 },
               ],
               reward: {
@@ -333,7 +332,7 @@ export const coachEvents: StoryEvent[] = [
         outcome: {
           resultText: [{ characterId: 'coach_gonzalez' }, ' introduces you to a strength and conditioning program. You work on explosive speed, endurance, and recovery. Your body starts to feel like a finely-tuned machine.'],
           effects: {
-            statBoosts: { speed: 4, stamina: 4, agility: 2 },
+            statChanges: { speed: 4, stamina: 4, agility: 2 },
             moodChange: 10,
             energyChange: -25,
             relationshipChanges: { coach_gonzalez: 15 },
@@ -342,19 +341,19 @@ export const coachEvents: StoryEvent[] = [
             ChallengeManager.createChallenge({
               id: 'challenge_athletic_foundation',
               name: 'Athletic Foundation',
-              description: 'Coach Gonzalez challenges you to build elite-level fitness. Reach 30 in both speed and stamina.',
+              description: 'Coach Gonzalez challenges you to build elite-level fitness. Reach 35 in both speed and stamina.',
               requirements: [
                 {
                   type: 'statThreshold',
                   statName: 'speed',
-                  targetValue: 30,
-                  description: 'Reach 30 Speed',
+                  targetValue: 35,
+                  description: 'Reach 35 Speed',
                 },
                 {
                   type: 'statThreshold',
                   statName: 'stamina',
-                  targetValue: 30,
-                  description: 'Reach 30 Stamina',
+                  targetValue: 35,
+                  description: 'Reach 35 Stamina',
                 },
               ],
               reward: {

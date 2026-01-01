@@ -56,8 +56,8 @@ export class PrerequisiteChecker {
     requirements: {
       completedEvents?: string[];
       excludedEvents?: string[];
-      completedEventChoices?: Record<string, string>;
-      excludedEventChoices?: Record<string, string>;
+      completedEventChoices?: Record<string, string | string[]>;
+      excludedEventChoices?: Record<string, string | string[]>;
     }
   ): boolean {
     // Check required completed events
@@ -77,14 +77,30 @@ export class PrerequisiteChecker {
     // Check required choices (specific option must have been selected)
     if (requirements.completedEventChoices) {
       for (const [eventId, requiredOptionId] of Object.entries(requirements.completedEventChoices)) {
-        if (completedChoices[eventId] !== requiredOptionId) return false;
+        const playerChoice = completedChoices[eventId];
+
+        // Array means OR - player's choice must be in the array
+        if (Array.isArray(requiredOptionId)) {
+          if (!requiredOptionId.includes(playerChoice)) return false;
+        } else {
+          // Single string means exact match
+          if (playerChoice !== requiredOptionId) return false;
+        }
       }
     }
 
     // Check excluded choices (specific option blocks this event)
     if (requirements.excludedEventChoices) {
       for (const [eventId, blockedOptionId] of Object.entries(requirements.excludedEventChoices)) {
-        if (completedChoices[eventId] === blockedOptionId) return false;
+        const playerChoice = completedChoices[eventId];
+
+        // Array means OR - if player's choice is in the array, block the event
+        if (Array.isArray(blockedOptionId)) {
+          if (blockedOptionId.includes(playerChoice)) return false;
+        } else {
+          // Single string means exact match
+          if (playerChoice === blockedOptionId) return false;
+        }
       }
     }
 

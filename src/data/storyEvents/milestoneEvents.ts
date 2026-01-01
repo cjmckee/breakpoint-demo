@@ -8,23 +8,51 @@ import { ChallengeManager } from '../../game/ChallengeManager';
 
 export const milestoneEvents: StoryEvent[] = [
   {
-    id: 'first_winning_streak',
-    name: 'Five-Match Winning Streak',
+    id: 'first_match_win',
+    name: 'First Match Victory',
     tags: ['milestone', 'celebration'],
     timeSlotsRequired: 1,
     prerequisites: {
-      minMatchesWon: 5,
-      excludedEvents: ['first_winning_streak'], // Only trigger once
+      minMatchesWon: 1,
+      excludedEvents: [],
     },
     skippable: false,
-    description: 'You\'ve won five matches in a row - your best streak yet!',
-    dialogue: [['coach_gonzalez', 'Five wins in a row! Do you know what this means? You\'re not just getting lucky anymore - you\'re consistently outplaying your opponents. This is the breakthrough we\'ve been working toward!']],
+    description: 'You\'ve won your first match!',
+    dialogue: [['coach_gonzalez', ['Congratulations on your first win! It may not have been pretty, but a win is a win. In fact, don\'t look at the stats. It was not pretty.']],
+              ['coach_gonzalez', ['You\'ve moved off the bottom rung of the ladder now. To the second bottom rung. Progress.']]],
     characters: ['coach_gonzalez'],
     options: [],
     defaultOutcome: {
-      resultText: ['The winning streak has transformed your confidence. You\'re starting to believe you belong at this level. Other players are starting to take notice of your consistent performance. You feel yourself crossing a threshold from hopeful beginner to legitimate competitor.'],
+      resultText: ['You\'ve proven that you can win at this level. Your confidence is growing, but everything else hurts. I don\'t think it was supposed to be that hard.'],
       effects: {
-        statBoosts: { focus: 4, anticipation: 3, offensive: 2, defensive: 2 },
+        statChanges: {
+          return: 1,
+          focus: 1,
+          anticipation: 1,
+          offensive: 1,
+          defensive: 1,
+        }
+      }
+    }
+  },
+  {
+    id: 'first_winning_streak',
+    name: 'Three-Match Winning Streak',
+    tags: ['milestone', 'celebration'],
+    timeSlotsRequired: 1,
+    prerequisites: {
+      minMatchesWon: 3,
+      excludedEvents: [],
+    },
+    skippable: false,
+    description: 'You\'ve won three matches in a row - your best streak yet!',
+    dialogue: [['coach_gonzalez', ['Three wins in a row! Do you know what this means? You\'re not just getting lucky anymore - you\'re consistently outplaying your opponents. This is the breakthrough we\'ve been working toward!']]],
+    characters: ['coach_gonzalez'],
+    options: [],
+    defaultOutcome: {
+      resultText: ['The winning streak has transformed your confidence. You\'re starting to believe you belong at this level, and other players have noticed your improvement. You feel yourself becoming a legitimate competitor.'],
+      effects: {
+        statChanges: { spin: 4, placement: 3, stamina: 2, recovery: 2 },
         moodChange: 40,
         energyChange: 0,
         relationshipChanges: { coach_gonzalez: 15 },
@@ -78,14 +106,14 @@ export const milestoneEvents: StoryEvent[] = [
     tags: ['equipment', 'milestone', 'decision'],
     timeSlotsRequired: 2,
     prerequisites: {
-      minMatchesWon: 6,
-      minDay: 20,
+      minMatchesWon: 4,
+      minDay: 10,
       completedEvents: ['sponsor_first_offer'],
-      completedEventChoices: { sponsor_first_offer: 'accept_immediately' },
+      completedEventChoices: { sponsor_first_offer: ['accept_immediately', 'negotiate'] },
     },
     skippable: true,
     description: 'Your sponsor offers you access to professional-grade equipment and custom racquet fitting.',
-    dialogue: [['sponsor_rep', 'We want to give you the best tools to succeed. We\'re offering you a full professional equipment package - custom-fitted racquet, premium strings, and professional-grade shoes. Our team will work with you to find the perfect setup for your game.']],
+    dialogue: [['sponsor_rep', ['We want to give you the best tools to succeed. We\'re offering you a full professional equipment package - custom-fitted racquet, premium strings, and professional-grade shoes. Our team will work with you to find the perfect setup for your game.']]],
     characters: ['sponsor_rep'],
     options: [
       {
@@ -96,7 +124,7 @@ export const milestoneEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You choose a power-oriented setup with a heavier racquet and stiffer strings. The equipment feels powerful in your hands. You start hitting bigger serves and more aggressive groundstrokes, adding a new dimension to your game.'],
           effects: {
-            statBoosts: { serve: 4, forehand: 3, strength: 2, offensive: 3 },
+            statChanges: { serve: 4, forehand: 3, strength: 2, offensive: 3 },
             moodChange: 25,
             energyChange: -10,
           },
@@ -110,7 +138,7 @@ export const milestoneEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You opt for a control-oriented setup with a more flexible frame and softer strings. The racquet gives you incredible feel and precision. Your shot placement improves dramatically, and you feel more confident in constructing points.'],
           effects: {
-            statBoosts: { forehand: 3, backhand: 3, anticipation: 2, defensive: 3 },
+            statChanges: { spin: 3, placement: 3, anticipation: 2, defensive: 3, return: 2 },
             moodChange: 25,
             energyChange: -10,
           },
@@ -124,7 +152,7 @@ export const milestoneEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You choose a balanced setup that doesn\'t sacrifice power or control. The versatile equipment allows you to adapt your game to different opponents and situations. You feel prepared for any challenge.'],
           effects: {
-            statBoosts: { serve: 2, forehand: 2, backhand: 2, anticipation: 2, offensive: 1, defensive: 1 },
+            statChanges: { serve: 2, forehand: 2, backhand: 2, anticipation: 2, offensive: 1, defensive: 1 },
             moodChange: 25,
             energyChange: -10,
           },

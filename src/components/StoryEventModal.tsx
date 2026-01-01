@@ -8,6 +8,7 @@ import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
 import type { StoryEvent, StoryEventOption } from '../types/storyEvents';
 import { getCharacterName } from '../data/characters';
+import { usePlayerName } from '../hooks/usePlayerName';
 
 interface StoryEventModalProps {
   isOpen: boolean;
@@ -26,6 +27,9 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
 }) => {
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [currentDialogueIndex, setCurrentDialogueIndex] = useState<number>(0);
+
+  // Get player name for dialogue attribution
+  const playerName = usePlayerName();
 
   const isLinearEvent = event.options.length === 0;
   const {dialogue} = event;
@@ -74,7 +78,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
         <div className="bg-gray-700 text-white p-4 rounded mb-6 border-l-4 border-blue-500">
           {(() => {
             const [characterId, text] = dialogue![currentDialogueIndex];
-            const characterName = getCharacterName(characterId);
+            const characterName = getCharacterName(characterId, playerName);
 
             return (
               <>

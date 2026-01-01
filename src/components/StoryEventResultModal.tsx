@@ -9,6 +9,7 @@ import { Button } from './ui/Button';
 import type { StoryEventResult } from '../types/storyEvents';
 import { FormattedText } from './FormattedText';
 import { getCharacterName } from '../data/characters';
+import { usePlayerName } from '../hooks/usePlayerName';
 
 interface StoryEventResultModalProps {
   isOpen: boolean;
@@ -21,6 +22,9 @@ export const StoryEventResultModal: React.FC<StoryEventResultModalProps> = ({
   onClose,
   result,
 }) => {
+  // Get player name for character references
+  const playerName = usePlayerName();
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={result.eventName} size="lg">
       {/* Tags */}
@@ -87,7 +91,7 @@ export const StoryEventResultModal: React.FC<StoryEventResultModalProps> = ({
                       value > 0 ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'
                     }`}
                   >
-                    {getCharacterName(char) || char.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}:{' '}
+                    {getCharacterName(char, playerName) || char.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}:{' '}
                     {value > 0 ? '+' : ''}
                     {value}
                   </div>

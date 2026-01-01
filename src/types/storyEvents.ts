@@ -3,8 +3,9 @@
  * Comprehensive types for the story event system
  */
 
-import type { Activity } from './game';
+import type { Activity, StatBoosts } from './game';
 import type { Challenge } from './challenges';
+import type { StatName } from './index';
 
 // ============================================================================
 // TEXT FORMATTING SYSTEM
@@ -27,10 +28,10 @@ export type FormattedText = TextSegment[];
 // ============================================================================
 
 /**
- * Dialogue line with speaker and text
+ * Dialogue line with speaker and formatted text
  * [characterId, text] - characterId can be null for narration
  */
-export type DialogueLine = [string | null, string];
+export type DialogueLine = [string | null, FormattedText];
 
 // ============================================================================
 // STORY EVENT TAGS
@@ -70,7 +71,7 @@ export type StoryEventTag =
 export interface StoryEventPrerequisite {
   // Stat requirements
   stats?: {
-    [statName: string]: {
+    [K in StatName]?: {
       min?: number;
       max?: number;
     };
@@ -89,8 +90,8 @@ export interface StoryEventPrerequisite {
   excludedEvents?: string[];       // Must NOT have completed these events
 
   // Choice-based requirements (for branching storylines)
-  completedEventChoices?: Record<string, string>;  // eventId -> optionId that must have been chosen
-  excludedEventChoices?: Record<string, string>;   // eventId -> optionId that blocks this event
+  completedEventChoices?: Record<string, string | string[]>;  // eventId -> optionId(s) that must have been chosen (array = OR)
+  excludedEventChoices?: Record<string, string | string[]>;   // eventId -> optionId(s) that blocks this event (array = OR)
 
   // Time/season requirements
   minDay?: number;
@@ -117,8 +118,7 @@ export interface StoryEventOutcome {
 
   // Effects applied to player
   effects: {
-    statBoosts?: Record<string, number>;
-    statDecreases?: Record<string, number>;
+    statChanges?: StatBoosts;
     moodChange?: number;
     energyChange?: number;
     relationshipChanges?: Record<string, number>;
@@ -197,7 +197,7 @@ export interface StoryEventResult extends Activity {
   resultText: FormattedText;
 
   // Effects (for display in history/modal)
-  statChanges: Record<string, number>;
+  statChanges: StatBoosts;
   relationshipChanges: Record<string, number>;
   abilitiesGained: string[];
 }
