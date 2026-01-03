@@ -353,9 +353,15 @@ export class MatchRewardSystem {
     const abilities: Ability[] = [];
     const dropRates = ABILITY_DROP_RATES[tier];
 
+    console.log('Ability drop rates:', dropRates);
+
     // Roll for each rarity tier
     for (const [rarity, rate] of Object.entries(dropRates)) {
-      if (rate > 0 && Math.random() * 100 < rate) {
+      const roll = Math.random() * 100;
+      if (rate > 0 && roll < rate) {
+        console.log(`Rolled ability drop: ${rarity}`);
+        console.log('Rate:', rate);
+        console.log('Roll:', roll);
         const ability = AbilitySystem.getRandomAbilityByRarity(rarity as AbilityRarity);
         if (ability) {
           abilities.push(ability);

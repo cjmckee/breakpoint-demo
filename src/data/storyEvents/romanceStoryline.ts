@@ -56,7 +56,7 @@ export const romanceEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You have a deep conversation about your tennis ambitions over coffee. ', { characterId: 'alex_romance' }, ' shares their own competitive experiences and offers helpful advice based on what they\'ve learned. You gain valuable insights into tournament preparation.'],
           effects: {
-            statBoosts: { focus: 2, anticipation: 1 },
+            statChanges: { focus: 2, anticipation: 1 },
             moodChange: 15,
             energyChange: -5,
             relationshipChanges: { alex: 10 },
@@ -85,7 +85,7 @@ export const romanceEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You explain that you need to focus on training right now and ask if you can reschedule. ', { characterId: 'alex_romance' }, ' seems understanding but you can tell they\'re a bit disappointed.'],
           effects: {
-            statBoosts: { focus: 1 },
+            statChanges: { focus: 1 },
             moodChange: 0,
             energyChange: 0,
             relationshipChanges: { alex: -5 },

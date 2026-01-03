@@ -158,17 +158,10 @@ export class StoryEventManager {
     // Get the outcome (from selected option or default)
     const outcome = this.getOutcome(event, selectedOption);
 
-    // Combine stat boosts and decreases into single statChanges object
+    // Get stat changes from outcome
     const statChanges: Record<string, number> = {
-      ...(outcome.effects.statBoosts || {}),
+      ...(outcome.effects.statChanges || {}),
     };
-
-    // Add stat decreases as negative values
-    if (outcome.effects.statDecreases) {
-      for (const [stat, value] of Object.entries(outcome.effects.statDecreases)) {
-        statChanges[stat] = -(value || 0);
-      }
-    }
 
     // Create result
     const result: StoryEventResult = {

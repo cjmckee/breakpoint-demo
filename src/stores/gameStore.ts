@@ -20,6 +20,7 @@ import {
 import type { StoryEvent, StoryEventTag, StoryEventOption } from '../types/storyEvents';
 import type { Challenge } from '../types/challenges';
 import type { MatchStatistics } from '../types/index';
+import type { MatchReward } from '../types/game';
 import { PlayerManager } from '../game/PlayerManager';
 import { TrainingSystem } from '../game/TrainingSystem';
 import { TimeManager } from '../game/TimeManager';
@@ -79,7 +80,8 @@ interface GameState {
     opponentTier: OpponentTier,
     score: string,
     surface: string,
-    matchStatistics: MatchStatistics
+    matchStatistics: MatchStatistics,
+    preCalculatedRewards?: MatchReward
   ) => void;
   unlockNextTier: () => OpponentTier | null;
   saveGame: (saveName?: string) => void;
@@ -385,25 +387,32 @@ export const useGameStore = create<GameState>()(
         opponentTier: OpponentTier,
         score: string,
         surface: string,
-        matchStatistics: MatchStatistics
+        matchStatistics: MatchStatistics,
+        preCalculatedRewards?: MatchReward
       ) => {
         const { player, currentStatus } = get();
         if (!player) return;
 
         const isWin = result === 'win';
 
-        // Calculate rewards directly from match statistics
-        const rewards = MatchRewardSystem.calculateRewards(
+        // Use pre-calculated rewards if provided, otherwise calculate from match statistics
+        // This prevents duplicate rolls when rewards are already calculated in the UI
+        const rewards = preCalculatedRewards || MatchRewardSystem.calculateRewards(
           matchStatistics,
           opponentTier,
           isWin
         );
+
+        console.log('=== APPLYING MATCH REWARDS ===');
+        console.log('Pre-calculated rewards provided:', !!preCalculatedRewards);
+        console.log('Rewards to apply:', rewards);
 
         // Apply stat boosts
         let updatedPlayer = PlayerManager.applyStatBoosts(player, rewards.statBoosts);
 
         // Apply abilities
         if (rewards.abilitiesGained && rewards.abilitiesGained.length > 0) {
+          console.log('Applying abilities to player:', rewards.abilitiesGained);
           for (const ability of rewards.abilitiesGained) {
             updatedPlayer = PlayerManager.addAbility(updatedPlayer, ability);
           }
@@ -728,8 +737,8 @@ export const useGameStore = create<GameState>()(
 
         // Apply stat changes to player
         let updatedPlayer = { ...player };
-        if (outcome.effects.statBoosts) {
-          updatedPlayer = PlayerManager.applyStatBoosts(updatedPlayer, outcome.effects.statBoosts);
+        if (outcome.effects.statChanges) {
+          updatedPlayer = PlayerManager.applyStatBoosts(updatedPlayer, outcome.effects.statChanges);
         }
 
         // Apply abilities

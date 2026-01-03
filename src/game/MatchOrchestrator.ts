@@ -177,6 +177,12 @@ export class MatchOrchestrator {
         config.onScoreUpdate(currentScore);
       }
 
+      // Callback for stats update - provide current statistics
+      if (config.onStatsUpdate && this.matchStatistics) {
+        const currentStats = this.matchStatistics.getStatistics();
+        config.onStatsUpdate(currentStats);
+      }
+
       // Check if match is complete
       isComplete = this.isMatchComplete(currentScore);
 

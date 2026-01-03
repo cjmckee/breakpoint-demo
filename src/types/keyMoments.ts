@@ -6,6 +6,7 @@
 import { TacticalOption, KeyMomentType } from '../data/tacticalOptions';
 import { KeyMomentResult } from '../game/KeyMomentResolver';
 import { Ability } from './game';
+import { MatchStatistics } from './index';
 
 /**
  * Key Moment Data
@@ -62,6 +63,11 @@ export type KeyMomentCallback = (keyMoment: KeyMoment) => Promise<TacticalOption
 export type ScoreUpdateCallback = (score: MatchScore) => void;
 
 /**
+ * Callback for statistics updates during match
+ */
+export type StatsUpdateCallback = (stats: MatchStatistics) => void;
+
+/**
  * Match score structure
  */
 export interface MatchScore {
@@ -92,6 +98,7 @@ export interface InteractiveMatchConfig {
   onKeyMoment?: KeyMomentCallback;
   onKeyMomentResult?: (result: any) => void; // Called after key moment is resolved
   onScoreUpdate?: ScoreUpdateCallback;
+  onStatsUpdate?: StatsUpdateCallback; // Called after each point with current statistics
   onPointComplete?: (result: PointResult) => void;
   onMatchComplete?: (finalScore: MatchScore) => void;
 

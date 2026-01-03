@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
 import type { StoryEvent, StoryEventOption } from '../types/storyEvents';
+import { FormattedText } from './FormattedText';
 import { getCharacterName } from '../data/characters';
 import { usePlayerName } from '../hooks/usePlayerName';
 
@@ -86,7 +87,9 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
                   <div className="font-bold text-blue-300 mb-2">{characterName}</div>
                 )}
                 <p className={characterName ? 'ml-2' : 'italic'} style={{ whiteSpace: 'pre-line' }}>
-                  {characterName ? `"${text}"` : text}
+                  {characterName ? '"' : ''}
+                  <FormattedText content={text} />
+                  {characterName ? '"' : ''}
                 </p>
               </>
             );
@@ -175,12 +178,12 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
                     <div className="mt-3 pt-3 border-t border-gray-300 text-sm">
                       <div className="font-semibold mb-2 text-gray-900">Effects Preview:</div>
                       <div className="grid grid-cols-1 gap-1">
-                        {option.outcome.effects.statBoosts &&
-                          Object.keys(option.outcome.effects.statBoosts).length > 0 && (
+                        {option.outcome.effects.statChanges &&
+                          Object.keys(option.outcome.effects.statChanges).length > 0 && (
                             <div className="text-green-700 font-medium">
-                              📈 Stats: +
-                              {Object.entries(option.outcome.effects.statBoosts)
-                                .map(([k, v]) => `${k}: +${v}`)
+                              📈 Stats:
+                              {Object.entries(option.outcome.effects.statChanges)
+                                .map(([k, v]) => `${k}: ${v > 0 ? '+' : ''}${v}`)
                                 .join(', ')}
                             </div>
                           )}

@@ -110,6 +110,11 @@ export const useMatchStore = create<MatchState>((set, get) => ({
         set({ currentScore: score });
       },
 
+      // Stats update callback - updates live during match
+      onStatsUpdate: (stats: IMatchStatistics) => {
+        set({ matchStatistics: stats });
+      },
+
       // Match complete callback
       onMatchComplete: (finalScore: MatchScore) => {
         // Get statistics from orchestrator

@@ -64,7 +64,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
   if (!finalScore) return null;
 
   const handleClose = () => {
-    if (!finalScore || !matchStatistics || !matchConfig) return;
+    if (!finalScore || !matchStatistics || !matchConfig || !matchRewards) return;
 
     // Format score for display
     const formatScore = (score: MatchScore): string => {
@@ -78,18 +78,20 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
     console.log('MatchSummaryModal handleClose called');
     console.log('Match statistics:', matchStatistics);
     console.log('Opponent tier:', opponentTier);
+    console.log('Passing pre-calculated rewards:', matchRewards);
 
-    // Pass real match statistics directly - no need to build fake CoreMatchResult
+    // Pass the pre-calculated rewards to avoid duplicate rolls
     addMatchResult(
       isWinner ? 'win' : 'loss',
       opponentName,
       opponentTier,
       formatScore(finalScore),
       matchConfig.surface,
-      matchStatistics
+      matchStatistics,
+      matchRewards
     );
 
-    console.log('addMatchResult called with statistics');
+    console.log('addMatchResult called with pre-calculated rewards');
 
     onClose();
     setScreen('main-menu');

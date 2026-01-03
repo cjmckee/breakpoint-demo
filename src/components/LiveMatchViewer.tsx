@@ -28,6 +28,7 @@ export const LiveMatchViewer: React.FC = () => {
   const currentScore = useMatchStore((state) => state.currentScore);
   const matchHistory = useMatchStore((state) => state.matchHistory);
   const matchConfig = useMatchStore((state) => state.matchConfig);
+  const matchStatistics = useMatchStore((state) => state.matchStatistics);
   const endMatch = useMatchStore((state) => state.endMatch);
   const setScreen = useGameStore((state) => state.setScreen);
   const player = useGameStore((state) => state.player);
@@ -42,22 +43,25 @@ export const LiveMatchViewer: React.FC = () => {
   };
 
   const [matchLog, setMatchLog] = useState<string[]>([]);
-  const [playerStats, setPlayerStats] = useState<MatchStats>({
-    aces: 0,
-    doubleFaults: 0,
-    winners: 0,
-    unforcedErrors: 0,
-    firstServePercentage: 65,
-    pointsWon: 0,
-  });
-  const [opponentStats, setOpponentStats] = useState<MatchStats>({
-    aces: 0,
-    doubleFaults: 0,
-    winners: 0,
-    unforcedErrors: 0,
-    firstServePercentage: 68,
-    pointsWon: 0,
-  });
+
+  // Derive stats from matchStatistics store
+  const playerStats: MatchStats = {
+    aces: matchStatistics?.aces.player ?? 0,
+    doubleFaults: matchStatistics?.doubleFaults.player ?? 0,
+    winners: matchStatistics?.winners.player ?? 0,
+    unforcedErrors: matchStatistics?.unforcedErrors.player ?? 0,
+    firstServePercentage: Math.round(matchStatistics?.firstServePercentage.player ?? 0),
+    pointsWon: matchStatistics?.totalPoints.player ?? 0,
+  };
+
+  const opponentStats: MatchStats = {
+    aces: matchStatistics?.aces.opponent ?? 0,
+    doubleFaults: matchStatistics?.doubleFaults.opponent ?? 0,
+    winners: matchStatistics?.winners.opponent ?? 0,
+    unforcedErrors: matchStatistics?.unforcedErrors.opponent ?? 0,
+    firstServePercentage: Math.round(matchStatistics?.firstServePercentage.opponent ?? 0),
+    pointsWon: matchStatistics?.totalPoints.opponent ?? 0,
+  };
 
   useEffect(() => {
     if (!isMatchActive) {
