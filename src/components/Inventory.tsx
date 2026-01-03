@@ -3,7 +3,7 @@
  * Displays and manages player inventory, equipped items, and story items
  */
 
-import React, { useState, JSX } from 'react';
+import React, { useState } from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
@@ -24,53 +24,77 @@ const SLOT_NAMES: Record<EquipmentSlot, string> = {
   hat: 'Hat',
 };
 
+interface ModalState {
+  item: Item | null;
+  slot: EquipmentSlot | null;
+  showSwapOptions: boolean;
+}
+
 export const Inventory: React.FC = () => {
   const player = useGameStore((state) => state.player);
   const setScreen = useGameStore((state) => state.setScreen);
   const equipItem = useGameStore((state) => state.equipItem);
   const unequipItem = useGameStore((state) => state.unequipItem);
   const useConsumable = useGameStore((state) => state.useConsumable);
+  const trashItem = useGameStore((state) => state.trashItem);
 
-  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
-  const [selectedSlot, setSelectedSlot] = useState<EquipmentSlot | null>(null);
+  const [modal, setModal] = useState<ModalState>({ item: null, slot: null, showSwapOptions: false });
 
   if (!player) return null;
 
   const passiveBoosts = ItemManager.getTotalPassiveBoosts(player);
   const slots: EquipmentSlot[] = ['racquet', 'shoes', 'outfit', 'hat'];
 
-  const handleEquipClick = (item: Item) => {
+  const closeModal = () => {
+    setModal({ item: null, slot: null, showSwapOptions: false });
+  };
+
+  const handleEquip = (item: Item) => {
     if (item.equipmentSlot) {
       equipItem(item.id, item.equipmentSlot);
-      setSelectedItem(null);
+      closeModal();
     }
   };
 
-  const handleUnequipClick = (slot: EquipmentSlot) => {
+  const handleUnequip = (slot: EquipmentSlot) => {
     unequipItem(slot);
+    closeModal();
   };
 
   const handleUseConsumable = (item: Item) => {
-    if (confirm(`Use ${item.name}?`)) {
-      useConsumable(item.id);
-      setSelectedItem(null);
+    useConsumable(item.id);
+    closeModal();
+  };
+
+  const handleTrashItem = (item: Item) => {
+    trashItem(item.id);
+    closeModal();
+  };
+
+  // Click on an inventory item - show details modal
+  const handleItemClick = (item: Item) => {
+    setModal({ item, slot: item.equipmentSlot ?? null, showSwapOptions: false });
+  };
+
+  // Click on an equipment slot - show equipped item details or swap options
+  const handleSlotClick = (slot: EquipmentSlot) => {
+    const equippedItem = player.equippedItems[slot];
+    if (equippedItem) {
+      // Show equipped item details with swap option
+      setModal({ item: equippedItem, slot, showSwapOptions: false });
+    } else {
+      // Empty slot - show available items to equip
+      setModal({ item: null, slot, showSwapOptions: true });
     }
   };
 
-  const handleSlotClick = (slot: EquipmentSlot) => {
-    setSelectedSlot(slot === selectedSlot ? null : slot);
+  // Check if an item is currently equipped
+  const isItemEquipped = (item: Item): boolean => {
+    if (!item.equipmentSlot) return false;
+    return player.equippedItems[item.equipmentSlot]?.id === item.id;
   };
 
-  const handleItemClick = (item: Item) => {
-    setSelectedItem(item === selectedItem ? null : item);
-  }
-
-  const clearSelections = () => {
-    setSelectedItem(null);
-    setSelectedSlot(null);
-  };
-
-  const renderItemCard = (item: Item, isEquipped = false) => {
+  const renderItemCard = (item: Item, isEquipped = false, onClick?: () => void) => {
     const typeColors: Record<string, string> = {
       equipment: 'bg-blue-600',
       consumable: 'bg-green-600',
@@ -78,12 +102,14 @@ export const Inventory: React.FC = () => {
       story: 'bg-yellow-600',
     };
 
+    const isSelected = modal.item?.id === item.id;
+
     return (
-      <div key={item.id} onClick={() => handleItemClick(item)}>
+      <div key={item.id} onClick={onClick ?? (() => handleItemClick(item))}>
         <Card
           padding="sm"
           className={`cursor-pointer hover:border-pixel-accent transition-colors ${
-            selectedItem?.id === item.id ? 'border-pixel-accent border-4' : ''
+            isSelected ? 'border-pixel-accent border-4' : ''
           }`}
         >
           <div className="text-center">
@@ -100,6 +126,140 @@ export const Inventory: React.FC = () => {
           </div>
         </Card>
       </div>
+    );
+  };
+
+  const renderItemDetails = (item: Item) => {
+    const equipped = isItemEquipped(item);
+    const slot = item.equipmentSlot;
+    const canTrash = item.type !== 'story' && !equipped;
+
+    return (
+      <>
+        <h2 className="text-2xl font-bold text-pixel-text mb-2">{item.name}</h2>
+        <p className="text-sm text-pixel-text-muted mb-4">{item.description}</p>
+
+        {/* Modifiers / Stat Boosts */}
+        {item.modifiers?.statBoosts && Object.keys(item.modifiers.statBoosts).length > 0 && (
+          <div className="mb-4">
+            <h3 className="text-lg font-bold text-pixel-text mb-2">Stat Boosts</h3>
+            <div className="grid grid-cols-3 gap-2">
+              {Object.entries(item.modifiers.statBoosts).map(([stat, value]) => (
+                <div key={stat} className="text-sm">
+                  <span className="text-pixel-text">{stat}:</span>
+                  <span className="text-pixel-accent font-bold ml-1">+{value as number}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Consumable Effect */}
+        {item.consumableEffect && (
+          <div className="mb-4">
+            <h3 className="text-lg font-bold text-pixel-text mb-2">Effect</h3>
+            {item.consumableEffect.instantEffects && (
+              <div className="text-sm text-pixel-text-muted">
+                {item.consumableEffect.instantEffects.energyChange && (
+                  <div>Energy: +{item.consumableEffect.instantEffects.energyChange}</div>
+                )}
+                {item.consumableEffect.instantEffects.moodChange && (
+                  <div>Mood: +{item.consumableEffect.instantEffects.moodChange}</div>
+                )}
+              </div>
+            )}
+            {item.consumableEffect.nextActivityBuffs && (
+              <div className="text-sm text-pixel-accent">
+                Buffs for next activity
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex gap-2 flex-wrap">
+          {/* Equipment actions */}
+          {item.type === 'equipment' && slot && !equipped && (
+            <Button onClick={() => handleEquip(item)} variant="primary">
+              Equip
+            </Button>
+          )}
+          {item.type === 'equipment' && slot && equipped && (
+            <>
+              <Button onClick={() => setModal({ ...modal, showSwapOptions: true })} variant="primary">
+                Swap
+              </Button>
+              <Button onClick={() => handleUnequip(slot)} variant="secondary">
+                Unequip
+              </Button>
+            </>
+          )}
+
+          {/* Consumable action */}
+          {item.type === 'consumable' && (
+            <Button onClick={() => handleUseConsumable(item)} variant="success">
+              Use
+            </Button>
+          )}
+
+          {/* Trash action - available for non-story, non-equipped items */}
+          {canTrash && (
+            <Button onClick={() => handleTrashItem(item)} variant="danger">
+              Trash
+            </Button>
+          )}
+
+          <Button onClick={closeModal} variant="secondary">
+            Close
+          </Button>
+        </div>
+      </>
+    );
+  };
+
+  const renderSwapOptions = (slot: EquipmentSlot) => {
+    const availableItems = ItemManager.getItemsBySlot(player, slot);
+    const currentEquipped = player.equippedItems[slot];
+
+    return (
+      <>
+        <h2 className="text-2xl font-bold text-pixel-text mb-4">
+          {currentEquipped ? `Swap ${SLOT_NAMES[slot]}` : `Equip ${SLOT_NAMES[slot]}`}
+        </h2>
+
+        {currentEquipped && (
+          <div className="mb-4">
+            <h3 className="text-sm font-bold text-pixel-text-muted mb-2">Currently Equipped:</h3>
+            <div className="inline-block">
+              {renderItemCard(currentEquipped, true, () => setModal({ item: currentEquipped, slot, showSwapOptions: false }))}
+            </div>
+          </div>
+        )}
+
+        <h3 className="text-sm font-bold text-pixel-text-muted mb-2">Available Items:</h3>
+        {availableItems.length > 0 ? (
+          <div className="grid grid-cols-5 gap-4 mb-4">
+            {availableItems.map((item) => (
+              <div key={item.id}>
+                {renderItemCard(item, false, () => setModal({ item, slot, showSwapOptions: false }))}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-pixel-text-muted mb-4">No items available for this slot.</p>
+        )}
+
+        <div className="flex gap-2">
+          {currentEquipped && (
+            <Button onClick={() => handleUnequip(slot)} variant="secondary">
+              Unequip Current
+            </Button>
+          )}
+          <Button onClick={closeModal} variant="secondary">
+            Cancel
+          </Button>
+        </div>
+      </>
     );
   };
 
@@ -121,7 +281,7 @@ export const Inventory: React.FC = () => {
               return (
                 <div key={slot} onClick={() => handleSlotClick(slot)}>
                   {item ? (
-                    renderItemCard(item, true)
+                    renderItemCard(item, true, () => handleSlotClick(slot))
                   ) : (
                     <Card padding="sm" className="cursor-pointer hover:border-pixel-accent">
                       <div className="text-center">
@@ -171,96 +331,21 @@ export const Inventory: React.FC = () => {
         {/* Story Items */}
         {player.storyItems.length > 0 && (
           <Card className="mb-6 border-4 border-yellow-600">
-            <h2 className="text-2xl font-bold text-yellow-600 mb-2">Story Items ⭐</h2>
+            <h2 className="text-2xl font-bold text-yellow-600 mb-2">Story Items</h2>
             <div className="grid grid-cols-5 gap-4">
               {player.storyItems.map((item) => renderItemCard(item))}
             </div>
           </Card>
         )}
 
-        {/* Item Detail Panel */}
-        {selectedItem && (
-          <Card className="border-4 border-pixel-accent">
-            <h2 className="text-2xl font-bold text-pixel-text mb-2">{selectedItem.name}</h2>
-            <p className="text-sm text-pixel-text-muted mb-4">{selectedItem.description}</p>
-
-            {/* Modifiers */}
-            {selectedItem.modifiers?.statBoosts && (
-              <div className="mb-4">
-                <h3 className="text-lg font-bold text-pixel-text mb-2">Stat Boosts</h3>
-                <div className="grid grid-cols-3 gap-2">
-                  {Object.entries(selectedItem.modifiers.statBoosts).map(([stat, value]) => (
-                    <div key={stat} className="text-sm">
-                      <span className="text-pixel-text">{stat}:</span>
-                      <span className="text-pixel-accent font-bold ml-1">+{value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Consumable Effect */}
-            {selectedItem.consumableEffect && (
-              <div className="mb-4">
-                <h3 className="text-lg font-bold text-pixel-text mb-2">Effect</h3>
-                {selectedItem.consumableEffect.instantEffects && (
-                  <div className="text-sm text-pixel-text-muted">
-                    {selectedItem.consumableEffect.instantEffects.energyChange && (
-                      <div>Energy: +{selectedItem.consumableEffect.instantEffects.energyChange}</div>
-                    )}
-                    {selectedItem.consumableEffect.instantEffects.moodChange && (
-                      <div>Mood: +{selectedItem.consumableEffect.instantEffects.moodChange}</div>
-                    )}
-                  </div>
-                )}
-                {selectedItem.consumableEffect.nextActivityBuffs && (
-                  <div className="text-sm text-pixel-accent">
-                    Buffs for next activity
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Actions */}
-            <div className="flex gap-2">
-              {selectedItem.type === 'equipment' && selectedItem.equipmentSlot && (
-                <Button onClick={() => handleEquipClick(selectedItem)} variant="primary">
-                  Equip
-                </Button>
-              )}
-              {selectedItem.type === 'consumable' && (
-                <Button onClick={() => handleUseConsumable(selectedItem)} variant="success">
-                  Use
-                </Button>
-              )}
-              <Button onClick={() => clearSelections()} variant="secondary">
-                Close
-              </Button>
-            </div>
-          </Card>
-        )}
-
-        {/* Swap Equipment Panel */}
-        {selectedSlot && (
-          <Card className="mt-4 border-4 border-blue-600">
-            <h2 className="text-2xl font-bold text-pixel-text mb-4">
-              Swap {SLOT_NAMES[selectedSlot]}
-            </h2>
-            <div className="grid grid-cols-5 gap-4 mb-4">
-              {ItemManager.getItemsBySlot(player, selectedSlot).map((item) => (
-                <div key={item.id} onClick={() => handleEquipClick(item)}>
-                  {renderItemCard(item)}
-                </div>
-              ))}
-            </div>
-            {player.equippedItems[selectedSlot] && (
-              <Button onClick={() => handleUnequipClick(selectedSlot)} variant="secondary">
-                Unequip Current
-              </Button>
-            )}
-            <Button onClick={() => clearSelections()} variant="secondary" className="ml-2">
-              Cancel
-            </Button>
+        {/* Unified Modal */}
+        {(modal.item || modal.showSwapOptions) && (
+          <Card className="mt-4 border-4 border-pixel-accent">
+            {modal.showSwapOptions && modal.slot ? (
+              renderSwapOptions(modal.slot)
+            ) : modal.item ? (
+              renderItemDetails(modal.item)
+            ) : null}
           </Card>
         )}
       </div>

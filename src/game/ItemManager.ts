@@ -291,6 +291,28 @@ export class ItemManager {
   }
 
   /**
+   * Trash/remove an item from inventory permanently
+   * Cannot trash story items or currently equipped items
+   */
+  static trashItem(player: Player, itemId: string): Player {
+    const item = this.findItemInInventory(player, itemId);
+    if (!item) {
+      console.warn('Item not found in inventory:', itemId);
+      return player;
+    }
+
+    if (item.type === 'story') {
+      console.warn('Cannot trash story items:', item.name);
+      return player;
+    }
+
+    return {
+      ...player,
+      inventory: player.inventory.filter((i) => i.id !== itemId),
+    };
+  }
+
+  /**
    * Merge stat boosts (helper function)
    */
   private static mergeStatBoosts(target: StatBoosts, source: StatBoosts): void {

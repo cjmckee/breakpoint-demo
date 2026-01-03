@@ -8,7 +8,7 @@ import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
 import type { Challenge } from '../types/challenges';
 import { getCharacterName } from '../data/characters';
-import { usePlayerName } from '../stores/gameStore';
+import { usePlayerName } from '../hooks/usePlayerName'
 
 interface ChallengeRewardModalProps {
   isOpen: boolean;

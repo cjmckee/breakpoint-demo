@@ -113,6 +113,7 @@ interface GameState {
   unequipItem: (slot: EquipmentSlot) => void;
   swapEquipment: (itemId: string, slot: EquipmentSlot) => void;
   useConsumable: (itemId: string) => void;
+  trashItem: (itemId: string) => void;
   getPlayerItems: () => Item[];
 }
 
@@ -1101,6 +1102,15 @@ export const useGameStore = create<GameState>()(
         console.log(
           `Consumable used: Energy ${result.energyChange >= 0 ? '+' : ''}${result.energyChange}, Mood ${result.moodChange >= 0 ? '+' : ''}${result.moodChange}, Buff: ${result.buffApplied}`
         );
+      },
+
+      // Trash/remove an item from inventory permanently
+      trashItem: (itemId: string) => {
+        const { player } = get();
+        if (!player) return;
+
+        const updatedPlayer = ItemManager.trashItem(player, itemId);
+        set({ player: updatedPlayer });
       },
 
       // Get all player items
