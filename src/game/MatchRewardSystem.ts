@@ -28,6 +28,7 @@ import {
   MENTAL_WEIGHTS,
   PERFORMANCE_THRESHOLDS,
 } from '../config/performanceScoring';
+import { getRandomItem, getItemsByTier } from '../data/items';
 import { AbilitySystem } from './AbilitySystem';
 
 export class MatchRewardSystem {
@@ -382,9 +383,6 @@ export class MatchRewardSystem {
     const roll = Math.random() * 100;
 
     if (roll < finalRate) {
-      // Import item database
-      const { getRandomItem, getItemsByTier } = require('../data/items');
-
       // Get items available for this tier
       const availableItems = getItemsByTier(tier);
 

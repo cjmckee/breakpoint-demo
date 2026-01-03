@@ -780,12 +780,12 @@ export const useGameStore = create<GameState>()(
           }
         }
 
-        // Update relationships
+        // Update relationships (can range from -100 to 100)
         const updatedRelationships = { ...get().relationships };
         if (outcome.effects.relationshipChanges) {
           Object.entries(outcome.effects.relationshipChanges).forEach(([char, change]) => {
             const current = updatedRelationships[char] || 0;
-            updatedRelationships[char] = Math.max(0, Math.min(100, current + change));
+            updatedRelationships[char] = Math.max(-100, Math.min(100, current + change));
           });
         }
 
