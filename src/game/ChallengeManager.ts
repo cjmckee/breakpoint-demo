@@ -18,6 +18,7 @@ import type {
 } from '../types/challenges';
 import type { PlayerStats } from '../types';
 import { PlayerManager } from './PlayerManager';
+import { ItemManager } from './ItemManager';
 
 export class ChallengeManager {
   /**
@@ -251,7 +252,6 @@ export class ChallengeManager {
 
     // Grant items
     if (challenge.reward.items) {
-      const { ItemManager } = require('./ItemManager');
       for (const item of challenge.reward.items) {
         updatedPlayer = ItemManager.addItem(updatedPlayer, item);
       }

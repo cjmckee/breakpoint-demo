@@ -47,6 +47,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
     );
 
     console.log('=== MATCH REWARDS DEBUG ===');
+    console.log('Final Score:', finalScore);
     console.log('Match Statistics:', matchStatistics);
     console.log('Opponent Tier:', opponentTier);
     console.log('Is Winner:', isWinner);

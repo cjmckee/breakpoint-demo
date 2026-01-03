@@ -141,6 +141,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       matchStatistics: null,
       keyMomentHistory: [],
       lastChosenOption: null,
+      finalScore: null,
     });
 
     // Start match simulation (async)

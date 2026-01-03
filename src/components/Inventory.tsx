@@ -61,6 +61,15 @@ export const Inventory: React.FC = () => {
     setSelectedSlot(slot === selectedSlot ? null : slot);
   };
 
+  const handleItemClick = (item: Item) => {
+    setSelectedItem(item === selectedItem ? null : item);
+  }
+
+  const clearSelections = () => {
+    setSelectedItem(null);
+    setSelectedSlot(null);
+  };
+
   const renderItemCard = (item: Item, isEquipped = false) => {
     const typeColors: Record<string, string> = {
       equipment: 'bg-blue-600',
@@ -70,7 +79,7 @@ export const Inventory: React.FC = () => {
     };
 
     return (
-      <div key={item.id} onClick={() => setSelectedItem(item)}>
+      <div key={item.id} onClick={() => handleItemClick(item)}>
         <Card
           padding="sm"
           className={`cursor-pointer hover:border-pixel-accent transition-colors ${
@@ -224,7 +233,7 @@ export const Inventory: React.FC = () => {
                   Use
                 </Button>
               )}
-              <Button onClick={() => setSelectedItem(null)} variant="secondary">
+              <Button onClick={() => clearSelections()} variant="secondary">
                 Close
               </Button>
             </div>
@@ -249,7 +258,7 @@ export const Inventory: React.FC = () => {
                 Unequip Current
               </Button>
             )}
-            <Button onClick={() => setSelectedSlot(null)} variant="secondary" className="ml-2">
+            <Button onClick={() => clearSelections()} variant="secondary" className="ml-2">
               Cancel
             </Button>
           </Card>
