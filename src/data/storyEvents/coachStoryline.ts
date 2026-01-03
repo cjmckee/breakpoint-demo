@@ -371,9 +371,11 @@ export const coachEvents: StoryEvent[] = [
                 },
                 items: [
                   {
+                    id: 'training_headband',
                     name: 'Training Headband',
                     description: 'A lightweight headband that helps you stay focused during intense rallies.',
                     type: 'equipment',
+                    equipmentSlot: 'hat',
                     modifiers: {
                       statBoosts: {
                         focus: 2,

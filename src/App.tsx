@@ -7,6 +7,7 @@ import { MainMenu } from './components/MainMenu';
 import { TrainingSelection } from './components/TrainingSelection';
 import { MatchSetup } from './components/MatchSetup';
 import { LiveMatchViewer } from './components/LiveMatchViewer';
+import { Inventory } from './components/Inventory';
 import { KeyMomentModal } from './components/KeyMomentModal';
 import { MatchSummaryModal } from './components/MatchSummaryModal';
 
@@ -86,6 +87,9 @@ function App() {
           />
         </>
       );
+
+    case 'inventory':
+      return <Inventory />;
 
     case 'rest':
       return <MainMenu />;

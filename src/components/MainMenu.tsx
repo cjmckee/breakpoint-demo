@@ -93,6 +93,14 @@ export const MainMenu: React.FC = () => {
       action: () => setScreen('match'),
     },
     {
+      id: 'inventory',
+      title: 'Inventory',
+      emoji: '🎒',
+      description: 'Manage your equipment and items',
+      energyCost: 0,
+      action: () => setScreen('inventory'),
+    },
+    {
       id: 'rest',
       title: 'Rest',
       emoji: '😴',
@@ -184,16 +192,17 @@ export const MainMenu: React.FC = () => {
         </Card>
 
         {/* Activities Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           {activities.map((activity) => {
             const canAfford = currentStatus.energy >= activity.energyCost;
             const isRestButton = activity.id === 'rest';
+            const isInventoryButton = activity.id === 'inventory';
 
-            // Disable all activities when event is pending or during night time (except rest)
+            // Disable all activities when event is pending or during night time (except rest and inventory)
             const isDisabled = isEventPending
-              ? true
+              ? !isInventoryButton
               : isNightTime
-                ? !isRestButton
+                ? (!isRestButton && !isInventoryButton)
                 : (!canAfford && activity.energyCost > 0);
 
             // Get button text

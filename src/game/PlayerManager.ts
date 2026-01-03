@@ -50,6 +50,18 @@ export class PlayerManager {
       name,
       stats: baseStats,
       abilities: [],
+
+      // Initialize item system
+      inventory: [],
+      equippedItems: {
+        racquet: null,
+        shoes: null,
+        outfit: null,
+        hat: null,
+      },
+      storyItems: [],
+      nextActivityBuffs: null,
+
       level: 1,
       experience: 0,
       tier: 1,  // All players start at tier 1

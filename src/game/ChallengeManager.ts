@@ -251,11 +251,10 @@ export class ChallengeManager {
 
     // Grant items
     if (challenge.reward.items) {
-      const currentItems = updatedPlayer.items || [];
-      updatedPlayer = {
-        ...updatedPlayer,
-        items: [...currentItems, ...challenge.reward.items],
-      };
+      const { ItemManager } = require('./ItemManager');
+      for (const item of challenge.reward.items) {
+        updatedPlayer = ItemManager.addItem(updatedPlayer, item);
+      }
     }
 
     // Grant experience

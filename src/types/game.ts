@@ -5,7 +5,7 @@
 
 import type { PlayerStats } from './index';
 import type { StoryEventResult } from './storyEvents';
-import type { Item } from './items';
+import type { Item, EquipmentSlot } from './items';
 
 export type { PlayerStats };
 
@@ -302,7 +302,13 @@ export interface Player {
   name: string;
   stats: PlayerStats;
   abilities: Ability[];
-  items?: Item[];
+
+  // Item system
+  inventory: Item[];  // Regular items (max 10)
+  equippedItems: Record<EquipmentSlot, Item | null>;  // 4 equipment slots
+  storyItems: Item[];  // Story items (no limit, don't count toward inventory)
+  nextActivityBuffs: Modifiers | null;  // Temporary buffs from consumables
+
   level: number;
   experience: number;
   matchesPlayed?: number;

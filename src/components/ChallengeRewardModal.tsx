@@ -7,6 +7,8 @@ import React from 'react';
 import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
 import type { Challenge } from '../types/challenges';
+import { getCharacterName } from '../data/characters';
+import { usePlayerName } from '../stores/gameStore';
 
 interface ChallengeRewardModalProps {
   isOpen: boolean;
@@ -21,6 +23,8 @@ export const ChallengeRewardModal: React.FC<ChallengeRewardModalProps> = ({
   challenge,
   onClaimRewards,
 }) => {
+  const playerName = usePlayerName();
+
   if (!challenge) return null;
 
   const handleClaim = () => {
@@ -109,7 +113,7 @@ export const ChallengeRewardModal: React.FC<ChallengeRewardModalProps> = ({
                           : 'bg-red-500 bg-opacity-20 border-red-500 text-red-500'
                       }`}
                     >
-                      {char}: {change > 0 ? '+' : ''}
+                      {getCharacterName(char, playerName)}: {change > 0 ? '+' : ''}
                       {change}
                     </div>
                   ))}

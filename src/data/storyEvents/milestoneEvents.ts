@@ -83,6 +83,7 @@ export const milestoneEvents: StoryEvent[] = [
             },
             items: [
               {
+                id: 'champion_wristband',
                 name: 'Champion Wristband',
                 description: 'A symbolic wristband marking your rise from beginner to competitor. Wear it with pride.',
                 type: 'lucky',

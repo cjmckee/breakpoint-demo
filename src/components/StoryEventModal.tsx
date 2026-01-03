@@ -109,7 +109,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
           <div className="flex gap-2 flex-wrap">
             {event.characters.map((char) => (
               <span key={char} className="px-3 py-1 bg-purple-600 text-white rounded font-semibold">
-                {char.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                {getCharacterName(char, playerName)}
               </span>
             ))}
           </div>
@@ -220,7 +220,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
                             <div className="text-purple-700 font-medium">
                               💜 Relationships:{' '}
                               {Object.entries(option.outcome.effects.relationshipChanges)
-                                .map(([char, val]) => `${char}: ${val > 0 ? '+' : ''}${val}`)
+                                .map(([char, val]) => `${getCharacterName(char, playerName)}: ${val > 0 ? '+' : ''}${val}`)
                                 .join(', ')}
                             </div>
                           )}

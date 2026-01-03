@@ -379,12 +379,24 @@ export class MatchRewardSystem {
     const baseRate = ITEM_DROP_RATES[tier];
     const finalRate = isWin ? baseRate * ITEM_DROP_WIN_MULTIPLIER : baseRate * 0.5;
 
-    if (Math.random() * 100 < finalRate) {
-      // TODO: Implement item system
-      // For now, return empty array
-      return [];
+    const roll = Math.random() * 100;
+
+    if (roll < finalRate) {
+      // Import item database
+      const { getRandomItem, getItemsByTier } = require('../data/items');
+
+      // Get items available for this tier
+      const availableItems = getItemsByTier(tier);
+
+      // Pick a random item from the tier's pool
+      const item = getRandomItem(availableItems);
+
+      console.log(`[Match Rewards] Item dropped! ${item.name} (${roll.toFixed(2)}% < ${finalRate.toFixed(2)}%)`);
+
+      return [item];
     }
 
+    console.log(`[Match Rewards] No item drop (${roll.toFixed(2)}% >= ${finalRate.toFixed(2)}%)`);
     return [];
   }
 

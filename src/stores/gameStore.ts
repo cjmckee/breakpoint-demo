@@ -20,6 +20,7 @@ import type { StoryEvent, StoryEventTag, StoryEventOption } from '../types/story
 import type { Challenge } from '../types/challenges';
 import type { MatchStatistics } from '../types/index';
 import type { MatchReward } from '../types/game';
+import type { Item, EquipmentSlot } from '../types/items';
 import { PlayerManager } from '../game/PlayerManager';
 import { TrainingSystem } from '../game/TrainingSystem';
 import { TimeManager } from '../game/TimeManager';
@@ -27,6 +28,7 @@ import { StoryEventManager } from '../game/StoryEventManager';
 import { PrerequisiteChecker } from '../game/PrerequisiteChecker';
 import { ChallengeManager } from '../game/ChallengeManager';
 import { MatchRewardSystem } from '../game/MatchRewardSystem';
+import { ItemManager } from '../game/ItemManager';
 
 interface GameState {
   // Player data
@@ -60,7 +62,7 @@ interface GameState {
 
   // UI state
   isInitialized: boolean;
-  currentScreen: 'welcome' | 'player-creation' | 'main-menu' | 'training' | 'match' | 'rest';
+  currentScreen: 'welcome' | 'player-creation' | 'main-menu' | 'training' | 'match' | 'rest' | 'inventory';
   showTrainingResultModal: boolean;
 
   // Actions
@@ -104,6 +106,14 @@ interface GameState {
   updateChallengeProgress: (challengeId: string) => void;
   completeChallenge: (challengeId: string) => void;
   checkChallengeCompletion: () => void;
+
+  // Item actions
+  addItem: (item: Item) => void;
+  equipItem: (itemId: string, slot: EquipmentSlot) => void;
+  unequipItem: (slot: EquipmentSlot) => void;
+  swapEquipment: (itemId: string, slot: EquipmentSlot) => void;
+  useConsumable: (itemId: string) => void;
+  getPlayerItems: () => Item[];
 }
 
 const initialCalendar = TimeManager.createCalendar();
@@ -232,13 +242,18 @@ export const useGameStore = create<GameState>()(
         if (!player) throw new Error('No player found');
 
         // Apply stat boosts to player
-        const updatedPlayer = PlayerManager.applyStatBoosts(player, result.statBoosts);
+        let updatedPlayer = PlayerManager.applyStatBoosts(player, result.statBoosts);
 
         // Check for ability gained
-        let finalPlayer = updatedPlayer;
         if (result.abilityGained) {
-          finalPlayer = PlayerManager.addAbility(updatedPlayer, result.abilityGained);
+          updatedPlayer = PlayerManager.addAbility(updatedPlayer, result.abilityGained);
         }
+
+        // Clear next activity buffs (they were consumed during training)
+        const finalPlayer = {
+          ...updatedPlayer,
+          nextActivityBuffs: null,
+        };
 
         // Update energy and mood
         const newEnergy = Math.max(0, currentStatus.energy - result.energyCost);
@@ -389,11 +404,13 @@ export const useGameStore = create<GameState>()(
           }
         }
 
-        // Apply items (if item system exists)
-        // TODO: Implement item application when item system is ready
-        // if (rewards.itemsGained && rewards.itemsGained.length > 0) {
-        //   updatedPlayer.items = [...(updatedPlayer.items || []), ...rewards.itemsGained];
-        // }
+        // Apply items
+        if (rewards.itemsGained && rewards.itemsGained.length > 0) {
+          console.log('Applying items to player:', rewards.itemsGained);
+          for (const item of rewards.itemsGained) {
+            updatedPlayer = ItemManager.addItem(updatedPlayer, item);
+          }
+        }
 
         // Update match counts
         updatedPlayer.matchesPlayed = (updatedPlayer.matchesPlayed || 0) + 1;
@@ -1015,6 +1032,82 @@ export const useGameStore = create<GameState>()(
         if (hasUpdates) {
           set({ activeChallenges: updatedChallenges });
         }
+      },
+
+      // Item Actions
+
+      // Add item to player's inventory or story items
+      addItem: (item: Item) => {
+        const { player } = get();
+        if (!player) return;
+
+        const updatedPlayer = ItemManager.addItem(player, item);
+        set({ player: updatedPlayer });
+      },
+
+      // Equip an item from inventory
+      equipItem: (itemId: string, slot: EquipmentSlot) => {
+        const { player } = get();
+        if (!player) return;
+
+        const updatedPlayer = ItemManager.equipItem(player, itemId, slot);
+        set({ player: updatedPlayer });
+      },
+
+      // Unequip an item back to inventory
+      unequipItem: (slot: EquipmentSlot) => {
+        const { player } = get();
+        if (!player) return;
+
+        const updatedPlayer = ItemManager.unequipItem(player, slot);
+        set({ player: updatedPlayer });
+      },
+
+      // Swap equipment directly
+      swapEquipment: (itemId: string, slot: EquipmentSlot) => {
+        const { player } = get();
+        if (!player) return;
+
+        const updatedPlayer = ItemManager.swapEquipment(player, itemId, slot);
+        set({ player: updatedPlayer });
+      },
+
+      // Use a consumable item
+      useConsumable: (itemId: string) => {
+        const { player, currentStatus } = get();
+        if (!player) return;
+
+        const result = ItemManager.useConsumable(player, itemId);
+
+        // Update player and apply instant effects
+        const newEnergy = Math.max(
+          0,
+          Math.min(100, currentStatus.energy + result.energyChange)
+        );
+        const newMood = Math.max(
+          -100,
+          Math.min(100, currentStatus.mood + result.moodChange)
+        );
+
+        set({
+          player: result.player,
+          currentStatus: {
+            ...currentStatus,
+            energy: newEnergy,
+            mood: newMood,
+          },
+        });
+
+        console.log(
+          `Consumable used: Energy ${result.energyChange >= 0 ? '+' : ''}${result.energyChange}, Mood ${result.moodChange >= 0 ? '+' : ''}${result.moodChange}, Buff: ${result.buffApplied}`
+        );
+      },
+
+      // Get all player items
+      getPlayerItems: (): Item[] => {
+        const { player } = get();
+        if (!player) return [];
+        return ItemManager.getAllItems(player);
       },
     }),
     {

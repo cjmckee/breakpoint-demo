@@ -20,6 +20,7 @@ import {
   Player,
   TrainingResult,
 } from '../types/game';
+import { ItemManager } from './ItemManager';
 
 // Training session base configurations
 interface TrainingConfig {
@@ -238,6 +239,22 @@ export class TrainingSystem {
       throw new Error('Not enough energy for this training session');
     }
 
+    // Check for and apply next activity buffs
+    let finalStatBoosts = { ...session.statBoosts };
+    let buffApplied: Modifiers | undefined;
+
+    if (player.nextActivityBuffs) {
+      console.log('[Training] Applying consumable buffs:', player.nextActivityBuffs);
+      buffApplied = player.nextActivityBuffs;
+
+      // Merge buff stat boosts with training stat boosts
+      if (player.nextActivityBuffs.statBoosts) {
+        Object.entries(player.nextActivityBuffs.statBoosts).forEach(([stat, value]) => {
+          finalStatBoosts[stat] = (finalStatBoosts[stat] || 0) + value;
+        });
+      }
+    }
+
     // Calculate ability roll for diamond tier
     let abilityGained: string | undefined;
     let abilityLevel = 1;
@@ -266,7 +283,7 @@ export class TrainingSystem {
       type: 'training',
       source: 'training_activity',
       timestamp: new Date().toISOString(),
-      statBoosts: session.statBoosts,
+      statBoosts: finalStatBoosts, // Use boosted stats if buff was applied
       energyCost: session.energyCost,
       timeSlotsUsed: session.timeSlotsRequired,
       trainingType: session.sessionType,
