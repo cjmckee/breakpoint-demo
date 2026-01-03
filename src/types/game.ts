@@ -308,6 +308,7 @@ export interface Player {
   matchesPlayed?: number;
   matchesWon?: number;
   tier: OpponentTier;  // Player's current tier (1-4) determines available opponents and training
+  latestMatchResults?: ('win' | 'loss')[];  // Rolling record of last 10 match results (newest first)
   createdAt: string;
   updatedAt: string;
 }
@@ -327,43 +328,6 @@ export interface GameState {
   activityHistory: ActivityResult[];
   isInitialized: boolean;
   currentScreen: 'welcome' | 'player-creation' | 'main-menu' | 'training' | 'match' | 'rest';
-}
-
-// ============================================================================
-// SAVE/LOAD SYSTEM
-// ============================================================================
-
-export interface SaveData {
-  id: string;
-  userId: string;
-  name: string;
-  gameState: GameState;
-  isAutoSave: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface SaveRequest {
-  userId: string;
-  name: string;
-  gameState: GameState;
-  isAutoSave?: boolean;
-}
-
-export interface SaveResponse {
-  id: string;
-  name: string;
-  userId: string;
-  gameState: GameState;
-  isAutoSave: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface DeleteSaveResponse {
-  message: string;
-  deletedId?: string;
-  success?: boolean;
 }
 
 // ============================================================================

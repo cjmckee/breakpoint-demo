@@ -3,7 +3,7 @@
  * Hub for player activities and navigation
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, JSX } from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
@@ -111,6 +111,38 @@ export const MainMenu: React.FC = () => {
     }
   };
 
+  const getTierName = (tier: number): string => {
+    const tierNames = ['', 'Club Player', 'Regional Competitor', 'Tour Professional', 'World Champion'];
+    return tierNames[tier] || 'Unknown';
+  };
+
+  const getTierColor = (tier: number): string => {
+    const tierColors = ['', 'text-amber-700', 'text-gray-400', 'text-yellow-400', 'text-purple-400'];
+    return tierColors[tier] || 'text-pixel-text-muted';
+  };
+
+  const renderMatchRecord = (): JSX.Element => {
+    const results = player?.latestMatchResults || [];
+
+    if (results.length === 0) {
+      return <span className="text-xs text-pixel-text-muted">No matches yet</span>;
+    }
+
+    return (
+      <div className="flex gap-0.5">
+        {results.map((result, index) => (
+          <div
+            key={index}
+            className={`w-4 h-4 border-2 border-pixel-border ${
+              result === 'win' ? 'bg-green-500' : 'bg-red-500'
+            }`}
+            title={result === 'win' ? 'Win' : 'Loss'}
+          />
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-pixel-bg">
       <StatusBar />
@@ -133,14 +165,22 @@ export const MainMenu: React.FC = () => {
           </Card>
         )}
 
-        {/* Welcome Message */}
+        {/* Player Header */}
         <Card className="mb-6">
-          <h1 className="text-3xl font-bold text-pixel-text mb-2">
-            Welcome, {player.name}!
-          </h1>
-          <p className="text-pixel-text-muted">
-            What would you like to do today?
-          </p>
+          <div>
+            <h1 className="text-3xl font-bold text-pixel-text mb-1">
+              {player.name}
+            </h1>
+            <div className="mb-2">
+              <span className={`text-lg font-bold ${getTierColor(player.tier)}`}>
+                {getTierName(player.tier)}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-pixel-text-muted">Recent Matches:</span>
+              {renderMatchRecord()}
+            </div>
+          </div>
         </Card>
 
         {/* Activities Grid */}

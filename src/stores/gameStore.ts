@@ -8,7 +8,6 @@ import { persist } from 'zustand/middleware';
 import {
   Player,
   GameCalendar,
-  GameState as GameStateType,
   TrainingSession,
   TrainingResult,
   RestResult,
@@ -24,7 +23,6 @@ import type { MatchReward } from '../types/game';
 import { PlayerManager } from '../game/PlayerManager';
 import { TrainingSystem } from '../game/TrainingSystem';
 import { TimeManager } from '../game/TimeManager';
-import { SaveManager } from '../game/SaveManager';
 import { StoryEventManager } from '../game/StoryEventManager';
 import { PrerequisiteChecker } from '../game/PrerequisiteChecker';
 import { ChallengeManager } from '../game/ChallengeManager';
@@ -84,9 +82,9 @@ interface GameState {
     preCalculatedRewards?: MatchReward
   ) => void;
   unlockNextTier: () => OpponentTier | null;
-  saveGame: (saveName?: string) => void;
-  loadGame: (saveId: string) => void;
-  resetGame: () => void;
+  exportSave: () => string;
+  importSave: (jsonData: string) => boolean;
+  clearAllData: () => void;
   setScreen: (screen: GameState['currentScreen']) => void;
   clearTrainingResultModal: () => void;
   getAvailableTrainingSessions: () => TrainingSession[];
@@ -147,25 +145,13 @@ export const useGameStore = create<GameState>()(
       currentScreen: 'welcome',
       showTrainingResultModal: false,
 
-      // Initialize game (check for auto-save)
+      // Initialize game (Zustand auto-loads persisted state)
       initializeGame: () => {
-        const autoSave = SaveManager.getAutoSave();
-
-        if (autoSave && autoSave.player) {
-          set({
-            player: autoSave.player,
-            calendar: autoSave.calendar,
-            currentStatus: autoSave.currentStatus,
-            activityHistory: autoSave.activityHistory || [],
-            isInitialized: true,
-            currentScreen: 'main-menu',
-          });
-        } else {
-          set({
-            isInitialized: true,
-            currentScreen: 'player-creation',
-          });
-        }
+        const state = get();
+        set({
+          isInitialized: true,
+          currentScreen: state.player ? 'main-menu' : 'player-creation',
+        });
       },
 
       // Create new player
@@ -180,9 +166,6 @@ export const useGameStore = create<GameState>()(
           currentTrainingSessions: initialSessions,
           currentScreen: 'main-menu',
         });
-
-        // Auto-save after player creation
-        get().saveGame();
 
         // Trigger welcome event (guaranteed, no probability roll)
         // Use setTimeout to ensure state is fully updated before checking for event
@@ -238,12 +221,9 @@ export const useGameStore = create<GameState>()(
             mood: newMood,
             lastActivity: result,
           },
-          activityHistory: [result, ...get().activityHistory].slice(0, 50),
+          activityHistory: [result, ...get().activityHistory].slice(0, 10),
           currentScreen: 'main-menu',
         });
-
-        // Auto-save
-        get().saveGame();
       },
 
       // Apply training result (called from UI with specific session result)
@@ -271,15 +251,12 @@ export const useGameStore = create<GameState>()(
             mood: newMood,
             lastActivity: result,
           },
-          activityHistory: [result, ...get().activityHistory].slice(0, 50),
+          activityHistory: [result, ...get().activityHistory].slice(0, 10),
           showTrainingResultModal: true, // Flag to show modal when we navigate to main menu
         });
 
         // Check for challenge completion after stat changes
         get().checkChallengeCompletion();
-
-        // Auto-save
-        get().saveGame();
 
         return finalPlayer;
       },
@@ -320,9 +297,6 @@ export const useGameStore = create<GameState>()(
         if (newCalendar.currentTimeSlot !== TimeSlot.NIGHT) {
           get().checkForRandomStoryEvent();
         }
-
-        // Auto-save
-        get().saveGame();
       },
 
       // Rest (restore energy)
@@ -356,15 +330,12 @@ export const useGameStore = create<GameState>()(
             mood: Math.min(100, currentStatus.mood + 5),
             lastActivity: restResult,
           },
-          activityHistory: [restResult, ...get().activityHistory].slice(0, 50),
+          activityHistory: [restResult, ...get().activityHistory].slice(0, 10),
           currentScreen: 'main-menu',
         });
 
         // Advance time
         get().advanceTime();
-
-        // Auto-save
-        get().saveGame();
       },
 
       // Update mood manually (for events)
@@ -430,6 +401,10 @@ export const useGameStore = create<GameState>()(
           updatedPlayer.matchesWon = (updatedPlayer.matchesWon || 0) + 1;
         }
 
+        // Update latest match results (newest first, keep last 10)
+        const currentResults = updatedPlayer.latestMatchResults || [];
+        updatedPlayer.latestMatchResults = [result, ...currentResults].slice(0, 10);
+
         // Update energy (deduct match cost)
         const newEnergy = Math.max(0, currentStatus.energy - 30);
 
@@ -475,15 +450,13 @@ export const useGameStore = create<GameState>()(
             mood: newMood,
             lastActivity: matchActivity,
           },
-          activityHistory: [matchActivity, ...get().activityHistory].slice(0, 50),
+          activityHistory: [matchActivity, ...get().activityHistory].slice(0, 10),
         });
 
         // Check for challenge completion after stat changes
         get().checkChallengeCompletion();
 
-        // Auto-save
         console.log('Match result added with rewards:', matchActivity);
-        get().saveGame();
       },
 
       // Unlock next tier (only if winning against current max unlocked tier)
@@ -501,47 +474,89 @@ export const useGameStore = create<GameState>()(
         return null;
       },
 
-      // Save game
-      saveGame: (saveName?: string) => {
+      // Export entire save as JSON string
+      exportSave: (): string => {
         const state = get();
-        if (!state.player) return;
-
-        const gameState: GameStateType = {
+        const exportData = {
           player: state.player,
           calendar: state.calendar,
           currentStatus: state.currentStatus,
           activityHistory: state.activityHistory,
-          isInitialized: state.isInitialized,
-          currentScreen: state.currentScreen,
+          currentTrainingSessions: state.currentTrainingSessions,
+          completedStoryEvents: state.completedStoryEvents,
+          completedStoryEventChoices: state.completedStoryEventChoices,
+          relationships: state.relationships,
+          storyEventTriggerChance: state.storyEventTriggerChance,
+          activeChallenges: state.activeChallenges,
+          completedChallenges: state.completedChallenges,
+          unlockedTiers: state.unlockedTiers,
+          exportedAt: new Date().toISOString(),
+          version: '1.0.0',
         };
-
-        SaveManager.autoSave(gameState);
+        return JSON.stringify(exportData, null, 2);
       },
 
-      // Load game
-      loadGame: (saveId: string) => {
-        const gameState = SaveManager.load(saveId);
-        if (!gameState) return;
+      // Import save data from JSON string
+      importSave: (jsonData: string): boolean => {
+        try {
+          const data = JSON.parse(jsonData);
 
-        set({
-          player: gameState.player,
-          calendar: gameState.calendar,
-          currentStatus: gameState.currentStatus,
-          activityHistory: gameState.activityHistory || [],
-          currentScreen: 'main-menu',
-        });
+          // Basic validation
+          if (!data.player || !data.calendar) {
+            console.error('Invalid save data: missing required fields');
+            return false;
+          }
+
+          // Restore state
+          set({
+            player: data.player,
+            calendar: data.calendar,
+            currentStatus: data.currentStatus || initialStatus,
+            activityHistory: data.activityHistory || [],
+            currentTrainingSessions: data.currentTrainingSessions || [],
+            completedStoryEvents: data.completedStoryEvents || [],
+            completedStoryEventChoices: data.completedStoryEventChoices || {},
+            relationships: data.relationships || {},
+            storyEventTriggerChance: data.storyEventTriggerChance || 40,
+            activeChallenges: data.activeChallenges || [],
+            completedChallenges: data.completedChallenges || [],
+            unlockedTiers: data.unlockedTiers || [1],
+            currentScreen: 'main-menu',
+            isInitialized: true,
+          });
+
+          console.log('Save data imported successfully');
+          return true;
+        } catch (error) {
+          console.error('Failed to import save:', error);
+          return false;
+        }
       },
 
-      // Reset game
-      resetGame: () => {
+      // Clear all data and start fresh
+      clearAllData: () => {
         set({
           player: null,
           calendar: initialCalendar,
           currentStatus: initialStatus,
           activityHistory: [],
+          completedStoryEvents: [],
+          completedStoryEventChoices: {},
+          relationships: {},
+          storyEventTriggerChance: 40,
+          activeChallenges: [],
+          completedChallenges: [],
+          unlockedTiers: [1],
+          currentTrainingSessions: [],
+          pendingStoryEvent: null,
           isInitialized: true,
           currentScreen: 'player-creation',
+          showTrainingResultModal: false,
         });
+
+        // Also clear localStorage to ensure clean slate
+        localStorage.clear();
+        console.log('All game data cleared');
       },
 
       // Set current screen
@@ -808,15 +823,12 @@ export const useGameStore = create<GameState>()(
             lastActivity: result,
           },
           calendar: newCalendar,
-          activityHistory: [result, ...get().activityHistory].slice(0, 50),
+          activityHistory: [result, ...get().activityHistory].slice(0, 10),
           pendingStoryEvent: null,
         });
 
         // Check for challenge completion after state changes
         get().checkChallengeCompletion();
-
-        // Auto-save
-        get().saveGame();
       },
 
       // Cancel/dismiss pending story event
@@ -898,8 +910,6 @@ export const useGameStore = create<GameState>()(
         set({
           activeChallenges: [...activeChallenges, challengeWithProgress],
         });
-
-        get().saveGame();
       },
 
       // Update progress for a specific challenge
@@ -962,8 +972,6 @@ export const useGameStore = create<GameState>()(
           activeChallenges: remainingChallenges,
           completedChallenges,
         });
-
-        get().saveGame();
       },
 
       // Check all active challenges for completion
