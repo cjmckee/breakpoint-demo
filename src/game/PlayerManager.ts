@@ -52,6 +52,7 @@ export class PlayerManager {
       abilities: [],
       level: 1,
       experience: 0,
+      tier: 1,  // All players start at tier 1
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -278,6 +279,17 @@ export class PlayerManager {
     ];
 
     return allValues.every(value => value >= 0 && value <= 100);
+  }
+
+  /**
+   * Update player tier
+   */
+  static updateTier(player: Player, newTier: 1 | 2 | 3 | 4): Player {
+    return {
+      ...player,
+      tier: newTier,
+      updatedAt: new Date().toISOString(),
+    };
   }
 
   /**

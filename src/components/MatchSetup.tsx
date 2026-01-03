@@ -157,7 +157,6 @@ const OPPONENT_PRESETS: OpponentPreset[] = [
 export const MatchSetup: React.FC = () => {
   const player = useGameStore((state) => state.player);
   const currentStatus = useGameStore((state) => state.currentStatus);
-  const unlockedTiers = useGameStore((state) => state.unlockedTiers || [1]);
   const setScreen = useGameStore((state) => state.setScreen);
   const startMatch = useMatchStore((state) => state.startMatch);
 
@@ -192,7 +191,7 @@ export const MatchSetup: React.FC = () => {
 
   const matchEnergyCost = 30;
   const canAfford = currentStatus.energy >= matchEnergyCost;
-  const canPlayMatch = canAfford && unlockedTiers.includes(selectedOpponent.tier);
+  const canPlayMatch = canAfford && selectedOpponent.tier <= player.tier;
 
   const getTierColor = (tier: OpponentTier) => {
     switch (tier) {
@@ -219,7 +218,7 @@ export const MatchSetup: React.FC = () => {
   };
 
   const isOpponentUnlocked = (tier: OpponentTier): boolean => {
-    return unlockedTiers.includes(tier);
+    return tier <= player.tier;
   };
 
   const getSurfaceEmoji = (surface: CourtSurface) => {

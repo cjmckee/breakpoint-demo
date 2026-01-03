@@ -45,7 +45,8 @@ export const familyEvents: StoryEvent[] = [
     skippable: true,
     description: 'Your family reveals they\'ve been making financial sacrifices to support your tennis career.',
     dialogue: [
-      ['parent', ['We need to talk about something. We\'ve been using our savings to help with your training costs - equipment, coaching fees, tournament entries. We believe in you, but it\'s been tight. We\'re not asking you to quit, but we wanted you to know the reality of what we\'re investing in your dream.']],
+      ['parent', ['We need to talk about something. We\'ve been using our savings to help with your training costs - equipment, coaching fees, tournament entries. We believe in you, but it\'s been tight.']],
+      ['parent', ['We\'re not asking you to quit, but just know that we\'re giving our best to support you.']],
     ],
     characters: ['parent'],
     options: [
@@ -53,9 +54,9 @@ export const familyEvents: StoryEvent[] = [
         id: 'redouble_commitment',
         text: 'Redouble Commitment',
         emoji: '💪',
-        description: 'Work even harder to honor their sacrifice',
+        description: 'Work even harder',
         outcome: {
-          resultText: ['You feel the weight of their sacrifice and promise to make it worthwhile. This knowledge fuels your training with new intensity. You\'re no longer just playing for yourself - you\'re playing for everyone who believes in you.'],
+          resultText: ['You feel a sudden inspiration. You\'re playing for everyone who believes in you, and you won\'t let them down.'],
           effects: {
             statChanges: { focus: 4, strength: 3, stamina: 2 },
             moodChange: 15,
@@ -68,12 +69,12 @@ export const familyEvents: StoryEvent[] = [
         id: 'find_sponsor',
         text: 'Seek Financial Help',
         emoji: '💼',
-        description: 'Look for sponsors to ease the burden',
+        description: 'Look for sponsors',
         outcome: {
-          resultText: ['You decide to actively pursue sponsorships and financial assistance to reduce the burden on your family. You research programs, reach out to local businesses, and start networking. Your proactive approach impresses everyone and shows maturity beyond your years.'],
+          resultText: ['You look for sponsors to help with your training costs. The options are getting shadier and shadier as you keep looking. I hope you won\'t be forced to make a deal you\'ll regret.'],
           effects: {
-            statChanges: { focus: 3, anticipation: 2 },
-            moodChange: 20,
+            statChanges: { focus: 2, anticipation: 2 },
+            moodChange: 10,
             energyChange: -10,
             relationshipChanges: { family: 15 },
           },
@@ -85,9 +86,9 @@ export const familyEvents: StoryEvent[] = [
         emoji: '🤝',
         description: 'Suggest reducing training costs',
         outcome: {
-          resultText: ['You offer to cut back on some expenses - maybe fewer private lessons, or practicing with the club team more. Your family is touched by your consideration, but they insist they want to support your dream. The conversation brings you closer together.'],
+          resultText: ['You offer to cut back on some expenses, but they insist they want to support your dream. You know you can find a way to make it work.'],
           effects: {
-            statChanges: { focus: 2 },
+            statChanges: { focus: 5 },
             moodChange: 10,
             energyChange: 0,
             relationshipChanges: { family: 30 },

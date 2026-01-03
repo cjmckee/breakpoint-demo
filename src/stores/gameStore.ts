@@ -427,10 +427,13 @@ export const useGameStore = create<GameState>()(
         // Update mood from rewards
         const newMood = Math.max(-100, Math.min(100, currentStatus.mood + rewards.moodChange));
 
-        // Check for tier unlock (only on win)
+        // Check for tier unlock and update player tier (only on win against current tier)
         let tierUnlocked: OpponentTier | null = null;
-        if (isWin) {
-          tierUnlocked = get().unlockNextTier();
+        if (isWin && opponentTier === updatedPlayer.tier && updatedPlayer.tier < 4) {
+          // Player beat an opponent of their tier, so they can advance
+          const newTier = (updatedPlayer.tier + 1) as OpponentTier;
+          updatedPlayer = PlayerManager.updateTier(updatedPlayer, newTier);
+          tierUnlocked = newTier;
         }
 
         // Create match activity result with rewards

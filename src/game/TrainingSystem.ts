@@ -140,6 +140,23 @@ const TRAINING_SESSION_CONFIGS: Record<TrainingSessionType, TrainingConfig> = {
 
 export class TrainingSystem {
   /**
+   * Get maximum training tier available based on player tier
+   * Tier 1 = bronze only
+   * Tier 2 = bronze, silver
+   * Tier 3 = bronze, silver, gold
+   * Tier 4 = bronze, silver, gold, diamond
+   */
+  private static getMaxTrainingTierForPlayerTier(playerTier: number): TrainingSessionTier[] {
+    const tierMap: Record<number, TrainingSessionTier[]> = {
+      1: ['bronze'],
+      2: ['bronze', 'silver'],
+      3: ['bronze', 'silver', 'gold'],
+      4: ['bronze', 'silver', 'gold', 'diamond'],
+    };
+    return tierMap[playerTier] || ['bronze'];
+  }
+
+  /**
    * Generate available training sessions for the current time slot
    */
   static getAvailableTrainingSessions(
@@ -154,9 +171,9 @@ export class TrainingSystem {
     // Randomly select training options
     const selectedTypes = this.randomSample(availableTypes, Math.min(numOptions, availableTypes.length));
 
-    // Generate sessions with tier assignments
+    // Generate sessions with tier assignments (respecting player tier)
     return selectedTypes.map(sessionType =>
-      this.createTrainingSession(sessionType, mood)
+      this.createTrainingSession(sessionType, mood, player.tier)
     );
   }
 
@@ -165,15 +182,19 @@ export class TrainingSystem {
    */
   static createTrainingSession(
     sessionType: TrainingSessionType,
-    playerMood: number
+    playerMood: number,
+    playerTier: number = 1
   ): TrainingSession {
     const config = TRAINING_SESSION_CONFIGS[sessionType];
 
-    // Assign tier based on probabilities
-    const initialTier = this.assignTier();
+    // Get allowed tiers for this player
+    const allowedTiers = this.getMaxTrainingTierForPlayerTier(playerTier);
 
-    // Apply mood effects to tier
-    const { finalTier, tierModification } = this.applyMoodEffects(initialTier, playerMood);
+    // Assign tier based on probabilities, but only from allowed tiers
+    const initialTier = this.assignTier(allowedTiers);
+
+    // Apply mood effects to tier (but still respect allowed tiers)
+    const { finalTier, tierModification } = this.applyMoodEffects(initialTier, playerMood, allowedTiers);
 
     // Get tier configuration and scale stat boosts
     const tierConfig = TIER_CONFIGS[finalTier];
@@ -303,22 +324,39 @@ export class TrainingSystem {
   }
 
   /**
-   * Assign a tier based on default probabilities
+   * Assign a tier based on default probabilities, filtered by allowed tiers
    */
-  private static assignTier(): TrainingSessionTier {
-    const rand = Math.random() * 100; // 0-100
+  private static assignTier(allowedTiers: TrainingSessionTier[]): TrainingSessionTier {
+    // Filter probabilities to only include allowed tiers
+    const filteredProbabilities: Partial<Record<TrainingSessionTier, number>> = {};
+    let totalProbability = 0;
 
+    for (const tier of allowedTiers) {
+      const prob = DEFAULT_TIER_PROBABILITIES[tier];
+      filteredProbabilities[tier] = prob;
+      totalProbability += prob;
+    }
+
+    // Normalize probabilities to sum to 100
+    const normalizedProbabilities: Record<string, number> = {};
+    for (const tier of allowedTiers) {
+      const prob = filteredProbabilities[tier] || 0;
+      normalizedProbabilities[tier] = (prob / totalProbability) * 100;
+    }
+
+    // Roll for tier
+    const rand = Math.random() * 100;
     let cumulative = 0;
-    const tiers: TrainingSessionTier[] = ['bronze', 'silver', 'gold', 'diamond'];
 
-    for (const tier of tiers) {
-      cumulative += DEFAULT_TIER_PROBABILITIES[tier];
+    for (const tier of allowedTiers) {
+      cumulative += normalizedProbabilities[tier];
       if (rand <= cumulative) {
         return tier;
       }
     }
 
-    return 'bronze'; // Fallback
+    // Fallback to first allowed tier
+    return allowedTiers[0];
   }
 
   /**
@@ -327,13 +365,18 @@ export class TrainingSystem {
    * Mood -50 to 0: 50% chance demote
    * Mood 0 to 50: 50% chance promote
    * Mood > 50: promote 1 tier
+   * Respects allowed tiers based on player tier
    */
   private static applyMoodEffects(
     initialTier: TrainingSessionTier,
-    playerMood: number
+    playerMood: number,
+    allowedTiers: TrainingSessionTier[]
   ): { finalTier: TrainingSessionTier; tierModification?: TierModification } {
-    const tierOrder: TrainingSessionTier[] = ['bronze', 'silver', 'gold', 'diamond'];
-    const currentIndex = tierOrder.indexOf(initialTier);
+    const currentIndex = allowedTiers.indexOf(initialTier);
+    if (currentIndex === -1) {
+      // Tier not in allowed list, return as-is
+      return { finalTier: initialTier };
+    }
 
     let newIndex = currentIndex;
     let modification: TierModification | undefined;
@@ -351,17 +394,17 @@ export class TrainingSystem {
     } else if (playerMood < 50) {
       // 50% chance to promote
       if (Math.random() < 0.5) {
-        newIndex = Math.min(tierOrder.length - 1, currentIndex + 1);
+        newIndex = Math.min(allowedTiers.length - 1, currentIndex + 1);
         modification = newIndex !== currentIndex ? 'promoted' : undefined;
       }
     } else {
       // Promote 1 tier
-      newIndex = Math.min(tierOrder.length - 1, currentIndex + 1);
+      newIndex = Math.min(allowedTiers.length - 1, currentIndex + 1);
       modification = newIndex !== currentIndex ? 'promoted' : undefined;
     }
 
     return {
-      finalTier: tierOrder[newIndex],
+      finalTier: allowedTiers[newIndex],
       tierModification: modification,
     };
   }
