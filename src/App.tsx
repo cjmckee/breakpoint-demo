@@ -8,6 +8,8 @@ import { TrainingSelection } from './components/TrainingSelection';
 import { MatchSetup } from './components/MatchSetup';
 import { LiveMatchViewer } from './components/LiveMatchViewer';
 import { Inventory } from './components/Inventory';
+import { TournamentList } from './components/TournamentList';
+import { TournamentMatch } from './components/TournamentMatch';
 import { KeyMomentModal } from './components/KeyMomentModal';
 import { MatchSummaryModal } from './components/MatchSummaryModal';
 
@@ -90,6 +92,26 @@ function App() {
 
     case 'inventory':
       return <Inventory />;
+
+    case 'tournaments':
+      return <TournamentList />;
+
+    case 'tournament-match':
+      // Tournament matches use the same match viewer
+      return (
+        <>
+          {isMatchActive ? <LiveMatchViewer /> : <TournamentMatch />}
+          <KeyMomentModal
+            isOpen={isWaitingForChoice}
+            keyMoment={currentKeyMoment}
+          />
+          <MatchSummaryModal
+            isOpen={showMatchResults}
+            onClose={hideMatchResults}
+            finalScore={finalScore}
+          />
+        </>
+      );
 
     case 'rest':
       return <MainMenu />;

@@ -164,7 +164,7 @@ export const careerEvents: StoryEvent[] = [
   {
     id: 'tournament_invitation',
     name: 'Regional Tournament Invitation',
-    tags: ['tournament', 'milestone'],
+    tags: ['milestone'],
     timeSlotsRequired: 1,
     prerequisites: {
       minMatchesWon: 10,

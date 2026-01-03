@@ -15,12 +15,14 @@ import {
   CurrentStatus,
   TimeSlot,
   OpponentTier,
+  ScheduledEvent,
 } from '../types/game';
 import type { StoryEvent, StoryEventTag, StoryEventOption } from '../types/storyEvents';
 import type { Challenge } from '../types/challenges';
 import type { MatchStatistics } from '../types/index';
 import type { MatchReward } from '../types/game';
 import type { Item, EquipmentSlot } from '../types/items';
+import type { ActiveTournament, TournamentMatchMetadata } from '../types/tournaments';
 import { PlayerManager } from '../game/PlayerManager';
 import { TrainingSystem } from '../game/TrainingSystem';
 import { TimeManager } from '../game/TimeManager';
@@ -29,6 +31,9 @@ import { PrerequisiteChecker } from '../game/PrerequisiteChecker';
 import { ChallengeManager } from '../game/ChallengeManager';
 import { MatchRewardSystem } from '../game/MatchRewardSystem';
 import { ItemManager } from '../game/ItemManager';
+import { TournamentRegistry } from '../data/tournaments';
+import { TournamentManager } from '../game/TournamentManager';
+import { ScheduledEventManager } from '../game/ScheduledEventManager';
 
 interface GameState {
   // Player data
@@ -62,7 +67,7 @@ interface GameState {
 
   // UI state
   isInitialized: boolean;
-  currentScreen: 'welcome' | 'player-creation' | 'main-menu' | 'training' | 'match' | 'rest' | 'inventory';
+  currentScreen: 'welcome' | 'player-creation' | 'main-menu' | 'training' | 'match' | 'rest' | 'inventory' | 'tournaments' | 'tournament-match';
   showTrainingResultModal: boolean;
 
   // Actions
@@ -115,6 +120,20 @@ interface GameState {
   useConsumable: (itemId: string) => void;
   trashItem: (itemId: string) => void;
   getPlayerItems: () => Item[];
+
+  // Tournament actions
+  startTournament: (tournamentId: string) => void;
+  scheduleNextTournamentMatch: () => void;
+  completeTournamentMatch: (result: 'win' | 'loss', score: string, matchStats: MatchStatistics, rewards: MatchReward) => void;
+  cancelTournament: () => void;
+  checkTournamentEligibility: () => string[];
+  getScheduledTournamentMatch: () => ScheduledEvent | null;
+  isTournamentMatchScheduled: () => boolean;
+
+  // Generic scheduled event actions
+  scheduleEvent: (event: ScheduledEvent) => void;
+  clearScheduledEvent: (day: number, slot: TimeSlot) => void;
+  getScheduledEvent: () => ScheduledEvent | null;
 }
 
 const initialCalendar = TimeManager.createCalendar();
@@ -310,8 +329,17 @@ export const useGameStore = create<GameState>()(
         });
 
         // Check for random story event at start of new slot (except NIGHT)
+        // BUT: Don't trigger if there's a scheduled event for this time slot
         if (newCalendar.currentTimeSlot !== TimeSlot.NIGHT) {
-          get().checkForRandomStoryEvent();
+          const hasScheduledEvent = ScheduledEventManager.hasScheduledEvent(
+            newCalendar.scheduledEvents,
+            newCalendar.currentDay,
+            newCalendar.currentTimeSlot
+          );
+
+          if (!hasScheduledEvent) {
+            get().checkForRandomStoryEvent();
+          }
         }
       },
 
@@ -627,6 +655,7 @@ export const useGameStore = create<GameState>()(
             completedStoryEventChoices: gameState.completedStoryEventChoices,
             relationships: gameState.relationships,
             calendar: gameState.calendar,
+            activeTournament: gameState.calendar.activeTournament,
           }
         );
 
@@ -673,6 +702,7 @@ export const useGameStore = create<GameState>()(
             completedStoryEventChoices: gameState.completedStoryEventChoices,
             relationships: gameState.relationships,
             calendar: gameState.calendar,
+            activeTournament: gameState.calendar.activeTournament,
           }
         );
 
@@ -723,6 +753,7 @@ export const useGameStore = create<GameState>()(
             completedStoryEventChoices: gameState.completedStoryEventChoices,
             relationships: gameState.relationships,
             calendar: gameState.calendar,
+            activeTournament: gameState.calendar.activeTournament,
           }
         );
 
@@ -751,7 +782,39 @@ export const useGameStore = create<GameState>()(
           ? pendingStoryEvent.options.find((opt) => opt.id === optionId) || null
           : null;
 
-        // Execute event
+        // Get outcome for applying effects
+        const outcome = StoryEventManager.getOutcome(pendingStoryEvent, selectedOption);
+
+        // Handle time slot consumption with overflow protection
+        // Check both NIGHT overflow AND scheduled event conflicts
+        const slotsToAdvance = pendingStoryEvent.timeSlotsRequired;
+        const currentSlot = calendar.currentTimeSlot;
+        let actualSlotsConsumed = slotsToAdvance;
+
+        // Check if any slot in the range has a scheduled event
+        for (let i = 1; i <= slotsToAdvance; i++) {
+          const slotToCheck = currentSlot + i;
+
+          // Stop if we would overflow past NIGHT
+          if (slotToCheck > TimeSlot.NIGHT) {
+            actualSlotsConsumed = i - 1;
+            break;
+          }
+
+          // Stop if there's a scheduled event in this slot
+          const hasScheduledEvent = ScheduledEventManager.hasScheduledEvent(
+            calendar.scheduledEvents,
+            calendar.currentDay,
+            slotToCheck as TimeSlot
+          );
+
+          if (hasScheduledEvent) {
+            actualSlotsConsumed = i - 1;
+            break;
+          }
+        }
+
+        // Execute event with actual time slots consumed
         const gameState = get();
         const result = StoryEventManager.executeStoryEvent(
           pendingStoryEvent,
@@ -762,11 +825,9 @@ export const useGameStore = create<GameState>()(
             completedStoryEventChoices: gameState.completedStoryEventChoices,
             relationships: gameState.relationships,
             calendar: gameState.calendar,
-          }
+          },
+          actualSlotsConsumed
         );
-
-        // Get outcome for applying effects
-        const outcome = StoryEventManager.getOutcome(pendingStoryEvent, selectedOption);
 
         // Apply stat changes to player
         let updatedPlayer = { ...player };
@@ -808,18 +869,9 @@ export const useGameStore = create<GameState>()(
           Math.min(100, currentStatus.mood + (outcome.effects.moodChange || 0))
         );
 
-        // Handle time slot consumption with overflow protection
-        const slotsToAdvance = pendingStoryEvent.timeSlotsRequired;
-        const currentSlot = calendar.currentTimeSlot;
-        const targetSlot = currentSlot + slotsToAdvance;
-
         const newCalendar = { ...calendar };
-        if (targetSlot > TimeSlot.NIGHT) {
-          // Would overflow to next day - cap at NIGHT
-          newCalendar.currentTimeSlot = TimeSlot.NIGHT;
-        } else {
-          newCalendar.currentTimeSlot = targetSlot as TimeSlot;
-        }
+        const finalSlot = currentSlot + actualSlotsConsumed;
+        newCalendar.currentTimeSlot = Math.min(finalSlot, TimeSlot.NIGHT) as TimeSlot;
 
         // Assign challenges if any
         if (outcome.challengesAssigned) {
@@ -827,6 +879,21 @@ export const useGameStore = create<GameState>()(
             get().assignChallenge(challenge);
           });
         }
+
+        // Add scheduled events if any (resolve relative days to absolute days)
+        let updatedScheduledEvents = [...get().calendar.scheduledEvents];
+        if (outcome.effects.scheduledEvents) {
+          const resolvedEvents = outcome.effects.scheduledEvents.map((template) => ({
+            eventType: template.eventType,
+            scheduledDay: calendar.currentDay + template.relativeDays,
+            scheduledTimeSlot: template.scheduledTimeSlot,
+            metadata: template.metadata,
+          }));
+          updatedScheduledEvents = [...updatedScheduledEvents, ...resolvedEvents];
+        }
+
+        // Check if we need to schedule a tournament match
+        const shouldScheduleTournamentMatch = outcome.effects.scheduleNextTournamentMatch === true;
 
         // Update state
         set({
@@ -840,13 +907,21 @@ export const useGameStore = create<GameState>()(
             mood: newMood,
             lastActivity: result,
           },
-          calendar: newCalendar,
+          calendar: {
+            ...newCalendar,
+            scheduledEvents: updatedScheduledEvents,
+          },
           activityHistory: [result, ...get().activityHistory].slice(0, 10),
           pendingStoryEvent: null,
         });
 
         // Check for challenge completion after state changes
         get().checkChallengeCompletion();
+
+        // Schedule next tournament match if requested by the event outcome
+        if (shouldScheduleTournamentMatch) {
+          get().scheduleNextTournamentMatch();
+        }
       },
 
       // Cancel/dismiss pending story event
@@ -893,6 +968,7 @@ export const useGameStore = create<GameState>()(
           completedStoryEventChoices: gameState.completedStoryEventChoices,
           relationships: gameState.relationships,
           calendar: gameState.calendar,
+          activeTournament: gameState.calendar.activeTournament,
         });
       },
 
@@ -1119,6 +1195,364 @@ export const useGameStore = create<GameState>()(
         if (!player) return [];
         return ItemManager.getAllItems(player);
       },
+
+      // ========================================================================
+      // TOURNAMENT ACTIONS
+      // ========================================================================
+
+      // Start a tournament
+      startTournament: (tournamentId: string) => {
+        const config = TournamentRegistry.getTournament(tournamentId);
+        if (!config) {
+          console.error(`Tournament ${tournamentId} not found`);
+          return;
+        }
+
+        const newActiveTournament: ActiveTournament = {
+          tournamentId: config.id,
+          tournamentName: config.name,
+          currentBracket: 'winner',
+          currentRound: 0,
+          matchResults: [],
+          isActive: true,
+          isComplete: false,
+          startedAt: new Date().toISOString(),
+        };
+
+        set((state) => ({
+          calendar: {
+            ...state.calendar,
+            activeTournament: newActiveTournament,
+          },
+        }));
+
+        // Check if opening ceremony already completed
+        const completedStoryEvents = get().completedStoryEvents;
+        const ceremonyAlreadyCompleted = completedStoryEvents.includes(config.openingCeremonyEventId);
+
+        if (ceremonyAlreadyCompleted) {
+          // Skip ceremony and schedule first match directly
+          console.log('Opening ceremony already completed, scheduling first match directly');
+          setTimeout(() => {
+            get().scheduleNextTournamentMatch();
+          }, 100);
+        } else {
+          // Queue opening ceremony story event (which will schedule the match)
+          setTimeout(() => {
+            get().checkForStoryEventById(config.openingCeremonyEventId);
+          }, 100);
+        }
+      },
+
+      // Schedule the next tournament match
+      scheduleNextTournamentMatch: () => {
+        const { calendar } = get();
+        const activeTournament = calendar.activeTournament;
+        if (!activeTournament || !activeTournament.isActive) return;
+
+        const config = TournamentRegistry.getTournament(activeTournament.tournamentId);
+        if (!config) return;
+
+        // Get current round
+        const round = config.rounds[activeTournament.currentRound];
+        if (!round) return;
+
+        console.log('Scheduling next tournament match...');
+        console.log('activeTournament:', activeTournament);
+        console.log('calendar:', calendar);
+
+        // Schedule for next day at afternoon slot
+        const scheduledDay = calendar.currentDay + 1;
+        const scheduledTimeSlot = TimeSlot.AFTERNOON;
+
+        const metadata: TournamentMatchMetadata = {
+          tournamentId: activeTournament.tournamentId,
+          tournamentName: activeTournament.tournamentName,
+          roundNumber: round.roundNumber,
+          opponentId: round.opponent.characterId,
+          opponentName: round.opponent.name,
+          bracket: activeTournament.currentBracket,
+        };
+
+        console.log('Metadata for scheduled event:', metadata);
+
+        const scheduledEvent = ScheduledEventManager.scheduleEvent(
+          'tournament_match',
+          scheduledDay,
+          scheduledTimeSlot,
+          metadata
+        );
+
+        console.log('Scheduled event created:', scheduledEvent);
+
+        set((state) => ({
+          calendar: {
+            ...state.calendar,
+            scheduledEvents: [...state.calendar.scheduledEvents, scheduledEvent],
+          },
+        }));
+      },
+
+      // Complete a tournament match
+      completeTournamentMatch: (result: 'win' | 'loss', score: string, matchStats: MatchStatistics, rewards: MatchReward) => {
+        const { calendar, currentStatus, player } = get();
+        if (!player) return;
+
+        const activeTournament = calendar.activeTournament;
+        if (!activeTournament || !activeTournament.isActive) return;
+
+        const config = TournamentRegistry.getTournament(activeTournament.tournamentId);
+        if (!config) return;
+
+        const round = config.rounds[activeTournament.currentRound];
+        if (!round) return;
+
+        const isWin = result === 'win';
+
+        // Apply match rewards to player (stat boosts, abilities, items)
+        let updatedPlayer = PlayerManager.applyStatBoosts(player, rewards.statBoosts);
+
+        // Apply abilities
+        if (rewards.abilitiesGained && rewards.abilitiesGained.length > 0) {
+          console.log('Applying abilities to player:', rewards.abilitiesGained);
+          for (const ability of rewards.abilitiesGained) {
+            updatedPlayer = PlayerManager.addAbility(updatedPlayer, ability);
+          }
+        }
+
+        // Apply items
+        if (rewards.itemsGained && rewards.itemsGained.length > 0) {
+          console.log('Applying items to player:', rewards.itemsGained);
+          for (const item of rewards.itemsGained) {
+            updatedPlayer = ItemManager.addItem(updatedPlayer, item);
+          }
+        }
+
+        // Update match counts
+        updatedPlayer.matchesPlayed = (updatedPlayer.matchesPlayed || 0) + 1;
+        if (isWin) {
+          updatedPlayer.matchesWon = (updatedPlayer.matchesWon || 0) + 1;
+        }
+
+        // Update latest match results (newest first, keep last 10)
+        const currentResults = updatedPlayer.latestMatchResults || [];
+        updatedPlayer.latestMatchResults = [result, ...currentResults].slice(0, 10);
+
+        // Clear scheduled tournament match event
+        const updatedScheduledEvents = ScheduledEventManager.clearScheduledEvent(
+          get().calendar.scheduledEvents,
+          calendar.currentDay,
+          calendar.currentTimeSlot
+        );
+
+        // Record match result
+        const matchResult = {
+          roundNumber: round.roundNumber,
+          opponent: round.opponent.name,
+          result,
+          score,
+        };
+
+        const updatedTournament = {
+          ...activeTournament,
+          matchResults: [...activeTournament.matchResults, matchResult],
+        };
+
+        // Handle bracket changes and progression
+        if (result === 'loss' && activeTournament.currentBracket === 'winner') {
+          // Move to loser bracket
+          updatedTournament.currentBracket = 'loser';
+          updatedTournament.currentRound = 0;
+
+          // Queue elimination event
+          if (config.eliminationEventId) {
+            setTimeout(() => {
+              get().checkForStoryEventById(config.eliminationEventId!);
+            }, 100);
+          }
+        } else {
+          // Increment round for both win in any bracket or loss in loser bracket
+          updatedTournament.currentRound = activeTournament.currentRound + 1;
+        }
+
+        // Check if tournament complete
+        const isComplete = updatedTournament.currentRound >= config.rounds.length;
+        if (isComplete) {
+          updatedTournament.isActive = false;
+          updatedTournament.isComplete = true;
+          updatedTournament.completedAt = new Date().toISOString();
+
+          const wonChampionship = result === 'win';
+
+          // Add to completed tournaments with win status
+          set((state) => ({
+            calendar: {
+              ...state.calendar,
+              completedTournaments: [
+                ...state.calendar.completedTournaments,
+                {
+                  tournamentId: activeTournament.tournamentId,
+                  won: wonChampionship,
+                  completedAt: new Date().toISOString(),
+                }
+              ],
+              // Clear active tournament when complete
+              activeTournament: null,
+            },
+          }));
+
+          // Queue victory event if won championship
+          if (wonChampionship && config.victoryEventId) {
+            setTimeout(() => {
+              get().checkForStoryEventById(config.victoryEventId!);
+            }, 100);
+          }
+        }
+
+        // Deduct energy (variable cost)
+        const energyCost = TournamentManager.calculateMatchEnergyCost(currentStatus.energy);
+        const newEnergy = Math.max(0, currentStatus.energy - energyCost);
+
+        // Update mood from rewards
+        const newMood = Math.max(-100, Math.min(100, currentStatus.mood + rewards.moodChange));
+
+        // Update state with player changes and tournament progression
+        // Only update activeTournament if tournament is not complete (it was already cleared above)
+        set((state) => ({
+          player: updatedPlayer,
+          calendar: {
+            ...state.calendar,
+            activeTournament: isComplete ? state.calendar.activeTournament : updatedTournament,
+            scheduledEvents: updatedScheduledEvents,
+          },
+          currentStatus: {
+            ...currentStatus,
+            energy: newEnergy,
+            mood: newMood,
+          },
+        }));
+
+        // Check for challenge completion after stat changes
+        get().checkChallengeCompletion();
+
+        // Queue post-match event (use the current round BEFORE incrementing)
+        const postMatchEventId = TournamentManager.getPostMatchEventId(config, activeTournament.currentRound, result);
+        if (postMatchEventId) {
+          setTimeout(() => {
+            get().checkForStoryEventById(postMatchEventId);
+          }, 100);
+        }
+
+        // Schedule next match if tournament continues
+        if (!isComplete) {
+          setTimeout(() => {
+            get().scheduleNextTournamentMatch();
+          }, 100);
+        }
+      },
+
+      // Cancel/forfeit tournament
+      cancelTournament: () => {
+        const { calendar, completedStoryEvents } = get();
+        const activeTournament = calendar.activeTournament;
+
+        // Get tournament configuration to find all related event IDs
+        let eventIdsToRemove: string[] = [];
+        if (activeTournament) {
+          const config = TournamentRegistry.getTournament(activeTournament.tournamentId);
+          if (config) {
+            // Collect all event IDs from this tournament
+            // Opening ceremony (keep this as completed to skip on restart)
+            // Victory and elimination events
+            if (config.victoryEventId) {
+              eventIdsToRemove.push(config.victoryEventId);
+            }
+            if (config.eliminationEventId) {
+              eventIdsToRemove.push(config.eliminationEventId);
+            }
+
+            // All round-specific events (prematch and postmatch for both brackets)
+            config.rounds.forEach(round => {
+              eventIdsToRemove.push(round.prematchEventWinner);
+              eventIdsToRemove.push(round.prematchEventLoser);
+              eventIdsToRemove.push(round.winEventId);
+              eventIdsToRemove.push(round.lossEventId);
+            });
+          }
+        }
+
+        // Remove tournament events from completed list (except opening ceremony)
+        const updatedCompletedEvents = completedStoryEvents.filter(
+          eventId => !eventIdsToRemove.includes(eventId)
+        );
+
+        set((state) => ({
+          calendar: {
+            ...state.calendar,
+            activeTournament: null,
+            // Clear only tournament_match scheduled events
+            scheduledEvents: state.calendar.scheduledEvents.filter(
+              event => event.eventType !== 'tournament_match'
+            ),
+          },
+          completedStoryEvents: updatedCompletedEvents,
+        }));
+      },
+
+      // Check which tournaments player is eligible for
+      checkTournamentEligibility: (): string[] => {
+        const { player, completedStoryEvents, calendar } = get();
+        if (!player) return [];
+
+        return TournamentRegistry.getEligibleTournaments(player, {
+          completedStoryEvents,
+          calendar: {
+            activeTournament: calendar.activeTournament,
+            completedTournaments: calendar.completedTournaments,
+          },
+        }).map(t => t.id);
+      },
+
+      // Get scheduled tournament match
+      getScheduledTournamentMatch: (): ScheduledEvent | null => {
+        const { calendar } = get();
+        return TournamentManager.getScheduledTournamentMatch(calendar.activeTournament, calendar.scheduledEvents, calendar);
+      },
+
+      // Check if tournament match is scheduled
+      isTournamentMatchScheduled: (): boolean => {
+        return get().getScheduledTournamentMatch() !== null;
+      },
+
+      // ========================================================================
+      // GENERIC SCHEDULED EVENT ACTIONS
+      // ========================================================================
+
+      // Schedule any event
+      scheduleEvent: (event: ScheduledEvent) => {
+        set((state) => ({
+          calendar: {
+            ...state.calendar,
+            scheduledEvents: [...state.calendar.scheduledEvents, event],
+          },
+        }));
+      },
+
+      // Clear a scheduled event
+      clearScheduledEvent: (day: number, slot: TimeSlot) => {
+        set((state) => ({
+          calendar: {
+            ...state.calendar,
+            scheduledEvents: ScheduledEventManager.clearScheduledEvent(state.calendar.scheduledEvents, day, slot),
+          },
+        }));
+      },
+
+      // Get scheduled event for current time
+      getScheduledEvent: (): ScheduledEvent | null => {
+        const { calendar } = get();
+        return ScheduledEventManager.getScheduledEvent(calendar.scheduledEvents, calendar);
+      },
     }),
     {
       name: 'tennis-rpg-game-store',
@@ -1138,6 +1572,9 @@ export const useGameStore = create<GameState>()(
         // Challenge persistence
         activeChallenges: state.activeChallenges,
         completedChallenges: state.completedChallenges,
+
+        // Note: Tournament state and scheduled events are now part of calendar
+        // and are persisted automatically via state.calendar
 
         // Opponent tier progression
         unlockedTiers: state.unlockedTiers,

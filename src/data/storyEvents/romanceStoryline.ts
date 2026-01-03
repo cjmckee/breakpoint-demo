@@ -9,7 +9,7 @@ export const romanceEvents: StoryEvent[] = [
   {
     id: 'romance_meet_tournament',
     name: 'Meeting Alex',
-    tags: ['romance', 'tournament', 'intro'],
+    tags: ['romance', 'intro'],
     timeSlotsRequired: 1,
     prerequisites: {
       minMatchesPlayed: 3,

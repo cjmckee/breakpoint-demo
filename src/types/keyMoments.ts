@@ -94,6 +94,9 @@ export interface InteractiveMatchConfig {
   mood: number;
   energy: number;
 
+  // Match type
+  isTournamentMatch?: boolean; // True if this is a tournament match
+
   // Callbacks
   onKeyMoment?: KeyMomentCallback;
   onKeyMomentResult?: (result: any) => void; // Called after key moment is resolved

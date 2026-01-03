@@ -6,6 +6,7 @@
 import type { PlayerStats } from './index';
 import type { StoryEventResult } from './storyEvents';
 import type { Item, EquipmentSlot } from './items';
+import type { ActiveTournament } from './tournaments';
 
 export type { PlayerStats };
 
@@ -156,6 +157,12 @@ export const TIME_SLOT_NAMES: Record<TimeSlot, string> = {
   [TimeSlot.NIGHT]: 'Night',
 };
 
+export interface TournamentCompletion {
+  tournamentId: string;
+  won: boolean;  // True if player won the championship
+  completedAt: string;
+}
+
 export interface GameCalendar {
   currentSeason: number;
   currentDay: number;
@@ -163,6 +170,33 @@ export interface GameCalendar {
   energy: number;
   maxEnergy: number;
   mood: number; // -100 to 100
+
+  // Scheduled events and tournament state
+  scheduledEvents: ScheduledEvent[];
+  activeTournament: ActiveTournament | null;
+  completedTournaments: TournamentCompletion[];
+}
+
+/**
+ * Generic scheduled event
+ * Can represent any activity scheduled for a specific day/time slot
+ */
+export interface ScheduledEvent {
+  eventType: 'tournament_match' | 'training' | 'story' | 'rest';  // Extensible
+  scheduledDay: number;
+  scheduledTimeSlot: TimeSlot;
+  metadata?: Record<string, any>;  // Type-specific data (tournament ID, opponent, etc.)
+}
+
+/**
+ * Scheduled event template for story event outcomes
+ * Uses relative days instead of absolute days, resolved at runtime
+ */
+export interface ScheduledEventTemplate {
+  eventType: 'tournament_match' | 'training' | 'story' | 'rest';
+  relativeDays: number;  // Days from current day (1 = tomorrow)
+  scheduledTimeSlot: TimeSlot;
+  metadata?: Record<string, any>;
 }
 
 export interface TimeDisplayInfo {
@@ -197,7 +231,7 @@ export type ActivityType =
   | 'match'
   | 'story'
   | 'rest'
-  | 'tournament'
+  | 'tournament_match'
   | 'skip';
 
 export interface Activity {
@@ -291,7 +325,16 @@ export interface RestResult extends Activity {
   stressReduction?: number;
 }
 
-export type ActivityResult = TrainingResult | MatchResult | RestResult | StoryEventResult;
+export interface TournamentMatchResult extends Omit<MatchResult, 'type' | 'source'> {
+  type: 'tournament_match';
+  source: 'tournament_match_activity';
+  tournamentId: string;
+  tournamentName: string;
+  roundNumber: number;
+  bracket: 'winner' | 'loser';
+}
+
+export type ActivityResult = TrainingResult | MatchResult | TournamentMatchResult | RestResult | StoryEventResult;
 
 // ============================================================================
 // PLAYER & GAME STATE
@@ -376,4 +419,7 @@ export const DEFAULT_CALENDAR: GameCalendar = {
   energy: 100,
   maxEnergy: 100,
   mood: 50,
+  scheduledEvents: [],
+  activeTournament: null,
+  completedTournaments: [],
 };

@@ -3,7 +3,7 @@
  * Comprehensive types for the story event system
  */
 
-import type { Activity, StatBoosts } from './game';
+import type { Activity, StatBoosts, ScheduledEventTemplate } from './game';
 import type { Challenge } from './challenges';
 import type { StatName } from './index';
 
@@ -48,7 +48,8 @@ export type StoryEventTag =
   // Career
   | 'sponsor'
   | 'media'
-  | 'tournament'
+  | 'tournament_match'      // For match-specific events
+  | 'tournament_ceremony'   // For opening/closing ceremonies
   | 'agent'
 
   // Development
@@ -105,6 +106,11 @@ export interface StoryEventPrerequisite {
   // Match history requirements
   minMatchesPlayed?: number;
   minMatchesWon?: number;
+
+  // Tournament requirements
+  activeTournament?: string;           // Must be in specific tournament
+  tournamentBracket?: 'winner' | 'loser';  // Must be in specific bracket
+  tournamentRound?: number;            // Must be at specific round (0-based index)
 }
 
 // ============================================================================
@@ -123,6 +129,8 @@ export interface StoryEventOutcome {
     energyChange?: number;
     relationshipChanges?: Record<string, number>;
     abilitiesGained?: string[];
+    scheduledEvents?: ScheduledEventTemplate[];
+    scheduleNextTournamentMatch?: boolean;  // Trigger tournament match scheduling
   };
 
   // Challenges assigned by this outcome

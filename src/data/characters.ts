@@ -13,46 +13,87 @@ export interface Character {
  * All characters in the game
  */
 export const CHARACTERS: Record<string, Character> = {
+  /** Coaches */
   coach_gonzalez: {
     id: 'coach_gonzalez',
     name: 'Coach Gonzalez',
     role: 'Coach',
   },
+
+  /** Rivals */
   jordan_rival: {
     id: 'jordan_rival',
     name: 'Jordan',
     role: 'Rival',
   },
+
+  /** Friends */
+    keith: {
+    id: 'keith',
+    name: 'Keith',
+    role: 'Friend',
+  },
+
+  jen: {
+    id: 'jen',
+    name: 'Jen',
+    role: 'Friend',
+  },
+
+  chris: {
+    id: 'chris',
+    name: 'Chris',
+    role: 'Friend',
+  },
+
+  zack: {
+    id: 'zack',
+    name: 'Zack',
+    role: 'Friend',
+  },
+
+  /** Romance */
   alex_romance: {
     id: 'alex_romance',
     name: 'Alex',
     role: 'Friend',
   },
+
+  /** Family */
   parent: {
     id: 'parent',
     name: 'Parent',
     role: 'Family',
   },
+
+  /** Sponsors */
   sponsor_rep: {
     id: 'sponsor_rep',
     name: 'Sponsor Representative',
     role: 'Sponsor',
   },
-  journalist: {
-    id: 'journalist',
-    name: 'Journalist',
-    role: 'Media',
-  },
+
   agent: {
     id: 'agent',
     name: 'Agent',
     role: 'Career',
   },
+
+  /** Media */
+  journalist: {
+    id: 'journalist',
+    name: 'Journalist',
+    role: 'Media',
+  },
+
+  /** Tournament */
   tournament_director: {
     id: 'tournament_director',
     name: 'Tournament Director',
     role: 'Official',
   },
+
+
 };
 
 /**

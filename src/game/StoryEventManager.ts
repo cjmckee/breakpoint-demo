@@ -13,6 +13,7 @@ import type {
   StoryEventTag,
 } from '../types/storyEvents';
 import type { Player, GameCalendar } from '../types/game';
+import type { ActiveTournament } from '../types/tournaments';
 
 export class StoryEventManager {
   /**
@@ -27,6 +28,7 @@ export class StoryEventManager {
       completedStoryEventChoices: Record<string, string>;
       relationships: Record<string, number>;
       calendar: GameCalendar;
+      activeTournament?: ActiveTournament | null;
     }
   ): StoryEvent | null {
     console.log(`🔍 Getting event by ID: ${eventId}`);
@@ -71,6 +73,7 @@ export class StoryEventManager {
       completedStoryEventChoices: Record<string, string>;
       relationships: Record<string, number>;
       calendar: GameCalendar;
+      activeTournament?: ActiveTournament | null;
     }
   ): StoryEvent[] {
     console.log(`🔍 Getting eligible events for tag: ${tag}`);
@@ -100,6 +103,7 @@ export class StoryEventManager {
       completedStoryEventChoices: Record<string, string>;
       relationships: Record<string, number>;
       calendar: GameCalendar;
+      activeTournament?: ActiveTournament | null;
     }
   ): StoryEvent[] {
     console.log(`🔍 Getting all eligible events for player: ${player.id}`);
@@ -116,6 +120,12 @@ export class StoryEventManager {
     return allEvents.filter((event) => {
       // Skip if already completed
       if (gameState.completedStoryEvents.includes(event.id)) {
+        return false;
+      }
+
+      // Let's just filter out tournament events for now.
+      // We manually queue them when needed
+      if (event.tags.includes('tournament_match') || event.tags.includes('tournament_ceremony')) {
         return false;
       }
 
@@ -153,7 +163,9 @@ export class StoryEventManager {
       completedStoryEventChoices: Record<string, string>;
       relationships: Record<string, number>;
       calendar: GameCalendar;
-    }
+      activeTournament?: ActiveTournament | null;
+    },
+    actualTimeSlotsUsed?: number
   ): StoryEventResult {
     // Get the outcome (from selected option or default)
     const outcome = this.getOutcome(event, selectedOption);
@@ -169,7 +181,7 @@ export class StoryEventManager {
       type: 'story',
       source: 'story_event',
       timestamp: new Date().toISOString(),
-      timeSlotsUsed: event.timeSlotsRequired,
+      timeSlotsUsed: actualTimeSlotsUsed ?? event.timeSlotsRequired,
       energyCost: Math.abs(outcome.effects.energyChange || 0),
       moodResult: outcome.effects.moodChange || 0,
 

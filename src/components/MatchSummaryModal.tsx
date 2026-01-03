@@ -25,6 +25,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
 }) => {
   const setScreen = useGameStore((state) => state.setScreen);
   const addMatchResult = useGameStore((state) => state.addMatchResult);
+  const completeTournamentMatch = useGameStore((state) => state.completeTournamentMatch);
   const matchConfig = useMatchStore((state) => state.matchConfig);
   const keyMomentHistory = useMatchStore((state) => state.keyMomentHistory);
   const matchStatistics = useMatchStore((state) => state.matchStatistics);
@@ -79,20 +80,36 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
     console.log('MatchSummaryModal handleClose called');
     console.log('Match statistics:', matchStatistics);
     console.log('Opponent tier:', opponentTier);
+    console.log('Match config isTournamentMatch:', matchConfig.isTournamentMatch);
     console.log('Passing pre-calculated rewards:', matchRewards);
 
-    // Pass the pre-calculated rewards to avoid duplicate rolls
-    addMatchResult(
-      isWinner ? 'win' : 'loss',
-      opponentName,
-      opponentTier,
-      formatScore(finalScore),
-      matchConfig.surface,
-      matchStatistics,
-      matchRewards
-    );
+    // Check if this is a tournament match using the flag in match config
+    // This is the most reliable way as it's explicitly set when starting the match
+    const isTournamentMatch = matchConfig.isTournamentMatch === true;
 
-    console.log('addMatchResult called with pre-calculated rewards');
+    if (isTournamentMatch) {
+      console.log('Tournament match detected - calling completeTournamentMatch');
+      console.log('Passing rewards to completeTournamentMatch:', matchRewards);
+      // Tournament matches use special handling
+      completeTournamentMatch(
+        isWinner ? 'win' : 'loss',
+        formatScore(finalScore),
+        matchStatistics,
+        matchRewards
+      );
+    } else {
+      console.log('Regular match - calling addMatchResult');
+      // Regular matches use standard handling with pre-calculated rewards
+      addMatchResult(
+        isWinner ? 'win' : 'loss',
+        opponentName,
+        opponentTier,
+        formatScore(finalScore),
+        matchConfig.surface,
+        matchStatistics,
+        matchRewards
+      );
+    }
 
     onClose();
     setScreen('main-menu');

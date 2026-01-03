@@ -11,6 +11,7 @@ import { careerEvents } from './careerStoryline';
 import { familyEvents } from './familyStoryline';
 import { rivalEvents } from './rivalStoryline';
 import { milestoneEvents } from './milestoneEvents';
+import { tournamentEvents } from './tournamentStoryline';
 
 // Combine all events from different storylines
 const ALL_EVENTS: StoryEvent[] = [
@@ -21,6 +22,7 @@ const ALL_EVENTS: StoryEvent[] = [
   ...familyEvents,
   ...rivalEvents,
   ...milestoneEvents,
+  ...tournamentEvents,
 ];
 
 /**

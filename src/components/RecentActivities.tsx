@@ -18,7 +18,7 @@ export const RecentActivities: React.FC = () => {
         return '🎾';
       case 'rest':
         return '😴';
-      case 'tournament':
+      case 'tournament-match':
         return '🏆';
       default:
         return '📋';
@@ -33,7 +33,7 @@ export const RecentActivities: React.FC = () => {
         return 'bg-green-500 bg-opacity-10 border-green-500';
       case 'rest':
         return 'bg-purple-500 bg-opacity-10 border-purple-500';
-      case 'tournament':
+      case 'tournament-match':
         return 'bg-orange-500 bg-opacity-10 border-orange-500';
       default:
         return 'bg-gray-500 bg-opacity-10 border-gray-500';

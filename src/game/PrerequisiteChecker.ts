@@ -6,6 +6,7 @@
 import type { PlayerStats } from '../types';
 import type { Player, GameCalendar, Ability } from '../types/game';
 import type { StoryEventPrerequisite, StoryEventOption, StoryEvent } from '../types/storyEvents';
+import type { ActiveTournament } from '../types/tournaments';
 
 export class PrerequisiteChecker {
   /**
@@ -180,6 +181,39 @@ export class PrerequisiteChecker {
   }
 
   /**
+   * Check tournament requirements
+   */
+  static checkTournamentPrerequisites(
+    activeTournament: ActiveTournament | null,
+    requirements?: Pick<StoryEventPrerequisite, 'activeTournament' | 'tournamentBracket' | 'tournamentRound'>
+  ): boolean {
+    if (!requirements) return true;
+
+    // Must be in specific tournament
+    if (requirements.activeTournament) {
+      if (!activeTournament || activeTournament.tournamentId !== requirements.activeTournament) {
+        return false;
+      }
+    }
+
+    // Must be in specific bracket
+    if (requirements.tournamentBracket) {
+      if (!activeTournament || activeTournament.currentBracket !== requirements.tournamentBracket) {
+        return false;
+      }
+    }
+
+    // Must be at specific round
+    if (requirements.tournamentRound !== undefined) {
+      if (!activeTournament || activeTournament.currentRound !== requirements.tournamentRound) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
    * Main prerequisite checker - checks all conditions
    */
   static checkAllPrerequisites(
@@ -190,6 +224,7 @@ export class PrerequisiteChecker {
       completedStoryEventChoices: Record<string, string>;
       relationships: Record<string, number>;
       calendar: GameCalendar;
+      activeTournament?: ActiveTournament | null;
     }
   ): boolean {
     return (
@@ -207,7 +242,8 @@ export class PrerequisiteChecker {
       ) &&
       this.checkTimePrerequisites(gameState.calendar, prerequisites) &&
       this.checkAbilityPrerequisites(player.abilities, prerequisites) &&
-      this.checkMatchHistoryPrerequisites(player, prerequisites)
+      this.checkMatchHistoryPrerequisites(player, prerequisites) &&
+      this.checkTournamentPrerequisites(gameState.activeTournament || null, prerequisites)
     );
   }
 
@@ -222,6 +258,7 @@ export class PrerequisiteChecker {
       completedStoryEventChoices: Record<string, string>;
       relationships: Record<string, number>;
       calendar: GameCalendar;
+      activeTournament?: ActiveTournament | null;
     }
   ): boolean {
     if (!option.prerequisites) return true;
@@ -239,6 +276,7 @@ export class PrerequisiteChecker {
       completedStoryEventChoices: Record<string, string>;
       relationships: Record<string, number>;
       calendar: GameCalendar;
+      activeTournament?: ActiveTournament | null;
     }
   ): StoryEventOption[] {
     return event.options.filter((option) => this.checkOptionPrerequisites(option, player, gameState));

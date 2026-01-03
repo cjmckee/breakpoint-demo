@@ -256,7 +256,7 @@ export const welcomeEvents: StoryEvent[] = [
   {
     id: 'riverside_open_prep',
     name: 'Riverside Open Preparation',
-    tags: ['intro', 'tournament'],
+    tags: ['intro'],
     timeSlotsRequired: 0, // Doesn't consume time - informational event
     prerequisites: {
       completedEvents: ['abilities_basics'],

@@ -11,12 +11,15 @@ import { StatusBar } from './StatusBar';
 import { PlayerStatsDisplay } from './PlayerStatsDisplay';
 import { RecentActivities } from './RecentActivities';
 import { ActiveChallenges } from './ActiveChallenges';
+import { ActiveTournamentCard } from './ActiveTournamentCard';
 import { TrainingResultModal } from './TrainingResultModal';
 import { StoryEventModal } from './StoryEventModal';
 import { StoryEventResultModal } from './StoryEventResultModal';
 import type { TrainingResult } from '../types/game';
 import type { StoryEventResult } from '../types/storyEvents';
 import { TimeSlot } from '../types/game';
+import { TournamentRegistry } from '../data/tournaments';
+import { TournamentManager } from '../game/TournamentManager';
 
 export const MainMenu: React.FC = () => {
   const player = useGameStore((state) => state.player);
@@ -26,6 +29,10 @@ export const MainMenu: React.FC = () => {
   const rest = useGameStore((state) => state.rest);
   const showTrainingResultModal = useGameStore((state) => state.showTrainingResultModal);
   const clearTrainingResultModal = useGameStore((state) => state.clearTrainingResultModal);
+
+  // Tournament state
+  const activeTournament = useGameStore((state) => state.calendar.activeTournament);
+  const getScheduledTournamentMatch = useGameStore((state) => state.getScheduledTournamentMatch);
 
   // Story event state and actions
   const pendingStoryEvent = useGameStore((state) => state.pendingStoryEvent);
@@ -41,6 +48,10 @@ export const MainMenu: React.FC = () => {
 
   // Check if story event is pending
   const isEventPending = pendingStoryEvent !== null;
+
+  // Check if tournament match is scheduled for current time
+  const scheduledTournamentMatch = getScheduledTournamentMatch();
+  const isTournamentMatchScheduled = scheduledTournamentMatch !== null;
 
   // Get training result from last activity if modal should be shown
   const trainingResult = showTrainingResultModal && currentStatus.lastActivity?.type === 'training'
@@ -59,6 +70,27 @@ export const MainMenu: React.FC = () => {
       setShowStoryModal(true);
     }
   }, [isEventPending, showTrainingResultModal]);
+
+  // Trigger pre-match event when tournament match is scheduled
+  useEffect(() => {
+    if (isTournamentMatchScheduled && scheduledTournamentMatch && activeTournament && !isEventPending) {
+      const tournamentId = activeTournament.tournamentId;
+      const config = TournamentRegistry.getTournament(tournamentId);
+      if (config) {
+        const prematchEventId = TournamentManager.getPrematchEventId(
+          config,
+          activeTournament.currentRound,
+          activeTournament.currentBracket
+        );
+        if (prematchEventId) {
+          console.log('Tournament match scheduled - triggering pre-match event:', prematchEventId);
+          setTimeout(() => {
+            useGameStore.getState().checkForStoryEventById(prematchEventId);
+          }, 100);
+        }
+      }
+    }
+  }, [isTournamentMatchScheduled, scheduledTournamentMatch, activeTournament, isEventPending]);
 
   const handleExecuteEvent = (eventId: string, optionId?: string) => {
     executeStoryEvent(eventId, optionId);
@@ -91,6 +123,14 @@ export const MainMenu: React.FC = () => {
       description: 'Test your skills in a competitive match',
       energyCost: 30,
       action: () => setScreen('match'),
+    },
+    {
+      id: 'tournaments',
+      title: 'Tournaments',
+      emoji: '🏆',
+      description: 'Enter competitive tournaments and compete for glory',
+      energyCost: 0,
+      action: () => setScreen('tournaments'),
     },
     {
       id: 'inventory',
@@ -156,6 +196,27 @@ export const MainMenu: React.FC = () => {
       <StatusBar />
 
       <div className="max-w-6xl mx-auto p-4">
+        {/* Tournament Match Banner */}
+        {isTournamentMatchScheduled && scheduledTournamentMatch && (
+          <Card className="mb-6 border-4 border-yellow-400 bg-yellow-600 animate-pulse">
+            <div className="flex items-center gap-4">
+              <span className="text-5xl">🎾</span>
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold text-white mb-1">Tournament Match Scheduled!</h2>
+                <p className="text-lg text-white">
+                  Your tournament match is ready to play
+                </p>
+                <p className="text-sm text-gray-200 mt-1">
+                  {activeTournament?.tournamentName} - Round {(activeTournament?.currentRound || 0) + 1}
+                </p>
+              </div>
+              <Button onClick={() => setScreen('tournament-match')} variant="primary" size="lg">
+                Play Match
+              </Button>
+            </div>
+          </Card>
+        )}
+
         {/* Story Event Notification */}
         {isEventPending && pendingStoryEvent && (
           <Card className="mb-6 border-4 border-yellow-400 bg-yellow-600">
@@ -192,23 +253,27 @@ export const MainMenu: React.FC = () => {
         </Card>
 
         {/* Activities Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
           {activities.map((activity) => {
             const canAfford = currentStatus.energy >= activity.energyCost;
             const isRestButton = activity.id === 'rest';
             const isInventoryButton = activity.id === 'inventory';
 
-            // Disable all activities when event is pending or during night time (except rest and inventory)
+            // Disable all activities when event is pending, tournament match scheduled, or during night time (except rest and inventory)
             const isDisabled = isEventPending
               ? !isInventoryButton
-              : isNightTime
-                ? (!isRestButton && !isInventoryButton)
-                : (!canAfford && activity.energyCost > 0);
+              : isTournamentMatchScheduled
+                ? !isRestButton && !isInventoryButton
+                : isNightTime
+                  ? (!isRestButton && !isInventoryButton)
+                  : (!canAfford && activity.energyCost > 0);
 
             // Get button text
             let buttonText = activity.title;
             if (isEventPending) {
               buttonText = 'Event Pending';
+            } else if (isTournamentMatchScheduled && !isRestButton && !isInventoryButton) {
+              buttonText = 'Match Scheduled';
             } else if (isNightTime && isRestButton) {
               buttonText = 'Next Day';
             } else if (!canAfford && activity.energyCost > 0) {
@@ -259,8 +324,9 @@ export const MainMenu: React.FC = () => {
             <PlayerStatsDisplay />
           </div>
 
-          {/* Recent Activities and Challenges - 1 column */}
+          {/* Recent Activities, Challenges, and Tournament - 1 column */}
           <div className="lg:col-span-1 space-y-6">
+            <ActiveTournamentCard />
             <ActiveChallenges />
             <RecentActivities />
           </div>
