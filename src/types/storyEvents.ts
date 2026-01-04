@@ -63,7 +63,10 @@ export type StoryEventTag =
   | 'decision'
   | 'milestone'
   | 'conflict'
-  | 'celebration';
+  | 'celebration'
+
+  // Random Events
+  | 'misc';
 
 // ============================================================================
 // STORY EVENT PREREQUISITES

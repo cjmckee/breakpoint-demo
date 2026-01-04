@@ -20,6 +20,10 @@ export const tournamentEvents: StoryEvent[] = [
      * will likely defeat the player. The player should end this storyline feeling accomplishment if they win, and still boost their relationships with fellow players if they lose. 
      */
 
+    // ==========================================
+    // CEREMONY EVENTS
+    // ==========================================
+
     {
         id: 'riverside_open_opening_ceremony',
         tags: ['tournament_ceremony'],
@@ -56,10 +60,6 @@ export const tournamentEvents: StoryEvent[] = [
         }
     },
 
-    // ==========================================
-    // CEREMONY EVENTS
-    // ==========================================
-
     {
         id: 'riverside_open_victory',
         tags: ['tournament_ceremony'],
@@ -70,18 +70,20 @@ export const tournamentEvents: StoryEvent[] = [
         description: 'You won the Riverside Open!',
         dialogue: [
             [null, ['The crowd erupts as the final point is won. You did it. You actually did it.']],
-            ['tournament_director', ['Ladies and gentlemen, please give a warm round of applause to our Riverside Open champion, ', {characterId: 'player'}, '!']],
-            [null, ['You step up to the podium, holding the trophy high. The weight of it feels surreal.']],
-            ['keith', ['You were amazing out there! I learned so much just watching you play.']],
-            ['jen', ['Congratulations! That final match was incredible. You really earned this.']],
-            ['jordan_rival', ['Well played. I have to admit, you\'ve got serious skills. I\'ll be training hard for our next match.']],
-            ['marcus_champion', ['You played well. Keep that level of intensity and you\'ll go far in this sport.']],
-            [null, ['As the ceremony concludes, you realize this is just the beginning. There are bigger tournaments ahead.']],
+            ['tournament_director', ['Ladies and gentlemen, please give a warm round of applause to our Riverside Open champion for the Club level, ', {characterId: 'player'}, '!']],
+            [null, ['You only just now realize there are different divisions. In fact, you\'ve only managed to win the lowest tier.']],
+            [null, ['You step up to the podium to be gifted the trophy. It\'s quite small, but it feels special to you anyway. You see yourself in the reflection.']],
+            ['keith', ['You were amazing out there! I learned so much just watching you play. My little sister is not gonna believe this...']],
+            ['jen', ['Congratulations! That final match was incredible. You really earned it. I think everyone was hoping for you to take down ', {characterId: 'jordan_rival'}, '.']],
+            ['jordan_rival', ['You got lucky this time. It\'s a bad matchup for my beautiful and elegant style of tennis. I\'ll be training hard for our next match.']],
+            ['coach_gonzalez', ['I can\'t believe you did it! And against one of my old students as well. You should be proud.']],
+            ['coach_gonzalez', ['Now, let\'s go watch some actual tennis. The Regional tier matches are about to start.']],
+            [null, ['As the ceremony concludes, you realize this is just the beginning. There are bigger tournaments ahead. The trophy doesn\'t hurt, though.']],
         ],
-        characters: ['tournament_director', 'keith', 'jen', 'jordan_rival', 'marcus_champion'],
+        characters: ['tournament_director', 'keith', 'jen', 'jordan_rival', 'coach_gonzalez'],
         options: [],
         defaultOutcome: {
-            resultText: ['You are the Riverside Open champion! Your confidence soars.'],
+            resultText: ['You are the Riverside Open champion for the Club level! Your confidence soars. Remember this feeling as you grow and improve.'],
             effects: {
                 statChanges: {
                     focus: 5,
@@ -92,7 +94,7 @@ export const tournamentEvents: StoryEvent[] = [
                     keith: 10,
                     jen: 10,
                     jordan_rival: 5,
-                    marcus_champion: 8,
+                    coach_gonzalez: 8,
                 }
             }
         }
@@ -109,9 +111,9 @@ export const tournamentEvents: StoryEvent[] = [
         dialogue: [
             [null, ['The loss stings. You watch your opponent celebrate as you pack up your bag.']],
             ['coach_gonzalez', ['Hey, chin up. This tournament isn\'t over yet.']],
-            ['coach_gonzalez', ['You\'re in the consolation bracket now. Different bracket, but you still have matches to play.']],
-            [null, ['You nod slowly. Not the bracket you wanted, but at least you\'re still playing.']],
-            ['coach_gonzalez', ['Some of the best players have fought through the consolation bracket. It builds character.']],
+            ['coach_gonzalez', ['You\'re in the consolation bracket now. You\'re only playing for pride now, but you still have matches to play.']],
+            [null, ['You nod slowly. Not the result you wanted, but at least you\'re still playing.']],
+            ['coach_gonzalez', ['Some of the best players have fought through their fair share of consolation matches. It builds character.']],
             ['coach_gonzalez', ['Now get some rest. You\'ve got another match coming up.']],
         ],
         characters: ['coach_gonzalez'],
@@ -198,13 +200,13 @@ export const tournamentEvents: StoryEvent[] = [
         dialogue: [
             ['keith', ['Good match, ', {characterId: 'player'}, '! You really had me running out there.']],
             ['keith', ['I tried that backhand slice you showed me in practice, but you were ready for it every time!']],
-            [null, ['Keith is breathing hard but grinning widely. He genuinely seems happy despite the loss.']],
+            [null, [{characterId: 'keith'}, ' is breathing hard but grinning widely. He genuinely seems happy despite the loss.']],
             ['keith', ['Keep playing like that and you\'ll go all the way. I\'ll be cheering for you!']],
         ],
         characters: ['keith'],
         options: [],
         defaultOutcome: {
-            resultText: ['You won your first tournament match! Keith congratulates you warmly.'],
+            resultText: ['You won your first tournament match! ', {characterId: 'keith'}, ' congratulates you warmly.'],
             effects: {
                 moodChange: 8,
                 relationshipChanges: {
@@ -224,14 +226,14 @@ export const tournamentEvents: StoryEvent[] = [
         description: 'Keith defeated you.',
         dialogue: [
             ['keith', ['That was a great match! You really pushed me.']],
-            [null, ['Keith offers his hand to help you up. His enthusiasm is a bit much right now.']],
+            [null, [{characterId: 'keith'}, ' offers his hand to help you up. His enthusiasm is a bit much right now.']],
             ['keith', ['Some of those shots you hit were incredible. I got lucky on a few key points.']],
             ['keith', ['Don\'t beat yourself up. First tournament is always tough. You\'ll get \'em next time!']],
         ],
         characters: ['keith'],
         options: [],
         defaultOutcome: {
-            resultText: ['You lost to Keith, but he was gracious in victory.'],
+            resultText: ['You lost to ', {characterId: 'keith'}, ', but he was gracious in victory.'],
             effects: {
                 moodChange: -5,
                 relationshipChanges: {
@@ -262,14 +264,14 @@ export const tournamentEvents: StoryEvent[] = [
         dialogue: [
             ['chris', ['Wow, we\'re both still in this! I can\'t believe I made the second round.']],
             ['chris', ['I\'ve been watching your matches. You\'ve really improved since I first saw you.']],
-            [null, ['Chris looks nervous but determined. You can tell he\'s been studying your game.']],
+            [null, [{'characterId': 'chris'}, ' looks nervous but determined. You can tell he\'s been studying your game.']],
             ['chris', ['I\'m one of the other first years, but I\'m not holding back. This is my journey, too.']],
             ['chris', ['Good luck out there. Let\'s make it a match to remember!']],
         ],
         characters: ['chris'],
         options: [],
         defaultOutcome: {
-            resultText: ['Chris is a formidable opponent. This will test your resilience.'],
+            resultText: [{'characterId': 'chris'}, ' is a formidable opponent. This will test your resilience.'],
             effects: {
                 moodChange: 3,
             }
@@ -291,14 +293,14 @@ export const tournamentEvents: StoryEvent[] = [
         dialogue: [
             ['chris', ['Hey. Rough tournament for both of us, huh?']],
             ['chris', ['I sort of expected to be here, to be honest.']],
-            [null, ['Chris manages a small smile despite the disappointment.']],
+            [null, [{'characterId': 'chris'}, ' manages a small smile despite the disappointment.']],
             ['chris', ['Glad to meet you. I\'m one of the other first years. Looks like we both have some training to do.']],
             ['chris', ['Let\'s give it our all anyway. We didn\'t come this far to give up now.']],
         ],
         characters: ['chris'],
         options: [],
         defaultOutcome: {
-            resultText: ['You and Chris will battle it out in the consolation bracket.'],
+            resultText: ['You and ', {characterId: 'chris'}, ' will battle it out in the consolation bracket.'],
             effects: {
                 moodChange: 2,
             }
@@ -315,7 +317,7 @@ export const tournamentEvents: StoryEvent[] = [
         description: 'You defeated Chris.',
         dialogue: [
             ['chris', ['That was... wow. You were incredible out there.']],
-            [null, ['Chris is catching his breath, but he\'s smiling genuinely.']],
+            [null, [{characterId: 'chris'}, ' is catching his breath, but he\'s smiling genuinely.']],
             ['chris', ['I threw everything I had at you and you just kept coming back stronger.']],
             ['chris', ['I\'m not even mad. That was the best match I\'ve played all tournament.']],
             ['chris', ['Go win this whole thing, okay? I want to say I lost to the champion!']],
@@ -323,7 +325,7 @@ export const tournamentEvents: StoryEvent[] = [
         characters: ['chris'],
         options: [],
         defaultOutcome: {
-            resultText: ['Chris played brilliantly, but you found a way to win.'],
+            resultText: [{characterId: 'chris'}, ' played brilliantly, but you found a way to win.'],
             effects: {
                 moodChange: 6,
                 relationshipChanges: {
@@ -343,14 +345,14 @@ export const tournamentEvents: StoryEvent[] = [
         description: 'Chris defeated you.',
         dialogue: [
             ['chris', ['I... I can\'t believe I just did that!']],
-            [null, ['Chris looks shocked at his own victory, then rushes to the net.']],
+            [null, [{characterId: 'chris'}, ' looks shocked at his own victory, then rushes to the net.']],
             ['chris', ['You were amazing. Every time I thought I had you, you pulled off something incredible.']],
             ['chris', ['Looks like I was able to take it this time. But I don\'t think I\'ll be so lucky the next time we play.']]
         ],
         characters: ['chris'],
         options: [],
         defaultOutcome: {
-            resultText: ['Chris edges you out in a close match. You know you can catch him with a little work.'],
+            resultText: [{characterId: 'keith'}, ' edges you out in a close match. You know you can catch him with a little work.'],
             effects: {
                 moodChange: -6,
                 relationshipChanges: {
@@ -380,15 +382,17 @@ export const tournamentEvents: StoryEvent[] = [
             ['zack', ['You ready for this? I hope you brought your A-game.']],
             ['zack', ['I\'ve been watching your matches. You\'re pretty good. But I\'m on a roll here.']],
             ['zack', ['Just remember, I don\'t plan on losing today. Not to a first year.']],
+            ['coach_gonzalez', ['Stay focused out there. ', {characterId: 'zack'}, ' is a defensive menace. Pay attention to consistency.']]
         ],
         characters: ['zack', 'coach_gonzalez'],
         options: [],
         defaultOutcome: {
-            resultText: ['Zack has an attitude but you can tell he can back it up. Prepare for a grind.'],
+            resultText: [{characterId: 'zack'}, ' has an attitude but you can tell he can back it up. Prepare for a grind.'],
             effects: {
                 moodChange: 5,
                 statChanges: {
-                    focus: 3,
+                    stamina: 3,
+                    speed: 1
                 }
             }
         }
@@ -409,13 +413,13 @@ export const tournamentEvents: StoryEvent[] = [
         dialogue: [
             ['zack', ['Didn\'t expect to see me in the consolation bracket, did you?']],
             ['zack', ['I had an off day. It happens to everyone.']],
-            [null, ['Zack seems more relaxed here, less pressure without the main trophy on the line.']],
+            [null, [{characterId: 'zack'}, ' seems more relaxed here, less pressure without the main trophy on the line.']],
             ['zack', ['But that doesn\'t mean I\'m going easy on you. I still have my pride.']],
         ],
         characters: ['zack'],
         options: [],
         defaultOutcome: {
-            resultText: ['Even in the consolation bracket, Zack seems focused and determined.'],
+            resultText: ['Even in the consolation bracket, ', {characterId: 'zack'}, ' seems focused and determined.'],
             effects: {
                 moodChange: 2,
             }
@@ -433,12 +437,14 @@ export const tournamentEvents: StoryEvent[] = [
         dialogue: [
             ['zack', ['I can\'t believe I lost to you.']],
             ['zack', ['You played really well. I underestimated you.']],
-            ['zack', ['Just wait until next time. I won\'t go easy on you again.']]
+            ['zack', ['Just wait until next time. I won\'t go easy on you again.']],
+            ['coach_gonzalez', ['I can\'t believe it either! ', {characterId: 'zack'}, ' fought and fought.']],
+            ['coach_gonzalez', ['Maybe I should be upping the fee for my lessons.']]
         ],
-        characters: ['zack'],
+        characters: ['zack', 'coach_gonzalez'],
         options: [],
         defaultOutcome: {
-            resultText: ['You defeated Zack! The finals are coming up. You can feel the pressure mounting.'],
+            resultText: ['You defeated ', {characterId: 'zack'}, '! The finals are coming up. You can feel the pressure mounting.'],
             effects: {
                 moodChange: 6,
                 relationshipChanges: {
@@ -458,10 +464,12 @@ export const tournamentEvents: StoryEvent[] = [
         description: 'Zack defeated you.',
         dialogue: [
             ['zack', ['Good match. You made me work for it.']],
-            [null, ['Zack extends his hand. His grip is firm and respectful.']],
+            [null, [{characterId: 'zack'}, ' extends his hand. His grip is firm and respectful.']],
             ['zack', ['You\'ve got potential. Real potential. But you need more experience.']],
+            ['coach_gonzalez', ['I\'m proud of you for making it this far. Learn from this experience.']],
+            ['coach_gonzalez', ['Come on. You have laps to run after that performance.']]
         ],
-        characters: ['zack'],
+        characters: ['zack', 'coach_gonzalez'],
         options: [],
         defaultOutcome: {
             resultText: ['Zack was too strong, but you learned so much from facing him.'],
@@ -469,6 +477,9 @@ export const tournamentEvents: StoryEvent[] = [
                 moodChange: -4,
                 relationshipChanges: {
                     zack: 8,
+                },
+                statChanges: {
+                    stamina: 2
                 }
             }
         }
@@ -494,16 +505,21 @@ export const tournamentEvents: StoryEvent[] = [
             [null, ['The crowd is massive now. This is the finals. This is everything.']],
             ['jordan_rival', ['Well, well. Looks like we both made it to the finals.']],
             ['jordan_rival', ['I told you I wanted to face you at your best. I hope you brought your A-game.']],
-            [null, ['Jordan is stretching methodically, eyes locked on you. This is personal.']],
+            [null, [{characterId: 'jordan_rival'}, ' is stretching methodically, eyes locked on you. This is personal.']],
             ['jordan_rival', ['No more talk. Let\'s see what you\'ve got on the court.']],
             ['coach_gonzalez', ['This is it, kid. Everything you\'ve trained for. Go out there and leave it all on the court.']],
         ],
         characters: ['jordan_rival', 'coach_gonzalez'],
         options: [],
         defaultOutcome: {
-            resultText: ['Jordan is ready for battle. This won\'t be easy.'],
+            resultText: [{characterId: 'jordan_rival'}, ' is ready for battle. This won\'t be easy.'],
             effects: {
                 moodChange: 2,
+                statChanges: {
+                    focus: 2,
+                    anticipation: 2,
+                    offensive: 2,
+                }
             }
         }
     },
@@ -523,13 +539,13 @@ export const tournamentEvents: StoryEvent[] = [
         dialogue: [
             ['jordan_rival', ['So we both stumbled already. Didn\'t think I\'d see you here.']],
             ['jordan_rival', ['This isn\'t the matchup I wanted, but at least one of us can salvage something from this tournament.']],
-            [null, ['Jordan looks frustrated but focused. There\'s still pride on the line.']],
+            [null, [{characterId: 'jordan_rival'}, ' looks frustrated but focused. There\'s still pride on the line.']],
             ['jordan_rival', ['Let\'s make this count. I\'m not going down twice.']],
         ],
         characters: ['jordan_rival'],
         options: [],
         defaultOutcome: {
-            resultText: ['Jordan wants redemption. So do you.'],
+            resultText: [{characterId: 'jordan_rival'}, ' wants redemption. So do you.'],
             effects: {
                 moodChange: 1,
             }
@@ -547,24 +563,31 @@ export const tournamentEvents: StoryEvent[] = [
         dialogue: [
             [null, ['The final point. You can\'t believe it. You actually did it.']],
             ['jordan_rival', ['...']],
-            [null, ['Jordan stands at the net, hand outstretched but eyes looking elsewhere.']],
+            [null, [{characterId: 'jordan_rival'}, ' stands at the net, hand outstretched but eyes looking elsewhere.']],
             ['jordan_rival', ['You played better today. I\'ll give you that.']],
             ['jordan_rival', ['Don\'t get comfortable though. I\'ll be working twice as hard for the next time we meet.']],
-            [null, ['There\'s a hint of respect in Jordan\'s voice, even if they won\'t admit it.']],
+            [null, ['There\'s a hint of respect in ', {characterId: 'jordan_rival'}, '\'s voice, even if they won\'t admit it.']],
         ],
         characters: ['jordan_rival'],
         options: [],
         defaultOutcome: {
-            resultText: ['You defeated your rival! Jordan grudgingly acknowledges your victory.'],
+            resultText: ['You defeated your rival! ', {characterId: 'jordan_rival'}, ' begrudgingly acknowledges your victory.'],
             effects: {
                 moodChange: 10,
                 relationshipChanges: {
                     jordan_rival: 6,
                 },
                 statChanges: {
-                    focus: 4,
-                    anticipation: 3,
-                    offensive: 2,
+                    volley: 1,
+                    overhead: 1,
+                    dropShot: 1,
+                    slice: 1,
+                    return: 1,
+                    speed: 1,
+                    stamina: 1,
+                    agility: 1,
+                    recovery: 1,
+                    shotVariety: 1,
                 },
             }
         }
@@ -580,20 +603,27 @@ export const tournamentEvents: StoryEvent[] = [
         description: 'Jordan defeated you.',
         dialogue: [
             ['jordan_rival', ['Told you I was ready. Better luck next time.']],
-            [null, ['Jordan is barely suppressing a victorious grin.']],
+            [null, [{characterId: 'keith'}, ' is barely suppressing a victorious grin.']],
             ['jordan_rival', ['You had some good moments out there, I\'ll admit. But when it mattered, I was better.']],
             ['jordan_rival', ['Keep training. Maybe one day you\'ll actually beat me.']],
-            [null, ['The competitive fire in Jordan\'s eyes suggests they genuinely want you to improve.']],
+            [null, ['The competitive fire in ', {characterId: 'jordan_rival'}, '\'s eyes suggests they genuinely want you to improve.']],
         ],
         characters: ['jordan_rival'],
         options: [],
         defaultOutcome: {
-            resultText: ['Jordan defeats you, but there\'s mutual respect forming between rivals.'],
+            resultText: [{characterId: 'jordan_rival'}, ' defeats you, but there\'s mutual respect forming between rivals.'],
             effects: {
                 moodChange: -8,
                 relationshipChanges: {
                     jordan_rival: 4,
-                }
+                },
+                statChanges: {
+                    volley: 1,
+                    slice: 1,
+                    return: 1,
+                    stamina: 1,
+                    shotVariety: 1,
+                },
             }
         }
     },
