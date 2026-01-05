@@ -536,6 +536,9 @@ export interface MatchStatistics {
       correlation: number; // -1 to 1
     };
   };
+
+  // Key moments (interactive decision points)
+  keyMomentsWon: { player: number; opponent: number };
 }
 
 /**

@@ -147,6 +147,7 @@ export class MatchOrchestrator {
             ? (currentScore.server === 'player' ? 'opponent' : 'player')
             : undefined;
           this.matchStatistics.addPointResult(pointResult, currentScore.server, breakPointFor);
+          this.matchStatistics.addKeyMomentResult(pointWinner);
         }
 
         // Update momentum based on outcome

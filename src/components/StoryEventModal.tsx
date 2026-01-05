@@ -37,6 +37,9 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
   const hasDialogue = dialogue && dialogue.length > 0;
   const allDialogueShown = !hasDialogue || currentDialogueIndex >= dialogue.length - 1;
 
+  // Only allow skipping before the user has started the event (clicked through any dialogue)
+  const canSkip = event.skippable && currentDialogueIndex === 0;
+
   const handleContinueDialogue = () => {
     if (hasDialogue && currentDialogueIndex < dialogue!.length) {
       setCurrentDialogueIndex(currentDialogueIndex + 1);
@@ -129,7 +132,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
           {isLinearEvent ? (
             // Linear event - just show continue button
             <div className="flex justify-end gap-2">
-              {event.skippable && (
+              {canSkip && (
                 <Button onClick={onClose} variant="secondary">
                   Skip Event
                 </Button>
@@ -240,7 +243,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
           </div>
 
           <div className="flex justify-end gap-2">
-            {event.skippable && (
+            {canSkip && (
               <Button onClick={onClose} variant="secondary">
                 Cancel
               </Button>

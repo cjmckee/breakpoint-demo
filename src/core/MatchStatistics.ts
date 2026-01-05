@@ -68,6 +68,7 @@ export class MatchStatistics {
       netPointsWon: { player: 0, opponent: 0 },
       shotTypeStats: {},
       statCorrelation: {},
+      keyMomentsWon: { player: 0, opponent: 0 },
     };
   }
 
@@ -95,6 +96,13 @@ export class MatchStatistics {
 
     // Update break point statistics
     this.updateBreakPointStatistics(pointResult, currentServer, breakPointFor);
+  }
+
+  /**
+   * Record a key moment result
+   */
+  public addKeyMomentResult(winner: 'player' | 'opponent'): void {
+    this.statistics.keyMomentsWon[winner]++;
   }
 
   /**

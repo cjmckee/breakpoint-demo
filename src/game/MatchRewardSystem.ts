@@ -264,8 +264,11 @@ export class MatchRewardSystem {
   ): number {
     const w = MENTAL_WEIGHTS;
 
-    // Key moments (we don't have this in the stats yet, so skip for now)
-    const keyMomentBonus = 0;
+    // Key moments won bonus (clamped by cap)
+    const keyMomentBonus = Math.min(
+      w.keyMomentCap,
+      stats.keyMomentsWon.player * w.keyMomentPoints
+    );
 
     // Break points saved (when serving)
     const breakPointsFaced = stats.breakPointOpportunities.opponent;
