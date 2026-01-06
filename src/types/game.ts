@@ -6,7 +6,7 @@
 import type { PlayerStats } from './index';
 import type { StoryEventResult } from './storyEvents';
 import type { Item, EquipmentSlot } from './items';
-import type { ActiveTournament } from './tournaments';
+import type { ActiveTournament, TournamentMatchMetadata } from './tournaments';
 
 export type { PlayerStats };
 
@@ -178,14 +178,49 @@ export interface GameCalendar {
 }
 
 /**
+ * Metadata for story-driven matches scheduled via story events
+ * Similar to TournamentMatchMetadata but for non-tournament matches
+ */
+export interface StoryMatchMetadata {
+  // Opponent info (character from CHARACTERS registry)
+  opponentId: string;
+  opponentName: string;
+  opponentStats: PlayerStats;
+  opponentTier: OpponentTier;
+  opponentDescription?: string;
+
+  // Story event linkage
+  prematchEventId?: string;     // Optional: event to play before match
+  winEventId: string;           // Required: event to play after winning
+  lossEventId: string;          // Required: event to play after losing
+
+  // Match configuration
+  surface?: 'hard' | 'clay' | 'grass' | 'carpet';
+  matchFormat?: 'best-of-1' | 'best-of-3';
+
+  // Display info
+  matchTitle?: string;          // e.g., "Challenge Match vs Keith"
+  matchDescription?: string;    // Story context for the match
+}
+
+/**
+ * Union type for all scheduled event metadata types
+ * Each eventType has its corresponding metadata type
+ */
+export type ScheduledEventMetadata =
+  | TournamentMatchMetadata
+  | StoryMatchMetadata
+  | Record<string, unknown>;  // For training, story, rest which have no fixed schema (yet)
+
+/**
  * Generic scheduled event
  * Can represent any activity scheduled for a specific day/time slot
  */
 export interface ScheduledEvent {
-  eventType: 'tournament_match' | 'training' | 'story' | 'rest';  // Extensible
+  eventType: 'tournament_match' | 'training' | 'story' | 'rest' | 'story_match';
   scheduledDay: number;
   scheduledTimeSlot: TimeSlot;
-  metadata?: Record<string, any>;  // Type-specific data (tournament ID, opponent, etc.)
+  metadata?: ScheduledEventMetadata;
 }
 
 /**
@@ -193,10 +228,10 @@ export interface ScheduledEvent {
  * Uses relative days instead of absolute days, resolved at runtime
  */
 export interface ScheduledEventTemplate {
-  eventType: 'tournament_match' | 'training' | 'story' | 'rest';
+  eventType: 'tournament_match' | 'training' | 'story' | 'rest' | 'story_match';
   relativeDays: number;  // Days from current day (1 = tomorrow)
   scheduledTimeSlot: TimeSlot;
-  metadata?: Record<string, any>;
+  metadata?: ScheduledEventMetadata;
 }
 
 export interface TimeDisplayInfo {

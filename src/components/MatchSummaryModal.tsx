@@ -26,6 +26,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
   const setScreen = useGameStore((state) => state.setScreen);
   const addMatchResult = useGameStore((state) => state.addMatchResult);
   const completeTournamentMatch = useGameStore((state) => state.completeTournamentMatch);
+  const completeStoryMatch = useGameStore((state) => state.completeStoryMatch);
   const matchConfig = useMatchStore((state) => state.matchConfig);
   const keyMomentHistory = useMatchStore((state) => state.keyMomentHistory);
   const matchStatistics = useMatchStore((state) => state.matchStatistics);
@@ -83,15 +84,26 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
     console.log('Match config isTournamentMatch:', matchConfig.isTournamentMatch);
     console.log('Passing pre-calculated rewards:', matchRewards);
 
-    // Check if this is a tournament match using the flag in match config
-    // This is the most reliable way as it's explicitly set when starting the match
+    // Check if this is a tournament match or story match using the flags in match config
+    // These are the most reliable way as they're explicitly set when starting the match
     const isTournamentMatch = matchConfig.isTournamentMatch === true;
+    const isStoryMatch = matchConfig.isStoryMatch === true;
 
     if (isTournamentMatch) {
       console.log('Tournament match detected - calling completeTournamentMatch');
       console.log('Passing rewards to completeTournamentMatch:', matchRewards);
       // Tournament matches use special handling
       completeTournamentMatch(
+        isWinner ? 'win' : 'loss',
+        formatScore(finalScore),
+        matchStatistics,
+        matchRewards
+      );
+    } else if (isStoryMatch) {
+      console.log('Story match detected - calling completeStoryMatch');
+      console.log('Passing rewards to completeStoryMatch:', matchRewards);
+      // Story matches use special handling with post-match events
+      completeStoryMatch(
         isWinner ? 'win' : 'loss',
         formatScore(finalScore),
         matchStatistics,

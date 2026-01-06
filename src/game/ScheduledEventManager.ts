@@ -3,7 +3,8 @@
  * Generic system for scheduling any activity type for specific day/time slots
  */
 
-import type { ScheduledEvent, GameCalendar, TimeSlot } from '../types/game';
+import type { ScheduledEvent, GameCalendar, ScheduledEventMetadata } from '../types/game';
+import { TimeSlot } from '../types/game';
 
 export class ScheduledEventManager {
   /**
@@ -29,7 +30,7 @@ export class ScheduledEventManager {
     eventType: ScheduledEvent['eventType'],
     day: number,
     slot: TimeSlot,
-    metadata?: Record<string, any>
+    metadata?: ScheduledEventMetadata
   ): ScheduledEvent {
     return {
       eventType,
@@ -104,5 +105,75 @@ export class ScheduledEventManager {
       // Remove if before current day
       return false;
     });
+  }
+
+  /**
+   * Find the next available time slot starting from a given day/slot
+   * Skips NIGHT slots (not a valid activity time for scheduling)
+   * Returns the first free day/slot combination
+   */
+  static findNextAvailableSlot(
+    scheduledEvents: ScheduledEvent[],
+    startDay: number,
+    preferredSlot: TimeSlot
+  ): { day: number; slot: TimeSlot } {
+    // Valid slots for scheduling (excludes NIGHT)
+    const validSlots = [TimeSlot.MORNING, TimeSlot.AFTERNOON, TimeSlot.EVENING];
+
+    let currentDay = startDay;
+    let startSlotIndex = validSlots.indexOf(preferredSlot);
+
+    // If preferred slot is NIGHT or invalid, start from MORNING
+    if (startSlotIndex === -1) {
+      startSlotIndex = 0;
+    }
+
+    // Search for up to 30 days (safety limit)
+    for (let dayOffset = 0; dayOffset < 30; dayOffset++) {
+      const day = currentDay + dayOffset;
+
+      // On the first day, start from the preferred slot; on subsequent days, start from MORNING
+      const slotsToCheck = dayOffset === 0 ? validSlots.slice(startSlotIndex) : validSlots;
+
+      for (const slot of slotsToCheck) {
+        if (!this.hasScheduledEvent(scheduledEvents, day, slot)) {
+          return { day, slot };
+        }
+      }
+    }
+
+    // Fallback: if no slot found in 30 days, just return day 30 morning
+    return { day: startDay + 30, slot: TimeSlot.MORNING };
+  }
+
+  /**
+   * Schedule event with conflict resolution
+   * If preferred slot is taken, finds next available slot
+   * Returns the scheduled event along with the actual day/slot used
+   */
+  static scheduleEventWithConflictResolution(
+    scheduledEvents: ScheduledEvent[],
+    eventType: ScheduledEvent['eventType'],
+    preferredDay: number,
+    preferredSlot: TimeSlot,
+    metadata?: ScheduledEventMetadata
+  ): { event: ScheduledEvent; actualDay: number; actualSlot: TimeSlot; updatedEvents: ScheduledEvent[] } {
+    // Find the next available slot
+    const { day: actualDay, slot: actualSlot } = this.findNextAvailableSlot(
+      scheduledEvents,
+      preferredDay,
+      preferredSlot
+    );
+
+    // Create the event
+    const event = this.scheduleEvent(eventType, actualDay, actualSlot, metadata);
+
+    // Return event with actual scheduling info
+    return {
+      event,
+      actualDay,
+      actualSlot,
+      updatedEvents: [...scheduledEvents, event],
+    };
   }
 }

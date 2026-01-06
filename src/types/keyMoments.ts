@@ -96,6 +96,7 @@ export interface InteractiveMatchConfig {
 
   // Match type
   isTournamentMatch?: boolean; // True if this is a tournament match
+  isStoryMatch?: boolean;      // True if this is a story-driven match
 
   // Callbacks
   onKeyMoment?: KeyMomentCallback;

@@ -6,6 +6,25 @@
 import type { StoryEvent } from '../../types/storyEvents';
 
 export const careerEvents: StoryEvent[] = [
+
+  /** Team Storyline */
+
+  /**
+   * This will cover the player joining their Academy team at the Club level. It is the lowest tier, and they will have keith, jen, plus some other first years on the team.
+   * The team will take part in matches against other schools or clubs, and we will use it as an opportunity for the player to get extra matches, plus introduce other characters and locations.
+   * 
+   * We will expect the player to be quite low rated, and this storyline may take place before the Riverside open. 
+   */
+
+
+  /** Sponsor Events */
+
+  /**
+   * This storyline covers the player's journey through sponsorship opportunities and media interactions. As they improve in tier,
+   * they will be presented with more choices for sponsorships and media responses. The "media" in this case is the coaches and other players at the
+   * Academy, as well as fans who in this world follow academy tennis. It is expected that teammates, rivals, coaches, and fans will all have 
+   * opinions on the player's choices and may influence their career path.
+   */
   {
     id: 'sponsor_first_offer',
     name: 'First Sponsorship Offer',

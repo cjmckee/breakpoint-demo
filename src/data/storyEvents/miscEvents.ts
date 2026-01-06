@@ -288,9 +288,9 @@ export const miscEvents: StoryEvent[] = [
         skippable: true,
         description: 'You go out for a hotpot dinner with the team to bond and relax.',
         dialogue: [
-            [null, ['The aroma of the hotpot fills the air as you gather around the table.']],
-            [null, ['The atmosphere is warm and friendly, and you feel a sense of camaraderie with your teammates.']],
-            ['keith', ['I love hotpot! It\'s the perfect meal for sharing. One day I\'ll learn how to use the chopsticks.']],
+            [null, ['The smell of spicy broth fills the air as you gather around the table.']],
+            [null, ['The atmosphere is warm and friendly, and you\'re happy to get to share this meal with your teammates.']],
+            ['keith', ['I love hotpot! Sharing is caring. Excuse me! Fork please!.']],
             ['jen', ['I hope they have enough soy sauce. It makes all the difference! We\'re going to need a LOT of it.']],
             [null, ['As you enjoy the meal, you can\'t help but feel grateful for your team.']]
         ],
@@ -299,7 +299,7 @@ export const miscEvents: StoryEvent[] = [
         defaultOutcome: {
             resultText: [
                 'You leave the dinner feeling closer to your teammates and more motivated to work together.',
-                'The food was delicious, and the company was even better.'
+                'The food was delicious, and ', {characterId: 'keith'}, ' made such a mess, you decided to leave an extra tip.'
             ],
             effects: {
                 energyChange: 15,

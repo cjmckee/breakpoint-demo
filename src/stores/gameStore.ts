@@ -16,6 +16,7 @@ import {
   TimeSlot,
   OpponentTier,
   ScheduledEvent,
+  StoryMatchMetadata,
 } from '../types/game';
 import type { StoryEvent, StoryEventTag, StoryEventOption } from '../types/storyEvents';
 import type { Challenge } from '../types/challenges';
@@ -34,6 +35,7 @@ import { ItemManager } from '../game/ItemManager';
 import { TournamentRegistry } from '../data/tournaments';
 import { TournamentManager } from '../game/TournamentManager';
 import { ScheduledEventManager } from '../game/ScheduledEventManager';
+import { StoryMatchManager } from '../game/StoryMatchManager';
 
 interface GameState {
   // Player data
@@ -129,6 +131,11 @@ interface GameState {
   checkTournamentEligibility: () => string[];
   getScheduledTournamentMatch: () => ScheduledEvent | null;
   isTournamentMatchScheduled: () => boolean;
+
+  // Story match actions
+  getScheduledStoryMatch: () => ScheduledEvent | null;
+  isStoryMatchScheduled: () => boolean;
+  completeStoryMatch: (result: 'win' | 'loss', score: string, matchStats: MatchStatistics, rewards: MatchReward) => void;
 
   // Generic scheduled event actions
   scheduleEvent: (event: ScheduledEvent) => void;
@@ -880,16 +887,20 @@ export const useGameStore = create<GameState>()(
           });
         }
 
-        // Add scheduled events if any (resolve relative days to absolute days)
+        // Add scheduled events if any (resolve relative days to absolute days with conflict resolution)
         let updatedScheduledEvents = [...get().calendar.scheduledEvents];
         if (outcome.effects.scheduledEvents) {
-          const resolvedEvents = outcome.effects.scheduledEvents.map((template) => ({
-            eventType: template.eventType,
-            scheduledDay: calendar.currentDay + template.relativeDays,
-            scheduledTimeSlot: template.scheduledTimeSlot,
-            metadata: template.metadata,
-          }));
-          updatedScheduledEvents = [...updatedScheduledEvents, ...resolvedEvents];
+          for (const template of outcome.effects.scheduledEvents) {
+            const preferredDay = calendar.currentDay + template.relativeDays;
+            const { updatedEvents } = ScheduledEventManager.scheduleEventWithConflictResolution(
+              updatedScheduledEvents,
+              template.eventType,
+              preferredDay,
+              template.scheduledTimeSlot,
+              template.metadata
+            );
+            updatedScheduledEvents = updatedEvents;
+          }
         }
 
         // Check if we need to schedule a tournament match
@@ -1261,9 +1272,9 @@ export const useGameStore = create<GameState>()(
         console.log('activeTournament:', activeTournament);
         console.log('calendar:', calendar);
 
-        // Schedule for next day at afternoon slot
-        const scheduledDay = calendar.currentDay + 1;
-        const scheduledTimeSlot = TimeSlot.AFTERNOON;
+        // Preferred: next day at afternoon slot (will auto-resolve conflicts)
+        const preferredDay = calendar.currentDay + 1;
+        const preferredSlot = TimeSlot.AFTERNOON;
 
         const metadata: TournamentMatchMetadata = {
           tournamentId: activeTournament.tournamentId,
@@ -1276,19 +1287,22 @@ export const useGameStore = create<GameState>()(
 
         console.log('Metadata for scheduled event:', metadata);
 
-        const scheduledEvent = ScheduledEventManager.scheduleEvent(
-          'tournament_match',
-          scheduledDay,
-          scheduledTimeSlot,
-          metadata
-        );
+        // Schedule with conflict resolution
+        const { event: scheduledEvent, actualDay, actualSlot, updatedEvents } =
+          ScheduledEventManager.scheduleEventWithConflictResolution(
+            calendar.scheduledEvents,
+            'tournament_match',
+            preferredDay,
+            preferredSlot,
+            metadata
+          );
 
-        console.log('Scheduled event created:', scheduledEvent);
+        console.log('Scheduled event created:', scheduledEvent, 'at day:', actualDay, 'slot:', actualSlot);
 
         set((state) => ({
           calendar: {
             ...state.calendar,
-            scheduledEvents: [...state.calendar.scheduledEvents, scheduledEvent],
+            scheduledEvents: updatedEvents,
           },
         }));
       },
@@ -1522,6 +1536,109 @@ export const useGameStore = create<GameState>()(
       // Check if tournament match is scheduled
       isTournamentMatchScheduled: (): boolean => {
         return get().getScheduledTournamentMatch() !== null;
+      },
+
+      // ========================================================================
+      // STORY MATCH ACTIONS
+      // ========================================================================
+
+      // Get scheduled story match for current time
+      getScheduledStoryMatch: (): ScheduledEvent | null => {
+        const { calendar } = get();
+        return StoryMatchManager.getScheduledStoryMatch(calendar.scheduledEvents, calendar);
+      },
+
+      // Check if story match is scheduled for current time
+      isStoryMatchScheduled: (): boolean => {
+        return get().getScheduledStoryMatch() !== null;
+      },
+
+      // Complete a story match
+      completeStoryMatch: (result: 'win' | 'loss', score: string, matchStats: MatchStatistics, rewards: MatchReward) => {
+        const { calendar, currentStatus, player } = get();
+        if (!player) return;
+
+        // Get scheduled story match
+        const scheduledMatch = StoryMatchManager.getScheduledStoryMatch(calendar.scheduledEvents, calendar);
+        if (!scheduledMatch) {
+          console.warn('completeStoryMatch called but no story match scheduled');
+          return;
+        }
+
+        const metadata = StoryMatchManager.getStoryMatchMetadata(scheduledMatch);
+        if (!metadata) {
+          console.warn('completeStoryMatch called but metadata is invalid');
+          return;
+        }
+
+        const isWin = result === 'win';
+
+        // Apply match rewards to player (stat boosts, abilities, items)
+        let updatedPlayer = PlayerManager.applyStatBoosts(player, rewards.statBoosts);
+
+        // Apply abilities
+        if (rewards.abilitiesGained && rewards.abilitiesGained.length > 0) {
+          console.log('Applying abilities to player:', rewards.abilitiesGained);
+          for (const ability of rewards.abilitiesGained) {
+            updatedPlayer = PlayerManager.addAbility(updatedPlayer, ability);
+          }
+        }
+
+        // Apply items
+        if (rewards.itemsGained && rewards.itemsGained.length > 0) {
+          console.log('Applying items to player:', rewards.itemsGained);
+          for (const item of rewards.itemsGained) {
+            updatedPlayer = ItemManager.addItem(updatedPlayer, item);
+          }
+        }
+
+        // Update match counts
+        updatedPlayer.matchesPlayed = (updatedPlayer.matchesPlayed || 0) + 1;
+        if (isWin) {
+          updatedPlayer.matchesWon = (updatedPlayer.matchesWon || 0) + 1;
+        }
+
+        // Update latest match results (newest first, keep last 10)
+        const currentResults = updatedPlayer.latestMatchResults || [];
+        updatedPlayer.latestMatchResults = [result, ...currentResults].slice(0, 10);
+
+        // Clear scheduled story match event
+        const updatedScheduledEvents = ScheduledEventManager.clearScheduledEvent(
+          calendar.scheduledEvents,
+          calendar.currentDay,
+          calendar.currentTimeSlot
+        );
+
+        // Deduct energy
+        const energyCost = StoryMatchManager.calculateMatchEnergyCost(currentStatus.energy);
+        const newEnergy = Math.max(0, currentStatus.energy - energyCost);
+
+        // Update mood from rewards
+        const newMood = Math.max(-100, Math.min(100, currentStatus.mood + rewards.moodChange));
+
+        // Update state
+        set({
+          player: updatedPlayer,
+          calendar: {
+            ...calendar,
+            scheduledEvents: updatedScheduledEvents,
+          },
+          currentStatus: {
+            ...currentStatus,
+            energy: newEnergy,
+            mood: newMood,
+          },
+        });
+
+        // Check for challenge completion after stat changes
+        get().checkChallengeCompletion();
+
+        // Queue post-match event
+        const postMatchEventId = StoryMatchManager.getPostMatchEventId(metadata, result);
+        console.log('Story match complete - queuing post-match event:', postMatchEventId);
+        setTimeout(() => {
+          get().checkForStoryEventById(postMatchEventId);
+        }, 100);
       },
 
       // ========================================================================
