@@ -16,6 +16,101 @@ export const careerEvents: StoryEvent[] = [
    * We will expect the player to be quite low rated, and this storyline may take place before the Riverside open. 
    */
 
+  {
+    id: 'club_team_intro',
+    name: 'Joining the Club Team',
+    tags: ['team'],
+    timeSlotsRequired: 0,
+    prerequisites: {
+      minDay: 3,
+      completedEvents: ['making_connections']
+    },
+    skippable: false,
+    description: 'You find out about the Academy team.',
+    dialogue: [
+      [null, ['It\'s a quiet, rainy day at the Academy. You finally get a moment to yourself between all the training sessions.']],
+      [null, ['...and then you hear it. A sort of dull roar. But it\'s getting louder. And coming towards you?']],
+      ['keith', ['AAAAAAHHHHHHHHHHHHHHH!!! I made it! I made it! I made it! I made i-']],
+      [null, [{characterId: 'keith'}, ' loses his balance and falls into the grass. He keeps enough momentum to take it like a slip and slide all the way up to where you\'re standing.']],
+      ['keith', ['I made it.']],
+      [null, [{characterId: 'jen'}, ' runs along behind him, notably staying on her feet.']],
+      ['jen', ['Really, we all made it. The Academy team. They just released the rosters!']],
+      ['jen', ['They put us in the lowest division. We really have to earn everything here, huh? Let\'s hose him off.']],
+    ],
+    characters: ['keith', 'jen'],
+    options: [],
+    defaultOutcome: {
+      resultText: [
+        'You find out about the Academy team. It\'s an honor to be chosen.', 
+        'Even though you know nothing about it. Or who even picks these things.'
+      ],
+      effects: {
+        moodChange: 10,
+        energyChange: -5,
+        relationshipChanges: {
+          keith: 2,
+          jen: 2,
+        },
+        statChanges: {
+          forehand: 1,
+          backhand: 1,
+          serve: 1,
+          slice: 1,
+          volley: 1,
+        }
+      }
+    }
+  },
+
+  {
+    id: 'club_team_first_practice',
+    name: 'First Team Practice',
+    tags: ['team'],
+    timeSlotsRequired: 1,
+    prerequisites: {
+      completedEvents: ['club_team_intro'],
+      minDay: 5,
+    },
+    skippable: false,
+    description: 'Your first practice with the Academy team. Try to play nice.',
+    dialogue: [
+      [null, ['You arrive early at the facility, but no one from your team is here yet. You hear some huge shots echoing from the furthest and dingiest looking practice court, hidden far from the entrance.']],
+      [null, ['You decide to check it out, and you turn the corner to see one solitary player and an older coach smashing explosive shots against one another.']],
+      [null, ['It sounds like gunfire. The player is really covering a lot of court, and the coach is definitely not. They seem to be having fun. They are still pushing each other around.']],
+      ['jordan_rival', ['You know I beat this chump in juniors. When we were 14 I double bagelled him.']],
+      ['jordan_rival', ['He\'s not even good. He stole my spotlight. And now he\'s some big champion and I\'m stuck with you on this pathetic club team.']],
+      ['jordan_rival', ['You know how embarrassing that is for me? I\'ll make sure the coaches know what a mistake they made putting me on this team. And putting YOU on this team.']],
+      [null, ['Some of your other teammates start to arrive, so you head back to the practice courts. You can\'t help but wonder who that was.']],
+      ['coach_gonzalez', ['Alright, everyone, let\'s get started. ', {characterId: 'keith'}, '? I cannot believe you are on this team, buddy. ']],
+      ['keith', ['Thanks, coach. Me either.']],
+      ['jen', ['I\'m starting to think they got him mixed up with another ', {characterId: 'keith'}, '.']],
+    ],
+    characters: ['keith', 'jen', 'coach_gonzalez', 'jordan_rival'],
+    options: [],
+    defaultOutcome: {
+      resultText: [
+        'You finish your first practice with the Academy team. ', {characterId: 'jen'}, ' really had a strong showing and beat up on most of your team.',
+        'You try to focus on staying loose and adapting to the faster pace of play. These players are a bit better than you\'ve played against before.'
+      ],
+      effects: {
+        moodChange: 5,
+        energyChange: -25,
+        relationshipChanges: {
+          keith: 1,
+          jen: 2,
+          jordan_rival: 2,
+        },
+        statChanges: {
+          return: 2,
+          spin: 2,
+          placement: 1,
+          offensive: 1,
+          defensive: 1
+        }
+      }
+    },
+  },
+
 
   /** Sponsor Events */
 

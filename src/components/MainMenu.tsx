@@ -3,7 +3,7 @@
  * Hub for player activities and navigation
  */
 
-import React, { useState, useEffect, JSX } from 'react';
+import React, { useEffect, JSX } from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { useMatchStore } from '../stores/matchStore';
 import { Card } from './ui/Card';
@@ -16,8 +16,12 @@ import { ActiveTournamentCard } from './ActiveTournamentCard';
 import { TrainingResultModal } from './TrainingResultModal';
 import { StoryEventModal } from './StoryEventModal';
 import { StoryEventResultModal } from './StoryEventResultModal';
-import type { TrainingResult, StoryMatchMetadata } from '../types/game';
-import type { StoryEventResult } from '../types/storyEvents';
+import type { StoryMatchMetadata } from '../types/game';
+import type {
+  StoryEventModalData,
+  TrainingResultModalData,
+  StoryEventResultModalData,
+} from '../types/ui';
 import { TimeSlot } from '../types/game';
 import { TournamentRegistry } from '../data/tournaments';
 import { TournamentManager } from '../game/TournamentManager';
@@ -29,8 +33,6 @@ export const MainMenu: React.FC = () => {
   const calendar = useGameStore((state) => state.calendar);
   const setScreen = useGameStore((state) => state.setScreen);
   const rest = useGameStore((state) => state.rest);
-  const showTrainingResultModal = useGameStore((state) => state.showTrainingResultModal);
-  const clearTrainingResultModal = useGameStore((state) => state.clearTrainingResultModal);
 
   // Tournament state
   const activeTournament = useGameStore((state) => state.calendar.activeTournament);
@@ -39,20 +41,21 @@ export const MainMenu: React.FC = () => {
   // Story match state
   const getScheduledStoryMatch = useGameStore((state) => state.getScheduledStoryMatch);
 
-  // Story event state and actions
-  const pendingStoryEvent = useGameStore((state) => state.pendingStoryEvent);
+  // Story event actions
   const executeStoryEvent = useGameStore((state) => state.executeStoryEvent);
   const cancelStoryEvent = useGameStore((state) => state.cancelStoryEvent);
   const getAvailableEventOptions = useGameStore((state) => state.getAvailableEventOptions);
 
-  const [showStoryModal, setShowStoryModal] = useState(false);
-  const [showStoryResultModal, setShowStoryResultModal] = useState(false);
+  // Modal queue state and actions
+  const currentModal = useGameStore((state) => state.currentModal);
+  const dismissCurrentModal = useGameStore((state) => state.dismissCurrentModal);
+  const hasModalOfType = useGameStore((state) => state.hasModalOfType);
 
   // Check if it's night time - only rest/next day action allowed
   const isNightTime = calendar.currentTimeSlot === TimeSlot.NIGHT;
 
-  // Check if story event is pending
-  const isEventPending = pendingStoryEvent !== null;
+  // Check if a story event modal is active
+  const isEventPending = hasModalOfType('story_event');
 
   // Check if tournament match is scheduled for current time
   const scheduledTournamentMatch = getScheduledTournamentMatch();
@@ -64,24 +67,6 @@ export const MainMenu: React.FC = () => {
   const storyMatchMetadata = scheduledStoryMatch
     ? StoryMatchManager.getStoryMatchMetadata(scheduledStoryMatch)
     : null;
-
-  // Get training result from last activity if modal should be shown
-  const trainingResult = showTrainingResultModal && currentStatus.lastActivity?.type === 'training'
-    ? (currentStatus.lastActivity as TrainingResult)
-    : null;
-
-  // Get story event result from last activity
-  const storyEventResult =
-    currentStatus.lastActivity && currentStatus.lastActivity.type === 'story'
-      ? (currentStatus.lastActivity as StoryEventResult)
-      : null;
-
-  // Open story modal when event becomes pending, but only after training modal is dismissed
-  useEffect(() => {
-    if (isEventPending && !showTrainingResultModal) {
-      setShowStoryModal(true);
-    }
-  }, [isEventPending, showTrainingResultModal]);
 
   // Trigger pre-match event when tournament match is scheduled
   useEffect(() => {
@@ -96,9 +81,8 @@ export const MainMenu: React.FC = () => {
         );
         if (prematchEventId) {
           console.log('Tournament match scheduled - triggering pre-match event:', prematchEventId);
-          setTimeout(() => {
-            useGameStore.getState().checkForStoryEventById(prematchEventId);
-          }, 100);
+          // No setTimeout needed - modal queue handles priority
+          useGameStore.getState().checkForStoryEventById(prematchEventId);
         }
       }
     }
@@ -109,22 +93,20 @@ export const MainMenu: React.FC = () => {
     if (isStoryMatchScheduled && storyMatchMetadata && !isEventPending) {
       if (storyMatchMetadata.prematchEventId) {
         console.log('Story match scheduled - triggering pre-match event:', storyMatchMetadata.prematchEventId);
-        setTimeout(() => {
-          useGameStore.getState().checkForStoryEventById(storyMatchMetadata.prematchEventId!);
-        }, 100);
+        // No setTimeout needed - modal queue handles priority
+        useGameStore.getState().checkForStoryEventById(storyMatchMetadata.prematchEventId);
       }
     }
   }, [isStoryMatchScheduled, storyMatchMetadata, isEventPending]);
 
   const handleExecuteEvent = (eventId: string, optionId?: string) => {
     executeStoryEvent(eventId, optionId);
-    setShowStoryModal(false);
-    setShowStoryResultModal(true);
+    // Modal dismissal and result queuing now handled by executeStoryEvent
   };
 
   const handleCancelEvent = () => {
     cancelStoryEvent();
-    setShowStoryModal(false);
+    // Modal dismissal now handled by cancelStoryEvent
   };
 
   if (!player) {
@@ -173,15 +155,6 @@ export const MainMenu: React.FC = () => {
       action: () => rest(),
     },
   ];
-
-  const handleCloseTrainingModal = () => {
-    clearTrainingResultModal();
-
-    // If there's a pending story event, show it now that training modal is dismissed
-    if (isEventPending) {
-      setShowStoryModal(true);
-    }
-  };
 
   const getTierName = (tier: number): string => {
     const tierNames = ['', 'Club Player', 'Regional Competitor', 'Tour Professional', 'World Champion'];
@@ -239,6 +212,53 @@ export const MainMenu: React.FC = () => {
     setScreen('match');
   };
 
+  // Get current story event from modal (if showing)
+  const currentStoryEvent = currentModal?.type === 'story_event'
+    ? (currentModal.data as StoryEventModalData).event
+    : null;
+
+  // Render modal based on currentModal from queue
+  const renderModal = () => {
+    if (!currentModal) return null;
+
+    switch (currentModal.type) {
+      case 'training_result': {
+        const data = currentModal.data as TrainingResultModalData;
+        return (
+          <TrainingResultModal
+            isOpen={true}
+            onClose={dismissCurrentModal}
+            result={data.result}
+          />
+        );
+      }
+      case 'story_event': {
+        const data = currentModal.data as StoryEventModalData;
+        return (
+          <StoryEventModal
+            isOpen={true}
+            onClose={handleCancelEvent}
+            event={data.event}
+            availableOptions={getAvailableEventOptions()}
+            onSelectOption={handleExecuteEvent}
+          />
+        );
+      }
+      case 'story_event_result': {
+        const data = currentModal.data as StoryEventResultModalData;
+        return (
+          <StoryEventResultModal
+            isOpen={true}
+            onClose={dismissCurrentModal}
+            result={data.result}
+          />
+        );
+      }
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-pixel-bg">
       <StatusBar />
@@ -289,18 +309,16 @@ export const MainMenu: React.FC = () => {
         )}
 
         {/* Story Event Notification */}
-        {isEventPending && pendingStoryEvent && (
+        {isEventPending && currentStoryEvent && (
           <Card className="mb-6 border-4 border-yellow-400 bg-yellow-600">
             <div className="flex items-center gap-4">
               <span className="text-5xl">📖</span>
               <div className="flex-1">
                 <h2 className="text-2xl font-bold text-white mb-1">Story Event Available!</h2>
-                <p className="text-lg text-white">{pendingStoryEvent.name}</p>
-                <p className="text-sm text-gray-200 mt-1">{pendingStoryEvent.description}</p>
+                <p className="text-lg text-white">{currentStoryEvent.name}</p>
+                <p className="text-sm text-gray-200 mt-1">{currentStoryEvent.description}</p>
               </div>
-              <Button onClick={() => setShowStoryModal(true)} variant="primary" size="lg">
-                Begin Event
-              </Button>
+              {/* Modal is already showing via renderModal - no button needed if modal is open */}
             </div>
           </Card>
         )}
@@ -405,32 +423,8 @@ export const MainMenu: React.FC = () => {
         </div>
       </div>
 
-      {/* Training Result Modal */}
-      <TrainingResultModal
-        isOpen={showTrainingResultModal}
-        onClose={handleCloseTrainingModal}
-        result={trainingResult}
-      />
-
-      {/* Story Event Modal */}
-      {pendingStoryEvent && (
-        <StoryEventModal
-          isOpen={showStoryModal}
-          onClose={handleCancelEvent}
-          event={pendingStoryEvent}
-          availableOptions={getAvailableEventOptions()}
-          onSelectOption={handleExecuteEvent}
-        />
-      )}
-
-      {/* Story Event Result Modal */}
-      {storyEventResult && (
-        <StoryEventResultModal
-          isOpen={showStoryResultModal}
-          onClose={() => setShowStoryResultModal(false)}
-          result={storyEventResult}
-        />
-      )}
+      {/* Modal Renderer - Single source of truth for all modals */}
+      {renderModal()}
     </div>
   );
 };

@@ -167,9 +167,7 @@ export interface GameCalendar {
   currentSeason: number;
   currentDay: number;
   currentTimeSlot: TimeSlot;
-  energy: number;
-  maxEnergy: number;
-  mood: number; // -100 to 100
+  // Note: energy and mood are tracked in CurrentStatus, not in the calendar
 
   // Scheduled events and tournament state
   scheduledEvents: ScheduledEvent[];
@@ -451,9 +449,6 @@ export const DEFAULT_CALENDAR: GameCalendar = {
   currentSeason: 1,
   currentDay: 1,
   currentTimeSlot: TimeSlot.MORNING,
-  energy: 100,
-  maxEnergy: 100,
-  mood: 50,
   scheduledEvents: [],
   activeTournament: null,
   completedTournaments: [],

@@ -36,6 +36,9 @@ import { TournamentRegistry } from '../data/tournaments';
 import { TournamentManager } from '../game/TournamentManager';
 import { ScheduledEventManager } from '../game/ScheduledEventManager';
 import { StoryMatchManager } from '../game/StoryMatchManager';
+import { CalendarService } from '../game/CalendarService';
+import type { ModalEntry, ModalData, ModalType } from '../types/ui';
+import { createModalEntry, sortModalQueue } from '../types/ui';
 
 interface GameState {
   // Player data
@@ -70,7 +73,11 @@ interface GameState {
   // UI state
   isInitialized: boolean;
   currentScreen: 'welcome' | 'player-creation' | 'main-menu' | 'training' | 'match' | 'rest' | 'inventory' | 'tournaments' | 'tournament-match';
-  showTrainingResultModal: boolean;
+  showTrainingResultModal: boolean;  // DEPRECATED: Use modal queue instead
+
+  // Modal queue state (replaces useEffect-based modal triggering)
+  modalQueue: ModalEntry[];
+  currentModal: ModalEntry | null;
 
   // Actions
   initializeGame: () => void;
@@ -141,6 +148,12 @@ interface GameState {
   scheduleEvent: (event: ScheduledEvent) => void;
   clearScheduledEvent: (day: number, slot: TimeSlot) => void;
   getScheduledEvent: () => ScheduledEvent | null;
+
+  // Modal queue actions
+  queueModal: (type: ModalType, data: ModalData, options?: { priority?: number; dismissible?: boolean }) => void;
+  dismissCurrentModal: () => void;
+  clearModalQueue: () => void;
+  hasModalOfType: (type: ModalType) => boolean;
 }
 
 const initialCalendar = TimeManager.createCalendar();
@@ -182,6 +195,10 @@ export const useGameStore = create<GameState>()(
       currentScreen: 'welcome',
       showTrainingResultModal: false,
 
+      // Modal queue initial state
+      modalQueue: [],
+      currentModal: null,
+
       // Initialize game (Zustand auto-loads persisted state)
       initializeGame: () => {
         const state = get();
@@ -205,10 +222,8 @@ export const useGameStore = create<GameState>()(
         });
 
         // Trigger welcome event (guaranteed, no probability roll)
-        // Use setTimeout to ensure state is fully updated before checking for event
-        setTimeout(() => {
-          get().checkForStoryEventById('welcome_to_tennis_rpg');
-        }, 0);
+        // No setTimeout needed - modal queue handles this cleanly
+        get().checkForStoryEventById('welcome_to_tennis_rpg');
       },
 
       // Select training session (doesn't execute yet)
@@ -294,7 +309,12 @@ export const useGameStore = create<GameState>()(
             lastActivity: result,
           },
           activityHistory: [result, ...get().activityHistory].slice(0, 10),
-          showTrainingResultModal: true, // Flag to show modal when we navigate to main menu
+        });
+
+        // Queue training result modal
+        get().queueModal('training_result', {
+          type: 'training_result',
+          result,
         });
 
         // Check for challenge completion after stat changes
@@ -636,11 +656,11 @@ export const useGameStore = create<GameState>()(
        * Use case: Guaranteed story events (like welcome event)
        */
       checkForStoryEventById: (eventId: string) => {
-        const { player, pendingStoryEvent } = get();
+        const { player } = get();
 
-        // Don't trigger if event already pending
-        if (pendingStoryEvent) {
-          console.log(`[Story Event] Event already pending: ${pendingStoryEvent.id}`);
+        // Don't trigger if story_event modal already queued or showing
+        if (get().hasModalOfType('story_event')) {
+          console.log(`[Story Event] Story event modal already active/queued`);
           return;
         }
 
@@ -668,7 +688,19 @@ export const useGameStore = create<GameState>()(
 
         if (event) {
           console.log(`[Story Event] ✅ Triggered: "${event.name}"`);
-          set({ pendingStoryEvent: event });
+          // Queue modal instead of setting pendingStoryEvent
+          const availableOptions = PrerequisiteChecker.getAvailableOptions(event, player, {
+            completedStoryEvents: gameState.completedStoryEvents,
+            completedStoryEventChoices: gameState.completedStoryEventChoices,
+            relationships: gameState.relationships,
+            calendar: gameState.calendar,
+            activeTournament: gameState.calendar.activeTournament,
+          });
+          get().queueModal('story_event', {
+            type: 'story_event',
+            event,
+            availableOptions,
+          });
         } else {
           console.log(`[Story Event] ❌ Event not eligible: ${eventId}`);
         }
@@ -680,10 +712,10 @@ export const useGameStore = create<GameState>()(
        * Use case: Tag-specific random events (e.g., coach events, romance events)
        */
       checkForStoryEventByTag: (tag: StoryEventTag, customChance?: number) => {
-        const { player, storyEventTriggerChance, pendingStoryEvent } = get();
+        const { player, storyEventTriggerChance } = get();
 
-        // Don't trigger if event already pending
-        if (pendingStoryEvent) return;
+        // Don't trigger if story_event modal already queued or showing
+        if (get().hasModalOfType('story_event')) return;
 
         // Don't trigger if no player
         if (!player) return;
@@ -720,7 +752,19 @@ export const useGameStore = create<GameState>()(
 
         if (selectedEvent) {
           console.log(`[Story Event] Selected: "${selectedEvent.name}"`);
-          set({ pendingStoryEvent: selectedEvent });
+          // Queue modal instead of setting pendingStoryEvent
+          const availableOptions = PrerequisiteChecker.getAvailableOptions(selectedEvent, player, {
+            completedStoryEvents: gameState.completedStoryEvents,
+            completedStoryEventChoices: gameState.completedStoryEventChoices,
+            relationships: gameState.relationships,
+            calendar: gameState.calendar,
+            activeTournament: gameState.calendar.activeTournament,
+          });
+          get().queueModal('story_event', {
+            type: 'story_event',
+            event: selectedEvent,
+            availableOptions,
+          });
         } else {
           console.log(`[Story Event] No eligible events available for tag: ${tag}`);
         }
@@ -732,10 +776,10 @@ export const useGameStore = create<GameState>()(
        * Use case: General random events during time advancement
        */
       checkForRandomStoryEvent: (customChance?: number) => {
-        const { player, storyEventTriggerChance, pendingStoryEvent } = get();
+        const { player, storyEventTriggerChance } = get();
 
-        // Don't trigger if event already pending
-        if (pendingStoryEvent) return;
+        // Don't trigger if story_event modal already queued or showing
+        if (get().hasModalOfType('story_event')) return;
 
         // Don't trigger if no player
         if (!player) return;
@@ -771,7 +815,19 @@ export const useGameStore = create<GameState>()(
 
         if (selectedEvent) {
           console.log(`[Story Event] Selected: "${selectedEvent.name}"`);
-          set({ pendingStoryEvent: selectedEvent });
+          // Queue modal instead of setting pendingStoryEvent
+          const availableOptions = PrerequisiteChecker.getAvailableOptions(selectedEvent, player, {
+            completedStoryEvents: gameState.completedStoryEvents,
+            completedStoryEventChoices: gameState.completedStoryEventChoices,
+            relationships: gameState.relationships,
+            calendar: gameState.calendar,
+            activeTournament: gameState.calendar.activeTournament,
+          });
+          get().queueModal('story_event', {
+            type: 'story_event',
+            event: selectedEvent,
+            availableOptions,
+          });
         } else {
           console.log(`[Story Event] No eligible events available`);
         }
@@ -779,22 +835,25 @@ export const useGameStore = create<GameState>()(
 
       // Execute story event with player's choice
       executeStoryEvent: (eventId: string, optionId?: string) => {
-        const { player, pendingStoryEvent, calendar } = get();
+        const { player, currentModal, calendar } = get();
 
-        if (!player || !pendingStoryEvent) return;
-        if (pendingStoryEvent.id !== eventId) return;
+        // Get event from modal queue
+        if (!player || !currentModal || currentModal.type !== 'story_event') return;
+        const storyEventData = currentModal.data as import('../types/ui').StoryEventModalData;
+        const storyEvent = storyEventData.event;
+        if (storyEvent.id !== eventId) return;
 
         // Get selected option (if any)
         const selectedOption = optionId
-          ? pendingStoryEvent.options.find((opt) => opt.id === optionId) || null
+          ? storyEvent.options.find((opt) => opt.id === optionId) || null
           : null;
 
         // Get outcome for applying effects
-        const outcome = StoryEventManager.getOutcome(pendingStoryEvent, selectedOption);
+        const outcome = StoryEventManager.getOutcome(storyEvent, selectedOption);
 
         // Handle time slot consumption with overflow protection
         // Check both NIGHT overflow AND scheduled event conflicts
-        const slotsToAdvance = pendingStoryEvent.timeSlotsRequired;
+        const slotsToAdvance = storyEvent.timeSlotsRequired;
         const currentSlot = calendar.currentTimeSlot;
         let actualSlotsConsumed = slotsToAdvance;
 
@@ -824,7 +883,7 @@ export const useGameStore = create<GameState>()(
         // Execute event with actual time slots consumed
         const gameState = get();
         const result = StoryEventManager.executeStoryEvent(
-          pendingStoryEvent,
+          storyEvent,
           selectedOption,
           player,
           {
@@ -906,7 +965,7 @@ export const useGameStore = create<GameState>()(
         // Check if we need to schedule a tournament match
         const shouldScheduleTournamentMatch = outcome.effects.scheduleNextTournamentMatch === true;
 
-        // Update state
+        // Update state (no longer setting pendingStoryEvent - using modal queue)
         set({
           player: updatedPlayer,
           completedStoryEvents: updatedCompletedEvents,
@@ -923,7 +982,13 @@ export const useGameStore = create<GameState>()(
             scheduledEvents: updatedScheduledEvents,
           },
           activityHistory: [result, ...get().activityHistory].slice(0, 10),
-          pendingStoryEvent: null,
+        });
+
+        // Dismiss the story event modal and queue the result modal
+        get().dismissCurrentModal();
+        get().queueModal('story_event_result', {
+          type: 'story_event_result',
+          result,
         });
 
         // Check for challenge completion after state changes
@@ -938,16 +1003,18 @@ export const useGameStore = create<GameState>()(
       // Cancel/dismiss pending story event
       // When skipping an event, mark it as completed so it doesn't show up again
       cancelStoryEvent: () => {
-        const { pendingStoryEvent, completedStoryEvents } = get();
+        const { currentModal, completedStoryEvents } = get();
 
-        if (pendingStoryEvent) {
+        // Get event from modal queue if it's a story event
+        if (currentModal && currentModal.type === 'story_event') {
+          const storyEventData = currentModal.data as import('../types/ui').StoryEventModalData;
           set({
-            pendingStoryEvent: null,
-            completedStoryEvents: [...completedStoryEvents, pendingStoryEvent.id],
+            completedStoryEvents: [...completedStoryEvents, storyEventData.event.id],
           });
-        } else {
-          set({ pendingStoryEvent: null });
         }
+
+        // Dismiss the current modal
+        get().dismissCurrentModal();
       },
 
       // Update character relationship
@@ -967,20 +1034,15 @@ export const useGameStore = create<GameState>()(
         set({ storyEventTriggerChance: Math.max(0, Math.min(100, chance)) });
       },
 
-      // Get available options for pending event
+      // Get available options for pending event (from modal queue)
       getAvailableEventOptions: (): StoryEventOption[] => {
-        const { player, pendingStoryEvent } = get();
+        const { player, currentModal } = get();
 
-        if (!player || !pendingStoryEvent) return [];
+        // Get options from modal data if it's a story event modal
+        if (!player || !currentModal || currentModal.type !== 'story_event') return [];
 
-        const gameState = get();
-        return PrerequisiteChecker.getAvailableOptions(pendingStoryEvent, player, {
-          completedStoryEvents: gameState.completedStoryEvents,
-          completedStoryEventChoices: gameState.completedStoryEventChoices,
-          relationships: gameState.relationships,
-          calendar: gameState.calendar,
-          activeTournament: gameState.calendar.activeTournament,
-        });
+        const storyEventData = currentModal.data as import('../types/ui').StoryEventModalData;
+        return storyEventData.availableOptions;
       },
 
       // Challenge Actions
@@ -1669,6 +1731,65 @@ export const useGameStore = create<GameState>()(
       getScheduledEvent: (): ScheduledEvent | null => {
         const { calendar } = get();
         return ScheduledEventManager.getScheduledEvent(calendar.scheduledEvents, calendar);
+      },
+
+      // ========================================================================
+      // MODAL QUEUE ACTIONS
+      // ========================================================================
+
+      /**
+       * Add a modal to the queue. If no modal is currently showing, display immediately.
+       * Modals are sorted by priority (lower = higher priority) then by timestamp.
+       */
+      queueModal: (type: ModalType, data: ModalData, options?: { priority?: number; dismissible?: boolean }) => {
+        const { modalQueue, currentModal } = get();
+
+        const entry = createModalEntry(type, data, options);
+
+        // If no modal currently showing, show this one immediately
+        if (!currentModal) {
+          set({ currentModal: entry });
+          return;
+        }
+
+        // Otherwise add to queue and sort
+        const newQueue = sortModalQueue([...modalQueue, entry]);
+        set({ modalQueue: newQueue });
+      },
+
+      /**
+       * Dismiss the current modal and show the next one from the queue (if any).
+       */
+      dismissCurrentModal: () => {
+        const { modalQueue } = get();
+
+        if (modalQueue.length === 0) {
+          set({ currentModal: null });
+          return;
+        }
+
+        // Pop the first modal from queue and show it
+        const [next, ...rest] = modalQueue;
+        set({
+          currentModal: next,
+          modalQueue: rest,
+        });
+      },
+
+      /**
+       * Clear all modals (current and queued).
+       */
+      clearModalQueue: () => {
+        set({ modalQueue: [], currentModal: null });
+      },
+
+      /**
+       * Check if a modal of the specified type is currently showing or queued.
+       */
+      hasModalOfType: (type: ModalType): boolean => {
+        const { modalQueue, currentModal } = get();
+        if (currentModal?.type === type) return true;
+        return modalQueue.some((m) => m.type === type);
       },
     }),
     {

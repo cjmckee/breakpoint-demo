@@ -315,4 +315,52 @@ export const miscEvents: StoryEvent[] = [
             }
         }
     },
+
+    {
+        id: 'club_team_keith_story',
+        name: 'To Keith or Not to Keith',
+        tags: ['team', 'friend'],
+        timeSlotsRequired: 0,
+        prerequisites: {
+            completedEvents: ['club_team_first_practice']
+        },
+        skippable: true,
+        description: 'Keith pulls you aside after Academy team practice.',
+        dialogue: [
+            ['keith', ['Pssst. ', {characterId: 'player'}, '. Come over here. Yes. Behind the bleachers.']],
+            ['player', ['You can propose to me out here, ', {characterId: 'keith'}, '.']],
+            [null, [{characterId: 'keith'}, ' pulls you behind the bleachers. You bonk your head. Probably deserved for that.']],
+            ['keith', ['Okay, look. I don\'t think I belong on this team. In fact, I definitely don\'t belong on this team.']],
+            ['player', ['You didn\'t play that bad...']],
+            ['keith', ['No. I mean there was another ', {characterId: 'keith'}, ' during tryouts. I killed him.']],
+            ['keith', ['Okay, not really. But seriously, during the tryouts I noticed there was another player who was way better than me, with the same name!']],
+            ['keith', ['I wanted to wish him luck, so I chatted with him outside the bathroom. I offered to hold his tryout number for him.']],
+            ['keith', ['The coach came by at that exact moment and marked attendance, and now I\'m on the team. I haven\'t told anyone.']],
+            ['player', ['Wow, that\'s quite the story. I don\'t think I believe you. What happened to this other ', {characterId: 'keith'}, '?']],
+            ['keith', ['When he found out he didn\'t make the team, he transferred academies!']],
+            ['player', ['So he\'s nowhere to be found, either? Hard to believe a story like that, ', {characterId: 'keith'}, '.']],
+        ],
+        characters: ['keith'],
+        options: [],
+        defaultOutcome: {
+            resultText: [
+                {characterId: 'keith'}, ' is not very good, but is he so bad that he\'s actually a fake ', {characterId: 'keith'}, '?',
+                'Actually, you find that more believable than him making the team. But he\'s a good friend, and you decide to support him anyway.'
+            ],
+            effects: {
+                moodChange: 10,
+                energyChange: 10,
+                relationshipChanges: {
+                    keith: 5
+                },
+                statChanges: {
+                    focus: -4,
+                    agility: 2,
+                    speed: 2,
+                    anticipation: -1,
+                    recovery: 2
+                }
+            }
+        }
+    }
 ];

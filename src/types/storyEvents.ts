@@ -51,6 +51,7 @@ export type StoryEventTag =
   | 'tournament_match'      // For match-specific events
   | 'tournament_ceremony'   // For opening/closing ceremonies
   | 'agent'
+  | 'team'
 
   // Development
   | 'training'
