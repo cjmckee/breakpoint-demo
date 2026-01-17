@@ -252,7 +252,7 @@ export const miscEvents: StoryEvent[] = [
             ['jen', ['I\'m still looking around for the merch table. #10 is just so cute! I hope they have a jersey in my size.']],
             [null, ['As the game progresses, you can\'t help but analyze the players\' techniques. And how cute #10 is.']]
         ],
-        characters: [],
+        characters: ['keith', 'jen'],
         options: [],
         defaultOutcome: {
             resultText: [
@@ -294,7 +294,7 @@ export const miscEvents: StoryEvent[] = [
             ['jen', ['I hope they have enough soy sauce. It makes all the difference! We\'re going to need a LOT of it.']],
             [null, ['As you enjoy the meal, you can\'t help but feel grateful for your team.']]
         ],
-        characters: [],
+        characters: ['keith', 'jen'],
         options: [],
         defaultOutcome: {
             resultText: [

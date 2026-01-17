@@ -48,6 +48,7 @@ export type StoryEventTag =
   // Career
   | 'sponsor'
   | 'media'
+  | 'story_match'
   | 'tournament_match'      // For match-specific events
   | 'tournament_ceremony'   // For opening/closing ceremonies
   | 'agent'

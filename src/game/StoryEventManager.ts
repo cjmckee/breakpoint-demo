@@ -125,7 +125,7 @@ export class StoryEventManager {
 
       // Let's just filter out tournament events for now.
       // We manually queue them when needed
-      if (event.tags.includes('tournament_match') || event.tags.includes('tournament_ceremony')) {
+      if (event.tags.includes('tournament_match') || event.tags.includes('tournament_ceremony') || event.tags.includes('story_match')) {
         return false;
       }
 

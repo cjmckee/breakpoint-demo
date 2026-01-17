@@ -111,6 +111,224 @@ export const careerEvents: StoryEvent[] = [
     },
   },
 
+  {
+    id: 'first_team_match_scheduled',
+    name: 'First Team Match Announced',
+    tags: ['team'],
+    timeSlotsRequired: 0,
+    prerequisites: {
+      completedEvents: ['club_team_first_practice'],
+      minDay: 7,
+    },
+    skippable: false,
+    description: 'Your first team match is announced.',
+    dialogue: [
+      [null, ['After practice wraps up, the floodlights go dim and you find everyone huddled around a single bulletin board.']],
+      ['keith', ['It\'s about time! I can finally snap my ten match losing streak. ', {characterId: 'greg'}, ' has been giving me the business.']],
+      [null, [{characterId: 'greg'}, ' seemed unaware they were counting those matches. You turn to the board. The posting reads: "Academy Club Team vs Aspen Slopes Academy - Home Match"']],
+      ['jen', ['Aspen Slopes? They\'re a combo skiing and tennis academy further up the mountains. Notoriously snobby.']],
+      ['coach_gonzalez', ['They practice at a higher altitude than we do, which gives them an advantage when it comes to endurance.']],
+      ['coach_gonzalez', ['You can check the lineup as well. ', {characterId: 'player'}, ', you\'ll be playing in the four spot. Kid\'s name is ', {characterId: 'chet_vale'}, '.']],
+      ['keith', ['I don\'t like him already. That\'s like the son of an oil baron kind of name.']],
+      ['jen', ['Come on, ', {characterId: 'keith'}, '. No need to judge a book by its cover.']],
+      ['coach_gonzalez', ['Oh yeah, he\'s the son of an oil baron. Even among the Aspen Slopes kids, no one likes him. The only crowd you\'ll have to contend with is his butler.']],
+      ['coach_gonzalez', ['He has a surprising work ethic to snob ratio, though. He\'s quite quick, so you\'re going to have to show some consistency. It\'ll be a good test.']]
+    ],
+    characters: ['keith', 'jen', 'coach_gonzalez'],
+    options: [],
+    defaultOutcome: {
+      resultText: [
+        'You get a chance to show your stuff in the first team match. You\'ll be facing Chet Vale from Aspen Slopes Academy. Good luck!',
+      ],
+      effects: {
+        moodChange: 10,
+        energyChange: 0,
+        relationshipChanges: {
+          keith: 1,
+          jen: 1,
+          coach_gonzalez: 2,
+        },
+        scheduledEvents: [
+          {
+            eventType: 'story_match',
+            relativeDays: 2,
+            scheduledTimeSlot: 1, // AFTERNOON
+            metadata: {
+              opponentId: 'chet_vale',
+              opponentName: 'Chet Vale',
+              opponentStats: {
+                technical: {
+                  serve: 22,
+                  forehand: 25,
+                  backhand: 20,
+                  volley: 15,
+                  overhead: 18,
+                  dropShot: 12,
+                  slice: 18,
+                  return: 24,
+                  spin: 20,
+                  placement: 22,
+                },
+                physical: {
+                  speed: 45,
+                  stamina: 35,
+                  strength: 18,
+                  agility: 42,
+                  recovery: 30,
+                },
+                mental: {
+                  focus: 25,
+                  anticipation: 30,
+                  shotVariety: 20,
+                  offensive: 22,
+                  defensive: 35,
+                },
+              },
+              opponentTier: 1,
+              opponentDescription: 'A speedy but inexperienced player from Aspen Slopes Academy',
+              prematchEventId: 'first_team_match_prematch',
+              winEventId: 'first_team_match_win',
+              lossEventId: 'first_team_match_loss',
+              surface: 'hard',
+              matchFormat: 'best-of-3',
+              matchTitle: 'Team Match: Academy vs Aspen Slopes',
+              matchDescription: 'Your first official team match',
+            },
+          },
+        ],
+      }
+    }
+  },
+
+  {
+    id: 'first_team_match_prematch',
+    name: 'Before the Match',
+    tags: ['story_match','team'],
+    timeSlotsRequired: 0,
+    prerequisites: {
+      completedEvents: ['first_team_match_scheduled'],
+    },
+    skippable: false,
+    description: 'The Aspen Slopes team arrives for your first team match.',
+    dialogue: [
+      [null, ['The Aspen Slopes team bus pulls up to the Academy courts. They file out in matching white and blue jackets.']],
+      ['keith', ['They look... cold.']],
+      ['jen', ['They train on a mountain, ', {characterId: 'keith'}, '. And just think about the altitude.']],
+      [null, ['You spot your opponent warming up on the far court. He has the latest shoes, the latest racquet, and a coach who looks... expensive.']],
+      ['chet_vale', ['You must be my matchup. I would say it\'s a pleasure, but I\'m not in the business of lying.']],
+      [null, ['He walks over and extends a hand. His handshake is brief and cold. He does that thing where he tries to crush your hand.']],
+      ['chet_vale', ['Are these the courts you use? We get ours resurfaced monthly. They\'re always pristine.']],
+      [null, ['His laugh is from a higher tax bracket than anyone you know.']],
+      ['coach_gonzalez', ['He\'s fast, but he\'s not half as polished as that gorgeous and expensive-looking racquet he has. Take him down!']],
+    ],
+    characters: ['keith', 'jen', 'coach_gonzalez', 'chet_vale'],
+    options: [],
+    defaultOutcome: {
+      resultText: [
+        'You head to the courts for your first team match. Your other teammates take their respective courts.',
+        'You feel some team pride for this Academy for one of the first times you remember.'
+      ],
+      effects: {
+        moodChange: 5,
+        energyChange: -5,
+        relationshipChanges: {
+          chet_vale: 2,
+        },
+      }
+    }
+  },
+
+  {
+    id: 'first_team_match_win',
+    name: 'Victory!',
+    tags: ['story_match', 'team'],
+    timeSlotsRequired: 0,
+    prerequisites: {
+      completedEvents: ['first_team_match_prematch'],
+    },
+    skippable: false,
+    description: 'You win your first team match!',
+    dialogue: [
+      [null, ['The final shot lands in. ', {characterId: 'chet_vale'}, ' flies by at top speed and nearly crashes into the stands chasing it down.']],
+      ['chet_vale', ['You must have cheated! This court is terrible!']],
+      [null, [{characterId: 'chet_vale'}, ' trudges to the net, both surprised and out of breath.']],
+      ['chet_vale', ['My father will be hearing of this. Consider yourself banned from every mountain in the north half of this county.']],
+      [null, ['Your teammates cheer you on from the sidelines.']],
+      ['keith', ['I have no idea how you pulled it off! I think I had the score backwards.']],
+      ['jen', ['Not bad at all! You were able to close out the big points, and didn\'t give up.']],
+      ['coach_gonzalez', ['Good match. You didn\'t give up free points and you made him work. That wins matches at this level.']],
+      [null, ['The Academy ends up winning the overall team match, as well. It\'s a great start to the season!']],
+    ],
+    characters: ['keith', 'jen', 'coach_gonzalez', 'chet_vale'],
+    options: [],
+    defaultOutcome: {
+      resultText: [
+        'You\'ve won your first team match! The feeling of helping your team come out on top is something special.',
+        'I hope you don\'t plan on skiing anytime soon.'
+      ],
+      effects: {
+        moodChange: 25,
+        energyChange: -10,
+        relationshipChanges: {
+          keith: 3,
+          jen: 2,
+          coach_gonzalez: 3,
+          chet_vale: -5,
+        },
+        statChanges: {
+          speed: 2,
+          stamina: 1,
+          agility: 1,
+          volley: 2
+        }
+      }
+    }
+  },
+
+  {
+    id: 'first_team_match_loss',
+    name: 'A Tough Loss',
+    tags: ['team'],
+    timeSlotsRequired: 0,
+    prerequisites: {
+      completedEvents: ['first_team_match_prematch'],
+    },
+    skippable: false,
+    description: 'You lose your first team match.',
+    dialogue: [
+      [null, ['The final point sails past you. You\'ve lost.']],
+      [null, [{characterId: 'chet_vale'}, ' glides up to the net, somehow still full of energy. He shakes your hand coldly.']],
+      ['chet_vale', ['I expected this outcome. I\'ve been running at my father\'s country club my whole life. It was easy to wear you down.']],
+      [null, ['Your teammates still cheer, looking supportive despite the loss.']],
+      ['jen', ['It happens. He was really quick out there. Not bad for a first match!']],
+      ['keith', ['Yeah, no shame in losing man. You looked really good in the points I was watching.']],
+      ['coach_gonzalez', ['You still competed all the way through, and today it wasn\'t enough. But it\'s just one match.']],
+      [null, ['Despite your loss, the Academy manages to win overall. Something to ease the sting.']],
+    ],
+    characters: ['keith', 'jen', 'coach_gonzalez', 'chet_vale'],
+    options: [],
+    defaultOutcome: {
+      resultText: [
+        'You lost your match, but the Academy won overall. There\'s still some room to improve.',
+        {characterId: 'chet_vale'}, ' is somehow already skiing back to the team bus.'
+      ],
+      effects: {
+        moodChange: -10,
+        energyChange: -15,
+        relationshipChanges: {
+          keith: 2,
+          jen: 2,
+          coach_gonzalez: 1,
+          chet_vale: 3,
+        },
+        statChanges: {
+          speed: 1,
+          agility: 1,
+          defensive: 1,
+        }
+      }
+    }
+  },
 
   /** Sponsor Events */
 

@@ -93,6 +93,12 @@ export const CHARACTERS: Record<string, Character> = {
     role: 'Official',
   },
 
+  /** Aspen Slopes Academy */
+  chet_vale: {
+    id: 'chet_vale',
+    name: 'Chet Vale',
+    role: 'Opponent',
+  },
 
 };
 
