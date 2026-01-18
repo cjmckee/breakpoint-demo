@@ -94,7 +94,7 @@ export const StatCard: React.FC<StatCardProps> = ({
   return (
     <div
       className={`
-        relative p-4 rounded-lg border-2 border-pixel-border
+        relative p-3 sm:p-4 rounded-lg border-2 border-pixel-border
         bg-pixel-card
         transition-all duration-300
         ${gradeStyle.bounceAnimation || ''}
@@ -103,7 +103,7 @@ export const StatCard: React.FC<StatCardProps> = ({
     >
       {/* Stat Label */}
       <div className="text-center mb-2">
-        <h4 className="text-sm font-medium text-pixel-text-muted uppercase tracking-wide">
+        <h4 className="text-xs sm:text-sm font-medium text-pixel-text-muted uppercase tracking-wide truncate">
           {label}
         </h4>
       </div>

@@ -263,7 +263,7 @@ export const MainMenu: React.FC = () => {
     <div className="min-h-screen bg-pixel-bg">
       <StatusBar />
 
-      <div className="max-w-6xl mx-auto p-4">
+      <div className="px-4 md:px-8 lg:px-12">
         {/* Tournament Match Banner */}
         {isTournamentMatchScheduled && scheduledTournamentMatch && (
           <Card className="mb-6 border-4 border-yellow-400 bg-yellow-600 animate-pulse">
@@ -342,7 +342,7 @@ export const MainMenu: React.FC = () => {
         </Card>
 
         {/* Activities Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
           {activities.map((activity) => {
             const canAfford = currentStatus.energy >= activity.energyCost;
             const isRestButton = activity.id === 'rest';
@@ -377,7 +377,7 @@ export const MainMenu: React.FC = () => {
               <Card key={activity.id} padding="md" className="flex flex-col">
                 <div className="text-center mb-4">
                   <div className="text-6xl mb-3">{activity.emoji}</div>
-                  <h2 className="text-2xl font-bold text-pixel-text mb-2">
+                  <h2 className="text-lg lg:text-2xl font-bold text-pixel-text mb-2 truncate">
                     {isNightTime && isRestButton ? 'Next Day' : activity.title}
                   </h2>
                   <p className="text-sm text-pixel-text-muted mb-3">

@@ -72,7 +72,7 @@ export const PlayerStatsDisplay: React.FC = () => {
             <h4 className="font-semibold text-pixel-text-muted text-sm pb-2 border-b-2 border-pixel-border">
               {category.name}
             </h4>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
               {category.stats.map((stat) =>
                 'isExperience' in stat && stat.isExperience ? (
                   <div
