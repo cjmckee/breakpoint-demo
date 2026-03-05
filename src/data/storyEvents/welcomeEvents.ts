@@ -259,7 +259,7 @@ export const welcomeEvents: StoryEvent[] = [
     tags: ['intro'],
     timeSlotsRequired: 0, // Doesn't consume time - informational event
     prerequisites: {
-      completedEvents: ['abilities_basics'],
+      completedEvents: ['abilities_basics', 'relationship_basics'],
       minMatchesWon: 1,
       minDay: 10,
       stats: {
