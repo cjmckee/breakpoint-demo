@@ -1,155 +1,90 @@
-# Tennis RPG - Transparent Stat-Based Simulation
+# Tennis RPG
 
-A simplified tennis RPG with transparent statistical correlation between player stats and match outcomes. This project demonstrates a clean, stat-driven tennis simulation engine built from scratch.
+A stat-based tennis career simulation game built with React, TypeScript, and Zustand. Create a player, train your skills, compete in tournaments, and experience story-driven events as you rise through the ranks.
 
-## 🎾 Core Features
+## Getting Started
 
-- **20-Stat Player System**: Technical, Physical, and Mental attributes that directly influence performance
-- **Transparent Simulation**: Every stat point matters through sliding scale probability calculations
-- **Realistic Tennis**: Point-by-point simulation following proper tennis scoring and mechanics
-- **Player Archetypes**: Power players, defensive specialists, and all-around styles
-- **Match Statistics**: Comprehensive tracking including serve percentages, winners, and stat correlations
-
-## 🏗️ Architecture
-
-### Core Components
-
-- **PlayerProfile** (`src/core/PlayerProfile.ts`): Manages 20 player stats with play style calculation
-- **ShotCalculator** (`src/core/ShotCalculator.ts`): Transparent stat-to-outcome mapping using sliding scales
-- **PointSimulator** (`src/core/PointSimulator.ts`): Point-by-point tennis simulation
-- **MatchSimulator** (`src/core/MatchSimulator.ts`): Complete match orchestration
-- **ScoreTracker** (`src/core/ScoreTracker.ts`): Tennis scoring with key moment detection
-- **MatchStatistics** (`src/core/MatchStatistics.ts`): Comprehensive match analytics
-
-### Player Stats (20 Total)
-
-**Technical (10):**
-- Serve, Forehand, Backhand, Volley, Overhead
-- Drop Shot, Slice, Return, Spin, Placement
-
-**Physical (5):**
-- Speed, Stamina, Strength, Agility, Recovery
-
-**Mental (5):**
-- Focus, Anticipation, Shot Variety, Offensive, Defensive
-
-## 🚀 Quick Start
-
-1. **Build the project:**
-   ```bash
-   npm run build
-   ```
-
-2. **Run validation tests:**
-   ```bash
-   npm test
-   ```
-
-3. **Open the HTML interface:**
-   Open `index.html` in a web browser
-
-## 🧪 Testing the Simulation
-
-The project includes comprehensive validation to prove stat correlation:
-
-```typescript
-// Example: Testing serve improvement
-const baselinePlayer = new PlayerProfile('player', 'Baseline', {
-  technical: { serve: 50, /* other stats */ },
-  // ...
-});
-
-const improvedPlayer = new PlayerProfile('improved', 'Better Server', {
-  technical: { serve: 75, /* other stats */ },
-  // ...
-});
-
-// Simulate matches to see win rate improvement
-const results = MatchSimulator.simulateMultipleMatches(config, 100);
+```bash
+npm install
+npm run dev       # Start development server
+npm run build     # Production build
+npm run preview   # Preview production build
 ```
 
-## 🎯 Key Validation Points
+Requires Node.js 18+.
 
-- ✅ Stats directly influence shot success rates
-- ✅ Training improvements lead to better match performance
-- ✅ Different player archetypes play realistically
-- ✅ Match outcomes correlate with player stat differences
-- ✅ All calculations are transparent and verifiable
+## Tech Stack
 
-## 🔧 Development
+- React 19 + TypeScript (strict mode)
+- Zustand for state management (with persistence)
+- Vite for build tooling
+- Tailwind CSS for styling
 
-### Build System
-- TypeScript compilation with strict type checking
-- ES2022 target for modern JavaScript features
-- Modular architecture with clean imports
+## Project Structure
 
-### Testing
-- `npm test`: Runs validation tests proving stat correlation
-- `npm run dev`: Build and run basic validation
-- `npm run build`: Compile TypeScript to dist/
-
-### File Structure
 ```
 src/
-├── types/index.ts          # Complete type definitions
-├── core/
-│   ├── PlayerProfile.ts    # Player management & stats
-│   ├── ShotCalculator.ts   # Core probability engine
-│   ├── PointSimulator.ts   # Point-by-point simulation
-│   ├── MatchSimulator.ts   # Match orchestration
-│   ├── ScoreTracker.ts     # Tennis scoring
-│   └── MatchStatistics.ts  # Analytics & tracking
-└── test/
-    └── basic-validation.ts  # Validation tests
+├── core/           # Pure simulation engine (no React dependencies)
+├── game/           # Game system managers and orchestrators
+├── stores/         # Zustand state management
+├── components/     # React UI components
+├── types/          # TypeScript type definitions
+├── config/         # Tuning constants and thresholds
+├── data/           # Static game data (characters, items, story events, tournaments)
+└── hooks/          # Custom React hooks
 ```
 
-## 🎮 How It Works
+## Core Systems
 
-### Sliding Scale Calculations
+### Match Simulation (`src/core/`)
 
-Unlike bucket-based systems, every stat point matters:
+The simulation engine is built from pure TypeScript classes with no React dependencies:
 
-```typescript
-// Linear interpolation: stat 0 = min%, stat 100 = max%
-const successRate = range.min + (statValue / 100) * (range.max - range.min);
-```
+- **ShotCalculator** — Maps player stats to shot outcomes using sliding-scale probability calculations. Every stat point matters through linear interpolation rather than discrete buckets.
+- **ShotSelector** — Chooses shot types based on court position, rally state, and player tendencies.
+- **PointSimulator** — Simulates individual points: serve, return, and rally exchanges with momentum and pressure tracking.
+- **MatchSimulator** — Orchestrates full matches with proper tennis scoring (games, sets, tiebreaks).
+- **ScoreTracker** — Manages tennis scoring state and detects key moments (break points, set points, match points).
+- **MatchStatistics** — Collects match analytics: aces, winners, unforced errors, serve percentages, rally lengths.
+- **TacticalAnalyzer** — Evaluates tactical positions and shot selection quality.
 
-A player with 39 serve performs differently than one with 21 serve, ensuring meaningful progression.
+### Player Stats
 
-### Match Flow
+Players have 20 stats across three categories, all on a 0-100 scale:
 
-1. **Point Simulation**: Serve → Return → Rally with realistic shot selection
-2. **Stat Integration**: Each shot uses relevant stats (serve uses serve stat, forehand uses forehand, etc.)
-3. **Context Awareness**: Difficulty, pressure, and court position affect outcomes
-4. **Transparent Tracking**: All statistics correlate directly with underlying stat differences
+| Technical (10) | Physical (5) | Mental (5) |
+|---|---|---|
+| Serve, Forehand, Backhand, Volley, Overhead | Speed, Stamina, Strength, Agility, Recovery | Focus, Anticipation, Shot Variety, Offensive, Defensive |
+| Drop Shot, Slice, Return, Spin, Placement | | |
 
-## 📊 Example Output
+### Game Systems (`src/game/`)
 
-```
-🎾 Starting match: Power Player vs Counterpuncher
-📊 Player stats: 72 vs 71
-🏆 Match complete: player wins 6-4, 6-3
-📈 Duration: 47 minutes, 89 points played
+- **PlayerManager** — Player creation with three playstyle archetypes (Offensive, Defensive, Balanced), each granting different starting stat bonuses.
+- **MatchOrchestrator** — Wraps the simulation engine with interactive key moments, where players make tactical decisions that affect point outcomes.
+- **MatchRewardSystem** — Calculates post-match rewards: stat gains, experience, items, and ability unlocks based on performance.
+- **TrainingSystem** — Generates training sessions across 8 types (Groundstroke, Serve & Volley, Footwork, etc.) with a tier system (Bronze/Silver/Gold/Diamond) that scales stat gains.
+- **AbilitySystem** — Defines abilities with rarity tiers (Common through Legendary) that provide passive stat boosts during matches. Abilities are primarily unlocked through Diamond-tier training.
+- **ItemManager** — Equipment (racquet, shoes, outfit, hat) and consumable management. Equipped items provide persistent stat boosts.
+- **ChallengeManager** — Objective-based progression with flexible requirements (stat thresholds, match stats, relationship levels) and rewards.
+- **StoryEventManager** — Triggers and resolves narrative events based on prerequisites (stats, relationships, completed events, tournament state). Player choices affect stats, relationships, and future event availability.
+- **TournamentManager** — Multi-round tournament progression with winner's/loser's brackets and story event integration before and after matches.
+- **TimeManager** — Calendar system with seasons, days, and 4 time slots per day (Morning, Afternoon, Evening, Night). Activities consume time slots and the calendar gates scheduled content.
+- **CalendarService** — Coordinates scheduled events (tournament matches, story events) with the time system.
+- **StoryMatchManager** — Manages story-driven matches that are triggered through narrative events rather than player-initiated.
 
-Key Statistics:
-• Serve Success: 68.2% vs 61.4%
-• Winners: 23 vs 14
-• Serve Stat Correlation: 94.3%
-```
+### State Management (`src/stores/`)
 
-## 🔄 Migration from Complex Stack
+- **gameStore** — Central persistent store for all career state: player data, calendar, activity history, story progress, challenges, tournaments, and UI modal queue.
+- **matchStore** — Transient store for active match state during simulation.
 
-This project represents a successful migration from an over-engineered full-stack architecture (React + FastAPI + PostgreSQL + Docker) to a clean, focused simulation engine. The key insight was rebuilding the match simulation from scratch to ensure proper stat integration.
+### Story Content (`src/data/storyEvents/`)
 
-## 🎯 Future Enhancements
+Story events are organized into storylines: rival, coach, family, romance, career, tournament, and milestone events. Each storyline has prerequisite chains that create branching narrative arcs. Characters (defined in `src/data/characters.ts`) include coaches, rivals, and friends with tracked relationship scores.
 
-- Pseudo-RNG for deterministic testing
-- Career progression system
-- Training mechanics
-- Tournament simulation
-- Save/load functionality
-- Enhanced UI/UX
+### Tournaments (`src/data/tournaments/`)
 
----
+Tournament definitions include bracket structures, per-round opponents with specific stats, story event hooks for each round, and prerequisite conditions for entry.
 
-**Built with transparency in mind** - every calculation is verifiable and every stat point matters.
+## License
+
+MIT
