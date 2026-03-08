@@ -108,9 +108,9 @@ export const MIN_QUALITY_FLOORS = {
  * quality 30 to win. With floor of 55, it now needs quality 55+ to be a winner.
  */
 export const MINIMUM_WINNER_THRESHOLDS = {
-  defensive: 55,    // Even perfect setup, defensive shot needs 55+ quality to win
-  neutral: 50,      // Regular shots need 50+ quality to be winners
-  offensive: 45,    // Power shots can win with 45+ quality (lower floor, high reward)
+  defensive: 60,    // Even perfect setup, defensive shot needs 60+ quality to win
+  neutral: 55,      // Regular shots need 55+ quality to be winners
+  offensive: 50,    // Power shots can win with 50+ quality (lower floor, high reward)
 };
 
 /**
@@ -128,21 +128,21 @@ export const OUTCOME_MULTIPLIERS = {
   // Defensive shots: slices, lobs, defensive overheads
   defensive: {
     inPlay: 1.0,        // Base requirement (easiest to keep in play)
-    winner: 3.0,        // Need 3x the requirement for winner (hard but possible)
+    winner: 3.5,        // Need 3.5x the requirement for winner (very hard)
     forcedError: 0.7,   // Below 70% = forced error
   },
 
   // Neutral shots: regular groundstrokes, volleys
   neutral: {
     inPlay: 1.0,        // Base requirement
-    winner: 2.0,        // Need 2x the requirement for winner (moderate)
+    winner: 2.5,        // Need 2.5x the requirement for winner (raised from 2.0)
     forcedError: 0.7,   // Below 70% = forced error
   },
 
   // Offensive shots: power shots, overheads, passing shots, angles
   offensive: {
     inPlay: 1.0,        // Base requirement
-    winner: 1.5,        // Need 1.5x the requirement for winner (high reward)
+    winner: 1.8,        // Need 1.8x the requirement for winner (raised from 1.5)
     forcedError: 0.7,   // Below 70% = forced error
   },
 };
@@ -158,24 +158,23 @@ export const OUTCOME_MULTIPLIERS = {
  */
 export const SERVE_BASELINE = {
   serve_first: {
-    inPlayThreshold: 30,      // Need 30+ quality to get first serve in (achievable with stats 25-50)
-    aceThresholdBase: 55,     // Minimum quality for ace (ensures ace is always harder than getting serve in)
-    aceReturnMultiplier: 0.5, // Additional difficulty based on opponent return
-    // Example: vs return:25 → need 55 + 12.5 = 67.5 for ace
-    // Example: vs return:50 → need 55 + 25 = 80 for ace
+    inPlayThreshold: 18,      // Lowered: sigmoid gives rating-20 (~quality 21) ~59% serve-in
+    aceThresholdBase: 70,     // Raised: aces require high quality, scale gradually via sigmoid
+    aceReturnMultiplier: 0.45, // Additional difficulty based on opponent return
+    // Example: vs return:30 → sigmoid midpoint at 70 + 13.5 = 83.5
+    // Example: vs return:50 → sigmoid midpoint at 70 + 22.5 = 92.5
   },
   serve_second: {
-    inPlayThreshold: 20,      // Easier to get second serve in
-    aceThresholdBase: 70,     // Much higher base for second serve aces (very rare)
-    aceReturnMultiplier: 0.6, // Additional difficulty based on opponent return
-    // Example: vs return:25 → need 70 + 15 = 85 for ace (difficult)
-    // Example: vs return:50 → need 70 + 30 = 100 for ace (nearly impossible)
+    inPlayThreshold: 10,      // Lowered: second serve should almost always go in
+    aceThresholdBase: 75,     // Raised: second serve aces very rare
+    aceReturnMultiplier: 0.55, // Additional difficulty based on opponent return
+    // Example: vs return:50 → sigmoid midpoint at 75 + 27.5 = 102.5 (nearly impossible)
   },
   kick_serve: {
-    inPlayThreshold: 25,      // Between first and second
-    aceThresholdBase: 60,     // Between first and second serve
-    aceReturnMultiplier: 0.55,
-    // Example: vs return:50 → need 60 + 27.5 = 87.5 for ace
+    inPlayThreshold: 14,      // Lowered: between first and second
+    aceThresholdBase: 68,     // Between first and second serve
+    aceReturnMultiplier: 0.50,
+    // Example: vs return:50 → sigmoid midpoint at 68 + 25 = 93
   },
 };
 
@@ -221,8 +220,8 @@ export const POSITION_ADJUSTMENTS: Record<CourtPosition, number> = {
  * Keep reasonable to avoid constant 100 quality or negative quality.
  */
 export const SERVE_VARIANCE = {
-  first: 8,     // ±8 quality variance on first serve (reduced from 12)
-  second: 4,    // ±4 quality variance on second serve (reduced from 6)
+  first: 12,    // ±12 quality variance on first serve (widened for more natural spread)
+  second: 6,    // ±6 quality variance on second serve
 };
 
 /**
@@ -231,7 +230,7 @@ export const SERVE_VARIANCE = {
  * Applied as ±variance to return quality.
  * Adds realistic variation to returns instead of constant quality values.
  */
-export const RETURN_VARIANCE = 6;  // ±6 quality variance on returns
+export const RETURN_VARIANCE = 8;  // ±8 quality variance on returns
 
 /**
  * Rally shot variance (quality randomness)
@@ -244,7 +243,7 @@ export const RETURN_VARIANCE = 6;  // ±6 quality variance on returns
  * Example: vs quality 80 shot → 4 + (80/100) * 6 = 4 + 4.8 = ±8.8 variance
  */
 export const RALLY_SHOT_VARIANCE = {
-  base: 4,              // Base ±4 variance on all rally shots
+  base: 6,              // Base ±6 variance on all rally shots (widened from 4)
   qualityMultiplier: 6, // Additional variance based on incoming shot quality
 };  // Creates realistic errors independent of fatigue
 
@@ -285,6 +284,39 @@ export const TOTAL_MODIFIER_CAPS = {
   return: 1.20,   // Max 120% total modifier for returns
   rally: 1.25,    // Max 125% total modifier for rally shots
 };
+
+/**
+ * Probability steepness for sigmoid outcome curves
+ *
+ * Controls how gradually outcomes transition around thresholds.
+ * Lower steepness = wider transition band = more gradual scaling.
+ *
+ * A steepness of 0.12 creates a ~30-point transition zone
+ * where probability goes from ~3% to ~97%.
+ */
+export const PROBABILITY_STEEPNESS = {
+  serve: {
+    inPlay: 0.12,      // ~30-point band for serve fault/in
+    ace: 0.08,          // ~40-point band for aces (very gradual)
+  },
+  rally: {
+    winner: 0.12,       // ~30-point band for winners
+    inPlay: 0.18,       // ~22-point band for keeping in play
+    forcedError: 0.18,  // ~22-point band for forced vs unforced
+  },
+};
+
+/**
+ * Sigmoid probability function
+ *
+ * Returns probability (0-1) of clearing a threshold given a quality value.
+ * At quality = threshold, returns 0.5 (50%).
+ * Quality well above threshold approaches 1.0.
+ * Quality well below threshold approaches 0.0.
+ */
+export function sigmoidProbability(quality: number, threshold: number, steepness: number): number {
+  return 1 / (1 + Math.exp(-steepness * (quality - threshold)));
+}
 
 /**
  * Helper function to categorize shot types

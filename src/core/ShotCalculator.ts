@@ -37,6 +37,8 @@ import {
   RALLY_SHOT_VARIANCE,
   SERVE_BONUSES,
   TOTAL_MODIFIER_CAPS,
+  PROBABILITY_STEEPNESS,
+  sigmoidProbability,
   getShotCategory,
 } from '../config/shotThresholds.js';
 
@@ -180,6 +182,18 @@ export class ShotCalculator {
     console.log('Shot quality:', quality.toFixed(1), 'Outcome:', outcome);
     console.log('Quality thresholds:', thresholds);
 
+    // Calculate outcome probabilities for debugging transparency
+    const outcomeProbabilities = shotType.includes('serve')
+      ? {
+          serveIn: sigmoidProbability(quality, thresholds.inPlay, PROBABILITY_STEEPNESS.serve.inPlay),
+          ace: sigmoidProbability(quality, thresholds.winner, PROBABILITY_STEEPNESS.serve.ace),
+        }
+      : {
+          winner: sigmoidProbability(quality, thresholds.winner, PROBABILITY_STEEPNESS.rally.winner),
+          inPlay: sigmoidProbability(quality, thresholds.inPlay, PROBABILITY_STEEPNESS.rally.inPlay),
+          forcedError: sigmoidProbability(quality, thresholds.forcedError, PROBABILITY_STEEPNESS.rally.forcedError),
+        };
+
     return {
       success: outcome === PointType.ACE || outcome === PointType.WINNER || outcome === PointType.IN_PLAY,
       outcome,
@@ -188,6 +202,7 @@ export class ShotCalculator {
       statUsed: this.getPrimaryStatName(shotType),
       modifiers,
       thresholds,
+      outcomeProbabilities,
     };
   }
 
@@ -256,20 +271,34 @@ export class ShotCalculator {
   }
 
   /**
-   * Determine outcome based on quality vs thresholds
+   * Determine outcome using sigmoid probability curves
+   *
+   * Each threshold is the midpoint of a probability curve rather than
+   * a hard cutoff. This creates gradual transitions between outcome types,
+   * making every stat point matter proportionally.
    */
   private determineOutcome(
     quality: number,
     thresholds: QualityThresholds
   ): PointType {
-    if (quality >= thresholds.winner) return PointType.WINNER;
-    if (quality >= thresholds.inPlay) return PointType.IN_PLAY;
-    if (quality >= thresholds.forcedError) return PointType.FORCED_ERROR;
+    const pWinner = sigmoidProbability(quality, thresholds.winner, PROBABILITY_STEEPNESS.rally.winner);
+    if (Math.random() < pWinner) return PointType.WINNER;
+
+    const pInPlay = sigmoidProbability(quality, thresholds.inPlay, PROBABILITY_STEEPNESS.rally.inPlay);
+    if (Math.random() < pInPlay) return PointType.IN_PLAY;
+
+    const pForcedError = sigmoidProbability(quality, thresholds.forcedError, PROBABILITY_STEEPNESS.rally.forcedError);
+    if (Math.random() < pForcedError) return PointType.FORCED_ERROR;
+
     return PointType.UNFORCED_ERROR;
   }
 
   /**
-   * Handle serve outcome (special case with no incoming shot)
+   * Handle serve outcome using sigmoid probability curves
+   *
+   * Instead of hard threshold comparisons, each threshold is the midpoint
+   * of a probability curve. Quality near the threshold gives ~50% chance,
+   * quality well above/below gives near-certain outcomes.
    */
   private determineServeOutcome(
     serveQuality: number,
@@ -278,53 +307,38 @@ export class ShotCalculator {
   ): { outcome: PointType; thresholds: QualityThresholds } {
     const baseline = SERVE_BASELINE[serveType];
 
-    console.log('  🎯 SERVE OUTCOME DETERMINATION');
-    console.log('  Serve type:', serveType);
-    console.log('  Opponent return stat:', opponentReturnStat);
-    console.log('  Config inPlayThreshold:', baseline.inPlayThreshold);
-    console.log('  Config aceThresholdBase:', baseline.aceThresholdBase);
-    console.log('  Config aceReturnMultiplier:', baseline.aceReturnMultiplier);
-
-    // Check if serve is in
-    const serveIn = serveQuality >= baseline.inPlayThreshold;
-
     // Calculate ace threshold: base + (opponent return × multiplier)
-    // This ensures ace is ALWAYS harder than getting the serve in
     const aceThreshold = baseline.aceThresholdBase + (opponentReturnStat * baseline.aceReturnMultiplier);
 
-    console.log('  Calculated ace threshold:', aceThreshold.toFixed(1));
-    console.log('  Quality vs inPlay:', serveQuality.toFixed(1), '>=', baseline.inPlayThreshold, '→', serveIn ? 'IN' : 'FAULT');
+    // Sigmoid probability for serve being in
+    const pServeIn = sigmoidProbability(serveQuality, baseline.inPlayThreshold, PROBABILITY_STEEPNESS.serve.inPlay);
 
-    if (!serveIn) {
-      console.log('  ❌ SERVE FAULT');
-      return {
-        outcome: PointType.FAULT,
-        thresholds: {
-          winner: aceThreshold,
-          inPlay: baseline.inPlayThreshold,
-          forcedError: 0, // Not applicable for serves
-        },
-      };
-    }
+    console.log('  🎯 SERVE OUTCOME (sigmoid)');
+    console.log('  Quality:', serveQuality.toFixed(1), '| inPlay threshold:', baseline.inPlayThreshold, '| P(in):', (pServeIn * 100).toFixed(1) + '%');
 
-    // Check for ace
-    const isAce = serveQuality >= aceThreshold;
-    console.log('  Quality vs ace:', serveQuality.toFixed(1), '>=', aceThreshold.toFixed(1), '→', isAce ? 'ACE!' : 'in play');
-
-    if (isAce) {
-      console.log('  🔥 ACE!');
-    } else {
-      console.log('  ✅ Serve in play');
-    }
-
-    return {
-      outcome: isAce ? PointType.ACE : PointType.IN_PLAY,
-      thresholds: {
-        winner: aceThreshold,
-        inPlay: baseline.inPlayThreshold,
-        forcedError: 0,
-      },
+    const thresholds: QualityThresholds = {
+      winner: aceThreshold,
+      inPlay: baseline.inPlayThreshold,
+      forcedError: 0,
     };
+
+    // Roll for serve in
+    if (Math.random() >= pServeIn) {
+      console.log('  ❌ SERVE FAULT (rolled outside', (pServeIn * 100).toFixed(1) + '%)');
+      return { outcome: PointType.FAULT, thresholds };
+    }
+
+    // Sigmoid probability for ace
+    const pAce = sigmoidProbability(serveQuality, aceThreshold, PROBABILITY_STEEPNESS.serve.ace);
+    console.log('  Ace threshold:', aceThreshold.toFixed(1), '| P(ace):', (pAce * 100).toFixed(1) + '%');
+
+    if (Math.random() < pAce) {
+      console.log('  🔥 ACE!');
+      return { outcome: PointType.ACE, thresholds };
+    }
+
+    console.log('  ✅ Serve in play');
+    return { outcome: PointType.IN_PLAY, thresholds };
   }
 
   /**

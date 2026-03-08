@@ -213,7 +213,15 @@ export interface ShotResult {
   shotType: ShotType;
   statUsed: keyof PlayerStats['technical'] | keyof PlayerStats['physical'] | keyof PlayerStats['mental'];
   modifiers: ShotModifiers;
-  thresholds?: QualityThresholds; // NEW: for transparency and debugging
+  thresholds?: QualityThresholds;
+  /** Sigmoid probabilities at time of outcome determination (for debugging) */
+  outcomeProbabilities?: {
+    winner?: number;
+    inPlay?: number;
+    forcedError?: number;
+    ace?: number;
+    serveIn?: number;
+  };
 }
 
 /**
