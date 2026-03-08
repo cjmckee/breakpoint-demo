@@ -39,7 +39,7 @@ export const PlayerCreation: React.FC = () => {
       title: 'Balanced',
       emoji: '⚖️',
       description: 'Well-rounded game with no major weaknesses.',
-      bonuses: '+3 all stats',
+      bonuses: '+1 all stats',
     },
   };
 

@@ -35,13 +35,13 @@ export class PlayerManager {
     } else if (playstyle === 'balanced') {
       // Small bonus to all stats
       Object.keys(baseStats.technical).forEach((key) => {
-        (baseStats.technical as any)[key] += 3;
+        (baseStats.technical as any)[key] += 1;
       });
       Object.keys(baseStats.physical).forEach((key) => {
-        (baseStats.physical as any)[key] += 3;
+        (baseStats.physical as any)[key] += 1;
       });
       Object.keys(baseStats.mental).forEach((key) => {
-        (baseStats.mental as any)[key] += 3;
+        (baseStats.mental as any)[key] += 1;
       });
     }
 

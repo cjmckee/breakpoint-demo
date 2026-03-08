@@ -135,13 +135,37 @@ export class StoryEventManager {
   }
 
   /**
-   * Select a random event from eligible events
+   * Select a random event from eligible events.
+   * Picks a random tag/category first, then a random event within that category.
+   * This prevents categories with many events (e.g. misc) from crowding out
+   * categories with fewer but more important events (e.g. story progression).
    */
   static selectRandomEvent(eligibleEvents: StoryEvent[]): StoryEvent | null {
     if (eligibleEvents.length === 0) return null;
 
-    const randomIndex = Math.floor(Math.random() * eligibleEvents.length);
-    return eligibleEvents[randomIndex];
+    // Group events by their first tag (primary category)
+    const eventsByTag = new Map<StoryEventTag, StoryEvent[]>();
+    for (const event of eligibleEvents) {
+      const primaryTag = event.tags[0] ?? 'misc';
+      const group = eventsByTag.get(primaryTag);
+      if (group) {
+        group.push(event);
+      } else {
+        eventsByTag.set(primaryTag, [event]);
+      }
+    }
+
+    // Pick a random category
+    const tags = Array.from(eventsByTag.keys());
+    const randomTag = tags[Math.floor(Math.random() * tags.length)];
+    const categoryEvents = eventsByTag.get(randomTag)!;
+
+    console.log(`🔍 Selected random event from category: ${randomTag}`);
+    console.log(`🔍 Events in category:`, categoryEvents);
+
+    // Pick a random event within that category
+    const randomIndex = Math.floor(Math.random() * categoryEvents.length);
+    return categoryEvents[randomIndex];
   }
 
   /**

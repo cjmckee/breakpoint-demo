@@ -292,6 +292,7 @@ export const careerEvents: StoryEvent[] = [
     timeSlotsRequired: 0,
     prerequisites: {
       completedEvents: ['first_team_match_prematch'],
+      excludedEvents: ['first_team_match_win']
     },
     skippable: false,
     description: 'You lose your first team match.',

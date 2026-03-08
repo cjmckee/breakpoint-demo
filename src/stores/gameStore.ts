@@ -523,6 +523,10 @@ export const useGameStore = create<GameState>()(
         // Check for challenge completion after stat changes
         get().checkChallengeCompletion();
 
+        // Check for milestone events (guaranteed trigger, no random roll)
+        // Milestones like "first win" or "3-match win streak" should fire immediately
+        get().checkForStoryEventByTag('milestone', 100);
+
         console.log('Match result added with rewards:', matchActivity);
       },
 
@@ -652,12 +656,6 @@ export const useGameStore = create<GameState>()(
       checkForStoryEventById: (eventId: string) => {
         const { player } = get();
 
-        // Don't trigger if story_event modal already queued or showing
-        if (get().hasModalOfType('story_event')) {
-          console.log(`[Story Event] Story event modal already active/queued`);
-          return;
-        }
-
         // Don't trigger if no player
         if (!player) {
           console.log(`[Story Event] No player exists`);
@@ -707,9 +705,6 @@ export const useGameStore = create<GameState>()(
        */
       checkForStoryEventByTag: (tag: StoryEventTag, customChance?: number) => {
         const { player, storyEventTriggerChance } = get();
-
-        // Don't trigger if story_event modal already queued or showing
-        if (get().hasModalOfType('story_event')) return;
 
         // Don't trigger if no player
         if (!player) return;
@@ -1525,6 +1520,9 @@ export const useGameStore = create<GameState>()(
             get().scheduleNextTournamentMatch();
           }, 100);
         }
+
+        // Check for milestone events (guaranteed trigger, no random roll)
+        get().checkForStoryEventByTag('milestone', 100);
       },
 
       // Cancel/forfeit tournament
@@ -1701,6 +1699,9 @@ export const useGameStore = create<GameState>()(
         setTimeout(() => {
           get().checkForStoryEventById(postMatchEventId);
         }, 100);
+
+        // Check for milestone events (guaranteed trigger, no random roll)
+        get().checkForStoryEventByTag('milestone', 100);
       },
 
       // ========================================================================

@@ -69,8 +69,9 @@ export const MainMenu: React.FC = () => {
     : null;
 
   // Trigger pre-match event when tournament match is scheduled
+  // checkForStoryEventById already skips completed events, so no modal guard needed
   useEffect(() => {
-    if (isTournamentMatchScheduled && scheduledTournamentMatch && activeTournament && !isEventPending) {
+    if (isTournamentMatchScheduled && scheduledTournamentMatch && activeTournament) {
       const tournamentId = activeTournament.tournamentId;
       const config = TournamentRegistry.getTournament(tournamentId);
       if (config) {
@@ -81,23 +82,22 @@ export const MainMenu: React.FC = () => {
         );
         if (prematchEventId) {
           console.log('Tournament match scheduled - triggering pre-match event:', prematchEventId);
-          // No setTimeout needed - modal queue handles priority
           useGameStore.getState().checkForStoryEventById(prematchEventId);
         }
       }
     }
-  }, [isTournamentMatchScheduled, scheduledTournamentMatch, activeTournament, isEventPending]);
+  }, [isTournamentMatchScheduled, scheduledTournamentMatch, activeTournament]);
 
   // Trigger pre-match event when story match is scheduled
+  // checkForStoryEventById already skips completed events, so no modal guard needed
   useEffect(() => {
-    if (isStoryMatchScheduled && storyMatchMetadata && !isEventPending) {
+    if (isStoryMatchScheduled && storyMatchMetadata) {
       if (storyMatchMetadata.prematchEventId) {
         console.log('Story match scheduled - triggering pre-match event:', storyMatchMetadata.prematchEventId);
-        // No setTimeout needed - modal queue handles priority
         useGameStore.getState().checkForStoryEventById(storyMatchMetadata.prematchEventId);
       }
     }
-  }, [isStoryMatchScheduled, storyMatchMetadata, isEventPending]);
+  }, [isStoryMatchScheduled, storyMatchMetadata]);
 
   const handleExecuteEvent = (eventId: string, optionId?: string) => {
     executeStoryEvent(eventId, optionId);
