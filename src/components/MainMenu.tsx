@@ -148,10 +148,12 @@ export const MainMenu: React.FC = () => {
     },
     {
       id: 'rest',
-      title: 'Rest',
+      title: isNightTime ? 'Next Day' : 'Rest',
       emoji: '😴',
-      description: 'Restore your energy and pass the time',
-      energyCost: 0,
+      description: isNightTime ? 
+        'Rest and advance to the next day' 
+        : 'Rest and advance to next action',
+      energyCost: isNightTime ? -50 : -20,
       action: () => rest(),
     },
   ];
@@ -378,16 +380,19 @@ export const MainMenu: React.FC = () => {
                 <div className="text-center mb-4">
                   <div className="text-6xl mb-3">{activity.emoji}</div>
                   <h2 className="text-lg lg:text-2xl font-bold text-pixel-text mb-2 truncate">
-                    {isNightTime && isRestButton ? 'Next Day' : activity.title}
+                    {activity.title}
                   </h2>
                   <p className="text-sm text-pixel-text-muted mb-3">
-                    {isNightTime && isRestButton
-                      ? 'Rest and advance to the next day'
-                      : activity.description}
+                    {activity.description}
                   </p>
                   {activity.energyCost > 0 && (
-                    <div className="text-sm text-pixel-text-muted">
+                    <div className="text-sm text-red-400">
                       Energy Cost: <span className="font-bold">{activity.energyCost}</span>
+                    </div>
+                  )}
+                  {activity.energyCost < 0 && (
+                    <div className="text-sm text-green-400">
+                      Energy Restored: <span className="font-bold">{Math.abs(activity.energyCost)}</span>
                     </div>
                   )}
                 </div>

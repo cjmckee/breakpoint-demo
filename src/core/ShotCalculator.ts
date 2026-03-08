@@ -179,9 +179,6 @@ export class ShotCalculator {
       outcome = this.determineOutcome(quality, thresholds);
     }
 
-    console.log('Shot quality:', quality.toFixed(1), 'Outcome:', outcome);
-    console.log('Quality thresholds:', thresholds);
-
     // Calculate outcome probabilities for debugging transparency
     const outcomeProbabilities = shotType.includes('serve')
       ? {
@@ -193,6 +190,8 @@ export class ShotCalculator {
           inPlay: sigmoidProbability(quality, thresholds.inPlay, PROBABILITY_STEEPNESS.rally.inPlay),
           forcedError: sigmoidProbability(quality, thresholds.forcedError, PROBABILITY_STEEPNESS.rally.forcedError),
         };
+
+    console.log(`Shot quality: ${quality.toFixed(1)} | Outcome: ${outcome}`);
 
     return {
       success: outcome === PointType.ACE || outcome === PointType.WINNER || outcome === PointType.IN_PLAY,
@@ -215,20 +214,15 @@ export class ShotCalculator {
     opponentStats: PlayerStats,
     opponentPosition: CourtPosition
   ): QualityThresholds {
-    console.log('Calculate quality requirements')
+    console.log('Sigmoid midpoint calculation for', shotType);
     // Get base multiplier for this shot type
     const baseMultiplier = RELATIVE_QUALITY_REQUIREMENTS[shotType];
     const baseRequirement = incomingQuality * baseMultiplier;
-
-    console.log('  Base requirement:', baseRequirement.toFixed(1));
-    console.log('  Base multiplier:', baseMultiplier.toFixed(1));
 
     // Apply minimum floor
     const shotCategory = getShotCategory(shotType);
     const minFloor = MIN_QUALITY_FLOORS[shotCategory];
     let inPlayReq = baseRequirement;
-
-    console.log('  Base In-play requirement (pre-floor):', inPlayReq.toFixed(1));
 
     // Opponent defensive stat adjustment
     const defensiveAdj = (opponentStats.mental.defensive - 50) * OPPONENT_STAT_ADJUSTMENTS.defensive;
@@ -242,16 +236,10 @@ export class ShotCalculator {
     const positionAdj = POSITION_ADJUSTMENTS[opponentPosition];
     inPlayReq += positionAdj;
 
-    console.log('  In-play requirement (after position adjustment):', inPlayReq.toFixed(1));
-
     inPlayReq = Math.max(inPlayReq, minFloor);
-
-    console.log('  In-play requirement (after adjustments):', inPlayReq.toFixed(1));
 
     // Get category-specific outcome multipliers
     const multipliers = OUTCOME_MULTIPLIERS[shotCategory];
-
-    console.log('  Outcome multipliers:', multipliers);
 
     // Calculate winner threshold with minimum floor
     const calculatedWinner = inPlayReq * multipliers.winner;
@@ -260,7 +248,8 @@ export class ShotCalculator {
       MINIMUM_WINNER_THRESHOLDS[shotCategory]
     );
 
-    console.log('  Winner threshold (after adjustments):', winnerThreshold.toFixed(1));
+    console.log(`  Incoming: ${incomingQuality.toFixed(1)} × ${baseMultiplier.toFixed(2)} = ${baseRequirement.toFixed(1)} base | Adjustments: def ${defensiveAdj >= 0 ? '+' : ''}${defensiveAdj.toFixed(1)}, spd ${speedAdj >= 0 ? '+' : ''}${speedAdj.toFixed(1)}, pos ${positionAdj >= 0 ? '+' : ''}${positionAdj.toFixed(1)} | Floor: ${minFloor}`);
+    console.log(`  Sigmoid midpoints → inPlay: ${inPlayReq.toFixed(1)} | winner: ${winnerThreshold.toFixed(1)} | forcedError: ${(inPlayReq * multipliers.forcedError).toFixed(1)}`);
 
     // Calculate derived thresholds
     return {
@@ -282,14 +271,24 @@ export class ShotCalculator {
     thresholds: QualityThresholds
   ): PointType {
     const pWinner = sigmoidProbability(quality, thresholds.winner, PROBABILITY_STEEPNESS.rally.winner);
-    if (Math.random() < pWinner) return PointType.WINNER;
+    if (Math.random() < pWinner) {
+      console.log(`  Outcome cascade → winner? ${(pWinner * 100).toFixed(1)}% chance → hit! WINNER`);
+      return PointType.WINNER;
+    }
 
     const pInPlay = sigmoidProbability(quality, thresholds.inPlay, PROBABILITY_STEEPNESS.rally.inPlay);
-    if (Math.random() < pInPlay) return PointType.IN_PLAY;
+    if (Math.random() < pInPlay) {
+      console.log(`  Outcome cascade → winner? ${(pWinner * 100).toFixed(1)}% chance → miss | inPlay? ${(pInPlay * 100).toFixed(1)}% chance → hit! IN_PLAY`);
+      return PointType.IN_PLAY;
+    }
 
     const pForcedError = sigmoidProbability(quality, thresholds.forcedError, PROBABILITY_STEEPNESS.rally.forcedError);
-    if (Math.random() < pForcedError) return PointType.FORCED_ERROR;
+    if (Math.random() < pForcedError) {
+      console.log(`  Outcome cascade → winner? ${(pWinner * 100).toFixed(1)}% → miss | inPlay? ${(pInPlay * 100).toFixed(1)}% → miss | forcedError? ${(pForcedError * 100).toFixed(1)}% → hit! FORCED_ERROR`);
+      return PointType.FORCED_ERROR;
+    }
 
+    console.log(`  Outcome cascade → winner? ${(pWinner * 100).toFixed(1)}% → miss | inPlay? ${(pInPlay * 100).toFixed(1)}% → miss | forcedError? ${(pForcedError * 100).toFixed(1)}% → miss → UNFORCED_ERROR`);
     return PointType.UNFORCED_ERROR;
   }
 
@@ -313,9 +312,6 @@ export class ShotCalculator {
     // Sigmoid probability for serve being in
     const pServeIn = sigmoidProbability(serveQuality, baseline.inPlayThreshold, PROBABILITY_STEEPNESS.serve.inPlay);
 
-    console.log('  🎯 SERVE OUTCOME (sigmoid)');
-    console.log('  Quality:', serveQuality.toFixed(1), '| inPlay threshold:', baseline.inPlayThreshold, '| P(in):', (pServeIn * 100).toFixed(1) + '%');
-
     const thresholds: QualityThresholds = {
       winner: aceThreshold,
       inPlay: baseline.inPlayThreshold,
@@ -324,20 +320,18 @@ export class ShotCalculator {
 
     // Roll for serve in
     if (Math.random() >= pServeIn) {
-      console.log('  ❌ SERVE FAULT (rolled outside', (pServeIn * 100).toFixed(1) + '%)');
+      console.log(`  Serve cascade → in? ${(pServeIn * 100).toFixed(1)}% chance → miss! FAULT`);
       return { outcome: PointType.FAULT, thresholds };
     }
 
     // Sigmoid probability for ace
     const pAce = sigmoidProbability(serveQuality, aceThreshold, PROBABILITY_STEEPNESS.serve.ace);
-    console.log('  Ace threshold:', aceThreshold.toFixed(1), '| P(ace):', (pAce * 100).toFixed(1) + '%');
-
     if (Math.random() < pAce) {
-      console.log('  🔥 ACE!');
+      console.log(`  Serve cascade → in? ${(pServeIn * 100).toFixed(1)}% → hit | ace? ${(pAce * 100).toFixed(1)}% chance → hit! ACE`);
       return { outcome: PointType.ACE, thresholds };
     }
 
-    console.log('  ✅ Serve in play');
+    console.log(`  Serve cascade → in? ${(pServeIn * 100).toFixed(1)}% → hit | ace? ${(pAce * 100).toFixed(1)}% → miss → IN_PLAY`);
     return { outcome: PointType.IN_PLAY, thresholds };
   }
 
@@ -856,7 +850,7 @@ export class ShotCalculator {
     explanation += `Mental Modifier: ×${modifiers.mentalModifier.toFixed(3)}\n`;
     explanation += `Final Adjustment: ×${modifiers.finalAdjustment.toFixed(3)}\n`;
     explanation += `Final Quality: ${quality.toFixed(1)}\n`;
-    explanation += `\nNOTE: Outcome determined by quality vs thresholds (varies by opponent)\n`;
+    explanation += `\nNOTE: Outcome determined by sigmoid probability curves around midpoints (varies by opponent)\n`;
 
     return explanation;
   }

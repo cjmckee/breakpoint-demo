@@ -136,6 +136,7 @@ export interface StoryEventOutcome {
     abilitiesGained?: string[];
     scheduledEvents?: ScheduledEventTemplate[];
     scheduleNextTournamentMatch?: boolean;  // Trigger tournament match scheduling
+    tierChange?: number;  // Set player tier to this value (e.g., 2 for Regional)
   };
 
   // Challenges assigned by this outcome

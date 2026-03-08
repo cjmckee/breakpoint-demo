@@ -484,14 +484,8 @@ export const useGameStore = create<GameState>()(
         // Update mood from rewards
         const newMood = Math.max(-100, Math.min(100, currentStatus.mood + rewards.moodChange));
 
-        // Check for tier unlock and update player tier (only on win against current tier)
-        let tierUnlocked: OpponentTier | null = null;
-        if (isWin && opponentTier === updatedPlayer.tier && updatedPlayer.tier < 4) {
-          // Player beat an opponent of their tier, so they can advance
-          const newTier = (updatedPlayer.tier + 1) as OpponentTier;
-          updatedPlayer = PlayerManager.updateTier(updatedPlayer, newTier);
-          tierUnlocked = newTier;
-        }
+        // Tier unlocks are now handled by story events (e.g., Riverside Open victory)
+        const tierUnlocked: OpponentTier | null = null;
 
         // Create match activity result with rewards
         const matchActivity: ActivityResult = {
@@ -906,6 +900,12 @@ export const useGameStore = create<GameState>()(
           for (const abilityName of outcome.effects.abilitiesGained) {
             updatedPlayer = PlayerManager.addAbility(updatedPlayer, abilityName);
           }
+        }
+
+        // Apply tier change
+        if (outcome.effects.tierChange !== undefined) {
+          const newTier = outcome.effects.tierChange as OpponentTier;
+          updatedPlayer = PlayerManager.updateTier(updatedPlayer, newTier);
         }
 
         // Update relationships (can range from -100 to 100)

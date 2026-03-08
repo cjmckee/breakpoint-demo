@@ -90,6 +90,7 @@ export const tournamentEvents: StoryEvent[] = [
                     anticipation: 3,
                 },
                 moodChange: 20,
+                tierChange: 2,
                 relationshipChanges: {
                     keith: 10,
                     jen: 10,

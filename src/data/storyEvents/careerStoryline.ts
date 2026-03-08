@@ -41,7 +41,7 @@ export const careerEvents: StoryEvent[] = [
     options: [],
     defaultOutcome: {
       resultText: [
-        'You find out about the Academy team. It\'s an honor to be chosen.', 
+        'You find out about the Academy team. It\'s an honor to be chosen. ', 
         'Even though you know nothing about it. Or who even picks these things.'
       ],
       effects: {
