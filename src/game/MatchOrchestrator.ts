@@ -136,10 +136,6 @@ export class MatchOrchestrator {
           config.onKeyMomentResult(result);
         }
 
-        // Apply result to score
-        const pointWinner = result.pointWinner;
-        currentScore = this.updateScore(currentScore, pointWinner);
-
         // Track statistics for key moment (create synthetic PointResult)
         if (this.matchStatistics) {
           const pointResult = this.createPointResultFromKeyMoment(result, currentScore.server);
@@ -147,11 +143,15 @@ export class MatchOrchestrator {
             ? (currentScore.server === 'player' ? 'opponent' : 'player')
             : undefined;
           this.matchStatistics.addPointResult(pointResult, currentScore.server, breakPointFor);
-          this.matchStatistics.addKeyMomentResult(pointWinner);
+          this.matchStatistics.addKeyMomentResult(result.pointWinner);
         }
 
+        // Apply result to score
+        // Update score after recording match statistics in case the update changes game / server
+        currentScore = this.updateScore(currentScore, result.pointWinner);
+
         // Update momentum based on outcome
-        this.updateMomentum(pointWinner, result.outcome);
+        this.updateMomentum(result.pointWinner, result.outcome);
 
         this.keyMomentsTriggered++;
       } else {

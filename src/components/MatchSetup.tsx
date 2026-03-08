@@ -169,9 +169,9 @@ export const MatchSetup: React.FC = () => {
     return null;
   }
 
-  const handleStartMatch = async () => {
-    // Start the match with player stats, abilities, and opponent stats
-    await startMatch({
+  const handleStartMatch = () => {
+    // Fire off match simulation (don't await - it runs until match completes)
+    startMatch({
       playerStats: player.stats,
       playerAbilities: player.abilities, // Pass player abilities to apply during match
       opponentStats: selectedOpponent.stats as PlayerStats,

@@ -163,7 +163,7 @@ export class PrerequisiteChecker {
    */
   static checkMatchHistoryPrerequisites(
     player: Player,
-    requirements?: Pick<StoryEventPrerequisite, 'minMatchesPlayed' | 'minMatchesWon'>
+    requirements?: Pick<StoryEventPrerequisite, 'minMatchesPlayed' | 'minMatchesWon' | 'minWinStreak'>
   ): boolean {
     if (!requirements) return true;
 
@@ -175,6 +175,16 @@ export class PrerequisiteChecker {
     if (requirements.minMatchesWon !== undefined) {
       const matchesWon = player.matchesWon || 0;
       if (matchesWon < requirements.minMatchesWon) return false;
+    }
+
+    if (requirements.minWinStreak !== undefined) {
+      const results = player.latestMatchResults || [];
+      let streak = 0;
+      for (const result of results) {
+        if (result !== 'win') break;
+        streak++;
+      }
+      if (streak < requirements.minWinStreak) return false;
     }
 
     return true;

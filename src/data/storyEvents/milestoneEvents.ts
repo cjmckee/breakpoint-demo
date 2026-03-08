@@ -43,7 +43,7 @@ export const milestoneEvents: StoryEvent[] = [
     tags: ['milestone', 'celebration'],
     timeSlotsRequired: 1,
     prerequisites: {
-      minMatchesWon: 3,
+      minWinStreak: 3,
       excludedEvents: [],
     },
     skippable: false,

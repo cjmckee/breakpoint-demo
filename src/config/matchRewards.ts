@@ -41,32 +41,32 @@ export const STAT_BOOST_AMOUNTS: Record<PerformanceLevel, number> = {
 // Define which stats get boosted for each category at each performance level
 export const CATEGORY_STAT_BOOSTS: Record<string, Record<PerformanceLevel, StatBoosts>> = {
   serving: {
-    excellent: { serve: 3, strength: 2, placement: 1 },
-    good: { serve: 2, strength: 1 },
+    excellent: { serve: 1, strength: 1, placement: 1 },
+    good: { serve: 1, strength: 1 },
     average: { serve: 1 },
     bad: {},
   },
   returning: {
-    excellent: { return: 3, anticipation: 2, agility: 1 },
-    good: { return: 2, anticipation: 1 },
+    excellent: { return: 1, anticipation: 1, agility: 1 },
+    good: { return: 1, anticipation: 1 },
     average: { return: 1 },
     bad: {},
   },
   rallying: {
-    excellent: { forehand: 2, backhand: 2, stamina: 2 },
-    good: { forehand: 2, backhand: 2, stamina: 1 },
-    average: { forehand: 1, backhand: 1 },
+    excellent: { forehand: 1, backhand: 1, stamina: 1, spin: 1 },
+    good: { stamina: 1, spin: 1, backhand: 1 },
+    average: { stamina: 1, spin: 1 },
     bad: {},
   },
   netPlay: {
-    excellent: { volley: 3, agility: 2, offensive: 1 },
-    good: { volley: 2, agility: 1 },
+    excellent: { volley: 1, agility: 1, offensive: 1 },
+    good: { volley: 1, agility: 1 },
     average: { volley: 1 },
     bad: {},
   },
   mental: {
-    excellent: { focus: 3, offensive: 1, defensive: 1 },
-    good: { focus: 2, shotVariety: 1 },
+    excellent: { focus: 1, offensive: 1, defensive: 1 },
+    good: { focus: 1, shotVariety: 1 },
     average: { focus: 1 },
     bad: {},
   },

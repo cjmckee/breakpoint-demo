@@ -4,9 +4,21 @@
  * Based on player stats vs opponent stats
  */
 
-import { TacticalOption } from '../data/tacticalOptions';
+import { TacticalOption, RiskLevel } from '../data/tacticalOptions';
 import { PointType } from '../types';
 import { PlayerStats } from '../types/game';
+
+/**
+ * Risk level modifiers for probability calculation
+ * Low risk: Higher base, smaller swing from stats (safe but less rewarding)
+ * Medium risk: Moderate base, standard stat influence
+ * High risk: Lower base, larger stat swing (risky but high reward potential)
+ */
+const RISK_MODIFIERS: Record<RiskLevel, { baseBonus: number; statMultiplier: number }> = {
+  low: { baseBonus: 15, statMultiplier: 0.25 },
+  medium: { baseBonus: 0, statMultiplier: 0.4 },
+  high: { baseBonus: -15, statMultiplier: 0.55 },
+};
 
 export type OutcomeType = 'critical-success' | 'success' | 'failure' | 'critical-failure';
 
@@ -55,11 +67,13 @@ export class KeyMomentResolver {
       option.opponentStatWeights
     );
 
-    // Base probability calculation
-    // Formula: 30 + (playerScore - opponentScore) * 0.4
-    // This gives a range of roughly 10-90% based on stat differential
+    // Base probability calculation with risk level modifiers
+    // Low risk: higher base (45), smaller stat influence -> safer choice
+    // Medium risk: standard base (30), standard stat influence
+    // High risk: lower base (15), larger stat influence -> high variance
     const differential = playerScore - opponentScore;
-    let baseProbability = 30 + differential * 0.4;
+    const riskMod = RISK_MODIFIERS[option.riskLevel];
+    let baseProbability = 30 + riskMod.baseBonus + differential * riskMod.statMultiplier;
 
     // Apply context modifiers if provided
     if (context) {

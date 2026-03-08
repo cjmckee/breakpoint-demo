@@ -111,6 +111,7 @@ export interface StoryEventPrerequisite {
   // Match history requirements
   minMatchesPlayed?: number;
   minMatchesWon?: number;
+  minWinStreak?: number;           // Minimum consecutive wins (from latestMatchResults)
 
   // Tournament requirements
   activeTournament?: string;           // Must be in specific tournament

@@ -45,9 +45,9 @@ export const TournamentMatch: React.FC = () => {
   const energyCost = TournamentManager.calculateMatchEnergyCost(currentStatus.energy);
   const canAfford = currentStatus.energy >= energyCost;
 
-  const handleStartMatch = async () => {
-    // Start the match with tournament opponent
-    await startMatch({
+  const handleStartMatch = () => {
+    // Fire off match simulation (don't await - it runs until match completes)
+    startMatch({
       playerStats: player.stats,
       playerAbilities: player.abilities,
       opponentStats: opponent.stats as PlayerStats,

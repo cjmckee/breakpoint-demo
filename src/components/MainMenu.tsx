@@ -191,12 +191,13 @@ export const MainMenu: React.FC = () => {
   };
 
   // Handle starting a story match
-  const handleStartStoryMatch = async () => {
+  const handleStartStoryMatch = () => {
     if (!storyMatchMetadata) return;
 
     const startMatch = useMatchStore.getState().startMatch;
 
-    await startMatch({
+    // Fire off match simulation (don't await - it runs until match completes)
+    startMatch({
       playerStats: player.stats,
       playerAbilities: player.abilities,
       opponentStats: storyMatchMetadata.opponentStats,
