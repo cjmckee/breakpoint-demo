@@ -5,12 +5,16 @@
     "types": ["node"]
   },
   "include": [
-    "src/**/*",
+    "src/core/**/*",
+    "src/config/**/*",
+    "src/types/**/*",
+    "src/game/**/*",
+    "src/utils/**/*",
+    "src/test/**/*",
     "test/**/*"
   ],
   "exclude": [
     "node_modules",
-    "dist",
-    "src/main.ts"
+    "dist"
   ]
 }

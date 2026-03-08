@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "test": "npm run build:node && node dist/test/basic-validation.js",
     "test:rally": "npm run build:node && node dist/test/testRallyAnalysis.js",
+    "analyze": "npm run build:node && node dist/src/test/analysis/balanceAnalysis.js",
     "build:node": "tsc -p tsconfig.node.json",
     "clean": "rimraf dist"
   },

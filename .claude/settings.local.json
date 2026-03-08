@@ -15,7 +15,9 @@
       "Bash(npx tailwindcss:*)",
       "Bash(npm run dev:*)",
       "Bash(npm uninstall:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(xargs grep -l \"PlayStyle\\\\|playStyle\")",
+      "Bash(node dist/src/test/analysis/balanceAnalysis.js)"
     ],
     "deny": [],
     "ask": []
