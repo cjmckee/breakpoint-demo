@@ -49,7 +49,7 @@ export class PointSimulator {
     let shotNumber = 1;
 
     // Step 1: Serve sequence
-    const serveResult = this.simulateServe(server, returner, matchState, pointId, shotNumber);
+    const serveResult = this.simulateServe(server, returner, matchState, pointId, shotNumber, currentServer);
     shots.push(...serveResult.shots);
     shotNumber += serveResult.shots.length;
 
@@ -73,7 +73,8 @@ export class PointSimulator {
       returner,
       matchState,
       pointId,
-      serveResult.nextShooter!
+      serveResult.nextShooter!,
+      currentServer
     );
     shots.push(...rallyResult.shots);
 
@@ -92,7 +93,8 @@ export class PointSimulator {
     returner: PlayerProfile,
     matchState: MatchState,
     pointId: string,
-    shotNumber: number
+    shotNumber: number,
+    currentServer: 'player' | 'opponent'
   ): {
     shots: ShotDetail[];
     pointEnded: boolean;
@@ -105,6 +107,10 @@ export class PointSimulator {
     const shots: ShotDetail[] = [];
 
     // First serve attempt
+    // Server fatigue and momentum from server's perspective
+    const serverFatigue = matchState.fatigue[currentServer];
+    const serverMomentum = currentServer === 'player' ? matchState.momentum : -matchState.momentum;
+
     const firstServeContext = this.createServeContext(matchState, true);
     const firstServeResult = this.shotCalculator.calculateShotSuccess(
       server,
@@ -112,7 +118,10 @@ export class PointSimulator {
       firstServeContext,
       returner,
       'well_positioned',
-      undefined
+      undefined,
+      undefined,
+      serverFatigue,
+      serverMomentum
     );
 
     // Check first serve result
@@ -177,7 +186,10 @@ export class PointSimulator {
       secondServeContext,
       returner,
       'well_positioned',
-      undefined
+      undefined,
+      undefined,
+      serverFatigue,
+      serverMomentum
     );
 
     const secondServeShot: ShotDetail = {
@@ -240,7 +252,8 @@ export class PointSimulator {
     returner: PlayerProfile,
     matchState: MatchState,
     pointId: string,
-    firstShooter: 'server' | 'returner'
+    firstShooter: 'server' | 'returner',
+    currentServer: 'player' | 'opponent'
   ): {
     shots: ShotDetail[];
     winner: 'server' | 'returner';
@@ -298,6 +311,12 @@ export class PointSimulator {
         shooterPosition
       );
 
+      // Resolve shooter identity for fatigue/momentum lookup
+      const shooterIdentity: 'player' | 'opponent' =
+        (currentShooter === 'server') === (currentServer === 'player') ? 'player' : 'opponent';
+      const shooterFatigue = matchState.fatigue[shooterIdentity];
+      const shooterMomentum = shooterIdentity === 'player' ? matchState.momentum : -matchState.momentum;
+
       // Calculate shot result with threshold system
       const shotResult = this.shotCalculator.calculateShotSuccess(
         shooterProfile,
@@ -306,7 +325,9 @@ export class PointSimulator {
         opponentProfile,
         opponentPosition,
         previousShot,
-        tacticalOpportunity
+        tacticalOpportunity,
+        shooterFatigue,
+        shooterMomentum
       );
 
       // Error classification now handled by threshold system

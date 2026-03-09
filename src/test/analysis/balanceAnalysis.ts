@@ -73,6 +73,7 @@ function makeIncomingShotDetail(quality: number, shotType: ShotType = 'forehand'
     modifiers: {
       spinBonus: 0, placementBonus: 0, physicalModifier: 1, mentalModifier: 1,
       difficultyModifier: 1, pressureModifier: 1, rallyLengthModifier: 1, finalAdjustment: 1,
+      fatigueModifier: 1, momentumModifier: 1,
     },
     timestamp: Date.now(),
     shotNumber: 2,

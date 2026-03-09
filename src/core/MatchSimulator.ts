@@ -14,7 +14,9 @@ import type {
   MatchAnalysisData,
   PointAnalysisData,
   PointResult,
+  PlayerMatchFatigue,
 } from '../types/index.js';
+import { MATCH_FATIGUE } from '../config/shotThresholds.js';
 import { PlayerProfile } from './PlayerProfile.js';
 import { PointSimulator } from './PointSimulator.js';
 import { ScoreTracker } from './ScoreTracker.js';
@@ -94,8 +96,9 @@ export class MatchSimulator {
       // Always display player score first
       console.log(`📊 Score - Sets: ${playerSets}-${opponentSets} | Games: ${setGames.player}-${setGames.opponent} | Points: ${playerPoints}-${opponentPoints}`);
 
-      // Reduce player energy slightly (stamina effect)
-      this.applyStaminaCost();
+      // Update fatigue based on the point just played
+      const lastPoint = this.pointResults[this.pointResults.length - 1];
+      this.updateFatigue(lastPoint);
 
       // Log progress occasionally
       if (pointCount % 20 === 0) {
@@ -234,21 +237,56 @@ export class MatchSimulator {
   }
 
   /**
-   * Apply stamina cost to players during long matches
+   * Update fatigue for both players after a point
+   * Fatigue increases based on rally length and stamina stat
+   * Recovery between points is based on recovery stat
    */
-  private applyStaminaCost(): void {
-    const matchLength = this.matchState.matchLength;
+  private updateFatigue(pointResult: PointResult): void {
+    const rallyLength = pointResult.rallyLength;
 
-    // Reduce energy based on match length and player stamina
-    if (matchLength > 30) { // After 30 minutes
-      const staminaCost = Math.max(0, (matchLength - 30) / 10); // 1 energy per 10 minutes
+    this.matchState.fatigue.player = this.calculateNewFatigue(
+      this.matchState.fatigue.player,
+      rallyLength,
+      this.config.player.stats.physical.stamina,
+      this.config.player.stats.physical.recovery
+    );
 
-      const playerStaminaFactor = this.config.player.stats.physical.stamina / 100;
-      const opponentStaminaFactor = this.config.opponent.stats.physical.stamina / 100;
+    this.matchState.fatigue.opponent = this.calculateNewFatigue(
+      this.matchState.fatigue.opponent,
+      rallyLength,
+      this.config.opponent.stats.physical.stamina,
+      this.config.opponent.stats.physical.recovery
+    );
+  }
 
-      this.config.player.reduceEnergy(staminaCost * (1 - playerStaminaFactor));
-      this.config.opponent.reduceEnergy(staminaCost * (1 - opponentStaminaFactor));
+  /**
+   * Calculate new fatigue value after a point
+   */
+  private calculateNewFatigue(
+    currentFatigue: number,
+    rallyLength: number,
+    staminaStat: number,
+    recoveryStat: number
+  ): number {
+    // Stamina reduces fatigue accumulation rate
+    // stamina 0 = full rate (1.0), stamina 100 = minFatigueRate (0.3)
+    const staminaFactor = MATCH_FATIGUE.minFatigueRate +
+      (1 - MATCH_FATIGUE.minFatigueRate) * (1 - staminaStat / 100);
+
+    // Base fatigue from rally
+    let fatigueGain = rallyLength * MATCH_FATIGUE.basePerShot * staminaFactor;
+
+    // Extra fatigue for long rallies
+    if (rallyLength > MATCH_FATIGUE.longRallyThreshold) {
+      fatigueGain += (rallyLength - MATCH_FATIGUE.longRallyThreshold) *
+        MATCH_FATIGUE.longRallyExtra * staminaFactor;
     }
+
+    // Recovery between points, scaled by recovery stat
+    const recovery = MATCH_FATIGUE.baseRecoveryPerPoint +
+      (recoveryStat / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
+
+    return Math.max(0, Math.min(100, currentFatigue + fatigueGain - recovery));
   }
 
   /**
@@ -273,6 +311,10 @@ export class MatchSimulator {
       matchLength: 0,
       pointsPlayed: 0,
       isKeyMoment: false,
+      fatigue: {
+        player: Math.max(0, (100 - this.config.player.energy) * MATCH_FATIGUE.energyToFatigueFactor),
+        opponent: Math.max(0, (100 - this.config.opponent.energy) * MATCH_FATIGUE.energyToFatigueFactor),
+      },
     };
   }
 

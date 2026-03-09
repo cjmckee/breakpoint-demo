@@ -348,3 +348,40 @@ export function getShotCategory(shotType: ShotType): 'offensive' | 'neutral' | '
   // Everything else is neutral
   return 'neutral';
 }
+
+// =======================
+// MATCH FATIGUE & MOMENTUM
+// =======================
+
+/** Match fatigue accumulation and recovery constants */
+export const MATCH_FATIGUE = {
+  /** Base fatigue gained per rally shot */
+  basePerShot: 0.15,
+  /** Extra fatigue per shot in rallies longer than 8 shots */
+  longRallyExtra: 0.05,
+  /** Rally length threshold for extra fatigue */
+  longRallyThreshold: 8,
+  /** Minimum fatigue rate as fraction of base (stamina 100 player) */
+  minFatigueRate: 0.3,
+  /** Base recovery per point (before recovery stat scaling) */
+  baseRecoveryPerPoint: 0.08,
+  /** Max recovery per point (recovery stat 100) */
+  maxRecoveryPerPoint: 0.25,
+  /** Starting fatigue factor from low energy: (100 - energy) * this */
+  energyToFatigueFactor: 0.3,
+};
+
+/** Fatigue quality modifier: linear from 1.0 (fatigue=0) to minModifier (fatigue=100) */
+export const FATIGUE_MODIFIER = {
+  minModifier: 0.80, // 20% max penalty at total exhaustion
+};
+
+/** Momentum quality modifier */
+export const MOMENTUM_MODIFIER = {
+  /** Max bonus from positive momentum (+100) */
+  maxBonus: 0.05,
+  /** Max penalty from negative momentum (-100) */
+  maxPenalty: 0.05,
+  /** Focus stat mitigation: at focus 100, negative penalty reduced by this fraction */
+  focusMitigation: 0.5,
+};

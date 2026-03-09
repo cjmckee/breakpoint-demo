@@ -19,17 +19,22 @@ import {
   MatchState as KeyMomentMatchState,
 } from '../types/keyMoments';
 import { PlayerStats, Ability } from '../types/game';
-import { MatchStatistics as IMatchStatistics, MatchState, PointResult, PointType } from '../types';
+import { MatchStatistics as IMatchStatistics, MatchState, PointResult, PointType, PlayerMatchFatigue } from '../types';
 import { AbilitySystem } from './AbilitySystem';
+import { MATCH_FATIGUE } from '../config/shotThresholds';
 
 export class MatchOrchestrator {
   private keyMomentsTriggered = 0;
   private pointsPlayed = 0;
+  private recentPointWinners: Array<'player' | 'opponent'> = [];
   private momentum = 0;
   private pressure = 0;
+  private fatigue: PlayerMatchFatigue = { player: 0, opponent: 0 };
   private matchStatistics: MatchStatistics | null = null;
   private pointSimulator: PointSimulator | null = null;
   private cancelled = false;
+  private playerStats: PlayerStats | null = null;
+  private opponentStats: PlayerStats | null = null;
 
   /**
    * Apply ability stat boosts to player stats
@@ -97,6 +102,16 @@ export class MatchOrchestrator {
     this.matchStatistics = new MatchStatistics(player, opponent);
     this.pointSimulator = new PointSimulator();
 
+    // Store stats for fatigue calculations
+    this.playerStats = playerStatsWithAbilities;
+    this.opponentStats = config.opponentStats;
+
+    // Initialize fatigue from pre-match energy
+    this.fatigue = {
+      player: Math.max(0, (100 - (config.energy ?? 100)) * MATCH_FATIGUE.energyToFatigueFactor),
+      opponent: 0,
+    };
+
     // Initialize score tracker
     const scoreTracker = new ScoreTracker();
 
@@ -153,6 +168,10 @@ export class MatchOrchestrator {
         // Update momentum based on outcome
         this.updateMomentum(result.pointWinner, result.outcome);
 
+        // Update fatigue (key moment rallies are ~3-5 shots)
+        const kmPointResult = this.createPointResultFromKeyMoment(result, currentScore.server);
+        this.updateMatchFatigue(kmPointResult.rallyLength);
+
         this.keyMomentsTriggered++;
       } else {
         // NORMAL SIMULATION
@@ -164,8 +183,9 @@ export class MatchOrchestrator {
 
         currentScore = this.updateScore(currentScore, pointWinner);
 
-        // Update momentum
+        // Update momentum and fatigue
         this.updateMomentum(pointWinner, 'success');
+        this.updateMatchFatigue(pointResult.rallyLength);
       }
 
       this.pointsPlayed++;
@@ -327,12 +347,14 @@ export class MatchOrchestrator {
       modifiers: {
         spinBonus: 0,
         placementBonus: 0,
-        physicalModifier: 0,
-        mentalModifier: 0,
-        difficultyModifier: 0,
-        pressureModifier: 0,
-        rallyLengthModifier: 0,
-        finalAdjustment: 0,
+        physicalModifier: 1,
+        mentalModifier: 1,
+        difficultyModifier: 1,
+        pressureModifier: 1,
+        rallyLengthModifier: 1,
+        finalAdjustment: 1,
+        fatigueModifier: 1,
+        momentumModifier: 1,
       },
       timestamp: timestamp + shotNumber * 100,
       shotNumber: shotNumber++,
@@ -541,6 +563,7 @@ export class MatchOrchestrator {
       matchLength: this.pointsPlayed * 0.5, // Rough estimate: 30 seconds per point
       pointsPlayed: this.pointsPlayed,
       isKeyMoment: false,
+      fatigue: { ...this.fatigue },
     };
 
     // Use PointSimulator to simulate the point
@@ -642,17 +665,66 @@ export class MatchOrchestrator {
   }
 
   /**
-   * Update momentum based on point result
+   * Update momentum based on recent point results (last 5 points)
+   * Unified with MatchSimulator's momentum calculation
    */
-  private updateMomentum(winner: 'player' | 'opponent', outcome: string): void {
-    let change = winner === 'player' ? 5 : -5;
-
-    // Critical moments have bigger momentum swings
-    if (outcome === 'critical-success' || outcome === 'critical-failure') {
-      change *= 2;
+  private updateMomentum(winner: 'player' | 'opponent', _outcome: string): void {
+    this.recentPointWinners.push(winner);
+    if (this.recentPointWinners.length > 5) {
+      this.recentPointWinners.shift();
     }
 
-    this.momentum = Math.max(-100, Math.min(100, this.momentum + change));
+    const playerWins = this.recentPointWinners.filter(w => w === 'player').length;
+    const opponentWins = this.recentPointWinners.filter(w => w === 'opponent').length;
+    const total = this.recentPointWinners.length;
+
+    this.momentum = total > 0 ? ((playerWins - opponentWins) / total) * 100 : 0;
+  }
+
+  /**
+   * Update fatigue for both players after a point
+   */
+  private updateMatchFatigue(rallyLength: number): void {
+    if (!this.playerStats || !this.opponentStats) return;
+
+    this.fatigue.player = this.calculateNewFatigue(
+      this.fatigue.player,
+      rallyLength,
+      this.playerStats.physical.stamina,
+      this.playerStats.physical.recovery
+    );
+
+    this.fatigue.opponent = this.calculateNewFatigue(
+      this.fatigue.opponent,
+      rallyLength,
+      this.opponentStats.physical.stamina,
+      this.opponentStats.physical.recovery
+    );
+  }
+
+  /**
+   * Calculate new fatigue value after a point
+   */
+  private calculateNewFatigue(
+    currentFatigue: number,
+    rallyLength: number,
+    staminaStat: number,
+    recoveryStat: number
+  ): number {
+    const staminaFactor = MATCH_FATIGUE.minFatigueRate +
+      (1 - MATCH_FATIGUE.minFatigueRate) * (1 - staminaStat / 100);
+
+    let fatigueGain = rallyLength * MATCH_FATIGUE.basePerShot * staminaFactor;
+
+    if (rallyLength > MATCH_FATIGUE.longRallyThreshold) {
+      fatigueGain += (rallyLength - MATCH_FATIGUE.longRallyThreshold) *
+        MATCH_FATIGUE.longRallyExtra * staminaFactor;
+    }
+
+    const recovery = MATCH_FATIGUE.baseRecoveryPerPoint +
+      (recoveryStat / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
+
+    return Math.max(0, Math.min(100, currentFatigue + fatigueGain - recovery));
   }
 
   /**

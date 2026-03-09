@@ -40,6 +40,8 @@ import {
   PROBABILITY_STEEPNESS,
   sigmoidProbability,
   getShotCategory,
+  FATIGUE_MODIFIER,
+  MOMENTUM_MODIFIER,
 } from '../config/shotThresholds.js';
 
 /**
@@ -86,6 +88,8 @@ export class ShotCalculator {
    * @param opponentPosition - Opponent's court position (required for threshold adjustments)
    * @param incomingShot - Previous shot (for incoming quality and ball characteristics), undefined for serves
    * @param tacticalOpportunity - Optional tactical situation evaluation
+   * @param matchFatigue - Shooter's current match fatigue (0-100)
+   * @param momentum - Momentum from shooter's perspective (-100 to +100, positive = favorable)
    */
   public calculateShotSuccess(
     shooterProfile: PlayerProfile,
@@ -94,7 +98,9 @@ export class ShotCalculator {
     opponentProfile: PlayerProfile,
     opponentPosition: CourtPosition,
     incomingShot?: ShotDetail,
-    tacticalOpportunity?: TacticalOpportunity
+    tacticalOpportunity?: TacticalOpportunity,
+    matchFatigue: number = 0,
+    momentum: number = 0
   ): ShotResult {
     console.log('Calculating shot success for', shotType);
     console.log('Incoming shot quality:', incomingShot?.quality);
@@ -121,7 +127,9 @@ export class ShotCalculator {
       incomingShot,
       ballQuality,
       tacticalOpportunity,
-      opponentPosition
+      opponentPosition,
+      matchFatigue,
+      momentum
     );
 
     // Log modifiers for serves
@@ -345,7 +353,9 @@ export class ShotCalculator {
     incomingShot?: ShotDetail,
     ballQuality?: BallQuality,
     tacticalOpportunity?: TacticalOpportunity,
-    opponentPosition?: CourtPosition
+    opponentPosition?: CourtPosition,
+    matchFatigue: number = 0,
+    momentum: number = 0
   ): ShotModifiers {
     const stats = shooterProfile.stats;
     const playStyle = shooterProfile.playStyle;
@@ -433,6 +443,10 @@ export class ShotCalculator {
     const ballQualityModifier = this.getBallQualityModifier(ballQuality, stats.physical);
     const tacticalModifier = this.getTacticalModifier(shotType, tacticalOpportunity, opponentPosition);
 
+    // Match-level modifiers
+    const fatigueModifier = this.getFatigueModifier(matchFatigue);
+    const momentumModifier = this.getMomentumModifier(momentum, stats.mental.focus);
+
     // Combine all modifiers into final adjustment
     let finalAdjustment =
       (1 + spinBonus / 100) *
@@ -443,7 +457,9 @@ export class ShotCalculator {
       pressureModifier *
       rallyLengthModifier *
       ballQualityModifier *
-      tacticalModifier;
+      tacticalModifier *
+      fatigueModifier *
+      momentumModifier;
 
     // Apply total modifier cap based on shot type
     if (shotType.includes('serve')) {
@@ -466,6 +482,8 @@ export class ShotCalculator {
       serveVariance,
       returnVariance,
       rallyVariance,
+      fatigueModifier,
+      momentumModifier,
     };
   }
 
@@ -607,6 +625,29 @@ export class ShotCalculator {
 
     // Linear interpolation based on stamina stat
     return range.min + (staminaStat / 100) * (range.max - range.min);
+  }
+
+  /**
+   * Get match-level fatigue modifier
+   * Fatigue 0 = 1.0x (no effect), fatigue 100 = 0.8x (20% penalty)
+   */
+  private getFatigueModifier(fatigue: number): number {
+    return 1.0 - (fatigue / 100) * (1.0 - FATIGUE_MODIFIER.minModifier);
+  }
+
+  /**
+   * Get momentum modifier based on current momentum and focus stat
+   * Positive momentum gives a bonus, negative gives a penalty
+   * Focus stat mitigates negative momentum effects
+   */
+  private getMomentumModifier(momentum: number, focusStat: number): number {
+    if (momentum >= 0) {
+      return 1.0 + (momentum / 100) * MOMENTUM_MODIFIER.maxBonus;
+    }
+
+    const rawPenalty = (-momentum / 100) * MOMENTUM_MODIFIER.maxPenalty;
+    const mitigation = 1.0 - (focusStat / 100) * MOMENTUM_MODIFIER.focusMitigation;
+    return 1.0 - rawPenalty * mitigation;
   }
 
   /**

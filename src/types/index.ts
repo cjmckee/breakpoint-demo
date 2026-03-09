@@ -239,6 +239,8 @@ export interface ShotModifiers {
   serveVariance?: number;   // Serve-specific variance applied
   returnVariance?: number;  // Return-specific variance applied
   rallyVariance?: number;   // Rally-specific variance applied (based on incoming shot quality)
+  fatigueModifier: number;   // Match-level fatigue penalty (1.0 = fresh, 0.8 = exhausted)
+  momentumModifier: number;  // Momentum quality modifier (0.95 to 1.05)
 }
 
 // =======================
@@ -364,6 +366,12 @@ export interface MatchFormat {
 /**
  * Current state of the match
  */
+/** Per-player fatigue state tracked across the match (0 = fresh, 100 = exhausted) */
+export interface PlayerMatchFatigue {
+  player: number;
+  opponent: number;
+}
+
 export interface MatchState {
   score: MatchScore;
   currentServer: 'player' | 'opponent';
@@ -373,6 +381,7 @@ export interface MatchState {
   matchLength: number; // minutes elapsed
   pointsPlayed: number;
   isKeyMoment: boolean;
+  fatigue: PlayerMatchFatigue;
 }
 
 /**
