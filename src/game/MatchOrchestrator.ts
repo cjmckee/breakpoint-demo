@@ -607,7 +607,7 @@ export class MatchOrchestrator {
    * Update score after a point
    */
   private updateScore(score: MatchScore, winner: 'player' | 'opponent'): MatchScore {
-    const newScore = { ...score };
+    const newScore = { ...score, momentum: this.momentum };
 
     // Update current game
     if (winner === 'player') {
@@ -853,6 +853,7 @@ export class MatchOrchestrator {
       currentGame: { player: 0, opponent: 0 },
       server: Math.random() < 0.5 ? 'player' : 'opponent',
       isComplete: false,
+      momentum: 0,
     };
   }
 

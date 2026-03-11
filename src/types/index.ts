@@ -615,8 +615,6 @@ export interface PlayerProfile {
 
   // Current condition
   energy: number; // 0-100
-  form: number; // 0-100 (recent performance)
-  confidence: number; // 0-100
 
   // Experience
   level: number;

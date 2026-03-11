@@ -182,7 +182,7 @@ export const LiveMatchViewer: React.FC = () => {
             courtSurface={matchConfig.surface}
             score={currentScore}
             server={currentScore.server}
-            momentum={0} // TODO: Track momentum in match state
+            momentum={currentScore.momentum ?? 0}
             stamina={matchConfig.energy}
             maxStamina={100}
             opponentName={matchConfig.opponentStats?.name || 'Opponent'}

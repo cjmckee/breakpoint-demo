@@ -77,6 +77,7 @@ export interface MatchScore {
   server: 'player' | 'opponent';
   isComplete: boolean;
   winner?: 'player' | 'opponent';
+  momentum?: number; // -100 to 100 (positive = player favor)
 }
 
 /**

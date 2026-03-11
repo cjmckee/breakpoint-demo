@@ -22,8 +22,6 @@ export class PlayerProfile implements IPlayerProfile {
 
   // Current condition
   public energy: number = 100;
-  public form: number = 100;
-  public confidence: number = 50;
 
   // Experience
   public level: number = 1;
@@ -246,20 +244,6 @@ export class PlayerProfile implements IPlayerProfile {
   }
 
   /**
-   * Calculate current form based on energy and confidence
-   */
-  public getCurrentForm(): number {
-    // Form is affected by energy (physical condition) and confidence
-    const energyFactor = this.energy / 100;
-    const confidenceFactor = this.confidence / 100;
-
-    // Form ranges from 0.7 to 1.1 (70% to 110% of base stats)
-    const baseForm = 0.7 + (energyFactor * confidenceFactor * 0.4);
-
-    return Math.max(0.5, Math.min(1.2, baseForm));
-  }
-
-  /**
    * Determine play style based on offensive/defensive balance
    */
   public get playStyle(): PlayStyle {
@@ -342,17 +326,6 @@ export class PlayerProfile implements IPlayerProfile {
   }
 
   /**
-   * Update confidence based on match results
-   */
-  public updateConfidence(matchResult: 'win' | 'loss', competitiveness: number): void {
-    if (matchResult === 'win') {
-      this.confidence = Math.min(100, this.confidence + competitiveness * 5);
-    } else {
-      this.confidence = Math.max(0, this.confidence - competitiveness * 3);
-    }
-  }
-
-  /**
    * Gain experience from activities
    */
   public gainExperience(amount: number): void {
@@ -375,8 +348,6 @@ export class PlayerProfile implements IPlayerProfile {
   public clone(): PlayerProfile {
     const clone = new PlayerProfile(this.id, this.name, this.stats);
     clone.energy = this.energy;
-    clone.form = this.form;
-    clone.confidence = this.confidence;
     clone.level = this.level;
     clone.experience = this.experience;
     clone.matchesPlayed = this.matchesPlayed;
@@ -393,8 +364,6 @@ export class PlayerProfile implements IPlayerProfile {
       name: this.name,
       stats: this.stats,
       energy: this.energy,
-      form: this.form,
-      confidence: this.confidence,
       level: this.level,
       experience: this.experience,
       matchesPlayed: this.matchesPlayed,
@@ -408,8 +377,6 @@ export class PlayerProfile implements IPlayerProfile {
   public static fromJSON(data: Record<string, any>): PlayerProfile {
     const player = new PlayerProfile(data.id, data.name, data.stats);
     player.energy = data.energy ?? 100;
-    player.form = data.form ?? 100;
-    player.confidence = data.confidence ?? 50;
     player.level = data.level ?? 1;
     player.experience = data.experience ?? 0;
     player.matchesPlayed = data.matchesPlayed ?? 0;

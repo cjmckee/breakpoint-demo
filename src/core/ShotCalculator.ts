@@ -113,7 +113,6 @@ export class ShotCalculator {
       console.log('  Serve stat (primary):', primaryStat);
       console.log('  Player name:', shooterProfile.name);
       console.log('  Player energy:', shooterProfile.energy);
-      console.log('  Player form:', shooterProfile.form);
     }
 
     // Step 2: Derive ball quality from incoming shot (if available)

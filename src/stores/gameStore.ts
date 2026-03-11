@@ -487,6 +487,25 @@ export const useGameStore = create<GameState>()(
         // Tier unlocks are now handled by story events (e.g., Riverside Open victory)
         const tierUnlocked: OpponentTier | null = null;
 
+        // Generate match highlights from statistics
+        const highlights: string[] = [];
+        highlights.push(`Final Score: ${score}`);
+        if (matchStatistics.aces.player > 5) {
+          highlights.push(`${matchStatistics.aces.player} aces served`);
+        }
+        if (matchStatistics.longestRally > 15) {
+          highlights.push(`Longest rally: ${matchStatistics.longestRally} shots`);
+        }
+        if (matchStatistics.breakPointsConverted.player > 0) {
+          highlights.push(`${matchStatistics.breakPointsConverted.player} break points converted`);
+        }
+        if (matchStatistics.winners.player > 20) {
+          highlights.push(`${matchStatistics.winners.player} winners hit`);
+        }
+        if (matchStatistics.keyMomentsWon.player > 0) {
+          highlights.push(`${matchStatistics.keyMomentsWon.player} key moments won`);
+        }
+
         // Create match activity result with rewards
         const matchActivity: ActivityResult = {
           id: `match-${Date.now()}`,
@@ -505,7 +524,7 @@ export const useGameStore = create<GameState>()(
           statChanges: rewards.statBoosts,
           experienceGained: rewards.experience,
           matchType: 'friendly',
-          highlights: [], // TODO: Add highlights from key moments
+          highlights,
           reward: rewards,
           tierUnlocked,
         };
