@@ -207,6 +207,96 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
           </div>
         </div>
 
+        {/* Match Highlights */}
+        {matchStatistics && (
+          <div className="bg-pixel-card border-4 border-yellow-500 p-4">
+            <h3 className="text-lg font-bold text-pixel-text mb-4 text-center">
+              Highlights
+            </h3>
+            <div className="space-y-2">
+              {(() => {
+                const highlights: Array<{ icon: string; text: string }> = [];
+
+                // Aces
+                if (matchStatistics.aces.player > 0) {
+                  highlights.push({
+                    icon: matchStatistics.aces.player >= 5 ? '🔥' : '🎾',
+                    text: `${matchStatistics.aces.player} ace${matchStatistics.aces.player !== 1 ? 's' : ''} served`,
+                  });
+                }
+
+                // Winners
+                if (matchStatistics.winners.player > 0) {
+                  highlights.push({
+                    icon: matchStatistics.winners.player >= 20 ? '💥' : '🎯',
+                    text: `${matchStatistics.winners.player} winner${matchStatistics.winners.player !== 1 ? 's' : ''} hit`,
+                  });
+                }
+
+                // Break points
+                if (matchStatistics.breakPointsConverted.player > 0) {
+                  highlights.push({
+                    icon: '⚡',
+                    text: `${matchStatistics.breakPointsConverted.player}/${matchStatistics.breakPointOpportunities.player} break points converted`,
+                  });
+                }
+
+                // Longest rally
+                if (matchStatistics.longestRally > 10) {
+                  highlights.push({
+                    icon: '🔁',
+                    text: `Epic ${matchStatistics.longestRally}-shot rally`,
+                  });
+                }
+
+                // Key moments
+                if (keyMomentHistory && keyMomentHistory.length > 0) {
+                  const won = keyMomentHistory.filter(km => km.result.pointWinner === 'player').length;
+                  highlights.push({
+                    icon: won > keyMomentHistory.length / 2 ? '🏅' : '⚡',
+                    text: `${won}/${keyMomentHistory.length} key moments won`,
+                  });
+                }
+
+                // Low unforced errors
+                if (matchStatistics.unforcedErrors.player < matchStatistics.unforcedErrors.opponent) {
+                  highlights.push({
+                    icon: '🧊',
+                    text: `Fewer unforced errors (${matchStatistics.unforcedErrors.player} vs ${matchStatistics.unforcedErrors.opponent})`,
+                  });
+                }
+
+                // First serve percentage
+                if (matchStatistics.firstServePercentage.player >= 70) {
+                  highlights.push({
+                    icon: '📈',
+                    text: `${Math.round(matchStatistics.firstServePercentage.player)}% first serve rate`,
+                  });
+                }
+
+                // Net play
+                if (matchStatistics.netPointsWon.player >= 3) {
+                  highlights.push({
+                    icon: '🥅',
+                    text: `${matchStatistics.netPointsWon.player} net points won`,
+                  });
+                }
+
+                if (highlights.length === 0) {
+                  highlights.push({ icon: '🎾', text: 'Hard-fought match!' });
+                }
+
+                return highlights.map((h, idx) => (
+                  <div key={idx} className="flex items-center gap-3 p-2 bg-yellow-500 bg-opacity-10 border border-yellow-500 border-opacity-30">
+                    <span className="text-xl">{h.icon}</span>
+                    <span className="text-sm text-pixel-text">{h.text}</span>
+                  </div>
+                ));
+              })()}
+            </div>
+          </div>
+        )}
+
         {/* Performance & Rewards Section */}
         {matchRewards && (
           <>
@@ -582,6 +672,142 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
                   </div>
                 </>
               )}
+
+              {/* Shot Type Breakdown */}
+              {matchStatistics && Object.keys(matchStatistics.shotTypeStats).length > 0 && (
+                <div className="border-t-2 border-pixel-border pt-4">
+                  <h4 className="text-md font-bold text-pixel-text mb-3">🏸 Shot Breakdown</h4>
+                  <div className="space-y-2">
+                    <div className="grid gap-2 text-xs text-pixel-text-muted font-bold mb-1" style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr' }}>
+                      <div>Shot Type</div>
+                      <div className="text-center">Used</div>
+                      <div className="text-center">Success %</div>
+                      <div className="text-center">Winners</div>
+                    </div>
+                    {Object.entries(matchStatistics.shotTypeStats)
+                      .filter(([_, stats]) => stats && stats.attempts.player > 0)
+                      .sort(([, a], [, b]) => (b?.attempts.player ?? 0) - (a?.attempts.player ?? 0))
+                      .slice(0, 10)
+                      .map(([shotType, stats]) => {
+                        if (!stats) return null;
+                        const attempts = stats.attempts.player;
+                        const successRate = attempts > 0 ? Math.round((stats.successful.player / attempts) * 100) : 0;
+                        const displayName = shotType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                        return (
+                          <div key={shotType} className="grid gap-2 text-sm items-center" style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr' }}>
+                            <div className="text-pixel-text text-xs truncate">{displayName}</div>
+                            <div className="text-pixel-text text-center">{attempts}</div>
+                            <div className="text-center">
+                              <span className={`font-bold ${successRate >= 70 ? 'text-green-500' : successRate >= 50 ? 'text-yellow-500' : 'text-red-500'}`}>
+                                {successRate}%
+                              </span>
+                            </div>
+                            <div className="text-pixel-text text-center">{stats.winners.player}</div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              )}
+
+              {/* Stat Utilization - which stats are being used and how often */}
+              {matchStatistics && Object.keys(matchStatistics.shotTypeStats).length > 0 && (() => {
+                // Map shot types to their primary stat (same mapping as PlayerProfile.getStatForShot)
+                const shotToStat: Record<string, string> = {};
+                const assignStat = (prefix: string, stat: string) => {
+                  Object.keys(matchStatistics.shotTypeStats).forEach(shotType => {
+                    if (shotType.includes(prefix) && !shotToStat[shotType]) {
+                      shotToStat[shotType] = stat;
+                    }
+                  });
+                };
+                // Order matters: more specific prefixes first
+                assignStat('serve', 'serve');
+                assignStat('return', 'return');
+                assignStat('volley', 'volley');
+                assignStat('half_volley', 'volley');
+                assignStat('overhead', 'overhead');
+                assignStat('drop_shot', 'dropShot');
+                assignStat('short_angle', 'dropShot');
+                assignStat('slice', 'slice');
+                assignStat('defensive_slice', 'slice');
+                assignStat('angle_shot', 'placement');
+                assignStat('down_the_line', 'placement');
+                assignStat('cross_court', 'placement');
+                assignStat('lob', 'placement');
+                assignStat('passing_shot', 'placement');
+                assignStat('topspin_forehand', 'forehand');
+                assignStat('topspin_backhand', 'backhand');
+                assignStat('forehand', 'forehand');
+                assignStat('backhand', 'backhand');
+
+                // Aggregate by stat
+                const statAgg: Record<string, { attempts: number; successful: number; winners: number; errors: number }> = {};
+                let totalAttempts = 0;
+
+                Object.entries(matchStatistics.shotTypeStats).forEach(([shotType, stats]) => {
+                  if (!stats) return;
+                  const stat = shotToStat[shotType] || 'other';
+                  if (!statAgg[stat]) {
+                    statAgg[stat] = { attempts: 0, successful: 0, winners: 0, errors: 0 };
+                  }
+                  statAgg[stat].attempts += stats.attempts.player;
+                  statAgg[stat].successful += stats.successful.player;
+                  statAgg[stat].winners += stats.winners.player;
+                  statAgg[stat].errors += stats.errors.player;
+                  totalAttempts += stats.attempts.player;
+                });
+
+                const statEntries = Object.entries(statAgg)
+                  .filter(([_, data]) => data.attempts > 0)
+                  .sort(([, a], [, b]) => b.attempts - a.attempts);
+
+                if (statEntries.length === 0) return null;
+
+                const displayNames: Record<string, string> = {
+                  serve: 'Serve', forehand: 'Forehand', backhand: 'Backhand',
+                  volley: 'Volley', overhead: 'Overhead', dropShot: 'Drop Shot',
+                  slice: 'Slice', return: 'Return', placement: 'Placement', other: 'Other',
+                };
+
+                return (
+                  <div className="border-t-2 border-pixel-border pt-4">
+                    <h4 className="text-md font-bold text-pixel-text mb-3">📊 Stat Utilization</h4>
+                    <p className="text-xs text-pixel-text-muted mb-3">How often each stat was used as the primary stat for shots</p>
+                    <div className="space-y-2">
+                      <div className="grid gap-2 text-xs text-pixel-text-muted font-bold mb-1" style={{ gridTemplateColumns: '10rem 1fr 3.5rem 3.5rem 3.5rem' }}>
+                        <div>Stat</div>
+                        <div>Usage</div>
+                        <div className="text-center">Count</div>
+                        <div className="text-center">Succ%</div>
+                        <div className="text-center">W</div>
+                      </div>
+                      {statEntries.map(([stat, data]) => {
+                        const pct = totalAttempts > 0 ? (data.attempts / totalAttempts) * 100 : 0;
+                        const successRate = data.attempts > 0 ? Math.round((data.successful / data.attempts) * 100) : 0;
+                        return (
+                          <div key={stat} className="grid items-center gap-2" style={{ gridTemplateColumns: '10rem 1fr 3.5rem 3.5rem 3.5rem' }}>
+                            <div className="text-sm font-bold text-pixel-text truncate">{displayNames[stat] || stat}</div>
+                            <div className="bg-pixel-bg border border-pixel-border h-3 overflow-hidden">
+                              <div
+                                className="h-full bg-pixel-accent bg-opacity-60"
+                                style={{ width: `${Math.min(100, pct)}%` }}
+                              />
+                            </div>
+                            <div className="text-xs text-pixel-text text-center">{data.attempts}</div>
+                            <div className="text-center">
+                              <span className={`text-xs font-bold ${successRate >= 70 ? 'text-green-500' : successRate >= 50 ? 'text-yellow-500' : 'text-red-500'}`}>
+                                {successRate}%
+                              </span>
+                            </div>
+                            <div className="text-xs text-pixel-text text-center">{data.winners}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Key Moments Performance (if available) */}
               {keyMomentHistory && keyMomentHistory.length > 0 && (
