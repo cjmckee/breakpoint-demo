@@ -187,7 +187,7 @@ export class ShotSelector {
     } else if (netApproachStat >= 50) {
       baseProbability = 0.15; // 15% for occasional net players
     } else {
-      baseProbability = 0.05; // 5% for baseliners
+      baseProbability = 0.08; // 8% for baseliners
     }
 
     // Situational modifiers
@@ -197,6 +197,7 @@ export class ShotSelector {
 
     if (opportunity.attackOpportunity === 'high') probability *= 2.5;
     else if (opportunity.attackOpportunity === 'medium') probability *= 1.5;
+    else if (opportunity.attackOpportunity === 'low') probability *= 1.2;
 
     if (rallyState.lastShotQuality >= 80) probability *= 1.3;
     if (rallyState.opponentPosition === 'way_back_deep') probability *= 1.5;

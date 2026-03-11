@@ -63,8 +63,8 @@ export class TacticalAnalyzer {
 
     // Net approach suitability
     const netApproachSuitable =
-      attackScore >= 40 &&
-      rallyLength >= 3 &&
+      attackScore >= 25 &&
+      rallyLength >= 2 &&
       !defensiveRequired &&
       shooterPosition !== 'at_net'; // Don't approach if already at net
 
