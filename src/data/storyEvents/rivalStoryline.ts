@@ -12,8 +12,8 @@ export const rivalEvents: StoryEvent[] = [
     tags: ['rival', 'intro', 'conflict'],
     timeSlotsRequired: 1,
     prerequisites: {
-      minMatchesWon: 4,
-      minDay: 12,
+      completedEvents: ['making_connections'],
+      minDay: 3,
     },
     skippable: true,
     description: 'You meet a talented player with a cocky attitude who seems determined to prove they\'re better than you.',

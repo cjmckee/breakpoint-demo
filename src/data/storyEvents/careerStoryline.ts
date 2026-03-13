@@ -68,7 +68,7 @@ export const careerEvents: StoryEvent[] = [
     tags: ['team'],
     timeSlotsRequired: 1,
     prerequisites: {
-      completedEvents: ['club_team_intro'],
+      completedEvents: ['club_team_intro', 'rival_first_encounter'],
       minDay: 5,
     },
     skippable: false,

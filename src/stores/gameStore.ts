@@ -215,10 +215,31 @@ export const useGameStore = create<GameState>()(
         // Generate initial training sessions
         const initialSessions = TrainingSystem.getAvailableTrainingSessions(player, 0);
 
+        // Schedule initial story events so they fire reliably in the correct order
+        // rather than relying on random chance triggers
+        const initialStorySchedule: ScheduledEvent[] = [
+          { eventType: 'story', scheduledDay: 1, scheduledTimeSlot: TimeSlot.AFTERNOON, metadata: { storyEventId: 'making_connections' } },
+          { eventType: 'story', scheduledDay: 1, scheduledTimeSlot: TimeSlot.EVENING, metadata: { storyEventId: 'food_hall_gossip' } },
+          { eventType: 'story', scheduledDay: 2, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'player_tier_intro' } },
+          { eventType: 'story', scheduledDay: 2, scheduledTimeSlot: TimeSlot.AFTERNOON, metadata: { storyEventId: 'training_session_intro' } },
+          { eventType: 'story', scheduledDay: 2, scheduledTimeSlot: TimeSlot.EVENING, metadata: { storyEventId: 'relationship_basics' } },
+          { eventType: 'story', scheduledDay: 3, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'abilities_basics' } },
+          { eventType: 'story', scheduledDay: 3, scheduledTimeSlot: TimeSlot.AFTERNOON, metadata: { storyEventId: 'rival_first_encounter' } },
+          { eventType: 'story', scheduledDay: 4, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'club_team_intro' } },
+          { eventType: 'story', scheduledDay: 5, scheduledTimeSlot: TimeSlot.AFTERNOON, metadata: { storyEventId: 'club_team_first_practice' } },
+        ];
+
         set({
           player,
           currentTrainingSessions: initialSessions,
           currentScreen: 'main-menu',
+          calendar: {
+            ...get().calendar,
+            scheduledEvents: [
+              ...get().calendar.scheduledEvents,
+              ...initialStorySchedule,
+            ],
+          },
         });
 
         // Trigger welcome event (guaranteed, no probability roll)
@@ -358,13 +379,19 @@ export const useGameStore = create<GameState>()(
         // Check for random story event at start of new slot (except NIGHT)
         // BUT: Don't trigger if there's a scheduled event for this time slot
         if (newCalendar.currentTimeSlot !== TimeSlot.NIGHT) {
-          const hasScheduledEvent = ScheduledEventManager.hasScheduledEvent(
+          const scheduledEvent = ScheduledEventManager.getScheduledEvent(
             newCalendar.scheduledEvents,
-            newCalendar.currentDay,
-            newCalendar.currentTimeSlot
+            newCalendar
           );
 
-          if (!hasScheduledEvent) {
+          if (scheduledEvent && scheduledEvent.eventType === 'story') {
+            // Scheduled story event: trigger by ID and clear the slot
+            const storyEventId = (scheduledEvent.metadata as Record<string, unknown>)?.storyEventId as string | undefined;
+            if (storyEventId) {
+              get().clearScheduledEvent(newCalendar.currentDay, newCalendar.currentTimeSlot);
+              get().checkForStoryEventById(storyEventId);
+            }
+          } else if (!scheduledEvent) {
             get().checkForRandomStoryEvent();
           }
         }
