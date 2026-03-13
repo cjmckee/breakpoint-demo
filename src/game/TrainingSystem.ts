@@ -19,8 +19,10 @@ import {
   Modifiers,
   Player,
   TrainingResult,
+  EffectKey,
 } from '../types/game';
 import { ItemManager } from './ItemManager';
+import { EffectAggregator } from '../core/EffectAggregator';
 
 // Training session base configurations
 interface TrainingConfig {
@@ -164,7 +166,8 @@ export class TrainingSystem {
     player: Player,
     mood: number,
     lastTrainingType?: TrainingSessionType,
-    numOptions: number = 2
+    numOptions: number = 2,
+    activeEffects?: Record<string, number>
   ): TrainingSession[] {
     // Get available session types (exclude last training type)
     const availableTypes = this.getAvailableSessionTypes(lastTrainingType);
@@ -174,7 +177,7 @@ export class TrainingSystem {
 
     // Generate sessions with tier assignments (respecting player tier)
     return selectedTypes.map(sessionType =>
-      this.createTrainingSession(sessionType, mood, player.tier)
+      this.createTrainingSession(sessionType, mood, player.tier, activeEffects)
     );
   }
 
@@ -184,7 +187,8 @@ export class TrainingSystem {
   static createTrainingSession(
     sessionType: TrainingSessionType,
     playerMood: number,
-    playerTier: number = 1
+    playerTier: number = 1,
+    activeEffects?: Record<string, number>
   ): TrainingSession {
     const config = TRAINING_SESSION_CONFIGS[sessionType];
 
@@ -195,7 +199,20 @@ export class TrainingSystem {
     const initialTier = this.assignTier(allowedTiers);
 
     // Apply mood effects to tier (but still respect allowed tiers)
-    const { finalTier, tierModification } = this.applyMoodEffects(initialTier, playerMood, allowedTiers);
+    let { finalTier, tierModification } = this.applyMoodEffects(initialTier, playerMood, allowedTiers);
+
+    // Apply training tier bonus from items/abilities
+    if (activeEffects) {
+      const tierBonus = Math.floor(EffectAggregator.getEffect(activeEffects, EffectKey.TRAINING_TIER_BONUS));
+      if (tierBonus > 0) {
+        const currentIndex = allowedTiers.indexOf(finalTier);
+        const newIndex = Math.min(allowedTiers.length - 1, currentIndex + tierBonus);
+        if (newIndex !== currentIndex) {
+          finalTier = allowedTiers[newIndex];
+          tierModification = tierModification || 'promoted';
+        }
+      }
+    }
 
     // Get tier configuration and scale stat boosts
     const tierConfig = TIER_CONFIGS[finalTier];
@@ -233,7 +250,8 @@ export class TrainingSystem {
   static executeTraining(
     player: Player,
     session: TrainingSession,
-    currentEnergy: number
+    currentEnergy: number,
+    activeEffects?: Record<string, number>
   ): TrainingResult {
     if (currentEnergy < session.energyCost) {
       throw new Error('Not enough energy for this training session');
@@ -255,6 +273,16 @@ export class TrainingSystem {
       }
     }
 
+    // Apply training stat multiplier from items/abilities
+    if (activeEffects) {
+      const statMultiplier = EffectAggregator.getEffect(activeEffects, EffectKey.TRAINING_STAT_MULTIPLIER);
+      if (statMultiplier > 0) {
+        for (const stat of Object.keys(finalStatBoosts)) {
+          finalStatBoosts[stat] = Math.round(finalStatBoosts[stat] * (1 + statMultiplier));
+        }
+      }
+    }
+
     // Calculate ability roll for diamond tier
     let abilityGained: string | undefined;
     let abilityLevel = 1;
@@ -263,7 +291,10 @@ export class TrainingSystem {
     let baseChance: number | undefined;
 
     if (session.tier === 'diamond' && session.ability) {
-      const abilityRoll = this.rollForAbility(session);
+      const abilityChanceBonus = activeEffects
+        ? EffectAggregator.getEffect(activeEffects, EffectKey.ABILITY_CHANCE_BONUS)
+        : 0;
+      const abilityRoll = this.rollForAbility(session, abilityChanceBonus);
       // Always store roll details for UI display
       roll = abilityRoll.roll;
       threshold = abilityRoll.threshold;
@@ -310,7 +341,7 @@ export class TrainingSystem {
   /**
    * Roll for ability gain in diamond tier training
    */
-  static rollForAbility(session: TrainingSession): {
+  static rollForAbility(session: TrainingSession, abilityChanceBonus: number = 0): {
     success: boolean;
     abilityName?: string;
     roll?: number;
@@ -324,12 +355,12 @@ export class TrainingSystem {
     const tierConfig = TIER_CONFIGS[session.tier];
     const baseChance = tierConfig.abilityChance;
 
-    if (baseChance === 0) {
+    if (baseChance === 0 && abilityChanceBonus === 0) {
       return { success: false };
     }
 
     const roll = Math.random() * 100;
-    const threshold = baseChance;
+    const threshold = baseChance + abilityChanceBonus;
 
     return {
       success: roll <= threshold,

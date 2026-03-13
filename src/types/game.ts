@@ -62,6 +62,28 @@ export interface Modifiers {
   additional?: Record<string, number>;
 }
 
+/**
+ * Well-known keys for Modifiers.additional field.
+ * Game systems query these keys to apply out-of-match effects.
+ */
+export const EffectKey = {
+  // Training effects
+  TRAINING_TIER_BONUS: 'training_tier_bonus',
+  TRAINING_STAT_MULTIPLIER: 'training_stat_multiplier',
+  ABILITY_CHANCE_BONUS: 'ability_chance_bonus',
+
+  // Event effects
+  EVENT_TRIGGER_BONUS: 'event_trigger_bonus',
+
+  // Mood/Energy effects
+  MOOD_GAIN_BONUS: 'mood_gain_bonus',
+  ENERGY_GAIN_BONUS: 'energy_gain_bonus',
+  ENERGY_COST_REDUCTION: 'energy_cost_reduction',
+
+  // Relationship effects
+  RELATIONSHIP_GAIN_BONUS: 'relationship_gain_bonus',
+} as const;
+
 export const AbilityName = {
   // common
   BASELINER: 'baseliner',

@@ -11,6 +11,7 @@ interface StatCardProps {
   max?: number;
   showChange?: boolean;
   changeValue?: number;
+  boost?: number; // Persistent boost from items/abilities
 }
 
 // Letter grade and color mapping function
@@ -36,6 +37,7 @@ export const StatCard: React.FC<StatCardProps> = ({
   max = 100,
   showChange = false,
   changeValue = 0,
+  boost = 0,
 }) => {
   // Memoize grade style calculation
   const gradeStyle = useMemo(() => {
@@ -134,6 +136,11 @@ export const StatCard: React.FC<StatCardProps> = ({
         <span className="text-xs text-pixel-text-muted font-mono">
           {value}
         </span>
+        {boost > 0 && (
+          <span className="text-xs font-bold text-cyan-400 ml-1 font-mono">
+            +{boost}
+          </span>
+        )}
       </div>
 
       {/* Change Indicator */}

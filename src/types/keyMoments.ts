@@ -5,7 +5,7 @@
 
 import { TacticalOption, KeyMomentType } from '../data/tacticalOptions';
 import { KeyMomentResult } from '../game/KeyMomentResolver';
-import { Ability } from './game';
+import { Ability, StatBoosts } from './game';
 import { MatchStatistics } from './index';
 
 /**
@@ -89,6 +89,7 @@ export interface InteractiveMatchConfig {
   opponentName?: string; // Opponent's display name
   opponentTier?: number; // Opponent tier (1-4) for reward calculation
   playerAbilities?: Ability[]; // Player abilities to apply during match
+  itemBoosts?: StatBoosts; // Stat boosts from equipped/passive items
   surface: 'hard' | 'clay' | 'grass' | 'carpet';
 
   // Game state context

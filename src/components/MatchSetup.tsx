@@ -9,6 +9,7 @@ import { useMatchStore } from '../stores/matchStore';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { PlayerStats, OpponentTier } from '../types/game';
+import { ItemManager } from '../game/ItemManager';
 
 type CourtSurface = 'hard' | 'clay' | 'grass' | 'carpet';
 
@@ -173,7 +174,8 @@ export const MatchSetup: React.FC = () => {
     // Fire off match simulation (don't await - it runs until match completes)
     startMatch({
       playerStats: player.stats,
-      playerAbilities: player.abilities, // Pass player abilities to apply during match
+      playerAbilities: player.abilities,
+      itemBoosts: ItemManager.getTotalPassiveBoosts(player),
       opponentStats: selectedOpponent.stats as PlayerStats,
       opponentName: selectedOpponent.name,
       opponentTier: selectedOpponent.tier,

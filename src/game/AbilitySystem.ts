@@ -78,11 +78,12 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       },
       additional: {
         clutch: 1,
+        training_tier_bonus: 1,
       },
     },
     description:
       "When the pressure is on, you thrive. You actually play better when you're down match point.",
-    effects: 'Increases focus stat by 3. Improves clutch performance.',
+    effects: 'Increases focus stat by 3. Improves clutch performance and training quality.',
   },
 
   [AbilityName.HEAVY_HITTER]: {
@@ -218,12 +219,13 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
         mental_resilience: 3,
         focus_duration: 2,
         clutch_performance: 1,
+        mood_gain_bonus: 2,
       },
     },
     description:
       'Your mental game is unbreakable. You can handle any pressure situation and always find a way to win.',
     effects:
-      'Increases focus by 8, recovery by 6, anticipation by 4. Greatly improves mental resilience and focus.',
+      'Increases focus by 8, recovery by 6, anticipation by 4. Greatly improves mental resilience and mood recovery.',
   },
 
   // ==================== LEGENDARY ABILITIES ====================

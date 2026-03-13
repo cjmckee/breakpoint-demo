@@ -1,4 +1,7 @@
 {
+  "env": {
+    "ENABLE_LSP_TOOL": "1"
+  },
   "permissions": {
     "allow": [
       "Bash(npx tsc:*)",
@@ -18,13 +21,14 @@
       "Bash(pkill:*)",
       "Bash(xargs grep -l \"PlayStyle\\\\|playStyle\")",
       "Bash(node dist/src/test/analysis/balanceAnalysis.js)",
-      "Read(//c/Users/Cody/.claude/**)"
+      "Read(//c/Users/Cody/.claude/**)",
+      "Bash(grep *)",
+      "Bash(npx vite build)"
     ],
     "deny": [],
     "ask": []
   },
-  "env": { "ENABLE_LSP_TOOL": "1" },
   "enabledPlugins": {
-     "typescript-lsp@claude-plugins-official": true
+    "typescript-lsp@claude-plugins-official": true
   }
 }

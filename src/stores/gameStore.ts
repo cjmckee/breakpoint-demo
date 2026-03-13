@@ -37,6 +37,8 @@ import { TournamentManager } from '../game/TournamentManager';
 import { ScheduledEventManager } from '../game/ScheduledEventManager';
 import { StoryMatchManager } from '../game/StoryMatchManager';
 import { CalendarService } from '../game/CalendarService';
+import { EffectAggregator } from '../core/EffectAggregator';
+import { EffectKey } from '../types/game';
 import type { ModalEntry, ModalData, ModalType } from '../types/ui';
 import { createModalEntry, sortModalQueue } from '../types/ui';
 
@@ -213,7 +215,8 @@ export const useGameStore = create<GameState>()(
         const player = PlayerManager.createPlayer(name, playstyle);
 
         // Generate initial training sessions
-        const initialSessions = TrainingSystem.getAvailableTrainingSessions(player, 0);
+        const { effects: initialEffects } = EffectAggregator.getActiveEffects(player);
+        const initialSessions = TrainingSystem.getAvailableTrainingSessions(player, 0, undefined, 2, initialEffects);
 
         // Schedule initial story events so they fire reliably in the correct order
         // rather than relying on random chance triggers
@@ -257,10 +260,16 @@ export const useGameStore = create<GameState>()(
         const { player, currentStatus, calendar } = get();
         if (!player) return;
 
+        // Get active effects from items/abilities
+        const { effects: activeEffects } = EffectAggregator.getActiveEffects(player);
+
         // Get available training sessions
         const sessions = TrainingSystem.getAvailableTrainingSessions(
           player,
-          currentStatus.mood
+          currentStatus.mood,
+          undefined,
+          2,
+          activeEffects
         );
 
         if (sessions.length === 0) return;
@@ -271,7 +280,8 @@ export const useGameStore = create<GameState>()(
         const result = TrainingSystem.executeTraining(
           player,
           session,
-          currentStatus.energy
+          currentStatus.energy,
+          activeEffects
         );
 
         // Apply stat boosts to player
@@ -318,9 +328,16 @@ export const useGameStore = create<GameState>()(
           nextActivityBuffs: null,
         };
 
+        // Apply energy/mood effects from items/abilities
+        const { effects: trainingEffects } = EffectAggregator.getActiveEffects(finalPlayer);
+        const energyCostReduction = EffectAggregator.getEffect(trainingEffects, EffectKey.ENERGY_COST_REDUCTION);
+        const moodGainBonus = result.moodChange > 0
+          ? EffectAggregator.getEffect(trainingEffects, EffectKey.MOOD_GAIN_BONUS)
+          : 0;
+
         // Update energy and mood
-        const newEnergy = Math.max(0, currentStatus.energy - result.energyCost);
-        const newMood = Math.max(-100, Math.min(100, currentStatus.mood + result.moodChange));
+        const newEnergy = Math.max(0, currentStatus.energy - Math.max(0, result.energyCost - energyCostReduction));
+        const newMood = Math.max(-100, Math.min(100, currentStatus.mood + result.moodChange + moodGainBonus));
 
         set({
           player: finalPlayer,
@@ -363,7 +380,10 @@ export const useGameStore = create<GameState>()(
 
         // Generate new training sessions for the new time slot
         const newTrainingSessions = player
-          ? TrainingSystem.getAvailableTrainingSessions(player, newMood)
+          ? TrainingSystem.getAvailableTrainingSessions(
+              player, newMood, undefined, 2,
+              EffectAggregator.getActiveEffects(player).effects
+            )
           : [];
 
         set({
@@ -399,15 +419,21 @@ export const useGameStore = create<GameState>()(
 
       // Rest (restore energy)
       rest: () => {
-        const { currentStatus, calendar } = get();
+        const { player, currentStatus, calendar } = get();
+
+        // Apply energy/mood bonuses from items/abilities
+        const activeEffects = player ? EffectAggregator.getActiveEffects(player).effects : {};
+        const energyBonus = EffectAggregator.getEffect(activeEffects, EffectKey.ENERGY_GAIN_BONUS);
+        const moodBonus = EffectAggregator.getEffect(activeEffects, EffectKey.MOOD_GAIN_BONUS);
 
         // Regular rest gives 20 energy
         // If it's night time (which will advance to next day), add 30 bonus for sleeping
         const isNightTime = calendar.currentTimeSlot === TimeSlot.NIGHT;
         const restEnergy = defaultRestEnergy;
         const sleepBonus = isNightTime ? defaultSleepBonus : 0;
-        const totalEnergyRestored = restEnergy + sleepBonus;
+        const totalEnergyRestored = restEnergy + sleepBonus + energyBonus;
         const newEnergy = Math.min(100, currentStatus.energy + totalEnergyRestored);
+        const restMoodGain = defaultMoodBonus + moodBonus;
 
         const restResult: RestResult = {
           id: `rest-${Date.now()}`,
@@ -416,7 +442,7 @@ export const useGameStore = create<GameState>()(
           timestamp: new Date().toISOString(),
           timeSlotsUsed: 1,
           energyCost: 0,
-          moodResult: defaultMoodBonus,
+          moodResult: restMoodGain,
           restType: isNightTime ? 'deep' : 'moderate',
           energyRestored: totalEnergyRestored,
         };
@@ -425,7 +451,7 @@ export const useGameStore = create<GameState>()(
           currentStatus: {
             ...currentStatus,
             energy: newEnergy,
-            mood: Math.min(100, currentStatus.mood + 5),
+            mood: Math.min(100, currentStatus.mood + restMoodGain),
             lastActivity: restResult,
           },
           activityHistory: [restResult, ...get().activityHistory].slice(0, 10),
@@ -755,8 +781,10 @@ export const useGameStore = create<GameState>()(
         // Don't trigger if no player
         if (!player) return;
 
-        // Roll for trigger
-        const chance = customChance ?? storyEventTriggerChance;
+        // Roll for trigger (apply event trigger bonus from items/abilities)
+        const { effects } = EffectAggregator.getActiveEffects(player);
+        const triggerBonus = EffectAggregator.getEffect(effects, EffectKey.EVENT_TRIGGER_BONUS);
+        const chance = (customChance ?? storyEventTriggerChance) + triggerBonus;
         const roll = Math.random() * 100;
         const triggered = roll < chance;
 
@@ -819,8 +847,10 @@ export const useGameStore = create<GameState>()(
         // Don't trigger if no player
         if (!player) return;
 
-        // Roll for trigger
-        const chance = customChance ?? storyEventTriggerChance;
+        // Roll for trigger (apply event trigger bonus from items/abilities)
+        const { effects } = EffectAggregator.getActiveEffects(player);
+        const triggerBonus = EffectAggregator.getEffect(effects, EffectKey.EVENT_TRIGGER_BONUS);
+        const chance = (customChance ?? storyEventTriggerChance) + triggerBonus;
         const roll = Math.random() * 100;
         const triggered = roll < chance;
 
@@ -1060,9 +1090,18 @@ export const useGameStore = create<GameState>()(
 
       // Update character relationship
       updateRelationship: (character: string, change: number) => {
+        const { player } = get();
         const relationships = { ...get().relationships };
         const current = relationships[character] || 0;
-        relationships[character] = Math.max(0, Math.min(100, current + change));
+
+        // Apply relationship gain bonus from items/abilities (only on positive changes)
+        let finalChange = change;
+        if (change > 0 && player) {
+          const { effects } = EffectAggregator.getActiveEffects(player);
+          finalChange += EffectAggregator.getEffect(effects, EffectKey.RELATIONSHIP_GAIN_BONUS);
+        }
+
+        relationships[character] = Math.max(0, Math.min(100, current + finalChange));
 
         set({ relationships });
 

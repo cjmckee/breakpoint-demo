@@ -7,6 +7,7 @@ import React, { useMemo } from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { TrainingSystem } from '../game/TrainingSystem';
 import { TrainingSession } from '../types/game';
+import { EffectAggregator } from '../core/EffectAggregator';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { StatChangeIndicator, useStatChanges } from './StatChangeIndicator';
@@ -29,10 +30,12 @@ export const TrainingSelection: React.FC = () => {
   const availableSessions = getAvailableTrainingSessions();
 
   const handleSelectSession = (session: TrainingSession) => {
+    const { effects: activeEffects } = EffectAggregator.getActiveEffects(player);
     const result = TrainingSystem.executeTraining(
       player,
       session,
-      currentStatus.energy
+      currentStatus.energy,
+      activeEffects
     );
 
     // Show stat changes with indicators

@@ -18,7 +18,7 @@ import {
   MatchScore,
   MatchState as KeyMomentMatchState,
 } from '../types/keyMoments';
-import { PlayerStats, Ability } from '../types/game';
+import { PlayerStats, Ability, StatBoosts } from '../types/game';
 import { MatchStatistics as IMatchStatistics, MatchState, PointResult, PointType, PlayerMatchFatigue } from '../types';
 import { AbilitySystem } from './AbilitySystem';
 import { MATCH_FATIGUE } from '../config/shotThresholds';
@@ -37,29 +37,23 @@ export class MatchOrchestrator {
   private opponentStats: PlayerStats | null = null;
 
   /**
-   * Apply ability stat boosts to player stats
-   * Only applies during match - does not permanently modify player stats
+   * Apply flat stat boosts to player stats (clamped to 100).
+   * Used for both ability and item boosts during match setup.
    */
-  private applyAbilityBoosts(baseStats: PlayerStats, abilities?: Ability[]): PlayerStats {
-    if (!abilities || abilities.length === 0) {
+  private applyStatBoosts(baseStats: PlayerStats, boosts: StatBoosts): PlayerStats {
+    if (!boosts || Object.keys(boosts).length === 0) {
       return baseStats;
     }
 
-    // Calculate total boosts from all abilities
-    const totalBoosts = AbilitySystem.calculateTotalBoosts(abilities);
-
-    // Create a copy of stats with boosts applied
     const boostedStats: PlayerStats = {
       technical: { ...baseStats.technical },
       physical: { ...baseStats.physical },
       mental: { ...baseStats.mental },
     };
 
-    // Apply boosts to each stat
-    for (const [stat, boost] of Object.entries(totalBoosts)) {
+    for (const [stat, boost] of Object.entries(boosts)) {
       if (!boost) continue;
 
-      // Map flat stat names to nested structure
       if (stat in boostedStats.technical) {
         const key = stat as keyof typeof boostedStats.technical;
         boostedStats.technical[key] = Math.min(100, boostedStats.technical[key] + boost);
@@ -76,20 +70,35 @@ export class MatchOrchestrator {
   }
 
   /**
+   * Apply ability stat boosts to player stats.
+   * Only applies during match - does not permanently modify player stats.
+   */
+  private applyAbilityBoosts(baseStats: PlayerStats, abilities?: Ability[]): PlayerStats {
+    if (!abilities || abilities.length === 0) {
+      return baseStats;
+    }
+    const totalBoosts = AbilitySystem.calculateTotalBoosts(abilities);
+    return this.applyStatBoosts(baseStats, totalBoosts);
+  }
+
+  /**
    * Simulate an interactive match with key moments
    */
   async simulateInteractiveMatch(config: InteractiveMatchConfig): Promise<MatchScore> {
     // Store match format
     (this as any).matchFormat = config.matchFormat || 'best-of-3';
 
-    // Apply ability boosts to player stats (only for the duration of the match)
+    // Apply ability and item boosts to player stats (only for the duration of the match)
     const playerStatsWithAbilities = this.applyAbilityBoosts(
       config.playerStats,
       config.playerAbilities
     );
+    const playerStatsWithBoosts = config.itemBoosts
+      ? this.applyStatBoosts(playerStatsWithAbilities, config.itemBoosts)
+      : playerStatsWithAbilities;
 
     // Initialize match simulator with PlayerProfile objects
-    const player = new PlayerProfile('player', 'Player', playerStatsWithAbilities);
+    const player = new PlayerProfile('player', 'Player', playerStatsWithBoosts);
     const opponent = new PlayerProfile('opponent', 'Opponent', config.opponentStats);
 
     const matchSim = new MatchSimulator({
@@ -103,7 +112,7 @@ export class MatchOrchestrator {
     this.pointSimulator = new PointSimulator();
 
     // Store stats for fatigue calculations
-    this.playerStats = playerStatsWithAbilities;
+    this.playerStats = playerStatsWithBoosts;
     this.opponentStats = config.opponentStats;
 
     // Initialize fatigue from pre-match energy

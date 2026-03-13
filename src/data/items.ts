@@ -161,6 +161,9 @@ export const COMPRESSION_OUTFIT: Item = {
       recovery: 4,
       strength: 2,
     },
+    additional: {
+      energy_cost_reduction: 3,
+    },
   },
 };
 
@@ -191,6 +194,9 @@ export const HEADBAND: Item = {
     statBoosts: {
       focus: 3,
       anticipation: 2,
+    },
+    additional: {
+      training_stat_multiplier: 0.1,
     },
   },
 };
@@ -385,6 +391,10 @@ export const LUCKY_CHARM: Item = {
       speed: 2,
       focus: 2,
     },
+    additional: {
+      event_trigger_bonus: 5,
+      mood_gain_bonus: 1,
+    },
   },
 };
 
@@ -403,6 +413,10 @@ export const FOUR_LEAF_CLOVER: Item = {
       stamina: 1,
       focus: 1,
       anticipation: 1,
+    },
+    additional: {
+      event_trigger_bonus: 10,
+      training_tier_bonus: 1,
     },
   },
 };

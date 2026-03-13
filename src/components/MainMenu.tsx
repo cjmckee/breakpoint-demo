@@ -17,6 +17,7 @@ import { TrainingResultModal } from './TrainingResultModal';
 import { StoryEventModal } from './StoryEventModal';
 import { StoryEventResultModal } from './StoryEventResultModal';
 import type { StoryMatchMetadata } from '../types/game';
+import { ItemManager } from '../game/ItemManager';
 import type {
   StoryEventModalData,
   TrainingResultModalData,
@@ -200,6 +201,7 @@ export const MainMenu: React.FC = () => {
     startMatch({
       playerStats: player.stats,
       playerAbilities: player.abilities,
+      itemBoosts: ItemManager.getTotalPassiveBoosts(player),
       opponentStats: storyMatchMetadata.opponentStats,
       opponentName: storyMatchMetadata.opponentName,
       opponentTier: storyMatchMetadata.opponentTier,

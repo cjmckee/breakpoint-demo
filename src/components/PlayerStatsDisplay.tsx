@@ -3,15 +3,23 @@
  * Comprehensive display of all 22 player stats organized by category
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { Card } from './ui/Card';
 import { StatCard } from './StatCard';
 import { StatBar } from './StatBar';
 import { AbilityDisplay } from './AbilityDisplay';
+import { EffectAggregator } from '../core/EffectAggregator';
+import type { StatBoosts } from '../types/game';
 
 export const PlayerStatsDisplay: React.FC = () => {
   const player = useGameStore((state) => state.player);
+
+  // Compute total passive boosts from items and abilities
+  const boosts = useMemo<StatBoosts>(() => {
+    if (!player) return {};
+    return EffectAggregator.getActiveEffects(player).statBoosts;
+  }, [player]);
 
   if (!player) {
     return (
@@ -91,6 +99,7 @@ export const PlayerStatsDisplay: React.FC = () => {
                     key={stat.key}
                     label={stat.label}
                     value={stat.value}
+                    boost={boosts[stat.key as keyof StatBoosts] || 0}
                   />
                 )
               )}

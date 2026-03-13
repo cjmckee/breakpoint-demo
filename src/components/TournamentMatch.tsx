@@ -11,6 +11,7 @@ import { TournamentManager } from '../game/TournamentManager';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { PlayerStats } from '../types/game';
+import { ItemManager } from '../game/ItemManager';
 
 export const TournamentMatch: React.FC = () => {
   const player = useGameStore((state) => state.player);
@@ -50,6 +51,7 @@ export const TournamentMatch: React.FC = () => {
     startMatch({
       playerStats: player.stats,
       playerAbilities: player.abilities,
+      itemBoosts: ItemManager.getTotalPassiveBoosts(player),
       opponentStats: opponent.stats as PlayerStats,
       opponentName: opponent.name,
       opponentTier: opponent.tier,
