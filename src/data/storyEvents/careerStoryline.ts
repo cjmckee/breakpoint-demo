@@ -23,8 +23,7 @@ export const careerEvents: StoryEvent[] = [
     tags: ['team'],
     timeSlotsRequired: 0,
     prerequisites: {
-      minDay: 3,
-      completedEvents: ['making_connections']
+      completedEvents: ['abilities_basics'],
     },
     skippable: false,
     description: 'You find out about the Academy team.',

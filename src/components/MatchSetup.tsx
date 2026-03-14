@@ -191,7 +191,7 @@ export const MatchSetup: React.FC = () => {
     setScreen('match');
   };
 
-  const matchEnergyCost = 30;
+  const matchEnergyCost = 50;
   const canAfford = currentStatus.energy >= matchEnergyCost;
   const canPlayMatch = canAfford && selectedOpponent.tier <= player.tier;
 

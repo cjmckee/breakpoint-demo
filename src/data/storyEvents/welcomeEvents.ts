@@ -60,7 +60,7 @@ export const welcomeEvents: StoryEvent[] = [
     tags: ['intro', 'friend'],
     timeSlotsRequired: 1,
     prerequisites: {
-      completedEvents: ['welcome_to_tennis_rpg']
+      completedEvents: ['welcome_to_tennis_rpg'],
     },
     skippable: false,
     description: 'You run into some other new players on your way to the practice courts.',
@@ -94,7 +94,7 @@ export const welcomeEvents: StoryEvent[] = [
     tags: ['intro', 'friend'],
     timeSlotsRequired: 1,
     prerequisites: {
-      completedEvents: ['making_connections']
+      completedEvents: ['making_connections'],
     },
     skippable: false,
     description: 'You overhear some chatter while waiting in line for food.',
@@ -128,7 +128,7 @@ export const welcomeEvents: StoryEvent[] = [
     tags: ['intro'],
     timeSlotsRequired: 0, // Doesn't consume time - informational event
     prerequisites: {
-      completedEvents: ['food_hall_gossip']
+      completedEvents: ['food_hall_gossip'],
     },
     skippable: false,
     description: 'You hear more about the player tiers at the academy.',
@@ -164,7 +164,7 @@ export const welcomeEvents: StoryEvent[] = [
     tags: ['intro'],
     timeSlotsRequired: 0, // Doesn't consume time - informational event
     prerequisites: {
-      completedEvents: ['player_tier_intro']
+      completedEvents: ['player_tier_intro'],
     },
     skippable: false,
     description: 'You learn about the training sessions available at the academy.',
@@ -198,7 +198,7 @@ export const welcomeEvents: StoryEvent[] = [
     tags: ['intro'],
     timeSlotsRequired: 0, // Doesn't consume time - informational event
     prerequisites: {
-      completedEvents: ['training_session_intro']
+      completedEvents: ['training_session_intro'],
     },
     skippable: false,
     description: 'You learn about the importance of relationships in the academy.',
@@ -230,7 +230,7 @@ export const welcomeEvents: StoryEvent[] = [
     tags: ['intro'],
     timeSlotsRequired: 0, // Doesn't consume time - informational event
     prerequisites: {
-      completedEvents: ['training_session_intro']
+      completedEvents: ['training_session_intro'],
     },
     skippable: false,
     description: 'You learn about the abilities system at the academy.',
@@ -263,7 +263,7 @@ export const welcomeEvents: StoryEvent[] = [
     prerequisites: {
       completedEvents: ['abilities_basics', 'relationship_basics'],
       minMatchesWon: 1,
-      minDay: 10,
+      minDay: 15,
       stats: {
         serve: {
           min: 30

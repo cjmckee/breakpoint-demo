@@ -13,7 +13,9 @@ export const coachEvents: StoryEvent[] = [
     name: 'Meeting Coach Gonzalez',
     tags: ['coach', 'intro'],
     timeSlotsRequired: 1,
-    prerequisites: {},
+    prerequisites: {
+      completedEvents: ['abilities_basics'],
+    },
     skippable: false,
     description: 'One of the academy\'s tennis coaches has taken interest in your development.',
     dialogue: [

@@ -129,7 +129,7 @@ export const MainMenu: React.FC = () => {
       title: 'Play Match',
       emoji: '🎾',
       description: 'Test your skills in a competitive match',
-      energyCost: 30,
+      energyCost: 50,
       action: () => setScreen('match'),
     },
     {

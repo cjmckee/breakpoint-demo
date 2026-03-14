@@ -11,7 +11,7 @@ import type {
 import type { ScheduledEvent, GameCalendar } from '../types/game';
 import { TournamentRegistry } from '../data/tournaments';
 
-const defaultMatchEnergyCost = 30;
+const defaultMatchEnergyCost = 50;
 
 export class TournamentManager {
   /**

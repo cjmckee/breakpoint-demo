@@ -5,7 +5,7 @@
 
 import type { ScheduledEvent, GameCalendar, StoryMatchMetadata } from '../types/game';
 
-const defaultMatchEnergyCost = 30;
+const defaultMatchEnergyCost = 50;
 
 export class StoryMatchManager {
   /**
