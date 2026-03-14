@@ -265,7 +265,7 @@ export const MainMenu: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-pixel-bg">
+    <div className={`min-h-screen bg-pixel-bg ${isNightTime ? 'night-mode' : ''}`}>
       <StatusBar />
 
       <div className="px-4 md:px-8 lg:px-12">
@@ -379,7 +379,7 @@ export const MainMenu: React.FC = () => {
             const buttonVariant = (isNightTime && isRestButton) ? 'success' : 'primary';
 
             return (
-              <Card key={activity.id} padding="md" className="flex flex-col">
+              <Card key={activity.id} padding="md" className={`flex flex-col ${isNightTime && (isRestButton || isInventoryButton) ? 'night-exempt' : ''}`}>
                 <div className="text-center mb-4">
                   <div className="text-6xl mb-3">{activity.emoji}</div>
                   <h2 className="text-lg lg:text-2xl font-bold text-pixel-text mb-2 truncate">

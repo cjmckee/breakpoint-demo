@@ -36,6 +36,7 @@ export const StatusBar: React.FC = () => {
   };
 
   const timeSlotNames = ['Morning', 'Afternoon', 'Evening', 'Night'];
+  const timeSlotEmojis = ['🌅', '☀️', '🌇', '🌙'];
 
   return (
     <div className="bg-pixel-card border-b-4 border-pixel-border p-4">
@@ -90,7 +91,7 @@ export const StatusBar: React.FC = () => {
                 Season {calendar.currentSeason} - Day {calendar.currentDay}
               </div>
               <div className="font-bold text-pixel-text">
-                {timeSlotNames[calendar.currentTimeSlot]}
+                {timeSlotEmojis[calendar.currentTimeSlot]} {timeSlotNames[calendar.currentTimeSlot]}
               </div>
             </div>
           </div>

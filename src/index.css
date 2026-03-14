@@ -75,6 +75,26 @@ body {
   animation: fade-out 0.5s ease-out;
 }
 
+/* Night mode overlay - darkens everything except exempt elements */
+.night-mode {
+  position: relative;
+}
+
+.night-mode::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.40);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.night-mode .night-exempt {
+  position: relative;
+  z-index: 20;
+  box-shadow: 0 0 20px 4px rgba(255, 255, 200, 0.15);
+}
+
 /* Responsive text sizing */
 @media (max-width: 640px) {
   :root {
