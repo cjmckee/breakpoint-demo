@@ -189,7 +189,7 @@ export const SERVE_BASELINE = {
  */
 export const OPPONENT_STAT_ADJUSTMENTS = {
   defensive: 0.25,   // Defensive stat makes winners harder (increased from 0.10)
-  speed: 0.10,       // Speed helps cover court (increased from 0.05)
+  speed: 0.25,       // Speed helps cover court (increased from 0.10)
   return: 0.20,      // Return stat makes aces harder, serves only (increased from 0.15)
 };
 
