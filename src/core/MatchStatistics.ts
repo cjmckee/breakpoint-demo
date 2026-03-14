@@ -263,16 +263,18 @@ export class MatchStatistics {
     // Every service point counts as a first serve attempt
     this.firstServeAttempts[currentServer]++;
 
-    // If serveType is 'first', the first serve was in (successful)
-    // If serveType is 'second', the first serve was a fault (not recorded in shots array)
-    const isFirstServeIn = pointResult.serveType === 'first';
+    // Derive first serve status from shot data: if a second serve was attempted,
+    // the first serve must have been a fault. This keeps serve percentage in sync
+    // with shot breakdown stats regardless of how the point was generated (simulation or key moment).
+    const hasSecondServe = shots.some(shot => shot.shotType === 'serve_second');
+    const isFirstServeIn = !hasSecondServe;
 
     if (isFirstServeIn) {
       this.firstServesIn[currentServer]++;
     }
 
     // Track second serve attempt (only when first serve was a fault)
-    if (pointResult.serveType === 'second') {
+    if (hasSecondServe) {
       const secondServeShot = shots.find(shot => shot.shotType === 'serve_second')!;
       // Second serve is "in" if it's not an error (can be 'in_play' or 'ace')
       const isSecondServeIn = secondServeShot.outcome === PointType.IN_PLAY || secondServeShot.outcome === PointType.ACE;
@@ -296,7 +298,7 @@ export class MatchStatistics {
     if (pointResult.winner === 'server') {
       if (isFirstServeIn) {
         this.statistics.firstServePointsWon[currentServer]++;
-      } else if (pointResult.serveType === 'second' && pointResult.pointType !== 'double_fault') {
+      } else if (hasSecondServe && pointResult.pointType !== 'double_fault') {
         // Only count second serve points won if it wasn't a double fault
         this.statistics.secondServePointsWon[currentServer]++;
       }
