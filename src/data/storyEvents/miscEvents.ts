@@ -6,6 +6,7 @@
  */
 
 import type { StoryEvent } from '../../types/storyEvents'
+import { BANANA, LUCKY_PENNY, MOTIVATIONAL_PLAYLIST, TENNIS_BALL_KEYCHAIN } from '../items'
 
 export const miscEvents: StoryEvent[] = [
     {
@@ -47,7 +48,8 @@ export const miscEvents: StoryEvent[] = [
                             sasha: 5,
                             greg: 5,
                             keith: -5
-                        }
+                        },
+                        itemsGained: [LUCKY_PENNY],
                     }
                 }
             },
@@ -134,6 +136,7 @@ export const miscEvents: StoryEvent[] = [
                             speed: 3,
                             agility: 3
                         },
+                        itemsGained: [BANANA],
                     }
                 }
             },
@@ -271,7 +274,8 @@ export const miscEvents: StoryEvent[] = [
                 relationshipChanges: {
                     keith: 2,
                     jen: 2
-                }
+                },
+                itemsGained: [TENNIS_BALL_KEYCHAIN],
             }
         }
     },
@@ -311,7 +315,8 @@ export const miscEvents: StoryEvent[] = [
                 relationshipChanges: {
                     keith: 5,
                     jen: 5,
-                }
+                },
+                itemsGained: [MOTIVATIONAL_PLAYLIST],
             }
         }
     },

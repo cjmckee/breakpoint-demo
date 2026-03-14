@@ -973,6 +973,13 @@ export const useGameStore = create<GameState>()(
           }
         }
 
+        // Apply items
+        if (outcome.effects.itemsGained) {
+          for (const item of outcome.effects.itemsGained) {
+            updatedPlayer = ItemManager.addItem(updatedPlayer, item);
+          }
+        }
+
         // Apply tier change
         if (outcome.effects.tierChange !== undefined) {
           const newTier = outcome.effects.tierChange as OpponentTier;

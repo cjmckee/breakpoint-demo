@@ -68,6 +68,37 @@ export const CONTROL_RACQUET: Item = {
   },
 };
 
+export const SPIN_RACQUET: Item = {
+  id: 'spin_racquet',
+  name: 'Spin Master Racquet',
+  description: 'An open string pattern racquet that generates incredible spin on every shot.',
+  type: 'equipment',
+  equipmentSlot: 'racquet',
+  modifiers: {
+    statBoosts: {
+      spin: 8,
+      forehand: 3,
+      slice: 3,
+    },
+  },
+};
+
+export const ALLROUND_RACQUET: Item = {
+  id: 'allround_racquet',
+  name: 'All-Court Racquet',
+  description: 'A versatile racquet that performs well in every situation.',
+  type: 'equipment',
+  equipmentSlot: 'racquet',
+  modifiers: {
+    statBoosts: {
+      serve: 3,
+      forehand: 3,
+      backhand: 3,
+      volley: 3,
+    },
+  },
+};
+
 // ============================================================================
 // EQUIPMENT - SHOES
 // ============================================================================
@@ -112,6 +143,38 @@ export const CLAY_COURT_SHOES: Item = {
       speed: 4,
       agility: 6,
       defensive: 3,
+    },
+  },
+};
+
+export const LIGHTWEIGHT_TRAINERS: Item = {
+  id: 'lightweight_trainers',
+  name: 'Lightweight Trainers',
+  description: 'Ultra-light shoes that maximize speed at the cost of stability.',
+  type: 'equipment',
+  equipmentSlot: 'shoes',
+  modifiers: {
+    statBoosts: {
+      speed: 8,
+      agility: 3,
+    },
+    additional: {
+      energy_cost_reduction: 2,
+    },
+  },
+};
+
+export const GRASS_COURT_SHOES: Item = {
+  id: 'grass_court_shoes',
+  name: 'Grass Court Shoes',
+  description: 'Shoes with pimpled soles designed for grass court traction.',
+  type: 'equipment',
+  equipmentSlot: 'shoes',
+  modifiers: {
+    statBoosts: {
+      speed: 5,
+      agility: 4,
+      volley: 3,
     },
   },
 };
@@ -163,6 +226,42 @@ export const COMPRESSION_OUTFIT: Item = {
     },
     additional: {
       energy_cost_reduction: 3,
+    },
+  },
+};
+
+export const RETRO_OUTFIT: Item = {
+  id: 'retro_outfit',
+  name: 'Retro Tennis Whites',
+  description: 'Classic all-white tennis attire. Old school cool with a confidence boost.',
+  type: 'equipment',
+  equipmentSlot: 'outfit',
+  modifiers: {
+    statBoosts: {
+      focus: 4,
+      serve: 2,
+      volley: 3,
+    },
+    additional: {
+      mood_gain_bonus: 2,
+    },
+  },
+};
+
+export const SPONSOR_OUTFIT: Item = {
+  id: 'sponsor_outfit',
+  name: 'Sponsored Kit',
+  description: 'Branded performance gear from a major sponsor. Looks great, plays better.',
+  type: 'equipment',
+  equipmentSlot: 'outfit',
+  modifiers: {
+    statBoosts: {
+      stamina: 5,
+      strength: 3,
+      focus: 3,
+    },
+    additional: {
+      training_stat_multiplier: 0.1,
     },
   },
 };
@@ -226,6 +325,36 @@ export const LUCKY_HAT: Item = {
       focus: 4,
       anticipation: 3,
       shotVariety: 2,
+    },
+  },
+};
+
+export const SWEATBAND: Item = {
+  id: 'sweatband',
+  name: 'Sweatband',
+  description: 'A thick wristband-style headband that keeps sweat out of your eyes.',
+  type: 'equipment',
+  equipmentSlot: 'hat',
+  modifiers: {
+    statBoosts: {
+      stamina: 3,
+      focus: 2,
+      recovery: 2,
+    },
+  },
+};
+
+export const BANDANA: Item = {
+  id: 'bandana',
+  name: 'Bandana',
+  description: 'A pirate-style bandana that channels raw intensity.',
+  type: 'equipment',
+  equipmentSlot: 'hat',
+  modifiers: {
+    statBoosts: {
+      offensive: 3,
+      strength: 2,
+      serve: 2,
     },
   },
 };
@@ -374,6 +503,110 @@ export const SPEED_BOOSTER: Item = {
   },
 };
 
+export const CONFIDENCE_TAPE: Item = {
+  id: 'confidence_tape',
+  name: 'Confidence Tape',
+  description: 'Kinesiology tape that makes you feel invincible. Mostly placebo, but it works.',
+  type: 'consumable',
+  consumableEffect: {
+    type: 'next_activity',
+    nextActivityBuffs: {
+      statBoosts: {
+        offensive: 6,
+        defensive: 6,
+      },
+      additional: {
+        mood_gain_bonus: 5,
+      },
+    },
+  },
+};
+
+export const COACHES_NOTES: Item = {
+  id: 'coaches_notes',
+  name: "Coach's Notes",
+  description: 'Detailed scouting notes on your next opponent. Study up before the match.',
+  type: 'consumable',
+  consumableEffect: {
+    type: 'next_activity',
+    nextActivityBuffs: {
+      statBoosts: {
+        anticipation: 12,
+        placement: 6,
+        return: 4,
+      },
+    },
+  },
+};
+
+export const LUCKY_PENNY: Item = {
+  id: 'lucky_penny',
+  name: 'Lucky Penny',
+  description: 'Found heads-up on the ground. Use it for a boost of luck in your next activity.',
+  type: 'consumable',
+  consumableEffect: {
+    type: 'next_activity',
+    nextActivityBuffs: {
+      statBoosts: {
+        serve: 3,
+        forehand: 3,
+        backhand: 3,
+      },
+      additional: {
+        ability_chance_bonus: 15,
+      },
+    },
+  },
+};
+
+export const BANANA: Item = {
+  id: 'banana',
+  name: 'Banana',
+  description: 'A perfectly ripe banana. Great for quick energy and preventing cramps.',
+  type: 'consumable',
+  consumableEffect: {
+    type: 'instant',
+    instantEffects: {
+      energyChange: 15,
+      moodChange: 3,
+    },
+  },
+};
+
+export const MOTIVATIONAL_PLAYLIST: Item = {
+  id: 'motivational_playlist',
+  name: 'Motivational Playlist',
+  description: 'A curated playlist that gets you hyped up. Listen before your next match.',
+  type: 'consumable',
+  consumableEffect: {
+    type: 'next_activity',
+    nextActivityBuffs: {
+      statBoosts: {
+        focus: 5,
+        strength: 5,
+        speed: 3,
+      },
+      additional: {
+        mood_gain_bonus: 3,
+      },
+    },
+  },
+};
+
+export const ICE_BATH_VOUCHER: Item = {
+  id: 'ice_bath_voucher',
+  name: 'Ice Bath Voucher',
+  description: 'A voucher for a professional ice bath session. Restores energy and aids recovery.',
+  type: 'consumable',
+  consumableEffect: {
+    type: 'instant',
+    instantEffects: {
+      energyChange: 40,
+      moodChange: -5,
+    },
+  },
+};
+
 // ============================================================================
 // LUCKY ITEMS
 // ============================================================================
@@ -421,6 +654,24 @@ export const FOUR_LEAF_CLOVER: Item = {
   },
 };
 
+export const TENNIS_BALL_KEYCHAIN: Item = {
+  id: 'tennis_ball_keychain',
+  name: 'Tennis Ball Keychain',
+  description: 'A miniature tennis ball keychain given to you by a fan. Reminds you why you play.',
+  type: 'lucky',
+  modifiers: {
+    statBoosts: {
+      focus: 3,
+      recovery: 2,
+      anticipation: 2,
+    },
+    additional: {
+      mood_gain_bonus: 2,
+      relationship_gain_bonus: 3,
+    },
+  },
+};
+
 // ============================================================================
 // ITEM COLLECTIONS
 // ============================================================================
@@ -430,23 +681,35 @@ export const ALL_RACQUETS: Item[] = [
   PRO_RACQUET,
   POWER_RACQUET,
   CONTROL_RACQUET,
+  SPIN_RACQUET,
+  ALLROUND_RACQUET,
 ];
 
-export const ALL_SHOES: Item[] = [RUNNING_SHOES, COURT_SHOES, CLAY_COURT_SHOES];
+export const ALL_SHOES: Item[] = [
+  RUNNING_SHOES,
+  COURT_SHOES,
+  CLAY_COURT_SHOES,
+  LIGHTWEIGHT_TRAINERS,
+  GRASS_COURT_SHOES,
+];
 
 export const ALL_OUTFITS: Item[] = [
   PRACTICE_OUTFIT,
   TOURNAMENT_OUTFIT,
   COMPRESSION_OUTFIT,
+  RETRO_OUTFIT,
+  SPONSOR_OUTFIT,
 ];
 
-export const ALL_HATS: Item[] = [VISOR, HEADBAND, CAP, LUCKY_HAT];
+export const ALL_HATS: Item[] = [VISOR, HEADBAND, CAP, LUCKY_HAT, SWEATBAND, BANDANA];
 
 export const ALL_CONSUMABLES_INSTANT: Item[] = [
   ENERGY_DRINK,
   SPORTS_DRINK,
   RECOVERY_SHAKE,
   SUPER_ENERGY_GEL,
+  BANANA,
+  ICE_BATH_VOUCHER,
 ];
 
 export const ALL_CONSUMABLES_BUFF: Item[] = [
@@ -455,9 +718,13 @@ export const ALL_CONSUMABLES_BUFF: Item[] = [
   STAMINA_BOOST,
   POWER_SUPPLEMENT,
   SPEED_BOOSTER,
+  CONFIDENCE_TAPE,
+  COACHES_NOTES,
+  LUCKY_PENNY,
+  MOTIVATIONAL_PLAYLIST,
 ];
 
-export const ALL_LUCKY_ITEMS: Item[] = [LUCKY_CHARM, FOUR_LEAF_CLOVER];
+export const ALL_LUCKY_ITEMS: Item[] = [LUCKY_CHARM, FOUR_LEAF_CLOVER, TENNIS_BALL_KEYCHAIN];
 
 export const ALL_EQUIPMENT: Item[] = [
   ...ALL_RACQUETS,
@@ -495,33 +762,44 @@ export function getItemsByTier(tier: 1 | 2 | 3 | 4): Item[] {
         RUNNING_SHOES,
         PRACTICE_OUTFIT,
         VISOR,
+        SWEATBAND,
+        BANANA,
         ...ALL_CONSUMABLES_INSTANT,
       ];
     case 2:
       return [
         PRO_RACQUET,
+        ALLROUND_RACQUET,
         COURT_SHOES,
         TOURNAMENT_OUTFIT,
+        RETRO_OUTFIT,
         HEADBAND,
         ...ALL_CONSUMABLES,
         LUCKY_CHARM,
+        TENNIS_BALL_KEYCHAIN,
       ];
     case 3:
       return [
         POWER_RACQUET,
         CONTROL_RACQUET,
+        SPIN_RACQUET,
         CLAY_COURT_SHOES,
+        GRASS_COURT_SHOES,
         COMPRESSION_OUTFIT,
         CAP,
+        BANDANA,
         ...ALL_CONSUMABLES_BUFF,
         ...ALL_LUCKY_ITEMS,
       ];
     case 4:
       return [
         CONTROL_RACQUET,
-        CLAY_COURT_SHOES,
+        SPIN_RACQUET,
+        LIGHTWEIGHT_TRAINERS,
         COMPRESSION_OUTFIT,
+        SPONSOR_OUTFIT,
         LUCKY_HAT,
+        BANDANA,
         ...ALL_CONSUMABLES_BUFF,
         ...ALL_LUCKY_ITEMS,
       ];

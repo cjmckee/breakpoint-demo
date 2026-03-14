@@ -6,6 +6,7 @@
 import type { Activity, StatBoosts, ScheduledEventTemplate } from './game';
 import type { Challenge } from './challenges';
 import type { StatName } from './index';
+import type { Item } from './items';
 
 // ============================================================================
 // TEXT FORMATTING SYSTEM
@@ -135,6 +136,7 @@ export interface StoryEventOutcome {
     energyChange?: number;
     relationshipChanges?: Record<string, number>;
     abilitiesGained?: string[];
+    itemsGained?: Item[];
     scheduledEvents?: ScheduledEventTemplate[];
     scheduleNextTournamentMatch?: boolean;  // Trigger tournament match scheduling
     tierChange?: number;  // Set player tier to this value (e.g., 2 for Regional)
@@ -215,4 +217,5 @@ export interface StoryEventResult extends Activity {
   statChanges: StatBoosts;
   relationshipChanges: Record<string, number>;
   abilitiesGained: string[];
+  itemsGained: Item[];
 }

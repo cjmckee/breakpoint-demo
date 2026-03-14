@@ -221,6 +221,7 @@ export class StoryEventManager {
       statChanges,
       relationshipChanges: outcome.effects.relationshipChanges || {},
       abilitiesGained: outcome.effects.abilitiesGained || [],
+      itemsGained: outcome.effects.itemsGained || [],
     };
 
     return result;

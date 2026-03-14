@@ -53,7 +53,8 @@ export const StoryEventResultModal: React.FC<StoryEventResultModalProps> = ({
       {/* Effects */}
       {(Object.keys(result.statChanges).length > 0 ||
         Object.keys(result.relationshipChanges).length > 0 ||
-        result.abilitiesGained.length > 0) && (
+        result.abilitiesGained.length > 0 ||
+        result.itemsGained.length > 0) && (
         <div className="space-y-4 mb-6">
           <h3 className="font-bold text-lg">Effects:</h3>
 
@@ -108,6 +109,22 @@ export const StoryEventResultModal: React.FC<StoryEventResultModalProps> = ({
                 {result.abilitiesGained.map((abilityName) => (
                   <div key={abilityName} className="px-3 py-2 bg-yellow-100 rounded font-semibold">
                     ⭐ {abilityName.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Items gained */}
+          {result.itemsGained.length > 0 && (
+            <div>
+              <h4 className="font-semibold mb-2">🎒 Items Received:</h4>
+              <div className="space-y-2">
+                {result.itemsGained.map((item) => (
+                  <div key={item.id} className="px-3 py-2 bg-indigo-100 text-indigo-800 rounded">
+                    <span className="font-semibold">{item.name}</span>
+                    <span className="text-sm ml-2 opacity-75">({item.type})</span>
+                    <p className="text-sm mt-1 opacity-80">{item.description}</p>
                   </div>
                 ))}
               </div>

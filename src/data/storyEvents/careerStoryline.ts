@@ -4,6 +4,7 @@
  */
 
 import type { StoryEvent } from '../../types/storyEvents';
+import { TOURNAMENT_OUTFIT, SPONSOR_OUTFIT, HEADBAND, PRO_RACQUET, ENERGY_DRINK, BANANA } from '../items';
 
 export const careerEvents: StoryEvent[] = [
 
@@ -280,7 +281,8 @@ export const careerEvents: StoryEvent[] = [
           stamina: 1,
           agility: 1,
           volley: 2
-        }
+        },
+        itemsGained: [ENERGY_DRINK],
       }
     }
   },
@@ -366,6 +368,7 @@ export const careerEvents: StoryEvent[] = [
             statChanges: { serve: 2, forehand: 2 },
             moodChange: 20,
             energyChange: -5,
+            itemsGained: [TOURNAMENT_OUTFIT, HEADBAND],
           },
         },
       },
@@ -383,6 +386,7 @@ export const careerEvents: StoryEvent[] = [
             statChanges: { serve: 3, forehand: 3, focus: 2 },
             moodChange: 30,
             energyChange: -10,
+            itemsGained: [SPONSOR_OUTFIT, PRO_RACQUET],
           },
         },
       },

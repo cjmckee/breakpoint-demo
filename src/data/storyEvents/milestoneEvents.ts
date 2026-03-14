@@ -5,6 +5,7 @@
 
 import type { StoryEvent } from '../../types/storyEvents';
 import { ChallengeManager } from '../../game/ChallengeManager';
+import { POWER_RACQUET, CONTROL_RACQUET, ALLROUND_RACQUET, COURT_SHOES, SPORTS_DRINK } from '../items';
 
 export const milestoneEvents: StoryEvent[] = [
   {
@@ -33,7 +34,8 @@ export const milestoneEvents: StoryEvent[] = [
           anticipation: 1,
           offensive: 1,
           defensive: 1,
-        }
+        },
+        itemsGained: [SPORTS_DRINK],
       }
     }
   },
@@ -134,6 +136,7 @@ export const milestoneEvents: StoryEvent[] = [
             statChanges: { serve: 4, forehand: 3, strength: 2, offensive: 3 },
             moodChange: 25,
             energyChange: -10,
+            itemsGained: [POWER_RACQUET, COURT_SHOES],
           },
         },
       },
@@ -148,6 +151,7 @@ export const milestoneEvents: StoryEvent[] = [
             statChanges: { spin: 3, placement: 3, anticipation: 2, defensive: 3, return: 2 },
             moodChange: 25,
             energyChange: -10,
+            itemsGained: [CONTROL_RACQUET, COURT_SHOES],
           },
         },
       },
@@ -162,6 +166,7 @@ export const milestoneEvents: StoryEvent[] = [
             statChanges: { serve: 2, forehand: 2, backhand: 2, anticipation: 2, offensive: 1, defensive: 1 },
             moodChange: 25,
             energyChange: -10,
+            itemsGained: [ALLROUND_RACQUET, COURT_SHOES],
           },
         },
       },

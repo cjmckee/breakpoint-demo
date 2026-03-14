@@ -4,6 +4,7 @@
  */
 
 import type { StoryEvent } from '../../types/storyEvents';
+import { BEGINNER_RACQUET, RUNNING_SHOES } from '../items';
 
 export const welcomeEvents: StoryEvent[] = [
   /** Welcome to Riverside Tennis Academy */
@@ -48,6 +49,7 @@ export const welcomeEvents: StoryEvent[] = [
         relationshipChanges: {
           jordan_rival: -10, // Jordan being jordan
         },
+        itemsGained: [BEGINNER_RACQUET, RUNNING_SHOES],
       },
     },
   },
