@@ -70,16 +70,18 @@ export const MainMenu: React.FC = () => {
     : null;
 
   // Trigger pre-match event when tournament match is scheduled
-  // checkForStoryEventById already skips completed events, so no modal guard needed
+  // Use stable primitive values as dependencies (not objects which are recreated each render)
+  const tournamentRound = activeTournament?.currentRound;
+  const tournamentBracket = activeTournament?.currentBracket;
+  const tournamentId = activeTournament?.tournamentId;
   useEffect(() => {
-    if (isTournamentMatchScheduled && scheduledTournamentMatch && activeTournament) {
-      const tournamentId = activeTournament.tournamentId;
+    if (isTournamentMatchScheduled && tournamentId != null) {
       const config = TournamentRegistry.getTournament(tournamentId);
-      if (config) {
+      if (config && tournamentRound != null && tournamentBracket != null) {
         const prematchEventId = TournamentManager.getPrematchEventId(
           config,
-          activeTournament.currentRound,
-          activeTournament.currentBracket
+          tournamentRound,
+          tournamentBracket
         );
         if (prematchEventId) {
           console.log('Tournament match scheduled - triggering pre-match event:', prematchEventId);
@@ -87,18 +89,17 @@ export const MainMenu: React.FC = () => {
         }
       }
     }
-  }, [isTournamentMatchScheduled, scheduledTournamentMatch, activeTournament]);
+  }, [isTournamentMatchScheduled, tournamentId, tournamentRound, tournamentBracket]);
 
   // Trigger pre-match event when story match is scheduled
-  // checkForStoryEventById already skips completed events, so no modal guard needed
+  // Use prematchEventId string as dependency (not the metadata object which is recreated each render)
+  const storyPrematchEventId = storyMatchMetadata?.prematchEventId;
   useEffect(() => {
-    if (isStoryMatchScheduled && storyMatchMetadata) {
-      if (storyMatchMetadata.prematchEventId) {
-        console.log('Story match scheduled - triggering pre-match event:', storyMatchMetadata.prematchEventId);
-        useGameStore.getState().checkForStoryEventById(storyMatchMetadata.prematchEventId);
-      }
+    if (isStoryMatchScheduled && storyPrematchEventId) {
+      console.log('Story match scheduled - triggering pre-match event:', storyPrematchEventId);
+      useGameStore.getState().checkForStoryEventById(storyPrematchEventId);
     }
-  }, [isStoryMatchScheduled, storyMatchMetadata]);
+  }, [isStoryMatchScheduled, storyPrematchEventId]);
 
   const handleExecuteEvent = (eventId: string, optionId?: string) => {
     executeStoryEvent(eventId, optionId);
