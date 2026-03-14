@@ -216,7 +216,7 @@ export const useGameStore = create<GameState>()(
 
         // Generate initial training sessions
         const { effects: initialEffects } = EffectAggregator.getActiveEffects(player);
-        const initialSessions = TrainingSystem.getAvailableTrainingSessions(player, 0, undefined, 2, initialEffects);
+        const initialSessions = TrainingSystem.getAvailableTrainingSessions(player, 0, undefined, 4, initialEffects);
 
         // Schedule initial story events so they fire reliably in the correct order
         // rather than relying on random chance triggers
@@ -268,7 +268,7 @@ export const useGameStore = create<GameState>()(
           player,
           currentStatus.mood,
           undefined,
-          2,
+          4,
           activeEffects
         );
 
@@ -381,7 +381,7 @@ export const useGameStore = create<GameState>()(
         // Generate new training sessions for the new time slot
         const newTrainingSessions = player
           ? TrainingSystem.getAvailableTrainingSessions(
-              player, newMood, undefined, 2,
+              player, newMood, undefined, 4,
               EffectAggregator.getActiveEffects(player).effects
             )
           : [];

@@ -152,8 +152,10 @@ export class MatchStatistics {
    * Update shot-specific statistics
    */
   private updateShotStatistics(shots: ShotDetail[], pointWinner: 'server' | 'returner', currentServer: 'player' | 'opponent'): void {
-    // Track if there was a net approach in this point
-    let netApproachBy: 'server' | 'returner' | undefined = undefined;
+    // Track which players were at net when the point ended
+    // A player is "at net" once they hit an approach, volley, or overhead,
+    // and stays at net for the rest of the point (matching PointSimulator behavior)
+    const atNet: { server: boolean; returner: boolean } = { server: false, returner: false };
 
     shots.forEach(shot => {
       // Correctly map shooter to player/opponent based on who was serving
@@ -193,16 +195,19 @@ export class MatchStatistics {
         }
       }
 
-      // Track if this shot involved net play
-      if (this.isNetShot(shotType) && !netApproachBy) {
-        netApproachBy = shot.shooter;
+      // Track net position: approach/volley/overhead moves player to net
+      if (this.isNetShot(shotType)) {
+        atNet[shot.shooter] = true;
       }
     });
 
-    // Count net point won if there was net play and that player won
-    if (netApproachBy && netApproachBy === pointWinner) {
-      const player = netApproachBy === 'server' ? currentServer : (currentServer === 'player' ? 'opponent' : 'player');
-      this.statistics.netPointsWon[player]++;
+    // A "net point won" = the point ended while that player was at the net and they won
+    // This includes winners, forcing errors from net position, or opponent errors while you're at net
+    if (atNet.server || atNet.returner) {
+      const winnerIdentity = pointWinner === 'server' ? currentServer : (currentServer === 'player' ? 'opponent' : 'player');
+      if (atNet[pointWinner]) {
+        this.statistics.netPointsWon[winnerIdentity]++;
+      }
     }
   }
 
@@ -712,7 +717,7 @@ export class MatchStatistics {
   }
 
   private isNetShot(shotType: ShotType): boolean {
-    return shotType.includes('volley') || shotType.includes('half_volley');
+    return shotType.includes('volley') || shotType.includes('half_volley') || shotType.includes('approach') || shotType.includes('overhead');
   }
 
   public getStatistics(): IMatchStatistics {

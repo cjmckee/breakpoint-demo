@@ -178,7 +178,23 @@ export class PointSimulator {
       };
     }
 
-    // First serve was a fault, try second serve
+    // First serve was a fault — record the failed attempt in the shots array
+    const faultServeShot: ShotDetail = {
+      shotType: 'serve_first',
+      shooter: 'server',
+      success: false,
+      quality: firstServeResult.quality,
+      outcome: firstServeResult.outcome,
+      statUsed: firstServeResult.statUsed,
+      modifiers: firstServeResult.modifiers,
+      timestamp: Date.now(),
+      shotNumber: 1,
+      context: firstServeContext,
+      thresholds: firstServeResult.thresholds,
+    };
+    shots.push(faultServeShot);
+
+    // Try second serve
     const secondServeContext = this.createServeContext(matchState, false);
     const secondServeResult = this.shotCalculator.calculateShotSuccess(
       server,
@@ -671,6 +687,15 @@ export class PointSimulator {
   ): CourtPosition {
     // If shot was an error, opponent doesn't need to move (they won the point)
     if (!shotResult.success) return currentPosition;
+
+    // Players at net STAY at net — they chose to be there and don't retreat
+    // to baseline mid-point. Only a lob can push them back.
+    if (currentPosition === 'at_net') {
+      if (shotType.includes('lob') && shotResult.quality >= 70) {
+        return 'way_back_deep'; // Good lob forces net player back
+      }
+      return 'at_net'; // Otherwise hold net position
+    }
 
     const quality = shotResult.quality;
 

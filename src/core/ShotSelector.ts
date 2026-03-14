@@ -56,6 +56,11 @@ export class ShotSelector {
         : 'return_backhand';
     }
 
+    // SPECIAL CASE: Shooter at net - must volley
+    if (shooterPosition === 'at_net') {
+      return this.selectVolley(shooter, shotPreference, rallyState);
+    }
+
     // SPECIAL CASE: Opponent at net - must pass or lob
     if (opponentPosition === 'at_net') {
       if (Math.random() < 0.3) {
@@ -165,10 +170,44 @@ export class ShotSelector {
 
 
   /**
+   * Select volley shot type when shooter is at the net
+   *
+   * At net, players hit volleys (forehand/backhand) or overheads.
+   * Half-volleys are chosen when the incoming ball is low quality (dipping shots).
+   */
+  private selectVolley(
+    shooter: PlayerProfile,
+    shotPreference: ShotPreference,
+    rallyState: RallyState
+  ): ShotType {
+    const isForehand = Math.random() < shotPreference.forehandProbability;
+
+    // Overhead smash on high lobs
+    if (
+      rallyState.lastShotType.includes('lob') &&
+      rallyState.ballQuality.baseQuality < 70
+    ) {
+      return 'overhead';
+    }
+
+    // Half-volley on low, dipping balls (heavy topspin or high quality passing shots)
+    const isLowBall =
+      rallyState.ballQuality.spin === 'heavy_topspin' ||
+      (rallyState.ballQuality.baseQuality >= 70 && rallyState.ballQuality.timeAvailable === 'rushed');
+
+    if (isLowBall && Math.random() < 0.6) {
+      return isForehand ? 'half_volley_forehand' : 'half_volley_backhand';
+    }
+
+    return isForehand ? 'volley_forehand' : 'volley_backhand';
+  }
+
+  /**
    * Decide whether to approach net (hybrid stats + situation)
    *
-   * Net players look for opportunities more often, but everyone approaches
-   * more when the situation is right
+   * All players can approach the net, but frequency and success depend on
+   * net approach stat and offensive mentality. Low-rated players approach
+   * less often and with less success, but aren't locked out entirely.
    */
   private shouldApproachNet(
     shooter: PlayerProfile,
@@ -177,18 +216,26 @@ export class ShotSelector {
   ): boolean {
     const netApproachStat = shooter.playStyle.netApproach;
     const playStyleType = shooter.playStyle.type;
+    const offensive = shooter.stats.mental.offensive;
 
-    // Base probability based on player type
+    // Base probability based on player type — these are per-eligible-shot rates,
+    // so even modest percentages produce net approaches over the course of a match
     let baseProbability = 0;
     if (playStyleType === 'serve_volley') {
-      baseProbability = 0.5; // 50% base for serve-volleyers
+      baseProbability = 0.55; // 55% base for serve-volleyers
     } else if (netApproachStat >= 70) {
-      baseProbability = 0.3; // 30% for net players
+      baseProbability = 0.35; // 35% for net players
     } else if (netApproachStat >= 50) {
-      baseProbability = 0.15; // 15% for occasional net players
+      baseProbability = 0.20; // 20% for occasional net players
+    } else if (netApproachStat >= 30) {
+      baseProbability = 0.12; // 12% for below-average net players
     } else {
-      baseProbability = 0.08; // 8% for baseliners
+      baseProbability = 0.07; // 7% for very poor net players — rare but possible
     }
+
+    // Offensive mentality boost: aggressive players seek the net more
+    // Scales 0-8% extra based on offensive stat
+    baseProbability += (offensive / 100) * 0.08;
 
     // Situational modifiers
     if (!opportunity.netApproachSuitable) return false;
@@ -196,8 +243,8 @@ export class ShotSelector {
     let probability = baseProbability;
 
     if (opportunity.attackOpportunity === 'high') probability *= 2.5;
-    else if (opportunity.attackOpportunity === 'medium') probability *= 1.5;
-    else if (opportunity.attackOpportunity === 'low') probability *= 1.2;
+    else if (opportunity.attackOpportunity === 'medium') probability *= 1.8;
+    else if (opportunity.attackOpportunity === 'low') probability *= 1.3;
 
     if (rallyState.lastShotQuality >= 80) probability *= 1.3;
     if (rallyState.opponentPosition === 'way_back_deep') probability *= 1.5;

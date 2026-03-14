@@ -3,7 +3,7 @@
  * Displays match results after completion
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useRef } from 'react';
 import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
 import { MatchScore } from '../types/keyMoments';
@@ -35,33 +35,18 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
 
   const isWinner = finalScore?.winner === 'player';
 
-  // Calculate rewards for display
-  const matchRewards = useMemo((): MatchReward | null => {
-    if (!matchStatistics || !matchConfig || !finalScore) return null;
-
+  // Calculate rewards exactly once using a ref to avoid duplicate rolls
+  // useMemo can re-run in StrictMode or on dependency changes, causing multiple random rolls
+  const matchRewardsRef = useRef<MatchReward | null>(null);
+  if (!matchRewardsRef.current && matchStatistics && matchConfig && finalScore) {
     const opponentTier = (matchConfig.opponentTier || 1) as OpponentTier;
-
-    // MatchRewardSystem computes everything it needs directly from statistics
-    const rewards = MatchRewardSystem.calculateRewards(
+    matchRewardsRef.current = MatchRewardSystem.calculateRewards(
       matchStatistics,
       opponentTier,
       isWinner
     );
-
-    console.log('=== MATCH REWARDS DEBUG ===');
-    console.log('Final Score:', finalScore);
-    console.log('Match Statistics:', matchStatistics);
-    console.log('Opponent Tier:', opponentTier);
-    console.log('Is Winner:', isWinner);
-    console.log('Calculated Rewards:', rewards);
-    console.log('Performance Breakdown:', rewards.performanceBreakdown);
-    console.log('Stat Boosts:', rewards.statBoosts);
-    console.log('Stat Boosts Keys:', Object.keys(rewards.statBoosts));
-    console.log('Stat Boosts Entries:', Object.entries(rewards.statBoosts));
-    console.log('Filtered Stat Boosts (>0):', Object.entries(rewards.statBoosts).filter(([_, value]) => value > 0));
-
-    return rewards;
-  }, [matchStatistics, matchConfig, isWinner, finalScore]);
+  }
+  const matchRewards = matchRewardsRef.current;
 
   // Early return AFTER all hooks have been called
   if (!finalScore) return null;

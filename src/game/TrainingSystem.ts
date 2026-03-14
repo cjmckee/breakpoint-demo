@@ -166,7 +166,7 @@ export class TrainingSystem {
     player: Player,
     mood: number,
     lastTrainingType?: TrainingSessionType,
-    numOptions: number = 2,
+    numOptions: number = 4,
     activeEffects?: Record<string, number>
   ): TrainingSession[] {
     // Get available session types (exclude last training type)

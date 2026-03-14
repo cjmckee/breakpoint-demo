@@ -61,9 +61,10 @@ export class TacticalAnalyzer {
     // Classify attack opportunity level
     const attackLevel = this.classifyAttackLevel(attackScore);
 
-    // Net approach suitability
+    // Net approach suitability — lowered threshold so net play happens more often
+    // Even in neutral rallies (attackScore ~10-15), players can consider approaching
     const netApproachSuitable =
-      attackScore >= 25 &&
+      attackScore >= 10 &&
       rallyLength >= 2 &&
       !defensiveRequired &&
       shooterPosition !== 'at_net'; // Don't approach if already at net
