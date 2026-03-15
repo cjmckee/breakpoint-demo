@@ -59,7 +59,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={event.name} size="lg" showCloseButton={false}>
+    <Modal isOpen={isOpen} onClose={onClose} title={event.name} size="xl" showCloseButton={false}>
       {/* Tags and time slots */}
       <div className="flex gap-2 mb-4 flex-wrap">
         {event.tags.map((tag) => (

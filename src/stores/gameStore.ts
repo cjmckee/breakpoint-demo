@@ -18,6 +18,7 @@ import {
   OpponentTier,
   ScheduledEvent,
   StoryMatchMetadata,
+  TIME_SLOT_NAMES,
 } from '../types/game';
 import type { StoryEvent, StoryEventTag, StoryEventOption } from '../types/storyEvents';
 import type { Challenge } from '../types/challenges';
@@ -209,6 +210,44 @@ export const useGameStore = create<GameState>()(
       // Initialize game (Zustand auto-loads persisted state)
       initializeGame: () => {
         const state = get();
+
+        // Reconcile all missed events on load
+        // Matches get rescheduled, story events get cleared (they'll re-trigger via normal flow)
+        if (state.player && state.calendar.scheduledEvents.length > 0) {
+          let events = state.calendar.scheduledEvents;
+          let missedEvents = ScheduledEventManager.getMissedEvents(events, state.calendar);
+
+          while (missedEvents.length > 0) {
+            const missed = missedEvents[0];
+            const action = missed.eventType === 'tournament_match' || missed.eventType === 'story_match'
+              ? `Rescheduling to Day ${state.calendar.currentDay + 1} ${TIME_SLOT_NAMES[missed.scheduledTimeSlot]}`
+              : missed.eventType === 'story' ? 'Clearing (will re-check via normal flow)' : 'Discarding';
+            console.warn(
+              `[EventReconciliation:Load] Missed ${missed.eventType} event ` +
+              `scheduled for Day ${missed.scheduledDay} ${TIME_SLOT_NAMES[missed.scheduledTimeSlot]}` +
+              `${missed.metadata ? ` (${JSON.stringify(missed.metadata)})` : ''}. ${action}.`
+            );
+
+            const { updatedEvents } = ScheduledEventManager.reconcileMissedEvent(
+              events,
+              missed,
+              state.calendar
+            );
+            events = updatedEvents;
+            missedEvents = ScheduledEventManager.getMissedEvents(events, state.calendar);
+          }
+
+          if (events !== state.calendar.scheduledEvents) {
+            console.warn(`[EventReconciliation:Load] Reconciliation complete — updated scheduled events on load.`);
+            set({
+              calendar: {
+                ...state.calendar,
+                scheduledEvents: events,
+              },
+            });
+          }
+        }
+
         set({
           isInitialized: true,
           currentScreen: state.player ? 'main-menu' : 'player-creation',
@@ -236,6 +275,7 @@ export const useGameStore = create<GameState>()(
           // Post-tutorial storyline events
           { eventType: 'story', scheduledDay: 8, scheduledTimeSlot: TimeSlot.AFTERNOON, metadata: { storyEventId: 'rival_first_encounter' } },
           { eventType: 'story', scheduledDay: 9, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'club_team_intro' } },
+          { eventType: 'story', scheduledDay: 10, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'coach_first_meeting' } },
           { eventType: 'story', scheduledDay: 11, scheduledTimeSlot: TimeSlot.AFTERNOON, metadata: { storyEventId: 'club_team_first_practice' } },
           // First tournament trigger - pushes the player to improve by day 15
           { eventType: 'story', scheduledDay: 15, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'riverside_open_prep' } },
@@ -405,19 +445,61 @@ export const useGameStore = create<GameState>()(
           currentTrainingSessions: newTrainingSessions,
         });
 
+        // Reconcile any missed events before checking the current slot
+        // Process one missed event per advanceTime call to avoid modal stacking
+        const missedEvents = ScheduledEventManager.getMissedEvents(
+          get().calendar.scheduledEvents,
+          newCalendar
+        );
+
+        if (missedEvents.length > 0) {
+          const missed = missedEvents[0];
+          console.warn(
+            `[EventReconciliation] Missed ${missed.eventType} event ` +
+            `scheduled for Day ${missed.scheduledDay} ${TIME_SLOT_NAMES[missed.scheduledTimeSlot]}` +
+            `${missed.metadata ? ` (${JSON.stringify(missed.metadata)})` : ''}` +
+            ` — now Day ${newCalendar.currentDay} ${TIME_SLOT_NAMES[newCalendar.currentTimeSlot]}.` +
+            ` ${missed.eventType === 'tournament_match' || missed.eventType === 'story_match'
+              ? `Rescheduling to Day ${newCalendar.currentDay + 1} ${TIME_SLOT_NAMES[missed.scheduledTimeSlot]}.`
+              : missed.eventType === 'story' ? 'Triggering now.' : 'Discarding.'
+            }` +
+            ` (${missedEvents.length} total missed event(s) remaining)`
+          );
+
+          const { updatedEvents, storyEventToTrigger } = ScheduledEventManager.reconcileMissedEvent(
+            get().calendar.scheduledEvents,
+            missed,
+            newCalendar
+          );
+
+          set({
+            calendar: {
+              ...get().calendar,
+              scheduledEvents: updatedEvents,
+            },
+          });
+
+          if (storyEventToTrigger) {
+            const storyEventId = (storyEventToTrigger.metadata as Record<string, unknown>)?.storyEventId as string | undefined;
+            if (storyEventId) {
+              get().checkForStoryEventById(storyEventId);
+            }
+          }
+        }
+
         // Check for random story event at start of new slot (except NIGHT)
         // BUT: Don't trigger if there's a scheduled event for this time slot
         if (newCalendar.currentTimeSlot !== TimeSlot.NIGHT) {
           const scheduledEvent = ScheduledEventManager.getScheduledEvent(
-            newCalendar.scheduledEvents,
-            newCalendar
+            get().calendar.scheduledEvents,
+            get().calendar
           );
 
           if (scheduledEvent && scheduledEvent.eventType === 'story') {
             // Scheduled story event: trigger by ID and clear the slot
             const storyEventId = (scheduledEvent.metadata as Record<string, unknown>)?.storyEventId as string | undefined;
             if (storyEventId) {
-              get().clearScheduledEvent(newCalendar.currentDay, newCalendar.currentTimeSlot);
+              get().clearScheduledEvent(get().calendar.currentDay, get().calendar.currentTimeSlot);
               get().checkForStoryEventById(storyEventId);
             }
           } else if (!scheduledEvent) {
@@ -1559,9 +1641,9 @@ export const useGameStore = create<GameState>()(
 
         // Handle bracket changes and progression
         if (result === 'loss' && activeTournament.currentBracket === 'winner') {
-          // Move to loser bracket
+          // Move to loser bracket, continue to next round (don't replay opponents)
           updatedTournament.currentBracket = 'loser';
-          updatedTournament.currentRound = 0;
+          updatedTournament.currentRound = activeTournament.currentRound + 1;
 
           // Queue elimination event
           if (config.eliminationEventId) {
@@ -1570,7 +1652,7 @@ export const useGameStore = create<GameState>()(
             }, 100);
           }
         } else {
-          // Increment round for both win in any bracket or loss in loser bracket
+          // Increment round for: win in any bracket, or loss in loser bracket
           updatedTournament.currentRound = activeTournament.currentRound + 1;
         }
 

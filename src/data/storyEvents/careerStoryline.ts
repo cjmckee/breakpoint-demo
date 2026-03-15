@@ -7,6 +7,7 @@ import type { StoryEvent } from '../../types/storyEvents';
 import { ChallengeManager } from '../../game/ChallengeManager';
 import { TOURNAMENT_OUTFIT, SPONSOR_OUTFIT, HEADBAND, PRO_RACQUET, ENERGY_DRINK, BANANA } from '../items';
 import { CHALLENGE_TEAM_SPIRIT, CHALLENGE_SPONSOR_WORTHY } from '../challengeTemplates';
+import { TimeSlot } from '../../types/game';
 
 export const careerEvents: StoryEvent[] = [
 
@@ -114,8 +115,14 @@ export const careerEvents: StoryEvent[] = [
           placement: 1,
           offensive: 1,
           defensive: 1
-        }
-      }
+        },
+        scheduledEvents: [{
+          relativeDays: 2,  // Schedule first match announcement 2 days after
+          scheduledTimeSlot: TimeSlot.MORNING,
+          eventType: 'story' as const,
+          metadata: { storyEventId: 'first_team_match_scheduled' },
+        }],
+      },
     },
   },
 

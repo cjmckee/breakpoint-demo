@@ -262,23 +262,8 @@ export const welcomeEvents: StoryEvent[] = [
     tags: ['intro'],
     timeSlotsRequired: 0, // Doesn't consume time - informational event
     prerequisites: {
+      // This event is scheduled for day 15, do not require stats
       completedEvents: ['abilities_basics', 'relationship_basics'],
-      minMatchesWon: 1,
-      minDay: 15,
-      stats: {
-        serve: {
-          min: 30
-        },
-        forehand: {
-          min: 30
-        },
-        backhand: {
-          min: 30
-        },
-        focus: {
-          min: 30
-        }
-      }
     },
     skippable: false,
     description: 'The Riverside Open is just around the corner.',

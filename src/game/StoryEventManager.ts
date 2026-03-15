@@ -32,6 +32,23 @@ export class StoryEventManager {
   }
 
   /**
+   * Get the set of story event IDs that are scheduled in the calendar.
+   * These events should only fire at their scheduled time, not via random rolling.
+   */
+  private static getScheduledStoryEventIds(calendar: GameCalendar): Set<string> {
+    const ids = new Set<string>();
+    for (const scheduled of calendar.scheduledEvents) {
+      if (scheduled.eventType === 'story' && scheduled.metadata) {
+        const storyId = (scheduled.metadata as Record<string, unknown>).storyEventId;
+        if (typeof storyId === 'string') {
+          ids.add(storyId);
+        }
+      }
+    }
+    return ids;
+  }
+
+  /**
    * Get a specific event by ID if player qualifies for it
    * Returns the event if eligible, null otherwise
    */
@@ -97,10 +114,17 @@ export class StoryEventManager {
     const taggedEvents = StoryEventRepository.getEventsByTag(tag);
     const dayBusy = this.isDayBusy(gameState.calendar, gameState.activeTournament);
 
+    const scheduledStoryEventIds = this.getScheduledStoryEventIds(gameState.calendar);
+
     // Filter by prerequisites
     return taggedEvents.filter((event) => {
       // Skip if already completed
       if (gameState.completedStoryEvents.includes(event.id)) {
+        return false;
+      }
+
+      // Skip events that are scheduled for a specific day
+      if (scheduledStoryEventIds.has(event.id)) {
         return false;
       }
 
@@ -139,6 +163,8 @@ export class StoryEventManager {
     console.log('all events:', allEvents);
     const dayBusy = this.isDayBusy(gameState.calendar, gameState.activeTournament);
 
+    const scheduledStoryEventIds = this.getScheduledStoryEventIds(gameState.calendar);
+
     // Filter by prerequisites
     return allEvents.filter((event) => {
       // Skip if already completed
@@ -149,6 +175,12 @@ export class StoryEventManager {
       // Let's just filter out tournament events for now.
       // We manually queue them when needed
       if (event.tags.includes('tournament_match') || event.tags.includes('tournament_ceremony') || event.tags.includes('story_match')) {
+        return false;
+      }
+
+      // Skip events that are scheduled for a specific day — they should only
+      // fire when their scheduled time arrives, not via random rolling
+      if (scheduledStoryEventIds.has(event.id)) {
         return false;
       }
 

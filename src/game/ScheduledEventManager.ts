@@ -108,6 +108,70 @@ export class ScheduledEventManager {
   }
 
   /**
+   * Check if an event is in the past relative to the current calendar
+   */
+  static isEventInPast(event: ScheduledEvent, calendar: GameCalendar): boolean {
+    if (event.scheduledDay < calendar.currentDay) return true;
+    if (event.scheduledDay === calendar.currentDay) {
+      return event.scheduledTimeSlot < calendar.currentTimeSlot;
+    }
+    return false;
+  }
+
+  /**
+   * Get all scheduled events that are in the past (missed)
+   * Returns the oldest missed event first so they can be processed in order
+   */
+  static getMissedEvents(
+    scheduledEvents: ScheduledEvent[],
+    calendar: GameCalendar
+  ): ScheduledEvent[] {
+    return scheduledEvents
+      .filter(e => this.isEventInPast(e, calendar))
+      .sort((a, b) => {
+        if (a.scheduledDay !== b.scheduledDay) return a.scheduledDay - b.scheduledDay;
+        return a.scheduledTimeSlot - b.scheduledTimeSlot;
+      });
+  }
+
+  /**
+   * Reconcile a single missed event.
+   * - Story events: returns the event as-is for immediate triggering
+   * - Match events (tournament_match, story_match): reschedules to currentDay + 1
+   *   at the original time slot, with conflict resolution
+   * Returns the updated events array and optionally the story event to trigger
+   */
+  static reconcileMissedEvent(
+    scheduledEvents: ScheduledEvent[],
+    missedEvent: ScheduledEvent,
+    calendar: GameCalendar
+  ): { updatedEvents: ScheduledEvent[]; storyEventToTrigger: ScheduledEvent | null } {
+    // Remove the missed event from the array
+    const withoutMissed = scheduledEvents.filter(e => e !== missedEvent);
+
+    if (missedEvent.eventType === 'tournament_match' || missedEvent.eventType === 'story_match') {
+      // Reschedule match for tomorrow at its original time slot
+      const rescheduleDay = calendar.currentDay + 1;
+      const { updatedEvents } = this.scheduleEventWithConflictResolution(
+        withoutMissed,
+        missedEvent.eventType,
+        rescheduleDay,
+        missedEvent.scheduledTimeSlot,
+        missedEvent.metadata
+      );
+      return { updatedEvents, storyEventToTrigger: null };
+    }
+
+    if (missedEvent.eventType === 'story') {
+      // Story events trigger immediately
+      return { updatedEvents: withoutMissed, storyEventToTrigger: missedEvent };
+    }
+
+    // Other types (training, rest): just discard — these are non-blocking
+    return { updatedEvents: withoutMissed, storyEventToTrigger: null };
+  }
+
+  /**
    * Find the next available time slot starting from a given day/slot
    * Skips NIGHT slots (not a valid activity time for scheduling)
    * Returns the first free day/slot combination
