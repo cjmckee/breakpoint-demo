@@ -207,3 +207,20 @@ export interface Challenge {
     eventId?: string; // If from story event
   };
 }
+
+// ============================================================================
+// CHALLENGE TEMPLATE
+// ============================================================================
+
+/**
+ * A reusable challenge definition that can be instantiated into a Challenge.
+ * Templates define the static configuration; runtime state (status, progress,
+ * timestamps) is added when the challenge is created via ChallengeManager.
+ */
+export interface ChallengeTemplate {
+  id: string;
+  name: string;
+  description: string;
+  requirements: ChallengeRequirement[];
+  reward: ChallengeReward;
+}

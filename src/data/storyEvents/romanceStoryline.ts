@@ -4,6 +4,8 @@
  */
 
 import type { StoryEvent } from '../../types/storyEvents';
+import { ChallengeManager } from '../../game/ChallengeManager';
+import { CHALLENGE_IMPRESS_ALEX } from '../challengeTemplates';
 
 export const romanceEvents: StoryEvent[] = [
   {
@@ -29,6 +31,12 @@ export const romanceEvents: StoryEvent[] = [
         energyChange: 0,
         relationshipChanges: { alex: 20 },
       },
+      challengesAssigned: [
+        ChallengeManager.createFromTemplate(CHALLENGE_IMPRESS_ALEX, {
+          type: 'story',
+          eventId: 'romance_meet_tournament',
+        }),
+      ],
     },
   },
 
@@ -56,7 +64,7 @@ export const romanceEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You have a deep conversation about your tennis ambitions over coffee. ', { characterId: 'alex_romance' }, ' shares their own competitive experiences and offers helpful advice based on what they\'ve learned. You gain valuable insights into tournament preparation.'],
           effects: {
-            statChanges: { focus: 2, anticipation: 1 },
+            statChanges: { dropShot: 1, volley: 1, anticipation: 1 },
             moodChange: 15,
             energyChange: -5,
             relationshipChanges: { alex: 10 },
@@ -85,7 +93,7 @@ export const romanceEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You explain that you need to focus on training right now and ask if you can reschedule. ', { characterId: 'alex_romance' }, ' seems understanding but you can tell they\'re a bit disappointed.'],
           effects: {
-            statChanges: { focus: 1 },
+            statChanges: { recovery: 1 },
             moodChange: 0,
             energyChange: 0,
             relationshipChanges: { alex: -5 },

@@ -4,7 +4,9 @@
  */
 
 import type { StoryEvent } from '../../types/storyEvents';
+import { ChallengeManager } from '../../game/ChallengeManager';
 import { TOURNAMENT_OUTFIT, SPONSOR_OUTFIT, HEADBAND, PRO_RACQUET, ENERGY_DRINK, BANANA } from '../items';
+import { CHALLENGE_TEAM_SPIRIT, CHALLENGE_SPONSOR_WORTHY } from '../challengeTemplates';
 
 export const careerEvents: StoryEvent[] = [
 
@@ -41,7 +43,7 @@ export const careerEvents: StoryEvent[] = [
     options: [],
     defaultOutcome: {
       resultText: [
-        'You find out about the Academy team. It\'s an honor to be chosen. ', 
+        'You find out about the Academy team. It\'s an honor to be chosen. ',
         'Even though you know nothing about it. Or who even picks these things.'
       ],
       effects: {
@@ -58,7 +60,13 @@ export const careerEvents: StoryEvent[] = [
           slice: 1,
           volley: 1,
         }
-      }
+      },
+      challengesAssigned: [
+        ChallengeManager.createFromTemplate(CHALLENGE_TEAM_SPIRIT, {
+          type: 'story',
+          eventId: 'club_team_intro',
+        }),
+      ],
     }
   },
 
@@ -369,6 +377,12 @@ export const careerEvents: StoryEvent[] = [
             energyChange: -5,
             itemsGained: [TOURNAMENT_OUTFIT, HEADBAND],
           },
+          challengesAssigned: [
+            ChallengeManager.createFromTemplate(CHALLENGE_SPONSOR_WORTHY, {
+              type: 'story',
+              eventId: 'sponsor_first_offer',
+            }),
+          ],
         },
       },
       {
@@ -382,11 +396,17 @@ export const careerEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You confidently negotiate for better terms. The representative respects your business acumen and agrees to increase the monthly stipend by 10%. You were just bluffing, but it seems like it worked.'],
           effects: {
-            statChanges: { serve: 3, forehand: 3, focus: 2 },
+            statChanges: { serve: 3, forehand: 3, strength: 2 },
             moodChange: 30,
             energyChange: -10,
             itemsGained: [SPONSOR_OUTFIT, PRO_RACQUET],
           },
+          challengesAssigned: [
+            ChallengeManager.createFromTemplate(CHALLENGE_SPONSOR_WORTHY, {
+              type: 'story',
+              eventId: 'sponsor_first_offer',
+            }),
+          ],
         },
       },
       {
@@ -397,7 +417,7 @@ export const careerEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You politely decline, explaining that you want to focus on your development before taking on sponsorship obligations. The representative seems to take it well. Maybe too well... I hope they come back soon.'],
           effects: {
-            statChanges: { focus: 3 },
+            statChanges: { recovery: 2, shotVariety: 1 },
             moodChange: 10,
             energyChange: 0,
           },
@@ -420,15 +440,15 @@ export const careerEvents: StoryEvent[] = [
     dialogue: [
       ['journalist', ['Our audience absolutely loves your story. What can you tell us about', {characterId: 'jordan_rival'}, '?']],
       ['player', ['I- Oh? What?']],
-      ['journalist', [{characterId: 'jordan_rival'}, 'has been one of the hottest prospects in tennis, both figuratively and literally.']],
+      ['journalist', [{characterId: 'jordan_rival'}, ' has been one of the hottest prospects in tennis, both figuratively and literally.']],
       ['journalist', ['How did you two meet? Is there a story behind your rivalry? What does he smell like?']],
     ],
     characters: ['journalist'],
     options: [],
     defaultOutcome: {
-      resultText: ['You give your best effort during the interview, but ultimately you\'re still confused. Everyone seems to know', {characterId: 'jordan_rival'}, 'except you.'],
+      resultText: ['You give your best effort during the interview, but ultimately you\'re still confused. Everyone seems to know ', {characterId: 'jordan_rival'}, ' except you.'],
       effects: {
-        statChanges: { stamina: 2, focus: 1 },
+        statChanges: { stamina: 2, overhead: 1 },
         moodChange: -5,
         energyChange: -5,
       }
@@ -461,9 +481,13 @@ export const careerEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You sign with the agent, who immediately begins making calls and setting up opportunities. But you didn\'t sell out, right?'],
           effects: {
-            statChanges: { anticipation: 3, focus: 2 },
+            statChanges: { anticipation: 3, slice: 1, dropShot: 1, forehand: 1, backhand: 1, serve: 1 },
             moodChange: 10,
             energyChange: -10,
+            relationshipChanges: {
+              coach_gonzalez: -25,
+              agent: 10,
+            }
           },
         },
       },
@@ -488,8 +512,8 @@ export const careerEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You politely decline, explaining that you want to maintain control over your career at this stage. Plus you can\'t help but feel like you owe', {characterId: 'coach_gonzalez'}, 'something for all their support.'],
           effects: {
-            statChanges: { focus: 2 },
-            moodChange: 15,
+            statChanges: { recovery: 2, focus: -3, anticipation: -1 },
+            moodChange: -15,
             energyChange: 0,
           },
         },
@@ -516,7 +540,7 @@ export const careerEvents: StoryEvent[] = [
     defaultOutcome: {
       resultText: ['You accept the invitation with excitement and gratitude. This is the opportunity you\'ve been working toward. But are you ready?'],
       effects: {
-        statChanges: { focus: 3, anticipation: 2, offensive: 2 },
+        statChanges: { focus: 1, volley: 2, anticipation: 2, offensive: 2 },
         moodChange: 30,
         energyChange: -10,
       },

@@ -4,6 +4,8 @@
  */
 
 import type { StoryEvent } from '../../types/storyEvents';
+import { ChallengeManager } from '../../game/ChallengeManager';
+import { CHALLENGE_PROVE_THEM_WRONG, CHALLENGE_RIVAL_READY } from '../challengeTemplates';
 
 export const rivalEvents: StoryEvent[] = [
   {
@@ -24,11 +26,17 @@ export const rivalEvents: StoryEvent[] = [
     defaultOutcome: {
       resultText: ['You keep your composure despite ', { characterId: 'jordan_rival' }, '\'s arrogance. Their words sting a bit, but you channel that emotion into motivation. You make a mental note to prove yourself when the time comes.'],
       effects: {
-        statChanges: { focus: 3, offensive: 2 },
+        statChanges: { focus: 1, offensive: 2, overhead: 2 },
         moodChange: -10,
         energyChange: 0,
         relationshipChanges: { jordan_rival: -20 },
       },
+      challengesAssigned: [
+        ChallengeManager.createFromTemplate(CHALLENGE_PROVE_THEM_WRONG, {
+          type: 'story',
+          eventId: 'rival_first_encounter',
+        }),
+      ],
     },
   },
 
@@ -60,11 +68,17 @@ export const rivalEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You look ', { characterId: 'jordan_rival' }, ' straight in the eye and calmly say, "I\'ll let my tennis do the talking. See you on the court." Your confident composure clearly rattles them. You walk away feeling mentally stronger and more focused than ever.'],
           effects: {
-            statChanges: { focus: 5, anticipation: 3, offensive: 2 },
+            statChanges: { focus: 2, anticipation: 3, strength: 2, overhead: 1 },
             moodChange: 20,
             energyChange: -5,
             relationshipChanges: { jordan_rival: -10 },
           },
+          challengesAssigned: [
+            ChallengeManager.createFromTemplate(CHALLENGE_RIVAL_READY, {
+              type: 'story',
+              eventId: 'rival_confrontation',
+            }),
+          ],
         },
       },
       {
@@ -75,7 +89,7 @@ export const rivalEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You simply nod and walk past without engaging. ', { characterId: 'jordan_rival' }, ' seems frustrated by your lack of reaction. You maintain your focus and don\'t let their words affect your mental preparation.'],
           effects: {
-            statChanges: { focus: 3, defensive: 2 },
+            statChanges: { focus: 1, defensive: 2, recovery: 2 },
             moodChange: 5,
             energyChange: 0,
             relationshipChanges: { jordan_rival: -5 },

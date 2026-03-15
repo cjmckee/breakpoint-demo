@@ -52,7 +52,8 @@ export const tournamentEvents: StoryEvent[] = [
             resultText: ['The brackets are released and the courts are assigned. Now is your chance to prove you belong here.'],
             effects: {
                 statChanges: {
-                    focus: 2,
+                    volley: 1,
+                    overhead: 1,
                     stamina: 2,
                 },
                 scheduleNextTournamentMatch: true,
@@ -86,8 +87,10 @@ export const tournamentEvents: StoryEvent[] = [
             resultText: ['You are the Riverside Open champion for the Club level! Your confidence soars. Remember this feeling as you grow and improve.'],
             effects: {
                 statChanges: {
-                    focus: 5,
-                    anticipation: 3,
+                    focus: 2,
+                    dropShot: 2,
+                    slice: 1,
+                    anticipation: 2,
                 },
                 moodChange: 20,
                 tierChange: 2,
@@ -517,7 +520,8 @@ export const tournamentEvents: StoryEvent[] = [
             effects: {
                 moodChange: 2,
                 statChanges: {
-                    focus: 2,
+                    strength: 1,
+                    speed: 1,
                     anticipation: 2,
                     offensive: 2,
                 }
