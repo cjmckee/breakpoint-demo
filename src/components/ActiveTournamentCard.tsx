@@ -94,7 +94,7 @@ export const ActiveTournamentCard: React.FC = () => {
           </div>
           <div className="text-right">
             <div className={`text-lg font-bold ${getBracketColor(activeTournament.currentBracket)}`}>
-              {activeTournament.currentBracket === 'winner' ? '🏆 Winner' : '🎗️ Consolation'}
+              {activeTournament.currentBracket === 'winner' ? '🎾 Main Draw' : '🎗️ Consolation'}
             </div>
           </div>
         </div>
@@ -142,7 +142,7 @@ export const ActiveTournamentCard: React.FC = () => {
                       : 'bg-red-500 bg-opacity-20 border-red-500 text-red-500'
                   }`}
                 >
-                  R{result.roundNumber + 1}: {result.result.toUpperCase()}
+                  R{result.roundNumber}: {result.result.toUpperCase()}
                 </div>
               ))}
             </div>

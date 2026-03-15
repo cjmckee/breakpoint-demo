@@ -23,7 +23,8 @@
       "Bash(node dist/src/test/analysis/balanceAnalysis.js)",
       "Read(//c/Users/Cody/.claude/**)",
       "Bash(grep *)",
-      "Bash(npx vite build)"
+      "Bash(npx vite build)",
+      "Bash(xargs grep:*)"
     ],
     "deny": [],
     "ask": []

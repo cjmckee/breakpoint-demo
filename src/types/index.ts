@@ -556,6 +556,13 @@ export interface MatchStatistics {
 
   // Key moments (interactive decision points)
   keyMomentsWon: { player: number; opponent: number };
+
+  // Comeback tracking - largest game deficit the player faced
+  largestDeficit?: {
+    games: string;        // Set score at worst moment, e.g., "1-4"
+    gameScore?: string;   // Game score if facing game point, e.g., "0-40"
+    deficitSize: number;  // How many games behind (2+)
+  };
 }
 
 /**

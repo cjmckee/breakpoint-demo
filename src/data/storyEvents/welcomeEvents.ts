@@ -4,6 +4,7 @@
  */
 
 import type { StoryEvent } from '../../types/storyEvents';
+import { TimeSlot } from '../../types/game';
 import { BEGINNER_RACQUET, RUNNING_SHOES } from '../items';
 
 export const welcomeEvents: StoryEvent[] = [
@@ -298,6 +299,12 @@ export const welcomeEvents: StoryEvent[] = [
         relationshipChanges: {
           jen: 5,
         },
+        scheduledEvents: [{
+          relativeDays: 3,  // Prep fires on day 15, ceremony on day 18
+          scheduledTimeSlot: TimeSlot.MORNING,
+          eventType: 'story' as const,
+          metadata: { storyEventId: 'riverside_open_opening_ceremony' },
+        }],
       },
     },
   }

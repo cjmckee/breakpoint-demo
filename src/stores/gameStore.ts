@@ -7,6 +7,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import {
   Player,
+  PlayerFlag,
   GameCalendar,
   TrainingSession,
   TrainingResult,
@@ -39,7 +40,7 @@ import { StoryMatchManager } from '../game/StoryMatchManager';
 import { CalendarService } from '../game/CalendarService';
 import { EffectAggregator } from '../core/EffectAggregator';
 import { EffectKey } from '../types/game';
-import type { ModalEntry, ModalData, ModalType } from '../types/ui';
+import type { ModalEntry, ModalData, ModalType, StoryEventModalData } from '../types/ui';
 import { createModalEntry, sortModalQueue } from '../types/ui';
 
 interface GameState {
@@ -133,7 +134,7 @@ interface GameState {
   getPlayerItems: () => Item[];
 
   // Tournament actions
-  startTournament: (tournamentId: string) => void;
+  startTournament: (tournamentId: string, options?: { skipCeremony?: boolean }) => void;
   scheduleNextTournamentMatch: () => void;
   completeTournamentMatch: (result: 'win' | 'loss', score: string, matchStats: MatchStatistics, rewards: MatchReward) => void;
   cancelTournament: () => void;
@@ -145,6 +146,10 @@ interface GameState {
   getScheduledStoryMatch: () => ScheduledEvent | null;
   isStoryMatchScheduled: () => boolean;
   completeStoryMatch: (result: 'win' | 'loss', score: string, matchStats: MatchStatistics, rewards: MatchReward) => void;
+
+  // Player flag actions
+  setFlag: (key: string, value: boolean | number | string) => void;
+  getFlag: (key: string) => boolean | number | string | undefined;
 
   // Generic scheduled event actions
   scheduleEvent: (event: ScheduledEvent) => void;
@@ -419,6 +424,14 @@ export const useGameStore = create<GameState>()(
             get().checkForRandomStoryEvent();
           }
         }
+
+        // Check for milestone events (deferred from match completion to next time slot)
+        get().checkForStoryEventByTag('milestone', 100);
+
+        // Unlock "Play Match" once the player reaches day 5
+        if (newCalendar.currentDay >= 5 && !get().getFlag(PlayerFlag.MATCH_UNLOCKED)) {
+          get().setFlag(PlayerFlag.MATCH_UNLOCKED, true);
+        }
       },
 
       // Rest (restore energy)
@@ -599,10 +612,6 @@ export const useGameStore = create<GameState>()(
         // Check for challenge completion after stat changes
         get().checkChallengeCompletion();
 
-        // Check for milestone events (guaranteed trigger, no random roll)
-        // Milestones like "first win" or "3-match win streak" should fire immediately
-        get().checkForStoryEventByTag('milestone', 100);
-
         console.log('Match result added with rewards:', matchActivity);
       },
 
@@ -755,6 +764,16 @@ export const useGameStore = create<GameState>()(
         );
 
         if (event) {
+          // Don't queue if this event is already showing or queued
+          const { currentModal: cm, modalQueue: mq } = get();
+          const isAlreadyQueued =
+            (cm?.type === 'story_event' && (cm.data as StoryEventModalData).event.id === eventId) ||
+            mq.some(m => m.type === 'story_event' && (m.data as StoryEventModalData).event.id === eventId);
+          if (isAlreadyQueued) {
+            console.log(`[Story Event] ⏭️ Already queued: "${event.name}"`);
+            return;
+          }
+
           console.log(`[Story Event] ✅ Triggered: "${event.name}"`);
           // Queue modal instead of setting pendingStoryEvent
           const availableOptions = PrerequisiteChecker.getAvailableOptions(event, player, {
@@ -908,7 +927,7 @@ export const useGameStore = create<GameState>()(
 
         // Get event from modal queue
         if (!player || !currentModal || currentModal.type !== 'story_event') return;
-        const storyEventData = currentModal.data as import('../types/ui').StoryEventModalData;
+        const storyEventData = currentModal.data as StoryEventModalData;
         const storyEvent = storyEventData.event;
         if (storyEvent.id !== eventId) return;
 
@@ -1076,6 +1095,11 @@ export const useGameStore = create<GameState>()(
         // Check for challenge completion after state changes
         get().checkChallengeCompletion();
 
+        // Start tournament if requested by event effects (must happen before scheduling match)
+        if (outcome.effects.startTournament) {
+          get().startTournament(outcome.effects.startTournament, { skipCeremony: true });
+        }
+
         // Schedule next tournament match if requested by the event outcome
         if (shouldScheduleTournamentMatch) {
           get().scheduleNextTournamentMatch();
@@ -1089,7 +1113,7 @@ export const useGameStore = create<GameState>()(
 
         // Get event from modal queue if it's a story event
         if (currentModal && currentModal.type === 'story_event') {
-          const storyEventData = currentModal.data as import('../types/ui').StoryEventModalData;
+          const storyEventData = currentModal.data as StoryEventModalData;
           set({
             completedStoryEvents: [...completedStoryEvents, storyEventData.event.id],
           });
@@ -1132,7 +1156,7 @@ export const useGameStore = create<GameState>()(
         // Get options from modal data if it's a story event modal
         if (!player || !currentModal || currentModal.type !== 'story_event') return [];
 
-        const storyEventData = currentModal.data as import('../types/ui').StoryEventModalData;
+        const storyEventData = currentModal.data as StoryEventModalData;
         return storyEventData.availableOptions;
       },
 
@@ -1365,7 +1389,7 @@ export const useGameStore = create<GameState>()(
       // ========================================================================
 
       // Start a tournament
-      startTournament: (tournamentId: string) => {
+      startTournament: (tournamentId: string, options?: { skipCeremony?: boolean }) => {
         const config = TournamentRegistry.getTournament(tournamentId);
         if (!config) {
           console.error(`Tournament ${tournamentId} not found`);
@@ -1390,21 +1414,29 @@ export const useGameStore = create<GameState>()(
           },
         }));
 
-        // Check if opening ceremony already completed
-        const completedStoryEvents = get().completedStoryEvents;
-        const ceremonyAlreadyCompleted = completedStoryEvents.includes(config.openingCeremonyEventId);
+        // Unlock the Tournaments card once a tournament has been started
+        if (!get().getFlag(PlayerFlag.TOURNAMENTS_UNLOCKED)) {
+          get().setFlag(PlayerFlag.TOURNAMENTS_UNLOCKED, true);
+        }
 
-        if (ceremonyAlreadyCompleted) {
-          // Skip ceremony and schedule first match directly
-          console.log('Opening ceremony already completed, scheduling first match directly');
-          setTimeout(() => {
-            get().scheduleNextTournamentMatch();
-          }, 100);
-        } else {
-          // Queue opening ceremony story event (which will schedule the match)
-          setTimeout(() => {
-            get().checkForStoryEventById(config.openingCeremonyEventId);
-          }, 100);
+        // Skip ceremony handling when called from an event that already IS the ceremony
+        if (!options?.skipCeremony) {
+          // Check if opening ceremony already completed
+          const completedStoryEvents = get().completedStoryEvents;
+          const ceremonyAlreadyCompleted = completedStoryEvents.includes(config.openingCeremonyEventId);
+
+          if (ceremonyAlreadyCompleted) {
+            // Skip ceremony and schedule first match directly
+            console.log('Opening ceremony already completed, scheduling first match directly');
+            setTimeout(() => {
+              get().scheduleNextTournamentMatch();
+            }, 100);
+          } else {
+            // Queue opening ceremony story event (which will schedule the match)
+            setTimeout(() => {
+              get().checkForStoryEventById(config.openingCeremonyEventId);
+            }, 100);
+          }
         }
       },
 
@@ -1616,9 +1648,6 @@ export const useGameStore = create<GameState>()(
             get().scheduleNextTournamentMatch();
           }, 100);
         }
-
-        // Check for milestone events (guaranteed trigger, no random roll)
-        get().checkForStoryEventByTag('milestone', 100);
       },
 
       // Cancel/forfeit tournament
@@ -1795,9 +1824,6 @@ export const useGameStore = create<GameState>()(
         setTimeout(() => {
           get().checkForStoryEventById(postMatchEventId);
         }, 100);
-
-        // Check for milestone events (guaranteed trigger, no random roll)
-        get().checkForStoryEventByTag('milestone', 100);
       },
 
       // ========================================================================
@@ -1805,6 +1831,26 @@ export const useGameStore = create<GameState>()(
       // ========================================================================
 
       // Schedule any event
+      // ========================================================================
+      // PLAYER FLAG ACTIONS
+      // ========================================================================
+
+      setFlag: (key: string, value: boolean | number | string) => {
+        const { player } = get();
+        if (!player) return;
+        set({
+          player: {
+            ...player,
+            flags: { ...player.flags, [key]: value },
+          },
+        });
+      },
+
+      getFlag: (key: string) => {
+        const { player } = get();
+        return player?.flags?.[key];
+      },
+
       scheduleEvent: (event: ScheduledEvent) => {
         set((state) => ({
           calendar: {

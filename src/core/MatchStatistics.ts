@@ -33,6 +33,9 @@ export class MatchStatistics {
   private secondServeAttempts: { player: number; opponent: number } = { player: 0, opponent: 0 };
   private secondServesIn: { player: number; opponent: number } = { player: 0, opponent: 0 };
 
+  // Track largest deficit for comeback highlights
+  private worstDeficitSeverity = 0;
+
   constructor(playerProfile: PlayerProfile, opponentProfile: PlayerProfile) {
     this.playerProfile = playerProfile;
     this.opponentProfile = opponentProfile;
@@ -103,6 +106,48 @@ export class MatchStatistics {
    */
   public addKeyMomentResult(winner: 'player' | 'opponent'): void {
     this.statistics.keyMomentsWon[winner]++;
+  }
+
+  /**
+   * Track the current score state to detect the player's largest deficit.
+   * Called after each point to capture when the player is down a break (2+ games behind).
+   * Among equal game deficits, prefers the state with the worst game score.
+   */
+  public updateScoreState(
+    setScore: { player: number; opponent: number },
+    gameScore: { player: number; opponent: number }
+  ): void {
+    const gameDeficit = setScore.opponent - setScore.player;
+    if (gameDeficit < 2) return;
+
+    // Severity: primary = game deficit, secondary = how close opponent is to winning current game
+    const severity = gameDeficit * 1000 + Math.max(0, gameScore.opponent - gameScore.player) * 10 + gameScore.opponent;
+
+    if (severity > this.worstDeficitSeverity) {
+      this.worstDeficitSeverity = severity;
+
+      // Convert raw point counts to tennis display format
+      const pointToTennis = (p: number): string => {
+        switch (p) {
+          case 0: return '0';
+          case 1: return '15';
+          case 2: return '30';
+          default: return '40';
+        }
+      };
+
+      // Include game score if opponent has game point (3+ points and ahead)
+      const opponentHasGamePoint = gameScore.opponent >= 3 && gameScore.opponent > gameScore.player;
+      const gameScoreStr = opponentHasGamePoint
+        ? `${pointToTennis(gameScore.player)}-${pointToTennis(gameScore.opponent)}`
+        : undefined;
+
+      this.statistics.largestDeficit = {
+        games: `${setScore.player}-${setScore.opponent}`,
+        gameScore: gameScoreStr,
+        deficitSize: gameDeficit,
+      };
+    }
   }
 
   /**

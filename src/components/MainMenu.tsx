@@ -16,14 +16,13 @@ import { ActiveTournamentCard } from './ActiveTournamentCard';
 import { TrainingResultModal } from './TrainingResultModal';
 import { StoryEventModal } from './StoryEventModal';
 import { StoryEventResultModal } from './StoryEventResultModal';
-import type { StoryMatchMetadata } from '../types/game';
 import { ItemManager } from '../game/ItemManager';
 import type {
   StoryEventModalData,
   TrainingResultModalData,
   StoryEventResultModalData,
 } from '../types/ui';
-import { TimeSlot } from '../types/game';
+import { TimeSlot, PlayerFlag } from '../types/game';
 import { TournamentRegistry } from '../data/tournaments';
 import { TournamentManager } from '../game/TournamentManager';
 import { StoryMatchManager } from '../game/StoryMatchManager';
@@ -54,6 +53,10 @@ export const MainMenu: React.FC = () => {
 
   // Check if it's night time - only rest/next day action allowed
   const isNightTime = calendar.currentTimeSlot === TimeSlot.NIGHT;
+
+  // Progression flags
+  const matchUnlocked = player?.flags?.[PlayerFlag.MATCH_UNLOCKED] === true;
+  const tournamentsUnlocked = player?.flags?.[PlayerFlag.TOURNAMENTS_UNLOCKED] === true;
 
   // Check if a story event modal is active
   const isEventPending = hasModalOfType('story_event');
@@ -101,6 +104,7 @@ export const MainMenu: React.FC = () => {
     }
   }, [isStoryMatchScheduled, storyPrematchEventId]);
 
+
   const handleExecuteEvent = (eventId: string, optionId?: string) => {
     executeStoryEvent(eventId, optionId);
     // Modal dismissal and result queuing now handled by executeStoryEvent
@@ -108,7 +112,10 @@ export const MainMenu: React.FC = () => {
 
   const handleCancelEvent = () => {
     cancelStoryEvent();
-    // Modal dismissal now handled by cancelStoryEvent
+    // After skipping pre-match event, navigate to tournament match if scheduled
+    if (isTournamentMatchScheduled) {
+      setScreen('tournament-match');
+    }
   };
 
   if (!player) {
@@ -128,7 +135,7 @@ export const MainMenu: React.FC = () => {
       id: 'match',
       title: 'Play Match',
       emoji: '🎾',
-      description: 'Test your skills in a competitive match',
+      description: 'Test your skills in a practice match with another Academy player',
       energyCost: 50,
       action: () => setScreen('match'),
     },
@@ -255,7 +262,13 @@ export const MainMenu: React.FC = () => {
         return (
           <StoryEventResultModal
             isOpen={true}
-            onClose={dismissCurrentModal}
+            onClose={() => {
+              dismissCurrentModal();
+              // After pre-match event result is dismissed, navigate to tournament match
+              if (isTournamentMatchScheduled) {
+                setScreen('tournament-match');
+              }
+            }}
             result={data.result}
           />
         );
@@ -353,20 +366,29 @@ export const MainMenu: React.FC = () => {
             const canAfford = currentStatus.energy >= activity.energyCost;
             const isRestButton = activity.id === 'rest';
             const isInventoryButton = activity.id === 'inventory';
+            const isMatchButton = activity.id === 'match';
+            const isTournamentButton = activity.id === 'tournaments';
+
+            // Check progression locks
+            const isLocked = (isMatchButton && !matchUnlocked) || (isTournamentButton && !tournamentsUnlocked);
 
             // Disable all activities when event is pending, match scheduled, or during night time (except rest and inventory)
             const isMatchScheduled = isTournamentMatchScheduled || isStoryMatchScheduled;
-            const isDisabled = isEventPending
-              ? !isInventoryButton
-              : isMatchScheduled
-                ? !isRestButton && !isInventoryButton
-                : isNightTime
-                  ? (!isRestButton && !isInventoryButton)
-                  : (!canAfford && activity.energyCost > 0);
+            const isDisabled = isLocked
+              ? true
+              : isEventPending
+                ? !isInventoryButton
+                : isMatchScheduled
+                  ? !isRestButton && !isInventoryButton
+                  : isNightTime
+                    ? (!isRestButton && !isInventoryButton)
+                    : (!canAfford && activity.energyCost > 0);
 
             // Get button text
             let buttonText = activity.title;
-            if (isEventPending) {
+            if (isLocked) {
+              buttonText = isMatchButton ? `Unlocks Day 5` : 'Locked';
+            } else if (isEventPending) {
               buttonText = 'Event Pending';
             } else if (isMatchScheduled && !isRestButton && !isInventoryButton) {
               buttonText = 'Match Scheduled';

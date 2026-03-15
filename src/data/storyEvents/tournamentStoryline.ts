@@ -56,6 +56,7 @@ export const tournamentEvents: StoryEvent[] = [
                     overhead: 1,
                     stamina: 2,
                 },
+                startTournament: 'riverside_open',
                 scheduleNextTournamentMatch: true,
             }
         }

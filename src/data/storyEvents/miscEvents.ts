@@ -1404,7 +1404,8 @@ export const miscEvents: StoryEvent[] = [
                         statChanges: {
                             volley: 2,
                             dropShot: 2,
-                            slice: 1
+                            slice: 1,
+                            anticipation: 1
                         },
                         relationshipChanges: {
                             jen: 3,
