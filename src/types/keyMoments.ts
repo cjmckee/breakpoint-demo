@@ -7,6 +7,7 @@ import { TacticalOption, KeyMomentType } from '../data/tacticalOptions';
 import { KeyMomentResult } from '../game/KeyMomentResolver';
 import { Ability, StatBoosts } from './game';
 import { MatchStatistics } from './index';
+import type { ArchetypeType } from '../data/archetypes';
 
 /**
  * Key Moment Data
@@ -19,6 +20,7 @@ export interface KeyMoment {
   description: string; // Context description
   options: TacticalOption[]; // Available choices
   timestamp: number;
+  opponentArchetype: ArchetypeType; // Opponent's play style archetype
   matchContext: {
     score: string; // Current score
     server: 'player' | 'opponent';
@@ -78,6 +80,7 @@ export interface MatchScore {
   isComplete: boolean;
   winner?: 'player' | 'opponent';
   momentum?: number; // -100 to 100 (positive = player favor)
+  energy?: number; // 0-100 current player energy
 }
 
 /**
@@ -110,7 +113,7 @@ export interface InteractiveMatchConfig {
 
   // Options
   enableKeyMoments: boolean;
-  keyMomentsPerMatch?: number; // Default: 5-10
+  keyMomentsPerMatch?: number; // Default: DEFAULT_KEY_MOMENTS_PER_MATCH
   matchFormat?: 'best-of-1' | 'best-of-3' | 'best-of-5'; // Default: best-of-3
 }
 

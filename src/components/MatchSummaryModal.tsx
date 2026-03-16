@@ -30,6 +30,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
   const matchConfig = useMatchStore((state) => state.matchConfig);
   const keyMomentHistory = useMatchStore((state) => state.keyMomentHistory);
   const matchStatistics = useMatchStore((state) => state.matchStatistics);
+  const accumulatedEffects = useMatchStore((state) => state.accumulatedEffects);
 
   const [showDetailedStats, setShowDetailedStats] = useState(false);
 
@@ -82,7 +83,8 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
         isWinner ? 'win' : 'loss',
         formatScore(finalScore),
         matchStatistics,
-        matchRewards
+        matchRewards,
+        accumulatedEffects ?? undefined
       );
     } else if (isStoryMatch) {
       console.log('Story match detected - calling completeStoryMatch');
@@ -92,7 +94,8 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
         isWinner ? 'win' : 'loss',
         formatScore(finalScore),
         matchStatistics,
-        matchRewards
+        matchRewards,
+        accumulatedEffects ?? undefined
       );
     } else {
       console.log('Regular match - calling addMatchResult');
@@ -104,7 +107,8 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
         formatScore(finalScore),
         matchConfig.surface,
         matchStatistics,
-        matchRewards
+        matchRewards,
+        accumulatedEffects ?? undefined
       );
     }
 

@@ -10,8 +10,7 @@ import type {
 } from '../types/tournaments';
 import type { ScheduledEvent, GameCalendar } from '../types/game';
 import { TournamentRegistry } from '../data/tournaments';
-
-const defaultMatchEnergyCost = 50;
+import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
 
 export class TournamentManager {
   /**
@@ -53,7 +52,7 @@ export class TournamentManager {
   static calculateMatchEnergyCost(
     currentEnergy: number
   ): number {
-    return Math.min(defaultMatchEnergyCost, currentEnergy);
+    return Math.min(DEFAULT_MATCH_ENERGY_COST, currentEnergy);
   }
 
   /**

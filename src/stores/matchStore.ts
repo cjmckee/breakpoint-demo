@@ -11,7 +11,8 @@ import {
 } from '../types/keyMoments';
 import { PlayerStats } from '../types/game';
 import { TacticalOption } from '../data/tacticalOptions';
-import { MatchOrchestrator } from '../game/MatchOrchestrator';
+import { MatchOrchestrator, AccumulatedMatchEffects } from '../game/MatchOrchestrator';
+import { DEFAULT_KEY_MOMENTS_PER_MATCH } from '../config/matchRewards';
 import { KeyMomentResult } from '../game/KeyMomentResolver';
 import { MatchStatistics as IMatchStatistics } from '../types';
 
@@ -45,6 +46,9 @@ interface MatchState {
     result: KeyMomentResult;
   }>;
 
+  // Accumulated effects from key moment choices (surfaced for post-match)
+  accumulatedEffects: AccumulatedMatchEffects | null;
+
   // Match orchestrator instance
   orchestrator: MatchOrchestrator | null;
 
@@ -76,6 +80,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
   showKeyMomentResult: false,
   lastChosenOption: null,
   keyMomentHistory: [],
+  accumulatedEffects: null,
   orchestrator: null,
   keyMomentResolver: null,
 
@@ -87,7 +92,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
     const matchConfig: InteractiveMatchConfig = {
       ...config,
       enableKeyMoments: config.enableKeyMoments ?? true,
-      keyMomentsPerMatch: config.keyMomentsPerMatch ?? 8,
+      keyMomentsPerMatch: config.keyMomentsPerMatch ?? DEFAULT_KEY_MOMENTS_PER_MATCH,
 
       // Key moment callback - pauses match and waits for user choice
       onKeyMoment: async (keyMoment: KeyMoment): Promise<TacticalOption> => {
@@ -117,13 +122,15 @@ export const useMatchStore = create<MatchState>((set, get) => ({
 
       // Match complete callback
       onMatchComplete: (finalScore: MatchScore) => {
-        // Get statistics from orchestrator
+        // Get statistics and accumulated effects from orchestrator
         const statistics = orchestrator.getMatchStatistics();
+        const effects = orchestrator.getAccumulatedEffects();
 
         set({
           currentScore: finalScore,
           finalScore: finalScore,
           matchStatistics: statistics,
+          accumulatedEffects: effects,
           isMatchActive: false,
           showMatchResults: true,
           currentKeyMoment: null,
@@ -139,6 +146,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       currentScore: null,
       matchHistory: [],
       matchStatistics: null,
+      accumulatedEffects: null,
       keyMomentHistory: [],
       lastChosenOption: null,
       finalScore: null,
@@ -253,6 +261,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       currentScore: null,
       matchHistory: [],
       matchStatistics: null,
+      accumulatedEffects: null,
       currentKeyMoment: null,
       isWaitingForChoice: false,
       lastChosenOption: null,

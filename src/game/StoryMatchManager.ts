@@ -4,8 +4,7 @@
  */
 
 import type { ScheduledEvent, GameCalendar, StoryMatchMetadata } from '../types/game';
-
-const defaultMatchEnergyCost = 50;
+import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
 
 export class StoryMatchManager {
   /**
@@ -30,7 +29,7 @@ export class StoryMatchManager {
    * Calculate energy cost for story match
    */
   static calculateMatchEnergyCost(currentEnergy: number): number {
-    return Math.min(defaultMatchEnergyCost, currentEnergy);
+    return Math.min(DEFAULT_MATCH_ENERGY_COST, currentEnergy);
   }
 
   /**

@@ -17,6 +17,8 @@ import { TrainingResultModal } from './TrainingResultModal';
 import { StoryEventModal } from './StoryEventModal';
 import { StoryEventResultModal } from './StoryEventResultModal';
 import { ItemManager } from '../game/ItemManager';
+import { derivePlayStyle } from '../core/PlayerProfile';
+import { getArchetypeLabel } from '../data/archetypes';
 import type {
   StoryEventModalData,
   TrainingResultModalData,
@@ -217,7 +219,6 @@ export const MainMenu: React.FC = () => {
       mood: currentStatus.mood,
       energy: currentStatus.energy,
       enableKeyMoments: true,
-      keyMomentsPerMatch: 8,
       matchFormat: storyMatchMetadata.matchFormat || 'best-of-1',
       isStoryMatch: true,
     });
@@ -348,9 +349,12 @@ export const MainMenu: React.FC = () => {
             <h1 className="text-3xl font-bold text-pixel-text mb-1">
               {player.name}
             </h1>
-            <div className="mb-2">
+            <div className="flex items-center gap-3 mb-2">
               <span className={`text-lg font-bold ${getTierColor(player.tier)}`}>
                 {getTierName(player.tier)}
+              </span>
+              <span className="text-sm px-2 py-0.5 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent font-bold">
+                {getArchetypeLabel(derivePlayStyle(player.stats).type)}
               </span>
             </div>
             <div className="flex items-center gap-2">

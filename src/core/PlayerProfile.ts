@@ -15,6 +15,47 @@ import type {
   StatCategory
 } from '../types/index.js';
 
+/**
+ * Derive play style from stats as a pure function.
+ * Can be used without instantiating a PlayerProfile.
+ */
+export function derivePlayStyle(stats: PlayerStats): PlayStyle {
+  const offensive = stats.mental.offensive;
+  const defensive = stats.mental.defensive;
+  const volley = stats.technical.volley;
+  const serve = stats.technical.serve;
+  const consistency = (stats.mental.focus + stats.mental.anticipation) / 2;
+
+  let type: PlayStyle['type'];
+  let description: string;
+
+  if (volley >= 70 && serve >= 65) {
+    type = 'serve_volley';
+    description = 'Aggressive net player who serves and volleys';
+  } else if (defensive >= 70 && offensive <= 50) {
+    type = 'counterpuncher';
+    description = 'Defensive specialist who waits for opportunities';
+  } else if (offensive >= 70 && defensive <= 50) {
+    type = 'aggressive';
+    description = 'Attacking player who goes for winners';
+  } else if (Math.abs(offensive - defensive) <= 15) {
+    type = 'all_court';
+    description = 'Versatile player comfortable anywhere on court';
+  } else {
+    type = 'defensive';
+    description = 'Solid baseline player who focuses on consistency';
+  }
+
+  return {
+    type,
+    aggression: offensive,
+    netApproach: volley,
+    consistency,
+    power: stats.physical.strength,
+    description,
+  };
+}
+
 export class PlayerProfile implements IPlayerProfile {
   public readonly id: string;
   public readonly name: string;
@@ -247,41 +288,7 @@ export class PlayerProfile implements IPlayerProfile {
    * Determine play style based on offensive/defensive balance
    */
   public get playStyle(): PlayStyle {
-    const offensive = this.stats.mental.offensive;
-    const defensive = this.stats.mental.defensive;
-    const volley = this.stats.technical.volley;
-    const serve = this.stats.technical.serve;
-    const consistency = (this.stats.mental.focus + this.stats.mental.anticipation) / 2;
-
-    let type: PlayStyle['type'];
-    let description: string;
-
-    // Determine primary play style
-    if (volley >= 70 && serve >= 65) {
-      type = 'serve_volley';
-      description = 'Aggressive net player who serves and volleys';
-    } else if (defensive >= 70 && offensive <= 50) {
-      type = 'counterpuncher';
-      description = 'Defensive specialist who waits for opportunities';
-    } else if (offensive >= 70 && defensive <= 50) {
-      type = 'aggressive';
-      description = 'Attacking player who goes for winners';
-    } else if (Math.abs(offensive - defensive) <= 15) {
-      type = 'all_court';
-      description = 'Versatile player comfortable anywhere on court';
-    } else {
-      type = 'defensive';
-      description = 'Solid baseline player who focuses on consistency';
-    }
-
-    return {
-      type,
-      aggression: offensive,
-      netApproach: volley,
-      consistency,
-      power: this.stats.physical.strength,
-      description,
-    };
+    return derivePlayStyle(this.stats);
   }
 
   /**
