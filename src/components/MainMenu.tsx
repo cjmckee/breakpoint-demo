@@ -18,6 +18,8 @@ import { StoryEventModal } from './StoryEventModal';
 import { StoryEventResultModal } from './StoryEventResultModal';
 import type { StoryMatchMetadata } from '../types/game';
 import { ItemManager } from '../game/ItemManager';
+import { PlayerProfile } from '../core/PlayerProfile';
+import { getArchetypeLabel } from '../data/archetypes';
 import type {
   StoryEventModalData,
   TrainingResultModalData,
@@ -335,9 +337,12 @@ export const MainMenu: React.FC = () => {
             <h1 className="text-3xl font-bold text-pixel-text mb-1">
               {player.name}
             </h1>
-            <div className="mb-2">
+            <div className="flex items-center gap-3 mb-2">
               <span className={`text-lg font-bold ${getTierColor(player.tier)}`}>
                 {getTierName(player.tier)}
+              </span>
+              <span className="text-sm px-2 py-0.5 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent font-bold">
+                {getArchetypeLabel(new PlayerProfile('p', player.name, player.stats).playStyle.type)}
               </span>
             </div>
             <div className="flex items-center gap-2">

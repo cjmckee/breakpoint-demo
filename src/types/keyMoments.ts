@@ -7,6 +7,7 @@ import { TacticalOption, KeyMomentType } from '../data/tacticalOptions';
 import { KeyMomentResult } from '../game/KeyMomentResolver';
 import { Ability, StatBoosts } from './game';
 import { MatchStatistics } from './index';
+import type { ArchetypeType } from '../data/archetypes';
 
 /**
  * Key Moment Data
@@ -19,6 +20,7 @@ export interface KeyMoment {
   description: string; // Context description
   options: TacticalOption[]; // Available choices
   timestamp: number;
+  opponentArchetype: ArchetypeType; // Opponent's play style archetype
   matchContext: {
     score: string; // Current score
     server: 'player' | 'opponent';

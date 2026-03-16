@@ -1,6 +1,7 @@
 /**
  * Match Setup Component
- * Configure opponent, surface, and match format before starting
+ * Configure opponent tier, surface, and match format before starting.
+ * A random opponent from the selected tier is assigned when the match starts.
  */
 
 import React, { useState } from 'react';
@@ -10,149 +11,22 @@ import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { PlayerStats, OpponentTier } from '../types/game';
 import { ItemManager } from '../game/ItemManager';
+import { getRandomOpponent, OPPONENTS_BY_TIER } from '../data/opponents';
+import { getArchetypeLabel } from '../data/archetypes';
 
 type CourtSurface = 'hard' | 'clay' | 'grass' | 'carpet';
 
-interface OpponentPreset {
+interface TierInfo {
+  tier: OpponentTier;
   name: string;
   description: string;
-  tier: OpponentTier;
-  stats: Partial<PlayerStats>;
 }
 
-const OPPONENT_PRESETS: OpponentPreset[] = [
-  {
-    name: 'Club Player',
-    description: 'Local club player, great for practice',
-    tier: 1,
-    stats: {
-      technical: {
-        serve: 30,
-        forehand: 35,
-        backhand: 30,
-        volley: 25,
-        overhead: 30,
-        dropShot: 20,
-        slice: 25,
-        return: 30,
-        spin: 25,
-        placement: 30,
-      },
-      physical: {
-        speed: 40,
-        stamina: 40,
-        strength: 30,
-        agility: 35,
-        recovery: 35,
-      },
-      mental: {
-        focus: 35,
-        anticipation: 30,
-        shotVariety: 25,
-        offensive: 30,
-        defensive: 35,
-      },
-    },
-  },
-  {
-    name: 'Regional Competitor',
-    description: 'Strong regional player with solid fundamentals',
-    tier: 2,
-    stats: {
-      technical: {
-        serve: 50,
-        forehand: 55,
-        backhand: 50,
-        volley: 45,
-        overhead: 50,
-        dropShot: 45,
-        slice: 48,
-        return: 50,
-        spin: 50,
-        placement: 52,
-      },
-      physical: {
-        speed: 55,
-        stamina: 60,
-        strength: 50,
-        agility: 55,
-        recovery: 55,
-      },
-      mental: {
-        focus: 55,
-        anticipation: 52,
-        shotVariety: 50,
-        offensive: 52,
-        defensive: 53,
-      },
-    },
-  },
-  {
-    name: 'Tour Professional',
-    description: 'Professional tour player, very challenging',
-    tier: 3,
-    stats: {
-      technical: {
-        serve: 70,
-        forehand: 75,
-        backhand: 70,
-        volley: 65,
-        overhead: 70,
-        dropShot: 68,
-        slice: 70,
-        return: 72,
-        spin: 73,
-        placement: 75,
-      },
-      physical: {
-        speed: 70,
-        stamina: 75,
-        strength: 70,
-        agility: 72,
-        recovery: 70,
-      },
-      mental: {
-        focus: 75,
-        anticipation: 73,
-        shotVariety: 70,
-        offensive: 72,
-        defensive: 70,
-      },
-    },
-  },
-  {
-    name: 'Retired World Champion',
-    description: 'Elite champion, ultimate challenge. He\'s a little old.',
-    tier: 4,
-    stats: {
-      technical: {
-        serve: 90,
-        forehand: 95,
-        backhand: 90,
-        volley: 85,
-        overhead: 90,
-        dropShot: 88,
-        slice: 87,
-        return: 92,
-        spin: 93,
-        placement: 95,
-      },
-      physical: {
-        speed: 88,
-        stamina: 92,
-        strength: 85,
-        agility: 90,
-        recovery: 88,
-      },
-      mental: {
-        focus: 95,
-        anticipation: 93,
-        shotVariety: 90,
-        offensive: 92,
-        defensive: 88,
-      },
-    },
-  },
+const TIER_INFO: TierInfo[] = [
+  { tier: 1, name: 'Club', description: 'Local club players, great for practice' },
+  { tier: 2, name: 'Regional', description: 'Strong regional competitors with solid fundamentals' },
+  { tier: 3, name: 'Professional', description: 'Professional tour players, very challenging' },
+  { tier: 4, name: 'Champion', description: 'Elite champions, the ultimate challenge' },
 ];
 
 export const MatchSetup: React.FC = () => {
@@ -161,9 +35,7 @@ export const MatchSetup: React.FC = () => {
   const setScreen = useGameStore((state) => state.setScreen);
   const startMatch = useMatchStore((state) => state.startMatch);
 
-  const [selectedOpponent, setSelectedOpponent] = useState<OpponentPreset>(
-    OPPONENT_PRESETS[0]
-  );
+  const [selectedTier, setSelectedTier] = useState<OpponentTier>(1);
   const [selectedSurface, setSelectedSurface] = useState<CourtSurface>('hard');
 
   if (!player) {
@@ -171,14 +43,15 @@ export const MatchSetup: React.FC = () => {
   }
 
   const handleStartMatch = () => {
-    // Fire off match simulation (don't await - it runs until match completes)
+    const opponent = getRandomOpponent(selectedTier);
+
     startMatch({
       playerStats: player.stats,
       playerAbilities: player.abilities,
       itemBoosts: ItemManager.getTotalPassiveBoosts(player),
-      opponentStats: selectedOpponent.stats as PlayerStats,
-      opponentName: selectedOpponent.name,
-      opponentTier: selectedOpponent.tier,
+      opponentStats: opponent.stats as PlayerStats,
+      opponentName: opponent.name,
+      opponentTier: opponent.tier,
       surface: selectedSurface,
       mood: currentStatus.mood,
       energy: currentStatus.energy,
@@ -187,13 +60,12 @@ export const MatchSetup: React.FC = () => {
       matchFormat: 'best-of-1',
     });
 
-    // Navigate to match screen
     setScreen('match');
   };
 
   const matchEnergyCost = 50;
   const canAfford = currentStatus.energy >= matchEnergyCost;
-  const canPlayMatch = canAfford && selectedOpponent.tier <= player.tier;
+  const canPlayMatch = canAfford && selectedTier <= player.tier;
 
   const getTierColor = (tier: OpponentTier) => {
     switch (tier) {
@@ -207,15 +79,6 @@ export const MatchSetup: React.FC = () => {
         return 'border-red-500 bg-red-500 bg-opacity-10';
       default:
         return 'border-pixel-border';
-    }
-  };
-
-  const getTierLabel = (tier: OpponentTier): string => {
-    switch (tier) {
-      case 1: return 'Club';
-      case 2: return 'Regional';
-      case 3: return 'Professional';
-      case 4: return 'Tournament Champion';
     }
   };
 
@@ -247,7 +110,7 @@ export const MatchSetup: React.FC = () => {
 
         <Card title="Match Setup" className="mb-6">
           <p className="text-pixel-text-muted mb-4">
-            Configure your match settings and choose your opponent.
+            Choose a tier and surface. A random opponent will be selected from the tier.
           </p>
 
           {/* Energy Cost Warning */}
@@ -265,26 +128,27 @@ export const MatchSetup: React.FC = () => {
             </div>
           </div>
 
-          {/* Opponent Selection */}
+          {/* Tier Selection */}
           <div className="mb-6">
             <h3 className="text-xl font-bold text-pixel-text mb-3">
-              Choose Your Opponent
+              Choose Opponent Tier
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {OPPONENT_PRESETS.map((opponent) => {
-                const isSelected = selectedOpponent.name === opponent.name;
-                const isUnlocked = isOpponentUnlocked(opponent.tier);
+              {TIER_INFO.map((info) => {
+                const isSelected = selectedTier === info.tier;
+                const isUnlocked = isOpponentUnlocked(info.tier);
+                const opponents = OPPONENTS_BY_TIER[info.tier];
                 return (
                   <button
-                    key={opponent.name}
-                    onClick={() => isUnlocked && setSelectedOpponent(opponent)}
+                    key={info.tier}
+                    onClick={() => isUnlocked && setSelectedTier(info.tier)}
                     disabled={!isUnlocked}
                     className={`p-4 border-4 text-left transition-all relative ${
                       !isUnlocked
                         ? 'opacity-50 cursor-not-allowed border-pixel-border bg-pixel-bg'
                         : isSelected
                         ? 'border-pixel-accent bg-pixel-accent bg-opacity-20'
-                        : getTierColor(opponent.tier)
+                        : getTierColor(info.tier)
                     } ${isUnlocked && 'hover:scale-105'}`}
                   >
                     {!isUnlocked && (
@@ -294,44 +158,28 @@ export const MatchSetup: React.FC = () => {
                     )}
                     <div className="flex justify-between items-start mb-2">
                       <h4 className="text-lg font-bold text-pixel-text">
-                        {opponent.name}
+                        {info.name}
                       </h4>
                       <span className="text-xs px-2 py-1 bg-pixel-bg border-2 border-pixel-border text-pixel-text uppercase">
-                        {getTierLabel(opponent.tier)}
+                        Tier {info.tier}
                       </span>
                     </div>
                     <p className="text-sm text-pixel-text-muted mb-3">
                       {isUnlocked
-                        ? opponent.description
-                        : `Beat ${OPPONENT_PRESETS[opponent.tier - 2]?.name || 'previous tier'} to unlock!`
+                        ? info.description
+                        : 'Beat the previous tier to unlock!'
                       }
                     </p>
                     {isUnlocked && (
-                      <div className="grid grid-cols-4 gap-2 text-xs">
-                        <div>
-                          <div className="text-pixel-text-muted">Serve</div>
-                          <div className="font-bold text-pixel-text">
-                            {opponent.stats.technical?.serve}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-pixel-text-muted">Forehand</div>
-                          <div className="font-bold text-pixel-text">
-                            {opponent.stats.technical?.forehand}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-pixel-text-muted">Speed</div>
-                          <div className="font-bold text-pixel-text">
-                            {opponent.stats.physical?.speed}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-pixel-text-muted">Focus</div>
-                          <div className="font-bold text-pixel-text">
-                            {opponent.stats.mental?.focus}
-                          </div>
-                        </div>
+                      <div className="flex flex-wrap gap-1">
+                        {opponents.map((opp) => (
+                          <span
+                            key={opp.name}
+                            className="text-xs px-2 py-0.5 bg-pixel-bg border border-pixel-border text-pixel-text-muted"
+                          >
+                            {getArchetypeLabel(opp.archetype)}
+                          </span>
+                        ))}
                       </div>
                     )}
                   </button>
@@ -377,12 +225,12 @@ export const MatchSetup: React.FC = () => {
               onClick={handleStartMatch}
               disabled={!canPlayMatch}
             >
-              {!isOpponentUnlocked(selectedOpponent.tier) ? (
-                <>🔒 Opponent Locked</>
+              {!isOpponentUnlocked(selectedTier) ? (
+                <>🔒 Tier Locked</>
               ) : !canAfford ? (
                 <>Not Enough Energy (Need {matchEnergyCost})</>
               ) : (
-                <>🎾 Start Match vs {selectedOpponent.name}</>
+                <>🎾 Start Match — Tier {selectedTier}</>
               )}
             </Button>
           </div>

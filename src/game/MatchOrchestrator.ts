@@ -9,8 +9,9 @@ import { ScoreTracker } from '../core/ScoreTracker';
 import { PlayerProfile } from '../core/PlayerProfile';
 import { MatchStatistics } from '../core/MatchStatistics';
 import { PointSimulator } from '../core/PointSimulator';
-import { KeyMomentResolver, KeyMomentResult } from './KeyMomentResolver';
+import { KeyMomentResolver, KeyMomentResult, AppliedEffect } from './KeyMomentResolver';
 import { getOptionsForSituation, KeyMomentType } from '../data/tacticalOptions';
+import type { ArchetypeType } from '../data/archetypes';
 import {
   KeyMoment,
   KeyMomentCallback,
@@ -35,6 +36,7 @@ export class MatchOrchestrator {
   private cancelled = false;
   private playerStats: PlayerStats | null = null;
   private opponentStats: PlayerStats | null = null;
+  private opponentArchetype: ArchetypeType = 'defensive';
 
   /**
    * Apply flat stat boosts to player stats (clamped to 100).
@@ -101,6 +103,9 @@ export class MatchOrchestrator {
     const player = new PlayerProfile('player', 'Player', playerStatsWithBoosts);
     const opponent = new PlayerProfile('opponent', 'Opponent', config.opponentStats);
 
+    // Compute opponent archetype from their stats
+    this.opponentArchetype = opponent.playStyle.type;
+
     const matchSim = new MatchSimulator({
       player,
       opponent,
@@ -147,6 +152,7 @@ export class MatchOrchestrator {
           config.playerStats as PlayerStats,
           config.opponentStats as PlayerStats,
           selectedOption,
+          this.opponentArchetype,
           {
             mood: config.mood,
             energy: config.energy,
@@ -154,6 +160,9 @@ export class MatchOrchestrator {
             pressure: this.pressure,
           }
         );
+
+        // Apply secondary effects to match state
+        this.applySecondaryEffects(result.appliedEffects);
 
         // Notify UI of key moment result
         if (config.onKeyMomentResult) {
@@ -289,29 +298,14 @@ export class MatchOrchestrator {
     const momentType = this.detectKeyMomentType(score)!;
     const options = getOptionsForSituation(momentType);
 
-    // Calculate success probabilities for each option
-    const optionsWithProb = options.map(option => ({
-      ...option,
-      successProbability: KeyMomentResolver.calculateSuccessProbability(
-        config.playerStats as PlayerStats,
-        config.opponentStats as PlayerStats,
-        option,
-        {
-          mood: config.mood,
-          energy: config.energy,
-          momentum: this.momentum,
-          pressure: this.pressure,
-        }
-      ),
-    }));
-
     return {
       id: `km-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type: momentType,
       situation: this.getSituationDescription(momentType, score),
       description: this.getKeyMomentDescription(momentType),
-      options: optionsWithProb,
+      options,
       timestamp: Date.now(),
+      opponentArchetype: this.opponentArchetype,
       matchContext: {
         score: this.formatScore(score),
         server: score.server,
@@ -610,6 +604,36 @@ export class MatchOrchestrator {
    */
   public cancelMatch(): void {
     this.cancelled = true;
+  }
+
+  /**
+   * Apply secondary effects from a key moment to match state.
+   */
+  private applySecondaryEffects(effects: AppliedEffect[]): void {
+    for (const effect of effects) {
+      // Only apply effects targeting the player to match state we track
+      // (opponent effects like mood/pressure are informational for the UI)
+      switch (effect.type) {
+        case 'momentum':
+          if (effect.target === 'player') {
+            this.momentum = Math.max(-100, Math.min(100, this.momentum + effect.value));
+          }
+          break;
+        case 'pressure':
+          if (effect.target === 'opponent') {
+            // Opponent pressure increase is tracked as general pressure
+            this.pressure = Math.max(0, Math.min(100, this.pressure + effect.value));
+          }
+          break;
+        case 'energy':
+          // Energy effects are informational — actual energy is managed by the game store
+          // We don't modify config.energy directly here
+          break;
+        case 'mood':
+          // Mood effects are informational — actual mood is managed by the game store
+          break;
+      }
+    }
   }
 
   /**
