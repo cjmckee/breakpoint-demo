@@ -22,7 +22,7 @@ import {
 import { PlayerStats, Ability, StatBoosts } from '../types/game';
 import { MatchStatistics as IMatchStatistics, MatchState, PointResult, PointType, PlayerMatchFatigue } from '../types';
 import { AbilitySystem } from './AbilitySystem';
-import { MATCH_FATIGUE } from '../config/shotThresholds';
+import { MATCH_FATIGUE, MOMENTUM_BANK, PRESSURE_BANK } from '../config/shotThresholds';
 import { DEFAULT_KEY_MOMENTS_PER_MATCH } from '../config/matchRewards';
 
 export interface AccumulatedMatchEffects {
@@ -645,10 +645,10 @@ export class MatchOrchestrator {
     for (const effect of effects) {
       switch (effect.type) {
         case 'momentum':
-          this.momentumBank = Math.max(-60, Math.min(60, this.momentumBank + effect.value));
+          this.momentumBank = Math.max(-MOMENTUM_BANK.clamp, Math.min(MOMENTUM_BANK.clamp, this.momentumBank + effect.value));
           break;
         case 'pressure':
-          this.pressureBank = Math.max(0, Math.min(40, this.pressureBank + effect.value));
+          this.pressureBank = Math.max(0, Math.min(PRESSURE_BANK.clamp, this.pressureBank + effect.value));
           break;
         case 'energy':
           this.matchEnergy = Math.max(0, Math.min(100, this.matchEnergy + effect.value));
@@ -752,33 +752,34 @@ export class MatchOrchestrator {
 
     // Component 2: Shot quality events bump the momentum bank
     const isPlayerPoint = winner === 'player';
+    const bump = MOMENTUM_BANK.bump;
     switch (pointType) {
       case PointType.ACE:
-        this.momentumBank += isPlayerPoint ? 8 : -8;
+        this.momentumBank += isPlayerPoint ? bump.ace : -bump.ace;
         break;
       case PointType.WINNER:
-        this.momentumBank += isPlayerPoint ? 5 : -5;
+        this.momentumBank += isPlayerPoint ? bump.winner : -bump.winner;
         break;
       case PointType.DOUBLE_FAULT:
-        this.momentumBank += isPlayerPoint ? 6 : -6; // opponent DFed = boost for player
+        this.momentumBank += isPlayerPoint ? bump.doubleFault : -bump.doubleFault;
         break;
       case PointType.UNFORCED_ERROR:
-        this.momentumBank += isPlayerPoint ? 3 : -3; // opponent UE = mild boost
+        this.momentumBank += isPlayerPoint ? bump.unforcedError : -bump.unforcedError;
         break;
       case PointType.FORCED_ERROR:
-        this.momentumBank += isPlayerPoint ? 4 : -4;
+        this.momentumBank += isPlayerPoint ? bump.forcedError : -bump.forcedError;
         break;
     }
 
     // Clamp momentum bank
-    this.momentumBank = Math.max(-60, Math.min(60, this.momentumBank));
+    this.momentumBank = Math.max(-MOMENTUM_BANK.clamp, Math.min(MOMENTUM_BANK.clamp, this.momentumBank));
 
-    // Decay momentum bank toward 0 (slow — 5% per point)
-    this.momentumBank *= 0.95;
+    // Decay momentum bank toward 0
+    this.momentumBank *= MOMENTUM_BANK.decay;
 
-    // Blend: 60% recent form + 40% persistent bank
+    // Blend: recent form + persistent bank
     this.momentum = Math.max(-100, Math.min(100,
-      recentForm * 0.6 + this.momentumBank * 0.4
+      recentForm * MOMENTUM_BANK.blendRecent + this.momentumBank * MOMENTUM_BANK.blendBank
     ));
   }
 
@@ -855,8 +856,8 @@ export class MatchOrchestrator {
       scorePressure += 20;
     }
 
-    // Decay pressure bank slowly (10% per point)
-    this.pressureBank *= 0.90;
+    // Decay pressure bank slowly
+    this.pressureBank *= PRESSURE_BANK.decay;
 
     // Final pressure = score-based + persistent bank from key moment effects
     this.pressure = Math.min(100, scorePressure + this.pressureBank);

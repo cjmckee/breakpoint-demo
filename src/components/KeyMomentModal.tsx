@@ -76,12 +76,11 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
 
   const getEffectLabel = (effect: SecondaryEffect): string => {
     const sign = effect.value > 0 ? '+' : '';
-    const targetLabel = effect.target === 'player' ? '' : 'Opp ';
     switch (effect.type) {
-      case 'momentum': return `${sign}${effect.value} ${targetLabel}Momentum`;
-      case 'energy': return `${sign}${effect.value} ${targetLabel}Energy`;
-      case 'pressure': return `${sign}${effect.value} ${targetLabel}Pressure`;
-      case 'mood': return `${sign}${effect.value} ${targetLabel}Mood`;
+      case 'momentum': return `${sign}${effect.value} Momentum`;
+      case 'energy': return `${sign}${effect.value} Energy`;
+      case 'pressure': return `${sign}${effect.value} Pressure`;
+      case 'mood': return `${sign}${effect.value} Mood`;
     }
   };
 

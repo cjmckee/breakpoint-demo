@@ -93,7 +93,7 @@ export const CourtVisualization: React.FC<CourtVisualizationProps> = ({
 
   const formatGamePoints = (points: number, opponentPoints: number): string => {
     const labels = ['0', '15', '30', '40'];
-    if (points < 3 || opponentPoints < 3) return labels[points] ?? '0';
+    if (points < 3 || opponentPoints < 3) return labels[Math.min(points, 3)] ?? '0';
     // Both at 40+: deuce / advantage
     if (points === opponentPoints) return '40';
     if (points > opponentPoints) return 'AD';

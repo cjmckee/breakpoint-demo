@@ -17,7 +17,7 @@ import { TrainingResultModal } from './TrainingResultModal';
 import { StoryEventModal } from './StoryEventModal';
 import { StoryEventResultModal } from './StoryEventResultModal';
 import { ItemManager } from '../game/ItemManager';
-import { PlayerProfile } from '../core/PlayerProfile';
+import { derivePlayStyle } from '../core/PlayerProfile';
 import { getArchetypeLabel } from '../data/archetypes';
 import type {
   StoryEventModalData,
@@ -354,7 +354,7 @@ export const MainMenu: React.FC = () => {
                 {getTierName(player.tier)}
               </span>
               <span className="text-sm px-2 py-0.5 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent font-bold">
-                {getArchetypeLabel(new PlayerProfile('p', player.name, player.stats).playStyle.type)}
+                {getArchetypeLabel(derivePlayStyle(player.stats).type)}
               </span>
             </div>
             <div className="flex items-center gap-2">

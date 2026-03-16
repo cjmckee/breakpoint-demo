@@ -30,7 +30,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
   const matchConfig = useMatchStore((state) => state.matchConfig);
   const keyMomentHistory = useMatchStore((state) => state.keyMomentHistory);
   const matchStatistics = useMatchStore((state) => state.matchStatistics);
-  const orchestrator = useMatchStore((state) => state.orchestrator);
+  const accumulatedEffects = useMatchStore((state) => state.accumulatedEffects);
 
   const [showDetailedStats, setShowDetailedStats] = useState(false);
 
@@ -75,9 +75,6 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
     const isTournamentMatch = matchConfig.isTournamentMatch === true;
     const isStoryMatch = matchConfig.isStoryMatch === true;
 
-    // Get accumulated energy/mood effects from key moment choices
-    const accumulatedEffects = orchestrator?.getAccumulatedEffects();
-
     if (isTournamentMatch) {
       console.log('Tournament match detected - calling completeTournamentMatch');
       console.log('Passing rewards to completeTournamentMatch:', matchRewards);
@@ -87,7 +84,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
         formatScore(finalScore),
         matchStatistics,
         matchRewards,
-        accumulatedEffects
+        accumulatedEffects ?? undefined
       );
     } else if (isStoryMatch) {
       console.log('Story match detected - calling completeStoryMatch');
@@ -98,7 +95,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
         formatScore(finalScore),
         matchStatistics,
         matchRewards,
-        accumulatedEffects
+        accumulatedEffects ?? undefined
       );
     } else {
       console.log('Regular match - calling addMatchResult');
@@ -111,7 +108,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
         matchConfig.surface,
         matchStatistics,
         matchRewards,
-        accumulatedEffects
+        accumulatedEffects ?? undefined
       );
     }
 

@@ -10,7 +10,6 @@ import type { ArchetypeType } from './archetypes';
 
 export interface SecondaryEffect {
   type: 'momentum' | 'energy' | 'pressure' | 'mood';
-  target: 'player';
   value: number;
   condition: 'always' | 'on_success' | 'on_failure';
 }
@@ -67,10 +66,10 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against patient opponents who sit back',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: -5, condition: 'always' },
-        { type: 'momentum', target: 'player', value: 10, condition: 'on_success' },
-        { type: 'momentum', target: 'player', value: -5, condition: 'on_failure' },
-        { type: 'mood', target: 'player', value: -3, condition: 'on_failure' },
+        { type: 'energy', value: -5, condition: 'always' },
+        { type: 'momentum', value: 10, condition: 'on_success' },
+        { type: 'momentum', value: -5, condition: 'on_failure' },
+        { type: 'mood', value: -3, condition: 'on_failure' },
       ],
       playerStatWeights: {
         primary: 'serve',
@@ -105,10 +104,10 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['counterpuncher'],
       bestAgainstHint: 'Best against impatient attackers who want quick points',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: -3, condition: 'always' },
+        { type: 'energy', value: -3, condition: 'always' },
 
-        { type: 'mood', target: 'player', value: 2, condition: 'on_success' },
-        { type: 'pressure', target: 'player', value: -2, condition: 'on_success' },
+        { type: 'mood', value: 2, condition: 'on_success' },
+        { type: 'pressure', value: -2, condition: 'on_success' },
       ],
       playerStatWeights: {
         primary: 'spin',
@@ -144,8 +143,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against baseline players who struggle with net pressure',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: -4, condition: 'always' },
-        { type: 'momentum', target: 'player', value: 8, condition: 'on_success' },
+        { type: 'energy', value: -4, condition: 'always' },
+        { type: 'momentum', value: 8, condition: 'on_success' },
 
       ],
       playerStatWeights: {
@@ -188,10 +187,10 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against opponents who sit deep behind the baseline',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: -4, condition: 'always' },
-        { type: 'momentum', target: 'player', value: 10, condition: 'on_success' },
-        { type: 'momentum', target: 'player', value: -5, condition: 'on_failure' },
-        { type: 'mood', target: 'player', value: -3, condition: 'on_failure' },
+        { type: 'energy', value: -4, condition: 'always' },
+        { type: 'momentum', value: 10, condition: 'on_success' },
+        { type: 'momentum', value: -5, condition: 'on_failure' },
+        { type: 'mood', value: -3, condition: 'on_failure' },
       ],
       playerStatWeights: {
         primary: 'return',
@@ -226,10 +225,10 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['counterpuncher', 'defensive'],
       bestAgainstHint: 'Best against attackers who want to end points quickly',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: 2, condition: 'always' },
+        { type: 'energy', value: 2, condition: 'always' },
 
-        { type: 'mood', target: 'player', value: 3, condition: 'on_success' },
-        { type: 'pressure', target: 'player', value: -3, condition: 'on_success' },
+        { type: 'mood', value: 3, condition: 'on_success' },
+        { type: 'pressure', value: -3, condition: 'on_success' },
       ],
       playerStatWeights: {
         primary: 'return',
@@ -264,8 +263,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against baseline grinders who hate net pressure',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: -4, condition: 'always' },
-        { type: 'momentum', target: 'player', value: 8, condition: 'on_success' },
+        { type: 'energy', value: -4, condition: 'always' },
+        { type: 'momentum', value: 8, condition: 'on_success' },
 
       ],
       playerStatWeights: {
@@ -308,10 +307,10 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against opponents who rely on getting the ball back',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: -6, condition: 'always' },
-        { type: 'momentum', target: 'player', value: 12, condition: 'on_success' },
-        { type: 'momentum', target: 'player', value: -8, condition: 'on_failure' },
-        { type: 'mood', target: 'player', value: -5, condition: 'on_failure' },
+        { type: 'energy', value: -6, condition: 'always' },
+        { type: 'momentum', value: 12, condition: 'on_success' },
+        { type: 'momentum', value: -8, condition: 'on_failure' },
+        { type: 'mood', value: -5, condition: 'on_failure' },
       ],
       playerStatWeights: {
         primary: 'serve',
@@ -346,10 +345,10 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['counterpuncher'],
       bestAgainstHint: 'Best against opponents who struggle with long rallies',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: -3, condition: 'always' },
+        { type: 'energy', value: -3, condition: 'always' },
 
-        { type: 'mood', target: 'player', value: 2, condition: 'on_success' },
-        { type: 'pressure', target: 'player', value: -3, condition: 'on_success' },
+        { type: 'mood', value: 2, condition: 'on_success' },
+        { type: 'pressure', value: -3, condition: 'on_success' },
       ],
       playerStatWeights: {
         primary: 'spin',
@@ -385,8 +384,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against opponents anchored to the baseline',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: -5, condition: 'always' },
-        { type: 'momentum', target: 'player', value: 10, condition: 'on_success' },
+        { type: 'energy', value: -5, condition: 'always' },
+        { type: 'momentum', value: 10, condition: 'on_success' },
 
       ],
       playerStatWeights: {
@@ -429,10 +428,10 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against opponents with weak serves who play safe',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: -4, condition: 'always' },
-        { type: 'momentum', target: 'player', value: 12, condition: 'on_success' },
-        { type: 'momentum', target: 'player', value: -5, condition: 'on_failure' },
-        { type: 'mood', target: 'player', value: -5, condition: 'on_failure' },
+        { type: 'energy', value: -4, condition: 'always' },
+        { type: 'momentum', value: 12, condition: 'on_success' },
+        { type: 'momentum', value: -5, condition: 'on_failure' },
+        { type: 'mood', value: -5, condition: 'on_failure' },
       ],
       playerStatWeights: {
         primary: 'return',
@@ -467,10 +466,10 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['counterpuncher', 'defensive'],
       bestAgainstHint: 'Best against big servers who fade in long rallies',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: 2, condition: 'always' },
+        { type: 'energy', value: 2, condition: 'always' },
 
-        { type: 'mood', target: 'player', value: 3, condition: 'on_success' },
-        { type: 'pressure', target: 'player', value: -3, condition: 'on_success' },
+        { type: 'mood', value: 3, condition: 'on_success' },
+        { type: 'pressure', value: -3, condition: 'on_success' },
       ],
       playerStatWeights: {
         primary: 'return',
@@ -506,9 +505,9 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against opponents who hang back expecting a rally',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: -2, condition: 'always' },
+        { type: 'energy', value: -2, condition: 'always' },
 
-        { type: 'momentum', target: 'player', value: 8, condition: 'on_success' },
+        { type: 'momentum', value: 8, condition: 'on_success' },
       ],
       playerStatWeights: {
         primary: 'dropShot',
@@ -549,10 +548,10 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against opponents with weak returns who play safe',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: -5, condition: 'always' },
-        { type: 'momentum', target: 'player', value: 10, condition: 'on_success' },
-        { type: 'momentum', target: 'player', value: -8, condition: 'on_failure' },
-        { type: 'mood', target: 'player', value: -3, condition: 'on_failure' },
+        { type: 'energy', value: -5, condition: 'always' },
+        { type: 'momentum', value: 10, condition: 'on_success' },
+        { type: 'momentum', value: -8, condition: 'on_failure' },
+        { type: 'mood', value: -3, condition: 'on_failure' },
       ],
       playerStatWeights: {
         primary: 'serve',
@@ -587,10 +586,10 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['counterpuncher'],
       bestAgainstHint: 'Best against opponents who attack returns aggressively',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: -2, condition: 'always' },
+        { type: 'energy', value: -2, condition: 'always' },
 
-        { type: 'mood', target: 'player', value: 2, condition: 'on_success' },
-        { type: 'pressure', target: 'player', value: -3, condition: 'on_success' },
+        { type: 'mood', value: 2, condition: 'on_success' },
+        { type: 'pressure', value: -3, condition: 'on_success' },
       ],
       playerStatWeights: {
         primary: 'slice',
@@ -626,8 +625,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against opponents who struggle to pass at the net',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: -5, condition: 'always' },
-        { type: 'momentum', target: 'player', value: 10, condition: 'on_success' },
+        { type: 'energy', value: -5, condition: 'always' },
+        { type: 'momentum', value: 10, condition: 'on_success' },
 
       ],
       playerStatWeights: {
@@ -670,10 +669,10 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['counterpuncher', 'defensive'],
       bestAgainstHint: 'Best against opponents who go for too much under pressure',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: 2, condition: 'always' },
+        { type: 'energy', value: 2, condition: 'always' },
 
-        { type: 'mood', target: 'player', value: 3, condition: 'on_success' },
-        { type: 'pressure', target: 'player', value: -5, condition: 'on_success' },
+        { type: 'mood', value: 3, condition: 'on_success' },
+        { type: 'pressure', value: -5, condition: 'on_success' },
       ],
       playerStatWeights: {
         primary: 'defensive',
@@ -710,11 +709,11 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against opponents who expect you to play safe',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: -5, condition: 'always' },
-        { type: 'momentum', target: 'player', value: 12, condition: 'on_success' },
+        { type: 'energy', value: -5, condition: 'always' },
+        { type: 'momentum', value: 12, condition: 'on_success' },
 
-        { type: 'momentum', target: 'player', value: -5, condition: 'on_failure' },
-        { type: 'mood', target: 'player', value: -5, condition: 'on_failure' },
+        { type: 'momentum', value: -5, condition: 'on_failure' },
+        { type: 'mood', value: -5, condition: 'on_failure' },
       ],
       playerStatWeights: {
         primary: 'forehand',
@@ -750,9 +749,9 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against opponents who camp deep behind the baseline',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: -2, condition: 'always' },
+        { type: 'energy', value: -2, condition: 'always' },
 
-        { type: 'momentum', target: 'player', value: 8, condition: 'on_success' },
+        { type: 'momentum', value: 8, condition: 'on_success' },
       ],
       playerStatWeights: {
         primary: 'dropShot',
@@ -793,10 +792,10 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against opponents who rely on getting the ball back',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: -6, condition: 'always' },
-        { type: 'momentum', target: 'player', value: 15, condition: 'on_success' },
-        { type: 'momentum', target: 'player', value: -10, condition: 'on_failure' },
-        { type: 'mood', target: 'player', value: -5, condition: 'on_failure' },
+        { type: 'energy', value: -6, condition: 'always' },
+        { type: 'momentum', value: 15, condition: 'on_success' },
+        { type: 'momentum', value: -10, condition: 'on_failure' },
+        { type: 'mood', value: -5, condition: 'on_failure' },
       ],
       playerStatWeights: {
         primary: 'serve',
@@ -831,8 +830,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against baseline players who can\'t pass',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: -5, condition: 'always' },
-        { type: 'momentum', target: 'player', value: 10, condition: 'on_success' },
+        { type: 'energy', value: -5, condition: 'always' },
+        { type: 'momentum', value: 10, condition: 'on_success' },
 
       ],
       playerStatWeights: {
@@ -869,10 +868,10 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['counterpuncher'],
       bestAgainstHint: 'Best against opponents who attack the return aggressively',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: -3, condition: 'always' },
+        { type: 'energy', value: -3, condition: 'always' },
 
-        { type: 'mood', target: 'player', value: 3, condition: 'on_success' },
-        { type: 'pressure', target: 'player', value: -5, condition: 'on_success' },
+        { type: 'mood', value: 3, condition: 'on_success' },
+        { type: 'pressure', value: -5, condition: 'on_success' },
       ],
       playerStatWeights: {
         primary: 'serve',
@@ -915,10 +914,10 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against opponents with weak serves',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: -5, condition: 'always' },
-        { type: 'momentum', target: 'player', value: 15, condition: 'on_success' },
-        { type: 'momentum', target: 'player', value: -5, condition: 'on_failure' },
-        { type: 'mood', target: 'player', value: -5, condition: 'on_failure' },
+        { type: 'energy', value: -5, condition: 'always' },
+        { type: 'momentum', value: 15, condition: 'on_success' },
+        { type: 'momentum', value: -5, condition: 'on_failure' },
+        { type: 'mood', value: -5, condition: 'on_failure' },
       ],
       playerStatWeights: {
         primary: 'return',
@@ -953,10 +952,10 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['all_court'],
       bestAgainstHint: 'Best against predictable servers with big wind-ups',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: -2, condition: 'always' },
+        { type: 'energy', value: -2, condition: 'always' },
 
-        { type: 'mood', target: 'player', value: 3, condition: 'on_success' },
-        { type: 'pressure', target: 'player', value: -5, condition: 'on_success' },
+        { type: 'mood', value: 3, condition: 'on_success' },
+        { type: 'pressure', value: -5, condition: 'on_success' },
       ],
       playerStatWeights: {
         primary: 'anticipation',
@@ -992,8 +991,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against baseline grinders who hate net pressure',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: -5, condition: 'always' },
-        { type: 'momentum', target: 'player', value: 10, condition: 'on_success' },
+        { type: 'energy', value: -5, condition: 'always' },
+        { type: 'momentum', value: 10, condition: 'on_success' },
 
       ],
       playerStatWeights: {
@@ -1036,11 +1035,11 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against opponents who struggle with pace on the return',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: -6, condition: 'always' },
-        { type: 'momentum', target: 'player', value: 12, condition: 'on_success' },
+        { type: 'energy', value: -6, condition: 'always' },
+        { type: 'momentum', value: 12, condition: 'on_success' },
 
-        { type: 'momentum', target: 'player', value: -5, condition: 'on_failure' },
-        { type: 'mood', target: 'player', value: -5, condition: 'on_failure' },
+        { type: 'momentum', value: -5, condition: 'on_failure' },
+        { type: 'mood', value: -5, condition: 'on_failure' },
       ],
       playerStatWeights: {
         primary: 'serve',
@@ -1075,10 +1074,10 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['counterpuncher'],
       bestAgainstHint: 'Best against opponents who attack returns aggressively',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: 2, condition: 'always' },
+        { type: 'energy', value: 2, condition: 'always' },
 
-        { type: 'mood', target: 'player', value: 3, condition: 'on_success' },
-        { type: 'pressure', target: 'player', value: -5, condition: 'on_success' },
+        { type: 'mood', value: 3, condition: 'on_success' },
+        { type: 'pressure', value: -5, condition: 'on_success' },
       ],
       playerStatWeights: {
         primary: 'slice',
@@ -1114,8 +1113,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against opponents who freeze when you come to the net',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: -5, condition: 'always' },
-        { type: 'momentum', target: 'player', value: 10, condition: 'on_success' },
+        { type: 'energy', value: -5, condition: 'always' },
+        { type: 'momentum', value: 10, condition: 'on_success' },
 
       ],
       playerStatWeights: {
@@ -1159,11 +1158,11 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against opponents with tentative serves under pressure',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: -5, condition: 'always' },
-        { type: 'momentum', target: 'player', value: 12, condition: 'on_success' },
+        { type: 'energy', value: -5, condition: 'always' },
+        { type: 'momentum', value: 12, condition: 'on_success' },
 
-        { type: 'momentum', target: 'player', value: -5, condition: 'on_failure' },
-        { type: 'mood', target: 'player', value: -5, condition: 'on_failure' },
+        { type: 'momentum', value: -5, condition: 'on_failure' },
+        { type: 'mood', value: -5, condition: 'on_failure' },
       ],
       playerStatWeights: {
         primary: 'return',
@@ -1198,10 +1197,10 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['counterpuncher', 'defensive'],
       bestAgainstHint: 'Best against opponents who crack under extended rallies',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: 2, condition: 'always' },
+        { type: 'energy', value: 2, condition: 'always' },
 
-        { type: 'mood', target: 'player', value: 3, condition: 'on_success' },
-        { type: 'pressure', target: 'player', value: -5, condition: 'on_success' },
+        { type: 'mood', value: 3, condition: 'on_success' },
+        { type: 'pressure', value: -5, condition: 'on_success' },
       ],
       playerStatWeights: {
         primary: 'return',
@@ -1238,10 +1237,10 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against opponents stuck deep who struggle with overheads',
       secondaryEffects: [
-        { type: 'energy', target: 'player', value: 3, condition: 'always' },
+        { type: 'energy', value: 3, condition: 'always' },
 
-        { type: 'mood', target: 'player', value: 3, condition: 'on_success' },
-        { type: 'pressure', target: 'player', value: -5, condition: 'on_success' },
+        { type: 'mood', value: 3, condition: 'on_success' },
+        { type: 'pressure', value: -5, condition: 'on_success' },
       ],
       playerStatWeights: {
         primary: 'shotVariety',

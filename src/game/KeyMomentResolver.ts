@@ -25,7 +25,6 @@ export type OutcomeType = 'critical-success' | 'success' | 'failure' | 'critical
 
 export interface AppliedEffect {
   type: SecondaryEffect['type'];
-  target: SecondaryEffect['target'];
   value: number; // Final value after critical multiplier
 }
 
@@ -211,19 +210,9 @@ export class KeyMomentResolver {
       if (shouldApply) {
         effects.push({
           type: effect.type,
-          target: effect.target,
           value: effect.value * multiplier,
         });
       }
-    }
-
-    // Critical failure: player mood drop
-    if (outcome === 'critical-failure') {
-      effects.push({ type: 'mood', target: 'player', value: -5 });
-    }
-    // Critical success: player mood boost
-    if (outcome === 'critical-success') {
-      effects.push({ type: 'mood', target: 'player', value: 5 });
     }
 
     return effects;
@@ -280,16 +269,16 @@ export class KeyMomentResolver {
     const categories = ['technical', 'physical', 'mental'] as const;
 
     for (const category of categories) {
-      const categoryStats = stats[category];
+      const categoryStats: Record<string, number> = { ...stats[category] };
 
       if (statName in categoryStats) {
-        const value = (categoryStats as any)[statName];
+        const value = categoryStats[statName];
         return typeof value === 'number' ? value : 0;
       }
 
       for (const key of Object.keys(categoryStats)) {
         if (key.toLowerCase().replace(/_/g, '') === normalizedName) {
-          const value = (categoryStats as any)[key];
+          const value = categoryStats[key];
           return typeof value === 'number' ? value : 0;
         }
       }

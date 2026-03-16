@@ -385,3 +385,31 @@ export const MOMENTUM_MODIFIER = {
   /** Focus stat mitigation: at focus 100, negative penalty reduced by this fraction */
   focusMitigation: 0.5,
 };
+
+/** Momentum bank configuration for key moment system */
+export const MOMENTUM_BANK = {
+  /** Max absolute value the bank can reach */
+  clamp: 60,
+  /** Decay multiplier per point (moves bank toward 0) */
+  decay: 0.95,
+  /** Blend weight for recent form component */
+  blendRecent: 0.6,
+  /** Blend weight for persistent bank component */
+  blendBank: 0.4,
+  /** Per-point-type momentum bumps */
+  bump: {
+    ace: 8,
+    winner: 5,
+    doubleFault: 6,
+    unforcedError: 3,
+    forcedError: 4,
+  } as Record<string, number>,
+};
+
+/** Pressure bank configuration for key moment system */
+export const PRESSURE_BANK = {
+  /** Max absolute value the bank can reach */
+  clamp: 40,
+  /** Decay multiplier per point */
+  decay: 0.90,
+};
