@@ -639,30 +639,18 @@ export class MatchOrchestrator {
     for (const effect of effects) {
       switch (effect.type) {
         case 'momentum':
-          if (effect.target === 'player') {
-            // Add to persistent momentum bank (not overwritten by sliding window)
-            this.momentumBank = Math.max(-60, Math.min(60, this.momentumBank + effect.value));
-          }
+          this.momentumBank = Math.max(-60, Math.min(60, this.momentumBank + effect.value));
           break;
         case 'pressure':
-          if (effect.target === 'player') {
-            // Player pressure relief — negative values reduce the pressure bank
-            this.pressureBank = Math.max(0, Math.min(40, this.pressureBank + effect.value));
-          }
+          this.pressureBank = Math.max(0, Math.min(40, this.pressureBank + effect.value));
           break;
         case 'energy':
-          // Apply energy change mid-match — affects future key moment probability
-          // Also accumulate for post-match application
           this.matchEnergy = Math.max(0, Math.min(100, this.matchEnergy + effect.value));
           this.accumulatedEffects.energyDelta += effect.value;
           break;
         case 'mood':
-          // Apply mood change mid-match — affects future key moment probability
-          // Also accumulate for post-match application
-          if (effect.target === 'player') {
-            this.matchMood = Math.max(-100, Math.min(100, this.matchMood + effect.value));
-            this.accumulatedEffects.moodDelta += effect.value;
-          }
+          this.matchMood = Math.max(-100, Math.min(100, this.matchMood + effect.value));
+          this.accumulatedEffects.moodDelta += effect.value;
           break;
       }
     }
@@ -982,14 +970,14 @@ export class MatchOrchestrator {
     const typeMap: Record<KeyMomentType, string> = {
       'break-point-serve': `Break Point Against - ${game}`,
       'break-point-return': `Break Point For You - ${game}`,
-      'set-point-player-serve': `Set Point On Your Serve - ${game}`,
-      'set-point-player-return': `Set Point On Your Return - ${game}`,
-      'set-point-opponent-serve': `Set Point Against - ${game}`,
-      'set-point-opponent-return': `Set Point Against - ${game}`,
-      'match-point-player-serve': `MATCH POINT! - ${game}`,
-      'match-point-player-return': `MATCH POINT! - ${game}`,
-      'match-point-opponent-serve': `Match Point Against! - ${game}`,
-      'match-point-opponent-return': `Match Point Against! - ${game}`,
+      'set-point-player-serve': `Set Point - Your Serve - ${game}`,
+      'set-point-player-return': `Set Point - Your Return - ${game}`,
+      'set-point-opponent-serve': `Set Point Against - Your Serve - ${game}`,
+      'set-point-opponent-return': `Set Point Against - Your Return - ${game}`,
+      'match-point-player-serve': `MATCH POINT - Your Serve! - ${game}`,
+      'match-point-player-return': `MATCH POINT - Your Return! - ${game}`,
+      'match-point-opponent-serve': `Match Point Against - Your Serve! - ${game}`,
+      'match-point-opponent-return': `Match Point Against - Your Return! - ${game}`,
     };
     return typeMap[type];
   }

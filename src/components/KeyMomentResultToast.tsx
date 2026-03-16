@@ -77,12 +77,11 @@ export const KeyMomentResultToast: React.FC = () => {
 
   const formatEffect = (effect: AppliedEffect): string => {
     const sign = effect.value > 0 ? '+' : '';
-    const target = effect.target === 'opponent' ? 'Opp ' : '';
     switch (effect.type) {
-      case 'momentum': return `${sign}${effect.value} ${target}Momentum`;
-      case 'energy': return `${sign}${effect.value} ${target}Energy`;
-      case 'pressure': return `${sign}${effect.value} ${target}Pressure`;
-      case 'mood': return `${sign}${effect.value} ${target}Mood`;
+      case 'momentum': return `${sign}${effect.value} Momentum`;
+      case 'energy': return `${sign}${effect.value} Energy`;
+      case 'pressure': return `${sign}${effect.value} Pressure`;
+      case 'mood': return `${sign}${effect.value} Mood`;
     }
   };
 

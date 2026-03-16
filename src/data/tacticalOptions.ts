@@ -10,7 +10,7 @@ import type { ArchetypeType } from './archetypes';
 
 export interface SecondaryEffect {
   type: 'momentum' | 'energy' | 'pressure' | 'mood';
-  target: 'player' | 'opponent';
+  target: 'player';
   value: number;
   condition: 'always' | 'on_success' | 'on_failure';
 }
@@ -296,7 +296,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
   ],
 
   // ============================================================
-  // SET POINT - PLAYER SERVING (you're serving for the set)
+  // SET POINT FOR PLAYER — PLAYER SERVING
   // ============================================================
   'set-point-player-serve': [
     {
@@ -417,7 +417,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
   ],
 
   // ============================================================
-  // SET POINT - PLAYER RETURNING (you're returning for the set)
+  // SET POINT FOR PLAYER — PLAYER RETURNING
   // ============================================================
   'set-point-player-return': [
     {
@@ -537,7 +537,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
   ],
 
   // ============================================================
-  // SET POINT - OPPONENT SERVING (opponent serving for the set)
+  // SET POINT FOR OPPONENT — PLAYER SERVING
   // ============================================================
   'set-point-opponent-serve': [
     {
@@ -660,7 +660,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
   ],
 
   // ============================================================
-  // SET POINT - OPPONENT RETURNING (opponent returning for the set)
+  // SET POINT FOR OPPONENT — PLAYER RETURNING
   // ============================================================
   'set-point-opponent-return': [
     {
@@ -781,7 +781,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
   ],
 
   // ============================================================
-  // MATCH POINT - PLAYER SERVING (you're serving for the match)
+  // MATCH POINT FOR PLAYER — PLAYER SERVING
   // ============================================================
   'match-point-player-serve': [
     {
@@ -903,7 +903,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
   ],
 
   // ============================================================
-  // MATCH POINT - PLAYER RETURNING (you're returning for the match)
+  // MATCH POINT FOR PLAYER — PLAYER RETURNING
   // ============================================================
   'match-point-player-return': [
     {
@@ -1024,7 +1024,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
   ],
 
   // ============================================================
-  // MATCH POINT - OPPONENT SERVING (opponent serving for match)
+  // MATCH POINT FOR OPPONENT — PLAYER SERVING
   // ============================================================
   'match-point-opponent-serve': [
     {
@@ -1149,7 +1149,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
   ],
 
   // ============================================================
-  // MATCH POINT - OPPONENT RETURNING (opponent returning for match)
+  // MATCH POINT FOR OPPONENT — PLAYER RETURNING
   // ============================================================
   'match-point-opponent-return': [
     {
