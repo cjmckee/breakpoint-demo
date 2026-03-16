@@ -70,6 +70,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         { type: 'energy', target: 'player', value: -5, condition: 'always' },
         { type: 'momentum', target: 'player', value: 10, condition: 'on_success' },
         { type: 'momentum', target: 'player', value: -5, condition: 'on_failure' },
+        { type: 'mood', target: 'player', value: -3, condition: 'on_failure' },
       ],
       playerStatWeights: {
         primary: 'serve',
@@ -106,6 +107,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       secondaryEffects: [
         { type: 'energy', target: 'player', value: -3, condition: 'always' },
         { type: 'pressure', target: 'opponent', value: 8, condition: 'on_success' },
+        { type: 'mood', target: 'player', value: 2, condition: 'on_success' },
+        { type: 'pressure', target: 'player', value: -2, condition: 'on_success' },
       ],
       playerStatWeights: {
         primary: 'spin',
@@ -188,6 +191,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         { type: 'energy', target: 'player', value: -4, condition: 'always' },
         { type: 'momentum', target: 'player', value: 10, condition: 'on_success' },
         { type: 'momentum', target: 'player', value: -5, condition: 'on_failure' },
+        { type: 'mood', target: 'player', value: -3, condition: 'on_failure' },
       ],
       playerStatWeights: {
         primary: 'return',
@@ -224,6 +228,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       secondaryEffects: [
         { type: 'energy', target: 'player', value: 2, condition: 'always' },
         { type: 'pressure', target: 'opponent', value: 5, condition: 'on_success' },
+        { type: 'mood', target: 'player', value: 3, condition: 'on_success' },
+        { type: 'pressure', target: 'player', value: -3, condition: 'on_success' },
       ],
       playerStatWeights: {
         primary: 'return',
@@ -305,6 +311,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         { type: 'energy', target: 'player', value: -6, condition: 'always' },
         { type: 'momentum', target: 'player', value: 12, condition: 'on_success' },
         { type: 'momentum', target: 'player', value: -8, condition: 'on_failure' },
+        { type: 'mood', target: 'player', value: -5, condition: 'on_failure' },
       ],
       playerStatWeights: {
         primary: 'serve',
@@ -341,6 +348,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       secondaryEffects: [
         { type: 'energy', target: 'player', value: -3, condition: 'always' },
         { type: 'pressure', target: 'opponent', value: 8, condition: 'on_success' },
+        { type: 'mood', target: 'player', value: 2, condition: 'on_success' },
+        { type: 'pressure', target: 'player', value: -3, condition: 'on_success' },
       ],
       playerStatWeights: {
         primary: 'spin',
@@ -423,6 +432,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         { type: 'energy', target: 'player', value: -4, condition: 'always' },
         { type: 'momentum', target: 'player', value: 12, condition: 'on_success' },
         { type: 'momentum', target: 'player', value: -5, condition: 'on_failure' },
+        { type: 'mood', target: 'player', value: -5, condition: 'on_failure' },
       ],
       playerStatWeights: {
         primary: 'return',
@@ -459,6 +469,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       secondaryEffects: [
         { type: 'energy', target: 'player', value: 2, condition: 'always' },
         { type: 'pressure', target: 'opponent', value: 8, condition: 'on_success' },
+        { type: 'mood', target: 'player', value: 3, condition: 'on_success' },
+        { type: 'pressure', target: 'player', value: -3, condition: 'on_success' },
       ],
       playerStatWeights: {
         primary: 'return',
@@ -539,6 +551,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       secondaryEffects: [
         { type: 'energy', target: 'player', value: 2, condition: 'always' },
         { type: 'pressure', target: 'opponent', value: 5, condition: 'on_success' },
+        { type: 'mood', target: 'player', value: 3, condition: 'on_success' },
+        { type: 'pressure', target: 'player', value: -5, condition: 'on_success' },
       ],
       playerStatWeights: {
         primary: 'defensive',
@@ -579,6 +593,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         { type: 'momentum', target: 'player', value: 12, condition: 'on_success' },
         { type: 'mood', target: 'opponent', value: -8, condition: 'on_success' },
         { type: 'momentum', target: 'player', value: -5, condition: 'on_failure' },
+        { type: 'mood', target: 'player', value: -5, condition: 'on_failure' },
       ],
       playerStatWeights: {
         primary: 'forehand',
@@ -660,6 +675,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         { type: 'energy', target: 'player', value: -5, condition: 'always' },
         { type: 'momentum', target: 'player', value: 10, condition: 'on_success' },
         { type: 'momentum', target: 'player', value: -8, condition: 'on_failure' },
+        { type: 'mood', target: 'player', value: -3, condition: 'on_failure' },
       ],
       playerStatWeights: {
         primary: 'serve',
@@ -696,6 +712,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       secondaryEffects: [
         { type: 'energy', target: 'player', value: -2, condition: 'always' },
         { type: 'pressure', target: 'opponent', value: 8, condition: 'on_success' },
+        { type: 'mood', target: 'player', value: 2, condition: 'on_success' },
+        { type: 'pressure', target: 'player', value: -3, condition: 'on_success' },
       ],
       playerStatWeights: {
         primary: 'slice',
@@ -778,6 +796,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         { type: 'energy', target: 'player', value: -6, condition: 'always' },
         { type: 'momentum', target: 'player', value: 15, condition: 'on_success' },
         { type: 'momentum', target: 'player', value: -10, condition: 'on_failure' },
+        { type: 'mood', target: 'player', value: -5, condition: 'on_failure' },
       ],
       playerStatWeights: {
         primary: 'serve',
@@ -852,6 +871,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       secondaryEffects: [
         { type: 'energy', target: 'player', value: -3, condition: 'always' },
         { type: 'pressure', target: 'opponent', value: 8, condition: 'on_success' },
+        { type: 'mood', target: 'player', value: 3, condition: 'on_success' },
+        { type: 'pressure', target: 'player', value: -5, condition: 'on_success' },
       ],
       playerStatWeights: {
         primary: 'serve',
@@ -897,6 +918,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         { type: 'energy', target: 'player', value: -5, condition: 'always' },
         { type: 'momentum', target: 'player', value: 15, condition: 'on_success' },
         { type: 'momentum', target: 'player', value: -5, condition: 'on_failure' },
+        { type: 'mood', target: 'player', value: -5, condition: 'on_failure' },
       ],
       playerStatWeights: {
         primary: 'return',
@@ -933,6 +955,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       secondaryEffects: [
         { type: 'energy', target: 'player', value: -2, condition: 'always' },
         { type: 'pressure', target: 'opponent', value: 10, condition: 'on_success' },
+        { type: 'mood', target: 'player', value: 3, condition: 'on_success' },
+        { type: 'pressure', target: 'player', value: -5, condition: 'on_success' },
       ],
       playerStatWeights: {
         primary: 'anticipation',
@@ -1016,6 +1040,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         { type: 'momentum', target: 'player', value: 12, condition: 'on_success' },
         { type: 'mood', target: 'opponent', value: -8, condition: 'on_success' },
         { type: 'momentum', target: 'player', value: -5, condition: 'on_failure' },
+        { type: 'mood', target: 'player', value: -5, condition: 'on_failure' },
       ],
       playerStatWeights: {
         primary: 'return',
@@ -1052,6 +1077,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       secondaryEffects: [
         { type: 'energy', target: 'player', value: 2, condition: 'always' },
         { type: 'pressure', target: 'opponent', value: 10, condition: 'on_success' },
+        { type: 'mood', target: 'player', value: 3, condition: 'on_success' },
+        { type: 'pressure', target: 'player', value: -5, condition: 'on_success' },
       ],
       playerStatWeights: {
         primary: 'return',
@@ -1090,6 +1117,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       secondaryEffects: [
         { type: 'energy', target: 'player', value: 3, condition: 'always' },
         { type: 'mood', target: 'opponent', value: -5, condition: 'on_success' },
+        { type: 'mood', target: 'player', value: 3, condition: 'on_success' },
+        { type: 'pressure', target: 'player', value: -5, condition: 'on_success' },
       ],
       playerStatWeights: {
         primary: 'shotVariety',
@@ -1136,6 +1165,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         { type: 'momentum', target: 'player', value: 12, condition: 'on_success' },
         { type: 'mood', target: 'opponent', value: -8, condition: 'on_success' },
         { type: 'momentum', target: 'player', value: -5, condition: 'on_failure' },
+        { type: 'mood', target: 'player', value: -5, condition: 'on_failure' },
       ],
       playerStatWeights: {
         primary: 'serve',
@@ -1172,6 +1202,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       secondaryEffects: [
         { type: 'energy', target: 'player', value: 2, condition: 'always' },
         { type: 'pressure', target: 'opponent', value: 10, condition: 'on_success' },
+        { type: 'mood', target: 'player', value: 3, condition: 'on_success' },
+        { type: 'pressure', target: 'player', value: -5, condition: 'on_success' },
       ],
       playerStatWeights: {
         primary: 'slice',
