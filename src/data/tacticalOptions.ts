@@ -539,7 +539,128 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
   // ============================================================
   // SET POINT FOR OPPONENT — PLAYER SERVING
   // ============================================================
-  'set-point-opponent-serve': [
+    'set-point-opponent-serve': [
+    {
+      id: 'big_serve_pressure',
+      emoji: '🚀',
+      name: 'Big serve under pressure',
+      description: 'Go for a powerful serve to take control of the point',
+      strongAgainst: ['defensive', 'counterpuncher'],
+      weakAgainst: ['aggressive'],
+      bestAgainstHint: 'Best against opponents with weak returns who play safe',
+      secondaryEffects: [
+        { type: 'energy', target: 'player', value: -5, condition: 'always' },
+        { type: 'momentum', target: 'player', value: 10, condition: 'on_success' },
+        { type: 'momentum', target: 'player', value: -8, condition: 'on_failure' },
+        { type: 'mood', target: 'player', value: -3, condition: 'on_failure' },
+      ],
+      playerStatWeights: {
+        primary: 'serve',
+        primaryWeight: 0.3,
+        secondary: [
+          { stat: 'strength', weight: 0.25 },
+          { stat: 'placement', weight: 0.2 },
+          { stat: 'focus', weight: 0.15 },
+          { stat: 'offensive', weight: 0.1 },
+        ],
+      },
+      opponentStatWeights: {
+        primary: 'return',
+        primaryWeight: 0.35,
+        secondary: [
+          { stat: 'anticipation', weight: 0.25 },
+          { stat: 'speed', weight: 0.2 },
+          { stat: 'offensive', weight: 0.2 },
+        ],
+      },
+      shotOutcomes: {
+        success: { outcome: PointType.ACE, shotType: 'serve', shooter: 'player' },
+        failure: { outcome: PointType.DOUBLE_FAULT, shotType: 'serve', shooter: 'player' },
+      },
+    },
+    {
+      id: 'slice_serve_rally',
+      emoji: '🪄',
+      name: 'Slice serve and rally',
+      description: 'Use a slice serve to disrupt their timing, then build the point',
+      strongAgainst: ['aggressive', 'serve_volley'],
+      weakAgainst: ['counterpuncher'],
+      bestAgainstHint: 'Best against opponents who attack returns aggressively',
+      secondaryEffects: [
+        { type: 'energy', target: 'player', value: -2, condition: 'always' },
+
+        { type: 'mood', target: 'player', value: 2, condition: 'on_success' },
+        { type: 'pressure', target: 'player', value: -3, condition: 'on_success' },
+      ],
+      playerStatWeights: {
+        primary: 'slice',
+        primaryWeight: 0.25,
+        secondary: [
+          { stat: 'serve', weight: 0.25 },
+          { stat: 'placement', weight: 0.2 },
+          { stat: 'shotVariety', weight: 0.15 },
+          { stat: 'focus', weight: 0.15 },
+        ],
+      },
+      opponentStatWeights: {
+        primary: 'return',
+        primaryWeight: 0.3,
+        secondary: [
+          { stat: 'forehand', weight: 0.25 },
+          { stat: 'agility', weight: 0.2 },
+          { stat: 'offensive', weight: 0.15 },
+          { stat: 'spin', weight: 0.1 },
+        ],
+      },
+      shotOutcomes: {
+        success: { outcome: PointType.FORCED_ERROR, shotType: 'return', shooter: 'opponent' },
+        failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
+      },
+    },
+    {
+      id: 'serve_volley_set_opp',
+      emoji: '🏃',
+      name: 'Serve and volley',
+      description: 'Rush the net after your serve to end the point quickly',
+      strongAgainst: ['counterpuncher', 'defensive'],
+      weakAgainst: ['serve_volley', 'all_court'],
+      bestAgainstHint: 'Best against opponents who struggle to pass at the net',
+      secondaryEffects: [
+        { type: 'energy', target: 'player', value: -5, condition: 'always' },
+        { type: 'momentum', target: 'player', value: 10, condition: 'on_success' },
+
+      ],
+      playerStatWeights: {
+        primary: 'volley',
+        primaryWeight: 0.25,
+        secondary: [
+          { stat: 'serve', weight: 0.25 },
+          { stat: 'agility', weight: 0.2 },
+          { stat: 'speed', weight: 0.15 },
+          { stat: 'overhead', weight: 0.15 },
+        ],
+      },
+      opponentStatWeights: {
+        primary: 'return',
+        primaryWeight: 0.3,
+        secondary: [
+          { stat: 'forehand', weight: 0.2 },
+          { stat: 'placement', weight: 0.2 },
+          { stat: 'shotVariety', weight: 0.15 },
+          { stat: 'offensive', weight: 0.15 },
+        ],
+      },
+      shotOutcomes: {
+        success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
+        failure: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'opponent' },
+      },
+    },
+  ],
+
+  // ============================================================
+  // SET POINT FOR OPPONENT — PLAYER RETURNING
+  // ============================================================
+  'set-point-opponent-return': [
     {
       id: 'defensive_rally_setup',
       emoji: '🛡️',
@@ -655,127 +776,6 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       shotOutcomes: {
         success: { outcome: PointType.WINNER, shotType: 'dropShot', shooter: 'player' },
         failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
-      },
-    },
-  ],
-
-  // ============================================================
-  // SET POINT FOR OPPONENT — PLAYER RETURNING
-  // ============================================================
-  'set-point-opponent-return': [
-    {
-      id: 'big_serve_pressure',
-      emoji: '🚀',
-      name: 'Big serve under pressure',
-      description: 'Go for a powerful serve to take control of the point',
-      strongAgainst: ['defensive', 'counterpuncher'],
-      weakAgainst: ['aggressive'],
-      bestAgainstHint: 'Best against opponents with weak returns who play safe',
-      secondaryEffects: [
-        { type: 'energy', target: 'player', value: -5, condition: 'always' },
-        { type: 'momentum', target: 'player', value: 10, condition: 'on_success' },
-        { type: 'momentum', target: 'player', value: -8, condition: 'on_failure' },
-        { type: 'mood', target: 'player', value: -3, condition: 'on_failure' },
-      ],
-      playerStatWeights: {
-        primary: 'serve',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'strength', weight: 0.25 },
-          { stat: 'placement', weight: 0.2 },
-          { stat: 'focus', weight: 0.15 },
-          { stat: 'offensive', weight: 0.1 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.35,
-        secondary: [
-          { stat: 'anticipation', weight: 0.25 },
-          { stat: 'speed', weight: 0.2 },
-          { stat: 'offensive', weight: 0.2 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.ACE, shotType: 'serve', shooter: 'player' },
-        failure: { outcome: PointType.DOUBLE_FAULT, shotType: 'serve', shooter: 'player' },
-      },
-    },
-    {
-      id: 'slice_serve_rally',
-      emoji: '🪄',
-      name: 'Slice serve and rally',
-      description: 'Use a slice serve to disrupt their timing, then build the point',
-      strongAgainst: ['aggressive', 'serve_volley'],
-      weakAgainst: ['counterpuncher'],
-      bestAgainstHint: 'Best against opponents who attack returns aggressively',
-      secondaryEffects: [
-        { type: 'energy', target: 'player', value: -2, condition: 'always' },
-
-        { type: 'mood', target: 'player', value: 2, condition: 'on_success' },
-        { type: 'pressure', target: 'player', value: -3, condition: 'on_success' },
-      ],
-      playerStatWeights: {
-        primary: 'slice',
-        primaryWeight: 0.25,
-        secondary: [
-          { stat: 'serve', weight: 0.25 },
-          { stat: 'placement', weight: 0.2 },
-          { stat: 'shotVariety', weight: 0.15 },
-          { stat: 'focus', weight: 0.15 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'forehand', weight: 0.25 },
-          { stat: 'agility', weight: 0.2 },
-          { stat: 'offensive', weight: 0.15 },
-          { stat: 'spin', weight: 0.1 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.FORCED_ERROR, shotType: 'return', shooter: 'opponent' },
-        failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
-      },
-    },
-    {
-      id: 'serve_volley_set_opp',
-      emoji: '🏃',
-      name: 'Serve and volley',
-      description: 'Rush the net after your serve to end the point quickly',
-      strongAgainst: ['counterpuncher', 'defensive'],
-      weakAgainst: ['serve_volley', 'all_court'],
-      bestAgainstHint: 'Best against opponents who struggle to pass at the net',
-      secondaryEffects: [
-        { type: 'energy', target: 'player', value: -5, condition: 'always' },
-        { type: 'momentum', target: 'player', value: 10, condition: 'on_success' },
-
-      ],
-      playerStatWeights: {
-        primary: 'volley',
-        primaryWeight: 0.25,
-        secondary: [
-          { stat: 'serve', weight: 0.25 },
-          { stat: 'agility', weight: 0.2 },
-          { stat: 'speed', weight: 0.15 },
-          { stat: 'overhead', weight: 0.15 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'forehand', weight: 0.2 },
-          { stat: 'placement', weight: 0.2 },
-          { stat: 'shotVariety', weight: 0.15 },
-          { stat: 'offensive', weight: 0.15 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
-        failure: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'opponent' },
       },
     },
   ],
@@ -1028,6 +1028,129 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
   // ============================================================
   'match-point-opponent-serve': [
     {
+      id: 'desperate_winner_attempt',
+      emoji: '🚀',
+      name: 'Big serve to survive',
+      description: 'Go for a huge serve to stay in the match',
+      strongAgainst: ['defensive', 'counterpuncher'],
+      weakAgainst: ['aggressive'],
+      bestAgainstHint: 'Best against opponents who struggle with pace on the return',
+      secondaryEffects: [
+        { type: 'energy', target: 'player', value: -6, condition: 'always' },
+        { type: 'momentum', target: 'player', value: 12, condition: 'on_success' },
+
+        { type: 'momentum', target: 'player', value: -5, condition: 'on_failure' },
+        { type: 'mood', target: 'player', value: -5, condition: 'on_failure' },
+      ],
+      playerStatWeights: {
+        primary: 'serve',
+        primaryWeight: 0.3,
+        secondary: [
+          { stat: 'strength', weight: 0.25 },
+          { stat: 'placement', weight: 0.2 },
+          { stat: 'offensive', weight: 0.15 },
+          { stat: 'focus', weight: 0.1 },
+        ],
+      },
+      opponentStatWeights: {
+        primary: 'return',
+        primaryWeight: 0.35,
+        secondary: [
+          { stat: 'anticipation', weight: 0.25 },
+          { stat: 'speed', weight: 0.2 },
+          { stat: 'agility', weight: 0.2 },
+        ],
+      },
+      shotOutcomes: {
+        success: { outcome: PointType.ACE, shotType: 'serve', shooter: 'player' },
+        failure: { outcome: PointType.DOUBLE_FAULT, shotType: 'serve', shooter: 'player' },
+      },
+    },
+    {
+      id: 'slice_serve_grind',
+      emoji: '🪄',
+      name: 'Slice serve and grind',
+      description: 'Disrupt their timing and make them work for it',
+      strongAgainst: ['aggressive', 'serve_volley'],
+      weakAgainst: ['counterpuncher'],
+      bestAgainstHint: 'Best against opponents who attack returns aggressively',
+      secondaryEffects: [
+        { type: 'energy', target: 'player', value: 2, condition: 'always' },
+
+        { type: 'mood', target: 'player', value: 3, condition: 'on_success' },
+        { type: 'pressure', target: 'player', value: -5, condition: 'on_success' },
+      ],
+      playerStatWeights: {
+        primary: 'slice',
+        primaryWeight: 0.25,
+        secondary: [
+          { stat: 'serve', weight: 0.25 },
+          { stat: 'defensive', weight: 0.2 },
+          { stat: 'stamina', weight: 0.15 },
+          { stat: 'focus', weight: 0.15 },
+        ],
+      },
+      opponentStatWeights: {
+        primary: 'return',
+        primaryWeight: 0.3,
+        secondary: [
+          { stat: 'offensive', weight: 0.25 },
+          { stat: 'forehand', weight: 0.2 },
+          { stat: 'strength', weight: 0.15 },
+          { stat: 'speed', weight: 0.1 },
+        ],
+      },
+      shotOutcomes: {
+        success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
+        failure: { outcome: PointType.WINNER, shotType: 'return', shooter: 'opponent' },
+      },
+    },
+    {
+      id: 'serve_volley_desperation',
+      emoji: '🏃',
+      name: 'Serve and charge',
+      description: 'Rush the net — force them to hit a passing shot under pressure',
+      strongAgainst: ['counterpuncher', 'defensive'],
+      weakAgainst: ['serve_volley', 'all_court'],
+      bestAgainstHint: 'Best against opponents who freeze when you come to the net',
+      secondaryEffects: [
+        { type: 'energy', target: 'player', value: -5, condition: 'always' },
+        { type: 'momentum', target: 'player', value: 10, condition: 'on_success' },
+
+      ],
+      playerStatWeights: {
+        primary: 'volley',
+        primaryWeight: 0.25,
+        secondary: [
+          { stat: 'serve', weight: 0.25 },
+          { stat: 'agility', weight: 0.2 },
+          { stat: 'speed', weight: 0.15 },
+          { stat: 'overhead', weight: 0.15 },
+        ],
+      },
+      opponentStatWeights: {
+        primary: 'return',
+        primaryWeight: 0.3,
+        secondary: [
+          { stat: 'forehand', weight: 0.2 },
+          { stat: 'placement', weight: 0.2 },
+          { stat: 'shotVariety', weight: 0.15 },
+          { stat: 'offensive', weight: 0.15 },
+        ],
+      },
+      shotOutcomes: {
+        success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
+        failure: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'opponent' },
+      },
+    },
+  ],
+
+  
+  // ============================================================
+  // MATCH POINT FOR OPPONENT — PLAYER RETURNING
+  // ============================================================
+  'match-point-opponent-return': [
+    {
       id: 'desperate_attack_return',
       emoji: '⚔️',
       name: 'All-out attack return',
@@ -1144,128 +1267,6 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       shotOutcomes: {
         success: { outcome: PointType.UNFORCED_ERROR, shotType: 'overhead', shooter: 'opponent' },
         failure: { outcome: PointType.WINNER, shotType: 'overhead', shooter: 'opponent' },
-      },
-    },
-  ],
-
-  // ============================================================
-  // MATCH POINT FOR OPPONENT — PLAYER RETURNING
-  // ============================================================
-  'match-point-opponent-return': [
-    {
-      id: 'desperate_winner_attempt',
-      emoji: '🚀',
-      name: 'Big serve to survive',
-      description: 'Go for a huge serve to stay in the match',
-      strongAgainst: ['defensive', 'counterpuncher'],
-      weakAgainst: ['aggressive'],
-      bestAgainstHint: 'Best against opponents who struggle with pace on the return',
-      secondaryEffects: [
-        { type: 'energy', target: 'player', value: -6, condition: 'always' },
-        { type: 'momentum', target: 'player', value: 12, condition: 'on_success' },
-
-        { type: 'momentum', target: 'player', value: -5, condition: 'on_failure' },
-        { type: 'mood', target: 'player', value: -5, condition: 'on_failure' },
-      ],
-      playerStatWeights: {
-        primary: 'serve',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'strength', weight: 0.25 },
-          { stat: 'placement', weight: 0.2 },
-          { stat: 'offensive', weight: 0.15 },
-          { stat: 'focus', weight: 0.1 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.35,
-        secondary: [
-          { stat: 'anticipation', weight: 0.25 },
-          { stat: 'speed', weight: 0.2 },
-          { stat: 'agility', weight: 0.2 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.ACE, shotType: 'serve', shooter: 'player' },
-        failure: { outcome: PointType.DOUBLE_FAULT, shotType: 'serve', shooter: 'player' },
-      },
-    },
-    {
-      id: 'slice_serve_grind',
-      emoji: '🪄',
-      name: 'Slice serve and grind',
-      description: 'Disrupt their timing and make them work for it',
-      strongAgainst: ['aggressive', 'serve_volley'],
-      weakAgainst: ['counterpuncher'],
-      bestAgainstHint: 'Best against opponents who attack returns aggressively',
-      secondaryEffects: [
-        { type: 'energy', target: 'player', value: 2, condition: 'always' },
-
-        { type: 'mood', target: 'player', value: 3, condition: 'on_success' },
-        { type: 'pressure', target: 'player', value: -5, condition: 'on_success' },
-      ],
-      playerStatWeights: {
-        primary: 'slice',
-        primaryWeight: 0.25,
-        secondary: [
-          { stat: 'serve', weight: 0.25 },
-          { stat: 'defensive', weight: 0.2 },
-          { stat: 'stamina', weight: 0.15 },
-          { stat: 'focus', weight: 0.15 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'offensive', weight: 0.25 },
-          { stat: 'forehand', weight: 0.2 },
-          { stat: 'strength', weight: 0.15 },
-          { stat: 'speed', weight: 0.1 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
-        failure: { outcome: PointType.WINNER, shotType: 'return', shooter: 'opponent' },
-      },
-    },
-    {
-      id: 'serve_volley_desperation',
-      emoji: '🏃',
-      name: 'Serve and charge',
-      description: 'Rush the net — force them to hit a passing shot under pressure',
-      strongAgainst: ['counterpuncher', 'defensive'],
-      weakAgainst: ['serve_volley', 'all_court'],
-      bestAgainstHint: 'Best against opponents who freeze when you come to the net',
-      secondaryEffects: [
-        { type: 'energy', target: 'player', value: -5, condition: 'always' },
-        { type: 'momentum', target: 'player', value: 10, condition: 'on_success' },
-
-      ],
-      playerStatWeights: {
-        primary: 'volley',
-        primaryWeight: 0.25,
-        secondary: [
-          { stat: 'serve', weight: 0.25 },
-          { stat: 'agility', weight: 0.2 },
-          { stat: 'speed', weight: 0.15 },
-          { stat: 'overhead', weight: 0.15 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'forehand', weight: 0.2 },
-          { stat: 'placement', weight: 0.2 },
-          { stat: 'shotVariety', weight: 0.15 },
-          { stat: 'offensive', weight: 0.15 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
-        failure: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'opponent' },
       },
     },
   ],
