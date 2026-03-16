@@ -75,6 +75,9 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
     const isTournamentMatch = matchConfig.isTournamentMatch === true;
     const isStoryMatch = matchConfig.isStoryMatch === true;
 
+    // Get accumulated energy/mood effects from key moment choices
+    const accumulatedEffects = orchestrator?.getAccumulatedEffects();
+
     if (isTournamentMatch) {
       console.log('Tournament match detected - calling completeTournamentMatch');
       console.log('Passing rewards to completeTournamentMatch:', matchRewards);
@@ -83,7 +86,8 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
         isWinner ? 'win' : 'loss',
         formatScore(finalScore),
         matchStatistics,
-        matchRewards
+        matchRewards,
+        accumulatedEffects
       );
     } else if (isStoryMatch) {
       console.log('Story match detected - calling completeStoryMatch');
@@ -93,12 +97,12 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
         isWinner ? 'win' : 'loss',
         formatScore(finalScore),
         matchStatistics,
-        matchRewards
+        matchRewards,
+        accumulatedEffects
       );
     } else {
       console.log('Regular match - calling addMatchResult');
       // Regular matches use standard handling with pre-calculated rewards
-      const accumulatedEffects = orchestrator?.getAccumulatedEffects();
       addMatchResult(
         isWinner ? 'win' : 'loss',
         opponentName,

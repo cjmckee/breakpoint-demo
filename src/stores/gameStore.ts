@@ -136,7 +136,7 @@ interface GameState {
   // Tournament actions
   startTournament: (tournamentId: string) => void;
   scheduleNextTournamentMatch: () => void;
-  completeTournamentMatch: (result: 'win' | 'loss', score: string, matchStats: MatchStatistics, rewards: MatchReward) => void;
+  completeTournamentMatch: (result: 'win' | 'loss', score: string, matchStats: MatchStatistics, rewards: MatchReward, accumulatedEffects?: { energyDelta: number; moodDelta: number }) => void;
   cancelTournament: () => void;
   checkTournamentEligibility: () => string[];
   getScheduledTournamentMatch: () => ScheduledEvent | null;
@@ -145,7 +145,7 @@ interface GameState {
   // Story match actions
   getScheduledStoryMatch: () => ScheduledEvent | null;
   isStoryMatchScheduled: () => boolean;
-  completeStoryMatch: (result: 'win' | 'loss', score: string, matchStats: MatchStatistics, rewards: MatchReward) => void;
+  completeStoryMatch: (result: 'win' | 'loss', score: string, matchStats: MatchStatistics, rewards: MatchReward, accumulatedEffects?: { energyDelta: number; moodDelta: number }) => void;
 
   // Generic scheduled event actions
   scheduleEvent: (event: ScheduledEvent) => void;
@@ -1466,7 +1466,7 @@ export const useGameStore = create<GameState>()(
       },
 
       // Complete a tournament match
-      completeTournamentMatch: (result: 'win' | 'loss', score: string, matchStats: MatchStatistics, rewards: MatchReward) => {
+      completeTournamentMatch: (result: 'win' | 'loss', score: string, matchStats: MatchStatistics, rewards: MatchReward, accumulatedEffects?: { energyDelta: number; moodDelta: number }) => {
         const { calendar, currentStatus, player } = get();
         if (!player) return;
 
@@ -1581,12 +1581,14 @@ export const useGameStore = create<GameState>()(
           }
         }
 
-        // Deduct energy (variable cost)
+        // Deduct energy (variable cost + accumulated key moment effects)
         const energyCost = TournamentManager.calculateMatchEnergyCost(currentStatus.energy);
-        const newEnergy = Math.max(0, currentStatus.energy - energyCost);
+        const keyMomentEnergyCost = accumulatedEffects ? accumulatedEffects.energyDelta : 0;
+        const newEnergy = Math.max(0, currentStatus.energy - energyCost + keyMomentEnergyCost);
 
-        // Update mood from rewards
-        const newMood = Math.max(-100, Math.min(100, currentStatus.mood + rewards.moodChange));
+        // Update mood from rewards + accumulated key moment effects
+        const keyMomentMoodChange = accumulatedEffects ? accumulatedEffects.moodDelta : 0;
+        const newMood = Math.max(-100, Math.min(100, currentStatus.mood + rewards.moodChange + keyMomentMoodChange));
 
         // Update state with player changes and tournament progression
         // Only update activeTournament if tournament is not complete (it was already cleared above)
@@ -1715,7 +1717,7 @@ export const useGameStore = create<GameState>()(
       },
 
       // Complete a story match
-      completeStoryMatch: (result: 'win' | 'loss', score: string, matchStats: MatchStatistics, rewards: MatchReward) => {
+      completeStoryMatch: (result: 'win' | 'loss', score: string, matchStats: MatchStatistics, rewards: MatchReward, accumulatedEffects?: { energyDelta: number; moodDelta: number }) => {
         const { calendar, currentStatus, player } = get();
         if (!player) return;
 
@@ -1770,12 +1772,14 @@ export const useGameStore = create<GameState>()(
           calendar.currentTimeSlot
         );
 
-        // Deduct energy
+        // Deduct energy + accumulated key moment effects
         const energyCost = StoryMatchManager.calculateMatchEnergyCost(currentStatus.energy);
-        const newEnergy = Math.max(0, currentStatus.energy - energyCost);
+        const keyMomentEnergyCost = accumulatedEffects ? accumulatedEffects.energyDelta : 0;
+        const newEnergy = Math.max(0, currentStatus.energy - energyCost + keyMomentEnergyCost);
 
-        // Update mood from rewards
-        const newMood = Math.max(-100, Math.min(100, currentStatus.mood + rewards.moodChange));
+        // Update mood from rewards + accumulated key moment effects
+        const keyMomentMoodChange = accumulatedEffects ? accumulatedEffects.moodDelta : 0;
+        const newMood = Math.max(-100, Math.min(100, currentStatus.mood + rewards.moodChange + keyMomentMoodChange));
 
         // Update state
         set({
