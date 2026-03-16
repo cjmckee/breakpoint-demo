@@ -10,6 +10,7 @@ import { LiveMatchViewer } from './components/LiveMatchViewer';
 import { Inventory } from './components/Inventory';
 import { TournamentList } from './components/TournamentList';
 import { TournamentMatch } from './components/TournamentMatch';
+import { StoryMatch } from './components/StoryMatch';
 import { KeyMomentModal } from './components/KeyMomentModal';
 import { MatchSummaryModal } from './components/MatchSummaryModal';
 
@@ -101,6 +102,23 @@ function App() {
       return (
         <>
           {isMatchActive ? <LiveMatchViewer /> : <TournamentMatch />}
+          <KeyMomentModal
+            isOpen={isWaitingForChoice}
+            keyMoment={currentKeyMoment}
+          />
+          <MatchSummaryModal
+            isOpen={showMatchResults}
+            onClose={hideMatchResults}
+            finalScore={finalScore}
+          />
+        </>
+      );
+
+    case 'story-match':
+      // Story matches use the same match viewer
+      return (
+        <>
+          {isMatchActive ? <LiveMatchViewer /> : <StoryMatch />}
           <KeyMomentModal
             isOpen={isWaitingForChoice}
             keyMoment={currentKeyMoment}

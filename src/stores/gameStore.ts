@@ -77,7 +77,7 @@ interface GameState {
 
   // UI state
   isInitialized: boolean;
-  currentScreen: 'welcome' | 'player-creation' | 'main-menu' | 'training' | 'match' | 'rest' | 'inventory' | 'tournaments' | 'tournament-match';
+  currentScreen: 'welcome' | 'player-creation' | 'main-menu' | 'training' | 'match' | 'rest' | 'inventory' | 'tournaments' | 'tournament-match' | 'story-match';
   showTrainingResultModal: boolean;  // DEPRECATED: Use modal queue instead
 
   // Modal queue state (replaces useEffect-based modal triggering)

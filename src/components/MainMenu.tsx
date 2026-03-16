@@ -5,7 +5,6 @@
 
 import React, { useEffect, JSX } from 'react';
 import { useGameStore } from '../stores/gameStore';
-import { useMatchStore } from '../stores/matchStore';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { StatusBar } from './StatusBar';
@@ -16,7 +15,6 @@ import { ActiveTournamentCard } from './ActiveTournamentCard';
 import { TrainingResultModal } from './TrainingResultModal';
 import { StoryEventModal } from './StoryEventModal';
 import { StoryEventResultModal } from './StoryEventResultModal';
-import { ItemManager } from '../game/ItemManager';
 import { derivePlayStyle } from '../core/PlayerProfile';
 import { getArchetypeLabel } from '../data/archetypes';
 import type {
@@ -114,9 +112,11 @@ export const MainMenu: React.FC = () => {
 
   const handleCancelEvent = () => {
     cancelStoryEvent();
-    // After skipping pre-match event, navigate to tournament match if scheduled
+    // After skipping pre-match event, navigate to match screen if scheduled
     if (isTournamentMatchScheduled) {
       setScreen('tournament-match');
+    } else if (isStoryMatchScheduled) {
+      setScreen('story-match');
     }
   };
 
@@ -201,31 +201,6 @@ export const MainMenu: React.FC = () => {
     );
   };
 
-  // Handle starting a story match
-  const handleStartStoryMatch = () => {
-    if (!storyMatchMetadata) return;
-
-    const startMatch = useMatchStore.getState().startMatch;
-
-    // Fire off match simulation (don't await - it runs until match completes)
-    startMatch({
-      playerStats: player.stats,
-      playerAbilities: player.abilities,
-      itemBoosts: ItemManager.getTotalPassiveBoosts(player),
-      opponentStats: storyMatchMetadata.opponentStats,
-      opponentName: storyMatchMetadata.opponentName,
-      opponentTier: storyMatchMetadata.opponentTier,
-      surface: storyMatchMetadata.surface || 'hard',
-      mood: currentStatus.mood,
-      energy: currentStatus.energy,
-      enableKeyMoments: true,
-      matchFormat: storyMatchMetadata.matchFormat || 'best-of-1',
-      isStoryMatch: true,
-    });
-
-    setScreen('match');
-  };
-
   // Get current story event from modal (if showing)
   const currentStoryEvent = currentModal?.type === 'story_event'
     ? (currentModal.data as StoryEventModalData).event
@@ -265,9 +240,11 @@ export const MainMenu: React.FC = () => {
             isOpen={true}
             onClose={() => {
               dismissCurrentModal();
-              // After pre-match event result is dismissed, navigate to tournament match
+              // After pre-match event result is dismissed, navigate to match screen
               if (isTournamentMatchScheduled) {
                 setScreen('tournament-match');
+              } else if (isStoryMatchScheduled) {
+                setScreen('story-match');
               }
             }}
             result={data.result}
@@ -321,7 +298,7 @@ export const MainMenu: React.FC = () => {
                   <p className="text-sm text-gray-200 mt-1">{storyMatchMetadata.matchDescription}</p>
                 )}
               </div>
-              <Button onClick={handleStartStoryMatch} variant="primary" size="lg">
+              <Button onClick={() => setScreen('story-match')} variant="primary" size="lg">
                 Play Match
               </Button>
             </div>
