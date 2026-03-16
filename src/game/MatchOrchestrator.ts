@@ -24,12 +24,21 @@ import { MatchStatistics as IMatchStatistics, MatchState, PointResult, PointType
 import { AbilitySystem } from './AbilitySystem';
 import { MATCH_FATIGUE } from '../config/shotThresholds';
 
+export interface AccumulatedMatchEffects {
+  energyDelta: number;  // Net energy change from key moment choices
+  moodDelta: number;    // Net mood change from key moment choices
+}
+
 export class MatchOrchestrator {
   private keyMomentsTriggered = 0;
   private pointsPlayed = 0;
   private recentPointWinners: Array<'player' | 'opponent'> = [];
   private momentum = 0;
+  private momentumBank = 0; // Persistent momentum from events/shot quality (decays slowly)
   private pressure = 0;
+  private pressureBank = 0; // Persistent pressure from key moment effects (decays slowly)
+  private matchEnergy = 100; // Tracked mid-match, starts at config.energy
+  private matchMood = 0; // Tracked mid-match, starts at config.mood
   private fatigue: PlayerMatchFatigue = { player: 0, opponent: 0 };
   private matchStatistics: MatchStatistics | null = null;
   private pointSimulator: PointSimulator | null = null;
@@ -37,6 +46,7 @@ export class MatchOrchestrator {
   private playerStats: PlayerStats | null = null;
   private opponentStats: PlayerStats | null = null;
   private opponentArchetype: ArchetypeType = 'defensive';
+  private accumulatedEffects: AccumulatedMatchEffects = { energyDelta: 0, moodDelta: 0 };
 
   /**
    * Apply flat stat boosts to player stats (clamped to 100).
@@ -126,6 +136,13 @@ export class MatchOrchestrator {
       opponent: 0,
     };
 
+    // Initialize live energy/mood tracking
+    this.matchEnergy = config.energy ?? 100;
+    this.matchMood = config.mood ?? 0;
+    this.accumulatedEffects = { energyDelta: 0, moodDelta: 0 };
+    this.momentumBank = 0;
+    this.pressureBank = 0;
+
     // Initialize score tracker
     const scoreTracker = new ScoreTracker();
 
@@ -147,15 +164,15 @@ export class MatchOrchestrator {
         // Wait for user choice
         const selectedOption = await config.onKeyMoment(keyMoment);
 
-        // Resolve key moment
+        // Resolve key moment (use live energy/mood, not static config)
         const result = KeyMomentResolver.resolveKeyMoment(
           config.playerStats as PlayerStats,
           config.opponentStats as PlayerStats,
           selectedOption,
           this.opponentArchetype,
           {
-            mood: config.mood,
-            energy: config.energy,
+            mood: this.matchMood,
+            energy: this.matchEnergy,
             momentum: this.momentum,
             pressure: this.pressure,
           }
@@ -183,8 +200,8 @@ export class MatchOrchestrator {
         // Update score after recording match statistics in case the update changes game / server
         currentScore = this.updateScore(currentScore, result.pointWinner);
 
-        // Update momentum based on outcome
-        this.updateMomentum(result.pointWinner, result.outcome);
+        // Update momentum based on outcome (use shot outcome point type)
+        this.updateMomentum(result.pointWinner, result.shotOutcome.outcome);
 
         // Update fatigue (key moment rallies are ~3-5 shots)
         const kmPointResult = this.createPointResultFromKeyMoment(result, currentScore.server);
@@ -201,8 +218,8 @@ export class MatchOrchestrator {
 
         currentScore = this.updateScore(currentScore, pointWinner);
 
-        // Update momentum and fatigue
-        this.updateMomentum(pointWinner, 'success');
+        // Update momentum and fatigue (pass actual point type for momentum events)
+        this.updateMomentum(pointWinner, pointResult.pointType);
         this.updateMatchFatigue(pointResult.rallyLength);
       }
 
@@ -311,8 +328,8 @@ export class MatchOrchestrator {
         server: score.server,
         momentum: this.momentum,
         pressure: this.pressure,
-        energy: config.energy,
-        mood: config.mood,
+        energy: this.matchEnergy,
+        mood: this.matchMood,
       },
     };
   }
@@ -600,6 +617,14 @@ export class MatchOrchestrator {
   }
 
   /**
+   * Get accumulated energy/mood effects from key moment choices.
+   * Used post-match to apply consequences to the game store.
+   */
+  public getAccumulatedEffects(): AccumulatedMatchEffects {
+    return { ...this.accumulatedEffects };
+  }
+
+  /**
    * Cancel the ongoing match simulation
    */
   public cancelMatch(): void {
@@ -608,29 +633,36 @@ export class MatchOrchestrator {
 
   /**
    * Apply secondary effects from a key moment to match state.
+   * All 4 effect types now have real impact.
    */
   private applySecondaryEffects(effects: AppliedEffect[]): void {
     for (const effect of effects) {
-      // Only apply effects targeting the player to match state we track
-      // (opponent effects like mood/pressure are informational for the UI)
       switch (effect.type) {
         case 'momentum':
           if (effect.target === 'player') {
-            this.momentum = Math.max(-100, Math.min(100, this.momentum + effect.value));
+            // Add to persistent momentum bank (not overwritten by sliding window)
+            this.momentumBank = Math.max(-60, Math.min(60, this.momentumBank + effect.value));
           }
           break;
         case 'pressure':
           if (effect.target === 'opponent') {
-            // Opponent pressure increase is tracked as general pressure
-            this.pressure = Math.max(0, Math.min(100, this.pressure + effect.value));
+            // Add to persistent pressure bank (layered on top of score-based pressure)
+            this.pressureBank = Math.max(0, Math.min(40, this.pressureBank + effect.value));
           }
           break;
         case 'energy':
-          // Energy effects are informational — actual energy is managed by the game store
-          // We don't modify config.energy directly here
+          // Apply energy change mid-match — affects future key moment probability
+          // Also accumulate for post-match application
+          this.matchEnergy = Math.max(0, Math.min(100, this.matchEnergy + effect.value));
+          this.accumulatedEffects.energyDelta += effect.value;
           break;
         case 'mood':
-          // Mood effects are informational — actual mood is managed by the game store
+          // Apply mood change mid-match — affects future key moment probability
+          // Also accumulate for post-match application
+          if (effect.target === 'player') {
+            this.matchMood = Math.max(-100, Math.min(100, this.matchMood + effect.value));
+            this.accumulatedEffects.moodDelta += effect.value;
+          }
           break;
       }
     }
@@ -698,20 +730,55 @@ export class MatchOrchestrator {
   }
 
   /**
-   * Update momentum based on recent point results (last 5 points)
-   * Unified with MatchSimulator's momentum calculation
+   * Update momentum based on:
+   * 1. Recent form (sliding window of last 5 points) — base component
+   * 2. Shot quality events (aces, winners, UEs, DFs) — bump the momentum bank
+   * 3. Persistent momentum bank from key moment secondary effects — decays slowly
+   *
+   * Final momentum = recentForm * 0.6 + momentumBank * 0.4
    */
-  private updateMomentum(winner: 'player' | 'opponent', _outcome: string): void {
+  private updateMomentum(winner: 'player' | 'opponent', pointType: PointType | string): void {
     this.recentPointWinners.push(winner);
     if (this.recentPointWinners.length > 5) {
       this.recentPointWinners.shift();
     }
 
+    // Component 1: Recent form (-100 to +100)
     const playerWins = this.recentPointWinners.filter(w => w === 'player').length;
     const opponentWins = this.recentPointWinners.filter(w => w === 'opponent').length;
     const total = this.recentPointWinners.length;
+    const recentForm = total > 0 ? ((playerWins - opponentWins) / total) * 100 : 0;
 
-    this.momentum = total > 0 ? ((playerWins - opponentWins) / total) * 100 : 0;
+    // Component 2: Shot quality events bump the momentum bank
+    const isPlayerPoint = winner === 'player';
+    switch (pointType) {
+      case PointType.ACE:
+        this.momentumBank += isPlayerPoint ? 8 : -8;
+        break;
+      case PointType.WINNER:
+        this.momentumBank += isPlayerPoint ? 5 : -5;
+        break;
+      case PointType.DOUBLE_FAULT:
+        this.momentumBank += isPlayerPoint ? 6 : -6; // opponent DFed = boost for player
+        break;
+      case PointType.UNFORCED_ERROR:
+        this.momentumBank += isPlayerPoint ? 3 : -3; // opponent UE = mild boost
+        break;
+      case PointType.FORCED_ERROR:
+        this.momentumBank += isPlayerPoint ? 4 : -4;
+        break;
+    }
+
+    // Clamp momentum bank
+    this.momentumBank = Math.max(-60, Math.min(60, this.momentumBank));
+
+    // Decay momentum bank toward 0 (slow — 5% per point)
+    this.momentumBank *= 0.95;
+
+    // Blend: 60% recent form + 40% persistent bank
+    this.momentum = Math.max(-100, Math.min(100,
+      recentForm * 0.6 + this.momentumBank * 0.4
+    ));
   }
 
   /**
@@ -761,33 +828,37 @@ export class MatchOrchestrator {
   }
 
   /**
-   * Update pressure based on match situation
+   * Update pressure based on match situation + persistent pressure bank.
+   * Score-based pressure is the base; pressure bank from key moment effects layers on top.
    */
   private updatePressure(score: MatchScore): void {
-    // Pressure increases as games get closer and in late sets
     const gameScore = score.currentGame;
     const setScore = score.currentSet;
 
-    let pressureLevel = 30; // Base pressure
+    let scorePressure = 30; // Base pressure
 
     // Close game scores increase pressure
     const gameDiff = Math.abs(gameScore.player - gameScore.opponent);
     if (gameDiff <= 1 && (gameScore.player >= 3 || gameScore.opponent >= 3)) {
-      pressureLevel += 20;
+      scorePressure += 20;
     }
 
     // Close set scores increase pressure
     const setDiff = Math.abs(setScore.player - setScore.opponent);
     if (setDiff <= 1 && (setScore.player >= 4 || setScore.opponent >= 4)) {
-      pressureLevel += 30;
+      scorePressure += 30;
     }
 
     // Late in match
     if (score.sets.length >= 1) {
-      pressureLevel += 20;
+      scorePressure += 20;
     }
 
-    this.pressure = Math.min(100, pressureLevel);
+    // Decay pressure bank slowly (10% per point)
+    this.pressureBank *= 0.90;
+
+    // Final pressure = score-based + persistent bank from key moment effects
+    this.pressure = Math.min(100, scorePressure + this.pressureBank);
   }
 
   // Helper methods for score checking

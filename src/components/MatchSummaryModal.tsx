@@ -30,6 +30,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
   const matchConfig = useMatchStore((state) => state.matchConfig);
   const keyMomentHistory = useMatchStore((state) => state.keyMomentHistory);
   const matchStatistics = useMatchStore((state) => state.matchStatistics);
+  const orchestrator = useMatchStore((state) => state.orchestrator);
 
   const [showDetailedStats, setShowDetailedStats] = useState(false);
 
@@ -97,6 +98,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
     } else {
       console.log('Regular match - calling addMatchResult');
       // Regular matches use standard handling with pre-calculated rewards
+      const accumulatedEffects = orchestrator?.getAccumulatedEffects();
       addMatchResult(
         isWinner ? 'win' : 'loss',
         opponentName,
@@ -104,7 +106,8 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
         formatScore(finalScore),
         matchConfig.surface,
         matchStatistics,
-        matchRewards
+        matchRewards,
+        accumulatedEffects
       );
     }
 

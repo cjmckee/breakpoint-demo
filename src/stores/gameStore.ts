@@ -97,7 +97,8 @@ interface GameState {
     score: string,
     surface: string,
     matchStatistics: MatchStatistics,
-    preCalculatedRewards?: MatchReward
+    preCalculatedRewards?: MatchReward,
+    accumulatedEffects?: { energyDelta: number; moodDelta: number }
   ) => void;
   unlockNextTier: () => OpponentTier | null;
   exportSave: () => string;
@@ -487,7 +488,8 @@ export const useGameStore = create<GameState>()(
         score: string,
         surface: string,
         matchStatistics: MatchStatistics,
-        preCalculatedRewards?: MatchReward
+        preCalculatedRewards?: MatchReward,
+        accumulatedEffects?: { energyDelta: number; moodDelta: number }
       ) => {
         const { player, currentStatus } = get();
         if (!player) return;
@@ -535,11 +537,14 @@ export const useGameStore = create<GameState>()(
         const currentResults = updatedPlayer.latestMatchResults || [];
         updatedPlayer.latestMatchResults = [result, ...currentResults].slice(0, 10);
 
-        // Update energy (deduct match cost)
-        const newEnergy = Math.max(0, currentStatus.energy - 30);
+        // Update energy: base match cost + accumulated energy effects from key moment choices
+        const baseEnergyCost = 30;
+        const keyMomentEnergyCost = accumulatedEffects ? accumulatedEffects.energyDelta : 0;
+        const newEnergy = Math.max(0, currentStatus.energy - baseEnergyCost + keyMomentEnergyCost);
 
-        // Update mood from rewards
-        const newMood = Math.max(-100, Math.min(100, currentStatus.mood + rewards.moodChange));
+        // Update mood from rewards + accumulated mood effects from key moment choices
+        const keyMomentMoodChange = accumulatedEffects ? accumulatedEffects.moodDelta : 0;
+        const newMood = Math.max(-100, Math.min(100, currentStatus.mood + rewards.moodChange + keyMomentMoodChange));
 
         // Tier unlocks are now handled by story events (e.g., Riverside Open victory)
         const tierUnlocked: OpponentTier | null = null;
