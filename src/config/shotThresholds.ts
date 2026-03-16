@@ -379,9 +379,9 @@ export const FATIGUE_MODIFIER = {
 /** Momentum quality modifier */
 export const MOMENTUM_MODIFIER = {
   /** Max bonus from positive momentum (+100) */
-  maxBonus: 0.05,
+  maxBonus: 0.10,
   /** Max penalty from negative momentum (-100) */
-  maxPenalty: 0.05,
+  maxPenalty: 0.10,
   /** Focus stat mitigation: at focus 100, negative penalty reduced by this fraction */
   focusMitigation: 0.5,
 };

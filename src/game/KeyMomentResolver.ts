@@ -300,42 +300,61 @@ export class KeyMomentResolver {
   }
 
   /**
-   * Apply context modifiers to base probability
+   * Compute individual context modifiers for display and calculation.
+   * Each modifier can contribute up to ±10% to success probability.
+   */
+  static getContextModifiers(context: Partial<KeyMomentContext>): {
+    momentum: number;
+    energy: number;
+    mood: number;
+    pressure: number;
+    total: number;
+  } {
+    // Mood: -10 to +10 (linear across full range)
+    const mood = context.mood !== undefined
+      ? (context.mood / 100) * 10
+      : 0;
+
+    // Pressure: 0 to -10 (linear, always a penalty)
+    const pressure = context.pressure !== undefined
+      ? -(context.pressure / 100) * 10
+      : 0;
+
+    // Momentum: -10 to +10 (linear across full range)
+    const momentum = context.momentum !== undefined
+      ? (context.momentum / 100) * 10
+      : 0;
+
+    // Energy: 0 to -10 (scales from 100% down, not just below 50%)
+    // Full energy = 0 penalty, empty = -10
+    let energy = 0;
+    if (context.energy !== undefined) {
+      const energyPercent = context.energy / 100;
+      // Gentle curve: low penalty above 70%, accelerates below 50%
+      if (energyPercent < 0.7) {
+        energy = -((0.7 - energyPercent) / 0.7) * 10;
+      }
+    }
+
+    return {
+      momentum: Math.round(momentum * 10) / 10,
+      energy: Math.round(energy * 10) / 10,
+      mood: Math.round(mood * 10) / 10,
+      pressure: Math.round(pressure * 10) / 10,
+      total: momentum + energy + mood + pressure,
+    };
+  }
+
+  /**
+   * Apply context modifiers to base probability.
+   * Each factor contributes up to ±10% for a potential ±40% total swing.
    */
   private static applyContextModifiers(
     baseProbability: number,
     context: Partial<KeyMomentContext>
   ): number {
-    let modified = baseProbability;
-
-    // Mood effect (-10 to +10)
-    if (context.mood !== undefined) {
-      const moodModifier = (context.mood / 100) * 10;
-      modified += moodModifier;
-    }
-
-    // Pressure effect (-5 to 0)
-    if (context.pressure !== undefined) {
-      const pressureModifier = -(context.pressure / 100) * 5;
-      modified += pressureModifier;
-    }
-
-    // Momentum effect (-5 to +5)
-    if (context.momentum !== undefined) {
-      const momentumModifier = (context.momentum / 100) * 5;
-      modified += momentumModifier;
-    }
-
-    // Energy effect (-10 to 0)
-    if (context.energy !== undefined) {
-      const energyPercent = context.energy / 100;
-      if (energyPercent < 0.5) {
-        const energyModifier = (energyPercent - 0.5) * 20;
-        modified += energyModifier;
-      }
-    }
-
-    return modified;
+    const modifiers = this.getContextModifiers(context);
+    return baseProbability + modifiers.total;
   }
 
   /**

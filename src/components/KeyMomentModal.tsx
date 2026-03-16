@@ -118,6 +118,82 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
           </p>
         </div>
 
+        {/* Match Conditions */}
+        {(() => {
+          const ctx = keyMoment.matchContext;
+          const modifiers = KeyMomentResolver.getContextModifiers({
+            momentum: ctx.momentum,
+            energy: ctx.energy,
+            mood: ctx.mood,
+            pressure: ctx.pressure,
+          });
+
+          // Only show modifiers that are significant (|value| >= 1)
+          const conditions: Array<{ icon: string; label: string; value: number; detail: string }> = [];
+
+          if (Math.abs(modifiers.momentum) >= 1) {
+            const positive = modifiers.momentum > 0;
+            conditions.push({
+              icon: positive ? '📈' : '📉',
+              label: positive ? 'Momentum with you' : 'Momentum against you',
+              value: modifiers.momentum,
+              detail: positive ? 'Riding a hot streak' : 'Opponent has been on a run',
+            });
+          }
+
+          if (modifiers.energy <= -1) {
+            conditions.push({
+              icon: '🔋',
+              label: 'Low energy',
+              value: modifiers.energy,
+              detail: `Energy at ${Math.round(ctx.energy)}%`,
+            });
+          }
+
+          if (Math.abs(modifiers.mood) >= 1) {
+            const positive = modifiers.mood > 0;
+            conditions.push({
+              icon: positive ? '😊' : '😤',
+              label: positive ? 'Positive mood' : 'Frustrated',
+              value: modifiers.mood,
+              detail: positive ? 'Feeling confident out there' : 'Letting frustration creep in',
+            });
+          }
+
+          if (modifiers.pressure <= -2) {
+            conditions.push({
+              icon: '😰',
+              label: modifiers.pressure <= -5 ? 'Pressure is high!' : 'Feeling the pressure',
+              value: modifiers.pressure,
+              detail: 'Big point — nerves are a factor',
+            });
+          }
+
+          if (conditions.length === 0) return null;
+
+          return (
+            <div className="bg-pixel-bg border-2 border-pixel-border p-3">
+              <h3 className="text-sm font-bold text-pixel-text mb-2">📊 Match Conditions</h3>
+              <div className="flex flex-wrap gap-2">
+                {conditions.map((cond, i) => (
+                  <div
+                    key={i}
+                    className={`flex items-center gap-1.5 text-xs px-2 py-1 border ${
+                      cond.value > 0
+                        ? 'border-green-600 bg-green-600 bg-opacity-15 text-green-400'
+                        : 'border-red-600 bg-red-600 bg-opacity-15 text-red-400'
+                    }`}
+                    title={cond.detail}
+                  >
+                    <span>{cond.icon}</span>
+                    <span className="font-bold">{cond.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Tactical Options */}
         <div>
           <h3 className="text-base font-bold text-pixel-text mb-3">
