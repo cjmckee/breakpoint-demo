@@ -59,7 +59,6 @@ export const TournamentMatch: React.FC = () => {
       mood: currentStatus.mood,
       energy: currentStatus.energy,
       enableKeyMoments: true,
-      keyMomentsPerMatch: 8,
       matchFormat: 'best-of-1',
       isTournamentMatch: true, // Mark this as a tournament match
     });

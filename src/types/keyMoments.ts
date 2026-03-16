@@ -80,6 +80,7 @@ export interface MatchScore {
   isComplete: boolean;
   winner?: 'player' | 'opponent';
   momentum?: number; // -100 to 100 (positive = player favor)
+  energy?: number; // 0-100 current player energy
 }
 
 /**
@@ -112,7 +113,7 @@ export interface InteractiveMatchConfig {
 
   // Options
   enableKeyMoments: boolean;
-  keyMomentsPerMatch?: number; // Default: 5-10
+  keyMomentsPerMatch?: number; // Default: DEFAULT_KEY_MOMENTS_PER_MATCH
   matchFormat?: 'best-of-1' | 'best-of-3' | 'best-of-5'; // Default: best-of-3
 }
 

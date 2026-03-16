@@ -23,6 +23,7 @@ import { PlayerStats, Ability, StatBoosts } from '../types/game';
 import { MatchStatistics as IMatchStatistics, MatchState, PointResult, PointType, PlayerMatchFatigue } from '../types';
 import { AbilitySystem } from './AbilitySystem';
 import { MATCH_FATIGUE } from '../config/shotThresholds';
+import { DEFAULT_KEY_MOMENTS_PER_MATCH } from '../config/matchRewards';
 
 export interface AccumulatedMatchEffects {
   energyDelta: number;  // Net energy change from key moment choices
@@ -270,7 +271,7 @@ export class MatchOrchestrator {
     config: InteractiveMatchConfig
   ): boolean {
     // Don't exceed max key moments per match
-    const maxKeyMoments = config.keyMomentsPerMatch || 30;
+    const maxKeyMoments = config.keyMomentsPerMatch ?? DEFAULT_KEY_MOMENTS_PER_MATCH;
     if (this.keyMomentsTriggered >= maxKeyMoments) {
       return false;
     }
@@ -665,13 +666,20 @@ export class MatchOrchestrator {
    * Update score after a point
    */
   private updateScore(score: MatchScore, winner: 'player' | 'opponent'): MatchScore {
-    const newScore = { ...score, momentum: this.momentum };
+    const newScore = { ...score, momentum: this.momentum, energy: this.matchEnergy };
 
     // Update current game
     if (winner === 'player') {
       newScore.currentGame.player++;
     } else {
       newScore.currentGame.opponent++;
+    }
+
+    // Normalize deuce: if both players had advantage-level scores and are now tied,
+    // reset back to 3-3 (Deuce) so the scoreboard always shows 40-40 / Ad-In / Ad-Out
+    const { player: gp, opponent: go } = newScore.currentGame;
+    if (gp >= 3 && go >= 3 && gp === go) {
+      newScore.currentGame = { player: 3, opponent: 3 };
     }
 
     // Check if game is won
@@ -914,7 +922,11 @@ export class MatchOrchestrator {
   }
 
   private isGameWon(game: { player: number; opponent: number }): boolean {
-    return game.player >= 4 || game.opponent >= 4;
+    const { player, opponent } = game;
+    // Standard game: first to 4, but must win by 2 after deuce (3-3+)
+    if (player >= 4 && player - opponent >= 2) return true;
+    if (opponent >= 4 && opponent - player >= 2) return true;
+    return false;
   }
 
   private getGameWinner(game: { player: number; opponent: number }): 'player' | 'opponent' {
@@ -951,6 +963,7 @@ export class MatchOrchestrator {
       server: Math.random() < 0.5 ? 'player' : 'opponent',
       isComplete: false,
       momentum: 0,
+      energy: this.matchEnergy,
     };
   }
 
@@ -963,11 +976,13 @@ export class MatchOrchestrator {
 
   private formatGameScore(game: { player: number; opponent: number }): string {
     const points = ['0', '15', '30', '40'];
-    if (game.player < 4 && game.opponent < 4) {
+    if (game.player < 3 || game.opponent < 3) {
       return `${points[game.player]}-${points[game.opponent]}`;
     }
+    // Both players have 3+ points (40-40 territory)
     if (game.player === game.opponent) return 'Deuce';
-    return game.player > game.opponent ? 'Ad-In' : 'Ad-Out';
+    if (game.player > game.opponent) return 'Ad-In';
+    return 'Ad-Out';
   }
 
   private getSituationDescription(type: KeyMomentType, score: MatchScore): string {

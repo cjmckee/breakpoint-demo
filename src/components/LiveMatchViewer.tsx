@@ -183,7 +183,7 @@ export const LiveMatchViewer: React.FC = () => {
             score={currentScore}
             server={currentScore.server}
             momentum={currentScore.momentum ?? 0}
-            stamina={matchConfig.energy}
+            stamina={currentScore.energy ?? matchConfig.energy}
             maxStamina={100}
             opponentName={matchConfig.opponentStats?.name || 'Opponent'}
           />

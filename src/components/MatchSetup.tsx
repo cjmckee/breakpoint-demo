@@ -13,6 +13,7 @@ import { PlayerStats, OpponentTier } from '../types/game';
 import { ItemManager } from '../game/ItemManager';
 import { getRandomOpponent, OPPONENTS_BY_TIER } from '../data/opponents';
 import { getArchetypeLabel } from '../data/archetypes';
+import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
 
 type CourtSurface = 'hard' | 'clay' | 'grass' | 'carpet';
 
@@ -56,14 +57,13 @@ export const MatchSetup: React.FC = () => {
       mood: currentStatus.mood,
       energy: currentStatus.energy,
       enableKeyMoments: true,
-      keyMomentsPerMatch: 8,
       matchFormat: 'best-of-1',
     });
 
     setScreen('match');
   };
 
-  const matchEnergyCost = 50;
+  const matchEnergyCost = DEFAULT_MATCH_ENERGY_COST;
   const canAfford = currentStatus.energy >= matchEnergyCost;
   const canPlayMatch = canAfford && selectedTier <= player.tier;
 

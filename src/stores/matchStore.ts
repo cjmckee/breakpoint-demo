@@ -12,6 +12,7 @@ import {
 import { PlayerStats } from '../types/game';
 import { TacticalOption } from '../data/tacticalOptions';
 import { MatchOrchestrator } from '../game/MatchOrchestrator';
+import { DEFAULT_KEY_MOMENTS_PER_MATCH } from '../config/matchRewards';
 import { KeyMomentResult } from '../game/KeyMomentResolver';
 import { MatchStatistics as IMatchStatistics } from '../types';
 
@@ -87,7 +88,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
     const matchConfig: InteractiveMatchConfig = {
       ...config,
       enableKeyMoments: config.enableKeyMoments ?? true,
-      keyMomentsPerMatch: config.keyMomentsPerMatch ?? 8,
+      keyMomentsPerMatch: config.keyMomentsPerMatch ?? DEFAULT_KEY_MOMENTS_PER_MATCH,
 
       // Key moment callback - pauses match and waits for user choice
       onKeyMoment: async (keyMoment: KeyMoment): Promise<TacticalOption> => {

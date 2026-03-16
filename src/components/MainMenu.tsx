@@ -219,7 +219,6 @@ export const MainMenu: React.FC = () => {
       mood: currentStatus.mood,
       energy: currentStatus.energy,
       enableKeyMoments: true,
-      keyMomentsPerMatch: 8,
       matchFormat: storyMatchMetadata.matchFormat || 'best-of-1',
       isStoryMatch: true,
     });

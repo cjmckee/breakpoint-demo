@@ -39,6 +39,7 @@ import { TournamentManager } from '../game/TournamentManager';
 import { ScheduledEventManager } from '../game/ScheduledEventManager';
 import { StoryMatchManager } from '../game/StoryMatchManager';
 import { CalendarService } from '../game/CalendarService';
+import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
 import { EffectAggregator } from '../core/EffectAggregator';
 import { EffectKey } from '../types/game';
 import type { ModalEntry, ModalData, ModalType, StoryEventModalData } from '../types/ui';
@@ -633,7 +634,7 @@ export const useGameStore = create<GameState>()(
         updatedPlayer.latestMatchResults = [result, ...currentResults].slice(0, 10);
 
         // Update energy: base match cost + accumulated energy effects from key moment choices
-        const baseEnergyCost = 30;
+        const baseEnergyCost = DEFAULT_MATCH_ENERGY_COST;
         const keyMomentEnergyCost = accumulatedEffects ? accumulatedEffects.energyDelta : 0;
         const newEnergy = Math.max(0, currentStatus.energy - baseEnergyCost + keyMomentEnergyCost);
 
@@ -670,7 +671,7 @@ export const useGameStore = create<GameState>()(
           source: 'match_activity',
           timestamp: new Date().toISOString(),
           timeSlotsUsed: 1,
-          energyCost: 30,
+          energyCost: DEFAULT_MATCH_ENERGY_COST,
           moodResult: rewards.moodChange,
           opponent,
           opponentTier,

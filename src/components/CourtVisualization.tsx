@@ -64,17 +64,6 @@ const getPositionCoordinates = (position: CourtPosition | undefined, isPlayer: b
 };
 
 // Format points for tennis scoring (0, 15, 30, 40, AD)
-const formatPoints = (points: number, advantage?: 'player' | 'opponent', side?: 'player' | 'opponent'): string => {
-  if (advantage) {
-    return advantage === side ? 'AD' : '40';
-  }
-  if (points === 0) return '0';
-  if (points === 1) return '15';
-  if (points === 2) return '30';
-  if (points === 3) return '40';
-  return 'AD';
-};
-
 export const CourtVisualization: React.FC<CourtVisualizationProps> = ({
   courtSurface,
   score,
@@ -102,6 +91,15 @@ export const CourtVisualization: React.FC<CourtVisualizationProps> = ({
     opponent: score.sets.filter(s => s.opponent > s.player).length,
   };
 
+  const formatGamePoints = (points: number, opponentPoints: number): string => {
+    const labels = ['0', '15', '30', '40'];
+    if (points < 3 || opponentPoints < 3) return labels[points] ?? '0';
+    // Both at 40+: deuce / advantage
+    if (points === opponentPoints) return '40';
+    if (points > opponentPoints) return 'AD';
+    return '40';
+  };
+
   return (
     <div className={`bg-pixel-primary rounded-lg p-4 shadow-lg border-2 border-pixel-border ${className}`}>
       {/* Score Header */}
@@ -117,7 +115,7 @@ export const CourtVisualization: React.FC<CourtVisualizationProps> = ({
           </div>
           <div className="text-3xl font-bold text-pixel-text">{currentSet.player}</div>
           <div className="text-sm text-pixel-text-muted">
-            {score.currentGame?.player ?? 0}
+            {formatGamePoints(score.currentGame?.player ?? 0, score.currentGame?.opponent ?? 0)}
           </div>
           <div className="text-xs text-pixel-text-muted mt-1">Sets: {setsWon.player}</div>
         </div>
@@ -140,7 +138,7 @@ export const CourtVisualization: React.FC<CourtVisualizationProps> = ({
           </div>
           <div className="text-3xl font-bold text-pixel-text">{currentSet.opponent}</div>
           <div className="text-sm text-pixel-text-muted">
-            {score.currentGame?.opponent ?? 0}
+            {formatGamePoints(score.currentGame?.opponent ?? 0, score.currentGame?.player ?? 0)}
           </div>
           <div className="text-xs text-pixel-text-muted mt-1">Sets: {setsWon.opponent}</div>
         </div>
