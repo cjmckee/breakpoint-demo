@@ -225,6 +225,11 @@ export class MatchOrchestrator {
 
       this.pointsPlayed++;
 
+      // Track deficit for comeback highlights
+      if (this.matchStatistics) {
+        this.matchStatistics.updateScoreState(currentScore.currentSet, currentScore.currentGame);
+      }
+
       // Update pressure based on situation
       this.updatePressure(currentScore);
 

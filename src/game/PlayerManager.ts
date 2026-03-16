@@ -67,6 +67,7 @@ export class PlayerManager {
       tier: 1,  // All players start at tier 1
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      flags: {},
     };
   }
 

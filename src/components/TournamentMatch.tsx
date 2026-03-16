@@ -126,7 +126,7 @@ export const TournamentMatch: React.FC = () => {
             <div className="text-right">
               <div className="text-sm text-pixel-text-muted mb-1">Bracket</div>
               <div className={`text-2xl font-bold ${getBracketColor(activeTournament.currentBracket)}`}>
-                {activeTournament.currentBracket === 'winner' ? '🏆 Winner' : '🎗️ Consolation'}
+                {activeTournament.currentBracket === 'winner' ? '🎾 Main Draw' : '🎗️ Consolation'}
               </div>
             </div>
           </div>
@@ -238,7 +238,7 @@ export const TournamentMatch: React.FC = () => {
             {activeTournament.currentBracket === 'winner' ? (
               <>
                 <p className="mb-2">
-                  <strong className="text-yellow-400">Winner's Bracket:</strong> You're still in contention for the championship!
+                  <strong className="text-yellow-400">Main Draw:</strong> You're still in contention for the championship!
                 </p>
                 <p>
                   Win this match to advance to the next round. A loss will move you to the consolation bracket.

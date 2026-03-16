@@ -395,6 +395,12 @@ export type ActivityResult = TrainingResult | MatchResult | TournamentMatchResul
 // PLAYER & GAME STATE
 // ============================================================================
 
+/** Well-known flag keys for Player.flags */
+export const PlayerFlag = {
+  MATCH_UNLOCKED: 'matchUnlocked',
+  TOURNAMENTS_UNLOCKED: 'tournamentsUnlocked',
+} as const;
+
 export interface Player {
   id: string;
   name: string;
@@ -415,6 +421,9 @@ export interface Player {
   latestMatchResults?: ('win' | 'loss')[];  // Rolling record of last 10 match results (newest first)
   createdAt: string;
   updatedAt: string;
+
+  // Progression flags - simple booleans/values that track milestones and unlocks
+  flags: Record<string, boolean | number | string>;
 }
 
 // Simplified CurrentStatus for our architecture

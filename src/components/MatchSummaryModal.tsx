@@ -274,6 +274,18 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
                   });
                 }
 
+                // Comeback from deficit (only shown on wins)
+                if (isWinner && matchStatistics.largestDeficit && matchStatistics.largestDeficit.deficitSize >= 2) {
+                  const deficit = matchStatistics.largestDeficit;
+                  const comebackText = deficit.gameScore
+                    ? `Came back from ${deficit.games}, ${deficit.gameScore}`
+                    : `Came back from ${deficit.games}`;
+                  highlights.push({
+                    icon: '💪',
+                    text: comebackText,
+                  });
+                }
+
                 if (highlights.length === 0) {
                   highlights.push({ icon: '🎾', text: 'Hard-fought match!' });
                 }

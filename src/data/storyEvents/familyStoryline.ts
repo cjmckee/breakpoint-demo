@@ -4,6 +4,8 @@
  */
 
 import type { StoryEvent } from '../../types/storyEvents';
+import { ChallengeManager } from '../../game/ChallengeManager';
+import { CHALLENGE_MAKE_THEM_PROUD } from '../challengeTemplates';
 
 export const familyEvents: StoryEvent[] = [
   {
@@ -25,7 +27,7 @@ export const familyEvents: StoryEvent[] = [
     defaultOutcome: {
       resultText: ['Seeing your family in the stands fills you with warmth and motivation. It seems like mom figured out the phone camera and it even looks like dad knew the score! Everyone is making progress.'],
       effects: {
-        statChanges: { focus: 2, serve: 1, forehand: 1 },
+        statChanges: { dropShot: 1, slice: 1, serve: 1, forehand: 1 },
         moodChange: 35,
         energyChange: -5,
         relationshipChanges: { family: 25 },
@@ -58,11 +60,17 @@ export const familyEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You feel a sudden inspiration. You\'re playing for everyone who believes in you, and you won\'t let them down.'],
           effects: {
-            statChanges: { focus: 4, strength: 3, stamina: 2 },
+            statChanges: { focus: 1, strength: 3, stamina: 2, speed: 2, recovery: 1 },
             moodChange: 15,
             energyChange: -15,
             relationshipChanges: { family: 20 },
           },
+          challengesAssigned: [
+            ChallengeManager.createFromTemplate(CHALLENGE_MAKE_THEM_PROUD, {
+              type: 'story',
+              eventId: 'family_sacrifice',
+            }),
+          ],
         },
       },
       {
@@ -73,7 +81,7 @@ export const familyEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You look for sponsors to help with your training costs. The options are getting shadier and shadier as you keep looking. I hope you won\'t be forced to make a deal you\'ll regret.'],
           effects: {
-            statChanges: { focus: 2, anticipation: 2 },
+            statChanges: { focus: 1, anticipation: 2, slice: 1 },
             moodChange: 10,
             energyChange: -10,
             relationshipChanges: { family: 15 },
@@ -88,7 +96,7 @@ export const familyEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You offer to cut back on some expenses, but they insist they want to support your dream. You know you can find a way to make it work.'],
           effects: {
-            statChanges: { focus: 5 },
+            statChanges: { focus: 1, recovery: 2, shotVariety: 2 },
             moodChange: 10,
             energyChange: 0,
             relationshipChanges: { family: 30 },

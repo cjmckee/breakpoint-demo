@@ -9,6 +9,7 @@ import type {
   ChallengeRequirement,
   ChallengeProgress,
   ChallengeReward,
+  ChallengeTemplate,
   RequirementProgress,
   StatThresholdProgress,
   MatchStatProgress,
@@ -47,6 +48,20 @@ export class ChallengeManager {
       assignedAt: new Date().toISOString(),
       source: config.source,
     };
+  }
+
+  /**
+   * Create a challenge from a reusable template.
+   * Optionally attach source metadata for story event tracking.
+   */
+  static createFromTemplate(
+    template: ChallengeTemplate,
+    source?: Challenge['source']
+  ): Challenge {
+    return this.createChallenge({
+      ...template,
+      source,
+    });
   }
 
   /**
