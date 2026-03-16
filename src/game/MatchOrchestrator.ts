@@ -645,10 +645,7 @@ export class MatchOrchestrator {
           }
           break;
         case 'pressure':
-          if (effect.target === 'opponent') {
-            // Add to persistent pressure bank (layered on top of score-based pressure)
-            this.pressureBank = Math.max(0, Math.min(40, this.pressureBank + effect.value));
-          } else if (effect.target === 'player') {
+          if (effect.target === 'player') {
             // Player pressure relief — negative values reduce the pressure bank
             this.pressureBank = Math.max(0, Math.min(40, this.pressureBank + effect.value));
           }

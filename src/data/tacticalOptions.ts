@@ -106,7 +106,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       bestAgainstHint: 'Best against impatient attackers who want quick points',
       secondaryEffects: [
         { type: 'energy', target: 'player', value: -3, condition: 'always' },
-        { type: 'pressure', target: 'opponent', value: 8, condition: 'on_success' },
+
         { type: 'mood', target: 'player', value: 2, condition: 'on_success' },
         { type: 'pressure', target: 'player', value: -2, condition: 'on_success' },
       ],
@@ -146,7 +146,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       secondaryEffects: [
         { type: 'energy', target: 'player', value: -4, condition: 'always' },
         { type: 'momentum', target: 'player', value: 8, condition: 'on_success' },
-        { type: 'mood', target: 'opponent', value: -5, condition: 'on_success' },
+
       ],
       playerStatWeights: {
         primary: 'volley',
@@ -227,7 +227,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       bestAgainstHint: 'Best against attackers who want to end points quickly',
       secondaryEffects: [
         { type: 'energy', target: 'player', value: 2, condition: 'always' },
-        { type: 'pressure', target: 'opponent', value: 5, condition: 'on_success' },
+
         { type: 'mood', target: 'player', value: 3, condition: 'on_success' },
         { type: 'pressure', target: 'player', value: -3, condition: 'on_success' },
       ],
@@ -266,7 +266,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       secondaryEffects: [
         { type: 'energy', target: 'player', value: -4, condition: 'always' },
         { type: 'momentum', target: 'player', value: 8, condition: 'on_success' },
-        { type: 'mood', target: 'opponent', value: -5, condition: 'on_success' },
+
       ],
       playerStatWeights: {
         primary: 'volley',
@@ -347,7 +347,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       bestAgainstHint: 'Best against opponents who struggle with long rallies',
       secondaryEffects: [
         { type: 'energy', target: 'player', value: -3, condition: 'always' },
-        { type: 'pressure', target: 'opponent', value: 8, condition: 'on_success' },
+
         { type: 'mood', target: 'player', value: 2, condition: 'on_success' },
         { type: 'pressure', target: 'player', value: -3, condition: 'on_success' },
       ],
@@ -387,7 +387,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       secondaryEffects: [
         { type: 'energy', target: 'player', value: -5, condition: 'always' },
         { type: 'momentum', target: 'player', value: 10, condition: 'on_success' },
-        { type: 'mood', target: 'opponent', value: -5, condition: 'on_success' },
+
       ],
       playerStatWeights: {
         primary: 'volley',
@@ -468,7 +468,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       bestAgainstHint: 'Best against big servers who fade in long rallies',
       secondaryEffects: [
         { type: 'energy', target: 'player', value: 2, condition: 'always' },
-        { type: 'pressure', target: 'opponent', value: 8, condition: 'on_success' },
+
         { type: 'mood', target: 'player', value: 3, condition: 'on_success' },
         { type: 'pressure', target: 'player', value: -3, condition: 'on_success' },
       ],
@@ -507,7 +507,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       bestAgainstHint: 'Best against opponents who hang back expecting a rally',
       secondaryEffects: [
         { type: 'energy', target: 'player', value: -2, condition: 'always' },
-        { type: 'mood', target: 'opponent', value: -8, condition: 'on_success' },
+
         { type: 'momentum', target: 'player', value: 8, condition: 'on_success' },
       ],
       playerStatWeights: {
@@ -550,7 +550,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       bestAgainstHint: 'Best against opponents who go for too much under pressure',
       secondaryEffects: [
         { type: 'energy', target: 'player', value: 2, condition: 'always' },
-        { type: 'pressure', target: 'opponent', value: 5, condition: 'on_success' },
+
         { type: 'mood', target: 'player', value: 3, condition: 'on_success' },
         { type: 'pressure', target: 'player', value: -5, condition: 'on_success' },
       ],
@@ -591,7 +591,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       secondaryEffects: [
         { type: 'energy', target: 'player', value: -5, condition: 'always' },
         { type: 'momentum', target: 'player', value: 12, condition: 'on_success' },
-        { type: 'mood', target: 'opponent', value: -8, condition: 'on_success' },
+
         { type: 'momentum', target: 'player', value: -5, condition: 'on_failure' },
         { type: 'mood', target: 'player', value: -5, condition: 'on_failure' },
       ],
@@ -630,7 +630,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       bestAgainstHint: 'Best against opponents who camp deep behind the baseline',
       secondaryEffects: [
         { type: 'energy', target: 'player', value: -2, condition: 'always' },
-        { type: 'mood', target: 'opponent', value: -8, condition: 'on_success' },
+
         { type: 'momentum', target: 'player', value: 8, condition: 'on_success' },
       ],
       playerStatWeights: {
@@ -711,7 +711,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       bestAgainstHint: 'Best against opponents who attack returns aggressively',
       secondaryEffects: [
         { type: 'energy', target: 'player', value: -2, condition: 'always' },
-        { type: 'pressure', target: 'opponent', value: 8, condition: 'on_success' },
+
         { type: 'mood', target: 'player', value: 2, condition: 'on_success' },
         { type: 'pressure', target: 'player', value: -3, condition: 'on_success' },
       ],
@@ -751,7 +751,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       secondaryEffects: [
         { type: 'energy', target: 'player', value: -5, condition: 'always' },
         { type: 'momentum', target: 'player', value: 10, condition: 'on_success' },
-        { type: 'mood', target: 'opponent', value: -5, condition: 'on_success' },
+
       ],
       playerStatWeights: {
         primary: 'volley',
@@ -833,7 +833,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       secondaryEffects: [
         { type: 'energy', target: 'player', value: -5, condition: 'always' },
         { type: 'momentum', target: 'player', value: 10, condition: 'on_success' },
-        { type: 'mood', target: 'opponent', value: -8, condition: 'on_success' },
+
       ],
       playerStatWeights: {
         primary: 'volley',
@@ -870,7 +870,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       bestAgainstHint: 'Best against opponents who attack the return aggressively',
       secondaryEffects: [
         { type: 'energy', target: 'player', value: -3, condition: 'always' },
-        { type: 'pressure', target: 'opponent', value: 8, condition: 'on_success' },
+
         { type: 'mood', target: 'player', value: 3, condition: 'on_success' },
         { type: 'pressure', target: 'player', value: -5, condition: 'on_success' },
       ],
@@ -954,7 +954,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       bestAgainstHint: 'Best against predictable servers with big wind-ups',
       secondaryEffects: [
         { type: 'energy', target: 'player', value: -2, condition: 'always' },
-        { type: 'pressure', target: 'opponent', value: 10, condition: 'on_success' },
+
         { type: 'mood', target: 'player', value: 3, condition: 'on_success' },
         { type: 'pressure', target: 'player', value: -5, condition: 'on_success' },
       ],
@@ -994,7 +994,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       secondaryEffects: [
         { type: 'energy', target: 'player', value: -5, condition: 'always' },
         { type: 'momentum', target: 'player', value: 10, condition: 'on_success' },
-        { type: 'mood', target: 'opponent', value: -8, condition: 'on_success' },
+
       ],
       playerStatWeights: {
         primary: 'volley',
@@ -1038,7 +1038,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       secondaryEffects: [
         { type: 'energy', target: 'player', value: -5, condition: 'always' },
         { type: 'momentum', target: 'player', value: 12, condition: 'on_success' },
-        { type: 'mood', target: 'opponent', value: -8, condition: 'on_success' },
+
         { type: 'momentum', target: 'player', value: -5, condition: 'on_failure' },
         { type: 'mood', target: 'player', value: -5, condition: 'on_failure' },
       ],
@@ -1076,7 +1076,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       bestAgainstHint: 'Best against opponents who crack under extended rallies',
       secondaryEffects: [
         { type: 'energy', target: 'player', value: 2, condition: 'always' },
-        { type: 'pressure', target: 'opponent', value: 10, condition: 'on_success' },
+
         { type: 'mood', target: 'player', value: 3, condition: 'on_success' },
         { type: 'pressure', target: 'player', value: -5, condition: 'on_success' },
       ],
@@ -1116,7 +1116,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       bestAgainstHint: 'Best against opponents stuck deep who struggle with overheads',
       secondaryEffects: [
         { type: 'energy', target: 'player', value: 3, condition: 'always' },
-        { type: 'mood', target: 'opponent', value: -5, condition: 'on_success' },
+
         { type: 'mood', target: 'player', value: 3, condition: 'on_success' },
         { type: 'pressure', target: 'player', value: -5, condition: 'on_success' },
       ],
@@ -1163,7 +1163,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       secondaryEffects: [
         { type: 'energy', target: 'player', value: -6, condition: 'always' },
         { type: 'momentum', target: 'player', value: 12, condition: 'on_success' },
-        { type: 'mood', target: 'opponent', value: -8, condition: 'on_success' },
+
         { type: 'momentum', target: 'player', value: -5, condition: 'on_failure' },
         { type: 'mood', target: 'player', value: -5, condition: 'on_failure' },
       ],
@@ -1201,7 +1201,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       bestAgainstHint: 'Best against opponents who attack returns aggressively',
       secondaryEffects: [
         { type: 'energy', target: 'player', value: 2, condition: 'always' },
-        { type: 'pressure', target: 'opponent', value: 10, condition: 'on_success' },
+
         { type: 'mood', target: 'player', value: 3, condition: 'on_success' },
         { type: 'pressure', target: 'player', value: -5, condition: 'on_success' },
       ],
@@ -1241,7 +1241,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       secondaryEffects: [
         { type: 'energy', target: 'player', value: -5, condition: 'always' },
         { type: 'momentum', target: 'player', value: 10, condition: 'on_success' },
-        { type: 'mood', target: 'opponent', value: -5, condition: 'on_success' },
+
       ],
       playerStatWeights: {
         primary: 'volley',

@@ -217,13 +217,13 @@ export class KeyMomentResolver {
       }
     }
 
-    // Critical success: bonus opponent mood drop
-    if (outcome === 'critical-success') {
-      effects.push({ type: 'mood', target: 'opponent', value: -5 });
-    }
     // Critical failure: player mood drop
     if (outcome === 'critical-failure') {
       effects.push({ type: 'mood', target: 'player', value: -5 });
+    }
+    // Critical success: player mood boost
+    if (outcome === 'critical-success') {
+      effects.push({ type: 'mood', target: 'player', value: 5 });
     }
 
     return effects;
