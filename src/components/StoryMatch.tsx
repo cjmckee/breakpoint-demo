@@ -3,7 +3,7 @@
  * Screen for scheduled story matches - wraps PreMatchScreen with story-specific data
  */
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { useMatchStore } from '../stores/matchStore';
 import { StoryMatchManager } from '../game/StoryMatchManager';
@@ -17,12 +17,6 @@ export const StoryMatch: React.FC = () => {
   const setScreen = useGameStore((state) => state.setScreen);
   const getScheduledStoryMatch = useGameStore((state) => state.getScheduledStoryMatch);
   const startMatch = useMatchStore((state) => state.startMatch);
-  const hideMatchResults = useMatchStore((state) => state.hideMatchResults);
-
-  // Clear stale match results from a previous match
-  useEffect(() => {
-    hideMatchResults();
-  }, [hideMatchResults]);
 
   const scheduledStoryMatch = getScheduledStoryMatch();
   const storyMatchMetadata = scheduledStoryMatch

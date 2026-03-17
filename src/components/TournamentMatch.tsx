@@ -3,7 +3,7 @@
  * Screen for scheduled tournament matches - wraps PreMatchScreen with tournament-specific data
  */
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { useMatchStore } from '../stores/matchStore';
 import { TournamentRegistry } from '../data/tournaments';
@@ -19,12 +19,6 @@ export const TournamentMatch: React.FC = () => {
   const activeTournament = useGameStore((state) => state.calendar.activeTournament);
   const setScreen = useGameStore((state) => state.setScreen);
   const startMatch = useMatchStore((state) => state.startMatch);
-  const hideMatchResults = useMatchStore((state) => state.hideMatchResults);
-
-  // Clear stale match results from a previous match
-  useEffect(() => {
-    hideMatchResults();
-  }, [hideMatchResults]);
 
   if (!player || !activeTournament) {
     return null;

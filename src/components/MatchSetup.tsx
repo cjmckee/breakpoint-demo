@@ -4,7 +4,7 @@
  * A random opponent from the selected tier is assigned when the match starts.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { useMatchStore } from '../stores/matchStore';
 import { Card } from './ui/Card';
@@ -35,12 +35,6 @@ export const MatchSetup: React.FC = () => {
   const currentStatus = useGameStore((state) => state.currentStatus);
   const setScreen = useGameStore((state) => state.setScreen);
   const startMatch = useMatchStore((state) => state.startMatch);
-  const hideMatchResults = useMatchStore((state) => state.hideMatchResults);
-
-  // Clear stale match results from a previous match when setup screen mounts
-  useEffect(() => {
-    hideMatchResults();
-  }, [hideMatchResults]);
 
   const [selectedTier, setSelectedTier] = useState<OpponentTier>(1);
   const [selectedSurface, setSelectedSurface] = useState<CourtSurface>('hard');
