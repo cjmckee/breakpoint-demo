@@ -17,6 +17,7 @@ import type {
   PlayerMatchFatigue,
 } from '../types/index.js';
 import { MATCH_FATIGUE } from '../config/shotThresholds.js';
+import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds.js';
 import { PlayerProfile } from './PlayerProfile.js';
 import { PointSimulator } from './PointSimulator.js';
 import { ScoreTracker } from './ScoreTracker.js';
@@ -62,8 +63,12 @@ export class MatchSimulator {
    * Simulate a complete match
    */
   public simulateMatch(): MatchResult {
+    const matchLevel = getMatchLevel(this.config.player.overallRating, this.config.opponent.overallRating);
+    const thresholds = getQualityThresholds(matchLevel);
+
     console.log(`🎾 Starting match: ${this.config.player.name} vs ${this.config.opponent.name}`);
-    console.log(`📊 Player stats: ${this.config.player.overallRating} vs ${this.config.opponent.overallRating}`);
+    console.log(`📊 Player ratings: ${this.config.player.overallRating} vs ${this.config.opponent.overallRating} → matchLevel: ${matchLevel}`);
+    console.log(`📏 Quality thresholds: exceptional=${thresholds.exceptional.toFixed(1)}, high=${thresholds.high.toFixed(1)}, good=${thresholds.good.toFixed(1)}, average=${thresholds.average.toFixed(1)}, weak=${thresholds.weak.toFixed(1)}`);
 
     let pointCount = 0;
     const maxPoints = 200; // Safety limit to prevent infinite matches

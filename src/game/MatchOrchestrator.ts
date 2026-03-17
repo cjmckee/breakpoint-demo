@@ -23,6 +23,7 @@ import { PlayerStats, Ability, StatBoosts } from '../types/game';
 import { MatchStatistics as IMatchStatistics, MatchState, PointResult, PointType, PlayerMatchFatigue } from '../types';
 import { AbilitySystem } from './AbilitySystem';
 import { MATCH_FATIGUE, MOMENTUM_BANK, PRESSURE_BANK } from '../config/shotThresholds';
+import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds';
 import { DEFAULT_KEY_MOMENTS_PER_MATCH } from '../config/matchRewards';
 
 export interface AccumulatedMatchEffects {
@@ -116,6 +117,12 @@ export class MatchOrchestrator {
 
     // Compute opponent archetype from their stats
     this.opponentArchetype = opponent.playStyle.type;
+
+    const matchLevel = getMatchLevel(player.overallRating, opponent.overallRating);
+    const thresholds = getQualityThresholds(matchLevel);
+    console.log(`🎾 Starting match: ${player.name} vs ${opponent.name}`);
+    console.log(`📊 Player ratings: ${player.overallRating} vs ${opponent.overallRating} → matchLevel: ${matchLevel}`);
+    console.log(`📏 Quality thresholds: exceptional=${thresholds.exceptional.toFixed(1)}, high=${thresholds.high.toFixed(1)}, good=${thresholds.good.toFixed(1)}, average=${thresholds.average.toFixed(1)}, weak=${thresholds.weak.toFixed(1)}`);
 
     const matchSim = new MatchSimulator({
       player,
