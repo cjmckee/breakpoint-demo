@@ -95,6 +95,7 @@ export const AbilityName = {
   RANGY_RETURN: 'rangy_return',
   SPIN_MASTER: 'spin_master',
   NATIONAL_ICON: 'national_icon',
+  SOFT_HANDS: 'soft_hands',
 
   // uncommon
   SPEED_DEMON: 'speed_demon',
@@ -119,7 +120,8 @@ export type TrainingSessionType =
   | 'overhead_academy'
   | 'return_rapidfire'
   | 'spin_specialist'
-  | 'remote_coaching';
+  | 'remote_coaching'
+  | 'touch_training';
 
 export type TrainingCategory = 'technical' | 'physical' | 'mental';
 

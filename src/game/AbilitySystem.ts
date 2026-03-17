@@ -182,6 +182,26 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       'Increases focus and anticipation by 4. Boosts shot variety and adaptability.',
   },
 
+  [AbilityName.SOFT_HANDS]: {
+    name: AbilityName.SOFT_HANDS,
+    level: 1,
+    rarity: AbilityRarity.COMMON,
+    modifiers: {
+      statBoosts: {
+        slice: 3,
+        dropShot: 3,
+        placement: 3,
+      },
+      additional: {
+        touch: 2,
+      },
+    },
+    description:
+      "Your touch at the net is pure art. Drop shots, slices, and angles barely clear the net. Opponents can only watch.",
+    effects:
+      'Increases slice, drop shot, and placement stats by 3. Improves finesse shot effectiveness.',
+  },
+
   // ==================== UNCOMMON ABILITIES ====================
   [AbilityName.SPEED_DEMON]: {
     name: AbilityName.SPEED_DEMON,

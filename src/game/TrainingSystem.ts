@@ -42,7 +42,7 @@ const TRAINING_SESSION_CONFIGS: Record<TrainingSessionType, TrainingConfig> = {
     statBoosts: {
       forehand: 1,
       backhand: 1,
-      stamina: 1,
+      placement: 1,
     },
     ability: AbilityName.BASELINER,
     description: 'Focus on forehand and backhand technique',
@@ -54,7 +54,7 @@ const TRAINING_SESSION_CONFIGS: Record<TrainingSessionType, TrainingConfig> = {
     statBoosts: {
       serve: 1,
       volley: 1,
-      focus: 1,
+      overhead: 1,
     },
     ability: AbilityName.NETCRASHER,
     description: 'Master the serve and net game',
@@ -88,9 +88,9 @@ const TRAINING_SESSION_CONFIGS: Record<TrainingSessionType, TrainingConfig> = {
     category: 'physical',
     energyCost: 20,
     statBoosts: {
-      forehand: 1,
       strength: 1,
-      focus: 1,
+      recovery: 1,
+      defensive: 1,
     },
     ability: AbilityName.HEAVY_HITTER,
     description: 'Build power and endurance',
@@ -139,7 +139,19 @@ const TRAINING_SESSION_CONFIGS: Record<TrainingSessionType, TrainingConfig> = {
     },
     ability: AbilityName.NATIONAL_ICON,
     description: 'Receive coaching tips and strategies from a famous coach online',
-  }
+  },
+  touch_training: {
+    name: 'Touch Training',
+    category: 'technical',
+    energyCost: 20,
+    statBoosts: {
+      slice: 1,
+      dropShot: 1,
+      offensive: 1,
+    },
+    ability: AbilityName.SOFT_HANDS,
+    description: 'Develop a deft touch with finesse shots and crafty angles',
+  },
 };
 
 export class TrainingSystem {
