@@ -18,6 +18,7 @@ import type {
 } from '../types/index.js';
 import { PlayerProfile } from './PlayerProfile.js';
 import { TacticalAnalyzer } from './TacticalAnalyzer.js';
+import { getQualityThresholds } from '../utils/qualityThresholds.js';
 
 export class ShotSelector {
   private tacticalAnalyzer: TacticalAnalyzer;
@@ -44,7 +45,7 @@ export class ShotSelector {
 
     // SPECIAL CASE: Return of serve (rallyLength === 1)
     if (rallyLength === 1) {
-      if (playStyle.aggression > 80 && Math.random() < 0.3) {
+      if (Math.random() < (playStyle.aggression / 100) * 0.35) {
         // Aggressive power return
         return Math.random() < shotPreference.forehandProbability
           ? 'return_forehand_power'
@@ -89,8 +90,8 @@ export class ShotSelector {
         Math.random() < shotPreference.forehandProbability ? 'lob_forehand' : 'lob_backhand'
       );
 
-      // Consistent players can also use regular slice
-      if (playStyle.consistency > 60) {
+      // Consistent players can also use regular slice (scales with consistency)
+      if (Math.random() < playStyle.consistency / 100) {
         defenseOptions.push(
           Math.random() < shotPreference.forehandProbability ? 'slice_forehand' : 'slice_backhand'
         );
@@ -131,7 +132,7 @@ export class ShotSelector {
     }
 
     // 4. Long rally defensive shift (11+ shots)
-    if (rallyLength > 10 && playStyle.consistency > 60 && Math.random() < 0.4) {
+    if (rallyLength > 10 && Math.random() < (playStyle.consistency / 100) * 0.5) {
       return Math.random() < shotPreference.forehandProbability
         ? 'slice_forehand'
         : 'slice_backhand';
@@ -182,18 +183,24 @@ export class ShotSelector {
   ): ShotType {
     const isForehand = Math.random() < shotPreference.forehandProbability;
 
-    // Overhead smash on high lobs
-    if (
-      rallyState.lastShotType.includes('lob') &&
-      rallyState.ballQuality.baseQuality < 70
-    ) {
-      return 'overhead';
+    const thresholds = getQualityThresholds(rallyState.matchLevel);
+
+    // Lob response — three tiers based on lob quality relative to match level
+    if (rallyState.lastShotType.includes('lob')) {
+      if (rallyState.ballQuality.baseQuality >= thresholds.exceptional) {
+        // Exceptional lob — winner candidate, fall through to normal volley
+        // (ShotCalculator will determine if it's a winner)
+      } else if (rallyState.ballQuality.baseQuality >= thresholds.high) {
+        return 'defensive_overhead'; // Good lob, hard to put away
+      } else {
+        return 'overhead'; // Weak lob, smash it
+      }
     }
 
     // Half-volley on low, dipping balls (heavy topspin or high quality passing shots)
     const isLowBall =
       rallyState.ballQuality.spin === 'heavy_topspin' ||
-      (rallyState.ballQuality.baseQuality >= 70 && rallyState.ballQuality.timeAvailable === 'rushed');
+      (rallyState.ballQuality.baseQuality >= thresholds.high && rallyState.ballQuality.timeAvailable === 'rushed');
 
     if (isLowBall && Math.random() < 0.6) {
       return isForehand ? 'half_volley_forehand' : 'half_volley_backhand';
@@ -218,19 +225,13 @@ export class ShotSelector {
     const playStyleType = shooter.playStyle.type;
     const offensive = shooter.stats.mental.offensive;
 
-    // Base probability based on player type — these are per-eligible-shot rates,
-    // so even modest percentages produce net approaches over the course of a match
+    // Base probability scales smoothly with net approach stat
+    // 5% at stat 0, ~12% at 20, ~22% at 50, ~40% at 100
     let baseProbability = 0;
     if (playStyleType === 'serve_volley') {
       baseProbability = 0.55; // 55% base for serve-volleyers
-    } else if (netApproachStat >= 70) {
-      baseProbability = 0.35; // 35% for net players
-    } else if (netApproachStat >= 50) {
-      baseProbability = 0.20; // 20% for occasional net players
-    } else if (netApproachStat >= 30) {
-      baseProbability = 0.12; // 12% for below-average net players
     } else {
-      baseProbability = 0.07; // 7% for very poor net players — rare but possible
+      baseProbability = 0.05 + (netApproachStat / 100) * 0.35;
     }
 
     // Offensive mentality boost: aggressive players seek the net more
@@ -246,7 +247,8 @@ export class ShotSelector {
     else if (opportunity.attackOpportunity === 'medium') probability *= 1.8;
     else if (opportunity.attackOpportunity === 'low') probability *= 1.3;
 
-    if (rallyState.lastShotQuality >= 80) probability *= 1.3;
+    const approachThresholds = getQualityThresholds(rallyState.matchLevel);
+    if (rallyState.lastShotQuality >= approachThresholds.high) probability *= 1.3;
     if (rallyState.opponentPosition === 'way_back_deep') probability *= 1.5;
 
     // Special case: serve-volleyers approach after serve
@@ -291,13 +293,14 @@ export class ShotSelector {
     baseProbability += (offensive / 100) * 0.10;
 
     // Aggressive players attempt power shots early in rallies (3-5 shots)
-    if (aggression >= 75 && rallyState.rallyLength >= 3 && rallyState.rallyLength <= 5) {
+    // Probability of getting boost scales with aggression
+    if (Math.random() < aggression / 100 && rallyState.rallyLength >= 3 && rallyState.rallyLength <= 5) {
       baseProbability *= 1.5; // 50% boost to go for early winners
     }
 
     if (!opportunity.winnerAttemptSuitable) {
-      // Aggressive players go for it anyway more often
-      if (aggression >= 80 && Math.random() < 0.25) { // Increased from 0.15
+      // Aggressive players go for it anyway — scales with aggression
+      if (Math.random() < (aggression / 100) * 0.30) {
         return true;
       }
       return false;
@@ -309,7 +312,8 @@ export class ShotSelector {
     else if (opportunity.attackOpportunity === 'medium') probability *= 1.8;
     else if (opportunity.attackOpportunity === 'low') probability *= 1.2;
 
-    if (rallyState.lastShotQuality >= 85) probability *= 1.4;
+    const winnerThresholds = getQualityThresholds(rallyState.matchLevel);
+    if (rallyState.lastShotQuality >= winnerThresholds.exceptional) probability *= 1.4;
 
     return Math.random() < Math.min(0.90, probability); // Increased cap from 0.85
   }
@@ -335,9 +339,10 @@ export class ShotSelector {
 
     // --- Other tactical shots (lob, angle) still use shotVariety ---
     const shotVariety = shooter.stats.mental.shotVariety;
-    if (shotVariety < 50) return { use: false };
+    if (shotVariety < 20) return { use: false };
 
-    const baseProbability = (shotVariety - 50) / 200; // 0% at 50, 25% at 100
+    // 0% at 20, 25% at 100
+    const baseProbability = (shotVariety - 20) / 320;
     if (Math.random() > baseProbability) return { use: false };
 
     if (opponentPosition === 'slightly_off' || opponentPosition === 'well_positioned') {
@@ -362,9 +367,6 @@ export class ShotSelector {
     ballQuality: RallyState['ballQuality']
   ): { use: boolean; type?: 'drop_shot' } {
     const dropShotStat = shooter.stats.technical.dropShot;
-
-    // Very low skill players don't attempt drop shots
-    if (dropShotStat < 10) return { use: false };
 
     // Can't drop shot a rushing ball
     if (ballQuality.timeAvailable === 'rushed') return { use: false };

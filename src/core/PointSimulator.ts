@@ -23,6 +23,7 @@ import { PlayerProfile } from './PlayerProfile.js';
 import { ShotCalculator } from './ShotCalculator.js';
 import { ShotSelector } from './ShotSelector.js';
 import { TacticalAnalyzer } from './TacticalAnalyzer.js';
+import { getQualityThresholds, getMatchLevel, RelativeThresholds } from '../utils/qualityThresholds.js';
 
 export class PointSimulator {
   private shotCalculator: ShotCalculator;
@@ -280,6 +281,8 @@ export class PointSimulator {
     let shotNumber = 1; // This is return of serve, serve is shot 0
     let previousShot: ShotDetail = serveShot; // all rallies will at least begin with a serve
     const maxRallyLength = 30; // Prevent infinite rallies
+    const matchLevel = getMatchLevel(server.overallRating, returner.overallRating);
+    const thresholds = getQualityThresholds(matchLevel);
 
     // NEW: Track court positions throughout rally
     let serverPosition: CourtPosition = 'well_positioned';
@@ -301,7 +304,8 @@ export class PointSimulator {
         lastShotType: previousShot.shotType,
         shooterPosition,
         opponentPosition,
-        ballQuality: this.shotCalculator.calculateBallQuality(previousShot),
+        ballQuality: this.shotCalculator.calculateBallQuality(previousShot, matchLevel),
+        matchLevel,
       };
 
       // NEW: Use ShotSelector instead of old selectShotType
@@ -317,6 +321,7 @@ export class PointSimulator {
         rallyLength,
         matchState,
         shooterPosition,
+        thresholds,
         rallyState.ballQuality,
         rallyState.opponentPosition
       );
@@ -398,7 +403,8 @@ export class PointSimulator {
       const newOpponentPosition = this.updateOpponentPosition(
         shotResult,
         shotType,
-        opponentPosition
+        opponentPosition,
+        thresholds
       );
 
       const newShooterPosition = this.updateShooterPosition(
@@ -406,7 +412,8 @@ export class PointSimulator {
         shotType,
         shooterPosition,
         rallyLength,
-        previousShot.quality
+        previousShot.quality,
+        thresholds
       );
 
       // Update positions for both players
@@ -441,25 +448,24 @@ export class PointSimulator {
    * Forced error: Opponent hit a great shot that made it very difficult
    * Unforced error: Player made a mistake on a routine shot
    */
-  private classifyError(previousShot: ShotDetail | null, currentContext: ShotContext): 'forced' | 'unforced' {
+  private classifyError(previousShot: ShotDetail | null, currentContext: ShotContext, thresholds: RelativeThresholds): 'forced' | 'unforced' {
     // No previous shot (e.g., return error) - likely unforced
     if (!previousShot) {
       return 'unforced';
     }
 
-    // If opponent's previous shot was high quality (>70) or context is hard/extreme, it's forced
-    if (previousShot.quality >= 70 || currentContext.difficulty === 'hard' || currentContext.difficulty === 'extreme') {
+    // If opponent's previous shot was high quality or context is hard/extreme, it's forced
+    if (previousShot.quality >= thresholds.high || currentContext.difficulty === 'hard' || currentContext.difficulty === 'extreme') {
       return 'forced';
     }
 
-    // If context was easy/normal and opponent's shot quality was mediocre, it's unforced
-    if ((currentContext.difficulty === 'easy' || currentContext.difficulty === 'normal') && previousShot.quality < 60) {
+    // If context was easy/normal and opponent's shot quality was below good, it's unforced
+    if ((currentContext.difficulty === 'easy' || currentContext.difficulty === 'normal') && previousShot.quality < thresholds.good) {
       return 'unforced';
     }
 
-    // Middle ground - opponent hit a decent shot (60-70 quality) on normal difficulty
-    // This is a judgment call - we'll consider it forced if quality >= 65
-    return previousShot.quality >= 65 ? 'forced' : 'unforced';
+    // Middle ground - opponent hit a decent shot on normal difficulty
+    return previousShot.quality >= thresholds.good ? 'forced' : 'unforced';
   }
 
   /**
@@ -495,11 +501,13 @@ export class PointSimulator {
     rallyLength: number,
     matchState: MatchState,
     shooterPosition: CourtPosition,
+    thresholds: RelativeThresholds,
     ballQuality?: BallQuality,
     opponentPosition?: CourtPosition
   ): ShotContext {
     // Calculate difficulty based on actual situation
     const difficulty = this.calculateShotDifficulty(
+      thresholds,
       shooterPosition,
       opponentPosition,
       ballQuality,
@@ -541,6 +549,7 @@ export class PointSimulator {
    * - Rally length (fatigue factor)
    */
   private calculateShotDifficulty(
+    thresholds: RelativeThresholds,
     shooterPosition?: CourtPosition,
     opponentPosition?: CourtPosition,
     ballQuality?: BallQuality,
@@ -558,11 +567,11 @@ export class PointSimulator {
     }
     // well_positioned = 0, at_net = 0 (neutral/good)
 
-    // Incoming ball quality difficulty
+    // Incoming ball quality difficulty (relative to match level)
     if (ballQuality) {
-      if (ballQuality.baseQuality >= 85) {
+      if (ballQuality.baseQuality >= thresholds.exceptional) {
         difficultyScore += 25; // Excellent shot against us
-      } else if (ballQuality.baseQuality >= 70) {
+      } else if (ballQuality.baseQuality >= thresholds.high) {
         difficultyScore += 15; // Good shot
       }
 
@@ -619,7 +628,8 @@ export class PointSimulator {
     shotType: ShotType,
     currentPosition: CourtPosition,
     rallyLength: number,
-    incomingQuality: number
+    incomingQuality: number,
+    thresholds: RelativeThresholds
   ): CourtPosition {
     // If shot was an error, position doesn't matter (point is over)
     if (!shotResult.success) return currentPosition;
@@ -635,7 +645,7 @@ export class PointSimulator {
     }
 
     // Drop shots often move player forward
-    if (shotType.includes('drop_shot') && shotResult.quality >= 60) {
+    if (shotType.includes('drop_shot') && shotResult.quality >= thresholds.good) {
       return 'recovering'; // Moving toward net but not there yet
     }
 
@@ -645,7 +655,7 @@ export class PointSimulator {
     }
 
     // High quality incoming shots force defensive position
-    if (incomingQuality >= 80) {
+    if (incomingQuality >= thresholds.high) {
       return currentPosition === 'at_net' ? 'at_net' : 'slightly_off';
     }
 
@@ -655,13 +665,12 @@ export class PointSimulator {
     }
 
     // Good shot quality allows recovery to good position
-    if (shotResult.quality >= 70) {
-      // Unless at net, recover to well positioned
+    if (shotResult.quality >= thresholds.high) {
       return currentPosition === 'at_net' ? 'at_net' : 'well_positioned';
     }
 
     // Weak shots leave player vulnerable
-    if (shotResult.quality < 50) {
+    if (shotResult.quality < thresholds.average) {
       return currentPosition === 'at_net' ? 'at_net' : 'slightly_off';
     }
 
@@ -683,7 +692,8 @@ export class PointSimulator {
   private updateOpponentPosition(
     shotResult: ShotResult,
     shotType: ShotType,
-    currentPosition: CourtPosition
+    currentPosition: CourtPosition,
+    thresholds: RelativeThresholds
   ): CourtPosition {
     // If shot was an error, opponent doesn't need to move (they won the point)
     if (!shotResult.success) return currentPosition;
@@ -691,7 +701,7 @@ export class PointSimulator {
     // Players at net STAY at net — they chose to be there and don't retreat
     // to baseline mid-point. Only a lob can push them back.
     if (currentPosition === 'at_net') {
-      if (shotType.includes('lob') && shotResult.quality >= 70) {
+      if (shotType.includes('lob') && shotResult.quality >= thresholds.high) {
         return 'way_back_deep'; // Good lob forces net player back
       }
       return 'at_net'; // Otherwise hold net position
@@ -705,24 +715,24 @@ export class PointSimulator {
       return currentPosition; // Opponent stays where they are
     }
 
-    // High quality shots push opponent out of position
-    if (quality >= 85) {
+    // Exceptional quality shots push opponent out of position
+    if (quality >= thresholds.exceptional) {
       if (shotType.includes('angle') || shotType.includes('passing')) {
         return 'way_out_wide';
       }
-      if (shotType.includes('lob') || quality >= 90) {
+      if (shotType.includes('lob') || quality >= thresholds.exceptional + 5) {
         return 'way_back_deep';
       }
       return 'slightly_off';
     }
 
-    // Good shots create some advantage
-    if (quality >= 70) {
+    // High quality shots create some advantage
+    if (quality >= thresholds.high) {
       return 'slightly_off';
     }
 
     // Weak shots let opponent recover
-    if (quality < 50) {
+    if (quality < thresholds.average) {
       return 'well_positioned';
     }
 

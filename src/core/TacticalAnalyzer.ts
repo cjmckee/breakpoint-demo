@@ -12,6 +12,7 @@ import type {
   CourtPosition,
   BallQuality,
 } from '../types/index.js';
+import { getQualityThresholds } from '../utils/qualityThresholds.js';
 
 export class TacticalAnalyzer {
   /**
@@ -30,7 +31,8 @@ export class TacticalAnalyzer {
     rallyState: RallyState,
     shooterPosition?: CourtPosition
   ): TacticalOpportunity {
-    const { opponentPosition, lastShotQuality, ballQuality, rallyLength } = rallyState;
+    const { opponentPosition, lastShotQuality, ballQuality, rallyLength, matchLevel } = rallyState;
+    const thresholds = getQualityThresholds(matchLevel);
 
     // Attack opportunity scoring
     let attackScore = 0;
@@ -38,12 +40,12 @@ export class TacticalAnalyzer {
     // Opponent position contributes to attack score
     attackScore += this.getPositionAttackScore(opponentPosition);
 
-    // Our previous shot quality matters
-    if (lastShotQuality >= 80) attackScore += 30; // We hit a great shot
-    else if (lastShotQuality >= 60) attackScore += 15; // We hit a good shot
+    // Our previous shot quality matters (relative to match level)
+    if (lastShotQuality >= thresholds.high) attackScore += 30; // We hit a great shot
+    else if (lastShotQuality >= thresholds.good) attackScore += 15; // We hit a good shot
 
     // Incoming ball quality
-    attackScore += this.getBallQualityAttackScore(ballQuality);
+    attackScore += this.getBallQualityAttackScore(ballQuality, thresholds);
 
     // Shooter at net increases attack opportunity
     if (shooterPosition === 'at_net') {
@@ -55,6 +57,7 @@ export class TacticalAnalyzer {
       ballQuality,
       opponentPosition,
       lastShotQuality,
+      thresholds,
       shooterPosition
     );
 
@@ -113,15 +116,15 @@ export class TacticalAnalyzer {
   /**
    * Calculate attack score contribution from incoming ball quality
    */
-  private getBallQualityAttackScore(ballQuality: BallQuality): number {
+  private getBallQualityAttackScore(ballQuality: BallQuality, thresholds: ReturnType<typeof getQualityThresholds>): number {
     let score = 0;
 
-    // Weak incoming shots = attack opportunity
-    if (ballQuality.baseQuality < 40) score += 20;
-    else if (ballQuality.baseQuality < 60) score += 10;
+    // Weak incoming shots = attack opportunity (relative to match level)
+    if (ballQuality.baseQuality < thresholds.average) score += 20;
+    else if (ballQuality.baseQuality < thresholds.good) score += 10;
 
     // High quality incoming shots = defensive situation (negative score)
-    if (ballQuality.baseQuality >= 80) score -= 15;
+    if (ballQuality.baseQuality >= thresholds.high) score -= 15;
 
     // Time pressure affects attack opportunity
     if (ballQuality.timeAvailable === 'plenty') score += 15;
@@ -137,19 +140,20 @@ export class TacticalAnalyzer {
     ballQuality: BallQuality,
     opponentPosition: CourtPosition,
     lastShotQuality: number,
+    thresholds: ReturnType<typeof getQualityThresholds>,
     shooterPosition?: CourtPosition
   ): boolean {
     // Rushed time = must defend
     if (ballQuality.timeAvailable === 'rushed') return true;
 
     // High quality shot against us = must defend
-    if (ballQuality.baseQuality >= 80) return true;
+    if (ballQuality.baseQuality >= thresholds.high) return true;
 
     // Opponent at net and we're not = must defend
     if (opponentPosition === 'at_net' && shooterPosition !== 'at_net') return true;
 
     // We hit a very weak shot last time = likely in trouble
-    if (lastShotQuality < 30) return true;
+    if (lastShotQuality < thresholds.weak) return true;
 
     return false;
   }
@@ -169,10 +173,12 @@ export class TacticalAnalyzer {
    * (without needing full tactical opportunity evaluation)
    */
   public isDefensiveSituation(rallyState: RallyState, shooterPosition?: CourtPosition): boolean {
+    const thresholds = getQualityThresholds(rallyState.matchLevel);
     return this.isDefensiveRequired(
       rallyState.ballQuality,
       rallyState.opponentPosition,
       rallyState.lastShotQuality,
+      thresholds,
       shooterPosition
     );
   }

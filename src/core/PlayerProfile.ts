@@ -216,7 +216,6 @@ export class PlayerProfile implements IPlayerProfile {
       // Serves (no forehand/backhand distinction)
       'serve_first': 'serve',
       'serve_second': 'serve',
-      'kick_serve': 'serve',
 
       // Basic groundstrokes
       'forehand': 'forehand',
@@ -259,16 +258,6 @@ export class PlayerProfile implements IPlayerProfile {
       'return_backhand': 'return',
       'return_forehand_power': 'return',
       'return_backhand_power': 'return',
-
-      // Topspin shots
-      'topspin_forehand': 'forehand',
-      'topspin_backhand': 'backhand',
-
-      // Directional shots
-      'down_the_line_forehand': 'placement',
-      'down_the_line_backhand': 'placement',
-      'cross_court_forehand': 'placement',
-      'cross_court_backhand': 'placement',
 
       // Lobs
       'lob_forehand': 'placement',

@@ -57,7 +57,6 @@ export type ShotType =
   // Serves (no forehand/backhand distinction)
   | 'serve_first'
   | 'serve_second'
-  | 'kick_serve'
 
   // Basic groundstrokes
   | 'forehand'
@@ -100,16 +99,6 @@ export type ShotType =
   | 'return_backhand'
   | 'return_forehand_power'
   | 'return_backhand_power'
-
-  // Topspin shots
-  | 'topspin_forehand'
-  | 'topspin_backhand'
-
-  // Directional shots
-  | 'down_the_line_forehand'
-  | 'down_the_line_backhand'
-  | 'cross_court_forehand'
-  | 'cross_court_backhand'
 
   // Lobs
   | 'lob_forehand'
@@ -190,6 +179,7 @@ export interface RallyState {
   shooterPosition: CourtPosition;
   opponentPosition: CourtPosition;
   ballQuality: BallQuality; // Incoming ball characteristics
+  matchLevel: number; // Average overallRating of both players, for relative thresholds
 }
 
 /**

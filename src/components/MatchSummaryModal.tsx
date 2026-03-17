@@ -736,8 +736,6 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
                 assignStat('cross_court', 'placement');
                 assignStat('lob', 'placement');
                 assignStat('passing_shot', 'placement');
-                assignStat('topspin_forehand', 'forehand');
-                assignStat('topspin_backhand', 'backhand');
                 assignStat('forehand', 'forehand');
                 assignStat('backhand', 'backhand');
 

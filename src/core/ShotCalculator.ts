@@ -24,6 +24,7 @@ import type {
 } from '../types/index.js';
 import { PointType } from '../types/index.js';
 import { PlayerProfile } from './PlayerProfile.js';
+import { getQualityThresholds, getMatchLevel } from '../utils/qualityThresholds.js';
 import {
   RELATIVE_QUALITY_REQUIREMENTS,
   MIN_QUALITY_FLOORS,
@@ -70,13 +71,16 @@ const SHOT_RANGES = {
  */
 const SHOT_CLASSIFICATIONS = {
   powerShots: ['serve_first', 'forehand_power', 'backhand_power', 'return_forehand_power', 'return_backhand_power', 'overhead', 'passing_shot_forehand', 'passing_shot_backhand'],
-  spinShots: ['topspin_forehand', 'topspin_backhand', 'kick_serve', 'slice_forehand', 'slice_backhand'],
-  placementShots: ['drop_shot_forehand', 'drop_shot_backhand', 'angle_shot_forehand', 'angle_shot_backhand', 'down_the_line_forehand', 'down_the_line_backhand', 'cross_court_forehand', 'cross_court_backhand', 'lob_forehand', 'lob_backhand'],
+  spinShots: ['slice_forehand', 'slice_backhand'],
+  placementShots: ['drop_shot_forehand', 'drop_shot_backhand', 'angle_shot_forehand', 'angle_shot_backhand', 'lob_forehand', 'lob_backhand'],
   netShots: ['volley_forehand', 'volley_backhand', 'half_volley_forehand', 'half_volley_backhand'],
   defensiveShots: ['defensive_slice_forehand', 'defensive_slice_backhand', 'defensive_overhead', 'return_forehand', 'return_backhand'],
 } as const;
 
 export class ShotCalculator {
+  /** Current match level, set at start of calculateShotSuccess for use by internal methods */
+  private currentMatchLevel: number = 50;
+
   /**
    * Calculate shot success using relative quality threshold system
    * Every stat point from 0-100 has proportional impact
@@ -116,7 +120,9 @@ export class ShotCalculator {
     }
 
     // Step 2: Derive ball quality from incoming shot (if available)
-    const ballQuality = incomingShot ? this.calculateBallQuality(incomingShot) : undefined;
+    const matchLevel = getMatchLevel(shooterProfile.overallRating, opponentProfile.overallRating);
+    this.currentMatchLevel = matchLevel;
+    const ballQuality = incomingShot ? this.calculateBallQuality(incomingShot, matchLevel) : undefined;
 
     // Step 3: Calculate all modifiers
     const modifiers = this.calculateModifiers(
@@ -163,7 +169,7 @@ export class ShotCalculator {
       // Special handling for serves (no incoming shot)
       const serveOutcome = this.determineServeOutcome(
         quality,
-        shotType as 'serve_first' | 'serve_second' | 'kick_serve',
+        shotType as 'serve_first' | 'serve_second',
         opponentProfile.stats.technical.return
       );
       outcome = serveOutcome.outcome;
@@ -308,13 +314,17 @@ export class ShotCalculator {
    */
   private determineServeOutcome(
     serveQuality: number,
-    serveType: 'serve_first' | 'serve_second' | 'kick_serve',
+    serveType: 'serve_first' | 'serve_second',
     opponentReturnStat: number
   ): { outcome: PointType; thresholds: QualityThresholds } {
     const baseline = SERVE_BASELINE[serveType];
 
-    // Calculate ace threshold: base + (opponent return × multiplier)
-    const aceThreshold = baseline.aceThresholdBase + (opponentReturnStat * baseline.aceReturnMultiplier);
+    // Scale ace threshold base relative to match level
+    // At matchLevel 70, matches original hard-coded values; at 30, much lower so aces are possible
+    const scaledAceBase = this.currentMatchLevel * (baseline.aceThresholdBase / 70);
+
+    // Calculate ace threshold: scaled base + (opponent return × multiplier)
+    const aceThreshold = scaledAceBase + (opponentReturnStat * baseline.aceReturnMultiplier);
 
     // Sigmoid probability for serve being in
     const pServeIn = sigmoidProbability(serveQuality, baseline.inPlayThreshold, PROBABILITY_STEEPNESS.serve.inPlay);
@@ -394,7 +404,7 @@ export class ShotCalculator {
 
       // Variance for first serve
       serveVariance = (Math.random() - 0.5) * 2 * SERVE_VARIANCE.first;
-    } else if (shotType === 'serve_second' || shotType === 'kick_serve') {
+    } else if (shotType === 'serve_second') {
       // Second serve: consistency, spin-based, low variance
       // Apply individual caps
       const consistencyBonus = Math.min(
@@ -439,7 +449,7 @@ export class ShotCalculator {
     const rallyLengthModifier = this.getRallyLengthModifier(context.rallyLength, stats.physical.stamina);
 
     // Context-aware modifiers
-    const ballQualityModifier = this.getBallQualityModifier(ballQuality, stats.physical);
+    const ballQualityModifier = this.getBallQualityModifier(ballQuality, stats.physical, this.currentMatchLevel);
     const tacticalModifier = this.getTacticalModifier(shotType, tacticalOpportunity, opponentPosition);
 
     // Match-level modifiers
@@ -705,15 +715,16 @@ export class ShotCalculator {
    * This is public so other components (like PointSimulator) can use it
    * to derive ball quality for RallyState
    */
-  public calculateBallQuality(previousShot: ShotDetail): BallQuality {
+  public calculateBallQuality(previousShot: ShotDetail, matchLevel: number = this.currentMatchLevel): BallQuality {
     const { shotType, quality } = previousShot;
+    const thresholds = getQualityThresholds(matchLevel);
 
     // Derive spin from shot type
     let spin: BallQuality['spin'];
     if (shotType.includes('slice') || shotType.includes('defensive_slice')) {
       spin = 'slice';
     } else if (shotType.includes('topspin') || shotType.includes('kick')) {
-      spin = quality >= 70 ? 'heavy_topspin' : 'topspin';
+      spin = quality >= thresholds.high ? 'heavy_topspin' : 'topspin';
     } else if (shotType.includes('power') || shotType.includes('serve_first')) {
       spin = 'flat';
     } else {
@@ -725,7 +736,7 @@ export class ShotCalculator {
 
     // Power shots and aces give very little time
     if (shotType.includes('power') || shotType.includes('passing_shot')) {
-      timeAvailable = quality >= 70 ? 'rushed' : 'normal';
+      timeAvailable = quality >= thresholds.high ? 'rushed' : 'normal';
     }
     // Lobs give lots of time (high, arcing trajectory)
     else if (shotType.includes('lob')) {
@@ -741,12 +752,12 @@ export class ShotCalculator {
     }
     // Approach shots and volleys are typically aggressive
     else if (shotType.includes('approach') || shotType.includes('volley')) {
-      timeAvailable = quality >= 70 ? 'rushed' : 'normal';
+      timeAvailable = quality >= thresholds.high ? 'rushed' : 'normal';
     }
     // General quality-based determination
-    else if (quality >= 80) {
+    else if (quality >= thresholds.exceptional) {
       timeAvailable = 'rushed'; // Elite shot
-    } else if (quality < 50) {
+    } else if (quality < thresholds.average) {
       timeAvailable = 'plenty'; // Weak shot
     } else {
       timeAvailable = 'normal';
@@ -757,8 +768,8 @@ export class ShotCalculator {
     let qualityModifier = 0;
 
     // Lobs and drop shots reduce perceived quality (easier to handle)
-    if (shotType.includes('lob') && quality < 70) qualityModifier -= 5;
-    if (shotType.includes('drop_shot') && quality < 60) qualityModifier -= 5;
+    if (shotType.includes('lob') && quality < thresholds.high) qualityModifier -= 5;
+    if (shotType.includes('drop_shot') && quality < thresholds.good) qualityModifier -= 5;
 
     // Angle shots and passing shots increase difficulty
     if (shotType.includes('angle') || shotType.includes('passing')) qualityModifier += 5;
@@ -779,10 +790,12 @@ export class ShotCalculator {
    */
   private getBallQualityModifier(
     ballQuality: BallQuality | undefined,
-    physical: PlayerStats['physical']
+    physical: PlayerStats['physical'],
+    matchLevel: number
   ): number {
     if (!ballQuality) return 1.0; // No penalty if not tracking ball quality
 
+    const thresholds = getQualityThresholds(matchLevel);
     let modifier = 1.0;
 
     // Time pressure based on speed/agility
@@ -795,13 +808,12 @@ export class ShotCalculator {
       modifier *= 1.05; // Slight bonus for plenty of time
     }
 
-    // High quality incoming shots are difficult
-    if (ballQuality.baseQuality >= 80) {
-      // Elite shot coming at us - harder to handle
+    // High quality incoming shots are difficult (relative to match level)
+    if (ballQuality.baseQuality >= thresholds.high) {
       modifier *= 0.85;
-    } else if (ballQuality.baseQuality >= 60) {
+    } else if (ballQuality.baseQuality >= thresholds.good) {
       modifier *= 0.95;
-    } else if (ballQuality.baseQuality < 40) {
+    } else if (ballQuality.baseQuality < thresholds.weak) {
       // Weak incoming shot - easier to attack
       modifier *= 1.1;
     }

@@ -20,7 +20,6 @@ export const RELATIVE_QUALITY_REQUIREMENTS: Record<ShotType, number> = {
   // Serves (not used in relative calculation, but included for completeness)
   'serve_first': 0.50,
   'serve_second': 0.50,
-  'kick_serve': 0.50,
 
   // Basic groundstrokes (neutral, moderate requirement)
   'forehand': 0.50,
@@ -63,16 +62,6 @@ export const RELATIVE_QUALITY_REQUIREMENTS: Record<ShotType, number> = {
   'return_backhand': 0.75,
   'return_forehand_power': 0.85,
   'return_backhand_power': 0.85,
-
-  // Topspin shots (neutral)
-  'topspin_forehand': 0.55,
-  'topspin_backhand': 0.55,
-
-  // Directional shots (neutral)
-  'down_the_line_forehand': 0.55,
-  'down_the_line_backhand': 0.55,
-  'cross_court_forehand': 0.50,
-  'cross_court_backhand': 0.50,
 
   // Lobs (defensive, low requirement)
   'lob_forehand': 0.30,
@@ -167,12 +156,6 @@ export const SERVE_BASELINE = {
     aceThresholdBase: 75,     // Raised: second serve aces very rare
     aceReturnMultiplier: 0.55, // Additional difficulty based on opponent return
     // Example: vs return:50 → sigmoid midpoint at 75 + 27.5 = 102.5 (nearly impossible)
-  },
-  kick_serve: {
-    inPlayThreshold: 14,      // Lowered: between first and second
-    aceThresholdBase: 68,     // Between first and second serve
-    aceReturnMultiplier: 0.50,
-    // Example: vs return:50 → sigmoid midpoint at 68 + 25 = 93
   },
 };
 

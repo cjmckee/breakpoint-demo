@@ -96,45 +96,6 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       },
     },
     {
-      id: 'kick_serve_rally',
-      emoji: '🌀',
-      name: 'Kick serve and grind',
-      description: 'Heavy spin serve, then outlast them in the rally',
-      strongAgainst: ['aggressive', 'serve_volley'],
-      weakAgainst: ['counterpuncher'],
-      bestAgainstHint: 'Best against impatient attackers who want quick points',
-      secondaryEffects: [
-        { type: 'energy', value: -3, condition: 'always' },
-
-        { type: 'mood', value: 2, condition: 'on_success' },
-        { type: 'pressure', value: -2, condition: 'on_success' },
-      ],
-      playerStatWeights: {
-        primary: 'spin',
-        primaryWeight: 0.25,
-        secondary: [
-          { stat: 'serve', weight: 0.25 },
-          { stat: 'stamina', weight: 0.2 },
-          { stat: 'defensive', weight: 0.15 },
-          { stat: 'focus', weight: 0.15 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'backhand', weight: 0.25 },
-          { stat: 'strength', weight: 0.2 },
-          { stat: 'offensive', weight: 0.15 },
-          { stat: 'agility', weight: 0.1 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.FORCED_ERROR, shotType: 'serve', shooter: 'player' },
-        failure: { outcome: PointType.WINNER, shotType: 'return', shooter: 'opponent' },
-      },
-    },
-    {
       id: 'serve_volley_surprise',
       emoji: '🏃',
       name: 'Serve and charge the net',
@@ -334,45 +295,6 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       shotOutcomes: {
         success: { outcome: PointType.ACE, shotType: 'serve', shooter: 'player' },
         failure: { outcome: PointType.DOUBLE_FAULT, shotType: 'serve', shooter: 'player' },
-      },
-    },
-    {
-      id: 'kick_serve_setup',
-      emoji: '🌀',
-      name: 'Kick serve and rally',
-      description: 'Use heavy spin to push them back, then dominate the rally',
-      strongAgainst: ['aggressive', 'serve_volley'],
-      weakAgainst: ['counterpuncher'],
-      bestAgainstHint: 'Best against opponents who struggle with long rallies',
-      secondaryEffects: [
-        { type: 'energy', value: -3, condition: 'always' },
-
-        { type: 'mood', value: 2, condition: 'on_success' },
-        { type: 'pressure', value: -3, condition: 'on_success' },
-      ],
-      playerStatWeights: {
-        primary: 'spin',
-        primaryWeight: 0.25,
-        secondary: [
-          { stat: 'serve', weight: 0.25 },
-          { stat: 'forehand', weight: 0.2 },
-          { stat: 'placement', weight: 0.15 },
-          { stat: 'stamina', weight: 0.15 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'backhand', weight: 0.25 },
-          { stat: 'strength', weight: 0.2 },
-          { stat: 'offensive', weight: 0.15 },
-          { stat: 'agility', weight: 0.1 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.FORCED_ERROR, shotType: 'serve', shooter: 'player' },
-        failure: { outcome: PointType.WINNER, shotType: 'return', shooter: 'opponent' },
       },
     },
     {

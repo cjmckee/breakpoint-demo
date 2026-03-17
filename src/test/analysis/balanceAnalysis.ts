@@ -30,7 +30,7 @@ const HISTOGRAM_RATINGS = [30, 50, 70, 90];
 const N_SHOTS = 1000;
 const N_MATCHES = 50;
 
-const SERVE_TYPES: ShotType[] = ['serve_first', 'serve_second', 'kick_serve'];
+const SERVE_TYPES: ShotType[] = ['serve_first', 'serve_second'];
 
 const RALLY_SHOT_TYPES: ShotType[] = [
   'forehand', 'backhand', 'forehand_power', 'slice_forehand',
