@@ -317,39 +317,92 @@ export class ShotSelector {
   /**
    * Decide whether to use a tactical shot (drop, lob, angle)
    *
-   * Only high-variety players use tactical shots frequently
+   * Drop shots are driven by the dropShot technical stat and favored by
+   * defensive/counterpuncher play styles. Other tactical shots use shotVariety.
    */
   private shouldUseTacticalShot(
     shooter: PlayerProfile,
     rallyState: RallyState,
     opportunity: TacticalOpportunity
   ): { use: boolean; type?: 'drop_shot' | 'lob' | 'angle_shot' } {
-    const shotVariety = shooter.stats.mental.shotVariety;
-
-    // Only high-variety players use tactical shots frequently
-    if (shotVariety < 50) return { use: false };
-
     if (!opportunity.tacticalShotSuitable) return { use: false };
 
-    // Base probability scales with shot variety stat
-    const baseProbability = (shotVariety - 50) / 200; // 0% at 50, 25% at 100
-
-    if (Math.random() > baseProbability) return { use: false };
-
-    // Choose tactical shot type based on situation
     const { opponentPosition, ballQuality } = rallyState;
 
-    // Drop shot: opponent back, we have time
-    if (opponentPosition === 'way_back_deep' && ballQuality.baseQuality < 60) {
-      return { use: true, type: 'drop_shot' };
-    }
+    // --- Drop shot evaluation (independent of shotVariety) ---
+    const dropShotResult = this.evaluateDropShot(shooter, opponentPosition, ballQuality);
+    if (dropShotResult.use) return dropShotResult;
 
-    // Angle shot: opponent slightly off, we can pull them wider
+    // --- Other tactical shots (lob, angle) still use shotVariety ---
+    const shotVariety = shooter.stats.mental.shotVariety;
+    if (shotVariety < 50) return { use: false };
+
+    const baseProbability = (shotVariety - 50) / 200; // 0% at 50, 25% at 100
+    if (Math.random() > baseProbability) return { use: false };
+
     if (opponentPosition === 'slightly_off' || opponentPosition === 'well_positioned') {
       return { use: true, type: 'angle_shot' };
     }
 
-    // Default to angle shot
     return { use: true, type: 'angle_shot' };
+  }
+
+  /**
+   * Evaluate whether to attempt a drop shot based on dropShot skill,
+   * play style, and opponent position.
+   *
+   * Selection probability scales with the dropShot stat (0-100).
+   * Defensive and counterpuncher styles get a boost.
+   * Opponent must be at least on the baseline (well_positioned) for a small
+   * chance, with much higher probability when pushed back deep.
+   */
+  private evaluateDropShot(
+    shooter: PlayerProfile,
+    opponentPosition: CourtPosition,
+    ballQuality: RallyState['ballQuality']
+  ): { use: boolean; type?: 'drop_shot' } {
+    const dropShotStat = shooter.stats.technical.dropShot;
+
+    // Very low skill players don't attempt drop shots
+    if (dropShotStat < 10) return { use: false };
+
+    // Can't drop shot a rushing ball
+    if (ballQuality.timeAvailable === 'rushed') return { use: false };
+
+    // Position multiplier — how good the drop shot opportunity is
+    let positionMultiplier = 0;
+    if (opponentPosition === 'way_back_deep') {
+      positionMultiplier = 1.0;   // Ideal: opponent far behind baseline
+    } else if (opponentPosition === 'way_out_wide') {
+      positionMultiplier = 0.8;   // Great: opponent stretched wide
+    } else if (opponentPosition === 'slightly_off') {
+      positionMultiplier = 0.3;   // Opportunistic: catch them off guard
+    } else if (opponentPosition === 'well_positioned') {
+      positionMultiplier = 0.12;  // Cheeky: only high-skill players try this
+    } else {
+      return { use: false };      // Opponent at net or recovering toward net
+    }
+
+    // Base probability driven by dropShot skill: ~5% at 10, ~35% at 100
+    let probability = (dropShotStat / 280) * positionMultiplier;
+
+    // Relative skill boost: if dropShot is stronger than groundstrokes,
+    // the player leans on it more as a weapon
+    const avgGroundstroke = (shooter.stats.technical.forehand + shooter.stats.technical.backhand) / 2;
+    const skillEdge = dropShotStat - avgGroundstroke;
+    if (skillEdge > 0) {
+      // Up to 1.6x boost when dropShot is 30+ points above groundstrokes
+      probability *= 1 + Math.min(0.6, skillEdge / 50);
+    }
+
+    // Defensive and counterpuncher styles favor drop shots
+    const playStyleType = shooter.playStyle.type;
+    if (playStyleType === 'defensive' || playStyleType === 'counterpuncher') {
+      probability *= 1.5;
+    }
+
+    return Math.random() < probability
+      ? { use: true, type: 'drop_shot' }
+      : { use: false };
   }
 }

@@ -729,7 +729,6 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
                 assignStat('half_volley', 'volley');
                 assignStat('overhead', 'overhead');
                 assignStat('drop_shot', 'dropShot');
-                assignStat('short_angle', 'dropShot');
                 assignStat('slice', 'slice');
                 assignStat('defensive_slice', 'slice');
                 assignStat('angle_shot', 'placement');

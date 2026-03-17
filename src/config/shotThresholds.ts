@@ -49,8 +49,6 @@ export const RELATIVE_QUALITY_REQUIREMENTS: Record<ShotType, number> = {
   'drop_shot_backhand': 0.45,
 
   // Angle shots (moderate-high requirement)
-  'short_angle_forehand': 0.65,
-  'short_angle_backhand': 0.65,
   'angle_shot_forehand': 0.65,
   'angle_shot_backhand': 0.65,
 
@@ -331,7 +329,7 @@ export function getShotCategory(shotType: ShotType): 'offensive' | 'neutral' | '
     shotStr.includes('power') ||
     shotStr.includes('overhead') ||
     shotStr.includes('passing_shot') ||
-    shotStr.includes('short_angle')
+    shotStr.includes('drop_shot')
   ) {
     return 'offensive';
   }

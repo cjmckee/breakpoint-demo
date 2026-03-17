@@ -26,7 +26,7 @@ export const ARCHETYPE_DATA: Record<ArchetypeType, ArchetypeTendency> = {
   },
   defensive: {
     type: 'defensive',
-    label: 'Steady Baseliner',
+    label: 'Defensive Pusher',
     servingTendency: 'Reliable placement, focuses on starting the rally',
     returningTendency: 'Gets everything back deep, waits for your mistakes',
     rallyTendency: 'Stays patient, extends rallies, wears you down',

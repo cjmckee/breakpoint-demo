@@ -15,44 +15,119 @@ import type {
   StatCategory
 } from '../types/index.js';
 
+// Archetype signal definitions: which stats indicate each archetype, and their weights.
+// Positive weights reward stats above the player's mean; negative weights penalize them.
+interface ArchetypeSignal {
+  getStat: (s: PlayerStats) => number;
+  weight: number;
+}
+
+const ARCHETYPE_SIGNALS: Record<Exclude<PlayStyle['type'], 'all_court'>, ArchetypeSignal[]> = {
+  aggressive: [
+    { getStat: s => s.mental.offensive, weight: 3.0 },
+    { getStat: s => s.physical.strength, weight: 1.5 },
+    { getStat: s => s.technical.forehand, weight: 1.0 },
+    { getStat: s => s.technical.serve, weight: 0.5 },
+    { getStat: s => s.mental.defensive, weight: -1.0 },
+  ],
+  defensive: [
+    { getStat: s => s.mental.defensive, weight: 3.0 },
+    { getStat: s => s.physical.stamina, weight: 1.5 },
+    { getStat: s => s.physical.speed, weight: 1.0 },
+    { getStat: s => s.technical.slice, weight: 0.5 },
+    { getStat: s => s.mental.offensive, weight: -0.5 },
+  ],
+  counterpuncher: [
+    { getStat: s => s.mental.defensive, weight: 2.5 },
+    { getStat: s => s.mental.anticipation, weight: 2.0 },
+    { getStat: s => s.physical.speed, weight: 1.5 },
+    { getStat: s => s.technical.return, weight: 1.0 },
+    { getStat: s => s.mental.offensive, weight: -1.5 },
+  ],
+  serve_volley: [
+    { getStat: s => s.technical.volley, weight: 3.0 },
+    { getStat: s => s.technical.serve, weight: 2.5 },
+    { getStat: s => s.technical.overhead, weight: 0.5 },
+  ],
+};
+
+// all_court wins when no other archetype scores strongly
+const BASE_ALL_COURT_SCORE = 3.0;
+const DIFFERENTIATION_PENALTY = 0.8;
+
+const ARCHETYPE_DESCRIPTIONS: Record<PlayStyle['type'], string> = {
+  serve_volley: 'Aggressive net player who serves and volleys',
+  counterpuncher: 'Defensive specialist who waits for opportunities',
+  aggressive: 'Attacking player who goes for winners',
+  all_court: 'Versatile player comfortable anywhere on court',
+  defensive: 'Solid baseline player who focuses on consistency',
+};
+
+function getAllStatValues(stats: PlayerStats): number[] {
+  return [
+    ...Object.values(stats.technical),
+    ...Object.values(stats.physical),
+    ...Object.values(stats.mental),
+  ];
+}
+
 /**
  * Derive play style from stats as a pure function.
- * Can be used without instantiating a PlayerProfile.
+ * Uses relative scoring: compares each stat to the player's personal mean
+ * so that low-rated players with clear strengths still get the right archetype.
  */
 export function derivePlayStyle(stats: PlayerStats): PlayStyle {
-  const offensive = stats.mental.offensive;
-  const defensive = stats.mental.defensive;
-  const volley = stats.technical.volley;
-  const serve = stats.technical.serve;
-  const consistency = (stats.mental.focus + stats.mental.anticipation) / 2;
+  const allValues = getAllStatValues(stats);
+  const playerMean = allValues.reduce((a, b) => a + b, 0) / allValues.length;
 
-  let type: PlayStyle['type'];
-  let description: string;
+  // Score each specialized archetype
+  const scores: Record<PlayStyle['type'], number> = {
+    aggressive: 0,
+    defensive: 0,
+    counterpuncher: 0,
+    serve_volley: 0,
+    all_court: 0,
+  };
 
-  if (volley >= 70 && serve >= 65) {
-    type = 'serve_volley';
-    description = 'Aggressive net player who serves and volleys';
-  } else if (defensive >= 70 && offensive <= 50) {
-    type = 'counterpuncher';
-    description = 'Defensive specialist who waits for opportunities';
-  } else if (offensive >= 70 && defensive <= 50) {
-    type = 'aggressive';
-    description = 'Attacking player who goes for winners';
-  } else if (Math.abs(offensive - defensive) <= 15) {
-    type = 'all_court';
-    description = 'Versatile player comfortable anywhere on court';
-  } else {
-    type = 'defensive';
-    description = 'Solid baseline player who focuses on consistency';
+  for (const [archetype, signals] of Object.entries(ARCHETYPE_SIGNALS)) {
+    let score = 0;
+    for (const signal of signals) {
+      score += signal.weight * (signal.getStat(stats) - playerMean);
+    }
+    scores[archetype as PlayStyle['type']] = score;
   }
 
+  // all_court scores high when no other archetype dominates
+  const maxSpecializedScore = Math.max(
+    scores.aggressive,
+    scores.defensive,
+    scores.counterpuncher,
+    scores.serve_volley
+  );
+  scores.all_court = BASE_ALL_COURT_SCORE - maxSpecializedScore * DIFFERENTIATION_PENALTY;
+
+  // Pick the highest-scoring archetype (priority order breaks ties)
+  const priority: PlayStyle['type'][] = [
+    'aggressive', 'serve_volley', 'counterpuncher', 'defensive', 'all_court',
+  ];
+  let bestType: PlayStyle['type'] = 'all_court';
+  let bestScore = -Infinity;
+  for (const t of priority) {
+    if (scores[t] > bestScore) {
+      bestScore = scores[t];
+      bestType = t;
+    }
+  }
+
+  const consistency = (stats.mental.focus + stats.mental.anticipation) / 2;
+
   return {
-    type,
-    aggression: offensive,
-    netApproach: volley,
+    type: bestType,
+    aggression: stats.mental.offensive,
+    netApproach: stats.technical.volley,
     consistency,
     power: stats.physical.strength,
-    description,
+    description: ARCHETYPE_DESCRIPTIONS[bestType],
   };
 }
 
@@ -170,8 +245,6 @@ export class PlayerProfile implements IPlayerProfile {
       'drop_shot_backhand': 'dropShot',
 
       // Angle shots
-      'short_angle_forehand': 'dropShot',
-      'short_angle_backhand': 'dropShot',
       'angle_shot_forehand': 'placement',
       'angle_shot_backhand': 'placement',
 

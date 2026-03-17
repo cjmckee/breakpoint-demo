@@ -86,8 +86,6 @@ export type ShotType =
   | 'drop_shot_backhand'
 
   // Angle shots
-  | 'short_angle_forehand'
-  | 'short_angle_backhand'
   | 'angle_shot_forehand'
   | 'angle_shot_backhand'
 
