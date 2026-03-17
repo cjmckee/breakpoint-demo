@@ -130,7 +130,7 @@ export const MainMenu: React.FC = () => {
       title: 'Training',
       emoji: '🏋️',
       description: 'Improve your skills with focused practice sessions',
-      energyCost: 15,
+      energyCost: 0,
       action: () => setScreen('training'),
     },
     {

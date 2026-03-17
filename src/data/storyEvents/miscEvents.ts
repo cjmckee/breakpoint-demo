@@ -997,9 +997,11 @@ export const miscEvents: StoryEvent[] = [
         description: 'Keith convinces you to stay up all night playing video games.',
         dialogue: [
             ['keith', ['Dude. New tennis video game Backspin X just dropped. We HAVE to play it.']],
-            ['keith', ['It\'s so realistic. Check this out, it\'s time to take on Federer!']],
+            ['keith', ['It\'s so realistic. And it even has guest characters.']],
+            ['keith', ['Check this out, it\'s time to take on Federer and Taylor Swift! On the moon!']],
+            ['player', ['I don\'t- wait, what? Move over. It looks like we can unlock Lebron.']],
             [null, ['It is now 4 AM. You have been playing for 9 hours. You\'re delirious at this point.']],
-            ['keith', ['One more match. My virtual ', {characterId: 'keith'}, ' is about to win the virtual championship!']]
+            ['keith', ['One more match. Virtual ', {characterId: 'keith'}, ' and his partner Shakira are in the virtual finals!']]
         ],
         characters: ['keith'],
         options: [],

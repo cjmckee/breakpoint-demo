@@ -62,10 +62,11 @@ const TRAINING_SESSION_CONFIGS: Record<TrainingSessionType, TrainingConfig> = {
   footwork_training: {
     name: 'Footwork Training',
     category: 'physical',
-    energyCost: 25,
+    energyCost: 20,
     statBoosts: {
       speed: 1,
       agility: 1,
+      stamina: 1,
     },
     ability: AbilityName.SPEED_DEMON,
     description: 'Improve court coverage and movement',
@@ -73,7 +74,7 @@ const TRAINING_SESSION_CONFIGS: Record<TrainingSessionType, TrainingConfig> = {
   sports_psychology: {
     name: 'Sports Psychology',
     category: 'mental',
-    energyCost: 10,
+    energyCost: 20,
     statBoosts: {
       focus: 1,
       anticipation: 1,
@@ -85,7 +86,7 @@ const TRAINING_SESSION_CONFIGS: Record<TrainingSessionType, TrainingConfig> = {
   strength_training: {
     name: 'Strength Training',
     category: 'physical',
-    energyCost: 30,
+    energyCost: 20,
     statBoosts: {
       forehand: 1,
       strength: 1,
@@ -108,7 +109,7 @@ const TRAINING_SESSION_CONFIGS: Record<TrainingSessionType, TrainingConfig> = {
   return_rapidfire: {
     name: 'Return Rapidfire',
     category: 'physical',
-    energyCost: 35,
+    energyCost: 25,
     statBoosts: {
       return: 2,
       defensive: 1
@@ -119,7 +120,7 @@ const TRAINING_SESSION_CONFIGS: Record<TrainingSessionType, TrainingConfig> = {
   spin_specialist: {
     name: 'Spin Specialist',
     category: 'technical',
-    energyCost: 30,
+    energyCost: 25,
     statBoosts: {
       spin: 2,
       dropShot: 1
@@ -130,7 +131,7 @@ const TRAINING_SESSION_CONFIGS: Record<TrainingSessionType, TrainingConfig> = {
   remote_coaching: {
     name: 'Remote Coaching',
     category: 'mental',
-    energyCost: 15,
+    energyCost: 20,
     statBoosts: {
       recovery: 1,
       offensive: 1,
