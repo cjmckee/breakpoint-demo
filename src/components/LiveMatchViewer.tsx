@@ -3,7 +3,7 @@
  * Displays real-time match simulation with scores, stats, and key moments
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useMatchStore } from '../stores/matchStore';
 import { useGameStore } from '../stores/gameStore';
 import { Card } from './ui/Card';
@@ -26,10 +26,8 @@ export const LiveMatchViewer: React.FC = () => {
   const currentKeyMoment = useMatchStore((state) => state.currentKeyMoment);
   const isWaitingForChoice = useMatchStore((state) => state.isWaitingForChoice);
   const currentScore = useMatchStore((state) => state.currentScore);
-  const matchHistory = useMatchStore((state) => state.matchHistory);
   const matchConfig = useMatchStore((state) => state.matchConfig);
   const matchStatistics = useMatchStore((state) => state.matchStatistics);
-  const endMatch = useMatchStore((state) => state.endMatch);
   const setScreen = useGameStore((state) => state.setScreen);
   const player = useGameStore((state) => state.player);
 
@@ -43,6 +41,17 @@ export const LiveMatchViewer: React.FC = () => {
   };
 
   const [matchLog, setMatchLog] = useState<string[]>([]);
+
+  // Warn the player if they try to close/refresh mid-match
+  const handleBeforeUnload = useCallback((e: BeforeUnloadEvent) => {
+    e.preventDefault();
+    e.returnValue = '';
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [handleBeforeUnload]);
 
   // Derive stats from matchStatistics store
   const playerStats: MatchStats = {
@@ -63,14 +72,6 @@ export const LiveMatchViewer: React.FC = () => {
     pointsWon: matchStatistics?.totalPoints.opponent ?? 0,
   };
 
-  useEffect(() => {
-    if (!isMatchActive) {
-      // Match ended, return to main menu
-      // This will be triggered by matchStore when match completes
-      setScreen('main-menu');
-    }
-  }, [isMatchActive, setScreen]);
-
   const formatPoints = (points: number): string => {
     if (points === 0) return '0';
     if (points === 1) return '15';
@@ -87,13 +88,6 @@ export const LiveMatchViewer: React.FC = () => {
   const setsWon = {
     player: score.sets.filter(s => s.player > s.opponent).length,
     opponent: score.sets.filter(s => s.opponent > s.player).length,
-  };
-
-  const handleQuitMatch = () => {
-    if (window.confirm('Are you sure you want to quit this match? Progress will not be saved.')) {
-      endMatch(); // Cancel the ongoing match simulation
-      setScreen('main-menu');
-    }
   };
 
   if (!isMatchActive) {
@@ -115,12 +109,9 @@ export const LiveMatchViewer: React.FC = () => {
     <div className="min-h-screen bg-pixel-bg p-4">
       <KeyMomentResultToast />
       <div className="max-w-6xl mx-auto space-y-4">
-        {/* Header Actions */}
+        {/* Header */}
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-pixel-text">🎾 Live Match</h1>
-          <Button variant="secondary" onClick={handleQuitMatch}>
-            Quit Match
-          </Button>
         </div>
 
         {/* Score Display */}
