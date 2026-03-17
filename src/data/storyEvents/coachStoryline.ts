@@ -59,7 +59,7 @@ export const coachEvents: StoryEvent[] = [
     id: 'coach_training_focus',
     name: 'Choose Your Focus',
     tags: ['coach', 'training', 'decision'],
-    timeSlotsRequired: 2,
+    timeSlotsRequired: 1,
     prerequisites: {
       completedEvents: ['coach_first_meeting'],
     },
