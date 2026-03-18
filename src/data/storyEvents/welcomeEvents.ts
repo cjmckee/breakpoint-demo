@@ -294,7 +294,7 @@ export const welcomeEvents: StoryEvent[] = [
     tags: ['intro'],
     timeSlotsRequired: 0, // Doesn't consume time - informational event
     prerequisites: {
-      // This event is scheduled for day 15, do not require stats
+      // This event is scheduled for day 33 (after all 5 team matches), do not require stats
       completedEvents: ['abilities_basics', 'relationship_basics'],
     },
     skippable: false,
@@ -317,7 +317,7 @@ export const welcomeEvents: StoryEvent[] = [
           jen: 5,
         },
         scheduledEvents: [{
-          relativeDays: 3,  // Prep fires on day 15, ceremony on day 18
+          relativeDays: 3,  // Prep fires on day 33, ceremony on day 36
           scheduledTimeSlot: TimeSlot.MORNING,
           eventType: 'story' as const,
           metadata: { storyEventId: 'riverside_open_opening_ceremony' },
