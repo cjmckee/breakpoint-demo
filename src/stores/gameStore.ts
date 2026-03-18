@@ -223,7 +223,7 @@ export const useGameStore = create<GameState>()(
             const missed = missedEvents[0];
             const action = missed.eventType === 'tournament_match' || missed.eventType === 'story_match'
               ? `Rescheduling to Day ${state.calendar.currentDay + 1} ${TIME_SLOT_NAMES[missed.scheduledTimeSlot]}`
-              : missed.eventType === 'story' ? 'Clearing (will re-check via normal flow)' : 'Discarding';
+              : (missed.eventType === 'story' || missed.eventType === 'tournament_story') ? 'Clearing (will re-check via normal flow)' : 'Discarding';
             console.warn(
               `[EventReconciliation:Load] Missed ${missed.eventType} event ` +
               `scheduled for Day ${missed.scheduledDay} ${TIME_SLOT_NAMES[missed.scheduledTimeSlot]}` +
@@ -466,7 +466,7 @@ export const useGameStore = create<GameState>()(
             ` — now Day ${newCalendar.currentDay} ${TIME_SLOT_NAMES[newCalendar.currentTimeSlot]}.` +
             ` ${missed.eventType === 'tournament_match' || missed.eventType === 'story_match'
               ? `Rescheduling to Day ${newCalendar.currentDay + 1} ${TIME_SLOT_NAMES[missed.scheduledTimeSlot]}.`
-              : missed.eventType === 'story' ? 'Triggering now.' : 'Discarding.'
+              : (missed.eventType === 'story' || missed.eventType === 'tournament_story') ? 'Triggering now.' : 'Discarding.'
             }` +
             ` (${missedEvents.length} total missed event(s) remaining)`
           );
@@ -500,7 +500,7 @@ export const useGameStore = create<GameState>()(
             get().calendar
           );
 
-          if (scheduledEvent && scheduledEvent.eventType === 'story') {
+          if (scheduledEvent && (scheduledEvent.eventType === 'story' || scheduledEvent.eventType === 'tournament_story')) {
             // Scheduled story event: trigger by ID and clear the slot
             const storyEventId = (scheduledEvent.metadata as Record<string, unknown>)?.storyEventId as string | undefined;
             if (storyEventId) {
@@ -1649,13 +1649,14 @@ export const useGameStore = create<GameState>()(
         };
 
         // Handle bracket changes and progression
+        const isLastRound = activeTournament.currentRound + 1 >= config.rounds.length;
         if (result === 'loss' && activeTournament.currentBracket === 'winner') {
           // Move to loser bracket, continue to next round (don't replay opponents)
           updatedTournament.currentBracket = 'loser';
           updatedTournament.currentRound = activeTournament.currentRound + 1;
 
-          // Queue elimination event
-          if (config.eliminationEventId) {
+          // Queue elimination event only if there are more rounds (no consolation bracket in the finals)
+          if (config.eliminationEventId && !isLastRound) {
             setTimeout(() => {
               get().checkForStoryEventById(config.eliminationEventId!);
             }, 100);
@@ -1696,6 +1697,24 @@ export const useGameStore = create<GameState>()(
             setTimeout(() => {
               get().checkForStoryEventById(config.victoryEventId!);
             }, 100);
+          }
+
+          // Schedule consolation event if didn't win (fires a few days later)
+          if (!wonChampionship && config.consolationEventId) {
+            const consolationDay = calendar.currentDay + 3;
+            const { updatedEvents } = ScheduledEventManager.scheduleEventWithConflictResolution(
+              get().calendar.scheduledEvents,
+              'tournament_story',
+              consolationDay,
+              TimeSlot.MORNING,
+              { storyEventId: config.consolationEventId }
+            );
+            set((state) => ({
+              calendar: {
+                ...state.calendar,
+                scheduledEvents: updatedEvents,
+              },
+            }));
           }
         }
 
@@ -1762,6 +1781,9 @@ export const useGameStore = create<GameState>()(
             if (config.eliminationEventId) {
               eventIdsToRemove.push(config.eliminationEventId);
             }
+            if (config.consolationEventId) {
+              eventIdsToRemove.push(config.consolationEventId);
+            }
 
             // All round-specific events (prematch and postmatch for both brackets)
             config.rounds.forEach(round => {
@@ -1782,9 +1804,9 @@ export const useGameStore = create<GameState>()(
           calendar: {
             ...state.calendar,
             activeTournament: null,
-            // Clear only tournament_match scheduled events
+            // Clear tournament_match and tournament_story scheduled events
             scheduledEvents: state.calendar.scheduledEvents.filter(
-              event => event.eventType !== 'tournament_match'
+              event => event.eventType !== 'tournament_match' && event.eventType !== 'tournament_story'
             ),
           },
           completedStoryEvents: updatedCompletedEvents,

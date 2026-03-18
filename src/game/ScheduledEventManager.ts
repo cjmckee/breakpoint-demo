@@ -162,7 +162,7 @@ export class ScheduledEventManager {
       return { updatedEvents, storyEventToTrigger: null };
     }
 
-    if (missedEvent.eventType === 'story') {
+    if (missedEvent.eventType === 'story' || missedEvent.eventType === 'tournament_story') {
       // Story events trigger immediately
       return { updatedEvents: withoutMissed, storyEventToTrigger: missedEvent };
     }

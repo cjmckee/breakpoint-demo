@@ -80,6 +80,7 @@ export interface TournamentConfig {
   openingCeremonyEventId: string;  // Guaranteed event at start
   victoryEventId?: string;      // Event when all matches won
   eliminationEventId?: string;  // Event when eliminated (entered loser bracket)
+  consolationEventId?: string;  // Event scheduled after tournament ends without winning (fires a few days later)
 }
 
 // ============================================================================

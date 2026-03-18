@@ -239,7 +239,7 @@ export type ScheduledEventMetadata =
  * Can represent any activity scheduled for a specific day/time slot
  */
 export interface ScheduledEvent {
-  eventType: 'tournament_match' | 'training' | 'story' | 'rest' | 'story_match';
+  eventType: 'tournament_match' | 'training' | 'story' | 'rest' | 'story_match' | 'tournament_story';
   scheduledDay: number;
   scheduledTimeSlot: TimeSlot;
   metadata?: ScheduledEventMetadata;
@@ -250,7 +250,7 @@ export interface ScheduledEvent {
  * Uses relative days instead of absolute days, resolved at runtime
  */
 export interface ScheduledEventTemplate {
-  eventType: 'tournament_match' | 'training' | 'story' | 'rest' | 'story_match';
+  eventType: 'tournament_match' | 'training' | 'story' | 'rest' | 'story_match' | 'tournament_story';
   relativeDays: number;  // Days from current day (1 = tomorrow)
   scheduledTimeSlot: TimeSlot;
   metadata?: ScheduledEventMetadata;

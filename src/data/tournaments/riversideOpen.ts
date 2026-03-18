@@ -169,6 +169,7 @@ export const riversideOpen: TournamentConfig = {
   openingCeremonyEventId: 'riverside_open_opening_ceremony',
   victoryEventId: 'riverside_open_victory',
   eliminationEventId: 'riverside_open_elimination',
+  consolationEventId: 'riverside_open_consolation_promotion',
 
   // Tournament rounds (flexible array - can be any length)
   rounds: [

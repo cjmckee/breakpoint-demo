@@ -134,6 +134,46 @@ export const tournamentEvents: StoryEvent[] = [
         }
     },
 
+    {
+        id: 'riverside_open_consolation_promotion',
+        tags: ['tournament_ceremony'],
+        name: 'An Unexpected Promotion',
+        timeSlotsRequired: 0,
+        prerequisites: {},
+        skippable: false,
+        description: 'Coach Gonzalez has some surprising news for you.',
+        dialogue: [
+            [null, ['You haven\'t been able to sleep right since the tournament. The loss is still front and center in your mind.']],
+            [null, [{characterId: 'coach_gonzalez'}, ' catches you on your way to the courts.']],
+            ['coach_gonzalez', ['Hey, hold up. I have some news for you.']],
+            ['coach_gonzalez', ['So... you didn\'t exactly win the Riverside Open.']],
+            [null, ['You stare at him. Obviously.']],
+            ['coach_gonzalez', ['In fact, you were quite thoroughly eliminated.']],
+            ['player', ['...']],
+            ['coach_gonzalez', ['Here\'s the thing — the Regional committee reviewed all the participants, and they\'ve decided to move you up to the Regional tier training sessions.']],
+            [null, ['You blink. That doesn\'t seem right.']],
+            ['coach_gonzalez', ['Apparently, three of the players ranked above you got caught sneaking into the food hall after hours. Something about a late-night pasta heist. All suspended.']],
+            ['coach_gonzalez', ['So congratulations! You have been promoted. You are now one of my elite trainees.']],
+            [null, ['You open your mouth to protest but he cuts you off.']],
+            ['coach_gonzalez', ['Look, don\'t question it. Sometimes luck is a skill too. The silver tier training sessions are yours now. Better equipment, better drills, better everything.']],
+            ['coach_gonzalez', ['Just... try not to tell anyone how you got promoted. For both our sakes.']],
+            ['coach_gonzalez', ['Oh, and let ', {characterId: 'jen'}, ' and ', {characterId: 'keith'}, ' know they made it, too.']],
+            [null, ['He pats you on the shoulder and walks away whistling. You\'re not sure whether to feel proud or embarrassed.']],
+        ],
+        characters: ['coach_gonzalez'],
+        options: [],
+        defaultOutcome: {
+            resultText: ['You\'ve been promoted to the Regional tier! Silver training sessions are now available. Sometimes it\'s better to be lucky than good.'],
+            effects: {
+                tierChange: 2,
+                moodChange: 10,
+                relationshipChanges: {
+                    coach_gonzalez: 5,
+                },
+            }
+        }
+    },
+
     // ==========================================
     // ROUND 1: VS KEITH
     // ==========================================
