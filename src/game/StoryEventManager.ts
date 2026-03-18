@@ -38,7 +38,7 @@ export class StoryEventManager {
   private static getScheduledStoryEventIds(calendar: GameCalendar): Set<string> {
     const ids = new Set<string>();
     for (const scheduled of calendar.scheduledEvents) {
-      if ((scheduled.eventType === 'story' || scheduled.eventType === 'tournament_story') && scheduled.metadata) {
+      if (scheduled.eventType === 'story' && scheduled.metadata) {
         const storyId = (scheduled.metadata as Record<string, unknown>).storyEventId;
         if (typeof storyId === 'string') {
           ids.add(storyId);

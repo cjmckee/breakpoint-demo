@@ -223,7 +223,7 @@ export const useGameStore = create<GameState>()(
             const missed = missedEvents[0];
             const action = missed.eventType === 'tournament_match' || missed.eventType === 'story_match'
               ? `Rescheduling to Day ${state.calendar.currentDay + 1} ${TIME_SLOT_NAMES[missed.scheduledTimeSlot]}`
-              : (missed.eventType === 'story' || missed.eventType === 'tournament_story') ? 'Clearing (will re-check via normal flow)' : 'Discarding';
+              : missed.eventType === 'story' ? 'Clearing (will re-check via normal flow)' : 'Discarding';
             console.warn(
               `[EventReconciliation:Load] Missed ${missed.eventType} event ` +
               `scheduled for Day ${missed.scheduledDay} ${TIME_SLOT_NAMES[missed.scheduledTimeSlot]}` +
@@ -466,7 +466,7 @@ export const useGameStore = create<GameState>()(
             ` — now Day ${newCalendar.currentDay} ${TIME_SLOT_NAMES[newCalendar.currentTimeSlot]}.` +
             ` ${missed.eventType === 'tournament_match' || missed.eventType === 'story_match'
               ? `Rescheduling to Day ${newCalendar.currentDay + 1} ${TIME_SLOT_NAMES[missed.scheduledTimeSlot]}.`
-              : (missed.eventType === 'story' || missed.eventType === 'tournament_story') ? 'Triggering now.' : 'Discarding.'
+              : missed.eventType === 'story' ? 'Triggering now.' : 'Discarding.'
             }` +
             ` (${missedEvents.length} total missed event(s) remaining)`
           );
@@ -500,7 +500,7 @@ export const useGameStore = create<GameState>()(
             get().calendar
           );
 
-          if (scheduledEvent && (scheduledEvent.eventType === 'story' || scheduledEvent.eventType === 'tournament_story')) {
+          if (scheduledEvent && scheduledEvent.eventType === 'story') {
             // Scheduled story event: trigger by ID and clear the slot
             const storyEventId = (scheduledEvent.metadata as Record<string, unknown>)?.storyEventId as string | undefined;
             if (storyEventId) {
@@ -1704,7 +1704,7 @@ export const useGameStore = create<GameState>()(
             const consolationDay = calendar.currentDay + 3;
             const { updatedEvents } = ScheduledEventManager.scheduleEventWithConflictResolution(
               get().calendar.scheduledEvents,
-              'tournament_story',
+              'story',
               consolationDay,
               TimeSlot.MORNING,
               { storyEventId: config.consolationEventId }
@@ -1804,9 +1804,9 @@ export const useGameStore = create<GameState>()(
           calendar: {
             ...state.calendar,
             activeTournament: null,
-            // Clear tournament_match and tournament_story scheduled events
+            // Clear tournament_match scheduled events
             scheduledEvents: state.calendar.scheduledEvents.filter(
-              event => event.eventType !== 'tournament_match' && event.eventType !== 'tournament_story'
+              event => event.eventType !== 'tournament_match'
             ),
           },
           completedStoryEvents: updatedCompletedEvents,
