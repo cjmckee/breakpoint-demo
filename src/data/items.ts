@@ -700,6 +700,20 @@ export const TENNIS_BALL_KEYCHAIN: Item = {
   },
 };
 
+export const LUCKY_SPROUT: Item = {
+  id: 'lucky_sprout',
+  name: 'Lucky Sprout',
+  description: 'A small plant left behind by an opponent. You enjoy taking care of it.',
+  type: 'lucky',
+  modifiers: {
+    statBoosts: {
+      defensive: 2,
+      anticipation: 2,
+      placement: 2
+    }
+  }
+}
+
 // ============================================================================
 // ITEM COLLECTIONS
 // ============================================================================

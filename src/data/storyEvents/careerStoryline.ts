@@ -5,7 +5,7 @@
 
 import type { StoryEvent } from '../../types/storyEvents';
 import { ChallengeManager } from '../../game/ChallengeManager';
-import { TOURNAMENT_OUTFIT, SPONSOR_OUTFIT, HEADBAND, PRO_RACQUET, ENERGY_DRINK, BANANA } from '../items';
+import { TOURNAMENT_OUTFIT, SPONSOR_OUTFIT, HEADBAND, PRO_RACQUET, ENERGY_DRINK, BANANA, LUCKY_SPROUT } from '../items';
 import { CHALLENGE_TEAM_SPIRIT, CHALLENGE_SPONSOR_WORTHY } from '../challengeTemplates';
 import { TimeSlot } from '../../types/game';
 
@@ -116,15 +116,13 @@ export const careerEvents: StoryEvent[] = [
           offensive: 1,
           defensive: 1
         },
-        scheduledEvents: [{
-          relativeDays: 2,  // Schedule first match announcement 2 days after
-          scheduledTimeSlot: TimeSlot.MORNING,
-          eventType: 'story' as const,
-          metadata: { storyEventId: 'first_team_match_scheduled' },
-        }],
       },
     },
   },
+
+  // ==========================================
+  // Team Match #1: Aspen Slopes Academy
+  // ==========================================
 
   {
     id: 'first_team_match_scheduled',
@@ -205,8 +203,8 @@ export const careerEvents: StoryEvent[] = [
               winEventId: 'first_team_match_win',
               lossEventId: 'first_team_match_loss',
               surface: 'hard',
-              matchFormat: 'best-of-3',
-              matchTitle: 'Team Match: Academy vs Aspen Slopes',
+              matchFormat: 'best-of-1',
+              matchTitle: 'Team Match: Riverside vs Aspen Slopes',
               matchDescription: 'Your first official team match',
             },
           },
@@ -272,7 +270,7 @@ export const careerEvents: StoryEvent[] = [
       ['keith', ['I have no idea how you pulled it off! I think I had the score backwards.']],
       ['jen', ['Not bad at all! You were able to close out the big points, and didn\'t give up.']],
       ['coach_gonzalez', ['Good match. You didn\'t give up free points and you made him work. That wins matches at this level.']],
-      [null, ['The Academy ends up winning the overall team match, as well. It\'s a great start to the season!']],
+      [null, ['Riverside ends up winning the overall team match, as well. It\'s a great start to the season!']],
     ],
     characters: ['keith', 'jen', 'coach_gonzalez', 'chet_vale'],
     options: [],
@@ -320,13 +318,13 @@ export const careerEvents: StoryEvent[] = [
       ['jen', ['It happens. He was really quick out there. Not bad for a first match!']],
       ['keith', ['Yeah, no shame in losing man. You looked really good in the points I was watching.']],
       ['coach_gonzalez', ['You still competed all the way through, and today it wasn\'t enough. But it\'s just one match.']],
-      [null, ['Despite your loss, the Academy manages to win overall. Something to ease the sting.']],
+      [null, ['Despite your loss, Riverside manages to win overall. Something to ease the sting.']],
     ],
     characters: ['keith', 'jen', 'coach_gonzalez', 'chet_vale'],
     options: [],
     defaultOutcome: {
       resultText: [
-        'You lost your match, but the Academy won overall. There\'s still some room to improve.',
+        'You lost your match, but Riverside won overall. There\'s still some room to improve.',
         {characterId: 'chet_vale'}, ' is somehow already skiing back to the team bus.'
       ],
       effects: {
@@ -342,6 +340,225 @@ export const careerEvents: StoryEvent[] = [
           speed: 1,
           agility: 1,
           defensive: 1,
+        }
+      }
+    }
+  },
+
+  // ==========================================
+  // Team Match #2: Azalea Forest Tennis Club
+  // ==========================================
+
+  {
+    id: 'second_team_match_scheduled',
+    name: 'Second Team Match Announced',
+    tags: ['team'],
+    timeSlotsRequired: 0,
+    prerequisites: {
+      completedEvents: ['first_team_match_prematch'],
+    },
+    skippable: false,
+    description: 'Your second team match is announced.',
+    dialogue: [
+      [null, ['The team gathers up after practice around the single bulletin board.']],
+      [null, ['A new match has been scheduled against the Azalea Forest Tennis Club.']],
+      ['jen', ['Azalea Forest doesn\'t come out to the city very often. They like to stay off-grid.']],
+      ['greg', ['I heard they have all-grass courts.']],
+      ['coach_gonzalez', ['This will be a tough match. Azalea Forest has dominated the academy gardening circuit for decades.']],
+      ['coach_gonzalez', [{characterId: 'player'}, ' , you\'ll be playing the four again, taking on ', {characterId: 'richard_soil'}, '.']],
+      ['jen', ['Good luck. I played him last year and it felt like my feet were rooted to the ground.']],
+      ['greg', ['You\'re all lucky. They put me against Redwood Arbor. He just transferred in from San Francisco Botany Tech.']]
+    ],
+    characters: ['jen', 'greg', 'coach_gonzalez'],
+    options: [],
+    defaultOutcome: {
+      resultText: [
+        'A second team match is a second opportunity to show your improvement. Expect this to be a bit tougher!'
+      ],
+      effects: {
+        moodChange: 10,
+        energyChange: 5,
+        relationshipChanges: {
+          jen: 2,
+          greg: 2,
+          coach_gonzalez: 2
+        },
+        scheduledEvents: [
+          {
+            eventType: 'story_match',
+            relativeDays: 2,
+            scheduledTimeSlot: 1, // AFTERNOON
+            metadata: {
+              opponentId: 'richard_soil', 
+              opponentName: 'Rich Soil',
+              opponentStats: {
+                technical: {
+                  serve: 38,
+                  forehand: 42,
+                  backhand: 36,
+                  volley: 42,
+                  overhead: 32,
+                  dropShot: 31,
+                  slice: 41,
+                  return: 40,
+                  spin: 38,
+                  placement: 41,
+                },
+                physical: {
+                  speed: 41,
+                  stamina: 40,
+                  strength: 40,
+                  agility: 36,
+                  recovery: 30,
+                },
+                mental: {
+                  focus: 36,
+                  anticipation: 33,
+                  shotVariety: 28,
+                  offensive: 40,
+                  defensive: 28,
+                },
+              },
+              opponentTier: 1,
+              opponentDescription: 'A pretty strong well-rounded player from Azalea Forest',
+              prematchEventId: 'second_team_match_prematch',
+              winEventId: 'second_team_match_win',
+              lossEventId: 'second_team_match_loss',
+              surface: 'grass',
+              matchFormat: 'best-of-1',
+              matchTitle: 'Team Match: Riverside vs Azalea Forest',
+              matchDescription: 'Your second official team match',
+            },
+          },
+        ],
+      }
+    }
+  },
+
+  {
+    id: 'second_team_match_prematch',
+    name: 'Before the Match',
+    tags: ['story_match', 'team'],
+    timeSlotsRequired: 0,
+    prerequisites: {
+      completedEvents: ['second_team_match_scheduled'],
+    },
+    skippable: false,
+    description: 'The Azalea Forest team arrives for your second team match.',
+    dialogue: [
+      [null, ['The Azalea Forest players emerge from the trees, seemingly a little wary of the sunlight.']],
+      ['keith', ['...were they there the whole time?']],
+      [null, ['It\'s not clear. You try to focus on the task at hand.']],
+      ['jen', ['Just remember, we\'re playing on grass, so we should aim to hit more volleys and get up in the court.']],
+      [null, ['A long shadow appears on the ground behind you and you turn around with a jump.']],
+      ['richard_soil', ['You must be my opponent. The name\'s Rich. I hope you\'ve done your homework. I\'ve done extensive research into our environment here.']],
+      ['richard_soil', ['These courts aren\'t even using Perennial Ryegrass. You mongrels are using Bermuda. ']],
+    ],
+    characters: ['keith', 'jen', 'richard_soil'],
+    options: [],
+    defaultOutcome: {
+      resultText: [
+        'You head out onto the court for your second team match. You\'re getting a little better at this.',
+        'Actually, you can kinda see what ', {characterId: 'rich'}, ' was saying about the grass.'
+      ],
+      effects: {
+        moodChange: 5,
+        energyChange: -10,
+        relationshipChanges: {
+          richard_soil: 2
+        },
+      }
+    }
+  },
+
+  {
+    id: 'second_team_match_win',
+    name: 'Victory!',
+    tags: ['story_match', 'team'],
+    timeSlotsRequired: 0,
+    prerequisites: {
+      completedEvents: ['second_team_match_prematch'],
+    },
+    skippable: false,
+    description: 'You win your second team match!',
+    dialogue: [
+      [null, ['You breathe a sigh of relief as ', {characterId: 'richard_soil'}, '\'s last shot flies over your head.']],
+      ['richard_soil', ['You should fire your landscaping guy. Plus the net is too high anyway, so this match shouldn\'t count.']],
+      [null, ['You exchange a quick handshake and head back to your cheering teammates.']],
+      ['jen', ['Amazing job out there! You had to try a few different things before you found what worked.']],
+      [null, ['After a few seconds, you finally think of something witty to say to ', {characterId: 'richard_soil'}, '.']],
+      [null, ['You turn around only to see he\'s completely disappeared. Dispersed into the shadows.']],
+      [null, ['Oh, actually he was just in the bathroom. The moment has passed anyway.']],
+      ['coach_gonzalez', ['Another great performance! Keep it up and you just might keep moving up the lineup.']],
+      [null, ['Riverside sweeps the team match, winning all the courts. Great showing!']]
+    ],
+    characters: ['richard_soil', 'jen', 'coach_gonzalez'],
+    options: [],
+    defaultOutcome: {
+      resultText: [
+        'Another team match win! You feel yourself gaining some confidence and becoming a more trusted member of the team. ',
+        'You find a small plant on the ground with your name on the tag. Someone left it for you.',
+      ],
+      effects: {
+        moodChange: 20,
+        energyChange: -20,
+        relationshipChanges: {
+          keith: 3,
+          jen: 2,
+          coach_gonzalez: 3,
+          richard_soil: -5
+        },
+        statChanges: {
+          backhand: 1,
+          slice: 2,
+          agility: 2,
+          shotVariety: 1
+        },
+        itemsGained: [LUCKY_SPROUT]
+      }
+    }
+  },
+
+  {
+    id: 'second_team_match_loss',
+    name: 'A Tough Loss',
+    tags: ['team'],
+    timeSlotsRequired: 0,
+    prerequisites: {
+      completedEvents: ['second_team_match_prematch'],
+      excludedEvents: ['second_team_match_win']
+    },
+    skippable: false,
+    description: 'You lose your second team match',
+    dialogue: [
+      [null, ['The final shot scrapes the line and spins past you. You lose.']],
+      [null, ['You feel like you can hardly walk, and yet ', {characterId: 'richard_soil'}, ' awaits you at the net - full of energy.']],
+      ['richard_soil', ['If it makes you feel better, you play great for city folk. Come find me if you want to escape it all.']],
+      [null, ['Your teammates are still supportive, and you join them in rooting for your team in the other matches.']],
+      ['jen', ['You know we\'ll always cheer for you either way!']],
+      ['coach_gonzalez', ['I know it\'s hard to look past the plant jokes, but this is really a growth moment for you.']],
+      [null, ['Your other teammates manage to come back in a long tiebreak, and Riverside wins the match overall. ']]
+    ],
+    characters: ['richard_soil', 'jen', 'coach_gonzalez'],
+    options: [],
+    defaultOutcome: {
+      resultText: [
+        'You lost your match, but Riverside won overall. You still find some moments to learn from.',
+        'You find a small plant on the ground with your name on the tag. Someone left it for you.'
+      ],
+      effects: {
+        moodChange: -10,
+        energyChange: -20,
+        relationshipChanges: {
+          keith: 2,
+          jen: 2,
+          coach_gonzalez: 2,
+          richard_soil: 1
+        },
+        statChanges: {
+          volley: 1,
+          overhead: 1,
+          serve: 2,
         }
       }
     }
