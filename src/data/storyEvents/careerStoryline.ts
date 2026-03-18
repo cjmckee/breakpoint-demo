@@ -564,6 +564,671 @@ export const careerEvents: StoryEvent[] = [
     }
   },
 
+  // ==========================================
+  // Team Match #3: Millbrook Mime Academy
+  // ==========================================
+
+  {
+    id: 'third_team_match_scheduled',
+    name: 'Third Team Match Announced',
+    tags: ['team'],
+    timeSlotsRequired: 0,
+    prerequisites: {
+      completedEvents: ['second_team_match_prematch'],
+    },
+    skippable: false,
+    description: 'Your third team match is announced.',
+    dialogue: [
+      [null, ['The bulletin board has a new posting. You can tell something is unusual because nobody is talking about it. Like, at all.']],
+      ['keith', ['I tried to read it out loud and nothing came out of my mouth. Something is wrong.']],
+      ['jen', ['Millbrook Mime Academy. They\'re a performing arts school. Apparently they added a tennis program six years ago and haven\'t said a single word about it.']],
+      ['coach_gonzalez', ['They are genuinely excellent tennis players. But they never speak. Not in warm-ups. Not during points. Not during changeovers. The silence is absolutely going to get to you.']],
+      ['coach_gonzalez', [{characterId: 'player'}, ', your opponent is ', {characterId: 'marcel_blanc'}, '. He placed second in juniors last year and never once called his shots in or out. Judges hated it. He won anyway.']],
+      ['keith', ['What do you even say to someone who refuses to speak? How do you trash talk? How do I make him feel bad??']],
+      ['jen', ['Keith. Maybe just... don\'t.']],
+    ],
+    characters: ['keith', 'jen', 'coach_gonzalez'],
+    options: [],
+    defaultOutcome: {
+      resultText: [
+        'A team match against Millbrook Mime Academy. Absolutely nobody at the Academy seems to know how to feel about this.',
+        'You decide you\'ll be totally fine with the silence. You\'re a calm, focused person.',
+      ],
+      effects: {
+        moodChange: 5,
+        energyChange: 0,
+        relationshipChanges: {
+          jen: 1,
+          keith: 1,
+          coach_gonzalez: 1,
+        },
+        scheduledEvents: [
+          {
+            eventType: 'story_match',
+            relativeDays: 2,
+            scheduledTimeSlot: 1, // AFTERNOON
+            metadata: {
+              opponentId: 'marcel_blanc',
+              opponentName: 'Marcel Blanc',
+              opponentStats: {
+                technical: {
+                  serve: 45,
+                  forehand: 48,
+                  backhand: 44,
+                  volley: 38,
+                  overhead: 40,
+                  dropShot: 42,
+                  slice: 46,
+                  return: 44,
+                  spin: 46,
+                  placement: 48,
+                },
+                physical: {
+                  speed: 44,
+                  stamina: 46,
+                  strength: 40,
+                  agility: 48,
+                  recovery: 42,
+                },
+                mental: {
+                  focus: 52,
+                  anticipation: 48,
+                  shotVariety: 44,
+                  offensive: 44,
+                  defensive: 46,
+                },
+              },
+              opponentTier: 2,
+              opponentDescription: 'A eerily silent and highly focused player from Millbrook Mime Academy',
+              prematchEventId: 'third_team_match_prematch',
+              winEventId: 'third_team_match_win',
+              lossEventId: 'third_team_match_loss',
+              surface: 'clay',
+              matchFormat: 'best-of-1',
+              matchTitle: 'Team Match: Riverside vs Millbrook Mime Academy',
+              matchDescription: 'Your third official team match',
+            },
+          },
+        ],
+      }
+    }
+  },
+
+  {
+    id: 'third_team_match_prematch',
+    name: 'Before the Match',
+    tags: ['story_match', 'team'],
+    timeSlotsRequired: 0,
+    prerequisites: {
+      completedEvents: ['third_team_match_scheduled'],
+    },
+    skippable: false,
+    description: 'The Millbrook Mime Academy team arrives for your third team match.',
+    dialogue: [
+      [null, ['The Millbrook bus pulls up. The doors open. Nobody gets off.']],
+      [null, ['After about ninety seconds of silence, players begin stepping off one by one. They don\'t look around. They don\'t acknowledge your team. They walk directly to their assigned courts.']],
+      ['keith', ['I said hello to three of them. Not one reacted. Is this legal?']],
+      [null, ['You hear a single slow clap from the far end of the court. You turn to see your opponent.']],
+      ['marcel_blanc', ['...']],
+      [null, [{characterId: 'marcel_blanc'}, ' tilts his head and raises one eyebrow. He points to the court, then back to you, then mimes an elaborate swing ending with the universal gesture for "you\'re done."']],
+      ['jen', ['He just mimed your entire defeat. That was very detailed.']],
+      ['keith', ['I\'m going to talk to him THE ENTIRE MATCH. I feel called to do this.']],
+      ['coach_gonzalez', ['Please do not do that, ', {characterId: 'keith'}, '. ', {characterId: 'player'}, ', he\'s going to try to get in your head. Ignore it. Play your game.']],
+    ],
+    characters: ['keith', 'jen', 'coach_gonzalez', 'marcel_blanc'],
+    options: [],
+    defaultOutcome: {
+      resultText: [
+        'You take the court. ',{characterId: 'marcel_blanc'}, ' spins his racquet. It lands on the wrong side. He doesn\'t say anything. He just spins it again.',
+        'You\'re already a little rattled.',
+      ],
+      effects: {
+        moodChange: -5,
+        energyChange: -5,
+        relationshipChanges: {
+          marcel_blanc: 1,
+        },
+      }
+    }
+  },
+
+  {
+    id: 'third_team_match_win',
+    name: 'Victory!',
+    tags: ['story_match', 'team'],
+    timeSlotsRequired: 0,
+    prerequisites: {
+      completedEvents: ['third_team_match_prematch'],
+    },
+    skippable: false,
+    description: 'You win your third team match!',
+    dialogue: [
+      [null, ['The match point sails by ', {characterId: 'marcel_blanc'}, '. He freezes. You hold your breath.']],
+      [null, ['Slowly, he walks to the net. He extends his hand. When you shake it, he nods once, deeply. Then he performs a brief but unmistakably sincere mime of removing his hat and bowing.']],
+      ['keith', ['He BOWED. He MIMED a bow! I need to lie down.']],
+      ['jen', ['That\'s actually the highest compliment in mime culture. I think you\'ve earned his respect.']],
+      [null, [{characterId: 'marcel_blanc'}, ' turns and walks back to his side. He pauses, turns back, and mimes shooting you a finger gun. Then he\'s gone.']],
+      ['coach_gonzalez', ['You stayed calm and let your game do the talking. Fitting, considering the circumstances.']],
+      [null, ['Riverside wins the overall team match. Even ', {characterId: 'keith'}, '\'s court, which raises several questions.']],
+    ],
+    characters: ['keith', 'jen', 'coach_gonzalez', 'marcel_blanc'],
+    options: [],
+    defaultOutcome: {
+      resultText: [
+        'A win against Millbrook Mime Academy. You feel you have earned something today, but you couldn\'t quite say what.',
+        'Keith claims he broke through to one of their players by the end of the match. No one believes him.',
+      ],
+      effects: {
+        moodChange: 25,
+        energyChange: -20,
+        relationshipChanges: {
+          keith: 3,
+          jen: 2,
+          coach_gonzalez: 3,
+          marcel_blanc: 2,
+        },
+        statChanges: {
+          focus: 3,
+          anticipation: 2,
+          placement: 2,
+        },
+        itemsGained: [BANANA],
+      }
+    }
+  },
+
+  {
+    id: 'third_team_match_loss',
+    name: 'A Tough Loss',
+    tags: ['team'],
+    timeSlotsRequired: 0,
+    prerequisites: {
+      completedEvents: ['third_team_match_prematch'],
+      excludedEvents: ['third_team_match_win']
+    },
+    skippable: false,
+    description: 'You lose your third team match.',
+    dialogue: [
+      [null, ['Your last shot clips the net and drops into your side of the court. ', {characterId: 'marcel_blanc'}, ' doesn\'t react.']],
+      [null, ['He walks to the net with the same expression he\'s had the entire match, which is no expression. He shakes your hand. He mimes applause. It\'s deeply unsettling.']],
+      ['keith', ['He\'s been doing a mime of your entire match for the last ten minutes. It\'s remarkably accurate and I don\'t like it.']],
+      ['jen', ['He\'s really good. You competed hard. This wasn\'t your day.']],
+      ['coach_gonzalez', ['You let the silence get to you early. Next time, just focus on the ball. The ball makes noise.']],
+      [null, ['Riverside still wins the team match overall. The scoreboard stays quiet. Everything stays quiet.']],
+      ['keith', ['I asked one of their players if they needed directions to the bus. He just mimed a car driving away. So I think they\'re fine.']],
+    ],
+    characters: ['keith', 'jen', 'coach_gonzalez', 'marcel_blanc'],
+    options: [],
+    defaultOutcome: {
+      resultText: [
+        'You lost your match, but Riverside won overall. ',
+        {characterId: 'marcel_blanc'}, ' has already departed without a word. Or any sound at all. The bus didn\'t even honk.'
+      ],
+      effects: {
+        moodChange: -10,
+        energyChange: -20,
+        relationshipChanges: {
+          keith: 2,
+          jen: 2,
+          coach_gonzalez: 2,
+          marcel_blanc: 3,
+        },
+        statChanges: {
+          focus: 2,
+          defensive: 2,
+          anticipation: 1,
+        }
+      }
+    }
+  },
+
+  // ==========================================
+  // Team Match #4: Portside Maritime Academy
+  // ==========================================
+
+  {
+    id: 'fourth_team_match_scheduled',
+    name: 'Fourth Team Match Announced',
+    tags: ['team'],
+    timeSlotsRequired: 0,
+    prerequisites: {
+      completedEvents: ['third_team_match_prematch'],
+    },
+    skippable: false,
+    description: 'Your fourth team match is announced.',
+    dialogue: [
+      [null, ['The bulletin board has a new match posted. You read it twice to make sure you haven\'t misunderstood.']],
+      ['keith', ['"Portside Maritime Academy." Do they... do they have courts on a boat?']],
+      ['jen', ['No, they have a naval curriculum that includes tennis. They believe racquet sports build spatial awareness for navigation.']],
+      ['greg', ['I heard their courts are painted with latitude lines.']],
+      ['coach_gonzalez', ['They use a lot of cross-court angles and they communicate exclusively in nautical terms. It will sound like gibberish but don\'t be fooled - they\'re extremely well-coached.']],
+      ['coach_gonzalez', [{characterId: 'player'}, ', you\'ve got ', {characterId: 'captain_wade'}, '. He\'s their top singles player. Very consistent from the baseline, plays like he\'s got all day and the tide is with him.']],
+      ['keith', ['What does that even MEAN though.']],
+      ['coach_gonzalez', ['I don\'t know. But he wins.']],
+    ],
+    characters: ['keith', 'jen', 'greg', 'coach_gonzalez'],
+    options: [],
+    defaultOutcome: {
+      resultText: [
+        'Portside Maritime Academy. You look up what a "fathom" is. You\'re not sure it helps.',
+      ],
+      effects: {
+        moodChange: 5,
+        energyChange: 0,
+        relationshipChanges: {
+          jen: 1,
+          greg: 1,
+          coach_gonzalez: 2,
+        },
+        scheduledEvents: [
+          {
+            eventType: 'story_match',
+            relativeDays: 2,
+            scheduledTimeSlot: 1, // AFTERNOON
+            metadata: {
+              opponentId: 'captain_wade',
+              opponentName: 'Captain Wade Heron',
+              opponentStats: {
+                technical: {
+                  serve: 52,
+                  forehand: 55,
+                  backhand: 50,
+                  volley: 50,
+                  overhead: 46,
+                  dropShot: 42,
+                  slice: 52,
+                  return: 54,
+                  spin: 50,
+                  placement: 55,
+                },
+                physical: {
+                  speed: 50,
+                  stamina: 55,
+                  strength: 50,
+                  agility: 46,
+                  recovery: 48,
+                },
+                mental: {
+                  focus: 52,
+                  anticipation: 55,
+                  shotVariety: 46,
+                  offensive: 50,
+                  defensive: 52,
+                },
+              },
+              opponentTier: 2,
+              opponentDescription: 'A steady, patient player from Portside Maritime Academy who communicates entirely in nautical jargon',
+              prematchEventId: 'fourth_team_match_prematch',
+              winEventId: 'fourth_team_match_win',
+              lossEventId: 'fourth_team_match_loss',
+              surface: 'hard',
+              matchFormat: 'best-of-1',
+              matchTitle: 'Team Match: Riverside vs Portside Maritime',
+              matchDescription: 'Your fourth official team match',
+            },
+          },
+        ],
+      }
+    }
+  },
+
+  {
+    id: 'fourth_team_match_prematch',
+    name: 'Before the Match',
+    tags: ['story_match', 'team'],
+    timeSlotsRequired: 0,
+    prerequisites: {
+      completedEvents: ['fourth_team_match_scheduled'],
+    },
+    skippable: false,
+    description: 'The Portside Maritime Academy team arrives for your fourth team match.',
+    dialogue: [
+      [null, ['The Portside team arrives in matching navy-and-white uniforms. They walk in single file. There is unnecessary precision to all of this.']],
+      ['captain_wade', ['Permission to take court four, Coach?']],
+      [null, ['He\'s talking to their own coach, who responds: "Permission granted, Captain."']],
+      ['keith', ['He called himself Captain. His name is Captain. They call him Captain. Is he actually a captain?']],
+      ['jen', ['He runs the tennis program AND the school\'s sailing club. So. Sort of.']],
+      ['captain_wade', ['Ah. You must be my port-side adversary today. Good winds to you.']],
+      [null, ['He looks you up and down like he\'s assessing sea conditions.']],
+      ['captain_wade', ['I\'ve reviewed your stats. Your starboard game is strong, but I\'ll be cutting off your windward lane and forcing you aft. Nothing personal. Just navigation.']],
+      ['keith', ['I understood "your" and "just." The rest is noise.']],
+      ['coach_gonzalez', ['He means he\'s going to push you back and wide to your backhand side. Keep your feet moving or he\'ll have you on the ropes. ...Or the ropes. Whatever they say.']],
+    ],
+    characters: ['keith', 'jen', 'coach_gonzalez', 'captain_wade'],
+    options: [],
+    defaultOutcome: {
+      resultText: [
+        'You head to the court. ', {characterId: 'captain_wade'}, ' is already there, checking the net tension with practiced precision.',
+        'He checks it twice. You\'re not sure why, but it starts to seem reasonable.',
+      ],
+      effects: {
+        moodChange: -5,
+        energyChange: -5,
+        relationshipChanges: {
+          captain_wade: 2,
+        },
+      }
+    }
+  },
+
+  {
+    id: 'fourth_team_match_win',
+    name: 'Victory!',
+    tags: ['story_match', 'team'],
+    timeSlotsRequired: 0,
+    prerequisites: {
+      completedEvents: ['fourth_team_match_prematch'],
+    },
+    skippable: false,
+    description: 'You win your fourth team match!',
+    dialogue: [
+      ['captain_wade', ['Man overboard! ...Figuratively. That is to say, I have lost this match.']],
+      [null, [{characterId: 'captain_wade'}, ' approaches the net with a measured hand shake. He\'s clearly not used to this particular outcome.']],
+      ['captain_wade', ['You cut off my windward lane before I could establish it. I should have tacked earlier. Well sailed.']],
+      ['keith', ['He said "well sailed"! You didn\'t even sail anything!']],
+      ['jen', ['I think it\'s the highest compliment he gives.']],
+      ['captain_wade', ['Your anchor point on the forehand side became impossible to navigate around after the fifth game. I\'ll chart this for future expeditions.']],
+      [null, ['He pulls out a small notebook and actually writes something down. You wonder if this is how he reviews all his matches.']],
+      ['coach_gonzalez', ['You stayed disciplined and kept him guessing. Really strong performance today.']],
+      [null, ['Riverside wins the overall team match. Keith wins his court, which he announces to everyone still on the premises.']],
+    ],
+    characters: ['keith', 'jen', 'coach_gonzalez', 'captain_wade'],
+    options: [],
+    defaultOutcome: {
+      resultText: [
+        'You\'ve navigated to victory. ', {characterId: 'captain_wade'}, ' files a small chart in his notebook and shakes your hand one final time before the team departs.',
+        'He sends you a very formal handwritten note the next day. It references your "port-side forehand trajectory" three times.',
+      ],
+      effects: {
+        moodChange: 25,
+        energyChange: -20,
+        relationshipChanges: {
+          keith: 3,
+          jen: 2,
+          coach_gonzalez: 3,
+          captain_wade: 2,
+        },
+        statChanges: {
+          placement: 3,
+          anticipation: 2,
+          stamina: 2,
+        },
+        itemsGained: [HEADBAND],
+      }
+    }
+  },
+
+  {
+    id: 'fourth_team_match_loss',
+    name: 'A Tough Loss',
+    tags: ['team'],
+    timeSlotsRequired: 0,
+    prerequisites: {
+      completedEvents: ['fourth_team_match_prematch'],
+      excludedEvents: ['fourth_team_match_win']
+    },
+    skippable: false,
+    description: 'You lose your fourth team match.',
+    dialogue: [
+      ['captain_wade', ['Land ho. Match point. Well competed.']],
+      [null, [{characterId: 'captain_wade'}, ' meets you at the net. His handshake is firm. He\'s already got the notebook out.']],
+      ['captain_wade', ['You overcomplicated your approach in the second set. You tried to find the deep water when the coast was right in front of you.']],
+      [null, ['You nod like you understood that.']],
+      ['jen', ['You had your moments out there. He just found answers every time you pushed.']],
+      ['keith', ['He kept saying things that sounded like directions and I still can\'t figure out if it was trash talk or not.']],
+      ['coach_gonzalez', ['You played well enough to win. Today he was just a little better. Learn from it and bring it next time.']],
+      [null, ['Riverside wins the team match overall. ', {characterId: 'captain_wade'}, ' charts that too, presumably.']],
+    ],
+    characters: ['keith', 'jen', 'coach_gonzalez', 'captain_wade'],
+    options: [],
+    defaultOutcome: {
+      resultText: [
+        'You lost your match, but Riverside won overall.',
+        'You find yourself briefly wondering what a "windward lane" is. You look it up. It doesn\'t help as much as you hoped.',
+      ],
+      effects: {
+        moodChange: -10,
+        energyChange: -20,
+        relationshipChanges: {
+          keith: 2,
+          jen: 2,
+          coach_gonzalez: 2,
+          captain_wade: 3,
+        },
+        statChanges: {
+          placement: 2,
+          defensive: 2,
+          anticipation: 1,
+        }
+      }
+    }
+  },
+
+  // ==========================================
+  // Team Match #5: Sunridge Napping Institute
+  // ==========================================
+
+  {
+    id: 'fifth_team_match_scheduled',
+    name: 'Fifth Team Match Announced',
+    tags: ['team'],
+    timeSlotsRequired: 0,
+    prerequisites: {
+      completedEvents: ['fourth_team_match_prematch'],
+    },
+    skippable: false,
+    description: 'Your fifth team match is announced.',
+    dialogue: [
+      [null, ['A new posting goes up on the bulletin board. There is already a piece of paper attached to it that reads "wake us up if this is important."']],
+      ['jen', ['Sunridge Napping Institute. They\'re a sleep science research school. Their tennis team is ranked second in the division.']],
+      ['keith', ['Behind us??']],
+      ['jen', ['Behind us.']],
+      ['greg', ['I heard they do all their tactical preparation during REM sleep. Allegedly their coach just reads match footage out loud while they nap.']],
+      ['coach_gonzalez', ['Don\'t underestimate them. They have an incredible ability to conserve energy during long points. You won\'t be able to wear them down. They\'re immune to it.']],
+      ['coach_gonzalez', [{characterId: 'player'}, ', your opponent is ', {characterId: 'dozy_mcdonnell'}, '. He\'s won three consecutive matches this season and reportedly fell briefly asleep during a changeover in two of them.']],
+      ['keith', ['That CANNOT be real.']],
+      ['coach_gonzalez', ['He woke up and won both matches. I don\'t know what to tell you.']],
+    ],
+    characters: ['keith', 'jen', 'greg', 'coach_gonzalez'],
+    options: [],
+    defaultOutcome: {
+      resultText: [
+        'Sunridge Napping Institute. You try to look up their recent results. Their team website hasn\'t been updated in several months.',
+        'The last entry says "good naps had by all." Then there\'s nothing.',
+      ],
+      effects: {
+        moodChange: 5,
+        energyChange: 0,
+        relationshipChanges: {
+          jen: 1,
+          greg: 1,
+          coach_gonzalez: 2,
+        },
+        scheduledEvents: [
+          {
+            eventType: 'story_match',
+            relativeDays: 2,
+            scheduledTimeSlot: 1, // AFTERNOON
+            metadata: {
+              opponentId: 'dozy_mcdonnell',
+              opponentName: 'Dozy McDonnell',
+              opponentStats: {
+                technical: {
+                  serve: 58,
+                  forehand: 62,
+                  backhand: 56,
+                  volley: 52,
+                  overhead: 50,
+                  dropShot: 55,
+                  slice: 58,
+                  return: 60,
+                  spin: 56,
+                  placement: 58,
+                },
+                physical: {
+                  speed: 52,
+                  stamina: 68,
+                  strength: 50,
+                  agility: 54,
+                  recovery: 70,
+                },
+                mental: {
+                  focus: 58,
+                  anticipation: 60,
+                  shotVariety: 52,
+                  offensive: 55,
+                  defensive: 62,
+                },
+              },
+              opponentTier: 2,
+              opponentDescription: 'A deceptively relaxed player from Sunridge Napping Institute with extraordinary stamina and recovery',
+              prematchEventId: 'fifth_team_match_prematch',
+              winEventId: 'fifth_team_match_win',
+              lossEventId: 'fifth_team_match_loss',
+              surface: 'clay',
+              matchFormat: 'best-of-1',
+              matchTitle: 'Team Match: Riverside vs Sunridge Napping Institute',
+              matchDescription: 'Your fifth official team match',
+            },
+          },
+        ],
+      }
+    }
+  },
+
+  {
+    id: 'fifth_team_match_prematch',
+    name: 'Before the Match',
+    tags: ['story_match', 'team'],
+    timeSlotsRequired: 0,
+    prerequisites: {
+      completedEvents: ['fifth_team_match_scheduled'],
+    },
+    skippable: false,
+    description: 'The Sunridge Napping Institute team arrives for your fifth team match.',
+    dialogue: [
+      [null, ['The Sunridge minivan pulls up to the courts. Nothing happens for a moment. Then, very slowly, the side door slides open.']],
+      [null, ['The Sunridge players step out one by one, each carrying a small travel pillow. Two of them are already wearing eye masks on their foreheads. One appears to still be asleep.']],
+      ['keith', ['Is he sleepwalking to court? He\'s sleepwalking to court.']],
+      ['jen', ['Apparently they nap on all road trips. It\'s part of their pre-match routine.']],
+      [null, ['A figure ambles over to you. He has the eyes of someone who just woke up and the posture of someone who might go back to sleep.']],
+      ['dozy_mcdonnell', ['Oh. You\'re my match. Great. ', '*yawns*', ' Sorry, just finishing a dream. Good one too.']],
+      ['dozy_mcdonnell', ['Don\'t worry about me. I\'ll be fully awake by the third game. Probably. I had a lot of chamomile last night.']],
+      [null, ['He does a slow neck roll, closes his eyes for four full seconds, then opens them again. He looks... ready?']],
+      ['coach_gonzalez', ['DO NOT fall for it. The sleepiness is either real and completely irrelevant, or fake and extremely manipulative. Either way you need to play your best tennis.']],
+    ],
+    characters: ['keith', 'jen', 'coach_gonzalez', 'dozy_mcdonnell'],
+    options: [],
+    defaultOutcome: {
+      resultText: [
+        {characterId: 'dozy_mcdonnell'}, ' yawns one more time, tucks his travel pillow under his arm, and ambles to the baseline.',
+        'You feel weirdly sleepy just watching him.',
+      ],
+      effects: {
+        moodChange: -5,
+        energyChange: -5,
+        relationshipChanges: {
+          dozy_mcdonnell: 1,
+        },
+      }
+    }
+  },
+
+  {
+    id: 'fifth_team_match_win',
+    name: 'Victory!',
+    tags: ['story_match', 'team'],
+    timeSlotsRequired: 0,
+    prerequisites: {
+      completedEvents: ['fifth_team_match_prematch'],
+    },
+    skippable: false,
+    description: 'You win your fifth team match!',
+    dialogue: [
+      [null, ['Your final shot clips the line. You pump your fist.']],
+      [null, [{characterId: 'dozy_mcdonnell'}, ' watches it land, tilts his head, and then nods slowly.']],
+      ['dozy_mcdonnell', ['Huh. Good match. You were relentless. I\'m impressed. Also exhausted. That\'s very rare for me.']],
+      [null, ['He shakes your hand with a surprisingly firm grip.']],
+      ['dozy_mcdonnell', ['I\'m going to think about that backhand winner while I fall asleep tonight. That\'s the highest praise I give.']],
+      ['keith', ['He looks half asleep RIGHT NOW and he just played the best tennis I\'ve ever seen. I have so many questions about human biology.']],
+      ['jen', ['You really pushed the pace early before he could settle in. Really smart game plan.']],
+      ['coach_gonzalez', ['That was a mature performance. You identified his strength and played around it. That\'s the mark of a real competitor.']],
+      [null, ['Riverside wins the team match! ', {characterId: 'dozy_mcdonnell'}, ' is already asleep in the back of the minivan before it even leaves the parking lot.']],
+    ],
+    characters: ['keith', 'jen', 'coach_gonzalez', 'dozy_mcdonnell'],
+    options: [],
+    defaultOutcome: {
+      resultText: [
+        'A well-earned win. You out-hustled one of the most relaxed humans you\'ve ever met.',
+        'Jen says that counts double.',
+      ],
+      effects: {
+        moodChange: 30,
+        energyChange: -25,
+        relationshipChanges: {
+          keith: 3,
+          jen: 3,
+          coach_gonzalez: 3,
+          dozy_mcdonnell: 2,
+        },
+        statChanges: {
+          stamina: 3,
+          offensive: 2,
+          speed: 2,
+          recovery: 2,
+        },
+        itemsGained: [ENERGY_DRINK],
+      }
+    }
+  },
+
+  {
+    id: 'fifth_team_match_loss',
+    name: 'A Tough Loss',
+    tags: ['team'],
+    timeSlotsRequired: 0,
+    prerequisites: {
+      completedEvents: ['fifth_team_match_prematch'],
+      excludedEvents: ['fifth_team_match_win']
+    },
+    skippable: false,
+    description: 'You lose your fifth team match.',
+    dialogue: [
+      [null, ['The match ends. ', {characterId: 'dozy_mcdonnell'}, ' seemed to grow more alert as the match went on, which felt deeply unfair.']],
+      ['dozy_mcdonnell', ['Good match. You pushed me further than most. I was actually awake for the whole thing, which is... unusual.']],
+      [null, ['He pats you on the shoulder on the way to the net. Genuinely kind.']],
+      ['dozy_mcdonnell', ['Rest more before your matches. I mean this professionally. Sleep is the original performance enhancer.']],
+      [null, ['He gives you a business card. It just reads "Sleep Well." with a phone number. No name. No logo.']],
+      ['jen', ['You competed really hard out there. He just had an answer for everything.']],
+      ['keith', ['I still cannot believe you lost to a guy who looked like he was about to ask for a bedtime story.']],
+      ['coach_gonzalez', ['That recovery stat of his is no joke. You need to sharpen up your ability to put points away early. Don\'t let him settle.']],
+      [null, ['Riverside wins the team match overall. ', {characterId: 'dozy_mcdonnell'}, ' is asleep before the handshake line finishes.']],
+    ],
+    characters: ['keith', 'jen', 'coach_gonzalez', 'dozy_mcdonnell'],
+    options: [],
+    defaultOutcome: {
+      resultText: [
+        'You lost to Dozy McDonnell. Riverside still won the team match overall.',
+        'You go to bed earlier than usual that night. The business card is on your nightstand.',
+      ],
+      effects: {
+        moodChange: -10,
+        energyChange: -20,
+        relationshipChanges: {
+          keith: 2,
+          jen: 2,
+          coach_gonzalez: 2,
+          dozy_mcdonnell: 3,
+        },
+        statChanges: {
+          stamina: 2,
+          recovery: 3,
+          offensive: 1,
+        }
+      }
+    }
+  },
+
   /** Sponsor Events */
 
   /**
