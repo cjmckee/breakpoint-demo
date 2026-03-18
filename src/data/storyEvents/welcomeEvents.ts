@@ -82,8 +82,8 @@ export const welcomeEvents: StoryEvent[] = [
         moodChange: 10,
         energyChange: 0,
         relationshipChanges: {
-          jen: 5,
-          keith: 5,
+          jen: 2,
+          keith: 2,
         },
       },
     },
@@ -113,11 +113,9 @@ export const welcomeEvents: StoryEvent[] = [
       resultText: ['You feel more connected to your fellow players, but you can\'t help but feel a little anxious about the road ahead. What will it take to be promoted to the Academy\'s upper echelons?'],
       effects: {
         statChanges: {},
-        moodChange: 5,
-        energyChange: 0,
         relationshipChanges: {
-          jen: 5,
-          keith: 5,
+          jen: 2,
+          keith: 2,
         },
       },
     },
@@ -149,11 +147,10 @@ export const welcomeEvents: StoryEvent[] = [
       resultText: ['It seems you\'re going to have to prove yourself to move up at the Academy. Also how good is ', {characterId: 'keith'}, '\'s little sister...?'],
       effects: {
         statChanges: {},
-        moodChange: 5,
-        energyChange: 0,
+        moodChange: 2,
         relationshipChanges: {
-          jen: 5,
-          keith: 5,
+          jen: 2,
+          keith: 2,
         },
       },
     },
@@ -183,11 +180,49 @@ export const welcomeEvents: StoryEvent[] = [
       resultText: ['Right now you only have access to Bronze training sessions. More training sessions will become available as you progress.'],
       effects: {
         statChanges: {},
-        moodChange: 5,
-        energyChange: 0,
+        moodChange: 2,
         relationshipChanges: {
-          jen: 5,
-          keith: 5,
+          jen: 2,
+          keith: 2,
+        },
+      },
+    },
+  },
+
+  {
+    id: 'match_play_basics',
+    name: 'Match Play Basics',
+    tags: ['intro'],
+    timeSlotsRequired: 0, // Doesn't consume time - informational event
+    prerequisites: {
+      completedEvents: ['training_session_intro'],
+    },
+    skippable: false,
+    description: 'Match Play at the Academy.',
+    dialogue: [
+      [null, ['You are heading out on a morning run when you hear a familiar voice from the side courts.']],
+      ['jen', ['Come on, ', {characterId: 'keith'}, '! You haven\'t even won a single point yet.']],
+      ['keith', ['You know I warm up slow. Just give me... another set...']],
+      ['jen', [{characterId: 'player'}, '! Have you played a match yet? It\'s easy.']],
+      [null, ['She motions for you to join them. ', {characterId: 'keith'}, ' is gasping for air but manages to wave.']],
+      ['jen', ['Look - it\'s easy. Most points will just zip by. You won\'t even have to think. Pure instinct.']],
+      ['jen', ['But on Key Moments, like break points and match points, you need to consider your options and pick the one that best suits your style.']],
+      ['keith', ['It also takes your opponent\'s stats into account - sometimes you have to try different options to see what works!']],
+      ['jen', ['Don\'t forget! Many of the Key Moment options have effects beyond winning or losing the point. Choose wisely!']]
+    ],
+    characters: ['jen', 'keith'],
+    options: [],
+    defaultOutcome: {
+      resultText: ['You sub in for a couple games to save ', {characterId: 'keith'}, ' and get a feel for the courts. You don\'t look so bad.'],
+      effects: {
+        statChanges: {
+            serve: 1,
+            return: 1,
+        },
+        moodChange: 5,
+        relationshipChanges: {
+          jen: 2,
+          keith: 2,
         },
       },
     },
@@ -216,8 +251,6 @@ export const welcomeEvents: StoryEvent[] = [
       resultText: ['It seems like building relationships will be key to your success at the academy. '],
       effects: {
         statChanges: {},
-        moodChange: 5,
-        energyChange: 0,
         relationshipChanges: {
           keith: 5,
         },
@@ -247,10 +280,9 @@ export const welcomeEvents: StoryEvent[] = [
       resultText: ['It seems like the abilities system will add a new layer of strategy to your matches.'],
       effects: {
         statChanges: {},
-        moodChange: 5,
         energyChange: 0,
         relationshipChanges: {
-          keith: 5,
+          keith: 1,
         },
       },
     },

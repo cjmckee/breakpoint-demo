@@ -573,6 +573,34 @@ export const BANANA: Item = {
   },
 };
 
+export const STRAWBERRIES: Item = {
+  id: 'strawberries',
+  name: 'Strawberries',
+  description: 'A box of fresh strawberries. And they were on sale.',
+  type: 'consumable',
+  consumableEffect: {
+    type: 'instant',
+    instantEffects: {
+      energyChange: 10,
+      moodChange: 5,
+    },
+  },
+}
+
+export const ORANGE_SLICE: Item = {
+  id: 'orange_slice',
+  name: 'Orange Slice',
+  description: 'A refreshing slice of orange. From a very nice lady.',
+  type: 'consumable',
+  consumableEffect: {
+    type: 'instant',
+    instantEffects: {
+      energyChange: 5,
+      moodChange: 20,
+    },
+  },
+};
+
 export const MOTIVATIONAL_PLAYLIST: Item = {
   id: 'motivational_playlist',
   name: 'Motivational Playlist',

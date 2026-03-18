@@ -7,7 +7,7 @@
 
 import type { StoryEvent } from '../../types/storyEvents'
 import { ChallengeManager } from '../../game/ChallengeManager'
-import { BANANA, LUCKY_PENNY, MOTIVATIONAL_PLAYLIST, TENNIS_BALL_KEYCHAIN, ENERGY_DRINK, ICE_BATH_VOUCHER } from '../items'
+import { BANANA, LUCKY_PENNY, MOTIVATIONAL_PLAYLIST, TENNIS_BALL_KEYCHAIN, ENERGY_DRINK, ICE_BATH_VOUCHER, STRAWBERRIES, ORANGE_SLICE } from '../items'
 import {
     CHALLENGE_SLICE_SPECIALIST,
     CHALLENGE_TOUCH_ARTIST,
@@ -155,7 +155,7 @@ export const miscEvents: StoryEvent[] = [
                             speed: 3,
                             agility: 3
                         },
-                        itemsGained: [BANANA],
+                        itemsGained: [STRAWBERRIES],
                     }
                 }
             },
@@ -388,10 +388,6 @@ export const miscEvents: StoryEvent[] = [
         }
     },
 
-    // ==========================================
-    // NEW FLAVOR EVENTS - UNDERSERVED STATS
-    // ==========================================
-
     {
         id: 'ping_pong_hustler',
         name: 'The Ping Pong Hustler',
@@ -422,7 +418,7 @@ export const miscEvents: StoryEvent[] = [
                 emoji: '🏓',
                 outcome: {
                     resultText: [
-                        'You play for two hours straight. You win exactly zero games.',
+                        'You play for two hours straight. You win zero games.',
                         'But somewhere around game 22, you feel like you\'ve seen behind the curtain. Your touch shots improve dramatically.',
                         'He leaves without saying goodbye. You never see him again.'
                     ],
@@ -980,10 +976,6 @@ export const miscEvents: StoryEvent[] = [
         }
     },
 
-    // ==========================================
-    // FUNNY NEGATIVE EVENTS - OVERREPRESENTED STATS
-    // ==========================================
-
     {
         id: 'all_night_gaming',
         name: 'The Gaming Marathon',
@@ -1418,4 +1410,88 @@ export const miscEvents: StoryEvent[] = [
             }
         ]
     },
+
+    {
+        id: 'old_social_media_posts',
+        name: 'Old Social Media Posts Resurface',
+        tags: ['misc'],
+        timeSlotsRequired: 1,
+        prerequisites: {
+            minSeason: 1,
+            minDay: 10
+        },
+        skippable: true,
+        description: 'Some old social media posts of yours resurface and word spreads around the Academy',
+        dialogue: [
+            [null, ['You pass some of your teammates outside the Academy lobby and they laugh as you walk past.']],
+            ['tommy', ['If it isn\'t our little retirement home league champion!']],
+            ['alison', ['You could not get me to post that if you paid me.']],
+            ['keith', ['Even I wouldn\'t have the confidence. And that\'s saying something.']],
+            [null, ['You can\'t figure out what they\'re talking about, but then you see the bulletin board.']],
+            [null, ['Someone pinned up some old posts of yours. You get closer and realize the horror.']],
+            [null, ['You were posting positively about pickleball. Your career is over.']]
+        ],
+        characters: ['tommy', 'alison', 'keith'],
+        options: [],
+        defaultOutcome: {
+            resultText: [
+                'You try to laugh it off but this one really hurts. You really thought you had scrubbed the internet of those posts.'
+            ],
+            effects: {
+                energyChange: -10,
+                moodChange: -10,
+                statChanges: {
+                    forehand: -1,
+                    backhand: -1,
+                    volley: -1
+                },
+                relationshipChanges: {
+                    tommy: 3,
+                    alison: 3,
+                    keith: 3
+                }
+            }
+        }
+    },
+
+    {
+        id: 'post_match_carpool',
+        name: 'Post-Match Carpool',
+        tags: ['misc'],
+        timeSlotsRequired: 1,
+        prerequisites: {
+            minSeason: 1,
+            minDay: 12
+        },
+        skippable: true,
+        description: 'An Awkward Carpool',
+        dialogue: [
+            [null, ['You decided to sneak out to the concession stand after your match and missed the team bus home.']],
+            [null, ['You start walking back to the Academy, hoping to catch a ride with someone.']],
+            [null, ['After a few minutes of walking, you spot a familiar car pulling up beside you.']],
+            ['older_woman', ['Need a ride? Hop in! I\'ve got snacks and drinks, too! Good playing today!']],
+            [null, ['You climb in the car and that\'s when you realize in the back of the car is the opponent you just played against.']],
+            ['older_woman', ['You played so well against my son! He\'s been practicing a lot. Really good backhand.']],
+            ['opponent', ['Mom!']],
+            ['older_woman', ['I know, sweetie! I\'m just saying it was so much fun to watch. Here - try some of these orange slices.']]
+        ],
+        characters: ['older_woman'],
+        options: [],
+        defaultOutcome: {
+            resultText: [
+                'You settle in for what is a very awkward car ride. But it definitely beats walking. ',
+                'The orange slices are surprisingly refreshing.'
+            ],
+            effects: {
+                energyChange: 10,
+                moodChange: 15,
+                statChanges: {
+                    anticipation: 2,
+                    stamina: 2,
+                    recovery: 1
+                },
+                itemsGained: [ORANGE_SLICE],
+            }
+        }
+    }
 ];
