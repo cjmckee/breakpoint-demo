@@ -156,46 +156,13 @@ export const welcomeEvents: StoryEvent[] = [
     },
   },
 
-  {
-    id: 'training_session_intro',
-    name: 'Training Session Introduction',
-    tags: ['intro'],
-    timeSlotsRequired: 0, // Doesn't consume time - informational event
-    prerequisites: {
-      completedEvents: ['player_tier_intro'],
-    },
-    skippable: false,
-    description: 'You learn about the training sessions available at the academy.',
-    dialogue: [
-      ['jen', ['Hey! I found out more about the training sessions here at the academy. They have specialized programs for each player tier!']],
-      ['keith', ['Really? That sounds awesome! I hope I get into a good program.']],
-      ['jen', ['It seems like as you increase your tier, you gain access to better training session tiers as well.']],
-      ['jen', ['But they won\'t always be available, so you will still always have access to lower tier training sessions.']],
-      ['keith', ['I can\'t wait to start training! I\'m going to push myself to the limit.']],
-      ['jen', ['We\'re still at the bottom right now. We\'re going to have to do the best we can to prepare for the Riverside Open with the sessions we have.']],
-    ],
-    characters: ['jen', 'keith'],
-    options: [],
-    defaultOutcome: {
-      resultText: ['Right now you only have access to Bronze training sessions. More training sessions will become available as you progress.'],
-      effects: {
-        statChanges: {},
-        moodChange: 2,
-        relationshipChanges: {
-          jen: 2,
-          keith: 2,
-        },
-      },
-    },
-  },
-
-  {
+    {
     id: 'match_play_basics',
     name: 'Match Play Basics',
     tags: ['intro'],
     timeSlotsRequired: 0, // Doesn't consume time - informational event
     prerequisites: {
-      completedEvents: ['training_session_intro'],
+      completedEvents: ['player_tier_intro'],
     },
     skippable: false,
     description: 'Match Play at the Academy.',
@@ -220,6 +187,39 @@ export const welcomeEvents: StoryEvent[] = [
             return: 1,
         },
         moodChange: 5,
+        relationshipChanges: {
+          jen: 2,
+          keith: 2,
+        },
+      },
+    },
+  },
+
+  {
+    id: 'training_session_intro',
+    name: 'Training Session Introduction',
+    tags: ['intro'],
+    timeSlotsRequired: 0, // Doesn't consume time - informational event
+    prerequisites: {
+      completedEvents: ['match_play_basics'],
+    },
+    skippable: false,
+    description: 'You learn about the training sessions available at the academy.',
+    dialogue: [
+      ['jen', ['Hey! I found out more about the training sessions here at the academy. They have specialized programs for each player tier!']],
+      ['keith', ['Really? That sounds awesome! I hope I get into a good program.']],
+      ['jen', ['It seems like as you increase your tier, you gain access to better training session tiers as well.']],
+      ['jen', ['But they won\'t always be available, so you will still always have access to lower tier training sessions.']],
+      ['keith', ['I can\'t wait to start training! I\'m going to push myself to the limit.']],
+      ['jen', ['We\'re still at the bottom right now. We\'re going to have to do the best we can to prepare for the Riverside Open with the sessions we have.']],
+    ],
+    characters: ['jen', 'keith'],
+    options: [],
+    defaultOutcome: {
+      resultText: ['Right now you only have access to Bronze training sessions. More training sessions will become available as you progress.'],
+      effects: {
+        statChanges: {},
+        moodChange: 2,
         relationshipChanges: {
           jen: 2,
           keith: 2,

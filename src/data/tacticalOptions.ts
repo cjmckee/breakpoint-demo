@@ -133,6 +133,44 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         failure: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'opponent' },
       },
     },
+    {
+      id: 'safe_spin_serve',
+      emoji: '🌀',
+      name: 'Safe spin serve',
+      description: 'Heavy kick serve to start the rally on your terms',
+      strongAgainst: ['aggressive', 'serve_volley'],
+      weakAgainst: ['counterpuncher'],
+      bestAgainstHint: 'Best against attackers who thrive on pace',
+      secondaryEffects: [
+        { type: 'energy', value: -2, condition: 'always' },
+        { type: 'mood', value: 3, condition: 'on_success' },
+        { type: 'pressure', value: -3, condition: 'on_success' },
+      ],
+      playerStatWeights: {
+        primary: 'serve',
+        primaryWeight: 0.25,
+        secondary: [
+          { stat: 'spin', weight: 0.25 },
+          { stat: 'placement', weight: 0.2 },
+          { stat: 'focus', weight: 0.15 },
+          { stat: 'defensive', weight: 0.15 },
+        ],
+      },
+      opponentStatWeights: {
+        primary: 'return',
+        primaryWeight: 0.3,
+        secondary: [
+          { stat: 'offensive', weight: 0.25 },
+          { stat: 'forehand', weight: 0.2 },
+          { stat: 'strength', weight: 0.15 },
+          { stat: 'speed', weight: 0.1 },
+        ],
+      },
+      shotOutcomes: {
+        success: { outcome: PointType.FORCED_ERROR, shotType: 'return', shooter: 'opponent' },
+        failure: { outcome: PointType.WINNER, shotType: 'return', shooter: 'opponent' },
+      },
+    },
   ],
 
   // ============================================================
@@ -332,6 +370,44 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       },
       shotOutcomes: {
         success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
+        failure: { outcome: PointType.WINNER, shotType: 'return', shooter: 'opponent' },
+      },
+    },
+    {
+      id: 'safe_spin_serve_set',
+      emoji: '🌀',
+      name: 'Smart spin serve',
+      description: 'Get the serve in with heavy spin and build from there',
+      strongAgainst: ['aggressive', 'serve_volley'],
+      weakAgainst: ['counterpuncher'],
+      bestAgainstHint: 'Best against opponents who attack the return aggressively',
+      secondaryEffects: [
+        { type: 'energy', value: -2, condition: 'always' },
+        { type: 'mood', value: 3, condition: 'on_success' },
+        { type: 'pressure', value: -3, condition: 'on_success' },
+      ],
+      playerStatWeights: {
+        primary: 'serve',
+        primaryWeight: 0.25,
+        secondary: [
+          { stat: 'spin', weight: 0.25 },
+          { stat: 'placement', weight: 0.2 },
+          { stat: 'focus', weight: 0.15 },
+          { stat: 'defensive', weight: 0.15 },
+        ],
+      },
+      opponentStatWeights: {
+        primary: 'return',
+        primaryWeight: 0.3,
+        secondary: [
+          { stat: 'offensive', weight: 0.25 },
+          { stat: 'forehand', weight: 0.2 },
+          { stat: 'strength', weight: 0.15 },
+          { stat: 'speed', weight: 0.1 },
+        ],
+      },
+      shotOutcomes: {
+        success: { outcome: PointType.FORCED_ERROR, shotType: 'return', shooter: 'opponent' },
         failure: { outcome: PointType.WINNER, shotType: 'return', shooter: 'opponent' },
       },
     },
