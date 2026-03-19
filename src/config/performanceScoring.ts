@@ -11,25 +11,25 @@
 export const SERVING_WEIGHTS = {
   // Ace contribution (per ace)
   acePoints: 2,
-  aceCap: 20,
+  aceCap: 25,
 
   // Double fault penalty (per fault)
   doubleFaultPenalty: -3,
   doubleFaultCap: -20,
 
-  // First serve percentage — normalized from 40-75% range to 0-30 points.
+  // First serve percentage — normalized from 40-75% range to 0-35 points.
   // Prevents first serve % from dominating the entire score.
   firstServePercentMin: 40,       // 40% first serve = 0 points
   firstServePercentMax: 75,       // 75% first serve = max points
-  firstServePercentMaxPoints: 30,
+  firstServePercentMaxPoints: 35,
 
   // First serve points won (ratio * weight)
-  firstServeWinWeight: 15,
-  firstServeWinCap: 15,
+  firstServeWinWeight: 20,
+  firstServeWinCap: 20,
 
   // Service hold bonus
-  serviceHoldWeight: 15,
-  serviceHoldCap: 15,
+  serviceHoldWeight: 20,
+  serviceHoldCap: 20,
 };
 
 // ============================================================================
@@ -69,19 +69,19 @@ export const RALLY_WEIGHTS = {
   winnerErrorRatioGoodBonus: 10,
 
   // Stamina (longest rally performance)
-  staminaBonus: 15,
+  staminaBonus: 10,
 };
 
 // ============================================================================
 // NET PLAY PERFORMANCE WEIGHTS
 // ============================================================================
 export const NET_PLAY_WEIGHTS = {
-  // Net point win rate — primary metric (0-60 points)
-  netWinRateMaxPoints: 60,
+  // Net point win rate — primary metric (0-75 points)
+  netWinRateMaxPoints: 75,
 
-  // Volume bonus for actively attacking net (2 pts per net point won, up to 20)
+  // Volume bonus for actively attacking net (2 pts per net point won, up to 25)
   netVolumePoints: 2,
-  netVolumeCap: 20,
+  netVolumeCap: 25,
 
   // Minimum total net points before scoring kicks in.
   // Players who rarely approach get a neutral 50 (not penalized for playing their game).
