@@ -521,6 +521,10 @@ export interface MatchStatistics {
   longestRallyWon: { player: number; opponent: number };
   netPointsWon: { player: number; opponent: number };
 
+  // Rally points where the rally extended beyond serve + return (shot count > 2)
+  rallyPointsPlayed: { player: number; opponent: number };
+  rallyPointsWon: { player: number; opponent: number };
+
   // Shot type breakdown
   shotTypeStats: {
     [K in ShotType]?: {

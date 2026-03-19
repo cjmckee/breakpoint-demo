@@ -69,6 +69,8 @@ export class MatchStatistics {
       averageRallyLengthWon: { player: 0, opponent: 0 },
       longestRallyWon: { player: 0, opponent: 0 },
       netPointsWon: { player: 0, opponent: 0 },
+      rallyPointsPlayed: { player: 0, opponent: 0 },
+      rallyPointsWon: { player: 0, opponent: 0 },
       shotTypeStats: {},
       statCorrelation: {},
       keyMomentsWon: { player: 0, opponent: 0 },
@@ -261,6 +263,14 @@ export class MatchStatistics {
    */
   private updateRallyStatistics(pointResult: PointResult, currentServer: 'player' | 'opponent'): void {
     const rallyLength = pointResult.rallyLength;
+
+    // Track points where the rally extended past serve + return (shot count > 2)
+    if (rallyLength > 2) {
+      const winner = this.convertPointWinnerToPlayer(pointResult.winner, currentServer);
+      this.statistics.rallyPointsPlayed.player++;
+      this.statistics.rallyPointsPlayed.opponent++;
+      this.statistics.rallyPointsWon[winner]++;
+    }
 
     // Update averages
     const totalPoints = this.pointResults.length;

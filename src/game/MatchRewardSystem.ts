@@ -26,6 +26,7 @@ import {
   RALLY_WEIGHTS,
   NET_PLAY_WEIGHTS,
   MENTAL_WEIGHTS,
+  OVERALL_SCORE_WEIGHTS,
   PERFORMANCE_THRESHOLDS,
 } from '../config/performanceScoring';
 import { getRandomItem, getItemsByTier } from '../data/items';
@@ -88,12 +89,12 @@ export class MatchRewardSystem {
     const mentalScore = this.calculateMentalScore(stats);
 
     const overallScore = (
-      servingScore +
-      returningScore +
-      rallyScore +
-      netPlayScore +
-      mentalScore
-    ) / 5;
+      servingScore   * OVERALL_SCORE_WEIGHTS.serving +
+      returningScore * OVERALL_SCORE_WEIGHTS.returning +
+      rallyScore     * OVERALL_SCORE_WEIGHTS.rallying +
+      netPlayScore   * OVERALL_SCORE_WEIGHTS.netPlay +
+      mentalScore    * OVERALL_SCORE_WEIGHTS.mental
+    );
 
     return {
       servingScore,
@@ -124,14 +125,19 @@ export class MatchRewardSystem {
       stats.doubleFaults.player * w.doubleFaultPenalty
     );
 
-    // First serve percentage
-    const firstServeScore = stats.firstServePercentage.player * w.firstServePercentWeight;
+    // First serve percentage — normalized from min-max range so it doesn't dominate.
+    // e.g. 40% → 0pts, 57.5% → 15pts, 75% → 30pts
+    const firstServePct = stats.firstServePercentage.player;
+    const firstServeScore = Math.min(
+      w.firstServePercentMaxPoints,
+      Math.max(0, (firstServePct - w.firstServePercentMin) /
+        (w.firstServePercentMax - w.firstServePercentMin) * w.firstServePercentMaxPoints)
+    );
 
-    // First serve points won
-    const firstServeWins = stats.firstServePointsWon.player;
+    // First serve points won rate
     const totalServePoints = stats.pointsWon.player.serve + stats.pointsWon.opponent.return;
     const firstServeWinRate = totalServePoints > 0
-      ? firstServeWins / totalServePoints
+      ? stats.firstServePointsWon.player / totalServePoints
       : 0;
     const firstServeWinBonus = Math.min(
       w.firstServeWinCap,
@@ -154,36 +160,32 @@ export class MatchRewardSystem {
   private static calculateReturningScore(stats: MatchStatistics): number {
     const w = RETURN_WEIGHTS;
 
-    // Break points converted
-    const breakPointBonus = Math.min(
-      w.breakPointConversionCap,
-      stats.breakPointsConverted.player * w.breakPointConversionPoints
+    // Break point conversion rate — rewards actually winning your break chances.
+    // e.g. 0/3 BP = 0pts, 2/4 BP = 15pts, 3/3 BP = 30pts
+    const bpOpportunities = stats.breakPointOpportunities.player;
+    const bpConversionRate = bpOpportunities > 0
+      ? stats.breakPointsConverted.player / bpOpportunities
+      : 0;
+    const breakPointBonus = bpConversionRate * w.breakPointConversionRatePoints;
+
+    // Small bonus for creating break point opportunities (volume of pressure)
+    const bpCreatedBonus = Math.min(
+      w.breakOpportunityCap,
+      bpOpportunities * w.breakOpportunityPoints
     );
 
-    // Return points won (normalized)
+    // Return points won (normalized from 25-50% range to 0-50 points)
     const returnPointsWon = stats.pointsWon.player.return;
     const totalOpponentServePoints = stats.pointsWon.opponent.serve + stats.pointsWon.player.return;
     const returnWinRate = totalOpponentServePoints > 0
       ? returnPointsWon / totalOpponentServePoints
       : 0;
-
-    // Normalize from 20-50% range to 0-60 points
     const normalizedReturnScore = Math.min(
       w.returnWinMaxPoints,
       Math.max(0, (returnWinRate - w.returnWinMinRate) / (w.returnWinMaxRate - w.returnWinMinRate) * w.returnWinMaxPoints)
     );
 
-    // Return winners (from shot stats)
-    // For now, estimate based on total winners proportional to return points
-    const estimatedReturnWinners = Math.floor(
-      stats.winners.player * (returnWinRate > 0 ? 0.3 : 0)
-    );
-    const returnWinnerBonus = Math.min(
-      w.returnWinnerCap,
-      estimatedReturnWinners * w.returnWinnerPoints
-    );
-
-    const total = breakPointBonus + normalizedReturnScore + returnWinnerBonus;
+    const total = breakPointBonus + bpCreatedBonus + normalizedReturnScore;
     return Math.max(0, Math.min(100, total));
   }
 
@@ -193,35 +195,38 @@ export class MatchRewardSystem {
   private static calculateRallyScore(stats: MatchStatistics): number {
     const w = RALLY_WEIGHTS;
 
-    // Unforced error penalty
+    // Rally win rate — primary metric (0-50 points).
+    // Only counts points where the rally extended past serve + return (shot count > 2).
+    // Normalized so 50% = 25pts (you're trading evenly), 70%+ = 50pts.
+    const rallyPointsPlayed = stats.rallyPointsPlayed.player;
+    const rallyWinRate = rallyPointsPlayed > 0
+      ? stats.rallyPointsWon.player / rallyPointsPlayed
+      : 0.5; // no rallies → neutral
+    const rallyWinScore = Math.min(
+      w.rallyWinRateMaxPoints,
+      Math.max(0, (rallyWinRate - w.rallyWinRateMinRate) /
+        (w.rallyWinRateMaxRate - w.rallyWinRateMinRate) * w.rallyWinRateMaxPoints)
+    );
+
+    // Consistency: unforced error rate penalty (0-30 points).
     const totalPoints = stats.totalPoints.player + stats.totalPoints.opponent;
     const unforcedErrorRate = totalPoints > 0
       ? stats.unforcedErrors.player / totalPoints
       : 0;
-    const errorScore = w.unforcedErrorBase + (unforcedErrorRate * w.unforcedErrorWeight);
+    const consistencyScore = Math.min(
+      w.unforcedErrorMaxPoints,
+      Math.max(0, w.unforcedErrorBase + (unforcedErrorRate * w.unforcedErrorWeight))
+    );
 
-    // Long rally success
-    const avgRallyWon = stats.averageRallyLengthWon.player;
-    const longRallyBonus = avgRallyWon >= w.longRallyThreshold ? w.longRallyBonus : 0;
+    // Aggression: winner rate normalized from 5-25% of total points (0-20 points).
+    const winnerRate = totalPoints > 0 ? stats.winners.player / totalPoints : 0;
+    const aggressionScore = Math.min(
+      w.winnerRateMaxPoints,
+      Math.max(0, (winnerRate - w.winnerRateMinRate) /
+        (w.winnerRateMaxRate - w.winnerRateMinRate) * w.winnerRateMaxPoints)
+    );
 
-    // Winner to error ratio
-    const winnerErrorRatio = stats.unforcedErrors.player > 0
-      ? stats.winners.player / stats.unforcedErrors.player
-      : stats.winners.player;
-
-    let winnerErrorBonus = 0;
-    if (winnerErrorRatio >= w.winnerErrorRatioExcellent) {
-      winnerErrorBonus = w.winnerErrorRatioExcellentBonus;
-    } else if (winnerErrorRatio >= w.winnerErrorRatioGood) {
-      winnerErrorBonus = w.winnerErrorRatioGoodBonus;
-    }
-
-    // Stamina (longest rally performance)
-    const staminaBonus = stats.longestRallyWon.player > stats.longestRallyWon.opponent
-      ? w.staminaBonus
-      : 0;
-
-    const total = errorScore + longRallyBonus + winnerErrorBonus + staminaBonus;
+    const total = rallyWinScore + consistencyScore + aggressionScore;
     return Math.max(0, Math.min(100, total));
   }
 
@@ -231,46 +236,44 @@ export class MatchRewardSystem {
   private static calculateNetPlayScore(stats: MatchStatistics): number {
     const w = NET_PLAY_WEIGHTS;
 
-    // Net points won
-    const netPointBonus = Math.min(
-      w.netPointWonCap,
-      stats.netPointsWon.player * w.netPointWonPoints
+    const totalNetPoints = stats.netPointsWon.player + stats.netPointsWon.opponent;
+
+    if (totalNetPoints === 0) return 0;
+
+    // Net point win rate — primary metric (0-75 points).
+    const netWinRate = stats.netPointsWon.player / totalNetPoints;
+    const netWinRateScore = netWinRate * w.netWinRateMaxPoints;
+
+    // Volume bonus — small reward for actively attacking net (0-25 points).
+    const volumeBonus = Math.min(
+      w.netVolumeCap,
+      stats.netPointsWon.player * w.netVolumePoints
     );
 
-    // Volley success rate (estimated from net points vs attempts)
-    // If we had more than 5 net points, assume reasonable volley attempts
-    const volleyAttempts = stats.netPointsWon.player + stats.netPointsWon.opponent;
-    const volleySuccess = volleyAttempts > 0
-      ? stats.netPointsWon.player / volleyAttempts
-      : 0;
-    const volleySuccessBonus = volleySuccess * w.volleySuccessWeight;
+    // Scale the entire score by volume. Below the threshold, a player who only
+    // approached a handful of times scores low regardless of their success rate —
+    // net play just wasn't a meaningful part of their match.
+    const volumeScale = Math.min(1, totalNetPoints / w.netVolumeScaleThreshold);
 
-    // Approach shot success (estimate from net points)
-    const approachShots = Math.floor(stats.netPointsWon.player * 0.8); // Assume 80% of net points had approach
-    const approachBonus = Math.min(
-      w.approachShotCap,
-      approachShots * w.approachShotPoints
-    );
-
-    const total = netPointBonus + volleySuccessBonus + approachBonus;
+    const total = (netWinRateScore + volumeBonus) * volumeScale;
     return Math.max(0, Math.min(100, total));
   }
 
   /**
    * Calculate mental performance score (0-100)
    */
-  private static calculateMentalScore(
-    stats: MatchStatistics
-  ): number {
+  private static calculateMentalScore(stats: MatchStatistics): number {
     const w = MENTAL_WEIGHTS;
 
-    // Key moments won bonus (clamped by cap)
-    const keyMomentBonus = Math.min(
-      w.keyMomentCap,
-      stats.keyMomentsWon.player * w.keyMomentPoints
-    );
+    // Key moment win rate — primary mental metric (0-70 points).
+    // e.g. 3/5 key moments won = 60% rate = 42pts, 5/5 = 70pts, 0/5 = 0pts.
+    const totalKeyMoments = stats.keyMomentsWon.player + stats.keyMomentsWon.opponent;
+    const keyMomentWinRate = totalKeyMoments > 0
+      ? stats.keyMomentsWon.player / totalKeyMoments
+      : 0.5; // no key moments occurred → neutral
+    const keyMomentScore = keyMomentWinRate * w.keyMomentWinRatePoints;
 
-    // Break points saved (when serving)
+    // Break points saved (when serving) — bonus for holding under pressure (0-30 points).
     const breakPointsFaced = stats.breakPointOpportunities.opponent;
     const breakPointsSaved = breakPointsFaced - stats.breakPointsConverted.opponent;
     const breakPointSaveBonus = Math.min(
@@ -278,14 +281,7 @@ export class MatchRewardSystem {
       breakPointsSaved * w.breakPointSavePoints
     );
 
-    // Clutch performance (based on break points converted - offensive pressure)
-    const clutchBonus = stats.breakPointsConverted.player > 0 ? w.clutchComebackBonus : 0;
-
-    // Pressure points performance (use break points as proxy for pressure situations)
-    const totalPressurePoints = stats.breakPointsConverted.player + breakPointsSaved;
-    const pressureScore = totalPressurePoints * w.pressurePerformanceWeight;
-
-    const total = keyMomentBonus + breakPointSaveBonus + clutchBonus + pressureScore;
+    const total = keyMomentScore + breakPointSaveBonus;
     return Math.max(0, Math.min(100, total));
   }
 
