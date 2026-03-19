@@ -54,22 +54,23 @@ export const RETURN_WEIGHTS = {
 // RALLY PERFORMANCE WEIGHTS
 // ============================================================================
 export const RALLY_WEIGHTS = {
-  // Unforced error penalty
-  unforcedErrorWeight: -200,  // (errorRate * weight)
-  unforcedErrorBase: 50,      // Base points before penalty applied
+  // Rally win rate (won / played when shot count > 2) — primary metric (0-50 points).
+  // Directly measures how well the player performs once a rally develops.
+  // Normalized from 30-70% range so 50% (perfectly even) = 25pts, 70%+ = 50pts.
+  rallyWinRateMinRate: 0.30,
+  rallyWinRateMaxRate: 0.70,
+  rallyWinRateMaxPoints: 50,
 
-  // Long rally success
-  longRallyBonus: 20,
-  longRallyThreshold: 6,  // Rallies with 6+ shots
+  // Consistency: unforced error rate penalty (0-30 points).
+  // 50 + (errorRate × -200) before clamping to 0-30.
+  unforcedErrorWeight: -200,
+  unforcedErrorBase: 50,
+  unforcedErrorMaxPoints: 30,
 
-  // Winner to error ratio bonuses
-  winnerErrorRatioExcellent: 1.5,
-  winnerErrorRatioExcellentBonus: 20,
-  winnerErrorRatioGood: 1.0,
-  winnerErrorRatioGoodBonus: 10,
-
-  // Stamina (longest rally performance)
-  staminaBonus: 10,
+  // Aggression: winner rate normalized from 5-25% of total points (0-20 points).
+  winnerRateMinRate: 0.05,
+  winnerRateMaxRate: 0.25,
+  winnerRateMaxPoints: 20,
 };
 
 // ============================================================================

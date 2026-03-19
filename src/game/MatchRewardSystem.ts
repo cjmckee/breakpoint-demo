@@ -195,35 +195,38 @@ export class MatchRewardSystem {
   private static calculateRallyScore(stats: MatchStatistics): number {
     const w = RALLY_WEIGHTS;
 
-    // Unforced error penalty
+    // Rally win rate — primary metric (0-50 points).
+    // Only counts points where the rally extended past serve + return (shot count > 2).
+    // Normalized so 50% = 25pts (you're trading evenly), 70%+ = 50pts.
+    const rallyPointsPlayed = stats.rallyPointsPlayed.player;
+    const rallyWinRate = rallyPointsPlayed > 0
+      ? stats.rallyPointsWon.player / rallyPointsPlayed
+      : 0.5; // no rallies → neutral
+    const rallyWinScore = Math.min(
+      w.rallyWinRateMaxPoints,
+      Math.max(0, (rallyWinRate - w.rallyWinRateMinRate) /
+        (w.rallyWinRateMaxRate - w.rallyWinRateMinRate) * w.rallyWinRateMaxPoints)
+    );
+
+    // Consistency: unforced error rate penalty (0-30 points).
     const totalPoints = stats.totalPoints.player + stats.totalPoints.opponent;
     const unforcedErrorRate = totalPoints > 0
       ? stats.unforcedErrors.player / totalPoints
       : 0;
-    const errorScore = w.unforcedErrorBase + (unforcedErrorRate * w.unforcedErrorWeight);
+    const consistencyScore = Math.min(
+      w.unforcedErrorMaxPoints,
+      Math.max(0, w.unforcedErrorBase + (unforcedErrorRate * w.unforcedErrorWeight))
+    );
 
-    // Long rally success
-    const avgRallyWon = stats.averageRallyLengthWon.player;
-    const longRallyBonus = avgRallyWon >= w.longRallyThreshold ? w.longRallyBonus : 0;
+    // Aggression: winner rate normalized from 5-25% of total points (0-20 points).
+    const winnerRate = totalPoints > 0 ? stats.winners.player / totalPoints : 0;
+    const aggressionScore = Math.min(
+      w.winnerRateMaxPoints,
+      Math.max(0, (winnerRate - w.winnerRateMinRate) /
+        (w.winnerRateMaxRate - w.winnerRateMinRate) * w.winnerRateMaxPoints)
+    );
 
-    // Winner to error ratio
-    const winnerErrorRatio = stats.unforcedErrors.player > 0
-      ? stats.winners.player / stats.unforcedErrors.player
-      : stats.winners.player;
-
-    let winnerErrorBonus = 0;
-    if (winnerErrorRatio >= w.winnerErrorRatioExcellent) {
-      winnerErrorBonus = w.winnerErrorRatioExcellentBonus;
-    } else if (winnerErrorRatio >= w.winnerErrorRatioGood) {
-      winnerErrorBonus = w.winnerErrorRatioGoodBonus;
-    }
-
-    // Stamina (longest rally performance)
-    const staminaBonus = stats.longestRallyWon.player > stats.longestRallyWon.opponent
-      ? w.staminaBonus
-      : 0;
-
-    const total = errorScore + longRallyBonus + winnerErrorBonus + staminaBonus;
+    const total = rallyWinScore + consistencyScore + aggressionScore;
     return Math.max(0, Math.min(100, total));
   }
 
