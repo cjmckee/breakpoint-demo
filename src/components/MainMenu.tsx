@@ -12,6 +12,7 @@ import { PlayerStatsDisplay } from './PlayerStatsDisplay';
 import { RecentActivities } from './RecentActivities';
 import { ActiveChallenges } from './ActiveChallenges';
 import { ActiveTournamentCard } from './ActiveTournamentCard';
+import { UpcomingTeamMatchCard } from './UpcomingTeamMatchCard';
 import { TrainingResultModal } from './TrainingResultModal';
 import { StoryEventModal } from './StoryEventModal';
 import { StoryEventResultModal } from './StoryEventResultModal';
@@ -429,6 +430,7 @@ export const MainMenu: React.FC = () => {
           {/* Recent Activities, Challenges, and Tournament - 1 column */}
           <div className="lg:col-span-1 space-y-6">
             <ActiveTournamentCard />
+            <UpcomingTeamMatchCard />
             <ActiveChallenges />
             <RecentActivities />
           </div>
