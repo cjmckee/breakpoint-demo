@@ -17,12 +17,15 @@ export const SERVING_WEIGHTS = {
   doubleFaultPenalty: -3,
   doubleFaultCap: -20,
 
-  // First serve percentage (0-100 maps directly)
-  firstServePercentWeight: 1.0,
+  // First serve percentage — normalized from 40-75% range to 0-30 points.
+  // Prevents first serve % from dominating the entire score.
+  firstServePercentMin: 40,       // 40% first serve = 0 points
+  firstServePercentMax: 75,       // 75% first serve = max points
+  firstServePercentMaxPoints: 30,
 
   // First serve points won (ratio * weight)
-  firstServeWinWeight: 20,
-  firstServeWinCap: 20,
+  firstServeWinWeight: 15,
+  firstServeWinCap: 15,
 
   // Service hold bonus
   serviceHoldWeight: 15,
@@ -33,18 +36,18 @@ export const SERVING_WEIGHTS = {
 // RETURN PERFORMANCE WEIGHTS
 // ============================================================================
 export const RETURN_WEIGHTS = {
-  // Break points converted
-  breakPointConversionPoints: 10,
-  breakPointConversionCap: 30,
+  // Break point conversion rate (converted / opportunities) — up to 30 points.
+  // Rewards actually winning the break chances you create.
+  breakPointConversionRatePoints: 30,
 
-  // Return points won (normalized from 20-50% range to 0-60 points)
-  returnWinMinRate: 0.2,   // 20% return win rate = 0 points
-  returnWinMaxRate: 0.5,   // 50% return win rate = 60 points
-  returnWinMaxPoints: 60,
+  // Small bonus for creating break opportunities (volume of pressure applied)
+  breakOpportunityPoints: 3,
+  breakOpportunityCap: 20,
 
-  // Return winners
-  returnWinnerPoints: 5,
-  returnWinnerCap: 20,
+  // Return points won (normalized from 25-50% range to 0-50 points)
+  returnWinMinRate: 0.25,  // 25% return win rate = 0 points
+  returnWinMaxRate: 0.50,  // 50% return win rate = 50 points
+  returnWinMaxPoints: 50,
 };
 
 // ============================================================================
@@ -73,16 +76,16 @@ export const RALLY_WEIGHTS = {
 // NET PLAY PERFORMANCE WEIGHTS
 // ============================================================================
 export const NET_PLAY_WEIGHTS = {
-  // Net points won
-  netPointWonPoints: 5,
-  netPointWonCap: 50,
+  // Net point win rate — primary metric (0-60 points)
+  netWinRateMaxPoints: 60,
 
-  // Volley success rate weight
-  volleySuccessWeight: 40,
+  // Volume bonus for actively attacking net (2 pts per net point won, up to 20)
+  netVolumePoints: 2,
+  netVolumeCap: 20,
 
-  // Approach shot success
-  approachShotPoints: 3,
-  approachShotCap: 30,
+  // Minimum total net points before scoring kicks in.
+  // Players who rarely approach get a neutral 50 (not penalized for playing their game).
+  minNetPointsForScore: 3,
 };
 
 // ============================================================================
@@ -97,11 +100,27 @@ export const MENTAL_WEIGHTS = {
   breakPointSavePoints: 5,
   breakPointSaveCap: 20,
 
-  // Clutch performance (comeback bonus)
-  clutchComebackBonus: 20,
+  // Break point conversion rate (converted / opportunities) — up to 30 points.
+  // Proportional to how many of your break chances you actually took.
+  // Replaces the old binary "clutch bonus" that fired for any single BP converted.
+  clutchConversionRatePoints: 30,
 
-  // Pressure points weight (from PlayerPerformance)
-  pressurePerformanceWeight: 0.25,  // Divide by 4 to normalize to 0-25 range
+  // Pressure points weight
+  pressurePerformanceWeight: 0.25,
+};
+
+// ============================================================================
+// OVERALL PERFORMANCE CATEGORY WEIGHTS
+// ============================================================================
+// Weights must sum to 1.0.
+// Rallying is weighted most — it's the dominant skill in modern baseline tennis.
+// Net play is weighted least — many players reasonably avoid the net.
+export const OVERALL_SCORE_WEIGHTS = {
+  serving: 0.22,
+  returning: 0.22,
+  rallying: 0.30,
+  netPlay: 0.10,
+  mental: 0.16,
 };
 
 // ============================================================================
