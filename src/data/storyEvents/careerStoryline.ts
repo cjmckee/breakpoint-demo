@@ -570,7 +570,7 @@ export const careerEvents: StoryEvent[] = [
 
   {
     id: 'third_team_match_scheduled',
-    name: 'Third Team Match Announced',
+    name: 'Third Team Match Announced [AI-gen]', // TODO: Complete this event
     tags: ['team'],
     timeSlotsRequired: 0,
     prerequisites: {
@@ -656,7 +656,7 @@ export const careerEvents: StoryEvent[] = [
 
   {
     id: 'third_team_match_prematch',
-    name: 'Before the Match',
+    name: 'Before the Match [AI-gen]', // TODO: Complete this event
     tags: ['story_match', 'team'],
     timeSlotsRequired: 0,
     prerequisites: {
@@ -694,7 +694,7 @@ export const careerEvents: StoryEvent[] = [
 
   {
     id: 'third_team_match_win',
-    name: 'Victory!',
+    name: 'Victory! [AI-gen]', // TODO: Complete this event
     tags: ['story_match', 'team'],
     timeSlotsRequired: 0,
     prerequisites: {
@@ -739,7 +739,7 @@ export const careerEvents: StoryEvent[] = [
 
   {
     id: 'third_team_match_loss',
-    name: 'A Tough Loss',
+    name: 'A Tough Loss [AI-gen]', // TODO: Complete this event
     tags: ['team'],
     timeSlotsRequired: 0,
     prerequisites: {
@@ -788,7 +788,7 @@ export const careerEvents: StoryEvent[] = [
 
   {
     id: 'fourth_team_match_scheduled',
-    name: 'Fourth Team Match Announced',
+    name: 'Fourth Team Match Announced [AI-gen]', // TODO: Complete this event
     tags: ['team'],
     timeSlotsRequired: 0,
     prerequisites: {
@@ -874,7 +874,7 @@ export const careerEvents: StoryEvent[] = [
 
   {
     id: 'fourth_team_match_prematch',
-    name: 'Before the Match',
+    name: 'Before the Match [AI-gen]', // TODO: Complete this event
     tags: ['story_match', 'team'],
     timeSlotsRequired: 0,
     prerequisites: {
@@ -913,7 +913,7 @@ export const careerEvents: StoryEvent[] = [
 
   {
     id: 'fourth_team_match_win',
-    name: 'Victory!',
+    name: 'Victory! [AI-gen]', // TODO: Complete this event
     tags: ['story_match', 'team'],
     timeSlotsRequired: 0,
     prerequisites: {
@@ -960,7 +960,7 @@ export const careerEvents: StoryEvent[] = [
 
   {
     id: 'fourth_team_match_loss',
-    name: 'A Tough Loss',
+    name: 'A Tough Loss [AI-gen]', // TODO: Complete this event
     tags: ['team'],
     timeSlotsRequired: 0,
     prerequisites: {
@@ -1010,7 +1010,7 @@ export const careerEvents: StoryEvent[] = [
 
   {
     id: 'fifth_team_match_scheduled',
-    name: 'Fifth Team Match Announced',
+    name: 'Fifth Team Match Announced [AI-gen]', // TODO: Complete this event
     tags: ['team'],
     timeSlotsRequired: 0,
     prerequisites: {
@@ -1098,7 +1098,7 @@ export const careerEvents: StoryEvent[] = [
 
   {
     id: 'fifth_team_match_prematch',
-    name: 'Before the Match',
+    name: 'Before the Match [AI-gen]', // TODO: Complete this event
     tags: ['story_match', 'team'],
     timeSlotsRequired: 0,
     prerequisites: {
@@ -1136,7 +1136,7 @@ export const careerEvents: StoryEvent[] = [
 
   {
     id: 'fifth_team_match_win',
-    name: 'Victory!',
+    name: 'Victory! [AI-gen]', // TODO: Complete this event
     tags: ['story_match', 'team'],
     timeSlotsRequired: 0,
     prerequisites: {
@@ -1184,7 +1184,7 @@ export const careerEvents: StoryEvent[] = [
 
   {
     id: 'fifth_team_match_loss',
-    name: 'A Tough Loss',
+    name: 'A Tough Loss [AI-gen]', // TODO: Complete this event
     tags: ['team'],
     timeSlotsRequired: 0,
     prerequisites: {
