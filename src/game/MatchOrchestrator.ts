@@ -120,8 +120,15 @@ export class MatchOrchestrator {
 
     const matchLevel = getMatchLevel(player.overallRating, opponent.overallRating);
     const thresholds = getQualityThresholds(matchLevel);
-    console.log(`🎾 Starting match: ${player.name} vs ${opponent.name}`);
-    console.log(`📊 Player ratings: ${player.overallRating} vs ${opponent.overallRating} → matchLevel: ${matchLevel}`);
+    const pTech = player.getStatCategoryAverage('technical');
+    const pPhys = player.getStatCategoryAverage('physical');
+    const pMent = player.getStatCategoryAverage('mental');
+    const oTech = opponent.getStatCategoryAverage('technical');
+    const oPhys = opponent.getStatCategoryAverage('physical');
+    const oMent = opponent.getStatCategoryAverage('mental');
+    console.log(`🎾 Starting match: ${player.name} vs ${config.opponentName ?? opponent.name}`);
+    console.log(`📊 Player overall: ${player.overallRating} (tech=${pTech.toFixed(1)}, phys=${pPhys.toFixed(1)}, mental=${pMent.toFixed(1)})`);
+    console.log(`📊 Opponent overall: ${opponent.overallRating} (tech=${oTech.toFixed(1)}, phys=${oPhys.toFixed(1)}, mental=${oMent.toFixed(1)}) → matchLevel: ${matchLevel}`);
     console.log(`📏 Quality thresholds: exceptional=${thresholds.exceptional.toFixed(1)}, high=${thresholds.high.toFixed(1)}, good=${thresholds.good.toFixed(1)}, average=${thresholds.average.toFixed(1)}, weak=${thresholds.weak.toFixed(1)}`);
 
     const matchSim = new MatchSimulator({

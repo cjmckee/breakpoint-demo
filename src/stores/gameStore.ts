@@ -281,12 +281,16 @@ export const useGameStore = create<GameState>()(
           { eventType: 'story', scheduledDay: 11, scheduledTimeSlot: TimeSlot.AFTERNOON, metadata: { storyEventId: 'club_team_first_practice' } },
           { eventType: 'story', scheduledDay: 12, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'coach_training_focus' } },
           { eventType: 'story', scheduledDay: 13, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'first_team_match_scheduled' } },
-          // First tournament trigger - pushes the player to improve by day 15
-          { eventType: 'story', scheduledDay: 15, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'riverside_open_prep' } },
-          // Continue coach and team storylines
+          // Continue coach storyline between matches
           { eventType: 'story', scheduledDay: 16, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'coach_balanced_development' } },
-          // Day 18-22 is typically the Riverside Open
-          { eventType: 'story', scheduledDay: 23, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'second_team_match_scheduled' } }
+          // Team matches 2-5 - all before the Riverside Open
+          // Each announcement fires 2 days before the match plays (relativeDays: 2 in each event)
+          { eventType: 'story', scheduledDay: 17, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'second_team_match_scheduled' } },
+          { eventType: 'story', scheduledDay: 21, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'third_team_match_scheduled' } },
+          { eventType: 'story', scheduledDay: 25, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'fourth_team_match_scheduled' } },
+          { eventType: 'story', scheduledDay: 29, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'fifth_team_match_scheduled' } },
+          // Tournament trigger - after all 5 team matches (day 31 is last match, prep on day 33, ceremony day 36)
+          { eventType: 'story', scheduledDay: 33, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'riverside_open_prep' } }
         ];
 
         set({

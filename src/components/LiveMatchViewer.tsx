@@ -121,7 +121,7 @@ export const LiveMatchViewer: React.FC = () => {
             <div className="flex items-center justify-between p-4 bg-pixel-bg border-4 border-pixel-accent">
               <div className="flex items-center gap-4">
                 <span className="text-2xl">{getServerIndicator('player')}</span>
-                <span className="text-xl font-bold text-pixel-text">You</span>
+                <span className="text-xl font-bold text-pixel-text">{player?.name ?? 'You'}</span>
               </div>
               <div className="flex gap-6 items-center">
                 <div className="text-center">
@@ -145,7 +145,7 @@ export const LiveMatchViewer: React.FC = () => {
             <div className="flex items-center justify-between p-4 bg-pixel-bg border-4 border-red-500">
               <div className="flex items-center gap-4">
                 <span className="text-2xl">{getServerIndicator('opponent')}</span>
-                <span className="text-xl font-bold text-pixel-text">Opponent</span>
+                <span className="text-xl font-bold text-pixel-text">{matchConfig?.opponentName ?? 'Opponent'}</span>
               </div>
               <div className="flex gap-6 items-center">
                 <div className="text-center">
