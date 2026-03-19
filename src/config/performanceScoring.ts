@@ -92,21 +92,14 @@ export const NET_PLAY_WEIGHTS = {
 // MENTAL PERFORMANCE WEIGHTS
 // ============================================================================
 export const MENTAL_WEIGHTS = {
-  // Key moments won
-  keyMomentPoints: 10,
-  keyMomentCap: 40,
+  // Key moment win rate (won / total key moments, scaled to 0-70 points).
+  // This is the primary mental metric — winning the moments that actually
+  // decide sets is the best single measure of mental performance.
+  keyMomentWinRatePoints: 70,
 
-  // Break points saved (when serving)
+  // Break points saved (when serving) — secondary bonus for holding under pressure.
   breakPointSavePoints: 5,
-  breakPointSaveCap: 20,
-
-  // Break point conversion rate (converted / opportunities) — up to 30 points.
-  // Proportional to how many of your break chances you actually took.
-  // Replaces the old binary "clutch bonus" that fired for any single BP converted.
-  clutchConversionRatePoints: 30,
-
-  // Pressure points weight
-  pressurePerformanceWeight: 0.25,
+  breakPointSaveCap: 30,
 };
 
 // ============================================================================

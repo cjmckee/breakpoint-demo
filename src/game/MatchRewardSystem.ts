@@ -258,18 +258,18 @@ export class MatchRewardSystem {
   /**
    * Calculate mental performance score (0-100)
    */
-  private static calculateMentalScore(
-    stats: MatchStatistics
-  ): number {
+  private static calculateMentalScore(stats: MatchStatistics): number {
     const w = MENTAL_WEIGHTS;
 
-    // Key moments won bonus (clamped by cap)
-    const keyMomentBonus = Math.min(
-      w.keyMomentCap,
-      stats.keyMomentsWon.player * w.keyMomentPoints
-    );
+    // Key moment win rate — primary mental metric (0-70 points).
+    // e.g. 3/5 key moments won = 60% rate = 42pts, 5/5 = 70pts, 0/5 = 0pts.
+    const totalKeyMoments = stats.keyMomentsWon.player + stats.keyMomentsWon.opponent;
+    const keyMomentWinRate = totalKeyMoments > 0
+      ? stats.keyMomentsWon.player / totalKeyMoments
+      : 0.5; // no key moments occurred → neutral
+    const keyMomentScore = keyMomentWinRate * w.keyMomentWinRatePoints;
 
-    // Break points saved (when serving)
+    // Break points saved (when serving) — bonus for holding under pressure (0-30 points).
     const breakPointsFaced = stats.breakPointOpportunities.opponent;
     const breakPointsSaved = breakPointsFaced - stats.breakPointsConverted.opponent;
     const breakPointSaveBonus = Math.min(
@@ -277,20 +277,7 @@ export class MatchRewardSystem {
       breakPointsSaved * w.breakPointSavePoints
     );
 
-    // Clutch performance — proportional BP conversion rate (0-30 points).
-    // Rewards efficiency: 3/3 converted = 30pts, 1/3 = 10pts, 0/3 = 0pts.
-    // Replaces the old binary bonus that gave 20pts for converting even a single BP.
-    const bpOpportunities = stats.breakPointOpportunities.player;
-    const bpConversionRate = bpOpportunities > 0
-      ? stats.breakPointsConverted.player / bpOpportunities
-      : 0;
-    const clutchScore = bpConversionRate * w.clutchConversionRatePoints;
-
-    // Pressure points performance (combined BP activity as proxy for clutch situations)
-    const totalPressurePoints = stats.breakPointsConverted.player + breakPointsSaved;
-    const pressureScore = totalPressurePoints * w.pressurePerformanceWeight;
-
-    const total = keyMomentBonus + breakPointSaveBonus + clutchScore + pressureScore;
+    const total = keyMomentScore + breakPointSaveBonus;
     return Math.max(0, Math.min(100, total));
   }
 
