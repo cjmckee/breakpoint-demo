@@ -67,9 +67,9 @@ export const RALLY_WEIGHTS = {
   unforcedErrorBase: 50,
   unforcedErrorMaxPoints: 30,
 
-  // Aggression: winner rate normalized from 5-25% of total points (0-20 points).
+  // Aggression: winner rate normalized from 5-20% of total points (0-20 points).
   winnerRateMinRate: 0.05,
-  winnerRateMaxRate: 0.25,
+  winnerRateMaxRate: 0.20,
   winnerRateMaxPoints: 20,
 };
 
@@ -84,9 +84,10 @@ export const NET_PLAY_WEIGHTS = {
   netVolumePoints: 2,
   netVolumeCap: 25,
 
-  // Minimum total net points before scoring kicks in.
-  // Players who rarely approach get a neutral 50 (not penalized for playing their game).
-  minNetPointsForScore: 3,
+  // Volume scaling threshold: below this many total net points, the whole score is
+  // scaled down linearly. Prevents rarely-approaching players from scoring high
+  // just because they won the 1-2 net points they did play.
+  netVolumeScaleThreshold: 10,
 };
 
 // ============================================================================

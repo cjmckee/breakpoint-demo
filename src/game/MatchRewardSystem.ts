@@ -238,23 +238,24 @@ export class MatchRewardSystem {
 
     const totalNetPoints = stats.netPointsWon.player + stats.netPointsWon.opponent;
 
-    // Players who rarely approach net aren't penalized — they get a neutral 50.
-    if (totalNetPoints < w.minNetPointsForScore) {
-      return 50;
-    }
+    if (totalNetPoints === 0) return 0;
 
-    // Net point win rate — primary metric (0-60 points).
-    // Directly measures how effective you were when you came to net.
+    // Net point win rate — primary metric (0-75 points).
     const netWinRate = stats.netPointsWon.player / totalNetPoints;
     const netWinRateScore = netWinRate * w.netWinRateMaxPoints;
 
-    // Volume bonus — small reward for actively attacking net (0-20 points).
+    // Volume bonus — small reward for actively attacking net (0-25 points).
     const volumeBonus = Math.min(
       w.netVolumeCap,
       stats.netPointsWon.player * w.netVolumePoints
     );
 
-    const total = netWinRateScore + volumeBonus;
+    // Scale the entire score by volume. Below the threshold, a player who only
+    // approached a handful of times scores low regardless of their success rate —
+    // net play just wasn't a meaningful part of their match.
+    const volumeScale = Math.min(1, totalNetPoints / w.netVolumeScaleThreshold);
+
+    const total = (netWinRateScore + volumeBonus) * volumeScale;
     return Math.max(0, Math.min(100, total));
   }
 
