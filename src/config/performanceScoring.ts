@@ -67,9 +67,9 @@ export const RALLY_WEIGHTS = {
   unforcedErrorBase: 50,
   unforcedErrorMaxPoints: 30,
 
-  // Aggression: winner rate normalized from 5-20% of total points (0-20 points).
+  // Aggression: winner rate normalized from 5-15% of total points (0-20 points).
   winnerRateMinRate: 0.05,
-  winnerRateMaxRate: 0.20,
+  winnerRateMaxRate: 0.15,
   winnerRateMaxPoints: 20,
 };
 
