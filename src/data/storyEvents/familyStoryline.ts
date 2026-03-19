@@ -108,7 +108,7 @@ export const familyEvents: StoryEvent[] = [
 
   {
     id: 'family_dinner_disaster',
-    name: 'Dinner Table Demo',
+    name: 'Dinner Table Demo [AI-gen]', // TODO: Complete this event
     tags: ['family', 'misc'],
     timeSlotsRequired: 1,
     prerequisites: {
@@ -135,7 +135,7 @@ export const familyEvents: StoryEvent[] = [
 
   {
     id: 'family_sibling_rivalry',
-    name: 'The Backyard Challenge',
+    name: 'The Backyard Challenge [AI-gen]', // TODO: Complete this event
     tags: ['family', 'decision'],
     timeSlotsRequired: 2,
     prerequisites: {
@@ -205,7 +205,7 @@ export const familyEvents: StoryEvent[] = [
 
   {
     id: 'family_care_package',
-    name: 'Care Package',
+    name: 'Care Package [AI-gen]', // TODO: Complete this event
     tags: ['family', 'celebration'],
     timeSlotsRequired: 1,
     prerequisites: {

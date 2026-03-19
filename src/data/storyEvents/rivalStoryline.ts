@@ -116,7 +116,7 @@ export const rivalEvents: StoryEvent[] = [
 
   {
     id: 'rival_doubles_disaster',
-    name: 'Forced Partners',
+    name: 'Forced Partners [AI-gen]', // TODO: Complete this event
     tags: ['rival', 'conflict', 'misc'],
     timeSlotsRequired: 2,
     prerequisites: {
@@ -186,7 +186,7 @@ export const rivalEvents: StoryEvent[] = [
 
   {
     id: 'rival_jordan_humbled',
-    name: 'A Different Side',
+    name: 'A Different Side [AI-gen]', // TODO: Complete this event
     tags: ['rival', 'conflict', 'decision'],
     timeSlotsRequired: 1,
     prerequisites: {
@@ -250,7 +250,7 @@ export const rivalEvents: StoryEvent[] = [
 
   {
     id: 'rival_unexpected_respect',
-    name: 'Grudging Respect',
+    name: 'Grudging Respect [AI-gen]', // TODO: Complete this event
     tags: ['rival', 'milestone'],
     timeSlotsRequired: 1,
     prerequisites: {

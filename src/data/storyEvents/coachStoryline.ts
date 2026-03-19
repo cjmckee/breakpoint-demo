@@ -200,7 +200,7 @@ export const coachEvents: StoryEvent[] = [
   },
 
   {
-    id: 'coach_video_analysis',
+    id: 'coach_video_analysis [AI-gen]', // TODO: Complete this event
     name: 'The Film Room',
     tags: ['coach', 'training', 'decision'],
     timeSlotsRequired: 2,
@@ -266,7 +266,7 @@ export const coachEvents: StoryEvent[] = [
 
   {
     id: 'coach_secret_past',
-    name: "Coach's Grand Slam Secret",
+    name: "Coach's Grand Slam Secret [AI-gen]", // TODO: Complete this event
     tags: ['coach', 'milestone'],
     timeSlotsRequired: 1,
     prerequisites: {
@@ -294,7 +294,7 @@ export const coachEvents: StoryEvent[] = [
 
   {
     id: 'coach_trick_shot_challenge',
-    name: 'The Bet',
+    name: 'The Bet [AI-gen]', // TODO: Complete this event
     tags: ['coach', 'training', 'decision'],
     timeSlotsRequired: 2,
     prerequisites: {

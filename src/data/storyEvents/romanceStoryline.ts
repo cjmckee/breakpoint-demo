@@ -105,7 +105,7 @@ export const romanceEvents: StoryEvent[] = [
 
   {
     id: 'romance_practice_together',
-    name: 'Practice Partners',
+    name: 'Practice Partners [AI-gen]', // TODO: Complete this event
     tags: ['romance', 'training'],
     timeSlotsRequired: 2,
     prerequisites: {
@@ -169,7 +169,7 @@ export const romanceEvents: StoryEvent[] = [
 
   {
     id: 'romance_movie_night',
-    name: 'Tennis Movie Night',
+    name: 'Tennis Movie Night [AI-gen]', // TODO: Complete this event
     tags: ['romance', 'misc'],
     timeSlotsRequired: 1,
     prerequisites: {
@@ -217,7 +217,7 @@ export const romanceEvents: StoryEvent[] = [
 
   {
     id: 'romance_alex_secret',
-    name: "Alex's Little Secret",
+    name: "Alex's Little Secret [AI-gen]", // TODO: Complete this event
     tags: ['romance', 'decision'],
     timeSlotsRequired: 2,
     prerequisites: {
