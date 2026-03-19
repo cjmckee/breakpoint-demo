@@ -674,6 +674,130 @@ export const CHALLENGE_ESCAPE_ARTIST: ChallengeTemplate = {
 };
 
 // ============================================================================
+// ROMANCE STORYLINE CHALLENGES (additional)
+// ============================================================================
+
+export const CHALLENGE_PRACTICE_MAKES_PERFECT: ChallengeTemplate = {
+  id: 'challenge_practice_makes_perfect',
+  name: 'Practice Makes Perfect',
+  description: "Alex has been holding back. Time to catch up for real. Reach 40 Return.",
+  requirements: [
+    {
+      type: 'statThreshold',
+      statName: 'return',
+      targetValue: 40,
+      description: 'Reach 40 Return',
+    },
+  ],
+  reward: {
+    modifiers: {
+      statBoosts: {
+        return: 3,
+        anticipation: 3,
+      },
+    },
+    relationshipChanges: {
+      alex: 15,
+    },
+    experience: 100,
+  },
+};
+
+// ============================================================================
+// FAMILY STORYLINE CHALLENGES (additional)
+// ============================================================================
+
+export const CHALLENGE_SIBLING_TEACHER: ChallengeTemplate = {
+  id: 'challenge_sibling_teacher',
+  name: 'Best in the Family',
+  description: 'You started teaching your sibling. Finish the job by mastering placement yourself. Reach 35 Placement.',
+  requirements: [
+    {
+      type: 'statThreshold',
+      statName: 'placement',
+      targetValue: 35,
+      description: 'Reach 35 Placement',
+    },
+  ],
+  reward: {
+    modifiers: {
+      statBoosts: {
+        placement: 3,
+        spin: 2,
+      },
+    },
+    relationshipChanges: {
+      family: 10,
+    },
+    experience: 75,
+  },
+};
+
+// ============================================================================
+// COACH STORYLINE CHALLENGES (additional)
+// ============================================================================
+
+export const CHALLENGE_TRICK_SHOT_MASTER: ChallengeTemplate = {
+  id: 'challenge_trick_shot_master',
+  name: 'Trick Shot Master',
+  description: "Coach Gonzalez made a bet on you. Don't embarrass him. Reach 30 Drop Shot and 30 Shot Variety.",
+  requirements: [
+    {
+      type: 'statThreshold',
+      statName: 'dropShot',
+      targetValue: 30,
+      description: 'Reach 30 Drop Shot',
+    },
+    {
+      type: 'statThreshold',
+      statName: 'shotVariety',
+      targetValue: 30,
+      description: 'Reach 30 Shot Variety',
+    },
+  ],
+  reward: {
+    modifiers: {
+      statBoosts: {
+        dropShot: 4,
+        shotVariety: 4,
+        placement: 2,
+      },
+    },
+    relationshipChanges: {
+      coach_gonzalez: 15,
+    },
+    experience: 100,
+  },
+};
+
+// ============================================================================
+// RIVAL STORYLINE CHALLENGES (additional)
+// ============================================================================
+
+export const CHALLENGE_DOUBLES_INSTINCTS: ChallengeTemplate = {
+  id: 'challenge_doubles_instincts',
+  name: 'Doubles Instincts',
+  description: "Adapting to Jordan's chaos sharpened your net game. Reach 35 Volley.",
+  requirements: [
+    {
+      type: 'statThreshold',
+      statName: 'volley',
+      targetValue: 35,
+      description: 'Reach 35 Volley',
+    },
+  ],
+  reward: {
+    modifiers: {
+      statBoosts: {
+        volley: 3,
+        return: 2,
+      },
+    },
+    experience: 75,
+  },
+};
+
+// ============================================================================
 // TEMPLATE REGISTRY
 // ============================================================================
 
@@ -701,6 +825,13 @@ export const CHALLENGE_TEMPLATES: Record<string, ChallengeTemplate> = {
   [CHALLENGE_SPONSOR_WORTHY.id]: CHALLENGE_SPONSOR_WORTHY,
   // Romance
   [CHALLENGE_IMPRESS_ALEX.id]: CHALLENGE_IMPRESS_ALEX,
+  [CHALLENGE_PRACTICE_MAKES_PERFECT.id]: CHALLENGE_PRACTICE_MAKES_PERFECT,
+  // Family (additional)
+  [CHALLENGE_SIBLING_TEACHER.id]: CHALLENGE_SIBLING_TEACHER,
+  // Coach (additional)
+  [CHALLENGE_TRICK_SHOT_MASTER.id]: CHALLENGE_TRICK_SHOT_MASTER,
+  // Rival (additional)
+  [CHALLENGE_DOUBLES_INSTINCTS.id]: CHALLENGE_DOUBLES_INSTINCTS,
   // Misc
   [CHALLENGE_SLICE_SPECIALIST.id]: CHALLENGE_SLICE_SPECIALIST,
   [CHALLENGE_TOUCH_ARTIST.id]: CHALLENGE_TOUCH_ARTIST,
