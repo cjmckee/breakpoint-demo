@@ -210,7 +210,7 @@ export const miscEvents: StoryEvent[] = [
             effects: {
                 energyChange: 10,
                 statChanges: {
-                    focus: -2,
+                    focus: -1,
                     anticipation: -1,
                     agility: -1,
                     placement: 3
@@ -378,7 +378,7 @@ export const miscEvents: StoryEvent[] = [
                     keith: 5
                 },
                 statChanges: {
-                    focus: -4,
+                    focus: -2,
                     agility: 2,
                     speed: 2,
                     anticipation: -1,
@@ -1007,7 +1007,7 @@ export const miscEvents: StoryEvent[] = [
                 energyChange: -25,
                 moodChange: 10,
                 statChanges: {
-                    focus: -4,
+                    focus: -2,
                     stamina: -2,
                     forehand: -1,
                     anticipation: -2,
@@ -1057,7 +1057,7 @@ export const miscEvents: StoryEvent[] = [
                         statChanges: {
                             placement: -3,
                             offensive: -2,
-                            focus: -2,
+                            focus: -1,
                         },
                         relationshipChanges: {
                             keith: 5,
