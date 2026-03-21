@@ -15,7 +15,7 @@ export const ActiveTournamentCard: React.FC = () => {
   const calendar = useGameStore((state) => state.calendar);
   const activeTournament = calendar.activeTournament;
   const scheduledEvents = calendar.scheduledEvents;
-  const setScreen = useGameStore((state) => state.setScreen);
+  const navigateToScheduledMatch = useGameStore((state) => state.navigateToScheduledMatch);
 
   if (!activeTournament || !activeTournament.isActive) {
     return null;
@@ -172,7 +172,7 @@ export const ActiveTournamentCard: React.FC = () => {
           <Button
             variant="primary"
             fullWidth
-            onClick={() => setScreen('tournament-match')}
+            onClick={() => navigateToScheduledMatch('tournament')}
           >
             🎾 Play Tournament Match
           </Button>

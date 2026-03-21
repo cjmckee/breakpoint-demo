@@ -32,7 +32,7 @@ interface ModalState {
 
 export const Inventory: React.FC = () => {
   const player = useGameStore((state) => state.player);
-  const setScreen = useGameStore((state) => state.setScreen);
+  const navigateTo = useGameStore((state) => state.navigateTo);
   const equipItem = useGameStore((state) => state.equipItem);
   const unequipItem = useGameStore((state) => state.unequipItem);
   const useConsumable = useGameStore((state) => state.useConsumable);
@@ -269,7 +269,7 @@ export const Inventory: React.FC = () => {
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-4xl font-bold text-pixel-text">Inventory</h1>
-          <Button onClick={() => setScreen('main-menu')}>Back to Menu</Button>
+          <Button onClick={() => navigateTo('idle')}>Back to Menu</Button>
         </div>
 
         {/* Equipment Section */}

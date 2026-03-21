@@ -242,7 +242,7 @@ export const welcomeEvents: StoryEvent[] = [
       ['keith', ['Hey! I found out more about how relationships work here at the academy.']],
       ['keith', ['Building relationships with other players can give you various benefits, like training bonuses and support during matches.']],
       ['keith', ['Interacting with other players, participating in events, and making choices that align with their personalities can help.']],
-      ['keith', ['But making the wrong choices can hurt those relationships. I tried to offer ', {characterId: 'jen'}, 'some advice on her serve this morning.']],
+      ['keith', ['But making the wrong choices can hurt those relationships. I tried to offer ', {characterId: 'jen'}, ' some advice on her serve this morning.']],
       ['keith', ['I saw a big -15 appear over her head! She can be so sensitive sometimes. I brought my double faults down to 20 per match using those tips.']],
     ],
     characters: ['keith'],

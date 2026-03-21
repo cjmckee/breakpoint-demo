@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import './App.css';
 import { useGameStore } from './stores/gameStore';
 import { useMatchStore } from './stores/matchStore';
@@ -13,15 +13,13 @@ import { TournamentMatch } from './components/TournamentMatch';
 import { StoryMatch } from './components/StoryMatch';
 import { KeyMomentModal } from './components/KeyMomentModal';
 import { MatchSummaryModal } from './components/MatchSummaryModal';
+import { StoryEventModal } from './components/StoryEventModal';
+import { StoryEventResultModal } from './components/StoryEventResultModal';
 
 function App() {
-  const { isInitialized, currentScreen, initializeGame } = useGameStore();
-  const isMatchActive = useMatchStore((state) => state.isMatchActive);
+  const { isInitialized, gamePhase, initializeGame } = useGameStore();
   const currentKeyMoment = useMatchStore((state) => state.currentKeyMoment);
   const isWaitingForChoice = useMatchStore((state) => state.isWaitingForChoice);
-  const showMatchResults = useMatchStore((state) => state.showMatchResults);
-  const finalScore = useMatchStore((state) => state.finalScore);
-  const hideMatchResults = useMatchStore((state) => state.hideMatchResults);
 
   useEffect(() => {
     if (!isInitialized) {
@@ -41,8 +39,17 @@ function App() {
     );
   }
 
-  // Render current screen
-  switch (currentScreen) {
+  switch (gamePhase.type) {
+    case 'uninitialized':
+      return (
+        <div className="min-h-screen bg-pixel-bg text-pixel-text flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-6xl mb-4">🎾</div>
+            <p className="text-xl font-bold">Loading Tennis RPG...</p>
+          </div>
+        </div>
+      );
+
     case 'welcome':
       return (
         <div className="min-h-screen bg-pixel-bg text-pixel-text flex items-center justify-center p-4">
@@ -65,77 +72,78 @@ function App() {
         </div>
       );
 
-    case 'player-creation':
+    case 'player_creation':
       return <PlayerCreation />;
 
-    case 'main-menu':
-      return <MainMenu />;
+    case 'idle':
+      return <MainMenu overlay={gamePhase.overlay} />;
 
     case 'training':
       return <TrainingSelection />;
 
-    case 'match':
-      // If match is active, show live viewer, otherwise show setup
+    case 'match_setup':
+      // Route to the appropriate setup screen based on matchType
+      if (gamePhase.matchType === 'tournament') {
+        return <TournamentMatch matchConfig={gamePhase.matchConfig} />;
+      } else if (gamePhase.matchType === 'story') {
+        return <StoryMatch matchConfig={gamePhase.matchConfig} />;
+      } else {
+        return <MatchSetup />;
+      }
+
+    case 'match_active':
       return (
         <>
-          {isMatchActive ? <LiveMatchViewer /> : <MatchSetup />}
+          <LiveMatchViewer />
           <KeyMomentModal
             isOpen={isWaitingForChoice}
             keyMoment={currentKeyMoment}
           />
-          <MatchSummaryModal
-            isOpen={showMatchResults}
-            onClose={hideMatchResults}
-            finalScore={finalScore}
-          />
         </>
       );
+
+    case 'match_results':
+      return (
+        <MatchSummaryModal
+          isOpen={true}
+          onClose={() => useGameStore.getState().dismissMatchResults()}
+          finalScore={gamePhase.finalScore}
+          matchRewards={gamePhase.rewards}
+          matchStatistics={gamePhase.matchStatistics}
+          keyMomentHistory={gamePhase.keyMomentHistory}
+          matchConfig={gamePhase.matchConfig}
+          accumulatedEffects={gamePhase.accumulatedEffects}
+        />
+      );
+
+    case 'tournament_list':
+      return <TournamentList />;
 
     case 'inventory':
       return <Inventory />;
 
-    case 'tournaments':
-      return <TournamentList />;
-
-    case 'tournament-match':
-      // Tournament matches use the same match viewer
+    case 'story_event':
       return (
-        <>
-          {isMatchActive ? <LiveMatchViewer /> : <TournamentMatch />}
-          <KeyMomentModal
-            isOpen={isWaitingForChoice}
-            keyMoment={currentKeyMoment}
-          />
-          <MatchSummaryModal
-            isOpen={showMatchResults}
-            onClose={hideMatchResults}
-            finalScore={finalScore}
-          />
-        </>
+        <StoryEventModal
+          isOpen={true}
+          onClose={() => useGameStore.getState().cancelStoryEvent()}
+          event={gamePhase.event}
+          availableOptions={gamePhase.availableOptions}
+          onSelectOption={(eventId, optionId) => useGameStore.getState().executeStoryEvent(eventId, optionId)}
+        />
       );
 
-    case 'story-match':
-      // Story matches use the same match viewer
+    case 'story_event_result':
       return (
-        <>
-          {isMatchActive ? <LiveMatchViewer /> : <StoryMatch />}
-          <KeyMomentModal
-            isOpen={isWaitingForChoice}
-            keyMoment={currentKeyMoment}
-          />
-          <MatchSummaryModal
-            isOpen={showMatchResults}
-            onClose={hideMatchResults}
-            finalScore={finalScore}
-          />
-        </>
+        <StoryEventResultModal
+          isOpen={true}
+          onClose={() => useGameStore.getState().dismissStoryEventResult()}
+          result={gamePhase.result}
+        />
       );
-
-    case 'rest':
-      return <MainMenu />;
 
     default:
-      return <MainMenu />;
+      return <MainMenu overlay={null} />;
   }
 }
 

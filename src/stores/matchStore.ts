@@ -1,6 +1,7 @@
 /**
  * Match Store
- * Manages match state, key moments, and interactive match flow
+ * Manages match-internal state: orchestrator, scores, key moments, statistics.
+ * Routing state (isMatchActive, showMatchResults) is now handled by gameStore's gamePhase.
  */
 
 import { create } from 'zustand';
@@ -9,22 +10,21 @@ import {
   KeyMoment,
   InteractiveMatchConfig,
 } from '../types/keyMoments';
-import { PlayerStats } from '../types/game';
 import { TacticalOption } from '../data/tacticalOptions';
 import { MatchOrchestrator, AccumulatedMatchEffects } from '../game/MatchOrchestrator';
 import { DEFAULT_KEY_MOMENTS_PER_MATCH } from '../config/matchRewards';
 import { KeyMomentResult } from '../game/KeyMomentResolver';
 import { MatchStatistics as IMatchStatistics } from '../types';
+// No direct import of gameStore — the caller passes an onMatchComplete callback
+// to startMatch() to avoid circular dependency.
+import type { MatchCompletionData } from '../types/gamePhase';
 
 interface MatchState {
-  // Match configuration
-  isMatchActive: boolean;
+  // Match configuration (kept for LiveMatchViewer to read opponent name, surface, etc.)
   matchConfig: InteractiveMatchConfig | null;
 
   // Match progress
   currentScore: MatchScore | null;
-  finalScore: MatchScore | null;
-  showMatchResults: boolean;
   matchHistory: Array<{
     pointNumber: number;
     winner: 'player' | 'opponent';
@@ -39,7 +39,7 @@ interface MatchState {
   isWaitingForChoice: boolean;
   lastKeyMomentResult: KeyMomentResult | null;
   showKeyMomentResult: boolean;
-  lastChosenOption: TacticalOption | null; // Track the last chosen option
+  lastChosenOption: TacticalOption | null;
   keyMomentHistory: Array<{
     keyMoment: KeyMoment;
     chosenOption: TacticalOption;
@@ -56,22 +56,18 @@ interface MatchState {
   keyMomentResolver: ((option: TacticalOption) => void) | null;
 
   // Actions
-  startMatch: (config: InteractiveMatchConfig) => Promise<void>;
+  startMatch: (config: InteractiveMatchConfig, onComplete: (data: MatchCompletionData) => void) => Promise<void>;
   handleKeyMomentChoice: (option: TacticalOption) => void;
   setKeyMomentResult: (result: KeyMomentResult) => void;
   hideKeyMomentResult: () => void;
-  hideMatchResults: () => void;
   endMatch: () => void;
   resetMatch: () => void;
 }
 
 export const useMatchStore = create<MatchState>((set, get) => ({
   // Initial state
-  isMatchActive: false,
   matchConfig: null,
   currentScore: null,
-  finalScore: null,
-  showMatchResults: false,
   matchHistory: [],
   matchStatistics: null,
   currentKeyMoment: null,
@@ -85,7 +81,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
   keyMomentResolver: null,
 
   // Start a new match
-  startMatch: async (config: InteractiveMatchConfig) => {
+  startMatch: async (config: InteractiveMatchConfig, onComplete?: (data: MatchCompletionData) => void) => {
     const orchestrator = new MatchOrchestrator();
 
     // Create config with callbacks
@@ -120,27 +116,32 @@ export const useMatchStore = create<MatchState>((set, get) => ({
         set({ matchStatistics: stats });
       },
 
-      // Match complete callback
+      // Match complete callback — hand off to gameStore for phase transition
       onMatchComplete: (finalScore: MatchScore) => {
-        // Get statistics and accumulated effects from orchestrator
-        const statistics = orchestrator.getMatchStatistics();
+        // Store final data in matchStore for gameStore to read
+        // These are always populated at match completion
+        const statistics = orchestrator.getMatchStatistics()!;
         const effects = orchestrator.getAccumulatedEffects();
 
         set({
           currentScore: finalScore,
-          finalScore: finalScore,
           matchStatistics: statistics,
           accumulatedEffects: effects,
-          isMatchActive: false,
-          showMatchResults: true,
           currentKeyMoment: null,
           isWaitingForChoice: false,
+        });
+
+        // Pass all match data to caller (gameStore) so it doesn't need to import matchStore
+        onComplete?.({
+          finalScore,
+          matchStatistics: statistics,
+          accumulatedEffects: effects,
+          keyMomentHistory: get().keyMomentHistory,
         });
       },
     };
 
     set({
-      isMatchActive: true,
       matchConfig,
       orchestrator,
       currentScore: null,
@@ -149,7 +150,6 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       accumulatedEffects: null,
       keyMomentHistory: [],
       lastChosenOption: null,
-      finalScore: null,
     });
 
     // Start match simulation (async)
@@ -161,7 +161,6 @@ export const useMatchStore = create<MatchState>((set, get) => ({
     } catch (error) {
       console.error('Match simulation error:', error);
       set({
-        isMatchActive: false,
         currentKeyMoment: null,
         isWaitingForChoice: false,
       });
@@ -210,7 +209,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       showKeyMomentResult: true,
       keyMomentHistory: [...keyMomentHistory, historyEntry],
       currentKeyMoment: null,
-      lastChosenOption: null, // Clear after adding to history
+      lastChosenOption: null,
     });
   },
 
@@ -222,24 +221,15 @@ export const useMatchStore = create<MatchState>((set, get) => ({
     });
   },
 
-  // Hide match results
-  hideMatchResults: () => {
-    set({
-      showMatchResults: false,
-    });
-  },
-
   // End match early
   endMatch: () => {
     const { orchestrator } = get();
 
-    // Cancel the ongoing match simulation
     if (orchestrator) {
       orchestrator.cancelMatch();
     }
 
     set({
-      isMatchActive: false,
       currentKeyMoment: null,
       isWaitingForChoice: false,
       keyMomentResolver: null,
@@ -250,13 +240,11 @@ export const useMatchStore = create<MatchState>((set, get) => ({
   resetMatch: () => {
     const { orchestrator } = get();
 
-    // Cancel the ongoing match simulation
     if (orchestrator) {
       orchestrator.cancelMatch();
     }
 
     set({
-      isMatchActive: false,
       matchConfig: null,
       currentScore: null,
       matchHistory: [],

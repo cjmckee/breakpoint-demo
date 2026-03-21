@@ -33,8 +33,8 @@ const TIER_INFO: TierInfo[] = [
 export const MatchSetup: React.FC = () => {
   const player = useGameStore((state) => state.player);
   const currentStatus = useGameStore((state) => state.currentStatus);
-  const setScreen = useGameStore((state) => state.setScreen);
-  const startMatch = useMatchStore((state) => state.startMatch);
+  const navigateTo = useGameStore((state) => state.navigateTo);
+  const beginMatch = useGameStore((state) => state.beginMatch);
 
   const [selectedTier, setSelectedTier] = useState<OpponentTier>(1);
   const [selectedSurface, setSelectedSurface] = useState<CourtSurface>('hard');
@@ -46,7 +46,7 @@ export const MatchSetup: React.FC = () => {
   const handleStartMatch = () => {
     const opponent = getRandomOpponent(selectedTier);
 
-    startMatch({
+    const config = {
       playerStats: player.stats,
       playerAbilities: player.abilities,
       itemBoosts: ItemManager.getTotalPassiveBoosts(player),
@@ -57,10 +57,13 @@ export const MatchSetup: React.FC = () => {
       mood: currentStatus.mood,
       energy: currentStatus.energy,
       enableKeyMoments: true,
-      matchFormat: 'best-of-1',
-    });
+      matchFormat: 'best-of-1' as const,
+    };
 
-    setScreen('match');
+    beginMatch(config, 'regular');
+    useMatchStore.getState().startMatch(config, (data) => {
+      useGameStore.getState().onMatchComplete(data);
+    });
   };
 
   const matchEnergyCost = DEFAULT_MATCH_ENERGY_COST;
@@ -103,7 +106,7 @@ export const MatchSetup: React.FC = () => {
     <div className="min-h-screen bg-pixel-bg p-4">
       <div className="max-w-6xl mx-auto">
         <div className="mb-6">
-          <Button variant="secondary" onClick={() => setScreen('main-menu')}>
+          <Button variant="secondary" onClick={() => navigateTo('idle')}>
             ← Back to Menu
           </Button>
         </div>

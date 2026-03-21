@@ -22,13 +22,12 @@ interface MatchStats {
 }
 
 export const LiveMatchViewer: React.FC = () => {
-  const isMatchActive = useMatchStore((state) => state.isMatchActive);
   const currentKeyMoment = useMatchStore((state) => state.currentKeyMoment);
   const isWaitingForChoice = useMatchStore((state) => state.isWaitingForChoice);
   const currentScore = useMatchStore((state) => state.currentScore);
   const matchConfig = useMatchStore((state) => state.matchConfig);
   const matchStatistics = useMatchStore((state) => state.matchStatistics);
-  const setScreen = useGameStore((state) => state.setScreen);
+  const navigateTo = useGameStore((state) => state.navigateTo);
   const player = useGameStore((state) => state.player);
 
   // Default score if not available
@@ -89,21 +88,6 @@ export const LiveMatchViewer: React.FC = () => {
     player: score.sets.filter(s => s.player > s.opponent).length,
     opponent: score.sets.filter(s => s.opponent > s.player).length,
   };
-
-  if (!isMatchActive) {
-    return (
-      <div className="min-h-screen bg-pixel-bg p-4 flex items-center justify-center">
-        <Card title="No Active Match">
-          <p className="text-pixel-text-muted mb-4">
-            There is no active match. Return to the main menu to start a new match.
-          </p>
-          <Button variant="primary" fullWidth onClick={() => setScreen('main-menu')}>
-            Return to Main Menu
-          </Button>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-pixel-bg p-4">

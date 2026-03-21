@@ -12,35 +12,29 @@ import { Card } from './ui/Card';
 import { PreMatchScreen } from './PreMatchScreen';
 import type { PlayerStats } from '../types/game';
 import { ItemManager } from '../game/ItemManager';
+import type { PreMatchConfig } from '../types/gamePhase';
 
-export const TournamentMatch: React.FC = () => {
+interface TournamentMatchProps {
+  matchConfig: PreMatchConfig | null;
+}
+
+export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig }) => {
   const player = useGameStore((state) => state.player);
   const currentStatus = useGameStore((state) => state.currentStatus);
   const activeTournament = useGameStore((state) => state.calendar.activeTournament);
-  const setScreen = useGameStore((state) => state.setScreen);
-  const startMatch = useMatchStore((state) => state.startMatch);
+  const navigateTo = useGameStore((state) => state.navigateTo);
+  const beginMatch = useGameStore((state) => state.beginMatch);
 
-  if (!player || !activeTournament) {
+  if (!player || !activeTournament || !matchConfig) {
     return null;
   }
 
-  // Get tournament configuration
+  // Get tournament configuration for display purposes
   const tournament = TournamentRegistry.getTournament(activeTournament.tournamentId);
   if (!tournament) {
     return null;
   }
 
-  // Get current round data
-  const currentRoundConfig = TournamentManager.getCurrentRound(
-    tournament,
-    activeTournament.currentRound
-  );
-
-  if (!currentRoundConfig) {
-    return null;
-  }
-
-  const opponent = currentRoundConfig.opponent;
   const energyCost = TournamentManager.calculateMatchEnergyCost(currentStatus.energy);
   const roundNumber = activeTournament.currentRound + 1;
   const totalRounds = tournament.rounds.length;
@@ -50,22 +44,25 @@ export const TournamentMatch: React.FC = () => {
   };
 
   const handleStartMatch = () => {
-    startMatch({
+    const config = {
       playerStats: player.stats,
       playerAbilities: player.abilities,
       itemBoosts: ItemManager.getTotalPassiveBoosts(player),
-      opponentStats: opponent.stats as PlayerStats,
-      opponentName: opponent.name,
-      opponentTier: opponent.tier,
-      surface: tournament.surface,
+      opponentStats: matchConfig.opponentStats as PlayerStats,
+      opponentName: matchConfig.opponentName,
+      opponentTier: matchConfig.opponentTier,
+      surface: matchConfig.surface,
       mood: currentStatus.mood,
       energy: currentStatus.energy,
       enableKeyMoments: true,
-      matchFormat: 'best-of-1',
+      matchFormat: matchConfig.matchFormat === 'best-of-3' ? 'best-of-3' as const : 'best-of-1' as const,
       isTournamentMatch: true,
-    });
+    };
 
-    setScreen('match');
+    beginMatch(config, 'tournament');
+    useMatchStore.getState().startMatch(config, (data) => {
+      useGameStore.getState().onMatchComplete(data);
+    });
   };
 
   const headerContent = (
@@ -126,17 +123,17 @@ export const TournamentMatch: React.FC = () => {
     <PreMatchScreen
       title={tournament.name}
       headerContent={headerContent}
-      opponentName={opponent.name}
-      opponentTier={opponent.tier}
-      opponentDescription={opponent.description}
-      opponentStats={opponent.stats as PlayerStats}
-      surface={tournament.surface}
-      matchFormat="best-of-1"
+      opponentName={matchConfig.opponentName}
+      opponentTier={matchConfig.opponentTier}
+      opponentDescription={matchConfig.opponentDescription}
+      opponentStats={matchConfig.opponentStats as PlayerStats}
+      surface={matchConfig.surface}
+      matchFormat={matchConfig.matchFormat === 'best-of-3' ? 'best-of-3' : 'best-of-1'}
       energyCost={energyCost}
       currentEnergy={currentStatus.energy}
       contextContent={contextContent}
       onStartMatch={handleStartMatch}
-      onBack={() => setScreen('main-menu')}
+      onBack={() => navigateTo('idle')}
     />
   );
 };

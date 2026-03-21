@@ -14,7 +14,7 @@ export const TournamentList: React.FC = () => {
   const player = useGameStore((state) => state.player);
   const calendar = useGameStore((state) => state.calendar);
   const completedStoryEvents = useGameStore((state) => state.completedStoryEvents);
-  const setScreen = useGameStore((state) => state.setScreen);
+  const navigateTo = useGameStore((state) => state.navigateTo);
   const startTournament = useGameStore((state) => state.startTournament);
   const cancelTournament = useGameStore((state) => state.cancelTournament);
   const activeTournament = calendar.activeTournament;
@@ -40,7 +40,7 @@ export const TournamentList: React.FC = () => {
 
   const handleEnterTournament = (tournamentId: string) => {
     startTournament(tournamentId);
-    setScreen('main-menu');
+    navigateTo('idle');
   };
 
   const getSurfaceColor = (surface: string): string => {
@@ -115,7 +115,7 @@ export const TournamentList: React.FC = () => {
     <div className="min-h-screen bg-pixel-bg p-4">
       <div className="max-w-6xl mx-auto">
         <div className="mb-6">
-          <Button variant="secondary" onClick={() => setScreen('main-menu')}>
+          <Button variant="secondary" onClick={() => navigateTo('idle')}>
             ← Back to Menu
           </Button>
         </div>
@@ -129,7 +129,7 @@ export const TournamentList: React.FC = () => {
               Return to the main menu to continue your tournament matches.
             </p>
             <div className="flex gap-2">
-              <Button variant="secondary" onClick={() => setScreen('main-menu')} fullWidth>
+              <Button variant="secondary" onClick={() => navigateTo('idle')} fullWidth>
                 Return to Menu
               </Button>
               <Button

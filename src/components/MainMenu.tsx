@@ -3,7 +3,7 @@
  * Hub for player activities and navigation
  */
 
-import React, { useEffect, JSX } from 'react';
+import React, { JSX } from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
@@ -18,21 +18,20 @@ import { StoryEventModal } from './StoryEventModal';
 import { StoryEventResultModal } from './StoryEventResultModal';
 import { derivePlayStyle } from '../core/PlayerProfile';
 import { getArchetypeLabel } from '../data/archetypes';
-import type {
-  StoryEventModalData,
-  TrainingResultModalData,
-  StoryEventResultModalData,
-} from '../types/ui';
+import type { OverlayState } from '../types/gamePhase';
 import { TimeSlot, PlayerFlag } from '../types/game';
-import { TournamentRegistry } from '../data/tournaments';
-import { TournamentManager } from '../game/TournamentManager';
 import { StoryMatchManager } from '../game/StoryMatchManager';
 
-export const MainMenu: React.FC = () => {
+interface MainMenuProps {
+  overlay: OverlayState | null;
+}
+
+export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const player = useGameStore((state) => state.player);
   const currentStatus = useGameStore((state) => state.currentStatus);
   const calendar = useGameStore((state) => state.calendar);
-  const setScreen = useGameStore((state) => state.setScreen);
+  const navigateTo = useGameStore((state) => state.navigateTo);
+  const navigateToScheduledMatch = useGameStore((state) => state.navigateToScheduledMatch);
   const rest = useGameStore((state) => state.rest);
 
   // Tournament state
@@ -46,11 +45,8 @@ export const MainMenu: React.FC = () => {
   const executeStoryEvent = useGameStore((state) => state.executeStoryEvent);
   const cancelStoryEvent = useGameStore((state) => state.cancelStoryEvent);
   const getAvailableEventOptions = useGameStore((state) => state.getAvailableEventOptions);
-
-  // Modal queue state and actions
-  const currentModal = useGameStore((state) => state.currentModal);
-  const dismissCurrentModal = useGameStore((state) => state.dismissCurrentModal);
-  const hasModalOfType = useGameStore((state) => state.hasModalOfType);
+  const dismissOverlay = useGameStore((state) => state.dismissOverlay);
+  const dismissStoryEventResult = useGameStore((state) => state.dismissStoryEventResult);
 
   // Check if it's night time - only rest/next day action allowed
   const isNightTime = calendar.currentTimeSlot === TimeSlot.NIGHT;
@@ -59,8 +55,8 @@ export const MainMenu: React.FC = () => {
   const matchUnlocked = player?.flags?.[PlayerFlag.MATCH_UNLOCKED] === true;
   const tournamentsUnlocked = player?.flags?.[PlayerFlag.TOURNAMENTS_UNLOCKED] === true;
 
-  // Check if a story event modal is active
-  const isEventPending = hasModalOfType('story_event');
+  // Check if a story event overlay is active
+  const isEventPending = overlay?.type === 'story_event';
 
   // Check if tournament match is scheduled for current time
   const scheduledTournamentMatch = getScheduledTournamentMatch();
@@ -73,52 +69,14 @@ export const MainMenu: React.FC = () => {
     ? StoryMatchManager.getStoryMatchMetadata(scheduledStoryMatch)
     : null;
 
-  // Trigger pre-match event when tournament match is scheduled
-  // Use stable primitive values as dependencies (not objects which are recreated each render)
-  const tournamentRound = activeTournament?.currentRound;
-  const tournamentBracket = activeTournament?.currentBracket;
-  const tournamentId = activeTournament?.tournamentId;
-  useEffect(() => {
-    if (isTournamentMatchScheduled && tournamentId != null) {
-      const config = TournamentRegistry.getTournament(tournamentId);
-      if (config && tournamentRound != null && tournamentBracket != null) {
-        const prematchEventId = TournamentManager.getPrematchEventId(
-          config,
-          tournamentRound,
-          tournamentBracket
-        );
-        if (prematchEventId) {
-          console.log('Tournament match scheduled - triggering pre-match event:', prematchEventId);
-          useGameStore.getState().checkForStoryEventById(prematchEventId);
-        }
-      }
-    }
-  }, [isTournamentMatchScheduled, tournamentId, tournamentRound, tournamentBracket]);
-
-  // Trigger pre-match event when story match is scheduled
-  // Use prematchEventId string as dependency (not the metadata object which is recreated each render)
-  const storyPrematchEventId = storyMatchMetadata?.prematchEventId;
-  useEffect(() => {
-    if (isStoryMatchScheduled && storyPrematchEventId) {
-      console.log('Story match scheduled - triggering pre-match event:', storyPrematchEventId);
-      useGameStore.getState().checkForStoryEventById(storyPrematchEventId);
-    }
-  }, [isStoryMatchScheduled, storyPrematchEventId]);
-
+  // Pre-match events are now triggered by navigateTo('idle') in gameStore — no useEffects needed.
 
   const handleExecuteEvent = (eventId: string, optionId?: string) => {
     executeStoryEvent(eventId, optionId);
-    // Modal dismissal and result queuing now handled by executeStoryEvent
   };
 
   const handleCancelEvent = () => {
     cancelStoryEvent();
-    // After skipping pre-match event, navigate to match screen if scheduled
-    if (isTournamentMatchScheduled) {
-      setScreen('tournament-match');
-    } else if (isStoryMatchScheduled) {
-      setScreen('story-match');
-    }
   };
 
   if (!player) {
@@ -132,7 +90,7 @@ export const MainMenu: React.FC = () => {
       emoji: '🏋️',
       description: 'Improve your skills with focused practice sessions',
       energyCost: 0,
-      action: () => setScreen('training'),
+      action: () => navigateTo('training'),
     },
     {
       id: 'match',
@@ -140,7 +98,7 @@ export const MainMenu: React.FC = () => {
       emoji: '🎾',
       description: 'Test your skills in a practice match with another Academy player',
       energyCost: 50,
-      action: () => setScreen('match'),
+      action: () => navigateTo('match_setup'),
     },
     {
       id: 'tournaments',
@@ -148,7 +106,7 @@ export const MainMenu: React.FC = () => {
       emoji: '🏆',
       description: 'Enter competitive tournaments and compete for glory',
       energyCost: 0,
-      action: () => setScreen('tournaments'),
+      action: () => navigateTo('tournament_list'),
     },
     {
       id: 'inventory',
@@ -156,14 +114,14 @@ export const MainMenu: React.FC = () => {
       emoji: '🎒',
       description: 'Manage your equipment and items',
       energyCost: 0,
-      action: () => setScreen('inventory'),
+      action: () => navigateTo('inventory'),
     },
     {
       id: 'rest',
       title: isNightTime ? 'Next Day' : 'Rest',
       emoji: '😴',
-      description: isNightTime ? 
-        'Rest and advance to the next day' 
+      description: isNightTime ?
+        'Rest and advance to the next day'
         : 'Rest and advance to next action',
       energyCost: isNightTime ? -50 : -20,
       action: () => rest(),
@@ -202,53 +160,40 @@ export const MainMenu: React.FC = () => {
     );
   };
 
-  // Get current story event from modal (if showing)
-  const currentStoryEvent = currentModal?.type === 'story_event'
-    ? (currentModal.data as StoryEventModalData).event
-    : null;
+  // Get current story event from overlay (if showing)
+  const currentStoryEvent = overlay?.type === 'story_event' ? overlay.event : null;
 
-  // Render modal based on currentModal from queue
-  const renderModal = () => {
-    if (!currentModal) return null;
+  // Render overlay modal based on overlay state
+  const renderOverlay = () => {
+    if (!overlay) return null;
 
-    switch (currentModal.type) {
+    switch (overlay.type) {
       case 'training_result': {
-        const data = currentModal.data as TrainingResultModalData;
         return (
           <TrainingResultModal
             isOpen={true}
-            onClose={dismissCurrentModal}
-            result={data.result}
+            onClose={dismissOverlay}
+            result={overlay.result}
           />
         );
       }
       case 'story_event': {
-        const data = currentModal.data as StoryEventModalData;
         return (
           <StoryEventModal
             isOpen={true}
             onClose={handleCancelEvent}
-            event={data.event}
+            event={overlay.event}
             availableOptions={getAvailableEventOptions()}
             onSelectOption={handleExecuteEvent}
           />
         );
       }
       case 'story_event_result': {
-        const data = currentModal.data as StoryEventResultModalData;
         return (
           <StoryEventResultModal
             isOpen={true}
-            onClose={() => {
-              dismissCurrentModal();
-              // After pre-match event result is dismissed, navigate to match screen
-              if (isTournamentMatchScheduled) {
-                setScreen('tournament-match');
-              } else if (isStoryMatchScheduled) {
-                setScreen('story-match');
-              }
-            }}
-            result={data.result}
+            onClose={dismissStoryEventResult}
+            result={overlay.result}
           />
         );
       }
@@ -276,7 +221,7 @@ export const MainMenu: React.FC = () => {
                   {activeTournament?.tournamentName} - Round {(activeTournament?.currentRound || 0) + 1}
                 </p>
               </div>
-              <Button onClick={() => setScreen('tournament-match')} variant="primary" size="lg">
+              <Button onClick={() => navigateToScheduledMatch('tournament')} variant="primary" size="lg">
                 Play Match
               </Button>
             </div>
@@ -299,7 +244,7 @@ export const MainMenu: React.FC = () => {
                   <p className="text-sm text-gray-200 mt-1">{storyMatchMetadata.matchDescription}</p>
                 )}
               </div>
-              <Button onClick={() => setScreen('story-match')} variant="primary" size="lg">
+              <Button onClick={() => navigateToScheduledMatch('story')} variant="primary" size="lg">
                 Play Match
               </Button>
             </div>
@@ -316,7 +261,6 @@ export const MainMenu: React.FC = () => {
                 <p className="text-lg text-white">{currentStoryEvent.name}</p>
                 <p className="text-sm text-gray-200 mt-1">{currentStoryEvent.description}</p>
               </div>
-              {/* Modal is already showing via renderModal - no button needed if modal is open */}
             </div>
           </Card>
         )}
@@ -437,8 +381,8 @@ export const MainMenu: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal Renderer - Single source of truth for all modals */}
-      {renderModal()}
+      {/* Overlay Renderer */}
+      {renderOverlay()}
     </div>
   );
 };

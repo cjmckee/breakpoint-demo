@@ -96,6 +96,14 @@ export class MatchRewardSystem {
       mentalScore    * OVERALL_SCORE_WEIGHTS.mental
     );
 
+    console.log('=== PERFORMANCE ANALYSIS SUMMARY ===');
+    console.log(`Serving:   ${servingScore.toFixed(1)} × ${OVERALL_SCORE_WEIGHTS.serving} = ${(servingScore * OVERALL_SCORE_WEIGHTS.serving).toFixed(1)}`);
+    console.log(`Returning: ${returningScore.toFixed(1)} × ${OVERALL_SCORE_WEIGHTS.returning} = ${(returningScore * OVERALL_SCORE_WEIGHTS.returning).toFixed(1)}`);
+    console.log(`Rally:     ${rallyScore.toFixed(1)} × ${OVERALL_SCORE_WEIGHTS.rallying} = ${(rallyScore * OVERALL_SCORE_WEIGHTS.rallying).toFixed(1)}`);
+    console.log(`Net Play:  ${netPlayScore.toFixed(1)} × ${OVERALL_SCORE_WEIGHTS.netPlay} = ${(netPlayScore * OVERALL_SCORE_WEIGHTS.netPlay).toFixed(1)}`);
+    console.log(`Mental:    ${mentalScore.toFixed(1)} × ${OVERALL_SCORE_WEIGHTS.mental} = ${(mentalScore * OVERALL_SCORE_WEIGHTS.mental).toFixed(1)}`);
+    console.log(`OVERALL:   ${overallScore.toFixed(1)}`);
+
     return {
       servingScore,
       returningScore,
@@ -151,6 +159,15 @@ export class MatchRewardSystem {
     const holdBonus = Math.min(w.serviceHoldCap, holdRate * w.serviceHoldWeight);
 
     const total = aceBonus + dfPenalty + firstServeScore + firstServeWinBonus + holdBonus;
+
+    console.log('=== SERVING SCORE BREAKDOWN ===');
+    console.log(`Aces: ${stats.aces.player} × ${w.acePoints} = ${aceBonus.toFixed(1)} (cap ${w.aceCap})`);
+    console.log(`Double faults: ${stats.doubleFaults.player} × ${w.doubleFaultPenalty} = ${dfPenalty.toFixed(1)} (cap ${w.doubleFaultCap})`);
+    console.log(`First serve %: ${firstServePct.toFixed(1)}% → ${firstServeScore.toFixed(1)}pts (range ${w.firstServePercentMin}-${w.firstServePercentMax}%, max ${w.firstServePercentMaxPoints}pts)`);
+    console.log(`First serve win rate: ${(firstServeWinRate * 100).toFixed(1)}% → ${firstServeWinBonus.toFixed(1)}pts (cap ${w.firstServeWinCap})`);
+    console.log(`Hold rate: ${breakPointsSaved}/${breakPointsFaced} saved = ${(holdRate * 100).toFixed(1)}% → ${holdBonus.toFixed(1)}pts (cap ${w.serviceHoldCap})`);
+    console.log(`SERVING TOTAL: ${total.toFixed(1)} → clamped: ${Math.max(0, Math.min(100, total)).toFixed(1)}`);
+
     return Math.max(0, Math.min(100, total));
   }
 
@@ -186,6 +203,13 @@ export class MatchRewardSystem {
     );
 
     const total = breakPointBonus + bpCreatedBonus + normalizedReturnScore;
+
+    console.log('=== RETURNING SCORE BREAKDOWN ===');
+    console.log(`Break point conversion: ${stats.breakPointsConverted.player}/${bpOpportunities} = ${(bpConversionRate * 100).toFixed(1)}% → ${breakPointBonus.toFixed(1)}pts (max ${w.breakPointConversionRatePoints})`);
+    console.log(`Break opportunities created: ${bpOpportunities} × ${w.breakOpportunityPoints} = ${bpCreatedBonus.toFixed(1)}pts (cap ${w.breakOpportunityCap})`);
+    console.log(`Return win rate: ${returnPointsWon}/${totalOpponentServePoints} = ${(returnWinRate * 100).toFixed(1)}% → ${normalizedReturnScore.toFixed(1)}pts (range ${w.returnWinMinRate * 100}-${w.returnWinMaxRate * 100}%, max ${w.returnWinMaxPoints}pts)`);
+    console.log(`RETURNING TOTAL: ${total.toFixed(1)} → clamped: ${Math.max(0, Math.min(100, total)).toFixed(1)}`);
+
     return Math.max(0, Math.min(100, total));
   }
 
@@ -227,6 +251,13 @@ export class MatchRewardSystem {
     );
 
     const total = rallyWinScore + consistencyScore + aggressionScore;
+
+    console.log('=== RALLY SCORE BREAKDOWN ===');
+    console.log(`Rally win rate: ${stats.rallyPointsWon.player}/${rallyPointsPlayed} = ${(rallyWinRate * 100).toFixed(1)}% → ${rallyWinScore.toFixed(1)}pts (range ${w.rallyWinRateMinRate * 100}-${w.rallyWinRateMaxRate * 100}%, max ${w.rallyWinRateMaxPoints}pts)`);
+    console.log(`Unforced errors: ${stats.unforcedErrors.player}/${totalPoints} total pts = ${(unforcedErrorRate * 100).toFixed(1)}% error rate → ${consistencyScore.toFixed(1)}pts (formula: ${w.unforcedErrorBase} + ${unforcedErrorRate.toFixed(3)} × ${w.unforcedErrorWeight}, max ${w.unforcedErrorMaxPoints}pts)`);
+    console.log(`Winner rate: ${stats.winners.player}/${totalPoints} = ${(winnerRate * 100).toFixed(1)}% → ${aggressionScore.toFixed(1)}pts (range ${w.winnerRateMinRate * 100}-${w.winnerRateMaxRate * 100}%, max ${w.winnerRateMaxPoints}pts)`);
+    console.log(`RALLY TOTAL: ${total.toFixed(1)} → clamped: ${Math.max(0, Math.min(100, total)).toFixed(1)}`);
+
     return Math.max(0, Math.min(100, total));
   }
 
@@ -238,7 +269,11 @@ export class MatchRewardSystem {
 
     const totalNetPoints = stats.netPointsWon.player + stats.netPointsWon.opponent;
 
-    if (totalNetPoints === 0) return 0;
+    if (totalNetPoints === 0) {
+      console.log('=== NET PLAY SCORE BREAKDOWN ===');
+      console.log('No net points played → score: 0');
+      return 0;
+    }
 
     // Net point win rate — primary metric (0-75 points).
     const netWinRate = stats.netPointsWon.player / totalNetPoints;
@@ -256,6 +291,13 @@ export class MatchRewardSystem {
     const volumeScale = Math.min(1, totalNetPoints / w.netVolumeScaleThreshold);
 
     const total = (netWinRateScore + volumeBonus) * volumeScale;
+
+    console.log('=== NET PLAY SCORE BREAKDOWN ===');
+    console.log(`Net win rate: ${stats.netPointsWon.player}/${totalNetPoints} = ${(netWinRate * 100).toFixed(1)}% → ${netWinRateScore.toFixed(1)}pts (max ${w.netWinRateMaxPoints})`);
+    console.log(`Volume bonus: ${stats.netPointsWon.player} won × ${w.netVolumePoints} = ${volumeBonus.toFixed(1)}pts (cap ${w.netVolumeCap})`);
+    console.log(`Volume scale: ${totalNetPoints}/${w.netVolumeScaleThreshold} = ${volumeScale.toFixed(2)} (pre-scale total: ${(netWinRateScore + volumeBonus).toFixed(1)})`);
+    console.log(`NET PLAY TOTAL: ${total.toFixed(1)} → clamped: ${Math.max(0, Math.min(100, total)).toFixed(1)}`);
+
     return Math.max(0, Math.min(100, total));
   }
 
@@ -282,6 +324,12 @@ export class MatchRewardSystem {
     );
 
     const total = keyMomentScore + breakPointSaveBonus;
+
+    console.log('=== MENTAL SCORE BREAKDOWN ===');
+    console.log(`Key moments: ${stats.keyMomentsWon.player}/${totalKeyMoments} = ${(keyMomentWinRate * 100).toFixed(1)}% → ${keyMomentScore.toFixed(1)}pts (max ${w.keyMomentWinRatePoints})`);
+    console.log(`Break points saved: ${breakPointsSaved}/${breakPointsFaced} → ${breakPointSaveBonus.toFixed(1)}pts (${w.breakPointSavePoints}pts each, cap ${w.breakPointSaveCap})`);
+    console.log(`MENTAL TOTAL: ${total.toFixed(1)} → clamped: ${Math.max(0, Math.min(100, total)).toFixed(1)}`);
+
     return Math.max(0, Math.min(100, total));
   }
 

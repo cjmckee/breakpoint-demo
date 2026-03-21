@@ -17,7 +17,7 @@ const defaultAbilityChance = 0.3;
 export const TrainingSelection: React.FC = () => {
   const player = useGameStore((state) => state.player);
   const currentStatus = useGameStore((state) => state.currentStatus);
-  const setScreen = useGameStore((state) => state.setScreen);
+  const navigateTo = useGameStore((state) => state.navigateTo);
   const getAvailableTrainingSessions = useGameStore((state) => state.getAvailableTrainingSessions);
 
   const { statChanges, addStatChange } = useStatChanges();
@@ -45,14 +45,12 @@ export const TrainingSelection: React.FC = () => {
       }
     });
 
-    // Apply the training result to the store (this updates player stats, energy, mood)
+    // Apply the training result to the store (this updates player stats, energy, mood
+    // and transitions to idle with training_result overlay)
     useGameStore.getState().applyTrainingResult(result);
 
     // Advance time after training
     useGameStore.getState().advanceTime();
-
-    // Navigate to main menu
-    setScreen('main-menu');
   };
 
   const getTierColor = (tier: string): string => {
@@ -78,7 +76,7 @@ export const TrainingSelection: React.FC = () => {
     <div className="min-h-screen bg-pixel-bg p-4">
       <div className="max-w-6xl mx-auto">
         <div className="mb-6">
-          <Button variant="secondary" onClick={() => setScreen('main-menu')}>
+          <Button variant="secondary" onClick={() => navigateTo('idle')}>
             ← Back to Menu
           </Button>
         </div>
@@ -96,7 +94,7 @@ export const TrainingSelection: React.FC = () => {
               </p>
               <Button
                 variant="secondary"
-                onClick={() => setScreen('main-menu')}
+                onClick={() => navigateTo('idle')}
                 className="mt-4"
               >
                 Rest to Restore Energy

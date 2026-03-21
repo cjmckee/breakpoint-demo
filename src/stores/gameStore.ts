@@ -17,13 +17,11 @@ import {
   TimeSlot,
   OpponentTier,
   ScheduledEvent,
-  StoryMatchMetadata,
+  PlayerStats,
   TIME_SLOT_NAMES,
 } from '../types/game';
 import type { StoryEvent, StoryEventTag, StoryEventOption } from '../types/storyEvents';
 import type { Challenge } from '../types/challenges';
-import type { MatchStatistics } from '../types/index';
-import type { MatchReward } from '../types/game';
 import type { Item, EquipmentSlot } from '../types/items';
 import type { ActiveTournament, TournamentMatchMetadata } from '../types/tournaments';
 import { PlayerManager } from '../game/PlayerManager';
@@ -38,12 +36,11 @@ import { TournamentRegistry } from '../data/tournaments';
 import { TournamentManager } from '../game/TournamentManager';
 import { ScheduledEventManager } from '../game/ScheduledEventManager';
 import { StoryMatchManager } from '../game/StoryMatchManager';
-import { CalendarService } from '../game/CalendarService';
 import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
 import { EffectAggregator } from '../core/EffectAggregator';
 import { EffectKey } from '../types/game';
-import type { ModalEntry, ModalData, ModalType, StoryEventModalData } from '../types/ui';
-import { createModalEntry, sortModalQueue } from '../types/ui';
+import type { GamePhase, MatchType, PreMatchConfig, PhaseContinuation, IdlePhase, MatchCompletionData } from '../types/gamePhase';
+import type { InteractiveMatchConfig } from '../types/keyMoments';
 
 interface GameState {
   // Player data
@@ -66,7 +63,6 @@ interface GameState {
   completedStoryEventChoices: Record<string, string>;
   relationships: Record<string, number>;
   storyEventTriggerChance: number;
-  pendingStoryEvent: StoryEvent | null;
 
   // Challenge state
   activeChallenges: Challenge[];
@@ -77,12 +73,7 @@ interface GameState {
 
   // UI state
   isInitialized: boolean;
-  currentScreen: 'welcome' | 'player-creation' | 'main-menu' | 'training' | 'match' | 'rest' | 'inventory' | 'tournaments' | 'tournament-match' | 'story-match';
-  showTrainingResultModal: boolean;  // DEPRECATED: Use modal queue instead
-
-  // Modal queue state (replaces useEffect-based modal triggering)
-  modalQueue: ModalEntry[];
-  currentModal: ModalEntry | null;
+  gamePhase: GamePhase;
 
   // Actions
   initializeGame: () => void;
@@ -93,23 +84,20 @@ interface GameState {
   advanceTime: () => void;
   rest: () => void;
   updateMood: (change: number) => void;
-  addMatchResult: (
-    result: 'win' | 'loss',
-    opponent: string,
-    opponentTier: OpponentTier,
-    score: string,
-    surface: string,
-    matchStatistics: MatchStatistics,
-    preCalculatedRewards?: MatchReward,
-    accumulatedEffects?: { energyDelta: number; moodDelta: number }
-  ) => void;
   unlockNextTier: () => OpponentTier | null;
   exportSave: () => string;
   importSave: (jsonData: string) => boolean;
   clearAllData: () => void;
-  setScreen: (screen: GameState['currentScreen']) => void;
-  clearTrainingResultModal: () => void;
   getAvailableTrainingSessions: () => TrainingSession[];
+
+  // Phase transition actions
+  navigateTo: (target: 'idle' | 'training' | 'match_setup' | 'tournament_list' | 'inventory') => void;
+  navigateToScheduledMatch: (matchType: 'tournament' | 'story') => void;
+  beginMatch: (config: InteractiveMatchConfig, matchType: MatchType) => void;
+  onMatchComplete: (data: MatchCompletionData) => void;
+  dismissMatchResults: () => void;
+  dismissStoryEventResult: () => void;
+  dismissOverlay: () => void;
 
   // Story event actions
   checkForStoryEventById: (eventId: string) => void;
@@ -139,7 +127,6 @@ interface GameState {
   // Tournament actions
   startTournament: (tournamentId: string, options?: { skipCeremony?: boolean }) => void;
   scheduleNextTournamentMatch: () => void;
-  completeTournamentMatch: (result: 'win' | 'loss', score: string, matchStats: MatchStatistics, rewards: MatchReward, accumulatedEffects?: { energyDelta: number; moodDelta: number }) => void;
   cancelTournament: () => void;
   checkTournamentEligibility: () => string[];
   getScheduledTournamentMatch: () => ScheduledEvent | null;
@@ -148,8 +135,6 @@ interface GameState {
   // Story match actions
   getScheduledStoryMatch: () => ScheduledEvent | null;
   isStoryMatchScheduled: () => boolean;
-  completeStoryMatch: (result: 'win' | 'loss', score: string, matchStats: MatchStatistics, rewards: MatchReward, accumulatedEffects?: { energyDelta: number; moodDelta: number }) => void;
-
   // Player flag actions
   setFlag: (key: string, value: boolean | number | string) => void;
   getFlag: (key: string) => boolean | number | string | undefined;
@@ -159,11 +144,6 @@ interface GameState {
   clearScheduledEvent: (day: number, slot: TimeSlot) => void;
   getScheduledEvent: () => ScheduledEvent | null;
 
-  // Modal queue actions
-  queueModal: (type: ModalType, data: ModalData, options?: { priority?: number; dismissible?: boolean }) => void;
-  dismissCurrentModal: () => void;
-  clearModalQueue: () => void;
-  hasModalOfType: (type: ModalType) => boolean;
 }
 
 const initialCalendar = TimeManager.createCalendar();
@@ -192,8 +172,6 @@ export const useGameStore = create<GameState>()(
       completedStoryEventChoices: {},
       relationships: {},
       storyEventTriggerChance: 40,
-      pendingStoryEvent: null,
-
       // Challenge initial state
       activeChallenges: [],
       completedChallenges: [],
@@ -202,16 +180,16 @@ export const useGameStore = create<GameState>()(
       unlockedTiers: [1],  // Start with only tier 1 unlocked
 
       isInitialized: false,
-      currentScreen: 'welcome',
-      showTrainingResultModal: false,
-
-      // Modal queue initial state
-      modalQueue: [],
-      currentModal: null,
+      gamePhase: { type: 'uninitialized' },
 
       // Initialize game (Zustand auto-loads persisted state)
       initializeGame: () => {
         const state = get();
+        if (state.isInitialized) {
+          console.log('[initializeGame] Already initialized, skipping');
+          return;
+        }
+        console.log('[initializeGame] Running initialization');
 
         // Reconcile all missed events on load
         // Matches get rescheduled, story events get cleared (they'll re-trigger via normal flow)
@@ -250,10 +228,14 @@ export const useGameStore = create<GameState>()(
           }
         }
 
-        set({
-          isInitialized: true,
-          currentScreen: state.player ? 'main-menu' : 'player-creation',
-        });
+        set({ isInitialized: true });
+
+        if (state.player) {
+          // Use navigateTo so it checks for scheduled matches/pre-match events
+          get().navigateTo('idle');
+        } else {
+          set({ gamePhase: { type: 'player_creation' } });
+        }
       },
 
       // Create new player
@@ -297,7 +279,7 @@ export const useGameStore = create<GameState>()(
         set({
           player,
           currentTrainingSessions: initialSessions,
-          currentScreen: 'main-menu',
+          gamePhase: { type: 'idle', overlay: null },
           calendar: {
             ...get().calendar,
             scheduledEvents: [
@@ -308,18 +290,17 @@ export const useGameStore = create<GameState>()(
         });
 
         // Trigger welcome event (guaranteed, no probability roll)
-        // No setTimeout needed - modal queue handles this cleanly
         get().checkForStoryEventById('welcome_to_tennis_rpg');
       },
 
       // Select training session (doesn't execute yet)
-      selectTraining: (session: TrainingSession) => {
-        set({ currentScreen: 'training' });
+      selectTraining: (_session: TrainingSession) => {
+        set({ gamePhase: { type: 'training' } });
       },
 
       // Execute training
       executeTraining: () => {
-        const { player, currentStatus, calendar } = get();
+        const { player, currentStatus } = get();
         if (!player) return;
 
         // Get active effects from items/abilities
@@ -367,7 +348,7 @@ export const useGameStore = create<GameState>()(
             lastActivity: result,
           },
           activityHistory: [result, ...get().activityHistory].slice(0, 10),
-          currentScreen: 'main-menu',
+          gamePhase: { type: 'idle', overlay: null },
         });
       },
 
@@ -411,11 +392,8 @@ export const useGameStore = create<GameState>()(
           activityHistory: [result, ...get().activityHistory].slice(0, 10),
         });
 
-        // Queue training result modal
-        get().queueModal('training_result', {
-          type: 'training_result',
-          result,
-        });
+        // Show training result as overlay on idle screen
+        set({ gamePhase: { type: 'idle', overlay: { type: 'training_result', result } } });
 
         // Check for challenge completion after stat changes
         get().checkChallengeCompletion();
@@ -500,9 +478,11 @@ export const useGameStore = create<GameState>()(
           }
         }
 
-        // Check for random story event at start of new slot (except NIGHT)
-        // BUT: Don't trigger if there's a scheduled event for this time slot
-        if (newCalendar.currentTimeSlot !== TimeSlot.NIGHT) {
+        // Check for story events at start of new slot — but only if no overlay is
+        // already showing (e.g. training result).  When the overlay is dismissed,
+        // navigateTo('idle') will re-check for pending events.
+        const currentOverlay = get().gamePhase.type === 'idle' && (get().gamePhase as IdlePhase).overlay;
+        if (!currentOverlay && newCalendar.currentTimeSlot !== TimeSlot.NIGHT) {
           const scheduledEvent = ScheduledEventManager.getScheduledEvent(
             get().calendar.scheduledEvents,
             get().calendar
@@ -520,8 +500,7 @@ export const useGameStore = create<GameState>()(
           }
         }
 
-        // Check for milestone events (deferred from match completion to next time slot)
-        get().checkForStoryEventByTag('milestone', 100);
+        // Milestone events are checked in dismissMatchResults(), not here.
 
         // Unlock "Play Match" once the player reaches day 5
         if (newCalendar.currentDay >= 5 && !get().getFlag(PlayerFlag.MATCH_UNLOCKED)) {
@@ -567,7 +546,6 @@ export const useGameStore = create<GameState>()(
             lastActivity: restResult,
           },
           activityHistory: [restResult, ...get().activityHistory].slice(0, 10),
-          currentScreen: 'main-menu',
         });
 
         // Advance time
@@ -585,133 +563,6 @@ export const useGameStore = create<GameState>()(
             mood: newMood,
           },
         });
-      },
-
-      // Add match result to activity history with rewards
-      addMatchResult: (
-        result: 'win' | 'loss',
-        opponent: string,
-        opponentTier: OpponentTier,
-        score: string,
-        surface: string,
-        matchStatistics: MatchStatistics,
-        preCalculatedRewards?: MatchReward,
-        accumulatedEffects?: { energyDelta: number; moodDelta: number }
-      ) => {
-        const { player, currentStatus } = get();
-        if (!player) return;
-
-        const isWin = result === 'win';
-
-        // Use pre-calculated rewards if provided, otherwise calculate from match statistics
-        // This prevents duplicate rolls when rewards are already calculated in the UI
-        const rewards = preCalculatedRewards || MatchRewardSystem.calculateRewards(
-          matchStatistics,
-          opponentTier,
-          isWin
-        );
-
-        console.log('=== APPLYING MATCH REWARDS ===');
-        console.log('Pre-calculated rewards provided:', !!preCalculatedRewards);
-        console.log('Rewards to apply:', rewards);
-
-        // Apply stat boosts
-        let updatedPlayer = PlayerManager.applyStatBoosts(player, rewards.statBoosts);
-
-        // Apply abilities
-        if (rewards.abilitiesGained && rewards.abilitiesGained.length > 0) {
-          console.log('Applying abilities to player:', rewards.abilitiesGained);
-          for (const ability of rewards.abilitiesGained) {
-            updatedPlayer = PlayerManager.addAbility(updatedPlayer, ability);
-          }
-        }
-
-        // Apply items
-        if (rewards.itemsGained && rewards.itemsGained.length > 0) {
-          console.log('Applying items to player:', rewards.itemsGained);
-          for (const item of rewards.itemsGained) {
-            updatedPlayer = ItemManager.addItem(updatedPlayer, item);
-          }
-        }
-
-        // Update match counts
-        updatedPlayer.matchesPlayed = (updatedPlayer.matchesPlayed || 0) + 1;
-        if (isWin) {
-          updatedPlayer.matchesWon = (updatedPlayer.matchesWon || 0) + 1;
-        }
-
-        // Update latest match results (newest first, keep last 10)
-        const currentResults = updatedPlayer.latestMatchResults || [];
-        updatedPlayer.latestMatchResults = [result, ...currentResults].slice(0, 10);
-
-        // Update energy: base match cost + accumulated energy effects from key moment choices
-        const baseEnergyCost = DEFAULT_MATCH_ENERGY_COST;
-        const keyMomentEnergyCost = accumulatedEffects ? accumulatedEffects.energyDelta : 0;
-        const newEnergy = Math.max(0, currentStatus.energy - baseEnergyCost + keyMomentEnergyCost);
-
-        // Update mood from rewards + accumulated mood effects from key moment choices
-        const keyMomentMoodChange = accumulatedEffects ? accumulatedEffects.moodDelta : 0;
-        const newMood = Math.max(-100, Math.min(100, currentStatus.mood + rewards.moodChange + keyMomentMoodChange));
-
-        // Tier unlocks are now handled by story events (e.g., Riverside Open victory)
-        const tierUnlocked: OpponentTier | null = null;
-
-        // Generate match highlights from statistics
-        const highlights: string[] = [];
-        highlights.push(`Final Score: ${score}`);
-        if (matchStatistics.aces.player > 5) {
-          highlights.push(`${matchStatistics.aces.player} aces served`);
-        }
-        if (matchStatistics.longestRally > 15) {
-          highlights.push(`Longest rally: ${matchStatistics.longestRally} shots`);
-        }
-        if (matchStatistics.breakPointsConverted.player > 0) {
-          highlights.push(`${matchStatistics.breakPointsConverted.player} break points converted`);
-        }
-        if (matchStatistics.winners.player > 20) {
-          highlights.push(`${matchStatistics.winners.player} winners hit`);
-        }
-        if (matchStatistics.keyMomentsWon.player > 0) {
-          highlights.push(`${matchStatistics.keyMomentsWon.player} key moments won`);
-        }
-
-        // Create match activity result with rewards
-        const matchActivity: ActivityResult = {
-          id: `match-${Date.now()}`,
-          type: 'match',
-          source: 'match_activity',
-          timestamp: new Date().toISOString(),
-          timeSlotsUsed: 1,
-          energyCost: DEFAULT_MATCH_ENERGY_COST,
-          moodResult: rewards.moodChange,
-          opponent,
-          opponentTier,
-          result: isWin ? 'win' : 'loss',
-          score,
-          duration: 60, // Matches are approximately 60 minutes
-          courtSurface: surface as 'hard' | 'clay' | 'grass' | 'carpet',
-          statChanges: rewards.statBoosts,
-          experienceGained: rewards.experience,
-          matchType: 'friendly',
-          highlights,
-          reward: rewards,
-          tierUnlocked,
-        };
-
-        set({
-          player: updatedPlayer,
-          currentStatus: {
-            energy: newEnergy,
-            mood: newMood,
-            lastActivity: matchActivity,
-          },
-          activityHistory: [matchActivity, ...get().activityHistory].slice(0, 10),
-        });
-
-        // Check for challenge completion after stat changes
-        get().checkChallengeCompletion();
-
-        console.log('Match result added with rewards:', matchActivity);
       },
 
       // Unlock next tier (only if winning against current max unlocked tier)
@@ -776,7 +627,7 @@ export const useGameStore = create<GameState>()(
             activeChallenges: data.activeChallenges || [],
             completedChallenges: data.completedChallenges || [],
             unlockedTiers: data.unlockedTiers || [1],
-            currentScreen: 'main-menu',
+            gamePhase: { type: 'idle', overlay: null },
             isInitialized: true,
           });
 
@@ -803,10 +654,8 @@ export const useGameStore = create<GameState>()(
           completedChallenges: [],
           unlockedTiers: [1],
           currentTrainingSessions: [],
-          pendingStoryEvent: null,
           isInitialized: true,
-          currentScreen: 'player-creation',
-          showTrainingResultModal: false,
+          gamePhase: { type: 'player_creation' },
         });
 
         // Also clear localStorage to ensure clean slate
@@ -814,14 +663,589 @@ export const useGameStore = create<GameState>()(
         console.log('All game data cleared');
       },
 
-      // Set current screen
-      setScreen: (screen: GameState['currentScreen']) => {
-        set({ currentScreen: screen });
+      // Phase transition actions
+
+      navigateTo: (target) => {
+        if (target === 'idle') {
+          // Check for scheduled matches with pre-match events
+          const state = get();
+          const { calendar, completedStoryEvents, completedStoryEventChoices, relationships, player } = state;
+
+          console.log(`[navigateTo:idle] Day ${calendar.currentDay}, slot ${calendar.currentTimeSlot}`);
+
+          // Check tournament match first
+          const tournamentMatch = state.getScheduledTournamentMatch();
+          if (tournamentMatch && calendar.activeTournament) {
+            const config = TournamentRegistry.getTournament(calendar.activeTournament.tournamentId);
+            if (config) {
+              const prematchEventId = TournamentManager.getPrematchEventId(
+                config,
+                calendar.activeTournament.currentRound,
+                calendar.activeTournament.currentBracket
+              );
+              if (prematchEventId && player) {
+                const event = StoryEventManager.getEligibleEventById(prematchEventId, player, {
+                  completedStoryEvents, completedStoryEventChoices, relationships, calendar,
+                  activeTournament: calendar.activeTournament,
+                });
+                if (event) {
+                  const round = TournamentManager.getCurrentRound(config, calendar.activeTournament!.currentRound);
+                  const opponent = round?.opponent;
+                  const matchConfig: PreMatchConfig = {
+                    opponentName: opponent?.name || 'Opponent',
+                    opponentStats: opponent?.stats || ({} as PlayerStats),
+                    opponentTier: (opponent?.tier || 1) as OpponentTier,
+                    opponentDescription: opponent?.description,
+                    surface: config.surface || 'hard',
+                    matchFormat: 'best-of-1',
+                    matchTitle: `${config.name} - Round ${calendar.activeTournament!.currentRound + 1}`,
+                  };
+                  const availableOptions = PrerequisiteChecker.getAvailableOptions(event, player, {
+                    completedStoryEvents, completedStoryEventChoices, relationships, calendar,
+                    activeTournament: calendar.activeTournament,
+                  });
+                  set({
+                    gamePhase: {
+                      type: 'story_event',
+                      event,
+                      availableOptions,
+                      continuation: { type: 'match_setup', matchType: 'tournament', matchConfig },
+                    },
+                  });
+                  return;
+                }
+              }
+            }
+          }
+
+          // Check story match
+          const storyMatch = state.getScheduledStoryMatch();
+          console.log(`[navigateTo:idle] Story match scheduled:`, storyMatch ? `Day ${storyMatch.scheduledDay} slot ${storyMatch.scheduledTimeSlot}` : 'none');
+          if (storyMatch && player) {
+            const metadata = StoryMatchManager.getStoryMatchMetadata(storyMatch);
+            console.log(`[navigateTo:idle] Story match metadata:`, metadata ? `prematchEventId=${metadata.prematchEventId}` : 'none');
+            if (metadata) {
+              const matchConfig: PreMatchConfig = {
+                opponentName: metadata.opponentName,
+                opponentStats: metadata.opponentStats,
+                opponentTier: metadata.opponentTier as OpponentTier,
+                opponentDescription: metadata.opponentDescription,
+                surface: metadata.surface || 'hard',
+                matchFormat: metadata.matchFormat || 'best-of-1',
+                matchTitle: metadata.matchTitle,
+                matchDescription: metadata.matchDescription,
+                storyMatchMetadata: metadata,
+              };
+              if (metadata.prematchEventId) {
+                const event = StoryEventManager.getEligibleEventById(metadata.prematchEventId, player, {
+                  completedStoryEvents, completedStoryEventChoices, relationships, calendar,
+                  activeTournament: calendar.activeTournament,
+                });
+                console.log(`[navigateTo:idle] Pre-match event "${metadata.prematchEventId}" eligible:`, !!event);
+                if (event) {
+                  const availableOptions = PrerequisiteChecker.getAvailableOptions(event, player, {
+                    completedStoryEvents, completedStoryEventChoices, relationships, calendar,
+                    activeTournament: calendar.activeTournament,
+                  });
+                  set({
+                    gamePhase: {
+                      type: 'story_event',
+                      event,
+                      availableOptions,
+                      continuation: { type: 'match_setup', matchType: 'story', matchConfig },
+                    },
+                  });
+                  return;
+                }
+              }
+              // Story match scheduled but no prematch event — go to setup directly
+              set({ gamePhase: { type: 'match_setup', matchType: 'story', matchConfig } });
+              return;
+            }
+          }
+
+          // Check for scheduled story events in the current time slot
+          const scheduledEvent = ScheduledEventManager.getScheduledEvent(
+            calendar.scheduledEvents,
+            calendar
+          );
+          if (scheduledEvent && scheduledEvent.eventType === 'story') {
+            const storyEventId = (scheduledEvent.metadata as Record<string, unknown>)?.storyEventId as string | undefined;
+            if (storyEventId) {
+              set({ gamePhase: { type: 'idle', overlay: null } });
+              get().clearScheduledEvent(calendar.currentDay, calendar.currentTimeSlot);
+              get().checkForStoryEventById(storyEventId);
+              return;
+            }
+          }
+
+          // No scheduled matches or events — plain idle
+          set({ gamePhase: { type: 'idle', overlay: null } });
+
+          // Roll for random story event (same as advanceTime does)
+          if (calendar.currentTimeSlot !== TimeSlot.NIGHT) {
+            get().checkForRandomStoryEvent();
+          }
+          return;
+        }
+
+        // Simple screen navigation
+        switch (target) {
+          case 'training':
+            set({ gamePhase: { type: 'training' } });
+            break;
+          case 'match_setup':
+            set({ gamePhase: { type: 'match_setup', matchType: 'regular', matchConfig: null } });
+            break;
+          case 'tournament_list':
+            set({ gamePhase: { type: 'tournament_list' } });
+            break;
+          case 'inventory':
+            set({ gamePhase: { type: 'inventory' } });
+            break;
+        }
       },
 
-      // Clear training result modal flag
-      clearTrainingResultModal: () => {
-        set({ showTrainingResultModal: false });
+      navigateToScheduledMatch: (matchType) => {
+        console.log(`[navigateToScheduledMatch] matchType=${matchType}`);
+        const state = get();
+        const { completedStoryEvents, completedStoryEventChoices, relationships, calendar, player } = state;
+        const eventContext = { completedStoryEvents, completedStoryEventChoices, relationships, calendar, activeTournament: calendar.activeTournament };
+
+        if (matchType === 'tournament') {
+          const tournamentMatch = state.getScheduledTournamentMatch();
+          if (tournamentMatch && calendar.activeTournament) {
+            const config = TournamentRegistry.getTournament(calendar.activeTournament.tournamentId);
+            if (config) {
+              const round = TournamentManager.getCurrentRound(config, calendar.activeTournament!.currentRound);
+              const opponent = round?.opponent;
+              const matchConfig: PreMatchConfig = {
+                opponentName: opponent?.name || 'Opponent',
+                opponentStats: opponent?.stats || ({} as PlayerStats),
+                opponentTier: (opponent?.tier || 1) as OpponentTier,
+                opponentDescription: opponent?.description,
+                surface: config.surface || 'hard',
+                matchFormat: 'best-of-1',
+                matchTitle: `${config.name} - Round ${calendar.activeTournament!.currentRound + 1}`,
+              };
+
+              // Check for pre-match event before going to match setup
+              const prematchEventId = TournamentManager.getPrematchEventId(
+                config, calendar.activeTournament.currentRound, calendar.activeTournament.currentBracket
+              );
+              if (prematchEventId && player) {
+                const event = StoryEventManager.getEligibleEventById(prematchEventId, player, eventContext);
+                if (event) {
+                  const availableOptions = PrerequisiteChecker.getAvailableOptions(event, player, eventContext);
+                  set({
+                    gamePhase: {
+                      type: 'story_event',
+                      event,
+                      availableOptions,
+                      continuation: { type: 'match_setup', matchType: 'tournament', matchConfig },
+                    },
+                  });
+                  return;
+                }
+              }
+
+              set({ gamePhase: { type: 'match_setup', matchType: 'tournament', matchConfig } });
+            }
+          }
+        } else if (matchType === 'story') {
+          const storyMatch = state.getScheduledStoryMatch();
+          if (storyMatch) {
+            const metadata = StoryMatchManager.getStoryMatchMetadata(storyMatch);
+            if (metadata) {
+              const matchConfig: PreMatchConfig = {
+                opponentName: metadata.opponentName,
+                opponentStats: metadata.opponentStats,
+                opponentTier: metadata.opponentTier as OpponentTier,
+                opponentDescription: metadata.opponentDescription,
+                surface: metadata.surface || 'hard',
+                matchFormat: metadata.matchFormat || 'best-of-1',
+                matchTitle: metadata.matchTitle,
+                matchDescription: metadata.matchDescription,
+                storyMatchMetadata: metadata,
+              };
+
+              // Check for pre-match event before going to match setup
+              if (metadata.prematchEventId && player) {
+                const event = StoryEventManager.getEligibleEventById(metadata.prematchEventId, player, eventContext);
+                if (event) {
+                  const availableOptions = PrerequisiteChecker.getAvailableOptions(event, player, eventContext);
+                  set({
+                    gamePhase: {
+                      type: 'story_event',
+                      event,
+                      availableOptions,
+                      continuation: { type: 'match_setup', matchType: 'story', matchConfig },
+                    },
+                  });
+                  return;
+                }
+              }
+
+              set({ gamePhase: { type: 'match_setup', matchType: 'story', matchConfig } });
+            }
+          }
+        }
+      },
+
+      beginMatch: (config, matchType) => {
+        // Preserve storyMatchMetadata from setup phase
+        const currentPhase = get().gamePhase;
+        const storyMatchMetadata = currentPhase.type === 'match_setup' && currentPhase.matchConfig?.storyMatchMetadata;
+        set({
+          gamePhase: {
+            type: 'match_active',
+            matchType,
+            matchConfig: config,
+            ...(storyMatchMetadata ? { storyMatchMetadata } : {}),
+          },
+        });
+
+        // Match orchestrator is started by the component — it calls
+        // matchStore.startMatch() and passes a callback that calls gameStore.onMatchComplete().
+      },
+
+      onMatchComplete: (data) => {
+        const { finalScore, matchStatistics, accumulatedEffects, keyMomentHistory } = data;
+        const state = get();
+        const phase = state.gamePhase;
+        if (phase.type !== 'match_active') {
+          console.warn('onMatchComplete called but gamePhase is not match_active:', phase.type);
+          return;
+        }
+
+        if (!state.player) {
+          console.warn('onMatchComplete: missing player');
+          return;
+        }
+
+        const { matchType, matchConfig } = phase;
+        const isWin = finalScore.winner === 'player';
+        const opponentTier = (matchConfig.opponentTier || 1) as OpponentTier;
+
+        // Calculate rewards
+        const rewards = MatchRewardSystem.calculateRewards(matchStatistics, opponentTier, isWin);
+
+        // Apply rewards to player
+        let updatedPlayer = PlayerManager.applyStatBoosts(state.player, rewards.statBoosts);
+        if (rewards.abilitiesGained && rewards.abilitiesGained.length > 0) {
+          for (const ability of rewards.abilitiesGained) {
+            updatedPlayer = PlayerManager.addAbility(updatedPlayer, ability);
+          }
+        }
+        if (rewards.itemsGained && rewards.itemsGained.length > 0) {
+          for (const item of rewards.itemsGained) {
+            updatedPlayer = ItemManager.addItem(updatedPlayer, item);
+          }
+        }
+
+        // Update match counts
+        updatedPlayer.matchesPlayed = (updatedPlayer.matchesPlayed || 0) + 1;
+        if (isWin) {
+          updatedPlayer.matchesWon = (updatedPlayer.matchesWon || 0) + 1;
+        }
+        const currentResults = updatedPlayer.latestMatchResults || [];
+        updatedPlayer.latestMatchResults = ([isWin ? 'win' : 'loss', ...currentResults] as ('win' | 'loss')[]).slice(0, 10);
+
+        // Calculate energy and mood changes
+        const keyMomentEnergyCost = accumulatedEffects ? accumulatedEffects.energyDelta : 0;
+        const keyMomentMoodChange = accumulatedEffects ? accumulatedEffects.moodDelta : 0;
+
+        let energyCost: number;
+        if (matchType === 'tournament') {
+          energyCost = TournamentManager.calculateMatchEnergyCost(state.currentStatus.energy);
+        } else if (matchType === 'story') {
+          energyCost = StoryMatchManager.calculateMatchEnergyCost(state.currentStatus.energy);
+        } else {
+          energyCost = DEFAULT_MATCH_ENERGY_COST;
+        }
+
+        const newEnergy = Math.max(0, state.currentStatus.energy - energyCost + keyMomentEnergyCost);
+        const newMood = Math.max(-100, Math.min(100, state.currentStatus.mood + rewards.moodChange + keyMomentMoodChange));
+
+        // Match-type-specific state updates
+        let calendarUpdate = { ...state.calendar };
+
+        if (matchType === 'story') {
+          // Clear scheduled story match event
+          calendarUpdate = {
+            ...calendarUpdate,
+            scheduledEvents: ScheduledEventManager.clearScheduledEvent(
+              calendarUpdate.scheduledEvents,
+              calendarUpdate.currentDay,
+              calendarUpdate.currentTimeSlot
+            ),
+          };
+        }
+
+        if (matchType === 'tournament' && calendarUpdate.activeTournament) {
+          // Update tournament bracket progression
+          const tournament = calendarUpdate.activeTournament;
+          const config = TournamentRegistry.getTournament(tournament.tournamentId);
+          if (config) {
+            let updatedTournament = { ...tournament };
+            const totalRounds = config.rounds.length;
+
+            if (!isWin && tournament.currentBracket === 'winner') {
+              // Loss in winner bracket -> move to loser bracket
+              updatedTournament = {
+                ...updatedTournament,
+                currentBracket: 'loser' as const,
+                currentRound: 0,
+              };
+            } else if (isWin || tournament.currentBracket === 'loser') {
+              // Win -> advance round
+              updatedTournament = {
+                ...updatedTournament,
+                currentRound: tournament.currentRound + 1,
+              };
+            }
+
+            // Check if tournament is complete
+            const isEliminated = !isWin && tournament.currentBracket === 'loser';
+            const isChampion = isWin && tournament.currentRound + 1 >= totalRounds && tournament.currentBracket === 'winner';
+            const isConsolationWinner = isWin && tournament.currentRound + 1 >= config.rounds.length && tournament.currentBracket === 'loser';
+
+            if (isEliminated || isChampion || isConsolationWinner) {
+              // Tournament over
+              const completedTournaments = [...(calendarUpdate.completedTournaments || [])];
+              completedTournaments.push({
+                tournamentId: tournament.tournamentId,
+                won: isChampion,
+                completedAt: new Date().toISOString(),
+              });
+              calendarUpdate = {
+                ...calendarUpdate,
+                activeTournament: null,
+                completedTournaments,
+              };
+            } else {
+              calendarUpdate = {
+                ...calendarUpdate,
+                activeTournament: updatedTournament,
+              };
+            }
+          }
+
+          // Clear the tournament match scheduled event
+          calendarUpdate = {
+            ...calendarUpdate,
+            scheduledEvents: ScheduledEventManager.clearScheduledEvent(
+              calendarUpdate.scheduledEvents,
+              calendarUpdate.currentDay,
+              calendarUpdate.currentTimeSlot
+            ),
+          };
+        }
+
+        // Advance time slot (match consumes a time slot)
+        const advancedCalendar = TimeManager.advanceTimeSlot(calendarUpdate);
+
+        // Update state atomically
+        set({
+          player: updatedPlayer,
+          calendar: advancedCalendar,
+          currentStatus: {
+            ...state.currentStatus,
+            energy: newEnergy,
+            mood: newMood,
+          },
+          gamePhase: {
+            type: 'match_results',
+            matchType,
+            finalScore,
+            matchStatistics,
+            rewards,
+            matchConfig,
+            accumulatedEffects: accumulatedEffects || null,
+            keyMomentHistory: keyMomentHistory || [],
+            ...(phase.storyMatchMetadata ? { storyMatchMetadata: phase.storyMatchMetadata } : {}),
+          },
+        });
+
+        // Check challenge completion
+        get().checkChallengeCompletion();
+      },
+
+      dismissMatchResults: () => {
+        const phase = get().gamePhase;
+        if (phase.type !== 'match_results') return;
+
+        const { matchType, finalScore } = phase;
+        const isWin = finalScore.winner === 'player';
+        const result = isWin ? 'win' : 'loss';
+        const state = get();
+
+        if (matchType === 'story') {
+          // Check for post-match story event
+          const storyMeta = phase.storyMatchMetadata;
+          if (storyMeta) {
+            const postMatchEventId = StoryMatchManager.getPostMatchEventId(storyMeta, result);
+            if (postMatchEventId && state.player) {
+              const event = StoryEventManager.getEligibleEventById(postMatchEventId, state.player, {
+                completedStoryEvents: state.completedStoryEvents,
+                completedStoryEventChoices: state.completedStoryEventChoices,
+                relationships: state.relationships,
+                calendar: state.calendar,
+                activeTournament: state.calendar.activeTournament,
+              });
+              if (event) {
+                const availableOptions = PrerequisiteChecker.getAvailableOptions(event, state.player, {
+                  completedStoryEvents: state.completedStoryEvents,
+                  completedStoryEventChoices: state.completedStoryEventChoices,
+                  relationships: state.relationships,
+                  calendar: state.calendar,
+                  activeTournament: state.calendar.activeTournament,
+                });
+                set({
+                  gamePhase: {
+                    type: 'story_event',
+                    event,
+                    availableOptions,
+                    continuation: { type: 'idle' },
+                  },
+                });
+                return;
+              }
+            }
+          }
+        }
+
+        if (matchType === 'tournament') {
+          const { calendar } = state;
+          const tournament = calendar.activeTournament;
+
+          if (tournament) {
+            const config = TournamentRegistry.getTournament(tournament.tournamentId);
+            if (config) {
+              // Check for post-match event
+              const postMatchEventId = TournamentManager.getPostMatchEventId(config, tournament.currentRound, result);
+              if (postMatchEventId && state.player) {
+                const event = StoryEventManager.getEligibleEventById(postMatchEventId, state.player, {
+                  completedStoryEvents: state.completedStoryEvents,
+                  completedStoryEventChoices: state.completedStoryEventChoices,
+                  relationships: state.relationships,
+                  calendar: state.calendar,
+                  activeTournament: tournament,
+                });
+                if (event) {
+                  const availableOptions = PrerequisiteChecker.getAvailableOptions(event, state.player, {
+                    completedStoryEvents: state.completedStoryEvents,
+                    completedStoryEventChoices: state.completedStoryEventChoices,
+                    relationships: state.relationships,
+                    calendar: state.calendar,
+                    activeTournament: tournament,
+                  });
+                  set({
+                    gamePhase: {
+                      type: 'story_event',
+                      event,
+                      availableOptions,
+                      continuation: { type: 'idle' },
+                    },
+                  });
+                  // Schedule next tournament match if tournament still active
+                  if (calendar.activeTournament) {
+                    get().scheduleNextTournamentMatch();
+                  }
+                  return;
+                }
+              }
+
+              // Schedule next tournament match if tournament still active
+              if (calendar.activeTournament) {
+                get().scheduleNextTournamentMatch();
+              }
+            }
+          }
+
+          // Check for elimination/victory/consolation events
+          if (!calendar.activeTournament) {
+            // Tournament just ended — check for completion events
+            const completedTournaments = calendar.completedTournaments || [];
+            const lastCompleted = completedTournaments[completedTournaments.length - 1];
+            if (lastCompleted && state.player) {
+              const config = TournamentRegistry.getTournament(lastCompleted.tournamentId);
+              if (config) {
+                let completionEventId: string | undefined;
+                if (lastCompleted.won && config.victoryEventId) {
+                  completionEventId = config.victoryEventId;
+                } else if (!lastCompleted.won && config.eliminationEventId) {
+                  completionEventId = config.eliminationEventId;
+                }
+                if (completionEventId) {
+                  const event = StoryEventManager.getEligibleEventById(completionEventId, state.player, {
+                    completedStoryEvents: state.completedStoryEvents,
+                    completedStoryEventChoices: state.completedStoryEventChoices,
+                    relationships: state.relationships,
+                    calendar: state.calendar,
+                    activeTournament: null,
+                  });
+                  if (event) {
+                    const availableOptions = PrerequisiteChecker.getAvailableOptions(event, state.player, {
+                      completedStoryEvents: state.completedStoryEvents,
+                      completedStoryEventChoices: state.completedStoryEventChoices,
+                      relationships: state.relationships,
+                      calendar: state.calendar,
+                      activeTournament: null,
+                    });
+                    set({
+                      gamePhase: {
+                        type: 'story_event',
+                        event,
+                        availableOptions,
+                        continuation: { type: 'idle' },
+                      },
+                    });
+                    return;
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        // Check for milestone events (e.g. "won first match", "hit 10 winners")
+        // These only trigger after match completion, never during regular time advancement.
+        get().checkForStoryEventByTag('milestone', 100);
+        // If a milestone event was triggered, checkForStoryEventByTag already set the phase
+        if (get().gamePhase.type !== 'match_results') return;
+
+        // Default: go to idle
+        get().navigateTo('idle');
+      },
+
+      dismissStoryEventResult: () => {
+        const phase = get().gamePhase;
+        if (phase.type === 'story_event_result') {
+          const { continuation } = phase;
+          if (continuation.type === 'idle') {
+            get().navigateTo('idle');
+          } else if (continuation.type === 'match_setup') {
+            set({ gamePhase: { type: 'match_setup', matchType: continuation.matchType, matchConfig: continuation.matchConfig } });
+          }
+          return;
+        }
+        // Handle overlay dismissal
+        const currentPhase = get().gamePhase;
+        if (currentPhase.type === 'idle' && currentPhase.overlay?.type === 'story_event_result') {
+          const { continuation } = currentPhase.overlay;
+          if (continuation.type === 'idle') {
+            get().navigateTo('idle');
+          } else if (continuation.type === 'match_setup') {
+            set({ gamePhase: { type: 'match_setup', matchType: continuation.matchType, matchConfig: continuation.matchConfig } });
+          }
+        }
+      },
+
+      dismissOverlay: () => {
+        // Use navigateTo('idle') so it re-checks for scheduled events
+        // that were deferred while the overlay was showing
+        get().navigateTo('idle');
       },
 
       // Get available training sessions (returns cached sessions for current time slot)
@@ -838,43 +1262,20 @@ export const useGameStore = create<GameState>()(
        * Use case: Guaranteed story events (like welcome event)
        */
       checkForStoryEventById: (eventId: string) => {
-        const { player } = get();
+        const { player, gamePhase } = get();
+        if (!player) return;
 
-        // Don't trigger if no player
-        if (!player) {
-          console.log(`[Story Event] No player exists`);
-          return;
-        }
-
-        console.log(`[Story Event] Checking for event by ID: ${eventId}`);
-
-        // Get specific event
         const gameState = get();
-        const event = StoryEventManager.getEligibleEventById(
-          eventId,
-          player,
-          {
-            completedStoryEvents: gameState.completedStoryEvents,
-            completedStoryEventChoices: gameState.completedStoryEventChoices,
-            relationships: gameState.relationships,
-            calendar: gameState.calendar,
-            activeTournament: gameState.calendar.activeTournament,
-          }
-        );
+        const event = StoryEventManager.getEligibleEventById(eventId, player, {
+          completedStoryEvents: gameState.completedStoryEvents,
+          completedStoryEventChoices: gameState.completedStoryEventChoices,
+          relationships: gameState.relationships,
+          calendar: gameState.calendar,
+          activeTournament: gameState.calendar.activeTournament,
+        });
 
         if (event) {
-          // Don't queue if this event is already showing or queued
-          const { currentModal: cm, modalQueue: mq } = get();
-          const isAlreadyQueued =
-            (cm?.type === 'story_event' && (cm.data as StoryEventModalData).event.id === eventId) ||
-            mq.some(m => m.type === 'story_event' && (m.data as StoryEventModalData).event.id === eventId);
-          if (isAlreadyQueued) {
-            console.log(`[Story Event] ⏭️ Already queued: "${event.name}"`);
-            return;
-          }
-
-          console.log(`[Story Event] ✅ Triggered: "${event.name}"`);
-          // Queue modal instead of setting pendingStoryEvent
+          console.log(`[Story Event] Triggered: "${event.name}"`);
           const availableOptions = PrerequisiteChecker.getAvailableOptions(event, player, {
             completedStoryEvents: gameState.completedStoryEvents,
             completedStoryEventChoices: gameState.completedStoryEventChoices,
@@ -882,13 +1283,33 @@ export const useGameStore = create<GameState>()(
             calendar: gameState.calendar,
             activeTournament: gameState.calendar.activeTournament,
           });
-          get().queueModal('story_event', {
-            type: 'story_event',
-            event,
-            availableOptions,
-          });
+
+          if (gamePhase.type === 'idle') {
+            // Show as overlay on idle screen
+            set({
+              gamePhase: {
+                ...gamePhase,
+                overlay: {
+                  type: 'story_event',
+                  event,
+                  availableOptions,
+                  continuation: { type: 'idle' },
+                },
+              },
+            });
+          } else {
+            // Show as full-screen phase
+            set({
+              gamePhase: {
+                type: 'story_event',
+                event,
+                availableOptions,
+                continuation: { type: 'idle' },
+              },
+            });
+          }
         } else {
-          console.log(`[Story Event] ❌ Event not eligible: ${eventId}`);
+          console.log(`[Story Event] Event not eligible: ${eventId}`);
         }
       },
 
@@ -898,7 +1319,7 @@ export const useGameStore = create<GameState>()(
        * Use case: Tag-specific random events (e.g., coach events, romance events)
        */
       checkForStoryEventByTag: (tag: StoryEventTag, customChance?: number) => {
-        const { player, storyEventTriggerChance } = get();
+        const { player, storyEventTriggerChance, gamePhase } = get();
 
         // Don't trigger if no player
         if (!player) return;
@@ -910,7 +1331,7 @@ export const useGameStore = create<GameState>()(
         const roll = Math.random() * 100;
         const triggered = roll < chance;
 
-        console.log(`[Story Event] Tag: ${tag} | Roll: ${roll.toFixed(2)} vs ${chance}% - ${triggered ? 'TRIGGERED ✓' : 'Not triggered ✗'}`);
+        console.log(`[Story Event] Tag: ${tag} | Roll: ${roll.toFixed(2)} vs ${chance}% - ${triggered ? 'TRIGGERED' : 'Not triggered'}`);
 
         if (!triggered) {
           return;
@@ -937,7 +1358,6 @@ export const useGameStore = create<GameState>()(
 
         if (selectedEvent) {
           console.log(`[Story Event] Selected: "${selectedEvent.name}"`);
-          // Queue modal instead of setting pendingStoryEvent
           const availableOptions = PrerequisiteChecker.getAvailableOptions(selectedEvent, player, {
             completedStoryEvents: gameState.completedStoryEvents,
             completedStoryEventChoices: gameState.completedStoryEventChoices,
@@ -945,11 +1365,29 @@ export const useGameStore = create<GameState>()(
             calendar: gameState.calendar,
             activeTournament: gameState.calendar.activeTournament,
           });
-          get().queueModal('story_event', {
-            type: 'story_event',
-            event: selectedEvent,
-            availableOptions,
-          });
+
+          if (gamePhase.type === 'idle') {
+            set({
+              gamePhase: {
+                ...gamePhase,
+                overlay: {
+                  type: 'story_event',
+                  event: selectedEvent,
+                  availableOptions,
+                  continuation: { type: 'idle' },
+                },
+              },
+            });
+          } else {
+            set({
+              gamePhase: {
+                type: 'story_event',
+                event: selectedEvent,
+                availableOptions,
+                continuation: { type: 'idle' },
+              },
+            });
+          }
         } else {
           console.log(`[Story Event] No eligible events available for tag: ${tag}`);
         }
@@ -961,10 +1399,10 @@ export const useGameStore = create<GameState>()(
        * Use case: General random events during time advancement
        */
       checkForRandomStoryEvent: (customChance?: number) => {
-        const { player, storyEventTriggerChance } = get();
+        const { player, storyEventTriggerChance, gamePhase } = get();
 
-        // Don't trigger if story_event modal already queued or showing
-        if (get().hasModalOfType('story_event')) return;
+        // Don't trigger if overlay already showing
+        if (gamePhase.type === 'idle' && gamePhase.overlay !== null) return;
 
         // Don't trigger if no player
         if (!player) return;
@@ -976,7 +1414,7 @@ export const useGameStore = create<GameState>()(
         const roll = Math.random() * 100;
         const triggered = roll < chance;
 
-        console.log(`[Story Event] Random | Roll: ${roll.toFixed(2)} vs ${chance}% - ${triggered ? 'TRIGGERED ✓' : 'Not triggered ✗'}`);
+        console.log(`[Story Event] Random | Roll: ${roll.toFixed(2)} vs ${chance}% - ${triggered ? 'TRIGGERED' : 'Not triggered'}`);
 
         if (!triggered) {
           return;
@@ -1002,7 +1440,6 @@ export const useGameStore = create<GameState>()(
 
         if (selectedEvent) {
           console.log(`[Story Event] Selected: "${selectedEvent.name}"`);
-          // Queue modal instead of setting pendingStoryEvent
           const availableOptions = PrerequisiteChecker.getAvailableOptions(selectedEvent, player, {
             completedStoryEvents: gameState.completedStoryEvents,
             completedStoryEventChoices: gameState.completedStoryEventChoices,
@@ -1010,11 +1447,29 @@ export const useGameStore = create<GameState>()(
             calendar: gameState.calendar,
             activeTournament: gameState.calendar.activeTournament,
           });
-          get().queueModal('story_event', {
-            type: 'story_event',
-            event: selectedEvent,
-            availableOptions,
-          });
+
+          if (gamePhase.type === 'idle') {
+            set({
+              gamePhase: {
+                ...gamePhase,
+                overlay: {
+                  type: 'story_event',
+                  event: selectedEvent,
+                  availableOptions,
+                  continuation: { type: 'idle' },
+                },
+              },
+            });
+          } else {
+            set({
+              gamePhase: {
+                type: 'story_event',
+                event: selectedEvent,
+                availableOptions,
+                continuation: { type: 'idle' },
+              },
+            });
+          }
         } else {
           console.log(`[Story Event] No eligible events available`);
         }
@@ -1022,17 +1477,29 @@ export const useGameStore = create<GameState>()(
 
       // Execute story event with player's choice
       executeStoryEvent: (eventId: string, optionId?: string) => {
-        const { player, currentModal, calendar } = get();
+        const { player, calendar } = get();
+        if (!player) return;
 
-        // Get event from modal queue
-        if (!player || !currentModal || currentModal.type !== 'story_event') return;
-        const storyEventData = currentModal.data as StoryEventModalData;
-        const storyEvent = storyEventData.event;
-        if (storyEvent.id !== eventId) return;
+        // Read event from gamePhase (either story_event phase or idle overlay)
+        let storyEvent: StoryEvent | null = null;
+        let continuation: PhaseContinuation = { type: 'idle' };
+        let isOverlay = false;
+
+        const { gamePhase } = get();
+        if (gamePhase.type === 'story_event') {
+          storyEvent = gamePhase.event;
+          continuation = gamePhase.continuation;
+        } else if (gamePhase.type === 'idle' && gamePhase.overlay?.type === 'story_event') {
+          storyEvent = gamePhase.overlay.event;
+          continuation = gamePhase.overlay.continuation;
+          isOverlay = true;
+        }
+
+        if (!storyEvent || storyEvent.id !== eventId) return;
 
         // Get selected option (if any)
         const selectedOption = optionId
-          ? storyEvent.options.find((opt) => opt.id === optionId) || null
+          ? storyEvent.options.find((opt: StoryEventOption) => opt.id === optionId) || null
           : null;
 
         // Get outcome for applying effects
@@ -1165,7 +1632,7 @@ export const useGameStore = create<GameState>()(
         // Check if we need to schedule a tournament match
         const shouldScheduleTournamentMatch = outcome.effects.scheduleNextTournamentMatch === true;
 
-        // Update state (no longer setting pendingStoryEvent - using modal queue)
+        // Update state
         set({
           player: updatedPlayer,
           completedStoryEvents: updatedCompletedEvents,
@@ -1184,12 +1651,27 @@ export const useGameStore = create<GameState>()(
           activityHistory: [result, ...get().activityHistory].slice(0, 10),
         });
 
-        // Dismiss the story event modal and queue the result modal
-        get().dismissCurrentModal();
-        get().queueModal('story_event_result', {
-          type: 'story_event_result',
-          result,
-        });
+        // Transition to story event result
+        if (isOverlay) {
+          set({
+            gamePhase: {
+              type: 'idle',
+              overlay: {
+                type: 'story_event_result',
+                result,
+                continuation,
+              },
+            },
+          });
+        } else {
+          set({
+            gamePhase: {
+              type: 'story_event_result',
+              result,
+              continuation,
+            },
+          });
+        }
 
         // Check for challenge completion after state changes
         get().checkChallengeCompletion();
@@ -1208,18 +1690,30 @@ export const useGameStore = create<GameState>()(
       // Cancel/dismiss pending story event
       // When skipping an event, mark it as completed so it doesn't show up again
       cancelStoryEvent: () => {
-        const { currentModal, completedStoryEvents } = get();
+        const { gamePhase } = get();
 
-        // Get event from modal queue if it's a story event
-        if (currentModal && currentModal.type === 'story_event') {
-          const storyEventData = currentModal.data as StoryEventModalData;
-          set({
-            completedStoryEvents: [...completedStoryEvents, storyEventData.event.id],
-          });
+        let event: StoryEvent | null = null;
+        let continuation: PhaseContinuation = { type: 'idle' };
+
+        if (gamePhase.type === 'story_event') {
+          event = gamePhase.event;
+          continuation = gamePhase.continuation;
+        } else if (gamePhase.type === 'idle' && gamePhase.overlay?.type === 'story_event') {
+          event = gamePhase.overlay.event;
+          continuation = gamePhase.overlay.continuation;
         }
 
-        // Dismiss the current modal
-        get().dismissCurrentModal();
+        if (event) {
+          // Mark as completed
+          set({ completedStoryEvents: [...get().completedStoryEvents, event.id] });
+        }
+
+        // Follow continuation
+        if (continuation.type === 'match_setup') {
+          set({ gamePhase: { type: 'match_setup', matchType: continuation.matchType, matchConfig: continuation.matchConfig } });
+        } else {
+          get().navigateTo('idle');
+        }
       },
 
       // Update character relationship
@@ -1250,13 +1744,25 @@ export const useGameStore = create<GameState>()(
 
       // Get available options for pending event (from modal queue)
       getAvailableEventOptions: (): StoryEventOption[] => {
-        const { player, currentModal } = get();
+        const { gamePhase, player } = get();
+        let event: StoryEvent | null = null;
 
-        // Get options from modal data if it's a story event modal
-        if (!player || !currentModal || currentModal.type !== 'story_event') return [];
+        if (gamePhase.type === 'story_event') {
+          event = gamePhase.event;
+        } else if (gamePhase.type === 'idle' && gamePhase.overlay?.type === 'story_event') {
+          event = gamePhase.overlay.event;
+        }
 
-        const storyEventData = currentModal.data as StoryEventModalData;
-        return storyEventData.availableOptions;
+        if (!event || !player) return [];
+
+        const state = get();
+        return PrerequisiteChecker.getAvailableOptions(event, player, {
+          completedStoryEvents: state.completedStoryEvents,
+          completedStoryEventChoices: state.completedStoryEventChoices,
+          relationships: state.relationships,
+          calendar: state.calendar,
+          activeTournament: state.calendar.activeTournament,
+        });
       },
 
       // Challenge Actions
@@ -1527,14 +2033,38 @@ export const useGameStore = create<GameState>()(
           if (ceremonyAlreadyCompleted) {
             // Skip ceremony and schedule first match directly
             console.log('Opening ceremony already completed, scheduling first match directly');
-            setTimeout(() => {
-              get().scheduleNextTournamentMatch();
-            }, 100);
+            get().scheduleNextTournamentMatch();
           } else {
-            // Queue opening ceremony story event (which will schedule the match)
-            setTimeout(() => {
-              get().checkForStoryEventById(config.openingCeremonyEventId);
-            }, 100);
+            // Trigger opening ceremony as story_event phase with idle continuation
+            // (idle will pick up the scheduled match)
+            const player = get().player;
+            if (player) {
+              const gameState = get();
+              const event = StoryEventManager.getEligibleEventById(config.openingCeremonyEventId, player, {
+                completedStoryEvents: gameState.completedStoryEvents,
+                completedStoryEventChoices: gameState.completedStoryEventChoices,
+                relationships: gameState.relationships,
+                calendar: gameState.calendar,
+                activeTournament: gameState.calendar.activeTournament,
+              });
+              if (event) {
+                const availableOptions = PrerequisiteChecker.getAvailableOptions(event, player, {
+                  completedStoryEvents: gameState.completedStoryEvents,
+                  completedStoryEventChoices: gameState.completedStoryEventChoices,
+                  relationships: gameState.relationships,
+                  calendar: gameState.calendar,
+                  activeTournament: gameState.calendar.activeTournament,
+                });
+                set({
+                  gamePhase: {
+                    type: 'story_event',
+                    event,
+                    availableOptions,
+                    continuation: { type: 'idle' },
+                  },
+                });
+              }
+            }
           }
         }
       },
@@ -1589,185 +2119,6 @@ export const useGameStore = create<GameState>()(
             scheduledEvents: updatedEvents,
           },
         }));
-      },
-
-      // Complete a tournament match
-      completeTournamentMatch: (result: 'win' | 'loss', score: string, matchStats: MatchStatistics, rewards: MatchReward, accumulatedEffects?: { energyDelta: number; moodDelta: number }) => {
-        const { calendar, currentStatus, player } = get();
-        if (!player) return;
-
-        const activeTournament = calendar.activeTournament;
-        if (!activeTournament || !activeTournament.isActive) return;
-
-        const config = TournamentRegistry.getTournament(activeTournament.tournamentId);
-        if (!config) return;
-
-        const round = config.rounds[activeTournament.currentRound];
-        if (!round) return;
-
-        const isWin = result === 'win';
-
-        // Apply match rewards to player (stat boosts, abilities, items)
-        let updatedPlayer = PlayerManager.applyStatBoosts(player, rewards.statBoosts);
-
-        // Apply abilities
-        if (rewards.abilitiesGained && rewards.abilitiesGained.length > 0) {
-          console.log('Applying abilities to player:', rewards.abilitiesGained);
-          for (const ability of rewards.abilitiesGained) {
-            updatedPlayer = PlayerManager.addAbility(updatedPlayer, ability);
-          }
-        }
-
-        // Apply items
-        if (rewards.itemsGained && rewards.itemsGained.length > 0) {
-          console.log('Applying items to player:', rewards.itemsGained);
-          for (const item of rewards.itemsGained) {
-            updatedPlayer = ItemManager.addItem(updatedPlayer, item);
-          }
-        }
-
-        // Update match counts
-        updatedPlayer.matchesPlayed = (updatedPlayer.matchesPlayed || 0) + 1;
-        if (isWin) {
-          updatedPlayer.matchesWon = (updatedPlayer.matchesWon || 0) + 1;
-        }
-
-        // Update latest match results (newest first, keep last 10)
-        const currentResults = updatedPlayer.latestMatchResults || [];
-        updatedPlayer.latestMatchResults = [result, ...currentResults].slice(0, 10);
-
-        // Clear scheduled tournament match event
-        const updatedScheduledEvents = ScheduledEventManager.clearScheduledEvent(
-          get().calendar.scheduledEvents,
-          calendar.currentDay,
-          calendar.currentTimeSlot
-        );
-
-        // Record match result
-        const matchResult = {
-          roundNumber: round.roundNumber,
-          opponent: round.opponent.name,
-          result,
-          score,
-        };
-
-        const updatedTournament = {
-          ...activeTournament,
-          matchResults: [...activeTournament.matchResults, matchResult],
-        };
-
-        // Handle bracket changes and progression
-        const isLastRound = activeTournament.currentRound + 1 >= config.rounds.length;
-        if (result === 'loss' && activeTournament.currentBracket === 'winner') {
-          // Move to loser bracket, continue to next round (don't replay opponents)
-          updatedTournament.currentBracket = 'loser';
-          updatedTournament.currentRound = activeTournament.currentRound + 1;
-
-          // Queue elimination event only if there are more rounds (no consolation bracket in the finals)
-          if (config.eliminationEventId && !isLastRound) {
-            setTimeout(() => {
-              get().checkForStoryEventById(config.eliminationEventId!);
-            }, 100);
-          }
-        } else {
-          // Increment round for: win in any bracket, or loss in loser bracket
-          updatedTournament.currentRound = activeTournament.currentRound + 1;
-        }
-
-        // Check if tournament complete
-        const isComplete = updatedTournament.currentRound >= config.rounds.length;
-        if (isComplete) {
-          updatedTournament.isActive = false;
-          updatedTournament.isComplete = true;
-          updatedTournament.completedAt = new Date().toISOString();
-
-          const wonChampionship = result === 'win';
-
-          // Add to completed tournaments with win status
-          set((state) => ({
-            calendar: {
-              ...state.calendar,
-              completedTournaments: [
-                ...state.calendar.completedTournaments,
-                {
-                  tournamentId: activeTournament.tournamentId,
-                  won: wonChampionship,
-                  completedAt: new Date().toISOString(),
-                }
-              ],
-              // Clear active tournament when complete
-              activeTournament: null,
-            },
-          }));
-
-          // Queue victory event if won championship
-          if (wonChampionship && config.victoryEventId) {
-            setTimeout(() => {
-              get().checkForStoryEventById(config.victoryEventId!);
-            }, 100);
-          }
-
-          // Schedule consolation event if didn't win (fires a few days later)
-          if (!wonChampionship && config.consolationEventId) {
-            const consolationDay = calendar.currentDay + 3;
-            const { updatedEvents } = ScheduledEventManager.scheduleEventWithConflictResolution(
-              get().calendar.scheduledEvents,
-              'story',
-              consolationDay,
-              TimeSlot.MORNING,
-              { storyEventId: config.consolationEventId }
-            );
-            set((state) => ({
-              calendar: {
-                ...state.calendar,
-                scheduledEvents: updatedEvents,
-              },
-            }));
-          }
-        }
-
-        // Deduct energy (variable cost + accumulated key moment effects)
-        const energyCost = TournamentManager.calculateMatchEnergyCost(currentStatus.energy);
-        const keyMomentEnergyCost = accumulatedEffects ? accumulatedEffects.energyDelta : 0;
-        const newEnergy = Math.max(0, currentStatus.energy - energyCost + keyMomentEnergyCost);
-
-        // Update mood from rewards + accumulated key moment effects
-        const keyMomentMoodChange = accumulatedEffects ? accumulatedEffects.moodDelta : 0;
-        const newMood = Math.max(-100, Math.min(100, currentStatus.mood + rewards.moodChange + keyMomentMoodChange));
-
-        // Update state with player changes and tournament progression
-        // Only update activeTournament if tournament is not complete (it was already cleared above)
-        set((state) => ({
-          player: updatedPlayer,
-          calendar: {
-            ...state.calendar,
-            activeTournament: isComplete ? state.calendar.activeTournament : updatedTournament,
-            scheduledEvents: updatedScheduledEvents,
-          },
-          currentStatus: {
-            ...currentStatus,
-            energy: newEnergy,
-            mood: newMood,
-          },
-        }));
-
-        // Check for challenge completion after stat changes
-        get().checkChallengeCompletion();
-
-        // Queue post-match event (use the current round BEFORE incrementing)
-        const postMatchEventId = TournamentManager.getPostMatchEventId(config, activeTournament.currentRound, result);
-        if (postMatchEventId) {
-          setTimeout(() => {
-            get().checkForStoryEventById(postMatchEventId);
-          }, 100);
-        }
-
-        // Schedule next match if tournament continues
-        if (!isComplete) {
-          setTimeout(() => {
-            get().scheduleNextTournamentMatch();
-          }, 100);
-        }
       },
 
       // Cancel/forfeit tournament
@@ -1861,96 +2212,6 @@ export const useGameStore = create<GameState>()(
         return get().getScheduledStoryMatch() !== null;
       },
 
-      // Complete a story match
-      completeStoryMatch: (result: 'win' | 'loss', score: string, matchStats: MatchStatistics, rewards: MatchReward, accumulatedEffects?: { energyDelta: number; moodDelta: number }) => {
-        const { calendar, currentStatus, player } = get();
-        if (!player) return;
-
-        // Get scheduled story match
-        const scheduledMatch = StoryMatchManager.getScheduledStoryMatch(calendar.scheduledEvents, calendar);
-        if (!scheduledMatch) {
-          console.warn('completeStoryMatch called but no story match scheduled');
-          return;
-        }
-
-        const metadata = StoryMatchManager.getStoryMatchMetadata(scheduledMatch);
-        if (!metadata) {
-          console.warn('completeStoryMatch called but metadata is invalid');
-          return;
-        }
-
-        const isWin = result === 'win';
-
-        // Apply match rewards to player (stat boosts, abilities, items)
-        let updatedPlayer = PlayerManager.applyStatBoosts(player, rewards.statBoosts);
-
-        // Apply abilities
-        if (rewards.abilitiesGained && rewards.abilitiesGained.length > 0) {
-          console.log('Applying abilities to player:', rewards.abilitiesGained);
-          for (const ability of rewards.abilitiesGained) {
-            updatedPlayer = PlayerManager.addAbility(updatedPlayer, ability);
-          }
-        }
-
-        // Apply items
-        if (rewards.itemsGained && rewards.itemsGained.length > 0) {
-          console.log('Applying items to player:', rewards.itemsGained);
-          for (const item of rewards.itemsGained) {
-            updatedPlayer = ItemManager.addItem(updatedPlayer, item);
-          }
-        }
-
-        // Update match counts
-        updatedPlayer.matchesPlayed = (updatedPlayer.matchesPlayed || 0) + 1;
-        if (isWin) {
-          updatedPlayer.matchesWon = (updatedPlayer.matchesWon || 0) + 1;
-        }
-
-        // Update latest match results (newest first, keep last 10)
-        const currentResults = updatedPlayer.latestMatchResults || [];
-        updatedPlayer.latestMatchResults = [result, ...currentResults].slice(0, 10);
-
-        // Clear scheduled story match event
-        const updatedScheduledEvents = ScheduledEventManager.clearScheduledEvent(
-          calendar.scheduledEvents,
-          calendar.currentDay,
-          calendar.currentTimeSlot
-        );
-
-        // Deduct energy + accumulated key moment effects
-        const energyCost = StoryMatchManager.calculateMatchEnergyCost(currentStatus.energy);
-        const keyMomentEnergyCost = accumulatedEffects ? accumulatedEffects.energyDelta : 0;
-        const newEnergy = Math.max(0, currentStatus.energy - energyCost + keyMomentEnergyCost);
-
-        // Update mood from rewards + accumulated key moment effects
-        const keyMomentMoodChange = accumulatedEffects ? accumulatedEffects.moodDelta : 0;
-        const newMood = Math.max(-100, Math.min(100, currentStatus.mood + rewards.moodChange + keyMomentMoodChange));
-
-        // Update state
-        set({
-          player: updatedPlayer,
-          calendar: {
-            ...calendar,
-            scheduledEvents: updatedScheduledEvents,
-          },
-          currentStatus: {
-            ...currentStatus,
-            energy: newEnergy,
-            mood: newMood,
-          },
-        });
-
-        // Check for challenge completion after stat changes
-        get().checkChallengeCompletion();
-
-        // Queue post-match event
-        const postMatchEventId = StoryMatchManager.getPostMatchEventId(metadata, result);
-        console.log('Story match complete - queuing post-match event:', postMatchEventId);
-        setTimeout(() => {
-          get().checkForStoryEventById(postMatchEventId);
-        }, 100);
-      },
-
       // ========================================================================
       // GENERIC SCHEDULED EVENT ACTIONS
       // ========================================================================
@@ -2001,64 +2262,6 @@ export const useGameStore = create<GameState>()(
         return ScheduledEventManager.getScheduledEvent(calendar.scheduledEvents, calendar);
       },
 
-      // ========================================================================
-      // MODAL QUEUE ACTIONS
-      // ========================================================================
-
-      /**
-       * Add a modal to the queue. If no modal is currently showing, display immediately.
-       * Modals are sorted by priority (lower = higher priority) then by timestamp.
-       */
-      queueModal: (type: ModalType, data: ModalData, options?: { priority?: number; dismissible?: boolean }) => {
-        const { modalQueue, currentModal } = get();
-
-        const entry = createModalEntry(type, data, options);
-
-        // If no modal currently showing, show this one immediately
-        if (!currentModal) {
-          set({ currentModal: entry });
-          return;
-        }
-
-        // Otherwise add to queue and sort
-        const newQueue = sortModalQueue([...modalQueue, entry]);
-        set({ modalQueue: newQueue });
-      },
-
-      /**
-       * Dismiss the current modal and show the next one from the queue (if any).
-       */
-      dismissCurrentModal: () => {
-        const { modalQueue } = get();
-
-        if (modalQueue.length === 0) {
-          set({ currentModal: null });
-          return;
-        }
-
-        // Pop the first modal from queue and show it
-        const [next, ...rest] = modalQueue;
-        set({
-          currentModal: next,
-          modalQueue: rest,
-        });
-      },
-
-      /**
-       * Clear all modals (current and queued).
-       */
-      clearModalQueue: () => {
-        set({ modalQueue: [], currentModal: null });
-      },
-
-      /**
-       * Check if a modal of the specified type is currently showing or queued.
-       */
-      hasModalOfType: (type: ModalType): boolean => {
-        const { modalQueue, currentModal } = get();
-        if (currentModal?.type === type) return true;
-        return modalQueue.some((m) => m.type === type);
-      },
     }),
     {
       name: 'tennis-rpg-game-store',
@@ -2088,3 +2291,13 @@ export const useGameStore = create<GameState>()(
     }
   )
 );
+
+// Log every phase transition for debugging
+let _prevPhaseType: string | null = null;
+useGameStore.subscribe((state) => {
+  const phaseType = state.gamePhase.type;
+  if (phaseType !== _prevPhaseType) {
+    console.log(`[GamePhase] ${_prevPhaseType ?? '(init)'} → ${phaseType}`, state.gamePhase);
+    _prevPhaseType = phaseType;
+  }
+});

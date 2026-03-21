@@ -6,70 +6,72 @@
 import React from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { useMatchStore } from '../stores/matchStore';
-import { StoryMatchManager } from '../game/StoryMatchManager';
 import { Card } from './ui/Card';
 import { PreMatchScreen } from './PreMatchScreen';
 import { ItemManager } from '../game/ItemManager';
+import { StoryMatchManager } from '../game/StoryMatchManager';
+import type { PreMatchConfig } from '../types/gamePhase';
 
-export const StoryMatch: React.FC = () => {
+interface StoryMatchProps {
+  matchConfig: PreMatchConfig | null;
+}
+
+export const StoryMatch: React.FC<StoryMatchProps> = ({ matchConfig }) => {
   const player = useGameStore((state) => state.player);
   const currentStatus = useGameStore((state) => state.currentStatus);
-  const setScreen = useGameStore((state) => state.setScreen);
-  const getScheduledStoryMatch = useGameStore((state) => state.getScheduledStoryMatch);
-  const startMatch = useMatchStore((state) => state.startMatch);
+  const navigateTo = useGameStore((state) => state.navigateTo);
+  const beginMatch = useGameStore((state) => state.beginMatch);
 
-  const scheduledStoryMatch = getScheduledStoryMatch();
-  const storyMatchMetadata = scheduledStoryMatch
-    ? StoryMatchManager.getStoryMatchMetadata(scheduledStoryMatch)
-    : null;
-
-  if (!player || !storyMatchMetadata) {
+  if (!player || !matchConfig) {
     return null;
   }
 
   const energyCost = StoryMatchManager.calculateMatchEnergyCost(currentStatus.energy);
 
   const handleStartMatch = () => {
-    startMatch({
+    const config = {
       playerStats: player.stats,
       playerAbilities: player.abilities,
       itemBoosts: ItemManager.getTotalPassiveBoosts(player),
-      opponentStats: storyMatchMetadata.opponentStats,
-      opponentName: storyMatchMetadata.opponentName,
-      opponentTier: storyMatchMetadata.opponentTier,
-      surface: storyMatchMetadata.surface || 'hard',
+      opponentStats: matchConfig.opponentStats,
+      opponentName: matchConfig.opponentName,
+      opponentTier: matchConfig.opponentTier,
+      surface: matchConfig.surface || 'hard',
       mood: currentStatus.mood,
       energy: currentStatus.energy,
       enableKeyMoments: true,
-      matchFormat: storyMatchMetadata.matchFormat || 'best-of-1',
+      matchFormat: (matchConfig.matchFormat || 'best-of-1') as 'best-of-1' | 'best-of-3',
       isStoryMatch: true,
-    });
+    };
 
-    setScreen('match');
+    beginMatch(config, 'story');
+    useMatchStore.getState().startMatch(config, (data) => {
+      useGameStore.getState().onMatchComplete(data);
+    });
   };
 
-  const contextContent = storyMatchMetadata.matchDescription ? (
+  const contextContent = matchConfig.matchDescription ? (
     <Card className="bg-pixel-card border-2 border-purple-400">
       <div className="text-sm text-pixel-text-muted">
-        <p>{storyMatchMetadata.matchDescription}</p>
+        <p>{matchConfig.matchDescription}</p>
       </div>
     </Card>
   ) : null;
 
   return (
     <PreMatchScreen
-      title={storyMatchMetadata.matchTitle || 'Team Match'}
-      opponentName={storyMatchMetadata.opponentName}
-      opponentTier={storyMatchMetadata.opponentTier}
-      opponentDescription={storyMatchMetadata.opponentDescription}
-      opponentStats={storyMatchMetadata.opponentStats}
-      surface={storyMatchMetadata.surface || 'hard'}
-      matchFormat={storyMatchMetadata.matchFormat || 'best-of-1'}
+      title={matchConfig.matchTitle || 'Team Match'}
+      opponentName={matchConfig.opponentName}
+      opponentTier={matchConfig.opponentTier}
+      opponentDescription={matchConfig.opponentDescription}
+      opponentStats={matchConfig.opponentStats}
+      surface={matchConfig.surface || 'hard'}
+      matchFormat={matchConfig.matchFormat || 'best-of-1'}
       energyCost={energyCost}
       currentEnergy={currentStatus.energy}
       contextContent={contextContent}
       onStartMatch={handleStartMatch}
-      onBack={() => setScreen('main-menu')}
+      onBack={() => navigateTo('idle')}
     />
   );
 };
