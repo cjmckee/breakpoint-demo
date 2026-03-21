@@ -20,6 +20,7 @@ function App() {
   const { isInitialized, gamePhase, initializeGame } = useGameStore();
   const currentKeyMoment = useMatchStore((state) => state.currentKeyMoment);
   const isWaitingForChoice = useMatchStore((state) => state.isWaitingForChoice);
+  const showKeyMomentResult = useMatchStore((state) => state.showKeyMomentResult);
 
   useEffect(() => {
     if (!isInitialized) {
@@ -96,7 +97,7 @@ function App() {
         <>
           <LiveMatchViewer />
           <KeyMomentModal
-            isOpen={isWaitingForChoice}
+            isOpen={isWaitingForChoice || showKeyMomentResult}
             keyMoment={currentKeyMoment}
           />
         </>
