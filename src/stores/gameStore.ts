@@ -42,6 +42,13 @@ import { EffectKey } from '../types/game';
 import type { GamePhase, MatchType, PreMatchConfig, PhaseContinuation, IdlePhase, MatchCompletionData } from '../types/gamePhase';
 import type { InteractiveMatchConfig } from '../types/keyMoments';
 
+export interface AudioSettings {
+  musicVolume: number; // 0–1
+  sfxVolume: number;   // 0–1
+  muteMusic: boolean;
+  muteSfx: boolean;
+}
+
 interface GameState {
   // Player data
   player: Player | null;
@@ -71,9 +78,15 @@ interface GameState {
   // Opponent tier progression
   unlockedTiers: OpponentTier[];
 
+  // Audio settings (persisted)
+  audioSettings: AudioSettings;
+
   // UI state
   isInitialized: boolean;
   gamePhase: GamePhase;
+
+  // Audio settings action
+  updateAudioSettings: (settings: Partial<AudioSettings>) => void;
 
   // Actions
   initializeGame: () => void;
@@ -179,6 +192,13 @@ export const useGameStore = create<GameState>()(
       // Opponent tier progression initial state
       unlockedTiers: [1],  // Start with only tier 1 unlocked
 
+      audioSettings: {
+        musicVolume: 0.5,
+        sfxVolume: 0.7,
+        muteMusic: false,
+        muteSfx: false,
+      },
+
       isInitialized: false,
       gamePhase: { type: 'uninitialized' },
 
@@ -236,6 +256,12 @@ export const useGameStore = create<GameState>()(
         } else {
           set({ gamePhase: { type: 'player_creation' } });
         }
+      },
+
+      updateAudioSettings: (settings: Partial<AudioSettings>) => {
+        set((state) => ({
+          audioSettings: { ...state.audioSettings, ...settings },
+        }));
       },
 
       // Create new player

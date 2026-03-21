@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import { audioManager } from '../../audio/AudioManager';
 
 interface ButtonProps {
   children: React.ReactNode;
@@ -46,9 +47,16 @@ export const Button: React.FC<ButtonProps> = ({
 
   const widthStyle = fullWidth ? 'w-full' : '';
 
+  const handleClick = () => {
+    if (!disabled) {
+      audioManager.playSfx('ui_click');
+      onClick?.();
+    }
+  };
+
   return (
     <button
-      onClick={onClick}
+      onClick={handleClick}
       disabled={disabled}
       className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${widthStyle} truncate ${className}`}
     >
