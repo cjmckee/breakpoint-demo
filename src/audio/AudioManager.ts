@@ -7,7 +7,7 @@
  * SFX are loaded on first play and reused via a pool.
  */
 
-import { SfxKey, MusicTrack, SFX_PATHS, MUSIC_PATHS } from './sounds';
+import { SfxKey, MusicTrack, SFX_PATHS, MUSIC_PATHS, MENU_THEME_POOL } from './sounds';
 
 const CROSSFADE_DURATION = 1500; // ms
 const CROSSFADE_STEPS = 30;
@@ -81,7 +81,12 @@ class AudioManager {
     const outgoing = this.getActiveMusicEl();
     if (!incoming || !outgoing) return;
 
-    incoming.src = MUSIC_PATHS[track];
+    // Menu theme shuffles from a pool each time
+    const src = track === 'menu_theme'
+      ? MENU_THEME_POOL[Math.floor(Math.random() * MENU_THEME_POOL.length)]
+      : MUSIC_PATHS[track];
+
+    incoming.src = src;
     incoming.volume = 0;
     incoming.currentTime = 0;
     incoming.play().catch(() => {/* autoplay blocked — user hasn't interacted yet */});

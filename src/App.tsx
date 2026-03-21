@@ -78,30 +78,32 @@ function App() {
     const transitionMusic = () => {
       let track: MusicTrack | null = null;
 
-      switch (gamePhase.type) {
-        case 'welcome':
-        case 'player_creation':
-        case 'idle':
-        case 'match_setup':
-        case 'match_results':
-        case 'tournament_list':
-        case 'inventory':
-          track = 'menu_theme';
-          break;
-        case 'training':
-          track = 'training_theme';
-          break;
-        case 'match_active':
-        case 'tournament_match':
-          track = 'match_tension';
-          break;
-        case 'story_event':
-        case 'story_event_result':
-        case 'story_match':
-          track = 'story_ambient';
-          break;
-        default:
-          track = null;
+      // Check for story overlays on the idle screen
+      const hasStoryOverlay =
+        gamePhase.type === 'idle' &&
+        gamePhase.overlay != null &&
+        (gamePhase.overlay.type === 'story_event' || gamePhase.overlay.type === 'story_event_result');
+
+      if (hasStoryOverlay || gamePhase.type === 'story_event' || gamePhase.type === 'story_event_result') {
+        track = 'story_ambient';
+      } else {
+        switch (gamePhase.type) {
+          case 'welcome':
+          case 'player_creation':
+          case 'idle':
+          case 'tournament_list':
+          case 'inventory':
+          case 'training':
+            track = 'menu_theme';
+            break;
+          case 'match_setup':
+          case 'match_active':
+          case 'match_results':
+            track = 'match_tension';
+            break;
+          default:
+            track = null;
+        }
       }
 
       if (track) {
@@ -120,7 +122,7 @@ function App() {
       document.removeEventListener('click', startAudioOnInteraction);
       document.removeEventListener('keydown', startAudioOnInteraction);
     };
-  }, [gamePhase.type]);
+  }, [gamePhase.type, gamePhase.type === 'idle' ? gamePhase.overlay?.type : undefined]);
 
   // Loading state
   if (!isInitialized) {

@@ -3,10 +3,111 @@
  * Volume controls for music and SFX, plus audio credits.
  */
 
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { audioManager } from '../audio/AudioManager';
 import { Button } from './ui/Button';
+
+const MUSIC_TRACKS = [
+  'Main Theme',
+  'Renegade',
+  '8 Bit Open World',
+  'Beep Boopity Exploration',
+  'Music Box Mayhem',
+  'Pixelated Drive',
+];
+
+function AudioCredits() {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className="border-t border-pixel-border pt-4 mb-6">
+      <h3 className="text-sm font-bold text-pixel-text-muted mb-2 uppercase tracking-wider">
+        Audio Credits
+      </h3>
+      <div className="text-xs text-pixel-text-muted space-y-1">
+        <p>
+          <span className="text-pixel-text">Music</span> by Tim Kulig (
+          <a
+            href="https://timkulig.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-pixel-accent hover:underline"
+          >
+            timkulig.com
+          </a>
+          ) — Licensed under{' '}
+          <a
+            href="https://creativecommons.org/licenses/by/4.0/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-pixel-accent hover:underline"
+          >
+            CC BY 4.0
+          </a>
+        </p>
+        <p>
+          <span className="text-pixel-text">Sound effects</span> by Kenney (
+          <a
+            href="https://kenney.nl"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-pixel-accent hover:underline"
+          >
+            kenney.nl
+          </a>
+          ) — CC0 / Public Domain
+        </p>
+      </div>
+
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="mt-2 text-xs text-pixel-accent hover:underline cursor-pointer flex items-center gap-1"
+      >
+        <span className={`inline-block transition-transform ${expanded ? 'rotate-90' : ''}`}>
+          ▶
+        </span>
+        Full music attribution
+      </button>
+
+      {expanded && (
+        <div className="mt-2 text-xs text-pixel-text-muted bg-pixel-bg-dark bg-opacity-75 rounded p-3 space-y-2 max-h-48 overflow-y-auto">
+          {MUSIC_TRACKS.map((title) => (
+            <div key={title}>
+              <span className="text-pixel-text">"{title}"</span> — Tim Kulig (
+              <a
+                href="https://timkulig.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-pixel-accent hover:underline"
+              >
+                timkulig.com
+              </a>
+              ){' · '}
+              <a
+                href="https://creativecommons.org/licenses/by/4.0/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-pixel-accent hover:underline"
+              >
+                CC BY 4.0
+              </a>
+              {' · '}
+              <a
+                href="https://www.imdb.com/name/nm0997280/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-pixel-accent hover:underline"
+              >
+                IMDB
+              </a>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -46,7 +147,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
       <div className="bg-pixel-card border-4 border-pixel-border w-full max-w-md mx-4 p-6">
         <h2 className="text-2xl font-bold text-pixel-text mb-6">Settings</h2>
 
@@ -105,45 +206,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         </div>
 
         {/* Audio Credits */}
-        <div className="border-t border-pixel-border pt-4 mb-6">
-          <h3 className="text-sm font-bold text-pixel-text-muted mb-2 uppercase tracking-wider">
-            Audio Credits
-          </h3>
-          <div className="text-xs text-pixel-text-muted space-y-1">
-            <p>
-              <span className="text-pixel-text">Music</span> by Kevin MacLeod (
-              <a
-                href="https://incompetech.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-pixel-accent hover:underline"
-              >
-                incompetech.com
-              </a>
-              ) — Licensed under{' '}
-              <a
-                href="https://creativecommons.org/licenses/by/4.0/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-pixel-accent hover:underline"
-              >
-                CC BY 4.0
-              </a>
-            </p>
-            <p>
-              <span className="text-pixel-text">Sound effects</span> by Kenney (
-              <a
-                href="https://kenney.nl"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-pixel-accent hover:underline"
-              >
-                kenney.nl
-              </a>
-              ) — CC0 / Public Domain
-            </p>
-          </div>
-        </div>
+        <AudioCredits />
 
         <Button variant="primary" fullWidth onClick={onClose}>
           Close

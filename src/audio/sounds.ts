@@ -34,7 +34,6 @@ export type SfxKey =
 export type MusicTrack =
   | 'menu_theme'
   | 'match_tension'
-  | 'match_intense'
   | 'training_theme'
   | 'story_ambient';
 
@@ -67,12 +66,18 @@ export const SFX_PATHS: Record<SfxKey, string> = {
   crowd_cheer:     '/audio/sfx/crowd_cheer.ogg',
 };
 
-// Music tracks — Kevin MacLeod (incompetech.com), CC BY 4.0
+// Music tracks — Tim Kulig (timkulig.com), CC BY 4.0
 // Download instructions: see scripts/download-music.sh
 export const MUSIC_PATHS: Record<MusicTrack, string> = {
-  menu_theme:     '/audio/music/sneaky_snitch.mp3',
-  match_tension:  '/audio/music/investigations.mp3',
-  match_intense:  '/audio/music/cipher.mp3',
-  training_theme: '/audio/music/scheming_weasel.mp3',
-  story_ambient:  '/audio/music/local_forecast.mp3',
+  menu_theme:     '/audio/music/main_theme.mp3',
+  match_tension:  '/audio/music/8_bit_open_world.mp3',
+  training_theme: '/audio/music/pixelated_drive.mp3',
+  story_ambient:  '/audio/music/beep_boopity_exploration.mp3',
 };
+
+// Menu theme shuffles between these tracks on each crossfade
+export const MENU_THEME_POOL: string[] = [
+  '/audio/music/main_theme.mp3',
+  '/audio/music/renegade.mp3',
+  '/audio/music/music_box_mayhem.mp3',
+];
