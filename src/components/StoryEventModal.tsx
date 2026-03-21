@@ -175,68 +175,6 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
                       )}
                     </div>
                   </div>
-
-                  {/* Preview effects when selected */}
-                  {isSelected && option.outcome.effects && (
-                    <div className="mt-3 pt-3 border-t border-gray-300 text-sm">
-                      <div className="font-semibold mb-2 text-gray-900">Effects Preview:</div>
-                      <div className="grid grid-cols-1 gap-1">
-                        {option.outcome.effects.statChanges &&
-                          Object.keys(option.outcome.effects.statChanges).length > 0 && (
-                            <div className="text-green-700 font-medium">
-                              📈 Stats:
-                              {Object.entries(option.outcome.effects.statChanges)
-                                .map(([k, v]) => `${k}: ${v > 0 ? '+' : ''}${v}`)
-                                .join(', ')}
-                            </div>
-                          )}
-                        {option.outcome.effects.moodChange !== undefined &&
-                          option.outcome.effects.moodChange !== 0 && (
-                            <div
-                              className={
-                                option.outcome.effects.moodChange > 0
-                                  ? 'text-green-700 font-medium'
-                                  : 'text-red-700 font-medium'
-                              }
-                            >
-                              {option.outcome.effects.moodChange > 0 ? '😊' : '😞'} Mood:{' '}
-                              {option.outcome.effects.moodChange > 0 ? '+' : ''}
-                              {option.outcome.effects.moodChange}
-                            </div>
-                          )}
-                        {option.outcome.effects.energyChange !== undefined &&
-                          option.outcome.effects.energyChange !== 0 && (
-                            <div
-                              className={
-                                option.outcome.effects.energyChange > 0
-                                  ? 'text-green-700 font-medium'
-                                  : 'text-orange-700 font-medium'
-                              }
-                            >
-                              ⚡ Energy:{' '}
-                              {option.outcome.effects.energyChange > 0 ? '+' : ''}
-                              {option.outcome.effects.energyChange}
-                            </div>
-                          )}
-                        {option.outcome.effects.relationshipChanges &&
-                          Object.keys(option.outcome.effects.relationshipChanges).length > 0 && (
-                            <div className="text-purple-700 font-medium">
-                              💜 Relationships:{' '}
-                              {Object.entries(option.outcome.effects.relationshipChanges)
-                                .map(([char, val]) => `${getCharacterName(char, playerName)}: ${val > 0 ? '+' : ''}${val}`)
-                                .join(', ')}
-                            </div>
-                          )}
-                        {option.outcome.effects.abilitiesGained &&
-                          option.outcome.effects.abilitiesGained.length > 0 && (
-                            <div className="text-yellow-700 font-semibold">
-                              🌟 New Abilities:{' '}
-                              {option.outcome.effects.abilitiesGained.join(', ')}
-                            </div>
-                          )}
-                      </div>
-                    </div>
-                  )}
                 </button>
               );
             })}

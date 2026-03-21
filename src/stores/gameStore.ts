@@ -982,9 +982,13 @@ export const useGameStore = create<GameState>()(
           };
         }
 
+        // Track the round that was just played before advancing
+        let tournamentRoundPlayed: number | undefined;
+
         if (matchType === 'tournament' && calendarUpdate.activeTournament) {
           // Update tournament bracket progression
           const tournament = calendarUpdate.activeTournament;
+          tournamentRoundPlayed = tournament.currentRound;
           const config = TournamentRegistry.getTournament(tournament.tournamentId);
           if (config) {
             let updatedTournament = { ...tournament };
@@ -1064,6 +1068,7 @@ export const useGameStore = create<GameState>()(
             accumulatedEffects: accumulatedEffects || null,
             keyMomentHistory: keyMomentHistory || [],
             ...(phase.storyMatchMetadata ? { storyMatchMetadata: phase.storyMatchMetadata } : {}),
+            ...(tournamentRoundPlayed !== undefined ? { tournamentRoundPlayed } : {}),
           },
         });
 
@@ -1122,8 +1127,9 @@ export const useGameStore = create<GameState>()(
           if (tournament) {
             const config = TournamentRegistry.getTournament(tournament.tournamentId);
             if (config) {
-              // Check for post-match event
-              const postMatchEventId = TournamentManager.getPostMatchEventId(config, tournament.currentRound, result);
+              // Use the round that was actually played (saved before advancing)
+              const roundPlayed = phase.tournamentRoundPlayed ?? tournament.currentRound;
+              const postMatchEventId = TournamentManager.getPostMatchEventId(config, roundPlayed, result);
               if (postMatchEventId && state.player) {
                 const event = StoryEventManager.getEligibleEventById(postMatchEventId, state.player, {
                   completedStoryEvents: state.completedStoryEvents,

@@ -93,6 +93,8 @@ export interface MatchResultsPhase {
   keyMomentHistory: KeyMomentHistoryEntry[];
   /** Preserved from match setup for post-match event lookup */
   storyMatchMetadata?: StoryMatchMetadata;
+  /** The tournament round index that was just played (before advancing) */
+  tournamentRoundPlayed?: number;
 }
 
 // ============================================================================
