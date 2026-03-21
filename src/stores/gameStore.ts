@@ -70,6 +70,7 @@ interface GameState {
   completedStoryEventChoices: Record<string, string>;
   relationships: Record<string, number>;
   storyEventTriggerChance: number;
+  pendingRandomEvent: { event: StoryEvent; availableOptions: StoryEventOption[] } | null;
 
   // Challenge state
   activeChallenges: Challenge[];
@@ -185,6 +186,7 @@ export const useGameStore = create<GameState>()(
       completedStoryEventChoices: {},
       relationships: {},
       storyEventTriggerChance: 40,
+      pendingRandomEvent: null,
       // Challenge initial state
       activeChallenges: [],
       completedChallenges: [],
@@ -504,11 +506,11 @@ export const useGameStore = create<GameState>()(
           }
         }
 
-        // Check for story events at start of new slot — but only if no overlay is
-        // already showing (e.g. training result).  When the overlay is dismissed,
-        // navigateTo('idle') will re-check for pending events.
-        const currentOverlay = get().gamePhase.type === 'idle' && (get().gamePhase as IdlePhase).overlay;
-        if (!currentOverlay && newCalendar.currentTimeSlot !== TimeSlot.NIGHT) {
+        // Check for story events at start of new slot.  This runs even when an
+        // overlay is showing (e.g. training_result) because advanceTime() is only
+        // called when time genuinely advances (training, rest, match).  The event
+        // will display once the overlay is dismissed via navigateTo('idle').
+        if (newCalendar.currentTimeSlot !== TimeSlot.NIGHT) {
           const scheduledEvent = ScheduledEventManager.getScheduledEvent(
             get().calendar.scheduledEvents,
             get().calendar
@@ -686,6 +688,7 @@ export const useGameStore = create<GameState>()(
           completedStoryEventChoices: {},
           relationships: {},
           storyEventTriggerChance: 40,
+          pendingRandomEvent: null,
           activeChallenges: [],
           completedChallenges: [],
           unlockedTiers: [1],
@@ -813,6 +816,25 @@ export const useGameStore = create<GameState>()(
               get().checkForStoryEventById(storyEventId);
               return;
             }
+          }
+
+          // Check for a pending random event that was deferred (e.g. rolled
+          // during advanceTime while a training_result overlay was showing).
+          const pending = get().pendingRandomEvent;
+          if (pending) {
+            set({
+              pendingRandomEvent: null,
+              gamePhase: {
+                type: 'idle',
+                overlay: {
+                  type: 'story_event',
+                  event: pending.event,
+                  availableOptions: pending.availableOptions,
+                  continuation: { type: 'idle' },
+                },
+              },
+            });
+            return;
           }
 
           // No scheduled matches or events — plain idle
@@ -1078,13 +1100,11 @@ export const useGameStore = create<GameState>()(
           };
         }
 
-        // Advance time slot (match consumes a time slot)
-        const advancedCalendar = TimeManager.advanceTimeSlot(calendarUpdate);
-
-        // Update state atomically
+        // Apply calendar mutations (tournament, event clearing) and match results
+        // before advancing time, so advanceTime() picks up the correct state.
         set({
           player: updatedPlayer,
-          calendar: advancedCalendar,
+          calendar: calendarUpdate,
           currentStatus: {
             ...state.currentStatus,
             energy: newEnergy,
@@ -1103,6 +1123,11 @@ export const useGameStore = create<GameState>()(
             ...(tournamentRoundPlayed !== undefined ? { tournamentRoundPlayed } : {}),
           },
         });
+
+        // Advance time slot (match consumes a time slot) — use advanceTime() so that
+        // mood decay, training regeneration, missed-event reconciliation, and random
+        // event rolls all happen consistently.
+        get().advanceTime();
 
         // Check challenge completion
         get().checkChallengeCompletion();
@@ -1498,11 +1523,10 @@ export const useGameStore = create<GameState>()(
       checkForRandomStoryEvent: (customChance?: number) => {
         const { player, storyEventTriggerChance, gamePhase } = get();
 
-        // Don't trigger if overlay already showing
-        if (gamePhase.type === 'idle' && gamePhase.overlay !== null) return;
-
         // Don't trigger if no player
         if (!player) return;
+
+        const hasOverlay = gamePhase.type === 'idle' && gamePhase.overlay !== null;
 
         // Roll for trigger (apply event trigger bonus from items/abilities)
         const { effects } = EffectAggregator.getActiveEffects(player);
@@ -1545,7 +1569,11 @@ export const useGameStore = create<GameState>()(
             activeTournament: gameState.calendar.activeTournament,
           });
 
-          if (gamePhase.type === 'idle') {
+          if (hasOverlay) {
+            // An overlay (e.g. training_result) is showing — defer until dismissed.
+            console.log(`[Story Event] Overlay active, storing as pending: "${selectedEvent.name}"`);
+            set({ pendingRandomEvent: { event: selectedEvent, availableOptions } });
+          } else if (gamePhase.type === 'idle') {
             set({
               gamePhase: {
                 ...gamePhase,
