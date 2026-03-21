@@ -1283,7 +1283,7 @@ export const useGameStore = create<GameState>()(
 
                     // Schedule consolation promotion event 3 days later if not champion
                     if (!lastCompleted.won && config.consolationEventId) {
-                      const consolationDay = state.calendar.currentDay + 3;
+                      const consolationDay = state.calendar.currentDay + 1;
                       const { updatedEvents } = ScheduledEventManager.scheduleEventWithConflictResolution(
                         state.calendar.scheduledEvents,
                         'story',

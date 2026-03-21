@@ -18,7 +18,7 @@ export const WelcomeOverlay: React.FC<WelcomeOverlayProps> = ({ isOpen, onClose 
   const [progressExpanded, setProgressExpanded] = useState(false);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Welcome to Tennis RPG" size="md" showCloseButton={false}>
+    <Modal isOpen={isOpen} onClose={onClose} title="Welcome to my Tennis RPG demo" size="lg" showCloseButton={false}>
       {/* Welcome */}
       <div className="space-y-6">
         <div className="text-center">
@@ -38,6 +38,17 @@ export const WelcomeOverlay: React.FC<WelcomeOverlayProps> = ({ isOpen, onClose 
             <li>→ Story events and rivalries will interrupt your routine</li>
             <li>→ Win matches to climb the rankings and unlock new challenges</li>
           </ul>
+          <br />
+          <p className="text-pixel-text-muted text-sm leading-relaxed">
+            Your stats and your playstyle affect the outcome on every point. Every serve,
+            every forehand, and every defensive slice are individually computed to create
+            realistic rallies with a variety of outcomes.
+          </p>
+          <p className="text-pixel-text-muted text-sm leading-relaxed">
+            Stronger stats will impact a player's success rate AND their shot selection. Baseliners
+            rip the ball at you with groundstrokes, while volleyers come up the court. Your 
+            opponent's stats, the match environment, and your stamina will also affect your performance.
+          </p>
         </div>
 
         {/* WIP disclaimer */}
@@ -46,7 +57,13 @@ export const WelcomeOverlay: React.FC<WelcomeOverlayProps> = ({ isOpen, onClose 
           <p className="text-pixel-text-muted text-sm leading-relaxed">
             This is a personal side project under active development. Expect rough
             edges, placeholder content, and the occasional broken thing. Some
-            narrative text, dialogue, and game code is AI-generated.
+            narrative text, dialogue, and game code is AI-generated. Keep an eye out for
+            the [AI-gen] tag.
+          </p>
+          <p className="text-pixel-text-muted text-sm leading-relaxed">
+            Thanks for giving this a try, and feel free to contact me with any feedback. My
+            goal is to eventually replace all the AI events. If you have any funny tennis stories
+            you'd like to see enshrined in history, send them my way.
           </p>
         </div>
 
@@ -70,7 +87,7 @@ export const WelcomeOverlay: React.FC<WelcomeOverlayProps> = ({ isOpen, onClose 
                   <div className="space-y-2">
                     {section.items.map((item) => (
                       <div key={item.label}>
-                        <div className="flex justify-between text-pixel-text-muted text-sm mb-1">
+                        <div className="flex justify-between text-pixel text-sm mb-1">
                           <span>{item.label}</span>
                           <span>{item.percent}%</span>
                         </div>
