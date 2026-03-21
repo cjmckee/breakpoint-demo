@@ -578,8 +578,12 @@ export const useGameStore = create<GameState>()(
         get().advanceTime();
 
         // Re-evaluate scheduled events (tournament matches, story matches, etc.)
-        // advanceTime() only handles story events — navigateTo('idle') handles all types
-        if (get().gamePhase.type === 'idle') {
+        // advanceTime() only handles story events — navigateTo('idle') handles all types.
+        // Skip if advanceTime already set up a story event overlay/phase to avoid overwriting it.
+        const phaseAfterAdvance = get().gamePhase;
+        const hasStoryOverlay = phaseAfterAdvance.type === 'story_event' ||
+          (phaseAfterAdvance.type === 'idle' && (phaseAfterAdvance as IdlePhase).overlay?.type === 'story_event');
+        if (phaseAfterAdvance.type === 'idle' && !hasStoryOverlay) {
           get().navigateTo('idle');
         }
       },

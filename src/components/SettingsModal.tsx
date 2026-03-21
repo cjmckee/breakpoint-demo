@@ -17,6 +17,12 @@ const MUSIC_TRACKS = [
   'Pixelated Drive',
   'Have a Good Time',
   'Spelunker Pete',
+  'Arcadia Remembers',
+  'The Bunny Song',
+  'On The Run',
+  'Keys Are In It',
+  'Feel the Burn',
+  'Lambo',
 ];
 
 function AudioCredits() {

@@ -12,6 +12,20 @@ import { useGameStore } from '../stores/gameStore';
 import { audioManager } from './AudioManager';
 import type { MusicTrack, SfxKey } from './sounds';
 import type { GamePhase, PhaseContinuation } from '../types/gamePhase';
+import type { StoryEventTag } from '../types/storyEvents';
+
+/** Maps story event tags to music tracks, checked in order. First match wins. */
+const TAG_MUSIC_MAP: [StoryEventTag, MusicTrack][] = [
+  ['romance', 'romance'],
+];
+
+function getStoryEventTags(gamePhase: GamePhase): StoryEventTag[] {
+  if (gamePhase.type === 'story_event') return gamePhase.event.tags;
+  if (gamePhase.type === 'story_event_result') return gamePhase.result.tags;
+  if (gamePhase.type === 'idle' && gamePhase.overlay?.type === 'story_event') return gamePhase.overlay.event.tags;
+  if (gamePhase.type === 'idle' && gamePhase.overlay?.type === 'story_event_result') return gamePhase.overlay.result.tags;
+  return [];
+}
 
 function getMusicTrackForPhase(gamePhase: GamePhase): MusicTrack | null {
   // Check for story overlays on the idle screen
@@ -29,12 +43,20 @@ function getMusicTrackForPhase(gamePhase: GamePhase): MusicTrack | null {
         ? gamePhase.overlay.continuation
         : null;
 
-    return continuation?.type === 'match_setup' ? 'prematch_buildup' : 'story_ambient';
+    if (continuation?.type === 'match_setup') return 'prematch_buildup';
+
+    const tags = getStoryEventTags(gamePhase);
+    for (const [tag, track] of TAG_MUSIC_MAP) {
+      if (tags.includes(tag)) return track;
+    }
+
+    return 'story_ambient';
   }
 
   switch (gamePhase.type) {
     case 'welcome':
     case 'player_creation':
+      return 'main_menu';
     case 'idle':
     case 'tournament_list':
     case 'inventory':
