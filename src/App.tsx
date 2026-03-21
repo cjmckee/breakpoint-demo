@@ -1,9 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import './App.css';
 import { useGameStore } from './stores/gameStore';
 import { useMatchStore } from './stores/matchStore';
-import { audioManager } from './audio/AudioManager';
-import type { MusicTrack, SfxKey } from './audio/sounds';
+import { useAudioTransitions } from './audio/AudioTransitionManager';
 import { PlayerCreation } from './components/PlayerCreation';
 import { MainMenu } from './components/MainMenu';
 import { TrainingSelection } from './components/TrainingSelection';
@@ -20,109 +19,17 @@ import { StoryEventResultModal } from './components/StoryEventResultModal';
 
 function App() {
   const { isInitialized, gamePhase, initializeGame } = useGameStore();
-  const audioSettings = useGameStore((state) => state.audioSettings);
   const currentKeyMoment = useMatchStore((state) => state.currentKeyMoment);
   const isWaitingForChoice = useMatchStore((state) => state.isWaitingForChoice);
   const showKeyMomentResult = useMatchStore((state) => state.showKeyMomentResult);
-  const audioInitialized = useRef(false);
+
+  useAudioTransitions();
 
   useEffect(() => {
     if (!isInitialized) {
       initializeGame();
     }
   }, [isInitialized, initializeGame]);
-
-  // Sync audio settings from store to AudioManager on startup and on change
-  useEffect(() => {
-    audioManager.setMusicVolume(audioSettings.musicVolume);
-    audioManager.setSfxVolume(audioSettings.sfxVolume);
-    audioManager.setMuteMusic(audioSettings.muteMusic);
-    audioManager.setMuteSfx(audioSettings.muteSfx);
-  }, [audioSettings]);
-
-  // Metagame SFX — story events, overlays
-  useEffect(() => {
-    if (gamePhase.type === 'idle' && gamePhase.overlay?.type === 'story_event') {
-      audioManager.playSfx('story_chime');
-    }
-    if (gamePhase.type === 'idle' && gamePhase.overlay?.type === 'training_result') {
-      audioManager.playSfx('training_done');
-    }
-  }, [gamePhase]);
-
-  // Match result SFX (fires once when transitioning to match_results)
-  useEffect(() => {
-    if (gamePhase.type === 'match_results') {
-      const winner = gamePhase.finalScore.winner;
-      const sfx: SfxKey = winner === 'player' ? 'match_win' : 'match_lose';
-      // Short delay so it plays over the music transition
-      setTimeout(() => audioManager.playSfx(sfx), 400);
-      if (winner === 'player') {
-        setTimeout(() => audioManager.playSfx('crowd_cheer'), 800);
-      }
-    }
-  }, [gamePhase.type]);
-
-  // Music transitions based on game phase
-  useEffect(() => {
-    // Start music on first user interaction to satisfy browser autoplay policy
-    const startAudioOnInteraction = () => {
-      if (!audioInitialized.current) {
-        audioInitialized.current = true;
-        transitionMusic();
-      }
-      document.removeEventListener('click', startAudioOnInteraction);
-      document.removeEventListener('keydown', startAudioOnInteraction);
-    };
-
-    const transitionMusic = () => {
-      let track: MusicTrack | null = null;
-
-      // Check for story overlays on the idle screen
-      const hasStoryOverlay =
-        gamePhase.type === 'idle' &&
-        gamePhase.overlay != null &&
-        (gamePhase.overlay.type === 'story_event' || gamePhase.overlay.type === 'story_event_result');
-
-      if (hasStoryOverlay || gamePhase.type === 'story_event' || gamePhase.type === 'story_event_result') {
-        track = 'story_ambient';
-      } else {
-        switch (gamePhase.type) {
-          case 'welcome':
-          case 'player_creation':
-          case 'idle':
-          case 'tournament_list':
-          case 'inventory':
-          case 'training':
-            track = 'menu_theme';
-            break;
-          case 'match_setup':
-          case 'match_active':
-          case 'match_results':
-            track = 'match_tension';
-            break;
-          default:
-            track = null;
-        }
-      }
-
-      if (track) {
-        audioManager.playMusic(track);
-      }
-    };
-
-    if (audioInitialized.current) {
-      transitionMusic();
-    } else {
-      document.addEventListener('click', startAudioOnInteraction);
-      document.addEventListener('keydown', startAudioOnInteraction);
-    }
-
-    return () => {
-      document.removeEventListener('click', startAudioOnInteraction);
-      document.removeEventListener('keydown', startAudioOnInteraction);
-    };
-  }, [gamePhase.type, gamePhase.type === 'idle' ? gamePhase.overlay?.type : undefined]);
 
   // Loading state
   if (!isInitialized) {

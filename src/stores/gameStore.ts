@@ -576,6 +576,12 @@ export const useGameStore = create<GameState>()(
 
         // Advance time
         get().advanceTime();
+
+        // Re-evaluate scheduled events (tournament matches, story matches, etc.)
+        // advanceTime() only handles story events — navigateTo('idle') handles all types
+        if (get().gamePhase.type === 'idle') {
+          get().navigateTo('idle');
+        }
       },
 
       // Update mood manually (for events)
@@ -807,11 +813,6 @@ export const useGameStore = create<GameState>()(
 
           // No scheduled matches or events — plain idle
           set({ gamePhase: { type: 'idle', overlay: null } });
-
-          // Roll for random story event (same as advanceTime does)
-          if (calendar.currentTimeSlot !== TimeSlot.NIGHT) {
-            get().checkForRandomStoryEvent();
-          }
           return;
         }
 
@@ -1021,11 +1022,11 @@ export const useGameStore = create<GameState>()(
             const totalRounds = config.rounds.length;
 
             if (!isWin && tournament.currentBracket === 'winner') {
-              // Loss in winner bracket -> move to loser bracket
+              // Loss in winner bracket -> move to loser bracket, continue at next round
               updatedTournament = {
                 ...updatedTournament,
                 currentBracket: 'loser' as const,
-                currentRound: 0,
+                currentRound: tournament.currentRound + 1,
               };
             } else if (isWin || tournament.currentBracket === 'loser') {
               // Win -> advance round
@@ -1037,10 +1038,11 @@ export const useGameStore = create<GameState>()(
 
             // Check if tournament is complete
             const isEliminated = !isWin && tournament.currentBracket === 'loser';
+            const noConsolationRounds = !isWin && tournament.currentBracket === 'winner' && tournament.currentRound + 1 >= totalRounds;
             const isChampion = isWin && tournament.currentRound + 1 >= totalRounds && tournament.currentBracket === 'winner';
             const isConsolationWinner = isWin && tournament.currentRound + 1 >= config.rounds.length && tournament.currentBracket === 'loser';
 
-            if (isEliminated || isChampion || isConsolationWinner) {
+            if (isEliminated || noConsolationRounds || isChampion || isConsolationWinner) {
               // Tournament over
               const completedTournaments = [...(calendarUpdate.completedTournaments || [])];
               completedTournaments.push({
@@ -1225,6 +1227,22 @@ export const useGameStore = create<GameState>()(
                       calendar: state.calendar,
                       activeTournament: null,
                     });
+
+                    // Schedule consolation promotion event 3 days later if not champion
+                    if (!lastCompleted.won && config.consolationEventId) {
+                      const consolationDay = state.calendar.currentDay + 3;
+                      const { updatedEvents } = ScheduledEventManager.scheduleEventWithConflictResolution(
+                        state.calendar.scheduledEvents,
+                        'story',
+                        consolationDay,
+                        TimeSlot.AFTERNOON,
+                        { storyEventId: config.consolationEventId },
+                      );
+                      set((prev) => ({
+                        calendar: { ...prev.calendar, scheduledEvents: updatedEvents },
+                      }));
+                    }
+
                     set({
                       gamePhase: {
                         type: 'story_event',
@@ -1235,6 +1253,21 @@ export const useGameStore = create<GameState>()(
                     });
                     return;
                   }
+                }
+
+                // Schedule consolation promotion even if no completion event fires
+                if (!lastCompleted.won && config.consolationEventId) {
+                  const consolationDay = state.calendar.currentDay + 3;
+                  const { updatedEvents } = ScheduledEventManager.scheduleEventWithConflictResolution(
+                    state.calendar.scheduledEvents,
+                    'story',
+                    consolationDay,
+                    TimeSlot.AFTERNOON,
+                    { storyEventId: config.consolationEventId },
+                  );
+                  set((prev) => ({
+                    calendar: { ...prev.calendar, scheduledEvents: updatedEvents },
+                  }));
                 }
               }
             }
@@ -2319,6 +2352,9 @@ export const useGameStore = create<GameState>()(
 
         // Opponent tier progression
         unlockedTiers: state.unlockedTiers,
+
+        // Audio settings
+        audioSettings: state.audioSettings,
       }),
     }
   )

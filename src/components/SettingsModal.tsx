@@ -15,6 +15,8 @@ const MUSIC_TRACKS = [
   'Beep Boopity Exploration',
   'Music Box Mayhem',
   'Pixelated Drive',
+  'Have a Good Time',
+  'Spelunker Pete',
 ];
 
 function AudioCredits() {

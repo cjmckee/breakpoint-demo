@@ -35,7 +35,8 @@ export type MusicTrack =
   | 'menu_theme'
   | 'match_tension'
   | 'training_theme'
-  | 'story_ambient';
+  | 'story_ambient'
+  | 'prematch_buildup';
 
 export const SFX_PATHS: Record<SfxKey, string> = {
   ui_click:        '/audio/sfx/ui_click.wav',
@@ -66,18 +67,38 @@ export const SFX_PATHS: Record<SfxKey, string> = {
   crowd_cheer:     '/audio/sfx/crowd_cheer.ogg',
 };
 
-// Music tracks — Tim Kulig (timkulig.com), CC BY 4.0
-// Download instructions: see scripts/download-music.sh
-export const MUSIC_PATHS: Record<MusicTrack, string> = {
-  menu_theme:     '/audio/music/main_theme.mp3',
-  match_tension:  '/audio/music/8_bit_open_world.mp3',
-  training_theme: '/audio/music/pixelated_drive.mp3',
-  story_ambient:  '/audio/music/beep_boopity_exploration.mp3',
-};
+export interface MusicEntry {
+  path: string;
+  /** Human-readable track title for logging. */
+  title: string;
+  /** Per-track gain multiplier to normalize perceived loudness (0–1). */
+  gain: number;
+}
 
-// Menu theme shuffles between these tracks on each crossfade
-export const MENU_THEME_POOL: string[] = [
-  '/audio/music/main_theme.mp3',
-  '/audio/music/renegade.mp3',
-  '/audio/music/music_box_mayhem.mp3',
-];
+// Music track pools — Tim Kulig (timkulig.com), CC BY 4.0
+// Download instructions: see scripts/download-music.sh
+//
+// Each track key maps to a pool of MusicEntry items.
+// On each play/crossfade a random entry is selected from the pool.
+// Adjust `gain` values to equalize perceived volume across tracks.
+// 1.0 = full volume, lower values attenuate louder tracks.
+export const MUSIC_POOLS: Record<MusicTrack, MusicEntry[]> = {
+  menu_theme: [
+    { path: '/audio/music/main_theme.mp3',      title: 'Main Theme',       gain: 0.2 },
+    { path: '/audio/music/renegade.mp3',         title: 'Renegade',         gain: 0.2 },
+    { path: '/audio/music/music_box_mayhem.mp3', title: 'Music Box Mayhem', gain: 0.2 },
+  ],
+  match_tension: [
+    { path: '/audio/music/8_bit_open_world.mp3', title: '8-Bit Open World', gain: 0.2 },
+  ],
+  training_theme: [
+    { path: '/audio/music/pixelated_drive.mp3', title: 'Pixelated Drive', gain: 0.2 },
+  ],
+  story_ambient: [
+    { path: '/audio/music/beep_boopity_exploration.mp3', title: 'Beep Boopity Exploration', gain: 0.2 },
+    { path: '/audio/music/have_a_good_time.mp3',         title: 'Have a Good Time',         gain: 0.2 },
+  ],
+  prematch_buildup: [
+    { path: '/audio/music/spelunker_pete.mp3', title: 'Spelunker Pete', gain: 0.2 },
+  ],
+};

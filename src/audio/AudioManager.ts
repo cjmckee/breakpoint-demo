@@ -7,7 +7,7 @@
  * SFX are loaded on first play and reused via a pool.
  */
 
-import { SfxKey, MusicTrack, SFX_PATHS, MUSIC_PATHS, MENU_THEME_POOL } from './sounds';
+import { SfxKey, MusicTrack, SFX_PATHS, MUSIC_POOLS } from './sounds';
 
 const CROSSFADE_DURATION = 1500; // ms
 const CROSSFADE_STEPS = 30;
@@ -23,6 +23,8 @@ class AudioManager {
   private musicB: HTMLAudioElement | null = null;
   private activeMusicEl: 'A' | 'B' = 'A';
   private currentTrack: MusicTrack | null = null;
+  private currentTrackGain = 1.0;
+  private crossfadeTimer: ReturnType<typeof setInterval> | null = null;
 
   // SFX pool: key → array of audio elements
   private sfxPool: Partial<Record<SfxKey, HTMLAudioElement[]>> = {};
@@ -46,7 +48,7 @@ class AudioManager {
     this.musicVolume = Math.max(0, Math.min(1, v));
     const active = this.getActiveMusicEl();
     if (active && !this.muteMusic) {
-      active.volume = this.musicVolume;
+      active.volume = this.musicVolume * this.currentTrackGain;
     }
   }
 
@@ -58,7 +60,7 @@ class AudioManager {
     this.muteMusic = mute;
     const active = this.getActiveMusicEl();
     if (active) {
-      active.volume = mute ? 0 : this.musicVolume;
+      active.volume = mute ? 0 : this.musicVolume * this.currentTrackGain;
     }
   }
 
@@ -77,17 +79,30 @@ class AudioManager {
     if (typeof window === 'undefined') return;
     if (this.currentTrack === track) return;
 
+    // Cancel any in-flight crossfade so we don't have two running
+    if (this.crossfadeTimer !== null) {
+      clearInterval(this.crossfadeTimer);
+      this.crossfadeTimer = null;
+      // Force-stop the element that was fading out
+      const stale = this.getInactiveMusicEl();
+      if (stale) {
+        stale.pause();
+        stale.src = '';
+      }
+    }
+
     const incoming = this.getInactiveMusicEl();
     const outgoing = this.getActiveMusicEl();
     if (!incoming || !outgoing) return;
 
-    // Menu theme shuffles from a pool each time
-    const src = track === 'menu_theme'
-      ? MENU_THEME_POOL[Math.floor(Math.random() * MENU_THEME_POOL.length)]
-      : MUSIC_PATHS[track];
+    // Pick a random entry from the track's pool
+    const pool = MUSIC_POOLS[track];
+    const entry = pool[Math.floor(Math.random() * pool.length)];
 
-    incoming.src = src;
+    this.currentTrackGain = entry.gain;
+    incoming.src = entry.path;
     incoming.volume = 0;
+    console.log(`[Audio] Now playing: ${entry.title}`);
     incoming.currentTime = 0;
     incoming.play().catch(() => {/* autoplay blocked — user hasn't interacted yet */});
 
@@ -132,18 +147,19 @@ class AudioManager {
   }
 
   private crossfade(outgoing: HTMLAudioElement, incoming: HTMLAudioElement) {
-    const targetVol = this.muteMusic ? 0 : this.musicVolume;
+    const targetVol = this.muteMusic ? 0 : this.musicVolume * this.currentTrackGain;
     const stepMs = CROSSFADE_DURATION / CROSSFADE_STEPS;
     let step = 0;
 
-    const tick = setInterval(() => {
+    this.crossfadeTimer = setInterval(() => {
       step++;
       const t = step / CROSSFADE_STEPS;
       incoming.volume = Math.min(targetVol, targetVol * t);
       outgoing.volume = Math.max(0, targetVol * (1 - t));
 
       if (step >= CROSSFADE_STEPS) {
-        clearInterval(tick);
+        clearInterval(this.crossfadeTimer!);
+        this.crossfadeTimer = null;
         outgoing.pause();
         outgoing.src = '';
       }
