@@ -157,7 +157,8 @@ export interface StoryEventResultOverlay {
 
 export type PhaseContinuation =
   | { type: 'idle' }
-  | { type: 'match_setup'; matchType: MatchType; matchConfig: PreMatchConfig };
+  | { type: 'match_setup'; matchType: MatchType; matchConfig: PreMatchConfig }
+  | { type: 'story_event'; event: StoryEvent; availableOptions: StoryEventOption[] };
 
 // ============================================================================
 // MATCH COMPLETION — data passed from matchStore → component → gameStore

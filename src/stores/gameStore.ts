@@ -1178,12 +1178,36 @@ export const useGameStore = create<GameState>()(
                     calendar: state.calendar,
                     activeTournament: tournament,
                   });
+
+                  // If this was a loss that moved the player to consolation bracket,
+                  // chain the elimination event as a continuation after the round's loss event
+                  let continuation: PhaseContinuation = { type: 'idle' };
+                  if (result === 'loss' && tournament.currentBracket === 'loser' && config.eliminationEventId) {
+                    const eliminationEvent = StoryEventManager.getEligibleEventById(config.eliminationEventId, state.player, {
+                      completedStoryEvents: state.completedStoryEvents,
+                      completedStoryEventChoices: state.completedStoryEventChoices,
+                      relationships: state.relationships,
+                      calendar: state.calendar,
+                      activeTournament: tournament,
+                    });
+                    if (eliminationEvent) {
+                      const eliminationOptions = PrerequisiteChecker.getAvailableOptions(eliminationEvent, state.player, {
+                        completedStoryEvents: state.completedStoryEvents,
+                        completedStoryEventChoices: state.completedStoryEventChoices,
+                        relationships: state.relationships,
+                        calendar: state.calendar,
+                        activeTournament: tournament,
+                      });
+                      continuation = { type: 'story_event', event: eliminationEvent, availableOptions: eliminationOptions };
+                    }
+                  }
+
                   set({
                     gamePhase: {
                       type: 'story_event',
                       event,
                       availableOptions,
-                      continuation: { type: 'idle' },
+                      continuation,
                     },
                   });
                   // Schedule next tournament match if tournament still active
@@ -1296,6 +1320,8 @@ export const useGameStore = create<GameState>()(
             get().navigateTo('idle');
           } else if (continuation.type === 'match_setup') {
             set({ gamePhase: { type: 'match_setup', matchType: continuation.matchType, matchConfig: continuation.matchConfig } });
+          } else if (continuation.type === 'story_event') {
+            set({ gamePhase: { type: 'story_event', event: continuation.event, availableOptions: continuation.availableOptions, continuation: { type: 'idle' } } });
           }
           return;
         }
@@ -1307,6 +1333,8 @@ export const useGameStore = create<GameState>()(
             get().navigateTo('idle');
           } else if (continuation.type === 'match_setup') {
             set({ gamePhase: { type: 'match_setup', matchType: continuation.matchType, matchConfig: continuation.matchConfig } });
+          } else if (continuation.type === 'story_event') {
+            set({ gamePhase: { type: 'story_event', event: continuation.event, availableOptions: continuation.availableOptions, continuation: { type: 'idle' } } });
           }
         }
       },
@@ -1780,6 +1808,8 @@ export const useGameStore = create<GameState>()(
         // Follow continuation
         if (continuation.type === 'match_setup') {
           set({ gamePhase: { type: 'match_setup', matchType: continuation.matchType, matchConfig: continuation.matchConfig } });
+        } else if (continuation.type === 'story_event') {
+          set({ gamePhase: { type: 'story_event', event: continuation.event, availableOptions: continuation.availableOptions, continuation: { type: 'idle' } } });
         } else {
           get().navigateTo('idle');
         }
