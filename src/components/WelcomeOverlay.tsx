@@ -18,7 +18,7 @@ export const WelcomeOverlay: React.FC<WelcomeOverlayProps> = ({ isOpen, onClose 
   const [progressExpanded, setProgressExpanded] = useState(false);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Welcome to my Tennis RPG demo" size="lg" showCloseButton={false}>
+    <Modal isOpen={isOpen} onClose={onClose} title="Welcome to my Tennis RPG demo" size="xl" showCloseButton={false}>
       {/* Welcome */}
       <div className="space-y-6">
         <div className="text-center">

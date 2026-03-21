@@ -506,24 +506,40 @@ export const useGameStore = create<GameState>()(
           }
         }
 
-        // Check for story events at start of new slot.  This runs even when an
-        // overlay is showing (e.g. training_result) because advanceTime() is only
-        // called when time genuinely advances (training, rest, match).  The event
-        // will display once the overlay is dismissed via navigateTo('idle').
-        if (newCalendar.currentTimeSlot !== TimeSlot.NIGHT) {
+        // Check for story events at start of new slot.
+        //
+        // Skip entirely for match_results — dismissMatchResults() owns the
+        // post-match event chain (post-match story events, milestones, etc.).
+        //
+        // When an overlay is active (e.g. training_result):
+        // - Scheduled events: leave in calendar; navigateTo('idle') will pick
+        //   them up when the overlay is dismissed.
+        // - Random events: checkForRandomStoryEvent already defers via
+        //   pendingRandomEvent when it detects an overlay.
+        const currentPhase = get().gamePhase;
+        const isMatchResults = currentPhase.type === 'match_results';
+        const hasOverlay = currentPhase.type === 'idle' && (currentPhase as IdlePhase).overlay != null;
+
+        if (newCalendar.currentTimeSlot !== TimeSlot.NIGHT && !isMatchResults) {
           const scheduledEvent = ScheduledEventManager.getScheduledEvent(
             get().calendar.scheduledEvents,
             get().calendar
           );
 
           if (scheduledEvent && scheduledEvent.eventType === 'story') {
-            // Scheduled story event: trigger by ID and clear the slot
-            const storyEventId = (scheduledEvent.metadata as Record<string, unknown>)?.storyEventId as string | undefined;
-            if (storyEventId) {
-              get().clearScheduledEvent(get().calendar.currentDay, get().calendar.currentTimeSlot);
-              get().checkForStoryEventById(storyEventId);
+            if (!hasOverlay) {
+              // No overlay — trigger immediately
+              const storyEventId = (scheduledEvent.metadata as Record<string, unknown>)?.storyEventId as string | undefined;
+              if (storyEventId) {
+                get().clearScheduledEvent(get().calendar.currentDay, get().calendar.currentTimeSlot);
+                get().checkForStoryEventById(storyEventId);
+              }
             }
+            // With overlay: leave the scheduled event in the calendar.
+            // navigateTo('idle') will fire it when the overlay is dismissed.
           } else if (!scheduledEvent) {
+            // No scheduled event — roll for a random story event.
+            // checkForRandomStoryEvent handles overlay deferral internally.
             get().checkForRandomStoryEvent();
           }
         }

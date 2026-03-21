@@ -19,7 +19,7 @@ export const GAME_PROGRESS: ProgressSection[] = [
   {
     title: 'Core Gameplay',
     items: [
-      { label: 'Match simulation', percent: 80, notes: 'Every shot is individually calculated, just check the logs. I\'m using chained sigmoid functions to give proper variance to each shot and give us a wide array of outcomes.' },
+      { label: 'Match simulation', percent: 80, notes: 'Every shot is individually calculated, just check the logs. I\'m using chained sigmoid functions to give proper variance to each shot and give us a wide array of outcomes. Still need tiebreaks...' },
       { label: 'Training system', percent: 60, notes: 'Still missing the improved tiers beyond silver. I will probably rework silver as well.'},
       { label: 'Player progression', percent: 75, notes: 'Still need a meaningful outlet for player experience and match experience. Events have been a fun way to control player stats.' },
     ],
