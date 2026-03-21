@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import './App.css';
 import { useGameStore } from './stores/gameStore';
 import { useMatchStore } from './stores/matchStore';
+import { useAudioTransitions } from './audio/AudioTransitionManager';
 import { PlayerCreation } from './components/PlayerCreation';
 import { MainMenu } from './components/MainMenu';
 import { TrainingSelection } from './components/TrainingSelection';
@@ -21,6 +22,8 @@ function App() {
   const currentKeyMoment = useMatchStore((state) => state.currentKeyMoment);
   const isWaitingForChoice = useMatchStore((state) => state.isWaitingForChoice);
   const showKeyMomentResult = useMatchStore((state) => state.showKeyMomentResult);
+
+  useAudioTransitions();
 
   useEffect(() => {
     if (!isInitialized) {

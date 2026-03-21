@@ -3,13 +3,15 @@
  * Displays real-time match simulation with scores, stats, and key moments
  */
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useMatchStore } from '../stores/matchStore';
 import { useGameStore } from '../stores/gameStore';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { CourtVisualization } from './CourtVisualization';
 import { AbilityDisplay } from './AbilityDisplay';
+import { audioManager } from '../audio/AudioManager';
+import type { SfxKey } from '../audio/sounds';
 
 interface MatchStats {
   aces: number;
@@ -38,7 +40,107 @@ export const LiveMatchViewer: React.FC = () => {
     isComplete: false,
   };
 
+  const showKeyMomentResult = useMatchStore((state) => state.showKeyMomentResult);
+  const lastKeyMomentResult = useMatchStore((state) => state.lastKeyMomentResult);
+  const matchHistory = useMatchStore((state) => state.matchHistory);
+
   const [matchLog, setMatchLog] = useState<string[]>([]);
+
+  // ─── Audio: track previous stat/score snapshots to detect changes ──────────
+  const prevMatchStats = useRef<typeof matchStatistics>(null);
+  const prevScore = useRef<typeof currentScore>(null);
+  const prevHistoryLen = useRef(0);
+  const prevWaitingForChoice = useRef(false);
+  const prevShowKeyMomentResult = useRef(false);
+
+  useEffect(() => {
+    const prev = prevMatchStats.current;
+    const curr = matchStatistics;
+
+    if (prev && curr) {
+      const playerAcesDelta   = (curr.aces?.player ?? 0)          - (prev.aces?.player ?? 0);
+      const playerFaultsDelta = (curr.doubleFaults?.player ?? 0)   - (prev.doubleFaults?.player ?? 0);
+      const playerWinsDelta   = (curr.winners?.player ?? 0)        - (prev.winners?.player ?? 0);
+      const oppFaultsDelta    = (curr.doubleFaults?.opponent ?? 0) - (prev.doubleFaults?.opponent ?? 0);
+      const oppWinsDelta      = (curr.winners?.opponent ?? 0)      - (prev.winners?.opponent ?? 0);
+
+      if (playerAcesDelta > 0) {
+        audioManager.playSfx('ace');
+      } else if (playerFaultsDelta > 0 || oppFaultsDelta > 0) {
+        audioManager.playSfx('fault');
+      } else if (playerWinsDelta > 0) {
+        audioManager.playSfx('winner');
+      } else if (oppWinsDelta > 0) {
+        // Alternate between groundstroke sounds for variety
+        const sfx: SfxKey = Math.random() < 0.5 ? 'hit_ground' : 'hit_ground_alt';
+        audioManager.playSfx(sfx);
+      } else {
+        // Regular rally shot
+        const sfx: SfxKey = Math.random() < 0.4 ? 'hit_volley' : Math.random() < 0.5 ? 'hit_ground' : 'serve';
+        audioManager.playSfx(sfx);
+      }
+    }
+
+    prevMatchStats.current = curr;
+  }, [matchStatistics]);
+
+  useEffect(() => {
+    const prev = prevScore.current;
+    const curr = currentScore;
+    const historyLen = matchHistory.length;
+    const pointScored = historyLen > prevHistoryLen.current;
+
+    if (prev && curr && pointScored) {
+      // Detect set won (sets array grew)
+      const setWonByPlayer = curr.sets.length > prev.sets.length &&
+        (curr.sets[curr.sets.length - 1]?.player ?? 0) > (curr.sets[curr.sets.length - 1]?.opponent ?? 0);
+      const setWonByOpp = curr.sets.length > prev.sets.length && !setWonByPlayer;
+
+      // Detect game won (set game count grew)
+      const gameWonByPlayer = !setWonByPlayer && !setWonByOpp &&
+        curr.currentSet.player > prev.currentSet.player;
+      const gameWonByOpp = !setWonByPlayer && !setWonByOpp &&
+        curr.currentSet.opponent > prev.currentSet.opponent;
+
+      if (setWonByPlayer) {
+        audioManager.playSfx('set_win');
+        audioManager.playSfx('crowd_cheer');
+      } else if (setWonByOpp) {
+        audioManager.playSfx('point_lose');
+      } else if (gameWonByPlayer) {
+        audioManager.playSfx('game_win');
+      } else if (gameWonByOpp) {
+        audioManager.playSfx('point_lose');
+      } else {
+        // Plain point — last entry in matchHistory tells us who won
+        const lastEntry = matchHistory[matchHistory.length - 1];
+        if (lastEntry) {
+          audioManager.playSfx(lastEntry.winner === 'player' ? 'point_win' : 'point_lose');
+        }
+      }
+    }
+
+    prevScore.current = curr;
+    prevHistoryLen.current = historyLen;
+  }, [currentScore, matchHistory]);
+
+  // Key moment SFX
+  useEffect(() => {
+    if (isWaitingForChoice && !prevWaitingForChoice.current) {
+      audioManager.playSfx('key_moment_in');
+    }
+    prevWaitingForChoice.current = isWaitingForChoice;
+  }, [isWaitingForChoice]);
+
+  useEffect(() => {
+    if (showKeyMomentResult && !prevShowKeyMomentResult.current && lastKeyMomentResult) {
+      const won = lastKeyMomentResult.pointWinner === 'player';
+      audioManager.playSfx(won ? 'key_moment_win' : 'key_moment_lose');
+      if (won) audioManager.playSfx('crowd_cheer');
+    }
+    prevShowKeyMomentResult.current = showKeyMomentResult;
+  }, [showKeyMomentResult, lastKeyMomentResult]);
+  // ───────────────────────────────────────────────────────────────────────────
 
   // Warn the player if they try to close/refresh mid-match
   const handleBeforeUnload = useCallback((e: BeforeUnloadEvent) => {

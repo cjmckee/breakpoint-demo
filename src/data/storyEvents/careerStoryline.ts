@@ -1327,7 +1327,7 @@ export const careerEvents: StoryEvent[] = [
     skippable: true,
     description: 'A local sports journalist wants to interview you about your tennis journey.',
     dialogue: [
-      ['journalist', ['Our audience absolutely loves your story. What can you tell us about', {characterId: 'jordan_rival'}, '?']],
+      ['journalist', ['Our audience absolutely loves your story. What can you tell us about ', {characterId: 'jordan_rival'}, '?']],
       ['player', ['I- Oh? What?']],
       ['journalist', [{characterId: 'jordan_rival'}, ' has been one of the hottest prospects in tennis, both figuratively and literally.']],
       ['journalist', ['How did you two meet? Is there a story behind your rivalry? What does he smell like?']],
