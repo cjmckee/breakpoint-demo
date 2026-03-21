@@ -7,12 +7,14 @@ import React, { useState } from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
+import { WelcomeOverlay } from './WelcomeOverlay';
 
 export const PlayerCreation: React.FC = () => {
   const [name, setName] = useState('');
   const [playstyle, setPlaystyle] = useState<'offensive' | 'defensive' | 'balanced'>(
     'balanced'
   );
+  const [showWelcome, setShowWelcome] = useState(true);
   const createPlayer = useGameStore((state) => state.createPlayer);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -44,6 +46,8 @@ export const PlayerCreation: React.FC = () => {
   };
 
   return (
+    <>
+      <WelcomeOverlay isOpen={showWelcome} onClose={() => setShowWelcome(false)} />
     <div className="min-h-screen bg-pixel-bg flex items-center justify-center p-4">
       <Card className="max-w-2xl w-full">
         <div className="text-center mb-8">
@@ -131,5 +135,6 @@ export const PlayerCreation: React.FC = () => {
         </form>
       </Card>
     </div>
+    </>
   );
 };
