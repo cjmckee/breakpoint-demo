@@ -54,11 +54,13 @@ interface MatchState {
 
   // Resolver for key moment promises
   keyMomentResolver: ((option: TacticalOption) => void) | null;
+  // Resolver for key moment result display (blocks simulation until dismissed)
+  keyMomentResultResolver: (() => void) | null;
 
   // Actions
   startMatch: (config: InteractiveMatchConfig, onComplete: (data: MatchCompletionData) => void) => Promise<void>;
   handleKeyMomentChoice: (option: TacticalOption) => void;
-  setKeyMomentResult: (result: KeyMomentResult) => void;
+  setKeyMomentResult: (result: KeyMomentResult) => Promise<void>;
   hideKeyMomentResult: () => void;
   endMatch: () => void;
   resetMatch: () => void;
@@ -79,6 +81,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
   accumulatedEffects: null,
   orchestrator: null,
   keyMomentResolver: null,
+  keyMomentResultResolver: null,
 
   // Start a new match
   startMatch: async (config: InteractiveMatchConfig, onComplete?: (data: MatchCompletionData) => void) => {
@@ -101,9 +104,9 @@ export const useMatchStore = create<MatchState>((set, get) => ({
         });
       },
 
-      // Key moment result callback - shows result after choice
-      onKeyMomentResult: (result: KeyMomentResult) => {
-        get().setKeyMomentResult(result);
+      // Key moment result callback - shows result and blocks until user dismisses
+      onKeyMomentResult: async (result: KeyMomentResult): Promise<void> => {
+        return get().setKeyMomentResult(result);
       },
 
       // Score update callback
@@ -190,12 +193,13 @@ export const useMatchStore = create<MatchState>((set, get) => ({
   },
 
   // Set key moment result (called by orchestrator after resolving)
-  setKeyMomentResult: (result: KeyMomentResult) => {
+  // Returns a promise that blocks until the user dismisses the result modal
+  setKeyMomentResult: (result: KeyMomentResult): Promise<void> => {
     const { currentKeyMoment, lastChosenOption, keyMomentHistory } = get();
 
     if (!currentKeyMoment || !lastChosenOption) {
       console.error('setKeyMomentResult called without currentKeyMoment or lastChosenOption in state');
-      return;
+      return Promise.resolve();
     }
 
     const historyEntry = {
@@ -204,21 +208,32 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       result: result,
     };
 
-    set({
-      lastKeyMomentResult: result,
-      showKeyMomentResult: true,
-      keyMomentHistory: [...keyMomentHistory, historyEntry],
-      currentKeyMoment: null,
-      lastChosenOption: null,
+    return new Promise<void>((resolve) => {
+      set({
+        lastKeyMomentResult: result,
+        showKeyMomentResult: true,
+        keyMomentHistory: [...keyMomentHistory, historyEntry],
+        currentKeyMoment: null,
+        lastChosenOption: null,
+        keyMomentResultResolver: resolve,
+      });
     });
   },
 
-  // Hide key moment result
+  // Hide key moment result and resume simulation
   hideKeyMomentResult: () => {
+    const { keyMomentResultResolver } = get();
+
     set({
       showKeyMomentResult: false,
       lastKeyMomentResult: null,
+      keyMomentResultResolver: null,
     });
+
+    // Resolve the promise to unblock the orchestrator
+    if (keyMomentResultResolver) {
+      keyMomentResultResolver();
+    }
   },
 
   // End match early
@@ -233,6 +248,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       currentKeyMoment: null,
       isWaitingForChoice: false,
       keyMomentResolver: null,
+      keyMomentResultResolver: null,
     });
   },
 
@@ -256,6 +272,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       keyMomentHistory: [],
       orchestrator: null,
       keyMomentResolver: null,
+      keyMomentResultResolver: null,
     });
   },
 }));

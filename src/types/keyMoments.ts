@@ -105,7 +105,7 @@ export interface InteractiveMatchConfig {
 
   // Callbacks
   onKeyMoment?: KeyMomentCallback;
-  onKeyMomentResult?: (result: any) => void; // Called after key moment is resolved
+  onKeyMomentResult?: (result: any) => Promise<void>; // Called after key moment is resolved; awaited before resuming
   onScoreUpdate?: ScoreUpdateCallback;
   onStatsUpdate?: StatsUpdateCallback; // Called after each point with current statistics
   onPointComplete?: (result: PointResult) => void;
