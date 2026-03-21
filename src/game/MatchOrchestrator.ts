@@ -196,9 +196,9 @@ export class MatchOrchestrator {
         // Apply secondary effects to match state
         this.applySecondaryEffects(result.appliedEffects);
 
-        // Notify UI of key moment result
+        // Notify UI of key moment result and wait for user to dismiss
         if (config.onKeyMomentResult) {
-          config.onKeyMomentResult(result);
+          await config.onKeyMomentResult(result);
         }
 
         // Track statistics for key moment (create synthetic PointResult)

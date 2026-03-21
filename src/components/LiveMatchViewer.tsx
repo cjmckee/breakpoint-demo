@@ -8,7 +8,6 @@ import { useMatchStore } from '../stores/matchStore';
 import { useGameStore } from '../stores/gameStore';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
-import { KeyMomentResultToast } from './KeyMomentResultToast';
 import { CourtVisualization } from './CourtVisualization';
 import { AbilityDisplay } from './AbilityDisplay';
 
@@ -91,7 +90,6 @@ export const LiveMatchViewer: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-pixel-bg p-4">
-      <KeyMomentResultToast />
       <div className="max-w-6xl mx-auto space-y-4">
         {/* Header */}
         <div className="flex justify-between items-center">
