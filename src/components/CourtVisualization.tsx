@@ -16,6 +16,7 @@ interface CourtVisualizationProps {
   momentum?: number; // -100 to 100 (positive = player favor)
   stamina?: number; // 0-100
   maxStamina?: number;
+  playerName?: string;
   opponentName?: string;
   className?: string;
 }
@@ -73,6 +74,7 @@ export const CourtVisualization: React.FC<CourtVisualizationProps> = ({
   momentum = 0,
   stamina = 100,
   maxStamina = 100,
+  playerName = 'You',
   opponentName = 'Opponent',
   className = '',
 }) => {
@@ -106,7 +108,7 @@ export const CourtVisualization: React.FC<CourtVisualizationProps> = ({
       <div className="flex justify-between items-center mb-4">
         <div className="text-center flex-1">
           <div className="flex items-center justify-center gap-2 mb-1">
-            <h3 className="text-sm font-medium text-pixel-text-muted">You</h3>
+            <h3 className="text-sm font-medium text-pixel-text-muted">{playerName}</h3>
             {server === 'player' && (
               <span className="text-xs bg-pixel-success text-pixel-bg px-2 py-1 rounded-full font-bold">
                 Serving

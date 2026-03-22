@@ -12,6 +12,7 @@ interface ModalProps {
   children: React.ReactNode;
   showCloseButton?: boolean;
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  belowContent?: React.ReactNode;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -21,6 +22,7 @@ export const Modal: React.FC<ModalProps> = ({
   children,
   showCloseButton = true,
   size = 'md',
+  belowContent,
 }) => {
   if (!isOpen) return null;
 
@@ -39,28 +41,34 @@ export const Modal: React.FC<ModalProps> = ({
         onClick={showCloseButton ? onClose : undefined}
       />
 
-      {/* Modal content */}
-      <div
-        className={`relative bg-pixel-bg border-8 border-pixel-border ${sizeStyles[size]} w-full mx-4 max-h-[90vh] overflow-y-auto`}
-      >
-        {/* Header — omitted when there's no title and no close button */}
-        {(title || (showCloseButton && onClose)) && (
-          <div className="bg-pixel-card border-b-4 border-pixel-border p-4 flex items-center justify-between sticky top-0 z-10">
-            <h2 className="text-2xl font-bold text-pixel-text">{title}</h2>
-            {showCloseButton && onClose && (
-              <button
-                onClick={onClose}
-                className="text-pixel-text hover:text-pixel-accent text-3xl font-bold leading-none"
-                aria-label="Close modal"
-              >
-                ×
-              </button>
-            )}
-          </div>
-        )}
+      {/* Modal content + optional below-content */}
+      <div className={`relative flex flex-col items-center ${sizeStyles[size]} w-full mx-4`}>
+        <div
+          className="bg-pixel-bg border-8 border-pixel-border w-full max-h-[90vh] overflow-y-auto"
+        >
+          {/* Header — omitted when there's no title and no close button */}
+          {(title || (showCloseButton && onClose)) && (
+            <div className="bg-pixel-card border-b-4 border-pixel-border p-4 flex items-center justify-between sticky top-0 z-10">
+              <h2 className="text-2xl font-bold text-pixel-text">{title}</h2>
+              {showCloseButton && onClose && (
+                <button
+                  onClick={onClose}
+                  className="text-pixel-text hover:text-pixel-accent text-3xl font-bold leading-none"
+                  aria-label="Close modal"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          )}
 
-        {/* Body */}
-        <div className="p-6">{children}</div>
+          {/* Body */}
+          <div className="p-6">{children}</div>
+        </div>
+
+        {belowContent && (
+          <div className="w-full mt-3">{belowContent}</div>
+        )}
       </div>
     </div>
   );

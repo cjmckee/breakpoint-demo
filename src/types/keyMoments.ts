@@ -89,6 +89,7 @@ export interface MatchScore {
 export interface InteractiveMatchConfig {
   playerStats: any; // PlayerProfile from core
   opponentStats: any; // PlayerProfile from core
+  playerName?: string;   // Player's display name
   opponentName?: string; // Opponent's display name
   opponentTier?: number; // Opponent tier (1-4) for reward calculation
   playerAbilities?: Ability[]; // Player abilities to apply during match
@@ -125,6 +126,7 @@ export interface PointResult {
   outcome: string; // 'winner', 'ace', 'error', etc.
   shotType?: string;
   rallyLength?: number;
+  server?: 'player' | 'opponent';
 }
 
 /**

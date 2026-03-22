@@ -104,7 +104,8 @@ export class ShotCalculator {
     incomingShot?: ShotDetail,
     tacticalOpportunity?: TacticalOpportunity,
     matchFatigue: number = 0,
-    momentum: number = 0
+    momentum: number = 0,
+    activeEffects?: Record<string, number>
   ): ShotResult {
     console.log('Calculating shot success for', shotType);
     console.log('Incoming shot quality:', incomingShot?.quality);
@@ -153,7 +154,12 @@ export class ShotCalculator {
     }
 
     // Step 3: Apply modifiers to get shot quality
-    const quality = this.applyModifiers(primaryStat, modifiers);
+    let quality = this.applyModifiers(primaryStat, modifiers);
+
+    // Step 3b: Apply ability additional effects
+    if (activeEffects) {
+      quality = this.applyAbilityEffects(quality, shotType, modifiers, activeEffects);
+    }
 
     // Log quality calculation for serves
     if (shotType.includes('serve')) {
@@ -684,6 +690,53 @@ export class ShotCalculator {
     return Math.min(100, Math.max(0, quality));
   }
 
+
+  /**
+   * Apply ability additional effects to shot quality.
+   * Small additive bonuses for specific shot types based on equipped abilities.
+   */
+  private applyAbilityEffects(
+    quality: number,
+    shotType: ShotType,
+    modifiers: ShotModifiers,
+    effects: Record<string, number>
+  ): number {
+    let bonus = 0;
+
+    // pace: power shots hit harder
+    const pace = effects['pace'] ?? 0;
+    if (pace > 0 && shotType.includes('power')) {
+      bonus += pace * 2;
+    }
+
+    // side_spin: enhanced spin effectiveness
+    const sideSpin = effects['side_spin'] ?? 0;
+    if (sideSpin > 0 && modifiers.spinBonus > 0) {
+      bonus += sideSpin * modifiers.spinBonus * 0.15;
+    }
+
+    // touch: drop shots and volleys
+    const touch = effects['touch'] ?? 0;
+    if (touch > 0 && (shotType.includes('drop_shot') || shotType.includes('volley'))) {
+      bonus += touch * 2;
+    }
+
+    // smash_power: overhead shots
+    const smashPower = effects['smash_power'] ?? 0;
+    if (smashPower > 0 && shotType.includes('overhead')) {
+      bonus += smashPower * 3;
+    }
+
+    // perfect_timing: reduces pressure penalty impact
+    const perfectTiming = effects['perfect_timing'] ?? 0;
+    if (perfectTiming > 0 && modifiers.pressureModifier < 1) {
+      // Recover some of the quality lost to pressure
+      const pressureLoss = (1 - modifiers.pressureModifier) * quality;
+      bonus += pressureLoss * perfectTiming * 0.03;
+    }
+
+    return Math.min(100, Math.max(0, quality + bonus));
+  }
 
   /**
    * Get the primary stat name that influences a shot type
