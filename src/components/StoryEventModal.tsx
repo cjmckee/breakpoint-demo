@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
 import type { StoryEvent, StoryEventOption } from '../types/storyEvents';
-import { FormattedText } from './FormattedText';
+import { AnimatedWords } from './AnimatedWords';
 import { getCharacterName } from '../data/characters';
 import { usePlayerName } from '../hooks/usePlayerName';
 
@@ -79,26 +79,37 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
 
       {/* Dialogue */}
       {hasDialogue && currentDialogueIndex < dialogue!.length && (
-        <div className="bg-gray-700 text-white p-4 rounded mb-6 border-l-4 border-blue-500">
+        <div
+          key={currentDialogueIndex}
+          className="relative bg-pixel-primary border-4 border-pixel-border p-5 mb-6"
+        >
+          {/* Decorative accent bar */}
+          <div className="absolute top-0 left-0 w-full h-1 bg-pixel-accent" />
           {(() => {
             const [characterId, text] = dialogue![currentDialogueIndex];
             const characterName = getCharacterName(characterId, playerName);
+            const isCharacterSpeaking = !!characterName;
 
             return (
               <>
                 {characterName && (
-                  <div className="font-bold text-blue-300 mb-2">{characterName}</div>
+                  <div className="font-bold text-pixel-accent mb-2 text-lg">{characterName}</div>
                 )}
-                <p className={characterName ? 'ml-2' : 'italic'} style={{ whiteSpace: 'pre-line' }}>
-                  {characterName ? '"' : ''}
-                  <FormattedText content={text} />
-                  {characterName ? '"' : ''}
+                <p
+                  className={`text-lg leading-relaxed ${isCharacterSpeaking ? 'ml-3 italic' : 'italic'}`}
+                >
+                  {isCharacterSpeaking ? '\u201c' : ''}
+                  <AnimatedWords
+                    content={text}
+                    intensity={isCharacterSpeaking ? 'full' : 'subtle'}
+                  />
+                  {isCharacterSpeaking ? '\u201d' : ''}
                 </p>
               </>
             );
           })()}
           {currentDialogueIndex < dialogue!.length - 1 && (
-            <div className="text-xs text-gray-400 mt-2">
+            <div className="text-xs text-pixel-text-muted mt-3">
               ({currentDialogueIndex + 1} / {dialogue!.length})
             </div>
           )}

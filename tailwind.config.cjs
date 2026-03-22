@@ -40,6 +40,8 @@ module.exports = {
         'stat-decrease': 'stat-decrease 0.6s ease-out',
         'pixel-glow': 'pixel-glow 2s ease-in-out infinite',
         'pixel-scale': 'pixel-scale 0.2s ease-out',
+        'word-drift': 'word-drift 2.5s ease-in-out infinite',
+        'word-drift-subtle': 'word-drift-subtle 3s ease-in-out infinite',
       },
       keyframes: {
         'pulse-heartbeat': {
@@ -85,6 +87,14 @@ module.exports = {
         'pixel-scale': {
           '0%': { transform: 'scale(0.95)', opacity: '0' },
           '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        'word-drift': {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-3px)' },
+        },
+        'word-drift-subtle': {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-1.5px)' },
         },
       },
     },
