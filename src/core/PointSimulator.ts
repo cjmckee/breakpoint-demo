@@ -44,7 +44,8 @@ export class PointSimulator {
     currentServer: 'player' | 'opponent',
     server: PlayerProfile,
     returner: PlayerProfile,
-    matchState: MatchState
+    matchState: MatchState,
+    activeEffects?: Record<string, number>
   ): PointResult {
     const shots: ShotDetail[] = [];
     const pointId = `point_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -76,7 +77,8 @@ export class PointSimulator {
       matchState,
       pointId,
       serveResult.nextShooter!,
-      currentServer
+      currentServer,
+      activeEffects
     );
     shots.push(...rallyResult.shots);
 
@@ -271,7 +273,8 @@ export class PointSimulator {
     matchState: MatchState,
     pointId: string,
     firstShooter: 'server' | 'returner',
-    currentServer: 'player' | 'opponent'
+    currentServer: 'player' | 'opponent',
+    activeEffects?: Record<string, number>
   ): {
     shots: ShotDetail[];
     winner: 'server' | 'returner';
@@ -317,6 +320,10 @@ export class PointSimulator {
         matchState
       );
 
+      // Resolve shooter identity for fatigue/momentum/ability lookup
+      const shooterIdentity: 'player' | 'opponent' =
+        (currentShooter === 'server') === (currentServer === 'player') ? 'player' : 'opponent';
+
       // Create context for this shot (using actual ball quality and opponent position)
       const shotContext = this.createRallyContext(
         rallyLength,
@@ -324,7 +331,8 @@ export class PointSimulator {
         shooterPosition,
         thresholds,
         rallyState.ballQuality,
-        rallyState.opponentPosition
+        rallyState.opponentPosition,
+        shooterIdentity === 'player' ? activeEffects : undefined
       );
 
       // Calculate tactical opportunity using unified analyzer
@@ -332,14 +340,12 @@ export class PointSimulator {
         rallyState,
         shooterPosition
       );
-
-      // Resolve shooter identity for fatigue/momentum lookup
-      const shooterIdentity: 'player' | 'opponent' =
-        (currentShooter === 'server') === (currentServer === 'player') ? 'player' : 'opponent';
       const shooterFatigue = matchState.fatigue[shooterIdentity];
       const shooterMomentum = shooterIdentity === 'player' ? matchState.momentum : -matchState.momentum;
 
       // Calculate shot result with threshold system
+      // Only apply ability effects when the shooter is the player
+      const shooterEffects = shooterIdentity === 'player' ? activeEffects : undefined;
       const shotResult = this.shotCalculator.calculateShotSuccess(
         shooterProfile,
         shotType,
@@ -349,7 +355,8 @@ export class PointSimulator {
         previousShot,
         tacticalOpportunity,
         shooterFatigue,
-        shooterMomentum
+        shooterMomentum,
+        shooterEffects
       );
 
       // Error classification now handled by threshold system
@@ -414,7 +421,8 @@ export class PointSimulator {
         shooterPosition,
         rallyLength,
         previousShot.quality,
-        thresholds
+        thresholds,
+        shooterIdentity === 'player' ? activeEffects : undefined
       );
 
       // Update positions for both players
@@ -504,7 +512,8 @@ export class PointSimulator {
     shooterPosition: CourtPosition,
     thresholds: RelativeThresholds,
     ballQuality?: BallQuality,
-    opponentPosition?: CourtPosition
+    opponentPosition?: CourtPosition,
+    activeEffects?: Record<string, number>
   ): ShotContext {
     // Calculate difficulty based on actual situation
     const difficulty = this.calculateShotDifficulty(
@@ -512,7 +521,8 @@ export class PointSimulator {
       shooterPosition,
       opponentPosition,
       ballQuality,
-      rallyLength
+      rallyLength,
+      activeEffects
     );
 
     // Pressure from match situation
@@ -554,7 +564,8 @@ export class PointSimulator {
     shooterPosition?: CourtPosition,
     opponentPosition?: CourtPosition,
     ballQuality?: BallQuality,
-    rallyLength?: number
+    rallyLength?: number,
+    activeEffects?: Record<string, number>
   ): ShotContext['difficulty'] {
     let difficultyScore = 0;
 
@@ -596,6 +607,13 @@ export class PointSimulator {
       difficultyScore += DIFFICULTY_SCORE_FACTORS.rallyFatigue.bonus2;
     }
 
+    // reach: reduces difficulty when out of position
+    const reach = activeEffects?.['reach'] ?? 0;
+    if (reach > 0 && shooterPosition &&
+      shooterPosition !== 'well_positioned' && shooterPosition !== 'at_net') {
+      difficultyScore -= reach;
+    }
+
     // Convert score to difficulty level
     if (difficultyScore < 0) {
       return 'easy';
@@ -618,7 +636,8 @@ export class PointSimulator {
     currentPosition: CourtPosition,
     rallyLength: number,
     incomingQuality: number,
-    thresholds: RelativeThresholds
+    thresholds: RelativeThresholds,
+    activeEffects?: Record<string, number>
   ): CourtPosition {
     // If shot was an error, position doesn't matter (point is over)
     if (!shotResult.success) return currentPosition;
@@ -664,10 +683,20 @@ export class PointSimulator {
     }
 
     // Default: maintain or recover toward good position
+    // Apply ability effects for position recovery
+    const courtCoverage = (activeEffects?.['court_coverage'] ?? 0) + (activeEffects?.['court_range'] ?? 0);
+    const recoverySpeed = activeEffects?.['recovery_speed'] ?? 0;
+
     if (currentPosition === 'way_out_wide' || currentPosition === 'way_back_deep') {
-      return 'recovering';
+      // recovery_speed: upgrade from way_out/deep to slightly_off instead of recovering
+      return recoverySpeed > 0 ? 'slightly_off' : 'recovering';
     }
     if (currentPosition === 'recovering') {
+      // court_coverage + court_range: upgrade recovering to well_positioned faster
+      return 'well_positioned';
+    }
+    if (currentPosition === 'slightly_off' && courtCoverage >= 2) {
+      // Strong court coverage: recover from slightly_off to well_positioned
       return 'well_positioned';
     }
 

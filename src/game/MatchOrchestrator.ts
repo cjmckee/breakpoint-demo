@@ -49,6 +49,7 @@ export class MatchOrchestrator {
   private opponentStats: PlayerStats | null = null;
   private opponentArchetype: ArchetypeType = 'defensive';
   private accumulatedEffects: AccumulatedMatchEffects = { energyDelta: 0, moodDelta: 0 };
+  private activeEffects: Record<string, number> = {};
 
   /**
    * Apply flat stat boosts to player stats (clamped to 100).
@@ -96,6 +97,24 @@ export class MatchOrchestrator {
   }
 
   /**
+   * Extract additional effects from abilities for match-time mechanics.
+   * These are non-stat effects like clutch, court_coverage, mental_resilience, etc.
+   */
+  private extractActiveEffects(abilities?: Ability[]): Record<string, number> {
+    if (!abilities || abilities.length === 0) return {};
+    const effects: Record<string, number> = {};
+    for (const ability of abilities) {
+      const additional = ability.modifiers?.additional;
+      if (additional) {
+        for (const [key, value] of Object.entries(additional)) {
+          effects[key] = (effects[key] || 0) + value;
+        }
+      }
+    }
+    return effects;
+  }
+
+  /**
    * Simulate an interactive match with key moments
    */
   async simulateInteractiveMatch(config: InteractiveMatchConfig): Promise<MatchScore> {
@@ -110,6 +129,9 @@ export class MatchOrchestrator {
     const playerStatsWithBoosts = config.itemBoosts
       ? this.applyStatBoosts(playerStatsWithAbilities, config.itemBoosts)
       : playerStatsWithAbilities;
+
+    // Extract additional ability effects for match-time mechanics
+    this.activeEffects = this.extractActiveEffects(config.playerAbilities);
 
     // Initialize match simulator with PlayerProfile objects
     const player = new PlayerProfile('player', 'Player', playerStatsWithBoosts);
@@ -189,8 +211,9 @@ export class MatchOrchestrator {
             mood: this.matchMood,
             energy: this.matchEnergy,
             momentum: this.momentum,
-            pressure: this.pressure,
-          }
+            pressure: this.pressure + (this.activeEffects['champion_aura'] ?? 0) * 3,
+          },
+          this.activeEffects
         );
 
         // Apply secondary effects to match state
@@ -611,7 +634,8 @@ export class MatchOrchestrator {
       currentServer,
       serverProfile,
       returnerProfile,
-      matchState
+      matchState,
+      this.activeEffects
     );
 
     // Track statistics
@@ -766,22 +790,25 @@ export class MatchOrchestrator {
 
     // Component 2: Shot quality events bump the momentum bank
     const isPlayerPoint = winner === 'player';
+    const momentumMultiplier = isPlayerPoint
+      ? 1 + (this.activeEffects['unstoppable_momentum'] ?? 0) * 0.15
+      : 1;
     const bump = MOMENTUM_BANK.bump;
     switch (pointType) {
       case PointType.ACE:
-        this.momentumBank += isPlayerPoint ? bump.ace : -bump.ace;
+        this.momentumBank += (isPlayerPoint ? bump.ace : -bump.ace) * momentumMultiplier;
         break;
       case PointType.WINNER:
-        this.momentumBank += isPlayerPoint ? bump.winner : -bump.winner;
+        this.momentumBank += (isPlayerPoint ? bump.winner : -bump.winner) * momentumMultiplier;
         break;
       case PointType.DOUBLE_FAULT:
-        this.momentumBank += isPlayerPoint ? bump.doubleFault : -bump.doubleFault;
+        this.momentumBank += (isPlayerPoint ? bump.doubleFault : -bump.doubleFault) * momentumMultiplier;
         break;
       case PointType.UNFORCED_ERROR:
-        this.momentumBank += isPlayerPoint ? bump.unforcedError : -bump.unforcedError;
+        this.momentumBank += (isPlayerPoint ? bump.unforcedError : -bump.unforcedError) * momentumMultiplier;
         break;
       case PointType.FORCED_ERROR:
-        this.momentumBank += isPlayerPoint ? bump.forcedError : -bump.forcedError;
+        this.momentumBank += (isPlayerPoint ? bump.forcedError : -bump.forcedError) * momentumMultiplier;
         break;
     }
 
@@ -803,11 +830,16 @@ export class MatchOrchestrator {
   private updateMatchFatigue(rallyLength: number): void {
     if (!this.playerStats || !this.opponentStats) return;
 
+    // focus_duration: reduces player fatigue accumulation rate
+    const focusDuration = this.activeEffects['focus_duration'] ?? 0;
+    const fatigueMultiplier = Math.max(0.8, 1 - focusDuration * 0.05);
+
     this.fatigue.player = this.calculateNewFatigue(
       this.fatigue.player,
       rallyLength,
       this.playerStats.physical.stamina,
-      this.playerStats.physical.recovery
+      this.playerStats.physical.recovery,
+      fatigueMultiplier
     );
 
     this.fatigue.opponent = this.calculateNewFatigue(
@@ -825,12 +857,13 @@ export class MatchOrchestrator {
     currentFatigue: number,
     rallyLength: number,
     staminaStat: number,
-    recoveryStat: number
+    recoveryStat: number,
+    fatigueMultiplier: number = 1
   ): number {
     const staminaFactor = MATCH_FATIGUE.minFatigueRate +
       (1 - MATCH_FATIGUE.minFatigueRate) * (1 - staminaStat / 100);
 
-    let fatigueGain = rallyLength * MATCH_FATIGUE.basePerShot * staminaFactor;
+    let fatigueGain = rallyLength * MATCH_FATIGUE.basePerShot * staminaFactor * fatigueMultiplier;
 
     if (rallyLength > MATCH_FATIGUE.longRallyThreshold) {
       fatigueGain += (rallyLength - MATCH_FATIGUE.longRallyThreshold) *

@@ -63,7 +63,8 @@ export class KeyMomentResolver {
     opponentStats: PlayerStats,
     option: TacticalOption,
     opponentArchetype: ArchetypeType,
-    context?: Partial<KeyMomentContext>
+    context?: Partial<KeyMomentContext>,
+    activeEffects?: Record<string, number>
   ): number {
     // Calculate weighted player stat
     const playerScore = this.calculateWeightedStat(
@@ -91,7 +92,14 @@ export class KeyMomentResolver {
 
     // Apply context modifiers if provided
     if (context) {
-      probability = this.applyContextModifiers(probability, context);
+      probability = this.applyContextModifiers(probability, context, activeEffects);
+    }
+
+    // Apply ability effects to key moment probability
+    if (activeEffects) {
+      probability += (activeEffects['clutch'] ?? 0) * 5;
+      probability += (activeEffects['clutch_performance'] ?? 0) * 3;
+      probability += (activeEffects['legendary_moment'] ?? 0) * 2;
     }
 
     // Clamp between 10% and 90%
@@ -106,7 +114,8 @@ export class KeyMomentResolver {
     opponentStats: PlayerStats,
     option: TacticalOption,
     opponentArchetype: ArchetypeType,
-    context?: Partial<KeyMomentContext>
+    context?: Partial<KeyMomentContext>,
+    activeEffects?: Record<string, number>
   ): KeyMomentResult {
     const playerScore = this.calculateWeightedStat(
       playerStats,
@@ -121,7 +130,8 @@ export class KeyMomentResolver {
       opponentStats,
       option,
       opponentArchetype,
-      context
+      context,
+      activeEffects
     );
     const finalProbability = baseProbability;
 
@@ -340,10 +350,21 @@ export class KeyMomentResolver {
    */
   private static applyContextModifiers(
     baseProbability: number,
-    context: Partial<KeyMomentContext>
+    context: Partial<KeyMomentContext>,
+    activeEffects?: Record<string, number>
   ): number {
     const modifiers = this.getContextModifiers(context);
-    return baseProbability + modifiers.total;
+    let total = modifiers.total;
+
+    // mental_resilience: reduce the pressure penalty
+    const mentalResilience = activeEffects?.['mental_resilience'] ?? 0;
+    if (mentalResilience > 0 && modifiers.pressure < 0) {
+      const pressureReduction = mentalResilience * 1.5;
+      total -= modifiers.pressure; // Remove original pressure
+      total += Math.min(0, modifiers.pressure + pressureReduction); // Add reduced pressure (still capped at 0)
+    }
+
+    return baseProbability + total;
   }
 
   /**
