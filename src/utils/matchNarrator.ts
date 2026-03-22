@@ -66,7 +66,11 @@ export function narratePoint(
   const winnerName = point.winner === 'player' ? playerName : opponentName;
   const loserName = point.winner === 'player' ? opponentName : playerName;
   const serverName = point.server === 'player' ? playerName : opponentName;
-  const shotDesc = point.shotType ? formatShotType(point.shotType) : 'shot';
+  // Don't describe serve shot types for non-serve outcomes (e.g. "unforced error on the first serve")
+  const isServeShot = point.shotType?.includes('serve');
+  const isServeOutcome = point.outcome === PointType.ACE || point.outcome === PointType.DOUBLE_FAULT;
+  const effectiveShotType = (isServeShot && !isServeOutcome) ? undefined : point.shotType;
+  const shotDesc = effectiveShotType ? formatShotType(effectiveShotType) : 'shot';
   const rallyPrefix = (point.rallyLength && point.rallyLength >= 8)
     ? `After a ${point.rallyLength}-shot rally, `
     : '';

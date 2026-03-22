@@ -31,6 +31,7 @@ export const StoryMatch: React.FC<StoryMatchProps> = ({ matchConfig }) => {
   const handleStartMatch = () => {
     const config = {
       playerStats: player.stats,
+      playerName: player.name,
       playerAbilities: player.abilities,
       itemBoosts: ItemManager.getTotalPassiveBoosts(player),
       opponentStats: matchConfig.opponentStats,

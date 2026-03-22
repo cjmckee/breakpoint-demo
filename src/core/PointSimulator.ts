@@ -69,9 +69,9 @@ export class PointSimulator {
     }
 
     // Step 2: Rally sequence (if serve was successful)
-    // We need to pass the serve quality
+    // Pass the successful serve shot (last from serve sequence, which is the second serve after a fault)
     const rallyResult = this.simulateRally(
-      shots[0],
+      shots[shots.length - 1],
       server,
       returner,
       matchState,
@@ -808,16 +808,23 @@ export class PointSimulator {
     const winnerShot = shots.find(shot => shot.outcome === PointType.ACE || shot.outcome === PointType.WINNER);
     if (winnerShot) return winnerShot;
 
-    // Error shot that ended the point (last shot if it's an error)
+    // The last shot ended the point — if it's a fault or error, it's the key shot
     const lastShot = shots[shots.length - 1];
-    if (lastShot && lastShot.outcome === PointType.FAULT) {
+    if (lastShot && (lastShot.outcome === PointType.FAULT ||
+        lastShot.outcome === PointType.UNFORCED_ERROR ||
+        lastShot.outcome === PointType.FORCED_ERROR)) {
       return lastShot;
     }
 
-    // Highest quality shot in the rally
-    return shots.reduce((best, current) =>
-      current.quality > best.quality ? current : best
-    );
+    // Highest quality shot in the rally (exclude serve faults — they didn't affect the rally)
+    const rallyShots = shots.filter(shot => shot.outcome !== PointType.FAULT);
+    if (rallyShots.length > 0) {
+      return rallyShots.reduce((best, current) =>
+        current.quality > best.quality ? current : best
+      );
+    }
+
+    return lastShot;
   }
 
   /**

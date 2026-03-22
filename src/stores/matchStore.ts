@@ -117,8 +117,9 @@ export const useMatchStore = create<MatchState>((set, get) => ({
 
       // Point complete callback - narrate each point for match log
       onPointComplete: (pointResult: SimplePointResult) => {
+        const playerName = config.playerName || 'You';
         const opponentName = config.opponentName || 'Opponent';
-        const narration = narratePoint(pointResult, 'You', opponentName);
+        const narration = narratePoint(pointResult, playerName, opponentName);
         set((s) => ({
           matchLog: [...s.matchLog, narration],
         }));
@@ -225,7 +226,8 @@ export const useMatchStore = create<MatchState>((set, get) => ({
     };
 
     // Add key moment narration to match log
-    const kmNarration = narrateKeyMoment(result, 'You');
+    const kmPlayerName = get().matchConfig?.playerName || 'You';
+    const kmNarration = narrateKeyMoment(result, kmPlayerName);
     const currentLog = get().matchLog;
 
     return new Promise<void>((resolve) => {

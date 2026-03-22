@@ -4,7 +4,7 @@
  * The modal stays open through both phases; the result requires explicit Continue.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Modal } from './ui/Modal';
 import { KeyMoment } from '../types/keyMoments';
 import { TacticalOption, SecondaryEffect } from '../data/tacticalOptions';
@@ -19,6 +19,7 @@ interface KeyMomentModalProps {
 }
 
 export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMoment }) => {
+  const [isHidden, setIsHidden] = useState(false);
   const handleKeyMomentChoice = useMatchStore((state) => state.handleKeyMomentChoice);
   const matchConfig = useMatchStore((state) => state.matchConfig);
   const showKeyMomentResult = useMatchStore((state) => state.showKeyMomentResult);
@@ -134,6 +135,29 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     </div>
   );
 
+  // ── Toggle button to peek at the match behind the modal ─────────────────────
+  const peekButton = (
+    <button
+      onClick={() => setIsHidden((h) => !h)}
+      className="w-full py-4 border-4 border-pixel-border bg-pixel-card text-pixel-text font-bold text-base hover:border-pixel-accent transition-colors"
+    >
+      {isHidden ? '⚡ Show Decision' : '👁 Peek at Match'}
+    </button>
+  );
+
+  if (isHidden) {
+    return (
+      <div className="fixed inset-x-0 bottom-6 z-[60] flex justify-center px-4">
+        <button
+          onClick={() => setIsHidden(false)}
+          className="max-w-2xl w-full py-4 border-4 border-pixel-accent bg-pixel-card text-pixel-accent font-bold text-base hover:bg-pixel-accent hover:bg-opacity-20 transition-colors animate-pulse"
+        >
+          ⚡ Show Decision
+        </button>
+      </div>
+    );
+  }
+
   // ── Result phase ────────────────────────────────────────────────────────────
 
   if (isResultPhase && lastHistoryEntry) {
@@ -174,7 +198,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     };
 
     return (
-      <Modal isOpen={isOpen} title="" size="md" showCloseButton={false}>
+      <Modal isOpen={isOpen} title="" size="md" showCloseButton={false} belowContent={peekButton}>
         <div className="space-y-4">
           {headerStrip}
 
@@ -284,7 +308,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   };
 
   return (
-    <Modal isOpen={isOpen} title="" size="md" showCloseButton={false}>
+    <Modal isOpen={isOpen} title="" size="md" showCloseButton={false} belowContent={peekButton}>
       <div className="space-y-4">
         {headerStrip}
 
