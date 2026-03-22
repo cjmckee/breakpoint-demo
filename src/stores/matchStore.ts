@@ -9,11 +9,13 @@ import {
   MatchScore,
   KeyMoment,
   InteractiveMatchConfig,
+  PointResult as SimplePointResult,
 } from '../types/keyMoments';
 import { TacticalOption } from '../data/tacticalOptions';
 import { MatchOrchestrator, AccumulatedMatchEffects } from '../game/MatchOrchestrator';
 import { DEFAULT_KEY_MOMENTS_PER_MATCH } from '../config/matchRewards';
 import { KeyMomentResult } from '../game/KeyMomentResolver';
+import { narratePoint, narrateKeyMoment } from '../utils/matchNarrator';
 import { MatchStatistics as IMatchStatistics } from '../types';
 // No direct import of gameStore — the caller passes an onMatchComplete callback
 // to startMatch() to avoid circular dependency.
@@ -46,6 +48,9 @@ interface MatchState {
     result: KeyMomentResult;
   }>;
 
+  // Match log for narration
+  matchLog: string[];
+
   // Accumulated effects from key moment choices (surfaced for post-match)
   accumulatedEffects: AccumulatedMatchEffects | null;
 
@@ -71,6 +76,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
   matchConfig: null,
   currentScore: null,
   matchHistory: [],
+  matchLog: [],
   matchStatistics: null,
   currentKeyMoment: null,
   isWaitingForChoice: false,
@@ -107,6 +113,15 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       // Key moment result callback - shows result and blocks until user dismisses
       onKeyMomentResult: async (result: KeyMomentResult): Promise<void> => {
         return get().setKeyMomentResult(result);
+      },
+
+      // Point complete callback - narrate each point for match log
+      onPointComplete: (pointResult: SimplePointResult) => {
+        const opponentName = config.opponentName || 'Opponent';
+        const narration = narratePoint(pointResult, 'You', opponentName);
+        set((s) => ({
+          matchLog: [...s.matchLog, narration],
+        }));
       },
 
       // Score update callback
@@ -149,6 +164,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       orchestrator,
       currentScore: null,
       matchHistory: [],
+      matchLog: [],
       matchStatistics: null,
       accumulatedEffects: null,
       keyMomentHistory: [],
@@ -208,11 +224,16 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       result: result,
     };
 
+    // Add key moment narration to match log
+    const kmNarration = narrateKeyMoment(result, 'You');
+    const currentLog = get().matchLog;
+
     return new Promise<void>((resolve) => {
       set({
         lastKeyMomentResult: result,
         showKeyMomentResult: true,
         keyMomentHistory: [...keyMomentHistory, historyEntry],
+        matchLog: [...currentLog, kmNarration],
         currentKeyMoment: null,
         lastChosenOption: null,
         keyMomentResultResolver: resolve,
@@ -264,6 +285,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       matchConfig: null,
       currentScore: null,
       matchHistory: [],
+      matchLog: [],
       matchStatistics: null,
       accumulatedEffects: null,
       currentKeyMoment: null,

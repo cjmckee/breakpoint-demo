@@ -125,6 +125,7 @@ export interface PointResult {
   outcome: string; // 'winner', 'ace', 'error', etc.
   shotType?: string;
   rallyLength?: number;
+  server?: 'player' | 'opponent';
 }
 
 /**

@@ -3,7 +3,7 @@
  * Displays real-time match simulation with scores, stats, and key moments
  */
 
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
 import { useMatchStore } from '../stores/matchStore';
 import { useGameStore } from '../stores/gameStore';
 import { Card } from './ui/Card';
@@ -44,7 +44,13 @@ export const LiveMatchViewer: React.FC = () => {
   const lastKeyMomentResult = useMatchStore((state) => state.lastKeyMomentResult);
   const matchHistory = useMatchStore((state) => state.matchHistory);
 
-  const [matchLog, setMatchLog] = useState<string[]>([]);
+  const matchLog = useMatchStore((state) => state.matchLog);
+
+  // ─── Match log auto-scroll ─────────────────────────────────────────────────
+  const logEndRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [matchLog.length]);
 
   // ─── Audio: track previous stat/score snapshots to detect changes ──────────
   const prevMatchStats = useRef<typeof matchStatistics>(null);
@@ -346,7 +352,7 @@ export const LiveMatchViewer: React.FC = () => {
               </p>
             ) : (
               <div className="space-y-2">
-                {matchLog.map((log, index) => (
+                {matchLog.slice(-50).map((log, index) => (
                   <div
                     key={index}
                     className="text-sm text-pixel-text pb-2 border-b border-pixel-border last:border-0"
@@ -354,6 +360,7 @@ export const LiveMatchViewer: React.FC = () => {
                     {log}
                   </div>
                 ))}
+                <div ref={logEndRef} />
               </div>
             )}
           </div>

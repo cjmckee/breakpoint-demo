@@ -18,6 +18,7 @@ import {
   InteractiveMatchConfig,
   MatchScore,
   MatchState as KeyMomentMatchState,
+  PointResult as SimplePointResult,
 } from '../types/keyMoments';
 import { PlayerStats, Ability, StatBoosts } from '../types/game';
 import { MatchStatistics as IMatchStatistics, MatchState, PointResult, PointType, PlayerMatchFatigue } from '../types';
@@ -194,6 +195,9 @@ export class MatchOrchestrator {
         config.enableKeyMoments &&
         this.shouldTriggerKeyMoment(currentScore, config);
 
+      // Simple point result for onPointComplete callback
+      let simplePointResult: SimplePointResult | undefined;
+
       if (shouldTriggerKeyMoment && config.onKeyMoment) {
         // PAUSE FOR KEY MOMENT
         const keyMoment = this.createKeyMoment(currentScore, config);
@@ -234,6 +238,15 @@ export class MatchOrchestrator {
           this.matchStatistics.addKeyMomentResult(result.pointWinner);
         }
 
+        // Build simple point result for callback
+        simplePointResult = {
+          winner: result.pointWinner,
+          outcome: result.shotOutcome.outcome as string,
+          shotType: result.shotOutcome.shotType,
+          rallyLength: 4, // Key moments are ~3-5 shot rallies
+          server: currentScore.server,
+        };
+
         // Apply result to score
         // Update score after recording match statistics in case the update changes game / server
         currentScore = this.updateScore(currentScore, result.pointWinner);
@@ -254,11 +267,25 @@ export class MatchOrchestrator {
           ? currentScore.server
           : (currentScore.server === 'player' ? 'opponent' : 'player');
 
+        // Build simple point result for callback
+        simplePointResult = {
+          winner: pointWinner,
+          outcome: pointResult.pointType as string,
+          shotType: pointResult.keyShot?.shotType,
+          rallyLength: pointResult.rallyLength,
+          server: currentScore.server,
+        };
+
         currentScore = this.updateScore(currentScore, pointWinner);
 
         // Update momentum and fatigue (pass actual point type for momentum events)
         this.updateMomentum(pointWinner, pointResult.pointType);
         this.updateMatchFatigue(pointResult.rallyLength);
+      }
+
+      // Fire onPointComplete callback
+      if (config.onPointComplete && simplePointResult) {
+        config.onPointComplete(simplePointResult);
       }
 
       this.pointsPlayed++;
