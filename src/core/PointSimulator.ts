@@ -24,6 +24,7 @@ import { ShotCalculator } from './ShotCalculator.js';
 import { ShotSelector } from './ShotSelector.js';
 import { TacticalAnalyzer } from './TacticalAnalyzer.js';
 import { getQualityThresholds, getMatchLevel, RelativeThresholds } from '../utils/qualityThresholds.js';
+import { RALLY_CONFIG, DIFFICULTY_SCORE_FACTORS, DIFFICULTY_THRESHOLDS } from '../config/shotThresholds.js';
 
 export class PointSimulator {
   private shotCalculator: ShotCalculator;
@@ -280,7 +281,7 @@ export class PointSimulator {
     let currentShooter = firstShooter;
     let shotNumber = 1; // This is return of serve, serve is shot 0
     let previousShot: ShotDetail = serveShot; // all rallies will at least begin with a serve
-    const maxRallyLength = 30; // Prevent infinite rallies
+    const maxRallyLength = RALLY_CONFIG.maxLength;
     const matchLevel = getMatchLevel(server.overallRating, returner.overallRating);
     const thresholds = getQualityThresholds(matchLevel);
 
@@ -558,61 +559,49 @@ export class PointSimulator {
     let difficultyScore = 0;
 
     // Shooter position difficulty
-    if (shooterPosition === 'way_out_wide' || shooterPosition === 'way_back_deep') {
-      difficultyScore += 30; // Very difficult position
-    } else if (shooterPosition === 'recovering') {
-      difficultyScore += 20; // Moving, not set
-    } else if (shooterPosition === 'slightly_off') {
-      difficultyScore += 10; // Slightly harder
+    if (shooterPosition) {
+      difficultyScore += DIFFICULTY_SCORE_FACTORS.shooterPosition[shooterPosition];
     }
-    // well_positioned = 0, at_net = 0 (neutral/good)
 
     // Incoming ball quality difficulty (relative to match level)
     if (ballQuality) {
       if (ballQuality.baseQuality >= thresholds.exceptional) {
-        difficultyScore += 25; // Excellent shot against us
+        difficultyScore += DIFFICULTY_SCORE_FACTORS.ballQuality.exceptional;
       } else if (ballQuality.baseQuality >= thresholds.high) {
-        difficultyScore += 15; // Good shot
+        difficultyScore += DIFFICULTY_SCORE_FACTORS.ballQuality.high;
       }
 
       // Time pressure
       if (ballQuality.timeAvailable === 'rushed') {
-        difficultyScore += 20; // Very little time
+        difficultyScore += DIFFICULTY_SCORE_FACTORS.timePressure.rushed;
       } else if (ballQuality.timeAvailable === 'plenty') {
-        difficultyScore -= 10; // Extra time to set up
+        difficultyScore += DIFFICULTY_SCORE_FACTORS.timePressure.plenty;
       }
 
       // Heavy spin is harder to handle
       if (ballQuality.spin === 'heavy_topspin') {
-        difficultyScore += 10;
+        difficultyScore += DIFFICULTY_SCORE_FACTORS.spin.heavy_topspin;
       }
     }
 
     // Opponent position difficulty
-    if (opponentPosition === 'at_net') {
-      difficultyScore += 25; // Must hit past net player
-    } else if (opponentPosition === 'well_positioned') {
-      difficultyScore += 5; // Harder to find opening
-    }
-    // Opponent out of position makes it easier
-    if (opponentPosition === 'way_out_wide' || opponentPosition === 'way_back_deep') {
-      difficultyScore -= 15; // Easier with opponent out of position
+    if (opponentPosition) {
+      difficultyScore += DIFFICULTY_SCORE_FACTORS.opponentPosition[opponentPosition];
     }
 
     // Rally length fatigue (minor factor)
-    if (rallyLength && rallyLength > 15) {
-      difficultyScore += 10; // Fatigue sets in
-    } else if (rallyLength && rallyLength > 10) {
-      difficultyScore += 5;
+    if (rallyLength && rallyLength > DIFFICULTY_SCORE_FACTORS.rallyFatigue.threshold1) {
+      difficultyScore += DIFFICULTY_SCORE_FACTORS.rallyFatigue.bonus1;
+    } else if (rallyLength && rallyLength > DIFFICULTY_SCORE_FACTORS.rallyFatigue.threshold2) {
+      difficultyScore += DIFFICULTY_SCORE_FACTORS.rallyFatigue.bonus2;
     }
 
     // Convert score to difficulty level
-    // Scores roughly: <0 = easy, 0-30 = normal, 30-60 = hard, 60+ = extreme
     if (difficultyScore < 0) {
       return 'easy';
-    } else if (difficultyScore < 30) {
+    } else if (difficultyScore < DIFFICULTY_THRESHOLDS.normal) {
       return 'normal';
-    } else if (difficultyScore < 60) {
+    } else if (difficultyScore < DIFFICULTY_THRESHOLDS.hard) {
       return 'hard';
     } else {
       return 'extreme';
@@ -763,9 +752,10 @@ export class PointSimulator {
     const keyShot = this.identifyKeyShot(shots);
     const statistics = this.calculatePointStatistics(shots);
 
-    // Estimate point duration (2-3 seconds per shot on average)
-    const baseDuration = shots.length * 2.5;
-    const rallyCostMultiplier = rallyLength > 10 ? 1.5 : 1.0;
+    // Estimate point duration based on rally length
+    const baseDuration = shots.length * RALLY_CONFIG.durationPerShot;
+    const rallyCostMultiplier = rallyLength > RALLY_CONFIG.longRallyThreshold
+      ? RALLY_CONFIG.longRallyCostMultiplier : 1.0;
     const duration = Math.round(baseDuration * rallyCostMultiplier);
 
     return {

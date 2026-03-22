@@ -331,6 +331,86 @@ export function getShotCategory(shotType: ShotType): 'offensive' | 'neutral' | '
 }
 
 // =======================
+// RALLY & DIFFICULTY
+// =======================
+
+/** Rally length limits and point duration estimation */
+export const RALLY_CONFIG = {
+  /** Maximum shots in a rally before forcing an outcome */
+  maxLength: 30,
+  /** Estimated seconds per shot for point duration calculation */
+  durationPerShot: 2.5,
+  /** Duration multiplier for rallies exceeding longRallyThreshold */
+  longRallyCostMultiplier: 1.5,
+  /** Shot count above which longRallyCostMultiplier applies */
+  longRallyThreshold: 10,
+};
+
+/**
+ * Difficulty score contributions for calculateShotDifficulty.
+ * Higher positive values = harder shot, negative = easier.
+ */
+export const DIFFICULTY_SCORE_FACTORS = {
+  /** Shooter's court position impact on difficulty */
+  shooterPosition: {
+    way_out_wide: 30,
+    way_back_deep: 30,
+    recovering: 20,
+    slightly_off: 10,
+    well_positioned: 0,
+    at_net: 0,
+  } as Record<CourtPosition, number>,
+
+  /** Incoming ball quality thresholds (relative to match level) */
+  ballQuality: {
+    exceptional: 25,
+    high: 15,
+  },
+
+  /** Time pressure from incoming ball */
+  timePressure: {
+    rushed: 20,
+    plenty: -10,
+  },
+
+  /** Spin difficulty bonus */
+  spin: {
+    heavy_topspin: 10,
+  },
+
+  /** Opponent's court position impact on difficulty */
+  opponentPosition: {
+    at_net: 25,
+    well_positioned: 5,
+    way_out_wide: -15,
+    way_back_deep: -15,
+    recovering: 0,
+    slightly_off: 0,
+  } as Record<CourtPosition, number>,
+
+  /** Rally length fatigue: adds difficulty in long rallies */
+  rallyFatigue: {
+    /** Shot count for higher fatigue bonus */
+    threshold1: 15,
+    /** Difficulty bonus above threshold1 */
+    bonus1: 10,
+    /** Shot count for lower fatigue bonus */
+    threshold2: 10,
+    /** Difficulty bonus above threshold2 */
+    bonus2: 5,
+  },
+};
+
+/**
+ * Maps cumulative difficulty score to a difficulty level.
+ * Score below 'normal' → easy, below 'hard' → normal, below 'extreme' → hard, else extreme.
+ */
+export const DIFFICULTY_THRESHOLDS = {
+  normal: 30,
+  hard: 60,
+};
+
+// =======================
 // MATCH FATIGUE & MOMENTUM
 // =======================
 
