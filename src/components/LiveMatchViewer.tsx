@@ -5,10 +5,8 @@
 
 import React, { useEffect, useCallback, useRef } from 'react';
 import { useMatchStore } from '../stores/matchStore';
-import { useGameStore } from '../stores/gameStore';
 import { Card } from './ui/Card';
 import { CourtVisualization } from './CourtVisualization';
-import { AbilityDisplay } from './AbilityDisplay';
 import { audioManager } from '../audio/AudioManager';
 import type { SfxKey } from '../audio/sounds';
 
@@ -26,7 +24,6 @@ export const LiveMatchViewer: React.FC = () => {
   const currentScore = useMatchStore((state) => state.currentScore);
   const matchConfig = useMatchStore((state) => state.matchConfig);
   const matchStatistics = useMatchStore((state) => state.matchStatistics);
-  const player = useGameStore((state) => state.player);
 
   const showKeyMomentResult = useMatchStore((state) => state.showKeyMomentResult);
   const lastKeyMomentResult = useMatchStore((state) => state.lastKeyMomentResult);
@@ -279,16 +276,6 @@ export const LiveMatchViewer: React.FC = () => {
                 </div>
               </div>
             </Card>
-
-            {/* Active Abilities */}
-            {player?.abilities && player.abilities.length > 0 && (
-              <Card title="Active Abilities" className="bg-pixel-accent bg-opacity-10 border-pixel-accent">
-                <p className="text-sm text-pixel-text-muted mb-4">
-                  These abilities are currently boosting your stats during this match.
-                </p>
-                <AbilityDisplay abilities={player.abilities} />
-              </Card>
-            )}
           </div>
         </div>
 
