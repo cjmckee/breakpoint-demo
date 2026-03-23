@@ -567,8 +567,8 @@ export class MatchOrchestrator {
       currentServer
     );
 
-    // Calculate statistics from actual shots
-    const rallyLength = shots.length;
+    // rallyLength counts only in-play shots (excludes serve faults)
+    const rallyLength = shots.filter(s => s.outcome !== PointType.FAULT).length;
     const winnerCount = shots.filter(s => s.outcome === PointType.ACE || s.outcome === PointType.WINNER).length;
     const errorCount = shots.filter(s =>
       s.outcome === PointType.FAULT ||
@@ -578,8 +578,8 @@ export class MatchOrchestrator {
     const netApproaches = shots.filter(s => s.shotType.includes('volley')).length;
     const rallyExchanges = Math.floor(rallyLength / 2);
 
-    // Estimate duration: 2-3 seconds per shot
-    const duration = Math.round(rallyLength * 2.5);
+    // Estimate duration: 2-3 seconds per shot (use total shots including faults for timing)
+    const duration = Math.round(shots.length * 2.5);
 
     return {
       server: currentServer,
@@ -590,7 +590,7 @@ export class MatchOrchestrator {
       serveType,
       duration,
       statistics: {
-        totalShots: rallyLength,
+        totalShots: shots.length,
         winnerCount,
         errorCount,
         netApproaches,

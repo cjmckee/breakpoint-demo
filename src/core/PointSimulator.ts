@@ -777,11 +777,12 @@ export class PointSimulator {
     matchState: MatchState,
     serveType: 'first' | 'second'
   ): PointResult {
-    const rallyLength = shots.length;
+    // rallyLength counts only in-play shots (excludes serve faults)
+    const rallyLength = shots.filter(s => s.outcome !== PointType.FAULT).length;
     const keyShot = this.identifyKeyShot(shots);
     const statistics = this.calculatePointStatistics(shots);
 
-    // Estimate point duration based on rally length
+    // Estimate point duration based on total shots (faults still take time)
     const baseDuration = shots.length * RALLY_CONFIG.durationPerShot;
     const rallyCostMultiplier = rallyLength > RALLY_CONFIG.longRallyThreshold
       ? RALLY_CONFIG.longRallyCostMultiplier : 1.0;

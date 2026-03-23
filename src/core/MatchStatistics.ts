@@ -36,6 +36,10 @@ export class MatchStatistics {
   // Track largest deficit for comeback highlights
   private worstDeficitSeverity = 0;
 
+  // Track rally point count for accurate average (only points with rallyLength > 2)
+  private rallyPointCount = 0;
+  private rallyPointCountWon: { player: number; opponent: number } = { player: 0, opponent: 0 };
+
   constructor(playerProfile: PlayerProfile, opponentProfile: PlayerProfile) {
     this.playerProfile = playerProfile;
     this.opponentProfile = opponentProfile;
@@ -260,56 +264,47 @@ export class MatchStatistics {
 
   /**
    * Update rally-related statistics
+   * rallyLength counts only in-play shots (faults excluded), so:
+   *   - Ace = 1, Double fault = 0, Serve + return winner = 2
+   *   - A "rally" is any point where rallyLength > 2 (at least one exchange after the return)
    */
   private updateRallyStatistics(pointResult: PointResult, currentServer: 'player' | 'opponent'): void {
     const rallyLength = pointResult.rallyLength;
+    const winner = this.convertPointWinnerToPlayer(pointResult.winner, currentServer);
+    const isRally = rallyLength > 2;
 
-    // Track points where the rally extended past serve + return (shot count > 2)
-    if (rallyLength > 2) {
-      const winner = this.convertPointWinnerToPlayer(pointResult.winner, currentServer);
+    // Track points where a real rally occurred (past serve + return)
+    if (isRally) {
       this.statistics.rallyPointsPlayed.player++;
       this.statistics.rallyPointsPlayed.opponent++;
       this.statistics.rallyPointsWon[winner]++;
     }
 
-    // Update averages
-    const totalPoints = this.pointResults.length;
-    const currentAverage = this.statistics.averageRallyLength;
-    this.statistics.averageRallyLength =
-      (currentAverage * (totalPoints - 1) + rallyLength) / totalPoints;
+    // Average rally length only counts actual rallies
+    if (isRally) {
+      this.rallyPointCount++;
+      const currentAverage = this.statistics.averageRallyLength;
+      this.statistics.averageRallyLength =
+        (currentAverage * (this.rallyPointCount - 1) + rallyLength) / this.rallyPointCount;
+    }
 
-    // Update longest rally
-    if (rallyLength > this.statistics.longestRally) {
+    // Longest rally (only meaningful for rallies)
+    if (isRally && rallyLength > this.statistics.longestRally) {
       this.statistics.longestRally = rallyLength;
     }
 
-    // Determine the winner of this point
-    const winner = this.convertPointWinnerToPlayer(pointResult.winner, currentServer);
-
-    // Recalculate average rally length for points won by each player
-    // We need to track all rally lengths for points won by each player
-    const playerWonRallies: number[] = [];
-    const opponentWonRallies: number[] = [];
-
-    // Note: We can't access currentServer for each historical point, so we'll track incrementally
-    // For now, update longest rally won
-    if (rallyLength > this.statistics.longestRallyWon[winner]) {
+    // Per-player longest rally won
+    if (isRally && rallyLength > this.statistics.longestRallyWon[winner]) {
       this.statistics.longestRallyWon[winner] = rallyLength;
     }
 
-    // Update running average for rally lengths won
-    // Use incremental averaging
-    const wonCountPlayer = this.statistics.totalPoints.player;
-    const wonCountOpponent = this.statistics.totalPoints.opponent;
-
-    if (winner === 'player' && wonCountPlayer > 0) {
-      const currentAvg = this.statistics.averageRallyLengthWon.player;
-      this.statistics.averageRallyLengthWon.player =
-        (currentAvg * (wonCountPlayer - 1) + rallyLength) / wonCountPlayer;
-    } else if (winner === 'opponent' && wonCountOpponent > 0) {
-      const currentAvg = this.statistics.averageRallyLengthWon.opponent;
-      this.statistics.averageRallyLengthWon.opponent =
-        (currentAvg * (wonCountOpponent - 1) + rallyLength) / wonCountOpponent;
+    // Per-player average rally length won (only for rallies)
+    if (isRally) {
+      this.rallyPointCountWon[winner]++;
+      const count = this.rallyPointCountWon[winner];
+      const currentAvg = this.statistics.averageRallyLengthWon[winner];
+      this.statistics.averageRallyLengthWon[winner] =
+        (currentAvg * (count - 1) + rallyLength) / count;
     }
   }
 
