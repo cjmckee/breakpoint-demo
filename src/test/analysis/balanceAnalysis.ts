@@ -98,7 +98,7 @@ function runServeAnalysis(): void {
       const aceThreshold = baseline.aceThresholdBase + (oppReturnRating * baseline.aceReturnMultiplier);
 
       print(`  ${serveType} vs Opponent Return: ${oppReturnRating}`);
-      print(`  InPlay Threshold: ${baseline.inPlayThreshold} │ Ace Threshold: ${fmtNum(aceThreshold)}`);
+      print(`  InPlay Threshold (base): ${baseline.inPlayThreshold} │ Ace Threshold (base): ${fmtNum(aceThreshold)}`);
       print('');
 
       const rows: (string | number)[][] = [];

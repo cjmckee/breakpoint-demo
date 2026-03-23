@@ -145,17 +145,18 @@ export const OUTCOME_MULTIPLIERS = {
  */
 export const SERVE_BASELINE = {
   serve_first: {
-    inPlayThreshold: 18,      // Lowered: sigmoid gives rating-20 (~quality 21) ~59% serve-in
-    aceThresholdBase: 70,     // Raised: aces require high quality, scale gradually via sigmoid
+    inPlayThreshold: 68,      // Scaled by matchLevel/70. Quality must be near this midpoint for ~50% serve-in
+    aceThresholdBase: 85,     // Scaled by matchLevel/70. Aces require quality well above serve-in threshold
     aceReturnMultiplier: 0.45, // Additional difficulty based on opponent return
-    // Example: vs return:30 → sigmoid midpoint at 70 + 13.5 = 83.5
-    // Example: vs return:50 → sigmoid midpoint at 70 + 22.5 = 92.5
+    // At ML 70: inPlay midpoint=68, stat 76 → ~60% in. Ace midpoint=85+oppReturn×0.45
+    // At ML 50: inPlay midpoint=48.6, stat 76 → ~95% in (easier competition)
   },
   serve_second: {
-    inPlayThreshold: 10,      // Lowered: second serve should almost always go in
-    aceThresholdBase: 75,     // Raised: second serve aces very rare
+    inPlayThreshold: 50,      // Scaled by matchLevel/70. Second serve more conservative, higher % in
+    aceThresholdBase: 90,     // Scaled by matchLevel/70. Second serve aces very rare
     aceReturnMultiplier: 0.55, // Additional difficulty based on opponent return
-    // Example: vs return:50 → sigmoid midpoint at 75 + 27.5 = 102.5 (nearly impossible)
+    // At ML 70: inPlay midpoint=50, stat 76 → ~95% in. Ace midpoint=90+oppReturn×0.55
+    // At ML 50: inPlay midpoint=35.7, stat 76 → ~99% in
   },
 };
 
@@ -261,7 +262,7 @@ export const SERVE_BONUSES = {
  * Example: serve stat 75 × 115% cap = 86.25 max (before variance)
  */
 export const TOTAL_MODIFIER_CAPS = {
-  serve: 1.15,    // Max 115% total modifier for serves (prevents constant 100 quality)
+  serve: 1.0,     // Serve quality should center around the serve stat, not above it
   return: 1.20,   // Max 120% total modifier for returns
   rally: 1.25,    // Max 125% total modifier for rally shots
 };

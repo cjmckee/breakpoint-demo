@@ -325,19 +325,25 @@ export class ShotCalculator {
   ): { outcome: PointType; thresholds: QualityThresholds } {
     const baseline = SERVE_BASELINE[serveType];
 
-    // Scale ace threshold base relative to match level
-    // At matchLevel 70, matches original hard-coded values; at 30, much lower so aces are possible
+    // Scale thresholds relative to match level
+    // At matchLevel 70, matches original hard-coded values; at lower levels, thresholds scale down
+    const scaledInPlayThreshold = this.currentMatchLevel * (baseline.inPlayThreshold / 70);
     const scaledAceBase = this.currentMatchLevel * (baseline.aceThresholdBase / 70);
 
     // Calculate ace threshold: scaled base + (opponent return × multiplier)
     const aceThreshold = scaledAceBase + (opponentReturnStat * baseline.aceReturnMultiplier);
 
     // Sigmoid probability for serve being in
-    const pServeIn = sigmoidProbability(serveQuality, baseline.inPlayThreshold, PROBABILITY_STEEPNESS.serve.inPlay);
+    const pServeIn = sigmoidProbability(serveQuality, scaledInPlayThreshold, PROBABILITY_STEEPNESS.serve.inPlay);
+
+    console.log(`  🎯 ${serveType} sigmoid calculation:`);
+    console.log(`    Serve quality: ${serveQuality.toFixed(1)}`);
+    console.log(`    InPlay sigmoid → midpoint: ${scaledInPlayThreshold.toFixed(1)} (base: ${baseline.inPlayThreshold} × matchLevel: ${this.currentMatchLevel} / 70), steepness: ${PROBABILITY_STEEPNESS.serve.inPlay}, P(in): ${(pServeIn * 100).toFixed(1)}%`);
+    console.log(`    Ace sigmoid    → midpoint: ${aceThreshold.toFixed(1)} (scaledBase: ${scaledAceBase.toFixed(1)} + oppReturn: ${opponentReturnStat} × ${baseline.aceReturnMultiplier} = ${(opponentReturnStat * baseline.aceReturnMultiplier).toFixed(1)}), steepness: ${PROBABILITY_STEEPNESS.serve.ace}`);
 
     const thresholds: QualityThresholds = {
       winner: aceThreshold,
-      inPlay: baseline.inPlayThreshold,
+      inPlay: scaledInPlayThreshold,
       forcedError: 0,
     };
 
