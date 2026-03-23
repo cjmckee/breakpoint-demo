@@ -106,14 +106,14 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   // ── Compact header strip (shared between phases) ────────────────────────────
 
   const headerStrip = (
-    <div className={`border-4 ${getMomentTypeColor(activeKeyMoment.type)} bg-opacity-20 px-4 py-3`}>
+    <div className={`border-4 ${getMomentTypeColor(activeKeyMoment.type)} bg-opacity-20 px-5 py-4`}>
       <div className="flex items-center gap-3 mb-2">
-        <span className="text-2xl">{getMomentTypeIcon(activeKeyMoment.type)}</span>
-        <h2 className="text-base font-bold text-pixel-text">{activeKeyMoment.situation}</h2>
+        <span className="text-3xl">{getMomentTypeIcon(activeKeyMoment.type)}</span>
+        <h2 className="text-lg font-bold text-pixel-text">{activeKeyMoment.situation}</h2>
       </div>
       {/* Single context row: archetype chip + tendency + condition icons */}
-      <div className="flex items-center gap-2 text-xs">
-        <span className="px-1.5 py-0.5 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent font-bold whitespace-nowrap">
+      <div className="flex items-center gap-2 text-sm">
+        <span className="px-2 py-0.5 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent font-bold whitespace-nowrap">
           {archetypeData.label}
         </span>
         <span
@@ -126,7 +126,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
           <span
             key={i}
             title={cond.tooltip}
-            className="text-base cursor-help"
+            className="text-lg cursor-help"
           >
             {cond.icon}
           </span>
@@ -139,7 +139,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   const peekButton = (
     <button
       onClick={() => setIsHidden((h) => !h)}
-      className="w-full py-4 border-4 border-pixel-border bg-pixel-card text-pixel-text font-bold text-base hover:border-pixel-accent transition-colors"
+      className="w-full py-5 border-4 border-pixel-border bg-pixel-card text-pixel-text font-bold text-lg hover:border-pixel-accent transition-colors"
     >
       {isHidden ? '⚡ Show Decision' : '👁 Peek at Match'}
     </button>
@@ -198,34 +198,34 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     };
 
     return (
-      <Modal isOpen={isOpen} title="" size="md" showCloseButton={false} belowContent={peekButton}>
-        <div className="space-y-4">
+      <Modal isOpen={isOpen} title="" size="lg" showCloseButton={false} belowContent={peekButton}>
+        <div className="space-y-5">
           {headerStrip}
 
           {/* Outcome */}
-          <div className={`border-4 ${style.color} bg-opacity-15 p-5 text-center`}>
-            <div className="text-4xl mb-2">{style.icon}</div>
-            <h3 className="text-xl font-bold text-pixel-text">{style.title}</h3>
-            <p className="text-pixel-text mt-1">{getOutcomeMessage()}</p>
+          <div className={`border-4 ${style.color} bg-opacity-15 p-6 text-center`}>
+            <div className="text-5xl mb-2">{style.icon}</div>
+            <h3 className="text-2xl font-bold text-pixel-text">{style.title}</h3>
+            <p className="text-base text-pixel-text mt-1">{getOutcomeMessage()}</p>
           </div>
 
           {/* Chosen tactic */}
-          <div className="flex items-center gap-3 p-3 bg-pixel-bg border-2 border-pixel-border">
-            <span className="text-2xl">{chosenOption.emoji}</span>
+          <div className="flex items-center gap-4 p-4 bg-pixel-bg border-2 border-pixel-border">
+            <span className="text-3xl">{chosenOption.emoji}</span>
             <div>
-              <div className="text-sm font-bold text-pixel-text">{chosenOption.name}</div>
-              <div className="text-xs text-pixel-text-muted">{chosenOption.description}</div>
+              <div className="text-base font-bold text-pixel-text">{chosenOption.name}</div>
+              <div className="text-sm text-pixel-text-muted">{chosenOption.description}</div>
             </div>
           </div>
 
           {/* Counter / weak feedback */}
           {result.isCounter && (
-            <div className="text-sm px-3 py-2 border-2 border-green-600 bg-green-600 bg-opacity-10 text-green-400">
+            <div className="text-base px-4 py-3 border-2 border-green-600 bg-green-600 bg-opacity-10 text-green-400">
               🎯 Great read — your tactic countered their style.
             </div>
           )}
           {result.isWeakChoice && (
-            <div className="text-sm px-3 py-2 border-2 border-red-600 bg-red-600 bg-opacity-10 text-red-400">
+            <div className="text-base px-4 py-3 border-2 border-red-600 bg-red-600 bg-opacity-10 text-red-400">
               ⚠️ Bad matchup — that tactic played into their strengths.
             </div>
           )}
@@ -233,14 +233,14 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
           {/* Applied effects */}
           {result.appliedEffects.length > 0 && (
             <div>
-              <h4 className="text-xs font-bold text-pixel-text-muted mb-2 uppercase tracking-wide">
+              <h4 className="text-sm font-bold text-pixel-text-muted mb-2 uppercase tracking-wide">
                 Effects Applied
               </h4>
               <div className="flex flex-wrap gap-2">
                 {result.appliedEffects.map((effect, i) => (
                   <span
                     key={i}
-                    className={`text-xs px-2 py-1 border border-pixel-border bg-pixel-bg font-bold ${
+                    className={`text-sm px-2.5 py-1 border border-pixel-border bg-pixel-bg font-bold ${
                       effect.value > 0 ? 'text-green-400' : 'text-red-400'
                     }`}
                   >
@@ -255,7 +255,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
           {/* Continue */}
           <button
             onClick={hideKeyMomentResult}
-            className="w-full py-3 border-4 border-pixel-accent bg-pixel-accent bg-opacity-20 text-pixel-accent font-bold hover:bg-opacity-30 transition-colors text-sm"
+            className="w-full py-4 border-4 border-pixel-accent bg-pixel-accent bg-opacity-20 text-pixel-accent font-bold hover:bg-opacity-30 transition-colors text-base"
           >
             Continue →
           </button>
@@ -308,44 +308,44 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   };
 
   return (
-    <Modal isOpen={isOpen} title="" size="md" showCloseButton={false} belowContent={peekButton}>
-      <div className="space-y-4">
+    <Modal isOpen={isOpen} title="" size="lg" showCloseButton={false} belowContent={peekButton}>
+      <div className="space-y-5">
         {headerStrip}
 
         {/* Tactical Options */}
         <div>
-          <h3 className="text-sm font-bold text-pixel-text mb-3">⚔️ Choose Your Tactic</h3>
-          <div className="space-y-2">
+          <h3 className="text-base font-bold text-pixel-text mb-4">⚔️ Choose Your Tactic</h3>
+          <div className="space-y-3">
             {activeKeyMoment.options.map((option, index) => {
               const matchup = getMatchupIndicator(option);
               return (
                 <button
                   key={index}
                   onClick={() => handleKeyMomentChoice(option)}
-                  className="w-full text-left p-3 border-4 border-pixel-border bg-pixel-card hover:border-pixel-accent hover:scale-[1.01] transition-all"
+                  className="w-full text-left p-4 border-4 border-pixel-border bg-pixel-card hover:border-pixel-accent hover:scale-[1.01] transition-all"
                 >
                   {/* Option name + matchup indicator */}
                   <div className="flex items-center justify-between gap-2 mb-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-lg">{option.emoji}</span>
-                      <h4 className="text-sm font-bold text-pixel-text">{option.name}</h4>
+                      <span className="text-xl">{option.emoji}</span>
+                      <h4 className="text-base font-bold text-pixel-text">{option.name}</h4>
                     </div>
-                    <span className={`text-xs font-bold ${matchup.color} whitespace-nowrap`}>
+                    <span className={`text-sm font-bold ${matchup.color} whitespace-nowrap`}>
                       {matchup.label}
                     </span>
                   </div>
 
-                  <p className="text-xs text-pixel-text-muted mb-2">{option.description}</p>
+                  <p className="text-sm text-pixel-text-muted mb-2">{option.description}</p>
 
                   {/* Best against hint + secondary effects */}
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs text-pixel-text-muted">{option.bestAgainstHint}</span>
+                    <span className="text-sm text-pixel-text-muted">{option.bestAgainstHint}</span>
                     {option.secondaryEffects.map((effect, i) => {
                       const condLabel = getConditionLabel(effect.condition);
                       return (
                         <span
                           key={i}
-                          className={`text-xs px-1.5 py-0.5 border border-pixel-border bg-pixel-bg ${
+                          className={`text-sm px-2 py-0.5 border border-pixel-border bg-pixel-bg ${
                             effect.value > 0 ? 'text-green-400' : 'text-red-400'
                           }`}
                         >
