@@ -267,7 +267,7 @@ export const coachEvents: StoryEvent[] = [
   {
     id: 'coach_secret_past',
     name: "Coach's Grand Slam Secret [AI-gen]", // TODO: Complete this event
-    tags: ['coach', 'milestone'],
+    tags: ['coach'],
     timeSlotsRequired: 1,
     prerequisites: {
       completedEvents: ['coach_balanced_development'],

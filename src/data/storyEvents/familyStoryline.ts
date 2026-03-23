@@ -36,8 +36,8 @@ export const familyEvents: StoryEvent[] = [
   },
 
   {
-    id: 'family_sacrifice',
-    name: 'Family Sacrifice',
+    id: 'family_investment',
+    name: 'Family Investment',
     tags: ['family', 'decision', 'conflict'],
     timeSlotsRequired: 2,
     prerequisites: {
@@ -45,10 +45,12 @@ export const familyEvents: StoryEvent[] = [
       completedEvents: ['family_support'],
     },
     skippable: true,
-    description: 'Your family reveals they\'ve been making financial sacrifices to support your tennis career.',
+    description: 'Your family reveals they\'ve been investing in your tennis career.',
     dialogue: [
-      ['parent', ['We need to talk about something. We\'ve been using our savings to help with your training costs - equipment, coaching fees, tournament entries. We believe in you, but it\'s been tight.']],
-      ['parent', ['We\'re not asking you to quit, but just know that we\'re giving our best to support you.']],
+      ['parent', ['We need to talk about something. A few years ago, we made quite a big investment hoping if it paid off, we\'d be able to fund your tennis career.']],
+      ['parent', ['However, that investment which we thought was bulletproof - has defied all odds and gone belly up.']],
+      ['parent', ['Some visionaries are ahead of their time, and soon the world will see the mistake it made by passing up on our invention - purple clay.']],
+      ['parent', ['Unfortunately, you\'re on your own until we can figure out our next venture. And that means cash could be tight.']],
     ],
     characters: ['parent'],
     options: [
@@ -58,7 +60,7 @@ export const familyEvents: StoryEvent[] = [
         emoji: '💪',
         description: 'Work even harder',
         outcome: {
-          resultText: ['You feel a sudden inspiration. You\'re playing for everyone who believes in you, and you won\'t let them down.'],
+          resultText: ['You feel a sudden inspiration. You know there\'s no turning back now. You feel the pressure to keep pushing in your tennis career. Purple clay does sound pretty cool, though.'],
           effects: {
             statChanges: { focus: 1, strength: 3, stamina: 2, speed: 2, recovery: 1 },
             moodChange: 15,
@@ -68,7 +70,7 @@ export const familyEvents: StoryEvent[] = [
           challengesAssigned: [
             ChallengeManager.createFromTemplate(CHALLENGE_MAKE_THEM_PROUD, {
               type: 'story',
-              eventId: 'family_sacrifice',
+              eventId: 'family_investment',
             }),
           ],
         },
@@ -79,7 +81,7 @@ export const familyEvents: StoryEvent[] = [
         emoji: '💼',
         description: 'Look for sponsors',
         outcome: {
-          resultText: ['You look for sponsors to help with your training costs. The options are getting shadier and shadier as you keep looking. I hope you won\'t be forced to make a deal you\'ll regret.'],
+          resultText: ['You look for sponsors to help with your training costs and save the burden on your family. The options are getting shadier and shadier as you keep looking. I hope you won\'t be forced to make a deal you\'ll regret.'],
           effects: {
             statChanges: { focus: 1, anticipation: 2, slice: 1 },
             moodChange: 10,
@@ -89,14 +91,14 @@ export const familyEvents: StoryEvent[] = [
         },
       },
       {
-        id: 'scale_back',
-        text: 'Offer to Scale Back',
+        id: 'become_salesman',
+        text: 'Offer to Help',
         emoji: '🤝',
-        description: 'Suggest reducing training costs',
+        description: 'Offer to help with their investment.',
         outcome: {
-          resultText: ['You offer to cut back on some expenses, but they insist they want to support your dream. You know you can find a way to make it work.'],
+          resultText: ['You can be pretty persuasive, and purple clay sounds like a dream. You offer to try and sell this thing as hard as you can to recover some losses.'],
           effects: {
-            statChanges: { focus: 1, recovery: 2, shotVariety: 2 },
+            statChanges: { focus: -1, recovery: 2, shotVariety: 2, speed: 1 },
             moodChange: 10,
             energyChange: 0,
             relationshipChanges: { family: 30 },
@@ -209,7 +211,7 @@ export const familyEvents: StoryEvent[] = [
     tags: ['family', 'celebration'],
     timeSlotsRequired: 1,
     prerequisites: {
-      completedEvents: ['family_sacrifice'],
+      completedEvents: ['family_investment'],
       minDay: 35,
     },
     skippable: true,

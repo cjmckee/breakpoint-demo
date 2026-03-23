@@ -251,11 +251,11 @@ export const rivalEvents: StoryEvent[] = [
   {
     id: 'rival_unexpected_respect',
     name: 'Grudging Respect [AI-gen]', // TODO: Complete this event
-    tags: ['rival', 'milestone'],
+    tags: ['rival'],
     timeSlotsRequired: 1,
     prerequisites: {
       completedEvents: ['rival_confrontation'],
-      minMatchesWon: 15,
+      minMatchesWon: 10,
       relationships: { jordan_rival: { min: -10 } },
     },
     skippable: true,

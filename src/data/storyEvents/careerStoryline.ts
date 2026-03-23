@@ -5,7 +5,7 @@
 
 import type { StoryEvent } from '../../types/storyEvents';
 import { ChallengeManager } from '../../game/ChallengeManager';
-import { TOURNAMENT_OUTFIT, SPONSOR_OUTFIT, HEADBAND, PRO_RACQUET, ENERGY_DRINK, BANANA, LUCKY_SPROUT } from '../items';
+import { TOURNAMENT_OUTFIT, SPONSOR_OUTFIT, HEADBAND, PRO_RACQUET, ENERGY_DRINK, BANANA, LUCKY_SPROUT, ALLROUND_RACQUET, CONTROL_RACQUET, COURT_SHOES, POWER_RACQUET } from '../items';
 import { CHALLENGE_TEAM_SPIRIT, CHALLENGE_SPONSOR_WORTHY } from '../challengeTemplates';
 import { TimeSlot } from '../../types/game';
 
@@ -1434,5 +1434,71 @@ export const careerEvents: StoryEvent[] = [
         energyChange: -10,
       },
     },
+  },
+
+  {
+    id: 'equipment_upgrade',
+    name: 'Professional Equipment Upgrade',
+    tags: ['equipment', 'decision'],
+    timeSlotsRequired: 2,
+    prerequisites: {
+      minMatchesWon: 4,
+      minDay: 10,
+      completedEvents: ['sponsor_first_offer'],
+      completedEventChoices: { sponsor_first_offer: ['accept_immediately', 'negotiate'] },
+    },
+    skippable: true,
+    description: 'Your sponsor offers you access to professional-grade equipment and custom racquet fitting.',
+    dialogue: [
+      ['sponsor_rep', ['We want to give you the best tools to succeed. We\'re offering you a full professional equipment package - custom-fitted racquet, premium strings, and professional-grade shoes. Our team will work with you to find the perfect setup for your game.']],
+    ],
+    characters: ['sponsor_rep'],
+    options: [
+      {
+        id: 'power_setup',
+        text: 'Power Setup',
+        emoji: '💥',
+        description: 'Focus on power and aggressive play',
+        outcome: {
+          resultText: ['You choose a power-oriented setup with a heavier racquet and stiffer strings. The equipment feels powerful in your hands. You start hitting bigger serves and more aggressive groundstrokes, adding a new dimension to your game.'],
+          effects: {
+            statChanges: { serve: 4, forehand: 3, strength: 2, offensive: 3 },
+            moodChange: 25,
+            energyChange: -10,
+            itemsGained: [POWER_RACQUET, COURT_SHOES],
+          },
+        },
+      },
+      {
+        id: 'control_setup',
+        text: 'Control Setup',
+        emoji: '🎯',
+        description: 'Emphasize precision and consistency',
+        outcome: {
+          resultText: ['You opt for a control-oriented setup with a more flexible frame and softer strings. The racquet gives you incredible feel and precision. Your shot placement improves dramatically, and you feel more confident in constructing points.'],
+          effects: {
+            statChanges: { spin: 3, placement: 3, anticipation: 2, defensive: 3, return: 2 },
+            moodChange: 25,
+            energyChange: -10,
+            itemsGained: [CONTROL_RACQUET, COURT_SHOES],
+          },
+        },
+      },
+      {
+        id: 'balanced_setup',
+        text: 'Balanced Setup',
+        emoji: '⚖️',
+        description: 'All-around versatility',
+        outcome: {
+          resultText: ['You choose a balanced setup that doesn\'t sacrifice power or control. The versatile equipment allows you to adapt your game to different opponents and situations. You feel prepared for any challenge.'],
+          effects: {
+            statChanges: { serve: 2, forehand: 2, backhand: 2, anticipation: 2, offensive: 1, defensive: 1 },
+            moodChange: 25,
+            energyChange: -10,
+            itemsGained: [ALLROUND_RACQUET, COURT_SHOES],
+          },
+        },
+      },
+    ],
   },
 ];
