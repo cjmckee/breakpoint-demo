@@ -106,7 +106,7 @@ export const TrainingSelection: React.FC = () => {
             {availableSessions.map((session) => (
               <div
                 key={session.id}
-                className={`border-4 ${getTierColor(session.tier)} p-4 bg-pixel-card`}
+                className={`border-4 ${getTierColor(session.tier)} p-4 bg-pixel-card flex flex-col`}
               >
                 {/* Header */}
                 <div className="flex items-start justify-between mb-3">
@@ -130,9 +130,11 @@ export const TrainingSelection: React.FC = () => {
                 </div>
 
                 {/* Description */}
+                <div className="flex-1">
                 <p className="text-pixel-text-muted mb-3 text-sm">
                   {session.description}
                 </p>
+                </div>
 
                 {/* Stats */}
                 <div className="space-y-2 mb-4">
@@ -175,6 +177,7 @@ export const TrainingSelection: React.FC = () => {
                 </div>
 
                 {/* Action Button */}
+                <div>
                 <Button
                   variant="primary"
                   fullWidth
@@ -185,6 +188,7 @@ export const TrainingSelection: React.FC = () => {
                     ? 'Not Enough Energy'
                     : 'Start Training'}
                 </Button>
+                </div>
               </div>
             ))}
           </div>
