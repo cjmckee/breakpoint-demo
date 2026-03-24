@@ -145,20 +145,6 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
         </div>
       )}
 
-      {/* Characters */}
-      {event.characters.length > 0 && (
-        <div className="mb-6">
-          <h3 className="font-bold mb-2">Characters:</h3>
-          <div className="flex gap-2 flex-wrap">
-            {event.characters.map((char) => (
-              <span key={char} className="px-3 py-1 bg-purple-600 text-white rounded font-semibold">
-                {getCharacterName(char, playerName)}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Show dialogue continue button if not all dialogue shown */}
       {!allDialogueShown ? (
         <div className="flex justify-end gap-2">
