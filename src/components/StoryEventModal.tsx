@@ -147,7 +147,14 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
 
       {/* Show dialogue continue button if not all dialogue shown */}
       {!allDialogueShown ? (
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-between">
+          {currentDialogueIndex > 0 ? (
+            <Button onClick={() => setCurrentDialogueIndex(currentDialogueIndex - 1)} variant="secondary">
+              Back
+            </Button>
+          ) : (
+            <div />
+          )}
           <Button onClick={handleContinueDialogue} variant="primary">
             Continue
           </Button>
@@ -157,15 +164,24 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
           {/* Options or Continue Button */}
           {isLinearEvent ? (
             // Linear event - just show continue button
-            <div className="flex justify-end gap-2">
-              {canSkip && (
-                <Button onClick={onClose} variant="secondary">
-                  Skip Event
+            <div className="flex justify-between">
+              {hasDialogue && dialogue!.length > 1 ? (
+                <Button onClick={() => setCurrentDialogueIndex(currentDialogueIndex - 1)} variant="secondary">
+                  Back
                 </Button>
+              ) : (
+                <div />
               )}
-              <Button onClick={handleContinue} variant="primary">
-                Continue
-              </Button>
+              <div className="flex gap-2">
+                {canSkip && (
+                  <Button onClick={onClose} variant="secondary">
+                    Skip Event
+                  </Button>
+                )}
+                <Button onClick={handleContinue} variant="primary">
+                  Continue
+                </Button>
+              </div>
             </div>
           ) : (
             // Choice event - show options
@@ -206,15 +222,24 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
             })}
           </div>
 
-          <div className="flex justify-end gap-2">
-            {canSkip && (
-              <Button onClick={onClose} variant="secondary">
-                Cancel
+          <div className="flex justify-between">
+            {hasDialogue && dialogue!.length > 1 ? (
+              <Button onClick={() => setCurrentDialogueIndex(currentDialogueIndex - 1)} variant="secondary">
+                Back
               </Button>
+            ) : (
+              <div />
             )}
-            <Button onClick={handleContinue} variant="primary" disabled={!selectedOptionId}>
-              Confirm Choice
-            </Button>
+            <div className="flex gap-2">
+              {canSkip && (
+                <Button onClick={onClose} variant="secondary">
+                  Cancel
+                </Button>
+              )}
+              <Button onClick={handleContinue} variant="primary" disabled={!selectedOptionId}>
+                Confirm Choice
+              </Button>
+            </div>
           </div>
         </div>
           )}
