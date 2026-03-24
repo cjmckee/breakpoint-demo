@@ -55,7 +55,6 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
 
   // Progression flags
   const matchUnlocked = player?.flags?.[PlayerFlag.MATCH_UNLOCKED] === true;
-  const tournamentsUnlocked = player?.flags?.[PlayerFlag.TOURNAMENTS_UNLOCKED] === true;
 
   // Check if a story event overlay is active
   const isEventPending = overlay?.type === 'story_event';
@@ -101,14 +100,6 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
       description: 'Test your skills in a practice match with another Academy player',
       energyCost: 50,
       action: () => navigateTo('match_setup'),
-    },
-    {
-      id: 'tournaments',
-      title: 'Tournaments',
-      emoji: '🏆',
-      description: 'Enter competitive tournaments and compete for glory',
-      energyCost: 0,
-      action: () => navigateTo('tournament_list'),
     },
     {
       id: 'inventory',
@@ -298,16 +289,15 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
         </Card>
 
         {/* Activities Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
           {activities.map((activity) => {
             const canAfford = currentStatus.energy >= activity.energyCost;
             const isRestButton = activity.id === 'rest';
             const isInventoryButton = activity.id === 'inventory';
             const isMatchButton = activity.id === 'match';
-            const isTournamentButton = activity.id === 'tournaments';
 
             // Check progression locks
-            const isLocked = (isMatchButton && !matchUnlocked) || (isTournamentButton && !tournamentsUnlocked);
+            const isLocked = (isMatchButton && !matchUnlocked);
 
             // Disable all activities when event is pending, match scheduled, or during night time (except rest and inventory)
             const isMatchScheduled = isTournamentMatchScheduled || isStoryMatchScheduled;
@@ -324,7 +314,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
             // Get button text
             let buttonText = activity.title;
             if (isLocked) {
-              buttonText = isMatchButton ? `Unlocks Day 5` : 'Locked';
+              buttonText = `Unlocks Day 5`;
             } else if (isEventPending) {
               buttonText = 'Event Pending';
             } else if (isMatchScheduled && !isRestButton && !isInventoryButton) {
