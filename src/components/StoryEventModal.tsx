@@ -28,6 +28,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
 }) => {
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [currentDialogueIndex, setCurrentDialogueIndex] = useState<number>(0);
+  const [isHidden, setIsHidden] = useState(false);
 
   // Get player name for dialogue attribution
   const playerName = usePlayerName();
@@ -58,8 +59,36 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
     }
   };
 
+  if (!isOpen) return null;
+
+  if (isHidden) {
+    return (
+      <>
+        {/* Block all interaction with the menu behind */}
+        <div className="fixed inset-0 z-40 pointer-events-auto" style={{ cursor: 'default' }} />
+        <div className="fixed inset-x-0 bottom-6 z-[60] flex justify-center px-4">
+          <button
+            onClick={() => setIsHidden(false)}
+            className="max-w-2xl w-full py-4 border-4 border-pixel-accent bg-pixel-card text-pixel-accent font-bold text-base hover:bg-pixel-accent hover:bg-opacity-20 transition-colors animate-pulse"
+          >
+            📜 Show Event
+          </button>
+        </div>
+      </>
+    );
+  }
+
+  const hideButton = (
+    <button
+      onClick={() => setIsHidden(true)}
+      className="w-full py-3 border-4 border-pixel-border bg-pixel-card text-pixel-text font-bold text-base hover:border-pixel-accent transition-colors"
+    >
+      👁 Hide Event
+    </button>
+  );
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={event.name} size="xl" showCloseButton={false}>
+    <Modal isOpen={isOpen} onClose={onClose} title={event.name} size="xl" showCloseButton={false} belowContent={hideButton}>
       {/* Tags and time slots */}
       <div className="flex gap-2 mb-4 flex-wrap">
         {event.tags.map((tag) => (
