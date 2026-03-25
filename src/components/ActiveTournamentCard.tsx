@@ -17,8 +17,82 @@ export const ActiveTournamentCard: React.FC = () => {
   const scheduledEvents = calendar.scheduledEvents;
   const navigateToScheduledMatch = useGameStore((state) => state.navigateToScheduledMatch);
 
-  if (!activeTournament || !activeTournament.isActive) {
-    return null;
+  const getSurfaceEmoji = (surface: string): string => {
+    switch (surface) {
+      case 'hard': return '🏟️';
+      case 'clay': return '🧱';
+      case 'grass': return '🌱';
+      case 'carpet': return '📋';
+      default: return '🎾';
+    }
+  };
+
+  const getTimeSlotLabel = (slot: number): string => {
+    switch (slot) {
+      case 0: return 'Morning';
+      case 1: return 'Afternoon';
+      case 2: return 'Evening';
+      default: return 'Unknown';
+    }
+  };
+
+  const getRelativeTimeLabel = (scheduledDay: number, scheduledTimeSlot: number): string => {
+    const daysUntil = scheduledDay - calendar.currentDay;
+    if (daysUntil === 0) return `${getTimeSlotLabel(scheduledTimeSlot)} session`;
+    if (daysUntil === 1) return `Tomorrow — ${getTimeSlotLabel(scheduledTimeSlot)}`;
+    return `In ${daysUntil} days — ${getTimeSlotLabel(scheduledTimeSlot)}`;
+  };
+
+  // Show scheduled tournament card when tournament hasn't started yet
+  if (!activeTournament?.isActive) {
+    const ceremonyEvent = scheduledEvents.find(event => {
+      if (event.eventType !== 'story') return false;
+      const storyEventId = (event.metadata as Record<string, unknown>)?.storyEventId as string | undefined;
+      return storyEventId && TournamentRegistry.getAllTournaments().some(
+        t => t.openingCeremonyEventId === storyEventId
+      );
+    });
+
+    if (!ceremonyEvent) return null;
+
+    const storyEventId = (ceremonyEvent.metadata as Record<string, unknown>).storyEventId as string;
+    const scheduledTournament = TournamentRegistry.getAllTournaments().find(
+      t => t.openingCeremonyEventId === storyEventId
+    );
+
+    if (!scheduledTournament) return null;
+
+    const daysUntil = ceremonyEvent.scheduledDay - calendar.currentDay;
+
+    return (
+      <Card title="Upcoming Tournament" className="border-4 border-yellow-400 bg-yellow-500 bg-opacity-10">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-2xl font-bold text-pixel-text mb-1">
+                {scheduledTournament.name}
+              </div>
+              <div className="text-sm text-pixel-text-muted">
+                {getSurfaceEmoji(scheduledTournament.surface)} {scheduledTournament.surface.toUpperCase()}
+              </div>
+            </div>
+          </div>
+
+          <div className="p-3 bg-pixel-bg border-2 border-pixel-border">
+            <div className="text-sm text-pixel-text-muted">{scheduledTournament.description}</div>
+          </div>
+
+          <div className="p-3 bg-yellow-500 bg-opacity-10 border-2 border-yellow-400">
+            <div className="text-xs text-yellow-400 font-bold mb-1">
+              {daysUntil === 0 ? '🎾 Opening Ceremony Today!' : '📅 Tournament Starting Soon'}
+            </div>
+            <div className="text-sm text-pixel-text">
+              {getRelativeTimeLabel(ceremonyEvent.scheduledDay, ceremonyEvent.scheduledTimeSlot)}
+            </div>
+          </div>
+        </div>
+      </Card>
+    );
   }
 
   // Get tournament configuration
@@ -58,25 +132,6 @@ export const ActiveTournamentCard: React.FC = () => {
 
   const getBracketColor = (bracket: 'winner' | 'loser'): string => {
     return bracket === 'winner' ? 'text-yellow-400' : 'text-gray-400';
-  };
-
-  const getSurfaceEmoji = (surface: string): string => {
-    switch (surface) {
-      case 'hard': return '🏟️';
-      case 'clay': return '🧱';
-      case 'grass': return '🌱';
-      case 'carpet': return '📋';
-      default: return '🎾';
-    }
-  };
-
-  const getTimeSlotLabel = (slot: number): string => {
-    switch (slot) {
-      case 0: return 'Morning';
-      case 1: return 'Afternoon';
-      case 2: return 'Evening';
-      default: return 'Unknown';
-    }
   };
 
   return (
@@ -159,9 +214,7 @@ export const ActiveTournamentCard: React.FC = () => {
               {scheduledTournamentMatch ? (
                 <>Your tournament match is scheduled for this time slot!</>
               ) : (
-                <>
-                  Day {nextScheduledMatch.scheduledDay}, {getTimeSlotLabel(nextScheduledMatch.scheduledTimeSlot)}
-                </>
+                getRelativeTimeLabel(nextScheduledMatch.scheduledDay, nextScheduledMatch.scheduledTimeSlot)
               )}
             </div>
           </div>
