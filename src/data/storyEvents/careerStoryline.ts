@@ -559,13 +559,14 @@ export const careerEvents: StoryEvent[] = [
           volley: 1,
           overhead: 1,
           serve: 2,
-        }
+        },
+        itemsGained: [LUCKY_SPROUT]
       }
     }
   },
 
   // ==========================================
-  // Team Match #3: Millbrook Mime Academy
+  // Team Match #3: Cosmo Comet Space Academy
   // ==========================================
 
   {
@@ -579,20 +580,22 @@ export const careerEvents: StoryEvent[] = [
     skippable: false,
     description: 'Your third team match is announced.',
     dialogue: [
-      [null, ['The bulletin board has a new posting. You can tell something is unusual because nobody is talking about it. Like, at all.']],
-      ['keith', ['I tried to read it out loud and nothing came out of my mouth. Something is wrong.']],
-      ['jen', ['Millbrook Mime Academy. They\'re a performing arts school. Apparently they added a tennis program six years ago and haven\'t said a single word about it.']],
-      ['coach_gonzalez', ['They are genuinely excellent tennis players. But they never speak. Not in warm-ups. Not during points. Not during changeovers. The silence is absolutely going to get to you.']],
-      ['coach_gonzalez', [{characterId: 'player'}, ', your opponent is ', {characterId: 'marcel_blanc'}, '. He placed second in juniors last year and never once called his shots in or out. Judges hated it. He won anyway.']],
-      ['keith', ['What do you even say to someone who refuses to speak? How do you trash talk? How do I make him feel bad??']],
-      ['jen', ['Keith. Maybe just... don\'t.']],
+      [null, ['The bulletin board has a new posting. Is this the only way to get news around here?']],
+      ['keith', ['Cosmo Comet Space Academy? Those guys give me the heebie-jeebies. Why do they have a tennis team?']],
+      ['jen', ['I heard they\'re doing testing on some new tech: ultra low-compression balls. They could even work on the moon!']],
+      [null, ['You briefly try to imagine tennis in zero-G. Certainly would be a little easier on the knees.']],
+      ['keith', ['That\'s probably why we have to host the match. I don\'t think their home courts are even on this planet.']],
+      ['coach_gonzalez', ['They do usually arrive by shuttle. Space shuttle.']],
+      ['coach_gonzalez', ['Hey, ', {characterId: 'player'}, ' it looks like you\'ll be up against Martia Estrella. She\'s a young talent, and she loves to get to the net to close out points.']],
+      ['jen', ['It should be some good practice! I hope you worked on your sky-high lobs this week.']],
+      ['keith', ['That\'s one kind of shot that definitely won\'t work on the moon.']]
     ],
     characters: ['keith', 'jen', 'coach_gonzalez'],
     options: [],
     defaultOutcome: {
       resultText: [
-        'A team match against Millbrook Mime Academy. Absolutely nobody at the Academy seems to know how to feel about this.',
-        'You decide you\'ll be totally fine with the silence. You\'re a calm, focused person.',
+        'The next team match is against Cosmo Comet Space Academy. This team is full of brainiacs who like to play the percentages.',
+        'Expect a lot of net pressure. And don\'t let them sneak in any of those fancy moon balls.'
       ],
       effects: {
         moodChange: 5,
@@ -608,14 +611,14 @@ export const careerEvents: StoryEvent[] = [
             relativeDays: 2,
             scheduledTimeSlot: 1, // AFTERNOON
             metadata: {
-              opponentId: 'marcel_blanc',
-              opponentName: 'Marcel Blanc',
+              opponentId: 'martia_estrella',
+              opponentName: 'Martia Estrella',
               opponentStats: {
                 technical: {
                   serve: 38,
                   forehand: 40,
-                  backhand: 38,
-                  volley: 32,
+                  backhand: 32,
+                  volley: 42,
                   overhead: 34,
                   dropShot: 36,
                   slice: 40,
@@ -624,28 +627,28 @@ export const careerEvents: StoryEvent[] = [
                   placement: 42,
                 },
                 physical: {
-                  speed: 38,
+                  speed: 48,
                   stamina: 40,
-                  strength: 34,
+                  strength: 24,
                   agility: 42,
                   recovery: 36,
                 },
                 mental: {
                   focus: 46,
                   anticipation: 42,
-                  shotVariety: 38,
+                  shotVariety: 45,
                   offensive: 36,
-                  defensive: 40,
+                  defensive: 42,
                 },
               },
               opponentTier: 1,
-              opponentDescription: 'A eerily silent and highly focused player from Millbrook Mime Academy',
+              opponentDescription: 'An up-and-coming star known for her volleys and court coverage.',
               prematchEventId: 'third_team_match_prematch',
               winEventId: 'third_team_match_win',
               lossEventId: 'third_team_match_loss',
               surface: 'clay',
               matchFormat: 'best-of-1',
-              matchTitle: 'Team Match: Riverside vs Millbrook Mime Academy',
+              matchTitle: 'Team Match: Riverside vs Cosmo Comet Space Academy',
               matchDescription: 'Your third official team match',
             },
           },
@@ -663,17 +666,9 @@ export const careerEvents: StoryEvent[] = [
       completedEvents: ['third_team_match_scheduled'],
     },
     skippable: false,
-    description: 'The Millbrook Mime Academy team arrives for your third team match.',
+    description: 'The Cosmo Comet team arrives for your third team match.',
     dialogue: [
-      [null, ['The Millbrook bus pulls up. The doors open. Nobody gets off.']],
-      [null, ['After about ninety seconds of silence, players begin stepping off one by one. They don\'t look around. They don\'t acknowledge your team. They walk directly to their assigned courts.']],
-      ['keith', ['I said hello to three of them. Not one reacted. Is this legal?']],
-      [null, ['You hear a single slow clap from the far end of the court. You turn to see your opponent.']],
-      ['marcel_blanc', ['...']],
-      [null, [{characterId: 'marcel_blanc'}, ' tilts his head and raises one eyebrow. He points to the court, then back to you, then mimes an elaborate swing ending with the universal gesture for "you\'re done."']],
-      ['jen', ['He just mimed your entire defeat. That was very detailed.']],
-      ['keith', ['I\'m going to talk to him THE ENTIRE MATCH. I feel called to do this.']],
-      ['coach_gonzalez', ['Please do not do that, ', {characterId: 'keith'}, '. ', {characterId: 'player'}, ', he\'s going to try to get in your head. Ignore it. Play your game.']],
+
     ],
     characters: ['keith', 'jen', 'coach_gonzalez', 'marcel_blanc'],
     options: [],
