@@ -571,7 +571,7 @@ export const careerEvents: StoryEvent[] = [
 
   {
     id: 'third_team_match_scheduled',
-    name: 'Third Team Match Announced [AI-gen]', // TODO: Complete this event
+    name: 'Third Team Match Announced',
     tags: ['team'],
     timeSlotsRequired: 0,
     prerequisites: {
@@ -659,7 +659,7 @@ export const careerEvents: StoryEvent[] = [
 
   {
     id: 'third_team_match_prematch',
-    name: 'Before the Match [AI-gen]', // TODO: Complete this event
+    name: 'Before the Match',
     tags: ['story_match', 'team'],
     timeSlotsRequired: 0,
     prerequisites: {
@@ -668,20 +668,31 @@ export const careerEvents: StoryEvent[] = [
     skippable: false,
     description: 'The Cosmo Comet team arrives for your third team match.',
     dialogue: [
-
+      [null, ['Your team finishes warming up, but the opponents are nowhere to be seen yet.']],
+      [null, ['You notice something breaking up the clouds in the distance, and a dull roar starts from that direction.']],
+      ['keith', ['Does that look like a shuttle to you?']],
+      ['jen', ['They\'re coming in a little hot, don\'t you think?']],
+      [null, ['A humongous aircraft zooms past overhead, and in its wake you can see a large capsule with a parachute hurtling towards you.']],
+      [null, ['The large metal pod lands just past the trees in a huge CRASH and smoke starts drifting over the area.']],
+      [null, ['Out walks the Cosmo Comet team, seemingly completely unhurt and ready to play.']],
+      ['keith', ['They have the budget for that, and we\'re still doing bulletin boards?']],
+      ['coach_gonzalez', ['Once you guys start getting research grants from NASA, we can talk. They still only pay my bonus in Taco Barn gift cards.']],
+      [null, ['One of the Cosmo players bounces up to you with seemingly endless energy.']],
+      ['martia_estrella', ['According to my calculations, you must be my opponent. I hope you\'ve been studying!']],
+      ['martia_estrella', ['Did you know some of the top players win over 70% of their points at the net? It\'s all about high percentage shots!']],
     ],
-    characters: ['keith', 'jen', 'coach_gonzalez', 'marcel_blanc'],
+    characters: ['keith', 'jen', 'coach_gonzalez', 'martia_estrella'],
     options: [],
     defaultOutcome: {
       resultText: [
-        'You take the court. ',{characterId: 'marcel_blanc'}, ' spins his racquet. It lands on the wrong side. He doesn\'t say anything. He just spins it again.',
-        'You\'re already a little rattled.',
+        'You take the court. ',{characterId: 'martia_estrella'}, ' spins her racquet. It lands on the wrong side. She doesn\'t say anything. She just spins it again.',
+        'It lands on her side and she types something into her calculator watch. She takes the balls to serve. Should you be doing math or something?',
       ],
       effects: {
-        moodChange: -5,
-        energyChange: -5,
+        moodChange: 5,
+        energyChange: 5,
         relationshipChanges: {
-          marcel_blanc: 1,
+          martia_estrella: 5,
         },
       }
     }
@@ -689,7 +700,7 @@ export const careerEvents: StoryEvent[] = [
 
   {
     id: 'third_team_match_win',
-    name: 'Victory! [AI-gen]', // TODO: Complete this event
+    name: 'Victory!',
     tags: ['story_match', 'team'],
     timeSlotsRequired: 0,
     prerequisites: {
@@ -698,29 +709,27 @@ export const careerEvents: StoryEvent[] = [
     skippable: false,
     description: 'You win your third team match!',
     dialogue: [
-      [null, ['The match point sails by ', {characterId: 'marcel_blanc'}, '. He freezes. You hold your breath.']],
-      [null, ['Slowly, he walks to the net. He extends his hand. When you shake it, he nods once, deeply. Then he performs a brief but unmistakably sincere mime of removing his hat and bowing.']],
-      ['keith', ['He BOWED. He MIMED a bow! I need to lie down.']],
-      ['jen', ['That\'s actually the highest compliment in mime culture. I think you\'ve earned his respect.']],
-      [null, [{characterId: 'marcel_blanc'}, ' turns and walks back to his side. He pauses, turns back, and mimes shooting you a finger gun. Then he\'s gone.']],
-      ['coach_gonzalez', ['You stayed calm and let your game do the talking. Fitting, considering the circumstances.']],
-      [null, ['Riverside wins the overall team match. Even ', {characterId: 'keith'}, '\'s court, which raises several questions.']],
+      [null, ['The match point sails by, rocketing through the court for the final shot. You are gassed.']],
+      ['martia_estrella', ['Whew! What a match. I forced the tough shots and you found them every time!']],
+      ['martia_estrella', ['It\'s only my first year at the academy, and based on the trajectory I\'ve calculated for myself, I\'ll catch you in no time. Great match!']],
+      [null, ['You smile and shake her hand. It was a tougher match than you wanted to let on. You can\'t help but feel inspired by her attitude.']],
+      ['coach_gonzalez', ['Great win! She\'s been on a tear lately, and hasn\'t been giving up many easy points.']],
+      ['jen', ['That was a great test for you, and you passed! These people know all about taking tests...']],
     ],
-    characters: ['keith', 'jen', 'coach_gonzalez', 'marcel_blanc'],
+    characters: ['jen', 'coach_gonzalez', 'martia_estrella'],
     options: [],
     defaultOutcome: {
       resultText: [
-        'A win against Millbrook Mime Academy. You feel you have earned something today, but you couldn\'t quite say what.',
-        'Keith claims he broke through to one of their players by the end of the match. No one believes him.',
+        'A win against Cosmo Comet Space Academy! It feels good to take the nerds down a peg. If every match is an exam, you feel like you just passed your midterms.',
+        'As you ride back to the academy in the back of the team shuttle, you look up to the sky thinking about two things: zero-G tennis and the inequity of research endowments.'
       ],
       effects: {
         moodChange: 25,
-        energyChange: -20,
+        energyChange: 20,
         relationshipChanges: {
-          keith: 3,
           jen: 2,
           coach_gonzalez: 3,
-          marcel_blanc: 2,
+          martia_estrella: 2,
         },
         statChanges: {
           focus: 3,
@@ -734,7 +743,7 @@ export const careerEvents: StoryEvent[] = [
 
   {
     id: 'third_team_match_loss',
-    name: 'A Tough Loss [AI-gen]', // TODO: Complete this event
+    name: 'A Tough Loss',
     tags: ['team'],
     timeSlotsRequired: 0,
     prerequisites: {
@@ -744,20 +753,21 @@ export const careerEvents: StoryEvent[] = [
     skippable: false,
     description: 'You lose your third team match.',
     dialogue: [
-      [null, ['Your last shot clips the net and drops into your side of the court. ', {characterId: 'marcel_blanc'}, ' doesn\'t react.']],
-      [null, ['He walks to the net with the same expression he\'s had the entire match, which is no expression. He shakes your hand. He mimes applause. It\'s deeply unsettling.']],
-      ['keith', ['He\'s been doing a mime of your entire match for the last ten minutes. It\'s remarkably accurate and I don\'t like it.']],
-      ['jen', ['He\'s really good. You competed hard. This wasn\'t your day.']],
-      ['coach_gonzalez', ['You let the silence get to you early. Next time, just focus on the ball. The ball makes noise.']],
-      [null, ['Riverside still wins the team match overall. The scoreboard stays quiet. Everything stays quiet.']],
-      ['keith', ['I asked one of their players if they needed directions to the bus. He just mimed a car driving away. So I think they\'re fine.']],
+      [null, ['You stretch for the last shot and continue the rally one more ball, but ', {characterId: 'martia_estrella'}, ' closes it out at the net.']],
+      [null, ['You trudge up to the net, with your opponent still seemingly full of energy.']],
+      ['martia_estrella', ['You played great! But I have some homework for you if you want to improve. You need to be able to get up to the net and close out long rallies!']],
+      [null, ['You thank her for the advice, and she hands you a stack of papers. Actual homework?']],
+      ['martia_estrella', ['I\'ve calculated that we\'ll be facing off again soon! I hope you\'ll be ready!']],
+      ['coach_gonzalez', ['It was a tough match. You really did play pretty well. You should finish that homework then.']],
+      ['jen', ['I remember playing her in juniors, and even though I won she assigned me some summer reading. Actually, I need to give her that book report...']]
     ],
-    characters: ['keith', 'jen', 'coach_gonzalez', 'marcel_blanc'],
+    characters: ['jen', 'coach_gonzalez', 'martia_estrella'],
     options: [],
     defaultOutcome: {
       resultText: [
         'You lost your match, but Riverside won overall. ',
-        {characterId: 'marcel_blanc'}, ' has already departed without a word. Or any sound at all. The bus didn\'t even honk.'
+        {characterId: 'martia_estrella'}, ' assigned you some homework to do, and she seemed serious.',
+        'You can\'t help but wonder what the team budget looks like if they really crashed that space pod.'
       ],
       effects: {
         moodChange: -10,
@@ -766,7 +776,7 @@ export const careerEvents: StoryEvent[] = [
           keith: 2,
           jen: 2,
           coach_gonzalez: 2,
-          marcel_blanc: 3,
+          martia_estrella: 3,
         },
         statChanges: {
           focus: 2,
