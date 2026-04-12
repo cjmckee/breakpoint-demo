@@ -70,17 +70,25 @@ export type ScoreUpdateCallback = (score: MatchScore) => void;
 export type StatsUpdateCallback = (stats: MatchStatistics) => void;
 
 /**
- * Match score structure
+ * Match score structure used by the interactive MatchOrchestrator.
+ * Uses player/opponent naming throughout (vs. server/returner in types/index.ts).
  */
 export interface MatchScore {
   sets: Array<{ player: number; opponent: number }>;
   currentSet: { player: number; opponent: number };
+  /**
+   * Current game score.
+   * During a normal game: counts map to Love/15/30/40 (0-3+).
+   * During a tiebreak (isTiebreak=true): raw numeric tiebreak points (0-7+).
+   */
   currentGame: { player: number; opponent: number };
   server: 'player' | 'opponent';
   isComplete: boolean;
   winner?: 'player' | 'opponent';
   momentum?: number; // -100 to 100 (positive = player favor)
   energy?: number; // 0-100 current player energy
+  /** True while a tiebreak game is in progress (points scored numerically, not 15-30-40) */
+  isTiebreak?: boolean;
 }
 
 /**

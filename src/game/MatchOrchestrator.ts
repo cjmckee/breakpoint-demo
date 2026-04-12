@@ -5,7 +5,6 @@
  */
 
 import { MatchSimulator } from '../core/MatchSimulator';
-import { ScoreTracker } from '../core/ScoreTracker';
 import { PlayerProfile } from '../core/PlayerProfile';
 import { MatchStatistics } from '../core/MatchStatistics';
 import { PointSimulator } from '../core/PointSimulator';
@@ -51,6 +50,11 @@ export class MatchOrchestrator {
   private opponentArchetype: ArchetypeType = 'defensive';
   private accumulatedEffects: AccumulatedMatchEffects = { energyDelta: 0, moodDelta: 0 };
   private activeEffects: Record<string, number> = {};
+
+  // Tiebreak tracking state (reset at the start of each match)
+  private isTiebreak = false;
+  private tiebreakFirstServer: 'player' | 'opponent' | null = null;
+  private tiebreakPointsPlayed = 0;
 
   /**
    * Apply flat stat boosts to player stats (clamped to 100).
@@ -181,8 +185,10 @@ export class MatchOrchestrator {
     this.momentumBank = 0;
     this.pressureBank = 0;
 
-    // Initialize score tracker
-    const scoreTracker = new ScoreTracker();
+    // Reset tiebreak tracking state for this match
+    this.isTiebreak = false;
+    this.tiebreakFirstServer = null;
+    this.tiebreakPointsPlayed = 0;
 
     // Match state
     let isComplete = false;
@@ -620,7 +626,7 @@ export class MatchOrchestrator {
     const serverProfile = currentServer === 'player' ? playerProfile : opponentProfile;
     const returnerProfile = currentServer === 'player' ? opponentProfile : playerProfile;
 
-    // Convert MatchScore to MatchState format expected by PointSimulator
+    // Convert MatchScore (keyMoments.ts) to MatchState (types/index.ts) for PointSimulator
     const matchState: MatchState = {
       score: {
         sets: score.sets.map(s => ({
@@ -645,6 +651,10 @@ export class MatchOrchestrator {
           enableTiebreaks: true,
           tiebreakAt: 6,
         },
+        isTiebreak: score.isTiebreak ?? false,
+        currentTiebreak: score.isTiebreak
+          ? { player: score.currentGame.player, opponent: score.currentGame.opponent }
+          : undefined,
       },
       currentServer: currentServer,
       courtSurface: (matchSim as any).config.courtSurface,
@@ -728,71 +738,174 @@ export class MatchOrchestrator {
   }
 
   /**
-   * Update score after a point
+   * Update score after a point, handling both standard game and tiebreak scoring.
+   *
+   * TIEBREAK RULES (ITF Rule 27 Appendix):
+   * - Points counted numerically (not Love/15/30/40)
+   * - First to 7 with a 2-point lead; continues past 6-6 until margin of 2
+   * - Server rotates: first server plays 1 point, then players alternate every 2 points
+   * - After tiebreak: set recorded as 7-6; first tiebreak server RECEIVES next set
+   *
+   * STANDARD GAME RULES (ITF Rule 26):
+   * - First to 4 points with 2-point margin; deuce/advantage after 40-40
+   * - Server switches after every game
+   * - At 6-6 with tiebreaks enabled: start a tiebreak instead of a 7th game
    */
   private updateScore(score: MatchScore, winner: 'player' | 'opponent'): MatchScore {
-    const newScore = { ...score, momentum: this.momentum, energy: this.matchEnergy };
+    const newScore = {
+      ...score,
+      currentGame: { ...score.currentGame },  // deep copy to avoid mutating the original
+      currentSet: { ...score.currentSet },
+      sets: score.sets,                        // array ref is fine; we replace it on set win
+      momentum: this.momentum,
+      energy: this.matchEnergy,
+    };
 
-    // Update current game
-    if (winner === 'player') {
-      newScore.currentGame.player++;
-    } else {
-      newScore.currentGame.opponent++;
+    // ── TIEBREAK POINT ────────────────────────────────────────────────────────
+    if (score.isTiebreak) {
+      // Numeric scoring — just increment the tiebreak counter for the winner
+      newScore.currentGame[winner]++;
+      this.tiebreakPointsPlayed++;
+
+      // Rotate server per tiebreak rules
+      newScore.server = this.getNextTiebreakServer(this.tiebreakPointsPlayed);
+
+      // Check if tiebreak is decided (7+ points with 2-point margin)
+      if (this.isTiebreakGameWon(newScore.currentGame)) {
+        const tbWinner = newScore.currentGame.player > newScore.currentGame.opponent ? 'player' : 'opponent';
+
+        // Set is over: 7-6 for tiebreak winner
+        newScore.currentSet[tbWinner] = 7;
+        newScore.currentSet[tbWinner === 'player' ? 'opponent' : 'player'] = 6;
+
+        // Record completed set
+        newScore.sets = [...score.sets, { ...newScore.currentSet }];
+        newScore.currentSet = { player: 0, opponent: 0 };
+        newScore.currentGame = { player: 0, opponent: 0 };
+        newScore.isTiebreak = false;
+
+        // ITF Rule 27 Appendix: the player who served first in the tiebreak
+        // receives serve at the start of the next set
+        newScore.server = this.tiebreakFirstServer === 'player' ? 'opponent' : 'player';
+
+        // Reset tiebreak tracking
+        this.isTiebreak = false;
+        this.tiebreakFirstServer = null;
+        this.tiebreakPointsPlayed = 0;
+
+        // Check match complete
+        newScore.isComplete = this.isMatchWon(newScore.sets, (this as any).matchFormat || 'best-of-3');
+        if (newScore.isComplete) {
+          newScore.winner = tbWinner;
+        }
+      }
+
+      return newScore;
     }
 
-    // Normalize deuce: if both players had advantage-level scores and are now tied,
-    // reset back to 3-3 (Deuce) so the scoreboard always shows 40-40 / Ad-In / Ad-Out
+    // ── STANDARD GAME POINT ───────────────────────────────────────────────────
+
+    // Normalize deuce: if both players reach 40+ and are tied, lock to 3-3.
+    // This ensures the scoreboard always shows 40-40 / Ad-In / Ad-Out correctly.
+    // Note: skipped during tiebreaks (handled above) since points count freely past 6.
+    newScore.currentGame[winner]++;
     const { player: gp, opponent: go } = newScore.currentGame;
     if (gp >= 3 && go >= 3 && gp === go) {
       newScore.currentGame = { player: 3, opponent: 3 };
     }
 
-    // Check if game is won
+    // Check if the standard game is won (4+ points, 2-point margin)
     if (this.isGameWon(newScore.currentGame)) {
       const gameWinner = this.getGameWinner(newScore.currentGame);
 
-      // Update current set
-      if (gameWinner === 'player') {
-        newScore.currentSet.player++;
-      } else {
-        newScore.currentSet.opponent++;
-      }
+      // Credit game to current set
+      newScore.currentSet[gameWinner]++;
 
-      // Reset game score
+      // Reset game score and switch server (ITF: server changes after every game)
       newScore.currentGame = { player: 0, opponent: 0 };
+      newScore.server = newScore.server === 'player' ? 'opponent' : 'player';
 
-      // Check if set is won
-      if (this.isSetWon(newScore.currentSet)) {
-        const setWinner = this.getSetWinner(newScore.currentSet);
+      // Check if we've reached 6-6 — tiebreak triggers before checking set win
+      if (newScore.currentSet.player === 6 && newScore.currentSet.opponent === 6) {
+        // Start a tiebreak game
+        newScore.isTiebreak = true;
+        this.isTiebreak = true;
+        // The player who just received the server switch serves first in the tiebreak
+        this.tiebreakFirstServer = newScore.server;
+        this.tiebreakPointsPlayed = 0;
+      } else if (this.isSetWon(newScore.currentSet)) {
+        // Set won through standard play (6-x, 7-5, 8-6, etc.)
 
-        // Add to sets array
-        newScore.sets.push({ ...newScore.currentSet });
-
-        // Reset set score
+        // Record completed set
+        newScore.sets = [...score.sets, { ...newScore.currentSet }];
         newScore.currentSet = { player: 0, opponent: 0 };
 
-        // Check if match is won based on format
-        const playerSets = newScore.sets.filter(s => s.player > s.opponent).length;
-        const opponentSets = newScore.sets.filter(s => s.opponent > s.player).length;
-
-        // Store matchFormat in instance variable during startMatch
-        const format = (this as any).matchFormat || 'best-of-3';
-        const setsToWin = format === 'best-of-1' ? 1 : format === 'best-of-3' ? 2 : 3;
-
-        if (playerSets === setsToWin) {
-          newScore.isComplete = true;
-          newScore.winner = 'player';
-        } else if (opponentSets === setsToWin) {
-          newScore.isComplete = true;
-          newScore.winner = 'opponent';
+        // Check match complete
+        const setWinner = this.getSetWinner({ ...newScore.sets[newScore.sets.length - 1] });
+        newScore.isComplete = this.isMatchWon(newScore.sets, (this as any).matchFormat || 'best-of-3');
+        if (newScore.isComplete) {
+          newScore.winner = setWinner;
         }
       }
-
-      // Switch server after game
-      newScore.server = newScore.server === 'player' ? 'opponent' : 'player';
     }
 
     return newScore;
+  }
+
+  /**
+   * Check whether the match has been won based on the completed sets array.
+   * Extracted to avoid code duplication between standard set and tiebreak paths.
+   */
+  private isMatchWon(sets: Array<{ player: number; opponent: number }>, format: string): boolean {
+    const setsToWin = format === 'best-of-1' ? 1 : format === 'best-of-3' ? 2 : 3;
+    const playerSets = sets.filter(s => s.player > s.opponent).length;
+    const opponentSets = sets.filter(s => s.opponent > s.player).length;
+    return playerSets >= setsToWin || opponentSets >= setsToWin;
+  }
+
+  /**
+   * Determine who serves the next tiebreak point.
+   *
+   * ITF Rule 27 Appendix: First server plays 1 point; thereafter players
+   * alternate every 2 points (pattern: A→BB→AA→BB→AA→...).
+   *
+   * After n points have been played:
+   *   n=1  → second server (block 0, points 2-3)
+   *   n=2  → second server (still block 0)
+   *   n=3  → first server  (block 1, points 4-5)
+   *   n=4  → first server  (still block 1)
+   *   n=5  → second server (block 2, points 6-7)
+   *   ...
+   */
+  private getNextTiebreakServer(pointsPlayed: number): 'player' | 'opponent' {
+    const firstServer = this.tiebreakFirstServer!;
+    const secondServer: 'player' | 'opponent' = firstServer === 'player' ? 'opponent' : 'player';
+
+    if (pointsPlayed === 0) return firstServer;
+
+    const block = Math.floor((pointsPlayed - 1) / 2);
+    return block % 2 === 0 ? secondServer : firstServer;
+  }
+
+  /**
+   * Check if a tiebreak game has been decided.
+   * ITF Rule 27 Appendix: First to 7 points, must lead by at least 2.
+   */
+  private isTiebreakGameWon(game: { player: number; opponent: number }): boolean {
+    const { player, opponent } = game;
+    return (player >= 7 && player - opponent >= 2) ||
+           (opponent >= 7 && opponent - player >= 2);
+  }
+
+  /**
+   * Check if a tiebreak point is a set/match point.
+   * A tiebreak set point exists when winning the next point would win the tiebreak:
+   *   player_pts >= 6 AND player_pts > opponent_pts
+   */
+  private isTiebreakSetPoint(game: { player: number; opponent: number }, player: 'player' | 'opponent'): boolean {
+    const playerScore = game[player];
+    const opponentScore = game[player === 'player' ? 'opponent' : 'player'];
+    return playerScore >= 6 && playerScore > opponentScore;
   }
 
   /**
@@ -940,23 +1053,31 @@ export class MatchOrchestrator {
   // Helper methods for score checking
 
   private isBreakPoint(score: MatchScore): boolean {
+    // No break points during tiebreaks — both players alternate serving
+    if (score.isTiebreak) return false;
+
     const { currentGame, server } = score;
-    const servingPlayer = server;
     const returningPlayer = server === 'player' ? 'opponent' : 'player';
 
-    // Break point: returner can win the game
+    // Break point: returner is one point from winning the game
     return this.canWinGame(currentGame, returningPlayer);
   }
 
   private isSetPoint(score: MatchScore, player: 'player' | 'opponent'): boolean {
+    // During a tiebreak, a set point is when one more point wins the tiebreak
+    if (score.isTiebreak) {
+      return this.isTiebreakSetPoint(score.currentGame, player);
+    }
+
     const { currentSet, currentGame } = score;
 
-    // Player can win set if they win this game
+    // Player can win set if they win this game.
+    // player_games + 1 >= 6 AND lead by 2 simplifies to:
+    // player_games >= 5 AND player_games > opponent_games
     const gamesNeeded = 6;
     const currentGames = currentSet[player];
     const opponentGames = currentSet[player === 'player' ? 'opponent' : 'player'];
 
-    // Need at least 6 games and 2-game lead (or 7-5, 7-6)
     if (currentGames >= gamesNeeded - 1 && currentGames > opponentGames) {
       return this.canWinGame(currentGame, player);
     }
@@ -1011,13 +1132,11 @@ export class MatchOrchestrator {
   private isSetWon(set: { player: number; opponent: number }): boolean {
     const { player, opponent } = set;
 
-    // Win at 6 games with 2-game lead (e.g., 6-4, 6-3, 6-2, 6-1, 6-0)
+    // ITF Rule 27: win by reaching 6+ games with at least a 2-game lead.
+    // This covers: 6-0, 6-1, 6-2, 6-3, 6-4, and 7-5 (7>=6, margin=2).
+    // Tiebreak completion (7-6) is handled directly in updateScore(), not here.
     if (player >= 6 && player - opponent >= 2) return true;
     if (opponent >= 6 && opponent - player >= 2) return true;
-
-    // Win at 7-6 (after tiebreak at 6-6)
-    // Once either player reaches 7, the set is over
-    if (player === 7 || opponent === 7) return true;
 
     return false;
   }
@@ -1039,17 +1158,28 @@ export class MatchOrchestrator {
       isComplete: false,
       momentum: 0,
       energy: this.matchEnergy,
+      isTiebreak: false,
     };
   }
 
   private formatScore(score: MatchScore): string {
     const sets = score.sets.map(s => `${s.player}-${s.opponent}`).join(', ');
     const current = `${score.currentSet.player}-${score.currentSet.opponent}`;
-    const game = this.formatGameScore(score.currentGame);
+    const game = this.formatGameScore(score.currentGame, score.isTiebreak);
     return `Sets: ${sets || 'none'} | Current: ${current} (${game})`;
   }
 
-  private formatGameScore(game: { player: number; opponent: number }): string {
+  /**
+   * Format the current game score for display.
+   * During tiebreaks, points are shown numerically (0-7+) per ITF rules.
+   * During standard games, points use Love/15/30/40/Deuce/Ad notation.
+   */
+  private formatGameScore(game: { player: number; opponent: number }, isTiebreak?: boolean): string {
+    // Tiebreak: points are raw numbers (ITF Rule 27 Appendix)
+    if (isTiebreak) {
+      return `${game.player}-${game.opponent}`;
+    }
+
     const points = ['0', '15', '30', '40'];
     if (game.player < 3 || game.opponent < 3) {
       return `${points[game.player]}-${points[game.opponent]}`;
@@ -1061,7 +1191,7 @@ export class MatchOrchestrator {
   }
 
   private getSituationDescription(type: KeyMomentType, score: MatchScore): string {
-    const game = this.formatGameScore(score.currentGame);
+    const game = this.formatGameScore(score.currentGame, score.isTiebreak);
     const typeMap: Record<KeyMomentType, string> = {
       'break-point-serve': `Break Point Against - ${game}`,
       'break-point-return': `Break Point For You - ${game}`,

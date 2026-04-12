@@ -318,12 +318,14 @@ export interface SetScore {
 }
 
 /**
- * Tiebreak scoring (if implemented)
+ * Tiebreak game score - recorded on the set when a tiebreak is played.
+ * Points are counted numerically (not 15-30-40).
+ * The loser's score is typically shown in parentheses: e.g., 7-6(4) means loser got 4 points.
  */
 export interface TiebreakScore {
-  server: number;
-  returner: number;
-  winner?: 'server' | 'returner';
+  player: number;    // Tiebreak points won by player
+  opponent: number;  // Tiebreak points won by opponent
+  winner?: 'player' | 'opponent';
 }
 
 /**
@@ -336,6 +338,10 @@ export interface MatchScore {
   isMatchComplete: boolean;
   winner?: 'player' | 'opponent';
   matchFormat: MatchFormat;
+  /** True when a tiebreak game is currently in progress */
+  isTiebreak: boolean;
+  /** Live tiebreak point counts while isTiebreak is true (numeric, not 15-30-40) */
+  currentTiebreak?: { player: number; opponent: number };
 }
 
 /**
