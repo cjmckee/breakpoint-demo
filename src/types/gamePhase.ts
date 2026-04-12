@@ -95,6 +95,8 @@ export interface MatchResultsPhase {
   storyMatchMetadata?: StoryMatchMetadata;
   /** The tournament round index that was just played (before advancing) */
   tournamentRoundPlayed?: number;
+  /** The tournament ID for post-match event lookup (needed when tournament ends mid-match) */
+  tournamentId?: string;
 }
 
 // ============================================================================

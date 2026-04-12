@@ -251,6 +251,24 @@ export const useGameStore = create<GameState>()(
           }
         }
 
+        // Recovery: if tournament is active but no tournament_match is scheduled,
+        // the match scheduling was lost (e.g. browser refresh during opening ceremony).
+        // Re-schedule the next match so the player isn't stuck.
+        const currentState = get();
+        const activeTournament = currentState.calendar.activeTournament;
+        if (activeTournament?.isActive) {
+          const hasTournamentMatch = currentState.calendar.scheduledEvents.some(
+            e => e.eventType === 'tournament_match'
+          );
+          if (!hasTournamentMatch) {
+            console.warn(
+              `[TournamentRecovery] Active tournament "${activeTournament.tournamentName}" ` +
+              `has no scheduled match — scheduling next match now.`
+            );
+            get().scheduleNextTournamentMatch();
+          }
+        }
+
         set({ isInitialized: true });
 
         if (state.player) {
@@ -1138,6 +1156,9 @@ export const useGameStore = create<GameState>()(
             keyMomentHistory: keyMomentHistory || [],
             ...(phase.storyMatchMetadata ? { storyMatchMetadata: phase.storyMatchMetadata } : {}),
             ...(tournamentRoundPlayed !== undefined ? { tournamentRoundPlayed } : {}),
+            ...(matchType === 'tournament' && state.calendar.activeTournament
+              ? { tournamentId: state.calendar.activeTournament.tournamentId }
+              : {}),
           },
         });
 
@@ -1198,72 +1219,74 @@ export const useGameStore = create<GameState>()(
           const { calendar } = state;
           const tournament = calendar.activeTournament;
 
-          if (tournament) {
-            const config = TournamentRegistry.getTournament(tournament.tournamentId);
-            if (config) {
-              // Use the round that was actually played (saved before advancing)
-              const roundPlayed = phase.tournamentRoundPlayed ?? tournament.currentRound;
-              const postMatchEventId = TournamentManager.getPostMatchEventId(config, roundPlayed, result);
-              if (postMatchEventId && state.player) {
-                const event = StoryEventManager.getEligibleEventById(postMatchEventId, state.player, {
+          // Look up config from active tournament or saved tournamentId (tournament may have
+          // ended in completeMatch, setting activeTournament to null before we get here)
+          const tournamentId = tournament?.tournamentId ?? phase.tournamentId;
+          const config = tournamentId ? TournamentRegistry.getTournament(tournamentId) : null;
+
+          if (config) {
+            // Use the round that was actually played (saved before advancing)
+            const roundPlayed = phase.tournamentRoundPlayed ?? tournament?.currentRound ?? 0;
+            const postMatchEventId = TournamentManager.getPostMatchEventId(config, roundPlayed, result);
+            if (postMatchEventId && state.player) {
+              const event = StoryEventManager.getEligibleEventById(postMatchEventId, state.player, {
+                completedStoryEvents: state.completedStoryEvents,
+                completedStoryEventChoices: state.completedStoryEventChoices,
+                relationships: state.relationships,
+                calendar: state.calendar,
+                activeTournament: tournament,
+              });
+              if (event) {
+                const availableOptions = PrerequisiteChecker.getAvailableOptions(event, state.player, {
                   completedStoryEvents: state.completedStoryEvents,
                   completedStoryEventChoices: state.completedStoryEventChoices,
                   relationships: state.relationships,
                   calendar: state.calendar,
                   activeTournament: tournament,
                 });
-                if (event) {
-                  const availableOptions = PrerequisiteChecker.getAvailableOptions(event, state.player, {
+
+                // If this was a loss that moved the player to consolation bracket,
+                // chain the elimination event as a continuation after the round's loss event
+                let continuation: PhaseContinuation = { type: 'idle' };
+                if (result === 'loss' && tournament?.currentBracket === 'loser' && config.eliminationEventId) {
+                  const eliminationEvent = StoryEventManager.getEligibleEventById(config.eliminationEventId, state.player, {
                     completedStoryEvents: state.completedStoryEvents,
                     completedStoryEventChoices: state.completedStoryEventChoices,
                     relationships: state.relationships,
                     calendar: state.calendar,
                     activeTournament: tournament,
                   });
-
-                  // If this was a loss that moved the player to consolation bracket,
-                  // chain the elimination event as a continuation after the round's loss event
-                  let continuation: PhaseContinuation = { type: 'idle' };
-                  if (result === 'loss' && tournament.currentBracket === 'loser' && config.eliminationEventId) {
-                    const eliminationEvent = StoryEventManager.getEligibleEventById(config.eliminationEventId, state.player, {
+                  if (eliminationEvent) {
+                    const eliminationOptions = PrerequisiteChecker.getAvailableOptions(eliminationEvent, state.player, {
                       completedStoryEvents: state.completedStoryEvents,
                       completedStoryEventChoices: state.completedStoryEventChoices,
                       relationships: state.relationships,
                       calendar: state.calendar,
                       activeTournament: tournament,
                     });
-                    if (eliminationEvent) {
-                      const eliminationOptions = PrerequisiteChecker.getAvailableOptions(eliminationEvent, state.player, {
-                        completedStoryEvents: state.completedStoryEvents,
-                        completedStoryEventChoices: state.completedStoryEventChoices,
-                        relationships: state.relationships,
-                        calendar: state.calendar,
-                        activeTournament: tournament,
-                      });
-                      continuation = { type: 'story_event', event: eliminationEvent, availableOptions: eliminationOptions };
-                    }
+                    continuation = { type: 'story_event', event: eliminationEvent, availableOptions: eliminationOptions };
                   }
-
-                  set({
-                    gamePhase: {
-                      type: 'story_event',
-                      event,
-                      availableOptions,
-                      continuation,
-                    },
-                  });
-                  // Schedule next tournament match if tournament still active
-                  if (calendar.activeTournament) {
-                    get().scheduleNextTournamentMatch();
-                  }
-                  return;
                 }
-              }
 
-              // Schedule next tournament match if tournament still active
-              if (calendar.activeTournament) {
-                get().scheduleNextTournamentMatch();
+                set({
+                  gamePhase: {
+                    type: 'story_event',
+                    event,
+                    availableOptions,
+                    continuation,
+                  },
+                });
+                // Schedule next tournament match if tournament still active
+                if (calendar.activeTournament) {
+                  get().scheduleNextTournamentMatch();
+                }
+                return;
               }
+            }
+
+            // Schedule next tournament match if tournament still active
+            if (calendar.activeTournament) {
+              get().scheduleNextTournamentMatch();
             }
           }
 
