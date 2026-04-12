@@ -5,7 +5,7 @@
  * Adjust these values to fine-tune match realism and difficulty.
  */
 
-import type { ShotType, CourtPosition } from '../types/index.js';
+import type { ShotType, CourtPosition, CourtSurface } from '../types/index.js';
 
 /**
  * Relative quality requirements for each shot type
@@ -173,6 +173,30 @@ export const OPPONENT_STAT_ADJUSTMENTS = {
   defensive: 0.25,   // Defensive stat makes winners harder (increased from 0.10)
   speed: 0.25,       // Speed helps cover court (increased from 0.10)
   return: 0.20,      // Return stat makes aces harder, serves only (increased from 0.15)
+};
+
+/**
+ * Shooter stat adjustments
+ *
+ * How the SHOOTER's own stats reduce incoming shot difficulty.
+ * Formula: (shooterStat - 50) × multiplier, subtracted from inPlay requirement.
+ *
+ * Example: shooter anticipation 90 → (90-50) × 0.15 = -6 to threshold (easier to keep in play)
+ * Example: shooter anticipation 10 → (10-50) × 0.15 = +6 to threshold (harder)
+ */
+export const SHOOTER_STAT_ADJUSTMENTS = {
+  anticipation: 0.15,  // Reading the incoming ball makes responding easier
+};
+
+/**
+ * Shot quality modifiers for the targeted mental-stat bonuses.
+ * Applied inside calculateMentalModifier.
+ */
+export const MENTAL_SHOT_BONUSES = {
+  /** Tactical-shot bonus range from shotVariety stat: 0.95 → 1.10 over 0-100 */
+  variety: { base: 0.95, perStat: 0.15 / 100 },
+  /** Defensive-shot bonus range from defensive stat: 1.00 → 1.10 over 0-100 */
+  defense: { base: 1.00, perStat: 0.10 / 100 },
 };
 
 /**
@@ -475,3 +499,90 @@ export const PRESSURE_BANK = {
   /** Decay multiplier per point */
   decay: 0.90,
 };
+
+// =======================
+// COURT SURFACE EFFECTS
+// =======================
+
+/**
+ * How each court surface changes simulation mechanics.
+ *
+ * - serveQualityMultiplier:       multiplies final serve quality (>1 = serves more dominant)
+ * - rallyPaceMultiplier:          multiplies final rally-shot quality (>1 = shots penetrate more)
+ * - netApproachBonus:             multiplicative nudge on ShotSelector.shouldApproachNet probability
+ * - defensiveAdjustmentMultiplier: scales OPPONENT_STAT_ADJUSTMENTS.defensive impact in calculateQualityRequirements
+ * - returnAdjustmentMultiplier:   scales the return-based ace threshold bump in determineServeOutcome
+ */
+export interface SurfaceEffects {
+  serveQualityMultiplier: number;
+  rallyPaceMultiplier: number;
+  netApproachBonus: number;
+  defensiveAdjustmentMultiplier: number;
+  returnAdjustmentMultiplier: number;
+}
+
+export const SURFACE_EFFECTS: Record<CourtSurface, SurfaceEffects> = {
+  // Baseline — reference balance that existing tuning is calibrated against.
+  hard: {
+    serveQualityMultiplier: 1.00,
+    rallyPaceMultiplier: 1.00,
+    netApproachBonus: 0.00,
+    defensiveAdjustmentMultiplier: 1.00,
+    returnAdjustmentMultiplier: 1.00,
+  },
+  // Slow surface: serves weaker, rallies longer, defense rewarded, net play risky.
+  clay: {
+    serveQualityMultiplier: 0.94,
+    rallyPaceMultiplier: 0.97,
+    netApproachBonus: -0.35,
+    defensiveAdjustmentMultiplier: 1.25,
+    returnAdjustmentMultiplier: 1.15,
+  },
+  // Fast surface: serves dominant, rallies shorter, net play rewarded, defense less effective.
+  grass: {
+    serveQualityMultiplier: 1.05,
+    rallyPaceMultiplier: 1.03,
+    netApproachBonus: 0.40,
+    defensiveAdjustmentMultiplier: 0.85,
+    returnAdjustmentMultiplier: 0.85,
+  },
+  // Also fast but slightly toned down from grass.
+  carpet: {
+    serveQualityMultiplier: 1.04,
+    rallyPaceMultiplier: 1.02,
+    netApproachBonus: 0.25,
+    defensiveAdjustmentMultiplier: 0.90,
+    returnAdjustmentMultiplier: 0.90,
+  },
+};
+
+// =======================
+// SHOT TYPE HELPERS
+// =======================
+
+/**
+ * Shot types that express tactical creativity (drop, angle, lob, passing).
+ * Targeted by shotVariety bonus in calculateMentalModifier.
+ */
+export function isTacticalShot(shotType: ShotType): boolean {
+  const s = shotType.toString();
+  return (
+    s.includes('drop_shot') ||
+    s.includes('angle_shot') ||
+    s.includes('lob') ||
+    s.includes('passing_shot')
+  );
+}
+
+/**
+ * Shot types that are fundamentally defensive (slice, lob, defensive_*).
+ * Targeted by defensive stat bonus in calculateMentalModifier.
+ */
+export function isDefensiveShot(shotType: ShotType): boolean {
+  const s = shotType.toString();
+  return (
+    s.includes('slice') ||
+    s.includes('lob') ||
+    s.includes('defensive_')
+  );
+}

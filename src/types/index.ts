@@ -118,6 +118,7 @@ export interface ShotContext {
   pressure: 'low' | 'medium' | 'high';
   courtPosition: 'baseline' | 'net' | 'defensive';
   rallyLength: number;
+  courtSurface: CourtSurface;
 }
 
 // =======================
