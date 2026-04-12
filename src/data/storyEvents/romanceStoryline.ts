@@ -143,7 +143,7 @@ export const romanceEvents: StoryEvent[] = [
         emoji: '😏',
         description: 'Take a little off and let Alex be the star',
         outcome: {
-          resultText: ['You don\'t want to steal anyone\'s thunder, and ', { characterId: 'alex_romance' }, ' takes NO mercy on you. They start pushing you all over the court and even land a tweener to further embarass you. The kids love it and think ', {characterId: 'alex_romance'}, ' is the best coach ever. You manage to crack a smile even catching wind. Alex has a smile you\'d trade it all for.'],
+          resultText: ['You don\'t want to steal anyone\'s thunder, and ', { characterId: 'alex_romance' }, ' takes NO mercy on you. They start pushing you all over the court and even land a tweener to further embarrass you. The kids love it and think ', {characterId: 'alex_romance'}, ' is the best coach ever. You manage to crack a smile even catching wind. Alex has a smile you\'d trade it all for.'],
           effects: {
             statChanges: { return: 1, defensive: 2, shotVariety: 1 },
             moodChange: 25,

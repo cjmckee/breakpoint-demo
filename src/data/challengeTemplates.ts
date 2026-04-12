@@ -777,13 +777,13 @@ export const CHALLENGE_TRICK_SHOT_MASTER: ChallengeTemplate = {
 export const CHALLENGE_DOUBLES_INSTINCTS: ChallengeTemplate = {
   id: 'challenge_doubles_instincts',
   name: 'Doubles Instincts',
-  description: "Adapting to Jordan's chaos sharpened your net game. Reach 35 Volley.",
+  description: "Adapting to Jordan's chaos sharpened your net game. Reach 45 Volley.",
   requirements: [
     {
       type: 'statThreshold',
       statName: 'volley',
-      targetValue: 35,
-      description: 'Reach 35 Volley',
+      targetValue: 45,
+      description: 'Reach 45 Volley',
     },
   ],
   reward: {

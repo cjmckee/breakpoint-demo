@@ -116,7 +116,7 @@ export const rivalEvents: StoryEvent[] = [
 
   {
     id: 'rival_doubles_disaster',
-    name: 'Forced Partners [AI-gen]', // TODO: Complete this event
+    name: 'Forced Partners',
     tags: ['rival', 'conflict', 'misc'],
     timeSlotsRequired: 2,
     prerequisites: {
@@ -126,17 +126,17 @@ export const rivalEvents: StoryEvent[] = [
     description: "Coach Gonzalez assigns you and Jordan as doubles partners for a drill. This is not going to be fun.",
     dialogue: [
       ['coach_gonzalez', ["I'm pairing you with Jordan today. You will play doubles. You will communicate. You will not kill each other. These are not suggestions."]],
-      ['jordan_rival', ["...This is beneath me."]],
+      ['jordan_rival', ["...This is beneath me. If you get in my way even once, I swear..."]],
     ],
     characters: ['coach_gonzalez', 'jordan_rival'],
     options: [
       {
-        id: 'call_them_out',
-        text: 'Call Jordan out loudly',
+        id: 'win_without_them',
+        text: 'Try to win without them',
         emoji: '📣',
-        description: 'Make it very clear whose ball that was',
+        description: 'Focus on yourself and let Jordan embarrass themselves',
         outcome: {
-          resultText: ['Jordan poaches your third return of the set. You stop the point mid-rally. "That was mine," you say clearly, calmly, and at full volume. Every pair on the neighboring courts pauses. ', { characterId: 'jordan_rival' }, ' freezes. ', { characterId: 'coach_gonzalez' }, ' watches from the sideline with an expression you can\'t quite read. Jordan doesn\'t poach again. Small victories.'],
+          resultText: ['You control what you can control. Every few shots, ', { characterId: 'jordan_rival' }, ' comes flying in to take a ball that should be yours. They hit it out. ', { characterId: 'coach_gonzalez' }, ' tells them not to swing at volleys. Small victories.'],
           effects: {
             statChanges: { offensive: 2, return: 1, strength: 1 },
             moodChange: 15,
@@ -149,9 +149,9 @@ export const rivalEvents: StoryEvent[] = [
         id: 'adapt_your_game',
         text: 'Adapt your game around them',
         emoji: '🧩',
-        description: 'Work with what you have',
+        description: 'Try to play around Jordan',
         outcome: {
-          resultText: ['Jordan will poach everything. Fine. You start hitting angles that don\'t go through the middle. You cover their lapses in coverage. You play two courts by yourself, essentially. It\'s the most exhausting drill of your life and somehow extremely useful. Your court awareness is noticeably sharper.'],
+          resultText: ['You end up needing to play a lot stronger defense to support Jordan, but it turns into a fun challenge. Exhausting, but fun.'],
           effects: {
             statChanges: { defensive: 2, return: 2, anticipation: 2 },
             moodChange: 10,
@@ -172,7 +172,7 @@ export const rivalEvents: StoryEvent[] = [
         emoji: '🎯',
         description: 'Purely accidental, of course',
         outcome: {
-          resultText: ['A high return comes back right down the middle - technically Jordan\'s ball, technically yours too. You go for it. Aggressively. The two of you collide in the most spectacular doubles confusion ', { characterId: 'coach_gonzalez' }, ' has ever witnessed. He makes a note in his clipboard. You choose not to ask what the note says. The competitive fire is absolutely real.'],
+          resultText: ['Towards the end of the drill, you get a slowly bouncing ball at the baseline and decide to take a very healthy swing. It "accidentally" catches them square in the butt and they jump about six feet straight in the air. That one is going to leave a bruise.'],
           effects: {
             statChanges: { offensive: 3, speed: 1, agility: 1 },
             moodChange: 20,
@@ -186,7 +186,7 @@ export const rivalEvents: StoryEvent[] = [
 
   {
     id: 'rival_jordan_humbled',
-    name: 'A Different Side [AI-gen]', // TODO: Complete this event
+    name: 'A Different Side',
     tags: ['rival', 'conflict', 'decision'],
     timeSlotsRequired: 1,
     prerequisites: {
@@ -206,7 +206,7 @@ export const rivalEvents: StoryEvent[] = [
         emoji: '🤝',
         description: 'Be the bigger person',
         outcome: {
-          resultText: ['After the match, you walk over and say something simple. "Good fight." ', { characterId: 'jordan_rival' }, ' looks at you like you\'ve grown a second head. The silence stretches for several seconds. Then they say: "...yeah." That\'s it. That\'s the whole interaction. Something has shifted, though. You can feel it.'],
+          resultText: ['After the match, you walk over and say something simple. "Good fight." ', { characterId: 'jordan_rival' }, ' looks at you with contempt. You continue: "I\'ve seen him do worse to even tournament champions." That seems to soften Jordan up a little.'],
           effects: {
             statChanges: { focus: 2, defensive: 2, recovery: 1 },
             moodChange: 20,
@@ -221,7 +221,7 @@ export const rivalEvents: StoryEvent[] = [
         emoji: '🚶',
         description: 'Let them have their moment',
         outcome: {
-          resultText: ['You have nothing to say, so you say nothing. ', { characterId: 'jordan_rival' }, ' is still staring at their racquet when you pass. You give them the same courtesy they\'ve never given you: space. It feels good, actually. Clean. Your focus returns to your own game.'],
+          resultText: ['You have nothing to say, so you say nothing. ', { characterId: 'jordan_rival' }, ' is still staring at their racquet when you pass. The understanding is clear, and no need to rub it in. Your focus returns to your own game.'],
           effects: {
             statChanges: { focus: 2, anticipation: 1 },
             moodChange: 10,
@@ -236,7 +236,7 @@ export const rivalEvents: StoryEvent[] = [
         emoji: '😈',
         description: 'They had it coming',
         outcome: {
-          resultText: ['You stop. You look at the scoreboard. You look at ', { characterId: 'jordan_rival' }, '. "Tough day," you say, with a smile that doesn\'t reach your eyes. They look up. You walk away before they can respond. It feels incredible for approximately thirty seconds, then kind of hollow. Still pretty worth it. Your competitive aggression is absolutely alive.'],
+          resultText: ['You stop. You look at the scoreboard. You look at ', { characterId: 'jordan_rival' }, '. "At least he was nice enough to give you a free lesson." They look up. You walk away before they can respond. Your competitive fire is still alive.'],
           effects: {
             statChanges: { offensive: 2, serve: 1 },
             moodChange: 10,
@@ -250,7 +250,7 @@ export const rivalEvents: StoryEvent[] = [
 
   {
     id: 'rival_unexpected_respect',
-    name: 'Grudging Respect [AI-gen]', // TODO: Complete this event
+    name: 'Unexpected Rival Respect',
     tags: ['rival'],
     timeSlotsRequired: 1,
     prerequisites: {
@@ -262,12 +262,12 @@ export const rivalEvents: StoryEvent[] = [
     description: "Jordan approaches you with something unusual: a compliment.",
     dialogue: [
       ['jordan_rival', ["I'm not going to make a big thing out of this. You've gotten better. That's all. Don't read into it."]],
-      ['jordan_rival', ["I said don't read into it."]],
+      ['jordan_rival', ['I\'m proud of how far you\'ve come. But only because it reminds me that I\'ve come even further. So don\'t get such a big ego about it.']],
     ],
     characters: ['jordan_rival'],
     options: [],
     defaultOutcome: {
-      resultText: [{ characterId: 'jordan_rival' }, ' walks away before you can respond. You stand there for a moment processing what just happened. Fifteen wins, a lot of hard work, and your rival has finally acknowledged - through clenched teeth and squinted eyes - that you are improving. You\'re not sure if this is the beginning of a rivalry or the beginning of something else. Either way, it feels like a milestone.'],
+      resultText: [{ characterId: 'jordan_rival' }, ' walks away before you can respond. You stand there for a moment processing what just happened. You\'re not sure if this is the beginning of a rivalry or the beginning of something else. Either way, it feels like a milestone.'],
       effects: {
         statChanges: { focus: 3, anticipation: 2, offensive: 1 },
         moodChange: 25,
