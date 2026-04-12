@@ -24,9 +24,9 @@ import { Modal } from './ui/Modal';
 // ---------------------------------------------------------------------------
 const GISCUS_CONFIG = {
   repo: 'cjmckee/breakpoint-demo',
-  repoId: 'REPLACE_WITH_REPO_ID',
+  repoId: 'R_kgDOQQI31w',
   category: 'General',
-  categoryId: 'REPLACE_WITH_CATEGORY_ID',
+  categoryId: 'DIC_kwDOQQI3184C6sQg',
   mapping: 'pathname',
   strict: '0',
   reactionsEnabled: '1',
