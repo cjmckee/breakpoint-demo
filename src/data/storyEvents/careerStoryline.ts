@@ -137,8 +137,8 @@ export const careerEvents: StoryEvent[] = [
     description: 'Your first team match is announced.',
     dialogue: [
       [null, ['After practice wraps up, the floodlights go dim and you find everyone huddled around a single bulletin board.']],
-      ['keith', ['It\'s about time! I can finally snap my ten match losing streak. ', {characterId: 'greg'}, ' has been giving me the business.']],
-      [null, [{characterId: 'greg'}, ' seemed unaware they were counting those matches. You turn to the board. The posting reads: "Academy Club Team vs Aspen Slopes Academy - Home Match"']],
+      ['keith', ['It\'s about time! We\'re finally playing our first match!']],
+      [null, ['You turn to the board. The posting reads: "Academy Club Team vs Aspen Slopes Academy - Home Match"']],
       ['jen', ['Aspen Slopes? They\'re a combo skiing and tennis academy further up the mountains. Notoriously snobby.']],
       ['coach_gonzalez', ['They practice at a higher altitude than we do, which gives them an advantage when it comes to endurance.']],
       ['coach_gonzalez', ['You can check the lineup as well. ', {characterId: 'player'}, ', you\'ll be playing in the four spot. Kid\'s name is ', {characterId: 'chet_vale'}, '.']],
@@ -788,12 +788,12 @@ export const careerEvents: StoryEvent[] = [
   },
 
   // ==========================================
-  // Team Match #4: Portside Maritime Academy
+  // Team Match #4: Sunset Drive Retirement Home
   // ==========================================
 
   {
     id: 'fourth_team_match_scheduled',
-    name: 'Fourth Team Match Announced [AI-gen]', // TODO: Complete this event
+    name: 'Fourth Team Match Announced',
     tags: ['team'],
     timeSlotsRequired: 0,
     prerequisites: {
@@ -802,20 +802,21 @@ export const careerEvents: StoryEvent[] = [
     skippable: false,
     description: 'Your fourth team match is announced.',
     dialogue: [
-      [null, ['The bulletin board has a new match posted. You read it twice to make sure you haven\'t misunderstood.']],
-      ['keith', ['"Portside Maritime Academy." Do they... do they have courts on a boat?']],
-      ['jen', ['No, they have a naval curriculum that includes tennis. They believe racquet sports build spatial awareness for navigation.']],
-      ['greg', ['I heard their courts are painted with latitude lines.']],
-      ['coach_gonzalez', ['They use a lot of cross-court angles and they communicate exclusively in nautical terms. It will sound like gibberish but don\'t be fooled - they\'re extremely well-coached.']],
-      ['coach_gonzalez', [{characterId: 'player'}, ', you\'ve got ', {characterId: 'captain_wade'}, '. He\'s their top singles player. Very consistent from the baseline, plays like he\'s got all day and the tide is with him.']],
-      ['keith', ['What does that even MEAN though.']],
-      ['coach_gonzalez', ['I don\'t know. But he wins.']],
+      [null, ['You bring your attention to the bulletin board. Instead of a match schedule, today it looks more like an advert for an old folks home.']],
+      ['keith', ['I don\'t get it. Where\'s the lineup?']],
+      ['coach_gonzalez', ['This IS the lineup. We\'ve got our toughest match yet: Sunset Drive Retirement Home.']],
+      ['coach_gonzalez', ['What they lack in movement and muscle mass, they make up for in experience. LOTS of experience.']],
+      ['greg', ['My grandma lives at Sunset Drive... when she told me the tennis there was good, I just thought her mind was starting to go.']],
+      ['jen', ['Actually, it looks like that\'s who you\'ll be playing, ', {characterId: 'greg'}, '! ', {characterId: 'player'}, ', it looks like you\'ll be up against ', {characterId: 'reginald_werther'}, '.']],
+      ['keith', ['Where are they finding names like this? He must be 100 years old!']],
+      ['coach_gonzalez', ['He\'s the 1921 junior Wimbledon champion. His father, Regingigas Werther, is the 1821 junior Wimbledon champion. History is funny.']]
     ],
     characters: ['keith', 'jen', 'greg', 'coach_gonzalez'],
     options: [],
     defaultOutcome: {
       resultText: [
-        'Portside Maritime Academy. You look up what a "fathom" is. You\'re not sure it helps.',
+        'You\'re all ready to go for your next match against Sunset Drive. You definitely shouldn\'t take them lightly, even though every one of them has replacement hips.',
+        'You can see ', {characterId: 'keith'}, ' trying to count on his hands how long ago the 1920s were. You choose not to think about it.'
       ],
       effects: {
         moodChange: 5,
@@ -823,6 +824,7 @@ export const careerEvents: StoryEvent[] = [
         relationshipChanges: {
           jen: 1,
           greg: 1,
+          keith: 1,
           coach_gonzalez: 2,
         },
         scheduledEvents: [
@@ -831,8 +833,8 @@ export const careerEvents: StoryEvent[] = [
             relativeDays: 2,
             scheduledTimeSlot: 1, // AFTERNOON
             metadata: {
-              opponentId: 'captain_wade',
-              opponentName: 'Captain Wade Heron',
+              opponentId: 'reginald_werther',
+              opponentName: 'Reginald Werther',
               opponentStats: {
                 technical: {
                   serve: 46,
@@ -862,13 +864,13 @@ export const careerEvents: StoryEvent[] = [
                 },
               },
               opponentTier: 1,
-              opponentDescription: 'A steady, patient player from Portside Maritime Academy who communicates entirely in nautical jargon',
+              opponentDescription: 'A steady, patient player from Sunset Drive. He won tournaments 100 years before you were born.',
               prematchEventId: 'fourth_team_match_prematch',
               winEventId: 'fourth_team_match_win',
               lossEventId: 'fourth_team_match_loss',
               surface: 'hard',
               matchFormat: 'best-of-1',
-              matchTitle: 'Team Match: Riverside vs Portside Maritime',
+              matchTitle: 'Team Match: Riverside vs Sunset Drive Retirement Home',
               matchDescription: 'Your fourth official team match',
             },
           },
@@ -879,38 +881,37 @@ export const careerEvents: StoryEvent[] = [
 
   {
     id: 'fourth_team_match_prematch',
-    name: 'Before the Match [AI-gen]', // TODO: Complete this event
+    name: 'Before the Match',
     tags: ['story_match', 'team'],
     timeSlotsRequired: 0,
     prerequisites: {
       completedEvents: ['fourth_team_match_scheduled'],
     },
     skippable: false,
-    description: 'The Portside Maritime Academy team arrives for your fourth team match.',
+    description: 'The Sunset Drive Retirement Home team arrives for your fourth team match.',
     dialogue: [
-      [null, ['The Portside team arrives in matching navy-and-white uniforms. They walk in single file. There is unnecessary precision to all of this.']],
-      ['captain_wade', ['Permission to take court four, Coach?']],
-      [null, ['He\'s talking to their own coach, who responds: "Permission granted, Captain."']],
-      ['keith', ['He called himself Captain. His name is Captain. They call him Captain. Is he actually a captain?']],
-      ['jen', ['He runs the tennis program AND the school\'s sailing club. So. Sort of.']],
-      ['captain_wade', ['Ah. You must be my port-side adversary today. Good winds to you.']],
-      [null, ['He looks you up and down like he\'s assessing sea conditions.']],
-      ['captain_wade', ['I\'ve reviewed your stats. Your starboard game is strong, but I\'ll be cutting off your windward lane and forcing you aft. Nothing personal. Just navigation.']],
-      ['keith', ['I understood "your" and "just." The rest is noise.']],
-      ['coach_gonzalez', ['He means he\'s going to push you back and wide to your backhand side. Keep your feet moving or he\'ll have you on the ropes. ...Or the ropes. Whatever they say.']],
+      [null, ['A long, non-descript bus pulls up to the courts. The doors swing open.']],
+      [null, ['At first, nothing. Then the oldest people you\'ve ever seen begin to slowly make their way down the ramp.']],
+      ['keith', ['Well this is going to be a breeze! These people can barely move.']],
+      [null, ['As if on cue, those same players who could barely walk a second ago are now completely decked out in knee braces, elbow sleeves, and goggles.']],
+      [null, ['They start to stretch and warm up. They\'re practically bionic at this point and they look surprisingly limber.']],
+      ['reginald_werther', ['You must be my opponent. I love to see the younger generation get involved in the sport I love.']],
+      ['reginald_werther', ['But I hate seeing them win. So good luck.']],
+      ['jen', ['I think our best bet is to drag these matches out as long as possible. Once any match hits their 4pm dinner time, they get hangry.']],
+      ['coach_gonzalez', ['Plus, if you manage to drag the match out long enough, they may have to default a court due to natural causes.']]
     ],
-    characters: ['keith', 'jen', 'coach_gonzalez', 'captain_wade'],
+    characters: ['keith', 'jen', 'coach_gonzalez', 'reginald_werther'],
     options: [],
     defaultOutcome: {
       resultText: [
-        'You head to the court. ', {characterId: 'captain_wade'}, ' is already there, checking the net tension with practiced precision.',
-        'He checks it twice. You\'re not sure why, but it starts to seem reasonable.',
+        'You head to the court. ', {characterId: 'reginald_werther'}, ' is already there, reading his novel on the bench.',
+        'He takes off his reading goggles and swaps to his playing goggles. At least three generations of Werthers are cheering him on from the stands.',
       ],
       effects: {
-        moodChange: -5,
-        energyChange: -5,
+        moodChange: 5,
+        energyChange: 5,
         relationshipChanges: {
-          captain_wade: 2,
+          reginald_werther: 2,
         },
       }
     }
@@ -918,7 +919,7 @@ export const careerEvents: StoryEvent[] = [
 
   {
     id: 'fourth_team_match_win',
-    name: 'Victory! [AI-gen]', // TODO: Complete this event
+    name: 'Victory!',
     tags: ['story_match', 'team'],
     timeSlotsRequired: 0,
     prerequisites: {
@@ -927,22 +928,20 @@ export const careerEvents: StoryEvent[] = [
     skippable: false,
     description: 'You win your fourth team match!',
     dialogue: [
-      ['captain_wade', ['Man overboard! ...Figuratively. That is to say, I have lost this match.']],
-      [null, [{characterId: 'captain_wade'}, ' approaches the net with a measured hand shake. He\'s clearly not used to this particular outcome.']],
-      ['captain_wade', ['You cut off my windward lane before I could establish it. I should have tacked earlier. Well sailed.']],
-      ['keith', ['He said "well sailed"! You didn\'t even sail anything!']],
-      ['jen', ['I think it\'s the highest compliment he gives.']],
-      ['captain_wade', ['Your anchor point on the forehand side became impossible to navigate around after the fifth game. I\'ll chart this for future expeditions.']],
-      [null, ['He pulls out a small notebook and actually writes something down. You wonder if this is how he reviews all his matches.']],
-      ['coach_gonzalez', ['You stayed disciplined and kept him guessing. Really strong performance today.']],
-      [null, ['Riverside wins the overall team match. Keith wins his court, which he announces to everyone still on the premises.']],
+      [null, [{characterId: 'reginald_werther'}, ' musters up the last of his strength to dive for the final shot. It passes him for a winner.']],
+      [null, ['He looks exhausted, but a genuine smile crosses his face as he walks up to the net.']],
+      ['reginald_werther', ['Amazing play out there kid. You make me feel 80 again. I had a blast playing out those rallies!']],
+      ['reginald_werther', ['But don\'t think you\'ve seen the last of me or my family. Keep an eye out for my own sons, Reginice, Reginsteel, and Reginrock. They\'re legendary players.']],
+      ['coach_gonzalez', ['That was a great win! Their coach requested that we get all these matches done before their 7 pm bedtime, so I appreciate you moving quick.']],
+      ['keith', ['Well now we can move down to court 4 where ', {characterId: 'greg'}, ' is down a break to his grandma. Hurry!']]
     ],
-    characters: ['keith', 'jen', 'coach_gonzalez', 'captain_wade'],
+    characters: ['keith', 'coach_gonzalez', 'reginald_werther'],
     options: [],
     defaultOutcome: {
       resultText: [
-        'You\'ve navigated to victory. ', {characterId: 'captain_wade'}, ' files a small chart in his notebook and shakes your hand one final time before the team departs.',
-        'He sends you a very formal handwritten note the next day. It references your "port-side forehand trajectory" three times.',
+        'You found a way to outlast the Sunset Drive team, as Riverside gets the clean sweep. Still, these old folks put on quite the performance.',
+        'You imagine yourself playing in the 75+ division when you get older. Both players huffing and puffing, smashing the ball as hard as they can, only for it to look like oversized ping pong.',
+        'We should all be so lucky.'
       ],
       effects: {
         moodChange: 25,
@@ -951,7 +950,7 @@ export const careerEvents: StoryEvent[] = [
           keith: 3,
           jen: 2,
           coach_gonzalez: 3,
-          captain_wade: 2,
+          reginald_werther: 2,
         },
         statChanges: {
           placement: 3,
@@ -965,7 +964,7 @@ export const careerEvents: StoryEvent[] = [
 
   {
     id: 'fourth_team_match_loss',
-    name: 'A Tough Loss [AI-gen]', // TODO: Complete this event
+    name: 'A Tough Loss',
     tags: ['team'],
     timeSlotsRequired: 0,
     prerequisites: {
@@ -975,21 +974,20 @@ export const careerEvents: StoryEvent[] = [
     skippable: false,
     description: 'You lose your fourth team match.',
     dialogue: [
-      ['captain_wade', ['Land ho. Match point. Well competed.']],
-      [null, [{characterId: 'captain_wade'}, ' meets you at the net. His handshake is firm. He\'s already got the notebook out.']],
-      ['captain_wade', ['You overcomplicated your approach in the second set. You tried to find the deep water when the coast was right in front of you.']],
-      [null, ['You nod like you understood that.']],
+      [null, ['You sprint side to side, chasing down slice after slice, but eventually your legs give out and the last shot slides past you.']],
+      [null, [{characterId: 'reginald_werther'}, ' meets you at the net. His handshake is firm. He\'s tired but you can tell he has more in the tank.']],
+      ['reginald_werther', ['Thanks for putting on a good show, kid. I had a lot of fun. ']],
+      ['reginald_werther', ['You should practice with my sons. They\'re about your age, and you could learn a lot from them. Keep an eye out for Reginice, Reginsteel, and Reginrock.']],
       ['jen', ['You had your moments out there. He just found answers every time you pushed.']],
-      ['keith', ['He kept saying things that sounded like directions and I still can\'t figure out if it was trash talk or not.']],
+      ['keith', ['It felt like he wasn\'t really moving, and yet everywhere you tried, he was there. His family was also very nice to me.']],
       ['coach_gonzalez', ['You played well enough to win. Today he was just a little better. Learn from it and bring it next time.']],
-      [null, ['Riverside wins the team match overall. ', {characterId: 'captain_wade'}, ' charts that too, presumably.']],
     ],
-    characters: ['keith', 'jen', 'coach_gonzalez', 'captain_wade'],
+    characters: ['keith', 'jen', 'coach_gonzalez', 'reginald_werther'],
     options: [],
     defaultOutcome: {
       resultText: [
-        'You lost your match, but Riverside won overall.',
-        'You find yourself briefly wondering what a "windward lane" is. You look it up. It doesn\'t help as much as you hoped.',
+        'You lost your match, but Riverside manages to win overall.',
+        'By the time the final match was ending, most of the Sunset Drive players had fallen asleep. I suppose this is why these matches are scheduled for the afternoon.',
       ],
       effects: {
         moodChange: -10,
@@ -998,7 +996,7 @@ export const careerEvents: StoryEvent[] = [
           keith: 2,
           jen: 2,
           coach_gonzalez: 2,
-          captain_wade: 3,
+          reginald_werther: 3,
         },
         statChanges: {
           placement: 2,
@@ -1010,12 +1008,12 @@ export const careerEvents: StoryEvent[] = [
   },
 
   // ==========================================
-  // Team Match #5: Sunridge Napping Institute
+  // Team Match #5: Dobry Pomidor Culinary Institute
   // ==========================================
 
   {
     id: 'fifth_team_match_scheduled',
-    name: 'Fifth Team Match Announced [AI-gen]', // TODO: Complete this event
+    name: 'Fifth Team Match Announced',
     tags: ['team'],
     timeSlotsRequired: 0,
     prerequisites: {
@@ -1024,22 +1022,23 @@ export const careerEvents: StoryEvent[] = [
     skippable: false,
     description: 'Your fifth team match is announced.',
     dialogue: [
-      [null, ['A new posting goes up on the bulletin board. There is already a piece of paper attached to it that reads "wake us up if this is important."']],
-      ['jen', ['Sunridge Napping Institute. They\'re a sleep science research school. Their tennis team is ranked second in the division.']],
-      ['keith', ['Behind us??']],
-      ['jen', ['Behind us.']],
-      ['greg', ['I heard they do all their tactical preparation during REM sleep. Allegedly their coach just reads match footage out loud while they nap.']],
-      ['coach_gonzalez', ['Don\'t underestimate them. They have an incredible ability to conserve energy during long points. You won\'t be able to wear them down. They\'re immune to it.']],
-      ['coach_gonzalez', [{characterId: 'player'}, ', your opponent is ', {characterId: 'dozy_mcdonnell'}, '. He\'s won three consecutive matches this season and reportedly fell briefly asleep during a changeover in two of them.']],
-      ['keith', ['That CANNOT be real.']],
-      ['coach_gonzalez', ['He woke up and won both matches. I don\'t know what to tell you.']],
+      [null, ['A new posting goes up on the bulletin board. It has stains from oil and what seems to be some kind of tomato sauce.']],
+      ['jen', ['Dobry Pomidor Culinary Institute. They have a world-renowned cooking program. Their head chef is from somewhere in eastern Europe.']],
+      ['jen', ['Their tennis team is ranked second in the division.']],
+      ['keith', ['Behind us?']],
+      ['jen', ['Behind us. If we can close this out, we\'ll be a lock for playoffs.']],
+      ['coach_gonzalez', ['They\'re talented cooks, and it transfers over to their slice skills. This team also has some big servers.']],
+      ['sasha', ['I checked their records and they\'ve been handing out lots of bagels and breadsticks to their opponents.']],
+      ['keith', ['That\'s so nice of them... I wonder what bread they use?']],
+      ['coach_gonzalez', ['Looks like you\'ll be playing their top chef and singles player, ', {characterId: 'olivia_gulp'}, '. She\'s been winning tournaments AND cooking competitions.']],
+      ['coach_gonzalez', ['Try to attack on serve return. After she hits a fault, she usually follows it up with a pancake serve.']]
     ],
-    characters: ['keith', 'jen', 'greg', 'coach_gonzalez'],
+    characters: ['keith', 'jen', 'sasha', 'coach_gonzalez'],
     options: [],
     defaultOutcome: {
       resultText: [
-        'Sunridge Napping Institute. You try to look up their recent results. Their team website hasn\'t been updated in several months.',
-        'The last entry says "good naps had by all." Then there\'s nothing.',
+        'Dobry Pomidor Culinary Institute. They\'re top-notch in the kitchen and on the court. You need to get another win to ensure your team makes the playoffs.',
+        {characterId: 'sasha'}, ' is still desperately trying to confirm that ', {characterId: 'keith'}, ' didn\'t think she was talking about real bagels. The result is unclear.'
       ],
       effects: {
         moodChange: 5,
@@ -1055,8 +1054,8 @@ export const careerEvents: StoryEvent[] = [
             relativeDays: 2,
             scheduledTimeSlot: 1, // AFTERNOON
             metadata: {
-              opponentId: 'dozy_mcdonnell',
-              opponentName: 'Dozy McDonnell',
+              opponentId: 'olivia_gulp',
+              opponentName: 'Olivia Gulp',
               opponentStats: {
                 technical: {
                   serve: 48,
@@ -1086,13 +1085,13 @@ export const careerEvents: StoryEvent[] = [
                 },
               },
               opponentTier: 1,
-              opponentDescription: 'A deceptively relaxed player from Sunridge Napping Institute with extraordinary stamina and recovery',
+              opponentDescription: 'A talented chef with a variety of skills on the court. If you can\'t take the heat, you could get burned.',
               prematchEventId: 'fifth_team_match_prematch',
               winEventId: 'fifth_team_match_win',
               lossEventId: 'fifth_team_match_loss',
               surface: 'clay',
               matchFormat: 'best-of-1',
-              matchTitle: 'Team Match: Riverside vs Sunridge Napping Institute',
+              matchTitle: 'Team Match: Riverside vs Dobry Pomidor Culinary Institute',
               matchDescription: 'Your fifth official team match',
             },
           },
@@ -1103,37 +1102,35 @@ export const careerEvents: StoryEvent[] = [
 
   {
     id: 'fifth_team_match_prematch',
-    name: 'Before the Match [AI-gen]', // TODO: Complete this event
+    name: 'Before the Match',
     tags: ['story_match', 'team'],
     timeSlotsRequired: 0,
     prerequisites: {
       completedEvents: ['fifth_team_match_scheduled'],
     },
     skippable: false,
-    description: 'The Sunridge Napping Institute team arrives for your fifth team match.',
+    description: 'The Dobry Pomidor Culinary Institute team arrives for your fifth team match.',
     dialogue: [
-      [null, ['The Sunridge minivan pulls up to the courts. Nothing happens for a moment. Then, very slowly, the side door slides open.']],
-      [null, ['The Sunridge players step out one by one, each carrying a small travel pillow. Two of them are already wearing eye masks on their foreheads. One appears to still be asleep.']],
-      ['keith', ['Is he sleepwalking to court? He\'s sleepwalking to court.']],
-      ['jen', ['Apparently they nap on all road trips. It\'s part of their pre-match routine.']],
-      [null, ['A figure ambles over to you. He has the eyes of someone who just woke up and the posture of someone who might go back to sleep.']],
-      ['dozy_mcdonnell', ['Oh. You\'re my match. Great. ', '*yawns*', ' Sorry, just finishing a dream. Good one too.']],
-      ['dozy_mcdonnell', ['Don\'t worry about me. I\'ll be fully awake by the third game. Probably. I had a lot of chamomile last night.']],
-      [null, ['He does a slow neck roll, closes his eyes for four full seconds, then opens them again. He looks... ready?']],
-      ['coach_gonzalez', ['DO NOT fall for it. The sleepiness is either real and completely irrelevant, or fake and extremely manipulative. Either way you need to play your best tennis.']],
+      [null, ['A large food truck flies down the street and screeches to a halt outside the courts.']],
+      [null, ['All the Dobry Pomidor players hop out of the truck and grab a piping hot meal from their chef. They are ready to go.']],
+      ['keith', ['I\'m just now realizing I forgot to eat lunch.']],
+      ['jen', ['Consider yourself lucky. Today was sloppy joe day.']],
+      ['coach_gonzalez', ['I think once the matches start, I can sneak myself a nice ham and cheese.']],
+      ['olivia_gulp', ['You must be my opponent. I had my dessert midterms this morning, so hopefully I can re-focus.']],
+      ['olivia_gulp', ['You should try one of these. I made us pastries that are supposed to taste like opening a fresh tennis ball can!']]
     ],
-    characters: ['keith', 'jen', 'coach_gonzalez', 'dozy_mcdonnell'],
+    characters: ['keith', 'jen', 'coach_gonzalez', 'olivia_gulp'],
     options: [],
     defaultOutcome: {
       resultText: [
-        {characterId: 'dozy_mcdonnell'}, ' yawns one more time, tucks his travel pillow under his arm, and ambles to the baseline.',
-        'You feel weirdly sleepy just watching him.',
+        {characterId: 'olivia_gulp'}, ' has a full snack bar set up for changeovers. You\'re starting to get a little hungry.',
+        'It\'s surprising and a little offputting how much those pastries taste like tennis ball cans. You like it, though.',
       ],
       effects: {
-        moodChange: -5,
-        energyChange: -5,
+        moodChange: 5,
+        energyChange: 5,
         relationshipChanges: {
-          dozy_mcdonnell: 1,
+          olivia_gulp: 1,
         },
       }
     }
@@ -1141,7 +1138,7 @@ export const careerEvents: StoryEvent[] = [
 
   {
     id: 'fifth_team_match_win',
-    name: 'Victory! [AI-gen]', // TODO: Complete this event
+    name: 'Victory!',
     tags: ['story_match', 'team'],
     timeSlotsRequired: 0,
     prerequisites: {
@@ -1151,30 +1148,29 @@ export const careerEvents: StoryEvent[] = [
     description: 'You win your fifth team match!',
     dialogue: [
       [null, ['Your final shot clips the line. You pump your fist.']],
-      [null, [{characterId: 'dozy_mcdonnell'}, ' watches it land, tilts his head, and then nods slowly.']],
-      ['dozy_mcdonnell', ['Huh. Good match. You were relentless. I\'m impressed. Also exhausted. That\'s very rare for me.']],
-      [null, ['He shakes your hand with a surprisingly firm grip.']],
-      ['dozy_mcdonnell', ['I\'m going to think about that backhand winner while I fall asleep tonight. That\'s the highest praise I give.']],
-      ['keith', ['He looks half asleep RIGHT NOW and he just played the best tennis I\'ve ever seen. I have so many questions about human biology.']],
-      ['jen', ['You really pushed the pace early before he could settle in. Really smart game plan.']],
-      ['coach_gonzalez', ['That was a mature performance. You identified his strength and played around it. That\'s the mark of a real competitor.']],
-      [null, ['Riverside wins the team match! ', {characterId: 'dozy_mcdonnell'}, ' is already asleep in the back of the minivan before it even leaves the parking lot.']],
+      [null, [{characterId: 'olivia_gulp'}, ' watches it land, tilts her head, and then nods slowly.']],
+      ['olivia_gulp', ['Good match. You were relentless. I\'m impressed. Also exhausted. That\'s very rare for me.']],
+      [null, ['She shakes your hand with a surprisingly firm grip, and a real fire in her eyes.']],
+      ['olivia_gulp', ['I\'m going to think about that match for a while. The next time we play, I\'ll serve you up some breadsticks for real!']],
+      ['keith', ['I hope she keeps the snack stand open. She has pretty good prices on hot dogs.']],
+      ['jen', ['Another big win! You\'ve really been improving. You\'ve been helping the team big time!']],
+      ['coach_gonzalez', ['It\'s been a while since I\'ve seen you perform that well all around. I\'ll see if we can bump up the team food budget.']],
     ],
-    characters: ['keith', 'jen', 'coach_gonzalez', 'dozy_mcdonnell'],
+    characters: ['keith', 'jen', 'coach_gonzalez', 'olivia_gulp'],
     options: [],
     defaultOutcome: {
       resultText: [
-        'A well-earned win. You out-hustled one of the most relaxed humans you\'ve ever met.',
-        'Jen says that counts double.',
+        'A well-earned win. You hustled hard and attacked her weaknesses. Riverside closes out the team match a few minutes later. The Dobry Pomidor team lets you join for a cookout after.',
+        'You learn at least six different grilling techniques you didn\'t know about until now. You head home with a full belly.'
       ],
       effects: {
         moodChange: 30,
-        energyChange: -25,
+        energyChange: 25,
         relationshipChanges: {
           keith: 3,
           jen: 3,
           coach_gonzalez: 3,
-          dozy_mcdonnell: 2,
+          olivia_gulp: 2,
         },
         statChanges: {
           stamina: 3,
@@ -1189,7 +1185,7 @@ export const careerEvents: StoryEvent[] = [
 
   {
     id: 'fifth_team_match_loss',
-    name: 'A Tough Loss [AI-gen]', // TODO: Complete this event
+    name: 'A Tough Loss',
     tags: ['team'],
     timeSlotsRequired: 0,
     prerequisites: {
@@ -1199,22 +1195,20 @@ export const careerEvents: StoryEvent[] = [
     skippable: false,
     description: 'You lose your fifth team match.',
     dialogue: [
-      [null, ['The match ends. ', {characterId: 'dozy_mcdonnell'}, ' seemed to grow more alert as the match went on, which felt deeply unfair.']],
-      ['dozy_mcdonnell', ['Good match. You pushed me further than most. I was actually awake for the whole thing, which is... unusual.']],
-      [null, ['He pats you on the shoulder on the way to the net. Genuinely kind.']],
-      ['dozy_mcdonnell', ['Rest more before your matches. I mean this professionally. Sleep is the original performance enhancer.']],
-      [null, ['He gives you a business card. It just reads "Sleep Well." with a phone number. No name. No logo.']],
-      ['jen', ['You competed really hard out there. He just had an answer for everything.']],
-      ['keith', ['I still cannot believe you lost to a guy who looked like he was about to ask for a bedtime story.']],
-      ['coach_gonzalez', ['That recovery stat of his is no joke. You need to sharpen up your ability to put points away early. Don\'t let him settle.']],
-      [null, ['Riverside wins the team match overall. ', {characterId: 'dozy_mcdonnell'}, ' is asleep before the handshake line finishes.']],
+      [null, ['The match ends. ', {characterId: 'olivia_gulp'}, ' seemed to get better as the match went on, and you couldn\'t handle the heat.']],
+      [null, [{characterId: 'olivia_gulp'}, ' approaches you at the net. She still has a little gas left.']],
+      ['olivia_gulp', ['That was a great match! You really pushed me hard, but in the end it was the slices that came out on top!']],
+      ['olivia_gulp', ['Not only that, but I\'m a better chef than tennis player. You\'ll have to come out to one of the Dobry Pomidor invitationals and I\'ll get you a plate.']],
+      ['coach_gonzalez', ['It was a great effort out there, but you got thoroughly cooked. Fried. Toasted.']],
+      ['keith', ['Shredded. Torched.']],
+      ['jen', ['Mashed.']],
     ],
-    characters: ['keith', 'jen', 'coach_gonzalez', 'dozy_mcdonnell'],
+    characters: ['keith', 'jen', 'coach_gonzalez', 'olivia_gulp'],
     options: [],
     defaultOutcome: {
       resultText: [
-        'You lost to Dozy McDonnell. Riverside still won the team match overall.',
-        'You go to bed earlier than usual that night. The business card is on your nightstand.',
+        'Your performance was a little underbaked, but Riverside still won the team match overall.',
+        'All these cooking jokes are starting to make you hungry. You hope the Taco Barn is still open when you get back.',
       ],
       effects: {
         moodChange: -10,
@@ -1223,7 +1217,7 @@ export const careerEvents: StoryEvent[] = [
           keith: 2,
           jen: 2,
           coach_gonzalez: 2,
-          dozy_mcdonnell: 3,
+          olivia_gulp: 3,
         },
         statChanges: {
           stamina: 2,
