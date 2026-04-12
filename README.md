@@ -2,6 +2,12 @@
 
 A stat-based tennis career simulation where you rise from club player to elite champion. Train your skills, compete in tournaments, build relationships, and make choices that shape your career — all driven by transparent, stat-based match simulation.
 
+
+
+https://github.com/user-attachments/assets/89e2e7da-4380-474b-b45c-0763cf81c882
+
+
+
 ## How to Play
 
 ### The Daily Loop
