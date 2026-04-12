@@ -76,6 +76,7 @@ export const PlayerCreation: React.FC = () => {
               placeholder="Enter your name..."
               className="w-full px-4 py-3 bg-pixel-bg border-4 border-pixel-border text-pixel-text text-lg focus:border-pixel-accent focus:outline-none"
               maxLength={20}
+              autoComplete="off"
               required
             />
           </div>

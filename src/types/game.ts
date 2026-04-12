@@ -434,6 +434,7 @@ export interface Player {
   equippedItems: Record<EquipmentSlot, Item | null>;  // 4 equipment slots
   storyItems: Item[];  // Story items (no limit, don't count toward inventory)
   nextActivityBuffs: Modifiers | null;  // Temporary buffs from consumables
+  seenItemIds: string[];  // Item IDs the player has viewed in inventory
 
   level: number;
   experience: number;

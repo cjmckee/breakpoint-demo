@@ -93,7 +93,12 @@ export const CourtVisualization: React.FC<CourtVisualizationProps> = ({
     opponent: score.sets.filter(s => s.opponent > s.player).length,
   };
 
+  const isTiebreak = score.isTiebreak ?? false;
+
   const formatGamePoints = (points: number, opponentPoints: number): string => {
+    // Tiebreak: numeric scoring (0, 1, 2, 3, ...)
+    if (isTiebreak) return String(points);
+
     const labels = ['0', '15', '30', '40'];
     if (points < 3 || opponentPoints < 3) return labels[Math.min(points, 3)] ?? '0';
     // Both at 40+: deuce / advantage
@@ -126,7 +131,11 @@ export const CourtVisualization: React.FC<CourtVisualizationProps> = ({
           <div className="text-xs text-pixel-text-muted mb-1">
             {courtSurface.charAt(0).toUpperCase() + courtSurface.slice(1)} Court
           </div>
-          <div className="text-lg font-semibold text-pixel-text">Set Score</div>
+          {isTiebreak ? (
+            <div className="text-lg font-semibold text-pixel-warning">Tiebreak</div>
+          ) : (
+            <div className="text-lg font-semibold text-pixel-text">Set Score</div>
+          )}
         </div>
 
         <div className="text-center flex-1">

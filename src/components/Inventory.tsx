@@ -37,6 +37,7 @@ export const Inventory: React.FC = () => {
   const unequipItem = useGameStore((state) => state.unequipItem);
   const useConsumable = useGameStore((state) => state.useConsumable);
   const trashItem = useGameStore((state) => state.trashItem);
+  const markItemSeen = useGameStore((state) => state.markItemSeen);
 
   const [modal, setModal] = useState<ModalState>({ item: null, slot: null, showSwapOptions: false });
 
@@ -71,8 +72,9 @@ export const Inventory: React.FC = () => {
     closeModal();
   };
 
-  // Click on an inventory item - show details modal
+  // Click on an inventory item - show details modal and mark as seen
   const handleItemClick = (item: Item) => {
+    markItemSeen(item.id);
     setModal({ item, slot: item.equipmentSlot ?? null, showSwapOptions: false });
   };
 
@@ -80,6 +82,7 @@ export const Inventory: React.FC = () => {
   const handleSlotClick = (slot: EquipmentSlot) => {
     const equippedItem = player.equippedItems[slot];
     if (equippedItem) {
+      markItemSeen(equippedItem.id);
       // Show equipped item details with swap option
       setModal({ item: equippedItem, slot, showSwapOptions: false });
     } else {
@@ -94,6 +97,10 @@ export const Inventory: React.FC = () => {
     return player.equippedItems[item.equipmentSlot]?.id === item.id;
   };
 
+  const isItemNew = (item: Item): boolean => {
+    return !(player.seenItemIds ?? []).includes(item.id);
+  };
+
   const renderItemCard = (item: Item, isEquipped = false, onClick?: () => void) => {
     const typeColors: Record<string, string> = {
       equipment: 'bg-blue-600',
@@ -103,15 +110,21 @@ export const Inventory: React.FC = () => {
     };
 
     const isSelected = modal.item?.id === item.id;
+    const isNew = isItemNew(item);
 
     return (
       <div key={item.id} onClick={onClick ?? (() => handleItemClick(item))}>
         <Card
           padding="sm"
-          className={`cursor-pointer hover:border-pixel-accent transition-colors ${
+          className={`cursor-pointer hover:border-pixel-accent transition-colors relative ${
             isSelected ? 'border-pixel-accent border-4' : ''
           }`}
         >
+          {isNew && (
+            <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white text-xs font-bold flex items-center justify-center rounded-full animate-bounce">
+              !
+            </div>
+          )}
           <div className="text-center">
             <div className="text-3xl mb-1">
               {item.equipmentSlot ? SLOT_ICONS[item.equipmentSlot] : item.type === 'consumable' ? '💊' : '✨'}

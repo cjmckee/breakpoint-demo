@@ -52,6 +52,13 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const dismissOverlay = useGameStore((state) => state.dismissOverlay);
   const dismissStoryEventResult = useGameStore((state) => state.dismissStoryEventResult);
 
+  // Check for unseen items in inventory
+  const hasUnseenItems = player ? [
+    ...player.inventory,
+    ...Object.values(player.equippedItems).filter((i): i is NonNullable<typeof i> => i !== null),
+    ...player.storyItems,
+  ].some((item) => !(player.seenItemIds ?? []).includes(item.id)) : false;
+
   // Check if it's night time - only rest/next day action allowed
   const isNightTime = calendar.currentTimeSlot === TimeSlot.NIGHT;
 
@@ -342,7 +349,14 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
             return (
               <Card key={activity.id} padding="md" className={`flex flex-col ${isNightTime && (isRestButton || isInventoryButton) ? 'night-exempt' : ''}`}>
                 <div className="text-center mb-4">
-                  <div className="text-6xl mb-3">{activity.emoji}</div>
+                  <div className="text-6xl mb-3 relative inline-block">
+                    {activity.emoji}
+                    {activity.id === 'inventory' && hasUnseenItems && (
+                      <span className="absolute -top-2 -right-4 w-6 h-6 bg-red-500 text-white text-xs font-bold flex items-center justify-center rounded-full animate-bounce">
+                        !
+                      </span>
+                    )}
+                  </div>
                   <h2 className="text-lg lg:text-2xl font-bold text-pixel-text mb-2 truncate">
                     {activity.title}
                   </h2>

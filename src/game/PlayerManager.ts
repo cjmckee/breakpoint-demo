@@ -61,6 +61,7 @@ export class PlayerManager {
       },
       storyItems: [],
       nextActivityBuffs: null,
+      seenItemIds: [],
 
       level: 1,
       experience: 0,

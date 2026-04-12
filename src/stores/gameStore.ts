@@ -136,6 +136,7 @@ interface GameState {
   swapEquipment: (itemId: string, slot: EquipmentSlot) => void;
   useConsumable: (itemId: string) => void;
   trashItem: (itemId: string) => void;
+  markItemSeen: (itemId: string) => void;
   getPlayerItems: () => Item[];
 
   // Tournament actions
@@ -2123,6 +2124,18 @@ export const useGameStore = create<GameState>()(
 
         const updatedPlayer = ItemManager.trashItem(player, itemId);
         set({ player: updatedPlayer });
+      },
+
+      markItemSeen: (itemId: string) => {
+        const { player } = get();
+        if (!player || (player.seenItemIds ?? []).includes(itemId)) return;
+
+        set({
+          player: {
+            ...player,
+            seenItemIds: [...(player.seenItemIds ?? []), itemId],
+          },
+        });
       },
 
       // Get all player items
