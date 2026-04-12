@@ -43,7 +43,7 @@ export const tournamentEvents: StoryEvent[] = [
             ['jordan_rival', ['Hey ', {characterId: 'player'}, ', I\'m here to wish you good luck.']],
             ['jordan_rival', ['Not because I like you, but because we\'re on opposite sides of the bracket.']],
             ['jordan_rival', ['I need you to play your best so I can be the one to put you down in the finals. See you there!']],
-            ['keith', ['You\'ll both need the luck. I play ', {characterId: 'player'}, ' in round 1. He\'s toast anyway.']],
+            ['keith', ['You\'ll both need the luck. I play ', {characterId: 'player'}, ' in round 1. They\'re toast anyway.']],
             ['jordan_rival', ['I don\'t even know who you are.']],
             [null, ['A loudspeaker crackles to life and the announcer booms, "Welcome one and all to the annual Riverside Open! Let\'s get ready to see some tennis!"']],
         ],

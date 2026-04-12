@@ -279,7 +279,7 @@ export const CourtVisualization: React.FC<CourtVisualizationProps> = ({
           <div className="flex justify-between items-center mb-1">
             <span className="text-xs font-medium text-pixel-text-muted">Momentum</span>
             <span className="text-xs text-pixel-text-muted">
-              {momentum > 0 ? '+' : ''}{momentum}
+              {momentum > 0 ? '+' : ''}{Math.round(momentum)}
             </span>
           </div>
           <div className="w-full bg-pixel-secondary rounded-full h-2 relative">
