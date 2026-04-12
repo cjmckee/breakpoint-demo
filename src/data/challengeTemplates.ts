@@ -692,8 +692,9 @@ export const CHALLENGE_PRACTICE_MAKES_PERFECT: ChallengeTemplate = {
   reward: {
     modifiers: {
       statBoosts: {
-        return: 3,
+        speed: 3,
         anticipation: 3,
+        slice: 2
       },
     },
     relationshipChanges: {
@@ -710,20 +711,21 @@ export const CHALLENGE_PRACTICE_MAKES_PERFECT: ChallengeTemplate = {
 export const CHALLENGE_SIBLING_TEACHER: ChallengeTemplate = {
   id: 'challenge_sibling_teacher',
   name: 'Best in the Family',
-  description: 'You started teaching your sibling. Finish the job by mastering placement yourself. Reach 35 Placement.',
+  description: 'You started teaching your sibling. Finish the job by mastering placement yourself. Reach 50 Placement.',
   requirements: [
     {
       type: 'statThreshold',
       statName: 'placement',
-      targetValue: 35,
-      description: 'Reach 35 Placement',
+      targetValue: 50,
+      description: 'Reach 50 Placement',
     },
   ],
   reward: {
     modifiers: {
       statBoosts: {
-        placement: 3,
+        focus: 3,
         spin: 2,
+        strength: 2
       },
     },
     relationshipChanges: {
@@ -740,19 +742,19 @@ export const CHALLENGE_SIBLING_TEACHER: ChallengeTemplate = {
 export const CHALLENGE_TRICK_SHOT_MASTER: ChallengeTemplate = {
   id: 'challenge_trick_shot_master',
   name: 'Trick Shot Master',
-  description: "Coach Gonzalez made a bet on you. Don't embarrass him. Reach 30 Drop Shot and 30 Shot Variety.",
+  description: "Coach Gonzalez believes you can learn some flashy moves. Don't embarrass him. Reach 40 Drop Shot and 45 Shot Variety.",
   requirements: [
     {
       type: 'statThreshold',
       statName: 'dropShot',
-      targetValue: 30,
-      description: 'Reach 30 Drop Shot',
+      targetValue: 40,
+      description: 'Reach 40 Drop Shot',
     },
     {
       type: 'statThreshold',
       statName: 'shotVariety',
-      targetValue: 30,
-      description: 'Reach 30 Shot Variety',
+      targetValue: 45,
+      description: 'Reach 45 Shot Variety',
     },
   ],
   reward: {

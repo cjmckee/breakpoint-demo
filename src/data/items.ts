@@ -417,6 +417,20 @@ export const SUPER_ENERGY_GEL: Item = {
   },
 };
 
+export const GRANDMAS_LUCKY_COOKIES: Item = {
+  id: 'grandmas_lucky_cookies',
+  name: "Grandma's Lucky Cookies",
+  description: 'A tin of homemade cookies. Somehow they taste exactly like confidence.',
+  type: 'consumable',
+  consumableEffect: {
+    type: 'instant',
+    instantEffects: {
+      energyChange: 20,
+      moodChange: 15,
+    },
+  },
+};
+
 // ============================================================================
 // CONSUMABLES - NEXT ACTIVITY
 // ============================================================================
@@ -710,6 +724,21 @@ export const LUCKY_SPROUT: Item = {
       defensive: 2,
       anticipation: 2,
       placement: 2
+    }
+  }
+}
+
+export const LUCKY_JACKET: Item = {
+  id: 'lucky_jacket',
+  name: 'Lucky Ski Jacket',
+  description: 'One of your parents left you this retro jacket. You think they were going to donate it, but now it\'s yours.',
+  type: 'lucky',
+  modifiers: {
+    statBoosts: {
+      speed: 2,
+      focus: 2,
+      overhead: 1,
+      spin: 2
     }
   }
 }

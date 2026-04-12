@@ -200,7 +200,7 @@ export const coachEvents: StoryEvent[] = [
   },
 
   {
-    id: 'coach_video_analysis [AI-gen]', // TODO: Complete this event
+    id: 'coach_video_analysis',
     name: 'The Film Room',
     tags: ['coach', 'training', 'decision'],
     timeSlotsRequired: 2,
@@ -212,7 +212,7 @@ export const coachEvents: StoryEvent[] = [
     description: 'Coach Gonzalez has prepared hours of match footage for you to analyze.',
     dialogue: [
       ['coach_gonzalez', ["I've compiled twelve hours of footage from your last eight matches, your opponents, and three professionals with similar playing styles. We'll cover it all today."]],
-      ['coach_gonzalez', ["No, I'm not joking."]],
+      ['coach_gonzalez', ["No, I'm not joking. Sit down. At least I brought snacks this time."]],
     ],
     characters: ['coach_gonzalez'],
     options: [
@@ -222,7 +222,7 @@ export const coachEvents: StoryEvent[] = [
         emoji: '👀',
         description: 'Every minute of it',
         outcome: {
-          resultText: ['Three hours in, you\'re still laser focused. ', { characterId: 'coach_gonzalez' }, ' looks genuinely startled when you start pointing out patterns before he does. You notice tendencies in your own game you\'d never seen before. Your anticipation and return positioning are sharper almost immediately.'],
+          resultText: ['Three hours in, you\'re still laser focused. ', { characterId: 'coach_gonzalez' }, ' looks genuinely startled when you start pointing out patterns before he does. He falls asleep, but you soldier on. You notice tendencies in your own game you\'d never seen before. Your anticipation and return positioning are sharper almost immediately.'],
           effects: {
             statChanges: { anticipation: 3, return: 2, placement: 2 },
             moodChange: 10,
@@ -237,11 +237,11 @@ export const coachEvents: StoryEvent[] = [
         emoji: '😴',
         description: 'You tried your best',
         outcome: {
-          resultText: ['You make it forty-seven minutes before your eyes start to close. When ', { characterId: 'coach_gonzalez' }, ' asks what you think of a particular rally, you say "very tactical" with a confidence that surprises even you. He seems satisfied. You absorbed more than you realized.'],
+          resultText: ['You make it forty-seven minutes before your eyes start to close. You realize this is about two minutes longer than ', { characterId: 'coach_gonzalez' }, '. You watch for a few more minutes and suddenly you noticed a footwork mistake you could clean up. You absorbed more than you realized.'],
           effects: {
             statChanges: { anticipation: 1, return: 1, focus: 1 },
             moodChange: 5,
-            energyChange: 5,
+            energyChange: 25,
             relationshipChanges: { coach_gonzalez: 5 },
           },
         },
@@ -252,7 +252,7 @@ export const coachEvents: StoryEvent[] = [
         emoji: '🙋',
         description: 'Make the most of it',
         outcome: {
-          resultText: ['You pause the footage approximately forty times to ask follow-up questions. ', { characterId: 'coach_gonzalez' }, '\'s expression cycles from irritated to thoughtfully engaged to something resembling respect. You don\'t finish the footage. You do, however, understand your game better than ever.'],
+          resultText: ['You pause the footage approximately forty times to ask follow-up questions. ', { characterId: 'coach_gonzalez' }, ' eventually takes the remote away from you. You don\'t finish the footage. You do, however, understand your game better than ever.'],
           effects: {
             statChanges: { return: 3, anticipation: 2, defensive: 2 },
             moodChange: 15,
@@ -266,7 +266,7 @@ export const coachEvents: StoryEvent[] = [
 
   {
     id: 'coach_secret_past',
-    name: "Coach's Grand Slam Secret [AI-gen]", // TODO: Complete this event
+    name: "Coach's Grand Slam Secret",
     tags: ['coach'],
     timeSlotsRequired: 1,
     prerequisites: {
@@ -277,12 +277,14 @@ export const coachEvents: StoryEvent[] = [
     description: 'Coach Gonzalez accidentally reveals more about his past than he intended.',
     dialogue: [
       ['coach_gonzalez', ["When I was at the Open - I mean, when I watched the Open on television - I noticed..."]],
-      ['coach_gonzalez', ["...I played in it. Fine. I played in it. Quarterfinals. Don't make it weird."]],
+      [null, ['You realize that for as much as Coach talks, you never heard much about their pro days.']],
+      ['coach_gonzalez', ["Alright, look. I played in it. In fact, I played in all the majors. Fine. The furthest I ever made it was the quarterfinals, but I never had enough to take it further."]],
+      ['coach_gonzalez', ['I really should be charging more for your lessons.']]
     ],
     characters: ['coach_gonzalez'],
     options: [],
     defaultOutcome: {
-      resultText: ['The story comes out in pieces. ', { characterId: 'coach_gonzalez' }, ' reached the quarterfinals of a Grand Slam at age 24. A knee injury in the fifth set ended his run and eventually his career. He was ranked 38th in the world. He has never told any of his other students. You sit with that for a moment. When you ask why he became a coach, he looks at the courts for a long time and says: "Someone had to deal with people like you."'],
+      resultText: ['The story comes out in pieces. ', { characterId: 'coach_gonzalez' }, ' reached the quarterfinals of a Grand Slam at age 24. A knee injury in the fifth set ended his run and eventually his career. It\'s still a pinnacle of tennis that only a select few will ever reach. So no matter how crazy he seems, you decide it\'s best to listen to Coach.'],
       effects: {
         statChanges: { focus: 3, offensive: 2, serve: 1 },
         moodChange: 20,
@@ -294,17 +296,17 @@ export const coachEvents: StoryEvent[] = [
 
   {
     id: 'coach_trick_shot_challenge',
-    name: 'The Bet [AI-gen]', // TODO: Complete this event
+    name: 'The Trick Shot',
     tags: ['coach', 'training', 'decision'],
     timeSlotsRequired: 2,
     prerequisites: {
       completedEvents: ['coach_video_analysis'],
     },
     skippable: true,
-    description: 'Coach Gonzalez made a bet that you could pull off an around-the-net trick shot.',
+    description: 'The Academy News wants to run a segment on the tennis team. They asked for a trick shot clip to put on TV.',
     dialogue: [
-      ['coach_gonzalez', ["So I may have told Coach Reyes that you could hit an around-the-net winner by end of week."]],
-      ['coach_gonzalez', ["She bet me lunch. I need lunch. So you need to do this."]],
+      ['coach_gonzalez', ["So I may have told the Academy News that you could hit an around-the-net winner by end of practice."]],
+      ['coach_gonzalez', ['They paid me in lunch, and I already ate that lunch. So I really need you to come through here.']],
     ],
     characters: ['coach_gonzalez'],
     options: [
@@ -317,7 +319,7 @@ export const coachEvents: StoryEvent[] = [
           stats: { shotVariety: { min: 20 } },
         },
         outcome: {
-          resultText: ['You spend an entire session doing nothing but around-the-net attempts. Most go into the net. Some fly wide. One hits ', { characterId: 'coach_gonzalez' }, ' in the shin. But by the end, you\'re threading it clean. ', { characterId: 'coach_gonzalez' }, ' calls Coach Reyes immediately. "She saw it," he reports. "She says it doesn\'t count because you\'re \'too short.\'" He is absolutely going to win this eventually.'],
+          resultText: ['You spend the entire session doing nothing but around-the-net attempts. Most go into the net. Some fly wide. One hits ', { characterId: 'coach_gonzalez' }, ' in the shin. But by the end, you\'re threading it clean.'],
           effects: {
             statChanges: { dropShot: 3, shotVariety: 3, placement: 2 },
             moodChange: 20,
@@ -338,7 +340,7 @@ export const coachEvents: StoryEvent[] = [
         emoji: '🤞',
         description: 'How hard can it be',
         outcome: {
-          resultText: ['You decide you can probably just feel your way through this. Spoiler: you cannot. You hit the net 14 times, clip the post twice, and on your final attempt the ball bounces off the frame in a direction no one predicted, rolls across two courts, and stops at Coach Reyes\' feet. She looks at it. She looks at you. She starts laughing. ', { characterId: 'coach_gonzalez' }, ' says this counts. Your instincts, at least, are sharpening.'],
+          resultText: ['You decide you can probably just feel your way through this. Spoiler: you cannot. You hit the net 14 times, clip the post twice, and on your final attempt the ball bounces off the frame in a direction no one predicted, rolls across two courts, and stops at ', { characterId: 'coach_gonzalez' }, '\'s feet. They may need to repay that lunch. Your instincts, at least, are sharpening.'],
           effects: {
             statChanges: { dropShot: 1, shotVariety: 2, overhead: 1 },
             moodChange: 10,
@@ -349,11 +351,11 @@ export const coachEvents: StoryEvent[] = [
       },
       {
         id: 'negotiate_terms',
-        text: 'Renegotiate the bet',
+        text: 'Renegotiate the request',
         emoji: '🤝',
         description: 'Surely there are other options',
         outcome: {
-          resultText: ['"What if I hit a between-the-legs shot instead?" you suggest. ', { characterId: 'coach_gonzalez' }, ' stares at you. "That\'s harder," he says. "I know," you say. You\'re not sure why you said that. You practice it anyway. You don\'t land it clean, but you get close enough that ', { characterId: 'coach_gonzalez' }, ' seems impressed in an exasperated way. The lunch bet remains unresolved.'],
+          resultText: ['You manage to negotiate with the photographer to let you take a picture your way. You decide the best way to drum up interest for the tennis team is a beach photoshoot. ', {characterId: 'coach_gonzalez'}, ' seems to have no issue with the change in plans, and grabs his swim trunks as well.'],
           effects: {
             statChanges: { shotVariety: 3, agility: 2, overhead: 1 },
             moodChange: 15,
