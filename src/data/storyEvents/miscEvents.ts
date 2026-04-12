@@ -479,12 +479,12 @@ export const miscEvents: StoryEvent[] = [
         dialogue: [
             ['jen', ['Beach day! Who\'s ready for some volleyball?']],
             ['keith', ['I bought the biggest net they had at the store!']],
-            ['austin', ['Uh, ', {characterId: 'keith'}, ', that\'s a fishing net. And a huge one at that.']],
+            ['max', ['Uh, ', {characterId: 'keith'}, ', that\'s a fishing net. And a huge one at that.']],
             [null, ['Fortunately, there are public nets available.']],
             [null, ['You quickly realize that spiking a volleyball is surprisingly similar to hitting an overhead smash.']],
             [null, ['Turns out some of your teammates are pretty good!']]
         ],
-        characters: ['jen', 'keith', 'austin'],
+        characters: ['jen', 'keith', 'max'],
         options: [],
         defaultOutcome: {
             resultText: [
@@ -502,7 +502,7 @@ export const miscEvents: StoryEvent[] = [
                 relationshipChanges: {
                     jen: 3,
                     keith: 3,
-                    austin: 3
+                    max: 3
                 }
             },
             challengesAssigned: [

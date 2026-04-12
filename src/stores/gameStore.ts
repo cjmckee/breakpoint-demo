@@ -1218,137 +1218,56 @@ export const useGameStore = create<GameState>()(
         if (matchType === 'tournament') {
           const { calendar } = state;
           const tournament = calendar.activeTournament;
+          const tournamentEnded = !tournament;
 
           // Look up config from active tournament or saved tournamentId (tournament may have
           // ended in completeMatch, setting activeTournament to null before we get here)
           const tournamentId = tournament?.tournamentId ?? phase.tournamentId;
           const config = tournamentId ? TournamentRegistry.getTournament(tournamentId) : null;
 
-          if (config) {
-            // Use the round that was actually played (saved before advancing)
+          if (config && state.player) {
+            const storyContext = {
+              completedStoryEvents: state.completedStoryEvents,
+              completedStoryEventChoices: state.completedStoryEventChoices,
+              relationships: state.relationships,
+              calendar: state.calendar,
+              activeTournament: tournament,
+            };
+
+            // Build an ordered chain of events to show:
+            //   1. Post-match round event (e.g. "riverside_r1_loss")
+            //   2. Completion event if tournament ended (victory / elimination)
+            const eventChain: Array<{ event: StoryEvent; availableOptions: StoryEventOption[] }> = [];
+
+            // --- Post-match round event ---
             const roundPlayed = phase.tournamentRoundPlayed ?? tournament?.currentRound ?? 0;
             const postMatchEventId = TournamentManager.getPostMatchEventId(config, roundPlayed, result);
-            if (postMatchEventId && state.player) {
-              const event = StoryEventManager.getEligibleEventById(postMatchEventId, state.player, {
-                completedStoryEvents: state.completedStoryEvents,
-                completedStoryEventChoices: state.completedStoryEventChoices,
-                relationships: state.relationships,
-                calendar: state.calendar,
-                activeTournament: tournament,
-              });
+            if (postMatchEventId) {
+              const event = StoryEventManager.getEligibleEventById(postMatchEventId, state.player, storyContext);
               if (event) {
-                const availableOptions = PrerequisiteChecker.getAvailableOptions(event, state.player, {
-                  completedStoryEvents: state.completedStoryEvents,
-                  completedStoryEventChoices: state.completedStoryEventChoices,
-                  relationships: state.relationships,
-                  calendar: state.calendar,
-                  activeTournament: tournament,
-                });
-
-                // If this was a loss that moved the player to consolation bracket,
-                // chain the elimination event as a continuation after the round's loss event
-                let continuation: PhaseContinuation = { type: 'idle' };
-                if (result === 'loss' && tournament?.currentBracket === 'loser' && config.eliminationEventId) {
-                  const eliminationEvent = StoryEventManager.getEligibleEventById(config.eliminationEventId, state.player, {
-                    completedStoryEvents: state.completedStoryEvents,
-                    completedStoryEventChoices: state.completedStoryEventChoices,
-                    relationships: state.relationships,
-                    calendar: state.calendar,
-                    activeTournament: tournament,
-                  });
-                  if (eliminationEvent) {
-                    const eliminationOptions = PrerequisiteChecker.getAvailableOptions(eliminationEvent, state.player, {
-                      completedStoryEvents: state.completedStoryEvents,
-                      completedStoryEventChoices: state.completedStoryEventChoices,
-                      relationships: state.relationships,
-                      calendar: state.calendar,
-                      activeTournament: tournament,
-                    });
-                    continuation = { type: 'story_event', event: eliminationEvent, availableOptions: eliminationOptions };
-                  }
-                }
-
-                set({
-                  gamePhase: {
-                    type: 'story_event',
-                    event,
-                    availableOptions,
-                    continuation,
-                  },
-                });
-                // Schedule next tournament match if tournament still active
-                if (calendar.activeTournament) {
-                  get().scheduleNextTournamentMatch();
-                }
-                return;
+                const availableOptions = PrerequisiteChecker.getAvailableOptions(event, state.player, storyContext);
+                eventChain.push({ event, availableOptions });
               }
             }
 
-            // Schedule next tournament match if tournament still active
-            if (calendar.activeTournament) {
-              get().scheduleNextTournamentMatch();
-            }
-          }
-
-          // Check for elimination/victory/consolation events
-          if (!calendar.activeTournament) {
-            // Tournament just ended — check for completion events
-            const completedTournaments = calendar.completedTournaments || [];
-            const lastCompleted = completedTournaments[completedTournaments.length - 1];
-            if (lastCompleted && state.player) {
-              const config = TournamentRegistry.getTournament(lastCompleted.tournamentId);
-              if (config) {
-                let completionEventId: string | undefined;
-                if (lastCompleted.won && config.victoryEventId) {
-                  completionEventId = config.victoryEventId;
-                } else if (!lastCompleted.won && config.eliminationEventId) {
-                  completionEventId = config.eliminationEventId;
-                }
+            // --- Completion event (victory / elimination) ---
+            if (tournamentEnded) {
+              const completedTournaments = calendar.completedTournaments || [];
+              const lastCompleted = completedTournaments[completedTournaments.length - 1];
+              if (lastCompleted) {
+                const completionEventId = lastCompleted.won
+                  ? config.victoryEventId
+                  : config.eliminationEventId;
                 if (completionEventId) {
-                  const event = StoryEventManager.getEligibleEventById(completionEventId, state.player, {
-                    completedStoryEvents: state.completedStoryEvents,
-                    completedStoryEventChoices: state.completedStoryEventChoices,
-                    relationships: state.relationships,
-                    calendar: state.calendar,
-                    activeTournament: null,
-                  });
+                  const completionContext = { ...storyContext, activeTournament: null };
+                  const event = StoryEventManager.getEligibleEventById(completionEventId, state.player, completionContext);
                   if (event) {
-                    const availableOptions = PrerequisiteChecker.getAvailableOptions(event, state.player, {
-                      completedStoryEvents: state.completedStoryEvents,
-                      completedStoryEventChoices: state.completedStoryEventChoices,
-                      relationships: state.relationships,
-                      calendar: state.calendar,
-                      activeTournament: null,
-                    });
-
-                    // Schedule consolation promotion event 3 days later if not champion
-                    if (!lastCompleted.won && config.consolationEventId) {
-                      const consolationDay = state.calendar.currentDay + 1;
-                      const { updatedEvents } = ScheduledEventManager.scheduleEventWithConflictResolution(
-                        state.calendar.scheduledEvents,
-                        'story',
-                        consolationDay,
-                        TimeSlot.AFTERNOON,
-                        { storyEventId: config.consolationEventId },
-                      );
-                      set((prev) => ({
-                        calendar: { ...prev.calendar, scheduledEvents: updatedEvents },
-                      }));
-                    }
-
-                    set({
-                      gamePhase: {
-                        type: 'story_event',
-                        event,
-                        availableOptions,
-                        continuation: { type: 'idle' },
-                      },
-                    });
-                    return;
+                    const availableOptions = PrerequisiteChecker.getAvailableOptions(event, state.player, completionContext);
+                    eventChain.push({ event, availableOptions });
                   }
                 }
 
-                // Schedule consolation promotion even if no completion event fires
+                // Schedule consolation promotion event for 3 days later
                 if (!lastCompleted.won && config.consolationEventId) {
                   const consolationDay = state.calendar.currentDay + 3;
                   const { updatedEvents } = ScheduledEventManager.scheduleEventWithConflictResolution(
@@ -1363,6 +1282,32 @@ export const useGameStore = create<GameState>()(
                   }));
                 }
               }
+            }
+
+            // Schedule next tournament match if tournament still active
+            if (!tournamentEnded) {
+              get().scheduleNextTournamentMatch();
+            }
+
+            // Show event chain: build continuations back-to-front so events play in order
+            if (eventChain.length > 0) {
+              let continuation: PhaseContinuation = { type: 'idle' };
+              for (let i = eventChain.length - 1; i > 0; i--) {
+                continuation = {
+                  type: 'story_event',
+                  event: eventChain[i].event,
+                  availableOptions: eventChain[i].availableOptions,
+                };
+              }
+              set({
+                gamePhase: {
+                  type: 'story_event',
+                  event: eventChain[0].event,
+                  availableOptions: eventChain[0].availableOptions,
+                  continuation,
+                },
+              });
+              return;
             }
           }
         }

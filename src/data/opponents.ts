@@ -27,15 +27,15 @@ const TIER_1_OPPONENTS: OpponentPreset[] = [
     archetype: 'aggressive',
     stats: {
       technical: {
-        serve: 35, forehand: 40, backhand: 25, volley: 20,
-        overhead: 25, dropShot: 15, slice: 20, return: 25,
-        spin: 25, placement: 25,
+        serve: 40, forehand: 45, backhand: 28, volley: 23,
+        overhead: 28, dropShot: 18, slice: 23, return: 28,
+        spin: 28, placement: 28,
       },
       physical: {
-        speed: 35, stamina: 30, strength: 40, agility: 30, recovery: 30,
+        speed: 38, stamina: 33, strength: 45, agility: 33, recovery: 33,
       },
       mental: {
-        focus: 25, anticipation: 20, shotVariety: 20, offensive: 45, defensive: 20,
+        focus: 28, anticipation: 23, shotVariety: 23, offensive: 50, defensive: 23,
       },
     },
   },
@@ -46,15 +46,15 @@ const TIER_1_OPPONENTS: OpponentPreset[] = [
     archetype: 'defensive',
     stats: {
       technical: {
-        serve: 25, forehand: 30, backhand: 30, volley: 20,
-        overhead: 20, dropShot: 20, slice: 30, return: 35,
-        spin: 25, placement: 25,
+        serve: 28, forehand: 33, backhand: 33, volley: 23,
+        overhead: 23, dropShot: 23, slice: 35, return: 40,
+        spin: 28, placement: 28,
       },
       physical: {
-        speed: 35, stamina: 40, strength: 25, agility: 30, recovery: 35,
+        speed: 38, stamina: 45, strength: 28, agility: 33, recovery: 40,
       },
       mental: {
-        focus: 30, anticipation: 30, shotVariety: 20, offensive: 20, defensive: 40,
+        focus: 33, anticipation: 35, shotVariety: 23, offensive: 23, defensive: 45,
       },
     },
   },
@@ -65,15 +65,15 @@ const TIER_1_OPPONENTS: OpponentPreset[] = [
     archetype: 'all_court',
     stats: {
       technical: {
-        serve: 30, forehand: 30, backhand: 30, volley: 28,
-        overhead: 25, dropShot: 25, slice: 28, return: 30,
-        spin: 30, placement: 30,
+        serve: 34, forehand: 34, backhand: 34, volley: 32,
+        overhead: 29, dropShot: 29, slice: 32, return: 34,
+        spin: 34, placement: 34,
       },
       physical: {
-        speed: 32, stamina: 35, strength: 28, agility: 32, recovery: 32,
+        speed: 36, stamina: 39, strength: 32, agility: 36, recovery: 36,
       },
       mental: {
-        focus: 30, anticipation: 28, shotVariety: 30, offensive: 30, defensive: 30,
+        focus: 34, anticipation: 32, shotVariety: 34, offensive: 34, defensive: 34,
       },
     },
   },
@@ -84,15 +84,15 @@ const TIER_1_OPPONENTS: OpponentPreset[] = [
     archetype: 'serve_volley',
     stats: {
       technical: {
-        serve: 40, forehand: 25, backhand: 20, volley: 35,
-        overhead: 35, dropShot: 15, slice: 20, return: 20,
-        spin: 20, placement: 28,
+        serve: 45, forehand: 28, backhand: 23, volley: 40,
+        overhead: 40, dropShot: 18, slice: 23, return: 23,
+        spin: 23, placement: 31,
       },
       physical: {
-        speed: 25, stamina: 25, strength: 38, agility: 28, recovery: 28,
+        speed: 28, stamina: 28, strength: 43, agility: 31, recovery: 31,
       },
       mental: {
-        focus: 25, anticipation: 28, shotVariety: 22, offensive: 35, defensive: 18,
+        focus: 28, anticipation: 31, shotVariety: 25, offensive: 40, defensive: 21,
       },
     },
   },
@@ -103,15 +103,15 @@ const TIER_1_OPPONENTS: OpponentPreset[] = [
     archetype: 'counterpuncher',
     stats: {
       technical: {
-        serve: 22, forehand: 28, backhand: 32, volley: 18,
-        overhead: 20, dropShot: 22, slice: 35, return: 38,
-        spin: 28, placement: 25,
+        serve: 25, forehand: 31, backhand: 35, volley: 21,
+        overhead: 23, dropShot: 25, slice: 40, return: 43,
+        spin: 31, placement: 28,
       },
       physical: {
-        speed: 40, stamina: 40, strength: 22, agility: 38, recovery: 38,
+        speed: 45, stamina: 45, strength: 25, agility: 43, recovery: 43,
       },
       mental: {
-        focus: 35, anticipation: 35, shotVariety: 22, offensive: 18, defensive: 42,
+        focus: 38, anticipation: 40, shotVariety: 25, offensive: 21, defensive: 47,
       },
     },
   },
