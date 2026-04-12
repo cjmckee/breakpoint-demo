@@ -17,6 +17,7 @@ import { TrainingResultModal } from './TrainingResultModal';
 import { StoryEventModal } from './StoryEventModal';
 import { StoryEventResultModal } from './StoryEventResultModal';
 import { SettingsModal } from './SettingsModal';
+import { FeedbackModal } from './FeedbackModal';
 import { derivePlayStyle } from '../core/PlayerProfile';
 import { getArchetypeLabel } from '../data/archetypes';
 import type { OverlayState } from '../types/gamePhase';
@@ -29,6 +30,7 @@ interface MainMenuProps {
 
 export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const player = useGameStore((state) => state.player);
   const currentStatus = useGameStore((state) => state.currentStatus);
   const calendar = useGameStore((state) => state.calendar);
@@ -265,13 +267,22 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
               <h1 className="text-3xl font-bold text-pixel-text mb-1">
                 {player.name}
               </h1>
-              <button
-                onClick={() => setSettingsOpen(true)}
-                className="text-pixel-text-muted hover:text-pixel-text text-sm px-2 py-1 border border-pixel-border shrink-0"
-                title="Settings"
-              >
-                ⚙ Settings
-              </button>
+              <div className="flex gap-2 shrink-0">
+                <button
+                  onClick={() => setFeedbackOpen(true)}
+                  className="text-pixel-text-muted hover:text-pixel-text text-sm px-2 py-1 border border-pixel-border"
+                  title="Leave feedback"
+                >
+                  💬 Feedback
+                </button>
+                <button
+                  onClick={() => setSettingsOpen(true)}
+                  className="text-pixel-text-muted hover:text-pixel-text text-sm px-2 py-1 border border-pixel-border"
+                  title="Settings"
+                >
+                  ⚙ Settings
+                </button>
+              </div>
             </div>
             <div className="flex items-center gap-3 mb-2">
               <span className={`text-lg font-bold ${getTierColor(player.tier)}`}>
@@ -387,6 +398,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
 
       {/* Settings Modal */}
       <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
+
+      {/* Feedback Modal */}
+      <FeedbackModal isOpen={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
     </div>
   );
 };
