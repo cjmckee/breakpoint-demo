@@ -3,12 +3,13 @@
  * Displays energy, mood, and time information
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useGameStore } from '../stores/gameStore';
-import { TimeManager } from '../game/TimeManager';
+import { CalendarView } from './CalendarView';
 
 export const StatusBar: React.FC = () => {
   const { calendar, currentStatus, player } = useGameStore();
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   const getMoodColor = (mood: number): string => {
     if (mood >= 50) return 'text-green-500';
@@ -82,11 +83,14 @@ export const StatusBar: React.FC = () => {
           </div>
 
           {/* Calendar */}
-          <div className="flex items-center gap-3">
+          <button
+            onClick={() => setCalendarOpen(true)}
+            className="flex items-center gap-3 cursor-pointer hover:bg-pixel-secondary/50 rounded p-1 -m-1 transition-colors"
+          >
             <div className="w-12 h-12 bg-pixel-secondary border-4 border-pixel-border flex items-center justify-center text-2xl">
               📅
             </div>
-            <div>
+            <div className="text-left">
               <div className="text-sm text-pixel-text-muted">
                 Season {calendar.currentSeason} - Day {calendar.currentDay}
               </div>
@@ -94,7 +98,8 @@ export const StatusBar: React.FC = () => {
                 {timeSlotEmojis[calendar.currentTimeSlot]} {timeSlotNames[calendar.currentTimeSlot]}
               </div>
             </div>
-          </div>
+          </button>
+          <CalendarView isOpen={calendarOpen} onClose={() => setCalendarOpen(false)} />
         </div>
       </div>
     </div>
