@@ -3,6 +3,13 @@
  * Maps logical sound keys to file paths in /public/audio/
  */
 
+/** Resolve an absolute /audio/... path against Vite's base URL. */
+export function resolveAudioPath(path: string): string {
+  const base = import.meta.env.BASE_URL ?? '/';
+  // path starts with '/', base ends with '/' — strip leading slash from path
+  return base + path.replace(/^\//, '');
+}
+
 export type SfxKey =
   | 'ui_click'
   | 'story_chime'

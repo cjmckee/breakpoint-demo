@@ -23,7 +23,7 @@ import { Modal } from './ui/Modal';
 // Giscus configuration — fill these in after running through giscus.app
 // ---------------------------------------------------------------------------
 const GISCUS_CONFIG = {
-  repo: 'cjmckee/ai-slop-tennis',
+  repo: 'cjmckee/breakpoint-demo',
   repoId: 'REPLACE_WITH_REPO_ID',
   category: 'General',
   categoryId: 'REPLACE_WITH_CATEGORY_ID',

@@ -7,7 +7,7 @@
  * SFX are loaded on first play and reused via a pool.
  */
 
-import { SfxKey, MusicTrack, SFX_PATHS, MUSIC_POOLS } from './sounds';
+import { SfxKey, MusicTrack, SFX_PATHS, MUSIC_POOLS, resolveAudioPath } from './sounds';
 
 const CROSSFADE_DURATION = 1500; // ms
 const CROSSFADE_STEPS = 30;
@@ -100,7 +100,7 @@ class AudioManager {
     const entry = pool[Math.floor(Math.random() * pool.length)];
 
     this.currentTrackGain = entry.gain;
-    incoming.src = entry.path;
+    incoming.src = resolveAudioPath(entry.path);
     incoming.volume = 0;
     console.log(`[Audio] Now playing: ${entry.title}`);
     incoming.currentTime = 0;
@@ -187,7 +187,7 @@ class AudioManager {
   private getOrCreatePool(key: SfxKey): HTMLAudioElement[] {
     if (!this.sfxPool[key]) {
       const pool: HTMLAudioElement[] = [];
-      const src = SFX_PATHS[key];
+      const src = resolveAudioPath(SFX_PATHS[key]);
       for (let i = 0; i < this.SFX_POOL_SIZE; i++) {
         const el = new Audio(src);
         el.preload = 'auto';
