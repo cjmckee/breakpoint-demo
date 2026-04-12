@@ -4,7 +4,7 @@
  * Run with: npm run analyze
  */
 
-import type { ShotType, ShotContext, ShotDetail } from '../../types/index.js';
+import type { ShotType, ShotContext, ShotDetail, CourtSurface } from '../../types/index.js';
 import { PointType } from '../../types/index.js';
 import { ShotCalculator } from '../../core/ShotCalculator.js';
 import { MatchSimulator } from '../../core/MatchSimulator.js';
@@ -27,6 +27,8 @@ import {
 
 const RATINGS = [20, 30, 40, 50, 60, 70, 80, 90];
 const HISTOGRAM_RATINGS = [30, 50, 70, 90];
+const MATCHUP_RATINGS = [30, 50, 70, 90];
+const SURFACES: CourtSurface[] = ['hard', 'clay', 'grass', 'carpet'];
 const N_SHOTS = 1000;
 const N_MATCHES = 50;
 
@@ -40,12 +42,6 @@ const RALLY_SHOT_TYPES: ShotType[] = [
 const INCOMING_QUALITIES = [30, 50, 70];
 const OPPONENT_RETURN_RATINGS = [30, 50, 70];
 
-const MATCH_PAIRINGS = [
-  [20, 20], [20, 50], [30, 30], [30, 50], [30, 70],
-  [50, 50], [50, 70], [50, 90], [70, 70], [70, 90],
-  [80, 80], [80, 90], [90, 90],
-];
-
 // ─── Suppress console.log during simulation ──────────────────
 
 const _origLog = console.log;
@@ -54,15 +50,15 @@ function restoreLogs(): void { console.log = _origLog; }
 
 // ─── Helpers ─────────────────────────────────────────────────
 
-function makeServeContext(): ShotContext {
-  return { difficulty: 'normal', pressure: 'low', courtPosition: 'baseline', rallyLength: 1 };
+function makeServeContext(courtSurface: CourtSurface = 'hard'): ShotContext {
+  return { difficulty: 'normal', pressure: 'low', courtPosition: 'baseline', rallyLength: 1, courtSurface };
 }
 
-function makeRallyContext(rallyLength: number = 3): ShotContext {
-  return { difficulty: 'normal', pressure: 'low', courtPosition: 'baseline', rallyLength };
+function makeRallyContext(rallyLength: number = 3, courtSurface: CourtSurface = 'hard'): ShotContext {
+  return { difficulty: 'normal', pressure: 'low', courtPosition: 'baseline', rallyLength, courtSurface };
 }
 
-function makeIncomingShotDetail(quality: number, shotType: ShotType = 'forehand'): ShotDetail {
+function makeIncomingShotDetail(quality: number, shotType: ShotType = 'forehand', courtSurface: CourtSurface = 'hard'): ShotDetail {
   return {
     shotType,
     shooter: 'returner',
@@ -77,7 +73,7 @@ function makeIncomingShotDetail(quality: number, shotType: ShotType = 'forehand'
     },
     timestamp: Date.now(),
     shotNumber: 2,
-    context: makeRallyContext(),
+    context: makeRallyContext(3, courtSurface),
   };
 }
 
@@ -268,49 +264,81 @@ function runRallyAnalysis(): void {
 }
 
 // ─── REPORT 3: Match Outcome Rates ──────────────────────────
+//
+// Runs every player rating (30/50/70/90) against every opponent rating
+// (30/50/70/90), on every surface (hard/clay/grass/carpet). That's
+// 4×4 = 16 matchups per surface × 4 surfaces = 64 reports.
 
 function runMatchAnalysis(): void {
-  printHeader('REPORT 3: Match Outcomes');
+  printHeader('REPORT 3: Match Outcomes (4×4 matchups × 4 surfaces = 64 reports)');
 
-  const rows: (string | number)[][] = [];
+  for (const surface of SURFACES) {
+    print('');
+    print(`  ┌─ Surface: ${surface.toUpperCase()} ${'─'.repeat(60 - surface.length)}`);
+    print('');
 
-  for (const [r1, r2] of MATCH_PAIRINGS) {
-    const player = createUniformPlayer('Player', r1);
-    const opponent = createUniformPlayer('Opponent', r2);
+    const rows: (string | number)[][] = [];
 
-    suppressLogs();
-    const results = MatchSimulator.simulateMultipleMatches({
-      player,
-      opponent,
-      courtSurface: 'hard',
-      matchFormat: { bestOfSets: 1, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 },
-    }, N_MATCHES);
-    restoreLogs();
+    for (const r1 of MATCHUP_RATINGS) {
+      for (const r2 of MATCHUP_RATINGS) {
+        const player = createUniformPlayer('Player', r1);
+        const opponent = createUniformPlayer('Opponent', r2);
 
-    const playerWins = results.filter(r => r.winner === 'player').length;
-    const avgAces = results.reduce((s, r) => s + r.statistics.aces.player, 0) / N_MATCHES;
-    const avgWinners = results.reduce((s, r) => s + r.statistics.winners.player, 0) / N_MATCHES;
-    const avgUE = results.reduce((s, r) => s + r.statistics.unforcedErrors.player, 0) / N_MATCHES;
-    const avgFE = results.reduce((s, r) => s + r.statistics.forcedErrors.player, 0) / N_MATCHES;
-    const avgRally = results.reduce((s, r) => s + r.statistics.averageRallyLength, 0) / N_MATCHES;
+        suppressLogs();
+        const results = MatchSimulator.simulateMultipleMatches({
+          player,
+          opponent,
+          courtSurface: surface,
+          matchFormat: { bestOfSets: 1, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 },
+        }, N_MATCHES);
+        restoreLogs();
 
-    // Get most common score
-    const scoreCounts = new Map<string, number>();
-    for (const r of results) {
-      scoreCounts.set(r.finalScore, (scoreCounts.get(r.finalScore) ?? 0) + 1);
+        const playerWins = results.filter(r => r.winner === 'player').length;
+        const avgAces = results.reduce((s, r) => s + r.statistics.aces.player, 0) / N_MATCHES;
+        const avgWinners = results.reduce((s, r) => s + r.statistics.winners.player, 0) / N_MATCHES;
+        const avgUE = results.reduce((s, r) => s + r.statistics.unforcedErrors.player, 0) / N_MATCHES;
+        const avgFE = results.reduce((s, r) => s + r.statistics.forcedErrors.player, 0) / N_MATCHES;
+        const avgRally = results.reduce((s, r) => s + r.statistics.averageRallyLength, 0) / N_MATCHES;
+
+        // Get most common score
+        const scoreCounts = new Map<string, number>();
+        for (const r of results) {
+          scoreCounts.set(r.finalScore, (scoreCounts.get(r.finalScore) ?? 0) + 1);
+        }
+        const topScore = [...scoreCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? '?';
+
+        rows.push([
+          `${r1}v${r2}`, fmtPct(playerWins, N_MATCHES), topScore,
+          avgAces, avgWinners, avgUE, avgFE, avgRally,
+        ]);
+      }
     }
-    const topScore = [...scoreCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? '?';
 
-    rows.push([
-      `${r1}v${r2}`, fmtPct(playerWins, N_MATCHES), topScore,
-      avgAces, avgWinners, avgUE, avgFE, avgRally,
-    ]);
+    printTable(
+      ['Matchup', 'P1 Win%', 'Top Score', 'Avg Aces', 'Avg Winners', 'Avg UE', 'Avg FE', 'Avg Rally'],
+      rows,
+    );
+
+    // Win rate matrix: rows = player rating, cols = opponent rating
+    print('');
+    print(`  Win Rate Matrix (${surface}) — rows: P1 rating, cols: P2 rating`);
+    const matrixRows: (string | number)[][] = [];
+    for (let i = 0; i < MATCHUP_RATINGS.length; i++) {
+      const r1 = MATCHUP_RATINGS[i];
+      const matrixRow: (string | number)[] = [String(r1)];
+      for (let j = 0; j < MATCHUP_RATINGS.length; j++) {
+        const winRow = rows[i * MATCHUP_RATINGS.length + j];
+        matrixRow.push(winRow[1] as string);
+      }
+      matrixRows.push(matrixRow);
+    }
+    printTable(
+      ['P1 \\ P2', ...MATCHUP_RATINGS.map(String)],
+      matrixRows,
+    );
+
+    print(`  └${'─'.repeat(70)}`);
   }
-
-  printTable(
-    ['Matchup', 'P1 Win%', 'Top Score', 'Avg Aces', 'Avg Winners', 'Avg UE', 'Avg FE', 'Avg Rally'],
-    rows,
-  );
 }
 
 // ─── REPORT 4: Modifier Breakdown ───────────────────────────

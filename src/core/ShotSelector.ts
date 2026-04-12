@@ -15,10 +15,12 @@ import type {
   ShotPreference,
   TacticalOpportunity,
   CourtPosition,
+  CourtSurface,
 } from '../types/index.js';
 import { PlayerProfile } from './PlayerProfile.js';
 import { TacticalAnalyzer } from './TacticalAnalyzer.js';
 import { getQualityThresholds } from '../utils/qualityThresholds.js';
+import { SURFACE_EFFECTS } from '../config/shotThresholds.js';
 
 export class ShotSelector {
   private tacticalAnalyzer: TacticalAnalyzer;
@@ -103,7 +105,7 @@ export class ShotSelector {
     // DECISION TREE: Check for special shots first
 
     // 1. Net approach?
-    if (this.shouldApproachNet(shooter, opportunity, rallyState)) {
+    if (this.shouldApproachNet(shooter, opportunity, rallyState, matchState.courtSurface)) {
       return Math.random() < shotPreference.forehandProbability
         ? 'forehand_approach'
         : 'backhand_approach';
@@ -219,7 +221,8 @@ export class ShotSelector {
   private shouldApproachNet(
     shooter: PlayerProfile,
     opportunity: TacticalOpportunity,
-    rallyState: RallyState
+    rallyState: RallyState,
+    courtSurface: CourtSurface
   ): boolean {
     const netApproachStat = shooter.playStyle.netApproach;
     const playStyleType = shooter.playStyle.type;
@@ -237,6 +240,10 @@ export class ShotSelector {
     // Offensive mentality boost: aggressive players seek the net more
     // Scales 0-8% extra based on offensive stat
     baseProbability += (offensive / 100) * 0.08;
+
+    // Court surface bonus/penalty: grass and carpet reward net play, clay punishes it.
+    baseProbability += SURFACE_EFFECTS[courtSurface].netApproachBonus;
+    baseProbability = Math.max(0, baseProbability);
 
     // Situational modifiers
     if (!opportunity.netApproachSuitable) return false;
@@ -273,6 +280,7 @@ export class ShotSelector {
     const aggression = shooter.playStyle.aggression;
     const playStyleType = shooter.playStyle.type;
     const offensive = shooter.stats.mental.offensive;
+    const defensive = shooter.stats.mental.defensive;
 
     // Base probability by playstyle (increased for aggressive players)
     let baseProbability = 0;
@@ -291,6 +299,11 @@ export class ShotSelector {
 
     // Additional boost for high offensive stat (scales 0-10% extra)
     baseProbability += (offensive / 100) * 0.10;
+
+    // High defensive mentality is a deterrent — defensive-minded players prefer
+    // to keep the ball in play rather than gamble on winners. Scales 0-8% reduction.
+    baseProbability -= (defensive / 100) * 0.08;
+    baseProbability = Math.max(0, baseProbability);
 
     // Aggressive players attempt power shots early in rallies (3-5 shots)
     // Probability of getting boost scales with aggression
@@ -338,11 +351,11 @@ export class ShotSelector {
     if (dropShotResult.use) return dropShotResult;
 
     // --- Other tactical shots (lob, angle) still use shotVariety ---
+    // Smooth probability curve: ~1% at stat 0, ~12% at 50, ~25% at 100.
+    // Players with low variety still occasionally surprise opponents instead of
+    // being completely locked out below an arbitrary threshold.
     const shotVariety = shooter.stats.mental.shotVariety;
-    if (shotVariety < 20) return { use: false };
-
-    // 0% at 20, 25% at 100
-    const baseProbability = (shotVariety - 20) / 320;
+    const baseProbability = 0.01 + (shotVariety / 100) * 0.24;
     if (Math.random() > baseProbability) return { use: false };
 
     if (opponentPosition === 'slightly_off' || opponentPosition === 'well_positioned') {

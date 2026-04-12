@@ -499,6 +499,7 @@ export class PointSimulator {
       pressure,
       courtPosition: 'baseline',
       rallyLength: 1,
+      courtSurface: matchState.courtSurface,
     };
   }
 
@@ -546,6 +547,7 @@ export class PointSimulator {
       pressure,
       courtPosition,
       rallyLength,
+      courtSurface: matchState.courtSurface,
     };
   }
 

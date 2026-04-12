@@ -19,6 +19,7 @@ import type {
   BallQuality,
   TacticalOpportunity,
   CourtPosition,
+  CourtSurface,
   QualityThresholds,
   ShotDetail,
 } from '../types/index.js';
@@ -32,6 +33,8 @@ import {
   OUTCOME_MULTIPLIERS,
   SERVE_BASELINE,
   OPPONENT_STAT_ADJUSTMENTS,
+  SHOOTER_STAT_ADJUSTMENTS,
+  MENTAL_SHOT_BONUSES,
   POSITION_ADJUSTMENTS,
   SERVE_VARIANCE,
   RETURN_VARIANCE,
@@ -43,6 +46,9 @@ import {
   getShotCategory,
   FATIGUE_MODIFIER,
   MOMENTUM_MODIFIER,
+  SURFACE_EFFECTS,
+  isTacticalShot,
+  isDefensiveShot,
 } from '../config/shotThresholds.js';
 
 /**
@@ -161,10 +167,19 @@ export class ShotCalculator {
       quality = this.applyAbilityEffects(quality, shotType, modifiers, activeEffects);
     }
 
+    // Step 3c: Apply court surface pace multiplier to final quality
+    const surface = context.courtSurface;
+    const surfaceEffects = SURFACE_EFFECTS[surface];
+    if (shotType.includes('serve')) {
+      quality *= surfaceEffects.serveQualityMultiplier;
+    } else if (!shotType.includes('return')) {
+      quality *= surfaceEffects.rallyPaceMultiplier;
+    }
+
     // Log quality calculation for serves
     if (shotType.includes('serve')) {
       console.log('  Base quality (stat × finalAdjustment):', (primaryStat * modifiers.finalAdjustment).toFixed(1));
-      console.log('  Final quality (after variance):', quality.toFixed(1));
+      console.log('  Final quality (after variance and surface):', quality.toFixed(1));
     }
 
     // Step 4: Determine outcome based on shot type
@@ -176,7 +191,8 @@ export class ShotCalculator {
       const serveOutcome = this.determineServeOutcome(
         quality,
         shotType as 'serve_first' | 'serve_second',
-        opponentProfile.stats.technical.return
+        opponentProfile.stats.technical.return,
+        surface
       );
       outcome = serveOutcome.outcome;
       thresholds = serveOutcome.thresholds;
@@ -184,15 +200,17 @@ export class ShotCalculator {
       if (!incomingShot) {
         throw new Error('Incoming shot is required for non-serve shots to calculate quality thresholds.');
       }
-      
+
       // Regular shots use relative quality system
       const incomingQuality = incomingShot.quality;
 
       thresholds = this.calculateQualityRequirements(
         incomingQuality,
         shotType,
+        shooterProfile.stats,
         opponentProfile.stats,
-        opponentPosition
+        opponentPosition,
+        surface
       );
 
       outcome = this.determineOutcome(quality, thresholds);
@@ -226,12 +244,19 @@ export class ShotCalculator {
 
   /**
    * Calculate quality requirements based on incoming shot (relative quality system)
+   *
+   * Adjusted by:
+   * - Opponent defensive/speed stats and position (raise the bar)
+   * - Shooter anticipation (lowers the bar — reading the ball makes the shot easier)
+   * - Court surface (clay slows things down, raising defensive bar; grass speeds them up)
    */
   private calculateQualityRequirements(
     incomingQuality: number,
     shotType: ShotType,
+    shooterStats: PlayerStats,
     opponentStats: PlayerStats,
-    opponentPosition: CourtPosition
+    opponentPosition: CourtPosition,
+    courtSurface: CourtSurface
   ): QualityThresholds {
     console.log('Sigmoid midpoint calculation for', shotType);
     // Get base multiplier for this shot type
@@ -243,13 +268,19 @@ export class ShotCalculator {
     const minFloor = MIN_QUALITY_FLOORS[shotCategory];
     let inPlayReq = baseRequirement;
 
-    // Opponent defensive stat adjustment
-    const defensiveAdj = (opponentStats.mental.defensive - 50) * OPPONENT_STAT_ADJUSTMENTS.defensive;
+    // Opponent defensive stat adjustment, scaled by court surface
+    const surfaceEffects = SURFACE_EFFECTS[courtSurface];
+    const rawDefensiveAdj = (opponentStats.mental.defensive - 50) * OPPONENT_STAT_ADJUSTMENTS.defensive;
+    const defensiveAdj = rawDefensiveAdj * surfaceEffects.defensiveAdjustmentMultiplier;
     inPlayReq += defensiveAdj;
 
     // Opponent speed adjustment
     const speedAdj = (opponentStats.physical.speed - 50) * OPPONENT_STAT_ADJUSTMENTS.speed;
     inPlayReq += speedAdj;
+
+    // Shooter anticipation adjustment — reading the ball lowers the difficulty
+    const anticipationAdj = (shooterStats.mental.anticipation - 50) * SHOOTER_STAT_ADJUSTMENTS.anticipation;
+    inPlayReq -= anticipationAdj;
 
     // Position adjustment
     const positionAdj = POSITION_ADJUSTMENTS[opponentPosition];
@@ -267,7 +298,7 @@ export class ShotCalculator {
       MINIMUM_WINNER_THRESHOLDS[shotCategory]
     );
 
-    console.log(`  Incoming: ${incomingQuality.toFixed(1)} × ${baseMultiplier.toFixed(2)} = ${baseRequirement.toFixed(1)} base | Adjustments: def ${defensiveAdj >= 0 ? '+' : ''}${defensiveAdj.toFixed(1)}, spd ${speedAdj >= 0 ? '+' : ''}${speedAdj.toFixed(1)}, pos ${positionAdj >= 0 ? '+' : ''}${positionAdj.toFixed(1)} | Floor: ${minFloor}`);
+    console.log(`  Incoming: ${incomingQuality.toFixed(1)} × ${baseMultiplier.toFixed(2)} = ${baseRequirement.toFixed(1)} base | Adjustments: def ${defensiveAdj >= 0 ? '+' : ''}${defensiveAdj.toFixed(1)} (surface ×${surfaceEffects.defensiveAdjustmentMultiplier}), spd ${speedAdj >= 0 ? '+' : ''}${speedAdj.toFixed(1)}, ant -${anticipationAdj.toFixed(1)}, pos ${positionAdj >= 0 ? '+' : ''}${positionAdj.toFixed(1)} | Floor: ${minFloor}`);
     console.log(`  Sigmoid midpoints → inPlay: ${inPlayReq.toFixed(1)} | winner: ${winnerThreshold.toFixed(1)} | forcedError: ${(inPlayReq * multipliers.forcedError).toFixed(1)}`);
 
     // Calculate derived thresholds
@@ -321,17 +352,21 @@ export class ShotCalculator {
   private determineServeOutcome(
     serveQuality: number,
     serveType: 'serve_first' | 'serve_second',
-    opponentReturnStat: number
+    opponentReturnStat: number,
+    courtSurface: CourtSurface
   ): { outcome: PointType; thresholds: QualityThresholds } {
     const baseline = SERVE_BASELINE[serveType];
+    const surfaceEffects = SURFACE_EFFECTS[courtSurface];
 
     // Scale thresholds relative to match level
     // At matchLevel 70, matches original hard-coded values; at lower levels, thresholds scale down
     const scaledInPlayThreshold = this.currentMatchLevel * (baseline.inPlayThreshold / 70);
     const scaledAceBase = this.currentMatchLevel * (baseline.aceThresholdBase / 70);
 
-    // Calculate ace threshold: scaled base + (opponent return × multiplier)
-    const aceThreshold = scaledAceBase + (opponentReturnStat * baseline.aceReturnMultiplier);
+    // Calculate ace threshold: scaled base + (opponent return × multiplier × surface modifier)
+    // On clay, returns are stronger so the ace bar is harder to clear; on grass it's easier.
+    const effectiveReturnContribution = opponentReturnStat * baseline.aceReturnMultiplier * surfaceEffects.returnAdjustmentMultiplier;
+    const aceThreshold = scaledAceBase + effectiveReturnContribution;
 
     // Sigmoid probability for serve being in
     const pServeIn = sigmoidProbability(serveQuality, scaledInPlayThreshold, PROBABILITY_STEEPNESS.serve.inPlay);
@@ -339,7 +374,7 @@ export class ShotCalculator {
     console.log(`  🎯 ${serveType} sigmoid calculation:`);
     console.log(`    Serve quality: ${serveQuality.toFixed(1)}`);
     console.log(`    InPlay sigmoid → midpoint: ${scaledInPlayThreshold.toFixed(1)} (base: ${baseline.inPlayThreshold} × matchLevel: ${this.currentMatchLevel} / 70), steepness: ${PROBABILITY_STEEPNESS.serve.inPlay}, P(in): ${(pServeIn * 100).toFixed(1)}%`);
-    console.log(`    Ace sigmoid    → midpoint: ${aceThreshold.toFixed(1)} (scaledBase: ${scaledAceBase.toFixed(1)} + oppReturn: ${opponentReturnStat} × ${baseline.aceReturnMultiplier} = ${(opponentReturnStat * baseline.aceReturnMultiplier).toFixed(1)}), steepness: ${PROBABILITY_STEEPNESS.serve.ace}`);
+    console.log(`    Ace sigmoid    → midpoint: ${aceThreshold.toFixed(1)} (scaledBase: ${scaledAceBase.toFixed(1)} + oppReturn: ${opponentReturnStat} × ${baseline.aceReturnMultiplier} × surface ${surfaceEffects.returnAdjustmentMultiplier} = ${effectiveReturnContribution.toFixed(1)}), steepness: ${PROBABILITY_STEEPNESS.serve.ace}`);
 
     const thresholds: QualityThresholds = {
       winner: aceThreshold,
@@ -390,8 +425,8 @@ export class ShotCalculator {
     // Physical modifiers (speed, agility, strength)
     let physicalModifier = this.calculatePhysicalModifier(shotType, context, stats.physical, ballQuality);
 
-    // Mental modifiers (focus, anticipation, shot variety)
-    let mentalModifier = this.calculateMentalModifier(context, stats.mental, playStyle, opponentPosition);
+    // Mental modifiers (focus, anticipation, shot variety, defensive)
+    let mentalModifier = this.calculateMentalModifier(shotType, context, stats.mental, playStyle, opponentPosition);
 
     // Serve-specific bonuses and variance
     let serveVariance = 0;
@@ -573,9 +608,17 @@ export class ShotCalculator {
 
   /**
    * Calculate mental modifiers using sliding scales
-   * Note: Opponent position is now tracked separately and doesn't use context
+   *
+   * Wired stats:
+   * - anticipation: lifts shot quality when opponent is well-positioned or at net
+   *   (already applied as a threshold reduction in calculateQualityRequirements,
+   *    here it gives a small additional execution lift in tough reading situations)
+   * - shotVariety: bonus only on tactical shots (drop, angle, lob, passing)
+   * - defensive: bonus only on defensive shots (slice, lob, defensive_*)
+   * - offensive: bonus when shooter is aggressive (existing behavior)
    */
   private calculateMentalModifier(
+    shotType: ShotType,
     context: ShotContext,
     mental: PlayerStats['mental'],
     playStyle: PlayStyle,
@@ -590,10 +633,19 @@ export class ShotCalculator {
       modifier *= anticipationModifier;
     }
 
-    // Shot variety helps with tactical shots
-    // Note: This check isn't great, but we'll keep it for now
-    const varietyModifier = 0.9 + (mental.shotVariety / 100) * 0.2;
-    modifier *= varietyModifier;
+    // Shot variety only helps on actual tactical shots — drop, angle, lob, passing.
+    // High-variety players execute these creative shots more cleanly.
+    if (isTacticalShot(shotType)) {
+      const varietyModifier = MENTAL_SHOT_BONUSES.variety.base + mental.shotVariety * MENTAL_SHOT_BONUSES.variety.perStat;
+      modifier *= varietyModifier;
+    }
+
+    // Defensive stat only helps when actually playing defense — slices, lobs, defensive shots.
+    // Strong defenders dig out tough balls more reliably.
+    if (isDefensiveShot(shotType)) {
+      const defenseModifier = MENTAL_SHOT_BONUSES.defense.base + mental.defensive * MENTAL_SHOT_BONUSES.defense.perStat;
+      modifier *= defenseModifier;
+    }
 
     // Offensive/defensive alignment with shot selection
     if (playStyle.aggression > 70 && SHOT_CLASSIFICATIONS.powerShots.length > 0) {
