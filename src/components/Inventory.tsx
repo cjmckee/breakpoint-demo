@@ -182,8 +182,19 @@ export const Inventory: React.FC = () => {
               </div>
             )}
             {item.consumableEffect.nextActivityBuffs && (
-              <div className="text-sm text-pixel-accent">
-                Buffs for next activity
+              <div>
+                <div className="text-sm text-pixel-accent mb-1">Buffs for next activity:</div>
+                {item.consumableEffect.nextActivityBuffs.statBoosts &&
+                  Object.keys(item.consumableEffect.nextActivityBuffs.statBoosts).length > 0 && (
+                  <div className="grid grid-cols-3 gap-2">
+                    {Object.entries(item.consumableEffect.nextActivityBuffs.statBoosts).map(([stat, value]) => (
+                      <div key={stat} className="text-sm">
+                        <span className="text-pixel-text">{stat}:</span>
+                        <span className="text-pixel-accent font-bold ml-1">+{value as number}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
