@@ -12,6 +12,9 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
   },
+  esbuild: {
+    pure: ['console.log', 'console.debug', 'console.info'],
+  },
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx'],
   },

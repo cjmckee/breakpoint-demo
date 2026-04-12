@@ -56,9 +56,8 @@ export const WelcomeOverlay: React.FC<WelcomeOverlayProps> = ({ isOpen, onClose 
           <h3 className="text-pixel-warning font-bold text-lg">Work in Progress</h3>
           <p className="text-pixel-text-muted text-sm leading-relaxed">
             This is a personal side project under active development. Expect rough
-            edges, placeholder content, and the occasional broken thing. Some
-            narrative text, dialogue, and game code is AI-generated. Keep an eye out for
-            the [AI-gen] tag.
+            edges, placeholder content, and the occasional broken thing. All narrative text
+            is written by me, but the game code is written using AI-assisted tooling.
           </p>
           <p className="text-pixel-text-muted text-sm leading-relaxed">
             Thanks for giving this a try, and feel free to contact me with any feedback. My

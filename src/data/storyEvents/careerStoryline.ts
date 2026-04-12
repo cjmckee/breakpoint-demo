@@ -809,7 +809,7 @@ export const careerEvents: StoryEvent[] = [
       ['coach_gonzalez', ['This IS the lineup. We\'ve got our toughest match yet: Sunset Drive Retirement Home.']],
       ['coach_gonzalez', ['What they lack in movement and muscle mass, they make up for in experience. LOTS of experience.']],
       ['greg', ['My grandma lives at Sunset Drive... when she told me the tennis there was good, I just thought her mind was starting to go.']],
-      ['jen', ['Actually, it looks like that\'s who you\'ll be playing, ', {characterId: 'greg'}, '! ', {characterId: 'player'}, ', it looks like you\'ll be up against ', {characterId: 'reginald_werther'}, '.']],
+      ['jen', ['Actually, it looks like you\'re scheduled against her, ', {characterId: 'greg'}, '! ', {characterId: 'player'}, ', it looks like you\'ll be up against ', {characterId: 'reginald_werther'}, '.']],
       ['keith', ['Where are they finding names like this? He must be 100 years old!']],
       ['coach_gonzalez', ['He\'s the 1921 junior Wimbledon champion. His father, Regingigas Werther, is the 1821 junior Wimbledon champion. History is funny.']]
     ],
