@@ -1,4 +1,4 @@
-# Tennis RPG
+# Breakpoint - Tennis RPG
 
 A stat-based tennis career simulation where you rise from club player to elite champion. Train your skills, compete in tournaments, build relationships, and make choices that shape your career — all driven by transparent, stat-based match simulation.
 
@@ -94,5 +94,5 @@ See [CREDITS.md](CREDITS.md) for full attribution.
 
 ## License
 
-The Tennis RPG source code is released under the [MIT License](LICENSE).
+The Breakpoint - Tennis RPG source code is released under the [MIT License](LICENSE).
 Third-party assets remain under their original licenses as noted above.

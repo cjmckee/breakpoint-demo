@@ -37,7 +37,7 @@ function App() {
       <div className="min-h-screen bg-pixel-bg text-pixel-text flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4">🎾</div>
-          <p className="text-xl font-bold">Loading Tennis RPG...</p>
+          <p className="text-xl font-bold">Loading Breakpoint...</p>
         </div>
       </div>
     );
@@ -49,7 +49,7 @@ function App() {
         <div className="min-h-screen bg-pixel-bg text-pixel-text flex items-center justify-center">
           <div className="text-center">
             <div className="text-6xl mb-4">🎾</div>
-            <p className="text-xl font-bold">Loading Tennis RPG...</p>
+            <p className="text-xl font-bold">Loading Breakpoint...</p>
           </div>
         </div>
       );
@@ -59,7 +59,7 @@ function App() {
         <div className="min-h-screen bg-pixel-bg text-pixel-text flex items-center justify-center p-4">
           <div className="text-center max-w-2xl">
             <h1 className="text-5xl font-bold text-pixel-accent mb-4">
-              🎾 Tennis RPG
+              🎾 Breakpoint
             </h1>
             <p className="text-xl text-pixel-text-muted mb-8">
               Rise from the lowest ranks to become a tennis legend!

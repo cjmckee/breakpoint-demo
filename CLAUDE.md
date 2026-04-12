@@ -4,7 +4,7 @@ This document provides comprehensive guidelines for maintaining and extending th
 
 ## Project Overview
 
-**Tennis RPG** is a stat-based tennis simulation game built with React, TypeScript, and Zustand. The game simulates tennis matches using detailed player statistics, realistic shot mechanics, and transparent probability calculations.
+**Breakpoint - Tennis RPG** is a stat-based tennis simulation game built with React, TypeScript, and Zustand. The game simulates tennis matches using detailed player statistics, realistic shot mechanics, and transparent probability calculations.
 
 ### Tech Stack
 - **Frontend**: React 19.2.0 with TypeScript

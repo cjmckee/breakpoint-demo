@@ -18,7 +18,7 @@ export const WelcomeOverlay: React.FC<WelcomeOverlayProps> = ({ isOpen, onClose 
   const [progressExpanded, setProgressExpanded] = useState(false);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Welcome to my Tennis RPG demo" size="xl" showCloseButton={false}>
+    <Modal isOpen={isOpen} onClose={onClose} title="Welcome to the Breakpoint demo" size="xl" showCloseButton={false}>
       {/* Welcome */}
       <div className="space-y-6">
         <div className="text-center">
@@ -60,8 +60,7 @@ export const WelcomeOverlay: React.FC<WelcomeOverlayProps> = ({ isOpen, onClose 
             is written by me, but the game code is written using AI-assisted tooling.
           </p>
           <p className="text-pixel-text-muted text-sm leading-relaxed">
-            Thanks for giving this a try, and feel free to contact me with any feedback. My
-            goal is to eventually replace all the AI events. If you have any funny tennis stories
+            Thanks for giving this a try, and feel free to contact me with any feedback. If you have any funny tennis stories
             you'd like to see enshrined in history, send them my way.
           </p>
         </div>

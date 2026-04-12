@@ -1,6 +1,6 @@
 # Credits
 
-Tennis RPG uses third-party audio assets, gratefully credited below. The
+Breakpoint - Tennis RPG uses third-party audio assets, gratefully credited below. The
 license terms of each asset apply to that asset only and do not affect the
 [MIT license](LICENSE) covering the rest of the project.
 
