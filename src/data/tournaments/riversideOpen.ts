@@ -3,13 +3,13 @@
  * The first tournament featuring 4 rounds with named opponents
  */
 
-import type { TournamentConfig, TournamentOpponent } from '../../types/tournaments';
+import type { TournamentConfig, MatchOpponent } from '../../types/tournaments';
 
 // ============================================================================
 // OPPONENT DEFINITIONS
 // ============================================================================
 
-const keith: TournamentOpponent = {
+const keith: MatchOpponent = {
   characterId: 'keith',
   name: 'Keith',
   tier: 1,
@@ -44,7 +44,7 @@ const keith: TournamentOpponent = {
   },
 };
 
-const chris: TournamentOpponent = {
+const chris: MatchOpponent = {
   characterId: 'chris',
   name: 'Chris',
   tier: 1,
@@ -79,7 +79,7 @@ const chris: TournamentOpponent = {
   },
 };
 
-const max: TournamentOpponent = {
+const max: MatchOpponent = {
   characterId: 'max',
   name: 'Max',
   tier: 1,
@@ -114,7 +114,7 @@ const max: TournamentOpponent = {
   },
 };
 
-const jordan: TournamentOpponent = {
+const jordan: MatchOpponent = {
   characterId: 'jordan_rival',
   name: 'Jordan',
   tier: 1,

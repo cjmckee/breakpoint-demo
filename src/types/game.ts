@@ -6,7 +6,7 @@
 import type { PlayerStats } from './index';
 import type { StoryEventResult } from './storyEvents';
 import type { Item, EquipmentSlot } from './items';
-import type { ActiveTournament, TournamentMatchMetadata } from './tournaments';
+import type { ActiveTournament, TournamentMatchMetadata, MatchOpponent } from './tournaments';
 
 export type { PlayerStats };
 
@@ -223,6 +223,26 @@ export interface StoryMatchMetadata {
   // Display info
   matchTitle?: string;          // e.g., "Challenge Match vs Keith"
   matchDescription?: string;    // Story context for the match
+}
+
+/**
+ * Team match configuration
+ * Defines a team match with opponent, match settings, and story event linkage.
+ * Mirrors tournament structure: opponents defined separately, referenced by config.
+ */
+export interface TeamMatchConfig {
+  opponent: MatchOpponent;
+
+  // Match configuration
+  surface: 'hard' | 'clay' | 'grass' | 'carpet';
+  matchFormat: 'best-of-1' | 'best-of-3';
+  matchTitle: string;
+  matchDescription: string;
+
+  // Story event linkage
+  prematchEventId: string;
+  winEventId: string;
+  lossEventId: string;
 }
 
 /**

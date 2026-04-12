@@ -24,10 +24,10 @@ export type TournamentRoundStatus = 'pending' | 'scheduled' | 'completed' | 'ski
 // ============================================================================
 
 /**
- * Tournament opponent configuration
- * Defines a specific character opponent for a tournament match
+ * Match opponent configuration
+ * Defines a specific character opponent for any match type (tournament, team, story)
  */
-export interface TournamentOpponent {
+export interface MatchOpponent {
   characterId: string;          // Must match CHARACTERS registry
   name: string;                 // Display name
   stats: PlayerStats;           // Full stat profile
@@ -45,7 +45,7 @@ export interface TournamentOpponent {
  */
 export interface TournamentRound {
   roundNumber: number;          // 1-indexed round number (e.g., 1, 2, 3, 4)
-  opponent: TournamentOpponent;
+  opponent: MatchOpponent;
 
   // Story event triggers (4 per round)
   prematchEventWinner: string;  // Event shown before match if in winner bracket
