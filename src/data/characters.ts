@@ -46,9 +46,9 @@ export const CHARACTERS: Record<string, Character> = {
     role: 'Friend',
   },
 
-  zack: {
-    id: 'zack',
-    name: 'Zack',
+  max: {
+    id: 'max',
+    name: 'Max',
     role: 'Friend',
   },
 

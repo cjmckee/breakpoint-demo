@@ -79,9 +79,9 @@ const chris: TournamentOpponent = {
   },
 };
 
-const zack: TournamentOpponent = {
-  characterId: 'zack',
-  name: 'Zack',
+const max: TournamentOpponent = {
+  characterId: 'max',
+  name: 'Max',
   tier: 1,
   description: 'A defensive specialist with great court coverage. His return game and placement are his biggest weapons. Don\'t let him get comfortable.',
   stats: {
@@ -193,10 +193,10 @@ export const riversideOpen: TournamentConfig = {
       lossEventId: 'riverside_r2_loss',
     },
 
-    // Round 3: vs Zack
+    // Round 3: vs Max
     {
       roundNumber: 3,
-      opponent: zack,
+      opponent: max,
       prematchEventWinner: 'riverside_r3_prematch_winner',
       prematchEventLoser: 'riverside_r3_prematch_loser',
       winEventId: 'riverside_r3_win',

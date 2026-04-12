@@ -449,7 +449,7 @@ export const tournamentEvents: StoryEvent[] = [
     },
 
     // ==========================================
-    // ROUND 3: VS ZACK
+    // ROUND 3: VS MAX
     // ==========================================
 
     {
@@ -463,17 +463,17 @@ export const tournamentEvents: StoryEvent[] = [
             tournamentRound: 2,
         },
         skippable: false,
-        description: 'You prepare to face Zack in the third round',
+        description: 'You prepare to face Max in the third round',
         dialogue: [
-            ['zack', ['You ready for this? I hope you brought your A-game.']],
-            ['zack', ['I\'ve been watching your matches. You\'re pretty good. But I\'m on a roll here.']],
-            ['zack', ['Just remember, I don\'t plan on losing today. Not to a first year.']],
-            ['coach_gonzalez', ['Stay focused out there. ', {characterId: 'zack'}, ' is a defensive menace. Pay attention to consistency.']]
+            ['max', ['You ready for this? I hope you brought your A-game.']],
+            ['max', ['I\'ve been watching your matches. You\'re pretty good. But I\'m on a roll here.']],
+            ['max', ['Just remember, I don\'t plan on losing today. Not to a first year.']],
+            ['coach_gonzalez', ['Stay focused out there. ', {characterId: 'max'}, ' is a defensive menace. Pay attention to consistency.']]
         ],
-        characters: ['zack', 'coach_gonzalez'],
+        characters: ['max', 'coach_gonzalez'],
         options: [],
         defaultOutcome: {
-            resultText: [{characterId: 'zack'}, ' has an attitude but you can tell he can back it up. Prepare for a grind.'],
+            resultText: [{characterId: 'max'}, ' has an attitude but you can tell he can back it up. Prepare for a grind.'],
             effects: {
                 moodChange: 5,
                 statChanges: {
@@ -495,17 +495,17 @@ export const tournamentEvents: StoryEvent[] = [
             tournamentRound: 2,
         },
         skippable: false,
-        description: 'You face Zack in the consolation bracket.',
+        description: 'You face Max in the consolation bracket.',
         dialogue: [
-            ['zack', ['Didn\'t expect to see me in the consolation bracket, did you?']],
-            ['zack', ['I had an off day. It happens to everyone.']],
-            [null, [{characterId: 'zack'}, ' seems more relaxed here, less pressure without the main trophy on the line.']],
-            ['zack', ['But that doesn\'t mean I\'m going easy on you. I still have my pride.']],
+            ['max', ['Didn\'t expect to see me in the consolation bracket, did you?']],
+            ['max', ['I had an off day. It happens to everyone.']],
+            [null, [{characterId: 'max'}, ' seems more relaxed here, less pressure without the main trophy on the line.']],
+            ['max', ['But that doesn\'t mean I\'m going easy on you. I still have my pride.']],
         ],
-        characters: ['zack'],
+        characters: ['max'],
         options: [],
         defaultOutcome: {
-            resultText: ['Even in the consolation bracket, ', {characterId: 'zack'}, ' seems focused and determined.'],
+            resultText: ['Even in the consolation bracket, ', {characterId: 'max'}, ' seems focused and determined.'],
             effects: {
                 moodChange: 2,
             }
@@ -519,22 +519,22 @@ export const tournamentEvents: StoryEvent[] = [
         timeSlotsRequired: 0,
         prerequisites: {},
         skippable: false,
-        description: 'You defeated Zack!',
+        description: 'You defeated Max!',
         dialogue: [
-            ['zack', ['I can\'t believe I lost to you.']],
-            ['zack', ['You played really well. I underestimated you.']],
-            ['zack', ['Just wait until next time. I won\'t go easy on you again.']],
-            ['coach_gonzalez', ['I can\'t believe it either! ', {characterId: 'zack'}, ' fought and fought.']],
+            ['max', ['I can\'t believe I lost to you.']],
+            ['max', ['You played really well. I underestimated you.']],
+            ['max', ['Just wait until next time. I won\'t go easy on you again.']],
+            ['coach_gonzalez', ['I can\'t believe it either! ', {characterId: 'max'}, ' fought and fought.']],
             ['coach_gonzalez', ['Maybe I should be upping the fee for my lessons.']]
         ],
-        characters: ['zack', 'coach_gonzalez'],
+        characters: ['max', 'coach_gonzalez'],
         options: [],
         defaultOutcome: {
-            resultText: ['You defeated ', {characterId: 'zack'}, '! The finals are coming up. You can feel the pressure mounting.'],
+            resultText: ['You defeated ', {characterId: 'max'}, '! The finals are coming up. You can feel the pressure mounting.'],
             effects: {
                 moodChange: 6,
                 relationshipChanges: {
-                    zack: 8,
+                    max: 8,
                 }
             }
         }
@@ -547,22 +547,22 @@ export const tournamentEvents: StoryEvent[] = [
         timeSlotsRequired: 0,
         prerequisites: {},
         skippable: false,
-        description: 'Zack defeated you.',
+        description: 'Max defeated you.',
         dialogue: [
-            ['zack', ['Good match. You made me work for it.']],
-            [null, [{characterId: 'zack'}, ' extends his hand. His grip is firm and respectful.']],
-            ['zack', ['You\'ve got potential. Real potential. But you need more experience.']],
+            ['max', ['Good match. You made me work for it.']],
+            [null, [{characterId: 'max'}, ' extends his hand. His grip is firm and respectful.']],
+            ['max', ['You\'ve got potential. Real potential. But you need more experience.']],
             ['coach_gonzalez', ['I\'m proud of you for making it this far. Learn from this experience.']],
             ['coach_gonzalez', ['Come on. You have laps to run after that performance.']]
         ],
-        characters: ['zack', 'coach_gonzalez'],
+        characters: ['max', 'coach_gonzalez'],
         options: [],
         defaultOutcome: {
-            resultText: ['Zack was too strong, but you learned so much from facing him.'],
+            resultText: ['Max was too strong, but you learned so much from facing him.'],
             effects: {
                 moodChange: -4,
                 relationshipChanges: {
-                    zack: 8,
+                    max: 8,
                 },
                 statChanges: {
                     stamina: 2

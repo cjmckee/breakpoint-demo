@@ -34,11 +34,11 @@ export const miscEvents: StoryEvent[] = [
         skippable: true,
         description: 'Some of your teammates invite you to the disc golf course out behind the courts.',
         dialogue: [
-            ['sasha', ['Have you ever heard of disc golf? We found some old course behind the courts.']],
+            ['alison', ['Have you ever heard of disc golf? We found some old course behind the courts.']],
             ['greg', ['We asked around and managed to find a few used discs, too!']],
             ['keith', ['It\'s like regular golf, but with frisbees. How bad can it be?']],
         ],
-        characters: ['sasha', 'greg', 'keith'],
+        characters: ['alison', 'greg', 'keith'],
         options: [
             {
                 id: 'join_disc_golf',
@@ -58,7 +58,7 @@ export const miscEvents: StoryEvent[] = [
                             placement: 1
                         },
                         relationshipChanges: {
-                            sasha: 5,
+                            alison: 5,
                             greg: 5,
                             keith: -5
                         },
@@ -88,7 +88,7 @@ export const miscEvents: StoryEvent[] = [
                             stamina: 3,
                         },
                         relationshipChanges: {
-                            sasha: 2,
+                            alison: 2,
                             greg: 2,
                             keith: 10
                         }
@@ -111,7 +111,7 @@ export const miscEvents: StoryEvent[] = [
                             recovery: 3
                         },
                         relationshipChanges: {
-                            sasha: -2,
+                            alison: -2,
                             greg: -2,
                             keith: -5
                         }

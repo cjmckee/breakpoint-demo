@@ -1031,17 +1031,17 @@ export const careerEvents: StoryEvent[] = [
       ['keith', ['Behind us?']],
       ['jen', ['Behind us. If we can close this out, we\'ll be a lock for playoffs.']],
       ['coach_gonzalez', ['They\'re talented cooks, and it transfers over to their slice skills. This team also has some big servers.']],
-      ['sasha', ['I checked their records and they\'ve been handing out lots of bagels and breadsticks to their opponents.']],
+      ['alison', ['I checked their records and they\'ve been handing out lots of bagels and breadsticks to their opponents.']],
       ['keith', ['That\'s so nice of them... I wonder what bread they use?']],
       ['coach_gonzalez', ['Looks like you\'ll be playing their top chef and singles player, ', {characterId: 'olivia_gulp'}, '. She\'s been winning tournaments AND cooking competitions.']],
       ['coach_gonzalez', ['Try to attack on serve return. After she hits a fault, she usually follows it up with a pancake serve.']]
     ],
-    characters: ['keith', 'jen', 'sasha', 'coach_gonzalez'],
+    characters: ['keith', 'jen', 'alison', 'coach_gonzalez'],
     options: [],
     defaultOutcome: {
       resultText: [
         'Dobry Pomidor Culinary Institute. They\'re top-notch in the kitchen and on the court. You need to get another win to ensure your team makes the playoffs.',
-        {characterId: 'sasha'}, ' is still desperately trying to confirm that ', {characterId: 'keith'}, ' didn\'t think she was talking about real bagels. The result is unclear.'
+        {characterId: 'alison'}, ' is still desperately trying to confirm that ', {characterId: 'keith'}, ' didn\'t think she was talking about real bagels. The result is unclear.'
       ],
       effects: {
         moodChange: 5,
