@@ -680,13 +680,13 @@ export const CHALLENGE_ESCAPE_ARTIST: ChallengeTemplate = {
 export const CHALLENGE_PRACTICE_MAKES_PERFECT: ChallengeTemplate = {
   id: 'challenge_practice_makes_perfect',
   name: 'Practice Makes Perfect',
-  description: "Alex has been holding back. Time to catch up for real. Reach 40 Return.",
+  description: "Alex has secretly been holding back. They gave you some pointers on serve return. Reach 50 Return.",
   requirements: [
     {
       type: 'statThreshold',
       statName: 'return',
-      targetValue: 40,
-      description: 'Reach 40 Return',
+      targetValue: 50,
+      description: 'Reach 50 Return',
     },
   ],
   reward: {
