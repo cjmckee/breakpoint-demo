@@ -125,6 +125,13 @@ interface SettingsModalProps {
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const audioSettings = useGameStore((state) => state.audioSettings);
   const updateAudioSettings = useGameStore((state) => state.updateAudioSettings);
+  const clearAllData = useGameStore((state) => state.clearAllData);
+  const [confirmingReset, setConfirmingReset] = useState(false);
+
+  // Reset confirmation state when modal opens/closes
+  useEffect(() => {
+    if (isOpen) setConfirmingReset(false);
+  }, [isOpen]);
 
   // Keep AudioManager in sync whenever settings change
   useEffect(() => {
@@ -215,6 +222,48 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
         {/* Audio Credits */}
         <AudioCredits />
+
+        {/* Clear Progress */}
+        <div className="border-t border-pixel-border pt-4 mb-6">
+          <h3 className="text-sm font-bold text-pixel-text-muted mb-2 uppercase tracking-wider">
+            Data
+          </h3>
+          {!confirmingReset ? (
+            <Button
+              variant="danger"
+              fullWidth
+              onClick={() => setConfirmingReset(true)}
+            >
+              Clear All Progress
+            </Button>
+          ) : (
+            <div className="space-y-2">
+              <p className="text-sm text-pixel-text-muted text-center">
+                This will permanently delete your save data. Are you sure?
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="danger"
+                  fullWidth
+                  onClick={() => {
+                    clearAllData();
+                    setConfirmingReset(false);
+                    onClose();
+                  }}
+                >
+                  Yes, Delete Everything
+                </Button>
+                <Button
+                  variant="secondary"
+                  fullWidth
+                  onClick={() => setConfirmingReset(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
 
         <Button variant="primary" fullWidth onClick={onClose}>
           Close
