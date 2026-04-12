@@ -5,7 +5,7 @@
 
 import type { StoryEvent } from '../../types/storyEvents';
 import { ChallengeManager } from '../../game/ChallengeManager';
-import { TOURNAMENT_OUTFIT, SPONSOR_OUTFIT, HEADBAND, PRO_RACQUET, ENERGY_DRINK, BANANA, LUCKY_SPROUT, ALLROUND_RACQUET, CONTROL_RACQUET, COURT_SHOES, POWER_RACQUET } from '../items';
+import { TOURNAMENT_OUTFIT, SPONSOR_OUTFIT, HEADBAND, PRO_RACQUET, ENERGY_DRINK, BANANA, LUCKY_SPROUT, ALLROUND_RACQUET, CONTROL_RACQUET, COURT_SHOES, POWER_RACQUET, SPACE_SUIT, LUCKY_TEETH, CHEF_HAT, SKI_PASS } from '../items';
 import { CHALLENGE_TEAM_SPIRIT, CHALLENGE_SPONSOR_WORTHY } from '../challengeTemplates';
 import { TimeSlot } from '../../types/game';
 
@@ -277,7 +277,7 @@ export const careerEvents: StoryEvent[] = [
     defaultOutcome: {
       resultText: [
         'You\'ve won your first team match! The feeling of helping your team come out on top is something special.',
-        'I hope you don\'t plan on skiing anytime soon.'
+        'I wonder how real the threat is about the skiing thing.'
       ],
       effects: {
         moodChange: 25,
@@ -294,7 +294,7 @@ export const careerEvents: StoryEvent[] = [
           agility: 1,
           volley: 2
         },
-        itemsGained: [ENERGY_DRINK],
+        itemsGained: [SKI_PASS],
       }
     }
   },
@@ -340,7 +340,8 @@ export const careerEvents: StoryEvent[] = [
           speed: 1,
           agility: 1,
           defensive: 1,
-        }
+        },
+        itemsGained: [SKI_PASS]
       }
     }
   },
@@ -736,7 +737,7 @@ export const careerEvents: StoryEvent[] = [
           anticipation: 2,
           placement: 2,
         },
-        itemsGained: [BANANA],
+        itemsGained: [SPACE_SUIT],
       }
     }
   },
@@ -782,7 +783,8 @@ export const careerEvents: StoryEvent[] = [
           focus: 2,
           defensive: 2,
           anticipation: 1,
-        }
+        },
+        itemsGained: [SPACE_SUIT]
       }
     }
   },
@@ -957,7 +959,7 @@ export const careerEvents: StoryEvent[] = [
           anticipation: 2,
           stamina: 2,
         },
-        itemsGained: [HEADBAND],
+        itemsGained: [LUCKY_TEETH],
       }
     }
   },
@@ -1002,7 +1004,8 @@ export const careerEvents: StoryEvent[] = [
           placement: 2,
           defensive: 2,
           anticipation: 1,
-        }
+        },
+        itemsGained: [LUCKY_TEETH]
       }
     }
   },
@@ -1178,7 +1181,7 @@ export const careerEvents: StoryEvent[] = [
           speed: 2,
           recovery: 2,
         },
-        itemsGained: [ENERGY_DRINK],
+        itemsGained: [CHEF_HAT],
       }
     }
   },
@@ -1223,7 +1226,8 @@ export const careerEvents: StoryEvent[] = [
           stamina: 2,
           recovery: 3,
           offensive: 1,
-        }
+        },
+        itemsGained: [CHEF_HAT]
       }
     }
   },

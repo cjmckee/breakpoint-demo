@@ -266,6 +266,23 @@ export const SPONSOR_OUTFIT: Item = {
   },
 };
 
+export const SPACE_SUIT: Item = {
+  id: 'space_suit',
+  name: 'Space Suit',
+  description: 'You found this left over after your match with Cosmo Comet. It is a bit bulky though.',
+  type: 'equipment',
+  equipmentSlot: 'outfit',
+  modifiers: {
+    statBoosts: {
+      stamina: 3,
+      offensive: 2,
+      speed: 1,
+      spin: 3,
+      anticipation: 2
+    }
+  }
+}
+
 // ============================================================================
 // EQUIPMENT - HATS
 // ============================================================================
@@ -359,6 +376,21 @@ export const BANDANA: Item = {
   },
 };
 
+export const CHEF_HAT: Item = {
+  id: 'chef_hat',
+  name: 'Chef\'s Hat',
+  description: 'One of the players from Dobry Pomidor left this behind. You put it on and instantly feel more confident with your slices.',
+  type: 'equipment',
+  equipmentSlot: 'hat',
+  modifiers: {
+    statBoosts: {
+      slice: 5,
+      spin: 2,
+      volley: 2
+    }
+  }
+}
+
 // ============================================================================
 // CONSUMABLES - INSTANT
 // ============================================================================
@@ -430,6 +462,20 @@ export const GRANDMAS_LUCKY_COOKIES: Item = {
     },
   },
 };
+
+export const SKI_PASS: Item = {
+  id: 'ski_pass',
+  name: 'Aspen Slopes Ski Pass',
+  description: 'A ski pass someone left from the Aspen Slopes match. It\'s still valid for one more trip.',
+  type: 'consumable',
+  consumableEffect: {
+    type: 'instant',
+    instantEffects: {
+      energyChange: 20,
+      moodChange: 25,
+    },
+  }
+}
 
 // ============================================================================
 // CONSUMABLES - NEXT ACTIVITY
@@ -717,7 +763,7 @@ export const TENNIS_BALL_KEYCHAIN: Item = {
 export const LUCKY_SPROUT: Item = {
   id: 'lucky_sprout',
   name: 'Lucky Sprout',
-  description: 'A small plant left behind by an opponent. You enjoy taking care of it.',
+  description: 'A small plant left behind by an opponent from Azalea Forest. You enjoy taking care of it.',
   type: 'lucky',
   modifiers: {
     statBoosts: {
@@ -739,6 +785,21 @@ export const LUCKY_JACKET: Item = {
       focus: 2,
       overhead: 1,
       spin: 2
+    }
+  }
+}
+
+export const LUCKY_TEETH: Item = {
+  id: 'lucky_teeth',
+  name: 'Lucky fake teeth',
+  description: 'You found these dentures after the Sunset Drive team match. You don\'t know who they belong to, but they make your smile really pop.',
+  type: 'lucky',
+  modifiers: {
+    statBoosts: {
+      serve: 1,
+      return: 1,
+      recovery: 2,
+      focus: 2
     }
   }
 }

@@ -221,6 +221,7 @@ export const familyEvents: StoryEvent[] = [
     skippable: true,
     description: 'Your family sends a care package to the academy.',
     dialogue: [
+      [null, ['A package appears on your doorstep and you pull it inside. It smells delicious.']],
       ['parent', ["We put together a few things we thought you'd need. Your grandmother also included a letter. She thinks you play badminton, by the way. We didn't correct her."]],
       ['parent', ['Plus I threw in an old ski jacket I have from the 90s. Maybe you can bring the style back.']]
     ],
