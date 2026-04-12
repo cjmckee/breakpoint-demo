@@ -85,6 +85,15 @@ Story events are organized into storylines: rival, coach, family, romance, caree
 
 Tournament definitions include bracket structures, per-round opponents with specific stats, story event hooks for each round, and prerequisite conditions for entry.
 
+## Credits
+
+Audio assets are provided by third parties under their respective licenses.
+See [CREDITS.md](CREDITS.md) for full attribution.
+
+- **Music** by [Tim Kulig](https://timkulig.com) — licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+- **Sound effects** by [Kenney](https://kenney.nl) — released under [CC0](https://creativecommons.org/publicdomain/zero/1.0/)
+
 ## License
 
-MIT
+The Tennis RPG source code is released under the [MIT License](LICENSE).
+Third-party assets remain under their original licenses as noted above.
