@@ -137,6 +137,9 @@ interface GameState {
   useConsumable: (itemId: string) => void;
   trashItem: (itemId: string) => void;
   markItemSeen: (itemId: string) => void;
+  setIndicator: (key: string) => void;
+  clearIndicator: (key: string) => void;
+  markChallengeSeen: (challengeId: string) => void;
   getPlayerItems: () => Item[];
 
   // Tournament actions
@@ -881,6 +884,7 @@ export const useGameStore = create<GameState>()(
         switch (target) {
           case 'training':
             set({ gamePhase: { type: 'training' } });
+            get().clearIndicator('training');
             break;
           case 'match_setup':
             set({ gamePhase: { type: 'match_setup', matchType: 'regular', matchConfig: null } });
@@ -1280,6 +1284,7 @@ export const useGameStore = create<GameState>()(
                   set((prev) => ({
                     calendar: { ...prev.calendar, scheduledEvents: updatedEvents },
                   }));
+                  get().setIndicator('calendar');
                 }
               }
             }
@@ -1725,6 +1730,7 @@ export const useGameStore = create<GameState>()(
 
         // Add scheduled events if any (resolve relative days to absolute days with conflict resolution)
         let updatedScheduledEvents = [...get().calendar.scheduledEvents];
+        const hasNewScheduledEvents = (outcome.effects.scheduledEvents?.length ?? 0) > 0;
         if (outcome.effects.scheduledEvents) {
           for (const template of outcome.effects.scheduledEvents) {
             const preferredDay = calendar.currentDay + template.relativeDays;
@@ -1760,6 +1766,10 @@ export const useGameStore = create<GameState>()(
           },
           activityHistory: [result, ...get().activityHistory].slice(0, 10),
         });
+
+        if (hasNewScheduledEvents) {
+          get().setIndicator('calendar');
+        }
 
         // Transition to story event result
         if (isOverlay) {
@@ -2106,6 +2116,34 @@ export const useGameStore = create<GameState>()(
         });
       },
 
+      setIndicator: (key: string) => {
+        const { player } = get();
+        if (!player) return;
+        const indicators = player.activeIndicators ?? [];
+        if (indicators.includes(key)) return;
+        set({ player: { ...player, activeIndicators: [...indicators, key] } });
+      },
+
+      clearIndicator: (key: string) => {
+        const { player } = get();
+        if (!player) return;
+        const indicators = player.activeIndicators ?? [];
+        if (!indicators.includes(key)) return;
+        set({ player: { ...player, activeIndicators: indicators.filter((k) => k !== key) } });
+      },
+
+      markChallengeSeen: (challengeId: string) => {
+        const { player } = get();
+        if (!player || (player.seenChallengeIds ?? []).includes(challengeId)) return;
+
+        set({
+          player: {
+            ...player,
+            seenChallengeIds: [...(player.seenChallengeIds ?? []), challengeId],
+          },
+        });
+      },
+
       // Get all player items
       getPlayerItems: (): Item[] => {
         const { player } = get();
@@ -2243,6 +2281,7 @@ export const useGameStore = create<GameState>()(
             scheduledEvents: updatedEvents,
           },
         }));
+        get().setIndicator('calendar');
       },
 
       // Cancel/forfeit tournament
