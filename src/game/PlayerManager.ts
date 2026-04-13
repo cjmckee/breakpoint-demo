@@ -66,6 +66,8 @@ export class PlayerManager {
       storyItems: [],
       nextActivityBuffs: null,
       seenItemIds: [],
+      activeIndicators: ['calendar', 'training'],
+      seenChallengeIds: [],
 
       level: 1,
       experience: 0,

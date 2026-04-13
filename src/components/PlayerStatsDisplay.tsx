@@ -10,6 +10,8 @@ import { StatCard } from './StatCard';
 import { StatBar } from './StatBar';
 import { AbilityDisplay } from './AbilityDisplay';
 import { EffectAggregator } from '../core/EffectAggregator';
+import { derivePlayStyle } from '../core/PlayerProfile';
+import { getArchetypeLabel } from '../data/archetypes';
 import type { StatBoosts } from '../types/game';
 
 interface PlayerStatsDisplayProps {
@@ -84,8 +86,20 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
     },
   ];
 
+  const playStyle = useMemo(() => derivePlayStyle(player.stats), [player.stats]);
+
   return (
     <Card title="Player Statistics" collapsible={collapsible} defaultCollapsed={defaultCollapsed}>
+      {/* Play Style */}
+      <div className="mb-6 p-3 bg-pixel-accent bg-opacity-10 border-2 border-pixel-accent">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-sm px-2 py-0.5 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent font-bold">
+            {getArchetypeLabel(playStyle.type)}
+          </span>
+        </div>
+        <p className="text-sm text-pixel-text-muted">{playStyle.description}</p>
+      </div>
+
       {/* Stat Categories */}
       <div className="space-y-6 mb-6">
         {statCategories.map((category) => (

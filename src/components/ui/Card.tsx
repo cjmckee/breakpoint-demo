@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 
 interface CardProps {
   children: React.ReactNode;
-  title?: string;
+  title?: React.ReactNode;
   className?: string;
   padding?: 'sm' | 'md' | 'lg';
   collapsible?: boolean;

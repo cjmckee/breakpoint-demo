@@ -435,6 +435,8 @@ export interface Player {
   storyItems: Item[];  // Story items (no limit, don't count toward inventory)
   nextActivityBuffs: Modifiers | null;  // Temporary buffs from consumables
   seenItemIds: string[];  // Item IDs the player has viewed in inventory
+  activeIndicators: string[];  // Generic UI indicator keys (e.g. 'calendar', 'training')
+  seenChallengeIds: string[];  // Challenge IDs the player has seen
 
   level: number;
   experience: number;

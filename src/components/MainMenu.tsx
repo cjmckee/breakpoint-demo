@@ -54,6 +54,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const dismissOverlay = useGameStore((state) => state.dismissOverlay);
   const dismissStoryEventResult = useGameStore((state) => state.dismissStoryEventResult);
 
+  // Check for unseen training
+  const hasUnseenTraining = (player?.activeIndicators ?? []).includes('training');
+
   // Check for unseen items in inventory
   const hasUnseenItems = player ? [
     ...player.inventory,
@@ -354,6 +357,11 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                   <div className="text-6xl mb-3 relative inline-block">
                     {activity.emoji}
                     {activity.id === 'inventory' && hasUnseenItems && (
+                      <span className="absolute -top-2 -right-4 w-6 h-6 bg-red-500 text-white text-xs font-bold flex items-center justify-center rounded-full animate-bounce">
+                        !
+                      </span>
+                    )}
+                    {activity.id === 'training' && hasUnseenTraining && (
                       <span className="absolute -top-2 -right-4 w-6 h-6 bg-red-500 text-white text-xs font-bold flex items-center justify-center rounded-full animate-bounce">
                         !
                       </span>

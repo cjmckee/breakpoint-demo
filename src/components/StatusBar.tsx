@@ -9,7 +9,10 @@ import { CalendarView } from './CalendarView';
 
 export const StatusBar: React.FC = () => {
   const { calendar, currentStatus, player } = useGameStore();
+  const clearIndicator = useGameStore((state) => state.clearIndicator);
   const [calendarOpen, setCalendarOpen] = useState(false);
+
+  const hasUnseenEvents = (player?.activeIndicators ?? []).includes('calendar');
 
   const getMoodColor = (mood: number): string => {
     if (mood >= 50) return 'text-green-500';
@@ -84,11 +87,19 @@ export const StatusBar: React.FC = () => {
 
           {/* Calendar */}
           <button
-            onClick={() => setCalendarOpen(true)}
+            onClick={() => {
+              setCalendarOpen(true);
+              clearIndicator('calendar');
+            }}
             className="flex items-center gap-3 cursor-pointer hover:bg-pixel-secondary/50 rounded p-1 -m-1 transition-colors"
           >
-            <div className="w-12 h-12 bg-pixel-secondary border-4 border-pixel-border flex items-center justify-center text-2xl">
+            <div className="w-12 h-12 bg-pixel-secondary border-4 border-pixel-border flex items-center justify-center text-2xl relative">
               📅
+              {hasUnseenEvents && (
+                <span className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white text-xs font-bold flex items-center justify-center rounded-full animate-bounce">
+                  !
+                </span>
+              )}
             </div>
             <div className="text-left">
               <div className="text-sm text-pixel-text-muted">
