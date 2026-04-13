@@ -122,17 +122,21 @@ export function trackPlayerCreated(
   playstyle: 'offensive' | 'defensive' | 'balanced',
   player: Player,
 ): void {
+  if (ENABLED) {
+    // Register player_name as a super property so it's included on every
+    // subsequent event automatically, persisted across page reloads.
+    mixpanel.register({ player_name: player.name });
+    mixpanel.people.set({
+      $name: player.name,
+      playstyle,
+      created_at: player.createdAt,
+    });
+  }
   track('player_created', {
     playstyle,
     player_level: player.level,
     player_tier: player.tier,
   });
-  if (ENABLED) {
-    mixpanel.people.set({
-      playstyle,
-      created_at: player.createdAt,
-    });
-  }
 }
 
 // ---------------------------------------------------------------------------
