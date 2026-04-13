@@ -56,7 +56,7 @@ function track(event: string, props?: Record<string, unknown>): void {
   }
 }
 
-/** Full snapshot of all 15 player stats for progression analysis. */
+/** Full snapshot of all 20 player stats for progression analysis. */
 function statsSnapshot(player: Player): Record<string, number> {
   const { core, technical, physical, mental } = player.stats;
   return {
