@@ -56,20 +56,34 @@ function track(event: string, props?: Record<string, unknown>): void {
   }
 }
 
-/** A minimal snapshot of core stats useful for segmenting event data. */
+/** Full snapshot of all 15 player stats for progression analysis. */
 function statsSnapshot(player: Player): Record<string, number> {
   const { core, technical, physical, mental } = player.stats;
   return {
+    // Core (5)
     stat_serve: core.serve,
     stat_forehand: core.forehand,
     stat_backhand: core.backhand,
     stat_return: core.return,
     stat_slice: core.slice,
+    // Technical (5)
     stat_volley: technical.volley,
+    stat_overhead: technical.overhead,
+    stat_drop_shot: technical.dropShot,
+    stat_spin: technical.spin,
+    stat_placement: technical.placement,
+    // Physical (5)
     stat_speed: physical.speed,
     stat_stamina: physical.stamina,
+    stat_strength: physical.strength,
+    stat_agility: physical.agility,
+    stat_recovery: physical.recovery,
+    // Mental (5)
     stat_focus: mental.focus,
-    stat_clutch: mental.offensive, // offensive doubles as aggression/clutch proxy
+    stat_anticipation: mental.anticipation,
+    stat_shot_variety: mental.shotVariety,
+    stat_offensive: mental.offensive,
+    stat_defensive: mental.defensive,
   };
 }
 
@@ -139,6 +153,8 @@ export function trackMatchCompleted(
   opponentName: string,
   opponentTier: OpponentTier,
   player: Player,
+  gameDay: number,
+  timeSlot: string,
 ): void {
   const isWin = finalScore.winner === 'player';
 
@@ -147,6 +163,8 @@ export function trackMatchCompleted(
     match_type: matchType,
     opponent_name: opponentName,
     opponent_tier: opponentTier,
+    game_day: gameDay,
+    time_slot: timeSlot,
 
     // Serve
     aces: stats.aces.player,

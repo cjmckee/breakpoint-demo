@@ -1187,6 +1187,8 @@ export const useGameStore = create<GameState>()(
           matchConfig.opponentName ?? 'Unknown',
           opponentTier,
           updatedPlayer,
+          state.calendar.currentDay,
+          TIME_SLOT_NAMES[state.calendar.currentTimeSlot],
         );
       },
 
