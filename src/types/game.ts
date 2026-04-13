@@ -444,6 +444,7 @@ export interface Player {
   matchesWon?: number;
   tier: OpponentTier;  // Player's current tier (1-4) determines available opponents and training
   latestMatchResults?: ('win' | 'loss')[];  // Rolling record of last 10 match results (newest first)
+  practiceWinsPerTier?: Partial<Record<OpponentTier, number>>;  // Wins per tier for opponent difficulty scaling
   createdAt: string;
   updatedAt: string;
 

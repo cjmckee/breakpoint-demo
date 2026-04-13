@@ -467,3 +467,47 @@ export function getRandomOpponent(tier: OpponentTier): OpponentPreset {
 export function getOpponentsForTier(tier: OpponentTier): OpponentPreset[] {
   return OPPONENTS_BY_TIER[tier];
 }
+
+/**
+ * Apply difficulty scaling to an opponent's stats based on how many practice
+ * wins the player has accumulated against that tier. Each win adds +3 to all
+ * stats, capped at +15 (reached after 5 wins). Stats are clamped to 100.
+ */
+export function getScaledOpponentStats(preset: OpponentPreset, tierWins: number): PlayerStats {
+  const boost = Math.min(tierWins * 3, 15);
+  if (boost === 0) return preset.stats;
+
+  const scale = (v: number) => Math.min(100, v + boost);
+  const { core, technical, physical, mental } = preset.stats;
+
+  return {
+    core: {
+      serve: scale(core.serve),
+      forehand: scale(core.forehand),
+      backhand: scale(core.backhand),
+      return: scale(core.return),
+      slice: scale(core.slice),
+    },
+    technical: {
+      volley: scale(technical.volley),
+      overhead: scale(technical.overhead),
+      dropShot: scale(technical.dropShot),
+      spin: scale(technical.spin),
+      placement: scale(technical.placement),
+    },
+    physical: {
+      speed: scale(physical.speed),
+      stamina: scale(physical.stamina),
+      strength: scale(physical.strength),
+      agility: scale(physical.agility),
+      recovery: scale(physical.recovery),
+    },
+    mental: {
+      focus: scale(mental.focus),
+      anticipation: scale(mental.anticipation),
+      shotVariety: scale(mental.shotVariety),
+      offensive: scale(mental.offensive),
+      defensive: scale(mental.defensive),
+    },
+  };
+}

@@ -11,7 +11,7 @@ import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { PlayerStats, OpponentTier } from '../types/game';
 import { ItemManager } from '../game/ItemManager';
-import { getRandomOpponent, OPPONENTS_BY_TIER } from '../data/opponents';
+import { getRandomOpponent, getScaledOpponentStats, OPPONENTS_BY_TIER } from '../data/opponents';
 import { getArchetypeLabel } from '../data/archetypes';
 import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
 
@@ -45,13 +45,14 @@ export const MatchSetup: React.FC = () => {
 
   const handleStartMatch = () => {
     const opponent = getRandomOpponent(selectedTier);
+    const tierWins = player.practiceWinsPerTier?.[selectedTier] ?? 0;
 
     const config = {
       playerStats: player.stats,
       playerName: player.name,
       playerAbilities: player.abilities,
       itemBoosts: ItemManager.getTotalPassiveBoosts(player),
-      opponentStats: opponent.stats as PlayerStats,
+      opponentStats: getScaledOpponentStats(opponent, tierWins) as PlayerStats,
       opponentName: opponent.name,
       opponentTier: opponent.tier,
       surface: selectedSurface,
