@@ -14,7 +14,15 @@ import { derivePlayStyle } from '../core/PlayerProfile';
 import { getArchetypeLabel } from '../data/archetypes';
 import type { StatBoosts } from '../types/game';
 
-export const PlayerStatsDisplay: React.FC = () => {
+interface PlayerStatsDisplayProps {
+  collapsible?: boolean;
+  defaultCollapsed?: boolean;
+}
+
+export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
+  collapsible = false,
+  defaultCollapsed = false,
+}) => {
   const player = useGameStore((state) => state.player);
 
   // Compute total passive boosts from items and abilities
@@ -25,7 +33,7 @@ export const PlayerStatsDisplay: React.FC = () => {
 
   if (!player) {
     return (
-      <Card title="Player Statistics">
+      <Card title="Player Statistics" collapsible={collapsible} defaultCollapsed={defaultCollapsed}>
         <div className="text-center py-8 text-pixel-text-muted">
           No player data available
         </div>
@@ -81,7 +89,7 @@ export const PlayerStatsDisplay: React.FC = () => {
   const playStyle = useMemo(() => derivePlayStyle(player.stats), [player.stats]);
 
   return (
-    <Card title="Player Statistics">
+    <Card title="Player Statistics" collapsible={collapsible} defaultCollapsed={defaultCollapsed}>
       {/* Play Style */}
       <div className="mb-6 p-3 bg-pixel-accent bg-opacity-10 border-2 border-pixel-accent">
         <div className="flex items-center gap-2 mb-1">
