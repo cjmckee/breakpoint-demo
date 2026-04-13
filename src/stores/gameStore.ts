@@ -1035,6 +1035,13 @@ export const useGameStore = create<GameState>()(
         updatedPlayer.matchesPlayed = (updatedPlayer.matchesPlayed || 0) + 1;
         if (isWin) {
           updatedPlayer.matchesWon = (updatedPlayer.matchesWon || 0) + 1;
+          if (matchType === 'regular') {
+            const prev = updatedPlayer.practiceWinsPerTier ?? {};
+            updatedPlayer.practiceWinsPerTier = {
+              ...prev,
+              [opponentTier]: (prev[opponentTier] ?? 0) + 1,
+            };
+          }
         }
         const currentResults = updatedPlayer.latestMatchResults || [];
         updatedPlayer.latestMatchResults = ([isWin ? 'win' : 'loss', ...currentResults] as ('win' | 'loss')[]).slice(0, 10);
