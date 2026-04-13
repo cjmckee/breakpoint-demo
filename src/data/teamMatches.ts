@@ -92,11 +92,11 @@ const martiaEstrella: MatchOpponent = {
   description: 'An up-and-coming star known for her volleys and court coverage.',
   stats: {
     core: {
-      serve: 31,
-      forehand: 33,
-      backhand: 25,
-      return: 31,
-      slice: 33,
+      serve: 34,
+      forehand: 36,
+      backhand: 30,
+      return: 34,
+      slice: 36,
     },
     technical: {
       volley: 35,
@@ -129,10 +129,10 @@ const reginaldWerther: MatchOpponent = {
   description: 'A steady, patient player from Sunset Drive. He won tournaments 100 years before you were born.',
   stats: {
     core: {
-      serve: 39,
-      forehand: 43,
-      backhand: 37,
-      return: 41,
+      serve: 42,
+      forehand: 45,
+      backhand: 41,
+      return: 42,
       slice: 41,
     },
     technical: {
@@ -166,11 +166,11 @@ const oliviaGulp: MatchOpponent = {
   description: 'A talented chef with a variety of skills on the court. If you can\'t take the heat, you could get burned.',
   stats: {
     core: {
-      serve: 42,
-      forehand: 47,
-      backhand: 40,
-      return: 45,
-      slice: 45,
+      serve: 46,
+      forehand: 50,
+      backhand: 42,
+      return: 48,
+      slice: 50,
     },
     technical: {
       volley: 38,
