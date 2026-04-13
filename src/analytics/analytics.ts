@@ -56,10 +56,33 @@ function track(event: string, props?: Record<string, unknown>): void {
   }
 }
 
-/** Full snapshot of all 20 player stats for progression analysis. */
+/** Full snapshot of all 20 player stats plus derived averages for progression analysis. */
 function statsSnapshot(player: Player): Record<string, number> {
   const { core, technical, physical, mental } = player.stats;
+
+  const avg = (vals: number[]) => vals.reduce((s, v) => s + v, 0) / vals.length;
+
+  const coreAvg     = avg(Object.values(core));
+  const technicalAvg = avg(Object.values(technical));
+  const physicalAvg  = avg(Object.values(physical));
+  const mentalAvg    = avg(Object.values(mental));
+
+  // Simple mean of all 20 stats
+  const statAverage = avg([coreAvg, technicalAvg, physicalAvg, mentalAvg]);
+
+  // Weighted overall rating — mirrors PlayerProfile.overallRating
+  // Core has the most impact on match outcomes
+  const overallRating = Math.round(
+    coreAvg * 0.45 +
+    technicalAvg * 0.15 +
+    physicalAvg * 0.25 +
+    mentalAvg * 0.15
+  );
+
   return {
+    // Derived summaries
+    stat_average: Math.round(statAverage * 10) / 10,
+    overall_rating: overallRating,
     // Core (5)
     stat_serve: core.serve,
     stat_forehand: core.forehand,
