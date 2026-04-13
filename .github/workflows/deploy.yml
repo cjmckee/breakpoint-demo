@@ -31,6 +31,7 @@ jobs:
       - run: npm run build
         env:
           NODE_ENV: production
+          VITE_MIXPANEL_TOKEN: ${{ secrets.VITE_MIXPANEL_TOKEN }}
 
       - uses: actions/upload-pages-artifact@v3
         with:
