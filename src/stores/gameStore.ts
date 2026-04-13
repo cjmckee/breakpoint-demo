@@ -122,6 +122,7 @@ interface GameState {
   // Story event actions
   checkForStoryEventById: (eventId: string) => void;
   checkForStoryEventByTag: (tag: StoryEventTag, customChance?: number) => void;
+  resolveMilestoneCheck: () => void;
   checkForRandomStoryEvent: (customChance?: number) => void;
   executeStoryEvent: (eventId: string, optionId?: string) => void;
   cancelStoryEvent: () => void;
@@ -1238,7 +1239,7 @@ export const useGameStore = create<GameState>()(
                     type: 'story_event',
                     event,
                     availableOptions,
-                    continuation: { type: 'idle' },
+                    continuation: { type: 'milestone_check' },
                   },
                 });
                 return;
@@ -1324,7 +1325,7 @@ export const useGameStore = create<GameState>()(
 
             // Show event chain: build continuations back-to-front so events play in order
             if (eventChain.length > 0) {
-              let continuation: PhaseContinuation = { type: 'idle' };
+              let continuation: PhaseContinuation = { type: 'milestone_check' };
               for (let i = eventChain.length - 1; i > 0; i--) {
                 continuation = {
                   type: 'story_event',
@@ -1347,12 +1348,7 @@ export const useGameStore = create<GameState>()(
 
         // Check for milestone events (e.g. "won first match", "hit 10 winners")
         // These only trigger after match completion, never during regular time advancement.
-        get().checkForStoryEventByTag('milestone', 100);
-        // If a milestone event was triggered, checkForStoryEventByTag already set the phase
-        if (get().gamePhase.type !== 'match_results') return;
-
-        // Default: go to idle
-        get().navigateTo('idle');
+        get().resolveMilestoneCheck();
       },
 
       dismissStoryEventResult: () => {
@@ -1361,6 +1357,8 @@ export const useGameStore = create<GameState>()(
           const { continuation } = phase;
           if (continuation.type === 'idle') {
             get().navigateTo('idle');
+          } else if (continuation.type === 'milestone_check') {
+            get().resolveMilestoneCheck();
           } else if (continuation.type === 'match_setup') {
             set({ gamePhase: { type: 'match_setup', matchType: continuation.matchType, matchConfig: continuation.matchConfig } });
           } else if (continuation.type === 'story_event') {
@@ -1374,6 +1372,8 @@ export const useGameStore = create<GameState>()(
           const { continuation } = currentPhase.overlay;
           if (continuation.type === 'idle') {
             get().navigateTo('idle');
+          } else if (continuation.type === 'milestone_check') {
+            get().resolveMilestoneCheck();
           } else if (continuation.type === 'match_setup') {
             set({ gamePhase: { type: 'match_setup', matchType: continuation.matchType, matchConfig: continuation.matchConfig } });
           } else if (continuation.type === 'story_event') {
@@ -1451,6 +1451,19 @@ export const useGameStore = create<GameState>()(
         } else {
           console.log(`[Story Event] Event not eligible: ${eventId}`);
         }
+      },
+
+      /**
+       * Run the post-match milestone check and navigate to idle if nothing fires.
+       * Used as a continuation after story/tournament post-match events so that
+       * milestones (e.g. "first win") still trigger regardless of match type.
+       */
+      resolveMilestoneCheck: () => {
+        get().checkForStoryEventByTag('milestone', 100);
+        // If a milestone event was triggered, checkForStoryEventByTag already set the phase
+        const phase = get().gamePhase;
+        if (phase.type === 'story_event' || phase.type === 'story_event_result') return;
+        get().navigateTo('idle');
       },
 
       /**
@@ -1863,6 +1876,8 @@ export const useGameStore = create<GameState>()(
           set({ gamePhase: { type: 'match_setup', matchType: continuation.matchType, matchConfig: continuation.matchConfig } });
         } else if (continuation.type === 'story_event') {
           set({ gamePhase: { type: 'story_event', event: continuation.event, availableOptions: continuation.availableOptions, continuation: { type: 'idle' } } });
+        } else if (continuation.type === 'milestone_check') {
+          get().resolveMilestoneCheck();
         } else {
           get().navigateTo('idle');
         }
