@@ -5,6 +5,7 @@
 
 import React, { JSX, useState } from 'react';
 import { useGameStore } from '../stores/gameStore';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { StatusBar } from './StatusBar';
@@ -31,6 +32,7 @@ interface MainMenuProps {
 export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const isMobile = useIsMobile();
   const player = useGameStore((state) => state.player);
   const currentStatus = useGameStore((state) => state.currentStatus);
   const calendar = useGameStore((state) => state.calendar);
@@ -392,17 +394,17 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
 
         {/* Two Column Layout for Stats and Activities */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Full Player Stats - 2 columns */}
-          <div className="lg:col-span-2">
-            <PlayerStatsDisplay />
+          {/* Full Player Stats - 2 columns, shown second on mobile */}
+          <div className="lg:col-span-2 order-2 lg:order-1">
+            <PlayerStatsDisplay collapsible={true} defaultCollapsed={isMobile} />
           </div>
 
-          {/* Recent Activities, Challenges, and Tournament - 1 column */}
-          <div className="lg:col-span-1 space-y-6">
+          {/* Tournament, Challenges, Recent Activities - shown first on mobile */}
+          <div className="lg:col-span-1 space-y-6 order-1 lg:order-2">
             <ActiveTournamentCard />
             <UpcomingTeamMatchCard />
             <ActiveChallenges />
-            <RecentActivities />
+            <RecentActivities collapsible={true} defaultCollapsed={isMobile} />
           </div>
         </div>
       </div>

@@ -12,7 +12,15 @@ import { AbilityDisplay } from './AbilityDisplay';
 import { EffectAggregator } from '../core/EffectAggregator';
 import type { StatBoosts } from '../types/game';
 
-export const PlayerStatsDisplay: React.FC = () => {
+interface PlayerStatsDisplayProps {
+  collapsible?: boolean;
+  defaultCollapsed?: boolean;
+}
+
+export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
+  collapsible = false,
+  defaultCollapsed = false,
+}) => {
   const player = useGameStore((state) => state.player);
 
   // Compute total passive boosts from items and abilities
@@ -23,7 +31,7 @@ export const PlayerStatsDisplay: React.FC = () => {
 
   if (!player) {
     return (
-      <Card title="Player Statistics">
+      <Card title="Player Statistics" collapsible={collapsible} defaultCollapsed={defaultCollapsed}>
         <div className="text-center py-8 text-pixel-text-muted">
           No player data available
         </div>
@@ -77,7 +85,7 @@ export const PlayerStatsDisplay: React.FC = () => {
   ];
 
   return (
-    <Card title="Player Statistics">
+    <Card title="Player Statistics" collapsible={collapsible} defaultCollapsed={defaultCollapsed}>
       {/* Stat Categories */}
       <div className="space-y-6 mb-6">
         {statCategories.map((category) => (

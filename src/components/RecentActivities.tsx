@@ -7,7 +7,15 @@ import React from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { Card } from './ui/Card';
 
-export const RecentActivities: React.FC = () => {
+interface RecentActivitiesProps {
+  collapsible?: boolean;
+  defaultCollapsed?: boolean;
+}
+
+export const RecentActivities: React.FC<RecentActivitiesProps> = ({
+  collapsible = false,
+  defaultCollapsed = false,
+}) => {
   const activityHistory = useGameStore((state) => state.activityHistory);
 
   const getActivityIcon = (type: string): string => {
@@ -41,7 +49,7 @@ export const RecentActivities: React.FC = () => {
   };
 
   return (
-    <Card title="Recent Activities" padding="md">
+    <Card title="Recent Activities" padding="md" collapsible={collapsible} defaultCollapsed={defaultCollapsed}>
       {!activityHistory || activityHistory.length === 0 ? (
         <p className="text-pixel-text-muted text-center py-8">No recent activities</p>
       ) : (
