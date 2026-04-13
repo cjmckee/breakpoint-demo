@@ -39,6 +39,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
+    "mixpanel-browser": "^2.78.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "zustand": "^5.0.8"

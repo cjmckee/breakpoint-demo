@@ -276,7 +276,7 @@ export class KeyMomentResolver {
   private static getStatValue(stats: PlayerStats, statName: string): number {
     const normalizedName = statName.toLowerCase().replace(/_/g, '');
 
-    const categories = ['technical', 'physical', 'mental'] as const;
+    const categories = ['core', 'technical', 'physical', 'mental'] as const;
 
     for (const category of categories) {
       const categoryStats: Record<string, number> = { ...stats[category] };

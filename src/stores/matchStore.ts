@@ -20,6 +20,7 @@ import { MatchStatistics as IMatchStatistics } from '../types';
 // No direct import of gameStore — the caller passes an onMatchComplete callback
 // to startMatch() to avoid circular dependency.
 import type { MatchCompletionData } from '../types/gamePhase';
+import { trackKeyMomentDecided } from '../analytics/analytics';
 
 interface MatchState {
   // Match configuration (kept for LiveMatchViewer to read opponent name, surface, etc.)
@@ -224,6 +225,8 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       chosenOption: lastChosenOption,
       result: result,
     };
+
+    trackKeyMomentDecided(currentKeyMoment, lastChosenOption, result);
 
     // Add key moment narration to match log
     const kmPlayerName = get().matchConfig?.playerName || 'You';

@@ -41,6 +41,12 @@ import { EffectAggregator } from '../core/EffectAggregator';
 import { EffectKey } from '../types/game';
 import type { GamePhase, MatchType, PreMatchConfig, PhaseContinuation, IdlePhase, MatchCompletionData } from '../types/gamePhase';
 import type { InteractiveMatchConfig } from '../types/keyMoments';
+import {
+  trackPlayerCreated,
+  trackTrainingCompleted,
+  trackMatchCompleted,
+  trackStoryEventChoice,
+} from '../analytics/analytics';
 
 export interface AudioSettings {
   musicVolume: number; // 0–1
@@ -339,6 +345,8 @@ export const useGameStore = create<GameState>()(
           },
         });
 
+        trackPlayerCreated(playstyle, player);
+
         // Trigger welcome event (guaranteed, no probability roll)
         get().checkForStoryEventById('welcome_to_tennis_rpg');
       },
@@ -447,6 +455,8 @@ export const useGameStore = create<GameState>()(
 
         // Check for challenge completion after stat changes
         get().checkChallengeCompletion();
+
+        trackTrainingCompleted(result, finalPlayer);
 
         return finalPlayer;
       },
@@ -1173,6 +1183,17 @@ export const useGameStore = create<GameState>()(
 
         // Check challenge completion
         get().checkChallengeCompletion();
+
+        trackMatchCompleted(
+          finalScore,
+          matchStatistics,
+          matchType,
+          matchConfig.opponentName ?? 'Unknown',
+          opponentTier,
+          updatedPlayer,
+          state.calendar.currentDay,
+          TIME_SLOT_NAMES[state.calendar.currentTimeSlot],
+        );
       },
 
       dismissMatchResults: () => {
@@ -1795,6 +1816,8 @@ export const useGameStore = create<GameState>()(
 
         // Check for challenge completion after state changes
         get().checkChallengeCompletion();
+
+        trackStoryEventChoice(eventId, optionId, calendar.currentDay, updatedPlayer);
 
         // Start tournament if requested by event effects (must happen before scheduling match)
         if (outcome.effects.startTournament) {
