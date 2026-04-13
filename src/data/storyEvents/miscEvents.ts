@@ -1424,14 +1424,14 @@ export const miscEvents: StoryEvent[] = [
         description: 'Some old social media posts of yours resurface and word spreads around the Academy',
         dialogue: [
             [null, ['You pass some of your teammates outside the Academy lobby and they laugh as you walk past.']],
-            ['tommy', ['If it isn\'t our little retirement home league champion!']],
+            ['max', ['If it isn\'t our little retirement home league champion!']],
             ['alison', ['You could not get me to post that if you paid me.']],
             ['keith', ['Even I wouldn\'t have the confidence. And that\'s saying something.']],
             [null, ['You can\'t figure out what they\'re talking about, but then you see the bulletin board.']],
             [null, ['Someone pinned up some old posts of yours. You get closer and realize the horror.']],
             [null, ['You were posting positively about pickleball. Your career is over.']]
         ],
-        characters: ['tommy', 'alison', 'keith'],
+        characters: ['max', 'alison', 'keith'],
         options: [],
         defaultOutcome: {
             resultText: [
@@ -1446,7 +1446,7 @@ export const miscEvents: StoryEvent[] = [
                     volley: -1
                 },
                 relationshipChanges: {
-                    tommy: 3,
+                    max: 3,
                     alison: 3,
                     keith: 3
                 }

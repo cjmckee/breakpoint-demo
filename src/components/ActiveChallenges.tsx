@@ -12,6 +12,10 @@ import type { Challenge } from '../types/challenges';
 export const ActiveChallenges: React.FC = () => {
   const activeChallenges = useGameStore((state) => state.activeChallenges);
   const completeChallenge = useGameStore((state) => state.completeChallenge);
+  const player = useGameStore((state) => state.player);
+  const markChallengeSeen = useGameStore((state) => state.markChallengeSeen);
+
+  const seenIds = player?.seenChallengeIds ?? [];
 
   // Track expanded state for each challenge
   const [expandedChallenges, setExpandedChallenges] = useState<Set<string>>(new Set());
@@ -26,6 +30,7 @@ export const ActiveChallenges: React.FC = () => {
       }
       return newSet;
     });
+    markChallengeSeen(challengeId);
   };
 
   const handleClaimReward = (challengeId: string) => {
@@ -129,7 +134,14 @@ export const ActiveChallenges: React.FC = () => {
                 onClick={() => toggleChallenge(challenge.id)}
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl">{isCompleted ? '✓' : '📋'}</span>
+                  <span className="text-2xl relative">
+                    {isCompleted ? '✓' : '📋'}
+                    {!seenIds.includes(challenge.id) && (
+                      <span className="absolute -top-2 -right-3 w-5 h-5 bg-red-500 text-white text-xs font-bold flex items-center justify-center rounded-full animate-bounce">
+                        !
+                      </span>
+                    )}
+                  </span>
                   <div>
                     <div className="font-bold text-pixel-text text-sm">{challenge.name}</div>
                     <div className="text-xs text-pixel-text-muted">
@@ -137,7 +149,20 @@ export const ActiveChallenges: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <div className="text-pixel-text text-xl">{isExpanded ? '▼' : '▶'}</div>
+                <div className="flex items-center gap-2">
+                  {isCompleted && !isExpanded && (
+                    <span onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        variant="success"
+                        size="sm"
+                        onClick={() => handleClaimReward(challenge.id)}
+                      >
+                        Collect
+                      </Button>
+                    </span>
+                  )}
+                  <div className="text-pixel-text text-xl">{isExpanded ? '▼' : '▶'}</div>
+                </div>
               </div>
 
               {/* Expanded View */}

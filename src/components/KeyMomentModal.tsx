@@ -111,16 +111,10 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
         <span className="text-3xl">{getMomentTypeIcon(activeKeyMoment.type)}</span>
         <h2 className="text-lg font-bold text-pixel-text">{activeKeyMoment.situation}</h2>
       </div>
-      {/* Single context row: archetype chip + tendency + condition icons */}
+      {/* Context: archetype chip + condition icons, then tendency on its own line */}
       <div className="flex items-center gap-2 text-sm">
         <span className="px-2 py-0.5 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent font-bold whitespace-nowrap">
           {archetypeData.label}
-        </span>
-        <span
-          className="text-pixel-text-muted italic flex-1 min-w-0 truncate"
-          title={tendency}
-        >
-          "{tendency}"
         </span>
         {conditionIcons.map((cond, i) => (
           <span
@@ -132,6 +126,9 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
           </span>
         ))}
       </div>
+      <p className="text-sm text-pixel-text-muted italic mt-1">
+        "{tendency}"
+      </p>
     </div>
   );
 
