@@ -35,16 +35,21 @@ export const PlayerStatsDisplay: React.FC = () => {
 
   const statCategories = [
     {
+      name: 'Core Skills',
+      stats: [
+        { key: 'serve', label: 'Serve', value: stats.core.serve },
+        { key: 'forehand', label: 'Forehand', value: stats.core.forehand },
+        { key: 'backhand', label: 'Backhand', value: stats.core.backhand },
+        { key: 'return', label: 'Return', value: stats.core.return },
+        { key: 'slice', label: 'Slice', value: stats.core.slice },
+      ],
+    },
+    {
       name: 'Technical Skills',
       stats: [
-        { key: 'serve', label: 'Serve', value: stats.technical.serve },
-        { key: 'forehand', label: 'Forehand', value: stats.technical.forehand },
-        { key: 'backhand', label: 'Backhand', value: stats.technical.backhand },
         { key: 'volley', label: 'Volley', value: stats.technical.volley },
         { key: 'overhead', label: 'Overhead', value: stats.technical.overhead },
         { key: 'dropShot', label: 'Drop Shot', value: stats.technical.dropShot },
-        { key: 'slice', label: 'Slice', value: stats.technical.slice },
-        { key: 'return', label: 'Return', value: stats.technical.return },
         { key: 'spin', label: 'Spin', value: stats.technical.spin },
         { key: 'placement', label: 'Placement', value: stats.technical.placement },
       ],

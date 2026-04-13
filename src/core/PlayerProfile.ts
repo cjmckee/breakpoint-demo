@@ -26,27 +26,27 @@ const ARCHETYPE_SIGNALS: Record<Exclude<PlayStyle['type'], 'all_court'>, Archety
   aggressive: [
     { getStat: s => s.mental.offensive, weight: 3.0 },
     { getStat: s => s.physical.strength, weight: 1.5 },
-    { getStat: s => s.technical.forehand, weight: 1.0 },
-    { getStat: s => s.technical.serve, weight: 0.5 },
+    { getStat: s => s.core.forehand, weight: 1.0 },
+    { getStat: s => s.core.serve, weight: 0.5 },
     { getStat: s => s.mental.defensive, weight: -1.0 },
   ],
   defensive: [
     { getStat: s => s.mental.defensive, weight: 3.0 },
     { getStat: s => s.physical.stamina, weight: 1.5 },
     { getStat: s => s.physical.speed, weight: 1.0 },
-    { getStat: s => s.technical.slice, weight: 0.5 },
+    { getStat: s => s.core.slice, weight: 0.5 },
     { getStat: s => s.mental.offensive, weight: -0.5 },
   ],
   counterpuncher: [
     { getStat: s => s.mental.defensive, weight: 2.5 },
     { getStat: s => s.mental.anticipation, weight: 2.0 },
     { getStat: s => s.physical.speed, weight: 1.5 },
-    { getStat: s => s.technical.return, weight: 1.0 },
+    { getStat: s => s.core.return, weight: 1.0 },
     { getStat: s => s.mental.offensive, weight: -1.5 },
   ],
   serve_volley: [
     { getStat: s => s.technical.volley, weight: 3.0 },
-    { getStat: s => s.technical.serve, weight: 2.5 },
+    { getStat: s => s.core.serve, weight: 2.5 },
     { getStat: s => s.technical.overhead, weight: 0.5 },
   ],
 };
@@ -65,6 +65,7 @@ const ARCHETYPE_DESCRIPTIONS: Record<PlayStyle['type'], string> = {
 
 function getAllStatValues(stats: PlayerStats): number[] {
   return [
+    ...Object.values(stats.core),
     ...Object.values(stats.technical),
     ...Object.values(stats.physical),
     ...Object.values(stats.mental),
@@ -164,15 +165,17 @@ export class PlayerProfile implements IPlayerProfile {
    */
   private createDefaultStats(overrides?: Partial<PlayerStats>): PlayerStats {
     const defaultStats: PlayerStats = {
-      technical: {
+      core: {
         serve: 25,
         forehand: 25,
         backhand: 25,
+        return: 25,
+        slice: 25,
+      },
+      technical: {
         volley: 25,
         overhead: 25,
         dropShot: 25,
-        slice: 25,
-        return: 25,
         spin: 25,
         placement: 25,
       },
@@ -194,6 +197,9 @@ export class PlayerProfile implements IPlayerProfile {
 
     // Apply overrides if provided
     if (overrides) {
+      if (overrides.core) {
+        Object.assign(defaultStats.core, overrides.core);
+      }
       if (overrides.technical) {
         Object.assign(defaultStats.technical, overrides.technical);
       }
@@ -212,70 +218,64 @@ export class PlayerProfile implements IPlayerProfile {
    * Get the primary stat that influences a specific shot type
    */
   public getStatForShot(shotType: ShotType): number {
-    const shotStatMapping: Record<ShotType, keyof PlayerStats['technical']> = {
-      // Serves (no forehand/backhand distinction)
+    // Core stats: serve, forehand, backhand, return, slice
+    const coreMapping: Partial<Record<ShotType, keyof PlayerStats['core']>> = {
       'serve_first': 'serve',
       'serve_second': 'serve',
-
-      // Basic groundstrokes
       'forehand': 'forehand',
       'backhand': 'backhand',
-
-      // Power shots
       'forehand_power': 'forehand',
       'backhand_power': 'backhand',
-
-      // Approach shots
       'forehand_approach': 'forehand',
       'backhand_approach': 'backhand',
-
-      // Volleys
-      'volley_forehand': 'volley',
-      'volley_backhand': 'volley',
-      'half_volley_forehand': 'volley',
-      'half_volley_backhand': 'volley',
-
-      // Overheads (no forehand/backhand distinction)
-      'overhead': 'overhead',
-      'defensive_overhead': 'overhead',
-
-      // Drop shots
-      'drop_shot_forehand': 'dropShot',
-      'drop_shot_backhand': 'dropShot',
-
-      // Angle shots
-      'angle_shot_forehand': 'placement',
-      'angle_shot_backhand': 'placement',
-
-      // Slice shots
       'slice_forehand': 'slice',
       'slice_backhand': 'slice',
       'defensive_slice_forehand': 'slice',
       'defensive_slice_backhand': 'slice',
-
-      // Returns
       'return_forehand': 'return',
       'return_backhand': 'return',
       'return_forehand_power': 'return',
       'return_backhand_power': 'return',
+    };
 
-      // Lobs
+    const coreStat = coreMapping[shotType];
+    if (coreStat) {
+      return this.stats.core[coreStat];
+    }
+
+    // Technical stats: volley, overhead, dropShot, spin, placement
+    const technicalMapping: Partial<Record<ShotType, keyof PlayerStats['technical']>> = {
+      'volley_forehand': 'volley',
+      'volley_backhand': 'volley',
+      'half_volley_forehand': 'volley',
+      'half_volley_backhand': 'volley',
+      'overhead': 'overhead',
+      'defensive_overhead': 'overhead',
+      'drop_shot_forehand': 'dropShot',
+      'drop_shot_backhand': 'dropShot',
+      'angle_shot_forehand': 'placement',
+      'angle_shot_backhand': 'placement',
       'lob_forehand': 'placement',
       'lob_backhand': 'placement',
-
-      // Passing shots
       'passing_shot_forehand': 'placement',
       'passing_shot_backhand': 'placement',
     };
 
-    const statName = shotStatMapping[shotType];
-    return this.stats.technical[statName];
+    const techStat = technicalMapping[shotType];
+    if (techStat) {
+      return this.stats.technical[techStat];
+    }
+
+    throw new Error(`Unknown shot type: ${shotType}`);
   }
 
   /**
    * Get stat value by name (for generic access)
    */
   public getStat(statName: StatName): number {
+    if (statName in this.stats.core) {
+      return this.stats.core[statName as keyof typeof this.stats.core];
+    }
     if (statName in this.stats.technical) {
       return this.stats.technical[statName as keyof typeof this.stats.technical];
     }
@@ -294,7 +294,9 @@ export class PlayerProfile implements IPlayerProfile {
   public updateStat(statName: StatName, value: number): void {
     const clampedValue = Math.max(0, Math.min(100, value));
 
-    if (statName in this.stats.technical) {
+    if (statName in this.stats.core) {
+      (this.stats.core as any)[statName] = clampedValue;
+    } else if (statName in this.stats.technical) {
       (this.stats.technical as any)[statName] = clampedValue;
     } else if (statName in this.stats.physical) {
       (this.stats.physical as any)[statName] = clampedValue;
@@ -325,15 +327,17 @@ export class PlayerProfile implements IPlayerProfile {
    * Calculate overall player rating (0-100)
    */
   public get overallRating(): number {
+    const coreAvg = this.getStatCategoryAverage('core');
     const technicalAvg = this.getStatCategoryAverage('technical');
     const physicalAvg = this.getStatCategoryAverage('physical');
     const mentalAvg = this.getStatCategoryAverage('mental');
 
-    // Weighted average (technical skills matter most)
+    // Core stats have the most impact on match outcomes
     return Math.round(
-      technicalAvg * 0.5 +
-      physicalAvg * 0.3 +
-      mentalAvg * 0.2
+      coreAvg * 0.45 +
+      technicalAvg * 0.15 +
+      physicalAvg * 0.25 +
+      mentalAvg * 0.15
     );
   }
 
@@ -357,7 +361,7 @@ export class PlayerProfile implements IPlayerProfile {
    * Determine preferred court surface based on stats
    */
   public get preferredSurface(): CourtSurface {
-    const serve = this.stats.technical.serve;
+    const serve = this.stats.core.serve;
     const speed = this.stats.physical.speed;
     const defensive = this.stats.mental.defensive;
     const spin = this.stats.technical.spin;
@@ -465,15 +469,17 @@ export class PlayerProfile implements IPlayerProfile {
     };
 
     const stats: PlayerStats = {
-      technical: {
+      core: {
         serve: generateStat(),
         forehand: generateStat(),
         backhand: generateStat(),
+        return: generateStat(),
+        slice: generateStat(),
+      },
+      technical: {
         volley: generateStat(),
         overhead: generateStat(),
         dropShot: generateStat(),
-        slice: generateStat(),
-        return: generateStat(),
         spin: generateStat(),
         placement: generateStat(),
       },

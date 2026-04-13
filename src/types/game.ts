@@ -471,15 +471,17 @@ export interface GameState {
 // ============================================================================
 
 export const DEFAULT_PLAYER_STATS: PlayerStats = {
-  technical: {
+  core: {
     serve: 20,
     forehand: 20,
     backhand: 20,
+    return: 20,
+    slice: 20,
+  },
+  technical: {
     volley: 20,
     overhead: 20,
     dropShot: 20,
-    slice: 20,
-    return: 20,
     spin: 20,
     placement: 20,
   },

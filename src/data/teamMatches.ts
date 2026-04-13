@@ -17,15 +17,17 @@ const chetVale: MatchOpponent = {
   tier: 1,
   description: 'A speedy but inexperienced player from Aspen Slopes Academy',
   stats: {
-    technical: {
+    core: {
       serve: 25,
       forehand: 28,
       backhand: 23,
+      return: 27,
+      slice: 21,
+    },
+    technical: {
       volley: 18,
       overhead: 21,
       dropShot: 15,
-      slice: 21,
-      return: 27,
       spin: 23,
       placement: 25,
     },
@@ -52,15 +54,17 @@ const richSoil: MatchOpponent = {
   tier: 1,
   description: 'A pretty strong well-rounded player from Azalea Forest',
   stats: {
-    technical: {
+    core: {
       serve: 31,
       forehand: 35,
       backhand: 29,
+      return: 33,
+      slice: 34,
+    },
+    technical: {
       volley: 35,
       overhead: 25,
       dropShot: 24,
-      slice: 34,
-      return: 33,
       spin: 31,
       placement: 34,
     },
@@ -87,15 +91,17 @@ const martiaEstrella: MatchOpponent = {
   tier: 1,
   description: 'An up-and-coming star known for her volleys and court coverage.',
   stats: {
-    technical: {
+    core: {
       serve: 31,
       forehand: 33,
       backhand: 25,
+      return: 31,
+      slice: 33,
+    },
+    technical: {
       volley: 35,
       overhead: 27,
       dropShot: 29,
-      slice: 33,
-      return: 31,
       spin: 31,
       placement: 35,
     },
@@ -122,15 +128,17 @@ const reginaldWerther: MatchOpponent = {
   tier: 1,
   description: 'A steady, patient player from Sunset Drive. He won tournaments 100 years before you were born.',
   stats: {
-    technical: {
+    core: {
       serve: 39,
       forehand: 43,
       backhand: 37,
+      return: 41,
+      slice: 41,
+    },
+    technical: {
       volley: 37,
       overhead: 35,
       dropShot: 33,
-      slice: 41,
-      return: 41,
       spin: 39,
       placement: 44,
     },
@@ -157,15 +165,17 @@ const oliviaGulp: MatchOpponent = {
   tier: 1,
   description: 'A talented chef with a variety of skills on the court. If you can\'t take the heat, you could get burned.',
   stats: {
-    technical: {
+    core: {
       serve: 42,
       forehand: 47,
       backhand: 40,
+      return: 45,
+      slice: 45,
+    },
+    technical: {
       volley: 38,
       overhead: 36,
       dropShot: 40,
-      slice: 45,
-      return: 45,
       spin: 42,
       placement: 45,
     },

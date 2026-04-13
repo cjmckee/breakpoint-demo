@@ -143,7 +143,7 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
               <div className="p-2 bg-pixel-bg border-2 border-pixel-border">
                 <div className="text-xs text-pixel-text-muted mb-1">Technical</div>
                 <div className="text-lg font-bold text-green-500">
-                  {opponentStats.technical.forehand}
+                  {opponentStats.core.forehand}
                 </div>
               </div>
               <div className="p-2 bg-pixel-bg border-2 border-pixel-border">

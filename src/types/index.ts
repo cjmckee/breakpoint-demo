@@ -11,20 +11,28 @@
  * Complete player statistics (20 total stats, 0-100 range)
  */
 export interface PlayerStats {
+  core: CoreStats;
   technical: TechnicalStats;
   physical: PhysicalStats;
   mental: MentalStats;
 }
 
-export interface TechnicalStats {
+/**
+ * Core skills — the 5 most impactful stats that drive match outcomes.
+ * These are weighted most heavily in overallRating and matchLevel calculations.
+ */
+export interface CoreStats {
   serve: number;        // Serve power and accuracy
   forehand: number;     // Forehand groundstroke effectiveness
   backhand: number;     // Backhand groundstroke effectiveness
+  return: number;       // Return of serve capability
+  slice: number;        // Slice shot effectiveness (defensive shots)
+}
+
+export interface TechnicalStats {
   volley: number;       // Net play effectiveness
   overhead: number;     // Overhead/smash shots
   dropShot: number;     // Drop shot placement and execution
-  slice: number;        // Slice shot effectiveness (defensive shots)
-  return: number;       // Return of serve capability
   spin: number;         // Topspin application affecting ball physics
   placement: number;    // Shot placement accuracy and court targeting
 }
@@ -200,7 +208,7 @@ export interface ShotResult {
   outcome: PointType;
   quality: number; // 0-100
   shotType: ShotType;
-  statUsed: keyof PlayerStats['technical'] | keyof PlayerStats['physical'] | keyof PlayerStats['mental'];
+  statUsed: StatName;
   modifiers: ShotModifiers;
   thresholds?: QualityThresholds;
   /** Sigmoid probabilities at time of outcome determination (for debugging) */
@@ -685,6 +693,7 @@ export interface TrainingResult {
  * All possible stat names for easy reference
  */
 export type StatName =
+  | keyof CoreStats
   | keyof TechnicalStats
   | keyof PhysicalStats
   | keyof MentalStats;
@@ -692,7 +701,7 @@ export type StatName =
 /**
  * Stat category types
  */
-export type StatCategory = 'technical' | 'physical' | 'mental';
+export type StatCategory = 'core' | 'technical' | 'physical' | 'mental';
 
 /**
  * Generic result type for operations

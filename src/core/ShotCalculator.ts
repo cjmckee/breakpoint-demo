@@ -13,9 +13,7 @@ import type {
   ShotModifiers,
   PlayerStats,
   PlayStyle,
-  TechnicalStats,
-  PhysicalStats,
-  MentalStats,
+  StatName,
   BallQuality,
   TacticalOpportunity,
   CourtPosition,
@@ -191,7 +189,7 @@ export class ShotCalculator {
       const serveOutcome = this.determineServeOutcome(
         quality,
         shotType as 'serve_first' | 'serve_second',
-        opponentProfile.stats.technical.return,
+        opponentProfile.stats.core.return,
         surface
       );
       outcome = serveOutcome.outcome;
@@ -799,7 +797,7 @@ export class ShotCalculator {
   /**
    * Get the primary stat name that influences a shot type
    */
-  private getPrimaryStatName(shotType: ShotType): keyof TechnicalStats | keyof PhysicalStats | keyof MentalStats {
+  private getPrimaryStatName(shotType: ShotType): StatName {
     // Simplified mapping for display purposes
     if (shotType.includes('serve')) return 'serve';
     if (shotType.includes('forehand')) return 'forehand';

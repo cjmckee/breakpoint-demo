@@ -296,6 +296,9 @@ export class PrerequisiteChecker {
    * Helper to get stat value from nested PlayerStats structure
    */
   private static getStatValue(stats: PlayerStats, statName: string): number | undefined {
+    if (statName in stats.core) {
+      return stats.core[statName as keyof typeof stats.core];
+    }
     if (statName in stats.technical) {
       return stats.technical[statName as keyof typeof stats.technical];
     }

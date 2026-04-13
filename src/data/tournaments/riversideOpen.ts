@@ -15,15 +15,17 @@ const keith: MatchOpponent = {
   tier: 1,
   description: 'He lost to his little sister, but he\'s been training hard since. Don\'t underestimate his speed.',
   stats: {
-    technical: {
+    core: {
       serve: 35,
       forehand: 37,
       backhand: 31,
+      return: 35,
+      slice: 31,
+    },
+    technical: {
       volley: 29,
       overhead: 35,
       dropShot: 23,
-      slice: 31,
-      return: 35,
       spin: 39,
       placement: 43,
     },
@@ -50,15 +52,17 @@ const chris: MatchOpponent = {
   tier: 1,
   description: 'A tactical player with strong mental game and consistent groundstrokes. He\'s improved noticeably since you last saw him.',
   stats: {
-    technical: {
+    core: {
       serve: 37,
       forehand: 41,
       backhand: 45,
+      return: 43,
+      slice: 43,
+    },
+    technical: {
       volley: 39,
       overhead: 35,
       dropShot: 41,
-      slice: 43,
-      return: 43,
       spin: 40,
       placement: 46,
     },
@@ -85,15 +89,17 @@ const max: MatchOpponent = {
   tier: 1,
   description: 'A defensive specialist with great court coverage. His return game and placement are his biggest weapons. Don\'t let him get comfortable.',
   stats: {
-    technical: {
+    core: {
       serve: 37,
       forehand: 43,
       backhand: 45,
+      return: 54,
+      slice: 50,
+    },
+    technical: {
       volley: 34,
       overhead: 37,
       dropShot: 32,
-      slice: 50,
-      return: 54,
       spin: 48,
       placement: 52,
     },
@@ -120,15 +126,17 @@ const jordan: MatchOpponent = {
   tier: 1,
   description: 'Your rival. He\'s been preparing for this tournament seriously and it shows. Well-rounded, competitive, and dangerous in every situation.',
   stats: {
-    technical: {
+    core: {
       serve: 47,
       forehand: 53,
       backhand: 49,
+      return: 49,
+      slice: 51,
+    },
+    technical: {
       volley: 51,
       overhead: 44,
       dropShot: 44,
-      slice: 51,
-      return: 49,
       spin: 44,
       placement: 53,
     },

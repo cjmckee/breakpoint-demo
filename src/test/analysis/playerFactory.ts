@@ -8,9 +8,11 @@ import { PlayerProfile } from '../../core/PlayerProfile.js';
 export function createUniformPlayer(name: string, rating: number): PlayerProfile {
   const r = Math.max(0, Math.min(100, rating));
   const stats: PlayerStats = {
+    core: {
+      serve: r, forehand: r, backhand: r, return: r, slice: r,
+    },
     technical: {
-      serve: r, forehand: r, backhand: r, volley: r, overhead: r,
-      dropShot: r, slice: r, return: r, spin: r, placement: r,
+      volley: r, overhead: r, dropShot: r, spin: r, placement: r,
     },
     physical: {
       speed: r, stamina: r, strength: r, agility: r, recovery: r,
@@ -36,9 +38,11 @@ export function createSkewedPlayer(
   const p = Math.max(0, Math.min(100, physicalRating));
   const m = Math.max(0, Math.min(100, mentalRating));
   const stats: PlayerStats = {
+    core: {
+      serve: t, forehand: t, backhand: t, return: t, slice: t,
+    },
     technical: {
-      serve: t, forehand: t, backhand: t, volley: t, overhead: t,
-      dropShot: t, slice: t, return: t, spin: t, placement: t,
+      volley: t, overhead: t, dropShot: t, spin: t, placement: t,
     },
     physical: {
       speed: p, stamina: p, strength: p, agility: p, recovery: p,

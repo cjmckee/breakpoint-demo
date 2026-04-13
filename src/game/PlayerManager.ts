@@ -18,6 +18,7 @@ export class PlayerManager {
    */
   static createPlayer(name: string, playstyle?: 'offensive' | 'defensive' | 'balanced'): Player {
     const baseStats: PlayerStats = {
+      core: { ...DEFAULT_PLAYER_STATS.core },
       technical: { ...DEFAULT_PLAYER_STATS.technical },
       physical: { ...DEFAULT_PLAYER_STATS.physical },
       mental: { ...DEFAULT_PLAYER_STATS.mental },
@@ -25,8 +26,8 @@ export class PlayerManager {
 
     // Apply playstyle bonuses
     if (playstyle === 'offensive') {
-      baseStats.technical.forehand += 5;
-      baseStats.technical.backhand += 5;
+      baseStats.core.forehand += 5;
+      baseStats.core.backhand += 5;
       baseStats.physical.strength += 3;
     } else if (playstyle === 'defensive') {
       baseStats.physical.speed += 5;
@@ -34,6 +35,9 @@ export class PlayerManager {
       baseStats.mental.defensive += 3;
     } else if (playstyle === 'balanced') {
       // Small bonus to all stats
+      Object.keys(baseStats.core).forEach((key) => {
+        (baseStats.core as any)[key] += 1;
+      });
       Object.keys(baseStats.technical).forEach((key) => {
         (baseStats.technical as any)[key] += 1;
       });
@@ -78,6 +82,7 @@ export class PlayerManager {
   static createPlayerWithStats(name: string, stats: Partial<PlayerStats>): Player {
     const player = this.createPlayer(name);
     player.stats = {
+      core: { ...DEFAULT_PLAYER_STATS.core, ...stats.core },
       technical: { ...DEFAULT_PLAYER_STATS.technical, ...stats.technical },
       physical: { ...DEFAULT_PLAYER_STATS.physical, ...stats.physical },
       mental: { ...DEFAULT_PLAYER_STATS.mental, ...stats.mental },
@@ -90,6 +95,7 @@ export class PlayerManager {
    */
   static applyStatBoosts(player: Player, boosts: StatBoosts): Player {
     const updatedStats: PlayerStats = {
+      core: { ...player.stats.core },
       technical: { ...player.stats.technical },
       physical: { ...player.stats.physical },
       mental: { ...player.stats.mental },
@@ -99,7 +105,10 @@ export class PlayerManager {
       if (!boost) continue;
 
       // Map flat stat names to nested structure
-      if (stat in updatedStats.technical) {
+      if (stat in updatedStats.core) {
+        const key = stat as keyof typeof updatedStats.core;
+        updatedStats.core[key] = Math.min(100, updatedStats.core[key] + boost);
+      } else if (stat in updatedStats.technical) {
         const key = stat as keyof typeof updatedStats.technical;
         updatedStats.technical[key] = Math.min(100, updatedStats.technical[key] + boost);
       } else if (stat in updatedStats.physical) {
@@ -246,11 +255,11 @@ export class PlayerManager {
     secondary: string;
   } {
     const styles = {
-      aggressive: stats.mental.offensive + stats.technical.serve + stats.physical.strength,
+      aggressive: stats.mental.offensive + stats.core.serve + stats.physical.strength,
       defensive: stats.mental.defensive + stats.physical.speed + stats.physical.stamina,
       allCourt: stats.mental.offensive + stats.mental.defensive + stats.mental.shotVariety,
-      serveVolley: stats.technical.serve + stats.technical.volley + stats.physical.speed,
-      counterpuncher: stats.mental.defensive + stats.technical.return + stats.mental.anticipation,
+      serveVolley: stats.core.serve + stats.technical.volley + stats.physical.speed,
+      counterpuncher: stats.mental.defensive + stats.core.return + stats.mental.anticipation,
     };
 
     const sorted = Object.entries(styles).sort((a, b) => b[1] - a[1]);
@@ -265,20 +274,23 @@ export class PlayerManager {
    * Get stat category totals
    */
   static getStatCategoryTotals(stats: PlayerStats): {
+    core: number;
     technical: number;
     physical: number;
     mental: number;
     total: number;
   } {
+    const core = Object.values(stats.core).reduce((sum: number, val: number) => sum + val, 0);
     const technical = Object.values(stats.technical).reduce((sum: number, val: number) => sum + val, 0);
     const physical = Object.values(stats.physical).reduce((sum: number, val: number) => sum + val, 0);
     const mental = Object.values(stats.mental).reduce((sum: number, val: number) => sum + val, 0);
 
     return {
+      core,
       technical,
       physical,
       mental,
-      total: technical + physical + mental,
+      total: core + technical + physical + mental,
     };
   }
 
@@ -287,6 +299,7 @@ export class PlayerManager {
    */
   static validateStats(stats: PlayerStats): boolean {
     const allValues = [
+      ...Object.values(stats.core),
       ...Object.values(stats.technical),
       ...Object.values(stats.physical),
       ...Object.values(stats.mental),

@@ -155,8 +155,8 @@ export class ShotSelector {
    * - FH 60, BH 80 (diff -20) → 40% forehands
    */
   private calculateShotPreference(shooter: PlayerProfile): ShotPreference {
-    const fh = shooter.stats.technical.forehand;
-    const bh = shooter.stats.technical.backhand;
+    const fh = shooter.stats.core.forehand;
+    const bh = shooter.stats.core.backhand;
     const diff = fh - bh;
 
     // Linear interpolation: -50 diff = 30% FH, 0 diff = 50% FH, +50 diff = 70% FH
@@ -403,7 +403,7 @@ export class ShotSelector {
 
     // Relative skill boost: if dropShot is stronger than groundstrokes,
     // the player leans on it more as a weapon
-    const avgGroundstroke = (shooter.stats.technical.forehand + shooter.stats.technical.backhand) / 2;
+    const avgGroundstroke = (shooter.stats.core.forehand + shooter.stats.core.backhand) / 2;
     const skillEdge = dropShotStat - avgGroundstroke;
     if (skillEdge > 0) {
       // Up to 1.6x boost when dropShot is 30+ points above groundstrokes

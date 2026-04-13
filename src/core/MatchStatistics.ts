@@ -398,10 +398,10 @@ export class MatchStatistics {
     const opponentStats = this.opponentProfile.stats;
 
     // Analyze key stats
-    this.analyzeStatCorrelation('serve', playerStats.technical.serve, opponentStats.technical.serve);
-    this.analyzeStatCorrelation('forehand', playerStats.technical.forehand, opponentStats.technical.forehand);
-    this.analyzeStatCorrelation('backhand', playerStats.technical.backhand, opponentStats.technical.backhand);
-    this.analyzeStatCorrelation('return', playerStats.technical.return, opponentStats.technical.return);
+    this.analyzeStatCorrelation('serve', playerStats.core.serve, opponentStats.core.serve);
+    this.analyzeStatCorrelation('forehand', playerStats.core.forehand, opponentStats.core.forehand);
+    this.analyzeStatCorrelation('backhand', playerStats.core.backhand, opponentStats.core.backhand);
+    this.analyzeStatCorrelation('return', playerStats.core.return, opponentStats.core.return);
     this.analyzeStatCorrelation('focus', playerStats.mental.focus, opponentStats.mental.focus);
     this.analyzeStatCorrelation('stamina', playerStats.physical.stamina, opponentStats.physical.stamina);
   }
@@ -597,6 +597,11 @@ export class MatchStatistics {
   private calculateStatEffectiveness(): PlayerPerformance['statEffectiveness'] {
     const stats = this.playerProfile.stats;
     const effectiveness: any = {};
+
+    // Core stats
+    Object.keys(stats.core).forEach(stat => {
+      effectiveness[stat] = this.getStatEffectiveness(stat as StatName);
+    });
 
     // Technical stats
     Object.keys(stats.technical).forEach(stat => {

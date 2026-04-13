@@ -66,6 +66,7 @@ export class MatchOrchestrator {
     }
 
     const boostedStats: PlayerStats = {
+      core: { ...baseStats.core },
       technical: { ...baseStats.technical },
       physical: { ...baseStats.physical },
       mental: { ...baseStats.mental },
@@ -74,7 +75,10 @@ export class MatchOrchestrator {
     for (const [stat, boost] of Object.entries(boosts)) {
       if (!boost) continue;
 
-      if (stat in boostedStats.technical) {
+      if (stat in boostedStats.core) {
+        const key = stat as keyof typeof boostedStats.core;
+        boostedStats.core[key] = Math.min(100, boostedStats.core[key] + boost);
+      } else if (stat in boostedStats.technical) {
         const key = stat as keyof typeof boostedStats.technical;
         boostedStats.technical[key] = Math.min(100, boostedStats.technical[key] + boost);
       } else if (stat in boostedStats.physical) {
