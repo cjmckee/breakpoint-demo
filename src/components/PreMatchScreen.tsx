@@ -139,23 +139,45 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
             )}
 
             {/* Opponent Stats Preview */}
-            <div className="grid grid-cols-3 gap-4 mb-4">
+            <div className="grid grid-cols-4 gap-4 mb-4">
+              <div className="p-2 bg-pixel-bg border-2 border-pixel-border">
+                <div className="text-xs text-pixel-text-muted mb-1">Core</div>
+                <div className="text-lg font-bold text-amber-500">
+                  {Math.round(
+                    (opponentStats.core.serve + opponentStats.core.forehand +
+                      opponentStats.core.backhand + opponentStats.core.return +
+                      opponentStats.core.slice) / 5
+                  )}
+                </div>
+              </div>
               <div className="p-2 bg-pixel-bg border-2 border-pixel-border">
                 <div className="text-xs text-pixel-text-muted mb-1">Technical</div>
                 <div className="text-lg font-bold text-green-500">
-                  {opponentStats.core.forehand}
+                  {Math.round(
+                    (opponentStats.technical.dropShot + opponentStats.technical.overhead + 
+                      opponentStats.technical.placement + opponentStats.technical.spin + 
+                      opponentStats.technical.volley) / 5
+                  )}
                 </div>
               </div>
               <div className="p-2 bg-pixel-bg border-2 border-pixel-border">
                 <div className="text-xs text-pixel-text-muted mb-1">Physical</div>
                 <div className="text-lg font-bold text-blue-500">
-                  {opponentStats.physical.speed}
+                  {Math.round(
+                    (opponentStats.physical.agility + opponentStats.physical.recovery +
+                      opponentStats.physical.speed + opponentStats.physical.stamina +
+                      opponentStats.physical.strength) / 5
+                  )}
                 </div>
               </div>
               <div className="p-2 bg-pixel-bg border-2 border-pixel-border">
                 <div className="text-xs text-pixel-text-muted mb-1">Mental</div>
                 <div className="text-lg font-bold text-purple-500">
-                  {opponentStats.mental.focus}
+                  {Math.round(
+                    (opponentStats.mental.anticipation + opponentStats.mental.defensive + 
+                      opponentStats.mental.focus + opponentStats.mental.offensive + 
+                      opponentStats.mental.shotVariety) / 5
+                  )}
                 </div>
               </div>
             </div>
