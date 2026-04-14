@@ -197,6 +197,8 @@ export const MENTAL_SHOT_BONUSES = {
   variety: { base: 0.95, perStat: 0.15 / 100 },
   /** Defensive-shot bonus range from defensive stat: 1.00 → 1.10 over 0-100 */
   defense: { base: 1.00, perStat: 0.10 / 100 },
+  /** Offensive-shot bonus range from offensive stat: 0.8 → 1.10 over 0-100 */
+  offense: { base: 0.8, perStat: 0.30 / 100 },
 };
 
 /**
@@ -586,3 +588,17 @@ export function isDefensiveShot(shotType: ShotType): boolean {
     s.includes('defensive_')
   );
 }
+
+/**
+ * Shot types that are fundamentally offensive (first serve, *_power, overhead)
+ */
+export function isOffensiveShot(shotType: ShotType): boolean {
+  const s = shotType.toString();
+  return (
+    s.includes('serve_first') ||
+    s.includes('_power') ||
+    s.includes('overhead') || 
+    s.includes('_approach')
+  );
+}
+

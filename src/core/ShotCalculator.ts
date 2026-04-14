@@ -47,6 +47,7 @@ import {
   SURFACE_EFFECTS,
   isTacticalShot,
   isDefensiveShot,
+  isOffensiveShot,
 } from '../config/shotThresholds.js';
 
 /**
@@ -75,10 +76,10 @@ const SHOT_RANGES = {
  */
 const SHOT_CLASSIFICATIONS = {
   powerShots: ['serve_first', 'forehand_power', 'backhand_power', 'return_forehand_power', 'return_backhand_power', 'overhead', 'passing_shot_forehand', 'passing_shot_backhand'],
-  spinShots: ['slice_forehand', 'slice_backhand'],
+  spinShots: ['slice_forehand', 'slice_backhand', 'drop_shot_forehand', 'drop_shot_backhand', 'defensive_slice_forehand', 'defemsove_slice_backhand'],
   placementShots: ['drop_shot_forehand', 'drop_shot_backhand', 'angle_shot_forehand', 'angle_shot_backhand', 'lob_forehand', 'lob_backhand'],
-  netShots: ['volley_forehand', 'volley_backhand', 'half_volley_forehand', 'half_volley_backhand'],
-  defensiveShots: ['defensive_slice_forehand', 'defensive_slice_backhand', 'defensive_overhead', 'return_forehand', 'return_backhand'],
+  netShots: ['volley_forehand', 'volley_backhand', 'half_volley_forehand', 'half_volley_backhand', 'overhead', 'defensive_overhead'],
+  defensiveShots: ['defensive_slice_forehand', 'defensive_slice_backhand', 'defensive_overhead', 'return_forehand', 'return_backhand', 'lob_forehand', 'lob_backhand', 'passing_shot_forehand', 'passing_shot_backhand'],
 } as const;
 
 export class ShotCalculator {
@@ -645,11 +646,11 @@ export class ShotCalculator {
       modifier *= defenseModifier;
     }
 
-    // Offensive/defensive alignment with shot selection
-    if (playStyle.aggression > 70 && SHOT_CLASSIFICATIONS.powerShots.length > 0) {
-      // Small bonus for playing to offensive strengths
-      const offensiveModifier = 1.0 + (mental.offensive / 100) * 0.1;
-      modifier *= offensiveModifier;
+    // Apply offensive modification - first serve, overhead, power shots
+    // Strong offensive players execute power shots more reliably.
+    if (isOffensiveShot(shotType)) {
+      const offenseModifier = MENTAL_SHOT_BONUSES.offense.base + mental.offensive * MENTAL_SHOT_BONUSES.offense.perStat;
+      modifier *= offenseModifier;
     }
 
     return modifier;

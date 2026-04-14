@@ -99,9 +99,9 @@ export function derivePlayStyle(stats: PlayerStats): PlayStyle {
   allStats.sort((a, b) => b.value - a.value);
   const topStatName = allStats[0].name;
 
-  // Strong stats: above the player's personal mean
+  // Strong stats: 3+ above the player's personal mean
   const strongStatNames = new Set(
-    allStats.filter(s => s.value > mean).map(s => s.name)
+    allStats.filter(s => s.value > mean + 3).map(s => s.name)
   );
 
   // Score each archetype by fingerprint overlap with strong stats
@@ -144,14 +144,17 @@ export function derivePlayStyle(stats: PlayerStats): PlayStyle {
     }
   }
 
-  const consistency = (stats.mental.focus + stats.mental.anticipation) / 2;
+  const aggression = ((stats.mental.offensive * 2) + stats.physical.strength + stats.core.forehand) / 4;
+  const netApproach = ((stats.technical.volley * 3) + stats.technical.overhead + stats.physical.speed) / 5;
+  const consistency = (stats.mental.focus + stats.mental.anticipation + stats.core.forehand + stats.core.backhand) / 4;
+  const power = ((stats.physical.strength * 2) + stats.mental.offensive + stats.core.serve) / 4;
 
   return {
     type: bestType,
-    aggression: stats.mental.offensive,
-    netApproach: stats.technical.volley,
+    aggression,
+    netApproach,
     consistency,
-    power: stats.physical.strength,
+    power,
     description: ARCHETYPE_DESCRIPTIONS[bestType],
   };
 }
