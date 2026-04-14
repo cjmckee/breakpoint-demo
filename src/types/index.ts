@@ -8,7 +8,7 @@
 // =======================
 
 /**
- * Complete player statistics (20 total stats, 0-100 range)
+ * Complete player stats (20 total stats, 0-100 range)
  */
 export interface PlayerStats {
   core: CoreStats;

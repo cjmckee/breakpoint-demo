@@ -33,7 +33,7 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
 
   if (!player) {
     return (
-      <Card title="Player Statistics" collapsible={collapsible} defaultCollapsed={defaultCollapsed}>
+      <Card title="Player Stats" collapsible={collapsible} defaultCollapsed={defaultCollapsed}>
         <div className="text-center py-8 text-pixel-text-muted">
           No player data available
         </div>
@@ -89,7 +89,7 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
   const playStyle = useMemo(() => derivePlayStyle(player.stats), [player.stats]);
 
   return (
-    <Card title="Player Statistics" collapsible={collapsible} defaultCollapsed={defaultCollapsed}>
+    <Card title="Player Stats" collapsible={collapsible} defaultCollapsed={defaultCollapsed}>
       {/* Play Style */}
       <div className="mb-6 p-3 bg-pixel-accent bg-opacity-10 border-2 border-pixel-accent">
         <div className="flex items-center gap-2 mb-1">
