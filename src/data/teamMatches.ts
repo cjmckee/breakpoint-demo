@@ -18,7 +18,7 @@ const chetVale: MatchOpponent = {
   description: 'A speedy but inexperienced player from Aspen Slopes Academy',
   stats: {
     core: {
-      serve: 25,
+      serve: 30,
       forehand: 28,
       backhand: 23,
       return: 27,

@@ -53,7 +53,7 @@ const chris: MatchOpponent = {
   description: 'A tactical player with strong mental game and consistent groundstrokes. He\'s improved noticeably since you last saw him.',
   stats: {
     core: {
-      serve: 39,
+      serve: 44,
       forehand: 43,
       backhand: 47,
       return: 45,
@@ -90,7 +90,7 @@ const max: MatchOpponent = {
   description: 'A defensive specialist with great court coverage. His return game and placement are his biggest weapons. Don\'t let him get comfortable.',
   stats: {
     core: {
-      serve: 42,
+      serve: 48,
       forehand: 46,
       backhand: 48,
       return: 56,
@@ -127,7 +127,7 @@ const jordan: MatchOpponent = {
   description: 'Your rival. He\'s been preparing for this tournament seriously and it shows. Well-rounded, competitive, and dangerous in every situation.',
   stats: {
     core: {
-      serve: 52,
+      serve: 56,
       forehand: 56,
       backhand: 51,
       return: 52,

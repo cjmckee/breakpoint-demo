@@ -27,7 +27,7 @@ const TIER_1_OPPONENTS: OpponentPreset[] = [
     archetype: 'aggressive',
     stats: {
       core: {
-        serve: 40, forehand: 45, backhand: 28, return: 28, slice: 23,
+        serve: 40, forehand: 45, backhand: 30, return: 28, slice: 23,
       },
       technical: {
         volley: 23, overhead: 28, dropShot: 18, spin: 28, placement: 28,
@@ -47,7 +47,7 @@ const TIER_1_OPPONENTS: OpponentPreset[] = [
     archetype: 'defensive',
     stats: {
       core: {
-        serve: 28, forehand: 33, backhand: 33, return: 40, slice: 35,
+        serve: 36, forehand: 33, backhand: 33, return: 40, slice: 35,
       },
       technical: {
         volley: 23, overhead: 23, dropShot: 23, spin: 28, placement: 28,
@@ -67,7 +67,7 @@ const TIER_1_OPPONENTS: OpponentPreset[] = [
     archetype: 'all_court',
     stats: {
       core: {
-        serve: 34, forehand: 34, backhand: 34, return: 34, slice: 32,
+        serve: 34, forehand: 36, backhand: 36, return: 34, slice: 32,
       },
       technical: {
         volley: 32, overhead: 29, dropShot: 29, spin: 34, placement: 34,
@@ -87,7 +87,7 @@ const TIER_1_OPPONENTS: OpponentPreset[] = [
     archetype: 'serve_volley',
     stats: {
       core: {
-        serve: 45, forehand: 28, backhand: 23, return: 23, slice: 23,
+        serve: 45, forehand: 35, backhand: 30, return: 23, slice: 23,
       },
       technical: {
         volley: 40, overhead: 40, dropShot: 18, spin: 23, placement: 31,
@@ -107,7 +107,7 @@ const TIER_1_OPPONENTS: OpponentPreset[] = [
     archetype: 'counterpuncher',
     stats: {
       core: {
-        serve: 25, forehand: 31, backhand: 35, return: 43, slice: 40,
+        serve: 35, forehand: 31, backhand: 38, return: 43, slice: 40,
       },
       technical: {
         volley: 21, overhead: 23, dropShot: 25, spin: 31, placement: 28,
