@@ -15,45 +15,40 @@ import type {
   StatCategory
 } from '../types/index.js';
 
-// Archetype signal definitions: which stats indicate each archetype, and their weights.
-// Positive weights reward stats above the player's mean; negative weights penalize them.
-interface ArchetypeSignal {
-  getStat: (s: PlayerStats) => number;
-  weight: number;
+/**
+ * Archetype fingerprints: each archetype is defined by characteristic stat combinations.
+ * - core: identity-defining stats — at least 1 must appear in the player's strong stats to qualify
+ * - supporting: reinforcing stats that strengthen the signal
+ *
+ * The system looks at which of a player's top stats match each archetype's fingerprint,
+ * so it works consistently at any rating range (20s through 90s).
+ */
+interface ArchetypeFingerprint {
+  core: string[];
+  supporting: string[];
 }
 
-const ARCHETYPE_SIGNALS: Record<Exclude<PlayStyle['type'], 'all_court'>, ArchetypeSignal[]> = {
-  aggressive: [
-    { getStat: s => s.mental.offensive, weight: 3.0 },
-    { getStat: s => s.physical.strength, weight: 1.5 },
-    { getStat: s => s.core.forehand, weight: 1.0 },
-    { getStat: s => s.core.serve, weight: 0.5 },
-    { getStat: s => s.mental.defensive, weight: -1.0 },
-  ],
-  defensive: [
-    { getStat: s => s.mental.defensive, weight: 3.0 },
-    { getStat: s => s.physical.stamina, weight: 1.5 },
-    { getStat: s => s.physical.speed, weight: 1.0 },
-    { getStat: s => s.core.slice, weight: 0.5 },
-    { getStat: s => s.mental.offensive, weight: -0.5 },
-  ],
-  counterpuncher: [
-    { getStat: s => s.mental.defensive, weight: 2.5 },
-    { getStat: s => s.mental.anticipation, weight: 2.0 },
-    { getStat: s => s.physical.speed, weight: 1.5 },
-    { getStat: s => s.core.return, weight: 1.0 },
-    { getStat: s => s.mental.offensive, weight: -1.5 },
-  ],
-  serve_volley: [
-    { getStat: s => s.technical.volley, weight: 3.0 },
-    { getStat: s => s.core.serve, weight: 2.5 },
-    { getStat: s => s.technical.overhead, weight: 0.5 },
-  ],
+const ARCHETYPE_FINGERPRINTS: Record<Exclude<PlayStyle['type'], 'all_court'>, ArchetypeFingerprint> = {
+  aggressive: {
+    core: ['forehand', 'serve'],
+    supporting: ['strength', 'offensive', 'backhand', 'spin'],
+  },
+  defensive: {
+    core: ['stamina', 'speed'],
+    supporting: ['defensive', 'slice', 'recovery', 'agility'],
+  },
+  counterpuncher: {
+    core: ['return', 'anticipation'],
+    supporting: ['speed', 'defensive', 'agility', 'slice'],
+  },
+  serve_volley: {
+    core: ['serve', 'volley'],
+    supporting: ['overhead', 'strength', 'offensive', 'placement'],
+  },
 };
 
-// all_court wins when no other archetype scores strongly
-const BASE_ALL_COURT_SCORE = 3.0;
-const DIFFERENTIATION_PENALTY = 0.8;
+// Minimum score an archetype needs to beat all_court
+const MIN_ARCHETYPE_SCORE = 5;
 
 const ARCHETYPE_DESCRIPTIONS: Record<PlayStyle['type'], string> = {
   serve_volley: 'Aggressive net player who serves and volleys',
@@ -63,25 +58,53 @@ const ARCHETYPE_DESCRIPTIONS: Record<PlayStyle['type'], string> = {
   defensive: 'Solid baseline player who focuses on consistency',
 };
 
-function getAllStatValues(stats: PlayerStats): number[] {
-  return [
-    ...Object.values(stats.core),
-    ...Object.values(stats.technical),
-    ...Object.values(stats.physical),
-    ...Object.values(stats.mental),
-  ];
+interface StatEntry {
+  name: string;
+  value: number;
+}
+
+function getAllStatEntries(stats: PlayerStats): StatEntry[] {
+  const entries: StatEntry[] = [];
+  for (const [name, value] of Object.entries(stats.core)) {
+    entries.push({ name, value: value as number });
+  }
+  for (const [name, value] of Object.entries(stats.technical)) {
+    entries.push({ name, value: value as number });
+  }
+  for (const [name, value] of Object.entries(stats.physical)) {
+    entries.push({ name, value: value as number });
+  }
+  for (const [name, value] of Object.entries(stats.mental)) {
+    entries.push({ name, value: value as number });
+  }
+  return entries;
 }
 
 /**
- * Derive play style from stats as a pure function.
- * Uses relative scoring: compares each stat to the player's personal mean
- * so that low-rated players with clear strengths still get the right archetype.
+ * Derive play style by matching the player's strongest stats against archetype fingerprints.
+ *
+ * Algorithm:
+ * 1. Collect all stats, compute the player's mean
+ * 2. "Strong stats" = stats above the mean (filters noise from even/low stats)
+ * 3. For each archetype, check how many core/supporting stats appear in the strong set
+ * 4. Score = core_matches * 3 + supporting_matches * 1 + 2 bonus if #1 stat is a core stat
+ * 5. All-court wins when no archetype clears MIN_ARCHETYPE_SCORE
  */
 export function derivePlayStyle(stats: PlayerStats): PlayStyle {
-  const allValues = getAllStatValues(stats);
-  const playerMean = allValues.reduce((a, b) => a + b, 0) / allValues.length;
+  const allStats = getAllStatEntries(stats);
+  const allValues = allStats.map(s => s.value);
+  const mean = allValues.reduce((a, b) => a + b, 0) / allValues.length;
 
-  // Score each specialized archetype
+  // Sort descending to identify the player's #1 stat
+  allStats.sort((a, b) => b.value - a.value);
+  const topStatName = allStats[0].name;
+
+  // Strong stats: above the player's personal mean
+  const strongStatNames = new Set(
+    allStats.filter(s => s.value > mean).map(s => s.name)
+  );
+
+  // Score each archetype by fingerprint overlap with strong stats
   const scores: Record<PlayStyle['type'], number> = {
     aggressive: 0,
     defensive: 0,
@@ -90,29 +113,30 @@ export function derivePlayStyle(stats: PlayerStats): PlayStyle {
     all_court: 0,
   };
 
-  for (const [archetype, signals] of Object.entries(ARCHETYPE_SIGNALS)) {
-    let score = 0;
-    for (const signal of signals) {
-      score += signal.weight * (signal.getStat(stats) - playerMean);
+  for (const [archetype, fingerprint] of Object.entries(ARCHETYPE_FINGERPRINTS)) {
+    const coreMatches = fingerprint.core.filter(s => strongStatNames.has(s)).length;
+
+    // Must have at least 1 core stat among strong stats to qualify
+    if (coreMatches === 0) continue;
+
+    const supportMatches = fingerprint.supporting.filter(s => strongStatNames.has(s)).length;
+
+    let score = coreMatches * 3 + supportMatches;
+
+    // Bonus if the player's single best stat is a core stat for this archetype
+    if (fingerprint.core.includes(topStatName)) {
+      score += 2;
     }
+
     scores[archetype as PlayStyle['type']] = score;
   }
-
-  // all_court scores high when no other archetype dominates
-  const maxSpecializedScore = Math.max(
-    scores.aggressive,
-    scores.defensive,
-    scores.counterpuncher,
-    scores.serve_volley
-  );
-  scores.all_court = BASE_ALL_COURT_SCORE - maxSpecializedScore * DIFFERENTIATION_PENALTY;
 
   // Pick the highest-scoring archetype (priority order breaks ties)
   const priority: PlayStyle['type'][] = [
     'aggressive', 'serve_volley', 'counterpuncher', 'defensive', 'all_court',
   ];
   let bestType: PlayStyle['type'] = 'all_court';
-  let bestScore = -Infinity;
+  let bestScore = MIN_ARCHETYPE_SCORE - 1;
   for (const t of priority) {
     if (scores[t] > bestScore) {
       bestScore = scores[t];
