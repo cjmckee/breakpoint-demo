@@ -12,6 +12,7 @@ import { OpponentTier } from '../types/game';
 import { OPPONENTS_BY_TIER } from '../data/opponents';
 import { getArchetypeLabel } from '../data/archetypes';
 import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
+import { derivePlayStyle } from '../core/PlayerProfile';
 
 type CourtSurface = 'hard' | 'clay' | 'grass' | 'carpet';
 
@@ -49,6 +50,7 @@ export const MatchSetup: React.FC = () => {
       opponentStats: opponent.stats,
       opponentName: opponent.name,
       opponentTier: opponent.tier,
+      opponentPlayStyle: derivePlayStyle(opponent.stats),
       surface: selectedSurface,
       matchFormat: 'best-of-1',
     }, 'regular');

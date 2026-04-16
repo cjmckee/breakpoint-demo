@@ -9,11 +9,27 @@ import { useMatchStore } from '../stores/matchStore';
 import { Card } from './ui/Card';
 import { PreMatchScreen } from './PreMatchScreen';
 import { ItemManager } from '../game/ItemManager';
+import { derivePlayStyle } from '../core/PlayerProfile';
 import type { PreMatchConfig } from '../types/gamePhase';
 import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
+import type { PlayerStats, PlayStyle } from '../types';
 
 interface PracticeMatchProps {
   matchConfig: PreMatchConfig | null;
+}
+
+function calculateOverallRating(stats: PlayerStats): number {
+  const coreAvg = (stats.core.serve + stats.core.forehand + stats.core.backhand + stats.core.return + stats.core.slice) / 5;
+  const technicalAvg = (stats.technical.volley + stats.technical.overhead + stats.technical.dropShot + stats.technical.spin + stats.technical.placement) / 5;
+  const physicalAvg = (stats.physical.speed + stats.physical.stamina + stats.physical.strength + stats.physical.agility + stats.physical.recovery) / 5;
+  const mentalAvg = (stats.mental.focus + stats.mental.anticipation + stats.mental.shotVariety + stats.mental.offensive + stats.mental.defensive) / 5;
+
+  return Math.round(
+    coreAvg * 0.45 +
+    technicalAvg * 0.15 +
+    physicalAvg * 0.25 +
+    mentalAvg * 0.15
+  );
 }
 
 export const PracticeMatch: React.FC<PracticeMatchProps> = ({ matchConfig }) => {
@@ -25,6 +41,9 @@ export const PracticeMatch: React.FC<PracticeMatchProps> = ({ matchConfig }) => 
   if (!player || !matchConfig) {
     return null;
   }
+
+  const playerOverallRating = calculateOverallRating(player.stats);
+  const playerPlayStyle = derivePlayStyle(player.stats);
 
   const energyCost = DEFAULT_MATCH_ENERGY_COST;
 
@@ -78,9 +97,15 @@ export const PracticeMatch: React.FC<PracticeMatchProps> = ({ matchConfig }) => 
     <PreMatchScreen
       title="Practice Match"
       subtitle={`vs ${matchConfig.opponentName}`}
+      playerName={player.name}
+      playerTier={player.tier}
+      playerOverallRating={playerOverallRating}
+      playerStats={player.stats}
+      playerPlayStyle={playerPlayStyle}
       opponentName={matchConfig.opponentName}
       opponentTier={matchConfig.opponentTier}
       opponentStats={matchConfig.opponentStats}
+      opponentPlayStyle={matchConfig.opponentPlayStyle}
       surface={matchConfig.surface}
       matchFormat={matchConfig.matchFormat}
       energyCost={energyCost}

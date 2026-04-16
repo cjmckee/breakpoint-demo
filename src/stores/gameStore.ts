@@ -40,6 +40,8 @@ import { getRandomOpponent, getScaledOpponentStats } from '../data/opponents';
 import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
 import { EffectAggregator } from '../core/EffectAggregator';
 import { EffectKey } from '../types/game';
+import { derivePlayStyle } from '../core/PlayerProfile';
+import type { PlayStyle } from '../types';
 import type { GamePhase, MatchType, PreMatchConfig, PhaseContinuation, IdlePhase, MatchCompletionData } from '../types/gamePhase';
 import type { InteractiveMatchConfig } from '../types/keyMoments';
 import {
@@ -790,6 +792,7 @@ export const useGameStore = create<GameState>()(
                     opponentStats: opponent?.stats || ({} as PlayerStats),
                     opponentTier: (opponent?.tier || 1) as OpponentTier,
                     opponentDescription: opponent?.description,
+                    opponentPlayStyle: opponent?.stats ? derivePlayStyle(opponent.stats) : { type: 'all_court', aggression: 50, netApproach: 50, consistency: 50, power: 50, description: '' } as PlayStyle,
                     surface: config.surface || 'hard',
                     matchFormat: 'best-of-1',
                     matchTitle: `${config.name} - Round ${calendar.activeTournament!.currentRound + 1}`,
@@ -824,6 +827,7 @@ export const useGameStore = create<GameState>()(
                 opponentStats: metadata.opponentStats,
                 opponentTier: metadata.opponentTier as OpponentTier,
                 opponentDescription: metadata.opponentDescription,
+                opponentPlayStyle: derivePlayStyle(metadata.opponentStats),
                 surface: metadata.surface || 'hard',
                 matchFormat: metadata.matchFormat || 'best-of-1',
                 matchTitle: metadata.matchTitle,
@@ -933,6 +937,7 @@ export const useGameStore = create<GameState>()(
                 opponentStats: opponent?.stats || ({} as PlayerStats),
                 opponentTier: (opponent?.tier || 1) as OpponentTier,
                 opponentDescription: opponent?.description,
+                opponentPlayStyle: opponent?.stats ? derivePlayStyle(opponent.stats) : { type: 'all_court', aggression: 50, netApproach: 50, consistency: 50, power: 50, description: '' } as PlayStyle,
                 surface: config.surface || 'hard',
                 matchFormat: 'best-of-1',
                 matchTitle: `${config.name} - Round ${calendar.activeTournament!.currentRound + 1}`,
@@ -971,6 +976,7 @@ export const useGameStore = create<GameState>()(
                 opponentStats: metadata.opponentStats,
                 opponentTier: metadata.opponentTier as OpponentTier,
                 opponentDescription: metadata.opponentDescription,
+                opponentPlayStyle: derivePlayStyle(metadata.opponentStats),
                 surface: metadata.surface || 'hard',
                 matchFormat: metadata.matchFormat || 'best-of-1',
                 matchTitle: metadata.matchTitle,
@@ -1006,6 +1012,7 @@ export const useGameStore = create<GameState>()(
           opponentName: config.opponentName,
           opponentStats: config.opponentStats,
           opponentTier: config.opponentTier,
+          opponentPlayStyle: derivePlayStyle(config.opponentStats),
           surface: config.surface,
           matchFormat: config.matchFormat,
         };
