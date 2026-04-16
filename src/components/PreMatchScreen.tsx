@@ -8,15 +8,18 @@ import React, { useState } from 'react';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { SURFACE_EFFECTS } from '../config/shotThresholds';
-import { ARCHETYPE_DATA, getArchetypeLabel } from '../data/archetypes';
+import { ARCHETYPE_DATA } from '../data/archetypes';
 import type { PlayerStats, PlayStyle, CourtSurface, StatName } from '../types';
 import type { ArchetypeType } from '../data/archetypes';
-
-interface StatDisplay {
-  name: StatName;
-  value: number;
-  label: string;
-}
+import {
+  calculateOverallRating,
+  getTierLabel,
+  getTierColor,
+  getSurfaceEmoji,
+  getArchetypeLabel,
+  getTopNStats,
+  getBottomNStats,
+} from '../utils/playerStats';
 
 interface SurfaceEffectDisplay {
   label: string;
@@ -55,60 +58,6 @@ interface PreMatchScreenProps {
   onBack: () => void;
 }
 
-const STAT_LABELS: Record<StatName, string> = {
-  serve: 'Serve',
-  forehand: 'Forehand',
-  backhand: 'Backhand',
-  return: 'Return',
-  slice: 'Slice',
-  volley: 'Volley',
-  overhead: 'Overhead',
-  dropShot: 'Drop Shot',
-  spin: 'Spin',
-  placement: 'Placement',
-  speed: 'Speed',
-  stamina: 'Stamina',
-  strength: 'Strength',
-  agility: 'Agility',
-  recovery: 'Recovery',
-  focus: 'Focus',
-  anticipation: 'Anticipation',
-  shotVariety: 'Shot Variety',
-  offensive: 'Offensive',
-  defensive: 'Defensive',
-};
-
-function flattenStats(stats: PlayerStats): StatDisplay[] {
-  const entries: StatDisplay[] = [];
-
-  (Object.entries(stats.core) as [keyof typeof stats.core, number][]).forEach(([key, value]) => {
-    entries.push({ name: key, value, label: STAT_LABELS[key] });
-  });
-  (Object.entries(stats.technical) as [keyof typeof stats.technical, number][]).forEach(([key, value]) => {
-    entries.push({ name: key, value, label: STAT_LABELS[key] });
-  });
-  (Object.entries(stats.physical) as [keyof typeof stats.physical, number][]).forEach(([key, value]) => {
-    entries.push({ name: key, value, label: STAT_LABELS[key] });
-  });
-  (Object.entries(stats.mental) as [keyof typeof stats.mental, number][]).forEach(([key, value]) => {
-    entries.push({ name: key, value, label: STAT_LABELS[key] });
-  });
-
-  return entries;
-}
-
-function getTopNStats(stats: PlayerStats, n: number): StatDisplay[] {
-  return flattenStats(stats)
-    .sort((a, b) => b.value - a.value)
-    .slice(0, n);
-}
-
-function getBottomNStats(stats: PlayerStats, n: number): StatDisplay[] {
-  return flattenStats(stats)
-    .sort((a, b) => a.value - b.value)
-    .slice(0, n);
-}
-
 function getSurfaceEffects(surface: CourtSurface): SurfaceEffectDisplay[] {
   const effects = SURFACE_EFFECTS[surface];
   const result: SurfaceEffectDisplay[] = [];
@@ -144,36 +93,6 @@ function getSurfaceEffects(surface: CourtSurface): SurfaceEffectDisplay[] {
   return result;
 }
 
-const getTierLabel = (tier: number): string => {
-  switch (tier) {
-    case 1: return 'Club';
-    case 2: return 'Regional';
-    case 3: return 'Professional';
-    case 4: return 'Elite';
-    default: return 'Unknown';
-  }
-};
-
-const getTierColor = (tier: number): string => {
-  switch (tier) {
-    case 1: return 'border-green-500';
-    case 2: return 'border-yellow-500';
-    case 3: return 'border-orange-500';
-    case 4: return 'border-red-500';
-    default: return 'border-pixel-border';
-  }
-};
-
-const getSurfaceEmoji = (surface: string): string => {
-  switch (surface) {
-    case 'hard': return '🏟️';
-    case 'clay': return '🧱';
-    case 'grass': return '🌱';
-    case 'carpet': return '📋';
-    default: return '🎾';
-  }
-};
-
 const getFormatLabel = (format: 'best-of-1' | 'best-of-3'): string => {
   switch (format) {
     case 'best-of-1': return 'Best of 1 Set';
@@ -194,7 +113,7 @@ interface PlayerCardProps {
 function PlayerCard({ name, tier, overallRating, stats, playStyle, isPlayer }: PlayerCardProps) {
   const topStats = getTopNStats(stats, 5);
   const bottomStats = getBottomNStats(stats, 5);
-  const archetypeLabel = getArchetypeLabel(playStyle.type as ArchetypeType);
+  const archetypeLabel = getArchetypeLabel(playStyle.type);
 
   const borderColor = isPlayer ? 'border-blue-500' : getTierColor(tier ?? 1);
   const bgColor = isPlayer ? 'bg-blue-950/30' : 'bg-pixel-card';
@@ -350,12 +269,7 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
 }) => {
   const canAfford = currentEnergy >= energyCost;
 
-  const opponentOverallRating = Math.round(
-    Object.values(opponentStats.core).reduce((a, b) => a + b, 0) / 5 * 0.45 +
-    Object.values(opponentStats.technical).reduce((a, b) => a + b, 0) / 5 * 0.15 +
-    Object.values(opponentStats.physical).reduce((a, b) => a + b, 0) / 5 * 0.25 +
-    Object.values(opponentStats.mental).reduce((a, b) => a + b, 0) / 5 * 0.15
-  )
+  const opponentOverallRating = calculateOverallRating(opponentStats);
 
   return (
     <div className="min-h-screen bg-pixel-bg p-4">

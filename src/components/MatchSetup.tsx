@@ -13,6 +13,7 @@ import { OPPONENTS_BY_TIER } from '../data/opponents';
 import { getArchetypeLabel } from '../data/archetypes';
 import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
 import { derivePlayStyle } from '../core/PlayerProfile';
+import { getSurfaceEmoji } from '../utils/playerStats';
 
 type CourtSurface = 'hard' | 'clay' | 'grass' | 'carpet';
 
@@ -77,19 +78,6 @@ export const MatchSetup: React.FC = () => {
 
   const isOpponentUnlocked = (tier: OpponentTier): boolean => {
     return tier <= player.tier;
-  };
-
-  const getSurfaceEmoji = (surface: CourtSurface) => {
-    switch (surface) {
-      case 'hard':
-        return '🏟️';
-      case 'clay':
-        return '🧱';
-      case 'grass':
-        return '🌱';
-      case 'carpet':
-        return '📋';
-    }
   };
 
   return (

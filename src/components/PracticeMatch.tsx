@@ -12,27 +12,9 @@ import { ItemManager } from '../game/ItemManager';
 import { derivePlayStyle } from '../core/PlayerProfile';
 import type { PreMatchConfig } from '../types/gamePhase';
 import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
-import type { PlayerStats, PlayStyle } from '../types';
+import { calculateOverallRating, getTierLabel } from '../utils/playerStats';
 
-interface PracticeMatchProps {
-  matchConfig: PreMatchConfig | null;
-}
-
-function calculateOverallRating(stats: PlayerStats): number {
-  const coreAvg = (stats.core.serve + stats.core.forehand + stats.core.backhand + stats.core.return + stats.core.slice) / 5;
-  const technicalAvg = (stats.technical.volley + stats.technical.overhead + stats.technical.dropShot + stats.technical.spin + stats.technical.placement) / 5;
-  const physicalAvg = (stats.physical.speed + stats.physical.stamina + stats.physical.strength + stats.physical.agility + stats.physical.recovery) / 5;
-  const mentalAvg = (stats.mental.focus + stats.mental.anticipation + stats.mental.shotVariety + stats.mental.offensive + stats.mental.defensive) / 5;
-
-  return Math.round(
-    coreAvg * 0.45 +
-    technicalAvg * 0.15 +
-    physicalAvg * 0.25 +
-    mentalAvg * 0.15
-  );
-}
-
-export const PracticeMatch: React.FC<PracticeMatchProps> = ({ matchConfig }) => {
+export const PracticeMatch: React.FC<{ matchConfig: PreMatchConfig | null }> = ({ matchConfig }) => {
   const player = useGameStore((state) => state.player);
   const currentStatus = useGameStore((state) => state.currentStatus);
   const navigateTo = useGameStore((state) => state.navigateTo);
@@ -69,16 +51,6 @@ export const PracticeMatch: React.FC<PracticeMatchProps> = ({ matchConfig }) => 
     });
   };
 
-  const getTierName = (tier: number): string => {
-    switch (tier) {
-      case 1: return 'Club';
-      case 2: return 'Regional';
-      case 3: return 'Professional';
-      case 4: return 'Champion';
-      default: return 'Unknown';
-    }
-  };
-
   const contextContent = (
     <Card className="bg-pixel-card border-2 border-pixel-border">
       <div className="text-sm text-pixel-text-muted">
@@ -86,7 +58,7 @@ export const PracticeMatch: React.FC<PracticeMatchProps> = ({ matchConfig }) => 
           <strong className="text-pixel-text">Practice Match</strong>
         </p>
         <p>
-          Test your skills against a {getTierName(matchConfig.opponentTier).toLowerCase()} tier opponent.
+          Test your skills against a {getTierLabel(matchConfig.opponentTier).toLowerCase()} tier opponent.
           Wins here improve your performance against similar opponents.
         </p>
       </div>
