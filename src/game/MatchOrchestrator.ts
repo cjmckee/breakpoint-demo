@@ -406,6 +406,11 @@ export class MatchOrchestrator {
       return server === 'player' ? 'break-point-serve' : 'break-point-return';
     }
 
+    // Check for deuce
+    if (this.isDeucePoint(score)) {
+      return 'key-rally';
+    }
+
     return null;
   }
 
@@ -1087,6 +1092,16 @@ export class MatchOrchestrator {
 
   // Helper methods for score checking
 
+  private isDeucePoint(score: MatchScore): boolean {
+    const { currentGame } = score;
+    return (
+      !score.isTiebreak &&
+      currentGame.player >= 3 && 
+      currentGame.opponent >= 3 && 
+      currentGame.player === currentGame.opponent
+    );
+  }
+
   private isBreakPoint(score: MatchScore): boolean {
     // No break points during tiebreaks — both players alternate serving
     if (score.isTiebreak) return false;
@@ -1238,6 +1253,7 @@ export class MatchOrchestrator {
       'match-point-player-return': `MATCH POINT - Your Return! - ${game}`,
       'match-point-opponent-serve': `Match Point Against - Your Serve! - ${game}`,
       'match-point-opponent-return': `Match Point Against - Your Return! - ${game}`,
+      'key-rally': `Key Point - Game Tied  - ${game}`,
     };
     return typeMap[type];
   }
@@ -1254,6 +1270,7 @@ export class MatchOrchestrator {
       'match-point-player-return': 'Deep breath. Focus on the return. One more time!',
       'match-point-opponent-serve': 'Everything on the line - this serve is crucial!',
       'match-point-opponent-return': 'This is match point! Anything to get it back over!',
+      'key-rally': 'This is a big rally! The game is tied - choose your approach!',
     };
     return descriptions[type];
   }
