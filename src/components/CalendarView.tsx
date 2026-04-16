@@ -3,13 +3,20 @@
  * 7-day lookahead modal showing scheduled events across time slots
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { CalendarService } from '../game/CalendarService';
+import { TournamentRegistry } from '../data/tournaments';
+import { TournamentManager } from '../game/TournamentManager';
+import { StoryMatchManager } from '../game/StoryMatchManager';
 import { TimeSlot } from '../types/game';
 import type { ScheduledEvent } from '../types/game';
 import type { TournamentMatchMetadata } from '../types/tournaments';
+import type { StoryMatchMetadata } from '../types/game';
 import { Modal } from './ui/Modal';
+import { OpponentPreviewCard } from './OpponentPreviewCard';
+import { derivePlayStyle } from '../core/PlayerProfile';
+import type { CourtSurface, PlayerStats, PlayStyle } from '../types';
 
 interface CalendarViewProps {
   isOpen: boolean;
@@ -20,6 +27,7 @@ interface EventDisplay {
   icon: string;
   label: string;
   colorClass: string;
+  isMatch: boolean;
 }
 
 const TIME_SLOT_LABELS = ['Morning', 'Afternoon', 'Evening', 'Night'];
@@ -32,21 +40,21 @@ function getEventDisplay(event: ScheduledEvent): EventDisplay {
       const label = meta?.roundNumber != null
         ? `Tournament R${meta.roundNumber + 1}`
         : 'Tournament';
-      return { icon: '🏆', label, colorClass: 'bg-yellow-500/20 border-yellow-400' };
+      return { icon: '🏆', label, colorClass: 'bg-yellow-500/20 border-yellow-400', isMatch: true };
     }
     case 'story_match': {
       const meta = event.metadata as { opponentName?: string } | undefined;
       const label = meta?.opponentName
         ? `vs ${meta.opponentName}`
         : 'Team Match';
-      return { icon: '⚔️', label, colorClass: 'bg-purple-500/20 border-purple-400' };
+      return { icon: '⚔️', label, colorClass: 'bg-purple-500/20 border-purple-400', isMatch: true };
     }
     case 'story':
-      return { icon: '📖', label: 'Story Event', colorClass: 'bg-blue-500/20 border-blue-400' };
+      return { icon: '📖', label: 'Story Event', colorClass: 'bg-blue-500/20 border-blue-400', isMatch: false };
     case 'training':
-      return { icon: '🏋️', label: 'Training', colorClass: 'bg-green-500/20 border-green-400' };
+      return { icon: '🏋️', label: 'Training', colorClass: 'bg-green-500/20 border-green-400', isMatch: false };
     case 'rest':
-      return { icon: '😴', label: 'Rest', colorClass: 'bg-gray-500/20 border-gray-400' };
+      return { icon: '😴', label: 'Rest', colorClass: 'bg-gray-500/20 border-gray-400', isMatch: false };
   }
 }
 
@@ -56,8 +64,54 @@ function getDayLabel(day: number, currentDay: number): string {
   return `Day ${day}`;
 }
 
+interface MatchPreviewData {
+  opponentName: string;
+  opponentTier: number;
+  opponentDescription?: string;
+  opponentStats: PlayerStats;
+  opponentPlayStyle: PlayStyle;
+  surface: CourtSurface;
+}
+
+function getMatchPreviewData(event: ScheduledEvent, calendar: ReturnType<typeof useGameStore.getState>['calendar']): MatchPreviewData | null {
+  if (event.eventType === 'tournament_match') {
+    const meta = event.metadata as TournamentMatchMetadata;
+    const tournament = TournamentRegistry.getTournament(meta.tournamentId);
+    if (!tournament) return null;
+
+    const round = tournament.rounds.find(r => r.roundNumber === meta.roundNumber);
+    if (!round) return null;
+
+    const opponent = round.opponent;
+    return {
+      opponentName: opponent.name,
+      opponentTier: opponent.tier,
+      opponentDescription: opponent.description,
+      opponentStats: opponent.stats,
+      opponentPlayStyle: derivePlayStyle(opponent.stats),
+      surface: tournament.surface as CourtSurface,
+    };
+  }
+
+  if (event.eventType === 'story_match') {
+    const meta = event.metadata as StoryMatchMetadata;
+    return {
+      opponentName: meta.opponentName,
+      opponentTier: meta.opponentTier,
+      opponentDescription: meta.opponentDescription,
+      opponentStats: meta.opponentStats,
+      opponentPlayStyle: derivePlayStyle(meta.opponentStats),
+      surface: (meta.surface || 'hard') as CourtSurface,
+    };
+  }
+
+  return null;
+}
+
 export const CalendarView: React.FC<CalendarViewProps> = ({ isOpen, onClose }) => {
   const calendar = useGameStore((state) => state.calendar);
+  const [hoveredEvent, setHoveredEvent] = useState<ScheduledEvent | null>(null);
+  const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
 
   const days = Array.from({ length: 7 }, (_, i) => calendar.currentDay + i);
   const slots = [TimeSlot.MORNING, TimeSlot.AFTERNOON, TimeSlot.EVENING, TimeSlot.NIGHT];
@@ -117,10 +171,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ isOpen, onClose }) =
                     const isNight = slot === TimeSlot.NIGHT;
 
                     return (
-                      <td key={slot} className="p-1">
+                      <td key={slot} className="p-1 relative">
                         <div
                           className={`
-                            h-14 border-2 flex items-center justify-center text-xs p-1 transition-all
+                            h-14 border-2 flex items-center justify-center text-xs p-1 transition-all cursor-pointer
                             ${current
                               ? 'border-pixel-accent bg-pixel-accent/10 ring-2 ring-pixel-accent/40'
                               : event
@@ -130,7 +184,20 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ isOpen, onClose }) =
                                   : 'border-dashed border-pixel-border/50'
                             }
                             ${past ? 'opacity-40' : ''}
+                            ${event && getEventDisplay(event).isMatch ? 'hover:ring-2 hover:ring-pixel-accent/50' : ''}
                           `}
+                          onMouseEnter={(e) => {
+                            if (event && getEventDisplay(event).isMatch) {
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              const modalRect = e.currentTarget.closest('.modal-content')?.getBoundingClientRect();
+                              setHoverPosition({
+                                x: rect.left - (modalRect?.left || 0) + rect.width / 2,
+                                y: rect.bottom - (modalRect?.top || 0) + 8,
+                              });
+                              setHoveredEvent(event);
+                            }
+                          }}
+                          onMouseLeave={() => setHoveredEvent(null)}
                         >
                           {current && !event && (
                             <span className="text-pixel-accent font-bold text-xs">NOW</span>
@@ -165,6 +232,20 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ isOpen, onClose }) =
         <span>🏋️ Training</span>
         <span>😴 Rest</span>
       </div>
+
+      {/* Hover Preview Popup */}
+      {hoveredEvent && getMatchPreviewData(hoveredEvent, calendar) && (
+        <div
+          className="fixed z-50"
+          style={{
+            left: hoverPosition.x,
+            top: hoverPosition.y,
+            transform: 'translateX(-50%)',
+          }}
+        >
+          <OpponentPreviewCard {...getMatchPreviewData(hoveredEvent, calendar)!} />
+        </div>
+      )}
     </Modal>
   );
 };
