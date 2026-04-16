@@ -51,6 +51,7 @@ export const welcomeEvents: StoryEvent[] = [
           jordan_rival: -10, // Jordan being jordan
         },
         itemsGained: [BEGINNER_RACQUET, RUNNING_SHOES],
+        revealEncyclopediaSections: ['tennis-terms', 'stats-guide'], // Unlock the encyclopedia tabs
       },
     },
   },

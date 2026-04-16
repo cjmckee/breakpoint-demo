@@ -41,6 +41,7 @@ import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
 import { EffectAggregator } from '../core/EffectAggregator';
 import { EffectKey } from '../types/game';
 import { derivePlayStyle } from '../core/PlayerProfile';
+import { useMenuStore } from '../hooks/useMenuModal';
 import type { PlayStyle } from '../types';
 import type { GamePhase, MatchType, PreMatchConfig, PhaseContinuation, IdlePhase, MatchCompletionData } from '../types/gamePhase';
 import type { InteractiveMatchConfig } from '../types/keyMoments';
@@ -1864,6 +1865,14 @@ export const useGameStore = create<GameState>()(
         if (outcome.challengesAssigned) {
           outcome.challengesAssigned.forEach((challenge) => {
             get().assignChallenge(challenge);
+          });
+        }
+
+        // Reveal encyclopedia sections if any
+        if (outcome.effects.revealEncyclopediaSections) {
+          const { revealEncyclopediaSection } = useMenuStore.getState();
+          outcome.effects.revealEncyclopediaSections.forEach((sectionId) => {
+            revealEncyclopediaSection(sectionId);
           });
         }
 

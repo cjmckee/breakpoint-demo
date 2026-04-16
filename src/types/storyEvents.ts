@@ -7,6 +7,7 @@ import type { Activity, StatBoosts, ScheduledEventTemplate } from './game';
 import type { Challenge } from './challenges';
 import type { StatName } from './index';
 import type { Item } from './items';
+import type { EncyclopediaSectionId } from '../hooks/useMenuModal';
 
 // ============================================================================
 // TEXT FORMATTING SYSTEM
@@ -141,6 +142,7 @@ export interface StoryEventOutcome {
     scheduleNextTournamentMatch?: boolean;  // Trigger tournament match scheduling
     startTournament?: string;  // Tournament ID to activate when this event completes
     tierChange?: number;  // Set player tier to this value (e.g., 2 for Regional)
+    revealEncyclopediaSections?: EncyclopediaSectionId[];  // Reveal encyclopedia sections and mark as new
   };
 
   // Challenges assigned by this outcome
