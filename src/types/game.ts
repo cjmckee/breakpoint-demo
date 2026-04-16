@@ -193,6 +193,14 @@ export interface GameCalendar {
   currentTimeSlot: TimeSlot;
   // Note: energy and mood are tracked in CurrentStatus, not in the calendar
 
+  // Practice opponents per tier (regenerated each time slot)
+  practiceOpponents: Partial<Record<OpponentTier, {
+    opponentId: string;
+    name: string;
+    stats: PlayerStats;
+    tier: OpponentTier;
+  }>>;
+
   // Scheduled events and tournament state
   scheduledEvents: ScheduledEvent[];
   activeTournament: ActiveTournament | null;
@@ -508,6 +516,7 @@ export const DEFAULT_CALENDAR: GameCalendar = {
   currentSeason: 1,
   currentDay: 1,
   currentTimeSlot: TimeSlot.MORNING,
+  practiceOpponents: {},
   scheduledEvents: [],
   activeTournament: null,
   completedTournaments: [],

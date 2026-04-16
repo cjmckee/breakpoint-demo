@@ -10,9 +10,11 @@ import { TournamentRegistry } from '../data/tournaments';
 import { TournamentManager } from '../game/TournamentManager';
 import { Card } from './ui/Card';
 import { PreMatchScreen } from './PreMatchScreen';
-import type { PlayerStats } from '../types/game';
+import { derivePlayStyle } from '../core/PlayerProfile';
+import type { PlayerStats, PlayStyle } from '../types';
 import { ItemManager } from '../game/ItemManager';
 import type { PreMatchConfig } from '../types/gamePhase';
+import { calculateOverallRating } from '../utils/playerStats';
 
 interface TournamentMatchProps {
   matchConfig: PreMatchConfig | null;
@@ -28,6 +30,9 @@ export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig })
   if (!player || !activeTournament || !matchConfig) {
     return null;
   }
+
+  const playerOverallRating = calculateOverallRating(player.stats);
+  const playerPlayStyle = derivePlayStyle(player.stats);
 
   // Get tournament configuration for display purposes
   const tournament = TournamentRegistry.getTournament(activeTournament.tournamentId);
@@ -82,15 +87,6 @@ export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig })
           </div>
         </div>
       </div>
-
-      <div className="p-3 bg-pixel-bg border-2 border-pixel-border">
-        <div className="flex items-center justify-between">
-          <span className="text-pixel-text-muted">Surface:</span>
-          <span className="text-pixel-text font-bold">
-            {tournament.surface.toUpperCase()}
-          </span>
-        </div>
-      </div>
     </Card>
   );
 
@@ -124,10 +120,16 @@ export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig })
     <PreMatchScreen
       title={tournament.name}
       headerContent={headerContent}
+      playerName={player.name}
+      playerTier={player.tier}
+      playerOverallRating={playerOverallRating}
+      playerStats={player.stats}
+      playerPlayStyle={playerPlayStyle}
       opponentName={matchConfig.opponentName}
       opponentTier={matchConfig.opponentTier}
       opponentDescription={matchConfig.opponentDescription}
       opponentStats={matchConfig.opponentStats as PlayerStats}
+      opponentPlayStyle={matchConfig.opponentPlayStyle}
       surface={matchConfig.surface}
       matchFormat={matchConfig.matchFormat === 'best-of-3' ? 'best-of-3' : 'best-of-1'}
       energyCost={energyCost}

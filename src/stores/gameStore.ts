@@ -36,9 +36,12 @@ import { TournamentRegistry } from '../data/tournaments';
 import { TournamentManager } from '../game/TournamentManager';
 import { ScheduledEventManager } from '../game/ScheduledEventManager';
 import { StoryMatchManager } from '../game/StoryMatchManager';
+import { getRandomOpponent, getScaledOpponentStats } from '../data/opponents';
 import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
 import { EffectAggregator } from '../core/EffectAggregator';
 import { EffectKey } from '../types/game';
+import { derivePlayStyle } from '../core/PlayerProfile';
+import type { PlayStyle } from '../types';
 import type { GamePhase, MatchType, PreMatchConfig, PhaseContinuation, IdlePhase, MatchCompletionData } from '../types/gamePhase';
 import type { InteractiveMatchConfig } from '../types/keyMoments';
 import {
@@ -113,6 +116,8 @@ interface GameState {
   // Phase transition actions
   navigateTo: (target: 'idle' | 'training' | 'match_setup' | 'tournament_list' | 'inventory') => void;
   navigateToScheduledMatch: (matchType: 'tournament' | 'story') => void;
+  setMatchSetup: (config: Omit<PreMatchConfig, 'opponentDescription' | 'matchTitle' | 'matchDescription' | 'storyMatchMetadata'>, matchType: MatchType) => void;
+  getPracticeOpponent: (tier: OpponentTier) => { opponentId: string; name: string; stats: PlayerStats; tier: OpponentTier };
   beginMatch: (config: InteractiveMatchConfig, matchType: MatchType) => void;
   onMatchComplete: (data: MatchCompletionData) => void;
   dismissMatchResults: () => void;
@@ -468,6 +473,9 @@ export const useGameStore = create<GameState>()(
 
         const newCalendar = TimeManager.advanceTimeSlot(calendar);
 
+        // Clear practice opponents for new time slot (regenerate like training sessions)
+        newCalendar.practiceOpponents = {};
+
         // No automatic energy restoration when advancing time
         const newEnergy = currentStatus.energy;
 
@@ -784,6 +792,7 @@ export const useGameStore = create<GameState>()(
                     opponentStats: opponent?.stats || ({} as PlayerStats),
                     opponentTier: (opponent?.tier || 1) as OpponentTier,
                     opponentDescription: opponent?.description,
+                    opponentPlayStyle: opponent?.stats ? derivePlayStyle(opponent.stats) : { type: 'all_court', aggression: 50, netApproach: 50, consistency: 50, power: 50, description: '' } as PlayStyle,
                     surface: config.surface || 'hard',
                     matchFormat: 'best-of-1',
                     matchTitle: `${config.name} - Round ${calendar.activeTournament!.currentRound + 1}`,
@@ -818,6 +827,7 @@ export const useGameStore = create<GameState>()(
                 opponentStats: metadata.opponentStats,
                 opponentTier: metadata.opponentTier as OpponentTier,
                 opponentDescription: metadata.opponentDescription,
+                opponentPlayStyle: derivePlayStyle(metadata.opponentStats),
                 surface: metadata.surface || 'hard',
                 matchFormat: metadata.matchFormat || 'best-of-1',
                 matchTitle: metadata.matchTitle,
@@ -927,6 +937,7 @@ export const useGameStore = create<GameState>()(
                 opponentStats: opponent?.stats || ({} as PlayerStats),
                 opponentTier: (opponent?.tier || 1) as OpponentTier,
                 opponentDescription: opponent?.description,
+                opponentPlayStyle: opponent?.stats ? derivePlayStyle(opponent.stats) : { type: 'all_court', aggression: 50, netApproach: 50, consistency: 50, power: 50, description: '' } as PlayStyle,
                 surface: config.surface || 'hard',
                 matchFormat: 'best-of-1',
                 matchTitle: `${config.name} - Round ${calendar.activeTournament!.currentRound + 1}`,
@@ -965,6 +976,7 @@ export const useGameStore = create<GameState>()(
                 opponentStats: metadata.opponentStats,
                 opponentTier: metadata.opponentTier as OpponentTier,
                 opponentDescription: metadata.opponentDescription,
+                opponentPlayStyle: derivePlayStyle(metadata.opponentStats),
                 surface: metadata.surface || 'hard',
                 matchFormat: metadata.matchFormat || 'best-of-1',
                 matchTitle: metadata.matchTitle,
@@ -993,6 +1005,51 @@ export const useGameStore = create<GameState>()(
             }
           }
         }
+      },
+
+      setMatchSetup: (config, matchType) => {
+        const matchConfig: PreMatchConfig = {
+          opponentName: config.opponentName,
+          opponentStats: config.opponentStats,
+          opponentTier: config.opponentTier,
+          opponentPlayStyle: derivePlayStyle(config.opponentStats),
+          surface: config.surface,
+          matchFormat: config.matchFormat,
+        };
+        set({ gamePhase: { type: 'match_setup', matchType, matchConfig } });
+      },
+
+      getPracticeOpponent: (tier: OpponentTier) => {
+        const state = get();
+        const { calendar, player } = state;
+
+        const practiceOpponents = calendar.practiceOpponents ?? {};
+        if (practiceOpponents[tier]) {
+          return practiceOpponents[tier]!;
+        }
+
+        const opponent = getRandomOpponent(tier);
+        const tierWins = player?.practiceWinsPerTier?.[tier] ?? 0;
+        const stats = getScaledOpponentStats(opponent, tierWins) as PlayerStats;
+
+        const newOpponent = {
+          opponentId: opponent.name,
+          name: opponent.name,
+          stats,
+          tier: opponent.tier,
+        };
+
+        set({
+          calendar: {
+            ...calendar,
+            practiceOpponents: {
+              ...practiceOpponents,
+              [tier]: newOpponent,
+            },
+          },
+        });
+
+        return newOpponent;
       },
 
       beginMatch: (config, matchType) => {

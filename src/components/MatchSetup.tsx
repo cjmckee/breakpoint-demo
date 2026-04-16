@@ -6,14 +6,14 @@
 
 import React, { useState } from 'react';
 import { useGameStore } from '../stores/gameStore';
-import { useMatchStore } from '../stores/matchStore';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
-import { PlayerStats, OpponentTier } from '../types/game';
-import { ItemManager } from '../game/ItemManager';
-import { getRandomOpponent, getScaledOpponentStats, OPPONENTS_BY_TIER } from '../data/opponents';
+import { OpponentTier } from '../types/game';
+import { OPPONENTS_BY_TIER } from '../data/opponents';
 import { getArchetypeLabel } from '../data/archetypes';
 import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
+import { derivePlayStyle } from '../core/PlayerProfile';
+import { getSurfaceEmoji } from '../utils/playerStats';
 
 type CourtSurface = 'hard' | 'clay' | 'grass' | 'carpet';
 
@@ -34,7 +34,8 @@ export const MatchSetup: React.FC = () => {
   const player = useGameStore((state) => state.player);
   const currentStatus = useGameStore((state) => state.currentStatus);
   const navigateTo = useGameStore((state) => state.navigateTo);
-  const beginMatch = useGameStore((state) => state.beginMatch);
+  const setMatchSetup = useGameStore((state) => state.setMatchSetup);
+  const getPracticeOpponent = useGameStore((state) => state.getPracticeOpponent);
 
   const [selectedTier, setSelectedTier] = useState<OpponentTier>(1);
   const [selectedSurface, setSelectedSurface] = useState<CourtSurface>('hard');
@@ -43,29 +44,17 @@ export const MatchSetup: React.FC = () => {
     return null;
   }
 
-  const handleStartMatch = () => {
-    const opponent = getRandomOpponent(selectedTier);
-    const tierWins = player.practiceWinsPerTier?.[selectedTier] ?? 0;
+  const handlePreviewMatch = () => {
+    const opponent = getPracticeOpponent(selectedTier);
 
-    const config = {
-      playerStats: player.stats,
-      playerName: player.name,
-      playerAbilities: player.abilities,
-      itemBoosts: ItemManager.getTotalPassiveBoosts(player),
-      opponentStats: getScaledOpponentStats(opponent, tierWins) as PlayerStats,
+    setMatchSetup({
+      opponentStats: opponent.stats,
       opponentName: opponent.name,
       opponentTier: opponent.tier,
+      opponentPlayStyle: derivePlayStyle(opponent.stats),
       surface: selectedSurface,
-      mood: currentStatus.mood,
-      energy: currentStatus.energy,
-      enableKeyMoments: true,
-      matchFormat: 'best-of-1' as const,
-    };
-
-    beginMatch(config, 'regular');
-    useMatchStore.getState().startMatch(config, (data) => {
-      useGameStore.getState().onMatchComplete(data);
-    });
+      matchFormat: 'best-of-1',
+    }, 'regular');
   };
 
   const matchEnergyCost = DEFAULT_MATCH_ENERGY_COST;
@@ -89,19 +78,6 @@ export const MatchSetup: React.FC = () => {
 
   const isOpponentUnlocked = (tier: OpponentTier): boolean => {
     return tier <= player.tier;
-  };
-
-  const getSurfaceEmoji = (surface: CourtSurface) => {
-    switch (surface) {
-      case 'hard':
-        return '🏟️';
-      case 'clay':
-        return '🧱';
-      case 'grass':
-        return '🌱';
-      case 'carpet':
-        return '📋';
-    }
   };
 
   return (
@@ -221,13 +197,13 @@ export const MatchSetup: React.FC = () => {
             </div>
           </div>
 
-          {/* Start Match Button */}
+          {/* Preview Match Button */}
           <div className="pt-4">
             <Button
               variant="primary"
               size="lg"
               fullWidth
-              onClick={handleStartMatch}
+              onClick={handlePreviewMatch}
               disabled={!canPlayMatch}
             >
               {!isOpponentUnlocked(selectedTier) ? (
@@ -235,7 +211,7 @@ export const MatchSetup: React.FC = () => {
               ) : !canAfford ? (
                 <>Not Enough Energy (Need {matchEnergyCost})</>
               ) : (
-                <>🎾 Start Match — Tier {selectedTier}</>
+                <>🎾 Preview Match — Tier {selectedTier}</>
               )}
             </Button>
           </div>

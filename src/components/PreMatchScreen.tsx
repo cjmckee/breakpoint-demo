@@ -4,66 +4,94 @@
  * Used by both tournament matches and story matches.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
-import type { PlayerStats } from '../types/game';
+import { SURFACE_EFFECTS } from '../config/shotThresholds';
+import { ARCHETYPE_DATA } from '../data/archetypes';
+import type { PlayerStats, PlayStyle, CourtSurface, StatName } from '../types';
+import type { ArchetypeType } from '../data/archetypes';
+import {
+  calculateOverallRating,
+  getTierLabel,
+  getTierColor,
+  getSurfaceEmoji,
+  getArchetypeLabel,
+  getTopNStats,
+  getBottomNStats,
+} from '../utils/playerStats';
+
+interface SurfaceEffectDisplay {
+  label: string;
+  direction: 'up' | 'down';
+}
 
 interface PreMatchScreenProps {
-  // Header — use headerContent for a fully custom header, or title/subtitle for the default
   title: string;
   subtitle?: string;
   headerContent?: React.ReactNode;
+
+  // Player
+  playerName: string;
+  playerTier: number;
+  playerOverallRating: number;
+  playerStats: PlayerStats;
+  playerPlayStyle: PlayStyle;
+  playerDescription?: string;
 
   // Opponent
   opponentName: string;
   opponentTier: number;
   opponentDescription?: string;
   opponentStats: PlayerStats;
+  opponentPlayStyle: PlayStyle;
 
   // Match config
-  surface: string;
+  surface: CourtSurface;
   matchFormat: 'best-of-1' | 'best-of-3';
   energyCost: number;
   currentEnergy: number;
 
-  // Optional extra context rendered below the start button
   contextContent?: React.ReactNode;
 
-  // Actions
   onStartMatch: () => void;
   onBack: () => void;
 }
 
-const getTierLabel = (tier: number): string => {
-  switch (tier) {
-    case 1: return 'Club';
-    case 2: return 'Regional';
-    case 3: return 'Professional';
-    case 4: return 'Elite';
-    default: return 'Unknown';
-  }
-};
+function getSurfaceEffects(surface: CourtSurface): SurfaceEffectDisplay[] {
+  const effects = SURFACE_EFFECTS[surface];
+  const result: SurfaceEffectDisplay[] = [];
 
-const getTierColor = (tier: number): string => {
-  switch (tier) {
-    case 1: return 'border-green-500';
-    case 2: return 'border-yellow-500';
-    case 3: return 'border-orange-500';
-    case 4: return 'border-red-500';
-    default: return 'border-pixel-border';
+  if (effects.serveQualityMultiplier !== 1.0) {
+    result.push({
+      label: 'Serves',
+      direction: effects.serveQualityMultiplier > 1.0 ? 'up' : 'down',
+    });
   }
-};
 
-const getSurfaceEmoji = (surface: string): string => {
-  switch (surface) {
-    case 'hard': return '🏟️';
-    case 'clay': return '🧱';
-    case 'grass': return '🌱';
-    case 'carpet': return '📋';
-    default: return '🎾';
+  if (effects.netApproachBonus !== 0) {
+    result.push({
+      label: 'Net Play',
+      direction: effects.netApproachBonus > 0 ? 'up' : 'down',
+    });
   }
-};
+
+  if (effects.defensiveAdjustmentMultiplier !== 1.0) {
+    result.push({
+      label: 'Defense',
+      direction: effects.defensiveAdjustmentMultiplier > 1.0 ? 'up' : 'down',
+    });
+  }
+
+  if (effects.returnAdjustmentMultiplier !== 1.0) {
+    result.push({
+      label: 'Returns',
+      direction: effects.returnAdjustmentMultiplier > 1.0 ? 'up' : 'down',
+    });
+  }
+
+  return result;
+}
 
 const getFormatLabel = (format: 'best-of-1' | 'best-of-3'): string => {
   switch (format) {
@@ -73,14 +101,164 @@ const getFormatLabel = (format: 'best-of-1' | 'best-of-3'): string => {
   }
 };
 
+interface PlayerCardProps {
+  name: string;
+  tier?: number;
+  overallRating: number;
+  stats: PlayerStats;
+  playStyle: PlayStyle;
+  isPlayer: boolean;
+}
+
+function PlayerCard({ name, tier, overallRating, stats, playStyle, isPlayer }: PlayerCardProps) {
+  const topStats = getTopNStats(stats, 5);
+  const bottomStats = getBottomNStats(stats, 5);
+  const archetypeLabel = getArchetypeLabel(playStyle.type);
+
+  const borderColor = isPlayer ? 'border-blue-500' : getTierColor(tier ?? 1);
+  const bgColor = isPlayer ? 'bg-blue-950/30' : 'bg-pixel-card';
+
+  return (
+    <div className={`border-4 ${borderColor} p-4 ${bgColor}`}>
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <h3 className="text-xl font-bold text-pixel-text mb-1">{name}</h3>
+          <div className="flex items-center gap-2">
+            {tier !== undefined && (
+              <span className="text-sm px-2 py-0.5 bg-pixel-bg border-2 border-pixel-border text-pixel-text uppercase">
+                {getTierLabel(tier)}
+              </span>
+            )}
+            <span className="text-sm px-2 py-0.5 bg-pixel-bg border-2 border-pixel-border text-pixel-text">
+              Overall: {overallRating}
+            </span>
+          </div>
+        </div>
+        <span className="text-3xl">{isPlayer ? '🎾' : '⚔️'}</span>
+      </div>
+
+      <div className="space-y-3">
+        <div>
+          <div className="text-xs text-pixel-text-muted mb-1 uppercase tracking-wide">Strengths</div>
+          <div className="space-y-1">
+            {topStats.map((stat) => (
+              <div key={stat.name} className="flex justify-between items-center text-sm">
+                <span className="text-green-400 flex items-center gap-1">
+                  <span className="text-green-600">▲</span>
+                  {stat.label}
+                </span>
+                <span className="text-green-400 font-bold">{stat.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <div className="text-xs text-pixel-text-muted mb-1 uppercase tracking-wide">Weaknesses</div>
+          <div className="space-y-1">
+            {bottomStats.map((stat) => (
+              <div key={stat.name} className="flex justify-between items-center text-sm">
+                <span className="text-orange-400 flex items-center gap-1">
+                  <span className="text-orange-600">▼</span>
+                  {stat.label}
+                </span>
+                <span className="text-orange-400 font-bold">{stat.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <div className="text-xs text-pixel-text-muted mb-1 uppercase tracking-wide">Playstyle</div>
+          <div className="text-sm">
+            <div className="text-pixel-text font-medium">{archetypeLabel}</div>
+            <div className="text-pixel-text-muted text-xs">{playStyle.description}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SurfaceEffectsDisplay({ surface }: { surface: CourtSurface }) {
+  const effects = getSurfaceEffects(surface);
+
+  if (effects.length === 0) {
+    return (
+      <span className="text-pixel-text-muted text-sm">No surface effects</span>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {effects.map((effect) => (
+        <span
+          key={effect.label}
+          className={`px-2 py-1 text-sm font-medium ${
+            effect.direction === 'up'
+              ? 'bg-green-900/50 text-green-400'
+              : 'bg-red-900/50 text-red-400'
+          }`}
+        >
+          {effect.label}: {effect.direction === 'up' ? '▲' : '▼'}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function ScoutingReport({ playStyle }: { playStyle: PlayStyle }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const archetype = ARCHETYPE_DATA[playStyle.type as ArchetypeType];
+
+  return (
+    <div className="bg-pixel-card border-2 border-pixel-border">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full p-3 flex items-center justify-between text-left hover:bg-pixel-bg/50 transition-colors"
+      >
+        <span className="text-pixel-text font-medium">Scouting Report</span>
+        <span className="text-pixel-text-muted">{isOpen ? '▲' : '▼'}</span>
+      </button>
+
+      {isOpen && (
+        <div className="p-3 pt-1 space-y-3 border-t border-pixel-border">
+          <div>
+            <div className="text-xs text-pixel-text-muted mb-1">Serving Style</div>
+            <div className="text-sm text-pixel-text">{archetype.servingTendency}</div>
+          </div>
+
+          <div>
+            <div className="text-xs text-pixel-text-muted mb-1">Returning Style</div>
+            <div className="text-sm text-pixel-text">{archetype.returningTendency}</div>
+          </div>
+
+          <div>
+            <div className="text-xs text-pixel-text-muted mb-1">Rally Behavior</div>
+            <div className="text-sm text-pixel-text">{archetype.rallyTendency}</div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
   title,
   subtitle,
   headerContent,
+  playerName,
+  playerTier,
+  playerOverallRating,
+  playerStats,
+  playerPlayStyle,
+  playerDescription,
   opponentName,
   opponentTier,
   opponentDescription,
   opponentStats,
+  opponentPlayStyle,
   surface,
   matchFormat,
   energyCost,
@@ -91,6 +269,8 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
 }) => {
   const canAfford = currentEnergy >= energyCost;
 
+  const opponentOverallRating = calculateOverallRating(opponentStats);
+
   return (
     <div className="min-h-screen bg-pixel-bg p-4">
       <div className="max-w-4xl mx-auto">
@@ -100,91 +280,70 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
           </Button>
         </div>
 
-        {/* Match Header */}
         {headerContent ?? (
           <Card title={title} className="mb-6">
             {subtitle && (
               <p className="text-pixel-text-muted mb-4">{subtitle}</p>
             )}
-            <div className="p-3 bg-pixel-bg border-2 border-pixel-border">
-              <div className="flex items-center justify-between">
-                <span className="text-pixel-text-muted">Surface:</span>
-                <span className="text-pixel-text font-bold">
-                  {getSurfaceEmoji(surface)} {surface.toUpperCase()}
-                </span>
-              </div>
-            </div>
           </Card>
         )}
 
-        {/* Opponent Card */}
-        <Card title="Your Opponent" className="mb-6">
-          <div className={`border-4 ${getTierColor(opponentTier)} p-4 bg-pixel-card`}>
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <h3 className="text-2xl font-bold text-pixel-text mb-1">
-                  {opponentName}
-                </h3>
-                <span className="text-sm px-2 py-1 bg-pixel-bg border-2 border-pixel-border text-pixel-text uppercase">
-                  {getTierLabel(opponentTier)}
-                </span>
-              </div>
-              <span className="text-4xl">🎾</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <PlayerCard
+            name={playerName}
+            tier={playerTier}
+            overallRating={playerOverallRating}
+            stats={playerStats}
+            playStyle={playerPlayStyle}
+            isPlayer={true}
+          />
+
+          <PlayerCard
+            name={opponentName}
+            tier={opponentTier}
+            overallRating={opponentOverallRating}
+            stats={opponentStats}
+            playStyle={opponentPlayStyle}
+            isPlayer={false}
+          />
+        </div>
+
+        {playerDescription && opponentDescription ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="p-3 bg-blue-950/30 border-2 border-blue-500">
+              <p className="text-sm text-pixel-text-muted">{playerDescription}</p>
             </div>
-
-            {opponentDescription && (
-              <p className="text-pixel-text-muted mb-4 text-sm">
-                {opponentDescription}
-              </p>
-            )}
-
-            {/* Opponent Stats Preview */}
-            <div className="grid grid-cols-4 gap-4 mb-4">
-              <div className="p-2 bg-pixel-bg border-2 border-pixel-border">
-                <div className="text-xs text-pixel-text-muted mb-1">Core</div>
-                <div className="text-lg font-bold text-amber-500">
-                  {Math.round(
-                    (opponentStats.core.serve + opponentStats.core.forehand +
-                      opponentStats.core.backhand + opponentStats.core.return +
-                      opponentStats.core.slice) / 5
-                  )}
-                </div>
-              </div>
-              <div className="p-2 bg-pixel-bg border-2 border-pixel-border">
-                <div className="text-xs text-pixel-text-muted mb-1">Technical</div>
-                <div className="text-lg font-bold text-green-500">
-                  {Math.round(
-                    (opponentStats.technical.dropShot + opponentStats.technical.overhead + 
-                      opponentStats.technical.placement + opponentStats.technical.spin + 
-                      opponentStats.technical.volley) / 5
-                  )}
-                </div>
-              </div>
-              <div className="p-2 bg-pixel-bg border-2 border-pixel-border">
-                <div className="text-xs text-pixel-text-muted mb-1">Physical</div>
-                <div className="text-lg font-bold text-blue-500">
-                  {Math.round(
-                    (opponentStats.physical.agility + opponentStats.physical.recovery +
-                      opponentStats.physical.speed + opponentStats.physical.stamina +
-                      opponentStats.physical.strength) / 5
-                  )}
-                </div>
-              </div>
-              <div className="p-2 bg-pixel-bg border-2 border-pixel-border">
-                <div className="text-xs text-pixel-text-muted mb-1">Mental</div>
-                <div className="text-lg font-bold text-purple-500">
-                  {Math.round(
-                    (opponentStats.mental.anticipation + opponentStats.mental.defensive + 
-                      opponentStats.mental.focus + opponentStats.mental.offensive + 
-                      opponentStats.mental.shotVariety) / 5
-                  )}
-                </div>
-              </div>
+            <div className="p-3 bg-pixel-card border-2 border-pixel-border">
+              <p className="text-sm text-pixel-text-muted">{opponentDescription}</p>
             </div>
           </div>
+        ) : playerDescription ? (
+          <div className="mb-6">
+            <div className="p-3 bg-blue-950/30 border-2 border-blue-500">
+              <p className="text-sm text-pixel-text-muted">{playerDescription}</p>
+            </div>
+          </div>
+        ) : opponentDescription ? (
+          <div className="mb-6">
+            <div className="p-3 bg-pixel-card border-2 border-pixel-border">
+              <p className="text-sm text-pixel-text-muted">{opponentDescription}</p>
+            </div>
+          </div>
+        ) : null}
+
+        <Card title="Surface" className="mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-pixel-text font-bold">
+              {getSurfaceEmoji(surface)} {surface.toUpperCase()}
+            </span>
+          </div>
+          <SurfaceEffectsDisplay surface={surface} />
         </Card>
 
-        {/* Match Details */}
+        <Card className="mb-6">
+          <ScoutingReport playStyle={opponentPlayStyle} />
+        </Card>
+
         <Card title="Match Details" className="mb-6">
           <div className="space-y-3">
             <div className="p-3 bg-pixel-card border-2 border-pixel-border">
@@ -205,17 +364,9 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
                 <span className="text-pixel-text font-bold">{getFormatLabel(matchFormat)}</span>
               </div>
             </div>
-
-            <div className="p-3 bg-pixel-card border-2 border-pixel-border">
-              <div className="flex justify-between items-center">
-                <span className="text-pixel-text-muted">Key Moments:</span>
-                <span className="text-pixel-text font-bold">Interactive</span>
-              </div>
-            </div>
           </div>
         </Card>
 
-        {/* Start Match Button */}
         <div className="mb-6">
           <Button
             variant="primary"
@@ -232,7 +383,6 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
           </Button>
         </div>
 
-        {/* Optional Context Content */}
         {contextContent}
       </div>
     </div>
