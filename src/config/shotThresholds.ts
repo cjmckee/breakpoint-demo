@@ -552,9 +552,9 @@ export const SURFACE_EFFECTS: Record<CourtSurface, SurfaceEffects> = {
   carpet: {
     serveQualityMultiplier: 1.04,
     rallyPaceMultiplier: 1.02,
-    netApproachBonus: 0.25,
-    defensiveAdjustmentMultiplier: 0.90,
-    returnAdjustmentMultiplier: 0.90,
+    netApproachBonus: 0.35,
+    defensiveAdjustmentMultiplier: 0.75,
+    returnAdjustmentMultiplier: 0.75,
   },
 };
 
