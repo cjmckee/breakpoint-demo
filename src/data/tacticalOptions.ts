@@ -1339,7 +1339,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         primary: 'offensive',
         primaryWeight: 0.3,
         secondary: [
-          { stat: 'power', weight: 0.25 },
+          { stat: 'focus', weight: 0.25 },
           { stat: 'forehand', weight: 0.2 },
           { stat: 'strength', weight: 0.15 },
           { stat: 'placement', weight: 0.1 }
