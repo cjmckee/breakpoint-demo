@@ -356,7 +356,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                       <h4 className="text-base font-bold text-pixel-text">{option.name}</h4>
                     </div>
                     <span className={`text-sm font-bold ${matchup.color} whitespace-nowrap`}>
-                      player {formatStatScore(matchup.playerScore)} {matchup.arrow} {formatStatScore(matchup.opponentScore)} opponent
+                      you {formatStatScore(matchup.playerScore)} {matchup.arrow} {formatStatScore(matchup.opponentScore)} them
                     </span>
                   </div>
 
