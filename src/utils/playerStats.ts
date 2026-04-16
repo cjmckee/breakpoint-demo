@@ -134,3 +134,24 @@ export function validatePlayStyle(playStyle: PlayStyle): boolean {
     typeof playStyle.description === 'string'
   );
 }
+
+export interface LetterGrade {
+  grade: string;
+  color: string;
+}
+
+export function getLetterGrade(value: number): LetterGrade {
+  if (value >= 95) return { grade: 'A+', color: '#FF6B35' };
+  if (value >= 90) return { grade: 'A', color: '#FF8C42' };
+  if (value >= 85) return { grade: 'A-', color: '#FFAF42' };
+  if (value >= 80) return { grade: 'B+', color: '#FFD23F' };
+  if (value >= 75) return { grade: 'B', color: '#BFFF3C' };
+  if (value >= 70) return { grade: 'B-', color: '#8FFF8F' };
+  if (value >= 65) return { grade: 'C+', color: '#4ECDC4' };
+  if (value >= 60) return { grade: 'C', color: '#45B7D1' };
+  if (value >= 55) return { grade: 'C-', color: '#6C7CE0' };
+  if (value >= 50) return { grade: 'D+', color: '#A683E3' };
+  if (value >= 45) return { grade: 'D', color: '#B19CD9' };
+  if (value >= 40) return { grade: 'D-', color: '#C8C8C8' };
+  return { grade: 'F', color: '#96A7B7' };
+}

@@ -19,6 +19,7 @@ import {
   getArchetypeLabel,
   getTopNStats,
   getBottomNStats,
+  getLetterGrade,
 } from '../utils/playerStats';
 
 interface SurfaceEffectDisplay {
@@ -141,30 +142,42 @@ function PlayerCard({ name, tier, overallRating, stats, playStyle, isPlayer }: P
         <div>
           <div className="text-xs text-pixel-text-muted mb-1 uppercase tracking-wide">Strengths</div>
           <div className="space-y-1">
-            {topStats.map((stat) => (
-              <div key={stat.name} className="flex justify-between items-center text-sm">
-                <span className="text-green-400 flex items-center gap-1">
-                  <span className="text-green-600">▲</span>
-                  {stat.label}
-                </span>
-                <span className="text-green-400 font-bold">{stat.value}</span>
-              </div>
-            ))}
+            {topStats.map((stat) => {
+              const grade = getLetterGrade(stat.value);
+              return (
+                <div key={stat.name} className="flex justify-between items-center text-sm">
+                  <span className="text-green-400 flex items-center gap-1">
+                    <span className="text-green-600">▲</span>
+                    {stat.label}
+                  </span>
+                  <span className="text-green-400 font-bold flex items-center gap-2">
+                    <span className="text-green-400/70">{stat.value}</span>
+                    <span style={{ color: grade.color }} className="w-6 text-right">{grade.grade}</span>
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
         <div>
           <div className="text-xs text-pixel-text-muted mb-1 uppercase tracking-wide">Weaknesses</div>
           <div className="space-y-1">
-            {bottomStats.map((stat) => (
-              <div key={stat.name} className="flex justify-between items-center text-sm">
-                <span className="text-orange-400 flex items-center gap-1">
-                  <span className="text-orange-600">▼</span>
-                  {stat.label}
-                </span>
-                <span className="text-orange-400 font-bold">{stat.value}</span>
-              </div>
-            ))}
+            {bottomStats.map((stat) => {
+              const grade = getLetterGrade(stat.value);
+              return (
+                <div key={stat.name} className="flex justify-between items-center text-sm">
+                  <span className="text-orange-400 flex items-center gap-1">
+                    <span className="text-orange-600">▼</span>
+                    {stat.label}
+                  </span>
+                  <span className="text-orange-400 font-bold flex items-center gap-2">
+                    <span className="text-orange-400/70">{stat.value}</span>
+                    <span style={{ color: grade.color }} className="w-6 text-right">{grade.grade}</span>
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
