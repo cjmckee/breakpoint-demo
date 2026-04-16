@@ -13,6 +13,16 @@ import { KeyMomentResolver, KeyMomentResult, AppliedEffect } from '../game/KeyMo
 import { useMatchStore } from '../stores/matchStore';
 import { PlayerStats } from '../types/game';
 
+const formatStatScore = (score: number): string => score.toFixed(0);
+
+const getMatchupArrow = (playerScore: number, opponentScore: number): { arrow: string; color: string } => {
+  const diff = playerScore - opponentScore;
+  // Arrow points toward the higher rating (green toward player advantage, red toward opponent advantage)
+  if (diff > 3) return { arrow: '←', color: 'text-green-500' }; // Player higher, arrow points left toward player
+  if (diff < -3) return { arrow: '→', color: 'text-red-500' };   // Opponent higher, arrow points right toward opponent
+  return { arrow: '═', color: 'text-yellow-500' };
+};
+
 interface KeyMomentModalProps {
   isOpen: boolean;
   keyMoment: KeyMoment | null;
@@ -107,28 +117,49 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
 
   const headerStrip = (
     <div className={`border-4 ${getMomentTypeColor(activeKeyMoment.type)} bg-opacity-20 px-5 py-4`}>
-      <div className="flex items-center gap-3 mb-2">
+      <div className="flex items-center gap-3 mb-3">
         <span className="text-3xl">{getMomentTypeIcon(activeKeyMoment.type)}</span>
         <h2 className="text-lg font-bold text-pixel-text">{activeKeyMoment.situation}</h2>
       </div>
-      {/* Context: archetype chip + condition icons, then tendency on its own line */}
-      <div className="flex items-center gap-2 text-sm">
-        <span className="px-2 py-0.5 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent font-bold whitespace-nowrap">
-          {archetypeData.label}
-        </span>
-        {conditionIcons.map((cond, i) => (
-          <span
-            key={i}
-            title={cond.tooltip}
-            className="text-lg cursor-help"
-          >
-            {cond.icon}
+
+      {/* Opponent Info */}
+      <div className="mb-3">
+        <div className="text-sm font-bold text-pixel-text-muted mb-1 uppercase tracking-wide">
+          Opponent Archetype
+        </div>
+        <div className="flex items-center gap-2 mb-1">
+          <span className="px-2 py-0.5 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent font-bold whitespace-nowrap">
+            {archetypeData.label}
           </span>
-        ))}
+        </div>
+        <p className="text-sm text-pixel-text-muted italic">
+          "{tendency}"
+        </p>
       </div>
-      <p className="text-sm text-pixel-text-muted italic mt-1">
-        "{tendency}"
-      </p>
+
+      <div className="border-t border-pixel-border my-3" />
+
+      {/* Modifiers */}
+      <div className="flex flex-wrap items-center gap-3">
+        {modifiers.momentum !== 0 && (
+          <span className={`text-sm px-2 py-1 border ${modifiers.momentum > 0 ? 'border-green-500 text-green-500' : 'border-red-500 text-red-500'} bg-opacity-20 font-bold`}>
+            {modifiers.momentum > 0 ? '📈' : '📉'} Momentum: {modifiers.momentum > 0 ? '+' : ''}{modifiers.momentum}
+          </span>
+        )}
+        <span className="text-sm px-2 py-1 border border-pixel-border text-pixel-text bg-opacity-20 font-bold">
+          🔋 Energy: {Math.round(ctx.energy)}%
+        </span>
+        {modifiers.mood !== 0 && (
+          <span className={`text-sm px-2 py-1 border ${modifiers.mood > 0 ? 'border-green-500 text-green-500' : 'border-red-500 text-red-500'} bg-opacity-20 font-bold`}>
+            {modifiers.mood > 0 ? '😊' : '😤'} Mood: {modifiers.mood > 0 ? '+' : ''}{modifiers.mood}
+          </span>
+        )}
+        {modifiers.pressure !== 0 && (
+          <span className="text-sm px-2 py-1 border border-red-500 text-red-500 bg-opacity-20 font-bold">
+            😰 Pressure: {modifiers.pressure}
+          </span>
+        )}
+      </div>
     </div>
   );
 
@@ -195,7 +226,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     };
 
     return (
-      <Modal isOpen={isOpen} title="" size="lg" showCloseButton={false} belowContent={peekButton}>
+      <Modal isOpen={isOpen} title="" size="xl" showCloseButton={false} belowContent={peekButton}>
         <div className="space-y-5">
           {headerStrip}
 
@@ -263,18 +294,15 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
 
   // ── Decision phase ──────────────────────────────────────────────────────────
 
-  const getMatchupIndicator = (option: TacticalOption): { label: string; color: string } => {
-    if (!matchConfig) return { label: 'Even', color: 'text-yellow-500' };
-    const matchup = KeyMomentResolver.getStatMatchup(
+  const getMatchupIndicator = (option: TacticalOption): { playerScore: number; opponentScore: number; arrow: string; color: string } => {
+    if (!matchConfig) return { playerScore: 50, opponentScore: 50, arrow: '═', color: 'text-yellow-500' };
+    const scores = KeyMomentResolver.getWeightedScores(
       matchConfig.playerStats as PlayerStats,
       matchConfig.opponentStats as PlayerStats,
       option
     );
-    switch (matchup) {
-      case 'advantage':    return { label: 'Advantage',    color: 'text-green-500' };
-      case 'disadvantage': return { label: 'Disadvantage', color: 'text-red-500' };
-      default:             return { label: 'Even',         color: 'text-yellow-500' };
-    }
+    const { arrow, color } = getMatchupArrow(scores.playerScore, scores.opponentScore);
+    return { ...scores, arrow, color };
   };
 
   const getEffectIcon = (effect: SecondaryEffect): string => {
@@ -305,7 +333,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   };
 
   return (
-    <Modal isOpen={isOpen} title="" size="lg" showCloseButton={false} belowContent={peekButton}>
+    <Modal isOpen={isOpen} title="" size="xl" showCloseButton={false} belowContent={peekButton}>
       <div className="space-y-5">
         {headerStrip}
 
@@ -328,15 +356,17 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                       <h4 className="text-base font-bold text-pixel-text">{option.name}</h4>
                     </div>
                     <span className={`text-sm font-bold ${matchup.color} whitespace-nowrap`}>
-                      {matchup.label}
+                      player {formatStatScore(matchup.playerScore)} {matchup.arrow} {formatStatScore(matchup.opponentScore)} opponent
                     </span>
                   </div>
 
                   <p className="text-sm text-pixel-text-muted mb-2">{option.description}</p>
 
-                  {/* Best against hint + secondary effects */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm text-pixel-text-muted">{option.bestAgainstHint}</span>
+                  {/* Best against hint */}
+                  <p className="text-sm text-pixel-text-muted mb-3">{option.bestAgainstHint}</p>
+
+                  {/* Secondary effects - on their own line */}
+                  <div className="border-t border-pixel-border pt-2 flex flex-wrap gap-2">
                     {option.secondaryEffects.map((effect, i) => {
                       const condLabel = getConditionLabel(effect.condition);
                       return (

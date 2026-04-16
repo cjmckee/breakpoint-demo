@@ -247,6 +247,20 @@ export class KeyMomentResolver {
   }
 
   /**
+   * Get weighted scores for both players for UI display.
+   * Returns { playerScore, opponentScore } for comparing matchup strength.
+   */
+  static getWeightedScores(
+    playerStats: PlayerStats,
+    opponentStats: PlayerStats,
+    option: TacticalOption
+  ): { playerScore: number; opponentScore: number } {
+    const playerScore = this.calculateWeightedStat(playerStats, option.playerStatWeights);
+    const opponentScore = this.calculateWeightedStat(opponentStats, option.opponentStatWeights);
+    return { playerScore: Math.round(playerScore), opponentScore: Math.round(opponentScore) };
+  }
+
+  /**
    * Calculate weighted stat value from stat weights
    */
   private static calculateWeightedStat(

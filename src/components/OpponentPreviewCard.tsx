@@ -5,7 +5,7 @@
 
 import React from 'react';
 import type { PlayerStats, PlayStyle, CourtSurface } from '../types';
-import { calculateOverallRating, getTierLabel, getTierColor, getSurfaceEmoji, getArchetypeLabel, getArchetypeData, STAT_LABELS, flattenStats, getTopNStats, getBottomNStats } from '../utils/playerStats';
+import { calculateOverallRating, getTierLabel, getTierColor, getSurfaceEmoji, getArchetypeLabel, getArchetypeData, STAT_LABELS, flattenStats, getTopNStats, getBottomNStats, getLetterGrade } from '../utils/playerStats';
 import type { ArchetypeType } from '../data/archetypes';
 import type { StatName } from '../types';
 
@@ -54,24 +54,36 @@ export const OpponentPreviewCard: React.FC<OpponentPreviewCardProps> = ({
         <div>
           <div className="text-pixel-text-muted mb-2 uppercase tracking-wide font-bold">Strengths</div>
           <div className="grid grid-cols-2 gap-1">
-            {topStats.map((stat) => (
-              <div key={stat.name} className="flex justify-between items-center px-2 py-0.5 bg-green-900/30 border border-green-800/50 rounded text-xs">
-                <span className="text-green-400 font-medium">{stat.label}</span>
-                <span className="text-green-400 font-bold ml-2">{stat.value}</span>
-              </div>
-            ))}
+            {topStats.map((stat) => {
+              const grade = getLetterGrade(stat.value);
+              return (
+                <div key={stat.name} className="flex justify-between items-center px-2 py-0.5 bg-green-900/30 border border-green-800/50 rounded text-xs">
+                  <span className="text-green-400 font-medium">{stat.label}</span>
+                  <span className="text-green-400 font-bold ml-3 flex items-center gap-2">
+                    <span className="text-green-400/70">{stat.value}</span>
+                    <span style={{ color: grade.color }} className="w-6 text-right">{grade.grade}</span>
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
         <div>
           <div className="text-pixel-text-muted mb-2 uppercase tracking-wide font-bold">Weaknesses</div>
           <div className="grid grid-cols-2 gap-1">
-            {bottomStats.map((stat) => (
-              <div key={stat.name} className="flex justify-between items-center px-2 py-0.5 bg-orange-900/30 border border-orange-800/50 rounded text-xs">
-                <span className="text-orange-400 font-medium">{stat.label}</span>
-                <span className="text-orange-400 font-bold ml-2">{stat.value}</span>
-              </div>
-            ))}
+            {bottomStats.map((stat) => {
+              const grade = getLetterGrade(stat.value);
+              return (
+                <div key={stat.name} className="flex justify-between items-center px-2 py-0.5 bg-orange-900/30 border border-orange-800/50 rounded text-xs">
+                  <span className="text-orange-400 font-medium">{stat.label}</span>
+                  <span className="text-orange-400 font-bold ml-3 flex items-center gap-2">
+                    <span className="text-orange-400/70">{stat.value}</span>
+                    <span style={{ color: grade.color }} className="w-6 text-right">{grade.grade}</span>
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
 

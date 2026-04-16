@@ -56,6 +56,9 @@ export class MatchOrchestrator {
   private tiebreakFirstServer: 'player' | 'opponent' | null = null;
   private tiebreakPointsPlayed = 0;
 
+  // Tracks key moment types that have already fired in the current game (resets at each new game)
+  private firedKeyMomentTypesInGame: Set<KeyMomentType> = new Set();
+
   /**
    * Apply flat stat boosts to player stats (clamped to 100).
    * Used for both ability and item boosts during match setup.
@@ -121,6 +124,18 @@ export class MatchOrchestrator {
       }
     }
     return effects;
+  }
+
+  /**
+   * Fisher-Yates shuffle algorithm
+   */
+  private shuffleArray<T>(array: T[]): T[] {
+    const result = [...array];
+    for (let i = result.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [result[i], result[j]] = [result[j], result[i]];
+    }
+    return result;
   }
 
   /**
@@ -352,7 +367,16 @@ export class MatchOrchestrator {
 
     // Check for break points, set points, match points
     const momentType = this.detectKeyMomentType(score);
-    return momentType !== null;
+    if (momentType === null) {
+      return false;
+    }
+
+    // Don't fire the same key moment type twice in the same game
+    if (this.firedKeyMomentTypesInGame.has(momentType)) {
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -382,6 +406,11 @@ export class MatchOrchestrator {
       return server === 'player' ? 'break-point-serve' : 'break-point-return';
     }
 
+    // Check for deuce
+    if (this.isDeucePoint(score)) {
+      return 'key-rally';
+    }
+
     return null;
   }
 
@@ -393,7 +422,12 @@ export class MatchOrchestrator {
     config: InteractiveMatchConfig
   ): KeyMoment {
     const momentType = this.detectKeyMomentType(score)!;
-    const options = getOptionsForSituation(momentType);
+    
+    // Mark this type as fired for the current game
+    this.firedKeyMomentTypesInGame.add(momentType);
+    
+    // Get options and shuffle them for variety
+    const options = this.shuffleArray([...getOptionsForSituation(momentType)]);
 
     return {
       id: `km-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -828,6 +862,7 @@ export class MatchOrchestrator {
       // Reset game score and switch server (ITF: server changes after every game)
       newScore.currentGame = { player: 0, opponent: 0 };
       newScore.server = newScore.server === 'player' ? 'opponent' : 'player';
+      this.firedKeyMomentTypesInGame.clear();
 
       // Check if we've reached 6-6 — tiebreak triggers before checking set win
       if (newScore.currentSet.player === 6 && newScore.currentSet.opponent === 6) {
@@ -837,6 +872,7 @@ export class MatchOrchestrator {
         // The player who just received the server switch serves first in the tiebreak
         this.tiebreakFirstServer = newScore.server;
         this.tiebreakPointsPlayed = 0;
+        this.firedKeyMomentTypesInGame.clear();
       } else if (this.isSetWon(newScore.currentSet)) {
         // Set won through standard play (6-x, 7-5, 8-6, etc.)
 
@@ -1056,6 +1092,17 @@ export class MatchOrchestrator {
 
   // Helper methods for score checking
 
+  // NOTE: Technically a deuce point is 40-40, but we are allowing this to trigger at 30-30 for key moment purposes
+  private isDeucePoint(score: MatchScore): boolean {
+    const { currentGame } = score;
+    return (
+      !score.isTiebreak &&
+      currentGame.player >= 2 && 
+      currentGame.opponent >= 2 && 
+      currentGame.player === currentGame.opponent
+    );
+  }
+
   private isBreakPoint(score: MatchScore): boolean {
     // No break points during tiebreaks — both players alternate serving
     if (score.isTiebreak) return false;
@@ -1207,6 +1254,7 @@ export class MatchOrchestrator {
       'match-point-player-return': `MATCH POINT - Your Return! - ${game}`,
       'match-point-opponent-serve': `Match Point Against - Your Serve! - ${game}`,
       'match-point-opponent-return': `Match Point Against - Your Return! - ${game}`,
+      'key-rally': `Key Point - Game Tied  - ${game}`,
     };
     return typeMap[type];
   }
@@ -1223,6 +1271,7 @@ export class MatchOrchestrator {
       'match-point-player-return': 'Deep breath. Focus on the return. One more time!',
       'match-point-opponent-serve': 'Everything on the line - this serve is crucial!',
       'match-point-opponent-return': 'This is match point! Anything to get it back over!',
+      'key-rally': 'This is a big rally! The game is tied - choose your approach!',
     };
     return descriptions[type];
   }

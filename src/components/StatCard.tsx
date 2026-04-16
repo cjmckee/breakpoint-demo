@@ -4,6 +4,7 @@
  */
 
 import React, { useMemo } from 'react';
+import { getLetterGrade } from '../utils/playerStats';
 
 interface StatCardProps {
   label: string;
@@ -13,23 +14,6 @@ interface StatCardProps {
   changeValue?: number;
   boost?: number; // Persistent boost from items/abilities
 }
-
-// Letter grade and color mapping function
-const getLetterGrade = (value: number) => {
-  if (value >= 95) return { grade: 'A+', color: '#FF6B35', glow: true }; // Hot red-orange
-  if (value >= 90) return { grade: 'A', color: '#FF8C42', glow: true }; // Warm orange
-  if (value >= 85) return { grade: 'A-', color: '#FFAF42', glow: false }; // Golden yellow
-  if (value >= 80) return { grade: 'B+', color: '#FFD23F', glow: false }; // Bright yellow
-  if (value >= 75) return { grade: 'B', color: '#BFFF3C', glow: false }; // Yellow-green
-  if (value >= 70) return { grade: 'B-', color: '#8FFF8F', glow: false }; // Light green
-  if (value >= 65) return { grade: 'C+', color: '#4ECDC4', glow: false }; // Turquoise
-  if (value >= 60) return { grade: 'C', color: '#45B7D1', glow: false }; // Light blue
-  if (value >= 55) return { grade: 'C-', color: '#6C7CE0', glow: false }; // Medium blue
-  if (value >= 50) return { grade: 'D+', color: '#A683E3', glow: false }; // Purple
-  if (value >= 45) return { grade: 'D', color: '#B19CD9', glow: false }; // Light purple
-  if (value >= 40) return { grade: 'D-', color: '#C8C8C8', glow: false }; // Light gray
-  return { grade: 'F', color: '#96A7B7', glow: false }; // Cool gray
-};
 
 export const StatCard: React.FC<StatCardProps> = ({
   label,
@@ -41,7 +25,8 @@ export const StatCard: React.FC<StatCardProps> = ({
 }) => {
   // Memoize grade style calculation
   const gradeStyle = useMemo(() => {
-    const { grade, color, glow } = getLetterGrade(value);
+    const { grade, color } = getLetterGrade(value);
+    const glow = value >= 90;
 
     // Calculate pulse intensity based on value (0-1 scale)
     const pulseIntensity = Math.min(value / 100, 1);

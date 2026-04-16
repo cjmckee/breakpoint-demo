@@ -50,7 +50,8 @@ export type KeyMomentType =
   | 'match-point-player-serve'
   | 'match-point-player-return'
   | 'match-point-opponent-serve'
-  | 'match-point-opponent-return';
+  | 'match-point-opponent-return'
+  | 'key-rally';
 
 export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
   // ============================================================
@@ -1264,6 +1265,127 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       shotOutcomes: {
         success: { outcome: PointType.UNFORCED_ERROR, shotType: 'overhead', shooter: 'opponent' },
         failure: { outcome: PointType.WINNER, shotType: 'overhead', shooter: 'opponent' },
+      },
+    },
+  ],
+
+  // ============================================================
+  // KEY RALLY - Mid-game rally key moment at 40-40 or 30-30
+  // ============================================================
+  'key-rally': [
+    {
+      id: 'aggressive_rally_push',
+      emoji: '🔥',
+      name: 'Push the accelerator',
+      description: 'Go for broke - take control and force the winner',
+      strongAgainst: ['defensive', 'counterpuncher'],
+      weakAgainst: ['aggressive', 'all_court'],
+      bestAgainstHint: 'Best against opponents who play conservatively',
+      secondaryEffects: [
+        { type: 'energy', value: -4, condition: 'always' },
+        { type: 'momentum', value: 10, condition: 'on_success' },
+        { type: 'momentum', value: -8, condition: 'on_failure' },
+        { type: 'mood', value: -5, condition: 'on_failure' },
+      ],
+      playerStatWeights: {
+        primary: 'offensive',
+        primaryWeight: 0.3,
+        secondary: [
+          { stat: 'forehand', weight: 0.25 },
+          { stat: 'strength', weight: 0.2 },
+          { stat: 'offensive', weight: 0.15 },
+          { stat: 'focus', weight: 0.1 },
+        ],
+      },
+      opponentStatWeights: {
+        primary: 'defensive',
+        primaryWeight: 0.35,
+        secondary: [
+          { stat: 'focus', weight: 0.25 },
+          { stat: 'anticipation', weight: 0.2 },
+          { stat: 'stamina', weight: 0.1 },
+          { stat: 'speed', weight: 0.1 },
+        ],
+      },
+      shotOutcomes: {
+        success: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'player' },
+        failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'forehand', shooter: 'player' },
+      },
+    },
+    {
+      id: 'patient_rally_construct',
+      emoji: '🎯',
+      name: 'Patiently construct the point',
+      description: 'Stay patient - move the opponent around and wait for the opening',
+      strongAgainst: ['aggressive', 'all_court'],
+      weakAgainst: ['defensive', 'counterpuncher'],
+      bestAgainstHint: 'Best against opponents who overcommit and take big swings',
+      secondaryEffects: [
+        { type: 'energy', value: 2, condition: 'always' },
+        { type: 'mood', value: 3, condition: 'on_success' },
+        { type: 'pressure', value: -3, condition: 'on_success' },
+      ],
+      playerStatWeights: {
+        primary: 'defensive',
+        primaryWeight: 0.3,
+        secondary: [
+          { stat: 'focus', weight: 0.25 },
+          { stat: 'anticipation', weight: 0.2 },
+          { stat: 'backhand', weight: 0.15 },
+          { stat: 'stamina', weight: 0.1 },
+        ],
+      },
+      opponentStatWeights: {
+        primary: 'offensive',
+        primaryWeight: 0.3,
+        secondary: [
+          { stat: 'focus', weight: 0.25 },
+          { stat: 'forehand', weight: 0.2 },
+          { stat: 'strength', weight: 0.15 },
+          { stat: 'placement', weight: 0.1 }
+        ],
+      },
+      shotOutcomes: {
+        success: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'opponent' },
+        failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'backhand', shooter: 'player' },
+      },
+    },
+    {
+      id: 'net_attack_command',
+      emoji: '⚔️',
+      name: 'Attack the net',
+      description: 'Move to the net - force an approach shot and close out the point',
+      strongAgainst: ['counterpuncher', 'defensive'],
+      weakAgainst: ['serve_volley', 'aggressive'],
+      bestAgainstHint: 'Best against opponents who play defensively and stay back',
+      secondaryEffects: [
+        { type: 'energy', value: -5, condition: 'always' },
+        { type: 'momentum', value: 12, condition: 'on_success' },
+        { type: 'momentum', value: -5, condition: 'on_failure' },
+      ],
+      playerStatWeights: {
+        primary: 'volley',
+        primaryWeight: 0.3,
+        secondary: [
+          { stat: 'offensive', weight: 0.25 },
+          { stat: 'agility', weight: 0.2 },
+          { stat: 'overhead', weight: 0.15 },
+          { stat: 'speed', weight: 0.1 },
+        ],
+      },
+      opponentStatWeights: {
+        primary: 'return',
+        primaryWeight: 0.35,
+        secondary: [
+          { stat: 'forehand', weight: 0.25 },
+          { stat: 'offensive', weight: 0.2 },
+          { stat: 'shotVariety', weight: 0.1 },
+          { stat: 'anticipation', weight: 0.1 },
+        ],
+      },
+      shotOutcomes: {
+        success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
+        failure: { outcome: PointType.WINNER, shotType: 'return', shooter: 'opponent' },
       },
     },
   ],
