@@ -136,7 +136,8 @@ export const welcomeEvents: StoryEvent[] = [
       ['jen', ['Hey! I learned more about the player tiers. Apparently it impacts your entire status here at the academy!']],
       ['jen', ['It gives you access to better training facilities, better opponents, and most of all - they get to eat at the good cafeteria!']],
       ['keith', ['They haven\'t even told us what the tiers are yet. I wonder how we find out.']],
-      ['jen', ['It sounds like we\'re going to have to earn it, and the first opportunity will be in the Riverside Open in a few weeks!']],
+      ['jen', ['We\'re in the lowest tier. The "Club" tier. They don\'t see us as competitive players yet.']],
+      ['jen', ['But we can show them! And the first opportunity will be in the Riverside Open in a few weeks!']],
       ['keith', ['I can\'t wait to show these chumps what I can do! I\'ll be at the top of this academy in no time. I can hear the crowds now... ', {characterId: 'keith'},'! ', {characterId: 'keith'}, '! ', {characterId: 'keith'}, '!']],
       [null, [{characterId: 'keith'}, ' starts his own chant and you can see the glimmer in his eyes. You\'re starting to believe in him too.']],
       ['jen', ['Don\'t listen to him. Last week I saw him lose to his little sister, and she\'s only eight! She cares more about that blue dog tv show than tennis right now.']],
@@ -192,6 +193,7 @@ export const welcomeEvents: StoryEvent[] = [
           jen: 2,
           keith: 2,
         },
+        revealEncyclopediaSections: ['surface-guide']
       },
     },
   },
