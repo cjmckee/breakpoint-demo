@@ -1352,7 +1352,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
     },
     {
       id: 'net_attack_command',
-      emoji: '🪨',
+      emoji: '⚔️',
       name: 'Attack the net',
       description: 'Move to the net - force an approach shot and close out the point',
       strongAgainst: ['counterpuncher', 'defensive'],

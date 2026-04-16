@@ -1092,12 +1092,13 @@ export class MatchOrchestrator {
 
   // Helper methods for score checking
 
+  // NOTE: Technically a deuce point is 40-40, but we are allowing this to trigger at 30-30 for key moment purposes
   private isDeucePoint(score: MatchScore): boolean {
     const { currentGame } = score;
     return (
       !score.isTiebreak &&
-      currentGame.player >= 3 && 
-      currentGame.opponent >= 3 && 
+      currentGame.player >= 2 && 
+      currentGame.opponent >= 2 && 
       currentGame.player === currentGame.opponent
     );
   }
