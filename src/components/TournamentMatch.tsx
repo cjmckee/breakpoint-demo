@@ -14,23 +14,10 @@ import { derivePlayStyle } from '../core/PlayerProfile';
 import type { PlayerStats, PlayStyle } from '../types';
 import { ItemManager } from '../game/ItemManager';
 import type { PreMatchConfig } from '../types/gamePhase';
+import { calculateOverallRating } from '../utils/playerStats';
 
 interface TournamentMatchProps {
   matchConfig: PreMatchConfig | null;
-}
-
-function calculateOverallRating(stats: PlayerStats): number {
-  const coreAvg = (stats.core.serve + stats.core.forehand + stats.core.backhand + stats.core.return + stats.core.slice) / 5;
-  const technicalAvg = (stats.technical.volley + stats.technical.overhead + stats.technical.dropShot + stats.technical.spin + stats.technical.placement) / 5;
-  const physicalAvg = (stats.physical.speed + stats.physical.stamina + stats.physical.strength + stats.physical.agility + stats.physical.recovery) / 5;
-  const mentalAvg = (stats.mental.focus + stats.mental.anticipation + stats.mental.shotVariety + stats.mental.offensive + stats.mental.defensive) / 5;
-
-  return Math.round(
-    coreAvg * 0.45 +
-    technicalAvg * 0.15 +
-    physicalAvg * 0.25 +
-    mentalAvg * 0.15
-  );
 }
 
 export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig }) => {
