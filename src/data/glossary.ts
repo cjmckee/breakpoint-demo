@@ -133,7 +133,7 @@ export const SCORING_GUIDE: GlossarySection[] = [
     title: 'Tiebreaks',
     entries: [
       { term: 'When', definition: 'A tiebreak is played when the set score reaches 6-6.' },
-      { term: 'How', definition: 'First to 7 points (with a 2-point lead) wins the tiebreak 7-6 and the set. The loser\'s score is indicated in parentheses, so winning 7-4 would give a set score of 7-6 (4).' },
+      { term: 'How', definition: 'First to 7 points (with a 2-point lead) wins the tiebreak and the set at 7-6. The loser\'s score is indicated in parentheses, so winning 7-4 would give a set score of 7-6 (4).' },
       { term: 'Scoring', definition: 'Tiebreak points are counted as 1, 2, 3, etc. (not 15, 30, 40).' },
       { term: 'Serving', definition: 'In a tiebreak, one player serves first, and then players alternate every two serves for the rest of the tiebreak.' },
     ],
