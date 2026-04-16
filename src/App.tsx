@@ -12,6 +12,7 @@ import { Inventory } from './components/Inventory';
 import { TournamentList } from './components/TournamentList';
 import { TournamentMatch } from './components/TournamentMatch';
 import { StoryMatch } from './components/StoryMatch';
+import { PracticeMatch } from './components/PracticeMatch';
 import { KeyMomentModal } from './components/KeyMomentModal';
 import { MatchSummaryModal } from './components/MatchSummaryModal';
 import { StoryEventModal } from './components/StoryEventModal';
@@ -86,11 +87,12 @@ function App() {
       return <TrainingSelection />;
 
     case 'match_setup':
-      // Route to the appropriate setup screen based on matchType
       if (gamePhase.matchType === 'tournament') {
         return <TournamentMatch matchConfig={gamePhase.matchConfig} />;
       } else if (gamePhase.matchType === 'story') {
         return <StoryMatch matchConfig={gamePhase.matchConfig} />;
+      } else if (gamePhase.matchConfig) {
+        return <PracticeMatch matchConfig={gamePhase.matchConfig} />;
       } else {
         return <MatchSetup />;
       }
