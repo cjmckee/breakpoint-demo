@@ -3,11 +3,12 @@
  * Sections containing tennis terms, stats guide, etc.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMenuModal, type EncyclopediaSectionId } from '../hooks/useMenuModal';
-import { TENNIS_TERMS, STATS_GUIDE, SURFACE_GUIDE, type GlossarySection } from '../data/glossary';
+import { TENNIS_TERMS, STATS_GUIDE, SURFACE_GUIDE, SCORING_GUIDE, type GlossarySection } from '../data/glossary';
 
 const SECTION_CONTENT: Record<EncyclopediaSectionId, GlossarySection[]> = {
+  'scoring': SCORING_GUIDE,
   'tennis-terms': TENNIS_TERMS,
   'stats-guide': STATS_GUIDE,
   'surface-guide': SURFACE_GUIDE,
@@ -20,6 +21,13 @@ export const Encyclopedia: React.FC = () => {
   const [activeSection, setActiveSection] = useState<EncyclopediaSectionId | null>(
     revealedSections[0]?.id || null
   );
+
+  // Mark the first section as seen when encyclopedia opens
+  useEffect(() => {
+    if (revealedSections.length > 0 && revealedSections[0].isNew) {
+      markSectionSeen(revealedSections[0].id);
+    }
+  }, []);
 
   const handleSectionClick = (sectionId: EncyclopediaSectionId) => {
     setActiveSection(sectionId);

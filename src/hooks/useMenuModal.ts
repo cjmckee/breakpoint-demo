@@ -10,6 +10,7 @@ export type EncyclopediaSectionId =
   | 'tennis-terms' 
   | 'stats-guide' 
   | 'surface-guide' 
+  | 'scoring'
   | 'relationships';
 
 export interface EncyclopediaSection {
@@ -33,6 +34,7 @@ interface MenuState {
 }
 
 const DEFAULT_SECTIONS: EncyclopediaSection[] = [
+  { id: 'scoring', label: 'Scoring', icon: '🎯', isRevealed: false, isNew: false },
   { id: 'tennis-terms', label: 'Lingo', icon: '📖', isRevealed: false, isNew: false },
   { id: 'stats-guide', label: 'Stats', icon: '📊', isRevealed: false, isNew: false },
   { id: 'surface-guide', label: 'Surfaces', icon: '🏟️', isRevealed: false, isNew: false },
