@@ -335,7 +335,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
             // Special rendering for Gear card with 3 buttons
             if (isGearActivity) {
               return (
-                <Card key={activity.id} padding="md" className={`flex flex-col ${isNightTime && isRestButton ? 'night-exempt' : ''}`}>
+                <Card key={activity.id} padding="md" className={`flex flex-col ${isNightTime ? 'night-exempt' : ''}`}>
                   <div className="text-center mb-4">
                     <div className="text-6xl mb-3">
                       {activity.emoji}
@@ -354,9 +354,15 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                     <Button variant="primary" fullWidth onClick={() => navigateTo('relationships')}>
                       Relationships
                     </Button>
-                    <Button variant="primary" fullWidth onClick={() => navigateTo('shop')}>
-                      Shop
-                    </Button>
+                    {calendar.currentDay >= 7 ? (
+                      <Button variant="primary" fullWidth onClick={() => navigateTo('shop')}>
+                        Shop
+                      </Button>
+                    ) : (
+                      <Button variant="primary" fullWidth disabled>
+                        Unlocks Day 7
+                      </Button>
+                    )}
                   </div>
                 </Card>
               );
