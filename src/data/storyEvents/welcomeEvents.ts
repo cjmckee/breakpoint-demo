@@ -177,12 +177,13 @@ export const welcomeEvents: StoryEvent[] = [
       ['jen', ['Look - it\'s easy. Most points will just zip by. You won\'t even have to think. Pure instinct.']],
       ['jen', ['But on Key Moments, like break points and match points, you need to consider your options and pick the one that best suits your style.']],
       ['keith', ['It also takes your opponent\'s stats into account - sometimes you have to try different options to see what works!']],
-      ['jen', ['Don\'t forget! Many of the Key Moment options have effects beyond winning or losing the point. Choose wisely!']]
+      ['jen', ['Don\'t forget! Many of the Key Moment options have effects beyond winning or losing the point. Choose wisely!']],
+      ['jen', ['Lastly, you can open the settings menu in the bottom right and view the Encyclopedia to learn more about the basics of tennis. Don\'t be afraid to pull it up if you\'re looking for some guidance.']]
     ],
     characters: ['jen', 'keith'],
     options: [],
     defaultOutcome: {
-      resultText: ['You sub in for a couple games to save ', {characterId: 'keith'}, ' and get a feel for the courts. You don\'t look so bad.'],
+      resultText: ['You sub in for a couple games to get a feel for the courts. You don\'t look so bad. ', {characterId: 'keith'}, ' decides he wants to challenge you to see what you\'re made of.'],
       effects: {
         statChanges: {
             serve: 1,
@@ -233,13 +234,13 @@ export const welcomeEvents: StoryEvent[] = [
                 mental: { focus: 28, anticipation: 32, shotVariety: 30, offensive: 32, defensive: 28 },
               },
               opponentTier: 1,
-              opponentDescription: 'An athletic player who takes her tennis seriously.',
+              opponentDescription: 'An athletic player who takes her tennis seriously. She won\'t go easy on you.',
               winEventId: 'tutorial_jen_win',
               lossEventId: 'tutorial_jen_loss',
               surface: 'hard',
               matchFormat: 'best-of-1',
               matchTitle: 'Practice Match vs Jen',
-              matchDescription: 'A more competitive practice match with Jen.',
+              matchDescription: 'A more competitive practice match with Jen. She just wiped the floor with Keith.',
               countsForMilestones: false,
             } as StoryMatchMetadata,
           },
@@ -249,6 +250,98 @@ export const welcomeEvents: StoryEvent[] = [
   },
 
   {
+    id: 'tutorial_keith_win',
+    name: 'Practice Match Victory',
+    tags: ['tutorial'],
+    timeSlotsRequired: 0,
+    prerequisites: { completedEvents: ['match_play_basics'] },
+    skippable: false,
+    description: 'You won against Keith!',
+    dialogue: [
+      ['keith', ['Wow, you\'re actually really good at this! I mean... I was going easy on you. Mostly.']],
+      ['jen', ['Told you! ', {characterId: 'player'}, ' has already picked up a few things. That was a fun match!']],
+      ['jen', ['Now you know the basics. Keep practicing and eventually try to win the Riverside Open!']],
+      ['jen', ['Well, beating ', {characterId: 'keith'}, ' is one thing. But I\'m a little bit better. Let\'s play!']]
+    ],
+    characters: ['keith', 'jen'],
+    options: [],
+    defaultOutcome: {
+      resultText: ['You feel more confident after that win. Maybe tennis isn\'t so hard after all. However, you feel like you\'re about to face a much tougher challenge.'],
+      effects: { moodChange: 10, energyChange: 50 },
+    },
+  },
+
+  {
+    id: 'tutorial_keith_loss',
+    name: 'Practice Match Defeat',
+    tags: ['tutorial'],
+    timeSlotsRequired: 0,
+    prerequisites: { completedEvents: ['match_play_basics'] },
+    skippable: false,
+    description: 'You lost to Keith.',
+    dialogue: [
+      ['keith', ['Ha! I actually won a point! Multiple points! Is this a dream?']],
+      ['jen', ['Hey, it\'s just practice. You\'ll get better. Everyone starts somewhere. Most people don\'t start losing to ', {characterId: 'keith'}, ', though.']],
+      ['jen', ['Keep at it and you\'ll improve fast. Promise!']],
+      ['jen', ['Besides, you kept me sitting too long. It\'s my turn!']]
+    ],
+    characters: ['keith', 'jen'],
+    options: [],
+    defaultOutcome: {
+      resultText: ['The loss stings, but you learned something. There\'s room to improve. ', {characterId: 'jen'}, ' is getting ready to play, and you know this will be an even tougher challenge.'],
+      effects: { moodChange: -5, energyChange: 50 },
+    },
+  },
+
+  {
+    id: 'tutorial_jen_win',
+    name: 'Practice Match Victory',
+    tags: ['tutorial'],
+    timeSlotsRequired: 0,
+    prerequisites: { completedEvents: ['match_play_basics'] },
+    skippable: false,
+    description: 'You won against Jen!',
+    dialogue: [
+      ['jen', ['Not bad! You\'re really improving fast. You\'re already better than when you got here.']],
+      ['jen', ['Keep this up and you\'ll be ready for real competition soon.']],
+      ['keith', ['That was incredible! I\'ve been trying for weeks and still haven\'t been able to take a set from ', {characterId: 'jen'}, '.']],
+      ['jen', ['Just know that some of the other players at the Academy, even at the Club level are much better than I am.']],
+      ['jen', ['It\'s going to be important to train your skills before you jump into practice matches if you want to win.']],
+      ['jen', ['You can preview your opponent\'s stats before starting the match, so be careful about challenging players that have much stronger stats!']]
+    ],
+    characters: ['jen', 'keith'],
+    options: [],
+    defaultOutcome: {
+      resultText: ['You pull off the win! Your confidence is growing. ', {characterId: 'jen'}, ' warns you about the strong players at the Academy, even at the Club tier. Make sure you do your training!'],
+      effects: { moodChange: 15, energyChange: 50, relationshipChanges: { jen: 5 } },
+    },
+  },
+
+  {
+    id: 'tutorial_jen_loss',
+    name: 'Practice Match Defeat',
+    tags: ['tutorial'],
+    timeSlotsRequired: 0,
+    prerequisites: { completedEvents: ['match_play_basics'] },
+    skippable: false,
+    description: 'You lost to Jen.',
+    dialogue: [
+      ['jen', ['Good effort! Don\'t feel too bad. You\'ve got the skills, just need more practice.']],
+      ['jen', ['Don\'t get discouraged. Everyone improves at their own pace.']],
+      ['keith', ['Yeah, don\'t sweat it. I\'ve been losing to ', {characterId: 'jen'}, ' for weeks.']],
+      ['jen', ['Just know that some of the other players at the Academy, even at the Club level are much better than I am.']],
+      ['jen', ['It\'s going to be important to train your skills before you jump into practice matches if you want to win.']],
+      ['jen', ['You can preview your opponent\'s stats before starting the match, so be careful about challenging players that have much stronger stats!']]
+    ],
+    characters: ['jen', 'keith'],
+    options: [],
+    defaultOutcome: {
+      resultText: ['A tough loss to a stronger player. ', {characterId: 'jen'}, ' warns you about the strong players at the Academy, even at the Club tier. Make sure you do your training!'],
+      effects: { moodChange: 5, energyChange: 25, relationshipChanges: { jen: 3 } },
+    },
+  },
+
+    {
     id: 'training_session_intro',
     name: 'Training Session Introduction',
     tags: ['intro'],
@@ -262,14 +355,14 @@ export const welcomeEvents: StoryEvent[] = [
       ['jen', ['Hey! I found out more about the training sessions here at the academy. They have specialized programs for each player tier!']],
       ['keith', ['Really? That sounds awesome! I hope I get into a good program.']],
       ['jen', ['It seems like as you increase your tier, you gain access to better training session tiers as well.']],
-      ['jen', ['But they won\'t always be available, so you will still always have access to lower tier training sessions.']],
-      ['keith', ['I can\'t wait to start training! I\'m going to push myself to the limit.']],
-      ['jen', ['We\'re still at the bottom right now. We\'re going to have to do the best we can to prepare for the Riverside Open with the sessions we have.']],
+      ['jen', ['They put us in the lowest tier with the other Club players. In order to make it to the Regional level, we have to perform well at the Riverside Open tournament!']],
+      ['keith', ['I can\'t wait to start training! I\'m going to push myself to the limit. My limit isn\'t that high, so it should be quick.']],
+      ['jen', ['We\'re still at the bottom right now. We\'re going to have to do the best we can to prepare for the Riverside Open with these Bronze-level sessions.']],
     ],
     characters: ['jen', 'keith'],
     options: [],
     defaultOutcome: {
-      resultText: ['Right now you only have access to Bronze training sessions. More training sessions will become available as you progress.'],
+      resultText: ['Right now you only have access to Bronze training sessions. You\'ll have access to a bit more variety as more content is added to the demo over time.'],
       effects: {
         statChanges: {},
         moodChange: 2,
@@ -278,88 +371,6 @@ export const welcomeEvents: StoryEvent[] = [
           keith: 2,
         },
       },
-    },
-  },
-
-  {
-    id: 'tutorial_keith_win',
-    name: 'Practice Match Victory',
-    tags: ['tutorial'],
-    timeSlotsRequired: 0,
-    prerequisites: { completedEvents: ['match_play_basics'] },
-    skippable: false,
-    description: 'You won your practice match against Keith!',
-    dialogue: [
-      ['keith', ['Wow, you\'re actually really good at this! I mean... I was going easy on you. Mostly. Okay, not really.']],
-      ['jen', ['Told you! ', {characterId: 'player'}, ' has got some serious skills.']],
-      ['jen', ['Now you know the basics. Keep practicing and you\'ll be unstoppable!']],
-    ],
-    characters: ['keith', 'jen'],
-    options: [],
-    defaultOutcome: {
-      resultText: ['You feel more confident after that win. Maybe tennis isn\'t so hard after all.'],
-      effects: { moodChange: 10, energyChange: 50 },
-    },
-  },
-
-  {
-    id: 'tutorial_keith_loss',
-    name: 'Practice Match Defeat',
-    tags: ['tutorial'],
-    timeSlotsRequired: 0,
-    prerequisites: { completedEvents: ['match_play_basics'] },
-    skippable: false,
-    description: 'You lost your practice match against Keith.',
-    dialogue: [
-      ['keith', ['Ha! I actually won a point! Multiple points! Is this a dream?']],
-      ['jen', ['Hey, it\'s just practice. You\'ll get better. Everyone starts somewhere.']],
-      ['jen', ['Keep at it and you\'ll improve fast. Promise!']],
-    ],
-    characters: ['keith', 'jen'],
-    options: [],
-    defaultOutcome: {
-      resultText: ['A loss stings, but you learned something. There\'s room to improve.'],
-      effects: { moodChange: -5, energyChange: 50 },
-    },
-  },
-
-  {
-    id: 'tutorial_jen_win',
-    name: 'Practice Match Victory',
-    tags: ['tutorial'],
-    timeSlotsRequired: 0,
-    prerequisites: { completedEvents: ['tutorial_keith_win', 'tutorial_keith_loss'] },
-    skippable: false,
-    description: 'You won your practice match against Jen!',
-    dialogue: [
-      ['jen', ['Not bad! You\'re really improving fast.']],
-      ['jen', ['Keep this up and you\'ll be ready for real competition soon.']],
-    ],
-    characters: ['jen'],
-    options: [],
-    defaultOutcome: {
-      resultText: ['Another win! Your confidence is growing.'],
-      effects: { moodChange: 15, energyChange: 50, relationshipChanges: { jen: 5 } },
-    },
-  },
-
-  {
-    id: 'tutorial_jen_loss',
-    name: 'Practice Match Defeat',
-    tags: ['tutorial'],
-    timeSlotsRequired: 0,
-    prerequisites: { completedEvents: ['tutorial_keith_win', 'tutorial_keith_loss'] },
-    skippable: false,
-    description: 'You lost your practice match against Jen.',
-    dialogue: [
-      ['jen', ['Good effort! You\'ve got the skills, just need more practice.']],
-      ['jen', ['Don\'t get discouraged. Everyone improves at their own pace.']],
-    ],
-    characters: ['jen'],
-    options: [],
-    defaultOutcome: {
-      resultText: ['Tough loss, but Jen\'s encouragement helps. You\'ll get there.'],
-      effects: { moodChange: 5, energyChange: 25, relationshipChanges: { jen: 3 } },
     },
   },
 
