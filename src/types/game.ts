@@ -524,3 +524,44 @@ export const DEFAULT_CALENDAR: GameCalendar = {
   activeTournament: null,
   completedTournaments: [],
 };
+
+// ============================================================================
+// SHOP TYPES
+// ============================================================================
+
+export type ShopItemCategory = 'stat_increase' | 'consumable' | 'equipment' | 'ability';
+
+export type ItemRarity = 'common' | 'uncommon' | 'rare' | 'legendary';
+
+export interface ShopItem {
+  id: string;
+  category: ShopItemCategory;
+  name: string;
+  description: string;
+  cost: number;
+  purchased: boolean;
+  rarity?: ItemRarity;
+}
+
+export interface StatIncreaseItem extends ShopItem {
+  category: 'stat_increase';
+  statBoosts: StatBoosts;
+}
+
+export interface ConsumableItem extends ShopItem {
+  category: 'consumable';
+  effectType: 'energy' | 'mood' | 'focus';
+  effectAmount: number;
+}
+
+export interface EquipmentItem extends ShopItem {
+  category: 'equipment';
+  statBoosts: StatBoosts;
+}
+
+export interface AbilityItem extends ShopItem {
+  category: 'ability';
+  abilityId: string;
+  statBoosts: StatBoosts;
+  rarity: ItemRarity;
+}

@@ -19,6 +19,8 @@ import {
   ScheduledEvent,
   PlayerStats,
   TIME_SLOT_NAMES,
+  ShopItem,
+  StatBoosts,
 } from '../types/game';
 import type { StoryEvent, StoryEventTag, StoryEventOption } from '../types/storyEvents';
 import type { Challenge } from '../types/challenges';
@@ -36,6 +38,7 @@ import { TournamentRegistry } from '../data/tournaments';
 import { TournamentManager } from '../game/TournamentManager';
 import { ScheduledEventManager } from '../game/ScheduledEventManager';
 import { StoryMatchManager } from '../game/StoryMatchManager';
+import { generateDailyShopItems } from '../game/ShopSystem';
 import { getRandomOpponent, getScaledOpponentStats } from '../data/opponents';
 import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
 import { EffectAggregator } from '../core/EffectAggregator';
@@ -92,6 +95,10 @@ interface GameState {
 
   // Audio settings (persisted)
   audioSettings: AudioSettings;
+
+  // Shop state
+  shopItems: ShopItem[];
+  shopUnlocked: boolean;
 
   // UI state
   isInitialized: boolean;
@@ -181,6 +188,11 @@ interface GameState {
   clearScheduledEvent: (day: number, slot: TimeSlot) => void;
   getScheduledEvent: () => ScheduledEvent | null;
 
+  // Shop actions
+  purchaseItem: (itemId: string) => boolean;
+  refreshShop: () => void;
+  isShopUnlocked: () => boolean;
+
 }
 
 const initialCalendar = TimeManager.createCalendar();
@@ -223,6 +235,9 @@ export const useGameStore = create<GameState>()(
         muteMusic: false,
         muteSfx: false,
       },
+
+      shopItems: [],
+      shopUnlocked: false,
 
       isInitialized: false,
       gamePhase: { type: 'uninitialized' },
@@ -699,6 +714,19 @@ export const useGameStore = create<GameState>()(
         // Unlock "Play Match" once the player reaches day 5
         if (newCalendar.currentDay >= 5 && !get().getFlag(PlayerFlag.MATCH_UNLOCKED)) {
           get().setFlag(PlayerFlag.MATCH_UNLOCKED, true);
+        }
+
+        // Unlock shop once the player reaches day 7
+        if (newCalendar.currentDay >= 7 && !get().shopUnlocked) {
+          set({ shopUnlocked: true });
+          get().refreshShop();
+        }
+
+        // Refresh shop items at start of new day (NIGHT -> morning transition)
+        const currentlyNight = calendar.currentTimeSlot === TimeSlot.NIGHT;
+        const newDayMorning = newCalendar.currentTimeSlot === TimeSlot.MORNING;
+        if (get().shopUnlocked && currentlyNight && newDayMorning) {
+          get().refreshShop();
         }
       },
 
@@ -2466,6 +2494,109 @@ export const useGameStore = create<GameState>()(
       },
 
       // ========================================================================
+      // SHOP ACTIONS
+      // ========================================================================
+
+      purchaseItem: (itemId: string): boolean => {
+        const { player, shopItems, currentStatus } = get();
+        if (!player) return false;
+
+        const item = shopItems.find(i => i.id === itemId);
+        if (!item || item.purchased || player.experience < item.cost) {
+          return false;
+        }
+
+        const statItem = item as unknown as { statBoosts?: StatBoosts; effectType?: string; effectAmount?: number; abilityId?: string };
+        const cost = item.cost;
+
+        if (item.category === 'stat_increase' && statItem.statBoosts) {
+          const updatedPlayer = PlayerManager.applyStatBoosts(player, statItem.statBoosts);
+          set({
+            player: { ...updatedPlayer, experience: updatedPlayer.experience - cost },
+            shopItems: shopItems.map(i =>
+              i.id === itemId ? { ...i, purchased: true } : i
+            ),
+          });
+          return true;
+        }
+
+        if (item.category === 'consumable') {
+          let newEnergy = currentStatus.energy;
+          let newMood = currentStatus.mood;
+
+          if (statItem.effectType === 'energy' && statItem.effectAmount) {
+            newEnergy = Math.min(100, currentStatus.energy + statItem.effectAmount);
+          } else if (statItem.effectType === 'mood' && statItem.effectAmount) {
+            newMood = Math.min(100, currentStatus.mood + statItem.effectAmount);
+          } else if (statItem.effectType === 'focus' && statItem.effectAmount) {
+            const updatedPlayer = PlayerManager.applyStatBoosts(player, { focus: statItem.effectAmount });
+            set({
+              player: { ...updatedPlayer, experience: updatedPlayer.experience - cost },
+              shopItems: shopItems.map(i =>
+                i.id === itemId ? { ...i, purchased: true } : i
+              ),
+              currentStatus: {
+                ...get().currentStatus,
+                energy: newEnergy,
+                mood: newMood,
+              },
+            });
+            return true;
+          }
+
+          set({
+            player: { ...player, experience: player.experience - cost },
+            shopItems: shopItems.map(i =>
+              i.id === itemId ? { ...i, purchased: true } : i
+            ),
+            currentStatus: {
+              ...get().currentStatus,
+              energy: newEnergy,
+              mood: newMood,
+            },
+          });
+          return true;
+        }
+
+        if (item.category === 'equipment' && statItem.statBoosts) {
+          const updatedPlayer = PlayerManager.applyStatBoosts(player, statItem.statBoosts);
+          set({
+            player: { ...updatedPlayer, experience: updatedPlayer.experience - cost },
+            shopItems: shopItems.map(i =>
+              i.id === itemId ? { ...i, purchased: true } : i
+            ),
+          });
+          return true;
+        }
+
+        if (item.category === 'ability' && statItem.abilityId) {
+          const updatedPlayer = PlayerManager.addAbility(player, statItem.abilityId);
+          set({
+            player: { ...updatedPlayer, experience: updatedPlayer.experience - cost },
+            shopItems: shopItems.map(i =>
+              i.id === itemId ? { ...i, purchased: true } : i
+            ),
+          });
+          return true;
+        }
+
+        return false;
+      },
+
+      refreshShop: () => {
+        const { player } = get();
+        const playerAbilities = player?.abilities.map(a => a.name) ?? [];
+        const ownedLevels = new Map(player?.abilities.map(a => [a.name, a.level]) ?? []);
+        const newItems = generateDailyShopItems(player?.stats ?? null, playerAbilities, ownedLevels);
+        set({ shopItems: newItems });
+      },
+
+      isShopUnlocked: (): boolean => {
+        const { shopUnlocked, calendar } = get();
+        return shopUnlocked || calendar.currentDay >= 7;
+      },
+
+      // ========================================================================
       // TOURNAMENT ACTIONS
       // ========================================================================
 
@@ -2764,6 +2895,10 @@ export const useGameStore = create<GameState>()(
 
         // Opponent tier progression
         unlockedTiers: state.unlockedTiers,
+
+        // Shop state
+        shopItems: state.shopItems,
+        shopUnlocked: state.shopUnlocked,
 
         // Audio settings
         audioSettings: state.audioSettings,
