@@ -1114,16 +1114,14 @@ export const useGameStore = create<GameState>()(
         // Calculate rewards
         const rewards = MatchRewardSystem.calculateRewards(matchStatistics, opponentTier, isWin);
 
-        // Apply rewards to player (skip stat rewards for tutorial matches)
-        let updatedPlayer = countsForMilestones
-          ? PlayerManager.applyStatBoosts(state.player, rewards.statBoosts)
-          : state.player;
-        if (countsForMilestones && rewards.abilitiesGained && rewards.abilitiesGained.length > 0) {
+        // Apply rewards to player (still apply stat rewards for tutorial matches)
+        let updatedPlayer = PlayerManager.applyStatBoosts(state.player, rewards.statBoosts)
+        if (rewards.abilitiesGained && rewards.abilitiesGained.length > 0) {
           for (const ability of rewards.abilitiesGained) {
             updatedPlayer = PlayerManager.addAbility(updatedPlayer, ability);
           }
         }
-        if (countsForMilestones && rewards.itemsGained && rewards.itemsGained.length > 0) {
+        if (rewards.itemsGained && rewards.itemsGained.length > 0) {
           for (const item of rewards.itemsGained) {
             updatedPlayer = ItemManager.addItem(updatedPlayer, item);
           }
