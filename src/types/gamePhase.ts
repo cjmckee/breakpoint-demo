@@ -35,7 +35,9 @@ export type GamePhase =
   | MatchActivePhase
   | MatchResultsPhase
   | { type: 'tournament_list' }
-  | { type: 'inventory' };
+  | { type: 'inventory' }
+  | { type: 'relationships' }
+  | { type: 'shop' };
 
 // ============================================================================
 // PHASE INTERFACES
@@ -96,7 +98,14 @@ export interface MatchResultsPhase {
   /** The tournament round index that was just played (before advancing) */
   tournamentRoundPlayed?: number;
   /** The tournament ID for post-match event lookup (needed when tournament ends mid-match) */
-  tournamentId?: string;
+tournamentId?: string;
+}
+
+export type InventoryTab = 'inventory' | 'relationships' | 'shop';
+
+export interface InventoryPhase {
+  type: 'inventory';
+  activeTab: InventoryTab;
 }
 
 // ============================================================================

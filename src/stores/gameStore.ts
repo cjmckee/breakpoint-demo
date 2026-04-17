@@ -121,7 +121,7 @@ interface GameState {
   getAvailableTrainingSessions: () => TrainingSession[];
 
   // Phase transition actions
-  navigateTo: (target: 'idle' | 'training' | 'match_setup' | 'tournament_list' | 'inventory') => void;
+  navigateTo: (target: 'idle' | 'training' | 'match_setup' | 'tournament_list' | 'inventory' | 'relationships' | 'shop') => void;
   navigateToScheduledMatch: (matchType: 'tournament' | 'story') => void;
   setMatchSetup: (config: Omit<PreMatchConfig, 'opponentDescription' | 'matchTitle' | 'matchDescription' | 'storyMatchMetadata'>, matchType: MatchType) => void;
   getPracticeOpponent: (tier: OpponentTier) => { opponentId: string; name: string; stats: PlayerStats; tier: OpponentTier };
@@ -1024,6 +1024,12 @@ export const useGameStore = create<GameState>()(
             break;
           case 'inventory':
             set({ gamePhase: { type: 'inventory' } });
+            break;
+          case 'relationships':
+            set({ gamePhase: { type: 'relationships' } });
+            break;
+          case 'shop':
+            set({ gamePhase: { type: 'shop' } });
             break;
         }
       },
