@@ -272,6 +272,7 @@ export const SPACE_SUIT: Item = {
   description: 'You found this left over after your match with Cosmo Comet. It is a bit bulky though.',
   type: 'equipment',
   equipmentSlot: 'outfit',
+  shopAvailable: false,
   modifiers: {
     statBoosts: {
       stamina: 3,
@@ -382,6 +383,7 @@ export const CHEF_HAT: Item = {
   description: 'One of the players from Dobry Pomidor left this behind. You put it on and instantly feel more confident with your slices.',
   type: 'equipment',
   equipmentSlot: 'hat',
+  shopAvailable: false,
   modifiers: {
     statBoosts: {
       slice: 5,
@@ -468,6 +470,7 @@ export const SKI_PASS: Item = {
   name: 'Aspen Slopes Ski Pass',
   description: 'A ski pass someone left from the Aspen Slopes match. It\'s still valid for one more trip.',
   type: 'consumable',
+  shopAvailable: false,
   consumableEffect: {
     type: 'instant',
     instantEffects: {
@@ -747,6 +750,7 @@ export const TENNIS_BALL_KEYCHAIN: Item = {
   name: 'Tennis Ball Keychain',
   description: 'A miniature tennis ball keychain given to you by a fan. Reminds you why you play.',
   type: 'lucky',
+  shopAvailable: false,
   modifiers: {
     statBoosts: {
       focus: 3,
@@ -765,6 +769,7 @@ export const LUCKY_SPROUT: Item = {
   name: 'Lucky Sprout',
   description: 'A small plant left behind by an opponent from Azalea Forest. You enjoy taking care of it.',
   type: 'lucky',
+  shopAvailable: false,
   modifiers: {
     statBoosts: {
       defensive: 2,
@@ -779,6 +784,7 @@ export const LUCKY_JACKET: Item = {
   name: 'Lucky Ski Jacket',
   description: 'One of your parents left you this retro jacket. You think they were going to donate it, but now it\'s yours.',
   type: 'lucky',
+  shopAvailable: false,
   modifiers: {
     statBoosts: {
       speed: 2,
@@ -794,6 +800,7 @@ export const LUCKY_TEETH: Item = {
   name: 'Lucky fake teeth',
   description: 'You found these dentures after the Sunset Drive team match. You don\'t know who they belong to, but they make your smile really pop.',
   type: 'lucky',
+  shopAvailable: false,
   modifiers: {
     statBoosts: {
       serve: 1,

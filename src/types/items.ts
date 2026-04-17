@@ -45,4 +45,5 @@ export interface Item {
   modifiers?: Modifiers; // Passive stat boosts (for equipment/lucky items)
   equipmentSlot?: EquipmentSlot; // Only for equipment type
   consumableEffect?: ConsumableEffect; // Only for consumable type
+  shopAvailable?: boolean; // Whether item appears in shop (default true). Set false for story/reward-only items
 }

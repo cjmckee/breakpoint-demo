@@ -55,6 +55,7 @@ export interface Ability {
   modifiers: Modifiers;
   description: string;
   effects: string;
+  shopAvailable?: boolean; // Whether ability appears in shop (default true). Set false for story/reward-only abilities
 }
 
 export interface Modifiers {

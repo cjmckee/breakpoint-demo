@@ -14,8 +14,10 @@ import type {
   StatBoosts,
 } from '../types/game';
 import type { PlayerStats } from '../types';
+import type { Item } from '../types/items';
 import { ABILITY_DEFINITIONS } from './AbilitySystem';
 import { AbilityRarity } from '../types/game';
+import { ALL_CONSUMABLES, ALL_EQUIPMENT } from '../data/items';
 
 const CORE_STATS = ['serve', 'forehand', 'backhand', 'return', 'slice'] as const;
 const TECHNICAL_STATS = ['volley', 'overhead', 'dropShot', 'spin', 'placement'] as const;
@@ -122,36 +124,55 @@ function createStatIncreaseItem(playerStats: PlayerStats | null): StatIncreaseIt
   };
 }
 
-const CONSUMABLES: Omit<ConsumableItem, 'id' | 'cost' | 'purchased'>[] = [
-  { category: 'consumable', name: 'Energy Potion', description: 'Restore 30 energy', effectType: 'energy', effectAmount: 30 },
-  { category: 'consumable', name: 'Super Energy Potion', description: 'Restore 60 energy', effectType: 'energy', effectAmount: 60 },
-  { category: 'consumable', name: 'Mood Booster', description: '+20 mood', effectType: 'mood', effectAmount: 20 },
-  { category: 'consumable', name: 'Focus Tune', description: '+10 focus (temporary)', effectType: 'focus', effectAmount: 10 },
-];
+function getConsumableEffect(item: Item): { effectType: 'energy' | 'mood' | 'focus'; effectAmount: number } {
+  const effect = item.consumableEffect;
+  if (!effect || effect.type !== 'instant' || !effect.instantEffects) {
+    return { effectType: 'energy', effectAmount: 20 };
+  }
+  const { instantEffects } = effect;
+  if (instantEffects.energyChange && instantEffects.energyChange > 0) {
+    return { effectType: 'energy', effectAmount: instantEffects.energyChange };
+  }
+  if (instantEffects.moodChange && instantEffects.moodChange > 0) {
+    return { effectType: 'mood', effectAmount: instantEffects.moodChange };
+  }
+  return { effectType: 'energy', effectAmount: 20 };
+}
+
+const SHOP_CONSUMABLES = ALL_CONSUMABLES
+  .filter(item => item.shopAvailable !== false)
+  .map(item => ({
+    category: 'consumable' as const,
+    name: item.name,
+    description: item.description,
+    ...getConsumableEffect(item),
+  }));
 
 function createConsumableItem(): ConsumableItem {
-  const template = CONSUMABLES[Math.floor(Math.random() * CONSUMABLES.length)];
-  const costs: Record<string, number> = {
-    'Energy Potion': 2,
-    'Super Energy Potion': 3,
-    'Mood Booster': 2,
-    'Focus Tune': 1,
-  };
+  const template = SHOP_CONSUMABLES[Math.floor(Math.random() * SHOP_CONSUMABLES.length)];
   return {
     id: `consumable-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
     ...template,
-    cost: costs[template.name],
+    cost: 2,
     purchased: false,
     rarity: 'common',
   };
 }
 
-const EQUIPMENT: Omit<EquipmentItem, 'id' | 'cost' | 'purchased'>[] = [
-  { category: 'equipment', name: 'Pro Racquet', description: '+3 serve, +2 forehand', statBoosts: { serve: 3, forehand: 2 } },
-  { category: 'equipment', name: 'Speed Shoes', description: '+4 speed, +2 agility', statBoosts: { speed: 4, agility: 2 } },
-  { category: 'equipment', name: 'Comfort Outfit', description: '+5 stamina recovery', statBoosts: { recovery: 5 } },
-  { category: 'equipment', name: 'Lucky Cap', description: '+1 luck in matches', statBoosts: { focus: 1 } },
-];
+const SHOP_EQUIPMENT = ALL_EQUIPMENT
+  .filter(item => item.shopAvailable !== false)
+  .map(item => {
+    const boosts = item.modifiers?.statBoosts ?? {};
+    const desc = Object.entries(boosts)
+      .map(([stat, val]) => `+${val} ${stat}`)
+      .join(', ');
+    return {
+      category: 'equipment' as const,
+      name: item.name,
+      description: desc,
+      statBoosts: boosts,
+    };
+  });
 
 function calculateEquipmentCost(statBoosts: StatBoosts): number {
   const total = Object.values(statBoosts).reduce((a, b) => a + b, 0);
@@ -159,7 +180,7 @@ function calculateEquipmentCost(statBoosts: StatBoosts): number {
 }
 
 function createEquipmentItem(): EquipmentItem {
-  const template = EQUIPMENT[Math.floor(Math.random() * EQUIPMENT.length)];
+  const template = SHOP_EQUIPMENT[Math.floor(Math.random() * SHOP_EQUIPMENT.length)];
   return {
     id: `equipment-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
     ...template,
@@ -177,13 +198,15 @@ type ShopAbilityTemplate = {
   statBoosts: StatBoosts;
 };
 
-const ABILITIES: ShopAbilityTemplate[] = Object.values(ABILITY_DEFINITIONS).map(ability => ({
-  abilityId: ability.name,
-  name: ability.name,
-  description: ability.description,
-  rarity: ability.rarity,
-  statBoosts: ability.modifiers.statBoosts,
-}));
+const ABILITIES: ShopAbilityTemplate[] = Object.values(ABILITY_DEFINITIONS)
+  .filter(ability => ability.shopAvailable !== false)
+  .map(ability => ({
+    abilityId: ability.name,
+    name: ability.name,
+    description: ability.description,
+    rarity: ability.rarity,
+    statBoosts: ability.modifiers.statBoosts,
+  }));
 
 const RARITY_MULTIPLIERS: Record<AbilityRarity, number> = {
   [AbilityRarity.COMMON]: 25,
