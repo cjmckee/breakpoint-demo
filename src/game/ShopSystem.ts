@@ -106,8 +106,8 @@ function createStatIncreaseItem(playerStats: PlayerStats | null): StatIncreaseIt
   const total = Object.values(statBoosts).reduce((a, b) => a + b, 0);
 
   const rarityName: Record<ItemRarity, string> = {
-    common: '',
-    uncommon: '',
+    common: 'Common',
+    uncommon: 'Uncommon',
     rare: 'Rare ',
     legendary: 'Legendary ',
   };
@@ -300,13 +300,16 @@ export function generateDailyShopItems(
   }
 
   // Generate 2 abilities
-  while (items.filter(i => i.category === 'ability').length < 2) {
-    const item = createAbilityItem(ownedAbilityIds, ownedLevels);
-    if (item && !usedNames.has(item.name)) {
-      items.push(item);
-      usedNames.add(item.name);
-    }
-  }
-
+  // TODO: Add this back in when you have a better catalog of abilities + effects. Keep to items for now.
   return items;
+
+  // while (items.filter(i => i.category === 'ability').length < 2) {
+  //   const item = createAbilityItem(ownedAbilityIds, ownedLevels);
+  //   if (item && !usedNames.has(item.name)) {
+  //     items.push(item);
+  //     usedNames.add(item.name);
+  //   }
+  // }
+
+  // return items;
 }
