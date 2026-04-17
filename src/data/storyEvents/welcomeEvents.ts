@@ -4,7 +4,7 @@
  */
 
 import type { StoryEvent } from '../../types/storyEvents';
-import { TimeSlot } from '../../types/game';
+import { TimeSlot, type StoryMatchMetadata } from '../../types/game';
 import { BEGINNER_RACQUET, RUNNING_SHOES } from '../items';
 
 export const welcomeEvents: StoryEvent[] = [
@@ -193,7 +193,57 @@ export const welcomeEvents: StoryEvent[] = [
           jen: 2,
           keith: 2,
         },
-        revealEncyclopediaSections: ['surface-guide']
+        revealEncyclopediaSections: ['surface-guide'],
+        scheduledEvents: [
+          {
+            eventType: 'story_match',
+            relativeDays: 0,
+            scheduledTimeSlot: TimeSlot.MORNING,
+            metadata: {
+              opponentId: 'keith',
+              opponentName: 'Keith',
+              opponentStats: {
+                core: { serve: 20, forehand: 18, backhand: 20, return: 22, slice: 25 },
+                technical: { volley: 15, overhead: 18, dropShot: 20, spin: 15, placement: 18 },
+                physical: { speed: 25, stamina: 20, strength: 18, agility: 22, recovery: 20 },
+                mental: { focus: 15, anticipation: 18, shotVariety: 15, offensive: 15, defensive: 20 },
+              },
+              opponentTier: 1,
+              opponentDescription: 'A friendly but struggling player.',
+              winEventId: 'tutorial_keith_win',
+              lossEventId: 'tutorial_keith_loss',
+              surface: 'hard',
+              matchFormat: 'best-of-1',
+              matchTitle: 'Practice Match vs Keith',
+              matchDescription: 'A casual practice match with Keith to get some match experience.',
+              countsForMilestones: false,
+            } as StoryMatchMetadata,
+          },
+          {
+            eventType: 'story_match',
+            relativeDays: 0,
+            scheduledTimeSlot: TimeSlot.AFTERNOON,
+            metadata: {
+              opponentId: 'jen',
+              opponentName: 'Jen',
+              opponentStats: {
+                core: { serve: 30, forehand: 32, backhand: 28, return: 35, slice: 25 },
+                technical: { volley: 22, overhead: 25, dropShot: 28, spin: 30, placement: 32 },
+                physical: { speed: 35, stamina: 28, strength: 25, agility: 32, recovery: 30 },
+                mental: { focus: 28, anticipation: 32, shotVariety: 30, offensive: 32, defensive: 28 },
+              },
+              opponentTier: 1,
+              opponentDescription: 'An athletic player who takes her tennis seriously.',
+              winEventId: 'tutorial_jen_win',
+              lossEventId: 'tutorial_jen_loss',
+              surface: 'hard',
+              matchFormat: 'best-of-1',
+              matchTitle: 'Practice Match vs Jen',
+              matchDescription: 'A more competitive practice match with Jen.',
+              countsForMilestones: false,
+            } as StoryMatchMetadata,
+          },
+        ],
       },
     },
   },
@@ -228,6 +278,88 @@ export const welcomeEvents: StoryEvent[] = [
           keith: 2,
         },
       },
+    },
+  },
+
+  {
+    id: 'tutorial_keith_win',
+    name: 'Practice Match Victory',
+    tags: ['tutorial'],
+    timeSlotsRequired: 0,
+    prerequisites: { completedEvents: ['match_play_basics'] },
+    skippable: false,
+    description: 'You won your practice match against Keith!',
+    dialogue: [
+      ['keith', ['Wow, you\'re actually really good at this! I mean... I was going easy on you. Mostly. Okay, not really.']],
+      ['jen', ['Told you! ', {characterId: 'player'}, ' has got some serious skills.']],
+      ['jen', ['Now you know the basics. Keep practicing and you\'ll be unstoppable!']],
+    ],
+    characters: ['keith', 'jen'],
+    options: [],
+    defaultOutcome: {
+      resultText: ['You feel more confident after that win. Maybe tennis isn\'t so hard after all.'],
+      effects: { moodChange: 10, energyChange: 0 },
+    },
+  },
+
+  {
+    id: 'tutorial_keith_loss',
+    name: 'Practice Match Defeat',
+    tags: ['tutorial'],
+    timeSlotsRequired: 0,
+    prerequisites: { completedEvents: ['match_play_basics'] },
+    skippable: false,
+    description: 'You lost your practice match against Keith.',
+    dialogue: [
+      ['keith', ['Ha! I actually won a point! Multiple points! Is this a dream?']],
+      ['jen', ['Hey, it\'s just practice. You\'ll get better. Everyone starts somewhere.']],
+      ['jen', ['Keep at it and you\'ll improve fast. Promise!']],
+    ],
+    characters: ['keith', 'jen'],
+    options: [],
+    defaultOutcome: {
+      resultText: ['A loss stings, but you learned something. There\'s room to improve.'],
+      effects: { moodChange: -5, energyChange: 0 },
+    },
+  },
+
+  {
+    id: 'tutorial_jen_win',
+    name: 'Practice Match Victory',
+    tags: ['tutorial'],
+    timeSlotsRequired: 0,
+    prerequisites: { completedEvents: ['tutorial_keith_win', 'tutorial_keith_loss'] },
+    skippable: false,
+    description: 'You won your practice match against Jen!',
+    dialogue: [
+      ['jen', ['Not bad! You\'re really improving fast.']],
+      ['jen', ['Keep this up and you\'ll be ready for real competition soon.']],
+    ],
+    characters: ['jen'],
+    options: [],
+    defaultOutcome: {
+      resultText: ['Another win! Your confidence is growing.'],
+      effects: { moodChange: 15, energyChange: 0, relationshipChanges: { jen: 5 } },
+    },
+  },
+
+  {
+    id: 'tutorial_jen_loss',
+    name: 'Practice Match Defeat',
+    tags: ['tutorial'],
+    timeSlotsRequired: 0,
+    prerequisites: { completedEvents: ['tutorial_keith_win', 'tutorial_keith_loss'] },
+    skippable: false,
+    description: 'You lost your practice match against Jen.',
+    dialogue: [
+      ['jen', ['Good effort! You\'ve got the skills, just need more practice.']],
+      ['jen', ['Don\'t get discouraged. Everyone improves at their own pace.']],
+    ],
+    characters: ['jen'],
+    options: [],
+    defaultOutcome: {
+      resultText: ['Tough loss, but Jen\'s encouragement helps. You\'ll get there.'],
+      effects: { moodChange: 5, energyChange: 0, relationshipChanges: { jen: 3 } },
     },
   },
 
