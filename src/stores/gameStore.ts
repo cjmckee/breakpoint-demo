@@ -1310,6 +1310,9 @@ export const useGameStore = create<GameState>()(
         const newEnergy = Math.max(0, state.currentStatus.energy - energyCost + keyMomentEnergyCost);
         const newMood = Math.max(-100, Math.min(100, state.currentStatus.mood + rewards.moodChange + keyMomentMoodChange));
 
+        // Apply match experience
+        updatedPlayer = PlayerManager.addExperience(updatedPlayer, rewards.experience).player;
+
         // Match-type-specific state updates
         let calendarUpdate = { ...state.calendar };
 
