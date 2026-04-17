@@ -298,7 +298,7 @@ export const welcomeEvents: StoryEvent[] = [
     options: [],
     defaultOutcome: {
       resultText: ['You feel more confident after that win. Maybe tennis isn\'t so hard after all.'],
-      effects: { moodChange: 10, energyChange: 0 },
+      effects: { moodChange: 10, energyChange: 50 },
     },
   },
 
@@ -319,7 +319,7 @@ export const welcomeEvents: StoryEvent[] = [
     options: [],
     defaultOutcome: {
       resultText: ['A loss stings, but you learned something. There\'s room to improve.'],
-      effects: { moodChange: -5, energyChange: 0 },
+      effects: { moodChange: -5, energyChange: 50 },
     },
   },
 
@@ -339,7 +339,7 @@ export const welcomeEvents: StoryEvent[] = [
     options: [],
     defaultOutcome: {
       resultText: ['Another win! Your confidence is growing.'],
-      effects: { moodChange: 15, energyChange: 0, relationshipChanges: { jen: 5 } },
+      effects: { moodChange: 15, energyChange: 50, relationshipChanges: { jen: 5 } },
     },
   },
 
@@ -359,7 +359,7 @@ export const welcomeEvents: StoryEvent[] = [
     options: [],
     defaultOutcome: {
       resultText: ['Tough loss, but Jen\'s encouragement helps. You\'ll get there.'],
-      effects: { moodChange: 5, energyChange: 0, relationshipChanges: { jen: 3 } },
+      effects: { moodChange: 5, energyChange: 25, relationshipChanges: { jen: 3 } },
     },
   },
 
