@@ -103,7 +103,7 @@ export interface MatchResultsPhase {
 // SUPPORTING TYPES
 // ============================================================================
 
-export type MatchType = 'regular' | 'tournament' | 'story';
+export type MatchType = 'regular' | 'tournament' | 'story' | 'tutorial';
 
 /** Pre-resolved match configuration for tournament/story matches. */
 export interface PreMatchConfig {

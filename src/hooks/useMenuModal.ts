@@ -4,6 +4,7 @@
  */
 
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { useEffect, useCallback } from 'react';
 
 export type EncyclopediaSectionId = 
@@ -41,48 +42,53 @@ const DEFAULT_SECTIONS: EncyclopediaSection[] = [
   { id: 'relationships', label: 'Relationships', icon: '💝', isRevealed: false, isNew: false },
 ];
 
-export const useMenuStore = create<MenuState>((set) => ({
-  isOpen: false,
-  activeTab: 'settings',
-  encyclopediaSections: DEFAULT_SECTIONS,
+export const useMenuStore = create<MenuState>()(
+  persist(
+    (set) => ({
+      isOpen: false,
+      activeTab: 'settings',
+      encyclopediaSections: DEFAULT_SECTIONS,
 
-  openMenu: (tab?: string) => {
-    set({
-      isOpen: true,
-      activeTab: tab || 'settings',
-    });
-  },
+      openMenu: (tab?: string) => {
+        set({
+          isOpen: true,
+          activeTab: tab || 'settings',
+        });
+      },
 
-  closeMenu: () => {
-    set({ isOpen: false });
-  },
+      closeMenu: () => {
+        set({ isOpen: false });
+      },
 
-  toggleMenu: () => {
-    set((state) => ({ isOpen: !state.isOpen }));
-  },
+      toggleMenu: () => {
+        set((state) => ({ isOpen: !state.isOpen }));
+      },
 
-  setActiveTab: (tabId: string) => {
-    set({ activeTab: tabId });
-  },
+      setActiveTab: (tabId: string) => {
+        set({ activeTab: tabId });
+      },
 
-  revealEncyclopediaSection: (sectionId: EncyclopediaSectionId) => {
-    set((state) => ({
-      encyclopediaSections: state.encyclopediaSections.map((section) =>
-        section.id === sectionId
-          ? { ...section, isRevealed: true, isNew: true }
-          : section
-      ),
-    }));
-  },
+      revealEncyclopediaSection: (sectionId: EncyclopediaSectionId) => {
+        set((state) => ({
+          encyclopediaSections: state.encyclopediaSections.map((section) =>
+            section.id === sectionId
+              ? { ...section, isRevealed: true, isNew: true }
+              : section
+          ),
+        }));
+      },
 
-  markSectionSeen: (sectionId: EncyclopediaSectionId) => {
-    set((state) => ({
-      encyclopediaSections: state.encyclopediaSections.map((section) =>
-        section.id === sectionId ? { ...section, isNew: false } : section
-      ),
-    }));
-  },
-}));
+      markSectionSeen: (sectionId: EncyclopediaSectionId) => {
+        set((state) => ({
+          encyclopediaSections: state.encyclopediaSections.map((section) =>
+            section.id === sectionId ? { ...section, isNew: false } : section
+          ),
+        }));
+      },
+    }),
+    { name: 'menu-storage' }
+  )
+);
 
 export function useMenuKeyboardHandler() {
   const { isOpen, openMenu, closeMenu } = useMenuStore();

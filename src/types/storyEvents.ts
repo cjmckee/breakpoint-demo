@@ -68,6 +68,7 @@ export type StoryEventTag =
   | 'milestone'
   | 'conflict'
   | 'celebration'
+  | 'tutorial'
 
   // Random Events
   | 'misc';
@@ -194,6 +195,9 @@ export interface StoryEvent {
 
   // For linear events (no choices)
   defaultOutcome?: StoryEventOutcome;  // Used when options.length === 0
+
+  // Scheduled events to create after this event completes
+  scheduledEvents?: ScheduledEventTemplate[];
 }
 
 // ============================================================================

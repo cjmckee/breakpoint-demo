@@ -317,7 +317,7 @@ export const useGameStore = create<GameState>()(
           { eventType: 'story', scheduledDay: 3, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'food_hall_gossip' } },
           { eventType: 'story', scheduledDay: 4, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'player_tier_intro' } },
           { eventType: 'story', scheduledDay: 5, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'match_play_basics'}},
-          { eventType: 'story', scheduledDay: 5, scheduledTimeSlot: TimeSlot.AFTERNOON, metadata: { storyEventId: 'training_session_intro' } },
+          { eventType: 'story', scheduledDay: 5, scheduledTimeSlot: TimeSlot.EVENING, metadata: { storyEventId: 'training_session_intro' } },
           { eventType: 'story', scheduledDay: 6, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'relationship_basics' } },
           { eventType: 'story', scheduledDay: 7, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'abilities_basics' } },
           // Post-tutorial storyline events
@@ -1005,6 +1005,27 @@ export const useGameStore = create<GameState>()(
               set({ gamePhase: { type: 'match_setup', matchType: 'story', matchConfig } });
             }
           }
+        } else if (matchType === 'tutorial') {
+          const storyMatch = state.getScheduledStoryMatch();
+          if (storyMatch) {
+            const metadata = StoryMatchManager.getStoryMatchMetadata(storyMatch);
+            if (metadata) {
+              const matchConfig: PreMatchConfig = {
+                opponentName: metadata.opponentName,
+                opponentStats: metadata.opponentStats,
+                opponentTier: metadata.opponentTier as OpponentTier,
+                opponentDescription: metadata.opponentDescription,
+                opponentPlayStyle: derivePlayStyle(metadata.opponentStats),
+                surface: metadata.surface || 'hard',
+                matchFormat: metadata.matchFormat || 'best-of-1',
+                matchTitle: metadata.matchTitle,
+                matchDescription: metadata.matchDescription,
+                storyMatchMetadata: metadata,
+              };
+
+              set({ gamePhase: { type: 'match_setup', matchType: 'tutorial', matchConfig } });
+            }
+          }
         }
       },
 
@@ -1088,11 +1109,13 @@ export const useGameStore = create<GameState>()(
         const isWin = finalScore.winner === 'player';
         const opponentTier = (matchConfig.opponentTier || 1) as OpponentTier;
 
+        const countsForMilestones = phase.storyMatchMetadata?.countsForMilestones ?? true;
+
         // Calculate rewards
         const rewards = MatchRewardSystem.calculateRewards(matchStatistics, opponentTier, isWin);
 
-        // Apply rewards to player
-        let updatedPlayer = PlayerManager.applyStatBoosts(state.player, rewards.statBoosts);
+        // Apply rewards to player (still apply stat rewards for tutorial matches)
+        let updatedPlayer = PlayerManager.applyStatBoosts(state.player, rewards.statBoosts)
         if (rewards.abilitiesGained && rewards.abilitiesGained.length > 0) {
           for (const ability of rewards.abilitiesGained) {
             updatedPlayer = PlayerManager.addAbility(updatedPlayer, ability);
@@ -1104,20 +1127,22 @@ export const useGameStore = create<GameState>()(
           }
         }
 
-        // Update match counts
-        updatedPlayer.matchesPlayed = (updatedPlayer.matchesPlayed || 0) + 1;
-        if (isWin) {
-          updatedPlayer.matchesWon = (updatedPlayer.matchesWon || 0) + 1;
-          if (matchType === 'regular') {
-            const prev = updatedPlayer.practiceWinsPerTier ?? {};
-            updatedPlayer.practiceWinsPerTier = {
-              ...prev,
-              [opponentTier]: (prev[opponentTier] ?? 0) + 1,
-            };
+        // Update match counts (skip for tutorial matches that don't count for milestones)
+        if (countsForMilestones) {
+          updatedPlayer.matchesPlayed = (updatedPlayer.matchesPlayed || 0) + 1;
+          if (isWin) {
+            updatedPlayer.matchesWon = (updatedPlayer.matchesWon || 0) + 1;
+            if (matchType === 'regular') {
+              const prev = updatedPlayer.practiceWinsPerTier ?? {};
+              updatedPlayer.practiceWinsPerTier = {
+                ...prev,
+                [opponentTier]: (prev[opponentTier] ?? 0) + 1,
+              };
+            }
           }
+          const currentResults = updatedPlayer.latestMatchResults || [];
+          updatedPlayer.latestMatchResults = ([isWin ? 'win' : 'loss', ...currentResults] as ('win' | 'loss')[]).slice(0, 10);
         }
-        const currentResults = updatedPlayer.latestMatchResults || [];
-        updatedPlayer.latestMatchResults = ([isWin ? 'win' : 'loss', ...currentResults] as ('win' | 'loss')[]).slice(0, 10);
 
         // Calculate energy and mood changes
         const keyMomentEnergyCost = accumulatedEffects ? accumulatedEffects.energyDelta : 0;
@@ -1126,7 +1151,7 @@ export const useGameStore = create<GameState>()(
         let energyCost: number;
         if (matchType === 'tournament') {
           energyCost = TournamentManager.calculateMatchEnergyCost(state.currentStatus.energy);
-        } else if (matchType === 'story') {
+        } else if (matchType === 'story' || matchType === 'tutorial') {
           energyCost = StoryMatchManager.calculateMatchEnergyCost(state.currentStatus.energy);
         } else {
           energyCost = DEFAULT_MATCH_ENERGY_COST;
@@ -1271,7 +1296,7 @@ export const useGameStore = create<GameState>()(
         const result = isWin ? 'win' : 'loss';
         const state = get();
 
-        if (matchType === 'story') {
+        if (matchType === 'story' || matchType === 'tutorial') {
           // Check for post-match story event
           const storyMeta = phase.storyMatchMetadata;
           if (storyMeta) {

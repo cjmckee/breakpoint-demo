@@ -130,10 +130,14 @@ class AudioManager {
     const idx = (this.sfxPoolIndex[key] ?? 0) % this.SFX_POOL_SIZE;
     this.sfxPoolIndex[key] = idx + 1;
 
-    const el = pool[idx];
+    const preloaded = pool[idx];
+    // Create fresh element to avoid stale cache state, but reuse the src URL
+    // so browser uses its HTTP cache (no re-download)
+    const el = new Audio(preloaded.src);
     el.volume = this.sfxVolume;
-    el.currentTime = 0;
-    el.play().catch(() => {/* ignored */});
+    el.play().catch((e) => {
+      console.warn(`[Audio] SFX ${key} failed to play:`, e);
+    });
   }
 
   // ─── Private helpers ──────────────────────────────────────────────────────
