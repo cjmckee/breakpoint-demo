@@ -203,9 +203,21 @@ export class StoryEventManager {
   static selectRandomEvent(eligibleEvents: StoryEvent[]): StoryEvent | null {
     if (eligibleEvents.length === 0) return null;
 
-    // Group events by their first tag (primary category)
+    const filteredEligibleEvents = eligibleEvents.filter((storyEvent) => {
+      // Filter out event tags that should only appear when scheduled or queued by a match
+      // Filter out event tags that should not show up in random event rolls
+      return (
+        !storyEvent.tags.includes('tutorial') &&
+        !storyEvent.tags.includes('milestone') &&
+        !storyEvent.tags.includes('story_match') &&
+        !storyEvent.tags.includes('tournament_ceremony') &&
+        !storyEvent.tags.includes('tournament_match')
+      )
+    });
+
+    // Group filtered events by their first tag (primary category)
     const eventsByTag = new Map<StoryEventTag, StoryEvent[]>();
-    for (const event of eligibleEvents) {
+    for (const event of filteredEligibleEvents) {
       const primaryTag = event.tags[0] ?? 'misc';
       const group = eventsByTag.get(primaryTag);
       if (group) {
@@ -214,6 +226,9 @@ export class StoryEventManager {
         eventsByTag.set(primaryTag, [event]);
       }
     }
+
+    // If no events remain after filtering, return null
+    if (eventsByTag.size === 0) return null;
 
     // Pick a random category
     const tags = Array.from(eventsByTag.keys());
