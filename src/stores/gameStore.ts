@@ -43,7 +43,8 @@ import { EffectKey } from '../types/game';
 import { derivePlayStyle } from '../core/PlayerProfile';
 import { useMenuStore } from '../hooks/useMenuModal';
 import type { PlayStyle } from '../types';
-import type { GamePhase, MatchType, PreMatchConfig, PhaseContinuation, IdlePhase, MatchCompletionData } from '../types/gamePhase';
+import type { GamePhase, MatchType, PreMatchConfig, PhaseContinuation, IdlePhase, MatchCompletionData, PersistedEventState, DEFAULT_PERSISTED_EVENT_STATE } from '../types/gamePhase';
+import { DEFAULT_PERSISTED_EVENT_STATE as DEFAULT_EVENT_RECOVERY } from '../types/gamePhase';
 import type { InteractiveMatchConfig } from '../types/keyMoments';
 import {
   trackPlayerCreated,
@@ -95,6 +96,11 @@ interface GameState {
   // UI state
   isInitialized: boolean;
   gamePhase: GamePhase;
+
+  // Event recovery state (persisted for browser refresh recovery)
+  eventRecovery: PersistedEventState;
+  updateEventRecovery: (update: Partial<PersistedEventState>) => void;
+  clearEventRecovery: () => void;
 
   // Audio settings action
   updateAudioSettings: (settings: Partial<AudioSettings>) => void;
@@ -221,6 +227,17 @@ export const useGameStore = create<GameState>()(
       isInitialized: false,
       gamePhase: { type: 'uninitialized' },
 
+      // Event recovery initial state
+      eventRecovery: DEFAULT_EVENT_RECOVERY,
+
+      updateEventRecovery: (update) => set((state) => ({
+        eventRecovery: { ...state.eventRecovery, ...update },
+      })),
+
+      clearEventRecovery: () => set({
+        eventRecovery: DEFAULT_EVENT_RECOVERY,
+      }),
+
       // Initialize game (Zustand auto-loads persisted state)
       initializeGame: () => {
         const state = get();
@@ -285,6 +302,97 @@ export const useGameStore = create<GameState>()(
           }
         }
 
+        // Event state recovery - restore from browser refresh
+        const eventRecovery = currentState.eventRecovery;
+
+        // Restore pending match setup (match was interrupted before starting)
+        if (eventRecovery.pendingMatchSetup) {
+          console.log('[EventRecovery] Restoring pending match setup');
+          set({
+            isInitialized: true,
+            gamePhase: {
+              type: 'match_setup',
+              matchType: eventRecovery.pendingMatchSetup.matchType,
+              matchConfig: eventRecovery.pendingMatchSetup.matchConfig,
+            },
+          });
+          return;
+        }
+
+        // Restore story event at saved position
+        if (eventRecovery.currentEventId && currentState.player) {
+          const player = currentState.player;
+          const eventContext = {
+            completedStoryEvents: currentState.completedStoryEvents,
+            completedStoryEventChoices: {
+              ...currentState.completedStoryEventChoices,
+              ...eventRecovery.selectedChoices,
+            },
+            relationships: currentState.relationships,
+            calendar: currentState.calendar,
+            activeTournament: currentState.calendar.activeTournament,
+          };
+
+          const event = StoryEventManager.getEligibleEventById(
+            eventRecovery.currentEventId,
+            player,
+            eventContext
+          );
+
+          if (event) {
+            console.log(`[EventRecovery] Restoring event "${event.id}" at dialogue ${eventRecovery.currentDialogueIndex}`);
+
+            const availableOptions = PrerequisiteChecker.getAvailableOptions(
+              event,
+              player,
+              eventContext
+            );
+
+            set({
+              isInitialized: true,
+              gamePhase: {
+                type: 'story_event',
+                event,
+                availableOptions,
+                continuation: { type: 'idle' }, // Default continuation, will be recalculated if needed
+              },
+            });
+            return;
+          } else {
+            // Event no longer exists or is no longer eligible, clear recovery state
+            console.warn(`[EventRecovery] Event "${eventRecovery.currentEventId}" no longer eligible, clearing recovery state`);
+            get().clearEventRecovery();
+          }
+        }
+
+        // Restore pending event result
+        if (eventRecovery.pendingEventResult) {
+          console.log('[EventRecovery] Restoring pending event result');
+          set({
+            isInitialized: true,
+            gamePhase: {
+              type: 'story_event_result',
+              result: eventRecovery.pendingEventResult.result,
+              continuation: eventRecovery.pendingEventResult.continuation,
+            },
+          });
+          return;
+        }
+
+        // Restore idle overlay
+        if (eventRecovery.idleOverlay) {
+          console.log('[EventRecovery] Restoring idle overlay');
+          set({
+            isInitialized: true,
+            gamePhase: {
+              type: 'idle',
+              overlay: eventRecovery.idleOverlay,
+            },
+          });
+          return;
+        }
+
+        // No recovery needed, proceed with normal initialization
         set({ isInitialized: true });
 
         if (state.player) {
@@ -1078,12 +1186,20 @@ export const useGameStore = create<GameState>()(
         // Preserve storyMatchMetadata from setup phase
         const currentPhase = get().gamePhase;
         const storyMatchMetadata = currentPhase.type === 'match_setup' && currentPhase.matchConfig?.storyMatchMetadata;
+
+        // Persist match setup for recovery in case of browser refresh
+        const pendingMatchConfig = currentPhase.type === 'match_setup' ? currentPhase.matchConfig : null;
+
         set({
           gamePhase: {
             type: 'match_active',
             matchType,
             matchConfig: config,
             ...(storyMatchMetadata ? { storyMatchMetadata } : {}),
+          },
+          eventRecovery: {
+            ...get().eventRecovery,
+            pendingMatchSetup: { matchType, matchConfig: pendingMatchConfig },
           },
         });
 
@@ -1265,6 +1381,10 @@ export const useGameStore = create<GameState>()(
               ? { tournamentId: state.calendar.activeTournament.tournamentId }
               : {}),
           },
+          eventRecovery: {
+            ...state.eventRecovery,
+            pendingMatchSetup: null,
+          },
         });
 
         // Advance time slot (match consumes a time slot) — use advanceTime() so that
@@ -1433,6 +1553,11 @@ export const useGameStore = create<GameState>()(
         // Check for milestone events (e.g. "won first match", "hit 10 winners")
         // These only trigger after match completion, never during regular time advancement.
         get().resolveMilestoneCheck();
+
+        // Ensure pending match setup is cleared (should already be null from onMatchComplete)
+        if (get().eventRecovery.pendingMatchSetup) {
+          get().updateEventRecovery({ pendingMatchSetup: null });
+        }
       },
 
       dismissStoryEventResult: () => {
@@ -1980,6 +2105,9 @@ export const useGameStore = create<GameState>()(
         if (shouldScheduleTournamentMatch) {
           get().scheduleNextTournamentMatch();
         }
+
+        // Clear event recovery state since event completed
+        get().clearEventRecovery();
       },
 
       // Cancel/dismiss pending story event
@@ -2013,6 +2141,9 @@ export const useGameStore = create<GameState>()(
         } else {
           get().navigateTo('idle');
         }
+
+        // Clear event recovery state since event was cancelled/skipped
+        get().clearEventRecovery();
       },
 
       // Update character relationship
@@ -2630,6 +2761,9 @@ export const useGameStore = create<GameState>()(
 
         // Audio settings
         audioSettings: state.audioSettings,
+
+        // Event recovery state (for browser refresh recovery)
+        eventRecovery: state.eventRecovery,
       }),
     }
   )

@@ -3,13 +3,14 @@
  * Modal for presenting story events and player choices
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
 import type { StoryEvent, StoryEventOption } from '../types/storyEvents';
 import { AnimatedWords } from './AnimatedWords';
 import { getCharacterName } from '../data/characters';
 import { usePlayerName } from '../hooks/usePlayerName';
+import { useGameStore } from '../stores/gameStore';
 
 interface StoryEventModalProps {
   isOpen: boolean;
@@ -30,6 +31,48 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
   const [currentDialogueIndex, setCurrentDialogueIndex] = useState<number>(0);
   const [isHidden, setIsHidden] = useState(false);
 
+  // Restore persisted state on mount
+  useEffect(() => {
+    const eventRecovery = useGameStore.getState().eventRecovery;
+    if (eventRecovery.currentEventId === event.id) {
+      // Restore dialogue index
+      if (eventRecovery.currentDialogueIndex > 0) {
+        setCurrentDialogueIndex(eventRecovery.currentDialogueIndex);
+      }
+      // Restore selected choice
+      const previousChoice = eventRecovery.selectedChoices[event.id];
+      if (previousChoice) {
+        setSelectedOptionId(previousChoice);
+      }
+    } else {
+      // New event - persist the event ID
+      useGameStore.getState().updateEventRecovery({
+        currentEventId: event.id,
+        currentDialogueIndex: 0,
+        selectedChoices: {},
+      });
+    }
+  }, [event.id]);
+
+  // Persist dialogue index changes
+  const handleContinueDialogue = (newIndex: number) => {
+    setCurrentDialogueIndex(newIndex);
+    useGameStore.getState().updateEventRecovery({
+      currentDialogueIndex: newIndex,
+    });
+  };
+
+  // Persist option selection
+  const handleOptionSelect = (optionId: string) => {
+    setSelectedOptionId(optionId);
+    useGameStore.getState().updateEventRecovery({
+      selectedChoices: {
+        ...useGameStore.getState().eventRecovery.selectedChoices,
+        [event.id]: optionId,
+      },
+    });
+  };
+
   // Get player name for dialogue attribution
   const playerName = usePlayerName();
 
@@ -41,9 +84,9 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
   // Only allow skipping before the user has started the event (clicked through any dialogue)
   const canSkip = event.skippable && currentDialogueIndex === 0;
 
-  const handleContinueDialogue = () => {
+  const advanceDialogue = () => {
     if (hasDialogue && currentDialogueIndex < dialogue!.length) {
-      setCurrentDialogueIndex(currentDialogueIndex + 1);
+      handleContinueDialogue(currentDialogueIndex + 1);
     }
   };
 
@@ -149,13 +192,13 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
       {!allDialogueShown ? (
         <div className="flex justify-between">
           {currentDialogueIndex > 0 ? (
-            <Button onClick={() => setCurrentDialogueIndex(currentDialogueIndex - 1)} variant="secondary">
+            <Button onClick={() => handleContinueDialogue(currentDialogueIndex - 1)} variant="secondary">
               Back
             </Button>
           ) : (
             <div />
           )}
-          <Button onClick={handleContinueDialogue} variant="primary">
+          <Button onClick={advanceDialogue} variant="primary">
             Continue
           </Button>
         </div>
@@ -166,7 +209,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
             // Linear event - just show continue button
             <div className="flex justify-between">
               {hasDialogue && dialogue!.length > 1 ? (
-                <Button onClick={() => setCurrentDialogueIndex(currentDialogueIndex - 1)} variant="secondary">
+                <Button onClick={() => handleContinueDialogue(currentDialogueIndex - 1)} variant="secondary">
                   Back
                 </Button>
               ) : (
@@ -195,7 +238,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
               return (
                 <button
                   key={option.id}
-                  onClick={() => isAvailable && setSelectedOptionId(option.id)}
+                  onClick={() => isAvailable && handleOptionSelect(option.id)}
                   disabled={!isAvailable}
                   className={`
                     w-full p-4 rounded border-2 text-left transition
@@ -224,7 +267,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
 
           <div className="flex justify-between">
             {hasDialogue && dialogue!.length > 1 ? (
-              <Button onClick={() => setCurrentDialogueIndex(currentDialogueIndex - 1)} variant="secondary">
+              <Button onClick={() => handleContinueDialogue(currentDialogueIndex - 1)} variant="secondary">
                 Back
               </Button>
             ) : (

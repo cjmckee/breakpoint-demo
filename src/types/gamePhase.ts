@@ -175,3 +175,31 @@ export interface MatchCompletionData {
   accumulatedEffects: AccumulatedMatchEffects | null;
   keyMomentHistory: KeyMomentHistoryEntry[];
 }
+
+// ============================================================================
+// EVENT STATE PERSISTENCE — for recovering from browser refresh
+// ============================================================================
+
+export interface PersistedEventState {
+  currentEventId: string | null;
+  currentDialogueIndex: number;
+  selectedChoices: Record<string, string>;
+  pendingMatchSetup: {
+    matchType: MatchType;
+    matchConfig: PreMatchConfig | null;
+  } | null;
+  pendingEventResult: {
+    result: StoryEventResult;
+    continuation: PhaseContinuation;
+  } | null;
+  idleOverlay: OverlayState | null;
+}
+
+export const DEFAULT_PERSISTED_EVENT_STATE: PersistedEventState = {
+  currentEventId: null,
+  currentDialogueIndex: 0,
+  selectedChoices: {},
+  pendingMatchSetup: null,
+  pendingEventResult: null,
+  idleOverlay: null,
+};
