@@ -111,14 +111,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
       energyCost: 50,
       action: () => navigateTo('match_setup'),
     },
-    {
-      id: 'inventory',
-      title: 'Inventory',
-      emoji: '🎒',
-      description: 'Manage your equipment and items',
-      energyCost: 0,
-      action: () => navigateTo('inventory'),
-    },
+    
     {
       id: 'rest',
       title: isNightTime ? 'Next Day' : 'Rest',
@@ -128,6 +121,14 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
         : 'Rest and advance to next action',
       energyCost: isNightTime ? -50 : -20,
       action: () => rest(),
+    },
+    {
+      id: 'gear',
+      title: 'Gear',
+      emoji: '🎒',
+      description: '',
+      energyCost: 0,
+      action: () => {},
     },
   ];
 
@@ -296,22 +297,22 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
           {activities.map((activity) => {
             const canAfford = currentStatus.energy >= activity.energyCost;
             const isRestButton = activity.id === 'rest';
-            const isInventoryButton = activity.id === 'inventory';
             const isMatchButton = activity.id === 'match';
 
             // Check progression locks
             const isLocked = (isMatchButton && !matchUnlocked);
 
-            // Disable all activities when event is pending, match scheduled, or during night time (except rest and inventory)
+            // Disable all activities when event is pending, match scheduled, or during night time (except rest)
             const isMatchScheduled = isTournamentMatchScheduled || isStoryMatchScheduled;
+            const isGearActivity = activity.id === 'gear';
             const isDisabled = isLocked
               ? true
               : isEventPending
-                ? !isInventoryButton
+                ? !isRestButton
                 : isMatchScheduled
-                  ? !isRestButton && !isInventoryButton
+                  ? !isRestButton
                   : isNightTime
-                    ? (!isRestButton && !isInventoryButton)
+                    ? !isRestButton
                     : (!canAfford && activity.energyCost > 0);
 
             // Get button text
@@ -320,7 +321,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
               buttonText = `Unlocks Day 5`;
             } else if (isEventPending) {
               buttonText = 'Event Pending';
-            } else if (isMatchScheduled && !isRestButton && !isInventoryButton) {
+            } else if (isMatchScheduled && !isRestButton) {
               buttonText = 'Match Scheduled';
             } else if (isNightTime && isRestButton) {
               buttonText = 'Next Day';
@@ -331,8 +332,44 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
             // Get button variant - use success for "Next Day" button
             const buttonVariant = (isNightTime && isRestButton) ? 'success' : 'primary';
 
+            // Special rendering for Gear card with 3 buttons
+            if (isGearActivity) {
+              return (
+                <Card key={activity.id} padding="md" className={`flex flex-col ${isNightTime ? 'night-exempt' : ''}`}>
+                  <div className="text-center mb-4">
+                    <div className="text-6xl mb-3">
+                      {activity.emoji}
+                    </div>
+                    <h2 className="text-lg lg:text-2xl font-bold text-pixel-text mb-2 truncate">
+                      {activity.title}
+                    </h2>
+                    <p className="text-sm text-pixel-text-muted mb-3">
+                      {activity.description}
+                    </p>
+                  </div>
+                  <div className="mt-auto flex flex-col gap-2">
+                    <Button variant="primary" fullWidth onClick={() => navigateTo('inventory')}>
+                      Inventory
+                    </Button>
+                    <Button variant="primary" fullWidth onClick={() => navigateTo('relationships')}>
+                      Relationships
+                    </Button>
+                    {calendar.currentDay >= 7 ? (
+                      <Button variant="primary" fullWidth onClick={() => navigateTo('shop')}>
+                        Shop
+                      </Button>
+                    ) : (
+                      <Button variant="primary" fullWidth disabled>
+                        Unlocks Day 7
+                      </Button>
+                    )}
+                  </div>
+                </Card>
+              );
+            }
+
             return (
-              <Card key={activity.id} padding="md" className={`flex flex-col ${isNightTime && (isRestButton || isInventoryButton) ? 'night-exempt' : ''}`}>
+              <Card key={activity.id} padding="md" className={`flex flex-col ${isNightTime && isRestButton ? 'night-exempt' : ''}`}>
                 <div className="text-center mb-4">
                   <div className="text-6xl mb-3 relative inline-block">
                     {activity.emoji}

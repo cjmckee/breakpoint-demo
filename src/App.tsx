@@ -9,6 +9,8 @@ import { TrainingSelection } from './components/TrainingSelection';
 import { MatchSetup } from './components/MatchSetup';
 import { LiveMatchViewer } from './components/LiveMatchViewer';
 import { Inventory } from './components/Inventory';
+import { Relationships } from './components/Relationships';
+import { Shop } from './components/Shop';
 import { TournamentList } from './components/TournamentList';
 import { TournamentMatch } from './components/TournamentMatch';
 import { StoryMatch } from './components/StoryMatch';
@@ -120,6 +122,12 @@ function App() {
 
       case 'inventory':
         return <Inventory />;
+
+      case 'relationships':
+        return <Relationships />;
+
+      case 'shop':
+        return <Shop />;
 
       case 'story_event':
         return (

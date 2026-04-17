@@ -864,21 +864,21 @@ export const miscEvents: StoryEvent[] = [
         skippable: true,
         description: 'A teammate suggests indoor rock climbing as a fun outing.',
         dialogue: [
-            ['mitch', ['There\'s a new climbing gym that just opened downtown. Want to check it out?']],
+            ['max', ['There\'s a new climbing gym that just opened downtown. Want to check it out?']],
             [null, ['You arrive to find walls seem to stretch to the sky. This is not the V2 you were promised.']],
-            ['mitch', ['I\'ll race you to the top! Loser buys smoothies.']]
+            ['max', ['I\'ll race you to the top! Loser buys smoothies.']]
         ],
-        characters: ['mitch'],
+        characters: ['max'],
         options: [
             {
                 id: 'race_to_top',
-                text: 'Race Mitch to the top',
+                text: 'Race Max to the top',
                 description: 'You didn\'t come here to lose.',
                 emoji: '🧗',
                 outcome: {
                     resultText: [
                         'You both scramble up the wall with surprising speed. Reaching overhead, gripping holds, and pushing off with your legs.',
-                        {characterId: 'mitch'}, ' beats you by two seconds. You owe him a smoothie.',
+                        {characterId: 'max'}, ' beats you by two seconds. You owe him a smoothie.',
                         'Your shoulders are on fire but your overhead reach feels incredible.'
                     ],
                     effects: {
@@ -890,7 +890,7 @@ export const miscEvents: StoryEvent[] = [
                             recovery: 1
                         },
                         relationshipChanges: {
-                            mitch: 5
+                            max: 5
                         }
                     },
                     challengesAssigned: [
@@ -910,7 +910,7 @@ export const miscEvents: StoryEvent[] = [
                     resultText: [
                         'You spend your time on the easier walls, focusing on technique over speed.',
                         'You work on how to use your body weight efficiently. It translates surprisingly well to court movement.',
-                        {characterId: 'mitch'}, ' free-solos the hardest wall. You decide not to compete with that.'
+                        {characterId: 'max'}, ' free-solos the hardest wall. You decide not to compete with that.'
                     ],
                     effects: {
                         energyChange: -10,
@@ -921,7 +921,7 @@ export const miscEvents: StoryEvent[] = [
                             overhead: 2
                         },
                         relationshipChanges: {
-                            mitch: 3
+                            max: 3
                         }
                     }
                 }
