@@ -34,7 +34,10 @@ export const PracticeMatch: React.FC<{ matchConfig: PreMatchConfig | null }> = (
       playerStats: player.stats,
       playerName: player.name,
       playerAbilities: player.abilities,
-      itemBoosts: ItemManager.getTotalPassiveBoosts(player),
+      itemBoosts: {
+        ...ItemManager.getTotalPassiveBoosts(player),
+        ...player.nextActivityBuffs?.statBoosts,
+      },
       opponentStats: matchConfig.opponentStats,
       opponentName: matchConfig.opponentName,
       opponentTier: matchConfig.opponentTier,
@@ -82,6 +85,7 @@ export const PracticeMatch: React.FC<{ matchConfig: PreMatchConfig | null }> = (
       matchFormat={matchConfig.matchFormat}
       energyCost={energyCost}
       currentEnergy={currentStatus.energy}
+      activeBuffs={player.nextActivityBuffs}
       contextContent={contextContent}
       onStartMatch={handleStartMatch}
       onBack={() => navigateTo('match_setup')}

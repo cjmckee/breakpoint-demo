@@ -10,6 +10,8 @@ import { Button } from './ui/Button';
 import { SURFACE_EFFECTS } from '../config/shotThresholds';
 import { ARCHETYPE_DATA } from '../data/archetypes';
 import type { PlayerStats, PlayStyle, CourtSurface, StatName } from '../types';
+import type { Modifiers } from '../types/game';
+import { EffectKey } from '../types/game';
 import type { ArchetypeType } from '../data/archetypes';
 import {
   calculateOverallRating,
@@ -20,6 +22,7 @@ import {
   getTopNStats,
   getBottomNStats,
   getLetterGrade,
+  STAT_LABELS,
 } from '../utils/playerStats';
 
 interface SurfaceEffectDisplay {
@@ -54,6 +57,7 @@ interface PreMatchScreenProps {
   currentEnergy: number;
 
   contextContent?: React.ReactNode;
+  activeBuffs?: Modifiers | null;
 
   onStartMatch: () => void;
   onBack: () => void;
@@ -257,6 +261,45 @@ function ScoutingReport({ playStyle }: { playStyle: PlayStyle }) {
   );
 }
 
+const ADDITIONAL_EFFECT_LABELS: Partial<Record<string, string>> = {
+  [EffectKey.MOOD_GAIN_BONUS]: 'Mood Gain Bonus',
+  [EffectKey.ENERGY_COST_REDUCTION]: 'Energy Cost Reduction',
+  [EffectKey.ENERGY_GAIN_BONUS]: 'Energy Gain Bonus',
+  [EffectKey.TRAINING_STAT_MULTIPLIER]: 'Stat Multiplier',
+  [EffectKey.TRAINING_TIER_BONUS]: 'Training Tier Bonus',
+  [EffectKey.ABILITY_CHANCE_BONUS]: 'Ability Chance Bonus',
+  [EffectKey.RELATIONSHIP_GAIN_BONUS]: 'Relationship Gain Bonus',
+};
+
+function ActiveBuffsDisplay({ buffs }: { buffs: Modifiers }) {
+  const statBoostEntries = Object.entries(buffs.statBoosts).filter(([, v]) => v !== 0);
+  const additionalEntries = Object.entries(buffs.additional ?? {}).filter(([, v]) => v !== 0);
+
+  if (statBoostEntries.length === 0 && additionalEntries.length === 0) return null;
+
+  return (
+    <div className="p-3 bg-yellow-950/30 border-2 border-yellow-500">
+      <div className="text-xs text-yellow-400 uppercase tracking-wide font-bold mb-2">
+        ⚡ Active Consumable Buff
+      </div>
+      <div className="space-y-1">
+        {statBoostEntries.map(([stat, value]) => (
+          <div key={stat} className="flex justify-between items-center text-sm">
+            <span className="text-yellow-300">{STAT_LABELS[stat as StatName] ?? stat}</span>
+            <span className="text-yellow-400 font-bold">+{value}</span>
+          </div>
+        ))}
+        {additionalEntries.map(([key, value]) => (
+          <div key={key} className="flex justify-between items-center text-sm">
+            <span className="text-yellow-300">{ADDITIONAL_EFFECT_LABELS[key] ?? key}</span>
+            <span className="text-yellow-400 font-bold">+{value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
   title,
   subtitle,
@@ -277,6 +320,7 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
   energyCost,
   currentEnergy,
   contextContent,
+  activeBuffs,
   onStartMatch,
   onBack,
 }) => {
@@ -377,6 +421,8 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
                 <span className="text-pixel-text font-bold">{getFormatLabel(matchFormat)}</span>
               </div>
             </div>
+
+            {activeBuffs && <ActiveBuffsDisplay buffs={activeBuffs} />}
           </div>
         </Card>
 

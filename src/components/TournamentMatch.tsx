@@ -53,7 +53,10 @@ export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig })
       playerStats: player.stats,
       playerName: player.name,
       playerAbilities: player.abilities,
-      itemBoosts: ItemManager.getTotalPassiveBoosts(player),
+      itemBoosts: {
+        ...ItemManager.getTotalPassiveBoosts(player),
+        ...player.nextActivityBuffs?.statBoosts,
+      },
       opponentStats: matchConfig.opponentStats as PlayerStats,
       opponentName: matchConfig.opponentName,
       opponentTier: matchConfig.opponentTier,
@@ -134,6 +137,7 @@ export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig })
       matchFormat={matchConfig.matchFormat === 'best-of-3' ? 'best-of-3' : 'best-of-1'}
       energyCost={energyCost}
       currentEnergy={currentStatus.energy}
+      activeBuffs={player.nextActivityBuffs}
       contextContent={contextContent}
       onStartMatch={handleStartMatch}
       onBack={() => navigateTo('idle')}

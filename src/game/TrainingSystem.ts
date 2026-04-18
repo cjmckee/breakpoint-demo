@@ -270,21 +270,8 @@ export class TrainingSystem {
       throw new Error('Not enough energy for this training session');
     }
 
-    // Check for and apply next activity buffs
-    let finalStatBoosts = { ...session.statBoosts };
-    let buffApplied: Modifiers | undefined;
-
-    if (player.nextActivityBuffs) {
-      console.log('[Training] Applying consumable buffs:', player.nextActivityBuffs);
-      buffApplied = player.nextActivityBuffs;
-
-      // Merge buff stat boosts with training stat boosts
-      if (player.nextActivityBuffs.statBoosts) {
-        Object.entries(player.nextActivityBuffs.statBoosts).forEach(([stat, value]) => {
-          finalStatBoosts[stat] = (finalStatBoosts[stat] || 0) + value;
-        });
-      }
-    }
+    // Stat boosts from consumables only apply to matches, not training
+    const finalStatBoosts = { ...session.statBoosts };
 
     // Apply training stat multiplier from items/abilities
     if (activeEffects) {
