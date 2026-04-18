@@ -22,6 +22,7 @@ import {
   ShopItem,
   StatBoosts,
 } from '../types/game';
+import type { Modifiers } from '../types/game';
 import type { StoryEvent, StoryEventTag, StoryEventOption } from '../types/storyEvents';
 import type { Challenge } from '../types/challenges';
 import type { Item, EquipmentSlot } from '../types/items';
@@ -719,6 +720,7 @@ export const useGameStore = create<GameState>()(
         // Unlock shop once the player reaches day 7
         if (newCalendar.currentDay >= 7 && !get().shopUnlocked) {
           set({ shopUnlocked: true });
+          get().setIndicator('shop');
           get().refreshShop();
         }
 
@@ -2523,46 +2525,19 @@ export const useGameStore = create<GameState>()(
           return true;
         }
 
-        if (item.category === 'consumable') {
-          let newEnergy = currentStatus.energy;
-          let newMood = currentStatus.mood;
-
-          if (statItem.effectType === 'energy' && statItem.effectAmount) {
-            newEnergy = Math.min(100, currentStatus.energy + statItem.effectAmount);
-          } else if (statItem.effectType === 'mood' && statItem.effectAmount) {
-            newMood = Math.min(100, currentStatus.mood + statItem.effectAmount);
-          } else if (statItem.effectType === 'focus' && statItem.effectAmount) {
-            const updatedPlayer = PlayerManager.applyStatBoosts(player, { focus: statItem.effectAmount });
-            set({
-              player: { ...updatedPlayer, experience: updatedPlayer.experience - cost },
-              shopItems: shopItems.map(i =>
-                i.id === itemId ? { ...i, purchased: true } : i
-              ),
-              currentStatus: {
-                ...get().currentStatus,
-                energy: newEnergy,
-                mood: newMood,
-              },
-            });
-            return true;
-          }
-
-          set({
-            player: { ...player, experience: player.experience - cost },
-            shopItems: shopItems.map(i =>
-              i.id === itemId ? { ...i, purchased: true } : i
-            ),
-            currentStatus: {
-              ...get().currentStatus,
-              energy: newEnergy,
-              mood: newMood,
-            },
-          });
-          return true;
-        }
-
-        if (item.category === 'equipment' && statItem.statBoosts) {
-          const updatedPlayer = PlayerManager.applyStatBoosts(player, statItem.statBoosts);
+        if (item.category === 'consumable' || item.category === 'equipment') {
+          const shopItem = item as unknown as { name: string; description: string; effectType?: string; effectAmount?: number; abilityId?: string; slot?: string; statBoosts?: StatBoosts; instantEffects?: { energyChange?: number; moodChange?: number }; nextActivityBuffs?: Modifiers };
+          const newItem: Item = {
+            id: shopItem.name.toLowerCase().replace(/\s+/g, '-'),
+            name: shopItem.name,
+            description: shopItem.description,
+            type: item.category === 'equipment' ? 'equipment' : 'consumable',
+            ...(shopItem.effectType && { consumableEffect: { type: 'instant', instantEffects: { energyChange: shopItem.effectType === 'energy' ? shopItem.effectAmount : 0, moodChange: shopItem.effectType === 'mood' ? shopItem.effectAmount : 0 } } }),
+            ...(shopItem.statBoosts && { modifiers: { statBoosts: shopItem.statBoosts } }),
+            ...(shopItem.slot && { equipmentSlot: shopItem.slot as EquipmentSlot }),
+            ...(shopItem.nextActivityBuffs && { consumableEffect: { type: 'next_activity', nextActivityBuffs: shopItem.nextActivityBuffs } }),
+          };
+          const updatedPlayer = ItemManager.addItem(player, newItem);
           set({
             player: { ...updatedPlayer, experience: updatedPlayer.experience - cost },
             shopItems: shopItems.map(i =>

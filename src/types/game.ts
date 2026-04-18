@@ -553,11 +553,17 @@ export interface ConsumableItem extends ShopItem {
   category: 'consumable';
   effectType: 'energy' | 'mood' | 'focus';
   effectAmount: number;
+  instantEffects?: {
+    energyChange?: number;
+    moodChange?: number;
+  };
+  nextActivityBuffs?: Modifiers;
 }
 
 export interface EquipmentItem extends ShopItem {
   category: 'equipment';
   statBoosts: StatBoosts;
+  slot: EquipmentSlot;
 }
 
 export interface AbilityItem extends ShopItem {

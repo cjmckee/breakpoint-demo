@@ -17,7 +17,7 @@ const SLOT_ICONS: Record<EquipmentSlot, string> = {
   hat: '🧢',
 };
 
-const SLOT_NAMES: Record<EquipmentSlot, string> = {
+export const SLOT_NAMES: Record<EquipmentSlot, string> = {
   racquet: 'Racquet',
   shoes: 'Shoes',
   outfit: 'Outfit',
@@ -173,12 +173,14 @@ export const Inventory: React.FC = () => {
             <h3 className="text-lg font-bold text-pixel-text mb-2">Effect</h3>
             {item.consumableEffect.instantEffects && (
               <div className="text-sm text-pixel-text-muted">
-                {item.consumableEffect.instantEffects.energyChange && (
+                { item.consumableEffect.instantEffects.energyChange && 
+                  item.consumableEffect.instantEffects.energyChange > 0 ? (
                   <div>Energy: +{item.consumableEffect.instantEffects.energyChange}</div>
-                )}
-                {item.consumableEffect.instantEffects.moodChange && (
+                ) : null}
+                { item.consumableEffect.instantEffects.moodChange &&
+                  item.consumableEffect.instantEffects.moodChange > 0 ? (
                   <div>Mood: +{item.consumableEffect.instantEffects.moodChange}</div>
-                )}
+                ) : null}
               </div>
             )}
             {item.consumableEffect.nextActivityBuffs && (

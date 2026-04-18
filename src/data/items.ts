@@ -3,7 +3,7 @@
  * All available items in the game
  */
 
-import type { Item } from '../types/items';
+import type { Item, ItemType } from '../types/items';
 
 // ============================================================================
 // EQUIPMENT - RACQUETS
@@ -869,46 +869,45 @@ export const CHAMPION_WRISTBAND: Item = {
 }
 
 // ============================================================================
-// ITEM COLLECTIONS
+// ITEM COLLECTIONS - Derived from filtering individual items by type
 // ============================================================================
 
-export const ALL_RACQUETS: Item[] = [
+const ITEM_COLLECTIONS: Item[] = [
   BEGINNER_RACQUET,
   PRO_RACQUET,
   POWER_RACQUET,
   CONTROL_RACQUET,
   SPIN_RACQUET,
   ALLROUND_RACQUET,
-];
-
-export const ALL_SHOES: Item[] = [
   RUNNING_SHOES,
   COURT_SHOES,
   CLAY_COURT_SHOES,
   LIGHTWEIGHT_TRAINERS,
   GRASS_COURT_SHOES,
-];
-
-export const ALL_OUTFITS: Item[] = [
   PRACTICE_OUTFIT,
   TOURNAMENT_OUTFIT,
   COMPRESSION_OUTFIT,
   RETRO_OUTFIT,
   SPONSOR_OUTFIT,
-];
-
-export const ALL_HATS: Item[] = [VISOR, HEADBAND, CAP, LUCKY_HAT, SWEATBAND, BANDANA];
-
-export const ALL_CONSUMABLES_INSTANT: Item[] = [
+  SPACE_SUIT,
+  VISOR,
+  HEADBAND,
+  CAP,
+  LUCKY_HAT,
+  SWEATBAND,
+  BANDANA,
+  CHEF_HAT,
+  STYLISH_HEADBAND,
   ENERGY_DRINK,
   SPORTS_DRINK,
   RECOVERY_SHAKE,
   SUPER_ENERGY_GEL,
+  GRANDMAS_LUCKY_COOKIES,
+  SKI_PASS,
   BANANA,
+  STRAWBERRIES,
+  ORANGE_SLICE,
   ICE_BATH_VOUCHER,
-];
-
-export const ALL_CONSUMABLES_BUFF: Item[] = [
   FOCUS_PILL,
   PERFORMANCE_ENHANCER,
   STAMINA_BOOST,
@@ -916,29 +915,38 @@ export const ALL_CONSUMABLES_BUFF: Item[] = [
   SPEED_BOOSTER,
   CONFIDENCE_TAPE,
   COACHES_NOTES,
-  LUCKY_PENNY,
   MOTIVATIONAL_PLAYLIST,
+  LUCKY_PENNY,
+  LUCKY_CHARM,
+  FOUR_LEAF_CLOVER,
+  TENNIS_BALL_KEYCHAIN,
+  LUCKY_SPROUT,
+  LUCKY_JACKET,
+  LUCKY_TEETH,
+  CHAMPION_WRISTBAND,
 ];
 
-export const ALL_LUCKY_ITEMS: Item[] = [LUCKY_CHARM, FOUR_LEAF_CLOVER, TENNIS_BALL_KEYCHAIN];
+export const ALL_ITEMS: Item[] = ITEM_COLLECTIONS;
 
-export const ALL_EQUIPMENT: Item[] = [
-  ...ALL_RACQUETS,
-  ...ALL_SHOES,
-  ...ALL_OUTFITS,
-  ...ALL_HATS,
-];
+export function getItemsByType(type: ItemType): Item[] {
+  return ALL_ITEMS.filter(item => item.type === type);
+}
 
-export const ALL_CONSUMABLES: Item[] = [
-  ...ALL_CONSUMABLES_INSTANT,
-  ...ALL_CONSUMABLES_BUFF,
-];
+export const ALL_EQUIPMENT = getItemsByType('equipment');
+export const ALL_CONSUMABLES = getItemsByType('consumable');
+export const ALL_LUCKY_ITEMS = getItemsByType('lucky');
 
-export const ALL_ITEMS: Item[] = [
-  ...ALL_EQUIPMENT,
-  ...ALL_CONSUMABLES,
-  ...ALL_LUCKY_ITEMS,
-];
+export const ALL_RACQUETS = ALL_EQUIPMENT.filter(item => item.equipmentSlot === 'racquet');
+export const ALL_SHOES = ALL_EQUIPMENT.filter(item => item.equipmentSlot === 'shoes');
+export const ALL_OUTFITS = ALL_EQUIPMENT.filter(item => item.equipmentSlot === 'outfit');
+export const ALL_HATS = ALL_EQUIPMENT.filter(item => item.equipmentSlot === 'hat');
+
+export const ALL_CONSUMABLES_INSTANT = ALL_CONSUMABLES.filter(
+  item => item.consumableEffect?.type === 'instant'
+);
+export const ALL_CONSUMABLES_BUFF = ALL_CONSUMABLES.filter(
+  item => item.consumableEffect?.type === 'next_activity'
+);
 
 /**
  * Get a random item from a specific category

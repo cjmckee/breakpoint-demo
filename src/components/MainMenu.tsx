@@ -49,9 +49,13 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const getAvailableEventOptions = useGameStore((state) => state.getAvailableEventOptions);
   const dismissOverlay = useGameStore((state) => state.dismissOverlay);
   const dismissStoryEventResult = useGameStore((state) => state.dismissStoryEventResult);
+  const clearIndicator = useGameStore((state) => state.clearIndicator);
 
   // Check for unseen training
   const hasUnseenTraining = (player?.activeIndicators ?? []).includes('training');
+
+  // Check for unseen shop
+  const hasUnseenShop = (player?.activeIndicators ?? []).includes('shop');
 
   // Check for unseen items in inventory
   const hasUnseenItems = player ? [
@@ -355,9 +359,12 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                       Relationships
                     </Button>
                     {calendar.currentDay >= 7 ? (
-                      <Button variant="primary" fullWidth onClick={() => navigateTo('shop')}>
-                        Shop
-                      </Button>
+                      <>
+                        {hasUnseenShop && <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full" />}
+                        <Button variant="primary" fullWidth onClick={() => { clearIndicator('shop'); navigateTo('shop'); }}>
+                          Shop
+                        </Button>
+                      </>
                     ) : (
                       <Button variant="primary" fullWidth disabled>
                         Unlocks Day 7

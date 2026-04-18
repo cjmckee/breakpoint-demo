@@ -14,7 +14,7 @@ import type {
   StatBoosts,
 } from '../types/game';
 import type { PlayerStats } from '../types';
-import type { Item } from '../types/items';
+import type { Item, EquipmentSlot } from '../types/items';
 import { ABILITY_DEFINITIONS } from './AbilitySystem';
 import { AbilityRarity } from '../types/game';
 import { ALL_CONSUMABLES, ALL_EQUIPMENT } from '../data/items';
@@ -124,34 +124,41 @@ function createStatIncreaseItem(playerStats: PlayerStats | null): StatIncreaseIt
   };
 }
 
-function getConsumableEffect(item: Item): { effectType: 'energy' | 'mood' | 'focus'; effectAmount: number } {
-  const effect = item.consumableEffect;
-  if (!effect || effect.type !== 'instant' || !effect.instantEffects) {
-    return { effectType: 'energy', effectAmount: 20 };
-  }
-  const { instantEffects } = effect;
-  if (instantEffects.energyChange && instantEffects.energyChange > 0) {
-    return { effectType: 'energy', effectAmount: instantEffects.energyChange };
-  }
-  if (instantEffects.moodChange && instantEffects.moodChange > 0) {
-    return { effectType: 'mood', effectAmount: instantEffects.moodChange };
-  }
-  return { effectType: 'energy', effectAmount: 20 };
-}
+const SHOP_CONSUMABLES: Pick<ConsumableItem, 'name' | 'description' | 'effectType' | 'effectAmount' | 'instantEffects' | 'nextActivityBuffs'>[] =
+  ALL_CONSUMABLES
+    .filter(item => item.shopAvailable !== false)
+    .map(item => {
+      const effect = item.consumableEffect;
+      let effectType: 'energy' | 'mood' | 'focus' = 'energy';
+      let effectAmount = 20;
+      let instantEffects: { energyChange?: number; moodChange?: number } | undefined;
 
-const SHOP_CONSUMABLES = ALL_CONSUMABLES
-  .filter(item => item.shopAvailable !== false)
-  .map(item => ({
-    category: 'consumable' as const,
-    name: item.name,
-    description: item.description,
-    ...getConsumableEffect(item),
-  }));
+      if (effect?.type === 'instant' && effect.instantEffects) {
+        instantEffects = effect.instantEffects;
+        if (effect.instantEffects.energyChange && effect.instantEffects.energyChange > 0) {
+          effectType = 'energy';
+          effectAmount = effect.instantEffects.energyChange;
+        } else if (effect.instantEffects.moodChange && effect.instantEffects.moodChange > 0) {
+          effectType = 'mood';
+          effectAmount = effect.instantEffects.moodChange;
+        }
+      }
+
+      return {
+        name: item.name,
+        description: item.description,
+        effectType,
+        effectAmount,
+        instantEffects,
+        nextActivityBuffs: effect?.nextActivityBuffs,
+      };
+    });
 
 function createConsumableItem(): ConsumableItem {
   const template = SHOP_CONSUMABLES[Math.floor(Math.random() * SHOP_CONSUMABLES.length)];
   return {
     id: `consumable-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
+    category: 'consumable',
     ...template,
     cost: 2,
     purchased: false,
@@ -159,20 +166,15 @@ function createConsumableItem(): ConsumableItem {
   };
 }
 
-const SHOP_EQUIPMENT = ALL_EQUIPMENT
-  .filter(item => item.shopAvailable !== false)
-  .map(item => {
-    const boosts = item.modifiers?.statBoosts ?? {};
-    const desc = Object.entries(boosts)
-      .map(([stat, val]) => `+${val} ${stat}`)
-      .join(', ');
-    return {
-      category: 'equipment' as const,
+const SHOP_EQUIPMENT: Pick<EquipmentItem, 'name' | 'description' | 'statBoosts' | 'slot'>[] =
+  ALL_EQUIPMENT
+    .filter(item => item.shopAvailable !== false)
+    .map(item => ({
       name: item.name,
-      description: desc,
-      statBoosts: boosts,
-    };
-  });
+      description: item.description,
+      statBoosts: item.modifiers?.statBoosts ?? {},
+      slot: item.equipmentSlot ?? 'racquet',
+    }));
 
 function calculateEquipmentCost(statBoosts: StatBoosts): number {
   const total = Object.values(statBoosts).reduce((a, b) => a + b, 0);
@@ -183,8 +185,12 @@ function createEquipmentItem(): EquipmentItem {
   const template = SHOP_EQUIPMENT[Math.floor(Math.random() * SHOP_EQUIPMENT.length)];
   return {
     id: `equipment-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
-    ...template,
-    cost: calculateEquipmentCost(template.statBoosts),
+    name: template.name,
+    description: template.description,
+    category: 'equipment',
+    statBoosts: template.statBoosts || {},
+    slot: template.slot || 'racquet',
+    cost: calculateEquipmentCost(template.statBoosts || {}),
     purchased: false,
     rarity: 'uncommon',
   };
