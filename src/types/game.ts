@@ -534,7 +534,7 @@ export type ShopItemCategory = 'stat_increase' | 'consumable' | 'equipment' | 'a
 
 export type ItemRarity = 'common' | 'uncommon' | 'rare' | 'legendary';
 
-export interface ShopItem {
+interface ShopItemBase {
   id: string;
   category: ShopItemCategory;
   name: string;
@@ -544,15 +544,14 @@ export interface ShopItem {
   rarity?: ItemRarity;
 }
 
-export interface StatIncreaseItem extends ShopItem {
+export interface StatIncreaseItem extends ShopItemBase {
   category: 'stat_increase';
   statBoosts: StatBoosts;
 }
 
-export interface ConsumableItem extends ShopItem {
+export interface ConsumableItem extends ShopItemBase {
   category: 'consumable';
-  effectType: 'energy' | 'mood' | 'focus';
-  effectAmount: number;
+  sourceItemId: string;
   instantEffects?: {
     energyChange?: number;
     moodChange?: number;
@@ -560,15 +559,18 @@ export interface ConsumableItem extends ShopItem {
   nextActivityBuffs?: Modifiers;
 }
 
-export interface EquipmentItem extends ShopItem {
+export interface EquipmentItem extends ShopItemBase {
   category: 'equipment';
+  sourceItemId: string;
   statBoosts: StatBoosts;
   slot: EquipmentSlot;
 }
 
-export interface AbilityItem extends ShopItem {
+export interface AbilityItem extends ShopItemBase {
   category: 'ability';
   abilityId: string;
   statBoosts: StatBoosts;
   rarity: ItemRarity;
 }
+
+export type ShopItem = StatIncreaseItem | ConsumableItem | EquipmentItem | AbilityItem;

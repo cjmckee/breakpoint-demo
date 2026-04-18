@@ -22,7 +22,6 @@ import {
   ShopItem,
   StatBoosts,
 } from '../types/game';
-import type { Modifiers } from '../types/game';
 import type { StoryEvent, StoryEventTag, StoryEventOption } from '../types/storyEvents';
 import type { Challenge } from '../types/challenges';
 import type { Item, EquipmentSlot } from '../types/items';
@@ -40,6 +39,7 @@ import { TournamentManager } from '../game/TournamentManager';
 import { ScheduledEventManager } from '../game/ScheduledEventManager';
 import { StoryMatchManager } from '../game/StoryMatchManager';
 import { generateDailyShopItems } from '../game/ShopSystem';
+import { ALL_ITEMS } from '../data/items';
 import { getRandomOpponent, getScaledOpponentStats } from '../data/opponents';
 import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
 import { EffectAggregator } from '../core/EffectAggregator';
@@ -2503,57 +2503,52 @@ export const useGameStore = create<GameState>()(
       // ========================================================================
 
       purchaseItem: (itemId: string): boolean => {
-        const { player, shopItems, currentStatus } = get();
+        const { player, shopItems } = get();
         if (!player) return false;
 
         const item = shopItems.find(i => i.id === itemId);
-        if (!item || item.purchased || player.experience < item.cost) {
-          return false;
-        }
+        if (!item || item.purchased || player.experience < item.cost) return false;
 
-        const statItem = item as unknown as { statBoosts?: StatBoosts; effectType?: string; effectAmount?: number; abilityId?: string };
         const cost = item.cost;
+        const markPurchased = (items: ShopItem[]) =>
+          items.map(i => i.id === itemId ? { ...i, purchased: true } : i);
 
-        if (item.category === 'stat_increase' && statItem.statBoosts) {
-          const updatedPlayer = PlayerManager.applyStatBoosts(player, statItem.statBoosts);
+        if (item.category === 'stat_increase') {
+          const updatedPlayer = PlayerManager.applyStatBoosts(player, item.statBoosts);
           set({
             player: { ...updatedPlayer, experience: updatedPlayer.experience - cost },
-            shopItems: shopItems.map(i =>
-              i.id === itemId ? { ...i, purchased: true } : i
-            ),
+            shopItems: markPurchased(shopItems),
           });
           return true;
         }
 
-        if (item.category === 'consumable' || item.category === 'equipment') {
-          const shopItem = item as unknown as { name: string; description: string; effectType?: string; effectAmount?: number; abilityId?: string; slot?: string; statBoosts?: StatBoosts; instantEffects?: { energyChange?: number; moodChange?: number }; nextActivityBuffs?: Modifiers };
-          const newItem: Item = {
-            id: shopItem.name.toLowerCase().replace(/\s+/g, '-'),
-            name: shopItem.name,
-            description: shopItem.description,
-            type: item.category === 'equipment' ? 'equipment' : 'consumable',
-            ...(shopItem.effectType && { consumableEffect: { type: 'instant', instantEffects: { energyChange: shopItem.effectType === 'energy' ? shopItem.effectAmount : 0, moodChange: shopItem.effectType === 'mood' ? shopItem.effectAmount : 0 } } }),
-            ...(shopItem.statBoosts && { modifiers: { statBoosts: shopItem.statBoosts } }),
-            ...(shopItem.slot && { equipmentSlot: shopItem.slot as EquipmentSlot }),
-            ...(shopItem.nextActivityBuffs && { consumableEffect: { type: 'next_activity', nextActivityBuffs: shopItem.nextActivityBuffs } }),
-          };
-          const updatedPlayer = ItemManager.addItem(player, newItem);
+        if (item.category === 'consumable') {
+          const sourceItem = ALL_ITEMS.find(i => i.id === item.sourceItemId);
+          if (!sourceItem) return false;
+          const updatedPlayer = ItemManager.addItem(player, sourceItem);
           set({
             player: { ...updatedPlayer, experience: updatedPlayer.experience - cost },
-            shopItems: shopItems.map(i =>
-              i.id === itemId ? { ...i, purchased: true } : i
-            ),
+            shopItems: markPurchased(shopItems),
           });
           return true;
         }
 
-        if (item.category === 'ability' && statItem.abilityId) {
-          const updatedPlayer = PlayerManager.addAbility(player, statItem.abilityId);
+        if (item.category === 'equipment') {
+          const sourceItem = ALL_ITEMS.find(i => i.id === item.sourceItemId);
+          if (!sourceItem) return false;
+          const updatedPlayer = ItemManager.addItem(player, sourceItem);
           set({
             player: { ...updatedPlayer, experience: updatedPlayer.experience - cost },
-            shopItems: shopItems.map(i =>
-              i.id === itemId ? { ...i, purchased: true } : i
-            ),
+            shopItems: markPurchased(shopItems),
+          });
+          return true;
+        }
+
+        if (item.category === 'ability') {
+          const updatedPlayer = PlayerManager.addAbility(player, item.abilityId);
+          set({
+            player: { ...updatedPlayer, experience: updatedPlayer.experience - cost },
+            shopItems: markPurchased(shopItems),
           });
           return true;
         }

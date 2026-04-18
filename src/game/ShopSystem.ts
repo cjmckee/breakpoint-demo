@@ -1,20 +1,15 @@
-/**
- * Shop System
- * Handles shop item generation and daily refresh
- */
-
 import type {
   ShopItem,
-  ShopItemCategory,
   ItemRarity,
   StatIncreaseItem,
   ConsumableItem,
   EquipmentItem,
   AbilityItem,
   StatBoosts,
+  Ability,
 } from '../types/game';
 import type { PlayerStats } from '../types';
-import type { Item, EquipmentSlot } from '../types/items';
+import type { Item } from '../types/items';
 import { ABILITY_DEFINITIONS } from './AbilitySystem';
 import { AbilityRarity } from '../types/game';
 import { ALL_CONSUMABLES, ALL_EQUIPMENT } from '../data/items';
@@ -24,34 +19,17 @@ const TECHNICAL_STATS = ['volley', 'overhead', 'dropShot', 'spin', 'placement'] 
 const PHYSICAL_STATS = ['speed', 'stamina', 'strength', 'agility', 'recovery'] as const;
 const MENTAL_STATS = ['focus', 'anticipation', 'shotVariety', 'offensive', 'defensive'] as const;
 
-type CoreStat = typeof CORE_STATS[number];
-type TechnicalStat = typeof TECHNICAL_STATS[number];
-type PhysicalStat = typeof PHYSICAL_STATS[number];
-type MentalStat = typeof MENTAL_STATS[number];
-
 function getStatValue(stats: PlayerStats, statName: string): number {
-  if (statName in stats.core) {
-    return stats.core[statName as keyof typeof stats.core];
-  }
-  if (statName in stats.technical) {
-    return stats.technical[statName as keyof typeof stats.technical];
-  }
-  if (statName in stats.physical) {
-    return stats.physical[statName as keyof typeof stats.physical];
-  }
-  if (statName in stats.mental) {
-    return stats.mental[statName as keyof typeof stats.mental];
-  }
+  if (statName in stats.core) return stats.core[statName as keyof typeof stats.core];
+  if (statName in stats.technical) return stats.technical[statName as keyof typeof stats.technical];
+  if (statName in stats.physical) return stats.physical[statName as keyof typeof stats.physical];
+  if (statName in stats.mental) return stats.mental[statName as keyof typeof stats.mental];
   return 0;
 }
 
 function calculateStatIncreaseCost(currentValue: number, increase: number): number {
   const multiplier = Math.max(1, currentValue / 10 - 1);
   return Math.round(Math.pow(increase, 1.3) * multiplier);
-}
-
-function pickRandomStat(values: readonly string[]): string {
-  return values[Math.floor(Math.random() * values.length)];
 }
 
 function randInt(min: number, max: number): number {
@@ -108,14 +86,14 @@ function createStatIncreaseItem(playerStats: PlayerStats | null): StatIncreaseIt
   const rarityName: Record<ItemRarity, string> = {
     common: 'Common',
     uncommon: 'Uncommon',
-    rare: 'Rare ',
-    legendary: 'Legendary ',
+    rare: 'Rare',
+    legendary: 'Legendary',
   };
 
   return {
     id: `stat-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
     category: 'stat_increase',
-    name: `${rarityName[rarity]}+${total} ${affectedStats}`,
+    name: `${rarityName[rarity]} +${total} ${affectedStats}`,
     description: `Increase ${affectedStats} by a total of +${total}`,
     cost,
     purchased: false,
@@ -124,57 +102,26 @@ function createStatIncreaseItem(playerStats: PlayerStats | null): StatIncreaseIt
   };
 }
 
-const SHOP_CONSUMABLES: Pick<ConsumableItem, 'name' | 'description' | 'effectType' | 'effectAmount' | 'instantEffects' | 'nextActivityBuffs'>[] =
-  ALL_CONSUMABLES
-    .filter(item => item.shopAvailable !== false)
-    .map(item => {
-      const effect = item.consumableEffect;
-      let effectType: 'energy' | 'mood' | 'focus' = 'energy';
-      let effectAmount = 20;
-      let instantEffects: { energyChange?: number; moodChange?: number } | undefined;
-
-      if (effect?.type === 'instant' && effect.instantEffects) {
-        instantEffects = effect.instantEffects;
-        if (effect.instantEffects.energyChange && effect.instantEffects.energyChange > 0) {
-          effectType = 'energy';
-          effectAmount = effect.instantEffects.energyChange;
-        } else if (effect.instantEffects.moodChange && effect.instantEffects.moodChange > 0) {
-          effectType = 'mood';
-          effectAmount = effect.instantEffects.moodChange;
-        }
-      }
-
-      return {
-        name: item.name,
-        description: item.description,
-        effectType,
-        effectAmount,
-        instantEffects,
-        nextActivityBuffs: effect?.nextActivityBuffs,
-      };
-    });
+const SHOP_CONSUMABLE_ITEMS: Item[] = ALL_CONSUMABLES.filter(item => item.shopAvailable !== false);
 
 function createConsumableItem(): ConsumableItem {
-  const template = SHOP_CONSUMABLES[Math.floor(Math.random() * SHOP_CONSUMABLES.length)];
+  const sourceItem = SHOP_CONSUMABLE_ITEMS[Math.floor(Math.random() * SHOP_CONSUMABLE_ITEMS.length)];
+  const effect = sourceItem.consumableEffect;
   return {
     id: `consumable-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
     category: 'consumable',
-    ...template,
+    sourceItemId: sourceItem.id,
+    name: sourceItem.name,
+    description: sourceItem.description,
+    instantEffects: effect?.type === 'instant' ? effect.instantEffects : undefined,
+    nextActivityBuffs: effect?.nextActivityBuffs,
     cost: 2,
     purchased: false,
     rarity: 'common',
   };
 }
 
-const SHOP_EQUIPMENT: Pick<EquipmentItem, 'name' | 'description' | 'statBoosts' | 'slot'>[] =
-  ALL_EQUIPMENT
-    .filter(item => item.shopAvailable !== false)
-    .map(item => ({
-      name: item.name,
-      description: item.description,
-      statBoosts: item.modifiers?.statBoosts ?? {},
-      slot: item.equipmentSlot ?? 'racquet',
-    }));
+const SHOP_EQUIPMENT_ITEMS: Item[] = ALL_EQUIPMENT.filter(item => item.shopAvailable !== false);
 
 function calculateEquipmentCost(statBoosts: StatBoosts): number {
   const total = Object.values(statBoosts).reduce((a, b) => a + b, 0);
@@ -182,37 +129,25 @@ function calculateEquipmentCost(statBoosts: StatBoosts): number {
 }
 
 function createEquipmentItem(): EquipmentItem {
-  const template = SHOP_EQUIPMENT[Math.floor(Math.random() * SHOP_EQUIPMENT.length)];
+  const sourceItem = SHOP_EQUIPMENT_ITEMS[Math.floor(Math.random() * SHOP_EQUIPMENT_ITEMS.length)];
+  const statBoosts = sourceItem.modifiers?.statBoosts ?? {};
   return {
     id: `equipment-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
-    name: template.name,
-    description: template.description,
     category: 'equipment',
-    statBoosts: template.statBoosts || {},
-    slot: template.slot || 'racquet',
-    cost: calculateEquipmentCost(template.statBoosts || {}),
+    sourceItemId: sourceItem.id,
+    name: sourceItem.name,
+    description: sourceItem.description,
+    statBoosts,
+    slot: sourceItem.equipmentSlot ?? 'racquet',
+    cost: calculateEquipmentCost(statBoosts),
     purchased: false,
     rarity: 'uncommon',
   };
 }
 
-type ShopAbilityTemplate = {
-  abilityId: string;
-  name: string;
-  description: string;
-  rarity: AbilityRarity;
-  statBoosts: StatBoosts;
-};
-
-const ABILITIES: ShopAbilityTemplate[] = Object.values(ABILITY_DEFINITIONS)
-  .filter(ability => ability.shopAvailable !== false)
-  .map(ability => ({
-    abilityId: ability.name,
-    name: ability.name,
-    description: ability.description,
-    rarity: ability.rarity,
-    statBoosts: ability.modifiers.statBoosts,
-  }));
+const ABILITIES: Ability[] = Object.values(ABILITY_DEFINITIONS).filter(
+  ability => ability.shopAvailable !== false
+);
 
 const RARITY_MULTIPLIERS: Record<AbilityRarity, number> = {
   [AbilityRarity.COMMON]: 25,
@@ -227,9 +162,9 @@ function calculateAbilityCost(statBoosts: StatBoosts, rarity: AbilityRarity): nu
   return Math.round(Math.pow(total, 1.5) + multiplier);
 }
 
-function createAbilityItem(ownedAbilityIds: Set<string> = new Set(), ownedLevels: Map<string, number> = new Map()): AbilityItem | null {
+function createAbilityItem(ownedLevels: Map<string, number> = new Map()): AbilityItem | null {
   const roll = Math.random();
-  let pool: typeof ABILITIES = ABILITIES;
+  let pool: Ability[] = ABILITIES;
 
   if (roll < 0.5) {
     pool = ABILITIES.filter(a => a.rarity === AbilityRarity.COMMON);
@@ -241,31 +176,29 @@ function createAbilityItem(ownedAbilityIds: Set<string> = new Set(), ownedLevels
     pool = ABILITIES.filter(a => a.rarity === AbilityRarity.LEGENDARY);
   }
 
+  if (pool.length === 0) return null;
   const template = pool[Math.floor(Math.random() * pool.length)];
-  const currentLevel = ownedLevels.get(template.abilityId) ?? 0;
+  const currentLevel = ownedLevels.get(template.name) ?? 0;
   const nextLevel = currentLevel + 1;
-
-  const baseCost = calculateAbilityCost(template.statBoosts, template.rarity);
   const hasAbility = currentLevel > 0;
-  const adjustedCost = hasAbility 
-    ? Math.round(baseCost * 1.5 + baseCost * currentLevel * 0.75) 
+
+  const baseCost = calculateAbilityCost(template.modifiers.statBoosts, template.rarity);
+  const adjustedCost = hasAbility
+    ? Math.round(baseCost * 1.5 + baseCost * currentLevel * 0.75)
     : baseCost;
 
-  const levelText = nextLevel > 1 ? ` Lv${nextLevel}` : '';
-  const nameWithLevel = template.name + levelText;
-
   return {
-    id: `ability-${template.abilityId}-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
+    id: `ability-${template.name}-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
     category: 'ability',
-    name: nameWithLevel,
-    description: hasAbility 
+    name: nextLevel > 1 ? `${template.name} Lv${nextLevel}` : template.name,
+    description: hasAbility
       ? `Upgrade ${template.name} to level ${nextLevel}. ${template.description}`
       : `Learn ${template.name}. ${template.description}`,
     cost: adjustedCost,
     purchased: false,
-    abilityId: template.abilityId,
-    statBoosts: template.statBoosts,
-    rarity: template.rarity,
+    abilityId: template.name,
+    statBoosts: template.modifiers.statBoosts,
+    rarity: template.rarity as unknown as import('../types/game').ItemRarity,
   };
 }
 
@@ -276,12 +209,11 @@ export function generateDailyShopItems(
 ): ShopItem[] {
   const items: ShopItem[] = [];
   const usedNames = new Set<string>();
-  const ownedAbilityIds = new Set(playerAbilities);
 
   // Generate 4 stat increases
   while (items.filter(i => i.category === 'stat_increase').length < 4) {
     const item = createStatIncreaseItem(playerStats);
-    if (item && !usedNames.has(item.name)) {
+    if (!usedNames.has(item.name)) {
       items.push(item);
       usedNames.add(item.name);
     }
@@ -305,17 +237,6 @@ export function generateDailyShopItems(
     }
   }
 
-  // Generate 2 abilities
-  // TODO: Add this back in when you have a better catalog of abilities + effects. Keep to items for now.
+  // TODO: Re-enable ability generation once ability catalog is more robust
   return items;
-
-  // while (items.filter(i => i.category === 'ability').length < 2) {
-  //   const item = createAbilityItem(ownedAbilityIds, ownedLevels);
-  //   if (item && !usedNames.has(item.name)) {
-  //     items.push(item);
-  //     usedNames.add(item.name);
-  //   }
-  // }
-
-  // return items;
 }
