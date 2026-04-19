@@ -192,6 +192,7 @@ interface GameState {
   purchaseItem: (itemId: string) => boolean;
   refreshShop: () => void;
   isShopUnlocked: () => boolean;
+  isMatchUnlocked: () => boolean;
 
 }
 
@@ -2574,6 +2575,10 @@ export const useGameStore = create<GameState>()(
 
       isShopUnlocked: (): boolean => {
         return get().getFlag(PlayerFlag.SHOP_UNLOCKED) === true || get().calendar.currentDay >= 7;
+      },
+
+      isMatchUnlocked: (): boolean => {
+        return get().getFlag(PlayerFlag.MATCH_UNLOCKED) === true;
       },
 
       // ========================================================================

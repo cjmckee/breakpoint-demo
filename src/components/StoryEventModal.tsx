@@ -90,6 +90,12 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
     }
   };
 
+  const goBackDialogue = () => {
+    if (currentDialogueIndex > 0) {
+      handleContinueDialogue(currentDialogueIndex - 1);
+    }
+  };
+
   const handleContinue = () => {
     if (isLinearEvent) {
       // Linear event - just execute with no option
@@ -118,14 +124,22 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
         } else {
           handleContinue();
         }
-      } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        if (!allDialogueShown) {
+          advanceDialogue();
+        }
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goBackDialogue();
+      } else if (e.key === 'ArrowDown') {
         if (allDialogueShown && !isLinearEvent && selectableOptions.length > 0) {
           e.preventDefault();
           const currentIndex = selectableOptions.findIndex((o) => o.id === selectedOptionId);
           const nextIndex = currentIndex < selectableOptions.length - 1 ? currentIndex + 1 : 0;
           handleOptionSelect(selectableOptions[nextIndex].id);
         }
-      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      } else if (e.key === 'ArrowUp') {
         if (allDialogueShown && !isLinearEvent && selectableOptions.length > 0) {
           e.preventDefault();
           const currentIndex = selectableOptions.findIndex((o) => o.id === selectedOptionId);
@@ -134,7 +148,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
         }
       }
     },
-    [isOpen, isHidden, allDialogueShown, isLinearEvent, selectableOptions, selectedOptionId, advanceDialogue, handleContinue, handleOptionSelect]
+    [isOpen, isHidden, allDialogueShown, isLinearEvent, selectableOptions, selectedOptionId, advanceDialogue, goBackDialogue, handleContinue, handleOptionSelect]
   );
 
   useEffect(() => {
@@ -232,7 +246,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
       {!allDialogueShown ? (
         <div className="flex justify-between">
           {currentDialogueIndex > 0 ? (
-            <Button onClick={() => handleContinueDialogue(currentDialogueIndex - 1)} variant="secondary">
+            <Button onClick={goBackDialogue} variant="secondary">
               Back
             </Button>
           ) : (
@@ -249,7 +263,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
             // Linear event - just show continue button
             <div className="flex justify-between">
               {hasDialogue && dialogue!.length > 1 ? (
-                <Button onClick={() => handleContinueDialogue(currentDialogueIndex - 1)} variant="secondary">
+                <Button onClick={goBackDialogue} variant="secondary">
                   Back
                 </Button>
               ) : (
@@ -307,7 +321,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
 
           <div className="flex justify-between">
             {hasDialogue && dialogue!.length > 1 ? (
-              <Button onClick={() => handleContinueDialogue(currentDialogueIndex - 1)} variant="secondary">
+              <Button onClick={goBackDialogue} variant="secondary">
                 Back
               </Button>
             ) : (
