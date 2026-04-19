@@ -62,6 +62,14 @@ export class TimeManager {
   }
 
   /**
+   * Returns true when advancing from prev to next crosses a day boundary.
+   * Use this to trigger once-per-day actions (shop refresh, daily resets, etc.).
+   */
+  static isNewDay(prev: GameCalendar, next: GameCalendar): boolean {
+    return next.currentDay !== prev.currentDay || next.currentSeason !== prev.currentSeason;
+  }
+
+  /**
    * Get time display information
    */
   static getTimeDisplay(calendar: GameCalendar): TimeDisplayInfo {

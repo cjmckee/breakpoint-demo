@@ -99,7 +99,6 @@ interface GameState {
 
   // Shop state
   shopItems: ShopItem[];
-  shopUnlocked: boolean;
 
   // UI state
   isInitialized: boolean;
@@ -238,7 +237,6 @@ export const useGameStore = create<GameState>()(
       },
 
       shopItems: [],
-      shopUnlocked: false,
 
       isInitialized: false,
       gamePhase: { type: 'uninitialized' },
@@ -721,16 +719,14 @@ export const useGameStore = create<GameState>()(
         }
 
         // Unlock shop once the player reaches day 7
-        if (newCalendar.currentDay >= 7 && !get().shopUnlocked) {
-          set({ shopUnlocked: true });
+        if (newCalendar.currentDay >= 7 && !get().getFlag(PlayerFlag.SHOP_UNLOCKED)) {
+          get().setFlag(PlayerFlag.SHOP_UNLOCKED, true);
           get().setIndicator('shop');
           get().refreshShop();
         }
 
-        // Refresh shop items at start of new day (NIGHT -> morning transition)
-        const currentlyNight = calendar.currentTimeSlot === TimeSlot.NIGHT;
-        const newDayMorning = newCalendar.currentTimeSlot === TimeSlot.MORNING;
-        if (get().shopUnlocked && currentlyNight && newDayMorning) {
+        // Refresh shop items at start of each new calendar day
+        if (get().isShopUnlocked() && TimeManager.isNewDay(calendar, newCalendar)) {
           get().refreshShop();
         }
       },
@@ -2577,8 +2573,7 @@ export const useGameStore = create<GameState>()(
       },
 
       isShopUnlocked: (): boolean => {
-        const { shopUnlocked, calendar } = get();
-        return shopUnlocked || calendar.currentDay >= 7;
+        return get().getFlag(PlayerFlag.SHOP_UNLOCKED) === true || get().calendar.currentDay >= 7;
       },
 
       // ========================================================================
@@ -2883,7 +2878,6 @@ export const useGameStore = create<GameState>()(
 
         // Shop state
         shopItems: state.shopItems,
-        shopUnlocked: state.shopUnlocked,
 
         // Audio settings
         audioSettings: state.audioSettings,

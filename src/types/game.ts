@@ -433,6 +433,7 @@ export type ActivityResult = TrainingResult | MatchResult | TournamentMatchResul
 export const PlayerFlag = {
   MATCH_UNLOCKED: 'matchUnlocked',
   TOURNAMENTS_UNLOCKED: 'tournamentsUnlocked',
+  SHOP_UNLOCKED: 'shopUnlocked',
 } as const;
 
 export interface Player {
