@@ -11,6 +11,7 @@ import { EffectAggregator } from '../core/EffectAggregator';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { StatChangeIndicator, useStatChanges } from './StatChangeIndicator';
+import { StatBoostList } from './ui/StatBoostList';
 
 const defaultAbilityChance = 0.3;
 
@@ -162,18 +163,7 @@ export const TrainingSelection: React.FC = () => {
                 {/* Stat Boosts Preview */}
                 <div className="mb-4 p-2 bg-pixel-bg border-2 border-pixel-border">
                   <div className="text-xs text-pixel-text-muted mb-1">Stat Boosts:</div>
-                  <div className="flex flex-wrap gap-2 text-xs">
-                    {Object.entries(session.statBoosts)
-                      .filter(([_, value]) => value > 0)
-                      .map(([stat, value]) => (
-                        <span
-                          key={stat}
-                          className="text-green-500 font-bold"
-                        >
-                          +{value} {stat}
-                        </span>
-                      ))}
-                  </div>
+                  <StatBoostList statBoosts={session.statBoosts} variant="grid" />
                 </div>
 
                 {/* Action Button */}
