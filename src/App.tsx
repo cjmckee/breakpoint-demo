@@ -22,6 +22,7 @@ import { StoryEventResultModal } from './components/StoryEventResultModal';
 import { MenuModal } from './components/MenuModal';
 import { FloatingMenuButtonWithPointerEvents } from './components/FloatingMenuButton';
 import { useMenuKeyboardHandler } from './hooks/useMenuModal';
+import { useGameKeyboardHandler } from './hooks/useGameKeyboardHandler';
 
 function App() {
   const { isInitialized, gamePhase, initializeGame } = useGameStore();
@@ -31,6 +32,7 @@ function App() {
 
   useAudioTransitions();
   useMenuKeyboardHandler();
+  useGameKeyboardHandler();
 
   useEffect(() => {
     if (!isInitialized) {
