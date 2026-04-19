@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useMenuModal, type EncyclopediaSectionId } from '../hooks/useMenuModal';
+import { UnseenBadge } from './ui/UnseenBadge';
 import { TENNIS_TERMS, STATS_GUIDE, SURFACE_GUIDE, SCORING_GUIDE, type GlossarySection } from '../data/glossary';
 
 const SECTION_CONTENT: Record<EncyclopediaSectionId, GlossarySection[]> = {
@@ -58,11 +59,7 @@ export const Encyclopedia: React.FC = () => {
           >
             <span>{section.icon}</span>
             <span>{section.label}</span>
-            {section.isNew && (
-              <span className="w-5 h-5 bg-red-500 text-white text-xs font-bold flex items-center justify-center rounded-full animate-bounce">
-                !
-              </span>
-            )}
+            {section.isNew && <UnseenBadge size="sm" />}
           </button>
         ))}
       </div>

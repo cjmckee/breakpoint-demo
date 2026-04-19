@@ -14,7 +14,7 @@ export const rivalEvents: StoryEvent[] = [
     tags: ['rival', 'intro', 'conflict'],
     timeSlotsRequired: 1,
     prerequisites: {
-      completedEvents: ['abilities_basics'],
+      completedEvents: ['shop_basics'],
     },
     skippable: true,
     description: 'You meet a talented player with a cocky attitude who seems determined to prove they\'re better than you.',

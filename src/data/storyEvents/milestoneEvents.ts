@@ -62,7 +62,7 @@ export const milestoneEvents: StoryEvent[] = [
         statChanges: { spin: 4, placement: 3, stamina: 2, recovery: 2 },
         moodChange: 40,
         energyChange: 0,
-        relationshipChanges: { coach_gonzalez: 15 },
+        relationshipChanges: { coach_gonzalez: 10 },
       },
       challengesAssigned: [
         ChallengeManager.createFromTemplate(CHALLENGE_TEN_WINS, {

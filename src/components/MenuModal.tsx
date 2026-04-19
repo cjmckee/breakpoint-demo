@@ -9,6 +9,7 @@ import { useGameStore } from '../stores/gameStore';
 import { useMenuModal } from '../hooks/useMenuModal';
 import { audioManager } from '../audio/AudioManager';
 import { Button } from './ui/Button';
+import { UnseenBadge } from './ui/UnseenBadge';
 import { Encyclopedia } from './Encyclopedia';
 
 const MUSIC_TRACKS = [
@@ -362,11 +363,7 @@ export const MenuModal: React.FC = () => {
             >
               <span>{tab.icon}</span>
               <span>{tab.label}</span>
-              {tab.hasNew && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold flex items-center justify-center rounded-full animate-bounce">
-                  !
-                </span>
-              )}
+              {tab.hasNew && <UnseenBadge size="sm" className="absolute -top-1 -right-1" />}
             </button>
           ))}
         </div>

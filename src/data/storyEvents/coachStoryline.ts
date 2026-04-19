@@ -23,7 +23,7 @@ export const coachEvents: StoryEvent[] = [
     tags: ['coach', 'intro'],
     timeSlotsRequired: 1,
     prerequisites: {
-      completedEvents: ['abilities_basics'],
+      completedEvents: ['shop_basics'],
     },
     skippable: false,
     description: 'One of the academy\'s tennis coaches has taken interest in your development.',
@@ -41,7 +41,7 @@ export const coachEvents: StoryEvent[] = [
         statChanges: { dropShot: 1, overhead: 1, anticipation: 1 },
         moodChange: 15,
         energyChange: -10,
-        relationshipChanges: { coach_gonzalez: 25 },
+        relationshipChanges: { coach_gonzalez: 5 },
       },
       challengesAssigned: [
         ChallengeManager.createFromTemplate(CHALLENGE_FOREHAND_FUNDAMENTALS, {
@@ -83,7 +83,7 @@ export const coachEvents: StoryEvent[] = [
             statChanges: { serve: 5, strength: 3 },
             moodChange: 10,
             energyChange: -20,
-            relationshipChanges: { coach_gonzalez: 15 },
+            relationshipChanges: { coach_gonzalez: 5 },
           },
           challengesAssigned: [
             ChallengeManager.createFromTemplate(CHALLENGE_SERVE_MASTERY, {
@@ -104,7 +104,7 @@ export const coachEvents: StoryEvent[] = [
             statChanges: { forehand: 4, backhand: 4, defensive: 2 },
             moodChange: 10,
             energyChange: -20,
-            relationshipChanges: { coach_gonzalez: 15 },
+            relationshipChanges: { coach_gonzalez: 5 },
           },
           challengesAssigned: [
             ChallengeManager.createFromTemplate(CHALLENGE_BASELINE_WARRIOR, {
@@ -125,7 +125,7 @@ export const coachEvents: StoryEvent[] = [
             statChanges: { focus: 5, anticipation: 3, offensive: 2 },
             moodChange: 15,
             energyChange: -15,
-            relationshipChanges: { coach_gonzalez: 20 },
+            relationshipChanges: { coach_gonzalez: 5 },
           },
           challengesAssigned: [
             ChallengeManager.createFromTemplate(CHALLENGE_MENTAL_EDGE, {
@@ -165,7 +165,7 @@ export const coachEvents: StoryEvent[] = [
             statChanges: { forehand: 3, backhand: 3, shotVariety: 2 },
             moodChange: 10,
             energyChange: -20,
-            relationshipChanges: { coach_gonzalez: 15 },
+            relationshipChanges: { coach_gonzalez: 10 },
           },
           challengesAssigned: [
             ChallengeManager.createFromTemplate(CHALLENGE_BALANCED_APPROACH, {
@@ -186,7 +186,7 @@ export const coachEvents: StoryEvent[] = [
             statChanges: { speed: 4, stamina: 4, agility: 2 },
             moodChange: 10,
             energyChange: -25,
-            relationshipChanges: { coach_gonzalez: 15 },
+            relationshipChanges: { coach_gonzalez: 10 },
           },
           challengesAssigned: [
             ChallengeManager.createFromTemplate(CHALLENGE_ATHLETIC_FOUNDATION, {
@@ -227,7 +227,7 @@ export const coachEvents: StoryEvent[] = [
             statChanges: { anticipation: 3, return: 2, placement: 2 },
             moodChange: 10,
             energyChange: -20,
-            relationshipChanges: { coach_gonzalez: 20 },
+            relationshipChanges: { coach_gonzalez: 10 },
           },
         },
       },
@@ -242,7 +242,7 @@ export const coachEvents: StoryEvent[] = [
             statChanges: { anticipation: 1, return: 1, focus: 1 },
             moodChange: 5,
             energyChange: 25,
-            relationshipChanges: { coach_gonzalez: 5 },
+            relationshipChanges: { coach_gonzalez: -5 },
           },
         },
       },
@@ -257,7 +257,7 @@ export const coachEvents: StoryEvent[] = [
             statChanges: { return: 3, anticipation: 2, defensive: 2 },
             moodChange: 15,
             energyChange: -15,
-            relationshipChanges: { coach_gonzalez: 10 },
+            relationshipChanges: { coach_gonzalez: -10 },
           },
         },
       },
@@ -289,7 +289,7 @@ export const coachEvents: StoryEvent[] = [
         statChanges: { focus: 3, offensive: 2, serve: 1 },
         moodChange: 20,
         energyChange: -5,
-        relationshipChanges: { coach_gonzalez: 25 },
+        relationshipChanges: { coach_gonzalez: 5 },
       },
     },
   },
@@ -324,7 +324,7 @@ export const coachEvents: StoryEvent[] = [
             statChanges: { dropShot: 3, shotVariety: 3, placement: 2 },
             moodChange: 20,
             energyChange: -25,
-            relationshipChanges: { coach_gonzalez: 20 },
+            relationshipChanges: { coach_gonzalez: 2 },
           },
           challengesAssigned: [
             ChallengeManager.createFromTemplate(CHALLENGE_TRICK_SHOT_MASTER, {
@@ -345,7 +345,7 @@ export const coachEvents: StoryEvent[] = [
             statChanges: { dropShot: 1, shotVariety: 2, overhead: 1 },
             moodChange: 10,
             energyChange: -15,
-            relationshipChanges: { coach_gonzalez: 10 },
+            relationshipChanges: { coach_gonzalez: 2 },
           },
         },
       },
@@ -360,7 +360,7 @@ export const coachEvents: StoryEvent[] = [
             statChanges: { shotVariety: 3, agility: 2, overhead: 1 },
             moodChange: 15,
             energyChange: -20,
-            relationshipChanges: { coach_gonzalez: 15 },
+            relationshipChanges: { coach_gonzalez: 3 },
           },
         },
       },

@@ -39,7 +39,10 @@ export const StoryMatch: React.FC<StoryMatchProps> = ({ matchConfig }) => {
       playerStats: player.stats,
       playerName: player.name,
       playerAbilities: player.abilities,
-      itemBoosts: ItemManager.getTotalPassiveBoosts(player),
+      itemBoosts: {
+        ...ItemManager.getTotalPassiveBoosts(player),
+        ...player.nextActivityBuffs?.statBoosts,
+      },
       opponentStats: matchConfig.opponentStats,
       opponentName: matchConfig.opponentName,
       opponentTier: matchConfig.opponentTier,
@@ -82,6 +85,7 @@ export const StoryMatch: React.FC<StoryMatchProps> = ({ matchConfig }) => {
       matchFormat={matchConfig.matchFormat || 'best-of-1'}
       energyCost={energyCost}
       currentEnergy={currentStatus.energy}
+      activeBuffs={player.nextActivityBuffs}
       contextContent={contextContent}
       onStartMatch={handleStartMatch}
       onBack={() => navigateTo('idle')}

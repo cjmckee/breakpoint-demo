@@ -55,6 +55,7 @@ export interface Ability {
   modifiers: Modifiers;
   description: string;
   effects: string;
+  shopAvailable?: boolean; // Whether ability appears in shop (default true). Set false for story/reward-only abilities
 }
 
 export interface Modifiers {
@@ -432,6 +433,7 @@ export type ActivityResult = TrainingResult | MatchResult | TournamentMatchResul
 export const PlayerFlag = {
   MATCH_UNLOCKED: 'matchUnlocked',
   TOURNAMENTS_UNLOCKED: 'tournamentsUnlocked',
+  SHOP_UNLOCKED: 'shopUnlocked',
 } as const;
 
 export interface Player {
@@ -524,3 +526,52 @@ export const DEFAULT_CALENDAR: GameCalendar = {
   activeTournament: null,
   completedTournaments: [],
 };
+
+// ============================================================================
+// SHOP TYPES
+// ============================================================================
+
+export type ShopItemCategory = 'stat_increase' | 'consumable' | 'equipment' | 'ability';
+
+export type ItemRarity = 'common' | 'uncommon' | 'rare' | 'legendary';
+
+interface ShopItemBase {
+  id: string;
+  category: ShopItemCategory;
+  name: string;
+  description: string;
+  cost: number;
+  purchased: boolean;
+  rarity?: ItemRarity;
+}
+
+export interface StatIncreaseItem extends ShopItemBase {
+  category: 'stat_increase';
+  statBoosts: StatBoosts;
+}
+
+export interface ConsumableItem extends ShopItemBase {
+  category: 'consumable';
+  sourceItemId: string;
+  instantEffects?: {
+    energyChange?: number;
+    moodChange?: number;
+  };
+  nextActivityBuffs?: Modifiers;
+}
+
+export interface EquipmentItem extends ShopItemBase {
+  category: 'equipment';
+  sourceItemId: string;
+  statBoosts: StatBoosts;
+  slot: EquipmentSlot;
+}
+
+export interface AbilityItem extends ShopItemBase {
+  category: 'ability';
+  abilityId: string;
+  statBoosts: StatBoosts;
+  rarity: ItemRarity;
+}
+
+export type ShopItem = StatIncreaseItem | ConsumableItem | EquipmentItem | AbilityItem;

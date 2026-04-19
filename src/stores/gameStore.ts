@@ -19,6 +19,8 @@ import {
   ScheduledEvent,
   PlayerStats,
   TIME_SLOT_NAMES,
+  ShopItem,
+  StatBoosts,
 } from '../types/game';
 import type { StoryEvent, StoryEventTag, StoryEventOption } from '../types/storyEvents';
 import type { Challenge } from '../types/challenges';
@@ -36,6 +38,8 @@ import { TournamentRegistry } from '../data/tournaments';
 import { TournamentManager } from '../game/TournamentManager';
 import { ScheduledEventManager } from '../game/ScheduledEventManager';
 import { StoryMatchManager } from '../game/StoryMatchManager';
+import { generateDailyShopItems } from '../game/ShopSystem';
+import { ALL_ITEMS } from '../data/items';
 import { getRandomOpponent, getScaledOpponentStats } from '../data/opponents';
 import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
 import { EffectAggregator } from '../core/EffectAggregator';
@@ -92,6 +96,9 @@ interface GameState {
 
   // Audio settings (persisted)
   audioSettings: AudioSettings;
+
+  // Shop state
+  shopItems: ShopItem[];
 
   // UI state
   isInitialized: boolean;
@@ -181,6 +188,11 @@ interface GameState {
   clearScheduledEvent: (day: number, slot: TimeSlot) => void;
   getScheduledEvent: () => ScheduledEvent | null;
 
+  // Shop actions
+  purchaseItem: (itemId: string) => boolean;
+  refreshShop: () => void;
+  isShopUnlocked: () => boolean;
+
 }
 
 const initialCalendar = TimeManager.createCalendar();
@@ -223,6 +235,8 @@ export const useGameStore = create<GameState>()(
         muteMusic: false,
         muteSfx: false,
       },
+
+      shopItems: [],
 
       isInitialized: false,
       gamePhase: { type: 'uninitialized' },
@@ -427,7 +441,7 @@ export const useGameStore = create<GameState>()(
           { eventType: 'story', scheduledDay: 5, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'match_play_basics'}},
           { eventType: 'story', scheduledDay: 5, scheduledTimeSlot: TimeSlot.EVENING, metadata: { storyEventId: 'training_session_intro' } },
           { eventType: 'story', scheduledDay: 6, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'relationship_basics' } },
-          { eventType: 'story', scheduledDay: 7, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'abilities_basics' } },
+          { eventType: 'story', scheduledDay: 7, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'shop_basics' } },
           // Post-tutorial storyline events
           { eventType: 'story', scheduledDay: 8, scheduledTimeSlot: TimeSlot.AFTERNOON, metadata: { storyEventId: 'rival_first_encounter' } },
           { eventType: 'story', scheduledDay: 9, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'club_team_intro' } },
@@ -538,17 +552,20 @@ export const useGameStore = create<GameState>()(
           updatedPlayer = PlayerManager.addAbility(updatedPlayer, result.abilityGained);
         }
 
-        // Clear next activity buffs (they were consumed during training)
+        // Consume next activity buffs — additional effects (energy reduction, mood bonus) apply to training
+        const consumableBufAdditional = updatedPlayer.nextActivityBuffs?.additional ?? {};
         const finalPlayer = {
           ...updatedPlayer,
           nextActivityBuffs: null,
         };
 
-        // Apply energy/mood effects from items/abilities
+        // Apply energy/mood effects from items/abilities + consumed activity buffs
         const { effects: trainingEffects } = EffectAggregator.getActiveEffects(finalPlayer);
-        const energyCostReduction = EffectAggregator.getEffect(trainingEffects, EffectKey.ENERGY_COST_REDUCTION);
+        const energyCostReduction = EffectAggregator.getEffect(trainingEffects, EffectKey.ENERGY_COST_REDUCTION)
+          + (consumableBufAdditional[EffectKey.ENERGY_COST_REDUCTION] ?? 0);
         const moodGainBonus = result.moodChange > 0
           ? EffectAggregator.getEffect(trainingEffects, EffectKey.MOOD_GAIN_BONUS)
+            + (consumableBufAdditional[EffectKey.MOOD_GAIN_BONUS] ?? 0)
           : 0;
 
         // Update energy and mood
@@ -699,6 +716,18 @@ export const useGameStore = create<GameState>()(
         // Unlock "Play Match" once the player reaches day 5
         if (newCalendar.currentDay >= 5 && !get().getFlag(PlayerFlag.MATCH_UNLOCKED)) {
           get().setFlag(PlayerFlag.MATCH_UNLOCKED, true);
+        }
+
+        // Unlock shop once the player reaches day 7
+        if (newCalendar.currentDay >= 7 && !get().getFlag(PlayerFlag.SHOP_UNLOCKED)) {
+          get().setFlag(PlayerFlag.SHOP_UNLOCKED, true);
+          get().setIndicator('shop');
+          get().refreshShop();
+        }
+
+        // Refresh shop items at start of each new calendar day
+        if (get().isShopUnlocked() && TimeManager.isNewDay(calendar, newCalendar)) {
+          get().refreshShop();
         }
       },
 
@@ -1266,6 +1295,10 @@ export const useGameStore = create<GameState>()(
           updatedPlayer.latestMatchResults = ([isWin ? 'win' : 'loss', ...currentResults] as ('win' | 'loss')[]).slice(0, 10);
         }
 
+        // Consume next activity buffs — additional effects (energy reduction, mood bonus) apply to matches
+        const consumableMatchAdditional = state.player.nextActivityBuffs?.additional ?? {};
+        updatedPlayer = { ...updatedPlayer, nextActivityBuffs: null };
+
         // Calculate energy and mood changes
         const keyMomentEnergyCost = accumulatedEffects ? accumulatedEffects.energyDelta : 0;
         const keyMomentMoodChange = accumulatedEffects ? accumulatedEffects.moodDelta : 0;
@@ -1279,8 +1312,16 @@ export const useGameStore = create<GameState>()(
           energyCost = DEFAULT_MATCH_ENERGY_COST;
         }
 
-        const newEnergy = Math.max(0, state.currentStatus.energy - energyCost + keyMomentEnergyCost);
-        const newMood = Math.max(-100, Math.min(100, state.currentStatus.mood + rewards.moodChange + keyMomentMoodChange));
+        const matchEnergyCostReduction = consumableMatchAdditional[EffectKey.ENERGY_COST_REDUCTION] ?? 0;
+        const matchMoodGainBonus = rewards.moodChange > 0
+          ? (consumableMatchAdditional[EffectKey.MOOD_GAIN_BONUS] ?? 0)
+          : 0;
+
+        const newEnergy = Math.max(0, state.currentStatus.energy - Math.max(0, energyCost - matchEnergyCostReduction) + keyMomentEnergyCost);
+        const newMood = Math.max(-100, Math.min(100, state.currentStatus.mood + rewards.moodChange + matchMoodGainBonus + keyMomentMoodChange));
+
+        // Apply match experience
+        updatedPlayer = PlayerManager.addExperience(updatedPlayer, rewards.experience).player;
 
         // Match-type-specific state updates
         let calendarUpdate = { ...state.calendar };
@@ -2466,6 +2507,76 @@ export const useGameStore = create<GameState>()(
       },
 
       // ========================================================================
+      // SHOP ACTIONS
+      // ========================================================================
+
+      purchaseItem: (itemId: string): boolean => {
+        const { player, shopItems } = get();
+        if (!player) return false;
+
+        const item = shopItems.find(i => i.id === itemId);
+        if (!item || item.purchased || player.experience < item.cost) return false;
+
+        const cost = item.cost;
+        const markPurchased = (items: ShopItem[]) =>
+          items.map(i => i.id === itemId ? { ...i, purchased: true } : i);
+
+        if (item.category === 'stat_increase') {
+          const updatedPlayer = PlayerManager.applyStatBoosts(player, item.statBoosts);
+          set({
+            player: { ...updatedPlayer, experience: updatedPlayer.experience - cost },
+            shopItems: markPurchased(shopItems),
+          });
+          return true;
+        }
+
+        if (item.category === 'consumable') {
+          const sourceItem = ALL_ITEMS.find(i => i.id === item.sourceItemId);
+          if (!sourceItem) return false;
+          const updatedPlayer = ItemManager.addItem(player, sourceItem);
+          set({
+            player: { ...updatedPlayer, experience: updatedPlayer.experience - cost },
+            shopItems: markPurchased(shopItems),
+          });
+          return true;
+        }
+
+        if (item.category === 'equipment') {
+          const sourceItem = ALL_ITEMS.find(i => i.id === item.sourceItemId);
+          if (!sourceItem) return false;
+          const updatedPlayer = ItemManager.addItem(player, sourceItem);
+          set({
+            player: { ...updatedPlayer, experience: updatedPlayer.experience - cost },
+            shopItems: markPurchased(shopItems),
+          });
+          return true;
+        }
+
+        if (item.category === 'ability') {
+          const updatedPlayer = PlayerManager.addAbility(player, item.abilityId);
+          set({
+            player: { ...updatedPlayer, experience: updatedPlayer.experience - cost },
+            shopItems: markPurchased(shopItems),
+          });
+          return true;
+        }
+
+        return false;
+      },
+
+      refreshShop: () => {
+        const { player } = get();
+        const playerAbilities = player?.abilities.map(a => a.name) ?? [];
+        const ownedLevels = new Map(player?.abilities.map(a => [a.name, a.level]) ?? []);
+        const newItems = generateDailyShopItems(player?.stats ?? null, playerAbilities, ownedLevels);
+        set({ shopItems: newItems });
+      },
+
+      isShopUnlocked: (): boolean => {
+        return get().getFlag(PlayerFlag.SHOP_UNLOCKED) === true || get().calendar.currentDay >= 7;
+      },
+
+      // ========================================================================
       // TOURNAMENT ACTIONS
       // ========================================================================
 
@@ -2764,6 +2875,9 @@ export const useGameStore = create<GameState>()(
 
         // Opponent tier progression
         unlockedTiers: state.unlockedTiers,
+
+        // Shop state
+        shopItems: state.shopItems,
 
         // Audio settings
         audioSettings: state.audioSettings,

@@ -228,8 +228,8 @@ export const welcomeEvents: StoryEvent[] = [
               opponentId: 'jen',
               opponentName: 'Jen',
               opponentStats: {
-                core: { serve: 30, forehand: 32, backhand: 28, return: 35, slice: 25 },
-                technical: { volley: 22, overhead: 25, dropShot: 28, spin: 30, placement: 32 },
+                core: { serve: 28, forehand: 30, backhand: 26, return: 30, slice: 25 },
+                technical: { volley: 22, overhead: 25, dropShot: 28, spin: 24, placement: 26 },
                 physical: { speed: 35, stamina: 28, strength: 25, agility: 32, recovery: 30 },
                 mental: { focus: 28, anticipation: 32, shotVariety: 30, offensive: 32, defensive: 28 },
               },
@@ -405,25 +405,28 @@ export const welcomeEvents: StoryEvent[] = [
   },
 
   {
-    id: 'abilities_basics',
-    name: 'Abilities Basics',
+    id: 'shop_basics',
+    name: 'Exp Shop Basics',
     tags: ['intro'],
     timeSlotsRequired: 0, // Doesn't consume time - informational event
     prerequisites: {
       completedEvents: ['training_session_intro'],
     },
     skippable: false,
-    description: 'You learn about the abilities system at the academy.',
+    description: 'You learn about the experience shop system at the academy.',
     dialogue: [
-      ['keith', ['Hey! I found out more about the abilities system here at the academy.']],
-      ['keith', ['Each player can unlock unique abilities that enhance their match play. I heard there are abilities for serving, volleying, and even for mental focus.']],
-      ['keith', ['These abilities can be upgraded and customized as you progress. One way to get them is through training sessions, but I\'m not sure how yet.']],
-      ['keith', ['I can\'t wait to see what abilities I can unlock!']],
+      ['keith', ['You will never guess what I found. Did you know there\'s a shop hidden deep inside the Academy?']],
+      ['keith', ['They were selling items and equipment, but they wouldn\'t take my money. It\'s some kind of special vendor!']],
+      ['player', ['Special vendor? What are you talking about?']],
+      ['keith', ['That\'s right. They wouldn\'t let me pay in money. They were asking for the only currency that matters around here: tennis experience.']],
+      ['keith', ['In addition to items and equipment, they were selling stat improvement bundles! I don\'t know how that even works!']],
+      ['keith', ['You can gain experience by playing in matches and completing challenges. Then you can spend those exp points on stats and items!']],
+      ['keith', ['New items will become available each morning, so make sure you check the shop daily!']],
     ],
     characters: ['keith'],
     options: [],
     defaultOutcome: {
-      resultText: ['It seems like the abilities system will add a new layer of strategy to your matches.'],
+      resultText: ['You eagerly await your first chance to check out the shop. How do you even spend experience anyway?'],
       effects: {
         statChanges: {},
         energyChange: 0,
@@ -441,7 +444,7 @@ export const welcomeEvents: StoryEvent[] = [
     timeSlotsRequired: 0, // Doesn't consume time - informational event
     prerequisites: {
       // This event is scheduled for day 33 (after all 5 team matches), do not require stats
-      completedEvents: ['abilities_basics', 'relationship_basics'],
+      completedEvents: ['shop_basics', 'relationship_basics'],
     },
     skippable: false,
     description: 'The Riverside Open is just around the corner.',

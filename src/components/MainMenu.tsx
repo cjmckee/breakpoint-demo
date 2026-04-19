@@ -8,6 +8,7 @@ import { useGameStore } from '../stores/gameStore';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
+import { UnseenBadge } from './ui/UnseenBadge';
 import { StatusBar } from './StatusBar';
 import { PlayerStatsDisplay } from './PlayerStatsDisplay';
 import { RecentActivities } from './RecentActivities';
@@ -49,9 +50,16 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const getAvailableEventOptions = useGameStore((state) => state.getAvailableEventOptions);
   const dismissOverlay = useGameStore((state) => state.dismissOverlay);
   const dismissStoryEventResult = useGameStore((state) => state.dismissStoryEventResult);
+  const clearIndicator = useGameStore((state) => state.clearIndicator);
 
   // Check for unseen training
   const hasUnseenTraining = (player?.activeIndicators ?? []).includes('training');
+
+  // Check for unseen shop
+  const hasUnseenShop = (player?.activeIndicators ?? []).includes('shop');
+
+  // Check for unseen inventory indicator
+  const hasUnseenInventory = (player?.activeIndicators ?? []).includes('inventory');
 
   // Check for unseen items in inventory
   const hasUnseenItems = player ? [
@@ -348,16 +356,26 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                     </p>
                   </div>
                   <div className="mt-auto flex flex-col gap-2">
-                    <Button variant="primary" fullWidth onClick={() => navigateTo('inventory')}>
-                      Inventory
-                    </Button>
+                    <div className="relative">
+                      {(hasUnseenInventory || hasUnseenItems) && (
+                        <UnseenBadge className="absolute -top-2 -right-2 z-10" />
+                      )}
+                      <Button variant="primary" fullWidth onClick={() => { clearIndicator('inventory'); navigateTo('inventory'); }}>
+                        Inventory
+                      </Button>
+                    </div>
                     <Button variant="primary" fullWidth onClick={() => navigateTo('relationships')}>
                       Relationships
                     </Button>
                     {calendar.currentDay >= 7 ? (
-                      <Button variant="primary" fullWidth onClick={() => navigateTo('shop')}>
-                        Shop
-                      </Button>
+                      <div className="relative">
+                        {hasUnseenShop && (
+                          <UnseenBadge className="absolute -top-2 -right-2 z-10" />
+                        )}
+                        <Button variant="primary" fullWidth onClick={() => { clearIndicator('shop'); navigateTo('shop'); }}>
+                          Shop
+                        </Button>
+                      </div>
                     ) : (
                       <Button variant="primary" fullWidth disabled>
                         Unlocks Day 7
@@ -374,14 +392,10 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                   <div className="text-6xl mb-3 relative inline-block">
                     {activity.emoji}
                     {activity.id === 'inventory' && hasUnseenItems && (
-                      <span className="absolute -top-2 -right-4 w-6 h-6 bg-red-500 text-white text-xs font-bold flex items-center justify-center rounded-full animate-bounce">
-                        !
-                      </span>
+                      <UnseenBadge className="absolute -top-2 -right-4" />
                     )}
                     {activity.id === 'training' && hasUnseenTraining && (
-                      <span className="absolute -top-2 -right-4 w-6 h-6 bg-red-500 text-white text-xs font-bold flex items-center justify-center rounded-full animate-bounce">
-                        !
-                      </span>
+                      <UnseenBadge className="absolute -top-2 -right-4" />
                     )}
                   </div>
                   <h2 className="text-lg lg:text-2xl font-bold text-pixel-text mb-2 truncate">

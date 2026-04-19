@@ -3,7 +3,7 @@
  * All available items in the game
  */
 
-import type { Item } from '../types/items';
+import type { Item, ItemType } from '../types/items';
 
 // ============================================================================
 // EQUIPMENT - RACQUETS
@@ -34,6 +34,7 @@ export const PRO_RACQUET: Item = {
       serve: 5,
       forehand: 3,
       backhand: 3,
+      spin: 5,
     },
   },
 };
@@ -48,6 +49,9 @@ export const POWER_RACQUET: Item = {
     statBoosts: {
       serve: 8,
       strength: 5,
+      forehand: 2,
+      backhand: 2,
+      overhead: 5
     },
   },
 };
@@ -62,8 +66,8 @@ export const CONTROL_RACQUET: Item = {
     statBoosts: {
       placement: 6,
       spin: 4,
-      forehand: 2,
-      backhand: 2,
+      slice: 5,
+      return: 5
     },
   },
 };
@@ -79,6 +83,7 @@ export const SPIN_RACQUET: Item = {
       spin: 8,
       forehand: 3,
       slice: 3,
+      placement: 2,
     },
   },
 };
@@ -94,7 +99,9 @@ export const ALLROUND_RACQUET: Item = {
       serve: 3,
       forehand: 3,
       backhand: 3,
+      return: 3,
       volley: 3,
+      slice: 3
     },
   },
 };
@@ -113,6 +120,7 @@ export const RUNNING_SHOES: Item = {
     statBoosts: {
       speed: 3,
       agility: 2,
+      stamina: 2
     },
   },
 };
@@ -128,6 +136,7 @@ export const COURT_SHOES: Item = {
       speed: 5,
       agility: 5,
       stamina: 2,
+      anticipation: 3
     },
   },
 };
@@ -143,6 +152,7 @@ export const CLAY_COURT_SHOES: Item = {
       speed: 4,
       agility: 6,
       defensive: 3,
+      spin: 2
     },
   },
 };
@@ -157,6 +167,7 @@ export const LIGHTWEIGHT_TRAINERS: Item = {
     statBoosts: {
       speed: 8,
       agility: 3,
+      stamina: 2
     },
     additional: {
       energy_cost_reduction: 2,
@@ -175,6 +186,8 @@ export const GRASS_COURT_SHOES: Item = {
       speed: 5,
       agility: 4,
       volley: 3,
+      overhead: 3,
+      offensive: 2
     },
   },
 };
@@ -193,6 +206,7 @@ export const PRACTICE_OUTFIT: Item = {
     statBoosts: {
       stamina: 2,
       recovery: 1,
+      speed: 1
     },
   },
 };
@@ -208,6 +222,8 @@ export const TOURNAMENT_OUTFIT: Item = {
       stamina: 4,
       focus: 3,
       recovery: 2,
+      anticipation: 3,
+      placement: 4
     },
   },
 };
@@ -238,9 +254,11 @@ export const RETRO_OUTFIT: Item = {
   equipmentSlot: 'outfit',
   modifiers: {
     statBoosts: {
-      focus: 4,
-      serve: 2,
-      volley: 3,
+      focus: 6,
+      serve: 4,
+      volley: 4,
+      overhead: 2,
+      offensive: 2
     },
     additional: {
       mood_gain_bonus: 2,
@@ -259,6 +277,9 @@ export const SPONSOR_OUTFIT: Item = {
       stamina: 5,
       strength: 3,
       focus: 3,
+      forehand: 3,
+      backhand: 3,
+      return: 2
     },
     additional: {
       training_stat_multiplier: 0.1,
@@ -272,13 +293,15 @@ export const SPACE_SUIT: Item = {
   description: 'You found this left over after your match with Cosmo Comet. It is a bit bulky though.',
   type: 'equipment',
   equipmentSlot: 'outfit',
+  shopAvailable: false,
   modifiers: {
     statBoosts: {
       stamina: 3,
       offensive: 2,
-      speed: 1,
+      speed: 3,
       spin: 3,
-      anticipation: 2
+      anticipation: 2,
+      slice: 3
     }
   }
 }
@@ -296,6 +319,7 @@ export const VISOR: Item = {
   modifiers: {
     statBoosts: {
       focus: 2,
+      anticipation: 1
     },
   },
 };
@@ -310,6 +334,8 @@ export const HEADBAND: Item = {
     statBoosts: {
       focus: 3,
       anticipation: 2,
+      recovery: 3,
+      stamina: 2
     },
     additional: {
       training_stat_multiplier: 0.1,
@@ -325,8 +351,9 @@ export const CAP: Item = {
   equipmentSlot: 'hat',
   modifiers: {
     statBoosts: {
-      focus: 2,
-      offensive: 1,
+      focus: 3,
+      offensive: 5,
+      strength: 2
     },
   },
 };
@@ -342,6 +369,7 @@ export const LUCKY_HAT: Item = {
       focus: 4,
       anticipation: 3,
       shotVariety: 2,
+      slice: 4
     },
   },
 };
@@ -355,8 +383,8 @@ export const SWEATBAND: Item = {
   modifiers: {
     statBoosts: {
       stamina: 3,
-      focus: 2,
-      recovery: 2,
+      focus: 3,
+      recovery: 6,
     },
   },
 };
@@ -369,9 +397,9 @@ export const BANDANA: Item = {
   equipmentSlot: 'hat',
   modifiers: {
     statBoosts: {
-      offensive: 3,
-      strength: 2,
-      serve: 2,
+      offensive: 5,
+      strength: 4,
+      serve: 4,
     },
   },
 };
@@ -382,6 +410,7 @@ export const CHEF_HAT: Item = {
   description: 'One of the players from Dobry Pomidor left this behind. You put it on and instantly feel more confident with your slices.',
   type: 'equipment',
   equipmentSlot: 'hat',
+  shopAvailable: false,
   modifiers: {
     statBoosts: {
       slice: 5,
@@ -389,6 +418,21 @@ export const CHEF_HAT: Item = {
       volley: 2
     }
   }
+}
+
+export const STYLISH_HEADBAND: Item = {
+  id: 'stylish_headband',
+  name: 'Stylish Headband',
+  description: 'A lightweight headband that helps you stay focused on the rallies. And your opponents focus on how stylish it is.',
+  type: 'equipment',
+  equipmentSlot: 'hat',
+  modifiers: {
+    statBoosts: {
+      focus: 4,
+      stamina: 4,
+      speed: 3
+    },
+  },
 }
 
 // ============================================================================
@@ -468,6 +512,7 @@ export const SKI_PASS: Item = {
   name: 'Aspen Slopes Ski Pass',
   description: 'A ski pass someone left from the Aspen Slopes match. It\'s still valid for one more trip.',
   type: 'consumable',
+  shopAvailable: false,
   consumableEffect: {
     type: 'instant',
     instantEffects: {
@@ -599,26 +644,6 @@ export const COACHES_NOTES: Item = {
   },
 };
 
-export const LUCKY_PENNY: Item = {
-  id: 'lucky_penny',
-  name: 'Lucky Penny',
-  description: 'Found heads-up on the ground. Use it for a boost of luck in your next activity.',
-  type: 'consumable',
-  consumableEffect: {
-    type: 'next_activity',
-    nextActivityBuffs: {
-      statBoosts: {
-        serve: 3,
-        forehand: 3,
-        backhand: 3,
-      },
-      additional: {
-        ability_chance_bonus: 15,
-      },
-    },
-  },
-};
-
 export const BANANA: Item = {
   id: 'banana',
   name: 'Banana',
@@ -699,6 +724,24 @@ export const ICE_BATH_VOUCHER: Item = {
 // LUCKY ITEMS
 // ============================================================================
 
+export const LUCKY_PENNY: Item = {
+  id: 'lucky_penny',
+  name: 'Lucky Penny',
+  description: 'Found heads-up on the ground. Abe would want you to hit more volleys.',
+  type: 'lucky',
+  modifiers: {
+    statBoosts: {
+      serve: 3,
+      volley: 3,
+      overhead: 3,
+      offensive: 2
+    },
+    additional: {
+      ability_chance_bonus: 15,
+    },
+  },
+};
+
 export const LUCKY_CHARM: Item = {
   id: 'lucky_charm',
   name: 'Lucky Charm',
@@ -747,10 +790,11 @@ export const TENNIS_BALL_KEYCHAIN: Item = {
   name: 'Tennis Ball Keychain',
   description: 'A miniature tennis ball keychain given to you by a fan. Reminds you why you play.',
   type: 'lucky',
+  shopAvailable: false,
   modifiers: {
     statBoosts: {
-      focus: 3,
-      recovery: 2,
+      offensive: 3,
+      spin: 5,
       anticipation: 2,
     },
     additional: {
@@ -765,11 +809,13 @@ export const LUCKY_SPROUT: Item = {
   name: 'Lucky Sprout',
   description: 'A small plant left behind by an opponent from Azalea Forest. You enjoy taking care of it.',
   type: 'lucky',
+  shopAvailable: false,
   modifiers: {
     statBoosts: {
-      defensive: 2,
-      anticipation: 2,
-      placement: 2
+      defensive: 4,
+      strength: 4,
+      slice: 2,
+      shotVariety: 4
     }
   }
 }
@@ -779,12 +825,13 @@ export const LUCKY_JACKET: Item = {
   name: 'Lucky Ski Jacket',
   description: 'One of your parents left you this retro jacket. You think they were going to donate it, but now it\'s yours.',
   type: 'lucky',
+  shopAvailable: false,
   modifiers: {
     statBoosts: {
-      speed: 2,
-      focus: 2,
-      overhead: 1,
-      spin: 2
+      speed: 3,
+      focus: 3,
+      overhead: 2,
+      spin: 3
     }
   }
 }
@@ -794,57 +841,73 @@ export const LUCKY_TEETH: Item = {
   name: 'Lucky fake teeth',
   description: 'You found these dentures after the Sunset Drive team match. You don\'t know who they belong to, but they make your smile really pop.',
   type: 'lucky',
+  shopAvailable: false,
   modifiers: {
     statBoosts: {
-      serve: 1,
-      return: 1,
-      recovery: 2,
+      serve: 3,
+      return: 2,
+      recovery: 3,
       focus: 2
     }
   }
 }
 
+export const CHAMPION_WRISTBAND: Item = {
+  id: 'champion_wristband',
+  name: 'Champion Wristband',
+  description: 'A symbolic wristband marking your rise from beginner to competitor. Wear it with pride.',
+  type: 'lucky',
+  modifiers: {
+    statBoosts: {
+      focus: 3,
+      forehand: 3,
+      backhand: 2,
+      return: 4,
+      slice: 4
+    },
+  },
+}
+
 // ============================================================================
-// ITEM COLLECTIONS
+// ITEM COLLECTIONS - Derived from filtering individual items by type
 // ============================================================================
 
-export const ALL_RACQUETS: Item[] = [
+const ITEM_COLLECTIONS: Item[] = [
   BEGINNER_RACQUET,
   PRO_RACQUET,
   POWER_RACQUET,
   CONTROL_RACQUET,
   SPIN_RACQUET,
   ALLROUND_RACQUET,
-];
-
-export const ALL_SHOES: Item[] = [
   RUNNING_SHOES,
   COURT_SHOES,
   CLAY_COURT_SHOES,
   LIGHTWEIGHT_TRAINERS,
   GRASS_COURT_SHOES,
-];
-
-export const ALL_OUTFITS: Item[] = [
   PRACTICE_OUTFIT,
   TOURNAMENT_OUTFIT,
   COMPRESSION_OUTFIT,
   RETRO_OUTFIT,
   SPONSOR_OUTFIT,
-];
-
-export const ALL_HATS: Item[] = [VISOR, HEADBAND, CAP, LUCKY_HAT, SWEATBAND, BANDANA];
-
-export const ALL_CONSUMABLES_INSTANT: Item[] = [
+  SPACE_SUIT,
+  VISOR,
+  HEADBAND,
+  CAP,
+  LUCKY_HAT,
+  SWEATBAND,
+  BANDANA,
+  CHEF_HAT,
+  STYLISH_HEADBAND,
   ENERGY_DRINK,
   SPORTS_DRINK,
   RECOVERY_SHAKE,
   SUPER_ENERGY_GEL,
+  GRANDMAS_LUCKY_COOKIES,
+  SKI_PASS,
   BANANA,
+  STRAWBERRIES,
+  ORANGE_SLICE,
   ICE_BATH_VOUCHER,
-];
-
-export const ALL_CONSUMABLES_BUFF: Item[] = [
   FOCUS_PILL,
   PERFORMANCE_ENHANCER,
   STAMINA_BOOST,
@@ -852,29 +915,38 @@ export const ALL_CONSUMABLES_BUFF: Item[] = [
   SPEED_BOOSTER,
   CONFIDENCE_TAPE,
   COACHES_NOTES,
-  LUCKY_PENNY,
   MOTIVATIONAL_PLAYLIST,
+  LUCKY_PENNY,
+  LUCKY_CHARM,
+  FOUR_LEAF_CLOVER,
+  TENNIS_BALL_KEYCHAIN,
+  LUCKY_SPROUT,
+  LUCKY_JACKET,
+  LUCKY_TEETH,
+  CHAMPION_WRISTBAND,
 ];
 
-export const ALL_LUCKY_ITEMS: Item[] = [LUCKY_CHARM, FOUR_LEAF_CLOVER, TENNIS_BALL_KEYCHAIN];
+export const ALL_ITEMS: Item[] = ITEM_COLLECTIONS;
 
-export const ALL_EQUIPMENT: Item[] = [
-  ...ALL_RACQUETS,
-  ...ALL_SHOES,
-  ...ALL_OUTFITS,
-  ...ALL_HATS,
-];
+export function getItemsByType(type: ItemType): Item[] {
+  return ALL_ITEMS.filter(item => item.type === type);
+}
 
-export const ALL_CONSUMABLES: Item[] = [
-  ...ALL_CONSUMABLES_INSTANT,
-  ...ALL_CONSUMABLES_BUFF,
-];
+export const ALL_EQUIPMENT = getItemsByType('equipment');
+export const ALL_CONSUMABLES = getItemsByType('consumable');
+export const ALL_LUCKY_ITEMS = getItemsByType('lucky');
 
-export const ALL_ITEMS: Item[] = [
-  ...ALL_EQUIPMENT,
-  ...ALL_CONSUMABLES,
-  ...ALL_LUCKY_ITEMS,
-];
+export const ALL_RACQUETS = ALL_EQUIPMENT.filter(item => item.equipmentSlot === 'racquet');
+export const ALL_SHOES = ALL_EQUIPMENT.filter(item => item.equipmentSlot === 'shoes');
+export const ALL_OUTFITS = ALL_EQUIPMENT.filter(item => item.equipmentSlot === 'outfit');
+export const ALL_HATS = ALL_EQUIPMENT.filter(item => item.equipmentSlot === 'hat');
+
+export const ALL_CONSUMABLES_INSTANT = ALL_CONSUMABLES.filter(
+  item => item.consumableEffect?.type === 'instant'
+);
+export const ALL_CONSUMABLES_BUFF = ALL_CONSUMABLES.filter(
+  item => item.consumableEffect?.type === 'next_activity'
+);
 
 /**
  * Get a random item from a specific category

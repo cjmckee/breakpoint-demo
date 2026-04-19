@@ -27,16 +27,16 @@ const TIER_1_OPPONENTS: OpponentPreset[] = [
     archetype: 'aggressive',
     stats: {
       core: {
-        serve: 40, forehand: 45, backhand: 30, return: 28, slice: 23,
+        serve: 30, forehand: 35, backhand: 20, return: 20, slice: 18,
       },
       technical: {
-        volley: 23, overhead: 28, dropShot: 18, spin: 28, placement: 28,
+        volley: 23, overhead: 28, dropShot: 18, spin: 23, placement: 23,
       },
       physical: {
-        speed: 38, stamina: 33, strength: 45, agility: 33, recovery: 33,
+        speed: 28, stamina: 23, strength: 35, agility: 23, recovery: 23,
       },
       mental: {
-        focus: 28, anticipation: 23, shotVariety: 23, offensive: 50, defensive: 23,
+        focus: 28, anticipation: 23, shotVariety: 23, offensive: 30, defensive: 23,
       },
     },
   },
@@ -47,16 +47,16 @@ const TIER_1_OPPONENTS: OpponentPreset[] = [
     archetype: 'defensive',
     stats: {
       core: {
-        serve: 36, forehand: 33, backhand: 33, return: 40, slice: 35,
+        serve: 31, forehand: 26, backhand: 28, return: 30, slice: 25,
       },
       technical: {
-        volley: 23, overhead: 23, dropShot: 23, spin: 28, placement: 28,
+        volley: 23, overhead: 23, dropShot: 23, spin: 25, placement: 23,
       },
       physical: {
-        speed: 38, stamina: 45, strength: 28, agility: 33, recovery: 40,
+        speed: 33, stamina: 35, strength: 25, agility: 30, recovery: 30,
       },
       mental: {
-        focus: 33, anticipation: 35, shotVariety: 23, offensive: 23, defensive: 45,
+        focus: 33, anticipation: 35, shotVariety: 23, offensive: 23, defensive: 35,
       },
     },
   },
@@ -67,16 +67,16 @@ const TIER_1_OPPONENTS: OpponentPreset[] = [
     archetype: 'all_court',
     stats: {
       core: {
-        serve: 34, forehand: 36, backhand: 36, return: 34, slice: 32,
+        serve: 31, forehand: 30, backhand: 30, return: 28, slice: 32,
       },
       technical: {
-        volley: 32, overhead: 29, dropShot: 29, spin: 34, placement: 34,
+        volley: 25, overhead: 25, dropShot: 29, spin: 30, placement: 30,
       },
       physical: {
-        speed: 36, stamina: 39, strength: 32, agility: 36, recovery: 36,
+        speed: 26, stamina: 29, strength: 24, agility: 26, recovery: 26,
       },
       mental: {
-        focus: 34, anticipation: 32, shotVariety: 34, offensive: 34, defensive: 34,
+        focus: 30, anticipation: 30, shotVariety: 24, offensive: 24, defensive: 24,
       },
     },
   },
@@ -87,16 +87,16 @@ const TIER_1_OPPONENTS: OpponentPreset[] = [
     archetype: 'serve_volley',
     stats: {
       core: {
-        serve: 45, forehand: 35, backhand: 30, return: 23, slice: 23,
+        serve: 35, forehand: 32, backhand: 32, return: 23, slice: 23,
       },
       technical: {
-        volley: 40, overhead: 40, dropShot: 18, spin: 23, placement: 31,
+        volley: 35, overhead: 35, dropShot: 18, spin: 23, placement: 25,
       },
       physical: {
-        speed: 28, stamina: 28, strength: 43, agility: 31, recovery: 31,
+        speed: 28, stamina: 28, strength: 33, agility: 24, recovery: 24,
       },
       mental: {
-        focus: 28, anticipation: 31, shotVariety: 25, offensive: 40, defensive: 21,
+        focus: 28, anticipation: 31, shotVariety: 25, offensive: 30, defensive: 21,
       },
     },
   },
@@ -107,16 +107,16 @@ const TIER_1_OPPONENTS: OpponentPreset[] = [
     archetype: 'counterpuncher',
     stats: {
       core: {
-        serve: 35, forehand: 31, backhand: 38, return: 43, slice: 40,
+        serve: 30, forehand: 28, backhand: 31, return: 33, slice: 30,
       },
       technical: {
         volley: 21, overhead: 23, dropShot: 25, spin: 31, placement: 28,
       },
       physical: {
-        speed: 45, stamina: 45, strength: 25, agility: 43, recovery: 43,
+        speed: 35, stamina: 35, strength: 20, agility: 23, recovery: 33,
       },
       mental: {
-        focus: 38, anticipation: 40, shotVariety: 25, offensive: 21, defensive: 47,
+        focus: 30, anticipation: 30, shotVariety: 25, offensive: 21, defensive: 37,
       },
     },
   },

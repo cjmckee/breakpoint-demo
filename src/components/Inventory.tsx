@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { Card } from './ui/Card';
+import { UnseenBadge } from './ui/UnseenBadge';
 import { Button } from './ui/Button';
 import { ItemManager } from '../game/ItemManager';
 import type { Item, EquipmentSlot } from '../types/items';
@@ -17,7 +18,7 @@ const SLOT_ICONS: Record<EquipmentSlot, string> = {
   hat: '🧢',
 };
 
-const SLOT_NAMES: Record<EquipmentSlot, string> = {
+export const SLOT_NAMES: Record<EquipmentSlot, string> = {
   racquet: 'Racquet',
   shoes: 'Shoes',
   outfit: 'Outfit',
@@ -120,11 +121,7 @@ export const Inventory: React.FC = () => {
             isSelected ? 'border-pixel-accent border-4' : ''
           }`}
         >
-          {isNew && (
-            <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white text-xs font-bold flex items-center justify-center rounded-full animate-bounce">
-              !
-            </div>
-          )}
+          {isNew && <UnseenBadge className="absolute -top-2 -right-2" />}
           <div className="text-center">
             <div className="text-3xl mb-1">
               {item.equipmentSlot ? SLOT_ICONS[item.equipmentSlot] : item.type === 'consumable' ? '💊' : '✨'}
@@ -173,12 +170,14 @@ export const Inventory: React.FC = () => {
             <h3 className="text-lg font-bold text-pixel-text mb-2">Effect</h3>
             {item.consumableEffect.instantEffects && (
               <div className="text-sm text-pixel-text-muted">
-                {item.consumableEffect.instantEffects.energyChange && (
+                { item.consumableEffect.instantEffects.energyChange && 
+                  item.consumableEffect.instantEffects.energyChange > 0 ? (
                   <div>Energy: +{item.consumableEffect.instantEffects.energyChange}</div>
-                )}
-                {item.consumableEffect.instantEffects.moodChange && (
+                ) : null}
+                { item.consumableEffect.instantEffects.moodChange &&
+                  item.consumableEffect.instantEffects.moodChange > 0 ? (
                   <div>Mood: +{item.consumableEffect.instantEffects.moodChange}</div>
-                )}
+                ) : null}
               </div>
             )}
             {item.consumableEffect.nextActivityBuffs && (
