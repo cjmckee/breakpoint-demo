@@ -17,6 +17,7 @@ export function useGameKeyboardHandler() {
   const clearIndicator = useGameStore((state) => state.clearIndicator);
   const dismissMatchResults = useGameStore((state) => state.dismissMatchResults);
   const dismissStoryEventResult = useGameStore((state) => state.dismissStoryEventResult);
+  const dismissOverlay = useGameStore((state) => state.dismissOverlay);
   const isMenuOpen = useMenuStore((state) => state.isOpen);
   const isCalendarOpen = useMenuStore((state) => state.isCalendarOpen);
   const openCalendar = useMenuStore((state) => state.openCalendar);
@@ -36,7 +37,10 @@ export function useGameKeyboardHandler() {
         return;
       }
 
-      if (gamePhase.type === 'story_event_result') {
+      if (
+        gamePhase.type === 'story_event_result' ||
+        (gamePhase.type === 'idle' && gamePhase.overlay?.type === 'story_event_result')
+      ) {
         if (key === 'Enter' || key === ' ') {
           event.preventDefault();
           dismissStoryEventResult();
@@ -44,8 +48,22 @@ export function useGameKeyboardHandler() {
         return;
       }
 
+      if (gamePhase.type === 'idle' && gamePhase.overlay?.type === 'training_result') {
+        if (key === 'Enter' || key === ' ') {
+          event.preventDefault();
+          dismissOverlay();
+        }
+        return;
+      }
+
       const phase = gamePhase.type;
       const onIdle = phase === 'idle' && !gamePhase.overlay;
+
+      // Prevent space/enter from accidentally clicking focused buttons
+      if (key === 'Enter' || key === ' ') {
+        event.preventDefault();
+        return;
+      }
 
       switch (key.toLowerCase()) {
         case 'c':
@@ -76,7 +94,7 @@ export function useGameKeyboardHandler() {
           break;
       }
     },
-    [gamePhase, isShopUnlocked, isMatchUnlocked, navigateTo, clearIndicator, dismissMatchResults, dismissStoryEventResult, isMenuOpen, isCalendarOpen, openCalendar, closeCalendar]
+    [gamePhase, isShopUnlocked, isMatchUnlocked, navigateTo, clearIndicator, dismissMatchResults, dismissStoryEventResult, dismissOverlay, isMenuOpen, isCalendarOpen, openCalendar, closeCalendar]
   );
 
   useEffect(() => {

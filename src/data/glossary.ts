@@ -110,6 +110,22 @@ export const SURFACE_GUIDE: GlossarySection[] = [
   },
 ];
 
+export const KEY_SHORTCUTS_GUIDE: GlossarySection[] = [
+  {
+    title: 'Navigation',
+    entries: [
+      { term: 'Enter / Space', definition: 'Dismiss match results, story event results, and training result overlays.' },
+      { term: 'T', definition: 'Open / close the Training screen. Press T on the hub to go to training, press T again to return.' },
+      { term: 'M', definition: 'Open / close the Match Setup screen. Only available once matches are unlocked.' },
+      { term: 'I', definition: 'Open / close your Inventory.' },
+      { term: 'R', definition: 'Open / close the Relationships screen.' },
+      { term: 'S', definition: 'Open / close the Shop. Only available once the shop is unlocked.' },
+      { term: 'C', definition: 'Open / close the Calendar.' },
+      { term: 'Escape', definition: 'Open / close the Main Menu.' },
+    ],
+  },
+];
+
 export const SCORING_GUIDE: GlossarySection[] = [
   {
     title: 'Game Scoring',

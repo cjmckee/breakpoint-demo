@@ -6,13 +6,14 @@
 import React, { useState, useEffect } from 'react';
 import { useMenuModal, type EncyclopediaSectionId } from '../hooks/useMenuModal';
 import { UnseenBadge } from './ui/UnseenBadge';
-import { TENNIS_TERMS, STATS_GUIDE, SURFACE_GUIDE, SCORING_GUIDE, type GlossarySection } from '../data/glossary';
+import { TENNIS_TERMS, STATS_GUIDE, SURFACE_GUIDE, SCORING_GUIDE, KEY_SHORTCUTS_GUIDE, type GlossarySection } from '../data/glossary';
 
 const SECTION_CONTENT: Record<EncyclopediaSectionId, GlossarySection[]> = {
   'scoring': SCORING_GUIDE,
   'tennis-terms': TENNIS_TERMS,
   'stats-guide': STATS_GUIDE,
   'surface-guide': SURFACE_GUIDE,
+  'key-shortcuts': KEY_SHORTCUTS_GUIDE,
   'relationships': [],
 };
 
