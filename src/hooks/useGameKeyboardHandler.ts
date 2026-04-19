@@ -13,12 +13,13 @@ function isInputFocused(): boolean {
 export function useGameKeyboardHandler() {
   const gamePhase = useGameStore((state) => state.gamePhase);
   const player = useGameStore((state) => state.player);
-  const calendar = useGameStore((state) => state.calendar);
+  const isShopUnlocked = useGameStore((state) => state.isShopUnlocked);
   const navigateTo = useGameStore((state) => state.navigateTo);
   const clearIndicator = useGameStore((state) => state.clearIndicator);
   const dismissMatchResults = useGameStore((state) => state.dismissMatchResults);
   const dismissStoryEventResult = useGameStore((state) => state.dismissStoryEventResult);
   const isMenuOpen = useMenuStore((state) => state.isOpen);
+  const openCalendar = useMenuStore((state) => state.openCalendar);
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
@@ -44,7 +45,6 @@ export function useGameKeyboardHandler() {
 
       if (gamePhase.type === 'idle' && !gamePhase.overlay) {
         const matchUnlocked = player?.flags?.[PlayerFlag.MATCH_UNLOCKED] === true;
-        const shopUnlocked = (calendar?.currentDay ?? 0) >= 7;
 
         switch (key.toLowerCase()) {
           case 't':
@@ -67,16 +67,20 @@ export function useGameKeyboardHandler() {
             navigateTo('relationships');
             break;
           case 's':
-            if (shopUnlocked) {
+            if (isShopUnlocked()) {
               event.preventDefault();
               clearIndicator('shop');
               navigateTo('shop');
             }
             break;
+          case 'c':
+            event.preventDefault();
+            openCalendar();
+            break;
         }
       }
     },
-    [gamePhase, player, calendar, navigateTo, clearIndicator, dismissMatchResults, dismissStoryEventResult, isMenuOpen]
+    [gamePhase, player, isShopUnlocked, navigateTo, clearIndicator, dismissMatchResults, dismissStoryEventResult, isMenuOpen, openCalendar]
   );
 
   useEffect(() => {

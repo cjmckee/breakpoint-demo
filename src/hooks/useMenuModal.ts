@@ -26,12 +26,15 @@ interface MenuState {
   isOpen: boolean;
   activeTab: string;
   encyclopediaSections: EncyclopediaSection[];
+  isCalendarOpen: boolean;
   openMenu: (tab?: string) => void;
   closeMenu: () => void;
   toggleMenu: () => void;
   setActiveTab: (tabId: string) => void;
   revealEncyclopediaSection: (sectionId: EncyclopediaSectionId) => void;
   markSectionSeen: (sectionId: EncyclopediaSectionId) => void;
+  openCalendar: () => void;
+  closeCalendar: () => void;
 }
 
 const DEFAULT_SECTIONS: EncyclopediaSection[] = [
@@ -48,6 +51,7 @@ export const useMenuStore = create<MenuState>()(
       isOpen: false,
       activeTab: 'settings',
       encyclopediaSections: DEFAULT_SECTIONS,
+      isCalendarOpen: false,
 
       openMenu: (tab?: string) => {
         set({
@@ -85,6 +89,9 @@ export const useMenuStore = create<MenuState>()(
           ),
         }));
       },
+
+      openCalendar: () => set({ isCalendarOpen: true }),
+      closeCalendar: () => set({ isCalendarOpen: false }),
     }),
     { name: 'menu-storage' }
   )
