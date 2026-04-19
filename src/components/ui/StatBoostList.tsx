@@ -1,4 +1,5 @@
 import React from 'react';
+import type { StatBoosts } from '../../types/game';
 
 export const STAT_ICONS: Record<string, string> = {
   serve: '🎾',
@@ -31,7 +32,7 @@ export function formatStatName(stat: string): string {
 }
 
 interface StatBoostListProps {
-  statBoosts: Record<string, number>;
+  statBoosts: StatBoosts;
   /**
    * compact — inline colored pills (+1 Forehand +1 Spin ...)
    * list    — single-col rows with icon + name + value
@@ -47,7 +48,7 @@ export const StatBoostList: React.FC<StatBoostListProps> = ({
   variant = 'list',
   showTotal = false,
 }) => {
-  const entries = Object.entries(statBoosts).filter(([, v]) => v > 0);
+  const entries = Object.entries(statBoosts).filter((e): e is [string, number] => (e[1] ?? 0) > 0);
   const total = entries.reduce((sum, [, v]) => sum + v, 0);
 
   if (variant === 'compact') {

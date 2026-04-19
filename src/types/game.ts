@@ -137,7 +137,7 @@ export interface TrainingSession {
   tier: TrainingSessionTier;
   energyCost: number;
   timeSlotsRequired: number;
-  statBoosts: Record<string, number>;
+  statBoosts: StatBoosts;
   statMultiplier: number;  // Added for UI display
   name: string;
   description?: string;
@@ -335,7 +335,7 @@ export interface Activity {
 export interface TrainingResult extends Activity {
   type: 'training';
   source: 'training_activity';
-  statBoosts: Record<string, number>;
+  statBoosts: StatBoosts;
   trainingType: string;
   trainingName: string;
   efficiency: number;

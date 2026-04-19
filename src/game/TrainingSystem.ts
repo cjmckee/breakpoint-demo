@@ -29,7 +29,7 @@ interface TrainingConfig {
   name: string;
   category: TrainingCategory;
   energyCost: number;
-  statBoosts: Record<string, number>;
+  statBoosts: StatBoosts;
   ability?: string;
   description: string;
 }
@@ -242,11 +242,11 @@ export class TrainingSystem {
 
     // Get tier configuration and scale stat boosts
     const tierConfig = TIER_CONFIGS[finalTier];
-    const scaledStatBoosts: Record<string, number> = {};
-
-    for (const [stat, baseBoost] of Object.entries(config.statBoosts)) {
-      scaledStatBoosts[stat] = Math.round(baseBoost * tierConfig.statMultiplier);
-    }
+    const scaledStatBoosts = Object.fromEntries(
+      Object.entries(config.statBoosts)
+        .filter((e): e is [string, number] => e[1] !== undefined)
+        .map(([stat, baseBoost]) => [stat, Math.round(baseBoost * tierConfig.statMultiplier)])
+    ) as StatBoosts;
 
     // Calculate energy cost - silver tier gets 15 energy discount
     let finalEnergyCost = config.energyCost;
@@ -284,15 +284,16 @@ export class TrainingSystem {
     }
 
     // Stat boosts from consumables only apply to matches, not training
-    const finalStatBoosts = { ...session.statBoosts };
+    const boosts = session.statBoosts as Record<string, number>;
+    let finalStatBoosts: StatBoosts = { ...boosts };
 
     // Apply training stat multiplier from items/abilities
     if (activeEffects) {
       const statMultiplier = EffectAggregator.getEffect(activeEffects, EffectKey.TRAINING_STAT_MULTIPLIER);
       if (statMultiplier > 0) {
-        for (const stat of Object.keys(finalStatBoosts)) {
-          finalStatBoosts[stat] = Math.round(finalStatBoosts[stat] * (1 + statMultiplier));
-        }
+        finalStatBoosts = Object.fromEntries(
+          Object.entries(boosts).map(([stat, value]) => [stat, Math.round(value * (1 + statMultiplier))])
+        ) as StatBoosts;
       }
     }
 
