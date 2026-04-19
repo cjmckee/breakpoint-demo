@@ -23,7 +23,7 @@ export const coachEvents: StoryEvent[] = [
     tags: ['coach', 'intro'],
     timeSlotsRequired: 1,
     prerequisites: {
-      completedEvents: ['abilities_basics'],
+      completedEvents: ['shop_basics'],
     },
     skippable: false,
     description: 'One of the academy\'s tennis coaches has taken interest in your development.',

@@ -444,7 +444,7 @@ export const welcomeEvents: StoryEvent[] = [
     timeSlotsRequired: 0, // Doesn't consume time - informational event
     prerequisites: {
       // This event is scheduled for day 33 (after all 5 team matches), do not require stats
-      completedEvents: ['abilities_basics', 'relationship_basics'],
+      completedEvents: ['shop_basics', 'relationship_basics'],
     },
     skippable: false,
     description: 'The Riverside Open is just around the corner.',

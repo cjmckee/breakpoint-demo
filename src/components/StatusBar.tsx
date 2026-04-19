@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { CalendarView } from './CalendarView';
+import { UnseenBadge } from './ui/UnseenBadge';
 
 export const StatusBar: React.FC = () => {
   const { calendar, currentStatus, player } = useGameStore();
@@ -95,11 +96,7 @@ export const StatusBar: React.FC = () => {
           >
             <div className="w-12 h-12 bg-pixel-secondary border-4 border-pixel-border flex items-center justify-center text-2xl relative">
               📅
-              {hasUnseenEvents && (
-                <span className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white text-xs font-bold flex items-center justify-center rounded-full animate-bounce">
-                  !
-                </span>
-              )}
+              {hasUnseenEvents && <UnseenBadge className="absolute -top-2 -right-2" />}
             </div>
             <div className="text-left">
               <div className="text-sm text-pixel-text-muted">

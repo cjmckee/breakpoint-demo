@@ -6,6 +6,7 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useMenuModal } from '../hooks/useMenuModal';
+import { UnseenBadge } from './ui/UnseenBadge';
 
 export const FloatingMenuButton: React.FC = () => {
   const { openMenu, hasAnyNewSection } = useMenuModal();
@@ -26,9 +27,7 @@ export const FloatingMenuButton: React.FC = () => {
     >
       ☰
       {hasAnyNewSection && (
-        <span className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white text-xs font-bold flex items-center justify-center rounded-full animate-bounce">
-          !
-        </span>
+        <UnseenBadge className="absolute -top-2 -right-2" />
       )}
     </button>
   );
@@ -63,9 +62,7 @@ export const FloatingMenuButtonWithPointerEvents: React.FC = () => {
     >
       ☰
       {hasAnyNewSection && (
-        <span className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white text-xs font-bold flex items-center justify-center rounded-full animate-bounce">
-          !
-        </span>
+        <UnseenBadge className="absolute -top-2 -right-2" />
       )}
     </button>
   );

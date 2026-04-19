@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { Card } from './ui/Card';
+import { UnseenBadge } from './ui/UnseenBadge';
 import { Button } from './ui/Button';
 import { ItemManager } from '../game/ItemManager';
 import type { Item, EquipmentSlot } from '../types/items';
@@ -120,11 +121,7 @@ export const Inventory: React.FC = () => {
             isSelected ? 'border-pixel-accent border-4' : ''
           }`}
         >
-          {isNew && (
-            <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white text-xs font-bold flex items-center justify-center rounded-full animate-bounce">
-              !
-            </div>
-          )}
+          {isNew && <UnseenBadge className="absolute -top-2 -right-2" />}
           <div className="text-center">
             <div className="text-3xl mb-1">
               {item.equipmentSlot ? SLOT_ICONS[item.equipmentSlot] : item.type === 'consumable' ? '💊' : '✨'}

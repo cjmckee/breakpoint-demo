@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { Card } from './ui/Card';
+import { UnseenBadge } from './ui/UnseenBadge';
 import { Button } from './ui/Button';
 import type { Challenge } from '../types/challenges';
 
@@ -137,9 +138,7 @@ export const ActiveChallenges: React.FC = () => {
                   <span className="text-2xl relative">
                     {isCompleted ? '✓' : '📋'}
                     {!seenIds.includes(challenge.id) && (
-                      <span className="absolute -top-2 -right-3 w-5 h-5 bg-red-500 text-white text-xs font-bold flex items-center justify-center rounded-full animate-bounce">
-                        !
-                      </span>
+                      <UnseenBadge size="sm" className="absolute -top-2 -right-3" />
                     )}
                   </span>
                   <div>
