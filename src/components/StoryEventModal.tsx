@@ -3,7 +3,7 @@
  * Modal for presenting story events and player choices
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
 import type { StoryEvent, StoryEventOption } from '../types/storyEvents';
@@ -90,6 +90,12 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
     }
   };
 
+  const goBackDialogue = () => {
+    if (currentDialogueIndex > 0) {
+      handleContinueDialogue(currentDialogueIndex - 1);
+    }
+  };
+
   const handleContinue = () => {
     if (isLinearEvent) {
       // Linear event - just execute with no option
@@ -101,6 +107,54 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
       }
     }
   };
+
+  const availableOptionIds = availableOptions.map((o) => o.id);
+  const selectableOptions = event.options.filter((o) => availableOptionIds.includes(o.id));
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (!isOpen || isHidden) return;
+      const el = document.activeElement as HTMLElement | null;
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
+
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        if (!allDialogueShown) {
+          advanceDialogue();
+        } else {
+          handleContinue();
+        }
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        if (!allDialogueShown) {
+          advanceDialogue();
+        }
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goBackDialogue();
+      } else if (e.key === 'ArrowDown') {
+        if (allDialogueShown && !isLinearEvent && selectableOptions.length > 0) {
+          e.preventDefault();
+          const currentIndex = selectableOptions.findIndex((o) => o.id === selectedOptionId);
+          const nextIndex = currentIndex < selectableOptions.length - 1 ? currentIndex + 1 : 0;
+          handleOptionSelect(selectableOptions[nextIndex].id);
+        }
+      } else if (e.key === 'ArrowUp') {
+        if (allDialogueShown && !isLinearEvent && selectableOptions.length > 0) {
+          e.preventDefault();
+          const currentIndex = selectableOptions.findIndex((o) => o.id === selectedOptionId);
+          const prevIndex = currentIndex > 0 ? currentIndex - 1 : selectableOptions.length - 1;
+          handleOptionSelect(selectableOptions[prevIndex].id);
+        }
+      }
+    },
+    [isOpen, isHidden, allDialogueShown, isLinearEvent, selectableOptions, selectedOptionId, advanceDialogue, goBackDialogue, handleContinue, handleOptionSelect]
+  );
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
 
   if (!isOpen) return null;
 
@@ -192,7 +246,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
       {!allDialogueShown ? (
         <div className="flex justify-between">
           {currentDialogueIndex > 0 ? (
-            <Button onClick={() => handleContinueDialogue(currentDialogueIndex - 1)} variant="secondary">
+            <Button onClick={goBackDialogue} variant="secondary">
               Back
             </Button>
           ) : (
@@ -209,7 +263,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
             // Linear event - just show continue button
             <div className="flex justify-between">
               {hasDialogue && dialogue!.length > 1 ? (
-                <Button onClick={() => handleContinueDialogue(currentDialogueIndex - 1)} variant="secondary">
+                <Button onClick={goBackDialogue} variant="secondary">
                   Back
                 </Button>
               ) : (
@@ -267,7 +321,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
 
           <div className="flex justify-between">
             {hasDialogue && dialogue!.length > 1 ? (
-              <Button onClick={() => handleContinueDialogue(currentDialogueIndex - 1)} variant="secondary">
+              <Button onClick={goBackDialogue} variant="secondary">
                 Back
               </Button>
             ) : (

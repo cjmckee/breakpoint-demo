@@ -3,15 +3,15 @@
  * Displays energy, mood, and time information
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useGameStore } from '../stores/gameStore';
-import { CalendarView } from './CalendarView';
+import { useMenuStore } from '../hooks/useMenuModal';
 import { UnseenBadge } from './ui/UnseenBadge';
 
 export const StatusBar: React.FC = () => {
   const { calendar, currentStatus, player } = useGameStore();
   const clearIndicator = useGameStore((state) => state.clearIndicator);
-  const [calendarOpen, setCalendarOpen] = useState(false);
+  const openCalendar = useMenuStore((state) => state.openCalendar);
 
   const hasUnseenEvents = (player?.activeIndicators ?? []).includes('calendar');
 
@@ -89,7 +89,7 @@ export const StatusBar: React.FC = () => {
           {/* Calendar */}
           <button
             onClick={() => {
-              setCalendarOpen(true);
+              openCalendar();
               clearIndicator('calendar');
             }}
             className="flex items-center gap-3 cursor-pointer hover:bg-pixel-secondary/50 rounded p-1 -m-1 transition-colors"
@@ -107,7 +107,6 @@ export const StatusBar: React.FC = () => {
               </div>
             </div>
           </button>
-          <CalendarView isOpen={calendarOpen} onClose={() => setCalendarOpen(false)} />
         </div>
       </div>
     </div>

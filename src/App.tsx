@@ -20,8 +20,10 @@ import { MatchSummaryModal } from './components/MatchSummaryModal';
 import { StoryEventModal } from './components/StoryEventModal';
 import { StoryEventResultModal } from './components/StoryEventResultModal';
 import { MenuModal } from './components/MenuModal';
+import { CalendarModal } from './components/CalendarModal';
 import { FloatingMenuButtonWithPointerEvents } from './components/FloatingMenuButton';
 import { useMenuKeyboardHandler } from './hooks/useMenuModal';
+import { useGameKeyboardHandler } from './hooks/useGameKeyboardHandler';
 
 function App() {
   const { isInitialized, gamePhase, initializeGame } = useGameStore();
@@ -31,6 +33,7 @@ function App() {
 
   useAudioTransitions();
   useMenuKeyboardHandler();
+  useGameKeyboardHandler();
 
   useEffect(() => {
     if (!isInitialized) {
@@ -161,6 +164,7 @@ function App() {
       {renderScreen()}
       {showFloatingUI && <FloatingMenuButtonWithPointerEvents />}
       <MenuModal />
+      <CalendarModal />
     </>
   );
 }
