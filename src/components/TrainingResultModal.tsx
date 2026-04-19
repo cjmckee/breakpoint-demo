@@ -6,6 +6,7 @@
 import React from 'react';
 import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
+import { StatBoostList } from './ui/StatBoostList';
 import { TrainingResult } from '../types/game';
 
 interface TrainingResultModalProps {
@@ -21,9 +22,7 @@ export const TrainingResultModal: React.FC<TrainingResultModalProps> = ({
 }) => {
   if (!result) return null;
 
-  const statChanges = Object.entries(result.statBoosts).filter(
-    ([_, value]) => value > 0
-  );
+  const hasStatBoosts = Object.values(result.statBoosts).some((v) => v > 0);
 
   const getTierColor = (tier: string): string => {
     switch (tier) {
@@ -57,24 +56,12 @@ export const TrainingResultModal: React.FC<TrainingResultModalProps> = ({
         </div>
 
         {/* Stat Improvements */}
-        {statChanges.length > 0 && (
+        {hasStatBoosts && (
           <div className="bg-pixel-card border-4 border-pixel-border p-4">
             <h3 className="text-lg font-bold text-pixel-text mb-3">
               💫 Stat Improvements
             </h3>
-            <div className="grid grid-cols-2 gap-3">
-              {statChanges.map(([stat, value]) => (
-                <div
-                  key={stat}
-                  className="bg-green-500 bg-opacity-20 border-2 border-green-500 p-3 text-center"
-                >
-                  <div className="text-2xl font-bold text-green-500">+{value}</div>
-                  <div className="text-sm text-pixel-text mt-1 capitalize">
-                    {stat.replace(/([A-Z])/g, ' $1').trim()}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <StatBoostList statBoosts={result.statBoosts} variant="result" />
           </div>
         )}
 

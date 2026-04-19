@@ -15,6 +15,7 @@ import type {
   ShopItem,
 } from '../types/game';
 import { SLOT_NAMES } from './Inventory';
+import { StatBoostList } from './ui/StatBoostList';
 
 const RARITY_LABELS: Record<ItemRarity, string> = {
   common: 'Common',
@@ -30,29 +31,6 @@ const RARITY_BG_COLORS: Record<ItemRarity, string> = {
   legendary: 'bg-yellow-900',
 };
 
-const STAT_ICONS: Record<string, string> = {
-  serve: '🎯',
-  forehand: '🏃',
-  backhand: '🏃',
-  volley: '🖐️',
-  overhead: '🙌',
-  dropShot: '📉',
-  slice: '🔪',
-  return: '🔙',
-  spin: '🔄',
-  placement: '🎯',
-  speed: '⚡',
-  stamina: '💪',
-  strength: '💪',
-  agility: '🦘',
-  focus: '🎯',
-  anticipation: '👁️',
-  shotVariety: '🎨',
-  recovery: '🔄',
-  offensive: '⚔️',
-  defensive: '🛡️',
-};
-
 function getRarityColor(rarity?: ItemRarity): string {
   switch (rarity) {
     case 'legendary': return 'text-yellow-400';
@@ -62,9 +40,6 @@ function getRarityColor(rarity?: ItemRarity): string {
   }
 }
 
-function formatStatName(stat: string): string {
-  return stat.charAt(0).toUpperCase() + stat.slice(1);
-}
 
 const BuyButton: React.FC<{
   item: ShopItem;
@@ -110,20 +85,8 @@ const StatBoostCard: React.FC<{
           </div>
         </div>
 
-        <div className="mt-2 pt-2 border-t border-gray-700 flex flex-col flex-1">
-          <div className="grid grid-cols-2 gap-1">
-            {statEntries.map(([stat, value]) => (
-              <div key={stat} className="flex items-center gap-1 text-sm">
-                <span>{STAT_ICONS[stat] || '⭐'}</span>
-                <span className="text-gray-300">{formatStatName(stat)}</span>
-                <span className="text-green-400 ml-auto">+{value}</span>
-              </div>
-            ))}
-          </div>
-          <div className="mt-auto pt-2 border-t border-gray-700 flex justify-between text-sm">
-            <span className="text-gray-400">Total Improvement</span>
-            <span className="text-green-400">+{totalIncrease}</span>
-          </div>
+        <div className="mt-2 pt-2 border-t border-gray-700">
+          <StatBoostList statBoosts={item.statBoosts} variant="grid" showTotal />
         </div>
 
         <div className="mt-auto">
@@ -181,13 +144,9 @@ const ConsumableShopCard: React.FC<{
         {hasNextActivity && (
           <div className="mt-2 pt-2 border-t border-gray-700 text-xs text-gray-400">Next Session</div>
         )}
-        {item.nextActivityBuffs?.statBoosts && Object.entries(item.nextActivityBuffs.statBoosts).map(([stat, value]) => (
-          <div key={stat} className="flex items-center gap-2 text-sm">
-            <span>{STAT_ICONS[stat] || '⭐'}</span>
-            <span className="text-gray-300">{formatStatName(stat)}</span>
-            <span className="text-green-400 ml-auto">+{value}</span>
-          </div>
-        ))}
+        {item.nextActivityBuffs?.statBoosts && (
+          <StatBoostList statBoosts={item.nextActivityBuffs.statBoosts} variant="list" />
+        )}
 
         <div className="mt-auto">
           <BuyButton item={item} canAfford={canAfford} onBuy={onBuy} />
@@ -203,8 +162,6 @@ const EquipmentShopCard: React.FC<{
   onBuy: (itemId: string) => void;
 }> = ({ item, playerExperience, onBuy }) => {
   const canAfford = playerExperience >= item.cost;
-  const statEntries = Object.entries(item.statBoosts);
-  const totalIncrease = statEntries.reduce((sum, [, value]) => sum + value, 0);
 
   return (
     <Card className={`border-2 p-4 ${item.purchased ? 'opacity-60' : ''} bg-gray-900 border-gray-600 flex flex-col`}>
@@ -226,20 +183,8 @@ const EquipmentShopCard: React.FC<{
           {SLOT_NAMES[item.slot] || item.slot}
         </div>
 
-        <div className="mt-2 pt-2 border-t border-gray-700 flex flex-col flex-1">
-          <div className="grid grid-cols-2 gap-1">
-            {statEntries.map(([stat, value]) => (
-              <div key={stat} className="flex items-center gap-1 text-sm">
-                <span>{STAT_ICONS[stat] || '⭐'}</span>
-                <span className="text-gray-300">{formatStatName(stat)}</span>
-                <span className="text-green-400 ml-auto">+{value}</span>
-              </div>
-            ))}
-          </div>
-          <div className="mt-auto pt-2 border-t border-gray-700 flex justify-between text-sm">
-            <span className="text-gray-400">Total Improvement</span>
-            <span className="text-green-400">+{totalIncrease}</span>
-          </div>
+        <div className="mt-2 pt-2 border-t border-gray-700">
+          <StatBoostList statBoosts={item.statBoosts} variant="grid" showTotal />
         </div>
 
         <div className="mt-auto">
