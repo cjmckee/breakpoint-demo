@@ -8,7 +8,7 @@ import type {
   StatBoosts,
   Ability,
 } from '../types/game';
-import type { PlayerStats } from '../types';
+import type { PlayerStats } from '../types/index';
 import type { Item } from '../types/items';
 import { ABILITY_DEFINITIONS } from './AbilitySystem';
 import { AbilityRarity } from '../types/game';
@@ -28,8 +28,8 @@ function getStatValue(stats: PlayerStats, statName: string): number {
 }
 
 function calculateStatIncreaseCost(currentValue: number, increase: number): number {
-  const multiplier = Math.max(1, currentValue / 10 - 1);
-  return Math.round(Math.pow(increase, 1.3) * multiplier);
+  const multiplier = Math.max(3, currentValue / 10);
+  return Math.round(Math.pow(increase, 1.4) * multiplier);
 }
 
 function randInt(min: number, max: number): number {
@@ -78,8 +78,11 @@ function createStatIncreaseItem(playerStats: PlayerStats | null): StatIncreaseIt
     totalIncrease += boost;
   }
 
-  const currentValue = playerStats ? getStatValue(playerStats, Object.keys(statBoosts)[0]) : 0;
-  const cost = calculateStatIncreaseCost(currentValue, totalIncrease);
+  const statKeys = Object.keys(statBoosts);
+  const avgCurrentValue = playerStats
+    ? statKeys.reduce((sum, stat) => sum + getStatValue(playerStats, stat), 0) / statKeys.length
+    : 0;
+  const cost = calculateStatIncreaseCost(avgCurrentValue, totalIncrease);
   const affectedStats = Object.keys(statBoosts).join(' + ');
   const total = Object.values(statBoosts).reduce((a, b) => a + b, 0);
 
