@@ -282,6 +282,7 @@ export const Shop: React.FC = () => {
             <div>
               <h2 className="text-xl font-bold text-yellow-400">Experience</h2>
               <p className="text-sm text-yellow-200">Spend experience to improve your character</p>
+              <p className="text-xs text-pixel-text">New items are available each day</p>
             </div>
             <div className="text-4xl font-bold text-yellow-400">
               {player.experience} XP
