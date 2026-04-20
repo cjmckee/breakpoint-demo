@@ -90,6 +90,19 @@ function getAllStatEntries(stats: PlayerStats): StatEntry[] {
  * 4. Score = core_matches * 3 + supporting_matches * 1 + 2 bonus if #1 stat is a core stat
  * 5. All-court wins when no archetype clears MIN_ARCHETYPE_SCORE
  */
+export function calculateOverallRating(stats: PlayerStats): number {
+  const avg = (vals: object) => {
+    const v = Object.values(vals) as number[];
+    return v.reduce((s, x) => s + x, 0) / v.length;
+  };
+  return Math.round(
+    avg(stats.core) * 0.45 +
+    avg(stats.technical) * 0.15 +
+    avg(stats.physical) * 0.25 +
+    avg(stats.mental) * 0.15
+  );
+}
+
 export function derivePlayStyle(stats: PlayerStats): PlayStyle {
   const allStats = getAllStatEntries(stats);
   const allValues = allStats.map(s => s.value);
@@ -354,18 +367,7 @@ export class PlayerProfile implements IPlayerProfile {
    * Calculate overall player rating (0-100)
    */
   public get overallRating(): number {
-    const coreAvg = this.getStatCategoryAverage('core');
-    const technicalAvg = this.getStatCategoryAverage('technical');
-    const physicalAvg = this.getStatCategoryAverage('physical');
-    const mentalAvg = this.getStatCategoryAverage('mental');
-
-    // Core stats have the most impact on match outcomes
-    return Math.round(
-      coreAvg * 0.45 +
-      technicalAvg * 0.15 +
-      physicalAvg * 0.25 +
-      mentalAvg * 0.15
-    );
+    return calculateOverallRating(this.stats);
   }
 
   /**
