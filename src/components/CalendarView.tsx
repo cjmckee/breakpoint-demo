@@ -16,7 +16,9 @@ import type { StoryMatchMetadata } from '../types/game';
 import { Modal } from './ui/Modal';
 import { OpponentPreviewCard } from './OpponentPreviewCard';
 import { derivePlayStyle } from '../core/PlayerProfile';
+import { getScaledOpponentStats } from '../data/opponents';
 import type { CourtSurface, PlayerStats, PlayStyle } from '../types';
+import type { OpponentTier } from '../types/game';
 
 interface CalendarViewProps {
   isOpen: boolean;
@@ -73,7 +75,11 @@ interface MatchPreviewData {
   surface: CourtSurface;
 }
 
-function getMatchPreviewData(event: ScheduledEvent, calendar: ReturnType<typeof useGameStore.getState>['calendar']): MatchPreviewData | null {
+function getMatchPreviewData(
+  event: ScheduledEvent,
+  calendar: ReturnType<typeof useGameStore.getState>['calendar'],
+  practiceWinsPerTier: Partial<Record<OpponentTier, number>>,
+): MatchPreviewData | null {
   if (event.eventType === 'tournament_match') {
     const meta = event.metadata as TournamentMatchMetadata;
     const tournament = TournamentRegistry.getTournament(meta.tournamentId);
@@ -83,24 +89,28 @@ function getMatchPreviewData(event: ScheduledEvent, calendar: ReturnType<typeof 
     if (!round) return null;
 
     const opponent = round.opponent;
+    const tierWins = practiceWinsPerTier[opponent.tier] ?? 0;
+    const scaledStats = getScaledOpponentStats(opponent.stats, tierWins);
     return {
       opponentName: opponent.name,
       opponentTier: opponent.tier,
       opponentDescription: opponent.description,
-      opponentStats: opponent.stats,
-      opponentPlayStyle: derivePlayStyle(opponent.stats),
+      opponentStats: scaledStats,
+      opponentPlayStyle: derivePlayStyle(scaledStats),
       surface: tournament.surface as CourtSurface,
     };
   }
 
   if (event.eventType === 'story_match') {
     const meta = event.metadata as StoryMatchMetadata;
+    const tierWins = practiceWinsPerTier[meta.opponentTier] ?? 0;
+    const scaledStats = getScaledOpponentStats(meta.opponentStats, tierWins);
     return {
       opponentName: meta.opponentName,
       opponentTier: meta.opponentTier,
       opponentDescription: meta.opponentDescription,
-      opponentStats: meta.opponentStats,
-      opponentPlayStyle: derivePlayStyle(meta.opponentStats),
+      opponentStats: scaledStats,
+      opponentPlayStyle: derivePlayStyle(scaledStats),
       surface: (meta.surface || 'hard') as CourtSurface,
     };
   }
@@ -110,6 +120,7 @@ function getMatchPreviewData(event: ScheduledEvent, calendar: ReturnType<typeof 
 
 export const CalendarView: React.FC<CalendarViewProps> = ({ isOpen, onClose }) => {
   const calendar = useGameStore((state) => state.calendar);
+  const practiceWinsPerTier = useGameStore((state) => state.player?.practiceWinsPerTier ?? {});
   const [hoveredEvent, setHoveredEvent] = useState<ScheduledEvent | null>(null);
   const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
 
@@ -234,7 +245,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ isOpen, onClose }) =
       </div>
 
       {/* Hover Preview Popup */}
-      {hoveredEvent && getMatchPreviewData(hoveredEvent, calendar) && (
+      {hoveredEvent && getMatchPreviewData(hoveredEvent, calendar, practiceWinsPerTier) && (
         <div
           className="fixed z-50"
           style={{
@@ -243,7 +254,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ isOpen, onClose }) =
             transform: 'translateX(-50%)',
           }}
         >
-          <OpponentPreviewCard {...getMatchPreviewData(hoveredEvent, calendar)!} />
+          <OpponentPreviewCard {...getMatchPreviewData(hoveredEvent, calendar, practiceWinsPerTier)!} />
         </div>
       )}
     </Modal>
