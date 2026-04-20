@@ -144,6 +144,27 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
           <AbilityDisplay abilities={player.abilities} />
         </div>
       )}
+
+      {/* Career Stats */}
+      <div className="mt-6 pt-6 border-t-4 border-pixel-border">
+        <h4 className="font-semibold text-pixel-text-muted text-sm pb-2 mb-3">
+          Career Stats
+        </h4>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-pixel-bg border-2 border-pixel-border p-3 text-center">
+            <div className="text-xs text-pixel-text-muted mb-1">Total XP Earned</div>
+            <div className="text-lg font-bold text-yellow-400">{player.totalExperienceEarned ?? 0}</div>
+          </div>
+          <div className="bg-pixel-bg border-2 border-pixel-border p-3 text-center">
+            <div className="text-xs text-pixel-text-muted mb-1">Matches Won</div>
+            <div className="text-lg font-bold text-pixel-text">{player.matchesWon ?? 0}</div>
+          </div>
+          <div className="bg-pixel-bg border-2 border-pixel-border p-3 text-center">
+            <div className="text-xs text-pixel-text-muted mb-1">Matches Played</div>
+            <div className="text-lg font-bold text-pixel-text">{player.matchesPlayed ?? 0}</div>
+          </div>
+        </div>
+      </div>
     </Card>
   );
 };

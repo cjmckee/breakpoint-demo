@@ -71,6 +71,7 @@ export class PlayerManager {
 
       level: 1,
       experience: 0,
+      totalExperienceEarned: 0,
       tier: 1,  // All players start at tier 1
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -215,6 +216,7 @@ export class PlayerManager {
       player: {
         ...player,
         experience: newExperience,
+        totalExperienceEarned: (player.totalExperienceEarned ?? 0) + exp,
         level: newLevel,
         updatedAt: new Date().toISOString(),
       },

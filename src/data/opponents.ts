@@ -471,14 +471,14 @@ export function getOpponentsForTier(tier: OpponentTier): OpponentPreset[] {
 /**
  * Apply difficulty scaling to an opponent's stats based on how many practice
  * wins the player has accumulated against that tier. Each win adds +3 to all
- * stats, capped at +15 (reached after 5 wins). Stats are clamped to 100.
+ * stats, capped at +30 (reached after 10 wins). Stats are clamped to 100.
  */
-export function getScaledOpponentStats(preset: OpponentPreset, tierWins: number): PlayerStats {
-  const boost = Math.min(tierWins * 3, 15);
-  if (boost === 0) return preset.stats;
+export function getScaledOpponentStats(stats: PlayerStats, tierWins: number): PlayerStats {
+  const boost = Math.min(tierWins * 3, 30);
+  if (boost === 0) return stats;
 
   const scale = (v: number) => Math.min(100, v + boost);
-  const { core, technical, physical, mental } = preset.stats;
+  const { core, technical, physical, mental } = stats;
 
   return {
     core: {

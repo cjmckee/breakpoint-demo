@@ -453,6 +453,7 @@ export interface Player {
 
   level: number;
   experience: number;
+  totalExperienceEarned: number;
   matchesPlayed?: number;
   matchesWon?: number;
   tier: OpponentTier;  // Player's current tier (1-4) determines available opponents and training
