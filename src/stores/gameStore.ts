@@ -927,10 +927,9 @@ export const useGameStore = create<GameState>()(
                   const round = TournamentManager.getCurrentRound(config, calendar.activeTournament!.currentRound);
                   const opponent = round?.opponent;
                   const tournamentTier = (opponent?.tier || 1) as OpponentTier;
-                  const tournamentTierWins = player?.practiceWinsPerTier?.[tournamentTier] ?? 0;
                   const matchConfig: PreMatchConfig = {
                     opponentName: opponent?.name || 'Opponent',
-                    opponentStats: opponent?.stats ? getScaledOpponentStats(opponent.stats, tournamentTierWins) : ({} as PlayerStats),
+                    opponentStats: opponent?.stats ?? ({} as PlayerStats),
                     opponentTier: tournamentTier,
                     opponentDescription: opponent?.description,
                     opponentPlayStyle: opponent?.stats ? derivePlayStyle(opponent.stats) : { type: 'all_court', aggression: 50, netApproach: 50, consistency: 50, power: 50, description: '' } as PlayStyle,
@@ -964,10 +963,9 @@ export const useGameStore = create<GameState>()(
             console.log(`[navigateTo:idle] Story match metadata:`, metadata ? `prematchEventId=${metadata.prematchEventId}` : 'none');
             if (metadata) {
               const storyTier = metadata.opponentTier as OpponentTier;
-              const storyTierWins = player?.practiceWinsPerTier?.[storyTier] ?? 0;
               const matchConfig: PreMatchConfig = {
                 opponentName: metadata.opponentName,
-                opponentStats: getScaledOpponentStats(metadata.opponentStats, storyTierWins),
+                opponentStats: metadata.opponentStats,
                 opponentTier: storyTier,
                 opponentDescription: metadata.opponentDescription,
                 opponentPlayStyle: derivePlayStyle(metadata.opponentStats),
@@ -1082,10 +1080,9 @@ export const useGameStore = create<GameState>()(
               const round = TournamentManager.getCurrentRound(config, calendar.activeTournament!.currentRound);
               const opponent = round?.opponent;
               const tournamentTier = (opponent?.tier || 1) as OpponentTier;
-              const tournamentTierWins = player?.practiceWinsPerTier?.[tournamentTier] ?? 0;
               const matchConfig: PreMatchConfig = {
                 opponentName: opponent?.name || 'Opponent',
-                opponentStats: opponent?.stats ? getScaledOpponentStats(opponent.stats, tournamentTierWins) : ({} as PlayerStats),
+                opponentStats: opponent?.stats ?? ({} as PlayerStats),
                 opponentTier: tournamentTier,
                 opponentDescription: opponent?.description,
                 opponentPlayStyle: opponent?.stats ? derivePlayStyle(opponent.stats) : { type: 'all_court', aggression: 50, netApproach: 50, consistency: 50, power: 50, description: '' } as PlayStyle,
@@ -1123,10 +1120,9 @@ export const useGameStore = create<GameState>()(
             const metadata = StoryMatchManager.getStoryMatchMetadata(storyMatch);
             if (metadata) {
               const storyTier = metadata.opponentTier as OpponentTier;
-              const storyTierWins = player?.practiceWinsPerTier?.[storyTier] ?? 0;
               const matchConfig: PreMatchConfig = {
                 opponentName: metadata.opponentName,
-                opponentStats: getScaledOpponentStats(metadata.opponentStats, storyTierWins),
+                opponentStats: metadata.opponentStats,
                 opponentTier: storyTier,
                 opponentDescription: metadata.opponentDescription,
                 opponentPlayStyle: derivePlayStyle(metadata.opponentStats),
