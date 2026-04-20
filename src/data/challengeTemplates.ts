@@ -35,7 +35,7 @@ export const CHALLENGE_FOREHAND_FUNDAMENTALS: ChallengeTemplate = {
     relationshipChanges: {
       coach_gonzalez: 5,
     },
-    experience: 25,
+    experience: 15,
   },
 };
 
@@ -60,7 +60,7 @@ export const CHALLENGE_FIRST_VICTORIES: ChallengeTemplate = {
     relationshipChanges: {
       coach_gonzalez: 10,
     },
-    experience: 25,
+    experience: 15,
   },
 };
 
@@ -87,7 +87,7 @@ export const CHALLENGE_SERVE_MASTERY: ChallengeTemplate = {
     relationshipChanges: {
       coach_gonzalez: 5,
     },
-    experience: 25,
+    experience: 15,
   },
 };
 
@@ -121,7 +121,7 @@ export const CHALLENGE_BASELINE_WARRIOR: ChallengeTemplate = {
     relationshipChanges: {
       coach_gonzalez: 5,
     },
-    experience: 25,
+    experience: 15,
   },
 };
 
@@ -149,7 +149,7 @@ export const CHALLENGE_MENTAL_EDGE: ChallengeTemplate = {
     relationshipChanges: {
       coach_gonzalez: 10,
     },
-    experience: 25,
+    experience: 15,
   },
 };
 
@@ -181,7 +181,7 @@ export const CHALLENGE_BALANCED_APPROACH: ChallengeTemplate = {
     relationshipChanges: {
       coach_gonzalez: 10,
     },
-    experience: 30,
+    experience: 15,
   },
 };
 
@@ -214,7 +214,7 @@ export const CHALLENGE_ATHLETIC_FOUNDATION: ChallengeTemplate = {
     relationshipChanges: {
       coach_gonzalez: 10,
     },
-    experience: 30,
+    experience: 15,
   },
 };
 
@@ -242,7 +242,7 @@ export const CHALLENGE_TEN_WINS: ChallengeTemplate = {
       },
     },
     items: [CHAMPION_WRISTBAND],
-    experience: 50,
+    experience: 25,
   },
 };
 
@@ -268,7 +268,7 @@ export const CHALLENGE_PROVE_THEM_WRONG: ChallengeTemplate = {
         defensive: 3,
       },
     },
-    experience: 100,
+    experience: 40,
   },
 };
 
@@ -294,7 +294,7 @@ export const CHALLENGE_RIVAL_READY: ChallengeTemplate = {
     relationshipChanges: {
       jordan_rival: -5,
     },
-    experience: 100,
+    experience: 40,
   },
 };
 
@@ -325,7 +325,7 @@ export const CHALLENGE_MAKE_THEM_PROUD: ChallengeTemplate = {
     relationshipChanges: {
       family: 15,
     },
-    experience: 50,
+    experience: 25,
   },
 };
 
@@ -355,7 +355,7 @@ export const CHALLENGE_TEAM_SPIRIT: ChallengeTemplate = {
         spin: 2
       },
     },
-    experience: 25,
+    experience: 15,
   },
 };
 
@@ -378,7 +378,7 @@ export const CHALLENGE_SPONSOR_WORTHY: ChallengeTemplate = {
         serve: 5,
       },
     },
-    experience: 25,
+    experience: 15,
   },
 };
 
@@ -408,7 +408,7 @@ export const CHALLENGE_IMPRESS_ALEX: ChallengeTemplate = {
     relationshipChanges: {
       alex: 10,
     },
-    experience: 50,
+    experience: 25,
   },
 };
 
@@ -435,7 +435,7 @@ export const CHALLENGE_SLICE_SPECIALIST: ChallengeTemplate = {
         shotVariety: 2,
       },
     },
-    experience: 25,
+    experience: 15,
   },
 };
 
@@ -458,7 +458,7 @@ export const CHALLENGE_TOUCH_ARTIST: ChallengeTemplate = {
         volley: 2,
       },
     },
-    experience: 25,
+    experience: 15,
   },
 };
 
@@ -481,7 +481,7 @@ export const CHALLENGE_OVERHEAD_AUTHORITY: ChallengeTemplate = {
         strength: 2,
       },
     },
-    experience: 25,
+    experience: 15,
   },
 };
 
@@ -505,7 +505,7 @@ export const CHALLENGE_NEED_FOR_SPEED: ChallengeTemplate = {
         agility: 2,
       },
     },
-    experience: 25,
+    experience: 15,
   },
 };
 
@@ -529,7 +529,7 @@ export const CHALLENGE_NET_DOMINATOR: ChallengeTemplate = {
         dropShot: 2,
       },
     },
-    experience: 25,
+    experience: 15,
   },
 };
 
@@ -552,7 +552,7 @@ export const CHALLENGE_IRON_RECOVERY: ChallengeTemplate = {
         stamina: 2,
       },
     },
-    experience: 25,
+    experience: 15,
   },
 };
 
@@ -576,7 +576,7 @@ export const CHALLENGE_WINNER_MACHINE: ChallengeTemplate = {
         strength: 2,
       },
     },
-    experience: 50,
+    experience: 25,
   },
 };
 
@@ -599,7 +599,7 @@ export const CHALLENGE_WALL_CLIMBER: ChallengeTemplate = {
         serve: 2,
       },
     },
-    experience: 25,
+    experience: 15,
   },
 };
 
@@ -622,7 +622,7 @@ export const CHALLENGE_PRECISION_CUTTER: ChallengeTemplate = {
         dropShot: 2,
       },
     },
-    experience: 25,
+    experience: 15,
   },
 };
 
@@ -647,7 +647,7 @@ export const CHALLENGE_ESCAPE_ARTIST: ChallengeTemplate = {
         speed: 3
       },
     },
-    experience: 50,
+    experience: 25,
   },
 };
 
@@ -679,7 +679,7 @@ export const CHALLENGE_PRACTICE_MAKES_PERFECT: ChallengeTemplate = {
     relationshipChanges: {
       alex: 15,
     },
-    experience: 20,
+    experience: 10,
   },
 };
 
@@ -710,7 +710,7 @@ export const CHALLENGE_SIBLING_TEACHER: ChallengeTemplate = {
     relationshipChanges: {
       family: 10,
     },
-    experience: 25,
+    experience: 15,
   },
 };
 
@@ -749,7 +749,7 @@ export const CHALLENGE_TRICK_SHOT_MASTER: ChallengeTemplate = {
     relationshipChanges: {
       coach_gonzalez: 5,
     },
-    experience: 25,
+    experience: 15,
   },
 };
 
@@ -778,7 +778,7 @@ export const CHALLENGE_DOUBLES_INSTINCTS: ChallengeTemplate = {
         offensive: 2
       },
     },
-    experience: 50,
+    experience: 25,
   },
 };
 

@@ -129,8 +129,8 @@ export const ITEM_DROP_WIN_MULTIPLIER = 1.5;
 // BASE EXPERIENCE & MOOD REWARDS
 // ============================================================================
 export const BASE_EXPERIENCE = {
-  win: 50,
-  loss: 25,
+  win: 40,
+  loss: 20,
 };
 
 export const BASE_MOOD = {

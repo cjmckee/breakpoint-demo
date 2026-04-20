@@ -28,8 +28,8 @@ function getStatValue(stats: PlayerStats, statName: string): number {
 }
 
 function calculateStatIncreaseCost(currentValue: number, increase: number): number {
-  const multiplier = Math.max(3, currentValue / 10);
-  return Math.round(Math.pow(increase, 1.4) * multiplier);
+  const multiplier = Math.max(6, currentValue / 8);
+  return Math.round(Math.pow(increase, 1.5) * multiplier);
 }
 
 function randInt(min: number, max: number): number {
@@ -118,7 +118,7 @@ function createConsumableItem(): ConsumableItem {
     description: sourceItem.description,
     instantEffects: effect?.type === 'instant' ? effect.instantEffects : undefined,
     nextActivityBuffs: effect?.nextActivityBuffs,
-    cost: 2,
+    cost: 10,
     purchased: false,
     rarity: 'common',
   };
@@ -128,7 +128,7 @@ const SHOP_EQUIPMENT_ITEMS: Item[] = ALL_EQUIPMENT.filter(item => item.shopAvail
 
 function calculateEquipmentCost(statBoosts: StatBoosts): number {
   const total = Object.values(statBoosts).reduce((a, b) => a + b, 0);
-  return Math.round(Math.pow(total, 1.3) * 2);
+  return Math.round(Math.pow(total, 1.4) * 4);
 }
 
 function createEquipmentItem(): EquipmentItem {
