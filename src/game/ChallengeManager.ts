@@ -277,6 +277,7 @@ export class ChallengeManager {
       updatedPlayer = {
         ...updatedPlayer,
         experience: updatedPlayer.experience + challenge.reward.experience,
+        totalExperienceEarned: (updatedPlayer.totalExperienceEarned ?? 0) + challenge.reward.experience,
       };
     }
 
