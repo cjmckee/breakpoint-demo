@@ -926,10 +926,12 @@ export const useGameStore = create<GameState>()(
                 if (event) {
                   const round = TournamentManager.getCurrentRound(config, calendar.activeTournament!.currentRound);
                   const opponent = round?.opponent;
+                  const tournamentTier = (opponent?.tier || 1) as OpponentTier;
+                  const tournamentTierWins = player?.practiceWinsPerTier?.[tournamentTier] ?? 0;
                   const matchConfig: PreMatchConfig = {
                     opponentName: opponent?.name || 'Opponent',
-                    opponentStats: opponent?.stats || ({} as PlayerStats),
-                    opponentTier: (opponent?.tier || 1) as OpponentTier,
+                    opponentStats: opponent?.stats ? getScaledOpponentStats(opponent.stats, tournamentTierWins) : ({} as PlayerStats),
+                    opponentTier: tournamentTier,
                     opponentDescription: opponent?.description,
                     opponentPlayStyle: opponent?.stats ? derivePlayStyle(opponent.stats) : { type: 'all_court', aggression: 50, netApproach: 50, consistency: 50, power: 50, description: '' } as PlayStyle,
                     surface: config.surface || 'hard',
