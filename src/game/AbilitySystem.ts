@@ -248,6 +248,129 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       'Increases focus by 8, recovery by 6, anticipation by 4. Greatly improves mental resilience and mood recovery.',
   },
 
+  // ==================== RELATIONSHIP INTERACTION REWARDS ====================
+  // Earned only by completing tier 4 character interactions. Not available in shop.
+
+  [AbilityName.GRAND_STRATEGIST]: {
+    name: AbilityName.GRAND_STRATEGIST,
+    level: 1,
+    rarity: AbilityRarity.RARE,
+    shopAvailable: false,
+    modifiers: {
+      statBoosts: {
+        serve: 5,
+        placement: 3,
+        anticipation: 3,
+      },
+      additional: {
+        training_stat_multiplier: 0.1,
+      },
+    },
+    description:
+      "You've absorbed enough clipboard diagrams to fill a textbook. Coach Gonzalez's tactical genius has rubbed off on you.",
+    effects: 'Increases serve by 5, placement and anticipation by 3. Training stat gains improved by 10%.',
+  },
+
+  [AbilityName.RIVALS_EDGE]: {
+    name: AbilityName.RIVALS_EDGE,
+    level: 1,
+    rarity: AbilityRarity.UNCOMMON,
+    shopAvailable: false,
+    modifiers: {
+      statBoosts: {
+        focus: 5,
+        offensive: 3,
+        anticipation: 3,
+      },
+      additional: {
+        clutch: 2,
+      },
+    },
+    description:
+      "Nothing sharpens focus like someone who genuinely wants to beat you. Jordan's competitive fire is contagious — annoyingly.",
+    effects: 'Increases focus by 5, offensive and anticipation by 3. Improved clutch performance.',
+  },
+
+  [AbilityName.BEST_FRIEND_ENERGY]: {
+    name: AbilityName.BEST_FRIEND_ENERGY,
+    level: 1,
+    rarity: AbilityRarity.UNCOMMON,
+    shopAvailable: false,
+    modifiers: {
+      statBoosts: {
+        focus: 3,
+        recovery: 3,
+        stamina: 2,
+      },
+      additional: {
+        mood_gain_bonus: 3,
+      },
+    },
+    description:
+      "The scientifically proven mood boost of someone being unreasonably excited for you. Keith's enthusiasm is basically a superpower.",
+    effects: 'Increases focus and recovery by 3, stamina by 2. Mood restores 3 points faster each time slot.',
+  },
+
+  [AbilityName.TENNIS_NERD]: {
+    name: AbilityName.TENNIS_NERD,
+    level: 1,
+    rarity: AbilityRarity.UNCOMMON,
+    shopAvailable: false,
+    modifiers: {
+      statBoosts: {
+        placement: 5,
+        shotVariety: 3,
+        anticipation: 2,
+      },
+      additional: {
+        training_tier_bonus: 1,
+      },
+    },
+    description:
+      "Jen's strategic brain in ability form. Comes with an invisible napkin and very strong opinions about topspin angles.",
+    effects: 'Increases placement by 5, shot variety by 3, anticipation by 2. Chance to boost training tier.',
+  },
+
+  [AbilityName.HOME_SUPPORT]: {
+    name: AbilityName.HOME_SUPPORT,
+    level: 1,
+    rarity: AbilityRarity.UNCOMMON,
+    shopAvailable: false,
+    modifiers: {
+      statBoosts: {
+        recovery: 4,
+        stamina: 3,
+        focus: 2,
+      },
+      additional: {
+        energy_gain_bonus: 5,
+      },
+    },
+    description:
+      "The power of someone back home who believes in you unconditionally. And packed snacks. Mostly the snacks.",
+    effects: 'Increases recovery by 4, stamina by 3, focus by 2. Restores 5 extra energy each time you rest.',
+  },
+
+  [AbilityName.BRAND_MENTALITY]: {
+    name: AbilityName.BRAND_MENTALITY,
+    level: 1,
+    rarity: AbilityRarity.UNCOMMON,
+    shopAvailable: false,
+    modifiers: {
+      statBoosts: {
+        serve: 3,
+        forehand: 3,
+        strength: 2,
+      },
+      additional: {
+        mood_gain_bonus: 2,
+      },
+    },
+    description:
+      "Walk onto the court like you're in a commercial. (You kind of are.) The Sponsor Rep's polish has become your polish.",
+    effects: 'Increases serve and forehand by 3, strength by 2. Mood restores 2 points faster each time slot.',
+  },
+
   // ==================== LEGENDARY ABILITIES ====================
   [AbilityName.LEGENDARY_FOCUS]: {
     name: AbilityName.LEGENDARY_FOCUS,

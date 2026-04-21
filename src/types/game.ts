@@ -106,6 +106,14 @@ export const AbilityName = {
 
   // legendary
   LEGENDARY_FOCUS: 'legendary_focus',
+
+  // relationship interaction rewards (story-only, not in shop)
+  GRAND_STRATEGIST: 'grand_strategist',
+  RIVALS_EDGE: 'rivals_edge',
+  BEST_FRIEND_ENERGY: 'best_friend_energy',
+  TENNIS_NERD: 'tennis_nerd',
+  HOME_SUPPORT: 'home_support',
+  BRAND_MENTALITY: 'brand_mentality',
 } as const;
 
 // ============================================================================

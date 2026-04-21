@@ -71,7 +71,10 @@ export type StoryEventTag =
   | 'tutorial'
 
   // Random Events
-  | 'misc';
+  | 'misc'
+
+  // Player-initiated character interactions (excluded from random rolling)
+  | 'interaction';
 
 // ============================================================================
 // STORY EVENT PREREQUISITES

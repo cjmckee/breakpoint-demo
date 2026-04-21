@@ -170,6 +170,7 @@ export interface StoryEventResultOverlay {
 export type PhaseContinuation =
   | { type: 'idle' }
   | { type: 'milestone_check' }
+  | { type: 'relationships' }
   | { type: 'match_setup'; matchType: MatchType; matchConfig: PreMatchConfig }
   | { type: 'story_event'; event: StoryEvent; availableOptions: StoryEventOption[]; continuation?: PhaseContinuation };
 
