@@ -194,7 +194,7 @@ export const welcomeEvents: StoryEvent[] = [
           jen: 2,
           keith: 2,
         },
-        revealEncyclopediaSections: ['surface-guide'],
+        revealEncyclopediaSections: ['surface-guide', 'match-help'],
         scheduledEvents: [
           {
             eventType: 'story_match',
@@ -218,6 +218,7 @@ export const welcomeEvents: StoryEvent[] = [
               matchTitle: 'Practice Match vs Keith',
               matchDescription: 'A casual practice match with Keith to get some match experience.',
               countsForMilestones: false,
+              isTutorial: true,
             } as StoryMatchMetadata,
           },
           {

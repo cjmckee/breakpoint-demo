@@ -235,6 +235,7 @@ export interface StoryMatchMetadata {
 
   // Whether this match counts toward milestones and stats
   countsForMilestones?: boolean; // defaults to true
+  isTutorial?: boolean;          // show in-match tutorial guidance
 }
 
 /**

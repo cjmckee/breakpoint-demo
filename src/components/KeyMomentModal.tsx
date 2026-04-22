@@ -30,6 +30,7 @@ interface KeyMomentModalProps {
 
 export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMoment }) => {
   const [isHidden, setIsHidden] = useState(false);
+  const [tutorialExpanded, setTutorialExpanded] = useState(true);
   const handleKeyMomentChoice = useMatchStore((state) => state.handleKeyMomentChoice);
   const matchConfig = useMatchStore((state) => state.matchConfig);
   const showKeyMomentResult = useMatchStore((state) => state.showKeyMomentResult);
@@ -336,6 +337,28 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     <Modal isOpen={isOpen} title="" size="xl" showCloseButton={false} belowContent={peekButton}>
       <div className="space-y-5">
         {headerStrip}
+
+        {/* Tutorial Help Panel — decision phase only */}
+        {matchConfig?.isTutorial && (
+          <div className="border-4 border-yellow-500 bg-yellow-500 bg-opacity-10 px-4 py-3">
+            <button
+              onClick={() => setTutorialExpanded((e) => !e)}
+              className="w-full flex items-center justify-between text-sm font-bold text-yellow-400"
+            >
+              <span>How to Read This Screen</span>
+              <span className="text-pixel-text-muted">{tutorialExpanded ? '▲' : '▼'}</span>
+            </button>
+            {tutorialExpanded && (
+              <ul className="text-sm text-pixel-text mt-2 space-y-1">
+                <li>• <strong className="text-pixel-text">you X ← Y them</strong> — your weighted stats vs. opponent's for this tactic; ← means you're ahead, → means they are</li>
+                <li>• <strong className="text-pixel-text">Secondary effects</strong> — each tactic has bonuses (momentum, energy, mood) that apply on a win or loss, beyond just the point</li>
+                <li>• <strong className="text-pixel-text">Best against hint</strong> — tells you which opponent styles this tactic counters</li>
+                <li>• <strong className="text-pixel-text">Stats + luck</strong> — even the right choice can fail; better stats improve your odds but nothing is guaranteed</li>
+                <li>• See Encyclopedia → Match Help for a full breakdown</li>
+              </ul>
+            )}
+          </div>
+        )}
 
         {/* Tactical Options */}
         <div>

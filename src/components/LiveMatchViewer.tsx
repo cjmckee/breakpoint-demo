@@ -3,7 +3,7 @@
  * Displays real-time match simulation with scores, stats, and key moments
  */
 
-import React, { useEffect, useCallback, useRef } from 'react';
+import React, { useEffect, useCallback, useRef, useState } from 'react';
 import { useMatchStore } from '../stores/matchStore';
 import { Card } from './ui/Card';
 import { CourtVisualization } from './CourtVisualization';
@@ -20,6 +20,8 @@ interface MatchStats {
 }
 
 export const LiveMatchViewer: React.FC = () => {
+  const [tutorialDismissed, setTutorialDismissed] = useState(false);
+
   const isWaitingForChoice = useMatchStore((state) => state.isWaitingForChoice);
   const currentScore = useMatchStore((state) => state.currentScore);
   const matchConfig = useMatchStore((state) => state.matchConfig);
@@ -168,6 +170,29 @@ export const LiveMatchViewer: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-pixel-bg p-4">
+      {matchConfig?.isTutorial && !tutorialDismissed && (
+        <div className="max-w-6xl mx-auto mb-4 border-4 border-yellow-500 bg-yellow-500 bg-opacity-10 p-4">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-base font-bold text-yellow-400 mb-2">First Match Tips</h2>
+              <ul className="text-sm text-pixel-text space-y-1">
+                <li>• Points resolve automatically — watch the match log for what happened</li>
+                <li>• Score shows sets / games / points. Points go: Love → 15 → 30 → 40</li>
+                <li>• Momentum bar turns green when you win consecutive points; red when opponent does</li>
+                <li>• When the match pauses, a Key Moment needs your tactical decision</li>
+                <li>• See the Encyclopedia (⚙ menu) → Match Help for a full reference</li>
+              </ul>
+            </div>
+            <button
+              onClick={() => setTutorialDismissed(true)}
+              className="flex-shrink-0 text-pixel-text-muted hover:text-pixel-text text-xl font-bold leading-none"
+              aria-label="Dismiss tutorial tips"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
       <div className="max-w-6xl mx-auto space-y-4">
         {/* Header */}
         <div className="flex justify-between items-center">

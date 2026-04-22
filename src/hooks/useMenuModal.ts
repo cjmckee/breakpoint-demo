@@ -13,7 +13,8 @@ export type EncyclopediaSectionId =
   | 'surface-guide'
   | 'scoring'
   | 'key-shortcuts'
-  | 'relationships';
+  | 'relationships'
+  | 'match-help';
 
 export interface EncyclopediaSection {
   id: EncyclopediaSectionId;
@@ -44,6 +45,7 @@ const DEFAULT_SECTIONS: EncyclopediaSection[] = [
   { id: 'stats-guide', label: 'Stats', icon: '📊', isRevealed: false, isNew: false },
   { id: 'surface-guide', label: 'Surfaces', icon: '🏟️', isRevealed: false, isNew: false },
   { id: 'key-shortcuts', label: 'Shortcuts', icon: '⌨️', isRevealed: false, isNew: false },
+  { id: 'match-help', label: 'Match Help', icon: '⚔️', isRevealed: false, isNew: false },
   { id: 'relationships', label: 'Relationships', icon: '💝', isRevealed: false, isNew: false },
 ];
 

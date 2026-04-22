@@ -52,6 +52,7 @@ export const StoryMatch: React.FC<StoryMatchProps> = ({ matchConfig }) => {
       enableKeyMoments: true,
       matchFormat: (matchConfig.matchFormat || 'best-of-1') as 'best-of-1' | 'best-of-3',
       isStoryMatch: true,
+      isTutorial: matchConfig.storyMatchMetadata?.isTutorial ?? false,
     };
 
     beginMatch(config, 'story');
