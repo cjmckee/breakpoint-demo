@@ -9,6 +9,45 @@ import { Card } from './ui/Card';
 import { CourtVisualization } from './CourtVisualization';
 import { audioManager } from '../audio/AudioManager';
 import type { SfxKey } from '../audio/sounds';
+import type { MatchScore } from '../types/keyMoments';
+
+// ─── Tutorial spotlight steps ─────────────────────────────────────────────────
+interface TutorialStep {
+  /** Which section to ring-highlight */
+  target: 'court' | 'log' | 'your-stats';
+  title: string;
+  body: string;
+}
+
+// Court is shown LAST so the player is looking at it when they click "Let's Play!"
+const TUTORIAL_STEPS: TutorialStep[] = [
+  {
+    target: 'log',
+    title: 'Match Log',
+    body: 'Every point is narrated here in real time — aces, winners, errors, and rallies. Scroll up to review earlier points.',
+  },
+  {
+    target: 'your-stats',
+    title: 'Your Stats',
+    body: 'Aces, winners, double faults, and errors update as the match progresses. Keep an eye on these to gauge how you are playing.',
+  },
+  {
+    target: 'court',
+    title: 'The Court',
+    body: 'The court shows the live score, who is serving, the momentum bar (green = your favor, red = theirs), and your stamina. The match is about to begin — good luck!',
+  },
+];
+
+// Dummy 0-0 score used to render the court during the tutorial pause (before the match starts)
+const TUTORIAL_MOCK_SCORE: MatchScore = {
+  sets: [],
+  currentSet: { player: 4, opponent: 2 },
+  currentGame: { player: 2, opponent: 1 },
+  server: 'player',
+  isComplete: false,
+  momentum: 25,
+  energy: 41,
+};
 
 interface MatchStats {
   aces: number;
@@ -20,12 +59,18 @@ interface MatchStats {
 }
 
 export const LiveMatchViewer: React.FC = () => {
-  const [tutorialDismissed, setTutorialDismissed] = useState(false);
+  // Tutorial spotlight: step index while paused, null when dismissed
+  const [tutorialStep, setTutorialStep] = useState<number | null>(null);
+  // Ref guard so the tutorial can't re-open once dismissed (prevents race between
+  // setTutorialStep(null) and the isTutorialPaused → false store update)
+  const tutorialOpenedRef = useRef(false);
 
   const isWaitingForChoice = useMatchStore((state) => state.isWaitingForChoice);
   const currentScore = useMatchStore((state) => state.currentScore);
   const matchConfig = useMatchStore((state) => state.matchConfig);
   const matchStatistics = useMatchStore((state) => state.matchStatistics);
+  const isTutorialPaused = useMatchStore((state) => state.isTutorialPaused);
+  const resumeFromTutorial = useMatchStore((state) => state.resumeFromTutorial);
 
   const showKeyMomentResult = useMatchStore((state) => state.showKeyMomentResult);
   const lastKeyMomentResult = useMatchStore((state) => state.lastKeyMomentResult);
@@ -138,6 +183,27 @@ export const LiveMatchViewer: React.FC = () => {
   }, [showKeyMomentResult, lastKeyMomentResult]);
   // ───────────────────────────────────────────────────────────────────────────
 
+  // Open tutorial spotlight on step 0 when the match first pauses for it.
+  // The ref guard prevents re-opening during the race window between
+  // setTutorialStep(null) and the isTutorialPaused → false store update.
+  useEffect(() => {
+    if (isTutorialPaused && !tutorialOpenedRef.current) {
+      tutorialOpenedRef.current = true;
+      setTutorialStep(0);
+    }
+  }, [isTutorialPaused]);
+
+  const handleTutorialNext = useCallback(() => {
+    if (tutorialStep === null) return;
+    if (tutorialStep < TUTORIAL_STEPS.length - 1) {
+      setTutorialStep(tutorialStep + 1);
+    } else {
+      // Last step — dismiss and let the match run
+      setTutorialStep(null);
+      resumeFromTutorial();
+    }
+  }, [tutorialStep, resumeFromTutorial]);
+
   // Warn the player if they try to close/refresh mid-match
   const handleBeforeUnload = useCallback((e: BeforeUnloadEvent) => {
     e.preventDefault();
@@ -168,31 +234,55 @@ export const LiveMatchViewer: React.FC = () => {
     pointsWon: matchStatistics?.totalPoints.opponent ?? 0,
   };
 
+  const activeStep = tutorialStep !== null ? TUTORIAL_STEPS[tutorialStep] : null;
+  const isSpotlit = (target: TutorialStep['target']) => activeStep?.target === target;
+
+  // Shared class applied to a section when it is spotlit — lifts it above the dark overlay
+  const spotlightClass = (target: TutorialStep['target']) =>
+    isSpotlit(target)
+      ? 'relative z-[60] ring-4 ring-yellow-400 ring-offset-2 ring-offset-black rounded transition-all duration-300'
+      : 'relative z-0 transition-all duration-300';
+
   return (
     <div className="min-h-screen bg-pixel-bg p-4">
-      {matchConfig?.isTutorial && !tutorialDismissed && (
-        <div className="max-w-6xl mx-auto mb-4 border-4 border-yellow-500 bg-yellow-500 bg-opacity-10 p-4">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h2 className="text-base font-bold text-yellow-400 mb-2">First Match Tips</h2>
-              <ul className="text-sm text-pixel-text space-y-1">
-                <li>• Points resolve automatically — watch the match log for what happened</li>
-                <li>• Score shows sets / games / points. Points go: Love → 15 → 30 → 40</li>
-                <li>• Momentum bar turns green when you win consecutive points; red when opponent does</li>
-                <li>• When the match pauses, a Key Moment needs your tactical decision</li>
-                <li>• See the Encyclopedia (⚙ menu) → Match Help for a full reference</li>
-              </ul>
+      {/* ── Tutorial spotlight overlay ─────────────────────────────────────────── */}
+      {activeStep !== null && (
+        <>
+          {/* Dark backdrop — sits above normal content (z-50) but below spotlit sections (z-60) */}
+          <div className="fixed inset-0 z-50 bg-black bg-opacity-75 pointer-events-none" />
+
+          {/* Callout card — docked at bottom-center, above everything */}
+          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[70] w-full max-w-md pointer-events-auto">
+            <div className="mx-4 border-4 border-yellow-400 bg-gray-900 p-5 shadow-2xl">
+              {/* Step indicator */}
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-bold text-yellow-400 tracking-widest uppercase">
+                  Tutorial — Step {(tutorialStep ?? 0) + 1} / {TUTORIAL_STEPS.length}
+                </span>
+                <div className="flex gap-1">
+                  {TUTORIAL_STEPS.map((_, i) => (
+                    <div
+                      key={i}
+                      className={`w-2 h-2 rounded-full ${i === tutorialStep ? 'bg-yellow-400' : 'bg-gray-600'}`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <h2 className="text-lg font-bold text-yellow-300 mb-2">{activeStep.title}</h2>
+              <p className="text-sm text-gray-200 leading-relaxed mb-4">{activeStep.body}</p>
+
+              <button
+                onClick={handleTutorialNext}
+                className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-bold py-2 px-4 text-sm tracking-wide transition-colors"
+              >
+                {tutorialStep === TUTORIAL_STEPS.length - 1 ? "Let's Play!" : 'Next'}
+              </button>
             </div>
-            <button
-              onClick={() => setTutorialDismissed(true)}
-              className="flex-shrink-0 text-pixel-text-muted hover:text-pixel-text text-xl font-bold leading-none"
-              aria-label="Dismiss tutorial tips"
-            >
-              ×
-            </button>
           </div>
-        </div>
+        </>
       )}
+
       <div className="max-w-6xl mx-auto space-y-4">
         {/* Header */}
         <div className="flex justify-between items-center">
@@ -204,73 +294,79 @@ export const LiveMatchViewer: React.FC = () => {
           {/* Left column: 2/3 width */}
           <div className="md:col-span-2 space-y-4">
             {/* Court Visualization */}
-            {matchConfig && currentScore && (
-              <CourtVisualization
-                courtSurface={matchConfig.surface}
-                score={currentScore}
-                server={currentScore.server}
-                momentum={currentScore.momentum ?? 0}
-                stamina={currentScore.energy ?? matchConfig.energy}
-                maxStamina={100}
-                playerName={matchConfig.playerName || 'You'}
-                opponentName={matchConfig.opponentName || 'Opponent'}
-              />
-            )}
+            <div className={spotlightClass('court')}>
+              {matchConfig && (
+                <CourtVisualization
+                  courtSurface={matchConfig.surface}
+                  score={currentScore ?? TUTORIAL_MOCK_SCORE}
+                  server={(currentScore ?? TUTORIAL_MOCK_SCORE).server}
+                  momentum={(currentScore ?? TUTORIAL_MOCK_SCORE).momentum ?? 0}
+                  stamina={(currentScore ?? TUTORIAL_MOCK_SCORE).energy ?? matchConfig.energy}
+                  maxStamina={100}
+                  playerName={matchConfig.playerName || 'You'}
+                  opponentName={matchConfig.opponentName || 'Opponent'}
+                />
+              )}
+            </div>
 
             {/* Match Log */}
-            <Card title="Match Progress">
-              <div ref={logContainerRef} className="bg-pixel-bg border-2 border-pixel-border p-4 h-64 overflow-y-auto">
-                {matchLog.length === 0 ? (
-                  <p className="text-pixel-text-muted text-center py-8">
-                    Match starting... Key moments will appear here.
-                  </p>
-                ) : (
-                  <div className="space-y-2">
-                    {matchLog.slice(-50).map((log, index) => (
-                      <div
-                        key={index}
-                        className="text-sm text-pixel-text pb-2 border-b border-pixel-border last:border-0"
-                      >
-                        {log}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </Card>
+            <div className={spotlightClass('log')}>
+              <Card title="Match Progress">
+                <div ref={logContainerRef} className="bg-pixel-bg border-2 border-pixel-border p-4 h-64 overflow-y-auto">
+                  {matchLog.length === 0 ? (
+                    <p className="text-pixel-text-muted text-center py-8">
+                      Match starting... Key moments will appear here.
+                    </p>
+                  ) : (
+                    <div className="space-y-2">
+                      {matchLog.slice(-50).map((log, index) => (
+                        <div
+                          key={index}
+                          className="text-sm text-pixel-text pb-2 border-b border-pixel-border last:border-0"
+                        >
+                          {log}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </Card>
+            </div>
           </div>
 
           {/* Right column: 1/3 width */}
           <div className="space-y-4">
-            {/* Player Stats */}
-            <Card title="Your Stats" className="bg-green-500 bg-opacity-10 border-green-500">
-              <div className="space-y-3">
-                <div className="flex justify-between items-center pb-2 border-b-2 border-pixel-border">
-                  <span className="text-pixel-text-muted">Aces</span>
-                  <span className="font-bold text-pixel-text">{playerStats.aces}</span>
+            {/* Player Stats — spotlit on step 2 */}
+            <div className={spotlightClass('your-stats')}>
+              <Card title="Your Stats" className="bg-green-500 bg-opacity-10 border-green-500">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center pb-2 border-b-2 border-pixel-border">
+                    <span className="text-pixel-text-muted">Aces</span>
+                    <span className="font-bold text-pixel-text">{playerStats.aces}</span>
+                  </div>
+                  <div className="flex justify-between items-center pb-2 border-b-2 border-pixel-border">
+                    <span className="text-pixel-text-muted">Double Faults</span>
+                    <span className="font-bold text-pixel-text">{playerStats.doubleFaults}</span>
+                  </div>
+                  <div className="flex justify-between items-center pb-2 border-b-2 border-pixel-border">
+                    <span className="text-pixel-text-muted">Winners</span>
+                    <span className="font-bold text-pixel-text">{playerStats.winners}</span>
+                  </div>
+                  <div className="flex justify-between items-center pb-2 border-b-2 border-pixel-border">
+                    <span className="text-pixel-text-muted">Unforced Errors</span>
+                    <span className="font-bold text-pixel-text">{playerStats.unforcedErrors}</span>
+                  </div>
+                  <div className="flex justify-between items-center pb-2 border-b-2 border-pixel-border">
+                    <span className="text-pixel-text-muted">1st Serve %</span>
+                    <span className="font-bold text-pixel-text">{playerStats.firstServePercentage}%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-pixel-text-muted">Points Won</span>
+                    <span className="font-bold text-green-500">{playerStats.pointsWon}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center pb-2 border-b-2 border-pixel-border">
-                  <span className="text-pixel-text-muted">Double Faults</span>
-                  <span className="font-bold text-pixel-text">{playerStats.doubleFaults}</span>
-                </div>
-                <div className="flex justify-between items-center pb-2 border-b-2 border-pixel-border">
-                  <span className="text-pixel-text-muted">Winners</span>
-                  <span className="font-bold text-pixel-text">{playerStats.winners}</span>
-                </div>
-                <div className="flex justify-between items-center pb-2 border-b-2 border-pixel-border">
-                  <span className="text-pixel-text-muted">Unforced Errors</span>
-                  <span className="font-bold text-pixel-text">{playerStats.unforcedErrors}</span>
-                </div>
-                <div className="flex justify-between items-center pb-2 border-b-2 border-pixel-border">
-                  <span className="text-pixel-text-muted">1st Serve %</span>
-                  <span className="font-bold text-pixel-text">{playerStats.firstServePercentage}%</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-pixel-text-muted">Points Won</span>
-                  <span className="font-bold text-green-500">{playerStats.pointsWon}</span>
-                </div>
-              </div>
-            </Card>
+              </Card>
+            </div>
 
             {/* Opponent Stats */}
             <Card title="Opponent Stats" className="bg-red-500 bg-opacity-10 border-red-500">
