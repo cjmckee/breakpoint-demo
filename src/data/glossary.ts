@@ -233,6 +233,10 @@ export const MATCH_HELP_GUIDE: GlossarySection[] = [
         term: 'Bad Matchup (⚠️)',
         definition: 'Your tactic played into the opponent\'s strengths. This penalty reduces your chance of success on the point.',
       },
+      {
+        term: 'Post-match',
+        definition: 'After the match, you can view your key moment results in the advanced statistics section of the match result. You can see how your choices affect the outcomes!'
+      }
     ],
   },
 ];
