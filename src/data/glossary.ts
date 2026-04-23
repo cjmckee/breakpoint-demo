@@ -162,3 +162,81 @@ export const SCORING_GUIDE: GlossarySection[] = [
     ],
   },
 ];
+
+export const MATCH_HELP_GUIDE: GlossarySection[] = [
+  {
+    title: 'Reading the Match',
+    entries: [
+      {
+        term: 'Match Log',
+        definition: 'Shows what happened in each point as they resolve automatically. Points play out based on player stats — no input required for normal rallies.',
+      },
+      {
+        term: 'Score Format',
+        definition: 'The score shows Sets → Games → Points. Points go: Love (0) → 15 → 30 → 40 → Game. At 40-40 (Deuce), a player must win two consecutive points to win the game.',
+      },
+      {
+        term: 'Momentum Bar',
+        definition: 'Shown in the court display. Positive momentum (green) means you are on a winning streak. Negative (red) means the opponent is on a run. Momentum modifies your Key Moment outcomes.',
+      },
+      {
+        term: 'Stamina / Energy',
+        definition: 'Your energy level during the match. Starts at your current energy before the match. Some Key Moment tactic choices cost energy — tired players are at a disadvantage.',
+      },
+    ],
+  },
+  {
+    title: 'Key Moments',
+    entries: [
+      {
+        term: 'What Is a Key Moment?',
+        definition: 'When a high-stakes situation arises — break point, set point, or match point — the match pauses and asks you to choose a tactic. Your decision affects both the point outcome and your match state.',
+      },
+      {
+        term: 'Stat Scores (you X · them Y)',
+        definition: 'Each tactic shows your weighted stats versus your opponent\'s for that specific approach. A higher score for you means your stats favor this tactic. The score difference drives the outcome.',
+      },
+      {
+        term: 'Matchup Arrow (← ═ →)',
+        definition: '← means your stats are clearly ahead for this tactic. → means the opponent\'s are. ═ means it\'s close. Combine this with the opponent\'s archetype to pick the best option.',
+      },
+      {
+        term: 'Opponent Archetype',
+        definition: 'Describes the opponent\'s play style (e.g., Aggressive, Defensive, All-Court). Some tactics are specifically strong or weak against certain archetypes — look for the "best against" hint on each option.',
+      },
+      {
+        term: 'Secondary Effects',
+        definition: 'Every tactic carries bonus effects — momentum, energy, mood, or pressure — that apply on a win, a loss, or always. These affect the rest of the match beyond just the current point. Choose wisely.',
+      },
+    ],
+  },
+  {
+    title: 'Key Moment Outcomes',
+    entries: [
+      {
+        term: 'Critical Success / Success',
+        definition: 'You won the point. A Critical Success means you outperformed the odds — expect larger secondary effect bonuses.',
+      },
+      {
+        term: 'Failure / Critical Failure',
+        definition: 'You lost the point. A Critical Failure means the outcome was particularly bad — secondary effect penalties are amplified.',
+      },
+      {
+        term: 'Stats + Luck',
+        definition: 'Even the best tactic can fail. Your stat advantage increases the odds in your favor, but there is always an element of randomness. A poor result does not necessarily mean you made the wrong choice — keep at it.',
+      },
+      {
+        term: 'Counter (🎯 Great Read)',
+        definition: 'Your tactic specifically countered the opponent\'s archetype. This bonus improves your chance of success on the point.',
+      },
+      {
+        term: 'Bad Matchup (⚠️)',
+        definition: 'Your tactic played into the opponent\'s strengths. This penalty reduces your chance of success on the point.',
+      },
+      {
+        term: 'Post-match',
+        definition: 'After the match, you can view your key moment results in the advanced statistics section of the match result. You can see how your choices affect the outcomes!'
+      }
+    ],
+  },
+];

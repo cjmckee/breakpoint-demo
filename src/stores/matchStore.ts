@@ -63,11 +63,16 @@ interface MatchState {
   // Resolver for key moment result display (blocks simulation until dismissed)
   keyMomentResultResolver: (() => void) | null;
 
+  // Tutorial pause — blocks simulation until player dismisses the intro spotlight
+  isTutorialPaused: boolean;
+  tutorialPauseResolver: (() => void) | null;
+
   // Actions
   startMatch: (config: InteractiveMatchConfig, onComplete: (data: MatchCompletionData) => void) => Promise<void>;
   handleKeyMomentChoice: (option: TacticalOption) => void;
   setKeyMomentResult: (result: KeyMomentResult) => Promise<void>;
   hideKeyMomentResult: () => void;
+  resumeFromTutorial: () => void;
   endMatch: () => void;
   resetMatch: () => void;
 }
@@ -89,6 +94,8 @@ export const useMatchStore = create<MatchState>((set, get) => ({
   orchestrator: null,
   keyMomentResolver: null,
   keyMomentResultResolver: null,
+  isTutorialPaused: false,
+  tutorialPauseResolver: null,
 
   // Start a new match
   startMatch: async (config: InteractiveMatchConfig, onComplete?: (data: MatchCompletionData) => void) => {
@@ -172,6 +179,14 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       keyMomentHistory: [],
       lastChosenOption: null,
     });
+
+    // If this is a tutorial match, pause before simulation so player can read spotlight intro
+    if (config.isTutorial) {
+      await new Promise<void>((resolve) => {
+        set({ isTutorialPaused: true, tutorialPauseResolver: resolve });
+      });
+      set({ isTutorialPaused: false, tutorialPauseResolver: null });
+    }
 
     // Start match simulation (async)
     try {
@@ -262,6 +277,14 @@ export const useMatchStore = create<MatchState>((set, get) => ({
     }
   },
 
+  // Resume match simulation after tutorial spotlight is dismissed
+  resumeFromTutorial: () => {
+    const { tutorialPauseResolver } = get();
+    if (tutorialPauseResolver) {
+      tutorialPauseResolver();
+    }
+  },
+
   // End match early
   endMatch: () => {
     const { orchestrator } = get();
@@ -275,6 +298,8 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       isWaitingForChoice: false,
       keyMomentResolver: null,
       keyMomentResultResolver: null,
+      isTutorialPaused: false,
+      tutorialPauseResolver: null,
     });
   },
 
@@ -300,6 +325,8 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       orchestrator: null,
       keyMomentResolver: null,
       keyMomentResultResolver: null,
+      isTutorialPaused: false,
+      tutorialPauseResolver: null,
     });
   },
 }));

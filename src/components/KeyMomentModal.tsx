@@ -12,14 +12,55 @@ import { ARCHETYPE_DATA, getRelevantTendency } from '../data/archetypes';
 import { KeyMomentResolver, KeyMomentResult, AppliedEffect } from '../game/KeyMomentResolver';
 import { useMatchStore } from '../stores/matchStore';
 import { PlayerStats } from '../types/game';
+import { useTutorialSpotlight, TutorialStep } from '../hooks/useTutorialSpotlight';
+import { TutorialCallout } from './tutorial/TutorialCallout';
+
+// ─── Tutorial step definitions ─────────────────────────────────────────────────
+type KmTarget = 'header' | 'options-matchup' | 'options-effects';
+type KmResultTarget = 'outcome' | 'tactic' | 'effects';
+
+const KM_TUTORIAL_STEPS: TutorialStep<KmTarget>[] = [
+  {
+    target: 'header',
+    title: 'The Situation',
+    body: 'This shows the type of key moment, your opponent\'s playing style, and current conditions like momentum and energy that affect your odds. Always consider your opponent\'s archetype and attack their weakness!',
+  },
+  {
+    target: 'options-matchup',
+    title: 'Matchup Indicator',
+    body: '"you X ← Y them" shows your weighted stats vs. theirs for this tactic — ← means you have the edge, → means they do. Each option uses different stats, so the matchup shifts per choice!',
+  },
+  {
+    target: 'options-effects',
+    title: 'Secondary Effects',
+    body: 'Each tactic carries bonuses that apply win or loss — momentum swings, energy shifts, mood changes. Pick the tactic that best counters their style, but nothing is guaranteed!',
+  },
+];
+
+const KM_RESULT_STEPS: TutorialStep<KmResultTarget>[] = [
+  {
+    target: 'outcome',
+    title: 'The Result',
+    body: 'The point result is shown here: win or lose. Critical outcomes (🌟 / 💥) mean your tactic landed perfectly — or backfired spectacularly. You can pick the right option and still lose! That\'s tennis, baby.',
+  },
+  {
+    target: 'tactic',
+    title: 'Matchup Indicator',
+    body: 'Your chosen tactic is shown here along with whether it countered their style (🎯) or played into their strengths (⚠️). Countering their playstyles improves your odds, but stats can still greatly impact your chances of success.',
+  },
+  {
+    target: 'effects',
+    title: 'Effects Applied',
+    body: 'Win or lose, your tactic\'s secondary effects still apply — momentum swings, energy changes, mood and pressure shifts carry into the rest of the match. Critical success and critical failure double the effects!',
+  },
+];
 
 const formatStatScore = (score: number): string => score.toFixed(0);
 
 const getMatchupArrow = (playerScore: number, opponentScore: number): { arrow: string; color: string } => {
   const diff = playerScore - opponentScore;
-  // Arrow points toward the higher rating (green toward player advantage, red toward opponent advantage)
-  if (diff > 3) return { arrow: '←', color: 'text-green-500' }; // Player higher, arrow points left toward player
-  if (diff < -3) return { arrow: '→', color: 'text-red-500' };   // Opponent higher, arrow points right toward opponent
+  if (diff > 3) return { arrow: '←', color: 'text-green-500' };
+  if (diff < -3) return { arrow: '→', color: 'text-red-500' };
   return { arrow: '═', color: 'text-yellow-500' };
 };
 
@@ -30,6 +71,7 @@ interface KeyMomentModalProps {
 
 export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMoment }) => {
   const [isHidden, setIsHidden] = useState(false);
+
   const handleKeyMomentChoice = useMatchStore((state) => state.handleKeyMomentChoice);
   const matchConfig = useMatchStore((state) => state.matchConfig);
   const showKeyMomentResult = useMatchStore((state) => state.showKeyMomentResult);
@@ -42,6 +84,47 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
 
   // During result phase, currentKeyMoment is null — fall back to history
   const activeKeyMoment = keyMoment ?? lastHistoryEntry?.keyMoment ?? null;
+
+  const isTutorial = !!matchConfig?.isTutorial;
+
+  // Decision-phase spotlight: fires on the first key moment only
+  const {
+    currentStep: kmStep,
+    activeStep: kmActiveStep,
+    isActive: kmTutorialActive,
+    isSpotlit: kmSpotlit,
+    isDimmed: kmDimmed,
+    next: kmNext,
+  } = useTutorialSpotlight(
+    KM_TUTORIAL_STEPS,
+    isOpen && !isResultPhase && isTutorial && keyMomentHistory.length === 0,
+  );
+
+  // Result-phase spotlight: fires on the first result screen only
+  const {
+    currentStep: kmResultStep,
+    activeStep: kmResultActiveStep,
+    isActive: kmResultTutorialActive,
+    isSpotlit: resultSpotlit,
+    isDimmed: resultDimmed,
+    next: kmResultNext,
+  } = useTutorialSpotlight(
+    KM_RESULT_STEPS,
+    isOpen && isResultPhase && isTutorial,
+  );
+
+  // Inline spotlight section class for KeyMomentModal (opacity-based, no z-index overlay)
+  const kmSectionClass = (target: KmTarget) => {
+    if (kmSpotlit(target)) return 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-black transition-all duration-200';
+    if (kmDimmed(target))  return 'opacity-25 transition-all duration-200';
+    return '';
+  };
+
+  const resultSectionClass = (target: KmResultTarget) => {
+    if (resultSpotlit(target)) return 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-black transition-all duration-200';
+    if (resultDimmed(target))  return 'opacity-25 transition-all duration-200';
+    return '';
+  };
 
   if (!isOpen || !activeKeyMoment) return null;
 
@@ -65,7 +148,6 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   const archetypeData = ARCHETYPE_DATA[activeKeyMoment.opponentArchetype];
   const tendency = getRelevantTendency(activeKeyMoment.opponentArchetype, opponentIsServing);
 
-  // Condition icons with tooltip text
   const ctx = activeKeyMoment.matchContext;
   const modifiers = KeyMomentResolver.getContextModifiers({
     momentum: ctx.momentum,
@@ -228,39 +310,52 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     return (
       <Modal isOpen={isOpen} title="" size="xl" showCloseButton={false} belowContent={peekButton}>
         <div className="space-y-5">
+          {kmResultActiveStep && (
+            <TutorialCallout
+              step={kmResultStep!}
+              totalSteps={KM_RESULT_STEPS.length}
+              title={kmResultActiveStep.title}
+              body={kmResultActiveStep.body}
+              onNext={kmResultNext}
+            />
+          )}
+
           {headerStrip}
 
-          {/* Outcome */}
-          <div className={`border-4 ${style.color} bg-opacity-15 p-6 text-center`}>
-            <div className="text-5xl mb-2">{style.icon}</div>
-            <h3 className="text-2xl font-bold text-pixel-text">{style.title}</h3>
-            <p className="text-base text-pixel-text mt-1">{getOutcomeMessage()}</p>
-          </div>
-
-          {/* Chosen tactic */}
-          <div className="flex items-center gap-4 p-4 bg-pixel-bg border-2 border-pixel-border">
-            <span className="text-3xl">{chosenOption.emoji}</span>
-            <div>
-              <div className="text-base font-bold text-pixel-text">{chosenOption.name}</div>
-              <div className="text-sm text-pixel-text-muted">{chosenOption.description}</div>
+          {/* Point result — spotlit on step 0 */}
+          <div className={resultSectionClass('outcome')}>
+            <div className={`border-4 ${style.color} bg-opacity-15 p-6 text-center`}>
+              <div className="text-5xl mb-2">{style.icon}</div>
+              <h3 className="text-2xl font-bold text-pixel-text">{style.title}</h3>
+              <p className="text-base text-pixel-text mt-1">{getOutcomeMessage()}</p>
             </div>
           </div>
 
-          {/* Counter / weak feedback */}
-          {result.isCounter && (
-            <div className="text-base px-4 py-3 border-2 border-green-600 bg-green-600 bg-opacity-10 text-green-400">
-              🎯 Great read — your tactic countered their style.
+          {/* Chosen tactic + matchup feedback — spotlit on step 1 */}
+          <div className={resultSectionClass('tactic')}>
+            <div className="flex items-center gap-4 p-4 bg-pixel-bg border-2 border-pixel-border">
+              <span className="text-3xl">{chosenOption.emoji}</span>
+              <div>
+                <div className="text-base font-bold text-pixel-text">{chosenOption.name}</div>
+                <div className="text-sm text-pixel-text-muted">{chosenOption.description}</div>
+              </div>
             </div>
-          )}
-          {result.isWeakChoice && (
-            <div className="text-base px-4 py-3 border-2 border-red-600 bg-red-600 bg-opacity-10 text-red-400">
-              ⚠️ Bad matchup — that tactic played into their strengths.
-            </div>
-          )}
 
-          {/* Applied effects */}
+            {result.isCounter && (
+              <div className="text-base px-4 py-3 border-2 border-green-600 bg-green-600 bg-opacity-10 text-green-400 mt-3">
+                🎯 Great read — your tactic countered their style.
+              </div>
+            )}
+            {result.isWeakChoice && (
+              <div className="text-base px-4 py-3 border-2 border-red-600 bg-red-600 bg-opacity-10 text-red-400 mt-3">
+                ⚠️ Bad matchup — that tactic played into their strengths.
+              </div>
+            )}
+          </div>
+
+          {/* Applied effects — spotlit on step 2 */}
           {result.appliedEffects.length > 0 && (
-            <div>
+            <div className={resultSectionClass('effects')}>
               <h4 className="text-sm font-bold text-pixel-text-muted mb-2 uppercase tracking-wide">
                 Effects Applied
               </h4>
@@ -280,10 +375,11 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
             </div>
           )}
 
-          {/* Continue */}
+          {/* Continue — blocked while result tutorial is active */}
           <button
-            onClick={hideKeyMomentResult}
-            className="w-full py-4 border-4 border-pixel-accent bg-pixel-accent bg-opacity-20 text-pixel-accent font-bold hover:bg-opacity-30 transition-colors text-base"
+            onClick={kmResultTutorialActive ? undefined : hideKeyMomentResult}
+            disabled={kmResultTutorialActive}
+            className="w-full py-4 border-4 border-pixel-accent bg-pixel-accent bg-opacity-20 text-pixel-accent font-bold hover:bg-opacity-30 transition-colors text-base disabled:opacity-40 disabled:cursor-default disabled:hover:bg-opacity-20"
           >
             Continue →
           </button>
@@ -335,10 +431,31 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   return (
     <Modal isOpen={isOpen} title="" size="xl" showCloseButton={false} belowContent={peekButton}>
       <div className="space-y-5">
-        {headerStrip}
+        {/* Inline spotlight callout */}
+        {kmActiveStep && (
+          <TutorialCallout
+            step={kmStep!}
+            totalSteps={KM_TUTORIAL_STEPS.length}
+            title={kmActiveStep.title}
+            body={kmActiveStep.body}
+            onNext={kmNext}
+            finalLabel="Got It — Let Me Choose"
+          />
+        )}
 
-        {/* Tactical Options */}
-        <div>
+        {/* Header strip — spotlit on step 0 */}
+        <div className={kmSectionClass('header')}>
+          {headerStrip}
+        </div>
+
+        {/* Tactical Options — outer ring when either options step is active */}
+        <div className={
+          (kmSpotlit('options-matchup') || kmSpotlit('options-effects'))
+            ? 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-black transition-all duration-200'
+            : kmDimmed('options-matchup')
+            ? 'opacity-25 transition-all duration-200'
+            : ''
+        }>
           <h3 className="text-base font-bold text-pixel-text mb-4">⚔️ Choose Your Tactic</h3>
           <div className="space-y-3">
             {activeKeyMoment.options.map((option, index) => {
@@ -346,11 +463,12 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
               return (
                 <button
                   key={index}
-                  onClick={() => handleKeyMomentChoice(option)}
-                  className="w-full text-left p-4 border-4 border-pixel-border bg-pixel-card hover:border-pixel-accent hover:scale-[1.01] transition-all"
+                  onClick={() => kmTutorialActive ? undefined : handleKeyMomentChoice(option)}
+                  disabled={kmTutorialActive}
+                  className="w-full text-left p-4 border-4 border-pixel-border bg-pixel-card hover:border-pixel-accent hover:scale-[1.01] transition-all disabled:cursor-default disabled:hover:scale-100 disabled:hover:border-pixel-border"
                 >
-                  {/* Option name + matchup indicator */}
-                  <div className="flex items-center justify-between gap-2 mb-1">
+                  {/* Option name + matchup indicator — dimmed when effects step is active */}
+                  <div className={`flex items-center justify-between gap-2 mb-1 transition-opacity duration-200 ${kmSpotlit('options-effects') ? 'opacity-25' : ''}`}>
                     <div className="flex items-center gap-2">
                       <span className="text-xl">{option.emoji}</span>
                       <h4 className="text-base font-bold text-pixel-text">{option.name}</h4>
@@ -360,13 +478,13 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                     </span>
                   </div>
 
-                  <p className="text-sm text-pixel-text-muted mb-2">{option.description}</p>
+                  <p className={`text-sm text-pixel-text-muted mb-2 transition-opacity duration-200 ${kmSpotlit('options-effects') ? 'opacity-25' : ''}`}>{option.description}</p>
 
-                  {/* Best against hint */}
-                  <p className="text-sm text-pixel-text-muted mb-3">{option.bestAgainstHint}</p>
+                  {/* Best against hint — dimmed when effects step is active */}
+                  <p className={`text-sm text-pixel-text-muted mb-3 transition-opacity duration-200 ${kmSpotlit('options-effects') ? 'opacity-25' : ''}`}>{option.bestAgainstHint}</p>
 
-                  {/* Secondary effects - on their own line */}
-                  <div className="border-t border-pixel-border pt-2 flex flex-wrap gap-2">
+                  {/* Secondary effects — dimmed when matchup step is active */}
+                  <div className={`border-t border-pixel-border pt-2 flex flex-wrap gap-2 transition-opacity duration-200 ${kmSpotlit('options-matchup') ? 'opacity-25' : ''}`}>
                     {option.secondaryEffects.map((effect, i) => {
                       const condLabel = getConditionLabel(effect.condition);
                       return (

@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { useMenuModal, type EncyclopediaSectionId } from '../hooks/useMenuModal';
 import { UnseenBadge } from './ui/UnseenBadge';
-import { TENNIS_TERMS, STATS_GUIDE, SURFACE_GUIDE, SCORING_GUIDE, KEY_SHORTCUTS_GUIDE, type GlossarySection } from '../data/glossary';
+import { TENNIS_TERMS, STATS_GUIDE, SURFACE_GUIDE, SCORING_GUIDE, KEY_SHORTCUTS_GUIDE, MATCH_HELP_GUIDE, type GlossarySection } from '../data/glossary';
 
 const SECTION_CONTENT: Record<EncyclopediaSectionId, GlossarySection[]> = {
   'scoring': SCORING_GUIDE,
@@ -14,6 +14,7 @@ const SECTION_CONTENT: Record<EncyclopediaSectionId, GlossarySection[]> = {
   'stats-guide': STATS_GUIDE,
   'surface-guide': SURFACE_GUIDE,
   'key-shortcuts': KEY_SHORTCUTS_GUIDE,
+  'match-help': MATCH_HELP_GUIDE,
   'relationships': [],
 };
 
