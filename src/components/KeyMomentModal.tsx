@@ -4,7 +4,7 @@
  * The modal stays open through both phases; the result requires explicit Continue.
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { Modal } from './ui/Modal';
 import { KeyMoment } from '../types/keyMoments';
 import { TacticalOption, SecondaryEffect } from '../data/tacticalOptions';
@@ -12,24 +12,14 @@ import { ARCHETYPE_DATA, getRelevantTendency } from '../data/archetypes';
 import { KeyMomentResolver, KeyMomentResult, AppliedEffect } from '../game/KeyMomentResolver';
 import { useMatchStore } from '../stores/matchStore';
 import { PlayerStats } from '../types/game';
+import { useTutorialSpotlight, TutorialStep } from '../hooks/useTutorialSpotlight';
+import { TutorialCallout } from './tutorial/TutorialCallout';
 
-// ─── Key moment inline spotlight steps ────────────────────────────────────────
+// ─── Tutorial step definitions ─────────────────────────────────────────────────
 type KmTarget = 'header' | 'options-matchup' | 'options-effects';
 type KmResultTarget = 'outcome' | 'tactic' | 'effects';
 
-interface KmTutorialStep {
-  target: KmTarget;
-  title: string;
-  body: string;
-}
-
-interface KmResultTutorialStep {
-  target: KmResultTarget;
-  title: string;
-  body: string;
-}
-
-const KM_TUTORIAL_STEPS: KmTutorialStep[] = [
+const KM_TUTORIAL_STEPS: TutorialStep<KmTarget>[] = [
   {
     target: 'header',
     title: 'The Situation',
@@ -44,19 +34,19 @@ const KM_TUTORIAL_STEPS: KmTutorialStep[] = [
     target: 'options-effects',
     title: 'Secondary Effects',
     body: 'Each tactic carries bonuses that apply win or loss — momentum swings, energy shifts, mood changes. Pick the tactic that best counters their style, but nothing is guaranteed!',
-  }
+  },
 ];
 
-const KM_RESULT_STEPS: KmResultTutorialStep[] = [
+const KM_RESULT_STEPS: TutorialStep<KmResultTarget>[] = [
   {
     target: 'outcome',
     title: 'The Result',
-    body: 'Win or lose the point is shown here. Critical outcomes (🌟 / 💥) mean your tactic landed perfectly — or backfired spectacularly. You can pick the right option and still lose! That\'s tennis, baby.',
+    body: 'The point result is shown here: win or lose. Critical outcomes (🌟 / 💥) mean your tactic landed perfectly — or backfired spectacularly. You can pick the right option and still lose! That\'s tennis, baby.',
   },
   {
     target: 'tactic',
     title: 'Matchup Indicator',
-    body: 'Your chosen tactic is shown here along with whether it countered their style (🎯) or played into their strengths (⚠️). Countering improves your odds; a weak matchup hurts them — even if the point went the other way.',
+    body: 'Your chosen tactic is shown here along with whether it countered their style (🎯) or played into their strengths (⚠️). Countering their playstyles improves your odds, but stats can still greatly impact your chances of success.',
   },
   {
     target: 'effects',
@@ -69,9 +59,8 @@ const formatStatScore = (score: number): string => score.toFixed(0);
 
 const getMatchupArrow = (playerScore: number, opponentScore: number): { arrow: string; color: string } => {
   const diff = playerScore - opponentScore;
-  // Arrow points toward the higher rating (green toward player advantage, red toward opponent advantage)
-  if (diff > 3) return { arrow: '←', color: 'text-green-500' }; // Player higher, arrow points left toward player
-  if (diff < -3) return { arrow: '→', color: 'text-red-500' };   // Opponent higher, arrow points right toward opponent
+  if (diff > 3) return { arrow: '←', color: 'text-green-500' };
+  if (diff < -3) return { arrow: '→', color: 'text-red-500' };
   return { arrow: '═', color: 'text-yellow-500' };
 };
 
@@ -82,13 +71,7 @@ interface KeyMomentModalProps {
 
 export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMoment }) => {
   const [isHidden, setIsHidden] = useState(false);
-  // Spotlight tutorial for the first key moment decision phase
-  const [kmTutorialStep, setKmTutorialStep] = useState<number | null>(null);
-  const kmTutorialShownRef = useRef(false);
 
-  // Spotlight tutorial for the first key moment result phase
-  const [kmResultStep, setKmResultStep] = useState<number | null>(null);
-  const kmResultShownRef = useRef(false);
   const handleKeyMomentChoice = useMatchStore((state) => state.handleKeyMomentChoice);
   const matchConfig = useMatchStore((state) => state.matchConfig);
   const showKeyMomentResult = useMatchStore((state) => state.showKeyMomentResult);
@@ -102,49 +85,45 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   // During result phase, currentKeyMoment is null — fall back to history
   const activeKeyMoment = keyMoment ?? lastHistoryEntry?.keyMoment ?? null;
 
-  // Auto-open the decision spotlight on the very first key moment of a tutorial match
-  useEffect(() => {
-    if (
-      isOpen &&
-      !isResultPhase &&
-      matchConfig?.isTutorial &&
-      keyMomentHistory.length === 0 &&
-      !kmTutorialShownRef.current
-    ) {
-      kmTutorialShownRef.current = true;
-      setKmTutorialStep(0);
-    }
-  }, [isOpen, isResultPhase, matchConfig?.isTutorial, keyMomentHistory.length]);
+  const isTutorial = !!matchConfig?.isTutorial;
 
-  // Auto-open the result spotlight on the first result screen of a tutorial match
-  useEffect(() => {
-    if (
-      isOpen &&
-      isResultPhase &&
-      matchConfig?.isTutorial &&
-      !kmResultShownRef.current
-    ) {
-      kmResultShownRef.current = true;
-      setKmResultStep(0);
-    }
-  }, [isOpen, isResultPhase, matchConfig?.isTutorial]);
+  // Decision-phase spotlight: fires on the first key moment only
+  const {
+    currentStep: kmStep,
+    activeStep: kmActiveStep,
+    isActive: kmTutorialActive,
+    isSpotlit: kmSpotlit,
+    isDimmed: kmDimmed,
+    next: kmNext,
+  } = useTutorialSpotlight(
+    KM_TUTORIAL_STEPS,
+    isOpen && !isResultPhase && isTutorial && keyMomentHistory.length === 0,
+  );
 
-  const handleKmTutorialNext = () => {
-    if (kmTutorialStep === null) return;
-    if (kmTutorialStep < KM_TUTORIAL_STEPS.length - 1) {
-      setKmTutorialStep(kmTutorialStep + 1);
-    } else {
-      setKmTutorialStep(null);
-    }
+  // Result-phase spotlight: fires on the first result screen only
+  const {
+    currentStep: kmResultStep,
+    activeStep: kmResultActiveStep,
+    isActive: kmResultTutorialActive,
+    isSpotlit: resultSpotlit,
+    isDimmed: resultDimmed,
+    next: kmResultNext,
+  } = useTutorialSpotlight(
+    KM_RESULT_STEPS,
+    isOpen && isResultPhase && isTutorial,
+  );
+
+  // Inline spotlight section class for KeyMomentModal (opacity-based, no z-index overlay)
+  const kmSectionClass = (target: KmTarget) => {
+    if (kmSpotlit(target)) return 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-black transition-all duration-200';
+    if (kmDimmed(target))  return 'opacity-25 transition-all duration-200';
+    return '';
   };
 
-  const handleKmResultNext = () => {
-    if (kmResultStep === null) return;
-    if (kmResultStep < KM_RESULT_STEPS.length - 1) {
-      setKmResultStep(kmResultStep + 1);
-    } else {
-      setKmResultStep(null);
-    }
+  const resultSectionClass = (target: KmResultTarget) => {
+    if (resultSpotlit(target)) return 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-black transition-all duration-200';
+    if (resultDimmed(target))  return 'opacity-25 transition-all duration-200';
+    return '';
   };
 
   if (!isOpen || !activeKeyMoment) return null;
@@ -169,7 +148,6 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   const archetypeData = ARCHETYPE_DATA[activeKeyMoment.opponentArchetype];
   const tendency = getRelevantTendency(activeKeyMoment.opponentArchetype, opponentIsServing);
 
-  // Condition icons with tooltip text
   const ctx = activeKeyMoment.matchContext;
   const modifiers = KeyMomentResolver.getContextModifiers({
     momentum: ctx.momentum,
@@ -329,44 +307,17 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
       }
     };
 
-    // Spotlight helpers for the result phase
-    const activeResultStep = kmResultStep !== null ? KM_RESULT_STEPS[kmResultStep] : null;
-    const resultSpotlit = (t: KmResultTarget) => activeResultStep?.target === t;
-    const resultDimmed  = (t: KmResultTarget) => activeResultStep !== null && !resultSpotlit(t);
-    const resultSectionClass = (t: KmResultTarget) => {
-      if (resultSpotlit(t)) return 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-black transition-all duration-200';
-      if (resultDimmed(t))  return 'opacity-25 transition-all duration-200';
-      return '';
-    };
-
     return (
       <Modal isOpen={isOpen} title="" size="xl" showCloseButton={false} belowContent={peekButton}>
         <div className="space-y-5">
-          {/* ── Result spotlight callout ───────────────────────────────────────── */}
-          {activeResultStep && (
-            <div className="border-4 border-yellow-400 bg-gray-900 p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-yellow-400 tracking-widest uppercase">
-                  Tutorial — Step {(kmResultStep ?? 0) + 1} / {KM_RESULT_STEPS.length}
-                </span>
-                <div className="flex gap-1">
-                  {KM_RESULT_STEPS.map((_, i) => (
-                    <div
-                      key={i}
-                      className={`w-2 h-2 rounded-full ${i === kmResultStep ? 'bg-yellow-400' : 'bg-gray-600'}`}
-                    />
-                  ))}
-                </div>
-              </div>
-              <h3 className="text-base font-bold text-yellow-300 mb-1">{activeResultStep.title}</h3>
-              <p className="text-sm text-gray-200 leading-relaxed mb-3">{activeResultStep.body}</p>
-              <button
-                onClick={handleKmResultNext}
-                className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-bold py-2 px-4 text-sm tracking-wide transition-colors"
-              >
-                {kmResultStep === KM_RESULT_STEPS.length - 1 ? 'Got It' : 'Next'}
-              </button>
-            </div>
+          {kmResultActiveStep && (
+            <TutorialCallout
+              step={kmResultStep!}
+              totalSteps={KM_RESULT_STEPS.length}
+              title={kmResultActiveStep.title}
+              body={kmResultActiveStep.body}
+              onNext={kmResultNext}
+            />
           )}
 
           {headerStrip}
@@ -426,8 +377,8 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
 
           {/* Continue — blocked while result tutorial is active */}
           <button
-            onClick={kmResultStep === null ? hideKeyMomentResult : undefined}
-            disabled={kmResultStep !== null}
+            onClick={kmResultTutorialActive ? undefined : hideKeyMomentResult}
+            disabled={kmResultTutorialActive}
             className="w-full py-4 border-4 border-pixel-accent bg-pixel-accent bg-opacity-20 text-pixel-accent font-bold hover:bg-opacity-30 transition-colors text-base disabled:opacity-40 disabled:cursor-default disabled:hover:bg-opacity-20"
           >
             Continue →
@@ -477,45 +428,19 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     }
   };
 
-  // Helpers for the inline spotlight
-  const activeKmStep = kmTutorialStep !== null ? KM_TUTORIAL_STEPS[kmTutorialStep] : null;
-  const kmSpotlit = (target: KmTarget) => activeKmStep?.target === target;
-  const kmDimmed  = (target: KmTarget) => activeKmStep !== null && !kmSpotlit(target);
-
-  const kmSectionClass = (target: KmTarget) => {
-    if (kmSpotlit(target)) return 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-black transition-all duration-200';
-    if (kmDimmed(target))  return 'opacity-25 transition-all duration-200';
-    return '';
-  };
-
   return (
     <Modal isOpen={isOpen} title="" size="xl" showCloseButton={false} belowContent={peekButton}>
       <div className="space-y-5">
-        {/* ── Inline spotlight callout ─────────────────────────────────────────── */}
-        {activeKmStep && (
-          <div className="border-4 border-yellow-400 bg-gray-900 p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-yellow-400 tracking-widest uppercase">
-                Tutorial — Step {(kmTutorialStep ?? 0) + 1} / {KM_TUTORIAL_STEPS.length}
-              </span>
-              <div className="flex gap-1">
-                {KM_TUTORIAL_STEPS.map((_, i) => (
-                  <div
-                    key={i}
-                    className={`w-2 h-2 rounded-full ${i === kmTutorialStep ? 'bg-yellow-400' : 'bg-gray-600'}`}
-                  />
-                ))}
-              </div>
-            </div>
-            <h3 className="text-base font-bold text-yellow-300 mb-1">{activeKmStep.title}</h3>
-            <p className="text-sm text-gray-200 leading-relaxed mb-3">{activeKmStep.body}</p>
-            <button
-              onClick={handleKmTutorialNext}
-              className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-bold py-2 px-4 text-sm tracking-wide transition-colors"
-            >
-              {kmTutorialStep === KM_TUTORIAL_STEPS.length - 1 ? 'Got It — Let Me Choose' : 'Next'}
-            </button>
-          </div>
+        {/* Inline spotlight callout */}
+        {kmActiveStep && (
+          <TutorialCallout
+            step={kmStep!}
+            totalSteps={KM_TUTORIAL_STEPS.length}
+            title={kmActiveStep.title}
+            body={kmActiveStep.body}
+            onNext={kmNext}
+            finalLabel="Got It — Let Me Choose"
+          />
         )}
 
         {/* Header strip — spotlit on step 0 */}
@@ -527,7 +452,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
         <div className={
           (kmSpotlit('options-matchup') || kmSpotlit('options-effects'))
             ? 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-black transition-all duration-200'
-            : kmDimmed('options-matchup') // both share the same dim condition
+            : kmDimmed('options-matchup')
             ? 'opacity-25 transition-all duration-200'
             : ''
         }>
@@ -538,8 +463,8 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
               return (
                 <button
                   key={index}
-                  onClick={() => kmTutorialStep === null ? handleKeyMomentChoice(option) : undefined}
-                  disabled={kmTutorialStep !== null}
+                  onClick={() => kmTutorialActive ? undefined : handleKeyMomentChoice(option)}
+                  disabled={kmTutorialActive}
                   className="w-full text-left p-4 border-4 border-pixel-border bg-pixel-card hover:border-pixel-accent hover:scale-[1.01] transition-all disabled:cursor-default disabled:hover:scale-100 disabled:hover:border-pixel-border"
                 >
                   {/* Option name + matchup indicator — dimmed when effects step is active */}

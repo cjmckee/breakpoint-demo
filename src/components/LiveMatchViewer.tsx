@@ -3,25 +3,20 @@
  * Displays real-time match simulation with scores, stats, and key moments
  */
 
-import React, { useEffect, useCallback, useRef, useState } from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
 import { useMatchStore } from '../stores/matchStore';
 import { Card } from './ui/Card';
 import { CourtVisualization } from './CourtVisualization';
 import { audioManager } from '../audio/AudioManager';
 import type { SfxKey } from '../audio/sounds';
-import type { MatchScore } from '../types/keyMoments';
-import type { MatchStatistics } from '../types';
+import { useTutorialSpotlight, TutorialStep } from '../hooks/useTutorialSpotlight';
+import { TutorialCallout } from './tutorial/TutorialCallout';
+import { TUTORIAL_MOCK_SCORE, TUTORIAL_MOCK_STATS, TUTORIAL_MOCK_LOG } from '../data/tutorialMockData';
 
-// ─── Tutorial spotlight steps ─────────────────────────────────────────────────
-interface TutorialStep {
-  /** Which section to ring-highlight */
-  target: 'court' | 'log' | 'your-stats';
-  title: string;
-  body: string;
-}
+type LiveMatchTarget = 'court' | 'log' | 'your-stats';
 
 // Court is shown LAST so the player is looking at it when they click "Let's Play!"
-const TUTORIAL_STEPS: TutorialStep[] = [
+const TUTORIAL_STEPS: TutorialStep<LiveMatchTarget>[] = [
   {
     target: 'log',
     title: 'Match Log',
@@ -39,37 +34,6 @@ const TUTORIAL_STEPS: TutorialStep[] = [
   },
 ];
 
-// Dummy 0-0 score used to render the court during the tutorial pause (before the match starts)
-const TUTORIAL_MOCK_SCORE: MatchScore = {
-  sets: [],
-  currentSet: { player: 4, opponent: 2 },
-  currentGame: { player: 2, opponent: 1 },
-  server: 'player',
-  isComplete: false,
-  momentum: 25,
-  energy: 41,
-};
-
-// Mock stats shown in the Your Stats panel during the tutorial spotlight
-const TUTORIAL_MOCK_STATS: Pick<
-  MatchStatistics,
-  'aces' | 'doubleFaults' | 'winners' | 'unforcedErrors' | 'firstServePercentage' | 'totalPoints'
-> = {
-  aces:                 { player: 2,  opponent: 1  },
-  doubleFaults:         { player: 1,  opponent: 3  },
-  winners:              { player: 5,  opponent: 4  },
-  unforcedErrors:       { player: 4,  opponent: 6  },
-  firstServePercentage: { player: 68, opponent: 54 },
-  totalPoints:          { player: 11, opponent: 9  },
-};
-
-// Three example log lines shown in the Match Log during the tutorial spotlight
-const TUTORIAL_MOCK_LOG: string[] = [
-  'Game 1 — You serve. Keith returns long — unforced error. 15-Love.',
-  'Powerful serve down the T — ace! 30-Love.',
-  'Long rally, 8 shots. Forehand winner down the line. 40-Love.',
-];
-
 interface MatchStats {
   aces: number;
   doubleFaults: number;
@@ -80,12 +44,6 @@ interface MatchStats {
 }
 
 export const LiveMatchViewer: React.FC = () => {
-  // Tutorial spotlight: step index while paused, null when dismissed
-  const [tutorialStep, setTutorialStep] = useState<number | null>(null);
-  // Ref guard so the tutorial can't re-open once dismissed (prevents race between
-  // setTutorialStep(null) and the isTutorialPaused → false store update)
-  const tutorialOpenedRef = useRef(false);
-
   const isWaitingForChoice = useMatchStore((state) => state.isWaitingForChoice);
   const currentScore = useMatchStore((state) => state.currentScore);
   const matchConfig = useMatchStore((state) => state.matchConfig);
@@ -98,6 +56,18 @@ export const LiveMatchViewer: React.FC = () => {
   const matchHistory = useMatchStore((state) => state.matchHistory);
 
   const matchLog = useMatchStore((state) => state.matchLog);
+
+  const { currentStep, activeStep, isSpotlit, next: handleTutorialNext } = useTutorialSpotlight(
+    TUTORIAL_STEPS,
+    isTutorialPaused,
+    resumeFromTutorial,
+  );
+
+  // Lifts a spotlit section above the dark overlay; keeps others at z-0
+  const spotlightClass = (target: LiveMatchTarget) =>
+    isSpotlit(target)
+      ? 'relative z-[60] ring-4 ring-yellow-400 ring-offset-2 ring-offset-black rounded transition-all duration-300'
+      : 'relative z-0 transition-all duration-300';
 
   // ─── Match log auto-scroll (contained within the log box) ─────────────────
   const logContainerRef = useRef<HTMLDivElement>(null);
@@ -133,11 +103,9 @@ export const LiveMatchViewer: React.FC = () => {
       } else if (playerWinsDelta > 0) {
         audioManager.playSfx('winner');
       } else if (oppWinsDelta > 0) {
-        // Alternate between groundstroke sounds for variety
         const sfx: SfxKey = Math.random() < 0.5 ? 'hit_ground' : 'hit_ground_alt';
         audioManager.playSfx(sfx);
       } else {
-        // Regular rally shot
         const sfx: SfxKey = Math.random() < 0.4 ? 'hit_volley' : Math.random() < 0.5 ? 'hit_ground' : 'serve';
         audioManager.playSfx(sfx);
       }
@@ -153,12 +121,10 @@ export const LiveMatchViewer: React.FC = () => {
     const pointScored = historyLen > prevHistoryLen.current;
 
     if (prev && curr && pointScored) {
-      // Detect set won (sets array grew)
       const setWonByPlayer = curr.sets.length > prev.sets.length &&
         (curr.sets[curr.sets.length - 1]?.player ?? 0) > (curr.sets[curr.sets.length - 1]?.opponent ?? 0);
       const setWonByOpp = curr.sets.length > prev.sets.length && !setWonByPlayer;
 
-      // Detect game won (set game count grew)
       const gameWonByPlayer = !setWonByPlayer && !setWonByOpp &&
         curr.currentSet.player > prev.currentSet.player;
       const gameWonByOpp = !setWonByPlayer && !setWonByOpp &&
@@ -174,7 +140,6 @@ export const LiveMatchViewer: React.FC = () => {
       } else if (gameWonByOpp) {
         audioManager.playSfx('point_lose');
       } else {
-        // Plain point — last entry in matchHistory tells us who won
         const lastEntry = matchHistory[matchHistory.length - 1];
         if (lastEntry) {
           audioManager.playSfx(lastEntry.winner === 'player' ? 'point_win' : 'point_lose');
@@ -186,7 +151,6 @@ export const LiveMatchViewer: React.FC = () => {
     prevHistoryLen.current = historyLen;
   }, [currentScore, matchHistory]);
 
-  // Key moment SFX
   useEffect(() => {
     if (isWaitingForChoice && !prevWaitingForChoice.current) {
       audioManager.playSfx('key_moment_in');
@@ -204,28 +168,6 @@ export const LiveMatchViewer: React.FC = () => {
   }, [showKeyMomentResult, lastKeyMomentResult]);
   // ───────────────────────────────────────────────────────────────────────────
 
-  // Open tutorial spotlight on step 0 when the match first pauses for it.
-  // The ref guard prevents re-opening during the race window between
-  // setTutorialStep(null) and the isTutorialPaused → false store update.
-  useEffect(() => {
-    if (isTutorialPaused && !tutorialOpenedRef.current) {
-      tutorialOpenedRef.current = true;
-      setTutorialStep(0);
-    }
-  }, [isTutorialPaused]);
-
-  const handleTutorialNext = useCallback(() => {
-    if (tutorialStep === null) return;
-    if (tutorialStep < TUTORIAL_STEPS.length - 1) {
-      setTutorialStep(tutorialStep + 1);
-    } else {
-      // Last step — dismiss and let the match run
-      setTutorialStep(null);
-      resumeFromTutorial();
-    }
-  }, [tutorialStep, resumeFromTutorial]);
-
-  // Warn the player if they try to close/refresh mid-match
   const handleBeforeUnload = useCallback((e: BeforeUnloadEvent) => {
     e.preventDefault();
     e.returnValue = '';
@@ -260,15 +202,6 @@ export const LiveMatchViewer: React.FC = () => {
   // Show mock log entries when the log is spotlit during the tutorial and the real log is empty
   const visibleLog = (isTutorialPaused && matchLog.length === 0) ? TUTORIAL_MOCK_LOG : matchLog;
 
-  const activeStep = tutorialStep !== null ? TUTORIAL_STEPS[tutorialStep] : null;
-  const isSpotlit = (target: TutorialStep['target']) => activeStep?.target === target;
-
-  // Shared class applied to a section when it is spotlit — lifts it above the dark overlay
-  const spotlightClass = (target: TutorialStep['target']) =>
-    isSpotlit(target)
-      ? 'relative z-[60] ring-4 ring-yellow-400 ring-offset-2 ring-offset-black rounded transition-all duration-300'
-      : 'relative z-0 transition-all duration-300';
-
   return (
     <div className="min-h-screen bg-pixel-bg p-4">
       {/* ── Tutorial spotlight overlay ─────────────────────────────────────────── */}
@@ -278,33 +211,15 @@ export const LiveMatchViewer: React.FC = () => {
           <div className="fixed inset-0 z-50 bg-black bg-opacity-75 pointer-events-none" />
 
           {/* Callout card — docked at bottom-center, above everything */}
-          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[70] w-full max-w-md pointer-events-auto">
-            <div className="mx-4 border-4 border-yellow-400 bg-gray-900 p-5 shadow-2xl">
-              {/* Step indicator */}
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-bold text-yellow-400 tracking-widest uppercase">
-                  Tutorial — Step {(tutorialStep ?? 0) + 1} / {TUTORIAL_STEPS.length}
-                </span>
-                <div className="flex gap-1">
-                  {TUTORIAL_STEPS.map((_, i) => (
-                    <div
-                      key={i}
-                      className={`w-2 h-2 rounded-full ${i === tutorialStep ? 'bg-yellow-400' : 'bg-gray-600'}`}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <h2 className="text-lg font-bold text-yellow-300 mb-2">{activeStep.title}</h2>
-              <p className="text-sm text-gray-200 leading-relaxed mb-4">{activeStep.body}</p>
-
-              <button
-                onClick={handleTutorialNext}
-                className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-bold py-2 px-4 text-sm tracking-wide transition-colors"
-              >
-                {tutorialStep === TUTORIAL_STEPS.length - 1 ? "Let's Play!" : 'Next'}
-              </button>
-            </div>
+          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[70] w-full max-w-md px-4 pointer-events-auto">
+            <TutorialCallout
+              step={currentStep!}
+              totalSteps={TUTORIAL_STEPS.length}
+              title={activeStep.title}
+              body={activeStep.body}
+              onNext={handleTutorialNext}
+              finalLabel="Let's Play!"
+            />
           </div>
         </>
       )}
@@ -362,7 +277,7 @@ export const LiveMatchViewer: React.FC = () => {
 
           {/* Right column: 1/3 width */}
           <div className="space-y-4">
-            {/* Player Stats — spotlit on step 2 */}
+            {/* Player Stats */}
             <div className={spotlightClass('your-stats')}>
               <Card title="Your Stats" className="bg-green-500 bg-opacity-10 border-green-500">
                 <div className="space-y-3">
