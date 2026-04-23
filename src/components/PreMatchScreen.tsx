@@ -331,9 +331,21 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
   return (
     <div className="min-h-screen bg-pixel-bg p-4">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-6">
+        <div className="flex items-center justify-between mb-6">
           <Button variant="secondary" onClick={onBack}>
             ← Back to Menu
+          </Button>
+          <Button
+            variant="primary"
+            size="lg"
+            onClick={onStartMatch}
+            disabled={!canAfford}
+          >
+            {!canAfford ? (
+              <>Not Enough Energy ({energyCost})</>
+            ) : (
+              <>🎾 Start Match</>
+            )}
           </Button>
         </div>
 
