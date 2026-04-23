@@ -10,6 +10,7 @@ import { CourtVisualization } from './CourtVisualization';
 import { audioManager } from '../audio/AudioManager';
 import type { SfxKey } from '../audio/sounds';
 import type { MatchScore } from '../types/keyMoments';
+import type { MatchStatistics } from '../types';
 
 // ─── Tutorial spotlight steps ─────────────────────────────────────────────────
 interface TutorialStep {
@@ -48,6 +49,26 @@ const TUTORIAL_MOCK_SCORE: MatchScore = {
   momentum: 25,
   energy: 41,
 };
+
+// Mock stats shown in the Your Stats panel during the tutorial spotlight
+const TUTORIAL_MOCK_STATS: Pick<
+  MatchStatistics,
+  'aces' | 'doubleFaults' | 'winners' | 'unforcedErrors' | 'firstServePercentage' | 'totalPoints'
+> = {
+  aces:                 { player: 2,  opponent: 1  },
+  doubleFaults:         { player: 1,  opponent: 3  },
+  winners:              { player: 5,  opponent: 4  },
+  unforcedErrors:       { player: 4,  opponent: 6  },
+  firstServePercentage: { player: 68, opponent: 54 },
+  totalPoints:          { player: 11, opponent: 9  },
+};
+
+// Three example log lines shown in the Match Log during the tutorial spotlight
+const TUTORIAL_MOCK_LOG: string[] = [
+  'Game 1 — You serve. Keith returns long — unforced error. 15-Love.',
+  'Powerful serve down the T — ace! 30-Love.',
+  'Long rally, 8 shots. Forehand winner down the line. 40-Love.',
+];
 
 interface MatchStats {
   aces: number;
@@ -215,24 +236,29 @@ export const LiveMatchViewer: React.FC = () => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [handleBeforeUnload]);
 
-  // Derive stats from matchStatistics store
+  // During the tutorial pause use mock data so sections aren't empty
+  const statsSource = (isTutorialPaused && !matchStatistics) ? TUTORIAL_MOCK_STATS : matchStatistics;
+
   const playerStats: MatchStats = {
-    aces: matchStatistics?.aces.player ?? 0,
-    doubleFaults: matchStatistics?.doubleFaults.player ?? 0,
-    winners: matchStatistics?.winners.player ?? 0,
-    unforcedErrors: matchStatistics?.unforcedErrors.player ?? 0,
-    firstServePercentage: Math.round(matchStatistics?.firstServePercentage.player ?? 0),
-    pointsWon: matchStatistics?.totalPoints.player ?? 0,
+    aces: statsSource?.aces.player ?? 0,
+    doubleFaults: statsSource?.doubleFaults.player ?? 0,
+    winners: statsSource?.winners.player ?? 0,
+    unforcedErrors: statsSource?.unforcedErrors.player ?? 0,
+    firstServePercentage: Math.round(statsSource?.firstServePercentage.player ?? 0),
+    pointsWon: statsSource?.totalPoints.player ?? 0,
   };
 
   const opponentStats: MatchStats = {
-    aces: matchStatistics?.aces.opponent ?? 0,
-    doubleFaults: matchStatistics?.doubleFaults.opponent ?? 0,
-    winners: matchStatistics?.winners.opponent ?? 0,
-    unforcedErrors: matchStatistics?.unforcedErrors.opponent ?? 0,
-    firstServePercentage: Math.round(matchStatistics?.firstServePercentage.opponent ?? 0),
-    pointsWon: matchStatistics?.totalPoints.opponent ?? 0,
+    aces: statsSource?.aces.opponent ?? 0,
+    doubleFaults: statsSource?.doubleFaults.opponent ?? 0,
+    winners: statsSource?.winners.opponent ?? 0,
+    unforcedErrors: statsSource?.unforcedErrors.opponent ?? 0,
+    firstServePercentage: Math.round(statsSource?.firstServePercentage.opponent ?? 0),
+    pointsWon: statsSource?.totalPoints.opponent ?? 0,
   };
+
+  // Show mock log entries when the log is spotlit during the tutorial and the real log is empty
+  const visibleLog = (isTutorialPaused && matchLog.length === 0) ? TUTORIAL_MOCK_LOG : matchLog;
 
   const activeStep = tutorialStep !== null ? TUTORIAL_STEPS[tutorialStep] : null;
   const isSpotlit = (target: TutorialStep['target']) => activeStep?.target === target;
@@ -313,13 +339,13 @@ export const LiveMatchViewer: React.FC = () => {
             <div className={spotlightClass('log')}>
               <Card title="Match Progress">
                 <div ref={logContainerRef} className="bg-pixel-bg border-2 border-pixel-border p-4 h-64 overflow-y-auto">
-                  {matchLog.length === 0 ? (
+                  {visibleLog.length === 0 ? (
                     <p className="text-pixel-text-muted text-center py-8">
                       Match starting... Key moments will appear here.
                     </p>
                   ) : (
                     <div className="space-y-2">
-                      {matchLog.slice(-50).map((log, index) => (
+                      {visibleLog.slice(-50).map((log, index) => (
                         <div
                           key={index}
                           className="text-sm text-pixel-text pb-2 border-b border-pixel-border last:border-0"
