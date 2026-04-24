@@ -293,26 +293,25 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
             </div>
           </div>
 
-          {/* Stat Boosts */}
-          {Object.keys(matchRewards.statBoosts).length > 0 && (
+          {/* XP Breakdown */}
+          {matchRewards.experienceBreakdown && (
             <div className="mb-4">
               <h4 className="text-sm font-bold text-pixel-text mb-3 text-center">
-                💪 Stat Improvements
+                XP Breakdown
               </h4>
-              <div className="grid grid-cols-2 gap-2">
-                {Object.entries(matchRewards.statBoosts)
-                  .filter(([_, value]) => value > 0)
-                  .map(([stat, value]) => (
-                    <div
-                      key={stat}
-                      className="bg-green-500 bg-opacity-20 border border-green-500 p-2 text-center"
-                    >
-                      <div className="text-lg font-bold text-green-500">+{value}</div>
-                      <div className="text-xs text-pixel-text capitalize">
-                        {stat.replace(/([A-Z])/g, ' $1').trim()}
-                      </div>
-                    </div>
-                  ))}
+              <div className="space-y-1 text-xs text-pixel-text-muted">
+                <div className="flex justify-between">
+                  <span>Base ({matchRewards.experienceBreakdown.base === 40 ? 'Win' : 'Loss'})</span>
+                  <span className="text-blue-400">+{matchRewards.experienceBreakdown.base}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Performance bonus (×{matchRewards.experienceBreakdown.tierMultiplier} tier)</span>
+                  <span className="text-blue-400">+{matchRewards.experienceBreakdown.performanceBonus}</span>
+                </div>
+                <div className="flex justify-between border-t border-pixel-border pt-1 mt-1 font-bold text-pixel-text">
+                  <span>Total XP</span>
+                  <span className="text-blue-500">+{matchRewards.experienceBreakdown.total}</span>
+                </div>
               </div>
             </div>
           )}

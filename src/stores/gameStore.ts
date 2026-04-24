@@ -20,7 +20,6 @@ import {
   PlayerStats,
   TIME_SLOT_NAMES,
   ShopItem,
-  StatBoosts,
 } from '../types/game';
 import type { StoryEvent, StoryEventTag, StoryEventOption } from '../types/storyEvents';
 import type { Challenge } from '../types/challenges';
@@ -1270,8 +1269,8 @@ export const useGameStore = create<GameState>()(
         // Calculate rewards
         const rewards = MatchRewardSystem.calculateRewards(matchStatistics, opponentTier, isWin);
 
-        // Apply rewards to player (still apply stat rewards for tutorial matches)
-        let updatedPlayer = PlayerManager.applyStatBoosts(state.player, rewards.statBoosts)
+        // Apply rewards to player
+        let updatedPlayer = { ...state.player };
         if (rewards.abilitiesGained && rewards.abilitiesGained.length > 0) {
           // Only roll for abilities if this is non-tutorial
           if (countsForMilestones) {

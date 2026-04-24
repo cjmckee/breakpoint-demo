@@ -2,23 +2,25 @@
  * Match Reward System
  *
  * Calculates rewards based on match performance across multiple categories.
- * All scoring formulas use configurable weights for easy balancing.
+ * Performance scores drive experience and drop rate scaling — no direct stat awards.
  */
 
 import type { MatchStatistics } from '../types/index';
-import type { MatchReward, PerformanceRewardBreakdown, StatBoosts, Ability } from '../types/game';
+import type { MatchReward, PerformanceRewardBreakdown, ExperienceBreakdown, Ability } from '../types/game';
 import type { Item } from '../types/items';
 import { AbilityRarity } from '../types/game';
 import type { OpponentTier, PerformanceLevel } from '../config/matchRewards';
 import {
   TIER_REWARD_MULTIPLIERS,
-  CATEGORY_STAT_BOOSTS,
   ABILITY_DROP_RATES,
   ITEM_DROP_RATES,
   ITEM_DROP_WIN_MULTIPLIER,
   BASE_EXPERIENCE,
   BASE_MOOD,
   MOOD_PERFORMANCE_BONUS,
+  PERFORMANCE_EXP_MAX_BONUS,
+  PERFORMANCE_DROP_MULTIPLIER_MIN,
+  PERFORMANCE_DROP_MULTIPLIER_MAX,
 } from '../config/matchRewards';
 import {
   SERVING_WEIGHTS,
@@ -44,32 +46,28 @@ export class MatchRewardSystem {
     // 1. Calculate performance scores for each category
     const performance = this.analyzePerformance(matchStatistics);
 
-    // 2. Calculate stat boosts based on performance
-    const statBoosts = this.calculateStatBoosts(
-      performance,
-      opponentTier,
-      isWin
-    );
+    // 2. Calculate performance drop multiplier (0.5–1.5× based on overall score)
+    const dropMultiplier = this.calculateDropMultiplier(performance.overallScore);
 
-    // 3. Roll for ability drops (win only)
+    // 3. Roll for ability drops (win only), scaled by performance
     const abilities = isWin
-      ? this.rollAbilityDrops(opponentTier)
+      ? this.rollAbilityDrops(opponentTier, dropMultiplier)
       : [];
 
-    // 4. Roll for item drops
-    const items = this.rollItemDrops(opponentTier, isWin);
+    // 4. Roll for item drops, scaled by performance
+    const items = this.rollItemDrops(opponentTier, isWin, dropMultiplier);
 
-    // 5. Calculate mood and experience
-    const { moodChange, experience } = this.calculateMoodAndExp(
+    // 5. Calculate mood, experience, and XP breakdown
+    const { moodChange, experience, experienceBreakdown } = this.calculateMoodAndExp(
       opponentTier,
       isWin,
       performance.overallScore
     );
 
     return {
-      statBoosts,
       moodChange,
       experience,
+      experienceBreakdown,
       abilitiesGained: abilities,
       itemsGained: items,
       performanceBreakdown: performance,
@@ -111,7 +109,6 @@ export class MatchRewardSystem {
       netPlayScore,
       mentalScore,
       overallScore,
-      rewardedCategories: {},  // Filled in by calculateStatBoosts
     };
   }
 
@@ -334,57 +331,6 @@ export class MatchRewardSystem {
   }
 
   /**
-   * Convert performance scores to stat boosts
-   */
-  private static calculateStatBoosts(
-    performance: PerformanceRewardBreakdown,
-    tier: OpponentTier,
-    isWin: boolean
-  ): StatBoosts {
-    const multiplier = isWin
-      ? TIER_REWARD_MULTIPLIERS[tier].win
-      : TIER_REWARD_MULTIPLIERS[tier].loss;
-
-    console.log('=== STAT BOOST CALCULATION ===');
-    console.log('Tier:', tier, 'IsWin:', isWin, 'Multiplier:', multiplier);
-
-    const allBoosts: StatBoosts = {};
-
-    // For each performance category, determine level and add boosts
-    const categories = {
-      serving: performance.servingScore,
-      returning: performance.returningScore,
-      rallying: performance.rallyScore,
-      netPlay: performance.netPlayScore,
-      mental: performance.mentalScore,
-    };
-
-    for (const [category, score] of Object.entries(categories)) {
-      const performanceLevel = this.getPerformanceLevel(score);
-      const categoryBoosts = CATEGORY_STAT_BOOSTS[category][performanceLevel];
-
-      console.log(`Category: ${category}, Score: ${score}, Level: ${performanceLevel}`);
-      console.log('Base category boosts:', categoryBoosts);
-
-      if (Object.keys(categoryBoosts).length > 0) {
-        // Apply tier multiplier and merge boosts
-        for (const [stat, value] of Object.entries(categoryBoosts)) {
-          const boostedValue = Math.round(value * multiplier);
-          console.log(`  ${stat}: ${value} * ${multiplier} = ${boostedValue}`);
-          const statKey = stat as keyof StatBoosts;
-          allBoosts[statKey] = (allBoosts[statKey] || 0) + boostedValue;
-        }
-
-        // Track which categories gave rewards (for UI display)
-        performance.rewardedCategories[category as keyof typeof performance.rewardedCategories] = categoryBoosts;
-      }
-    }
-
-    console.log('Final allBoosts:', allBoosts);
-    return allBoosts;
-  }
-
-  /**
    * Determine performance level from score
    */
   private static getPerformanceLevel(score: number): PerformanceLevel {
@@ -395,21 +341,29 @@ export class MatchRewardSystem {
   }
 
   /**
-   * Roll for ability drops (only on win)
+   * Calculate the drop rate multiplier from overall performance score.
+   * Linearly interpolates between MIN and MAX based on 0–100 score.
    */
-  private static rollAbilityDrops(tier: OpponentTier): Ability[] {
+  private static calculateDropMultiplier(overallScore: number): number {
+    return PERFORMANCE_DROP_MULTIPLIER_MIN +
+      (overallScore / 100) * (PERFORMANCE_DROP_MULTIPLIER_MAX - PERFORMANCE_DROP_MULTIPLIER_MIN);
+  }
+
+  /**
+   * Roll for ability drops (only on win), scaled by performance
+   */
+  private static rollAbilityDrops(tier: OpponentTier, dropMultiplier: number): Ability[] {
     const abilities: Ability[] = [];
     const dropRates = ABILITY_DROP_RATES[tier];
 
-    console.log('Ability drop rates:', dropRates);
+    console.log('Ability drop rates:', dropRates, 'dropMultiplier:', dropMultiplier.toFixed(2));
 
     // Roll for each rarity tier
     for (const [rarity, rate] of Object.entries(dropRates)) {
+      const scaledRate = rate * dropMultiplier;
       const roll = Math.random() * 100;
-      if (rate > 0 && roll < rate) {
-        console.log(`Rolled ability drop: ${rarity}`);
-        console.log('Rate:', rate);
-        console.log('Roll:', roll);
+      if (scaledRate > 0 && roll < scaledRate) {
+        console.log(`Rolled ability drop: ${rarity} (rate ${scaledRate.toFixed(2)}%, roll ${roll.toFixed(2)}%)`);
         const ability = AbilitySystem.getRandomAbilityByRarity(rarity as AbilityRarity);
         if (ability) {
           abilities.push(ability);
@@ -421,19 +375,17 @@ export class MatchRewardSystem {
   }
 
   /**
-   * Roll for item drops
+   * Roll for item drops, scaled by performance
    */
-  private static rollItemDrops(tier: OpponentTier, isWin: boolean): Item[] {
+  private static rollItemDrops(tier: OpponentTier, isWin: boolean, dropMultiplier: number): Item[] {
     const baseRate = ITEM_DROP_RATES[tier];
-    const finalRate = isWin ? baseRate * ITEM_DROP_WIN_MULTIPLIER : baseRate * 0.5;
+    const winModifier = isWin ? ITEM_DROP_WIN_MULTIPLIER : 0.5;
+    const finalRate = baseRate * winModifier * dropMultiplier;
 
     const roll = Math.random() * 100;
 
     if (roll < finalRate) {
-      // Get items available for this tier
       const availableItems = getItemsByTier(tier);
-
-      // Pick a random item from the tier's pool
       const item = getRandomItem(availableItems);
 
       console.log(`[Match Rewards] Item dropped! ${item.name} (${roll.toFixed(2)}% < ${finalRate.toFixed(2)}%)`);
@@ -446,23 +398,37 @@ export class MatchRewardSystem {
   }
 
   /**
-   * Calculate mood and experience rewards
+   * Calculate mood and experience rewards.
+   * Experience = flat base (win/loss) + performance bonus scaled by tier multiplier.
    */
   private static calculateMoodAndExp(
     tier: OpponentTier,
     isWin: boolean,
     overallScore: number
-  ): { moodChange: number; experience: number } {
+  ): { moodChange: number; experience: number; experienceBreakdown: ExperienceBreakdown } {
     const baseMood = isWin ? BASE_MOOD.win : BASE_MOOD.loss;
     const performanceLevel = this.getPerformanceLevel(overallScore);
     const moodBonus = MOOD_PERFORMANCE_BONUS[performanceLevel];
 
-    const baseExp = isWin ? BASE_EXPERIENCE.win : BASE_EXPERIENCE.loss;
+    const base = isWin ? BASE_EXPERIENCE.win : BASE_EXPERIENCE.loss;
     const tierMultiplier = TIER_REWARD_MULTIPLIERS[tier][isWin ? 'win' : 'loss'];
+    const performanceBonus = Math.round((overallScore / 100) * PERFORMANCE_EXP_MAX_BONUS * tierMultiplier);
+    const total = base + performanceBonus;
+
+    console.log(`=== EXPERIENCE BREAKDOWN ===`);
+    console.log(`Base (${isWin ? 'win' : 'loss'}): ${base}`);
+    console.log(`Performance bonus: overallScore ${overallScore.toFixed(1)} × ${PERFORMANCE_EXP_MAX_BONUS} × tier ${tierMultiplier} = ${performanceBonus}`);
+    console.log(`Total XP: ${total}`);
 
     return {
       moodChange: baseMood + moodBonus,
-      experience: Math.round(baseExp * tierMultiplier),
+      experience: total,
+      experienceBreakdown: {
+        base,
+        performanceBonus,
+        tierMultiplier,
+        total,
+      },
     };
   }
 }
