@@ -153,10 +153,10 @@ const ABILITIES: Ability[] = Object.values(ABILITY_DEFINITIONS).filter(
 );
 
 const RARITY_MULTIPLIERS: Record<AbilityRarity, number> = {
-  [AbilityRarity.COMMON]: 25,
-  [AbilityRarity.UNCOMMON]: 50,
-  [AbilityRarity.RARE]: 100,
-  [AbilityRarity.LEGENDARY]: 200,
+  [AbilityRarity.COMMON]: 70,
+  [AbilityRarity.UNCOMMON]: 140,
+  [AbilityRarity.RARE]: 250,
+  [AbilityRarity.LEGENDARY]: 350,
 };
 
 function calculateAbilityCost(statBoosts: StatBoosts, rarity: AbilityRarity): number {
@@ -207,7 +207,6 @@ function createAbilityItem(ownedLevels: Map<string, number> = new Map()): Abilit
 
 export function generateDailyShopItems(
   playerStats: PlayerStats | null = null,
-  playerAbilities: string[] = [],
   ownedLevels: Map<string, number> = new Map()
 ): ShopItem[] {
   const items: ShopItem[] = [];

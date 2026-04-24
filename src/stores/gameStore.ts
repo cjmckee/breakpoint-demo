@@ -2579,9 +2579,8 @@ export const useGameStore = create<GameState>()(
 
       refreshShop: () => {
         const { player } = get();
-        const playerAbilities = player?.abilities.map(a => a.name) ?? [];
         const ownedLevels = new Map(player?.abilities.map(a => [a.name, a.level]) ?? []);
-        const newItems = generateDailyShopItems(player?.stats ?? null, playerAbilities, ownedLevels);
+        const newItems = generateDailyShopItems(player?.stats ?? null, ownedLevels);
         set({ shopItems: newItems });
       },
 
