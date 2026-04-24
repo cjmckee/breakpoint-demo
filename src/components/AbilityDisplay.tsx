@@ -11,6 +11,10 @@ interface AbilityDisplayProps {
   abilities: Ability[];
 }
 
+export function formatAbilityName(name: string): string {
+  return name.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
 // Get rarity-specific styling
 const getRarityStyle = (rarity: AbilityRarity = AbilityRarity.COMMON) => {
   switch (rarity) {
@@ -98,7 +102,7 @@ export const AbilityDisplay: React.FC<AbilityDisplayProps> = ({ abilities }) => 
         >
           <div className="flex justify-between items-start mb-2">
             <h5 className={`font-bold text-sm ${style.textColor} transition-colors duration-200`}>
-              {ability.name}
+              {formatAbilityName(ability.name)}
             </h5>
             <span
               className={`text-xs px-2 py-1 rounded ${style.textColor} font-mono bg-pixel-bg/50`}
@@ -140,7 +144,7 @@ export const AbilityDisplay: React.FC<AbilityDisplayProps> = ({ abilities }) => 
           >
             <div className="flex justify-between items-start mb-2">
               <h5 className="font-bold text-pixel-text text-lg">
-                {hoveredAbility.name}
+                {formatAbilityName(hoveredAbility.name)}
               </h5>
               <span
                 className={`text-xs px-2 py-1 rounded text-white font-bold`}

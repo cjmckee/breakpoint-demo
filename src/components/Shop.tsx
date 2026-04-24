@@ -17,6 +17,7 @@ import type {
 } from '../types/game';
 import { SLOT_NAMES } from './Inventory';
 import { StatBoostList } from './ui/StatBoostList';
+import { formatAbilityName } from './AbilityDisplay';
 
 const RARITY_LABELS: Record<ItemRarity, string> = {
   common: 'Common',
@@ -212,7 +213,7 @@ const AbilityShopCard: React.FC<{
           <div className="flex items-center gap-2">
             <span className="text-2xl">✨</span>
             <div>
-              <h3 className={`text-lg font-bold ${rarityColor}`}>{item.name}</h3>
+              <h3 className={`text-lg font-bold ${rarityColor}`}>{formatAbilityName(item.abilityId)}</h3>
               <span className={`text-xs ${rarityColor}`}>{RARITY_LABELS[item.rarity]} Ability</span>
             </div>
           </div>
@@ -222,9 +223,13 @@ const AbilityShopCard: React.FC<{
           </div>
         </div>
 
-        <p className="text-sm text-gray-300">{item.description}</p>
+        <p className="text-sm text-gray-400 italic">{item.description}</p>
 
-        <div className="mt-auto">
+        <div className="mt-2 pt-2 border-t border-gray-700">
+          <p className="text-sm text-gray-300">{item.effects}</p>
+        </div>
+
+        <div className="mt-auto pt-2">
           <BuyButton item={item} canAfford={canAfford} onBuy={onBuy} />
         </div>
       </div>

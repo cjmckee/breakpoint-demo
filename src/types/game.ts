@@ -618,6 +618,7 @@ export interface AbilityItem extends ShopItemBase {
   abilityId: string;
   statBoosts: StatBoosts;
   rarity: ItemRarity;
+  effects: string;
 }
 
 export type ShopItem = StatIncreaseItem | ConsumableItem | EquipmentItem | AbilityItem;

@@ -194,14 +194,13 @@ function createAbilityItem(ownedLevels: Map<string, number> = new Map()): Abilit
     id: `ability-${template.name}-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
     category: 'ability',
     name: nextLevel > 1 ? `${template.name} Lv${nextLevel}` : template.name,
-    description: hasAbility
-      ? `Upgrade ${template.name} to level ${nextLevel}. ${template.description}`
-      : `Learn ${template.name}. ${template.description}`,
+    description: template.description,
+    effects: template.effects,
     cost: adjustedCost,
     purchased: false,
     abilityId: template.name,
     statBoosts: template.modifiers.statBoosts,
-    rarity: template.rarity as unknown as import('../types/game').ItemRarity,
+    rarity: template.rarity as unknown as ItemRarity,
   };
 }
 
