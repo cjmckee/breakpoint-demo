@@ -10,7 +10,7 @@ import type {
 } from '../types/game';
 import type { PlayerStats } from '../types/index';
 import type { Item } from '../types/items';
-import { ABILITY_DEFINITIONS } from './AbilitySystem';
+import { ABILITY_DEFINITIONS } from '../data/abilities';
 import { AbilityRarity } from '../types/game';
 import { ALL_CONSUMABLES, ALL_EQUIPMENT, CONSUMABLE_SHOP_COSTS } from '../data/items';
 
