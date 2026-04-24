@@ -10,6 +10,100 @@ import {
 // All additional effects scale linearly with ability level (value × level).
 export const ABILITY_DEFINITIONS: Record<string, Ability> = {
   // ==================== COMMON ABILITIES ====================
+  // Common = single focused bonus on one shot type or positioning dimension.
+  // No training bonuses or key moment effects at this tier.
+
+  [AbilityName.HEAVY_HITTER]: {
+    name: AbilityName.HEAVY_HITTER,
+    level: 1,
+    rarity: AbilityRarity.COMMON,
+    modifiers: {
+      statBoosts: {},
+      additional: {
+        [EffectKey.PACE]: 7,
+      },
+    },
+    description:
+      'You hit the ball so hard that opponents can hear it coming. Your groundstrokes land like cannonballs.',
+    effects: 'Bonus quality on all power shots.',
+  },
+
+  [AbilityName.SPIN_MASTER]: {
+    name: AbilityName.SPIN_MASTER,
+    level: 1,
+    rarity: AbilityRarity.COMMON,
+    modifiers: {
+      statBoosts: {},
+      additional: {
+        [EffectKey.SIDE_SPIN]: 7,
+      },
+    },
+    description:
+      'You can put an incredible amount of spin on the ball, making it bounce unpredictably and sit up awkwardly for opponents.',
+    effects: 'Bonus quality on spin shots.',
+  },
+
+  [AbilityName.SOFT_HANDS]: {
+    name: AbilityName.SOFT_HANDS,
+    level: 1,
+    rarity: AbilityRarity.COMMON,
+    modifiers: {
+      statBoosts: {},
+      additional: {
+        [EffectKey.TOUCH]: 7,
+      },
+    },
+    description:
+      "Your touch at the net is pure art. Drop shots, slices, and angles barely clear the net. Opponents can only watch.",
+    effects: 'Bonus quality on drop shots and volleys.',
+  },
+
+  [AbilityName.OVERHEAD_SMASH]: {
+    name: AbilityName.OVERHEAD_SMASH,
+    level: 1,
+    rarity: AbilityRarity.COMMON,
+    modifiers: {
+      statBoosts: {},
+      additional: {
+        [EffectKey.SMASH_POWER]: 7,
+      },
+    },
+    description:
+      'You put away overheads with ruthless efficiency. Lobs are not a safe play against you.',
+    effects: 'Bonus quality on overhead shots.',
+  },
+
+  [AbilityName.RANGY_RETURN]: {
+    name: AbilityName.RANGY_RETURN,
+    level: 1,
+    rarity: AbilityRarity.COMMON,
+    modifiers: {
+      statBoosts: {},
+      additional: {
+        [EffectKey.REACH]: 7,
+      },
+    },
+    description:
+      'Your exceptional reach lets you get to balls others would call winners. Nothing is truly out of range.',
+    effects: 'Reduces difficulty penalty when stretched out of position.',
+  },
+
+  [AbilityName.SLIDER]: {
+    name: AbilityName.SLIDER,
+    level: 1,
+    rarity: AbilityRarity.COMMON,
+    modifiers: {
+      statBoosts: {},
+      additional: {
+        [EffectKey.COURT_COVERAGE]: 5,
+        [EffectKey.RECOVERY_SPEED]: 2,
+      },
+    },
+    description:
+      "You move around the court like you're on ice skates. Your footwork is effortless and your opponents can't open up the court.",
+    effects: 'Improved court coverage and position recovery speed.',
+  },
+
   [AbilityName.BASELINER]: {
     name: AbilityName.BASELINER,
     level: 1,
@@ -17,14 +111,12 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.RALLY_MOMENTUM]: 4,
-        [EffectKey.TRAINING_TIER_BONUS]: 1,
+        [EffectKey.RALLY_MOMENTUM]: 6,
       },
     },
     description:
-      "You've mastered the art of staying at the baseline. Groundstrokes are your bread and butter, and you can rally all day long.",
-    effects:
-      'Gains bonus shot quality on long rallies (5+ shots). Improves training session quality.',
+      "You've mastered the art of grinding from the baseline. Long rallies are your territory — the longer it goes, the more the point is yours.",
+    effects: 'Bonus shot quality when rally length exceeds 4 shots.',
   },
 
   [AbilityName.NETCRASHER]: {
@@ -36,104 +128,12 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       additional: {
         [EffectKey.TOUCH]: 3,
         [EffectKey.PACE]: 2,
-        [EffectKey.RECOVERY_SPEED]: 1,
+        [EffectKey.RECOVERY_SPEED]: 3,
       },
     },
     description:
-      "You love charging the net like a maniac. Your opponents never know when you'll suddenly appear at the net to finish the point.",
-    effects: 'Bonus quality on volleys and drop shots. Extra pace on power shots. Faster court position recovery.',
-  },
-
-  [AbilityName.SLIDER]: {
-    name: AbilityName.SLIDER,
-    level: 1,
-    rarity: AbilityRarity.COMMON,
-    modifiers: {
-      statBoosts: {},
-      additional: {
-        [EffectKey.COURT_COVERAGE]: 3,
-        [EffectKey.REACH]: 2,
-      },
-    },
-    description:
-      "You move around the court like you're on ice skates. Your footwork is so smooth, opponents think you're teleporting.",
-    effects: 'Improved court coverage and position recovery. Extended reach reduces difficulty when out of position.',
-  },
-
-  [AbilityName.CLUTCH]: {
-    name: AbilityName.CLUTCH,
-    level: 1,
-    rarity: AbilityRarity.COMMON,
-    modifiers: {
-      statBoosts: {},
-      additional: {
-        [EffectKey.CLUTCH_PERFORMANCE]: 5,
-        [EffectKey.TRAINING_TIER_BONUS]: 1,
-      },
-    },
-    description:
-      "When the pressure is on, you thrive. You actually play better when you're down match point.",
-    effects: '+5% win probability at key moments. Improves training session quality.',
-  },
-
-  [AbilityName.HEAVY_HITTER]: {
-    name: AbilityName.HEAVY_HITTER,
-    level: 1,
-    rarity: AbilityRarity.COMMON,
-    modifiers: {
-      statBoosts: {},
-      additional: {
-        [EffectKey.PACE]: 5,
-      },
-    },
-    description:
-      'You hit the ball so hard that opponents can hear it coming. Your forehand is like a cannon shot.',
-    effects: 'Significant bonus quality on power shots.',
-  },
-
-  [AbilityName.OVERHEAD_SMASH]: {
-    name: AbilityName.OVERHEAD_SMASH,
-    level: 1,
-    rarity: AbilityRarity.COMMON,
-    modifiers: {
-      statBoosts: {},
-      additional: {
-        [EffectKey.SMASH_POWER]: 6,
-      },
-    },
-    description:
-      'You have a powerful overhead smash that can finish points in an instant.',
-    effects: 'Major bonus quality on overhead shots.',
-  },
-
-  [AbilityName.RANGY_RETURN]: {
-    name: AbilityName.RANGY_RETURN,
-    level: 1,
-    rarity: AbilityRarity.COMMON,
-    modifiers: {
-      statBoosts: {},
-      additional: {
-        [EffectKey.REACH]: 5,
-      },
-    },
-    description:
-      'Your exceptional reach allows you to return even the most difficult shots.',
-    effects: 'Significantly reduces difficulty when stretched out of position.',
-  },
-
-  [AbilityName.SPIN_MASTER]: {
-    name: AbilityName.SPIN_MASTER,
-    level: 1,
-    rarity: AbilityRarity.COMMON,
-    modifiers: {
-      statBoosts: {},
-      additional: {
-        [EffectKey.SIDE_SPIN]: 6,
-      },
-    },
-    description:
-      'You can put an incredible amount of spin on the ball, making it difficult for opponents to predict its trajectory.',
-    effects: 'Greatly enhances spin shot effectiveness.',
+      "You charge the net at every opportunity. Your opponents never know when you'll suddenly materialize to finish the point.",
+    effects: 'Small bonuses to touch, pace, and recovery speed — built for net-rushing.',
   },
 
   [AbilityName.NATIONAL_ICON]: {
@@ -149,26 +149,14 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       },
     },
     description:
-      'You are popular among fans and players alike. You get some extra free perks.',
+      'You are popular among fans and players alike. The perks of fame follow you everywhere you go.',
     effects: 'More frequent special events. Bonus mood and relationship gains.',
   },
 
-  [AbilityName.SOFT_HANDS]: {
-    name: AbilityName.SOFT_HANDS,
-    level: 1,
-    rarity: AbilityRarity.COMMON,
-    modifiers: {
-      statBoosts: {},
-      additional: {
-        [EffectKey.TOUCH]: 6,
-      },
-    },
-    description:
-      "Your touch at the net is pure art. Drop shots, slices, and angles barely clear the net. Opponents can only watch.",
-    effects: 'Major bonus quality on drop shots and volleys.',
-  },
-
   // ==================== UNCOMMON ABILITIES ====================
+  // Uncommon = broader effects, energy management, or key moment advantage.
+  // These change how you play across a match, not just a single shot type.
+
   [AbilityName.SPEED_DEMON]: {
     name: AbilityName.SPEED_DEMON,
     level: 1,
@@ -176,14 +164,14 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.COURT_COVERAGE]: 5,
-        [EffectKey.RECOVERY_SPEED]: 3,
+        [EffectKey.COURT_COVERAGE]: 7,
+        [EffectKey.RECOVERY_SPEED]: 4,
         [EffectKey.ENERGY_COST_REDUCTION]: 2,
       },
     },
     description:
-      "You're so fast the cameras can hardly keep up. Your opponents are seeing ghosts on the court.",
-    effects: 'Greatly improved court coverage and recovery speed. Reduces energy cost of activities.',
+      "You're so fast the cameras can hardly keep up. You don't just get to balls — you arrive there early.",
+    effects: 'Greatly improved court coverage and position recovery. Reduces energy cost of activities.',
   },
 
   [AbilityName.IRON_LEGS]: {
@@ -193,14 +181,13 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.ENERGY_COST_REDUCTION]: 4,
-        [EffectKey.RECOVERY_SPEED]: 2,
-        [EffectKey.MOOD_GAIN_BONUS]: 3,
+        [EffectKey.ENERGY_COST_REDUCTION]: 6,
+        [EffectKey.RECOVERY_SPEED]: 3,
       },
     },
     description:
       "Your legs never seem to give out. Long five-setters are where you truly shine — opponents crack before you do.",
-    effects: 'Significantly reduces energy cost of all activities. Faster position recovery. Bonus mood gains.',
+    effects: 'Significantly reduces energy cost of all activities. Faster position recovery between shots.',
   },
 
   [AbilityName.SERVE_CANNON]: {
@@ -210,16 +197,34 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.PACE]: 6,
-        [EffectKey.SMASH_POWER]: 3,
+        [EffectKey.SMASH_POWER]: 6,
+        [EffectKey.PACE]: 4,
       },
     },
     description:
-      "Your serve is a weapon that opponents dread. First balls land like missiles, and second serves still have enough pop to hurt.",
-    effects: 'Major bonus on power shots. Bonus on overhead smashes.',
+      "Your serve is a weapon. First balls land like missiles, second serves still hurt, and overheads end points instantly.",
+    effects: 'Bonus quality on overhead shots and power shots. Serve-and-overhead game package.',
+  },
+
+  [AbilityName.CLUTCH]: {
+    name: AbilityName.CLUTCH,
+    level: 1,
+    rarity: AbilityRarity.UNCOMMON,
+    modifiers: {
+      statBoosts: {},
+      additional: {
+        [EffectKey.CLUTCH_PERFORMANCE]: 6,
+      },
+    },
+    description:
+      "When the pressure is on, you rise. Break points, tiebreaks, match points — you've been here before and you know how to handle it.",
+    effects: '+6% win probability at key moments.',
   },
 
   // ==================== RARE ABILITIES ====================
+  // Rare = mastery of a psychological or tactical dimension. Each rare ability
+  // has a distinct primary focus — no two share the same lead effect.
+
   [AbilityName.MENTAL_FORTITUDE]: {
     name: AbilityName.MENTAL_FORTITUDE,
     level: 1,
@@ -227,32 +232,14 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.MENTAL_RESILIENCE]: 5,
-        [EffectKey.CLUTCH_PERFORMANCE]: 5,
-        [EffectKey.MOOD_GAIN_BONUS]: 4,
-        [EffectKey.PERFECT_TIMING]: 3,
+        [EffectKey.MENTAL_RESILIENCE]: 6,
+        [EffectKey.MOOD_GAIN_BONUS]: 5,
+        [EffectKey.TRAINING_TIER_BONUS]: 1,
       },
     },
     description:
-      'Your mental game is unbreakable. You can handle any pressure situation and always find a way to win.',
-    effects: '+5% key moment win probability. Reduces pressure penalties. Recovers quality lost to pressure. Bonus mood gains.',
-  },
-
-  [AbilityName.ALL_COURT_MAESTRO]: {
-    name: AbilityName.ALL_COURT_MAESTRO,
-    level: 1,
-    rarity: AbilityRarity.RARE,
-    modifiers: {
-      statBoosts: {},
-      additional: {
-        [EffectKey.COURT_COVERAGE]: 6,
-        [EffectKey.REACH]: 5,
-        [EffectKey.RECOVERY_SPEED]: 3,
-      },
-    },
-    description:
-      "You read the court like a chess grandmaster. Every ball is reachable, every position recoverable.",
-    effects: 'Greatly improves court coverage, extended reach, and position recovery speed.',
+      'Your mental game is unbreakable. Pressure rolls off you, your mood stays high, and your training sessions hit harder.',
+    effects: 'Reduces pressure penalties on shot quality. Bonus mood gains. Improves training session tier.',
   },
 
   [AbilityName.PRESSURE_COOKER]: {
@@ -262,17 +249,35 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.CLUTCH_PERFORMANCE]: 8,
+        [EffectKey.PERFECT_TIMING]: 7,
         [EffectKey.MENTAL_RESILIENCE]: 4,
-        [EffectKey.PERFECT_TIMING]: 4,
       },
     },
     description:
-      "Pressure is your oxygen. At 5-5 in the third, you become a different player — calm, precise, lethal.",
-    effects: '+8% key moment win probability. Strong pressure resistance. Significantly recovers quality lost to pressure.',
+      "Pressure is your oxygen. The tighter the situation, the more precise you become. Opponents expect you to crack — you never do.",
+    effects: 'Recovers shot quality lost to pressure. Reduces pressure penalties.',
+  },
+
+  [AbilityName.ALL_COURT_MAESTRO]: {
+    name: AbilityName.ALL_COURT_MAESTRO,
+    level: 1,
+    rarity: AbilityRarity.RARE,
+    modifiers: {
+      statBoosts: {},
+      additional: {
+        [EffectKey.COURT_COVERAGE]: 8,
+        [EffectKey.REACH]: 6,
+        [EffectKey.RECOVERY_SPEED]: 4,
+      },
+    },
+    description:
+      "You read the court like a chess grandmaster. Every ball is reachable, every position is recoverable, every corner covered.",
+    effects: 'Major court coverage, extended reach, and fast position recovery. Nothing gets past you.',
   },
 
   // ==================== LEGENDARY ABILITIES ====================
+  // Legendary = transcendent, multi-dimensional mastery. Game-defining effects.
+
   [AbilityName.LEGENDARY_FOCUS]: {
     name: AbilityName.LEGENDARY_FOCUS,
     level: 1,
@@ -289,8 +294,8 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       },
     },
     description:
-      "You have the focus of a champion. When you're in the zone, nothing can stop you from achieving greatness.",
-    effects: '+8% key moment win probability. Timing precision under pressure. Amplified winning momentum. Training bonuses.',
+      "You have the focus of a champion. When you're in the zone, nothing can stop you. Key moments, momentum, training — everything elevates.",
+    effects: '+8% key moment win probability. Timing precision under pressure. Amplified winning momentum. Training and ability bonuses.',
   },
 
   [AbilityName.APEX_PREDATOR]: {
@@ -311,6 +316,6 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
     },
     description:
       "You are the complete player. Every shot is a threat, every defensive position is temporary. Opponents see no way out.",
-    effects: 'Major bonuses to power shots, spin, finesse, and court coverage. Amplified winning momentum and rally dominance.',
+    effects: 'Bonuses to power shots, spin, finesse, and court coverage. Amplified winning momentum and rally dominance.',
   },
 };
