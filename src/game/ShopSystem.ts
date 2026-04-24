@@ -12,7 +12,7 @@ import type { PlayerStats } from '../types/index';
 import type { Item } from '../types/items';
 import { ABILITY_DEFINITIONS } from './AbilitySystem';
 import { AbilityRarity } from '../types/game';
-import { ALL_CONSUMABLES, ALL_EQUIPMENT } from '../data/items';
+import { ALL_CONSUMABLES, ALL_EQUIPMENT, CONSUMABLE_SHOP_COSTS } from '../data/items';
 
 const CORE_STATS = ['serve', 'forehand', 'backhand', 'return', 'slice'] as const;
 const TECHNICAL_STATS = ['volley', 'overhead', 'dropShot', 'spin', 'placement'] as const;
@@ -118,7 +118,7 @@ function createConsumableItem(): ConsumableItem {
     description: sourceItem.description,
     instantEffects: effect?.type === 'instant' ? effect.instantEffects : undefined,
     nextActivityBuffs: effect?.nextActivityBuffs,
-    cost: 10,
+    cost: CONSUMABLE_SHOP_COSTS[sourceItem.id] ?? 10,
     purchased: false,
     rarity: 'common',
   };
@@ -240,6 +240,12 @@ export function generateDailyShopItems(
     }
   }
 
-  // TODO: Re-enable ability generation once ability catalog is more robust
+  // Generate 1 ability (catalog now robust enough to support shop availability)
+  const abilityItem = createAbilityItem(ownedLevels);
+  if (abilityItem && !usedNames.has(abilityItem.name)) {
+    items.push(abilityItem);
+    usedNames.add(abilityItem.name);
+  }
+
   return items;
 }

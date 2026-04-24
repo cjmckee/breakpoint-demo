@@ -22,6 +22,7 @@ import type {
   ShotDetail,
 } from '../types/index.js';
 import { PointType } from '../types/index.js';
+import { EffectKey } from '../types/game.js';
 import { PlayerProfile } from './PlayerProfile.js';
 import { getQualityThresholds, getMatchLevel } from '../utils/qualityThresholds.js';
 import {
@@ -163,7 +164,7 @@ export class ShotCalculator {
 
     // Step 3b: Apply ability additional effects
     if (activeEffects) {
-      quality = this.applyAbilityEffects(quality, shotType, modifiers, activeEffects);
+      quality = this.applyAbilityEffects(quality, shotType, context, modifiers, activeEffects);
     }
 
     // Step 3c: Apply court surface pace multiplier to final quality
@@ -755,41 +756,48 @@ export class ShotCalculator {
   private applyAbilityEffects(
     quality: number,
     shotType: ShotType,
+    context: ShotContext,
     modifiers: ShotModifiers,
     effects: Record<string, number>
   ): number {
     let bonus = 0;
 
     // pace: power shots hit harder
-    const pace = effects['pace'] ?? 0;
+    const pace = effects[EffectKey.PACE] ?? 0;
     if (pace > 0 && shotType.includes('power')) {
       bonus += pace * 2;
     }
 
     // side_spin: enhanced spin effectiveness
-    const sideSpin = effects['side_spin'] ?? 0;
+    const sideSpin = effects[EffectKey.SIDE_SPIN] ?? 0;
     if (sideSpin > 0 && modifiers.spinBonus > 0) {
       bonus += sideSpin * modifiers.spinBonus * 0.15;
     }
 
     // touch: drop shots and volleys
-    const touch = effects['touch'] ?? 0;
+    const touch = effects[EffectKey.TOUCH] ?? 0;
     if (touch > 0 && (shotType.includes('drop_shot') || shotType.includes('volley'))) {
       bonus += touch * 2;
     }
 
     // smash_power: overhead shots
-    const smashPower = effects['smash_power'] ?? 0;
+    const smashPower = effects[EffectKey.SMASH_POWER] ?? 0;
     if (smashPower > 0 && shotType.includes('overhead')) {
       bonus += smashPower * 3;
     }
 
     // perfect_timing: reduces pressure penalty impact
-    const perfectTiming = effects['perfect_timing'] ?? 0;
+    const perfectTiming = effects[EffectKey.PERFECT_TIMING] ?? 0;
     if (perfectTiming > 0 && modifiers.pressureModifier < 1) {
       // Recover some of the quality lost to pressure
       const pressureLoss = (1 - modifiers.pressureModifier) * quality;
       bonus += pressureLoss * perfectTiming * 0.03;
+    }
+
+    // rally_momentum: bonus quality on long rallies (baseline/endurance play)
+    const rallyMomentum = effects[EffectKey.RALLY_MOMENTUM] ?? 0;
+    if (rallyMomentum > 0 && context.rallyLength > 4) {
+      bonus += rallyMomentum * 1.5;
     }
 
     return Math.min(100, Math.max(0, quality + bonus));
