@@ -1273,8 +1273,11 @@ export const useGameStore = create<GameState>()(
         // Apply rewards to player (still apply stat rewards for tutorial matches)
         let updatedPlayer = PlayerManager.applyStatBoosts(state.player, rewards.statBoosts)
         if (rewards.abilitiesGained && rewards.abilitiesGained.length > 0) {
-          for (const ability of rewards.abilitiesGained) {
-            updatedPlayer = PlayerManager.addAbility(updatedPlayer, ability);
+          // Only roll for abilities if this is non-tutorial
+          if (countsForMilestones) {
+            for (const ability of rewards.abilitiesGained) {
+              updatedPlayer = PlayerManager.addAbility(updatedPlayer, ability);
+            }
           }
         }
         if (rewards.itemsGained && rewards.itemsGained.length > 0) {
