@@ -1,11 +1,10 @@
 /**
  * Match Reward Configuration
  *
- * Controls reward multipliers, drop rates, and stat boost amounts.
+ * Controls reward multipliers, drop rates, and experience scaling.
  * All values are easily tunable to balance progression.
  */
 
-import type { StatBoosts } from '../types/game';
 import { AbilityRarity } from '../types/game';
 
 // ============================================================================
@@ -36,50 +35,6 @@ export const TIER_REWARD_MULTIPLIERS: Record<OpponentTier, {
   2: { win: 2, loss: 1 },     // Regional Competitor
   3: { win: 3, loss: 1 },     // Tour Professional
   4: { win: 4, loss: 2 },     // World Champion
-};
-
-// ============================================================================
-// STAT BOOST AMOUNTS (All whole numbers, max +3)
-// ============================================================================
-export const STAT_BOOST_AMOUNTS: Record<PerformanceLevel, number> = {
-  excellent: 3,
-  good: 2,
-  average: 1,
-  bad: 0,
-};
-
-// Define which stats get boosted for each category at each performance level
-export const CATEGORY_STAT_BOOSTS: Record<string, Record<PerformanceLevel, StatBoosts>> = {
-  serving: {
-    excellent: { serve: 1, strength: 1, placement: 1 },
-    good: { serve: 1, strength: 1 },
-    average: { serve: 1 },
-    bad: {},
-  },
-  returning: {
-    excellent: { return: 1, anticipation: 1, agility: 1 },
-    good: { return: 1, anticipation: 1 },
-    average: { return: 1 },
-    bad: {},
-  },
-  rallying: {
-    excellent: { forehand: 1, backhand: 1, stamina: 1, spin: 1 },
-    good: { stamina: 1, spin: 1, backhand: 1 },
-    average: { stamina: 1, spin: 1 },
-    bad: {},
-  },
-  netPlay: {
-    excellent: { volley: 1, agility: 1, offensive: 1 },
-    good: { volley: 1, agility: 1 },
-    average: { volley: 1 },
-    bad: {},
-  },
-  mental: {
-    excellent: { focus: 1, offensive: 1, defensive: 1 },
-    good: { focus: 1, shotVariety: 1 },
-    average: { focus: 1 },
-    bad: {},
-  },
 };
 
 // ============================================================================
@@ -145,3 +100,23 @@ export const MOOD_PERFORMANCE_BONUS: Record<PerformanceLevel, number> = {
   average: 0,
   bad: -5,
 };
+
+// ============================================================================
+// PERFORMANCE-SCALED EXPERIENCE
+// ============================================================================
+
+// Max additional XP awarded for performance (on top of base win/loss XP).
+// At overallScore=100 the player earns this many bonus XP before tier scaling.
+// At overallScore=0 the player earns 0 bonus XP.
+// Formula: experience = BASE_EXPERIENCE + round(overallScore * (MAX / 100) * tierMultiplier)
+export const PERFORMANCE_EXP_MAX_BONUS = 60;
+
+// ============================================================================
+// PERFORMANCE-SCALED DROP RATES
+// ============================================================================
+
+// Multiplier range applied to ability and item drop rates based on overall score.
+// Score 0 → MIN multiplier, Score 100 → MAX multiplier (linear interpolation).
+// Formula: dropMultiplier = MIN + (overallScore / 100) * (MAX - MIN)
+export const PERFORMANCE_DROP_MULTIPLIER_MIN = 0.5;
+export const PERFORMANCE_DROP_MULTIPLIER_MAX = 1.5;

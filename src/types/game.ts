@@ -369,21 +369,20 @@ export interface PerformanceRewardBreakdown {
   netPlayScore: number;
   mentalScore: number;
   overallScore: number;
+}
 
-  rewardedCategories: {
-    serving?: StatBoosts;
-    returning?: StatBoosts;
-    rallying?: StatBoosts;
-    netPlay?: StatBoosts;
-    mental?: StatBoosts;
-  };
+export interface ExperienceBreakdown {
+  base: number;
+  performanceBonus: number;
+  tierMultiplier: number;
+  total: number;
 }
 
 export interface MatchReward {
-  statBoosts: StatBoosts;
   moodChange: number;
   energyChange?: number;
   experience: number;
+  experienceBreakdown: ExperienceBreakdown;
   abilitiesGained?: Ability[];
   itemsGained?: Item[];
   performanceBreakdown: PerformanceRewardBreakdown;
