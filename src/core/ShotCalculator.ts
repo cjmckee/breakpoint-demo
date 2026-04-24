@@ -794,6 +794,12 @@ export class ShotCalculator {
       bonus += pressureLoss * perfectTiming * 0.03;
     }
 
+    // net_game: bonus quality on all shots when player is positioned at the net
+    const netGame = effects[EffectKey.NET_GAME] ?? 0;
+    if (netGame > 0 && context.courtPosition === 'net') {
+      bonus += netGame * 2;
+    }
+
     // rally_momentum: bonus quality on long rallies (baseline/endurance play)
     const rallyMomentum = effects[EffectKey.RALLY_MOMENTUM] ?? 0;
     if (rallyMomentum > 0 && context.rallyLength > 4) {

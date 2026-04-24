@@ -8,10 +8,14 @@ import {
 // Complete ability definitions with all rarities.
 // Abilities are effects-only — no stat boosts. Stats come from training and equipment.
 // All additional effects scale linearly with ability level (value × level).
+//
+// Design principles:
+//   Common    — single focused shot or positioning bonus
+//   Uncommon  — broader effects, energy management, key moment boost
+//   Rare      — psychological/training mastery; single powerful effect or 2-effect package
+//   Legendary — multi-dimensional, game-defining
 export const ABILITY_DEFINITIONS: Record<string, Ability> = {
   // ==================== COMMON ABILITIES ====================
-  // Common = single focused bonus on one shot type or positioning dimension.
-  // No training bonuses or key moment effects at this tier.
 
   [AbilityName.HEAVY_HITTER]: {
     name: AbilityName.HEAVY_HITTER,
@@ -39,7 +43,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       },
     },
     description:
-      'You can put an incredible amount of spin on the ball, making it bounce unpredictably and sit up awkwardly for opponents.',
+      'You can put incredible spin on the ball, making it bounce unpredictably and sit up awkwardly.',
     effects: 'Bonus quality on spin shots.',
   },
 
@@ -69,7 +73,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       },
     },
     description:
-      'You put away overheads with ruthless efficiency. Lobs are not a safe play against you.',
+      'You put away overheads with ruthless efficiency. Opponents learn quickly not to lob you.',
     effects: 'Bonus quality on overhead shots.',
   },
 
@@ -88,22 +92,6 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
     effects: 'Reduces difficulty penalty when stretched out of position.',
   },
 
-  [AbilityName.SLIDER]: {
-    name: AbilityName.SLIDER,
-    level: 1,
-    rarity: AbilityRarity.COMMON,
-    modifiers: {
-      statBoosts: {},
-      additional: {
-        [EffectKey.COURT_COVERAGE]: 5,
-        [EffectKey.RECOVERY_SPEED]: 2,
-      },
-    },
-    description:
-      "You move around the court like you're on ice skates. Your footwork is effortless and your opponents can't open up the court.",
-    effects: 'Improved court coverage and position recovery speed.',
-  },
-
   [AbilityName.BASELINER]: {
     name: AbilityName.BASELINER,
     level: 1,
@@ -115,8 +103,23 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       },
     },
     description:
-      "You've mastered the art of grinding from the baseline. Long rallies are your territory — the longer it goes, the more the point is yours.",
+      "You've mastered the art of grinding from the baseline. The longer the rally, the more the point is yours.",
     effects: 'Bonus shot quality when rally length exceeds 4 shots.',
+  },
+
+  [AbilityName.SLIDER]: {
+    name: AbilityName.SLIDER,
+    level: 1,
+    rarity: AbilityRarity.COMMON,
+    modifiers: {
+      statBoosts: {},
+      additional: {
+        [EffectKey.COURT_COVERAGE]: 6,
+      },
+    },
+    description:
+      "You move around the court like you're on ice skates. Your footwork is effortless — opponents can't open up the court.",
+    effects: 'Improved court coverage.',
   },
 
   [AbilityName.NETCRASHER]: {
@@ -126,36 +129,47 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.TOUCH]: 3,
-        [EffectKey.PACE]: 2,
-        [EffectKey.RECOVERY_SPEED]: 3,
+        [EffectKey.NET_GAME]: 5,
+        [EffectKey.TOUCH]: 2,
       },
     },
     description:
-      "You charge the net at every opportunity. Your opponents never know when you'll suddenly materialize to finish the point.",
-    effects: 'Small bonuses to touch, pace, and recovery speed — built for net-rushing.',
+      "You charge the net at every opportunity. Once you're up there, you're a completely different threat.",
+    effects: 'Bonus quality on all shots when positioned at the net. Minor touch bonus.',
   },
 
-  [AbilityName.NATIONAL_ICON]: {
-    name: AbilityName.NATIONAL_ICON,
+  [AbilityName.CROWD_FAVORITE]: {
+    name: AbilityName.CROWD_FAVORITE,
     level: 1,
     rarity: AbilityRarity.COMMON,
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.EVENT_TRIGGER_BONUS]: 6,
-        [EffectKey.MOOD_GAIN_BONUS]: 3,
+        [EffectKey.MOOD_GAIN_BONUS]: 5,
         [EffectKey.RELATIONSHIP_GAIN_BONUS]: 3,
       },
     },
     description:
-      'You are popular among fans and players alike. The perks of fame follow you everywhere you go.',
-    effects: 'More frequent special events. Bonus mood and relationship gains.',
+      'The crowd loves you and the other players respect you. You draw energy from every interaction.',
+    effects: 'Bonus mood gains. Bonus relationship gains.',
+  },
+
+  [AbilityName.SPOTLIGHT]: {
+    name: AbilityName.SPOTLIGHT,
+    level: 1,
+    rarity: AbilityRarity.COMMON,
+    modifiers: {
+      statBoosts: {},
+      additional: {
+        [EffectKey.EVENT_TRIGGER_BONUS]: 7,
+      },
+    },
+    description:
+      "Wherever you go, something interesting happens. Sponsors, media, fans — life on tour has a way of finding you.",
+    effects: 'More frequent special events.',
   },
 
   // ==================== UNCOMMON ABILITIES ====================
-  // Uncommon = broader effects, energy management, or key moment advantage.
-  // These change how you play across a match, not just a single shot type.
 
   [AbilityName.SPEED_DEMON]: {
     name: AbilityName.SPEED_DEMON,
@@ -166,12 +180,11 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       additional: {
         [EffectKey.COURT_COVERAGE]: 7,
         [EffectKey.RECOVERY_SPEED]: 4,
-        [EffectKey.ENERGY_COST_REDUCTION]: 2,
       },
     },
     description:
-      "You're so fast the cameras can hardly keep up. You don't just get to balls — you arrive there early.",
-    effects: 'Greatly improved court coverage and position recovery. Reduces energy cost of activities.',
+      "You're so fast the cameras can barely keep up. You don't just get to balls — you arrive early.",
+    effects: 'Greatly improved court coverage. Faster position recovery between shots.',
   },
 
   [AbilityName.IRON_LEGS]: {
@@ -182,12 +195,12 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       statBoosts: {},
       additional: {
         [EffectKey.ENERGY_COST_REDUCTION]: 6,
-        [EffectKey.RECOVERY_SPEED]: 3,
+        [EffectKey.RECOVERY_SPEED]: 2,
       },
     },
     description:
       "Your legs never seem to give out. Long five-setters are where you truly shine — opponents crack before you do.",
-    effects: 'Significantly reduces energy cost of all activities. Faster position recovery between shots.',
+    effects: 'Significantly reduces energy cost of all activities. Minor position recovery bonus.',
   },
 
   [AbilityName.SERVE_CANNON]: {
@@ -202,8 +215,8 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       },
     },
     description:
-      "Your serve is a weapon. First balls land like missiles, second serves still hurt, and overheads end points instantly.",
-    effects: 'Bonus quality on overhead shots and power shots. Serve-and-overhead game package.',
+      "Your serve is a weapon. First balls land like missiles, second serves still hurt, and overheads end points clean.",
+    effects: 'Bonus quality on overhead shots and power shots.',
   },
 
   [AbilityName.CLUTCH]: {
@@ -217,13 +230,27 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       },
     },
     description:
-      "When the pressure is on, you rise. Break points, tiebreaks, match points — you've been here before and you know how to handle it.",
+      "When the pressure is on, you rise. Break points, tiebreaks, match points — you've been here before.",
     effects: '+6% win probability at key moments.',
   },
 
+  [AbilityName.QUICK_RECOVERY]: {
+    name: AbilityName.QUICK_RECOVERY,
+    level: 1,
+    rarity: AbilityRarity.UNCOMMON,
+    modifiers: {
+      statBoosts: {},
+      additional: {
+        [EffectKey.ENERGY_GAIN_BONUS]: 6,
+      },
+    },
+    description:
+      "You bounce back faster than anyone. Rest days feel like twice as long for you — you show up recharged and ready.",
+    effects: 'Gain more energy from rest and recovery activities.',
+  },
+
+
   // ==================== RARE ABILITIES ====================
-  // Rare = mastery of a psychological or tactical dimension. Each rare ability
-  // has a distinct primary focus — no two share the same lead effect.
 
   [AbilityName.MENTAL_FORTITUDE]: {
     name: AbilityName.MENTAL_FORTITUDE,
@@ -232,14 +259,12 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.MENTAL_RESILIENCE]: 6,
-        [EffectKey.MOOD_GAIN_BONUS]: 5,
-        [EffectKey.TRAINING_TIER_BONUS]: 1,
+        [EffectKey.MENTAL_RESILIENCE]: 7,
       },
     },
     description:
-      'Your mental game is unbreakable. Pressure rolls off you, your mood stays high, and your training sessions hit harder.',
-    effects: 'Reduces pressure penalties on shot quality. Bonus mood gains. Improves training session tier.',
+      'Your mental game is unbreakable. Pressure rolls off you. Opponents watch their psychological tactics fail one by one.',
+    effects: 'Significantly reduces pressure penalties on shot quality.',
   },
 
   [AbilityName.PRESSURE_COOKER]: {
@@ -250,7 +275,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       statBoosts: {},
       additional: {
         [EffectKey.PERFECT_TIMING]: 7,
-        [EffectKey.MENTAL_RESILIENCE]: 4,
+        [EffectKey.MENTAL_RESILIENCE]: 3,
       },
     },
     description:
@@ -266,17 +291,62 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       statBoosts: {},
       additional: {
         [EffectKey.COURT_COVERAGE]: 8,
-        [EffectKey.REACH]: 6,
-        [EffectKey.RECOVERY_SPEED]: 4,
+        [EffectKey.REACH]: 5,
       },
     },
     description:
-      "You read the court like a chess grandmaster. Every ball is reachable, every position is recoverable, every corner covered.",
-    effects: 'Major court coverage, extended reach, and fast position recovery. Nothing gets past you.',
+      "You read the court like a chess grandmaster. Every ball is reachable, every corner covered.",
+    effects: 'Major court coverage improvement. Extended reach reduces difficulty when stretched.',
+  },
+
+  [AbilityName.IRON_WILL]: {
+    name: AbilityName.IRON_WILL,
+    level: 1,
+    rarity: AbilityRarity.RARE,
+    modifiers: {
+      statBoosts: {},
+      additional: {
+        [EffectKey.FOCUS_DURATION]: 2,
+        [EffectKey.ENERGY_COST_REDUCTION]: 1,
+      },
+    },
+    description:
+      "You are built for the long haul. Three-hour matches, five-setters, back-to-back days — you show up the same every time.",
+    effects: 'Reduces fatigue accumulation during matches. Minor energy cost reduction.',
+  },
+
+  [AbilityName.GRINDER]: {
+    name: AbilityName.GRINDER,
+    level: 1,
+    rarity: AbilityRarity.RARE,
+    modifiers: {
+      statBoosts: {},
+      additional: {
+        [EffectKey.EXPERIENCE_GAIN_BONUS]: 0.10,
+      },
+    },
+    description:
+      "Every match teaches you more than it teaches your opponent. Win or lose, you walk away sharper.",
+    effects: '+10% experience gained from matches.',
+  },
+
+  [AbilityName.DEDICATED]: {
+    name: AbilityName.DEDICATED,
+    level: 1,
+    rarity: AbilityRarity.RARE,
+    modifiers: {
+      statBoosts: {},
+      additional: {
+        [EffectKey.TRAINING_TIER_BONUS]: 1,
+        [EffectKey.ABILITY_CHANCE_BONUS]: 5,
+      },
+    },
+    description:
+      "Training is your religion. You consistently get more out of every practice session — and occasionally unlock something special.",
+    effects: 'Upgrades training session tier. Increased chance to gain an ability from diamond sessions.',
   },
 
   // ==================== LEGENDARY ABILITIES ====================
-  // Legendary = transcendent, multi-dimensional mastery. Game-defining effects.
 
   [AbilityName.LEGENDARY_FOCUS]: {
     name: AbilityName.LEGENDARY_FOCUS,
@@ -294,7 +364,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       },
     },
     description:
-      "You have the focus of a champion. When you're in the zone, nothing can stop you. Key moments, momentum, training — everything elevates.",
+      "You have the focus of a champion. When you're in the zone, nothing can stop you. Every dimension of your game elevates.",
     effects: '+8% key moment win probability. Timing precision under pressure. Amplified winning momentum. Training and ability bonuses.',
   },
 
@@ -316,6 +386,6 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
     },
     description:
       "You are the complete player. Every shot is a threat, every defensive position is temporary. Opponents see no way out.",
-    effects: 'Bonuses to power shots, spin, finesse, and court coverage. Amplified winning momentum and rally dominance.',
+    effects: 'Bonuses to power, spin, finesse, and court coverage. Amplified winning momentum and rally dominance.',
   },
 };

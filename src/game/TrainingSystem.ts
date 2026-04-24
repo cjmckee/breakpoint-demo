@@ -149,7 +149,7 @@ const TRAINING_SESSION_CONFIGS: Record<TrainingSessionType, TrainingConfig> = {
       shotVariety: 1,
       offensive: 1,
     },
-    ability: AbilityName.NATIONAL_ICON,
+    ability: AbilityName.CROWD_FAVORITE,
     description: 'Learn slice strategy and shot variety from a famous coach online',
   },
   touch_training: {

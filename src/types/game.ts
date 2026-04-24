@@ -86,10 +86,11 @@ export const EffectKey = {
   // --- Event effects ---
   EVENT_TRIGGER_BONUS: 'event_trigger_bonus',
 
-  // --- Mood/Energy effects ---
+  // --- Mood/Energy/XP effects ---
   MOOD_GAIN_BONUS: 'mood_gain_bonus',
   ENERGY_GAIN_BONUS: 'energy_gain_bonus',
   ENERGY_COST_REDUCTION: 'energy_cost_reduction',
+  EXPERIENCE_GAIN_BONUS: 'experience_gain_bonus', // multiplier on match XP (0.1 = +10%)
 
   // --- Relationship effects ---
   RELATIONSHIP_GAIN_BONUS: 'relationship_gain_bonus',
@@ -99,6 +100,7 @@ export const EffectKey = {
   SIDE_SPIN: 'side_spin',             // bonus scaled by spin modifier
   TOUCH: 'touch',                     // bonus on drop shots and volleys
   SMASH_POWER: 'smash_power',         // bonus on overhead shots
+  NET_GAME: 'net_game',               // bonus quality on all shots when player is at net
   PERFECT_TIMING: 'perfect_timing',   // recovers quality lost to pressure
   RALLY_MOMENTUM: 'rally_momentum',   // bonus quality when rally length > 4
 
@@ -122,23 +124,28 @@ export const AbilityName = {
   BASELINER: 'baseliner',
   NETCRASHER: 'netcrasher',
   SLIDER: 'slider',
-  CLUTCH: 'clutch',
   HEAVY_HITTER: 'heavy_hitter',
   OVERHEAD_SMASH: 'overhead_smash',
   RANGY_RETURN: 'rangy_return',
   SPIN_MASTER: 'spin_master',
-  NATIONAL_ICON: 'national_icon',
   SOFT_HANDS: 'soft_hands',
+  CROWD_FAVORITE: 'crowd_favorite',
+  SPOTLIGHT: 'spotlight',
 
   // uncommon
   SPEED_DEMON: 'speed_demon',
   IRON_LEGS: 'iron_legs',
   SERVE_CANNON: 'serve_cannon',
+  CLUTCH: 'clutch',
+  QUICK_RECOVERY: 'quick_recovery',
 
   // rare
   MENTAL_FORTITUDE: 'mental_fortitude',
   ALL_COURT_MAESTRO: 'all_court_maestro',
   PRESSURE_COOKER: 'pressure_cooker',
+  IRON_WILL: 'iron_will',
+  DEDICATED: 'dedicated',
+  GRINDER: 'grinder',
 
   // legendary
   LEGENDARY_FOCUS: 'legendary_focus',

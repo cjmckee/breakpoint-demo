@@ -266,6 +266,7 @@ const ADDITIONAL_EFFECT_LABELS: Partial<Record<string, string>> = {
   [EffectKey.MOOD_GAIN_BONUS]: 'Mood Gain Bonus',
   [EffectKey.ENERGY_COST_REDUCTION]: 'Energy Cost Reduction',
   [EffectKey.ENERGY_GAIN_BONUS]: 'Energy Gain Bonus',
+  [EffectKey.EXPERIENCE_GAIN_BONUS]: 'Experience Gain Bonus',
   [EffectKey.TRAINING_STAT_MULTIPLIER]: 'Stat Multiplier',
   [EffectKey.TRAINING_TIER_BONUS]: 'Training Tier Bonus',
   [EffectKey.ABILITY_CHANCE_BONUS]: 'Ability Chance Bonus',
@@ -275,6 +276,7 @@ const ADDITIONAL_EFFECT_LABELS: Partial<Record<string, string>> = {
   [EffectKey.SIDE_SPIN]: 'Side Spin Bonus',
   [EffectKey.TOUCH]: 'Touch & Finesse Bonus',
   [EffectKey.SMASH_POWER]: 'Smash Power Bonus',
+  [EffectKey.NET_GAME]: 'Net Game Bonus',
   [EffectKey.PERFECT_TIMING]: 'Timing Precision',
   [EffectKey.RALLY_MOMENTUM]: 'Rally Momentum',
   // Match: positioning effects
