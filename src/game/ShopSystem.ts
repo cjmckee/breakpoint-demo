@@ -239,11 +239,13 @@ export function generateDailyShopItems(
     }
   }
 
-  // Generate 1 ability (catalog now robust enough to support shop availability)
-  const abilityItem = createAbilityItem(ownedLevels);
-  if (abilityItem && !usedNames.has(abilityItem.name)) {
-    items.push(abilityItem);
-    usedNames.add(abilityItem.name);
+  // Generate 2 abilities
+  while (items.filter(i => i.category === 'ability').length < 2) {
+    const abilityItem = createAbilityItem(ownedLevels);
+    if (abilityItem && !usedNames.has(abilityItem.name)) {
+      items.push(abilityItem);
+      usedNames.add(abilityItem.name);
+    }
   }
 
   return items;
