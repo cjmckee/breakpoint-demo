@@ -29,7 +29,7 @@ export const romanceEvents: StoryEvent[] = [
       effects: {
         moodChange: 20,
         energyChange: 0,
-        relationshipChanges: { alex: 20 },
+        relationshipChanges: { alex_romance: 20 },
       },
       challengesAssigned: [
         ChallengeManager.createFromTemplate(CHALLENGE_IMPRESS_ALEX, {
@@ -47,7 +47,7 @@ export const romanceEvents: StoryEvent[] = [
     timeSlotsRequired: 2,
     prerequisites: {
       completedEvents: ['romance_meet_tournament'],
-      relationships: { alex: { min: 15 } },
+      relationships: { alex_romance: { min: 15 } },
     },
     skippable: true,
     description: 'Alex invites you to grab coffee after practice.',
@@ -67,7 +67,7 @@ export const romanceEvents: StoryEvent[] = [
             statChanges: { dropShot: 1, volley: 1, anticipation: 1 },
             moodChange: 15,
             energyChange: -5,
-            relationshipChanges: { alex: 10 },
+            relationshipChanges: { alex_romance: 10 },
           },
         },
       },
@@ -81,7 +81,7 @@ export const romanceEvents: StoryEvent[] = [
           effects: {
             moodChange: 25,
             energyChange: 0,
-            relationshipChanges: { alex: 25 },
+            relationshipChanges: { alex_romance: 25 },
           },
         },
       },
@@ -96,7 +96,7 @@ export const romanceEvents: StoryEvent[] = [
             statChanges: { recovery: 1 },
             moodChange: 0,
             energyChange: 0,
-            relationshipChanges: { alex: -5 },
+            relationshipChanges: { alex_romance: -5 },
           },
         },
       },
@@ -110,7 +110,7 @@ export const romanceEvents: StoryEvent[] = [
     timeSlotsRequired: 2,
     prerequisites: {
       completedEvents: ['romance_coffee_date'],
-      relationships: { alex: { min: 25 } },
+      relationships: { alex_romance: { min: 25 } },
     },
     skippable: true,
     description: 'You run into Alex at the city park.',
@@ -133,7 +133,7 @@ export const romanceEvents: StoryEvent[] = [
             statChanges: { return: 2, agility: 1, recovery: 1 },
             moodChange: 15,
             energyChange: -15,
-            relationshipChanges: { alex: 15 },
+            relationshipChanges: { alex_romance: 15 },
           },
         },
       },
@@ -148,7 +148,7 @@ export const romanceEvents: StoryEvent[] = [
             statChanges: { return: 1, defensive: 2, shotVariety: 1 },
             moodChange: 25,
             energyChange: -15,
-            relationshipChanges: { alex: 10 },
+            relationshipChanges: { alex_romance: 10 },
           },
         },
       },
@@ -162,7 +162,7 @@ export const romanceEvents: StoryEvent[] = [
     timeSlotsRequired: 1,
     prerequisites: {
       completedEvents: ['romance_park_practice'],
-      relationships: { alex: { min: 35 } },
+      relationships: { alex_romance: { min: 35 } },
     },
     skippable: true,
     description: 'Alex suggests watching a tennis movie together.',
@@ -184,7 +184,7 @@ export const romanceEvents: StoryEvent[] = [
             statChanges: { focus: 2, anticipation: 2, defensive: 1 },
             moodChange: 15,
             energyChange: 5,
-            relationshipChanges: { alex: 12 },
+            relationshipChanges: { alex_romance: 12 },
           },
         },
       },
@@ -198,7 +198,7 @@ export const romanceEvents: StoryEvent[] = [
           effects: {
             moodChange: 30,
             energyChange: 10,
-            relationshipChanges: { alex: 25 },
+            relationshipChanges: { alex_romance: 25 },
           },
         },
       },
@@ -212,7 +212,7 @@ export const romanceEvents: StoryEvent[] = [
     timeSlotsRequired: 2,
     prerequisites: {
       completedEvents: ['romance_movie_night'],
-      relationships: { alex: { min: 50 } },
+      relationships: { alex_romance: { min: 50 } },
     },
     skippable: true,
     description: "You get the opportunity to watch a local professional match with Alex",
@@ -231,7 +231,7 @@ export const romanceEvents: StoryEvent[] = [
         statChanges: { backhand: 3, volley: 2, return: 2 },
         moodChange: 10,
         energyChange: -20,
-        relationshipChanges: { alex: 15 },
+        relationshipChanges: { alex_romance: 15 },
       },
       challengesAssigned: [
         ChallengeManager.createFromTemplate(CHALLENGE_PRACTICE_MAKES_PERFECT, {

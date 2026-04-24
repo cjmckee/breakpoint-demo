@@ -19,7 +19,11 @@ export const Relationships: React.FC = () => {
   const metCharacterIds = Object.keys(relationships);
   const metCharacters = metCharacterIds
     .map((id) => CHARACTERS[id])
-    .filter((c): c is NonNullable<typeof c> => c !== undefined);
+    .filter((c): c is NonNullable<typeof c> => c !== undefined)
+    .filter((c) => {
+      // Filter out opponents for now
+      return c.role !== 'Opponent'
+    });
 
   const getBarColor = (value: number): string => {
     if (value > 20) return 'bg-green-500';
@@ -72,6 +76,7 @@ export const Relationships: React.FC = () => {
                        character.role === 'Career' ? '📈' :
                        character.role === 'Media' ? '📰' :
                        character.role === 'Official' ? '🏆' :
+                       character.role === 'Romance' ? '💖' :
                        '🎾'}
                     </div>
                     <div className="flex-1">

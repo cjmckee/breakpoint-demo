@@ -56,7 +56,7 @@ export const CHARACTERS: Record<string, Character> = {
   alex_romance: {
     id: 'alex_romance',
     name: 'Alex',
-    role: 'Friend',
+    role: 'Romance',
   },
 
   /** Family */

@@ -406,7 +406,7 @@ export const CHALLENGE_IMPRESS_ALEX: ChallengeTemplate = {
       },
     },
     relationshipChanges: {
-      alex: 10,
+      alex_romance: 10,
     },
     experience: 25,
   },
@@ -677,7 +677,7 @@ export const CHALLENGE_PRACTICE_MAKES_PERFECT: ChallengeTemplate = {
       },
     },
     relationshipChanges: {
-      alex: 15,
+      alex_romance: 15,
     },
     experience: 10,
   },
