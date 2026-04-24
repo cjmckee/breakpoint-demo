@@ -1327,8 +1327,13 @@ export const useGameStore = create<GameState>()(
         const newEnergy = Math.max(0, state.currentStatus.energy - Math.max(0, energyCost - matchEnergyCostReduction) + keyMomentEnergyCost);
         const newMood = Math.max(-100, Math.min(100, state.currentStatus.mood + rewards.moodChange + matchMoodGainBonus + keyMomentMoodChange));
 
-        // Apply match experience
-        updatedPlayer = PlayerManager.addExperience(updatedPlayer, rewards.experience).player;
+        // Apply match experience (with EXPERIENCE_GAIN_BONUS multiplier if active)
+        const { effects: matchEffects } = EffectAggregator.getActiveEffects(state.player);
+        const expBonus = EffectAggregator.getEffect(matchEffects, EffectKey.EXPERIENCE_GAIN_BONUS);
+        const adjustedExp = expBonus > 0
+          ? Math.round(rewards.experience * (1 + expBonus))
+          : rewards.experience;
+        updatedPlayer = PlayerManager.addExperience(updatedPlayer, adjustedExp).player;
 
         // Match-type-specific state updates
         let calendarUpdate = { ...state.calendar };
@@ -2573,9 +2578,8 @@ export const useGameStore = create<GameState>()(
 
       refreshShop: () => {
         const { player } = get();
-        const playerAbilities = player?.abilities.map(a => a.name) ?? [];
         const ownedLevels = new Map(player?.abilities.map(a => [a.name, a.level]) ?? []);
-        const newItems = generateDailyShopItems(player?.stats ?? null, playerAbilities, ownedLevels);
+        const newItems = generateDailyShopItems(player?.stats ?? null, ownedLevels);
         set({ shopItems: newItems });
       },
 

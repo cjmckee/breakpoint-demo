@@ -19,9 +19,8 @@ import {
   MatchState as KeyMomentMatchState,
   PointResult as SimplePointResult,
 } from '../types/keyMoments';
-import { PlayerStats, Ability, StatBoosts } from '../types/game';
+import { PlayerStats, Ability, StatBoosts, EffectKey } from '../types/game';
 import { MatchStatistics as IMatchStatistics, MatchState, PointResult, PointType, PlayerMatchFatigue } from '../types';
-import { AbilitySystem } from './AbilitySystem';
 import { MATCH_FATIGUE, MOMENTUM_BANK, PRESSURE_BANK } from '../config/shotThresholds';
 import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds';
 import { DEFAULT_KEY_MOMENTS_PER_MATCH } from '../config/matchRewards';
@@ -97,20 +96,8 @@ export class MatchOrchestrator {
   }
 
   /**
-   * Apply ability stat boosts to player stats.
-   * Only applies during match - does not permanently modify player stats.
-   */
-  private applyAbilityBoosts(baseStats: PlayerStats, abilities?: Ability[]): PlayerStats {
-    if (!abilities || abilities.length === 0) {
-      return baseStats;
-    }
-    const totalBoosts = AbilitySystem.calculateTotalBoosts(abilities);
-    return this.applyStatBoosts(baseStats, totalBoosts);
-  }
-
-  /**
    * Extract additional effects from abilities for match-time mechanics.
-   * These are non-stat effects like clutch, court_coverage, mental_resilience, etc.
+   * Abilities are effects-only — no stat boosts applied during match.
    */
   private extractActiveEffects(abilities?: Ability[]): Record<string, number> {
     if (!abilities || abilities.length === 0) return {};
@@ -145,14 +132,11 @@ export class MatchOrchestrator {
     // Store match format
     (this as any).matchFormat = config.matchFormat || 'best-of-3';
 
-    // Apply ability and item boosts to player stats (only for the duration of the match)
-    const playerStatsWithAbilities = this.applyAbilityBoosts(
-      config.playerStats,
-      config.playerAbilities
-    );
+    // Apply item boosts to player stats (only for the duration of the match)
+    // Abilities are effects-only — their match bonuses come via activeEffects, not stat inflation
     const playerStatsWithBoosts = config.itemBoosts
-      ? this.applyStatBoosts(playerStatsWithAbilities, config.itemBoosts)
-      : playerStatsWithAbilities;
+      ? this.applyStatBoosts(config.playerStats, config.itemBoosts)
+      : config.playerStats;
 
     // Extract additional ability effects for match-time mechanics
     this.activeEffects = this.extractActiveEffects(config.playerAbilities);
@@ -240,7 +224,7 @@ export class MatchOrchestrator {
             mood: this.matchMood,
             energy: this.matchEnergy,
             momentum: this.momentum,
-            pressure: this.pressure + (this.activeEffects['champion_aura'] ?? 0) * 3,
+            pressure: this.pressure + (this.activeEffects[EffectKey.CHAMPION_AURA] ?? 0) * 3,
           },
           this.activeEffects
         );
@@ -971,7 +955,7 @@ export class MatchOrchestrator {
     // Component 2: Shot quality events bump the momentum bank
     const isPlayerPoint = winner === 'player';
     const momentumMultiplier = isPlayerPoint
-      ? 1 + (this.activeEffects['unstoppable_momentum'] ?? 0) * 0.15
+      ? 1 + (this.activeEffects[EffectKey.UNSTOPPABLE_MOMENTUM] ?? 0) * 0.15
       : 1;
     const bump = MOMENTUM_BANK.bump;
     switch (pointType) {
@@ -1011,7 +995,7 @@ export class MatchOrchestrator {
     if (!this.playerStats || !this.opponentStats) return;
 
     // focus_duration: reduces player fatigue accumulation rate
-    const focusDuration = this.activeEffects['focus_duration'] ?? 0;
+    const focusDuration = this.activeEffects[EffectKey.FOCUS_DURATION] ?? 0;
     const fatigueMultiplier = Math.max(0.8, 1 - focusDuration * 0.05);
 
     this.fatigue.player = this.calculateNewFatigue(

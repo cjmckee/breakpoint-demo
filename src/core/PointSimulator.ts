@@ -25,6 +25,7 @@ import { ShotSelector } from './ShotSelector.js';
 import { TacticalAnalyzer } from './TacticalAnalyzer.js';
 import { getQualityThresholds, getMatchLevel, RelativeThresholds } from '../utils/qualityThresholds.js';
 import { RALLY_CONFIG, DIFFICULTY_SCORE_FACTORS, DIFFICULTY_THRESHOLDS } from '../config/shotThresholds.js';
+import { EffectKey } from '../types/game.js';
 
 export class PointSimulator {
   private shotCalculator: ShotCalculator;
@@ -610,7 +611,7 @@ export class PointSimulator {
     }
 
     // reach: reduces difficulty when out of position
-    const reach = activeEffects?.['reach'] ?? 0;
+    const reach = activeEffects?.[EffectKey.REACH] ?? 0;
     if (reach > 0 && shooterPosition &&
       shooterPosition !== 'well_positioned' && shooterPosition !== 'at_net') {
       difficultyScore -= reach;
@@ -686,8 +687,8 @@ export class PointSimulator {
 
     // Default: maintain or recover toward good position
     // Apply ability effects for position recovery
-    const courtCoverage = (activeEffects?.['court_coverage'] ?? 0) + (activeEffects?.['court_range'] ?? 0);
-    const recoverySpeed = activeEffects?.['recovery_speed'] ?? 0;
+    const courtCoverage = activeEffects?.[EffectKey.COURT_COVERAGE] ?? 0;
+    const recoverySpeed = activeEffects?.[EffectKey.RECOVERY_SPEED] ?? 0;
 
     if (currentPosition === 'way_out_wide' || currentPosition === 'way_back_deep') {
       // recovery_speed: upgrade from way_out/deep to slightly_off instead of recovering

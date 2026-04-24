@@ -10,9 +10,9 @@ import type {
 } from '../types/game';
 import type { PlayerStats } from '../types/index';
 import type { Item } from '../types/items';
-import { ABILITY_DEFINITIONS } from './AbilitySystem';
+import { ABILITY_DEFINITIONS } from '../data/abilities';
 import { AbilityRarity } from '../types/game';
-import { ALL_CONSUMABLES, ALL_EQUIPMENT } from '../data/items';
+import { ALL_CONSUMABLES, ALL_EQUIPMENT, CONSUMABLE_SHOP_COSTS } from '../data/items';
 
 const CORE_STATS = ['serve', 'forehand', 'backhand', 'return', 'slice'] as const;
 const TECHNICAL_STATS = ['volley', 'overhead', 'dropShot', 'spin', 'placement'] as const;
@@ -118,7 +118,7 @@ function createConsumableItem(): ConsumableItem {
     description: sourceItem.description,
     instantEffects: effect?.type === 'instant' ? effect.instantEffects : undefined,
     nextActivityBuffs: effect?.nextActivityBuffs,
-    cost: 10,
+    cost: CONSUMABLE_SHOP_COSTS[sourceItem.id] ?? 10,
     purchased: false,
     rarity: 'common',
   };
@@ -153,10 +153,10 @@ const ABILITIES: Ability[] = Object.values(ABILITY_DEFINITIONS).filter(
 );
 
 const RARITY_MULTIPLIERS: Record<AbilityRarity, number> = {
-  [AbilityRarity.COMMON]: 25,
-  [AbilityRarity.UNCOMMON]: 50,
-  [AbilityRarity.RARE]: 100,
-  [AbilityRarity.LEGENDARY]: 200,
+  [AbilityRarity.COMMON]: 70,
+  [AbilityRarity.UNCOMMON]: 140,
+  [AbilityRarity.RARE]: 250,
+  [AbilityRarity.LEGENDARY]: 350,
 };
 
 function calculateAbilityCost(statBoosts: StatBoosts, rarity: AbilityRarity): number {
@@ -194,20 +194,18 @@ function createAbilityItem(ownedLevels: Map<string, number> = new Map()): Abilit
     id: `ability-${template.name}-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
     category: 'ability',
     name: nextLevel > 1 ? `${template.name} Lv${nextLevel}` : template.name,
-    description: hasAbility
-      ? `Upgrade ${template.name} to level ${nextLevel}. ${template.description}`
-      : `Learn ${template.name}. ${template.description}`,
+    description: template.description,
+    effects: template.effects,
     cost: adjustedCost,
     purchased: false,
     abilityId: template.name,
     statBoosts: template.modifiers.statBoosts,
-    rarity: template.rarity as unknown as import('../types/game').ItemRarity,
+    rarity: template.rarity as unknown as ItemRarity,
   };
 }
 
 export function generateDailyShopItems(
   playerStats: PlayerStats | null = null,
-  playerAbilities: string[] = [],
   ownedLevels: Map<string, number> = new Map()
 ): ShopItem[] {
   const items: ShopItem[] = [];
@@ -240,6 +238,14 @@ export function generateDailyShopItems(
     }
   }
 
-  // TODO: Re-enable ability generation once ability catalog is more robust
+  // Generate 2 abilities
+  while (items.filter(i => i.category === 'ability').length < 2) {
+    const abilityItem = createAbilityItem(ownedLevels);
+    if (abilityItem && !usedNames.has(abilityItem.name)) {
+      items.push(abilityItem);
+      usedNames.add(abilityItem.name);
+    }
+  }
+
   return items;
 }

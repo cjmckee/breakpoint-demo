@@ -4,6 +4,7 @@
  */
 
 import type { Item, ItemType } from '../types/items';
+import { EffectKey } from '../types/game';
 
 // ============================================================================
 // EQUIPMENT - RACQUETS
@@ -413,9 +414,10 @@ export const CHEF_HAT: Item = {
   shopAvailable: false,
   modifiers: {
     statBoosts: {
-      slice: 5,
-      spin: 2,
-      volley: 2
+      slice: 7,
+      spin: 4,
+      volley: 3,
+      dropShot: 3,
     }
   }
 }
@@ -869,27 +871,296 @@ export const CHAMPION_WRISTBAND: Item = {
 }
 
 // ============================================================================
+// NEW EQUIPMENT - RACQUETS
+// ============================================================================
+
+export const DROPSHOT_RACQUET: Item = {
+  id: 'dropshot_racquet',
+  name: 'Dropshot Specialist',
+  description: 'A finely tuned racquet for players who win points at the net with touch and deception.',
+  type: 'equipment',
+  equipmentSlot: 'racquet',
+  modifiers: {
+    statBoosts: {
+      dropShot: 6,
+      slice: 4,
+      placement: 5,
+      volley: 3,
+    },
+  },
+};
+
+export const GRAND_SLAM_RACQUET: Item = {
+  id: 'grand_slam_racquet',
+  name: 'Grand Slam Frame',
+  description: 'The racquet used by champions on the biggest stages. Heavy on power and precision.',
+  type: 'equipment',
+  equipmentSlot: 'racquet',
+  modifiers: {
+    statBoosts: {
+      serve: 6,
+      forehand: 5,
+      backhand: 5,
+      overhead: 4,
+      strength: 4,
+      placement: 4,
+    },
+  },
+};
+
+// ============================================================================
+// NEW EQUIPMENT - SHOES
+// ============================================================================
+
+export const HARD_COURT_SHOES: Item = {
+  id: 'hard_court_shoes',
+  name: 'Hard Court Shoes',
+  description: 'Durable shoes built for the grind of hard court surfaces. Great all-around traction.',
+  type: 'equipment',
+  equipmentSlot: 'shoes',
+  modifiers: {
+    statBoosts: {
+      speed: 5,
+      agility: 4,
+      stamina: 3,
+      return: 3,
+    },
+  },
+};
+
+export const RECOVERY_BOOTS: Item = {
+  id: 'recovery_boots',
+  name: 'Recovery Boots',
+  description: 'Heavily cushioned shoes that reduce fatigue and keep your legs fresh late in matches.',
+  type: 'equipment',
+  equipmentSlot: 'shoes',
+  modifiers: {
+    statBoosts: {
+      stamina: 5,
+      recovery: 6,
+      speed: 3,
+    },
+    additional: {
+      [EffectKey.ENERGY_COST_REDUCTION]: 2,
+    },
+  },
+};
+
+// ============================================================================
+// NEW EQUIPMENT - OUTFITS
+// ============================================================================
+
+export const AERODYNAMIC_SUIT: Item = {
+  id: 'aerodynamic_suit',
+  name: 'Aerodynamic Suit',
+  description: 'A form-fitting performance suit that reduces drag and maximizes explosive movement.',
+  type: 'equipment',
+  equipmentSlot: 'outfit',
+  modifiers: {
+    statBoosts: {
+      speed: 5,
+      agility: 5,
+      offensive: 4,
+      strength: 3,
+    },
+  },
+};
+
+export const MENTAL_FOCUS_JERSEY: Item = {
+  id: 'mental_focus_jersey',
+  name: 'Mental Focus Jersey',
+  description: 'Designed with biometric feedback tech. Reminds you to breathe, slow down, and play smart.',
+  type: 'equipment',
+  equipmentSlot: 'outfit',
+  modifiers: {
+    statBoosts: {
+      focus: 6,
+      anticipation: 5,
+      recovery: 4,
+      shotVariety: 3,
+    },
+    additional: {
+      [EffectKey.MOOD_GAIN_BONUS]: 2,
+    },
+  },
+};
+
+// ============================================================================
+// NEW EQUIPMENT - HATS
+// ============================================================================
+
+export const PRECISION_VISOR: Item = {
+  id: 'precision_visor',
+  name: 'Precision Visor',
+  description: 'A visor fitted with a subtle trajectory guide strip. Helps your eye track placement.',
+  type: 'equipment',
+  equipmentSlot: 'hat',
+  modifiers: {
+    statBoosts: {
+      placement: 5,
+      anticipation: 4,
+      return: 3,
+    },
+  },
+};
+
+export const RALLY_KING_HEADBAND: Item = {
+  id: 'rally_king_headband',
+  name: 'Rally King Headband',
+  description: 'A thick headband worn by players who thrive in long exchanges. Keeps focus sharp late in rallies.',
+  type: 'equipment',
+  equipmentSlot: 'hat',
+  modifiers: {
+    statBoosts: {
+      stamina: 5,
+      recovery: 4,
+      backhand: 3,
+      spin: 3,
+    },
+    additional: {
+      [EffectKey.FOCUS_DURATION]: 1,
+    },
+  },
+};
+
+export const CHAMPIONS_CAP: Item = {
+  id: 'champions_cap',
+  name: "Champion's Cap",
+  description: "A cap presented only to tournament champions. Wearing it, you feel like you belong in the big moments.",
+  type: 'equipment',
+  equipmentSlot: 'hat',
+  shopAvailable: false,
+  modifiers: {
+    statBoosts: {
+      focus: 5,
+      serve: 4,
+      forehand: 3,
+      backhand: 3,
+      anticipation: 4,
+    },
+    additional: {
+      [EffectKey.CLUTCH_PERFORMANCE]: 1,
+    },
+  },
+};
+
+// ============================================================================
+// NEW CONSUMABLES
+// ============================================================================
+
+export const TENNIS_ELBOW_GEL: Item = {
+  id: 'tennis_elbow_gel',
+  name: 'Tennis Elbow Gel',
+  description: 'A topical gel that numbs the ache and gets you back on the court fast. It stings at first.',
+  type: 'consumable',
+  consumableEffect: {
+    type: 'instant',
+    instantEffects: {
+      energyChange: 35,
+      moodChange: -5,
+    },
+  },
+};
+
+export const ZONE_WATER: Item = {
+  id: 'zone_water',
+  name: 'Zone Water',
+  description: 'An electrolyte drink with adaptogens. Supposedly puts you in the zone. Weirdly, it works.',
+  type: 'consumable',
+  consumableEffect: {
+    type: 'next_activity',
+    nextActivityBuffs: {
+      statBoosts: {
+        focus: 8,
+        anticipation: 6,
+        recovery: 4,
+      },
+      additional: {
+        [EffectKey.MENTAL_RESILIENCE]: 1,
+      },
+    },
+  },
+};
+
+export const NUTRITION_PACK: Item = {
+  id: 'nutrition_pack',
+  name: 'Grand Slam Nutrition Pack',
+  description: 'A comprehensive pre-match nutrition system used by top pros. Covers all the bases.',
+  type: 'consumable',
+  consumableEffect: {
+    type: 'next_activity',
+    nextActivityBuffs: {
+      statBoosts: {
+        stamina: 8,
+        strength: 6,
+        serve: 5,
+        forehand: 5,
+      },
+    },
+  },
+};
+
+// ============================================================================
+// CONSUMABLE SHOP COSTS
+// Items have varied prices based on their power level.
+// Used by ShopSystem instead of the flat cost: 10 default.
+// ============================================================================
+
+export const CONSUMABLE_SHOP_COSTS: Partial<Record<string, number>> = {
+  banana: 5,
+  strawberries: 5,
+  orange_slice: 7,
+  energy_drink: 10,
+  sports_drink: 12,
+  recovery_shake: 12,
+  ice_bath_voucher: 18,
+  super_energy_gel: 22,
+  grandmas_lucky_cookies: 16,
+  focus_pill: 18,
+  performance_enhancer: 20,
+  stamina_boost: 16,
+  power_supplement: 15,
+  speed_booster: 18,
+  confidence_tape: 14,
+  coaches_notes: 22,
+  motivational_playlist: 16,
+  tennis_elbow_gel: 20,
+  zone_water: 25,
+  nutrition_pack: 35,
+};
+
+// ============================================================================
 // ITEM COLLECTIONS - Derived from filtering individual items by type
 // ============================================================================
 
 const ITEM_COLLECTIONS: Item[] = [
+  // Racquets
   BEGINNER_RACQUET,
   PRO_RACQUET,
   POWER_RACQUET,
   CONTROL_RACQUET,
   SPIN_RACQUET,
   ALLROUND_RACQUET,
+  DROPSHOT_RACQUET,
+  GRAND_SLAM_RACQUET,
+  // Shoes
   RUNNING_SHOES,
   COURT_SHOES,
   CLAY_COURT_SHOES,
   LIGHTWEIGHT_TRAINERS,
   GRASS_COURT_SHOES,
+  HARD_COURT_SHOES,
+  RECOVERY_BOOTS,
+  // Outfits
   PRACTICE_OUTFIT,
   TOURNAMENT_OUTFIT,
   COMPRESSION_OUTFIT,
   RETRO_OUTFIT,
   SPONSOR_OUTFIT,
   SPACE_SUIT,
+  AERODYNAMIC_SUIT,
+  MENTAL_FOCUS_JERSEY,
+  // Hats
   VISOR,
   HEADBAND,
   CAP,
@@ -898,6 +1169,10 @@ const ITEM_COLLECTIONS: Item[] = [
   BANDANA,
   CHEF_HAT,
   STYLISH_HEADBAND,
+  PRECISION_VISOR,
+  RALLY_KING_HEADBAND,
+  CHAMPIONS_CAP,
+  // Consumables - instant
   ENERGY_DRINK,
   SPORTS_DRINK,
   RECOVERY_SHAKE,
@@ -908,6 +1183,8 @@ const ITEM_COLLECTIONS: Item[] = [
   STRAWBERRIES,
   ORANGE_SLICE,
   ICE_BATH_VOUCHER,
+  TENNIS_ELBOW_GEL,
+  // Consumables - next activity
   FOCUS_PILL,
   PERFORMANCE_ENHANCER,
   STAMINA_BOOST,
@@ -916,6 +1193,9 @@ const ITEM_COLLECTIONS: Item[] = [
   CONFIDENCE_TAPE,
   COACHES_NOTES,
   MOTIVATIONAL_PLAYLIST,
+  ZONE_WATER,
+  NUTRITION_PACK,
+  // Lucky items
   LUCKY_PENNY,
   LUCKY_CHARM,
   FOUR_LEAF_CLOVER,
@@ -967,7 +1247,6 @@ export function getItemsByTier(tier: 1 | 2 | 3 | 4): Item[] {
         PRACTICE_OUTFIT,
         VISOR,
         SWEATBAND,
-        BANANA,
         ...ALL_CONSUMABLES_INSTANT,
       ];
     case 2:
@@ -975,9 +1254,11 @@ export function getItemsByTier(tier: 1 | 2 | 3 | 4): Item[] {
         PRO_RACQUET,
         ALLROUND_RACQUET,
         COURT_SHOES,
+        HARD_COURT_SHOES,
         TOURNAMENT_OUTFIT,
         RETRO_OUTFIT,
         HEADBAND,
+        PRECISION_VISOR,
         ...ALL_CONSUMABLES,
         LUCKY_CHARM,
         TENNIS_BALL_KEYCHAIN,
@@ -987,11 +1268,17 @@ export function getItemsByTier(tier: 1 | 2 | 3 | 4): Item[] {
         POWER_RACQUET,
         CONTROL_RACQUET,
         SPIN_RACQUET,
+        DROPSHOT_RACQUET,
         CLAY_COURT_SHOES,
         GRASS_COURT_SHOES,
+        HARD_COURT_SHOES,
+        RECOVERY_BOOTS,
         COMPRESSION_OUTFIT,
+        AERODYNAMIC_SUIT,
+        MENTAL_FOCUS_JERSEY,
         CAP,
         BANDANA,
+        RALLY_KING_HEADBAND,
         ...ALL_CONSUMABLES_BUFF,
         ...ALL_LUCKY_ITEMS,
       ];
@@ -999,11 +1286,17 @@ export function getItemsByTier(tier: 1 | 2 | 3 | 4): Item[] {
       return [
         CONTROL_RACQUET,
         SPIN_RACQUET,
+        DROPSHOT_RACQUET,
+        GRAND_SLAM_RACQUET,
         LIGHTWEIGHT_TRAINERS,
+        RECOVERY_BOOTS,
         COMPRESSION_OUTFIT,
         SPONSOR_OUTFIT,
+        AERODYNAMIC_SUIT,
+        MENTAL_FOCUS_JERSEY,
         LUCKY_HAT,
         BANDANA,
+        RALLY_KING_HEADBAND,
         ...ALL_CONSUMABLES_BUFF,
         ...ALL_LUCKY_ITEMS,
       ];

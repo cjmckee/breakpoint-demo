@@ -7,7 +7,7 @@
 import { TacticalOption, SecondaryEffect } from '../data/tacticalOptions';
 import type { ArchetypeType } from '../data/archetypes';
 import { PointType } from '../types';
-import { PlayerStats } from '../types/game';
+import { PlayerStats, EffectKey } from '../types/game';
 
 /** Counter bonus when option is strongAgainst the opponent's archetype */
 const COUNTER_BONUS = 15;
@@ -96,10 +96,9 @@ export class KeyMomentResolver {
     }
 
     // Apply ability effects to key moment probability
+    // CLUTCH_PERFORMANCE value IS the flat % bonus (no multiplier)
     if (activeEffects) {
-      probability += (activeEffects['clutch'] ?? 0) * 5;
-      probability += (activeEffects['clutch_performance'] ?? 0) * 3;
-      probability += (activeEffects['legendary_moment'] ?? 0) * 2;
+      probability += activeEffects[EffectKey.CLUTCH_PERFORMANCE] ?? 0;
     }
 
     // Clamp between 10% and 90%
@@ -371,7 +370,7 @@ export class KeyMomentResolver {
     let total = modifiers.total;
 
     // mental_resilience: reduce the pressure penalty
-    const mentalResilience = activeEffects?.['mental_resilience'] ?? 0;
+    const mentalResilience = activeEffects?.[EffectKey.MENTAL_RESILIENCE] ?? 0;
     if (mentalResilience > 0 && modifiers.pressure < 0) {
       const pressureReduction = mentalResilience * 1.5;
       total -= modifiers.pressure; // Remove original pressure

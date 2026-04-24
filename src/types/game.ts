@@ -65,24 +65,58 @@ export interface Modifiers {
 
 /**
  * Well-known keys for Modifiers.additional field.
- * Game systems query these keys to apply out-of-match effects.
+ * Game systems query these keys to apply effects.
+ *
+ * Sections:
+ *   Training    — TrainingSystem.ts reads these
+ *   Event       — gameStore.ts story event logic
+ *   Mood/Energy — gameStore.ts training/match/rest
+ *   Relationship— gameStore.ts relationship gains
+ *   Match shot  — ShotCalculator.applyAbilityEffects
+ *   Match pos   — PointSimulator position recovery
+ *   Match mtm   — MatchOrchestrator momentum/fatigue
+ *   Match km    — KeyMomentResolver key moments
  */
 export const EffectKey = {
-  // Training effects
+  // --- Training effects ---
   TRAINING_TIER_BONUS: 'training_tier_bonus',
   TRAINING_STAT_MULTIPLIER: 'training_stat_multiplier',
   ABILITY_CHANCE_BONUS: 'ability_chance_bonus',
 
-  // Event effects
+  // --- Event effects ---
   EVENT_TRIGGER_BONUS: 'event_trigger_bonus',
 
-  // Mood/Energy effects
+  // --- Mood/Energy/XP effects ---
   MOOD_GAIN_BONUS: 'mood_gain_bonus',
   ENERGY_GAIN_BONUS: 'energy_gain_bonus',
   ENERGY_COST_REDUCTION: 'energy_cost_reduction',
+  EXPERIENCE_GAIN_BONUS: 'experience_gain_bonus', // multiplier on match XP (0.1 = +10%)
 
-  // Relationship effects
+  // --- Relationship effects ---
   RELATIONSHIP_GAIN_BONUS: 'relationship_gain_bonus',
+
+  // --- Match: shot quality effects (ShotCalculator) ---
+  PACE: 'pace',                       // bonus quality on power shots
+  SIDE_SPIN: 'side_spin',             // bonus scaled by spin modifier
+  TOUCH: 'touch',                     // bonus on drop shots and volleys
+  SMASH_POWER: 'smash_power',         // bonus on overhead shots
+  NET_GAME: 'net_game',               // bonus quality on all shots when player is at net
+  PERFECT_TIMING: 'perfect_timing',   // recovers quality lost to pressure
+  RALLY_MOMENTUM: 'rally_momentum',   // bonus quality when rally length > 4
+
+  // --- Match: positioning effects (PointSimulator) ---
+  REACH: 'reach',                     // reduces off-position difficulty
+  COURT_COVERAGE: 'court_coverage',   // court coverage / position recovery speed
+  RECOVERY_SPEED: 'recovery_speed',   // faster position recovery tier
+
+  // --- Match: momentum/fatigue effects (MatchOrchestrator) ---
+  UNSTOPPABLE_MOMENTUM: 'unstoppable_momentum',
+  FOCUS_DURATION: 'focus_duration',
+  CHAMPION_AURA: 'champion_aura',
+
+  // --- Match: key moment effects (KeyMomentResolver) ---
+  CLUTCH_PERFORMANCE: 'clutch_performance', // flat % bonus to key moment win probability
+  MENTAL_RESILIENCE: 'mental_resilience',   // attenuates pressure penalty in key moments
 } as const;
 
 export const AbilityName = {
@@ -90,22 +124,32 @@ export const AbilityName = {
   BASELINER: 'baseliner',
   NETCRASHER: 'netcrasher',
   SLIDER: 'slider',
-  CLUTCH: 'clutch',
   HEAVY_HITTER: 'heavy_hitter',
   OVERHEAD_SMASH: 'overhead_smash',
   RANGY_RETURN: 'rangy_return',
   SPIN_MASTER: 'spin_master',
-  NATIONAL_ICON: 'national_icon',
   SOFT_HANDS: 'soft_hands',
+  CROWD_FAVORITE: 'crowd_favorite',
+  SPOTLIGHT: 'spotlight',
 
   // uncommon
   SPEED_DEMON: 'speed_demon',
+  IRON_LEGS: 'iron_legs',
+  SERVE_CANNON: 'serve_cannon',
+  CLUTCH: 'clutch',
+  QUICK_RECOVERY: 'quick_recovery',
 
   // rare
   MENTAL_FORTITUDE: 'mental_fortitude',
+  ALL_COURT_MAESTRO: 'all_court_maestro',
+  PRESSURE_COOKER: 'pressure_cooker',
+  IRON_WILL: 'iron_will',
+  DEDICATED: 'dedicated',
+  GRINDER: 'grinder',
 
   // legendary
   LEGENDARY_FOCUS: 'legendary_focus',
+  APEX_PREDATOR: 'apex_predator',
 } as const;
 
 // ============================================================================
@@ -573,6 +617,7 @@ export interface AbilityItem extends ShopItemBase {
   abilityId: string;
   statBoosts: StatBoosts;
   rarity: ItemRarity;
+  effects: string;
 }
 
 export type ShopItem = StatIncreaseItem | ConsumableItem | EquipmentItem | AbilityItem;

@@ -44,9 +44,8 @@ export class EffectAggregator {
       }
     }
 
-    // Abilities
+    // Abilities — effects only, no stat boosts (stats come from training and equipment)
     for (const ability of player.abilities) {
-      this.mergeStatBoosts(statBoosts, ability.modifiers.statBoosts);
       this.mergeEffects(effects, ability.modifiers.additional);
     }
 

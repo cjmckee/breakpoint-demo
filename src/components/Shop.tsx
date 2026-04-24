@@ -12,10 +12,12 @@ import type {
   StatIncreaseItem,
   ConsumableItem,
   EquipmentItem,
+  AbilityItem,
   ShopItem,
 } from '../types/game';
 import { SLOT_NAMES } from './Inventory';
 import { StatBoostList } from './ui/StatBoostList';
+import { formatAbilityName } from './AbilityDisplay';
 
 const RARITY_LABELS: Record<ItemRarity, string> = {
   common: 'Common',
@@ -195,6 +197,46 @@ const EquipmentShopCard: React.FC<{
   );
 };
 
+const AbilityShopCard: React.FC<{
+  item: AbilityItem;
+  playerExperience: number;
+  onBuy: (itemId: string) => void;
+}> = ({ item, playerExperience, onBuy }) => {
+  const canAfford = playerExperience >= item.cost;
+  const rarityColor = getRarityColor(item.rarity);
+  const rarityBg = RARITY_BG_COLORS[item.rarity];
+
+  return (
+    <Card className={`border-2 p-4 ${item.purchased ? 'opacity-60' : ''} ${rarityBg} border-gray-600 flex flex-col`}>
+      <div className="flex flex-col gap-2 flex-1">
+        <div className="flex justify-between items-start">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">✨</span>
+            <div>
+              <h3 className={`text-lg font-bold ${rarityColor}`}>{formatAbilityName(item.abilityId)}</h3>
+              <span className={`text-xs ${rarityColor}`}>{RARITY_LABELS[item.rarity]} Ability</span>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-xl font-bold text-yellow-400">{item.cost}</div>
+            <div className="text-xs text-gray-400">XP</div>
+          </div>
+        </div>
+
+        <p className="text-sm text-gray-400 italic">{item.description}</p>
+
+        <div className="mt-2 pt-2 border-t border-gray-700">
+          <p className="text-sm text-gray-300">{item.effects}</p>
+        </div>
+
+        <div className="mt-auto pt-2">
+          <BuyButton item={item} canAfford={canAfford} onBuy={onBuy} />
+        </div>
+      </div>
+    </Card>
+  );
+};
+
 export const Shop: React.FC = () => {
   const player = useGameStore((state) => state.player);
   const shopItems = useGameStore((state) => state.shopItems);
@@ -207,6 +249,7 @@ export const Shop: React.FC = () => {
     stat_increase: shopItems.filter((i): i is StatIncreaseItem => i.category === 'stat_increase'),
     consumable: shopItems.filter((i): i is ConsumableItem => i.category === 'consumable'),
     equipment: shopItems.filter((i): i is EquipmentItem => i.category === 'equipment'),
+    ability: shopItems.filter((i): i is AbilityItem => i.category === 'ability'),
   }), [shopItems]);
 
   if (!player) return null;
@@ -298,6 +341,21 @@ export const Shop: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {grouped.equipment.map((item) => (
                     <EquipmentShopCard
+                      key={item.id}
+                      item={item}
+                      playerExperience={player.experience}
+                      onBuy={purchaseItem}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+            {grouped.ability.length > 0 && (
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-pixel-text mb-4">Abilities</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {grouped.ability.map((item) => (
+                    <AbilityShopCard
                       key={item.id}
                       item={item}
                       playerExperience={player.experience}
