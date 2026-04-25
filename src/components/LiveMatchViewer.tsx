@@ -69,6 +69,11 @@ export const LiveMatchViewer: React.FC = () => {
       ? 'relative z-[60] ring-4 ring-yellow-400 ring-offset-2 ring-offset-black rounded transition-all duration-300'
       : 'relative z-0 transition-all duration-300';
 
+  // ─── Scroll page to top when match screen mounts ──────────────────────────
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // ─── Match log auto-scroll (contained within the log box) ─────────────────
   const logContainerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
