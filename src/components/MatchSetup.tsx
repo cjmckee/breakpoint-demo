@@ -128,7 +128,7 @@ export const MatchSetup: React.FC = () => {
                       !isUnlocked
                         ? 'opacity-50 cursor-not-allowed border-pixel-border bg-pixel-bg'
                         : isSelected
-                        ? 'border-pixel-accent bg-pixel-accent bg-opacity-20'
+                        ? 'border-blue-400 bg-blue-500 bg-opacity-20'
                         : getTierColor(info.tier)
                     } ${isUnlocked && 'hover:scale-105'}`}
                   >
@@ -183,7 +183,7 @@ export const MatchSetup: React.FC = () => {
                     onClick={() => setSelectedSurface(surface)}
                     className={`p-4 border-4 text-center transition-all ${
                       isSelected
-                        ? 'border-pixel-accent bg-pixel-accent bg-opacity-20'
+                        ? 'border-blue-400 bg-blue-500 bg-opacity-20'
                         : 'border-pixel-border bg-pixel-card'
                     } hover:scale-105`}
                   >
