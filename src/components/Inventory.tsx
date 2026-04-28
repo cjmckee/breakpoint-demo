@@ -117,8 +117,8 @@ export const Inventory: React.FC = () => {
       <div key={item.id} onClick={onClick ?? (() => handleItemClick(item))}>
         <Card
           padding="sm"
-          className={`cursor-pointer hover:border-pixel-accent transition-colors relative ${
-            isSelected ? 'border-pixel-accent border-4' : ''
+          className={`cursor-pointer hover:border-blue-400 transition-colors relative ${
+            isSelected ? 'border-blue-400 border-4' : ''
           }`}
         >
           {isNew && <UnseenBadge className="absolute -top-2 -right-2" />}

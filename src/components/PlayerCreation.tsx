@@ -99,7 +99,7 @@ export const PlayerCreation: React.FC = () => {
                       onClick={() => setPlaystyle(style)}
                       className={`p-4 border-4 text-left transition-all ${
                         isSelected
-                          ? 'border-pixel-accent bg-pixel-accent bg-opacity-20'
+                          ? 'border-blue-400 bg-blue-500 bg-opacity-20'
                           : 'border-pixel-border bg-pixel-card hover:border-pixel-secondary'
                       }`}
                     >
