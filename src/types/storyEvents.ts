@@ -71,7 +71,10 @@ export type StoryEventTag =
   | 'tutorial'
 
   // Random Events
-  | 'misc';
+  | 'misc'
+
+  // Player-initiated character hangouts (never randomly rolled)
+  | 'interaction';
 
 // ============================================================================
 // STORY EVENT PREREQUISITES

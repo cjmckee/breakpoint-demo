@@ -211,7 +211,8 @@ export class StoryEventManager {
         !storyEvent.tags.includes('milestone') &&
         !storyEvent.tags.includes('story_match') &&
         !storyEvent.tags.includes('tournament_ceremony') &&
-        !storyEvent.tags.includes('tournament_match')
+        !storyEvent.tags.includes('tournament_match') &&
+        !storyEvent.tags.includes('interaction')
       )
     });
 

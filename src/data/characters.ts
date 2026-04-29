@@ -7,6 +7,8 @@ export interface Character {
   id: string;
   name: string;
   role?: string;
+  /** Whether this character has the full threshold + hangout system */
+  isKeyCharacter?: boolean;
 }
 
 /**
@@ -18,6 +20,7 @@ export const CHARACTERS: Record<string, Character> = {
     id: 'coach_gonzalez',
     name: 'Coach Gonzalez',
     role: 'Coach',
+    isKeyCharacter: true,
   },
 
   /** Rivals */
@@ -25,19 +28,22 @@ export const CHARACTERS: Record<string, Character> = {
     id: 'jordan_rival',
     name: 'Jordan',
     role: 'Rival',
+    isKeyCharacter: true,
   },
 
   /** Friends */
-    keith: {
+  keith: {
     id: 'keith',
     name: 'Keith',
     role: 'Friend',
+    isKeyCharacter: true,
   },
 
   jen: {
     id: 'jen',
     name: 'Jen',
     role: 'Friend',
+    isKeyCharacter: true,
   },
 
   chris: {
@@ -57,6 +63,7 @@ export const CHARACTERS: Record<string, Character> = {
     id: 'alex_romance',
     name: 'Alex',
     role: 'Romance',
+    isKeyCharacter: true,
   },
 
   /** Family */

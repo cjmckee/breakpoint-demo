@@ -3,7 +3,7 @@
  * Hub for player activities and navigation
  */
 
-import React, { JSX } from 'react';
+import React, { JSX, useState } from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { Card } from './ui/Card';
@@ -23,6 +23,9 @@ import { getArchetypeLabel } from '../data/archetypes';
 import type { OverlayState } from '../types/gamePhase';
 import { TimeSlot, PlayerFlag } from '../types/game';
 import { StoryMatchManager } from '../game/StoryMatchManager';
+import { CHARACTERS } from '../data/characters';
+import { HANGOUT_CHARACTERS, HANGOUT_ENERGY_COST } from '../data/hangoutCharacters';
+import { Modal } from './ui/Modal';
 
 interface MainMenuProps {
   overlay: OverlayState | null;
@@ -36,6 +39,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const navigateTo = useGameStore((state) => state.navigateTo);
   const navigateToScheduledMatch = useGameStore((state) => state.navigateToScheduledMatch);
   const rest = useGameStore((state) => state.rest);
+  const relationships = useGameStore((state) => state.relationships);
+  const hangoutWithCharacter = useGameStore((state) => state.hangoutWithCharacter);
+  const [showHangoutModal, setShowHangoutModal] = useState(false);
 
   // Tournament state
   const activeTournament = useGameStore((state) => state.calendar.activeTournament);
@@ -102,43 +108,10 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
     return null;
   }
 
-  const activities = [
-    {
-      id: 'training',
-      title: 'Training',
-      emoji: '🏋️',
-      description: 'Improve your skills with focused practice sessions',
-      energyCost: 0,
-      action: () => navigateTo('training'),
-    },
-    {
-      id: 'match',
-      title: 'Play Match',
-      emoji: '🎾',
-      description: 'Test your skills in a practice match with another Academy player',
-      energyCost: 50,
-      action: () => navigateTo('match_setup'),
-    },
-    
-    {
-      id: 'rest',
-      title: isNightTime ? 'Next Day' : 'Rest',
-      emoji: '😴',
-      description: isNightTime ?
-        'Rest and advance to the next day'
-        : 'Rest and advance to next action',
-      energyCost: isNightTime ? -50 : -20,
-      action: () => rest(),
-    },
-    {
-      id: 'gear',
-      title: 'Gear',
-      emoji: '🎒',
-      description: '',
-      energyCost: 0,
-      action: () => {},
-    },
-  ];
+  // Key characters that the player has met, for the hang out modal
+  const metHangoutCharacters = Object.keys(HANGOUT_CHARACTERS).filter(
+    (id) => id in relationships
+  );
 
   const getTierName = (tier: number): string => {
     const tierNames = ['', 'Club Player', 'Regional Competitor', 'Tour Professional', 'World Champion'];
@@ -300,136 +273,175 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
           </div>
         </Card>
 
-        {/* Activities Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
-          {activities.map((activity) => {
-            const canAfford = currentStatus.energy >= activity.energyCost;
-            const isRestButton = activity.id === 'rest';
-            const isMatchButton = activity.id === 'match';
+        {/* Activities Grid — 3 cards */}
+        {(() => {
+          const isMatchScheduled = isTournamentMatchScheduled || isStoryMatchScheduled;
+          const isBlocked = isEventPending || isMatchScheduled;
+          const canAffordMatch = currentStatus.energy >= 50;
+          const canAffordHangout = currentStatus.energy >= HANGOUT_ENERGY_COST;
 
-            // Check progression locks
-            const isLocked = (isMatchButton && !matchUnlocked);
+          return (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
 
-            // Disable all activities when event is pending, match scheduled, or during night time (except rest)
-            const isMatchScheduled = isTournamentMatchScheduled || isStoryMatchScheduled;
-            const isGearActivity = activity.id === 'gear';
-            const isDisabled = isLocked
-              ? true
-              : isEventPending
-                ? !isRestButton
-                : isMatchScheduled
-                  ? !isRestButton
-                  : isNightTime
-                    ? !isRestButton
-                    : (!canAfford && activity.energyCost > 0);
-
-            // Get button text
-            let buttonText = activity.title;
-            if (isLocked) {
-              buttonText = `Unlocks Day 5`;
-            } else if (isEventPending) {
-              buttonText = 'Event Pending';
-            } else if (isMatchScheduled && !isRestButton) {
-              buttonText = 'Match Scheduled';
-            } else if (isNightTime && isRestButton) {
-              buttonText = 'Next Day';
-            } else if (!canAfford && activity.energyCost > 0) {
-              buttonText = 'Not Enough Energy';
-            }
-
-            // Get button variant - use success for "Next Day" button
-            const buttonVariant = (isNightTime && isRestButton) ? 'success' : 'primary';
-
-            // Special rendering for Gear card with 3 buttons
-            if (isGearActivity) {
-              return (
-                <Card key={activity.id} padding="md" className={`flex flex-col ${isNightTime ? 'night-exempt' : ''}`}>
-                  <div className="text-center mb-4">
-                    <div className="text-6xl mb-3">
-                      {activity.emoji}
-                    </div>
-                    <h2 className="text-lg lg:text-2xl font-bold text-pixel-text mb-2 truncate">
-                      {activity.title}
-                    </h2>
-                    <p className="text-sm text-pixel-text-muted mb-3">
-                      {activity.description}
-                    </p>
-                  </div>
-                  <div className="mt-auto flex flex-col gap-2">
-                    <div className="relative">
-                      {(hasUnseenInventory || hasUnseenItems) && (
-                        <UnseenBadge className="absolute -top-2 -right-2 z-10" />
-                      )}
-                      <Button variant="primary" fullWidth onClick={() => { clearIndicator('inventory'); navigateTo('inventory'); }}>
-                        Inventory
-                      </Button>
-                    </div>
-                    <Button variant="primary" fullWidth onClick={() => navigateTo('relationships')}>
-                      Relationships
-                    </Button>
-                    {calendar.currentDay >= 7 ? (
-                      <div className="relative">
-                        {hasUnseenShop && (
-                          <UnseenBadge className="absolute -top-2 -right-2 z-10" />
-                        )}
-                        <Button variant="primary" fullWidth onClick={() => { clearIndicator('shop'); navigateTo('shop'); }}>
-                          Shop
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button variant="primary" fullWidth disabled>
-                        Unlocks Day 7
-                      </Button>
-                    )}
-                  </div>
-                </Card>
-              );
-            }
-
-            return (
-              <Card key={activity.id} padding="md" className={`flex flex-col ${isNightTime && isRestButton ? 'night-exempt' : ''}`}>
+              {/* Card 1: Play */}
+              <Card padding="md" className="flex flex-col">
                 <div className="text-center mb-4">
                   <div className="text-6xl mb-3 relative inline-block">
-                    {activity.emoji}
-                    {activity.id === 'inventory' && hasUnseenItems && (
-                      <UnseenBadge className="absolute -top-2 -right-4" />
-                    )}
-                    {activity.id === 'training' && hasUnseenTraining && (
+                    🎾
+                    {hasUnseenTraining && (
                       <UnseenBadge className="absolute -top-2 -right-4" />
                     )}
                   </div>
-                  <h2 className="text-lg lg:text-2xl font-bold text-pixel-text mb-2 truncate">
-                    {activity.title}
-                  </h2>
-                  <p className="text-sm text-pixel-text-muted mb-3">
-                    {activity.description}
-                  </p>
-                  {activity.energyCost > 0 && (
-                    <div className="text-sm text-red-400">
-                      Energy Cost: <span className="font-bold">{activity.energyCost}</span>
-                    </div>
-                  )}
-                  {activity.energyCost < 0 && (
-                    <div className="text-sm text-green-400">
-                      Energy Restored: <span className="font-bold">{Math.abs(activity.energyCost)}</span>
-                    </div>
-                  )}
+                  <h2 className="text-lg lg:text-2xl font-bold text-pixel-text mb-2">Play</h2>
+                  <p className="text-sm text-pixel-text-muted mb-3">Train your skills or compete in a match</p>
                 </div>
-
-                <div className="mt-auto">
+                <div className="mt-auto flex flex-col gap-2">
                   <Button
-                    variant={buttonVariant}
+                    variant="primary"
                     fullWidth
-                    onClick={activity.action}
-                    disabled={isDisabled}
+                    disabled={isBlocked || isNightTime}
+                    onClick={() => navigateTo('training')}
                   >
-                    {buttonText}
+                    {isBlocked ? (isEventPending ? 'Event Pending' : 'Match Scheduled') : isNightTime ? 'Night Time' : 'Training'}
+                  </Button>
+                  <Button
+                    variant="primary"
+                    fullWidth
+                    disabled={isBlocked || isNightTime || !matchUnlocked || !canAffordMatch}
+                    onClick={() => navigateTo('match_setup')}
+                  >
+                    {!matchUnlocked
+                      ? 'Unlocks Day 5'
+                      : isBlocked
+                        ? (isEventPending ? 'Event Pending' : 'Match Scheduled')
+                        : isNightTime
+                          ? 'Night Time'
+                          : !canAffordMatch
+                            ? 'Not Enough Energy'
+                            : 'Play Match'}
                   </Button>
                 </div>
               </Card>
-            );
-          })}
-        </div>
+
+              {/* Card 2: Rest & Social */}
+              <Card padding="md" className={`flex flex-col ${isNightTime ? 'night-exempt' : ''}`}>
+                <div className="text-center mb-4">
+                  <div className="text-6xl mb-3">😴</div>
+                  <h2 className="text-lg lg:text-2xl font-bold text-pixel-text mb-2">Rest & Social</h2>
+                  <p className="text-sm text-pixel-text-muted mb-3">Recover energy or spend time with someone</p>
+                </div>
+                <div className="mt-auto flex flex-col gap-2">
+                  <Button
+                    variant={isNightTime ? 'success' : 'primary'}
+                    fullWidth
+                    onClick={() => rest()}
+                  >
+                    {isNightTime ? 'Next Day' : 'Rest'}
+                  </Button>
+                  <Button
+                    variant="primary"
+                    fullWidth
+                    disabled={isBlocked || isNightTime || !canAffordHangout || metHangoutCharacters.length === 0}
+                    onClick={() => setShowHangoutModal(true)}
+                  >
+                    {metHangoutCharacters.length === 0
+                      ? 'No One to Hang Out With'
+                      : isBlocked
+                        ? (isEventPending ? 'Event Pending' : 'Match Scheduled')
+                        : isNightTime
+                          ? 'Night Time'
+                          : !canAffordHangout
+                            ? 'Not Enough Energy'
+                            : 'Hang Out'}
+                  </Button>
+                </div>
+              </Card>
+
+              {/* Card 3: Gear */}
+              <Card padding="md" className={`flex flex-col ${isNightTime ? 'night-exempt' : ''}`}>
+                <div className="text-center mb-4">
+                  <div className="text-6xl mb-3">🎒</div>
+                  <h2 className="text-lg lg:text-2xl font-bold text-pixel-text mb-2">Gear</h2>
+                  <p className="text-sm text-pixel-text-muted mb-3">Manage your items, relationships, and shop</p>
+                </div>
+                <div className="mt-auto flex flex-col gap-2">
+                  <div className="relative">
+                    {(hasUnseenInventory || hasUnseenItems) && (
+                      <UnseenBadge className="absolute -top-2 -right-2 z-10" />
+                    )}
+                    <Button variant="primary" fullWidth onClick={() => { clearIndicator('inventory'); navigateTo('inventory'); }}>
+                      Inventory
+                    </Button>
+                  </div>
+                  <Button variant="primary" fullWidth onClick={() => navigateTo('relationships')}>
+                    Relationships
+                  </Button>
+                  {calendar.currentDay >= 7 ? (
+                    <div className="relative">
+                      {hasUnseenShop && (
+                        <UnseenBadge className="absolute -top-2 -right-2 z-10" />
+                      )}
+                      <Button variant="primary" fullWidth onClick={() => { clearIndicator('shop'); navigateTo('shop'); }}>
+                        Shop
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button variant="primary" fullWidth disabled>
+                      Unlocks Day 7
+                    </Button>
+                  )}
+                </div>
+              </Card>
+            </div>
+          );
+        })()}
+
+        {/* Hang Out Modal */}
+        <Modal
+          isOpen={showHangoutModal}
+          onClose={() => setShowHangoutModal(false)}
+          title="Hang Out With..."
+          size="sm"
+        >
+          <div className="space-y-3">
+            {metHangoutCharacters.map((characterId) => {
+              const character = CHARACTERS[characterId];
+              if (!character) return null;
+              const relValue = relationships[characterId] ?? 0;
+              const emoji =
+                character.role === 'Coach' ? '👨‍🏫' :
+                character.role === 'Rival' ? '⚔️' :
+                character.role === 'Romance' ? '💖' :
+                '🤝';
+              return (
+                <div key={characterId} className="flex items-center justify-between gap-3 p-3 bg-gray-700 rounded">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{emoji}</span>
+                    <div>
+                      <div className="font-bold text-pixel-text">{character.name}</div>
+                      <div className="text-xs text-pixel-text-muted">
+                        {relValue >= 0 ? '+' : ''}{relValue} relationship
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => {
+                      setShowHangoutModal(false);
+                      hangoutWithCharacter(characterId);
+                    }}
+                  >
+                    Go
+                  </Button>
+                </div>
+              );
+            })}
+            <p className="text-xs text-pixel-text-muted text-center pt-1">
+              Costs {HANGOUT_ENERGY_COST} energy · 1 timeslot
+            </p>
+          </div>
+        </Modal>
 
         {/* Two Column Layout for Stats and Activities */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

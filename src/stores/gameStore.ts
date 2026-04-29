@@ -21,7 +21,8 @@ import {
   TIME_SLOT_NAMES,
   ShopItem,
 } from '../types/game';
-import type { StoryEvent, StoryEventTag, StoryEventOption } from '../types/storyEvents';
+import type { StoryEvent, StoryEventTag, StoryEventOption, StoryEventResult } from '../types/storyEvents';
+import { HANGOUT_CHARACTERS, HANGOUT_ENERGY_COST, getHangoutTier } from '../data/hangoutCharacters';
 import type { Challenge } from '../types/challenges';
 import type { Item, EquipmentSlot } from '../types/items';
 import type { ActiveTournament, TournamentMatchMetadata } from '../types/tournaments';
@@ -83,6 +84,8 @@ interface GameState {
   completedStoryEvents: string[];
   completedStoryEventChoices: Record<string, string>;
   relationships: Record<string, number>;
+  /** Tracks which tier threshold events have been seen per key character */
+  hangoutThresholdsSeen: Record<string, number[]>;
   storyEventTriggerChance: number;
   pendingRandomEvent: { event: StoryEvent; availableOptions: StoryEventOption[] } | null;
 
@@ -136,6 +139,9 @@ interface GameState {
   dismissMatchResults: () => void;
   dismissStoryEventResult: () => void;
   dismissOverlay: () => void;
+
+  // Hangout actions
+  hangoutWithCharacter: (characterId: string) => void;
 
   // Story event actions
   checkForStoryEventById: (eventId: string) => void;
@@ -220,6 +226,7 @@ export const useGameStore = create<GameState>()(
       completedStoryEvents: [],
       completedStoryEventChoices: {},
       relationships: {},
+      hangoutThresholdsSeen: {},
       storyEventTriggerChance: 40,
       pendingRandomEvent: null,
       // Challenge initial state
@@ -856,6 +863,7 @@ export const useGameStore = create<GameState>()(
             completedStoryEvents: data.completedStoryEvents || [],
             completedStoryEventChoices: data.completedStoryEventChoices || {},
             relationships: data.relationships || {},
+            hangoutThresholdsSeen: data.hangoutThresholdsSeen || {},
             storyEventTriggerChance: data.storyEventTriggerChance || 40,
             activeChallenges: data.activeChallenges || [],
             completedChallenges: data.completedChallenges || [],
@@ -882,6 +890,7 @@ export const useGameStore = create<GameState>()(
           completedStoryEvents: [],
           completedStoryEventChoices: {},
           relationships: {},
+          hangoutThresholdsSeen: {},
           storyEventTriggerChance: 40,
           pendingRandomEvent: null,
           activeChallenges: [],
@@ -1669,6 +1678,91 @@ export const useGameStore = create<GameState>()(
        * Triggers immediately if player is eligible (no probability roll)
        * Use case: Guaranteed story events (like welcome event)
        */
+      hangoutWithCharacter: (characterId: string) => {
+        const { player, relationships, hangoutThresholdsSeen, calendar, currentStatus } = get();
+        const config = HANGOUT_CHARACTERS[characterId];
+
+        if (!config || !player) return;
+        if (calendar.currentTimeSlot === TimeSlot.NIGHT) return;
+        if (currentStatus.energy < HANGOUT_ENERGY_COST) return;
+
+        const relValue = relationships[characterId] ?? 0;
+        const currentTier = getHangoutTier(characterId, relValue);
+        const seenForChar = hangoutThresholdsSeen[characterId] ?? [];
+
+        if (!seenForChar.includes(currentTier)) {
+          // First hangout at this tier — fire the threshold story event
+          const eventId = config.tierEventIds[currentTier];
+          set({
+            hangoutThresholdsSeen: {
+              ...hangoutThresholdsSeen,
+              [characterId]: [...seenForChar, currentTier],
+            },
+          });
+          get().checkForStoryEventById(eventId);
+        } else {
+          // Repeatable hangout — apply effects directly and show result
+          const tierConfig = config.tiers[currentTier];
+
+          const updatedPlayer = tierConfig.statChanges
+            ? PlayerManager.applyStatBoosts(player, tierConfig.statChanges)
+            : player;
+
+          const updatedRelationships = { ...relationships };
+          const current = updatedRelationships[characterId] ?? 0;
+          updatedRelationships[characterId] = Math.max(-100, Math.min(100, current + tierConfig.relationshipGain));
+
+          const newMood = Math.max(-100, Math.min(100, currentStatus.mood + tierConfig.moodChange));
+          const newEnergy = Math.max(
+            0,
+            Math.min(100, currentStatus.energy - HANGOUT_ENERGY_COST + (tierConfig.energyRestored ?? 0))
+          );
+
+          const result: StoryEventResult = {
+            id: `hangout-${characterId}-${Date.now()}`,
+            type: 'story',
+            source: 'story_event',
+            timestamp: new Date().toISOString(),
+            timeSlotsUsed: 1,
+            energyCost: Math.max(0, HANGOUT_ENERGY_COST - (tierConfig.energyRestored ?? 0)),
+            moodResult: tierConfig.moodChange,
+            eventId: `${characterId}_hangout_tier${currentTier}_repeatable`,
+            eventName: tierConfig.resultName,
+            tags: ['interaction'],
+            resultText: [tierConfig.resultText],
+            statChanges: tierConfig.statChanges ?? {},
+            relationshipChanges: { [characterId]: tierConfig.relationshipGain },
+            abilitiesGained: [],
+            itemsGained: [],
+          };
+
+          set({
+            player: updatedPlayer,
+            relationships: updatedRelationships,
+            currentStatus: {
+              ...currentStatus,
+              energy: newEnergy,
+              mood: newMood,
+              lastActivity: result,
+            },
+            activityHistory: [result, ...get().activityHistory].slice(0, 10),
+          });
+
+          get().advanceTime();
+
+          set({
+            gamePhase: {
+              type: 'idle',
+              overlay: {
+                type: 'story_event_result',
+                result,
+                continuation: { type: 'idle' },
+              },
+            },
+          });
+        }
+      },
+
       checkForStoryEventById: (eventId: string) => {
         const { player, gamePhase } = get();
         if (!player) return;
@@ -2218,7 +2312,7 @@ export const useGameStore = create<GameState>()(
           finalChange += EffectAggregator.getEffect(effects, EffectKey.RELATIONSHIP_GAIN_BONUS);
         }
 
-        relationships[character] = Math.max(0, Math.min(100, current + finalChange));
+        relationships[character] = Math.max(-100, Math.min(100, current + finalChange));
 
         set({ relationships });
 

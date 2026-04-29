@@ -150,6 +150,13 @@ export const AbilityName = {
   // legendary
   LEGENDARY_FOCUS: 'legendary_focus',
   APEX_PREDATOR: 'apex_predator',
+
+  // relationship interaction rewards (story-only, not in shop)
+  GRAND_STRATEGIST: 'grand_strategist',
+  RIVALS_EDGE: 'rivals_edge',
+  BEST_FRIEND_ENERGY: 'best_friend_energy',
+  TENNIS_NERD: 'tennis_nerd',
+  COURT_CHEMISTRY: 'court_chemistry',
 } as const;
 
 // ============================================================================

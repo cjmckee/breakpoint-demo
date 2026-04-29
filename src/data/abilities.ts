@@ -388,4 +388,91 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       "You are the complete player. Every shot is a threat, every defensive position is temporary. Opponents see no way out.",
     effects: 'Bonuses to power, spin, finesse, and court coverage. Amplified winning momentum and rally dominance.',
   },
+
+  // ==================== RELATIONSHIP ABILITIES (story-only) ====================
+
+  [AbilityName.GRAND_STRATEGIST]: {
+    name: AbilityName.GRAND_STRATEGIST,
+    level: 1,
+    rarity: AbilityRarity.RARE,
+    shopAvailable: false,
+    modifiers: {
+      statBoosts: {},
+      additional: {
+        [EffectKey.CLUTCH_PERFORMANCE]: 8,
+        [EffectKey.MENTAL_RESILIENCE]: 5,
+      },
+    },
+    description:
+      "Coach Gonzalez showed you the real diagrams. Not the public ones. In key moments, your preparation is visible.",
+    effects: 'Significant bonus in key moments. Reduces the mental pressure penalty.',
+  },
+
+  [AbilityName.RIVALS_EDGE]: {
+    name: AbilityName.RIVALS_EDGE,
+    level: 1,
+    rarity: AbilityRarity.RARE,
+    shopAvailable: false,
+    modifiers: {
+      statBoosts: {},
+      additional: {
+        [EffectKey.RALLY_MOMENTUM]: 8,
+        [EffectKey.CLUTCH_PERFORMANCE]: 5,
+      },
+    },
+    description:
+      "Being pushed by Jordan changed you into something harder. You thrive in prolonged, intense exchanges.",
+    effects: 'Amplified winning momentum in long rallies. Bonus performance in key moments.',
+  },
+
+  [AbilityName.BEST_FRIEND_ENERGY]: {
+    name: AbilityName.BEST_FRIEND_ENERGY,
+    level: 1,
+    rarity: AbilityRarity.UNCOMMON,
+    shopAvailable: false,
+    modifiers: {
+      statBoosts: {},
+      additional: {
+        [EffectKey.MOOD_GAIN_BONUS]: 5,
+        [EffectKey.ENERGY_GAIN_BONUS]: 5,
+      },
+    },
+    description:
+      "Keith's friendship has a quantifiable effect on your wellbeing. Performance accessory. Don't make it weird.",
+    effects: 'Bonus mood and energy from all recovery activities.',
+  },
+
+  [AbilityName.TENNIS_NERD]: {
+    name: AbilityName.TENNIS_NERD,
+    level: 1,
+    rarity: AbilityRarity.UNCOMMON,
+    shopAvailable: false,
+    modifiers: {
+      statBoosts: {},
+      additional: {
+        [EffectKey.TOUCH]: 6,
+        [EffectKey.SIDE_SPIN]: 6,
+      },
+    },
+    description:
+      "Jen's obsessive approach to tennis technique has rubbed off on you. JG Formula #4 may have helped.",
+    effects: 'Bonus quality on touch shots, drop shots, and spin-heavy balls.',
+  },
+
+  [AbilityName.COURT_CHEMISTRY]: {
+    name: AbilityName.COURT_CHEMISTRY,
+    level: 1,
+    rarity: AbilityRarity.RARE,
+    shopAvailable: false,
+    modifiers: {
+      statBoosts: {},
+      additional: {
+        [EffectKey.CLUTCH_PERFORMANCE]: 8,
+        [EffectKey.MOOD_GAIN_BONUS]: 5,
+      },
+    },
+    description:
+      "Playing for something beyond yourself. Key moments feel different when someone matters to you.",
+    effects: 'Significant bonus in key moments. Bonus mood from all positive activities.',
+  },
 };
