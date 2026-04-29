@@ -61,21 +61,6 @@ export const MatchSetup: React.FC = () => {
   const canAfford = currentStatus.energy >= matchEnergyCost;
   const canPlayMatch = canAfford && selectedTier <= player.tier;
 
-  const getTierColor = (tier: OpponentTier) => {
-    switch (tier) {
-      case 1:
-        return 'border-green-500 bg-green-500 bg-opacity-10';
-      case 2:
-        return 'border-yellow-500 bg-yellow-500 bg-opacity-10';
-      case 3:
-        return 'border-orange-500 bg-orange-500 bg-opacity-10';
-      case 4:
-        return 'border-red-500 bg-red-500 bg-opacity-10';
-      default:
-        return 'border-pixel-border';
-    }
-  };
-
   const isOpponentUnlocked = (tier: OpponentTier): boolean => {
     return tier <= player.tier;
   };
@@ -129,7 +114,7 @@ export const MatchSetup: React.FC = () => {
                         ? 'opacity-50 cursor-not-allowed border-pixel-border bg-pixel-bg'
                         : isSelected
                         ? 'border-blue-400 bg-blue-500 bg-opacity-20'
-                        : getTierColor(info.tier)
+                        : 'border-pixel-border bg-pixel-bg'
                     } ${isUnlocked && 'hover:scale-105'}`}
                   >
                     {!isUnlocked && (
