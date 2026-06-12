@@ -485,6 +485,11 @@ export const PlayerFlag = {
   MATCH_UNLOCKED: 'matchUnlocked',
   TOURNAMENTS_UNLOCKED: 'tournamentsUnlocked',
   SHOP_UNLOCKED: 'shopUnlocked',
+  KEITH_HANGOUT_ELIGIBLE: 'keithHangoutEligible',
+  JEN_HANGOUT_ELIGIBLE: 'jenHangoutEligible',
+  COACH_GONZALEZ_HANGOUT_ELIGIBLE: 'coachGonzalezHangoutEligible',
+  JORDAN_RIVAL_HANGOUT_ELIGIBLE: 'jordanRivalHangoutEligible',
+  ALEX_ROMANCE_HANGOUT_ELIGIBLE: 'alexRomanceHangoutEligible',
 } as const;
 
 export interface Player {

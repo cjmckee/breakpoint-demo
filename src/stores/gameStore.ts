@@ -138,6 +138,7 @@ interface GameState {
   onMatchComplete: (data: MatchCompletionData) => void;
   dismissMatchResults: () => void;
   dismissStoryEventResult: () => void;
+  dismissHangoutUnlock: () => void;
   dismissOverlay: () => void;
 
   // Hangout actions
@@ -1629,9 +1630,7 @@ export const useGameStore = create<GameState>()(
       },
 
       dismissStoryEventResult: () => {
-        const phase = get().gamePhase;
-        if (phase.type === 'story_event_result') {
-          const { continuation } = phase;
+        const followContinuation = (continuation: PhaseContinuation) => {
           if (continuation.type === 'idle') {
             get().navigateTo('idle');
           } else if (continuation.type === 'milestone_check') {
@@ -1641,12 +1640,57 @@ export const useGameStore = create<GameState>()(
           } else if (continuation.type === 'story_event') {
             set({ gamePhase: { type: 'story_event', event: continuation.event, availableOptions: continuation.availableOptions, continuation: continuation.continuation ?? { type: 'idle' } } });
           }
+        };
+
+        const routeThroughHangoutUnlocks = (unlocked: string[], continuation: PhaseContinuation) => {
+          if (unlocked.length === 0) {
+            followContinuation(continuation);
+            return;
+          }
+          set({
+            gamePhase: {
+              type: 'idle',
+              overlay: {
+                type: 'hangout_unlock',
+                characterId: unlocked[0],
+                remaining: unlocked.slice(1),
+                continuation,
+              },
+            },
+          });
+        };
+
+        const phase = get().gamePhase;
+        if (phase.type === 'story_event_result') {
+          routeThroughHangoutUnlocks(phase.result.hangoutsUnlocked, phase.continuation);
           return;
         }
         // Handle overlay dismissal
         const currentPhase = get().gamePhase;
         if (currentPhase.type === 'idle' && currentPhase.overlay?.type === 'story_event_result') {
-          const { continuation } = currentPhase.overlay;
+          routeThroughHangoutUnlocks(currentPhase.overlay.result.hangoutsUnlocked, currentPhase.overlay.continuation);
+        }
+      },
+
+      dismissHangoutUnlock: () => {
+        const phase = get().gamePhase;
+        if (phase.type !== 'idle' || phase.overlay?.type !== 'hangout_unlock') return;
+
+        const { remaining, continuation } = phase.overlay;
+        if (remaining.length > 0) {
+          set({
+            gamePhase: {
+              type: 'idle',
+              overlay: {
+                type: 'hangout_unlock',
+                characterId: remaining[0],
+                remaining: remaining.slice(1),
+                continuation,
+              },
+            },
+          });
+        } else {
+          // All shown — follow the original continuation
           if (continuation.type === 'idle') {
             get().navigateTo('idle');
           } else if (continuation.type === 'milestone_check') {
@@ -1734,6 +1778,7 @@ export const useGameStore = create<GameState>()(
             relationshipChanges: { [characterId]: tierConfig.relationshipGain },
             abilitiesGained: [],
             itemsGained: [],
+            hangoutsUnlocked: [],
           };
 
           set({
@@ -2131,6 +2176,25 @@ export const useGameStore = create<GameState>()(
         if (outcome.effects.tierChange !== undefined) {
           const newTier = outcome.effects.tierChange as OpponentTier;
           updatedPlayer = PlayerManager.updateTier(updatedPlayer, newTier);
+        }
+
+        // Unlock hangout eligibility for characters
+        if (outcome.effects.unlockHangouts && outcome.effects.unlockHangouts.length > 0) {
+          const hangoutFlagMap: Record<string, string> = {
+            keith: PlayerFlag.KEITH_HANGOUT_ELIGIBLE,
+            jen: PlayerFlag.JEN_HANGOUT_ELIGIBLE,
+            coach_gonzalez: PlayerFlag.COACH_GONZALEZ_HANGOUT_ELIGIBLE,
+            jordan_rival: PlayerFlag.JORDAN_RIVAL_HANGOUT_ELIGIBLE,
+            alex_romance: PlayerFlag.ALEX_ROMANCE_HANGOUT_ELIGIBLE,
+          };
+          const updatedFlags = { ...(updatedPlayer.flags ?? {}) };
+          for (const characterId of outcome.effects.unlockHangouts) {
+            const flag = hangoutFlagMap[characterId];
+            if (flag) {
+              updatedFlags[flag] = true;
+            }
+          }
+          updatedPlayer = { ...updatedPlayer, flags: updatedFlags };
         }
 
         // Update relationships (can range from -100 to 100)

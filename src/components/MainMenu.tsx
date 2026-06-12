@@ -18,6 +18,7 @@ import { UpcomingTeamMatchCard } from './UpcomingTeamMatchCard';
 import { TrainingResultModal } from './TrainingResultModal';
 import { StoryEventModal } from './StoryEventModal';
 import { StoryEventResultModal } from './StoryEventResultModal';
+import { HangoutUnlockedModal } from './HangoutUnlockedModal';
 import { derivePlayStyle } from '../core/PlayerProfile';
 import { getArchetypeLabel } from '../data/archetypes';
 import type { OverlayState } from '../types/gamePhase';
@@ -56,6 +57,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const getAvailableEventOptions = useGameStore((state) => state.getAvailableEventOptions);
   const dismissOverlay = useGameStore((state) => state.dismissOverlay);
   const dismissStoryEventResult = useGameStore((state) => state.dismissStoryEventResult);
+  const dismissHangoutUnlock = useGameStore((state) => state.dismissHangoutUnlock);
   const clearIndicator = useGameStore((state) => state.clearIndicator);
 
   // Check for unseen training
@@ -108,9 +110,18 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
     return null;
   }
 
-  // Key characters that the player has met, for the hang out modal
+  // Map from character ID to the PlayerFlag that unlocks hangout eligibility
+  const hangoutEligibilityFlags: Record<string, string> = {
+    keith: PlayerFlag.KEITH_HANGOUT_ELIGIBLE,
+    jen: PlayerFlag.JEN_HANGOUT_ELIGIBLE,
+    coach_gonzalez: PlayerFlag.COACH_GONZALEZ_HANGOUT_ELIGIBLE,
+    jordan_rival: PlayerFlag.JORDAN_RIVAL_HANGOUT_ELIGIBLE,
+    alex_romance: PlayerFlag.ALEX_ROMANCE_HANGOUT_ELIGIBLE,
+  };
+
+  // Key characters that have been explicitly unlocked for hangouts via a story event
   const metHangoutCharacters = Object.keys(HANGOUT_CHARACTERS).filter(
-    (id) => id in relationships
+    (id) => player.flags?.[hangoutEligibilityFlags[id]] === true
   );
 
   const getTierName = (tier: number): string => {
@@ -179,6 +190,16 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
             isOpen={true}
             onClose={dismissStoryEventResult}
             result={overlay.result}
+          />
+        );
+      }
+      case 'hangout_unlock': {
+        return (
+          <HangoutUnlockedModal
+            isOpen={true}
+            characterId={overlay.characterId}
+            hasMore={overlay.remaining.length > 0}
+            onClose={dismissHangoutUnlock}
           />
         );
       }

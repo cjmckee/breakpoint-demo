@@ -298,6 +298,7 @@ export class StoryEventManager {
       relationshipChanges: outcome.effects.relationshipChanges || {},
       abilitiesGained: outcome.effects.abilitiesGained || [],
       itemsGained: outcome.effects.itemsGained || [],
+      hangoutsUnlocked: outcome.effects.unlockHangouts || [],
     };
 
     return result;

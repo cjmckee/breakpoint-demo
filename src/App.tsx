@@ -19,6 +19,7 @@ import { KeyMomentModal } from './components/KeyMomentModal';
 import { MatchSummaryModal } from './components/MatchSummaryModal';
 import { StoryEventModal } from './components/StoryEventModal';
 import { StoryEventResultModal } from './components/StoryEventResultModal';
+import { HangoutUnlockedModal } from './components/HangoutUnlockedModal';
 import { MenuModal } from './components/MenuModal';
 import { CalendarModal } from './components/CalendarModal';
 import { FloatingMenuButtonWithPointerEvents } from './components/FloatingMenuButton';
@@ -151,6 +152,23 @@ function App() {
             result={gamePhase.result}
           />
         );
+
+      case 'idle':
+        if (gamePhase.overlay?.type === 'hangout_unlock') {
+          const { characterId, remaining } = gamePhase.overlay;
+          return (
+            <>
+              <MainMenu overlay={null} />
+              <HangoutUnlockedModal
+                isOpen={true}
+                characterId={characterId}
+                hasMore={remaining.length > 0}
+                onClose={() => useGameStore.getState().dismissHangoutUnlock()}
+              />
+            </>
+          );
+        }
+        return <MainMenu overlay={gamePhase.overlay} />;
 
       default:
         return <MainMenu overlay={null} />;
