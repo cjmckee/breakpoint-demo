@@ -110,18 +110,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
     return null;
   }
 
-  // Map from character ID to the PlayerFlag that unlocks hangout eligibility
-  const hangoutEligibilityFlags: Record<string, string> = {
-    keith: PlayerFlag.KEITH_HANGOUT_ELIGIBLE,
-    jen: PlayerFlag.JEN_HANGOUT_ELIGIBLE,
-    coach_gonzalez: PlayerFlag.COACH_GONZALEZ_HANGOUT_ELIGIBLE,
-    jordan_rival: PlayerFlag.JORDAN_RIVAL_HANGOUT_ELIGIBLE,
-    alex_romance: PlayerFlag.ALEX_ROMANCE_HANGOUT_ELIGIBLE,
-  };
-
-  // Key characters that have been explicitly unlocked for hangouts via a story event
+  // Key characters that the player has met and can hang out with
   const metHangoutCharacters = Object.keys(HANGOUT_CHARACTERS).filter(
-    (id) => player.flags?.[hangoutEligibilityFlags[id]] === true
+    (id) => id in relationships
   );
 
   const getTierName = (tier: number): string => {

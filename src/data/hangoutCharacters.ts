@@ -48,7 +48,7 @@ export const HANGOUT_CHARACTERS: Record<string, HangoutCharacterConfig> = {
     tiers: [
       {
         resultName: 'Recon Patrol',
-        resultText: "Keith has the binoculars out again. You crouch behind a different bush this time. Progress.",
+        resultText: "Keith has the binoculars out again. You crouch behind a different bush this time.",
         moodChange: 12,
         energyRestored: 5,
         relationshipGain: 2,
@@ -62,7 +62,7 @@ export const HANGOUT_CHARACTERS: Record<string, HangoutCharacterConfig> = {
       },
       {
         resultName: 'Sample Run',
-        resultText: "Keith insists on trying a new ice cream shop. He samples nine flavors this time. The staff recognizes him.",
+        resultText: "Keith insists on trying a new ice cream shop. He samples nine flavors this time. The staff recognizes him, but he isn't deterred.",
         statChanges: { focus: 1 },
         moodChange: 18,
         energyRestored: 5,
@@ -70,7 +70,7 @@ export const HANGOUT_CHARACTERS: Record<string, HangoutCharacterConfig> = {
       },
       {
         resultName: 'BFF Hangout',
-        resultText: "Keith checks in. You're doing okay, you tell him. He pulls out the glitter trophy to make sure it's still valid.",
+        resultText: "Keith checks in. You're doing okay, you tell him. But it seems like he's only here to make sure the trophy is still up.",
         statChanges: { focus: 1, recovery: 1 },
         moodChange: 22,
         energyRestored: 5,
@@ -98,7 +98,7 @@ export const HANGOUT_CHARACTERS: Record<string, HangoutCharacterConfig> = {
       },
       {
         resultName: 'Coaching the Kids',
-        resultText: "Another Saturday with the kids. One of them asks if you're any good. You say yes. They don't believe you.",
+        resultText: "Another Saturday with the kids. One of them asks if you're any good. They don't believe you.",
         statChanges: { forehand: 1 },
         moodChange: 10,
         energyRestored: 5,
@@ -106,7 +106,7 @@ export const HANGOUT_CHARACTERS: Record<string, HangoutCharacterConfig> = {
       },
       {
         resultName: 'Cat Visit',
-        resultText: "Deuce bites your shoe again. Advantage sits on your lap for exactly thirty seconds. Progress.",
+        resultText: "Deuce bites your shoe again. Advantage sits on your lap for exactly thirty seconds.",
         statChanges: { focus: 1 },
         moodChange: 12,
         energyRestored: 5,
@@ -141,7 +141,7 @@ export const HANGOUT_CHARACTERS: Record<string, HangoutCharacterConfig> = {
       },
       {
         resultName: 'Machine Drills',
-        resultText: "The ball machine is acting up again. It fires three balls at once. Excellent practice.",
+        resultText: "The ball machine is acting up again. It fires three balls at once. It complains about homework.",
         statChanges: { anticipation: 1, return: 1 },
         moodChange: 8,
         relationshipGain: 2,
@@ -174,7 +174,7 @@ export const HANGOUT_CHARACTERS: Record<string, HangoutCharacterConfig> = {
     tiers: [
       {
         resultName: 'Grudge Rally',
-        resultText: "Jordan hits everything harder than necessary. You return it anyway. Neither of you says goodbye.",
+        resultText: "Jordan hits everything harder than necessary. You return it anyway. After the session, neither of you says goodbye.",
         statChanges: { return: 1 },
         moodChange: 3,
         relationshipGain: 2,
@@ -188,14 +188,14 @@ export const HANGOUT_CHARACTERS: Record<string, HangoutCharacterConfig> = {
       },
       {
         resultName: 'Doubles Drill',
-        resultText: "You and Jordan run doubles drills. Jordan doesn't compliment you. That's basically a compliment.",
+        resultText: "You and Jordan run doubles drills. Jordan doesn't compliment you. But the comments under their breath are getting few and far between.",
         statChanges: { volley: 1, offensive: 1 },
         moodChange: 8,
         relationshipGain: 3,
       },
       {
         resultName: 'Net Session',
-        resultText: "Jordan asks you to drill volleys again. They say 'thanks' under their breath. You pretend not to hear.",
+        resultText: "Jordan asks you to drill volleys again. They mouth 'thanks' as if they suddenly have lost their voice. You accept it regardless.",
         statChanges: { volley: 1, focus: 1 },
         moodChange: 10,
         relationshipGain: 3,
