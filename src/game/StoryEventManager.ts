@@ -211,7 +211,8 @@ export class StoryEventManager {
         !storyEvent.tags.includes('milestone') &&
         !storyEvent.tags.includes('story_match') &&
         !storyEvent.tags.includes('tournament_ceremony') &&
-        !storyEvent.tags.includes('tournament_match')
+        !storyEvent.tags.includes('tournament_match') &&
+        !storyEvent.tags.includes('interaction')
       )
     });
 
@@ -297,6 +298,7 @@ export class StoryEventManager {
       relationshipChanges: outcome.effects.relationshipChanges || {},
       abilitiesGained: outcome.effects.abilitiesGained || [],
       itemsGained: outcome.effects.itemsGained || [],
+      hangoutsUnlocked: outcome.effects.unlockHangouts || [],
     };
 
     return result;

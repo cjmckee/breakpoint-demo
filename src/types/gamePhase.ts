@@ -140,11 +140,6 @@ export interface KeyMomentHistoryEntry {
 // OVERLAYS — modals shown on top of the idle (main menu) screen
 // ============================================================================
 
-export type OverlayState =
-  | TrainingResultOverlay
-  | StoryEventOverlay
-  | StoryEventResultOverlay;
-
 export interface TrainingResultOverlay {
   type: 'training_result';
   result: TrainingResult;
@@ -162,6 +157,23 @@ export interface StoryEventResultOverlay {
   result: StoryEventResult;
   continuation: PhaseContinuation;
 }
+
+/** One-at-a-time hangout unlock notifications shown after a story event result. */
+export interface HangoutUnlockOverlay {
+  type: 'hangout_unlock';
+  /** Character being shown in this notification */
+  characterId: string;
+  /** Characters still to show after this one */
+  remaining: string[];
+  /** Where to go after all unlock notifications are dismissed */
+  continuation: PhaseContinuation;
+}
+
+export type OverlayState =
+  | TrainingResultOverlay
+  | StoryEventOverlay
+  | StoryEventResultOverlay
+  | HangoutUnlockOverlay;
 
 // ============================================================================
 // CONTINUATION — explicit "where to go next" chain, replaces modal queue

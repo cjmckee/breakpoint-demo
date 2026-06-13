@@ -957,22 +957,27 @@ export class MatchOrchestrator {
     const momentumMultiplier = isPlayerPoint
       ? 1 + (this.activeEffects[EffectKey.UNSTOPPABLE_MOMENTUM] ?? 0) * 0.15
       : 1;
+    // momentum_shield: reduces negative momentum accumulation when player loses a point
+    const momentumShield = this.activeEffects[EffectKey.MOMENTUM_SHIELD] ?? 0;
+    const negativeDamper = !isPlayerPoint && momentumShield > 0
+      ? Math.max(0.5, 1 - momentumShield * 0.06)
+      : 1;
     const bump = MOMENTUM_BANK.bump;
     switch (pointType) {
       case PointType.ACE:
-        this.momentumBank += (isPlayerPoint ? bump.ace : -bump.ace) * momentumMultiplier;
+        this.momentumBank += (isPlayerPoint ? bump.ace : -bump.ace * negativeDamper) * momentumMultiplier;
         break;
       case PointType.WINNER:
-        this.momentumBank += (isPlayerPoint ? bump.winner : -bump.winner) * momentumMultiplier;
+        this.momentumBank += (isPlayerPoint ? bump.winner : -bump.winner * negativeDamper) * momentumMultiplier;
         break;
       case PointType.DOUBLE_FAULT:
-        this.momentumBank += (isPlayerPoint ? bump.doubleFault : -bump.doubleFault) * momentumMultiplier;
+        this.momentumBank += (isPlayerPoint ? bump.doubleFault : -bump.doubleFault * negativeDamper) * momentumMultiplier;
         break;
       case PointType.UNFORCED_ERROR:
-        this.momentumBank += (isPlayerPoint ? bump.unforcedError : -bump.unforcedError) * momentumMultiplier;
+        this.momentumBank += (isPlayerPoint ? bump.unforcedError : -bump.unforcedError * negativeDamper) * momentumMultiplier;
         break;
       case PointType.FORCED_ERROR:
-        this.momentumBank += (isPlayerPoint ? bump.forcedError : -bump.forcedError) * momentumMultiplier;
+        this.momentumBank += (isPlayerPoint ? bump.forcedError : -bump.forcedError * negativeDamper) * momentumMultiplier;
         break;
     }
 

@@ -806,6 +806,22 @@ export class ShotCalculator {
       bonus += rallyMomentum * 1.5;
     }
 
+    // lob_quality: bonus quality on defensive and lob shots
+    const lobQuality = effects[EffectKey.LOB_QUALITY] ?? 0;
+    if (lobQuality > 0 && (
+      shotType.includes('lob') ||
+      shotType.includes('defensive_slice') ||
+      shotType === 'defensive_overhead'
+    )) {
+      bonus += lobQuality * 2;
+    }
+
+    // first_point_stat_boost: flat boost to all stats on the first point of each game (0-0)
+    const firstPointBoost = effects[EffectKey.FIRST_POINT_STAT_BOOST] ?? 0;
+    if (firstPointBoost > 0 && context.isFirstPointOfGame) {
+      bonus += firstPointBoost;
+    }
+
     return Math.min(100, Math.max(0, quality + bonus));
   }
 

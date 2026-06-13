@@ -21,7 +21,8 @@ import {
   TIME_SLOT_NAMES,
   ShopItem,
 } from '../types/game';
-import type { StoryEvent, StoryEventTag, StoryEventOption } from '../types/storyEvents';
+import type { StoryEvent, StoryEventTag, StoryEventOption, StoryEventResult } from '../types/storyEvents';
+import { HANGOUT_CHARACTERS, HANGOUT_ENERGY_COST, getHangoutTier } from '../data/hangoutCharacters';
 import type { Challenge } from '../types/challenges';
 import type { Item, EquipmentSlot } from '../types/items';
 import type { ActiveTournament, TournamentMatchMetadata } from '../types/tournaments';
@@ -83,6 +84,8 @@ interface GameState {
   completedStoryEvents: string[];
   completedStoryEventChoices: Record<string, string>;
   relationships: Record<string, number>;
+  /** Tracks which tier threshold events have been seen per key character */
+  hangoutThresholdsSeen: Record<string, number[]>;
   storyEventTriggerChance: number;
   pendingRandomEvent: { event: StoryEvent; availableOptions: StoryEventOption[] } | null;
 
@@ -135,7 +138,11 @@ interface GameState {
   onMatchComplete: (data: MatchCompletionData) => void;
   dismissMatchResults: () => void;
   dismissStoryEventResult: () => void;
+  dismissHangoutUnlock: () => void;
   dismissOverlay: () => void;
+
+  // Hangout actions
+  hangoutWithCharacter: (characterId: string) => void;
 
   // Story event actions
   checkForStoryEventById: (eventId: string) => void;
@@ -220,6 +227,7 @@ export const useGameStore = create<GameState>()(
       completedStoryEvents: [],
       completedStoryEventChoices: {},
       relationships: {},
+      hangoutThresholdsSeen: {},
       storyEventTriggerChance: 40,
       pendingRandomEvent: null,
       // Challenge initial state
@@ -856,6 +864,7 @@ export const useGameStore = create<GameState>()(
             completedStoryEvents: data.completedStoryEvents || [],
             completedStoryEventChoices: data.completedStoryEventChoices || {},
             relationships: data.relationships || {},
+            hangoutThresholdsSeen: data.hangoutThresholdsSeen || {},
             storyEventTriggerChance: data.storyEventTriggerChance || 40,
             activeChallenges: data.activeChallenges || [],
             completedChallenges: data.completedChallenges || [],
@@ -882,6 +891,7 @@ export const useGameStore = create<GameState>()(
           completedStoryEvents: [],
           completedStoryEventChoices: {},
           relationships: {},
+          hangoutThresholdsSeen: {},
           storyEventTriggerChance: 40,
           pendingRandomEvent: null,
           activeChallenges: [],
@@ -1330,9 +1340,13 @@ export const useGameStore = create<GameState>()(
         // Apply match experience (with EXPERIENCE_GAIN_BONUS multiplier if active)
         const { effects: matchEffects } = EffectAggregator.getActiveEffects(state.player);
         const expBonus = EffectAggregator.getEffect(matchEffects, EffectKey.EXPERIENCE_GAIN_BONUS);
-        const adjustedExp = expBonus > 0
+        let adjustedExp = expBonus > 0
           ? Math.round(rewards.experience * (1 + expBonus))
           : rewards.experience;
+        // WIN_EXP_BONUS / LOSS_EXP_BONUS: flat XP added based on match result
+        const winExpBonus = EffectAggregator.getEffect(matchEffects, EffectKey.WIN_EXP_BONUS);
+        const lossExpBonus = EffectAggregator.getEffect(matchEffects, EffectKey.LOSS_EXP_BONUS);
+        adjustedExp += isWin ? winExpBonus : lossExpBonus;
         updatedPlayer = PlayerManager.addExperience(updatedPlayer, adjustedExp).player;
 
         // Match-type-specific state updates
@@ -1620,9 +1634,7 @@ export const useGameStore = create<GameState>()(
       },
 
       dismissStoryEventResult: () => {
-        const phase = get().gamePhase;
-        if (phase.type === 'story_event_result') {
-          const { continuation } = phase;
+        const followContinuation = (continuation: PhaseContinuation) => {
           if (continuation.type === 'idle') {
             get().navigateTo('idle');
           } else if (continuation.type === 'milestone_check') {
@@ -1632,12 +1644,57 @@ export const useGameStore = create<GameState>()(
           } else if (continuation.type === 'story_event') {
             set({ gamePhase: { type: 'story_event', event: continuation.event, availableOptions: continuation.availableOptions, continuation: continuation.continuation ?? { type: 'idle' } } });
           }
+        };
+
+        const routeThroughHangoutUnlocks = (unlocked: string[], continuation: PhaseContinuation) => {
+          if (unlocked.length === 0) {
+            followContinuation(continuation);
+            return;
+          }
+          set({
+            gamePhase: {
+              type: 'idle',
+              overlay: {
+                type: 'hangout_unlock',
+                characterId: unlocked[0],
+                remaining: unlocked.slice(1),
+                continuation,
+              },
+            },
+          });
+        };
+
+        const phase = get().gamePhase;
+        if (phase.type === 'story_event_result') {
+          routeThroughHangoutUnlocks(phase.result.hangoutsUnlocked, phase.continuation);
           return;
         }
         // Handle overlay dismissal
         const currentPhase = get().gamePhase;
         if (currentPhase.type === 'idle' && currentPhase.overlay?.type === 'story_event_result') {
-          const { continuation } = currentPhase.overlay;
+          routeThroughHangoutUnlocks(currentPhase.overlay.result.hangoutsUnlocked, currentPhase.overlay.continuation);
+        }
+      },
+
+      dismissHangoutUnlock: () => {
+        const phase = get().gamePhase;
+        if (phase.type !== 'idle' || phase.overlay?.type !== 'hangout_unlock') return;
+
+        const { remaining, continuation } = phase.overlay;
+        if (remaining.length > 0) {
+          set({
+            gamePhase: {
+              type: 'idle',
+              overlay: {
+                type: 'hangout_unlock',
+                characterId: remaining[0],
+                remaining: remaining.slice(1),
+                continuation,
+              },
+            },
+          });
+        } else {
+          // All shown — follow the original continuation
           if (continuation.type === 'idle') {
             get().navigateTo('idle');
           } else if (continuation.type === 'milestone_check') {
@@ -1669,6 +1726,92 @@ export const useGameStore = create<GameState>()(
        * Triggers immediately if player is eligible (no probability roll)
        * Use case: Guaranteed story events (like welcome event)
        */
+      hangoutWithCharacter: (characterId: string) => {
+        const { player, relationships, hangoutThresholdsSeen, calendar, currentStatus } = get();
+        const config = HANGOUT_CHARACTERS[characterId];
+
+        if (!config || !player) return;
+        if (calendar.currentTimeSlot === TimeSlot.NIGHT) return;
+        if (currentStatus.energy < HANGOUT_ENERGY_COST) return;
+
+        const relValue = relationships[characterId] ?? 0;
+        const currentTier = getHangoutTier(characterId, relValue);
+        const seenForChar = hangoutThresholdsSeen[characterId] ?? [];
+
+        if (!seenForChar.includes(currentTier)) {
+          // First hangout at this tier — fire the threshold story event
+          const eventId = config.tierEventIds[currentTier];
+          set({
+            hangoutThresholdsSeen: {
+              ...hangoutThresholdsSeen,
+              [characterId]: [...seenForChar, currentTier],
+            },
+          });
+          get().checkForStoryEventById(eventId);
+        } else {
+          // Repeatable hangout — apply effects directly and show result
+          const tierConfig = config.tiers[currentTier];
+
+          const updatedPlayer = tierConfig.statChanges
+            ? PlayerManager.applyStatBoosts(player, tierConfig.statChanges)
+            : player;
+
+          const updatedRelationships = { ...relationships };
+          const current = updatedRelationships[characterId] ?? 0;
+          updatedRelationships[characterId] = Math.max(-100, Math.min(100, current + tierConfig.relationshipGain));
+
+          const newMood = Math.max(-100, Math.min(100, currentStatus.mood + tierConfig.moodChange));
+          const newEnergy = Math.max(
+            0,
+            Math.min(100, currentStatus.energy - HANGOUT_ENERGY_COST + (tierConfig.energyRestored ?? 0))
+          );
+
+          const result: StoryEventResult = {
+            id: `hangout-${characterId}-${Date.now()}`,
+            type: 'story',
+            source: 'story_event',
+            timestamp: new Date().toISOString(),
+            timeSlotsUsed: 1,
+            energyCost: Math.max(0, HANGOUT_ENERGY_COST - (tierConfig.energyRestored ?? 0)),
+            moodResult: tierConfig.moodChange,
+            eventId: `${characterId}_hangout_tier${currentTier}_repeatable`,
+            eventName: tierConfig.resultName,
+            tags: ['interaction'],
+            resultText: [tierConfig.resultText],
+            statChanges: tierConfig.statChanges ?? {},
+            relationshipChanges: { [characterId]: tierConfig.relationshipGain },
+            abilitiesGained: [],
+            itemsGained: [],
+            hangoutsUnlocked: [],
+          };
+
+          set({
+            player: updatedPlayer,
+            relationships: updatedRelationships,
+            currentStatus: {
+              ...currentStatus,
+              energy: newEnergy,
+              mood: newMood,
+              lastActivity: result,
+            },
+            activityHistory: [result, ...get().activityHistory].slice(0, 10),
+          });
+
+          get().advanceTime();
+
+          set({
+            gamePhase: {
+              type: 'idle',
+              overlay: {
+                type: 'story_event_result',
+                result,
+                continuation: { type: 'idle' },
+              },
+            },
+          });
+        }
+      },
+
       checkForStoryEventById: (eventId: string) => {
         const { player, gamePhase } = get();
         if (!player) return;
@@ -2039,6 +2182,25 @@ export const useGameStore = create<GameState>()(
           updatedPlayer = PlayerManager.updateTier(updatedPlayer, newTier);
         }
 
+        // Unlock hangout eligibility for characters
+        if (outcome.effects.unlockHangouts && outcome.effects.unlockHangouts.length > 0) {
+          const hangoutFlagMap: Record<string, string> = {
+            keith: PlayerFlag.KEITH_HANGOUT_ELIGIBLE,
+            jen: PlayerFlag.JEN_HANGOUT_ELIGIBLE,
+            coach_gonzalez: PlayerFlag.COACH_GONZALEZ_HANGOUT_ELIGIBLE,
+            jordan_rival: PlayerFlag.JORDAN_RIVAL_HANGOUT_ELIGIBLE,
+            alex_romance: PlayerFlag.ALEX_ROMANCE_HANGOUT_ELIGIBLE,
+          };
+          const updatedFlags = { ...(updatedPlayer.flags ?? {}) };
+          for (const characterId of outcome.effects.unlockHangouts) {
+            const flag = hangoutFlagMap[characterId];
+            if (flag) {
+              updatedFlags[flag] = true;
+            }
+          }
+          updatedPlayer = { ...updatedPlayer, flags: updatedFlags };
+        }
+
         // Update relationships (can range from -100 to 100)
         const updatedRelationships = { ...get().relationships };
         if (outcome.effects.relationshipChanges) {
@@ -2218,7 +2380,7 @@ export const useGameStore = create<GameState>()(
           finalChange += EffectAggregator.getEffect(effects, EffectKey.RELATIONSHIP_GAIN_BONUS);
         }
 
-        relationships[character] = Math.max(0, Math.min(100, current + finalChange));
+        relationships[character] = Math.max(-100, Math.min(100, current + finalChange));
 
         set({ relationships });
 

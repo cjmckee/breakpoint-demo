@@ -71,7 +71,10 @@ export type StoryEventTag =
   | 'tutorial'
 
   // Random Events
-  | 'misc';
+  | 'misc'
+
+  // Player-initiated character hangouts (never randomly rolled)
+  | 'interaction';
 
 // ============================================================================
 // STORY EVENT PREREQUISITES
@@ -144,6 +147,7 @@ export interface StoryEventOutcome {
     startTournament?: string;  // Tournament ID to activate when this event completes
     tierChange?: number;  // Set player tier to this value (e.g., 2 for Regional)
     revealEncyclopediaSections?: EncyclopediaSectionId[];  // Reveal encyclopedia sections and mark as new
+    unlockHangouts?: string[];  // Character IDs to mark as hangout-eligible via PlayerFlag
   };
 
   // Challenges assigned by this outcome
@@ -225,4 +229,5 @@ export interface StoryEventResult extends Activity {
   relationshipChanges: Record<string, number>;
   abilitiesGained: string[];
   itemsGained: Item[];
+  hangoutsUnlocked: string[];
 }

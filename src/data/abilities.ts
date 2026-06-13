@@ -146,7 +146,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       statBoosts: {},
       additional: {
         [EffectKey.MOOD_GAIN_BONUS]: 5,
-        [EffectKey.RELATIONSHIP_GAIN_BONUS]: 3,
+        [EffectKey.RELATIONSHIP_GAIN_BONUS]: 1,
       },
     },
     description:
@@ -387,5 +387,89 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
     description:
       "You are the complete player. Every shot is a threat, every defensive position is temporary. Opponents see no way out.",
     effects: 'Bonuses to power, spin, finesse, and court coverage. Amplified winning momentum and rally dominance.',
+  },
+
+  // ==================== RELATIONSHIP ABILITIES (story-only) ====================
+
+  [AbilityName.ULTRA_LOB]: {
+    name: AbilityName.ULTRA_LOB,
+    level: 1,
+    rarity: AbilityRarity.RARE,
+    shopAvailable: false,
+    modifiers: {
+      statBoosts: {},
+      additional: {
+        [EffectKey.LOB_QUALITY]: 8,
+      },
+    },
+    description:
+      "Coach Gonzalez taught you the lob his old mentor used to hit — so high it briefly leaves the frame. Somehow it always lands in.",
+    effects: 'Bonus quality on all defensive and lob shots.',
+  },
+
+  [AbilityName.LOW_EGO]: {
+    name: AbilityName.LOW_EGO,
+    level: 1,
+    rarity: AbilityRarity.RARE,
+    shopAvailable: false,
+    modifiers: {
+      statBoosts: {},
+      additional: {
+        [EffectKey.MENTAL_RESILIENCE]: 6,
+        [EffectKey.MOMENTUM_SHIELD]: 6,
+      },
+    },
+    description:
+      "Jordan put their pride aside and asked you for help. If they can do that, pressure has nothing on you.",
+    effects: 'Reduces negative effects of pressure and momentum.',
+  },
+
+  [AbilityName.BEST_FRIEND_AWARD]: {
+    name: AbilityName.BEST_FRIEND_AWARD,
+    level: 1,
+    rarity: AbilityRarity.UNCOMMON,
+    shopAvailable: false,
+    modifiers: {
+      statBoosts: {},
+      additional: {
+        [EffectKey.RELATIONSHIP_GAIN_BONUS]: 2,
+      },
+    },
+    description:
+      "Keith gave you a trophy. It says 'Best Friend Award' in glitter glue. All your relationships feel a little warmer now.",
+    effects: 'All relationship events give +2 bonus relationship.',
+  },
+
+  [AbilityName.GREAT_MENTALITY]: {
+    name: AbilityName.GREAT_MENTALITY,
+    level: 1,
+    rarity: AbilityRarity.UNCOMMON,
+    shopAvailable: false,
+    modifiers: {
+      statBoosts: {},
+      additional: {
+        [EffectKey.WIN_EXP_BONUS]: 5,
+        [EffectKey.LOSS_EXP_BONUS]: 10,
+      },
+    },
+    description:
+      "Jen showed you that losing is just winning with extra steps. You gain more from every match now — especially the ones you lose.",
+    effects: '+5 bonus XP for wins. +10 bonus XP for losses.',
+  },
+
+  [AbilityName.LOVE_ALL]: {
+    name: AbilityName.LOVE_ALL,
+    level: 1,
+    rarity: AbilityRarity.RARE,
+    shopAvailable: false,
+    modifiers: {
+      statBoosts: {},
+      additional: {
+        [EffectKey.FIRST_POINT_STAT_BOOST]: 3,
+      },
+    },
+    description:
+      "You got kissed in the rain. It was cinematic. Now every first point feels like the start of something beautiful.",
+    effects: '+3 to all stats on the first point of each game.',
   },
 };

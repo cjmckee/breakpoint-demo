@@ -501,6 +501,7 @@ export class PointSimulator {
       courtPosition: 'baseline',
       rallyLength: 1,
       courtSurface: matchState.courtSurface,
+      isFirstPointOfGame: matchState.score.currentGame.server === 0 && matchState.score.currentGame.returner === 0,
     };
   }
 
@@ -549,6 +550,7 @@ export class PointSimulator {
       courtPosition,
       rallyLength,
       courtSurface: matchState.courtSurface,
+      isFirstPointOfGame: matchState.score.currentGame.server === 0 && matchState.score.currentGame.returner === 0,
     };
   }
 

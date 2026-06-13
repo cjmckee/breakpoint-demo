@@ -91,6 +91,8 @@ export const EffectKey = {
   ENERGY_GAIN_BONUS: 'energy_gain_bonus',
   ENERGY_COST_REDUCTION: 'energy_cost_reduction',
   EXPERIENCE_GAIN_BONUS: 'experience_gain_bonus', // multiplier on match XP (0.1 = +10%)
+  WIN_EXP_BONUS: 'win_exp_bonus',                 // flat XP bonus added on match wins
+  LOSS_EXP_BONUS: 'loss_exp_bonus',               // flat XP bonus added on match losses
 
   // --- Relationship effects ---
   RELATIONSHIP_GAIN_BONUS: 'relationship_gain_bonus',
@@ -103,6 +105,8 @@ export const EffectKey = {
   NET_GAME: 'net_game',               // bonus quality on all shots when player is at net
   PERFECT_TIMING: 'perfect_timing',   // recovers quality lost to pressure
   RALLY_MOMENTUM: 'rally_momentum',   // bonus quality when rally length > 4
+  LOB_QUALITY: 'lob_quality',         // bonus quality on defensive and lob shots
+  FIRST_POINT_STAT_BOOST: 'first_point_stat_boost', // flat boost to all stats on first point of each game
 
   // --- Match: positioning effects (PointSimulator) ---
   REACH: 'reach',                     // reduces off-position difficulty
@@ -113,6 +117,7 @@ export const EffectKey = {
   UNSTOPPABLE_MOMENTUM: 'unstoppable_momentum',
   FOCUS_DURATION: 'focus_duration',
   CHAMPION_AURA: 'champion_aura',
+  MOMENTUM_SHIELD: 'momentum_shield', // reduces negative momentum accumulation
 
   // --- Match: key moment effects (KeyMomentResolver) ---
   CLUTCH_PERFORMANCE: 'clutch_performance', // flat % bonus to key moment win probability
@@ -150,6 +155,13 @@ export const AbilityName = {
   // legendary
   LEGENDARY_FOCUS: 'legendary_focus',
   APEX_PREDATOR: 'apex_predator',
+
+  // relationship interaction rewards (story-only, not in shop)
+  ULTRA_LOB: 'ultra_lob',
+  LOW_EGO: 'low_ego',
+  BEST_FRIEND_AWARD: 'best_friend_award',
+  GREAT_MENTALITY: 'great_mentality',
+  LOVE_ALL: 'love_all',
 } as const;
 
 // ============================================================================
@@ -478,6 +490,11 @@ export const PlayerFlag = {
   MATCH_UNLOCKED: 'matchUnlocked',
   TOURNAMENTS_UNLOCKED: 'tournamentsUnlocked',
   SHOP_UNLOCKED: 'shopUnlocked',
+  KEITH_HANGOUT_ELIGIBLE: 'keithHangoutEligible',
+  JEN_HANGOUT_ELIGIBLE: 'jenHangoutEligible',
+  COACH_GONZALEZ_HANGOUT_ELIGIBLE: 'coachGonzalezHangoutEligible',
+  JORDAN_RIVAL_HANGOUT_ELIGIBLE: 'jordanRivalHangoutEligible',
+  ALEX_ROMANCE_HANGOUT_ELIGIBLE: 'alexRomanceHangoutEligible',
 } as const;
 
 export interface Player {

@@ -194,6 +194,7 @@ export const welcomeEvents: StoryEvent[] = [
           jen: 2,
           keith: 2,
         },
+        unlockHangouts: ['keith', 'jen'],
         revealEncyclopediaSections: ['surface-guide', 'match-help'],
         scheduledEvents: [
           {
