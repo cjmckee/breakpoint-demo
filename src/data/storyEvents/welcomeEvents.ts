@@ -388,15 +388,16 @@ export const welcomeEvents: StoryEvent[] = [
     description: 'You learn about the importance of relationships in the academy.',
     dialogue: [
       ['keith', ['Hey! I found out more about how relationships work here at the academy.']],
-      ['keith', ['Building relationships with other players can give you various benefits, like training bonuses and support during matches.']],
-      ['keith', ['Interacting with other players, participating in events, and making choices that align with their personalities can help.']],
-      ['keith', ['But making the wrong choices can hurt those relationships. I tried to offer ', {characterId: 'jen'}, ' some advice on her serve this morning.']],
+      ['keith', ['You can hang out with people around campus! It costs a bit of energy, but it\'s worth it. You get mood boosts, stat bonuses, and you build your relationship with them.']],
+      ['keith', ['The better your relationship, the better the hangouts get. There are different tiers — once you hit certain milestones, new hangout activities unlock.']],
+      ['keith', ['At each new tier, there\'s a special event the first time. After that, you get a repeatable hangout that keeps giving you bonuses.']],
+      ['keith', ['But be careful with story choices — the wrong ones can hurt your relationships. I tried to offer ', {characterId: 'jen'}, ' some advice on her serve this morning.']],
       ['keith', ['I saw a big -15 appear over her head! She can be so sensitive sometimes. I brought my double faults down to 20 per match using those tips.']],
     ],
     characters: ['keith'],
     options: [],
     defaultOutcome: {
-      resultText: ['It seems like building relationships will be key to your success at the academy. '],
+      resultText: ['Building relationships and hanging out with people around the academy will be key to your growth here.'],
       effects: {
         statChanges: {},
         relationshipChanges: {
