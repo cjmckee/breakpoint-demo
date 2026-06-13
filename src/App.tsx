@@ -79,9 +79,6 @@ function App() {
       case 'player_creation':
         return <PlayerCreation />;
 
-      case 'idle':
-        return <MainMenu overlay={gamePhase.overlay} />;
-
       case 'training':
         return <TrainingSelection />;
 

@@ -146,7 +146,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       statBoosts: {},
       additional: {
         [EffectKey.MOOD_GAIN_BONUS]: 5,
-        [EffectKey.RELATIONSHIP_GAIN_BONUS]: 3,
+        [EffectKey.RELATIONSHIP_GAIN_BONUS]: 1,
       },
     },
     description:
@@ -391,88 +391,85 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
 
   // ==================== RELATIONSHIP ABILITIES (story-only) ====================
 
-  [AbilityName.GRAND_STRATEGIST]: {
-    name: AbilityName.GRAND_STRATEGIST,
+  [AbilityName.ULTRA_LOB]: {
+    name: AbilityName.ULTRA_LOB,
     level: 1,
     rarity: AbilityRarity.RARE,
     shopAvailable: false,
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.CLUTCH_PERFORMANCE]: 8,
-        [EffectKey.MENTAL_RESILIENCE]: 5,
+        [EffectKey.LOB_QUALITY]: 8,
       },
     },
     description:
-      "Coach Gonzalez showed you the real diagrams. Not the public ones. In key moments, your preparation is visible.",
-    effects: 'Significant bonus in key moments. Reduces the mental pressure penalty.',
+      "Coach Gonzalez taught you the lob his old mentor used to hit — so high it briefly leaves the frame. Somehow it always lands in.",
+    effects: 'Bonus quality on all defensive and lob shots.',
   },
 
-  [AbilityName.RIVALS_EDGE]: {
-    name: AbilityName.RIVALS_EDGE,
+  [AbilityName.LOW_EGO]: {
+    name: AbilityName.LOW_EGO,
     level: 1,
     rarity: AbilityRarity.RARE,
     shopAvailable: false,
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.RALLY_MOMENTUM]: 8,
-        [EffectKey.CLUTCH_PERFORMANCE]: 5,
+        [EffectKey.MENTAL_RESILIENCE]: 6,
+        [EffectKey.MOMENTUM_SHIELD]: 6,
       },
     },
     description:
-      "Being pushed by Jordan changed you into something harder. You thrive in prolonged, intense exchanges.",
-    effects: 'Amplified winning momentum in long rallies. Bonus performance in key moments.',
+      "Jordan put their pride aside and asked you for help. If they can do that, pressure has nothing on you.",
+    effects: 'Reduces negative effects of pressure and momentum.',
   },
 
-  [AbilityName.BEST_FRIEND_ENERGY]: {
-    name: AbilityName.BEST_FRIEND_ENERGY,
+  [AbilityName.BEST_FRIEND_AWARD]: {
+    name: AbilityName.BEST_FRIEND_AWARD,
     level: 1,
     rarity: AbilityRarity.UNCOMMON,
     shopAvailable: false,
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.MOOD_GAIN_BONUS]: 5,
-        [EffectKey.ENERGY_GAIN_BONUS]: 5,
+        [EffectKey.RELATIONSHIP_GAIN_BONUS]: 2,
       },
     },
     description:
-      "Keith's friendship has a quantifiable effect on your wellbeing. Performance accessory. Don't make it weird.",
-    effects: 'Bonus mood and energy from all recovery activities.',
+      "Keith gave you a trophy. It says 'Best Friend Award' in glitter glue. All your relationships feel a little warmer now.",
+    effects: 'All relationship events give +2 bonus relationship.',
   },
 
-  [AbilityName.TENNIS_NERD]: {
-    name: AbilityName.TENNIS_NERD,
+  [AbilityName.GREAT_MENTALITY]: {
+    name: AbilityName.GREAT_MENTALITY,
     level: 1,
     rarity: AbilityRarity.UNCOMMON,
     shopAvailable: false,
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.TOUCH]: 6,
-        [EffectKey.SIDE_SPIN]: 6,
+        [EffectKey.WIN_EXP_BONUS]: 5,
+        [EffectKey.LOSS_EXP_BONUS]: 10,
       },
     },
     description:
-      "Jen's obsessive approach to tennis technique has rubbed off on you. JG Formula #4 may have helped.",
-    effects: 'Bonus quality on touch shots, drop shots, and spin-heavy balls.',
+      "Jen showed you that losing is just winning with extra steps. You gain more from every match now — especially the ones you lose.",
+    effects: '+5 bonus XP for wins. +10 bonus XP for losses.',
   },
 
-  [AbilityName.COURT_CHEMISTRY]: {
-    name: AbilityName.COURT_CHEMISTRY,
+  [AbilityName.LOVE_ALL]: {
+    name: AbilityName.LOVE_ALL,
     level: 1,
     rarity: AbilityRarity.RARE,
     shopAvailable: false,
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.CLUTCH_PERFORMANCE]: 8,
-        [EffectKey.MOOD_GAIN_BONUS]: 5,
+        [EffectKey.FIRST_POINT_STAT_BOOST]: 3,
       },
     },
     description:
-      "Playing for something beyond yourself. Key moments feel different when someone matters to you.",
-    effects: 'Significant bonus in key moments. Bonus mood from all positive activities.',
+      "You got kissed in the rain. It was cinematic. Now every first point feels like the start of something beautiful.",
+    effects: '+3 to all stats on the first point of each game.',
   },
 };

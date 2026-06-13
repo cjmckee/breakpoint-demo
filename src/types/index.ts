@@ -127,6 +127,7 @@ export interface ShotContext {
   courtPosition: 'baseline' | 'net' | 'defensive';
   rallyLength: number;
   courtSurface: CourtSurface;
+  isFirstPointOfGame?: boolean;
 }
 
 // =======================

@@ -1340,9 +1340,13 @@ export const useGameStore = create<GameState>()(
         // Apply match experience (with EXPERIENCE_GAIN_BONUS multiplier if active)
         const { effects: matchEffects } = EffectAggregator.getActiveEffects(state.player);
         const expBonus = EffectAggregator.getEffect(matchEffects, EffectKey.EXPERIENCE_GAIN_BONUS);
-        const adjustedExp = expBonus > 0
+        let adjustedExp = expBonus > 0
           ? Math.round(rewards.experience * (1 + expBonus))
           : rewards.experience;
+        // WIN_EXP_BONUS / LOSS_EXP_BONUS: flat XP added based on match result
+        const winExpBonus = EffectAggregator.getEffect(matchEffects, EffectKey.WIN_EXP_BONUS);
+        const lossExpBonus = EffectAggregator.getEffect(matchEffects, EffectKey.LOSS_EXP_BONUS);
+        adjustedExp += isWin ? winExpBonus : lossExpBonus;
         updatedPlayer = PlayerManager.addExperience(updatedPlayer, adjustedExp).player;
 
         // Match-type-specific state updates
