@@ -2182,33 +2182,22 @@ export const useGameStore = create<GameState>()(
           updatedPlayer = PlayerManager.updateTier(updatedPlayer, newTier);
         }
 
-        // Unlock hangout eligibility for characters
-        if (outcome.effects.unlockHangouts && outcome.effects.unlockHangouts.length > 0) {
-          const hangoutFlagMap: Record<string, string> = {
-            keith: PlayerFlag.KEITH_HANGOUT_ELIGIBLE,
-            jen: PlayerFlag.JEN_HANGOUT_ELIGIBLE,
-            coach_gonzalez: PlayerFlag.COACH_GONZALEZ_HANGOUT_ELIGIBLE,
-            jordan_rival: PlayerFlag.JORDAN_RIVAL_HANGOUT_ELIGIBLE,
-            alex_romance: PlayerFlag.ALEX_ROMANCE_HANGOUT_ELIGIBLE,
-          };
-          const updatedFlags = { ...(updatedPlayer.flags ?? {}) };
-          for (const characterId of outcome.effects.unlockHangouts) {
-            const flag = hangoutFlagMap[characterId];
-            if (flag) {
-              updatedFlags[flag] = true;
-            }
-          }
-          updatedPlayer = { ...updatedPlayer, flags: updatedFlags };
-        }
-
         // Update relationships (can range from -100 to 100)
-        const updatedRelationships = { ...get().relationships };
+        const existingRelationships = gameState.relationships;
+        const updatedRelationships = { ...existingRelationships };
         if (outcome.effects.relationshipChanges) {
           Object.entries(outcome.effects.relationshipChanges).forEach(([char, change]) => {
             const current = updatedRelationships[char] || 0;
             updatedRelationships[char] = Math.max(-100, Math.min(100, current + change));
           });
         }
+
+        // Auto-detect newly met hangout characters so the banner fires on first meeting
+        result.hangoutsUnlocked = outcome.effects.relationshipChanges
+          ? Object.keys(outcome.effects.relationshipChanges).filter(
+              id => !(id in existingRelationships) && HANGOUT_CHARACTERS[id] !== undefined
+            )
+          : [];
 
         // Track event completion and choice
         const updatedCompletedEvents = [...get().completedStoryEvents, eventId];
