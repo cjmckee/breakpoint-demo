@@ -1727,7 +1727,7 @@ export const useGameStore = create<GameState>()(
        * Use case: Guaranteed story events (like welcome event)
        */
       hangoutWithCharacter: (characterId: string) => {
-        const { player, relationships, hangoutThresholdsSeen, calendar, currentStatus } = get();
+        const { player, relationships, hangoutThresholdsSeen, calendar, currentStatus, completedStoryEvents } = get();
         const config = HANGOUT_CHARACTERS[characterId];
 
         if (!config || !player) return;
@@ -1738,15 +1738,21 @@ export const useGameStore = create<GameState>()(
         const currentTier = getHangoutTier(characterId, relValue);
         const seenForChar = hangoutThresholdsSeen[characterId] ?? [];
 
+        const eventId = config.tierEventIds[currentTier];
+        const tierEventAlreadyCompleted = completedStoryEvents.includes(eventId);
+
         if (!seenForChar.includes(currentTier)) {
-          // First hangout at this tier — fire the threshold story event
-          const eventId = config.tierEventIds[currentTier];
+          // Always mark the tier as seen so repeat clicks go to the repeatable path
           set({
             hangoutThresholdsSeen: {
               ...hangoutThresholdsSeen,
               [characterId]: [...seenForChar, currentTier],
             },
           });
+        }
+
+        if (!seenForChar.includes(currentTier) && !tierEventAlreadyCompleted) {
+          // First hangout at this tier — fire the threshold story event
           get().checkForStoryEventById(eventId);
         } else {
           // Repeatable hangout — apply effects directly and show result
@@ -3030,6 +3036,7 @@ export const useGameStore = create<GameState>()(
         completedStoryEvents: state.completedStoryEvents,
         completedStoryEventChoices: state.completedStoryEventChoices,
         relationships: state.relationships,
+        hangoutThresholdsSeen: state.hangoutThresholdsSeen,
         storyEventTriggerChance: state.storyEventTriggerChance,
 
         // Challenge persistence
