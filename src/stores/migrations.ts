@@ -7,7 +7,7 @@
  * CURRENT_VERSION must match the `version` field in the persist config.
  */
 
-import type { Player, GameCalendar, CurrentStatus, ActivityResult, TrainingSession, ShopItem } from '../types/game';
+import type { Player, GameCalendar, CurrentStatus, ActivityResult, TrainingSession, ShopItem, OpponentTier } from '../types/game';
 import type { Challenge } from '../types/challenges';
 
 export interface AudioSettings {
@@ -31,7 +31,7 @@ export interface PersistedStoreState {
   storyEventTriggerChance: number;
   activeChallenges: Challenge[];
   completedChallenges: string[];
-  unlockedTiers: number[];
+  unlockedTiers: OpponentTier[];
   shopItems: ShopItem[];
   audioSettings: AudioSettings;
   // eventRecovery omitted — transient, always reset on load
