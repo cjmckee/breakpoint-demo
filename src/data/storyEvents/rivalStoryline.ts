@@ -142,6 +142,7 @@ export const rivalEvents: StoryEvent[] = [
             moodChange: 15,
             energyChange: -15,
             relationshipChanges: { jordan_rival: -15 },
+            hangoutUnlocks: ['jordan_rival'],
           },
         },
       },
@@ -157,6 +158,7 @@ export const rivalEvents: StoryEvent[] = [
             moodChange: 10,
             energyChange: -20,
             relationshipChanges: { jordan_rival: 5 },
+            hangoutUnlocks: ['jordan_rival'],
           },
           challengesAssigned: [
             ChallengeManager.createFromTemplate(CHALLENGE_DOUBLES_INSTINCTS, {
@@ -178,6 +180,7 @@ export const rivalEvents: StoryEvent[] = [
             moodChange: 20,
             energyChange: -15,
             relationshipChanges: { jordan_rival: -20 },
+            hangoutUnlocks: ['jordan_rival'],
           },
         },
       },

@@ -84,6 +84,7 @@ export const coachEvents: StoryEvent[] = [
             moodChange: 10,
             energyChange: -20,
             relationshipChanges: { coach_gonzalez: 5 },
+            hangoutUnlocks: ['coach_gonzalez'],
           },
           challengesAssigned: [
             ChallengeManager.createFromTemplate(CHALLENGE_SERVE_MASTERY, {
@@ -105,6 +106,7 @@ export const coachEvents: StoryEvent[] = [
             moodChange: 10,
             energyChange: -20,
             relationshipChanges: { coach_gonzalez: 5 },
+            hangoutUnlocks: ['coach_gonzalez'],
           },
           challengesAssigned: [
             ChallengeManager.createFromTemplate(CHALLENGE_BASELINE_WARRIOR, {
@@ -126,6 +128,7 @@ export const coachEvents: StoryEvent[] = [
             moodChange: 15,
             energyChange: -15,
             relationshipChanges: { coach_gonzalez: 5 },
+            hangoutUnlocks: ['coach_gonzalez'],
           },
           challengesAssigned: [
             ChallengeManager.createFromTemplate(CHALLENGE_MENTAL_EDGE, {
