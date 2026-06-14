@@ -50,12 +50,21 @@ function migrate0to1(state: PersistedStoreState): PersistedStoreState {
     // Ensure flags object exists (added after initial player structure)
     const flags: Record<string, boolean | number | string> = player.flags ?? {};
 
-    // Backfill hangout unlock flags for Keith and Jen if the unlock event
-    // was already completed before this flag system existed.
+    // Backfill hangout unlock flags if the unlock event was already completed
+    // before the flag system existed for these characters.
     const completedEvents: string[] = state.completedStoryEvents ?? [];
     if (completedEvents.includes('club_team_first_practice')) {
       if (!flags['hangoutUnlocked_keith']) flags['hangoutUnlocked_keith'] = true;
       if (!flags['hangoutUnlocked_jen']) flags['hangoutUnlocked_jen'] = true;
+    }
+    if (completedEvents.includes('coach_training_focus')) {
+      if (!flags['hangoutUnlocked_coach_gonzalez']) flags['hangoutUnlocked_coach_gonzalez'] = true;
+    }
+    if (completedEvents.includes('rival_doubles_disaster')) {
+      if (!flags['hangoutUnlocked_jordan_rival']) flags['hangoutUnlocked_jordan_rival'] = true;
+    }
+    if (completedEvents.includes('romance_coffee_date')) {
+      if (!flags['hangoutUnlocked_alex_romance']) flags['hangoutUnlocked_alex_romance'] = true;
     }
 
     player = { ...player, flags };
