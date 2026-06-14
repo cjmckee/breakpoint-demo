@@ -18,6 +18,7 @@ import type { StoryEvent, StoryEventOption, StoryEventResult } from './storyEven
 import type { TacticalOption } from '../data/tacticalOptions';
 import type { KeyMomentResult } from '../game/KeyMomentResolver';
 import type { AccumulatedMatchEffects } from '../game/MatchOrchestrator';
+import type { Item } from './items';
 
 // ============================================================================
 // GAME PHASE — the single source of truth for "where are we?"
@@ -169,11 +170,25 @@ export interface HangoutUnlockOverlay {
   continuation: PhaseContinuation;
 }
 
+/** One-at-a-time item acquisition popups shown after match results, events, or leaving the shop. */
+export interface ItemAcquiredOverlay {
+  type: 'item_acquired';
+  /** Item being shown in this notification */
+  item: Item;
+  /** Items still to show after this one */
+  remaining: Item[];
+  /** Hangout characters to show after all items are dismissed */
+  hangoutsUnlocked: string[];
+  /** Where to go after all item and hangout notifications are dismissed */
+  continuation: PhaseContinuation;
+}
+
 export type OverlayState =
   | TrainingResultOverlay
   | StoryEventOverlay
   | StoryEventResultOverlay
-  | HangoutUnlockOverlay;
+  | HangoutUnlockOverlay
+  | ItemAcquiredOverlay;
 
 // ============================================================================
 // CONTINUATION — explicit "where to go next" chain, replaces modal queue

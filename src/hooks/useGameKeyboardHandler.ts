@@ -18,6 +18,7 @@ export function useGameKeyboardHandler() {
   const dismissMatchResults = useGameStore((state) => state.dismissMatchResults);
   const dismissStoryEventResult = useGameStore((state) => state.dismissStoryEventResult);
   const dismissHangoutUnlock = useGameStore((state) => state.dismissHangoutUnlock);
+  const dismissItemAcquired = useGameStore((state) => state.dismissItemAcquired);
   const dismissOverlay = useGameStore((state) => state.dismissOverlay);
   const isMenuOpen = useMenuStore((state) => state.isOpen);
   const isCalendarOpen = useMenuStore((state) => state.isCalendarOpen);
@@ -45,6 +46,14 @@ export function useGameKeyboardHandler() {
         if (key === 'Enter' || key === ' ') {
           event.preventDefault();
           dismissStoryEventResult();
+        }
+        return;
+      }
+
+      if (gamePhase.type === 'idle' && gamePhase.overlay?.type === 'item_acquired') {
+        if (key === 'Enter' || key === ' ') {
+          event.preventDefault();
+          dismissItemAcquired();
         }
         return;
       }
@@ -103,7 +112,7 @@ export function useGameKeyboardHandler() {
           break;
       }
     },
-    [gamePhase, isShopUnlocked, isMatchUnlocked, navigateTo, clearIndicator, dismissMatchResults, dismissStoryEventResult, dismissHangoutUnlock, dismissOverlay, isMenuOpen, isCalendarOpen, openCalendar, closeCalendar]
+    [gamePhase, isShopUnlocked, isMatchUnlocked, navigateTo, clearIndicator, dismissMatchResults, dismissStoryEventResult, dismissHangoutUnlock, dismissItemAcquired, dismissOverlay, isMenuOpen, isCalendarOpen, openCalendar, closeCalendar]
   );
 
   useEffect(() => {

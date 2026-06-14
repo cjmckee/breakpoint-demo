@@ -130,6 +130,9 @@ interface GameState {
   clearAllData: () => void;
   getAvailableTrainingSessions: () => TrainingSession[];
 
+  // Pending shop item popups (cleared when leaving shop)
+  pendingShopAcquisitions: Item[];
+
   // Phase transition actions
   navigateTo: (target: 'idle' | 'training' | 'match_setup' | 'tournament_list' | 'inventory' | 'relationships' | 'shop') => void;
   navigateToScheduledMatch: (matchType: 'tournament' | 'story') => void;
@@ -140,7 +143,9 @@ interface GameState {
   dismissMatchResults: () => void;
   dismissStoryEventResult: () => void;
   dismissHangoutUnlock: () => void;
+  dismissItemAcquired: () => void;
   dismissOverlay: () => void;
+  routeThroughAcquisitionQueue: (items: Item[], hangoutsUnlocked: string[], continuation: PhaseContinuation) => void;
 
   // Hangout actions
   hangoutWithCharacter: (characterId: string) => void;
@@ -246,6 +251,8 @@ export const useGameStore = create<GameState>()(
       },
 
       shopItems: [],
+
+      pendingShopAcquisitions: [],
 
       isInitialized: false,
       gamePhase: { type: 'uninitialized' },
@@ -917,6 +924,17 @@ export const useGameStore = create<GameState>()(
 
       navigateTo: (target) => {
         if (target === 'idle') {
+          // If leaving the shop with pending item popups, show them first
+          const currentPhase = get().gamePhase;
+          if (currentPhase.type === 'shop') {
+            const pendingItems = get().pendingShopAcquisitions;
+            if (pendingItems.length > 0) {
+              set({ pendingShopAcquisitions: [] });
+              get().routeThroughAcquisitionQueue(pendingItems, [], { type: 'idle' });
+              return;
+            }
+          }
+
           // Check for scheduled matches with pre-match events
           const state = get();
           const { calendar, completedStoryEvents, completedStoryEventChoices, relationships, player } = state;
@@ -1494,6 +1512,10 @@ export const useGameStore = create<GameState>()(
         const isWin = finalScore.winner === 'player';
         const result = isWin ? 'win' : 'loss';
         const state = get();
+        const items = phase.rewards.itemsGained ?? [];
+
+        // Build continuation representing what to do after item popups
+        let continuation: PhaseContinuation = { type: 'milestone_check' };
 
         if (matchType === 'story' || matchType === 'tutorial') {
           // Check for post-match story event
@@ -1516,15 +1538,12 @@ export const useGameStore = create<GameState>()(
                   calendar: state.calendar,
                   activeTournament: state.calendar.activeTournament,
                 });
-                set({
-                  gamePhase: {
-                    type: 'story_event',
-                    event,
-                    availableOptions,
-                    continuation: { type: 'milestone_check' },
-                  },
-                });
-                return;
+                continuation = {
+                  type: 'story_event',
+                  event,
+                  availableOptions,
+                  continuation: { type: 'milestone_check' },
+                };
               }
             }
           }
@@ -1605,80 +1624,54 @@ export const useGameStore = create<GameState>()(
               get().scheduleNextTournamentMatch();
             }
 
-            // Show event chain: build continuations back-to-front so events play in order
+            // Build event chain continuation
             if (eventChain.length > 0) {
-              let continuation: PhaseContinuation = { type: 'milestone_check' };
+              let chainContinuation: PhaseContinuation = { type: 'milestone_check' };
               for (let i = eventChain.length - 1; i > 0; i--) {
-                continuation = {
+                chainContinuation = {
                   type: 'story_event',
                   event: eventChain[i].event,
                   availableOptions: eventChain[i].availableOptions,
-                  continuation,
+                  continuation: chainContinuation,
                 };
               }
-              set({
-                gamePhase: {
-                  type: 'story_event',
-                  event: eventChain[0].event,
-                  availableOptions: eventChain[0].availableOptions,
-                  continuation,
-                },
-              });
-              return;
+              continuation = {
+                type: 'story_event',
+                event: eventChain[0].event,
+                availableOptions: eventChain[0].availableOptions,
+                continuation: chainContinuation,
+              };
             }
           }
         }
-
-        // Check for milestone events (e.g. "won first match", "hit 10 winners")
-        // These only trigger after match completion, never during regular time advancement.
-        get().resolveMilestoneCheck();
 
         // Ensure pending match setup is cleared (should already be null from onMatchComplete)
         if (get().eventRecovery.pendingMatchSetup) {
           get().updateEventRecovery({ pendingMatchSetup: null });
         }
+
+        // Route through item popups first, then follow the computed continuation
+        get().routeThroughAcquisitionQueue(items, [], continuation);
       },
 
       dismissStoryEventResult: () => {
-        const followContinuation = (continuation: PhaseContinuation) => {
-          if (continuation.type === 'idle') {
-            get().navigateTo('idle');
-          } else if (continuation.type === 'milestone_check') {
-            get().resolveMilestoneCheck();
-          } else if (continuation.type === 'match_setup') {
-            set({ gamePhase: { type: 'match_setup', matchType: continuation.matchType, matchConfig: continuation.matchConfig } });
-          } else if (continuation.type === 'story_event') {
-            set({ gamePhase: { type: 'story_event', event: continuation.event, availableOptions: continuation.availableOptions, continuation: continuation.continuation ?? { type: 'idle' } } });
-          }
-        };
-
-        const routeThroughHangoutUnlocks = (unlocked: string[], continuation: PhaseContinuation) => {
-          if (unlocked.length === 0) {
-            followContinuation(continuation);
-            return;
-          }
-          set({
-            gamePhase: {
-              type: 'idle',
-              overlay: {
-                type: 'hangout_unlock',
-                characterId: unlocked[0],
-                remaining: unlocked.slice(1),
-                continuation,
-              },
-            },
-          });
-        };
-
         const phase = get().gamePhase;
         if (phase.type === 'story_event_result') {
-          routeThroughHangoutUnlocks(phase.result.hangoutsUnlocked, phase.continuation);
+          get().routeThroughAcquisitionQueue(
+            phase.result.itemsGained ?? [],
+            phase.result.hangoutsUnlocked,
+            phase.continuation
+          );
           return;
         }
         // Handle overlay dismissal
         const currentPhase = get().gamePhase;
         if (currentPhase.type === 'idle' && currentPhase.overlay?.type === 'story_event_result') {
-          routeThroughHangoutUnlocks(currentPhase.overlay.result.hangoutsUnlocked, currentPhase.overlay.continuation);
+          get().routeThroughAcquisitionQueue(
+            currentPhase.overlay.result.itemsGained ?? [],
+            currentPhase.overlay.result.hangoutsUnlocked,
+            currentPhase.overlay.continuation
+          );
         }
       },
 
@@ -1695,6 +1688,92 @@ export const useGameStore = create<GameState>()(
                 type: 'hangout_unlock',
                 characterId: remaining[0],
                 remaining: remaining.slice(1),
+                continuation,
+              },
+            },
+          });
+        } else {
+          // All shown — follow the original continuation
+          if (continuation.type === 'idle') {
+            get().navigateTo('idle');
+          } else if (continuation.type === 'milestone_check') {
+            get().resolveMilestoneCheck();
+          } else if (continuation.type === 'match_setup') {
+            set({ gamePhase: { type: 'match_setup', matchType: continuation.matchType, matchConfig: continuation.matchConfig } });
+          } else if (continuation.type === 'story_event') {
+            set({ gamePhase: { type: 'story_event', event: continuation.event, availableOptions: continuation.availableOptions, continuation: continuation.continuation ?? { type: 'idle' } } });
+          }
+        }
+      },
+
+      routeThroughAcquisitionQueue: (items, hangoutsUnlocked, continuation) => {
+        if (items.length > 0) {
+          set({
+            gamePhase: {
+              type: 'idle',
+              overlay: {
+                type: 'item_acquired',
+                item: items[0],
+                remaining: items.slice(1),
+                hangoutsUnlocked,
+                continuation,
+              },
+            },
+          });
+          return;
+        }
+        if (hangoutsUnlocked.length > 0) {
+          set({
+            gamePhase: {
+              type: 'idle',
+              overlay: {
+                type: 'hangout_unlock',
+                characterId: hangoutsUnlocked[0],
+                remaining: hangoutsUnlocked.slice(1),
+                continuation,
+              },
+            },
+          });
+          return;
+        }
+        // Nothing to show — follow continuation directly
+        if (continuation.type === 'idle') {
+          get().navigateTo('idle');
+        } else if (continuation.type === 'milestone_check') {
+          get().resolveMilestoneCheck();
+        } else if (continuation.type === 'match_setup') {
+          set({ gamePhase: { type: 'match_setup', matchType: continuation.matchType, matchConfig: continuation.matchConfig } });
+        } else if (continuation.type === 'story_event') {
+          set({ gamePhase: { type: 'story_event', event: continuation.event, availableOptions: continuation.availableOptions, continuation: continuation.continuation ?? { type: 'idle' } } });
+        }
+      },
+
+      dismissItemAcquired: () => {
+        const phase = get().gamePhase;
+        if (phase.type !== 'idle' || phase.overlay?.type !== 'item_acquired') return;
+
+        const { remaining, hangoutsUnlocked, continuation } = phase.overlay;
+        if (remaining.length > 0) {
+          set({
+            gamePhase: {
+              type: 'idle',
+              overlay: {
+                type: 'item_acquired',
+                item: remaining[0],
+                remaining: remaining.slice(1),
+                hangoutsUnlocked,
+                continuation,
+              },
+            },
+          });
+        } else if (hangoutsUnlocked.length > 0) {
+          set({
+            gamePhase: {
+              type: 'idle',
+              overlay: {
+                type: 'hangout_unlock',
+                characterId: hangoutsUnlocked[0],
+                remaining: hangoutsUnlocked.slice(1),
                 continuation,
               },
             },
@@ -2718,6 +2797,7 @@ export const useGameStore = create<GameState>()(
           set({
             player: { ...updatedPlayer, experience: updatedPlayer.experience - cost },
             shopItems: markPurchased(shopItems),
+            pendingShopAcquisitions: [...get().pendingShopAcquisitions, sourceItem],
           });
           return true;
         }
@@ -2729,6 +2809,7 @@ export const useGameStore = create<GameState>()(
           set({
             player: { ...updatedPlayer, experience: updatedPlayer.experience - cost },
             shopItems: markPurchased(shopItems),
+            pendingShopAcquisitions: [...get().pendingShopAcquisitions, sourceItem],
           });
           return true;
         }
