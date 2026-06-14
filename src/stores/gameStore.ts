@@ -22,7 +22,7 @@ import {
   TIME_SLOT_NAMES,
   ShopItem,
 } from '../types/game';
-import type { StoryEvent, StoryEventTag, StoryEventOption, StoryEventResult } from '../types/storyEvents';
+import type { StoryEvent, StoryEventTag, StoryEventOption } from '../types/storyEvents';
 import { HANGOUT_CHARACTERS, HANGOUT_ENERGY_COST, getHangoutTier } from '../data/hangoutCharacters';
 import type { Challenge } from '../types/challenges';
 import type { Item, EquipmentSlot } from '../types/items';
@@ -1812,7 +1812,7 @@ export const useGameStore = create<GameState>()(
        * Use case: Guaranteed story events (like welcome event)
        */
       hangoutWithCharacter: (characterId: string) => {
-        const { player, relationships, hangoutThresholdsSeen, calendar, currentStatus, completedStoryEvents } = get();
+        const { player, relationships, hangoutThresholdsSeen, calendar, currentStatus } = get();
         const config = HANGOUT_CHARACTERS[characterId];
 
         if (!config || !player) return;
@@ -1823,84 +1823,18 @@ export const useGameStore = create<GameState>()(
         const currentTier = getHangoutTier(characterId, relValue);
         const seenForChar = hangoutThresholdsSeen[characterId] ?? [];
 
-        const eventId = config.tierEventIds[currentTier];
-        const tierEventAlreadyCompleted = completedStoryEvents.includes(eventId);
+        // Only fire the tier event if it hasn't been seen yet
+        if (seenForChar.includes(currentTier)) return;
 
-        if (!seenForChar.includes(currentTier)) {
-          // Always mark the tier as seen so repeat clicks go to the repeatable path
-          set({
-            hangoutThresholdsSeen: {
-              ...hangoutThresholdsSeen,
-              [characterId]: [...seenForChar, currentTier],
-            },
-          });
-        }
+        // Mark tier as seen immediately to prevent double-firing
+        set({
+          hangoutThresholdsSeen: {
+            ...hangoutThresholdsSeen,
+            [characterId]: [...seenForChar, currentTier],
+          },
+        });
 
-        if (!seenForChar.includes(currentTier) && !tierEventAlreadyCompleted) {
-          // First hangout at this tier — fire the threshold story event
-          get().checkForStoryEventById(eventId);
-        } else {
-          // Repeatable hangout — apply effects directly and show result
-          const tierConfig = config.tiers[currentTier];
-
-          const updatedPlayer = tierConfig.statChanges
-            ? PlayerManager.applyStatBoosts(player, tierConfig.statChanges)
-            : player;
-
-          const updatedRelationships = { ...relationships };
-          const current = updatedRelationships[characterId] ?? 0;
-          updatedRelationships[characterId] = Math.max(-100, Math.min(100, current + tierConfig.relationshipGain));
-
-          const newMood = Math.max(-100, Math.min(100, currentStatus.mood + tierConfig.moodChange));
-          const newEnergy = Math.max(
-            0,
-            Math.min(100, currentStatus.energy - HANGOUT_ENERGY_COST + (tierConfig.energyRestored ?? 0))
-          );
-
-          const result: StoryEventResult = {
-            id: `hangout-${characterId}-${Date.now()}`,
-            type: 'story',
-            source: 'story_event',
-            timestamp: new Date().toISOString(),
-            timeSlotsUsed: 1,
-            energyCost: Math.max(0, HANGOUT_ENERGY_COST - (tierConfig.energyRestored ?? 0)),
-            moodResult: tierConfig.moodChange,
-            eventId: `${characterId}_hangout_tier${currentTier}_repeatable`,
-            eventName: tierConfig.resultName,
-            tags: ['interaction'],
-            resultText: [tierConfig.resultText],
-            statChanges: tierConfig.statChanges ?? {},
-            relationshipChanges: { [characterId]: tierConfig.relationshipGain },
-            abilitiesGained: [],
-            itemsGained: [],
-            hangoutsUnlocked: [],
-          };
-
-          set({
-            player: updatedPlayer,
-            relationships: updatedRelationships,
-            currentStatus: {
-              ...currentStatus,
-              energy: newEnergy,
-              mood: newMood,
-              lastActivity: result,
-            },
-            activityHistory: [result, ...get().activityHistory].slice(0, 10),
-          });
-
-          get().advanceTime();
-
-          set({
-            gamePhase: {
-              type: 'idle',
-              overlay: {
-                type: 'story_event_result',
-                result,
-                continuation: { type: 'idle' },
-              },
-            },
-          });
-        }
+        get().checkForStoryEventById(config.tierEventIds[currentTier]);
       },
 
       checkForStoryEventById: (eventId: string) => {

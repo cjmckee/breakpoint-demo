@@ -9,7 +9,8 @@ import { useGameStore } from '../stores/gameStore';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { CHARACTERS } from '../data/characters';
-import { HANGOUT_CHARACTERS, HANGOUT_ENERGY_COST, getHangoutTier } from '../data/hangoutCharacters';
+import { HANGOUT_CHARACTERS, HANGOUT_ENERGY_COST, getHangoutTier, hasUnseenTierEvent } from '../data/hangoutCharacters';
+import { UnseenBadge } from './ui/UnseenBadge';
 import { TimeSlot } from '../types/game';
 
 export const Relationships: React.FC = () => {
@@ -61,15 +62,6 @@ export const Relationships: React.FC = () => {
     return labels[tier] ?? 'Acquaintance';
   };
 
-  const getHangoutButtonLabel = (characterId: string, relValue: number): string => {
-    const config = HANGOUT_CHARACTERS[characterId];
-    if (!config) return 'Hang Out';
-    const tier = getHangoutTier(characterId, relValue);
-    const seen = hangoutThresholdsSeen[characterId] ?? [];
-    if (!seen.includes(tier)) return '★ Hang Out';
-    return 'Hang Out';
-  };
-
   return (
     <div className="min-h-screen bg-pixel-bg p-4">
       <div className="max-w-4xl mx-auto">
@@ -97,6 +89,7 @@ export const Relationships: React.FC = () => {
               const hangoutConfig = HANGOUT_CHARACTERS[character.id];
               const currentTier = isKey ? getHangoutTier(character.id, relationshipValue) : 0;
               const isHangoutUnlocked = player.flags[`hangoutUnlocked_${character.id}`] === true;
+              const hasNewTierEvent = isHangoutUnlocked && hasUnseenTierEvent(character.id, relationshipValue, hangoutThresholdsSeen);
               const isHangoutDisabled = isNightTime || !canAffordHangout;
 
               return (
@@ -168,9 +161,12 @@ export const Relationships: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Hang Out button for key characters whose hangout has been unlocked */}
-                    {isKey && isHangoutUnlocked && (
-                      <div className="flex-shrink-0">
+                    {/* Hang Out button — only shown when a new tier event is available */}
+                    {isKey && hasNewTierEvent && (
+                      <div className="flex-shrink-0 relative">
+                        {!isHangoutDisabled && (
+                          <UnseenBadge className="absolute -top-2 -right-2 z-10" />
+                        )}
                         <Button
                           variant="primary"
                           size="sm"
@@ -181,7 +177,7 @@ export const Relationships: React.FC = () => {
                             ? 'Night Time'
                             : !canAffordHangout
                               ? 'Low Energy'
-                              : getHangoutButtonLabel(character.id, relationshipValue)}
+                              : '★ Hang Out'}
                         </Button>
                         <div className="text-xs text-center text-pixel-text-muted mt-1">
                           {HANGOUT_ENERGY_COST} energy
