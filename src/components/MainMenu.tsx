@@ -110,9 +110,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
     return null;
   }
 
-  // Key characters that the player has met and can hang out with
+  // Key characters that the player has met AND has hangout unlocked for
   const metHangoutCharacters = Object.keys(HANGOUT_CHARACTERS).filter(
-    (id) => id in relationships
+    (id) => id in relationships && player.flags[`hangoutUnlocked_${id}`] === true
   );
 
   const getTierName = (tier: number): string => {
