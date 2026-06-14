@@ -110,9 +110,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
     return null;
   }
 
-  // Key characters that the player has met and can hang out with
+  // Key characters that the player has met AND has hangout unlocked for
   const metHangoutCharacters = Object.keys(HANGOUT_CHARACTERS).filter(
-    (id) => id in relationships
+    (id) => id in relationships && player.flags[`hangoutUnlocked_${id}`] === true
   );
 
   const getTierName = (tier: number): string => {
@@ -350,22 +350,28 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                   >
                     {isNightTime ? 'Next Day' : 'Rest'}
                   </Button>
-                  <Button
-                    variant="primary"
-                    fullWidth
-                    disabled={isBlocked || isNightTime || !canAffordHangout || metHangoutCharacters.length === 0}
-                    onClick={() => setShowHangoutModal(true)}
-                  >
-                    {metHangoutCharacters.length === 0
-                      ? 'No One to Hang Out With'
-                      : isBlocked
-                        ? (isEventPending ? 'Event Pending' : 'Match Scheduled')
-                        : isNightTime
-                          ? 'Night Time'
-                          : !canAffordHangout
-                            ? 'Not Enough Energy'
-                            : 'Hang Out'}
-                  </Button>
+                  {calendar.currentDay >= 5 ? (
+                    <Button
+                      variant="primary"
+                      fullWidth
+                      disabled={isBlocked || isNightTime || !canAffordHangout || metHangoutCharacters.length === 0}
+                      onClick={() => setShowHangoutModal(true)}
+                    >
+                      {metHangoutCharacters.length === 0
+                        ? 'No One to Hang Out With'
+                        : isBlocked
+                          ? (isEventPending ? 'Event Pending' : 'Match Scheduled')
+                          : isNightTime
+                            ? 'Night Time'
+                            : !canAffordHangout
+                              ? 'Not Enough Energy'
+                              : 'Hang Out'}
+                    </Button>
+                  ) : (
+                    <Button variant="primary" fullWidth disabled>
+                      Unlocks Day 5
+                    </Button>
+                  )}
                 </div>
               </Card>
 
