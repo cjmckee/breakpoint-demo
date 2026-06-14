@@ -37,7 +37,7 @@ export interface PersistedStoreState {
   // eventRecovery omitted — transient, always reset on load
 }
 
-export const CURRENT_STORE_VERSION = 1;
+export const CURRENT_STORE_VERSION = 2;
 
 // ----------------------------------------------------------------------------
 // Version 0 → 1
@@ -64,6 +64,29 @@ function migrate0to1(state: PersistedStoreState): PersistedStoreState {
   return { ...state, player };
 }
 
+function migrate1to2(state: PersistedStoreState): PersistedStoreState {
+  let player = state.player;
+
+  if (player) {
+    const flags: Record<string, boolean | number | string> = player.flags ?? {};
+    const completedEvents: string[] = state.completedStoryEvents ?? [];
+
+    if (completedEvents.includes('coach_training_focus')) {
+      if (!flags['hangoutUnlocked_coach_gonzalez']) flags['hangoutUnlocked_coach_gonzalez'] = true;
+    }
+    if (completedEvents.includes('rival_doubles_disaster')) {
+      if (!flags['hangoutUnlocked_jordan_rival']) flags['hangoutUnlocked_jordan_rival'] = true;
+    }
+    if (completedEvents.includes('romance_coffee_date')) {
+      if (!flags['hangoutUnlocked_alex_romance']) flags['hangoutUnlocked_alex_romance'] = true;
+    }
+
+    player = { ...player, flags };
+  }
+
+  return { ...state, player };
+}
+
 // ----------------------------------------------------------------------------
 // Public API
 // ----------------------------------------------------------------------------
@@ -78,5 +101,6 @@ export function migrateStore(
 ): PersistedStoreState {
   let state = persistedState as PersistedStoreState;
   if (fromVersion < 1) state = migrate0to1(state);
+  if (fromVersion < 2) state = migrate1to2(state);
   return state;
 }
