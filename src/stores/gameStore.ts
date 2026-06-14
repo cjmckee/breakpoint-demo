@@ -2198,12 +2198,18 @@ export const useGameStore = create<GameState>()(
           });
         }
 
-        // Auto-detect newly met hangout characters so the banner fires on first meeting
-        result.hangoutsUnlocked = outcome.effects.relationshipChanges
-          ? Object.keys(outcome.effects.relationshipChanges).filter(
-              id => !(id in existingRelationships) && HANGOUT_CHARACTERS[id] !== undefined
-            )
-          : [];
+        // Apply hangout unlocks from event outcome
+        if (outcome.effects.hangoutUnlocks) {
+          for (const characterId of outcome.effects.hangoutUnlocks) {
+            updatedPlayer = {
+              ...updatedPlayer,
+              flags: { ...updatedPlayer.flags, [`hangoutUnlocked_${characterId}`]: true },
+            };
+          }
+          result.hangoutsUnlocked = [...outcome.effects.hangoutUnlocks];
+        } else {
+          result.hangoutsUnlocked = [];
+        }
 
         // Track event completion and choice
         const updatedCompletedEvents = [...get().completedStoryEvents, eventId];

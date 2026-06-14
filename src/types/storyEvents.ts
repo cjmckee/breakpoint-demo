@@ -147,6 +147,7 @@ export interface StoryEventOutcome {
     startTournament?: string;  // Tournament ID to activate when this event completes
     tierChange?: number;  // Set player tier to this value (e.g., 2 for Regional)
     revealEncyclopediaSections?: EncyclopediaSectionId[];  // Reveal encyclopedia sections and mark as new
+    hangoutUnlocks?: string[];  // Character IDs whose hangout option becomes available
   };
 
   // Challenges assigned by this outcome
