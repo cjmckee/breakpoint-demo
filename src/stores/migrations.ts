@@ -1,0 +1,82 @@
+/**
+ * Store migrations — run on every rehydration and importSave.
+ *
+ * Each migration function transforms the persisted state from version N to N+1.
+ * Add a new function and increment CURRENT_VERSION when adding new migrations.
+ *
+ * CURRENT_VERSION must match the `version` field in the persist config.
+ */
+
+import type { Player, GameCalendar, CurrentStatus, ActivityResult, TrainingSession, ShopItem, OpponentTier } from '../types/game';
+import type { Challenge } from '../types/challenges';
+
+export interface AudioSettings {
+  musicVolume: number;
+  sfxVolume: number;
+  muteMusic: boolean;
+  muteSfx: boolean;
+}
+
+// Mirrors the partialize selection in gameStore — only persisted fields.
+export interface PersistedStoreState {
+  player: Player | null;
+  calendar: GameCalendar;
+  currentStatus: CurrentStatus;
+  activityHistory: ActivityResult[];
+  currentTrainingSessions: TrainingSession[];
+  completedStoryEvents: string[];
+  completedStoryEventChoices: Record<string, string>;
+  relationships: Record<string, number>;
+  hangoutThresholdsSeen: Record<string, number[]>;
+  storyEventTriggerChance: number;
+  activeChallenges: Challenge[];
+  completedChallenges: string[];
+  unlockedTiers: OpponentTier[];
+  shopItems: ShopItem[];
+  audioSettings: AudioSettings;
+  // eventRecovery omitted — transient, always reset on load
+}
+
+export const CURRENT_STORE_VERSION = 1;
+
+// ----------------------------------------------------------------------------
+// Version 0 → 1
+// ----------------------------------------------------------------------------
+
+function migrate0to1(state: PersistedStoreState): PersistedStoreState {
+  let player = state.player;
+
+  if (player) {
+    // Ensure flags object exists (added after initial player structure)
+    const flags: Record<string, boolean | number | string> = player.flags ?? {};
+
+    // Backfill hangout unlock flags for Keith and Jen if the unlock event
+    // was already completed before this flag system existed.
+    const completedEvents: string[] = state.completedStoryEvents ?? [];
+    if (completedEvents.includes('club_team_first_practice')) {
+      if (!flags['hangoutUnlocked_keith']) flags['hangoutUnlocked_keith'] = true;
+      if (!flags['hangoutUnlocked_jen']) flags['hangoutUnlocked_jen'] = true;
+    }
+
+    player = { ...player, flags };
+  }
+
+  return { ...state, player };
+}
+
+// ----------------------------------------------------------------------------
+// Public API
+// ----------------------------------------------------------------------------
+
+/**
+ * Apply all migrations from `fromVersion` up to CURRENT_STORE_VERSION.
+ * Pass `fromVersion = 0` when loading saves that pre-date versioning.
+ */
+export function migrateStore(
+  persistedState: unknown,
+  fromVersion: number
+): PersistedStoreState {
+  let state = persistedState as PersistedStoreState;
+  if (fromVersion < 1) state = migrate0to1(state);
+  return state;
+}

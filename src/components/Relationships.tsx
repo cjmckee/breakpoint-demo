@@ -96,6 +96,7 @@ export const Relationships: React.FC = () => {
               const isKey = character.isKeyCharacter === true;
               const hangoutConfig = HANGOUT_CHARACTERS[character.id];
               const currentTier = isKey ? getHangoutTier(character.id, relationshipValue) : 0;
+              const isHangoutUnlocked = player.flags[`hangoutUnlocked_${character.id}`] === true;
               const isHangoutDisabled = isNightTime || !canAffordHangout;
 
               return (
@@ -167,8 +168,8 @@ export const Relationships: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Hang Out button for key characters */}
-                    {isKey && (
+                    {/* Hang Out button for key characters whose hangout has been unlocked */}
+                    {isKey && isHangoutUnlocked && (
                       <div className="flex-shrink-0">
                         <Button
                           variant="primary"

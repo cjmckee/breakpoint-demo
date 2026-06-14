@@ -490,7 +490,12 @@ export const PlayerFlag = {
   MATCH_UNLOCKED: 'matchUnlocked',
   TOURNAMENTS_UNLOCKED: 'tournamentsUnlocked',
   SHOP_UNLOCKED: 'shopUnlocked',
+  HANGOUT_UNLOCKED_PREFIX: 'hangoutUnlocked_',
 } as const;
+
+/** Returns the player flag key for a character's hangout unlock */
+export const getHangoutUnlockedFlag = (characterId: string): string =>
+  `${PlayerFlag.HANGOUT_UNLOCKED_PREFIX}${characterId}`;
 
 export interface Player {
   id: string;

@@ -5,6 +5,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { migrateStore, CURRENT_STORE_VERSION } from './migrations';
 import {
   Player,
   PlayerFlag,
@@ -854,8 +855,8 @@ export const useGameStore = create<GameState>()(
             return false;
           }
 
-          // Restore state
-          set({
+          // Restore state, applying all migrations so imported saves stay current
+          const migrated = migrateStore({
             player: data.player,
             calendar: data.calendar,
             currentStatus: data.currentStatus || initialStatus,
@@ -869,6 +870,11 @@ export const useGameStore = create<GameState>()(
             activeChallenges: data.activeChallenges || [],
             completedChallenges: data.completedChallenges || [],
             unlockedTiers: data.unlockedTiers || [1],
+            shopItems: data.shopItems || [],
+            audioSettings: data.audioSettings || { musicVolume: 0.7, sfxVolume: 0.7, muteMusic: false, muteSfx: false },
+          }, 0);
+          set({
+            ...migrated,
             gamePhase: { type: 'idle', overlay: null },
             isInitialized: true,
           });
@@ -2198,12 +2204,18 @@ export const useGameStore = create<GameState>()(
           });
         }
 
-        // Auto-detect newly met hangout characters so the banner fires on first meeting
-        result.hangoutsUnlocked = outcome.effects.relationshipChanges
-          ? Object.keys(outcome.effects.relationshipChanges).filter(
-              id => !(id in existingRelationships) && HANGOUT_CHARACTERS[id] !== undefined
-            )
-          : [];
+        // Apply hangout unlocks from event outcome
+        if (outcome.effects.hangoutUnlocks) {
+          for (const characterId of outcome.effects.hangoutUnlocks) {
+            updatedPlayer = {
+              ...updatedPlayer,
+              flags: { ...updatedPlayer.flags, [`hangoutUnlocked_${characterId}`]: true },
+            };
+          }
+          result.hangoutsUnlocked = [...outcome.effects.hangoutUnlocks];
+        } else {
+          result.hangoutsUnlocked = [];
+        }
 
         // Track event completion and choice
         const updatedCompletedEvents = [...get().completedStoryEvents, eventId];
@@ -3025,6 +3037,8 @@ export const useGameStore = create<GameState>()(
     }),
     {
       name: 'tennis-rpg-game-store',
+      version: CURRENT_STORE_VERSION,
+      migrate: (persistedState, version) => migrateStore(persistedState, version),
       partialize: (state) => ({
         player: state.player,
         calendar: state.calendar,
