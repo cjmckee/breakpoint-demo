@@ -25,7 +25,7 @@ import type { OverlayState } from '../types/gamePhase';
 import { TimeSlot, PlayerFlag } from '../types/game';
 import { StoryMatchManager } from '../game/StoryMatchManager';
 import { CHARACTERS } from '../data/characters';
-import { HANGOUT_CHARACTERS, HANGOUT_ENERGY_COST } from '../data/hangoutCharacters';
+import { HANGOUT_CHARACTERS, HANGOUT_ENERGY_COST, hasUnseenTierEvent } from '../data/hangoutCharacters';
 import { Modal } from './ui/Modal';
 
 interface MainMenuProps {
@@ -41,6 +41,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const navigateToScheduledMatch = useGameStore((state) => state.navigateToScheduledMatch);
   const rest = useGameStore((state) => state.rest);
   const relationships = useGameStore((state) => state.relationships);
+  const hangoutThresholdsSeen = useGameStore((state) => state.hangoutThresholdsSeen);
   const hangoutWithCharacter = useGameStore((state) => state.hangoutWithCharacter);
   const [showHangoutModal, setShowHangoutModal] = useState(false);
 
@@ -110,10 +111,15 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
     return null;
   }
 
-  // Key characters that the player has met AND has hangout unlocked for
+  // Key characters that the player has met, has hangout unlocked, AND have a new unseen tier event
   const metHangoutCharacters = Object.keys(HANGOUT_CHARACTERS).filter(
-    (id) => id in relationships && player.flags[`hangoutUnlocked_${id}`] === true
+    (id) =>
+      id in relationships &&
+      player.flags[`hangoutUnlocked_${id}`] === true &&
+      hasUnseenTierEvent(id, relationships[id] ?? 0, hangoutThresholdsSeen)
   );
+
+  const hasNewHangouts = metHangoutCharacters.length > 0;
 
   const getTierName = (tier: number): string => {
     const tierNames = ['', 'Club Player', 'Regional Competitor', 'Tour Professional', 'World Champion'];
@@ -351,22 +357,27 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                     {isNightTime ? 'Next Day' : 'Rest'}
                   </Button>
                   {calendar.currentDay >= 5 ? (
-                    <Button
-                      variant="primary"
-                      fullWidth
-                      disabled={isBlocked || isNightTime || !canAffordHangout || metHangoutCharacters.length === 0}
-                      onClick={() => setShowHangoutModal(true)}
-                    >
-                      {metHangoutCharacters.length === 0
-                        ? 'No One to Hang Out With'
-                        : isBlocked
-                          ? (isEventPending ? 'Event Pending' : 'Match Scheduled')
-                          : isNightTime
-                            ? 'Night Time'
-                            : !canAffordHangout
-                              ? 'Not Enough Energy'
-                              : 'Hang Out'}
-                    </Button>
+                    <div className="relative">
+                      {hasNewHangouts && !isBlocked && !isNightTime && canAffordHangout && (
+                        <UnseenBadge className="absolute -top-2 -right-2 z-10" />
+                      )}
+                      <Button
+                        variant="primary"
+                        fullWidth
+                        disabled={isBlocked || isNightTime || !canAffordHangout || !hasNewHangouts}
+                        onClick={() => setShowHangoutModal(true)}
+                      >
+                        {!hasNewHangouts
+                          ? 'No New Hangouts'
+                          : isBlocked
+                            ? (isEventPending ? 'Event Pending' : 'Match Scheduled')
+                            : isNightTime
+                              ? 'Night Time'
+                              : !canAffordHangout
+                                ? 'Not Enough Energy'
+                                : 'Hang Out'}
+                      </Button>
+                    </div>
                   ) : (
                     <Button variant="primary" fullWidth disabled>
                       Unlocks Day 5
@@ -391,9 +402,14 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                       Inventory
                     </Button>
                   </div>
-                  <Button variant="primary" fullWidth onClick={() => navigateTo('relationships')}>
-                    Relationships
-                  </Button>
+                  <div className="relative">
+                    {hasNewHangouts && (
+                      <UnseenBadge className="absolute -top-2 -right-2 z-10" />
+                    )}
+                    <Button variant="primary" fullWidth onClick={() => navigateTo('relationships')}>
+                      Relationships
+                    </Button>
+                  </div>
                   {calendar.currentDay >= 7 ? (
                     <div className="relative">
                       {hasUnseenShop && (
