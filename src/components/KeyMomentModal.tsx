@@ -59,9 +59,13 @@ const formatStatScore = (score: number): string => score.toFixed(0);
 
 const getMatchupArrow = (playerScore: number, opponentScore: number): { arrow: string; color: string } => {
   const diff = playerScore - opponentScore;
-  if (diff > 3) return { arrow: '←', color: 'text-green-500' };
-  if (diff < -3) return { arrow: '→', color: 'text-red-500' };
-  return { arrow: '═', color: 'text-yellow-500' };
+  if (diff > 15) return { arrow: '>>>', color: 'text-green-500' };
+  if (diff > 7) return { arrow: '>>', color: 'text-green-500' };
+  if (diff > 3) return { arrow: '>', color: 'text-green-500' };
+  if (diff < -15) return { arrow: '<<<', color: 'text-red-500' };
+  if (diff < -7) return { arrow: '<<', color: 'text-red-500' };
+  if (diff < -3) return { arrow: '<', color: 'text-red-500' };
+  return { arrow: '=', color: 'text-yellow-500' };
 };
 
 interface KeyMomentModalProps {
