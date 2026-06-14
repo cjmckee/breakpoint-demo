@@ -130,7 +130,7 @@ interface GameState {
   getAvailableTrainingSessions: () => TrainingSession[];
 
   // Pending shop item popups (cleared when leaving shop)
-  pendingShopItemPopups: Item[];
+  pendingShopAcquisitions: Item[];
 
   // Phase transition actions
   navigateTo: (target: 'idle' | 'training' | 'match_setup' | 'tournament_list' | 'inventory' | 'relationships' | 'shop') => void;
@@ -144,7 +144,7 @@ interface GameState {
   dismissHangoutUnlock: () => void;
   dismissItemAcquired: () => void;
   dismissOverlay: () => void;
-  routeThroughItemAcquired: (items: Item[], hangoutsUnlocked: string[], continuation: PhaseContinuation) => void;
+  routeThroughAcquisitionQueue: (items: Item[], hangoutsUnlocked: string[], continuation: PhaseContinuation) => void;
 
   // Hangout actions
   hangoutWithCharacter: (characterId: string) => void;
@@ -251,7 +251,7 @@ export const useGameStore = create<GameState>()(
 
       shopItems: [],
 
-      pendingShopItemPopups: [],
+      pendingShopAcquisitions: [],
 
       isInitialized: false,
       gamePhase: { type: 'uninitialized' },
@@ -921,10 +921,10 @@ export const useGameStore = create<GameState>()(
           // If leaving the shop with pending item popups, show them first
           const currentPhase = get().gamePhase;
           if (currentPhase.type === 'shop') {
-            const pendingItems = get().pendingShopItemPopups;
+            const pendingItems = get().pendingShopAcquisitions;
             if (pendingItems.length > 0) {
-              set({ pendingShopItemPopups: [] });
-              get().routeThroughItemAcquired(pendingItems, [], { type: 'idle' });
+              set({ pendingShopAcquisitions: [] });
+              get().routeThroughAcquisitionQueue(pendingItems, [], { type: 'idle' });
               return;
             }
           }
@@ -1645,13 +1645,13 @@ export const useGameStore = create<GameState>()(
         }
 
         // Route through item popups first, then follow the computed continuation
-        get().routeThroughItemAcquired(items, [], continuation);
+        get().routeThroughAcquisitionQueue(items, [], continuation);
       },
 
       dismissStoryEventResult: () => {
         const phase = get().gamePhase;
         if (phase.type === 'story_event_result') {
-          get().routeThroughItemAcquired(
+          get().routeThroughAcquisitionQueue(
             phase.result.itemsGained ?? [],
             phase.result.hangoutsUnlocked,
             phase.continuation
@@ -1661,7 +1661,7 @@ export const useGameStore = create<GameState>()(
         // Handle overlay dismissal
         const currentPhase = get().gamePhase;
         if (currentPhase.type === 'idle' && currentPhase.overlay?.type === 'story_event_result') {
-          get().routeThroughItemAcquired(
+          get().routeThroughAcquisitionQueue(
             currentPhase.overlay.result.itemsGained ?? [],
             currentPhase.overlay.result.hangoutsUnlocked,
             currentPhase.overlay.continuation
@@ -1700,7 +1700,7 @@ export const useGameStore = create<GameState>()(
         }
       },
 
-      routeThroughItemAcquired: (items, hangoutsUnlocked, continuation) => {
+      routeThroughAcquisitionQueue: (items, hangoutsUnlocked, continuation) => {
         if (items.length > 0) {
           set({
             gamePhase: {
@@ -2785,7 +2785,7 @@ export const useGameStore = create<GameState>()(
           set({
             player: { ...updatedPlayer, experience: updatedPlayer.experience - cost },
             shopItems: markPurchased(shopItems),
-            pendingShopItemPopups: [...get().pendingShopItemPopups, sourceItem],
+            pendingShopAcquisitions: [...get().pendingShopAcquisitions, sourceItem],
           });
           return true;
         }
@@ -2797,7 +2797,7 @@ export const useGameStore = create<GameState>()(
           set({
             player: { ...updatedPlayer, experience: updatedPlayer.experience - cost },
             shopItems: markPurchased(shopItems),
-            pendingShopItemPopups: [...get().pendingShopItemPopups, sourceItem],
+            pendingShopAcquisitions: [...get().pendingShopAcquisitions, sourceItem],
           });
           return true;
         }
