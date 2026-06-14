@@ -28,7 +28,7 @@ const KM_TUTORIAL_STEPS: TutorialStep<KmTarget>[] = [
   {
     target: 'options-matchup',
     title: 'Matchup Indicator',
-    body: '"you X ← Y them" shows your weighted stats vs. theirs for this tactic — ← means you have the edge, → means they do. Each option uses different stats, so the matchup shifts per choice!',
+    body: '"you X > Y them" shows your weighted stats vs. theirs for this tactic — > means you have the edge, < means they do, and more symbols (>>, >>>) mean a bigger gap. Each option uses different stats, so the matchup shifts per choice!',
   },
   {
     target: 'options-effects',
@@ -59,9 +59,13 @@ const formatStatScore = (score: number): string => score.toFixed(0);
 
 const getMatchupArrow = (playerScore: number, opponentScore: number): { arrow: string; color: string } => {
   const diff = playerScore - opponentScore;
-  if (diff > 3) return { arrow: '←', color: 'text-green-500' };
-  if (diff < -3) return { arrow: '→', color: 'text-red-500' };
-  return { arrow: '═', color: 'text-yellow-500' };
+  if (diff > 15) return { arrow: '>>>', color: 'text-green-500' };
+  if (diff > 7) return { arrow: '>>', color: 'text-green-500' };
+  if (diff > 3) return { arrow: '>', color: 'text-green-500' };
+  if (diff < -15) return { arrow: '<<<', color: 'text-red-500' };
+  if (diff < -7) return { arrow: '<<', color: 'text-red-500' };
+  if (diff < -3) return { arrow: '<', color: 'text-red-500' };
+  return { arrow: '=', color: 'text-yellow-500' };
 };
 
 interface KeyMomentModalProps {
@@ -391,7 +395,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   // ── Decision phase ──────────────────────────────────────────────────────────
 
   const getMatchupIndicator = (option: TacticalOption): { playerScore: number; opponentScore: number; arrow: string; color: string } => {
-    if (!matchConfig) return { playerScore: 50, opponentScore: 50, arrow: '═', color: 'text-yellow-500' };
+    if (!matchConfig) return { playerScore: 50, opponentScore: 50, arrow: '=', color: 'text-yellow-500' };
     const scores = KeyMomentResolver.getWeightedScores(
       matchConfig.playerStats as PlayerStats,
       matchConfig.opponentStats as PlayerStats,
