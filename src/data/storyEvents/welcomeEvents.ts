@@ -388,8 +388,7 @@ export const welcomeEvents: StoryEvent[] = [
     dialogue: [
       ['keith', ['Hey! I found out more about how relationships work here at the academy.']],
       ['keith', ['You can hang out with people around campus! It costs a bit of energy, but it\'s worth it. You get mood boosts, stat bonuses, and you build your relationship with them.']],
-      ['keith', ['The better your relationship, the better the hangouts get. There are different tiers — once you hit certain milestones, new hangout activities unlock.']],
-      ['keith', ['At each new tier, there\'s a special event the first time. After that, you get a repeatable hangout that keeps giving you bonuses.']],
+      ['keith', ['The better your relationship, the better the hangouts get. There are different tiers — once you reach a higher tier by gaining more relationship points, a new hangout option will appear for that character.']],
       ['keith', ['But be careful with story choices — the wrong ones can hurt your relationships. I tried to offer ', {characterId: 'jen'}, ' some advice on her serve this morning.']],
       ['keith', ['I saw a big -15 appear over her head! She can be so sensitive sometimes. I brought my double faults down to 20 per match using those tips.']],
     ],
@@ -402,6 +401,7 @@ export const welcomeEvents: StoryEvent[] = [
         relationshipChanges: {
           keith: 5,
         },
+        hangoutUnlocks: ['keith', 'jen'],
       },
     },
   },

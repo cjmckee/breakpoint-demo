@@ -729,16 +729,9 @@ export const useGameStore = create<GameState>()(
 
         // Milestone events are checked in dismissMatchResults(), not here.
 
-        // Unlock "Play Match" once the player reaches day 5
-        if (newCalendar.currentDay >= 5 && !get().getFlag(PlayerFlag.MATCH_UNLOCKED)) {
-          get().setFlag(PlayerFlag.MATCH_UNLOCKED, true);
-        }
-
-        // Unlock shop once the player reaches day 7
-        if (newCalendar.currentDay >= 7 && !get().getFlag(PlayerFlag.SHOP_UNLOCKED)) {
-          get().setFlag(PlayerFlag.SHOP_UNLOCKED, true);
+        // Show shop indicator the first time the player crosses day 7
+        if (calendar.currentDay < 7 && newCalendar.currentDay >= 7) {
           get().setIndicator('shop');
-          get().refreshShop();
         }
 
         // Refresh shop items at start of each new calendar day
@@ -2768,11 +2761,11 @@ export const useGameStore = create<GameState>()(
       },
 
       isShopUnlocked: (): boolean => {
-        return get().getFlag(PlayerFlag.SHOP_UNLOCKED) === true || get().calendar.currentDay >= 7;
+        return get().calendar.currentDay >= 7;
       },
 
       isMatchUnlocked: (): boolean => {
-        return get().getFlag(PlayerFlag.MATCH_UNLOCKED) === true;
+        return get().calendar.currentDay >= 5;
       },
 
       // ========================================================================

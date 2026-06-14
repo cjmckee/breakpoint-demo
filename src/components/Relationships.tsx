@@ -88,7 +88,7 @@ export const Relationships: React.FC = () => {
               const isKey = character.isKeyCharacter === true;
               const hangoutConfig = HANGOUT_CHARACTERS[character.id];
               const currentTier = isKey ? getHangoutTier(character.id, relationshipValue) : 0;
-              const isHangoutUnlocked = player.flags[`hangoutUnlocked_${character.id}`] === true;
+              const isHangoutUnlocked = calendar.currentDay >= 6 && player.flags[`hangoutUnlocked_${character.id}`] === true;
               const hasNewTierEvent = isHangoutUnlocked && hasUnseenTierEvent(character.id, relationshipValue, hangoutThresholdsSeen);
               const isHangoutDisabled = isNightTime || !canAffordHangout;
 

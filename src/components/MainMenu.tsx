@@ -22,7 +22,7 @@ import { HangoutUnlockedModal } from './HangoutUnlockedModal';
 import { derivePlayStyle } from '../core/PlayerProfile';
 import { getArchetypeLabel } from '../data/archetypes';
 import type { OverlayState } from '../types/gamePhase';
-import { TimeSlot, PlayerFlag } from '../types/game';
+import { TimeSlot } from '../types/game';
 import { StoryMatchManager } from '../game/StoryMatchManager';
 import { CHARACTERS } from '../data/characters';
 import { HANGOUT_CHARACTERS, HANGOUT_ENERGY_COST, hasUnseenTierEvent } from '../data/hangoutCharacters';
@@ -81,7 +81,8 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const isNightTime = calendar.currentTimeSlot === TimeSlot.NIGHT;
 
   // Progression flags
-  const matchUnlocked = player?.flags?.[PlayerFlag.MATCH_UNLOCKED] === true;
+  const isMatchUnlocked = useGameStore((state) => state.isMatchUnlocked);
+  const matchUnlocked = isMatchUnlocked();
 
   // Check if a story event overlay is active
   const isEventPending = overlay?.type === 'story_event';
@@ -112,12 +113,13 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   }
 
   // Key characters that the player has met, has hangout unlocked, AND have a new unseen tier event
-  const metHangoutCharacters = Object.keys(HANGOUT_CHARACTERS).filter(
+  const hangoutsAvailable = calendar.currentDay >= 6;
+  const metHangoutCharacters = hangoutsAvailable ? Object.keys(HANGOUT_CHARACTERS).filter(
     (id) =>
       id in relationships &&
       player.flags[`hangoutUnlocked_${id}`] === true &&
       hasUnseenTierEvent(id, relationships[id] ?? 0, hangoutThresholdsSeen)
-  );
+  ) : [];
 
   const hasNewHangouts = metHangoutCharacters.length > 0;
 
@@ -380,7 +382,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                     </div>
                   ) : (
                     <Button variant="primary" fullWidth disabled>
-                      Unlocks Day 5
+                      Unlocks Day 6
                     </Button>
                   )}
                 </div>

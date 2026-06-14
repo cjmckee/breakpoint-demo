@@ -487,9 +487,7 @@ export type ActivityResult = TrainingResult | MatchResult | TournamentMatchResul
 
 /** Well-known flag keys for Player.flags */
 export const PlayerFlag = {
-  MATCH_UNLOCKED: 'matchUnlocked',
   TOURNAMENTS_UNLOCKED: 'tournamentsUnlocked',
-  SHOP_UNLOCKED: 'shopUnlocked',
   HANGOUT_UNLOCKED_PREFIX: 'hangoutUnlocked_',
 } as const;
 

@@ -117,7 +117,6 @@ export const careerEvents: StoryEvent[] = [
           offensive: 1,
           defensive: 1
         },
-        hangoutUnlocks: ['keith', 'jen'],
       },
     },
   },
