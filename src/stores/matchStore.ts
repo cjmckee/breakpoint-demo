@@ -101,6 +101,10 @@ export const useMatchStore = create<MatchState>((set, get) => ({
   startMatch: async (config: InteractiveMatchConfig, onComplete?: (data: MatchCompletionData) => void) => {
     const orchestrator = new MatchOrchestrator();
 
+    // Carries the winner of the most recent point from onPointComplete into
+    // onScoreUpdate so matchHistory can be populated with correct post-point data.
+    let lastPointWinner: 'player' | 'opponent' | null = null;
+
     // Create config with callbacks
     const matchConfig: InteractiveMatchConfig = {
       ...config,
@@ -125,6 +129,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
 
       // Point complete callback - narrate each point for match log
       onPointComplete: (pointResult: SimplePointResult) => {
+        lastPointWinner = pointResult.winner;
         const playerName = config.playerName || 'You';
         const opponentName = config.opponentName || 'Opponent';
         const narration = narratePoint(pointResult, playerName, opponentName);
@@ -133,9 +138,20 @@ export const useMatchStore = create<MatchState>((set, get) => ({
         }));
       },
 
-      // Score update callback
+      // Score update callback — also appends to matchHistory using the winner
+      // captured above so LiveMatchViewer can trigger per-point audio cues.
       onScoreUpdate: (score: MatchScore) => {
-        set({ currentScore: score });
+        const winner = lastPointWinner;
+        lastPointWinner = null;
+        set((s) => ({
+          currentScore: score,
+          ...(winner !== null && {
+            matchHistory: [
+              ...s.matchHistory,
+              { pointNumber: s.matchHistory.length + 1, winner, score },
+            ],
+          }),
+        }));
       },
 
       // Stats update callback - updates live during match
