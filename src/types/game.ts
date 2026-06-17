@@ -290,6 +290,9 @@ export interface StoryMatchMetadata {
   matchTitle?: string;          // e.g., "Challenge Match vs Keith"
   matchDescription?: string;    // Story context for the match
 
+  // Opponent abilities applied during match simulation
+  opponentAbilities?: Ability[];
+
   // Whether this match counts toward milestones and stats
   countsForMilestones?: boolean; // defaults to true
   isTutorial?: boolean;          // show in-match tutorial guidance
