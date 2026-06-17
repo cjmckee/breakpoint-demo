@@ -78,6 +78,8 @@ export const StoryMatch: React.FC<StoryMatchProps> = ({ matchConfig }) => {
       playerOverallRating={playerOverallRating}
       playerStats={player.stats}
       playerPlayStyle={playerPlayStyle}
+      playerAbilities={player.abilities}
+      opponentAbilities={matchConfig.opponentAbilities}
       opponentName={matchConfig.opponentName}
       opponentTier={matchConfig.opponentTier}
       opponentDescription={matchConfig.opponentDescription}
