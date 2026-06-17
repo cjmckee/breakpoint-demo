@@ -6,6 +6,8 @@
 
 import type { MatchOpponent } from '../types/tournaments';
 import type { StoryMatchMetadata, TeamMatchConfig } from '../types/game';
+import { AbilityName } from '../types/game';
+import { ABILITY_DEFINITIONS } from './abilities';
 
 // ============================================================================
 // OPPONENT DEFINITIONS
@@ -46,6 +48,7 @@ const chetVale: MatchOpponent = {
       defensive: 39,
     },
   },
+  abilities: [ABILITY_DEFINITIONS[AbilityName.SLIDER]],
 };
 
 const richSoil: MatchOpponent = {
@@ -83,6 +86,7 @@ const richSoil: MatchOpponent = {
       defensive: 23,
     },
   },
+  abilities: [ABILITY_DEFINITIONS[AbilityName.SPIN_MASTER]],
 };
 
 const martiaEstrella: MatchOpponent = {
@@ -120,6 +124,7 @@ const martiaEstrella: MatchOpponent = {
       defensive: 38,
     },
   },
+  abilities: [ABILITY_DEFINITIONS[AbilityName.NETCRASHER]],
 };
 
 const reginaldWerther: MatchOpponent = {
@@ -157,6 +162,7 @@ const reginaldWerther: MatchOpponent = {
       defensive: 38,
     },
   },
+  abilities: [ABILITY_DEFINITIONS[AbilityName.BASELINER]],
 };
 
 const oliviaGulp: MatchOpponent = {
@@ -194,6 +200,7 @@ const oliviaGulp: MatchOpponent = {
       defensive: 45,
     },
   },
+  abilities: [ABILITY_DEFINITIONS[AbilityName.SOFT_HANDS]],
 };
 
 // ============================================================================
@@ -269,6 +276,7 @@ export function buildStoryMatchMetadata(config: TeamMatchConfig): StoryMatchMeta
     opponentStats: config.opponent.stats,
     opponentTier: config.opponent.tier,
     opponentDescription: config.opponent.description,
+    opponentAbilities: config.opponent.abilities,
     prematchEventId: config.prematchEventId,
     winEventId: config.winEventId,
     lossEventId: config.lossEventId,
