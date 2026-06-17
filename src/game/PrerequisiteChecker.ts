@@ -191,6 +191,20 @@ export class PrerequisiteChecker {
   }
 
   /**
+   * Check mood requirements
+   */
+  static checkMoodPrerequisites(
+    mood: number | undefined,
+    requirements?: Pick<StoryEventPrerequisite, 'minMood' | 'maxMood'>
+  ): boolean {
+    if (!requirements?.minMood && !requirements?.maxMood) return true;
+    if (mood === undefined) return true;
+    if (requirements.minMood !== undefined && mood < requirements.minMood) return false;
+    if (requirements.maxMood !== undefined && mood > requirements.maxMood) return false;
+    return true;
+  }
+
+  /**
    * Check tournament requirements
    */
   static checkTournamentPrerequisites(
@@ -235,6 +249,7 @@ export class PrerequisiteChecker {
       relationships: Record<string, number>;
       calendar: GameCalendar;
       activeTournament?: ActiveTournament | null;
+      mood?: number;
     }
   ): boolean {
     return (
@@ -253,7 +268,8 @@ export class PrerequisiteChecker {
       this.checkTimePrerequisites(gameState.calendar, prerequisites) &&
       this.checkAbilityPrerequisites(player.abilities, prerequisites) &&
       this.checkMatchHistoryPrerequisites(player, prerequisites) &&
-      this.checkTournamentPrerequisites(gameState.activeTournament || null, prerequisites)
+      this.checkTournamentPrerequisites(gameState.activeTournament || null, prerequisites) &&
+      this.checkMoodPrerequisites(gameState.mood, prerequisites)
     );
   }
 
@@ -269,6 +285,7 @@ export class PrerequisiteChecker {
       relationships: Record<string, number>;
       calendar: GameCalendar;
       activeTournament?: ActiveTournament | null;
+      mood?: number;
     }
   ): boolean {
     if (!option.prerequisites) return true;
@@ -287,6 +304,7 @@ export class PrerequisiteChecker {
       relationships: Record<string, number>;
       calendar: GameCalendar;
       activeTournament?: ActiveTournament | null;
+      mood?: number;
     }
   ): StoryEventOption[] {
     return event.options.filter((option) => this.checkOptionPrerequisites(option, player, gameState));

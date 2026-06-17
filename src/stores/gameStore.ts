@@ -1978,13 +1978,14 @@ export const useGameStore = create<GameState>()(
             relationships: gameState.relationships,
             calendar: gameState.calendar,
             activeTournament: gameState.calendar.activeTournament,
+            mood: gameState.currentStatus.mood,
           }
         );
 
         console.log(`[Story Event] Eligible events with tag '${tag}' (${eligibleEvents.length}):`, eligibleEvents.map(e => e.name));
 
         // Select random event
-        const selectedEvent = StoryEventManager.selectRandomEvent(eligibleEvents);
+        const selectedEvent = StoryEventManager.selectRandomEvent(eligibleEvents, gameState.currentStatus.mood);
 
         if (selectedEvent) {
           console.log(`[Story Event] Selected: "${selectedEvent.name}"`);
@@ -2059,13 +2060,14 @@ export const useGameStore = create<GameState>()(
             relationships: gameState.relationships,
             calendar: gameState.calendar,
             activeTournament: gameState.calendar.activeTournament,
+            mood: gameState.currentStatus.mood,
           }
         );
 
         console.log(`[Story Event] All eligible events (${eligibleEvents.length}):`, eligibleEvents.map(e => e.name));
 
         // Select random event
-        const selectedEvent = StoryEventManager.selectRandomEvent(eligibleEvents);
+        const selectedEvent = StoryEventManager.selectRandomEvent(eligibleEvents, gameState.currentStatus.mood);
 
         if (selectedEvent) {
           console.log(`[Story Event] Selected: "${selectedEvent.name}"`);

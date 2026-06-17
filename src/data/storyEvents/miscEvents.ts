@@ -32,6 +32,7 @@ export const miscEvents: StoryEvent[] = [
             minDay: 10
         },
         skippable: true,
+        moodTier: 'neutral',
         description: 'Some of your teammates invite you to the disc golf course out behind the courts.',
         dialogue: [
             ['alison', ['Have you ever heard of disc golf? We found some old course behind the courts.']],
@@ -131,6 +132,7 @@ export const miscEvents: StoryEvent[] = [
             minDay: 10
         },
         skippable: true,
+        moodTier: 'neutral',
         description: 'You visit the local farmer\'s market to browse some organic options.',
         dialogue: [
             [null, ['What you didn\'t expect was the huge crowd of slow walkers meandering about and blocking your path.']],
@@ -193,6 +195,7 @@ export const miscEvents: StoryEvent[] = [
             minDay: 10
         },
         skippable: true,
+        moodTier: 'neutral',
         description: 'You attend a coding class to improve your skills.',
         dialogue: [
             [null, ['You wake up in a cold sweat. You\'ve had an inspiration. You\'ve been sent a divine quest to create something amazing: a tennis RPG.']],
@@ -229,6 +232,7 @@ export const miscEvents: StoryEvent[] = [
             minDay: 10
         },
         skippable: true,
+        moodTier: 'neutral',
         description: 'You spend some time at the batting cage to work on your swing.',
         dialogue: [
             [null, ['You step up to the plate, bat in hand, and take a deep breath.']],
@@ -265,6 +269,7 @@ export const miscEvents: StoryEvent[] = [
             minDay: 10
         },
         skippable: true,
+        moodTier: 'good',
         description: 'You attend a local football game to relax and enjoy the atmosphere.',
         dialogue: [
             [null, ['You arrive at the stadium and find your seat. The energy in the air is electric.']],
@@ -309,6 +314,7 @@ export const miscEvents: StoryEvent[] = [
             minDay: 10
         },
         skippable: true,
+        moodTier: 'good',
         description: 'You go out for a hotpot dinner with the team to bond and relax.',
         dialogue: [
             [null, ['The smell of spicy broth fills the air as you gather around the table.']],
@@ -398,6 +404,7 @@ export const miscEvents: StoryEvent[] = [
             minDay: 12
         },
         skippable: true,
+        moodTier: 'neutral',
         description: 'A mysterious old man challenges you to ping pong in the tennis center lobby.',
         dialogue: [
             [null, ['You had a session planned with ', {characterId: 'keith'}, ' in ten minutes, but he\'s nowhere to be seen.']],
@@ -475,6 +482,7 @@ export const miscEvents: StoryEvent[] = [
             minDay: 14
         },
         skippable: true,
+        moodTier: 'good',
         description: 'The team heads to the beach to relax and unwind.',
         dialogue: [
             ['jen', ['Beach day! Who\'s ready for some volleyball?']],
@@ -524,6 +532,7 @@ export const miscEvents: StoryEvent[] = [
             minDay: 8
         },
         skippable: true,
+        moodTier: 'neutral',
         description: 'You take a shortcut through the park on the wrong side of town.',
         dialogue: [
             [null, ['You finish up some errands before morning practice, and decide to cut through the park.']],
@@ -595,6 +604,7 @@ export const miscEvents: StoryEvent[] = [
             minDay: 15
         },
         skippable: true,
+        moodTier: 'neutral',
         description: 'A late-night grocery run takes a competitive turn.',
         dialogue: [
             [null, ['You and ', {characterId: 'keith'}, ' are making a snack run after practice.']],
@@ -672,6 +682,7 @@ export const miscEvents: StoryEvent[] = [
             minDay: 18
         },
         skippable: true,
+        moodTier: 'good',
         description: 'Your neighbor is hosting a surprisingly competitive backyard badminton tournament.',
         dialogue: [
             [null, ['Your neighbor has strung up a badminton net between two trees. There are brackets posted on the garage door.']],
@@ -715,6 +726,7 @@ export const miscEvents: StoryEvent[] = [
             minDay: 10
         },
         skippable: true,
+        moodTier: 'neutral',
         description: 'A street performer offers to teach you to juggle.',
         dialogue: [
             [null, ['You\'re headed back to the Academy and see a street performer in the plaza. He\'s juggling five tennis balls while riding a unicycle.']],
@@ -779,6 +791,7 @@ export const miscEvents: StoryEvent[] = [
             completedEvents: ['club_team_first_practice']
         },
         skippable: true,
+        moodTier: 'good',
         description: 'Keith insists on dragging you to hot yoga. This can only end well.',
         dialogue: [
             ['keith', ['I signed us up for hot yoga! Hope you don\'t mind. It\'s supposed to be amazing for flexibility and recovery.']],
@@ -826,6 +839,7 @@ export const miscEvents: StoryEvent[] = [
             minDay: 8
         },
         skippable: true,
+        moodTier: 'bad',
         description: 'You overslept and the bus to the Academy is leaving without you.',
         dialogue: [
             [null, ['You were so nervous about oversleeping that you could barely sleep. By the time you woke up, your alarm clock was blaring.']],
@@ -862,6 +876,7 @@ export const miscEvents: StoryEvent[] = [
             minDay: 20
         },
         skippable: true,
+        moodTier: 'neutral',
         description: 'A teammate suggests indoor rock climbing as a fun outing.',
         dialogue: [
             ['max', ['There\'s a new climbing gym that just opened downtown. Want to check it out?']],
@@ -939,6 +954,7 @@ export const miscEvents: StoryEvent[] = [
             minDay: 16
         },
         skippable: true,
+        moodTier: 'good',
         description: 'You\'ve been volunteered to help prep for the team fundraiser BBQ.',
         dialogue: [
             ['greg', ['We need someone to chop vegetables. You\'re up, rookie.']],
@@ -986,6 +1002,7 @@ export const miscEvents: StoryEvent[] = [
             minDay: 10
         },
         skippable: true,
+        moodTier: 'neutral',
         description: 'Keith convinces you to stay up all night playing video games.',
         dialogue: [
             ['keith', ['Dude. New tennis video game Backspin X just dropped. We HAVE to play it.']],
@@ -1029,6 +1046,7 @@ export const miscEvents: StoryEvent[] = [
             minDay: 14
         },
         skippable: true,
+        moodTier: 'neutral',
         description: 'A local restaurant is running a spicy wing challenge. Your teammates dare you.',
         dialogue: [
             ['keith', ['It says anyone who finishes the "Inferno Platter" gets their photo on the wall!']],
@@ -1103,6 +1121,7 @@ export const miscEvents: StoryEvent[] = [
             minDay: 12
         },
         skippable: true,
+        moodTier: 'bad',
         description: 'You fall down a social media rabbit hole.',
         dialogue: [
             [null, ['You open your phone to check one notification. Just one.']],
@@ -1139,6 +1158,7 @@ export const miscEvents: StoryEvent[] = [
             minDay: 16
         },
         skippable: true,
+        moodTier: 'neutral',
         description: 'The team takes a trip to the trampoline park. What could go wrong?',
         dialogue: [
             ['keith', ['This is going to be the best day of my life! My parents never let me on these things.']],
@@ -1213,6 +1233,7 @@ export const miscEvents: StoryEvent[] = [
             minDay: 10
         },
         skippable: true,
+        moodTier: 'good',
         description: 'Keith picks the movie for team movie night. It\'s a disaster.',
         dialogue: [
             ['keith', ['Okay, okay, hear me out. It\'s a tennis-themed knockoff of a hit 90s show. They call it "Sets and the City."']],
@@ -1255,6 +1276,7 @@ export const miscEvents: StoryEvent[] = [
             minMatchesWon: 5
         },
         skippable: true,
+        moodTier: 'bad',
         description: 'Your recent wins have gone to your head. Time for a reality check.',
         dialogue: [
             [null, ['You\'ve been winning recently and starting to feel like you own the place.']],
@@ -1298,6 +1320,7 @@ export const miscEvents: StoryEvent[] = [
             minDay: 10
         },
         skippable: true,
+        moodTier: 'bad',
         description: 'You try to relax in a hammock between practice sessions.',
         dialogue: [
             [null, ['You find a hammock strung up between two trees near the courts. Perfect for a quick rest.']],
@@ -1338,6 +1361,7 @@ export const miscEvents: StoryEvent[] = [
             completedEvents: ['club_team_first_practice']
         },
         skippable: true,
+        moodTier: 'good',
         description: 'The team takes on an escape room together.',
         dialogue: [
             ['jen', ['I booked us a sports-themed escape room! It\'s called "Escape the Locker Room."']],
@@ -1421,6 +1445,7 @@ export const miscEvents: StoryEvent[] = [
             minDay: 10
         },
         skippable: true,
+        moodTier: 'bad',
         description: 'Some old social media posts of yours resurface and word spreads around the Academy',
         dialogue: [
             [null, ['You pass some of your teammates outside the Academy lobby and they laugh as you walk past.']],
@@ -1464,6 +1489,7 @@ export const miscEvents: StoryEvent[] = [
             minDay: 12
         },
         skippable: true,
+        moodTier: 'good',
         description: 'An Awkward Carpool',
         dialogue: [
             [null, ['You decided to sneak out to the concession stand after your match and missed the team bus home.']],
