@@ -39,6 +39,7 @@ export const StoryMatch: React.FC<StoryMatchProps> = ({ matchConfig }) => {
       playerStats: player.stats,
       playerName: player.name,
       playerAbilities: player.abilities,
+      opponentAbilities: matchConfig.opponentAbilities,
       itemBoosts: {
         ...ItemManager.getTotalPassiveBoosts(player),
         ...player.nextActivityBuffs?.statBoosts,

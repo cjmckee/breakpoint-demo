@@ -49,6 +49,7 @@ export class MatchOrchestrator {
   private opponentArchetype: ArchetypeType = 'defensive';
   private accumulatedEffects: AccumulatedMatchEffects = { energyDelta: 0, moodDelta: 0 };
   private activeEffects: Record<string, number> = {};
+  private opponentActiveEffects: Record<string, number> = {};
 
   // Tiebreak tracking state (reset at the start of each match)
   private isTiebreak = false;
@@ -140,6 +141,7 @@ export class MatchOrchestrator {
 
     // Extract additional ability effects for match-time mechanics
     this.activeEffects = this.extractActiveEffects(config.playerAbilities);
+    this.opponentActiveEffects = this.extractActiveEffects(config.opponentAbilities);
 
     // Initialize match simulator with PlayerProfile objects
     const player = new PlayerProfile('player', 'Player', playerStatsWithBoosts);
@@ -694,7 +696,8 @@ export class MatchOrchestrator {
       serverProfile,
       returnerProfile,
       matchState,
-      this.activeEffects
+      this.activeEffects,
+      this.opponentActiveEffects
     );
 
     // Track statistics

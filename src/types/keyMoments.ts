@@ -101,6 +101,7 @@ export interface InteractiveMatchConfig {
   opponentName?: string; // Opponent's display name
   opponentTier?: number; // Opponent tier (1-4) for reward calculation
   playerAbilities?: Ability[]; // Player abilities to apply during match
+  opponentAbilities?: Ability[]; // Opponent abilities to apply during match
   itemBoosts?: StatBoosts; // Stat boosts from equipped/passive items
   surface: 'hard' | 'clay' | 'grass' | 'carpet';
 

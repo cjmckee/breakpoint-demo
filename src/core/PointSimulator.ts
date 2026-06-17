@@ -46,7 +46,8 @@ export class PointSimulator {
     server: PlayerProfile,
     returner: PlayerProfile,
     matchState: MatchState,
-    activeEffects?: Record<string, number>
+    activeEffects?: Record<string, number>,
+    opponentActiveEffects?: Record<string, number>
   ): PointResult {
     const shots: ShotDetail[] = [];
     const pointId = `point_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -79,7 +80,8 @@ export class PointSimulator {
       pointId,
       serveResult.nextShooter!,
       currentServer,
-      activeEffects
+      activeEffects,
+      opponentActiveEffects
     );
     shots.push(...rallyResult.shots);
 
@@ -275,7 +277,8 @@ export class PointSimulator {
     pointId: string,
     firstShooter: 'server' | 'returner',
     currentServer: 'player' | 'opponent',
-    activeEffects?: Record<string, number>
+    activeEffects?: Record<string, number>,
+    opponentActiveEffects?: Record<string, number>
   ): {
     shots: ShotDetail[];
     winner: 'server' | 'returner';
@@ -333,7 +336,7 @@ export class PointSimulator {
         thresholds,
         rallyState.ballQuality,
         rallyState.opponentPosition,
-        shooterIdentity === 'player' ? activeEffects : undefined
+        shooterIdentity === 'player' ? activeEffects : opponentActiveEffects
       );
 
       // Calculate tactical opportunity using unified analyzer
@@ -345,8 +348,8 @@ export class PointSimulator {
       const shooterMomentum = shooterIdentity === 'player' ? matchState.momentum : -matchState.momentum;
 
       // Calculate shot result with threshold system
-      // Only apply ability effects when the shooter is the player
-      const shooterEffects = shooterIdentity === 'player' ? activeEffects : undefined;
+      // Apply appropriate ability effects based on shooter identity
+      const shooterEffects = shooterIdentity === 'player' ? activeEffects : opponentActiveEffects;
       const shotResult = this.shotCalculator.calculateShotSuccess(
         shooterProfile,
         shotType,
@@ -423,7 +426,7 @@ export class PointSimulator {
         rallyLength,
         previousShot.quality,
         thresholds,
-        shooterIdentity === 'player' ? activeEffects : undefined
+        shooterIdentity === 'player' ? activeEffects : opponentActiveEffects
       );
 
       // Update positions for both players

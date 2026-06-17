@@ -256,6 +256,7 @@ export interface GameCalendar {
     name: string;
     stats: PlayerStats;
     tier: OpponentTier;
+    abilities?: Ability[];
   }>>;
 
   // Scheduled events and tournament state
