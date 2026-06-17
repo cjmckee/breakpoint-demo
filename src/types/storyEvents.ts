@@ -114,6 +114,10 @@ export interface StoryEventPrerequisite {
   hasAbilities?: string[];
   lacksAbilities?: string[];
 
+  // Mood requirements
+  minMood?: number;
+  maxMood?: number;
+
   // Match history requirements
   minMatchesPlayed?: number;
   minMatchesWon?: number;
@@ -193,6 +197,9 @@ export interface StoryEvent {
 
   // Characters involved
   characters: string[];
+
+  // Mood-based event tier — controls weighted sampling in misc event pool
+  moodTier?: 'good' | 'neutral' | 'bad';
 
   // Player choices (if any)
   options: StoryEventOption[];     // Empty array = linear event with only defaultOutcome

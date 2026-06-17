@@ -61,6 +61,7 @@ export class StoryEventManager {
       relationships: Record<string, number>;
       calendar: GameCalendar;
       activeTournament?: ActiveTournament | null;
+      mood?: number;
     }
   ): StoryEvent | null {
     console.log(`🔍 Getting event by ID: ${eventId}`);
@@ -106,6 +107,7 @@ export class StoryEventManager {
       relationships: Record<string, number>;
       calendar: GameCalendar;
       activeTournament?: ActiveTournament | null;
+      mood?: number;
     }
   ): StoryEvent[] {
     console.log(`🔍 Getting eligible events for tag: ${tag}`);
@@ -149,6 +151,7 @@ export class StoryEventManager {
       relationships: Record<string, number>;
       calendar: GameCalendar;
       activeTournament?: ActiveTournament | null;
+      mood?: number;
     }
   ): StoryEvent[] {
     console.log(`🔍 Getting all eligible events for player: ${player.id}`);
@@ -199,13 +202,14 @@ export class StoryEventManager {
    * Picks a random tag/category first, then a random event within that category.
    * This prevents categories with many events (e.g. misc) from crowding out
    * categories with fewer but more important events (e.g. story progression).
+   *
+   * For misc events, mood biases the draw: high mood favors 'good'-tier events,
+   * low mood favors 'bad'-tier events. Other categories are always uniform.
    */
-  static selectRandomEvent(eligibleEvents: StoryEvent[]): StoryEvent | null {
+  static selectRandomEvent(eligibleEvents: StoryEvent[], mood: number = 0): StoryEvent | null {
     if (eligibleEvents.length === 0) return null;
 
     const filteredEligibleEvents = eligibleEvents.filter((storyEvent) => {
-      // Filter out event tags that should only appear when scheduled or queued by a match
-      // Filter out event tags that should not show up in random event rolls
       return (
         !storyEvent.tags.includes('tutorial') &&
         !storyEvent.tags.includes('milestone') &&
@@ -228,7 +232,6 @@ export class StoryEventManager {
       }
     }
 
-    // If no events remain after filtering, return null
     if (eventsByTag.size === 0) return null;
 
     // Pick a random category
@@ -239,9 +242,39 @@ export class StoryEventManager {
     console.log(`🔍 Selected random event from category: ${randomTag}`);
     console.log(`🔍 Events in category:`, categoryEvents);
 
-    // Pick a random event within that category
-    const randomIndex = Math.floor(Math.random() * categoryEvents.length);
-    return categoryEvents[randomIndex];
+    // Misc events use mood-weighted sampling; all other categories are uniform
+    if (randomTag === 'misc') {
+      return this.selectWeightedMiscEvent(categoryEvents, mood);
+    }
+
+    return categoryEvents[Math.floor(Math.random() * categoryEvents.length)];
+  }
+
+  /**
+   * Weighted sampling for misc events based on player mood.
+   *
+   * 'good' events gain weight as mood rises (up to 2.5x at mood=100).
+   * 'bad' events gain weight as mood falls (up to 2.5x at mood=-100).
+   * 'neutral' events always have weight 1.0.
+   *
+   * At mood=0 all tiers are equally weighted, preserving the existing
+   * uniform distribution as the default.
+   */
+  private static selectWeightedMiscEvent(events: StoryEvent[], mood: number): StoryEvent {
+    const weights = events.map((event) => {
+      const tier = event.moodTier ?? 'neutral';
+      if (tier === 'good') return 1.0 + (Math.max(0, mood) / 100) * 1.5;
+      if (tier === 'bad') return 1.0 + (Math.max(0, -mood) / 100) * 1.5;
+      return 1.0;
+    });
+
+    const total = weights.reduce((sum, w) => sum + w, 0);
+    let roll = Math.random() * total;
+    for (let i = 0; i < events.length; i++) {
+      roll -= weights[i];
+      if (roll <= 0) return events[i];
+    }
+    return events[events.length - 1];
   }
 
   /**
@@ -264,6 +297,7 @@ export class StoryEventManager {
       relationships: Record<string, number>;
       calendar: GameCalendar;
       activeTournament?: ActiveTournament | null;
+      mood?: number;
     },
     actualTimeSlotsUsed?: number
   ): StoryEventResult {
