@@ -1215,6 +1215,7 @@ export const useGameStore = create<GameState>()(
           opponentStats: config.opponentStats,
           opponentTier: config.opponentTier,
           opponentPlayStyle: derivePlayStyle(config.opponentStats),
+          opponentAbilities: config.opponentAbilities,
           surface: config.surface,
           matchFormat: config.matchFormat,
         };
