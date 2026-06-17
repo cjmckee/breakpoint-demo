@@ -263,8 +263,8 @@ export class StoryEventManager {
   private static selectWeightedMiscEvent(events: StoryEvent[], mood: number): StoryEvent {
     const weights = events.map((event) => {
       const tier = event.moodTier ?? 'neutral';
-      if (tier === 'good') return 1.0 + (Math.max(0, mood) / 100) * 1.5;
-      if (tier === 'bad') return 1.0 + (Math.max(0, -mood) / 100) * 1.5;
+      if (tier === 'good') return 1.0 + (Math.max(0, mood - 20) / 80) * 1.5;
+      if (tier === 'bad') return 1.0 + (Math.max(0, -mood - 20) / 80) * 1.5;
       return 1.0;
     });
 
