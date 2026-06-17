@@ -10,7 +10,7 @@ import { Button } from './ui/Button';
 import { SURFACE_EFFECTS } from '../config/shotThresholds';
 import { ARCHETYPE_DATA } from '../data/archetypes';
 import type { PlayerStats, PlayStyle, CourtSurface, StatName } from '../types';
-import type { Modifiers } from '../types/game';
+import type { Modifiers, Ability, AbilityRarity } from '../types/game';
 import { EffectKey } from '../types/game';
 import type { ArchetypeType } from '../data/archetypes';
 import {
@@ -42,6 +42,10 @@ interface PreMatchScreenProps {
   playerStats: PlayerStats;
   playerPlayStyle: PlayStyle;
   playerDescription?: string;
+
+  // Abilities
+  playerAbilities?: Ability[];
+  opponentAbilities?: Ability[];
 
   // Opponent
   opponentName: string;
@@ -106,16 +110,24 @@ const getFormatLabel = (format: 'best-of-1' | 'best-of-3'): string => {
   }
 };
 
+const RARITY_STYLES: Record<string, { badge: string; text: string; label: string }> = {
+  common:    { badge: 'bg-pixel-bg border-pixel-border text-pixel-text-muted', text: 'text-pixel-text-muted', label: 'Common' },
+  uncommon:  { badge: 'bg-green-950/50 border-green-700 text-green-400',       text: 'text-green-300',       label: 'Uncommon' },
+  rare:      { badge: 'bg-blue-950/50 border-blue-700 text-blue-400',          text: 'text-blue-300',        label: 'Rare' },
+  legendary: { badge: 'bg-yellow-950/50 border-yellow-600 text-yellow-400',    text: 'text-yellow-300',      label: 'Legendary' },
+};
+
 interface PlayerCardProps {
   name: string;
   tier?: number;
   overallRating: number;
   stats: PlayerStats;
   playStyle: PlayStyle;
+  abilities?: Ability[];
   isPlayer: boolean;
 }
 
-function PlayerCard({ name, tier, overallRating, stats, playStyle, isPlayer }: PlayerCardProps) {
+function PlayerCard({ name, tier, overallRating, stats, playStyle, abilities, isPlayer }: PlayerCardProps) {
   const topStats = getTopNStats(stats, 5);
   const bottomStats = getBottomNStats(stats, 5);
   const archetypeLabel = getArchetypeLabel(playStyle.type);
@@ -192,6 +204,28 @@ function PlayerCard({ name, tier, overallRating, stats, playStyle, isPlayer }: P
             <div className="text-pixel-text-muted text-xs">{playStyle.description}</div>
           </div>
         </div>
+
+        {abilities && abilities.length > 0 && (
+          <div>
+            <div className="text-xs text-pixel-text-muted mb-1 uppercase tracking-wide">Abilities</div>
+            <div className="space-y-1.5">
+              {abilities.map((ability) => {
+                const style = RARITY_STYLES[ability.rarity as string] ?? RARITY_STYLES.common;
+                return (
+                  <div key={ability.name}>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs px-1.5 py-0.5 border ${style.badge} shrink-0`}>
+                        {style.label}
+                      </span>
+                      <span className={`text-sm font-medium ${style.text}`}>{ability.name}</span>
+                    </div>
+                    <div className="text-xs text-pixel-text-muted ml-1 mt-0.5">{ability.effects}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -331,6 +365,8 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
   playerStats,
   playerPlayStyle,
   playerDescription,
+  playerAbilities,
+  opponentAbilities,
   opponentName,
   opponentTier,
   opponentDescription,
@@ -385,6 +421,7 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
             overallRating={playerOverallRating}
             stats={playerStats}
             playStyle={playerPlayStyle}
+            abilities={playerAbilities}
             isPlayer={true}
           />
 
@@ -394,6 +431,7 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
             overallRating={opponentOverallRating}
             stats={opponentStats}
             playStyle={opponentPlayStyle}
+            abilities={opponentAbilities}
             isPlayer={false}
           />
         </div>
