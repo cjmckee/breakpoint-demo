@@ -4,8 +4,10 @@
  * One is randomly selected per match from the chosen tier.
  */
 
-import type { PlayerStats, OpponentTier } from '../types/game';
+import type { PlayerStats, OpponentTier, Ability } from '../types/game';
+import { AbilityName } from '../types/game';
 import type { ArchetypeType } from './archetypes';
+import { ABILITY_DEFINITIONS } from './abilities';
 
 export interface OpponentPreset {
   name: string;
@@ -13,6 +15,7 @@ export interface OpponentPreset {
   tier: OpponentTier;
   archetype: ArchetypeType;
   stats: PlayerStats;
+  abilities?: Ability[];
 }
 
 // ============================================================
@@ -39,6 +42,7 @@ const TIER_1_OPPONENTS: OpponentPreset[] = [
         focus: 28, anticipation: 23, shotVariety: 23, offensive: 30, defensive: 23,
       },
     },
+    abilities: [ABILITY_DEFINITIONS[AbilityName.HEAVY_HITTER]],
   },
   {
     name: 'Marta Ruiz',
@@ -59,6 +63,7 @@ const TIER_1_OPPONENTS: OpponentPreset[] = [
         focus: 33, anticipation: 35, shotVariety: 23, offensive: 23, defensive: 35,
       },
     },
+    abilities: [ABILITY_DEFINITIONS[AbilityName.BASELINER]],
   },
   {
     name: 'Rick Tanaka',
@@ -79,6 +84,7 @@ const TIER_1_OPPONENTS: OpponentPreset[] = [
         focus: 30, anticipation: 30, shotVariety: 24, offensive: 24, defensive: 24,
       },
     },
+    abilities: [ABILITY_DEFINITIONS[AbilityName.SPIN_MASTER]],
   },
   {
     name: 'Big Steve',
@@ -99,6 +105,7 @@ const TIER_1_OPPONENTS: OpponentPreset[] = [
         focus: 28, anticipation: 31, shotVariety: 25, offensive: 30, defensive: 21,
       },
     },
+    abilities: [ABILITY_DEFINITIONS[AbilityName.OVERHEAD_SMASH]],
   },
   {
     name: 'Lin Chen',
@@ -119,6 +126,7 @@ const TIER_1_OPPONENTS: OpponentPreset[] = [
         focus: 30, anticipation: 30, shotVariety: 25, offensive: 21, defensive: 37,
       },
     },
+    abilities: [ABILITY_DEFINITIONS[AbilityName.SLIDER]],
   },
 ];
 
@@ -146,6 +154,7 @@ const TIER_2_OPPONENTS: OpponentPreset[] = [
         focus: 55, anticipation: 50, shotVariety: 50, offensive: 79, defensive: 35,
       },
     },
+    abilities: [ABILITY_DEFINITIONS[AbilityName.HEAVY_HITTER]],
   },
   {
     name: 'Sofia Petrov',
@@ -166,6 +175,7 @@ const TIER_2_OPPONENTS: OpponentPreset[] = [
         focus: 61, anticipation: 57, shotVariety: 46, offensive: 42, defensive: 68,
       },
     },
+    abilities: [ABILITY_DEFINITIONS[AbilityName.BASELINER]],
   },
   {
     name: 'Jake Morrison',
@@ -186,6 +196,7 @@ const TIER_2_OPPONENTS: OpponentPreset[] = [
         focus: 57, anticipation: 55, shotVariety: 57, offensive: 55, defensive: 55,
       },
     },
+    abilities: [ABILITY_DEFINITIONS[AbilityName.SOFT_HANDS]],
   },
   {
     name: 'Henri Blanc',
@@ -206,6 +217,7 @@ const TIER_2_OPPONENTS: OpponentPreset[] = [
         focus: 55, anticipation: 61, shotVariety: 53, offensive: 64, defensive: 39,
       },
     },
+    abilities: [ABILITY_DEFINITIONS[AbilityName.NETCRASHER]],
   },
   {
     name: 'Yuki Sato',
@@ -226,6 +238,7 @@ const TIER_2_OPPONENTS: OpponentPreset[] = [
         focus: 64, anticipation: 66, shotVariety: 50, offensive: 33, defensive: 77,
       },
     },
+    abilities: [ABILITY_DEFINITIONS[AbilityName.RANGY_RETURN]],
   },
 ];
 
@@ -253,6 +266,7 @@ const TIER_3_OPPONENTS: OpponentPreset[] = [
         focus: 65, anticipation: 60, shotVariety: 62, offensive: 82, defensive: 38,
       },
     },
+    abilities: [ABILITY_DEFINITIONS[AbilityName.HEAVY_HITTER], ABILITY_DEFINITIONS[AbilityName.SERVE_CANNON]],
   },
   {
     name: 'Anna Kowalski',
@@ -273,6 +287,7 @@ const TIER_3_OPPONENTS: OpponentPreset[] = [
         focus: 72, anticipation: 70, shotVariety: 62, offensive: 48, defensive: 78,
       },
     },
+    abilities: [ABILITY_DEFINITIONS[AbilityName.BASELINER], ABILITY_DEFINITIONS[AbilityName.SPEED_DEMON]],
   },
   {
     name: 'Alex Novak',
@@ -293,6 +308,7 @@ const TIER_3_OPPONENTS: OpponentPreset[] = [
         focus: 72, anticipation: 70, shotVariety: 72, offensive: 65, defensive: 65,
       },
     },
+    abilities: [ABILITY_DEFINITIONS[AbilityName.SPIN_MASTER], ABILITY_DEFINITIONS[AbilityName.CLUTCH]],
   },
   {
     name: 'James Whitfield',
@@ -313,6 +329,7 @@ const TIER_3_OPPONENTS: OpponentPreset[] = [
         focus: 68, anticipation: 72, shotVariety: 65, offensive: 75, defensive: 45,
       },
     },
+    abilities: [ABILITY_DEFINITIONS[AbilityName.NETCRASHER], ABILITY_DEFINITIONS[AbilityName.SERVE_CANNON]],
   },
   {
     name: 'Elena Varga',
@@ -333,6 +350,7 @@ const TIER_3_OPPONENTS: OpponentPreset[] = [
         focus: 78, anticipation: 78, shotVariety: 62, offensive: 32, defensive: 85,
       },
     },
+    abilities: [ABILITY_DEFINITIONS[AbilityName.RANGY_RETURN], ABILITY_DEFINITIONS[AbilityName.SPEED_DEMON]],
   },
 ];
 
@@ -360,6 +378,7 @@ const TIER_4_OPPONENTS: OpponentPreset[] = [
         focus: 85, anticipation: 80, shotVariety: 82, offensive: 92, defensive: 58,
       },
     },
+    abilities: [ABILITY_DEFINITIONS[AbilityName.HEAVY_HITTER], ABILITY_DEFINITIONS[AbilityName.SERVE_CANNON]],
   },
   {
     name: 'Nadia Volkov',
@@ -380,6 +399,7 @@ const TIER_4_OPPONENTS: OpponentPreset[] = [
         focus: 90, anticipation: 88, shotVariety: 80, offensive: 65, defensive: 92,
       },
     },
+    abilities: [ABILITY_DEFINITIONS[AbilityName.BASELINER], ABILITY_DEFINITIONS[AbilityName.SPEED_DEMON]],
   },
   {
     name: 'Thomas Lund',
@@ -400,6 +420,7 @@ const TIER_4_OPPONENTS: OpponentPreset[] = [
         focus: 90, anticipation: 88, shotVariety: 90, offensive: 82, defensive: 80,
       },
     },
+    abilities: [ABILITY_DEFINITIONS[AbilityName.SOFT_HANDS], ABILITY_DEFINITIONS[AbilityName.CLUTCH]],
   },
   {
     name: 'Patrick Rafter Jr.',
@@ -420,6 +441,7 @@ const TIER_4_OPPONENTS: OpponentPreset[] = [
         focus: 85, anticipation: 88, shotVariety: 82, offensive: 88, defensive: 55,
       },
     },
+    abilities: [ABILITY_DEFINITIONS[AbilityName.NETCRASHER], ABILITY_DEFINITIONS[AbilityName.SERVE_CANNON]],
   },
   {
     name: 'Kim Soo-jin',
@@ -440,6 +462,7 @@ const TIER_4_OPPONENTS: OpponentPreset[] = [
         focus: 92, anticipation: 92, shotVariety: 78, offensive: 42, defensive: 95,
       },
     },
+    abilities: [ABILITY_DEFINITIONS[AbilityName.SPEED_DEMON], ABILITY_DEFINITIONS[AbilityName.CLUTCH]],
   },
 ];
 

@@ -52,6 +52,7 @@ export const MatchSetup: React.FC = () => {
       opponentName: opponent.name,
       opponentTier: opponent.tier,
       opponentPlayStyle: derivePlayStyle(opponent.stats),
+      opponentAbilities: opponent.abilities,
       surface: selectedSurface,
       matchFormat: 'best-of-1',
     }, 'regular');

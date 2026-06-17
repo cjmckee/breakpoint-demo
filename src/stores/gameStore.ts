@@ -21,6 +21,7 @@ import {
   PlayerStats,
   TIME_SLOT_NAMES,
   ShopItem,
+  Ability,
 } from '../types/game';
 import type { StoryEvent, StoryEventTag, StoryEventOption } from '../types/storyEvents';
 import { HANGOUT_CHARACTERS, HANGOUT_ENERGY_COST, getHangoutTier } from '../data/hangoutCharacters';
@@ -137,7 +138,7 @@ interface GameState {
   navigateTo: (target: 'idle' | 'training' | 'match_setup' | 'tournament_list' | 'inventory' | 'relationships' | 'shop') => void;
   navigateToScheduledMatch: (matchType: 'tournament' | 'story') => void;
   setMatchSetup: (config: Omit<PreMatchConfig, 'opponentDescription' | 'matchTitle' | 'matchDescription' | 'storyMatchMetadata'>, matchType: MatchType) => void;
-  getPracticeOpponent: (tier: OpponentTier) => { opponentId: string; name: string; stats: PlayerStats; tier: OpponentTier };
+  getPracticeOpponent: (tier: OpponentTier) => { opponentId: string; name: string; stats: PlayerStats; tier: OpponentTier; abilities?: Ability[] };
   beginMatch: (config: InteractiveMatchConfig, matchType: MatchType) => void;
   onMatchComplete: (data: MatchCompletionData) => void;
   dismissMatchResults: () => void;
@@ -959,6 +960,7 @@ export const useGameStore = create<GameState>()(
                     opponentTier: tournamentTier,
                     opponentDescription: opponent?.description,
                     opponentPlayStyle: opponent?.stats ? derivePlayStyle(opponent.stats) : { type: 'all_court', aggression: 50, netApproach: 50, consistency: 50, power: 50, description: '' } as PlayStyle,
+                    opponentAbilities: opponent?.abilities,
                     surface: config.surface || 'hard',
                     matchFormat: 'best-of-1',
                     matchTitle: `${config.name} - Round ${calendar.activeTournament!.currentRound + 1}`,
@@ -994,6 +996,7 @@ export const useGameStore = create<GameState>()(
                 opponentStats: metadata.opponentStats,
                 opponentTier: storyTier,
                 opponentDescription: metadata.opponentDescription,
+                opponentAbilities: metadata.opponentAbilities,
                 opponentPlayStyle: derivePlayStyle(metadata.opponentStats),
                 surface: metadata.surface || 'hard',
                 matchFormat: metadata.matchFormat || 'best-of-1',
@@ -1112,6 +1115,7 @@ export const useGameStore = create<GameState>()(
                 opponentTier: tournamentTier,
                 opponentDescription: opponent?.description,
                 opponentPlayStyle: opponent?.stats ? derivePlayStyle(opponent.stats) : { type: 'all_court', aggression: 50, netApproach: 50, consistency: 50, power: 50, description: '' } as PlayStyle,
+                opponentAbilities: opponent?.abilities,
                 surface: config.surface || 'hard',
                 matchFormat: 'best-of-1',
                 matchTitle: `${config.name} - Round ${calendar.activeTournament!.currentRound + 1}`,
@@ -1151,6 +1155,7 @@ export const useGameStore = create<GameState>()(
                 opponentStats: metadata.opponentStats,
                 opponentTier: storyTier,
                 opponentDescription: metadata.opponentDescription,
+                opponentAbilities: metadata.opponentAbilities,
                 opponentPlayStyle: derivePlayStyle(metadata.opponentStats),
                 surface: metadata.surface || 'hard',
                 matchFormat: metadata.matchFormat || 'best-of-1',
@@ -1189,6 +1194,7 @@ export const useGameStore = create<GameState>()(
                 opponentStats: metadata.opponentStats,
                 opponentTier: metadata.opponentTier as OpponentTier,
                 opponentDescription: metadata.opponentDescription,
+                opponentAbilities: metadata.opponentAbilities,
                 opponentPlayStyle: derivePlayStyle(metadata.opponentStats),
                 surface: metadata.surface || 'hard',
                 matchFormat: metadata.matchFormat || 'best-of-1',
@@ -1233,6 +1239,7 @@ export const useGameStore = create<GameState>()(
           name: opponent.name,
           stats,
           tier: opponent.tier,
+          abilities: opponent.abilities,
         };
 
         set({

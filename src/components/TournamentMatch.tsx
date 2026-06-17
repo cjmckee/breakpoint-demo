@@ -53,6 +53,7 @@ export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig })
       playerStats: player.stats,
       playerName: player.name,
       playerAbilities: player.abilities,
+      opponentAbilities: matchConfig.opponentAbilities,
       itemBoosts: {
         ...ItemManager.getTotalPassiveBoosts(player),
         ...player.nextActivityBuffs?.statBoosts,
@@ -128,6 +129,8 @@ export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig })
       playerOverallRating={playerOverallRating}
       playerStats={player.stats}
       playerPlayStyle={playerPlayStyle}
+      playerAbilities={player.abilities}
+      opponentAbilities={matchConfig.opponentAbilities}
       opponentName={matchConfig.opponentName}
       opponentTier={matchConfig.opponentTier}
       opponentDescription={matchConfig.opponentDescription}

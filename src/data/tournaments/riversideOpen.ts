@@ -4,6 +4,8 @@
  */
 
 import type { TournamentConfig, MatchOpponent } from '../../types/tournaments';
+import { AbilityName } from '../../types/game';
+import { ABILITY_DEFINITIONS } from '../abilities';
 
 // ============================================================================
 // OPPONENT DEFINITIONS
@@ -44,6 +46,7 @@ const keith: MatchOpponent = {
       defensive: 35,
     },
   },
+  abilities: [ABILITY_DEFINITIONS[AbilityName.RANGY_RETURN]],
 };
 
 const chris: MatchOpponent = {
@@ -81,6 +84,7 @@ const chris: MatchOpponent = {
       defensive: 33,
     },
   },
+  abilities: [ABILITY_DEFINITIONS[AbilityName.CLUTCH]],
 };
 
 const max: MatchOpponent = {
@@ -118,6 +122,7 @@ const max: MatchOpponent = {
       defensive: 54,
     },
   },
+  abilities: [ABILITY_DEFINITIONS[AbilityName.SPEED_DEMON]],
 };
 
 const jordan: MatchOpponent = {
@@ -155,6 +160,7 @@ const jordan: MatchOpponent = {
       defensive: 37,
     },
   },
+  abilities: [ABILITY_DEFINITIONS[AbilityName.SERVE_CANNON]],
 };
 
 // ============================================================================
