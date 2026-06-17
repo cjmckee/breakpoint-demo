@@ -34,6 +34,7 @@ export const PracticeMatch: React.FC<{ matchConfig: PreMatchConfig | null }> = (
       playerStats: player.stats,
       playerName: player.name,
       playerAbilities: player.abilities,
+      opponentAbilities: matchConfig.opponentAbilities,
       itemBoosts: {
         ...ItemManager.getTotalPassiveBoosts(player),
         ...player.nextActivityBuffs?.statBoosts,

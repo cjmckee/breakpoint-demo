@@ -3,7 +3,7 @@
  * Defines types for multi-round tournaments with scheduled matches
  */
 
-import type { PlayerStats, OpponentTier, TimeSlot } from './game';
+import type { PlayerStats, OpponentTier, TimeSlot, Ability } from './game';
 
 // ============================================================================
 // TOURNAMENT BRACKETS & STATUS
@@ -33,6 +33,7 @@ export interface MatchOpponent {
   stats: PlayerStats;           // Full stat profile
   tier: OpponentTier;           // Difficulty tier (1-4)
   description?: string;         // Bio/flavor text
+  abilities?: Ability[];        // Abilities to apply during match
 }
 
 // ============================================================================

@@ -53,6 +53,7 @@ export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig })
       playerStats: player.stats,
       playerName: player.name,
       playerAbilities: player.abilities,
+      opponentAbilities: matchConfig.opponentAbilities,
       itemBoosts: {
         ...ItemManager.getTotalPassiveBoosts(player),
         ...player.nextActivityBuffs?.statBoosts,

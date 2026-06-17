@@ -13,7 +13,7 @@
 
 import type { MatchScore, InteractiveMatchConfig } from './keyMoments';
 import type { MatchStatistics, PlayStyle } from './index';
-import type { MatchReward, OpponentTier, TrainingResult, StoryMatchMetadata, PlayerStats } from './game';
+import type { MatchReward, OpponentTier, TrainingResult, StoryMatchMetadata, PlayerStats, Ability } from './game';
 import type { StoryEvent, StoryEventOption, StoryEventResult } from './storyEvents';
 import type { TacticalOption } from '../data/tacticalOptions';
 import type { KeyMomentResult } from '../game/KeyMomentResolver';
@@ -122,6 +122,7 @@ export interface PreMatchConfig {
   opponentTier: OpponentTier;
   opponentDescription?: string;
   opponentPlayStyle: PlayStyle;
+  opponentAbilities?: Ability[];
   surface: 'hard' | 'clay' | 'grass' | 'carpet';
   matchFormat: 'best-of-1' | 'best-of-3';
   matchTitle?: string;
