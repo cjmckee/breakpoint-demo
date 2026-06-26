@@ -7,6 +7,8 @@
 import type { PlayerStats, OpponentTier, Ability } from '../types/game';
 import { AbilityName } from '../types/game';
 import type { ArchetypeType } from './archetypes';
+import type { ArchetypeProfile } from '../types/archetype';
+import { profileForArchetype } from './archetypeTree';
 import { ABILITY_DEFINITIONS } from './abilities';
 
 export interface OpponentPreset {
@@ -482,6 +484,14 @@ export const OPPONENTS_BY_TIER: Record<OpponentTier, OpponentPreset[]> = {
 export function getRandomOpponent(tier: OpponentTier): OpponentPreset {
   const opponents = OPPONENTS_BY_TIER[tier];
   return opponents[Math.floor(Math.random() * opponents.length)];
+}
+
+/**
+ * Build the full phase-based archetype profile for an opponent from its authored
+ * archetype label, so it plays with a coherent identity in the match engine.
+ */
+export function getOpponentArchetypeProfile(preset: { archetype: ArchetypeType }): ArchetypeProfile {
+  return profileForArchetype(preset.archetype);
 }
 
 /**

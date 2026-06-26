@@ -13,7 +13,8 @@ import type { TournamentMatchMetadata } from '../types/tournaments';
 import type { StoryMatchMetadata } from '../types/game';
 import { Modal } from './ui/Modal';
 import { OpponentPreviewCard } from './OpponentPreviewCard';
-import { derivePlayStyle } from '../core/PlayerProfile';
+import { buildPlayStyle } from '../core/PlayerProfile';
+import { createEmptyArchetypeProfile } from '../data/archetypeTree';
 import type { CourtSurface, PlayerStats, PlayStyle } from '../types';
 
 interface CalendarViewProps {
@@ -88,7 +89,7 @@ function getMatchPreviewData(
       opponentTier: opponent.tier,
       opponentDescription: opponent.description,
       opponentStats: opponent.stats,
-      opponentPlayStyle: derivePlayStyle(opponent.stats),
+      opponentPlayStyle: buildPlayStyle(createEmptyArchetypeProfile()),
       surface: tournament.surface as CourtSurface,
     };
   }
@@ -100,7 +101,7 @@ function getMatchPreviewData(
       opponentTier: meta.opponentTier,
       opponentDescription: meta.opponentDescription,
       opponentStats: meta.opponentStats,
-      opponentPlayStyle: derivePlayStyle(meta.opponentStats),
+      opponentPlayStyle: buildPlayStyle(createEmptyArchetypeProfile()),
       surface: (meta.surface || 'hard') as CourtSurface,
     };
   }

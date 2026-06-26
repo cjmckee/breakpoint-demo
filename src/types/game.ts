@@ -4,6 +4,7 @@
  */
 
 import type { PlayerStats } from './index';
+import type { ArchetypeProfile } from './archetype';
 import type { StoryEventResult } from './storyEvents';
 import type { Item, EquipmentSlot } from './items';
 import type { ActiveTournament, TournamentMatchMetadata, MatchOpponent } from './tournaments';
@@ -122,6 +123,19 @@ export const EffectKey = {
   // --- Match: key moment effects (KeyMomentResolver) ---
   CLUTCH_PERFORMANCE: 'clutch_performance', // flat % bonus to key moment win probability
   MENTAL_RESILIENCE: 'mental_resilience',   // attenuates pressure penalty in key moments
+
+  // --- Archetype behavior effects (DECISION layer; read ONLY by ShotSelector/PointSimulator) ---
+  // These bias WHAT shot the player tries, never shot quality. Values are in
+  // "dial points" magnitude (cumulative across specialty tiers); consumers scale them.
+  WINNER_BIAS: 'winner_bias',                       // more likely to attempt winners/power shots
+  NET_APPROACH_BIAS: 'net_approach_bias',           // more likely to approach the net
+  RALLY_TOLERANCE: 'rally_tolerance',               // prefers extending rallies / steady play
+  RETURN_AGGRESSION: 'return_aggression',           // attacks the return rather than blocking deep
+  SECOND_SERVE_AGGRESSION: 'second_serve_aggression', // goes after the second serve
+  FIRST_SERVE_POWER: 'first_serve_power',           // leans on power over placement on first serve
+  FAULT_RISK: 'fault_risk',                         // tradeoff: raises serve fault probability
+  SLICE_PREFERENCE_FOREHAND: 'slice_preference_forehand', // slices forehands rather than driving
+  SLICE_PREFERENCE_BACKHAND: 'slice_preference_backhand', // slices backhands rather than driving
 } as const;
 
 export const AbilityName = {
@@ -257,6 +271,7 @@ export interface GameCalendar {
     stats: PlayerStats;
     tier: OpponentTier;
     abilities?: Ability[];
+    archetypeProfile?: ArchetypeProfile;
   }>>;
 
   // Scheduled events and tournament state
@@ -504,6 +519,9 @@ export interface Player {
   name: string;
   stats: PlayerStats;
   abilities: Ability[];
+
+  // Phase-based archetype identity (the DECISION layer; see types/archetype.ts)
+  archetypeProfile: ArchetypeProfile;
 
   // Item system
   inventory: Item[];  // Regular items (max 10)

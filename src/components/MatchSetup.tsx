@@ -12,7 +12,8 @@ import { OpponentTier } from '../types/game';
 import { OPPONENTS_BY_TIER } from '../data/opponents';
 import { getArchetypeLabel } from '../data/archetypes';
 import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
-import { derivePlayStyle } from '../core/PlayerProfile';
+import { buildPlayStyle } from '../core/PlayerProfile';
+import { createEmptyArchetypeProfile } from '../data/archetypeTree';
 import { getSurfaceEmoji } from '../utils/playerStats';
 
 type CourtSurface = 'hard' | 'clay' | 'grass' | 'carpet';
@@ -47,11 +48,13 @@ export const MatchSetup: React.FC = () => {
   const handlePreviewMatch = () => {
     const opponent = getPracticeOpponent(selectedTier);
 
+    const opponentArchetypeProfile = opponent.archetypeProfile ?? createEmptyArchetypeProfile();
     setMatchSetup({
       opponentStats: opponent.stats,
       opponentName: opponent.name,
       opponentTier: opponent.tier,
-      opponentPlayStyle: derivePlayStyle(opponent.stats),
+      opponentArchetypeProfile,
+      opponentPlayStyle: buildPlayStyle(opponentArchetypeProfile),
       opponentAbilities: opponent.abilities,
       surface: selectedSurface,
       matchFormat: 'best-of-1',

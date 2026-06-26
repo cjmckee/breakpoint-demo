@@ -10,7 +10,7 @@ import { StatCard } from './StatCard';
 import { StatBar } from './StatBar';
 import { AbilityDisplay } from './AbilityDisplay';
 import { EffectAggregator } from '../core/EffectAggregator';
-import { derivePlayStyle, calculateOverallRating } from '../core/PlayerProfile';
+import { buildPlayStyle, calculateOverallRating } from '../core/PlayerProfile';
 import { getArchetypeLabel } from '../data/archetypes';
 import type { StatBoosts } from '../types/game';
 
@@ -86,7 +86,7 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
     },
   ];
 
-  const playStyle = useMemo(() => derivePlayStyle(player.stats), [player.stats]);
+  const playStyle = useMemo(() => buildPlayStyle(player.archetypeProfile), [player.archetypeProfile]);
 
   const overallRating = useMemo(() => calculateOverallRating(player.stats), [player.stats]);
 

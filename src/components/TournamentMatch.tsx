@@ -10,7 +10,7 @@ import { TournamentRegistry } from '../data/tournaments';
 import { TournamentManager } from '../game/TournamentManager';
 import { Card } from './ui/Card';
 import { PreMatchScreen } from './PreMatchScreen';
-import { derivePlayStyle } from '../core/PlayerProfile';
+import { buildPlayStyle } from '../core/PlayerProfile';
 import type { PlayerStats, PlayStyle } from '../types';
 import { ItemManager } from '../game/ItemManager';
 import type { PreMatchConfig } from '../types/gamePhase';
@@ -32,7 +32,7 @@ export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig })
   }
 
   const playerOverallRating = calculateOverallRating(player.stats);
-  const playerPlayStyle = derivePlayStyle(player.stats);
+  const playerPlayStyle = buildPlayStyle(player.archetypeProfile);
 
   // Get tournament configuration for display purposes
   const tournament = TournamentRegistry.getTournament(activeTournament.tournamentId);
@@ -53,6 +53,8 @@ export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig })
       playerStats: player.stats,
       playerName: player.name,
       playerAbilities: player.abilities,
+      playerArchetypeProfile: player.archetypeProfile,
+      opponentArchetypeProfile: matchConfig.opponentArchetypeProfile,
       opponentAbilities: matchConfig.opponentAbilities,
       itemBoosts: {
         ...ItemManager.getTotalPassiveBoosts(player),

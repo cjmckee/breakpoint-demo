@@ -29,6 +29,7 @@ export interface ConsumableEffect {
   instantEffects?: {
     energyChange?: number;
     moodChange?: number;
+    respecTokens?: number; // Grants archetype respec tokens (used to re-pick a phase specialty)
   };
   nextActivityBuffs?: Modifiers; // Applied to next training/match only
 }

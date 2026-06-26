@@ -165,6 +165,14 @@ export class ItemManager {
     if (consumableEffect.type === 'instant' && consumableEffect.instantEffects) {
       energyChange = consumableEffect.instantEffects.energyChange || 0;
       moodChange = consumableEffect.instantEffects.moodChange || 0;
+
+      const respecTokens = consumableEffect.instantEffects.respecTokens || 0;
+      if (respecTokens > 0) {
+        updatedPlayer.archetypeProfile = {
+          ...updatedPlayer.archetypeProfile,
+          respecTokens: updatedPlayer.archetypeProfile.respecTokens + respecTokens,
+        };
+      }
     }
 
     // Apply next activity buffs

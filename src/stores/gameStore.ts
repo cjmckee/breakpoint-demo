@@ -42,13 +42,15 @@ import { ScheduledEventManager } from '../game/ScheduledEventManager';
 import { StoryMatchManager } from '../game/StoryMatchManager';
 import { generateDailyShopItems } from '../game/ShopSystem';
 import { ALL_ITEMS } from '../data/items';
-import { getRandomOpponent, getScaledOpponentStats } from '../data/opponents';
+import { getRandomOpponent, getScaledOpponentStats, getOpponentArchetypeProfile } from '../data/opponents';
 import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
 import { EffectAggregator } from '../core/EffectAggregator';
 import { EffectKey } from '../types/game';
-import { derivePlayStyle } from '../core/PlayerProfile';
+import { buildPlayStyle } from '../core/PlayerProfile';
+import { createEmptyArchetypeProfile, STARTING_SPECIALIZATION_POINTS, PATH_DEFS, PATHS_BY_PHASE } from '../data/archetypeTree';
 import { useMenuStore } from '../hooks/useMenuModal';
 import type { PlayStyle } from '../types';
+import type { ArchetypeProfile, GamePhase as ArchetypePhase, PhasePathId } from '../types/archetype';
 import type { GamePhase, MatchType, PreMatchConfig, PhaseContinuation, IdlePhase, MatchCompletionData, PersistedEventState, DEFAULT_PERSISTED_EVENT_STATE } from '../types/gamePhase';
 import { DEFAULT_PERSISTED_EVENT_STATE as DEFAULT_EVENT_RECOVERY } from '../types/gamePhase';
 import type { InteractiveMatchConfig } from '../types/keyMoments';
@@ -135,12 +137,18 @@ interface GameState {
   pendingShopAcquisitions: Item[];
 
   // Phase transition actions
-  navigateTo: (target: 'idle' | 'training' | 'match_setup' | 'tournament_list' | 'inventory' | 'relationships' | 'shop') => void;
+  navigateTo: (target: 'idle' | 'training' | 'match_setup' | 'tournament_list' | 'inventory' | 'relationships' | 'shop' | 'archetype') => void;
   navigateToScheduledMatch: (matchType: 'tournament' | 'story') => void;
   setMatchSetup: (config: Omit<PreMatchConfig, 'opponentDescription' | 'matchTitle' | 'matchDescription' | 'storyMatchMetadata'>, matchType: MatchType) => void;
-  getPracticeOpponent: (tier: OpponentTier) => { opponentId: string; name: string; stats: PlayerStats; tier: OpponentTier; abilities?: Ability[] };
+  getPracticeOpponent: (tier: OpponentTier) => { opponentId: string; name: string; stats: PlayerStats; tier: OpponentTier; abilities?: Ability[]; archetypeProfile?: ArchetypeProfile };
   beginMatch: (config: InteractiveMatchConfig, matchType: MatchType) => void;
   onMatchComplete: (data: MatchCompletionData) => void;
+
+  // Archetype progression actions
+  specializePhase: (phase: ArchetypePhase, path: PhasePathId) => void;
+  upgradePhase: (phase: ArchetypePhase) => void;
+  respecPhase: (phase: ArchetypePhase) => void;
+  grantRespecToken: () => void;
   dismissMatchResults: () => void;
   dismissStoryEventResult: () => void;
   dismissHangoutUnlock: () => void;
@@ -463,6 +471,7 @@ export const useGameStore = create<GameState>()(
           { eventType: 'story', scheduledDay: 8, scheduledTimeSlot: TimeSlot.AFTERNOON, metadata: { storyEventId: 'rival_first_encounter' } },
           { eventType: 'story', scheduledDay: 9, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'club_team_intro' } },
           { eventType: 'story', scheduledDay: 10, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'coach_first_meeting' } },
+          { eventType: 'story', scheduledDay: 11, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'coach_archetype_selection' } },
           { eventType: 'story', scheduledDay: 11, scheduledTimeSlot: TimeSlot.AFTERNOON, metadata: { storyEventId: 'club_team_first_practice' } },
           { eventType: 'story', scheduledDay: 12, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'coach_training_focus' } },
           { eventType: 'story', scheduledDay: 13, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'first_team_match_scheduled' } },
@@ -959,7 +968,7 @@ export const useGameStore = create<GameState>()(
                     opponentStats: opponent?.stats ?? ({} as PlayerStats),
                     opponentTier: tournamentTier,
                     opponentDescription: opponent?.description,
-                    opponentPlayStyle: opponent?.stats ? derivePlayStyle(opponent.stats) : { type: 'all_court', aggression: 50, netApproach: 50, consistency: 50, power: 50, description: '' } as PlayStyle,
+                    opponentPlayStyle: buildPlayStyle(createEmptyArchetypeProfile()),
                     opponentAbilities: opponent?.abilities,
                     surface: config.surface || 'hard',
                     matchFormat: 'best-of-1',
@@ -997,7 +1006,7 @@ export const useGameStore = create<GameState>()(
                 opponentTier: storyTier,
                 opponentDescription: metadata.opponentDescription,
                 opponentAbilities: metadata.opponentAbilities,
-                opponentPlayStyle: derivePlayStyle(metadata.opponentStats),
+                opponentPlayStyle: buildPlayStyle(createEmptyArchetypeProfile()),
                 surface: metadata.surface || 'hard',
                 matchFormat: metadata.matchFormat || 'best-of-1',
                 matchTitle: metadata.matchTitle,
@@ -1092,6 +1101,9 @@ export const useGameStore = create<GameState>()(
           case 'shop':
             set({ gamePhase: { type: 'shop' } });
             break;
+          case 'archetype':
+            set({ gamePhase: { type: 'archetype' } });
+            break;
         }
       },
 
@@ -1114,7 +1126,7 @@ export const useGameStore = create<GameState>()(
                 opponentStats: opponent?.stats ?? ({} as PlayerStats),
                 opponentTier: tournamentTier,
                 opponentDescription: opponent?.description,
-                opponentPlayStyle: opponent?.stats ? derivePlayStyle(opponent.stats) : { type: 'all_court', aggression: 50, netApproach: 50, consistency: 50, power: 50, description: '' } as PlayStyle,
+                opponentPlayStyle: buildPlayStyle(createEmptyArchetypeProfile()),
                 opponentAbilities: opponent?.abilities,
                 surface: config.surface || 'hard',
                 matchFormat: 'best-of-1',
@@ -1156,7 +1168,7 @@ export const useGameStore = create<GameState>()(
                 opponentTier: storyTier,
                 opponentDescription: metadata.opponentDescription,
                 opponentAbilities: metadata.opponentAbilities,
-                opponentPlayStyle: derivePlayStyle(metadata.opponentStats),
+                opponentPlayStyle: buildPlayStyle(createEmptyArchetypeProfile()),
                 surface: metadata.surface || 'hard',
                 matchFormat: metadata.matchFormat || 'best-of-1',
                 matchTitle: metadata.matchTitle,
@@ -1195,7 +1207,7 @@ export const useGameStore = create<GameState>()(
                 opponentTier: metadata.opponentTier as OpponentTier,
                 opponentDescription: metadata.opponentDescription,
                 opponentAbilities: metadata.opponentAbilities,
-                opponentPlayStyle: derivePlayStyle(metadata.opponentStats),
+                opponentPlayStyle: buildPlayStyle(createEmptyArchetypeProfile()),
                 surface: metadata.surface || 'hard',
                 matchFormat: metadata.matchFormat || 'best-of-1',
                 matchTitle: metadata.matchTitle,
@@ -1214,12 +1226,99 @@ export const useGameStore = create<GameState>()(
           opponentName: config.opponentName,
           opponentStats: config.opponentStats,
           opponentTier: config.opponentTier,
-          opponentPlayStyle: derivePlayStyle(config.opponentStats),
+          opponentArchetypeProfile: config.opponentArchetypeProfile,
+          opponentPlayStyle: buildPlayStyle(config.opponentArchetypeProfile ?? createEmptyArchetypeProfile()),
           opponentAbilities: config.opponentAbilities,
           surface: config.surface,
           matchFormat: config.matchFormat,
         };
         set({ gamePhase: { type: 'match_setup', matchType, matchConfig } });
+      },
+
+      specializePhase: (phase, path) => {
+        const player = get().player;
+        if (!player) return;
+        const profile = player.archetypeProfile;
+        // Must spend a point, the path must belong to the phase, and the phase
+        // must not already be manually specialized (respec first to switch).
+        if (profile.specializationPoints < 1) return;
+        if (PATH_DEFS[path]?.phase !== phase) return;
+        if (profile.phases[phase]) return;
+
+        set({
+          player: {
+            ...player,
+            archetypeProfile: {
+              ...profile,
+              specializationPoints: profile.specializationPoints - 1,
+              phases: { ...profile.phases, [phase]: { path, tier: 1 } },
+            },
+          },
+        });
+      },
+
+      upgradePhase: (phase) => {
+        const player = get().player;
+        if (!player) return;
+        const profile = player.archetypeProfile;
+        const current = profile.phases[phase];
+        if (!current) return;                         // can only upgrade a chosen specialty
+        if (current.tier >= 3) return;                // max tier
+        if (profile.specializationPoints < 1) return;
+
+        set({
+          player: {
+            ...player,
+            archetypeProfile: {
+              ...profile,
+              specializationPoints: profile.specializationPoints - 1,
+              phases: {
+                ...profile.phases,
+                [phase]: { path: current.path, tier: (current.tier + 1) as 1 | 2 | 3 },
+              },
+            },
+          },
+        });
+      },
+
+      respecPhase: (phase) => {
+        const player = get().player;
+        if (!player) return;
+        const profile = player.archetypeProfile;
+        const current = profile.phases[phase];
+        if (!current) return;
+        if (profile.respecTokens < 1) return;  // respec requires a token (no free respec)
+
+        // Consume a token, clear the phase (reverts to broad default), and refund
+        // the points invested in it so they can be reallocated.
+        const nextPhases = { ...profile.phases };
+        delete nextPhases[phase];
+
+        set({
+          player: {
+            ...player,
+            archetypeProfile: {
+              ...profile,
+              respecTokens: profile.respecTokens - 1,
+              specializationPoints: profile.specializationPoints + current.tier,
+              phases: nextPhases,
+            },
+          },
+        });
+      },
+
+      grantRespecToken: () => {
+        const player = get().player;
+        if (!player) return;
+        set({
+          player: {
+            ...player,
+            archetypeProfile: {
+              ...player.archetypeProfile,
+              respecTokens: player.archetypeProfile.respecTokens + 1,
+            },
+          },
+        });
       },
 
       getPracticeOpponent: (tier: OpponentTier) => {
@@ -1241,6 +1340,7 @@ export const useGameStore = create<GameState>()(
           stats,
           tier: opponent.tier,
           abilities: opponent.abilities,
+          archetypeProfile: getOpponentArchetypeProfile(opponent),
         };
 
         set({
@@ -2208,6 +2308,20 @@ export const useGameStore = create<GameState>()(
         if (outcome.effects.tierChange !== undefined) {
           const newTier = outcome.effects.tierChange as OpponentTier;
           updatedPlayer = PlayerManager.updateTier(updatedPlayer, newTier);
+        }
+
+        // Set broad archetype (Coach Gonzalez event): the broad's default
+        // specialties apply automatically; grant starting specialization points.
+        if (outcome.effects.setArchetypeBroad) {
+          updatedPlayer = {
+            ...updatedPlayer,
+            archetypeProfile: {
+              ...updatedPlayer.archetypeProfile,
+              broad: outcome.effects.setArchetypeBroad,
+              specializationPoints:
+                updatedPlayer.archetypeProfile.specializationPoints + STARTING_SPECIALIZATION_POINTS,
+            },
+          };
         }
 
         // Update relationships (can range from -100 to 100)
