@@ -11,6 +11,7 @@ import {
   Ability
 } from '../types/game';
 import { AbilitySystem } from './AbilitySystem';
+import { createEmptyArchetypeProfile } from '../data/archetypeTree';
 
 export class PlayerManager {
   /**
@@ -54,6 +55,9 @@ export class PlayerManager {
       name,
       stats: baseStats,
       abilities: [],
+
+      // Phase-based archetype is chosen later (Coach Gonzalez event)
+      archetypeProfile: createEmptyArchetypeProfile(),
 
       // Initialize item system
       inventory: [],
@@ -212,12 +216,19 @@ export class PlayerManager {
     const newLevel = this.calculateLevel(newExperience);
     const leveledUp = newLevel > player.level;
 
+    // Each level gained grants one specialization point for the archetype tree.
+    const pointsGained = Math.max(0, newLevel - player.level);
+    const archetypeProfile = pointsGained > 0
+      ? { ...player.archetypeProfile, specializationPoints: player.archetypeProfile.specializationPoints + pointsGained }
+      : player.archetypeProfile;
+
     return {
       player: {
         ...player,
         experience: newExperience,
         totalExperienceEarned: (player.totalExperienceEarned ?? 0) + exp,
         level: newLevel,
+        archetypeProfile,
         updatedAt: new Date().toISOString(),
       },
       leveledUp,

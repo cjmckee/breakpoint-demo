@@ -8,6 +8,7 @@ import type { Challenge } from './challenges';
 import type { StatName } from './index';
 import type { Item } from './items';
 import type { EncyclopediaSectionId } from '../hooks/useMenuModal';
+import type { BroadArchetype } from './archetype';
 
 // ============================================================================
 // TEXT FORMATTING SYSTEM
@@ -152,6 +153,7 @@ export interface StoryEventOutcome {
     tierChange?: number;  // Set player tier to this value (e.g., 2 for Regional)
     revealEncyclopediaSections?: EncyclopediaSectionId[];  // Reveal encyclopedia sections and mark as new
     hangoutUnlocks?: string[];  // Character IDs whose hangout option becomes available
+    setArchetypeBroad?: BroadArchetype;  // Set the player's broad archetype and seed default specialties (Coach Gonzalez event)
   };
 
   // Challenges assigned by this outcome

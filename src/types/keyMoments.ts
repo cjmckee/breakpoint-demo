@@ -8,6 +8,7 @@ import { KeyMomentResult } from '../game/KeyMomentResolver';
 import { Ability, StatBoosts } from './game';
 import { MatchStatistics } from './index';
 import type { ArchetypeType } from '../data/archetypes';
+import type { ArchetypeProfile } from './archetype';
 
 /**
  * Key Moment Data
@@ -100,6 +101,8 @@ export interface InteractiveMatchConfig {
   playerName?: string;   // Player's display name
   opponentName?: string; // Opponent's display name
   opponentTier?: number; // Opponent tier (1-4) for reward calculation
+  playerArchetypeProfile?: ArchetypeProfile;   // Drives player shot-selection behavior
+  opponentArchetypeProfile?: ArchetypeProfile; // Drives opponent shot-selection behavior
   playerAbilities?: Ability[]; // Player abilities to apply during match
   opponentAbilities?: Ability[]; // Opponent abilities to apply during match
   itemBoosts?: StatBoosts; // Stat boosts from equipped/passive items

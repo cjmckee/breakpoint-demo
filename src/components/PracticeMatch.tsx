@@ -9,7 +9,7 @@ import { useMatchStore } from '../stores/matchStore';
 import { Card } from './ui/Card';
 import { PreMatchScreen } from './PreMatchScreen';
 import { ItemManager } from '../game/ItemManager';
-import { derivePlayStyle } from '../core/PlayerProfile';
+import { buildPlayStyle } from '../core/PlayerProfile';
 import type { PreMatchConfig } from '../types/gamePhase';
 import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
 import { calculateOverallRating, getTierLabel } from '../utils/playerStats';
@@ -25,7 +25,7 @@ export const PracticeMatch: React.FC<{ matchConfig: PreMatchConfig | null }> = (
   }
 
   const playerOverallRating = calculateOverallRating(player.stats);
-  const playerPlayStyle = derivePlayStyle(player.stats);
+  const playerPlayStyle = buildPlayStyle(player.archetypeProfile);
 
   const energyCost = DEFAULT_MATCH_ENERGY_COST;
 
@@ -34,6 +34,8 @@ export const PracticeMatch: React.FC<{ matchConfig: PreMatchConfig | null }> = (
       playerStats: player.stats,
       playerName: player.name,
       playerAbilities: player.abilities,
+      playerArchetypeProfile: player.archetypeProfile,
+      opponentArchetypeProfile: matchConfig.opponentArchetypeProfile,
       opponentAbilities: matchConfig.opponentAbilities,
       itemBoosts: {
         ...ItemManager.getTotalPassiveBoosts(player),

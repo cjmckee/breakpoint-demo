@@ -57,6 +57,70 @@ export const coachEvents: StoryEvent[] = [
   },
 
   {
+    id: 'coach_archetype_selection',
+    name: 'What Kind of Player Are You?',
+    tags: ['coach', 'decision', 'tutorial'],
+    timeSlotsRequired: 1,
+    prerequisites: {
+      completedEvents: ['coach_first_meeting'],
+    },
+    skippable: false,
+    description: 'Coach Gonzalez wants to define the identity your game will be built around.',
+    dialogue: [
+      ['coach_gonzalez', ['Talent is nothing without an identity. Every great player is known for *something*. So tell me — what kind of player do you want to be?']],
+      ['coach_gonzalez', ['Don\'t worry about being perfect at everything. We\'ll build your game around a core philosophy, and you\'ll specialize the details as you grow.']],
+    ],
+    characters: ['coach_gonzalez'],
+    options: [
+      {
+        id: 'choose_baseliner',
+        text: 'Baseliner',
+        emoji: '🎾',
+        description: 'Live at the back of the court. Outlast and out-rally your opponents.',
+        outcome: {
+          resultText: ['"A baseliner," ', { characterId: 'coach_gonzalez' }, ' nods. "Patient. Relentless. You\'ll grind opponents down from the back of the court until they crack. Good. Now let\'s build that game."'],
+          effects: {
+            setArchetypeBroad: 'baseliner',
+            moodChange: 8,
+            relationshipChanges: { coach_gonzalez: 5 },
+            hangoutUnlocks: ['coach_gonzalez'],
+          },
+        },
+      },
+      {
+        id: 'choose_net_rusher',
+        text: 'Net-Rusher',
+        emoji: '⚡',
+        description: 'Get forward and finish at the net. End points early and apply pressure.',
+        outcome: {
+          resultText: ['"A net-rusher!" ', { characterId: 'coach_gonzalez' }, ' grins. "Brave. You\'ll take time away from people and finish at the net. High risk, high reward. I like it. Let\'s sharpen those approaches."'],
+          effects: {
+            setArchetypeBroad: 'net_rusher',
+            moodChange: 8,
+            relationshipChanges: { coach_gonzalez: 5 },
+            hangoutUnlocks: ['coach_gonzalez'],
+          },
+        },
+      },
+      {
+        id: 'choose_all_courter',
+        text: 'All-Courter',
+        emoji: '🌐',
+        description: 'Comfortable everywhere. Adapt your game to whatever the moment demands.',
+        outcome: {
+          resultText: ['"An all-courter," ', { characterId: 'coach_gonzalez' }, ' says thoughtfully. "The hardest path — you have to do everything well. But the most dangerous when it comes together. Let\'s make you unpredictable."'],
+          effects: {
+            setArchetypeBroad: 'all_courter',
+            moodChange: 8,
+            relationshipChanges: { coach_gonzalez: 5 },
+            hangoutUnlocks: ['coach_gonzalez'],
+          },
+        },
+      },
+    ],
+  },
+
+  {
     id: 'coach_training_focus',
     name: 'Choose Your Focus',
     tags: ['coach', 'training', 'decision'],

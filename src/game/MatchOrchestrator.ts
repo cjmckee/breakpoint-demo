@@ -11,6 +11,8 @@ import { PointSimulator } from '../core/PointSimulator';
 import { KeyMomentResolver, KeyMomentResult, AppliedEffect } from './KeyMomentResolver';
 import { getOptionsForSituation, KeyMomentType } from '../data/tacticalOptions';
 import type { ArchetypeType } from '../data/archetypes';
+import type { ArchetypeProfile } from '../types/archetype';
+import { aggregateArchetypeEffects } from '../data/archetypeTree';
 import {
   KeyMoment,
   KeyMomentCallback,
@@ -100,10 +102,14 @@ export class MatchOrchestrator {
    * Extract additional effects from abilities for match-time mechanics.
    * Abilities are effects-only — no stat boosts applied during match.
    */
-  private extractActiveEffects(abilities?: Ability[]): Record<string, number> {
-    if (!abilities || abilities.length === 0) return {};
+  private extractActiveEffects(
+    abilities?: Ability[],
+    archetypeProfile?: ArchetypeProfile,
+  ): Record<string, number> {
     const effects: Record<string, number> = {};
-    for (const ability of abilities) {
+
+    // Ability effects (quality keys, read by ShotCalculator)
+    for (const ability of abilities ?? []) {
       const additional = ability.modifiers?.additional;
       if (additional) {
         for (const [key, value] of Object.entries(additional)) {
@@ -111,6 +117,14 @@ export class MatchOrchestrator {
         }
       }
     }
+
+    // Archetype behavior effects (decision keys, read by ShotSelector/PointSimulator)
+    if (archetypeProfile) {
+      for (const [key, value] of Object.entries(aggregateArchetypeEffects(archetypeProfile))) {
+        effects[key] = (effects[key] || 0) + value;
+      }
+    }
+
     return effects;
   }
 
@@ -139,15 +153,16 @@ export class MatchOrchestrator {
       ? this.applyStatBoosts(config.playerStats, config.itemBoosts)
       : config.playerStats;
 
-    // Extract additional ability effects for match-time mechanics
-    this.activeEffects = this.extractActiveEffects(config.playerAbilities);
-    this.opponentActiveEffects = this.extractActiveEffects(config.opponentAbilities);
+    // Extract ability + archetype behavior effects for match-time mechanics
+    this.activeEffects = this.extractActiveEffects(config.playerAbilities, config.playerArchetypeProfile);
+    this.opponentActiveEffects = this.extractActiveEffects(config.opponentAbilities, config.opponentArchetypeProfile);
 
-    // Initialize match simulator with PlayerProfile objects
-    const player = new PlayerProfile('player', 'Player', playerStatsWithBoosts);
-    const opponent = new PlayerProfile('opponent', 'Opponent', config.opponentStats);
+    // Initialize match simulator with PlayerProfile objects, carrying their
+    // archetype identities so shot selection reflects their chosen specialties.
+    const player = new PlayerProfile('player', 'Player', playerStatsWithBoosts, config.playerArchetypeProfile);
+    const opponent = new PlayerProfile('opponent', 'Opponent', config.opponentStats, config.opponentArchetypeProfile);
 
-    // Compute opponent archetype from their stats
+    // Opponent archetype label (from their authored profile) for key-moment context
     this.opponentArchetype = opponent.playStyle.type;
 
     const matchLevel = getMatchLevel(player.overallRating, opponent.overallRating);
