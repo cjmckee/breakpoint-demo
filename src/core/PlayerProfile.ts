@@ -14,41 +14,13 @@ import type {
   StatName,
   StatCategory
 } from '../types/index.js';
-
-/**
- * Archetype fingerprints: each archetype is defined by characteristic stat combinations.
- * - core: identity-defining stats — at least 1 must appear in the player's strong stats to qualify
- * - supporting: reinforcing stats that strengthen the signal
- *
- * The system looks at which of a player's top stats match each archetype's fingerprint,
- * so it works consistently at any rating range (20s through 90s).
- */
-interface ArchetypeFingerprint {
-  core: string[];
-  supporting: string[];
-}
-
-const ARCHETYPE_FINGERPRINTS: Record<Exclude<PlayStyle['type'], 'all_court'>, ArchetypeFingerprint> = {
-  aggressive: {
-    core: ['forehand', 'serve'],
-    supporting: ['strength', 'offensive', 'backhand', 'spin'],
-  },
-  defensive: {
-    core: ['stamina', 'speed'],
-    supporting: ['defensive', 'slice', 'recovery', 'agility'],
-  },
-  counterpuncher: {
-    core: ['return', 'anticipation'],
-    supporting: ['speed', 'defensive', 'agility', 'slice'],
-  },
-  serve_volley: {
-    core: ['serve', 'volley'],
-    supporting: ['overhead', 'strength', 'offensive', 'placement'],
-  },
-};
-
-// Minimum score an archetype needs to beat all_court
-const MIN_ARCHETYPE_SCORE = 5;
+import type { ArchetypeProfile } from '../types/archetype.js';
+import { EffectKey } from '../types/game.js';
+import {
+  aggregateArchetypeEffects,
+  resolvePhaseSpec,
+  createEmptyArchetypeProfile,
+} from '../data/archetypeTree.js';
 
 const ARCHETYPE_DESCRIPTIONS: Record<PlayStyle['type'], string> = {
   serve_volley: 'Aggressive net player who serves and volleys',
@@ -58,38 +30,6 @@ const ARCHETYPE_DESCRIPTIONS: Record<PlayStyle['type'], string> = {
   defensive: 'Solid baseline player who focuses on consistency',
 };
 
-interface StatEntry {
-  name: string;
-  value: number;
-}
-
-function getAllStatEntries(stats: PlayerStats): StatEntry[] {
-  const entries: StatEntry[] = [];
-  for (const [name, value] of Object.entries(stats.core)) {
-    entries.push({ name, value: value as number });
-  }
-  for (const [name, value] of Object.entries(stats.technical)) {
-    entries.push({ name, value: value as number });
-  }
-  for (const [name, value] of Object.entries(stats.physical)) {
-    entries.push({ name, value: value as number });
-  }
-  for (const [name, value] of Object.entries(stats.mental)) {
-    entries.push({ name, value: value as number });
-  }
-  return entries;
-}
-
-/**
- * Derive play style by matching the player's strongest stats against archetype fingerprints.
- *
- * Algorithm:
- * 1. Collect all stats, compute the player's mean
- * 2. "Strong stats" = stats above the mean (filters noise from even/low stats)
- * 3. For each archetype, check how many core/supporting stats appear in the strong set
- * 4. Score = core_matches * 3 + supporting_matches * 1 + 2 bonus if #1 stat is a core stat
- * 5. All-court wins when no archetype clears MIN_ARCHETYPE_SCORE
- */
 export function calculateOverallRating(stats: PlayerStats): number {
   const avg = (vals: object) => {
     const v = Object.values(vals) as number[];
@@ -103,72 +43,57 @@ export function calculateOverallRating(stats: PlayerStats): number {
   );
 }
 
-export function derivePlayStyle(stats: PlayerStats): PlayStyle {
-  const allStats = getAllStatEntries(stats);
-  const allValues = allStats.map(s => s.value);
-  const mean = allValues.reduce((a, b) => a + b, 0) / allValues.length;
+const clampDial = (v: number): number => Math.max(0, Math.min(100, v));
 
-  // Sort descending to identify the player's #1 stat
-  allStats.sort((a, b) => b.value - a.value);
-  const topStatName = allStats[0].name;
+/**
+ * Map a profile's chosen specialties onto one of the legacy five PlayStyle types,
+ * used as a summary label by the tactical-counter and display systems.
+ */
+function summarizeArchetypeType(profile: ArchetypeProfile): PlayStyle['type'] {
+  const fh = resolvePhaseSpec(profile, 'forehand')?.path;
+  const bh = resolvePhaseSpec(profile, 'backhand')?.path;
+  const ret = resolvePhaseSpec(profile, 'return')?.path;
+  const net = resolvePhaseSpec(profile, 'net')?.path;
 
-  // Strong stats: 3+ above the player's personal mean
-  const strongStatNames = new Set(
-    allStats.filter(s => s.value > mean + 3).map(s => s.name)
-  );
+  if (net === 'net_rusher' || ret === 'rt_chip_charge') return 'serve_volley';
+  if (fh === 'fh_flat' || ret === 'rt_aggressor') return 'aggressive';
+  if (ret === 'rt_neutralizer' && bh === 'bh_slice') return 'counterpuncher';
+  if (fh === 'fh_steady' && (bh === 'bh_steady' || bh === 'bh_slice')) return 'defensive';
+  return 'all_court';
+}
 
-  // Score each archetype by fingerprint overlap with strong stats
-  const scores: Record<PlayStyle['type'], number> = {
-    aggressive: 0,
-    defensive: 0,
-    counterpuncher: 0,
-    serve_volley: 0,
-    all_court: 0,
-  };
+/**
+ * Build a PlayStyle from a player's archetype profile.
+ *
+ * The four dials are a projection of the profile's aggregated behavior effects
+ * (so existing ShotSelector/counter/display code keeps working). The finer
+ * behaviors that dials can't express (per-wing slice, serve aggression, fault
+ * risk) are read directly from the aggregated effects in ShotSelector.
+ */
+export function buildPlayStyle(profile: ArchetypeProfile): PlayStyle {
+  const fx = aggregateArchetypeEffects(profile);
+  const get = (k: string): number => fx[k] ?? 0;
 
-  for (const [archetype, fingerprint] of Object.entries(ARCHETYPE_FINGERPRINTS)) {
-    const coreMatches = fingerprint.core.filter(s => strongStatNames.has(s)).length;
+  const winner = get(EffectKey.WINNER_BIAS);
+  const net = get(EffectKey.NET_APPROACH_BIAS);
+  const rally = get(EffectKey.RALLY_TOLERANCE);
+  const returnAgg = get(EffectKey.RETURN_AGGRESSION);
+  const firstServePower = get(EffectKey.FIRST_SERVE_POWER);
 
-    // Must have at least 1 core stat among strong stats to qualify
-    if (coreMatches === 0) continue;
+  const aggression = clampDial(50 + winner + returnAgg * 0.5 - rally);
+  const netApproach = clampDial(25 + net);
+  const consistency = clampDial(50 + rally - winner * 0.5);
+  const power = clampDial(50 + firstServePower + winner * 0.5);
 
-    const supportMatches = fingerprint.supporting.filter(s => strongStatNames.has(s)).length;
-
-    let score = coreMatches * 3 + supportMatches;
-
-    // Bonus if the player's single best stat is a core stat for this archetype
-    if (fingerprint.core.includes(topStatName)) {
-      score += 2;
-    }
-
-    scores[archetype as PlayStyle['type']] = score;
-  }
-
-  // Pick the highest-scoring archetype (priority order breaks ties)
-  const priority: PlayStyle['type'][] = [
-    'aggressive', 'serve_volley', 'counterpuncher', 'defensive', 'all_court',
-  ];
-  let bestType: PlayStyle['type'] = 'all_court';
-  let bestScore = MIN_ARCHETYPE_SCORE - 1;
-  for (const t of priority) {
-    if (scores[t] > bestScore) {
-      bestScore = scores[t];
-      bestType = t;
-    }
-  }
-
-  const aggression = ((stats.mental.offensive * 2) + stats.physical.strength + stats.core.forehand) / 4;
-  const netApproach = ((stats.technical.volley * 3) + stats.technical.overhead + stats.physical.speed) / 5;
-  const consistency = (stats.mental.focus + stats.mental.anticipation + stats.core.forehand + stats.core.backhand) / 4;
-  const power = ((stats.physical.strength * 2) + stats.mental.offensive + stats.core.serve) / 4;
+  const type = summarizeArchetypeType(profile);
 
   return {
-    type: bestType,
+    type,
     aggression,
     netApproach,
     consistency,
     power,
-    description: ARCHETYPE_DESCRIPTIONS[bestType],
+    description: ARCHETYPE_DESCRIPTIONS[type],
   };
 }
 
@@ -186,12 +111,17 @@ export class PlayerProfile implements IPlayerProfile {
   public matchesPlayed: number = 0;
   public matchesWon: number = 0;
 
+  // Phase-based archetype identity that drives shot-selection behavior.
+  public archetypeProfile: ArchetypeProfile;
+
   constructor(
     id: string,
     name: string,
-    stats?: Partial<PlayerStats>
+    stats?: Partial<PlayerStats>,
+    archetypeProfile?: ArchetypeProfile
   ) {
     this.id = id;
+    this.archetypeProfile = archetypeProfile ?? createEmptyArchetypeProfile();
     this.name = name;
     this.stats = this.createDefaultStats(stats);
   }
@@ -380,10 +310,10 @@ export class PlayerProfile implements IPlayerProfile {
   }
 
   /**
-   * Determine play style based on offensive/defensive balance
+   * Play style built from the player's chosen archetype profile.
    */
   public get playStyle(): PlayStyle {
-    return derivePlayStyle(this.stats);
+    return buildPlayStyle(this.archetypeProfile);
   }
 
   /**

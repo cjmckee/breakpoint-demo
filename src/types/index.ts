@@ -644,7 +644,10 @@ export interface PlayerProfile {
 }
 
 /**
- * Play style derived from stats
+ * Play style — built from the player's ArchetypeProfile (see buildPlayStyle).
+ * The four dials are a derived projection of the chosen specialties' behavior
+ * effects, kept so existing ShotSelector/counter/display logic keeps working;
+ * `type` is the summary label mapped onto the legacy five values.
  */
 export interface PlayStyle {
   type: 'aggressive' | 'defensive' | 'all_court' | 'serve_volley' | 'counterpuncher';

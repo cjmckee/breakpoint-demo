@@ -454,6 +454,19 @@ export const ENERGY_DRINK: Item = {
   },
 };
 
+export const GAME_PLAN_NOTEBOOK: Item = {
+  id: 'game_plan_notebook',
+  name: 'Game Plan Notebook',
+  description: 'Pages of tactical notes. Studying them lets you rethink one part of your game — grants a respec token to re-pick a phase specialty.',
+  type: 'consumable',
+  consumableEffect: {
+    type: 'instant',
+    instantEffects: {
+      respecTokens: 1,
+    },
+  },
+};
+
 export const SPORTS_DRINK: Item = {
   id: 'sports_drink',
   name: 'Sports Drink',
@@ -1174,6 +1187,7 @@ const ITEM_COLLECTIONS: Item[] = [
   CHAMPIONS_CAP,
   // Consumables - instant
   ENERGY_DRINK,
+  GAME_PLAN_NOTEBOOK,
   SPORTS_DRINK,
   RECOVERY_SHAKE,
   SUPER_ENERGY_GEL,

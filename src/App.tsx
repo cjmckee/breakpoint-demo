@@ -11,6 +11,7 @@ import { LiveMatchViewer } from './components/LiveMatchViewer';
 import { Inventory } from './components/Inventory';
 import { Relationships } from './components/Relationships';
 import { Shop } from './components/Shop';
+import { ArchetypeTree } from './components/ArchetypeTree';
 import { TournamentList } from './components/TournamentList';
 import { TournamentMatch } from './components/TournamentMatch';
 import { StoryMatch } from './components/StoryMatch';
@@ -130,6 +131,9 @@ function App() {
 
       case 'shop':
         return <Shop />;
+
+      case 'archetype':
+        return <ArchetypeTree />;
 
       case 'story_event':
         return (

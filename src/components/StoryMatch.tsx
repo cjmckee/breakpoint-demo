@@ -10,7 +10,7 @@ import { Card } from './ui/Card';
 import { PreMatchScreen } from './PreMatchScreen';
 import { ItemManager } from '../game/ItemManager';
 import { StoryMatchManager } from '../game/StoryMatchManager';
-import { derivePlayStyle } from '../core/PlayerProfile';
+import { buildPlayStyle } from '../core/PlayerProfile';
 import type { PreMatchConfig } from '../types/gamePhase';
 import type { PlayerStats, PlayStyle } from '../types';
 import { calculateOverallRating } from '../utils/playerStats';
@@ -30,7 +30,7 @@ export const StoryMatch: React.FC<StoryMatchProps> = ({ matchConfig }) => {
   }
 
   const playerOverallRating = calculateOverallRating(player.stats);
-  const playerPlayStyle = derivePlayStyle(player.stats);
+  const playerPlayStyle = buildPlayStyle(player.archetypeProfile);
 
   const energyCost = StoryMatchManager.calculateMatchEnergyCost(currentStatus.energy);
 
@@ -39,6 +39,8 @@ export const StoryMatch: React.FC<StoryMatchProps> = ({ matchConfig }) => {
       playerStats: player.stats,
       playerName: player.name,
       playerAbilities: player.abilities,
+      playerArchetypeProfile: player.archetypeProfile,
+      opponentArchetypeProfile: matchConfig.opponentArchetypeProfile,
       opponentAbilities: matchConfig.opponentAbilities,
       itemBoosts: {
         ...ItemManager.getTotalPassiveBoosts(player),

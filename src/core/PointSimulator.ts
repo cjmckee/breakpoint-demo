@@ -53,8 +53,9 @@ export class PointSimulator {
     const pointId = `point_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     let shotNumber = 1;
 
-    // Step 1: Serve sequence
-    const serveResult = this.simulateServe(server, returner, matchState, pointId, shotNumber, currentServer);
+    // Step 1: Serve sequence (server's archetype shapes serve aggression / fault risk)
+    const serverBehaviorEffects = currentServer === 'player' ? activeEffects : opponentActiveEffects;
+    const serveResult = this.simulateServe(server, returner, matchState, pointId, shotNumber, currentServer, serverBehaviorEffects);
     shots.push(...serveResult.shots);
     shotNumber += serveResult.shots.length;
 
@@ -101,7 +102,8 @@ export class PointSimulator {
     matchState: MatchState,
     pointId: string,
     shotNumber: number,
-    currentServer: 'player' | 'opponent'
+    currentServer: 'player' | 'opponent',
+    serverBehaviorEffects?: Record<string, number>
   ): {
     shots: ShotDetail[];
     pointEnded: boolean;
@@ -131,15 +133,19 @@ export class PointSimulator {
       serverMomentum
     );
 
+    // Apply the server's archetype serve behavior (power → more aces, fault risk
+    // → more misses) before resolving the first-serve outcome.
+    const firstOutcome = this.applyServeBehavior(firstServeResult.outcome, 'first', serverBehaviorEffects);
+
     // Check first serve result
-    if (firstServeResult.outcome === PointType.ACE) {
+    if (firstOutcome === PointType.ACE) {
       // Ace on first serve
       const firstServeShot: ShotDetail = {
         shotType: 'serve_first',
         shooter: 'server',
-        success: firstServeResult.success,
+        success: true,
         quality: firstServeResult.quality,
-        outcome: firstServeResult.outcome,
+        outcome: firstOutcome,
         statUsed: firstServeResult.statUsed,
         modifiers: firstServeResult.modifiers,
         timestamp: Date.now(),
@@ -159,14 +165,14 @@ export class PointSimulator {
       };
     }
 
-    if (firstServeResult.outcome === PointType.IN_PLAY) {
+    if (firstOutcome === PointType.IN_PLAY) {
       // Good first serve, returner gets to return
       const firstServeShot: ShotDetail = {
         shotType: 'serve_first',
         shooter: 'server',
         success: firstServeResult.success,
         quality: firstServeResult.quality,
-        outcome: firstServeResult.outcome,
+        outcome: firstOutcome,
         statUsed: firstServeResult.statUsed,
         modifiers: firstServeResult.modifiers,
         timestamp: Date.now(),
@@ -191,7 +197,7 @@ export class PointSimulator {
       shooter: 'server',
       success: false,
       quality: firstServeResult.quality,
-      outcome: firstServeResult.outcome,
+      outcome: PointType.FAULT,
       statUsed: firstServeResult.statUsed,
       modifiers: firstServeResult.modifiers,
       timestamp: Date.now(),
@@ -231,8 +237,12 @@ export class PointSimulator {
 
     shots.push(secondServeShot);
 
+    // Apply serve behavior to the second serve: aggression → more aces, fault
+    // risk → more double faults (the Gambler / Safe tradeoff lives here).
+    const secondOutcome = this.applyServeBehavior(secondServeResult.outcome, 'second', serverBehaviorEffects);
+
     // Check second serve result
-    if (secondServeResult.outcome === PointType.ACE) {
+    if (secondOutcome === PointType.ACE) {
       // Ace on second serve (rare but possible)
       return {
         shots,
@@ -244,7 +254,7 @@ export class PointSimulator {
       };
     }
 
-    if (secondServeResult.outcome === PointType.FAULT) {
+    if (secondOutcome === PointType.FAULT) {
       // Double fault
       return {
         shots,
@@ -264,6 +274,36 @@ export class PointSimulator {
       serveType: 'second',
       quality: secondServeResult.quality,
     };
+  }
+
+  /**
+   * Adjust an in-play serve outcome based on the server's archetype serve
+   * behavior. Only IN_PLAY serves are modulated, and only toward the
+   * well-defined ACE / FAULT outcomes:
+   *  - first serve:  FIRST_SERVE_POWER → ACE, FAULT_RISK → FAULT (miss)
+   *  - second serve: SECOND_SERVE_AGGRESSION → ACE, FAULT_RISK → FAULT (double)
+   */
+  private applyServeBehavior(
+    outcome: PointType,
+    serveType: 'first' | 'second',
+    effects?: Record<string, number>
+  ): PointType {
+    if (!effects || outcome !== PointType.IN_PLAY) return outcome;
+
+    const aggression = serveType === 'first'
+      ? (effects[EffectKey.FIRST_SERVE_POWER] ?? 0)
+      : (effects[EffectKey.SECOND_SERVE_AGGRESSION] ?? 0);
+    const faultRisk = effects[EffectKey.FAULT_RISK] ?? 0;
+
+    // Aggression converts some would-be in-play serves into aces.
+    if (aggression > 0 && Math.random() < (aggression / 100) * 0.35) {
+      return PointType.ACE;
+    }
+    // Fault risk converts some would-be in-play serves into misses.
+    if (faultRisk > 0 && Math.random() < (faultRisk / 100) * 0.5) {
+      return PointType.FAULT;
+    }
+    return outcome;
   }
 
   /**
@@ -316,17 +356,20 @@ export class PointSimulator {
         matchLevel,
       };
 
-      // NEW: Use ShotSelector instead of old selectShotType
+      // Resolve shooter identity for fatigue/momentum/ability/archetype lookup
+      const shooterIdentity: 'player' | 'opponent' =
+        (currentShooter === 'server') === (currentServer === 'player') ? 'player' : 'opponent';
+      const shooterBehaviorEffects = shooterIdentity === 'player' ? activeEffects : opponentActiveEffects;
+
+      // Use ShotSelector, passing the shooter's archetype behavior effects so
+      // shot selection reflects their chosen specialties.
       const shotType = this.shotSelector.selectShot(
         shooterProfile,
         opponentProfile,
         rallyState,
-        matchState
+        matchState,
+        shooterBehaviorEffects
       );
-
-      // Resolve shooter identity for fatigue/momentum/ability lookup
-      const shooterIdentity: 'player' | 'opponent' =
-        (currentShooter === 'server') === (currentServer === 'player') ? 'player' : 'opponent';
 
       // Create context for this shot (using actual ball quality and opponent position)
       const shotContext = this.createRallyContext(
