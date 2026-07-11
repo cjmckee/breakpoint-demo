@@ -64,9 +64,9 @@ const PATHS: PhasePathDef[] = [
   {
     id: 'fs_spot', phase: 'first_serve', label: 'Spot-Server',
     description: 'Pinpoint placement over raw power — paint the lines and set up the next ball.',
-    tradeoff: 'Gives up free aces for reliability — leveling lands even more first serves.',
+    tradeoff: 'Softer, well-placed serves — lands far more often, but the returner gets a look at it.',
     tierEffects: [
-      { [EffectKey.FAULT_RISK]: -12 },
+      { [EffectKey.FAULT_RISK]: -12, [EffectKey.SERVE_PACE]: -3 },
       { [EffectKey.FAULT_RISK]: -6 },
       { [EffectKey.FAULT_RISK]: -6 },
     ],
@@ -76,7 +76,7 @@ const PATHS: PhasePathDef[] = [
     description: 'Heavy spin that jumps off the court and pulls returners out of position.',
     tradeoff: 'Rarely free points, but reliable and sets up the rally — leveling deepens both.',
     tierEffects: [
-      { [EffectKey.FAULT_RISK]: -8, [EffectKey.RALLY_TOLERANCE]: 3 },
+      { [EffectKey.FAULT_RISK]: -8, [EffectKey.SERVE_PACE]: -2, [EffectKey.RALLY_TOLERANCE]: 3 },
       { [EffectKey.FAULT_RISK]: -4, [EffectKey.RALLY_TOLERANCE]: 3 },
       { [EffectKey.FAULT_RISK]: -4, [EffectKey.RALLY_TOLERANCE]: 3 },
     ],
@@ -86,11 +86,11 @@ const PATHS: PhasePathDef[] = [
   {
     id: 'ss_safe', phase: 'second_serve', label: 'Safe',
     description: 'Get it in, start the point. No heroics on the second ball.',
-    tradeoff: 'Almost never double-faults, but gets attacked — leveling makes it less of a sitting duck.',
+    tradeoff: 'Almost never double-faults, but the soft ball gets attacked — leveling adds a little sting.',
     tierEffects: [
-      { [EffectKey.FAULT_RISK]: -14, [EffectKey.SECOND_SERVE_AGGRESSION]: -8 },
+      { [EffectKey.FAULT_RISK]: -14, [EffectKey.SERVE_PACE]: -4, [EffectKey.SECOND_SERVE_AGGRESSION]: -8 },
       { [EffectKey.FAULT_RISK]: -4, [EffectKey.SECOND_SERVE_AGGRESSION]: 3 },
-      { [EffectKey.FAULT_RISK]: -4, [EffectKey.SECOND_SERVE_AGGRESSION]: 3 },
+      { [EffectKey.FAULT_RISK]: -4, [EffectKey.SERVE_PACE]: 2, [EffectKey.SECOND_SERVE_AGGRESSION]: 3 },
     ],
   },
   {

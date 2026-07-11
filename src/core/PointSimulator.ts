@@ -120,6 +120,12 @@ export class PointSimulator {
     const serverFatigue = matchState.fatigue[currentServer];
     const serverMomentum = currentServer === 'player' ? matchState.momentum : -matchState.momentum;
 
+    // Serve pace: placement/safe specialties trade power for reliability — their
+    // serve lands softer, so the returner faces a weaker (easier) ball. This
+    // offsets the reliability so it's a real tradeoff, not a free win.
+    const servePacePenalty = Math.max(0, -(serverBehaviorEffects?.[EffectKey.SERVE_PACE] ?? 0));
+    const soften = (q: number): number => Math.max(0, q - servePacePenalty);
+
     const firstServeContext = this.createServeContext(matchState, true);
     const firstServeResult = this.shotCalculator.calculateShotSuccess(
       server,
@@ -171,7 +177,7 @@ export class PointSimulator {
         shotType: 'serve_first',
         shooter: 'server',
         success: firstServeResult.success,
-        quality: firstServeResult.quality,
+        quality: soften(firstServeResult.quality),
         outcome: firstOutcome,
         statUsed: firstServeResult.statUsed,
         modifiers: firstServeResult.modifiers,
@@ -230,7 +236,7 @@ export class PointSimulator {
       shotType: 'serve_second',
       shooter: 'server',
       success: secondOutcome !== PointType.FAULT,
-      quality: secondServeResult.quality,
+      quality: soften(secondServeResult.quality),
       outcome: secondOutcome,
       statUsed: secondServeResult.statUsed,
       modifiers: secondServeResult.modifiers,
