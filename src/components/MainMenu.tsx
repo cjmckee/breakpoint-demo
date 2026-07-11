@@ -340,6 +340,16 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                             ? 'Not Enough Energy'
                             : 'Play Match'}
                   </Button>
+                  {player.archetypeProfile.broad && (
+                    <div className="relative">
+                      {player.archetypeProfile.specializationPoints > 0 && (
+                        <UnseenBadge className="absolute -top-2 -right-2 z-10" />
+                      )}
+                      <Button variant="secondary" fullWidth onClick={() => navigateTo('archetype')}>
+                        Archetype
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </Card>
 
@@ -412,16 +422,6 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                       Relationships
                     </Button>
                   </div>
-                  {player.archetypeProfile.broad && (
-                    <div className="relative">
-                      {player.archetypeProfile.specializationPoints > 0 && (
-                        <UnseenBadge className="absolute -top-2 -right-2 z-10" />
-                      )}
-                      <Button variant="primary" fullWidth onClick={() => navigateTo('archetype')}>
-                        Archetype
-                      </Button>
-                    </div>
-                  )}
                   {calendar.currentDay >= 7 ? (
                     <div className="relative">
                       {hasUnseenShop && (

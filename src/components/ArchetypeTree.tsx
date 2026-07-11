@@ -15,7 +15,6 @@ import {
   ALL_PHASES,
   PHASE_LABELS,
   PATHS_BY_PHASE,
-  resolvePhaseSpec,
 } from '../data/archetypeTree';
 import type { GamePhase, PhasePathId, SpecialtyTier } from '../types/archetype';
 
@@ -73,24 +72,21 @@ export const ArchetypeTree: React.FC = () => {
   }
 
   const renderPhase = (phase: GamePhase) => {
-    const effective = resolvePhaseSpec(profile, phase);
-    const chosen = profile.phases[phase]; // manual pick (undefined = using broad default)
+    const chosen = profile.phases[phase]; // undefined = not yet specialized (baseline behavior)
+    const phaseManuallySet = !!chosen;
     const paths = PATHS_BY_PHASE[phase];
 
     return (
       <Card key={phase} title={PHASE_LABELS[phase]} className="mb-4">
         <div className="space-y-3">
           {paths.map((path) => {
-            const isEffective = effective?.path === path.id;
             const isChosen = chosen?.path === path.id;
-            const isDefaultOnly = isEffective && !chosen; // broad default, not manually chosen
-            const phaseManuallySet = !!chosen;
 
             return (
               <div
                 key={path.id}
                 className={`p-3 border-2 ${
-                  isEffective ? 'border-pixel-accent bg-pixel-accent bg-opacity-10' : 'border-pixel-border bg-pixel-card'
+                  isChosen ? 'border-pixel-accent bg-pixel-accent bg-opacity-10' : 'border-pixel-border bg-pixel-card'
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -98,18 +94,13 @@ export const ArchetypeTree: React.FC = () => {
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-bold text-pixel-text">{path.label}</span>
                       {isChosen && <TierDots tier={chosen!.tier} />}
-                      {isDefaultOnly && (
-                        <span className="text-xs px-1.5 py-0.5 bg-pixel-bg border border-pixel-border text-pixel-text-muted">
-                          default
-                        </span>
-                      )}
                     </div>
                     <p className="text-sm text-pixel-text-muted mt-1">{path.description}</p>
                     <p className="text-xs text-pixel-accent-light mt-1">⚖️ {path.tradeoff}</p>
                   </div>
 
                   <div className="flex flex-col gap-1 shrink-0">
-                    {/* Specialize: phase has no manual pick yet */}
+                    {/* Specialize: phase has no pick yet */}
                     {!phaseManuallySet && (
                       <Button
                         size="sm"
@@ -117,7 +108,7 @@ export const ArchetypeTree: React.FC = () => {
                         disabled={points < 1}
                         onClick={() => specializePhase(phase, path.id as PhasePathId)}
                       >
-                        {isDefaultOnly ? 'Lock In (1)' : 'Specialize (1)'}
+                        Specialize (1)
                       </Button>
                     )}
 

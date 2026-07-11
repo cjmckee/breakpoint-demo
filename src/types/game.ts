@@ -134,6 +134,7 @@ export const EffectKey = {
   SECOND_SERVE_AGGRESSION: 'second_serve_aggression', // goes after the second serve
   FIRST_SERVE_POWER: 'first_serve_power',           // leans on power over placement on first serve
   FAULT_RISK: 'fault_risk',                         // tradeoff: raises serve fault probability
+  POWER_VARIANCE: 'power_variance',                 // tradeoff: widens quality swing on power shots (boom-or-bust)
   SLICE_PREFERENCE_FOREHAND: 'slice_preference_forehand', // slices forehands rather than driving
   SLICE_PREFERENCE_BACKHAND: 'slice_preference_backhand', // slices backhands rather than driving
 } as const;

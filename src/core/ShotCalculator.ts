@@ -822,6 +822,14 @@ export class ShotCalculator {
       bonus += firstPointBoost;
     }
 
+    // power_variance: archetype tradeoff — widen the quality swing on power shots
+    // so they boom or bust. This is symmetric (can help or hurt), creating genuine
+    // risk on aggressive groundstrokes. Leveling the specialty narrows it back down.
+    const powerVariance = effects[EffectKey.POWER_VARIANCE] ?? 0;
+    if (powerVariance > 0 && shotType.includes('power')) {
+      bonus += (Math.random() - 0.5) * 2 * powerVariance;
+    }
+
     return Math.min(100, Math.max(0, quality + bonus));
   }
 

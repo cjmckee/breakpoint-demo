@@ -221,12 +221,17 @@ export class PointSimulator {
       serverMomentum
     );
 
+    // Apply serve behavior to the second serve BEFORE recording the shot, so the
+    // recorded outcome matches how the point actually resolves: aggression → more
+    // aces, fault risk → more double faults, reliability → rescued double faults.
+    const secondOutcome = this.applyServeBehavior(secondServeResult.outcome, 'second', serverBehaviorEffects);
+
     const secondServeShot: ShotDetail = {
       shotType: 'serve_second',
       shooter: 'server',
-      success: secondServeResult.success,
+      success: secondOutcome !== PointType.FAULT,
       quality: secondServeResult.quality,
-      outcome: secondServeResult.outcome,
+      outcome: secondOutcome,
       statUsed: secondServeResult.statUsed,
       modifiers: secondServeResult.modifiers,
       timestamp: Date.now(),
@@ -236,10 +241,6 @@ export class PointSimulator {
     };
 
     shots.push(secondServeShot);
-
-    // Apply serve behavior to the second serve: aggression → more aces, fault
-    // risk → more double faults (the Gambler / Safe tradeoff lives here).
-    const secondOutcome = this.applyServeBehavior(secondServeResult.outcome, 'second', serverBehaviorEffects);
 
     // Check second serve result
     if (secondOutcome === PointType.ACE) {
@@ -288,12 +289,25 @@ export class PointSimulator {
     serveType: 'first' | 'second',
     effects?: Record<string, number>
   ): PointType {
-    if (!effects || outcome !== PointType.IN_PLAY) return outcome;
+    if (!effects) return outcome;
+
+    const faultRisk = effects[EffectKey.FAULT_RISK] ?? 0;
+
+    // Reliability: a reliable server (negative fault risk) rescues some would-be
+    // misses — a first serve that lands in, or a second serve that avoids a double
+    // fault. This is the upside of placement/spin/safe serve specialties.
+    if (outcome === PointType.FAULT && faultRisk < 0) {
+      if (Math.random() < Math.min(0.75, Math.abs(faultRisk) / 100)) {
+        return PointType.IN_PLAY;
+      }
+      return outcome;
+    }
+
+    if (outcome !== PointType.IN_PLAY) return outcome;
 
     const aggression = serveType === 'first'
       ? (effects[EffectKey.FIRST_SERVE_POWER] ?? 0)
       : (effects[EffectKey.SECOND_SERVE_AGGRESSION] ?? 0);
-    const faultRisk = effects[EffectKey.FAULT_RISK] ?? 0;
 
     // Aggression converts some would-be in-play serves into aces.
     if (aggression > 0 && Math.random() < (aggression / 100) * 0.35) {

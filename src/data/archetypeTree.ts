@@ -10,7 +10,7 @@
  * player tries (ShotSelector/PointSimulator), never how well they execute.
  */
 
-import { EffectKey } from '../types/game';
+import { EffectKey } from '../types/game.js';
 import type {
   ArchetypeProfile,
   BroadArchetype,
@@ -54,31 +54,31 @@ const PATHS: PhasePathDef[] = [
   {
     id: 'fs_bomber', phase: 'first_serve', label: 'Bomber',
     description: 'Swing for the fences — huge first serves that end points before they start.',
-    tradeoff: 'More free points and aces, but a higher chance of missing the first serve.',
+    tradeoff: 'More aces, at the cost of missed first serves — leveling tightens it up (fewer misses).',
     tierEffects: [
-      { [EffectKey.FIRST_SERVE_POWER]: 8, [EffectKey.FAULT_RISK]: 5 },
-      { [EffectKey.FIRST_SERVE_POWER]: 6, [EffectKey.FAULT_RISK]: 3 },
-      { [EffectKey.FIRST_SERVE_POWER]: 6, [EffectKey.FAULT_RISK]: 3 },
+      { [EffectKey.FIRST_SERVE_POWER]: 18, [EffectKey.FAULT_RISK]: 12 },
+      { [EffectKey.FAULT_RISK]: -4 },
+      { [EffectKey.FAULT_RISK]: -4 },
     ],
   },
   {
     id: 'fs_spot', phase: 'first_serve', label: 'Spot-Server',
     description: 'Pinpoint placement over raw power — paint the lines and set up the next ball.',
-    tradeoff: 'Fewer outright aces, but very reliable and sets up the point.',
+    tradeoff: 'Gives up free aces for reliability — leveling lands even more first serves.',
     tierEffects: [
-      { [EffectKey.FAULT_RISK]: -4 },
-      { [EffectKey.FAULT_RISK]: -3 },
-      { [EffectKey.FAULT_RISK]: -3 },
+      { [EffectKey.FAULT_RISK]: -12 },
+      { [EffectKey.FAULT_RISK]: -6 },
+      { [EffectKey.FAULT_RISK]: -6 },
     ],
   },
   {
     id: 'fs_spin', phase: 'first_serve', label: 'Spin/Kick',
     description: 'Heavy spin that jumps off the court and pulls returners out of position.',
-    tradeoff: 'Rarely free points, but extremely consistent and hard to attack.',
+    tradeoff: 'Rarely free points, but reliable and sets up the rally — leveling deepens both.',
     tierEffects: [
-      { [EffectKey.FAULT_RISK]: -3, [EffectKey.RALLY_TOLERANCE]: 2 },
-      { [EffectKey.FAULT_RISK]: -2, [EffectKey.RALLY_TOLERANCE]: 2 },
-      { [EffectKey.FAULT_RISK]: -2, [EffectKey.RALLY_TOLERANCE]: 2 },
+      { [EffectKey.FAULT_RISK]: -8, [EffectKey.RALLY_TOLERANCE]: 3 },
+      { [EffectKey.FAULT_RISK]: -4, [EffectKey.RALLY_TOLERANCE]: 3 },
+      { [EffectKey.FAULT_RISK]: -4, [EffectKey.RALLY_TOLERANCE]: 3 },
     ],
   },
 
@@ -86,11 +86,11 @@ const PATHS: PhasePathDef[] = [
   {
     id: 'ss_safe', phase: 'second_serve', label: 'Safe',
     description: 'Get it in, start the point. No heroics on the second ball.',
-    tradeoff: 'Almost never double-faults, but gets attacked by aggressive returners.',
+    tradeoff: 'Almost never double-faults, but gets attacked — leveling makes it less of a sitting duck.',
     tierEffects: [
-      { [EffectKey.FAULT_RISK]: -5, [EffectKey.SECOND_SERVE_AGGRESSION]: -6 },
-      { [EffectKey.FAULT_RISK]: -3, [EffectKey.SECOND_SERVE_AGGRESSION]: -3 },
-      { [EffectKey.FAULT_RISK]: -3, [EffectKey.SECOND_SERVE_AGGRESSION]: -3 },
+      { [EffectKey.FAULT_RISK]: -14, [EffectKey.SECOND_SERVE_AGGRESSION]: -8 },
+      { [EffectKey.FAULT_RISK]: -4, [EffectKey.SECOND_SERVE_AGGRESSION]: 3 },
+      { [EffectKey.FAULT_RISK]: -4, [EffectKey.SECOND_SERVE_AGGRESSION]: 3 },
     ],
   },
   {
@@ -106,11 +106,11 @@ const PATHS: PhasePathDef[] = [
   {
     id: 'ss_gambler', phase: 'second_serve', label: 'Gambler',
     description: '"I have two first serves." Go after the second ball just as hard.',
-    tradeoff: 'Steals free points, but double-faults far more often.',
+    tradeoff: 'Steals free points but double-faults — leveling reins in the double faults.',
     tierEffects: [
-      { [EffectKey.SECOND_SERVE_AGGRESSION]: 9, [EffectKey.FAULT_RISK]: 7 },
-      { [EffectKey.SECOND_SERVE_AGGRESSION]: 6, [EffectKey.FAULT_RISK]: 4 },
-      { [EffectKey.SECOND_SERVE_AGGRESSION]: 6, [EffectKey.FAULT_RISK]: 4 },
+      { [EffectKey.SECOND_SERVE_AGGRESSION]: 16, [EffectKey.FAULT_RISK]: 14 },
+      { [EffectKey.FAULT_RISK]: -5 },
+      { [EffectKey.FAULT_RISK]: -5 },
     ],
   },
 
@@ -118,31 +118,31 @@ const PATHS: PhasePathDef[] = [
   {
     id: 'rt_neutralizer', phase: 'return', label: 'Neutralizer',
     description: 'Block it back deep, take the server out of their rhythm, reset to neutral.',
-    tradeoff: 'Rarely misses the return, but hands the server the initiative.',
+    tradeoff: 'Rarely misses but hands over the initiative — leveling lets you neutralize less passively.',
     tierEffects: [
-      { [EffectKey.RETURN_AGGRESSION]: -6, [EffectKey.RALLY_TOLERANCE]: 4 },
-      { [EffectKey.RETURN_AGGRESSION]: -3, [EffectKey.RALLY_TOLERANCE]: 3 },
-      { [EffectKey.RETURN_AGGRESSION]: -3, [EffectKey.RALLY_TOLERANCE]: 3 },
+      { [EffectKey.RETURN_AGGRESSION]: -10, [EffectKey.RALLY_TOLERANCE]: 6 },
+      { [EffectKey.RETURN_AGGRESSION]: 3 },
+      { [EffectKey.RETURN_AGGRESSION]: 3 },
     ],
   },
   {
     id: 'rt_aggressor', phase: 'return', label: 'Aggressor',
     description: 'Step in and take time away — turn the return into an attack.',
-    tradeoff: 'Steals points off the return, but misses more.',
+    tradeoff: 'Steals points but sprays errors — leveling tightens the aggressive return (less boom-or-bust).',
     tierEffects: [
-      { [EffectKey.RETURN_AGGRESSION]: 8, [EffectKey.WINNER_BIAS]: 3 },
-      { [EffectKey.RETURN_AGGRESSION]: 6, [EffectKey.WINNER_BIAS]: 2 },
-      { [EffectKey.RETURN_AGGRESSION]: 6, [EffectKey.WINNER_BIAS]: 2 },
+      { [EffectKey.RETURN_AGGRESSION]: 16, [EffectKey.WINNER_BIAS]: 4, [EffectKey.POWER_VARIANCE]: 12 },
+      { [EffectKey.POWER_VARIANCE]: -5 },
+      { [EffectKey.POWER_VARIANCE]: -4 },
     ],
   },
   {
     id: 'rt_chip_charge', phase: 'return', label: 'Chip & Charge',
     description: 'Chip the return and follow it in, pressuring with the net.',
-    tradeoff: 'Suffocating when it works, but exposed to the pass.',
+    tradeoff: 'Suffocating but exposed to the pass — leveling sharpens your net finish.',
     tierEffects: [
-      { [EffectKey.RETURN_AGGRESSION]: 4, [EffectKey.NET_APPROACH_BIAS]: 8 },
-      { [EffectKey.RETURN_AGGRESSION]: 3, [EffectKey.NET_APPROACH_BIAS]: 6 },
-      { [EffectKey.RETURN_AGGRESSION]: 3, [EffectKey.NET_APPROACH_BIAS]: 6 },
+      { [EffectKey.RETURN_AGGRESSION]: 6, [EffectKey.NET_APPROACH_BIAS]: 14 },
+      { [EffectKey.NET_GAME]: 4 },
+      { [EffectKey.NET_GAME]: 4 },
     ],
   },
 
@@ -160,21 +160,21 @@ const PATHS: PhasePathDef[] = [
   {
     id: 'fh_flat', phase: 'forehand', label: 'Flat Ball-Striker',
     description: 'Flat, penetrating power — first strike to take the ball early and end it.',
-    tradeoff: 'More winners, but also more unforced errors.',
+    tradeoff: 'Big winners but big misses — leveling tightens the flat ball (less boom-or-bust).',
     tierEffects: [
-      { [EffectKey.WINNER_BIAS]: 10 },
-      { [EffectKey.WINNER_BIAS]: 7 },
-      { [EffectKey.WINNER_BIAS]: 7 },
+      { [EffectKey.WINNER_BIAS]: 16, [EffectKey.POWER_VARIANCE]: 12 },
+      { [EffectKey.POWER_VARIANCE]: -5 },
+      { [EffectKey.POWER_VARIANCE]: -4 },
     ],
   },
   {
     id: 'fh_steady', phase: 'forehand', label: 'Steady',
     description: 'Rock-solid rally forehand — keep the ball deep and wait for the error.',
-    tradeoff: 'Outlasts opponents, but rarely forces the issue.',
+    tradeoff: 'Outlasts opponents but rarely forces it — leveling lets you punish without losing solidity.',
     tierEffects: [
-      { [EffectKey.RALLY_TOLERANCE]: 8, [EffectKey.WINNER_BIAS]: -3 },
-      { [EffectKey.RALLY_TOLERANCE]: 6, [EffectKey.WINNER_BIAS]: -2 },
-      { [EffectKey.RALLY_TOLERANCE]: 6, [EffectKey.WINNER_BIAS]: -2 },
+      { [EffectKey.RALLY_TOLERANCE]: 12, [EffectKey.WINNER_BIAS]: -6 },
+      { [EffectKey.WINNER_BIAS]: 3 },
+      { [EffectKey.WINNER_BIAS]: 3 },
     ],
   },
 
@@ -182,11 +182,11 @@ const PATHS: PhasePathDef[] = [
   {
     id: 'bh_two_hand_driver', phase: 'backhand', label: 'Two-Hand Driver',
     description: 'An offensive two-hander that drives through the ball flat and hard.',
-    tradeoff: 'A genuine weapon, but little variety or defensive cushion.',
+    tradeoff: 'A weapon with no cushion — leveling tightens the drive (less boom-or-bust).',
     tierEffects: [
-      { [EffectKey.WINNER_BIAS]: 6, [EffectKey.SLICE_PREFERENCE_BACKHAND]: -5 },
-      { [EffectKey.WINNER_BIAS]: 5, [EffectKey.SLICE_PREFERENCE_BACKHAND]: -3 },
-      { [EffectKey.WINNER_BIAS]: 5, [EffectKey.SLICE_PREFERENCE_BACKHAND]: -3 },
+      { [EffectKey.WINNER_BIAS]: 12, [EffectKey.SLICE_PREFERENCE_BACKHAND]: -8, [EffectKey.POWER_VARIANCE]: 12 },
+      { [EffectKey.POWER_VARIANCE]: -5 },
+      { [EffectKey.POWER_VARIANCE]: -4 },
     ],
   },
   {
@@ -214,11 +214,11 @@ const PATHS: PhasePathDef[] = [
   {
     id: 'net_rusher', phase: 'net', label: 'Net-Rusher',
     description: 'Look to get forward at every opportunity and finish at the net.',
-    tradeoff: 'Ends points early, but is exposed to passing shots and lobs.',
+    tradeoff: 'Ends points early but exposed to the pass — leveling sharpens your net finishing.',
     tierEffects: [
-      { [EffectKey.NET_APPROACH_BIAS]: 10 },
-      { [EffectKey.NET_APPROACH_BIAS]: 8 },
-      { [EffectKey.NET_APPROACH_BIAS]: 8 },
+      { [EffectKey.NET_APPROACH_BIAS]: 16 },
+      { [EffectKey.NET_GAME]: 5 },
+      { [EffectKey.NET_GAME]: 5 },
     ],
   },
   {
@@ -234,11 +234,11 @@ const PATHS: PhasePathDef[] = [
   {
     id: 'net_backcourt', phase: 'net', label: 'Backcourt',
     description: 'Live at the baseline — only approach when absolutely forced.',
-    tradeoff: 'Safe and solid from the back, but never pressures with the net.',
+    tradeoff: 'Safe from the back but no net threat — leveling rewards your backcourt grinding.',
     tierEffects: [
-      { [EffectKey.NET_APPROACH_BIAS]: -6 },
-      { [EffectKey.NET_APPROACH_BIAS]: -3 },
-      { [EffectKey.NET_APPROACH_BIAS]: -3 },
+      { [EffectKey.NET_APPROACH_BIAS]: -8, [EffectKey.RALLY_TOLERANCE]: 4 },
+      { [EffectKey.RALLY_TOLERANCE]: 3 },
+      { [EffectKey.RALLY_TOLERANCE]: 3 },
     ],
   },
 ];
@@ -261,48 +261,19 @@ export const PATHS_BY_PHASE: Record<GamePhase, PhasePathDef[]> = ALL_PHASES.redu
   {} as Record<GamePhase, PhasePathDef[]>,
 );
 
-/**
- * Default specialty per phase for each broad archetype. Used for any phase the
- * player has not manually specialized, so a profile is always fully playable.
- */
-export const BROAD_DEFAULTS: Record<BroadArchetype, Partial<Record<GamePhase, PhasePathId>>> = {
-  baseliner: {
-    forehand: 'fh_heavy_topspin',
-    backhand: 'bh_steady',
-    return: 'rt_neutralizer',
-    net: 'net_backcourt',
-  },
-  net_rusher: {
-    first_serve: 'fs_bomber',
-    return: 'rt_chip_charge',
-    net: 'net_rusher',
-  },
-  all_courter: {
-    forehand: 'fh_heavy_topspin',
-    second_serve: 'ss_kicker',
-    net: 'net_opportunist',
-  },
-};
-
 /** Starting specialization points granted when the broad archetype is chosen. */
 export const STARTING_SPECIALIZATION_POINTS = 2;
 
 /**
- * Resolve the effective specialty for a phase: the player's manual pick if set,
- * otherwise the broad archetype's default (at tier 1), otherwise null.
+ * Resolve the chosen specialty for a phase, or null if the player hasn't spent a
+ * point to specialize it. There are no automatic defaults — every specialty is an
+ * opt-in bonus the player selects; unspecialized phases use baseline behavior.
  */
 export function resolvePhaseSpec(
   profile: ArchetypeProfile,
   phase: GamePhase,
 ): PhaseSpec | null {
-  const chosen = profile.phases[phase];
-  if (chosen) return chosen;
-
-  if (profile.broad) {
-    const defaultPath = BROAD_DEFAULTS[profile.broad][phase];
-    if (defaultPath) return { path: defaultPath, tier: 1 };
-  }
-  return null;
+  return profile.phases[phase] ?? null;
 }
 
 /** Sum a specialty's cumulative tier effects up to (and including) its tier. */
