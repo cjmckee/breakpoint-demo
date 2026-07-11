@@ -483,12 +483,12 @@ function runArchetypeReport(): void {
   const counter = archProfile({ forehand: { path: 'fh_steady', tier: 2 }, backhand: { path: 'bh_slice', tier: 2 }, return: { path: 'rt_neutralizer', tier: 2 } }, 'baseliner');
 
   const netOnly = archProfile({ net: { path: 'net_rusher', tier: 3 } }, 'net_rusher');
-  const bomberOnly = archProfile({ first_serve: { path: 'fs_bomber', tier: 2 } }, 'net_rusher');
+  const netT1 = archProfile({ net: { path: 'net_rusher', tier: 1 } }, 'net_rusher');
   const matchups: [string, ArchetypeProfile, ArchetypeProfile][] = [
     ['Net-Rusher(full) vs Grinder', netRusher, grinder],
-    ['Net-only vs Grinder', netOnly, grinder],
-    ['Bomber-only vs Grinder', bomberOnly, grinder],
-    ['Net-only vs Baseline', netOnly, neutral],
+    ['Net t3 (w/ NET_GAME) vs Base', netOnly, neutral],
+    ['Net t1 (no NET_GAME) vs Base', netT1, neutral],
+    ['Net t1 vs Grinder', netT1, grinder],
     ['Aggressive vs Counter', aggressive, counter],
     ['Aggressive vs Grinder', aggressive, grinder],
   ];

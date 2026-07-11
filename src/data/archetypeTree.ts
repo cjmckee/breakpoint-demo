@@ -141,8 +141,8 @@ const PATHS: PhasePathDef[] = [
     tradeoff: 'Suffocating but exposed to the pass — leveling sharpens your net finish.',
     tierEffects: [
       { [EffectKey.RETURN_AGGRESSION]: 6, [EffectKey.NET_APPROACH_BIAS]: 14 },
-      { [EffectKey.NET_GAME]: 4 },
-      { [EffectKey.NET_GAME]: 4 },
+      { [EffectKey.NET_GAME]: 3 },
+      { [EffectKey.NET_GAME]: 3 },
     ],
   },
 
@@ -217,8 +217,8 @@ const PATHS: PhasePathDef[] = [
     tradeoff: 'Ends points early but exposed to the pass — leveling sharpens your net finishing.',
     tierEffects: [
       { [EffectKey.NET_APPROACH_BIAS]: 16 },
-      { [EffectKey.NET_GAME]: 5 },
-      { [EffectKey.NET_GAME]: 5 },
+      { [EffectKey.NET_GAME]: 3 },
+      { [EffectKey.NET_GAME]: 3 },
     ],
   },
   {

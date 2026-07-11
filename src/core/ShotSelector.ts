@@ -69,9 +69,13 @@ export class ShotSelector {
       return this.selectVolley(shooter, shotPreference, rallyState);
     }
 
-    // SPECIAL CASE: Opponent at net - must pass or lob
+    // SPECIAL CASE: Opponent at net - must pass or lob.
+    // Under time pressure (a strong approach) the defender lobs to reset the point;
+    // with time, they go for the pass. Lobbing is the reliable counter to net-rushing.
     if (opponentPosition === 'at_net') {
-      if (Math.random() < 0.3) {
+      const rushed = rallyState.ballQuality.timeAvailable === 'rushed';
+      const lobChance = rushed ? 0.6 : 0.4;
+      if (Math.random() < lobChance) {
         return Math.random() < shotPreference.forehandProbability
           ? 'lob_forehand'
           : 'lob_backhand';
@@ -256,7 +260,7 @@ export class ShotSelector {
     // 5% at stat 0, ~12% at 20, ~22% at 50, ~40% at 100
     let baseProbability = 0;
     if (playStyleType === 'serve_volley') {
-      baseProbability = 0.55; // 55% base for serve-volleyers
+      baseProbability = 0.40; // serve-volleyers approach often, but pick their moments
     } else {
       baseProbability = 0.05 + (netApproachStat / 100) * 0.35;
     }
@@ -284,7 +288,7 @@ export class ShotSelector {
 
     // Special case: serve-volleyers approach after serve
     if (playStyleType === 'serve_volley' && rallyState.rallyLength === 2) {
-      probability = 0.7; // 70% chance on first shot after serve
+      probability = 0.5; // chance to serve-and-volley on the first shot after serve
     }
 
     return Math.random() < Math.min(0.9, probability);

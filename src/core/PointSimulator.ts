@@ -788,10 +788,12 @@ export class PointSimulator {
     if (!shotResult.success) return currentPosition;
 
     // Players at net STAY at net — they chose to be there and don't retreat
-    // to baseline mid-point. Only a lob can push them back.
+    // to baseline mid-point. Only a lob can push them back. A decent lob is
+    // enough to drive the net player back to the baseline and reset the point
+    // (removing their net advantage); a weak lob gets put away by an overhead.
     if (currentPosition === 'at_net') {
-      if (shotType.includes('lob') && shotResult.quality >= thresholds.high) {
-        return 'way_back_deep'; // Good lob forces net player back
+      if (shotType.includes('lob') && shotResult.quality >= thresholds.good) {
+        return 'way_back_deep'; // Good lob forces net player back — point resets
       }
       return 'at_net'; // Otherwise hold net position
     }

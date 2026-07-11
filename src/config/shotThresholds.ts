@@ -385,7 +385,7 @@ export const DIFFICULTY_SCORE_FACTORS = {
     recovering: 20,
     slightly_off: 10,
     well_positioned: 0,
-    at_net: 0,
+    at_net: 10,   // volleying is a reaction shot — not a free putaway
   } as Record<CourtPosition, number>,
 
   /** Incoming ball quality thresholds (relative to match level) */
@@ -407,7 +407,7 @@ export const DIFFICULTY_SCORE_FACTORS = {
 
   /** Opponent's court position impact on difficulty */
   opponentPosition: {
-    at_net: 25,
+    at_net: 8,
     well_positioned: 5,
     way_out_wide: -15,
     way_back_deep: -15,
