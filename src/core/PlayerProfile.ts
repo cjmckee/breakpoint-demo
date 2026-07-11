@@ -378,7 +378,13 @@ export class PlayerProfile implements IPlayerProfile {
    * Create a copy of this player profile
    */
   public clone(): PlayerProfile {
-    const clone = new PlayerProfile(this.id, this.name, this.stats);
+    const clonedArchetype: ArchetypeProfile = {
+      broad: this.archetypeProfile.broad,
+      phases: { ...this.archetypeProfile.phases },
+      specializationPoints: this.archetypeProfile.specializationPoints,
+      respecTokens: this.archetypeProfile.respecTokens,
+    };
+    const clone = new PlayerProfile(this.id, this.name, this.stats, clonedArchetype);
     clone.energy = this.energy;
     clone.level = this.level;
     clone.experience = this.experience;
