@@ -1,4 +1,5 @@
 import type { PlayerStats } from '../../types/index.js';
+import type { ArchetypeProfile } from '../../types/archetype.js';
 import { PlayerProfile } from '../../core/PlayerProfile.js';
 
 /**
@@ -22,6 +23,25 @@ export function createUniformPlayer(name: string, rating: number): PlayerProfile
     },
   };
   return new PlayerProfile(`uniform_${rating}`, name, stats);
+}
+
+/**
+ * Create a uniform-rating player carrying a specific archetype profile, so the
+ * only difference from a baseline uniform player is the archetype behavior.
+ */
+export function createArchetypePlayer(
+  name: string,
+  rating: number,
+  archetypeProfile: ArchetypeProfile,
+): PlayerProfile {
+  const r = Math.max(0, Math.min(100, rating));
+  const stats: PlayerStats = {
+    core: { serve: r, forehand: r, backhand: r, return: r, slice: r },
+    technical: { volley: r, overhead: r, dropShot: r, spin: r, placement: r },
+    physical: { speed: r, stamina: r, strength: r, agility: r, recovery: r },
+    mental: { focus: r, anticipation: r, shotVariety: r, offensive: r, defensive: r },
+  };
+  return new PlayerProfile(`archetype_${name}_${rating}`, name, stats, archetypeProfile);
 }
 
 /**

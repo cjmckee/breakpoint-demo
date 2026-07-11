@@ -22,6 +22,7 @@ import { PlayerProfile } from './PlayerProfile.js';
 import { PointSimulator } from './PointSimulator.js';
 import { ScoreTracker } from './ScoreTracker.js';
 import { MatchStatistics } from './MatchStatistics.js';
+import { aggregateArchetypeEffects } from '../data/archetypeTree.js';
 
 export interface MatchConfig {
   player: PlayerProfile;
@@ -44,8 +45,14 @@ export class MatchSimulator {
   private pointKeyMoments: boolean[] = []; // Track isKeyMoment status for each point
   private startTime: number;
 
+  // Archetype behavior effects, derived from each player's chosen specialties.
+  private playerEffects: Record<string, number>;
+  private opponentEffects: Record<string, number>;
+
   constructor(config: MatchConfig) {
     this.config = config;
+    this.playerEffects = aggregateArchetypeEffects(config.player.archetypeProfile);
+    this.opponentEffects = aggregateArchetypeEffects(config.opponent.archetypeProfile);
     this.pointSimulator = new PointSimulator();
     this.scoreTracker = new ScoreTracker(config.matchFormat);
     this.matchStatistics = new MatchStatistics(config.player, config.opponent);
@@ -142,7 +149,9 @@ export class MatchSimulator {
       currentServer,
       serverProfile,
       returnerProfile,
-      this.matchState
+      this.matchState,
+      this.playerEffects,
+      this.opponentEffects
     );
 
     // Store point result and key moment status for later analysis

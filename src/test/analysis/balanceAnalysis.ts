@@ -8,8 +8,11 @@ import type { ShotType, ShotContext, ShotDetail, CourtSurface } from '../../type
 import { PointType } from '../../types/index.js';
 import { ShotCalculator } from '../../core/ShotCalculator.js';
 import { MatchSimulator } from '../../core/MatchSimulator.js';
-import { createUniformPlayer } from './playerFactory.js';
+import { PointSimulator } from '../../core/PointSimulator.js';
+import { aggregateArchetypeEffects } from '../../data/archetypeTree.js';
+import { createUniformPlayer, createArchetypePlayer } from './playerFactory.js';
 import { computeStats } from './stats.js';
+import type { ArchetypeProfile, GamePhase, PhasePathId, SpecialtyTier } from '../../types/archetype.js';
 import {
   print, printBanner, printHeader, printTable, printHistogram, fmtPct, fmtNum,
 } from './formatters.js';
@@ -394,10 +397,227 @@ function runModifierBreakdown(): void {
   }
 }
 
+// ─── REPORT 5: Archetype Effects ────────────────────────────
+//
+// Isolates archetype behavior: every player is uniform-rated and plays a fixed
+// neutral opponent, so any difference comes purely from the chosen specialties.
+
+const ARCH_RATING = 60;
+const N_ARCH_MATCHES = 150;
+
+function archProfile(
+  phases: Partial<Record<GamePhase, { path: PhasePathId; tier: SpecialtyTier }>>,
+  broad: ArchetypeProfile['broad'] = 'all_courter',
+): ArchetypeProfile {
+  return { broad, phases, specializationPoints: 0, respecTokens: 0 };
+}
+
+interface ArchAgg {
+  winPct: number; aces: number; df: number; winners: number; ue: number;
+  firstServePct: number; rally: number;
+}
+
+function runArchetypeMatches(playerProfile: ArchetypeProfile, opponentProfile: ArchetypeProfile): ArchAgg {
+  suppressLogs();
+  const results = MatchSimulator.simulateMultipleMatches({
+    player: createArchetypePlayer('P', ARCH_RATING, playerProfile),
+    opponent: createArchetypePlayer('O', ARCH_RATING, opponentProfile),
+    courtSurface: 'hard',
+    matchFormat: { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 },
+  }, N_ARCH_MATCHES);
+  restoreLogs();
+
+  const n = results.length;
+  const avg = (f: (r: typeof results[number]) => number) => results.reduce((s, r) => s + f(r), 0) / n;
+  return {
+    winPct: results.filter(r => r.winner === 'player').length / n,
+    aces: avg(r => r.statistics.aces.player),
+    df: avg(r => r.statistics.doubleFaults.player),
+    winners: avg(r => r.statistics.winners.player),
+    ue: avg(r => r.statistics.unforcedErrors.player),
+    firstServePct: avg(r => r.statistics.firstServePercentage.player),
+    rally: avg(r => r.statistics.averageRallyLength),
+  };
+}
+
+function runArchetypeReport(): void {
+  printHeader('REPORT 5: Archetype Effects (uniform 60 vs neutral 60, archetype-only diff)');
+
+  const neutral = archProfile({});
+
+  // Single-specialty scenarios vs a neutral opponent.
+  const scenarios: [string, ArchetypeProfile][] = [
+    ['Baseline (none)', neutral],
+    ['Bomber I', archProfile({ first_serve: { path: 'fs_bomber', tier: 1 } })],
+    ['Bomber III', archProfile({ first_serve: { path: 'fs_bomber', tier: 3 } })],
+    ['Spot-Server I', archProfile({ first_serve: { path: 'fs_spot', tier: 1 } })],
+    ['Spot-Server III', archProfile({ first_serve: { path: 'fs_spot', tier: 3 } })],
+    ['Safe 2nd I', archProfile({ second_serve: { path: 'ss_safe', tier: 1 } })],
+    ['Safe 2nd III', archProfile({ second_serve: { path: 'ss_safe', tier: 3 } })],
+    ['Gambler 2nd I', archProfile({ second_serve: { path: 'ss_gambler', tier: 1 } })],
+    ['Gambler 2nd III', archProfile({ second_serve: { path: 'ss_gambler', tier: 3 } })],
+    ['Flat FH I', archProfile({ forehand: { path: 'fh_flat', tier: 1 } })],
+    ['Flat FH III', archProfile({ forehand: { path: 'fh_flat', tier: 3 } })],
+    ['Heavy Topspin III', archProfile({ forehand: { path: 'fh_heavy_topspin', tier: 3 } })],
+  ];
+
+  const rows: (string | number)[][] = [];
+  for (const [label, prof] of scenarios) {
+    const a = runArchetypeMatches(prof, neutral);
+    rows.push([
+      label, fmtPct(Math.round(a.winPct * N_ARCH_MATCHES), N_ARCH_MATCHES),
+      fmtNum(a.aces), fmtNum(a.df), fmtNum(a.firstServePct), fmtNum(a.winners), fmtNum(a.ue), fmtNum(a.rally),
+    ]);
+  }
+  printTable(
+    ['Scenario', 'Win%', 'Aces', 'DblFaults', '1stServe%', 'Winners', 'UE', 'AvgRally'],
+    rows,
+  );
+
+  // Archetype-vs-archetype matchups.
+  print('');
+  print('  Matchups (player listed first; Win% is for that player):');
+  const netRusher = archProfile({ net: { path: 'net_rusher', tier: 2 }, first_serve: { path: 'fs_bomber', tier: 2 }, return: { path: 'rt_chip_charge', tier: 2 } }, 'net_rusher');
+  const grinder = archProfile({ forehand: { path: 'fh_steady', tier: 2 }, backhand: { path: 'bh_steady', tier: 2 }, return: { path: 'rt_neutralizer', tier: 2 }, net: { path: 'net_backcourt', tier: 2 } }, 'baseliner');
+  const aggressive = archProfile({ forehand: { path: 'fh_flat', tier: 2 }, first_serve: { path: 'fs_bomber', tier: 2 }, return: { path: 'rt_aggressor', tier: 2 } });
+  const counter = archProfile({ forehand: { path: 'fh_steady', tier: 2 }, backhand: { path: 'bh_slice', tier: 2 }, return: { path: 'rt_neutralizer', tier: 2 } }, 'baseliner');
+
+  const netOnly = archProfile({ net: { path: 'net_rusher', tier: 3 } }, 'net_rusher');
+  const netT1 = archProfile({ net: { path: 'net_rusher', tier: 1 } }, 'net_rusher');
+  const matchups: [string, ArchetypeProfile, ArchetypeProfile][] = [
+    ['Net-Rusher(full) vs Grinder', netRusher, grinder],
+    ['Net t3 (w/ NET_GAME) vs Base', netOnly, neutral],
+    ['Net t1 (no NET_GAME) vs Base', netT1, neutral],
+    ['Net t1 vs Grinder', netT1, grinder],
+    ['Aggressive vs Counter', aggressive, counter],
+    ['Aggressive vs Grinder', aggressive, grinder],
+  ];
+  const mrows: (string | number)[][] = [];
+  for (const [label, p, o] of matchups) {
+    const a = runArchetypeMatches(p, o);
+    mrows.push([label, fmtPct(Math.round(a.winPct * N_ARCH_MATCHES), N_ARCH_MATCHES), fmtNum(a.winners), fmtNum(a.ue), fmtNum(a.rally)]);
+  }
+  printTable(['Matchup', 'P1 Win%', 'P1 Winners', 'P1 UE', 'AvgRally'], mrows);
+}
+
+// ─── REPORT 6: Archetype Playstyle Expression (point-level) ──
+//
+// Isolates each archetype by running raw points (archetype always serving vs a
+// neutral returner) and reporting the signature-category rates — the numbers
+// that show a playstyle is actually being expressed, independent of win rate.
+
+const N_STYLE_POINTS = 4000;
+
+function styleMatchState(): unknown {
+  return {
+    score: { currentGame: { server: 1, returner: 1 } },
+    currentServer: 'player', courtSurface: 'hard', momentum: 0,
+    pressure: 'low', matchLength: 10, pointsPlayed: 10, isKeyMoment: false,
+    fatigue: { player: 0, opponent: 0 },
+  };
+}
+
+interface StyleRates {
+  acePct: number; dfPct: number; firstInPct: number;
+  powerWinPct: number; powerUEPct: number; powerShare: number;
+  netApproachPct: number; bhSlicePct: number; avgRally: number;
+}
+
+function runArchetypeStyle(profile: ArchetypeProfile, n: number): StyleRates {
+  const ps = new PointSimulator();
+  const fx = aggregateArchetypeEffects(profile);
+  const player = createArchetypePlayer('P', ARCH_RATING, profile);
+  const opp = createUniformPlayer('O', ARCH_RATING);
+
+  let points = 0, df = 0, aces = 0, firstServes = 0, firstIn = 0;
+  let serverShots = 0, powerShots = 0, powerWin = 0, powerErr = 0;
+  let approaches = 0, bh = 0, bhSlice = 0, rallyTotal = 0;
+
+  suppressLogs();
+  for (let i = 0; i < n; i++) {
+    const r = ps.simulatePoint('player', player, opp, styleMatchState() as never, fx, {});
+    points++;
+    rallyTotal += r.rallyLength;
+    if (r.pointType === PointType.DOUBLE_FAULT) df++;
+    for (const s of r.shots) {
+      if (s.shooter !== 'server') continue; // the archetype player's own shots
+      serverShots++;
+      if (s.shotType === 'serve_first') { firstServes++; if (s.outcome !== PointType.FAULT) firstIn++; }
+      if (s.outcome === PointType.ACE) aces++;
+      if (s.shotType.includes('power')) {
+        powerShots++;
+        if (s.outcome === PointType.WINNER) powerWin++;
+        if (s.outcome === PointType.UNFORCED_ERROR || s.outcome === PointType.FORCED_ERROR) powerErr++;
+      }
+      if (s.shotType.includes('approach')) approaches++;
+      if (s.shotType.includes('backhand')) { bh++; if (s.shotType.includes('slice')) bhSlice++; }
+    }
+  }
+  restoreLogs();
+
+  const rallyShots = serverShots - firstServes; // exclude first serves from "shot" denominators
+  return {
+    acePct: points ? (100 * aces / points) : 0,
+    dfPct: points ? (100 * df / points) : 0,
+    firstInPct: firstServes ? (100 * firstIn / firstServes) : 0,
+    powerWinPct: powerShots ? (100 * powerWin / powerShots) : 0,
+    powerUEPct: powerShots ? (100 * powerErr / powerShots) : 0,
+    powerShare: rallyShots > 0 ? (100 * powerShots / rallyShots) : 0,
+    netApproachPct: rallyShots > 0 ? (100 * approaches / rallyShots) : 0,
+    bhSlicePct: bh ? (100 * bhSlice / bh) : 0,
+    avgRally: points ? (rallyTotal / points) : 0,
+  };
+}
+
+function runArchetypeStyleReport(): void {
+  printHeader('REPORT 6: Archetype Playstyle Expression (point-level, archetype serving)');
+
+  const scenarios: [string, ArchetypeProfile][] = [
+    ['Baseline', archProfile({})],
+    ['Bomber I', archProfile({ first_serve: { path: 'fs_bomber', tier: 1 } })],
+    ['Bomber III', archProfile({ first_serve: { path: 'fs_bomber', tier: 3 } })],
+    ['Spot-Server III', archProfile({ first_serve: { path: 'fs_spot', tier: 3 } })],
+    ['Safe 2nd I', archProfile({ second_serve: { path: 'ss_safe', tier: 1 } })],
+    ['Safe 2nd III', archProfile({ second_serve: { path: 'ss_safe', tier: 3 } })],
+    ['Gambler 2nd III', archProfile({ second_serve: { path: 'ss_gambler', tier: 3 } })],
+    ['Flat FH I', archProfile({ forehand: { path: 'fh_flat', tier: 1 } })],
+    ['Flat FH III', archProfile({ forehand: { path: 'fh_flat', tier: 3 } })],
+    ['Net-Rusher III', archProfile({ net: { path: 'net_rusher', tier: 3 } }, 'net_rusher')],
+    ['Slice BH III', archProfile({ backhand: { path: 'bh_slice', tier: 3 } }, 'baseliner')],
+    ['Grinder', archProfile({ forehand: { path: 'fh_steady', tier: 2 }, backhand: { path: 'bh_steady', tier: 2 }, net: { path: 'net_backcourt', tier: 2 } }, 'baseliner')],
+  ];
+
+  const rows: (string | number)[][] = [];
+  for (const [label, prof] of scenarios) {
+    const s = runArchetypeStyle(prof, N_STYLE_POINTS);
+    rows.push([
+      label,
+      fmtNum(s.acePct), fmtNum(s.dfPct), fmtNum(s.firstInPct),
+      fmtNum(s.powerShare), fmtNum(s.powerWinPct), fmtNum(s.powerUEPct),
+      fmtNum(s.netApproachPct), fmtNum(s.bhSlicePct), fmtNum(s.avgRally),
+    ]);
+  }
+  printTable(
+    ['Scenario', 'Ace%', 'DF%', '1stIn%', 'Power%', 'PwrWin%', 'PwrUE%', 'NetAppr%', 'BHslice%', 'Rally'],
+    rows,
+  );
+  print('  (Ace%/DF% per point; 1stIn% of first serves; Power%/NetAppr%/BHslice% of the player\'s rally shots)');
+}
+
 // ─── Main ────────────────────────────────────────────────────
 
 function main(): void {
   printBanner('TENNIS RPG BALANCE ANALYSIS');
+
+  // `npm run analyze -- --archetype` runs only the archetype reports (fast).
+  if (process.argv.includes('--archetype')) {
+    runArchetypeStyleReport();
+    runArchetypeReport();
+    print('');
+    print('Analysis complete.');
+    return;
+  }
+
   print(`  Ratings tested: ${RATINGS.join(', ')}`);
   print(`  Shots per test: ${N_SHOTS}`);
   print(`  Matches per pairing: ${N_MATCHES}`);
@@ -406,6 +626,8 @@ function main(): void {
   runRallyAnalysis();
   runMatchAnalysis();
   runModifierBreakdown();
+  runArchetypeStyleReport();
+  runArchetypeReport();
 
   print('');
   print('Analysis complete.');

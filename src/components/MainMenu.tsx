@@ -19,7 +19,7 @@ import { TrainingResultModal } from './TrainingResultModal';
 import { StoryEventModal } from './StoryEventModal';
 import { StoryEventResultModal } from './StoryEventResultModal';
 import { HangoutUnlockedModal } from './HangoutUnlockedModal';
-import { derivePlayStyle } from '../core/PlayerProfile';
+import { buildPlayStyle } from '../core/PlayerProfile';
 import { getArchetypeLabel } from '../data/archetypes';
 import type { OverlayState } from '../types/gamePhase';
 import { TimeSlot } from '../types/game';
@@ -283,7 +283,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                 {getTierName(player.tier)}
               </span>
               <span className="text-sm px-2 py-0.5 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent font-bold">
-                {getArchetypeLabel(derivePlayStyle(player.stats).type)}
+                {getArchetypeLabel(buildPlayStyle(player.archetypeProfile).type)}
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -340,6 +340,16 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                             ? 'Not Enough Energy'
                             : 'Play Match'}
                   </Button>
+                  {player.archetypeProfile.broad && (
+                    <div className="relative">
+                      {player.archetypeProfile.specializationPoints > 0 && (
+                        <UnseenBadge className="absolute -top-2 -right-2 z-10" />
+                      )}
+                      <Button variant="secondary" fullWidth onClick={() => navigateTo('archetype')}>
+                        Archetype
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </Card>
 

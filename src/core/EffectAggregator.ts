@@ -5,6 +5,7 @@
  */
 
 import type { Player, StatBoosts } from '../types/game';
+import { aggregateArchetypeEffects } from '../data/archetypeTree';
 
 export interface AggregatedEffects {
   statBoosts: StatBoosts;
@@ -48,6 +49,9 @@ export class EffectAggregator {
     for (const ability of player.abilities) {
       this.mergeEffects(effects, ability.modifiers.additional);
     }
+
+    // Archetype specialties — behavior effects (decision layer), scaled by tier
+    this.mergeEffects(effects, aggregateArchetypeEffects(player.archetypeProfile));
 
     return { statBoosts, effects };
   }

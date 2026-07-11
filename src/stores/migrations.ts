@@ -9,6 +9,7 @@
 
 import type { Player, GameCalendar, CurrentStatus, ActivityResult, TrainingSession, ShopItem, OpponentTier } from '../types/game';
 import type { Challenge } from '../types/challenges';
+import { createEmptyArchetypeProfile } from '../data/archetypeTree';
 
 export interface AudioSettings {
   musicVolume: number;
@@ -37,7 +38,7 @@ export interface PersistedStoreState {
   // eventRecovery omitted — transient, always reset on load
 }
 
-export const CURRENT_STORE_VERSION = 1;
+export const CURRENT_STORE_VERSION = 2;
 
 // ----------------------------------------------------------------------------
 // Version 0 → 1
@@ -74,6 +75,22 @@ function migrate0to1(state: PersistedStoreState): PersistedStoreState {
 }
 
 // ----------------------------------------------------------------------------
+// Version 1 → 2 — add phase-based archetype profile
+// ----------------------------------------------------------------------------
+
+function migrate1to2(state: PersistedStoreState): PersistedStoreState {
+  let player = state.player;
+
+  if (player && !player.archetypeProfile) {
+    // Existing saves predate the archetype system. Start with an empty profile;
+    // the Coach Gonzalez event lets the player choose their broad archetype.
+    player = { ...player, archetypeProfile: createEmptyArchetypeProfile() };
+  }
+
+  return { ...state, player };
+}
+
+// ----------------------------------------------------------------------------
 // Public API
 // ----------------------------------------------------------------------------
 
@@ -87,5 +104,6 @@ export function migrateStore(
 ): PersistedStoreState {
   let state = persistedState as PersistedStoreState;
   if (fromVersion < 1) state = migrate0to1(state);
+  if (fromVersion < 2) state = migrate1to2(state);
   return state;
 }
