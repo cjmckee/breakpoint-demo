@@ -207,7 +207,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
       {hasDialogue && currentDialogueIndex < dialogue!.length && (
         <div
           key={currentDialogueIndex}
-          className="relative bg-pixel-primary border-4 border-pixel-border p-5 mb-6 h-80 flex flex-col"
+          className="relative bg-pixel-primary border-4 border-pixel-border p-5 mb-6 h-64 flex flex-col"
         >
           {/* Decorative accent bar */}
           <div className="absolute top-0 left-0 w-full h-1 bg-pixel-accent" />
