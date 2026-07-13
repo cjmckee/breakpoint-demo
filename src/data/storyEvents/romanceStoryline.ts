@@ -17,7 +17,7 @@ export const romanceEvents: StoryEvent[] = [
       minMatchesPlayed: 3,
       minDay: 10,
     },
-    skippable: true,
+    skippable: false,
     description: 'You meet someone interesting at a local tournament.',
     dialogue: [
       ['alex_romance', ['Great match out there! I saw that backhand winner on match point - incredible shot. I\'ve been working on my own backhand technique. Maybe we could practice together sometime?']],
@@ -49,7 +49,7 @@ export const romanceEvents: StoryEvent[] = [
       completedEvents: ['romance_meet_tournament'],
       relationships: { alex_romance: { min: 15 } },
     },
-    skippable: true,
+    skippable: false,
     description: 'Alex invites you to grab coffee after practice.',
     dialogue: [
       ['alex_romance', ['Hey! I know this great café near the courts. Want to go after we finish up here? My treat!']],
@@ -115,7 +115,7 @@ export const romanceEvents: StoryEvent[] = [
       completedEvents: ['romance_coffee_date'],
       relationships: { alex_romance: { min: 25 } },
     },
-    skippable: true,
+    skippable: false,
     description: 'You run into Alex at the city park.',
     dialogue: [
       [null, ['You take a jog through the park, and you see a familiar face out on the public courts.']],
@@ -167,7 +167,7 @@ export const romanceEvents: StoryEvent[] = [
       completedEvents: ['romance_park_practice'],
       relationships: { alex_romance: { min: 35 } },
     },
-    skippable: true,
+    skippable: false,
     description: 'Alex suggests watching a tennis movie together.',
     dialogue: [
       [null, ['You finish a long volley session and finally make it back to your room. You collapse on the bed and check your messages.']],
@@ -217,7 +217,7 @@ export const romanceEvents: StoryEvent[] = [
       completedEvents: ['romance_movie_night'],
       relationships: { alex_romance: { min: 50 } },
     },
-    skippable: true,
+    skippable: false,
     description: "You get the opportunity to watch a local professional match with Alex",
     dialogue: [
       [null, ['You scored some last-minute tickets to a match between some of the best pros in the area. You bring ', {characterId: 'alex_romance'}, ' along.']],

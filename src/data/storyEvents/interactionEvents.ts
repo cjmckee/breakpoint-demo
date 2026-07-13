@@ -61,7 +61,7 @@ export const interactionEvents: StoryEvent[] = [
     characters: ['coach_gonzalez'],
     options: [],
     defaultOutcome: {
-      resultText: ["The ball machine fires at unpredictable angles, speeds, and emotional frequencies. It is genuinely excellent practice. Sounds like it has school again in two weeks."],
+      resultText: ["The ball machine fires at unpredictable angles, speeds, and emotional frequencies. It is genuinely excellent practice. Sounds like the machine has school again in two weeks, though."],
       effects: {
         statChanges: { anticipation: 2, return: 1 },
         moodChange: 8,
@@ -314,18 +314,18 @@ export const interactionEvents: StoryEvent[] = [
     timeSlotsRequired: 1,
     prerequisites: {},
     skippable: false,
-    description: 'Keith is grilling hotdogs in his dorm room. This is against multiple rules.',
+    description: 'Keith invites you over for some dawgs.',
     dialogue: [
       ['keith', ["Come over. I'm making hotdogs."]],
       ['player', ["...in your dorm room?"]],
       ['keith', ["I have a system. Just come over."]],
       [null, ["His system is a camping grill balanced on two textbooks next to an open window. The smoke alarm has been covered with a sock."]],
-      [null, ["An elaborate setup of at least four fans all point towards the setup, and ", {characterId: 'keith'}, ' appears to be wearing a hockey mask.']]
+      [null, ["An elaborate array of least four desktop fans all point towards the setup, and ", {characterId: 'keith'}, ' dons a hockey mask to fire it up.']]
     ],
     characters: ['keith'],
     options: [],
     defaultOutcome: {
-      resultText: ["The hotdogs are incredible. The fire risk is significant. You sort of lose count after four hotdogs. This is the most relaxed you've felt in weeks."],
+      resultText: ["The hotdogs are incredible. The fire risk is significant and many rules are broken. You sort of lose count after four hotdogs. This is the most relaxed you've felt in weeks."],
       effects: {
         moodChange: 20,
         energyChange: -5,
@@ -405,9 +405,9 @@ export const interactionEvents: StoryEvent[] = [
     dialogue: [
       ['jen', ["Let's do a light workout at the park. I had a practice get cancelled but I don\'t want to waste the weather."]],
       ['player', ["That sounds nice—"]],
-      ['jen', ["Sprints first. Then agility ladder. Then burpees. Then we run the hill."]],
+      ['jen', ["Sprints first. Then agility ladder. Then burpees. Then we run the hill. Then 200 serves. Then 100 volleys. And we finish with sprints again."]],
       ['player', ["You said light."]],
-      ['jen', ["This IS light. And we'll be running to the park. I hope you brought shoes. Hurry up!"]],
+      ['jen', ["This IS light. Don\'t you want to get better? And we'll be running to the park. I hope you brought shoes. Hurry up!"]],
     ],
     characters: ['jen'],
     options: [],

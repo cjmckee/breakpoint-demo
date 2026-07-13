@@ -31,7 +31,7 @@ export const miscEvents: StoryEvent[] = [
             minSeason: 1,
             minDay: 10
         },
-        skippable: true,
+        skippable: false,
         moodTier: 'neutral',
         description: 'Some of your teammates invite you to the disc golf course out behind the courts.',
         dialogue: [
@@ -131,7 +131,7 @@ export const miscEvents: StoryEvent[] = [
             minSeason: 1,
             minDay: 10
         },
-        skippable: true,
+        skippable: false,
         moodTier: 'neutral',
         description: 'You visit the local farmer\'s market to browse some organic options.',
         dialogue: [
@@ -194,7 +194,7 @@ export const miscEvents: StoryEvent[] = [
             minSeason: 1,
             minDay: 10
         },
-        skippable: true,
+        skippable: false,
         moodTier: 'neutral',
         description: 'You attend a coding class to improve your skills.',
         dialogue: [
@@ -231,7 +231,7 @@ export const miscEvents: StoryEvent[] = [
             minSeason: 1,
             minDay: 10
         },
-        skippable: true,
+        skippable: false,
         moodTier: 'neutral',
         description: 'You spend some time at the batting cage to work on your swing.',
         dialogue: [
@@ -268,7 +268,7 @@ export const miscEvents: StoryEvent[] = [
             minSeason: 1,
             minDay: 10
         },
-        skippable: true,
+        skippable: false,
         moodTier: 'good',
         description: 'You attend a local football game to relax and enjoy the atmosphere.',
         dialogue: [
@@ -313,7 +313,7 @@ export const miscEvents: StoryEvent[] = [
             minSeason: 1,
             minDay: 10
         },
-        skippable: true,
+        skippable: false,
         moodTier: 'good',
         description: 'You go out for a hotpot dinner with the team to bond and relax.',
         dialogue: [
@@ -354,7 +354,7 @@ export const miscEvents: StoryEvent[] = [
         prerequisites: {
             completedEvents: ['club_team_first_practice']
         },
-        skippable: true,
+        skippable: false,
         description: 'Keith pulls you aside after Academy team practice.',
         dialogue: [
             ['keith', ['Pssst. ', {characterId: 'player'}, '. Come over here. Yes. Behind the bleachers.']],
@@ -403,7 +403,7 @@ export const miscEvents: StoryEvent[] = [
             minSeason: 1,
             minDay: 12
         },
-        skippable: true,
+        skippable: false,
         moodTier: 'neutral',
         description: 'A mysterious old man challenges you to ping pong in the tennis center lobby.',
         dialogue: [
@@ -481,7 +481,7 @@ export const miscEvents: StoryEvent[] = [
             minSeason: 1,
             minDay: 14
         },
-        skippable: true,
+        skippable: false,
         moodTier: 'good',
         description: 'The team heads to the beach to relax and unwind.',
         dialogue: [
@@ -531,7 +531,7 @@ export const miscEvents: StoryEvent[] = [
             minSeason: 1,
             minDay: 8
         },
-        skippable: true,
+        skippable: false,
         moodTier: 'neutral',
         description: 'You take a shortcut through the park on the wrong side of town.',
         dialogue: [
@@ -603,7 +603,7 @@ export const miscEvents: StoryEvent[] = [
             minSeason: 1,
             minDay: 15
         },
-        skippable: true,
+        skippable: false,
         moodTier: 'neutral',
         description: 'A late-night grocery run takes a competitive turn.',
         dialogue: [
@@ -681,7 +681,7 @@ export const miscEvents: StoryEvent[] = [
             minSeason: 1,
             minDay: 18
         },
-        skippable: true,
+        skippable: false,
         moodTier: 'good',
         description: 'Your neighbor is hosting a surprisingly competitive backyard badminton tournament.',
         dialogue: [
@@ -725,7 +725,7 @@ export const miscEvents: StoryEvent[] = [
             minSeason: 1,
             minDay: 10
         },
-        skippable: true,
+        skippable: false,
         moodTier: 'neutral',
         description: 'A street performer offers to teach you to juggle.',
         dialogue: [
@@ -790,7 +790,7 @@ export const miscEvents: StoryEvent[] = [
             minDay: 12,
             completedEvents: ['club_team_first_practice']
         },
-        skippable: true,
+        skippable: false,
         moodTier: 'good',
         description: 'Keith insists on dragging you to hot yoga. This can only end well.',
         dialogue: [
@@ -838,7 +838,7 @@ export const miscEvents: StoryEvent[] = [
             minSeason: 1,
             minDay: 8
         },
-        skippable: true,
+        skippable: false,
         moodTier: 'bad',
         description: 'You overslept and the bus to the Academy is leaving without you.',
         dialogue: [
@@ -875,7 +875,7 @@ export const miscEvents: StoryEvent[] = [
             minSeason: 1,
             minDay: 20
         },
-        skippable: true,
+        skippable: false,
         moodTier: 'neutral',
         description: 'A teammate suggests indoor rock climbing as a fun outing.',
         dialogue: [
@@ -953,7 +953,7 @@ export const miscEvents: StoryEvent[] = [
             minSeason: 1,
             minDay: 16
         },
-        skippable: true,
+        skippable: false,
         moodTier: 'good',
         description: 'You\'ve been volunteered to help prep for the team fundraiser BBQ.',
         dialogue: [
@@ -1001,7 +1001,7 @@ export const miscEvents: StoryEvent[] = [
             minSeason: 1,
             minDay: 10
         },
-        skippable: true,
+        skippable: false,
         moodTier: 'neutral',
         description: 'Keith convinces you to stay up all night playing video games.',
         dialogue: [
@@ -1045,7 +1045,7 @@ export const miscEvents: StoryEvent[] = [
             minSeason: 1,
             minDay: 14
         },
-        skippable: true,
+        skippable: false,
         moodTier: 'neutral',
         description: 'A local restaurant is running a spicy wing challenge. Your teammates dare you.',
         dialogue: [
@@ -1120,7 +1120,7 @@ export const miscEvents: StoryEvent[] = [
             minSeason: 1,
             minDay: 12
         },
-        skippable: true,
+        skippable: false,
         moodTier: 'bad',
         description: 'You fall down a social media rabbit hole.',
         dialogue: [
@@ -1157,7 +1157,7 @@ export const miscEvents: StoryEvent[] = [
             minSeason: 1,
             minDay: 16
         },
-        skippable: true,
+        skippable: false,
         moodTier: 'neutral',
         description: 'The team takes a trip to the trampoline park. What could go wrong?',
         dialogue: [
@@ -1232,7 +1232,7 @@ export const miscEvents: StoryEvent[] = [
             minSeason: 1,
             minDay: 10
         },
-        skippable: true,
+        skippable: false,
         moodTier: 'good',
         description: 'Keith picks the movie for team movie night. It\'s a disaster.',
         dialogue: [
@@ -1275,7 +1275,7 @@ export const miscEvents: StoryEvent[] = [
             minDay: 20,
             minMatchesWon: 5
         },
-        skippable: true,
+        skippable: false,
         moodTier: 'bad',
         description: 'Your recent wins have gone to your head. Time for a reality check.',
         dialogue: [
@@ -1319,7 +1319,7 @@ export const miscEvents: StoryEvent[] = [
             minSeason: 1,
             minDay: 10
         },
-        skippable: true,
+        skippable: false,
         moodTier: 'bad',
         description: 'You try to relax in a hammock between practice sessions.',
         dialogue: [
@@ -1360,7 +1360,7 @@ export const miscEvents: StoryEvent[] = [
             minDay: 18,
             completedEvents: ['club_team_first_practice']
         },
-        skippable: true,
+        skippable: false,
         moodTier: 'good',
         description: 'The team takes on an escape room together.',
         dialogue: [
@@ -1444,7 +1444,7 @@ export const miscEvents: StoryEvent[] = [
             minSeason: 1,
             minDay: 10
         },
-        skippable: true,
+        skippable: false,
         moodTier: 'bad',
         description: 'Some old social media posts of yours resurface and word spreads around the Academy',
         dialogue: [
@@ -1488,7 +1488,7 @@ export const miscEvents: StoryEvent[] = [
             minSeason: 1,
             minDay: 12
         },
-        skippable: true,
+        skippable: false,
         moodTier: 'good',
         description: 'An Awkward Carpool',
         dialogue: [

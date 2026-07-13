@@ -690,7 +690,8 @@ export const careerEvents: StoryEvent[] = [
       ['coach_gonzalez', ['This IS the lineup. We\'ve got our toughest match yet: Sunset Drive Retirement Home.']],
       ['coach_gonzalez', ['What they lack in movement and muscle mass, they make up for in experience. LOTS of experience.']],
       ['greg', ['My grandma lives at Sunset Drive... when she told me the tennis there was good, I just thought her mind was starting to go.']],
-      ['jen', ['Actually, it looks like you\'re scheduled against her, ', {characterId: 'greg'}, '! ', {characterId: 'player'}, ', it looks like you\'ll be up against ', {characterId: 'reginald_werther'}, '.']],
+      ['jen', ['Actually, it looks like you\'re both playing #5, ', {characterId: 'greg'}, '! You better hope her backhand is starting to go, too.']],
+      ['jen', [{characterId: 'player'}, ', it looks like you\'ll be up against ', {characterId: 'reginald_werther'}, '.']],
       ['keith', ['Where are they finding names like this? He must be 100 years old!']],
       ['coach_gonzalez', ['He\'s the 1921 junior Wimbledon champion. His father, Regingigas Werther, is the 1821 junior Wimbledon champion. History is funny.']]
     ],
@@ -1050,7 +1051,7 @@ export const careerEvents: StoryEvent[] = [
       minMatchesWon: 3,
       minDay: 15,
     },
-    skippable: true,
+    skippable: false,
     description: 'A local sports equipment company has noticed your recent wins and wants to sponsor you.',
     dialogue: [
       ['sponsor_rep', ['We\'ve been watching your progress, and we\'re impressed. We\'d like to offer you a sponsorship deal - free equipment and a small monthly stipend in exchange for wearing our gear and doing some promotional appearances. What do you say?']],
@@ -1128,7 +1129,7 @@ export const careerEvents: StoryEvent[] = [
       minMatchesWon: 5,
       minDay: 20,
     },
-    skippable: true,
+    skippable: false,
     description: 'A local sports journalist wants to interview you about your tennis journey.',
     dialogue: [
       ['journalist', ['Our audience absolutely loves your story. What can you tell us about ', {characterId: 'jordan_rival'}, '?']],
@@ -1158,7 +1159,7 @@ export const careerEvents: StoryEvent[] = [
       minDay: 30,
       completedEvents: ['sponsor_first_offer'],
     },
-    skippable: true,
+    skippable: false,
     description: 'A sports agent approaches you with an offer to represent you professionally.',
     dialogue: [
       ['agent', ['I\'ve been following your career. You have real potential, and I\'d like to help you reach it. I can handle sponsorships, tournament entries, and career planning.']],
@@ -1251,7 +1252,7 @@ export const careerEvents: StoryEvent[] = [
       completedEvents: ['sponsor_first_offer'],
       completedEventChoices: { sponsor_first_offer: ['accept_immediately', 'negotiate'] },
     },
-    skippable: true,
+    skippable: false,
     description: 'Your sponsor offers you access to professional-grade equipment and custom racquet fitting.',
     dialogue: [
       ['sponsor_rep', ['We want to give you the best tools to succeed. We\'re offering you a full professional equipment package - custom-fitted racquet, premium strings, and professional-grade shoes. Our team will work with you to find the perfect setup for your game.']],
