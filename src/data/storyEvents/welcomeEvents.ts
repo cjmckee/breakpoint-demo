@@ -6,6 +6,7 @@
 import type { StoryEvent } from '../../types/storyEvents';
 import { TimeSlot, type StoryMatchMetadata } from '../../types/game';
 import { BEGINNER_RACQUET, RUNNING_SHOES } from '../items';
+import { profileForArchetype } from '../archetypeTree';
 
 export const welcomeEvents: StoryEvent[] = [
   /** Welcome to Riverside Tennis Academy */
@@ -211,6 +212,7 @@ export const welcomeEvents: StoryEvent[] = [
               },
               opponentTier: 1,
               opponentDescription: 'A friendly but struggling player.',
+              opponentArchetypeProfile: profileForArchetype('defensive'),
               winEventId: 'tutorial_keith_win',
               lossEventId: 'tutorial_keith_loss',
               surface: 'hard',
@@ -236,6 +238,7 @@ export const welcomeEvents: StoryEvent[] = [
               },
               opponentTier: 1,
               opponentDescription: 'An athletic player who takes her tennis seriously. She won\'t go easy on you.',
+              opponentArchetypeProfile: profileForArchetype('aggressive'),
               winEventId: 'tutorial_jen_win',
               lossEventId: 'tutorial_jen_loss',
               surface: 'hard',

@@ -8,6 +8,7 @@ import type { MatchOpponent } from '../types/tournaments';
 import type { StoryMatchMetadata, TeamMatchConfig } from '../types/game';
 import { AbilityName } from '../types/game';
 import { ABILITY_DEFINITIONS } from './abilities';
+import { profileForArchetype } from './archetypeTree';
 
 // ============================================================================
 // OPPONENT DEFINITIONS
@@ -17,6 +18,7 @@ const chetVale: MatchOpponent = {
   characterId: 'chet_vale',
   name: 'Chet Vale',
   tier: 1,
+  archetype: 'counterpuncher',
   description: 'A speedy but inexperienced player from Aspen Slopes Academy',
   stats: {
     core: {
@@ -55,6 +57,7 @@ const richSoil: MatchOpponent = {
   characterId: 'richard_soil',
   name: 'Rich Soil',
   tier: 1,
+  archetype: 'all_court',
   description: 'A pretty strong well-rounded player from Azalea Forest',
   stats: {
     core: {
@@ -93,6 +96,7 @@ const martiaEstrella: MatchOpponent = {
   characterId: 'martia_estrella',
   name: 'Martia Estrella',
   tier: 1,
+  archetype: 'serve_volley',
   description: 'An up-and-coming star known for her volleys and court coverage.',
   stats: {
     core: {
@@ -131,6 +135,7 @@ const reginaldWerther: MatchOpponent = {
   characterId: 'reginald_werther',
   name: 'Reginald Werther',
   tier: 1,
+  archetype: 'defensive',
   description: 'A steady, patient player from Sunset Drive. He won tournaments 100 years before you were born.',
   stats: {
     core: {
@@ -169,6 +174,7 @@ const oliviaGulp: MatchOpponent = {
   characterId: 'olivia_gulp',
   name: 'Olivia Gulp',
   tier: 1,
+  archetype: 'aggressive',
   description: 'A talented chef with a variety of skills on the court. If you can\'t take the heat, you could get burned.',
   stats: {
     core: {
@@ -277,6 +283,7 @@ export function buildStoryMatchMetadata(config: TeamMatchConfig): StoryMatchMeta
     opponentTier: config.opponent.tier,
     opponentDescription: config.opponent.description,
     opponentAbilities: config.opponent.abilities,
+    opponentArchetypeProfile: profileForArchetype(config.opponent.archetype),
     prematchEventId: config.prematchEventId,
     winEventId: config.winEventId,
     lossEventId: config.lossEventId,

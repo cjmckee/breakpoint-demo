@@ -4,6 +4,7 @@
  */
 
 import type { PlayerStats, OpponentTier, TimeSlot, Ability } from './game';
+import type { PlayStyle } from './index';
 
 // ============================================================================
 // TOURNAMENT BRACKETS & STATUS
@@ -32,6 +33,7 @@ export interface MatchOpponent {
   name: string;                 // Display name
   stats: PlayerStats;           // Full stat profile
   tier: OpponentTier;           // Difficulty tier (1-4)
+  archetype: PlayStyle['type']; // Authored playstyle, projected into a full ArchetypeProfile
   description?: string;         // Bio/flavor text
   abilities?: Ability[];        // Abilities to apply during match
 }

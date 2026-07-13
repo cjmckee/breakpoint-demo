@@ -47,7 +47,7 @@ import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
 import { EffectAggregator } from '../core/EffectAggregator';
 import { EffectKey } from '../types/game';
 import { buildPlayStyle } from '../core/PlayerProfile';
-import { createEmptyArchetypeProfile, STARTING_SPECIALIZATION_POINTS, PATH_DEFS, PATHS_BY_PHASE } from '../data/archetypeTree';
+import { createEmptyArchetypeProfile, profileForArchetype, STARTING_SPECIALIZATION_POINTS, PATH_DEFS, PATHS_BY_PHASE } from '../data/archetypeTree';
 import { useMenuStore } from '../hooks/useMenuModal';
 import type { PlayStyle } from '../types';
 import type { ArchetypeProfile, GamePhase as ArchetypePhase, PhasePathId } from '../types/archetype';
@@ -963,12 +963,14 @@ export const useGameStore = create<GameState>()(
                   const round = TournamentManager.getCurrentRound(config, calendar.activeTournament!.currentRound);
                   const opponent = round?.opponent;
                   const tournamentTier = (opponent?.tier || 1) as OpponentTier;
+                  const opponentArchetypeProfile = profileForArchetype(opponent?.archetype ?? 'all_court');
                   const matchConfig: PreMatchConfig = {
                     opponentName: opponent?.name || 'Opponent',
                     opponentStats: opponent?.stats ?? ({} as PlayerStats),
                     opponentTier: tournamentTier,
                     opponentDescription: opponent?.description,
-                    opponentPlayStyle: buildPlayStyle(createEmptyArchetypeProfile()),
+                    opponentPlayStyle: buildPlayStyle(opponentArchetypeProfile),
+                    opponentArchetypeProfile,
                     opponentAbilities: opponent?.abilities,
                     surface: config.surface || 'hard',
                     matchFormat: 'best-of-1',
@@ -1000,13 +1002,15 @@ export const useGameStore = create<GameState>()(
             console.log(`[navigateTo:idle] Story match metadata:`, metadata ? `prematchEventId=${metadata.prematchEventId}` : 'none');
             if (metadata) {
               const storyTier = metadata.opponentTier as OpponentTier;
+              const opponentArchetypeProfile = metadata.opponentArchetypeProfile ?? createEmptyArchetypeProfile();
               const matchConfig: PreMatchConfig = {
                 opponentName: metadata.opponentName,
                 opponentStats: metadata.opponentStats,
                 opponentTier: storyTier,
                 opponentDescription: metadata.opponentDescription,
                 opponentAbilities: metadata.opponentAbilities,
-                opponentPlayStyle: buildPlayStyle(createEmptyArchetypeProfile()),
+                opponentPlayStyle: buildPlayStyle(opponentArchetypeProfile),
+                opponentArchetypeProfile,
                 surface: metadata.surface || 'hard',
                 matchFormat: metadata.matchFormat || 'best-of-1',
                 matchTitle: metadata.matchTitle,
@@ -1121,12 +1125,14 @@ export const useGameStore = create<GameState>()(
               const round = TournamentManager.getCurrentRound(config, calendar.activeTournament!.currentRound);
               const opponent = round?.opponent;
               const tournamentTier = (opponent?.tier || 1) as OpponentTier;
+              const opponentArchetypeProfile = profileForArchetype(opponent?.archetype ?? 'all_court');
               const matchConfig: PreMatchConfig = {
                 opponentName: opponent?.name || 'Opponent',
                 opponentStats: opponent?.stats ?? ({} as PlayerStats),
                 opponentTier: tournamentTier,
                 opponentDescription: opponent?.description,
-                opponentPlayStyle: buildPlayStyle(createEmptyArchetypeProfile()),
+                opponentPlayStyle: buildPlayStyle(opponentArchetypeProfile),
+                opponentArchetypeProfile,
                 opponentAbilities: opponent?.abilities,
                 surface: config.surface || 'hard',
                 matchFormat: 'best-of-1',
@@ -1162,13 +1168,15 @@ export const useGameStore = create<GameState>()(
             const metadata = StoryMatchManager.getStoryMatchMetadata(storyMatch);
             if (metadata) {
               const storyTier = metadata.opponentTier as OpponentTier;
+              const opponentArchetypeProfile = metadata.opponentArchetypeProfile ?? createEmptyArchetypeProfile();
               const matchConfig: PreMatchConfig = {
                 opponentName: metadata.opponentName,
                 opponentStats: metadata.opponentStats,
                 opponentTier: storyTier,
                 opponentDescription: metadata.opponentDescription,
                 opponentAbilities: metadata.opponentAbilities,
-                opponentPlayStyle: buildPlayStyle(createEmptyArchetypeProfile()),
+                opponentPlayStyle: buildPlayStyle(opponentArchetypeProfile),
+                opponentArchetypeProfile,
                 surface: metadata.surface || 'hard',
                 matchFormat: metadata.matchFormat || 'best-of-1',
                 matchTitle: metadata.matchTitle,
@@ -1201,13 +1209,15 @@ export const useGameStore = create<GameState>()(
           if (storyMatch) {
             const metadata = StoryMatchManager.getStoryMatchMetadata(storyMatch);
             if (metadata) {
+              const opponentArchetypeProfile = metadata.opponentArchetypeProfile ?? createEmptyArchetypeProfile();
               const matchConfig: PreMatchConfig = {
                 opponentName: metadata.opponentName,
                 opponentStats: metadata.opponentStats,
                 opponentTier: metadata.opponentTier as OpponentTier,
                 opponentDescription: metadata.opponentDescription,
                 opponentAbilities: metadata.opponentAbilities,
-                opponentPlayStyle: buildPlayStyle(createEmptyArchetypeProfile()),
+                opponentPlayStyle: buildPlayStyle(opponentArchetypeProfile),
+                opponentArchetypeProfile,
                 surface: metadata.surface || 'hard',
                 matchFormat: metadata.matchFormat || 'best-of-1',
                 matchTitle: metadata.matchTitle,
@@ -1326,7 +1336,7 @@ export const useGameStore = create<GameState>()(
         const { calendar, player } = state;
 
         const practiceOpponents = calendar.practiceOpponents ?? {};
-        if (practiceOpponents[tier]) {
+        if (practiceOpponents[tier]?.archetypeProfile) {
           return practiceOpponents[tier]!;
         }
 
