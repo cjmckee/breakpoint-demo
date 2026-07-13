@@ -4,8 +4,9 @@
  */
 
 import React, { JSX, useState } from 'react';
-import { useGameStore } from '../stores/gameStore';
+import { useGameStore, defaultRestEnergy, defaultSleepBonus } from '../stores/gameStore';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { EffectAggregator } from '../core/EffectAggregator';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { UnseenBadge } from './ui/UnseenBadge';
@@ -22,7 +23,7 @@ import { HangoutUnlockedModal } from './HangoutUnlockedModal';
 import { buildPlayStyle } from '../core/PlayerProfile';
 import { getArchetypeLabel } from '../data/archetypes';
 import type { OverlayState } from '../types/gamePhase';
-import { TimeSlot } from '../types/game';
+import { EffectKey, TimeSlot } from '../types/game';
 import { StoryMatchManager } from '../game/StoryMatchManager';
 import { CHARACTERS } from '../data/characters';
 import { HANGOUT_CHARACTERS, HANGOUT_ENERGY_COST, hasUnseenTierEvent } from '../data/hangoutCharacters';
@@ -303,6 +304,12 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
           const canAffordMatch = currentStatus.energy >= 50;
           const canAffordHangout = currentStatus.energy >= HANGOUT_ENERGY_COST;
           const isEnergyFull = currentStatus.energy >= 100;
+          const energyGainBonus = EffectAggregator.getEffect(
+            EffectAggregator.getActiveEffects(player).effects,
+            EffectKey.ENERGY_GAIN_BONUS
+          );
+          const restEnergyGain = defaultRestEnergy + energyGainBonus;
+          const sleepEnergyGain = defaultRestEnergy + defaultSleepBonus + energyGainBonus;
 
           return (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
@@ -376,7 +383,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                     disabled={!isNightTime && isEnergyFull}
                     onClick={() => rest()}
                   >
-                    {isNightTime ? 'Next Day' : isEnergyFull ? 'Energy Full' : 'Rest'}
+                    {isNightTime ? `Next Day (+${sleepEnergyGain} Energy)` : isEnergyFull ? 'Energy Full' : `Rest (+${restEnergyGain} Energy)`}
                   </Button>
                   {calendar.currentDay >= 5 ? (
                     <div className="relative">

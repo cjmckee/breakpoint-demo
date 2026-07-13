@@ -224,8 +224,8 @@ const initialStatus: CurrentStatus = {
   lastActivity: null,
 };
 
-const defaultRestEnergy = 20;
-const defaultSleepBonus = 30;
+export const defaultRestEnergy = 20;
+export const defaultSleepBonus = 30;
 const defaultMoodBonus = 5;
 
 export const useGameStore = create<GameState>()(
