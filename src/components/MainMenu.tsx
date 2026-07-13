@@ -20,7 +20,8 @@ import { TrainingResultModal } from './TrainingResultModal';
 import { StoryEventModal } from './StoryEventModal';
 import { StoryEventResultModal } from './StoryEventResultModal';
 import { HangoutUnlockedModal } from './HangoutUnlockedModal';
-import { BROAD_ARCHETYPE_LABELS } from '../data/archetypeTree';
+import { BROAD_ARCHETYPE_LABELS, DEFAULT_ARCHETYPE_LABEL } from '../data/archetypeTree';
+import { calculateOverallRating } from '../core/PlayerProfile';
 import type { OverlayState } from '../types/gamePhase';
 import { EffectKey, TimeSlot } from '../types/game';
 import { StoryMatchManager } from '../game/StoryMatchManager';
@@ -114,6 +115,11 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   if (!player) {
     return null;
   }
+
+  const overallRating = calculateOverallRating(player.stats);
+  const archetypeLabel = player.archetypeProfile.broad
+    ? BROAD_ARCHETYPE_LABELS[player.archetypeProfile.broad]
+    : DEFAULT_ARCHETYPE_LABEL;
 
   // Key characters that the player has met, has hangout unlocked, AND have a new unseen tier event
   const hangoutsAvailable = calendar.currentDay >= 6;
@@ -282,20 +288,22 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
         {/* Player Header */}
         <Card className="mb-6">
           <div>
-            <div className="flex items-start justify-between">
+            <div className="flex items-center justify-between">
               <h1 className="text-3xl font-bold text-pixel-text mb-1">
                 {player.name}
               </h1>
+              <div className="flex items-baseline gap-1">
+                <span className="text-4xl font-bold text-pixel-accent">{overallRating}</span>
+                <span className="text-sm text-pixel-text-muted">OVR</span>
+              </div>
             </div>
-            <div className="flex items-center gap-3 mb-2">
+            <div className="flex items-center justify-between mb-2">
               <span className={`text-lg font-bold ${getTierColor(player.tier)}`}>
                 {getTierName(player.tier)}
               </span>
-              {player.archetypeProfile.broad && (
-                <span className="text-sm px-2 py-0.5 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent font-bold">
-                  {BROAD_ARCHETYPE_LABELS[player.archetypeProfile.broad]}
-                </span>
-              )}
+              <span className="text-base px-3 py-1 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent font-bold">
+                {archetypeLabel}
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm text-pixel-text-muted">Recent Matches:</span>

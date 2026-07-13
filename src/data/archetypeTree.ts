@@ -278,6 +278,13 @@ export const BROAD_ARCHETYPE_LABELS: Record<BroadArchetype, string> = {
 };
 
 /**
+ * Shown in place of a broad archetype label before the player has chosen one
+ * (pre Coach Gonzalez event). Deliberately distinct from "All-Courter" — that's
+ * a real, deliberately-chosen archetype, not a placeholder for "none yet".
+ */
+export const DEFAULT_ARCHETYPE_LABEL = 'Balanced';
+
+/**
  * Resolve the chosen specialty for a phase, or null if the player hasn't spent a
  * point to specialize it. There are no automatic defaults — every specialty is an
  * opt-in bonus the player selects; unspecialized phases use baseline behavior.

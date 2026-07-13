@@ -161,23 +161,23 @@ export const ArchetypeTree: React.FC = () => {
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <div className="text-sm text-pixel-text-muted">Archetype</div>
-              <div className="text-xl font-bold text-pixel-text">
+              <div className="text-xl font-bold text-pixel-text mb-3">
                 {BROAD_ARCHETYPE_LABELS[profile.broad] ?? profile.broad}
+              </div>
+              <div className="flex gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-pixel-accent">{points}</div>
+                  <div className="text-xs text-pixel-text-muted">Spec Points</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-yellow-400">{tokens}</div>
+                  <div className="text-xs text-pixel-text-muted">Respec Tokens</div>
+                </div>
               </div>
             </div>
             <div className="w-full max-w-xs">
               <div className="text-sm text-pixel-text-muted mb-1.5">Current Tendencies</div>
               <TendencyBars playStyle={playStyle} />
-            </div>
-            <div className="flex gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-pixel-accent">{points}</div>
-                <div className="text-xs text-pixel-text-muted">Spec Points</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-yellow-400">{tokens}</div>
-                <div className="text-xs text-pixel-text-muted">Respec Tokens</div>
-              </div>
             </div>
           </div>
           <p className="text-sm text-pixel-text-muted mt-3">
