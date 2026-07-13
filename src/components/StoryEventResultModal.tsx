@@ -107,7 +107,10 @@ export const StoryEventResultModal: React.FC<StoryEventResultModalProps> = ({
               <h4 className="font-semibold mb-2">🌟 New Abilities:</h4>
               <div className="space-y-2">
                 {result.abilitiesGained.map((abilityName) => (
-                  <div key={abilityName} className="px-3 py-2 bg-yellow-100 rounded font-semibold">
+                  <div
+                    key={abilityName}
+                    className="px-3 py-2 bg-yellow-950/50 border border-yellow-600 text-yellow-300 rounded font-semibold"
+                  >
                     ⭐ {abilityName.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
                   </div>
                 ))}
