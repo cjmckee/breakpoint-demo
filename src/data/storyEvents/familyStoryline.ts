@@ -18,7 +18,7 @@ export const familyEvents: StoryEvent[] = [
       minMatchesPlayed: 2,
       minDay: 7,
     },
-    skippable: true,
+    skippable: false,
     description: 'Your family surprises you by coming to watch one of your matches.',
     dialogue: [
       ['parent', ['We\'re so proud of how hard you\'ve been working. We wanted to be here to support you. And it just happens to be near the mall!']],
@@ -45,7 +45,7 @@ export const familyEvents: StoryEvent[] = [
       minDay: 25,
       completedEvents: ['family_support'],
     },
-    skippable: true,
+    skippable: false,
     description: 'Your family reveals they\'ve been investing in your tennis career.',
     dialogue: [
       ['parent', ['We need to talk about something. A few years ago, we made quite a big investment hoping if it paid off, we\'d be able to fund your tennis career.']],
@@ -118,7 +118,7 @@ export const familyEvents: StoryEvent[] = [
       completedEvents: ['family_support'],
       minDay: 15,
     },
-    skippable: true,
+    skippable: false,
     description: 'A family dinner takes an unexpected turn when you try to demonstrate your new serve.',
     dialogue: [
       ['parent', ["We want to hear all about the training! Show us something you've learned!"]],
@@ -148,7 +148,7 @@ export const familyEvents: StoryEvent[] = [
       completedEvents: ['family_support'],
       minDay: 20,
     },
-    skippable: true,
+    skippable: false,
     description: "Your younger sibling is convinced they can beat you in a little driveway tennis.",
     dialogue: [
       ['parent', ["Your little brother has been practicing against the garage wall for two weeks. He is completely convinced he can beat you now. He's been talking about it all week."]],
@@ -218,7 +218,7 @@ export const familyEvents: StoryEvent[] = [
       completedEvents: ['family_investment'],
       minDay: 35,
     },
-    skippable: true,
+    skippable: false,
     description: 'Your family sends a care package to the academy.',
     dialogue: [
       [null, ['A package appears on your doorstep and you pull it inside. It smells delicious.']],

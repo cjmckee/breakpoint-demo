@@ -25,7 +25,7 @@ import type { OverlayState } from '../types/gamePhase';
 import { TimeSlot } from '../types/game';
 import { StoryMatchManager } from '../game/StoryMatchManager';
 import { CHARACTERS } from '../data/characters';
-import { HANGOUT_CHARACTERS, HANGOUT_ENERGY_COST, hasUnseenTierEvent } from '../data/hangoutCharacters';
+import { getHangoutTier, HANGOUT_CHARACTERS, HANGOUT_ENERGY_COST, hasUnseenTierEvent } from '../data/hangoutCharacters';
 import { Modal } from './ui/Modal';
 
 interface MainMenuProps {
@@ -154,6 +154,12 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
       </div>
     );
   };
+
+  const getTierLabel = (characterId: string, relValue: number): string => {
+      const tier = getHangoutTier(characterId, relValue);
+      const labels = ['Acquaintance', 'Friend', 'Close', 'Trusted'];
+      return labels[tier] ?? 'Acquaintance';
+    };
 
   // Get current story event from overlay (if showing)
   const currentStoryEvent = overlay?.type === 'story_event' ? overlay.event : null;
@@ -447,7 +453,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
           isOpen={showHangoutModal}
           onClose={() => setShowHangoutModal(false)}
           title="Hang Out With..."
-          size="sm"
+          size="md"
         >
           <div className="space-y-3">
             {metHangoutCharacters.map((characterId) => {
@@ -459,6 +465,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                 character.role === 'Rival' ? '⚔️' :
                 character.role === 'Romance' ? '💖' :
                 '🤝';
+                const currentTier = getHangoutTier(character.id, relValue)
               return (
                 <div key={characterId} className="flex items-center justify-between gap-3 p-3 bg-gray-700 rounded">
                   <div className="flex items-center gap-3">
@@ -466,7 +473,8 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                     <div>
                       <div className="font-bold text-pixel-text">{character.name}</div>
                       <div className="text-xs text-pixel-text-muted">
-                        {relValue >= 0 ? '+' : ''}{relValue} relationship
+                        {/* {relValue >= 0 ? '+' : ''}{relValue} relationship */}
+                          {getTierLabel(character.id, relValue)} (Tier {currentTier})
                       </div>
                     </div>
                   </div>

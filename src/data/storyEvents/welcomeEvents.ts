@@ -39,6 +39,7 @@ export const welcomeEvents: StoryEvent[] = [
       ['jordan_rival', ['Just remember, everyone here is gunning for you. Well, that\'s actually not quite true. It\'s just me gunning for you.']],
       ['player', ['What?']],
       ['jordan_rival', ['And soon, everyone at this academy will know my name...']],
+      [null, ['He turns and runs full speed towards the training facility. You\'ll be stopping there soon.']]
     ],
     characters: ['jordan_rival'],
     options: [],

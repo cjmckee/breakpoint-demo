@@ -216,7 +216,7 @@ const oliviaGulp: MatchOpponent = {
 export const TEAM_MATCH_1: TeamMatchConfig = {
   opponent: chetVale,
   surface: 'hard',
-  matchFormat: 'best-of-1',
+  matchFormat: 'best-of-3',
   matchTitle: 'Team Match: Riverside vs Aspen Slopes',
   matchDescription: 'Your first official team match',
   prematchEventId: 'first_team_match_prematch',
@@ -227,7 +227,7 @@ export const TEAM_MATCH_1: TeamMatchConfig = {
 export const TEAM_MATCH_2: TeamMatchConfig = {
   opponent: richSoil,
   surface: 'grass',
-  matchFormat: 'best-of-1',
+  matchFormat: 'best-of-3',
   matchTitle: 'Team Match: Riverside vs Azalea Forest',
   matchDescription: 'Your second official team match',
   prematchEventId: 'second_team_match_prematch',
@@ -238,7 +238,7 @@ export const TEAM_MATCH_2: TeamMatchConfig = {
 export const TEAM_MATCH_3: TeamMatchConfig = {
   opponent: martiaEstrella,
   surface: 'clay',
-  matchFormat: 'best-of-1',
+  matchFormat: 'best-of-3',
   matchTitle: 'Team Match: Riverside vs Cosmo Comet',
   matchDescription: 'Your third official team match',
   prematchEventId: 'third_team_match_prematch',
@@ -249,7 +249,7 @@ export const TEAM_MATCH_3: TeamMatchConfig = {
 export const TEAM_MATCH_4: TeamMatchConfig = {
   opponent: reginaldWerther,
   surface: 'hard',
-  matchFormat: 'best-of-1',
+  matchFormat: 'best-of-3',
   matchTitle: 'Team Match: Riverside vs Sunset Drive',
   matchDescription: 'Your fourth official team match',
   prematchEventId: 'fourth_team_match_prematch',
@@ -260,7 +260,7 @@ export const TEAM_MATCH_4: TeamMatchConfig = {
 export const TEAM_MATCH_5: TeamMatchConfig = {
   opponent: oliviaGulp,
   surface: 'clay',
-  matchFormat: 'best-of-1',
+  matchFormat: 'best-of-3',
   matchTitle: 'Team Match: Riverside vs Dobry Pomidor',
   matchDescription: 'Your fifth official team match',
   prematchEventId: 'fifth_team_match_prematch',

@@ -58,7 +58,7 @@ export const coachEvents: StoryEvent[] = [
 
   {
     id: 'coach_archetype_selection',
-    name: 'What Kind of Player Are You?',
+    name: 'A Fork in the Road',
     tags: ['coach', 'decision', 'tutorial'],
     timeSlotsRequired: 1,
     prerequisites: {
@@ -128,7 +128,7 @@ export const coachEvents: StoryEvent[] = [
     prerequisites: {
       completedEvents: ['coach_first_meeting'],
     },
-    skippable: true,
+    skippable: false,
     description: 'Coach Gonzalez wants to know what aspect of your game to prioritize in training.',
     dialogue: [
       ['coach_gonzalez', ['Everyone has different strengths and weaknesses. You - you have many weaknesses.']],
@@ -214,7 +214,7 @@ export const coachEvents: StoryEvent[] = [
       completedEvents: ['coach_first_meeting'],
       minDay: 10,
     },
-    skippable: true,
+    skippable: false,
     description: 'Coach Gonzalez emphasizes the importance of developing all aspects of your game.',
     dialogue: [
       ['coach_gonzalez', ['You\'re making good progress, but a truly great player needs balance. You can specialize, but you can\'t have glaring weaknesses. Let\'s work on rounding out your game.']],
@@ -275,7 +275,7 @@ export const coachEvents: StoryEvent[] = [
       completedEvents: ['coach_training_focus'],
       minDay: 15,
     },
-    skippable: true,
+    skippable: false,
     description: 'Coach Gonzalez has prepared hours of match footage for you to analyze.',
     dialogue: [
       ['coach_gonzalez', ["I've compiled twelve hours of footage from your last eight matches, your opponents, and three professionals with similar playing styles. We'll cover it all today."]],
@@ -340,7 +340,7 @@ export const coachEvents: StoryEvent[] = [
       completedEvents: ['coach_balanced_development'],
       relationships: { coach_gonzalez: { min: 40 } },
     },
-    skippable: true,
+    skippable: false,
     description: 'Coach Gonzalez accidentally reveals more about his past than he intended.',
     dialogue: [
       ['coach_gonzalez', ["When I was at the Open - I mean, when I watched the Open on television - I noticed..."]],
@@ -369,7 +369,7 @@ export const coachEvents: StoryEvent[] = [
     prerequisites: {
       completedEvents: ['coach_video_analysis'],
     },
-    skippable: true,
+    skippable: false,
     description: 'The Academy News wants to run a segment on the tennis team. They asked for a trick shot clip to put on TV.',
     dialogue: [
       ['coach_gonzalez', ["So I may have told the Academy News that you could hit an around-the-net winner by end of practice."]],

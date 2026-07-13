@@ -16,7 +16,7 @@ export const rivalEvents: StoryEvent[] = [
     prerequisites: {
       completedEvents: ['shop_basics'],
     },
-    skippable: true,
+    skippable: false,
     description: 'You meet a talented player with a cocky attitude who seems determined to prove they\'re better than you.',
     dialogue: [
       ['jordan_rival', ['So you\'re the one everyone\'s been talking about? I\'ve won twice as many matches as you. When we finally play each other, I\'ll show everyone who the real talent is around here.']],
@@ -24,7 +24,7 @@ export const rivalEvents: StoryEvent[] = [
     characters: ['jordan_rival'],
     options: [],
     defaultOutcome: {
-      resultText: ['You keep your composure despite ', { characterId: 'jordan_rival' }, '\'s arrogance. Their words sting a bit, but you channel that emotion into motivation. You make a mental note to prove yourself when the time comes.'],
+      resultText: ['You do the mental math. It\'s not really that good of an insult, actually. But ', {characterId: 'Jordan'}, ' already left anyway.'],
       effects: {
         statChanges: { focus: 1, offensive: 2, overhead: 2 },
         moodChange: -10,
@@ -43,75 +43,31 @@ export const rivalEvents: StoryEvent[] = [
   {
     id: 'rival_confrontation',
     name: 'Rival Confrontation',
-    tags: ['rival', 'conflict', 'decision'],
-    timeSlotsRequired: 2,
+    tags: ['rival', 'conflict'],
+    timeSlotsRequired: 1,
     prerequisites: {
       completedEvents: ['rival_first_encounter'],
       minMatchesWon: 7,
       relationships: { jordan_rival: { max: -10 } },
     },
-    skippable: true,
+    skippable: false,
     description: 'Jordan approaches you before a tournament, trying to get in your head.',
     dialogue: [
       ['jordan_rival', ['I saw your last match. Sloppy footwork, weak backhand. I hope we get paired up in the tournament - it\'ll be an easy win for me. Unless you\'re scared and want to withdraw now?']],
+      [null, ['You try not to let it get to you, but you can\'t stop thinking about the spaghetti sauce stain on ', {characterId: 'Jordan'}, '\'s shirt.']],
+      [null, ['Kind of blanked there for a second, actually. You realize you didn\'t even hear what they said. You\'re further distracted by a waft of garlic bread.']]
     ],
     characters: ['jordan_rival'],
-    options: [
-      {
-        id: 'confident_response',
-        text: 'Respond Confidently',
-        emoji: '😎',
-        description: 'Stand your ground with confidence',
-        prerequisites: {
-          stats: { focus: { min: 25 } },
-        },
-        outcome: {
-          resultText: ['You look ', { characterId: 'jordan_rival' }, ' straight in the eye and calmly say, "I\'ll let my tennis do the talking. See you on the court." Your confident composure clearly rattles them. You walk away feeling mentally stronger and more focused than ever.'],
-          effects: {
-            statChanges: { focus: 2, anticipation: 3, strength: 2, overhead: 1 },
-            moodChange: 20,
-            energyChange: -5,
-            relationshipChanges: { jordan_rival: -10 },
-          },
-          challengesAssigned: [
-            ChallengeManager.createFromTemplate(CHALLENGE_RIVAL_READY, {
-              type: 'story',
-              eventId: 'rival_confrontation',
-            }),
-          ],
-        },
+    options: [],
+    defaultOutcome: {
+      resultText: ['The most hurtful part of that exchange is that no one told you there was italian in the Academy cafeteria. You love italian. Mama mia.'],
+      effects: {
+        statChanges: { recovery: 2, slice: 2, defensive: 2 },
+        moodChange: -5,
+        energyChange: 0,
+        relationshipChanges: { jordan_rival: 5 },
       },
-      {
-        id: 'ignore_rival',
-        text: 'Ignore Them',
-        emoji: '🤐',
-        description: 'Don\'t engage with the negativity',
-        outcome: {
-          resultText: ['You simply nod and walk past without engaging. ', { characterId: 'jordan_rival' }, ' seems frustrated by your lack of reaction. You maintain your focus and don\'t let their words affect your mental preparation.'],
-          effects: {
-            statChanges: { focus: 1, defensive: 2, recovery: 2 },
-            moodChange: 5,
-            energyChange: 0,
-            relationshipChanges: { jordan_rival: -5 },
-          },
-        },
-      },
-      {
-        id: 'fire_back',
-        text: 'Fire Back',
-        emoji: '🔥',
-        description: 'Match their trash talk',
-        outcome: {
-          resultText: ['You fire back with your own trash talk, listing ', { characterId: 'jordan_rival' }, '\'s recent losses and weaknesses. The exchange gets heated. While it felt good in the moment, you\'re a bit distracted now thinking about the confrontation instead of your game.'],
-          effects: {
-            statChanges: { offensive: 2 },
-            moodChange: -5,
-            energyChange: -10,
-            relationshipChanges: { jordan_rival: -30 },
-          },
-        },
-      },
-    ],
+    }
   },
 
   {
@@ -122,7 +78,7 @@ export const rivalEvents: StoryEvent[] = [
     prerequisites: {
       completedEvents: ['rival_confrontation'],
     },
-    skippable: true,
+    skippable: false,
     description: "Coach Gonzalez assigns you and Jordan as doubles partners for a drill. This is not going to be fun.",
     dialogue: [
       ['coach_gonzalez', ["I'm pairing you with Jordan today. You will play doubles. You will communicate. You will not kill each other. These are not suggestions."]],
@@ -196,7 +152,7 @@ export const rivalEvents: StoryEvent[] = [
       completedEvents: ['rival_confrontation'],
       minMatchesWon: 10,
     },
-    skippable: true,
+    skippable: false,
     description: "You witness Jordan get absolutely demolished in a practice match.",
     dialogue: [
       [null, ["Jordan is playing a top seed in a practice session. By the third game, it's already clear this isn't going to be close."]],
@@ -261,7 +217,7 @@ export const rivalEvents: StoryEvent[] = [
       minMatchesWon: 10,
       relationships: { jordan_rival: { min: -10 } },
     },
-    skippable: true,
+    skippable: false,
     description: "Jordan approaches you with something unusual: a compliment.",
     dialogue: [
       ['jordan_rival', ["I'm not going to make a big thing out of this. You've gotten better. That's all. Don't read into it."]],

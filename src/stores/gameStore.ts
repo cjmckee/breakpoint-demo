@@ -973,7 +973,7 @@ export const useGameStore = create<GameState>()(
                     opponentArchetypeProfile,
                     opponentAbilities: opponent?.abilities,
                     surface: config.surface || 'hard',
-                    matchFormat: 'best-of-1',
+                    matchFormat: 'best-of-3',
                     matchTitle: `${config.name} - Round ${calendar.activeTournament!.currentRound + 1}`,
                   };
                   const availableOptions = PrerequisiteChecker.getAvailableOptions(event, player, {
@@ -1135,7 +1135,7 @@ export const useGameStore = create<GameState>()(
                 opponentArchetypeProfile,
                 opponentAbilities: opponent?.abilities,
                 surface: config.surface || 'hard',
-                matchFormat: 'best-of-1',
+                matchFormat: 'best-of-3',
                 matchTitle: `${config.name} - Round ${calendar.activeTournament!.currentRound + 1}`,
               };
 
