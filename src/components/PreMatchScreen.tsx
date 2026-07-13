@@ -7,6 +7,7 @@
 import React, { useState } from 'react';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
+import { TendencyBars } from './TendencyBars';
 import { SURFACE_EFFECTS } from '../config/shotThresholds';
 import { ARCHETYPE_DATA } from '../data/archetypes';
 import type { PlayerStats, PlayStyle, CourtSurface, StatName } from '../types';
@@ -130,7 +131,11 @@ interface PlayerCardProps {
 function PlayerCard({ name, tier, overallRating, stats, playStyle, abilities, isPlayer }: PlayerCardProps) {
   const topStats = getTopNStats(stats, 5);
   const bottomStats = getBottomNStats(stats, 5);
-  const archetypeLabel = getArchetypeLabel(playStyle.type);
+  // Opponents are hand-authored to a legacy archetype (drives their tactical
+  // counters), so that label is trustworthy for them. For the player it's a
+  // lossy projection of their real phase specialization — show the actual
+  // tendencies instead of a label that can misdescribe them.
+  const archetypeLabel = isPlayer ? null : getArchetypeLabel(playStyle.type);
 
   const borderColor = isPlayer ? 'border-blue-500' : getTierColor(tier ?? 1);
   const bgColor = isPlayer ? 'bg-blue-950/30' : 'bg-pixel-card';
@@ -198,11 +203,17 @@ function PlayerCard({ name, tier, overallRating, stats, playStyle, abilities, is
         </div>
 
         <div>
-          <div className="text-xs text-pixel-text-muted mb-1 uppercase tracking-wide">Playstyle</div>
-          <div className="text-sm">
-            <div className="text-pixel-text font-medium">{archetypeLabel}</div>
-            <div className="text-pixel-text-muted text-xs">{playStyle.description}</div>
+          <div className="text-xs text-pixel-text-muted mb-1 uppercase tracking-wide">
+            {isPlayer ? 'Tendencies' : 'Playstyle'}
           </div>
+          {isPlayer ? (
+            <TendencyBars playStyle={playStyle} />
+          ) : (
+            <div className="text-sm">
+              <div className="text-pixel-text font-medium">{archetypeLabel}</div>
+              <div className="text-pixel-text-muted text-xs">{playStyle.description}</div>
+            </div>
+          )}
         </div>
 
         {abilities && abilities.length > 0 && (

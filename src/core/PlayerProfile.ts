@@ -14,11 +14,10 @@ import type {
   StatName,
   StatCategory
 } from '../types/index.js';
-import type { ArchetypeProfile } from '../types/archetype.js';
+import type { ArchetypeProfile, BroadArchetype } from '../types/archetype.js';
 import { EffectKey } from '../types/game.js';
 import {
   aggregateArchetypeEffects,
-  resolvePhaseSpec,
   createEmptyArchetypeProfile,
 } from '../data/archetypeTree.js';
 
@@ -29,6 +28,31 @@ const ARCHETYPE_DESCRIPTIONS: Record<PlayStyle['type'], string> = {
   all_court: 'Versatile player comfortable anywhere on court',
   defensive: 'Solid baseline player who focuses on consistency',
 };
+
+/** Every dial shares this baseline before archetype nudges or specialization effects. */
+const DIAL_BASELINE = 50;
+
+/**
+ * How far a dial must sit above its shared baseline before it defines the summary
+ * type — meaningfully above only once that phase is actually specialized.
+ */
+const ABOVE_BASELINE_THRESHOLD = 15;
+
+/**
+ * Starting lean applied to the four dials based on the player's broad archetype —
+ * a redistribution of a fixed budget, not a bonus: the offense pair (aggression,
+ * netApproach) and defense pair (consistency, power) move by equal and opposite
+ * amounts, so the total stays constant. Deliberately kept smaller than
+ * ABOVE_BASELINE_THRESHOLD so the nudge alone can never cross into a fully
+ * specialized classification — it's a lean, not a shortcut.
+ */
+const TENDENCY_NUDGE = 8;
+const BROAD_TENDENCY_NUDGES: Record<BroadArchetype, { aggression: number; netApproach: number; consistency: number; power: number }> = {
+  net_rusher: { aggression: TENDENCY_NUDGE, netApproach: TENDENCY_NUDGE, consistency: -TENDENCY_NUDGE, power: -TENDENCY_NUDGE },
+  baseliner: { aggression: -TENDENCY_NUDGE, netApproach: -TENDENCY_NUDGE, consistency: TENDENCY_NUDGE, power: TENDENCY_NUDGE },
+  all_courter: { aggression: 0, netApproach: 0, consistency: 0, power: 0 },
+};
+const NO_NUDGE = { aggression: 0, netApproach: 0, consistency: 0, power: 0 };
 
 export function calculateOverallRating(stats: PlayerStats): number {
   const avg = (vals: object) => {
@@ -46,19 +70,26 @@ export function calculateOverallRating(stats: PlayerStats): number {
 const clampDial = (v: number): number => Math.max(0, Math.min(100, v));
 
 /**
- * Map a profile's chosen specialties onto one of the legacy five PlayStyle types,
- * used as a summary label by the tactical-counter and display systems.
+ * Map a profile's aggregated behavior dials onto one of the legacy five PlayStyle
+ * types, used as a summary label by the tactical-counter and display systems.
+ *
+ * Reads the same dials (and raw effects) that actually drive ShotSelector, so the
+ * summary always describes how the profile currently plays — it strengthens
+ * smoothly as specialization points go in, rather than flipping on a single
+ * specific phase pick the way a path-name match would.
  */
-function summarizeArchetypeType(profile: ArchetypeProfile): PlayStyle['type'] {
-  const fh = resolvePhaseSpec(profile, 'forehand')?.path;
-  const bh = resolvePhaseSpec(profile, 'backhand')?.path;
-  const ret = resolvePhaseSpec(profile, 'return')?.path;
-  const net = resolvePhaseSpec(profile, 'net')?.path;
+function summarizeArchetypeType(
+  dials: Pick<PlayStyle, 'aggression' | 'netApproach' | 'consistency'>,
+  fx: Record<string, number>
+): PlayStyle['type'] {
+  const { aggression, netApproach, consistency } = dials;
+  const threshold = DIAL_BASELINE + ABOVE_BASELINE_THRESHOLD;
 
-  if (net === 'net_rusher' || ret === 'rt_chip_charge') return 'serve_volley';
-  if (fh === 'fh_flat' || ret === 'rt_aggressor') return 'aggressive';
-  if (ret === 'rt_neutralizer' && bh === 'bh_slice') return 'counterpuncher';
-  if (fh === 'fh_steady' && (bh === 'bh_steady' || bh === 'bh_slice')) return 'defensive';
+  if (netApproach >= threshold) return 'serve_volley';
+  if (aggression >= threshold) return 'aggressive';
+  if (consistency >= threshold) {
+    return (fx[EffectKey.SLICE_PREFERENCE_BACKHAND] ?? 0) > 0 ? 'counterpuncher' : 'defensive';
+  }
   return 'all_court';
 }
 
@@ -80,12 +111,14 @@ export function buildPlayStyle(profile: ArchetypeProfile): PlayStyle {
   const returnAgg = get(EffectKey.RETURN_AGGRESSION);
   const firstServePower = get(EffectKey.FIRST_SERVE_POWER);
 
-  const aggression = clampDial(50 + winner + returnAgg * 0.5 - rally);
-  const netApproach = clampDial(25 + net);
-  const consistency = clampDial(50 + rally - winner * 0.5);
-  const power = clampDial(50 + firstServePower + winner * 0.5);
+  const nudge = profile.broad ? BROAD_TENDENCY_NUDGES[profile.broad] : NO_NUDGE;
 
-  const type = summarizeArchetypeType(profile);
+  const aggression = clampDial(DIAL_BASELINE + nudge.aggression + winner + returnAgg * 0.5 - rally);
+  const netApproach = clampDial(DIAL_BASELINE + nudge.netApproach + net);
+  const consistency = clampDial(DIAL_BASELINE + nudge.consistency + rally - winner * 0.5);
+  const power = clampDial(DIAL_BASELINE + nudge.power + firstServePower + winner * 0.5);
+
+  const type = summarizeArchetypeType({ aggression, netApproach, consistency }, fx);
 
   return {
     type,

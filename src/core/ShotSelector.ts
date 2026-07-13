@@ -26,6 +26,15 @@ import { EffectKey } from '../types/game.js';
 /** Archetype behavior effects threaded from the active-effects map. */
 type BehaviorEffects = Record<string, number>;
 
+/**
+ * netApproach shares the same 50 baseline as the other dials (for a consistent
+ * "Current Tendencies" display), but its probability curves below were tuned
+ * against the dial's old 25 baseline. Subtracting this offset before applying
+ * those curves keeps net-approach behavior unchanged — only the displayed
+ * baseline moved, not the actual gameplay calibration.
+ */
+const NET_APPROACH_DIAL_OFFSET = 25;
+
 export class ShotSelector {
   private tacticalAnalyzer: TacticalAnalyzer;
 
@@ -253,17 +262,12 @@ export class ShotSelector {
     courtSurface: CourtSurface
   ): boolean {
     const netApproachStat = shooter.playStyle.netApproach;
-    const playStyleType = shooter.playStyle.type;
+    const netApproachEffective = Math.max(0, netApproachStat - NET_APPROACH_DIAL_OFFSET);
     const offensive = shooter.stats.mental.offensive;
 
     // Base probability scales smoothly with net approach stat
     // 5% at stat 0, ~12% at 20, ~22% at 50, ~40% at 100
-    let baseProbability = 0;
-    if (playStyleType === 'serve_volley') {
-      baseProbability = 0.40; // serve-volleyers approach often, but pick their moments
-    } else {
-      baseProbability = 0.05 + (netApproachStat / 100) * 0.35;
-    }
+    let baseProbability = 0.05 + (netApproachEffective / 100) * 0.35;
 
     // Offensive mentality boost: aggressive players seek the net more
     // Scales 0-8% extra based on offensive stat
@@ -286,9 +290,11 @@ export class ShotSelector {
     if (rallyState.lastShotQuality >= approachThresholds.high) probability *= 1.3;
     if (rallyState.opponentPosition === 'way_back_deep') probability *= 1.5;
 
-    // Special case: serve-volleyers approach after serve
-    if (playStyleType === 'serve_volley' && rallyState.rallyLength === 2) {
-      probability = 0.5; // chance to serve-and-volley on the first shot after serve
+    // Serve-and-volley: chance to follow the serve in scales with net-approach
+    // specialization (up to 50% at full net investment), instead of a flat
+    // all-or-nothing switch.
+    if (rallyState.rallyLength === 2) {
+      probability = Math.max(probability, (netApproachEffective / 100) * 0.5);
     }
 
     return Math.random() < Math.min(0.9, probability);
@@ -306,24 +312,15 @@ export class ShotSelector {
     rallyState: RallyState
   ): boolean {
     const aggression = shooter.playStyle.aggression;
-    const playStyleType = shooter.playStyle.type;
+    const netApproachEffective = Math.max(0, shooter.playStyle.netApproach - NET_APPROACH_DIAL_OFFSET);
     const offensive = shooter.stats.mental.offensive;
     const defensive = shooter.stats.mental.defensive;
 
-    // Base probability by playstyle (increased for aggressive players)
-    let baseProbability = 0;
-    if (playStyleType === 'aggressive') {
-      baseProbability = 0.35; // 35% for aggressive players (increased from 25%)
-    } else if (playStyleType === 'all_court') {
-      baseProbability = 0.20; // 20% for all-court (increased from 15%)
-    } else if (playStyleType === 'serve_volley') {
-      baseProbability = 0.12; // 12% for serve-volley (prefer net game)
-    } else if (playStyleType === 'counterpuncher') {
-      baseProbability = 0.08; // 8% for counterpunchers
-    } else {
-      // defensive
-      baseProbability = 0.05; // 5% for defensive players
-    }
+    // Base probability scales continuously with the aggression dial (5% at 0,
+    // ~20% at baseline 50, 35% at 100), reduced for net-focused players who
+    // funnel their offense into net approaches instead of baseline winners.
+    let baseProbability = 0.05 + (aggression / 100) * 0.30 - (netApproachEffective / 100) * 0.10;
+    baseProbability = Math.max(0.02, baseProbability);
 
     // Additional boost for high offensive stat (scales 0-10% extra)
     baseProbability += (offensive / 100) * 0.10;
@@ -438,11 +435,11 @@ export class ShotSelector {
       probability *= 1 + Math.min(0.6, skillEdge / 50);
     }
 
-    // Defensive and counterpuncher styles favor drop shots
-    const playStyleType = shooter.playStyle.type;
-    if (playStyleType === 'defensive' || playStyleType === 'counterpuncher') {
-      probability *= 1.5;
-    }
+    // Consistency-focused players (defensive/counterpuncher builds) favor drop
+    // shots as a change-of-pace weapon — scales continuously with the
+    // consistency dial instead of a flat bonus for two specific archetypes.
+    const consistency = shooter.playStyle.consistency;
+    probability *= 1 + Math.max(0, (consistency - 50) / 100);
 
     return Math.random() < probability
       ? { use: true, type: 'drop_shot' }

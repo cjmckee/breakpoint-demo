@@ -20,8 +20,7 @@ import { TrainingResultModal } from './TrainingResultModal';
 import { StoryEventModal } from './StoryEventModal';
 import { StoryEventResultModal } from './StoryEventResultModal';
 import { HangoutUnlockedModal } from './HangoutUnlockedModal';
-import { buildPlayStyle } from '../core/PlayerProfile';
-import { getArchetypeLabel } from '../data/archetypes';
+import { BROAD_ARCHETYPE_LABELS } from '../data/archetypeTree';
 import type { OverlayState } from '../types/gamePhase';
 import { EffectKey, TimeSlot } from '../types/game';
 import { StoryMatchManager } from '../game/StoryMatchManager';
@@ -292,9 +291,11 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
               <span className={`text-lg font-bold ${getTierColor(player.tier)}`}>
                 {getTierName(player.tier)}
               </span>
-              <span className="text-sm px-2 py-0.5 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent font-bold">
-                {getArchetypeLabel(buildPlayStyle(player.archetypeProfile).type)}
-              </span>
+              {player.archetypeProfile.broad && (
+                <span className="text-sm px-2 py-0.5 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent font-bold">
+                  {BROAD_ARCHETYPE_LABELS[player.archetypeProfile.broad]}
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm text-pixel-text-muted">Recent Matches:</span>
