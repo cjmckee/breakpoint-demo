@@ -15,6 +15,7 @@ const keith: MatchOpponent = {
   characterId: 'keith',
   name: 'Keith',
   tier: 1,
+  archetype: 'aggressive',
   description: 'He lost to his little sister, but he\'s been training hard since. Don\'t underestimate his speed.',
   stats: {
     core: {
@@ -53,6 +54,7 @@ const chris: MatchOpponent = {
   characterId: 'chris',
   name: 'Chris',
   tier: 1,
+  archetype: 'counterpuncher',
   description: 'A tactical player with strong mental game and consistent groundstrokes. He\'s improved noticeably since you last saw him.',
   stats: {
     core: {
@@ -91,6 +93,7 @@ const max: MatchOpponent = {
   characterId: 'max',
   name: 'Max',
   tier: 1,
+  archetype: 'defensive',
   description: 'A defensive specialist with great court coverage. His return game and placement are his biggest weapons. Don\'t let him get comfortable.',
   stats: {
     core: {
@@ -129,6 +132,7 @@ const jordan: MatchOpponent = {
   characterId: 'jordan_rival',
   name: 'Jordan',
   tier: 1,
+  archetype: 'serve_volley',
   description: 'Your rival. He\'s been preparing for this tournament seriously and it shows. Well-rounded, competitive, and dangerous in every situation.',
   stats: {
     core: {

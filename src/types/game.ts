@@ -310,6 +310,9 @@ export interface StoryMatchMetadata {
   // Opponent abilities applied during match simulation
   opponentAbilities?: Ability[];
 
+  // Authored phase-based archetype profile (falls back to empty/all-court if omitted)
+  opponentArchetypeProfile?: ArchetypeProfile;
+
   // Whether this match counts toward milestones and stats
   countsForMilestones?: boolean; // defaults to true
   isTutorial?: boolean;          // show in-match tutorial guidance
