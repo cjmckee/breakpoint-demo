@@ -265,6 +265,26 @@ export const PATHS_BY_PHASE: Record<GamePhase, PhasePathDef[]> = ALL_PHASES.redu
 export const STARTING_SPECIALIZATION_POINTS = 2;
 
 /**
+ * Display labels for the player's broad archetype — the one-time identity
+ * chosen at the Coach Gonzalez event. Deliberately worded to not collide with
+ * any legacy PlayStyle label (see ArchetypeType in data/archetypes.ts) or any
+ * PhasePathId label (e.g. the net phase's own "Net-Rusher" specialty) — this
+ * is a declared direction, not a promise of an already-active playstyle.
+ */
+export const BROAD_ARCHETYPE_LABELS: Record<BroadArchetype, string> = {
+  baseliner: 'Baseliner',
+  net_rusher: 'Net Attacker',
+  all_courter: 'All-Courter',
+};
+
+/**
+ * Shown in place of a broad archetype label before the player has chosen one
+ * (pre Coach Gonzalez event). Deliberately distinct from "All-Courter" — that's
+ * a real, deliberately-chosen archetype, not a placeholder for "none yet".
+ */
+export const DEFAULT_ARCHETYPE_LABEL = 'Balanced';
+
+/**
  * Resolve the chosen specialty for a phase, or null if the player hasn't spent a
  * point to specialize it. There are no automatic defaults — every specialty is an
  * opt-in bonus the player selects; unspecialized phases use baseline behavior.

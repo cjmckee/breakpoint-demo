@@ -89,11 +89,11 @@ export const coachEvents: StoryEvent[] = [
       },
       {
         id: 'choose_net_rusher',
-        text: 'Net-Rusher',
+        text: 'Net Attacker',
         emoji: '⚡',
         description: 'Get forward and finish at the net. End points early and apply pressure.',
         outcome: {
-          resultText: ['"A net-rusher!" ', { characterId: 'coach_gonzalez' }, ' grins. "Brave. You\'ll take time away from people and finish at the net. High risk, high reward. I like it. Let\'s sharpen those approaches."'],
+          resultText: ['"A net attacker!" ', { characterId: 'coach_gonzalez' }, ' grins. "Brave. You\'ll take time away from people and finish at the net. High risk, high reward. I like it. Let\'s sharpen those approaches."'],
           effects: {
             setArchetypeBroad: 'net_rusher',
             moodChange: 8,

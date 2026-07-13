@@ -9,20 +9,15 @@ import React from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
+import { TendencyBars } from './TendencyBars';
 import { buildPlayStyle } from '../core/PlayerProfile';
-import { getArchetypeLabel } from '../data/archetypes';
 import {
   ALL_PHASES,
   PHASE_LABELS,
   PATHS_BY_PHASE,
+  BROAD_ARCHETYPE_LABELS,
 } from '../data/archetypeTree';
 import type { GamePhase, PhasePathId, SpecialtyTier } from '../types/archetype';
-
-const BROAD_LABELS: Record<string, string> = {
-  baseliner: 'Baseliner',
-  net_rusher: 'Net-Rusher',
-  all_courter: 'All-Courter',
-};
 
 const TierDots: React.FC<{ tier: SpecialtyTier }> = ({ tier }) => {
   return (
@@ -51,7 +46,7 @@ export const ArchetypeTree: React.FC = () => {
   const profile = player.archetypeProfile;
   const points = profile.specializationPoints;
   const tokens = profile.respecTokens;
-  const summaryLabel = getArchetypeLabel(buildPlayStyle(profile).type);
+  const playStyle = buildPlayStyle(profile);
   // Club Player (tier 1) is capped at specialty tier I — upgrading past it unlocks at Regional Competitor.
   const isTierCapped = player.tier <= 1;
 
@@ -163,30 +158,33 @@ export const ArchetypeTree: React.FC = () => {
         </div>
 
         <Card title="Player Archetype" className="mb-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <div className="text-sm text-pixel-text-muted">Identity</div>
-              <div className="text-xl font-bold text-pixel-text">
-                {BROAD_LABELS[profile.broad] ?? profile.broad}
-                <span className="text-pixel-text-muted"> · </span>
-                <span className="text-pixel-accent">{summaryLabel}</span>
+              <div className="text-sm text-pixel-text-muted">Archetype</div>
+              <div className="text-xl font-bold text-pixel-text mb-3">
+                {BROAD_ARCHETYPE_LABELS[profile.broad] ?? profile.broad}
+              </div>
+              <div className="flex gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-pixel-accent">{points}</div>
+                  <div className="text-xs text-pixel-text-muted">Spec Points</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-yellow-400">{tokens}</div>
+                  <div className="text-xs text-pixel-text-muted">Respec Tokens</div>
+                </div>
               </div>
             </div>
-            <div className="flex gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-pixel-accent">{points}</div>
-                <div className="text-xs text-pixel-text-muted">Spec Points</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-yellow-400">{tokens}</div>
-                <div className="text-xs text-pixel-text-muted">Respec Tokens</div>
-              </div>
+            <div className="w-full max-w-xs">
+              <div className="text-sm text-pixel-text-muted mb-1.5">Current Tendencies</div>
+              <TendencyBars playStyle={playStyle} />
             </div>
           </div>
           <p className="text-sm text-pixel-text-muted mt-3">
             Each phase has one specialty (tiers I–III). Spend a point to lock in or upgrade a
-            specialty. Switching a locked-in phase requires a respec token. Unset phases use your
-            broad archetype's default.
+            specialty. Switching a locked-in phase requires a respec token. Tendencies reflect how
+            you actually play right now, based on the specialties you've locked in below — your
+            archetype is the direction, not an automatic bonus.
           </p>
         </Card>
 
