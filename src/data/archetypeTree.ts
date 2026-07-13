@@ -64,7 +64,7 @@ const PATHS: PhasePathDef[] = [
   {
     id: 'fs_spot', phase: 'first_serve', label: 'Spot-Server',
     description: 'Pinpoint placement over raw power — paint the lines and set up the next ball.',
-    tradeoff: 'Softer, well-placed serves — lands far more often, but the returner gets a look at it.',
+    tradeoff: 'Softer, well-placed serves — lands far more often, but the returner gets a look at it. Leveling lowers your fault risk even further.',
     tierEffects: [
       { [EffectKey.FAULT_RISK]: -12, [EffectKey.SERVE_PACE]: -3 },
       { [EffectKey.FAULT_RISK]: -6 },
@@ -74,7 +74,7 @@ const PATHS: PhasePathDef[] = [
   {
     id: 'fs_spin', phase: 'first_serve', label: 'Spin/Kick',
     description: 'Heavy spin that jumps off the court and pulls returners out of position.',
-    tradeoff: 'Rarely free points, but reliable and sets up the rally — leveling deepens both.',
+    tradeoff: 'Rarely free points, but reliable and sets up the rally — leveling lowers fault risk further and improves rally tolerance.',
     tierEffects: [
       { [EffectKey.FAULT_RISK]: -8, [EffectKey.SERVE_PACE]: -2, [EffectKey.RALLY_TOLERANCE]: 3 },
       { [EffectKey.FAULT_RISK]: -4, [EffectKey.RALLY_TOLERANCE]: 3 },
@@ -86,7 +86,7 @@ const PATHS: PhasePathDef[] = [
   {
     id: 'ss_safe', phase: 'second_serve', label: 'Safe',
     description: 'Get it in, start the point. No heroics on the second ball.',
-    tradeoff: 'Almost never double-faults, but the soft ball gets attacked — leveling adds a little sting.',
+    tradeoff: 'Almost never double-faults, but the soft ball gets attacked — leveling lowers fault risk further and improves second-serve aggression.',
     tierEffects: [
       { [EffectKey.FAULT_RISK]: -14, [EffectKey.SERVE_PACE]: -4, [EffectKey.SECOND_SERVE_AGGRESSION]: -8 },
       { [EffectKey.FAULT_RISK]: -4, [EffectKey.SECOND_SERVE_AGGRESSION]: 3 },
@@ -96,7 +96,7 @@ const PATHS: PhasePathDef[] = [
   {
     id: 'ss_kicker', phase: 'second_serve', label: 'Kicker',
     description: 'A high, heavy kick that pushes the returner back and buys control.',
-    tradeoff: 'Balanced — some bite without much double-fault risk.',
+    tradeoff: 'Balanced — some bite without much double-fault risk. Leveling improves second-serve aggression further.',
     tierEffects: [
       { [EffectKey.SECOND_SERVE_AGGRESSION]: 5 },
       { [EffectKey.SECOND_SERVE_AGGRESSION]: 4 },
@@ -150,7 +150,7 @@ const PATHS: PhasePathDef[] = [
   {
     id: 'fh_heavy_topspin', phase: 'forehand', label: 'Heavy Topspin',
     description: 'High-margin, heavy topspin that builds pressure and pushes opponents back.',
-    tradeoff: 'Dictates with safety, fewer flat-out winners.',
+    tradeoff: 'Dictates with safety, fewer flat-out winners. Leveling improves both winner bias and rally tolerance further.',
     tierEffects: [
       { [EffectKey.WINNER_BIAS]: 6, [EffectKey.RALLY_TOLERANCE]: 2 },
       { [EffectKey.WINNER_BIAS]: 5, [EffectKey.RALLY_TOLERANCE]: 2 },
@@ -192,7 +192,7 @@ const PATHS: PhasePathDef[] = [
   {
     id: 'bh_slice', phase: 'backhand', label: 'Slice / Defensive',
     description: 'A low, knifing slice — change the rhythm, stay in the point, frustrate.',
-    tradeoff: 'Great variety and defense, but cedes pace and offense.',
+    tradeoff: 'Great variety and defense, but cedes pace and offense. Leveling deepens the slice and improves rally tolerance further.',
     tierEffects: [
       { [EffectKey.SLICE_PREFERENCE_BACKHAND]: 10, [EffectKey.RALLY_TOLERANCE]: 4 },
       { [EffectKey.SLICE_PREFERENCE_BACKHAND]: 7, [EffectKey.RALLY_TOLERANCE]: 3 },
@@ -202,7 +202,7 @@ const PATHS: PhasePathDef[] = [
   {
     id: 'bh_steady', phase: 'backhand', label: 'Steady',
     description: 'A dependable two-hander that holds up under pressure and keeps rallies alive.',
-    tradeoff: 'Reliable, but neither a weapon nor a defensive specialty.',
+    tradeoff: 'Reliable, but neither a weapon nor a defensive specialty. Leveling improves rally tolerance further.',
     tierEffects: [
       { [EffectKey.RALLY_TOLERANCE]: 6 },
       { [EffectKey.RALLY_TOLERANCE]: 5 },
@@ -224,7 +224,7 @@ const PATHS: PhasePathDef[] = [
   {
     id: 'net_opportunist', phase: 'net', label: 'Opportunist',
     description: 'Come forward only on a genuine short ball — controlled aggression.',
-    tradeoff: 'Balanced — picks good moments without overexposing.',
+    tradeoff: 'Balanced — picks good moments without overexposing. Leveling improves net approach frequency further.',
     tierEffects: [
       { [EffectKey.NET_APPROACH_BIAS]: 5 },
       { [EffectKey.NET_APPROACH_BIAS]: 4 },
@@ -234,7 +234,7 @@ const PATHS: PhasePathDef[] = [
   {
     id: 'net_backcourt', phase: 'net', label: 'Backcourt',
     description: 'Live at the baseline — only approach when absolutely forced.',
-    tradeoff: 'Safe from the back but no net threat — leveling rewards your backcourt grinding.',
+    tradeoff: 'Safe from the back but no net threat — leveling improves rally tolerance further.',
     tierEffects: [
       { [EffectKey.NET_APPROACH_BIAS]: -8, [EffectKey.RALLY_TOLERANCE]: 4 },
       { [EffectKey.RALLY_TOLERANCE]: 3 },

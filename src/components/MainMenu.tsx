@@ -4,8 +4,9 @@
  */
 
 import React, { JSX, useState } from 'react';
-import { useGameStore } from '../stores/gameStore';
+import { useGameStore, defaultRestEnergy, defaultSleepBonus } from '../stores/gameStore';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { EffectAggregator } from '../core/EffectAggregator';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { UnseenBadge } from './ui/UnseenBadge';
@@ -22,7 +23,7 @@ import { HangoutUnlockedModal } from './HangoutUnlockedModal';
 import { buildPlayStyle } from '../core/PlayerProfile';
 import { getArchetypeLabel } from '../data/archetypes';
 import type { OverlayState } from '../types/gamePhase';
-import { TimeSlot } from '../types/game';
+import { EffectKey, TimeSlot } from '../types/game';
 import { StoryMatchManager } from '../game/StoryMatchManager';
 import { CHARACTERS } from '../data/characters';
 import { getHangoutTier, HANGOUT_CHARACTERS, HANGOUT_ENERGY_COST, hasUnseenTierEvent } from '../data/hangoutCharacters';
@@ -63,6 +64,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
 
   // Check for unseen training
   const hasUnseenTraining = (player?.activeIndicators ?? []).includes('training');
+
+  // Check for unseen (newly unlocked) match play
+  const hasUnseenMatch = (player?.activeIndicators ?? []).includes('match');
 
   // Check for unseen shop
   const hasUnseenShop = (player?.activeIndicators ?? []).includes('shop');
@@ -305,6 +309,13 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
           const isBlocked = isEventPending || isMatchScheduled;
           const canAffordMatch = currentStatus.energy >= 50;
           const canAffordHangout = currentStatus.energy >= HANGOUT_ENERGY_COST;
+          const isEnergyFull = currentStatus.energy >= 100;
+          const energyGainBonus = EffectAggregator.getEffect(
+            EffectAggregator.getActiveEffects(player).effects,
+            EffectKey.ENERGY_GAIN_BONUS
+          );
+          const restEnergyGain = defaultRestEnergy + energyGainBonus;
+          const sleepEnergyGain = defaultRestEnergy + defaultSleepBonus + energyGainBonus;
 
           return (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
@@ -312,40 +323,45 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
               {/* Card 1: Play */}
               <Card padding="md" className="flex flex-col">
                 <div className="text-center mb-4">
-                  <div className="text-6xl mb-3 relative inline-block">
-                    🎾
-                    {hasUnseenTraining && (
-                      <UnseenBadge className="absolute -top-2 -right-4" />
-                    )}
-                  </div>
+                  <div className="text-6xl mb-3">🎾</div>
                   <h2 className="text-lg lg:text-2xl font-bold text-pixel-text mb-2">Play</h2>
                   <p className="text-sm text-pixel-text-muted mb-3">Train your skills or compete in a match</p>
                 </div>
                 <div className="mt-auto flex flex-col gap-2">
-                  <Button
-                    variant="primary"
-                    fullWidth
-                    disabled={isBlocked || isNightTime}
-                    onClick={() => navigateTo('training')}
-                  >
-                    {isBlocked ? (isEventPending ? 'Event Pending' : 'Match Scheduled') : isNightTime ? 'Night Time' : 'Training'}
-                  </Button>
-                  <Button
-                    variant="primary"
-                    fullWidth
-                    disabled={isBlocked || isNightTime || !matchUnlocked || !canAffordMatch}
-                    onClick={() => navigateTo('match_setup')}
-                  >
-                    {!matchUnlocked
-                      ? 'Unlocks Day 5'
-                      : isBlocked
-                        ? (isEventPending ? 'Event Pending' : 'Match Scheduled')
-                        : isNightTime
-                          ? 'Night Time'
-                          : !canAffordMatch
-                            ? 'Not Enough Energy'
-                            : 'Play Match'}
-                  </Button>
+                  <div className="relative">
+                    {hasUnseenTraining && (
+                      <UnseenBadge className="absolute -top-2 -right-2 z-10" />
+                    )}
+                    <Button
+                      variant="primary"
+                      fullWidth
+                      disabled={isBlocked || isNightTime}
+                      onClick={() => navigateTo('training')}
+                    >
+                      {isBlocked ? (isEventPending ? 'Event Pending' : 'Match Scheduled') : isNightTime ? 'Night Time' : 'Training'}
+                    </Button>
+                  </div>
+                  <div className="relative">
+                    {hasUnseenMatch && matchUnlocked && !isBlocked && !isNightTime && canAffordMatch && (
+                      <UnseenBadge className="absolute -top-2 -right-2 z-10" />
+                    )}
+                    <Button
+                      variant="primary"
+                      fullWidth
+                      disabled={isBlocked || isNightTime || !matchUnlocked || !canAffordMatch}
+                      onClick={() => navigateTo('match_setup')}
+                    >
+                      {!matchUnlocked
+                        ? 'Unlocks Day 5'
+                        : isBlocked
+                          ? (isEventPending ? 'Event Pending' : 'Match Scheduled')
+                          : isNightTime
+                            ? 'Night Time'
+                            : !canAffordMatch
+                              ? 'Not Enough Energy'
+                              : 'Play Match'}
+                    </Button>
+                  </div>
                   {player.archetypeProfile.broad && (
                     <div className="relative">
                       {player.archetypeProfile.specializationPoints > 0 && (
@@ -370,9 +386,10 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                   <Button
                     variant={isNightTime ? 'success' : 'primary'}
                     fullWidth
+                    disabled={!isNightTime && isEnergyFull}
                     onClick={() => rest()}
                   >
-                    {isNightTime ? 'Next Day' : 'Rest'}
+                    {isNightTime ? `Next Day (+${sleepEnergyGain} Energy)` : isEnergyFull ? 'Energy Full' : `Rest (+${restEnergyGain} Energy)`}
                   </Button>
                   {calendar.currentDay >= 5 ? (
                     <div className="relative">

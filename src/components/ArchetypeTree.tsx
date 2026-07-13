@@ -52,6 +52,8 @@ export const ArchetypeTree: React.FC = () => {
   const points = profile.specializationPoints;
   const tokens = profile.respecTokens;
   const summaryLabel = getArchetypeLabel(buildPlayStyle(profile).type);
+  // Club Player (tier 1) is capped at specialty tier I — upgrading past it unlocks at Regional Competitor.
+  const isTierCapped = player.tier <= 1;
 
   if (!profile.broad) {
     return (
@@ -116,14 +118,20 @@ export const ArchetypeTree: React.FC = () => {
                     {isChosen && (
                       <>
                         {chosen!.tier < 3 ? (
-                          <Button
-                            size="sm"
-                            variant="success"
-                            disabled={points < 1}
-                            onClick={() => upgradePhase(phase)}
-                          >
-                            Upgrade (1)
-                          </Button>
+                          isTierCapped ? (
+                            <span className="text-xs text-center text-pixel-text-muted" title="Reach Regional Competitor to upgrade specialties past tier I">
+                              Locked until Regional Competitor
+                            </span>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="success"
+                              disabled={points < 1}
+                              onClick={() => upgradePhase(phase)}
+                            >
+                              Upgrade (1)
+                            </Button>
+                          )
                         ) : (
                           <span className="text-xs text-center text-pixel-text-muted">Maxed</span>
                         )}

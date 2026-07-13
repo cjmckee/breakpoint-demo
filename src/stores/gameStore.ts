@@ -224,8 +224,8 @@ const initialStatus: CurrentStatus = {
   lastActivity: null,
 };
 
-const defaultRestEnergy = 20;
-const defaultSleepBonus = 30;
+export const defaultRestEnergy = 20;
+export const defaultSleepBonus = 30;
 const defaultMoodBonus = 5;
 
 export const useGameStore = create<GameState>()(
@@ -739,6 +739,11 @@ export const useGameStore = create<GameState>()(
 
         // Milestone events are checked in dismissMatchResults(), not here.
 
+        // Show match indicator the first time the player crosses day 5
+        if (calendar.currentDay < 5 && newCalendar.currentDay >= 5) {
+          get().setIndicator('match');
+        }
+
         // Show shop indicator the first time the player crosses day 7
         if (calendar.currentDay < 7 && newCalendar.currentDay >= 7) {
           get().setIndicator('shop');
@@ -1092,6 +1097,7 @@ export const useGameStore = create<GameState>()(
             break;
           case 'match_setup':
             set({ gamePhase: { type: 'match_setup', matchType: 'regular', matchConfig: null } });
+            get().clearIndicator('match');
             break;
           case 'tournament_list':
             set({ gamePhase: { type: 'tournament_list' } });
@@ -1274,6 +1280,7 @@ export const useGameStore = create<GameState>()(
         const current = profile.phases[phase];
         if (!current) return;                         // can only upgrade a chosen specialty
         if (current.tier >= 3) return;                // max tier
+        if (player.tier <= 1) return;                 // Club Player (tier 1) is capped at specialty tier I
         if (profile.specializationPoints < 1) return;
 
         set({

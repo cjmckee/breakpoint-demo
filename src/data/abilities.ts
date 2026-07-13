@@ -394,7 +394,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
   [AbilityName.ULTRA_LOB]: {
     name: AbilityName.ULTRA_LOB,
     level: 1,
-    rarity: AbilityRarity.RARE,
+    rarity: AbilityRarity.LEGENDARY,
     shopAvailable: false,
     modifiers: {
       statBoosts: {},
@@ -410,7 +410,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
   [AbilityName.LOW_EGO]: {
     name: AbilityName.LOW_EGO,
     level: 1,
-    rarity: AbilityRarity.RARE,
+    rarity: AbilityRarity.LEGENDARY,
     shopAvailable: false,
     modifiers: {
       statBoosts: {},
@@ -427,7 +427,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
   [AbilityName.BEST_FRIEND_AWARD]: {
     name: AbilityName.BEST_FRIEND_AWARD,
     level: 1,
-    rarity: AbilityRarity.UNCOMMON,
+    rarity: AbilityRarity.LEGENDARY,
     shopAvailable: false,
     modifiers: {
       statBoosts: {},
@@ -443,7 +443,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
   [AbilityName.GREAT_MENTALITY]: {
     name: AbilityName.GREAT_MENTALITY,
     level: 1,
-    rarity: AbilityRarity.UNCOMMON,
+    rarity: AbilityRarity.LEGENDARY,
     shopAvailable: false,
     modifiers: {
       statBoosts: {},
@@ -460,7 +460,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
   [AbilityName.LOVE_ALL]: {
     name: AbilityName.LOVE_ALL,
     level: 1,
-    rarity: AbilityRarity.RARE,
+    rarity: AbilityRarity.LEGENDARY,
     shopAvailable: false,
     modifiers: {
       statBoosts: {},
