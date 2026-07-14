@@ -587,14 +587,10 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
               onClick={onSelect}
               className="py-3 border-2 border-pixel-accent bg-pixel-accent bg-opacity-20 text-pixel-accent font-bold uppercase text-sm tracking-wide hover:bg-opacity-30 transition-colors"
             >
-              Play this tactic
+              Go!
             </button>
           </div>
-        ) : (
-          <div className="text-center text-[10px] text-pixel-text-muted pb-2 uppercase tracking-wide shrink-0">
-            move the cursor off this tactic to close
-          </div>
-        )}
+        ) : null}
       </div>
     );
   };
