@@ -215,9 +215,9 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   }
   conditions.push({
     icon: '🔋',
-    label: modifiers.energy <= -1 ? 'Fatigue' : 'Energy fine',
+    label: 'Energy',
     value: `${Math.round(ctx.energy)}%`,
-    helps: modifiers.energy <= -1 ? false : null,
+    helps: modifiers.energy >= 0 ? null : false,
     modifier: modifiers.energy,
     tooltip: modifiers.energy <= -1
       ? `${modifiers.energy}% from energy`
