@@ -88,14 +88,14 @@ export const coachEvents: StoryEvent[] = [
         },
       },
       {
-        id: 'choose_net_rusher',
+        id: 'choose_net_attacker',
         text: 'Net Attacker',
         emoji: '⚡',
         description: 'Get forward and finish at the net. End points early and apply pressure.',
         outcome: {
           resultText: ['"A net attacker!" ', { characterId: 'coach_gonzalez' }, ' grins. "Brave. You\'ll take time away from people and finish at the net. High risk, high reward. I like it. Let\'s sharpen those approaches."'],
           effects: {
-            setArchetypeBroad: 'net_rusher',
+            setArchetypeBroad: 'net_attacker',
             moodChange: 8,
             relationshipChanges: { coach_gonzalez: 5 },
             hangoutUnlocks: ['coach_gonzalez'],

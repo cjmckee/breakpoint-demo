@@ -48,7 +48,7 @@ const ABOVE_BASELINE_THRESHOLD = 15;
  */
 const TENDENCY_NUDGE = 8;
 const BROAD_TENDENCY_NUDGES: Record<BroadArchetype, { aggression: number; netApproach: number; consistency: number; power: number }> = {
-  net_rusher: { aggression: TENDENCY_NUDGE, netApproach: TENDENCY_NUDGE, consistency: -TENDENCY_NUDGE, power: -TENDENCY_NUDGE },
+  net_attacker: { aggression: TENDENCY_NUDGE, netApproach: TENDENCY_NUDGE, consistency: -TENDENCY_NUDGE, power: -TENDENCY_NUDGE },
   baseliner: { aggression: -TENDENCY_NUDGE, netApproach: -TENDENCY_NUDGE, consistency: TENDENCY_NUDGE, power: TENDENCY_NUDGE },
   all_courter: { aggression: 0, netApproach: 0, consistency: 0, power: 0 },
 };
