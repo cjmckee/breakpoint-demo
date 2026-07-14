@@ -88,6 +88,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   // On touch devices (no hover), tapping a card opens its detail modal instead of committing.
   const [openIdx, setOpenIdx] = useState<number | null>(null);
   const [isTouch, setIsTouch] = useState(false);
+  const [hoveredCondition, setHoveredCondition] = useState<number | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return;
@@ -195,16 +196,21 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     label: string;
     value: string;
     helps: boolean | null; // true = green, false = red, null = neutral
+    modifier: number; // raw % modifier from getContextModifiers
+    tooltip: string; // hover explanation
   }
 
   const conditions: Condition[] = [];
   if (Math.abs(modifiers.momentum) >= 1) {
     const helps = modifiers.momentum > 0;
+    const sign = modifiers.momentum > 0 ? '+' : '';
     conditions.push({
       icon: helps ? '📈' : '📉',
       label: helps ? 'Momentum with you' : 'Momentum against you',
-      value: `${modifiers.momentum > 0 ? '+' : ''}${modifiers.momentum}`,
+      value: `${sign}${modifiers.momentum}`,
       helps,
+      modifier: modifiers.momentum,
+      tooltip: `${sign}${modifiers.momentum}% to your success odds from momentum`,
     });
   }
   conditions.push({
@@ -212,14 +218,21 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     label: modifiers.energy <= -1 ? 'Fatigue' : 'Energy fine',
     value: `${Math.round(ctx.energy)}%`,
     helps: modifiers.energy <= -1 ? false : null,
+    modifier: modifiers.energy,
+    tooltip: modifiers.energy <= -1
+      ? `${modifiers.energy}% to your success odds — low energy hurts`
+      : 'Energy has no impact on success odds right now',
   });
   if (Math.abs(modifiers.mood) >= 1) {
     const helps = modifiers.mood > 0;
+    const sign = modifiers.mood > 0 ? '+' : '';
     conditions.push({
       icon: helps ? '😊' : '😤',
       label: helps ? 'Confident' : 'Frustrated',
-      value: `${modifiers.mood > 0 ? '+' : ''}${modifiers.mood}`,
+      value: `${sign}${modifiers.mood}`,
       helps,
+      modifier: modifiers.mood,
+      tooltip: `${sign}${modifiers.mood}% to your success odds from ${helps ? 'confidence' : 'frustration'}`,
     });
   }
   if (modifiers.pressure <= -1) {
@@ -228,6 +241,8 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
       label: 'Big-point pressure',
       value: `${modifiers.pressure}`,
       helps: false,
+      modifier: modifiers.pressure,
+      tooltip: `${modifiers.pressure}% to your success odds — pressure hurts`,
     });
   }
 
@@ -245,14 +260,28 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
 
   const conditionsStrip = (
     <div className="px-5 py-4 border-t-2 border-pixel-border">
-      <div className="flex flex-wrap gap-2 mb-3">
+      <div className="flex flex-wrap gap-2 mb-3 relative">
         {conditions.map((c, i) => (
-          <span key={i} className={`text-sm px-2.5 py-1.5 border-2 rounded flex items-center gap-1.5 ${conditionColor(c.helps)}`}>
+          <span
+            key={i}
+            className={`text-sm px-2.5 py-1.5 border-2 rounded flex items-center gap-1.5 cursor-help relative ${conditionColor(c.helps)}`}
+            onMouseEnter={() => setHoveredCondition(i)}
+            onMouseLeave={() => setHoveredCondition(null)}
+          >
             <span>{c.icon}</span>
             {c.label}
             <span className="font-bold">{c.value}</span>
+            {hoveredCondition === i && (
+              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 text-xs font-normal whitespace-nowrap bg-pixel-card border-2 border-pixel-border text-pixel-text rounded shadow-lg z-20 pointer-events-none">
+                {c.tooltip}
+                <span className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-pixel-border" />
+              </span>
+            )}
           </span>
         ))}
+      </div>
+      <div className={`text-xs font-bold ${netTone}`}>
+        Overall conditions {netText} ({net > 0 ? '+' : ''}{Math.round(net)}%)
       </div>
     </div>
   );

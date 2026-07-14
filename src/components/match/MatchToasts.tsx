@@ -46,9 +46,12 @@ export const MatchToasts: React.FC<MatchToastsProps> = ({ playerName, opponentNa
   };
 
   useEffect(() => {
-    const { lastPointResult: r, pointSeq } = useMatchStore.getState();
+    const { lastPointResult: r, pointSeq, matchLog } = useMatchStore.getState();
     if (!currentScore || !r || pointSeq === seenSeq.current) return;
     seenSeq.current = pointSeq;
+
+    // Use the latest narration from the match log as the toast text.
+    const narration = matchLog.length > 0 ? matchLog[matchLog.length - 1] : null;
 
     const nameOf = (side: 'player' | 'opponent'): string => (side === 'player' ? playerName : opponentName);
 
@@ -77,19 +80,20 @@ export const MatchToasts: React.FC<MatchToastsProps> = ({ playerName, opponentNa
           : null;
     prevGames.current = { player: games.player, opponent: games.opponent };
     if (gained && r.server && gained !== r.server) {
-      push(`${nameOf(gained)} breaks serve!`, gained === 'player' ? 'good' : 'bad');
+      push(narration ?? `${nameOf(gained)} breaks serve!`, gained === 'player' ? 'good' : 'bad');
       return;
     }
 
-    // ── Point-level beats ────────────────────────────────────────────────────
-    const serverName = nameOf(r.server ?? (r.winner === 'player' ? 'opponent' : 'player'));
+    // ── Point-level beats (use narration for richer commentary) ──────────────
     switch (r.outcome) {
       case PointType.ACE:
-        push(`${nameOf(r.winner)} ace!`, r.winner === 'player' ? 'good' : 'bad');
+        push(narration ?? `${nameOf(r.winner)} ace!`, r.winner === 'player' ? 'good' : 'bad');
         break;
       case PointType.DOUBLE_FAULT:
-        // The double fault is the server's; it's good for the player when the player wins the point.
-        push(`${serverName} double fault`, r.winner === 'player' ? 'good' : 'bad');
+        push(narration ?? `Double fault`, r.winner === 'player' ? 'good' : 'bad');
+        break;
+      case PointType.WINNER:
+        push(narration ?? `${nameOf(r.winner)} winner!`, r.winner === 'player' ? 'good' : 'bad');
         break;
       default:
         break;

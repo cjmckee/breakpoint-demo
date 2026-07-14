@@ -146,7 +146,7 @@ export const MatchCockpit: React.FC<MatchCockpitProps> = ({
   return (
     <div className="bg-pixel-primary rounded-lg p-4 shadow-lg border-2 border-pixel-border">
       {/* Scoreboard */}
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-4">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-3 sm:gap-4">
         {/* Player */}
         <div className="flex flex-col gap-1.5 min-w-0">
           <div className="flex items-center gap-2 min-w-0">
@@ -154,19 +154,19 @@ export const MatchCockpit: React.FC<MatchCockpitProps> = ({
             <span className="text-sm sm:text-base font-bold text-pixel-success truncate">{playerName}</span>
           </div>
           <SetPips won={setsWon.player} total={setsToWin} who="player" />
-          <span className="text-[10px] text-pixel-text-muted">Games {currentSet.player}</span>
         </div>
 
-        {/* Big point score */}
-        <div className="flex items-center gap-3 sm:gap-5 px-1">
-          <div className="flex flex-col items-center min-w-[54px]">
-            <span className="text-[8px] text-pixel-text-muted mb-1.5 uppercase truncate max-w-[72px]">You</span>
-            <span className="text-3xl sm:text-5xl text-pixel-success leading-none">{playerPoints}</span>
-          </div>
-          <span className="text-xl sm:text-2xl text-pixel-text-muted self-center mt-3">–</span>
-          <div className="flex flex-col items-center min-w-[54px]">
-            <span className="text-[8px] text-pixel-text-muted mb-1.5 uppercase truncate max-w-[72px]">{opponentName}</span>
-            <span className="text-3xl sm:text-5xl text-pixel-error leading-none">{opponentPoints}</span>
+        {/* Center score: set score + point score */}
+        <div className="flex flex-col items-center gap-2.5 px-1">
+          {/* Set score */}
+          <span className="text-xl sm:text-2xl font-bold text-pixel-text tracking-wide">
+            {currentSet.player} – {currentSet.opponent}
+          </span>
+          {/* Big point score */}
+          <div className="flex items-center gap-3 sm:gap-5">
+            <span className="text-3xl sm:text-5xl text-pixel-success leading-none min-w-[54px] text-right">{playerPoints}</span>
+            <span className="text-xl sm:text-2xl text-pixel-text-muted">–</span>
+            <span className="text-3xl sm:text-5xl text-pixel-error leading-none min-w-[54px] text-left">{opponentPoints}</span>
           </div>
         </div>
 
@@ -177,7 +177,6 @@ export const MatchCockpit: React.FC<MatchCockpitProps> = ({
             <span className="text-sm sm:text-base font-bold text-pixel-error truncate">{opponentName}</span>
           </div>
           <SetPips won={setsWon.opponent} total={setsToWin} who="opponent" alignEnd />
-          <span className="text-[10px] text-pixel-text-muted">Games {currentSet.opponent}</span>
         </div>
       </div>
 
