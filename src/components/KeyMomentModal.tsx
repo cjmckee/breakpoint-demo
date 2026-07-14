@@ -487,21 +487,23 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     const primaryVal = stats ? statValue(stats, weights.primary) : 0;
     const secondary = weights.secondary.slice(0, 2);
     return (
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-1.5">
         <div className={`text-xs font-bold uppercase tracking-wide ${tone}`}>{name} · rating {total}</div>
-        <div className={`flex items-center justify-between px-3 py-2 border-2 ${border} bg-pixel-bg`}>
+        <div className={`flex items-center justify-between px-3 py-1.5 border-2 ${border} bg-pixel-bg`}>
           <div>
             <div className="text-[10px] text-pixel-text-muted uppercase tracking-wide">Priority stat</div>
             <div className="text-sm font-bold text-pixel-text">{formatStatName(weights.primary)}</div>
           </div>
-          <div className={`text-3xl font-bold ${tone}`}>{primaryVal}</div>
+          <div className={`text-2xl font-bold ${tone}`}>{primaryVal}</div>
         </div>
-        {secondary.map((w, i) => (
-          <div key={i} className="flex justify-between text-sm text-pixel-text-muted px-1">
-            <span>{formatStatName(w.stat)}</span>
-            <span className="text-pixel-text">{stats ? statValue(stats, w.stat) : 0}</span>
-          </div>
-        ))}
+        <div className="flex justify-between gap-3 text-sm text-pixel-text-muted px-1">
+          {secondary.map((w, i) => (
+            <span key={i} className="flex gap-1.5">
+              <span>{formatStatName(w.stat)}</span>
+              <span className="text-pixel-text">{stats ? statValue(stats, w.stat) : 0}</span>
+            </span>
+          ))}
+        </div>
       </div>
     );
   };
@@ -520,19 +522,19 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     return (
       <div className={`absolute inset-0 z-10 flex flex-col bg-pixel-card rounded overflow-hidden border-2 border-pixel-accent ${interactive ? '' : 'pointer-events-none'}`}>
         {/* Header — restates the tactic being previewed (its card is hidden behind the modal) */}
-        <div className="p-4 border-b-2 border-pixel-border shrink-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xl">{option.emoji}</span>
+        <div className="p-3 border-b-2 border-pixel-border shrink-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="text-lg">{option.emoji}</span>
             <h4 className="text-base font-bold text-pixel-text">{option.name}</h4>
           </div>
-          <p className="text-sm text-pixel-text-muted mb-2">{option.description}</p>
-          <div className="flex flex-wrap gap-2">
+          <p className="text-sm text-pixel-text-muted mb-2 leading-snug">{option.description}</p>
+          <div className="flex flex-wrap gap-1.5">
             {option.secondaryEffects.map((effect, i) => {
               const condLabel = getConditionLabel(effect.condition);
               return (
                 <span
                   key={i}
-                  className={`text-sm px-2 py-0.5 border border-pixel-border bg-pixel-bg ${
+                  className={`text-xs px-1.5 py-0.5 border border-pixel-border bg-pixel-bg ${
                     isBeneficial(effect) ? 'text-green-400' : 'text-red-400'
                   }`}
                 >
@@ -544,9 +546,9 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 flex-1 overflow-y-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 flex-1 overflow-y-auto">
           {/* Left — the matchup */}
-          <div className="p-5 border-b-2 md:border-b-0 md:border-r-2 border-pixel-border flex flex-col gap-3">
+          <div className="p-4 border-b-2 sm:border-b-0 sm:border-r-2 border-pixel-border flex flex-col gap-2">
             <div className="text-xs font-bold uppercase tracking-wide text-pixel-accent">The matchup</div>
             <div className="text-sm text-pixel-text leading-relaxed">
               <span className="text-xs px-1.5 py-0.5 rounded bg-green-500 bg-opacity-20 text-green-400 mr-2 uppercase">Good against</span>
@@ -559,7 +561,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
           </div>
 
           {/* Right — the ratings, with the advantage chip between the two blocks */}
-          <div className="p-5 flex flex-col gap-3">
+          <div className="p-4 flex flex-col gap-2">
             <RatingBlock option={option} side="player" name={playerName} total={playerScore} />
             <div className="flex justify-center">
               <span
