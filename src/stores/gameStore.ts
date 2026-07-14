@@ -849,10 +849,14 @@ export const useGameStore = create<GameState>()(
           completedStoryEvents: state.completedStoryEvents,
           completedStoryEventChoices: state.completedStoryEventChoices,
           relationships: state.relationships,
+          hangoutThresholdsSeen: state.hangoutThresholdsSeen,
           storyEventTriggerChance: state.storyEventTriggerChance,
           activeChallenges: state.activeChallenges,
           completedChallenges: state.completedChallenges,
           unlockedTiers: state.unlockedTiers,
+          shopItems: state.shopItems,
+          audioSettings: state.audioSettings,
+          eventRecovery: state.eventRecovery,
           exportedAt: new Date().toISOString(),
           version: '1.0.0',
         };
@@ -890,6 +894,7 @@ export const useGameStore = create<GameState>()(
           }, 0);
           set({
             ...migrated,
+            eventRecovery: data.eventRecovery || DEFAULT_EVENT_RECOVERY,
             gamePhase: { type: 'idle', overlay: null },
             isInitialized: true,
           });

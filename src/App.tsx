@@ -27,6 +27,7 @@ import { CalendarModal } from './components/CalendarModal';
 import { FloatingMenuButtonWithPointerEvents } from './components/FloatingMenuButton';
 import { useMenuKeyboardHandler } from './hooks/useMenuModal';
 import { useGameKeyboardHandler } from './hooks/useGameKeyboardHandler';
+import { DebugPanel } from './debug/DebugPanel';
 
 function App() {
   const { isInitialized, gamePhase, initializeGame } = useGameStore();
@@ -199,6 +200,7 @@ function App() {
       {showFloatingUI && <FloatingMenuButtonWithPointerEvents />}
       <MenuModal />
       <CalendarModal />
+      {import.meta.env.DEV && <DebugPanel />}
     </>
   );
 }
