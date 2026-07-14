@@ -127,17 +127,21 @@ export const EffectKey = {
   // --- Archetype behavior effects (DECISION layer; read ONLY by ShotSelector/PointSimulator) ---
   // These bias WHAT shot the player tries, never shot quality. Values are in
   // "dial points" magnitude (cumulative across specialty tiers); consumers scale them.
-  WINNER_BIAS: 'winner_bias',                       // more likely to attempt winners/power shots
+  RALLY_WINNER_BIAS: 'rally_winner_bias',           // more likely to attempt winners/power shots during rallies
   NET_APPROACH_BIAS: 'net_approach_bias',           // more likely to approach the net
-  RALLY_TOLERANCE: 'rally_tolerance',               // prefers extending rallies / steady play
+  RALLY_PATIENCE: 'rally_patience',                 // prefers extending rallies / steady play
   RETURN_AGGRESSION: 'return_aggression',           // attacks the return rather than blocking deep
   SECOND_SERVE_AGGRESSION: 'second_serve_aggression', // goes after the second serve
-  FIRST_SERVE_POWER: 'first_serve_power',           // leans on power over placement on first serve
+  FIRST_SERVE_AGGRESSION: 'first_serve_aggression', // leans on power over placement on first serve
   FAULT_RISK: 'fault_risk',                         // tradeoff: raises serve fault probability
-  SERVE_PACE: 'serve_pace',                         // tradeoff: negative = weaker/softer serve (easier to return)
+  SERVE_SPEED: 'serve_speed',                       // tradeoff: negative = weaker/softer serve (easier to return)
   POWER_VARIANCE: 'power_variance',                 // tradeoff: widens quality swing on power shots (boom-or-bust)
   SLICE_PREFERENCE_FOREHAND: 'slice_preference_forehand', // slices forehands rather than driving
   SLICE_PREFERENCE_BACKHAND: 'slice_preference_backhand', // slices backhands rather than driving
+  SERVE_AND_VOLLEY_BIAS: 'serve_and_volley_bias',   // tendency to rush net on first ball after own serve
+  DROP_SHOT_BIAS: 'drop_shot_bias',                 // tendency to attempt drop shots; negative = never uses them
+  LOB_BIAS: 'lob_bias',                             // tendency to lob defensively and vs net players
+  PUTAWAY_VOLLEY_BIAS: 'putaway_volley_bias',       // tendency to go for a winner volley when ball is attackable at net
 } as const;
 
 export const AbilityName = {

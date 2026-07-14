@@ -123,7 +123,7 @@ export class PointSimulator {
     // Serve pace: placement/safe specialties trade power for reliability — their
     // serve lands softer, so the returner faces a weaker (easier) ball. This
     // offsets the reliability so it's a real tradeoff, not a free win.
-    const servePacePenalty = Math.max(0, -(serverBehaviorEffects?.[EffectKey.SERVE_PACE] ?? 0));
+    const servePacePenalty = Math.max(0, -(serverBehaviorEffects?.[EffectKey.SERVE_SPEED] ?? 0));
     const soften = (q: number): number => Math.max(0, q - servePacePenalty);
 
     const firstServeContext = this.createServeContext(matchState, true);
@@ -312,7 +312,7 @@ export class PointSimulator {
     if (outcome !== PointType.IN_PLAY) return outcome;
 
     const aggression = serveType === 'first'
-      ? (effects[EffectKey.FIRST_SERVE_POWER] ?? 0)
+      ? (effects[EffectKey.FIRST_SERVE_AGGRESSION] ?? 0)
       : (effects[EffectKey.SECOND_SERVE_AGGRESSION] ?? 0);
 
     // Aggression converts some would-be in-play serves into aces.

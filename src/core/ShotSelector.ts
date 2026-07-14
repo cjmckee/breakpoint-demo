@@ -26,14 +26,6 @@ import { EffectKey } from '../types/game.js';
 /** Archetype behavior effects threaded from the active-effects map. */
 type BehaviorEffects = Record<string, number>;
 
-/**
- * netApproach shares the same 50 baseline as the other dials (for a consistent
- * "Current Tendencies" display), but its probability curves below were tuned
- * against the dial's old 25 baseline. Subtracting this offset before applying
- * those curves keeps net-approach behavior unchanged — only the displayed
- * baseline moved, not the actual gameplay calibration.
- */
-const NET_APPROACH_DIAL_OFFSET = 25;
 
 export class ShotSelector {
   private tacticalAnalyzer: TacticalAnalyzer;
@@ -52,22 +44,26 @@ export class ShotSelector {
     matchState: MatchState,
     behaviorEffects: BehaviorEffects = {}
   ): ShotType {
-    const playStyle = shooter.playStyle;
     const { rallyLength, opponentPosition, shooterPosition } = rallyState;
 
     // Calculate preferences and opportunities using unified tactical analyzer
     const shotPreference = this.calculateShotPreference(shooter);
     const opportunity = this.tacticalAnalyzer.evaluateTacticalSituation(rallyState, shooterPosition);
 
+    // Patience drives both the defensive slice option and the long-rally shift.
+    const patience = behaviorEffects[EffectKey.RALLY_PATIENCE] ?? 0;
+
     // SPECIAL CASE: Return of serve (rallyLength === 1)
     if (rallyLength === 1) {
-      if (Math.random() < (playStyle.aggression / 100) * 0.35) {
-        // Aggressive power return
+      const returnAgg = behaviorEffects[EffectKey.RETURN_AGGRESSION] ?? 0;
+      const winnerBias = behaviorEffects[EffectKey.RALLY_WINNER_BIAS] ?? 0;
+      // Neutral ~12%; RETURN_AGGRESSION is the primary driver, RALLY_WINNER_BIAS secondary
+      const powerReturnChance = 0.12 + (returnAgg / 100) * 0.55 + (winnerBias / 100) * 0.10;
+      if (Math.random() < powerReturnChance) {
         return Math.random() < shotPreference.forehandProbability
           ? 'return_forehand_power'
           : 'return_backhand_power';
       }
-      // Use shot preference for regular returns
       return Math.random() < shotPreference.forehandProbability
         ? 'return_forehand'
         : 'return_backhand';
@@ -75,7 +71,7 @@ export class ShotSelector {
 
     // SPECIAL CASE: Shooter at net - must volley
     if (shooterPosition === 'at_net') {
-      return this.selectVolley(shooter, shotPreference, rallyState);
+      return this.selectVolley(shooter, shotPreference, rallyState, behaviorEffects);
     }
 
     // SPECIAL CASE: Opponent at net - must pass or lob.
@@ -83,7 +79,9 @@ export class ShotSelector {
     // with time, they go for the pass. Lobbing is the reliable counter to net-rushing.
     if (opponentPosition === 'at_net') {
       const rushed = rallyState.ballQuality.timeAvailable === 'rushed';
-      const lobChance = rushed ? 0.6 : 0.4;
+      const lobBias = behaviorEffects[EffectKey.LOB_BIAS] ?? 0;
+      const baseLobChance = rushed ? 0.6 : 0.35;
+      const lobChance = Math.min(0.90, baseLobChance + (lobBias / 100) * 0.40);
       if (Math.random() < lobChance) {
         return Math.random() < shotPreference.forehandProbability
           ? 'lob_forehand'
@@ -110,8 +108,8 @@ export class ShotSelector {
         Math.random() < shotPreference.forehandProbability ? 'lob_forehand' : 'lob_backhand'
       );
 
-      // Consistent players can also use regular slice (scales with consistency)
-      if (Math.random() < playStyle.consistency / 100) {
+      // Patient players include a slice option more often (neutral 25%)
+      if (Math.random() < 0.25 + (patience / 100) * 0.40) {
         defenseOptions.push(
           Math.random() < shotPreference.forehandProbability ? 'slice_forehand' : 'slice_backhand'
         );
@@ -123,21 +121,21 @@ export class ShotSelector {
     // DECISION TREE: Check for special shots first
 
     // 1. Net approach?
-    if (this.shouldApproachNet(shooter, opportunity, rallyState, matchState.courtSurface)) {
+    if (this.shouldApproachNet(shooter, opportunity, rallyState, matchState.courtSurface, behaviorEffects)) {
       return Math.random() < shotPreference.forehandProbability
         ? 'forehand_approach'
         : 'backhand_approach';
     }
 
     // 2. Go for winner/power shot?
-    if (this.shouldAttemptWinner(shooter, opportunity, rallyState)) {
+    if (this.shouldAttemptWinner(shooter, opportunity, rallyState, behaviorEffects)) {
       return Math.random() < shotPreference.forehandProbability
         ? 'forehand_power'
         : 'backhand_power';
     }
 
     // 3. Tactical shot?
-    const tacticalDecision = this.shouldUseTacticalShot(shooter, rallyState, opportunity);
+    const tacticalDecision = this.shouldUseTacticalShot(shooter, rallyState, opportunity, behaviorEffects);
     if (tacticalDecision.use) {
       const isForehand = Math.random() < shotPreference.forehandProbability;
 
@@ -152,7 +150,7 @@ export class ShotSelector {
     }
 
     // 4. Long rally defensive shift (11+ shots)
-    if (rallyLength > 10 && Math.random() < (playStyle.consistency / 100) * 0.5) {
+    if (rallyLength > 10 && Math.random() < 0.25 + (patience / 100) * 0.20) {
       return Math.random() < shotPreference.forehandProbability
         ? 'slice_forehand'
         : 'slice_backhand';
@@ -218,7 +216,8 @@ export class ShotSelector {
   private selectVolley(
     shooter: PlayerProfile,
     shotPreference: ShotPreference,
-    rallyState: RallyState
+    rallyState: RallyState,
+    behaviorEffects: BehaviorEffects
   ): ShotType {
     const isForehand = Math.random() < shotPreference.forehandProbability;
 
@@ -233,6 +232,18 @@ export class ShotSelector {
         return 'defensive_overhead'; // Good lob, hard to put away
       } else {
         return 'overhead'; // Weak lob, smash it
+      }
+    }
+
+    // Put-away volley: when ball is attackable and player leans toward finishing at net
+    const putawayBias = behaviorEffects[EffectKey.PUTAWAY_VOLLEY_BIAS] ?? 0;
+    const ballIsAttackable = !rallyState.lastShotType.includes('lob')
+      && rallyState.ballQuality.timeAvailable !== 'rushed';
+
+    if (putawayBias > 0 && ballIsAttackable) {
+      const putawayChance = Math.min(0.75, (putawayBias / 100) * 1.2);
+      if (Math.random() < putawayChance) {
+        return isForehand ? 'volley_forehand_power' : 'volley_backhand_power';
       }
     }
 
@@ -259,25 +270,18 @@ export class ShotSelector {
     shooter: PlayerProfile,
     opportunity: TacticalOpportunity,
     rallyState: RallyState,
-    courtSurface: CourtSurface
+    courtSurface: CourtSurface,
+    behaviorEffects: BehaviorEffects
   ): boolean {
-    const netApproachStat = shooter.playStyle.netApproach;
-    const netApproachEffective = Math.max(0, netApproachStat - NET_APPROACH_DIAL_OFFSET);
+    const netBias = behaviorEffects[EffectKey.NET_APPROACH_BIAS] ?? 0;
     const offensive = shooter.stats.mental.offensive;
 
-    // Base probability scales smoothly with net approach stat
-    // 5% at stat 0, ~12% at 20, ~22% at 50, ~40% at 100
-    let baseProbability = 0.05 + (netApproachEffective / 100) * 0.35;
-
-    // Offensive mentality boost: aggressive players seek the net more
-    // Scales 0-8% extra based on offensive stat
+    // Neutral ~12%; negative bias floors near 0
+    let baseProbability = Math.max(0, 0.12 + (netBias / 100) * 0.50);
     baseProbability += (offensive / 100) * 0.08;
-
-    // Court surface bonus/penalty: grass and carpet reward net play, clay punishes it.
     baseProbability += SURFACE_EFFECTS[courtSurface].netApproachBonus;
     baseProbability = Math.max(0, baseProbability);
 
-    // Situational modifiers
     if (!opportunity.netApproachSuitable) return false;
 
     let probability = baseProbability;
@@ -290,11 +294,12 @@ export class ShotSelector {
     if (rallyState.lastShotQuality >= approachThresholds.high) probability *= 1.3;
     if (rallyState.opponentPosition === 'way_back_deep') probability *= 1.5;
 
-    // Serve-and-volley: chance to follow the serve in scales with net-approach
-    // specialization (up to 50% at full net investment), instead of a flat
-    // all-or-nothing switch.
+    // Serve-and-volley: first ball after own serve
     if (rallyState.rallyLength === 2) {
-      probability = Math.max(probability, (netApproachEffective / 100) * 0.5);
+      const svBias = behaviorEffects[EffectKey.SERVE_AND_VOLLEY_BIAS] ?? 0;
+      if (svBias > 0) {
+        probability = Math.min(0.90, probability + (svBias / 100) * 0.55);
+      }
     }
 
     return Math.random() < Math.min(0.9, probability);
@@ -309,36 +314,26 @@ export class ShotSelector {
   private shouldAttemptWinner(
     shooter: PlayerProfile,
     opportunity: TacticalOpportunity,
-    rallyState: RallyState
+    rallyState: RallyState,
+    behaviorEffects: BehaviorEffects
   ): boolean {
-    const aggression = shooter.playStyle.aggression;
-    const netApproachEffective = Math.max(0, shooter.playStyle.netApproach - NET_APPROACH_DIAL_OFFSET);
+    const winnerBias = behaviorEffects[EffectKey.RALLY_WINNER_BIAS] ?? 0;
     const offensive = shooter.stats.mental.offensive;
     const defensive = shooter.stats.mental.defensive;
 
-    // Base probability scales continuously with the aggression dial (5% at 0,
-    // ~20% at baseline 50, 35% at 100), reduced for net-focused players who
-    // funnel their offense into net approaches instead of baseline winners.
-    let baseProbability = 0.05 + (aggression / 100) * 0.30 - (netApproachEffective / 100) * 0.10;
-    baseProbability = Math.max(0.02, baseProbability);
-
-    // Additional boost for high offensive stat (scales 0-10% extra)
+    // Neutral 15%; each bias point ≈ 1% swing. Floors at ~3%.
+    let baseProbability = Math.max(0.03, 0.15 + winnerBias * 0.01);
     baseProbability += (offensive / 100) * 0.10;
-
-    // High defensive mentality is a deterrent — defensive-minded players prefer
-    // to keep the ball in play rather than gamble on winners. Scales 0-8% reduction.
     baseProbability -= (defensive / 100) * 0.08;
     baseProbability = Math.max(0, baseProbability);
 
-    // Aggressive players attempt power shots early in rallies (3-5 shots)
-    // Probability of getting boost scales with aggression
-    if (Math.random() < aggression / 100 && rallyState.rallyLength >= 3 && rallyState.rallyLength <= 5) {
-      baseProbability *= 1.5; // 50% boost to go for early winners
+    // Early-rally aggression boost (driven by offensive stat)
+    if (Math.random() < offensive / 100 && rallyState.rallyLength >= 3 && rallyState.rallyLength <= 5) {
+      baseProbability *= 1.5;
     }
 
     if (!opportunity.winnerAttemptSuitable) {
-      // Aggressive players go for it anyway — scales with aggression
-      if (Math.random() < (aggression / 100) * 0.30) {
+      if (Math.random() < (winnerBias / 100) * 0.30) {
         return true;
       }
       return false;
@@ -353,7 +348,7 @@ export class ShotSelector {
     const winnerThresholds = getQualityThresholds(rallyState.matchLevel);
     if (rallyState.lastShotQuality >= winnerThresholds.exceptional) probability *= 1.4;
 
-    return Math.random() < Math.min(0.90, probability); // Increased cap from 0.85
+    return Math.random() < Math.min(0.90, probability);
   }
 
   /**
@@ -365,28 +360,26 @@ export class ShotSelector {
   private shouldUseTacticalShot(
     shooter: PlayerProfile,
     rallyState: RallyState,
-    opportunity: TacticalOpportunity
+    opportunity: TacticalOpportunity,
+    behaviorEffects: BehaviorEffects
   ): { use: boolean; type?: 'drop_shot' | 'lob' | 'angle_shot' } {
     if (!opportunity.tacticalShotSuitable) return { use: false };
 
     const { opponentPosition, ballQuality } = rallyState;
 
     // --- Drop shot evaluation (independent of shotVariety) ---
-    const dropShotResult = this.evaluateDropShot(shooter, opponentPosition, ballQuality);
+    const dropShotResult = this.evaluateDropShot(shooter, opponentPosition, ballQuality, behaviorEffects);
     if (dropShotResult.use) return dropShotResult;
 
     // --- Other tactical shots (lob, angle) still use shotVariety ---
-    // Smooth probability curve: ~1% at stat 0, ~12% at 50, ~25% at 100.
-    // Players with low variety still occasionally surprise opponents instead of
-    // being completely locked out below an arbitrary threshold.
     const shotVariety = shooter.stats.mental.shotVariety;
     const baseProbability = 0.01 + (shotVariety / 100) * 0.24;
     if (Math.random() > baseProbability) return { use: false };
 
-    if (opponentPosition === 'slightly_off' || opponentPosition === 'well_positioned') {
-      return { use: true, type: 'angle_shot' };
-    }
-
+    // Positive lob bias tilts toward lob; default prefers angle shot
+    const lobBias = behaviorEffects[EffectKey.LOB_BIAS] ?? 0;
+    const lobChance = Math.max(0, 0.15 + (lobBias / 100) * 0.50);
+    if (Math.random() < lobChance) return { use: true, type: 'lob' };
     return { use: true, type: 'angle_shot' };
   }
 
@@ -402,7 +395,8 @@ export class ShotSelector {
   private evaluateDropShot(
     shooter: PlayerProfile,
     opponentPosition: CourtPosition,
-    ballQuality: RallyState['ballQuality']
+    ballQuality: RallyState['ballQuality'],
+    behaviorEffects: BehaviorEffects
   ): { use: boolean; type?: 'drop_shot' } {
     const dropShotStat = shooter.stats.technical.dropShot;
 
@@ -435,11 +429,14 @@ export class ShotSelector {
       probability *= 1 + Math.min(0.6, skillEdge / 50);
     }
 
-    // Consistency-focused players (defensive/counterpuncher builds) favor drop
-    // shots as a change-of-pace weapon — scales continuously with the
-    // consistency dial instead of a flat bonus for two specific archetypes.
-    const consistency = shooter.playStyle.consistency;
-    probability *= 1 + Math.max(0, (consistency - 50) / 100);
+    // Drop shot bias: positive = favors the drop shot, negative = never touches it
+    const dropBias = behaviorEffects[EffectKey.DROP_SHOT_BIAS] ?? 0;
+    if (dropBias > 0) {
+      probability *= 1 + (dropBias / 50);
+    }
+    if (dropBias < 0) {
+      probability *= Math.max(0, 1 + (dropBias / 30));
+    }
 
     return Math.random() < probability
       ? { use: true, type: 'drop_shot' }
