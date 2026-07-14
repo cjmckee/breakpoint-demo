@@ -576,7 +576,6 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
         <div className="grid grid-cols-1 sm:grid-cols-2 flex-1 overflow-y-auto">
           {/* Left — the matchup */}
           <div className="p-4 border-b-2 sm:border-b-0 sm:border-r-2 border-pixel-border flex flex-col gap-2">
-            <div className="text-xs font-bold uppercase tracking-wide text-pixel-accent">The matchup</div>
             <div className="text-sm text-pixel-text leading-relaxed">
               <span className="text-xs px-1.5 py-0.5 rounded bg-green-500 bg-opacity-20 text-green-400 mr-2 uppercase">Good against</span>
               {option.bestAgainstHint.replace(/^Best against /i, '')}
