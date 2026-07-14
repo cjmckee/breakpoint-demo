@@ -348,10 +348,10 @@ export class MatchOrchestrator {
       // Check if match is complete
       isComplete = this.isMatchComplete(currentScore);
 
-      // Add delay between points for visual updates (500ms)
+      // Add delay between points for visual updates (1000ms)
       // Skip delay if match is complete to show final score immediately
       if (!isComplete) {
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
 

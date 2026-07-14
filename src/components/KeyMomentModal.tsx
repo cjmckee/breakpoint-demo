@@ -210,7 +210,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
       value: `${sign}${modifiers.momentum}`,
       helps,
       modifier: modifiers.momentum,
-      tooltip: `${sign}${modifiers.momentum}% to your success odds from momentum`,
+      tooltip: `${sign}${modifiers.momentum}% from momentum`,
     });
   }
   conditions.push({
@@ -220,8 +220,8 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     helps: modifiers.energy <= -1 ? false : null,
     modifier: modifiers.energy,
     tooltip: modifiers.energy <= -1
-      ? `${modifiers.energy}% to your success odds — low energy hurts`
-      : 'Energy has no impact on success odds right now',
+      ? `${modifiers.energy}% from energy`
+      : 'No fatigue penalty',
   });
   if (Math.abs(modifiers.mood) >= 1) {
     const helps = modifiers.mood > 0;
@@ -232,7 +232,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
       value: `${sign}${modifiers.mood}`,
       helps,
       modifier: modifiers.mood,
-      tooltip: `${sign}${modifiers.mood}% to your success odds from ${helps ? 'confidence' : 'frustration'}`,
+      tooltip: `${sign}${modifiers.mood}% from mood`,
     });
   }
   if (modifiers.pressure <= -1) {
@@ -242,14 +242,12 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
       value: `${modifiers.pressure}`,
       helps: false,
       modifier: modifiers.pressure,
-      tooltip: `${modifiers.pressure}% to your success odds — pressure hurts`,
+      tooltip: `${modifiers.pressure}% from pressure`,
     });
   }
 
   const net = modifiers.total;
   const netTone = net > 2 ? 'text-pixel-success' : net < -2 ? 'text-pixel-error' : 'text-pixel-text-muted';
-  const netText =
-    net > 2 ? 'plays in your favour' : net < -2 ? 'plays against you' : 'is roughly neutral';
 
   const conditionColor = (helps: boolean | null): string =>
     helps === true
@@ -281,7 +279,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
         ))}
       </div>
       <div className={`text-xs font-bold ${netTone}`}>
-        Overall conditions {netText} ({net > 0 ? '+' : ''}{Math.round(net)}%)
+        Overall effects: {net > 0 ? '+' : ''}{Math.round(net)}%
       </div>
     </div>
   );

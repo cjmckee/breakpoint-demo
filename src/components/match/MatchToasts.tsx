@@ -15,6 +15,7 @@ interface Toast {
   id: number;
   text: string;
   tone: Tone;
+  dying: boolean;
 }
 
 interface MatchToastsProps {
@@ -41,8 +42,9 @@ export const MatchToasts: React.FC<MatchToastsProps> = ({ playerName, opponentNa
 
   const push = (text: string, tone: Tone): void => {
     const id = ++idRef.current;
-    setToasts((t) => [...t, { id, text, tone }].slice(-2));
-    window.setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 1800);
+    setToasts((t) => [...t, { id, text, tone, dying: false }].slice(-3));
+    window.setTimeout(() => setToasts((t) => t.map((x) => x.id === id ? { ...x, dying: true } : x)), 1000);
+    window.setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 2000);
   };
 
   useEffect(() => {
@@ -95,6 +97,12 @@ export const MatchToasts: React.FC<MatchToastsProps> = ({ playerName, opponentNa
       case PointType.WINNER:
         push(narration ?? `${nameOf(r.winner)} winner!`, r.winner === 'player' ? 'good' : 'bad');
         break;
+      case PointType.FORCED_ERROR:
+        push(narration ?? `${nameOf(r.winner)} forces an error`, r.winner === 'player' ? 'good' : 'bad');
+        break;
+      case PointType.UNFORCED_ERROR:
+        push(narration ?? `Unforced error`, r.winner === 'player' ? 'good' : 'bad');
+        break;
       default:
         break;
     }
@@ -107,7 +115,7 @@ export const MatchToasts: React.FC<MatchToastsProps> = ({ playerName, opponentNa
       {toasts.map((t) => (
         <div
           key={t.id}
-          className={`px-4 py-2 rounded-full border-2 bg-pixel-bg bg-opacity-90 text-xs font-bold uppercase tracking-wide ${TONE_CLASS[t.tone]}`}
+          className={`transition-opacity duration-1000 ease-out ${t.dying ? 'opacity-0' : 'opacity-100'} px-4 py-2 rounded-full border-2 bg-pixel-bg bg-opacity-90 text-xs font-bold uppercase tracking-wide ${TONE_CLASS[t.tone]}`}
         >
           {t.text}
         </div>

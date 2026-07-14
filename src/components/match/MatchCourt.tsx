@@ -196,19 +196,19 @@ export const MatchCourt: React.FC<MatchCourtProps> = ({ courtSurface, overlay })
         <line x1="70" y1="75" x2="230" y2="75" stroke={colors.lines} strokeWidth="1" />
 
         {/* Player token (left half) */}
-        <g style={{ transform: `translate(${frame.p.x}px, ${frame.p.y}px)`, transition: 'transform 200ms ease-out' }}>
+        <g style={{ transform: `translate(${frame.p.x}px, ${frame.p.y}px)`, transition: `transform ${frame.dur}ms ease-out` }}>
           <circle r="12" fill="#10B981" stroke="#FFFFFF" strokeWidth="2" />
           <text x="0" y="4" textAnchor="middle" className="fill-white" style={{ fontSize: 11 }}>P</text>
         </g>
 
         {/* Opponent token (right half) */}
-        <g style={{ transform: `translate(${frame.o.x}px, ${frame.o.y}px)`, transition: 'transform 200ms ease-out' }}>
+        <g style={{ transform: `translate(${frame.o.x}px, ${frame.o.y}px)`, transition: `transform ${frame.dur}ms ease-out` }}>
           <circle r="12" fill="#EF4444" stroke="#FFFFFF" strokeWidth="2" />
           <text x="0" y="4" textAnchor="middle" className="fill-white" style={{ fontSize: 11 }}>O</text>
         </g>
 
         {/* Ball */}
-        <g style={{ transform: `translate(${frame.ball.x}px, ${frame.ball.y}px)`, transition: 'transform 90ms linear' }}>
+        <g style={{ transform: `translate(${frame.ball.x}px, ${frame.ball.y}px)`, transition: `transform ${frame.dur}ms linear` }}>
           <circle r="4.5" fill="#F4E04A" stroke="#B59A00" strokeWidth="1" />
         </g>
       </svg>
