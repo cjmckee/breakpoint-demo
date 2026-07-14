@@ -72,20 +72,42 @@ const SetPips: React.FC<SetPipsProps> = ({ won, total, who, alignEnd }) => (
 
 interface StaminaTankProps {
   value: number;
-  label: string;
+  owner: 'player' | 'opponent';
 }
 
-const StaminaTank: React.FC<StaminaTankProps> = ({ value, label }) => {
+const staminaFill = (v: number): string =>
+  v > 60 ? 'bg-pixel-success' : v > 30 ? 'bg-pixel-warning' : 'bg-pixel-error';
+
+// Vertical tank flanking the court (sm+). Ownership is conveyed by side + the caption colour,
+// so no name label is needed (avoids truncating long opponent names).
+const StaminaTank: React.FC<StaminaTankProps> = ({ value, owner }) => {
   const v = Math.max(0, Math.min(100, value));
-  const fill = v > 60 ? 'bg-pixel-success' : v > 30 ? 'bg-pixel-warning' : 'bg-pixel-error';
   const text = v > 60 ? 'text-pixel-success' : v > 30 ? 'text-pixel-warning' : 'text-pixel-error';
+  const ownerColor = owner === 'player' ? 'text-pixel-success' : 'text-pixel-error';
   return (
     <div className="flex flex-col items-center gap-1.5 justify-end h-full">
       <div className="relative w-12 sm:w-14 flex-1 min-h-[150px] bg-pixel-secondary border-2 border-pixel-border rounded-md overflow-hidden flex items-end">
-        <div className={`w-full transition-[height] duration-500 ease-out ${fill}`} style={{ height: `${v}%` }} />
+        <div className={`w-full transition-[height] duration-500 ease-out ${staminaFill(v)}`} style={{ height: `${v}%` }} />
       </div>
       <span className={`text-[10px] ${text}`}>{Math.round(v)}%</span>
-      <span className="text-[8px] text-pixel-text-muted tracking-wide uppercase truncate max-w-[56px]">{label}</span>
+      <span className={`text-[8px] tracking-wide uppercase ${ownerColor}`}>Sta</span>
+    </div>
+  );
+};
+
+// Horizontal bar used on phones (below sm), where flanking tanks would squeeze the court.
+const StaminaBar: React.FC<StaminaTankProps> = ({ value, owner }) => {
+  const v = Math.max(0, Math.min(100, value));
+  const ownerColor = owner === 'player' ? 'text-pixel-success' : 'text-pixel-error';
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-1">
+        <span className={`text-[9px] uppercase tracking-wide ${ownerColor}`}>Stamina</span>
+        <span className="text-[9px] text-pixel-text-muted">{Math.round(v)}%</span>
+      </div>
+      <div className="h-3 bg-pixel-secondary border-2 border-pixel-border rounded-full overflow-hidden">
+        <div className={`h-full transition-[width] duration-500 ease-out ${staminaFill(v)}`} style={{ width: `${v}%` }} />
+      </div>
     </div>
   );
 };
@@ -176,13 +198,23 @@ export const MatchCockpit: React.FC<MatchCockpitProps> = ({
         </div>
       </div>
 
-      {/* Court flanked by stamina tanks */}
-      <div className="mt-4 grid grid-cols-[auto_1fr_auto] gap-3 sm:gap-4 items-stretch">
-        <StaminaTank value={playerStamina} label="You" />
+      {/* Phones: horizontal stamina bars (flanking tanks would squeeze the court) */}
+      <div className="grid grid-cols-2 gap-3 mt-4 sm:hidden">
+        <StaminaBar value={playerStamina} owner="player" />
+        <StaminaBar value={opponentStamina} owner="opponent" />
+      </div>
+
+      {/* Court, flanked by stamina tanks at sm+ (tanks hidden on phones) */}
+      <div className="mt-3 sm:mt-4 grid grid-cols-1 sm:grid-cols-[auto_1fr_auto] gap-3 sm:gap-4 items-stretch">
+        <div className="hidden sm:contents">
+          <StaminaTank value={playerStamina} owner="player" />
+        </div>
 
         <MatchCourt courtSurface={courtSurface} overlay={overlay} />
 
-        <StaminaTank value={opponentStamina} label={opponentName} />
+        <div className="hidden sm:contents">
+          <StaminaTank value={opponentStamina} owner="opponent" />
+        </div>
       </div>
     </div>
   );
