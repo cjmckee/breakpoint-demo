@@ -245,9 +245,6 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
 
   const conditionsStrip = (
     <div className="px-5 py-4 border-t-2 border-pixel-border">
-      <div className="text-xs font-bold text-pixel-text-muted mb-3 uppercase tracking-wide">
-        How this moment tilts the point
-      </div>
       <div className="flex flex-wrap gap-2 mb-3">
         {conditions.map((c, i) => (
           <span key={i} className={`text-sm px-2.5 py-1.5 border-2 rounded flex items-center gap-1.5 ${conditionColor(c.helps)}`}>
@@ -256,9 +253,6 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
             <span className="font-bold">{c.value}</span>
           </span>
         ))}
-      </div>
-      <div className="text-sm text-pixel-text-muted">
-        Net: this point <span className={`font-bold ${netTone}`}>{netText}</span> — every tactic's odds already include it.
       </div>
     </div>
   );
@@ -525,6 +519,31 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     const opponentName = matchConfig?.opponentName || 'Opponent';
     return (
       <div className={`absolute inset-0 z-10 flex flex-col bg-pixel-card rounded overflow-hidden border-2 border-pixel-accent ${interactive ? '' : 'pointer-events-none'}`}>
+        {/* Header — restates the tactic being previewed (its card is hidden behind the modal) */}
+        <div className="p-4 border-b-2 border-pixel-border shrink-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xl">{option.emoji}</span>
+            <h4 className="text-base font-bold text-pixel-text">{option.name}</h4>
+          </div>
+          <p className="text-sm text-pixel-text-muted mb-2">{option.description}</p>
+          <div className="flex flex-wrap gap-2">
+            {option.secondaryEffects.map((effect, i) => {
+              const condLabel = getConditionLabel(effect.condition);
+              return (
+                <span
+                  key={i}
+                  className={`text-sm px-2 py-0.5 border border-pixel-border bg-pixel-bg ${
+                    isBeneficial(effect) ? 'text-green-400' : 'text-red-400'
+                  }`}
+                >
+                  {getEffectIcon(effect)} {getEffectLabel(effect)}
+                  {condLabel && <span className="text-pixel-text-muted ml-1">({condLabel})</span>}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 flex-1 overflow-y-auto">
           {/* Left — the matchup */}
           <div className="p-5 border-b-2 md:border-b-0 md:border-r-2 border-pixel-border flex flex-col gap-3">
