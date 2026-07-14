@@ -2,9 +2,13 @@
  * Key Moment Modal Component
  * Two-phase: decision (pick a tactic) → result (see what happened).
  * The modal stays open through both phases; the result requires explicit Continue.
+ *
+ * Decision phase: compact resting cards (tactic + one-liner + effects + an advantage chip).
+ * Hovering a card opens a big modal — left = the matchup (good/bad against), right = the
+ * ratings (yours + opponent's, priority stat enlarged, advantage chip between them).
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import { KeyMoment } from '../types/keyMoments';
 import { TacticalOption, SecondaryEffect } from '../data/tacticalOptions';
@@ -16,18 +20,62 @@ import { useTutorialSpotlight } from '../hooks/useTutorialSpotlight';
 import { TutorialCallout } from './tutorial/TutorialCallout';
 import { KM_TUTORIAL_STEPS, KM_RESULT_STEPS, KmTarget, KmResultTarget } from '../data/tutorialSteps';
 
-const formatStatScore = (score: number): string => score.toFixed(0);
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
-const getMatchupArrow = (playerScore: number, opponentScore: number): { arrow: string; color: string } => {
-  const diff = playerScore - opponentScore;
-  if (diff > 15) return { arrow: '>>>', color: 'text-green-500' };
-  if (diff > 7) return { arrow: '>>', color: 'text-green-500' };
-  if (diff > 3) return { arrow: '>', color: 'text-green-500' };
-  if (diff < -15) return { arrow: '<<<', color: 'text-red-500' };
-  if (diff < -7) return { arrow: '<<', color: 'text-red-500' };
-  if (diff < -3) return { arrow: '<', color: 'text-red-500' };
-  return { arrow: '=', color: 'text-yellow-500' };
+const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
+
+/** Read a stat value from PlayerStats by weight name (e.g. 'shotVariety', 'dropShot'). */
+const statValue = (stats: PlayerStats, name: string): number => {
+  const norm = name.toLowerCase().replace(/_/g, '');
+  for (const cat of ['core', 'technical', 'physical', 'mental'] as const) {
+    const c = stats[cat] as unknown as Record<string, number> | undefined;
+    if (!c) continue;
+    if (name in c) return c[name] ?? 0;
+    for (const k of Object.keys(c)) {
+      if (k.toLowerCase().replace(/_/g, '') === norm) return c[k] ?? 0;
+    }
+  }
+  return 0;
 };
+
+/** camelCase stat key → display label ('shotVariety' → 'Shot Variety'). */
+const formatStatName = (name: string): string => {
+  const spaced = name.replace(/([A-Z])/g, ' $1');
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+};
+
+/**
+ * Advantage chip label + colour. Yellow at "Even", deepening to forest green as the player's
+ * weighted edge grows and to deep scarlet as the disadvantage grows (continuous by score diff).
+ */
+const advInfo = (diff: number): { label: string; bg: string; fg: string } => {
+  const label = diff > 10 ? 'Advantage' : diff < -10 ? 'Disadvantage' : 'Even';
+  const mag = Math.min(1, Math.abs(diff) / 25);
+  let hue: number;
+  let sat: number;
+  let light: number;
+  if (diff >= 0) {
+    hue = lerp(50, 130, mag);
+    sat = lerp(85, 62, mag);
+    light = lerp(52, 30, mag);
+  } else {
+    hue = lerp(50, 2, mag);
+    sat = lerp(85, 68, mag);
+    light = lerp(52, 33, mag);
+  }
+  return {
+    label,
+    bg: `hsl(${hue.toFixed(0)}, ${sat.toFixed(0)}%, ${light.toFixed(0)}%)`,
+    fg: light < 46 ? '#ffffff' : '#2a1c02',
+  };
+};
+
+/**
+ * Whether an effect is beneficial to the player. Pressure is inverted from the other three:
+ * reducing pressure (negative value) is good, so a negative pressure value is beneficial.
+ */
+const isBeneficial = (effect: { type: SecondaryEffect['type'] | AppliedEffect['type']; value: number }): boolean =>
+  effect.type === 'pressure' ? effect.value < 0 : effect.value > 0;
 
 interface KeyMomentModalProps {
   isOpen: boolean;
@@ -36,6 +84,23 @@ interface KeyMomentModalProps {
 
 export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMoment }) => {
   const [isHidden, setIsHidden] = useState(false);
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+  // On touch devices (no hover), tapping a card opens its detail modal instead of committing.
+  const [openIdx, setOpenIdx] = useState<number | null>(null);
+  const [isTouch, setIsTouch] = useState(false);
+  const [hoveredCondition, setHoveredCondition] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mq = window.matchMedia('(hover: none), (pointer: coarse)');
+    const update = (): void => setIsTouch(mq.matches);
+    update();
+    mq.addEventListener?.('change', update);
+    return () => mq.removeEventListener?.('change', update);
+  }, []);
+
+  // Reset hover / touch-opened detail when the modal opens or a new key moment arrives.
+  useEffect(() => { setHoverIdx(null); setOpenIdx(null); }, [isOpen, keyMoment?.id]);
 
   const handleKeyMomentChoice = useMatchStore((state) => state.handleKeyMomentChoice);
   const matchConfig = useMatchStore((state) => state.matchConfig);
@@ -82,16 +147,15 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     isOpen && isResultPhase && isTutorial,
   );
 
-  // Inline spotlight section class for KeyMomentModal (opacity-based, no z-index overlay)
-  const kmSectionClass = (target: KmTarget) => {
+  const kmSectionClass = (target: KmTarget): string => {
     if (kmSpotlit(target)) return 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-black transition-all duration-200';
-    if (kmDimmed(target))  return 'opacity-25 transition-all duration-200';
+    if (kmDimmed(target)) return 'opacity-25 transition-all duration-200';
     return '';
   };
 
-  const resultSectionClass = (target: KmResultTarget) => {
+  const resultSectionClass = (target: KmResultTarget): string => {
     if (resultSpotlit(target)) return 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-black transition-all duration-200';
-    if (resultDimmed(target))  return 'opacity-25 transition-all duration-200';
+    if (resultDimmed(target)) return 'opacity-25 transition-all duration-200';
     return '';
   };
 
@@ -125,92 +189,125 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     pressure: ctx.pressure,
   });
 
-  const conditionIcons: Array<{ icon: string; tooltip: string; positive: boolean }> = [];
+  // ── Conditions strip: "how this moment tilts the point" ─────────────────────
+
+  interface Condition {
+    icon: string;
+    label: string;
+    value: string;
+    helps: boolean | null; // true = green, false = red, null = neutral
+    modifier: number; // raw % modifier from getContextModifiers
+    tooltip: string; // hover explanation
+  }
+
+  const conditions: Condition[] = [];
   if (Math.abs(modifiers.momentum) >= 1) {
-    const positive = modifiers.momentum > 0;
-    conditionIcons.push({
-      icon: positive ? '📈' : '📉',
-      tooltip: positive
-        ? 'Momentum with you — riding a hot streak'
-        : 'Momentum against you — opponent is on a run',
-      positive,
+    const helps = modifiers.momentum > 0;
+    const sign = modifiers.momentum > 0 ? '+' : '';
+    conditions.push({
+      icon: helps ? '📈' : '📉',
+      label: helps ? 'Momentum with you' : 'Momentum against you',
+      value: `${sign}${modifiers.momentum}`,
+      helps,
+      modifier: modifiers.momentum,
+      tooltip: `${sign}${modifiers.momentum}% from momentum`,
     });
   }
-  if (modifiers.energy <= -1) {
-    conditionIcons.push({
-      icon: '🔋',
-      tooltip: `Energy at ${Math.round(ctx.energy)}% — fatigue is a factor`,
-      positive: false,
-    });
-  }
+  conditions.push({
+    icon: '🔋',
+    label: 'Energy',
+    value: `${Math.round(ctx.energy)}%`,
+    helps: modifiers.energy >= 0 ? null : false,
+    modifier: modifiers.energy,
+    tooltip: modifiers.energy <= -1
+      ? `${modifiers.energy}% from energy`
+      : 'No fatigue penalty',
+  });
   if (Math.abs(modifiers.mood) >= 1) {
-    const positive = modifiers.mood > 0;
-    conditionIcons.push({
-      icon: positive ? '😊' : '😤',
-      tooltip: positive
-        ? 'Positive mood — feeling confident out there'
-        : 'Frustrated — letting emotions creep in',
-      positive,
+    const helps = modifiers.mood > 0;
+    const sign = modifiers.mood > 0 ? '+' : '';
+    conditions.push({
+      icon: helps ? '😊' : '😤',
+      label: helps ? 'Confident' : 'Frustrated',
+      value: `${sign}${modifiers.mood}`,
+      helps,
+      modifier: modifiers.mood,
+      tooltip: `${sign}${modifiers.mood}% from mood`,
     });
   }
-  if (modifiers.pressure <= -2) {
-    conditionIcons.push({
+  if (modifiers.pressure <= -1) {
+    conditions.push({
       icon: '😰',
-      tooltip:
-        modifiers.pressure <= -5
-          ? 'High pressure — nerves are a major factor'
-          : 'Feeling the pressure — big point nerves',
-      positive: false,
+      label: 'Big-point pressure',
+      value: `${modifiers.pressure}`,
+      helps: false,
+      modifier: modifiers.pressure,
+      tooltip: `${modifiers.pressure}% from pressure`,
     });
   }
 
-  // ── Compact header strip (shared between phases) ────────────────────────────
+  const net = modifiers.total;
+  const netTone = net > 2 ? 'text-pixel-success' : net < -2 ? 'text-pixel-error' : 'text-pixel-text-muted';
+
+  const conditionColor = (helps: boolean | null): string =>
+    helps === true
+      ? 'border-green-600 text-green-400 bg-green-500 bg-opacity-10'
+      : helps === false
+        ? 'border-red-600 text-red-400 bg-red-500 bg-opacity-10'
+        : 'border-pixel-border text-pixel-text-muted';
+
+  const conditionsStrip = (
+    <div className="px-5 py-4 border-t-2 border-pixel-border">
+      <div className="flex flex-wrap gap-2 mb-3 relative">
+        {conditions.map((c, i) => (
+          <span
+            key={i}
+            className={`text-sm px-2.5 py-1.5 border-2 rounded flex items-center gap-1.5 cursor-help relative ${conditionColor(c.helps)}`}
+            onMouseEnter={() => setHoveredCondition(i)}
+            onMouseLeave={() => setHoveredCondition(null)}
+          >
+            <span>{c.icon}</span>
+            {c.label}
+            <span className="font-bold">{c.value}</span>
+            {hoveredCondition === i && (
+              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 text-sm font-normal whitespace-nowrap bg-pixel-card border-2 border-pixel-border text-pixel-text rounded shadow-lg z-20 pointer-events-none">
+                {c.tooltip}
+                <span className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-pixel-border" />
+              </span>
+            )}
+          </span>
+        ))}
+      </div>
+      <div className={`text-xs font-bold ${netTone}`}>
+        Overall effects: {net > 0 ? '+' : ''}{Math.round(net)}%
+      </div>
+    </div>
+  );
+
+  // ── Header strip (shared between phases) ─────────────────────────────────────
 
   const headerStrip = (
-    <div className={`border-4 ${getMomentTypeColor(activeKeyMoment.type)} bg-opacity-20 px-5 py-4`}>
-      <div className="flex items-center gap-3 mb-3">
-        <span className="text-3xl">{getMomentTypeIcon(activeKeyMoment.type)}</span>
-        <h2 className="text-lg font-bold text-pixel-text">{activeKeyMoment.situation}</h2>
-      </div>
-
-      {/* Opponent Info */}
-      <div className="mb-3">
-        <div className="text-sm font-bold text-pixel-text-muted mb-1 uppercase tracking-wide">
-          Opponent Archetype
+    <div className={`border-4 ${getMomentTypeColor(activeKeyMoment.type)} bg-opacity-20`}>
+      <div className="px-5 py-4">
+        <div className="flex items-center gap-3 mb-3">
+          <span className="text-3xl">{getMomentTypeIcon(activeKeyMoment.type)}</span>
+          <h2 className="text-lg font-bold text-pixel-text">{activeKeyMoment.situation}</h2>
         </div>
-        <div className="flex items-center gap-2 mb-1">
-          <span className="px-2 py-0.5 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent font-bold whitespace-nowrap">
-            {archetypeData.label}
-          </span>
+
+        <div>
+          <div className="text-sm font-bold text-pixel-text-muted mb-1 uppercase tracking-wide">
+            Opponent Archetype
+          </div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="px-2 py-0.5 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent font-bold whitespace-nowrap">
+              {archetypeData.label}
+            </span>
+          </div>
+          <p className="text-sm text-pixel-text-muted italic">"{tendency}"</p>
         </div>
-        <p className="text-sm text-pixel-text-muted italic">
-          "{tendency}"
-        </p>
       </div>
 
-      <div className="border-t border-pixel-border my-3" />
-
-      {/* Modifiers */}
-      <div className="flex flex-wrap items-center gap-3">
-        {modifiers.momentum !== 0 && (
-          <span className={`text-sm px-2 py-1 border ${modifiers.momentum > 0 ? 'border-green-500 text-green-500' : 'border-red-500 text-red-500'} bg-opacity-20 font-bold`}>
-            {modifiers.momentum > 0 ? '📈' : '📉'} Momentum: {modifiers.momentum > 0 ? '+' : ''}{modifiers.momentum}
-          </span>
-        )}
-        <span className="text-sm px-2 py-1 border border-pixel-border text-pixel-text bg-opacity-20 font-bold">
-          🔋 Energy: {Math.round(ctx.energy)}%
-        </span>
-        {modifiers.mood !== 0 && (
-          <span className={`text-sm px-2 py-1 border ${modifiers.mood > 0 ? 'border-green-500 text-green-500' : 'border-red-500 text-red-500'} bg-opacity-20 font-bold`}>
-            {modifiers.mood > 0 ? '😊' : '😤'} Mood: {modifiers.mood > 0 ? '+' : ''}{modifiers.mood}
-          </span>
-        )}
-        {modifiers.pressure !== 0 && (
-          <span className="text-sm px-2 py-1 border border-red-500 text-red-500 bg-opacity-20 font-bold">
-            😰 Pressure: {modifiers.pressure}
-          </span>
-        )}
-      </div>
+      {conditionsStrip}
     </div>
   );
 
@@ -237,6 +334,33 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     );
   }
 
+  const getEffectIcon = (effect: SecondaryEffect): string => {
+    switch (effect.type) {
+      case 'momentum': return effect.value > 0 ? '📈' : '📉';
+      case 'energy': return effect.value > 0 ? '⚡' : '🔋';
+      case 'pressure': return effect.value < 0 ? '😌' : '😰';
+      case 'mood': return effect.value > 0 ? '😊' : '😤';
+    }
+  };
+
+  const getEffectLabel = (effect: SecondaryEffect): string => {
+    const sign = effect.value > 0 ? '+' : '';
+    switch (effect.type) {
+      case 'momentum': return `${sign}${effect.value} Momentum`;
+      case 'energy': return `${sign}${effect.value} Energy`;
+      case 'pressure': return `${sign}${effect.value} Pressure`;
+      case 'mood': return `${sign}${effect.value} Mood`;
+    }
+  };
+
+  const getConditionLabel = (condition: SecondaryEffect['condition']): string => {
+    switch (condition) {
+      case 'always': return '';
+      case 'on_success': return 'on win';
+      case 'on_failure': return 'on loss';
+    }
+  };
+
   // ── Result phase ────────────────────────────────────────────────────────────
 
   if (isResultPhase && lastHistoryEntry) {
@@ -246,9 +370,9 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     const getOutcomeStyle = (outcome: KeyMomentResult['outcome']) => {
       switch (outcome) {
         case 'critical-success': return { color: 'border-yellow-500 bg-yellow-500', icon: '🌟', title: 'CRITICAL SUCCESS' };
-        case 'success':          return { color: 'border-green-500 bg-green-500',   icon: '✅', title: 'Success' };
-        case 'failure':          return { color: 'border-red-500 bg-red-500',       icon: '❌', title: 'Failure' };
-        case 'critical-failure': return { color: 'border-red-800 bg-red-800',       icon: '💥', title: 'CRITICAL FAILURE' };
+        case 'success': return { color: 'border-green-500 bg-green-500', icon: '✅', title: 'Success' };
+        case 'failure': return { color: 'border-red-500 bg-red-500', icon: '❌', title: 'Failure' };
+        case 'critical-failure': return { color: 'border-red-800 bg-red-800', icon: '💥', title: 'CRITICAL FAILURE' };
       }
     };
 
@@ -259,8 +383,8 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
       const shot = result.shotOutcome.outcome.replace(/_/g, ' ');
       switch (result.outcome) {
         case 'critical-success': return `INCREDIBLE ${shot.toUpperCase()}! Point won.`;
-        case 'success':          return `${shot} — point won.`;
-        case 'failure':          return `${shot} — point lost.`;
+        case 'success': return `${shot} — point won.`;
+        case 'failure': return `${shot} — point lost.`;
         case 'critical-failure': return `DISASTER! ${shot.toUpperCase()}. Point lost.`;
         default: return result.pointWinner === 'player' ? 'Point won.' : 'Point lost.';
       }
@@ -270,9 +394,9 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
       const sign = effect.value > 0 ? '+' : '';
       switch (effect.type) {
         case 'momentum': return `${sign}${effect.value} Momentum`;
-        case 'energy':   return `${sign}${effect.value} Energy`;
+        case 'energy': return `${sign}${effect.value} Energy`;
         case 'pressure': return `${sign}${effect.value} Pressure`;
-        case 'mood':     return `${sign}${effect.value} Mood`;
+        case 'mood': return `${sign}${effect.value} Mood`;
       }
     };
 
@@ -335,7 +459,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                   <span
                     key={i}
                     className={`text-sm px-2.5 py-1 border border-pixel-border bg-pixel-bg font-bold ${
-                      effect.value > 0 ? 'text-green-400' : 'text-red-400'
+                      isBeneficial(effect) ? 'text-green-400' : 'text-red-400'
                     }`}
                   >
                     {formatEffect(effect)}
@@ -361,48 +485,145 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
 
   // ── Decision phase ──────────────────────────────────────────────────────────
 
-  const getMatchupIndicator = (option: TacticalOption): { playerScore: number; opponentScore: number; arrow: string; color: string } => {
-    if (!matchConfig) return { playerScore: 50, opponentScore: 50, arrow: '=', color: 'text-yellow-500' };
-    const scores = KeyMomentResolver.getWeightedScores(
+  const scoresFor = (option: TacticalOption): { playerScore: number; opponentScore: number } => {
+    if (!matchConfig) return { playerScore: 50, opponentScore: 50 };
+    return KeyMomentResolver.getWeightedScores(
       matchConfig.playerStats as PlayerStats,
       matchConfig.opponentStats as PlayerStats,
-      option
+      option,
     );
-    const { arrow, color } = getMatchupArrow(scores.playerScore, scores.opponentScore);
-    return { ...scores, arrow, color };
   };
 
-  const getEffectIcon = (effect: SecondaryEffect): string => {
-    switch (effect.type) {
-      case 'momentum': return effect.value > 0 ? '📈' : '📉';
-      case 'energy':   return effect.value > 0 ? '⚡' : '🔋';
-      case 'pressure': return '😰';
-      case 'mood':     return effect.value > 0 ? '😊' : '😤';
-    }
+  // The hover modal opens for the hovered card; during the matchup tutorial step it auto-opens
+  // on the first option so the walkthrough can point at it.
+  const forcedOpen = kmSpotlit('options-matchup') ? 0 : null;
+  // Desktop: informational preview on hover. Touch: an interactive modal opened by tap.
+  const activeFlyout = isTouch ? openIdx : (forcedOpen ?? hoverIdx);
+  const flyoutInteractive = isTouch && openIdx !== null;
+
+  const RatingBlock: React.FC<{
+    option: TacticalOption;
+    side: 'player' | 'opponent';
+    name: string;
+    total: number;
+  }> = ({ option, side, name, total }) => {
+    const stats = (side === 'player' ? matchConfig?.playerStats : matchConfig?.opponentStats) as PlayerStats | undefined;
+    const weights = side === 'player' ? option.playerStatWeights : option.opponentStatWeights;
+    const tone = side === 'player' ? 'text-pixel-success' : 'text-pixel-error';
+    const border = side === 'player' ? 'border-green-600' : 'border-red-600';
+    const primaryVal = stats ? statValue(stats, weights.primary) : 0;
+    const secondary = weights.secondary.slice(0, 2);
+    return (
+      <div className="flex flex-col gap-1.5">
+        <div className={`text-xs font-bold uppercase tracking-wide ${tone}`}>{name} · rating {total}</div>
+        <div className={`flex items-center justify-between px-3 py-1.5 border-2 ${border} bg-pixel-bg`}>
+          <div>
+            <div className="text-[10px] text-pixel-text-muted uppercase tracking-wide">Priority stat</div>
+            <div className="text-sm font-bold text-pixel-text">{formatStatName(weights.primary)}</div>
+          </div>
+          <div className={`text-2xl font-bold ${tone}`}>{primaryVal}</div>
+        </div>
+        <div className="flex justify-between gap-3 text-sm text-pixel-text-muted px-1">
+          {secondary.map((w, i) => (
+            <span key={i} className="flex gap-1.5">
+              <span>{formatStatName(w.stat)}</span>
+              <span className="text-pixel-text">{stats ? statValue(stats, w.stat) : 0}</span>
+            </span>
+          ))}
+        </div>
+      </div>
+    );
   };
 
-  const getEffectLabel = (effect: SecondaryEffect): string => {
-    const sign = effect.value > 0 ? '+' : '';
-    switch (effect.type) {
-      case 'momentum': return `${sign}${effect.value} Momentum`;
-      case 'energy':   return `${sign}${effect.value} Energy`;
-      case 'pressure': return `${sign}${effect.value} Pressure`;
-      case 'mood':     return `${sign}${effect.value} Mood`;
-    }
-  };
+  const Flyout: React.FC<{
+    option: TacticalOption;
+    interactive?: boolean;
+    onSelect?: () => void;
+    onBack?: () => void;
+  }> = ({ option, interactive, onSelect, onBack }) => {
+    const { playerScore, opponentScore } = scoresFor(option);
+    const diff = playerScore - opponentScore;
+    const adv = advInfo(diff);
+    const playerName = matchConfig?.playerName || 'You';
+    const opponentName = matchConfig?.opponentName || 'Opponent';
+    return (
+      <div className={`absolute inset-0 z-10 flex flex-col bg-pixel-card rounded overflow-hidden border-2 border-pixel-accent ${interactive ? '' : 'pointer-events-none'}`}>
+        {/* Header — restates the tactic being previewed (its card is hidden behind the modal) */}
+        <div className="p-3 border-b-2 border-pixel-border shrink-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="text-lg">{option.emoji}</span>
+            <h4 className="text-base font-bold text-pixel-text">{option.name}</h4>
+          </div>
+          <p className="text-sm text-pixel-text-muted mb-2 leading-snug">{option.description}</p>
+          <div className="flex flex-wrap gap-1.5">
+            {option.secondaryEffects.map((effect, i) => {
+              const condLabel = getConditionLabel(effect.condition);
+              return (
+                <span
+                  key={i}
+                  className={`text-xs px-1.5 py-0.5 border border-pixel-border bg-pixel-bg ${
+                    isBeneficial(effect) ? 'text-green-400' : 'text-red-400'
+                  }`}
+                >
+                  {getEffectIcon(effect)} {getEffectLabel(effect)}
+                  {condLabel && <span className="text-pixel-text-muted ml-1">({condLabel})</span>}
+                </span>
+              );
+            })}
+          </div>
+        </div>
 
-  const getConditionLabel = (condition: SecondaryEffect['condition']): string => {
-    switch (condition) {
-      case 'always':     return '';
-      case 'on_success': return 'on win';
-      case 'on_failure': return 'on loss';
-    }
+        <div className="grid grid-cols-1 sm:grid-cols-2 flex-1 overflow-y-auto">
+          {/* Left — the matchup */}
+          <div className="p-4 border-b-2 sm:border-b-0 sm:border-r-2 border-pixel-border flex flex-col gap-2">
+            <div className="text-sm text-pixel-text leading-relaxed">
+              <span className="text-xs px-1.5 py-0.5 rounded bg-green-500 bg-opacity-20 text-green-400 mr-2 uppercase">Good against</span>
+              {option.bestAgainstHint.replace(/^Best against /i, '')}
+            </div>
+            <div className="text-sm text-pixel-text leading-relaxed">
+              <span className="text-xs px-1.5 py-0.5 rounded bg-red-500 bg-opacity-20 text-red-400 mr-2 uppercase">Bad against</span>
+              {option.worstAgainstHint.replace(/^Weak against /i, '')}
+            </div>
+          </div>
+
+          {/* Right — the ratings, with the advantage chip between the two blocks */}
+          <div className="p-4 flex flex-col gap-2">
+            <RatingBlock option={option} side="player" name={playerName} total={playerScore} />
+            <div className="flex justify-center">
+              <span
+                className="text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded"
+                style={{ backgroundColor: adv.bg, color: adv.fg }}
+              >
+                {adv.label}
+              </span>
+            </div>
+            <RatingBlock option={option} side="opponent" name={opponentName} total={opponentScore} />
+          </div>
+        </div>
+
+        {interactive ? (
+          <div className="grid grid-cols-2 gap-2 p-3 border-t-2 border-pixel-border shrink-0">
+            <button
+              onClick={onBack}
+              className="py-3 border-2 border-pixel-border text-pixel-text font-bold uppercase text-sm tracking-wide hover:border-pixel-accent transition-colors"
+            >
+              ← Back
+            </button>
+            <button
+              onClick={onSelect}
+              className="py-3 border-2 border-pixel-accent bg-pixel-accent bg-opacity-20 text-pixel-accent font-bold uppercase text-sm tracking-wide hover:bg-opacity-30 transition-colors"
+            >
+              Go!
+            </button>
+          </div>
+        ) : null}
+      </div>
+    );
   };
 
   return (
     <Modal isOpen={isOpen} title="" size="xl" showCloseButton={false} belowContent={peekButton}>
       <div className="space-y-5">
-        {/* Inline spotlight callout */}
         {kmActiveStep && (
           <TutorialCallout
             step={kmStep!}
@@ -412,70 +633,85 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
             onNext={kmNext}
             onBack={kmBack}
             canGoBack={kmCanGoBack}
-            finalLabel="Got It — Let Me Choose"
+            finalLabel="Got it!"
           />
         )}
 
-        {/* Header strip — spotlit on step 0 */}
-        <div className={kmSectionClass('header')}>
-          {headerStrip}
-        </div>
+        {/* Header strip + conditions — spotlit on step 0 */}
+        <div className={kmSectionClass('header')}>{headerStrip}</div>
 
-        {/* Tactical Options — outer ring when either options step is active */}
-        <div className={
-          (kmSpotlit('options-matchup') || kmSpotlit('options-effects'))
-            ? 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-black transition-all duration-200'
-            : kmDimmed('options-matchup')
-            ? 'opacity-25 transition-all duration-200'
-            : ''
-        }>
+        {/* Tactical Options */}
+        <div
+          className={
+            kmSpotlit('options-matchup') || kmSpotlit('options-effects')
+              ? 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-black transition-all duration-200'
+              : ''
+          }
+        >
           <h3 className="text-base font-bold text-pixel-text mb-4">⚔️ Choose Your Tactic</h3>
-          <div className="space-y-3">
-            {activeKeyMoment.options.map((option, index) => {
-              const matchup = getMatchupIndicator(option);
-              return (
-                <button
-                  key={index}
-                  onClick={() => kmTutorialActive ? undefined : handleKeyMomentChoice(option)}
-                  disabled={kmTutorialActive}
-                  className="w-full text-left p-4 border-4 border-pixel-border bg-pixel-card hover:border-pixel-accent hover:scale-[1.01] transition-all disabled:cursor-default disabled:hover:scale-100 disabled:hover:border-pixel-border"
-                >
-                  {/* Option name + matchup indicator — dimmed when effects step is active */}
-                  <div className={`flex items-center justify-between gap-2 mb-1 transition-opacity duration-200 ${kmSpotlit('options-effects') ? 'opacity-25' : ''}`}>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl">{option.emoji}</span>
-                      <h4 className="text-base font-bold text-pixel-text">{option.name}</h4>
+          <div className="relative" onMouseLeave={() => setHoverIdx(null)}>
+            <div className="space-y-3">
+              {activeKeyMoment.options.map((option, index) => {
+                const { playerScore, opponentScore } = scoresFor(option);
+                const adv = advInfo(playerScore - opponentScore);
+                return (
+                  <button
+                    key={index}
+                    onMouseEnter={() => setHoverIdx(index)}
+                    onFocus={() => setHoverIdx(index)}
+                    onClick={() => {
+                      if (kmTutorialActive) return;
+                      // Touch: open the detail modal (explicit confirm). Desktop: commit directly.
+                      if (isTouch) setOpenIdx(index);
+                      else handleKeyMomentChoice(option);
+                    }}
+                    disabled={kmTutorialActive}
+                    className="w-full text-left p-4 border-4 border-pixel-border bg-pixel-card hover:border-pixel-accent transition-all disabled:cursor-default disabled:hover:border-pixel-border"
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">{option.emoji}</span>
+                        <h4 className="text-base font-bold text-pixel-text">{option.name}</h4>
+                      </div>
+                      <span
+                        className="text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded whitespace-nowrap"
+                        style={{ backgroundColor: adv.bg, color: adv.fg }}
+                      >
+                        {adv.label}
+                      </span>
                     </div>
-                    <span className={`text-sm font-bold ${matchup.color} whitespace-nowrap`}>
-                      you {formatStatScore(matchup.playerScore)} {matchup.arrow} {formatStatScore(matchup.opponentScore)} them
-                    </span>
-                  </div>
 
-                  <p className={`text-sm text-pixel-text-muted mb-2 transition-opacity duration-200 ${kmSpotlit('options-effects') ? 'opacity-25' : ''}`}>{option.description}</p>
+                    <p className="text-sm text-pixel-text-muted mb-3">{option.description}</p>
 
-                  {/* Best against hint — dimmed when effects step is active */}
-                  <p className={`text-sm text-pixel-text-muted mb-3 transition-opacity duration-200 ${kmSpotlit('options-effects') ? 'opacity-25' : ''}`}>{option.bestAgainstHint}</p>
+                    <div className="border-t border-pixel-border pt-2 flex flex-wrap gap-2">
+                      {option.secondaryEffects.map((effect, i) => {
+                        const condLabel = getConditionLabel(effect.condition);
+                        return (
+                          <span
+                            key={i}
+                            className={`text-sm px-2 py-0.5 border border-pixel-border bg-pixel-bg ${
+                              isBeneficial(effect) ? 'text-green-400' : 'text-red-400'
+                            }`}
+                          >
+                            {getEffectIcon(effect)} {getEffectLabel(effect)}
+                            {condLabel && <span className="text-pixel-text-muted ml-1">({condLabel})</span>}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
 
-                  {/* Secondary effects — dimmed when matchup step is active */}
-                  <div className={`border-t border-pixel-border pt-2 flex flex-wrap gap-2 transition-opacity duration-200 ${kmSpotlit('options-matchup') ? 'opacity-25' : ''}`}>
-                    {option.secondaryEffects.map((effect, i) => {
-                      const condLabel = getConditionLabel(effect.condition);
-                      return (
-                        <span
-                          key={i}
-                          className={`text-sm px-2 py-0.5 border border-pixel-border bg-pixel-bg ${
-                            effect.value > 0 ? 'text-green-400' : 'text-red-400'
-                          }`}
-                        >
-                          {getEffectIcon(effect)} {getEffectLabel(effect)}
-                          {condLabel && <span className="text-pixel-text-muted ml-1">({condLabel})</span>}
-                        </span>
-                      );
-                    })}
-                  </div>
-                </button>
-              );
-            })}
+            {activeFlyout !== null && activeKeyMoment.options[activeFlyout] && (
+              <Flyout
+                option={activeKeyMoment.options[activeFlyout]}
+                interactive={flyoutInteractive}
+                onSelect={() => (kmTutorialActive ? undefined : handleKeyMomentChoice(activeKeyMoment.options[activeFlyout]))}
+                onBack={() => setOpenIdx(null)}
+              />
+            )}
           </div>
         </div>
       </div>

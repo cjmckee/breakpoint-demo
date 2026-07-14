@@ -21,7 +21,8 @@ export interface TacticalOption {
   description: string;
   strongAgainst: ArchetypeType[];
   weakAgainst: ArchetypeType[];
-  bestAgainstHint: string; // Human-readable hint for UI (doesn't name archetypes directly)
+  bestAgainstHint: string; // Human-readable "good against" hint (doesn't name archetypes directly)
+  worstAgainstHint: string; // Human-readable "bad against" hint (mirror of bestAgainstHint)
   secondaryEffects: SecondaryEffect[];
   playerStatWeights: {
     primary: string;
@@ -66,6 +67,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['defensive', 'counterpuncher'],
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against patient opponents who sit back',
+      worstAgainstHint: 'Weak against big returners who punish a predictable serve',
       secondaryEffects: [
         { type: 'energy', value: -5, condition: 'always' },
         { type: 'momentum', value: 10, condition: 'on_success' },
@@ -104,6 +106,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['counterpuncher', 'defensive'],
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against baseline players who struggle with net pressure',
+      worstAgainstHint: 'Weak against players comfortable at the net who pass well',
       secondaryEffects: [
         { type: 'energy', value: -4, condition: 'always' },
         { type: 'momentum', value: 8, condition: 'on_success' },
@@ -142,6 +145,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['aggressive', 'serve_volley'],
       weakAgainst: ['counterpuncher'],
       bestAgainstHint: 'Best against attackers who thrive on pace',
+      worstAgainstHint: 'Weak against counterpunchers who love a slower ball to redirect',
       secondaryEffects: [
         { type: 'energy', value: -2, condition: 'always' },
         { type: 'mood', value: 3, condition: 'on_success' },
@@ -186,6 +190,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['defensive', 'counterpuncher'],
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against opponents who sit deep behind the baseline',
+      worstAgainstHint: 'Weak against big hitters who feed off your pace',
       secondaryEffects: [
         { type: 'energy', value: -4, condition: 'always' },
         { type: 'momentum', value: 10, condition: 'on_success' },
@@ -224,6 +229,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['aggressive', 'serve_volley'],
       weakAgainst: ['counterpuncher', 'defensive'],
       bestAgainstHint: 'Best against attackers who want to end points quickly',
+      worstAgainstHint: 'Weak against grinders happy to rally all day',
       secondaryEffects: [
         { type: 'energy', value: 2, condition: 'always' },
 
@@ -262,6 +268,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['counterpuncher', 'defensive'],
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against baseline grinders who hate net pressure',
+      worstAgainstHint: 'Weak against players who pass and lob comfortably',
       secondaryEffects: [
         { type: 'energy', value: -4, condition: 'always' },
         { type: 'momentum', value: 8, condition: 'on_success' },
@@ -306,6 +313,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['defensive', 'counterpuncher'],
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against opponents who rely on getting the ball back',
+      worstAgainstHint: 'Weak against strong returners who thrive on pace',
       secondaryEffects: [
         { type: 'energy', value: -6, condition: 'always' },
         { type: 'momentum', value: 12, condition: 'on_success' },
@@ -344,6 +352,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['counterpuncher', 'defensive'],
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against opponents anchored to the baseline',
+      worstAgainstHint: 'Weak against opponents who pass cleanly at the net',
       secondaryEffects: [
         { type: 'energy', value: -5, condition: 'always' },
         { type: 'momentum', value: 10, condition: 'on_success' },
@@ -382,6 +391,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['aggressive', 'serve_volley'],
       weakAgainst: ['counterpuncher'],
       bestAgainstHint: 'Best against opponents who attack the return aggressively',
+      worstAgainstHint: 'Weak against counterpunchers who feast on a slow serve',
       secondaryEffects: [
         { type: 'energy', value: -2, condition: 'always' },
         { type: 'mood', value: 3, condition: 'on_success' },
@@ -426,6 +436,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['defensive', 'counterpuncher'],
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against opponents with weak serves who play safe',
+      worstAgainstHint: 'Weak against big servers who overpower your return',
       secondaryEffects: [
         { type: 'energy', value: -4, condition: 'always' },
         { type: 'momentum', value: 12, condition: 'on_success' },
@@ -464,6 +475,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['aggressive', 'serve_volley'],
       weakAgainst: ['counterpuncher', 'defensive'],
       bestAgainstHint: 'Best against big servers who fade in long rallies',
+      worstAgainstHint: 'Weak against retrievers who out-rally you',
       secondaryEffects: [
         { type: 'energy', value: 2, condition: 'always' },
 
@@ -503,6 +515,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['counterpuncher', 'defensive'],
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against opponents who hang back expecting a rally',
+      worstAgainstHint: 'Weak against quick opponents who read the drop and counter',
       secondaryEffects: [
         { type: 'energy', value: -2, condition: 'always' },
 
@@ -546,6 +559,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['defensive', 'counterpuncher'],
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against opponents with weak returns who play safe',
+      worstAgainstHint: 'Weak against sharp returners who punish anything short',
       secondaryEffects: [
         { type: 'energy', value: -5, condition: 'always' },
         { type: 'momentum', value: 10, condition: 'on_success' },
@@ -584,6 +598,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['aggressive', 'serve_volley'],
       weakAgainst: ['counterpuncher'],
       bestAgainstHint: 'Best against opponents who attack returns aggressively',
+      worstAgainstHint: 'Weak against counterpunchers who neutralize spin',
       secondaryEffects: [
         { type: 'energy', value: -2, condition: 'always' },
 
@@ -623,6 +638,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['counterpuncher', 'defensive'],
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against opponents who struggle to pass at the net',
+      worstAgainstHint: 'Weak against opponents who pass and lob under pressure',
       secondaryEffects: [
         { type: 'energy', value: -5, condition: 'always' },
         { type: 'momentum', value: 10, condition: 'on_success' },
@@ -667,6 +683,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['aggressive', 'serve_volley'],
       weakAgainst: ['counterpuncher', 'defensive'],
       bestAgainstHint: 'Best against opponents who go for too much under pressure',
+      worstAgainstHint: 'Weak against grinders who out-last you in the rally',
       secondaryEffects: [
         { type: 'energy', value: 2, condition: 'always' },
 
@@ -707,6 +724,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['defensive', 'counterpuncher'],
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against opponents who expect you to play safe',
+      worstAgainstHint: 'Weak against big hitters who beat you to the punch',
       secondaryEffects: [
         { type: 'energy', value: -5, condition: 'always' },
         { type: 'momentum', value: 12, condition: 'on_success' },
@@ -747,6 +765,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['counterpuncher', 'defensive'],
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against opponents who camp deep behind the baseline',
+      worstAgainstHint: 'Weak against fast opponents who chase down the drop',
       secondaryEffects: [
         { type: 'energy', value: -2, condition: 'always' },
 
@@ -790,6 +809,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['defensive', 'counterpuncher'],
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against opponents who rely on getting the ball back',
+      worstAgainstHint: 'Weak against elite returners who thrive under pressure',
       secondaryEffects: [
         { type: 'energy', value: -6, condition: 'always' },
         { type: 'momentum', value: 15, condition: 'on_success' },
@@ -828,6 +848,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['counterpuncher', 'defensive'],
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against baseline players who can\'t pass',
+      worstAgainstHint: 'Weak against opponents who pass with ease',
       secondaryEffects: [
         { type: 'energy', value: -5, condition: 'always' },
         { type: 'momentum', value: 10, condition: 'on_success' },
@@ -866,6 +887,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['aggressive', 'serve_volley'],
       weakAgainst: ['counterpuncher'],
       bestAgainstHint: 'Best against opponents who attack the return aggressively',
+      worstAgainstHint: 'Weak against counterpunchers who redirect the spin',
       secondaryEffects: [
         { type: 'energy', value: -3, condition: 'always' },
 
@@ -912,6 +934,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['defensive', 'counterpuncher'],
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against opponents with weak serves',
+      worstAgainstHint: 'Weak against big servers who take your pace and run',
       secondaryEffects: [
         { type: 'energy', value: -5, condition: 'always' },
         { type: 'momentum', value: 15, condition: 'on_success' },
@@ -950,6 +973,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['aggressive', 'serve_volley'],
       weakAgainst: ['all_court'],
       bestAgainstHint: 'Best against predictable servers with big wind-ups',
+      worstAgainstHint: 'Weak against versatile servers who disguise their placement',
       secondaryEffects: [
         { type: 'energy', value: -2, condition: 'always' },
 
@@ -989,6 +1013,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['counterpuncher', 'defensive'],
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against baseline grinders who hate net pressure',
+      worstAgainstHint: 'Weak against opponents comfortable passing at the net',
       secondaryEffects: [
         { type: 'energy', value: -5, condition: 'always' },
         { type: 'momentum', value: 10, condition: 'on_success' },
@@ -1033,6 +1058,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['defensive', 'counterpuncher'],
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against opponents who struggle with pace on the return',
+      worstAgainstHint: 'Weak against returners who feed off pace',
       secondaryEffects: [
         { type: 'energy', value: -6, condition: 'always' },
         { type: 'momentum', value: 12, condition: 'on_success' },
@@ -1072,6 +1098,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['aggressive', 'serve_volley'],
       weakAgainst: ['counterpuncher'],
       bestAgainstHint: 'Best against opponents who attack returns aggressively',
+      worstAgainstHint: 'Weak against counterpunchers who love the slower ball',
       secondaryEffects: [
         { type: 'energy', value: 2, condition: 'always' },
 
@@ -1111,6 +1138,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['counterpuncher', 'defensive'],
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against opponents who freeze when you come to the net',
+      worstAgainstHint: 'Weak against clean passers who punish the net rush',
       secondaryEffects: [
         { type: 'energy', value: -5, condition: 'always' },
         { type: 'momentum', value: 10, condition: 'on_success' },
@@ -1156,6 +1184,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['defensive', 'counterpuncher'],
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against opponents with tentative serves under pressure',
+      worstAgainstHint: 'Weak against big servers who overpower the attack',
       secondaryEffects: [
         { type: 'energy', value: -5, condition: 'always' },
         { type: 'momentum', value: 12, condition: 'on_success' },
@@ -1195,6 +1224,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['aggressive', 'serve_volley'],
       weakAgainst: ['counterpuncher', 'defensive'],
       bestAgainstHint: 'Best against opponents who crack under extended rallies',
+      worstAgainstHint: 'Weak against retrievers who happily extend the rally',
       secondaryEffects: [
         { type: 'energy', value: 2, condition: 'always' },
 
@@ -1235,6 +1265,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['counterpuncher', 'defensive'],
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against opponents stuck deep who struggle with overheads',
+      worstAgainstHint: 'Weak against opponents with a crushing overhead',
       secondaryEffects: [
         { type: 'energy', value: 3, condition: 'always' },
 
@@ -1281,6 +1312,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['defensive', 'counterpuncher'],
       weakAgainst: ['aggressive', 'all_court'],
       bestAgainstHint: 'Best against opponents who play conservatively',
+      worstAgainstHint: 'Weak against opponents who counter pace and take time away',
       secondaryEffects: [
         { type: 'energy', value: -4, condition: 'always' },
         { type: 'momentum', value: 10, condition: 'on_success' },
@@ -1320,6 +1352,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['aggressive', 'all_court'],
       weakAgainst: ['defensive', 'counterpuncher'],
       bestAgainstHint: 'Best against opponents who overcommit and take big swings',
+      worstAgainstHint: 'Weak against grinders who out-patient you',
       secondaryEffects: [
         { type: 'energy', value: 2, condition: 'always' },
         { type: 'mood', value: 3, condition: 'on_success' },
@@ -1358,6 +1391,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       strongAgainst: ['counterpuncher', 'defensive'],
       weakAgainst: ['serve_volley', 'aggressive'],
       bestAgainstHint: 'Best against opponents who play defensively and stay back',
+      worstAgainstHint: 'Weak against opponents who pass well and love a target at the net',
       secondaryEffects: [
         { type: 'energy', value: -5, condition: 'always' },
         { type: 'momentum', value: 12, condition: 'on_success' },

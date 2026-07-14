@@ -11,6 +11,10 @@ module.exports = {
         'pixel-bg': '#1a1a2e',
         'pixel-text': '#eee',
         'pixel-primary': '#16213e',
+        // Elevated card surface — sits a touch above the page/panel backgrounds.
+        // (Previously referenced by `bg-pixel-card` across the app but never defined,
+        //  so those surfaces rendered transparent.)
+        'pixel-card': '#1e2846',
         'pixel-secondary': '#0f3460',
         'pixel-accent': '#e94560',
         'pixel-success': '#2ecc71',

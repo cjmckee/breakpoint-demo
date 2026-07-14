@@ -6,7 +6,9 @@
 import React, { useEffect, useCallback, useRef } from 'react';
 import { useMatchStore } from '../stores/matchStore';
 import { Card } from './ui/Card';
-import { CourtVisualization } from './CourtVisualization';
+import { MatchCockpit } from './match/MatchCockpit';
+import { MatchStatsCompare } from './match/MatchStatsCompare';
+import { MatchToasts } from './match/MatchToasts';
 import { audioManager } from '../audio/AudioManager';
 import type { SfxKey } from '../audio/sounds';
 import { useTutorialSpotlight } from '../hooks/useTutorialSpotlight';
@@ -224,115 +226,55 @@ export const LiveMatchViewer: React.FC = () => {
           <h1 className="text-2xl font-bold text-pixel-text">🎾 Live Match</h1>
         </div>
 
-        {/* Two-column layout: Court + Log | Abilities + Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Left column: 2/3 width */}
-          <div className="md:col-span-2 space-y-4">
-            {/* Court Visualization */}
-            <div className={spotlightClass('court')}>
-              {matchConfig && (
-                <CourtVisualization
-                  courtSurface={matchConfig.surface}
-                  score={currentScore ?? TUTORIAL_MOCK_SCORE}
-                  server={(currentScore ?? TUTORIAL_MOCK_SCORE).server}
-                  momentum={(currentScore ?? TUTORIAL_MOCK_SCORE).momentum ?? 0}
-                  stamina={(currentScore ?? TUTORIAL_MOCK_SCORE).energy ?? matchConfig.energy}
-                  maxStamina={100}
+        {/* Tier 1: Cockpit — scoreboard + court + stamina/momentum (full width) */}
+        <div className={spotlightClass('court')}>
+          {matchConfig && (
+            <MatchCockpit
+              courtSurface={matchConfig.surface}
+              score={currentScore ?? TUTORIAL_MOCK_SCORE}
+              playerName={matchConfig.playerName || 'You'}
+              opponentName={matchConfig.opponentName || 'Opponent'}
+              matchFormat={matchConfig.matchFormat}
+              overlay={
+                <MatchToasts
                   playerName={matchConfig.playerName || 'You'}
                   opponentName={matchConfig.opponentName || 'Opponent'}
                 />
+              }
+            />
+          )}
+        </div>
+
+        {/* Tier 3: merged live stats (you | stat | them), flashes on change */}
+        <div className={spotlightClass('your-stats')}>
+          <MatchStatsCompare
+            player={playerStats}
+            opponent={opponentStats}
+            playerName={matchConfig?.playerName || 'You'}
+            opponentName={matchConfig?.opponentName || 'Opponent'}
+          />
+        </div>
+
+        {/* Commentary — demoted to a compact ticker; the flavour-text narrator still drives it */}
+        <div className={spotlightClass('log')}>
+          <Card title="Commentary">
+            <div ref={logContainerRef} className="bg-pixel-bg border-2 border-pixel-border p-3 h-24 overflow-y-auto">
+              {visibleLog.length === 0 ? (
+                <p className="text-pixel-text-muted text-center py-6 text-sm">Match starting…</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {visibleLog.slice(-30).map((log, index, arr) => (
+                    <div
+                      key={index}
+                      className={`text-sm ${index === arr.length - 1 ? 'text-pixel-text' : 'text-pixel-text-muted'}`}
+                    >
+                      {log}
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
-
-            {/* Match Log */}
-            <div className={spotlightClass('log')}>
-              <Card title="Match Progress">
-                <div ref={logContainerRef} className="bg-pixel-bg border-2 border-pixel-border p-4 h-64 overflow-y-auto">
-                  {visibleLog.length === 0 ? (
-                    <p className="text-pixel-text-muted text-center py-8">
-                      Match starting... Key moments will appear here.
-                    </p>
-                  ) : (
-                    <div className="space-y-2">
-                      {visibleLog.slice(-50).map((log, index) => (
-                        <div
-                          key={index}
-                          className="text-sm text-pixel-text pb-2 border-b border-pixel-border last:border-0"
-                        >
-                          {log}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </Card>
-            </div>
-          </div>
-
-          {/* Right column: 1/3 width */}
-          <div className="space-y-4">
-            {/* Player Stats */}
-            <div className={spotlightClass('your-stats')}>
-              <Card title="Your Stats" className="bg-green-500 bg-opacity-10 border-green-500">
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center pb-2 border-b-2 border-pixel-border">
-                    <span className="text-pixel-text-muted">Aces</span>
-                    <span className="font-bold text-pixel-text">{playerStats.aces}</span>
-                  </div>
-                  <div className="flex justify-between items-center pb-2 border-b-2 border-pixel-border">
-                    <span className="text-pixel-text-muted">Double Faults</span>
-                    <span className="font-bold text-pixel-text">{playerStats.doubleFaults}</span>
-                  </div>
-                  <div className="flex justify-between items-center pb-2 border-b-2 border-pixel-border">
-                    <span className="text-pixel-text-muted">Winners</span>
-                    <span className="font-bold text-pixel-text">{playerStats.winners}</span>
-                  </div>
-                  <div className="flex justify-between items-center pb-2 border-b-2 border-pixel-border">
-                    <span className="text-pixel-text-muted">Unforced Errors</span>
-                    <span className="font-bold text-pixel-text">{playerStats.unforcedErrors}</span>
-                  </div>
-                  <div className="flex justify-between items-center pb-2 border-b-2 border-pixel-border">
-                    <span className="text-pixel-text-muted">1st Serve %</span>
-                    <span className="font-bold text-pixel-text">{playerStats.firstServePercentage}%</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-pixel-text-muted">Points Won</span>
-                    <span className="font-bold text-green-500">{playerStats.pointsWon}</span>
-                  </div>
-                </div>
-              </Card>
-            </div>
-
-            {/* Opponent Stats */}
-            <Card title="Opponent Stats" className="bg-red-500 bg-opacity-10 border-red-500">
-              <div className="space-y-3">
-                <div className="flex justify-between items-center pb-2 border-b-2 border-pixel-border">
-                  <span className="text-pixel-text-muted">Aces</span>
-                  <span className="font-bold text-pixel-text">{opponentStats.aces}</span>
-                </div>
-                <div className="flex justify-between items-center pb-2 border-b-2 border-pixel-border">
-                  <span className="text-pixel-text-muted">Double Faults</span>
-                  <span className="font-bold text-pixel-text">{opponentStats.doubleFaults}</span>
-                </div>
-                <div className="flex justify-between items-center pb-2 border-b-2 border-pixel-border">
-                  <span className="text-pixel-text-muted">Winners</span>
-                  <span className="font-bold text-pixel-text">{opponentStats.winners}</span>
-                </div>
-                <div className="flex justify-between items-center pb-2 border-b-2 border-pixel-border">
-                  <span className="text-pixel-text-muted">Unforced Errors</span>
-                  <span className="font-bold text-pixel-text">{opponentStats.unforcedErrors}</span>
-                </div>
-                <div className="flex justify-between items-center pb-2 border-b-2 border-pixel-border">
-                  <span className="text-pixel-text-muted">1st Serve %</span>
-                  <span className="font-bold text-pixel-text">{opponentStats.firstServePercentage}%</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-pixel-text-muted">Points Won</span>
-                  <span className="font-bold text-red-500">{opponentStats.pointsWon}</span>
-                </div>
-              </div>
-            </Card>
-          </div>
+          </Card>
         </div>
 
       </div>

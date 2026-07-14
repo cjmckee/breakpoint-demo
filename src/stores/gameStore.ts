@@ -1463,8 +1463,7 @@ export const useGameStore = create<GameState>()(
         const consumableMatchAdditional = state.player.nextActivityBuffs?.additional ?? {};
         updatedPlayer = { ...updatedPlayer, nextActivityBuffs: null };
 
-        // Calculate energy and mood changes
-        const keyMomentEnergyCost = accumulatedEffects ? accumulatedEffects.energyDelta : 0;
+        // Calculate mood changes from key moments
         const keyMomentMoodChange = accumulatedEffects ? accumulatedEffects.moodDelta : 0;
 
         let energyCost: number;
@@ -1481,7 +1480,7 @@ export const useGameStore = create<GameState>()(
           ? (consumableMatchAdditional[EffectKey.MOOD_GAIN_BONUS] ?? 0)
           : 0;
 
-        const newEnergy = Math.max(0, state.currentStatus.energy - Math.max(0, energyCost - matchEnergyCostReduction) + keyMomentEnergyCost);
+        const newEnergy = Math.max(0, state.currentStatus.energy - Math.max(0, energyCost - matchEnergyCostReduction));
         const newMood = Math.max(-100, Math.min(100, state.currentStatus.mood + rewards.moodChange + matchMoodGainBonus + keyMomentMoodChange));
 
         // Apply match experience (with EXPERIENCE_GAIN_BONUS multiplier if active)
