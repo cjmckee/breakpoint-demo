@@ -144,6 +144,7 @@ function SettingsContent({ onOpenTutorialGuide }: SettingsContentProps) {
   const audioSettings = useGameStore((state) => state.audioSettings);
   const updateAudioSettings = useGameStore((state) => state.updateAudioSettings);
   const clearAllData = useGameStore((state) => state.clearAllData);
+  const currentDay = useGameStore((state) => state.calendar.currentDay);
   const { closeMenu } = useMenuModal();
   const [confirmingReset, setConfirmingReset] = useState(false);
 
@@ -228,14 +229,16 @@ function SettingsContent({ onOpenTutorialGuide }: SettingsContentProps) {
 
       <AudioCredits />
 
-      <div className="border-t border-pixel-border pt-4">
-        <h3 className="text-sm font-bold text-pixel-text-muted mb-2 uppercase tracking-wider">
-          Tutorial
-        </h3>
-        <Button variant="secondary" fullWidth onClick={onOpenTutorialGuide}>
-          Replay Match Tutorial
-        </Button>
-      </div>
+      {currentDay >= 5 && (
+        <div className="border-t border-pixel-border pt-4">
+          <h3 className="text-sm font-bold text-pixel-text-muted mb-2 uppercase tracking-wider">
+            Tutorial
+          </h3>
+          <Button variant="secondary" fullWidth onClick={onOpenTutorialGuide}>
+            Replay Match Tutorial
+          </Button>
+        </div>
+      )}
 
       <div className="border-t border-pixel-border pt-4">
         <h3 className="text-sm font-bold text-pixel-text-muted mb-2 uppercase tracking-wider">
