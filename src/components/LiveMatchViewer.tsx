@@ -9,30 +9,10 @@ import { Card } from './ui/Card';
 import { CourtVisualization } from './CourtVisualization';
 import { audioManager } from '../audio/AudioManager';
 import type { SfxKey } from '../audio/sounds';
-import { useTutorialSpotlight, TutorialStep } from '../hooks/useTutorialSpotlight';
+import { useTutorialSpotlight } from '../hooks/useTutorialSpotlight';
 import { TutorialCallout } from './tutorial/TutorialCallout';
 import { TUTORIAL_MOCK_SCORE, TUTORIAL_MOCK_STATS, TUTORIAL_MOCK_LOG } from '../data/tutorialMockData';
-
-type LiveMatchTarget = 'court' | 'log' | 'your-stats';
-
-// Court is shown LAST so the player is looking at it when they click "Let's Play!"
-const TUTORIAL_STEPS: TutorialStep<LiveMatchTarget>[] = [
-  {
-    target: 'log',
-    title: 'Match Log',
-    body: 'Every point is narrated here in real time — aces, winners, errors, and rallies. Scroll up to review earlier points.',
-  },
-  {
-    target: 'your-stats',
-    title: 'Your Stats',
-    body: 'Aces, winners, double faults, and errors update as the match progresses. Keep an eye on these to gauge how you are playing.',
-  },
-  {
-    target: 'court',
-    title: 'The Court',
-    body: 'The court shows the live score, who is serving, the momentum bar (green = your favor, red = theirs), and your stamina. The match is about to begin — good luck!',
-  },
-];
+import { LIVE_MATCH_TUTORIAL_STEPS as TUTORIAL_STEPS, LiveMatchTarget } from '../data/tutorialSteps';
 
 interface MatchStats {
   aces: number;
@@ -57,7 +37,14 @@ export const LiveMatchViewer: React.FC = () => {
 
   const matchLog = useMatchStore((state) => state.matchLog);
 
-  const { currentStep, activeStep, isSpotlit, next: handleTutorialNext } = useTutorialSpotlight(
+  const {
+    currentStep,
+    activeStep,
+    isSpotlit,
+    next: handleTutorialNext,
+    back: handleTutorialBack,
+    canGoBack: canGoBackTutorial,
+  } = useTutorialSpotlight(
     TUTORIAL_STEPS,
     isTutorialPaused,
     resumeFromTutorial,
@@ -223,6 +210,8 @@ export const LiveMatchViewer: React.FC = () => {
               title={activeStep.title}
               body={activeStep.body}
               onNext={handleTutorialNext}
+              onBack={handleTutorialBack}
+              canGoBack={canGoBackTutorial}
               finalLabel="Let's Play!"
             />
           </div>

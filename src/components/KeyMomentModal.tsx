@@ -12,48 +12,9 @@ import { ARCHETYPE_DATA, getRelevantTendency } from '../data/archetypes';
 import { KeyMomentResolver, KeyMomentResult, AppliedEffect } from '../game/KeyMomentResolver';
 import { useMatchStore } from '../stores/matchStore';
 import { PlayerStats } from '../types/game';
-import { useTutorialSpotlight, TutorialStep } from '../hooks/useTutorialSpotlight';
+import { useTutorialSpotlight } from '../hooks/useTutorialSpotlight';
 import { TutorialCallout } from './tutorial/TutorialCallout';
-
-// ─── Tutorial step definitions ─────────────────────────────────────────────────
-type KmTarget = 'header' | 'options-matchup' | 'options-effects';
-type KmResultTarget = 'outcome' | 'tactic' | 'effects';
-
-const KM_TUTORIAL_STEPS: TutorialStep<KmTarget>[] = [
-  {
-    target: 'header',
-    title: 'The Situation',
-    body: 'This shows the type of key moment, your opponent\'s playing style, and current conditions like momentum and energy that affect your odds. Always consider your opponent\'s archetype and attack their weakness!',
-  },
-  {
-    target: 'options-matchup',
-    title: 'Matchup Indicator',
-    body: '"you X > Y them" shows your weighted stats vs. theirs for this tactic — > means you have the edge, < means they do, and more symbols (>>, >>>) mean a bigger gap. Each option uses different stats, so the matchup shifts per choice!',
-  },
-  {
-    target: 'options-effects',
-    title: 'Secondary Effects',
-    body: 'Each tactic carries bonuses that apply win or loss — momentum swings, energy shifts, mood changes. Pick the tactic that best counters their style, but nothing is guaranteed!',
-  },
-];
-
-const KM_RESULT_STEPS: TutorialStep<KmResultTarget>[] = [
-  {
-    target: 'outcome',
-    title: 'The Result',
-    body: 'The point result is shown here: win or lose. Critical outcomes (🌟 / 💥) mean your tactic landed perfectly — or backfired spectacularly. You can pick the right option and still lose! That\'s tennis, baby.',
-  },
-  {
-    target: 'tactic',
-    title: 'Matchup Indicator',
-    body: 'Your chosen tactic is shown here along with whether it countered their style (🎯) or played into their strengths (⚠️). Countering their playstyles improves your odds, but stats can still greatly impact your chances of success.',
-  },
-  {
-    target: 'effects',
-    title: 'Effects Applied',
-    body: 'Win or lose, your tactic\'s secondary effects still apply — momentum swings, energy changes, mood and pressure shifts carry into the rest of the match. Critical success and critical failure double the effects!',
-  },
-];
+import { KM_TUTORIAL_STEPS, KM_RESULT_STEPS, KmTarget, KmResultTarget } from '../data/tutorialSteps';
 
 const formatStatScore = (score: number): string => score.toFixed(0);
 
@@ -99,6 +60,8 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     isSpotlit: kmSpotlit,
     isDimmed: kmDimmed,
     next: kmNext,
+    back: kmBack,
+    canGoBack: kmCanGoBack,
   } = useTutorialSpotlight(
     KM_TUTORIAL_STEPS,
     isOpen && !isResultPhase && isTutorial && keyMomentHistory.length === 0,
@@ -112,6 +75,8 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     isSpotlit: resultSpotlit,
     isDimmed: resultDimmed,
     next: kmResultNext,
+    back: kmResultBack,
+    canGoBack: kmResultCanGoBack,
   } = useTutorialSpotlight(
     KM_RESULT_STEPS,
     isOpen && isResultPhase && isTutorial,
@@ -321,6 +286,8 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
               title={kmResultActiveStep.title}
               body={kmResultActiveStep.body}
               onNext={kmResultNext}
+              onBack={kmResultBack}
+              canGoBack={kmResultCanGoBack}
             />
           )}
 
@@ -443,6 +410,8 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
             title={kmActiveStep.title}
             body={kmActiveStep.body}
             onNext={kmNext}
+            onBack={kmBack}
+            canGoBack={kmCanGoBack}
             finalLabel="Got It — Let Me Choose"
           />
         )}
