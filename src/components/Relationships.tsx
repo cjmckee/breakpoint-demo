@@ -174,7 +174,7 @@ export const Relationships: React.FC = () => {
                           onClick={() => hangoutWithCharacter(character.id)}
                         >
                           {isNightTime
-                            ? 'Night Time'
+                            ? 'Unavailable'
                             : !canAffordHangout
                               ? 'Low Energy'
                               : '★ Hang Out'}

@@ -477,13 +477,13 @@ function runArchetypeReport(): void {
   // Archetype-vs-archetype matchups.
   print('');
   print('  Matchups (player listed first; Win% is for that player):');
-  const netRusher = archProfile({ net: { path: 'net_downhill', tier: 2 }, first_serve: { path: 'fs_bomber', tier: 2 }, return: { path: 'rt_sneaky_beaky', tier: 2 } }, 'net_downhill');
+  const netRusher = archProfile({ net: { path: 'net_downhill', tier: 2 }, first_serve: { path: 'fs_bomber', tier: 2 }, return: { path: 'rt_sneaky_beaky', tier: 2 } }, 'net_attacker');
   const grinder = archProfile({ forehand: { path: 'fh_survivor', tier: 2 }, backhand: { path: 'bh_brick_wall', tier: 2 }, return: { path: 'rt_extinguisher', tier: 2 }, net: { path: 'net_apologist', tier: 2 } }, 'baseliner');
   const aggressive = archProfile({ forehand: { path: 'fh_laserbeam', tier: 2 }, first_serve: { path: 'fs_bomber', tier: 2 }, return: { path: 'rt_redliner', tier: 2 } });
   const counter = archProfile({ forehand: { path: 'fh_survivor', tier: 2 }, backhand: { path: 'bh_samurai', tier: 2 }, return: { path: 'rt_extinguisher', tier: 2 } }, 'baseliner');
 
-  const netOnly = archProfile({ net: { path: 'net_downhill', tier: 3 } }, 'net_downhill');
-  const netT1 = archProfile({ net: { path: 'net_downhill', tier: 1 } }, 'net_downhill');
+  const netOnly = archProfile({ net: { path: 'net_downhill', tier: 3 } }, 'net_attacker');
+  const netT1 = archProfile({ net: { path: 'net_downhill', tier: 1 } }, 'net_attacker');
   const matchups: [string, ArchetypeProfile, ArchetypeProfile][] = [
     ['Net-Rusher(full) vs Grinder', netRusher, grinder],
     ['Net t3 (w/ NET_GAME) vs Base', netOnly, neutral],
@@ -582,7 +582,7 @@ function runArchetypeStyleReport(): void {
     ['Gambler 2nd III', archProfile({ second_serve: { path: 'ss_gambler', tier: 3 } })],
     ['Flat FH I', archProfile({ forehand: { path: 'fh_laserbeam', tier: 1 } })],
     ['Flat FH III', archProfile({ forehand: { path: 'fh_laserbeam', tier: 3 } })],
-    ['Net-Rusher III', archProfile({ net: { path: 'net_downhill', tier: 3 } }, 'net_downhill')],
+    ['Net-Rusher III', archProfile({ net: { path: 'net_downhill', tier: 3 } }, 'net_attacker')],
     ['Slice BH III', archProfile({ backhand: { path: 'bh_samurai', tier: 3 } }, 'baseliner')],
     ['Grinder', archProfile({ forehand: { path: 'fh_survivor', tier: 2 }, backhand: { path: 'bh_brick_wall', tier: 2 }, net: { path: 'net_apologist', tier: 2 } }, 'baseliner')],
   ];

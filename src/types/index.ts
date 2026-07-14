@@ -81,6 +81,8 @@ export type ShotType =
   // Volleys
   | 'volley_forehand'
   | 'volley_backhand'
+  | 'volley_forehand_power'
+  | 'volley_backhand_power'
   | 'half_volley_forehand'
   | 'half_volley_backhand'
 

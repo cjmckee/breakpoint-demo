@@ -36,6 +36,8 @@ export const RELATIVE_QUALITY_REQUIREMENTS: Record<ShotType, number> = {
   // Volleys (moderate requirement, need decent execution)
   'volley_forehand': 0.60,
   'volley_backhand': 0.60,
+  'volley_forehand_power': 0.70,
+  'volley_backhand_power': 0.70,
   'half_volley_forehand': 0.65,
   'half_volley_backhand': 0.65,
 

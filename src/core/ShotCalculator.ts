@@ -76,10 +76,10 @@ const SHOT_RANGES = {
  * Shot type classifications for applying bonuses
  */
 const SHOT_CLASSIFICATIONS = {
-  powerShots: ['serve_first', 'forehand_power', 'backhand_power', 'return_forehand_power', 'return_backhand_power', 'overhead', 'passing_shot_forehand', 'passing_shot_backhand'],
+  powerShots: ['serve_first', 'forehand_power', 'backhand_power', 'return_forehand_power', 'return_backhand_power', 'overhead', 'passing_shot_forehand', 'passing_shot_backhand', 'volley_forehand_power', 'volley_backhand_power'],
   spinShots: ['slice_forehand', 'slice_backhand', 'drop_shot_forehand', 'drop_shot_backhand', 'defensive_slice_forehand', 'defemsove_slice_backhand'],
   placementShots: ['drop_shot_forehand', 'drop_shot_backhand', 'angle_shot_forehand', 'angle_shot_backhand', 'lob_forehand', 'lob_backhand'],
-  netShots: ['volley_forehand', 'volley_backhand', 'half_volley_forehand', 'half_volley_backhand', 'overhead', 'defensive_overhead'],
+  netShots: ['volley_forehand', 'volley_backhand', 'volley_forehand_power', 'volley_backhand_power', 'half_volley_forehand', 'half_volley_backhand', 'overhead', 'defensive_overhead'],
   defensiveShots: ['defensive_slice_forehand', 'defensive_slice_backhand', 'defensive_overhead', 'return_forehand', 'return_backhand', 'lob_forehand', 'lob_backhand', 'passing_shot_forehand', 'passing_shot_backhand'],
 } as const;
 

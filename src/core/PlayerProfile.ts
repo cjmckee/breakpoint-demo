@@ -96,22 +96,22 @@ function summarizeArchetypeType(
 /**
  * Build a PlayStyle from a player's archetype profile.
  *
- * The four dials are a projection of the profile's aggregated behavior effects
- * (so existing ShotSelector/counter/display code keeps working). The finer
- * behaviors that dials can't express (per-wing slice, serve aggression, fault
- * risk) are read directly from the aggregated effects in ShotSelector.
+ * UI/display only — the simulation (ShotSelector/PointSimulator) reads EffectKeys
+ * directly from the aggregated behavior effects; `playStyle` is no longer a
+ * simulation driver. The four dials here are a projection used by the tactical
+ * counter system and the "Current Tendencies" display.
  */
 export function buildPlayStyle(profile: ArchetypeProfile): PlayStyle {
   const fx = aggregateArchetypeEffects(profile);
   const get = (k: string): number => fx[k] ?? 0;
 
-  const winner = get(EffectKey.WINNER_BIAS);
+  const winner = get(EffectKey.RALLY_WINNER_BIAS);
   const net = get(EffectKey.NET_APPROACH_BIAS);
-  const rally = get(EffectKey.RALLY_TOLERANCE);
+  const rally = get(EffectKey.RALLY_PATIENCE);
   const returnAgg = get(EffectKey.RETURN_AGGRESSION);
-  const firstServePower = get(EffectKey.FIRST_SERVE_POWER);
+  const firstServePower = get(EffectKey.FIRST_SERVE_AGGRESSION);
 
-  const nudge = profile.broad ? BROAD_TENDENCY_NUDGES[profile.broad] : NO_NUDGE;
+  const nudge = profile.broad ? (BROAD_TENDENCY_NUDGES[profile.broad] ?? NO_NUDGE) : NO_NUDGE;
 
   const aggression = clampDial(DIAL_BASELINE + nudge.aggression + winner + returnAgg * 0.5 - rally);
   const netApproach = clampDial(DIAL_BASELINE + nudge.netApproach + net);
@@ -250,6 +250,8 @@ export class PlayerProfile implements IPlayerProfile {
     const technicalMapping: Partial<Record<ShotType, keyof PlayerStats['technical']>> = {
       'volley_forehand': 'volley',
       'volley_backhand': 'volley',
+      'volley_forehand_power': 'volley',
+      'volley_backhand_power': 'volley',
       'half_volley_forehand': 'volley',
       'half_volley_backhand': 'volley',
       'overhead': 'overhead',

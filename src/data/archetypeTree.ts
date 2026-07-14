@@ -56,7 +56,7 @@ const PATHS: PhasePathDef[] = [
     description: 'Swing for the fences — huge first serves that end points before they start. Sometimes, you hit the fences.',
     tradeoff: 'More aces, at the cost of missed first serves — leveling tightens it up (fewer misses).',
     tierEffects: [
-      { [EffectKey.FIRST_SERVE_POWER]: 18, [EffectKey.FAULT_RISK]: 12 },
+      { [EffectKey.FIRST_SERVE_AGGRESSION]: 18, [EffectKey.FAULT_RISK]: 12, [EffectKey.SERVE_AND_VOLLEY_BIAS]: 4 },
       { [EffectKey.FAULT_RISK]: -4 },
       { [EffectKey.FAULT_RISK]: -4 },
     ],
@@ -66,9 +66,9 @@ const PATHS: PhasePathDef[] = [
     description: 'Pinpoint placement over raw power — paint the lines and set up the next ball. A line cheater\'s worst nightmare.',
     tradeoff: 'Softer, well-placed serves — lands far more often, but the returner gets a look at it. Leveling lowers your fault risk even further.',
     tierEffects: [
-      { [EffectKey.FAULT_RISK]: -12, [EffectKey.SERVE_PACE]: -3 },
-      { [EffectKey.FAULT_RISK]: -6 },
-      { [EffectKey.FAULT_RISK]: -6 },
+      { [EffectKey.FAULT_RISK]: -12, [EffectKey.RALLY_WINNER_BIAS]: 5 },
+      { [EffectKey.FAULT_RISK]: -5, [EffectKey.RALLY_WINNER_BIAS]: 3 },
+      { [EffectKey.FAULT_RISK]: -5 },
     ],
   },
   {
@@ -76,9 +76,9 @@ const PATHS: PhasePathDef[] = [
     description: 'Heavy spin that jumps off the court and pulls returners out of position. Punishes players like YOU (yes, you!) who don\'t bend their knees.',
     tradeoff: 'Rarely free points, but reliable and sets up the rally — leveling lowers fault risk further and improves rally tolerance.',
     tierEffects: [
-      { [EffectKey.FAULT_RISK]: -8, [EffectKey.SERVE_PACE]: -2, [EffectKey.RALLY_TOLERANCE]: 3 },
-      { [EffectKey.FAULT_RISK]: -4, [EffectKey.RALLY_TOLERANCE]: 3 },
-      { [EffectKey.FAULT_RISK]: -4, [EffectKey.RALLY_TOLERANCE]: 3 },
+      { [EffectKey.FAULT_RISK]: -8, [EffectKey.SERVE_SPEED]: -3, [EffectKey.SLICE_PREFERENCE_FOREHAND]: 6 },
+      { [EffectKey.FAULT_RISK]: -4, [EffectKey.DROP_SHOT_BIAS]: 4 },
+      { [EffectKey.FAULT_RISK]: -3, [EffectKey.DROP_SHOT_BIAS]: 4 },
     ],
   },
 
@@ -88,9 +88,9 @@ const PATHS: PhasePathDef[] = [
     description: 'Get it in, start the point. No heroics on the second ball. You could make this with a frying pan.',
     tradeoff: 'Almost never double-faults, but the soft ball gets attacked — leveling lowers fault risk further and improves second-serve aggression.',
     tierEffects: [
-      { [EffectKey.FAULT_RISK]: -14, [EffectKey.SERVE_PACE]: -4, [EffectKey.SECOND_SERVE_AGGRESSION]: -8 },
+      { [EffectKey.FAULT_RISK]: -14, [EffectKey.SERVE_SPEED]: -4, [EffectKey.SECOND_SERVE_AGGRESSION]: -8 },
       { [EffectKey.FAULT_RISK]: -4, [EffectKey.SECOND_SERVE_AGGRESSION]: 3 },
-      { [EffectKey.FAULT_RISK]: -4, [EffectKey.SERVE_PACE]: 2, [EffectKey.SECOND_SERVE_AGGRESSION]: 3 },
+      { [EffectKey.FAULT_RISK]: -4, [EffectKey.SERVE_SPEED]: 2, [EffectKey.SECOND_SERVE_AGGRESSION]: 3 },
     ],
   },
   {
@@ -98,9 +98,9 @@ const PATHS: PhasePathDef[] = [
     description: 'A high, heavy kick with some aggression that pushes the returner back. One-handed backhands hate this guy.',
     tradeoff: 'Balanced — some bite without much double-fault risk. Leveling improves second-serve aggression further.',
     tierEffects: [
-      { [EffectKey.SECOND_SERVE_AGGRESSION]: 5 },
-      { [EffectKey.SECOND_SERVE_AGGRESSION]: 4 },
-      { [EffectKey.SECOND_SERVE_AGGRESSION]: 4 },
+      { [EffectKey.SECOND_SERVE_AGGRESSION]: 5, [EffectKey.RALLY_PATIENCE]: 4, [EffectKey.SERVE_SPEED]: -1 },
+      { [EffectKey.SECOND_SERVE_AGGRESSION]: 4, [EffectKey.RALLY_PATIENCE]: 3 },
+      { [EffectKey.SECOND_SERVE_AGGRESSION]: 3, [EffectKey.RALLY_PATIENCE]: 3 },
     ],
   },
   {
@@ -108,7 +108,7 @@ const PATHS: PhasePathDef[] = [
     description: 'You basically have two first serves. Go after the second ball just as hard. You miss the court sometimes.',
     tradeoff: 'Steals free points but double-faults are more common — leveling reins in the mistakes.',
     tierEffects: [
-      { [EffectKey.SECOND_SERVE_AGGRESSION]: 16, [EffectKey.FAULT_RISK]: 14 },
+      { [EffectKey.SECOND_SERVE_AGGRESSION]: 16, [EffectKey.FAULT_RISK]: 14, [EffectKey.SERVE_AND_VOLLEY_BIAS]: 5 },
       { [EffectKey.FAULT_RISK]: -5 },
       { [EffectKey.FAULT_RISK]: -5 },
     ],
@@ -120,7 +120,7 @@ const PATHS: PhasePathDef[] = [
     description: 'Block it back deep, take the server out of their rhythm, and reset to neutral. Don\'t let your opponent get hot.',
     tradeoff: 'Rarely misses but hands over the initiative — leveling lets you neutralize less passively.',
     tierEffects: [
-      { [EffectKey.RETURN_AGGRESSION]: -10, [EffectKey.RALLY_TOLERANCE]: 6 },
+      { [EffectKey.RETURN_AGGRESSION]: -10, [EffectKey.RALLY_PATIENCE]: 6, [EffectKey.LOB_BIAS]: 4 },
       { [EffectKey.RETURN_AGGRESSION]: 3 },
       { [EffectKey.RETURN_AGGRESSION]: 3 },
     ],
@@ -130,7 +130,7 @@ const PATHS: PhasePathDef[] = [
     description: 'Turn the return into an attack by taking a huge swing. You only know one speed. Sometimes you even close your eyes to swing.',
     tradeoff: 'Steals points and applies pressure, but sprays errors — leveling tightens the aggressive return (less boom-or-bust).',
     tierEffects: [
-      { [EffectKey.RETURN_AGGRESSION]: 16, [EffectKey.WINNER_BIAS]: 4, [EffectKey.POWER_VARIANCE]: 12 },
+      { [EffectKey.RETURN_AGGRESSION]: 16, [EffectKey.RALLY_WINNER_BIAS]: 4, [EffectKey.POWER_VARIANCE]: 12 },
       { [EffectKey.POWER_VARIANCE]: -5 },
       { [EffectKey.POWER_VARIANCE]: -4 },
     ],
@@ -141,8 +141,8 @@ const PATHS: PhasePathDef[] = [
     tradeoff: 'Gets to the net quickly but exposed to the pass — leveling sharpens your net finish.',
     tierEffects: [
       { [EffectKey.RETURN_AGGRESSION]: 6, [EffectKey.NET_APPROACH_BIAS]: 14 },
-      { [EffectKey.NET_GAME]: 3 },
-      { [EffectKey.NET_GAME]: 3 },
+      { [EffectKey.RALLY_WINNER_BIAS]: 3 },
+      { [EffectKey.RALLY_WINNER_BIAS]: 3 },
     ],
   },
 
@@ -152,9 +152,9 @@ const PATHS: PhasePathDef[] = [
     description: 'High-margin, heavy shots with lots of spin that builds pressure and pushes opponents back. Some coaches would make you play lefty, too.',
     tradeoff: 'Dictates with safety and tons of spin, but fewer flat-out winners. Leveling improves both winner bias and rally tolerance further.',
     tierEffects: [
-      { [EffectKey.WINNER_BIAS]: 6, [EffectKey.RALLY_TOLERANCE]: 2 },
-      { [EffectKey.WINNER_BIAS]: 5, [EffectKey.RALLY_TOLERANCE]: 2 },
-      { [EffectKey.WINNER_BIAS]: 5, [EffectKey.RALLY_TOLERANCE]: 2 },
+      { [EffectKey.RALLY_PATIENCE]: 8, [EffectKey.RALLY_WINNER_BIAS]: -5, [EffectKey.POWER_VARIANCE]: -4 },
+      { [EffectKey.RALLY_PATIENCE]: 4, [EffectKey.RALLY_WINNER_BIAS]: 2 },
+      { [EffectKey.RALLY_PATIENCE]: 3, [EffectKey.RALLY_WINNER_BIAS]: 3 },
     ],
   },
   {
@@ -162,7 +162,7 @@ const PATHS: PhasePathDef[] = [
     description: 'Flat, penetrating power — first strike to take the ball early and end it. Not really sure how you make that sound with your racquet.',
     tradeoff: 'Big winners but big misses — leveling tightens the accuracy (less boom-or-bust).',
     tierEffects: [
-      { [EffectKey.WINNER_BIAS]: 16, [EffectKey.POWER_VARIANCE]: 12 },
+      { [EffectKey.RALLY_WINNER_BIAS]: 16, [EffectKey.POWER_VARIANCE]: 12, [EffectKey.SERVE_AND_VOLLEY_BIAS]: 3 },
       { [EffectKey.POWER_VARIANCE]: -5 },
       { [EffectKey.POWER_VARIANCE]: -4 },
     ],
@@ -172,9 +172,9 @@ const PATHS: PhasePathDef[] = [
     description: 'Rock-solid rally forehand — keep the ball deep and wait for the error. You can survive two days in the desert and still get the ball back.',
     tradeoff: 'Outlasts opponents but rarely forces it — leveling lets you maintain rallies without losing aggressiveness.',
     tierEffects: [
-      { [EffectKey.RALLY_TOLERANCE]: 12, [EffectKey.WINNER_BIAS]: -6 },
-      { [EffectKey.WINNER_BIAS]: 3 },
-      { [EffectKey.WINNER_BIAS]: 3 },
+      { [EffectKey.RALLY_PATIENCE]: 12, [EffectKey.RALLY_WINNER_BIAS]: -6, [EffectKey.LOB_BIAS]: 6 },
+      { [EffectKey.RALLY_WINNER_BIAS]: 3, [EffectKey.LOB_BIAS]: 3 },
+      { [EffectKey.RALLY_WINNER_BIAS]: 3 },
     ],
   },
 
@@ -184,7 +184,7 @@ const PATHS: PhasePathDef[] = [
     description: 'An offensive two-hander that drives through the ball flat and hard. You swing as hard as you can and usually the point ends one way or another.',
     tradeoff: 'A weapon with no cushion — leveling tightens the drive (less boom-or-bust).',
     tierEffects: [
-      { [EffectKey.WINNER_BIAS]: 12, [EffectKey.SLICE_PREFERENCE_BACKHAND]: -8, [EffectKey.POWER_VARIANCE]: 12 },
+      { [EffectKey.RALLY_WINNER_BIAS]: 12, [EffectKey.SLICE_PREFERENCE_BACKHAND]: -8, [EffectKey.POWER_VARIANCE]: 12, [EffectKey.DROP_SHOT_BIAS]: -6 },
       { [EffectKey.POWER_VARIANCE]: -5 },
       { [EffectKey.POWER_VARIANCE]: -4 },
     ],
@@ -194,9 +194,9 @@ const PATHS: PhasePathDef[] = [
     description: 'A low, knifing slice — change the rhythm and look for your opportunity. You\'ve spent years studying the Wilson Blade.',
     tradeoff: 'Great variety and defense, but cedes pace and offense. Leveling deepens the slice and improves rally tolerance further.',
     tierEffects: [
-      { [EffectKey.SLICE_PREFERENCE_BACKHAND]: 10, [EffectKey.RALLY_TOLERANCE]: 4 },
-      { [EffectKey.SLICE_PREFERENCE_BACKHAND]: 7, [EffectKey.RALLY_TOLERANCE]: 3 },
-      { [EffectKey.SLICE_PREFERENCE_BACKHAND]: 7, [EffectKey.RALLY_TOLERANCE]: 3 },
+      { [EffectKey.SLICE_PREFERENCE_BACKHAND]: 10, [EffectKey.RALLY_PATIENCE]: 4, [EffectKey.DROP_SHOT_BIAS]: 8 },
+      { [EffectKey.SLICE_PREFERENCE_BACKHAND]: 7, [EffectKey.DROP_SHOT_BIAS]: 5 },
+      { [EffectKey.SLICE_PREFERENCE_BACKHAND]: 7, [EffectKey.RALLY_PATIENCE]: 2 },
     ],
   },
   {
@@ -204,9 +204,9 @@ const PATHS: PhasePathDef[] = [
     description: 'A dependable two-hander that holds up under pressure and keeps rallies alive. Winning doesn\'t always have to be pretty.',
     tradeoff: 'Reliable, but neither a weapon nor a defensive specialty. Leveling improves rally tolerance further.',
     tierEffects: [
-      { [EffectKey.RALLY_TOLERANCE]: 6 },
-      { [EffectKey.RALLY_TOLERANCE]: 5 },
-      { [EffectKey.RALLY_TOLERANCE]: 5 },
+      { [EffectKey.RALLY_PATIENCE]: 6, [EffectKey.RALLY_WINNER_BIAS]: -4, [EffectKey.LOB_BIAS]: 5 },
+      { [EffectKey.RALLY_PATIENCE]: 4, [EffectKey.RALLY_WINNER_BIAS]: 2 },
+      { [EffectKey.RALLY_PATIENCE]: 4 },
     ],
   },
 
@@ -216,9 +216,9 @@ const PATHS: PhasePathDef[] = [
     description: 'Look to get forward at every opportunity and finish points quickly. You basically have a summer home at the net.',
     tradeoff: 'Ends points early but exposed to the pass — leveling sharpens your net finishing.',
     tierEffects: [
-      { [EffectKey.NET_APPROACH_BIAS]: 16 },
-      { [EffectKey.NET_GAME]: 3 },
-      { [EffectKey.NET_GAME]: 3 },
+      { [EffectKey.NET_APPROACH_BIAS]: 16, [EffectKey.SERVE_AND_VOLLEY_BIAS]: 6 },
+      { [EffectKey.PUTAWAY_VOLLEY_BIAS]: 4 },
+      { [EffectKey.PUTAWAY_VOLLEY_BIAS]: 4 },
     ],
   },
   {
@@ -226,9 +226,9 @@ const PATHS: PhasePathDef[] = [
     description: 'Come forward only on a genuine short ball — controlled aggression. You\'re only as good as your approach shot.',
     tradeoff: 'Balanced — picks good moments without overexposing. Leveling improves net approach frequency further.',
     tierEffects: [
-      { [EffectKey.NET_APPROACH_BIAS]: 5 },
-      { [EffectKey.NET_APPROACH_BIAS]: 4 },
-      { [EffectKey.NET_APPROACH_BIAS]: 4 },
+      { [EffectKey.NET_APPROACH_BIAS]: 5, [EffectKey.PUTAWAY_VOLLEY_BIAS]: 3 },
+      { [EffectKey.NET_APPROACH_BIAS]: 3, [EffectKey.PUTAWAY_VOLLEY_BIAS]: 3 },
+      { [EffectKey.NET_APPROACH_BIAS]: 3, [EffectKey.PUTAWAY_VOLLEY_BIAS]: 2 },
     ],
   },
   {
@@ -236,9 +236,9 @@ const PATHS: PhasePathDef[] = [
     description: 'No thanks, you\'d rather not. Live at the baseline — only approach when absolutely forced. The net is scary.',
     tradeoff: 'Safe from the back but no net threat — leveling improves rally tolerance further.',
     tierEffects: [
-      { [EffectKey.NET_APPROACH_BIAS]: -8, [EffectKey.RALLY_TOLERANCE]: 4 },
-      { [EffectKey.RALLY_TOLERANCE]: 3 },
-      { [EffectKey.RALLY_TOLERANCE]: 3 },
+      { [EffectKey.NET_APPROACH_BIAS]: -8, [EffectKey.SERVE_AND_VOLLEY_BIAS]: -8, [EffectKey.RALLY_PATIENCE]: 3, [EffectKey.LOB_BIAS]: 4 },
+      { [EffectKey.RALLY_PATIENCE]: 3 },
+      { [EffectKey.RALLY_PATIENCE]: 3 },
     ],
   },
 ];
@@ -273,7 +273,7 @@ export const STARTING_SPECIALIZATION_POINTS = 2;
  */
 export const BROAD_ARCHETYPE_LABELS: Record<BroadArchetype, string> = {
   baseliner: 'Baseliner',
-  net_rusher: 'Net Attacker',
+  net_attacker: 'Net Attacker',
   all_courter: 'All-Courter',
 };
 
@@ -378,7 +378,7 @@ export function profileForArchetype(legacy: LegacyArchetype): ArchetypeProfile {
     aggressive: 'all_courter',
     defensive: 'baseliner',
     counterpuncher: 'baseliner',
-    serve_volley: 'net_downhill',
+    serve_volley: 'net_attacker',
     all_court: 'all_courter',
   };
 

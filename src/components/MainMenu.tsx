@@ -365,7 +365,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                         : isBlocked
                           ? (isEventPending ? 'Event Pending' : 'Match Scheduled')
                           : isNightTime
-                            ? 'Night Time'
+                            ? 'Unavailable'
                             : !canAffordMatch
                               ? 'Not Enough Energy'
                               : 'Play Match'}
@@ -416,7 +416,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                           : isBlocked
                             ? (isEventPending ? 'Event Pending' : 'Match Scheduled')
                             : isNightTime
-                              ? 'Night Time'
+                              ? 'Unavailable'
                               : !canAffordHangout
                                 ? 'Not Enough Energy'
                                 : 'Hang Out'}
