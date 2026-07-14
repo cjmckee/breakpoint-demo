@@ -1,0 +1,343 @@
+{
+  "player": {
+    "id": "player-1784002369807-xxx8418dd",
+    "name": "TestPlayer",
+    "stats": {
+      "core": {
+        "serve": 21,
+        "forehand": 21,
+        "backhand": 21,
+        "return": 21,
+        "slice": 21
+      },
+      "technical": {
+        "volley": 21,
+        "overhead": 21,
+        "dropShot": 21,
+        "spin": 21,
+        "placement": 21
+      },
+      "physical": {
+        "speed": 21,
+        "stamina": 21,
+        "strength": 21,
+        "agility": 21,
+        "recovery": 21
+      },
+      "mental": {
+        "focus": 21,
+        "anticipation": 21,
+        "shotVariety": 21,
+        "offensive": 21,
+        "defensive": 21
+      }
+    },
+    "abilities": [],
+    "archetypeProfile": {
+      "broad": null,
+      "phases": {},
+      "specializationPoints": 0,
+      "respecTokens": 0
+    },
+    "inventory": [],
+    "equippedItems": {
+      "racquet": null,
+      "shoes": null,
+      "outfit": null,
+      "hat": null
+    },
+    "storyItems": [],
+    "nextActivityBuffs": null,
+    "seenItemIds": [],
+    "activeIndicators": [
+      "calendar",
+      "training",
+      "inventory"
+    ],
+    "seenChallengeIds": [],
+    "level": 1,
+    "experience": 0,
+    "totalExperienceEarned": 0,
+    "tier": 1,
+    "createdAt": "2026-07-14T04:12:49.807Z",
+    "updatedAt": "2026-07-14T04:12:49.807Z",
+    "flags": {}
+  },
+  "calendar": {
+    "currentSeason": 1,
+    "currentDay": 11,
+    "currentTimeSlot": 0,
+    "practiceOpponents": {},
+    "scheduledEvents": [
+      {
+        "eventType": "story",
+        "scheduledDay": 2,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "making_connections"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 3,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "food_hall_gossip"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 4,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "player_tier_intro"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 5,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "match_play_basics"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 5,
+        "scheduledTimeSlot": 2,
+        "metadata": {
+          "storyEventId": "training_session_intro"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 6,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "relationship_basics"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 7,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "shop_basics"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 8,
+        "scheduledTimeSlot": 1,
+        "metadata": {
+          "storyEventId": "rival_first_encounter"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 9,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "club_team_intro"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 10,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "coach_first_meeting"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 11,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "coach_archetype_selection"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 11,
+        "scheduledTimeSlot": 1,
+        "metadata": {
+          "storyEventId": "club_team_first_practice"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 12,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "coach_training_focus"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 13,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "first_team_match_scheduled"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 16,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "coach_balanced_development"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 17,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "second_team_match_scheduled"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 21,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "third_team_match_scheduled"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 25,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "fourth_team_match_scheduled"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 29,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "fifth_team_match_scheduled"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 33,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "riverside_open_prep"
+        }
+      }
+    ],
+    "activeTournament": null,
+    "completedTournaments": []
+  },
+  "currentStatus": {
+    "energy": 100,
+    "mood": 0,
+    "lastActivity": null
+  },
+  "activityHistory": [],
+  "currentTrainingSessions": [
+    {
+      "id": "remote_coaching-1784002369808",
+      "sessionType": "remote_coaching",
+      "category": "mental",
+      "tier": "bronze",
+      "energyCost": 20,
+      "timeSlotsRequired": 1,
+      "statBoosts": {
+        "slice": 1,
+        "dropShot": 1,
+        "shotVariety": 1,
+        "offensive": 1
+      },
+      "statMultiplier": 1,
+      "name": "Remote Coaching",
+      "description": "Learn slice strategy and shot variety from a famous coach online",
+      "ability": "crowd_favorite"
+    },
+    {
+      "id": "touch_training-1784002369808",
+      "sessionType": "touch_training",
+      "category": "technical",
+      "tier": "bronze",
+      "energyCost": 20,
+      "timeSlotsRequired": 1,
+      "statBoosts": {
+        "slice": 1,
+        "dropShot": 1,
+        "focus": 1,
+        "recovery": 1
+      },
+      "statMultiplier": 1,
+      "name": "Touch Training",
+      "description": "Develop a deft slice and drop shot touch with quick recovery",
+      "ability": "soft_hands"
+    },
+    {
+      "id": "footwork_training-1784002369808",
+      "sessionType": "footwork_training",
+      "category": "physical",
+      "tier": "bronze",
+      "energyCost": 20,
+      "timeSlotsRequired": 1,
+      "statBoosts": {
+        "backhand": 1,
+        "speed": 1,
+        "agility": 1,
+        "anticipation": 1
+      },
+      "statMultiplier": 1,
+      "name": "Footwork Training",
+      "description": "Improve court coverage and movement to position for strong backhands",
+      "ability": "speed_demon"
+    },
+    {
+      "id": "return_rapidfire-1784002369808",
+      "sessionType": "return_rapidfire",
+      "category": "physical",
+      "tier": "bronze",
+      "energyCost": 20,
+      "timeSlotsRequired": 1,
+      "statBoosts": {
+        "return": 1,
+        "speed": 1,
+        "recovery": 1,
+        "defensive": 1
+      },
+      "statMultiplier": 1,
+      "name": "Return Rapidfire",
+      "description": "Improve return of serve and defensive play",
+      "ability": "rangy_return"
+    }
+  ],
+  "completedStoryEvents": [],
+  "completedStoryEventChoices": {},
+  "relationships": {},
+  "hangoutThresholdsSeen": {},
+  "storyEventTriggerChance": 40,
+  "activeChallenges": [],
+  "completedChallenges": [],
+  "unlockedTiers": [
+    1
+  ],
+  "shopItems": [],
+  "audioSettings": {
+    "musicVolume": 0.5,
+    "sfxVolume": 0.7,
+    "muteMusic": false,
+    "muteSfx": false
+  },
+  "eventRecovery": {
+    "currentEventId": "welcome_to_tennis_rpg",
+    "currentDialogueIndex": 0,
+    "selectedChoices": {},
+    "pendingMatchSetup": null,
+    "pendingEventResult": null,
+    "idleOverlay": null
+  },
+  "exportedAt": "2026-07-14T04:13:00.996Z",
+  "version": "1.0.0"
+}
