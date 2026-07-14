@@ -87,7 +87,10 @@ export interface MatchScore {
   isComplete: boolean;
   winner?: 'player' | 'opponent';
   momentum?: number; // -100 to 100 (positive = player favor)
-  energy?: number; // 0-100 current player energy
+  energy?: number; // 0-100 current player energy (KM resource; adjusted by key-moment choices)
+  /** 0-100 live stamina (100 - fatigue) for the cockpit gauges; drains through the match */
+  playerStamina?: number;
+  opponentStamina?: number;
   /** True while a tiebreak game is in progress (points scored numerically, not 15-30-40) */
   isTiebreak?: boolean;
 }

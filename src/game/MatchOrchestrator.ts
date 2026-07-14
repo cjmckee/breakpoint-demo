@@ -324,6 +324,14 @@ export class MatchOrchestrator {
       // Update pressure based on situation
       this.updatePressure(currentScore);
 
+      // Refresh live cockpit values on the score object (post-point) before notifying UI.
+      // Momentum/energy/stamina are otherwise captured at updateScore time (pre-point), so
+      // refreshing here removes a one-point display lag on the cockpit gauges.
+      currentScore.momentum = this.momentum;
+      currentScore.energy = this.matchEnergy;
+      currentScore.playerStamina = Math.max(0, Math.round(100 - this.fatigue.player));
+      currentScore.opponentStamina = Math.max(0, Math.round(100 - this.fatigue.opponent));
+
       // Callback for score update
       if (config.onScoreUpdate) {
         config.onScoreUpdate(currentScore);
@@ -1216,6 +1224,8 @@ export class MatchOrchestrator {
       isComplete: false,
       momentum: 0,
       energy: this.matchEnergy,
+      playerStamina: Math.max(0, Math.round(100 - this.fatigue.player)),
+      opponentStamina: Math.max(0, Math.round(100 - this.fatigue.opponent)),
       isTiebreak: false,
     };
   }

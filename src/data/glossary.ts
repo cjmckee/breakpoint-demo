@@ -168,20 +168,24 @@ export const MATCH_HELP_GUIDE: GlossarySection[] = [
     title: 'Reading the Match',
     entries: [
       {
-        term: 'Match Log',
-        definition: 'Shows what happened in each point as they resolve automatically. Points play out based on player stats — no input required for normal rallies.',
+        term: 'Commentary',
+        definition: 'A running, plain-language call of each point as it resolves — aces, winners, errors, rallies. Shown as a compact ticker; normal points need no input. Pop-up toasts over the court flag the big beats (aces, breaks, set wins).',
       },
       {
         term: 'Score Format',
         definition: 'The score shows Sets → Games → Points. Points go: Love (0) → 15 → 30 → 40 → Game. At 40-40 (Deuce), a player must win two consecutive points to win the game.',
       },
       {
-        term: 'Momentum Bar',
-        definition: 'Shown in the court display. Positive momentum (green) means you are on a winning streak. Negative (red) means the opponent is on a run. Momentum modifies your Key Moment outcomes.',
+        term: 'Live Stats',
+        definition: 'Both players\' stats in one table (aces, winners, errors, 1st serve %, points won). The leader on each row is highlighted, and a row flashes when it changes — green when the change helps you, red when it does not.',
       },
       {
-        term: 'Stamina / Energy',
-        definition: 'Your energy level during the match. Starts at your current energy before the match. Some Key Moment tactic choices cost energy — tired players are at a disadvantage.',
+        term: 'Momentum Bar',
+        definition: 'Shown in the cockpit as a center-out tug-of-war. Green toward you means you are on a winning streak; red toward the opponent means they are on a run. Momentum modifies your Key Moment odds.',
+      },
+      {
+        term: 'Stamina Tanks',
+        definition: 'The tanks either side of the court show live stamina for both players, draining as rallies wear on. Some Key Moment tactics also cost energy — tired players are at a disadvantage.',
       },
     ],
   },
@@ -193,16 +197,16 @@ export const MATCH_HELP_GUIDE: GlossarySection[] = [
         definition: 'When a high-stakes situation arises — break point, set point, or match point — the match pauses and asks you to choose a tactic. Your decision affects both the point outcome and your match state.',
       },
       {
-        term: 'Stat Scores (you X · them Y)',
-        definition: 'Each tactic shows your weighted stats versus your opponent\'s for that specific approach. A higher score for you means your stats favor this tactic. The score difference drives the outcome.',
+        term: 'Advantage Chip',
+        definition: 'Each tactic\'s chip sums up the matchup: green means your stats favour it, yellow is even, red means the opponent\'s do — and the deeper the colour, the bigger the gap. Combine it with the opponent\'s archetype to choose.',
       },
       {
-        term: 'Matchup Arrow (← ═ →)',
-        definition: '← means your stats are clearly ahead for this tactic. → means the opponent\'s are. ═ means it\'s close. Combine this with the opponent\'s archetype to pick the best option.',
+        term: 'Tactic Ratings',
+        definition: 'Hover a tactic to open its breakdown: the ratings it uses — a weighted blend of your stats versus the opponent\'s, with the priority stat (the biggest driver) shown large. A higher rating for you means your game favours that tactic.',
       },
       {
         term: 'Opponent Archetype',
-        definition: 'Describes the opponent\'s play style (e.g., Aggressive, Defensive, All-Court). Some tactics are specifically strong or weak against certain archetypes — look for the "best against" hint on each option.',
+        definition: 'Describes the opponent\'s play style (e.g., Aggressive, Defensive, All-Court). Tactics are strong or weak against certain archetypes — hover a tactic to see what it is good and bad against.',
       },
       {
         term: 'Secondary Effects',

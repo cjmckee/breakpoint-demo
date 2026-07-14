@@ -52,6 +52,11 @@ interface MatchState {
   // Match log for narration
   matchLog: string[];
 
+  // Latest structured point result (drives toasts + court animation) and a monotonic sequence id
+  // so consumers can react even when consecutive points share the same result shape.
+  lastPointResult: SimplePointResult | null;
+  pointSeq: number;
+
   // Accumulated effects from key moment choices (surfaced for post-match)
   accumulatedEffects: AccumulatedMatchEffects | null;
 
@@ -83,6 +88,8 @@ export const useMatchStore = create<MatchState>((set, get) => ({
   currentScore: null,
   matchHistory: [],
   matchLog: [],
+  lastPointResult: null,
+  pointSeq: 0,
   matchStatistics: null,
   currentKeyMoment: null,
   isWaitingForChoice: false,
@@ -123,19 +130,29 @@ export const useMatchStore = create<MatchState>((set, get) => ({
         return get().setKeyMomentResult(result);
       },
 
-      // Point complete callback - narrate each point for match log
+      // Point complete callback - narrate each point for match log and expose the
+      // structured result for toasts / court animation.
       onPointComplete: (pointResult: SimplePointResult) => {
         const playerName = config.playerName || 'You';
         const opponentName = config.opponentName || 'Opponent';
         const narration = narratePoint(pointResult, playerName, opponentName);
         set((s) => ({
           matchLog: [...s.matchLog, narration],
+          lastPointResult: pointResult,
+          pointSeq: s.pointSeq + 1,
         }));
       },
 
-      // Score update callback
+      // Score update callback. Also appends to matchHistory (winner from the just-completed
+      // point) so score-driven SFX in LiveMatchViewer have data to react to.
       onScoreUpdate: (score: MatchScore) => {
-        set({ currentScore: score });
+        set((s) => {
+          const last = s.lastPointResult;
+          const matchHistory = last
+            ? [...s.matchHistory, { pointNumber: s.matchHistory.length + 1, winner: last.winner, score }]
+            : s.matchHistory;
+          return { currentScore: score, matchHistory };
+        });
       },
 
       // Stats update callback - updates live during match
@@ -174,6 +191,8 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       currentScore: null,
       matchHistory: [],
       matchLog: [],
+      lastPointResult: null,
+      pointSeq: 0,
       matchStatistics: null,
       accumulatedEffects: null,
       keyMomentHistory: [],
@@ -316,6 +335,8 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       currentScore: null,
       matchHistory: [],
       matchLog: [],
+      lastPointResult: null,
+      pointSeq: 0,
       matchStatistics: null,
       accumulatedEffects: null,
       currentKeyMoment: null,
