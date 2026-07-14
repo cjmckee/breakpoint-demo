@@ -8,7 +8,7 @@
  * ratings (yours + opponent's, priority stat enlarged, advantage chip between them).
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import { KeyMoment } from '../types/keyMoments';
 import { TacticalOption, SecondaryEffect } from '../data/tacticalOptions';
@@ -85,6 +85,21 @@ interface KeyMomentModalProps {
 export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMoment }) => {
   const [isHidden, setIsHidden] = useState(false);
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+  // On touch devices (no hover), tapping a card opens its detail modal instead of committing.
+  const [openIdx, setOpenIdx] = useState<number | null>(null);
+  const [isTouch, setIsTouch] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mq = window.matchMedia('(hover: none), (pointer: coarse)');
+    const update = (): void => setIsTouch(mq.matches);
+    update();
+    mq.addEventListener?.('change', update);
+    return () => mq.removeEventListener?.('change', update);
+  }, []);
+
+  // Reset the touch-opened detail when a new key moment arrives.
+  useEffect(() => { setOpenIdx(null); }, [keyMoment?.id]);
 
   const handleKeyMomentChoice = useMatchStore((state) => state.handleKeyMomentChoice);
   const matchConfig = useMatchStore((state) => state.matchConfig);
@@ -461,7 +476,9 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   // The hover modal opens for the hovered card; during the matchup tutorial step it auto-opens
   // on the first option so the walkthrough can point at it.
   const forcedOpen = kmSpotlit('options-matchup') ? 0 : null;
-  const activeFlyout = forcedOpen ?? hoverIdx;
+  // Desktop: informational preview on hover. Touch: an interactive modal opened by tap.
+  const activeFlyout = isTouch ? openIdx : (forcedOpen ?? hoverIdx);
+  const flyoutInteractive = isTouch && openIdx !== null;
 
   const RatingBlock: React.FC<{
     option: TacticalOption;
@@ -495,44 +512,68 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     );
   };
 
-  const Flyout: React.FC<{ option: TacticalOption }> = ({ option }) => {
+  const Flyout: React.FC<{
+    option: TacticalOption;
+    interactive?: boolean;
+    onSelect?: () => void;
+    onBack?: () => void;
+  }> = ({ option, interactive, onSelect, onBack }) => {
     const { playerScore, opponentScore } = scoresFor(option);
     const diff = playerScore - opponentScore;
     const adv = advInfo(diff);
     const playerName = matchConfig?.playerName || 'You';
     const opponentName = matchConfig?.opponentName || 'Opponent';
     return (
-      <div className="absolute inset-0 z-10 grid grid-cols-1 md:grid-cols-2 bg-pixel-card rounded overflow-hidden border-2 border-pixel-accent pointer-events-none">
-        {/* Left — the matchup */}
-        <div className="p-5 border-b-2 md:border-b-0 md:border-r-2 border-pixel-border flex flex-col gap-3">
-          <div className="text-xs font-bold uppercase tracking-wide text-pixel-accent">The matchup</div>
-          <div className="text-sm text-pixel-text leading-relaxed">
-            <span className="text-xs px-1.5 py-0.5 rounded bg-green-500 bg-opacity-20 text-green-400 mr-2 uppercase">Good against</span>
-            {option.bestAgainstHint.replace(/^Best against /i, '')}
+      <div className={`absolute inset-0 z-10 flex flex-col bg-pixel-card rounded overflow-hidden border-2 border-pixel-accent ${interactive ? '' : 'pointer-events-none'}`}>
+        <div className="grid grid-cols-1 md:grid-cols-2 flex-1 overflow-y-auto">
+          {/* Left — the matchup */}
+          <div className="p-5 border-b-2 md:border-b-0 md:border-r-2 border-pixel-border flex flex-col gap-3">
+            <div className="text-xs font-bold uppercase tracking-wide text-pixel-accent">The matchup</div>
+            <div className="text-sm text-pixel-text leading-relaxed">
+              <span className="text-xs px-1.5 py-0.5 rounded bg-green-500 bg-opacity-20 text-green-400 mr-2 uppercase">Good against</span>
+              {option.bestAgainstHint.replace(/^Best against /i, '')}
+            </div>
+            <div className="text-sm text-pixel-text leading-relaxed">
+              <span className="text-xs px-1.5 py-0.5 rounded bg-red-500 bg-opacity-20 text-red-400 mr-2 uppercase">Bad against</span>
+              {option.worstAgainstHint.replace(/^Weak against /i, '')}
+            </div>
           </div>
-          <div className="text-sm text-pixel-text leading-relaxed">
-            <span className="text-xs px-1.5 py-0.5 rounded bg-red-500 bg-opacity-20 text-red-400 mr-2 uppercase">Bad against</span>
-            {option.worstAgainstHint.replace(/^Weak against /i, '')}
+
+          {/* Right — the ratings, with the advantage chip between the two blocks */}
+          <div className="p-5 flex flex-col gap-3">
+            <RatingBlock option={option} side="player" name={playerName} total={playerScore} />
+            <div className="flex justify-center">
+              <span
+                className="text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded"
+                style={{ backgroundColor: adv.bg, color: adv.fg }}
+              >
+                {adv.label}
+              </span>
+            </div>
+            <RatingBlock option={option} side="opponent" name={opponentName} total={opponentScore} />
           </div>
         </div>
 
-        {/* Right — the ratings, with the advantage chip between the two blocks */}
-        <div className="p-5 flex flex-col gap-3">
-          <RatingBlock option={option} side="player" name={playerName} total={playerScore} />
-          <div className="flex justify-center">
-            <span
-              className="text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded"
-              style={{ backgroundColor: adv.bg, color: adv.fg }}
+        {interactive ? (
+          <div className="grid grid-cols-2 gap-2 p-3 border-t-2 border-pixel-border shrink-0">
+            <button
+              onClick={onBack}
+              className="py-3 border-2 border-pixel-border text-pixel-text font-bold uppercase text-sm tracking-wide hover:border-pixel-accent transition-colors"
             >
-              {adv.label}
-            </span>
+              ← Back
+            </button>
+            <button
+              onClick={onSelect}
+              className="py-3 border-2 border-pixel-accent bg-pixel-accent bg-opacity-20 text-pixel-accent font-bold uppercase text-sm tracking-wide hover:bg-opacity-30 transition-colors"
+            >
+              Play this tactic
+            </button>
           </div>
-          <RatingBlock option={option} side="opponent" name={opponentName} total={opponentScore} />
-        </div>
-
-        <div className="md:col-span-2 text-center text-[10px] text-pixel-text-muted pb-2 uppercase tracking-wide">
-          move the cursor off this tactic to close
-        </div>
+        ) : (
+          <div className="text-center text-[10px] text-pixel-text-muted pb-2 uppercase tracking-wide shrink-0">
+            move the cursor off this tactic to close
+          </div>
+        )}
       </div>
     );
   };
@@ -575,7 +616,12 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                     key={index}
                     onMouseEnter={() => setHoverIdx(index)}
                     onFocus={() => setHoverIdx(index)}
-                    onClick={() => (kmTutorialActive ? undefined : handleKeyMomentChoice(option))}
+                    onClick={() => {
+                      if (kmTutorialActive) return;
+                      // Touch: open the detail modal (explicit confirm). Desktop: commit directly.
+                      if (isTouch) setOpenIdx(index);
+                      else handleKeyMomentChoice(option);
+                    }}
                     disabled={kmTutorialActive}
                     className="w-full text-left p-4 border-4 border-pixel-border bg-pixel-card hover:border-pixel-accent transition-all disabled:cursor-default disabled:hover:border-pixel-border"
                   >
@@ -616,7 +662,12 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
             </div>
 
             {activeFlyout !== null && activeKeyMoment.options[activeFlyout] && (
-              <Flyout option={activeKeyMoment.options[activeFlyout]} />
+              <Flyout
+                option={activeKeyMoment.options[activeFlyout]}
+                interactive={flyoutInteractive}
+                onSelect={() => (kmTutorialActive ? undefined : handleKeyMomentChoice(activeKeyMoment.options[activeFlyout]))}
+                onBack={() => setOpenIdx(null)}
+              />
             )}
           </div>
         </div>
