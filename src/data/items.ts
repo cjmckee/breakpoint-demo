@@ -16,6 +16,7 @@ export const BEGINNER_RACQUET: Item = {
   description: 'A basic racquet for learning the fundamentals.',
   type: 'equipment',
   equipmentSlot: 'racquet',
+  shopAvailable: false,
   modifiers: {
     statBoosts: {
       serve: 2,
@@ -30,6 +31,7 @@ export const PRO_RACQUET: Item = {
   description: 'A professional-grade racquet with excellent balance and control.',
   type: 'equipment',
   equipmentSlot: 'racquet',
+  shopAvailable: false,
   modifiers: {
     statBoosts: {
       serve: 5,
@@ -117,6 +119,7 @@ export const RUNNING_SHOES: Item = {
   description: 'Lightweight shoes for quick movement around the court.',
   type: 'equipment',
   equipmentSlot: 'shoes',
+  shopAvailable: false,
   modifiers: {
     statBoosts: {
       speed: 3,
@@ -273,6 +276,7 @@ export const SPONSOR_OUTFIT: Item = {
   description: 'Branded performance gear from a major sponsor. Looks great, plays better.',
   type: 'equipment',
   equipmentSlot: 'outfit',
+  shopAvailable: false,
   modifiers: {
     statBoosts: {
       stamina: 5,
