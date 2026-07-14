@@ -293,13 +293,15 @@ export class MatchOrchestrator {
           ? currentScore.server
           : (currentScore.server === 'player' ? 'opponent' : 'player');
 
-        // Build simple point result for callback
+        // Build simple point result for callback. Include the full shot-by-shot detail so the
+        // court can animate the real rally (key-moment points omit this — their shots are synthetic).
         simplePointResult = {
           winner: pointWinner,
           outcome: pointResult.pointType as string,
           shotType: pointResult.keyShot?.shotType,
           rallyLength: pointResult.rallyLength,
           server: currentScore.server,
+          shots: pointResult.shots,
         };
 
         currentScore = this.updateScore(currentScore, pointWinner);

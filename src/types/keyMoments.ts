@@ -6,7 +6,7 @@
 import { TacticalOption, KeyMomentType } from '../data/tacticalOptions';
 import { KeyMomentResult } from '../game/KeyMomentResolver';
 import { Ability, StatBoosts } from './game';
-import { MatchStatistics } from './index';
+import { MatchStatistics, ShotDetail } from './index';
 import type { ArchetypeType } from '../data/archetypes';
 import type { ArchetypeProfile } from './archetype';
 
@@ -143,6 +143,9 @@ export interface PointResult {
   shotType?: string;
   rallyLength?: number;
   server?: 'player' | 'opponent';
+  /** Full shot-by-shot detail for the court animation. Present for normal points; omitted
+   *  for key-moment points (whose shots are synthesized, not simulated). */
+  shots?: ShotDetail[];
 }
 
 /**
