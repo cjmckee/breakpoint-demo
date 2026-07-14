@@ -136,7 +136,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
     },
     {
       id: 'safe_spin_serve',
-      emoji: '🌀',
+      emoji: '🌪️',
       name: 'Safe spin serve',
       description: 'Heavy kick serve to start the rally on your terms',
       strongAgainst: ['aggressive', 'serve_volley'],
@@ -180,7 +180,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
   'break-point-return': [
     {
       id: 'aggressive_return_crosscourt',
-      emoji: '⚔️',
+      emoji: '🔨',
       name: 'Aggressive crosscourt return',
       description: 'Attack with power and placement crosscourt',
       strongAgainst: ['defensive', 'counterpuncher'],
@@ -218,7 +218,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
     },
     {
       id: 'safe_return_deep',
-      emoji: '🎯',
+      emoji: '🏔️',
       name: 'Deep neutralizing return',
       description: 'Get the return in play with depth, extend the rally',
       strongAgainst: ['aggressive', 'serve_volley'],
@@ -256,7 +256,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
     },
     {
       id: 'chip_return_approach',
-      emoji: '🪶',
+      emoji: '🎿',
       name: 'Chip and charge',
       description: 'Short slice return and rush the net',
       strongAgainst: ['counterpuncher', 'defensive'],
@@ -300,7 +300,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
   'set-point-player-serve': [
     {
       id: 'clutch_power_serve',
-      emoji: '💥',
+      emoji: '💣',
       name: 'Clutch power serve',
       description: 'Channel everything into one massive serve',
       strongAgainst: ['defensive', 'counterpuncher'],
@@ -338,7 +338,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
     },
     {
       id: 'serve_and_volley_set',
-      emoji: '🏃',
+      emoji: '🏄',
       name: 'Serve and volley',
       description: 'Get to the net quickly and put the volley away',
       strongAgainst: ['counterpuncher', 'defensive'],
@@ -376,7 +376,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
     },
     {
       id: 'safe_spin_serve_set',
-      emoji: '🌀',
+      emoji: '💫',
       name: 'Smart spin serve',
       description: 'Get the serve in with heavy spin and build from there',
       strongAgainst: ['aggressive', 'serve_volley'],
@@ -420,7 +420,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
   'set-point-player-return': [
     {
       id: 'aggressive_return_set',
-      emoji: '⚔️',
+      emoji: '🪓',
       name: 'Aggressive return',
       description: 'Take control with a powerful return',
       strongAgainst: ['defensive', 'counterpuncher'],
@@ -497,7 +497,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
     },
     {
       id: 'drop_shot_return_set',
-      emoji: '🪶',
+      emoji: '🦋',
       name: 'Drop shot off the return',
       description: 'Catch them off guard with a disguised drop shot',
       strongAgainst: ['counterpuncher', 'defensive'],
@@ -540,7 +540,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
     'set-point-opponent-serve': [
     {
       id: 'big_serve_pressure',
-      emoji: '🚀',
+      emoji: '🌋',
       name: 'Big serve under pressure',
       description: 'Go for a powerful serve to take control of the point',
       strongAgainst: ['defensive', 'counterpuncher'],
@@ -578,7 +578,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
     },
     {
       id: 'slice_serve_rally',
-      emoji: '🪄',
+      emoji: '🪃',
       name: 'Slice serve and rally',
       description: 'Use a slice serve to disrupt their timing, then build the point',
       strongAgainst: ['aggressive', 'serve_volley'],
@@ -617,7 +617,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
     },
     {
       id: 'serve_volley_set_opp',
-      emoji: '🏃',
+      emoji: '🦅',
       name: 'Serve and volley',
       description: 'Rush the net after your serve to end the point quickly',
       strongAgainst: ['counterpuncher', 'defensive'],
@@ -661,7 +661,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
   'set-point-opponent-return': [
     {
       id: 'defensive_rally_setup',
-      emoji: '🛡️',
+      emoji: '🏰',
       name: 'Defensive rally setup',
       description: 'Stay in the point with consistency and court coverage',
       strongAgainst: ['aggressive', 'serve_volley'],
@@ -741,7 +741,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
     },
     {
       id: 'drop_shot_surprise',
-      emoji: '🪶',
+      emoji: '🎭',
       name: 'Drop shot surprise',
       description: 'Catch them off guard with a disguised drop shot',
       strongAgainst: ['counterpuncher', 'defensive'],
@@ -784,7 +784,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
   'match-point-player-serve': [
     {
       id: 'match_winning_serve',
-      emoji: '🏆',
+      emoji: '🏹',
       name: 'Championship serve',
       description: 'Go for the match-winning ace with power and placement',
       strongAgainst: ['defensive', 'counterpuncher'],
@@ -822,7 +822,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
     },
     {
       id: 'serve_volley_finish',
-      emoji: '🎾',
+      emoji: '🌊',
       name: 'Serve and volley',
       description: 'Get to the net quickly and put the match away at the net',
       strongAgainst: ['counterpuncher', 'defensive'],
@@ -860,7 +860,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
     },
     {
       id: 'match_safe_serve',
-      emoji: '🌀',
+      emoji: '🐚',
       name: 'Smart spin serve',
       description: 'Get the serve in with heavy spin and work the rally',
       strongAgainst: ['aggressive', 'serve_volley'],
@@ -906,7 +906,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
   'match-point-player-return': [
     {
       id: 'aggressive_return_match',
-      emoji: '⚔️',
+      emoji: '💢',
       name: 'Aggressive return',
       description: 'Take control with a powerful return to win the match',
       strongAgainst: ['defensive', 'counterpuncher'],
@@ -944,7 +944,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
     },
     {
       id: 'read_and_react',
-      emoji: '👁️',
+      emoji: '🔮',
       name: 'Read and react',
       description: 'Anticipate the serve direction and redirect with precision',
       strongAgainst: ['aggressive', 'serve_volley'],
@@ -983,7 +983,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
     },
     {
       id: 'chip_charge_match',
-      emoji: '🏃',
+      emoji: '🃏',
       name: 'Chip and charge',
       description: 'Slice the return and rush the net to end it',
       strongAgainst: ['counterpuncher', 'defensive'],
@@ -1027,7 +1027,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
   'match-point-opponent-serve': [
     {
       id: 'desperate_winner_attempt',
-      emoji: '🚀',
+      emoji: '🎲',
       name: 'Big serve to survive',
       description: 'Go for a huge serve to stay in the match',
       strongAgainst: ['defensive', 'counterpuncher'],
@@ -1066,7 +1066,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
     },
     {
       id: 'slice_serve_grind',
-      emoji: '🪄',
+      emoji: '🌙',
       name: 'Slice serve and grind',
       description: 'Disrupt their timing and make them work for it',
       strongAgainst: ['aggressive', 'serve_volley'],
@@ -1105,7 +1105,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
     },
     {
       id: 'serve_volley_desperation',
-      emoji: '🏃',
+      emoji: '🏇',
       name: 'Serve and charge',
       description: 'Rush the net — force them to hit a passing shot under pressure',
       strongAgainst: ['counterpuncher', 'defensive'],
@@ -1150,7 +1150,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
   'match-point-opponent-return': [
     {
       id: 'desperate_attack_return',
-      emoji: '⚔️',
+      emoji: '🧨',
       name: 'All-out attack return',
       description: 'Nothing to lose — go after the return with everything',
       strongAgainst: ['defensive', 'counterpuncher'],
@@ -1189,7 +1189,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
     },
     {
       id: 'deep_return_grind',
-      emoji: '🧱',
+      emoji: '⛰️',
       name: 'Deep return and grind',
       description: 'Get the return deep and make them earn the match',
       strongAgainst: ['aggressive', 'serve_volley'],
@@ -1275,7 +1275,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
   'key-rally': [
     {
       id: 'aggressive_rally_push',
-      emoji: '🔥',
+      emoji: '🏎️',
       name: 'Push the accelerator',
       description: 'Go for broke - take control and force the winner',
       strongAgainst: ['defensive', 'counterpuncher'],
@@ -1314,7 +1314,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
     },
     {
       id: 'patient_rally_construct',
-      emoji: '🎯',
+      emoji: '🧩',
       name: 'Patiently construct the point',
       description: 'Stay patient - move the opponent around and wait for the opening',
       strongAgainst: ['aggressive', 'all_court'],
@@ -1352,7 +1352,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
     },
     {
       id: 'net_attack_command',
-      emoji: '⚔️',
+      emoji: '🧗',
       name: 'Attack the net',
       description: 'Move to the net - force an approach shot and close out the point',
       strongAgainst: ['counterpuncher', 'defensive'],
