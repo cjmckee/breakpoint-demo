@@ -181,7 +181,7 @@ export const MATCH_HELP_GUIDE: GlossarySection[] = [
       },
       {
         term: 'Momentum Bar',
-        definition: 'Shown in the cockpit as a center-out tug-of-war. Green toward you means you are on a winning streak; red toward the opponent means they are on a run. Momentum modifies your Key Moment odds.',
+        definition: 'Shown in the court visualizer as a center-out tug-of-war. Green toward you means you are on a winning streak; red toward the opponent means they are on a run. Momentum modifies your Key Moment odds.',
       },
       {
         term: 'Stamina Tanks',

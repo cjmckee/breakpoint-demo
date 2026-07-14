@@ -7,9 +7,9 @@ export type KmResultTarget = 'outcome' | 'tactic' | 'effects';
 // Court is shown LAST so the player is looking at it when they click "Let's Play!"
 export const LIVE_MATCH_TUTORIAL_STEPS: TutorialStep<LiveMatchTarget>[] = [
   {
-    target: 'log',
-    title: 'Commentary',
-    body: 'A running, plain-language call of every point — aces, winners, errors, and long rallies. It is a compact ticker; the newest line sits at the bottom.',
+    target: 'court',
+    title: 'The Court',
+    body: 'This shows the live set and game scores, with a dot on whoever is serving. Below it: the momentum bar (green = your favour, red = theirs) and a stamina tank for each player. Watch the court and the pop-up toasts for the big moments.',
   },
   {
     target: 'your-stats',
@@ -17,9 +17,9 @@ export const LIVE_MATCH_TUTORIAL_STEPS: TutorialStep<LiveMatchTarget>[] = [
     body: 'Both players\' stats side by side, with the leader on each row highlighted. When a stat changes the row flashes — green when it is good for you, red when it is not.',
   },
   {
-    target: 'court',
-    title: 'The Cockpit',
-    body: 'The big number is the live point score, with a dot on whoever is serving. Below it: the momentum tug-of-war (green = your favour, red = theirs) and a stamina tank for each player. Watch the court and the pop-up toasts for the big moments. Good luck!',
+    target: 'log',
+    title: 'Commentary',
+    body: 'A running, plain-language call of every point — aces, winners, errors, and long rallies. It is a compact ticker; the newest line sits at the bottom.',
   },
 ];
 
@@ -27,12 +27,12 @@ export const KM_TUTORIAL_STEPS: TutorialStep<KmTarget>[] = [
   {
     target: 'header',
     title: 'The Situation',
-    body: 'The type of key moment, your opponent\'s archetype, and a "how this moment tilts" strip — momentum, pressure and energy that nudge your odds this point. Consider their archetype and attack the weakness!',
+    body: 'The type of key moment, your opponent\'s archetype, and any modifiers — momentum, pressure and energy that nudge your odds this point. Consider their archetype and attack the weakness!',
   },
   {
     target: 'options-matchup',
     title: 'The Advantage Chip',
-    body: 'Each tactic shows an advantage chip: green if your stats favour it, yellow for even, red if theirs do — deeper colour means a bigger gap. Hover a tactic (we\'ve opened the first one) to see the full matchup: what it beats, what beats it, and the exact ratings with the priority stat that drives them.',
+    body: 'Hover a tactic (we\'ve opened the first one) to see the full matchup: what it beats, what beats it, and the exact ratings with the stats that drive them. They all affect the outcome!',
   },
   {
     target: 'options-effects',

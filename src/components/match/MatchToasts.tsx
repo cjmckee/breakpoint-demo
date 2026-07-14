@@ -115,7 +115,7 @@ export const MatchToasts: React.FC<MatchToastsProps> = ({ playerName, opponentNa
       {toasts.map((t) => (
         <div
           key={t.id}
-          className={`transition-opacity duration-1000 ease-out ${t.dying ? 'opacity-0' : 'opacity-100'} px-4 py-2 rounded-full border-2 bg-pixel-bg bg-opacity-90 text-xs font-bold uppercase tracking-wide ${TONE_CLASS[t.tone]}`}
+          className={`transition-opacity duration-1000 ease-out ${t.dying ? 'opacity-0' : 'opacity-100'} px-6 py-4 rounded-full border-2 bg-pixel-bg bg-opacity-90 text-xs font-bold uppercase tracking-wide ${TONE_CLASS[t.tone]}`}
         >
           {t.text}
         </div>

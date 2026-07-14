@@ -99,8 +99,8 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     return () => mq.removeEventListener?.('change', update);
   }, []);
 
-  // Reset the touch-opened detail when a new key moment arrives.
-  useEffect(() => { setOpenIdx(null); }, [keyMoment?.id]);
+  // Reset hover / touch-opened detail when the modal opens or a new key moment arrives.
+  useEffect(() => { setHoverIdx(null); setOpenIdx(null); }, [isOpen, keyMoment?.id]);
 
   const handleKeyMomentChoice = useMatchStore((state) => state.handleKeyMomentChoice);
   const matchConfig = useMatchStore((state) => state.matchConfig);
@@ -270,7 +270,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
             {c.label}
             <span className="font-bold">{c.value}</span>
             {hoveredCondition === i && (
-              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 text-xs font-normal whitespace-nowrap bg-pixel-card border-2 border-pixel-border text-pixel-text rounded shadow-lg z-20 pointer-events-none">
+              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 text-sm font-normal whitespace-nowrap bg-pixel-card border-2 border-pixel-border text-pixel-text rounded shadow-lg z-20 pointer-events-none">
                 {c.tooltip}
                 <span className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-pixel-border" />
               </span>
@@ -634,7 +634,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
             onNext={kmNext}
             onBack={kmBack}
             canGoBack={kmCanGoBack}
-            finalLabel="Got It — Let Me Choose"
+            finalLabel="Got it!"
           />
         )}
 
