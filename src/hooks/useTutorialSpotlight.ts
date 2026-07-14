@@ -13,6 +13,8 @@ interface UseTutorialSpotlightResult<T extends string> {
   isSpotlit: (target: T) => boolean;
   isDimmed: (target: T) => boolean;
   next: () => void;
+  back: () => void;
+  canGoBack: boolean;
 }
 
 /**
@@ -54,8 +56,15 @@ export function useTutorialSpotlight<T extends string>(
     }
   }, [currentStep, steps.length, onComplete]);
 
+  const back = useCallback(() => {
+    if (currentStep === null || currentStep === 0) return;
+    setCurrentStep(currentStep - 1);
+  }, [currentStep]);
+
+  const canGoBack = currentStep !== null && currentStep > 0;
+
   const isSpotlit = (target: T) => activeStep?.target === target;
   const isDimmed  = (target: T) => isActive && !isSpotlit(target);
 
-  return { currentStep, activeStep, isActive, isSpotlit, isDimmed, next };
+  return { currentStep, activeStep, isActive, isSpotlit, isDimmed, next, back, canGoBack };
 }

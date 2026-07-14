@@ -11,6 +11,7 @@ import { audioManager } from '../audio/AudioManager';
 import { Button } from './ui/Button';
 import { UnseenBadge } from './ui/UnseenBadge';
 import { Encyclopedia } from './Encyclopedia';
+import { TutorialGuideModal } from './tutorial/TutorialGuideModal';
 
 const MUSIC_TRACKS = [
   'Main Theme',
@@ -135,7 +136,11 @@ function AudioCredits() {
   );
 }
 
-function SettingsContent() {
+interface SettingsContentProps {
+  onOpenTutorialGuide: () => void;
+}
+
+function SettingsContent({ onOpenTutorialGuide }: SettingsContentProps) {
   const audioSettings = useGameStore((state) => state.audioSettings);
   const updateAudioSettings = useGameStore((state) => state.updateAudioSettings);
   const clearAllData = useGameStore((state) => state.clearAllData);
@@ -222,6 +227,15 @@ function SettingsContent() {
       </div>
 
       <AudioCredits />
+
+      <div className="border-t border-pixel-border pt-4">
+        <h3 className="text-sm font-bold text-pixel-text-muted mb-2 uppercase tracking-wider">
+          Tutorial
+        </h3>
+        <Button variant="secondary" fullWidth onClick={onOpenTutorialGuide}>
+          Replay Match Tutorial
+        </Button>
+      </div>
 
       <div className="border-t border-pixel-border pt-4">
         <h3 className="text-sm font-bold text-pixel-text-muted mb-2 uppercase tracking-wider">
@@ -317,17 +331,23 @@ function FeedbackContent() {
 
 export const MenuModal: React.FC = () => {
   const { isOpen, activeTab, setActiveTab, closeMenu, hasAnyNewSection, encyclopediaSections } = useMenuModal();
+  const [isTutorialGuideOpen, setIsTutorialGuideOpen] = useState(false);
+
+  const openTutorialGuide = () => {
+    closeMenu();
+    setIsTutorialGuideOpen(true);
+  };
 
   const renderTabContent = () => {
     switch (activeTab) {
       case 'settings':
-        return <SettingsContent />;
+        return <SettingsContent onOpenTutorialGuide={openTutorialGuide} />;
       case 'encyclopedia':
         return <Encyclopedia />;
       case 'feedback':
         return <FeedbackContent />;
       default:
-        return <SettingsContent />;
+        return <SettingsContent onOpenTutorialGuide={openTutorialGuide} />;
     }
   };
 
@@ -379,7 +399,10 @@ export const MenuModal: React.FC = () => {
     </div>
   );
 
-  if (!isOpen) return null;
-
-  return createPortal(modalContent, document.body);
+  return (
+    <>
+      {isOpen && createPortal(modalContent, document.body)}
+      <TutorialGuideModal isOpen={isTutorialGuideOpen} onClose={() => setIsTutorialGuideOpen(false)} />
+    </>
+  );
 };
