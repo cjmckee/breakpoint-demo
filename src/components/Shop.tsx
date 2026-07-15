@@ -7,6 +7,7 @@ import React, { useMemo } from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
+import { StatusBar } from './StatusBar';
 import type {
   ItemRarity,
   StatIncreaseItem,
@@ -42,6 +43,25 @@ function getRarityColor(rarity?: ItemRarity): string {
   }
 }
 
+
+// Price tag colored by affordability so the catalog can be scanned without
+// reading button states: yellow = in reach, red = can't afford yet.
+const CostTag: React.FC<{ cost: number; canAfford: boolean; purchased?: boolean }> = ({
+  cost,
+  canAfford,
+  purchased,
+}) => (
+  <div className="text-right">
+    <div
+      className={`text-xl font-bold ${
+        purchased ? 'text-gray-500' : canAfford ? 'text-yellow-400' : 'text-red-400'
+      }`}
+    >
+      {cost}
+    </div>
+    <div className="text-xs text-gray-400">XP</div>
+  </div>
+);
 
 const BuyButton: React.FC<{
   item: ShopItem;
@@ -81,10 +101,7 @@ const StatBoostCard: React.FC<{
               <span className={`text-xs ${rarityColor}`}>{RARITY_LABELS[rarity]}</span>
             </div>
           </div>
-          <div className="text-right">
-            <div className="text-xl font-bold text-yellow-400">{item.cost}</div>
-            <div className="text-xs text-gray-400">XP</div>
-          </div>
+          <CostTag cost={item.cost} canAfford={canAfford} purchased={item.purchased} />
         </div>
 
         <div className="mt-2 pt-2 border-t border-gray-700">
@@ -119,10 +136,7 @@ const ConsumableShopCard: React.FC<{
               <span className="text-xs text-gray-400 uppercase">Consumable</span>
             </div>
           </div>
-          <div className="text-right">
-            <div className="text-xl font-bold text-yellow-400">{item.cost}</div>
-            <div className="text-xs text-gray-400">XP</div>
-          </div>
+          <CostTag cost={item.cost} canAfford={canAfford} purchased={item.purchased} />
         </div>
 
         {hasInstant && (
@@ -175,10 +189,7 @@ const EquipmentShopCard: React.FC<{
               <h3 className="text-lg font-bold text-pixel-text">{item.name}</h3>
             </div>
           </div>
-          <div className="text-right">
-            <div className="text-xl font-bold text-yellow-400">{item.cost}</div>
-            <div className="text-xs text-gray-400">XP</div>
-          </div>
+          <CostTag cost={item.cost} canAfford={canAfford} purchased={item.purchased} />
         </div>
 
         <div className="text-sm text-gray-400">
@@ -217,10 +228,7 @@ const AbilityShopCard: React.FC<{
               <span className={`text-xs ${rarityColor}`}>{RARITY_LABELS[item.rarity]} Ability</span>
             </div>
           </div>
-          <div className="text-right">
-            <div className="text-xl font-bold text-yellow-400">{item.cost}</div>
-            <div className="text-xs text-gray-400">XP</div>
-          </div>
+          <CostTag cost={item.cost} canAfford={canAfford} purchased={item.purchased} />
         </div>
 
         <p className="text-sm text-gray-400 italic">{item.description}</p>
@@ -255,28 +263,23 @@ export const Shop: React.FC = () => {
   if (!player) return null;
 
   return (
-    <div className="min-h-screen bg-pixel-bg p-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-4xl font-bold text-pixel-text">Shop</h1>
-          <div className="flex items-center gap-4">
-            <div className="text-sm text-gray-400">Day {calendar.currentDay}</div>
-            <Button onClick={() => navigateTo('idle')}>Back to Menu</Button>
-          </div>
-        </div>
+    <div className="min-h-screen bg-pixel-bg">
+      <StatusBar onBack={() => navigateTo('idle')} />
 
-        <Card className="mb-6 bg-yellow-900 border-yellow-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-yellow-400">Experience</h2>
-              <p className="text-sm text-yellow-200">Spend experience to improve your character</p>
-              <p className="text-xs text-pixel-text">New items are available each day</p>
-            </div>
-            <div className="text-4xl font-bold text-yellow-400">
-              {player.experience} XP
-            </div>
+      <div className="max-w-4xl mx-auto px-4 pb-8">
+        <h1 className="text-3xl font-bold text-pixel-text mb-4">Shop</h1>
+
+        {/* XP balance stays pinned while browsing — every Buy decision is a
+            comparison against this number */}
+        <div className="sticky top-0 z-20 mb-6 bg-yellow-900 border-4 border-yellow-500 px-4 py-2 flex items-center justify-between gap-3">
+          <div className="flex items-baseline gap-3 min-w-0">
+            <span className="text-sm font-bold text-yellow-200 whitespace-nowrap">💰 Balance</span>
+            <span className="text-xs text-yellow-200 opacity-75 truncate">New stock daily</span>
           </div>
-        </Card>
+          <span className="text-2xl font-bold text-yellow-400 whitespace-nowrap">
+            {player.experience} XP
+          </span>
+        </div>
 
         {!isShopAvailable ? (
           <Card className="bg-gray-900 border-gray-600">

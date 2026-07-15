@@ -9,12 +9,11 @@
  * panels (full stats, tournament, activity log) below the fold.
  */
 
-import React, { JSX, useState } from 'react';
+import React, { JSX } from 'react';
 import { useGameStore, defaultRestEnergy, defaultSleepBonus } from '../stores/gameStore';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { EffectAggregator } from '../core/EffectAggregator';
 import { Card } from './ui/Card';
-import { Button } from './ui/Button';
 import { ActionTile } from './ui/ActionTile';
 import { UnseenBadge } from './ui/UnseenBadge';
 import { StatusBar } from './StatusBar';
@@ -32,9 +31,7 @@ import { calculateOverallRating } from '../core/PlayerProfile';
 import { getLetterGrade } from '../utils/playerStats';
 import type { OverlayState } from '../types/gamePhase';
 import { EffectKey, TimeSlot } from '../types/game';
-import { CHARACTERS } from '../data/characters';
-import { getHangoutTier, HANGOUT_CHARACTERS, HANGOUT_ENERGY_COST, hasUnseenTierEvent } from '../data/hangoutCharacters';
-import { Modal } from './ui/Modal';
+import { HANGOUT_CHARACTERS, hasUnseenTierEvent } from '../data/hangoutCharacters';
 
 interface MainMenuProps {
   overlay: OverlayState | null;
@@ -51,8 +48,6 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const rest = useGameStore((state) => state.rest);
   const relationships = useGameStore((state) => state.relationships);
   const hangoutThresholdsSeen = useGameStore((state) => state.hangoutThresholdsSeen);
-  const hangoutWithCharacter = useGameStore((state) => state.hangoutWithCharacter);
-  const [showHangoutModal, setShowHangoutModal] = useState(false);
 
   // Tournament state
   const getScheduledTournamentMatch = useGameStore((state) => state.getScheduledTournamentMatch);
@@ -162,12 +157,6 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
     );
   };
 
-  const getTierLabel = (characterId: string, relValue: number): string => {
-    const tier = getHangoutTier(characterId, relValue);
-    const labels = ['Acquaintance', 'Friend', 'Close', 'Trusted'];
-    return labels[tier] ?? 'Acquaintance';
-  };
-
   // Core skills do the majority of the lifting in sim — they define the player at
   // a glance, so they live in the hero header as letter grades.
   const coreGlance = [
@@ -183,7 +172,6 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const isBlocked = isEventPending || isMatchScheduled;
   const blockedReason = isEventPending ? 'Event pending' : 'Match scheduled';
   const canAffordMatch = currentStatus.energy >= MATCH_ENERGY_COST;
-  const canAffordHangout = currentStatus.energy >= HANGOUT_ENERGY_COST;
   const isEnergyFull = currentStatus.energy >= 100;
   const energyGainBonus = EffectAggregator.getEffect(
     EffectAggregator.getActiveEffects(player).effects,
@@ -202,17 +190,6 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
         : !canAffordMatch
           ? `Needs ${MATCH_ENERGY_COST} energy`
           : `${MATCH_ENERGY_COST} energy`;
-  const hangoutCaption = !hangoutsAvailable
-    ? 'Unlocks Day 6'
-    : isBlocked
-      ? blockedReason
-      : isNightTime
-        ? 'Asleep'
-        : !hasNewHangouts
-          ? 'No new hangouts'
-          : !canAffordHangout
-            ? `Needs ${HANGOUT_ENERGY_COST} energy`
-            : `${HANGOUT_ENERGY_COST} energy`;
 
   // Render overlay modal based on overlay state
   const renderOverlay = () => {
@@ -371,16 +348,18 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
             onClick={() => rest()}
           />
         </div>
-        <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-6 ${isNightTime ? 'night-exempt' : ''}`}>
+        <div className={`grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4 mb-6 ${isNightTime ? 'night-exempt' : ''}`}>
+          {/* "Relationships" is too wide for a third-width tile in the pixel font,
+              so it takes the full first row on phones */}
           <ActionTile
             size="sm"
             variant="secondary"
             icon="🤝"
-            label="Hang Out"
-            caption={hangoutCaption}
-            disabled={isBlocked || isNightTime || !hangoutsAvailable || !canAffordHangout || !hasNewHangouts}
-            badge={hasNewHangouts && !isBlocked && !isNightTime && canAffordHangout}
-            onClick={() => setShowHangoutModal(true)}
+            label="Relationships"
+            caption={hasNewHangouts ? 'New hangout!' : undefined}
+            badge={hasNewHangouts}
+            onClick={() => navigateTo('relationships')}
+            className="col-span-2 sm:col-span-1"
           />
           <ActionTile
             size="sm"
@@ -389,14 +368,6 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
             label="Inventory"
             badge={hasUnseenInventory || hasUnseenItems}
             onClick={() => { clearIndicator('inventory'); navigateTo('inventory'); }}
-          />
-          <ActionTile
-            size="sm"
-            variant="secondary"
-            icon="👥"
-            label="Relationships"
-            badge={hasNewHangouts}
-            onClick={() => navigateTo('relationships')}
           />
           <ActionTile
             size="sm"
@@ -414,54 +385,6 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
         <div className="mb-6">
           <ActiveChallenges />
         </div>
-
-        {/* Hang Out Modal */}
-        <Modal
-          isOpen={showHangoutModal}
-          onClose={() => setShowHangoutModal(false)}
-          title="Hang Out With..."
-          size="md"
-        >
-          <div className="space-y-3">
-            {metHangoutCharacters.map((characterId) => {
-              const character = CHARACTERS[characterId];
-              if (!character) return null;
-              const relValue = relationships[characterId] ?? 0;
-              const emoji =
-                character.role === 'Coach' ? '👨‍🏫' :
-                character.role === 'Rival' ? '⚔️' :
-                character.role === 'Romance' ? '💖' :
-                '🤝';
-              const currentTier = getHangoutTier(character.id, relValue);
-              return (
-                <div key={characterId} className="flex items-center justify-between gap-3 p-3 bg-gray-700 rounded">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{emoji}</span>
-                    <div>
-                      <div className="font-bold text-pixel-text">{character.name}</div>
-                      <div className="text-xs text-pixel-text-muted">
-                        {getTierLabel(character.id, relValue)} (Tier {currentTier})
-                      </div>
-                    </div>
-                  </div>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() => {
-                      setShowHangoutModal(false);
-                      hangoutWithCharacter(characterId);
-                    }}
-                  >
-                    Go
-                  </Button>
-                </div>
-              );
-            })}
-            <p className="text-xs text-pixel-text-muted text-center pt-1">
-              Costs {HANGOUT_ENERGY_COST} energy · 1 timeslot
-            </p>
-          </div>
-        </Modal>
 
         {/* Two Column Layout for Stats and secondary panels */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

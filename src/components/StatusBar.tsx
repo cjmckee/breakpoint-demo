@@ -2,11 +2,15 @@
  * Status Bar Component
  * Compact game-progression strip: calendar/day, time-slot pips, energy, and mood.
  * The player's name lives in the MainMenu hero header, not here.
+ *
+ * Subpages (training, shop, ...) pass `onBack` to get a consistent back control
+ * plus the energy/time context right where spending decisions happen.
  */
 
 import React from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { useMenuStore } from '../hooks/useMenuModal';
+import { audioManager } from '../audio/AudioManager';
 import { UnseenBadge } from './ui/UnseenBadge';
 
 const TIME_SLOTS = [
@@ -34,7 +38,12 @@ const getEnergyColor = (energy: number): string => {
   return 'bg-red-500';
 };
 
-export const StatusBar: React.FC = () => {
+interface StatusBarProps {
+  /** When set, renders a back button on the left (subpage mode) */
+  onBack?: () => void;
+}
+
+export const StatusBar: React.FC<StatusBarProps> = ({ onBack }) => {
   const { calendar, currentStatus, player } = useGameStore();
   const clearIndicator = useGameStore((state) => state.clearIndicator);
   const openCalendar = useMenuStore((state) => state.openCalendar);
@@ -46,6 +55,20 @@ export const StatusBar: React.FC = () => {
   return (
     <div className="bg-pixel-card border-b-4 border-pixel-border px-4 py-2.5 mb-6">
       <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-x-5 gap-y-2">
+        {/* Back (subpage mode) */}
+        {onBack && (
+          <button
+            onClick={() => {
+              audioManager.playSfx('ui_click');
+              onBack();
+            }}
+            className="flex items-center gap-1.5 text-sm font-bold text-pixel-text border-2 border-pixel-border bg-pixel-secondary px-2.5 py-1 hover:bg-pixel-secondary-light transition-colors whitespace-nowrap"
+            title="Back to menu"
+          >
+            ← Back
+          </button>
+        )}
+
         {/* Calendar / day */}
         <button
           onClick={() => {
