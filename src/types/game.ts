@@ -320,6 +320,7 @@ export interface StoryMatchMetadata {
   // Whether this match counts toward milestones and stats
   countsForMilestones?: boolean; // defaults to true
   isTutorial?: boolean;          // show in-match tutorial guidance
+  disableMatchForm?: boolean;    // zero out match-day form variance for a predictable outcome
 }
 
 /**

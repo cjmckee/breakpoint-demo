@@ -12,6 +12,7 @@ import type { CourtSurface } from '../../types';
 import type { MatchScore } from '../../types/keyMoments';
 import type { InteractiveMatchConfig } from '../../types/keyMoments';
 import { MatchCourt } from './MatchCourt';
+import { MATCH_FORM } from '../../config/shotThresholds';
 
 interface MatchCockpitProps {
   courtSurface: CourtSurface;
@@ -45,6 +46,41 @@ const ServeDot: React.FC = () => (
     aria-label="Serving"
   />
 );
+
+// Fraction of MATCH_FORM.variance a form roll must clear before we bother telling the
+// player about it — small rolls near 0 aren't worth cluttering the scoreboard over.
+const FORM_INDICATOR_THRESHOLD = MATCH_FORM.variance * 0.35;
+
+interface FormBadgeProps {
+  form: number | undefined;
+  who: 'player' | 'opponent';
+}
+
+// Small hot/cold streak badge next to a name, surfacing the hidden match-day form roll
+// (see MATCH_FORM in shotThresholds.ts) so a surprising run of good/bad luck reads as
+// "they're having a day" rather than a mysterious difficulty spike.
+const FormBadge: React.FC<FormBadgeProps> = ({ form, who }) => {
+  if (form === undefined || Math.abs(form) < FORM_INDICATOR_THRESHOLD) return null;
+
+  const isHot = form > 0;
+  const label = isHot ? 'In form' : 'Off day';
+  const subject = who === 'player' ? 'You are' : 'They are';
+  const title = `${subject} playing ${isHot ? 'above' : 'below'} normal today (match form ${form >= 0 ? '+' : ''}${form.toFixed(1)})`;
+
+  return (
+    <span
+      className={`inline-flex items-center gap-0.5 text-[9px] px-1 py-0.5 rounded border ${
+        isHot
+          ? 'text-pixel-success border-pixel-success bg-pixel-success/10'
+          : 'text-pixel-error border-pixel-error bg-pixel-error/10'
+      }`}
+      title={title}
+      aria-label={`${label}: ${title}`}
+    >
+      {isHot ? '🔥' : '🥶'} {label}
+    </span>
+  );
+};
 
 interface SetPipsProps {
   won: number;
@@ -153,6 +189,7 @@ export const MatchCockpit: React.FC<MatchCockpitProps> = ({
             {server === 'player' && <ServeDot />}
             <span className="text-sm sm:text-base font-bold text-pixel-success truncate">{playerName}</span>
           </div>
+          <FormBadge form={score.playerForm} who="player" />
           <SetPips won={setsWon.player} total={setsToWin} who="player" />
         </div>
 
@@ -176,6 +213,7 @@ export const MatchCockpit: React.FC<MatchCockpitProps> = ({
             {server === 'opponent' && <ServeDot />}
             <span className="text-sm sm:text-base font-bold text-pixel-error truncate">{opponentName}</span>
           </div>
+          <FormBadge form={score.opponentForm} who="opponent" />
           <SetPips won={setsWon.opponent} total={setsToWin} who="opponent" alignEnd />
         </div>
       </div>

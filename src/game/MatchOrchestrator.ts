@@ -44,6 +44,8 @@ export class MatchOrchestrator {
   private matchEnergy = 100; // Tracked mid-match, starts at config.energy
   private matchOpponentEnergy = 100; // Opponent energy, drains when player wins key moments
   private matchMood = 0; // Tracked mid-match, starts at config.mood
+  private playerMatchForm = 0; // Rolled once at match start; surfaced to the UI as a form indicator
+  private opponentMatchForm = 0;
   private fatigue: PlayerMatchFatigue = { player: 0, opponent: 0 };
   private matchStatistics: MatchStatistics | null = null;
   private pointSimulator: PointSimulator | null = null;
@@ -164,11 +166,6 @@ export class MatchOrchestrator {
     const player = new PlayerProfile('player', 'Player', playerStatsWithBoosts, config.playerArchetypeProfile);
     const opponent = new PlayerProfile('opponent', 'Opponent', config.opponentStats, config.opponentArchetypeProfile);
 
-    // Roll match-day form for both players
-    player.rollMatchForm();
-    opponent.rollMatchForm();
-    console.log(`🎲 Match-day form: player ${player.matchForm >= 0 ? '+' : ''}${player.matchForm.toFixed(1)}, opponent ${opponent.matchForm >= 0 ? '+' : ''}${opponent.matchForm.toFixed(1)}`);
-
     // Opponent archetype label (from their authored profile) for key-moment context
     this.opponentArchetype = opponent.playStyle.type;
 
@@ -189,7 +186,15 @@ export class MatchOrchestrator {
       player,
       opponent,
       courtSurface: config.surface,
+      matchFormVariance: config.disableMatchForm ? 0 : undefined,
+      playerMood: config.mood,
     });
+
+    // MatchSimulator's constructor rolls match-day form for both players (mood-biased for
+    // the player); read the results back for the UI's hot/cold form indicator.
+    this.playerMatchForm = player.matchForm;
+    this.opponentMatchForm = opponent.matchForm;
+    console.log(`🎲 Match-day form: player ${player.matchForm >= 0 ? '+' : ''}${player.matchForm.toFixed(1)}, opponent ${opponent.matchForm >= 0 ? '+' : ''}${opponent.matchForm.toFixed(1)}`);
 
     // Initialize statistics tracker
     this.matchStatistics = new MatchStatistics(player, opponent);
@@ -1256,6 +1261,8 @@ export class MatchOrchestrator {
       playerStamina: Math.max(0, Math.round(100 - this.fatigue.player)),
       opponentStamina: Math.max(0, Math.round(100 - this.fatigue.opponent)),
       isTiebreak: false,
+      playerForm: this.playerMatchForm,
+      opponentForm: this.opponentMatchForm,
     };
   }
 

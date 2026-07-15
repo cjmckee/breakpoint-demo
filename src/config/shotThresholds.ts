@@ -530,6 +530,13 @@ export const DIFFICULTY_THRESHOLDS = {
  */
 export const MATCH_FORM = {
   variance: 8,
+  /**
+   * How strongly a player's mood skews their form roll toward positive/negative.
+   * At mood = +/-100, the roll's center shifts by this fraction of variance
+   * (e.g. 0.5 means a maxed-out mood biases the roll halfway toward that side,
+   * without eliminating the chance of the opposite result).
+   */
+  moodInfluence: 0.5,
 };
 
 // =======================
