@@ -1,13 +1,16 @@
 /**
  * Relationships Component
- * Displays all met characters and their relationship status.
- * Key characters show threshold notches, tier label, and a Hang Out button.
+ * Displays all met characters and their relationship status — this is also the
+ * hangout menu: characters with a new tier event float to the top with a
+ * Hang Out button. Key characters show threshold notches (the next locked
+ * notch pulses to mark the goal) and a tier label.
  */
 
 import React from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
+import { StatusBar } from './StatusBar';
 import { CHARACTERS } from '../data/characters';
 import { HANGOUT_CHARACTERS, HANGOUT_ENERGY_COST, getHangoutTier, hasUnseenTierEvent } from '../data/hangoutCharacters';
 import { UnseenBadge } from './ui/UnseenBadge';
@@ -33,10 +36,17 @@ export const Relationships: React.FC = () => {
     .filter((c): c is NonNullable<typeof c> => c !== undefined)
     .filter((c) => c.role !== 'Opponent');
 
-  // Sort: key characters first, then others
+  const isHangoutReady = (characterId: string): boolean => {
+    const isUnlocked = calendar.currentDay >= 6 && player.flags[`hangoutUnlocked_${characterId}`] === true;
+    return isUnlocked && hasUnseenTierEvent(characterId, relationships[characterId] ?? 0, hangoutThresholdsSeen);
+  };
+
+  // Sort: hangout-ready first (the actionable ones), then key characters, then others
   const sorted = [...metCharacters].sort((a, b) => {
-    if (a.isKeyCharacter && !b.isKeyCharacter) return -1;
-    if (!a.isKeyCharacter && b.isKeyCharacter) return 1;
+    const aReady = isHangoutReady(a.id);
+    const bReady = isHangoutReady(b.id);
+    if (aReady !== bReady) return aReady ? -1 : 1;
+    if (a.isKeyCharacter !== b.isKeyCharacter) return a.isKeyCharacter ? -1 : 1;
     return 0;
   });
 
@@ -63,13 +73,11 @@ export const Relationships: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-pixel-bg p-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-4xl font-bold text-pixel-text">Relationships</h1>
-          <Button onClick={() => navigateTo('idle')}>Back to Menu</Button>
-        </div>
+    <div className="min-h-screen bg-pixel-bg">
+      <StatusBar onBack={() => navigateTo('idle')} />
+
+      <div className="max-w-4xl mx-auto px-4 pb-8">
+        <h1 className="text-3xl font-bold text-pixel-text mb-4">Relationships</h1>
 
         {sorted.length === 0 ? (
           <Card>
@@ -88,12 +96,19 @@ export const Relationships: React.FC = () => {
               const isKey = character.isKeyCharacter === true;
               const hangoutConfig = HANGOUT_CHARACTERS[character.id];
               const currentTier = isKey ? getHangoutTier(character.id, relationshipValue) : 0;
-              const isHangoutUnlocked = calendar.currentDay >= 6 && player.flags[`hangoutUnlocked_${character.id}`] === true;
-              const hasNewTierEvent = isHangoutUnlocked && hasUnseenTierEvent(character.id, relationshipValue, hangoutThresholdsSeen);
+              const hasNewTierEvent = isHangoutReady(character.id);
               const isHangoutDisabled = isNightTime || !canAffordHangout;
+              // The first locked threshold is the player's current goal — it pulses
+              const nextThreshold = isKey && hangoutConfig
+                ? hangoutConfig.thresholds.find((t) => relationshipValue < t)
+                : undefined;
 
               return (
-                <Card key={character.id} padding="md">
+                <Card
+                  key={character.id}
+                  padding="md"
+                  className={hasNewTierEvent ? 'border-pixel-accent' : ''}
+                >
                   <div className="flex items-center gap-4">
                     <div className="text-4xl">
                       {character.role === 'Coach' ? '👨‍🏫' :
@@ -140,24 +155,30 @@ export const Relationships: React.FC = () => {
                         {isKey && hangoutConfig && hangoutConfig.thresholds.map((threshold) => {
                           const notchPct = ((threshold + 100) / 200) * 100;
                           const isUnlocked = relationshipValue >= threshold;
+                          const isNext = threshold === nextThreshold;
                           return (
                             <div
                               key={threshold}
                               className="absolute top-0 h-full flex flex-col items-center"
                               style={{ left: `${notchPct}%`, transform: 'translateX(-50%)' }}
+                              title={isUnlocked ? `Unlocked at ${formatValue(threshold)}` : `Next event at ${formatValue(threshold)}`}
                             >
                               <div
-                                className={`w-1 h-full ${isUnlocked ? 'bg-yellow-300' : 'bg-white opacity-60'}`}
+                                className={`h-full ${
+                                  isUnlocked
+                                    ? 'w-1 bg-yellow-300'
+                                    : isNext
+                                      ? 'w-1.5 bg-yellow-300 animate-pulse'
+                                      : 'w-1 bg-white opacity-60'
+                                }`}
                               />
                             </div>
                           );
                         })}
                       </div>
 
-                      <div className="flex justify-between text-xs mt-1">
-                        <span className="text-red-400">-100</span>
-                        <span className="font-bold text-pixel-text">{formatValue(relationshipValue)}</span>
-                        <span className="text-green-400">+100</span>
+                      <div className="text-center text-xs mt-1 font-bold text-pixel-text">
+                        {formatValue(relationshipValue)}
                       </div>
                     </div>
 

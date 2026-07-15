@@ -2,11 +2,15 @@
  * Status Bar Component
  * Compact game-progression strip: calendar/day, time-slot pips, energy, and mood.
  * The player's name lives in the MainMenu hero header, not here.
+ *
+ * Subpages (training, shop, ...) pass `onBack` to get a consistent back control
+ * plus the energy/time context right where spending decisions happen.
  */
 
 import React from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { useMenuStore } from '../hooks/useMenuModal';
+import { audioManager } from '../audio/AudioManager';
 import { UnseenBadge } from './ui/UnseenBadge';
 
 const TIME_SLOTS = [
@@ -34,7 +38,12 @@ const getEnergyColor = (energy: number): string => {
   return 'bg-red-500';
 };
 
-export const StatusBar: React.FC = () => {
+interface StatusBarProps {
+  /** When set, renders a back button on the left (subpage mode) */
+  onBack?: () => void;
+}
+
+export const StatusBar: React.FC<StatusBarProps> = ({ onBack }) => {
   const { calendar, currentStatus, player } = useGameStore();
   const clearIndicator = useGameStore((state) => state.clearIndicator);
   const openCalendar = useMenuStore((state) => state.openCalendar);
@@ -45,7 +54,21 @@ export const StatusBar: React.FC = () => {
 
   return (
     <div className="bg-pixel-card border-b-4 border-pixel-border px-4 py-2.5 mb-6">
-      <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-x-5 gap-y-2">
+      <div className="max-w-7xl mx-auto flex items-center gap-x-3 sm:gap-x-5">
+        {/* Back (subpage mode) */}
+        {onBack && (
+          <button
+            onClick={() => {
+              audioManager.playSfx('ui_click');
+              onBack();
+            }}
+            className="flex items-center gap-1.5 text-sm font-bold text-pixel-text border-2 border-pixel-border bg-pixel-secondary px-2.5 py-1 hover:bg-pixel-secondary-light transition-colors whitespace-nowrap"
+            title="Back to menu"
+          >
+            ← Back
+          </button>
+        )}
+
         {/* Calendar / day */}
         <button
           onClick={() => {
@@ -59,7 +82,7 @@ export const StatusBar: React.FC = () => {
             📅
             {hasUnseenEvents && <UnseenBadge size="sm" className="absolute -top-2 -right-3" />}
           </span>
-          <span className="text-sm font-bold text-pixel-text whitespace-nowrap">
+          <span className="hidden sm:inline text-sm font-bold text-pixel-text whitespace-nowrap">
             S{calendar.currentSeason} · Day {calendar.currentDay}
           </span>
         </button>
@@ -81,13 +104,13 @@ export const StatusBar: React.FC = () => {
               {slot.emoji}
             </span>
           ))}
-          <span className="text-sm font-bold text-pixel-text ml-1 whitespace-nowrap">
+          <span className="hidden sm:inline text-sm font-bold text-pixel-text ml-1 whitespace-nowrap">
             {TIME_SLOTS[currentSlot]?.name}
           </span>
         </div>
 
         {/* Energy */}
-        <div className="flex items-center gap-2 flex-1 min-w-[150px]">
+        <div className="flex items-center gap-2 flex-1 min-w-0 sm:min-w-[150px]">
           <span className="text-sm leading-none" title="Energy">⚡</span>
           <div className="flex-1 h-3.5 bg-pixel-bg border-2 border-pixel-border">
             <div
@@ -96,14 +119,14 @@ export const StatusBar: React.FC = () => {
             />
           </div>
           <span className="text-sm font-bold text-pixel-text whitespace-nowrap">
-            {currentStatus.energy}<span className="text-pixel-text-muted font-normal">/100</span>
+            {currentStatus.energy}<span className="hidden sm:inline text-pixel-text-muted font-normal">/100</span>
           </span>
         </div>
 
         {/* Mood */}
         <div className="flex items-center gap-1.5" title={`Mood: ${currentStatus.mood}`}>
           <span className="text-base leading-none">{mood.emoji}</span>
-          <span className={`text-sm font-bold ${mood.color} whitespace-nowrap`}>{mood.label}</span>
+          <span className={`hidden sm:inline text-sm font-bold ${mood.color} whitespace-nowrap`}>{mood.label}</span>
         </div>
       </div>
     </div>
