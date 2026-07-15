@@ -18,6 +18,7 @@ import {
 } from './formatters.js';
 import {
   SERVE_BASELINE,
+  SERVE_CONTEST,
   RELATIVE_QUALITY_REQUIREMENTS,
   OUTCOME_MULTIPLIERS,
   MINIMUM_WINNER_THRESHOLDS,
@@ -94,7 +95,9 @@ function runServeAnalysis(): void {
 
     for (const oppReturnRating of OPPONENT_RETURN_RATINGS) {
       const opponent = createUniformPlayer('Opponent', oppReturnRating);
-      const aceThreshold = baseline.aceThresholdBase + (oppReturnRating * baseline.aceReturnMultiplier);
+      // Uniform opponent: resistance (OVR/composite blend) equals the rating itself
+      const contest = SERVE_CONTEST[serveKey];
+      const aceThreshold = contest.aceBase + oppReturnRating * contest.acePerResistance;
 
       print(`  ${serveType} vs Opponent Return: ${oppReturnRating}`);
       print(`  InPlay Threshold (base): ${baseline.inPlayThreshold} │ Ace Threshold (base): ${fmtNum(aceThreshold)}`);

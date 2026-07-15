@@ -164,6 +164,11 @@ export class MatchOrchestrator {
     const player = new PlayerProfile('player', 'Player', playerStatsWithBoosts, config.playerArchetypeProfile);
     const opponent = new PlayerProfile('opponent', 'Opponent', config.opponentStats, config.opponentArchetypeProfile);
 
+    // Roll match-day form for both players
+    player.rollMatchForm();
+    opponent.rollMatchForm();
+    console.log(`🎲 Match-day form: player ${player.matchForm >= 0 ? '+' : ''}${player.matchForm.toFixed(1)}, opponent ${opponent.matchForm >= 0 ? '+' : ''}${opponent.matchForm.toFixed(1)}`);
+
     // Opponent archetype label (from their authored profile) for key-moment context
     this.opponentArchetype = opponent.playStyle.type;
 

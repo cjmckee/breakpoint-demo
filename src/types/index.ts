@@ -237,6 +237,7 @@ export interface ShotModifiers {
   rallyLengthModifier: number;
   finalAdjustment: number;
   serveVariance?: number;   // Serve-specific variance applied
+  serveAccuracy?: number;   // Serve accuracy roll (drives the serve-in check, separate from quality)
   returnVariance?: number;  // Return-specific variance applied
   rallyVariance?: number;   // Rally-specific variance applied (based on incoming shot quality)
   fatigueModifier: number;   // Match-level fatigue penalty (1.0 = fresh, 0.8 = exhausted)

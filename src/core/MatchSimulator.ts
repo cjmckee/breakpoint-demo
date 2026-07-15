@@ -61,6 +61,10 @@ export class MatchSimulator {
     const initialServer = config.initialServer || this.determineInitialServer();
     this.scoreTracker.setInitialServer(initialServer);
 
+    // Roll match-day form for both players
+    config.player.rollMatchForm();
+    config.opponent.rollMatchForm();
+
     // Initialize match state
     this.matchState = this.createInitialMatchState();
     this.startTime = Date.now();
