@@ -1,6 +1,12 @@
 /**
  * Main Menu Component
- * Hub for player activities and navigation
+ * Hub for player activities and navigation.
+ *
+ * Layout follows the cockpit philosophy: a hero header that defines the player at
+ * a glance (name, OVR, archetype, core grades, recent matches), an action hub where the
+ * daily actions (Training / Play Match / Rest) are the biggest targets with their
+ * cost/state baked in, challenges surfaced right below the actions, and detail
+ * panels (full stats, tournament, activity log) below the fold.
  */
 
 import React, { JSX, useState } from 'react';
@@ -9,6 +15,7 @@ import { useIsMobile } from '../hooks/useIsMobile';
 import { EffectAggregator } from '../core/EffectAggregator';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
+import { ActionTile } from './ui/ActionTile';
 import { UnseenBadge } from './ui/UnseenBadge';
 import { StatusBar } from './StatusBar';
 import { PlayerStatsDisplay } from './PlayerStatsDisplay';
@@ -22,9 +29,9 @@ import { StoryEventResultModal } from './StoryEventResultModal';
 import { HangoutUnlockedModal } from './HangoutUnlockedModal';
 import { BROAD_ARCHETYPE_LABELS, DEFAULT_ARCHETYPE_LABEL } from '../data/archetypeTree';
 import { calculateOverallRating } from '../core/PlayerProfile';
+import { getLetterGrade } from '../utils/playerStats';
 import type { OverlayState } from '../types/gamePhase';
 import { EffectKey, TimeSlot } from '../types/game';
-import { StoryMatchManager } from '../game/StoryMatchManager';
 import { CHARACTERS } from '../data/characters';
 import { getHangoutTier, HANGOUT_CHARACTERS, HANGOUT_ENERGY_COST, hasUnseenTierEvent } from '../data/hangoutCharacters';
 import { Modal } from './ui/Modal';
@@ -33,13 +40,14 @@ interface MainMenuProps {
   overlay: OverlayState | null;
 }
 
+const MATCH_ENERGY_COST = 50;
+
 export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const isMobile = useIsMobile();
   const player = useGameStore((state) => state.player);
   const currentStatus = useGameStore((state) => state.currentStatus);
   const calendar = useGameStore((state) => state.calendar);
   const navigateTo = useGameStore((state) => state.navigateTo);
-  const navigateToScheduledMatch = useGameStore((state) => state.navigateToScheduledMatch);
   const rest = useGameStore((state) => state.rest);
   const relationships = useGameStore((state) => state.relationships);
   const hangoutThresholdsSeen = useGameStore((state) => state.hangoutThresholdsSeen);
@@ -47,7 +55,6 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const [showHangoutModal, setShowHangoutModal] = useState(false);
 
   // Tournament state
-  const activeTournament = useGameStore((state) => state.calendar.activeTournament);
   const getScheduledTournamentMatch = useGameStore((state) => state.getScheduledTournamentMatch);
 
   // Story match state
@@ -62,16 +69,10 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const dismissHangoutUnlock = useGameStore((state) => state.dismissHangoutUnlock);
   const clearIndicator = useGameStore((state) => state.clearIndicator);
 
-  // Check for unseen training
+  // Unseen-content indicators
   const hasUnseenTraining = (player?.activeIndicators ?? []).includes('training');
-
-  // Check for unseen (newly unlocked) match play
   const hasUnseenMatch = (player?.activeIndicators ?? []).includes('match');
-
-  // Check for unseen shop
   const hasUnseenShop = (player?.activeIndicators ?? []).includes('shop');
-
-  // Check for unseen inventory indicator
   const hasUnseenInventory = (player?.activeIndicators ?? []).includes('inventory');
 
   // Check for unseen items in inventory
@@ -98,9 +99,6 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   // Check if story match is scheduled for current time
   const scheduledStoryMatch = getScheduledStoryMatch();
   const isStoryMatchScheduled = scheduledStoryMatch !== null;
-  const storyMatchMetadata = scheduledStoryMatch
-    ? StoryMatchManager.getStoryMatchMetadata(scheduledStoryMatch)
-    : null;
 
   // Pre-match events are now triggered by navigateTo('idle') in gameStore — no useEffects needed.
 
@@ -165,13 +163,56 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   };
 
   const getTierLabel = (characterId: string, relValue: number): string => {
-      const tier = getHangoutTier(characterId, relValue);
-      const labels = ['Acquaintance', 'Friend', 'Close', 'Trusted'];
-      return labels[tier] ?? 'Acquaintance';
-    };
+    const tier = getHangoutTier(characterId, relValue);
+    const labels = ['Acquaintance', 'Friend', 'Close', 'Trusted'];
+    return labels[tier] ?? 'Acquaintance';
+  };
 
-  // Get current story event from overlay (if showing)
-  const currentStoryEvent = overlay?.type === 'story_event' ? overlay.event : null;
+  // Core skills do the majority of the lifting in sim — they define the player at
+  // a glance, so they live in the hero header as letter grades.
+  const coreGlance = [
+    { label: 'SRV', name: 'Serve', value: player.stats.core.serve },
+    { label: 'FH', name: 'Forehand', value: player.stats.core.forehand },
+    { label: 'BH', name: 'Backhand', value: player.stats.core.backhand },
+    { label: 'RET', name: 'Return', value: player.stats.core.return },
+    { label: 'SLC', name: 'Slice', value: player.stats.core.slice },
+  ];
+
+  // Action-hub state
+  const isMatchScheduled = isTournamentMatchScheduled || isStoryMatchScheduled;
+  const isBlocked = isEventPending || isMatchScheduled;
+  const blockedReason = isEventPending ? 'Event pending' : 'Match scheduled';
+  const canAffordMatch = currentStatus.energy >= MATCH_ENERGY_COST;
+  const canAffordHangout = currentStatus.energy >= HANGOUT_ENERGY_COST;
+  const isEnergyFull = currentStatus.energy >= 100;
+  const energyGainBonus = EffectAggregator.getEffect(
+    EffectAggregator.getActiveEffects(player).effects,
+    EffectKey.ENERGY_GAIN_BONUS
+  );
+  const restEnergyGain = defaultRestEnergy + energyGainBonus;
+  const sleepEnergyGain = defaultRestEnergy + defaultSleepBonus + energyGainBonus;
+
+  const trainingCaption = isBlocked ? blockedReason : isNightTime ? 'Asleep' : undefined;
+  const matchCaption = !matchUnlocked
+    ? 'Unlocks Day 5'
+    : isBlocked
+      ? blockedReason
+      : isNightTime
+        ? 'Asleep'
+        : !canAffordMatch
+          ? `Needs ${MATCH_ENERGY_COST} energy`
+          : `${MATCH_ENERGY_COST} energy`;
+  const hangoutCaption = !hangoutsAvailable
+    ? 'Unlocks Day 6'
+    : isBlocked
+      ? blockedReason
+      : isNightTime
+        ? 'Asleep'
+        : !hasNewHangouts
+          ? 'No new hangouts'
+          : !canAffordHangout
+            ? `Needs ${HANGOUT_ENERGY_COST} energy`
+            : `${HANGOUT_ENERGY_COST} energy`;
 
   // Render overlay modal based on overlay state
   const renderOverlay = () => {
@@ -226,253 +267,153 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
     <div className={`min-h-screen bg-pixel-bg ${isNightTime ? 'night-mode' : ''}`}>
       <StatusBar />
 
-      <div className="px-4 md:px-8 lg:px-12">
-        {/* Tournament Match Banner */}
-        {isTournamentMatchScheduled && scheduledTournamentMatch && (
-          <Card className="mb-6 border-4 border-yellow-400 bg-yellow-600 animate-pulse">
-            <div className="flex items-center gap-4">
-              <span className="text-5xl">🎾</span>
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold text-white mb-1">Tournament Match Scheduled!</h2>
-                <p className="text-lg text-white">
-                  Your tournament match is ready to play
-                </p>
-                <p className="text-sm text-gray-200 mt-1">
-                  {activeTournament?.tournamentName} - Round {(activeTournament?.currentRound || 0) + 1}
-                </p>
-              </div>
-              <Button onClick={() => navigateToScheduledMatch('tournament')} variant="primary" size="lg">
-                Play Match
-              </Button>
-            </div>
-          </Card>
-        )}
-
-        {/* Story Match Banner */}
-        {isStoryMatchScheduled && storyMatchMetadata && (
-          <Card className="mb-6 border-4 border-purple-400 bg-purple-600 animate-pulse">
-            <div className="flex items-center gap-4">
-              <span className="text-5xl">🎾</span>
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold text-white mb-1">
-                  {storyMatchMetadata.matchTitle || 'Story Match Scheduled!'}
-                </h2>
-                <p className="text-lg text-white">
-                  vs {storyMatchMetadata.opponentName}
-                </p>
-                {storyMatchMetadata.matchDescription && (
-                  <p className="text-sm text-gray-200 mt-1">{storyMatchMetadata.matchDescription}</p>
-                )}
-              </div>
-              <Button onClick={() => navigateToScheduledMatch('story')} variant="primary" size="lg">
-                Play Match
-              </Button>
-            </div>
-          </Card>
-        )}
-
-        {/* Story Event Notification */}
-        {isEventPending && currentStoryEvent && (
-          <Card className="mb-6 border-4 border-yellow-400 bg-yellow-600">
-            <div className="flex items-center gap-4">
-              <span className="text-5xl">📖</span>
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold text-white mb-1">Story Event Available!</h2>
-                <p className="text-lg text-white">{currentStoryEvent.name}</p>
-                <p className="text-sm text-gray-200 mt-1">{currentStoryEvent.description}</p>
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {/* Player Header */}
-        <Card className="mb-6">
-          <div>
-            <div className="flex items-center justify-between">
-              <h1 className="text-3xl font-bold text-pixel-text mb-1">
+      <div className="px-4 md:px-8 max-w-7xl mx-auto pb-8">
+        {/* Hero Header: who the player is, at a glance */}
+        <Card className="mb-6" padding="md">
+          <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-4">
+            {/* Identity */}
+            <div className="min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold text-pixel-text leading-tight truncate">
                 {player.name}
               </h1>
-              <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-bold text-pixel-accent">{overallRating}</span>
-                <span className="text-sm text-pixel-text-muted">OVR</span>
+              <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                <span className={`text-sm font-bold ${getTierColor(player.tier)}`}>
+                  {getTierName(player.tier)}
+                </span>
+                {player.archetypeProfile.broad ? (
+                  <span className="relative inline-block">
+                    {player.archetypeProfile.specializationPoints > 0 && (
+                      <UnseenBadge size="sm" className="absolute -top-2 -right-2 z-10" />
+                    )}
+                    <button
+                      onClick={() => navigateTo('archetype')}
+                      className="text-sm px-2.5 py-0.5 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent font-bold hover:bg-opacity-40 transition-colors"
+                      title="Open archetype tree"
+                    >
+                      {archetypeLabel} ▸
+                    </button>
+                  </span>
+                ) : (
+                  <span className="text-sm px-2.5 py-0.5 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent font-bold">
+                    {archetypeLabel}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-xs text-pixel-text-muted">Matches:</span>
+                {renderMatchRecord()}
               </div>
             </div>
-            <div className="flex items-center justify-between mb-2">
-              <span className={`text-lg font-bold ${getTierColor(player.tier)}`}>
-                {getTierName(player.tier)}
-              </span>
-              <span className="text-base px-3 py-1 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent font-bold">
-                {archetypeLabel}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-pixel-text-muted">Recent Matches:</span>
-              {renderMatchRecord()}
+
+            {/* Rating + core grades — ml-auto keeps this right-justified when it wraps
+                to its own line on narrow viewports */}
+            <div className="flex items-center gap-4 sm:gap-5 ml-auto">
+              <div className="flex flex-col items-center">
+                <span className="text-4xl sm:text-5xl font-bold text-pixel-accent leading-none">
+                  {overallRating}
+                </span>
+                <span className="text-[10px] text-pixel-text-muted uppercase tracking-wide mt-1">
+                  Overall
+                </span>
+              </div>
+              <div className="flex gap-2">
+                {coreGlance.map(({ label, name, value }) => {
+                  const { grade, color } = getLetterGrade(value);
+                  return (
+                    <div
+                      key={label}
+                      className="flex flex-col items-center bg-pixel-bg border-2 border-pixel-border rounded px-1 py-1.5 w-10 sm:w-11"
+                      title={`${name}: ${value}`}
+                    >
+                      <span className="text-base sm:text-lg font-bold leading-none" style={{ color }}>
+                        {grade}
+                      </span>
+                      <span className="text-[8px] text-pixel-text-muted mt-1">{label}</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </Card>
 
-        {/* Activities Grid — 3 cards */}
-        {(() => {
-          const isMatchScheduled = isTournamentMatchScheduled || isStoryMatchScheduled;
-          const isBlocked = isEventPending || isMatchScheduled;
-          const canAffordMatch = currentStatus.energy >= 50;
-          const canAffordHangout = currentStatus.energy >= HANGOUT_ENERGY_COST;
-          const isEnergyFull = currentStatus.energy >= 100;
-          const energyGainBonus = EffectAggregator.getEffect(
-            EffectAggregator.getActiveEffects(player).effects,
-            EffectKey.ENERGY_GAIN_BONUS
-          );
-          const restEnergyGain = defaultRestEnergy + energyGainBonus;
-          const sleepEnergyGain = defaultRestEnergy + defaultSleepBonus + energyGainBonus;
+        {/* Action Hub — daily actions get the biggest targets */}
+        <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-3 sm:mb-4">
+          <ActionTile
+            icon="🏋️"
+            label="Training"
+            caption={trainingCaption}
+            disabled={isBlocked || isNightTime}
+            badge={hasUnseenTraining}
+            onClick={() => navigateTo('training')}
+          />
+          <ActionTile
+            icon="🎾"
+            label="Play Match"
+            caption={matchCaption}
+            disabled={isBlocked || isNightTime || !matchUnlocked || !canAffordMatch}
+            badge={hasUnseenMatch && matchUnlocked && !isBlocked && !isNightTime && canAffordMatch}
+            onClick={() => navigateTo('match_setup')}
+          />
+          <ActionTile
+            icon={isNightTime ? '🌙' : '😴'}
+            label={isNightTime ? 'Sleep' : 'Rest'}
+            caption={
+              isNightTime
+                ? `Next day · +${sleepEnergyGain} energy`
+                : isEnergyFull
+                  ? 'Energy full'
+                  : `+${restEnergyGain} energy`
+            }
+            disabled={!isNightTime && isEnergyFull}
+            variant={isNightTime ? 'success' : 'primary'}
+            className={isNightTime ? 'night-exempt' : ''}
+            onClick={() => rest()}
+          />
+        </div>
+        <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-6 ${isNightTime ? 'night-exempt' : ''}`}>
+          <ActionTile
+            size="sm"
+            variant="secondary"
+            icon="🤝"
+            label="Hang Out"
+            caption={hangoutCaption}
+            disabled={isBlocked || isNightTime || !hangoutsAvailable || !canAffordHangout || !hasNewHangouts}
+            badge={hasNewHangouts && !isBlocked && !isNightTime && canAffordHangout}
+            onClick={() => setShowHangoutModal(true)}
+          />
+          <ActionTile
+            size="sm"
+            variant="secondary"
+            icon="🎒"
+            label="Inventory"
+            badge={hasUnseenInventory || hasUnseenItems}
+            onClick={() => { clearIndicator('inventory'); navigateTo('inventory'); }}
+          />
+          <ActionTile
+            size="sm"
+            variant="secondary"
+            icon="👥"
+            label="Relationships"
+            badge={hasNewHangouts}
+            onClick={() => navigateTo('relationships')}
+          />
+          <ActionTile
+            size="sm"
+            variant="secondary"
+            icon="🛒"
+            label="Shop"
+            caption={calendar.currentDay < 7 ? 'Unlocks Day 7' : undefined}
+            disabled={calendar.currentDay < 7}
+            badge={hasUnseenShop && calendar.currentDay >= 7}
+            onClick={() => { clearIndicator('shop'); navigateTo('shop'); }}
+          />
+        </div>
 
-          return (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-
-              {/* Card 1: Play */}
-              <Card padding="md" className="flex flex-col">
-                <div className="text-center mb-4">
-                  <div className="text-6xl mb-3">🎾</div>
-                  <h2 className="text-lg lg:text-2xl font-bold text-pixel-text mb-2">Play</h2>
-                  <p className="text-sm text-pixel-text-muted mb-3">Train your skills or compete in a match</p>
-                </div>
-                <div className="mt-auto flex flex-col gap-2">
-                  <div className="relative">
-                    {hasUnseenTraining && (
-                      <UnseenBadge className="absolute -top-2 -right-2 z-10" />
-                    )}
-                    <Button
-                      variant="primary"
-                      fullWidth
-                      disabled={isBlocked || isNightTime}
-                      onClick={() => navigateTo('training')}
-                    >
-                      {isBlocked ? (isEventPending ? 'Event Pending' : 'Match Scheduled') : isNightTime ? 'Night Time' : 'Training'}
-                    </Button>
-                  </div>
-                  <div className="relative">
-                    {hasUnseenMatch && matchUnlocked && !isBlocked && !isNightTime && canAffordMatch && (
-                      <UnseenBadge className="absolute -top-2 -right-2 z-10" />
-                    )}
-                    <Button
-                      variant="primary"
-                      fullWidth
-                      disabled={isBlocked || isNightTime || !matchUnlocked || !canAffordMatch}
-                      onClick={() => navigateTo('match_setup')}
-                    >
-                      {!matchUnlocked
-                        ? 'Unlocks Day 5'
-                        : isBlocked
-                          ? (isEventPending ? 'Event Pending' : 'Match Scheduled')
-                          : isNightTime
-                            ? 'Unavailable'
-                            : !canAffordMatch
-                              ? 'Not Enough Energy'
-                              : 'Play Match'}
-                    </Button>
-                  </div>
-                  {player.archetypeProfile.broad && (
-                    <div className="relative">
-                      {player.archetypeProfile.specializationPoints > 0 && (
-                        <UnseenBadge className="absolute -top-2 -right-2 z-10" />
-                      )}
-                      <Button variant="secondary" fullWidth onClick={() => navigateTo('archetype')}>
-                        Archetype
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </Card>
-
-              {/* Card 2: Rest & Social */}
-              <Card padding="md" className={`flex flex-col ${isNightTime ? 'night-exempt' : ''}`}>
-                <div className="text-center mb-4">
-                  <div className="text-6xl mb-3">😴</div>
-                  <h2 className="text-lg lg:text-2xl font-bold text-pixel-text mb-2">Rest & Social</h2>
-                  <p className="text-sm text-pixel-text-muted mb-3">Recover energy or spend time with someone</p>
-                </div>
-                <div className="mt-auto flex flex-col gap-2">
-                  <Button
-                    variant={isNightTime ? 'success' : 'primary'}
-                    fullWidth
-                    disabled={!isNightTime && isEnergyFull}
-                    onClick={() => rest()}
-                  >
-                    {isNightTime ? `Next Day (+${sleepEnergyGain} Energy)` : isEnergyFull ? 'Energy Full' : `Rest (+${restEnergyGain} Energy)`}
-                  </Button>
-                  {calendar.currentDay >= 5 ? (
-                    <div className="relative">
-                      {hasNewHangouts && !isBlocked && !isNightTime && canAffordHangout && (
-                        <UnseenBadge className="absolute -top-2 -right-2 z-10" />
-                      )}
-                      <Button
-                        variant="primary"
-                        fullWidth
-                        disabled={isBlocked || isNightTime || !canAffordHangout || !hasNewHangouts}
-                        onClick={() => setShowHangoutModal(true)}
-                      >
-                        {!hasNewHangouts
-                          ? 'No New Hangouts'
-                          : isBlocked
-                            ? (isEventPending ? 'Event Pending' : 'Match Scheduled')
-                            : isNightTime
-                              ? 'Unavailable'
-                              : !canAffordHangout
-                                ? 'Not Enough Energy'
-                                : 'Hang Out'}
-                      </Button>
-                    </div>
-                  ) : (
-                    <Button variant="primary" fullWidth disabled>
-                      Unlocks Day 6
-                    </Button>
-                  )}
-                </div>
-              </Card>
-
-              {/* Card 3: Gear */}
-              <Card padding="md" className={`flex flex-col ${isNightTime ? 'night-exempt' : ''}`}>
-                <div className="text-center mb-4">
-                  <div className="text-6xl mb-3">🎒</div>
-                  <h2 className="text-lg lg:text-2xl font-bold text-pixel-text mb-2">Gear</h2>
-                  <p className="text-sm text-pixel-text-muted mb-3">Manage your items, relationships, and shop</p>
-                </div>
-                <div className="mt-auto flex flex-col gap-2">
-                  <div className="relative">
-                    {(hasUnseenInventory || hasUnseenItems) && (
-                      <UnseenBadge className="absolute -top-2 -right-2 z-10" />
-                    )}
-                    <Button variant="primary" fullWidth onClick={() => { clearIndicator('inventory'); navigateTo('inventory'); }}>
-                      Inventory
-                    </Button>
-                  </div>
-                  <div className="relative">
-                    {hasNewHangouts && (
-                      <UnseenBadge className="absolute -top-2 -right-2 z-10" />
-                    )}
-                    <Button variant="primary" fullWidth onClick={() => navigateTo('relationships')}>
-                      Relationships
-                    </Button>
-                  </div>
-                  {calendar.currentDay >= 7 ? (
-                    <div className="relative">
-                      {hasUnseenShop && (
-                        <UnseenBadge className="absolute -top-2 -right-2 z-10" />
-                      )}
-                      <Button variant="primary" fullWidth onClick={() => { clearIndicator('shop'); navigateTo('shop'); }}>
-                        Shop
-                      </Button>
-                    </div>
-                  ) : (
-                    <Button variant="primary" fullWidth disabled>
-                      Unlocks Day 7
-                    </Button>
-                  )}
-                </div>
-              </Card>
-            </div>
-          );
-        })()}
+        {/* Challenges — quests with rewards, surfaced right below the actions */}
+        <div className="mb-6">
+          <ActiveChallenges />
+        </div>
 
         {/* Hang Out Modal */}
         <Modal
@@ -491,7 +432,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                 character.role === 'Rival' ? '⚔️' :
                 character.role === 'Romance' ? '💖' :
                 '🤝';
-                const currentTier = getHangoutTier(character.id, relValue)
+              const currentTier = getHangoutTier(character.id, relValue);
               return (
                 <div key={characterId} className="flex items-center justify-between gap-3 p-3 bg-gray-700 rounded">
                   <div className="flex items-center gap-3">
@@ -499,8 +440,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                     <div>
                       <div className="font-bold text-pixel-text">{character.name}</div>
                       <div className="text-xs text-pixel-text-muted">
-                        {/* {relValue >= 0 ? '+' : ''}{relValue} relationship */}
-                          {getTierLabel(character.id, relValue)} (Tier {currentTier})
+                        {getTierLabel(character.id, relValue)} (Tier {currentTier})
                       </div>
                     </div>
                   </div>
@@ -523,19 +463,18 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
           </div>
         </Modal>
 
-        {/* Two Column Layout for Stats and Activities */}
+        {/* Two Column Layout for Stats and secondary panels */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Full Player Stats - 2 columns, shown second on mobile */}
           <div className="lg:col-span-2 order-2 lg:order-1">
             <PlayerStatsDisplay collapsible={true} defaultCollapsed={isMobile} />
           </div>
 
-          {/* Tournament, Challenges, Recent Activities - shown first on mobile */}
+          {/* Tournament and activity log - shown first on mobile */}
           <div className="lg:col-span-1 space-y-6 order-1 lg:order-2">
             <ActiveTournamentCard />
             <UpcomingTeamMatchCard />
-            <ActiveChallenges />
-            <RecentActivities collapsible={true} defaultCollapsed={isMobile} />
+            <RecentActivities collapsible={true} defaultCollapsed={true} />
           </div>
         </div>
       </div>

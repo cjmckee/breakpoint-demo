@@ -41,9 +41,11 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
 
   const stats = player.stats;
 
+  // Core skills drive the majority of the sim — visually elevated below
   const statCategories = [
     {
       name: 'Core Skills',
+      highlight: true,
       stats: [
         { key: 'serve', label: 'Serve', value: stats.core.serve },
         { key: 'forehand', label: 'Forehand', value: stats.core.forehand },
@@ -54,6 +56,7 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
     },
     {
       name: 'Technical Skills',
+      highlight: false,
       stats: [
         { key: 'volley', label: 'Volley', value: stats.technical.volley },
         { key: 'overhead', label: 'Overhead', value: stats.technical.overhead },
@@ -64,6 +67,7 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
     },
     {
       name: 'Physical Stats',
+      highlight: false,
       stats: [
         { key: 'speed', label: 'Speed', value: stats.physical.speed },
         { key: 'stamina', label: 'Stamina', value: stats.physical.stamina },
@@ -74,6 +78,7 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
     },
     {
       name: 'Mental Stats',
+      highlight: false,
       stats: [
         { key: 'focus', label: 'Focus', value: stats.mental.focus },
         { key: 'anticipation', label: 'Anticipation', value: stats.mental.anticipation },
@@ -89,9 +94,18 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
       {/* Stat Categories */}
       <div className="space-y-6 mb-6">
         {statCategories.map((category) => (
-          <div key={category.name} className="space-y-3">
-            <h4 className="font-semibold text-pixel-text-muted text-sm pb-2 border-b-2 border-pixel-border">
-              {category.name}
+          <div
+            key={category.name}
+            className={`space-y-3 ${category.highlight ? 'p-3 -m-1 border-2 border-pixel-accent border-opacity-40 bg-pixel-accent bg-opacity-5 rounded' : ''}`}
+          >
+            <h4
+              className={`font-semibold text-sm pb-2 border-b-2 ${
+                category.highlight
+                  ? 'text-pixel-accent border-pixel-accent border-opacity-40'
+                  : 'text-pixel-text-muted border-pixel-border'
+              }`}
+            >
+              {category.highlight ? '★ ' : ''}{category.name}
             </h4>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
               {category.stats.map((stat) =>
@@ -131,25 +145,17 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
         </div>
       )}
 
-      {/* Career Stats */}
-      <div className="mt-6 pt-6 border-t-4 border-pixel-border">
-        <h4 className="font-semibold text-pixel-text-muted text-sm pb-2 mb-3">
-          Career Stats
-        </h4>
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-pixel-bg border-2 border-pixel-border p-3 text-center">
-            <div className="text-xs text-pixel-text-muted mb-1">Total XP Earned</div>
-            <div className="text-lg font-bold text-yellow-400">{player.totalExperienceEarned ?? 0}</div>
-          </div>
-          <div className="bg-pixel-bg border-2 border-pixel-border p-3 text-center">
-            <div className="text-xs text-pixel-text-muted mb-1">Matches Won</div>
-            <div className="text-lg font-bold text-pixel-text">{player.matchesWon ?? 0}</div>
-          </div>
-          <div className="bg-pixel-bg border-2 border-pixel-border p-3 text-center">
-            <div className="text-xs text-pixel-text-muted mb-1">Matches Played</div>
-            <div className="text-lg font-bold text-pixel-text">{player.matchesPlayed ?? 0}</div>
-          </div>
-        </div>
+      {/* Career Stats — progress tracking, kept to one quiet line */}
+      <div className="mt-6 pt-4 border-t-2 border-pixel-border flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-pixel-text-muted">
+        <span className="font-semibold uppercase tracking-wide">Career</span>
+        <span>
+          <span className="font-bold text-pixel-text">{player.matchesWon ?? 0}</span> W
+          {' – '}
+          <span className="font-bold text-pixel-text">{(player.matchesPlayed ?? 0) - (player.matchesWon ?? 0)}</span> L
+        </span>
+        <span>
+          <span className="font-bold text-yellow-400">{player.totalExperienceEarned ?? 0}</span> XP earned
+        </span>
       </div>
     </Card>
   );

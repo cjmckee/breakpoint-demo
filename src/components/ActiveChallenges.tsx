@@ -107,61 +107,70 @@ export const ActiveChallenges: React.FC = () => {
 
   if (activeChallenges.length === 0) {
     return (
-      <Card title="Active Challenges" padding="md">
-        <p className="text-pixel-text-muted text-center py-8">No active challenges</p>
+      <Card title="Challenges" padding="sm">
+        <p className="text-sm text-pixel-text-muted text-center py-2">
+          No active challenges — new quests will appear here
+        </p>
       </Card>
     );
   }
 
   return (
-    <Card title="Active Challenges" padding="md">
-      <div className="space-y-3 max-h-96 overflow-y-auto">
+    <Card title="Challenges" padding="sm">
+      <div className="space-y-2 max-h-96 overflow-y-auto">
         {activeChallenges.map((challenge) => {
           const isExpanded = expandedChallenges.has(challenge.id);
           const isCompleted = challenge.status === 'completed';
+          const pct = Math.round(challenge.progress.completionPercentage);
 
           return (
             <div
               key={challenge.id}
-              className={`border-2 p-3 transition-all ${
+              className={`border-2 p-2.5 transition-all ${
                 isCompleted
                   ? 'bg-green-500 bg-opacity-10 border-green-500'
                   : 'bg-blue-500 bg-opacity-10 border-blue-500'
               }`}
             >
-              {/* Collapsed View */}
+              {/* Collapsed View: name + inline progress bar */}
               <div
-                className="flex items-center justify-between cursor-pointer"
+                className="flex items-center gap-3 cursor-pointer"
                 onClick={() => toggleChallenge(challenge.id)}
               >
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl relative">
-                    {isCompleted ? '✓' : '📋'}
-                    {!seenIds.includes(challenge.id) && (
-                      <UnseenBadge size="sm" className="absolute -top-2 -right-3" />
-                    )}
-                  </span>
-                  <div>
-                    <div className="font-bold text-pixel-text text-sm">{challenge.name}</div>
-                    <div className="text-xs text-pixel-text-muted">
-                      {Math.round(challenge.progress.completionPercentage)}% complete
-                    </div>
+                <span className="text-xl relative shrink-0">
+                  {isCompleted ? '✅' : '📋'}
+                  {!seenIds.includes(challenge.id) && (
+                    <UnseenBadge size="sm" className="absolute -top-2 -right-3" />
+                  )}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-baseline justify-between gap-3 mb-1">
+                    <span className="font-bold text-pixel-text text-sm truncate">
+                      {challenge.name}
+                    </span>
+                    <span className={`text-xs shrink-0 ${isCompleted ? 'text-green-500 font-bold' : 'text-pixel-text-muted'}`}>
+                      {isCompleted ? 'Complete!' : `${pct}%`}
+                    </span>
+                  </div>
+                  <div className="w-full bg-pixel-border h-2">
+                    <div
+                      className={`h-full ${isCompleted ? 'bg-green-500' : 'bg-blue-500'}`}
+                      style={{ width: `${Math.min(100, pct)}%` }}
+                    />
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {isCompleted && !isExpanded && (
-                    <span onClick={(e) => e.stopPropagation()}>
-                      <Button
-                        variant="success"
-                        size="sm"
-                        onClick={() => handleClaimReward(challenge.id)}
-                      >
-                        Collect
-                      </Button>
-                    </span>
-                  )}
-                  <div className="text-pixel-text text-xl">{isExpanded ? '▼' : '▶'}</div>
-                </div>
+                {isCompleted && !isExpanded && (
+                  <span className="shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <Button
+                      variant="success"
+                      size="sm"
+                      onClick={() => handleClaimReward(challenge.id)}
+                    >
+                      Collect
+                    </Button>
+                  </span>
+                )}
+                <div className="text-pixel-text-muted text-sm shrink-0">{isExpanded ? '▼' : '▶'}</div>
               </div>
 
               {/* Expanded View */}
