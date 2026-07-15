@@ -187,6 +187,8 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
                 });
               }
 
+
+
               if (isWinner && matchStatistics.largestDeficit && matchStatistics.largestDeficit.deficitSize >= 2) {
                 const deficit = matchStatistics.largestDeficit;
                 const comebackText = deficit.gameScore

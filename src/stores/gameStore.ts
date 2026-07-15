@@ -1466,6 +1466,11 @@ export const useGameStore = create<GameState>()(
         // Calculate mood changes from key moments
         const keyMomentMoodChange = accumulatedEffects ? accumulatedEffects.moodDelta : 0;
 
+        // Opponent energy drain bonus: draining the opponent's energy through risky
+        // key moment choices yields a small mood reward (dominance feeling).
+        const opponentEnergyDrained = accumulatedEffects ? Math.abs(accumulatedEffects.opponentEnergyDelta) : 0;
+        const opponentDrainMoodBonus = Math.round(opponentEnergyDrained * 0.3);
+
         let energyCost: number;
         if (matchType === 'tournament') {
           energyCost = TournamentManager.calculateMatchEnergyCost(state.currentStatus.energy);
@@ -1481,7 +1486,7 @@ export const useGameStore = create<GameState>()(
           : 0;
 
         const newEnergy = Math.max(0, state.currentStatus.energy - Math.max(0, energyCost - matchEnergyCostReduction));
-        const newMood = Math.max(-100, Math.min(100, state.currentStatus.mood + rewards.moodChange + matchMoodGainBonus + keyMomentMoodChange));
+        const newMood = Math.max(-100, Math.min(100, state.currentStatus.mood + rewards.moodChange + matchMoodGainBonus + keyMomentMoodChange + opponentDrainMoodBonus));
 
         // Apply match experience (with EXPERIENCE_GAIN_BONUS multiplier if active)
         const { effects: matchEffects } = EffectAggregator.getActiveEffects(state.player);

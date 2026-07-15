@@ -88,6 +88,7 @@ export interface MatchScore {
   winner?: 'player' | 'opponent';
   momentum?: number; // -100 to 100 (positive = player favor)
   energy?: number; // 0-100 current player energy (KM resource; adjusted by key-moment choices)
+  opponentEnergy?: number; // 0-100 opponent energy (drains when player wins key moments based on risk taken)
   /** 0-100 live stamina (100 - fatigue) for the cockpit gauges; drains through the match */
   playerStamina?: number;
   opponentStamina?: number;
