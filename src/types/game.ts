@@ -552,6 +552,15 @@ export interface Player {
   createdAt: string;
   updatedAt: string;
 
+  // Cumulative match statistics for challenge tracking (aces, winners, etc.)
+  cumulativeMatchStats: {
+    aces: number;
+    winners: number;
+    longRallies: number;
+    netPoints: number;
+    breakPoints: number;
+  };
+
   // Progression flags - simple booleans/values that track milestones and unlocks
   flags: Record<string, boolean | number | string>;
 }

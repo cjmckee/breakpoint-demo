@@ -1459,6 +1459,19 @@ export const useGameStore = create<GameState>()(
           updatedPlayer.latestMatchResults = ([isWin ? 'win' : 'loss', ...currentResults] as ('win' | 'loss')[]).slice(0, 10);
         }
 
+        // Accumulate match statistics for challenge tracking
+        const prevStats = updatedPlayer.cumulativeMatchStats || { aces: 0, winners: 0, longRallies: 0, netPoints: 0, breakPoints: 0 };
+        updatedPlayer = {
+          ...updatedPlayer,
+          cumulativeMatchStats: {
+            aces: prevStats.aces + (matchStatistics.aces?.player ?? 0),
+            winners: prevStats.winners + (matchStatistics.winners?.player ?? 0),
+            longRallies: prevStats.longRallies + (matchStatistics.rallyPointsWon?.player ?? 0),
+            netPoints: prevStats.netPoints + (matchStatistics.netPointsWon?.player ?? 0),
+            breakPoints: prevStats.breakPoints + (matchStatistics.breakPointsConverted?.player ?? 0),
+          },
+        };
+
         // Consume next activity buffs — additional effects (energy reduction, mood bonus) apply to matches
         const consumableMatchAdditional = state.player.nextActivityBuffs?.additional ?? {};
         updatedPlayer = { ...updatedPlayer, nextActivityBuffs: null };
@@ -2598,7 +2611,7 @@ export const useGameStore = create<GameState>()(
         }
 
         // Calculate initial progress before assigning
-        const gameState = { relationships, calendar };
+        const gameState = { relationships, calendar, matchStats: player.cumulativeMatchStats };
         const initialProgress = ChallengeManager.updateProgress(challenge, player, gameState);
 
         const challengeWithProgress: Challenge = {
@@ -2622,7 +2635,7 @@ export const useGameStore = create<GameState>()(
         if (challengeIndex === -1) return;
 
         const challenge = activeChallenges[challengeIndex];
-        const gameState = { relationships, calendar };
+        const gameState = { relationships, calendar, matchStats: player.cumulativeMatchStats };
 
         // Calculate new progress
         const newProgress = ChallengeManager.updateProgress(challenge, player, gameState);
@@ -2680,7 +2693,7 @@ export const useGameStore = create<GameState>()(
         const { player, activeChallenges, relationships, calendar } = get();
         if (!player || activeChallenges.length === 0) return;
 
-        const gameState = { relationships, calendar };
+        const gameState = { relationships, calendar, matchStats: player.cumulativeMatchStats };
         let hasUpdates = false;
 
         const updatedChallenges = activeChallenges.map((challenge) => {

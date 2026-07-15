@@ -77,6 +77,7 @@ export class PlayerManager {
       experience: 0,
       totalExperienceEarned: 0,
       tier: 1,  // All players start at tier 1
+      cumulativeMatchStats: { aces: 0, winners: 0, longRallies: 0, netPoints: 0, breakPoints: 0 },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       flags: {},
