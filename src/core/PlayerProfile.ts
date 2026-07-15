@@ -20,6 +20,13 @@ import {
   aggregateArchetypeEffects,
   createEmptyArchetypeProfile,
 } from '../data/archetypeTree.js';
+import {
+  SERVE_QUALITY_WEIGHTS,
+  SERVE_ACCURACY_WEIGHTS,
+  RETURN_COMPOSITE_WEIGHTS,
+  SHOT_COMPOSITE_WEIGHTS,
+  MATCH_FORM,
+} from '../config/shotThresholds.js';
 
 const ARCHETYPE_DESCRIPTIONS: Record<PlayStyle['type'], string> = {
   serve_volley: 'Aggressive net player who serves and volleys',
@@ -138,6 +145,17 @@ export class PlayerProfile implements IPlayerProfile {
   // Current condition
   public energy: number = 100;
 
+  /**
+   * Match-day form: flat quality offset applied to every shot this match.
+   * Rolled once at match start (see MATCH_FORM.variance); 0 outside matches.
+   */
+  public matchForm: number = 0;
+
+  /** Roll match-day form for the start of a match. */
+  public rollMatchForm(): void {
+    this.matchForm = (Math.random() * 2 - 1) * MATCH_FORM.variance;
+  }
+
   // Experience
   public level: number = 1;
   public experience: number = 0;
@@ -218,60 +236,102 @@ export class PlayerProfile implements IPlayerProfile {
   }
 
   /**
-   * Get the primary stat that influences a specific shot type
+   * Get the effective rating that drives a shot's quality.
+   * Every shot family is a composite: the shot's own technique stat carries
+   * most of the weight, with supporting stats blended in (see
+   * SERVE_QUALITY_WEIGHTS / RETURN_COMPOSITE_WEIGHTS / SHOT_COMPOSITE_WEIGHTS)
+   * so no single stat carries a whole contest.
    */
   public getStatForShot(shotType: ShotType): number {
-    // Core stats: serve, forehand, backhand, return, slice
-    const coreMapping: Partial<Record<ShotType, keyof PlayerStats['core']>> = {
-      'serve_first': 'serve',
-      'serve_second': 'serve',
-      'forehand': 'forehand',
-      'backhand': 'backhand',
-      'forehand_power': 'forehand',
-      'backhand_power': 'backhand',
-      'forehand_approach': 'forehand',
-      'backhand_approach': 'backhand',
-      'slice_forehand': 'slice',
-      'slice_backhand': 'slice',
-      'defensive_slice_forehand': 'slice',
-      'defensive_slice_backhand': 'slice',
-      'return_forehand': 'return',
-      'return_backhand': 'return',
-      'return_forehand_power': 'return',
-      'return_backhand_power': 'return',
-    };
-
-    const coreStat = coreMapping[shotType];
-    if (coreStat) {
-      return this.stats.core[coreStat];
+    if (shotType === 'serve_first' || shotType === 'serve_second') {
+      return this.blendStats(SERVE_QUALITY_WEIGHTS[shotType]);
     }
 
-    // Technical stats: volley, overhead, dropShot, spin, placement
-    const technicalMapping: Partial<Record<ShotType, keyof PlayerStats['technical']>> = {
-      'volley_forehand': 'volley',
-      'volley_backhand': 'volley',
-      'volley_forehand_power': 'volley',
-      'volley_backhand_power': 'volley',
-      'half_volley_forehand': 'volley',
-      'half_volley_backhand': 'volley',
-      'overhead': 'overhead',
-      'defensive_overhead': 'overhead',
-      'drop_shot_forehand': 'dropShot',
-      'drop_shot_backhand': 'dropShot',
-      'angle_shot_forehand': 'placement',
-      'angle_shot_backhand': 'placement',
-      'lob_forehand': 'placement',
-      'lob_backhand': 'placement',
-      'passing_shot_forehand': 'placement',
-      'passing_shot_backhand': 'placement',
-    };
-
-    const techStat = technicalMapping[shotType];
-    if (techStat) {
-      return this.stats.technical[techStat];
+    if (shotType.startsWith('return_')) {
+      return this.getReturnComposite();
     }
 
-    throw new Error(`Unknown shot type: ${shotType}`);
+    const spec = this.getRallyCompositeSpec(shotType);
+    if (!spec) {
+      throw new Error(`Unknown shot type: ${shotType}`);
+    }
+    const { primary: primaryWeight, ...rest } = spec.weights;
+    return spec.primaryValue * primaryWeight + this.blendStats(rest);
+  }
+
+  /**
+   * Composite return rating: return technique plus reading the serve
+   * (anticipation) and getting to it (speed). Used for return shot quality
+   * and as the returner's ace resistance in the serve contest.
+   */
+  public getReturnComposite(): number {
+    return this.blendStats(RETURN_COMPOSITE_WEIGHTS);
+  }
+
+  /**
+   * Serve accuracy rating: how reliably the serve lands, as opposed to how
+   * hurtful it is (getStatForShot). Feeds the serve-in roll — a power server
+   * with poor placement/focus hits huge serves that miss more often.
+   */
+  public getServeAccuracy(serveType: 'serve_first' | 'serve_second'): number {
+    return this.blendStats(SERVE_ACCURACY_WEIGHTS[serveType]);
+  }
+
+  /** Weighted blend over flat stat names (all four categories merged). */
+  private blendStats(weights: Record<string, number>): number {
+    const flat: Record<string, number> = {
+      ...this.stats.core,
+      ...this.stats.technical,
+      ...this.stats.physical,
+      ...this.stats.mental,
+    };
+    let total = 0;
+    for (const [stat, weight] of Object.entries(weights)) {
+      const value = flat[stat];
+      if (value === undefined) {
+        throw new Error(`Unknown stat in composite weights: ${stat}`);
+      }
+      total += value * weight;
+    }
+    return total;
+  }
+
+  /** Map a rally shot type to its primary technique stat and composite family. */
+  private getRallyCompositeSpec(
+    shotType: ShotType,
+  ): { primaryValue: number; weights: { primary: number; [stat: string]: number } } | null {
+    const families: Partial<Record<ShotType, { stat: number; family: string }>> = {
+      'forehand': { stat: this.stats.core.forehand, family: 'groundstroke' },
+      'backhand': { stat: this.stats.core.backhand, family: 'groundstroke' },
+      'forehand_approach': { stat: this.stats.core.forehand, family: 'groundstroke' },
+      'backhand_approach': { stat: this.stats.core.backhand, family: 'groundstroke' },
+      'forehand_power': { stat: this.stats.core.forehand, family: 'powerGroundstroke' },
+      'backhand_power': { stat: this.stats.core.backhand, family: 'powerGroundstroke' },
+      'slice_forehand': { stat: this.stats.core.slice, family: 'slice' },
+      'slice_backhand': { stat: this.stats.core.slice, family: 'slice' },
+      'defensive_slice_forehand': { stat: this.stats.core.slice, family: 'slice' },
+      'defensive_slice_backhand': { stat: this.stats.core.slice, family: 'slice' },
+      'volley_forehand': { stat: this.stats.technical.volley, family: 'volley' },
+      'volley_backhand': { stat: this.stats.technical.volley, family: 'volley' },
+      'volley_forehand_power': { stat: this.stats.technical.volley, family: 'volley' },
+      'volley_backhand_power': { stat: this.stats.technical.volley, family: 'volley' },
+      'half_volley_forehand': { stat: this.stats.technical.volley, family: 'volley' },
+      'half_volley_backhand': { stat: this.stats.technical.volley, family: 'volley' },
+      'overhead': { stat: this.stats.technical.overhead, family: 'overhead' },
+      'defensive_overhead': { stat: this.stats.technical.overhead, family: 'overhead' },
+      'drop_shot_forehand': { stat: this.stats.technical.dropShot, family: 'dropShot' },
+      'drop_shot_backhand': { stat: this.stats.technical.dropShot, family: 'dropShot' },
+      'angle_shot_forehand': { stat: this.stats.technical.placement, family: 'angle' },
+      'angle_shot_backhand': { stat: this.stats.technical.placement, family: 'angle' },
+      'lob_forehand': { stat: this.stats.technical.placement, family: 'lob' },
+      'lob_backhand': { stat: this.stats.technical.placement, family: 'lob' },
+      'passing_shot_forehand': { stat: this.stats.technical.placement, family: 'passing' },
+      'passing_shot_backhand': { stat: this.stats.technical.placement, family: 'passing' },
+    };
+
+    const entry = families[shotType];
+    if (!entry) return null;
+    return { primaryValue: entry.stat, weights: SHOT_COMPOSITE_WEIGHTS[entry.family] };
   }
 
   /**

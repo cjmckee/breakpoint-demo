@@ -31,6 +31,7 @@ import {
   MINIMUM_WINNER_THRESHOLDS,
   OUTCOME_MULTIPLIERS,
   SERVE_BASELINE,
+  SERVE_CONTEST,
   OPPONENT_STAT_ADJUSTMENTS,
   SHOOTER_STAT_ADJUSTMENTS,
   MENTAL_SHOT_BONUSES,
@@ -162,6 +163,9 @@ export class ShotCalculator {
     // Step 3: Apply modifiers to get shot quality
     let quality = this.applyModifiers(primaryStat, modifiers);
 
+    // Step 3a: Apply match-day form (rolled once per match, same for every shot)
+    quality = Math.min(100, Math.max(0, quality + shooterProfile.matchForm));
+
     // Step 3b: Apply ability additional effects
     if (activeEffects) {
       quality = this.applyAbilityEffects(quality, shotType, context, modifiers, activeEffects);
@@ -187,11 +191,26 @@ export class ShotCalculator {
     let thresholds: QualityThresholds;
 
     if (shotType.includes('serve')) {
-      // Special handling for serves (no incoming shot)
+      // Special handling for serves (no incoming shot).
+      // Accuracy is its own roll: the accuracy composite through the same
+      // modifiers (pressure/fatigue/form degrade placement too) plus its own
+      // variance. Quality decides how hurtful the serve is; accuracy decides
+      // whether it lands.
+      const serveType = shotType as 'serve_first' | 'serve_second';
+      const accuracyVariance = (Math.random() * 2 - 1) *
+        (serveType === 'serve_first' ? SERVE_VARIANCE.first : SERVE_VARIANCE.second);
+      const serveAccuracy = Math.min(100, Math.max(0,
+        shooterProfile.getServeAccuracy(serveType) * modifiers.finalAdjustment +
+        accuracyVariance + shooterProfile.matchForm
+      ));
+      modifiers.serveAccuracy = serveAccuracy;
+
       const serveOutcome = this.determineServeOutcome(
         quality,
-        shotType as 'serve_first' | 'serve_second',
-        opponentProfile.stats.core.return,
+        serveAccuracy,
+        serveType,
+        shooterProfile,
+        opponentProfile,
         surface
       );
       outcome = serveOutcome.outcome;
@@ -348,33 +367,45 @@ export class ShotCalculator {
    * Instead of hard threshold comparisons, each threshold is the midpoint
    * of a probability curve. Quality near the threshold gives ~50% chance,
    * quality well above/below gives near-certain outcomes.
+   *
+   * Serve-in depends only on the server (threshold scales with the server's
+   * own overall rating); the ace bar is set entirely by the returner's
+   * resistance (overall rating blended with their return composite), so the
+   * serve contest is server quality vs returner resistance — never a function
+   * of the two-player average.
    */
   private determineServeOutcome(
     serveQuality: number,
+    serveAccuracy: number,
     serveType: 'serve_first' | 'serve_second',
-    opponentReturnStat: number,
+    serverProfile: PlayerProfile,
+    returnerProfile: PlayerProfile,
     courtSurface: CourtSurface
   ): { outcome: PointType; thresholds: QualityThresholds } {
     const baseline = SERVE_BASELINE[serveType];
+    const contest = SERVE_CONTEST[serveType];
     const surfaceEffects = SURFACE_EFFECTS[courtSurface];
 
-    // Scale thresholds relative to match level
-    // At matchLevel 70, matches original hard-coded values; at lower levels, thresholds scale down
-    const scaledInPlayThreshold = this.currentMatchLevel * (baseline.inPlayThreshold / 70);
-    const scaledAceBase = this.currentMatchLevel * (baseline.aceThresholdBase / 70);
+    // Serve-in scales with the server's own level: consistency reflects how the
+    // serve fits their overall game, independent of who is returning
+    const scaledInPlayThreshold = serverProfile.overallRating * (baseline.inPlayThreshold / 70);
 
-    // Calculate ace threshold: scaled base + (opponent return × multiplier × surface modifier)
+    // Ace resistance: returner's overall rating blended with their return composite.
     // On clay, returns are stronger so the ace bar is harder to clear; on grass it's easier.
-    const effectiveReturnContribution = opponentReturnStat * baseline.aceReturnMultiplier * surfaceEffects.returnAdjustmentMultiplier;
-    const aceThreshold = scaledAceBase + effectiveReturnContribution;
+    const resistance =
+      SERVE_CONTEST.resistanceOvrBlend * returnerProfile.overallRating +
+      (1 - SERVE_CONTEST.resistanceOvrBlend) * returnerProfile.getReturnComposite();
+    const aceThreshold = contest.aceBase +
+      resistance * contest.acePerResistance * surfaceEffects.returnAdjustmentMultiplier;
 
-    // Sigmoid probability for serve being in
-    const pServeIn = sigmoidProbability(serveQuality, scaledInPlayThreshold, PROBABILITY_STEEPNESS.serve.inPlay);
+    // Serve-in is rolled on ACCURACY, not quality — a flat bomb can be huge
+    // when it lands and still miss often
+    const pServeIn = sigmoidProbability(serveAccuracy, scaledInPlayThreshold, PROBABILITY_STEEPNESS.serve.inPlay);
 
     console.log(`  🎯 ${serveType} sigmoid calculation:`);
-    console.log(`    Serve quality: ${serveQuality.toFixed(1)}`);
-    console.log(`    InPlay sigmoid → midpoint: ${scaledInPlayThreshold.toFixed(1)} (base: ${baseline.inPlayThreshold} × matchLevel: ${this.currentMatchLevel} / 70), steepness: ${PROBABILITY_STEEPNESS.serve.inPlay}, P(in): ${(pServeIn * 100).toFixed(1)}%`);
-    console.log(`    Ace sigmoid    → midpoint: ${aceThreshold.toFixed(1)} (scaledBase: ${scaledAceBase.toFixed(1)} + oppReturn: ${opponentReturnStat} × ${baseline.aceReturnMultiplier} × surface ${surfaceEffects.returnAdjustmentMultiplier} = ${effectiveReturnContribution.toFixed(1)}), steepness: ${PROBABILITY_STEEPNESS.serve.ace}`);
+    console.log(`    Serve quality: ${serveQuality.toFixed(1)} | accuracy: ${serveAccuracy.toFixed(1)}`);
+    console.log(`    InPlay sigmoid → midpoint: ${scaledInPlayThreshold.toFixed(1)} (base: ${baseline.inPlayThreshold} × serverOVR: ${serverProfile.overallRating} / 70) vs accuracy, steepness: ${PROBABILITY_STEEPNESS.serve.inPlay}, P(in): ${(pServeIn * 100).toFixed(1)}%`);
+    console.log(`    Ace sigmoid    → midpoint: ${aceThreshold.toFixed(1)} (base ${contest.aceBase} + resistance ${resistance.toFixed(1)} × ${contest.acePerResistance} × surface ${surfaceEffects.returnAdjustmentMultiplier}), steepness: ${PROBABILITY_STEEPNESS.serve.ace}`);
 
     const thresholds: QualityThresholds = {
       winner: aceThreshold,

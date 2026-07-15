@@ -140,26 +140,96 @@ export const OUTCOME_MULTIPLIERS = {
  * Serve baseline requirements (absolute thresholds)
  *
  * Serves don't have incoming shots, so use absolute thresholds.
- * inPlayThreshold: Quality needed to get serve in
- * aceThresholdBase: Minimum quality for ace (ensures ace is always harder than inPlay)
- * aceReturnMultiplier: Additional difficulty based on opponent return stat
- *   Final ace threshold = aceThresholdBase + (opponentReturn × aceReturnMultiplier)
+ * inPlayThreshold: Quality needed to get serve in. Scaled by the SERVER's own
+ *   overall rating (not the match level), so serve consistency depends on how
+ *   the serve fits the server's own game — never on who is standing across the net.
  */
 export const SERVE_BASELINE = {
   serve_first: {
-    inPlayThreshold: 68,      // Scaled by matchLevel/70. Quality must be near this midpoint for ~50% serve-in
-    aceThresholdBase: 85,     // Scaled by matchLevel/70. Aces require quality well above serve-in threshold
-    aceReturnMultiplier: 0.45, // Additional difficulty based on opponent return
-    // At ML 70: inPlay midpoint=68, stat 76 → ~60% in. Ace midpoint=85+oppReturn×0.45
-    // At ML 50: inPlay midpoint=48.6, stat 76 → ~95% in (easier competition)
+    inPlayThreshold: 62,      // Scaled by serverOVR/70. ~62% first serves in at stat parity
   },
   serve_second: {
-    inPlayThreshold: 50,      // Scaled by matchLevel/70. Second serve more conservative, higher % in
-    aceThresholdBase: 90,     // Scaled by matchLevel/70. Second serve aces very rare
-    aceReturnMultiplier: 0.55, // Additional difficulty based on opponent return
-    // At ML 70: inPlay midpoint=50, stat 76 → ~95% in. Ace midpoint=90+oppReturn×0.55
-    // At ML 50: inPlay midpoint=35.7, stat 76 → ~99% in
+    inPlayThreshold: 32,      // Scaled by serverOVR/70. ~90% second serves in at parity → ~4-6% DFs
   },
+};
+
+/**
+ * The serve-vs-return contest that decides aces.
+ *
+ * Ace resistance is a returner-side value: a blend of the returner's overall
+ * rating (better overall players are harder to ace, without depending on any
+ * single stat) and their return composite (return + anticipation + speed via
+ * RETURN_COMPOSITE_WEIGHTS). The server's own rating never moves this bar —
+ * that previously let any stat sitting above the two-player average dominate.
+ *
+ *   resistance   = ovrBlend × returnerOVR + (1 − ovrBlend) × returnComposite
+ *   aceThreshold = aceBase + resistance × acePerResistance × surfaceMultiplier
+ */
+export const SERVE_CONTEST = {
+  /** Weight of returner's overall rating vs their return composite in resistance */
+  resistanceOvrBlend: 0.4,
+  serve_first: { aceBase: 35, acePerResistance: 1.0 },
+  serve_second: { aceBase: 45, acePerResistance: 1.0 }, // second-serve aces rarer
+};
+
+/**
+ * Serve quality and serve accuracy are separate rolls from separate composites.
+ *
+ * QUALITY is how hurtful the ball is when it lands: raw serve technique,
+ * strength for pace, an aggressive mindset, spin for movement. It feeds the
+ * ace contest and how hard the return is.
+ *
+ * ACCURACY is whether it lands: technique, placement, focus, and spin for
+ * net-clearance margin. It feeds the serve-in roll (and is degraded by the
+ * same fatigue/pressure modifiers, so tired servers spray).
+ *
+ * A power build (high serve/strength, low placement/focus) hits huge serves
+ * that miss more; a precise build lands everything but stings less.
+ * Weights within each entry must sum to 1 so uniform-stat players keep their rating.
+ */
+export const SERVE_QUALITY_WEIGHTS = {
+  serve_first: { serve: 0.60, strength: 0.20, offensive: 0.10, spin: 0.10 },
+  serve_second: { serve: 0.55, spin: 0.25, strength: 0.10, placement: 0.10 },
+};
+
+export const SERVE_ACCURACY_WEIGHTS = {
+  serve_first: { serve: 0.45, placement: 0.25, focus: 0.15, spin: 0.15 },
+  serve_second: { serve: 0.35, placement: 0.25, spin: 0.25, focus: 0.15 },
+};
+
+/**
+ * Composite stat weights for return quality and ace resistance.
+ *
+ * Returning is reading the serve (anticipation) and getting to it (speed)
+ * as much as the return technique itself.
+ * Weights must sum to 1 so uniform-stat players keep their rating.
+ */
+export const RETURN_COMPOSITE_WEIGHTS = {
+  return: 0.60,
+  anticipation: 0.25,
+  speed: 0.15,
+};
+
+/**
+ * Composite stat weights for rally shots, keyed by shot family.
+ *
+ * `primary` weights the shot's own mapped stat (forehand, volley, ...);
+ * remaining keys are flat stat names blended in. Only stats NOT already
+ * expressed through shot modifiers are added here (focus drives the pressure
+ * modifier, offensive/defensive/shotVariety drive mental shot bonuses, speed/
+ * agility already help against rushed balls), so nothing double-counts.
+ * primary + rest must sum to 1 so uniform-stat players keep their rating.
+ */
+export const SHOT_COMPOSITE_WEIGHTS: Record<string, { primary: number; [stat: string]: number }> = {
+  groundstroke: { primary: 0.80, strength: 0.10, spin: 0.10 },
+  powerGroundstroke: { primary: 0.70, strength: 0.25, spin: 0.05 },
+  volley: { primary: 0.70, agility: 0.20, anticipation: 0.10 },
+  overhead: { primary: 0.70, strength: 0.15, agility: 0.15 },
+  dropShot: { primary: 0.70, placement: 0.20, spin: 0.10 },
+  slice: { primary: 0.75, spin: 0.15, placement: 0.10 },
+  angle: { primary: 0.70, spin: 0.15, agility: 0.15 },
+  lob: { primary: 0.70, anticipation: 0.15, agility: 0.15 },
+  passing: { primary: 0.65, speed: 0.20, agility: 0.15 },
 };
 
 /**
@@ -172,9 +242,12 @@ export const SERVE_BASELINE = {
  * Example: opponent defensive 90 → (90-50) × 0.25 = +10 to winner threshold
  */
 export const OPPONENT_STAT_ADJUSTMENTS = {
-  defensive: 0.25,   // Defensive stat makes winners harder (increased from 0.10)
-  speed: 0.25,       // Speed helps cover court (increased from 0.10)
-  return: 0.20,      // Return stat makes aces harder, serves only (increased from 0.15)
+  // Kept small: these apply to EVERY rally shot, so they compound across the
+  // rally and then across the match. Large values turn small stat gaps into
+  // near-certain match outcomes.
+  defensive: 0.12,   // Defensive stat makes winners harder
+  speed: 0.12,       // Speed helps cover court
+  return: 0.12,      // Return stat makes aces harder, serves only
 };
 
 /**
@@ -187,7 +260,7 @@ export const OPPONENT_STAT_ADJUSTMENTS = {
  * Example: shooter anticipation 10 → (10-50) × 0.15 = +6 to threshold (harder)
  */
 export const SHOOTER_STAT_ADJUSTMENTS = {
-  anticipation: 0.15,  // Reading the incoming ball makes responding easier
+  anticipation: 0.10,  // Reading the incoming ball makes responding easier
 };
 
 /**
@@ -240,7 +313,7 @@ export const SERVE_VARIANCE = {
  * Applied as ±variance to return quality.
  * Adds realistic variation to returns instead of constant quality values.
  */
-export const RETURN_VARIANCE = 8;  // ±8 quality variance on returns
+export const RETURN_VARIANCE = 10;  // ±10 quality variance on returns
 
 /**
  * Rally shot variance (quality randomness)
@@ -253,7 +326,7 @@ export const RETURN_VARIANCE = 8;  // ±8 quality variance on returns
  * Example: vs quality 80 shot → 4 + (80/100) * 6 = 4 + 4.8 = ±8.8 variance
  */
 export const RALLY_SHOT_VARIANCE = {
-  base: 6,              // Base ±6 variance on all rally shots (widened from 4)
+  base: 9,              // Base ±9 variance on all rally shots (widened for upset potential)
   qualityMultiplier: 6, // Additional variance based on incoming shot quality
 };  // Creates realistic errors independent of fatigue
 
@@ -306,13 +379,15 @@ export const TOTAL_MODIFIER_CAPS = {
  */
 export const PROBABILITY_STEEPNESS = {
   serve: {
-    inPlay: 0.12,      // ~30-point band for serve fault/in
-    ace: 0.08,          // ~40-point band for aces (very gradual)
+    inPlay: 0.08,      // ~45-point band for serve fault/in
+    ace: 0.08,          // ~45-point band for aces (very gradual)
   },
   rally: {
-    winner: 0.12,       // ~30-point band for winners
-    inPlay: 0.18,       // ~22-point band for keeping in play
-    forcedError: 0.18,  // ~22-point band for forced vs unforced
+    // Deliberately flat: rally shots are repeated contests, so per-shot edges
+    // compound. Flat curves keep small stat gaps from deciding whole matches.
+    winner: 0.07,       // ~50-point band for winners
+    inPlay: 0.08,       // ~45-point band for keeping in play
+    forcedError: 0.10,  // ~36-point band for forced vs unforced
   },
 };
 
@@ -440,15 +515,33 @@ export const DIFFICULTY_THRESHOLDS = {
 };
 
 // =======================
+// MATCH-DAY FORM
+// =======================
+
+/**
+ * Per-match form roll: a flat quality offset rolled once per player at the
+ * start of each match (uniform in ±variance), applied to every shot.
+ *
+ * This is where match-level upsets come from. Tennis scoring amplifies tiny
+ * per-point edges into near-certain match outcomes (a 55% point winner takes
+ * ~90% of matches), so per-shot randomness alone can never produce upsets.
+ * A good form day for the weaker player closes a small stat gap; it barely
+ * dents a large one — better players win consistently, underdogs stay alive.
+ */
+export const MATCH_FORM = {
+  variance: 8,
+};
+
+// =======================
 // MATCH FATIGUE & MOMENTUM
 // =======================
 
 /** Match fatigue accumulation and recovery constants */
 export const MATCH_FATIGUE = {
   /** Base fatigue gained per rally shot */
-  basePerShot: 0.15,
+  basePerShot: 0.6,
   /** Extra fatigue per shot in rallies longer than 8 shots */
-  longRallyExtra: 0.05,
+  longRallyExtra: 0.2,
   /** Rally length threshold for extra fatigue */
   longRallyThreshold: 8,
   /** Minimum fatigue rate as fraction of base (stamina 100 player) */
