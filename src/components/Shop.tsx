@@ -267,14 +267,15 @@ export const Shop: React.FC = () => {
       <StatusBar onBack={() => navigateTo('idle')} />
 
       <div className="max-w-4xl mx-auto px-4 pb-8">
-        <h1 className="text-3xl font-bold text-pixel-text mb-4">Shop</h1>
+        <h1 className="text-3xl font-bold text-pixel-text mb-1">Shop</h1>
+        <span className="text-xs text-gray-200 opacity-75 truncate mb-3">New stock daily</span>
 
         {/* XP balance stays pinned while browsing — every Buy decision is a
             comparison against this number */}
-        <div className="sticky top-0 z-20 mb-6 bg-yellow-900 border-4 border-yellow-500 px-4 py-2 flex items-center justify-between gap-3">
+        <div className="sticky top-2 z-20 mb-6 bg-yellow-900 border-4 border-yellow-500 px-4 py-2 flex items-center justify-between gap-3">
           <div className="flex items-baseline gap-3 min-w-0">
             <span className="text-sm font-bold text-yellow-200 whitespace-nowrap">💰 Balance</span>
-            <span className="text-xs text-yellow-200 opacity-75 truncate">New stock daily</span>
+            
           </div>
           <span className="text-2xl font-bold text-yellow-400 whitespace-nowrap">
             {player.experience} XP

@@ -54,7 +54,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({ onBack }) => {
 
   return (
     <div className="bg-pixel-card border-b-4 border-pixel-border px-4 py-2.5 mb-6">
-      <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-x-5 gap-y-2">
+      <div className="max-w-7xl mx-auto flex items-center gap-x-3 sm:gap-x-5">
         {/* Back (subpage mode) */}
         {onBack && (
           <button
@@ -82,7 +82,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({ onBack }) => {
             📅
             {hasUnseenEvents && <UnseenBadge size="sm" className="absolute -top-2 -right-3" />}
           </span>
-          <span className="text-sm font-bold text-pixel-text whitespace-nowrap">
+          <span className="hidden sm:inline text-sm font-bold text-pixel-text whitespace-nowrap">
             S{calendar.currentSeason} · Day {calendar.currentDay}
           </span>
         </button>
@@ -104,13 +104,13 @@ export const StatusBar: React.FC<StatusBarProps> = ({ onBack }) => {
               {slot.emoji}
             </span>
           ))}
-          <span className="text-sm font-bold text-pixel-text ml-1 whitespace-nowrap">
+          <span className="hidden sm:inline text-sm font-bold text-pixel-text ml-1 whitespace-nowrap">
             {TIME_SLOTS[currentSlot]?.name}
           </span>
         </div>
 
         {/* Energy */}
-        <div className="flex items-center gap-2 flex-1 min-w-[150px]">
+        <div className="flex items-center gap-2 flex-1 min-w-0 sm:min-w-[150px]">
           <span className="text-sm leading-none" title="Energy">⚡</span>
           <div className="flex-1 h-3.5 bg-pixel-bg border-2 border-pixel-border">
             <div
@@ -119,14 +119,14 @@ export const StatusBar: React.FC<StatusBarProps> = ({ onBack }) => {
             />
           </div>
           <span className="text-sm font-bold text-pixel-text whitespace-nowrap">
-            {currentStatus.energy}<span className="text-pixel-text-muted font-normal">/100</span>
+            {currentStatus.energy}<span className="hidden sm:inline text-pixel-text-muted font-normal">/100</span>
           </span>
         </div>
 
         {/* Mood */}
         <div className="flex items-center gap-1.5" title={`Mood: ${currentStatus.mood}`}>
           <span className="text-base leading-none">{mood.emoji}</span>
-          <span className={`text-sm font-bold ${mood.color} whitespace-nowrap`}>{mood.label}</span>
+          <span className={`hidden sm:inline text-sm font-bold ${mood.color} whitespace-nowrap`}>{mood.label}</span>
         </div>
       </div>
     </div>
