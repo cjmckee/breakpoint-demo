@@ -776,6 +776,10 @@ export class MatchStatistics {
   }
 
   public getStatistics(): IMatchStatistics {
-    return { ...this.statistics };
+    // Deep clone — callers (e.g. LiveMatchViewer's per-point SFX diffing) keep a snapshot
+    // of the previous call's result to detect deltas. A shallow copy shares the nested
+    // player/opponent objects with `this.statistics`, so those objects mutate in place
+    // out from under the old snapshot and every delta reads as zero.
+    return structuredClone(this.statistics);
   }
 }
