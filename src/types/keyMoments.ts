@@ -94,6 +94,9 @@ export interface MatchScore {
   opponentStamina?: number;
   /** True while a tiebreak game is in progress (points scored numerically, not 15-30-40) */
   isTiebreak?: boolean;
+  /** Match-day form rolled at match start (see MATCH_FORM.variance); drives the hot/cold form indicator */
+  playerForm?: number;
+  opponentForm?: number;
 }
 
 /**
@@ -120,6 +123,7 @@ export interface InteractiveMatchConfig {
   isTournamentMatch?: boolean; // True if this is a tournament match
   isStoryMatch?: boolean;      // True if this is a story-driven match
   isTutorial?: boolean;        // True if this is the player's first tutorial match
+  disableMatchForm?: boolean;  // True to zero out match-day form variance (e.g. tutorial matches)
 
   // Callbacks
   onKeyMoment?: KeyMomentCallback;

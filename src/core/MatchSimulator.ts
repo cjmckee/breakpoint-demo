@@ -30,6 +30,10 @@ export interface MatchConfig {
   courtSurface: CourtSurface;
   matchFormat?: MatchFormat;
   initialServer?: 'player' | 'opponent';
+  /** Overrides MATCH_FORM.variance for both players' match-day form roll. Pass 0 to disable form (e.g. tutorial matches). */
+  matchFormVariance?: number;
+  /** Player mood (-100 to 100), used to bias the player's (not opponent's) form roll. */
+  playerMood?: number;
 }
 
 export class MatchSimulator {
@@ -62,8 +66,8 @@ export class MatchSimulator {
     this.scoreTracker.setInitialServer(initialServer);
 
     // Roll match-day form for both players
-    config.player.rollMatchForm();
-    config.opponent.rollMatchForm();
+    config.player.rollMatchForm({ variance: config.matchFormVariance, mood: config.playerMood });
+    config.opponent.rollMatchForm({ variance: config.matchFormVariance });
 
     // Initialize match state
     this.matchState = this.createInitialMatchState();

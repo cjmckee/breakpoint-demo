@@ -151,9 +151,22 @@ export class PlayerProfile implements IPlayerProfile {
    */
   public matchForm: number = 0;
 
-  /** Roll match-day form for the start of a match. */
-  public rollMatchForm(): void {
-    this.matchForm = (Math.random() * 2 - 1) * MATCH_FORM.variance;
+  /**
+   * Roll match-day form for the start of a match.
+   *
+   * @param options.variance - Overrides MATCH_FORM.variance. Pass 0 to disable
+   *   form entirely (e.g. tutorial matches, where we want a predictable outcome).
+   * @param options.mood - Player mood (-100 to 100). When provided, skews the
+   *   roll toward positive form at high mood and negative form at low mood
+   *   (see MATCH_FORM.moodInfluence). Omit for opponents, who have no mood.
+   */
+  public rollMatchForm(options: { variance?: number; mood?: number } = {}): void {
+    const variance = options.variance ?? MATCH_FORM.variance;
+    const moodBias = options.mood !== undefined
+      ? (Math.max(-100, Math.min(100, options.mood)) / 100) * MATCH_FORM.moodInfluence
+      : 0;
+    const roll = Math.max(-1, Math.min(1, (Math.random() * 2 - 1) + moodBias));
+    this.matchForm = roll * variance;
   }
 
   // Experience
