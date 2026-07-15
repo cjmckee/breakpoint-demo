@@ -30,6 +30,7 @@ import { DEFAULT_KEY_MOMENTS_PER_MATCH } from '../config/matchRewards';
 export interface AccumulatedMatchEffects {
   energyDelta: number;  // Net energy change from key moment choices
   moodDelta: number;    // Net mood change from key moment choices
+  opponentEnergyDelta: number; // Net opponent energy change from key moment outcomes
 }
 
 export class MatchOrchestrator {
@@ -41,6 +42,7 @@ export class MatchOrchestrator {
   private pressure = 0;
   private pressureBank = 0; // Persistent pressure from key moment effects (decays slowly)
   private matchEnergy = 100; // Tracked mid-match, starts at config.energy
+  private matchOpponentEnergy = 100; // Opponent energy, drains when player wins key moments
   private matchMood = 0; // Tracked mid-match, starts at config.mood
   private fatigue: PlayerMatchFatigue = { player: 0, opponent: 0 };
   private matchStatistics: MatchStatistics | null = null;
@@ -49,7 +51,7 @@ export class MatchOrchestrator {
   private playerStats: PlayerStats | null = null;
   private opponentStats: PlayerStats | null = null;
   private opponentArchetype: ArchetypeType = 'defensive';
-  private accumulatedEffects: AccumulatedMatchEffects = { energyDelta: 0, moodDelta: 0 };
+  private accumulatedEffects: AccumulatedMatchEffects = { energyDelta: 0, moodDelta: 0, opponentEnergyDelta: 0 };
   private activeEffects: Record<string, number> = {};
   private opponentActiveEffects: Record<string, number> = {};
 
@@ -200,8 +202,9 @@ export class MatchOrchestrator {
 
     // Initialize live energy/mood tracking
     this.matchEnergy = config.energy ?? 100;
+    this.matchOpponentEnergy = 100;
     this.matchMood = config.mood ?? 0;
-    this.accumulatedEffects = { energyDelta: 0, moodDelta: 0 };
+    this.accumulatedEffects = { energyDelta: 0, moodDelta: 0, opponentEnergyDelta: 0 };
     this.momentumBank = 0;
     this.pressureBank = 0;
 
@@ -248,6 +251,23 @@ export class MatchOrchestrator {
 
         // Apply secondary effects to match state
         this.applySecondaryEffects(result.appliedEffects);
+
+        // Opponent energy drain: when the player wins a key moment, the opponent loses
+        // energy proportional to the risk the player took (their energy investment).
+        // Higher energy cost = more aggressive tactic = bigger drain on opponent if it pays off.
+        if (result.pointWinner === 'player') {
+          const energySpent = Math.abs(
+            selectedOption.secondaryEffects
+              .filter(e => e.type === 'energy' && e.value < 0)
+              .reduce((sum, e) => sum + e.value, 0)
+          );
+          if (energySpent > 0) {
+            const isCritical = result.outcome === 'critical-success';
+            const opponentDrain = energySpent * (isCritical ? 2 : 1);
+            this.matchOpponentEnergy = Math.max(0, Math.min(100, this.matchOpponentEnergy - opponentDrain));
+            this.accumulatedEffects.opponentEnergyDelta -= opponentDrain;
+          }
+        }
 
         // Notify UI of key moment result and wait for user to dismiss
         if (config.onKeyMomentResult) {
@@ -331,6 +351,7 @@ export class MatchOrchestrator {
       // refreshing here removes a one-point display lag on the cockpit gauges.
       currentScore.momentum = this.momentum;
       currentScore.energy = this.matchEnergy;
+      currentScore.opponentEnergy = this.matchOpponentEnergy;
       currentScore.playerStamina = Math.max(0, Math.round(100 - this.fatigue.player));
       currentScore.opponentStamina = Math.max(0, Math.round(100 - this.fatigue.opponent));
 
@@ -1226,6 +1247,7 @@ export class MatchOrchestrator {
       isComplete: false,
       momentum: 0,
       energy: this.matchEnergy,
+      opponentEnergy: this.matchOpponentEnergy,
       playerStamina: Math.max(0, Math.round(100 - this.fatigue.player)),
       opponentStamina: Math.max(0, Math.round(100 - this.fatigue.opponent)),
       isTiebreak: false,

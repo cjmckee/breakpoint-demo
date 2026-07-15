@@ -449,26 +449,44 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
           </div>
 
           {/* Applied effects — spotlit on step 2 */}
-          {result.appliedEffects.length > 0 && (
-            <div className={resultSectionClass('effects')}>
-              <h4 className="text-sm font-bold text-pixel-text-muted mb-2 uppercase tracking-wide">
-                Effects Applied
-              </h4>
-              <div className="flex flex-wrap gap-2">
-                {result.appliedEffects.map((effect, i) => (
-                  <span
-                    key={i}
-                    className={`text-sm px-2.5 py-1 border border-pixel-border bg-pixel-bg font-bold ${
-                      isBeneficial(effect) ? 'text-green-400' : 'text-red-400'
-                    }`}
-                  >
-                    {formatEffect(effect)}
-                    {isCritical && <span className="text-pixel-text-muted ml-1 font-normal">(2×)</span>}
-                  </span>
-                ))}
+          {result.appliedEffects.length > 0 && (() => {
+            // Calculate opponent energy drain (mirrors MatchOrchestrator logic)
+            const energySpent = result.pointWinner === 'player'
+              ? Math.abs(
+                  chosenOption.secondaryEffects
+                    .filter(e => e.type === 'energy' && e.value < 0)
+                    .reduce((sum, e) => sum + e.value, 0)
+                )
+              : 0;
+            const opponentDrain = energySpent * (isCritical ? 2 : 1);
+
+            return (
+              <div className={resultSectionClass('effects')}>
+                <h4 className="text-sm font-bold text-pixel-text-muted mb-2 uppercase tracking-wide">
+                  Effects Applied
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {result.appliedEffects.map((effect, i) => (
+                    <span
+                      key={i}
+                      className={`text-sm px-2.5 py-1 border border-pixel-border bg-pixel-bg font-bold ${
+                        isBeneficial(effect) ? 'text-green-400' : 'text-red-400'
+                      }`}
+                    >
+                      {formatEffect(effect)}
+                      {isCritical && <span className="text-pixel-text-muted ml-1 font-normal">(2×)</span>}
+                    </span>
+                  ))}
+                  {opponentDrain > 0 && (
+                    <span className="text-sm px-2.5 py-1 border border-pixel-border bg-pixel-bg font-bold text-red-400">
+                      −{opponentDrain} Opponent Energy
+                      {isCritical && <span className="text-pixel-text-muted ml-1 font-normal">(2×)</span>}
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Continue — blocked while result tutorial is active */}
           <button
