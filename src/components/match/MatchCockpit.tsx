@@ -63,9 +63,9 @@ const FormBadge: React.FC<FormBadgeProps> = ({ form, who }) => {
   if (form === undefined || Math.abs(form) < FORM_INDICATOR_THRESHOLD) return null;
 
   const isHot = form > 0;
-  const label = isHot ? 'In form' : 'Off day';
+  const label = isHot ? 'Hot' : 'Cold';
   const subject = who === 'player' ? 'You are' : 'They are';
-  const title = `${subject} playing ${isHot ? 'above' : 'below'} normal today (match form ${form >= 0 ? '+' : ''}${form.toFixed(1)})`;
+  const title = `${subject} playing ${isHot ? 'above' : 'below'} their normal level today`;
 
   return (
     <span
