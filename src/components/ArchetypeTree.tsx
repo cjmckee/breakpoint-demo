@@ -115,7 +115,7 @@ export const ArchetypeTree: React.FC = () => {
                         {chosen!.tier < 3 ? (
                           isTierCapped ? (
                             <span className="text-xs text-center text-pixel-text-muted" title="Reach Regional Competitor to upgrade specialties past tier I">
-                              Locked until Regional Competitor
+                              Tier {chosen!.tier + 1} upgrade locked
                             </span>
                           ) : (
                             <Button
