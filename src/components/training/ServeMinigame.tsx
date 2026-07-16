@@ -1,77 +1,72 @@
 /**
  * Serve Minigame — "Toss & Strike"
  *
- * The ball toss rises and falls on a vertical meter. Strike near the top of the toss
- * for a clean contact. Mostly juice: a good strike lands 3 supports, a mediocre one
- * still lands 1 — you can't whiff to zero. See docs/training-redesign.md.
+ * The ball toss rises and falls on a vertical meter. Each of three attempts a green
+ * strike window sits at a different height — strike while the ball is inside it. Every
+ * clean strike banks a support; the first miss ends the practice. See
+ * docs/training-redesign.md.
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { scoreToCount, type SupportCount } from '../../game/AnchorTrainingSystem';
 import { audioManager } from '../../audio/AudioManager';
 import {
   MinigameShell,
   SupportResult,
+  RoundPips,
   MinigameActionButton,
   countNote,
   type MinigameProps,
 } from './MinigameShell';
+import { useMinigameRounds } from './useMinigameRounds';
+import { movingBands, type Band } from './minigameWindows';
 
-// Toss travels this many meter-units per second (0..100 range). ~0.75s per pass.
-const TOSS_SPEED = 135;
-
-type Phase = 'swinging' | 'struck';
+const TOSS_SPEED = 135; // meter-units per second
 
 export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
+  const rounds = useMinigameRounds(onComplete);
   const [pos, setPos] = useState(0);
-  const [phase, setPhase] = useState<Phase>('swinging');
-  const [result, setResult] = useState<{ pos: number; count: SupportCount } | null>(null);
 
+  const bandsRef = useRef<Band[]>(movingBands(32, 90, 16));
   const dirRef = useRef(1);
+  const posRef = useRef(0);
   const rafRef = useRef<number | null>(null);
 
-  const strike = useCallback(() => {
-    setPhase((current) => {
-      if (current !== 'swinging') return current;
-      setPos((captured) => {
-        const score = captured / 100;
-        const count = scoreToCount(score);
-        setResult({ pos: captured, count });
-        audioManager.playSfx('ui_click');
-        window.setTimeout(() => onComplete(score), 1050);
-        return captured;
-      });
-      return 'struck';
-    });
-  }, [onComplete]);
+  const band = bandsRef.current[Math.min(rounds.round, bandsRef.current.length - 1)];
+  const playing = rounds.phase === 'playing';
 
-  // Toss animation loop (ping-pongs between 0 and 100).
+  const strike = useCallback(() => {
+    if (rounds.phase !== 'playing') return;
+    const p = posRef.current;
+    const passed = p >= band.lo && p <= band.hi;
+    audioManager.playSfx('ui_click');
+    rounds.commit(passed);
+  }, [rounds, band]);
+
+  // Toss animation (ping-pongs 0..100) — runs until all attempts resolve.
   useEffect(() => {
-    if (phase !== 'swinging') return;
+    if (rounds.phase === 'done') return;
     let last = performance.now();
     const loop = (now: number): void => {
       const dt = (now - last) / 1000;
       last = now;
-      setPos((p) => {
-        let next = p + dirRef.current * TOSS_SPEED * dt;
-        if (next >= 100) {
-          next = 100;
-          dirRef.current = -1;
-        } else if (next <= 0) {
-          next = 0;
-          dirRef.current = 1;
-        }
-        return next;
-      });
+      let next = posRef.current + dirRef.current * TOSS_SPEED * dt;
+      if (next >= 100) {
+        next = 100;
+        dirRef.current = -1;
+      } else if (next <= 0) {
+        next = 0;
+        dirRef.current = 1;
+      }
+      posRef.current = next;
+      setPos(next);
       rafRef.current = requestAnimationFrame(loop);
     };
     rafRef.current = requestAnimationFrame(loop);
     return () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     };
-  }, [phase]);
+  }, [rounds.phase]);
 
-  // Spacebar to strike.
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
       if (e.code === 'Space' || e.key === ' ') {
@@ -83,55 +78,56 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
     return () => window.removeEventListener('keydown', onKey);
   }, [strike]);
 
-  const shown = result?.pos ?? pos;
-
   return (
-    <MinigameShell title="Toss & Strike" subtitle="Strike at the top of the toss">
-      <div className="flex items-end justify-center gap-6">
+    <MinigameShell title="Toss & Strike" subtitle="Strike while the ball is in the window — it moves each rep">
+      <div className="flex items-end justify-center gap-6 mb-4">
         {/* Vertical toss meter */}
         <div className="relative h-64 w-24 bg-pixel-bg border-2 border-pixel-border overflow-hidden">
-          {/* Tier bands (bottom -> top): 1 / 2 / 3 supports */}
-          <div className="absolute inset-x-0 bottom-0 h-[40%] bg-gray-500/10 border-t border-gray-600" />
-          <div className="absolute inset-x-0 bottom-[40%] h-[35%] bg-yellow-500/15 border-t border-yellow-600" />
-          <div className="absolute inset-x-0 bottom-[75%] h-[25%] bg-green-500/20 border-t-2 border-green-500" />
-
-          <span className="absolute right-1 top-1 text-[10px] font-bold text-green-400">+3</span>
-          <span className="absolute right-1 top-[30%] text-[10px] font-bold text-yellow-400">+2</span>
-          <span className="absolute right-1 bottom-1 text-[10px] font-bold text-gray-400">+1</span>
-
+          {/* Current success window */}
+          <div
+            className="absolute inset-x-0 bg-green-500/25 border-y-2 border-green-500"
+            style={{ bottom: `${band.lo}%`, height: `${band.hi - band.lo}%` }}
+          />
           {/* The ball */}
           <div
-            className={`absolute left-1/2 -translate-x-1/2 w-8 h-8 rounded-full border-2 transition-none ${
-              phase === 'struck'
-                ? 'bg-orange-400 border-orange-200'
-                : 'bg-pixel-accent border-pixel-text'
+            className={`absolute left-1/2 -translate-x-1/2 w-8 h-8 rounded-full border-2 ${
+              playing ? 'bg-pixel-accent border-pixel-text' : 'bg-orange-400 border-orange-200'
             }`}
-            style={{ bottom: `calc(${shown}% - 16px)` }}
+            style={{ bottom: `calc(${pos}% - 16px)` }}
           >
             <div className="w-full h-full flex items-center justify-center text-sm">🎾</div>
           </div>
         </div>
 
-        {/* Readout */}
         <div className="w-40">
-          {phase === 'struck' && result ? (
+          {rounds.phase === 'done' ? (
             <SupportResult
-              count={result.count}
-              note={countNote(result.count, 'Flush contact!', 'Solid strike.', 'Caught it low.')}
+              count={rounds.successes}
+              note={countNote(
+                rounds.successes,
+                'Three flush serves!',
+                'Two clean strikes.',
+                'One before you slipped.',
+                'Caught it outside the window.'
+              )}
             />
           ) : (
             <div className="text-sm text-pixel-text-muted text-center">
-              Higher contact = more support stats. Time the peak.
+              {rounds.phase === 'transition' ? 'Clean! Next toss…' : `Serve ${rounds.round + 1} of 3`}
             </div>
           )}
         </div>
       </div>
 
-      <div className="mt-6">
-        <MinigameActionButton onPress={strike} disabled={phase === 'struck'}>
-          {phase === 'struck' ? 'Nice serve!' : 'Strike!  (Space)'}
-        </MinigameActionButton>
+      <div className="mb-4">
+        <RoundPips {...rounds} />
       </div>
+
+      {rounds.phase === 'done' ? null : (
+        <MinigameActionButton onPress={strike} disabled={!playing}>
+          {playing ? 'Strike!  (Space)' : 'Nice!'}
+        </MinigameActionButton>
+      )}
     </MinigameShell>
   );
 };

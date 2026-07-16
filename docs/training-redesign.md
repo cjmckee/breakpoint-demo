@@ -25,14 +25,16 @@ ones. Nothing is permanently coupled.
 1. **Pick a core anchor** — one of the 5 core stats (`serve`, `forehand`, `backhand`, `return`,
    `slice`). This grants **+1 to that core** and selects the themed minigame. *This is the build
    choice* — a serve-&-volley player picks Serve; a grinder picks Backhand/Return.
-2. **Play the themed minigame** (~3 seconds, mostly juice). Performance maps to a **count of 1–3**.
-   You can never score zero supports.
-3. **Draw `count` supports** from that core's **themed support pool** (see §4), avoiding stats you
-   were just handed last session so it stays fresh. Each support is **+1**.
-4. **Quick Sim** button auto-resolves the minigame to a count of **1** for grind days.
+2. **Play the themed minigame** — **three pass/fail attempts**. Each attempt has a success window
+   that **moves**, so you can't muscle-memory one spot. **Every consecutive success banks one
+   support; the first miss ends the practice** and you keep what you banked (0–3).
+3. **Draw `successes` supports** from that core's **themed support pool** (see §4), avoiding stats
+   you were just handed last session so it stays fresh. Each support is **+1**.
+4. **Quick Sim** button auto-resolves to **1** support for grind days.
 
-Net result: **+2 to +4 stat points** per session (1 core + 1–3 supports), all flat +1s, themed and
-directional but never a fixed bundle.
+Net result: **+1 to +4 stat points** per session (1 guaranteed core + 0–3 supports), all flat +1s,
+themed and directional but never a fixed bundle. Even a whiffed session (0 supports) still advances
+the core you chose, so it's never wasted.
 
 ### Why the anchor carries the identity
 
@@ -41,28 +43,27 @@ themed to *that shot and the tendencies around it*, so choosing the core that ma
 naturally pulls in the stats that game uses. Archetype coherence is an emergent result of the
 player's anchor choices, not something the system solves for them.
 
-## 3. Mostly-juice contract
+## 3. Scoring — three attempts, consecutive successes
 
-Skill affects **count only**, never whether you get anything:
+The minigame is a **best-of-streak over three attempts**, each a binary pass/fail:
 
-| Minigame performance | Support count |
+| Outcome | Supports |
 | --- | --- |
-| Flub / missed timing | **1** |
-| Decent | **2** |
-| Clean | **3** |
-| Quick Sim (skip)     | **1** |
+| pass · pass · pass | **3** |
+| pass · pass · miss | **2** |
+| pass · miss | **1** |
+| miss (first) | **0** |
+| Quick Sim (skip) | **1** |
 
-Every minigame, whatever its skin, implements the same result contract:
+The **first miss ends the practice** — there's no partial credit and no second/third window within an
+attempt. The **success window moves each attempt** (a different meter position, or a tighter reaction
+threshold for Return), so the player re-times every rep instead of grooving one motion.
 
-```ts
-interface MinigameResult {
-  score: number; // 0..1 performance, purely cosmetic beyond the band it lands in
-  count: 1 | 2 | 3; // derived from score via scoreToCount()
-}
-```
-
-So the count logic and the support draw are **one shared pipeline**; only the input skin differs
-per core. Build one minigame fully, reskin the rest.
+The shared machinery is `useMinigameRounds` (runs the three rounds, banks consecutive passes, stops
+on a miss) plus a per-minigame `movingBands`/`tighteningThresholds` window generator. Every minigame
+reports its success count via `onComplete(successes: number)`; only the interaction skin differs, so
+the round loop and the support draw are **one shared pipeline**. The core anchor's **+1 is granted
+separately and is always guaranteed** — this scoring governs only the 0–3 supports.
 
 ## 4. Per-core themed support pools
 
@@ -88,18 +89,21 @@ Two properties fall out of these pools, both intended:
 
 ## 5. The five minigames
 
-All share the contract in §3. Each mirrors what its shot *is*:
+All run the three-attempt scoring in §3. Each mirrors what its shot *is*, and each has a moving
+success window so timing has to be re-earned every rep:
 
-- **Serve — Toss & Strike:** a rising power/placement meter; tap to strike near the sweet zone. One
-  explosive committed strike.
-- **Forehand — Rally rhythm:** tap in tempo to extend a rally; the longer you hold rhythm, the
-  higher the count. The workhorse groundstroke.
-- **Return — Read & react:** a serve incoming, react inside a short window. Returning is reflex.
-- **Slice — Touch / carve:** steady a wobble and release with control. Finesse, not power.
-- **Backhand — Load & fire:** time the contact point on a loading swing.
+- **Serve — Toss & Strike:** the toss oscillates on a vertical meter; strike while the ball is in
+  the (moving) window.
+- **Forehand — Rally rhythm:** the ball rallies across the baseline; swing while it's in the
+  (moving) strike zone.
+- **Backhand — Load & fire:** hold to load; release while the charge is in the (moving) green
+  window. Overshoot = miss.
+- **Return — Read & react:** react the instant the serve fires; the reaction time you must beat
+  **tightens** each attempt (no spatial window to move).
+- **Slice — Touch / carve:** the contact ring breathes; tap while it's sized between the two
+  (moving) target rings.
 
-**Serve is the POC** in this cut; the other four exist in config and route to Quick Sim until their
-minigames are built.
+All five are built and playable. Inputs are pointer/touch-first (see §8).
 
 ## 6. Diminishing returns (deferred)
 
@@ -119,14 +123,24 @@ Neither ships in the first cut; starting flat-cost while the anchor+minigame fee
 Following the core/state/component separation in CLAUDE.md:
 
 - **Core logic (`src/game/AnchorTrainingSystem.ts`)** — pure, no React. Holds `CORE_ANCHORS`
-  config (anchor → minigame id + support pool + labels), `scoreToCount()`, `resolveSupports()`
-  (themed draw with recent-repeat avoidance), and `buildTrainingResult()` producing a
-  `TrainingResult`.
+  config (anchor → minigame id + support pool + labels), `resolveSupports()` (themed draw with
+  recent-repeat avoidance, 0–3), and `buildAnchorTrainingResult()` producing a `TrainingResult`.
+- **Round machinery (`src/components/training/`)** — `useMinigameRounds` (the shared three-attempt
+  controller), `minigameWindows` (`movingBands` / `tighteningThresholds`), and `MinigameShell`
+  (frame, `RoundPips`, `SupportResult`, `MinigameActionButton`).
 - **State (`gameStore`)** — reuses the existing `applyTrainingResult()` + `advanceTime()` actions.
   The redesign only changes *how a `TrainingResult` is produced*, not how it's applied, so stat
   application, mood/energy, history, challenges, and analytics all keep working unchanged.
-- **Components (`src/components/AnchorTraining.tsx`, `src/components/training/ServeMinigame.tsx`)** —
-  the anchor picker and the serve minigame. Wired into the existing `'training'` screen route.
+- **Components** — `AnchorTraining.tsx` (anchor picker + minigame host) and the five minigames in
+  `src/components/training/`. Wired into the existing `'training'` screen route.
 
 `StatBoosts` stays the flat-map boost format the whole downstream pipeline already consumes, so the
 result modal (`StatBoostList`) renders the gains with no changes.
+
+## 8. Input & mobile
+
+The minigames are **pointer/touch-first**. Timing-sensitive actions fire on **`pointerdown`** (the
+moment of press) rather than click/tap-release, so reaction and timing are measured fairly on a
+phone. The backhand hold uses **pointer capture** + `pointercancel` so an interrupted touch can't
+leave the charge stuck. `touch-none`/`select-none` stop a press from scrolling or selecting. The
+Space key stays as a desktop convenience layered on top.

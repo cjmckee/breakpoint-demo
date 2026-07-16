@@ -3,12 +3,11 @@
  *
  * Redesigned training flow:
  *   1. Pick a CORE stat to anchor on (this is your build choice; grants +1 core).
- *   2. Play that shot's themed minigame — performance decides how many support stats
- *      (1-3) you earn — or Quick Sim for a guaranteed 1.
+ *   2. Play that shot's themed minigame — three pass/fail attempts, each consecutive
+ *      success banks a support (0-3) — or Quick Sim for a guaranteed 1.
  *   3. Supports are drawn from a pool themed to the anchored shot.
  *
- * Serve is the playable vertical slice; the other cores route to Quick Sim until their
- * minigames are built. See docs/training-redesign.md.
+ * See docs/training-redesign.md.
  */
 
 import React, { useState } from 'react';
@@ -19,9 +18,7 @@ import {
   ANCHOR_TRAINING_ENERGY_COST,
   buildAnchorTrainingResult,
   recentSupportsFrom,
-  scoreToCount,
   type CoreStat,
-  type SupportCount,
 } from '../game/AnchorTrainingSystem';
 import type { StatBoosts, TrainingResult } from '../types/game';
 import { StatusBar } from './StatusBar';
@@ -66,7 +63,7 @@ export const AnchorTraining: React.FC = () => {
     (a): a is TrainingResult => a.type === 'training'
   )?.statBoosts;
 
-  const resolve = (core: CoreStat, count: SupportCount): void => {
+  const resolve = (core: CoreStat, count: number): void => {
     const recent = recentSupportsFrom(lastTrainingBoosts);
     const result = buildAnchorTrainingResult(core, count, recent);
     // applyTrainingResult transitions to idle with the training_result overlay,
@@ -93,13 +90,13 @@ export const AnchorTraining: React.FC = () => {
             <h1 className="text-3xl font-bold text-pixel-text">{anchor.name} Training</h1>
           </div>
           <p className="text-pixel-text-muted mb-6">
-            Guaranteed <span className="text-green-400 font-bold">+1 {anchor.name}</span> — then earn
-            1–3 support stats.
+            Guaranteed <span className="text-green-400 font-bold">+1 {anchor.name}</span> — then bank
+            a support for each clean rep (3 attempts, stop on a miss).
           </p>
 
           {(() => {
             const Minigame = MINIGAMES[anchor.minigame];
-            return <Minigame onComplete={(score) => resolve(step.core, scoreToCount(score))} />;
+            return <Minigame onComplete={(count) => resolve(step.core, count)} />;
           })()}
 
           {/* Themed support pool preview */}
@@ -143,7 +140,7 @@ export const AnchorTraining: React.FC = () => {
         <h1 className="text-3xl font-bold text-pixel-text mb-1">Training</h1>
         <p className="text-pixel-text-muted mb-6">
           Pick the shot to build around. You'll get <span className="text-green-400 font-bold">+1</span>{' '}
-          to it, then earn 1–3 related support stats.
+          to it, then bank a related support for each clean rep in its minigame.
         </p>
 
         {!canAfford && (

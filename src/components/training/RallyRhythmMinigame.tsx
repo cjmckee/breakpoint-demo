@@ -1,64 +1,48 @@
 /**
  * Forehand Minigame — "Rally Rhythm"
  *
- * The ball rallies back and forth. Tap in time as it crosses the strike zone in the
- * middle — land clean contacts to extend the rally. Three swings; the cleaner your
- * timing, the more support stats. Mostly juice: even sloppy timing lands 1.
+ * The ball rallies back and forth across the baseline. Each of three attempts the
+ * strike zone sits at a different spot — swing while the ball is inside it. Every clean
+ * contact banks a support; the first miss ends the rally. See docs/training-redesign.md.
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { scoreToCount, type SupportCount } from '../../game/AnchorTrainingSystem';
 import { audioManager } from '../../audio/AudioManager';
 import {
   MinigameShell,
   SupportResult,
+  RoundPips,
   MinigameActionButton,
   countNote,
   type MinigameProps,
 } from './MinigameShell';
+import { useMinigameRounds } from './useMinigameRounds';
+import { movingBands, type Band } from './minigameWindows';
 
 const BALL_SPEED = 115; // units/sec across the 0..100 track
-const CENTER = 50;
-const TOTAL_SWINGS = 3;
-
-type Phase = 'rallying' | 'done';
 
 export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
+  const rounds = useMinigameRounds(onComplete);
   const [pos, setPos] = useState(0);
-  const [hits, setHits] = useState<number[]>([]); // accuracy 0..1 per swing
-  const [phase, setPhase] = useState<Phase>('rallying');
-  const [result, setResult] = useState<SupportCount | null>(null);
 
+  const bandsRef = useRef<Band[]>(movingBands(22, 78, 18));
   const dirRef = useRef(1);
-  const rafRef = useRef<number | null>(null);
   const posRef = useRef(0);
-  const hitsRef = useRef<number[]>([]);
+  const rafRef = useRef<number | null>(null);
 
-  const finish = useCallback(
-    (accuracies: number[]) => {
-      const score =
-        accuracies.length > 0 ? accuracies.reduce((s, a) => s + a, 0) / TOTAL_SWINGS : 0;
-      const count = scoreToCount(score);
-      setResult(count);
-      setPhase('done');
-      window.setTimeout(() => onComplete(score), 1050);
-    },
-    [onComplete]
-  );
+  const band = bandsRef.current[Math.min(rounds.round, bandsRef.current.length - 1)];
+  const playing = rounds.phase === 'playing';
 
   const swing = useCallback(() => {
-    if (phase !== 'rallying') return;
-    const accuracy = Math.max(0, 1 - Math.abs(posRef.current - CENTER) / CENTER);
-    const next = [...hitsRef.current, accuracy];
-    hitsRef.current = next;
-    setHits(next);
+    if (rounds.phase !== 'playing') return;
+    const p = posRef.current;
+    const passed = p >= band.lo && p <= band.hi;
     audioManager.playSfx('ui_click');
-    if (next.length >= TOTAL_SWINGS) finish(next);
-  }, [phase, finish]);
+    rounds.commit(passed);
+  }, [rounds, band]);
 
-  // Ball animation loop (continuous ping-pong).
   useEffect(() => {
-    if (phase !== 'rallying') return;
+    if (rounds.phase === 'done') return;
     let last = performance.now();
     const loop = (now: number): void => {
       const dt = (now - last) / 1000;
@@ -79,9 +63,8 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete }) => 
     return () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     };
-  }, [phase]);
+  }, [rounds.phase]);
 
-  // Spacebar to swing.
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
       if (e.code === 'Space' || e.key === ' ') {
@@ -94,47 +77,42 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete }) => 
   }, [swing]);
 
   return (
-    <MinigameShell title="Rally Rhythm" subtitle="Tap as the ball crosses the middle — keep the rally going">
+    <MinigameShell title="Rally Rhythm" subtitle="Swing while the ball is in the zone — it moves each rep">
       {/* Horizontal rally track */}
       <div className="relative h-16 w-full bg-pixel-bg border-2 border-pixel-border overflow-hidden mb-4">
-        {/* Strike zone in the center */}
-        <div className="absolute inset-y-0 left-[40%] w-[20%] bg-green-500/20 border-x-2 border-green-500" />
-        <div className="absolute inset-y-0 left-1/2 w-px bg-green-400/70" />
-        {/* The ball */}
         <div
-          className="absolute top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-pixel-accent border-2 border-pixel-text flex items-center justify-center text-sm"
+          className="absolute inset-y-0 bg-green-500/25 border-x-2 border-green-500"
+          style={{ left: `${band.lo}%`, width: `${band.hi - band.lo}%` }}
+        />
+        <div
+          className={`absolute top-1/2 -translate-y-1/2 w-7 h-7 rounded-full border-2 flex items-center justify-center text-sm ${
+            playing ? 'bg-pixel-accent border-pixel-text' : 'bg-orange-400 border-orange-200'
+          }`}
           style={{ left: `calc(${pos}% - 14px)` }}
         >
           🎾
         </div>
       </div>
 
-      {/* Swing pips */}
-      <div className="flex items-center justify-center gap-2 mb-4">
-        {Array.from({ length: TOTAL_SWINGS }).map((_, i) => {
-          const acc = hits[i];
-          const color =
-            acc === undefined
-              ? 'bg-pixel-bg border-pixel-border'
-              : acc >= 0.66
-                ? 'bg-green-500 border-green-400'
-                : acc >= 0.33
-                  ? 'bg-yellow-500 border-yellow-400'
-                  : 'bg-gray-600 border-gray-500';
-          return <div key={i} className={`w-8 h-3 border-2 ${color}`} />;
-        })}
-        <span className="text-xs text-pixel-text-muted ml-2">
-          {hits.length}/{TOTAL_SWINGS} swings
-        </span>
+      <div className="mb-4">
+        <RoundPips {...rounds} />
       </div>
 
-      {phase === 'done' && result !== null ? (
+      {rounds.phase === 'done' ? (
         <SupportResult
-          count={result}
-          note={countNote(result, 'Locked-in rhythm!', 'Good cadence.', 'Rushed the timing.')}
+          count={rounds.successes}
+          note={countNote(
+            rounds.successes,
+            'Locked-in rally!',
+            'Two clean strikes.',
+            'One before you netted it.',
+            'Mistimed the first one.'
+          )}
         />
       ) : (
-        <MinigameActionButton onPress={swing}>Swing!  (Space)</MinigameActionButton>
+        <MinigameActionButton onPress={swing} disabled={!playing}>
+          {playing ? `Swing!  ·  Rep ${rounds.round + 1} of 3  (Space)` : 'Clean! Next ball…'}
+        </MinigameActionButton>
       )}
     </MinigameShell>
   );

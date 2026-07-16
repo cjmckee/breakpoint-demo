@@ -1,79 +1,73 @@
 /**
  * Return Minigame — "Read & React"
  *
- * Wait for the serve. The panel flips to GO after a random delay — tap the instant it
- * does. Faster reactions earn more support stats. Mostly juice: a slow reaction (or an
- * early jump) still lands 1.
+ * Wait for the serve, tap the instant the panel flips to GO. There's no spatial window
+ * to move, so instead the returns get FASTER: the reaction time you must beat tightens
+ * each of three attempts. Beat it to bank a support; a slow reaction OR an early jump
+ * ends the practice. See docs/training-redesign.md.
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { scoreToCount, type SupportCount } from '../../game/AnchorTrainingSystem';
 import { audioManager } from '../../audio/AudioManager';
-import { MinigameShell, SupportResult, type MinigameProps } from './MinigameShell';
+import {
+  MinigameShell,
+  SupportResult,
+  RoundPips,
+  countNote,
+  type MinigameProps,
+} from './MinigameShell';
+import { useMinigameRounds } from './useMinigameRounds';
+import { tighteningThresholds } from './minigameWindows';
 
-const MIN_DELAY = 1200;
-const MAX_DELAY = 2600;
-const FAST_MS = 220; // at/under this reaction -> perfect
-const SLOW_MS = 720; // at/over this -> floor
+const MIN_DELAY = 900;
+const MAX_DELAY = 2300;
 
-type Phase = 'waiting' | 'go' | 'done';
+type ReactPhase = 'waiting' | 'go';
 
 export const ReadReactMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
-  const [phase, setPhase] = useState<Phase>('waiting');
-  const [result, setResult] = useState<{ count: SupportCount; note: string } | null>(null);
+  const rounds = useMinigameRounds(onComplete);
+  const [reactPhase, setReactPhase] = useState<ReactPhase>('waiting');
+  const [note, setNote] = useState<string>('');
 
-  const phaseRef = useRef<Phase>('waiting');
-  phaseRef.current = phase;
+  const reactPhaseRef = useRef<ReactPhase>('waiting');
+  reactPhaseRef.current = reactPhase;
   const goTimeRef = useRef(0);
   const timeoutRef = useRef<number | null>(null);
+  const thresholdsRef = useRef<number[]>(tighteningThresholds(470, 80));
 
-  const finish = useCallback(
-    (score: number, note: string) => {
-      const count = scoreToCount(score);
-      setResult({ count, note });
-      setPhase('done');
-      audioManager.playSfx('ui_click');
-      window.setTimeout(() => onComplete(score), 1050);
-    },
-    [onComplete]
-  );
+  const threshold = thresholdsRef.current[Math.min(rounds.round, thresholdsRef.current.length - 1)];
 
   const react = useCallback(() => {
-    const current = phaseRef.current;
-    if (current === 'done') return;
-    if (current === 'waiting') {
-      // Jumped before the serve — floored, but never zero.
+    if (rounds.phase !== 'playing') return;
+    if (reactPhaseRef.current === 'waiting') {
+      // Jumped before the serve fired — a miss.
       if (timeoutRef.current !== null) window.clearTimeout(timeoutRef.current);
-      finish(0.2, 'Jumped early!');
+      setNote('Jumped early!');
+      audioManager.playSfx('ui_click');
+      rounds.commit(false);
       return;
     }
-    // current === 'go'
     const reaction = performance.now() - goTimeRef.current;
-    const score = Math.max(0, Math.min(1, 1 - (reaction - FAST_MS) / (SLOW_MS - FAST_MS)));
-    const note =
-      reaction <= FAST_MS + 60
-        ? `Lightning! ${Math.round(reaction)}ms`
-        : reaction <= 480
-          ? `Quick — ${Math.round(reaction)}ms`
-          : `Late — ${Math.round(reaction)}ms`;
-    finish(score, note);
-  }, [finish]);
+    const passed = reaction <= threshold;
+    setNote(`${Math.round(reaction)}ms ${passed ? '✓' : `> ${threshold}ms`}`);
+    audioManager.playSfx('ui_click');
+    rounds.commit(passed);
+  }, [rounds, threshold]);
 
-  // Schedule the GO cue after a random delay.
+  // Arm a fresh wait -> GO cycle for each playing round.
   useEffect(() => {
-    timeoutRef.current = window.setTimeout(
-      () => {
-        goTimeRef.current = performance.now();
-        setPhase('go');
-      },
-      MIN_DELAY + Math.random() * (MAX_DELAY - MIN_DELAY)
-    );
+    if (rounds.phase !== 'playing') return;
+    setReactPhase('waiting');
+    const delay = MIN_DELAY + Math.random() * (MAX_DELAY - MIN_DELAY);
+    timeoutRef.current = window.setTimeout(() => {
+      goTimeRef.current = performance.now();
+      setReactPhase('go');
+    }, delay);
     return () => {
       if (timeoutRef.current !== null) window.clearTimeout(timeoutRef.current);
     };
-  }, []);
+  }, [rounds.phase, rounds.round]);
 
-  // Spacebar to react.
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
       if (e.code === 'Space' || e.key === ' ') {
@@ -85,46 +79,65 @@ export const ReadReactMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
     return () => window.removeEventListener('keydown', onKey);
   }, [react]);
 
-  const panel =
-    phase === 'go'
-      ? 'bg-green-500/30 border-green-500 text-green-300'
-      : phase === 'done'
-        ? 'bg-pixel-bg border-pixel-border'
+  const isGo = rounds.phase === 'playing' && reactPhase === 'go';
+  const panel = isGo
+    ? 'bg-green-500/30 border-green-500 text-green-300'
+    : rounds.phase === 'done'
+      ? 'bg-pixel-bg border-pixel-border'
+      : rounds.phase === 'transition'
+        ? 'bg-pixel-bg border-pixel-border text-pixel-text-muted'
         : 'bg-red-500/20 border-red-500/60 text-red-300';
 
   return (
-    <MinigameShell title="Read & React" subtitle="Tap the instant the serve fires">
+    <MinigameShell title="Read & React" subtitle="Tap the instant the serve fires — it gets faster each rep">
       <button
         type="button"
-        // React on pointer DOWN, not click — for a reaction-time score we must
-        // capture the moment the finger/mouse lands, not the tap release.
+        // React on pointer DOWN so reaction time is measured from the press, not release.
         onPointerDown={(e) => {
           e.preventDefault();
           react();
         }}
-        disabled={phase === 'done'}
-        className={`w-full h-56 border-4 flex items-center justify-center transition-colors duration-75 select-none touch-none ${panel} ${
-          phase === 'done' ? 'cursor-default' : 'cursor-pointer'
+        disabled={rounds.phase === 'done'}
+        className={`w-full h-48 border-4 flex items-center justify-center transition-colors duration-75 select-none touch-none ${panel} ${
+          rounds.phase === 'done' ? 'cursor-default' : 'cursor-pointer'
         }`}
       >
-        {phase === 'waiting' && (
+        {rounds.phase === 'done' ? (
+          <SupportResult
+            count={rounds.successes}
+            note={countNote(
+              rounds.successes,
+              'Three lightning returns!',
+              'Two quick reads.',
+              'One before you were late.',
+              'Beaten by the serve.'
+            )}
+          />
+        ) : rounds.phase === 'transition' ? (
+          <div className="text-center">
+            <div className="text-lg font-bold">Got it!</div>
+            <div className="text-xs">{note}</div>
+          </div>
+        ) : isGo ? (
+          <div className="text-center">
+            <div className="text-5xl font-bold">NOW!</div>
+            <div className="text-sm">Tap!</div>
+          </div>
+        ) : (
           <div className="text-center">
             <div className="text-4xl mb-2">🎾</div>
             <div className="text-lg font-bold">Wait for it…</div>
           </div>
         )}
-        {phase === 'go' && (
-          <div className="text-center">
-            <div className="text-5xl font-bold">NOW!</div>
-            <div className="text-sm">Tap!</div>
-          </div>
-        )}
-        {phase === 'done' && result && <SupportResult count={result.count} note={result.note} />}
       </button>
 
-      {phase !== 'done' && (
+      <div className="mt-4">
+        <RoundPips {...rounds} />
+      </div>
+
+      {rounds.phase !== 'done' && (
         <p className="text-xs text-pixel-text-muted text-center mt-3">
-          Faster reaction = more support stats. Click or press Space.
+          Return {Math.min(rounds.round + 1, 3)} of 3 · beat {threshold}ms · click or Space
         </p>
       )}
     </MinigameShell>
