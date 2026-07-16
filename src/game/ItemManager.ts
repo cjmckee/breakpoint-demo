@@ -175,9 +175,9 @@ export class ItemManager {
       }
     }
 
-    // Apply next activity buffs
+    // Apply next activity buffs — stack with any already pending
     if (consumableEffect.nextActivityBuffs) {
-      updatedPlayer.nextActivityBuffs = consumableEffect.nextActivityBuffs;
+      updatedPlayer.nextActivityBuffs = [...player.nextActivityBuffs, consumableEffect.nextActivityBuffs];
       buffApplied = true;
     }
 
@@ -188,21 +188,65 @@ export class ItemManager {
   }
 
   /**
-   * Get and clear next activity buffs
-   * Called when starting a training session or match
+   * Merge all pending next-activity buffs into a single Modifiers object,
+   * without consuming them. Used to compute totals for display or match setup.
    */
-  static consumeActivityBuffs(player: Player): {
+  static mergeNextActivityBuffs(buffs: Modifiers[]): Modifiers {
+    const statBoosts: StatBoosts = {};
+    const additional: Record<string, number> = {};
+
+    buffs.forEach((buff) => {
+      this.mergeStatBoosts(statBoosts, buff.statBoosts);
+      Object.entries(buff.additional ?? {}).forEach(([key, value]) => {
+        additional[key] = (additional[key] || 0) + value;
+      });
+    });
+
+    return { statBoosts, additional };
+  }
+
+  /**
+   * Consume the "additional" portion (energy cost reduction, mood gain bonus) of
+   * pending consumable buffs — applied to whichever activity (training or match)
+   * happens first. Stat boosts are left untouched since they only apply to the
+   * player's next match.
+   */
+  static consumeAdditionalBuffs(player: Player): {
     player: Player;
-    buffs: Modifiers | null;
+    additional: Record<string, number>;
   } {
-    const buffs = player.nextActivityBuffs;
+    const additional: Record<string, number> = {};
+
+    const remainingBuffs = player.nextActivityBuffs.reduce<Modifiers[]>((remaining, buff) => {
+      Object.entries(buff.additional ?? {}).forEach(([key, value]) => {
+        additional[key] = (additional[key] || 0) + value;
+      });
+
+      if (Object.keys(buff.statBoosts).length > 0) {
+        remaining.push({ statBoosts: buff.statBoosts });
+      }
+      return remaining;
+    }, []);
 
     return {
-      player: {
-        ...player,
-        nextActivityBuffs: null,
-      },
-      buffs,
+      player: { ...player, nextActivityBuffs: remainingBuffs },
+      additional,
+    };
+  }
+
+  /**
+   * Clear all pending next-activity buffs and return their merged additional
+   * effects. Called when a match completes — stat boosts were already applied
+   * to the match at start.
+   */
+  static consumeMatchBuffs(player: Player): {
+    player: Player;
+    additional: Record<string, number>;
+  } {
+    const { additional = {} } = this.mergeNextActivityBuffs(player.nextActivityBuffs);
+    return {
+      player: { ...player, nextActivityBuffs: [] },
+      additional,
     };
   }
 

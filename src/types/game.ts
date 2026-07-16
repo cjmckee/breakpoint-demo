@@ -537,7 +537,7 @@ export interface Player {
   inventory: Item[];  // Regular items (max 10)
   equippedItems: Record<EquipmentSlot, Item | null>;  // 4 equipment slots
   storyItems: Item[];  // Story items (no limit, don't count toward inventory)
-  nextActivityBuffs: Modifiers | null;  // Temporary buffs from consumables
+  nextActivityBuffs: Modifiers[];  // Pending consumable buffs; stat boosts apply to the player's next match, additional effects apply to their next activity
   seenItemIds: string[];  // Item IDs the player has viewed in inventory
   activeIndicators: string[];  // Generic UI indicator keys (e.g. 'calendar', 'training')
   seenChallengeIds: string[];  // Challenge IDs the player has seen

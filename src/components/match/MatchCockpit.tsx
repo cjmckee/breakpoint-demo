@@ -69,7 +69,7 @@ const FormBadge: React.FC<FormBadgeProps> = ({ form, who }) => {
 
   return (
     <span
-      className={`inline-flex items-center gap-0.5 text-[9px] px-1 py-0.5 rounded border ${
+      className={`${who === 'player' ? 'self-start' : 'self-end'} inline-flex items-center gap-0.5 text-[9px] px-1 py-0.5 rounded border ${
         isHot
           ? 'text-pixel-success border-pixel-success bg-pixel-success/10'
           : 'text-pixel-error border-pixel-error bg-pixel-error/10'
