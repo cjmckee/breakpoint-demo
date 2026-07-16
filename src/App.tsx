@@ -5,7 +5,7 @@ import { useMatchStore } from './stores/matchStore';
 import { useAudioTransitions } from './audio/AudioTransitionManager';
 import { PlayerCreation } from './components/PlayerCreation';
 import { MainMenu } from './components/MainMenu';
-import { TrainingSelection } from './components/TrainingSelection';
+import { AnchorTraining } from './components/AnchorTraining';
 import { MatchSetup } from './components/MatchSetup';
 import { LiveMatchViewer } from './components/LiveMatchViewer';
 import { Inventory } from './components/Inventory';
@@ -83,7 +83,7 @@ function App() {
         return <PlayerCreation />;
 
       case 'training':
-        return <TrainingSelection />;
+        return <AnchorTraining />;
 
       case 'match_setup':
         if (gamePhase.matchType === 'tournament') {
