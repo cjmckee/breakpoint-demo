@@ -7,10 +7,15 @@
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Button } from '../ui/Button';
 import { scoreToCount, type SupportCount } from '../../game/AnchorTrainingSystem';
 import { audioManager } from '../../audio/AudioManager';
-import { MinigameShell, SupportResult, countNote, type MinigameProps } from './MinigameShell';
+import {
+  MinigameShell,
+  SupportResult,
+  MinigameActionButton,
+  countNote,
+  type MinigameProps,
+} from './MinigameShell';
 
 // Toss travels this many meter-units per second (0..100 range). ~0.75s per pass.
 const TOSS_SPEED = 135;
@@ -123,9 +128,9 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
       </div>
 
       <div className="mt-6">
-        <Button variant="primary" fullWidth size="lg" disabled={phase === 'struck'} onClick={strike}>
+        <MinigameActionButton onPress={strike} disabled={phase === 'struck'}>
           {phase === 'struck' ? 'Nice serve!' : 'Strike!  (Space)'}
-        </Button>
+        </MinigameActionButton>
       </div>
     </MinigameShell>
   );

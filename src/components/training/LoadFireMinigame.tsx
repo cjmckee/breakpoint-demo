@@ -132,9 +132,21 @@ export const LoadFireMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
         <button
           type="button"
           disabled={phase === 'done'}
-          onPointerDown={startCharge}
+          // Capture the pointer so the hold sticks to this button even if the finger
+          // drifts, and always resolve on release OR a browser-issued cancel (e.g. an
+          // interrupted touch) so the charge can never get stuck mid-load on mobile.
+          onPointerDown={(e) => {
+            e.preventDefault();
+            try {
+              e.currentTarget.setPointerCapture(e.pointerId);
+            } catch {
+              // setPointerCapture can throw on some browsers / synthetic events; the
+              // hold still works via the up/cancel handlers without capture.
+            }
+            startCharge();
+          }}
           onPointerUp={fire}
-          onPointerLeave={fire}
+          onPointerCancel={fire}
           className="font-bold border-4 transition-all duration-150 ease-in-out cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 bg-pixel-accent border-pixel-accent-dark text-white hover:bg-pixel-accent-light active:translate-y-1 px-8 py-3 text-lg w-full select-none touch-none"
         >
           {phase === 'done'
