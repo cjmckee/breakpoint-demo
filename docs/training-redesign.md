@@ -26,8 +26,8 @@ ones. Nothing is permanently coupled.
    `slice`). This grants **+1 to that core** and selects the themed minigame. *This is the build
    choice* — a serve-&-volley player picks Serve; a grinder picks Backhand/Return.
 2. **Play the themed minigame** — **three pass/fail attempts**. Each attempt has a success window
-   that **moves**, so you can't muscle-memory one spot. **Every consecutive success banks one
-   support; the first miss ends the practice** and you keep what you banked (0–3).
+   that **moves**, so you can't muscle-memory one spot. **You bank one support per success (0–3)** —
+   all three reps always play out; a miss just doesn't score.
 3. **Draw `successes` supports** from that core's **themed support pool** (see §4), avoiding stats
    you were just handed last session so it stays fresh. Each support is **+1**.
 4. **Quick Sim** button auto-resolves to **1** support for grind days.
@@ -43,27 +43,21 @@ themed to *that shot and the tendencies around it*, so choosing the core that ma
 naturally pulls in the stats that game uses. Archetype coherence is an emergent result of the
 player's anchor choices, not something the system solves for them.
 
-## 3. Scoring — three attempts, consecutive successes
+## 3. Scoring — three attempts, count the successes
 
-The minigame is a **best-of-streak over three attempts**, each a binary pass/fail:
+The minigame is **three attempts**, each a binary pass/fail. You bank **one support per success**,
+and they do **not** have to be consecutive — all three reps always play out, a miss just doesn't
+score. So supports = number of passes (**0–3**). Quick Sim resolves to **1**.
 
-| Outcome | Supports |
-| --- | --- |
-| pass · pass · pass | **3** |
-| pass · pass · miss | **2** |
-| pass · miss | **1** |
-| miss (first) | **0** |
-| Quick Sim (skip) | **1** |
+There's no partial credit within an attempt. The **success window moves each attempt** (a different
+meter position, or a different ball spawn for Return), so the player re-times/re-aims every rep
+instead of grooving one motion.
 
-The **first miss ends the practice** — there's no partial credit and no second/third window within an
-attempt. The **success window moves each attempt** (a different meter position, or a tighter reaction
-threshold for Return), so the player re-times every rep instead of grooving one motion.
-
-The shared machinery is `useMinigameRounds` (runs the three rounds, banks consecutive passes, stops
-on a miss) plus a per-minigame `movingBands`/`tighteningThresholds` window generator. Every minigame
-reports its success count via `onComplete(successes: number)`; only the interaction skin differs, so
-the round loop and the support draw are **one shared pipeline**. The core anchor's **+1 is granted
-separately and is always guaranteed** — this scoring governs only the 0–3 supports.
+The shared machinery is `useMinigameRounds` (runs the three rounds and totals the passes) plus a
+per-minigame window generator (`movingBands`, or per-ball randomization for the catch game). Every
+minigame reports its success count via `onComplete(successes: number)`; only the interaction skin
+differs, so the round loop and the support draw are **one shared pipeline**. The core anchor's **+1
+is granted separately and is always guaranteed** — this scoring governs only the 0–3 supports.
 
 ## 4. Per-core themed support pools
 
@@ -76,7 +70,7 @@ picks), never the whole pool.
 | **Serve** | Toss & Strike (power/placement meter) | strength, placement, overhead, volley, offensive, spin |
 | **Forehand** | Rally rhythm | spin, strength, placement, offensive, speed, stamina |
 | **Backhand** | Load & fire | spin, placement, defensive, anticipation, agility, recovery |
-| **Return** | Read & react | anticipation, speed, agility, defensive, focus, recovery |
+| **Return** | Read & catch | anticipation, speed, agility, defensive, focus, recovery |
 | **Slice** | Touch / carve | dropShot, volley, shotVariety, focus, defensive, placement |
 
 Two properties fall out of these pools, both intended:
@@ -98,8 +92,9 @@ success window so timing has to be re-earned every rep:
   (moving) strike zone.
 - **Backhand — Load & fire:** hold to load; release while the charge is in the (moving) green
   window. Overshoot = miss.
-- **Return — Read & react:** react the instant the serve fires; the reaction time you must beat
-  **tightens** each attempt (no spatial window to move).
+- **Return — Read & catch:** three returns drop from random spots in a box; click/tap each ball
+  before it reaches the floor. Tests moving to the ball plus reaction, with the fall giving timing
+  leeway.
 - **Slice — Touch / carve:** the contact ring breathes; tap while it's sized between the two
   (moving) target rings.
 
@@ -126,7 +121,7 @@ Following the core/state/component separation in CLAUDE.md:
   config (anchor → minigame id + support pool + labels), `resolveSupports()` (themed draw with
   recent-repeat avoidance, 0–3), and `buildAnchorTrainingResult()` producing a `TrainingResult`.
 - **Round machinery (`src/components/training/`)** — `useMinigameRounds` (the shared three-attempt
-  controller), `minigameWindows` (`movingBands` / `tighteningThresholds`), and `MinigameShell`
+  controller), `minigameWindows` (`movingBands`), and `MinigameShell`
   (frame, `RoundPips`, `SupportResult`, `MinigameActionButton`).
 - **State (`gameStore`)** — reuses the existing `applyTrainingResult()` + `advanceTime()` actions.
   The redesign only changes *how a `TrainingResult` is produced*, not how it's applied, so stat

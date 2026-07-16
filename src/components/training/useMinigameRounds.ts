@@ -1,10 +1,10 @@
 /**
  * Shared 3-attempt controller for the training minigames.
  *
- * Each minigame is now a best-of-streak: the player gets THREE attempts, each a
- * pass/fail. Every consecutive success banks one support stat; the first miss ends
- * the practice and you keep what you've banked. So 0-3 supports, and the success
- * window moves each attempt so it can't be muscle-memoried. See docs/training-redesign.md.
+ * The player always gets THREE attempts, each a pass/fail. You bank one support per
+ * success — they do NOT have to be consecutive, and a miss no longer ends the
+ * practice; all three reps always play out. So 0-3 supports, and the success window
+ * moves each attempt so it can't be muscle-memoried. See docs/training-redesign.md.
  *
  * The core anchor's +1 is granted separately and is always guaranteed — this only
  * governs the support count.
@@ -24,33 +24,36 @@ export type RoundPhase = 'playing' | 'transition' | 'done';
 export interface MinigameRounds {
   /** Current attempt index, 0-based. */
   round: number;
-  /** Supports banked so far. */
+  /** Supports banked so far (total passes). */
   successes: number;
   phase: RoundPhase;
   /** Result of the most recent attempt (null between attempts). */
   lastPass: boolean | null;
+  /** Per-attempt outcomes, one entry per completed attempt. */
+  results: boolean[];
   /** Call exactly once per attempt with whether the player hit the window. */
   commit: (passed: boolean) => void;
 }
 
 export function useMinigameRounds(onComplete: (successes: number) => void): MinigameRounds {
   const [round, setRound] = useState(0);
-  const [successes, setSuccesses] = useState(0);
+  const [results, setResults] = useState<boolean[]>([]);
   const [phase, setPhase] = useState<RoundPhase>('playing');
   const [lastPass, setLastPass] = useState<boolean | null>(null);
 
-  const succRef = useRef(0);
+  const resultsRef = useRef<boolean[]>([]);
   const roundRef = useRef(0);
   const phaseRef = useRef<RoundPhase>('playing');
   const doneRef = useRef(false);
   phaseRef.current = phase;
 
   const finish = useCallback(
-    (n: number) => {
+    (res: boolean[]) => {
       if (doneRef.current) return;
       doneRef.current = true;
       setPhase('done');
-      window.setTimeout(() => onComplete(n), FINISH_MS);
+      const successes = res.filter(Boolean).length;
+      window.setTimeout(() => onComplete(successes), FINISH_MS);
     },
     [onComplete]
   );
@@ -60,21 +63,16 @@ export function useMinigameRounds(onComplete: (successes: number) => void): Mini
       if (doneRef.current || phaseRef.current !== 'playing') return;
       setLastPass(passed);
 
-      if (!passed) {
-        finish(succRef.current);
-        return;
-      }
+      const res = [...resultsRef.current, passed];
+      resultsRef.current = res;
+      setResults(res);
 
-      const n = succRef.current + 1;
-      succRef.current = n;
-      setSuccesses(n);
-
+      // All three attempts always play out — a miss no longer stops the practice.
       if (roundRef.current >= TOTAL_ROUNDS - 1) {
-        finish(n);
+        finish(res);
         return;
       }
 
-      // Passed with rounds remaining — brief beat, then arm the next attempt.
       setPhase('transition');
       window.setTimeout(() => {
         roundRef.current += 1;
@@ -86,5 +84,5 @@ export function useMinigameRounds(onComplete: (successes: number) => void): Mini
     [finish]
   );
 
-  return { round, successes, phase, lastPass, commit };
+  return { round, successes: results.filter(Boolean).length, phase, lastPass, results, commit };
 }

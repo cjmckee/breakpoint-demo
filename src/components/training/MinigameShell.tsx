@@ -4,8 +4,8 @@
  * Every core anchor has its own minigame with a distinct interaction, but they all
  * share the same frame, the same 3-attempt round pips, and the same result readout so
  * the training screen feels like one system. Each minigame runs three pass/fail
- * attempts (see useMinigameRounds) and reports the number of consecutive successes
- * (0-3) via onComplete. See docs/training-redesign.md.
+ * attempts (see useMinigameRounds) and reports the number of successes (0-3) via
+ * onComplete. See docs/training-redesign.md.
  */
 
 import React from 'react';
@@ -32,18 +32,18 @@ export const MinigameShell: React.FC<{
 );
 
 /**
- * Three-slot progress row: banked successes (green), the miss that ended it (red),
- * the currently-arming attempt (accent ring), and pending attempts (dim).
+ * Three-slot progress row: each attempt shows hit (green) or miss (red) once played,
+ * the current attempt gets an accent ring, and unplayed attempts are dim.
  */
-export const RoundPips: React.FC<MinigameRounds> = ({ round, successes, phase, lastPass }) => (
+export const RoundPips: React.FC<MinigameRounds> = ({ round, results, successes, phase }) => (
   <div className="flex items-center justify-center gap-2">
     {Array.from({ length: TOTAL_ROUNDS }).map((_, i) => {
-      const failedHere = phase === 'done' && lastPass === false && i === successes;
+      const played = results[i];
       const isCurrent = phase !== 'done' && i === round;
       const cls =
-        i < successes
+        played === true
           ? 'bg-green-500 border-green-400'
-          : failedHere
+          : played === false
             ? 'bg-red-600 border-red-500'
             : isCurrent
               ? 'bg-pixel-bg border-pixel-accent'

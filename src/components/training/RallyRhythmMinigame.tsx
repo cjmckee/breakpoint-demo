@@ -105,13 +105,17 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete }) => 
             rounds.successes,
             'Locked-in rally!',
             'Two clean strikes.',
-            'One before you netted it.',
-            'Mistimed the first one.'
+            'One clean strike.',
+            'Mistimed the rally.'
           )}
         />
       ) : (
         <MinigameActionButton onPress={swing} disabled={!playing}>
-          {playing ? `Swing!  ·  Rep ${rounds.round + 1} of 3  (Space)` : 'Clean! Next ball…'}
+          {playing
+            ? `Swing!  ·  Rep ${rounds.round + 1} of 3  (Space)`
+            : rounds.lastPass
+              ? 'Clean! Next ball…'
+              : 'Missed — next ball…'}
         </MinigameActionButton>
       )}
     </MinigameShell>

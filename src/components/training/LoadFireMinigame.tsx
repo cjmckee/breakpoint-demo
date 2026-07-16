@@ -131,14 +131,16 @@ export const LoadFireMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
                 rounds.successes,
                 'Three flush drives!',
                 'Two clean releases.',
-                'One before you mistimed it.',
+                'One clean release.',
                 'Released outside the window.'
               )}
             />
           ) : (
             <div className="text-sm text-pixel-text-muted text-center">
               {rounds.phase === 'transition'
-                ? 'Clean! Next load…'
+                ? rounds.lastPass
+                  ? 'Clean! Next load…'
+                  : 'Missed — next load…'
                 : charging
                   ? 'Release in the green!'
                   : `Backhand ${rounds.round + 1} of 3 — hold to load.`}
@@ -168,7 +170,13 @@ export const LoadFireMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
           onPointerCancel={fire}
           className="font-bold border-4 transition-all duration-150 ease-in-out cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 bg-pixel-accent border-pixel-accent-dark text-white hover:bg-pixel-accent-light active:translate-y-1 px-8 py-3 text-lg w-full select-none touch-none"
         >
-          {!playing ? 'Nice!' : charging ? 'Release to fire!' : 'Hold to Load  (Space)'}
+          {!playing
+            ? rounds.lastPass
+              ? 'Nice!'
+              : 'Missed'
+            : charging
+              ? 'Release to fire!'
+              : 'Hold to Load  (Space)'}
         </button>
       )}
     </MinigameShell>
