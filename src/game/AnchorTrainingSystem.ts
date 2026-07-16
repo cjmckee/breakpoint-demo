@@ -26,7 +26,7 @@ export type MinigameId =
   | 'toss_and_strike' // serve
   | 'rally_rhythm' // forehand
   | 'load_and_fire' // backhand
-  | 'read_and_react' // return
+  | 'catch_return' // return
   | 'touch_carve'; // slice
 
 export interface CoreAnchorConfig {
@@ -79,7 +79,7 @@ export const CORE_ANCHORS: Record<CoreStat, CoreAnchorConfig> = {
   return: {
     core: 'return',
     name: 'Return',
-    minigame: 'read_and_react',
+    minigame: 'catch_return',
     playable: true,
     supportPool: ['anticipation', 'speed', 'agility', 'defensive', 'focus', 'recovery'],
     description: 'Read the serve, react, get it back deep. Pure reflex.',
@@ -105,7 +105,7 @@ export const ANCHOR_TRAINING_ENERGY_COST = 20;
 /** Mood bump for completing a bronze session. */
 const BRONZE_MOOD_CHANGE = 2;
 
-/** Supports earned in a session: 0-3, one per consecutive minigame success. */
+/** Supports earned in a session: 0-3, one per minigame success. */
 export type SupportCount = 0 | 1 | 2 | 3;
 
 /**
@@ -193,7 +193,7 @@ function buildMessage(anchorName: string, supportCount: number): string {
   const shot = anchorName.toLowerCase();
   if (supportCount >= 3) return `Perfect ${shot} session — three for three!`;
   if (supportCount === 2) return `Strong ${shot} work — two clean reps.`;
-  if (supportCount === 1) return `${anchorName} session — one clean rep before you slipped.`;
+  if (supportCount === 1) return `${anchorName} session — one clean rep.`;
   return `Tough ${shot} session — the core reps still count.`;
 }
 

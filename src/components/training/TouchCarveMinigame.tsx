@@ -105,13 +105,17 @@ export const TouchCarveMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
             rounds.successes,
             'Three feather touches!',
             'Two clean carves.',
-            'One before you leaned on it.',
+            'One clean carve.',
             'Ring was the wrong size.'
           )}
         />
       ) : (
         <MinigameActionButton onPress={carve} disabled={!playing}>
-          {playing ? `Carve!  ·  Rep ${rounds.round + 1} of 3  (Space)` : 'Clean! Next touch…'}
+          {playing
+            ? `Carve!  ·  Rep ${rounds.round + 1} of 3  (Space)`
+            : rounds.lastPass
+              ? 'Clean! Next touch…'
+              : 'Missed — next touch…'}
         </MinigameActionButton>
       )}
     </MinigameShell>

@@ -107,13 +107,17 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
                 rounds.successes,
                 'Three flush serves!',
                 'Two clean strikes.',
-                'One before you slipped.',
-                'Caught it outside the window.'
+                'One clean strike.',
+                'Caught them outside the window.'
               )}
             />
           ) : (
             <div className="text-sm text-pixel-text-muted text-center">
-              {rounds.phase === 'transition' ? 'Clean! Next toss…' : `Serve ${rounds.round + 1} of 3`}
+              {rounds.phase === 'transition'
+                ? rounds.lastPass
+                  ? 'Clean! Next toss…'
+                  : 'Missed — next toss…'
+                : `Serve ${rounds.round + 1} of 3`}
             </div>
           )}
         </div>
@@ -125,7 +129,7 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
 
       {rounds.phase === 'done' ? null : (
         <MinigameActionButton onPress={strike} disabled={!playing}>
-          {playing ? 'Strike!  (Space)' : 'Nice!'}
+          {playing ? 'Strike!  (Space)' : rounds.lastPass ? 'Nice!' : 'Missed'}
         </MinigameActionButton>
       )}
     </MinigameShell>

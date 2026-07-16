@@ -29,11 +29,3 @@ export function movingBands(
   }
   return bands;
 }
-
-/**
- * Reaction-time thresholds (ms) that tighten across attempts — the returns get
- * faster. Each value is the max reaction allowed to pass that attempt.
- */
-export function tighteningThresholds(start: number, step: number, count = 3): number[] {
-  return Array.from({ length: count }, (_, i) => start - i * step);
-}

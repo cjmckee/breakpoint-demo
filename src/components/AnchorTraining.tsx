@@ -3,8 +3,8 @@
  *
  * Redesigned training flow:
  *   1. Pick a CORE stat to anchor on (this is your build choice; grants +1 core).
- *   2. Play that shot's themed minigame — three pass/fail attempts, each consecutive
- *      success banks a support (0-3) — or Quick Sim for a guaranteed 1.
+ *   2. Play that shot's themed minigame — three pass/fail attempts, each success banks
+ *      a support (0-3) — or Quick Sim for a guaranteed 1.
  *   3. Supports are drawn from a pool themed to the anchored shot.
  *
  * See docs/training-redesign.md.
@@ -30,14 +30,14 @@ import type { MinigameProps } from './training/MinigameShell';
 import { ServeMinigame } from './training/ServeMinigame';
 import { RallyRhythmMinigame } from './training/RallyRhythmMinigame';
 import { LoadFireMinigame } from './training/LoadFireMinigame';
-import { ReadReactMinigame } from './training/ReadReactMinigame';
+import { CatchReturnMinigame } from './training/CatchReturnMinigame';
 import { TouchCarveMinigame } from './training/TouchCarveMinigame';
 
 const MINIGAMES: Record<MinigameId, React.FC<MinigameProps>> = {
   toss_and_strike: ServeMinigame,
   rally_rhythm: RallyRhythmMinigame,
   load_and_fire: LoadFireMinigame,
-  read_and_react: ReadReactMinigame,
+  catch_return: CatchReturnMinigame,
   touch_carve: TouchCarveMinigame,
 };
 
@@ -91,7 +91,7 @@ export const AnchorTraining: React.FC = () => {
           </div>
           <p className="text-pixel-text-muted mb-6">
             Guaranteed <span className="text-green-400 font-bold">+1 {anchor.name}</span> — then bank
-            a support for each clean rep (3 attempts, stop on a miss).
+            a support for each clean rep across 3 attempts.
           </p>
 
           {(() => {
