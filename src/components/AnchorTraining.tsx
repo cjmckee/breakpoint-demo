@@ -28,7 +28,21 @@ import { StatusBar } from './StatusBar';
 import { Button } from './ui/Button';
 import { STAT_ICONS, formatStatName } from './ui/StatBoostList';
 import { audioManager } from '../audio/AudioManager';
+import type { MinigameId } from '../game/AnchorTrainingSystem';
+import type { MinigameProps } from './training/MinigameShell';
 import { ServeMinigame } from './training/ServeMinigame';
+import { RallyRhythmMinigame } from './training/RallyRhythmMinigame';
+import { LoadFireMinigame } from './training/LoadFireMinigame';
+import { ReadReactMinigame } from './training/ReadReactMinigame';
+import { TouchCarveMinigame } from './training/TouchCarveMinigame';
+
+const MINIGAMES: Record<MinigameId, React.FC<MinigameProps>> = {
+  toss_and_strike: ServeMinigame,
+  rally_rhythm: RallyRhythmMinigame,
+  load_and_fire: LoadFireMinigame,
+  read_and_react: ReadReactMinigame,
+  touch_carve: TouchCarveMinigame,
+};
 
 type Step = { kind: 'pick' } | { kind: 'play'; core: CoreStat };
 
@@ -83,20 +97,10 @@ export const AnchorTraining: React.FC = () => {
             1–3 support stats.
           </p>
 
-          {anchor.playable ? (
-            <ServeMinigame onComplete={(score) => resolve(step.core, scoreToCount(score))} />
-          ) : (
-            <div className="bg-pixel-card border-4 border-pixel-border p-6 text-center">
-              <div className="text-4xl mb-3">🚧</div>
-              <h3 className="text-lg font-bold text-pixel-text mb-1">
-                {minigameName(anchor.minigame)} coming soon
-              </h3>
-              <p className="text-sm text-pixel-text-muted">
-                This shot's minigame isn't built yet. Quick Sim resolves it for a guaranteed
-                1 support.
-              </p>
-            </div>
-          )}
+          {(() => {
+            const Minigame = MINIGAMES[anchor.minigame];
+            return <Minigame onComplete={(score) => resolve(step.core, scoreToCount(score))} />;
+          })()}
 
           {/* Themed support pool preview */}
           <div className="bg-pixel-card border-2 border-pixel-border p-4 mt-4">
@@ -185,11 +189,6 @@ export const AnchorTraining: React.FC = () => {
                   ))}
                 </div>
 
-                {!anchor.playable && (
-                  <div className="text-[10px] text-pixel-text-muted mt-2 italic">
-                    minigame WIP · Quick Sim available
-                  </div>
-                )}
               </button>
             );
           })}
@@ -198,20 +197,3 @@ export const AnchorTraining: React.FC = () => {
     </div>
   );
 };
-
-function minigameName(id: string): string {
-  switch (id) {
-    case 'toss_and_strike':
-      return 'Toss & Strike';
-    case 'rally_rhythm':
-      return 'Rally Rhythm';
-    case 'load_and_fire':
-      return 'Load & Fire';
-    case 'read_and_react':
-      return 'Read & React';
-    case 'touch_carve':
-      return 'Touch & Carve';
-    default:
-      return 'Minigame';
-  }
-}
