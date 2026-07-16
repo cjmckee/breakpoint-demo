@@ -576,24 +576,104 @@ export const MOMENTUM_MODIFIER = {
   focusMitigation: 0.5,
 };
 
-/** Momentum bank configuration for key moment system */
-export const MOMENTUM_BANK = {
-  /** Max absolute value the bank can reach */
-  clamp: 60,
-  /** Decay multiplier per point (moves bank toward 0) */
-  decay: 0.95,
-  /** Blend weight for recent form component */
-  blendRecent: 0.6,
-  /** Blend weight for persistent bank component */
-  blendBank: 0.4,
-  /** Per-point-type momentum bumps */
+/**
+ * Event-driven momentum configuration (shared by MatchSimulator and MatchOrchestrator).
+ *
+ * Momentum is a single value in [-clamp, +clamp] on a player-positive scale
+ * (>0 favours the player). Every point nudges it toward the point winner, and
+ * it decays back toward 0 when nothing keeps feeding it. Game- and set-level
+ * events (a break of serve, a set won) can seize or reset it — this is what
+ * lets a "big moment" take over rather than momentum being a rolling point count.
+ *
+ * All magnitudes live on the same scale, so a key moment's authored momentum
+ * reward (fed via MomentumEngine.applyDirect) reads on the bar instead of being
+ * dwarfed by the incidental swing of simply winning the point.
+ */
+export const MOMENTUM = {
+  /** Max absolute momentum value. */
+  clamp: 100,
+  /** Per-point decay toward 0 (applied before each point's bump). */
+  decayPerPoint: 0.9,
+
+  /**
+   * Base per-point bump by how the point ended, applied toward the point winner.
+   * Emphatic ends (aces, winners) and self-inflicted losses (double faults) move
+   * the needle more than a grind-it-out error. Keyed by PointType string value.
+   */
   bump: {
-    ace: 8,
-    winner: 5,
-    doubleFault: 6,
-    unforcedError: 3,
-    forcedError: 4,
+    ace: 12,
+    winner: 10,
+    double_fault: 11,
+    forced_error: 8,
+    unforced_error: 9,
+    default: 8,
   } as Record<string, number>,
+
+  /**
+   * Multipliers on the per-point bump when the point carried stakes. A point
+   * played on match point swings momentum far harder than a 15-0 point.
+   * keyMoment stacks on top for interactive key-moment points.
+   */
+  clutchMultiplier: {
+    breakPoint: 1.5,
+    setPoint: 2.0,
+    matchPoint: 2.5,
+    keyMoment: 1.8,
+  } as Record<string, number>,
+
+  /**
+   * Break of serve — the classic momentum takeover. Instead of nudging, a break
+   * lerps momentum a large fraction of the way to a strong value in the breaker's
+   * favour, so it can flip the sign outright even against a prior run of play.
+   */
+  breakOfServe: {
+    target: 45,     // absolute momentum a break pulls toward (signed to the breaker)
+    takeover: 0.7,  // fraction of the way to target (0.7 => a clean flip through 0)
+  },
+
+  /**
+   * Set boundary — a partial reset. The scoreline resets each set, so momentum
+   * mostly wipes and keeps only a small tilt toward whoever took the set.
+   */
+  setWon: {
+    damp: 0.3,   // retain this fraction of pre-set momentum
+    nudge: 12,   // small signed nudge toward the set winner
+  },
+};
+
+/**
+ * Stamina recovery on the natural breaks in a match, scaled by the recovery stat.
+ *
+ * Per-point recovery (MATCH_FATIGUE) models catching your breath between points;
+ * this models the real rest windows — the changeover after each game and the
+ * longer break between sets — where a high-recovery player claws back a chunk of
+ * stamina. Recovered fatigue = base + (recovery/100) * scale.
+ */
+export const STAMINA_RECOVERY = {
+  /** Fatigue removed at each changeover (game end), before recovery-stat scaling. */
+  perGameBase: 2.0,
+  /** Extra fatigue removed at a changeover at recovery stat 100. */
+  perGameScale: 4.0,
+  /** Fatigue removed at the end of a set, before recovery-stat scaling. */
+  perSetBase: 8.0,
+  /** Extra fatigue removed at the end of a set at recovery stat 100. */
+  perSetScale: 10.0,
+};
+
+/**
+ * How an aggressive key-moment win drains the opponent's stamina.
+ *
+ * When the player wins a key moment by spending their own energy on a bold
+ * tactic, the opponent pays for it in fatigue — which feeds straight into their
+ * shot quality on the following points (via the fatigue modifier). They recover
+ * it on the next changeover like any other fatigue, so one moment stings without
+ * permanently crippling them; a sustained aggressive stretch compounds.
+ */
+export const KEY_MOMENT_OPPONENT_DRAIN = {
+  /** Opponent fatigue added per point of player energy spent on the winning tactic. */
+  fatiguePerEnergySpent: 0.6,
+  /** Multiplier applied when the key moment was a critical success. */
+  criticalMultiplier: 2,
 };
 
 /** Pressure bank configuration for key moment system */

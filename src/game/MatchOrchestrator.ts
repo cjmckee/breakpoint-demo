@@ -23,7 +23,8 @@ import {
 } from '../types/keyMoments';
 import { PlayerStats, Ability, StatBoosts, EffectKey } from '../types/game';
 import { MatchStatistics as IMatchStatistics, MatchState, PointResult, PointType, PlayerMatchFatigue } from '../types';
-import { MATCH_FATIGUE, MOMENTUM_BANK, PRESSURE_BANK } from '../config/shotThresholds';
+import { MATCH_FATIGUE, PRESSURE_BANK, STAMINA_RECOVERY, KEY_MOMENT_OPPONENT_DRAIN } from '../config/shotThresholds';
+import { MomentumEngine, ClutchLevel } from '../core/MomentumEngine';
 import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds';
 import { DEFAULT_KEY_MOMENTS_PER_MATCH } from '../config/matchRewards';
 
@@ -36,13 +37,11 @@ export interface AccumulatedMatchEffects {
 export class MatchOrchestrator {
   private keyMomentsTriggered = 0;
   private pointsPlayed = 0;
-  private recentPointWinners: Array<'player' | 'opponent'> = [];
-  private momentum = 0;
-  private momentumBank = 0; // Persistent momentum from events/shot quality (decays slowly)
+  private momentum = 0; // Mirror of momentumEngine, read across the orchestrator
+  private momentumEngine = new MomentumEngine();
   private pressure = 0;
   private pressureBank = 0; // Persistent pressure from key moment effects (decays slowly)
   private matchEnergy = 100; // Tracked mid-match, starts at config.energy
-  private matchOpponentEnergy = 100; // Opponent energy, drains when player wins key moments
   private matchMood = 0; // Tracked mid-match, starts at config.mood
   private playerMatchForm = 0; // Rolled once at match start; surfaced to the UI as a form indicator
   private opponentMatchForm = 0;
@@ -212,10 +211,10 @@ export class MatchOrchestrator {
 
     // Initialize live energy/mood tracking
     this.matchEnergy = config.energy ?? 100;
-    this.matchOpponentEnergy = 100;
     this.matchMood = config.mood ?? 0;
     this.accumulatedEffects = { energyDelta: 0, moodDelta: 0, opponentEnergyDelta: 0 };
-    this.momentumBank = 0;
+    this.momentum = 0;
+    this.momentumEngine.reset();
     this.pressureBank = 0;
 
     // Reset tiebreak tracking state for this match
@@ -262,9 +261,11 @@ export class MatchOrchestrator {
         // Apply secondary effects to match state
         this.applySecondaryEffects(result.appliedEffects);
 
-        // Opponent energy drain: when the player wins a key moment, the opponent loses
-        // energy proportional to the risk the player took (their energy investment).
-        // Higher energy cost = more aggressive tactic = bigger drain on opponent if it pays off.
+        // Opponent stamina drain: when the player wins a key moment with an
+        // aggressive tactic, the opponent pays for it in FATIGUE — which feeds
+        // straight into their shot quality on the following points and recovers
+        // on the next changeover like any other fatigue. Drain scales with the
+        // energy the player risked, so bolder tactics hurt the opponent more.
         if (result.pointWinner === 'player') {
           const energySpent = Math.abs(
             selectedOption.secondaryEffects
@@ -273,9 +274,12 @@ export class MatchOrchestrator {
           );
           if (energySpent > 0) {
             const isCritical = result.outcome === 'critical-success';
-            const opponentDrain = energySpent * (isCritical ? 2 : 1);
-            this.matchOpponentEnergy = Math.max(0, Math.min(100, this.matchOpponentEnergy - opponentDrain));
-            this.accumulatedEffects.opponentEnergyDelta -= opponentDrain;
+            const drain = energySpent
+              * KEY_MOMENT_OPPONENT_DRAIN.fatiguePerEnergySpent
+              * (isCritical ? KEY_MOMENT_OPPONENT_DRAIN.criticalMultiplier : 1);
+            this.fatigue.opponent = Math.max(0, Math.min(100, this.fatigue.opponent + drain));
+            // Tracked for the post-match mood bonus (grinding the opponent down feels good).
+            this.accumulatedEffects.opponentEnergyDelta -= drain;
           }
         }
 
@@ -305,14 +309,19 @@ export class MatchOrchestrator {
 
         // Apply result to score
         // Update score after recording match statistics in case the update changes game / server
-        currentScore = this.updateScore(currentScore, result.pointWinner);
+        const prevScore = currentScore;
+        const clutch = this.detectClutchLevel(prevScore);
+        currentScore = this.updateScore(prevScore, result.pointWinner);
+        const boundary = this.detectBoundary(prevScore, currentScore, prevScore.server);
 
-        // Update momentum based on outcome (use shot outcome point type)
-        this.updateMomentum(result.pointWinner, result.shotOutcome.outcome);
+        // Momentum: this is a key-moment point — feed it to the shared engine with
+        // the KM amplifier so the moment reads on the bar.
+        this.updateMomentum(result.pointWinner, result.shotOutcome.outcome, clutch, true, boundary);
 
-        // Update fatigue (key moment rallies are ~3-5 shots)
+        // Update fatigue (key moment rallies are ~3-5 shots), then any changeover rest.
         const kmPointResult = this.createPointResultFromKeyMoment(result, currentScore.server);
         this.updateMatchFatigue(kmPointResult.rallyLength);
+        if (boundary.game) this.applyRestRecovery(!!boundary.setWonBy);
 
         this.keyMomentsTriggered++;
       } else {
@@ -334,11 +343,15 @@ export class MatchOrchestrator {
           shots: pointResult.shots,
         };
 
-        currentScore = this.updateScore(currentScore, pointWinner);
+        const prevScore = currentScore;
+        const clutch = this.detectClutchLevel(prevScore);
+        currentScore = this.updateScore(prevScore, pointWinner);
+        const boundary = this.detectBoundary(prevScore, currentScore, prevScore.server);
 
-        // Update momentum and fatigue (pass actual point type for momentum events)
-        this.updateMomentum(pointWinner, pointResult.pointType);
+        // Update momentum (shared engine) and fatigue, then any changeover rest.
+        this.updateMomentum(pointWinner, pointResult.pointType, clutch, false, boundary);
         this.updateMatchFatigue(pointResult.rallyLength);
+        if (boundary.game) this.applyRestRecovery(!!boundary.setWonBy);
       }
 
       // Fire onPointComplete callback
@@ -361,9 +374,10 @@ export class MatchOrchestrator {
       // refreshing here removes a one-point display lag on the cockpit gauges.
       currentScore.momentum = this.momentum;
       currentScore.energy = this.matchEnergy;
-      currentScore.opponentEnergy = this.matchOpponentEnergy;
       currentScore.playerStamina = Math.max(0, Math.round(100 - this.fatigue.player));
       currentScore.opponentStamina = Math.max(0, Math.round(100 - this.fatigue.opponent));
+      // Opponent has no separate "energy" resource — its bar mirrors its live stamina.
+      currentScore.opponentEnergy = currentScore.opponentStamina;
 
       // Callback for score update
       if (config.onScoreUpdate) {
@@ -801,7 +815,10 @@ export class MatchOrchestrator {
     for (const effect of effects) {
       switch (effect.type) {
         case 'momentum':
-          this.momentumBank = Math.max(-MOMENTUM_BANK.clamp, Math.min(MOMENTUM_BANK.clamp, this.momentumBank + effect.value));
+          // Feed the key moment's authored momentum swing straight into the shared
+          // engine (player-positive), on the same scale as ordinary points.
+          this.momentumEngine.applyDirect(effect.value);
+          this.momentum = this.momentumEngine.get();
           break;
         case 'pressure':
           this.pressureBank = Math.max(0, Math.min(PRESSURE_BANK.clamp, this.pressureBank + effect.value));
@@ -992,64 +1009,129 @@ export class MatchOrchestrator {
   }
 
   /**
-   * Update momentum based on:
-   * 1. Recent form (sliding window of last 5 points) — base component
-   * 2. Shot quality events (aces, winners, UEs, DFs) — bump the momentum bank
-   * 3. Persistent momentum bank from key moment secondary effects — decays slowly
+   * Feed a completed point into the shared momentum engine and mirror the result
+   * onto this.momentum. The engine handles decay, per-point bumps (scaled by the
+   * point type and stakes), the break-of-serve takeover, and the set-boundary reset.
    *
-   * Final momentum = recentForm * 0.6 + momentumBank * 0.4
+   * Ability effects tilt the raw bump before it reaches the engine:
+   *  - UNSTOPPABLE_MOMENTUM amplifies the player's own momentum gains
+   *  - MOMENTUM_SHIELD softens momentum lost on points the opponent wins
    */
-  private updateMomentum(winner: 'player' | 'opponent', pointType: PointType | string): void {
-    this.recentPointWinners.push(winner);
-    if (this.recentPointWinners.length > 5) {
-      this.recentPointWinners.shift();
-    }
-
-    // Component 1: Recent form (-100 to +100)
-    const playerWins = this.recentPointWinners.filter(w => w === 'player').length;
-    const opponentWins = this.recentPointWinners.filter(w => w === 'opponent').length;
-    const total = this.recentPointWinners.length;
-    const recentForm = total > 0 ? ((playerWins - opponentWins) / total) * 100 : 0;
-
-    // Component 2: Shot quality events bump the momentum bank
+  private updateMomentum(
+    winner: 'player' | 'opponent',
+    pointType: PointType | string,
+    clutch: ClutchLevel,
+    isKeyMoment: boolean,
+    boundary: { game?: { winner: 'player' | 'opponent'; wasBreak: boolean }; setWonBy?: 'player' | 'opponent' }
+  ): void {
     const isPlayerPoint = winner === 'player';
-    const momentumMultiplier = isPlayerPoint
-      ? 1 + (this.activeEffects[EffectKey.UNSTOPPABLE_MOMENTUM] ?? 0) * 0.15
-      : 1;
-    // momentum_shield: reduces negative momentum accumulation when player loses a point
-    const momentumShield = this.activeEffects[EffectKey.MOMENTUM_SHIELD] ?? 0;
-    const negativeDamper = !isPlayerPoint && momentumShield > 0
-      ? Math.max(0.5, 1 - momentumShield * 0.06)
-      : 1;
-    const bump = MOMENTUM_BANK.bump;
-    switch (pointType) {
-      case PointType.ACE:
-        this.momentumBank += (isPlayerPoint ? bump.ace : -bump.ace * negativeDamper) * momentumMultiplier;
-        break;
-      case PointType.WINNER:
-        this.momentumBank += (isPlayerPoint ? bump.winner : -bump.winner * negativeDamper) * momentumMultiplier;
-        break;
-      case PointType.DOUBLE_FAULT:
-        this.momentumBank += (isPlayerPoint ? bump.doubleFault : -bump.doubleFault * negativeDamper) * momentumMultiplier;
-        break;
-      case PointType.UNFORCED_ERROR:
-        this.momentumBank += (isPlayerPoint ? bump.unforcedError : -bump.unforcedError * negativeDamper) * momentumMultiplier;
-        break;
-      case PointType.FORCED_ERROR:
-        this.momentumBank += (isPlayerPoint ? bump.forcedError : -bump.forcedError * negativeDamper) * momentumMultiplier;
-        break;
+
+    // Momentum before this point — used to derive the ability-adjusted delta.
+    const before = this.momentumEngine.get();
+    this.momentumEngine.applyPoint({
+      winner,
+      pointType,
+      clutch,
+      isKeyMoment,
+      game: boundary.game,
+      setWonBy: boundary.setWonBy,
+    });
+
+    // Ability adjustment: scale only the change this point produced.
+    const rawDelta = this.momentumEngine.get() - before;
+    let adjustedDelta = rawDelta;
+    if (isPlayerPoint) {
+      const amplify = 1 + (this.activeEffects[EffectKey.UNSTOPPABLE_MOMENTUM] ?? 0) * 0.15;
+      adjustedDelta = rawDelta * amplify;
+    } else {
+      const momentumShield = this.activeEffects[EffectKey.MOMENTUM_SHIELD] ?? 0;
+      if (momentumShield > 0 && rawDelta < 0) {
+        adjustedDelta = rawDelta * Math.max(0.5, 1 - momentumShield * 0.06);
+      }
+    }
+    if (adjustedDelta !== rawDelta) {
+      this.momentumEngine.applyDirect(adjustedDelta - rawDelta);
     }
 
-    // Clamp momentum bank
-    this.momentumBank = Math.max(-MOMENTUM_BANK.clamp, Math.min(MOMENTUM_BANK.clamp, this.momentumBank));
+    this.momentum = this.momentumEngine.get();
+  }
 
-    // Decay momentum bank toward 0
-    this.momentumBank *= MOMENTUM_BANK.decay;
+  /**
+   * Classify the stakes on the point about to be played (pre-point score), for
+   * momentum weighting. Precedence: match point > set point > break point.
+   */
+  private detectClutchLevel(score: MatchScore): ClutchLevel {
+    if (this.isMatchPoint(score, 'player') || this.isMatchPoint(score, 'opponent')) {
+      return 'matchPoint';
+    }
+    if (this.isSetPoint(score, 'player') || this.isSetPoint(score, 'opponent')) {
+      return 'setPoint';
+    }
+    if (this.isBreakPoint(score)) {
+      return 'breakPoint';
+    }
+    return null;
+  }
 
-    // Blend: recent form + persistent bank
-    this.momentum = Math.max(-100, Math.min(100,
-      recentForm * MOMENTUM_BANK.blendRecent + this.momentumBank * MOMENTUM_BANK.blendBank
-    ));
+  /**
+   * Diff the score across a point to detect any game/set boundary it crossed.
+   * `game` is set when a game completed (with whether it was a break of serve);
+   * `setWonBy` is set when a set completed.
+   */
+  private detectBoundary(
+    prev: MatchScore,
+    next: MatchScore,
+    serverOfPoint: 'player' | 'opponent'
+  ): { game?: { winner: 'player' | 'opponent'; wasBreak: boolean }; setWonBy?: 'player' | 'opponent' } {
+    const gamesOf = (s: MatchScore): number =>
+      s.sets.reduce((sum, set) => sum + set.player + set.opponent, 0) +
+      s.currentSet.player + s.currentSet.opponent;
+
+    let setWonBy: 'player' | 'opponent' | undefined;
+    if (next.sets.length > prev.sets.length) {
+      const done = next.sets[next.sets.length - 1];
+      setWonBy = done.player > done.opponent ? 'player' : 'opponent';
+    }
+
+    let game: { winner: 'player' | 'opponent'; wasBreak: boolean } | undefined;
+    if (gamesOf(next) > gamesOf(prev)) {
+      let gameWinner: 'player' | 'opponent';
+      if (setWonBy) {
+        gameWinner = setWonBy;
+      } else {
+        gameWinner = next.currentSet.player > prev.currentSet.player ? 'player' : 'opponent';
+      }
+      // Tiebreak games have no "break of serve" — both players serve within them.
+      const wasBreak = !prev.isTiebreak && gameWinner !== serverOfPoint;
+      game = { winner: gameWinner, wasBreak };
+    }
+
+    return { game, setWonBy };
+  }
+
+  /**
+   * Apply changeover (game end) or set-break stamina recovery to both players,
+   * scaled by each player's recovery stat.
+   */
+  private applyRestRecovery(setCompleted: boolean): void {
+    if (!this.playerStats || !this.opponentStats) return;
+    this.fatigue.player = this.recoverFatigue(
+      this.fatigue.player,
+      this.playerStats.physical.recovery,
+      setCompleted
+    );
+    this.fatigue.opponent = this.recoverFatigue(
+      this.fatigue.opponent,
+      this.opponentStats.physical.recovery,
+      setCompleted
+    );
+  }
+
+  private recoverFatigue(current: number, recoveryStat: number, setCompleted: boolean): number {
+    const base = setCompleted ? STAMINA_RECOVERY.perSetBase : STAMINA_RECOVERY.perGameBase;
+    const scale = setCompleted ? STAMINA_RECOVERY.perSetScale : STAMINA_RECOVERY.perGameScale;
+    const recovered = base + (recoveryStat / 100) * scale;
+    return Math.max(0, current - recovered);
   }
 
   /**
@@ -1257,7 +1339,7 @@ export class MatchOrchestrator {
       isComplete: false,
       momentum: 0,
       energy: this.matchEnergy,
-      opponentEnergy: this.matchOpponentEnergy,
+      opponentEnergy: Math.max(0, Math.round(100 - this.fatigue.opponent)),
       playerStamina: Math.max(0, Math.round(100 - this.fatigue.player)),
       opponentStamina: Math.max(0, Math.round(100 - this.fatigue.opponent)),
       isTiebreak: false,
