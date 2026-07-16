@@ -7,7 +7,7 @@
  * Court tokens are static for now — rally animation lands in a later stage.
  */
 
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { CourtSurface } from '../../types';
 import type { MatchScore } from '../../types/keyMoments';
 import type { InteractiveMatchConfig } from '../../types/keyMoments';
@@ -23,6 +23,18 @@ interface MatchCockpitProps {
   /** Optional overlay (e.g. toasts) rendered absolutely over the court region. */
   overlay?: React.ReactNode;
 }
+
+// Minimum single-point momentum swing that counts as a "takeover" worth flashing.
+// Ordinary points nudge momentum <=~10; a break of serve or a big key moment
+// swings it well past this, so the pulse fires on the dramatic shifts only.
+const MOMENTUM_FLASH_THRESHOLD = 15;
+
+// Glow colour for the momentum pulse, matching the leading side (pixel-success /
+// pixel-error). Set as an inline CSS custom property consumed by the keyframes.
+const PULSE_COLOR: Record<'player' | 'opponent', string> = {
+  player: 'rgba(46, 204, 113, 0.85)',
+  opponent: 'rgba(231, 76, 60, 0.85)',
+};
 
 // Sets required to win the match, by format (drives the number of set pips)
 const setsToWinFor = (format?: InteractiveMatchConfig['matchFormat']): number =>
@@ -160,6 +172,19 @@ export const MatchCockpit: React.FC<MatchCockpitProps> = ({
   const momentum = score.momentum ?? 0;
   const isTiebreak = score.isTiebreak ?? false;
 
+  // Flash the momentum bar when it swings hard enough to count as a takeover
+  // (a break of serve, a decisive key moment). The pulse colours to whoever
+  // leads after the swing.
+  const prevMomentum = useRef(momentum);
+  const [pulseSide, setPulseSide] = useState<'player' | 'opponent' | null>(null);
+  useEffect(() => {
+    const swing = momentum - prevMomentum.current;
+    prevMomentum.current = momentum;
+    if (Math.abs(swing) >= MOMENTUM_FLASH_THRESHOLD) {
+      setPulseSide(momentum >= 0 ? 'player' : 'opponent');
+    }
+  }, [momentum]);
+
   const playerStamina = score.playerStamina ?? score.energy ?? 100;
   const opponentStamina = score.opponentStamina ?? 100;
 
@@ -226,7 +251,13 @@ export const MatchCockpit: React.FC<MatchCockpitProps> = ({
             {momentum >= 0 ? playerName : opponentName} +{Math.round(Math.abs(momentum))}
           </span>
         </div>
-        <div className="relative h-[18px] bg-pixel-secondary border-2 border-pixel-border rounded-full overflow-hidden">
+        <div
+          className={`relative h-[18px] bg-pixel-secondary border-2 border-pixel-border rounded-full overflow-hidden ${
+            pulseSide ? 'animate-momentum-pulse' : ''
+          }`}
+          style={pulseSide ? ({ '--pulse-color': PULSE_COLOR[pulseSide] } as React.CSSProperties) : undefined}
+          onAnimationEnd={() => setPulseSide(null)}
+        >
           <div
             className={`absolute top-0 bottom-0 transition-all duration-300 ${momentum >= 0 ? 'bg-pixel-success' : 'bg-pixel-error'}`}
             style={momentumStyle}

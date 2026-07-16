@@ -15,13 +15,15 @@ import type {
   PointAnalysisData,
   PointResult,
   PlayerMatchFatigue,
+  PointType,
 } from '../types/index.js';
-import { MATCH_FATIGUE } from '../config/shotThresholds.js';
+import { MATCH_FATIGUE, STAMINA_RECOVERY } from '../config/shotThresholds.js';
 import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds.js';
 import { PlayerProfile } from './PlayerProfile.js';
 import { PointSimulator } from './PointSimulator.js';
 import { ScoreTracker } from './ScoreTracker.js';
 import { MatchStatistics } from './MatchStatistics.js';
+import { MomentumEngine, ClutchLevel } from './MomentumEngine.js';
 import { aggregateArchetypeEffects } from '../data/archetypeTree.js';
 
 export interface MatchConfig {
@@ -40,6 +42,7 @@ export class MatchSimulator {
   private pointSimulator: PointSimulator;
   private scoreTracker: ScoreTracker;
   private matchStatistics: MatchStatistics;
+  private momentumEngine: MomentumEngine;
   private config: MatchConfig;
 
   // Match state
@@ -60,6 +63,7 @@ export class MatchSimulator {
     this.pointSimulator = new PointSimulator();
     this.scoreTracker = new ScoreTracker(config.matchFormat);
     this.matchStatistics = new MatchStatistics(config.player, config.opponent);
+    this.momentumEngine = new MomentumEngine();
 
     // Set initial server
     const initialServer = config.initialServer || this.determineInitialServer();
@@ -149,6 +153,14 @@ export class MatchSimulator {
     const isKeyMomentBeforePoint = this.scoreTracker.isKeyMoment();
     const breakPointFor = this.scoreTracker.getBreakPointFor();
 
+    // Capture pre-point state for momentum (clutch level + game/set diffing)
+    const clutch = this.detectClutch();
+    const beforeScore = this.scoreTracker.getScore();
+    const beforeCompletedSets = beforeScore.sets.filter(s => s.isComplete).length;
+    const beforeGamesTotal = beforeScore.sets.reduce((sum, s) => sum + s.player + s.opponent, 0);
+    const beforeCurrentSetPlayerGames = beforeScore.sets[beforeScore.sets.length - 1].player;
+    const wasTiebreak = beforeScore.isTiebreak;
+
     // Update match state with current key moment status
     this.matchState.isKeyMoment = isKeyMomentBeforePoint;
 
@@ -170,11 +182,131 @@ export class MatchSimulator {
     const pointWinner = this.convertPointWinner(pointResult.winner, currentServer);
     this.scoreTracker.addPoint(pointWinner);
 
+    // Feed the point into the momentum engine, detecting any game/set boundary
+    // the point just crossed (break of serve, set won) for the takeover/reset rules.
+    this.applyPointMomentum(
+      pointWinner,
+      pointResult.pointType,
+      clutch,
+      currentServer,
+      beforeScore,
+      beforeCompletedSets,
+      beforeGamesTotal,
+      beforeCurrentSetPlayerGames,
+      wasTiebreak
+    );
+
     // Update statistics with break point information
     this.matchStatistics.addPointResult(pointResult, currentServer, breakPointFor);
 
     // Log detailed point result
     this.logPointResult(pointResult, currentServer, pointWinner);
+  }
+
+  /**
+   * Classify the stakes on the point about to be played, for momentum weighting.
+   * Precedence: match point > set point > break point. Read from ScoreTracker
+   * before the point is added.
+   */
+  private detectClutch(): ClutchLevel {
+    const breakPointFor = this.scoreTracker.getBreakPointFor();
+    const isKeyMoment = this.scoreTracker.isKeyMoment();
+    if (!isKeyMoment && !breakPointFor) {
+      return null;
+    }
+
+    // isKeyMoment covers both break point and set point; a set point that is not
+    // also a break point is the "serving/returning for the set" case.
+    if (isKeyMoment && !breakPointFor) {
+      const score = this.scoreTracker.getScore();
+      const completed = score.sets.filter(s => s.isComplete);
+      const setsToWin = Math.ceil(score.matchFormat.bestOfSets / 2);
+      const playerSets = completed.filter(s => s.winner === 'player').length;
+      const opponentSets = completed.filter(s => s.winner === 'opponent').length;
+      if (playerSets === setsToWin - 1 || opponentSets === setsToWin - 1) {
+        return 'matchPoint';
+      }
+      return 'setPoint';
+    }
+
+    return 'breakPoint';
+  }
+
+  /**
+   * Build the momentum event from the point result and the score delta, apply it
+   * to the engine, and run changeover/set stamina recovery when a game/set ended.
+   */
+  private applyPointMomentum(
+    pointWinner: 'player' | 'opponent',
+    pointType: PointType,
+    clutch: ClutchLevel,
+    serverOfPoint: 'player' | 'opponent',
+    beforeScore: ReturnType<ScoreTracker['getScore']>,
+    beforeCompletedSets: number,
+    beforeGamesTotal: number,
+    beforeCurrentSetPlayerGames: number,
+    wasTiebreak: boolean
+  ): void {
+    const afterScore = this.scoreTracker.getScore();
+    const afterCompletedSets = afterScore.sets.filter(s => s.isComplete).length;
+    const afterGamesTotal = afterScore.sets.reduce((sum, s) => sum + s.player + s.opponent, 0);
+
+    let setWonBy: 'player' | 'opponent' | undefined;
+    if (afterCompletedSets > beforeCompletedSets) {
+      setWonBy = afterScore.sets[afterCompletedSets - 1].winner;
+    }
+
+    let game: { winner: 'player' | 'opponent'; wasBreak: boolean } | undefined;
+    if (afterGamesTotal > beforeGamesTotal) {
+      let gameWinner: 'player' | 'opponent';
+      if (setWonBy) {
+        gameWinner = setWonBy;
+      } else {
+        const afterCurrentSet = afterScore.sets[afterScore.sets.length - 1];
+        gameWinner = afterCurrentSet.player > beforeCurrentSetPlayerGames ? 'player' : 'opponent';
+      }
+      // Tiebreak games have no "break of serve" — both players serve within them.
+      const wasBreak = !wasTiebreak && gameWinner !== serverOfPoint;
+      game = { winner: gameWinner, wasBreak };
+    }
+
+    this.momentumEngine.applyPoint({
+      winner: pointWinner,
+      pointType,
+      clutch,
+      game,
+      setWonBy,
+    });
+    this.matchState.momentum = this.momentumEngine.get();
+
+    // Changeover / set-break stamina recovery, scaled by each player's recovery stat.
+    if (game) {
+      this.applyRestRecovery(!!setWonBy);
+    }
+  }
+
+  /**
+   * Apply changeover (game end) or set-break stamina recovery to both players.
+   * Set breaks recover more than changeovers; a high recovery stat recovers more.
+   */
+  private applyRestRecovery(setCompleted: boolean): void {
+    this.matchState.fatigue.player = this.recoverFatigue(
+      this.matchState.fatigue.player,
+      this.config.player.stats.physical.recovery,
+      setCompleted
+    );
+    this.matchState.fatigue.opponent = this.recoverFatigue(
+      this.matchState.fatigue.opponent,
+      this.config.opponent.stats.physical.recovery,
+      setCompleted
+    );
+  }
+
+  private recoverFatigue(current: number, recoveryStat: number, setCompleted: boolean): number {
+    const base = setCompleted ? STAMINA_RECOVERY.perSetBase : STAMINA_RECOVERY.perGameBase;
+    const scale = setCompleted ? STAMINA_RECOVERY.perSetScale : STAMINA_RECOVERY.perGameScale;
+    const recovered = base + (recoveryStat / 100) * scale;
+    return Math.max(0, current - recovered);
   }
 
   /**
@@ -199,8 +331,8 @@ export class MatchSimulator {
     this.matchState.isKeyMoment = this.scoreTracker.isKeyMoment();
     this.matchState.pointsPlayed++;
 
-    // Update momentum based on recent point outcomes
-    this.updateMomentum();
+    // Momentum is applied in simulateNextPoint (it needs the pre/post-point score
+    // delta); matchState.momentum already reflects the engine's latest value.
 
     // Update pressure based on score situation
     this.updatePressure();
@@ -208,41 +340,6 @@ export class MatchSimulator {
     // Update match length
     const elapsed = (Date.now() - this.startTime) / (1000 * 60); // Convert to minutes
     this.matchState.matchLength = elapsed;
-  }
-
-  /**
-   * Update momentum based on recent results
-   * Tracks last 5 points won by each player
-   */
-  private updateMomentum(): void {
-    // Positive momentum favors player, negative favors opponent
-    const recentPoints = this.pointResults.slice(-5); // Last 5 points
-
-    if (recentPoints.length === 0) {
-      this.matchState.momentum = 0;
-      return;
-    }
-
-    let playerPoints = 0;
-    let opponentPoints = 0;
-
-    // Count recent point winners from actual point results
-    recentPoints.forEach(pointResult => {
-      const pointWinner = this.convertPointWinner(pointResult.winner, pointResult.server);
-      if (pointWinner === 'player') {
-        playerPoints++;
-      } else {
-        opponentPoints++;
-      }
-    });
-
-    // Convert to -100 to +100 scale
-    // playerPoints = 5, opponentPoints = 0 → momentum = 100
-    // playerPoints = 0, opponentPoints = 5 → momentum = -100
-    // playerPoints = 3, opponentPoints = 2 → momentum = 20
-    const totalPoints = playerPoints + opponentPoints;
-    this.matchState.momentum = totalPoints > 0 ?
-      ((playerPoints - opponentPoints) / totalPoints) * 100 : 0;
   }
 
   /**
@@ -334,8 +431,8 @@ export class MatchSimulator {
       pointsPlayed: 0,
       isKeyMoment: false,
       fatigue: {
-        player: Math.max(0, (100 - this.config.player.energy) * MATCH_FATIGUE.energyToFatigueFactor),
-        opponent: Math.max(0, (100 - this.config.opponent.energy) * MATCH_FATIGUE.energyToFatigueFactor),
+        player: Math.max(0, (MATCH_FATIGUE.energyFullStaminaThreshold - this.config.player.energy) * MATCH_FATIGUE.energyToFatigueFactor),
+        opponent: Math.max(0, (MATCH_FATIGUE.energyFullStaminaThreshold - this.config.opponent.energy) * MATCH_FATIGUE.energyToFatigueFactor),
       },
     };
   }
