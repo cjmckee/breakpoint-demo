@@ -33,6 +33,7 @@ export const StoryMatch: React.FC<StoryMatchProps> = ({ matchConfig }) => {
   const playerPlayStyle = buildPlayStyle(player.archetypeProfile);
 
   const energyCost = StoryMatchManager.calculateMatchEnergyCost(currentStatus.energy);
+  const pendingBuffs = ItemManager.mergeNextActivityBuffs(player.nextActivityBuffs);
 
   const handleStartMatch = () => {
     const config = {
@@ -44,7 +45,7 @@ export const StoryMatch: React.FC<StoryMatchProps> = ({ matchConfig }) => {
       opponentAbilities: matchConfig.opponentAbilities,
       itemBoosts: {
         ...ItemManager.getTotalPassiveBoosts(player),
-        ...player.nextActivityBuffs?.statBoosts,
+        ...pendingBuffs.statBoosts,
       },
       opponentStats: matchConfig.opponentStats,
       opponentName: matchConfig.opponentName,
@@ -92,7 +93,7 @@ export const StoryMatch: React.FC<StoryMatchProps> = ({ matchConfig }) => {
       matchFormat={matchConfig.matchFormat || 'best-of-1'}
       energyCost={energyCost}
       currentEnergy={currentStatus.energy}
-      activeBuffs={player.nextActivityBuffs}
+      activeBuffs={player.nextActivityBuffs.length > 0 ? pendingBuffs : null}
       contextContent={contextContent}
       onStartMatch={handleStartMatch}
       onBack={() => navigateTo('idle')}

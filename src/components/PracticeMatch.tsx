@@ -28,6 +28,7 @@ export const PracticeMatch: React.FC<{ matchConfig: PreMatchConfig | null }> = (
   const playerPlayStyle = buildPlayStyle(player.archetypeProfile);
 
   const energyCost = DEFAULT_MATCH_ENERGY_COST;
+  const pendingBuffs = ItemManager.mergeNextActivityBuffs(player.nextActivityBuffs);
 
   const handleStartMatch = () => {
     const config = {
@@ -39,7 +40,7 @@ export const PracticeMatch: React.FC<{ matchConfig: PreMatchConfig | null }> = (
       opponentAbilities: matchConfig.opponentAbilities,
       itemBoosts: {
         ...ItemManager.getTotalPassiveBoosts(player),
-        ...player.nextActivityBuffs?.statBoosts,
+        ...pendingBuffs.statBoosts,
       },
       opponentStats: matchConfig.opponentStats,
       opponentName: matchConfig.opponentName,
@@ -90,7 +91,7 @@ export const PracticeMatch: React.FC<{ matchConfig: PreMatchConfig | null }> = (
       matchFormat={matchConfig.matchFormat}
       energyCost={energyCost}
       currentEnergy={currentStatus.energy}
-      activeBuffs={player.nextActivityBuffs}
+      activeBuffs={player.nextActivityBuffs.length > 0 ? pendingBuffs : null}
       contextContent={contextContent}
       onStartMatch={handleStartMatch}
       onBack={() => navigateTo('match_setup')}

@@ -41,6 +41,7 @@ export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig })
   }
 
   const energyCost = TournamentManager.calculateMatchEnergyCost(currentStatus.energy);
+  const pendingBuffs = ItemManager.mergeNextActivityBuffs(player.nextActivityBuffs);
   const roundNumber = activeTournament.currentRound + 1;
   const totalRounds = tournament.rounds.length;
 
@@ -58,7 +59,7 @@ export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig })
       opponentAbilities: matchConfig.opponentAbilities,
       itemBoosts: {
         ...ItemManager.getTotalPassiveBoosts(player),
-        ...player.nextActivityBuffs?.statBoosts,
+        ...pendingBuffs.statBoosts,
       },
       opponentStats: matchConfig.opponentStats as PlayerStats,
       opponentName: matchConfig.opponentName,
@@ -142,7 +143,7 @@ export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig })
       matchFormat={matchConfig.matchFormat === 'best-of-3' ? 'best-of-3' : 'best-of-1'}
       energyCost={energyCost}
       currentEnergy={currentStatus.energy}
-      activeBuffs={player.nextActivityBuffs}
+      activeBuffs={player.nextActivityBuffs.length > 0 ? pendingBuffs : null}
       contextContent={contextContent}
       onStartMatch={handleStartMatch}
       onBack={() => navigateTo('idle')}

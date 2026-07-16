@@ -578,12 +578,10 @@ export const useGameStore = create<GameState>()(
           updatedPlayer = PlayerManager.addAbility(updatedPlayer, result.abilityGained);
         }
 
-        // Consume next activity buffs — additional effects (energy reduction, mood bonus) apply to training
-        const consumableBufAdditional = updatedPlayer.nextActivityBuffs?.additional ?? {};
-        const finalPlayer = {
-          ...updatedPlayer,
-          nextActivityBuffs: null,
-        };
+        // Consume the additional (energy/mood) portion of pending consumable buffs —
+        // stat boosts stay pending, they only apply to the player's next match.
+        const { player: finalPlayer, additional: consumableBufAdditional } =
+          ItemManager.consumeAdditionalBuffs(updatedPlayer);
 
         // Apply energy/mood effects from items/abilities + consumed activity buffs
         const { effects: trainingEffects } = EffectAggregator.getActiveEffects(finalPlayer);
@@ -1472,9 +1470,11 @@ export const useGameStore = create<GameState>()(
           },
         };
 
-        // Consume next activity buffs — additional effects (energy reduction, mood bonus) apply to matches
-        const consumableMatchAdditional = state.player.nextActivityBuffs?.additional ?? {};
-        updatedPlayer = { ...updatedPlayer, nextActivityBuffs: null };
+        // Consume all pending next-activity buffs — stat boosts were already applied
+        // at match start; additional effects (energy reduction, mood bonus) apply now.
+        const { player: playerAfterBuffs, additional: consumableMatchAdditional } =
+          ItemManager.consumeMatchBuffs(updatedPlayer);
+        updatedPlayer = playerAfterBuffs;
 
         // Calculate mood changes from key moments
         const keyMomentMoodChange = accumulatedEffects ? accumulatedEffects.moodDelta : 0;

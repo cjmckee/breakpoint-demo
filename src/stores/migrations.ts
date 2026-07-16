@@ -7,7 +7,7 @@
  * CURRENT_VERSION must match the `version` field in the persist config.
  */
 
-import type { Player, GameCalendar, CurrentStatus, ActivityResult, TrainingSession, ShopItem, OpponentTier } from '../types/game';
+import type { Player, GameCalendar, CurrentStatus, ActivityResult, TrainingSession, ShopItem, OpponentTier, Modifiers } from '../types/game';
 import type { Challenge } from '../types/challenges';
 import { createEmptyArchetypeProfile } from '../data/archetypeTree';
 
@@ -38,7 +38,7 @@ export interface PersistedStoreState {
   // eventRecovery omitted — transient, always reset on load
 }
 
-export const CURRENT_STORE_VERSION = 2;
+export const CURRENT_STORE_VERSION = 3;
 
 // ----------------------------------------------------------------------------
 // Version 0 → 1
@@ -91,6 +91,24 @@ function migrate1to2(state: PersistedStoreState): PersistedStoreState {
 }
 
 // ----------------------------------------------------------------------------
+// Version 2 → 3 — nextActivityBuffs becomes a stackable array
+// ----------------------------------------------------------------------------
+
+function migrate2to3(state: PersistedStoreState): PersistedStoreState {
+  let player = state.player as (Player & { nextActivityBuffs?: unknown }) | null;
+
+  if (player && !Array.isArray(player.nextActivityBuffs)) {
+    const legacyBuff = player.nextActivityBuffs as Modifiers | null | undefined;
+    player = {
+      ...player,
+      nextActivityBuffs: legacyBuff ? [legacyBuff] : [],
+    };
+  }
+
+  return { ...state, player };
+}
+
+// ----------------------------------------------------------------------------
 // Public API
 // ----------------------------------------------------------------------------
 
@@ -105,5 +123,6 @@ export function migrateStore(
   let state = persistedState as PersistedStoreState;
   if (fromVersion < 1) state = migrate0to1(state);
   if (fromVersion < 2) state = migrate1to2(state);
+  if (fromVersion < 3) state = migrate2to3(state);
   return state;
 }
