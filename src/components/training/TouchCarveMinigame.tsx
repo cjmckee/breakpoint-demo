@@ -1,54 +1,50 @@
 /**
  * Slice Minigame — "Touch & Carve"
  *
- * The contact ring breathes in and out. Tap at its softest, smallest point for the
- * finest touch — the tighter the ring when you strike, the more support stats. Mostly
- * juice: a heavy-handed tap still lands 1.
+ * The contact ring breathes in and out between two target rings. Tap when it's sized
+ * between them — the target window moves each of three attempts. Every clean carve
+ * banks a support; the first miss ends the practice. See docs/training-redesign.md.
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { scoreToCount, type SupportCount } from '../../game/AnchorTrainingSystem';
 import { audioManager } from '../../audio/AudioManager';
 import {
   MinigameShell,
   SupportResult,
+  RoundPips,
   MinigameActionButton,
   countNote,
   type MinigameProps,
 } from './MinigameShell';
+import { useMinigameRounds } from './useMinigameRounds';
+import { movingBands, type Band } from './minigameWindows';
 
-const MIN_SIZE = 12; // % — the ideal "softest" ring
-const MAX_SIZE = 100; // %
-const BREATH_SPEED = 3.6; // radians/sec (~1.75s per full breath)
-
-type Phase = 'breathing' | 'done';
+const MIN_SIZE = 10; // % of the box
+const MAX_SIZE = 100;
+const BREATH_SPEED = 3.4; // radians/sec (~1.85s per full breath)
 
 export const TouchCarveMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
+  const rounds = useMinigameRounds(onComplete);
   const [size, setSize] = useState(MAX_SIZE);
-  const [phase, setPhase] = useState<Phase>('breathing');
-  const [result, setResult] = useState<{ size: number; count: SupportCount } | null>(null);
 
-  const rafRef = useRef<number | null>(null);
+  const bandsRef = useRef<Band[]>(movingBands(26, 62, 16));
   const sizeRef = useRef(MAX_SIZE);
   const tRef = useRef(0);
-  const phaseRef = useRef<Phase>('breathing');
-  phaseRef.current = phase;
+  const rafRef = useRef<number | null>(null);
+
+  const band = bandsRef.current[Math.min(rounds.round, bandsRef.current.length - 1)];
+  const playing = rounds.phase === 'playing';
 
   const carve = useCallback(() => {
-    if (phaseRef.current !== 'breathing') return;
-    const captured = sizeRef.current;
-    // Smaller ring = softer touch = higher score.
-    const score = Math.max(0, Math.min(1, 1 - (captured - MIN_SIZE) / (MAX_SIZE - MIN_SIZE)));
-    const count = scoreToCount(score);
-    setResult({ size: captured, count });
-    setPhase('done');
+    if (rounds.phase !== 'playing') return;
+    const s = sizeRef.current;
+    const passed = s >= band.lo && s <= band.hi;
     audioManager.playSfx('ui_click');
-    window.setTimeout(() => onComplete(score), 1050);
-  }, [onComplete]);
+    rounds.commit(passed);
+  }, [rounds, band]);
 
-  // Breathing loop.
   useEffect(() => {
-    if (phase !== 'breathing') return;
+    if (rounds.phase === 'done') return;
     let last = performance.now();
     const mid = (MIN_SIZE + MAX_SIZE) / 2;
     const amp = (MAX_SIZE - MIN_SIZE) / 2;
@@ -56,7 +52,6 @@ export const TouchCarveMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
       const dt = (now - last) / 1000;
       last = now;
       tRef.current += dt * BREATH_SPEED;
-      // Start large, shrink toward MIN — cos so it opens at full size.
       const next = mid + amp * Math.cos(tRef.current);
       sizeRef.current = next;
       setSize(next);
@@ -66,9 +61,8 @@ export const TouchCarveMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
     return () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     };
-  }, [phase]);
+  }, [rounds.phase]);
 
-  // Spacebar to carve.
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
       if (e.code === 'Space' || e.key === ' ') {
@@ -80,33 +74,45 @@ export const TouchCarveMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
     return () => window.removeEventListener('keydown', onKey);
   }, [carve]);
 
-  const shownSize = result?.size ?? size;
-
   return (
-    <MinigameShell title="Touch & Carve" subtitle="Tap at the softest, smallest point">
+    <MinigameShell title="Touch & Carve" subtitle="Tap when the ring fits the target — it moves each rep">
       <div className="relative h-56 w-full bg-pixel-bg border-2 border-pixel-border overflow-hidden flex items-center justify-center mb-4">
-        {/* Target: the ideal small ring to aim for */}
+        {/* Target window: tap while the breathing ring sits between these two */}
         <div
           className="absolute rounded-full border-2 border-green-500/70 border-dashed"
-          style={{ width: `${MIN_SIZE}%`, aspectRatio: '1 / 1' }}
+          style={{ width: `${band.lo}%`, aspectRatio: '1 / 1' }}
+        />
+        <div
+          className="absolute rounded-full border-2 border-green-500/70 border-dashed"
+          style={{ width: `${band.hi}%`, aspectRatio: '1 / 1' }}
         />
         {/* The breathing contact ring */}
         <div
-          className={`absolute rounded-full border-4 ${
-            phase === 'done' ? 'border-orange-400' : 'border-pixel-accent'
-          }`}
-          style={{ width: `${shownSize}%`, aspectRatio: '1 / 1' }}
+          className={`absolute rounded-full border-4 ${playing ? 'border-pixel-accent' : 'border-orange-400'}`}
+          style={{ width: `${size}%`, aspectRatio: '1 / 1' }}
         />
         <span className="text-2xl relative">🎾</span>
       </div>
 
-      {phase === 'done' && result ? (
+      <div className="mb-4">
+        <RoundPips {...rounds} />
+      </div>
+
+      {rounds.phase === 'done' ? (
         <SupportResult
-          count={result.count}
-          note={countNote(result.count, 'Feather touch!', 'Nicely carved.', 'Too heavy.')}
+          count={rounds.successes}
+          note={countNote(
+            rounds.successes,
+            'Three feather touches!',
+            'Two clean carves.',
+            'One before you leaned on it.',
+            'Ring was the wrong size.'
+          )}
         />
       ) : (
-        <MinigameActionButton onPress={carve}>Carve!  (Space)</MinigameActionButton>
+        <MinigameActionButton onPress={carve} disabled={!playing}>
+          {playing ? `Carve!  ·  Rep ${rounds.round + 1} of 3  (Space)` : 'Clean! Next touch…'}
+        </MinigameActionButton>
       )}
     </MinigameShell>
   );

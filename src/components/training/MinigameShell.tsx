@@ -2,17 +2,19 @@
  * Shared presentation for the training minigames.
  *
  * Every core anchor has its own minigame with a distinct interaction, but they all
- * share the same frame and the same result readout so the training screen feels like
- * one system. Each minigame implements onComplete(score: 0..1); scoreToCount() turns
- * that into 1-3 supports. See docs/training-redesign.md.
+ * share the same frame, the same 3-attempt round pips, and the same result readout so
+ * the training screen feels like one system. Each minigame runs three pass/fail
+ * attempts (see useMinigameRounds) and reports the number of consecutive successes
+ * (0-3) via onComplete. See docs/training-redesign.md.
  */
 
 import React from 'react';
-import type { SupportCount } from '../../game/AnchorTrainingSystem';
+import type { MinigameRounds } from './useMinigameRounds';
+import { TOTAL_ROUNDS } from './useMinigameRounds';
 
 export interface MinigameProps {
-  /** Called once the interaction resolves, with a 0..1 performance score. */
-  onComplete: (score: number) => void;
+  /** Called once all attempts resolve, with the number of supports earned (0-3). */
+  onComplete: (successes: number) => void;
 }
 
 export const MinigameShell: React.FC<{
@@ -29,20 +31,50 @@ export const MinigameShell: React.FC<{
   </div>
 );
 
-/** The shared "+N support stats earned" readout shown after the interaction resolves. */
-export const SupportResult: React.FC<{ count: SupportCount; note: string }> = ({ count, note }) => (
+/**
+ * Three-slot progress row: banked successes (green), the miss that ended it (red),
+ * the currently-arming attempt (accent ring), and pending attempts (dim).
+ */
+export const RoundPips: React.FC<MinigameRounds> = ({ round, successes, phase, lastPass }) => (
+  <div className="flex items-center justify-center gap-2">
+    {Array.from({ length: TOTAL_ROUNDS }).map((_, i) => {
+      const failedHere = phase === 'done' && lastPass === false && i === successes;
+      const isCurrent = phase !== 'done' && i === round;
+      const cls =
+        i < successes
+          ? 'bg-green-500 border-green-400'
+          : failedHere
+            ? 'bg-red-600 border-red-500'
+            : isCurrent
+              ? 'bg-pixel-bg border-pixel-accent'
+              : 'bg-pixel-bg border-pixel-border';
+      return <div key={i} className={`w-9 h-3 border-2 ${cls}`} />;
+    })}
+    <span className="text-xs text-pixel-text-muted ml-2">
+      {successes}/{TOTAL_ROUNDS}
+    </span>
+  </div>
+);
+
+/** The shared "+N support stats earned" readout shown after all attempts resolve. */
+export const SupportResult: React.FC<{ count: number; note: string }> = ({ count, note }) => (
   <div className="text-center">
-    <div className="text-5xl font-bold text-green-500 mb-1">+{count}</div>
+    <div className={`text-5xl font-bold mb-1 ${count > 0 ? 'text-green-500' : 'text-pixel-text-muted'}`}>
+      +{count}
+    </div>
     <div className="text-sm text-pixel-text-muted">{note}</div>
     <div className="text-xs text-pixel-text-muted mt-2">
-      support {count === 1 ? 'stat' : 'stats'} earned
+      {count === 0 ? 'no support stats — core work still counts' : `support ${count === 1 ? 'stat' : 'stats'} earned`}
     </div>
   </div>
 );
 
-/** Standard flavor note keyed by how many supports were earned. */
-export function countNote(count: SupportCount, clean: string, ok: string, low: string): string {
-  return count === 3 ? clean : count === 2 ? ok : low;
+/** Standard flavor note keyed by how many supports were earned (0-3). */
+export function countNote(count: number, clean: string, ok: string, low: string, none: string): string {
+  if (count >= 3) return clean;
+  if (count === 2) return ok;
+  if (count === 1) return low;
+  return none;
 }
 
 /**

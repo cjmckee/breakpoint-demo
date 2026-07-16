@@ -105,28 +105,23 @@ export const ANCHOR_TRAINING_ENERGY_COST = 20;
 /** Mood bump for completing a bronze session. */
 const BRONZE_MOOD_CHANGE = 2;
 
-export type SupportCount = 1 | 2 | 3;
-
-/**
- * Map a minigame performance score (0..1) to a support count.
- * Mostly juice: skill only moves you between 1, 2, and 3 — never zero.
- */
-export function scoreToCount(score: number): SupportCount {
-  if (score >= 0.75) return 3;
-  if (score >= 0.4) return 2;
-  return 1;
-}
+/** Supports earned in a session: 0-3, one per consecutive minigame success. */
+export type SupportCount = 0 | 1 | 2 | 3;
 
 /**
  * Draw `count` supports from the anchor's themed pool.
  * De-prioritizes stats handed out very recently so repeat sessions stay fresh,
  * but never fails to fill the count (falls back to recent stats if the pool is small).
+ * A count of 0 (missed the first attempt) yields no supports — the core +1 still applies.
  */
 export function resolveSupports(
   core: CoreStat,
-  count: SupportCount,
+  count: number,
   recentSupports: SupportStat[] = []
 ): SupportStat[] {
+  const clamped = Math.max(0, Math.min(3, Math.floor(count)));
+  if (clamped === 0) return [];
+
   const pool = CORE_ANCHORS[core].supportPool;
   const recent = new Set(recentSupports);
 
@@ -134,7 +129,7 @@ export function resolveSupports(
   const stale = shuffle(pool.filter((stat) => recent.has(stat)));
 
   // Prefer fresh picks, then backfill from recently-seen stats if needed.
-  return [...fresh, ...stale].slice(0, Math.min(count, pool.length));
+  return [...fresh, ...stale].slice(0, Math.min(clamped, pool.length));
 }
 
 /**
@@ -155,7 +150,7 @@ export function buildAnchorStatBoosts(core: CoreStat, supports: SupportStat[]): 
  */
 export function buildAnchorTrainingResult(
   core: CoreStat,
-  count: SupportCount,
+  count: number,
   recentSupports: SupportStat[] = []
 ): TrainingResult {
   const anchor = CORE_ANCHORS[core];
@@ -195,9 +190,11 @@ export function recentSupportsFrom(lastStatBoosts: StatBoosts | undefined): Supp
 }
 
 function buildMessage(anchorName: string, supportCount: number): string {
-  if (supportCount >= 3) return `Clean ${anchorName.toLowerCase()} session — everything clicked!`;
-  if (supportCount === 2) return `Solid ${anchorName.toLowerCase()} work today.`;
-  return `${anchorName} session done. Room to sharpen it up.`;
+  const shot = anchorName.toLowerCase();
+  if (supportCount >= 3) return `Perfect ${shot} session — three for three!`;
+  if (supportCount === 2) return `Strong ${shot} work — two clean reps.`;
+  if (supportCount === 1) return `${anchorName} session — one clean rep before you slipped.`;
+  return `Tough ${shot} session — the core reps still count.`;
 }
 
 function shuffle<T>(array: T[]): T[] {
