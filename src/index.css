@@ -76,6 +76,34 @@ body {
   animation: fade-out 0.5s ease-out;
 }
 
+/* Momentum takeover: a quick glow + swell on the momentum bar when a break of
+   serve (or a big key moment) seizes momentum. Colour comes from --pulse-color,
+   set inline to the gaining side's colour. */
+@keyframes momentum-pulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--pulse-color);
+    filter: brightness(1);
+  }
+  35% {
+    box-shadow: 0 0 12px 4px var(--pulse-color);
+    filter: brightness(1.6);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+    filter: brightness(1);
+  }
+}
+
+.animate-momentum-pulse {
+  animation: momentum-pulse 0.7s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-momentum-pulse {
+    animation: none;
+  }
+}
+
 /* Night mode overlay - darkens everything except exempt elements */
 .night-mode {
   position: relative;

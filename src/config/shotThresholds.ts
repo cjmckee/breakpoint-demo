@@ -628,7 +628,7 @@ export const MOMENTUM = {
    */
   breakOfServe: {
     target: 45,     // absolute momentum a break pulls toward (signed to the breaker)
-    takeover: 0.7,  // fraction of the way to target (0.7 => a clean flip through 0)
+    takeover: 0.5,  // fraction of the way to target (still flips through 0, a touch gentler)
   },
 
   /**
