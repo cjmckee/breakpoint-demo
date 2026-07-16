@@ -205,7 +205,7 @@ export class MatchOrchestrator {
 
     // Initialize fatigue from pre-match energy
     this.fatigue = {
-      player: Math.max(0, (100 - (config.energy ?? 100)) * MATCH_FATIGUE.energyToFatigueFactor),
+      player: Math.max(0, (MATCH_FATIGUE.energyFullStaminaThreshold - (config.energy ?? 100)) * MATCH_FATIGUE.energyToFatigueFactor),
       opponent: 0,
     };
 

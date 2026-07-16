@@ -431,8 +431,8 @@ export class MatchSimulator {
       pointsPlayed: 0,
       isKeyMoment: false,
       fatigue: {
-        player: Math.max(0, (100 - this.config.player.energy) * MATCH_FATIGUE.energyToFatigueFactor),
-        opponent: Math.max(0, (100 - this.config.opponent.energy) * MATCH_FATIGUE.energyToFatigueFactor),
+        player: Math.max(0, (MATCH_FATIGUE.energyFullStaminaThreshold - this.config.player.energy) * MATCH_FATIGUE.energyToFatigueFactor),
+        opponent: Math.max(0, (MATCH_FATIGUE.energyFullStaminaThreshold - this.config.opponent.energy) * MATCH_FATIGUE.energyToFatigueFactor),
       },
     };
   }

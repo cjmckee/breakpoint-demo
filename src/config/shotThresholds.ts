@@ -557,8 +557,14 @@ export const MATCH_FATIGUE = {
   baseRecoveryPerPoint: 0.08,
   /** Max recovery per point (recovery stat 100) */
   maxRecoveryPerPoint: 0.25,
-  /** Starting fatigue factor from low energy: (100 - energy) * this */
-  energyToFatigueFactor: 0.3,
+  /**
+   * Starting fatigue factor from low energy.
+   * Formula: Math.max(0, (energyFullStaminaThreshold - energy) * energyToFatigueFactor)
+   * energy=0  → fatigue=20 → stamina=80
+   * energy=50 → fatigue=0  → stamina=100
+   */
+  energyFullStaminaThreshold: 50,
+  energyToFatigueFactor: 0.4,
 };
 
 /** Fatigue quality modifier: linear from 1.0 (fatigue=0) to minModifier (fatigue=100) */
