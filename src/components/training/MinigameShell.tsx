@@ -44,3 +44,27 @@ export const SupportResult: React.FC<{ count: SupportCount; note: string }> = ({
 export function countNote(count: SupportCount, clean: string, ok: string, low: string): string {
   return count === 3 ? clean : count === 2 ? ok : low;
 }
+
+/**
+ * Primary action button for a minigame. Fires on pointer DOWN (not click) so touch
+ * and mouse both register at the moment of press — important for the timing games,
+ * where waiting for the click/tap-release adds latency. `touch-none`/`select-none`
+ * stop a press from scrolling the page or selecting text on mobile.
+ */
+export const MinigameActionButton: React.FC<{
+  onPress: () => void;
+  disabled?: boolean;
+  children: React.ReactNode;
+}> = ({ onPress, disabled = false, children }) => (
+  <button
+    type="button"
+    disabled={disabled}
+    onPointerDown={(e) => {
+      e.preventDefault();
+      if (!disabled) onPress();
+    }}
+    className="font-bold border-4 transition-all duration-150 ease-in-out cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 bg-pixel-accent border-pixel-accent-dark text-white hover:bg-pixel-accent-light active:translate-y-1 px-8 py-3 text-lg w-full select-none touch-none"
+  >
+    {children}
+  </button>
+);

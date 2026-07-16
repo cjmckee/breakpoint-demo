@@ -7,10 +7,15 @@
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Button } from '../ui/Button';
 import { scoreToCount, type SupportCount } from '../../game/AnchorTrainingSystem';
 import { audioManager } from '../../audio/AudioManager';
-import { MinigameShell, SupportResult, countNote, type MinigameProps } from './MinigameShell';
+import {
+  MinigameShell,
+  SupportResult,
+  MinigameActionButton,
+  countNote,
+  type MinigameProps,
+} from './MinigameShell';
 
 const MIN_SIZE = 12; // % — the ideal "softest" ring
 const MAX_SIZE = 100; // %
@@ -101,9 +106,7 @@ export const TouchCarveMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
           note={countNote(result.count, 'Feather touch!', 'Nicely carved.', 'Too heavy.')}
         />
       ) : (
-        <Button variant="primary" fullWidth size="lg" onClick={carve}>
-          Carve!  (Space)
-        </Button>
+        <MinigameActionButton onPress={carve}>Carve!  (Space)</MinigameActionButton>
       )}
     </MinigameShell>
   );

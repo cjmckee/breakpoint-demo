@@ -7,10 +7,15 @@
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Button } from '../ui/Button';
 import { scoreToCount, type SupportCount } from '../../game/AnchorTrainingSystem';
 import { audioManager } from '../../audio/AudioManager';
-import { MinigameShell, SupportResult, countNote, type MinigameProps } from './MinigameShell';
+import {
+  MinigameShell,
+  SupportResult,
+  MinigameActionButton,
+  countNote,
+  type MinigameProps,
+} from './MinigameShell';
 
 const BALL_SPEED = 115; // units/sec across the 0..100 track
 const CENTER = 50;
@@ -129,9 +134,7 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete }) => 
           note={countNote(result, 'Locked-in rhythm!', 'Good cadence.', 'Rushed the timing.')}
         />
       ) : (
-        <Button variant="primary" fullWidth size="lg" onClick={swing}>
-          Swing!  (Space)
-        </Button>
+        <MinigameActionButton onPress={swing}>Swing!  (Space)</MinigameActionButton>
       )}
     </MinigameShell>
   );

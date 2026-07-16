@@ -96,9 +96,14 @@ export const ReadReactMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
     <MinigameShell title="Read & React" subtitle="Tap the instant the serve fires">
       <button
         type="button"
-        onClick={react}
+        // React on pointer DOWN, not click — for a reaction-time score we must
+        // capture the moment the finger/mouse lands, not the tap release.
+        onPointerDown={(e) => {
+          e.preventDefault();
+          react();
+        }}
         disabled={phase === 'done'}
-        className={`w-full h-56 border-4 flex items-center justify-center transition-colors duration-75 select-none ${panel} ${
+        className={`w-full h-56 border-4 flex items-center justify-center transition-colors duration-75 select-none touch-none ${panel} ${
           phase === 'done' ? 'cursor-default' : 'cursor-pointer'
         }`}
       >
