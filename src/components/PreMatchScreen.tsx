@@ -312,9 +312,7 @@ const ADDITIONAL_EFFECT_LABELS: Partial<Record<string, string>> = {
   [EffectKey.ENERGY_COST_REDUCTION]: 'Energy Cost Reduction',
   [EffectKey.ENERGY_GAIN_BONUS]: 'Energy Gain Bonus',
   [EffectKey.EXPERIENCE_GAIN_BONUS]: 'Experience Gain Bonus',
-  [EffectKey.TRAINING_STAT_MULTIPLIER]: 'Stat Multiplier',
-  [EffectKey.TRAINING_TIER_BONUS]: 'Training Tier Bonus',
-  [EffectKey.ABILITY_CHANCE_BONUS]: 'Ability Chance Bonus',
+  [EffectKey.MINIGAME_WINDOW_BONUS]: 'Training Window Bonus',
   [EffectKey.RELATIONSHIP_GAIN_BONUS]: 'Relationship Gain Bonus',
   // Match: shot quality effects
   [EffectKey.PACE]: 'Shot Pace Bonus',

@@ -1,0 +1,542 @@
+{
+  "player": {
+    "id": "player-1784286179233-u7zvis023",
+    "name": "abc",
+    "stats": {
+      "core": {
+        "serve": 24,
+        "forehand": 23,
+        "backhand": 23,
+        "return": 24,
+        "slice": 23
+      },
+      "technical": {
+        "volley": 24,
+        "overhead": 22,
+        "dropShot": 22,
+        "spin": 24,
+        "placement": 25
+      },
+      "physical": {
+        "speed": 23,
+        "stamina": 22,
+        "strength": 23,
+        "agility": 22,
+        "recovery": 23
+      },
+      "mental": {
+        "focus": 22,
+        "anticipation": 22,
+        "shotVariety": 22,
+        "offensive": 22,
+        "defensive": 23
+      }
+    },
+    "abilities": [],
+    "archetypeProfile": {
+      "broad": null,
+      "phases": {},
+      "specializationPoints": 1,
+      "respecTokens": 0
+    },
+    "inventory": [
+      {
+        "id": "beginner_racquet",
+        "name": "Beginner Racquet",
+        "description": "A basic racquet for learning the fundamentals.",
+        "type": "equipment",
+        "equipmentSlot": "racquet",
+        "shopAvailable": false,
+        "modifiers": {
+          "statBoosts": {
+            "serve": 2,
+            "forehand": 2
+          }
+        }
+      }
+    ],
+    "equippedItems": {
+      "racquet": {
+        "id": "beginner_racquet",
+        "name": "Beginner Racquet",
+        "description": "A basic racquet for learning the fundamentals.",
+        "type": "equipment",
+        "equipmentSlot": "racquet",
+        "shopAvailable": false,
+        "modifiers": {
+          "statBoosts": {
+            "serve": 2,
+            "forehand": 2
+          }
+        }
+      },
+      "shoes": {
+        "id": "running_shoes",
+        "name": "Running Shoes",
+        "description": "Lightweight shoes for quick movement around the court.",
+        "type": "equipment",
+        "equipmentSlot": "shoes",
+        "shopAvailable": false,
+        "modifiers": {
+          "statBoosts": {
+            "speed": 3,
+            "agility": 2,
+            "stamina": 2
+          }
+        }
+      },
+      "outfit": null,
+      "hat": null
+    },
+    "storyItems": [],
+    "nextActivityBuffs": [],
+    "seenItemIds": [
+      "beginner_racquet",
+      "running_shoes"
+    ],
+    "activeIndicators": [
+      "calendar"
+    ],
+    "seenChallengeIds": [],
+    "level": 2,
+    "experience": 132,
+    "totalExperienceEarned": 132,
+    "tier": 1,
+    "cumulativeMatchStats": {
+      "aces": 3,
+      "winners": 11,
+      "longRallies": 43,
+      "netPoints": 5,
+      "breakPoints": 6
+    },
+    "createdAt": "2026-07-17T11:02:59.233Z",
+    "updatedAt": "2026-07-17T11:31:44.539Z",
+    "flags": {}
+  },
+  "calendar": {
+    "currentSeason": 1,
+    "currentDay": 5,
+    "currentTimeSlot": 2,
+    "practiceOpponents": {},
+    "scheduledEvents": [
+      {
+        "eventType": "story",
+        "scheduledDay": 6,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "relationship_basics"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 7,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "shop_basics"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 8,
+        "scheduledTimeSlot": 1,
+        "metadata": {
+          "storyEventId": "rival_first_encounter"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 9,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "club_team_intro"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 10,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "coach_first_meeting"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 11,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "coach_archetype_selection"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 11,
+        "scheduledTimeSlot": 1,
+        "metadata": {
+          "storyEventId": "club_team_first_practice"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 12,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "coach_training_focus"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 13,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "first_team_match_scheduled"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 16,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "coach_balanced_development"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 17,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "second_team_match_scheduled"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 21,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "third_team_match_scheduled"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 25,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "fourth_team_match_scheduled"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 29,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "fifth_team_match_scheduled"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 33,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "riverside_open_prep"
+        }
+      }
+    ],
+    "activeTournament": null,
+    "completedTournaments": []
+  },
+  "currentStatus": {
+    "energy": 90,
+    "mood": 41,
+    "lastActivity": {
+      "id": "story-1784287904539",
+      "type": "story",
+      "source": "story_event",
+      "timestamp": "2026-07-17T11:31:44.539Z",
+      "timeSlotsUsed": 0,
+      "energyCost": 0,
+      "moodResult": 2,
+      "eventId": "training_session_intro",
+      "eventName": "Training Session Introduction",
+      "tags": [
+        "intro"
+      ],
+      "resultText": [
+        "Right now you only have access to Bronze training sessions. You'll have access to a bit more variety as more content is added to the demo over time."
+      ],
+      "statChanges": {},
+      "relationshipChanges": {
+        "jen": 2,
+        "keith": 2
+      },
+      "abilitiesGained": [],
+      "itemsGained": [],
+      "hangoutsUnlocked": []
+    }
+  },
+  "activityHistory": [
+    {
+      "id": "story-1784287904539",
+      "type": "story",
+      "source": "story_event",
+      "timestamp": "2026-07-17T11:31:44.539Z",
+      "timeSlotsUsed": 0,
+      "energyCost": 0,
+      "moodResult": 2,
+      "eventId": "training_session_intro",
+      "eventName": "Training Session Introduction",
+      "tags": [
+        "intro"
+      ],
+      "resultText": [
+        "Right now you only have access to Bronze training sessions. You'll have access to a bit more variety as more content is added to the demo over time."
+      ],
+      "statChanges": {},
+      "relationshipChanges": {
+        "jen": 2,
+        "keith": 2
+      },
+      "abilitiesGained": [],
+      "itemsGained": [],
+      "hangoutsUnlocked": []
+    },
+    {
+      "id": "story-1784287901594",
+      "type": "story",
+      "source": "story_event",
+      "timestamp": "2026-07-17T11:31:41.594Z",
+      "timeSlotsUsed": 0,
+      "energyCost": 50,
+      "moodResult": 15,
+      "eventId": "tutorial_jen_win",
+      "eventName": "Practice Match Victory",
+      "tags": [
+        "tutorial"
+      ],
+      "resultText": [
+        "You pull off the win! Your confidence is growing. ",
+        {
+          "characterId": "jen"
+        },
+        " warns you about the strong players at the Academy, even at the Club tier. Make sure you do your training!"
+      ],
+      "statChanges": {},
+      "relationshipChanges": {
+        "jen": 5
+      },
+      "abilitiesGained": [],
+      "itemsGained": [],
+      "hangoutsUnlocked": []
+    },
+    {
+      "id": "story-1784287769486",
+      "type": "story",
+      "source": "story_event",
+      "timestamp": "2026-07-17T11:29:29.486Z",
+      "timeSlotsUsed": 0,
+      "energyCost": 50,
+      "moodResult": 10,
+      "eventId": "tutorial_keith_win",
+      "eventName": "Practice Match Victory",
+      "tags": [
+        "tutorial"
+      ],
+      "resultText": [
+        "You feel more confident after that win. Maybe tennis isn't so hard after all. However, you feel like you're about to face a much tougher challenge."
+      ],
+      "statChanges": {},
+      "relationshipChanges": {},
+      "abilitiesGained": [],
+      "itemsGained": [],
+      "hangoutsUnlocked": []
+    },
+    {
+      "id": "story-1784287638793",
+      "type": "story",
+      "source": "story_event",
+      "timestamp": "2026-07-17T11:27:18.793Z",
+      "timeSlotsUsed": 0,
+      "energyCost": 0,
+      "moodResult": 5,
+      "eventId": "match_play_basics",
+      "eventName": "Match Play Basics",
+      "tags": [
+        "intro"
+      ],
+      "resultText": [
+        "You sub in for a couple games to get a feel for the courts. You don't look so bad. ",
+        {
+          "characterId": "keith"
+        },
+        " decides he wants to challenge you to see what you're made of."
+      ],
+      "statChanges": {
+        "serve": 1,
+        "return": 1
+      },
+      "relationshipChanges": {
+        "jen": 2,
+        "keith": 2
+      },
+      "abilitiesGained": [],
+      "itemsGained": [],
+      "hangoutsUnlocked": []
+    },
+    {
+      "id": "rest-1784287632958",
+      "type": "rest",
+      "source": "rest_activity",
+      "timestamp": "2026-07-17T11:27:12.958Z",
+      "timeSlotsUsed": 1,
+      "energyCost": 0,
+      "moodResult": 5,
+      "restType": "deep",
+      "energyRestored": 50
+    },
+    {
+      "id": "anchor-training-1784287370241-ovfe4rb",
+      "type": "training",
+      "source": "training_activity",
+      "timestamp": "2026-07-17T11:22:50.241Z",
+      "statBoosts": {
+        "slice": 1,
+        "placement": 1,
+        "shotVariety": 1,
+        "volley": 1
+      },
+      "energyCost": 20,
+      "timeSlotsUsed": 1,
+      "trainingType": "slice_anchor",
+      "trainingName": "Slice Training",
+      "efficiency": 1,
+      "moodResult": 2,
+      "moodChange": 2,
+      "sessionTier": "bronze",
+      "tier": "bronze",
+      "sessionType": "slice_anchor",
+      "message": "Perfect slice session — three for three!"
+    },
+    {
+      "id": "anchor-training-1784287316335-d8hg5cv",
+      "type": "training",
+      "source": "training_activity",
+      "timestamp": "2026-07-17T11:21:56.335Z",
+      "statBoosts": {
+        "serve": 1,
+        "overhead": 1
+      },
+      "energyCost": 20,
+      "timeSlotsUsed": 1,
+      "trainingType": "serve_anchor",
+      "trainingName": "Serve Training",
+      "efficiency": 1,
+      "moodResult": 2,
+      "moodChange": 2,
+      "sessionTier": "bronze",
+      "tier": "bronze",
+      "sessionType": "serve_anchor",
+      "message": "Serve session — one clean rep."
+    },
+    {
+      "id": "anchor-training-1784286804790-tbamn41",
+      "type": "training",
+      "source": "training_activity",
+      "timestamp": "2026-07-17T11:13:24.790Z",
+      "statBoosts": {
+        "backhand": 1,
+        "agility": 1,
+        "placement": 1,
+        "spin": 1
+      },
+      "energyCost": 20,
+      "timeSlotsUsed": 1,
+      "trainingType": "backhand_anchor",
+      "trainingName": "Backhand Training",
+      "efficiency": 1,
+      "moodResult": 2,
+      "moodChange": 2,
+      "sessionTier": "bronze",
+      "tier": "bronze",
+      "sessionType": "backhand_anchor",
+      "message": "Perfect backhand session — three for three!"
+    },
+    {
+      "id": "story-1784286581543",
+      "type": "story",
+      "source": "story_event",
+      "timestamp": "2026-07-17T11:09:41.543Z",
+      "timeSlotsUsed": 0,
+      "energyCost": 0,
+      "moodResult": 2,
+      "eventId": "player_tier_intro",
+      "eventName": "Player Tier Introduction",
+      "tags": [
+        "intro"
+      ],
+      "resultText": [
+        "It seems you're going to have to prove yourself to move up at the Academy. Also how good is ",
+        {
+          "characterId": "keith"
+        },
+        "'s little sister...?"
+      ],
+      "statChanges": {},
+      "relationshipChanges": {
+        "jen": 2,
+        "keith": 2
+      },
+      "abilitiesGained": [],
+      "itemsGained": [],
+      "hangoutsUnlocked": []
+    },
+    {
+      "id": "rest-1784286578422",
+      "type": "rest",
+      "source": "rest_activity",
+      "timestamp": "2026-07-17T11:09:38.422Z",
+      "timeSlotsUsed": 1,
+      "energyCost": 0,
+      "moodResult": 5,
+      "restType": "deep",
+      "energyRestored": 50
+    }
+  ],
+  "completedStoryEvents": [
+    "welcome_to_tennis_rpg",
+    "making_connections",
+    "food_hall_gossip",
+    "player_tier_intro",
+    "match_play_basics",
+    "tutorial_keith_win",
+    "tutorial_jen_win",
+    "training_session_intro"
+  ],
+  "completedStoryEventChoices": {},
+  "relationships": {
+    "jordan_rival": -10,
+    "jen": 15,
+    "keith": 10
+  },
+  "hangoutThresholdsSeen": {},
+  "storyEventTriggerChance": 40,
+  "activeChallenges": [],
+  "completedChallenges": [],
+  "unlockedTiers": [
+    1
+  ],
+  "shopItems": [],
+  "audioSettings": {
+    "musicVolume": 0.5,
+    "sfxVolume": 0.7,
+    "muteMusic": false,
+    "muteSfx": false
+  },
+  "eventRecovery": {
+    "currentEventId": null,
+    "currentDialogueIndex": 0,
+    "selectedChoices": {},
+    "pendingMatchSetup": null,
+    "pendingEventResult": null,
+    "idleOverlay": null
+  },
+  "exportedAt": "2026-07-17T11:31:55.683Z",
+  "version": "1.0.0"
+}

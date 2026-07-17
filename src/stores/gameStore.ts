@@ -10,7 +10,6 @@ import {
   Player,
   PlayerFlag,
   GameCalendar,
-  TrainingSession,
   TrainingResult,
   RestResult,
   ActivityResult,
@@ -29,7 +28,6 @@ import type { Challenge } from '../types/challenges';
 import type { Item, EquipmentSlot } from '../types/items';
 import type { ActiveTournament, TournamentMatchMetadata } from '../types/tournaments';
 import { PlayerManager } from '../game/PlayerManager';
-import { TrainingSystem } from '../game/TrainingSystem';
 import { TimeManager } from '../game/TimeManager';
 import { StoryEventManager } from '../game/StoryEventManager';
 import { PrerequisiteChecker } from '../game/PrerequisiteChecker';
@@ -81,9 +79,6 @@ interface GameState {
   // Activity history
   activityHistory: ActivityResult[];
 
-  // Training sessions (generated per time slot, regenerated when calendar changes)
-  currentTrainingSessions: TrainingSession[];
-
   // Story event state
   completedStoryEvents: string[];
   completedStoryEventChoices: Record<string, string>;
@@ -121,8 +116,6 @@ interface GameState {
   // Actions
   initializeGame: () => void;
   createPlayer: (name: string, playstyle: 'offensive' | 'defensive' | 'balanced') => void;
-  selectTraining: (session: TrainingSession) => void;
-  executeTraining: () => void;
   applyTrainingResult: (result: TrainingResult) => Player;
   advanceTime: () => void;
   rest: () => void;
@@ -131,7 +124,6 @@ interface GameState {
   exportSave: () => string;
   importSave: (jsonData: string) => boolean;
   clearAllData: () => void;
-  getAvailableTrainingSessions: () => TrainingSession[];
 
   // Pending shop item popups (cleared when leaving shop)
   pendingShopAcquisitions: Item[];
@@ -236,7 +228,6 @@ export const useGameStore = create<GameState>()(
       calendar: initialCalendar,
       currentStatus: initialStatus,
       activityHistory: [],
-      currentTrainingSessions: [],
 
       // Story event initial state
       completedStoryEvents: [],
@@ -452,10 +443,6 @@ export const useGameStore = create<GameState>()(
       createPlayer: (name: string, playstyle: 'offensive' | 'defensive' | 'balanced') => {
         const player = PlayerManager.createPlayer(name, playstyle);
 
-        // Generate initial training sessions
-        const { effects: initialEffects } = EffectAggregator.getActiveEffects(player);
-        const initialSessions = TrainingSystem.getAvailableTrainingSessions(player, 0, undefined, 4, initialEffects);
-
         // Schedule initial story events so they fire reliably in the correct order
         // rather than relying on random chance triggers
         const initialStorySchedule: ScheduledEvent[] = [
@@ -489,7 +476,6 @@ export const useGameStore = create<GameState>()(
 
         set({
           player,
-          currentTrainingSessions: initialSessions,
           gamePhase: { type: 'idle', overlay: null },
           calendar: {
             ...get().calendar,
@@ -504,65 +490,6 @@ export const useGameStore = create<GameState>()(
 
         // Trigger welcome event (guaranteed, no probability roll)
         get().checkForStoryEventById('welcome_to_tennis_rpg');
-      },
-
-      // Select training session (doesn't execute yet)
-      selectTraining: (_session: TrainingSession) => {
-        set({ gamePhase: { type: 'training' } });
-      },
-
-      // Execute training
-      executeTraining: () => {
-        const { player, currentStatus } = get();
-        if (!player) return;
-
-        // Get active effects from items/abilities
-        const { effects: activeEffects } = EffectAggregator.getActiveEffects(player);
-
-        // Get available training sessions
-        const sessions = TrainingSystem.getAvailableTrainingSessions(
-          player,
-          currentStatus.mood,
-          undefined,
-          4,
-          activeEffects
-        );
-
-        if (sessions.length === 0) return;
-
-        // For now, execute the first session (UI will handle selection)
-        const session = sessions[0];
-
-        const result = TrainingSystem.executeTraining(
-          player,
-          session,
-          currentStatus.energy,
-          activeEffects
-        );
-
-        // Apply stat boosts to player
-        const updatedPlayer = PlayerManager.applyStatBoosts(player, result.statBoosts);
-
-        // Check for ability gained
-        let finalPlayer = updatedPlayer;
-        if (result.abilityGained) {
-          finalPlayer = PlayerManager.addAbility(updatedPlayer, result.abilityGained);
-        }
-
-        // Update energy and mood
-        const newEnergy = Math.max(0, currentStatus.energy - result.energyCost);
-        const newMood = Math.max(-100, Math.min(100, currentStatus.mood + result.moodChange));
-
-        set({
-          player: finalPlayer,
-          currentStatus: {
-            energy: newEnergy,
-            mood: newMood,
-            lastActivity: result,
-          },
-          activityHistory: [result, ...get().activityHistory].slice(0, 10),
-          gamePhase: { type: 'idle', overlay: null },
-        });
       },
 
       // Apply training result (called from UI with specific session result)
@@ -619,7 +546,7 @@ export const useGameStore = create<GameState>()(
 
       // Advance time slot
       advanceTime: () => {
-        const { player, calendar, currentStatus } = get();
+        const { calendar, currentStatus } = get();
 
         const newCalendar = TimeManager.advanceTimeSlot(calendar);
 
@@ -637,14 +564,6 @@ export const useGameStore = create<GameState>()(
           newMood = Math.min(0, newMood + 5);
         }
 
-        // Generate new training sessions for the new time slot
-        const newTrainingSessions = player
-          ? TrainingSystem.getAvailableTrainingSessions(
-              player, newMood, undefined, 4,
-              EffectAggregator.getActiveEffects(player).effects
-            )
-          : [];
-
         set({
           calendar: newCalendar,
           currentStatus: {
@@ -652,7 +571,6 @@ export const useGameStore = create<GameState>()(
             energy: newEnergy,
             mood: newMood,
           },
-          currentTrainingSessions: newTrainingSessions,
         });
 
         // Reconcile any missed events before checking the current slot
@@ -843,7 +761,6 @@ export const useGameStore = create<GameState>()(
           calendar: state.calendar,
           currentStatus: state.currentStatus,
           activityHistory: state.activityHistory,
-          currentTrainingSessions: state.currentTrainingSessions,
           completedStoryEvents: state.completedStoryEvents,
           completedStoryEventChoices: state.completedStoryEventChoices,
           relationships: state.relationships,
@@ -878,7 +795,6 @@ export const useGameStore = create<GameState>()(
             calendar: data.calendar,
             currentStatus: data.currentStatus || initialStatus,
             activityHistory: data.activityHistory || [],
-            currentTrainingSessions: data.currentTrainingSessions || [],
             completedStoryEvents: data.completedStoryEvents || [],
             completedStoryEventChoices: data.completedStoryEventChoices || {},
             relationships: data.relationships || {},
@@ -921,7 +837,6 @@ export const useGameStore = create<GameState>()(
           activeChallenges: [],
           completedChallenges: [],
           unlockedTiers: [1],
-          currentTrainingSessions: [],
           isInitialized: true,
           gamePhase: { type: 'player_creation' },
         });
@@ -1936,12 +1851,6 @@ export const useGameStore = create<GameState>()(
         // Use navigateTo('idle') so it re-checks for scheduled events
         // that were deferred while the overlay was showing
         get().navigateTo('idle');
-      },
-
-      // Get available training sessions (returns cached sessions for current time slot)
-      getAvailableTrainingSessions: (): TrainingSession[] => {
-        const { currentTrainingSessions } = get();
-        return currentTrainingSessions;
       },
 
       // Story Event Actions
@@ -3215,7 +3124,6 @@ export const useGameStore = create<GameState>()(
         calendar: state.calendar,
         currentStatus: state.currentStatus,
         activityHistory: state.activityHistory,
-        currentTrainingSessions: state.currentTrainingSessions,
 
         // Story event persistence
         completedStoryEvents: state.completedStoryEvents,
