@@ -1,9 +1,11 @@
 /**
  * Ability Display Component
- * Shows player abilities with rarity-based styling and hover tooltips
+ * Shows player abilities as a rarity-styled matrix. Hovering an ability (desktop) or
+ * tapping it (mobile) opens a focused centered detail overlay — tap outside or press
+ * Escape to dismiss on touch devices.
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { Ability } from '../types/game';
 import { AbilityRarity } from '../types/game';
 
@@ -14,6 +16,12 @@ interface AbilityDisplayProps {
 export function formatAbilityName(name: string): string {
   return name.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
+
+// Touch-only devices can't hover, so they toggle the detail overlay on tap instead.
+const canHover =
+  typeof window !== 'undefined' &&
+  typeof window.matchMedia === 'function' &&
+  window.matchMedia('(hover: hover)').matches;
 
 // Get rarity-specific styling
 const getRarityStyle = (rarity: AbilityRarity = AbilityRarity.COMMON) => {
@@ -76,103 +84,123 @@ const getRarityLabel = (rarity: AbilityRarity = AbilityRarity.COMMON) => {
 };
 
 export const AbilityDisplay: React.FC<AbilityDisplayProps> = ({ abilities }) => {
-  const [hoveredAbility, setHoveredAbility] = useState<Ability | null>(null);
+  const [selected, setSelected] = useState<Ability | null>(null);
 
-  // Memoize ability hover handlers
-  const handleAbilityHover = useCallback((ability: Ability | null) => {
-    setHoveredAbility(ability);
-  }, []);
-
-  // Memoize ability cards to prevent unnecessary re-renders
-  const abilityCards = useMemo(() => {
-    return abilities.map((ability, idx) => {
-      const style = getRarityStyle(ability.rarity);
-
-      return (
-        <div
-          key={idx}
-          className={`
-            p-4 rounded-lg border-2 cursor-pointer transition-all duration-300 ease-out
-            ${style.borderColor} ${style.bgColor} ${style.darkBgColor} ${style.shadow} ${style.animation}
-            ${style.hoverEffect}
-            transform-gpu will-change-transform
-          `}
-          onMouseEnter={() => handleAbilityHover(ability)}
-          onMouseLeave={() => handleAbilityHover(null)}
-        >
-          <div className="flex justify-between items-start mb-2">
-            <h5 className={`font-bold text-sm ${style.textColor} transition-colors duration-200`}>
-              {formatAbilityName(ability.name)}
-            </h5>
-            <span
-              className={`text-xs px-2 py-1 rounded ${style.textColor} font-mono bg-pixel-bg/50`}
-            >
-              Lv.{ability.level || 1}
-            </span>
-          </div>
-          <div className={`text-xs ${style.textColor} opacity-75 transition-opacity duration-200 capitalize`}>
-            {getRarityLabel(ability.rarity)}
-          </div>
-        </div>
-      );
-    });
-  }, [abilities, handleAbilityHover]);
+  // On touch devices, dismiss the overlay on Escape (outside taps are handled by the
+  // backdrop). Hover devices clear it naturally on mouse-leave.
+  useEffect(() => {
+    if (!selected || canHover) return;
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSelected(null);
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [selected]);
 
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {abilityCards}
+        {abilities.map((ability, idx) => {
+          const style = getRarityStyle(ability.rarity);
+
+          const interactionHandlers = canHover
+            ? {
+                onMouseEnter: () => setSelected(ability),
+                onMouseLeave: () => setSelected(null),
+                onFocus: () => setSelected(ability),
+                onBlur: () => setSelected(null),
+              }
+            : {
+                onClick: () => setSelected((prev) => (prev === ability ? null : ability)),
+              };
+
+          return (
+            <button
+              key={idx}
+              type="button"
+              aria-label={`${formatAbilityName(ability.name)} — ${getRarityLabel(ability.rarity)}`}
+              className={`
+                text-left p-4 rounded-lg border-2 cursor-pointer transition-all duration-300 ease-out
+                ${style.borderColor} ${style.bgColor} ${style.darkBgColor} ${style.shadow} ${style.animation}
+                ${style.hoverEffect}
+                transform-gpu will-change-transform
+                focus:outline-none focus-visible:ring-2 focus-visible:ring-pixel-accent
+              `}
+              {...interactionHandlers}
+            >
+              <div className="flex justify-between items-start mb-2 gap-2">
+                <h5 className={`font-bold text-sm ${style.textColor} transition-colors duration-200`}>
+                  {formatAbilityName(ability.name)}
+                </h5>
+                <span
+                  className={`text-xs px-2 py-1 rounded ${style.textColor} font-mono bg-pixel-bg/50 shrink-0`}
+                >
+                  Lv.{ability.level || 1}
+                </span>
+              </div>
+              <div className={`text-xs ${style.textColor} opacity-75 transition-opacity duration-200 capitalize`}>
+                {getRarityLabel(ability.rarity)}
+              </div>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Enhanced Ability Tooltip */}
-      {hoveredAbility && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+      {/* Focused detail overlay */}
+      {selected && (
+        <div
+          className={`fixed inset-0 flex items-center justify-center z-50 ${
+            canHover ? 'pointer-events-none' : 'pointer-events-auto'
+          }`}
+          onClick={canHover ? undefined : () => setSelected(null)}
+        >
           <div
+            onClick={(e) => e.stopPropagation()}
             className={`
               bg-pixel-primary/95 backdrop-blur-sm border-4 p-6 max-w-lg pointer-events-auto animate-pixel-scale shadow-xl
-              rounded-lg
+              rounded-lg mx-4
               ${
-                hoveredAbility.rarity === AbilityRarity.LEGENDARY
+                selected.rarity === AbilityRarity.LEGENDARY
                   ? 'border-orange-500'
-                  : hoveredAbility.rarity === AbilityRarity.RARE
+                  : selected.rarity === AbilityRarity.RARE
                     ? 'border-purple-500'
-                    : hoveredAbility.rarity === AbilityRarity.UNCOMMON
+                    : selected.rarity === AbilityRarity.UNCOMMON
                       ? 'border-green-500'
                       : 'border-blue-500'
               }
             `}
           >
-            <div className="flex justify-between items-start mb-2">
+            <div className="flex justify-between items-start mb-2 gap-3">
               <h5 className="font-bold text-pixel-text text-lg">
-                {formatAbilityName(hoveredAbility.name)}
+                {formatAbilityName(selected.name)}
               </h5>
               <span
-                className={`text-xs px-2 py-1 rounded text-white font-bold`}
+                className="text-xs px-2 py-1 rounded text-white font-bold shrink-0"
                 style={{
                   backgroundColor:
-                    hoveredAbility.rarity === AbilityRarity.LEGENDARY
+                    selected.rarity === AbilityRarity.LEGENDARY
                       ? '#ea580c'
-                      : hoveredAbility.rarity === AbilityRarity.RARE
+                      : selected.rarity === AbilityRarity.RARE
                         ? '#a855f7'
-                        : hoveredAbility.rarity === AbilityRarity.UNCOMMON
+                        : selected.rarity === AbilityRarity.UNCOMMON
                           ? '#22c55e'
                           : '#3b82f6',
                 }}
               >
-                Lv.{hoveredAbility.level || 1}
+                Lv.{selected.level || 1}
               </span>
             </div>
             <div className="text-xs text-pixel-text-muted mb-3 capitalize">
-              {getRarityLabel(hoveredAbility.rarity)} rarity
+              {getRarityLabel(selected.rarity)} rarity
             </div>
-            {hoveredAbility.description && (
+            {selected.description && (
               <p className="text-sm text-pixel-text mb-3 leading-relaxed">
-                {hoveredAbility.description}
+                {selected.description}
               </p>
             )}
-            {hoveredAbility.effects && (
+            {selected.effects && (
               <div className="text-xs text-pixel-text-muted">
-                <span className="font-semibold">Effects:</span> {hoveredAbility.effects}
+                <span className="font-semibold">Effects:</span> {selected.effects}
               </div>
             )}
           </div>

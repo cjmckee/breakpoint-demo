@@ -40,7 +40,8 @@ export type GamePhase =
   | { type: 'inventory' }
   | { type: 'relationships' }
   | { type: 'shop' }
-  | { type: 'archetype' };
+  | { type: 'archetype' }
+  | { type: 'challenges' };
 
 // ============================================================================
 // PHASE INTERFACES

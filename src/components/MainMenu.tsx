@@ -18,8 +18,6 @@ import { ActionTile } from './ui/ActionTile';
 import { UnseenBadge } from './ui/UnseenBadge';
 import { StatusBar } from './StatusBar';
 import { PlayerStatsDisplay } from './PlayerStatsDisplay';
-import { RecentActivities } from './RecentActivities';
-import { ActiveChallenges } from './ActiveChallenges';
 import { ActiveTournamentCard } from './ActiveTournamentCard';
 import { UpcomingTeamMatchCard } from './UpcomingTeamMatchCard';
 import { TrainingResultModal } from './TrainingResultModal';
@@ -48,6 +46,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const rest = useGameStore((state) => state.rest);
   const relationships = useGameStore((state) => state.relationships);
   const hangoutThresholdsSeen = useGameStore((state) => state.hangoutThresholdsSeen);
+  const activeChallenges = useGameStore((state) => state.activeChallenges);
 
   // Tournament state
   const getScheduledTournamentMatch = useGameStore((state) => state.getScheduledTournamentMatch);
@@ -124,6 +123,13 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   ) : [];
 
   const hasNewHangouts = metHangoutCharacters.length > 0;
+
+  // Challenge summary for the menu strip — the full list lives on its own screen.
+  const challengeCount = activeChallenges.length;
+  const claimableCount = activeChallenges.filter((c) => c.status === 'completed').length;
+  const hasUnseenChallenge = activeChallenges.some(
+    (c) => !(player.seenChallengeIds ?? []).includes(c.id)
+  );
 
   const getTierName = (tier: number): string => {
     const tierNames = ['', 'Club Player', 'Regional Competitor', 'Tour Professional', 'World Champion'];
@@ -381,25 +387,42 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
           />
         </div>
 
-        {/* Challenges — quests with rewards, surfaced right below the actions */}
-        <div className="mb-6">
-          <ActiveChallenges />
+        {/* Challenges — compact summary strip; the full list lives on its own screen */}
+        <button
+          onClick={() => navigateTo('challenges')}
+          className="w-full mb-6 flex items-center gap-3 bg-pixel-card border-4 border-pixel-border hover:border-pixel-accent px-4 py-3 transition-colors text-left"
+        >
+          <span className="text-2xl relative shrink-0">
+            📋
+            {hasUnseenChallenge && (
+              <UnseenBadge size="sm" className="absolute -top-2 -right-2" />
+            )}
+          </span>
+          <div className="flex-1 min-w-0">
+            <div className="font-bold text-pixel-text">Challenges</div>
+            <div className="text-xs text-pixel-text-muted">
+              {challengeCount === 0
+                ? 'No active challenges — new quests appear as you play'
+                : `${challengeCount} active${claimableCount > 0 ? '' : ' · in progress'}`}
+            </div>
+          </div>
+          {claimableCount > 0 && (
+            <span className="shrink-0 text-xs font-bold px-2 py-1 bg-green-500 bg-opacity-20 border border-green-500 text-green-500">
+              {claimableCount} ready to collect
+            </span>
+          )}
+          <span className="text-pixel-text-muted shrink-0">▸</span>
+        </button>
+
+        {/* Active tournament / upcoming team match — self-hide when inactive, so the
+            wrapper collapses (empty:hidden) rather than leaving a gap */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 empty:hidden">
+          <ActiveTournamentCard />
+          <UpcomingTeamMatchCard />
         </div>
 
-        {/* Two Column Layout for Stats and secondary panels */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Full Player Stats - 2 columns, shown second on mobile */}
-          <div className="lg:col-span-2 order-2 lg:order-1">
-            <PlayerStatsDisplay collapsible={true} defaultCollapsed={isMobile} />
-          </div>
-
-          {/* Tournament and activity log - shown first on mobile */}
-          <div className="lg:col-span-1 space-y-6 order-1 lg:order-2">
-            <ActiveTournamentCard />
-            <UpcomingTeamMatchCard />
-            <RecentActivities collapsible={true} defaultCollapsed={true} />
-          </div>
-        </div>
+        {/* Full-width player stats */}
+        <PlayerStatsDisplay collapsible={true} defaultCollapsed={isMobile} />
       </div>
 
       {/* Overlay Renderer */}

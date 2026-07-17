@@ -129,7 +129,7 @@ interface GameState {
   pendingShopAcquisitions: Item[];
 
   // Phase transition actions
-  navigateTo: (target: 'idle' | 'training' | 'match_setup' | 'tournament_list' | 'inventory' | 'relationships' | 'shop' | 'archetype') => void;
+  navigateTo: (target: 'idle' | 'training' | 'match_setup' | 'tournament_list' | 'inventory' | 'relationships' | 'shop' | 'archetype' | 'challenges') => void;
   navigateToScheduledMatch: (matchType: 'tournament' | 'story') => void;
   setMatchSetup: (config: Omit<PreMatchConfig, 'opponentDescription' | 'matchTitle' | 'matchDescription' | 'storyMatchMetadata'>, matchType: MatchType) => void;
   getPracticeOpponent: (tier: OpponentTier) => { opponentId: string; name: string; stats: PlayerStats; tier: OpponentTier; abilities?: Ability[]; archetypeProfile?: ArchetypeProfile };
@@ -1031,6 +1031,9 @@ export const useGameStore = create<GameState>()(
             break;
           case 'archetype':
             set({ gamePhase: { type: 'archetype' } });
+            break;
+          case 'challenges':
+            set({ gamePhase: { type: 'challenges' } });
             break;
         }
       },

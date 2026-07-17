@@ -107,17 +107,20 @@ export const ActiveChallenges: React.FC = () => {
 
   if (activeChallenges.length === 0) {
     return (
-      <Card title="Challenges" padding="sm">
-        <p className="text-sm text-pixel-text-muted text-center py-2">
-          No active challenges — new quests will appear here
-        </p>
+      <Card padding="sm">
+        <div className="text-center py-8">
+          <div className="text-5xl mb-3">📋</div>
+          <p className="text-sm text-pixel-text-muted">
+            No active challenges — new quests will appear here as you play.
+          </p>
+        </div>
       </Card>
     );
   }
 
   return (
-    <Card title="Challenges" padding="sm">
-      <div className="space-y-2 max-h-96 overflow-y-auto">
+    <Card padding="sm">
+      <div className="space-y-2">
         {activeChallenges.map((challenge) => {
           const isExpanded = expandedChallenges.has(challenge.id);
           const isCompleted = challenge.status === 'completed';

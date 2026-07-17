@@ -5,6 +5,7 @@
 
 import React, { useMemo } from 'react';
 import { getLetterGrade } from '../utils/playerStats';
+import { InfoPopover } from './ui/InfoPopover';
 
 interface StatCardProps {
   label: string;
@@ -13,6 +14,8 @@ interface StatCardProps {
   showChange?: boolean;
   changeValue?: number;
   boost?: number; // Persistent boost from items/abilities
+  /** What the stat does — revealed on hover (desktop) / tap (mobile) when provided */
+  description?: string;
 }
 
 export const StatCard: React.FC<StatCardProps> = ({
@@ -22,6 +25,7 @@ export const StatCard: React.FC<StatCardProps> = ({
   showChange = false,
   changeValue = 0,
   boost = 0,
+  description,
 }) => {
   // Memoize grade style calculation
   const gradeStyle = useMemo(() => {
@@ -78,12 +82,13 @@ export const StatCard: React.FC<StatCardProps> = ({
     '--stat-color': gradeStyle.color,
   } as React.CSSProperties;
 
-  return (
+  const card = (
     <div
       className={`
         relative p-3 sm:p-4 rounded-lg border-2 border-pixel-border
-        bg-pixel-card
+        bg-pixel-card h-full
         transition-all duration-300
+        ${description ? 'hover:border-pixel-accent cursor-pointer' : ''}
         ${gradeStyle.bounceAnimation || ''}
       `}
       style={cardStyle}
@@ -144,5 +149,24 @@ export const StatCard: React.FC<StatCardProps> = ({
         </div>
       )}
     </div>
+  );
+
+  if (!description) {
+    return card;
+  }
+
+  return (
+    <InfoPopover
+      ariaLabel={`${label}: ${description}`}
+      panelClassName="w-56"
+      content={
+        <>
+          <span className="font-bold text-pixel-text">{label}</span>
+          <span className="text-pixel-text-muted"> — {description}</span>
+        </>
+      }
+    >
+      {card}
+    </InfoPopover>
   );
 };

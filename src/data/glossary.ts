@@ -98,6 +98,15 @@ export const STATS_GUIDE: GlossarySection[] = [
   },
 ];
 
+/**
+ * Flat lookup of stat descriptions keyed by display label (e.g. "Serve", "Drop Shot").
+ * Derived from STATS_GUIDE so the glossary stays the single source of truth — used by
+ * the stat cards/tiles to reveal "what this stat does" on hover/tap.
+ */
+export const STAT_DESCRIPTIONS: Record<string, string> = Object.fromEntries(
+  STATS_GUIDE.flatMap((section) => section.entries.map((entry) => [entry.term, entry.definition]))
+);
+
 export const SURFACE_GUIDE: GlossarySection[] = [
   {
     title: 'Court Surfaces',
