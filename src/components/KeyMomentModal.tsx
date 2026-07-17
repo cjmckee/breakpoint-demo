@@ -45,6 +45,17 @@ const formatStatName = (name: string): string => {
 };
 
 /**
+ * Short chip label for a stat: initials for multi-word keys ('shotVariety' → 'SV'),
+ * first three letters otherwise ('serve' → 'SER'). Full name goes in the chip's title.
+ */
+const abbrevStat = (name: string): string => {
+  const words = name.replace(/([A-Z])/g, ' $1').trim().split(/\s+/);
+  return words.length > 1
+    ? words.map((w) => w[0]).join('').toUpperCase()
+    : name.slice(0, 3).toUpperCase();
+};
+
+/**
  * Advantage chip label + colour. Yellow at "Even", deepening to forest green as the player's
  * weighted edge grows and to deep scarlet as the disadvantage grows (continuous by score diff).
  */
@@ -84,23 +95,13 @@ interface KeyMomentModalProps {
 
 export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMoment }) => {
   const [isHidden, setIsHidden] = useState(false);
-  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
-  // On touch devices (no hover), tapping a card opens its detail modal instead of committing.
-  const [openIdx, setOpenIdx] = useState<number | null>(null);
-  const [isTouch, setIsTouch] = useState(false);
+  // Which tactic's detail is shown in the right pane. Persists so options are easy to compare
+  // side by side; hover (desktop) or tap (touch) moves focus, an explicit button commits.
+  const [focusIdx, setFocusIdx] = useState(0);
   const [hoveredCondition, setHoveredCondition] = useState<number | null>(null);
 
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return;
-    const mq = window.matchMedia('(hover: none), (pointer: coarse)');
-    const update = (): void => setIsTouch(mq.matches);
-    update();
-    mq.addEventListener?.('change', update);
-    return () => mq.removeEventListener?.('change', update);
-  }, []);
-
-  // Reset hover / touch-opened detail when the modal opens or a new key moment arrives.
-  useEffect(() => { setHoverIdx(null); setOpenIdx(null); }, [isOpen, keyMoment?.id]);
+  // Reset focus when the modal opens or a new key moment arrives.
+  useEffect(() => { setFocusIdx(0); }, [isOpen, keyMoment?.id]);
 
   const handleKeyMomentChoice = useMatchStore((state) => state.handleKeyMomentChoice);
   const matchConfig = useMatchStore((state) => state.matchConfig);
@@ -512,132 +513,114 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     );
   };
 
-  // The hover modal opens for the hovered card; during the matchup tutorial step it auto-opens
-  // on the first option so the walkthrough can point at it.
-  const forcedOpen = kmSpotlit('options-matchup') ? 0 : null;
-  // Desktop: informational preview on hover. Touch: an interactive modal opened by tap.
-  const activeFlyout = isTouch ? openIdx : (forcedOpen ?? hoverIdx);
-  const flyoutInteractive = isTouch && openIdx !== null;
+  // During the matchup/effects tutorial steps, force focus to the first option so the
+  // walkthrough always points at populated detail.
+  const forcedFocus = kmSpotlit('options-matchup') || kmSpotlit('options-effects') ? 0 : null;
+  const activeIdx = forcedFocus ?? focusIdx;
+  const activeOption = activeKeyMoment.options[activeIdx];
 
-  const RatingBlock: React.FC<{
+  // One row of grid cells for a card: composite (the value actually compared) leads, then the
+  // priority stat (coloured by side to flag its weight) and supporting stats. Rendered as a
+  // fragment so both sides share the parent grid's columns and their chips line up.
+  const CardStatLine: React.FC<{
     option: TacticalOption;
     side: 'player' | 'opponent';
-    name: string;
-    total: number;
-  }> = ({ option, side, name, total }) => {
+    composite: number;
+  }> = ({ option, side, composite }) => {
     const stats = (side === 'player' ? matchConfig?.playerStats : matchConfig?.opponentStats) as PlayerStats | undefined;
     const weights = side === 'player' ? option.playerStatWeights : option.opponentStatWeights;
     const tone = side === 'player' ? 'text-pixel-success' : 'text-pixel-error';
-    const border = side === 'player' ? 'border-green-600' : 'border-red-600';
+    const label = side === 'player' ? 'You' : 'Opp';
     const primaryVal = stats ? statValue(stats, weights.primary) : 0;
-    const secondary = weights.secondary.slice(0, 2);
+    // Always two secondary slots so both rows fill the same columns (empty cell if a side has one).
+    const secCells = [weights.secondary[0], weights.secondary[1]];
     return (
-      <div className="flex flex-col gap-1.5">
-        <div className={`text-xs font-bold uppercase tracking-wide ${tone}`}>{name} · rating {total}</div>
-        <div className={`flex items-center justify-between px-3 py-1.5 border-2 ${border} bg-pixel-bg`}>
-          <div>
-            <div className="text-[10px] text-pixel-text-muted uppercase tracking-wide">Priority stat</div>
-            <div className="text-sm font-bold text-pixel-text">{formatStatName(weights.primary)}</div>
-          </div>
-          <div className={`text-2xl font-bold ${tone}`}>{primaryVal}</div>
-        </div>
-        <div className="flex justify-between gap-3 text-sm text-pixel-text-muted px-1">
-          {secondary.map((w, i) => (
-            <span key={i} className="flex gap-1.5">
-              <span>{formatStatName(w.stat)}</span>
-              <span className="text-pixel-text">{stats ? statValue(stats, w.stat) : 0}</span>
+      <>
+        <span className={`text-base font-bold tabular-nums ${tone}`}>{composite}</span>
+        <span className={`text-[10px] font-bold uppercase tracking-wide ${tone}`}>{label}</span>
+        <span
+          className={`text-[10px] font-bold px-2 py-1 rounded bg-pixel-bg whitespace-nowrap text-center ${tone}`}
+          title={`${formatStatName(weights.primary)} — priority stat (weighted most)`}
+        >
+          ★ {abbrevStat(weights.primary)} {primaryVal}
+        </span>
+        {secCells.map((w, i) =>
+          w ? (
+            <span
+              key={i}
+              className="text-[10px] px-2 py-1 rounded bg-pixel-bg text-pixel-text-muted whitespace-nowrap text-center"
+              title={formatStatName(w.stat)}
+            >
+              {abbrevStat(w.stat)} <span className="text-pixel-text">{stats ? statValue(stats, w.stat) : 0}</span>
             </span>
-          ))}
-        </div>
-      </div>
+          ) : (
+            <span key={i} />
+          )
+        )}
+      </>
     );
   };
 
-  const Flyout: React.FC<{
-    option: TacticalOption;
-    interactive?: boolean;
-    onSelect?: () => void;
-    onBack?: () => void;
-  }> = ({ option, interactive, onSelect, onBack }) => {
-    const { playerScore, opponentScore } = scoresFor(option);
-    const diff = playerScore - opponentScore;
-    const adv = advInfo(diff);
-    const playerName = matchConfig?.playerName || 'You';
-    const opponentName = matchConfig?.opponentName || 'Opponent';
-    return (
-      <div className={`absolute inset-0 z-10 flex flex-col bg-pixel-card rounded overflow-hidden border-2 border-pixel-accent ${interactive ? '' : 'pointer-events-none'}`}>
-        {/* Header — restates the tactic being previewed (its card is hidden behind the modal) */}
-        <div className="p-3 border-b-2 border-pixel-border shrink-0">
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-lg">{option.emoji}</span>
-            <h4 className="text-base font-bold text-pixel-text">{option.name}</h4>
-          </div>
-          <p className="text-sm text-pixel-text-muted mb-2 leading-snug">{option.description}</p>
-          <div className="flex flex-wrap gap-1.5">
-            {option.secondaryEffects.map((effect, i) => {
-              const condLabel = getConditionLabel(effect.condition);
-              return (
-                <span
-                  key={i}
-                  className={`text-xs px-1.5 py-0.5 border border-pixel-border bg-pixel-bg ${
-                    isBeneficial(effect) ? 'text-green-400' : 'text-red-400'
-                  }`}
-                >
-                  {getEffectIcon(effect)} {getEffectLabel(effect)}
-                  {condLabel && <span className="text-pixel-text-muted ml-1">({condLabel})</span>}
-                </span>
-              );
-            })}
-          </div>
+  // Right pane: the qualitative read on the focused tactic (matchup + effects) + commit button.
+  const DetailPane: React.FC<{ option: TacticalOption }> = ({ option }) => (
+    <div className="flex flex-col border-2 border-pixel-accent rounded bg-pixel-card overflow-hidden">
+      {/* Tactic header */}
+      <div className="p-3 border-b-2 border-pixel-border">
+        <div className="flex items-center gap-2 mb-0.5">
+          <span className="text-lg">{option.emoji}</span>
+          <h4 className="text-base font-bold text-pixel-text">{option.name}</h4>
         </div>
+        <p className="text-sm text-pixel-text-muted leading-snug">{option.description}</p>
+      </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 flex-1 overflow-y-auto">
-          {/* Left — the matchup */}
-          <div className="p-4 border-b-2 sm:border-b-0 sm:border-r-2 border-pixel-border flex flex-col gap-2">
-            <div className="text-sm text-pixel-text leading-relaxed">
-              <span className="text-xs px-1.5 py-0.5 rounded bg-green-500 bg-opacity-20 text-green-400 mr-2 uppercase">Good against</span>
-              {option.bestAgainstHint.replace(/^Best against /i, '')}
-            </div>
-            <div className="text-sm text-pixel-text leading-relaxed">
-              <span className="text-xs px-1.5 py-0.5 rounded bg-red-500 bg-opacity-20 text-red-400 mr-2 uppercase">Bad against</span>
-              {option.worstAgainstHint.replace(/^Weak against /i, '')}
-            </div>
-          </div>
+      {/* Matchup */}
+      <div className="p-3 border-b-2 border-pixel-border flex flex-col gap-2">
+        <div className="text-sm text-pixel-text leading-relaxed">
+          <span className="text-xs px-1.5 py-0.5 rounded bg-green-500 bg-opacity-20 text-green-400 mr-2 uppercase">Good against</span>
+          {option.bestAgainstHint.replace(/^Best against /i, '')}
+        </div>
+        <div className="text-sm text-pixel-text leading-relaxed">
+          <span className="text-xs px-1.5 py-0.5 rounded bg-red-500 bg-opacity-20 text-red-400 mr-2 uppercase">Bad against</span>
+          {option.worstAgainstHint.replace(/^Weak against /i, '')}
+        </div>
+      </div>
 
-          {/* Right — the ratings, with the advantage chip between the two blocks */}
-          <div className="p-4 flex flex-col gap-2">
-            <RatingBlock option={option} side="player" name={playerName} total={playerScore} />
-            <div className="flex justify-center">
+      {/* Secondary effects — spotlit on the effects tutorial step */}
+      <div className={`p-3 ${kmSpotlit('options-effects') ? 'ring-4 ring-yellow-400 ring-inset' : ''}`}>
+        <div className="text-[10px] font-bold text-pixel-text-muted uppercase tracking-wide mb-1.5">Effects (win or loss)</div>
+        <div className="flex flex-wrap gap-1.5">
+          {option.secondaryEffects.map((effect, i) => {
+            const condLabel = getConditionLabel(effect.condition);
+            return (
               <span
-                className="text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded"
-                style={{ backgroundColor: adv.bg, color: adv.fg }}
+                key={i}
+                className={`text-xs px-1.5 py-0.5 border border-pixel-border bg-pixel-bg ${
+                  isBeneficial(effect) ? 'text-green-400' : 'text-red-400'
+                }`}
               >
-                {adv.label}
+                {getEffectIcon(effect)} {getEffectLabel(effect)}
+                {condLabel && <span className="text-pixel-text-muted ml-1">({condLabel})</span>}
               </span>
-            </div>
-            <RatingBlock option={option} side="opponent" name={opponentName} total={opponentScore} />
-          </div>
+            );
+          })}
         </div>
-
-        {interactive ? (
-          <div className="grid grid-cols-2 gap-2 p-3 border-t-2 border-pixel-border shrink-0">
-            <button
-              onClick={onBack}
-              className="py-3 border-2 border-pixel-border text-pixel-text font-bold uppercase text-sm tracking-wide hover:border-pixel-accent transition-colors"
-            >
-              ← Back
-            </button>
-            <button
-              onClick={onSelect}
-              className="py-3 border-2 border-pixel-accent bg-pixel-accent bg-opacity-20 text-pixel-accent font-bold uppercase text-sm tracking-wide hover:bg-opacity-30 transition-colors"
-            >
-              Go!
-            </button>
-          </div>
-        ) : null}
       </div>
-    );
-  };
+
+      {/* Commit — pushed to the bottom so the pane fills the column height cleanly */}
+      <button
+        onClick={() => (kmTutorialActive ? undefined : handleKeyMomentChoice(option))}
+        disabled={kmTutorialActive}
+        className="mt-auto mx-3 mb-3 py-3 gap-5 border-4 border-pixel-accent bg-pixel-accent bg-opacity-20 text-pixel-accent font-bold uppercase text-sm tracking-wide hover:bg-opacity-30 transition-colors disabled:opacity-40 disabled:cursor-default disabled:hover:bg-opacity-20 flex items-center justify-center gap-2 leading-none"
+      >
+        <span className="text-2xl leading-none relative -top-1">{option.emoji}</span>
+        <span className="leading-none">Go!</span>
+        {/* SVG triangle instead of a Unicode arrow — renders crisply regardless of the pixel font */}
+        <svg viewBox="0 0 8 10" aria-hidden="true" className="w-2.5 h-2.5 fill-current shrink-0">
+          <path d="M0 0 L8 5 L0 10 Z" />
+        </svg>
+      </button>
+    </div>
+  );
 
   return (
     <Modal isOpen={isOpen} title="" size="xl" showCloseButton={false} belowContent={peekButton}>
@@ -658,38 +641,35 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
         {/* Header strip + conditions — spotlit on step 0 */}
         <div className={kmSectionClass('header')}>{headerStrip}</div>
 
-        {/* Tactical Options */}
-        <div
-          className={
-            kmSpotlit('options-matchup') || kmSpotlit('options-effects')
-              ? 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-black transition-all duration-200'
-              : ''
-          }
-        >
-          <h3 className="text-base font-bold text-pixel-text mb-4">⚔️ Choose Your Tactic</h3>
-          <div className="relative" onMouseLeave={() => setHoverIdx(null)}>
-            <div className="space-y-3">
+        {/* Tactical Options — compact list (left) for at-a-glance comparison, detail pane (right) */}
+        <div>
+          <h3 className="text-base font-bold text-pixel-text mb-1">⚔️ Choose Your Tactic</h3>
+          <p className="text-xs text-pixel-text-muted mb-4">Hover a tactic to inspect it — commit with the button in the panel.</p>
+          <div
+            className={`grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] gap-4 ${
+              kmSpotlit('options-matchup') ? 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-black rounded transition-all duration-200' : ''
+            }`}
+          >
+            {/* Left: option cards — each carries its own composite + driving stats for comparison */}
+            <div className="flex flex-col gap-2.5">
               {activeKeyMoment.options.map((option, index) => {
                 const { playerScore, opponentScore } = scoresFor(option);
                 const adv = advInfo(playerScore - opponentScore);
+                const isActive = index === activeIdx;
                 return (
                   <button
                     key={index}
-                    onMouseEnter={() => setHoverIdx(index)}
-                    onFocus={() => setHoverIdx(index)}
-                    onClick={() => {
-                      if (kmTutorialActive) return;
-                      // Touch: open the detail modal (explicit confirm). Desktop: commit directly.
-                      if (isTouch) setOpenIdx(index);
-                      else handleKeyMomentChoice(option);
-                    }}
-                    disabled={kmTutorialActive}
-                    className="w-full text-left p-4 border-4 border-pixel-border bg-pixel-card hover:border-pixel-accent transition-all disabled:cursor-default disabled:hover:border-pixel-border"
+                    onMouseEnter={() => setFocusIdx(index)}
+                    onFocus={() => setFocusIdx(index)}
+                    onClick={() => setFocusIdx(index)}
+                    className={`w-full text-left p-3 border-4 bg-pixel-card transition-all ${
+                      isActive ? 'border-pixel-accent' : 'border-pixel-border hover:border-pixel-accent hover:border-opacity-50'
+                    }`}
                   >
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl">{option.emoji}</span>
-                        <h4 className="text-base font-bold text-pixel-text">{option.name}</h4>
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-xl shrink-0">{option.emoji}</span>
+                        <h4 className="text-base font-bold text-pixel-text truncate">{option.name}</h4>
                       </div>
                       <span
                         className="text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded whitespace-nowrap"
@@ -698,38 +678,19 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                         {adv.label}
                       </span>
                     </div>
-
-                    <p className="text-sm text-pixel-text-muted mb-3">{option.description}</p>
-
-                    <div className="border-t border-pixel-border pt-2 flex flex-wrap gap-2">
-                      {option.secondaryEffects.map((effect, i) => {
-                        const condLabel = getConditionLabel(effect.condition);
-                        return (
-                          <span
-                            key={i}
-                            className={`text-sm px-2 py-0.5 border border-pixel-border bg-pixel-bg ${
-                              isBeneficial(effect) ? 'text-green-400' : 'text-red-400'
-                            }`}
-                          >
-                            {getEffectIcon(effect)} {getEffectLabel(effect)}
-                            {condLabel && <span className="text-pixel-text-muted ml-1">({condLabel})</span>}
-                          </span>
-                        );
-                      })}
+                    {/* Composites + the stats that drive them, per side. Grid so the You/Opp rows
+                        share columns and the chips line up regardless of abbreviation length. */}
+                    <div className="grid grid-cols-[auto_auto_auto_auto_auto] gap-x-3 gap-y-2 items-center justify-items-start border-t border-pixel-border pt-2.5">
+                      <CardStatLine option={option} side="player" composite={playerScore} />
+                      <CardStatLine option={option} side="opponent" composite={opponentScore} />
                     </div>
                   </button>
                 );
               })}
             </div>
 
-            {activeFlyout !== null && activeKeyMoment.options[activeFlyout] && (
-              <Flyout
-                option={activeKeyMoment.options[activeFlyout]}
-                interactive={flyoutInteractive}
-                onSelect={() => (kmTutorialActive ? undefined : handleKeyMomentChoice(activeKeyMoment.options[activeFlyout]))}
-                onBack={() => setOpenIdx(null)}
-              />
-            )}
+            {/* Right: detail pane for the focused tactic */}
+            {activeOption && <DetailPane option={activeOption} />}
           </div>
         </div>
       </div>
