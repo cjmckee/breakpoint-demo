@@ -10,7 +10,8 @@ import React, { useState } from 'react';
 import type { Item, EquipmentSlot as SlotType } from '../../types/items';
 import { SLOT_ICONS, SLOT_NAMES, getItemIcon, supportsHover } from './itemHelpers';
 import { StatDeltaList } from './StatDeltaList';
-import { StatPill } from './ItemEffects';
+import { StatPill, EffectChips } from './ItemEffects';
+import { describeEffects } from '../../utils/effectLabels';
 
 interface EquipmentSlotProps {
   slot: SlotType;
@@ -107,15 +108,18 @@ export const EquipmentSlot: React.FC<EquipmentSlotProps> = ({
               {equippedItem.name}
             </span>
           </div>
-          {equippedItem.modifiers?.statBoosts && (
-            <div className="flex flex-wrap gap-1">
-              {Object.entries(equippedItem.modifiers.statBoosts)
-                .filter((e): e is [string, number] => (e[1] ?? 0) !== 0)
-                .map(([stat, value]) => (
-                  <StatPill key={stat} stat={stat} value={value} />
-                ))}
-            </div>
-          )}
+          <div className="flex flex-col gap-1">
+            {equippedItem.modifiers?.statBoosts && (
+              <div className="flex flex-wrap gap-1">
+                {Object.entries(equippedItem.modifiers.statBoosts)
+                  .filter((e): e is [string, number] => (e[1] ?? 0) !== 0)
+                  .map(([stat, value]) => (
+                    <StatPill key={stat} stat={stat} value={value} />
+                  ))}
+              </div>
+            )}
+            <EffectChips additional={equippedItem.modifiers?.additional} />
+          </div>
         </button>
       ) : (
         <div className="text-xs text-pixel-text-muted py-2 italic">
@@ -131,6 +135,11 @@ export const EquipmentSlot: React.FC<EquipmentSlotProps> = ({
             <span className="text-xs font-bold text-pixel-accent truncate">{compareItem.name}</span>
           </div>
           <StatDeltaList current={equippedItem} candidate={compareItem} variant="compact" />
+          {describeEffects(compareItem.modifiers?.additional).length > 0 && (
+            <div className="mt-1.5">
+              <EffectChips additional={compareItem.modifiers?.additional} />
+            </div>
+          )}
         </div>
       )}
     </div>

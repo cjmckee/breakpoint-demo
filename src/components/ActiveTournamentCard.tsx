@@ -1,15 +1,13 @@
 /**
  * Active Tournament Card Component
- * Shows tournament progress and next match info on the main menu
+ * Flat banner strip on the main menu — mirrors the challenges strip's shape so it
+ * stays short and doesn't push the stats section down.
  */
 
 import React from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { TournamentRegistry } from '../data/tournaments';
 import { TournamentManager } from '../game/TournamentManager';
-import { ScheduledEventManager } from '../game/ScheduledEventManager';
-import { Card } from './ui/Card';
-import { Button } from './ui/Button';
 
 export const ActiveTournamentCard: React.FC = () => {
   const calendar = useGameStore((state) => state.calendar);
@@ -65,33 +63,25 @@ export const ActiveTournamentCard: React.FC = () => {
     const daysUntil = ceremonyEvent.scheduledDay - calendar.currentDay;
 
     return (
-      <Card title="Upcoming Tournament" className="border-4 border-yellow-400 bg-yellow-500 bg-opacity-10">
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-2xl font-bold text-pixel-text mb-1">
-                {scheduledTournament.name}
-              </div>
-              <div className="text-sm text-pixel-text-muted">
-                {getSurfaceEmoji(scheduledTournament.surface)} {scheduledTournament.surface.toUpperCase()}
-              </div>
-            </div>
+      <div className="w-full flex items-center gap-3 border-4 border-yellow-400 bg-yellow-500 bg-opacity-10 px-4 py-3">
+        <span className="text-2xl shrink-0">{getSurfaceEmoji(scheduledTournament.surface)}</span>
+        <div className="flex-1 min-w-0">
+          <div className="font-bold text-pixel-text truncate">
+            {scheduledTournament.name}
+            <span className="ml-2 text-xs font-normal text-pixel-text-muted">
+              {scheduledTournament.surface.toUpperCase()}
+            </span>
           </div>
-
-          <div className="p-3 bg-pixel-bg border-2 border-pixel-border">
-            <div className="text-sm text-pixel-text-muted">{scheduledTournament.description}</div>
-          </div>
-
-          <div className="p-3 bg-yellow-500 bg-opacity-10 border-2 border-yellow-400">
-            <div className="text-xs text-yellow-400 font-bold mb-1">
-              {daysUntil === 0 ? '🎾 Opening Ceremony Today!' : '📅 Tournament Starting Soon'}
-            </div>
-            <div className="text-sm text-pixel-text">
-              {getRelativeTimeLabel(ceremonyEvent.scheduledDay, ceremonyEvent.scheduledTimeSlot)}
-            </div>
+          <div className="text-xs text-pixel-text-muted truncate">
+            {daysUntil === 0
+              ? '🎾 Opening ceremony today'
+              : `Starts ${getRelativeTimeLabel(ceremonyEvent.scheduledDay, ceremonyEvent.scheduledTimeSlot)}`}
           </div>
         </div>
-      </Card>
+        <span className="shrink-0 text-xs font-bold px-2 py-1 bg-yellow-500 bg-opacity-20 border border-yellow-400 text-yellow-400">
+          Upcoming
+        </span>
+      </div>
     );
   }
 
@@ -115,12 +105,13 @@ export const ActiveTournamentCard: React.FC = () => {
   const roundNumber = activeTournament.currentRound + 1; // Display as 1-based
   const totalRounds = tournament.rounds.length;
 
-  // Check if there's a scheduled tournament match
+  // Check if there's a scheduled tournament match ready right now
   const scheduledTournamentMatch = TournamentManager.getScheduledTournamentMatch(
     activeTournament,
     scheduledEvents,
     calendar
   );
+  const isReady = scheduledTournamentMatch !== null;
 
   // Find next scheduled match (even if not today)
   const nextScheduledMatch = scheduledEvents.find(
@@ -130,113 +121,58 @@ export const ActiveTournamentCard: React.FC = () => {
         (event.scheduledDay === calendar.currentDay && event.scheduledTimeSlot >= calendar.currentTimeSlot))
   );
 
-  const getBracketColor = (bracket: 'winner' | 'loser'): string => {
-    return bracket === 'winner' ? 'text-yellow-400' : 'text-gray-400';
-  };
+  const bracketLabel = activeTournament.currentBracket === 'winner' ? 'Main Draw' : 'Consolation';
+  const scheduleLabel = isReady
+    ? 'Match ready now'
+    : nextScheduledMatch
+      ? getRelativeTimeLabel(nextScheduledMatch.scheduledDay, nextScheduledMatch.scheduledTimeSlot)
+      : 'Awaiting schedule';
+
+  const row = (
+    <>
+      <span className="text-2xl shrink-0">{getSurfaceEmoji(tournament.surface)}</span>
+      <div className="flex-1 min-w-0">
+        <div className="font-bold text-pixel-text truncate">
+          {tournament.name}
+          <span className="ml-2 text-xs font-normal text-pixel-text-muted">
+            Round {roundNumber}/{totalRounds} · {bracketLabel}
+          </span>
+        </div>
+        <div className="text-xs text-pixel-text-muted truncate">
+          Next: {opponent.name} · {scheduleLabel}
+        </div>
+      </div>
+      {isReady ? (
+        <span className="shrink-0 text-xs font-bold px-2 py-1 bg-green-500 bg-opacity-20 border border-green-500 text-green-500">
+          🎾 Play ▸
+        </span>
+      ) : (
+        <span className="shrink-0 text-xs font-bold px-2 py-1 bg-yellow-500 bg-opacity-20 border border-yellow-400 text-yellow-400">
+          Active
+        </span>
+      )}
+    </>
+  );
 
   return (
-    <Card title="Active Tournament" className="border-4 border-yellow-400 bg-yellow-500 bg-opacity-10">
-      <div className="space-y-3">
-        {/* Tournament Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-2xl font-bold text-pixel-text mb-1">
-              {tournament.name}
-            </div>
-            <div className="text-sm text-pixel-text-muted">
-              {getSurfaceEmoji(tournament.surface)} {tournament.surface.toUpperCase()}
-            </div>
-          </div>
-          <div className="text-right">
-            <div className={`text-lg font-bold ${getBracketColor(activeTournament.currentBracket)}`}>
-              {activeTournament.currentBracket === 'winner' ? '🎾 Main Draw' : '🎗️ Consolation'}
-            </div>
-          </div>
-        </div>
-
-        {/* Progress */}
-        <div className="p-3 bg-pixel-bg border-2 border-pixel-border">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-pixel-text-muted text-sm">Tournament Progress:</span>
-            <span className="text-pixel-text font-bold">
-              Round {roundNumber} / {totalRounds}
-            </span>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="w-full bg-pixel-border h-3">
-            <div
-              className="h-full bg-yellow-400"
-              style={{ width: `${(roundNumber / totalRounds) * 100}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Next Opponent */}
-        <div className="p-3 bg-pixel-card border-2 border-pixel-accent">
-          <div className="text-xs text-pixel-text-muted mb-1">Next Opponent:</div>
-          <div className="text-lg font-bold text-pixel-text">
-            {opponent.name}
-          </div>
-          <div className="text-xs text-pixel-text-muted">
-            {opponent.description}
-          </div>
-        </div>
-
-        {/* Match Record */}
-        {activeTournament.matchResults.length > 0 && (
-          <div className="p-3 bg-pixel-bg border-2 border-pixel-border">
-            <div className="text-xs text-pixel-text-muted mb-2">Match History:</div>
-            <div className="flex flex-wrap gap-2">
-              {activeTournament.matchResults.map((result, idx) => (
-                <div
-                  key={idx}
-                  className={`text-xs px-2 py-1 border-2 font-bold ${
-                    result.result === 'win'
-                      ? 'bg-green-500 bg-opacity-20 border-green-500 text-green-500'
-                      : 'bg-red-500 bg-opacity-20 border-red-500 text-red-500'
-                  }`}
-                >
-                  R{result.roundNumber}: {result.result.toUpperCase()}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Scheduled Match Info */}
-        {nextScheduledMatch && (
-          <div className="p-3 bg-blue-500 bg-opacity-10 border-2 border-blue-400">
-            <div className="text-xs text-blue-400 font-bold mb-1">
-              {scheduledTournamentMatch ? '⚡ Match Ready Now!' : '📅 Match Scheduled'}
-            </div>
-            <div className="text-sm text-pixel-text">
-              {scheduledTournamentMatch ? (
-                <>Your tournament match is scheduled for this time slot!</>
-              ) : (
-                getRelativeTimeLabel(nextScheduledMatch.scheduledDay, nextScheduledMatch.scheduledTimeSlot)
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Action Button */}
-        {scheduledTournamentMatch ? (
-          <Button
-            variant="primary"
-            fullWidth
-            onClick={() => navigateToScheduledMatch('tournament')}
-          >
-            🎾 Play Tournament Match
-          </Button>
-        ) : (
-          <div className="text-center text-sm text-pixel-text-muted py-2">
-            {nextScheduledMatch
-              ? 'Advance time to play your next match'
-              : 'Waiting for match to be scheduled...'}
-          </div>
-        )}
+    <div className="border-4 border-yellow-400 bg-yellow-500 bg-opacity-10">
+      {isReady ? (
+        <button
+          onClick={() => navigateToScheduledMatch('tournament')}
+          className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-yellow-500 hover:bg-opacity-20 transition-colors"
+        >
+          {row}
+        </button>
+      ) : (
+        <div className="w-full flex items-center gap-3 px-4 py-3">{row}</div>
+      )}
+      {/* Slim progress bar keeps a sense of tournament progress without adding height */}
+      <div className="h-1 w-full bg-pixel-border">
+        <div
+          className="h-full bg-yellow-400"
+          style={{ width: `${(roundNumber / totalRounds) * 100}%` }}
+        />
       </div>
-    </Card>
+    </div>
   );
 };
