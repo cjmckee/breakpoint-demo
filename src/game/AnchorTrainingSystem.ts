@@ -92,7 +92,7 @@ export const CORE_ANCHORS: Record<CoreStat, CoreAnchorConfig> = {
     playable: true,
     supportPool: ['dropShot', 'volley', 'shotVariety', 'focus', 'defensive', 'placement'],
     description: 'Touch and variety. Carve it low, change the rhythm, come forward.',
-    icon: '🪶',
+    icon: '🔪',
   },
 };
 
@@ -191,10 +191,10 @@ export function recentSupportsFrom(lastStatBoosts: StatBoosts | undefined): Supp
 
 function buildMessage(anchorName: string, supportCount: number): string {
   const shot = anchorName.toLowerCase();
-  if (supportCount >= 3) return `Perfect ${shot} session — three for three!`;
-  if (supportCount === 2) return `Strong ${shot} work — two clean reps.`;
-  if (supportCount === 1) return `${anchorName} session — one clean rep.`;
-  return `Tough ${shot} session — the core reps still count.`;
+  if (supportCount >= 3) return `Perfect ${shot} session — three for three! Keep it up!`;
+  if (supportCount === 2) return `Strong ${shot} work — two clean reps. Almost there!`;
+  if (supportCount === 1) return `${anchorName} session — one clean rep. Keep practicing!`;
+  return `Tough ${shot} session — you hate to see it.`;
 }
 
 function shuffle<T>(array: T[]): T[] {

@@ -20,7 +20,8 @@ import {
   recentSupportsFrom,
   type CoreStat,
 } from '../game/AnchorTrainingSystem';
-import type { StatBoosts, TrainingResult } from '../types/game';
+import { EffectKey, type StatBoosts, type TrainingResult } from '../types/game';
+import { EffectAggregator } from '../core/EffectAggregator';
 import { StatusBar } from './StatusBar';
 import { Button } from './ui/Button';
 import { STAT_ICONS, formatStatName } from './ui/StatBoostList';
@@ -52,10 +53,14 @@ export const AnchorTraining: React.FC = () => {
   const advanceTime = useGameStore((state) => state.advanceTime);
 
   const [step, setStep] = useState<Step>({ kind: 'pick' });
+  const [hasAttempted, setHasAttempted] = useState(false);
 
   if (!player) return null;
 
   const canAfford = currentStatus.energy >= ANCHOR_TRAINING_ENERGY_COST;
+
+  const { effects } = EffectAggregator.getActiveEffects(player);
+  const windowBonus = EffectAggregator.getEffect(effects, EffectKey.MINIGAME_WINDOW_BONUS);
 
   // Supports handed out in the most recent training session, so we can bias away
   // from repeating them.
@@ -74,6 +79,7 @@ export const AnchorTraining: React.FC = () => {
 
   const handlePickCore = (core: CoreStat): void => {
     audioManager.playSfx('ui_click');
+    setHasAttempted(false);
     setStep({ kind: 'play', core });
   };
 
@@ -96,7 +102,13 @@ export const AnchorTraining: React.FC = () => {
 
           {(() => {
             const Minigame = MINIGAMES[anchor.minigame];
-            return <Minigame onComplete={(count) => resolve(step.core, count)} />;
+            return (
+              <Minigame
+                onComplete={(count) => resolve(step.core, count)}
+                windowBonus={windowBonus}
+                onFirstAttempt={() => setHasAttempted(true)}
+              />
+            );
           })()}
 
           {/* Themed support pool preview */}
@@ -117,15 +129,17 @@ export const AnchorTraining: React.FC = () => {
             </div>
           </div>
 
-          <Button
-            variant="secondary"
-            fullWidth
-            className="mt-4"
-            disabled={!canAfford}
-            onClick={() => resolve(step.core, 1)}
-          >
-            Quick Sim (skip · +1 bonus)
-          </Button>
+          {!hasAttempted && (
+            <Button
+              variant="secondary"
+              fullWidth
+              className="mt-4"
+              disabled={!canAfford}
+              onClick={() => resolve(step.core, 1)}
+            >
+              Quick Sim (skip · +1 bonus)
+            </Button>
+          )}
         </div>
       </div>
     );
@@ -139,8 +153,7 @@ export const AnchorTraining: React.FC = () => {
       <div className="max-w-4xl mx-auto px-4 pb-8">
         <h1 className="text-3xl font-bold text-pixel-text mb-1">Training</h1>
         <p className="text-pixel-text-muted mb-6">
-          Pick the shot to build around. You'll get <span className="text-green-400 font-bold">+1</span>{' '}
-          to it, plus bonus stats for clean reps in its minigame.
+          Pick a core stat to train. Perform better in training to earn additional bonus stats!
         </p>
 
         {!canAfford && (
@@ -171,7 +184,7 @@ export const AnchorTraining: React.FC = () => {
                   </div>
                 </div>
 
-                <p className="text-xs text-pixel-text-muted mb-3">{anchor.description}</p>
+                {/* <p className="text-xs text-pixel-text-muted mb-3">{anchor.description}</p> */}
 
                 <div className="mt-auto flex flex-wrap gap-1.5">
                   {anchor.supportPool.map((stat) => (

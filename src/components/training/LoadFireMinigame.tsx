@@ -2,8 +2,7 @@
  * Backhand Minigame — "Load & Fire"
  *
  * Hold to load the swing, release when the charge is inside the green window. The
- * window moves each of three attempts. Every clean release banks a support; the first
- * miss (release outside the window) ends the practice. See docs/training-redesign.md.
+ * window moves each of three attempts. Every clean release banks a support. See docs/training-redesign.md.
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -22,12 +21,12 @@ const CHARGE_SPEED_MIN = 90; // units/sec — randomized per attempt so it can't
 const CHARGE_SPEED_MAX = 125;
 const MAX_CHARGE = 120; // caps the climb (holding past the window overshoots -> miss)
 
-export const LoadFireMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
-  const rounds = useMinigameRounds(onComplete);
+export const LoadFireMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt }) => {
+  const rounds = useMinigameRounds(onComplete, onFirstAttempt);
   const [charge, setCharge] = useState(0);
   const [charging, setCharging] = useState(false);
 
-  const bandsRef = useRef<Band[]>(movingBands(52, 96, 14));
+  const bandsRef = useRef<Band[]>(movingBands(52, 96, 14 * (1 + windowBonus)));
   const speedsRef = useRef<number[]>(
     Array.from({ length: 3 }, () => CHARGE_SPEED_MIN + Math.random() * (CHARGE_SPEED_MAX - CHARGE_SPEED_MIN))
   );
@@ -108,7 +107,7 @@ export const LoadFireMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
   const toPct = (v: number): number => (v / MAX_CHARGE) * 100;
 
   return (
-    <MinigameShell title="Load & Fire" subtitle="Release in the green — the window moves each rep">
+    <MinigameShell title="Load & Fire" subtitle="Hold to charge your shot and release in the green!">
       <div className="flex items-end justify-center gap-6 mb-4">
         {/* Vertical charge meter (0..MAX_CHARGE) */}
         <div className="relative h-64 w-24 bg-pixel-bg border-2 border-pixel-border overflow-hidden">
@@ -134,10 +133,10 @@ export const LoadFireMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
               count={rounds.successes}
               note={countNote(
                 rounds.successes,
-                'Three flush drives!',
-                'Two clean releases.',
-                'One clean release.',
-                'Released outside the window.'
+                'Three perfect backhands!',
+                'Two clean backhands! Almost there.',
+                'One good shot. Keep practicing!',
+                'Maybe we should switch to a one-hander.'
               )}
             />
           ) : (

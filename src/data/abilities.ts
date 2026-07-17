@@ -337,13 +337,12 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.TRAINING_TIER_BONUS]: 1,
-        [EffectKey.ABILITY_CHANCE_BONUS]: 5,
+        [EffectKey.MINIGAME_WINDOW_BONUS]: 0.10,
       },
     },
     description:
-      "Training is your religion. You consistently get more out of every practice session — and occasionally unlock something special.",
-    effects: 'Upgrades training session tier. Increased chance to gain an ability from diamond sessions.',
+      "Training is your religion. You consistently get more out of every practice session — the timing always feels a little more forgiving.",
+    effects: '+10% wider success window in training minigames.',
   },
 
   // ==================== LEGENDARY ABILITIES ====================
@@ -359,13 +358,12 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
         [EffectKey.PERFECT_TIMING]: 5,
         [EffectKey.UNSTOPPABLE_MOMENTUM]: 3,
         [EffectKey.CHAMPION_AURA]: 2,
-        [EffectKey.TRAINING_TIER_BONUS]: 1,
-        [EffectKey.ABILITY_CHANCE_BONUS]: 10,
+        [EffectKey.MINIGAME_WINDOW_BONUS]: 0.20,
       },
     },
     description:
       "You have the focus of a champion. When you're in the zone, nothing can stop you. Every dimension of your game elevates.",
-    effects: '+8% key moment win probability. Timing precision under pressure. Amplified winning momentum. Training and ability bonuses.',
+    effects: '+8% key moment win probability. Timing precision under pressure. Amplified winning momentum. +20% wider training minigame window.',
   },
 
   [AbilityName.APEX_PREDATOR]: {

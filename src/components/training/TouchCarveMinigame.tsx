@@ -3,7 +3,7 @@
  *
  * The contact ring breathes in and out between two target rings. Tap when it's sized
  * between them — the target window moves each of three attempts. Every clean carve
- * banks a support; the first miss ends the practice. See docs/training-redesign.md.
+ * banks a support. See docs/training-redesign.md.
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -24,11 +24,11 @@ const MAX_SIZE = 100;
 const BREATH_SPEED_MIN = 2.9; // radians/sec — randomized per attempt so it can't be counted out
 const BREATH_SPEED_MAX = 3.9;
 
-export const TouchCarveMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
-  const rounds = useMinigameRounds(onComplete);
+export const TouchCarveMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt }) => {
+  const rounds = useMinigameRounds(onComplete, onFirstAttempt);
   const [size, setSize] = useState(MAX_SIZE);
 
-  const bandsRef = useRef<Band[]>(movingBands(26, 62, 16));
+  const bandsRef = useRef<Band[]>(movingBands(26, 62, 16 * (1 + windowBonus)));
   const speedsRef = useRef<number[]>(
     Array.from({ length: 3 }, () => BREATH_SPEED_MIN + Math.random() * (BREATH_SPEED_MAX - BREATH_SPEED_MIN))
   );
@@ -110,10 +110,10 @@ export const TouchCarveMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
           count={rounds.successes}
           note={countNote(
             rounds.successes,
-            'Three feather touches!',
-            'Two clean carves.',
-            'One clean carve.',
-            'Ring was the wrong size.'
+            'Three perfect touches!',
+            'Two clean slices. Nearly!',
+            'One clean slice. Keep practicing!',
+            'Let\'s try to focus next time.'
           )}
         />
       ) : (

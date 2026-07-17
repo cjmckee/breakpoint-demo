@@ -20,16 +20,17 @@ import {
 } from './MinigameShell';
 import { useMinigameRounds } from './useMinigameRounds';
 
-const MIN_BEAT_MS = 1100;
-const MAX_BEAT_MS = 1900;
+const MIN_BEAT_MS = 1500;
+const MAX_BEAT_MS = 2500;
 const HIT_WINDOW_MS = 180; // timing tolerance around the bounce
 const RING_START_SCALE = 3;
 
-export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
-  const rounds = useMinigameRounds(onComplete);
+export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt }) => {
+  const rounds = useMinigameRounds(onComplete, onFirstAttempt);
   const [ringScale, setRingScale] = useState(RING_START_SCALE);
   const [bounced, setBounced] = useState(false);
 
+  const hitWindowMs = HIT_WINDOW_MS * (1 + windowBonus);
   const beatMsRef = useRef(MIN_BEAT_MS);
   const startRef = useRef(0);
   const committedRef = useRef(false);
@@ -42,10 +43,10 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete }) => 
     committedRef.current = true;
     const elapsed = performance.now() - startRef.current;
     const diff = Math.abs(elapsed - beatMsRef.current);
-    const passed = diff <= HIT_WINDOW_MS;
+    const passed = diff <= hitWindowMs;
     audioManager.playSfx('ui_click');
     rounds.commit(passed);
-  }, [rounds]);
+  }, [rounds, hitWindowMs]);
 
   // Arm a fresh beat for each playing attempt; pauses entirely between attempts.
   useEffect(() => {
@@ -64,7 +65,7 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete }) => 
       setRingScale(RING_START_SCALE - (RING_START_SCALE - 1) * frac);
       if (elapsed >= beatMs) setBounced(true);
 
-      if (elapsed > beatMs + HIT_WINDOW_MS && !committedRef.current) {
+      if (elapsed > beatMs + hitWindowMs && !committedRef.current) {
         committedRef.current = true;
         rounds.commit(false); // let the beat pass without pressing
         return;
@@ -120,10 +121,10 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete }) => 
           count={rounds.successes}
           note={countNote(
             rounds.successes,
-            'Locked-in rally!',
-            'Two clean strikes.',
-            'One clean strike.',
-            'Mistimed the rally.'
+            'Perfect rally!',
+            'Two clean shots. Almost!',
+            'One great shot. Keep working on it!',
+            'Not your best work.'
           )}
         />
       ) : (

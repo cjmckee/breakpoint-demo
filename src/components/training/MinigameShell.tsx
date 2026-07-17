@@ -15,6 +15,10 @@ import { TOTAL_ROUNDS } from './useMinigameRounds';
 export interface MinigameProps {
   /** Called once all attempts resolve, with the number of supports earned (0-3). */
   onComplete: (successes: number) => void;
+  /** Fractional widening of the success window from EffectKey.MINIGAME_WINDOW_BONUS (0.10 = +10%). */
+  windowBonus?: number;
+  /** Called once, the moment the player commits their first attempt. */
+  onFirstAttempt?: () => void;
 }
 
 export const MinigameShell: React.FC<{

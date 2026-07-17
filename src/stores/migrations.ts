@@ -7,7 +7,7 @@
  * CURRENT_VERSION must match the `version` field in the persist config.
  */
 
-import type { Player, GameCalendar, CurrentStatus, ActivityResult, TrainingSession, ShopItem, OpponentTier, Modifiers } from '../types/game';
+import type { Player, GameCalendar, CurrentStatus, ActivityResult, ShopItem, OpponentTier, Modifiers } from '../types/game';
 import type { Challenge } from '../types/challenges';
 import { createEmptyArchetypeProfile } from '../data/archetypeTree';
 
@@ -24,7 +24,6 @@ export interface PersistedStoreState {
   calendar: GameCalendar;
   currentStatus: CurrentStatus;
   activityHistory: ActivityResult[];
-  currentTrainingSessions: TrainingSession[];
   completedStoryEvents: string[];
   completedStoryEventChoices: Record<string, string>;
   relationships: Record<string, number>;

@@ -3,7 +3,7 @@
  *
  * The ball toss rises and falls on a vertical meter. Each of three attempts a green
  * strike window sits at a different height — strike while the ball is inside it. Every
- * clean strike banks a support; the first miss ends the practice. See
+ * clean strike banks a support. See
  * docs/training-redesign.md.
  */
 
@@ -23,11 +23,11 @@ import { movingBands, type Band } from './minigameWindows';
 const TOSS_SPEED_MIN = 170; // meter-units per second — randomized per attempt so it can't be counted out
 const TOSS_SPEED_MAX = 230;
 
-export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
-  const rounds = useMinigameRounds(onComplete);
+export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt }) => {
+  const rounds = useMinigameRounds(onComplete, onFirstAttempt);
   const [pos, setPos] = useState(0);
 
-  const bandsRef = useRef<Band[]>(movingBands(32, 90, 16));
+  const bandsRef = useRef<Band[]>(movingBands(32, 90, 16 * (1 + windowBonus)));
   const speedsRef = useRef<number[]>(
     Array.from({ length: 3 }, () => TOSS_SPEED_MIN + Math.random() * (TOSS_SPEED_MAX - TOSS_SPEED_MIN))
   );
@@ -85,7 +85,7 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
   }, [strike]);
 
   return (
-    <MinigameShell title="Toss & Strike" subtitle="Strike while the ball is in the window — it moves each rep">
+    <MinigameShell title="Toss & Strike" subtitle="Strike while the ball is in the window">
       <div className="flex items-end justify-center gap-6 mb-4">
         {/* Vertical toss meter */}
         <div className="relative h-64 w-24 bg-pixel-bg border-2 border-pixel-border overflow-hidden">

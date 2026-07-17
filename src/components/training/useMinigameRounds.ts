@@ -11,6 +11,7 @@
  */
 
 import { useCallback, useRef, useState } from 'react';
+import { audioManager } from '../../audio/AudioManager';
 
 export const TOTAL_ROUNDS = 3;
 
@@ -35,7 +36,10 @@ export interface MinigameRounds {
   commit: (passed: boolean) => void;
 }
 
-export function useMinigameRounds(onComplete: (successes: number) => void): MinigameRounds {
+export function useMinigameRounds(
+  onComplete: (successes: number) => void,
+  onFirstAttempt?: () => void
+): MinigameRounds {
   const [round, setRound] = useState(0);
   const [results, setResults] = useState<boolean[]>([]);
   const [phase, setPhase] = useState<RoundPhase>('playing');
@@ -53,6 +57,9 @@ export function useMinigameRounds(onComplete: (successes: number) => void): Mini
       doneRef.current = true;
       setPhase('done');
       const successes = res.filter(Boolean).length;
+      // A clean sweep gets its own sting; the overall training_done cue fires
+      // separately once the result screen takes over.
+      if (successes === TOTAL_ROUNDS) audioManager.playSfx('ace');
       window.setTimeout(() => onComplete(successes), FINISH_MS);
     },
     [onComplete]
@@ -61,7 +68,9 @@ export function useMinigameRounds(onComplete: (successes: number) => void): Mini
   const commit = useCallback(
     (passed: boolean) => {
       if (doneRef.current || phaseRef.current !== 'playing') return;
+      if (resultsRef.current.length === 0) onFirstAttempt?.();
       setLastPass(passed);
+      audioManager.playSfx(passed ? 'stat_up' : 'net');
 
       const res = [...resultsRef.current, passed];
       resultsRef.current = res;
@@ -81,7 +90,7 @@ export function useMinigameRounds(onComplete: (successes: number) => void): Mini
         setPhase('playing');
       }, TRANSITION_MS);
     },
-    [finish]
+    [finish, onFirstAttempt]
   );
 
   return { round, successes: results.filter(Boolean).length, phase, lastPass, results, commit };

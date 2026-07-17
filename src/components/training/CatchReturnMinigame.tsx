@@ -22,11 +22,12 @@ const HIT_RADIUS = 30; // px — a touch more generous than the visual ball
 const MIN_FALL_MS = 600;
 const MAX_FALL_MS = 1200;
 
-export const CatchReturnMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
-  const rounds = useMinigameRounds(onComplete);
+export const CatchReturnMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt }) => {
+  const rounds = useMinigameRounds(onComplete, onFirstAttempt);
   const [ballX, setBallX] = useState(50); // %
   const [ballY, setBallY] = useState(0); // %
 
+  const hitRadius = HIT_RADIUS * (1 + windowBonus);
   const boxRef = useRef<HTMLDivElement | null>(null);
   const ballXRef = useRef(50);
   const ballYRef = useRef(0);
@@ -77,18 +78,18 @@ export const CatchReturnMinigame: React.FC<MinigameProps> = ({ onComplete }) => 
       const cx = (ballXRef.current / 100) * rect.width;
       const cy = (ballYRef.current / 100) * rect.height;
       const dist = Math.hypot(clientX - rect.left - cx, clientY - rect.top - cy);
-      if (dist <= HIT_RADIUS) {
+      if (dist <= hitRadius) {
         caughtRef.current = true;
         audioManager.playSfx('ui_click');
         rounds.commit(true);
       }
       // A miss-click is ignored — the ball keeps falling, so you can try again.
     },
-    [rounds]
+    [rounds, hitRadius]
   );
 
   return (
-    <MinigameShell title="Read & Catch" subtitle="Click each ball before it lands — the spot changes every time">
+    <MinigameShell title="Read & Catch" subtitle="Click each ball before it lands!">
       <div
         ref={boxRef}
         onPointerDown={(e) => {
@@ -125,10 +126,10 @@ export const CatchReturnMinigame: React.FC<MinigameProps> = ({ onComplete }) => 
               count={rounds.successes}
               note={countNote(
                 rounds.successes,
-                'Three clean returns!',
-                'Two good gets.',
-                'One good get.',
-                'Beaten to all three.'
+                'Three perfect returns!',
+                'Two good returns. Close!',
+                'One good return. Keep practicing!',
+                'Aced three times. Ouch.'
               )}
             />
           </div>

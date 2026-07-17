@@ -69,7 +69,7 @@ export interface Modifiers {
  * Game systems query these keys to apply effects.
  *
  * Sections:
- *   Training    — TrainingSystem.ts reads these
+ *   Training    — AnchorTraining.tsx reads these, widens minigame success windows
  *   Event       — gameStore.ts story event logic
  *   Mood/Energy — gameStore.ts training/match/rest
  *   Relationship— gameStore.ts relationship gains
@@ -80,9 +80,8 @@ export interface Modifiers {
  */
 export const EffectKey = {
   // --- Training effects ---
-  TRAINING_TIER_BONUS: 'training_tier_bonus',
-  TRAINING_STAT_MULTIPLIER: 'training_stat_multiplier',
-  ABILITY_CHANCE_BONUS: 'ability_chance_bonus',
+  // Fractional widening of training minigame success windows (0.10 = +10%).
+  MINIGAME_WINDOW_BONUS: 'minigame_window_bonus',
 
   // --- Event effects ---
   EVENT_TRIGGER_BONUS: 'event_trigger_bonus',
@@ -188,57 +187,9 @@ export const AbilityName = {
 // TRAINING SYSTEM
 // ============================================================================
 
-export type TrainingSessionType =
-  | 'groundstroke_training'
-  | 'serve_volley_training'
-  | 'footwork_training'
-  | 'sports_psychology'
-  | 'strength_training'
-  | 'overhead_academy'
-  | 'return_rapidfire'
-  | 'spin_specialist'
-  | 'remote_coaching'
-  | 'touch_training';
-
-export type TrainingCategory = 'technical' | 'physical' | 'mental';
-
 export type TrainingSessionTier = 'bronze' | 'silver' | 'gold' | 'diamond';
 
 export type TierModification = 'promoted' | 'demoted';
-
-export interface TrainingSession {
-  id: string;  // Added for UI key prop
-  sessionType: TrainingSessionType;
-  category: TrainingCategory;
-  tier: TrainingSessionTier;
-  energyCost: number;
-  timeSlotsRequired: number;
-  statBoosts: StatBoosts;
-  statMultiplier: number;  // Added for UI display
-  name: string;
-  description?: string;
-  ability?: string;
-  tierModification?: TierModification;
-}
-
-export interface TierConfig {
-  statMultiplier: number;
-  abilityChance: number;
-}
-
-export const TIER_CONFIGS: Record<TrainingSessionTier, TierConfig> = {
-  bronze: { statMultiplier: 1, abilityChance: 0 },
-  silver: { statMultiplier: 1, abilityChance: 0 },
-  gold: { statMultiplier: 2, abilityChance: 0 },
-  diamond: { statMultiplier: 3, abilityChance: 30 },
-};
-
-export const DEFAULT_TIER_PROBABILITIES: Record<TrainingSessionTier, number> = {
-  bronze: 50,
-  silver: 25,
-  gold: 10,
-  diamond: 5,
-};
 
 // ============================================================================
 // TIME MANAGEMENT
