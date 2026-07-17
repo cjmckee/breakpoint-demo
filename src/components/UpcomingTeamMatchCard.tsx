@@ -1,12 +1,12 @@
 /**
  * Upcoming Team Match Card Component
- * Shows an upcoming story_match (team match) with opponent info on the main menu
+ * Flat banner strip on the main menu — mirrors the challenges strip's shape so it
+ * stays short and doesn't push the stats section down.
  */
 
 import React from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { StoryMatchManager } from '../game/StoryMatchManager';
-import { Card } from './ui/Card';
 
 export const UpcomingTeamMatchCard: React.FC = () => {
   const calendar = useGameStore((state) => state.calendar);
@@ -51,64 +51,37 @@ export const UpcomingTeamMatchCard: React.FC = () => {
     }
   };
 
+  const scheduleLabel =
+    daysUntil === 0
+      ? `${getTimeSlotLabel(nextTeamMatch.scheduledTimeSlot)} session`
+      : daysUntil === 1
+        ? `Tomorrow — ${getTimeSlotLabel(nextTeamMatch.scheduledTimeSlot)}`
+        : `In ${daysUntil} days — ${getTimeSlotLabel(nextTeamMatch.scheduledTimeSlot)}`;
+
+  // One-line detail: surface, format, and when the match happens
+  const detailParts = [
+    `${getSurfaceEmoji(metadata.surface)} ${metadata.surface?.toUpperCase() || 'TBD'}`,
+    metadata.matchFormat,
+    scheduleLabel,
+  ].filter(Boolean);
+
   return (
-    <Card title="Team Match" className="border-4 border-purple-400 bg-purple-500 bg-opacity-10">
-      <div className="space-y-3">
-        {/* Match Header */}
-        <div>
-          <div className="text-2xl font-bold text-pixel-text mb-1">
-            {metadata.matchTitle || 'Team Match'}
-          </div>
-          {metadata.matchDescription && (
-            <div className="text-sm text-pixel-text-muted">
-              {metadata.matchDescription}
-            </div>
-          )}
+    <div className="w-full flex items-center gap-3 border-4 border-purple-400 bg-purple-500 bg-opacity-10 px-4 py-3">
+      <span className="text-2xl shrink-0">{getSurfaceEmoji(metadata.surface)}</span>
+      <div className="flex-1 min-w-0">
+        <div className="font-bold text-pixel-text truncate">
+          {metadata.matchTitle || 'Team Match'}
+          <span className="ml-2 text-xs font-normal text-purple-400">
+            vs {metadata.opponentName}
+          </span>
         </div>
-
-        {/* Opponent */}
-        <div className="p-3 bg-pixel-card border-2 border-purple-400">
-          <div className="text-xs text-pixel-text-muted mb-1">Opponent:</div>
-          <div className="text-lg font-bold text-pixel-text">
-            {metadata.opponentName}
-          </div>
-          {metadata.opponentDescription && (
-            <div className="text-xs text-pixel-text-muted">
-              {metadata.opponentDescription}
-            </div>
-          )}
-        </div>
-
-        {/* Match Details */}
-        <div className="p-3 bg-pixel-bg border-2 border-pixel-border">
-          <div className="flex justify-between items-center">
-            <span className="text-pixel-text-muted text-sm">Surface:</span>
-            <span className="text-pixel-text font-bold">
-              {getSurfaceEmoji(metadata.surface)} {metadata.surface?.toUpperCase() || 'TBD'}
-            </span>
-          </div>
-          {metadata.matchFormat && (
-            <div className="flex justify-between items-center mt-1">
-              <span className="text-pixel-text-muted text-sm">Format:</span>
-              <span className="text-pixel-text font-bold text-sm">{metadata.matchFormat}</span>
-            </div>
-          )}
-        </div>
-
-        {/* Schedule Info */}
-        <div className="p-3 bg-purple-500 bg-opacity-10 border-2 border-purple-400">
-          <div className="text-xs text-purple-400 font-bold mb-1">
-            {daysUntil === 0 ? '⚡ Match Today!' : '📅 Match Scheduled'}
-          </div>
-          <div className="text-sm text-pixel-text">
-            {daysUntil === 0
-              ? `${getTimeSlotLabel(nextTeamMatch.scheduledTimeSlot)} session`
-              : daysUntil === 1
-                ? `Tomorrow — ${getTimeSlotLabel(nextTeamMatch.scheduledTimeSlot)}`
-                : `In ${daysUntil} days — ${getTimeSlotLabel(nextTeamMatch.scheduledTimeSlot)}`}
-          </div>
+        <div className="text-xs text-pixel-text-muted truncate">
+          {detailParts.join(' · ')}
         </div>
       </div>
-    </Card>
+      <span className="shrink-0 text-xs font-bold px-2 py-1 bg-purple-500 bg-opacity-20 border border-purple-400 text-purple-400">
+        {daysUntil === 0 ? '⚡ Today' : `${daysUntil}d`}
+      </span>
+    </div>
   );
 };

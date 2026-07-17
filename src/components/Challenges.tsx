@@ -8,6 +8,7 @@ import React from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { StatusBar } from './StatusBar';
 import { ActiveChallenges } from './ActiveChallenges';
+import { CompletedChallenges } from './CompletedChallenges';
 
 export const Challenges: React.FC = () => {
   const navigateTo = useGameStore((state) => state.navigateTo);
@@ -22,6 +23,7 @@ export const Challenges: React.FC = () => {
           Complete quests to earn stats, abilities, items, and XP. Tap a challenge to see its requirements and rewards.
         </p>
         <ActiveChallenges />
+        <CompletedChallenges />
       </div>
     </div>
   );

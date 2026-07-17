@@ -414,9 +414,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
           <span className="text-pixel-text-muted shrink-0">▸</span>
         </button>
 
-        {/* Active tournament / upcoming team match — self-hide when inactive, so the
-            wrapper collapses (empty:hidden) rather than leaving a gap */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 empty:hidden">
+        {/* Active tournament / upcoming team match — flat full-width strips that self-hide
+            when inactive, so the wrapper collapses (empty:hidden) rather than leaving a gap */}
+        <div className="space-y-3 mb-6 empty:hidden">
           <ActiveTournamentCard />
           <UpcomingTeamMatchCard />
         </div>

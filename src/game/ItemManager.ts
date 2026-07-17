@@ -282,6 +282,68 @@ export class ItemManager {
   }
 
   /**
+   * Simple numeric rating for an equipment item — the sum of its stat boosts.
+   * Used to compare two items at a glance ("is this an upgrade?").
+   */
+  static getItemRating(item: Item | null): number {
+    if (!item?.modifiers?.statBoosts) return 0;
+    return Object.values(item.modifiers.statBoosts).reduce<number>(
+      (sum, value) => sum + (value ?? 0),
+      0
+    );
+  }
+
+  /**
+   * Per-stat comparison between the currently equipped item and a candidate.
+   * Returns every stat touched by either item, with its before/after values and
+   * the delta. `current` may be null (empty slot), in which case every stat on
+   * the candidate reads as a gain from zero.
+   */
+  static getStatDeltas(
+    current: Item | null,
+    candidate: Item
+  ): Array<{ stat: keyof StatBoosts; from: number; to: number; delta: number }> {
+    const currentBoosts = current?.modifiers?.statBoosts ?? {};
+    const candidateBoosts = candidate.modifiers?.statBoosts ?? {};
+
+    const stats = new Set<keyof StatBoosts>([
+      ...(Object.keys(currentBoosts) as Array<keyof StatBoosts>),
+      ...(Object.keys(candidateBoosts) as Array<keyof StatBoosts>),
+    ]);
+
+    return Array.from(stats)
+      .map((stat) => {
+        const from = currentBoosts[stat] ?? 0;
+        const to = candidateBoosts[stat] ?? 0;
+        return { stat, from, to, delta: to - from };
+      })
+      .sort((a, b) => b.delta - a.delta);
+  }
+
+  /**
+   * Aggregate the passive "additional" effects (energy cost reduction, mood
+   * gain, etc.) from equipped items, lucky items in inventory, and story items.
+   * Mirrors getTotalPassiveBoosts but for the Modifiers.additional field.
+   */
+  static getTotalPassiveEffects(player: Player): Record<string, number> {
+    const effects: Record<string, number> = {};
+
+    const addFrom = (additional: Record<string, number> | undefined): void => {
+      Object.entries(additional ?? {}).forEach(([key, value]) => {
+        effects[key] = (effects[key] ?? 0) + value;
+      });
+    };
+
+    Object.values(player.equippedItems).forEach((item) => addFrom(item?.modifiers?.additional));
+    player.inventory.forEach((item) => {
+      if (item.type === 'lucky') addFrom(item.modifiers?.additional);
+    });
+    player.storyItems.forEach((item) => addFrom(item.modifiers?.additional));
+
+    return effects;
+  }
+
+  /**
    * Get count of regular inventory items (excludes story items)
    */
   static getInventoryCount(player: Player): number {

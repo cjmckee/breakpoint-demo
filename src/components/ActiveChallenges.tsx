@@ -8,6 +8,7 @@ import { useGameStore } from '../stores/gameStore';
 import { Card } from './ui/Card';
 import { UnseenBadge } from './ui/UnseenBadge';
 import { Button } from './ui/Button';
+import { ChallengeRewardChips } from './ChallengeRewardChips';
 import type { Challenge } from '../types/challenges';
 
 export const ActiveChallenges: React.FC = () => {
@@ -217,34 +218,8 @@ export const ActiveChallenges: React.FC = () => {
                     </div>
 
                     {/* Show detailed rewards */}
-                    <div className="mt-2 space-y-1">
-                      {challenge.reward.modifiers?.statBoosts &&
-                        Object.entries(challenge.reward.modifiers.statBoosts).map(([stat, value]) => (
-                          <div
-                            key={stat}
-                            className="text-xs px-2 py-0.5 bg-green-500 bg-opacity-20 border border-green-500 text-green-500 font-bold inline-block mr-1"
-                          >
-                            +{value} {stat}
-                          </div>
-                        ))}
-
-                      {challenge.reward.abilities?.map((ability) => (
-                        <div
-                          key={ability}
-                          className="text-xs px-2 py-0.5 bg-orange-500 bg-opacity-20 border border-orange-500 text-orange-500 font-bold inline-block mr-1"
-                        >
-                          {ability}
-                        </div>
-                      ))}
-
-                      {challenge.reward.items?.map((item) => (
-                        <div
-                          key={item.name}
-                          className="text-xs px-2 py-0.5 bg-purple-500 bg-opacity-20 border border-purple-500 text-purple-500 font-bold inline-block mr-1"
-                        >
-                          {item.name}
-                        </div>
-                      ))}
+                    <div className="mt-2">
+                      <ChallengeRewardChips reward={challenge.reward} />
                     </div>
                   </div>
 

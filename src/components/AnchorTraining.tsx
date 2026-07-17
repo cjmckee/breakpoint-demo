@@ -158,8 +158,7 @@ export const AnchorTraining: React.FC = () => {
 
         {!canAfford && (
           <div className="mb-4 p-3 bg-pixel-card border-2 border-pixel-error text-pixel-error text-sm font-bold">
-            Not enough energy — training costs {ANCHOR_TRAINING_ENERGY_COST}, you have{' '}
-            {currentStatus.energy}. Rest to recover.
+            <>Not enough energy — (Need {ANCHOR_TRAINING_ENERGY_COST})</>
           </div>
         )}
 
