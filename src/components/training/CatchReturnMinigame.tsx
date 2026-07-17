@@ -19,8 +19,8 @@ import {
 import { useMinigameRounds } from './useMinigameRounds';
 
 const HIT_RADIUS = 30; // px — a touch more generous than the visual ball
-const MIN_FALL_MS = 1450;
-const MAX_FALL_MS = 1950;
+const MIN_FALL_MS = 600;
+const MAX_FALL_MS = 1200;
 
 export const CatchReturnMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
   const rounds = useMinigameRounds(onComplete);

@@ -64,7 +64,7 @@ export const SupportResult: React.FC<{ count: number; note: string }> = ({ count
     </div>
     <div className="text-sm text-pixel-text-muted">{note}</div>
     <div className="text-xs text-pixel-text-muted mt-2">
-      {count === 0 ? 'no support stats — core work still counts' : `support ${count === 1 ? 'stat' : 'stats'} earned`}
+      {count === 0 ? 'no bonus stats — the core rep still counts' : `bonus ${count === 1 ? 'stat' : 'stats'} earned`}
     </div>
   </div>
 );

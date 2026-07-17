@@ -18,7 +18,8 @@ import {
 import { useMinigameRounds } from './useMinigameRounds';
 import { movingBands, type Band } from './minigameWindows';
 
-const CHARGE_SPEED = 105; // units/sec
+const CHARGE_SPEED_MIN = 90; // units/sec — randomized per attempt so it can't be counted out
+const CHARGE_SPEED_MAX = 125;
 const MAX_CHARGE = 120; // caps the climb (holding past the window overshoots -> miss)
 
 export const LoadFireMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
@@ -26,12 +27,16 @@ export const LoadFireMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
   const [charge, setCharge] = useState(0);
   const [charging, setCharging] = useState(false);
 
-  const bandsRef = useRef<Band[]>(movingBands(52, 96, 18));
+  const bandsRef = useRef<Band[]>(movingBands(52, 96, 14));
+  const speedsRef = useRef<number[]>(
+    Array.from({ length: 3 }, () => CHARGE_SPEED_MIN + Math.random() * (CHARGE_SPEED_MAX - CHARGE_SPEED_MIN))
+  );
   const chargeRef = useRef(0);
   const chargingRef = useRef(false);
   const rafRef = useRef<number | null>(null);
 
   const band = bandsRef.current[Math.min(rounds.round, bandsRef.current.length - 1)];
+  const speed = speedsRef.current[Math.min(rounds.round, speedsRef.current.length - 1)];
   const playing = rounds.phase === 'playing';
 
   const startCharge = useCallback(() => {
@@ -67,7 +72,7 @@ export const LoadFireMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
     const loop = (now: number): void => {
       const dt = (now - last) / 1000;
       last = now;
-      const next = Math.min(MAX_CHARGE, chargeRef.current + CHARGE_SPEED * dt);
+      const next = Math.min(MAX_CHARGE, chargeRef.current + speed * dt);
       chargeRef.current = next;
       setCharge(next);
       rafRef.current = requestAnimationFrame(loop);

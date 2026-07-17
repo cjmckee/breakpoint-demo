@@ -1,9 +1,11 @@
 /**
  * Forehand Minigame — "Rally Rhythm"
  *
- * The ball rallies back and forth across the baseline. Each of three attempts the
- * strike zone sits at a different spot — swing while the ball is inside it. Every clean
- * contact banks a support; the first miss ends the rally. See docs/training-redesign.md.
+ * A straight timing/rhythm game: the ball sits on your baseline and a ring closes in
+ * on it. Press Enter (or tap) the instant the ring reaches the ball — that's the
+ * bounce. Each of three attempts uses a different beat length, so it can't be
+ * muscle-memoried. Every clean hit banks a support; all three reps always play out.
+ * See docs/training-redesign.md.
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -17,78 +19,93 @@ import {
   type MinigameProps,
 } from './MinigameShell';
 import { useMinigameRounds } from './useMinigameRounds';
-import { movingBands, type Band } from './minigameWindows';
 
-const BALL_SPEED = 115; // units/sec across the 0..100 track
+const MIN_BEAT_MS = 1100;
+const MAX_BEAT_MS = 1900;
+const HIT_WINDOW_MS = 180; // timing tolerance around the bounce
+const RING_START_SCALE = 3;
 
 export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
   const rounds = useMinigameRounds(onComplete);
-  const [pos, setPos] = useState(0);
+  const [ringScale, setRingScale] = useState(RING_START_SCALE);
+  const [bounced, setBounced] = useState(false);
 
-  const bandsRef = useRef<Band[]>(movingBands(22, 78, 18));
-  const dirRef = useRef(1);
-  const posRef = useRef(0);
+  const beatMsRef = useRef(MIN_BEAT_MS);
+  const startRef = useRef(0);
+  const committedRef = useRef(false);
   const rafRef = useRef<number | null>(null);
 
-  const band = bandsRef.current[Math.min(rounds.round, bandsRef.current.length - 1)];
   const playing = rounds.phase === 'playing';
 
-  const swing = useCallback(() => {
-    if (rounds.phase !== 'playing') return;
-    const p = posRef.current;
-    const passed = p >= band.lo && p <= band.hi;
+  const hit = useCallback(() => {
+    if (rounds.phase !== 'playing' || committedRef.current) return;
+    committedRef.current = true;
+    const elapsed = performance.now() - startRef.current;
+    const diff = Math.abs(elapsed - beatMsRef.current);
+    const passed = diff <= HIT_WINDOW_MS;
     audioManager.playSfx('ui_click');
     rounds.commit(passed);
-  }, [rounds, band]);
+  }, [rounds]);
 
+  // Arm a fresh beat for each playing attempt; pauses entirely between attempts.
   useEffect(() => {
-    if (rounds.phase === 'done') return;
-    let last = performance.now();
+    if (rounds.phase !== 'playing') return;
+
+    const beatMs = MIN_BEAT_MS + Math.random() * (MAX_BEAT_MS - MIN_BEAT_MS);
+    beatMsRef.current = beatMs;
+    startRef.current = performance.now();
+    committedRef.current = false;
+    setRingScale(RING_START_SCALE);
+    setBounced(false);
+
     const loop = (now: number): void => {
-      const dt = (now - last) / 1000;
-      last = now;
-      let next = posRef.current + dirRef.current * BALL_SPEED * dt;
-      if (next >= 100) {
-        next = 100;
-        dirRef.current = -1;
-      } else if (next <= 0) {
-        next = 0;
-        dirRef.current = 1;
+      const elapsed = now - startRef.current;
+      const frac = Math.min(1, elapsed / beatMs);
+      setRingScale(RING_START_SCALE - (RING_START_SCALE - 1) * frac);
+      if (elapsed >= beatMs) setBounced(true);
+
+      if (elapsed > beatMs + HIT_WINDOW_MS && !committedRef.current) {
+        committedRef.current = true;
+        rounds.commit(false); // let the beat pass without pressing
+        return;
       }
-      posRef.current = next;
-      setPos(next);
       rafRef.current = requestAnimationFrame(loop);
     };
     rafRef.current = requestAnimationFrame(loop);
     return () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     };
-  }, [rounds.phase]);
+    // rounds.commit has a stable identity for the session; only phase/round should re-arm.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rounds.phase, rounds.round]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
-      if (e.code === 'Space' || e.key === ' ') {
+      if (e.code === 'Space' || e.key === ' ' || e.code === 'Enter' || e.key === 'Enter') {
         e.preventDefault();
-        swing();
+        hit();
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [swing]);
+  }, [hit]);
 
   return (
-    <MinigameShell title="Rally Rhythm" subtitle="Swing while the ball is in the zone — it moves each rep">
-      {/* Horizontal rally track */}
-      <div className="relative h-16 w-full bg-pixel-bg border-2 border-pixel-border overflow-hidden mb-4">
+    <MinigameShell title="Rally Rhythm" subtitle="Press Enter (or tap) the instant the ball bounces on your side">
+      <div className="relative h-56 w-full bg-pixel-bg border-2 border-pixel-border overflow-hidden mb-4 flex items-center justify-center">
+        {/* Closing timing ring — reaches the ball exactly on the beat */}
+        {playing && (
+          <div
+            className="absolute top-1/2 left-1/2 w-24 h-24 rounded-full border-4 border-pixel-accent/70"
+            style={{ transform: `translate(-50%, -50%) scale(${ringScale})` }}
+          />
+        )}
+
+        {/* The ball, centered in the box */}
         <div
-          className="absolute inset-y-0 bg-green-500/25 border-x-2 border-green-500"
-          style={{ left: `${band.lo}%`, width: `${band.hi - band.lo}%` }}
-        />
-        <div
-          className={`absolute top-1/2 -translate-y-1/2 w-7 h-7 rounded-full border-2 flex items-center justify-center text-sm ${
+          className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full border-2 flex items-center justify-center text-4xl transition-transform duration-100 ${
             playing ? 'bg-pixel-accent border-pixel-text' : 'bg-orange-400 border-orange-200'
-          }`}
-          style={{ left: `calc(${pos}% - 14px)` }}
+          } ${bounced && playing ? 'scale-125' : 'scale-100'}`}
         >
           🎾
         </div>
@@ -110,12 +127,12 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete }) => 
           )}
         />
       ) : (
-        <MinigameActionButton onPress={swing} disabled={!playing}>
+        <MinigameActionButton onPress={hit} disabled={!playing}>
           {playing
-            ? `Swing!  ·  Rep ${rounds.round + 1} of 3  (Space)`
+            ? `Strike!  ·  Rep ${rounds.round + 1} of 3  (Enter)`
             : rounds.lastPass
-              ? 'Clean! Next ball…'
-              : 'Missed — next ball…'}
+              ? 'On the beat! Next ball…'
+              : 'Off the beat — next ball…'}
         </MinigameActionButton>
       )}
     </MinigameShell>

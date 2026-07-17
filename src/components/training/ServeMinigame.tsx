@@ -20,18 +20,23 @@ import {
 import { useMinigameRounds } from './useMinigameRounds';
 import { movingBands, type Band } from './minigameWindows';
 
-const TOSS_SPEED = 135; // meter-units per second
+const TOSS_SPEED_MIN = 170; // meter-units per second — randomized per attempt so it can't be counted out
+const TOSS_SPEED_MAX = 230;
 
 export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
   const rounds = useMinigameRounds(onComplete);
   const [pos, setPos] = useState(0);
 
   const bandsRef = useRef<Band[]>(movingBands(32, 90, 16));
+  const speedsRef = useRef<number[]>(
+    Array.from({ length: 3 }, () => TOSS_SPEED_MIN + Math.random() * (TOSS_SPEED_MAX - TOSS_SPEED_MIN))
+  );
   const dirRef = useRef(1);
   const posRef = useRef(0);
   const rafRef = useRef<number | null>(null);
 
   const band = bandsRef.current[Math.min(rounds.round, bandsRef.current.length - 1)];
+  const tossSpeed = speedsRef.current[Math.min(rounds.round, speedsRef.current.length - 1)];
   const playing = rounds.phase === 'playing';
 
   const strike = useCallback(() => {
@@ -42,14 +47,15 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
     rounds.commit(passed);
   }, [rounds, band]);
 
-  // Toss animation (ping-pongs 0..100) — runs until all attempts resolve.
+  // Toss animation (ping-pongs 0..100) — pauses between attempts so the miss/hit
+  // readout has a beat to land before the next toss starts moving again.
   useEffect(() => {
-    if (rounds.phase === 'done') return;
+    if (rounds.phase !== 'playing') return;
     let last = performance.now();
     const loop = (now: number): void => {
       const dt = (now - last) / 1000;
       last = now;
-      let next = posRef.current + dirRef.current * TOSS_SPEED * dt;
+      let next = posRef.current + dirRef.current * tossSpeed * dt;
       if (next >= 100) {
         next = 100;
         dirRef.current = -1;
@@ -105,10 +111,10 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete }) => {
               count={rounds.successes}
               note={countNote(
                 rounds.successes,
-                'Three flush serves!',
-                'Two clean strikes.',
-                'One clean strike.',
-                'Caught them outside the window.'
+                'Three perfect serves!',
+                'Two clean serves. Not bad.',
+                'One clean serve. Keep practicing!',
+                'You need some work...'
               )}
             />
           ) : (

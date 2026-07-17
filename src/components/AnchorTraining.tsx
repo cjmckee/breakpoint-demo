@@ -90,8 +90,8 @@ export const AnchorTraining: React.FC = () => {
             <h1 className="text-3xl font-bold text-pixel-text">{anchor.name} Training</h1>
           </div>
           <p className="text-pixel-text-muted mb-6">
-            Guaranteed <span className="text-green-400 font-bold">+1 {anchor.name}</span> — then bank
-            a support for each clean rep across 3 attempts.
+            Guaranteed <span className="text-green-400 font-bold">+1 {anchor.name}</span> — land
+            clean reps below to earn bonus stats too.
           </p>
 
           {(() => {
@@ -102,7 +102,7 @@ export const AnchorTraining: React.FC = () => {
           {/* Themed support pool preview */}
           <div className="bg-pixel-card border-2 border-pixel-border p-4 mt-4">
             <div className="text-xs font-bold text-pixel-text-muted mb-2 uppercase tracking-wide">
-              Possible support stats
+              Also improves
             </div>
             <div className="flex flex-wrap gap-2">
               {anchor.supportPool.map((stat) => (
@@ -124,7 +124,7 @@ export const AnchorTraining: React.FC = () => {
             disabled={!canAfford}
             onClick={() => resolve(step.core, 1)}
           >
-            Quick Sim (skip · +1 support)
+            Quick Sim (skip · +1 bonus)
           </Button>
         </div>
       </div>
@@ -140,7 +140,7 @@ export const AnchorTraining: React.FC = () => {
         <h1 className="text-3xl font-bold text-pixel-text mb-1">Training</h1>
         <p className="text-pixel-text-muted mb-6">
           Pick the shot to build around. You'll get <span className="text-green-400 font-bold">+1</span>{' '}
-          to it, then bank a related support for each clean rep in its minigame.
+          to it, plus bonus stats for clean reps in its minigame.
         </p>
 
         {!canAfford && (
