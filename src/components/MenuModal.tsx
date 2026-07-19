@@ -13,21 +13,49 @@ import { UnseenBadge } from './ui/UnseenBadge';
 import { Encyclopedia } from './Encyclopedia';
 import { TutorialGuideModal } from './tutorial/TutorialGuideModal';
 
-const MUSIC_TRACKS = [
-  'Main Theme',
-  'Renegade',
-  '8 Bit Open World',
-  'Beep Boopity Exploration',
-  'Music Box Mayhem',
-  'Pixelated Drive',
-  'Have a Good Time',
-  'Spelunker Pete',
-  'Arcadia Remembers',
-  'The Bunny Song',
-  'On The Run',
-  'Keys Are In It',
-  'Feel the Burn',
-  'Lambo',
+interface MusicCredit {
+  title: string;
+  artist: string;
+  artistUrl?: string;
+  licenseLabel?: string;
+  licenseUrl?: string;
+  imdbUrl?: string;
+}
+
+const KULIG_URL = 'https://timkulig.com';
+const KULIG_LICENSE_URL = 'https://creativecommons.org/licenses/by/4.0/';
+const KULIG_IMDB_URL = 'https://www.imdb.com/name/nm0997280/';
+
+function kuligTrack(title: string): MusicCredit {
+  return {
+    title,
+    artist: 'Tim Kulig',
+    artistUrl: KULIG_URL,
+    licenseLabel: 'CC BY 4.0',
+    licenseUrl: KULIG_LICENSE_URL,
+    imdbUrl: KULIG_IMDB_URL,
+  };
+}
+
+const MUSIC_TRACKS: MusicCredit[] = [
+  kuligTrack('Main Theme'),
+  kuligTrack('Renegade'),
+  kuligTrack('8 Bit Open World'),
+  kuligTrack('Beep Boopity Exploration'),
+  kuligTrack('Music Box Mayhem'),
+  kuligTrack('Pixelated Drive'),
+  kuligTrack('Have a Good Time'),
+  kuligTrack('Spelunker Pete'),
+  kuligTrack('Arcadia Remembers'),
+  kuligTrack('The Bunny Song'),
+  kuligTrack('On The Run'),
+  kuligTrack('Keys Are In It'),
+  kuligTrack('Feel the Burn'),
+  kuligTrack('Lambo'),
+  kuligTrack('Computing'),
+  kuligTrack('Assembly Montage'),
+  { title: 'Neon', artist: 'Dopestuff' },
+  { title: 'Lady of the 80s', artist: 'Grand Project' },
 ];
 
 const GISCUS_CONFIG = {
@@ -54,7 +82,7 @@ function AudioCredits() {
       </h3>
       <div className="text-xs text-pixel-text-muted space-y-1">
         <p>
-          <span className="text-pixel-text">Music</span> by Tim Kulig (
+          <span className="text-pixel-text">Music</span> mostly by Tim Kulig (
           <a
             href="https://timkulig.com"
             target="_blank"
@@ -72,6 +100,7 @@ function AudioCredits() {
           >
             CC BY 4.0
           </a>
+          , plus additional tracks — see full attribution below
         </p>
         <p>
           <span className="text-pixel-text">Sound effects</span> by Kenney (
@@ -99,35 +128,51 @@ function AudioCredits() {
 
       {expanded && (
         <div className="mt-2 text-xs text-pixel-text-muted bg-pixel-bg-dark bg-opacity-75 rounded p-3 space-y-2 max-h-48 overflow-y-auto">
-          {MUSIC_TRACKS.map((title) => (
-            <div key={title}>
-              <span className="text-pixel-text">"{title}"</span> — Tim Kulig (
-              <a
-                href="https://timkulig.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-pixel-accent hover:underline"
-              >
-                timkulig.com
-              </a>
-              ){' · '}
-              <a
-                href="https://creativecommons.org/licenses/by/4.0/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-pixel-accent hover:underline"
-              >
-                CC BY 4.0
-              </a>
-              {' · '}
-              <a
-                href="https://www.imdb.com/name/nm0997280/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-pixel-accent hover:underline"
-              >
-                IMDB
-              </a>
+          {MUSIC_TRACKS.map((track) => (
+            <div key={track.title}>
+              <span className="text-pixel-text">"{track.title}"</span> —{' '}
+              {track.artistUrl ? (
+                <a
+                  href={track.artistUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-pixel-accent hover:underline"
+                >
+                  {track.artist}
+                </a>
+              ) : (
+                track.artist
+              )}
+              {track.licenseLabel && (
+                <>
+                  {' · '}
+                  {track.licenseUrl ? (
+                    <a
+                      href={track.licenseUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-pixel-accent hover:underline"
+                    >
+                      {track.licenseLabel}
+                    </a>
+                  ) : (
+                    track.licenseLabel
+                  )}
+                </>
+              )}
+              {track.imdbUrl && (
+                <>
+                  {' · '}
+                  <a
+                    href={track.imdbUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-pixel-accent hover:underline"
+                  >
+                    IMDB
+                  </a>
+                </>
+              )}
             </div>
           ))}
         </div>
