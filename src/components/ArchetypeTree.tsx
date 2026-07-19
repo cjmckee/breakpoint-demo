@@ -124,7 +124,7 @@ export const ArchetypeTree: React.FC = () => {
   if (!profile.broad) {
     return (
       <div className="min-h-screen bg-pixel-bg p-4">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <div className="mb-6">
             <Button variant="secondary" onClick={() => navigateTo('idle')}>← Back to Menu</Button>
           </div>
@@ -287,7 +287,7 @@ export const ArchetypeTree: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-pixel-bg p-4">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="mb-6">
           <Button variant="secondary" onClick={() => navigateTo('idle')}>← Back to Menu</Button>
         </div>
