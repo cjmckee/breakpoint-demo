@@ -20,8 +20,8 @@ import {
 } from './MinigameShell';
 import { useMinigameRounds } from './useMinigameRounds';
 
-const MIN_BEAT_MS = 1500;
-const MAX_BEAT_MS = 2500;
+const MIN_BEAT_MS = 800;
+const MAX_BEAT_MS = 1400;
 const HIT_WINDOW_MS = 180; // timing tolerance around the bounce
 const RING_START_SCALE = 3;
 
