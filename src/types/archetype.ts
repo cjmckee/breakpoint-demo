@@ -40,6 +40,13 @@ export type PhasePathId =
 
 export type SpecialtyTier = 1 | 2 | 3;
 
+/**
+ * The tactical role a specialty expresses within its phase. Every phase offers
+ * exactly one of each, which lets the archetype UI encode a specialty's role as
+ * a fixed color/position instead of a paragraph ("show, don't tell").
+ */
+export type SpecialtyRole = 'offense' | 'balanced' | 'defense';
+
 /** A chosen specialty within a single phase. */
 export interface PhaseSpec {
   path: PhasePathId;

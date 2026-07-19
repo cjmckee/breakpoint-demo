@@ -16,7 +16,7 @@ const TENDENCY_DIALS: { key: keyof Pick<PlayStyle, 'aggression' | 'netApproach' 
 ];
 
 export const TendencyBars: React.FC<{ playStyle: PlayStyle }> = ({ playStyle }) => (
-  <div className="space-y-2">
+  <div className="space-y-1.5">
     {TENDENCY_DIALS.map(({ key, label }) => (
       <div key={key}>
         <span className="text-xs text-pixel-text-muted">{label}</span>

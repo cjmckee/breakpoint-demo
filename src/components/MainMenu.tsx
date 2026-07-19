@@ -264,20 +264,29 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                   {getTierName(player.tier)}
                 </span>
                 {player.archetypeProfile.broad ? (
-                  <span className="relative inline-block">
+                  /* Split chip: a pronounced identity pill that grows a red DEVELOP
+                     call-to-action only when there are specialization points to spend. */
+                  <button
+                    onClick={() => navigateTo('archetype')}
+                    title="Open archetype tree"
+                    className="inline-flex items-stretch text-sm font-bold shadow-[0_0_12px_rgba(233,69,96,0.35)] hover:shadow-[0_0_18px_rgba(233,69,96,0.6)] transition-shadow"
+                  >
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-pixel-accent bg-opacity-20 border-2 border-pixel-accent text-pixel-accent">
+                      <span aria-hidden="true">⬡</span>
+                      {archetypeLabel}
+                    </span>
                     {player.archetypeProfile.specializationPoints > 0 && (
-                      <UnseenBadge size="sm" className="absolute -top-2 -right-2 z-10" />
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-pixel-accent border-2 border-l-0 border-pixel-accent text-white">
+                        DEVELOP
+                        <span className="min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-white text-pixel-accent text-xs leading-none animate-pulse">
+                          {player.archetypeProfile.specializationPoints}
+                        </span>
+                      </span>
                     )}
-                    <button
-                      onClick={() => navigateTo('archetype')}
-                      className="text-sm px-2.5 py-0.5 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent font-bold hover:bg-opacity-40 transition-colors"
-                      title="Open archetype tree"
-                    >
-                      {archetypeLabel} ▸
-                    </button>
-                  </span>
+                  </button>
                 ) : (
-                  <span className="text-sm px-2.5 py-0.5 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent font-bold">
+                  <span className="inline-flex items-center gap-1.5 text-sm px-3 py-1 bg-pixel-accent bg-opacity-20 border-2 border-pixel-accent text-pixel-accent font-bold">
+                    <span aria-hidden="true">⬡</span>
                     {archetypeLabel}
                   </span>
                 )}
