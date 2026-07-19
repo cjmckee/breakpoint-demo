@@ -104,10 +104,14 @@ export const MUSIC_POOLS: Record<MusicTrack, MusicEntry[]> = {
     { path: '/audio/music/the_bunny_song.mp3',   title: 'The Bunny Song',   gain: 0.2 },
     { path: '/audio/music/on_the_run.mp3',        title: 'On The Run',       gain: 0.2 },
     { path: '/audio/music/feel_the_burn.mp3',     title: 'Feel the Burn',    gain: 0.2 },
+    { path: '/audio/music/assembly_montage.mp3', title: 'Assembly Montage', gain: 0.2 },
+    { path: '/audio/music/lady_of_the_80s.mp3',   title: 'Lady of the 80s',  gain: 0.2 },
   ],
   story_ambient: [
     { path: '/audio/music/beep_boopity_exploration.mp3', title: 'Beep Boopity Exploration', gain: 0.2 },
     { path: '/audio/music/arcadia_remembers.mp3',        title: 'Arcadia Remembers',        gain: 0.2 },
+    { path: '/audio/music/computing.mp3',                 title: 'Computing',                gain: 0.2 },
+    { path: '/audio/music/neon.mp3',                       title: 'Neon',                      gain: 0.2 },
   ],
   prematch_buildup: [
     { path: '/audio/music/spelunker_pete.mp3',  title: 'Spelunker Pete',  gain: 0.2 },

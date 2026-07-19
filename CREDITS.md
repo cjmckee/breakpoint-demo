@@ -10,7 +10,9 @@ In-game attribution is also available in the Settings menu.
 
 ## Music
 
-All music by **Tim Kulig** — [timkulig.com](https://timkulig.com) · [IMDB](https://www.imdb.com/name/nm0997280/)
+### Tim Kulig
+
+All tracks below by **Tim Kulig** — [timkulig.com](https://timkulig.com) · [IMDB](https://www.imdb.com/name/nm0997280/)
 Licensed under [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/).
 
 | Track | File |
@@ -29,6 +31,15 @@ Licensed under [Creative Commons Attribution 4.0 International (CC BY 4.0)](http
 | Keys Are In It | `public/audio/music/keys_are_in_it.mp3` |
 | Feel the Burn | `public/audio/music/feel_the_burn.mp3` |
 | Lambo | `public/audio/music/lambo.mp3` |
+| Computing | `public/audio/music/computing.mp3` |
+| Assembly Montage | `public/audio/music/assembly_montage.mp3` |
+
+### Other Artists
+
+| Track | Artist | File |
+|---|---|---|
+| Neon | Dopestuff | `public/audio/music/neon.mp3` |
+| Lady of the 80s | Grand Project | `public/audio/music/lady_of_the_80s.mp3` |
 
 Tracks are used in their original form with no modifications to the audio
 content. Files may be encoded, trimmed, looped, or volume-normalized for
