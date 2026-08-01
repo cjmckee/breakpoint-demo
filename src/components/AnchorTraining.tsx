@@ -30,14 +30,14 @@ import type { MinigameId } from '../game/AnchorTrainingSystem';
 import type { MinigameProps } from './training/MinigameShell';
 import { ServeMinigame } from './training/ServeMinigame';
 import { RallyRhythmMinigame } from './training/RallyRhythmMinigame';
-import { LoadFireMinigame } from './training/LoadFireMinigame';
+import { CornerPainterMinigame } from './training/CornerPainterMinigame';
 import { CatchReturnMinigame } from './training/CatchReturnMinigame';
 import { TouchCarveMinigame } from './training/TouchCarveMinigame';
 
 const MINIGAMES: Record<MinigameId, React.FC<MinigameProps>> = {
   toss_and_strike: ServeMinigame,
   rally_rhythm: RallyRhythmMinigame,
-  load_and_fire: LoadFireMinigame,
+  corner_paint: CornerPainterMinigame,
   catch_return: CatchReturnMinigame,
   touch_carve: TouchCarveMinigame,
 };

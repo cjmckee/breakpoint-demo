@@ -6,10 +6,14 @@
  * the training screen feels like one system. Each minigame runs three pass/fail
  * attempts (see useMinigameRounds) and reports the number of successes (0-3) via
  * onComplete. See docs/training-redesign.md.
+ *
+ * Every game opens on a standardized start screen (phase === 'ready'): the how-to line
+ * plus a Start button, with Space/Enter to begin — so the first attempt is never a
+ * free miss from being dropped straight into play.
  */
 
-import React from 'react';
-import type { MinigameRounds } from './useMinigameRounds';
+import React, { useEffect } from 'react';
+import type { MinigameRounds, RoundPhase } from './useMinigameRounds';
 import { TOTAL_ROUNDS } from './useMinigameRounds';
 
 export interface MinigameProps {
@@ -21,17 +25,54 @@ export interface MinigameProps {
   onFirstAttempt?: () => void;
 }
 
+/** Start screen shown while phase === 'ready'. Space/Enter (or the button) begins. */
+const StartGate: React.FC<{ onStart: () => void; controls?: string }> = ({ onStart, controls }) => {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.code === 'Space' || e.key === ' ' || e.code === 'Enter' || e.key === 'Enter') {
+        e.preventDefault();
+        onStart();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onStart]);
+
+  return (
+    <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
+      {controls && (
+        <p className="text-xs text-pixel-text-muted uppercase tracking-wide">{controls}</p>
+      )}
+      <button
+        type="button"
+        onPointerDown={(e) => {
+          e.preventDefault();
+          onStart();
+        }}
+        className="font-bold border-4 transition-all duration-150 ease-in-out cursor-pointer bg-pixel-accent border-pixel-accent-dark text-white hover:bg-pixel-accent-light active:translate-y-1 px-10 py-3 text-lg select-none touch-none"
+      >
+        ▶ Start
+      </button>
+      <p className="text-xs text-pixel-text-muted">press Space</p>
+    </div>
+  );
+};
+
 export const MinigameShell: React.FC<{
   title: string;
   subtitle: string;
+  phase: RoundPhase;
+  onStart: () => void;
+  /** Optional short controls hint shown on the start screen (e.g. "← / → move · Space strike"). */
+  controls?: string;
   children: React.ReactNode;
-}> = ({ title, subtitle, children }) => (
+}> = ({ title, subtitle, phase, onStart, controls, children }) => (
   <div className="bg-pixel-card border-4 border-pixel-border p-6">
     <div className="text-center mb-4">
       <h3 className="text-xl font-bold text-pixel-text">{title}</h3>
       <p className="text-sm text-pixel-text-muted">{subtitle}</p>
     </div>
-    {children}
+    {phase === 'ready' ? <StartGate onStart={onStart} controls={controls} /> : children}
   </div>
 );
 

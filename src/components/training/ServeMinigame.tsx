@@ -1,10 +1,10 @@
 /**
  * Serve Minigame — "Toss & Strike"
  *
- * The ball toss rises and falls on a vertical meter. Each of three attempts a green
- * strike window sits at a different height — strike while the ball is inside it. Every
- * clean strike banks a support. See
- * docs/training-redesign.md.
+ * The toss floats up and drifts to a random side. Slide your strike zone under it and
+ * strike while the ball is in the pocket. Each of three tosses is one attempt — a clean
+ * strike banks a support. Slow ball + a wide pocket keep it fair despite the movement.
+ * See docs/training-redesign.md.
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -18,125 +18,227 @@ import {
   type MinigameProps,
 } from './MinigameShell';
 import { useMinigameRounds } from './useMinigameRounds';
-import { movingBands, type Band } from './minigameWindows';
+import { Sparks, ComboBadge, useHitstop, type Burst } from './minigameJuice';
 
-const TOSS_SPEED_MIN = 170; // meter-units per second — randomized per attempt so it can't be counted out
-const TOSS_SPEED_MAX = 230;
+const Y_STRIKE = 60; // % from top — where the pocket sits
+const ZONE_SPEED = 74; // %/sec the strike zone slides
+const START_Y = 92;
+
+interface Toss {
+  vy0: number; // %/sec upward launch
+  g: number; // %/sec^2 gravity
+  vx: number; // %/sec horizontal drift
+}
+
+const randomToss = (): Toss => ({
+  vy0: -(74 + Math.random() * 12),
+  g: 70 + Math.random() * 12,
+  vx: (Math.random() < 0.5 ? -1 : 1) * (7 + Math.random() * 6),
+});
 
 export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt }) => {
   const rounds = useMinigameRounds(onComplete, onFirstAttempt);
-  const [pos, setPos] = useState(0);
+  const { frozen, trigger: hitstop } = useHitstop();
 
-  const bandsRef = useRef<Band[]>(movingBands(32, 90, 16 * (1 + windowBonus)));
-  const speedsRef = useRef<number[]>(
-    Array.from({ length: 3 }, () => TOSS_SPEED_MIN + Math.random() * (TOSS_SPEED_MAX - TOSS_SPEED_MIN))
-  );
-  const dirRef = useRef(1);
-  const posRef = useRef(0);
+  const zoneHalf = 15 * (1 + windowBonus);
+  const bandHalf = 11 * (1 + windowBonus);
+
+  const tossesRef = useRef<Toss[]>(Array.from({ length: 3 }, randomToss));
+  const ballRef = useRef({ x: 50, y: START_Y, vx: 0, vy: 0 });
+  const zoneRef = useRef(50);
+  const moveRef = useRef(0);
+  const struckRef = useRef(false);
   const rafRef = useRef<number | null>(null);
 
-  const band = bandsRef.current[Math.min(rounds.round, bandsRef.current.length - 1)];
-  const tossSpeed = speedsRef.current[Math.min(rounds.round, speedsRef.current.length - 1)];
+  const [ball, setBall] = useState({ x: 50, y: START_Y });
+  const [zone, setZone] = useState(50);
+  const [inPocket, setInPocket] = useState(false);
+  const [burst, setBurst] = useState<Burst | null>(null);
+  const [struck, setStruck] = useState(false);
+
   const playing = rounds.phase === 'playing';
 
-  const strike = useCallback(() => {
-    if (rounds.phase !== 'playing') return;
-    const p = posRef.current;
-    const passed = p >= band.lo && p <= band.hi;
-    audioManager.playSfx('ui_click');
-    rounds.commit(passed);
-  }, [rounds, band]);
+  const isInPocket = useCallback(() => {
+    const b = ballRef.current;
+    return Math.abs(b.y - Y_STRIKE) <= bandHalf && Math.abs(b.x - zoneRef.current) <= zoneHalf;
+  }, [bandHalf, zoneHalf]);
 
-  // Toss animation (ping-pongs 0..100) — pauses between attempts so the miss/hit
-  // readout has a beat to land before the next toss starts moving again.
+  const strike = useCallback(() => {
+    if (rounds.phase !== 'playing' || struckRef.current) return;
+    struckRef.current = true;
+    const passed = isInPocket();
+    const b = ballRef.current;
+    setBurst({ id: performance.now(), x: b.x, y: b.y, tone: passed ? 'good' : 'bad' });
+    if (passed) {
+      hitstop();
+      setStruck(true);
+      audioManager.playSfx('smash');
+    } else {
+      audioManager.playSfx('ui_click');
+    }
+    rounds.commit(passed);
+  }, [rounds, isInPocket, hitstop]);
+
+  // Arm a fresh toss for each playing attempt.
   useEffect(() => {
     if (rounds.phase !== 'playing') return;
+    const toss = tossesRef.current[Math.min(rounds.round, tossesRef.current.length - 1)];
+    ballRef.current = { x: 50, y: START_Y, vx: toss.vx, vy: toss.vy0 };
+    struckRef.current = false;
+    setStruck(false);
+    setBall({ x: 50, y: START_Y });
+    audioManager.playSfx('serve');
+
     let last = performance.now();
     const loop = (now: number): void => {
+      if (frozen.current) {
+        last = now;
+        rafRef.current = requestAnimationFrame(loop);
+        return;
+      }
       const dt = (now - last) / 1000;
       last = now;
-      let next = posRef.current + dirRef.current * tossSpeed * dt;
-      if (next >= 100) {
-        next = 100;
-        dirRef.current = -1;
-      } else if (next <= 0) {
-        next = 0;
-        dirRef.current = 1;
+      const b = ballRef.current;
+      b.vy += toss.g * dt;
+      b.y += b.vy * dt;
+      b.x += b.vx * dt;
+      if (b.x < 8) { b.x = 8; b.vx = Math.abs(b.vx); }
+      if (b.x > 92) { b.x = 92; b.vx = -Math.abs(b.vx); }
+      zoneRef.current = Math.max(zoneHalf, Math.min(100 - zoneHalf, zoneRef.current + moveRef.current * ZONE_SPEED * dt));
+      setBall({ x: b.x, y: b.y });
+      setZone(zoneRef.current);
+      setInPocket(isInPocket());
+      if (b.y > 104 && !struckRef.current) {
+        struckRef.current = true;
+        setBurst({ id: now, x: b.x, y: 98, tone: 'bad' });
+        rounds.commit(false);
+        return;
       }
-      posRef.current = next;
-      setPos(next);
       rafRef.current = requestAnimationFrame(loop);
     };
     rafRef.current = requestAnimationFrame(loop);
     return () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     };
-  }, [rounds.phase]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rounds.phase, rounds.round]);
 
+  // Keyboard: arrows slide the zone (held via key-repeat + keyup), Space strikes.
   useEffect(() => {
-    const onKey = (e: KeyboardEvent): void => {
-      if (e.code === 'Space' || e.key === ' ') {
-        e.preventDefault();
-        strike();
+    const down = (e: KeyboardEvent): void => {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); moveRef.current = -1; }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); moveRef.current = 1; }
+      else if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); strike(); }
+    };
+    const up = (e: KeyboardEvent): void => {
+      if ((e.key === 'ArrowLeft' && moveRef.current === -1) || (e.key === 'ArrowRight' && moveRef.current === 1)) {
+        moveRef.current = 0;
       }
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener('keydown', down);
+    window.addEventListener('keyup', up);
+    return () => {
+      window.removeEventListener('keydown', down);
+      window.removeEventListener('keyup', up);
+    };
   }, [strike]);
 
-  return (
-    <MinigameShell title="Toss & Strike" subtitle="Strike while the ball is in the window">
-      <div className="flex items-end justify-center gap-6 mb-4">
-        {/* Vertical toss meter */}
-        <div className="relative h-64 w-24 bg-pixel-bg border-2 border-pixel-border overflow-hidden">
-          {/* Current success window */}
-          <div
-            className="absolute inset-x-0 bg-green-500/25 border-y-2 border-green-500"
-            style={{ bottom: `${band.lo}%`, height: `${band.hi - band.lo}%` }}
-          />
-          {/* The ball */}
-          <div
-            className={`absolute left-1/2 -translate-x-1/2 w-8 h-8 rounded-full border-2 ${
-              playing ? 'bg-pixel-accent border-pixel-text' : 'bg-orange-400 border-orange-200'
-            }`}
-            style={{ bottom: `calc(${pos}% - 16px)` }}
-          >
-            <div className="w-full h-full flex items-center justify-center text-sm">🎾</div>
-          </div>
-        </div>
+  const hold = (dir: number) => ({
+    onPointerDown: (e: React.PointerEvent) => { e.preventDefault(); moveRef.current = dir; },
+    onPointerUp: () => { moveRef.current = 0; },
+    onPointerLeave: () => { moveRef.current = 0; },
+  });
 
-        <div className="w-40">
-          {rounds.phase === 'done' ? (
-            <SupportResult
-              count={rounds.successes}
-              note={countNote(
-                rounds.successes,
-                'Three perfect serves!',
-                'Two clean serves. Not bad.',
-                'One clean serve. Keep practicing!',
-                'You need some work...'
-              )}
-            />
-          ) : (
-            <div className="text-sm text-pixel-text-muted text-center">
-              {rounds.phase === 'transition'
-                ? rounds.lastPass
-                  ? 'Clean! Next toss…'
-                  : 'Missed — next toss…'
-                : `Serve ${rounds.round + 1} of 3`}
-            </div>
-          )}
-        </div>
+  return (
+    <MinigameShell
+      title="Toss & Strike"
+      subtitle="Slide under the toss and strike in the pocket"
+      controls="← / → move · Space strike"
+      phase={rounds.phase}
+      onStart={rounds.begin}
+    >
+      <div className="relative h-64 w-full bg-pixel-bg border-2 border-pixel-border overflow-hidden mb-4">
+        <ComboBadge streak={rounds.streak} />
+
+        {/* Baseline + toss shadow for depth */}
+        <div className="absolute inset-x-0 bottom-0 h-1 bg-pixel-border" />
+        {playing && !struck && (
+          <div
+            className="absolute bottom-1 h-2 rounded-full bg-black/40"
+            style={{ left: `${ball.x}%`, width: 28, transform: 'translateX(-50%)', opacity: Math.max(0.15, 1 - ball.y / 100) }}
+          />
+        )}
+
+        {/* Strike pocket */}
+        <div
+          className={`absolute border-4 rounded ${inPocket ? 'border-green-500 bg-green-500/20' : 'border-pixel-accent/70'}`}
+          style={{
+            left: `${zone}%`,
+            top: `${Y_STRIKE}%`,
+            width: `${zoneHalf * 2}%`,
+            height: `${bandHalf * 2}%`,
+            transform: 'translate(-50%, -50%)',
+          }}
+        />
+
+        {/* The ball */}
+        {playing && !struck && (
+          <div
+            className="absolute w-8 h-8 rounded-full bg-pixel-accent border-2 border-pixel-text flex items-center justify-center text-sm"
+            style={{ left: `${ball.x}%`, top: `${ball.y}%`, transform: 'translate(-50%, -50%)' }}
+          >
+            🎾
+          </div>
+        )}
+        {struck && (
+          <div
+            className="absolute text-2xl"
+            style={{ left: `${ball.x}%`, top: `${Math.max(6, ball.y - 20)}%`, transform: 'translate(-50%, -50%)' }}
+          >
+            💥
+          </div>
+        )}
+
+        <Sparks burst={burst} />
       </div>
 
       <div className="mb-4">
         <RoundPips {...rounds} />
       </div>
 
-      {rounds.phase === 'done' ? null : (
-        <MinigameActionButton onPress={strike} disabled={!playing}>
-          {playing ? 'Strike!  (Space)' : rounds.lastPass ? 'Nice!' : 'Missed'}
-        </MinigameActionButton>
+      {rounds.phase === 'done' ? (
+        <SupportResult
+          count={rounds.successes}
+          note={countNote(
+            rounds.successes,
+            'Three perfect serves!',
+            'Two clean serves. Not bad.',
+            'One clean serve. Keep practicing!',
+            'You need some work...'
+          )}
+        />
+      ) : (
+        <div className="flex gap-2">
+          <button
+            type="button"
+            {...hold(-1)}
+            className="font-bold border-4 border-pixel-border bg-pixel-card text-pixel-text px-4 py-3 text-lg select-none touch-none active:translate-y-1"
+          >
+            ◀
+          </button>
+          <div className="flex-1">
+            <MinigameActionButton onPress={strike} disabled={!playing}>
+              {playing ? 'Strike!  (Space)' : rounds.lastPass ? 'Ace!' : 'Missed'}
+            </MinigameActionButton>
+          </div>
+          <button
+            type="button"
+            {...hold(1)}
+            className="font-bold border-4 border-pixel-border bg-pixel-card text-pixel-text px-4 py-3 text-lg select-none touch-none active:translate-y-1"
+          >
+            ▶
+          </button>
+        </div>
       )}
     </MinigameShell>
   );

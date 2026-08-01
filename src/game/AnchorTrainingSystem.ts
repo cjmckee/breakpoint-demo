@@ -25,7 +25,7 @@ export type SupportStat = Exclude<keyof StatBoosts, CoreStat>;
 export type MinigameId =
   | 'toss_and_strike' // serve
   | 'rally_rhythm' // forehand
-  | 'load_and_fire' // backhand
+  | 'corner_paint' // backhand
   | 'catch_return' // return
   | 'touch_carve'; // slice
 
@@ -70,7 +70,7 @@ export const CORE_ANCHORS: Record<CoreStat, CoreAnchorConfig> = {
   backhand: {
     core: 'backhand',
     name: 'Backhand',
-    minigame: 'load_and_fire',
+    minigame: 'corner_paint',
     playable: true,
     supportPool: ['spin', 'placement', 'defensive', 'anticipation', 'agility', 'recovery'],
     description: 'The steady wing. Redirect pace, read the ball, stay balanced.',
