@@ -17,21 +17,21 @@ import {
   countNote,
   type MinigameProps,
 } from './MinigameShell';
-import { useMinigameRounds } from './useMinigameRounds';
+import { useMinigameRounds, roundSpeed } from './useMinigameRounds';
 import { Sparks, ComboBadge, useHitstop, type Burst } from './minigameJuice';
 import { isActionKey } from '../../utils/gameKeys';
 
 const HITS_NEEDED = 3;
-const ROUND_TIME = 7000; // ms
+const ROUND_TIME = 4000; // ms
 const COOLDOWN = 240; // ms — no mashing
-const SWEEP_MIN = 1080; // ms period
-const SWEEP_MAX = 1450;
+const SWEEP_MIN = 780; // ms period
+const SWEEP_MAX = 1150;
 const AMP = 44; // % swing amplitude around center
 
 export const TouchCarveMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt }) => {
   const rounds = useMinigameRounds(onComplete, onFirstAttempt);
   const { frozen, trigger: hitstop } = useHitstop();
-  const zoneHalf = 13 * (1 + windowBonus);
+  const zoneHalf = 10 * (1 + windowBonus);
 
   const runningRef = useRef(false);
   const hitsRef = useRef(0);
@@ -90,7 +90,8 @@ export const TouchCarveMinigame: React.FC<MinigameProps> = ({ onComplete, window
     trailRef.current = [];
     zoneCenterRef.current = 22 + Math.random() * 56;
     tiltRef.current = (Math.random() < 0.5 ? -1 : 1) * Math.random() * 30;
-    sweepRef.current = SWEEP_MIN + Math.random() * (SWEEP_MAX - SWEEP_MIN);
+    // Shorter period = faster swing, so the ramp divides into it.
+    sweepRef.current = (SWEEP_MIN + Math.random() * (SWEEP_MAX - SWEEP_MIN)) / roundSpeed(rounds.round);
     startRef.current = performance.now();
     runningRef.current = true;
     setHits(0);

@@ -17,20 +17,18 @@ import {
   countNote,
   type MinigameProps,
 } from './MinigameShell';
-import { useMinigameRounds } from './useMinigameRounds';
+import { useMinigameRounds, roundSpeed } from './useMinigameRounds';
 import { Sparks, ComboBadge, useHitstop, type Burst } from './minigameJuice';
 import { directionFromKey } from '../../utils/gameKeys';
 
 const LANES = 3;
 const PER_SET = 3;
-const TRAVEL = 1250; // ms a ball takes to fall to the line
-const INTERVAL = 620; // ms between the set's beats
-/**
- * ms from round start to the first ball reaching the line. TRAVEL + a beat of empty
- * court, so the set opens on a clear screen and the player has time to orient before
- * the first ball is released.
- */
-const LEAD = TRAVEL + 300;
+const TRAVEL = 750; // ms a ball takes to fall to the line, at speed 1
+const INTERVAL = 420; // ms between the set's beats, at speed 1
+/** ms of empty court before the first ball of a set is released. */
+const LEAD_IN = 300;
+/** Per-set tempo wobble, on top of the round ramp — no two sets feel identical. */
+const TEMPO_SPAN = 0.1;
 const TOP_Y = -6; // %
 const STRIKE_Y = 80; // %
 
@@ -108,14 +106,18 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
     [hitWin, judgeNote]
   );
 
-  // Arm a fresh set for each playing round.
+  // Arm a fresh set for each playing round. The tempo is rolled once per set, so the
+  // beat stays dead even inside a set while every set runs at its own speed.
   useEffect(() => {
     if (rounds.phase !== 'playing') return;
-    const base = performance.now() + LEAD;
+    const tempo = (1 - TEMPO_SPAN / 2 + Math.random() * TEMPO_SPAN) * roundSpeed(rounds.round);
+    const travel = TRAVEL / tempo;
+    const interval = INTERVAL / tempo;
+    const base = performance.now() + travel + LEAD_IN;
     notesRef.current = Array.from({ length: PER_SET }, (_, k) => ({
       id: rounds.round * 10 + k,
       track: Math.floor(Math.random() * LANES),
-      time: base + k * INTERVAL,
+      time: base + k * interval,
       judged: false,
       hit: false,
     }));
@@ -137,7 +139,7 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
         if (!n.judged && Math.abs(now - n.time) < 90) nearBeat = true;
         if (!n.judged && now > n.time + hitWin * 1.8) { judgeNote(n, false); continue; }
         if (n.judged) continue;
-        const p = (now - (n.time - TRAVEL)) / TRAVEL;
+        const p = (now - (n.time - travel)) / travel;
         if (p < 0) continue;
         vis.push({ id: n.id, track: n.track, y: TOP_Y + p * (STRIKE_Y - TOP_Y) });
       }

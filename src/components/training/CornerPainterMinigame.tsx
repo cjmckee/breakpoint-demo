@@ -17,13 +17,13 @@ import {
   countNote,
   type MinigameProps,
 } from './MinigameShell';
-import { useMinigameRounds } from './useMinigameRounds';
+import { useMinigameRounds, roundSpeed } from './useMinigameRounds';
 import { Sparks, ComboBadge, useHitstop, type Burst } from './minigameJuice';
 import { isActionKey } from '../../utils/gameKeys';
 
 const TOLERANCE = 52; // px radius counted as "on the ring"
-const SWEEP_MIN = 2.2; // rad/sec
-const SWEEP_MAX = 3.1;
+const SWEEP_MIN = 4.0; // rad/sec
+const SWEEP_MAX = 5.0;
 
 export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt }) => {
   const rounds = useMinigameRounds(onComplete, onFirstAttempt);
@@ -31,9 +31,6 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
   const tol = TOLERANCE * (1 + windowBonus);
 
   const boxRef = useRef<HTMLDivElement | null>(null);
-  const speedsRef = useRef<number[]>(
-    Array.from({ length: 3 }, () => SWEEP_MIN + Math.random() * (SWEEP_MAX - SWEEP_MIN))
-  );
   const targetsRef = useRef<Array<{ x: number; y: number }>>(
     Array.from({ length: 3 }, () => ({ x: 14 + Math.random() * 72, y: 14 + Math.random() * 72 }))
   );
@@ -88,7 +85,8 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
     setShot(null);
     sweepRef.current = 0;
     startRef.current = performance.now();
-    const speed = speedsRef.current[Math.min(rounds.round, 2)];
+    // Rolled per round, then ramped — later corners sweep faster to lock.
+    const speed = (SWEEP_MIN + Math.random() * (SWEEP_MAX - SWEEP_MIN)) * roundSpeed(rounds.round);
     const loop = (now: number): void => {
       if (stageRef.current === 'done') return;
       const el = (now - startRef.current) / 1000;

@@ -17,7 +17,7 @@ import {
   countNote,
   type MinigameProps,
 } from './MinigameShell';
-import { useMinigameRounds } from './useMinigameRounds';
+import { useMinigameRounds, roundSpeed } from './useMinigameRounds';
 import { Sparks, ComboBadge, useHitstop, type Burst } from './minigameJuice';
 import { directionFromKey, isActionKey } from '../../utils/gameKeys';
 
@@ -34,12 +34,18 @@ interface Toss {
   vx: number; // %/sec horizontal drift
 }
 
-// A high, fast arc: apex lands near the top of the box, so the ball crosses the strike
-// band on the way up and again on the way down.
-const randomToss = (): Toss => ({
-  vy0: -(120 + Math.random() * 10),
-  g: 102 + Math.random() * 12,
-  vx: (Math.random() < 0.5 ? -1 : 1) * (8 + Math.random() * 7),
+/**
+ * A high, fast arc: the apex lands near the top of the box, so the ball crosses the
+ * strike band on the way up and again on the way down.
+ *
+ * `speed` replays the same arc faster rather than changing its shape — apex height is
+ * vy0²/2g, so scaling vy0 by k and g by k² leaves it untouched while the whole flight
+ * runs 1/k as long. Later attempts get less time in the pocket, not a different toss.
+ */
+const randomToss = (speed: number): Toss => ({
+  vy0: -(150 + Math.random() * 10) * speed,
+  g: (120 + Math.random() * 15) * speed * speed,
+  vx: (Math.random() < 0.5 ? -1 : 1) * (12 + Math.random() * 7) * speed,
 });
 
 export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt }) => {
@@ -51,7 +57,6 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
   const halfRef = useRef({ x: 8, y: 10 });
   const [half, setHalf] = useState(halfRef.current);
 
-  const tossesRef = useRef<Toss[]>(Array.from({ length: 3 }, randomToss));
   const ballRef = useRef({ x: 50, y: START_Y, vx: 0, vy: 0 });
   const zoneRef = useRef(50);
   const moveRef = useRef(0);
@@ -112,7 +117,7 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
   // Arm a fresh toss for each playing attempt.
   useEffect(() => {
     if (rounds.phase !== 'playing') return;
-    const toss = tossesRef.current[Math.min(rounds.round, tossesRef.current.length - 1)];
+    const toss = randomToss(roundSpeed(rounds.round));
     ballRef.current = { x: 50, y: START_Y, vx: toss.vx, vy: toss.vy0 };
     struckRef.current = false;
     setStruck(false);

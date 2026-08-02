@@ -20,6 +20,18 @@ import { audioManager } from '../../audio/AudioManager';
 
 export const TOTAL_ROUNDS = 3;
 
+/**
+ * Per-attempt difficulty ramp shared by every minigame. Each game still rolls its own
+ * random speed per attempt — this multiplies on top, so later attempts run faster and a
+ * clean sweep asks for more than three repeats of the same rep.
+ */
+const ROUND_SPEED = [1, 1.1, 1.22];
+
+/** Speed multiplier for a 0-based attempt index. */
+export function roundSpeed(round: number): number {
+  return ROUND_SPEED[Math.min(Math.max(round, 0), ROUND_SPEED.length - 1)];
+}
+
 /** Delay after a passed attempt before the next one arms (ms). */
 const TRANSITION_MS = 380;
 /** Delay after the final attempt before reporting the result (ms). */

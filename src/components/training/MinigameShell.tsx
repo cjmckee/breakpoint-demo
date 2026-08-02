@@ -27,11 +27,7 @@ export interface MinigameProps {
 }
 
 /** Start screen shown while phase === 'ready'. Space/Enter (or the button) begins. */
-const StartGate: React.FC<{ onStart: () => void; controls?: string; aside?: React.ReactNode }> = ({
-  onStart,
-  controls,
-  aside,
-}) => {
+const StartGate: React.FC<{ onStart: () => void; controls?: string }> = ({ onStart, controls }) => {
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
       if (isActionKey(e) || e.code === 'Enter' || e.key === 'Enter') {
@@ -48,7 +44,6 @@ const StartGate: React.FC<{ onStart: () => void; controls?: string; aside?: Reac
       {controls && (
         <p className="text-xs text-pixel-text-muted uppercase tracking-wide">{controls}</p>
       )}
-      {aside}
       <button
         type="button"
         onPointerDown={(e) => {
@@ -71,16 +66,14 @@ export const MinigameShell: React.FC<{
   onStart: () => void;
   /** Optional short controls hint shown on the start screen (e.g. "← / → move · Space strike"). */
   controls?: string;
-  /** Optional extra control rendered on the start screen, above the Start button. */
-  startAside?: React.ReactNode;
   children: React.ReactNode;
-}> = ({ title, subtitle, phase, onStart, controls, startAside, children }) => (
+}> = ({ title, subtitle, phase, onStart, controls, children }) => (
   <div className="bg-pixel-card border-4 border-pixel-border p-6">
     <div className="text-center mb-4">
       <h3 className="text-xl font-bold text-pixel-text">{title}</h3>
       <p className="text-sm text-pixel-text-muted">{subtitle}</p>
     </div>
-    {phase === 'ready' ? <StartGate onStart={onStart} controls={controls} aside={startAside} /> : children}
+    {phase === 'ready' ? <StartGate onStart={onStart} controls={controls} /> : children}
   </div>
 );
 
