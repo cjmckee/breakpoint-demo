@@ -171,12 +171,12 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
   return (
     <MinigameShell
       title="Rally Rhythm"
-      subtitle="Tap each ball's track right as it crosses the line"
-      controls="left ← A · center ↓ ↑ S W · right → D"
+      subtitle="Hit each ball's track right as it crosses the line"
+      controls="◀ ← A · ● ↓ ↑ S W · ▶ → D"
       phase={rounds.phase}
       onStart={rounds.begin}
     >
-      <div className="relative h-56 w-full bg-pixel-bg border-2 border-pixel-border overflow-hidden mb-4">
+      <div className="relative h-64 w-full bg-pixel-bg border-2 border-pixel-border overflow-hidden mb-4">
         <ComboBadge streak={rounds.streak} />
 
         {/* Track dividers + dashed target balls on the strike line */}
@@ -186,7 +186,7 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
               <div className="absolute top-0 bottom-0 border-l border-dashed border-pixel-border/60" style={{ left: `${(i / LANES) * 100}%` }} />
             )}
             <div
-              className="absolute w-8 h-8 rounded-full border-2 border-dashed border-pixel-text-muted/50"
+              className="absolute w-12 h-12 rounded-full border-2 border-dashed border-pixel-text-muted/50"
               style={{ left: `${laneC(i)}%`, top: `${STRIKE_Y}%`, transform: 'translate(-50%, -50%)' }}
             />
           </React.Fragment>
@@ -198,11 +198,12 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
           style={{ top: `${STRIKE_Y}%` }}
         />
 
-        {/* Falling balls */}
+        {/* Falling balls. Sized purely for readability across three lanes — judging is
+            time-based, so the ball's footprint has no bearing on the hit window. */}
         {render.map((n) => (
           <div
             key={n.id}
-            className="absolute w-8 h-8 rounded-full bg-pixel-accent border-2 border-pixel-text flex items-center justify-center text-sm"
+            className="absolute w-12 h-12 rounded-full bg-pixel-ball border-2 border-pixel-text flex items-center justify-center text-2xl"
             style={{ left: `${laneC(n.track)}%`, top: `${n.y}%`, transform: 'translate(-50%, -50%)' }}
           >
             🎾

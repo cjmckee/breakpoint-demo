@@ -20,6 +20,8 @@ export interface Burst {
   tone?: 'good' | 'bad';
 }
 
+// The theme's pixel-success / pixel-error, inlined because these are SVG-less DOM
+// particles styled from JS. Keep in step with tailwind.config.cjs.
 const GOOD = '#2ecc71';
 const BAD = '#e74c3c';
 const PARTICLES = 7;

@@ -40,7 +40,7 @@ const CROSS_MAX = 76;
 const MIN_REACTION = 0.34; // s — floor on the bounce→line reaction budget
 const ZONE_W = 56; // px — strike zone, kept in px so it doesn't stretch with the box
 const ZONE_H = 66;
-const ZONE_SPEED = 104; // %/sec the zone slides
+const ZONE_SPEED = 124; // %/sec the zone slides
 const SPEED_MIN = 52; // %/sec horizontal
 const SPEED_SPAN = 9;
 
@@ -278,19 +278,23 @@ export const ReadReturnMinigame: React.FC<MinigameProps> = ({ onComplete, window
             contact. Visible from the strike so the mirror can be projected early. */}
         {playing && bounceSpot && (
           <div
-            key={`${bounceSpot.x}-${bounceSpot.struck}`}
-            className={`absolute w-5 h-5 rounded-full ${
-              bounceSpot.struck
-                ? 'border-2 border-pixel-warning bg-pixel-warning/40 animate-pixel-scale'
-                : 'border-2 border-dashed border-pixel-warning/70'
-            }`}
+            className="absolute"
             style={{ left: `${bounceSpot.x}%`, top: `${FLOOR}%`, transform: 'translate(-50%, -50%)' }}
-          />
+          >
+            <div
+              key={`${bounceSpot.x}-${bounceSpot.struck}`}
+              className={`w-5 h-5 rounded-full border-2 ${
+                bounceSpot.struck
+                  ? 'border-pixel-warning bg-pixel-warning/40 animate-pixel-scale'
+                  : 'border-dashed border-pixel-warning/70'
+              }`}
+            />
+          </div>
         )}
 
         {/* Strike zone */}
         <div
-          className={`absolute border-4 rounded ${inZone ? 'border-green-500 bg-green-500/20' : 'border-pixel-accent/70'}`}
+          className={`absolute border-4 ${inZone ? 'border-pixel-success bg-pixel-success/20' : 'border-pixel-accent/70'}`}
           style={{
             left: `${LINE_X}%`,
             top: `${zone}%`,
@@ -317,7 +321,7 @@ export const ReadReturnMinigame: React.FC<MinigameProps> = ({ onComplete, window
         {/* The serve */}
         {playing && ball.visible && (
           <div
-            className="absolute w-8 h-8 rounded-full bg-pixel-accent border-2 border-pixel-text flex items-center justify-center text-sm pointer-events-none"
+            className="absolute w-9 h-9 rounded-full bg-pixel-ball border-2 border-pixel-text flex items-center justify-center text-base pointer-events-none"
             style={{ left: `${ball.x}%`, top: `${ball.y}%`, transform: 'translate(-50%, -50%)' }}
           >
             🎾

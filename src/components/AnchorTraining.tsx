@@ -32,14 +32,14 @@ import { ServeMinigame } from './training/ServeMinigame';
 import { RallyRhythmMinigame } from './training/RallyRhythmMinigame';
 import { CornerPainterMinigame } from './training/CornerPainterMinigame';
 import { ReadReturnMinigame } from './training/ReadReturnMinigame';
-import { TouchCarveMinigame } from './training/TouchCarveMinigame';
+import { TouchSliceMinigame } from './training/TouchSliceMinigame';
 
 const MINIGAMES: Record<MinigameId, React.FC<MinigameProps>> = {
   toss_and_strike: ServeMinigame,
   rally_rhythm: RallyRhythmMinigame,
   corner_paint: CornerPainterMinigame,
   read_return: ReadReturnMinigame,
-  touch_carve: TouchCarveMinigame,
+  touch_slice: TouchSliceMinigame,
 };
 
 type Step = { kind: 'pick' } | { kind: 'play'; core: CoreStat };

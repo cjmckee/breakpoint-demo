@@ -40,10 +40,15 @@ const StartGate: React.FC<{ onStart: () => void; controls?: string }> = ({ onSta
   }, [onStart]);
 
   return (
-    <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
-      {controls && (
-        <p className="text-xs text-pixel-text-muted uppercase tracking-wide">{controls}</p>
-      )}
+    <div className="flex flex-col items-center justify-center gap-6 py-10 text-center">
+      {/* Keyboard shortcuts, then the reminder that every one of them is also a button
+          on screen — the start screen is the only place that's stated. */}
+      <div className="flex flex-col items-center gap-2">
+        {controls && (
+          <p className="text-base text-pixel-text uppercase tracking-wide leading-relaxed">{controls}</p>
+        )}
+        <p className="text-sm text-pixel-text-muted">or click the buttons below</p>
+      </div>
       <button
         type="button"
         onPointerDown={(e) => {
@@ -54,7 +59,7 @@ const StartGate: React.FC<{ onStart: () => void; controls?: string }> = ({ onSta
       >
         ▶ Start
       </button>
-      <p className="text-xs text-pixel-text-muted">press Space</p>
+      <p className="text-sm text-pixel-text-muted">Space or Enter to begin</p>
     </div>
   );
 };
@@ -67,15 +72,24 @@ export const MinigameShell: React.FC<{
   /** Optional short controls hint shown on the start screen (e.g. "← / → move · Space strike"). */
   controls?: string;
   children: React.ReactNode;
-}> = ({ title, subtitle, phase, onStart, controls, children }) => (
-  <div className="bg-pixel-card border-4 border-pixel-border p-6">
-    <div className="text-center mb-4">
-      <h3 className="text-xl font-bold text-pixel-text">{title}</h3>
-      <p className="text-sm text-pixel-text-muted">{subtitle}</p>
+}> = ({ title, subtitle, phase, onStart, controls, children }) => {
+  // The start screen has the whole card to itself, so the how-to gets room to breathe.
+  // Once play begins the same header shrinks back out of the way of the court.
+  const ready = phase === 'ready';
+  return (
+    <div className="bg-pixel-card border-4 border-pixel-border p-6">
+      <div className="text-center mb-4">
+        <h3 className={`font-bold text-pixel-text ${ready ? 'text-3xl mb-3' : 'text-xl'}`}>{title}</h3>
+        <p
+          className={`text-pixel-text-muted ${ready ? 'text-lg leading-relaxed' : 'text-sm'}`}
+        >
+          {subtitle}
+        </p>
+      </div>
+      {ready ? <StartGate onStart={onStart} controls={controls} /> : children}
     </div>
-    {phase === 'ready' ? <StartGate onStart={onStart} controls={controls} /> : children}
-  </div>
-);
+  );
+};
 
 /**
  * Three-slot progress row: each attempt shows hit (green) or miss (red) once played,
@@ -88,9 +102,9 @@ export const RoundPips: React.FC<MinigameRounds> = ({ round, results, successes,
       const isCurrent = phase !== 'done' && i === round;
       const cls =
         played === true
-          ? 'bg-green-500 border-green-400'
+          ? 'bg-pixel-success border-pixel-success'
           : played === false
-            ? 'bg-red-600 border-red-500'
+            ? 'bg-pixel-error border-pixel-error'
             : isCurrent
               ? 'bg-pixel-bg border-pixel-accent'
               : 'bg-pixel-bg border-pixel-border';
@@ -105,7 +119,7 @@ export const RoundPips: React.FC<MinigameRounds> = ({ round, results, successes,
 /** The shared "+N support stats earned" readout shown after all attempts resolve. */
 export const SupportResult: React.FC<{ count: number; note: string }> = ({ count, note }) => (
   <div className="text-center">
-    <div className={`text-5xl font-bold mb-1 ${count > 0 ? 'text-green-500' : 'text-pixel-text-muted'}`}>
+    <div className={`text-5xl font-bold mb-1 ${count > 0 ? 'text-pixel-success' : 'text-pixel-text-muted'}`}>
       +{count}
     </div>
     <div className="text-sm text-pixel-text-muted">{note}</div>
@@ -128,6 +142,9 @@ export function countNote(count: number, clean: string, ok: string, low: string,
  * and mouse both register at the moment of press — important for the timing games,
  * where waiting for the click/tap-release adds latency. `touch-none`/`select-none`
  * stop a press from scrolling the page or selecting text on mobile.
+ *
+ * Deliberately oversized: this is the button players hammer under time pressure, so it
+ * gets a target roughly twice the height of a standard button.
  */
 export const MinigameActionButton: React.FC<{
   onPress: () => void;
@@ -141,7 +158,7 @@ export const MinigameActionButton: React.FC<{
       e.preventDefault();
       if (!disabled) onPress();
     }}
-    className="font-bold border-4 transition-all duration-150 ease-in-out cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 bg-pixel-accent border-pixel-accent-dark text-white hover:bg-pixel-accent-light active:translate-y-1 px-8 py-3 text-lg w-full select-none touch-none"
+    className="font-bold border-4 transition-all duration-150 ease-in-out cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 bg-pixel-accent border-pixel-accent-dark text-white hover:bg-pixel-accent-light active:translate-y-1 px-8 py-10 text-lg w-full select-none touch-none"
   >
     {children}
   </button>

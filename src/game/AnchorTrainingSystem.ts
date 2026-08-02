@@ -27,7 +27,7 @@ export type MinigameId =
   | 'rally_rhythm' // forehand
   | 'corner_paint' // backhand
   | 'read_return' // return
-  | 'touch_carve'; // slice
+  | 'touch_slice'; // slice
 
 export interface CoreAnchorConfig {
   core: CoreStat;
@@ -88,10 +88,10 @@ export const CORE_ANCHORS: Record<CoreStat, CoreAnchorConfig> = {
   slice: {
     core: 'slice',
     name: 'Slice',
-    minigame: 'touch_carve',
+    minigame: 'touch_slice',
     playable: true,
     supportPool: ['dropShot', 'volley', 'shotVariety', 'focus', 'defensive', 'placement'],
-    description: 'Touch and variety. Carve it low, change the rhythm, come forward.',
+    description: 'Touch and variety. Slice it low, change the rhythm, come forward.',
     icon: '🔪',
   },
 };

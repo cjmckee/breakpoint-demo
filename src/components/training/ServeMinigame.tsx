@@ -190,7 +190,7 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
   return (
     <MinigameShell
       title="Toss & Strike"
-      subtitle="Slide under the toss and strike in the pocket"
+      subtitle="Slide under the toss and strike it inside the pocket"
       controls="← → or A D move · Space strike"
       phase={rounds.phase}
       onStart={rounds.begin}
@@ -209,7 +209,7 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
 
         {/* Strike pocket */}
         <div
-          className={`absolute border-4 rounded ${inPocket ? 'border-green-500 bg-green-500/20' : 'border-pixel-accent/70'}`}
+          className={`absolute border-4 ${inPocket ? 'border-pixel-success bg-pixel-success/20' : 'border-pixel-accent/70'}`}
           style={{
             left: `${zone}%`,
             top: `${Y_STRIKE}%`,
@@ -222,7 +222,7 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
         {/* The ball */}
         {playing && !struck && (
           <div
-            className="absolute w-8 h-8 rounded-full bg-pixel-accent border-2 border-pixel-text flex items-center justify-center text-sm"
+            className="absolute w-9 h-9 rounded-full bg-pixel-ball border-2 border-pixel-text flex items-center justify-center text-base"
             style={{ left: `${ball.x}%`, top: `${ball.y}%`, transform: 'translate(-50%, -50%)' }}
           >
             🎾
@@ -252,7 +252,7 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
             'Three perfect serves!',
             'Two clean serves. Not bad.',
             'One clean serve. Keep practicing!',
-            'You need some work...'
+            'Nothing clean — wait for the pocket.'
           )}
         />
       ) : (

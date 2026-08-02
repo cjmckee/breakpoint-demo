@@ -1,8 +1,8 @@
 /**
- * Slice Minigame — "Touch Carve"
+ * Slice Minigame — "Touch & Slice"
  *
- * The ball swings back and forth along a line; carve it while it's inside the zone.
- * Land three clean carves before the round timer to bank the support. Each round
+ * The ball swings back and forth along a line; slice it while it's inside the zone.
+ * Land three clean slices before the round timer to bank the support. Each round
  * re-rolls the zone position, a random tilt (a slice is rarely dead flat), and a steady
  * sweep speed — so it stays fresh across three rounds. See docs/training-redesign.md.
  */
@@ -27,8 +27,9 @@ const COOLDOWN = 240; // ms — no mashing
 const SWEEP_MIN = 780; // ms period
 const SWEEP_MAX = 1150;
 const AMP = 44; // % swing amplitude around center
+const POP_MS = 400; // ms the struck ball stays on screen
 
-export const TouchCarveMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt }) => {
+export const TouchSliceMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt }) => {
   const rounds = useMinigameRounds(onComplete, onFirstAttempt);
   const { frozen, trigger: hitstop } = useHitstop();
   const zoneHalf = 10 * (1 + windowBonus);
@@ -44,6 +45,7 @@ export const TouchCarveMinigame: React.FC<MinigameProps> = ({ onComplete, window
   const sweepRef = useRef(SWEEP_MIN);
   const trailRef = useRef<number[]>([]);
   const rafRef = useRef<number | null>(null);
+  const popTimerRef = useRef<number | null>(null);
 
   const [view, setView] = useState({ pos: 50, timeFrac: 0, trail: [] as number[] });
   const [zoneCenter, setZoneCenter] = useState(50);
@@ -51,8 +53,18 @@ export const TouchCarveMinigame: React.FC<MinigameProps> = ({ onComplete, window
   const [hits, setHits] = useState(0);
   const [inZone, setInZone] = useState(false);
   const [burst, setBurst] = useState<Burst | null>(null);
+  /** The ball left behind where the swing connected — green if it was inside the zone,
+   *  red if it wasn't. Clears itself after POP_MS. */
+  const [pop, setPop] = useState<{ id: number; x: number; good: boolean } | null>(null);
 
   const playing = rounds.phase === 'playing';
+
+  useEffect(
+    () => () => {
+      if (popTimerRef.current !== null) window.clearTimeout(popTimerRef.current);
+    },
+    []
+  );
 
   const endRound = useCallback(
     (won: boolean) => {
@@ -63,13 +75,16 @@ export const TouchCarveMinigame: React.FC<MinigameProps> = ({ onComplete, window
     [rounds]
   );
 
-  const carve = useCallback(() => {
+  const slice = useCallback(() => {
     if (!runningRef.current) return;
     const now = performance.now();
     if (now - lastPressRef.current < COOLDOWN) return;
     lastPressRef.current = now;
     const good = Math.abs(posRef.current - zoneCenterRef.current) <= zoneHalf;
     setBurst({ id: now, x: posRef.current, y: 50, tone: good ? 'good' : 'bad' });
+    setPop({ id: now, x: posRef.current, good });
+    if (popTimerRef.current !== null) window.clearTimeout(popTimerRef.current);
+    popTimerRef.current = window.setTimeout(() => setPop(null), POP_MS);
     if (good) {
       hitsRef.current += 1;
       setHits(hitsRef.current);
@@ -95,6 +110,7 @@ export const TouchCarveMinigame: React.FC<MinigameProps> = ({ onComplete, window
     startRef.current = performance.now();
     runningRef.current = true;
     setHits(0);
+    setPop(null);
     setZoneCenter(zoneCenterRef.current);
     setTilt(tiltRef.current);
 
@@ -124,21 +140,21 @@ export const TouchCarveMinigame: React.FC<MinigameProps> = ({ onComplete, window
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
-      if (isActionKey(e)) { e.preventDefault(); carve(); }
+      if (isActionKey(e)) { e.preventDefault(); slice(); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [carve]);
+  }, [slice]);
 
   return (
     <MinigameShell
-      title="Touch Carve"
-      subtitle="Carve three times inside the zone before the timer"
-      controls="Space / tap to carve"
+      title="Touch & Slice"
+      subtitle="Slice three balls inside the zone before the timer runs out"
+      controls="Space slice"
       phase={rounds.phase}
       onStart={rounds.begin}
     >
-      <div className="relative h-56 w-full bg-pixel-bg border-2 border-pixel-border overflow-hidden mb-4 flex items-center justify-center">
+      <div className="relative h-64 w-full bg-pixel-bg border-2 border-pixel-border overflow-hidden mb-4 flex items-center justify-center">
         <ComboBadge streak={rounds.streak} />
 
         {/* Round timer */}
@@ -151,7 +167,7 @@ export const TouchCarveMinigame: React.FC<MinigameProps> = ({ onComplete, window
         >
           {/* Zone */}
           <div
-            className={`absolute top-[-6px] bottom-[-6px] border-l-2 border-r-2 border-dashed ${inZone ? 'border-green-400 bg-green-500/20' : 'border-pixel-accent bg-pixel-accent/10'}`}
+            className={`absolute top-[-6px] bottom-[-6px] border-l-2 border-r-2 border-dashed ${inZone ? 'border-pixel-success bg-pixel-success/20' : 'border-pixel-accent bg-pixel-accent/10'}`}
             style={{ left: `${zoneCenter}%`, width: `${zoneHalf * 2}%`, transform: 'translateX(-50%)' }}
           />
           {/* Arc trail */}
@@ -165,16 +181,34 @@ export const TouchCarveMinigame: React.FC<MinigameProps> = ({ onComplete, window
           {/* Marker */}
           {playing && (
             <div
-              className={`absolute top-[-10px] bottom-[-10px] w-1.5 rounded-full ${inZone ? 'bg-green-400' : 'bg-pixel-accent'}`}
+              className={`absolute top-[-10px] bottom-[-10px] w-1.5 rounded-full ${inZone ? 'bg-pixel-success' : 'bg-pixel-accent'}`}
               style={{ left: `${view.pos}%`, transform: 'translateX(-50%)', boxShadow: '0 0 10px currentColor' }}
             />
+          )}
+          {/* The ball left where the swing connected. The outer div owns the centering
+              transform because animate-pixel-scale animates transform and would
+              otherwise clobber it. */}
+          {pop && (
+            <div
+              className="absolute top-1/2"
+              style={{ left: `${pop.x}%`, transform: 'translate(-50%, -50%)' }}
+            >
+              <div
+                key={pop.id}
+                className={`w-10 h-10 rounded-full bg-pixel-ball border-4 flex items-center justify-center text-lg animate-pixel-scale ${
+                  pop.good ? 'border-pixel-success' : 'border-pixel-error'
+                }`}
+              >
+                🎾
+              </div>
+            </div>
           )}
         </div>
 
         <Sparks burst={burst} />
 
         {playing && (
-          <div className="absolute top-2 left-2 text-xs text-pixel-text-muted">{hits}/{HITS_NEEDED} carves</div>
+          <div className="absolute top-2 left-2 text-xs text-pixel-text-muted">{hits}/{HITS_NEEDED} sliced</div>
         )}
       </div>
 
@@ -187,19 +221,15 @@ export const TouchCarveMinigame: React.FC<MinigameProps> = ({ onComplete, window
           count={rounds.successes}
           note={countNote(
             rounds.successes,
-            'Three perfect touches!',
-            'Two clean rounds. Nearly!',
+            'Three clean rounds — pure touch!',
+            'Two clean rounds. Nice hands.',
             'One clean round. Keep practicing!',
             "Let's find that touch next time."
           )}
         />
       ) : (
-        <MinigameActionButton onPress={carve} disabled={!playing}>
-          {playing
-            ? `Carve!  ·  Round ${rounds.round + 1} of 3  (Space)`
-            : rounds.lastPass
-              ? 'Round won!'
-              : 'Rally lost'}
+        <MinigameActionButton onPress={slice} disabled={!playing}>
+          {playing ? 'Slice!  (Space)' : rounds.lastPass ? 'Sliced it!' : 'Out of time'}
         </MinigameActionButton>
       )}
     </MinigameShell>

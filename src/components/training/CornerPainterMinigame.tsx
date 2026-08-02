@@ -21,7 +21,15 @@ import { useMinigameRounds, roundSpeed } from './useMinigameRounds';
 import { Sparks, ComboBadge, useHitstop, type Burst } from './minigameJuice';
 import { isActionKey } from '../../utils/gameKeys';
 
-const TOLERANCE = 52; // px radius counted as "on the ring"
+/**
+ * The landing window is measured against a fixed reference court rather than the live
+ * element, so it stays exactly as tuned however the court renders. Measuring the live
+ * box tied difficulty to layout: a taller court tightened the depth lock, and a narrow
+ * phone loosened the sideline lock, neither of them on purpose.
+ */
+const REF_W = 584; // px — the court at max-w-2xl, where the window below was tuned
+const REF_H = 224;
+const TOLERANCE = 52; // px radius on the reference court counted as "on the ring"
 const SWEEP_MIN = 4.0; // rad/sec
 const SWEEP_MAX = 5.0;
 
@@ -30,7 +38,6 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
   const { trigger: hitstop } = useHitstop();
   const tol = TOLERANCE * (1 + windowBonus);
 
-  const boxRef = useRef<HTMLDivElement | null>(null);
   const targetsRef = useRef<Array<{ x: number; y: number }>>(
     Array.from({ length: 3 }, () => ({ x: 14 + Math.random() * 72, y: 14 + Math.random() * 72 }))
   );
@@ -62,10 +69,7 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
       setStage('done');
       const lockY = sweepRef.current;
       const lockX = lockXRef.current;
-      const rect = boxRef.current?.getBoundingClientRect();
-      const w = rect?.width ?? 320;
-      const h = rect?.height ?? 224;
-      const dist = Math.hypot(((lockX - target.x) / 100) * w, ((lockY - target.y) / 100) * h);
+      const dist = Math.hypot(((lockX - target.x) / 100) * REF_W, ((lockY - target.y) / 100) * REF_H);
       const passed = dist <= tol;
       setShot({ x: lockX, y: lockY, good: passed });
       setBurst({ id: performance.now(), x: lockX, y: lockY, tone: passed ? 'good' : 'bad' });
@@ -113,11 +117,11 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
     <MinigameShell
       title="Corner Painter"
       subtitle="Lock the sideline, then the depth — paint the corner"
-      controls="Space locks each axis"
+      controls="Space lock each axis"
       phase={rounds.phase}
       onStart={rounds.begin}
     >
-      <div ref={boxRef} className="relative h-56 w-full bg-pixel-bg border-2 border-pixel-border overflow-hidden mb-4">
+      <div className="relative h-64 w-full bg-pixel-bg border-2 border-pixel-border overflow-hidden mb-4">
         <ComboBadge streak={rounds.streak} />
 
         {/* Target ring */}
@@ -130,10 +134,10 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
 
         {/* Sweeps */}
         {playing && stage === 'x' && (
-          <div className="absolute top-0 bottom-0 w-0.5 bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.8)]" style={{ left: `${sweep}%` }} />
+          <div className="absolute top-0 bottom-0 w-0.5 bg-pixel-success shadow-[0_0_8px_rgba(46,204,113,0.8)]" style={{ left: `${sweep}%` }} />
         )}
         {playing && stage === 'y' && (
-          <div className="absolute left-0 right-0 h-0.5 bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.8)]" style={{ top: `${sweep}%` }} />
+          <div className="absolute left-0 right-0 h-0.5 bg-pixel-success shadow-[0_0_8px_rgba(46,204,113,0.8)]" style={{ top: `${sweep}%` }} />
         )}
         {/* Locked sideline stays visible while picking depth */}
         {(stage === 'y' || stage === 'done') && (
@@ -149,13 +153,13 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
                 y1="100%"
                 x2={`${shot.x}%`}
                 y2={`${shot.y}%`}
-                stroke={shot.good ? 'rgba(74,222,128,0.9)' : 'rgba(220,38,38,0.9)'}
+                stroke={shot.good ? 'rgba(46,204,113,0.9)' : 'rgba(231,76,60,0.9)'}
                 strokeWidth="2"
                 strokeDasharray="4 4"
               />
             </svg>
             <div
-              className={`absolute w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm ${shot.good ? 'bg-green-500 border-green-400' : 'bg-pixel-accent border-red-500'}`}
+              className={`absolute w-9 h-9 rounded-full bg-pixel-ball border-4 flex items-center justify-center text-base ${shot.good ? 'border-pixel-success' : 'border-pixel-error'}`}
               style={{ left: `${shot.x}%`, top: `${shot.y}%`, transform: 'translate(-50%, -50%)' }}
             >
               🎾
