@@ -7,10 +7,20 @@
  * SFX are loaded on first play and reused via a pool.
  */
 
-import { SfxKey, MusicTrack, SFX_PATHS, MUSIC_POOLS, resolveAudioPath } from './sounds';
+import { SfxKey, MusicTrack, MusicEntry, SFX_PATHS, MUSIC_POOLS, resolveAudioPath } from './sounds';
 
 const CROSSFADE_DURATION = 1500; // ms
 const CROSSFADE_STEPS = 30;
+
+/** Snapshot of what the music player is currently doing, for UI display. */
+export interface NowPlaying {
+  /** Which pool the current song came from — i.e. the game phase's music. */
+  track: MusicTrack;
+  entry: MusicEntry;
+  /** Index of `entry` within its pool. */
+  index: number;
+  poolSize: number;
+}
 
 class AudioManager {
   private musicVolume = 0.5;
@@ -25,6 +35,11 @@ class AudioManager {
   private currentTrack: MusicTrack | null = null;
   private currentTrackGain = 1.0;
   private crossfadeTimer: ReturnType<typeof setInterval> | null = null;
+
+  // Now-playing snapshot, kept as a stable reference so React's
+  // useSyncExternalStore only re-renders when the song actually changes.
+  private nowPlaying: NowPlaying | null = null;
+  private nowPlayingListeners = new Set<() => void>();
 
   // SFX pool: key → array of audio elements
   private sfxPool: Partial<Record<SfxKey, HTMLAudioElement[]>> = {};
@@ -77,39 +92,12 @@ class AudioManager {
 
   playMusic(track: MusicTrack) {
     if (typeof window === 'undefined') return;
+    // Already on this phase's music — leave it be, including any song the
+    // player picked manually from the Now Playing panel.
     if (this.currentTrack === track) return;
 
-    // Cancel any in-flight crossfade so we don't have two running
-    if (this.crossfadeTimer !== null) {
-      clearInterval(this.crossfadeTimer);
-      this.crossfadeTimer = null;
-      // Force-stop the element that was fading out
-      const stale = this.getInactiveMusicEl();
-      if (stale) {
-        stale.pause();
-        stale.src = '';
-      }
-    }
-
-    const incoming = this.getInactiveMusicEl();
-    const outgoing = this.getActiveMusicEl();
-    if (!incoming || !outgoing) return;
-
-    // Pick a random entry from the track's pool
     const pool = MUSIC_POOLS[track];
-    const entry = pool[Math.floor(Math.random() * pool.length)];
-
-    this.currentTrackGain = entry.gain;
-    incoming.src = resolveAudioPath(entry.path);
-    incoming.volume = 0;
-    console.log(`[Audio] Now playing: ${entry.title}`);
-    incoming.currentTime = 0;
-    incoming.play().catch(() => {/* autoplay blocked — user hasn't interacted yet */});
-
-    this.currentTrack = track;
-    this.activeMusicEl = this.activeMusicEl === 'A' ? 'B' : 'A';
-
-    this.crossfade(outgoing, incoming);
+    this.startEntry(track, Math.floor(Math.random() * pool.length));
   }
 
   stopMusic() {
@@ -118,6 +106,34 @@ class AudioManager {
       this.fadeTo(active, 0, CROSSFADE_DURATION).then(() => active.pause());
     }
     this.currentTrack = null;
+    this.setNowPlaying(null);
+  }
+
+  // ─── Now Playing ──────────────────────────────────────────────────────────
+
+  /** Current song, or null if nothing is playing yet. Stable reference. */
+  getNowPlaying(): NowPlaying | null {
+    return this.nowPlaying;
+  }
+
+  /** Subscribe to song changes. Returns an unsubscribe function. */
+  subscribeNowPlaying(listener: () => void): () => void {
+    this.nowPlayingListeners.add(listener);
+    return () => {
+      this.nowPlayingListeners.delete(listener);
+    };
+  }
+
+  /**
+   * Step to another song within the current phase's pool.
+   * The choice is transient — the next phase change re-randomizes as usual.
+   */
+  cycleMusic(delta: number) {
+    if (!this.nowPlaying) return;
+    const { track, index, poolSize } = this.nowPlaying;
+    if (poolSize < 2) return;
+    const next = ((index + delta) % poolSize + poolSize) % poolSize;
+    this.startEntry(track, next);
   }
 
   // ─── SFX ──────────────────────────────────────────────────────────────────
@@ -148,6 +164,46 @@ class AudioManager {
 
   private getInactiveMusicEl(): HTMLAudioElement | null {
     return this.activeMusicEl === 'A' ? this.musicB : this.musicA;
+  }
+
+  /** Crossfade into a specific entry of a pool and publish it as now-playing. */
+  private startEntry(track: MusicTrack, index: number) {
+    // Cancel any in-flight crossfade so we don't have two running
+    if (this.crossfadeTimer !== null) {
+      clearInterval(this.crossfadeTimer);
+      this.crossfadeTimer = null;
+      // Force-stop the element that was fading out
+      const stale = this.getInactiveMusicEl();
+      if (stale) {
+        stale.pause();
+        stale.src = '';
+      }
+    }
+
+    const incoming = this.getInactiveMusicEl();
+    const outgoing = this.getActiveMusicEl();
+    if (!incoming || !outgoing) return;
+
+    const pool = MUSIC_POOLS[track];
+    const entry = pool[index];
+
+    this.currentTrackGain = entry.gain;
+    incoming.src = resolveAudioPath(entry.path);
+    incoming.volume = 0;
+    console.log(`[Audio] Now playing: ${entry.title}`);
+    incoming.currentTime = 0;
+    incoming.play().catch(() => {/* autoplay blocked — user hasn't interacted yet */});
+
+    this.currentTrack = track;
+    this.activeMusicEl = this.activeMusicEl === 'A' ? 'B' : 'A';
+    this.setNowPlaying({ track, entry, index, poolSize: pool.length });
+
+    this.crossfade(outgoing, incoming);
+  }
+
+  private setNowPlaying(next: NowPlaying | null) {
+    this.nowPlaying = next;
+    this.nowPlayingListeners.forEach((listener) => listener());
   }
 
   private crossfade(outgoing: HTMLAudioElement, incoming: HTMLAudioElement) {

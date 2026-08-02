@@ -75,13 +75,46 @@ export const SFX_PATHS: Record<SfxKey, string> = {
   crowd_cheer:     '/audio/sfx/crowd_cheer.ogg',
 };
 
+export type MusicArtist = 'Tim Kulig' | 'Dopestuff' | 'Grand Project';
+
+/** Attribution links for an artist, rendered by the in-game credits. */
+export interface ArtistCredit {
+  url?: string;
+  licenseLabel?: string;
+  licenseUrl?: string;
+  imdbUrl?: string;
+}
+
+export const MUSIC_ARTISTS: Record<MusicArtist, ArtistCredit> = {
+  'Tim Kulig': {
+    url: 'https://timkulig.com',
+    licenseLabel: 'CC BY 4.0',
+    licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
+    imdbUrl: 'https://www.imdb.com/name/nm0997280/',
+  },
+  'Dopestuff': {},
+  'Grand Project': {},
+};
+
 export interface MusicEntry {
   path: string;
-  /** Human-readable track title for logging. */
+  /** Human-readable track title, shown in the Now Playing panel and logs. */
   title: string;
+  /** Credited artist — resolves to attribution links via MUSIC_ARTISTS. */
+  artist: MusicArtist;
   /** Per-track gain multiplier to normalize perceived loudness (0–1). */
   gain: number;
 }
+
+/** Player-facing name for each track pool, describing when it plays. */
+export const MUSIC_TRACK_LABELS: Record<MusicTrack, string> = {
+  main_menu:        'Title Screen',
+  menu_theme:       'Daily Life',
+  match_tension:    'Match',
+  story_ambient:    'Story Events',
+  prematch_buildup: 'Pre-Match',
+  romance:          'Romance',
+};
 
 // Music track pools — Tim Kulig (timkulig.com), CC BY 4.0
 // Download instructions: see scripts/download-music.sh
@@ -92,33 +125,57 @@ export interface MusicEntry {
 // 1.0 = full volume, lower values attenuate louder tracks.
 export const MUSIC_POOLS: Record<MusicTrack, MusicEntry[]> = {
   main_menu: [
-    { path: '/audio/music/main_theme.mp3',      title: 'Main Theme',       gain: 0.2 },
+    { path: '/audio/music/main_theme.mp3',      title: 'Main Theme',       artist: 'Tim Kulig', gain: 0.2 },
   ],
   menu_theme: [
-    { path: '/audio/music/main_theme.mp3',      title: 'Main Theme',       gain: 0.2 },
-    { path: '/audio/music/renegade.mp3',         title: 'Renegade',         gain: 0.2 },
-    { path: '/audio/music/have_a_good_time.mp3',         title: 'Have a Good Time',         gain: 0.2 },
+    { path: '/audio/music/main_theme.mp3',      title: 'Main Theme',       artist: 'Tim Kulig', gain: 0.2 },
+    { path: '/audio/music/renegade.mp3',         title: 'Renegade',         artist: 'Tim Kulig', gain: 0.2 },
+    { path: '/audio/music/have_a_good_time.mp3',         title: 'Have a Good Time',         artist: 'Tim Kulig', gain: 0.2 },
   ],
   match_tension: [
-    { path: '/audio/music/8_bit_open_world.mp3', title: '8-Bit Open World', gain: 0.2 },
-    { path: '/audio/music/the_bunny_song.mp3',   title: 'The Bunny Song',   gain: 0.2 },
-    { path: '/audio/music/on_the_run.mp3',        title: 'On The Run',       gain: 0.2 },
-    { path: '/audio/music/feel_the_burn.mp3',     title: 'Feel the Burn',    gain: 0.2 },
-    { path: '/audio/music/assembly_montage.mp3', title: 'Assembly Montage', gain: 0.2 },
-    { path: '/audio/music/lady_of_the_80s.mp3',   title: 'Lady of the 80s',  gain: 0.2 },
+    { path: '/audio/music/8_bit_open_world.mp3', title: '8-Bit Open World', artist: 'Tim Kulig', gain: 0.2 },
+    { path: '/audio/music/the_bunny_song.mp3',   title: 'The Bunny Song',   artist: 'Tim Kulig', gain: 0.2 },
+    { path: '/audio/music/on_the_run.mp3',        title: 'On The Run',       artist: 'Tim Kulig', gain: 0.2 },
+    { path: '/audio/music/feel_the_burn.mp3',     title: 'Feel the Burn',    artist: 'Tim Kulig', gain: 0.2 },
+    { path: '/audio/music/assembly_montage.mp3', title: 'Assembly Montage', artist: 'Tim Kulig', gain: 0.2 },
+    { path: '/audio/music/lady_of_the_80s.mp3',   title: 'Lady of the 80s',  artist: 'Grand Project', gain: 0.2 },
   ],
   story_ambient: [
-    { path: '/audio/music/beep_boopity_exploration.mp3', title: 'Beep Boopity Exploration', gain: 0.2 },
-    { path: '/audio/music/arcadia_remembers.mp3',        title: 'Arcadia Remembers',        gain: 0.2 },
-    { path: '/audio/music/computing.mp3',                 title: 'Computing',                gain: 0.2 },
-    { path: '/audio/music/neon.mp3',                       title: 'Neon',                      gain: 0.2 },
+    { path: '/audio/music/beep_boopity_exploration.mp3', title: 'Beep Boopity Exploration', artist: 'Tim Kulig', gain: 0.2 },
+    { path: '/audio/music/arcadia_remembers.mp3',        title: 'Arcadia Remembers',        artist: 'Tim Kulig', gain: 0.2 },
+    { path: '/audio/music/computing.mp3',                 title: 'Computing',                artist: 'Tim Kulig', gain: 0.2 },
+    { path: '/audio/music/neon.mp3',                       title: 'Neon',                      artist: 'Dopestuff', gain: 0.2 },
   ],
   prematch_buildup: [
-    { path: '/audio/music/spelunker_pete.mp3',  title: 'Spelunker Pete',  gain: 0.2 },
-    { path: '/audio/music/pixelated_drive.mp3', title: 'Pixelated Drive', gain: 0.2 },
+    { path: '/audio/music/spelunker_pete.mp3',  title: 'Spelunker Pete',  artist: 'Tim Kulig', gain: 0.2 },
+    { path: '/audio/music/pixelated_drive.mp3', title: 'Pixelated Drive', artist: 'Tim Kulig', gain: 0.2 },
   ],
   romance: [
-    { path: '/audio/music/keys_are_in_it.mp3', title: 'Keys Are In It', gain: 0.2 },
-    { path: '/audio/music/lambo.mp3',           title: 'Lambo',           gain: 0.2 },
+    { path: '/audio/music/keys_are_in_it.mp3', title: 'Keys Are In It', artist: 'Tim Kulig', gain: 0.2 },
+    { path: '/audio/music/lambo.mp3',           title: 'Lambo',           artist: 'Tim Kulig', gain: 0.2 },
   ],
 };
+
+// Tracks that ship with the game but are not in any pool right now — parked
+// here so they stay downloaded, credited, and easy to drop back into a pool.
+// Move an entry into MUSIC_POOLS to put it back in rotation.
+export const UNUSED_MUSIC: MusicEntry[] = [
+  { path: '/audio/music/music_box_mayhem.mp3', title: 'Music Box Mayhem', artist: 'Tim Kulig', gain: 0.2 },
+];
+
+/**
+ * Every music file the game ships, deduplicated by path — pooled tracks first
+ * (in pool order), then benched ones. Single source of truth for attribution.
+ */
+export function getAllMusicEntries(): MusicEntry[] {
+  const byPath = new Map<string, MusicEntry>();
+  for (const pool of Object.values(MUSIC_POOLS)) {
+    for (const entry of pool) {
+      if (!byPath.has(entry.path)) byPath.set(entry.path, entry);
+    }
+  }
+  for (const entry of UNUSED_MUSIC) {
+    if (!byPath.has(entry.path)) byPath.set(entry.path, entry);
+  }
+  return [...byPath.values()];
+}
