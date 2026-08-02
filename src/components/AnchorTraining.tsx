@@ -31,14 +31,14 @@ import type { MinigameProps } from './training/MinigameShell';
 import { ServeMinigame } from './training/ServeMinigame';
 import { RallyRhythmMinigame } from './training/RallyRhythmMinigame';
 import { CornerPainterMinigame } from './training/CornerPainterMinigame';
-import { CatchReturnMinigame } from './training/CatchReturnMinigame';
+import { ReadReturnMinigame } from './training/ReadReturnMinigame';
 import { TouchCarveMinigame } from './training/TouchCarveMinigame';
 
 const MINIGAMES: Record<MinigameId, React.FC<MinigameProps>> = {
   toss_and_strike: ServeMinigame,
   rally_rhythm: RallyRhythmMinigame,
   corner_paint: CornerPainterMinigame,
-  catch_return: CatchReturnMinigame,
+  read_return: ReadReturnMinigame,
   touch_carve: TouchCarveMinigame,
 };
 

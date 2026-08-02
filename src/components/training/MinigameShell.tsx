@@ -15,6 +15,7 @@
 import React, { useEffect } from 'react';
 import type { MinigameRounds, RoundPhase } from './useMinigameRounds';
 import { TOTAL_ROUNDS } from './useMinigameRounds';
+import { isActionKey } from '../../utils/gameKeys';
 
 export interface MinigameProps {
   /** Called once all attempts resolve, with the number of supports earned (0-3). */
@@ -26,10 +27,14 @@ export interface MinigameProps {
 }
 
 /** Start screen shown while phase === 'ready'. Space/Enter (or the button) begins. */
-const StartGate: React.FC<{ onStart: () => void; controls?: string }> = ({ onStart, controls }) => {
+const StartGate: React.FC<{ onStart: () => void; controls?: string; aside?: React.ReactNode }> = ({
+  onStart,
+  controls,
+  aside,
+}) => {
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
-      if (e.code === 'Space' || e.key === ' ' || e.code === 'Enter' || e.key === 'Enter') {
+      if (isActionKey(e) || e.code === 'Enter' || e.key === 'Enter') {
         e.preventDefault();
         onStart();
       }
@@ -43,6 +48,7 @@ const StartGate: React.FC<{ onStart: () => void; controls?: string }> = ({ onSta
       {controls && (
         <p className="text-xs text-pixel-text-muted uppercase tracking-wide">{controls}</p>
       )}
+      {aside}
       <button
         type="button"
         onPointerDown={(e) => {
@@ -65,14 +71,16 @@ export const MinigameShell: React.FC<{
   onStart: () => void;
   /** Optional short controls hint shown on the start screen (e.g. "← / → move · Space strike"). */
   controls?: string;
+  /** Optional extra control rendered on the start screen, above the Start button. */
+  startAside?: React.ReactNode;
   children: React.ReactNode;
-}> = ({ title, subtitle, phase, onStart, controls, children }) => (
+}> = ({ title, subtitle, phase, onStart, controls, startAside, children }) => (
   <div className="bg-pixel-card border-4 border-pixel-border p-6">
     <div className="text-center mb-4">
       <h3 className="text-xl font-bold text-pixel-text">{title}</h3>
       <p className="text-sm text-pixel-text-muted">{subtitle}</p>
     </div>
-    {phase === 'ready' ? <StartGate onStart={onStart} controls={controls} /> : children}
+    {phase === 'ready' ? <StartGate onStart={onStart} controls={controls} aside={startAside} /> : children}
   </div>
 );
 

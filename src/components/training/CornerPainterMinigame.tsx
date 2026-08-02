@@ -19,6 +19,7 @@ import {
 } from './MinigameShell';
 import { useMinigameRounds } from './useMinigameRounds';
 import { Sparks, ComboBadge, useHitstop, type Burst } from './minigameJuice';
+import { isActionKey } from '../../utils/gameKeys';
 
 const TOLERANCE = 52; // px radius counted as "on the ring"
 const SWEEP_MIN = 2.2; // rad/sec
@@ -104,7 +105,7 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
-      if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); lock(); }
+      if (isActionKey(e)) { e.preventDefault(); lock(); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -141,16 +142,26 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
           <div className="absolute top-0 bottom-0 w-0.5 bg-pixel-warning" style={{ left: `${lockXRef.current}%` }} />
         )}
 
-        {/* Shot line + landing splat */}
+        {/* Shot line + the ball where it landed — both tinted by the result */}
         {shot && (
           <>
             <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none">
-              <line x1="50%" y1="100%" x2={`${shot.x}%`} y2={`${shot.y}%`} stroke="rgba(238,238,238,0.4)" strokeWidth="2" strokeDasharray="4 4" />
+              <line
+                x1="50%"
+                y1="100%"
+                x2={`${shot.x}%`}
+                y2={`${shot.y}%`}
+                stroke={shot.good ? 'rgba(74,222,128,0.9)' : 'rgba(220,38,38,0.9)'}
+                strokeWidth="2"
+                strokeDasharray="4 4"
+              />
             </svg>
             <div
-              className={`absolute rounded-full ${shot.good ? 'bg-green-500/70' : 'bg-red-600/70'}`}
-              style={{ left: `${shot.x}%`, top: `${shot.y}%`, width: 22, height: 22, transform: 'translate(-50%, -50%)' }}
-            />
+              className={`absolute w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm ${shot.good ? 'bg-green-500 border-green-400' : 'bg-pixel-accent border-red-500'}`}
+              style={{ left: `${shot.x}%`, top: `${shot.y}%`, transform: 'translate(-50%, -50%)' }}
+            >
+              🎾
+            </div>
           </>
         )}
 

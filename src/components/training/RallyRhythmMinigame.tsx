@@ -19,12 +19,18 @@ import {
 } from './MinigameShell';
 import { useMinigameRounds } from './useMinigameRounds';
 import { Sparks, ComboBadge, useHitstop, type Burst } from './minigameJuice';
+import { directionFromKey } from '../../utils/gameKeys';
 
 const LANES = 3;
 const PER_SET = 3;
 const TRAVEL = 1250; // ms a ball takes to fall to the line
 const INTERVAL = 620; // ms between the set's beats
-const LEAD = 700; // ms before the first ball of a set
+/**
+ * ms from round start to the first ball reaching the line. TRAVEL + a beat of empty
+ * court, so the set opens on a clear screen and the player has time to orient before
+ * the first ball is released.
+ */
+const LEAD = TRAVEL + 300;
 const TOP_Y = -6; // %
 const STRIKE_Y = 80; // %
 
@@ -149,9 +155,12 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
-      if (e.key === 'ArrowLeft') { e.preventDefault(); pressTrack(0); }
-      else if (e.key === 'ArrowDown') { e.preventDefault(); pressTrack(1); }
-      else if (e.key === 'ArrowRight') { e.preventDefault(); pressTrack(2); }
+      // Center takes both the down and up keys — S sits under the resting hand on WASD,
+      // W is where the thumb reaches on the arrows.
+      const dir = directionFromKey(e);
+      if (dir === 'left') { e.preventDefault(); pressTrack(0); }
+      else if (dir === 'down' || dir === 'up') { e.preventDefault(); pressTrack(1); }
+      else if (dir === 'right') { e.preventDefault(); pressTrack(2); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -161,7 +170,7 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
     <MinigameShell
       title="Rally Rhythm"
       subtitle="Tap each ball's track right as it crosses the line"
-      controls="← / ↓ / → hit the ball's track"
+      controls="left ← A · center ↓ ↑ S W · right → D"
       phase={rounds.phase}
       onStart={rounds.begin}
     >

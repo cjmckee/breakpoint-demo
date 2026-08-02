@@ -19,6 +19,7 @@ import {
 } from './MinigameShell';
 import { useMinigameRounds } from './useMinigameRounds';
 import { Sparks, ComboBadge, useHitstop, type Burst } from './minigameJuice';
+import { isActionKey } from '../../utils/gameKeys';
 
 const HITS_NEEDED = 3;
 const ROUND_TIME = 7000; // ms
@@ -122,7 +123,7 @@ export const TouchCarveMinigame: React.FC<MinigameProps> = ({ onComplete, window
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
-      if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); carve(); }
+      if (isActionKey(e)) { e.preventDefault(); carve(); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);

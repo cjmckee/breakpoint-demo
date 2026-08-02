@@ -19,10 +19,14 @@ import {
 } from './MinigameShell';
 import { useMinigameRounds } from './useMinigameRounds';
 import { Sparks, ComboBadge, useHitstop, type Burst } from './minigameJuice';
+import { directionFromKey, isActionKey } from '../../utils/gameKeys';
 
 const Y_STRIKE = 60; // % from top — where the pocket sits
 const ZONE_SPEED = 74; // %/sec the strike zone slides
 const START_Y = 92;
+/** Pocket size in px — kept near-square (~10% wider than tall) regardless of the box aspect. */
+const POCKET_W = 58;
+const POCKET_H = 52;
 
 interface Toss {
   vy0: number; // %/sec upward launch
@@ -30,18 +34,22 @@ interface Toss {
   vx: number; // %/sec horizontal drift
 }
 
+// A high, fast arc: apex lands near the top of the box, so the ball crosses the strike
+// band on the way up and again on the way down.
 const randomToss = (): Toss => ({
-  vy0: -(74 + Math.random() * 12),
-  g: 70 + Math.random() * 12,
-  vx: (Math.random() < 0.5 ? -1 : 1) * (7 + Math.random() * 6),
+  vy0: -(120 + Math.random() * 10),
+  g: 102 + Math.random() * 12,
+  vx: (Math.random() < 0.5 ? -1 : 1) * (8 + Math.random() * 7),
 });
 
 export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt }) => {
   const rounds = useMinigameRounds(onComplete, onFirstAttempt);
   const { frozen, trigger: hitstop } = useHitstop();
 
-  const zoneHalf = 15 * (1 + windowBonus);
-  const bandHalf = 11 * (1 + windowBonus);
+  const boxRef = useRef<HTMLDivElement | null>(null);
+  // Pocket half-extents as % of the box, derived from the px size so it stays square.
+  const halfRef = useRef({ x: 8, y: 10 });
+  const [half, setHalf] = useState(halfRef.current);
 
   const tossesRef = useRef<Toss[]>(Array.from({ length: 3 }, randomToss));
   const ballRef = useRef({ x: 50, y: START_Y, vx: 0, vy: 0 });
@@ -58,10 +66,32 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
 
   const playing = rounds.phase === 'playing';
 
+  // Measure the box so the pocket's px size can be expressed in the ball's % space.
+  // Re-runs on phase change because the box only mounts once the start gate clears.
+  useEffect(() => {
+    const el = boxRef.current;
+    if (!el) return;
+    const measure = (): void => {
+      const rect = el.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const next = {
+        x: ((POCKET_W * (1 + windowBonus)) / 2 / rect.width) * 100,
+        y: ((POCKET_H * (1 + windowBonus)) / 2 / rect.height) * 100,
+      };
+      halfRef.current = next;
+      setHalf(next);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [windowBonus, rounds.phase]);
+
   const isInPocket = useCallback(() => {
     const b = ballRef.current;
-    return Math.abs(b.y - Y_STRIKE) <= bandHalf && Math.abs(b.x - zoneRef.current) <= zoneHalf;
-  }, [bandHalf, zoneHalf]);
+    const h = halfRef.current;
+    return Math.abs(b.y - Y_STRIKE) <= h.y && Math.abs(b.x - zoneRef.current) <= h.x;
+  }, []);
 
   const strike = useCallback(() => {
     if (rounds.phase !== 'playing' || struckRef.current) return;
@@ -104,7 +134,8 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
       b.x += b.vx * dt;
       if (b.x < 8) { b.x = 8; b.vx = Math.abs(b.vx); }
       if (b.x > 92) { b.x = 92; b.vx = -Math.abs(b.vx); }
-      zoneRef.current = Math.max(zoneHalf, Math.min(100 - zoneHalf, zoneRef.current + moveRef.current * ZONE_SPEED * dt));
+      const edge = halfRef.current.x;
+      zoneRef.current = Math.max(edge, Math.min(100 - edge, zoneRef.current + moveRef.current * ZONE_SPEED * dt));
       setBall({ x: b.x, y: b.y });
       setZone(zoneRef.current);
       setInPocket(isInPocket());
@@ -123,15 +154,17 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rounds.phase, rounds.round]);
 
-  // Keyboard: arrows slide the zone (held via key-repeat + keyup), Space strikes.
+  // Keyboard: ← / → or A / D slide the zone (held via keydown + keyup), Space strikes.
   useEffect(() => {
     const down = (e: KeyboardEvent): void => {
-      if (e.key === 'ArrowLeft') { e.preventDefault(); moveRef.current = -1; }
-      else if (e.key === 'ArrowRight') { e.preventDefault(); moveRef.current = 1; }
-      else if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); strike(); }
+      const dir = directionFromKey(e);
+      if (dir === 'left') { e.preventDefault(); moveRef.current = -1; }
+      else if (dir === 'right') { e.preventDefault(); moveRef.current = 1; }
+      else if (isActionKey(e)) { e.preventDefault(); strike(); }
     };
     const up = (e: KeyboardEvent): void => {
-      if ((e.key === 'ArrowLeft' && moveRef.current === -1) || (e.key === 'ArrowRight' && moveRef.current === 1)) {
+      const dir = directionFromKey(e);
+      if ((dir === 'left' && moveRef.current === -1) || (dir === 'right' && moveRef.current === 1)) {
         moveRef.current = 0;
       }
     };
@@ -153,11 +186,11 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
     <MinigameShell
       title="Toss & Strike"
       subtitle="Slide under the toss and strike in the pocket"
-      controls="← / → move · Space strike"
+      controls="← → or A D move · Space strike"
       phase={rounds.phase}
       onStart={rounds.begin}
     >
-      <div className="relative h-64 w-full bg-pixel-bg border-2 border-pixel-border overflow-hidden mb-4">
+      <div ref={boxRef} className="relative h-64 w-full bg-pixel-bg border-2 border-pixel-border overflow-hidden mb-4">
         <ComboBadge streak={rounds.streak} />
 
         {/* Baseline + toss shadow for depth */}
@@ -175,8 +208,8 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
           style={{
             left: `${zone}%`,
             top: `${Y_STRIKE}%`,
-            width: `${zoneHalf * 2}%`,
-            height: `${bandHalf * 2}%`,
+            width: `${half.x * 2}%`,
+            height: `${half.y * 2}%`,
             transform: 'translate(-50%, -50%)',
           }}
         />
@@ -218,26 +251,28 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
           )}
         />
       ) : (
-        <div className="flex gap-2">
-          <button
-            type="button"
-            {...hold(-1)}
-            className="font-bold border-4 border-pixel-border bg-pixel-card text-pixel-text px-4 py-3 text-lg select-none touch-none active:translate-y-1"
-          >
-            ◀
-          </button>
-          <div className="flex-1">
-            <MinigameActionButton onPress={strike} disabled={!playing}>
-              {playing ? 'Strike!  (Space)' : rounds.lastPass ? 'Ace!' : 'Missed'}
-            </MinigameActionButton>
+        <div className="space-y-2">
+          {/* Movement gets its own full-width row — held constantly, so it needs the
+              biggest targets on screen. */}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              {...hold(-1)}
+              className="flex-1 font-bold border-4 border-pixel-border bg-pixel-card text-pixel-text py-4 text-2xl select-none touch-none active:translate-y-1"
+            >
+              ◀
+            </button>
+            <button
+              type="button"
+              {...hold(1)}
+              className="flex-1 font-bold border-4 border-pixel-border bg-pixel-card text-pixel-text py-4 text-2xl select-none touch-none active:translate-y-1"
+            >
+              ▶
+            </button>
           </div>
-          <button
-            type="button"
-            {...hold(1)}
-            className="font-bold border-4 border-pixel-border bg-pixel-card text-pixel-text px-4 py-3 text-lg select-none touch-none active:translate-y-1"
-          >
-            ▶
-          </button>
+          <MinigameActionButton onPress={strike} disabled={!playing}>
+            {playing ? 'Strike!  (Space)' : rounds.lastPass ? 'Ace!' : 'Missed'}
+          </MinigameActionButton>
         </div>
       )}
     </MinigameShell>

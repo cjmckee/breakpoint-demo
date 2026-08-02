@@ -26,7 +26,7 @@ export type MinigameId =
   | 'toss_and_strike' // serve
   | 'rally_rhythm' // forehand
   | 'corner_paint' // backhand
-  | 'catch_return' // return
+  | 'read_return' // return
   | 'touch_carve'; // slice
 
 export interface CoreAnchorConfig {
@@ -79,10 +79,10 @@ export const CORE_ANCHORS: Record<CoreStat, CoreAnchorConfig> = {
   return: {
     core: 'return',
     name: 'Return',
-    minigame: 'catch_return',
+    minigame: 'read_return',
     playable: true,
     supportPool: ['anticipation', 'speed', 'agility', 'defensive', 'focus', 'recovery'],
-    description: 'Read the serve, react, get it back deep. Pure reflex.',
+    description: 'Anticipate the serve, read it off the bounce, step across and block it back.',
     icon: '⚡',
   },
   slice: {
