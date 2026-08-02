@@ -9,7 +9,8 @@
 
 import { SfxKey, MusicTrack, MusicEntry, SFX_PATHS, MUSIC_POOLS, resolveAudioPath } from './sounds';
 
-const CROSSFADE_DURATION = 1500; // ms
+const CROSSFADE_DURATION = 1500; // ms — automatic phase-change transitions
+const MANUAL_CROSSFADE_DURATION = 350; // ms — snappy swap when the player picks a song
 const CROSSFADE_STEPS = 30;
 
 /** Snapshot of what the music player is currently doing, for UI display. */
@@ -133,7 +134,9 @@ class AudioManager {
     const { track, index, poolSize } = this.nowPlaying;
     if (poolSize < 2) return;
     const next = ((index + delta) % poolSize + poolSize) % poolSize;
-    this.startEntry(track, next);
+    // A deliberate button press should feel immediate, so use a short crossfade
+    // rather than the slow ambient transition used for phase changes.
+    this.startEntry(track, next, MANUAL_CROSSFADE_DURATION);
   }
 
   // ─── SFX ──────────────────────────────────────────────────────────────────
@@ -167,7 +170,7 @@ class AudioManager {
   }
 
   /** Crossfade into a specific entry of a pool and publish it as now-playing. */
-  private startEntry(track: MusicTrack, index: number) {
+  private startEntry(track: MusicTrack, index: number, crossfadeMs: number = CROSSFADE_DURATION) {
     // Cancel any in-flight crossfade so we don't have two running
     if (this.crossfadeTimer !== null) {
       clearInterval(this.crossfadeTimer);
@@ -198,7 +201,7 @@ class AudioManager {
     this.activeMusicEl = this.activeMusicEl === 'A' ? 'B' : 'A';
     this.setNowPlaying({ track, entry, index, poolSize: pool.length });
 
-    this.crossfade(outgoing, incoming);
+    this.crossfade(outgoing, incoming, crossfadeMs);
   }
 
   private setNowPlaying(next: NowPlaying | null) {
@@ -206,9 +209,13 @@ class AudioManager {
     this.nowPlayingListeners.forEach((listener) => listener());
   }
 
-  private crossfade(outgoing: HTMLAudioElement, incoming: HTMLAudioElement) {
+  private crossfade(
+    outgoing: HTMLAudioElement,
+    incoming: HTMLAudioElement,
+    durationMs: number = CROSSFADE_DURATION,
+  ) {
     const targetVol = this.muteMusic ? 0 : this.musicVolume * this.currentTrackGain;
-    const stepMs = CROSSFADE_DURATION / CROSSFADE_STEPS;
+    const stepMs = durationMs / CROSSFADE_STEPS;
     let step = 0;
 
     this.crossfadeTimer = setInterval(() => {
