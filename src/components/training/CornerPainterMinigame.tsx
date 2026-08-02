@@ -117,7 +117,7 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
     <MinigameShell
       title="Corner Painter"
       subtitle="Lock the sideline, then the depth — paint the corner"
-      controls="Space lock each axis"
+      controls="Space | lock the target"
       phase={rounds.phase}
       onStart={rounds.begin}
     >

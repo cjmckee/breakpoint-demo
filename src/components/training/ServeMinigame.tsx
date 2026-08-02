@@ -190,8 +190,8 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
   return (
     <MinigameShell
       title="Toss & Strike"
-      subtitle="Slide under the toss and strike it inside the pocket"
-      controls="← → or A D move · Space strike"
+      subtitle="Slide under the toss and strike it inside the target"
+      controls="← → or A D | Move · Space | Strike"
       phase={rounds.phase}
       onStart={rounds.begin}
     >

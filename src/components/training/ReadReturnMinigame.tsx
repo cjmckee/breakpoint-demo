@@ -256,8 +256,8 @@ export const ReadReturnMinigame: React.FC<MinigameProps> = ({ onComplete, window
   return (
     <MinigameShell
       title="Read & Return"
-      subtitle="Read the bounce, slide the zone, block it back"
-      controls="↑ ↓ or W S move · Space return"
+      subtitle="Read the bounce, slide the zone, time the return"
+      controls="↑ ↓ or W S | Move · Space | Return"
       phase={rounds.phase}
       onStart={rounds.begin}
     >

@@ -171,8 +171,8 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
   return (
     <MinigameShell
       title="Rally Rhythm"
-      subtitle="Hit each ball's track right as it crosses the line"
-      controls="◀ ← A · ● ↓ ↑ S W · ▶ → D"
+      subtitle="Time each shot as the ball crosses the line"
+      controls="← A | Left · ↓ ↑ S W | Center · → D | Right"
       phase={rounds.phase}
       onStart={rounds.begin}
     >

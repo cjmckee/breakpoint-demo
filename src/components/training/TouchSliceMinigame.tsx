@@ -150,7 +150,7 @@ export const TouchSliceMinigame: React.FC<MinigameProps> = ({ onComplete, window
     <MinigameShell
       title="Touch & Slice"
       subtitle="Slice three balls inside the zone before the timer runs out"
-      controls="Space slice"
+      controls="Space | Slice"
       phase={rounds.phase}
       onStart={rounds.begin}
     >
