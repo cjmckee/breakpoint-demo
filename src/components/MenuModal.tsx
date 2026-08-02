@@ -7,56 +7,13 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useGameStore } from '../stores/gameStore';
 import { useMenuModal } from '../hooks/useMenuModal';
+import { useNowPlaying } from '../hooks/useNowPlaying';
 import { audioManager } from '../audio/AudioManager';
+import { MUSIC_ARTISTS, MUSIC_TRACK_LABELS, getAllMusicEntries } from '../audio/sounds';
 import { Button } from './ui/Button';
 import { UnseenBadge } from './ui/UnseenBadge';
 import { Encyclopedia } from './Encyclopedia';
 import { TutorialGuideModal } from './tutorial/TutorialGuideModal';
-
-interface MusicCredit {
-  title: string;
-  artist: string;
-  artistUrl?: string;
-  licenseLabel?: string;
-  licenseUrl?: string;
-  imdbUrl?: string;
-}
-
-const KULIG_URL = 'https://timkulig.com';
-const KULIG_LICENSE_URL = 'https://creativecommons.org/licenses/by/4.0/';
-const KULIG_IMDB_URL = 'https://www.imdb.com/name/nm0997280/';
-
-function kuligTrack(title: string): MusicCredit {
-  return {
-    title,
-    artist: 'Tim Kulig',
-    artistUrl: KULIG_URL,
-    licenseLabel: 'CC BY 4.0',
-    licenseUrl: KULIG_LICENSE_URL,
-    imdbUrl: KULIG_IMDB_URL,
-  };
-}
-
-const MUSIC_TRACKS: MusicCredit[] = [
-  kuligTrack('Main Theme'),
-  kuligTrack('Renegade'),
-  kuligTrack('8 Bit Open World'),
-  kuligTrack('Beep Boopity Exploration'),
-  kuligTrack('Music Box Mayhem'),
-  kuligTrack('Pixelated Drive'),
-  kuligTrack('Have a Good Time'),
-  kuligTrack('Spelunker Pete'),
-  kuligTrack('Arcadia Remembers'),
-  kuligTrack('The Bunny Song'),
-  kuligTrack('On The Run'),
-  kuligTrack('Keys Are In It'),
-  kuligTrack('Feel the Burn'),
-  kuligTrack('Lambo'),
-  kuligTrack('Computing'),
-  kuligTrack('Assembly Montage'),
-  { title: 'Neon', artist: 'Dopestuff' },
-  { title: 'Lady of the 80s', artist: 'Grand Project' },
-];
 
 const GISCUS_CONFIG = {
   repo: 'cjmckee/breakpoint-demo',
@@ -74,6 +31,7 @@ const GISCUS_CONFIG = {
 
 function AudioCredits() {
   const [expanded, setExpanded] = useState(false);
+  const tracks = useMemo(() => getAllMusicEntries(), []);
 
   return (
     <div className="border-t border-pixel-border pt-4 mb-6">
@@ -128,55 +86,133 @@ function AudioCredits() {
 
       {expanded && (
         <div className="mt-2 text-xs text-pixel-text-muted bg-pixel-bg-dark bg-opacity-75 rounded p-3 space-y-2 max-h-48 overflow-y-auto">
-          {MUSIC_TRACKS.map((track) => (
-            <div key={track.title}>
-              <span className="text-pixel-text">"{track.title}"</span> —{' '}
-              {track.artistUrl ? (
-                <a
-                  href={track.artistUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-pixel-accent hover:underline"
-                >
-                  {track.artist}
-                </a>
-              ) : (
-                track.artist
-              )}
-              {track.licenseLabel && (
-                <>
-                  {' · '}
-                  {track.licenseUrl ? (
-                    <a
-                      href={track.licenseUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-pixel-accent hover:underline"
-                    >
-                      {track.licenseLabel}
-                    </a>
-                  ) : (
-                    track.licenseLabel
-                  )}
-                </>
-              )}
-              {track.imdbUrl && (
-                <>
-                  {' · '}
+          {tracks.map((track) => {
+            const credit = MUSIC_ARTISTS[track.artist];
+            return (
+              <div key={track.path}>
+                <span className="text-pixel-text">"{track.title}"</span> —{' '}
+                {credit.url ? (
                   <a
-                    href={track.imdbUrl}
+                    href={credit.url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-pixel-accent hover:underline"
                   >
-                    IMDB
+                    {track.artist}
                   </a>
-                </>
-              )}
-            </div>
-          ))}
+                ) : (
+                  track.artist
+                )}
+                {credit.licenseLabel && (
+                  <>
+                    {' · '}
+                    {credit.licenseUrl ? (
+                      <a
+                        href={credit.licenseUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-pixel-accent hover:underline"
+                      >
+                        {credit.licenseLabel}
+                      </a>
+                    ) : (
+                      credit.licenseLabel
+                    )}
+                  </>
+                )}
+                {credit.imdbUrl && (
+                  <>
+                    {' · '}
+                    <a
+                      href={credit.imdbUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-pixel-accent hover:underline"
+                    >
+                      IMDB
+                    </a>
+                  </>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
+    </div>
+  );
+}
+
+function NowPlayingPanel() {
+  const nowPlaying = useNowPlaying();
+  const muteMusic = useGameStore((state) => state.audioSettings.muteMusic);
+
+  const cycle = (delta: number) => {
+    audioManager.playSfx('ui_click');
+    audioManager.cycleMusic(delta);
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-bold text-pixel-text-muted uppercase tracking-wider">
+          Now Playing
+        </h3>
+        {nowPlaying && (
+          <span className="text-xs px-2 py-0.5 border border-pixel-border text-pixel-text-muted">
+            {MUSIC_TRACK_LABELS[nowPlaying.track]}
+          </span>
+        )}
+      </div>
+
+      <div className="bg-pixel-bg-dark bg-opacity-75 border-2 border-pixel-border p-3 flex items-center gap-3">
+        <div
+          className="w-12 h-12 shrink-0 flex items-center justify-center border-2 border-pixel-border text-pixel-accent text-xl"
+          aria-hidden="true"
+        >
+          ♪
+        </div>
+
+        {nowPlaying ? (
+          <>
+            <div className="min-w-0 flex-1">
+              <div className="text-pixel-text font-bold truncate">{nowPlaying.entry.title}</div>
+              <div className="text-xs text-pixel-text-muted truncate">{nowPlaying.entry.artist}</div>
+              {muteMusic && (
+                <div className="text-xs text-pixel-text-muted italic mt-0.5">Music is muted</div>
+              )}
+            </div>
+
+            {nowPlaying.poolSize > 1 && (
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => cycle(-1)}
+                  aria-label="Previous track"
+                  className="px-2 py-1 border border-pixel-border text-pixel-text-muted hover:text-pixel-text"
+                >
+                  ◀
+                </button>
+                <span className="text-xs text-pixel-text-muted tabular-nums">
+                  {nowPlaying.index + 1}/{nowPlaying.poolSize}
+                </span>
+                <button
+                  onClick={() => cycle(1)}
+                  aria-label="Next track"
+                  className="px-2 py-1 border border-pixel-border text-pixel-text-muted hover:text-pixel-text"
+                >
+                  ▶
+                </button>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="text-sm text-pixel-text-muted">Nothing playing yet</div>
+        )}
+      </div>
+
+      <p className="text-xs text-pixel-text-muted mt-1">
+        Pick any song from the current scene's playlist — the next scene change goes back to
+        shuffling on its own.
+      </p>
     </div>
   );
 }
@@ -220,6 +256,8 @@ function SettingsContent({ onOpenTutorialGuide }: SettingsContentProps) {
 
   return (
     <div className="space-y-6">
+      <NowPlayingPanel />
+
       <div>
         <div className="flex items-center justify-between mb-2">
           <label className="text-pixel-text font-bold">Music Volume</label>
