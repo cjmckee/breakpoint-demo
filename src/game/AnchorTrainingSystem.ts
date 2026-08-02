@@ -25,9 +25,9 @@ export type SupportStat = Exclude<keyof StatBoosts, CoreStat>;
 export type MinigameId =
   | 'toss_and_strike' // serve
   | 'rally_rhythm' // forehand
-  | 'load_and_fire' // backhand
-  | 'catch_return' // return
-  | 'touch_carve'; // slice
+  | 'corner_paint' // backhand
+  | 'read_return' // return
+  | 'touch_slice'; // slice
 
 export interface CoreAnchorConfig {
   core: CoreStat;
@@ -70,7 +70,7 @@ export const CORE_ANCHORS: Record<CoreStat, CoreAnchorConfig> = {
   backhand: {
     core: 'backhand',
     name: 'Backhand',
-    minigame: 'load_and_fire',
+    minigame: 'corner_paint',
     playable: true,
     supportPool: ['spin', 'placement', 'defensive', 'anticipation', 'agility', 'recovery'],
     description: 'The steady wing. Redirect pace, read the ball, stay balanced.',
@@ -79,19 +79,19 @@ export const CORE_ANCHORS: Record<CoreStat, CoreAnchorConfig> = {
   return: {
     core: 'return',
     name: 'Return',
-    minigame: 'catch_return',
+    minigame: 'read_return',
     playable: true,
     supportPool: ['anticipation', 'speed', 'agility', 'defensive', 'focus', 'recovery'],
-    description: 'Read the serve, react, get it back deep. Pure reflex.',
+    description: 'Anticipate the serve, read it off the bounce, step across and block it back.',
     icon: '⚡',
   },
   slice: {
     core: 'slice',
     name: 'Slice',
-    minigame: 'touch_carve',
+    minigame: 'touch_slice',
     playable: true,
     supportPool: ['dropShot', 'volley', 'shotVariety', 'focus', 'defensive', 'placement'],
-    description: 'Touch and variety. Carve it low, change the rhythm, come forward.',
+    description: 'Touch and variety. Slice it low, change the rhythm, come forward.',
     icon: '🔪',
   },
 };

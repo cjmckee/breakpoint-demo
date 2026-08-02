@@ -11,6 +11,7 @@ import { AnimatedWords } from './AnimatedWords';
 import { getCharacterName } from '../data/characters';
 import { usePlayerName } from '../hooks/usePlayerName';
 import { useGameStore } from '../stores/gameStore';
+import { directionFromKey, isActionKey } from '../utils/gameKeys';
 
 interface StoryEventModalProps {
   isOpen: boolean;
@@ -117,29 +118,32 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
       const el = document.activeElement as HTMLElement | null;
       if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
 
-      if (e.key === 'Enter' || e.key === ' ') {
+      // Arrows and WASD are interchangeable; the guard above keeps WASD out of the way
+      // of any focused text field.
+      const dir = directionFromKey(e);
+      if (e.key === 'Enter' || isActionKey(e)) {
         e.preventDefault();
         if (!allDialogueShown) {
           advanceDialogue();
         } else {
           handleContinue();
         }
-      } else if (e.key === 'ArrowRight') {
+      } else if (dir === 'right') {
         e.preventDefault();
         if (!allDialogueShown) {
           advanceDialogue();
         }
-      } else if (e.key === 'ArrowLeft') {
+      } else if (dir === 'left') {
         e.preventDefault();
         goBackDialogue();
-      } else if (e.key === 'ArrowDown') {
+      } else if (dir === 'down') {
         if (allDialogueShown && !isLinearEvent && selectableOptions.length > 0) {
           e.preventDefault();
           const currentIndex = selectableOptions.findIndex((o) => o.id === selectedOptionId);
           const nextIndex = currentIndex < selectableOptions.length - 1 ? currentIndex + 1 : 0;
           handleOptionSelect(selectableOptions[nextIndex].id);
         }
-      } else if (e.key === 'ArrowUp') {
+      } else if (dir === 'up') {
         if (allDialogueShown && !isLinearEvent && selectableOptions.length > 0) {
           e.preventDefault();
           const currentIndex = selectableOptions.findIndex((o) => o.id === selectedOptionId);

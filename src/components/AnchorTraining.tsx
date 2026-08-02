@@ -30,16 +30,16 @@ import type { MinigameId } from '../game/AnchorTrainingSystem';
 import type { MinigameProps } from './training/MinigameShell';
 import { ServeMinigame } from './training/ServeMinigame';
 import { RallyRhythmMinigame } from './training/RallyRhythmMinigame';
-import { LoadFireMinigame } from './training/LoadFireMinigame';
-import { CatchReturnMinigame } from './training/CatchReturnMinigame';
-import { TouchCarveMinigame } from './training/TouchCarveMinigame';
+import { CornerPainterMinigame } from './training/CornerPainterMinigame';
+import { ReadReturnMinigame } from './training/ReadReturnMinigame';
+import { TouchSliceMinigame } from './training/TouchSliceMinigame';
 
 const MINIGAMES: Record<MinigameId, React.FC<MinigameProps>> = {
   toss_and_strike: ServeMinigame,
   rally_rhythm: RallyRhythmMinigame,
-  load_and_fire: LoadFireMinigame,
-  catch_return: CatchReturnMinigame,
-  touch_carve: TouchCarveMinigame,
+  corner_paint: CornerPainterMinigame,
+  read_return: ReadReturnMinigame,
+  touch_slice: TouchSliceMinigame,
 };
 
 type Step = { kind: 'pick' } | { kind: 'play'; core: CoreStat };

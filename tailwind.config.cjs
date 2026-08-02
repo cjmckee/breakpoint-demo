@@ -17,6 +17,9 @@ module.exports = {
         'pixel-card': '#1e2846',
         'pixel-secondary': '#0f3460',
         'pixel-accent': '#e94560',
+        // Default tennis-ball fill — regulation optic yellow. Distinct from
+        // pixel-success so a ball at rest never reads as a "clean hit" cue.
+        'pixel-ball': '#ccff00',
         'pixel-success': '#2ecc71',
         'pixel-warning': '#f39c12',
         'pixel-error': '#e74c3c',
