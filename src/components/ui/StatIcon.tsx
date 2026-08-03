@@ -18,11 +18,22 @@ interface StatIconProps {
   stat: StatName | string;
   /** Render the stat name next to the icon instead of only on hover. */
   showLabel?: boolean;
+  /**
+   * Drop the icon out of the tab order and hide it from assistive tech, keeping the
+   * hover tooltip. Use inside a button or link that already names its own contents —
+   * a focusable element nested in a button is invalid and adds a stray tab stop.
+   */
+  decorative?: boolean;
   /** Extra classes for the wrapper (sizing, spacing). */
   className?: string;
 }
 
-export const StatIcon: React.FC<StatIconProps> = ({ stat, showLabel = false, className = '' }) => {
+export const StatIcon: React.FC<StatIconProps> = ({
+  stat,
+  showLabel = false,
+  decorative = false,
+  className = '',
+}) => {
   const label = formatStatName(stat);
   const icon = getStatIcon(stat);
 
@@ -38,9 +49,9 @@ export const StatIcon: React.FC<StatIconProps> = ({ stat, showLabel = false, cla
   return (
     <span
       className={`group relative inline-flex cursor-help outline-none ${className}`}
-      tabIndex={0}
-      role="img"
-      aria-label={label}
+      {...(decorative
+        ? { 'aria-hidden': true as const }
+        : { tabIndex: 0, role: 'img', 'aria-label': label })}
     >
       <span aria-hidden="true">{icon}</span>
       <span
