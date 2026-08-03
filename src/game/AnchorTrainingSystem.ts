@@ -40,8 +40,6 @@ export interface CoreAnchorConfig {
   supportPool: SupportStat[];
   /** One-liner shown on the anchor card. */
   description: string;
-  /** Emoji used as the anchor's icon. */
-  icon: string;
 }
 
 /**
@@ -56,7 +54,6 @@ export const CORE_ANCHORS: Record<CoreStat, CoreAnchorConfig> = {
     playable: true,
     supportPool: ['strength', 'placement', 'overhead', 'volley', 'offensive', 'spin'],
     description: 'One explosive strike. Power and placement, with a look to the net.',
-    icon: '🎾',
   },
   forehand: {
     core: 'forehand',
@@ -65,7 +62,6 @@ export const CORE_ANCHORS: Record<CoreStat, CoreAnchorConfig> = {
     playable: true,
     supportPool: ['spin', 'strength', 'placement', 'offensive', 'speed', 'stamina'],
     description: 'Your topspin weapon from the baseline. Heavy, offensive, relentless.',
-    icon: '💥',
   },
   backhand: {
     core: 'backhand',
@@ -74,7 +70,6 @@ export const CORE_ANCHORS: Record<CoreStat, CoreAnchorConfig> = {
     playable: true,
     supportPool: ['spin', 'placement', 'defensive', 'anticipation', 'agility', 'recovery'],
     description: 'The steady wing. Redirect pace, read the ball, stay balanced.',
-    icon: '🔁',
   },
   return: {
     core: 'return',
@@ -83,7 +78,6 @@ export const CORE_ANCHORS: Record<CoreStat, CoreAnchorConfig> = {
     playable: true,
     supportPool: ['anticipation', 'speed', 'agility', 'defensive', 'focus', 'recovery'],
     description: 'Anticipate the serve, read it off the bounce, step across and block it back.',
-    icon: '⚡',
   },
   slice: {
     core: 'slice',
@@ -92,7 +86,6 @@ export const CORE_ANCHORS: Record<CoreStat, CoreAnchorConfig> = {
     playable: true,
     supportPool: ['dropShot', 'volley', 'shotVariety', 'focus', 'defensive', 'placement'],
     description: 'Touch and variety. Slice it low, change the rhythm, come forward.',
-    icon: '🔪',
   },
 };
 

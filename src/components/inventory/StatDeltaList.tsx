@@ -7,7 +7,7 @@
 import React from 'react';
 import type { Item } from '../../types/items';
 import { ItemManager } from '../../game/ItemManager';
-import { STAT_ICONS, formatStatName } from '../ui/StatBoostList';
+import { getStatIcon, formatStatName } from '../../config/statIcons';
 
 function deltaColor(delta: number): string {
   if (delta > 0) return 'text-green-400';
@@ -61,7 +61,7 @@ export const StatDeltaList: React.FC<StatDeltaListProps> = ({
     <div className="flex flex-col gap-1">
       {deltas.map(({ stat, from, to, delta }) => (
         <div key={stat} className="flex items-center gap-2 text-xs">
-          <span>{STAT_ICONS[stat] ?? '⭐'}</span>
+          <span>{getStatIcon(stat)}</span>
           <span className="text-pixel-text-muted flex-1 truncate">{formatStatName(stat)}</span>
           {variant === 'full' && (
             <span className="text-pixel-text-muted tabular-nums">

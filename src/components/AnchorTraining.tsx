@@ -24,7 +24,8 @@ import { EffectKey, type StatBoosts, type TrainingResult } from '../types/game';
 import { EffectAggregator } from '../core/EffectAggregator';
 import { StatusBar } from './StatusBar';
 import { Button } from './ui/Button';
-import { STAT_ICONS, formatStatName } from './ui/StatBoostList';
+import { STAT_ICONS } from '../config/statIcons';
+import { StatIcon } from './ui/StatIcon';
 import { audioManager } from '../audio/AudioManager';
 import type { MinigameId } from '../game/AnchorTrainingSystem';
 import type { MinigameProps } from './training/MinigameShell';
@@ -92,7 +93,7 @@ export const AnchorTraining: React.FC = () => {
 
         <div className="max-w-2xl mx-auto px-4 pb-8">
           <div className="flex items-center gap-3 mb-1">
-            <span className="text-3xl">{anchor.icon}</span>
+            <span className="text-3xl">{STAT_ICONS[step.core]}</span>
             <h1 className="text-3xl font-bold text-pixel-text">{anchor.name} Training</h1>
           </div>
           <p className="text-pixel-text-muted mb-6">
@@ -118,13 +119,12 @@ export const AnchorTraining: React.FC = () => {
             </div>
             <div className="flex flex-wrap gap-2">
               {anchor.supportPool.map((stat) => (
-                <span
+                <StatIcon
                   key={stat}
-                  className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-pixel-bg border border-pixel-border text-gray-300"
-                >
-                  <span>{STAT_ICONS[stat] ?? '⭐'}</span>
-                  {formatStatName(stat)}
-                </span>
+                  stat={stat}
+                  showLabel
+                  className="text-xs px-2 py-1 bg-pixel-bg border border-pixel-border text-gray-300"
+                />
               ))}
             </div>
           </div>
@@ -174,7 +174,7 @@ export const AnchorTraining: React.FC = () => {
               >
                 <div className="flex items-start justify-between gap-3 mb-2 w-full">
                   <h3 className="text-lg font-bold text-pixel-text leading-tight flex items-center gap-2">
-                    <span className="text-2xl">{anchor.icon}</span>
+                    <span className="text-2xl">{STAT_ICONS[core]}</span>
                     {anchor.name}
                     <span className="text-sm font-bold text-green-400">+1</span>
                   </h3>
@@ -187,14 +187,12 @@ export const AnchorTraining: React.FC = () => {
 
                 <div className="mt-auto flex flex-wrap gap-1.5">
                   {anchor.supportPool.map((stat) => (
-                    <span
+                    <StatIcon
                       key={stat}
-                      className="inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 bg-pixel-bg border border-pixel-border text-gray-400"
-                      title={formatStatName(stat)}
-                    >
-                      <span>{STAT_ICONS[stat] ?? '⭐'}</span>
-                      {formatStatName(stat)}
-                    </span>
+                      stat={stat}
+                      showLabel
+                      className="text-[11px] px-1.5 py-0.5 bg-pixel-bg border border-pixel-border text-gray-400"
+                    />
                   ))}
                 </div>
 
