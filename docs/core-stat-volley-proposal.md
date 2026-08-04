@@ -12,7 +12,7 @@ phase with three specialties and no core stat behind it, while `slice` is a core
 stat with no phase, applied to shots that are themselves forehand and backhand
 variants.
 
-The measured argument runs the other way: in simulation, slice decides ~2.7% of a
+The measured argument runs the other way: in simulation, slice decides ~3.1% of a
 player's rally shots and volley ~1.0%. Promoting volley triples its weight in
 `overallRating` while it remains the least-used of the candidate stats.
 
@@ -58,16 +58,20 @@ different court position, selected by a different branch of `ShotSelector`
 ## 2. What the simulation actually does today
 
 Measured over 30 best-of-3 matches between uniform-60 players on hard court,
-counting only the player's own rally shots (n = 3,422):
+counting only the player's own rally shots (n = 2,917):
 
 | Shot family | Deciding stat | Share of rally shots |
 |---|---|---|
-| groundstrokes (incl. approach, power) | `core.forehand` / `core.backhand` | 86.56% |
-| angle / lob / passing | `technical.placement` | 9.09% |
-| **slice** | **`core.slice`** | **2.69%** |
-| **volley** | **`technical.volley`** | **0.96%** |
-| overhead | `technical.overhead` | 0.50% |
-| drop shot | `technical.dropShot` | 0.20% |
+| returns | `core.return` | 43.81% |
+| groundstrokes (incl. approach, power) | `core.forehand` / `core.backhand` | 42.30% |
+| angle / lob / passing | `technical.placement` | 8.81% |
+| **slice** | **`core.slice`** | **3.09%** |
+| **volley** | **`technical.volley`** | **1.13%** |
+| overhead | `technical.overhead` | 0.72% |
+| drop shot | `technical.dropShot` | 0.14% |
+
+Returns are a large share because every point that clears the serve contains
+exactly one, and rallies are short at this rating.
 
 Quality for each is a composite (`config/shotThresholds.ts:226-229`):
 
@@ -97,10 +101,13 @@ so it stays rare. The swap breaks that loop only if the frequency lever moves to
 
 ---
 
-## 3. Prerequisite: `statUsed` is wrong for every non-groundstroke
+## 3. Prerequisite: `statUsed` was wrong for every non-groundstroke
 
-`ShotCalculator.getPrimaryStatName()` (`src/core/ShotCalculator.ts:870`) tests the
-wings before the shot families:
+> **Fixed in PR #81** as a drive-by. Recorded here because it is what made the
+> measurements above hard to obtain, and because the numbers in section 2 come
+> from after the fix.
+
+`ShotCalculator.getPrimaryStatName()` tested the wings before the shot families:
 
 ```ts
 if (shotType.includes('forehand')) return 'forehand';   // 'volley_forehand' matches here
@@ -110,23 +117,26 @@ if (shotType.includes('slice'))    return 'slice';      // unreachable
 if (shotType.includes('drop'))     return 'dropShot';   // unreachable
 ```
 
-Every `volley_*`, `slice_*`, `drop_shot_*`, and `half_volley_*` shot reports
-`statUsed` as forehand or backhand. Confirmed empirically: across 6,195 rally
-shots the tally returned zero slice and zero volley despite 180 slice and 77
-volley shots being hit. Only `overhead`, `serve`, and `return` — the shot types
-with no wing suffix — report correctly.
+Every `volley_*`, `slice_*`, `drop_shot_*`, `half_volley_*` **and `return_*`**
+shot reported `statUsed` as forehand or backhand — `return_forehand` matches the
+`forehand` test too, so a core stat was among the casualties. Only `overhead` and
+`serve`, the shot types with no wing suffix, reported correctly.
 
-`MatchOrchestrator.ts:534` has a second, coarser copy of the same mapping that
-only distinguishes serve/forehand/backhand and defaults everything else to
+Confirmed empirically: across 6,195 rally shots the tally returned zero slice,
+zero volley, zero dropShot and zero return, despite 2,857 returns, 180 slices and
+77 volleys being hit. Returns alone were ~46% of rally shots attributed to the
+wrong stat.
+
+`MatchOrchestrator` had a second, coarser copy of the same mapping that only
+distinguished serve/forehand/backhand and defaulted everything else to
 `'forehand'`.
 
-This is display-only — shot *quality* comes from
-`PlayerProfile.getRallyCompositeSpec()`, which maps correctly — so no balance is
-affected. But it means the match feed has never once told a player that their
+This was display-only — shot *quality* comes from
+`PlayerProfile.getRallyCompositeSpec()`, which maps correctly — so no balance was
+affected. But it meant the match feed had never once told a player that their
 slice or volley did anything, which is part of why slice-as-core reads as
-invisible. **Fix this first, regardless of whether the swap happens.** Promoting
-volley to core while the UI still labels every volley "Backhand" would waste the
-change.
+invisible. Promoting volley to core while the UI still labelled every volley
+"Backhand" would have wasted the change.
 
 ---
 
@@ -212,7 +222,7 @@ it, which nudges every quality threshold in the match.
 
 **The invariant problem.** `CoreStats` is documented as "the 5 most impactful stats
 that drive match outcomes" (`src/types/index.ts:21`). By usage, the swap moves a
-2.69%-of-shots stat out of the core and a 0.96% stat in. Slice at 0.09 weight is
+3.09%-of-shots stat out of the core and a 1.13% stat in. Slice at 0.09 weight is
 already a weak fit for that claim; volley at 0.09 would be a worse one.
 
 This is why the frequency lever isn't optional. Candidates, in rough order of
@@ -233,7 +243,7 @@ legible in the match feed.
 
 ## 7. Risks and open questions
 
-- **Slice becomes an unusually strong technical stat.** At 2.69% it would be the
+- **Slice becomes an unusually strong technical stat.** At 3.09% it would be the
   most-used technical stat by a wide margin — more than placement's individual
   contribution, and 13x dropShot. That's not incoherent, but it makes the
   technical bucket lopsided in a way worth acknowledging.
@@ -253,12 +263,13 @@ legible in the match feed.
 
 ## 8. Recommended sequencing
 
-1. Fix `getPrimaryStatName` ordering and the `MatchOrchestrator` duplicate.
-   Independent, small, and makes everything after it observable.
+1. ~~Fix `getPrimaryStatName` ordering and the `MatchOrchestrator` duplicate.~~
+   **Done in PR #81.** Match feedback now attributes shots correctly, which is
+   what makes the rest measurable.
 2. Raise net-play frequency and measure until a net specialist is meaningfully
    above 1% volley share.
 3. Build the volley minigame.
 4. Perform the swap — types, mapping, pools, UI — in one commit, since a
    half-swapped state has no coherent meaning.
 
-Steps 1 and 2 are worth doing even if the swap is ultimately rejected.
+Step 2 is worth doing even if the swap is ultimately rejected.
