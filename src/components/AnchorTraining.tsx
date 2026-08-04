@@ -183,7 +183,9 @@ export const AnchorTraining: React.FC = () => {
             <CoreStatPentagon core={player.stats.core} highlighted={hovered} />
           </div>
 
-          <div className="flex-1 flex flex-col gap-2.5">
+          {/* auto-rows-fr keeps every card the height of the tallest, so a
+              description that wraps to two lines doesn't break the alignment. */}
+          <div className="flex-1 grid auto-rows-fr gap-2.5">
             {CORE_ANCHOR_ORDER.map((core) => {
               const anchor = CORE_ANCHORS[core];
               const value = player.stats.core[core];
@@ -199,7 +201,7 @@ export const AnchorTraining: React.FC = () => {
                   aria-label={`Train ${anchor.name}, currently ${value}, for +1. Also improves ${anchor.supportPool
                     .map(formatStatName)
                     .join(', ')}.`}
-                  className="md:flex-1 border-4 border-pixel-border bg-pixel-card px-3 py-2.5 flex items-center gap-3 text-left cursor-pointer transition-all duration-150 hover:brightness-110 hover:border-pixel-accent focus-visible:border-pixel-accent active:translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:translate-y-0 disabled:hover:brightness-100"
+                  className="border-4 border-pixel-border bg-pixel-card px-3 py-2.5 flex items-center gap-3 text-left cursor-pointer transition-all duration-150 hover:brightness-110 hover:border-pixel-accent focus-visible:border-pixel-accent active:translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:translate-y-0 disabled:hover:brightness-100"
                 >
                   <span className="text-3xl leading-none" aria-hidden="true">
                     {STAT_ICONS[core]}
@@ -213,11 +215,8 @@ export const AnchorTraining: React.FC = () => {
                       </span>
                     </span>
 
-                    <span className="w-full h-1.5 bg-pixel-bg border border-pixel-border">
-                      <span
-                        className="block h-full bg-pixel-accent"
-                        style={{ width: `${value}%` }}
-                      />
+                    <span className="text-[11px] text-pixel-text-muted leading-snug">
+                      {anchor.description}
                     </span>
 
                     <span className="flex gap-1 text-[13px]">
