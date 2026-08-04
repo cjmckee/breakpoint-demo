@@ -25,12 +25,12 @@ interface CoreStatPentagonProps {
 
 /** Chart geometry. Height leaves room for the labels that sit outside the rings. */
 const WIDTH = 320;
-const HEIGHT = 236;
+const HEIGHT = 240;
 const CX = WIDTH / 2;
-const CY = 126;
-const RADIUS = 82;
+const CY = 130;
+const RADIUS = 90;
 /** How far outside the outer ring the axis labels sit. */
-const LABEL_OFFSET = 22;
+const LABEL_OFFSET = 20;
 /** Rings drawn as reference gridlines, as a fraction of max (100). */
 const RINGS = [0.25, 0.5, 0.75, 1];
 

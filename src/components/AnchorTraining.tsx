@@ -179,7 +179,7 @@ export const AnchorTraining: React.FC = () => {
         {/* Desktop: pentagon on the left, the shot stack on the right, both the same
             height. Mobile: pentagon on top, stack below. */}
         <div className="mt-5 flex flex-col md:flex-row md:items-stretch gap-4 md:gap-6">
-          <div className="md:w-[46%] flex items-center justify-center max-w-[320px] mx-auto md:max-w-none md:mx-0">
+          <div className="md:w-[56%] flex items-center justify-center max-w-[320px] mx-auto md:max-w-none md:mx-0">
             <CoreStatPentagon core={player.stats.core} highlighted={hovered} />
           </div>
 
