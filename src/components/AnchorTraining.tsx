@@ -149,8 +149,6 @@ export const AnchorTraining: React.FC = () => {
   }
 
   // step.kind === 'pick'
-  const previewed = hovered ? CORE_ANCHORS[hovered] : null;
-
   return (
     <div className="min-h-screen bg-pixel-bg">
       <StatusBar onBack={() => navigateTo('idle')} />
@@ -178,90 +176,60 @@ export const AnchorTraining: React.FC = () => {
           </div>
         )}
 
-        <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 my-5">
-          <CoreStatPentagon core={player.stats.core} highlighted={hovered} />
-
-          {/* Detail for the shot under the cursor. Hidden on touch, where there is no
-              hover and it would only push the cards below the fold. */}
-          <div className="hidden md:block max-w-xs min-h-[112px]">
-            {previewed && hovered ? (
-              <>
-                <h2 className="text-lg font-bold text-pixel-text flex items-center gap-2 mb-1.5">
-                  <span>{STAT_ICONS[hovered]}</span>
-                  {previewed.name}
-                  <span className="text-sm text-green-400">
-                    {player.stats.core[hovered]} → {player.stats.core[hovered] + 1}
-                  </span>
-                </h2>
-                <p className="text-sm text-pixel-text-muted leading-relaxed">
-                  {previewed.description}
-                </p>
-                <div className="mt-2.5 flex flex-wrap gap-1">
-                  {previewed.supportPool.map((stat) => (
-                    <StatIcon
-                      key={stat}
-                      stat={stat}
-                      showLabel
-                      className="text-[11px] px-1.5 py-0.5 bg-pixel-bg border border-pixel-border text-gray-300"
-                    />
-                  ))}
-                </div>
-              </>
-            ) : (
-              <>
-                <h2 className="text-lg font-bold text-pixel-text mb-1.5">Your shot shape</h2>
-                <p className="text-sm text-pixel-text-muted italic leading-relaxed">
-                  Hover a shot to see what a session builds. Every session gives a guaranteed +1 to
-                  that core.
-                </p>
-              </>
-            )}
+        {/* Desktop: pentagon on the left, the shot stack on the right, both the same
+            height. Mobile: pentagon on top, stack below. */}
+        <div className="mt-5 flex flex-col md:flex-row md:items-stretch gap-4 md:gap-6">
+          <div className="md:w-[46%] flex items-center justify-center max-w-[320px] mx-auto md:max-w-none md:mx-0">
+            <CoreStatPentagon core={player.stats.core} highlighted={hovered} />
           </div>
-        </div>
 
-        {/* Five equal columns on desktop — a 2-column grid would orphan the fifth card. */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-2.5">
-          {CORE_ANCHOR_ORDER.map((core) => {
-            const anchor = CORE_ANCHORS[core];
-            const value = player.stats.core[core];
-            return (
-              <button
-                key={core}
-                onClick={() => handlePickCore(core)}
-                onMouseEnter={() => setHovered(core)}
-                onMouseLeave={() => setHovered(null)}
-                onFocus={() => setHovered(core)}
-                onBlur={() => setHovered(null)}
-                disabled={!canAfford}
-                aria-label={`Train ${anchor.name}, currently ${value}, for +1. Also improves ${anchor.supportPool
-                  .map(formatStatName)
-                  .join(', ')}.`}
-                className="border-4 border-pixel-border bg-pixel-card px-3 py-3 md:py-3.5 flex md:flex-col items-center gap-3 md:gap-1.5 text-left md:text-center cursor-pointer transition-all duration-150 hover:brightness-110 hover:border-pixel-accent focus-visible:border-pixel-accent active:translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:translate-y-0 disabled:hover:brightness-100"
-              >
-                <span className="text-2xl md:text-3xl leading-none" aria-hidden="true">
-                  {STAT_ICONS[core]}
-                </span>
-
-                <span className="flex-1 md:w-full flex flex-col gap-1.5 md:items-center">
-                  <span className="text-sm font-bold text-pixel-text">{anchor.name}</span>
-
-                  <span className="text-2xl font-bold text-pixel-text leading-none tabular-nums">
-                    {value} <span className="text-xs font-bold text-green-400">+1</span>
+          <div className="flex-1 flex flex-col gap-2.5">
+            {CORE_ANCHOR_ORDER.map((core) => {
+              const anchor = CORE_ANCHORS[core];
+              const value = player.stats.core[core];
+              return (
+                <button
+                  key={core}
+                  onClick={() => handlePickCore(core)}
+                  onMouseEnter={() => setHovered(core)}
+                  onMouseLeave={() => setHovered(null)}
+                  onFocus={() => setHovered(core)}
+                  onBlur={() => setHovered(null)}
+                  disabled={!canAfford}
+                  aria-label={`Train ${anchor.name}, currently ${value}, for +1. Also improves ${anchor.supportPool
+                    .map(formatStatName)
+                    .join(', ')}.`}
+                  className="md:flex-1 border-4 border-pixel-border bg-pixel-card px-3 py-2.5 flex items-center gap-3 text-left cursor-pointer transition-all duration-150 hover:brightness-110 hover:border-pixel-accent focus-visible:border-pixel-accent active:translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:translate-y-0 disabled:hover:brightness-100"
+                >
+                  <span className="text-3xl leading-none" aria-hidden="true">
+                    {STAT_ICONS[core]}
                   </span>
 
-                  <span className="w-full h-1.5 bg-pixel-bg border border-pixel-border">
-                    <span className="block h-full bg-pixel-accent" style={{ width: `${value}%` }} />
-                  </span>
+                  <span className="flex-1 flex flex-col gap-1.5">
+                    <span className="flex items-baseline justify-between gap-2">
+                      <span className="text-sm font-bold text-pixel-text">{anchor.name}</span>
+                      <span className="text-2xl font-bold text-pixel-text leading-none tabular-nums">
+                        {value} <span className="text-xs font-bold text-green-400">+1</span>
+                      </span>
+                    </span>
 
-                  <span className="flex gap-1 text-[13px]">
-                    {anchor.supportPool.map((stat) => (
-                      <StatIcon key={stat} stat={stat} decorative className="opacity-80" />
-                    ))}
+                    <span className="w-full h-1.5 bg-pixel-bg border border-pixel-border">
+                      <span
+                        className="block h-full bg-pixel-accent"
+                        style={{ width: `${value}%` }}
+                      />
+                    </span>
+
+                    <span className="flex gap-1 text-[13px]">
+                      {anchor.supportPool.map((stat) => (
+                        <StatIcon key={stat} stat={stat} decorative className="opacity-80" />
+                      ))}
+                    </span>
                   </span>
-                </span>
-              </button>
-            );
-          })}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>

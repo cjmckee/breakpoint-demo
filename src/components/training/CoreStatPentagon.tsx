@@ -24,13 +24,13 @@ interface CoreStatPentagonProps {
 }
 
 /** Chart geometry. Height leaves room for the labels that sit outside the rings. */
-const WIDTH = 340;
-const HEIGHT = 222;
+const WIDTH = 320;
+const HEIGHT = 236;
 const CX = WIDTH / 2;
-const CY = 120;
-const RADIUS = 74;
+const CY = 126;
+const RADIUS = 82;
 /** How far outside the outer ring the axis labels sit. */
-const LABEL_OFFSET = 24;
+const LABEL_OFFSET = 22;
 /** Rings drawn as reference gridlines, as a fraction of max (100). */
 const RINGS = [0.25, 0.5, 0.75, 1];
 
@@ -56,10 +56,11 @@ export const CoreStatPentagon: React.FC<CoreStatPentagonProps> = ({
 
   return (
     <svg
-      width={WIDTH}
-      height={HEIGHT}
       viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-      className={`max-w-full ${className}`}
+      /* Sized by its container: fills the width on mobile, the full column height
+         on desktop so it matches the card stack beside it. */
+      className={`w-full h-auto md:h-full ${className}`}
+      preserveAspectRatio="xMidYMid meet"
       role="img"
       aria-label={`Core stats: ${CORE_ANCHOR_ORDER.map(
         (stat) => `${CORE_ANCHORS[stat].name} ${core[stat]}`
