@@ -43,8 +43,17 @@ export interface CoreAnchorConfig {
 }
 
 /**
- * Per-core themed support pools. Every non-core stat appears in at least one pool
- * (full coverage), but each is gated behind the shot(s) it belongs to.
+ * Per-core themed support pools.
+ *
+ * Balanced so every non-core stat appears in EXACTLY two pools: 15 support stats
+ * across 5 pools of 6 is 30 slots, which divides evenly. That matters for two
+ * reasons — no stat accrues regardless of what you build (placement used to sit in
+ * 4 of 5 pools, so it stopped being a build choice), and no stat is reachable
+ * through only one shot (dropShot and shotVariety used to be slice-only, so a
+ * player who never trained slice could not earn them from training at all).
+ *
+ * Keep the invariant when editing: each pool holds 6 stats, and each support stat
+ * appears in precisely 2 pools. Pick the two shots the stat most belongs to.
  */
 export const CORE_ANCHORS: Record<CoreStat, CoreAnchorConfig> = {
   serve: {
@@ -60,7 +69,7 @@ export const CORE_ANCHORS: Record<CoreStat, CoreAnchorConfig> = {
     name: 'Forehand',
     minigame: 'rally_rhythm',
     playable: true,
-    supportPool: ['spin', 'strength', 'placement', 'offensive', 'speed', 'stamina'],
+    supportPool: ['spin', 'strength', 'offensive', 'speed', 'stamina', 'shotVariety'],
     description: 'Your topspin weapon from the baseline. Heavy, offensive, relentless.',
   },
   backhand: {
@@ -68,7 +77,7 @@ export const CORE_ANCHORS: Record<CoreStat, CoreAnchorConfig> = {
     name: 'Backhand',
     minigame: 'corner_paint',
     playable: true,
-    supportPool: ['spin', 'placement', 'defensive', 'anticipation', 'agility', 'recovery'],
+    supportPool: ['placement', 'defensive', 'anticipation', 'agility', 'stamina', 'dropShot'],
     description: 'The steady wing. Redirect pace, read the ball, stay balanced.',
   },
   return: {
@@ -84,7 +93,7 @@ export const CORE_ANCHORS: Record<CoreStat, CoreAnchorConfig> = {
     name: 'Slice',
     minigame: 'touch_slice',
     playable: true,
-    supportPool: ['dropShot', 'volley', 'shotVariety', 'focus', 'defensive', 'placement'],
+    supportPool: ['dropShot', 'volley', 'shotVariety', 'focus', 'overhead', 'recovery'],
     description: 'Touch and variety. Slice it low, change the rhythm, come forward.',
   },
 };
