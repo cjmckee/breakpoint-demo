@@ -1,7 +1,17 @@
 # Proposal: swap `slice` for `volley` as the fifth core stat
 
-**Status:** proposal, not implemented
+**Status:** proposal, **superseded — do not implement as written**
 **Scope:** `CoreStats` / `TechnicalStats` membership, training anchors, rating weights, sim shot mapping
+
+> **Superseded by [`stat-system-audit.md`](./stat-system-audit.md).** Re-measurement with a
+> larger, playstyle-varying harness contradicts this document's central empirical claim.
+> Section 2's figures were taken from unspecialized players only: slice is a 0.34% shot for a
+> player who has not chosen it and an **8.9%** shot for one who has, while volley never exceeds
+> **2.1%** under any build. Section 6's first frequency lever also targets code that is already
+> at 100% conversion. The audit additionally finds that promoting volley to core would *triple
+> its rating tax* while leaving its usage flat, making it less worth training than it is today.
+> The legitimate structural insight here — that the `net` phase has no core stat — survives, and
+> the audit recommends merging `overhead` into `volley` as a single `net` stat instead.
 
 ---
 
