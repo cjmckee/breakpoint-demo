@@ -15,9 +15,26 @@
  * use extensionless relative imports that resolve under Vite but not under the
  * node build.
  *
+ * Part D: how points end — the texture question. An even match between weak
+ *         players should still be a match: worse shots and more misses, but a
+ *         rally.
+ *
  * Parts B and C accept ML_MODE to swap the matchLevel anchor, which requires
  * the temporary seam documented in anchorProbe.ts; without it they run with
  * the shipped mean anchor. Part A never needs it.
+ *
+ * Part D was also run against a second temporary seam, FLOOR_SCALE, in
+ * calculateQualityRequirements — 'inplay' scales MIN_QUALITY_FLOORS by
+ * matchLevel/70, 'ml' scales MINIMUM_WINNER_THRESHOLDS as well:
+ *
+ *   const floorScale  = (mode === 'ml' || mode === 'inplay') ? this.currentMatchLevel / 70 : 1;
+ *   const winnerScale = (mode === 'ml') ? this.currentMatchLevel / 70 : 1;
+ *   inPlayReq = Math.max(inPlayReq, minFloor * floorScale);
+ *   ... Math.max(calculatedWinner, MINIMUM_WINNER_THRESHOLDS[cat] * winnerScale)
+ *
+ * 'inplay' roughly doubles the share of tier-1 points reaching four shots
+ * (12.9% to 22.0%) while leaving winners rare and the OVR 70 reference
+ * untouched. 'ml' is worse than the status quo: tier-1 winners go to 40%.
  *
  * Run: PARTS=ABC N=40 node dist/src/test/analysis/tier1Probe.js
  */
@@ -204,12 +221,95 @@ function partC(N: number): void {
   }
 }
 
+/**
+ * How points end, and where the ball was when they ended. An even match
+ * between weak players should still be a match — worse shots and more misses,
+ * but a rally. This measures whether that is what happens.
+ */
+function partD(N: number): void {
+  console.log(`\n── D. How points end, mirror matches (${N} BO3 each) ──`);
+  console.log(['build'.padEnd(24), 'OVR'.padStart(4), 'ace'.padStart(7), 'DF'.padStart(7),
+    'winner'.padStart(8), 'forced'.padStart(8), 'unforced'.padStart(9),
+    'ret err'.padStart(9), 'rally≥4'.padStart(9)].join(''));
+  console.log('-'.repeat(86));
+  const ladder: Array<[string, PlayerStats]> = [
+    ROSTER[0], ROSTER[2], ROSTER[5],
+    ['Lin Chen, 10 wins', scaled(ROSTER[3][1], 10)],
+    ['uniform 55', uniform(55)],
+    ROSTER[6],
+    ['uniform 85', uniform(85)],
+  ];
+  for (const [name, s] of ladder) {
+    const tally: Record<string, number> = {};
+    let total = 0, retErr = 0, long = 0;
+    console.log = () => {};
+    for (let i = 0; i < N; i++) {
+      const p = new PlayerProfile('p', 'P', s, NONE);
+      const o = new PlayerProfile('o', 'O', s, NONE);
+      const acc = zero();
+      const seen: string[] = [];
+      runMatchTapped(p, o, acc, (pt, rally, shots) => {
+        seen.push(pt);
+        total++;
+        tally[pt] = (tally[pt] ?? 0) + 1;
+        if (rally >= 4) long++;
+        // point ended on the return: two in-play shots, last one an error
+        if (rally === 2 && (pt === PointType.UNFORCED_ERROR || pt === PointType.FORCED_ERROR)
+            && shots.length >= 2) retErr++;
+      });
+    }
+    console.log = _origLog;
+    const p = (k: string): string => (((tally[k] ?? 0) / total) * 100).toFixed(1);
+    console.log([name.padEnd(24), String(ovrOf(s)).padStart(4),
+      p(PointType.ACE).padStart(7), p(PointType.DOUBLE_FAULT).padStart(7),
+      p(PointType.WINNER).padStart(8), p(PointType.FORCED_ERROR).padStart(8),
+      p(PointType.UNFORCED_ERROR).padStart(9),
+      ((retErr / total) * 100).toFixed(1).padStart(9),
+      ((long / total) * 100).toFixed(1).padStart(9)].join(''));
+  }
+  console.log('\nMIN_QUALITY_FLOORS (20/15/10) and MINIMUM_WINNER_THRESHOLDS (50/55/60)');
+  console.log('are absolute constants in an otherwise relative system, calibrated at');
+  console.log('~70. At tier 1 the in-play floor binds on nearly every rally shot: a');
+  console.log('20-quality ball asks 0.50 × 20 = 10 for a groundstroke, raised to 15.');
+  console.log('The winner floor is NOT mis-scaled — it is what stops weak shots from');
+  console.log('ending points, and scaling it takes tier-1 winners from 7% to 40%.');
+}
+
+function runMatchTapped(
+  p: PlayerProfile, o: PlayerProfile, acc: Acc,
+  tap: (pointType: string, rally: number, shots: unknown[]) => void
+): void {
+  const tracker = new ScoreTracker(BO3);
+  tracker.setInitialServer(Math.random() < 0.5 ? 'player' : 'opponent');
+  p.rollMatchForm(); o.rollMatchForm();
+  const sim = new PointSimulator();
+  const ms: MatchState = {
+    score: tracker.getScore(), currentServer: tracker.getCurrentServer(), courtSurface: 'hard',
+    momentum: 0, pressure: 'low', matchLength: 0, pointsPlayed: 0, isKeyMoment: false,
+    fatigue: { player: 0, opponent: 0 },
+  };
+  let pts = 0;
+  while (!tracker.isComplete() && pts < 600) {
+    const server = tracker.getCurrentServer();
+    ms.isKeyMoment = tracker.isKeyMoment();
+    const pr = sim.simulatePoint(server, server === 'player' ? p : o, server === 'player' ? o : p, ms, {}, {});
+    tap(pr.pointType, pr.rallyLength, pr.shots);
+    const w = pr.winner === 'server' ? server : (server === 'player' ? 'opponent' : 'player');
+    acc.points++;
+    tracker.addPoint(w);
+    ms.fatigue.player = calcFatigue(ms.fatigue.player, pr.rallyLength, p.stats.physical.stamina, p.stats.physical.recovery);
+    ms.fatigue.opponent = calcFatigue(ms.fatigue.opponent, pr.rallyLength, o.stats.physical.stamina, o.stats.physical.recovery);
+    ms.score = tracker.getScore(); ms.currentServer = tracker.getCurrentServer(); ms.pointsPlayed = ++pts;
+  }
+}
+
 function main(): void {
   const N = Number(process.env.N ?? 40);
-  const parts = process.env.PARTS ?? 'ABC';
+  const parts = process.env.PARTS ?? 'ABCD';
   if (parts.includes('A')) partA(N);
   if (parts.includes('B')) partB(N);
   if (parts.includes('C')) partC(N);
+  if (parts.includes('D')) partD(N);
   console.log('');
 }
 
