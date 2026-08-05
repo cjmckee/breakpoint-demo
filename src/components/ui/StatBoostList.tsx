@@ -1,35 +1,6 @@
 import React from 'react';
 import type { StatBoosts } from '../../types/game';
-
-export const STAT_ICONS: Record<string, string> = {
-  serve: '🎾',
-  forehand: '🤜',
-  backhand: '🤛',
-  volley: '🖐️',
-  overhead: '☝️',
-  dropShot: '💧',
-  slice: '✂️',
-  return: '↩️',
-  spin: '🌀',
-  placement: '🎯',
-  speed: '⚡',
-  stamina: '🔋',
-  strength: '💪',
-  agility: '🦘',
-  focus: '🧘',
-  anticipation: '👁️',
-  shotVariety: '🎨',
-  recovery: '🩹',
-  offensive: '⚔️',
-  defensive: '🛡️',
-};
-
-export function formatStatName(stat: string): string {
-  return stat
-    .replace(/([A-Z])/g, ' $1')
-    .replace(/^./, (c) => c.toUpperCase())
-    .trim();
-}
+import { getStatIcon, formatStatName } from '../../config/statIcons';
 
 interface StatBoostListProps {
   statBoosts: StatBoosts;
@@ -85,7 +56,7 @@ export const StatBoostList: React.FC<StatBoostListProps> = ({
         <div className="grid grid-cols-2 gap-1">
           {entries.map(([stat, value]) => (
             <div key={stat} className="flex items-center gap-1 text-sm">
-              <span>{STAT_ICONS[stat] || '⭐'}</span>
+              <span>{getStatIcon(stat)}</span>
               <span className="text-gray-300">{formatStatName(stat)}</span>
               <span className="text-green-400 ml-auto">+{value}</span>
             </div>
@@ -106,7 +77,7 @@ export const StatBoostList: React.FC<StatBoostListProps> = ({
     <div className="flex flex-col gap-1">
       {entries.map(([stat, value]) => (
         <div key={stat} className="flex items-center gap-2 text-sm">
-          <span>{STAT_ICONS[stat] || '⭐'}</span>
+          <span>{getStatIcon(stat)}</span>
           <span className="text-gray-300">{formatStatName(stat)}</span>
           <span className="text-green-400 ml-auto">+{value}</span>
         </div>

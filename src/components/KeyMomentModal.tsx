@@ -19,6 +19,7 @@ import { PlayerStats } from '../types/game';
 import { useTutorialSpotlight } from '../hooks/useTutorialSpotlight';
 import { TutorialCallout } from './tutorial/TutorialCallout';
 import { KM_TUTORIAL_STEPS, KM_RESULT_STEPS, KmTarget, KmResultTarget } from '../data/tutorialSteps';
+import { formatStatName } from '../config/statIcons';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -36,12 +37,6 @@ const statValue = (stats: PlayerStats, name: string): number => {
     }
   }
   return 0;
-};
-
-/** camelCase stat key → display label ('shotVariety' → 'Shot Variety'). */
-const formatStatName = (name: string): string => {
-  const spaced = name.replace(/([A-Z])/g, ' $1');
-  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 };
 
 /**

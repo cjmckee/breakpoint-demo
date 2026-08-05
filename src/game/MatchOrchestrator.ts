@@ -25,6 +25,7 @@ import { PlayerStats, Ability, StatBoosts, EffectKey } from '../types/game';
 import { MatchStatistics as IMatchStatistics, MatchState, PointResult, PointType, PlayerMatchFatigue } from '../types';
 import { MATCH_FATIGUE, PRESSURE_BANK, STAMINA_RECOVERY, KEY_MOMENT_OPPONENT_DRAIN } from '../config/shotThresholds';
 import { MomentumEngine, ClutchLevel } from '../core/MomentumEngine';
+import { getPrimaryStatName } from '../core/shotStatMapping';
 import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds';
 import { DEFAULT_KEY_MOMENTS_PER_MATCH } from '../config/matchRewards';
 
@@ -531,9 +532,7 @@ export class MatchOrchestrator {
       success,
       quality,
       outcome,
-      statUsed: shotType.includes('serve') ? 'serve' :
-                shotType.includes('forehand') ? 'forehand' :
-                shotType.includes('backhand') ? 'backhand' : 'forehand',
+      statUsed: getPrimaryStatName(shotType),
       modifiers: {
         spinBonus: 0,
         placementBonus: 0,

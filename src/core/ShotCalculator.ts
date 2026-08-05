@@ -24,6 +24,7 @@ import type {
 import { PointType } from '../types/index.js';
 import { EffectKey } from '../types/game.js';
 import { PlayerProfile } from './PlayerProfile.js';
+import { getPrimaryStatName } from './shotStatMapping.js';
 import { getQualityThresholds, getMatchLevel } from '../utils/qualityThresholds.js';
 import {
   RELATIVE_QUALITY_REQUIREMENTS,
@@ -254,7 +255,7 @@ export class ShotCalculator {
       outcome,
       quality,
       shotType,
-      statUsed: this.getPrimaryStatName(shotType),
+      statUsed: getPrimaryStatName(shotType),
       modifiers,
       thresholds,
       outcomeProbabilities,
@@ -867,21 +868,6 @@ export class ShotCalculator {
   /**
    * Get the primary stat name that influences a shot type
    */
-  private getPrimaryStatName(shotType: ShotType): StatName {
-    // Simplified mapping for display purposes
-    if (shotType.includes('serve')) return 'serve';
-    if (shotType.includes('forehand')) return 'forehand';
-    if (shotType.includes('backhand')) return 'backhand';
-    if (shotType.includes('volley')) return 'volley';
-    if (shotType.includes('overhead')) return 'overhead';
-    if (shotType.includes('drop')) return 'dropShot';
-    if (shotType.includes('slice')) return 'slice';
-    if (shotType.includes('return')) return 'return';
-    if (shotType.includes('angle') || shotType.includes('lob')) return 'placement';
-
-    return 'placement';
-  }
-
   /**
    * Calculate ball quality from previous shot result and type
    * Derives spin, timeAvailable, and baseQuality from shot characteristics
@@ -1062,7 +1048,7 @@ export class ShotCalculator {
     const quality = this.applyModifiers(primaryStat, modifiers);
 
     let explanation = `Shot Calculation for ${shotType}:\n`;
-    explanation += `Primary Stat (${this.getPrimaryStatName(shotType)}): ${primaryStat}\n`;
+    explanation += `Primary Stat (${getPrimaryStatName(shotType)}): ${primaryStat}\n`;
     explanation += `Difficulty: ${context.difficulty} (×${modifiers.difficultyModifier})\n`;
     explanation += `Pressure: ${context.pressure} (×${modifiers.pressureModifier.toFixed(3)})\n`;
     explanation += `Rally Length: ${context.rallyLength} shots (×${modifiers.rallyLengthModifier.toFixed(3)})\n`;

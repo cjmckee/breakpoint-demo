@@ -7,13 +7,13 @@
 import React from 'react';
 import type { Item } from '../../types/items';
 import type { StatBoosts } from '../../types/game';
-import { STAT_ICONS, formatStatName } from '../ui/StatBoostList';
+import { getStatIcon, formatStatName } from '../../config/statIcons';
 import { describeEffects } from '../../utils/effectLabels';
 
 /** A single stat boost pill, e.g. 🎾 Serve +5 */
 export const StatPill: React.FC<{ stat: string; value: number }> = ({ stat, value }) => (
   <span className="inline-flex items-center gap-1 bg-pixel-bg border-2 border-pixel-border px-2 py-1 text-xs">
-    <span>{STAT_ICONS[stat] ?? '⭐'}</span>
+    <span>{getStatIcon(stat)}</span>
     <span className="text-pixel-text-muted">{formatStatName(stat)}</span>
     <span className={value >= 0 ? 'text-green-400 font-bold' : 'text-red-400 font-bold'}>
       {value >= 0 ? '+' : ''}
