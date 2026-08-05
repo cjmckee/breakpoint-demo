@@ -6,11 +6,20 @@
  * OVR 20 and the whole of tier 1 spans OVR 25-45. This probe re-runs the
  * serve/return numbers at the ratings that actually exist.
  *
+ * Part A: serve behaviour up the ladder, mirror matches, so only level varies.
+ * Part B: the matchups a player actually gets, including practice opponents
+ *         scaled by getScaledOpponentStats (+2/win, capped +20).
+ * Part C: what a stat is worth at tier-1 scale — slice 20 → 40, not 50 → 90.
+ *
  * Stats are inlined rather than imported from src/data, because those modules
  * use extensionless relative imports that resolve under Vite but not under the
  * node build.
  *
- * Run: npm run build:node && node dist/src/test/analysis/tier1Probe.js
+ * Parts B and C accept ML_MODE to swap the matchLevel anchor, which requires
+ * the temporary seam documented in anchorProbe.ts; without it they run with
+ * the shipped mean anchor. Part A never needs it.
+ *
+ * Run: PARTS=ABC N=40 node dist/src/test/analysis/tier1Probe.js
  */
 
 import type { MatchFormat, MatchState, PlayerStats } from '../../types/index.js';
@@ -101,36 +110,107 @@ function runMatch(p: PlayerProfile, o: PlayerProfile, acc: Acc): void {
   }
 }
 
-function main(): void {
-  const N = Number(process.env.N ?? 40);
-  console.log(`\n── Serving at implemented tier-1 ratings (${N} BO3 each, mirror match) ──`);
-  console.log('Each row is that build serving against a copy of itself, so the only');
-  console.log('thing varying is the rating level.\n');
-  console.log(['build'.padEnd(24), 'OVR'.padStart(4), '1st in%'.padStart(9), 'DF%'.padStart(7),
-    'ace%'.padStart(7), 'mean rally'.padStart(12), '≤2-shot%'.padStart(10)].join(''));
-  console.log('-'.repeat(74));
+/** getScaledOpponentStats: +2 per tier win on every stat, capped at +20. */
+function scaled(s: PlayerStats, tierWins: number): PlayerStats {
+  const boost = Math.min(tierWins * 2, 20);
+  const bump = <T extends object>(o: T): T => {
+    const out = { ...o } as Record<string, number>;
+    for (const k of Object.keys(out)) out[k] = Math.min(100, out[k] + boost);
+    return out as T;
+  };
+  return { core: bump(s.core), technical: bump(s.technical), physical: bump(s.physical), mental: bump(s.mental) };
+}
 
-  for (const [name, s] of ROSTER) {
+const ovrOf = (s: PlayerStats): number => new PlayerProfile('x', 'X', s, NONE).overallRating;
+const uniform = (r: number): PlayerStats =>
+  stats([r, r, r, r, r], [r, r, r, r, r], [r, r, r, r, r], [r, r, r, r, r]);
+
+function play(a: PlayerStats, b: PlayerStats, n: number): Acc {
+  const acc = zero();
+  console.log = () => {};
+  for (let i = 0; i < n; i++) {
+    runMatch(new PlayerProfile('p', 'P', a, NONE), new PlayerProfile('o', 'O', b, NONE), acc);
+  }
+  console.log = _origLog;
+  return acc;
+}
+
+const pct = (x: number, y: number): string => ((x / y) * 100).toFixed(1);
+
+function partA(N: number): void {
+  console.log(`\n── A. Serve behaviour across the real ladder (${N} BO3 each, mirror match) ──`);
+  console.log('Each row is that build against a copy of itself, so only the level varies.\n');
+  console.log(['build'.padEnd(26), 'OVR'.padStart(4), '1st in%'.padStart(9), 'DF%'.padStart(7),
+    'ace%'.padStart(7), 'mean rally'.padStart(12), '≤2-shot%'.padStart(10)].join(''));
+  console.log('-'.repeat(76));
+  const ladder: Array<[string, PlayerStats]> = [
+    ...ROSTER,
+    ['Danny Park, 10 wins', scaled(ROSTER[1][1], 10)],
+    ['Lin Chen, 10 wins', scaled(ROSTER[3][1], 10)],
+  ];
+  for (const [name, s] of ladder) {
+    const a = play(s, s, N);
+    console.log([name.padEnd(26), String(ovrOf(s)).padStart(4),
+      pct(a.firstIn, a.serves).padStart(9), pct(a.doubleFaults, a.serves).padStart(7),
+      pct(a.aces, a.serves).padStart(7), (a.rallySum / a.points).toFixed(2).padStart(12),
+      pct(a.short, a.points).padStart(10)].join(''));
+  }
+}
+
+function partB(N: number): void {
+  const mode = process.env.ML_MODE ?? 'mean';
+  console.log(`\n── B. Real tier-1 matchups, ML_MODE=${mode} (${N} BO3 each) ──`);
+  console.log(['matchup'.padEnd(42), 'ML'.padStart(5), 'pt-win%'.padStart(9),
+    'mean rally'.padStart(12), '≤2-shot%'.padStart(10)].join(''));
+  console.log('-'.repeat(78));
+  const pairs: Array<[string, PlayerStats, string, PlayerStats]> = [
+    ['new player', ROSTER[0][1], 'Danny Park', ROSTER[1][1]],
+    ['new player', ROSTER[0][1], 'Big Steve', ROSTER[2][1]],
+    ['new player', ROSTER[0][1], 'Jordan', ROSTER[5][1]],
+    ['new player', ROSTER[0][1], 'Danny Park +20', scaled(ROSTER[1][1], 10)],
+    ['trained (40s)', uniform(40), 'Jordan', ROSTER[5][1]],
+    ['trained (40s)', uniform(40), 'trained (40s)', uniform(40)],
+  ];
+  for (const [an, a, bn, b] of pairs) {
+    const acc = play(a, b, N);
+    const ml = (ovrOf(a) + ovrOf(b)) / 2;
+    console.log([`${an} (${ovrOf(a)}) v ${bn} (${ovrOf(b)})`.padEnd(42), ml.toFixed(1).padStart(5),
+      pct(acc.playerWon, acc.points).padStart(9), (acc.rallySum / acc.points).toFixed(2).padStart(12),
+      pct(acc.short, acc.points).padStart(10)].join(''));
+  }
+}
+
+function partC(N: number): void {
+  const mode = process.env.ML_MODE ?? 'mean';
+  console.log(`\n── C. Stat value at tier-1 scale, ML_MODE=${mode} (${N} BO3 each) ──`);
+  console.log('slice 20 → 40 against a uniform-20 opponent, in a build that never');
+  console.log('slices vs one built to slice. The 50 → 90 version of this is what');
+  console.log("the audit's section 4 was measured on.\n");
+  const SAMURAI: ArchetypeProfile = {
+    broad: 'baseliner', phases: { backhand: { path: 'bh_samurai', tier: 3 } },
+    specializationPoints: 0, respecTokens: 0,
+  };
+  const base = uniform(20);
+  const bumped: PlayerStats = { ...base, core: { ...base.core, slice: 40 } };
+  for (const [label, prof] of [['never slices', NONE], ['slice specialist', SAMURAI]] as Array<[string, ArchetypeProfile]>) {
     const acc = zero();
     console.log = () => {};
     for (let i = 0; i < N; i++) {
-      const p = new PlayerProfile('p', 'P', s, NONE);
-      const o = new PlayerProfile('o', 'O', s, NONE);
-      runMatch(p, o, acc);
+      runMatch(new PlayerProfile('p', 'P', bumped, prof), new PlayerProfile('o', 'O', base, prof), acc);
     }
     console.log = _origLog;
-    const ovr = new PlayerProfile('x', 'X', s, NONE).overallRating;
-    console.log([name.padEnd(24), String(ovr).padStart(4),
-      ((acc.firstIn / acc.serves) * 100).toFixed(1).padStart(9),
-      ((acc.doubleFaults / acc.serves) * 100).toFixed(1).padStart(7),
-      ((acc.aces / acc.serves) * 100).toFixed(1).padStart(7),
-      (acc.rallySum / acc.points).toFixed(2).padStart(12),
-      ((acc.short / acc.points) * 100).toFixed(1).padStart(10)].join(''));
+    const d = (acc.playerWon / acc.points) * 100 - 50;
+    console.log(`  ${label.padEnd(20)} ${(d >= 0 ? '+' : '') + d.toFixed(2)}`);
   }
+}
 
-  console.log('\nSERVE_BASELINE says "~62% first serves in at stat parity" and');
-  console.log('"~90% second serves in at parity → ~4-6% DFs". Both midpoints are');
-  console.log('scaled by serverOVR/70, so those figures only hold at OVR 70.\n');
+function main(): void {
+  const N = Number(process.env.N ?? 40);
+  const parts = process.env.PARTS ?? 'ABC';
+  if (parts.includes('A')) partA(N);
+  if (parts.includes('B')) partB(N);
+  if (parts.includes('C')) partC(N);
+  console.log('');
 }
 
 main();
