@@ -279,6 +279,7 @@ is doing exactly the job it was invented for.
 | `d50e7db` | Support-stat modifiers centered on a neutral stat of 50 |
 | `31afb15` | `MIN_QUALITY_FLOORS` scales with match level |
 | `39464ed` | Winner difficulty set per shot instead of per category |
+| *(this change)* | Winner floors set per shot; mid-level differentiation restored |
 
 ### Result on the shipped ladder
 
@@ -372,12 +373,42 @@ candidates from the first version of this document stand, on that basis alone.
 
 ---
 
+### The mid-level hump
+
+Setting winner difficulty per shot fixed the ordering at the top of the range but left a hump in
+the middle: at L≈40 every shot landed between 16% and 28% winners, so shot choice stopped mattering
+in the middle of the range.
+
+The cause was `MINIMUM_WINNER_THRESHOLDS` having only three values (50/55/60). At L=40 a player
+produces ~36 quality, so all three floors bind, and with a flat winner sigmoid a shot 17 points
+under its midpoint still wins 24% of the time — every shot converged on the same rate.
+
+Swept steepness from 0.05 to 0.16 against a target curve for all twelve shot families. **Steepness
+is not the lever** — total fit error moved from 315 to 271 across that entire range, and the best
+value (0.08) is barely different from the shipped 0.07. Fitting the floors per shot at the
+unchanged 0.07 matches the best steepened fit (mean absolute error 2.39pp either way). So the
+deliberate flatness stays and the floors carry the differentiation.
+
+Winner rate at L=40, before and after:
+
+| | overhead | power | passing | volley | drop | angle | forehand | approach | slice | lob | def. slice | return |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| before | 24.3 | 28.1 | 28.0 | 23.4 | 28.0 | 23.8 | 24.3 | 23.2 | 18.1 | 16.4 | 17.4 | 3.3 |
+| after | 23.4 | 18.9 | 15.8 | 15.8 | 12.7 | 10.5 | 4.8 | 2.8 | 1.3 | 0.7 | 0.6 | 1.2 |
+
+Spread at L=40 goes from about 12 points to 22.8. At L=20 everything stays between 0.1% and 6.8%.
+
+The side effect is fewer winners overall in the 25-50 band — as a share of points, Jordan (46) goes
+from 34.2% to 13.2%. `WINNER_FLOOR_OFFSET` is the dial for that, and it does not disturb the
+ordering; see its note for the measured curve at 0, −6 and −12.
+
+---
+
 ## 9. Open questions
 
-- **The mid-level winner hump.** At L≈40 every shot lands between 16% and 28% winners, less
-  differentiated than at either end, because `MINIMUM_WINNER_THRESHOLDS` binds there while
-  `PROBABILITY_STEEPNESS.rally.winner = 0.07` still gives a shot 17 points below its midpoint a 24%
-  chance. Fixing it means a joint retune of the steepness and the requirement table.
+- **Where the winner curve should sit.** The floor table fixes which shots end points; the overall
+  rate is `WINNER_FLOOR_OFFSET`, currently 0, giving 2.0% of points for a new player and 13.2% for
+  Jordan. −12 gives 4.5% and 22.3%. This is a game-feel call rather than a measurement.
 - **The top of the range is compressed.** `TOTAL_MODIFIER_CAPS.rally = 1.25` binds for most shots
   from L=60 up, so quality saturates near 99 and OVR 85 plays much like OVR 100. Not urgent while
   content stops at tier 1, but it caps what tier 3/4 can feel like.
