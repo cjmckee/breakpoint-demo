@@ -69,9 +69,14 @@ export const RELATIVE_QUALITY_REQUIREMENTS: Record<ShotType, number> = {
   'lob_forehand': 0.30,
   'lob_backhand': 0.30,
 
-  // Passing shots (offensive, high requirement)
-  'passing_shot_forehand': 0.75,
-  'passing_shot_backhand': 0.75,
+  // Passing shots. Lower than it looks: the defender facing a net player also
+  // pays POSITION_ADJUSTMENTS.at_net (+10), so a high multiplier here counted the
+  // net player's advantage twice. At 0.75 — joint-highest in the game with the
+  // return — passing shots missed about 70% of the time, so the defender's only
+  // aggressive option was a coin flip weighted against them and the net player
+  // rarely got a ball to volley.
+  'passing_shot_forehand': 0.60,
+  'passing_shot_backhand': 0.60,
 };
 
 /**
