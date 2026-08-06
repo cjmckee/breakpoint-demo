@@ -398,6 +398,37 @@ Winner rate at L=40, before and after:
 
 Spread at L=40 goes from about 12 points to 22.8. At L=20 everything stays between 0.1% and 6.8%.
 
+### Making the floor follow the opponent
+
+The floors above are absolute constants, which reintroduces the problem in a new place: shot quality
+rises roughly with the stat while a fixed floor does not, so the floor acts as a step and the shot
+economy changes character with level. Against a same-level opponent a forehand went from 1.2%
+winners at level 20 to 23.4% at level 85 — good play at 25 and a different game at 60.
+
+Scaling the floor fully with the opponent is the opposite failure: a same-level opponent's retrieval
+rises in step with the shooter's quality, the two cancel, and progression flattens. So
+`WINNER_FLOOR_RETRIEVAL_WEIGHT` blends between them, anchored to the **opponent's** speed and
+defensive stats only — never the shooter's, never the two-player average — so improving your own
+stats can never raise your own winner bar.
+
+At 0.35, winners as a share of points: 5.3% for a new player, 16.6% for Jordan, 30.5% at uniform 70,
+against 2.0 / 13.2 / 36.7 with a fixed floor. Per-shot the character steadies: forehand winners by
+level (20/30/40/60/85) go from 1.2/2.5/4.9/18.9/23.4 to roughly 6.5/7.4/8.2/11.4/20.0 at weight 0.5.
+
+Progression is still paid, and paid earlier. Against a **pinned** level-30 opponent a forehand goes
+from 3.5% to 89.7% winners as the shooter climbs 20 to 85, ahead of the 1.1% to 74.0% a fixed floor
+gives.
+
+### A measurement error worth recording
+
+Every per-shot curve in this document before this section used an opponent who tracked the shooter's
+level. The opponent's `speed` and `defensive` feed `OPPONENT_STAT_ADJUSTMENTS`, so the bar rose at
+the same time as the shot and the curves showed the two netted against each other. `shotCurve.ts`
+now takes `OPP=<level>` to pin the opponent. The difference is not small: a forehand at level 85
+reads 22.5% winners against a same-level opponent and 73.8% against a pinned level-30 one. Both are
+real, but they answer different questions — what a match at level L looks like, versus what
+improving buys you against a given opponent.
+
 The side effect is fewer winners overall in the 25-50 band — as a share of points, Jordan (46) goes
 from 34.2% to 13.2%. `WINNER_FLOOR_OFFSET` is the dial for that, and it does not disturb the
 ordering; see its note for the measured curve at 0, −6 and −12.
