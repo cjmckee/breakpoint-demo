@@ -470,9 +470,17 @@ ordering; see its note for the measured curve at 0, −6 and −12.
 
 ## 9. Open questions
 
-- **Where the winner curve should sit.** The floor table fixes which shots end points; the overall
-  rate is `WINNER_FLOOR_OFFSET`, currently 0, giving 2.0% of points for a new player and 13.2% for
-  Jordan. −12 gives 4.5% and 22.3%. This is a game-feel call rather than a measurement.
+**Settled during the audit and recorded here so they are not re-litigated:** mismatch severity (a
+new player takes 6.8% of points off Jordan, down from 14.5% — accepted as correct for a 20-point
+rating gap); the tier-anchored threshold scale (measured, no effect); and the forced/unforced split,
+which is a label applied after the point is already lost and drives nothing but the stats screen.
+
+
+- **Where the winner curve should sit.** The floor table fixes which shots end points and the
+  retrieval blend keeps that consistent across levels; the overall rate is `WINNER_FLOOR_OFFSET`,
+  currently 0. Measured with the current tables: 4.3% of points for a new player, 15.1% for Jordan,
+  30.3% at uniform 70. At −8: 7.1 / 20.4 / 37.5. At −16: 9.4 / 27.7 / 41.5. A game-feel call rather
+  than a measurement.
 - **The top of the range is compressed.** `TOTAL_MODIFIER_CAPS.rally = 1.25` binds for most shots
   from L=60 up, so quality saturates near 99 and OVR 85 plays much like OVR 100. Not urgent while
   content stops at tier 1, but it caps what tier 3/4 can feel like.
@@ -481,9 +489,5 @@ ordering; see its note for the measured curve at 0, −6 and −12.
   own serve-in bar. Comparing the accuracy roll against expected accuracy would remove that.
   `SERVE_BASELINE`'s comments also still quote figures ("~62% first serves in", "~4-6% DFs") that
   only hold near OVR 70.
-- **Mismatch severity is now a deliberate choice.** Centering and the floor change both widened it
-  — a new player takes 6.8% of points off Jordan, down from 14.5%. Accepted as correct for a
-  20-point rating gap, but it is now a design decision rather than a side effect of miscalibrated
-  constants.
 - **Consolidation.** Still plausibly right on frequency grounds. Worth re-deciding against section
   8 rather than the withdrawn tax argument.

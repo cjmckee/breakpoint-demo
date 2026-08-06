@@ -6,25 +6,32 @@
  * 0.71 to a hard cap of 1.0. This runs the same measurement for every rally
  * shot family.
  *
- * Method: a uniform-L shooter faces an incoming ball of quality L — i.e. an
- * opponent of the same level — and we record the quality produced, the
- * midpoints it is measured against, and the resulting outcome probabilities.
- * A shot that "scales" should get more reliable and more dangerous as L rises.
+ * Method: a uniform-L shooter faces an incoming ball, and we record the quality
+ * produced, the midpoints it is measured against, and the resulting outcome
+ * probabilities. A shot that "scales" gets more reliable and more dangerous as
+ * L rises.
+ *
+ * The opponent defaults to the shooter's level — a same-level match, which is
+ * what play at level L actually looks like. Pass OPP=<level> to pin them
+ * instead, which isolates the shooter's own scaling: the opponent's speed and
+ * defensive stats feed OPPONENT_STAT_ADJUSTMENTS and their retrieval now feeds
+ * the winner floor, so letting both rise with L shows the two effects netted
+ * against each other rather than either one. The gap is large — a forehand at
+ * level 85 reads 22.5% winners against a same-level opponent and 73.8% against
+ * a pinned level-30 one.
  *
  * Run: npm run build:node && node dist/src/test/analysis/shotCurve.js
- * Env: LEVELS=20,40,70  SHOTS=forehand,volley_forehand  N=1500
+ * Env: LEVELS=20,40,70  SHOTS=forehand,volley_forehand  N=1500  OPP=30
  *
- * MOD_COMPRESS was a third temporary seam, placed just before the
- * TOTAL_MODIFIER_CAPS clamp in calculateModifiers:
+ * MOD_COMPRESS was a temporary seam used before the modifier centering landed,
+ * placed just before the TOTAL_MODIFIER_CAPS clamp in calculateModifiers:
  *
  *   const compress = Number(process.env?.MOD_COMPRESS ?? 1);
  *   if (compress !== 1) finalAdjustment = 1 + (finalAdjustment - 1) * compress;
  *
- * It pulls the whole modifier stack toward 1.0, approximating narrower
- * per-modifier ranges without editing each function. At 0.35 the return goes
- * from flat (47.9% in-play at L=20, 47.8% at L=50) to monotonic (55.2% to
- * 71.0%). It does NOT fix the winner inversion, which lives in the product
- * RELATIVE_QUALITY_REQUIREMENTS x OUTCOME_MULTIPLIERS.winner.
+ * It pulled the whole stack toward 1.0, approximating narrower per-modifier
+ * ranges without editing each function. Kept here only as the record of how
+ * that change was validated before it was written properly.
  */
 
 import type { PlayerStats, ShotContext, ShotDetail, ShotType } from '../../types/index.js';

@@ -132,16 +132,17 @@ export const FLOOR_CALIBRATION_LEVEL = 70;
  * points end in a winner rather than an error, without disturbing the ordering
  * the table sets. Negative values mean more winners.
  *
- * Measured across the ladder (winners as a share of points):
+ * Measured across the ladder with the current tables and retrieval blend
+ * (winners as a share of points):
  *
  *   offset     new player (20)   Jordan (46)   uniform 55   uniform 70
- *        0                2.0%         13.2%        21.7%        36.7%
- *       -6                2.1%         17.0%        25.3%        39.4%
- *      -12                4.5%         22.3%        28.8%        43.5%
+ *        0                4.3%         15.1%        17.6%        30.3%
+ *       -8                7.1%         20.4%        24.2%        37.5%
+ *      -16                9.4%         27.7%        30.5%        41.5%
  *
- * For reference, the per-category floors this table replaced gave 11.7% / 34.2%
- * / 37.3% / 40.4% — more winners everywhere, but with almost no differentiation
- * between shots in the middle of the range.
+ * For reference, the three per-category floors this table replaced gave
+ * 11.7% / 34.2% / 37.3% / 40.4% — more winners everywhere, but with almost no
+ * differentiation between shots in the middle of the range.
  */
 export const WINNER_FLOOR_OFFSET = 0;
 
