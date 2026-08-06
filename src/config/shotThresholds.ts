@@ -188,46 +188,46 @@ export const MINIMUM_WINNER_THRESHOLDS: Record<ShotType, number> = {
   'serve_second': 50,
 
   // Put-aways — the lowest bar in the game
-  'overhead': 53,
-  'defensive_overhead': 75,
+  'overhead': 57,
+  'defensive_overhead': 80,
 
   // Power shots
-  'forehand_power': 58,
-  'backhand_power': 58,
-  'volley_forehand_power': 58,
-  'volley_backhand_power': 58,
-  'return_forehand_power': 65,
-  'return_backhand_power': 65,
+  'forehand_power': 61,
+  'backhand_power': 61,
+  'volley_forehand_power': 61,
+  'volley_backhand_power': 61,
+  'return_forehand_power': 68,
+  'return_backhand_power': 68,
 
   // Passing shots and volleys finish points from open positions
-  'passing_shot_forehand': 61,
-  'passing_shot_backhand': 61,
-  'volley_forehand': 62,
-  'volley_backhand': 62,
-  'half_volley_forehand': 70,
-  'half_volley_backhand': 70,
+  'passing_shot_forehand': 66,
+  'passing_shot_backhand': 66,
+  'volley_forehand': 67,
+  'volley_backhand': 67,
+  'half_volley_forehand': 75,
+  'half_volley_backhand': 75,
 
   // Touch and angle
-  'drop_shot_forehand': 65,
-  'drop_shot_backhand': 65,
-  'angle_shot_forehand': 69,
-  'angle_shot_backhand': 69,
+  'drop_shot_forehand': 70,
+  'drop_shot_backhand': 70,
+  'angle_shot_forehand': 81,
+  'angle_shot_backhand': 81,
 
   // Rally balls — a clean groundstroke can win, but it is not a put-away
-  'forehand': 82,
-  'backhand': 82,
-  'forehand_approach': 89,
-  'backhand_approach': 89,
+  'forehand': 80,
+  'backhand': 80,
+  'forehand_approach': 85,
+  'backhand_approach': 85,
 
   // Defensive shots should almost never be the winning shot
-  'slice_forehand': 100,
-  'slice_backhand': 100,
-  'return_forehand': 101,
-  'return_backhand': 101,
-  'lob_forehand': 108,
-  'lob_backhand': 108,
-  'defensive_slice_forehand': 111,
-  'defensive_slice_backhand': 111,
+  'slice_forehand': 93,
+  'slice_backhand': 93,
+  'return_forehand': 114,
+  'return_backhand': 114,
+  'lob_forehand': 100,
+  'lob_backhand': 100,
+  'defensive_slice_forehand': 105,
+  'defensive_slice_backhand': 105,
 };
 
 /**
@@ -286,32 +286,32 @@ export const WINNER_REQUIREMENTS: Record<ShotType, number> = {
   'serve_second': 1.80,
 
   // Neutral groundstrokes — a solid rally ball, not a finisher
-  'forehand': 2.15,
-  'backhand': 2.15,
+  'forehand': 2.20,
+  'backhand': 2.20,
 
   // Power shots — the primary point-enders
-  'forehand_power': 1.55,
-  'backhand_power': 1.55,
+  'forehand_power': 1.65,
+  'backhand_power': 1.65,
 
   // Approach shots set up the finish rather than being it
-  'forehand_approach': 2.05,
-  'backhand_approach': 2.05,
+  'forehand_approach': 2.10,
+  'backhand_approach': 2.10,
 
   // Volleys finish points; the power volley finishes harder
-  'volley_forehand': 1.90,
-  'volley_backhand': 1.90,
-  'volley_forehand_power': 1.55,
-  'volley_backhand_power': 1.55,
+  'volley_forehand': 1.95,
+  'volley_backhand': 1.95,
+  'volley_forehand_power': 1.65,
+  'volley_backhand_power': 1.65,
   'half_volley_forehand': 2.00,
   'half_volley_backhand': 2.00,
 
   // Overheads are the cleanest put-away in the game
-  'overhead': 1.75,
+  'overhead': 1.85,
   'defensive_overhead': 2.60,
 
   // Drop shots win, but not three times more often than a smash
-  'drop_shot_forehand': 2.55,
-  'drop_shot_backhand': 2.55,
+  'drop_shot_forehand': 2.60,
+  'drop_shot_backhand': 2.60,
 
   // Angles open the court and win outright reasonably often
   'angle_shot_forehand': 1.90,
@@ -324,8 +324,8 @@ export const WINNER_REQUIREMENTS: Record<ShotType, number> = {
   'defensive_slice_backhand': 4.95,
 
   // Returns are survival, not offence; the power return is a real weapon
-  'return_forehand': 2.50,
-  'return_backhand': 2.50,
+  'return_forehand': 2.25,
+  'return_backhand': 2.25,
   'return_forehand_power': 1.80,
   'return_backhand_power': 1.80,
 
@@ -334,8 +334,8 @@ export const WINNER_REQUIREMENTS: Record<ShotType, number> = {
   'lob_backhand': 4.15,
 
   // Passing shots are hit to win
-  'passing_shot_forehand': 1.55,
-  'passing_shot_backhand': 1.55,
+  'passing_shot_forehand': 1.60,
+  'passing_shot_backhand': 1.60,
 };
 
 /**

@@ -419,6 +419,39 @@ Progression is still paid, and paid earlier. Against a **pinned** level-30 oppon
 from 3.5% to 89.7% winners as the shooter climbs 20 to 85, ahead of the 1.1% to 74.0% a fixed floor
 gives.
 
+### Validating the floor, and refitting it
+
+The floor's stated purpose holds and it is load-bearing. `winnerFloorProbe.ts` sweeps the quality of
+the ball being hit at the shooter and reports the winner rate with and without it. For a level-40
+player facing a level-30 opponent:
+
+| incoming quality | relative midpoint | floor | p(win) | p(win) with no floor |
+|---|---|---|---|---|
+| 5 | 16.1 | 70.5 | 12.8% | **86.8%** |
+| 15 | 16.1 | 70.5 | 11.4% | 85.3% |
+| 30 | 30.5 | 70.5 | 9.8% | 64.2% |
+| 60 | 62.8 | 70.5 | 6.9% | 11.2% |
+| 80 | 84.3 | 70.5 | 2.9% | 2.9% |
+
+Without it, the next shot after a degraded rally wins outright almost nine times in ten. The probe
+also shows the division of labour: the floor governs below about incoming quality 60-80 and the
+relative term above it — so `WINNER_REQUIREMENTS` is what makes winners hard *under pressure*, and
+`MINIMUM_WINNER_THRESHOLDS` is what makes them hard *off a nothing ball*.
+
+Both tables were then refit with the retrieval blend active (they had been fitted against a flat
+floor), targeting a deliberately flatter curve across levels. Mean absolute error 1.87pp against
+2.39 before. Winner rates by level (20/30/40/60/85), same-level opponent:
+
+| shot | | | | | |
+|---|---|---|---|---|---|
+| overhead | 11.1 | 15.2 | 23.7 | 34.8 | 33.3 |
+| power | 10.0 | 14.0 | 20.2 | 28.9 | 29.7 |
+| forehand | 4.5 | 5.8 | 8.1 | 15.0 | 19.5 |
+| slice | 2.0 | 2.6 | 3.3 | 7.1 | 7.8 |
+| return | 0.7 | 0.7 | 0.9 | 1.5 | 1.0 |
+
+Ordering holds at every level and the range each shot travels is now 3-4× rather than 20×.
+
 ### A measurement error worth recording
 
 Every per-shot curve in this document before this section used an opponent who tracked the shooter's
