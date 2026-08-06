@@ -264,17 +264,73 @@ export const SHOOTER_STAT_ADJUSTMENTS = {
 };
 
 /**
- * Shot quality modifiers for the targeted mental-stat bonuses.
- * Applied inside calculateMentalModifier.
+ * Support-stat quality modifiers.
+ *
+ * Every one of these is a supporting stat layered on top of the shot's primary
+ * stat, which already carries the player's skill at that shot. They are
+ * therefore expressed as a symmetric band around NEUTRAL_STAT: a player whose
+ * support stat sits at the neutral point multiplies by exactly 1.0, above it
+ * they gain, below it they lose.
+ *
+ * This matters because the modifiers multiply. When they were anchored so that
+ * only a 100-stat player was neutral, a low-stat player compounded three or
+ * four sub-1 factors and produced quality far below their primary stat — a
+ * uniform-20 player reached 0.605 on an overhead. That double-counted skill
+ * (the primary stat had already accounted for it) and it collided with
+ * RELATIVE_QUALITY_REQUIREMENTS, whose multipliers sit inside the same range,
+ * leaving several shots with success rates that did not improve with level at
+ * all. Centering removes the collision: quality tracks the primary stat, and
+ * these express build SHAPE — which supports you have invested in relative to
+ * the rest of your game.
  */
-export const MENTAL_SHOT_BONUSES = {
-  /** Tactical-shot bonus range from shotVariety stat: 0.95 → 1.10 over 0-100 */
-  variety: { base: 0.95, perStat: 0.15 / 100 },
-  /** Defensive-shot bonus range from defensive stat: 1.00 → 1.10 over 0-100 */
-  defense: { base: 1.00, perStat: 0.10 / 100 },
-  /** Offensive-shot bonus range from offensive stat: 0.8 → 1.10 over 0-100 */
-  offense: { base: 0.8, perStat: 0.30 / 100 },
-};
+export const NEUTRAL_STAT = 50;
+
+/**
+ * Global scale on every support band. 1.0 keeps today's spread while centering
+ * it; lower values make support stats matter less and the primary stat more.
+ */
+export const MODIFIER_SPREAD = 1.0;
+
+/**
+ * Half-width of each support band at MODIFIER_SPREAD 1. A band of 0.10 means
+ * stat 0 multiplies by 0.90 and stat 100 by 1.10.
+ */
+export const STAT_MODIFIER_BANDS = {
+  /** Speed, on defensive shots and defensive court position */
+  speed: 0.10,
+  /** Strength, on power shots */
+  strength: 0.10,
+  /** Agility, on net shots and rushed balls */
+  agility: 0.15,
+  /** Anticipation, when the opponent is at net or well positioned */
+  anticipation: 0.10,
+  /** Shot variety, on tactical shots (drop, angle, lob, passing) */
+  variety: 0.075,
+  /** Defensive, on defensive shots */
+  defense: 0.05,
+  /** Offensive, on offensive shots */
+  offense: 0.15,
+} as const;
+
+/**
+ * Spin and placement are applied as percentage-point bonuses rather than
+ * multipliers, so their bands are in points: 10 means stat 0 gives −10% and
+ * stat 100 gives +10%.
+ */
+export const STAT_BONUS_BANDS = {
+  spin: 10,
+  placement: 7.5,
+} as const;
+
+/** Support-stat multiplier: 1.0 at NEUTRAL_STAT, band-wide at the extremes. */
+export function statModifier(stat: number, band: number): number {
+  return 1 + ((stat - NEUTRAL_STAT) / NEUTRAL_STAT) * band * MODIFIER_SPREAD;
+}
+
+/** Support-stat percentage-point bonus: 0 at NEUTRAL_STAT. */
+export function statBonus(stat: number, band: number): number {
+  return ((stat - NEUTRAL_STAT) / NEUTRAL_STAT) * band * MODIFIER_SPREAD;
+}
 
 /**
  * Position adjustments
