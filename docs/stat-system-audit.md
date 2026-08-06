@@ -1,364 +1,394 @@
-# Stat system audit — what the 20 stats actually do
+# Stat system audit — what the stats actually do
 
-**Status:** findings, no code changes made
-**Scope:** all 20 stats, shot-mix by playstyle, the rating→threshold coupling, consolidation candidates
-**Companion to:** [`core-stat-volley-proposal.md`](./core-stat-volley-proposal.md) — this document supersedes that
-proposal's section 2 measurements and materially changes its conclusion.
-
-All figures below were produced on `4bb6218` (main at time of writing) using three
-harnesses added alongside this doc:
-
-| Harness | What it measures |
-|---|---|
-| `src/test/analysis/shotMixProbe.ts` | Which shots each playstyle actually hits; the approach→net funnel; lob outcomes |
-| `src/test/analysis/statSensitivity.ts` | Marginal value of every stat, two independent ways |
-| `src/test/analysis/breakEvenProbe.ts` | Tests the rating-tax hypothesis (section 4) |
-
-```
-npm run build:node
-node dist/src/test/analysis/shotMixProbe.js
-node dist/src/test/analysis/statSensitivity.js
-node dist/src/test/analysis/breakEvenProbe.js
-```
+**Status:** findings plus the changes that followed from them
+**Scope:** whether stats scale across the 0-100 range, at the ratings the game actually ships
+**Supersedes:** the first version of this document, whose section 4 is withdrawn — see section 5
 
 ---
 
 ## Summary
 
-1. **Seven of the twenty stats have no measurable effect on match outcomes** across 1400
-   randomized builds: `slice`, `volley`, `recovery`, `overhead`, `dropShot`, `agility`,
-   `shotVariety`.
-2. **The `CoreStats` docstring is wrong.** "The 5 most impactful stats that drive match
-   outcomes" — the actual top five are `serve`, `anticipation`, `return`, `speed`, `focus`.
-   Two of those are cores. `forehand` ranks 13th; `slice` ranks 14th.
-3. **There is a rating tax.** `matchLevel` is the mean of both players' `overallRating`, and
-   every quality threshold scales off it — so raising a stat raises the bar on every shot you
-   hit. A stat pays off only if its shot frequency clears a break-even point (~6% for a core
-   stat, ~2.1% for a technical one). This is the root cause of finding 1.
-4. **Slice is not a weak stat, it is a conditional one.** Dead in a build that doesn't slice
-   (−1.06 point-win%), and the best non-serve investment available in one that does (+2.51).
-   Volley is the genuinely flat stat — it barely moves whether or not you build for it.
-5. **Consolidation is the fix, and it is mechanically motivated**, not just ergonomic: merging
-   two 1%-frequency stats into one 2% stat more than doubles its value, because the rating tax
-   is paid once instead of twice.
+1. **Every harness in this repo was measuring content that doesn't exist.** The original audit ran
+   uniform-50 to uniform-90 builds. The starting player is OVR 20 and the whole of tier 1 spans
+   OVR 25-49. Nothing implemented reaches 50. Every conclusion below is re-measured at the real
+   ratings.
+2. **The support-stat modifiers double-counted skill.** They were anchored so only a 100-stat
+   player was neutral, and they multiply, so a uniform-20 build produced quality 30-40% below its
+   primary stat. That collided with `RELATIVE_QUALITY_REQUIREMENTS` and left several shots with
+   success rates that did not improve with level at all.
+3. **The return did not scale from OVR 20 to 50** — flat at ~48% in-play across the entire
+   implemented game, on the most-hit shot at 44% of rally shots. The first serve was flat at
+   ~41% over the same span. Same mechanism in both.
+4. **Winner rates inverted with skill.** An expert's most reliable point-ender was the drop shot
+   (75% of attempts) and second was the defensive slice (45%), while the passing shot managed 11%,
+   the volley 3% and the return 0.3%. Shot quality is bounded at 100; winner midpoints were not.
+5. **The "rating tax" in the previous version is withdrawn.** Its own falsification test fails:
+   pinning `matchLevel` does not remove the effect it predicts. Consolidation may still be right,
+   but on frequency grounds alone.
+6. **`matchLevel` barely matters, and anchoring it to a tier changes nothing measurable.** Tested
+   four anchors at two rating bands, and a tier-anchored progression sweep. The one place it earns
+   its keep is scaling `MIN_QUALITY_FLOORS`.
 
 ---
 
 ## 1. Method
 
-Two things make these numbers trustworthy in ways the earlier proposal's were not.
+Five harnesses, all in `src/test/analysis/`:
 
-**Raw `shotType`, not `statUsed`.** The proposal's figures were taken through
-`ShotCalculator.getPrimaryStatName()`, which was mis-ordered until PR #81. `shotMixProbe`
-tallies the shot type directly, so it is unaffected either way.
+| Harness | What it measures |
+|---|---|
+| `shotMixProbe.ts` | Which shots each playstyle actually hits; the approach→net funnel |
+| `statSensitivity.ts` | Marginal value of every stat, two independent designs |
+| `anchorProbe.ts` | What `matchLevel` controls; the rating-tax falsification |
+| `tier1Probe.ts` | The shipped tier-1 ladder: serve behaviour, matchups, point endings, progression |
+| `shotCurve.ts` | Per-shot scaling across the 0-100 range |
+| `serveCurve.ts` | Why the first serve was flat below OVR 40 |
 
-**Point win rate, not match win rate.** At ~120 points per BO3 match, point win rate is roughly
-10× less noisy for the same runtime. A uniform-50 vs uniform-50 control lands at **+0.14**,
-which is the noise floor for every Part A figure below.
+```
+npm run build:node
+node dist/src/test/analysis/tier1Probe.js
+node dist/src/test/analysis/shotCurve.js
+```
 
-`statSensitivity` runs two independent designs because each has a different blind spot:
+Some parts need temporary seams (an env-readable `matchLevel` anchor, a modifier-stack
+compressor). Those are documented in the file headers of `anchorProbe.ts`, `tier1Probe.ts` and
+`shotCurve.ts` rather than committed — the simulation should not read `process.env`.
 
-- **Part A — one-at-a-time.** Take one stat 50→90, hold the other nineteen at 50, play an
-  opponent with an identical archetype. Clean and controlled, but only measures the stat in one
-  build context.
-- **Part B — randomized population.** 1400 matches in which every player gets independently
-  random stats *and* a randomly drawn archetype, then regress point-win margin on each stat
-  difference. Because the stats are randomized independently, the univariate slope is an
-  unbiased estimate of each stat's marginal value across the whole build space.
-
-The two agree closely, which is the main reason to believe either.
+Point win rate is used throughout rather than match win rate: at ~120 points per BO3 it is roughly
+10× less noisy for the same runtime. A uniform-50 control lands at +0.14, which is the noise floor.
+Cells of 150 BO3 carry about ±0.7 at 95%.
 
 ---
 
-## 2. Shot mix responds to playstyle — very asymmetrically
+## 2. The content the game actually has
 
-60 BO3 matches per build, uniform-60 player vs uniform-60 unspecialized opponent, hard court,
-player's own rally shots only (serves excluded).
+This is the correction that reframes everything else.
 
-| shot family | no spec | broad `net_attacker`<br>(no phase pts) | `net_downhill` T3 | `net_downhill` T3<br>+ `fs_bomber` T2 | `net_apologist` T3 | `bh_samurai` T3 | `bh_samurai` T3<br>+ `fh_survivor` T3 |
-|---|---|---|---|---|---|---|---|
-| return | 44.19% | 44.78% | 46.19% | 46.28% | 45.55% | 44.23% | 43.60% |
-| groundstroke | 30.03% | 30.68% | 24.82% | 24.39% | 31.53% | 21.55% | 21.16% |
-| groundstroke (power) | 3.22% | 2.74% | 2.38% | 1.94% | 4.04% | 2.93% | 3.30% |
-| approach (groundstroke) | 9.88% | 9.45% | 15.00% | 15.10% | 7.88% | 9.90% | 9.70% |
-| **slice** | **0.34%** | 0.29% | 0.13% | 0.24% | 0.30% | **8.90%** | **9.65%** |
-| defensive slice | 1.27% | 1.44% | 1.25% | 1.25% | 0.97% | 1.66% | 1.78% |
-| **volley** | **1.28%** | 1.44% | **1.61%** | **2.08%** | 0.84% | 1.31% | 1.47% |
-| half-volley | 0.02% | 0.02% | 0.00% | 0.00% | 0.00% | 0.00% | 0.00% |
-| overhead | 0.84% | 0.72% | 1.25% | 1.27% | 0.80% | 0.88% | 0.67% |
-| lob | 3.81% | 3.77% | 3.59% | 3.48% | 3.62% | 4.27% | 4.37% |
-| passing | 4.67% | 4.06% | 3.43% | 3.57% | 3.92% | 3.72% | 3.57% |
-| angle | 0.31% | 0.38% | 0.26% | 0.35% | 0.30% | 0.41% | 0.44% |
-| drop shot | 0.15% | 0.24% | 0.08% | 0.04% | 0.25% | 0.25% | 0.28% |
-| **net family** (v+hv+oh) | 2.14% | 2.17% | 2.86% | 3.35% | 1.64% | 2.18% | 2.14% |
-| points reaching net | 1.80% | 1.72% | 2.39% | 2.67% | 1.45% | 1.89% | 1.66% |
-| *n* (rally shots) | 6556 | 5840 | 6092 | 7065 | 6406 | 6283 | 6114 |
-
-**Slice swings 26× with playstyle. Volley swings 1.6×.**
-
-This is the single most important correction to the volley proposal. Its "slice 3.09% vs volley
-1.13%" compares two *unspecialized* players and concludes slice is barely used. What that
-actually measures is that a player who has not chosen to slice does not slice. Give someone the
-slice identity and it becomes a 9% shot — the third-most-used family in their game, ahead of
-lobs and passing shots.
-
-Volley has no equivalent gear. Stacking every net effect in the game
-(`net_approach_bias=16`, `serve_and_volley_bias=10`, `putaway_volley_bias=8`) reaches 2.08%.
-
-### 2.1 Why volley frequency cannot be raised from where the proposal wants to raise it
-
-The proposal's first suggested lever is to "raise the approach → net conversion in
-`ShotSelector` so approaches actually lead to volleys." That conversion is already 1.0 — a
-successful approach shot returns `'at_net'` unconditionally
-([`PointSimulator.ts:717`](../src/core/PointSimulator.ts#L717)), and net players hold position;
-only a lob of `>= good` quality ejects them
-([`PointSimulator.ts:794`](../src/core/PointSimulator.ts#L794)).
-
-The loss is downstream of arriving at the net, and it has two causes.
-
-**Cause 1 — most approaches never get a second shot.** Of successful approaches by a
-`net_downhill` T3 build:
-
-| opponent's reply to the approach | share | |
+| group | opponents | OVR |
 |---|---|---|
-| passing shot **missed** | 38.46% | point over, no volley |
-| lob | 24.62% | → overhead, or ejection |
-| the approach itself was a winner | 23.08% | point over, no volley |
-| passing shot in play | 10.77% | → volley |
-| lob **missed** | 3.08% | point over, no volley |
+| player start | `DEFAULT_PLAYER_STATS`, all 20s | **20** |
+| practice | Danny Park, Marta Ruiz, Rick Tanaka, Big Steve, Lin Chen | 25–29 |
+| team storyline | Chet Vale, Rich Soil, Martia Estrella, Reginald Werther, Olivia Gulp | 29–41 |
+| Riverside Open | Keith, Chris, Max, Jordan | 36–45 |
 
-**~65% of successful approaches end the point before a net shot exists.** Two shots after the
-approach, the player's next stroke is: point already over 46.15%, **overhead 13.85%, volley
-7.69%**, back at the baseline 7.7%.
+Practice opponents scale with `getScaledOpponentStats` (+2 per tier win, capped at +20), so Danny
+Park reaches OVR 45 and Lin Chen 49. `matchLevel` for a new player therefore runs 22.5–32.5, and
+for a fully trained tier-1 player tops out around 47.
 
-*(n = 65 approaches — the volley/overhead split is noisy at this sample size and flipped
-between runs; the stable finding is the ~65% point-ending fraction and the fact that overhead
-and volley are the same order of magnitude.)*
-
-**Cause 2 — every lob becomes an overhead or an ejection, never a volley.** Bucketing lobs hit
-at a net player by quality:
-
-| lob quality | n | outright winner | net player's reply |
-|---|---|---|---|
-| weak (q < 45) | 125 | 0.00% | overhead 99.2% |
-| medium (45–60) | 149 | 2.68% | overhead 84.6%, ejected 8.7% |
-| good (60–75) | 25 | **20.00%** | ejected — lob/slice/approach from the baseline |
-| great (q ≥ 75) | 3 | 33.33% | point over |
-
-The system behaves as designed; the design is the problem.
-
-Lobs are ~22% of replies to an approach, and the lob branch is a pure volley-suppressor: weak
-lobs are smashed (scoring on `technical.overhead`), good lobs either win outright or push the
-net player off the net. There is also a perverse detail — a *better* approach sets
-`timeAvailable === 'rushed'`, which raises the defender's lob rate from 35% to 60%
-([`ShotSelector.ts:83`](../src/core/ShotSelector.ts#L83)). Executing the approach well is what
-prevents the volley.
+Two consequences. Every absolute constant in the system was calibrated at ~70 and is being applied
+30 to 50 points below that. And the previous audit's stat table — 1400 randomized builds at
+uniform-50 to uniform-90 — described a regime no player will see for a long time.
 
 ---
 
-## 3. Stat sensitivity
+## 3. Scaling failures
 
-### Part B — marginal point-win% per +10 stat, 1400 randomized builds and playstyles
+### 3.1 The modifier stack double-counted skill
 
-| stat | bucket | per +10 | 95% CI | verdict |
+Shot quality is `primaryStat × finalAdjustment`, where `finalAdjustment` is the product of up to
+eight modifiers. Every one was shaped "0 stat = 0.8×, 100 stat = 1.0×" — only a maxed player was
+neutral. Because they multiply, a uniform-20 build compounded three or four sub-1 factors:
+
+| shot | finalAdjustment at L=20 | at L=85 |
+|---|---|---|
+| overhead | 0.605 | 1.198 |
+| passing shot | 0.637 | 1.074 |
+| return | 0.691 | 0.932 |
+| forehand | 0.822 | 0.961 |
+| slice backhand | 0.873 | 1.220 |
+
+The primary stat already carries skill at that shot. Multiplying by more stat-derived factors
+squares the skill dependence, and it hits aggressive shots hardest because they trigger more
+sub-1 branches — so beginners were worst at exactly the shots that were already hardest.
+
+### 3.2 and 3.3 The first serve and the return were flat
+
+The serve-in roll is `accuracy = composite × finalAdjustment + variance` against
+`midpoint = OVR × 62/70 = 0.886 × OVR`. For a uniform build the composite equals OVR, so:
+
+```
+margin = L × finalAdjustment − L × 0.886 = L × (finalAdjustment − 0.886)
+```
+
+Both terms scale with L, so the product barely moves until `finalAdjustment` crosses 0.886 — at
+roughly L=41.
+
+| L | finalAdj | accuracy | midpoint | margin | p(in) |
+|---|---|---|---|---|---|
+| 20 | 0.711 | 14.3 | 17.7 | **−3.5** | 43.6% |
+| 30 | 0.786 | 23.7 | 26.6 | **−2.9** | 44.7% |
+| 40 | 0.868 | 34.9 | 35.4 | −0.5 | 49.1% |
+| 50 | 0.956 | 47.6 | 44.3 | +3.3 | 56.2% |
+| 70 | 1.000 | 70.2 | 62.0 | +8.2 | 64.8% |
+
+The second serve is the control that proves the mechanism: its ratio is 32/70 = 0.457, below
+`finalAdjustment` everywhere, and it scaled correctly from the bottom (66.9% → 95.3%).
+
+The return has the same shape for the same reason — its `RELATIVE_QUALITY_REQUIREMENTS` multiplier
+is 0.75, inside the band `finalAdjustment` travels:
+
+| L | 20 | 30 | 40 | 50 | 60 | 70 | 85 |
+|---|---|---|---|---|---|---|---|
+| p(in play) | 47.9% | 47.7% | 47.8% | 47.8% | 50.8% | 55.1% | 64.0% |
+
+Flat across the entire implemented game, on 44% of all rally shots.
+
+**The general rule:** any shot whose requirement multiplier lands inside the range
+`finalAdjustment` travels is flat until the crossover. Returns and passing shots (0.75) were worst,
+then power (0.70), angle (0.65), volley/approach/overhead (0.60). Slice (0.35), lob (0.30) and
+defensive slice (0.25) sit below the band and scaled fine — which is why a beginner's only working
+shots were slices and lobs.
+
+### 3.4 Absolute constants inside a relative system
+
+`MIN_QUALITY_FLOORS` (20/15/10) is absolute. At tier 1 it stopped being a backstop and became the
+operative requirement: a 20-quality ball asks `0.50 × 20 = 10` for a groundstroke, which the
+neutral floor raised to 15 — a 50% higher bar than the relative system computed.
+
+Two mirror players at quality L, neutral groundstroke:
+
+| L | midpoint | margin | p(in play) | expected rally |
 |---|---|---|---|---|
-| serve | core | +3.61 | [+3.23, +3.99] | strong |
-| anticipation | mental | +2.99 | [+2.58, +3.40] | strong |
-| return | core | +2.26 | [+1.86, +2.67] | strong |
-| speed | physical | +1.92 | [+1.50, +2.34] | strong |
-| focus | mental | +1.75 | [+1.32, +2.18] | strong |
-| spin | technical | +1.69 | [+1.28, +2.10] | strong |
-| strength | physical | +1.37 | [+0.94, +1.79] | strong |
-| placement | technical | +1.36 | [+0.93, +1.80] | strong |
-| offensive | mental | +1.15 | [+0.70, +1.59] | strong |
-| backhand | core | +1.07 | [+0.66, +1.48] | strong |
-| stamina | physical | +0.86 | [+0.44, +1.28] | strong |
-| defensive | mental | +0.75 | [+0.32, +1.18] | moderate |
-| forehand | core | +0.63 | [+0.18, +1.07] | moderate |
-| slice | core | +0.32 | [−0.11, +0.74] | **noise** |
-| volley | technical | +0.31 | [−0.13, +0.75] | **noise** |
-| recovery | physical | +0.25 | [−0.18, +0.68] | **noise** |
-| overhead | technical | +0.24 | [−0.19, +0.67] | **noise** |
-| dropShot | technical | +0.09 | [−0.33, +0.52] | **noise** |
-| agility | physical | +0.08 | [−0.34, +0.51] | **noise** |
-| shotVariety | mental | +0.05 | [−0.37, +0.48] | **noise** |
+| 20 | 15 *(floored)* | 5 | 60% | 2.5 |
+| 30 | 15 *(floored)* | 15 | 77% | 4.3 |
+| 70 | 35 | 35 | 94% | 16.7 |
 
-Bucket totals (sum of marginal effects per +10): core **+7.88**, mental **+6.69**, physical
-**+4.48**, technical **+3.70**. Note that mental nearly matches core while carrying a third of
-the rating weight (0.15 vs 0.45).
+`MINIMUM_WINNER_THRESHOLDS` is also absolute, and testing showed it **should stay that way**:
+scaling it with match level takes tier-1 winners from 7% of points to 40% and makes rallies
+*shorter*, which is the exact failure it exists to prevent.
 
-### Part A — point-win% from taking one stat 50 → 90, by playstyle
+### 3.5 Winner rates inverted with skill
 
-Control (uniform 50 v 50): **+0.14**.
+Shot quality is bounded — it clamps at 100, and `TOTAL_MODIFIER_CAPS.rally = 1.25` holds it near
+there from about L=60 up. Winner midpoints were `inPlayReq × a per-category multiplier`, unbounded.
+At L=85 every shot produced 96-99 quality, so winner rates were decided entirely by the product of
+the requirement multiplier and the category multiplier:
 
-| stat | bucket | unspecialized | aggressive | counterpuncher | serve_volley | mean |
-|---|---|---|---|---|---|---|
-| anticipation | mental | +8.51 | +14.79 | +13.52 | +12.94 | **+12.44** |
-| speed | physical | +8.03 | +7.85 | +9.21 | +10.55 | +8.91 |
-| return | core | +7.72 | +10.32 | +7.68 | +7.39 | +8.28 |
-| serve | core | +5.87 | +5.03 | +9.97 | +9.42 | +7.57 |
-| focus | mental | +4.84 | +5.79 | +6.22 | +9.85 | +6.67 |
-| spin | technical | +5.04 | +4.24 | +9.96 | +6.25 | +6.37 |
-| placement | technical | +3.13 | +5.21 | +6.46 | +7.84 | +5.66 |
-| strength | physical | +8.15 | +2.91 | +1.99 | +8.85 | +5.48 |
-| forehand | core | +3.04 | +5.60 | +7.57 | +1.73 | +4.49 |
-| stamina | physical | +4.78 | +3.38 | +2.37 | +3.43 | +3.49 |
-| backhand | core | +5.13 | +1.38 | +3.62 | +2.42 | +3.14 |
-| offensive | mental | +0.87 | +6.11 | +0.71 | +2.80 | +2.63 |
-| defensive | mental | +1.87 | +1.85 | +1.23 | +1.42 | +1.59 |
-| volley | technical | −1.06 | +0.55 | +0.67 | +3.41 | +0.89 |
-| overhead | technical | −3.54 | +1.50 | +1.24 | +3.32 | +0.63 |
-| recovery | physical | +4.02 | −1.18 | −2.27 | +0.91 | +0.37 |
-| dropShot | technical | −1.08 | +1.32 | −2.06 | +1.67 | −0.04 |
-| shotVariety | mental | −4.37 | +0.42 | +2.83 | −0.48 | −0.40 |
-| slice | core | +0.59 | −1.21 | −2.41 | +0.15 | −0.72 |
-| agility | physical | +0.11 | −3.23 | −0.74 | +0.86 | −0.75 |
-
-Per-cell noise here is larger than in Part B (40 matches per cell), so read the ordering rather
-than individual values. The ordering matches Part B.
-
----
-
-## 4. The rating tax — root cause
-
-`matchLevel` is the mean of both players' `overallRating`
-([`qualityThresholds.ts:53`](../src/utils/qualityThresholds.ts#L53)), and every quality
-threshold scales linearly off it
-([`qualityThresholds.ts:40`](../src/utils/qualityThresholds.ts#L40)). **Improving a stat raises
-the bar you must clear on every shot you hit.**
-
-Per +10 in one stat:
-
-```
-threshold rise = 10 × (bucketWeight / 5) / 2 × scale
-   core      → 10 × 0.09 / 2 × 1.0 = +0.45   (on every shot)
-   technical → 10 × 0.03 / 2 × 1.0 = +0.15   (on every shot)
-
-quality gain = shotFrequency × primaryWeight × 10   (on the shots that use it)
-```
-
-Setting them equal gives a **break-even shot frequency of ~6% for a core stat and ~2.1% for a
-technical one.** Below that, the stat costs more than it gives.
-
-This predicts something falsifiable: the *same* stat should change sign purely as a function of
-how often a build uses it. Tested (150 BO3 matches each, ~±0.7 at 95%):
-
-| stat | context | Δ point-win% | |
+| shot | quality | winner midpoint | p(win) |
 |---|---|---|---|
-| `slice` (core) | never slices (0.3% of shots) | **−1.06** | below break-even |
-| `slice` (core) | `bh_samurai` T3 (~10% of shots) | **+2.51** | above break-even |
-| `volley` (technical) | unspecialized (1.3%) | +1.14 | |
-| `volley` (technical) | `net_downhill` T3 (2.0%) | +1.04 | |
-| `return` (core) | 44% of shots | +10.33 | control, far above |
-| `dropShot` (technical) | 0.15% of shots | +0.09 | control, far below |
+| drop shot | 99.0 | 83.1 | **75.3%** |
+| defensive slice | 98.9 | 102.0 | **44.6%** |
+| overhead | 98.9 | 106.0 | 37.8% |
+| power | 99.0 | 121.3 | 17.4% |
+| passing | 98.8 | 129.0 | 10.8% |
+| volley | 96.0 | 147.3 | 2.7% |
+| return | 95.3 | **179.1** | 0.3% |
 
-Confirmed for slice: same +40 investment, opposite sign.
-
-**Caveat, recorded honestly:** the arithmetic above predicted volley would be net-*negative*. It
-measured mildly positive (+1.14 / +1.04). The tax neutralizes volley rather than inverting it,
-so the break-even frequencies are somewhat pessimistic as stated. The slice sign flip is the
-clean evidence; treat the exact break-even numbers as an approximation of the mechanism, not a
-calibrated constant.
-
-### Consequence for the volley proposal
-
-Promoting `volley` from technical to core would **triple its rating tax** (0.15 → 0.45 threshold
-rise per +10) while leaving its usage at ~2%. That moves it from marginally positive to
-approximately break-even or worse. The swap makes volley *less* worth training than it is today,
-which is the opposite of its stated goal.
+A midpoint of 179 on a 0-100 scale is unreachable by construction. The category multiplier was
+applied on top of a requirement that already ranged 0.25 to 0.85, so it never expressed shot intent
+at all. Getting better actively removed a player's ability to end points with the shots meant to
+end them.
 
 ---
 
-## 5. Consolidation candidates
+## 4. What the low end actually played like
 
-Consolidation is mechanically motivated, not merely ergonomic: merging two 1%-frequency stats
-into one 2% stat more than doubles its value, because the tax is paid once instead of twice.
+Even matchups between weak players were already even on points — 49.1% for a new player against
+Danny Park, 49.8% for a trained mirror. The gap was texture:
 
-### Merge — high confidence
+| build | OVR | ace | DF | winner | forced | unforced | ends on return | rally ≥4 |
+|---|---|---|---|---|---|---|---|---|
+| new player | 20 | 2.1 | 28.0 | 7.0 | 32.1 | 30.8 | 38.6 | **12.9%** |
+| Big Steve | 28 | 2.8 | 24.8 | 12.8 | 32.9 | 26.7 | 35.5 | 18.3% |
+| Jordan | 46 | 1.7 | 16.9 | 31.3 | 35.0 | 15.0 | 29.2 | 23.9% |
+| uniform 70 | 70 | 4.0 | 6.6 | 27.8 | 47.8 | 13.8 | 39.7 | 31.8% |
 
-- **`overhead` → `volley`, as a single `net` stat.** Individually dead (+0.24, +0.31). Overhead
-  is the *finisher* of net points (see the funnel in section 2.1), so a net player currently
-  pays two rating taxes to be competent at one phase, while a baseliner pays one for forehand or
-  backhand. Also fixes the `GamePhase`/`CoreStats` asymmetry that motivated the original
-  proposal — the phase is `net`, so the stat should be `net`, not `volley`.
-- **`recovery` → `stamina`.** `recovery` is dead (+0.25) and has exactly one read site in the
-  simulation — fatigue recovery ([`MatchSimulator.ts:295`](../src/core/MatchSimulator.ts#L295)).
-  It and stamina are two halves of one concept.
-- **`agility` → `speed`.** `agility` is dead (+0.08). The code already averages the two
-  literally: `const rushHandling = (physical.speed + physical.agility) / 2`
-  ([`ShotCalculator.ts:969`](../src/core/ShotCalculator.ts#L969)).
-
-### Delete or fold
-
-- **`dropShot`** (+0.09, 0.15% of shots) — weakest stat in the game by both measures. Fold into
-  `placement`.
-- **`shotVariety`** (+0.05) — fires only on tactical shots (drop, angle, lob, passing), which
-  `placement` is already the primary stat for. Redundant.
-
-### Rebucket, don't merge
-
-- **`placement` is misbucketed.** Primary stat for six shot types (angle, lob, passing × two
-  wings) at ~8.8% frequency, and marginally more valuable than `forehand` (+1.36 vs +0.63) —
-  while sitting at technical weight 0.03. A larger core/technical mismatch than the one the
-  volley proposal is about.
-- **`anticipation` may be doing too much.** The #2 stat in the game, sitting in mental at 0.03
-  weight. It appears in `RETURN_COMPOSITE_WEIGHTS` at 0.25 *and* is a universal threshold
-  reducer applied to every shot
-  ([`ShotCalculator.ts:302`](../src/core/ShotCalculator.ts#L302)).
-
-### Not a candidate
-
-- **`slice` should stay.** It is the only "dead" stat that comes fully alive with the right
-  build (+2.51 for a slice specialist). It is conditional, not weak — and it is the single most
-  playstyle-expressive stat in the game (26× frequency swing). Demoting it to make room for
-  `volley`, which has the smallest dynamic range of any shot stat, inverts the actual evidence.
-
-A 20 → 15 reduction follows from the merges and deletions above. If the 4×5 grid is worth
-preserving aesthetically, 4 buckets of 4 (16 stats) is reachable.
-
-### Training-economy note
-
-The spread problem compounds this. An anchor session grants +1 to the chosen core plus up to 3
-supports drawn from a 6-stat pool
-([`AnchorTrainingSystem.ts:140`](../src/game/AnchorTrainingSystem.ts#L140)). Each specific
-support therefore accrues ~0.5/session against a core's 1.0 — roughly 20 sessions to move one
-support stat by 10 points, and seven of the stats being spread into do not measurably affect
-outcomes.
+91% of tier-1 points ended in an error, which is right for beginners. But 87% never reached four
+shots and 28% never got a ball in play at all. Weak players weren't hitting worse shots — they were
+missing roughly half of them.
 
 ---
 
-## 6. Bugs found during the audit
+## 5. The rating tax — withdrawn
 
-- **Typo in `SHOT_CLASSIFICATIONS.spinShots`** —
-  [`ShotCalculator.ts:82`](../src/core/ShotCalculator.ts#L82) lists
-  `'defemsove_slice_backhand'`. `defensive_slice_backhand` therefore never receives the spin
-  bonus (up to +20% quality) while `defensive_slice_forehand` does. A live asymmetry between
-  wings on a shot family that is ~1.5% of rally play.
-- **The broad archetype is inert.** `aggregateArchetypeEffects`
-  ([`archetypeTree.ts:338`](../src/data/archetypeTree.ts#L338)) iterates only `ALL_PHASES` and
-  never reads `profile.broad`, despite its own docstring claiming "*including broad-archetype
-  defaults*." Its only consumer is `buildPlayStyle`
-  ([`PlayerProfile.ts:121`](../src/core/PlayerProfile.ts#L121)), which is explicitly
-  display-only. Measured: a broad `net_attacker` with no phase points is statistically identical
-  to an unspecialized player (section 2, columns 1 and 2). A player picks "Net Attacker" at the
-  Coach Gonzalez event, watches the netApproach dial move, and plays exactly the same tennis.
-- **`calculateOverallRating` is duplicated** between
-  [`PlayerProfile.ts:64`](../src/core/PlayerProfile.ts#L64) and
-  [`playerStats.ts:11`](../src/utils/playerStats.ts#L11), with the latter hardcoding stat names.
-  Any bucket change has to touch both.
+The previous version claimed `matchLevel` imposes a tax: raising a stat raises `overallRating`,
+raises `matchLevel`, raises every threshold, so a stat only pays if its shot frequency clears a
+break-even point. It offered its own falsification: pin `matchLevel` and the slice sign flip should
+disappear. It doesn't.
+
+| config | slice→90, never slices | slice→90, slice specialist |
+|---|---|---|
+| baseline | −1.15 | +0.46 |
+| `matchLevel` pinned | −0.53 | +0.91 |
+| serve-in midpoint pinned | **+0.03** | +1.72 |
+| both pinned | −0.40 | +0.48 |
+
+Every cell sits within about one noise band of the others, and three of four have the
+"never slices" case indistinguishable from zero. Re-run at tier-1 magnitudes (slice 20→40 against
+a uniform-20 opponent) the picture is the same: −1.15 / +1.78 shipped, +0.02 / −0.46 pinned.
+
+The break-even arithmetic was also built on a false premise. It treated these thresholds as the
+bar a shot must clear. They are not — the rally bar is `calculateQualityRequirements`, which has
+never referenced `matchLevel`, not even in the commit that introduced the system. The only success
+bar `matchLevel` ever touched was the serve, and `eaa71a4` removed it deliberately.
+
+What survives is duller and needs no tax: **a stat pays roughly in proportion to how often you use
+it.** At 1.6% usage the payoff is indistinguishable from zero. Consolidation may still be right;
+the argument for it is frequency, not a tax. The claim that merging two 1% stats "more than
+doubles" their value is unsupported — it gives you a 2% stat, linearly.
 
 ---
 
-## 7. Suggested order of work
+## 6. What `matchLevel` is worth
 
-1. **Fix the broad-archetype wiring.** Small, correct regardless of any other decision here, and
-   probably the largest felt gap for a player.
-2. **Decide on the rating tax.** This is the biggest lever and it is upstream of every
-   consolidation decision. If `matchLevel` were computed from a build-independent baseline
-   rather than live `overallRating`, several currently-dead stats may come alive with no
-   consolidation at all. Cheap to test with `statSensitivity.ts` in place.
-3. **Fix the `spinShots` typo.**
-4. **Re-measure**, then decide the merges in section 5 against fresh numbers.
-5. **Revisit the volley proposal last.** As written it should not proceed; the `overhead`→`net`
-   merge captures its legitimate structural insight without demoting the most expressive stat in
-   the game.
+Every `getQualityThresholds(matchLevel)` call sits in the labelling layer: the incoming ball's
+`spin` and `timeAvailable`, the difficulty multiplier, and shot-selection gating. Anchoring it
+four different ways barely moves outcomes.
+
+At OVR 50-90:
+
+| anchor | 90 v 40 pt-win% | mean rally | ≤2-shot |
+|---|---|---|---|
+| mean (shipped) | 99.1 | 1.57 | 96.7% |
+| shooter | 98.8 | 1.51 | 96.5% |
+| receiver | 99.8 | 1.54 | 97.3% |
+| fixed 70 | 99.0 | 1.54 | 96.5% |
+
+At real tier-1 ratings, new player (20) v Jordan (46): 14.5% mean, 14.8% shooter, 18.4% receiver,
+14.0% fixed. The anchor moves it by at most four points.
+
+### Tier-anchored match level
+
+Tested directly: pin `matchLevel` to a tier-1 constant of 32 so the bar stops rising as the player
+improves, and sweep a player from OVR 20 to 50 against fixed opponents.
+
+| player OVR | vs Big Steve (28), mean anchor | tier-anchored | vs Jordan (46), mean | tier-anchored |
+|---|---|---|---|---|
+| 20 | 31.8% | 40.1% | 9.0% | 10.4% |
+| 30 | 50.2% | 55.4% | 16.1% | 15.5% |
+| 40 | 71.3% | 70.1% | 37.5% | 39.0% |
+| 50 | 91.2% | 87.5% | 56.5% | 53.5% |
+
+The curves are the same within noise. The reward for improving inside a tier is already steep and
+anchor-independent — 31.8% to 91.2% of points against a fixed opponent — because it comes from the
+relative quality system and the stat gap, not from where the threshold scale is pinned. If matches
+feel like they get harder as the game goes on, the cause is `getScaledOpponentStats` and tier
+progression, not the threshold anchor.
+
+So a tier table is not worth adding: it would be a hardcoded constant buying no measurable
+behaviour. The one place `matchLevel` does earn its keep is scaling `MIN_QUALITY_FLOORS`, where it
+is doing exactly the job it was invented for.
+
+---
+
+## 7. Changes made
+
+| commit | change |
+|---|---|
+| `c4abfd9` | Broad archetype wired into behaviour; `spinShots` typo fixed |
+| `d50e7db` | Support-stat modifiers centered on a neutral stat of 50 |
+| `31afb15` | `MIN_QUALITY_FLOORS` scales with match level |
+| `39464ed` | Winner difficulty set per shot instead of per category |
+
+### Result on the shipped ladder
+
+| build | OVR | 1st in% before → after | DF% before → after |
+|---|---|---|---|
+| new player | 20 | 40.9 → 42.7 | 27.8 → 25.6 |
+| Danny Park | 25 | 42.2 → 50.4 | 24.9 → 18.2 |
+| Big Steve | 28 | 41.1 → 47.4 | 23.1 → 20.6 |
+| Olivia Gulp | 41 | 41.7 → 52.3 | 20.6 → 14.5 |
+| Jordan | 46 | 41.3 → 55.9 | 18.5 → 11.5 |
+| uniform 70 | 70 | 61.5 → 64.6 | 6.0 → 3.2 |
+
+### Result on texture
+
+New player, mirror match:
+
+| | before | after |
+|---|---|---|
+| rally ≥4 shots | 12.9% | **25.3%** |
+| ends on return | 38.6% | 29.1% |
+| unforced errors | 30.8% | 24.5% |
+| winners | 7.0% | 11.7% |
+| double faults | 28.0% | 22.0% |
+
+Still a beginner's error rate — about 86% of points end in a mistake — but the ball goes back and
+forth now.
+
+### Result on winners
+
+Winner rate at L=85, before → after:
+
+| overhead | power | passing | volley | drop | forehand | slice | lob | def. slice | return |
+|---|---|---|---|---|---|---|---|---|---|
+| 37.8 → **47.8** | 17.4 → **40.4** | 10.8 → **30.2** | 2.7 → **29.7** | 75.3 → 24.3 | 7.4 → 22.5 | 7.7 → 7.8 | 22.1 → 6.0 | 44.6 → **3.7** | 0.3 → 0.1 |
+
+Across the ladder, winners now rise with level instead of peaking mid-range: 11.7% of points for a
+new player, 34.2% for Jordan, 40.4% at uniform 70, 52.2% at uniform 85.
+
+---
+
+## 8. Stat sensitivity, re-measured
+
+`statSensitivity.ts` Part B, 1400 randomized builds, before and after the changes in section 7.
+**Read this with section 2 in mind:** the harness randomizes stats across the whole 0-100 range, so
+it describes a population the game does not yet contain. The tier-1-scale equivalent is
+`tier1Probe.ts` part C.
+
+| stat | bucket | before | after | |
+|---|---|---|---|---|
+| serve | core | +3.61 | +3.34 | strong |
+| anticipation | mental | +2.99 | +3.11 | strong |
+| return | core | +2.26 | **+2.65** | strong |
+| focus | mental | +1.75 | +1.78 | strong |
+| spin | technical | +1.69 | +1.53 | strong |
+| speed | physical | +1.92 | +1.50 | strong |
+| strength | physical | +1.37 | +1.22 | strong |
+| forehand | core | +0.63 | **+1.17** | strong |
+| placement | technical | +1.36 | +0.97 | strong |
+| stamina | physical | +0.86 | +0.86 | strong |
+| backhand | core | +1.07 | +0.82 | strong |
+| defensive | mental | +0.75 | +0.73 | moderate |
+| offensive | mental | +1.15 | +0.66 | moderate |
+| agility | physical | +0.08 | +0.14 | **noise** |
+| recovery | physical | +0.25 | +0.01 | **noise** |
+| overhead | technical | +0.24 | −0.12 | **noise** |
+| slice | core | +0.32 | −0.12 | **noise** |
+| volley | technical | +0.31 | −0.24 | **noise** |
+| dropShot | technical | +0.09 | −0.33 | **noise** |
+| shotVariety | mental | +0.05 | −0.37 | **noise** |
+
+Bucket totals: core +7.87 (was +7.88), mental +5.92 (was +6.69), physical +3.74 (was +4.48),
+technical +1.82 (was +3.70).
+
+Three things to take from this.
+
+**The primary stats got their weight back.** `forehand` nearly doubled and `return` rose — exactly
+what section 3 predicted from removing the double-count. Quality now tracks the stat that names the
+shot.
+
+**Support stats pay less, deliberately.** `placement`, `offensive` and `spin` all fell, and the
+technical bucket halved. That is the trade the centering makes: support bands are now symmetric
+around 50 instead of running 0→+20%, so they express build shape rather than a flat tax on being
+low-rated. Whether technical at +1.82 total is too cheap is a live tuning question — it is one
+constant, `MODIFIER_SPREAD`.
+
+**The same seven stats are still noise**, unchanged by any of this: `agility`, `recovery`,
+`overhead`, `slice`, `volley`, `dropShot`, `shotVariety`. None of the scaling fixes rescued them,
+which is consistent with section 5 — their problem is that nobody hits those shots often enough for
+the stat to matter, and no amount of curve-fixing changes a 1.6% usage rate. The consolidation
+candidates from the first version of this document stand, on that basis alone.
+
+---
+
+## 9. Open questions
+
+- **The mid-level winner hump.** At L≈40 every shot lands between 16% and 28% winners, less
+  differentiated than at either end, because `MINIMUM_WINNER_THRESHOLDS` binds there while
+  `PROBABILITY_STEEPNESS.rally.winner = 0.07` still gives a shot 17 points below its midpoint a 24%
+  chance. Fixing it means a joint retune of the steepness and the requirement table.
+- **The top of the range is compressed.** `TOTAL_MODIFIER_CAPS.rally = 1.25` binds for most shots
+  from L=60 up, so quality saturates near 99 and OVR 85 plays much like OVR 100. Not urgent while
+  content stops at tier 1, but it caps what tier 3/4 can feel like.
+- **The first serve still owes level less than it could.** It climbs now, but `SERVE_BASELINE`'s
+  midpoint is still a fixed ratio of `overallRating`, so an unrelated stat still nudges a player's
+  own serve-in bar. Comparing the accuracy roll against expected accuracy would remove that.
+  `SERVE_BASELINE`'s comments also still quote figures ("~62% first serves in", "~4-6% DFs") that
+  only hold near OVR 70.
+- **Mismatch severity is now a deliberate choice.** Centering and the floor change both widened it
+  — a new player takes 6.8% of points off Jordan, down from 14.5%. Accepted as correct for a
+  20-point rating gap, but it is now a design decision rather than a side effect of miscalibrated
+  constants.
+- **Consolidation.** Still plausibly right on frequency grounds. Worth re-deciding against section
+  8 rather than the withdrawn tax argument.

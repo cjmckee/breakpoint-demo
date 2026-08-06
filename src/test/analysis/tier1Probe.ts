@@ -36,7 +36,12 @@
  * (12.9% to 22.0%) while leaving winners rare and the OVR 70 reference
  * untouched. 'ml' is worse than the status quo: tier-1 winners go to 40%.
  *
- * Run: PARTS=ABC N=40 node dist/src/test/analysis/tier1Probe.js
+ * Part E: progression inside a tier — a player sweeping OVR 20 to 50 against
+ *         fixed opponents. Used to test anchoring matchLevel to a tier constant
+ *         instead of the two players' mean; the two curves came out the same
+ *         within noise, so no tier table was added.
+ *
+ * Run: PARTS=ABCDE N=40 node dist/src/test/analysis/tier1Probe.js
  */
 
 import type { MatchFormat, MatchState, PlayerStats } from '../../types/index.js';
@@ -303,6 +308,33 @@ function runMatchTapped(
   }
 }
 
+/**
+ * Progression sweep: does getting better inside a tier feel like getting
+ * better? A player climbing from OVR 20 to 50 plays the same fixed opponents
+ * under whichever matchLevel anchor is active.
+ */
+function partE(N: number): void {
+  const mode = process.env.ML_MODE ?? 'mean';
+  const anchor = mode === 'fixed' ? `tier-anchored at ${process.env.ML_FIXED ?? 70}` : 'mean of both players';
+  console.log(`\n── E. Progression inside tier 1 — matchLevel ${anchor} (${N} BO3 each) ──`);
+  const opponents: Array<[string, PlayerStats]> = [
+    ['Big Steve (28)', ROSTER[2][1]],
+    ['Jordan (46)', ROSTER[5][1]],
+  ];
+  for (const [name, opp] of opponents) {
+    console.log(`\n  vs ${name}`);
+    console.log(['  player OVR'.padEnd(14), 'pt-win%'.padStart(9), 'mean rally'.padStart(12),
+      '≤2-shot%'.padStart(10)].join(''));
+    console.log('  ' + '-'.repeat(43));
+    for (const L of [20, 25, 30, 35, 40, 45, 50]) {
+      const acc = play(uniform(L), opp, N);
+      console.log([`  ${L}`.padEnd(14), pct(acc.playerWon, acc.points).padStart(9),
+        (acc.rallySum / acc.points).toFixed(2).padStart(12),
+        pct(acc.short, acc.points).padStart(10)].join(''));
+    }
+  }
+}
+
 function main(): void {
   const N = Number(process.env.N ?? 40);
   const parts = process.env.PARTS ?? 'ABCD';
@@ -310,6 +342,7 @@ function main(): void {
   if (parts.includes('B')) partB(N);
   if (parts.includes('C')) partC(N);
   if (parts.includes('D')) partD(N);
+  if (parts.includes('E')) partE(N);
   console.log('');
 }
 
