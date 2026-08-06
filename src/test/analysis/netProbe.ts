@@ -88,13 +88,15 @@ interface Tally {
   netShot2: Map<string, number>;
   volleyQ: number[];
   reply2Q: number[];
+  /** the player's baseline shots after the return — the moments an approach was possible */
+  approachChances: number;
 }
 
 const newTally = (): Tally => ({
   points: 0, pastReturn: 0, arrived: 0, hit: 0, rallyShots: 0,
   volleys: 0, overheads: 0, approaches: 0, approachesIn: 0, afterApproach: new Map(),
   seq: new Map(), netShot1: new Map(), reply2: new Map(), netShot2: new Map(),
-  volleyQ: [], reply2Q: [],
+  volleyQ: [], reply2Q: [], approachChances: 0,
 });
 
 const bump = (m: Map<string, number>, k: string): void => { m.set(k, (m.get(k) ?? 0) + 1); };
@@ -153,6 +155,12 @@ function scorePoint(shots: ShotDetail[], role: 'server' | 'returner', t: Tally):
       if (s.outcome === PointType.IN_PLAY) t.approachesIn++;
     }
   }
+  for (const s of mine) {
+    if (s.shotType.includes('serve') || s.shotType.includes('return')) continue;
+    if (isNetShot(s.shotType) || s.context.courtPosition === 'net') continue;
+    t.approachChances++;
+  }
+
   if (rally.length < 3) return;   // never got past the return
   t.pastReturn++;
 
@@ -221,7 +229,8 @@ function main(): void {
   console.log('\nARRIVED / HIT are shares of rallies that got PAST THE RETURN.');
   console.log('The last two columns are shares of the player\'s rally shots.\n');
   console.log(['build'.padEnd(32), 'ARRIVED'.padStart(9), 'HIT'.padStart(8), 'appr in'.padStart(9),
-    'volley%'.padStart(9), 'v+oh%'.padStart(8)].join(''));
+    'volley%'.padStart(9), 'v+oh%'.padStart(8), 'appr/chance'.padStart(12),
+    'chances/rally'.padStart(14)].join(''));
   console.log('-'.repeat(76));
 
   const tallies: Array<[string, Tally]> = [];
@@ -237,7 +246,9 @@ function main(): void {
     tallies.push([name, t]);
     console.log([name.padEnd(32), pct(t.arrived, t.pastReturn).padStart(9), pct(t.hit, t.pastReturn).padStart(8),
       pct(t.approachesIn, t.approaches).padStart(9), pct(t.volleys, t.rallyShots).padStart(9),
-      pct(t.volleys + t.overheads, t.rallyShots).padStart(8)].join(''));
+      pct(t.volleys + t.overheads, t.rallyShots).padStart(8),
+      pct(t.approaches, t.approachChances).padStart(12),
+      (t.approachChances / Math.max(1, t.pastReturn)).toFixed(2).padStart(14)].join(''));
   }
 
   const t3 = tallies.find(([n]) => n === 'net_downhill T3')?.[1];

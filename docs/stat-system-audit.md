@@ -511,5 +511,8 @@ which is a label applied after the point is already lost and drives nothing but 
 - **The top of the range is compressed.** `TOTAL_MODIFIER_CAPS.rally = 1.25` binds for most shots
   from L=60 up, so quality saturates near 99 and OVR 85 plays much like OVR 100. Not urgent while
   content stops at tier 1, but it caps what tier 3/4 can feel like.
-- **Consolidation.** Still plausibly right on frequency grounds. Worth re-deciding against section
-  8 rather than the withdrawn tax argument.
+- **Consolidation.** Written up separately in
+  [`stat-consolidation-plan.md`](./stat-consolidation-plan.md): 5 core (one per `GamePhase`) plus
+  3/3/3, with `volley`+`overhead` merging into a core `net` stat and `slice` moving to technical.
+  Gated on the net phase being worth a core slot — approach frequency is the one piece still
+  missing.
