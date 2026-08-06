@@ -28,6 +28,7 @@ import { getPrimaryStatName } from './shotStatMapping.js';
 import { getQualityThresholds, getMatchLevel } from '../utils/qualityThresholds.js';
 import {
   RELATIVE_QUALITY_REQUIREMENTS,
+  WINNER_REQUIREMENTS,
   MIN_QUALITY_FLOORS,
   FLOOR_CALIBRATION_LEVEL,
   MINIMUM_WINNER_THRESHOLDS,
@@ -322,7 +323,7 @@ export class ShotCalculator {
     const multipliers = OUTCOME_MULTIPLIERS[shotCategory];
 
     // Calculate winner threshold with minimum floor
-    const calculatedWinner = inPlayReq * multipliers.winner;
+    const calculatedWinner = inPlayReq * WINNER_REQUIREMENTS[shotType];
     const winnerThreshold = Math.max(
       calculatedWinner,
       MINIMUM_WINNER_THRESHOLDS[shotCategory]

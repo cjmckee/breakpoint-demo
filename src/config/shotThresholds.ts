@@ -126,35 +126,109 @@ export const MINIMUM_WINNER_THRESHOLDS = {
 /**
  * Outcome multipliers for determining winners and forced errors
  *
- * Different shot categories have different winner multipliers:
- * - Defensive shots: EASY to keep in play, HARD to hit winners (high multiplier)
- * - Offensive shots: HARDER to keep in play, EASIER to hit winners (low multiplier)
- * - Neutral shots: Balanced
- *
- * This creates realistic shot dynamics: defensive slices extend rallies but rarely win,
- * power shots are risky but can win points if executed well.
+ * Categories set how easy a shot is to keep in play and where the forced/unforced
+ * error line falls. Winner difficulty is per-shot — see WINNER_REQUIREMENTS.
  */
 export const OUTCOME_MULTIPLIERS = {
   // Defensive shots: slices, lobs, defensive overheads
   defensive: {
     inPlay: 1.0,        // Base requirement (easiest to keep in play)
-    winner: 3.5,        // Need 3.5x the requirement for winner (very hard)
     forcedError: 0.7,   // Below 70% = forced error
   },
 
   // Neutral shots: regular groundstrokes, volleys
   neutral: {
     inPlay: 1.0,        // Base requirement
-    winner: 2.5,        // Need 2.5x the requirement for winner (raised from 2.0)
     forcedError: 0.7,   // Below 70% = forced error
   },
 
   // Offensive shots: power shots, overheads, passing shots, angles
   offensive: {
     inPlay: 1.0,        // Base requirement
-    winner: 1.8,        // Need 1.8x the requirement for winner (raised from 1.5)
     forcedError: 0.7,   // Below 70% = forced error
   },
+};
+
+/**
+ * Winner requirement per shot type, as a multiple of the shot's in-play
+ * requirement.
+ *
+ * This is per-shot rather than per-category because the in-play requirement it
+ * multiplies already varies from 0.25 (defensive slice) to 0.85 (power return).
+ * A single category multiplier on top of that produced an effective winner
+ * difficulty ranging from 0.81 to 2.63 times incoming quality, in no relation
+ * to which shots are supposed to end points.
+ *
+ * That mattered because shot quality is bounded — it clamps at 100, and
+ * TOTAL_MODIFIER_CAPS.rally holds it near there from about level 60 up — while
+ * these midpoints are not. At high levels every shot produces ~96-99 quality,
+ * so the ordering of who wins points is decided entirely by this product. Under
+ * the old category multipliers an expert's best point-ender was the drop shot
+ * (75% winners) followed by the defensive slice (45%), while the passing shot
+ * managed 11%, the volley 3% and the return 0.3%. Backwards end to end.
+ *
+ * Values are set from the intended winner rate at the top of the stat range:
+ * shots meant to finish points (overhead, power, passing, volley, drop) climb
+ * with level, while defensive shots (slice, lob, return) stay rare no matter
+ * how good the player is. MINIMUM_WINNER_THRESHOLDS keeps them all rare at the
+ * bottom, where it binds.
+ */
+export const WINNER_REQUIREMENTS: Record<ShotType, number> = {
+  // Serves resolve through determineServeOutcome and never read this.
+  'serve_first': 1.80,
+  'serve_second': 1.80,
+
+  // Neutral groundstrokes — a solid rally ball, not a finisher
+  'forehand': 2.15,
+  'backhand': 2.15,
+
+  // Power shots — the primary point-enders
+  'forehand_power': 1.55,
+  'backhand_power': 1.55,
+
+  // Approach shots set up the finish rather than being it
+  'forehand_approach': 2.05,
+  'backhand_approach': 2.05,
+
+  // Volleys finish points; the power volley finishes harder
+  'volley_forehand': 1.85,
+  'volley_backhand': 1.85,
+  'volley_forehand_power': 1.55,
+  'volley_backhand_power': 1.55,
+  'half_volley_forehand': 2.00,
+  'half_volley_backhand': 2.00,
+
+  // Overheads are the cleanest put-away in the game
+  'overhead': 1.70,
+  'defensive_overhead': 2.60,
+
+  // Drop shots win, but not three times more often than a smash
+  'drop_shot_forehand': 2.50,
+  'drop_shot_backhand': 2.50,
+
+  // Angles open the court and win outright reasonably often
+  'angle_shot_forehand': 1.85,
+  'angle_shot_backhand': 1.85,
+
+  // Slices extend rallies — they should almost never be the winning shot
+  'slice_forehand': 3.50,
+  'slice_backhand': 3.50,
+  'defensive_slice_forehand': 5.00,
+  'defensive_slice_backhand': 5.00,
+
+  // Returns are survival, not offence; the power return is a real weapon
+  'return_forehand': 2.75,
+  'return_backhand': 2.75,
+  'return_forehand_power': 1.80,
+  'return_backhand_power': 1.80,
+
+  // Lobs reset the point
+  'lob_forehand': 4.15,
+  'lob_backhand': 4.15,
+
+  // Passing shots are hit to win
+  'passing_shot_forehand': 1.55,
+  'passing_shot_backhand': 1.55,
 };
 
 /**
