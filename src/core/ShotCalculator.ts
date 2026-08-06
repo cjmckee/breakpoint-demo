@@ -29,6 +29,7 @@ import { getQualityThresholds, getMatchLevel } from '../utils/qualityThresholds.
 import {
   RELATIVE_QUALITY_REQUIREMENTS,
   MIN_QUALITY_FLOORS,
+  FLOOR_CALIBRATION_LEVEL,
   MINIMUM_WINNER_THRESHOLDS,
   OUTCOME_MULTIPLIERS,
   SERVE_BASELINE,
@@ -233,7 +234,8 @@ export class ShotCalculator {
         shooterProfile.stats,
         opponentProfile.stats,
         opponentPosition,
-        surface
+        surface,
+        matchLevel
       );
 
       outcome = this.determineOutcome(quality, thresholds);
@@ -279,7 +281,8 @@ export class ShotCalculator {
     shooterStats: PlayerStats,
     opponentStats: PlayerStats,
     opponentPosition: CourtPosition,
-    courtSurface: CourtSurface
+    courtSurface: CourtSurface,
+    matchLevel: number
   ): QualityThresholds {
     console.log('Sigmoid midpoint calculation for', shotType);
     // Get base multiplier for this shot type
@@ -309,7 +312,11 @@ export class ShotCalculator {
     const positionAdj = POSITION_ADJUSTMENTS[opponentPosition];
     inPlayReq += positionAdj;
 
-    inPlayReq = Math.max(inPlayReq, minFloor);
+    // The floors are absolute constants calibrated at FLOOR_CALIBRATION_LEVEL;
+    // scale them so they act as a backstop at every level rather than becoming
+    // the operative requirement at low ones.
+    const scaledFloor = minFloor * (matchLevel / FLOOR_CALIBRATION_LEVEL);
+    inPlayReq = Math.max(inPlayReq, scaledFloor);
 
     // Get category-specific outcome multipliers
     const multipliers = OUTCOME_MULTIPLIERS[shotCategory];
@@ -321,7 +328,7 @@ export class ShotCalculator {
       MINIMUM_WINNER_THRESHOLDS[shotCategory]
     );
 
-    console.log(`  Incoming: ${incomingQuality.toFixed(1)} × ${baseMultiplier.toFixed(2)} = ${baseRequirement.toFixed(1)} base | Adjustments: def ${defensiveAdj >= 0 ? '+' : ''}${defensiveAdj.toFixed(1)} (surface ×${surfaceEffects.defensiveAdjustmentMultiplier}), spd ${speedAdj >= 0 ? '+' : ''}${speedAdj.toFixed(1)}, ant -${anticipationAdj.toFixed(1)}, pos ${positionAdj >= 0 ? '+' : ''}${positionAdj.toFixed(1)} | Floor: ${minFloor}`);
+    console.log(`  Incoming: ${incomingQuality.toFixed(1)} × ${baseMultiplier.toFixed(2)} = ${baseRequirement.toFixed(1)} base | Adjustments: def ${defensiveAdj >= 0 ? '+' : ''}${defensiveAdj.toFixed(1)} (surface ×${surfaceEffects.defensiveAdjustmentMultiplier}), spd ${speedAdj >= 0 ? '+' : ''}${speedAdj.toFixed(1)}, ant -${anticipationAdj.toFixed(1)}, pos ${positionAdj >= 0 ? '+' : ''}${positionAdj.toFixed(1)} | Floor: ${scaledFloor.toFixed(1)}`);
     console.log(`  Sigmoid midpoints → inPlay: ${inPlayReq.toFixed(1)} | winner: ${winnerThreshold.toFixed(1)} | forcedError: ${(inPlayReq * multipliers.forcedError).toFixed(1)}`);
 
     // Calculate derived thresholds
