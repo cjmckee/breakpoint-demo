@@ -35,7 +35,10 @@ import {
   SERVE_CONTEST,
   OPPONENT_STAT_ADJUSTMENTS,
   SHOOTER_STAT_ADJUSTMENTS,
-  MENTAL_SHOT_BONUSES,
+  STAT_MODIFIER_BANDS,
+  STAT_BONUS_BANDS,
+  statModifier,
+  statBonus,
   POSITION_ADJUSTMENTS,
   SERVE_VARIANCE,
   RETURN_VARIANCE,
@@ -584,8 +587,7 @@ export class ShotCalculator {
       return 0;
     }
 
-    // Linear scaling: 0-20% bonus based on spin stat
-    return (spinStat / 100) * 20; // 50 spin = 10% bonus, 75 spin = 15% bonus
+    return statBonus(spinStat, STAT_BONUS_BANDS.spin);
   }
 
   /**
@@ -597,8 +599,7 @@ export class ShotCalculator {
       return 0;
     }
 
-    // Linear scaling: 0-15% bonus for precision shots
-    return (placementStat / 100) * 15; // 60 placement = 9% bonus, 80 placement = 12% bonus
+    return statBonus(placementStat, STAT_BONUS_BANDS.placement);
   }
 
   /**
@@ -615,24 +616,18 @@ export class ShotCalculator {
     // Speed helps with defensive shots and court coverage
     if (SHOT_CLASSIFICATIONS.defensiveShots.includes(shotType as any) ||
         context.courtPosition === 'defensive') {
-      // 0 speed = 0.8x, 100 speed = 1.0x
-      const speedModifier = 0.8 + (physical.speed / 100) * 0.2;
-      modifier *= speedModifier;
+      modifier *= statModifier(physical.speed, STAT_MODIFIER_BANDS.speed);
     }
 
     // Strength helps with power shots
     if (SHOT_CLASSIFICATIONS.powerShots.includes(shotType as any)) {
-      // 0 strength = 0.9x, 100 strength = 1.1x
-      const strengthModifier = 0.9 + (physical.strength / 100) * 0.2;
-      modifier *= strengthModifier;
+      modifier *= statModifier(physical.strength, STAT_MODIFIER_BANDS.strength);
     }
 
     // Agility helps with net shots and quick reactions (check ballQuality for time pressure)
     const isRushed = ballQuality?.timeAvailable === 'rushed';
     if (SHOT_CLASSIFICATIONS.netShots.includes(shotType as any) || isRushed) {
-      // 0 agility = 0.85x, 100 agility = 1.15x
-      const agilityModifier = 0.85 + (physical.agility / 100) * 0.3;
-      modifier *= agilityModifier;
+      modifier *= statModifier(physical.agility, STAT_MODIFIER_BANDS.agility);
     }
 
     return modifier;
@@ -660,30 +655,25 @@ export class ShotCalculator {
 
     // Anticipation helps when opponent is well-positioned (at net or excellent position)
     if (opponentPosition === 'at_net' || opponentPosition === 'well_positioned') {
-      // 0 anticipation = 0.8x, 100 anticipation = 1.0x
-      const anticipationModifier = 0.8 + (mental.anticipation / 100) * 0.2;
-      modifier *= anticipationModifier;
+      modifier *= statModifier(mental.anticipation, STAT_MODIFIER_BANDS.anticipation);
     }
 
     // Shot variety only helps on actual tactical shots — drop, angle, lob, passing.
     // High-variety players execute these creative shots more cleanly.
     if (isTacticalShot(shotType)) {
-      const varietyModifier = MENTAL_SHOT_BONUSES.variety.base + mental.shotVariety * MENTAL_SHOT_BONUSES.variety.perStat;
-      modifier *= varietyModifier;
+      modifier *= statModifier(mental.shotVariety, STAT_MODIFIER_BANDS.variety);
     }
 
     // Defensive stat only helps when actually playing defense — slices, lobs, defensive shots.
     // Strong defenders dig out tough balls more reliably.
     if (isDefensiveShot(shotType)) {
-      const defenseModifier = MENTAL_SHOT_BONUSES.defense.base + mental.defensive * MENTAL_SHOT_BONUSES.defense.perStat;
-      modifier *= defenseModifier;
+      modifier *= statModifier(mental.defensive, STAT_MODIFIER_BANDS.defense);
     }
 
     // Apply offensive modification - first serve, overhead, power shots
     // Strong offensive players execute power shots more reliably.
     if (isOffensiveShot(shotType)) {
-      const offenseModifier = MENTAL_SHOT_BONUSES.offense.base + mental.offensive * MENTAL_SHOT_BONUSES.offense.perStat;
-      modifier *= offenseModifier;
+      modifier *= statModifier(mental.offensive, STAT_MODIFIER_BANDS.offense);
     }
 
     return modifier;
