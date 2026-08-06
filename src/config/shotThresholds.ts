@@ -102,25 +102,95 @@ export const MIN_QUALITY_FLOORS = {
 export const FLOOR_CALIBRATION_LEVEL = 70;
 
 /**
- * Minimum winner thresholds by shot category
+ * Minimum winner threshold per shot type — an absolute quality floor a shot must
+ * approach before it can be an outright winner, regardless of how weak the
+ * incoming ball was.
  *
- * Even against very weak incoming shots, you need minimum quality to hit a winner.
- * This prevents situations where after long rallies with degraded quality,
- * the first shot hit becomes an automatic winner.
+ * Per-shot rather than per-category, because with three category values
+ * (50/55/60) this floor binds for nearly every shot at mid level and flattens
+ * the whole shot set together: at level 40 a player produced ~36 quality against
+ * floors 10-24 points above it, and PROBABILITY_STEEPNESS.rally.winner is
+ * deliberately flat, so everything landed between 16% and 28% winners. Shot
+ * choice stopped mattering exactly in the middle of the range.
  *
- * Example: After a quality-26 shot, defensive slice would normally only need
- * quality 30 to win. With floor of 55, it now needs quality 55+ to be a winner.
+ * Spreading the floors per shot restores that differentiation without touching
+ * the sigmoid: at level 40 winner rates now run from 0.5% (defensive slice) to
+ * 22% (overhead). Sweeping steepness from 0.05 to 0.16 barely moved the fit —
+ * this was never a steepness problem.
+ *
+ * Values above 100 are legitimate. These are sigmoid midpoints, not hard cutoffs,
+ * so a floor of 111 means "vanishingly rare at every level" rather than
+ * "impossible" — which is the intent for a defensive slice.
+ *
+ * These stay absolute rather than scaling with match level. Scaling them was
+ * measured and is worse than leaving them alone: at tier-1 levels it takes
+ * winners from 7% of points to 40% and makes rallies shorter, the exact failure
+ * this floor exists to prevent.
  */
-/*
- * These stay absolute. Scaling them with match level was measured and is worse
- * than leaving them alone: at tier-1 levels it takes winners from 7% of points
- * to 40% and makes rallies shorter, which is precisely the failure the floor
- * exists to prevent.
+/**
+ * Global offset applied to every winner floor — the single dial for how often
+ * points end in a winner rather than an error, without disturbing the ordering
+ * the table sets. Negative values mean more winners.
+ *
+ * Measured across the ladder (winners as a share of points):
+ *
+ *   offset     new player (20)   Jordan (46)   uniform 55   uniform 70
+ *        0                2.0%         13.2%        21.7%        36.7%
+ *       -6                2.1%         17.0%        25.3%        39.4%
+ *      -12                4.5%         22.3%        28.8%        43.5%
+ *
+ * For reference, the per-category floors this table replaced gave 11.7% / 34.2%
+ * / 37.3% / 40.4% — more winners everywhere, but with almost no differentiation
+ * between shots in the middle of the range.
  */
-export const MINIMUM_WINNER_THRESHOLDS = {
-  defensive: 60,    // Even perfect setup, defensive shot needs 60+ quality to win
-  neutral: 55,      // Regular shots need 55+ quality to be winners
-  offensive: 50,    // Power shots can win with 50+ quality (lower floor, high reward)
+export const WINNER_FLOOR_OFFSET = 0;
+
+export const MINIMUM_WINNER_THRESHOLDS: Record<ShotType, number> = {
+  // Serves resolve through determineServeOutcome and never read this.
+  'serve_first': 50,
+  'serve_second': 50,
+
+  // Put-aways — the lowest bar in the game
+  'overhead': 53,
+  'defensive_overhead': 75,
+
+  // Power shots
+  'forehand_power': 58,
+  'backhand_power': 58,
+  'volley_forehand_power': 58,
+  'volley_backhand_power': 58,
+  'return_forehand_power': 65,
+  'return_backhand_power': 65,
+
+  // Passing shots and volleys finish points from open positions
+  'passing_shot_forehand': 61,
+  'passing_shot_backhand': 61,
+  'volley_forehand': 62,
+  'volley_backhand': 62,
+  'half_volley_forehand': 70,
+  'half_volley_backhand': 70,
+
+  // Touch and angle
+  'drop_shot_forehand': 65,
+  'drop_shot_backhand': 65,
+  'angle_shot_forehand': 69,
+  'angle_shot_backhand': 69,
+
+  // Rally balls — a clean groundstroke can win, but it is not a put-away
+  'forehand': 82,
+  'backhand': 82,
+  'forehand_approach': 89,
+  'backhand_approach': 89,
+
+  // Defensive shots should almost never be the winning shot
+  'slice_forehand': 100,
+  'slice_backhand': 100,
+  'return_forehand': 101,
+  'return_backhand': 101,
+  'lob_forehand': 108,
+  'lob_backhand': 108,
+  'defensive_slice_forehand': 111,
+  'defensive_slice_backhand': 111,
 };
 
 /**
@@ -191,34 +261,34 @@ export const WINNER_REQUIREMENTS: Record<ShotType, number> = {
   'backhand_approach': 2.05,
 
   // Volleys finish points; the power volley finishes harder
-  'volley_forehand': 1.85,
-  'volley_backhand': 1.85,
+  'volley_forehand': 1.90,
+  'volley_backhand': 1.90,
   'volley_forehand_power': 1.55,
   'volley_backhand_power': 1.55,
   'half_volley_forehand': 2.00,
   'half_volley_backhand': 2.00,
 
   // Overheads are the cleanest put-away in the game
-  'overhead': 1.70,
+  'overhead': 1.75,
   'defensive_overhead': 2.60,
 
   // Drop shots win, but not three times more often than a smash
-  'drop_shot_forehand': 2.50,
-  'drop_shot_backhand': 2.50,
+  'drop_shot_forehand': 2.55,
+  'drop_shot_backhand': 2.55,
 
   // Angles open the court and win outright reasonably often
-  'angle_shot_forehand': 1.85,
-  'angle_shot_backhand': 1.85,
+  'angle_shot_forehand': 1.90,
+  'angle_shot_backhand': 1.90,
 
   // Slices extend rallies — they should almost never be the winning shot
   'slice_forehand': 3.50,
   'slice_backhand': 3.50,
-  'defensive_slice_forehand': 5.00,
-  'defensive_slice_backhand': 5.00,
+  'defensive_slice_forehand': 4.95,
+  'defensive_slice_backhand': 4.95,
 
   // Returns are survival, not offence; the power return is a real weapon
-  'return_forehand': 2.75,
-  'return_backhand': 2.75,
+  'return_forehand': 2.50,
+  'return_backhand': 2.50,
   'return_forehand_power': 1.80,
   'return_backhand_power': 1.80,
 

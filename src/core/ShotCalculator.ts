@@ -32,6 +32,7 @@ import {
   MIN_QUALITY_FLOORS,
   FLOOR_CALIBRATION_LEVEL,
   MINIMUM_WINNER_THRESHOLDS,
+  WINNER_FLOOR_OFFSET,
   OUTCOME_MULTIPLIERS,
   SERVE_BASELINE,
   SERVE_CONTEST,
@@ -326,7 +327,7 @@ export class ShotCalculator {
     const calculatedWinner = inPlayReq * WINNER_REQUIREMENTS[shotType];
     const winnerThreshold = Math.max(
       calculatedWinner,
-      MINIMUM_WINNER_THRESHOLDS[shotCategory]
+      MINIMUM_WINNER_THRESHOLDS[shotType] + WINNER_FLOOR_OFFSET
     );
 
     console.log(`  Incoming: ${incomingQuality.toFixed(1)} × ${baseMultiplier.toFixed(2)} = ${baseRequirement.toFixed(1)} base | Adjustments: def ${defensiveAdj >= 0 ? '+' : ''}${defensiveAdj.toFixed(1)} (surface ×${surfaceEffects.defensiveAdjustmentMultiplier}), spd ${speedAdj >= 0 ? '+' : ''}${speedAdj.toFixed(1)}, ant -${anticipationAdj.toFixed(1)}, pos ${positionAdj >= 0 ? '+' : ''}${positionAdj.toFixed(1)} | Floor: ${scaledFloor.toFixed(1)}`);

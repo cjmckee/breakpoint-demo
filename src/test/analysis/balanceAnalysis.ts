@@ -169,7 +169,7 @@ function computeRallyThresholds(
   const category = getShotCategory(shotType);
   const multipliers = OUTCOME_MULTIPLIERS[category];
   const floor = MIN_QUALITY_FLOORS[category];
-  const winnerFloor = MINIMUM_WINNER_THRESHOLDS[category];
+  const winnerFloor = MINIMUM_WINNER_THRESHOLDS[shotType];
 
   // Base requirement from incoming quality
   let inPlayReq = incomingQuality * relativeReq;
