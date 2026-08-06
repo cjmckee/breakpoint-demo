@@ -925,9 +925,18 @@ export class ShotCalculator {
     else if (shotType.includes('slice') || shotType.includes('defensive')) {
       timeAvailable = 'plenty';
     }
-    // Approach shots and volleys are typically aggressive
-    else if (shotType.includes('approach') || shotType.includes('volley')) {
+    // Approach shots are aggressive, but struck from mid-court
+    else if (shotType.includes('approach')) {
       timeAvailable = quality >= thresholds.high ? 'rushed' : 'normal';
+    }
+    // Volleys and overheads are struck from the net. What rushes the defender is
+    // the distance the ball travels, not how well the shot was hit, so the bar
+    // for applying time pressure is far lower than for a baseline shot. Without
+    // this a volley never cleared thresholds.high and applied no pressure at all
+    // — the ball coming back off an average volley measured HIGHER quality than
+    // the volley itself, so a good volley never set up the next one.
+    else if (shotType.includes('volley') || shotType.includes('overhead')) {
+      timeAvailable = quality >= thresholds.average ? 'rushed' : 'normal';
     }
     // General quality-based determination
     else if (quality >= thresholds.exceptional) {
