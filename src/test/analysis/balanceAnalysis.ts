@@ -17,7 +17,7 @@ import {
   print, printBanner, printHeader, printTable, printHistogram, fmtPct, fmtNum,
 } from './formatters.js';
 import {
-  SERVE_BASELINE,
+  SERVE_CONSISTENCY,
   SERVE_CONTEST,
   RELATIVE_QUALITY_REQUIREMENTS,
   OUTCOME_MULTIPLIERS,
@@ -90,8 +90,8 @@ function runServeAnalysis(): void {
   const calculator = new ShotCalculator();
 
   for (const serveType of SERVE_TYPES) {
-    const serveKey = serveType as keyof typeof SERVE_BASELINE;
-    const baseline = SERVE_BASELINE[serveKey];
+    const serveKey = serveType as keyof typeof SERVE_CONSISTENCY;
+    const baseline = SERVE_CONSISTENCY[serveKey];
     if (!baseline) continue;
 
     for (const oppReturnRating of OPPONENT_RETURN_RATINGS) {
@@ -101,7 +101,7 @@ function runServeAnalysis(): void {
       const aceThreshold = contest.aceBase + oppReturnRating * contest.acePerResistance;
 
       print(`  ${serveType} vs Opponent Return: ${oppReturnRating}`);
-      print(`  InPlay Threshold (base): ${baseline.inPlayThreshold} │ Ace Threshold (base): ${fmtNum(aceThreshold)}`);
+      print(`  InPlay midpoint: ${baseline.base} + ${baseline.perAccuracy} × expected accuracy │ Ace Threshold (base): ${fmtNum(aceThreshold)}`);
       print('');
 
       const rows: (string | number)[][] = [];
@@ -146,7 +146,7 @@ function runServeAnalysis(): void {
         if (quals) {
           print(`\n  Quality Distribution (Rating ${rating}, ${serveType}):`);
           printHistogram(quals, [
-            { label: 'InPlay', value: baseline.inPlayThreshold },
+            { label: 'InPlay', value: baseline.base + baseline.perAccuracy * rating },
             { label: 'Ace', value: aceThreshold },
           ]);
         }

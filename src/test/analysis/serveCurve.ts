@@ -4,7 +4,8 @@
  * The serve-in roll is:
  *
  *   accuracy = getServeAccuracy(type) × finalAdjustment + U(±SERVE_VARIANCE) + matchForm
- *   midpoint = overallRating × (SERVE_BASELINE[type].inPlayThreshold / 70)
+ *   midpoint = SERVE_CONSISTENCY[type].base
+ *            + SERVE_CONSISTENCY[type].perAccuracy × (accuracy composite × finalAdjustment)
  *   p(in)    = sigmoid(accuracy, midpoint, PROBABILITY_STEEPNESS.serve.inPlay)
  *
  * For a uniform-L build both getServeAccuracy and overallRating equal L, so
@@ -27,7 +28,7 @@ import type { PlayerStats, ShotContext } from '../../types/index.js';
 import type { ArchetypeProfile } from '../../types/archetype.js';
 import { PlayerProfile } from '../../core/PlayerProfile.js';
 import { ShotCalculator } from '../../core/ShotCalculator.js';
-import { SERVE_BASELINE, PROBABILITY_STEEPNESS, sigmoidProbability } from '../../config/shotThresholds.js';
+import { SERVE_CONSISTENCY, PROBABILITY_STEEPNESS, sigmoidProbability } from '../../config/shotThresholds.js';
 
 const NONE: ArchetypeProfile = { broad: null, phases: {}, specializationPoints: 0, respecTokens: 0 };
 const _origLog = console.log;
@@ -49,9 +50,8 @@ function main(): void {
   const calc = new ShotCalculator();
 
   for (const serveType of ['serve_first', 'serve_second'] as const) {
-    const base = SERVE_BASELINE[serveType].inPlayThreshold;
-    const ratio = base / 70;
-    console.log(`\n── ${serveType}: midpoint = OVR × ${base}/70 = ${ratio.toFixed(3)} × OVR ──`);
+    const c = SERVE_CONSISTENCY[serveType];
+    console.log(`\n── ${serveType}: midpoint = ${c.base} + ${c.perAccuracy} × expected accuracy ──`);
     console.log(['L'.padStart(4), 'finalAdj'.padStart(10), 'accuracy'.padStart(10), 'midpoint'.padStart(10),
       'margin'.padStart(9), 'p(in)'.padStart(8)].join(''));
     console.log('-'.repeat(53));
@@ -72,12 +72,13 @@ function main(): void {
       }
       console.log = _origLog;
 
-      const adj = adjSum / N, acc = accSum / N, mid = L * ratio;
+      const adj = adjSum / N, acc = accSum / N;
+      const mid = c.base + c.perAccuracy * (adj * L);
       console.log([String(L).padStart(4), adj.toFixed(3).padStart(10), acc.toFixed(1).padStart(10),
         mid.toFixed(1).padStart(10), (acc - mid >= 0 ? '+' : '') + (acc - mid).toFixed(1).padStart(8),
         `${((inSum / N) * 100).toFixed(1)}%`.padStart(8)].join(''));
     }
-    console.log(`\ncrossover: finalAdjustment must exceed ${ratio.toFixed(3)} for the margin to go positive`);
+    console.log('\nmargin now depends only on the expected accuracy, not on overall rating.');
   }
   console.log('');
 }

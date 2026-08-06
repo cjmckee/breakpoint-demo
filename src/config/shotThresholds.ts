@@ -340,20 +340,34 @@ export const WINNER_REQUIREMENTS: Record<ShotType, number> = {
 };
 
 /**
- * Serve baseline requirements (absolute thresholds)
+ * Serve-in consistency: where the serve-in midpoint sits relative to the serve
+ * the player was going to hit anyway.
  *
- * Serves don't have incoming shots, so use absolute thresholds.
- * inPlayThreshold: Quality needed to get serve in. Scaled by the SERVER's own
- *   overall rating (not the match level), so serve consistency depends on how
- *   the serve fits the server's own game — never on who is standing across the net.
+ * The roll is the accuracy composite through the shot modifiers, plus variance
+ * and match form. The midpoint is an affine function of the SAME expected
+ * accuracy, so the margin between them is a property of the player's serve and
+ * nothing else.
+ *
+ * This replaces a midpoint of `overallRating x inPlayThreshold / 70`. That was a
+ * fixed proportion of overall rating while the roll carried finalAdjustment,
+ * which climbs from about 0.71 at low stats to a cap of 1.0. The margin was
+ * therefore `L x (finalAdjustment - 0.886)` — two terms both scaling with L,
+ * nearly cancelling, so first-serve-in sat at 43-45% from OVR 20 to 30 and only
+ * moved once finalAdjustment crossed 0.886 around OVR 41. It also meant training
+ * any unrelated stat raised overallRating and so raised the player's own
+ * serve-in bar: the last self-coupling left in the system.
+ *
+ * Constants are fitted to a target curve rather than to tennis broadcast
+ * numbers, because 20 on this scale is a genuine beginner. First serves in run
+ * roughly 45% at OVR 20 to 71% at OVR 90; second serves 50% to 95%, giving a
+ * double-fault rate around 28% for a beginner falling to a couple of percent at
+ * the top.
+ *
+ *   midpoint = base + perAccuracy x (accuracyComposite x finalAdjustment)
  */
-export const SERVE_BASELINE = {
-  serve_first: {
-    inPlayThreshold: 62,      // Scaled by serverOVR/70. ~62% first serves in at stat parity
-  },
-  serve_second: {
-    inPlayThreshold: 32,      // Scaled by serverOVR/70. ~90% second serves in at parity → ~4-6% DFs
-  },
+export const SERVE_CONSISTENCY = {
+  serve_first: { base: 5.1, perAccuracy: 0.817 },
+  serve_second: { base: 11.3, perAccuracy: 0.376 },
 };
 
 /**

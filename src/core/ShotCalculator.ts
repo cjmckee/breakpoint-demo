@@ -36,7 +36,7 @@ import {
   WINNER_FLOOR_RETRIEVAL_WEIGHT,
   WINNER_FLOOR_RETRIEVAL_REF,
   OUTCOME_MULTIPLIERS,
-  SERVE_BASELINE,
+  SERVE_CONSISTENCY,
   SERVE_CONTEST,
   OPPONENT_STAT_ADJUSTMENTS,
   SHOOTER_STAT_ADJUSTMENTS,
@@ -208,15 +208,16 @@ export class ShotCalculator {
       const serveType = shotType as 'serve_first' | 'serve_second';
       const accuracyVariance = (Math.random() * 2 - 1) *
         (serveType === 'serve_first' ? SERVE_VARIANCE.first : SERVE_VARIANCE.second);
+      const expectedAccuracy = shooterProfile.getServeAccuracy(serveType) * modifiers.finalAdjustment;
       const serveAccuracy = Math.min(100, Math.max(0,
-        shooterProfile.getServeAccuracy(serveType) * modifiers.finalAdjustment +
-        accuracyVariance + shooterProfile.matchForm
+        expectedAccuracy + accuracyVariance + shooterProfile.matchForm
       ));
       modifiers.serveAccuracy = serveAccuracy;
 
       const serveOutcome = this.determineServeOutcome(
         quality,
         serveAccuracy,
+        expectedAccuracy,
         serveType,
         shooterProfile,
         opponentProfile,
@@ -398,18 +399,20 @@ export class ShotCalculator {
   private determineServeOutcome(
     serveQuality: number,
     serveAccuracy: number,
+    expectedAccuracy: number,
     serveType: 'serve_first' | 'serve_second',
     serverProfile: PlayerProfile,
     returnerProfile: PlayerProfile,
     courtSurface: CourtSurface
   ): { outcome: PointType; thresholds: QualityThresholds } {
-    const baseline = SERVE_BASELINE[serveType];
+    const consistency = SERVE_CONSISTENCY[serveType];
     const contest = SERVE_CONTEST[serveType];
     const surfaceEffects = SURFACE_EFFECTS[courtSurface];
 
-    // Serve-in scales with the server's own level: consistency reflects how the
-    // serve fits their overall game, independent of who is returning
-    const scaledInPlayThreshold = serverProfile.overallRating * (baseline.inPlayThreshold / 70);
+    // Serve-in is measured against the serve this player was going to hit anyway,
+    // so the margin is a property of their serve rather than of their overall
+    // rating — training an unrelated stat cannot move their own serve-in bar.
+    const scaledInPlayThreshold = consistency.base + consistency.perAccuracy * expectedAccuracy;
 
     // Ace resistance: returner's overall rating blended with their return composite.
     // On clay, returns are stronger so the ace bar is harder to clear; on grass it's easier.
@@ -425,7 +428,7 @@ export class ShotCalculator {
 
     console.log(`  🎯 ${serveType} sigmoid calculation:`);
     console.log(`    Serve quality: ${serveQuality.toFixed(1)} | accuracy: ${serveAccuracy.toFixed(1)}`);
-    console.log(`    InPlay sigmoid → midpoint: ${scaledInPlayThreshold.toFixed(1)} (base: ${baseline.inPlayThreshold} × serverOVR: ${serverProfile.overallRating} / 70) vs accuracy, steepness: ${PROBABILITY_STEEPNESS.serve.inPlay}, P(in): ${(pServeIn * 100).toFixed(1)}%`);
+    console.log(`    InPlay sigmoid → midpoint: ${scaledInPlayThreshold.toFixed(1)} (${consistency.base} + ${consistency.perAccuracy} × expected ${expectedAccuracy.toFixed(1)}) vs accuracy, steepness: ${PROBABILITY_STEEPNESS.serve.inPlay}, P(in): ${(pServeIn * 100).toFixed(1)}%`);
     console.log(`    Ace sigmoid    → midpoint: ${aceThreshold.toFixed(1)} (base ${contest.aceBase} + resistance ${resistance.toFixed(1)} × ${contest.acePerResistance} × surface ${surfaceEffects.returnAdjustmentMultiplier}), steepness: ${PROBABILITY_STEEPNESS.serve.ace}`);
 
     const thresholds: QualityThresholds = {

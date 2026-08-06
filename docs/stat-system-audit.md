@@ -280,6 +280,8 @@ is doing exactly the job it was invented for.
 | `31afb15` | `MIN_QUALITY_FLOORS` scales with match level |
 | `39464ed` | Winner difficulty set per shot instead of per category |
 | *(this change)* | Winner floors set per shot; mid-level differentiation restored |
+| *(this change)* | Winner floor follows opponent retrieval; both winner tables refit |
+| *(this change)* | Serve-in measured against expected accuracy, not overall rating |
 
 ### Result on the shipped ladder
 
@@ -452,6 +454,31 @@ floor), targeting a deliberately flatter curve across levels. Mean absolute erro
 
 Ordering holds at every level and the range each shot travels is now 3-4× rather than 20×.
 
+### The serve, finally anchored to the serve
+
+`SERVE_BASELINE` set the serve-in midpoint at `overallRating × inPlayThreshold / 70` — a fixed
+proportion of overall rating, while the roll carried `finalAdjustment`. That was the last
+self-coupling in the system: training any unrelated stat raised `overallRating` and so raised the
+player's own serve-in bar.
+
+`SERVE_CONSISTENCY` replaces it with an affine function of the same expected accuracy the roll is
+built from, so the margin is a property of the player's serve and nothing else:
+
+```
+midpoint = base + perAccuracy × (accuracyComposite × finalAdjustment)
+```
+
+| L | 20 | 30 | 40 | 50 | 60 | 70 | 90 |
+|---|---|---|---|---|---|---|---|
+| first serve in, before | 43.6% | 44.7% | 49.1% | 56.2% | 62.7% | 64.8% | 68.2% |
+| first serve in, after | 45.7% | 50.1% | 53.8% | 56.3% | 60.6% | 63.9% | 70.0% |
+| second serve in, after | 52.6% | 64.3% | 74.6% | 83.0% | 88.8% | 92.8% | 97.2% |
+
+Smooth from the bottom rather than flat to L=41 then jumping. On the shipped ladder the
+double-fault rate now falls steadily with level — 31.6% for a new player, 23.6% for Big Steve,
+19.2% for Olivia Gulp, 15.1% for Jordan, 5.1% at uniform 70 — which is the beginner-to-expert curve
+the scale is supposed to express.
+
 ### A measurement error worth recording
 
 Every per-shot curve in this document before this section used an opponent who tracked the shooter's
@@ -484,10 +511,5 @@ which is a label applied after the point is already lost and drives nothing but 
 - **The top of the range is compressed.** `TOTAL_MODIFIER_CAPS.rally = 1.25` binds for most shots
   from L=60 up, so quality saturates near 99 and OVR 85 plays much like OVR 100. Not urgent while
   content stops at tier 1, but it caps what tier 3/4 can feel like.
-- **The first serve still owes level less than it could.** It climbs now, but `SERVE_BASELINE`'s
-  midpoint is still a fixed ratio of `overallRating`, so an unrelated stat still nudges a player's
-  own serve-in bar. Comparing the accuracy roll against expected accuracy would remove that.
-  `SERVE_BASELINE`'s comments also still quote figures ("~62% first serves in", "~4-6% DFs") that
-  only hold near OVR 70.
 - **Consolidation.** Still plausibly right on frequency grounds. Worth re-deciding against section
   8 rather than the withdrawn tax argument.
