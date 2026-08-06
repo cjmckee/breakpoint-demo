@@ -21,6 +21,7 @@ import {
   SERVE_CONTEST,
   RELATIVE_QUALITY_REQUIREMENTS,
   OUTCOME_MULTIPLIERS,
+  WINNER_REQUIREMENTS,
   MINIMUM_WINNER_THRESHOLDS,
   MIN_QUALITY_FLOORS,
   OPPONENT_STAT_ADJUSTMENTS,
@@ -180,7 +181,7 @@ function computeRallyThresholds(
   // Apply minimum floor
   inPlayReq = Math.max(inPlayReq, floor);
 
-  const winnerReq = Math.max(inPlayReq * multipliers.winner, winnerFloor);
+  const winnerReq = Math.max(inPlayReq * WINNER_REQUIREMENTS[shotType], winnerFloor);
   const forcedErrorReq = inPlayReq * multipliers.forcedError;
 
   return { inPlay: inPlayReq, winner: winnerReq, forcedError: forcedErrorReq };
