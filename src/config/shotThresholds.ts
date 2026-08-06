@@ -87,6 +87,21 @@ export const MIN_QUALITY_FLOORS = {
 };
 
 /**
+ * The match level MIN_QUALITY_FLOORS is calibrated at.
+ *
+ * The floors are absolute values inside an otherwise relative system, so at low
+ * levels they stop being a backstop and become the operative requirement: a
+ * 20-quality ball asks 0.50 x 20 = 10 for a groundstroke, which the neutral
+ * floor raises to 15 — a 50% higher bar than the relative system computed, from
+ * a constant chosen for play around 70. Scaling them by matchLevel keeps them
+ * doing their intended job (stopping requirements collapsing toward zero after
+ * long degraded rallies) at every level rather than only at this one.
+ *
+ * MINIMUM_WINNER_THRESHOLDS deliberately does NOT scale — see its own note.
+ */
+export const FLOOR_CALIBRATION_LEVEL = 70;
+
+/**
  * Minimum winner thresholds by shot category
  *
  * Even against very weak incoming shots, you need minimum quality to hit a winner.
@@ -95,6 +110,12 @@ export const MIN_QUALITY_FLOORS = {
  *
  * Example: After a quality-26 shot, defensive slice would normally only need
  * quality 30 to win. With floor of 55, it now needs quality 55+ to be a winner.
+ */
+/*
+ * These stay absolute. Scaling them with match level was measured and is worse
+ * than leaving them alone: at tier-1 levels it takes winners from 7% of points
+ * to 40% and makes rallies shorter, which is precisely the failure the floor
+ * exists to prevent.
  */
 export const MINIMUM_WINNER_THRESHOLDS = {
   defensive: 60,    // Even perfect setup, defensive shot needs 60+ quality to win
