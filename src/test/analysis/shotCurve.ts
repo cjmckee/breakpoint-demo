@@ -69,17 +69,26 @@ function incoming(q: number): ShotDetail {
 
 interface Row { adj: number; capped: number; quality: number; inPlay: number; winner: number; pIn: number; pWin: number; }
 
-function measure(shot: ShotType, L: number, N: number): Row {
+/**
+ * @param L     the shooter's level
+ * @param oppL  the opponent's level. Defaults to L (a same-level opponent, which
+ *              is how a match at level L actually plays). Pin it to isolate the
+ *              shooter's own scaling: the opponent's speed and defensive stats
+ *              feed OPPONENT_STAT_ADJUSTMENTS, so letting them rise with L means
+ *              the bar moves at the same time as the shot, and the curve shows
+ *              the two effects netted against each other rather than either one.
+ */
+function measure(shot: ShotType, L: number, N: number, oppL: number): Row {
   const calc = new ShotCalculator();
   const p = new PlayerProfile('p', 'P', uniform(L), NONE);
-  const o = new PlayerProfile('o', 'O', uniform(L), NONE);
+  const o = new PlayerProfile('o', 'O', uniform(oppL), NONE);
   p.matchForm = 0; o.matchForm = 0;
   const cap = TOTAL_MODIFIER_CAPS.rally;
 
   let adj = 0, capped = 0, q = 0, mIn = 0, mWin = 0, pIn = 0, pWin = 0;
   console.log = () => {};
   for (let i = 0; i < N; i++) {
-    const r = calc.calculateShotSuccess(p, shot, CONTEXT, o, 'well_positioned', incoming(L));
+    const r = calc.calculateShotSuccess(p, shot, CONTEXT, o, 'well_positioned', incoming(oppL));
     adj += r.modifiers.finalAdjustment;
     if (r.modifiers.finalAdjustment >= cap - 1e-9) capped++;
     q += r.quality;
@@ -99,8 +108,14 @@ function main(): void {
   const N = Number(process.env.N ?? 1200);
   const levels = (process.env.LEVELS ?? '20,30,40,50,60,70,85').split(',').map(Number);
   const shots = (process.env.SHOTS ? process.env.SHOTS.split(',') : SHOTS) as ShotType[];
+  const oppFixed = process.env.OPP ? Number(process.env.OPP) : null;
 
-  console.log(`\n╔══ SHOT CURVE — uniform-L shooter vs an incoming ball of quality L (${N} rolls/cell) ══╗`);
+  console.log(`\n╔══ SHOT CURVE — ${N} rolls/cell ══╗`);
+  console.log(oppFixed === null
+    ? '\nOpponent tracks the shooter (same-level match).'
+    : `\nOpponent PINNED at level ${oppFixed}: incoming ball quality and the opponent's`
+      + '\nspeed/defensive contribution to the bar are held constant, so the curve'
+      + '\nshows the shooter\'s own scaling only.');
   console.log('\nquality: what the shooter produces | in/win: sigmoid midpoints they are measured against');
   console.log('margin = quality − inPlay midpoint. A shot that scales has a margin that grows with L.\n');
 
@@ -110,7 +125,7 @@ function main(): void {
       'inPlay'.padStart(8), 'margin'.padStart(8), 'p(in)'.padStart(8),
       'winner'.padStart(8), 'p(win)'.padStart(8)].join(''));
     for (const L of levels) {
-      const r = measure(shot, L, N);
+      const r = measure(shot, L, N, oppFixed ?? L);
       const margin = r.quality - r.inPlay;
       console.log([String(L).padStart(4), r.adj.toFixed(3).padStart(10), r.capped.toFixed(0).padStart(9),
         r.quality.toFixed(1).padStart(9), r.inPlay.toFixed(1).padStart(8),

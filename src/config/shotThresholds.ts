@@ -145,6 +145,43 @@ export const FLOOR_CALIBRATION_LEVEL = 70;
  */
 export const WINNER_FLOOR_OFFSET = 0;
 
+/**
+ * How far the winner floor follows the opponent instead of standing still.
+ *
+ * A purely absolute floor makes the shot economy change character with level,
+ * because shot quality rises roughly with the stat while the floor does not.
+ * Measured against a same-level opponent, a forehand went from 1.2% winners at
+ * level 20 to 23.4% at level 85 — the floor acts as a step, and once quality
+ * clears it every shot starts winning. That is the concern the two-player
+ * average was originally reaching for.
+ *
+ * Scaling the floor fully with the opponent is the opposite failure: it flattens
+ * progression, since a same-level opponent's retrieval rises in step with the
+ * shooter's quality and the two cancel. So this is a blend. 0 is a fixed floor;
+ * 1 follows the opponent completely.
+ *
+ * Anchored to the OPPONENT only — never the shooter, and never the two-player
+ * average — so improving your own stats can never raise your own winner bar.
+ *
+ * Measured, winners as a share of points:
+ *
+ *   weight    new player (20)   Jordan (46)   uniform 55   uniform 70
+ *        0               2.0%         13.2%        21.7%        36.7%
+ *     0.35               5.3%         16.6%        19.9%        30.5%
+ *     0.50               7.1%         16.2%        19.7%        23.1%
+ *
+ * And per-shot against a same-level opponent, forehand winners by level
+ * (20/30/40/60/85): 1.2/2.5/4.9/18.9/23.4 at weight 0, versus 6.5/7.4/8.2/
+ * 11.4/20.0 at weight 0.5 — the same game at every level rather than a
+ * different one. Progression is still paid: against a PINNED level-30
+ * opponent, a forehand at weight 0.5 goes 3.5% to 89.7% as the shooter climbs
+ * 20 to 85, ahead of the 1.1% to 74.0% a fixed floor gives.
+ */
+export const WINNER_FLOOR_RETRIEVAL_WEIGHT = 0.35;
+
+/** Opponent retrieval at which the blended floor equals its table value. */
+export const WINNER_FLOOR_RETRIEVAL_REF = 50;
+
 export const MINIMUM_WINNER_THRESHOLDS: Record<ShotType, number> = {
   // Serves resolve through determineServeOutcome and never read this.
   'serve_first': 50,

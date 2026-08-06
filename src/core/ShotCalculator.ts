@@ -33,6 +33,8 @@ import {
   FLOOR_CALIBRATION_LEVEL,
   MINIMUM_WINNER_THRESHOLDS,
   WINNER_FLOOR_OFFSET,
+  WINNER_FLOOR_RETRIEVAL_WEIGHT,
+  WINNER_FLOOR_RETRIEVAL_REF,
   OUTCOME_MULTIPLIERS,
   SERVE_BASELINE,
   SERVE_CONTEST,
@@ -325,9 +327,15 @@ export class ShotCalculator {
 
     // Calculate winner threshold with minimum floor
     const calculatedWinner = inPlayReq * WINNER_REQUIREMENTS[shotType];
+    // The winner floor follows the opponent's ability to retrieve, so a winner
+    // stays "a ball this opponent cannot reach" at every level rather than a
+    // fixed number that means something different at 25 than at 60.
+    const retrieval = (opponentStats.physical.speed + opponentStats.mental.defensive) / 2;
+    const floorScale = (1 - WINNER_FLOOR_RETRIEVAL_WEIGHT)
+      + WINNER_FLOOR_RETRIEVAL_WEIGHT * (retrieval / WINNER_FLOOR_RETRIEVAL_REF);
     const winnerThreshold = Math.max(
       calculatedWinner,
-      MINIMUM_WINNER_THRESHOLDS[shotType] + WINNER_FLOOR_OFFSET
+      (MINIMUM_WINNER_THRESHOLDS[shotType] + WINNER_FLOOR_OFFSET) * floorScale
     );
 
     console.log(`  Incoming: ${incomingQuality.toFixed(1)} × ${baseMultiplier.toFixed(2)} = ${baseRequirement.toFixed(1)} base | Adjustments: def ${defensiveAdj >= 0 ? '+' : ''}${defensiveAdj.toFixed(1)} (surface ×${surfaceEffects.defensiveAdjustmentMultiplier}), spd ${speedAdj >= 0 ? '+' : ''}${speedAdj.toFixed(1)}, ant -${anticipationAdj.toFixed(1)}, pos ${positionAdj >= 0 ? '+' : ''}${positionAdj.toFixed(1)} | Floor: ${scaledFloor.toFixed(1)}`);
