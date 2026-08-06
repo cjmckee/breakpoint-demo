@@ -17,7 +17,19 @@
  * Also splits the net stat's usage share with and without overheads counted, to
  * size what consolidating `overhead` into `volley` buys the merged stat.
  *
+ * It also traces the full net sequence — approach, reply, net shot, reply,
+ * net shot — which is where the net phase actually breaks down.
+ *
  * Run: npm run build:node && node dist/src/test/analysis/netProbe.js
+ * Env: N=40  L=60
+ *
+ * Two temporary seams were used to sweep the fixes, in ShotCalculator:
+ *
+ *   PSR      overrides RELATIVE_QUALITY_REQUIREMENTS for passing shots, in
+ *            calculateQualityRequirements.
+ *   NETPRESS lowers the quality bar at which a volley or overhead labels the
+ *            incoming ball 'rushed', in calculateBallQuality — 'good' and
+ *            'average' use those thresholds instead of 'high'.
  */
 
 import type { MatchFormat, MatchState, PlayerStats, ShotDetail } from '../../types/index.js';
@@ -69,12 +81,63 @@ interface Tally {
   approachesIn: number;
   // what happened on the ball after a successful approach
   afterApproach: Map<string, number>;
+  // the full net sequence, step by step
+  seq: Map<string, number>;
+  netShot1: Map<string, number>;
+  reply2: Map<string, number>;
+  netShot2: Map<string, number>;
+  volleyQ: number[];
+  reply2Q: number[];
 }
 
 const newTally = (): Tally => ({
   points: 0, pastReturn: 0, arrived: 0, hit: 0, rallyShots: 0,
   volleys: 0, overheads: 0, approaches: 0, approachesIn: 0, afterApproach: new Map(),
+  seq: new Map(), netShot1: new Map(), reply2: new Map(), netShot2: new Map(),
+  volleyQ: [], reply2Q: [],
 });
+
+const bump = (m: Map<string, number>, k: string): void => { m.set(k, (m.get(k) ?? 0) + 1); };
+
+const outcomeName = (o: PointType): string =>
+  o === PointType.WINNER ? 'winner'
+  : o === PointType.IN_PLAY ? 'in play'
+  : o === PointType.FORCED_ERROR ? 'forced error'
+  : o === PointType.UNFORCED_ERROR ? 'unforced error' : String(o);
+
+/**
+ * Walk the sequence after a successful approach:
+ *   approach -> opponent reply -> net shot 1 -> opponent reply 2 -> net shot 2
+ * This is the "two shots after" question: how often does a volley put the point
+ * away, how often does it continue, and when it continues what comes back?
+ */
+function traceNetSequence(shots: ShotDetail[], role: 'server' | 'returner', t: Tally): void {
+  const i = shots.findIndex(s => s.shooter === role && s.shotType.includes('approach') && s.outcome === PointType.IN_PLAY);
+  if (i < 0) return;
+  const reply = shots[i + 1];
+  if (!reply) { bump(t.seq, '1. approach won the point outright'); return; }
+  const kind = reply.shotType.includes('lob') ? 'lob' : reply.shotType.includes('passing') ? 'passing shot' : 'other reply';
+  if (reply.outcome !== PointType.IN_PLAY) { bump(t.seq, `2. ${kind} missed`); return; }
+  bump(t.seq, `3. ${kind} in play`);
+
+  const net1 = shots[i + 2];
+  if (!net1) { bump(t.netShot1, 'point ended before a net shot'); return; }
+  const fam1 = isOverhead(net1.shotType) ? 'overhead' : isVolley(net1.shotType) ? 'volley' : 'baseline shot';
+  bump(t.netShot1, `${fam1}: ${outcomeName(net1.outcome)}`);
+  if (fam1 === 'volley') t.volleyQ.push(net1.quality);
+  if (net1.outcome !== PointType.IN_PLAY) return;
+
+  const r2 = shots[i + 3];
+  if (!r2) { bump(t.reply2, 'point ended'); return; }
+  bump(t.reply2, outcomeName(r2.outcome));
+  if (r2.outcome !== PointType.IN_PLAY) return;
+  t.reply2Q.push(r2.quality);
+
+  const net2 = shots[i + 4];
+  if (!net2) { bump(t.netShot2, 'point ended'); return; }
+  const fam2 = isOverhead(net2.shotType) ? 'overhead' : isVolley(net2.shotType) ? 'volley' : 'baseline shot';
+  bump(t.netShot2, `${fam2}: ${outcomeName(net2.outcome)}`);
+}
 
 function scorePoint(shots: ShotDetail[], role: 'server' | 'returner', t: Tally): void {
   const mine = shots.filter(s => s.shooter === role && s.outcome !== PointType.FAULT);
@@ -112,6 +175,7 @@ function scorePoint(shots: ShotDetail[], role: 'server' | 'returner', t: Tally):
     else key = 'back at the baseline';
     t.afterApproach.set(key, (t.afterApproach.get(key) ?? 0) + 1);
   }
+  traceNetSequence(shots, role, t);
 }
 
 function runMatch(p: PlayerProfile, o: PlayerProfile, eff: Record<string, number>, oEff: Record<string, number>, t: Tally): void {
@@ -176,14 +240,22 @@ function main(): void {
       pct(t.volleys + t.overheads, t.rallyShots).padStart(8)].join(''));
   }
 
-  console.log('\n── the ball after a successful approach (net_downhill T3) ──');
   const t3 = tallies.find(([n]) => n === 'net_downhill T3')?.[1];
   if (t3) {
-    const total = [...t3.afterApproach.values()].reduce((a, b) => a + b, 0);
-    for (const [k, v] of [...t3.afterApproach.entries()].sort((a, b) => b[1] - a[1])) {
-      console.log(`  ${k.padEnd(34)} ${pct(v, total).padStart(7)}  (n=${v})`);
-    }
-    console.log(`  ${'total successful approaches'.padEnd(34)} ${String(total).padStart(7)}`);
+    const show = (title: string, m: Map<string, number>): void => {
+      const total = [...m.values()].reduce((a, b) => a + b, 0);
+      console.log(`\n  ${title}  (n=${total})`);
+      for (const [k, v] of [...m.entries()].sort((a, b) => b[1] - a[1])) {
+        console.log(`    ${k.padEnd(36)} ${pct(v, total).padStart(7)}`);
+      }
+    };
+    const mean = (a: number[]): string => a.length ? (a.reduce((x, y) => x + y, 0) / a.length).toFixed(1) : '-';
+    console.log('\n── the net sequence, net_downhill T3 ──');
+    show('step 1: opponent reply to the approach', t3.seq);
+    show('step 2: the net player\'s first shot', t3.netShot1);
+    show('step 3: opponent reply to that net shot', t3.reply2);
+    show('step 4: the net player\'s second shot', t3.netShot2);
+    console.log(`\n  mean volley quality: ${mean(t3.volleyQ)}   mean quality of the ball coming back: ${mean(t3.reply2Q)}`);
   }
   console.log('');
 }
