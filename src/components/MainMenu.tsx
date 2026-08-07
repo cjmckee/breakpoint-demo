@@ -170,7 +170,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
     { label: 'FH', name: 'Forehand', value: player.stats.core.forehand },
     { label: 'BH', name: 'Backhand', value: player.stats.core.backhand },
     { label: 'RET', name: 'Return', value: player.stats.core.return },
-    { label: 'SLC', name: 'Slice', value: player.stats.core.slice },
+    { label: 'NET', name: 'Net', value: player.stats.core.net },
   ];
 
   // Action-hub state

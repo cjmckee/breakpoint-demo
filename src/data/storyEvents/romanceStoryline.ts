@@ -13,10 +13,7 @@ export const romanceEvents: StoryEvent[] = [
     name: 'Meeting Alex',
     tags: ['romance', 'intro'],
     timeSlotsRequired: 1,
-    prerequisites: {
-      minMatchesPlayed: 3,
-      minDay: 10,
-    },
+    prerequisites: { minMatchesPlayed: 3, minDay: 10 },
     skippable: false,
     description: 'You meet someone interesting at a local tournament.',
     dialogue: [
@@ -64,7 +61,7 @@ export const romanceEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You have a deep conversation about your tennis ambitions over coffee. ', { characterId: 'alex_romance' }, ' shares their own competitive experiences and offers helpful advice based on what they\'ve learned. You gain valuable insights into tournament preparation.'],
           effects: {
-            statChanges: { dropShot: 1, volley: 1, anticipation: 1 },
+            statChanges: { placement: 1, net: 1, anticipation: 1 },
             moodChange: 15,
             energyChange: -5,
             relationshipChanges: { alex_romance: 10 },
@@ -95,7 +92,7 @@ export const romanceEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You explain that you need to focus on training right now and ask if you can reschedule. ', { characterId: 'alex_romance' }, ' seems understanding but you can tell they\'re a bit disappointed.'],
           effects: {
-            statChanges: { recovery: 1 },
+            statChanges: { stamina: 1 },
             moodChange: 0,
             energyChange: 0,
             relationshipChanges: { alex_romance: -5 },
@@ -133,7 +130,7 @@ export const romanceEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You give your full effort over a few points and play some incredible rallies. The juniors watch with a series of "oohs" and "ahhs." You manage to edge out ', { characterId: 'alex_romance' }, ', but it was a lot harder than you expected. You both had a lot of fun, and the kids were impressed. You\'re starting to think about more excuses to spend time with Alex.'],
           effects: {
-            statChanges: { return: 2, agility: 1, recovery: 1 },
+            statChanges: { return: 2, speed: 1, stamina: 1 },
             moodChange: 15,
             energyChange: -15,
             relationshipChanges: { alex_romance: 15 },
@@ -148,7 +145,7 @@ export const romanceEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You don\'t want to steal anyone\'s thunder, and ', { characterId: 'alex_romance' }, ' takes NO mercy on you. They start pushing you all over the court and even land a tweener to further embarrass you. The kids love it and think ', {characterId: 'alex_romance'}, ' is the best coach ever. You manage to crack a smile even catching wind. Alex has a smile you\'d trade it all for.'],
           effects: {
-            statChanges: { return: 1, defensive: 2, shotVariety: 1 },
+            statChanges: { return: 1, tactics: 2, spin: 1 },
             moodChange: 25,
             energyChange: -15,
             relationshipChanges: { alex_romance: 10 },
@@ -184,7 +181,7 @@ export const romanceEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You watch two hours of absolute psychological tennis warfare. At some point ', { characterId: 'alex_romance' }, ' gets genuinely emotional during a tiebreak scene. You both sit in silence for a full minute after the credits. You don\'t know what to say, but your mental game somehow feels stronger.'],
           effects: {
-            statChanges: { focus: 2, anticipation: 2, defensive: 1 },
+            statChanges: { focus: 2, anticipation: 2, tactics: 1 },
             moodChange: 15,
             energyChange: 5,
             relationshipChanges: { alex_romance: 12 },
@@ -231,7 +228,7 @@ export const romanceEvents: StoryEvent[] = [
     defaultOutcome: {
       resultText: ['You spend the rest of the match chatting about life beyond tennis. You find yourself a little more focused on the tennis journey, and a little more focused on Alex as well.'],
       effects: {
-        statChanges: { backhand: 3, volley: 2, return: 2 },
+        statChanges: { backhand: 3, net: 2, return: 2 },
         moodChange: 10,
         energyChange: -20,
         relationshipChanges: { alex_romance: 15 },

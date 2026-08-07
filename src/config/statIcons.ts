@@ -19,30 +19,24 @@ import type { StatName } from '../types';
 
 /** Canonical emoji for every stat. Unique per stat — see rules above. */
 export const STAT_ICONS: Record<StatName, string> = {
-  // Core
+  // Core — one per game phase
   serve: '🎾',
-  forehand: '🤜',
+  forehand: '💪',
   backhand: '🤛',
   return: '↩️',
-  slice: '✂️',
+  net: '🥅',
   // Technical
-  volley: '🖐️',
-  overhead: '☝️',
-  dropShot: '💧',
+  slice: '✂️',
   spin: '🌀',
   placement: '🎯',
   // Physical
   speed: '⚡',
   stamina: '🔋',
-  strength: '💪',
-  agility: '🦘',
-  recovery: '🩹',
+  strength: '🏋️',
   // Mental
-  focus: '🧘',
+  focus: '🧠',
   anticipation: '👁️',
-  shotVariety: '🎨',
-  offensive: '⚔️',
-  defensive: '🛡️',
+  tactics: '♟️',
 };
 
 /** Placeholder for a stat key that isn't in the map (only reachable from untyped keys). */

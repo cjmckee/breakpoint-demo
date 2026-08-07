@@ -58,25 +58,25 @@ const NONE: ArchetypeProfile = { broad: null, phases: {}, specializationPoints: 
 
 const stats = (
   core: [number, number, number, number, number],
-  tech: [number, number, number, number, number],
-  phys: [number, number, number, number, number],
-  ment: [number, number, number, number, number]
+  tech: [number, number, number],
+  phys: [number, number, number],
+  ment: [number, number, number]
 ): PlayerStats => ({
-  core: { serve: core[0], forehand: core[1], backhand: core[2], return: core[3], slice: core[4] },
-  technical: { volley: tech[0], overhead: tech[1], dropShot: tech[2], spin: tech[3], placement: tech[4] },
-  physical: { speed: phys[0], stamina: phys[1], strength: phys[2], agility: phys[3], recovery: phys[4] },
-  mental: { focus: ment[0], anticipation: ment[1], shotVariety: ment[2], offensive: ment[3], defensive: ment[4] },
+  core: { serve: core[0], forehand: core[1], backhand: core[2], return: core[3], net: core[4] },
+  technical: { slice: tech[0], spin: tech[1], placement: tech[2] },
+  physical: { speed: phys[0], stamina: phys[1], strength: phys[2] },
+  mental: { focus: ment[0], anticipation: ment[1], tactics: ment[2] },
 });
 
 /** Implemented tier-1 content, copied from src/data. */
 const ROSTER: Array<[string, PlayerStats]> = [
-  ['new player (OVR 20)', stats([20, 20, 20, 20, 20], [20, 20, 20, 20, 20], [20, 20, 20, 20, 20], [20, 20, 20, 20, 20])],
-  ['Danny Park (25)', stats([30, 35, 20, 20, 18], [23, 28, 18, 23, 23], [28, 23, 35, 23, 23], [28, 23, 23, 30, 23])],
-  ['Big Steve (28)', stats([35, 32, 32, 23, 23], [35, 35, 18, 23, 25], [28, 28, 33, 24, 24], [28, 31, 25, 30, 21])],
-  ['Lin Chen (29)', stats([30, 28, 31, 33, 30], [21, 23, 25, 31, 28], [35, 35, 20, 23, 33], [30, 30, 25, 21, 37])],
-  ['Olivia Gulp (41)', stats([42, 46, 40, 44, 38], [36, 34, 34, 42, 42], [36, 42, 44, 42, 42], [41, 44, 36, 44, 38])],
-  ['Jordan (45)', stats([46, 50, 48, 48, 49], [40, 38, 40, 46, 46], [44, 46, 44, 42, 45], [45, 46, 42, 46, 44])],
-  ['uniform 70 (reference)', stats([70, 70, 70, 70, 70], [70, 70, 70, 70, 70], [70, 70, 70, 70, 70], [70, 70, 70, 70, 70])],
+  ['new player (OVR 20)', stats([20, 20, 20, 20, 20], [20, 20, 20], [20, 20, 20], [20, 20, 20])],
+  ['Danny Park (25)', stats([30, 35, 20, 20, 26], [18, 23, 23], [28, 23, 35], [28, 23, 26])],
+  ['Big Steve (30)', stats([35, 32, 32, 23, 35], [23, 23, 25], [28, 28, 33], [28, 31, 26])],
+  ['Lin Chen (29)', stats([30, 28, 31, 33, 22], [30, 31, 28], [35, 35, 20], [30, 30, 29])],
+  ['Olivia Gulp (42)', stats([42, 46, 39, 44, 34], [46, 39, 41], [36, 48, 35], [41, 43, 41])],
+  ['Jordan (47)', stats([50, 50, 46, 47, 43], [48, 40, 48], [44, 48, 46], [46, 40, 40])],
+  ['uniform 70 (reference)', stats([70, 70, 70, 70, 70], [70, 70, 70], [70, 70, 70], [70, 70, 70])],
 ];
 
 function calcFatigue(cur: number, rally: number, stam: number, rec: number): number {
@@ -126,8 +126,8 @@ function runMatch(p: PlayerProfile, o: PlayerProfile, acc: Acc): void {
     }
 
     tracker.addPoint(w);
-    ms.fatigue.player = calcFatigue(ms.fatigue.player, pr.rallyLength, p.stats.physical.stamina, p.stats.physical.recovery);
-    ms.fatigue.opponent = calcFatigue(ms.fatigue.opponent, pr.rallyLength, o.stats.physical.stamina, o.stats.physical.recovery);
+    ms.fatigue.player = calcFatigue(ms.fatigue.player, pr.rallyLength, p.stats.physical.stamina, p.stats.physical.stamina);
+    ms.fatigue.opponent = calcFatigue(ms.fatigue.opponent, pr.rallyLength, o.stats.physical.stamina, o.stats.physical.stamina);
     ms.score = tracker.getScore(); ms.currentServer = tracker.getCurrentServer(); ms.pointsPlayed = ++pts;
   }
 }
@@ -145,7 +145,7 @@ function scaled(s: PlayerStats, tierWins: number): PlayerStats {
 
 const ovrOf = (s: PlayerStats): number => new PlayerProfile('x', 'X', s, NONE).overallRating;
 const uniform = (r: number): PlayerStats =>
-  stats([r, r, r, r, r], [r, r, r, r, r], [r, r, r, r, r], [r, r, r, r, r]);
+  stats([r, r, r, r, r], [r, r, r], [r, r, r], [r, r, r]);
 
 function play(a: PlayerStats, b: PlayerStats, n: number): Acc {
   const acc = zero();
@@ -213,7 +213,7 @@ function partC(N: number): void {
     specializationPoints: 0, respecTokens: 0,
   };
   const base = uniform(20);
-  const bumped: PlayerStats = { ...base, core: { ...base.core, slice: 40 } };
+  const bumped: PlayerStats = { ...base, technical: { ...base.technical, slice: 40 } };
   for (const [label, prof] of [['never slices', NONE], ['slice specialist', SAMURAI]] as Array<[string, ArchetypeProfile]>) {
     const acc = zero();
     console.log = () => {};
@@ -302,8 +302,8 @@ function runMatchTapped(
     const w = pr.winner === 'server' ? server : (server === 'player' ? 'opponent' : 'player');
     acc.points++;
     tracker.addPoint(w);
-    ms.fatigue.player = calcFatigue(ms.fatigue.player, pr.rallyLength, p.stats.physical.stamina, p.stats.physical.recovery);
-    ms.fatigue.opponent = calcFatigue(ms.fatigue.opponent, pr.rallyLength, o.stats.physical.stamina, o.stats.physical.recovery);
+    ms.fatigue.player = calcFatigue(ms.fatigue.player, pr.rallyLength, p.stats.physical.stamina, p.stats.physical.stamina);
+    ms.fatigue.opponent = calcFatigue(ms.fatigue.opponent, pr.rallyLength, o.stats.physical.stamina, o.stats.physical.stamina);
     ms.score = tracker.getScore(); ms.currentServer = tracker.getCurrentServer(); ms.pointsPlayed = ++pts;
   }
 }

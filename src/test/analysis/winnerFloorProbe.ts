@@ -33,10 +33,10 @@ const NONE: ArchetypeProfile = { broad: null, phases: {}, specializationPoints: 
 const _origLog = console.log;
 
 const uniform = (r: number): PlayerStats => ({
-  core: { serve: r, forehand: r, backhand: r, return: r, slice: r },
-  technical: { volley: r, overhead: r, dropShot: r, spin: r, placement: r },
-  physical: { speed: r, stamina: r, strength: r, agility: r, recovery: r },
-  mental: { focus: r, anticipation: r, shotVariety: r, offensive: r, defensive: r },
+  core: { serve: r, forehand: r, backhand: r, return: r, net: r },
+  technical: { slice: r, spin: r, placement: r },
+  physical: { speed: r, stamina: r, strength: r },
+  mental: { focus: r, anticipation: r, tactics: r },
 });
 
 const CONTEXT: ShotContext = {
@@ -57,14 +57,14 @@ function incoming(q: number): ShotDetail {
 function thresholds(shot: ShotType, incomingQ: number, shooter: PlayerStats, opp: PlayerStats, matchLevel: number) {
   const surface = SURFACE_EFFECTS.hard;
   let inPlayReq = incomingQ * RELATIVE_QUALITY_REQUIREMENTS[shot];
-  inPlayReq += (opp.mental.defensive - 50) * OPPONENT_STAT_ADJUSTMENTS.defensive * surface.defensiveAdjustmentMultiplier;
+  inPlayReq += (opp.mental.tactics - 50) * OPPONENT_STAT_ADJUSTMENTS.tactics * surface.defensiveAdjustmentMultiplier;
   inPlayReq += (opp.physical.speed - 50) * OPPONENT_STAT_ADJUSTMENTS.speed;
   inPlayReq -= (shooter.mental.anticipation - 50) * SHOOTER_STAT_ADJUSTMENTS.anticipation;
   inPlayReq += POSITION_ADJUSTMENTS['well_positioned'];
   inPlayReq = Math.max(inPlayReq, MIN_QUALITY_FLOORS[getShotCategory(shot)] * (matchLevel / FLOOR_CALIBRATION_LEVEL));
 
   const relative = inPlayReq * WINNER_REQUIREMENTS[shot];
-  const retrieval = (opp.physical.speed + opp.mental.defensive) / 2;
+  const retrieval = (opp.physical.speed + opp.mental.tactics) / 2;
   const scale = (1 - WINNER_FLOOR_RETRIEVAL_WEIGHT)
     + WINNER_FLOOR_RETRIEVAL_WEIGHT * (retrieval / WINNER_FLOOR_RETRIEVAL_REF);
   const floor = (MINIMUM_WINNER_THRESHOLDS[shot] + WINNER_FLOOR_OFFSET) * scale;

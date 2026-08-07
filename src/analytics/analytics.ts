@@ -83,30 +83,24 @@ function statsSnapshot(player: Player): Record<string, number> {
     // Derived summaries
     stat_average: Math.round(statAverage * 10) / 10,
     overall_rating: overallRating,
-    // Core (5)
+    // Core (5) — one per game phase
     stat_serve: core.serve,
     stat_forehand: core.forehand,
     stat_backhand: core.backhand,
     stat_return: core.return,
-    stat_slice: core.slice,
-    // Technical (5)
-    stat_volley: technical.volley,
-    stat_overhead: technical.overhead,
-    stat_drop_shot: technical.dropShot,
+    stat_net: core.net,
+    // Technical (3)
+    stat_slice: technical.slice,
     stat_spin: technical.spin,
     stat_placement: technical.placement,
-    // Physical (5)
+    // Physical (3)
     stat_speed: physical.speed,
     stat_stamina: physical.stamina,
     stat_strength: physical.strength,
-    stat_agility: physical.agility,
-    stat_recovery: physical.recovery,
-    // Mental (5)
+    // Mental (3)
     stat_focus: mental.focus,
     stat_anticipation: mental.anticipation,
-    stat_shot_variety: mental.shotVariety,
-    stat_offensive: mental.offensive,
-    stat_defensive: mental.defensive,
+    stat_tactics: mental.tactics,
   };
 }
 

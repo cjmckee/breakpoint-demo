@@ -4,23 +4,11 @@
  */
 
 import type { PlayerStats, PlayStyle, StatName, CourtSurface } from '../types';
+export { calculateOverallRating, STAT_CATEGORY_WEIGHTS } from './overallRating';
 import type { OpponentTier } from '../types/game';
 import type { ArchetypeType } from '../data/archetypes';
 import { getArchetypeLabel as getArchetypeLabelRaw, ARCHETYPE_DATA } from '../data/archetypes';
 
-export function calculateOverallRating(stats: PlayerStats): number {
-  const coreAvg = (stats.core.serve + stats.core.forehand + stats.core.backhand + stats.core.return + stats.core.slice) / 5;
-  const technicalAvg = (stats.technical.volley + stats.technical.overhead + stats.technical.dropShot + stats.technical.spin + stats.technical.placement) / 5;
-  const physicalAvg = (stats.physical.speed + stats.physical.stamina + stats.physical.strength + stats.physical.agility + stats.physical.recovery) / 5;
-  const mentalAvg = (stats.mental.focus + stats.mental.anticipation + stats.mental.shotVariety + stats.mental.offensive + stats.mental.defensive) / 5;
-
-  return Math.round(
-    coreAvg * 0.45 +
-    technicalAvg * 0.15 +
-    physicalAvg * 0.25 +
-    mentalAvg * 0.15
-  );
-}
 
 export function getTierLabel(tier: OpponentTier | number): string {
   switch (tier) {
@@ -60,26 +48,24 @@ export interface StatDisplay {
 }
 
 export const STAT_LABELS: Record<StatName, string> = {
+  // Core — one per game phase
   serve: 'Serve',
   forehand: 'Forehand',
   backhand: 'Backhand',
   return: 'Return',
+  net: 'Net',
+  // Technical
   slice: 'Slice',
-  volley: 'Volley',
-  overhead: 'Overhead',
-  dropShot: 'Drop Shot',
   spin: 'Spin',
   placement: 'Placement',
+  // Physical
   speed: 'Speed',
   stamina: 'Stamina',
   strength: 'Strength',
-  agility: 'Agility',
-  recovery: 'Recovery',
+  // Mental
   focus: 'Focus',
   anticipation: 'Anticipation',
-  shotVariety: 'Shot Variety',
-  offensive: 'Offensive',
-  defensive: 'Defensive',
+  tactics: 'Tactics',
 };
 
 export function flattenStats(stats: PlayerStats): StatDisplay[] {

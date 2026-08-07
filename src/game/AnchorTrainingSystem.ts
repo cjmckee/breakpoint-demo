@@ -27,7 +27,7 @@ export type MinigameId =
   | 'rally_rhythm' // forehand
   | 'corner_paint' // backhand
   | 'read_return' // return
-  | 'touch_slice'; // slice
+  | 'touch_slice' // net (reuses the touch minigame until a net-specific one exists)
 
 export interface CoreAnchorConfig {
   core: CoreStat;
@@ -52,8 +52,14 @@ export interface CoreAnchorConfig {
  * through only one shot (dropShot and shotVariety used to be slice-only, so a
  * player who never trained slice could not earn them from training at all).
  *
- * Keep the invariant when editing: each pool holds 6 stats, and each support stat
- * appears in precisely 2 pools. Pick the two shots the stat most belongs to.
+ * Keep the invariant when editing: each pool holds 4 stats, and each support stat
+ * appears in 2 or 3 pools — 9 supports across 5 anchors does not divide evenly.
+ * Pick the shots the stat most belongs to.
+ *
+ * Pools shrank from 6 to 4 with the consolidation, which also fixes the spread
+ * the audit flagged: a specific support now accrues ~0.75 per session against
+ * ~0.5 before, so it takes roughly 13 sessions to move a support 10 points
+ * rather than 20.
  */
 export const CORE_ANCHORS: Record<CoreStat, CoreAnchorConfig> = {
   serve: {
@@ -61,7 +67,7 @@ export const CORE_ANCHORS: Record<CoreStat, CoreAnchorConfig> = {
     name: 'Serve',
     minigame: 'toss_and_strike',
     playable: true,
-    supportPool: ['strength', 'placement', 'overhead', 'volley', 'offensive', 'spin'],
+    supportPool: ['strength', 'placement', 'spin', 'focus'],
     description: 'One explosive strike. Power and placement, with a look to the net.',
   },
   forehand: {
@@ -69,7 +75,7 @@ export const CORE_ANCHORS: Record<CoreStat, CoreAnchorConfig> = {
     name: 'Forehand',
     minigame: 'rally_rhythm',
     playable: true,
-    supportPool: ['spin', 'strength', 'offensive', 'speed', 'stamina', 'shotVariety'],
+    supportPool: ['spin', 'strength', 'slice', 'stamina'],
     description: 'Your topspin weapon from the baseline. Heavy, offensive, relentless.',
   },
   backhand: {
@@ -77,7 +83,7 @@ export const CORE_ANCHORS: Record<CoreStat, CoreAnchorConfig> = {
     name: 'Backhand',
     minigame: 'corner_paint',
     playable: true,
-    supportPool: ['placement', 'defensive', 'anticipation', 'agility', 'stamina', 'dropShot'],
+    supportPool: ['placement', 'slice', 'anticipation', 'stamina'],
     description: 'The steady wing. Redirect pace, read the ball, stay balanced.',
   },
   return: {
@@ -85,21 +91,21 @@ export const CORE_ANCHORS: Record<CoreStat, CoreAnchorConfig> = {
     name: 'Return',
     minigame: 'read_return',
     playable: true,
-    supportPool: ['anticipation', 'speed', 'agility', 'defensive', 'focus', 'recovery'],
+    supportPool: ['anticipation', 'speed', 'focus', 'tactics'],
     description: 'Anticipate the serve, read it off the bounce, step across and block it back.',
   },
-  slice: {
-    core: 'slice',
-    name: 'Slice',
+  net: {
+    core: 'net',
+    name: 'Net',
     minigame: 'touch_slice',
     playable: true,
-    supportPool: ['dropShot', 'volley', 'shotVariety', 'focus', 'overhead', 'recovery'],
-    description: 'Touch and variety. Slice it low, change the rhythm, come forward.',
+    supportPool: ['speed', 'anticipation', 'tactics', 'placement'],
+    description: 'Close the court and finish. Volleys, half-volleys and the smash.',
   },
 };
 
 /** Ordered list of anchors for stable UI rendering. */
-export const CORE_ANCHOR_ORDER: CoreStat[] = ['serve', 'forehand', 'backhand', 'return', 'slice'];
+export const CORE_ANCHOR_ORDER: CoreStat[] = ['serve', 'forehand', 'backhand', 'return', 'net'];
 
 /** Flat energy cost per bronze session (DR via cost scaling is deferred). */
 export const ANCHOR_TRAINING_ENERGY_COST = 20;

@@ -33,7 +33,7 @@ export class PlayerManager {
     } else if (playstyle === 'defensive') {
       baseStats.physical.speed += 5;
       baseStats.physical.stamina += 5;
-      baseStats.mental.defensive += 3;
+      baseStats.mental.tactics += 3;
     } else if (playstyle === 'balanced') {
       // Small bonus to all stats
       Object.keys(baseStats.core).forEach((key) => {
@@ -271,11 +271,11 @@ export class PlayerManager {
     secondary: string;
   } {
     const styles = {
-      aggressive: stats.mental.offensive + stats.core.serve + stats.physical.strength,
-      defensive: stats.mental.defensive + stats.physical.speed + stats.physical.stamina,
-      allCourt: stats.mental.offensive + stats.mental.defensive + stats.mental.shotVariety,
-      serveVolley: stats.core.serve + stats.technical.volley + stats.physical.speed,
-      counterpuncher: stats.mental.defensive + stats.core.return + stats.mental.anticipation,
+      aggressive: stats.core.serve + stats.physical.strength + stats.core.forehand,
+      defensive: stats.technical.slice + stats.physical.speed + stats.physical.stamina,
+      allCourt: stats.mental.tactics + stats.technical.spin + stats.technical.placement,
+      serveVolley: stats.core.serve + stats.core.net + stats.physical.speed,
+      counterpuncher: stats.mental.tactics + stats.core.return + stats.mental.anticipation,
     };
 
     const sorted = Object.entries(styles).sort((a, b) => b[1] - a[1]);

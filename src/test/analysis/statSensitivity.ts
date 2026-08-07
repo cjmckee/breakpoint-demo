@@ -43,18 +43,18 @@ const BUCKETS = ['core', 'technical', 'physical', 'mental'] as const;
 type Bucket = typeof BUCKETS[number];
 
 const STAT_KEYS: Array<{ bucket: Bucket; key: string }> = [
-  ...(['serve', 'forehand', 'backhand', 'return', 'slice'] as const).map(k => ({ bucket: 'core' as Bucket, key: k })),
-  ...(['volley', 'overhead', 'dropShot', 'spin', 'placement'] as const).map(k => ({ bucket: 'technical' as Bucket, key: k })),
-  ...(['speed', 'stamina', 'strength', 'agility', 'recovery'] as const).map(k => ({ bucket: 'physical' as Bucket, key: k })),
-  ...(['focus', 'anticipation', 'shotVariety', 'offensive', 'defensive'] as const).map(k => ({ bucket: 'mental' as Bucket, key: k })),
+  ...(['serve', 'forehand', 'backhand', 'return', 'net'] as const).map(k => ({ bucket: 'core' as Bucket, key: k })),
+  ...(['slice', 'spin', 'placement'] as const).map(k => ({ bucket: 'technical' as Bucket, key: k })),
+  ...(['speed', 'stamina', 'strength'] as const).map(k => ({ bucket: 'physical' as Bucket, key: k })),
+  ...(['focus', 'anticipation', 'tactics'] as const).map(k => ({ bucket: 'mental' as Bucket, key: k })),
 ];
 
 function uniformStats(r: number): PlayerStats {
   return {
-    core: { serve: r, forehand: r, backhand: r, return: r, slice: r },
-    technical: { volley: r, overhead: r, dropShot: r, spin: r, placement: r },
-    physical: { speed: r, stamina: r, strength: r, agility: r, recovery: r },
-    mental: { focus: r, anticipation: r, shotVariety: r, offensive: r, defensive: r },
+    core: { serve: r, forehand: r, backhand: r, return: r, net: r },
+    technical: { slice: r, spin: r, placement: r },
+    physical: { speed: r, stamina: r, strength: r },
+    mental: { focus: r, anticipation: r, tactics: r },
   };
 }
 
@@ -117,8 +117,8 @@ function runMatch(
     if (winner === 'player') playerPoints++;
     tracker.addPoint(winner);
 
-    matchState.fatigue.player = calcFatigue(matchState.fatigue.player, pr.rallyLength, player.stats.physical.stamina, player.stats.physical.recovery);
-    matchState.fatigue.opponent = calcFatigue(matchState.fatigue.opponent, pr.rallyLength, opponent.stats.physical.stamina, opponent.stats.physical.recovery);
+    matchState.fatigue.player = calcFatigue(matchState.fatigue.player, pr.rallyLength, player.stats.physical.stamina, player.stats.physical.stamina);
+    matchState.fatigue.opponent = calcFatigue(matchState.fatigue.opponent, pr.rallyLength, opponent.stats.physical.stamina, opponent.stats.physical.stamina);
     matchState.score = tracker.getScore();
     matchState.currentServer = tracker.getCurrentServer();
     matchState.pointsPlayed = ++points;

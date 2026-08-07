@@ -367,11 +367,16 @@ around 50 instead of running 0→+20%, so they express build shape rather than a
 low-rated. Whether technical at +1.82 total is too cheap is a live tuning question — it is one
 constant, `MODIFIER_SPREAD`.
 
-**The same seven stats are still noise**, unchanged by any of this: `agility`, `recovery`,
-`overhead`, `slice`, `volley`, `dropShot`, `shotVariety`. None of the scaling fixes rescued them,
-which is consistent with section 5 — their problem is that nobody hits those shots often enough for
-the stat to matter, and no amount of curve-fixing changes a 1.6% usage rate. The consolidation
-candidates from the first version of this document stand, on that basis alone.
+**The same seven stats were still noise** at this point, unchanged by any of the scaling work:
+`agility`, `recovery`, `overhead`, `slice`, `volley`, `dropShot`, `shotVariety`. None of the fixes
+rescued them, which is consistent with section 5 — their problem is that nobody hits those shots
+often enough for the stat to matter, and no amount of curve-fixing changes a 1.6% usage rate.
+
+That is what the consolidation in
+[`stat-consolidation-plan.md`](./stat-consolidation-plan.md) went on to address. After it, all
+fourteen stats measure materially non-zero, the weakest being `net` at +0.52 and `slice` at +0.50 —
+both conditional stats in a population of randomized builds that are mostly neither net players nor
+slicers.
 
 ---
 

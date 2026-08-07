@@ -31,18 +31,10 @@ const TIER_1_OPPONENTS: OpponentPreset[] = [
     tier: 1,
     archetype: 'aggressive',
     stats: {
-      core: {
-        serve: 30, forehand: 35, backhand: 20, return: 20, slice: 18,
-      },
-      technical: {
-        volley: 23, overhead: 28, dropShot: 18, spin: 23, placement: 23,
-      },
-      physical: {
-        speed: 28, stamina: 23, strength: 35, agility: 23, recovery: 23,
-      },
-      mental: {
-        focus: 28, anticipation: 23, shotVariety: 23, offensive: 30, defensive: 23,
-      },
+      core: { serve: 30, forehand: 35, backhand: 20, return: 20, net: 26 },
+      technical: { slice: 18, spin: 23, placement: 23 },
+      physical: { speed: 28, stamina: 23, strength: 35 },
+      mental: { focus: 28, anticipation: 23, tactics: 26 },
     },
     abilities: [ABILITY_DEFINITIONS[AbilityName.HEAVY_HITTER]],
   },
@@ -52,18 +44,10 @@ const TIER_1_OPPONENTS: OpponentPreset[] = [
     tier: 1,
     archetype: 'defensive',
     stats: {
-      core: {
-        serve: 31, forehand: 26, backhand: 28, return: 30, slice: 25,
-      },
-      technical: {
-        volley: 23, overhead: 23, dropShot: 23, spin: 25, placement: 23,
-      },
-      physical: {
-        speed: 33, stamina: 35, strength: 25, agility: 30, recovery: 30,
-      },
-      mental: {
-        focus: 33, anticipation: 35, shotVariety: 23, offensive: 23, defensive: 35,
-      },
+      core: { serve: 31, forehand: 26, backhand: 28, return: 30, net: 23 },
+      technical: { slice: 25, spin: 25, placement: 23 },
+      physical: { speed: 33, stamina: 35, strength: 25 },
+      mental: { focus: 33, anticipation: 35, tactics: 29 },
     },
     abilities: [ABILITY_DEFINITIONS[AbilityName.BASELINER]],
   },
@@ -73,18 +57,10 @@ const TIER_1_OPPONENTS: OpponentPreset[] = [
     tier: 1,
     archetype: 'all_court',
     stats: {
-      core: {
-        serve: 31, forehand: 30, backhand: 30, return: 28, slice: 32,
-      },
-      technical: {
-        volley: 25, overhead: 25, dropShot: 29, spin: 30, placement: 30,
-      },
-      physical: {
-        speed: 26, stamina: 29, strength: 24, agility: 26, recovery: 26,
-      },
-      mental: {
-        focus: 30, anticipation: 30, shotVariety: 24, offensive: 24, defensive: 24,
-      },
+      core: { serve: 31, forehand: 30, backhand: 30, return: 28, net: 25 },
+      technical: { slice: 32, spin: 30, placement: 30 },
+      physical: { speed: 26, stamina: 29, strength: 24 },
+      mental: { focus: 30, anticipation: 30, tactics: 24 },
     },
     abilities: [ABILITY_DEFINITIONS[AbilityName.SPIN_MASTER]],
   },
@@ -94,18 +70,10 @@ const TIER_1_OPPONENTS: OpponentPreset[] = [
     tier: 1,
     archetype: 'serve_volley',
     stats: {
-      core: {
-        serve: 35, forehand: 32, backhand: 32, return: 23, slice: 23,
-      },
-      technical: {
-        volley: 35, overhead: 35, dropShot: 18, spin: 23, placement: 25,
-      },
-      physical: {
-        speed: 28, stamina: 28, strength: 33, agility: 24, recovery: 24,
-      },
-      mental: {
-        focus: 28, anticipation: 31, shotVariety: 25, offensive: 30, defensive: 21,
-      },
+      core: { serve: 35, forehand: 32, backhand: 32, return: 23, net: 35 },
+      technical: { slice: 23, spin: 23, placement: 25 },
+      physical: { speed: 28, stamina: 28, strength: 33 },
+      mental: { focus: 28, anticipation: 31, tactics: 26 },
     },
     abilities: [ABILITY_DEFINITIONS[AbilityName.OVERHEAD_SMASH]],
   },
@@ -115,18 +83,10 @@ const TIER_1_OPPONENTS: OpponentPreset[] = [
     tier: 1,
     archetype: 'counterpuncher',
     stats: {
-      core: {
-        serve: 30, forehand: 28, backhand: 31, return: 33, slice: 30,
-      },
-      technical: {
-        volley: 21, overhead: 23, dropShot: 25, spin: 31, placement: 28,
-      },
-      physical: {
-        speed: 35, stamina: 35, strength: 20, agility: 23, recovery: 33,
-      },
-      mental: {
-        focus: 30, anticipation: 30, shotVariety: 25, offensive: 21, defensive: 37,
-      },
+      core: { serve: 30, forehand: 28, backhand: 31, return: 33, net: 22 },
+      technical: { slice: 30, spin: 31, placement: 28 },
+      physical: { speed: 35, stamina: 35, strength: 20 },
+      mental: { focus: 30, anticipation: 30, tactics: 29 },
     },
     abilities: [ABILITY_DEFINITIONS[AbilityName.SLIDER]],
   },
@@ -143,18 +103,10 @@ const TIER_2_OPPONENTS: OpponentPreset[] = [
     tier: 2,
     archetype: 'aggressive',
     stats: {
-      core: {
-        serve: 64, forehand: 72, backhand: 53, return: 50, slice: 42,
-      },
-      technical: {
-        volley: 46, overhead: 55, dropShot: 39, spin: 55, placement: 57,
-      },
-      physical: {
-        speed: 57, stamina: 53, strength: 68, agility: 55, recovery: 53,
-      },
-      mental: {
-        focus: 55, anticipation: 50, shotVariety: 50, offensive: 79, defensive: 35,
-      },
+      core: { serve: 64, forehand: 72, backhand: 53, return: 50, net: 50 },
+      technical: { slice: 42, spin: 55, placement: 57 },
+      physical: { speed: 57, stamina: 53, strength: 68 },
+      mental: { focus: 55, anticipation: 50, tactics: 57 },
     },
     abilities: [ABILITY_DEFINITIONS[AbilityName.HEAVY_HITTER]],
   },
@@ -164,18 +116,10 @@ const TIER_2_OPPONENTS: OpponentPreset[] = [
     tier: 2,
     archetype: 'defensive',
     stats: {
-      core: {
-        serve: 50, forehand: 57, backhand: 61, return: 61, slice: 55,
-      },
-      technical: {
-        volley: 39, overhead: 42, dropShot: 44, spin: 57, placement: 55,
-      },
-      physical: {
-        speed: 61, stamina: 66, strength: 46, agility: 57, recovery: 64,
-      },
-      mental: {
-        focus: 61, anticipation: 57, shotVariety: 46, offensive: 42, defensive: 68,
-      },
+      core: { serve: 50, forehand: 57, backhand: 61, return: 61, net: 40 },
+      technical: { slice: 55, spin: 57, placement: 55 },
+      physical: { speed: 61, stamina: 66, strength: 46 },
+      mental: { focus: 61, anticipation: 57, tactics: 55 },
     },
     abilities: [ABILITY_DEFINITIONS[AbilityName.BASELINER]],
   },
@@ -185,18 +129,10 @@ const TIER_2_OPPONENTS: OpponentPreset[] = [
     tier: 2,
     archetype: 'all_court',
     stats: {
-      core: {
-        serve: 57, forehand: 61, backhand: 57, return: 55, slice: 53,
-      },
-      technical: {
-        volley: 53, overhead: 53, dropShot: 50, spin: 55, placement: 61,
-      },
-      physical: {
-        speed: 57, stamina: 61, strength: 55, agility: 57, recovery: 57,
-      },
-      mental: {
-        focus: 57, anticipation: 55, shotVariety: 57, offensive: 55, defensive: 55,
-      },
+      core: { serve: 57, forehand: 61, backhand: 57, return: 55, net: 53 },
+      technical: { slice: 53, spin: 55, placement: 61 },
+      physical: { speed: 57, stamina: 61, strength: 55 },
+      mental: { focus: 57, anticipation: 55, tactics: 55 },
     },
     abilities: [ABILITY_DEFINITIONS[AbilityName.SOFT_HANDS]],
   },
@@ -206,18 +142,10 @@ const TIER_2_OPPONENTS: OpponentPreset[] = [
     tier: 2,
     archetype: 'serve_volley',
     stats: {
-      core: {
-        serve: 72, forehand: 53, backhand: 46, return: 44, slice: 50,
-      },
-      technical: {
-        volley: 68, overhead: 64, dropShot: 42, spin: 46, placement: 61,
-      },
-      physical: {
-        speed: 61, stamina: 50, strength: 61, agility: 64, recovery: 53,
-      },
-      mental: {
-        focus: 55, anticipation: 61, shotVariety: 53, offensive: 64, defensive: 39,
-      },
+      core: { serve: 72, forehand: 53, backhand: 46, return: 44, net: 66 },
+      technical: { slice: 50, spin: 46, placement: 61 },
+      physical: { speed: 61, stamina: 50, strength: 61 },
+      mental: { focus: 55, anticipation: 61, tactics: 52 },
     },
     abilities: [ABILITY_DEFINITIONS[AbilityName.NETCRASHER]],
   },
@@ -227,18 +155,10 @@ const TIER_2_OPPONENTS: OpponentPreset[] = [
     tier: 2,
     archetype: 'counterpuncher',
     stats: {
-      core: {
-        serve: 46, forehand: 55, backhand: 61, return: 66, slice: 64,
-      },
-      technical: {
-        volley: 35, overhead: 39, dropShot: 46, spin: 57, placement: 53,
-      },
-      physical: {
-        speed: 68, stamina: 72, strength: 44, agility: 66, recovery: 68,
-      },
-      mental: {
-        focus: 64, anticipation: 66, shotVariety: 50, offensive: 33, defensive: 77,
-      },
+      core: { serve: 46, forehand: 55, backhand: 61, return: 66, net: 37 },
+      technical: { slice: 64, spin: 57, placement: 53 },
+      physical: { speed: 68, stamina: 72, strength: 44 },
+      mental: { focus: 64, anticipation: 66, tactics: 55 },
     },
     abilities: [ABILITY_DEFINITIONS[AbilityName.RANGY_RETURN]],
   },
@@ -255,18 +175,10 @@ const TIER_3_OPPONENTS: OpponentPreset[] = [
     tier: 3,
     archetype: 'aggressive',
     stats: {
-      core: {
-        serve: 78, forehand: 82, backhand: 65, return: 58, slice: 52,
-      },
-      technical: {
-        volley: 60, overhead: 72, dropShot: 55, spin: 68, placement: 70,
-      },
-      physical: {
-        speed: 68, stamina: 60, strength: 80, agility: 65, recovery: 62,
-      },
-      mental: {
-        focus: 65, anticipation: 60, shotVariety: 62, offensive: 82, defensive: 38,
-      },
+      core: { serve: 78, forehand: 82, backhand: 65, return: 58, net: 66 },
+      technical: { slice: 52, spin: 68, placement: 70 },
+      physical: { speed: 68, stamina: 60, strength: 80 },
+      mental: { focus: 65, anticipation: 60, tactics: 60 },
     },
     abilities: [ABILITY_DEFINITIONS[AbilityName.HEAVY_HITTER], ABILITY_DEFINITIONS[AbilityName.SERVE_CANNON]],
   },
@@ -276,18 +188,10 @@ const TIER_3_OPPONENTS: OpponentPreset[] = [
     tier: 3,
     archetype: 'defensive',
     stats: {
-      core: {
-        serve: 62, forehand: 68, backhand: 72, return: 72, slice: 68,
-      },
-      technical: {
-        volley: 52, overhead: 55, dropShot: 58, spin: 70, placement: 68,
-      },
-      physical: {
-        speed: 72, stamina: 78, strength: 58, agility: 70, recovery: 75,
-      },
-      mental: {
-        focus: 72, anticipation: 70, shotVariety: 62, offensive: 48, defensive: 78,
-      },
+      core: { serve: 62, forehand: 68, backhand: 72, return: 72, net: 54 },
+      technical: { slice: 68, spin: 70, placement: 68 },
+      physical: { speed: 72, stamina: 78, strength: 58 },
+      mental: { focus: 72, anticipation: 70, tactics: 63 },
     },
     abilities: [ABILITY_DEFINITIONS[AbilityName.BASELINER], ABILITY_DEFINITIONS[AbilityName.SPEED_DEMON]],
   },
@@ -297,18 +201,10 @@ const TIER_3_OPPONENTS: OpponentPreset[] = [
     tier: 3,
     archetype: 'all_court',
     stats: {
-      core: {
-        serve: 70, forehand: 72, backhand: 70, return: 68, slice: 68,
-      },
-      technical: {
-        volley: 65, overhead: 68, dropShot: 65, spin: 70, placement: 72,
-      },
-      physical: {
-        speed: 70, stamina: 72, strength: 68, agility: 70, recovery: 68,
-      },
-      mental: {
-        focus: 72, anticipation: 70, shotVariety: 72, offensive: 65, defensive: 65,
-      },
+      core: { serve: 70, forehand: 72, backhand: 70, return: 68, net: 66 },
+      technical: { slice: 68, spin: 70, placement: 72 },
+      physical: { speed: 70, stamina: 72, strength: 68 },
+      mental: { focus: 72, anticipation: 70, tactics: 65 },
     },
     abilities: [ABILITY_DEFINITIONS[AbilityName.SPIN_MASTER], ABILITY_DEFINITIONS[AbilityName.CLUTCH]],
   },
@@ -318,18 +214,10 @@ const TIER_3_OPPONENTS: OpponentPreset[] = [
     tier: 3,
     archetype: 'serve_volley',
     stats: {
-      core: {
-        serve: 82, forehand: 62, backhand: 58, return: 52, slice: 62,
-      },
-      technical: {
-        volley: 80, overhead: 78, dropShot: 55, spin: 55, placement: 72,
-      },
-      physical: {
-        speed: 70, stamina: 58, strength: 72, agility: 75, recovery: 62,
-      },
-      mental: {
-        focus: 68, anticipation: 72, shotVariety: 65, offensive: 75, defensive: 45,
-      },
+      core: { serve: 82, forehand: 62, backhand: 58, return: 52, net: 79 },
+      technical: { slice: 62, spin: 55, placement: 72 },
+      physical: { speed: 70, stamina: 58, strength: 72 },
+      mental: { focus: 68, anticipation: 72, tactics: 60 },
     },
     abilities: [ABILITY_DEFINITIONS[AbilityName.NETCRASHER], ABILITY_DEFINITIONS[AbilityName.SERVE_CANNON]],
   },
@@ -339,18 +227,10 @@ const TIER_3_OPPONENTS: OpponentPreset[] = [
     tier: 3,
     archetype: 'counterpuncher',
     stats: {
-      core: {
-        serve: 58, forehand: 65, backhand: 72, return: 78, slice: 75,
-      },
-      technical: {
-        volley: 48, overhead: 52, dropShot: 58, spin: 68, placement: 65,
-      },
-      physical: {
-        speed: 78, stamina: 82, strength: 55, agility: 78, recovery: 80,
-      },
-      mental: {
-        focus: 78, anticipation: 78, shotVariety: 62, offensive: 32, defensive: 85,
-      },
+      core: { serve: 58, forehand: 65, backhand: 72, return: 78, net: 50 },
+      technical: { slice: 75, spin: 68, placement: 65 },
+      physical: { speed: 78, stamina: 82, strength: 55 },
+      mental: { focus: 78, anticipation: 78, tactics: 58 },
     },
     abilities: [ABILITY_DEFINITIONS[AbilityName.RANGY_RETURN], ABILITY_DEFINITIONS[AbilityName.SPEED_DEMON]],
   },
@@ -367,18 +247,10 @@ const TIER_4_OPPONENTS: OpponentPreset[] = [
     tier: 4,
     archetype: 'aggressive',
     stats: {
-      core: {
-        serve: 90, forehand: 95, backhand: 82, return: 78, slice: 72,
-      },
-      technical: {
-        volley: 78, overhead: 85, dropShot: 75, spin: 85, placement: 88,
-      },
-      physical: {
-        speed: 82, stamina: 78, strength: 92, agility: 82, recovery: 78,
-      },
-      mental: {
-        focus: 85, anticipation: 80, shotVariety: 82, offensive: 92, defensive: 58,
-      },
+      core: { serve: 90, forehand: 95, backhand: 82, return: 78, net: 82 },
+      technical: { slice: 72, spin: 85, placement: 88 },
+      physical: { speed: 82, stamina: 78, strength: 92 },
+      mental: { focus: 85, anticipation: 80, tactics: 75 },
     },
     abilities: [ABILITY_DEFINITIONS[AbilityName.HEAVY_HITTER], ABILITY_DEFINITIONS[AbilityName.SERVE_CANNON]],
   },
@@ -388,18 +260,10 @@ const TIER_4_OPPONENTS: OpponentPreset[] = [
     tier: 4,
     archetype: 'defensive',
     stats: {
-      core: {
-        serve: 78, forehand: 85, backhand: 88, return: 90, slice: 85,
-      },
-      technical: {
-        volley: 72, overhead: 75, dropShot: 78, spin: 88, placement: 85,
-      },
-      physical: {
-        speed: 88, stamina: 92, strength: 75, agility: 85, recovery: 90,
-      },
-      mental: {
-        focus: 90, anticipation: 88, shotVariety: 80, offensive: 65, defensive: 92,
-      },
+      core: { serve: 78, forehand: 85, backhand: 88, return: 90, net: 74 },
+      technical: { slice: 85, spin: 88, placement: 85 },
+      physical: { speed: 88, stamina: 92, strength: 75 },
+      mental: { focus: 90, anticipation: 88, tactics: 78 },
     },
     abilities: [ABILITY_DEFINITIONS[AbilityName.BASELINER], ABILITY_DEFINITIONS[AbilityName.SPEED_DEMON]],
   },
@@ -409,18 +273,10 @@ const TIER_4_OPPONENTS: OpponentPreset[] = [
     tier: 4,
     archetype: 'all_court',
     stats: {
-      core: {
-        serve: 85, forehand: 88, backhand: 85, return: 85, slice: 82,
-      },
-      technical: {
-        volley: 82, overhead: 85, dropShot: 82, spin: 85, placement: 90,
-      },
-      physical: {
-        speed: 85, stamina: 88, strength: 82, agility: 85, recovery: 85,
-      },
-      mental: {
-        focus: 90, anticipation: 88, shotVariety: 90, offensive: 82, defensive: 80,
-      },
+      core: { serve: 85, forehand: 88, backhand: 85, return: 85, net: 84 },
+      technical: { slice: 82, spin: 85, placement: 90 },
+      physical: { speed: 85, stamina: 88, strength: 82 },
+      mental: { focus: 90, anticipation: 88, tactics: 81 },
     },
     abilities: [ABILITY_DEFINITIONS[AbilityName.SOFT_HANDS], ABILITY_DEFINITIONS[AbilityName.CLUTCH]],
   },
@@ -430,18 +286,10 @@ const TIER_4_OPPONENTS: OpponentPreset[] = [
     tier: 4,
     archetype: 'serve_volley',
     stats: {
-      core: {
-        serve: 92, forehand: 78, backhand: 75, return: 72, slice: 78,
-      },
-      technical: {
-        volley: 92, overhead: 90, dropShot: 72, spin: 75, placement: 88,
-      },
-      physical: {
-        speed: 85, stamina: 75, strength: 85, agility: 90, recovery: 78,
-      },
-      mental: {
-        focus: 85, anticipation: 88, shotVariety: 82, offensive: 88, defensive: 55,
-      },
+      core: { serve: 92, forehand: 78, backhand: 75, return: 72, net: 91 },
+      technical: { slice: 78, spin: 75, placement: 88 },
+      physical: { speed: 85, stamina: 75, strength: 85 },
+      mental: { focus: 85, anticipation: 88, tactics: 72 },
     },
     abilities: [ABILITY_DEFINITIONS[AbilityName.NETCRASHER], ABILITY_DEFINITIONS[AbilityName.SERVE_CANNON]],
   },
@@ -451,18 +299,10 @@ const TIER_4_OPPONENTS: OpponentPreset[] = [
     tier: 4,
     archetype: 'counterpuncher',
     stats: {
-      core: {
-        serve: 75, forehand: 82, backhand: 88, return: 92, slice: 90,
-      },
-      technical: {
-        volley: 68, overhead: 72, dropShot: 78, spin: 85, placement: 82,
-      },
-      physical: {
-        speed: 90, stamina: 95, strength: 72, agility: 90, recovery: 92,
-      },
-      mental: {
-        focus: 92, anticipation: 92, shotVariety: 78, offensive: 42, defensive: 95,
-      },
+      core: { serve: 75, forehand: 82, backhand: 88, return: 92, net: 70 },
+      technical: { slice: 90, spin: 85, placement: 82 },
+      physical: { speed: 90, stamina: 95, strength: 72 },
+      mental: { focus: 92, anticipation: 92, tactics: 68 },
     },
     abilities: [ABILITY_DEFINITIONS[AbilityName.SPEED_DEMON], ABILITY_DEFINITIONS[AbilityName.CLUTCH]],
   },
@@ -510,37 +350,18 @@ export function getScaledOpponentStats(stats: PlayerStats, tierWins: number): Pl
   const boost = Math.min(tierWins * 2, 20);
   if (boost === 0) return stats;
 
-  const scale = (v: number) => Math.min(100, v + boost);
-  const { core, technical, physical, mental } = stats;
+  // Generic so it survives stats moving bucket — it was a hand-written list of
+  // every stat name, which had to be edited whenever the roster changed shape.
+  const scale = <T extends object>(group: T): T => {
+    const out = { ...group } as Record<string, number>;
+    for (const key of Object.keys(out)) out[key] = Math.min(100, out[key] + boost);
+    return out as T;
+  };
 
   return {
-    core: {
-      serve: scale(core.serve),
-      forehand: scale(core.forehand),
-      backhand: scale(core.backhand),
-      return: scale(core.return),
-      slice: scale(core.slice),
-    },
-    technical: {
-      volley: scale(technical.volley),
-      overhead: scale(technical.overhead),
-      dropShot: scale(technical.dropShot),
-      spin: scale(technical.spin),
-      placement: scale(technical.placement),
-    },
-    physical: {
-      speed: scale(physical.speed),
-      stamina: scale(physical.stamina),
-      strength: scale(physical.strength),
-      agility: scale(physical.agility),
-      recovery: scale(physical.recovery),
-    },
-    mental: {
-      focus: scale(mental.focus),
-      anticipation: scale(mental.anticipation),
-      shotVariety: scale(mental.shotVariety),
-      offensive: scale(mental.offensive),
-      defensive: scale(mental.defensive),
-    },
+    core: scale(stats.core),
+    technical: scale(stats.technical),
+    physical: scale(stats.physical),
+    mental: scale(stats.mental),
   };
 }

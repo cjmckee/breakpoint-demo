@@ -24,10 +24,10 @@ const _origLog = console.log;
 
 function uniformStats(r: number): PlayerStats {
   return {
-    core: { serve: r, forehand: r, backhand: r, return: r, slice: r },
-    technical: { volley: r, overhead: r, dropShot: r, spin: r, placement: r },
-    physical: { speed: r, stamina: r, strength: r, agility: r, recovery: r },
-    mental: { focus: r, anticipation: r, shotVariety: r, offensive: r, defensive: r },
+    core: { serve: r, forehand: r, backhand: r, return: r, net: r },
+    technical: { slice: r, spin: r, placement: r },
+    physical: { speed: r, stamina: r, strength: r },
+    mental: { focus: r, anticipation: r, tactics: r },
   };
 }
 
@@ -133,8 +133,8 @@ function runMatch(
 
     const winner = pr.winner === 'server' ? server : (server === 'player' ? 'opponent' : 'player');
     tracker.addPoint(winner);
-    matchState.fatigue.player = calcFatigue(matchState.fatigue.player, pr.rallyLength, player.stats.physical.stamina, player.stats.physical.recovery);
-    matchState.fatigue.opponent = calcFatigue(matchState.fatigue.opponent, pr.rallyLength, opponent.stats.physical.stamina, opponent.stats.physical.recovery);
+    matchState.fatigue.player = calcFatigue(matchState.fatigue.player, pr.rallyLength, player.stats.physical.stamina, player.stats.physical.stamina);
+    matchState.fatigue.opponent = calcFatigue(matchState.fatigue.opponent, pr.rallyLength, opponent.stats.physical.stamina, opponent.stats.physical.stamina);
     matchState.score = tracker.getScore();
     matchState.currentServer = tracker.getCurrentServer();
     matchState.pointsPlayed = ++points;

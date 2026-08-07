@@ -52,11 +52,7 @@ export const tournamentEvents: StoryEvent[] = [
         defaultOutcome: {
             resultText: ['The brackets are released and the courts are assigned. Now is your chance to prove you belong here.'],
             effects: {
-                statChanges: {
-                    volley: 1,
-                    overhead: 1,
-                    stamina: 2,
-                },
+                statChanges: { net: 1, stamina: 2 },
                 startTournament: 'riverside_open',
                 scheduleNextTournamentMatch: true,
             }
@@ -88,20 +84,10 @@ export const tournamentEvents: StoryEvent[] = [
         defaultOutcome: {
             resultText: ['You are the Riverside Open champion for the Club level! Your confidence soars. Remember this feeling as you grow and improve.'],
             effects: {
-                statChanges: {
-                    focus: 2,
-                    dropShot: 2,
-                    slice: 1,
-                    anticipation: 2,
-                },
+                statChanges: { focus: 2, placement: 2, slice: 1, anticipation: 2 },
                 moodChange: 20,
                 tierChange: 2,
-                relationshipChanges: {
-                    keith: 10,
-                    jen: 10,
-                    jordan_rival: 5,
-                    coach_gonzalez: 8,
-                },
+                relationshipChanges: { keith: 10, jen: 10, jordan_rival: 5, coach_gonzalez: 8 },
                 scheduledEvents: [{
                     eventType: 'story',
                     relativeDays: 1,
@@ -134,9 +120,7 @@ export const tournamentEvents: StoryEvent[] = [
             resultText: ['You\'re in the consolation bracket now. Time to refocus and fight back.'],
             effects: {
                 moodChange: -10,
-                relationshipChanges: {
-                    coach_gonzalez: 3,
-                }
+                relationshipChanges: { coach_gonzalez: 3 }
             }
         }
     },
@@ -174,9 +158,7 @@ export const tournamentEvents: StoryEvent[] = [
             effects: {
                 tierChange: 2,
                 moodChange: 10,
-                relationshipChanges: {
-                    coach_gonzalez: 5,
-                },
+                relationshipChanges: { coach_gonzalez: 5 },
                 scheduledEvents: [{
                     eventType: 'story',
                     relativeDays: 1,
@@ -209,9 +191,7 @@ export const tournamentEvents: StoryEvent[] = [
         options: [],
         defaultOutcome: {
             resultText: ['You\'ve achieved everything there is to achieve in this version of the demo. Try a different build! There are many more miscellaneous events you haven\'t seen yet.'],
-            effects: {
-                moodChange: 5,
-            }
+            effects: { moodChange: 5 }
         }
     },
 
@@ -241,9 +221,7 @@ export const tournamentEvents: StoryEvent[] = [
         options: [],
         defaultOutcome: {
             resultText: ['Time to step onto the court for your first tournament match.'],
-            effects: {
-                moodChange: 3,
-            }
+            effects: { moodChange: 3 }
         }
     },
 
@@ -269,9 +247,7 @@ export const tournamentEvents: StoryEvent[] = [
         options: [],
         defaultOutcome: {
             resultText: ['Time to prove yourself in the consolation bracket.'],
-            effects: {
-                moodChange: 1,
-            }
+            effects: { moodChange: 1 }
         }
     },
 
@@ -295,9 +271,7 @@ export const tournamentEvents: StoryEvent[] = [
             resultText: ['You won your first tournament match! ', {characterId: 'keith'}, ' congratulates you warmly.'],
             effects: {
                 moodChange: 8,
-                relationshipChanges: {
-                    keith: 8,
-                }
+                relationshipChanges: { keith: 8 }
             }
         }
     },
@@ -322,9 +296,7 @@ export const tournamentEvents: StoryEvent[] = [
             resultText: ['You lost to ', {characterId: 'keith'}, ', but he was gracious in victory.'],
             effects: {
                 moodChange: -5,
-                relationshipChanges: {
-                    keith: 5,
-                }
+                relationshipChanges: { keith: 5 }
             }
         }
     },
@@ -358,9 +330,7 @@ export const tournamentEvents: StoryEvent[] = [
         options: [],
         defaultOutcome: {
             resultText: [{'characterId': 'chris'}, ' is a formidable opponent. This will test your resilience.'],
-            effects: {
-                moodChange: 3,
-            }
+            effects: { moodChange: 3 }
         }
     },
 
@@ -387,9 +357,7 @@ export const tournamentEvents: StoryEvent[] = [
         options: [],
         defaultOutcome: {
             resultText: ['You and ', {characterId: 'chris'}, ' will battle it out in the consolation bracket.'],
-            effects: {
-                moodChange: 2,
-            }
+            effects: { moodChange: 2 }
         }
     },
 
@@ -414,9 +382,7 @@ export const tournamentEvents: StoryEvent[] = [
             resultText: [{characterId: 'chris'}, ' played brilliantly, but you found a way to win.'],
             effects: {
                 moodChange: 6,
-                relationshipChanges: {
-                    chris: 5,
-                }
+                relationshipChanges: { chris: 5 }
             }
         }
     },
@@ -441,9 +407,7 @@ export const tournamentEvents: StoryEvent[] = [
             resultText: [{characterId: 'keith'}, ' edges you out in a close match. You know you can catch him with a little work.'],
             effects: {
                 moodChange: -6,
-                relationshipChanges: {
-                    chris: 4,
-                }
+                relationshipChanges: { chris: 4 }
             }
         }
     },
@@ -476,10 +440,7 @@ export const tournamentEvents: StoryEvent[] = [
             resultText: [{characterId: 'max'}, ' has an attitude but you can tell he can back it up. Prepare for a grind.'],
             effects: {
                 moodChange: 5,
-                statChanges: {
-                    stamina: 3,
-                    speed: 1
-                }
+                statChanges: { stamina: 3, speed: 1 }
             }
         }
     },
@@ -506,9 +467,7 @@ export const tournamentEvents: StoryEvent[] = [
         options: [],
         defaultOutcome: {
             resultText: ['Even in the consolation bracket, ', {characterId: 'max'}, ' seems focused and determined.'],
-            effects: {
-                moodChange: 2,
-            }
+            effects: { moodChange: 2 }
         }
     },
 
@@ -533,9 +492,7 @@ export const tournamentEvents: StoryEvent[] = [
             resultText: ['You defeated ', {characterId: 'max'}, '! The finals are coming up. You can feel the pressure mounting.'],
             effects: {
                 moodChange: 6,
-                relationshipChanges: {
-                    max: 8,
-                }
+                relationshipChanges: { max: 8 }
             }
         }
     },
@@ -561,12 +518,8 @@ export const tournamentEvents: StoryEvent[] = [
             resultText: ['Max was too strong, but you learned so much from facing him.'],
             effects: {
                 moodChange: -4,
-                relationshipChanges: {
-                    max: 8,
-                },
-                statChanges: {
-                    stamina: 2
-                }
+                relationshipChanges: { max: 8 },
+                statChanges: { stamina: 2 }
             }
         }
     },
@@ -601,12 +554,7 @@ export const tournamentEvents: StoryEvent[] = [
             resultText: [{characterId: 'jordan_rival'}, ' is ready for battle. This won\'t be easy.'],
             effects: {
                 moodChange: 2,
-                statChanges: {
-                    strength: 1,
-                    speed: 1,
-                    anticipation: 2,
-                    offensive: 2,
-                }
+                statChanges: { strength: 1, speed: 1, anticipation: 2, tactics: 2 }
             }
         }
     },
@@ -633,9 +581,7 @@ export const tournamentEvents: StoryEvent[] = [
         options: [],
         defaultOutcome: {
             resultText: [{characterId: 'jordan_rival'}, ' wants redemption. So do you.'],
-            effects: {
-                moodChange: 1,
-            }
+            effects: { moodChange: 1 }
         }
     },
 
@@ -661,21 +607,8 @@ export const tournamentEvents: StoryEvent[] = [
             resultText: ['You defeated your rival! ', {characterId: 'jordan_rival'}, ' begrudgingly acknowledges your victory.'],
             effects: {
                 moodChange: 10,
-                relationshipChanges: {
-                    jordan_rival: 6,
-                },
-                statChanges: {
-                    volley: 1,
-                    overhead: 1,
-                    dropShot: 1,
-                    slice: 1,
-                    return: 1,
-                    speed: 1,
-                    stamina: 1,
-                    agility: 1,
-                    recovery: 1,
-                    shotVariety: 1,
-                },
+                relationshipChanges: { jordan_rival: 6 },
+                statChanges: { net: 1, placement: 1, slice: 1, return: 1, speed: 1, stamina: 1, spin: 1 },
             }
         }
     },
@@ -701,16 +634,8 @@ export const tournamentEvents: StoryEvent[] = [
             resultText: [{characterId: 'jordan_rival'}, ' defeats you, but there\'s mutual respect forming between rivals.'],
             effects: {
                 moodChange: -8,
-                relationshipChanges: {
-                    jordan_rival: 4,
-                },
-                statChanges: {
-                    volley: 1,
-                    slice: 1,
-                    return: 1,
-                    stamina: 1,
-                    shotVariety: 1,
-                },
+                relationshipChanges: { jordan_rival: 4 },
+                statChanges: { net: 1, slice: 1, return: 1, stamina: 1, spin: 1 },
             }
         }
     },
