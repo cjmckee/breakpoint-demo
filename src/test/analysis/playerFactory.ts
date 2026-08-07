@@ -10,16 +10,16 @@ export function createUniformPlayer(name: string, rating: number): PlayerProfile
   const r = Math.max(0, Math.min(100, rating));
   const stats: PlayerStats = {
     core: {
-      serve: r, forehand: r, backhand: r, return: r, slice: r,
+      serve: r, forehand: r, backhand: r, return: r, net: r,
     },
     technical: {
-      volley: r, overhead: r, dropShot: r, spin: r, placement: r,
+      slice: r, spin: r, placement: r,
     },
     physical: {
-      speed: r, stamina: r, strength: r, agility: r, recovery: r,
+      speed: r, stamina: r, strength: r,
     },
     mental: {
-      focus: r, anticipation: r, shotVariety: r, offensive: r, defensive: r,
+      focus: r, anticipation: r, tactics: r,
     },
   };
   return new PlayerProfile(`uniform_${rating}`, name, stats);
@@ -36,10 +36,10 @@ export function createArchetypePlayer(
 ): PlayerProfile {
   const r = Math.max(0, Math.min(100, rating));
   const stats: PlayerStats = {
-    core: { serve: r, forehand: r, backhand: r, return: r, slice: r },
-    technical: { volley: r, overhead: r, dropShot: r, spin: r, placement: r },
-    physical: { speed: r, stamina: r, strength: r, agility: r, recovery: r },
-    mental: { focus: r, anticipation: r, shotVariety: r, offensive: r, defensive: r },
+    core: { serve: r, forehand: r, backhand: r, return: r, net: r },
+    technical: { slice: r, spin: r, placement: r },
+    physical: { speed: r, stamina: r, strength: r },
+    mental: { focus: r, anticipation: r, tactics: r },
   };
   return new PlayerProfile(`archetype_${name}_${rating}`, name, stats, archetypeProfile);
 }
@@ -59,16 +59,16 @@ export function createSkewedPlayer(
   const m = Math.max(0, Math.min(100, mentalRating));
   const stats: PlayerStats = {
     core: {
-      serve: t, forehand: t, backhand: t, return: t, slice: t,
+      serve: t, forehand: t, backhand: t, return: t, net: t,
     },
     technical: {
-      volley: t, overhead: t, dropShot: t, spin: t, placement: t,
+      slice: t, spin: t, placement: t,
     },
     physical: {
-      speed: p, stamina: p, strength: p, agility: p, recovery: p,
+      speed: p, stamina: p, strength: p,
     },
     mental: {
-      focus: m, anticipation: m, shotVariety: m, offensive: m, defensive: m,
+      focus: m, anticipation: m, tactics: m,
     },
   };
   return new PlayerProfile(`skewed_${t}_${p}_${m}`, name, stats);

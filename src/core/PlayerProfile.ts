@@ -61,18 +61,10 @@ const BROAD_TENDENCY_NUDGES: Record<BroadArchetype, { aggression: number; netApp
 };
 const NO_NUDGE = { aggression: 0, netApproach: 0, consistency: 0, power: 0 };
 
-export function calculateOverallRating(stats: PlayerStats): number {
-  const avg = (vals: object) => {
-    const v = Object.values(vals) as number[];
-    return v.reduce((s, x) => s + x, 0) / v.length;
-  };
-  return Math.round(
-    avg(stats.core) * 0.45 +
-    avg(stats.technical) * 0.15 +
-    avg(stats.physical) * 0.25 +
-    avg(stats.mental) * 0.15
-  );
-}
+/** Re-exported so existing importers keep working; defined once in utils/playerStats. */
+export { calculateOverallRating } from '../utils/overallRating.js';
+import { calculateOverallRating } from '../utils/overallRating.js';
+
 
 const clampDial = (v: number): number => Math.max(0, Math.min(100, v));
 
@@ -204,12 +196,10 @@ export class PlayerProfile implements IPlayerProfile {
         forehand: 25,
         backhand: 25,
         return: 25,
-        slice: 25,
+        net: 25,
       },
       technical: {
-        volley: 25,
-        overhead: 25,
-        dropShot: 25,
+        slice: 25,
         spin: 25,
         placement: 25,
       },
@@ -217,15 +207,11 @@ export class PlayerProfile implements IPlayerProfile {
         speed: 25,
         stamina: 25,
         strength: 25,
-        agility: 25,
-        recovery: 25,
       },
       mental: {
         focus: 25,
         anticipation: 25,
-        shotVariety: 25,
-        offensive: 25,
-        defensive: 25,
+        tactics: 25,
       },
     };
 
@@ -320,20 +306,20 @@ export class PlayerProfile implements IPlayerProfile {
       'backhand_approach': { stat: this.stats.core.backhand, family: 'groundstroke' },
       'forehand_power': { stat: this.stats.core.forehand, family: 'powerGroundstroke' },
       'backhand_power': { stat: this.stats.core.backhand, family: 'powerGroundstroke' },
-      'slice_forehand': { stat: this.stats.core.slice, family: 'slice' },
-      'slice_backhand': { stat: this.stats.core.slice, family: 'slice' },
-      'defensive_slice_forehand': { stat: this.stats.core.slice, family: 'slice' },
-      'defensive_slice_backhand': { stat: this.stats.core.slice, family: 'slice' },
-      'volley_forehand': { stat: this.stats.technical.volley, family: 'volley' },
-      'volley_backhand': { stat: this.stats.technical.volley, family: 'volley' },
-      'volley_forehand_power': { stat: this.stats.technical.volley, family: 'volley' },
-      'volley_backhand_power': { stat: this.stats.technical.volley, family: 'volley' },
-      'half_volley_forehand': { stat: this.stats.technical.volley, family: 'volley' },
-      'half_volley_backhand': { stat: this.stats.technical.volley, family: 'volley' },
-      'overhead': { stat: this.stats.technical.overhead, family: 'overhead' },
-      'defensive_overhead': { stat: this.stats.technical.overhead, family: 'overhead' },
-      'drop_shot_forehand': { stat: this.stats.technical.dropShot, family: 'dropShot' },
-      'drop_shot_backhand': { stat: this.stats.technical.dropShot, family: 'dropShot' },
+      'slice_forehand': { stat: this.stats.technical.slice, family: 'slice' },
+      'slice_backhand': { stat: this.stats.technical.slice, family: 'slice' },
+      'defensive_slice_forehand': { stat: this.stats.technical.slice, family: 'slice' },
+      'defensive_slice_backhand': { stat: this.stats.technical.slice, family: 'slice' },
+      'volley_forehand': { stat: this.stats.core.net, family: 'volley' },
+      'volley_backhand': { stat: this.stats.core.net, family: 'volley' },
+      'volley_forehand_power': { stat: this.stats.core.net, family: 'volley' },
+      'volley_backhand_power': { stat: this.stats.core.net, family: 'volley' },
+      'half_volley_forehand': { stat: this.stats.core.net, family: 'volley' },
+      'half_volley_backhand': { stat: this.stats.core.net, family: 'volley' },
+      'overhead': { stat: this.stats.core.net, family: 'overhead' },
+      'defensive_overhead': { stat: this.stats.core.net, family: 'overhead' },
+      'drop_shot_forehand': { stat: this.stats.technical.placement, family: 'dropShot' },
+      'drop_shot_backhand': { stat: this.stats.technical.placement, family: 'dropShot' },
       'angle_shot_forehand': { stat: this.stats.technical.placement, family: 'angle' },
       'angle_shot_backhand': { stat: this.stats.technical.placement, family: 'angle' },
       'lob_forehand': { stat: this.stats.technical.placement, family: 'lob' },
@@ -430,11 +416,11 @@ export class PlayerProfile implements IPlayerProfile {
   public get preferredSurface(): CourtSurface {
     const serve = this.stats.core.serve;
     const speed = this.stats.physical.speed;
-    const defensive = this.stats.mental.defensive;
+    const defensive = this.stats.mental.tactics;
     const spin = this.stats.technical.spin;
 
     // Grass favors serve and volley
-    if (serve >= 70 && this.stats.technical.volley >= 65) {
+    if (serve >= 70 && this.stats.core.net >= 65) {
       return 'grass';
     }
 
@@ -547,12 +533,10 @@ export class PlayerProfile implements IPlayerProfile {
         forehand: generateStat(),
         backhand: generateStat(),
         return: generateStat(),
-        slice: generateStat(),
+        net: generateStat(),
       },
       technical: {
-        volley: generateStat(),
-        overhead: generateStat(),
-        dropShot: generateStat(),
+        slice: generateStat(),
         spin: generateStat(),
         placement: generateStat(),
       },
@@ -560,15 +544,11 @@ export class PlayerProfile implements IPlayerProfile {
         speed: generateStat(),
         stamina: generateStat(),
         strength: generateStat(),
-        agility: generateStat(),
-        recovery: generateStat(),
       },
       mental: {
         focus: generateStat(),
         anticipation: generateStat(),
-        shotVariety: generateStat(),
-        offensive: generateStat(),
-        defensive: generateStat(),
+        tactics: generateStat(),
       },
     };
 

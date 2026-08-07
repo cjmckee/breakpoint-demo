@@ -175,7 +175,7 @@ function computeRallyThresholds(
   let inPlayReq = incomingQuality * relativeReq;
 
   // Opponent stat adjustments: (stat - 50) * multiplier
-  inPlayReq += (opponentDefensive - 50) * OPPONENT_STAT_ADJUSTMENTS.defensive;
+  inPlayReq += (opponentDefensive - 50) * OPPONENT_STAT_ADJUSTMENTS.tactics;
   inPlayReq += (opponentSpeed - 50) * OPPONENT_STAT_ADJUSTMENTS.speed;
 
   // Apply minimum floor

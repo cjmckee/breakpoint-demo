@@ -27,10 +27,7 @@ export const miscEvents: StoryEvent[] = [
         name: 'Disc Golf Adventure',
         tags: ['misc'],
         timeSlotsRequired: 1,
-        prerequisites: {
-            minSeason: 1,
-            minDay: 10
-        },
+        prerequisites: { minSeason: 1, minDay: 10 },
         skippable: false,
         moodTier: 'neutral',
         description: 'Some of your teammates invite you to the disc golf course out behind the courts.',
@@ -53,16 +50,8 @@ export const miscEvents: StoryEvent[] = [
                     ],
                     effects: {
                         energyChange: -10,
-                        statChanges: {
-                            slice: 3,
-                            shotVariety: 1,
-                            placement: 1
-                        },
-                        relationshipChanges: {
-                            alison: 5,
-                            greg: 5,
-                            keith: -5
-                        },
+                        statChanges: { slice: 3, spin: 1, placement: 1 },
+                        relationshipChanges: { alison: 5, greg: 5, keith: -5 },
                         itemsGained: [LUCKY_PENNY],
                     },
                     challengesAssigned: [
@@ -85,14 +74,8 @@ export const miscEvents: StoryEvent[] = [
                     ],
                     effects: {
                         energyChange: 0,
-                        statChanges: {
-                            stamina: 3,
-                        },
-                        relationshipChanges: {
-                            alison: 2,
-                            greg: 2,
-                            keith: 10
-                        }
+                        statChanges: { stamina: 3 },
+                        relationshipChanges: { alison: 2, greg: 2, keith: 10 }
                     }
                 }
             },
@@ -108,14 +91,8 @@ export const miscEvents: StoryEvent[] = [
                     ],
                     effects: {
                         energyChange: 5,
-                        statChanges: {
-                            recovery: 3
-                        },
-                        relationshipChanges: {
-                            alison: -2,
-                            greg: -2,
-                            keith: -5
-                        }
+                        statChanges: { stamina: 3 },
+                        relationshipChanges: { alison: -2, greg: -2, keith: -5 }
                     }
                 }
             }
@@ -127,10 +104,7 @@ export const miscEvents: StoryEvent[] = [
         name: 'Local Farmers Market',
         tags: ['misc'],
         timeSlotsRequired: 1,
-        prerequisites: {
-            minSeason: 1,
-            minDay: 10
-        },
+        prerequisites: { minSeason: 1, minDay: 10 },
         skippable: false,
         moodTier: 'neutral',
         description: 'You visit the local farmer\'s market to browse some organic options.',
@@ -153,10 +127,7 @@ export const miscEvents: StoryEvent[] = [
                     ],
                     effects: {
                         energyChange: -5,
-                        statChanges: {
-                            speed: 3,
-                            agility: 3
-                        },
+                        statChanges: { speed: 3 },
                         itemsGained: [STRAWBERRIES],
                     }
                 }
@@ -174,11 +145,7 @@ export const miscEvents: StoryEvent[] = [
                     ],
                     effects: {
                         energyChange: 10,
-                        statChanges: {
-                            anticipation: 2,
-                            recovery: 2,
-                            spin: 1
-                        },
+                        statChanges: { anticipation: 2, stamina: 2, spin: 1 },
                     }
                 }
             }
@@ -190,10 +157,7 @@ export const miscEvents: StoryEvent[] = [
         name: 'Coding Class',
         tags: ['misc'],
         timeSlotsRequired: 2,
-        prerequisites: {
-            minSeason: 1,
-            minDay: 10
-        },
+        prerequisites: { minSeason: 1, minDay: 10 },
         skippable: false,
         moodTier: 'neutral',
         description: 'You attend a coding class to improve your skills.',
@@ -212,12 +176,7 @@ export const miscEvents: StoryEvent[] = [
             ],
             effects: {
                 energyChange: 10,
-                statChanges: {
-                    focus: -1,
-                    anticipation: -1,
-                    agility: -1,
-                    placement: 3
-                },
+                statChanges: { focus: -1, anticipation: -1, speed: -1, placement: 3 },
             }
         }
     },
@@ -227,10 +186,7 @@ export const miscEvents: StoryEvent[] = [
         name: 'Batting Cage Hangout',
         tags: ['misc'],
         timeSlotsRequired: 1,
-        prerequisites: {
-            minSeason: 1,
-            minDay: 10
-        },
+        prerequisites: { minSeason: 1, minDay: 10 },
         skippable: false,
         moodTier: 'neutral',
         description: 'You spend some time at the batting cage to work on your swing.',
@@ -249,12 +205,7 @@ export const miscEvents: StoryEvent[] = [
             ],
             effects: {
                 energyChange: 5,
-                statChanges: {
-                    forehand: 1,
-                    backhand: 1,
-                    slice: 1,
-                    return: 1,
-                },
+                statChanges: { forehand: 1, backhand: 1, slice: 1, return: 1 },
             }
         }
     },
@@ -264,10 +215,7 @@ export const miscEvents: StoryEvent[] = [
         name: 'Attend Football Game',
         tags: ['misc'],
         timeSlotsRequired: 2,
-        prerequisites: {
-            minSeason: 1,
-            minDay: 10
-        },
+        prerequisites: { minSeason: 1, minDay: 10 },
         skippable: false,
         moodTier: 'good',
         description: 'You attend a local football game to relax and enjoy the atmosphere.',
@@ -289,16 +237,8 @@ export const miscEvents: StoryEvent[] = [
             effects: {
                 energyChange: -10,
                 moodChange: 5,
-                statChanges: {
-                    offensive: 1,
-                    defensive: 1,
-                    speed: 1,
-                    agility: 1
-                },
-                relationshipChanges: {
-                    keith: 2,
-                    jen: 2
-                },
+                statChanges: { tactics: 1, speed: 1 },
+                relationshipChanges: { keith: 2, jen: 2 },
                 itemsGained: [TENNIS_BALL_KEYCHAIN],
             }
         }
@@ -309,10 +249,7 @@ export const miscEvents: StoryEvent[] = [
         name: 'Team Hotpot Dinner',
         tags: ['misc'],
         timeSlotsRequired: 2,
-        prerequisites: {
-            minSeason: 1,
-            minDay: 10
-        },
+        prerequisites: { minSeason: 1, minDay: 10 },
         skippable: false,
         moodTier: 'good',
         description: 'You go out for a hotpot dinner with the team to bond and relax.',
@@ -333,14 +270,8 @@ export const miscEvents: StoryEvent[] = [
             effects: {
                 energyChange: 15,
                 moodChange: 10,
-                statChanges: {
-                    stamina: 2,
-                    recovery: 2
-                },
-                relationshipChanges: {
-                    keith: 5,
-                    jen: 5,
-                },
+                statChanges: { stamina: 2 },
+                relationshipChanges: { keith: 5, jen: 5 },
                 itemsGained: [MOTIVATIONAL_PLAYLIST],
             }
         }
@@ -380,16 +311,8 @@ export const miscEvents: StoryEvent[] = [
             effects: {
                 moodChange: 10,
                 energyChange: 10,
-                relationshipChanges: {
-                    keith: 5
-                },
-                statChanges: {
-                    focus: -2,
-                    agility: 2,
-                    speed: 2,
-                    anticipation: -1,
-                    recovery: 2
-                }
+                relationshipChanges: { keith: 5 },
+                statChanges: { focus: -2, speed: 2, anticipation: -1, stamina: 2 }
             }
         }
     },
@@ -399,10 +322,7 @@ export const miscEvents: StoryEvent[] = [
         name: 'The Ping Pong Hustler',
         tags: ['misc'],
         timeSlotsRequired: 1,
-        prerequisites: {
-            minSeason: 1,
-            minDay: 12
-        },
+        prerequisites: { minSeason: 1, minDay: 12 },
         skippable: false,
         moodTier: 'neutral',
         description: 'A mysterious old man challenges you to ping pong in the tennis center lobby.',
@@ -431,11 +351,7 @@ export const miscEvents: StoryEvent[] = [
                     ],
                     effects: {
                         energyChange: -15,
-                        statChanges: {
-                            dropShot: 3,
-                            slice: 3,
-                            spin: 2
-                        },
+                        statChanges: { placement: 3, slice: 3, spin: 2 },
                     },
                     challengesAssigned: [
                         ChallengeManager.createFromTemplate(CHALLENGE_TOUCH_ARTIST, {
@@ -458,14 +374,8 @@ export const miscEvents: StoryEvent[] = [
                     ],
                     effects: {
                         energyChange: -10,
-                        statChanges: {
-                            dropShot: 2,
-                            volley: 2,
-                            slice: 1
-                        },
-                        relationshipChanges: {
-                            keith: 5
-                        }
+                        statChanges: { placement: 2, net: 2, slice: 1 },
+                        relationshipChanges: { keith: 5 }
                     }
                 }
             }
@@ -477,10 +387,7 @@ export const miscEvents: StoryEvent[] = [
         name: 'Beach Volleyball Day',
         tags: ['misc'],
         timeSlotsRequired: 2,
-        prerequisites: {
-            minSeason: 1,
-            minDay: 14
-        },
+        prerequisites: { minSeason: 1, minDay: 14 },
         skippable: false,
         moodTier: 'good',
         description: 'The team heads to the beach to relax and unwind.',
@@ -502,16 +409,8 @@ export const miscEvents: StoryEvent[] = [
             effects: {
                 energyChange: -20,
                 moodChange: 15,
-                statChanges: {
-                    overhead: 4,
-                    strength: 3,
-                    agility: 2
-                },
-                relationshipChanges: {
-                    jen: 3,
-                    keith: 3,
-                    max: 3
-                }
+                statChanges: { net: 4, strength: 3, speed: 2 },
+                relationshipChanges: { jen: 3, keith: 3, max: 3 }
             },
             challengesAssigned: [
                 ChallengeManager.createFromTemplate(CHALLENGE_OVERHEAD_AUTHORITY, {
@@ -527,10 +426,7 @@ export const miscEvents: StoryEvent[] = [
         name: 'The Goose Incident',
         tags: ['misc'],
         timeSlotsRequired: 1,
-        prerequisites: {
-            minSeason: 1,
-            minDay: 8
-        },
+        prerequisites: { minSeason: 1, minDay: 8 },
         skippable: false,
         moodTier: 'neutral',
         description: 'You take a shortcut through the park on the wrong side of town.',
@@ -555,11 +451,7 @@ export const miscEvents: StoryEvent[] = [
                     ],
                     effects: {
                         energyChange: -15,
-                        statChanges: {
-                            speed: 4,
-                            agility: 3,
-                            recovery: 2
-                        },
+                        statChanges: { speed: 4, stamina: 2 },
                     },
                     challengesAssigned: [
                         ChallengeManager.createFromTemplate(CHALLENGE_NEED_FOR_SPEED, {
@@ -583,11 +475,7 @@ export const miscEvents: StoryEvent[] = [
                     effects: {
                         energyChange: -5,
                         moodChange: -10,
-                        statChanges: {
-                            strength: -2,
-                            overhead: -2,
-                            recovery: -2
-                        },
+                        statChanges: { strength: -2, net: -2, stamina: -2 },
                     }
                 }
             }
@@ -599,10 +487,7 @@ export const miscEvents: StoryEvent[] = [
         name: 'Midnight Grocery Run',
         tags: ['misc'],
         timeSlotsRequired: 1,
-        prerequisites: {
-            minSeason: 1,
-            minDay: 15
-        },
+        prerequisites: { minSeason: 1, minDay: 15 },
         skippable: false,
         moodTier: 'neutral',
         description: 'A late-night grocery run takes a competitive turn.',
@@ -628,14 +513,8 @@ export const miscEvents: StoryEvent[] = [
                     effects: {
                         energyChange: -10,
                         moodChange: 15,
-                        statChanges: {
-                            speed: 3,
-                            agility: 2,
-                            shotVariety: 2
-                        },
-                        relationshipChanges: {
-                            keith: 8
-                        }
+                        statChanges: { speed: 3, spin: 2 },
+                        relationshipChanges: { keith: 8 }
                     },
                     challengesAssigned: [
                         ChallengeManager.createFromTemplate(CHALLENGE_WINNER_MACHINE, {
@@ -658,13 +537,8 @@ export const miscEvents: StoryEvent[] = [
                     ],
                     effects: {
                         energyChange: 5,
-                        statChanges: {
-                            recovery: 3,
-                            stamina: 1
-                        },
-                        relationshipChanges: {
-                            keith: 2
-                        },
+                        statChanges: { stamina: 3 },
+                        relationshipChanges: { keith: 2 },
                         itemsGained: [BANANA],
                     }
                 }
@@ -677,10 +551,7 @@ export const miscEvents: StoryEvent[] = [
         name: 'Backyard Badminton Tournament',
         tags: ['misc'],
         timeSlotsRequired: 2,
-        prerequisites: {
-            minSeason: 1,
-            minDay: 18
-        },
+        prerequisites: { minSeason: 1, minDay: 18 },
         skippable: false,
         moodTier: 'good',
         description: 'Your neighbor is hosting a surprisingly competitive backyard badminton tournament.',
@@ -700,12 +571,7 @@ export const miscEvents: StoryEvent[] = [
             effects: {
                 energyChange: -15,
                 moodChange: 5,
-                statChanges: {
-                    volley: 3,
-                    shotVariety: 2,
-                    overhead: 2,
-                    dropShot: 1
-                },
+                statChanges: { net: 3, spin: 2, placement: 1 },
             },
             challengesAssigned: [
                 ChallengeManager.createFromTemplate(CHALLENGE_NET_DOMINATOR, {
@@ -721,10 +587,7 @@ export const miscEvents: StoryEvent[] = [
         name: 'Street Performer Encounter',
         tags: ['misc'],
         timeSlotsRequired: 1,
-        prerequisites: {
-            minSeason: 1,
-            minDay: 10
-        },
+        prerequisites: { minSeason: 1, minDay: 10 },
         skippable: false,
         moodTier: 'neutral',
         description: 'A street performer offers to teach you to juggle.',
@@ -748,11 +611,7 @@ export const miscEvents: StoryEvent[] = [
                     ],
                     effects: {
                         energyChange: -10,
-                        statChanges: {
-                            volley: 3,
-                            dropShot: 2,
-                            agility: 1
-                        },
+                        statChanges: { net: 3, placement: 2, speed: 1 },
                     }
                 }
             },
@@ -769,11 +628,7 @@ export const miscEvents: StoryEvent[] = [
                     ],
                     effects: {
                         energyChange: 5,
-                        statChanges: {
-                            overhead: 2,
-                            slice: 1,
-                            volley: 1,
-                        },
+                        statChanges: { net: 2, slice: 1 },
                     }
                 }
             }
@@ -810,14 +665,8 @@ export const miscEvents: StoryEvent[] = [
             effects: {
                 energyChange: -20,
                 moodChange: 5,
-                statChanges: {
-                    recovery: 4,
-                    agility: 2,
-                    strength: 2
-                },
-                relationshipChanges: {
-                    keith: 5
-                },
+                statChanges: { stamina: 4, speed: 2, strength: 2 },
+                relationshipChanges: { keith: 5 },
                 itemsGained: [ICE_BATH_VOUCHER],
             },
             challengesAssigned: [
@@ -834,10 +683,7 @@ export const miscEvents: StoryEvent[] = [
         name: 'The Bus Chase',
         tags: ['misc'],
         timeSlotsRequired: 1,
-        prerequisites: {
-            minSeason: 1,
-            minDay: 8
-        },
+        prerequisites: { minSeason: 1, minDay: 8 },
         skippable: false,
         moodTier: 'bad',
         description: 'You overslept and the bus to the Academy is leaving without you.',
@@ -857,11 +703,7 @@ export const miscEvents: StoryEvent[] = [
             effects: {
                 energyChange: -20,
                 moodChange: -5,
-                statChanges: {
-                    speed: 4,
-                    stamina: 2,
-                    recovery: 2
-                },
+                statChanges: { speed: 4, stamina: 2 },
             }
         }
     },
@@ -871,10 +713,7 @@ export const miscEvents: StoryEvent[] = [
         name: 'Rock Climbing Day',
         tags: ['misc'],
         timeSlotsRequired: 2,
-        prerequisites: {
-            minSeason: 1,
-            minDay: 20
-        },
+        prerequisites: { minSeason: 1, minDay: 20 },
         skippable: false,
         moodTier: 'neutral',
         description: 'A teammate suggests indoor rock climbing as a fun outing.',
@@ -899,14 +738,8 @@ export const miscEvents: StoryEvent[] = [
                     effects: {
                         energyChange: -20,
                         moodChange: 10,
-                        statChanges: {
-                            overhead: 3,
-                            strength: 3,
-                            recovery: 1
-                        },
-                        relationshipChanges: {
-                            max: 5
-                        }
+                        statChanges: { net: 3, strength: 3, stamina: 1 },
+                        relationshipChanges: { max: 5 }
                     },
                     challengesAssigned: [
                         ChallengeManager.createFromTemplate(CHALLENGE_WALL_CLIMBER, {
@@ -930,14 +763,8 @@ export const miscEvents: StoryEvent[] = [
                     effects: {
                         energyChange: -10,
                         moodChange: 5,
-                        statChanges: {
-                            strength: 2,
-                            recovery: 2,
-                            overhead: 2
-                        },
-                        relationshipChanges: {
-                            max: 3
-                        }
+                        statChanges: { strength: 2, stamina: 2, net: 2 },
+                        relationshipChanges: { max: 3 }
                     }
                 }
             }
@@ -949,10 +776,7 @@ export const miscEvents: StoryEvent[] = [
         name: 'BBQ Knife Skills',
         tags: ['misc'],
         timeSlotsRequired: 1,
-        prerequisites: {
-            minSeason: 1,
-            minDay: 16
-        },
+        prerequisites: { minSeason: 1, minDay: 16 },
         skippable: false,
         moodTier: 'good',
         description: 'You\'ve been volunteered to help prep for the team fundraiser BBQ.',
@@ -974,14 +798,8 @@ export const miscEvents: StoryEvent[] = [
             effects: {
                 energyChange: -10,
                 moodChange: 5,
-                statChanges: {
-                    dropShot: 3,
-                    slice: 3,
-                    placement: 1
-                },
-                relationshipChanges: {
-                    greg: 5
-                }
+                statChanges: { placement: 3, slice: 3 },
+                relationshipChanges: { greg: 5 }
             },
             challengesAssigned: [
                 ChallengeManager.createFromTemplate(CHALLENGE_PRECISION_CUTTER, {
@@ -997,10 +815,7 @@ export const miscEvents: StoryEvent[] = [
         name: 'The Gaming Marathon',
         tags: ['misc'],
         timeSlotsRequired: 2,
-        prerequisites: {
-            minSeason: 1,
-            minDay: 10
-        },
+        prerequisites: { minSeason: 1, minDay: 10 },
         skippable: false,
         moodTier: 'neutral',
         description: 'Keith convinces you to stay up all night playing video games.',
@@ -1023,15 +838,8 @@ export const miscEvents: StoryEvent[] = [
             effects: {
                 energyChange: -25,
                 moodChange: 10,
-                statChanges: {
-                    focus: -2,
-                    stamina: -2,
-                    forehand: -1,
-                    anticipation: -2,
-                },
-                relationshipChanges: {
-                    keith: 8
-                }
+                statChanges: { focus: -2, stamina: -2, forehand: -1, anticipation: -2 },
+                relationshipChanges: { keith: 8 }
             }
         }
     },
@@ -1041,10 +849,7 @@ export const miscEvents: StoryEvent[] = [
         name: 'The Spicy Food Challenge',
         tags: ['misc'],
         timeSlotsRequired: 1,
-        prerequisites: {
-            minSeason: 1,
-            minDay: 14
-        },
+        prerequisites: { minSeason: 1, minDay: 14 },
         skippable: false,
         moodTier: 'neutral',
         description: 'A local restaurant is running a spicy wing challenge. Your teammates dare you.',
@@ -1072,15 +877,8 @@ export const miscEvents: StoryEvent[] = [
                     effects: {
                         energyChange: -15,
                         moodChange: 5,
-                        statChanges: {
-                            placement: -3,
-                            offensive: -2,
-                            focus: -1,
-                        },
-                        relationshipChanges: {
-                            keith: 5,
-                            jen: 3
-                        }
+                        statChanges: { placement: -3, tactics: -2, focus: -1 },
+                        relationshipChanges: { keith: 5, jen: 3 }
                     }
                 }
             },
@@ -1097,14 +895,8 @@ export const miscEvents: StoryEvent[] = [
                     ],
                     effects: {
                         energyChange: 5,
-                        statChanges: {
-                            recovery: 2,
-                            dropShot: 1
-                        },
-                        relationshipChanges: {
-                            keith: -2,
-                            jen: -2
-                        }
+                        statChanges: { stamina: 2, placement: 1 },
+                        relationshipChanges: { keith: -2, jen: -2 }
                     }
                 }
             }
@@ -1116,10 +908,7 @@ export const miscEvents: StoryEvent[] = [
         name: 'The Social Media Spiral',
         tags: ['misc'],
         timeSlotsRequired: 1,
-        prerequisites: {
-            minSeason: 1,
-            minDay: 12
-        },
+        prerequisites: { minSeason: 1, minDay: 12 },
         skippable: false,
         moodTier: 'bad',
         description: 'You fall down a social media rabbit hole.',
@@ -1139,11 +928,7 @@ export const miscEvents: StoryEvent[] = [
             effects: {
                 energyChange: 5,
                 moodChange: -10,
-                statChanges: {
-                    forehand: -3,
-                    defensive: -2,
-                    placement: -2,
-                },
+                statChanges: { forehand: -3, tactics: -2, placement: -2 },
             }
         }
     },
@@ -1153,10 +938,7 @@ export const miscEvents: StoryEvent[] = [
         name: 'Trampoline Park Mishap',
         tags: ['misc'],
         timeSlotsRequired: 2,
-        prerequisites: {
-            minSeason: 1,
-            minDay: 16
-        },
+        prerequisites: { minSeason: 1, minDay: 16 },
         skippable: false,
         moodTier: 'neutral',
         description: 'The team takes a trip to the trampoline park. What could go wrong?',
@@ -1182,16 +964,8 @@ export const miscEvents: StoryEvent[] = [
                     effects: {
                         energyChange: -30,
                         moodChange: 20,
-                        statChanges: {
-                            stamina: -3,
-                            offensive: -2,
-                            overhead: 2,
-                            agility: 2
-                        },
-                        relationshipChanges: {
-                            keith: 5,
-                            jen: 3
-                        }
+                        statChanges: { stamina: -3, tactics: -2, net: 2, speed: 2 },
+                        relationshipChanges: { keith: 5, jen: 3 }
                     }
                 }
             },
@@ -1209,14 +983,8 @@ export const miscEvents: StoryEvent[] = [
                     effects: {
                         energyChange: -15,
                         moodChange: 5,
-                        statChanges: {
-                            speed: 2,
-                            overhead: 2,
-                            strength: 1
-                        },
-                        relationshipChanges: {
-                            jen: 5
-                        }
+                        statChanges: { speed: 2, net: 2, strength: 1 },
+                        relationshipChanges: { jen: 5 }
                     }
                 }
             }
@@ -1228,10 +996,7 @@ export const miscEvents: StoryEvent[] = [
         name: 'Movie Night Brain Rot',
         tags: ['misc'],
         timeSlotsRequired: 2,
-        prerequisites: {
-            minSeason: 1,
-            minDay: 10
-        },
+        prerequisites: { minSeason: 1, minDay: 10 },
         skippable: false,
         moodTier: 'good',
         description: 'Keith picks the movie for team movie night. It\'s a disaster.',
@@ -1251,16 +1016,8 @@ export const miscEvents: StoryEvent[] = [
             effects: {
                 energyChange: 10,
                 moodChange: 15,
-                statChanges: {
-                    anticipation: -3,
-                    focus: -2,
-                    defensive: -1,
-                    strength: 1
-                },
-                relationshipChanges: {
-                    keith: 5,
-                    jen: 3
-                }
+                statChanges: { anticipation: -3, focus: -2, tactics: -1, strength: 1 },
+                relationshipChanges: { keith: 5, jen: 3 }
             }
         }
     },
@@ -1270,11 +1027,7 @@ export const miscEvents: StoryEvent[] = [
         name: 'The Ego Trip',
         tags: ['misc'],
         timeSlotsRequired: 1,
-        prerequisites: {
-            minSeason: 1,
-            minDay: 20,
-            minMatchesWon: 5
-        },
+        prerequisites: { minSeason: 1, minDay: 20, minMatchesWon: 5 },
         skippable: false,
         moodTier: 'bad',
         description: 'Your recent wins have gone to your head. Time for a reality check.',
@@ -1295,17 +1048,8 @@ export const miscEvents: StoryEvent[] = [
             effects: {
                 energyChange: -10,
                 moodChange: -10,
-                statChanges: {
-                    offensive: -3,
-                    forehand: -2,
-                    placement: -1,
-                    defensive: 2,
-                    slice: 1,
-                    dropShot: 1
-                },
-                relationshipChanges: {
-                    coach_gonzalez: 3
-                }
+                statChanges: { tactics: 2, forehand: -2, placement: 1, slice: 1 },
+                relationshipChanges: { coach_gonzalez: 3 }
             }
         }
     },
@@ -1315,10 +1059,7 @@ export const miscEvents: StoryEvent[] = [
         name: 'The Hammock Incident',
         tags: ['misc'],
         timeSlotsRequired: 1,
-        prerequisites: {
-            minSeason: 1,
-            minDay: 10
-        },
+        prerequisites: { minSeason: 1, minDay: 10 },
         skippable: false,
         moodTier: 'bad',
         description: 'You try to relax in a hammock between practice sessions.',
@@ -1340,12 +1081,7 @@ export const miscEvents: StoryEvent[] = [
             effects: {
                 energyChange: 30,
                 moodChange: -5,
-                statChanges: {
-                    anticipation: -3,
-                    stamina: -2,
-                    speed: -1,
-                    recovery: 3
-                },
+                statChanges: { anticipation: -3, stamina: 3, speed: -1 },
             }
         }
     },
@@ -1386,15 +1122,8 @@ export const miscEvents: StoryEvent[] = [
                     effects: {
                         energyChange: -20,
                         moodChange: 15,
-                        statChanges: {
-                            speed: 3,
-                            recovery: 3,
-                            agility: 1
-                        },
-                        relationshipChanges: {
-                            jen: 5,
-                            keith: 5
-                        },
+                        statChanges: { speed: 3, stamina: 3 },
+                        relationshipChanges: { jen: 5, keith: 5 },
                         itemsGained: [ENERGY_DRINK],
                     },
                     challengesAssigned: [
@@ -1419,16 +1148,8 @@ export const miscEvents: StoryEvent[] = [
                     effects: {
                         energyChange: -20,
                         moodChange: 10,
-                        statChanges: {
-                            volley: 2,
-                            dropShot: 2,
-                            slice: 1,
-                            anticipation: 1
-                        },
-                        relationshipChanges: {
-                            jen: 3,
-                            keith: 3
-                        }
+                        statChanges: { net: 2, placement: 2, slice: 1, anticipation: 1 },
+                        relationshipChanges: { jen: 3, keith: 3 }
                     }
                 }
             }
@@ -1440,10 +1161,7 @@ export const miscEvents: StoryEvent[] = [
         name: 'Old Social Media Posts Resurface',
         tags: ['misc'],
         timeSlotsRequired: 1,
-        prerequisites: {
-            minSeason: 1,
-            minDay: 10
-        },
+        prerequisites: { minSeason: 1, minDay: 10 },
         skippable: false,
         moodTier: 'bad',
         description: 'Some old social media posts of yours resurface and word spreads around the Academy',
@@ -1465,16 +1183,8 @@ export const miscEvents: StoryEvent[] = [
             effects: {
                 energyChange: -10,
                 moodChange: -10,
-                statChanges: {
-                    forehand: -1,
-                    backhand: -1,
-                    volley: -1
-                },
-                relationshipChanges: {
-                    max: 3,
-                    alison: 3,
-                    keith: 3
-                }
+                statChanges: { forehand: -1, backhand: -1, net: -1 },
+                relationshipChanges: { max: 3, alison: 3, keith: 3 }
             }
         }
     },
@@ -1484,10 +1194,7 @@ export const miscEvents: StoryEvent[] = [
         name: 'Post-Match Carpool',
         tags: ['misc'],
         timeSlotsRequired: 1,
-        prerequisites: {
-            minSeason: 1,
-            minDay: 12
-        },
+        prerequisites: { minSeason: 1, minDay: 12 },
         skippable: false,
         moodTier: 'good',
         description: 'An Awkward Carpool',
@@ -1511,11 +1218,7 @@ export const miscEvents: StoryEvent[] = [
             effects: {
                 energyChange: 10,
                 moodChange: 15,
-                statChanges: {
-                    anticipation: 2,
-                    stamina: 2,
-                    recovery: 1
-                },
+                statChanges: { anticipation: 2, stamina: 2 },
                 itemsGained: [ORANGE_SLICE],
             }
         }

@@ -3,7 +3,8 @@
  * Ported from ai-slop-gaming and adapted for ai-slop-tennis
  */
 
-import type { PlayerStats } from './index';
+import type {
+  StatName, PlayerStats } from './index';
 import type { ArchetypeProfile } from './archetype';
 import type { StoryEventResult } from './storyEvents';
 import type { Item, EquipmentSlot } from './items';
@@ -15,28 +16,11 @@ export type { PlayerStats };
 // STAT BOOSTS
 // ============================================================================
 
-export interface StatBoosts {
-  serve?: number;
-  forehand?: number;
-  backhand?: number;
-  volley?: number;
-  overhead?: number;
-  dropShot?: number;
-  slice?: number;
-  return?: number;
-  spin?: number;
-  placement?: number;
-  speed?: number;
-  stamina?: number;
-  strength?: number;
-  agility?: number;
-  focus?: number;
-  anticipation?: number;
-  shotVariety?: number;
-  recovery?: number;
-  offensive?: number;
-  defensive?: number;
-}
+/**
+ * A partial stat award. Derived from the stat interfaces so it cannot drift out
+ * of sync with them — it used to be a hand-written list of every stat name.
+ */
+export type StatBoosts = Partial<Record<StatName, number>>;
 
 // ============================================================================
 // ABILITIES SYSTEM
@@ -544,12 +528,10 @@ export const DEFAULT_PLAYER_STATS: PlayerStats = {
     forehand: 20,
     backhand: 20,
     return: 20,
-    slice: 20,
+    net: 20,
   },
   technical: {
-    volley: 20,
-    overhead: 20,
-    dropShot: 20,
+    slice: 20,
     spin: 20,
     placement: 20,
   },
@@ -557,15 +539,11 @@ export const DEFAULT_PLAYER_STATS: PlayerStats = {
     speed: 20,
     stamina: 20,
     strength: 20,
-    agility: 20,
-    recovery: 20,
   },
   mental: {
     focus: 20,
     anticipation: 20,
-    shotVariety: 20,
-    offensive: 20,
-    defensive: 20,
+    tactics: 20,
   },
 };
 

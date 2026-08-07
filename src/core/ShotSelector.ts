@@ -20,7 +20,7 @@ import type {
 import { PlayerProfile } from './PlayerProfile.js';
 import { TacticalAnalyzer } from './TacticalAnalyzer.js';
 import { getQualityThresholds } from '../utils/qualityThresholds.js';
-import { SURFACE_EFFECTS } from '../config/shotThresholds.js';
+import { SURFACE_EFFECTS, NET_APPROACH_BIAS_SCALE } from '../config/shotThresholds.js';
 import { EffectKey } from '../types/game.js';
 
 /** Archetype behavior effects threaded from the active-effects map. */
@@ -274,11 +274,15 @@ export class ShotSelector {
     behaviorEffects: BehaviorEffects
   ): boolean {
     const netBias = behaviorEffects[EffectKey.NET_APPROACH_BIAS] ?? 0;
-    const offensive = shooter.stats.mental.offensive;
 
-    // Neutral ~12%; negative bias floors near 0
-    let baseProbability = Math.max(0, 0.12 + (netBias / 100) * 0.50);
-    baseProbability += (offensive / 100) * 0.08;
+    // Playstyle decides how often a player comes forward; the net rating decides
+    // how they do once they get there. No stat belongs in this number — an
+    // `offensive` term used to add up to 8 points of base probability here,
+    // which put a stat on the frequency axis.
+    // Floored rather than clamped to zero: a net-averse archetype should come in
+    // rarely, not never. At a large bias scale the negative bias drives this
+    // below zero and a net_apologist build stopped approaching entirely.
+    let baseProbability = Math.max(0.02, 0.12 + (netBias / 100) * NET_APPROACH_BIAS_SCALE);
     baseProbability += SURFACE_EFFECTS[courtSurface].netApproachBonus;
     baseProbability = Math.max(0, baseProbability);
 
@@ -318,17 +322,17 @@ export class ShotSelector {
     behaviorEffects: BehaviorEffects
   ): boolean {
     const winnerBias = behaviorEffects[EffectKey.RALLY_WINNER_BIAS] ?? 0;
-    const offensive = shooter.stats.mental.offensive;
-    const defensive = shooter.stats.mental.defensive;
 
-    // Neutral 15%; each bias point ≈ 1% swing. Floors at ~3%.
+    // Same split as the net approach: how often a player goes for a winner is a
+    // playstyle question. This previously added an `offensive` term and
+    // subtracted a `defensive` one, which under the merged `tactics` stat would
+    // simply cancel — a sign the two were standing in for a playstyle axis that
+    // RALLY_WINNER_BIAS already carries.
     let baseProbability = Math.max(0.03, 0.15 + winnerBias * 0.01);
-    baseProbability += (offensive / 100) * 0.10;
-    baseProbability -= (defensive / 100) * 0.08;
-    baseProbability = Math.max(0, baseProbability);
 
-    // Early-rally aggression boost (driven by offensive stat)
-    if (Math.random() < offensive / 100 && rallyState.rallyLength >= 3 && rallyState.rallyLength <= 5) {
+    // Early-rally aggression, for builds that lean on it
+    if (winnerBias > 0 && Math.random() < (winnerBias / 100) * 1.5
+        && rallyState.rallyLength >= 3 && rallyState.rallyLength <= 5) {
       baseProbability *= 1.5;
     }
 
@@ -372,7 +376,7 @@ export class ShotSelector {
     if (dropShotResult.use) return dropShotResult;
 
     // --- Other tactical shots (lob, angle) still use shotVariety ---
-    const shotVariety = shooter.stats.mental.shotVariety;
+    const shotVariety = shooter.stats.technical.spin;
     const baseProbability = 0.01 + (shotVariety / 100) * 0.24;
     if (Math.random() > baseProbability) return { use: false };
 
@@ -398,7 +402,7 @@ export class ShotSelector {
     ballQuality: RallyState['ballQuality'],
     behaviorEffects: BehaviorEffects
   ): { use: boolean; type?: 'drop_shot' } {
-    const dropShotStat = shooter.stats.technical.dropShot;
+    const dropShotStat = shooter.stats.technical.placement;
 
     // Can't drop shot a rushing ball
     if (ballQuality.timeAvailable === 'rushed') return { use: false };

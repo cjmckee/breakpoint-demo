@@ -34,10 +34,10 @@ const NONE: ArchetypeProfile = { broad: null, phases: {}, specializationPoints: 
 const _origLog = console.log;
 
 const uniform = (r: number): PlayerStats => ({
-  core: { serve: r, forehand: r, backhand: r, return: r, slice: r },
-  technical: { volley: r, overhead: r, dropShot: r, spin: r, placement: r },
-  physical: { speed: r, stamina: r, strength: r, agility: r, recovery: r },
-  mental: { focus: r, anticipation: r, shotVariety: r, offensive: r, defensive: r },
+  core: { serve: r, forehand: r, backhand: r, return: r, net: r },
+  technical: { slice: r, spin: r, placement: r },
+  physical: { speed: r, stamina: r, strength: r },
+  mental: { focus: r, anticipation: r, tactics: r },
 });
 
 const CONTEXT: ShotContext = {

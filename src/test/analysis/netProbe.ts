@@ -45,10 +45,10 @@ const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true,
 const _origLog = console.log;
 
 const uniform = (r: number): PlayerStats => ({
-  core: { serve: r, forehand: r, backhand: r, return: r, slice: r },
-  technical: { volley: r, overhead: r, dropShot: r, spin: r, placement: r },
-  physical: { speed: r, stamina: r, strength: r, agility: r, recovery: r },
-  mental: { focus: r, anticipation: r, shotVariety: r, offensive: r, defensive: r },
+  core: { serve: r, forehand: r, backhand: r, return: r, net: r },
+  technical: { slice: r, spin: r, placement: r },
+  physical: { speed: r, stamina: r, strength: r },
+  mental: { focus: r, anticipation: r, tactics: r },
 });
 
 function profileOf(phases: Partial<Record<GamePhase, PhaseSpec>>, broad: ArchetypeProfile['broad'] = null): ArchetypeProfile {
@@ -204,8 +204,8 @@ function runMatch(p: PlayerProfile, o: PlayerProfile, eff: Record<string, number
     scorePoint(pr.shots, server === 'player' ? 'server' : 'returner', t);
     const w = pr.winner === 'server' ? server : (server === 'player' ? 'opponent' : 'player');
     tracker.addPoint(w);
-    ms.fatigue.player = calcFatigue(ms.fatigue.player, pr.rallyLength, p.stats.physical.stamina, p.stats.physical.recovery);
-    ms.fatigue.opponent = calcFatigue(ms.fatigue.opponent, pr.rallyLength, o.stats.physical.stamina, o.stats.physical.recovery);
+    ms.fatigue.player = calcFatigue(ms.fatigue.player, pr.rallyLength, p.stats.physical.stamina, p.stats.physical.stamina);
+    ms.fatigue.opponent = calcFatigue(ms.fatigue.opponent, pr.rallyLength, o.stats.physical.stamina, o.stats.physical.stamina);
     ms.score = tracker.getScore(); ms.currentServer = tracker.getCurrentServer(); ms.pointsPlayed = ++pts;
   }
 }

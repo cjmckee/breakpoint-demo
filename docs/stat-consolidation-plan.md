@@ -1,6 +1,6 @@
 # Stat consolidation plan — 20 stats to 14
 
-**Status:** proposal, no consolidation code written yet
+**Status:** implemented
 **Evidence:** [`stat-system-audit.md`](./stat-system-audit.md), measured against the current sim
 **Shape:** 5 core (one per `GamePhase`) + 3 technical + 3 physical + 3 mental
 
@@ -181,12 +181,73 @@ backwards compatibility is not required — clear the persistence key on the ver
 
 ---
 
-## 5. Open decisions
+## 5. Result
 
-- **3/3/3 (14 stats) or 4/4/4 (17)?** 3/3/3 needs the `offensive`+`defensive` merge. 4/4/4 keeps
-  them apart and lets `shotVariety` survive, at the cost of keeping a stat that measures −0.37.
-- **What to call the merged mental stat.** `tactics`, `instinct`, `court sense`.
-- **Whether `net` takes the core slot at all**, which step 2 above should answer with evidence
-  rather than argument.
-- **`WINNER_FLOOR_OFFSET`**, still 0, unrelated to consolidation but outstanding: 4.3% of points end
-  in a winner for a new player and 15.1% for Jordan; −8 gives 7.1% and 20.4%.
+Every one of the fourteen stats now measures as materially non-zero. There were seven that could not
+be distinguished from noise across 1400 randomized builds, and that was true before the
+consolidation and after every scaling fix that preceded it.
+
+| stat | bucket | per +10 | 95% CI |
+|---|---|---|---|
+| anticipation | mental | +2.91 | [+2.50, +3.32] |
+| return | core | +2.89 | [+2.46, +3.32] |
+| speed | physical | +2.65 | [+2.23, +3.07] |
+| serve | core | +2.56 | [+2.14, +2.98] |
+| tactics | mental | +2.42 | [+1.98, +2.86] |
+| forehand | core | +1.84 | [+1.39, +2.29] |
+| spin | technical | +1.78 | [+1.34, +2.22] |
+| focus | mental | +1.72 | [+1.29, +2.16] |
+| strength | physical | +1.50 | [+1.06, +1.95] |
+| stamina | physical | +1.29 | [+0.82, +1.75] |
+| placement | technical | +1.07 | [+0.60, +1.53] |
+| backhand | core | +0.90 | [+0.45, +1.34] |
+| net | core | +0.52 | [+0.09, +0.95] |
+| slice | technical | +0.50 | [+0.05, +0.95] |
+
+Bucket totals: core +8.70, mental +7.05, physical +5.44, technical +3.34.
+
+`net` and `slice` are the weakest, and both are conditional stats — this population is randomized
+builds, most of which are neither net players nor slicers. Both clear zero, which neither did as
+`volley`/`overhead`/`slice` before.
+
+### The net phase, after the approach work
+
+`NET_APPROACH_BIAS_SCALE` went from 0.50 to 3.0, and the `offensive` term came out of
+`shouldApproachNet` entirely. Arrival, as a share of rallies past the return:
+
+| build | before | after |
+|---|---|---|
+| no specialization | 18.7% | 15.7% |
+| broad net_attacker | 20.1% | 31.3% |
+| net_downhill T1 | 23.7% | 46.9% |
+| net_downhill T3 | 28.4% | 47.9% |
+| net-averse | 10.7% | 3.0% |
+
+That is the split working: playstyle sets the spread from 3% to 48%, and no stat appears in it. The
+merged `net` stat now covers **11.0%** of a specialist's rally shots against 5.2% before, which
+clears the ~8% bar this document set for the core slot in section 3.
+
+The net-averse floor is deliberate: `baseProbability` floors at 0.02 rather than 0, because at scale
+3.0 a negative bias drove it below zero and a `net_apologist` build stopped approaching entirely.
+Rarely, not never.
+
+### Training economy
+
+Support pools shrank from 6 stats to 4, so a specific support now accrues ~0.75 per session against
+~0.5 — roughly 13 sessions to move a support 10 points rather than 20. The `slice` anchor became the
+`net` anchor, keeping five anchors, one per core.
+
+---
+
+## 6. Open decisions
+
+- **`WINNER_FLOOR_OFFSET`**, still 0, unrelated to consolidation but outstanding: winners are 4.3%
+  of points for a new player and 15.1% for Jordan; −8 gives 7.1% and 20.4%.
+- **Opponent ratings shifted** with the merges, since a merged stat takes the average of its parents.
+  Big Steve went from OVR 28 to 29 and Jordan from 45 to 47. The tier-1 ladder is still coherent but
+  the roster was authored against the old buckets and is worth a pass.
+- **The double-fault rate rose slightly at the bottom** — 33.5% for a new player against 31.6% before
+  — for the same reason. If that reads too punishing, `SERVE_CONSISTENCY` is the dial.
+- **`net` measures +0.52**, the weakest core stat. That is expected for a conditional stat in a
+  randomized population, but worth re-checking against a net-specialist population specifically
+  before assuming the core slot is settled.

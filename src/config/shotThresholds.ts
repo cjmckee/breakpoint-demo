@@ -410,7 +410,7 @@ export const SERVE_CONTEST = {
  * Weights within each entry must sum to 1 so uniform-stat players keep their rating.
  */
 export const SERVE_QUALITY_WEIGHTS = {
-  serve_first: { serve: 0.60, strength: 0.20, offensive: 0.10, spin: 0.10 },
+  serve_first: { serve: 0.60, strength: 0.20, tactics: 0.10, spin: 0.10 },
   serve_second: { serve: 0.55, spin: 0.25, strength: 0.10, placement: 0.10 },
 };
 
@@ -445,13 +445,16 @@ export const RETURN_COMPOSITE_WEIGHTS = {
 export const SHOT_COMPOSITE_WEIGHTS: Record<string, { primary: number; [stat: string]: number }> = {
   groundstroke: { primary: 0.80, strength: 0.10, spin: 0.10 },
   powerGroundstroke: { primary: 0.70, strength: 0.25, spin: 0.05 },
-  volley: { primary: 0.70, agility: 0.20, anticipation: 0.10 },
-  overhead: { primary: 0.70, strength: 0.15, agility: 0.15 },
-  dropShot: { primary: 0.70, placement: 0.20, spin: 0.10 },
+  // volley and overhead share the `net` primary; the supports differ because a
+  // volley is a reaction and an overhead is a strike.
+  volley: { primary: 0.70, speed: 0.20, anticipation: 0.10 },
+  overhead: { primary: 0.70, strength: 0.15, speed: 0.15 },
+  // Drop shots are placement-primary now, so touch comes from spin instead.
+  dropShot: { primary: 0.70, spin: 0.20, speed: 0.10 },
   slice: { primary: 0.75, spin: 0.15, placement: 0.10 },
-  angle: { primary: 0.70, spin: 0.15, agility: 0.15 },
-  lob: { primary: 0.70, anticipation: 0.15, agility: 0.15 },
-  passing: { primary: 0.65, speed: 0.20, agility: 0.15 },
+  angle: { primary: 0.70, spin: 0.15, speed: 0.15 },
+  lob: { primary: 0.70, anticipation: 0.15, speed: 0.15 },
+  passing: { primary: 0.65, speed: 0.20, spin: 0.15 },
 };
 
 /**
@@ -467,7 +470,7 @@ export const OPPONENT_STAT_ADJUSTMENTS = {
   // Kept small: these apply to EVERY rally shot, so they compound across the
   // rally and then across the match. Large values turn small stat gaps into
   // near-certain match outcomes.
-  defensive: 0.12,   // Defensive stat makes winners harder
+  tactics: 0.12,     // A tactically sharp defender makes winners harder
   speed: 0.12,       // Speed helps cover court
   return: 0.12,      // Return stat makes aces harder, serves only
 };
@@ -518,20 +521,18 @@ export const MODIFIER_SPREAD = 1.0;
  * stat 0 multiplies by 0.90 and stat 100 by 1.10.
  */
 export const STAT_MODIFIER_BANDS = {
-  /** Speed, on defensive shots and defensive court position */
-  speed: 0.10,
-  /** Strength, on power shots */
-  strength: 0.10,
-  /** Agility, on net shots and rushed balls */
-  agility: 0.15,
-  /** Anticipation, when the opponent is at net or well positioned */
-  anticipation: 0.10,
-  /** Shot variety, on tactical shots (drop, angle, lob, passing) */
-  variety: 0.075,
-  /** Defensive, on defensive shots */
-  defense: 0.05,
-  /** Offensive, on offensive shots */
-  offense: 0.15,
+  /** speed, on defensive shots and from a defensive court position */
+  courtCoverage: 0.10,
+  /** speed, on net shots and any ball that arrives rushed */
+  reactions: 0.15,
+  /** strength, on power shots */
+  power: 0.10,
+  /** anticipation, when the opponent is at net or well positioned */
+  reading: 0.10,
+  /** spin, on tactical shots (drop, angle, lob, passing) */
+  touch: 0.075,
+  /** tactics, on whichever kind of shot was chosen — attacking or defending */
+  tactics: 0.15,
 } as const;
 
 /**
@@ -561,6 +562,31 @@ export function statBonus(stat: number, band: number): number {
  * Positive = harder to hit winners (well positioned)
  * Negative = easier to hit winners (out of position)
  */
+/**
+ * How strongly NET_APPROACH_BIAS moves the chance of coming forward.
+ *
+ * Playstyle owns this axis: how often a player approaches is an archetype
+ * choice, and the net rating decides how they do once they arrive. No stat
+ * belongs in the frequency.
+ *
+ * Sized against measured arrival — the share of rallies past the return in which
+ * the player reaches the net. A player gets only ~1.4 baseline shots per rally
+ * where an approach is possible, so arrival works out as
+ * `1 - (1 - p)^chances` times the approach success rate, and reaching ~50% for a
+ * specialist needs the per-chance rate near 53%.
+ *
+ * Measured arrival at uniform 60:
+ *
+ *   scale   unspecialized   broad net_attacker   net_downhill T3   net-averse
+ *    0.50           13.2%                16.8%             25.1%         ~2%
+ *    1.20           17.1%                23.3%             35.7%
+ *    3.00           15.7%                31.3%             47.9%         3.0%
+ *
+ * At 3.0 the merged `net` stat also clears the bar for a core slot: it covers
+ * 11.0% of a specialist's rally shots, against 5.2% before this change.
+ */
+export const NET_APPROACH_BIAS_SCALE = 3.0;
+
 export const POSITION_ADJUSTMENTS: Record<CourtPosition, number> = {
   'well_positioned': +3,      // Opponent ready and centered
   'slightly_off': +0,         // Neutral

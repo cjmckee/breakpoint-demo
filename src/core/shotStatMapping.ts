@@ -20,9 +20,9 @@ export function getPrimaryStatName(shotType: ShotType | string): StatName {
   // Specific families first — each of these also contains 'forehand'/'backhand'.
   if (s.includes('serve')) return 'serve';
   if (s.includes('return')) return 'return';
-  if (s.includes('volley')) return 'volley'; // also covers half_volley_*
-  if (s.includes('overhead')) return 'overhead';
-  if (s.includes('drop')) return 'dropShot';
+  if (s.includes('volley')) return 'net'; // also covers half_volley_*
+  if (s.includes('overhead')) return 'net';
+  if (s.includes('drop')) return 'placement';
   if (s.includes('slice')) return 'slice'; // also covers defensive_slice_*
   if (s.includes('angle') || s.includes('lob') || s.includes('passing')) return 'placement';
 

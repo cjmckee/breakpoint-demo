@@ -46,12 +46,7 @@ function rollStatRarity(): ItemRarity {
 
 function createStatIncreaseItem(playerStats: PlayerStats | null): StatIncreaseItem {
   const rarity = rollStatRarity();
-  const numStatsMap: Record<ItemRarity, number> = {
-    common: 1,
-    uncommon: 2,
-    rare: 3,
-    legendary: 4,
-  };
+  const numStatsMap: Record<ItemRarity, number> = { common: 1, uncommon: 2, rare: 3, legendary: 4 };
   const numStats = numStatsMap[rarity];
 
   const category = Math.random() < 0.3 ? 'core' : (Math.random() < 0.33 ? 'technical' : Math.random() < 0.5 ? 'physical' : 'mental');

@@ -123,7 +123,7 @@ export const interactionEvents: StoryEvent[] = [
     defaultOutcome: {
       resultText: ["It takes you three hours to learn the Ultra Lob. It goes so high that birds scatter. It is absurd. It is beautiful. It is disgusting. Coach watches with tears in his eyes.'"],
       effects: {
-        statChanges: { defensive: 3, slice: 1 },
+        statChanges: { tactics: 3, slice: 1 },
         moodChange: 15,
         energyChange: -20,
         relationshipChanges: { coach_gonzalez: 5 },
@@ -186,7 +186,7 @@ export const interactionEvents: StoryEvent[] = [
     defaultOutcome: {
       resultText: ["You spend an hour picking up balls while Jordan takes a private lesson. It is humbling. It is annoying. The lesson after with Coach Diaz was totally worth it, though."],
       effects: {
-        statChanges: { forehand: 2, backhand: 2, volley: 1, speed: 1 },
+        statChanges: { forehand: 2, backhand: 2, net: 1, speed: 1 },
         moodChange: 3,
         energyChange: -20,
         relationshipChanges: { jordan_rival: 3 },
@@ -218,7 +218,7 @@ export const interactionEvents: StoryEvent[] = [
         outcome: {
           resultText: ["You take charge at the net. Jordan doesn't say anything during the match, which from them is practically a standing ovation. You win in two sets. Afterward, Jordan nods once. A single high five."],
           effects: {
-            statChanges: { volley: 2, offensive: 1 },
+            statChanges: { net: 2, tactics: 1 },
             moodChange: 12,
             energyChange: -25,
             relationshipChanges: { jordan_rival: 5 },
@@ -233,7 +233,7 @@ export const interactionEvents: StoryEvent[] = [
         outcome: {
           resultText: ["You stay back and cover everything Jordan can't reach, which isn't much. You lose a close match, but Jordan says 'your defense was fine.' From Jordan, that's basically a love letter."],
           effects: {
-            statChanges: { defensive: 2, return: 1 },
+            statChanges: { tactics: 2, return: 1 },
             moodChange: 8,
             energyChange: -25,
             relationshipChanges: { jordan_rival: 4 },
@@ -263,7 +263,7 @@ export const interactionEvents: StoryEvent[] = [
     defaultOutcome: {
       resultText: ["You spend two hours at the net with Jordan. They listen. They don't trash talk. You see them noticeably improve, and you learn a little yourself about keeping a positive mindset. You can handle pressure a little bit better now."],
       effects: {
-        statChanges: { volley: 2, focus: 2 },
+        statChanges: { net: 2, focus: 2 },
         moodChange: 15,
         energyChange: -20,
         relationshipChanges: { jordan_rival: 5 },
@@ -353,7 +353,7 @@ export const interactionEvents: StoryEvent[] = [
     defaultOutcome: {
       resultText: ["Keith samples eleven flavors of ice cream. Eleven. The employee behind the counter glares at him after each one, but he doesn\'t notice. Keith asks detailed questions about the vanilla. After another few minutes, the employee gives you both ice cream for free just to get you out of the store. You feel some shame, but ", {characterId: 'keith'}, " does not."],
       effects: {
-        statChanges: { recovery: 1 },
+        statChanges: { stamina: 1 },
         moodChange: 25,
         energyChange: -5,
         relationshipChanges: { keith: 4 },
@@ -381,7 +381,7 @@ export const interactionEvents: StoryEvent[] = [
     defaultOutcome: {
       resultText: ["You are holding a glitter glue trophy. Keith is beaming. He makes a four minute long speech. You put the trophy on your nightstand. Every relationship you build from now on feels a little warmer."],
       effects: {
-        statChanges: { focus: 1, recovery: 1 },
+        statChanges: { focus: 1, stamina: 1 },
         moodChange: 30,
         energyChange: -5,
         relationshipChanges: { keith: 5 },
@@ -625,7 +625,7 @@ export const interactionEvents: StoryEvent[] = [
     defaultOutcome: {
       resultText: ["You lean in and get a cinematic kiss in the rain. You can't hear or feel the rain anymore, and you lose sense of time for a bit. Somewhere in the distance a car horn honks, which snaps you both out of it and ", {characterId: 'alex'}, " laughs. They makes you really happy. You take a little extra confidence into every game with them by your side."],
       effects: {
-        statChanges: { focus: 2, recovery: 1 },
+        statChanges: { focus: 2, stamina: 1 },
         moodChange: 35,
         energyChange: -10,
         relationshipChanges: { alex_romance: 10 },

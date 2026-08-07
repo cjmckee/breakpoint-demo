@@ -50,10 +50,10 @@ const MODE = process.env.ML_MODE ?? 'mean';
 
 function uniformStats(r: number): PlayerStats {
   return {
-    core: { serve: r, forehand: r, backhand: r, return: r, slice: r },
-    technical: { volley: r, overhead: r, dropShot: r, spin: r, placement: r },
-    physical: { speed: r, stamina: r, strength: r, agility: r, recovery: r },
-    mental: { focus: r, anticipation: r, shotVariety: r, offensive: r, defensive: r },
+    core: { serve: r, forehand: r, backhand: r, return: r, net: r },
+    technical: { slice: r, spin: r, placement: r },
+    physical: { speed: r, stamina: r, strength: r },
+    mental: { focus: r, anticipation: r, tactics: r },
   };
 }
 
@@ -100,8 +100,8 @@ function runMatch(p: PlayerProfile, o: PlayerProfile, pe: Record<string, number>
     if (pr.rallyLength <= 2) acc.short++;
     if (w === 'player') acc.playerWon++;
     tracker.addPoint(w);
-    ms.fatigue.player = calcFatigue(ms.fatigue.player, pr.rallyLength, p.stats.physical.stamina, p.stats.physical.recovery);
-    ms.fatigue.opponent = calcFatigue(ms.fatigue.opponent, pr.rallyLength, o.stats.physical.stamina, o.stats.physical.recovery);
+    ms.fatigue.player = calcFatigue(ms.fatigue.player, pr.rallyLength, p.stats.physical.stamina, p.stats.physical.stamina);
+    ms.fatigue.opponent = calcFatigue(ms.fatigue.opponent, pr.rallyLength, o.stats.physical.stamina, o.stats.physical.stamina);
     ms.score = tracker.getScore(); ms.currentServer = tracker.getCurrentServer(); ms.pointsPlayed = ++pts;
   }
 }

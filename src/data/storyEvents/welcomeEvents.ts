@@ -84,10 +84,7 @@ export const welcomeEvents: StoryEvent[] = [
         statChanges: {},
         moodChange: 10,
         energyChange: 0,
-        relationshipChanges: {
-          jen: 2,
-          keith: 2,
-        },
+        relationshipChanges: { jen: 2, keith: 2 },
       },
     },
   },
@@ -116,10 +113,7 @@ export const welcomeEvents: StoryEvent[] = [
       resultText: ['You feel more connected to your fellow players, but you can\'t help but feel a little anxious about the road ahead. What will it take to be promoted to the Academy\'s upper echelons?'],
       effects: {
         statChanges: {},
-        relationshipChanges: {
-          jen: 2,
-          keith: 2,
-        },
+        relationshipChanges: { jen: 2, keith: 2 },
       },
     },
   },
@@ -152,10 +146,7 @@ export const welcomeEvents: StoryEvent[] = [
       effects: {
         statChanges: {},
         moodChange: 2,
-        relationshipChanges: {
-          jen: 2,
-          keith: 2,
-        },
+        relationshipChanges: { jen: 2, keith: 2 },
       },
     },
   },
@@ -187,15 +178,9 @@ export const welcomeEvents: StoryEvent[] = [
     defaultOutcome: {
       resultText: ['You sub in for a couple games to get a feel for the courts. You don\'t look so bad. ', {characterId: 'keith'}, ' decides he wants to challenge you to see what you\'re made of.'],
       effects: {
-        statChanges: {
-            serve: 1,
-            return: 1,
-        },
+        statChanges: { serve: 1, return: 1 },
         moodChange: 5,
-        relationshipChanges: {
-          jen: 2,
-          keith: 2,
-        },
+        relationshipChanges: { jen: 2, keith: 2 },
         revealEncyclopediaSections: ['surface-guide', 'match-help'],
         scheduledEvents: [
           {
@@ -206,11 +191,11 @@ export const welcomeEvents: StoryEvent[] = [
               opponentId: 'keith',
               opponentName: 'Keith',
               opponentStats: {
-                core: { serve: 20, forehand: 18, backhand: 20, return: 22, slice: 25 },
-                technical: { volley: 15, overhead: 18, dropShot: 20, spin: 15, placement: 18 },
-                physical: { speed: 25, stamina: 20, strength: 18, agility: 22, recovery: 20 },
-                mental: { focus: 15, anticipation: 18, shotVariety: 15, offensive: 15, defensive: 20 },
-              },
+          core: { serve: 20, forehand: 18, backhand: 20, return: 22, net: 18 },
+          technical: { slice: 25, spin: 15, placement: 20 },
+          physical: { speed: 25, stamina: 20, strength: 18 },
+          mental: { focus: 15, anticipation: 18, tactics: 20 },
+        },
               opponentTier: 1,
               opponentDescription: 'A friendly but struggling player.',
               opponentArchetypeProfile: profileForArchetype('defensive'),
@@ -233,11 +218,11 @@ export const welcomeEvents: StoryEvent[] = [
               opponentId: 'jen',
               opponentName: 'Jen',
               opponentStats: {
-                core: { serve: 23, forehand: 25, backhand: 21, return: 25, slice: 20 },
-                technical: { volley: 17, overhead: 20, dropShot: 23, spin: 19, placement: 21 },
-                physical: { speed: 30, stamina: 23, strength: 20, agility: 27, recovery: 25 },
-                mental: { focus: 23, anticipation: 27, shotVariety: 25, offensive: 27, defensive: 23 },
-              },
+          core: { serve: 23, forehand: 25, backhand: 21, return: 25, net: 20 },
+          technical: { slice: 20, spin: 19, placement: 23 },
+          physical: { speed: 30, stamina: 25, strength: 20 },
+          mental: { focus: 23, anticipation: 27, tactics: 27 },
+        },
               opponentTier: 1,
               opponentDescription: 'An athletic player who takes her tennis seriously. She won\'t go easy on you.',
               opponentArchetypeProfile: profileForArchetype('aggressive'),
@@ -373,10 +358,7 @@ export const welcomeEvents: StoryEvent[] = [
       effects: {
         statChanges: {},
         moodChange: 2,
-        relationshipChanges: {
-          jen: 2,
-          keith: 2,
-        },
+        relationshipChanges: { jen: 2, keith: 2 },
       },
     },
   },
@@ -404,9 +386,7 @@ export const welcomeEvents: StoryEvent[] = [
       resultText: ['Building relationships and hanging out with people around the academy will be key to your growth here.'],
       effects: {
         statChanges: {},
-        relationshipChanges: {
-          keith: 5,
-        },
+        relationshipChanges: { keith: 5 },
         hangoutUnlocks: ['keith', 'jen'],
       },
     },
@@ -438,9 +418,7 @@ export const welcomeEvents: StoryEvent[] = [
       effects: {
         statChanges: {},
         energyChange: 0,
-        relationshipChanges: {
-          keith: 1,
-        },
+        relationshipChanges: { keith: 1 },
       },
     },
   },
@@ -470,9 +448,7 @@ export const welcomeEvents: StoryEvent[] = [
         statChanges: {},
         moodChange: 5,
         energyChange: 0,
-        relationshipChanges: {
-          jen: 5,
-        },
+        relationshipChanges: { jen: 5 },
         scheduledEvents: [{
           relativeDays: 3,  // Prep fires on day 33, ceremony on day 36
           scheduledTimeSlot: TimeSlot.MORNING,

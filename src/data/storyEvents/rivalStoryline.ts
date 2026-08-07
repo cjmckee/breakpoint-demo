@@ -26,7 +26,7 @@ export const rivalEvents: StoryEvent[] = [
     defaultOutcome: {
       resultText: ['You do the mental math. It\'s not really that good of an insult, actually. But ', {characterId: 'Jordan'}, ' already left anyway.'],
       effects: {
-        statChanges: { focus: 1, offensive: 2, overhead: 2 },
+        statChanges: { focus: 1, tactics: 2, net: 2 },
         moodChange: -10,
         energyChange: 0,
         relationshipChanges: { jordan_rival: -20 },
@@ -62,7 +62,7 @@ export const rivalEvents: StoryEvent[] = [
     defaultOutcome: {
       resultText: ['The most hurtful part of that exchange is that no one told you there was italian in the Academy cafeteria. You love italian. Mama mia.'],
       effects: {
-        statChanges: { recovery: 2, slice: 2, defensive: 2 },
+        statChanges: { stamina: 2, slice: 2, tactics: 2 },
         moodChange: -5,
         energyChange: 0,
         relationshipChanges: { jordan_rival: 5 },
@@ -94,7 +94,7 @@ export const rivalEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You control what you can control. Every few shots, ', { characterId: 'jordan_rival' }, ' comes flying in to take a ball that should be yours. They hit it out. ', { characterId: 'coach_gonzalez' }, ' tells them not to swing at volleys. Small victories.'],
           effects: {
-            statChanges: { offensive: 2, return: 1, strength: 1 },
+            statChanges: { tactics: 2, return: 1, strength: 1 },
             moodChange: 15,
             energyChange: -15,
             relationshipChanges: { jordan_rival: -15 },
@@ -110,7 +110,7 @@ export const rivalEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You end up needing to play a lot stronger defense to support Jordan, but it turns into a fun challenge. Exhausting, but fun.'],
           effects: {
-            statChanges: { defensive: 2, return: 2, anticipation: 2 },
+            statChanges: { tactics: 2, return: 2, anticipation: 2 },
             moodChange: 10,
             energyChange: -20,
             relationshipChanges: { jordan_rival: 5 },
@@ -132,7 +132,7 @@ export const rivalEvents: StoryEvent[] = [
         outcome: {
           resultText: ['Towards the end of the drill, you get a slowly bouncing ball at the baseline and decide to take a very healthy swing. It "accidentally" catches them square in the butt and they jump about six feet straight in the air. That one is going to leave a bruise.'],
           effects: {
-            statChanges: { offensive: 3, speed: 1, agility: 1 },
+            statChanges: { tactics: 3, speed: 1 },
             moodChange: 20,
             energyChange: -15,
             relationshipChanges: { jordan_rival: -20 },
@@ -167,7 +167,7 @@ export const rivalEvents: StoryEvent[] = [
         outcome: {
           resultText: ['After the match, you walk over and say something simple. "Good fight." ', { characterId: 'jordan_rival' }, ' looks at you with contempt. You continue: "I\'ve seen him do worse to even tournament champions." That seems to soften Jordan up a little.'],
           effects: {
-            statChanges: { focus: 2, defensive: 2, recovery: 1 },
+            statChanges: { focus: 2, tactics: 2, stamina: 1 },
             moodChange: 20,
             energyChange: 0,
             relationshipChanges: { jordan_rival: 20 },
@@ -197,7 +197,7 @@ export const rivalEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You stop. You look at the scoreboard. You look at ', { characterId: 'jordan_rival' }, '. "At least he was nice enough to give you a free lesson." They look up. You walk away before they can respond. Your competitive fire is still alive.'],
           effects: {
-            statChanges: { offensive: 2, serve: 1 },
+            statChanges: { tactics: 2, serve: 1 },
             moodChange: 10,
             energyChange: 0,
             relationshipChanges: { jordan_rival: -25 },
@@ -228,7 +228,7 @@ export const rivalEvents: StoryEvent[] = [
     defaultOutcome: {
       resultText: [{ characterId: 'jordan_rival' }, ' walks away before you can respond. You stand there for a moment processing what just happened. You\'re not sure if this is the beginning of a rivalry or the beginning of something else. Either way, it feels like a milestone.'],
       effects: {
-        statChanges: { focus: 3, anticipation: 2, offensive: 1 },
+        statChanges: { focus: 3, anticipation: 2, tactics: 1 },
         moodChange: 25,
         energyChange: 0,
         relationshipChanges: { jordan_rival: 15 },

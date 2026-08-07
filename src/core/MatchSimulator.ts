@@ -292,12 +292,12 @@ export class MatchSimulator {
   private applyRestRecovery(setCompleted: boolean): void {
     this.matchState.fatigue.player = this.recoverFatigue(
       this.matchState.fatigue.player,
-      this.config.player.stats.physical.recovery,
+      this.config.player.stats.physical.stamina,
       setCompleted
     );
     this.matchState.fatigue.opponent = this.recoverFatigue(
       this.matchState.fatigue.opponent,
-      this.config.opponent.stats.physical.recovery,
+      this.config.opponent.stats.physical.stamina,
       setCompleted
     );
   }
@@ -367,14 +367,14 @@ export class MatchSimulator {
       this.matchState.fatigue.player,
       rallyLength,
       this.config.player.stats.physical.stamina,
-      this.config.player.stats.physical.recovery
+      this.config.player.stats.physical.stamina
     );
 
     this.matchState.fatigue.opponent = this.calculateNewFatigue(
       this.matchState.fatigue.opponent,
       rallyLength,
       this.config.opponent.stats.physical.stamina,
-      this.config.opponent.stats.physical.recovery
+      this.config.opponent.stats.physical.stamina
     );
   }
 

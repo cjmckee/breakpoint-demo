@@ -301,7 +301,7 @@ export class ShotCalculator {
 
     // Opponent defensive stat adjustment, scaled by court surface
     const surfaceEffects = SURFACE_EFFECTS[courtSurface];
-    const rawDefensiveAdj = (opponentStats.mental.defensive - 50) * OPPONENT_STAT_ADJUSTMENTS.defensive;
+    const rawDefensiveAdj = (opponentStats.mental.tactics - 50) * OPPONENT_STAT_ADJUSTMENTS.tactics;
     const defensiveAdj = rawDefensiveAdj * surfaceEffects.defensiveAdjustmentMultiplier;
     inPlayReq += defensiveAdj;
 
@@ -331,7 +331,7 @@ export class ShotCalculator {
     // The winner floor follows the opponent's ability to retrieve, so a winner
     // stays "a ball this opponent cannot reach" at every level rather than a
     // fixed number that means something different at 25 than at 60.
-    const retrieval = (opponentStats.physical.speed + opponentStats.mental.defensive) / 2;
+    const retrieval = (opponentStats.physical.speed + opponentStats.mental.tactics) / 2;
     const floorScale = (1 - WINNER_FLOOR_RETRIEVAL_WEIGHT)
       + WINNER_FLOOR_RETRIEVAL_WEIGHT * (retrieval / WINNER_FLOOR_RETRIEVAL_REF);
     const winnerThreshold = Math.max(
@@ -481,7 +481,7 @@ export class ShotCalculator {
     let physicalModifier = this.calculatePhysicalModifier(shotType, context, stats.physical, ballQuality);
 
     // Mental modifiers (focus, anticipation, shot variety, defensive)
-    let mentalModifier = this.calculateMentalModifier(shotType, context, stats.mental, playStyle, opponentPosition);
+    let mentalModifier = this.calculateMentalModifier(shotType, context, stats.mental, stats.technical, playStyle, opponentPosition);
 
     // Serve-specific bonuses and variance
     let serveVariance = 0;
@@ -489,7 +489,7 @@ export class ShotCalculator {
       // First serve: offensive, strength-based, high variance
       // Apply individual caps to prevent excessive stacking
       const offensiveBonus = Math.min(
-        (stats.mental.offensive / 100) * SERVE_BONUSES.first.offensive.multiplier,
+        (stats.mental.tactics / 100) * SERVE_BONUSES.first.offensive.multiplier,
         SERVE_BONUSES.first.offensive.maxBonus
       );
       const strengthBonus = Math.min(
@@ -518,7 +518,7 @@ export class ShotCalculator {
         SERVE_BONUSES.second.spin.maxBonus
       );
       const defensiveBonus = Math.min(
-        (stats.mental.defensive / 100) * SERVE_BONUSES.second.defensive.multiplier,
+        (stats.mental.tactics / 100) * SERVE_BONUSES.second.defensive.multiplier,
         SERVE_BONUSES.second.defensive.maxBonus
       );
 
@@ -636,18 +636,18 @@ export class ShotCalculator {
     // Speed helps with defensive shots and court coverage
     if (SHOT_CLASSIFICATIONS.defensiveShots.includes(shotType as any) ||
         context.courtPosition === 'defensive') {
-      modifier *= statModifier(physical.speed, STAT_MODIFIER_BANDS.speed);
+      modifier *= statModifier(physical.speed, STAT_MODIFIER_BANDS.courtCoverage);
     }
 
     // Strength helps with power shots
     if (SHOT_CLASSIFICATIONS.powerShots.includes(shotType as any)) {
-      modifier *= statModifier(physical.strength, STAT_MODIFIER_BANDS.strength);
+      modifier *= statModifier(physical.strength, STAT_MODIFIER_BANDS.power);
     }
 
     // Agility helps with net shots and quick reactions (check ballQuality for time pressure)
     const isRushed = ballQuality?.timeAvailable === 'rushed';
     if (SHOT_CLASSIFICATIONS.netShots.includes(shotType as any) || isRushed) {
-      modifier *= statModifier(physical.agility, STAT_MODIFIER_BANDS.agility);
+      modifier *= statModifier(physical.speed, STAT_MODIFIER_BANDS.reactions);
     }
 
     return modifier;
@@ -657,17 +657,19 @@ export class ShotCalculator {
    * Calculate mental modifiers using sliding scales
    *
    * Wired stats:
-   * - anticipation: lifts shot quality when opponent is well-positioned or at net
-   *   (already applied as a threshold reduction in calculateQualityRequirements,
-   *    here it gives a small additional execution lift in tough reading situations)
-   * - shotVariety: bonus only on tactical shots (drop, angle, lob, passing)
-   * - defensive: bonus only on defensive shots (slice, lob, defensive_*)
-   * - offensive: bonus when shooter is aggressive (existing behavior)
+   * - anticipation: lifts shot quality when the opponent is well-positioned or at
+   *   net (already applied as a threshold reduction in calculateQualityRequirements,
+   *   here it gives a small additional execution lift in tough reading situations)
+   * - spin: the touch behind tactical shots — drop, angle, lob, passing
+   * - tactics: applies to whichever kind of shot was chosen. Attacking and
+   *   defending were separate stats reading disjoint shot sets, so one stat
+   *   covering both is the same mechanic with half the bookkeeping.
    */
   private calculateMentalModifier(
     shotType: ShotType,
     context: ShotContext,
     mental: PlayerStats['mental'],
+    technical: PlayerStats['technical'],
     playStyle: PlayStyle,
     opponentPosition?: CourtPosition
   ): number {
@@ -675,25 +677,19 @@ export class ShotCalculator {
 
     // Anticipation helps when opponent is well-positioned (at net or excellent position)
     if (opponentPosition === 'at_net' || opponentPosition === 'well_positioned') {
-      modifier *= statModifier(mental.anticipation, STAT_MODIFIER_BANDS.anticipation);
+      modifier *= statModifier(mental.anticipation, STAT_MODIFIER_BANDS.reading);
     }
 
-    // Shot variety only helps on actual tactical shots — drop, angle, lob, passing.
-    // High-variety players execute these creative shots more cleanly.
+    // Touch shots — drop, angle, lob, passing — reward shaping the ball.
     if (isTacticalShot(shotType)) {
-      modifier *= statModifier(mental.shotVariety, STAT_MODIFIER_BANDS.variety);
+      modifier *= statModifier(technical.spin, STAT_MODIFIER_BANDS.touch);
     }
 
-    // Defensive stat only helps when actually playing defense — slices, lobs, defensive shots.
-    // Strong defenders dig out tough balls more reliably.
-    if (isDefensiveShot(shotType)) {
-      modifier *= statModifier(mental.defensive, STAT_MODIFIER_BANDS.defense);
-    }
-
-    // Apply offensive modification - first serve, overhead, power shots
-    // Strong offensive players execute power shots more reliably.
-    if (isOffensiveShot(shotType)) {
-      modifier *= statModifier(mental.offensive, STAT_MODIFIER_BANDS.offense);
+    // Tactics applies to whichever kind of shot this is — digging out a defensive
+    // ball or executing an attacking one. Never both, since the classifications
+    // are disjoint.
+    if (isDefensiveShot(shotType) || isOffensiveShot(shotType)) {
+      modifier *= statModifier(mental.tactics, STAT_MODIFIER_BANDS.tactics);
     }
 
     return modifier;
@@ -985,7 +981,7 @@ export class ShotCalculator {
     // Time pressure based on speed/agility
     if (ballQuality.timeAvailable === 'rushed') {
       // Players with high speed and agility handle rushed shots better
-      const rushHandling = (physical.speed + physical.agility) / 2;
+      const rushHandling = physical.speed;
       // 0 speed/agility = 0.6x, 100 speed/agility = 1.0x
       modifier *= 0.6 + (rushHandling / 100) * 0.4;
     } else if (ballQuality.timeAvailable === 'plenty') {

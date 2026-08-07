@@ -38,7 +38,7 @@ export const coachEvents: StoryEvent[] = [
     defaultOutcome: {
       resultText: ['You spend an hour listening to ', { characterId: 'coach_gonzalez' }, ' talk about his tennis experiences and what it takes to be the best. You realize you haven\'t even gotten a word in since you sat down. But you find it oddly helpful.'],
       effects: {
-        statChanges: { dropShot: 1, overhead: 1, anticipation: 1 },
+        statChanges: { placement: 1, net: 1, anticipation: 1 },
         moodChange: 15,
         energyChange: -10,
         relationshipChanges: { coach_gonzalez: 5 },
@@ -163,7 +163,7 @@ export const coachEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You work tirelessly on groundstroke mechanics. ', { characterId: 'coach_gonzalez' }, ' refines your technique on both wings. Your forehand and backhand both show marked improvement.'],
           effects: {
-            statChanges: { forehand: 4, backhand: 4, defensive: 2 },
+            statChanges: { forehand: 4, backhand: 4, tactics: 2 },
             moodChange: 10,
             energyChange: -20,
             relationshipChanges: { coach_gonzalez: 5 },
@@ -185,7 +185,7 @@ export const coachEvents: StoryEvent[] = [
         outcome: {
           resultText: [{ characterId: 'coach_gonzalez' }, ' introduces you to sports psychology techniques. You learn breathing exercises, visualization methods, and how to stay focused under pressure. The mental game is just as important as the physical.'],
           effects: {
-            statChanges: { focus: 5, anticipation: 3, offensive: 2 },
+            statChanges: { focus: 5, anticipation: 3, tactics: 2 },
             moodChange: 15,
             energyChange: -15,
             relationshipChanges: { coach_gonzalez: 5 },
@@ -226,7 +226,7 @@ export const coachEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You dedicate equal time to both forehand and backhand. ', { characterId: 'coach_gonzalez' }, ' helps you build consistency across both shots, eliminating the predictability of having a weaker side.'],
           effects: {
-            statChanges: { forehand: 3, backhand: 3, shotVariety: 2 },
+            statChanges: { forehand: 3, backhand: 3, spin: 2 },
             moodChange: 10,
             energyChange: -20,
             relationshipChanges: { coach_gonzalez: 10 },
@@ -247,7 +247,7 @@ export const coachEvents: StoryEvent[] = [
         outcome: {
           resultText: [{ characterId: 'coach_gonzalez' }, ' introduces you to a strength and conditioning program. You work on explosive speed, endurance, and recovery. Your body starts to feel like a finely-tuned machine.'],
           effects: {
-            statChanges: { speed: 4, stamina: 4, agility: 2 },
+            statChanges: { speed: 4, stamina: 4 },
             moodChange: 10,
             energyChange: -25,
             relationshipChanges: { coach_gonzalez: 10 },
@@ -318,7 +318,7 @@ export const coachEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You pause the footage approximately forty times to ask follow-up questions. ', { characterId: 'coach_gonzalez' }, ' eventually takes the remote away from you. You don\'t finish the footage. You do, however, understand your game better than ever.'],
           effects: {
-            statChanges: { return: 3, anticipation: 2, defensive: 2 },
+            statChanges: { return: 3, anticipation: 2, tactics: 2 },
             moodChange: 15,
             energyChange: -15,
             relationshipChanges: { coach_gonzalez: -10 },
@@ -350,7 +350,7 @@ export const coachEvents: StoryEvent[] = [
     defaultOutcome: {
       resultText: ['The story comes out in pieces. ', { characterId: 'coach_gonzalez' }, ' reached the quarterfinals of a Grand Slam at age 24. A knee injury in the fifth set ended his run and eventually his career. It\'s still a pinnacle of tennis that only a select few will ever reach. So no matter how crazy he seems, you decide it\'s best to listen to Coach.'],
       effects: {
-        statChanges: { focus: 3, offensive: 2, serve: 1 },
+        statChanges: { focus: 3, tactics: 2, serve: 1 },
         moodChange: 20,
         energyChange: -5,
         relationshipChanges: { coach_gonzalez: 5 },
@@ -380,12 +380,12 @@ export const coachEvents: StoryEvent[] = [
         emoji: '🎯',
         description: 'Get the rep count up',
         prerequisites: {
-          stats: { shotVariety: { min: 20 } },
+          stats: { spin: { min: 20 } },
         },
         outcome: {
           resultText: ['You spend the entire session doing nothing but around-the-net attempts. Most go into the net. Some fly wide. One hits ', { characterId: 'coach_gonzalez' }, ' in the shin. But by the end, you\'re threading it clean.'],
           effects: {
-            statChanges: { dropShot: 3, shotVariety: 3, placement: 2 },
+            statChanges: { placement: 3, spin: 3 },
             moodChange: 20,
             energyChange: -25,
             relationshipChanges: { coach_gonzalez: 2 },
@@ -406,7 +406,7 @@ export const coachEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You decide you can probably just feel your way through this. Spoiler: you cannot. You hit the net 14 times, clip the post twice, and on your final attempt the ball bounces off the frame in a direction no one predicted, rolls across two courts, and stops at ', { characterId: 'coach_gonzalez' }, '\'s feet. They may need to repay that lunch. Your instincts, at least, are sharpening.'],
           effects: {
-            statChanges: { dropShot: 1, shotVariety: 2, overhead: 1 },
+            statChanges: { placement: 1, spin: 2, net: 1 },
             moodChange: 10,
             energyChange: -15,
             relationshipChanges: { coach_gonzalez: 2 },
@@ -421,7 +421,7 @@ export const coachEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You manage to negotiate with the photographer to let you take a picture your way. You decide the best way to drum up interest for the tennis team is a beach photoshoot. ', {characterId: 'coach_gonzalez'}, ' seems to have no issue with the change in plans, and grabs his swim trunks as well.'],
           effects: {
-            statChanges: { shotVariety: 3, agility: 2, overhead: 1 },
+            statChanges: { spin: 3, speed: 2, net: 1 },
             moodChange: 15,
             energyChange: -20,
             relationshipChanges: { coach_gonzalez: 3 },

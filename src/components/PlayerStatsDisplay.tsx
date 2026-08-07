@@ -57,18 +57,16 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
     { key: 'forehand', label: 'Forehand', value: stats.core.forehand },
     { key: 'backhand', label: 'Backhand', value: stats.core.backhand },
     { key: 'return', label: 'Return', value: stats.core.return },
-    { key: 'slice', label: 'Slice', value: stats.core.slice },
+    { key: 'net', label: 'Net', value: stats.core.net },
   ];
 
-  // The 15 supporting skills — still important, so grouped and always visible, just
+  // The 9 supporting skills — still important, so grouped and always visible, just
   // compact. Each group surfaces its average grade for the quick read.
   const supportingGroups: { name: string; stats: StatEntry[] }[] = [
     {
       name: 'Technical',
       stats: [
-        { key: 'volley', label: 'Volley', value: stats.technical.volley },
-        { key: 'overhead', label: 'Overhead', value: stats.technical.overhead },
-        { key: 'dropShot', label: 'Drop Shot', value: stats.technical.dropShot },
+        { key: 'slice', label: 'Slice', value: stats.technical.slice },
         { key: 'spin', label: 'Spin', value: stats.technical.spin },
         { key: 'placement', label: 'Placement', value: stats.technical.placement },
       ],
@@ -79,8 +77,6 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
         { key: 'speed', label: 'Speed', value: stats.physical.speed },
         { key: 'stamina', label: 'Stamina', value: stats.physical.stamina },
         { key: 'strength', label: 'Strength', value: stats.physical.strength },
-        { key: 'agility', label: 'Agility', value: stats.physical.agility },
-        { key: 'recovery', label: 'Recovery', value: stats.physical.recovery },
       ],
     },
     {
@@ -88,9 +84,7 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
       stats: [
         { key: 'focus', label: 'Focus', value: stats.mental.focus },
         { key: 'anticipation', label: 'Anticipation', value: stats.mental.anticipation },
-        { key: 'shotVariety', label: 'Shot Variety', value: stats.mental.shotVariety },
-        { key: 'offensive', label: 'Offensive', value: stats.mental.offensive },
-        { key: 'defensive', label: 'Defensive', value: stats.mental.defensive },
+        { key: 'tactics', label: 'Tactics', value: stats.mental.tactics },
       ],
     },
   ];
