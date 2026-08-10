@@ -113,17 +113,25 @@ function main(): void {
   console.log('A conditional stat should be near zero in the build that ignores it and');
   console.log('clearly positive in the build made for it.\n');
 
-  const rows: Array<[string, string, number]> = [
-    ['net', 'no specialization', trial('core', 'net', NONE, BASE, BUMP, N)],
-    ['net', 'net_downhill T3', trial('core', 'net', NET, BASE, BUMP, N)],
-    ['slice', 'no specialization', trial('technical', 'slice', NONE, BASE, BUMP, N)],
-    ['slice', 'bh_samurai T3', trial('technical', 'slice', SAMURAI, BASE, BUMP, N)],
-    ['serve', 'no specialization', trial('core', 'serve', NONE, BASE, BUMP, N)],
-    ['return', 'no specialization', trial('core', 'return', NONE, BASE, BUMP, N)],
-    ['forehand', 'no specialization', trial('core', 'forehand', NONE, BASE, BUMP, N)],
-    ['backhand', 'no specialization', trial('core', 'backhand', NONE, BASE, BUMP, N)],
-    ['spin', 'no specialization', trial('technical', 'spin', NONE, BASE, BUMP, N)],
+  // ONLY=net,forehand narrows the table so a single column can be run at a
+  // sample size that actually resolves it. The per-cell noise at N=150 is
+  // around +/-2 points, which is larger than the whole net effect.
+  const only = process.env.ONLY ? new Set(process.env.ONLY.split(',')) : null;
+  const specs: Array<[string, string, keyof PlayerStats, string, ArchetypeProfile]> = [
+    ['net', 'no specialization', 'core', 'net', NONE],
+    ['net', 'net_downhill T3', 'core', 'net', NET],
+    ['slice', 'no specialization', 'technical', 'slice', NONE],
+    ['slice', 'bh_samurai T3', 'technical', 'slice', SAMURAI],
+    ['serve', 'no specialization', 'core', 'serve', NONE],
+    ['return', 'no specialization', 'core', 'return', NONE],
+    ['forehand', 'no specialization', 'core', 'forehand', NONE],
+    ['backhand', 'no specialization', 'core', 'backhand', NONE],
+    ['spin', 'no specialization', 'technical', 'spin', NONE],
   ];
+
+  const rows: Array<[string, string, number]> = specs
+    .filter(([stat]) => !only || only.has(stat))
+    .map(([stat, build, bucket, key, prof]) => [stat, build, trial(bucket, key, prof, BASE, BUMP, N)]);
 
   console.log(['stat'.padEnd(12), 'build'.padEnd(22), 'Δ pt-win%'.padStart(10)].join(''));
   console.log('-'.repeat(44));

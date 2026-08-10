@@ -480,6 +480,11 @@ export const OPPONENT_STAT_ADJUSTMENTS = {
   tactics: 0.12,     // A tactically sharp defender makes winners harder
   speed: 0.12,       // Speed helps cover court
   return: 0.12,      // Return stat makes aces harder, serves only
+  // Only applies while the opponent is at the net, where it modulates
+  // POSITION_ADJUSTMENTS.at_net. Larger than the others because it is
+  // conditional: they apply to every rally shot, this one to the passing
+  // attempts against a player who has actually come forward.
+  netCoverage: 0.20, // Covering the net makes the pass harder to thread
 };
 
 /**
@@ -600,7 +605,10 @@ export const POSITION_ADJUSTMENTS: Record<CourtPosition, number> = {
   'way_out_wide': -8,         // Opponent pushed wide (easier to win)
   'way_back_deep': -5,        // Opponent behind baseline
   'recovering': -3,           // Opponent in transition
-  'at_net': +10,              // Very hard to pass opponent at net
+  // Baseline for a neutral (50) volleyer; the real bar scales with the net
+  // player's `net` rating via OPPONENT_STAT_ADJUSTMENTS.netCoverage. Coming
+  // forward is only a threat if you can actually cover what you opened up.
+  'at_net': +10,
 };
 
 /**
