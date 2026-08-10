@@ -12,12 +12,16 @@
  *
  *   margin = L × finalAdjustment − L × 0.886 = L × (finalAdjustment − 0.886)
  *
- * finalAdjustment is a product of modifiers that are each below 1 at low stats
- * and approach 1 near the top, and it is capped at 1.0 for serves
- * (TOTAL_MODIFIER_CAPS.serve). So as L rises, finalAdjustment rises but the
- * multiplier L rises with it, and the product barely moves until
- * finalAdjustment crosses 0.886 — at which point margin goes positive and
- * climbs fast. That crossover is the "threshold" in the flat curve.
+ * finalAdjustment is a product of modifiers, so as L rises it rises too while
+ * the multiplier L rises with it; the product barely moves until finalAdjustment
+ * crosses 0.886, at which point margin goes positive and climbs fast. That
+ * crossover is the "threshold" in the flat curve.
+ *
+ * It used to be worse. TOTAL_MODIFIER_CAPS.serve was 1.0, so finalAdjustment
+ * pinned at exactly 1.000 from L~35 up on the first serve and across the entire
+ * range on the second — every positive serve modifier was dead while the
+ * negative ones still applied. The serve bands are centered on NEUTRAL_STAT now
+ * and the cap sits at 1.05; this probe is how that was fitted.
  *
  * This probe measures finalAdjustment and the resulting margin per level.
  *
@@ -73,7 +77,9 @@ function main(): void {
       console.log = _origLog;
 
       const adj = adjSum / N, acc = accSum / N;
-      const mid = c.base + c.perAccuracy * (adj * L);
+      // Mirrors ShotCalculator: expected accuracy is clamped to 0-100 before it
+      // sets the midpoint, because the roll it is compared against saturates there.
+      const mid = c.base + c.perAccuracy * Math.min(100, adj * L);
       console.log([String(L).padStart(4), adj.toFixed(3).padStart(10), acc.toFixed(1).padStart(10),
         mid.toFixed(1).padStart(10), (acc - mid >= 0 ? '+' : '') + (acc - mid).toFixed(1).padStart(8),
         `${((inSum / N) * 100).toFixed(1)}%`.padStart(8)].join(''));

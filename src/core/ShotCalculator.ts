@@ -47,9 +47,10 @@ import {
   statBonus,
   POSITION_ADJUSTMENTS,
   SERVE_VARIANCE,
+  SERVE_MODIFIER_BANDS,
+  SERVE_SPIN_BANDS,
   RETURN_VARIANCE,
   RALLY_SHOT_VARIANCE,
-  SERVE_BONUSES,
   TOTAL_MODIFIER_CAPS,
   PROBABILITY_STEEPNESS,
   sigmoidProbability,
@@ -209,7 +210,13 @@ export class ShotCalculator {
       const serveType = shotType as 'serve_first' | 'serve_second';
       const accuracyVariance = (Math.random() * 2 - 1) *
         (serveType === 'serve_first' ? SERVE_VARIANCE.first : SERVE_VARIANCE.second);
-      const expectedAccuracy = shooterProfile.getServeAccuracy(serveType) * modifiers.finalAdjustment;
+      // Clamped to the same 0-100 scale as the roll it is compared against.
+      // The roll saturates at 100 and the midpoint is derived from this value,
+      // so leaving it unbounded lets the bar keep climbing after the roll
+      // cannot: serve-in% peaked at L=80 and then fell.
+      const expectedAccuracy = Math.min(100, Math.max(0,
+        shooterProfile.getServeAccuracy(serveType) * modifiers.finalAdjustment
+      ));
       const serveAccuracy = Math.min(100, Math.max(0,
         expectedAccuracy + accuracyVariance + shooterProfile.matchForm
       ));
@@ -497,46 +504,19 @@ export class ShotCalculator {
     // Serve-specific bonuses and variance
     let serveVariance = 0;
     if (shotType === 'serve_first') {
-      // First serve: offensive, strength-based, high variance
-      // Apply individual caps to prevent excessive stacking
-      const offensiveBonus = Math.min(
-        (stats.mental.tactics / 100) * SERVE_BONUSES.first.offensive.multiplier,
-        SERVE_BONUSES.first.offensive.maxBonus
-      );
-      const strengthBonus = Math.min(
-        (stats.physical.strength / 100) * SERVE_BONUSES.first.strength.multiplier,
-        SERVE_BONUSES.first.strength.maxBonus
-      );
-      const spinBonusServe = Math.min(
-        (stats.technical.spin / 100) * SERVE_BONUSES.first.spin.multiplier,
-        SERVE_BONUSES.first.spin.maxBonus
-      );
+      // First serve: a strike. Strength drives it, tactics aims it, spin shapes it.
+      physicalModifier *= statModifier(stats.physical.strength, SERVE_MODIFIER_BANDS.first.strength);
+      mentalModifier *= statModifier(stats.mental.tactics, SERVE_MODIFIER_BANDS.first.tactics);
+      spinBonus += statBonus(stats.technical.spin, SERVE_SPIN_BANDS.first);
 
-      physicalModifier *= (1 + offensiveBonus + strengthBonus);
-      spinBonus += spinBonusServe * 100; // Convert to percentage
-
-      // Variance for first serve
       serveVariance = (Math.random() - 0.5) * 2 * SERVE_VARIANCE.first;
     } else if (shotType === 'serve_second') {
-      // Second serve: consistency, spin-based, low variance
-      // Apply individual caps
-      const consistencyBonus = Math.min(
-        (playStyle.consistency / 100) * SERVE_BONUSES.second.consistency.multiplier,
-        SERVE_BONUSES.second.consistency.maxBonus
-      );
-      const spinBonusServe = Math.min(
-        (stats.technical.spin / 100) * SERVE_BONUSES.second.spin.multiplier,
-        SERVE_BONUSES.second.spin.maxBonus
-      );
-      const defensiveBonus = Math.min(
-        (stats.mental.tactics / 100) * SERVE_BONUSES.second.defensive.multiplier,
-        SERVE_BONUSES.second.defensive.maxBonus
-      );
+      // Second serve: a decision under risk. Consistency and tactics hold it
+      // together, and spin is what makes a second serve safe at all.
+      mentalModifier *= statModifier(playStyle.consistency, SERVE_MODIFIER_BANDS.second.consistency)
+        * statModifier(stats.mental.tactics, SERVE_MODIFIER_BANDS.second.tactics);
+      spinBonus += statBonus(stats.technical.spin, SERVE_SPIN_BANDS.second);
 
-      mentalModifier *= (1 + consistencyBonus + defensiveBonus);
-      spinBonus += spinBonusServe * 100;
-
-      // Variance for second serve
       serveVariance = (Math.random() - 0.5) * 2 * SERVE_VARIANCE.second;
     }
 
