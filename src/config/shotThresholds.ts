@@ -444,6 +444,13 @@ export const RETURN_COMPOSITE_WEIGHTS = {
  */
 export const SHOT_COMPOSITE_WEIGHTS: Record<string, { primary: number; [stat: string]: number }> = {
   groundstroke: { primary: 0.80, strength: 0.10, spin: 0.10 },
+  // An approach is a groundstroke that starts the net phase, so the wing still
+  // leads but `net` carries a large share: it is the first shot of that phase,
+  // and it is what the net archetypes actually buy when they raise
+  // NET_APPROACH_BIAS. Without this the net stat only touched the volley and
+  // the overhead, about 10% of a net specialist's rally shots, while approaches
+  // were another 31% and paid the forehand instead.
+  approach: { primary: 0.50, net: 0.35, placement: 0.15 },
   powerGroundstroke: { primary: 0.70, strength: 0.25, spin: 0.05 },
   // volley and overhead share the `net` primary; the supports differ because a
   // volley is a reaction and an overhead is a strike.
