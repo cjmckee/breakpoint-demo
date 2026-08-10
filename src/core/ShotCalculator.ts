@@ -40,6 +40,7 @@ import {
   SERVE_CONTEST,
   OPPONENT_STAT_ADJUSTMENTS,
   SHOOTER_STAT_ADJUSTMENTS,
+  NEUTRAL_STAT,
   STAT_MODIFIER_BANDS,
   STAT_BONUS_BANDS,
   statModifier,
@@ -314,7 +315,17 @@ export class ShotCalculator {
     inPlayReq -= anticipationAdj;
 
     // Position adjustment
-    const positionAdj = POSITION_ADJUSTMENTS[opponentPosition];
+    // Position adjustment. At the net the bar follows the volleyer's `net`
+    // rating: a good netman cuts the angle down and the pass has to be
+    // threaded, a bad one is standing in the way of a ball he cannot reach.
+    let positionAdj = POSITION_ADJUSTMENTS[opponentPosition];
+    if (opponentPosition === 'at_net') {
+      const coverage = (opponentStats.core.net - NEUTRAL_STAT) * OPPONENT_STAT_ADJUSTMENTS.netCoverage;
+      // Never below `well_positioned`: a weak volleyer at the net is easier to
+      // pass than a good one, but he is still standing between you and the
+      // court, so he cannot be softer than a baseliner who is set and ready.
+      positionAdj = Math.max(POSITION_ADJUSTMENTS.well_positioned, positionAdj + coverage);
+    }
     inPlayReq += positionAdj;
 
     // The floors are absolute constants calibrated at FLOOR_CALIBRATION_LEVEL;

@@ -248,6 +248,78 @@ Support pools shrank from 6 stats to 4, so a specific support now accrues ~0.75 
   the roster was authored against the old buckets and is worth a pass.
 - **The double-fault rate rose slightly at the bottom** — 33.5% for a new player against 31.6% before
   — for the same reason. If that reads too punishing, `SERVE_CONSISTENCY` is the dial.
-- **`net` measures +0.52**, the weakest core stat. That is expected for a conditional stat in a
-  randomized population, but worth re-checking against a net-specialist population specifically
-  before assuming the core slot is settled.
+- **The approach weight.** `SHOT_COMPOSITE_WEIGHTS.approach` gives `net` 0.35 against the wing's
+  0.50. Raising it to 0.50 (wing 0.35) is worth about +0.4 unspecialized and +0.8 to a net build —
+  see section 7. It is a design call, not a measurement one: how much of an approach shot is a
+  groundstroke and how much is the first shot of the net phase.
+
+---
+
+## 7. Is `net` worth the core slot? — measured
+
+Section 3 set the bar as usage share and it now clears easily: `net` is primary or major partner on
+**42.3%** of a net specialist's rally shots (32.2% approaches + 10.1% volley/overhead), against
+10.2% for an unspecialized player. Usage was the wrong bar. The real question is what the stat is
+worth to the player who uses it, so `statInContext.ts` measures that directly: both players carry
+the same archetype, one gets 50→75 on a single stat, and the number is the bumped player's point
+win rate minus 50.
+
+**Sample size matters more than it looks here.** At N=120 BO3 per cell the control column swings
+±2 points, which is larger than the entire net effect. Every number below is N=2500, where the
+control resolves to about ±0.5. Two earlier readings in this document's history — `net` at +3.59 in
+a net build, and a monotonic response to net coverage — were noise at N=120 and N=700 and do not
+survive.
+
+| change | net, unspecialized | net, `net_downhill` T3 | forehand (control) |
+|---|---|---|---|
+| after the consolidation | +0.22 | +0.51 | +5.11 |
+| **+ approach composite** | **+0.82** | **+1.92** | +4.84 |
+| + net coverage at the net | +0.94 | +2.45 | +4.77 |
+| + approach net weight 0.50 | +1.22 | +3.11 | +4.96 |
+
+### What actually moved it: the approach shot
+
+An approach is the first shot of the net phase, but it was priced as a plain groundstroke, so `net`
+only touched the volley and the overhead — 10.1% of a net specialist's rally shots — while
+approaches were another 32.2% and paid the forehand. Giving `net` a 0.35 share of an `approach`
+composite roughly quadrupled the stat's value in both the specialized and unspecialized rows. This
+is the single largest change available and it is landed.
+
+### What did not move it: net coverage
+
+`POSITION_ADJUSTMENTS.at_net` was a flat `+10` regardless of how good the volleyer was, which is
+wrong on its face — a player who cannot cover the net is not as hard to pass as one who can. It now
+scales with the net rating (`OPPONENT_STAT_ADJUSTMENTS.netCoverage`, 0.20 per point, clamped never
+to fall below `well_positioned`), so the bar runs +4 at net 20 to +18 at net 90 and is exactly
+neutral at 50.
+
+It measures as noise: +0.01 unspecialized and +0.37 in a net build, both inside the ±0.5 control
+band. It is kept as a correctness fix, not as part of the case for the core slot, and it is the
+mechanism that would start to matter if net frequency ever rose.
+
+### The honest position
+
+`net` is worth about **+0.9 to a player with no net specialization and +2.2 to a net build**, against
+roughly **+4.8** for the forehand. It will not close that gap, and the reason is structural rather
+than fixable: the wings and the return are on 30-45% of rally shots for *everyone*, while `net` is on
+10% of shots for a player who does not seek the net out. Getting the numbers level would take far
+more net play than the game wants — an unspecialized player arrives at the net on 13.7% of rallies
+past the return, which is the 10-15% target.
+
+So the case for the core slot does not rest on equal sensitivity, and should not:
+
+1. **Core means a phase of the point.** `net` is a `GamePhase`; `slice` is a stroke shape used
+   inside the forehand and backhand phases. That is the organising principle section 2 states, and
+   it decides this on its own.
+2. **The inversion held up, twice.** In a randomized population `net` now clears the noise floor and
+   `slice` does not. Two independent `statSensitivity` runs give `net` +0.94 (CI [+0.49, +1.38]) and
+   +0.55 (CI [+0.12, +0.98]) against `slice` at +0.22 both times, with a CI spanning zero on each.
+   Before the approach fix they were tied at +0.52 and +0.50. Note the run-to-run spread on `net`:
+   the reported CI understates the real uncertainty, so treat this as "net is somewhere around +0.75
+   and slice is indistinguishable from zero" rather than as two precise figures.
+3. **It is no longer conditional.** Every build comes forward at some rate — 13.7% unspecialized,
+   48.3% for a net specialist, and even a deliberately net-averse `net_apologist` still arrives 2.9%
+   of the time. `slice` remains genuinely conditional, with a 26× frequency swing across archetypes.
+
+The remaining lever, if `net` should be felt harder, is the approach weight in section 6 — not more
+net play.
