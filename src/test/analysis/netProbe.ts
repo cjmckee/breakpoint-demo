@@ -229,7 +229,7 @@ function main(): void {
   console.log('\nARRIVED / HIT are shares of rallies that got PAST THE RETURN.');
   console.log('The last two columns are shares of the player\'s rally shots.\n');
   console.log(['build'.padEnd(32), 'ARRIVED'.padStart(9), 'HIT'.padStart(8), 'appr in'.padStart(9),
-    'volley%'.padStart(9), 'v+oh%'.padStart(8), 'appr/chance'.padStart(12),
+    'volley%'.padStart(9), 'v+oh%'.padStart(8), 'appr%'.padStart(7), 'appr/chance'.padStart(12),
     'chances/rally'.padStart(14)].join(''));
   console.log('-'.repeat(76));
 
@@ -247,6 +247,7 @@ function main(): void {
     console.log([name.padEnd(32), pct(t.arrived, t.pastReturn).padStart(9), pct(t.hit, t.pastReturn).padStart(8),
       pct(t.approachesIn, t.approaches).padStart(9), pct(t.volleys, t.rallyShots).padStart(9),
       pct(t.volleys + t.overheads, t.rallyShots).padStart(8),
+      pct(t.approaches, t.rallyShots).padStart(7),
       pct(t.approaches, t.approachChances).padStart(12),
       (t.approachChances / Math.max(1, t.pastReturn)).toFixed(2).padStart(14)].join(''));
   }

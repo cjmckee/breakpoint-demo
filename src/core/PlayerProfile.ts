@@ -302,8 +302,8 @@ export class PlayerProfile implements IPlayerProfile {
     const families: Partial<Record<ShotType, { stat: number; family: string }>> = {
       'forehand': { stat: this.stats.core.forehand, family: 'groundstroke' },
       'backhand': { stat: this.stats.core.backhand, family: 'groundstroke' },
-      'forehand_approach': { stat: this.stats.core.forehand, family: 'groundstroke' },
-      'backhand_approach': { stat: this.stats.core.backhand, family: 'groundstroke' },
+      'forehand_approach': { stat: this.stats.core.forehand, family: 'approach' },
+      'backhand_approach': { stat: this.stats.core.backhand, family: 'approach' },
       'forehand_power': { stat: this.stats.core.forehand, family: 'powerGroundstroke' },
       'backhand_power': { stat: this.stats.core.backhand, family: 'powerGroundstroke' },
       'slice_forehand': { stat: this.stats.technical.slice, family: 'slice' },
