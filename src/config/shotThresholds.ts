@@ -650,28 +650,36 @@ export const RALLY_SHOT_VARIANCE = {
 };  // Creates realistic errors independent of fatigue
 
 /**
- * Serve stat bonuses
+ * Serve stat bands — which stats shade serve quality beyond the composite blend,
+ * and by how much. First serve is strength and tactics; second serve is
+ * consistency and tactics. Spin shades both, additively, via SERVE_SPIN_BANDS.
  *
- * Which stats bonus serve quality and by how much.
- * First serve: offensive, strength-based
- * Second serve: consistency, spin-based
+ * These are read through `statModifier`, so they are symmetric around
+ * NEUTRAL_STAT exactly like the rally bands: 1.0 at 50, band-wide at 100, and
+ * band-wide *down* at 0.
  *
- * IMPORTANT: These are multipliers applied to physicalModifier, not direct additions.
- * Each bonus is capped individually to prevent extreme stacking.
- * Keep them small to avoid quality hitting 100 constantly.
+ * They replace a table of the shape `(stat / 100) x multiplier`, floored by a
+ * per-stat `maxBonus`, which was wrong in three separate ways:
+ *
+ *   1. It was a pure bonus. A serve stat of 0 gave a x1.0 modifier — neutral —
+ *      so weak stats never made a serve worse, they merely failed to help.
+ *   2. It was not centered. An average player at 50 got a free +3%, so "no
+ *      modifier" sat at a different place here than everywhere else in the sim.
+ *   3. Every cap bound INSIDE the playable range: strength stopped paying at
+ *      67, tactics at 62, spin at 75. Past those points the stat was dead on
+ *      the serve, which is the hardcoded-threshold failure this audit has been
+ *      removing everywhere else.
+ *
+ * Sized so that a maxed server reaches roughly the same ceiling the old caps
+ * allowed; what changes is that the range below is now live.
  */
-export const SERVE_BONUSES = {
-  first: {
-    offensive: { multiplier: 0.08, maxBonus: 0.05 },   // Max 5% bonus from offensive
-    strength: { multiplier: 0.06, maxBonus: 0.04 },    // Max 4% bonus from strength
-    spin: { multiplier: 0.04, maxBonus: 0.03 },        // Max 3% bonus from spin
-  },
-  second: {
-    consistency: { multiplier: 0.10, maxBonus: 0.06 }, // Max 6% bonus from consistency
-    spin: { multiplier: 0.08, maxBonus: 0.05 },        // Max 5% bonus from spin
-    defensive: { multiplier: 0.05, maxBonus: 0.03 },   // Max 3% bonus from defensive
-  },
-};
+export const SERVE_MODIFIER_BANDS = {
+  first: { strength: 0.06, tactics: 0.05 },
+  second: { consistency: 0.06, tactics: 0.03 },
+} as const;
+
+/** Spin's additive contribution to serve quality, in quality points, symmetric around NEUTRAL_STAT. */
+export const SERVE_SPIN_BANDS = { first: 3, second: 5 } as const;
 
 /**
  * Total modifier caps
@@ -682,7 +690,25 @@ export const SERVE_BONUSES = {
  * Example: serve stat 75 × 115% cap = 86.25 max (before variance)
  */
 export const TOTAL_MODIFIER_CAPS = {
-  serve: 1.0,     // Serve quality should center around the serve stat, not above it
+  // The serve bands are centered on NEUTRAL_STAT, so an average player lands on
+  // 1.0 and the serve "centers around the serve stat" by construction rather
+  // than by clipping. At 1.0 this bound from L~35 up on the first serve and
+  // across the ENTIRE range on the second, which left every positive serve
+  // modifier dead while the negative ones still applied.
+  //
+  // Tighter than the other two on purpose. Expected accuracy is
+  // `accuracyComposite x finalAdjustment` and it sets the serve-in midpoint, so
+  // a large cap lets it run past its own 100 ceiling: the roll saturates, the
+  // midpoint does not, and first-serve-in% peaks around L=80 and falls. Measured
+  // first-serve-in% at L=70/80/90:
+  //
+  //   1.05    65.1  68.3  70.4     monotonic
+  //   1.10    66.1  69.5  69.4     plateaus
+  //   1.20    68.4  70.2  68.9     inverts
+  //
+  // 1.05 also keeps the accuracy channel live furthest up the range — it does
+  // not reach 100 until L~95, against L~83 at a cap of 1.20.
+  serve: 1.05,
   return: 1.20,   // Max 120% total modifier for returns
   rally: 1.25,    // Max 125% total modifier for rally shots
 };
