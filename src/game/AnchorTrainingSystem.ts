@@ -45,16 +45,15 @@ export interface CoreAnchorConfig {
 /**
  * Per-core themed support pools.
  *
- * Balanced so every non-core stat appears in EXACTLY two pools: 15 support stats
- * across 5 pools of 6 is 30 slots, which divides evenly. That matters for two
- * reasons — no stat accrues regardless of what you build (placement used to sit in
- * 4 of 5 pools, so it stopped being a build choice), and no stat is reachable
- * through only one shot (dropShot and shotVariety used to be slice-only, so a
- * player who never trained slice could not earn them from training at all).
+ * Balanced so no stat accrues regardless of what you build (placement used to sit
+ * in 4 of 5 pools, so it stopped being a build choice) and no stat is reachable
+ * through only one anchor (a player who never trained that shot could not earn it
+ * from training at all).
  *
  * Keep the invariant when editing: each pool holds 4 stats, and each support stat
- * appears in 2 or 3 pools — 9 supports across 5 anchors does not divide evenly.
- * Pick the shots the stat most belongs to.
+ * appears in 2 or 3 pools — 9 supports across 5 pools of 4 is 20 slots, which does
+ * not divide evenly. Currently `placement` and `anticipation` take the three-pool
+ * slots. Pick the shots the stat most belongs to.
  *
  * Pools shrank from 6 to 4 with the consolidation, which also fixes the spread
  * the audit flagged: a specific support now accrues ~0.75 per session against

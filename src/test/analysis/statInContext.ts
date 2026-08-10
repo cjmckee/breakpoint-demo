@@ -100,6 +100,14 @@ function trial(bucket: keyof PlayerStats, key: string, prof: ArchetypeProfile, b
 const NONE = profileOf({});
 const NET = profileOf({ net: { path: 'net_downhill', tier: 3 } }, 'net_attacker');
 const SAMURAI = profileOf({ backhand: { path: 'bh_samurai', tier: 3 } }, 'baseliner');
+/**
+ * The most slice a build can reach. `fs_curveball` carries the game's only
+ * SLICE_PREFERENCE_FOREHAND, so without it slice is a backhand-only stat.
+ */
+const SLICER = profileOf({
+  backhand: { path: 'bh_samurai', tier: 3 },
+  first_serve: { path: 'fs_curveball', tier: 3 },
+}, 'baseliner');
 
 const f = (x: number): string => (x >= 0 ? '+' : '') + x.toFixed(2);
 
@@ -122,6 +130,10 @@ function main(): void {
     ['net', 'net_downhill T3', 'core', 'net', NET],
     ['slice', 'no specialization', 'technical', 'slice', NONE],
     ['slice', 'bh_samurai T3', 'technical', 'slice', SAMURAI],
+    ['slice', 'max slice build', 'technical', 'slice', SLICER],
+    ['strength', 'no specialization', 'physical', 'strength', NONE],
+    ['placement', 'no specialization', 'technical', 'placement', NONE],
+    ['tactics', 'no specialization', 'mental', 'tactics', NONE],
     ['serve', 'no specialization', 'core', 'serve', NONE],
     ['return', 'no specialization', 'core', 'return', NONE],
     ['forehand', 'no specialization', 'core', 'forehand', NONE],

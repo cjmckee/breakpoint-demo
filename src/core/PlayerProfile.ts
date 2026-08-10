@@ -69,6 +69,65 @@ import { calculateOverallRating } from '../utils/overallRating.js';
 const clampDial = (v: number): number => Math.max(0, Math.min(100, v));
 
 /**
+ * Which stat leads each rally shot, and which composite family sets the
+ * supporting weights. Module-level rather than per-call: this is read on every
+ * rally shot of every point.
+ *
+ * Serves and returns are not here — they have their own weight tables
+ * (SERVE_QUALITY_WEIGHTS, RETURN_COMPOSITE_WEIGHTS) with no single "primary".
+ */
+export const RALLY_SHOT_FAMILIES: Partial<Record<ShotType, { stat: StatName; family: string }>> = {
+  'forehand': { stat: 'forehand', family: 'groundstroke' },
+  'backhand': { stat: 'backhand', family: 'groundstroke' },
+  'forehand_approach': { stat: 'forehand', family: 'approach' },
+  'backhand_approach': { stat: 'backhand', family: 'approach' },
+  'forehand_power': { stat: 'forehand', family: 'powerGroundstroke' },
+  'backhand_power': { stat: 'backhand', family: 'powerGroundstroke' },
+  'slice_forehand': { stat: 'slice', family: 'slice' },
+  'slice_backhand': { stat: 'slice', family: 'slice' },
+  'defensive_slice_forehand': { stat: 'slice', family: 'slice' },
+  'defensive_slice_backhand': { stat: 'slice', family: 'slice' },
+  'volley_forehand': { stat: 'net', family: 'volley' },
+  'volley_backhand': { stat: 'net', family: 'volley' },
+  'volley_forehand_power': { stat: 'net', family: 'volley' },
+  'volley_backhand_power': { stat: 'net', family: 'volley' },
+  'half_volley_forehand': { stat: 'net', family: 'volley' },
+  'half_volley_backhand': { stat: 'net', family: 'volley' },
+  'overhead': { stat: 'net', family: 'overhead' },
+  'defensive_overhead': { stat: 'net', family: 'overhead' },
+  'drop_shot_forehand': { stat: 'placement', family: 'dropShot' },
+  'drop_shot_backhand': { stat: 'placement', family: 'dropShot' },
+  'angle_shot_forehand': { stat: 'placement', family: 'angle' },
+  'angle_shot_backhand': { stat: 'placement', family: 'angle' },
+  'lob_forehand': { stat: 'placement', family: 'lob' },
+  'lob_backhand': { stat: 'placement', family: 'lob' },
+  'passing_shot_forehand': { stat: 'placement', family: 'passing' },
+  'passing_shot_backhand': { stat: 'placement', family: 'passing' },
+};
+
+/**
+ * The stats that set a shot's quality, by name, with the weight each carries.
+ * Player-independent — this is the shape of the composite, not its value — so
+ * it answers "which stats does this shot pay?" without simulating anybody.
+ */
+export function getShotStatWeights(shotType: ShotType): Record<string, number> {
+  if (shotType === 'serve_first' || shotType === 'serve_second') {
+    return { ...SERVE_QUALITY_WEIGHTS[shotType] };
+  }
+  if (shotType.startsWith('return_')) {
+    return { ...RETURN_COMPOSITE_WEIGHTS };
+  }
+  const entry = RALLY_SHOT_FAMILIES[shotType];
+  if (!entry) {
+    throw new Error(`Unknown shot type: ${shotType}`);
+  }
+  const { primary, ...supports } = SHOT_COMPOSITE_WEIGHTS[entry.family];
+  const weights: Record<string, number> = { ...supports };
+  weights[entry.stat] = (weights[entry.stat] ?? 0) + primary;
+  return weights;
+}
+
+/**
  * Map a profile's aggregated behavior dials onto one of the legacy five PlayStyle
  * types, used as a summary label by the tactical-counter and display systems.
  *
@@ -299,38 +358,9 @@ export class PlayerProfile implements IPlayerProfile {
   private getRallyCompositeSpec(
     shotType: ShotType,
   ): { primaryValue: number; weights: { primary: number; [stat: string]: number } } | null {
-    const families: Partial<Record<ShotType, { stat: number; family: string }>> = {
-      'forehand': { stat: this.stats.core.forehand, family: 'groundstroke' },
-      'backhand': { stat: this.stats.core.backhand, family: 'groundstroke' },
-      'forehand_approach': { stat: this.stats.core.forehand, family: 'approach' },
-      'backhand_approach': { stat: this.stats.core.backhand, family: 'approach' },
-      'forehand_power': { stat: this.stats.core.forehand, family: 'powerGroundstroke' },
-      'backhand_power': { stat: this.stats.core.backhand, family: 'powerGroundstroke' },
-      'slice_forehand': { stat: this.stats.technical.slice, family: 'slice' },
-      'slice_backhand': { stat: this.stats.technical.slice, family: 'slice' },
-      'defensive_slice_forehand': { stat: this.stats.technical.slice, family: 'slice' },
-      'defensive_slice_backhand': { stat: this.stats.technical.slice, family: 'slice' },
-      'volley_forehand': { stat: this.stats.core.net, family: 'volley' },
-      'volley_backhand': { stat: this.stats.core.net, family: 'volley' },
-      'volley_forehand_power': { stat: this.stats.core.net, family: 'volley' },
-      'volley_backhand_power': { stat: this.stats.core.net, family: 'volley' },
-      'half_volley_forehand': { stat: this.stats.core.net, family: 'volley' },
-      'half_volley_backhand': { stat: this.stats.core.net, family: 'volley' },
-      'overhead': { stat: this.stats.core.net, family: 'overhead' },
-      'defensive_overhead': { stat: this.stats.core.net, family: 'overhead' },
-      'drop_shot_forehand': { stat: this.stats.technical.placement, family: 'dropShot' },
-      'drop_shot_backhand': { stat: this.stats.technical.placement, family: 'dropShot' },
-      'angle_shot_forehand': { stat: this.stats.technical.placement, family: 'angle' },
-      'angle_shot_backhand': { stat: this.stats.technical.placement, family: 'angle' },
-      'lob_forehand': { stat: this.stats.technical.placement, family: 'lob' },
-      'lob_backhand': { stat: this.stats.technical.placement, family: 'lob' },
-      'passing_shot_forehand': { stat: this.stats.technical.placement, family: 'passing' },
-      'passing_shot_backhand': { stat: this.stats.technical.placement, family: 'passing' },
-    };
-
-    const entry = families[shotType];
+    const entry = RALLY_SHOT_FAMILIES[shotType];
     if (!entry) return null;
-    return { primaryValue: entry.stat, weights: SHOT_COMPOSITE_WEIGHTS[entry.family] };
+    return { primaryValue: this.getStat(entry.stat), weights: SHOT_COMPOSITE_WEIGHTS[entry.family] };
   }
 
   /**
