@@ -229,8 +229,8 @@ export interface ShotResult {
  * Modifiers applied to shot calculation
  */
 export interface ShotModifiers {
-  spinBonus: number;
-  placementBonus: number;
+  spinModifier: number;
+  placementModifier: number;
   physicalModifier: number;
   mentalModifier: number;
   difficultyModifier: number;

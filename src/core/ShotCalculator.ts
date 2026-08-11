@@ -42,13 +42,10 @@ import {
   SHOOTER_STAT_ADJUSTMENTS,
   NEUTRAL_STAT,
   STAT_MODIFIER_BANDS,
-  STAT_BONUS_BANDS,
   statModifier,
-  statBonus,
   POSITION_ADJUSTMENTS,
   SERVE_VARIANCE,
   SERVE_MODIFIER_BANDS,
-  SERVE_SPIN_BANDS,
   RETURN_VARIANCE,
   RALLY_SHOT_VARIANCE,
   TOTAL_MODIFIER_CAPS,
@@ -159,8 +156,8 @@ export class ShotCalculator {
     // Log modifiers for serves
     if (shotType.includes('serve')) {
       console.log('  Modifiers:', {
-        spinBonus: modifiers.spinBonus.toFixed(3),
-        placementBonus: modifiers.placementBonus.toFixed(3),
+        spinModifier: modifiers.spinModifier.toFixed(3),
+        placementModifier: modifiers.placementModifier.toFixed(3),
         physicalModifier: modifiers.physicalModifier.toFixed(3),
         mentalModifier: modifiers.mentalModifier.toFixed(3),
         difficultyModifier: modifiers.difficultyModifier.toFixed(3),
@@ -489,11 +486,11 @@ export class ShotCalculator {
     const stats = shooterProfile.stats;
     const playStyle = shooterProfile.playStyle;
 
-    // Spin bonus for shots that benefit from spin
-    let spinBonus = this.calculateSpinBonus(shotType, stats.technical.spin);
+    // Spin's own modifier, on shots that are made of spin
+    let spinModifier = this.calculateSpinModifier(shotType, stats.technical.spin);
 
-    // Placement bonus for precision shots
-    const placementBonus = this.calculatePlacementBonus(shotType, stats.technical.placement);
+    // Placement's own modifier, on precision shots
+    const placementModifier = this.calculatePlacementModifier(shotType, stats.technical.placement);
 
     // Physical modifiers (speed, agility, strength)
     let physicalModifier = this.calculatePhysicalModifier(shotType, context, stats.physical, ballQuality);
@@ -507,7 +504,7 @@ export class ShotCalculator {
       // First serve: a strike. Strength drives it, tactics aims it, spin shapes it.
       physicalModifier *= statModifier(stats.physical.strength, SERVE_MODIFIER_BANDS.first.strength);
       mentalModifier *= statModifier(stats.mental.tactics, SERVE_MODIFIER_BANDS.first.tactics);
-      spinBonus += statBonus(stats.technical.spin, SERVE_SPIN_BANDS.first);
+      spinModifier *= statModifier(stats.technical.spin, SERVE_MODIFIER_BANDS.first.spin);
 
       serveVariance = (Math.random() - 0.5) * 2 * SERVE_VARIANCE.first;
     } else if (shotType === 'serve_second') {
@@ -515,7 +512,7 @@ export class ShotCalculator {
       // together, and spin is what makes a second serve safe at all.
       mentalModifier *= statModifier(playStyle.consistency, SERVE_MODIFIER_BANDS.second.consistency)
         * statModifier(stats.mental.tactics, SERVE_MODIFIER_BANDS.second.tactics);
-      spinBonus += statBonus(stats.technical.spin, SERVE_SPIN_BANDS.second);
+      spinModifier *= statModifier(stats.technical.spin, SERVE_MODIFIER_BANDS.second.spin);
 
       serveVariance = (Math.random() - 0.5) * 2 * SERVE_VARIANCE.second;
     }
@@ -551,8 +548,8 @@ export class ShotCalculator {
 
     // Combine all modifiers into final adjustment
     let finalAdjustment =
-      (1 + spinBonus / 100) *
-      (1 + placementBonus / 100) *
+      spinModifier *
+      placementModifier *
       physicalModifier *
       mentalModifier *
       difficultyModifier *
@@ -573,8 +570,8 @@ export class ShotCalculator {
     }
 
     return {
-      spinBonus,
-      placementBonus,
+      spinModifier,
+      placementModifier,
       physicalModifier,
       mentalModifier,
       difficultyModifier,
@@ -590,27 +587,25 @@ export class ShotCalculator {
   }
 
   /**
-   * Calculate spin bonus using sliding scale
-   * 0 spin = 0% bonus, 100 spin = 20% bonus for spin shots
+   * Spin's modifier on shots that are made of spin — slice, drop, defensive slice.
+   * Distinct from STAT_MODIFIER_BANDS.touch, which is spin on the tactical shots
+   * (drop, angle, lob, passing); the drop shot is in both sets deliberately.
    */
-  private calculateSpinBonus(shotType: ShotType, spinStat: number): number {
+  private calculateSpinModifier(shotType: ShotType, spinStat: number): number {
     if (!SHOT_CLASSIFICATIONS.spinShots.includes(shotType as any)) {
-      return 0;
+      return 1;
     }
 
-    return statBonus(spinStat, STAT_BONUS_BANDS.spin);
+    return statModifier(spinStat, STAT_MODIFIER_BANDS.shape);
   }
 
-  /**
-   * Calculate placement bonus using sliding scale
-   * 0 placement = 0% bonus, 100 placement = 15% bonus for placement shots
-   */
-  private calculatePlacementBonus(shotType: ShotType, placementStat: number): number {
+  /** Placement's modifier on shots that are made of placement — drop, angle, lob. */
+  private calculatePlacementModifier(shotType: ShotType, placementStat: number): number {
     if (!SHOT_CLASSIFICATIONS.placementShots.includes(shotType as any)) {
-      return 0;
+      return 1;
     }
 
-    return statBonus(placementStat, STAT_BONUS_BANDS.placement);
+    return statModifier(placementStat, STAT_MODIFIER_BANDS.precision);
   }
 
   /**
@@ -798,9 +793,12 @@ export class ShotCalculator {
     }
 
     // side_spin: enhanced spin effectiveness
+    // Scales with how much spin the shot is already carrying, so it rewards a
+    // spin player hitting a spin shot rather than paying out flat.
     const sideSpin = effects[EffectKey.SIDE_SPIN] ?? 0;
-    if (sideSpin > 0 && modifiers.spinBonus > 0) {
-      bonus += sideSpin * modifiers.spinBonus * 0.15;
+    const spinPoints = (modifiers.spinModifier - 1) * 100;
+    if (sideSpin > 0 && spinPoints > 0) {
+      bonus += sideSpin * spinPoints * 0.15;
     }
 
     // touch: drop shots and volleys
@@ -1059,11 +1057,11 @@ export class ShotCalculator {
     explanation += `Pressure: ${context.pressure} (×${modifiers.pressureModifier.toFixed(3)})\n`;
     explanation += `Rally Length: ${context.rallyLength} shots (×${modifiers.rallyLengthModifier.toFixed(3)})\n`;
 
-    if (modifiers.spinBonus > 0) {
-      explanation += `Spin Bonus: +${modifiers.spinBonus.toFixed(1)}%\n`;
+    if (modifiers.spinModifier !== 1) {
+      explanation += `Spin: ×${modifiers.spinModifier.toFixed(3)}\n`;
     }
-    if (modifiers.placementBonus > 0) {
-      explanation += `Placement Bonus: +${modifiers.placementBonus.toFixed(1)}%\n`;
+    if (modifiers.placementModifier !== 1) {
+      explanation += `Placement: ×${modifiers.placementModifier.toFixed(3)}\n`;
     }
     if (modifiers.serveVariance) {
       explanation += `Serve Variance: ${modifiers.serveVariance > 0 ? '+' : ''}${modifiers.serveVariance.toFixed(1)}\n`;

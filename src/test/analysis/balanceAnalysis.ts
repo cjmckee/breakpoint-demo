@@ -72,7 +72,7 @@ function makeIncomingShotDetail(quality: number, shotType: ShotType = 'forehand'
     outcome: PointType.IN_PLAY,
     statUsed: 'forehand',
     modifiers: {
-      spinBonus: 0, placementBonus: 0, physicalModifier: 1, mentalModifier: 1,
+      spinModifier: 1, placementModifier: 1, physicalModifier: 1, mentalModifier: 1,
       difficultyModifier: 1, pressureModifier: 1, rallyLengthModifier: 1, finalAdjustment: 1,
       fatigueModifier: 1, momentumModifier: 1,
     },
@@ -380,8 +380,8 @@ function runModifierBreakdown(): void {
       const m = result.modifiers;
       print(`    Rating ${rating}:`);
       print(`      Primary stat:       ${rating}`);
-      print(`      Spin bonus:         x${fmtNum(1 + m.spinBonus / 100, 3)}`);
-      print(`      Placement bonus:    x${fmtNum(1 + m.placementBonus / 100, 3)}`);
+      print(`      Spin modifier:      x${fmtNum(m.spinModifier, 3)}`);
+      print(`      Placement modifier: x${fmtNum(m.placementModifier, 3)}`);
       print(`      Physical modifier:  x${fmtNum(m.physicalModifier, 3)}`);
       print(`      Mental modifier:    x${fmtNum(m.mentalModifier, 3)}`);
       print(`      Difficulty mod:     x${fmtNum(m.difficultyModifier, 3)}`);

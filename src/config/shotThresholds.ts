@@ -545,26 +545,15 @@ export const STAT_MODIFIER_BANDS = {
   touch: 0.075,
   /** tactics, on whichever kind of shot was chosen — attacking or defending */
   tactics: 0.15,
-} as const;
-
-/**
- * Spin and placement are applied as percentage-point bonuses rather than
- * multipliers, so their bands are in points: 10 means stat 0 gives −10% and
- * stat 100 gives +10%.
- */
-export const STAT_BONUS_BANDS = {
-  spin: 10,
-  placement: 7.5,
+  /** spin, on shots that are made of spin (slice, drop, defensive slice) */
+  shape: 0.10,
+  /** placement, on shots that are made of placement (drop, angle, lob) */
+  precision: 0.075,
 } as const;
 
 /** Support-stat multiplier: 1.0 at NEUTRAL_STAT, band-wide at the extremes. */
 export function statModifier(stat: number, band: number): number {
   return 1 + ((stat - NEUTRAL_STAT) / NEUTRAL_STAT) * band * MODIFIER_SPREAD;
-}
-
-/** Support-stat percentage-point bonus: 0 at NEUTRAL_STAT. */
-export function statBonus(stat: number, band: number): number {
-  return ((stat - NEUTRAL_STAT) / NEUTRAL_STAT) * band * MODIFIER_SPREAD;
 }
 
 /**
@@ -652,7 +641,7 @@ export const RALLY_SHOT_VARIANCE = {
 /**
  * Serve stat bands — which stats shade serve quality beyond the composite blend,
  * and by how much. First serve is strength and tactics; second serve is
- * consistency and tactics. Spin shades both, additively, via SERVE_SPIN_BANDS.
+ * consistency and tactics. Spin shades both, and matters more on the second.
  *
  * These are read through `statModifier`, so they are symmetric around
  * NEUTRAL_STAT exactly like the rally bands: 1.0 at 50, band-wide at 100, and
@@ -674,12 +663,9 @@ export const RALLY_SHOT_VARIANCE = {
  * allowed; what changes is that the range below is now live.
  */
 export const SERVE_MODIFIER_BANDS = {
-  first: { strength: 0.06, tactics: 0.05 },
-  second: { consistency: 0.06, tactics: 0.03 },
+  first: { strength: 0.06, tactics: 0.05, spin: 0.03 },
+  second: { consistency: 0.06, tactics: 0.03, spin: 0.05 },
 } as const;
-
-/** Spin's additive contribution to serve quality, in quality points, symmetric around NEUTRAL_STAT. */
-export const SERVE_SPIN_BANDS = { first: 3, second: 5 } as const;
 
 /**
  * Total modifier caps

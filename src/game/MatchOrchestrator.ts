@@ -533,7 +533,7 @@ export class MatchOrchestrator {
       quality,
       outcome,
       statUsed: getPrimaryStatName(shotType),
-      modifiers: { spinBonus: 0, placementBonus: 0, physicalModifier: 1, mentalModifier: 1, difficultyModifier: 1, pressureModifier: 1, rallyLengthModifier: 1, finalAdjustment: 1, fatigueModifier: 1, momentumModifier: 1 },
+      modifiers: { spinModifier: 1, placementModifier: 1, physicalModifier: 1, mentalModifier: 1, difficultyModifier: 1, pressureModifier: 1, rallyLengthModifier: 1, finalAdjustment: 1, fatigueModifier: 1, momentumModifier: 1 },
       timestamp: timestamp + shotNumber * 100,
       shotNumber: shotNumber++,
       context: {

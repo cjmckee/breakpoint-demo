@@ -1,8 +1,8 @@
 /**
- * Stat Channels — a stat reaches a shot through four different mechanisms.
+ * Stat Channels — a stat reaches a shot through several different mechanisms.
  * Which ones are actually carrying the load?
  *
- * The four channels, in the order the engine applies them:
+ * The channels, in the order the engine applies them:
  *
  *   1. COMPOSITE   PlayerProfile.getStatForShot blends stats into the shot's
  *                  base rating (SHOT_COMPOSITE_WEIGHTS / SERVE_QUALITY_WEIGHTS /
@@ -11,15 +11,16 @@
  *   2. BAND        ShotCalculator's support modifiers (STAT_MODIFIER_BANDS,
  *                  SERVE_MODIFIER_BANDS) — multiplicative, centered on
  *                  NEUTRAL_STAT, gated on a shot classification or a context flag.
- *   3. BONUS       spin and placement as percentage-point bonuses
- *                  (STAT_BONUS_BANDS, SERVE_SPIN_BANDS), folded into the same
- *                  finalAdjustment product as the bands.
- *   4. THRESHOLD   OPPONENT_STAT_ADJUSTMENTS / SHOOTER_STAT_ADJUSTMENTS move the
+ *                  An earlier version of this probe found a fourth channel here,
+ *                  spin/placement as percentage-point BONUSES; it was the same
+ *                  function with the constant scaled by 100 and measured as
+ *                  nothing, so it was folded into the bands.
+ *   3. THRESHOLD   OPPONENT_STAT_ADJUSTMENTS / SHOOTER_STAT_ADJUSTMENTS move the
  *                  bar the shot must clear rather than the shot itself. This is
  *                  the only channel that can express a stat acting on the
  *                  OPPONENT's shot.
  *
- * (A fifth group sits outside shot quality entirely — stamina through fatigue,
+ * (A further group sits outside shot quality entirely — stamina through fatigue,
  * focus through pressure and momentum, and the stats that steer ShotSelector.
  * Not ablated here; see the note at the bottom of the output.)
  *
@@ -46,7 +47,8 @@
  * ever detect.
  *
  * Run: npm run build:node && node dist/src/test/analysis/statChannels.js
- * Env: N=1500 (pairings per configuration)  SEED=1  PARTS=SA  REF=55
+ * Env: N=1500 (pairings per configuration)  SEED=1  PARTS=SMA  REF=55
+ *      LO=25 HI=90 (stat draw range — set LO=25 HI=50 for the shipped ladder)
  */
 
 import type { MatchFormat, MatchState, PlayerStats } from '../../types/index.js';
@@ -62,8 +64,6 @@ import {
   RETURN_COMPOSITE_WEIGHTS,
   STAT_MODIFIER_BANDS,
   SERVE_MODIFIER_BANDS,
-  STAT_BONUS_BANDS,
-  SERVE_SPIN_BANDS,
   OPPONENT_STAT_ADJUSTMENTS,
   SHOOTER_STAT_ADJUSTMENTS,
 } from '../../config/shotThresholds.js';
@@ -122,12 +122,18 @@ interface Pairing {
   serveFirst: boolean;
 }
 
-function drawPopulation(n: number, seed: number): Pairing[] {
+/**
+ * `lo`/`hi` bound the uniform draw for every stat. The default U(25, 90) matches
+ * statSensitivity Part B, which describes a population the game does not contain
+ * — the shipped ladder is OVR 20-49. Pass LO=25 HI=50 to ask the same question
+ * about the players who actually exist.
+ */
+function drawPopulation(n: number, seed: number, lo: number, hi: number): Pairing[] {
   const rng = mulberry32(seed);
   const stats = (): PlayerStats => {
     const s = uniformStats(50);
     for (const { bucket, key } of STAT_KEYS) {
-      (s[bucket] as unknown as Record<string, number>)[key] = 25 + rng() * 65; // U(25, 90)
+      (s[bucket] as unknown as Record<string, number>)[key] = lo + rng() * (hi - lo);
     }
     return s;
   };
@@ -143,14 +149,14 @@ function drawPopulation(n: number, seed: number): Pairing[] {
 
 // ─── Channel ablation ────────────────────────────────────────
 
-type Channel = 'composite' | 'band' | 'bonus' | 'threshold';
+type Channel = 'composite' | 'band' | 'threshold';
 /** `control` ablates nothing. Its column is the noise floor for every other column. */
 type Column = Channel | 'control';
 
 /** Deep snapshot of every table an ablation touches, so configs can be restored. */
 const ORIGINAL = JSON.parse(JSON.stringify({
   SHOT_COMPOSITE_WEIGHTS, SERVE_QUALITY_WEIGHTS, SERVE_ACCURACY_WEIGHTS, RETURN_COMPOSITE_WEIGHTS,
-  STAT_MODIFIER_BANDS, SERVE_MODIFIER_BANDS, STAT_BONUS_BANDS, SERVE_SPIN_BANDS,
+  STAT_MODIFIER_BANDS, SERVE_MODIFIER_BANDS,
   OPPONENT_STAT_ADJUSTMENTS, SHOOTER_STAT_ADJUSTMENTS,
 }));
 
@@ -167,8 +173,6 @@ function restore(): void {
   assign(RETURN_COMPOSITE_WEIGHTS as never, ORIGINAL.RETURN_COMPOSITE_WEIGHTS);
   assign(STAT_MODIFIER_BANDS as never, ORIGINAL.STAT_MODIFIER_BANDS);
   assign(SERVE_MODIFIER_BANDS as never, ORIGINAL.SERVE_MODIFIER_BANDS);
-  assign(STAT_BONUS_BANDS as never, ORIGINAL.STAT_BONUS_BANDS);
-  assign(SERVE_SPIN_BANDS as never, ORIGINAL.SERVE_SPIN_BANDS);
   assign(OPPONENT_STAT_ADJUSTMENTS as never, ORIGINAL.OPPONENT_STAT_ADJUSTMENTS);
   assign(SHOOTER_STAT_ADJUSTMENTS as never, ORIGINAL.SHOOTER_STAT_ADJUSTMENTS);
 }
@@ -199,9 +203,6 @@ function ablate(ch: Column): void {
     zero(STAT_MODIFIER_BANDS as unknown as Record<string, number>);
     zero(SERVE_MODIFIER_BANDS.first as unknown as Record<string, number>);
     zero(SERVE_MODIFIER_BANDS.second as unknown as Record<string, number>);
-  } else if (ch === 'bonus') {
-    zero(STAT_BONUS_BANDS as unknown as Record<string, number>);
-    zero(SERVE_SPIN_BANDS as unknown as Record<string, number>);
   } else {
     zero(OPPONENT_STAT_ADJUSTMENTS as unknown as Record<string, number>);
     zero(SHOOTER_STAT_ADJUSTMENTS as unknown as Record<string, number>);
@@ -313,7 +314,6 @@ interface Margin {
  *
  *   composite   Δq = 10 × weight                       (finalAdjustment ≈ 1 at neutral)
  *   band        Δq = ref × (10/50) × band              multiplies the whole shot
- *   bonus       Δq = ref × (10/50) × band/100          same product, expressed in points
  *   threshold   Δbar = 10 × multiplier                 same 0-100 scale as quality
  */
 function staticMargins(ref: number): Map<string, Margin[]> {
@@ -363,19 +363,15 @@ function staticMargins(ref: number): Map<string, Margin[]> {
   band('anticipation', STAT_MODIFIER_BANDS.reading, 'opponent at net / well positioned');
   band('spin', STAT_MODIFIER_BANDS.touch, 'tactical shots (drop/angle/lob/passing)');
   band('tactics', STAT_MODIFIER_BANDS.tactics, 'any offensive or defensive shot');
+  band('spin', STAT_MODIFIER_BANDS.shape, 'spin shots (slice/drop/defensive slice)');
+  band('placement', STAT_MODIFIER_BANDS.precision, 'placement shots (drop/angle/lob)');
   band('strength', SERVE_MODIFIER_BANDS.first.strength, 'first serve');
   band('tactics', SERVE_MODIFIER_BANDS.first.tactics, 'first serve');
+  band('spin', SERVE_MODIFIER_BANDS.first.spin, 'first serve');
   band('tactics', SERVE_MODIFIER_BANDS.second.tactics, 'second serve');
+  band('spin', SERVE_MODIFIER_BANDS.second.spin, 'second serve');
 
-  // 3. BONUS — percentage-point adds into the same product.
-  const bonus = (stat: string, b: number, gate: string): void =>
-    push(stat, { channel: 'bonus', size: ref * 0.2 * b / 100, gate });
-  bonus('spin', STAT_BONUS_BANDS.spin, 'spin shots (slice/drop/defensive slice)');
-  bonus('placement', STAT_BONUS_BANDS.placement, 'placement shots (drop/angle/lob)');
-  bonus('spin', SERVE_SPIN_BANDS.first, 'first serve');
-  bonus('spin', SERVE_SPIN_BANDS.second, 'second serve');
-
-  // 4. THRESHOLD — moves the bar. Opponent-side entries are the OPPONENT's stat.
+  // 3. THRESHOLD — moves the bar. Opponent-side entries are the OPPONENT's stat.
   push('tactics', { channel: 'threshold', size: 10 * OPPONENT_STAT_ADJUSTMENTS.tactics, gate: "opponent's stat, every rally shot" });
   push('speed', { channel: 'threshold', size: 10 * OPPONENT_STAT_ADJUSTMENTS.speed, gate: "opponent's stat, every rally shot" });
   push('return', { channel: 'threshold', size: 10 * OPPONENT_STAT_ADJUSTMENTS.return, gate: "opponent's stat, serves only (ace resistance)" });
@@ -413,23 +409,23 @@ function partS(ref: number): void {
   console.log('');
 }
 
-// ─── Part M: the band+bonus channel's measured dynamic range ─
+// ─── Part M: the band channel's measured dynamic range ──────
 
 /**
- * Every band and bonus is centered on NEUTRAL_STAT, so a uniform-50 player
- * multiplies by exactly 1.000 on every shot. Running uniform players at other
- * ratings therefore reads the channel's whole dynamic range straight off the
- * shots, with no ablation and no regression: whatever the product differs from
- * 1.0 is the entire contribution of bands and bonuses at that rating.
+ * Every band is centered on NEUTRAL_STAT, so a uniform-50 player multiplies by
+ * exactly 1.000 on every shot. Running uniform players at other ratings
+ * therefore reads the channel's whole dynamic range straight off the shots, with
+ * no ablation and no regression: whatever the product differs from 1.0 is the
+ * entire contribution of the band channel at that rating.
  *
  * Reported against the composite, which is the same number at every rating
  * because the weights sum to 1 — a uniform-L player's base rating is L.
  */
 function partM(levels: number[], matches: number): void {
-  console.log(`\n╔══ PART M: what bands and bonuses actually multiply by, per rally shot ══╗`);
+  console.log(`\n╔══ PART M: what the support bands actually multiply by, per rally shot ══╗`);
   console.log('\nUniform players, so the composite base rating equals the level exactly and every');
   console.log('band is 1.000 at 50 by construction. `support ×` is the measured product of the');
-  console.log('physical, mental, spin and placement factors — the entire band+bonus channel.\n');
+  console.log('physical, mental, spin and placement factors — the entire band channel.\n');
 
   const hdr = ['level'.padStart(6), 'support ×'.padStart(11), 'quality Δ'.padStart(11),
     'phys ×'.padStart(9), 'ment ×'.padStart(9), 'spin ×'.padStart(9), 'place ×'.padStart(9)].join('');
@@ -462,8 +458,8 @@ function partM(levels: number[], matches: number): void {
           server === 'player' ? opponent : player, ms, {}, {});
         for (const s of pr.shots) {
           const m = s.modifiers;
-          const sp = 1 + m.spinBonus / 100;
-          const pl = 1 + m.placementBonus / 100;
+          const sp = m.spinModifier;
+          const pl = m.placementModifier;
           phys += m.physicalModifier; ment += m.mentalModifier; spin += sp; place += pl;
           prod += m.physicalModifier * m.mentalModifier * sp * pl;
           n++;
@@ -485,7 +481,7 @@ function partM(levels: number[], matches: number): void {
       (place / n).toFixed(4).padStart(9),
     ].join(''));
   }
-  console.log('\n`quality Δ` is the points of shot quality the whole band+bonus channel adds or');
+  console.log('\n`quality Δ` is the points of shot quality the whole band channel adds or');
   console.log('removes at that level — compare it against PART S\'s composite column, which is');
   console.log('2.5 to 8.0 points for a single +10.\n');
 }
@@ -495,17 +491,20 @@ function main(): void {
   const SEED = Number(process.env.SEED ?? 1);
   const PARTS = (process.env.PARTS ?? 'SMA').toUpperCase();
   const REF = Number(process.env.REF ?? 55);
+  const LO = Number(process.env.LO ?? 25);
+  const HI = Number(process.env.HI ?? 90);
 
   if (PARTS.includes('S')) partS(REF);
   if (PARTS.includes('M')) partM([20, 30, 50, 70, 90], 20);
   if (!PARTS.includes('A')) return;
 
-  const pop = drawPopulation(N, SEED);
+  const pop = drawPopulation(N, SEED, LO, HI);
 
-  const CHANNELS: Column[] = ['control', 'composite', 'band', 'bonus', 'threshold'];
+  const CHANNELS: Column[] = ['control', 'composite', 'band', 'threshold'];
 
   console.log(`\n╔══ PART A: where each stat's measured value comes from ══╗`);
-  console.log(`   ${N} randomized pairings per configuration, seed ${SEED}, identical build population in every column.`);
+  console.log(`   ${N} randomized pairings per configuration, stats ~ U(${LO}, ${HI}), seed ${SEED}.
+   Identical build population in every column.`);
   console.log(`   Units: point-win-% per +10 stat.\n`);
 
   process.stdout.write('   running full...');
