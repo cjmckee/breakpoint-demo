@@ -49,6 +49,13 @@
  * Run: npm run build:node && node dist/src/test/analysis/statChannels.js
  * Env: N=1500 (pairings per configuration)  SEED=1  PARTS=SMA  REF=55
  *      LO=25 HI=90 (stat draw range — set LO=25 HI=50 for the shipped ladder)
+ *      POP=real|presets  POINTS=6  MAX_TIER=3
+ *
+ * POPULATION. The player side is built the way a player builds one: a broad
+ * archetype plus specialization points spent across six phases. The opponent
+ * side uses the five authored profiles, which is how the game builds opponents.
+ * POP=presets restores the old symmetric draw, which reached only 13 of the 18
+ * paths and never reached tier III at all.
  */
 
 import type { MatchFormat, MatchState, PlayerStats } from '../../types/index.js';
@@ -68,6 +75,7 @@ import {
   SHOOTER_STAT_ADJUSTMENTS,
 } from '../../config/shotThresholds.js';
 import { aggregateArchetypeEffects, profileForArchetype, type LegacyArchetype } from '../../data/archetypeTree.js';
+import { drawPlayerProfile } from './playerFactory.js';
 
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
 const _origLog = console.log;
@@ -128,7 +136,10 @@ interface Pairing {
  * — the shipped ladder is OVR 20-49. Pass LO=25 HI=50 to ask the same question
  * about the players who actually exist.
  */
-function drawPopulation(n: number, seed: number, lo: number, hi: number): Pairing[] {
+function drawPopulation(
+  n: number, seed: number, lo: number, hi: number,
+  mode: string, points: number, maxTier: 1 | 2 | 3,
+): Pairing[] {
   const rng = mulberry32(seed);
   const stats = (): PlayerStats => {
     const s = uniformStats(50);
@@ -137,12 +148,17 @@ function drawPopulation(n: number, seed: number, lo: number, hi: number): Pairin
     }
     return s;
   };
-  const prof = (): ArchetypeProfile =>
+  /** How the game builds an OPPONENT: one of five authored profiles. */
+  const opponentProf = (): ArchetypeProfile =>
     rng() < 1 / 6 ? profileOf({}) : profileForArchetype(LEGACY[Math.floor(rng() * LEGACY.length)]);
+  /** How the game builds a PLAYER: points spent freely across the phase tree. */
+  const playerProf = (): ArchetypeProfile => drawPlayerProfile(rng, points, maxTier);
+
+  const drawP = mode === 'presets' ? opponentProf : playerProf;
 
   const out: Pairing[] = [];
   for (let i = 0; i < n; i++) {
-    out.push({ pStats: stats(), oStats: stats(), pProf: prof(), oProf: prof(), serveFirst: rng() < 0.5 });
+    out.push({ pStats: stats(), oStats: stats(), pProf: drawP(), oProf: opponentProf(), serveFirst: rng() < 0.5 });
   }
   return out;
 }
@@ -492,17 +508,23 @@ function main(): void {
   const REF = Number(process.env.REF ?? 55);
   const LO = Number(process.env.LO ?? 25);
   const HI = Number(process.env.HI ?? 90);
+  const POP = process.env.POP ?? 'real';
+  const POINTS = Number(process.env.POINTS ?? 6);
+  const MAX_TIER = Number(process.env.MAX_TIER ?? 3) as 1 | 2 | 3;
 
   if (PARTS.includes('S')) partS(REF);
   if (PARTS.includes('M')) partM([20, 30, 50, 70, 90], 20);
   if (!PARTS.includes('A')) return;
 
-  const pop = drawPopulation(N, SEED, LO, HI);
+  const pop = drawPopulation(N, SEED, LO, HI, POP, POINTS, MAX_TIER);
 
   const CHANNELS: Column[] = ['control', 'composite', 'band', 'threshold'];
 
   console.log(`\n╔══ PART A: where each stat's measured value comes from ══╗`);
   console.log(`   ${N} randomized pairings per configuration, stats ~ U(${LO}, ${HI}), seed ${SEED}.
+   Builds: ${POP === 'presets'
+    ? 'both sides from the five authored opponent profiles'
+    : `player side spends ${POINTS} points (max tier ${MAX_TIER}), opponent side authored`}.
    Identical build population in every column.`);
   console.log(`   Units: point-win-% per +10 stat.\n`);
 

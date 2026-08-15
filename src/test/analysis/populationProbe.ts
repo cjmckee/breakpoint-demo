@@ -29,7 +29,8 @@ import { PlayerProfile, getShotStatWeights } from '../../core/PlayerProfile.js';
 import { PointSimulator } from '../../core/PointSimulator.js';
 import { ScoreTracker } from '../../core/ScoreTracker.js';
 import { MATCH_FATIGUE } from '../../config/shotThresholds.js';
-import { aggregateArchetypeEffects, profileForArchetype, type LegacyArchetype } from '../../data/archetypeTree.js';
+import { aggregateArchetypeEffects, profileForArchetype, PATHS_BY_PHASE, type LegacyArchetype } from '../../data/archetypeTree.js';
+import { drawPlayerProfile } from './playerFactory.js';
 
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
 const _origLog = console.log;
@@ -203,6 +204,9 @@ function main(): void {
   const SEED = Number(process.env.SEED ?? 1);
   const LO = Number(process.env.LO ?? 25);
   const HI = Number(process.env.HI ?? 90);
+  const MODE = process.env.POP ?? 'real';
+  const POINTS = Number(process.env.POINTS ?? 6);
+  const MAX_TIER = Number(process.env.MAX_TIER ?? 3) as 1 | 2 | 3;
 
   const rng = mulberry32(SEED);
   const drawStats = (): PlayerStats => {
@@ -214,21 +218,34 @@ function main(): void {
     }
     return s;
   };
-  const drawProfile = (): [string, ArchetypeProfile] => {
+  const drawOpponent = (): [string, ArchetypeProfile] => {
     if (rng() < 1 / 6) return ['unspecialized', profileOf({})];
     const a = LEGACY[Math.floor(rng() * LEGACY.length)];
     return [a, profileForArchetype(a)];
   };
+  const drawPlayer = (): [string, ArchetypeProfile] => ['player build', drawPlayerProfile(rng, POINTS, MAX_TIER)];
+
+  // Which side of the net each build model represents. `presets` reproduces the
+  // old symmetric draw for comparison against previously published numbers.
+  const draw = MODE === 'presets'
+    ? [drawOpponent, drawOpponent]
+    : [drawPlayer, drawOpponent];
 
   console.log(`\n╔══ POPULATION PROBE — what the regression harnesses actually sample ══╗`);
   console.log(`\n   ${N} pairings, stats ~ U(${LO}, ${HI}), seed ${SEED}.`);
-  console.log(`   Same draw as statChannels PART A and statSensitivity Part B.\n`);
+  console.log(MODE === 'presets'
+    ? `   POP=presets: both sides drawn from the five authored opponent profiles.\n`
+    : `   POP=real: player side spends ${POINTS} specialization points (max tier ${MAX_TIER});\n   opponent side drawn from the five authored profiles.\n`);
 
   const t = newTally();
+  const pathHits = new Map<string, number>();
+  const tierHits = new Map<number, number>();
   console.log = () => {};
   for (let i = 0; i < N; i++) {
-    const [pn, pp] = drawProfile();
-    const [on, op] = drawProfile();
+    const [pn, pp] = draw[0]();
+    const [on, op] = draw[1]();
+    for (const [phase, spec] of Object.entries(pp.phases)) pathHits.set(spec.path, (pathHits.get(spec.path) ?? 0) + 1), tierHits.set(spec.tier, (tierHits.get(spec.tier) ?? 0) + 1), void phase;
+    for (const [phase, spec] of Object.entries(op.phases)) pathHits.set(spec.path, (pathHits.get(spec.path) ?? 0) + 1), tierHits.set(spec.tier, (tierHits.get(spec.tier) ?? 0) + 1), void phase;
     runMatch(
       new PlayerProfile('p', 'P', drawStats(), pp), new PlayerProfile('o', 'O', drawStats(), op),
       pn, on, aggregateArchetypeEffects(pp), aggregateArchetypeEffects(op), t,
@@ -250,16 +267,28 @@ function main(): void {
     ].join(''));
   }
 
+  console.log('\n\n── specialty coverage: does the draw reach what the game contains? ──\n');
+  const allPaths = Object.values(PATHS_BY_PHASE).flat().map(d => d.id);
+  const unseen = allPaths.filter(id => !pathHits.has(id));
+  console.log(`  paths reached      ${allPaths.length - unseen.length} of ${allPaths.length}`);
+  if (unseen.length) console.log(`  NEVER SAMPLED      ${unseen.join(', ')}`);
+  const tierTotal = [...tierHits.values()].reduce((a, b) => a + b, 0);
+  console.log(`  specialties by tier  ` +
+    [1, 2, 3].map(tr => `T${tr} ${pc(tierHits.get(tr) ?? 0, tierTotal)}`).join('   '));
+
   console.log('\n\n── how often the conditional gates are open ──\n');
   console.log(`  points where either player reached the net   ${pc(t.netPoints, t.points).padStart(8)}`);
   console.log(`  rally shots hit against a player at the net  ${pc(t.shotsVsNetman, t.rallyShots).padStart(8)}   <- netCoverage's gate`);
   console.log(`  rally shots from the net (volley/overhead)   ${pc(t.netFamily, t.rallyShots).padStart(8)}   <- the net stat's own shots`);
   console.log(`  rally shots in the slice family             ${pc(t.sliceFamily, t.rallyShots).padStart(8)}   <- the slice stat's own shots`);
   console.log(`    of which DEFENSIVE slice                  ${pc(t.defensiveSlice, t.sliceFamily).padStart(8)}   <- a shot hit while losing the point`);
-  console.log('\n  slice preference is bought by exactly one of the five archetypes:');
+  console.log('\n  slice preference sources:');
   for (const [name, path] of Object.entries(SLICE_PATH)) {
-    if (path !== '—') console.log(`    ${name} -> ${path}`);
+    if (path !== '—') console.log(`    opponent preset ${name} -> ${path}`);
   }
+  console.log(MODE === 'presets'
+    ? '    fs_curveball (the only SLICE_PREFERENCE_FOREHAND) is NEVER SAMPLED here'
+    : '    player builds can also buy bh_samurai and fs_curveball at any tier');
 
   console.log('\n\n── share of the shot-quality budget, over the whole population ──\n');
   const total = [...t.weight.values()].reduce((a, b) => a + b, 0);

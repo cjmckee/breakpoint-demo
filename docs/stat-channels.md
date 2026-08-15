@@ -107,6 +107,40 @@ in any ablation harness added later.
 `LO`/`HI` bound the stat draw. The default `U(25, 90)` matches `statSensitivity` Part B; `LO=25
 HI=50` asks the same question about the shipped ladder.
 
+### The build population, and the hole that was in it
+
+The harness originally drew **both** sides from `profileForArchetype` — the five archetype presets.
+Those are not legacy debt: they are how every authored opponent in the game is built
+(`data/opponents.ts`, `teamMatches.ts`, `welcomeEvents.ts`, and the practice/tournament paths in
+`gameStore`), and the shipped roster is exactly uniform across them, four opponents each. What was
+wrong is that they were used for the *player* side too, and a player does not have an archetype
+preset. A player picks a broad identity and spends one specialization point per level across six
+phases, three paths each, up to tier III.
+
+Measured with `populationProbe`, the symmetric preset draw reached:
+
+| | preset draw (old) | real draw (now) |
+|---|---|---|
+| specialty paths reached | **13 of 18** | 18 of 18 |
+| tier III specialties | **0.0%** | 5.4% |
+| never sampled | `fs_sniper`, `fs_curveball`, `ss_pancake`, `ss_gambler`, `bh_bazooka` | — |
+
+`fs_curveball` is the one that bites: it carries the game's only `SLICE_PREFERENCE_FOREHAND`, so a
+preset-only population makes `slice` a backhand-only stat before any measurement begins. And no
+tier-III effect in the game was ever exercised.
+
+The player side is now drawn by `drawPlayerProfile`, which spends points the way `gameStore` does —
+`POINTS=6 MAX_TIER=3` for a mid-game build, `POINTS=3 MAX_TIER=1` for the shipped ladder, where
+`upgradePhase` blocks every upgrade below player tier 2. `POP=presets` restores the old draw.
+
+**It changed almost nothing.** Every stat moved less than the ±0.18 interval except `stamina`
+(−0.34). The ordering, the channel attributions and the `slice`/`net` results all survive. That is
+worth stating plainly: the hole was real, and closing it confirmed the earlier conclusions rather
+than overturning them.
+
+One residual mismatch, left in deliberately: the harness leaves one opponent in six unspecialized,
+and no shipped opponent is. It costs a little opponent identity and buys a rough baseline row.
+
 ```
 npm run build:node
 N=8000 PARTS=SMA node dist/src/test/analysis/statChannels.js            # wide
@@ -182,24 +216,24 @@ low.
 8000 randomized pairings per configuration, seed 7. Units: point-win-% per +10 stat.
 `control` is the empirical noise floor.
 
-### Over U(25, 90) — the harness default. `±95%` on `full` is 0.18.
+### Over U(25, 90), real build population. `±95%` on `full` is 0.18.
 
 | stat | full | control | composite | band | threshold |
 |---|---|---|---|---|---|
-| anticipation | +2.79 | +0.06 | **+1.56** | **+1.12** | **+0.42** |
-| return | +2.67 | +0.08 | *−1.17* | −0.16 | +0.06 |
-| serve | +2.52 | +0.09 | *−1.75* | +0.06 | −0.09 |
-| speed | +2.48 | −0.16 | **+1.01** | **+0.62** | **+0.44** |
-| tactics | +2.22 | +0.04 | **+0.50** | **+0.90** | **+0.55** |
-| focus | +1.98 | −0.03 | +0.43 | −0.11 | −0.03 |
-| spin | +1.37 | +0.07 | **+1.13** | +0.39 | +0.03 |
-| strength | +1.37 | −0.10 | **+0.90** | **+0.43** | −0.09 |
-| placement | +1.35 | −0.10 | **+0.45** | +0.04 | −0.15 |
-| forehand | +1.18 | −0.12 | *−0.20* | −0.18 | −0.14 |
-| backhand | +1.17 | −0.00 | *−0.24* | −0.13 | −0.15 |
-| stamina | +1.11 | −0.02 | +0.24 | −0.16 | −0.06 |
-| net | +0.54 | +0.03 | **+0.44** | −0.12 | +0.15 |
-| slice | +0.39 | +0.00 | *−0.15* | −0.06 | +0.08 |
+| anticipation | +2.87 | +0.04 | **+1.64** | **+1.29** | **+0.53** |
+| return | +2.61 | −0.03 | *−1.23* | −0.21 | −0.22 |
+| speed | +2.55 | +0.00 | **+1.05** | **+0.72** | **+0.53** |
+| serve | +2.50 | −0.09 | *−1.77* | −0.08 | −0.05 |
+| tactics | +2.34 | +0.08 | **+0.55** | **+1.10** | **+0.53** |
+| focus | +1.98 | −0.01 | +0.26 | −0.16 | −0.02 |
+| placement | +1.51 | +0.06 | **+0.54** | +0.09 | −0.05 |
+| spin | +1.23 | −0.13 | **+0.87** | +0.17 | −0.19 |
+| strength | +1.21 | −0.03 | **+0.74** | **+0.40** | −0.05 |
+| forehand | +1.09 | +0.07 | *−0.30* | −0.29 | −0.18 |
+| backhand | +1.01 | −0.11 | *−0.17* | −0.15 | −0.08 |
+| stamina | +0.77 | −0.09 | +0.20 | −0.22 | −0.08 |
+| net | +0.68 | −0.05 | **+0.34** | −0.10 | +0.02 |
+| slice | +0.50 | +0.15 | *−0.09* | +0.05 | +0.10 |
 
 *Italic* composite cells are the primary-role artifact from §2 — not ablations.
 
@@ -209,24 +243,26 @@ with nothing accounted — it is the fatigue system, entirely. `forehand`, `back
 and `slice` are primary stats whose composite column is not an ablation, plus whatever
 `ShotSelector` frequency is worth to them.
 
-### Over U(25, 50) — the shipped ladder. `±95%` on `full` is 0.39.
+### Over U(25, 50), tier-1 build constraints. `±95%` on `full` is 0.40.
+
+`POINTS=3 MAX_TIER=1` — a club player, where `upgradePhase` caps every specialty at tier I.
 
 | stat | full (25-50) | full (25-90) | composite | band | threshold |
 |---|---|---|---|---|---|
-| anticipation | +3.03 | +2.79 | **+1.66** | **+1.18** | −0.09 |
-| return | +2.90 | +2.67 | *−1.84* | −0.12 | −0.06 |
-| speed | +2.72 | +2.48 | **+1.02** | **+0.64** | **+1.01** |
-| serve | +2.71 | +2.52 | *−2.25* | +0.02 | +0.45 |
-| tactics | +2.12 | +2.22 | +0.09 | **+0.58** | **+0.55** |
-| placement | +1.72 | +1.35 | **+0.54** | +0.20 | **+0.55** |
-| forehand | +1.67 | +1.18 | *−0.28* | +0.18 | +0.24 |
-| strength | +1.63 | +1.37 | **+1.00** | +0.30 | **+0.58** |
-| focus | +1.61 | +1.98 | +0.30 | +0.25 | −0.08 |
-| spin | +1.37 | +1.37 | **+0.95** | −0.30 | −0.11 |
-| backhand | +1.32 | +1.17 | *−0.49* | −0.34 | −0.33 |
-| stamina | +1.04 | +1.11 | +0.49 | −0.10 | +0.11 |
-| net | +0.77 | +0.54 | **+0.47** | −0.08 | +0.12 |
-| slice | +0.14 | +0.39 | −0.06 | −0.07 | −0.04 |
+| anticipation | +3.27 | +2.87 | **+1.71** | **+1.40** | **+0.72** |
+| return | +2.96 | +2.61 | *−1.83* | −0.05 | +0.05 |
+| serve | +2.81 | +2.50 | *−2.04* | −0.31 | −0.15 |
+| speed | +2.72 | +2.55 | **+1.24** | +0.35 | **+1.13** |
+| tactics | +2.32 | +2.34 | +0.30 | **+0.80** | **+0.80** |
+| backhand | +1.90 | +1.01 | *−0.09* | +0.25 | **+0.42** |
+| placement | +1.77 | +1.51 | **+0.41** | +0.20 | −0.06 |
+| strength | +1.60 | +1.21 | **+0.96** | **+0.55** | +0.10 |
+| forehand | +1.48 | +1.09 | *−0.76* | +0.10 | **+0.39** |
+| spin | +1.36 | +1.23 | **+1.24** | +0.08 | +0.30 |
+| focus | +1.06 | +1.98 | −0.32 | −0.13 | −0.26 |
+| stamina | +0.90 | +0.77 | **+0.38** | +0.20 | +0.19 |
+| net | +0.77 | +0.68 | **+0.23** | −0.40 | +0.27 |
+| slice | +0.48 | +0.50 | +0.18 | −0.21 | +0.14 |
 
 The `control` column over this band reaches ±0.53, so treat anything under ~0.5 as unresolved.
 
