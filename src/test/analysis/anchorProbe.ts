@@ -29,7 +29,7 @@
  *       : serverProfile.overallRating
  *
  * Findings from the run these seams supported are in
- * docs/stat-system-audit.md — in short, the anchor moves the blowout metrics
+ * docs/research/stat-system-audit.md — in short, the anchor moves the blowout metrics
  * in Part 2 by under a point, and pinning matchLevel does not remove the
  * negative sign in Part 3, which is what the audit's section 4 predicted.
  */

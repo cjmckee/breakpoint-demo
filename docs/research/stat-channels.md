@@ -3,7 +3,7 @@
 **Status:** measurement, plus the change it argued for (applied)
 **Scope:** whether the multiple paths from a stat to a shot outcome produce distinguishable
 behaviour, and whether any of it measures at the ratings the game actually ships
-**Harness:** [`src/test/analysis/statChannels.ts`](../src/test/analysis/statChannels.ts)
+**Harness:** [`src/test/analysis/statChannels.ts`](../../src/test/analysis/statChannels.ts)
 
 ---
 
@@ -452,7 +452,7 @@ This one is wired in, and the randomized population was simply the wrong denomin
 applies while the opponent is standing at the net, and most random builds never come forward, so it
 spends nearly every point switched off.
 
-Asked properly — [`netCoverageProbe.ts`](../src/test/analysis/netCoverageProbe.ts), a
+Asked properly — [`netCoverageProbe.ts`](../../src/test/analysis/netCoverageProbe.ts), a
 `net_downhill T3` attacker against a uniform-45 baseliner, sweeping the constant while the
 attacker's `net` rating is 25 or 75 — the answer is that it barely matters either.
 

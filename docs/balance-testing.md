@@ -191,6 +191,7 @@ Constants carry their own rationale and measured curves in
 [`src/config/shotThresholds.ts`](../src/config/shotThresholds.ts) — read the comment before changing
 a value; several record what was already tried and rejected.
 
-[`stat-system-audit.md`](./stat-system-audit.md) and [`stat-channels.md`](./stat-channels.md) are
+[`research/stat-system-audit.md`](./research/stat-system-audit.md) and
+[`research/stat-channels.md`](./research/stat-channels.md) are
 the findings record: what was measured, what changed as a result, and which hypotheses were tested
 and withdrawn. Check them before re-deriving something.
