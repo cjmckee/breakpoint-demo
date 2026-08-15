@@ -601,6 +601,45 @@ export function statModifier(stat: number, band: number): number {
  */
 export const NET_APPROACH_BIAS_SCALE = 3.0;
 
+/**
+ * Base per-opportunity chance of coming forward, before archetype bias.
+ *
+ * NET_APPROACH_BIAS_SCALE was sized against what a SPECIALIST reaches, and the
+ * bias is applied additively, so at scale 3.0 a bias of -12 subtracts 0.36 from
+ * a 0.12 base — three times the whole base. Every net-averse build therefore
+ * landed on the floor and stopped coming forward at all, which is not what
+ * "prefers the baseline" should mean: measured, a net_apologist reached the net
+ * on 3.4% of rallies past the return, and so did a plain backhand specialist who
+ * had merely picked `baseliner` as their broad identity.
+ *
+ * Sized against matchAnatomy's CAME FORWARD / past return, which counts an
+ * approach that ended the point as well as one that led to a net shot.
+ * Measured, uniform 45 mirror matches:
+ *
+ *   base / floor      unspecialized   net_apologist   bh_samurai   net_downhill T3
+ *   0.12 / 0.02              15.1%            3.4%         3.4%             33.0%
+ *   0.18 / 0.05              19.1%            6.7%         9.8%             34.0%
+ *   0.20 / 0.05              20.4%            7.1%        11.2%             34.0%
+ *
+ * A player with no net identity now comes forward on about one rally in five,
+ * and one who actively avoids it still does on about one in fourteen. The
+ * bh_samurai row is why this mattered: a plain backhand specialist who had only
+ * picked `baseliner` as their broad identity was as net-averse as the archetype
+ * built to avoid the net, because the broad nudge alone cleared the old base.
+ *
+ * Cost, same builds: rallies reaching 6+ shots fall from 16.4% to 15.3% of
+ * points and winners from 14.5% to 13.7%, while unforced errors rise 17.1% to
+ * 18.2% — coming forward more often shortens points and adds risk, which is
+ * what it should do.
+ */
+export const NET_APPROACH_BASE = 0.20;
+
+/**
+ * Lower bound on the per-opportunity chance. A build can prefer the baseline;
+ * it cannot forget the net exists.
+ */
+export const NET_APPROACH_FLOOR = 0.05;
+
 export const POSITION_ADJUSTMENTS: Record<CourtPosition, number> = {
   'well_positioned': +3,      // Opponent ready and centered
   'slightly_off': +0,         // Neutral

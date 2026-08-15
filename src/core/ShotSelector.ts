@@ -20,7 +20,9 @@ import type {
 import { PlayerProfile } from './PlayerProfile.js';
 import { TacticalAnalyzer } from './TacticalAnalyzer.js';
 import { getQualityThresholds } from '../utils/qualityThresholds.js';
-import { SURFACE_EFFECTS, NET_APPROACH_BIAS_SCALE } from '../config/shotThresholds.js';
+import {
+  SURFACE_EFFECTS, NET_APPROACH_BIAS_SCALE, NET_APPROACH_BASE, NET_APPROACH_FLOOR,
+} from '../config/shotThresholds.js';
 import { EffectKey } from '../types/game.js';
 
 /** Archetype behavior effects threaded from the active-effects map. */
@@ -280,9 +282,14 @@ export class ShotSelector {
     // `offensive` term used to add up to 8 points of base probability here,
     // which put a stat on the frequency axis.
     // Floored rather than clamped to zero: a net-averse archetype should come in
-    // rarely, not never. At a large bias scale the negative bias drives this
-    // below zero and a net_apologist build stopped approaching entirely.
-    let baseProbability = Math.max(0.02, 0.12 + (netBias / 100) * NET_APPROACH_BIAS_SCALE);
+    // rarely, not never. The bias is additive against a small base, so at the
+    // shipped scale a -12 bias more than cancels the base on its own and the
+    // floor is what every net-averse build actually plays on — which is why the
+    // floor is a tuned constant rather than a token epsilon.
+    let baseProbability = Math.max(
+      NET_APPROACH_FLOOR,
+      NET_APPROACH_BASE + (netBias / 100) * NET_APPROACH_BIAS_SCALE,
+    );
     baseProbability += SURFACE_EFFECTS[courtSurface].netApproachBonus;
     baseProbability = Math.max(0, baseProbability);
 
