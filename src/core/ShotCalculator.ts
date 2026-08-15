@@ -264,6 +264,8 @@ export class ShotCalculator {
       modifiers,
       thresholds,
       outcomeProbabilities,
+      opponentPosition,
+      ballQuality,
     };
   }
 

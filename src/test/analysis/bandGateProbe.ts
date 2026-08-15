@@ -22,18 +22,10 @@
  *
  * A band with a high OPEN% and a zero CONTEXT% is not reading context at all.
  *
- * TWO GATES CANNOT BE RECONSTRUCTED from the shot stream and are reported as
- * `n/a` rather than guessed at:
- *
- *   speed.reactions       also fires on a rushed ball, and `ballQuality` is
- *                         derived inside ShotCalculator, not carried on ShotDetail.
- *   anticipation.reading  fires on the OPPONENT's CourtPosition being `at_net`
- *                         OR `well_positioned`, and only the shooter's own
- *                         coarse position is recorded.
- *
- * Both are context gates by construction, so the CONTEXT% column is a lower
- * bound on the channel as a whole. What it establishes is the other direction:
- * the six bands it CAN measure read nothing but shot type.
+ * Every gate is now exact. `ShotDetail` carries `opponentPosition` and
+ * `ballQuality`, which is what `reading` and `reactions` respectively gate on;
+ * before those were recorded, both had to be reported as unmeasurable, and an
+ * earlier version of this probe guessed at `reading` and got it wrong.
  *
  * Run: npm run build:node && node dist/src/test/analysis/bandGateProbe.js
  * Env: N=400 (BO3)  SEED=1  LO=25 HI=90  POINTS=6  MAX_TIER=3
@@ -97,9 +89,7 @@ interface Gate {
   band: string;
   size: number;
   byShot: (t: ShotType) => boolean;
-  byContext: (s: ShotDetail, oppAtNet: boolean) => boolean;
-  /** false when the real gate reads state the shot stream does not record. */
-  measurable: boolean;
+  byContext: (s: ShotDetail) => boolean;
 }
 
 const GATES: Gate[] = [
@@ -107,52 +97,41 @@ const GATES: Gate[] = [
     stat: 'speed', band: 'courtCoverage', size: STAT_MODIFIER_BANDS.courtCoverage,
     byShot: t => inList(SHOT_CLASSIFICATIONS.defensiveShots, t),
     byContext: s => s.context?.courtPosition === 'defensive',
-    measurable: true,
   },
   {
     stat: 'speed', band: 'reactions', size: STAT_MODIFIER_BANDS.reactions,
     byShot: t => inList(SHOT_CLASSIFICATIONS.netShots, t),
-    // Also fires on a rushed ball, which ShotDetail does not record.
-    byContext: () => false,
-    measurable: false,
+    byContext: s => s.ballQuality?.timeAvailable === 'rushed',
   },
   {
     stat: 'strength', band: 'power', size: STAT_MODIFIER_BANDS.power,
     byShot: t => inList(SHOT_CLASSIFICATIONS.powerShots, t),
     byContext: () => false,
-    measurable: true,
   },
   {
     stat: 'anticipation', band: 'reading', size: STAT_MODIFIER_BANDS.reading,
     byShot: () => false,
-    // The real gate is opponentPosition at_net OR well_positioned. Only the
-    // at_net half is visible here, so this row is reported as n/a.
-    byContext: (_s, oppAtNet) => oppAtNet,
-    measurable: false,
+    byContext: s => s.opponentPosition === 'at_net' || s.opponentPosition === 'well_positioned',
   },
   {
     stat: 'spin', band: 'touch', size: STAT_MODIFIER_BANDS.touch,
     byShot: t => isTacticalShot(t),
     byContext: () => false,
-    measurable: true,
   },
   {
     stat: 'spin', band: 'shape', size: STAT_MODIFIER_BANDS.shape,
     byShot: t => inList(SHOT_CLASSIFICATIONS.spinShots, t),
     byContext: () => false,
-    measurable: true,
   },
   {
     stat: 'placement', band: 'precision', size: STAT_MODIFIER_BANDS.precision,
     byShot: t => inList(SHOT_CLASSIFICATIONS.placementShots, t),
     byContext: () => false,
-    measurable: true,
   },
   {
     stat: 'tactics', band: 'tactics', size: STAT_MODIFIER_BANDS.tactics,
     byShot: t => isDefensiveShot(t) || isOffensiveShot(t),
     byContext: () => false,
-    measurable: true,
   },
 ];
 
@@ -208,21 +187,13 @@ function main(): void {
       const pr = sim.simulatePoint(server, server === 'player' ? p : o,
         server === 'player' ? o : p, ms, pEff, oEff);
 
-      // Who was at the net when each shot was struck.
-      const netFrom: Record<string, number> = {};
-      pr.shots.forEach((s: ShotDetail, i2: number) => {
-        if (s.context?.courtPosition === 'net' && netFrom[s.shooter] === undefined) netFrom[s.shooter] = i2;
-      });
-
-      pr.shots.forEach((s: ShotDetail, i2: number) => {
+      pr.shots.forEach((s: ShotDetail) => {
         const t = s.shotType;
         if (String(t).includes('serve') && !String(t).includes('volley')) return;
         rallyShots++;
-        const other = s.shooter === 'server' ? 'returner' : 'server';
-        const oppAtNet = netFrom[other] !== undefined && netFrom[other] < i2;
         for (const g of GATES) {
           const byShot = g.byShot(t);
-          const byCtx = g.byContext(s, oppAtNet);
+          const byCtx = g.byContext(s);
           if (!byShot && !byCtx) continue;
           const c = counts.get(`${g.stat}.${g.band}`)!;
           c.open++;
@@ -259,15 +230,12 @@ function main(): void {
     console.log([
       `${r.g.stat}.${r.g.band}`.padEnd(24),
       r.g.size.toFixed(3).padStart(7),
-      (r.g.measurable ? `${(r.open * 100).toFixed(1)}%` : 'n/a').padStart(8),
-      (r.g.measurable ? `${(r.contextShare * 100).toFixed(1)}%` : 'n/a').padStart(10),
+      `${(r.open * 100).toFixed(1)}%`.padStart(8),
+      `${(r.contextShare * 100).toFixed(1)}%`.padStart(10),
       r.whenOpen.toFixed(2).padStart(11),
-      (r.g.measurable ? r.weighted.toFixed(3) : 'n/a').padStart(10),
+      r.weighted.toFixed(3).padStart(10),
     ].join(''));
   }
-  console.log('\n  n/a: the gate reads match state the shot stream does not record —');
-  console.log('       speed.reactions on a rushed ball, anticipation.reading on the');
-  console.log('       opponent being at net OR well positioned. Both are context gates.');
 
   console.log(`\nNEUTRAL_STAT is ${NEUTRAL_STAT}, so every band is 1.0 for an average player and`);
   console.log('these are the deviations a build shape buys. CONTEXT% is the share of');

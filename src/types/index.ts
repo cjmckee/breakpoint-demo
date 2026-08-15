@@ -215,6 +215,18 @@ export interface ShotResult {
   statUsed: StatName;
   modifiers: ShotModifiers;
   thresholds?: QualityThresholds;
+  /**
+   * Where the OPPONENT was standing when this shot was struck, and what the
+   * incoming ball was like. Both are inputs the calculator already had; they are
+   * returned so the shot record can carry them.
+   *
+   * Several support bands gate on exactly these two — `reading` on the opponent
+   * being at net or well positioned, `reactions` on a rushed ball — and without
+   * them on the record there is no way to measure how often those gates open.
+   * `ballQuality` is undefined for serves, which have no incoming ball.
+   */
+  opponentPosition?: CourtPosition;
+  ballQuality?: BallQuality;
   /** Sigmoid probabilities at time of outcome determination (for debugging) */
   outcomeProbabilities?: {
     winner?: number;
@@ -263,8 +275,13 @@ export interface ShotDetail {
   modifiers: ShotModifiers;
   timestamp: number;
   shotNumber: number;
+  /** The SHOOTER's own situation. `opponentPosition` below is the other side. */
   context: ShotContext;
   thresholds?: QualityThresholds; // NEW: for transparency and match analysis
+  /** Where the opponent stood when this was struck — what the `reading` band gates on. */
+  opponentPosition?: CourtPosition;
+  /** The incoming ball; undefined for serves. `timeAvailable` is what `reactions` gates on. */
+  ballQuality?: BallQuality;
 }
 
 export enum PointType {

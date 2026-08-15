@@ -158,6 +158,8 @@ export class PointSimulator {
         shotNumber: 1,
         context: firstServeContext,
         thresholds: firstServeResult.thresholds,
+        opponentPosition: firstServeResult.opponentPosition,
+        ballQuality: firstServeResult.ballQuality,
       };
       shots.push(firstServeShot);
 
@@ -185,6 +187,8 @@ export class PointSimulator {
         shotNumber: 1,
         context: firstServeContext,
         thresholds: firstServeResult.thresholds,
+        opponentPosition: firstServeResult.opponentPosition,
+        ballQuality: firstServeResult.ballQuality,
       };
       shots.push(firstServeShot);
 
@@ -210,6 +214,8 @@ export class PointSimulator {
       shotNumber: 1,
       context: firstServeContext,
       thresholds: firstServeResult.thresholds,
+        opponentPosition: firstServeResult.opponentPosition,
+        ballQuality: firstServeResult.ballQuality,
     };
     shots.push(faultServeShot);
 
@@ -244,6 +250,8 @@ export class PointSimulator {
       shotNumber: 1, // Second serve is shot #1 when it starts the rally
       context: secondServeContext,
       thresholds: secondServeResult.thresholds,
+        opponentPosition: secondServeResult.opponentPosition,
+        ballQuality: secondServeResult.ballQuality,
     };
 
     shots.push(secondServeShot);
@@ -447,7 +455,9 @@ export class PointSimulator {
         timestamp: Date.now(),
         shotNumber,
         context: shotContext,
-        thresholds: shotResult.thresholds, // NEW: include thresholds for analysis
+        thresholds: shotResult.thresholds,
+        opponentPosition: shotResult.opponentPosition,
+        ballQuality: shotResult.ballQuality, // NEW: include thresholds for analysis
       };
 
       shots.push(shotDetail);
