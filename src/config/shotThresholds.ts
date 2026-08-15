@@ -479,11 +479,24 @@ export const OPPONENT_STAT_ADJUSTMENTS = {
   // near-certain match outcomes.
   tactics: 0.12,     // A tactically sharp defender makes winners harder
   speed: 0.12,       // Speed helps cover court
-  return: 0.12,      // Return stat makes aces harder, serves only
   // Only applies while the opponent is at the net, where it modulates
   // POSITION_ADJUSTMENTS.at_net. Larger than the others because it is
   // conditional: they apply to every rally shot, this one to the passing
   // attempts against a player who has actually come forward.
+  //
+  // NOT A TUNING DIAL, despite looking like one — `netCoverageProbe.ts` sweeps
+  // it and the curve is flat. A net-75 attacker holds the net against a net-25
+  // one by 45.5pp with this switched off entirely, and by 48.0 at 0.30; every
+  // value between is inside the noise. Two things cap it. Downward it runs into
+  // the `Math.max(POSITION_ADJUSTMENTS.well_positioned, ...)` clamp in
+  // calculateQualityRequirements, so for a weak volleyer it can only pull the
+  // bar from +10 to +3 and then stops mattering above about 0.28. Upward there
+  // is nothing left to win: a net-75 attacker already takes 93% of net points,
+  // so raising the passer's bar further changes no outcomes.
+  //
+  // Keep it — the effect is real and the intent is right — but the thing that
+  // actually makes a bad volleyer easy to pass is the volley composite, not
+  // this. Tune the composite, not this constant.
   netCoverage: 0.20, // Covering the net makes the pass harder to thread
 };
 

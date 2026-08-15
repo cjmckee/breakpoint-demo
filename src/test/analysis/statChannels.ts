@@ -374,7 +374,6 @@ function staticMargins(ref: number): Map<string, Margin[]> {
   // 3. THRESHOLD — moves the bar. Opponent-side entries are the OPPONENT's stat.
   push('tactics', { channel: 'threshold', size: 10 * OPPONENT_STAT_ADJUSTMENTS.tactics, gate: "opponent's stat, every rally shot" });
   push('speed', { channel: 'threshold', size: 10 * OPPONENT_STAT_ADJUSTMENTS.speed, gate: "opponent's stat, every rally shot" });
-  push('return', { channel: 'threshold', size: 10 * OPPONENT_STAT_ADJUSTMENTS.return, gate: "opponent's stat, serves only (ace resistance)" });
   push('net', { channel: 'threshold', size: 10 * OPPONENT_STAT_ADJUSTMENTS.netCoverage, gate: "opponent's stat, only while at net" });
   push('anticipation', { channel: 'threshold', size: 10 * SHOOTER_STAT_ADJUSTMENTS.anticipation, gate: 'own stat, every rally shot' });
 

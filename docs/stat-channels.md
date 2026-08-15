@@ -352,10 +352,70 @@ placed as technical rather than core.
 - **The convexity in §4.** A uniform-20 player still loses 3.4 quality points to a channel that is
   supposed to be neutral for a balanced build. `MODIFIER_SPREAD` is the dial; the alternative is
   summing the band deviations rather than multiplying them.
-- **`OPPONENT_STAT_ADJUSTMENTS.return` and `.netCoverage`** measure as noise in both populations at
-  0.12 and 0.20. Either they want to be bigger or they want to not exist.
+- ~~**`OPPONENT_STAT_ADJUSTMENTS.return` and `.netCoverage`** measure as noise in both populations.~~
+  **Resolved — see §9.**
 - **The first serve at tier 1.** Ten points of in-rate across the whole implemented game, against
   twenty-eight for the second serve, and a non-monotonic early ladder.
 - **Sample-size defaults.** `tier1Probe` part C defaults to N=40 and `statInContext` to N=120; both
   are an order of magnitude under what their designs need. Raising the defaults would stop them
   reporting noise as findings.
+
+
+---
+
+## 9. The two inert threshold entries, resolved
+
+Both were flagged in §5 for measuring inside the control in every population. They turned out to
+have nothing in common.
+
+### `OPPONENT_STAT_ADJUSTMENTS.return` — deleted
+
+It measured as noise because it was never read. Nothing in `src/` referenced it; ace resistance is
+computed in `ShotCalculator` from `SERVE_CONTEST.resistanceOvrBlend` blended against
+`getReturnComposite()`, and has been for as long as the serve contest has existed. The constant sat
+in the table with a comment claiming a job it did not do — "Return stat makes aces harder, serves
+only" — which is exactly the kind of thing that survives a rebalance because it reads as intentional.
+
+Deleted. No behaviour change is possible, by construction.
+
+### `OPPONENT_STAT_ADJUSTMENTS.netCoverage` — kept, and demoted from a dial
+
+This one is wired in, and the randomized population was simply the wrong denominator: it only
+applies while the opponent is standing at the net, and most random builds never come forward, so it
+spends nearly every point switched off.
+
+Asked properly — [`netCoverageProbe.ts`](../src/test/analysis/netCoverageProbe.ts), a
+`net_downhill T3` attacker against a uniform-45 baseliner, sweeping the constant while the
+attacker's `net` rating is 25 or 75 — the answer is that it barely matters either.
+
+| netCoverage | passer wins @ attacker net 25 | @ net 75 | spread |
+|---|---|---|---|
+| 0.00 (off) | 52.0% | 6.6% | **+45.5pp** |
+| 0.05 | 51.6% | 6.9% | +44.7pp |
+| 0.10 | 51.4% | 7.0% | +44.4pp |
+| **0.20 (shipped)** | 53.5% | 6.9% | **+46.7pp** |
+| 0.30 | 54.0% | 6.0% | +48.0pp |
+
+500 BO3 per cell; the spread carries roughly ±2pp. Switching the mechanism off entirely costs about
+2.5pp of a 46pp effect — one standard error. A wider sweep to 0.50 and 1.00 adds nothing.
+
+Two structural reasons it cannot do more:
+
+- **Downward it hits a clamp.** `calculateQualityRequirements` computes
+  `Math.max(POSITION_ADJUSTMENTS.well_positioned, at_net + coverage)`, so the whole range available
+  to a weak volleyer is +10 down to +3. At `net` 25 the coverage term is `(25 − 50) × mult`, which
+  reaches −7 at mult 0.28 and is clamped from there on. Every value above ~0.28 is identical.
+- **Upward there is nothing left to win.** A net-75 attacker already takes 93% of net points. Raising
+  the passer's bar further changes no outcomes.
+
+So it stays — the effect is real, the intent is right, and deleting it would lose a couple of points
+of differentiation for no gain — but it is documented at the constant as *not a tuning dial*. The
+thing that actually makes a bad volleyer easy to pass is the volley composite: 45.5pp of the 46.7
+total, with this mechanism switched off.
+
+**The general lesson for the remaining open questions.** A conditional mechanism measured against a
+population that rarely triggers it will always read as noise, and that reading says nothing about
+whether it works. `statChannels` answers "what is this worth on average"; a targeted probe with the
+gate held open answers "does this work at all". The two `net` results in this document — the stat
+clearing a core slot, the threshold entry not earning its dial — came from asking the second
+question after the first one came back empty.
