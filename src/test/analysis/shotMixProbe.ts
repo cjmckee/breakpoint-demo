@@ -6,6 +6,7 @@
  * behavior never pollutes the mix. Also dumps annotated case-study rallies.
  *
  * Run with: npm run build:node && node dist/src/test/analysis/shotMixProbe.js
+ * Env: N=60 (BO3 per build)  RATING=60 (uniform rating; use 35 for tier 1)
  */
 
 import type { MatchFormat, MatchState, PlayerStats, ShotType, PointResult } from '../../types/index.js';
@@ -16,8 +17,10 @@ import { ScoreTracker } from '../../core/ScoreTracker.js';
 import { MATCH_FATIGUE } from '../../config/shotThresholds.js';
 import { aggregateArchetypeEffects } from '../../data/archetypeTree.js';
 
-const N_MATCHES = 60;
-const RATING = 60;
+const N_MATCHES = Number(process.env.N ?? 60);
+/** Uniform rating for both players. The shipped ladder is OVR 20-49, so pass
+ *  RATING=35 to see the mix a tier-1 player actually hits. */
+const RATING = Number(process.env.RATING ?? 60);
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
 
 const _origLog = console.log;
@@ -184,7 +187,7 @@ function main(): void {
   }
 
   // ─── Table ───
-  console.log('\n╔══ SHOT MIX BY BUILD — player rally shots only, uniform-60 vs uniform-60, hard, BO3 ══╗\n');
+  console.log(`\n╔══ SHOT MIX BY BUILD — player rally shots only, uniform-${RATING} vs uniform-${RATING}, hard, ${N_MATCHES} BO3 ══╗\n`);
   const header = ['family'.padEnd(24), ...results.map((_, i) => `B${i + 1}`.padStart(8))].join(' ');
   console.log(header);
   console.log('-'.repeat(header.length));
