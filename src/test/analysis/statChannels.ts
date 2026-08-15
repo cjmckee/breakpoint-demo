@@ -148,9 +148,14 @@ function drawPopulation(
     }
     return s;
   };
-  /** How the game builds an OPPONENT: one of five authored profiles. */
+  /**
+   * How the game builds an OPPONENT: one of five authored profiles, drawn
+   * uniformly because the shipped roster is uniform — four opponents each. No
+   * unspecialized branch: every opponent in `data/opponents.ts` has an
+   * archetype, so leaving one in six without one understated opponent identity.
+   */
   const opponentProf = (): ArchetypeProfile =>
-    rng() < 1 / 6 ? profileOf({}) : profileForArchetype(LEGACY[Math.floor(rng() * LEGACY.length)]);
+    profileForArchetype(LEGACY[Math.floor(rng() * LEGACY.length)]);
   /** How the game builds a PLAYER: points spent freely across the phase tree. */
   const playerProf = (): ArchetypeProfile => drawPlayerProfile(rng, points, maxTier);
 

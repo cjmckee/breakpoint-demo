@@ -1,13 +1,17 @@
 /**
  * Population Probe — what is actually in the population the regressions measure?
  *
- * `statSensitivity` Part B and `statChannels` PART A both draw the same
- * population: every stat independently uniform, and an archetype drawn from the
- * five legacy profiles with one build in six left unspecialized. Every
- * conclusion either harness reaches is conditional on that draw containing the
- * situations the stats are for — and twice in this repo it did not, which is how
- * `netCoverage` came back as noise from a mechanism that works fine when its
- * gate is open.
+ * `statChannels` PART A draws every stat independently uniform, then builds the
+ * two sides the way the game does: the player side spends specialization points
+ * across the phase tree, the opponent side takes one of the five authored
+ * profiles. Every conclusion the regression reaches is conditional on that draw
+ * containing the situations the stats are for — and twice in this repo it did
+ * not, which is how `netCoverage` came back as noise from a mechanism that works
+ * fine when its gate is open.
+ *
+ * POP=presets reproduces the older symmetric draw, which used the opponent
+ * profiles for both sides and so reached only 13 of the 18 specialty paths and
+ * never reached tier III at all.
  *
  * A stat can read zero for two completely different reasons:
  *
@@ -218,8 +222,9 @@ function main(): void {
     }
     return s;
   };
+  // Uniform over the five, and never unspecialized: the shipped roster is four
+  // opponents per archetype and none without one.
   const drawOpponent = (): [string, ArchetypeProfile] => {
-    if (rng() < 1 / 6) return ['unspecialized', profileOf({})];
     const a = LEGACY[Math.floor(rng() * LEGACY.length)];
     return [a, profileForArchetype(a)];
   };

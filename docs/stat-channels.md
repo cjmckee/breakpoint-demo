@@ -455,3 +455,57 @@ whether it works. `statChannels` answers "what is this worth on average"; a targ
 gate held open answers "does this work at all". The two `net` results in this document — the stat
 clearing a core slot, the threshold entry not earning its dial — came from asking the second
 question after the first one came back empty.
+
+
+---
+
+## 10. `slice`, resolved — and four levers that do not help
+
+`slice` measures +0.50 over U(25,90) and +0.48 over the shipped band, last of the fourteen in both.
+The obvious hypotheses are both wrong, and the third one is the answer.
+
+**Not rarity.** `populationProbe` puts slice at 10.1% of rally shots and 4.8% of the shot-quality
+budget — *more* exposure than `net`, which measures higher. It is paid.
+
+**Not a broken curve either, though it looked like one.** `shotCurve` against a same-level opponent,
+across the whole 20-85 range:
+
+| shot | p(in) | p(win) |
+|---|---|---|
+| defensive slice | 69.4% → 99.6% | **0.9% → 4.0%** |
+| slice | 67.9% → 99.3% | 1.9% → 9.2% |
+| forehand | 67.5% → 95.1% | 4.5% → 19.9% |
+
+73% of all slice usage is the defensive slice, and that shot gains as much *reliability* per stat
+point as a forehand does. What it cannot do is convert any of it into ending points: three points of
+winner probability across the entire scale, against the forehand's fifteen. Its
+`MINIMUM_WINNER_THRESHOLDS` is 105 on a scale that clamps at 100, scaled down only by the opponent's
+retrieval.
+
+That reads like something to fix. `sliceProbe` sweeps the two constants that control it, 3000 BO3
+per cell, control ±0.6:
+
+| lever | CONTROL | no specialization | bh_samurai T3 | max slice build |
+|---|---|---|---|---|
+| **shipped** | −0.06 | +0.77 | **+3.17** | **+4.67** |
+| requirement 0.25 → 0.40 | +0.40 | +1.06 | +3.27 | +4.48 |
+| requirement 0.25 → 0.55 | −0.34 | +0.66 | +3.76 | +4.61 |
+| winner floor 105 → 85 | −0.15 | +0.90 | +2.96 | **+3.72** |
+| winner floor 105 → 70 | −0.38 | +0.66 | +3.64 | **+3.79** |
+
+Neither requirement change moves anything past the control. Both floor changes make slice *worse*
+for the build that cares most — lowering the floor lowers it for the opponent too, and turning the
+scramble shot into an occasional point-ender adds variance that dilutes the skill difference rather
+than expressing it. This is the same failure the audit found when it first set the floor: at 44.6%
+winners the defensive slice was an expert's second-best point-ender, which is exactly backwards.
+
+**The shipped column is the finding.** To a build that commits to it, `slice` is worth +3.17 at
+`bh_samurai` T3 and **+4.67 at the full slice build** — against unconditional cores measured the
+same way at +4.5 to +5.2 (`serve` +5.01, `return` +5.23, `forehand` +5.15, `backhand` +4.69). And
+that is *more* than `net` pays its own specialist: +2.31 at `net_downhill` T3.
+
+So `slice` behaves exactly as a conditional technical stat should — near-zero to the builds that
+ignore it, core-grade to the build made for it. The +0.50 population figure is an average over a
+population that mostly does not slice, and it is the number that is misleading, not the stat.
+
+**No change made.** The levers are recorded here so the next person does not re-derive them.
