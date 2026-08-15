@@ -10,6 +10,7 @@
     "src/types/**/*",
     "src/game/**/*",
     "src/utils/**/*",
+    "src/stores/migrations.ts",
     "src/test/**/*",
     "test/**/*"
   ],
