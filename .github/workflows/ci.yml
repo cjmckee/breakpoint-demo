@@ -27,3 +27,10 @@ jobs:
 
       - name: Typecheck and build
         run: npm run build
+
+      # Asserts the save migration end to end. The stat consolidation changed
+      # the shape of the object every save is built around, and the failure mode
+      # is silent — an unmigrated save loads and reports a plausible rating that
+      # is not the one the player earned.
+      - name: Save migration check
+        run: npm test

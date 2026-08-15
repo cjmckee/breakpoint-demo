@@ -220,20 +220,52 @@ low.
 
 | stat | full | control | composite | band | threshold |
 |---|---|---|---|---|---|
-| anticipation | +2.87 | +0.04 | **+1.64** | **+1.29** | **+0.53** |
-| return | +2.61 | −0.03 | *−1.23* | −0.21 | −0.22 |
-| speed | +2.55 | +0.00 | **+1.05** | **+0.72** | **+0.53** |
-| serve | +2.50 | −0.09 | *−1.77* | −0.08 | −0.05 |
-| tactics | +2.34 | +0.08 | **+0.55** | **+1.10** | **+0.53** |
-| focus | +1.98 | −0.01 | +0.26 | −0.16 | −0.02 |
-| placement | +1.51 | +0.06 | **+0.54** | +0.09 | −0.05 |
-| spin | +1.23 | −0.13 | **+0.87** | +0.17 | −0.19 |
-| strength | +1.21 | −0.03 | **+0.74** | **+0.40** | −0.05 |
-| forehand | +1.09 | +0.07 | *−0.30* | −0.29 | −0.18 |
-| backhand | +1.01 | −0.11 | *−0.17* | −0.15 | −0.08 |
-| stamina | +0.77 | −0.09 | +0.20 | −0.22 | −0.08 |
-| net | +0.68 | −0.05 | **+0.34** | −0.10 | +0.02 |
-| slice | +0.50 | +0.15 | *−0.09* | +0.05 | +0.10 |
+| anticipation | +2.85 | +0.04 | **+1.48** | **+0.97** | **+0.34** |
+| return | +2.75 | +0.01 | *−1.22* | −0.31 | −0.17 |
+| serve | +2.50 | −0.01 | *−1.74* | −0.01 | +0.03 |
+| speed | +2.45 | +0.01 | **+1.14** | **+0.57** | **+0.31** |
+| tactics | +2.22 | −0.05 | **+0.58** | **+1.07** | **+0.47** |
+| focus | +1.83 | +0.02 | **+0.50** | −0.06 | −0.07 |
+| placement | +1.58 | +0.02 | **+0.51** | +0.11 | −0.09 |
+| spin | +1.31 | −0.10 | **+0.89** | +0.25 | −0.09 |
+| strength | +1.24 | −0.04 | **+0.99** | **+0.41** | −0.02 |
+| forehand | +1.03 | −0.04 | *−0.24* | −0.13 | −0.14 |
+| stamina | +1.02 | −0.01 | +0.19 | −0.07 | −0.06 |
+| backhand | +0.96 | +0.00 | *−0.30* | −0.18 | −0.04 |
+| net | +0.79 | +0.07 | **+0.55** | −0.03 | +0.05 |
+| slice | +0.52 | −0.06 | *−0.17* | +0.09 | +0.02 |
+
+### Over U(25, 50), tier-1 build constraints. `±95%` on `full` is 0.40.
+
+`POINTS=3 MAX_TIER=1` — a club player, where `upgradePhase` caps every specialty at tier I.
+
+| stat | full (25-50) | full (25-90) | composite | band | threshold |
+|---|---|---|---|---|---|
+| return | +3.19 | +2.75 | *−1.94* | +0.03 | +0.02 |
+| serve | +3.16 | +2.50 | *−1.66* | +0.05 | +0.31 |
+| speed | +2.99 | +2.45 | **+1.49** | **+0.70** | **+0.65** |
+| anticipation | +2.87 | +2.85 | **+1.29** | **+0.73** | **+0.57** |
+| tactics | +2.25 | +2.22 | +0.14 | **+0.51** | **+0.56** |
+| spin | +1.65 | +1.31 | **+1.71** | +0.31 | **+0.44** |
+| placement | +1.60 | +1.58 | **+0.56** | −0.22 | +0.11 |
+| forehand | +1.43 | +1.03 | *−0.73* | −0.19 | −0.06 |
+| focus | +1.39 | +1.83 | +0.13 | −0.60 | −0.33 |
+| **net** | **+1.35** | +0.79 | **+0.74** | +0.25 | **+0.44** |
+| strength | +1.22 | +1.24 | **+0.60** | **+0.47** | −0.35 |
+| backhand | +1.15 | +0.96 | *−0.71* | −0.34 | −0.03 |
+| stamina | +0.67 | +1.02 | −0.03 | +0.11 | +0.01 |
+| slice | −0.24 | +0.52 | −0.95 | −0.76 | −0.87 |
+
+**Measurement baseline.** Both tables were taken *after* `NET_APPROACH_BASE` rose from 0.12 to
+0.20 (see §12). At the wide range that change moved nothing outside the ±0.18 interval. At tier-1
+it moved `net` from +0.77 to **+1.35** — the largest single move in the table and the one predicted
+by the mechanism, since more approaches means the `net` stat is paid more often exactly where the
+shipped content sits. `net` is now mid-table at tier-1 rather than second-last, which strengthens
+the core-slot case at the ratings that ship.
+
+The tier-1 `slice` and `backhand` cells also moved by more than 0.7, but the tier-1 **control**
+column swings that far on its own (slice reads −0.24 full against +0.53 control in the same run), so
+those are not resolved at this sample size and should not be read as effects.
 
 *Italic* composite cells are the primary-role artifact from §2 — not ablations.
 
@@ -509,3 +541,67 @@ ignore it, core-grade to the build made for it. The +0.50 population figure is a
 population that mostly does not slice, and it is the number that is misleading, not the stat.
 
 **No change made.** The levers are recorded here so the next person does not re-derive them.
+
+---
+
+## 11. Do the bands read context? Mostly — once the shot record could tell us
+
+The band channel's justification, after `bonus` was folded into it, is that it is the only mechanism
+gating on live match state rather than shot family. `bandGateProbe` checks that over 85k rally shots
+of the real build population.
+
+The first run could not answer it. Two gates read state `ShotDetail` did not carry — `reactions` on
+`ballQuality.timeAvailable`, `reading` on the opponent's `CourtPosition` — and an early version of
+the probe modelled `reading` as at-net-only and reported 1.9%, which was wrong by a factor of
+thirty. Both fields are now recorded on every shot, so every gate is exact:
+
+| stat.band | size | OPEN% | CONTEXT% | when open | weighted |
+|---|---|---|---|---|---|
+| tactics.tactics | 0.150 | 44.9% | 0.0% | 1.65 | 0.742 |
+| **anticipation.reading** | 0.100 | **65.3%** | **100.0%** | 1.10 | 0.719 |
+| speed.courtCoverage | 0.100 | 59.6% | 2.3% | 1.10 | 0.656 |
+| **speed.reactions** | 0.150 | 17.5% | **79.7%** | 1.65 | 0.288 |
+| strength.power | 0.100 | 15.0% | 0.0% | 1.10 | 0.165 |
+| spin.touch | 0.075 | 18.8% | 0.0% | 0.82 | 0.155 |
+| spin.shape | 0.100 | 10.9% | 0.0% | 1.10 | 0.120 |
+| placement.precision | 0.075 | 13.3% | 0.0% | 0.82 | 0.110 |
+
+Six of the eight read nothing but shot type and could be expressed as composite weight with no
+behavioural loss. But the two that do read context are the 2nd and 4th most valuable bands, and
+together they are about a third of the channel by weight. **The channel earns its distinct existence
+— on `anticipation` and `speed`, and on nothing else.**
+
+That is the answer to the question this document opened with. The variety is real, it is narrower
+than the config's shape implies, and it is concentrated in two stats.
+
+---
+
+## 12. Net frequency — a floor doing unmeasured work
+
+`shouldApproachNet` computed `max(0.02, 0.12 + (netBias/100) × NET_APPROACH_BIAS_SCALE)`. The scale
+(3.0) was sized against what a *specialist* reaches, and the bias applies additively, so a bias of
+−12 subtracted 0.36 from a 0.12 base — three times the whole base. Every net-averse build landed on
+the 0.02 floor, and that floor was a token epsilon nobody had measured.
+
+The symptom was not confined to the archetype built to avoid the net. A plain **backhand** specialist
+who had merely picked `baseliner` as their broad identity came forward on 3.4% of rallies past the
+return — identical to `net_apologist`, because the broad nudge alone cleared the base.
+
+Base 0.12 → **0.20**, floor 0.02 → **0.05**, both now named constants in config. Measured on
+`matchAnatomy`'s CAME FORWARD / rallies past the return, uniform 45 mirror matches:
+
+| build | before | after |
+|---|---|---|
+| no specialization | 15.1% | **20.4%** |
+| net_apologist T3 (net-averse) | 3.4% | **7.1%** |
+| bh_samurai T3 (baseliner) | 3.4% | **11.2%** |
+| net_attacker (broad) | — | 27.0% |
+| net_downhill T3 | 33.0% | 34.0% |
+
+The specialist is essentially unchanged; the bug was only ever at the negative end. Cost, same
+builds: rallies reaching 6+ shots 16.4% → 15.3% of points, winners 14.5% → 13.7%, unforced errors
+17.1% → 18.2%. Coming forward more often shortens points and adds risk, which is what it should do.
+
+One figure to watch: approaches are now **12.2% of an unspecialized player's rally shots**, up from
+8.0%. That is a per-shot denominator rather than the per-rally one the target was set against, and
+it is on the high side if the intent was per-shot.
