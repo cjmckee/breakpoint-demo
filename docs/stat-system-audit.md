@@ -373,7 +373,7 @@ rescued them, which is consistent with section 5 — their problem is that nobod
 often enough for the stat to matter, and no amount of curve-fixing changes a 1.6% usage rate.
 
 That is what the consolidation in
-[`stat-consolidation-plan.md`](./stat-consolidation-plan.md) went on to address. After it, all
+the consolidation went on to address. After it, all
 fourteen stats measure materially non-zero, the weakest being `net` at +0.52 and `slice` at +0.50 —
 both conditional stats in a population of randomized builds that are mostly neither net players nor
 slicers.
@@ -517,7 +517,7 @@ which is a label applied after the point is already lost and drives nothing but 
   from L=60 up, so quality saturates near 99 and OVR 85 plays much like OVR 100. Not urgent while
   content stops at tier 1, but it caps what tier 3/4 can feel like.
 - **Consolidation.** Written up separately in
-  [`stat-consolidation-plan.md`](./stat-consolidation-plan.md): 5 core (one per `GamePhase`) plus
+  the shipped shape: 5 core (one per `GamePhase`) plus
   3/3/3, with `volley`+`overhead` merging into a core `net` stat and `slice` moving to technical.
   Gated on the net phase being worth a core slot — approach frequency is the one piece still
   missing.

@@ -392,7 +392,7 @@ down the range:
 Arrival is lower at tier 1 — 32% against 45% — because the approach lands less often (61% in at
 L=25 against 72% at L=60). But **usage share, which is what the core slot was argued on, is flat to
 slightly better at low ratings**: 10.6% at L=25 against 9.5% at L=60. The 11% figure in
-`stat-consolidation-plan.md` is not an artifact of measuring at 60.
+the consolidation was argued on is not an artifact of measuring at 60.
 
 Value, `statInContext` at tier-1 scale (30 → 45, N=1000, ±~0.8):
 
