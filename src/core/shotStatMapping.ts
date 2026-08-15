@@ -12,7 +12,7 @@
  * tested first and the bare wings last.
  */
 
-import type { ShotType, StatName } from '../types';
+import type { ShotType, StatName } from '../types/index.js';
 
 export function getPrimaryStatName(shotType: ShotType | string): StatName {
   const s = String(shotType);

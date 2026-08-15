@@ -19,7 +19,7 @@ import type {
   PhaseSpec,
   SpecialtyRole,
   SpecialtyTier,
-} from '../types/archetype';
+} from '../types/archetype.js';
 
 export interface PhasePathDef {
   id: PhasePathId;

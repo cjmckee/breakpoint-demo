@@ -8,9 +8,9 @@ import {
   Ability,
   AbilityRarity,
   StatBoosts,
-} from '../types/game';
+} from '../types/game.js';
 
-import { ABILITY_DEFINITIONS } from '../data/abilities';
+import { ABILITY_DEFINITIONS } from '../data/abilities.js';
 
 export class AbilitySystem {
   /**

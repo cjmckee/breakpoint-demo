@@ -3,12 +3,12 @@
  * Events related to professional career development and sponsorship opportunities
  */
 
-import type { StoryEvent } from '../../types/storyEvents';
-import { ChallengeManager } from '../../game/ChallengeManager';
-import { TOURNAMENT_OUTFIT, SPONSOR_OUTFIT, HEADBAND, PRO_RACQUET, ENERGY_DRINK, BANANA, LUCKY_SPROUT, ALLROUND_RACQUET, CONTROL_RACQUET, COURT_SHOES, POWER_RACQUET, SPACE_SUIT, LUCKY_TEETH, CHEF_HAT, SKI_PASS } from '../items';
-import { CHALLENGE_TEAM_SPIRIT, CHALLENGE_SPONSOR_WORTHY } from '../challengeTemplates';
-import { buildStoryMatchMetadata, TEAM_MATCH_1, TEAM_MATCH_2, TEAM_MATCH_3, TEAM_MATCH_4, TEAM_MATCH_5 } from '../teamMatches';
-import { TimeSlot } from '../../types/game';
+import type { StoryEvent } from '../../types/storyEvents.js';
+import { ChallengeManager } from '../../game/ChallengeManager.js';
+import { TOURNAMENT_OUTFIT, SPONSOR_OUTFIT, HEADBAND, PRO_RACQUET, ENERGY_DRINK, BANANA, LUCKY_SPROUT, ALLROUND_RACQUET, CONTROL_RACQUET, COURT_SHOES, POWER_RACQUET, SPACE_SUIT, LUCKY_TEETH, CHEF_HAT, SKI_PASS } from '../items.js';
+import { CHALLENGE_TEAM_SPIRIT, CHALLENGE_SPONSOR_WORTHY } from '../challengeTemplates.js';
+import { buildStoryMatchMetadata, TEAM_MATCH_1, TEAM_MATCH_2, TEAM_MATCH_3, TEAM_MATCH_4, TEAM_MATCH_5 } from '../teamMatches.js';
+import { TimeSlot } from '../../types/game.js';
 
 export const careerEvents: StoryEvent[] = [
 

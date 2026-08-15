@@ -15,7 +15,7 @@
  *      it here so every screen moves together.
  */
 
-import type { StatName } from '../types';
+import type { StatName } from '../types/index.js';
 
 /** Canonical emoji for every stat. Unique per stat — see rules above. */
 export const STAT_ICONS: Record<StatName, string> = {

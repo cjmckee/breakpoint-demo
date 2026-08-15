@@ -4,8 +4,8 @@
  * from a player's equipped items, lucky items, story items, and abilities.
  */
 
-import type { Player, StatBoosts } from '../types/game';
-import { aggregateArchetypeEffects } from '../data/archetypeTree';
+import type { Player, StatBoosts } from '../types/game.js';
+import { aggregateArchetypeEffects } from '../data/archetypeTree.js';
 
 export interface AggregatedEffects {
   statBoosts: StatBoosts;

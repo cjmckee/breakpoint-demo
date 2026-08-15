@@ -3,8 +3,8 @@
  * Business logic for story-driven match operations
  */
 
-import type { ScheduledEvent, GameCalendar, StoryMatchMetadata } from '../types/game';
-import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
+import type { ScheduledEvent, GameCalendar, StoryMatchMetadata } from '../types/game.js';
+import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards.js';
 
 export class StoryMatchManager {
   /**

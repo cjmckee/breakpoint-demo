@@ -3,12 +3,12 @@
  * Integration layer between match engine and key moment system
  */
 
-import { TacticalOption, KeyMomentType } from '../data/tacticalOptions';
-import { KeyMomentResult } from '../game/KeyMomentResolver';
-import { Ability, StatBoosts } from './game';
-import { MatchStatistics, ShotDetail } from './index';
-import type { ArchetypeType } from '../data/archetypes';
-import type { ArchetypeProfile } from './archetype';
+import { TacticalOption, KeyMomentType } from '../data/tacticalOptions.js';
+import { KeyMomentResult } from '../game/KeyMomentResolver.js';
+import { Ability, StatBoosts } from './game.js';
+import { MatchStatistics, ShotDetail } from './index.js';
+import type { ArchetypeType } from '../data/archetypes.js';
+import type { ArchetypeProfile } from './archetype.js';
 
 /**
  * Key Moment Data

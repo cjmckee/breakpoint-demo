@@ -3,8 +3,8 @@
  * Handles all item-related operations: inventory, equipment, consumables
  */
 
-import type { Player, Modifiers, StatBoosts } from '../types/game';
-import type { Item, EquipmentSlot } from '../types/items';
+import type { Player, Modifiers, StatBoosts } from '../types/game.js';
+import type { Item, EquipmentSlot } from '../types/items.js';
 
 const MAX_INVENTORY_SIZE = 10;
 

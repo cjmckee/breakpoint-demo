@@ -10,17 +10,17 @@ import {
   KeyMoment,
   InteractiveMatchConfig,
   PointResult as SimplePointResult,
-} from '../types/keyMoments';
-import { TacticalOption } from '../data/tacticalOptions';
-import { MatchOrchestrator, AccumulatedMatchEffects } from '../game/MatchOrchestrator';
-import { DEFAULT_KEY_MOMENTS_PER_MATCH } from '../config/matchRewards';
-import { KeyMomentResult } from '../game/KeyMomentResolver';
-import { narratePoint, narrateKeyMoment } from '../utils/matchNarrator';
-import { MatchStatistics as IMatchStatistics } from '../types';
+} from '../types/keyMoments.js';
+import { TacticalOption } from '../data/tacticalOptions.js';
+import { MatchOrchestrator, AccumulatedMatchEffects } from '../game/MatchOrchestrator.js';
+import { DEFAULT_KEY_MOMENTS_PER_MATCH } from '../config/matchRewards.js';
+import { KeyMomentResult } from '../game/KeyMomentResolver.js';
+import { narratePoint, narrateKeyMoment } from '../utils/matchNarrator.js';
+import { MatchStatistics as IMatchStatistics } from '../types/index.js';
 // No direct import of gameStore — the caller passes an onMatchComplete callback
 // to startMatch() to avoid circular dependency.
-import type { MatchCompletionData } from '../types/gamePhase';
-import { trackKeyMomentDecided } from '../analytics/analytics';
+import type { MatchCompletionData } from '../types/gamePhase.js';
+import { trackKeyMomentDecided } from '../analytics/analytics.js';
 
 interface MatchState {
   // Match configuration (kept for LiveMatchViewer to read opponent name, surface, etc.)

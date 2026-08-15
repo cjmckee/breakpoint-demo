@@ -3,9 +3,9 @@
  * Events related to competitive rivalries and confrontations
  */
 
-import type { StoryEvent } from '../../types/storyEvents';
-import { ChallengeManager } from '../../game/ChallengeManager';
-import { CHALLENGE_PROVE_THEM_WRONG, CHALLENGE_RIVAL_READY, CHALLENGE_DOUBLES_INSTINCTS } from '../challengeTemplates';
+import type { StoryEvent } from '../../types/storyEvents.js';
+import { ChallengeManager } from '../../game/ChallengeManager.js';
+import { CHALLENGE_PROVE_THEM_WRONG, CHALLENGE_RIVAL_READY, CHALLENGE_DOUBLES_INSTINCTS } from '../challengeTemplates.js';
 
 export const rivalEvents: StoryEvent[] = [
   {

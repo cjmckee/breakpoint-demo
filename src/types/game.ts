@@ -4,11 +4,11 @@
  */
 
 import type {
-  StatName, PlayerStats } from './index';
-import type { ArchetypeProfile } from './archetype';
-import type { StoryEventResult } from './storyEvents';
-import type { Item, EquipmentSlot } from './items';
-import type { ActiveTournament, TournamentMatchMetadata, MatchOpponent } from './tournaments';
+  StatName, PlayerStats } from './index.js';
+import type { ArchetypeProfile } from './archetype.js';
+import type { StoryEventResult } from './storyEvents.js';
+import type { Item, EquipmentSlot } from './items.js';
+import type { ActiveTournament, TournamentMatchMetadata, MatchOpponent } from './tournaments.js';
 
 export type { PlayerStats };
 

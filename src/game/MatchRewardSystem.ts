@@ -5,11 +5,11 @@
  * Performance scores drive experience and drop rate scaling — no direct stat awards.
  */
 
-import type { MatchStatistics } from '../types/index';
-import type { MatchReward, PerformanceRewardBreakdown, ExperienceBreakdown, Ability } from '../types/game';
-import type { Item } from '../types/items';
-import { AbilityRarity } from '../types/game';
-import type { OpponentTier, PerformanceLevel } from '../config/matchRewards';
+import type { MatchStatistics } from '../types/index.js';
+import type { MatchReward, PerformanceRewardBreakdown, ExperienceBreakdown, Ability } from '../types/game.js';
+import type { Item } from '../types/items.js';
+import { AbilityRarity } from '../types/game.js';
+import type { OpponentTier, PerformanceLevel } from '../config/matchRewards.js';
 import {
   TIER_REWARD_MULTIPLIERS,
   ABILITY_DROP_RATES,
@@ -21,7 +21,7 @@ import {
   PERFORMANCE_EXP_MAX_BONUS,
   PERFORMANCE_DROP_MULTIPLIER_MIN,
   PERFORMANCE_DROP_MULTIPLIER_MAX,
-} from '../config/matchRewards';
+} from '../config/matchRewards.js';
 import {
   SERVING_WEIGHTS,
   RETURN_WEIGHTS,
@@ -30,9 +30,9 @@ import {
   MENTAL_WEIGHTS,
   OVERALL_SCORE_WEIGHTS,
   PERFORMANCE_THRESHOLDS,
-} from '../config/performanceScoring';
-import { getRandomItem, getItemsByTier } from '../data/items';
-import { AbilitySystem } from './AbilitySystem';
+} from '../config/performanceScoring.js';
+import { getRandomItem, getItemsByTier } from '../data/items.js';
+import { AbilitySystem } from './AbilitySystem.js';
 
 export class MatchRewardSystem {
   /**

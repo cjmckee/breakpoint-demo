@@ -7,7 +7,7 @@
  * SFX are loaded on first play and reused via a pool.
  */
 
-import { SfxKey, MusicTrack, MusicEntry, SFX_PATHS, MUSIC_POOLS, resolveAudioPath } from './sounds';
+import { SfxKey, MusicTrack, MusicEntry, SFX_PATHS, MUSIC_POOLS, resolveAudioPath } from './sounds.js';
 
 const CROSSFADE_DURATION = 1500; // ms — automatic phase-change transitions
 const MANUAL_CROSSFADE_DURATION = 350; // ms — snappy swap when the player picks a song

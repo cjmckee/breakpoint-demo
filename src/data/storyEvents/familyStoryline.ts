@@ -3,10 +3,10 @@
  * Events related to the player's family relationships and support system
  */
 
-import type { StoryEvent } from '../../types/storyEvents';
-import { ChallengeManager } from '../../game/ChallengeManager';
-import { CHALLENGE_MAKE_THEM_PROUD, CHALLENGE_SIBLING_TEACHER } from '../challengeTemplates';
-import { GRANDMAS_LUCKY_COOKIES, LUCKY_JACKET } from '../items';
+import type { StoryEvent } from '../../types/storyEvents.js';
+import { ChallengeManager } from '../../game/ChallengeManager.js';
+import { CHALLENGE_MAKE_THEM_PROUD, CHALLENGE_SIBLING_TEACHER } from '../challengeTemplates.js';
+import { GRANDMAS_LUCKY_COOKIES, LUCKY_JACKET } from '../items.js';
 
 export const familyEvents: StoryEvent[] = [
   {

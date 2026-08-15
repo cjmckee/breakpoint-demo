@@ -4,8 +4,8 @@
  */
 
 import { useSyncExternalStore } from 'react';
-import { audioManager } from '../audio/AudioManager';
-import type { NowPlaying } from '../audio/AudioManager';
+import { audioManager } from '../audio/AudioManager.js';
+import type { NowPlaying } from '../audio/AudioManager.js';
 
 const subscribe = (listener: () => void): (() => void) =>
   audioManager.subscribeNowPlaying(listener);

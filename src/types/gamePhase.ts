@@ -11,15 +11,15 @@
  * Transitions are explicit synchronous actions — no setTimeout, no effects.
  */
 
-import type { MatchScore, InteractiveMatchConfig } from './keyMoments';
-import type { MatchStatistics, PlayStyle } from './index';
-import type { ArchetypeProfile } from './archetype';
-import type { MatchReward, OpponentTier, TrainingResult, StoryMatchMetadata, PlayerStats, Ability } from './game';
-import type { StoryEvent, StoryEventOption, StoryEventResult } from './storyEvents';
-import type { TacticalOption } from '../data/tacticalOptions';
-import type { KeyMomentResult } from '../game/KeyMomentResolver';
-import type { AccumulatedMatchEffects } from '../game/MatchOrchestrator';
-import type { Item } from './items';
+import type { MatchScore, InteractiveMatchConfig } from './keyMoments.js';
+import type { MatchStatistics, PlayStyle } from './index.js';
+import type { ArchetypeProfile } from './archetype.js';
+import type { MatchReward, OpponentTier, TrainingResult, StoryMatchMetadata, PlayerStats, Ability } from './game.js';
+import type { StoryEvent, StoryEventOption, StoryEventResult } from './storyEvents.js';
+import type { TacticalOption } from '../data/tacticalOptions.js';
+import type { KeyMomentResult } from '../game/KeyMomentResolver.js';
+import type { AccumulatedMatchEffects } from '../game/MatchOrchestrator.js';
+import type { Item } from './items.js';
 
 // ============================================================================
 // GAME PHASE — the single source of truth for "where are we?"

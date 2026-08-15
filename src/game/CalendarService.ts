@@ -8,9 +8,9 @@ import type {
   GameCalendar,
   ScheduledEvent,
   ScheduledEventMetadata,
-} from '../types/game';
-import { TimeSlot } from '../types/game';
-import { ScheduledEventManager } from './ScheduledEventManager';
+} from '../types/game.js';
+import { TimeSlot } from '../types/game.js';
+import { ScheduledEventManager } from './ScheduledEventManager.js';
 
 // ============================================================================
 // TYPES

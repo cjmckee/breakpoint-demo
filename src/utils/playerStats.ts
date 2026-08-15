@@ -3,11 +3,11 @@
  * Shared functions for calculating and displaying player statistics
  */
 
-import type { PlayerStats, PlayStyle, StatName, CourtSurface } from '../types';
-export { calculateOverallRating, STAT_CATEGORY_WEIGHTS } from './overallRating';
-import type { OpponentTier } from '../types/game';
-import type { ArchetypeType } from '../data/archetypes';
-import { getArchetypeLabel as getArchetypeLabelRaw, ARCHETYPE_DATA } from '../data/archetypes';
+import type { PlayerStats, PlayStyle, StatName, CourtSurface } from '../types/index.js';
+export { calculateOverallRating, STAT_CATEGORY_WEIGHTS } from './overallRating.js';
+import type { OpponentTier } from '../types/game.js';
+import type { ArchetypeType } from '../data/archetypes.js';
+import { getArchetypeLabel as getArchetypeLabelRaw, ARCHETYPE_DATA } from '../data/archetypes.js';
 
 
 export function getTierLabel(tier: OpponentTier | number): string {

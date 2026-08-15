@@ -3,8 +3,8 @@
  * Events related to the player's relationship with Coach Gonzalez
  */
 
-import type { StoryEvent } from '../../types/storyEvents';
-import { ChallengeManager } from '../../game/ChallengeManager';
+import type { StoryEvent } from '../../types/storyEvents.js';
+import { ChallengeManager } from '../../game/ChallengeManager.js';
 import {
   CHALLENGE_FOREHAND_FUNDAMENTALS,
   CHALLENGE_FIRST_VICTORIES,
@@ -14,7 +14,7 @@ import {
   CHALLENGE_BALANCED_APPROACH,
   CHALLENGE_ATHLETIC_FOUNDATION,
   CHALLENGE_TRICK_SHOT_MASTER,
-} from '../challengeTemplates';
+} from '../challengeTemplates.js';
 
 export const coachEvents: StoryEvent[] = [
   {

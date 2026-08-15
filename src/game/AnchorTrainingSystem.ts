@@ -12,8 +12,8 @@
  * gameStore.applyTrainingResult() pipeline consumes unchanged.
  */
 
-import type { CoreStats } from '../types';
-import type { StatBoosts, TrainingResult } from '../types/game';
+import type { CoreStats } from '../types/index.js';
+import type { StatBoosts, TrainingResult } from '../types/game.js';
 
 /** The five core stats a player can anchor a training session on. */
 export type CoreStat = keyof CoreStats;

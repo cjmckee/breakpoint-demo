@@ -4,11 +4,11 @@
  * Mirrors the tournament pattern: opponents defined as constants, referenced by configs.
  */
 
-import type { MatchOpponent } from '../types/tournaments';
-import type { StoryMatchMetadata, TeamMatchConfig } from '../types/game';
-import { AbilityName } from '../types/game';
-import { ABILITY_DEFINITIONS } from './abilities';
-import { profileForArchetype } from './archetypeTree';
+import type { MatchOpponent } from '../types/tournaments.js';
+import type { StoryMatchMetadata, TeamMatchConfig } from '../types/game.js';
+import { AbilityName } from '../types/game.js';
+import { ABILITY_DEFINITIONS } from './abilities.js';
+import { profileForArchetype } from './archetypeTree.js';
 
 // ============================================================================
 // OPPONENT DEFINITIONS

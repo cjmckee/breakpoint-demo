@@ -4,7 +4,7 @@
  * Used by the tactical counter system to determine strongAgainst/weakAgainst relationships.
  */
 
-import type { PlayStyle } from '../types';
+import type { PlayStyle } from '../types/index.js';
 
 export type ArchetypeType = PlayStyle['type'];
 

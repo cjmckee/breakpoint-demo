@@ -4,15 +4,15 @@
  * Wraps the existing MatchSimulator to add interactive key moments
  */
 
-import { MatchSimulator } from '../core/MatchSimulator';
-import { PlayerProfile } from '../core/PlayerProfile';
-import { MatchStatistics } from '../core/MatchStatistics';
-import { PointSimulator } from '../core/PointSimulator';
-import { KeyMomentResolver, KeyMomentResult, AppliedEffect } from './KeyMomentResolver';
-import { getOptionsForSituation, KeyMomentType } from '../data/tacticalOptions';
-import type { ArchetypeType } from '../data/archetypes';
-import type { ArchetypeProfile } from '../types/archetype';
-import { aggregateArchetypeEffects } from '../data/archetypeTree';
+import { MatchSimulator } from '../core/MatchSimulator.js';
+import { PlayerProfile } from '../core/PlayerProfile.js';
+import { MatchStatistics } from '../core/MatchStatistics.js';
+import { PointSimulator } from '../core/PointSimulator.js';
+import { KeyMomentResolver, KeyMomentResult, AppliedEffect } from './KeyMomentResolver.js';
+import { getOptionsForSituation, KeyMomentType } from '../data/tacticalOptions.js';
+import type { ArchetypeType } from '../data/archetypes.js';
+import type { ArchetypeProfile } from '../types/archetype.js';
+import { aggregateArchetypeEffects } from '../data/archetypeTree.js';
 import {
   KeyMoment,
   KeyMomentCallback,
@@ -20,14 +20,14 @@ import {
   MatchScore,
   MatchState as KeyMomentMatchState,
   PointResult as SimplePointResult,
-} from '../types/keyMoments';
-import { PlayerStats, Ability, StatBoosts, EffectKey } from '../types/game';
-import { MatchStatistics as IMatchStatistics, MatchState, PointResult, PointType, PlayerMatchFatigue } from '../types';
-import { MATCH_FATIGUE, PRESSURE_BANK, STAMINA_RECOVERY, KEY_MOMENT_OPPONENT_DRAIN } from '../config/shotThresholds';
-import { MomentumEngine, ClutchLevel } from '../core/MomentumEngine';
-import { getPrimaryStatName } from '../core/shotStatMapping';
-import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds';
-import { DEFAULT_KEY_MOMENTS_PER_MATCH } from '../config/matchRewards';
+} from '../types/keyMoments.js';
+import { PlayerStats, Ability, StatBoosts, EffectKey } from '../types/game.js';
+import { MatchStatistics as IMatchStatistics, MatchState, PointResult, PointType, PlayerMatchFatigue } from '../types/index.js';
+import { MATCH_FATIGUE, PRESSURE_BANK, STAMINA_RECOVERY, KEY_MOMENT_OPPONENT_DRAIN } from '../config/shotThresholds.js';
+import { MomentumEngine, ClutchLevel } from '../core/MomentumEngine.js';
+import { getPrimaryStatName } from '../core/shotStatMapping.js';
+import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds.js';
+import { DEFAULT_KEY_MOMENTS_PER_MATCH } from '../config/matchRewards.js';
 
 export interface AccumulatedMatchEffects {
   energyDelta: number;  // Net energy change from key moment choices

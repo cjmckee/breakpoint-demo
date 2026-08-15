@@ -7,7 +7,7 @@
  * instead of dumping raw keys.
  */
 
-import { EffectKey } from '../types/game';
+import { EffectKey } from '../types/game.js';
 
 /**
  * How an effect's numeric value should be turned into display text.

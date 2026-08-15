@@ -8,11 +8,11 @@
  */
 
 import { useEffect, useRef } from 'react';
-import { useGameStore } from '../stores/gameStore';
-import { audioManager } from './AudioManager';
-import type { MusicTrack, SfxKey } from './sounds';
-import type { GamePhase, PhaseContinuation } from '../types/gamePhase';
-import type { StoryEventTag } from '../types/storyEvents';
+import { useGameStore } from '../stores/gameStore.js';
+import { audioManager } from './AudioManager.js';
+import type { MusicTrack, SfxKey } from './sounds.js';
+import type { GamePhase, PhaseContinuation } from '../types/gamePhase.js';
+import type { StoryEventTag } from '../types/storyEvents.js';
 
 /** Maps story event tags to music tracks, checked in order. First match wins. */
 const TAG_MUSIC_MAP: [StoryEventTag, MusicTrack][] = [

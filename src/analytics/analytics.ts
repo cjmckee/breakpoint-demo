@@ -7,14 +7,14 @@
  */
 
 import mixpanel from 'mixpanel-browser';
-import type { Player } from '../types/game';
-import type { TrainingResult } from '../types/game';
-import type { MatchStatistics } from '../types';
-import type { KeyMoment } from '../types/keyMoments';
-import type { TacticalOption } from '../data/tacticalOptions';
-import type { KeyMomentResult } from '../game/KeyMomentResolver';
-import type { MatchScore } from '../types/keyMoments';
-import type { OpponentTier } from '../types/game';
+import type { Player } from '../types/game.js';
+import type { TrainingResult } from '../types/game.js';
+import type { MatchStatistics } from '../types/index.js';
+import type { KeyMoment } from '../types/keyMoments.js';
+import type { TacticalOption } from '../data/tacticalOptions.js';
+import type { KeyMomentResult } from '../game/KeyMomentResolver.js';
+import type { MatchScore } from '../types/keyMoments.js';
+import type { OpponentTier } from '../types/game.js';
 
 const TOKEN = import.meta.env.VITE_MIXPANEL_TOKEN as string | undefined;
 const ENABLED = Boolean(TOKEN && TOKEN !== 'your-mixpanel-token-here');

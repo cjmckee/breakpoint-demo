@@ -5,7 +5,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { migrateStore, CURRENT_STORE_VERSION } from './migrations';
+import { migrateStore, CURRENT_STORE_VERSION } from './migrations.js';
 import {
   Player,
   PlayerFlag,
@@ -21,43 +21,43 @@ import {
   TIME_SLOT_NAMES,
   ShopItem,
   Ability,
-} from '../types/game';
-import type { StoryEvent, StoryEventTag, StoryEventOption } from '../types/storyEvents';
-import { HANGOUT_CHARACTERS, HANGOUT_ENERGY_COST, getHangoutTier } from '../data/hangoutCharacters';
-import type { Challenge } from '../types/challenges';
-import type { Item, EquipmentSlot } from '../types/items';
-import type { ActiveTournament, TournamentMatchMetadata } from '../types/tournaments';
-import { PlayerManager } from '../game/PlayerManager';
-import { TimeManager } from '../game/TimeManager';
-import { StoryEventManager } from '../game/StoryEventManager';
-import { PrerequisiteChecker } from '../game/PrerequisiteChecker';
-import { ChallengeManager } from '../game/ChallengeManager';
-import { MatchRewardSystem } from '../game/MatchRewardSystem';
-import { ItemManager } from '../game/ItemManager';
-import { TournamentRegistry } from '../data/tournaments';
-import { TournamentManager } from '../game/TournamentManager';
-import { ScheduledEventManager } from '../game/ScheduledEventManager';
-import { StoryMatchManager } from '../game/StoryMatchManager';
-import { generateDailyShopItems } from '../game/ShopSystem';
-import { ALL_ITEMS } from '../data/items';
-import { getRandomOpponent, getScaledOpponentStats, getOpponentArchetypeProfile } from '../data/opponents';
-import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
-import { EffectAggregator } from '../core/EffectAggregator';
-import { EffectKey } from '../types/game';
-import { buildPlayStyle } from '../core/PlayerProfile';
-import { createEmptyArchetypeProfile, profileForArchetype, STARTING_SPECIALIZATION_POINTS, PATH_DEFS, PATHS_BY_PHASE } from '../data/archetypeTree';
-import { useMenuStore } from '../hooks/useMenuModal';
-import type { PlayStyle } from '../types';
-import type { ArchetypeProfile, GamePhase as ArchetypePhase, PhasePathId } from '../types/archetype';
-import type { GamePhase, MatchType, PreMatchConfig, PhaseContinuation, IdlePhase, MatchCompletionData, PersistedEventState, DEFAULT_PERSISTED_EVENT_STATE } from '../types/gamePhase';
-import { DEFAULT_PERSISTED_EVENT_STATE as DEFAULT_EVENT_RECOVERY } from '../types/gamePhase';
-import type { InteractiveMatchConfig } from '../types/keyMoments';
+} from '../types/game.js';
+import type { StoryEvent, StoryEventTag, StoryEventOption } from '../types/storyEvents.js';
+import { HANGOUT_CHARACTERS, HANGOUT_ENERGY_COST, getHangoutTier } from '../data/hangoutCharacters.js';
+import type { Challenge } from '../types/challenges.js';
+import type { Item, EquipmentSlot } from '../types/items.js';
+import type { ActiveTournament, TournamentMatchMetadata } from '../types/tournaments.js';
+import { PlayerManager } from '../game/PlayerManager.js';
+import { TimeManager } from '../game/TimeManager.js';
+import { StoryEventManager } from '../game/StoryEventManager.js';
+import { PrerequisiteChecker } from '../game/PrerequisiteChecker.js';
+import { ChallengeManager } from '../game/ChallengeManager.js';
+import { MatchRewardSystem } from '../game/MatchRewardSystem.js';
+import { ItemManager } from '../game/ItemManager.js';
+import { TournamentRegistry } from '../data/tournaments/index.js';
+import { TournamentManager } from '../game/TournamentManager.js';
+import { ScheduledEventManager } from '../game/ScheduledEventManager.js';
+import { StoryMatchManager } from '../game/StoryMatchManager.js';
+import { generateDailyShopItems } from '../game/ShopSystem.js';
+import { ALL_ITEMS } from '../data/items.js';
+import { getRandomOpponent, getScaledOpponentStats, getOpponentArchetypeProfile } from '../data/opponents.js';
+import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards.js';
+import { EffectAggregator } from '../core/EffectAggregator.js';
+import { EffectKey } from '../types/game.js';
+import { buildPlayStyle } from '../core/PlayerProfile.js';
+import { createEmptyArchetypeProfile, profileForArchetype, STARTING_SPECIALIZATION_POINTS, PATH_DEFS, PATHS_BY_PHASE } from '../data/archetypeTree.js';
+import { useMenuStore } from '../hooks/useMenuModal.js';
+import type { PlayStyle } from '../types/index.js';
+import type { ArchetypeProfile, GamePhase as ArchetypePhase, PhasePathId } from '../types/archetype.js';
+import type { GamePhase, MatchType, PreMatchConfig, PhaseContinuation, IdlePhase, MatchCompletionData, PersistedEventState, DEFAULT_PERSISTED_EVENT_STATE } from '../types/gamePhase.js';
+import { DEFAULT_PERSISTED_EVENT_STATE as DEFAULT_EVENT_RECOVERY } from '../types/gamePhase.js';
+import type { InteractiveMatchConfig } from '../types/keyMoments.js';
 import {
   trackPlayerCreated,
   trackTrainingCompleted,
   trackMatchCompleted,
   trackStoryEventChoice,
-} from '../analytics/analytics';
+} from '../analytics/analytics.js';
 
 export interface AudioSettings {
   musicVolume: number; // 0–1

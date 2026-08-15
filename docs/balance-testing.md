@@ -32,6 +32,7 @@ That is the whole workflow. The rest of this document is about not fooling yours
 | question | harness | runtime |
 |---|---|---|
 | What does a match look like right now? | `matchAnatomy` | ~1 min |
+| How does the real character fare against the real ladder? | `characterSim` | ~2 min |
 | What is each stat worth, and through which mechanism? | `statChannels` | ~12 min |
 | What is a stat worth to the build that actually uses it? | `statInContext` | ~1 min |
 | Does the population I am measuring contain the thing I care about? | `populationProbe` | ~5 s |
@@ -56,7 +57,7 @@ fool yourself" below — copy one when you need to ask about a specific constant
 | `breakEvenProbe` | the break-even frequency a stat needs to pay | premise withdrawn; kept as the record |
 | `balanceAnalysis` | broad ratings sweep, `npm run analyze` | older, pre-consolidation framing |
 | `statsCheck` | quick distribution sanity check | fine |
-| `characterSim` | the shipped character against the real roster | **does not run** — `src/data/*` uses extensionless relative imports that Vite resolves and node ESM does not, so it dies on `ERR_MODULE_NOT_FOUND`. Fixing the ~32 import sites in `src/data` would unblock it, and would also let `tier1Probe` stop inlining roster stats, which can silently drift from the real data |
+| `characterSim` | the shipped character against the real roster, with score distributions and per-opponent win rates | current — the closest thing to "how does the game actually play" |
 
 ---
 
@@ -195,3 +196,19 @@ a value; several record what was already tried and rejected.
 [`research/stat-channels.md`](./research/stat-channels.md) are
 the findings record: what was measured, what changed as a result, and which hypotheses were tested
 and withdrawn. Check them before re-deriving something.
+
+
+---
+
+## A standing risk: `tier1Probe` inlines the roster
+
+`tier1Probe` hardcodes opponent stats rather than importing them, because `src/data` could not be
+loaded from the node build when it was written. That import now works — `characterSim` uses it — but
+the inlined copies are still there, and nothing stops them drifting from `src/data/opponents.ts`.
+
+Checked at the time of writing: Danny Park, Big Steve and Lin Chen match the real presets exactly.
+Olivia and Jordan are story and tournament opponents rather than practice presets, so they live in
+`teamMatches.ts` and `tournaments/riversideOpen.ts`.
+
+If you change an opponent's stats, re-check `tier1Probe`'s `ROSTER` — or better, replace it with an
+import now that one resolves.

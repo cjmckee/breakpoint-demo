@@ -3,9 +3,9 @@
  * Comprehensive types for player challenges
  */
 
-import type { StatName } from './index';
-import type { Modifiers } from './game';
-import type { Item } from './items';
+import type { StatName } from './index.js';
+import type { Modifiers } from './game.js';
+import type { Item } from './items.js';
 
 // ============================================================================
 // CHALLENGE REQUIREMENTS

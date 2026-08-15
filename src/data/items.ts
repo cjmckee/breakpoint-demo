@@ -3,8 +3,8 @@
  * All available items in the game
  */
 
-import type { Item, ItemType } from '../types/items';
-import { EffectKey } from '../types/game';
+import type { Item, ItemType } from '../types/items.js';
+import { EffectKey } from '../types/game.js';
 
 // ============================================================================
 // EQUIPMENT - RACQUETS

@@ -2,7 +2,7 @@
  * Custom hook to get the current player's name
  */
 
-import { useGameStore } from '../stores/gameStore';
+import { useGameStore } from '../stores/gameStore.js';
 
 /**
  * Returns the current player's name from the game store

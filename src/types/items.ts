@@ -3,7 +3,7 @@
  * Simple item structure using the Modifiers pattern from abilities
  */
 
-import type { Modifiers } from './game';
+import type { Modifiers } from './game.js';
 
 /**
  * Item type categories

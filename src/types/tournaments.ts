@@ -3,8 +3,8 @@
  * Defines types for multi-round tournaments with scheduled matches
  */
 
-import type { PlayerStats, OpponentTier, TimeSlot, Ability } from './game';
-import type { PlayStyle } from './index';
+import type { PlayerStats, OpponentTier, TimeSlot, Ability } from './game.js';
+import type { PlayStyle } from './index.js';
 
 // ============================================================================
 // TOURNAMENT BRACKETS & STATUS

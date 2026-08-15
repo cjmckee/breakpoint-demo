@@ -3,8 +3,8 @@
  * Events and interactions relating to tournaments.
  */
 
-import type { StoryEvent } from '../../types/storyEvents';
-import { TimeSlot } from '../../types/game';
+import type { StoryEvent } from '../../types/storyEvents.js';
+import { TimeSlot } from '../../types/game.js';
 
 export const tournamentEvents: StoryEvent[] = [
     /** The Riverside Open */

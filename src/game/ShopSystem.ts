@@ -7,12 +7,12 @@ import type {
   AbilityItem,
   StatBoosts,
   Ability,
-} from '../types/game';
-import type { PlayerStats } from '../types/index';
-import type { Item } from '../types/items';
-import { ABILITY_DEFINITIONS } from '../data/abilities';
-import { AbilityRarity } from '../types/game';
-import { ALL_CONSUMABLES, ALL_EQUIPMENT, CONSUMABLE_SHOP_COSTS } from '../data/items';
+} from '../types/game.js';
+import type { PlayerStats } from '../types/index.js';
+import type { Item } from '../types/items.js';
+import { ABILITY_DEFINITIONS } from '../data/abilities.js';
+import { AbilityRarity } from '../types/game.js';
+import { ALL_CONSUMABLES, ALL_EQUIPMENT, CONSUMABLE_SHOP_COSTS } from '../data/items.js';
 
 const CORE_STATS = ['serve', 'forehand', 'backhand', 'return', 'slice'] as const;
 const TECHNICAL_STATS = ['volley', 'overhead', 'dropShot', 'spin', 'placement'] as const;

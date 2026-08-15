@@ -3,12 +3,12 @@
  * Comprehensive types for the story event system
  */
 
-import type { Activity, StatBoosts, ScheduledEventTemplate } from './game';
-import type { Challenge } from './challenges';
-import type { StatName } from './index';
-import type { Item } from './items';
-import type { EncyclopediaSectionId } from '../hooks/useMenuModal';
-import type { BroadArchetype } from './archetype';
+import type { Activity, StatBoosts, ScheduledEventTemplate } from './game.js';
+import type { Challenge } from './challenges.js';
+import type { StatName } from './index.js';
+import type { Item } from './items.js';
+import type { EncyclopediaSectionId } from '../hooks/useMenuModal.js';
+import type { BroadArchetype } from './archetype.js';
 
 // ============================================================================
 // TEXT FORMATTING SYSTEM
