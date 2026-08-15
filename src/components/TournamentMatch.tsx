@@ -24,7 +24,6 @@ export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig })
   const player = useGameStore((state) => state.player);
   const currentStatus = useGameStore((state) => state.currentStatus);
   const activeTournament = useGameStore((state) => state.calendar.activeTournament);
-  const navigateTo = useGameStore((state) => state.navigateTo);
   const beginMatch = useGameStore((state) => state.beginMatch);
 
   if (!player || !activeTournament || !matchConfig) {
@@ -146,7 +145,6 @@ export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig })
       activeBuffs={player.nextActivityBuffs.length > 0 ? pendingBuffs : null}
       contextContent={contextContent}
       onStartMatch={handleStartMatch}
-      onBack={() => navigateTo('idle')}
     />
   );
 };
