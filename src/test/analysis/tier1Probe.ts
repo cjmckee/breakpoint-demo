@@ -42,6 +42,7 @@
  *         within noise, so no tier table was added.
  *
  * Run: PARTS=ABCDE N=40 node dist/src/test/analysis/tier1Probe.js
+ * Env: N=40 (BO3 per row)  N_C=1000 (part C only — see its note)  PARTS=ABCD
  */
 
 import type { MatchFormat, MatchState, PlayerStats } from '../../types/index.js';
@@ -202,23 +203,40 @@ function partB(N: number): void {
   }
 }
 
-function partC(N: number): void {
+/**
+ * Part C compares two cells and reads the answer off the difference, so its
+ * noise is per-cell rather than pooled the way a regression's is. At the shared
+ * N=40 it carried about +/-3 points and reported slice as +3.13 for a build that
+ * never slices against +0.00 for the specialist — the sign inversion the audit
+ * predicted, except both numbers were noise. It therefore takes its own sample
+ * size, and prints a same-versus-same control so the floor is visible.
+ */
+const PART_C_MATCHES = Number(process.env.N_C ?? 1000);
+
+function partC(_N: number): void {
   const mode = process.env.ML_MODE ?? 'mean';
+  const N = PART_C_MATCHES;
   console.log(`\n── C. Stat value at tier-1 scale, ML_MODE=${mode} (${N} BO3 each) ──`);
   console.log('slice 20 → 40 against a uniform-20 opponent, in a build that never');
   console.log('slices vs one built to slice. The 50 → 90 version of this is what');
-  console.log("the audit's section 4 was measured on.\n");
+  console.log("the audit's section 4 was measured on.");
+  console.log('CONTROL is the same build on both sides — this run\'s noise floor.\n');
   const SAMURAI: ArchetypeProfile = {
     broad: 'baseliner', phases: { backhand: { path: 'bh_samurai', tier: 3 } },
     specializationPoints: 0, respecTokens: 0,
   };
   const base = uniform(20);
   const bumped: PlayerStats = { ...base, technical: { ...base.technical, slice: 40 } };
-  for (const [label, prof] of [['never slices', NONE], ['slice specialist', SAMURAI]] as Array<[string, ArchetypeProfile]>) {
+  const cells: Array<[string, PlayerStats, ArchetypeProfile]> = [
+    ['CONTROL (no bump)', base, NONE],
+    ['never slices', bumped, NONE],
+    ['slice specialist', bumped, SAMURAI],
+  ];
+  for (const [label, stats, prof] of cells) {
     const acc = zero();
     console.log = () => {};
     for (let i = 0; i < N; i++) {
-      runMatch(new PlayerProfile('p', 'P', bumped, prof), new PlayerProfile('o', 'O', base, prof), acc);
+      runMatch(new PlayerProfile('p', 'P', stats, prof), new PlayerProfile('o', 'O', base, prof), acc);
     }
     console.log = _origLog;
     const d = (acc.playerWon / acc.points) * 100 - 50;

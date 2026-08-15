@@ -112,7 +112,7 @@ const SLICER = profileOf({
 const f = (x: number): string => (x >= 0 ? '+' : '') + x.toFixed(2);
 
 function main(): void {
-  const N = Number(process.env.N ?? 120);
+  const N = Number(process.env.N ?? 1000);
   const BASE = Number(process.env.BASE ?? 50);
   const BUMP = Number(process.env.BUMP ?? 75);
 
@@ -121,9 +121,7 @@ function main(): void {
   console.log('A conditional stat should be near zero in the build that ignores it and');
   console.log('clearly positive in the build made for it.\n');
 
-  // ONLY=net,forehand narrows the table so a single column can be run at a
-  // sample size that actually resolves it. The per-cell noise at N=150 is
-  // around +/-2 points, which is larger than the whole net effect.
+  // ONLY=net,forehand narrows the table when only one row is in question.
   const only = process.env.ONLY ? new Set(process.env.ONLY.split(',')) : null;
   const specs: Array<[string, string, keyof PlayerStats, string, ArchetypeProfile]> = [
     ['net', 'no specialization', 'core', 'net', NONE],
@@ -141,17 +139,22 @@ function main(): void {
     ['spin', 'no specialization', 'technical', 'spin', NONE],
   ];
 
+  // Same stat on both sides: the honest zero for this sample size.
+  const control = trial('core', 'serve', NONE, BASE, BASE, N);
+
   const rows: Array<[string, string, number]> = specs
     .filter(([stat]) => !only || only.has(stat))
     .map(([stat, build, bucket, key, prof]) => [stat, build, trial(bucket, key, prof, BASE, BUMP, N)]);
 
   console.log(['stat'.padEnd(12), 'build'.padEnd(22), 'Δ pt-win%'.padStart(10)].join(''));
   console.log('-'.repeat(44));
+  console.log(['CONTROL'.padEnd(12), `${BASE} v ${BASE}, no bump`.padEnd(22), f(control).padStart(10)].join(''));
+  console.log('-'.repeat(44));
   for (const [stat, build, v] of rows) {
     console.log([stat.padEnd(12), build.padEnd(22), f(v).padStart(10)].join(''));
   }
   console.log('\nThe unconditional cores are the bar a core stat has to clear for the');
-  console.log('players who use it.\n');
+  console.log('players who use it. Nothing within the CONTROL row of zero is a result.\n');
 }
 
 main();
