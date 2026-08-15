@@ -175,6 +175,40 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
       controls="← A | Left · ↓ ↑ S W | Center · → D | Right"
       phase={rounds.phase}
       onStart={rounds.begin}
+      footer={
+        <>
+          <div className="mb-4">
+            <RoundPips {...rounds} />
+          </div>
+
+          {rounds.phase === 'done' ? (
+            <SupportResult
+              count={rounds.successes}
+              note={countNote(
+                rounds.successes,
+                'Perfect rhythm — nine for nine!',
+                'Two clean sets. Nearly flawless!',
+                'One clean set. Keep the beat!',
+                'Lost the rhythm — try again!'
+              )}
+            />
+          ) : (
+            <div className="flex gap-2">
+              {Array.from({ length: LANES }).map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  disabled={!playing}
+                  onPointerDown={(e) => { e.preventDefault(); pressTrack(i); }}
+                  className="flex-1 font-bold border-4 border-pixel-border bg-pixel-card text-pixel-text-muted px-4 py-4 text-xl select-none touch-none active:translate-y-1 disabled:opacity-50 border-t-pixel-accent/60"
+                >
+                  {LANE_GLYPH[i]}
+                </button>
+              ))}
+            </div>
+          )}
+        </>
+      }
     >
       <div className="relative h-64 w-full bg-pixel-bg border-2 border-pixel-border overflow-hidden mb-4">
         <ComboBadge streak={rounds.streak} />
@@ -224,37 +258,6 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
           </div>
         )}
       </div>
-
-      <div className="mb-4">
-        <RoundPips {...rounds} />
-      </div>
-
-      {rounds.phase === 'done' ? (
-        <SupportResult
-          count={rounds.successes}
-          note={countNote(
-            rounds.successes,
-            'Perfect rhythm — nine for nine!',
-            'Two clean sets. Nearly flawless!',
-            'One clean set. Keep the beat!',
-            'Lost the rhythm — try again!'
-          )}
-        />
-      ) : (
-        <div className="flex gap-2">
-          {Array.from({ length: LANES }).map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              disabled={!playing}
-              onPointerDown={(e) => { e.preventDefault(); pressTrack(i); }}
-              className="flex-1 font-bold border-4 border-pixel-border bg-pixel-card text-pixel-text-muted px-4 py-4 text-xl select-none touch-none active:translate-y-1 disabled:opacity-50 border-t-pixel-accent/60"
-            >
-              {LANE_GLYPH[i]}
-            </button>
-          ))}
-        </div>
-      )}
     </MinigameShell>
   );
 };
