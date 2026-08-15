@@ -146,6 +146,8 @@ export const TouchSliceMinigame: React.FC<MinigameProps> = ({ onComplete, window
     return () => window.removeEventListener('keydown', onKey);
   }, [slice]);
 
+  const idle = rounds.phase === 'ready';
+
   return (
     <MinigameShell
       title="Touch & Slice"
@@ -153,6 +155,30 @@ export const TouchSliceMinigame: React.FC<MinigameProps> = ({ onComplete, window
       controls="Space | Slice"
       phase={rounds.phase}
       onStart={rounds.begin}
+      footer={
+        <>
+          <div className="mb-4">
+            <RoundPips {...rounds} />
+          </div>
+
+          {rounds.phase === 'done' ? (
+            <SupportResult
+              count={rounds.successes}
+              note={countNote(
+                rounds.successes,
+                'Three clean rounds — pure touch!',
+                'Two clean rounds. Nice hands.',
+                'One clean round. Keep practicing!',
+                "Let's find that touch next time."
+              )}
+            />
+          ) : (
+            <MinigameActionButton onPress={slice} disabled={!playing}>
+              {idle || playing ? 'Slice!  (Space)' : rounds.lastPass ? 'Sliced it!' : 'Out of time'}
+            </MinigameActionButton>
+          )}
+        </>
+      }
     >
       <div className="relative h-64 w-full bg-pixel-bg border-2 border-pixel-border overflow-hidden mb-4 flex items-center justify-center">
         <ComboBadge streak={rounds.streak} />
@@ -211,27 +237,6 @@ export const TouchSliceMinigame: React.FC<MinigameProps> = ({ onComplete, window
           <div className="absolute top-2 left-2 text-xs text-pixel-text-muted">{hits}/{HITS_NEEDED} sliced</div>
         )}
       </div>
-
-      <div className="mb-4">
-        <RoundPips {...rounds} />
-      </div>
-
-      {rounds.phase === 'done' ? (
-        <SupportResult
-          count={rounds.successes}
-          note={countNote(
-            rounds.successes,
-            'Three clean rounds — pure touch!',
-            'Two clean rounds. Nice hands.',
-            'One clean round. Keep practicing!',
-            "Let's find that touch next time."
-          )}
-        />
-      ) : (
-        <MinigameActionButton onPress={slice} disabled={!playing}>
-          {playing ? 'Slice!  (Space)' : rounds.lastPass ? 'Sliced it!' : 'Out of time'}
-        </MinigameActionButton>
-      )}
     </MinigameShell>
   );
 };

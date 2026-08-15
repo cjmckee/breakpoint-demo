@@ -113,6 +113,8 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
     return () => window.removeEventListener('keydown', onKey);
   }, [lock]);
 
+  const idle = rounds.phase === 'ready';
+
   return (
     <MinigameShell
       title="Corner Painter"
@@ -120,6 +122,38 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
       controls="Space | lock the target"
       phase={rounds.phase}
       onStart={rounds.begin}
+      footer={
+        <>
+          <div className="mb-4">
+            <RoundPips {...rounds} />
+          </div>
+
+          {rounds.phase === 'done' ? (
+            <SupportResult
+              count={rounds.successes}
+              note={countNote(
+                rounds.successes,
+                'Three corners painted!',
+                'Two on the money. Sharp!',
+                'One clean corner. Keep aiming!',
+                'Sprayed it — line it up next time.'
+              )}
+            />
+          ) : (
+            <MinigameActionButton onPress={lock} disabled={!playing}>
+              {idle
+                ? 'Lock the sideline  (Space)'
+                : !playing
+                  ? rounds.lastPass
+                    ? 'Painted!'
+                    : 'Wide'
+                  : stage === 'x'
+                    ? 'Lock the sideline  (Space)'
+                    : 'Lock the depth  (Space)'}
+            </MinigameActionButton>
+          )}
+        </>
+      }
     >
       <div className="relative h-64 w-full bg-pixel-bg border-2 border-pixel-border overflow-hidden mb-4">
         <ComboBadge streak={rounds.streak} />
@@ -169,33 +203,6 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
 
         <Sparks burst={burst} />
       </div>
-
-      <div className="mb-4">
-        <RoundPips {...rounds} />
-      </div>
-
-      {rounds.phase === 'done' ? (
-        <SupportResult
-          count={rounds.successes}
-          note={countNote(
-            rounds.successes,
-            'Three corners painted!',
-            'Two on the money. Sharp!',
-            'One clean corner. Keep aiming!',
-            'Sprayed it — line it up next time.'
-          )}
-        />
-      ) : (
-        <MinigameActionButton onPress={lock} disabled={!playing}>
-          {!playing
-            ? rounds.lastPass
-              ? 'Painted!'
-              : 'Wide'
-            : stage === 'x'
-              ? 'Lock the sideline  (Space)'
-              : 'Lock the depth  (Space)'}
-        </MinigameActionButton>
-      )}
     </MinigameShell>
   );
 };

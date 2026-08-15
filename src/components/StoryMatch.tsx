@@ -22,7 +22,6 @@ interface StoryMatchProps {
 export const StoryMatch: React.FC<StoryMatchProps> = ({ matchConfig }) => {
   const player = useGameStore((state) => state.player);
   const currentStatus = useGameStore((state) => state.currentStatus);
-  const navigateTo = useGameStore((state) => state.navigateTo);
   const beginMatch = useGameStore((state) => state.beginMatch);
 
   if (!player || !matchConfig) {
@@ -96,7 +95,6 @@ export const StoryMatch: React.FC<StoryMatchProps> = ({ matchConfig }) => {
       activeBuffs={player.nextActivityBuffs.length > 0 ? pendingBuffs : null}
       contextContent={contextContent}
       onStartMatch={handleStartMatch}
-      onBack={() => navigateTo('idle')}
     />
   );
 };

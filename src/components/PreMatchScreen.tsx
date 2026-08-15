@@ -65,7 +65,7 @@ interface PreMatchScreenProps {
   activeBuffs?: Modifiers | null;
 
   onStartMatch: () => void;
-  onBack: () => void;
+  onBack?: () => void;
 }
 
 function getSurfaceEffects(surface: CourtSurface): SurfaceEffectDisplay[] {
@@ -398,9 +398,13 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
     <div className="min-h-screen bg-pixel-bg p-4">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <Button variant="secondary" onClick={onBack}>
-            ← Back to Menu
-          </Button>
+          {onBack ? (
+            <Button variant="secondary" onClick={onBack}>
+              ← Back to Menu
+            </Button>
+          ) : (
+            <div />
+          )}
           <Button
             variant="primary"
             size="lg"

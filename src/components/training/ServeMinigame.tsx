@@ -187,6 +187,8 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
     onPointerLeave: () => { moveRef.current = 0; },
   });
 
+  const idle = rounds.phase === 'ready';
+
   return (
     <MinigameShell
       title="Toss & Strike"
@@ -194,6 +196,52 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
       controls="← → or A D | Move · Space | Strike"
       phase={rounds.phase}
       onStart={rounds.begin}
+      footer={
+        <>
+          <div className="mb-4">
+            <RoundPips {...rounds} />
+          </div>
+
+          {rounds.phase === 'done' ? (
+            <SupportResult
+              count={rounds.successes}
+              note={countNote(
+                rounds.successes,
+                'Three perfect serves!',
+                'Two clean serves. Not bad.',
+                'One clean serve. Keep practicing!',
+                'Nothing clean — wait for the pocket.'
+              )}
+            />
+          ) : (
+            <div className="space-y-2">
+              {/* Movement gets its own full-width row — held constantly, so it needs the
+                  biggest targets on screen. */}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled={!playing}
+                  {...hold(-1)}
+                  className="flex-1 font-bold border-4 border-pixel-border bg-pixel-card text-pixel-text py-4 text-2xl select-none touch-none active:translate-y-1 disabled:opacity-50"
+                >
+                  ◀
+                </button>
+                <button
+                  type="button"
+                  disabled={!playing}
+                  {...hold(1)}
+                  className="flex-1 font-bold border-4 border-pixel-border bg-pixel-card text-pixel-text py-4 text-2xl select-none touch-none active:translate-y-1 disabled:opacity-50"
+                >
+                  ▶
+                </button>
+              </div>
+              <MinigameActionButton onPress={strike} disabled={!playing}>
+                {idle || playing ? 'Strike!  (Space)' : rounds.lastPass ? 'Ace!' : 'Missed'}
+              </MinigameActionButton>
+            </div>
+          )}
+        </>
+      }
     >
       <div ref={boxRef} className="relative h-64 w-full bg-pixel-bg border-2 border-pixel-border overflow-hidden mb-4">
         <ComboBadge streak={rounds.streak} />
@@ -239,47 +287,6 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
 
         <Sparks burst={burst} />
       </div>
-
-      <div className="mb-4">
-        <RoundPips {...rounds} />
-      </div>
-
-      {rounds.phase === 'done' ? (
-        <SupportResult
-          count={rounds.successes}
-          note={countNote(
-            rounds.successes,
-            'Three perfect serves!',
-            'Two clean serves. Not bad.',
-            'One clean serve. Keep practicing!',
-            'Nothing clean — wait for the pocket.'
-          )}
-        />
-      ) : (
-        <div className="space-y-2">
-          {/* Movement gets its own full-width row — held constantly, so it needs the
-              biggest targets on screen. */}
-          <div className="flex gap-2">
-            <button
-              type="button"
-              {...hold(-1)}
-              className="flex-1 font-bold border-4 border-pixel-border bg-pixel-card text-pixel-text py-4 text-2xl select-none touch-none active:translate-y-1"
-            >
-              ◀
-            </button>
-            <button
-              type="button"
-              {...hold(1)}
-              className="flex-1 font-bold border-4 border-pixel-border bg-pixel-card text-pixel-text py-4 text-2xl select-none touch-none active:translate-y-1"
-            >
-              ▶
-            </button>
-          </div>
-          <MinigameActionButton onPress={strike} disabled={!playing}>
-            {playing ? 'Strike!  (Space)' : rounds.lastPass ? 'Ace!' : 'Missed'}
-          </MinigameActionButton>
-        </div>
-      )}
     </MinigameShell>
   );
 };

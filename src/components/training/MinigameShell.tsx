@@ -9,7 +9,10 @@
  *
  * Every game opens on a standardized start screen (phase === 'ready'): the how-to line
  * plus a Start button, with Space/Enter to begin — so the first attempt is never a
- * free miss from being dropped straight into play.
+ * free miss from being dropped straight into play. The arena (children) and footer
+ * (round pips + the real control buttons) stay mounted underneath that start screen the
+ * whole time — only the arena gets the overlay — so the buttons are sitting in their
+ * final resting place before play begins instead of popping in at go-time.
  */
 
 import React, { useEffect } from 'react';
@@ -26,7 +29,7 @@ export interface MinigameProps {
   onFirstAttempt?: () => void;
 }
 
-/** Start screen shown while phase === 'ready'. Space/Enter (or the button) begins. */
+/** Start overlay shown over the arena while phase === 'ready'. Space/Enter (or the button) begins. */
 const StartGate: React.FC<{ onStart: () => void; controls?: string }> = ({ onStart, controls }) => {
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
@@ -40,14 +43,14 @@ const StartGate: React.FC<{ onStart: () => void; controls?: string }> = ({ onSta
   }, [onStart]);
 
   return (
-    <div className="flex flex-col items-center justify-center gap-6 py-10 text-center">
-      {/* Keyboard shortcuts, then the reminder that every one of them is also a button
-          on screen — the start screen is the only place that's stated. */}
+    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-pixel-bg/95 border-2 border-pixel-border p-4 text-center">
+      {/* Keyboard shortcuts, then the reminder that the buttons below are already the
+          real controls — this is the only place that's stated. */}
       <div className="flex flex-col items-center gap-2">
         {controls && (
-          <p className="text-base text-pixel-text uppercase tracking-wide leading-relaxed">{controls}</p>
+          <p className="text-sm text-pixel-text uppercase tracking-wide leading-relaxed">{controls}</p>
         )}
-        <p className="text-sm text-pixel-text-muted">or click the buttons below</p>
+        <p className="text-xs text-pixel-text-muted">or use the buttons below once you start</p>
       </div>
       <button
         type="button"
@@ -55,11 +58,11 @@ const StartGate: React.FC<{ onStart: () => void; controls?: string }> = ({ onSta
           e.preventDefault();
           onStart();
         }}
-        className="font-bold border-4 transition-all duration-150 ease-in-out cursor-pointer bg-pixel-accent border-pixel-accent-dark text-white hover:bg-pixel-accent-light active:translate-y-1 px-10 py-3 text-lg select-none touch-none"
+        className="font-bold border-4 transition-all duration-150 ease-in-out cursor-pointer bg-pixel-accent border-pixel-accent-dark text-white hover:bg-pixel-accent-light active:translate-y-1 px-8 py-2 text-base select-none touch-none"
       >
         ▶ Start
       </button>
-      <p className="text-sm text-pixel-text-muted">Space or Enter to begin</p>
+      <p className="text-xs text-pixel-text-muted">Space or Enter to begin</p>
     </div>
   );
 };
@@ -71,22 +74,24 @@ export const MinigameShell: React.FC<{
   onStart: () => void;
   /** Optional short controls hint shown on the start screen (e.g. "← / → move · Space strike"). */
   controls?: string;
+  /** Arena content — the canvas the minigame runs in. Covered by the start overlay while ready. */
   children: React.ReactNode;
-}> = ({ title, subtitle, phase, onStart, controls, children }) => {
-  // The start screen has the whole card to itself, so the how-to gets room to breathe.
-  // Once play begins the same header shrinks back out of the way of the court.
+  /** Round pips + the action buttons, rendered below the arena. Stays visible (disabled)
+   *  even before the game starts, so the buttons never appear for the first time at go-time. */
+  footer: React.ReactNode;
+}> = ({ title, subtitle, phase, onStart, controls, children, footer }) => {
   const ready = phase === 'ready';
   return (
     <div className="bg-pixel-card border-4 border-pixel-border p-6">
       <div className="text-center mb-4">
-        <h3 className={`font-bold text-pixel-text ${ready ? 'text-3xl mb-3' : 'text-xl'}`}>{title}</h3>
-        <p
-          className={`text-pixel-text-muted ${ready ? 'text-lg leading-relaxed' : 'text-sm'}`}
-        >
-          {subtitle}
-        </p>
+        <h3 className="text-xl font-bold text-pixel-text">{title}</h3>
+        <p className="text-sm text-pixel-text-muted">{subtitle}</p>
       </div>
-      {ready ? <StartGate onStart={onStart} controls={controls} /> : children}
+      <div className="relative">
+        {children}
+        {ready && <StartGate onStart={onStart} controls={controls} />}
+      </div>
+      {footer}
     </div>
   );
 };
