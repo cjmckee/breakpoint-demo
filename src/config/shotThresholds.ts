@@ -1098,6 +1098,23 @@ export const SURFACE_EFFECTS: Record<CourtSurface, SurfaceEffects> = {
  * Shot types that express tactical creativity (drop, angle, lob, passing).
  * Targeted by shotVariety bonus in calculateMentalModifier.
  */
+/**
+ * Shot-type classifications that gate the support bands.
+ *
+ * These sit here rather than in ShotCalculator because they are data of the same
+ * kind as RELATIVE_QUALITY_REQUIREMENTS and the winner tables, and because the
+ * analysis harnesses need them to measure how often each band's gate is open.
+ * A band whose gate is open on nearly every shot is not reading context, it is
+ * a composite weight with extra steps.
+ */
+export const SHOT_CLASSIFICATIONS: Record<string, readonly ShotType[]> = {
+  powerShots: ['serve_first', 'forehand_power', 'backhand_power', 'return_forehand_power', 'return_backhand_power', 'overhead', 'passing_shot_forehand', 'passing_shot_backhand', 'volley_forehand_power', 'volley_backhand_power'],
+  spinShots: ['slice_forehand', 'slice_backhand', 'drop_shot_forehand', 'drop_shot_backhand', 'defensive_slice_forehand', 'defensive_slice_backhand'],
+  placementShots: ['drop_shot_forehand', 'drop_shot_backhand', 'angle_shot_forehand', 'angle_shot_backhand', 'lob_forehand', 'lob_backhand'],
+  netShots: ['volley_forehand', 'volley_backhand', 'volley_forehand_power', 'volley_backhand_power', 'half_volley_forehand', 'half_volley_backhand', 'overhead', 'defensive_overhead'],
+  defensiveShots: ['defensive_slice_forehand', 'defensive_slice_backhand', 'defensive_overhead', 'return_forehand', 'return_backhand', 'lob_forehand', 'lob_backhand', 'passing_shot_forehand', 'passing_shot_backhand'],
+};
+
 export function isTacticalShot(shotType: ShotType): boolean {
   const s = shotType.toString();
   return (

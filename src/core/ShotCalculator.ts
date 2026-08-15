@@ -58,6 +58,7 @@ import {
   isTacticalShot,
   isDefensiveShot,
   isOffensiveShot,
+  SHOT_CLASSIFICATIONS,
 } from '../config/shotThresholds.js';
 
 /**
@@ -79,17 +80,6 @@ const SHOT_RANGES = {
     long: { min: 0.80, max: 1.0 },     // 11-15 shots
     extreme: { min: 0.75, max: 1.0 },  // 16+ shots
   },
-} as const;
-
-/**
- * Shot type classifications for applying bonuses
- */
-const SHOT_CLASSIFICATIONS = {
-  powerShots: ['serve_first', 'forehand_power', 'backhand_power', 'return_forehand_power', 'return_backhand_power', 'overhead', 'passing_shot_forehand', 'passing_shot_backhand', 'volley_forehand_power', 'volley_backhand_power'],
-  spinShots: ['slice_forehand', 'slice_backhand', 'drop_shot_forehand', 'drop_shot_backhand', 'defensive_slice_forehand', 'defensive_slice_backhand'],
-  placementShots: ['drop_shot_forehand', 'drop_shot_backhand', 'angle_shot_forehand', 'angle_shot_backhand', 'lob_forehand', 'lob_backhand'],
-  netShots: ['volley_forehand', 'volley_backhand', 'volley_forehand_power', 'volley_backhand_power', 'half_volley_forehand', 'half_volley_backhand', 'overhead', 'defensive_overhead'],
-  defensiveShots: ['defensive_slice_forehand', 'defensive_slice_backhand', 'defensive_overhead', 'return_forehand', 'return_backhand', 'lob_forehand', 'lob_backhand', 'passing_shot_forehand', 'passing_shot_backhand'],
 } as const;
 
 export class ShotCalculator {
@@ -592,7 +582,7 @@ export class ShotCalculator {
    * (drop, angle, lob, passing); the drop shot is in both sets deliberately.
    */
   private calculateSpinModifier(shotType: ShotType, spinStat: number): number {
-    if (!SHOT_CLASSIFICATIONS.spinShots.includes(shotType as any)) {
+    if (!SHOT_CLASSIFICATIONS.spinShots.includes(shotType)) {
       return 1;
     }
 
@@ -601,7 +591,7 @@ export class ShotCalculator {
 
   /** Placement's modifier on shots that are made of placement — drop, angle, lob. */
   private calculatePlacementModifier(shotType: ShotType, placementStat: number): number {
-    if (!SHOT_CLASSIFICATIONS.placementShots.includes(shotType as any)) {
+    if (!SHOT_CLASSIFICATIONS.placementShots.includes(shotType)) {
       return 1;
     }
 
@@ -620,19 +610,19 @@ export class ShotCalculator {
     let modifier = 1.0;
 
     // Speed helps with defensive shots and court coverage
-    if (SHOT_CLASSIFICATIONS.defensiveShots.includes(shotType as any) ||
+    if (SHOT_CLASSIFICATIONS.defensiveShots.includes(shotType) ||
         context.courtPosition === 'defensive') {
       modifier *= statModifier(physical.speed, STAT_MODIFIER_BANDS.courtCoverage);
     }
 
     // Strength helps with power shots
-    if (SHOT_CLASSIFICATIONS.powerShots.includes(shotType as any)) {
+    if (SHOT_CLASSIFICATIONS.powerShots.includes(shotType)) {
       modifier *= statModifier(physical.strength, STAT_MODIFIER_BANDS.power);
     }
 
     // Agility helps with net shots and quick reactions (check ballQuality for time pressure)
     const isRushed = ballQuality?.timeAvailable === 'rushed';
-    if (SHOT_CLASSIFICATIONS.netShots.includes(shotType as any) || isRushed) {
+    if (SHOT_CLASSIFICATIONS.netShots.includes(shotType) || isRushed) {
       modifier *= statModifier(physical.speed, STAT_MODIFIER_BANDS.reactions);
     }
 
@@ -1020,7 +1010,7 @@ export class ShotCalculator {
     }
 
     // Power shots and winners are easier with high attack opportunity
-    if (SHOT_CLASSIFICATIONS.powerShots.includes(shotType as any)) {
+    if (SHOT_CLASSIFICATIONS.powerShots.includes(shotType)) {
       if (tacticalOpportunity.attackOpportunity === 'high') {
         modifier *= 1.15;
       } else if (tacticalOpportunity.attackOpportunity === 'low') {
@@ -1029,7 +1019,7 @@ export class ShotCalculator {
     }
 
     // Defensive shots are more reliable when defensive is required
-    if (SHOT_CLASSIFICATIONS.defensiveShots.includes(shotType as any)) {
+    if (SHOT_CLASSIFICATIONS.defensiveShots.includes(shotType)) {
       if (tacticalOpportunity.defensiveRequired) {
         modifier *= 1.1; // Defensive shots are what you should be hitting
       }
