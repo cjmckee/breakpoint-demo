@@ -13,20 +13,20 @@ import type {
   ShotType,
   StatName,
   StatCategory
-} from '../types/index.js';
-import type { ArchetypeProfile, BroadArchetype } from '../types/archetype.js';
-import { EffectKey } from '../types/game.js';
+} from '../types';
+import type { ArchetypeProfile, BroadArchetype } from '../types/archetype';
+import { EffectKey } from '../types/game';
 import {
   aggregateArchetypeEffects,
   createEmptyArchetypeProfile,
-} from '../data/archetypeTree.js';
+} from '../data/archetypeTree';
 import {
   SERVE_QUALITY_WEIGHTS,
   SERVE_ACCURACY_WEIGHTS,
   RETURN_COMPOSITE_WEIGHTS,
   SHOT_COMPOSITE_WEIGHTS,
   MATCH_FORM,
-} from '../config/shotThresholds.js';
+} from '../config/shotThresholds';
 
 const ARCHETYPE_DESCRIPTIONS: Record<PlayStyle['type'], string> = {
   serve_volley: 'Aggressive net player who serves and volleys',
@@ -62,8 +62,8 @@ const BROAD_TENDENCY_NUDGES: Record<BroadArchetype, { aggression: number; netApp
 const NO_NUDGE = { aggression: 0, netApproach: 0, consistency: 0, power: 0 };
 
 /** Re-exported so existing importers keep working; defined once in utils/playerStats. */
-export { calculateOverallRating } from '../utils/overallRating.js';
-import { calculateOverallRating } from '../utils/overallRating.js';
+export { calculateOverallRating } from '../utils/overallRating';
+import { calculateOverallRating } from '../utils/overallRating';
 
 
 const clampDial = (v: number): number => Math.max(0, Math.min(100, v));

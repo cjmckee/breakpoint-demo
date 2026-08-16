@@ -19,8 +19,8 @@
  * matches share one momentum model.
  */
 
-import { PointType } from '../types/index.js';
-import { MOMENTUM } from '../config/shotThresholds.js';
+import { PointType } from '../types';
+import { MOMENTUM } from '../config/shotThresholds';
 
 export type ClutchLevel = 'breakPoint' | 'setPoint' | 'matchPoint' | null;
 

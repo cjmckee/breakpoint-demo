@@ -5,8 +5,8 @@
  * They are never randomly rolled — only triggered via hangoutWithCharacter().
  */
 
-import type { StoryEvent } from '../../types/storyEvents.js';
-import { AbilityName } from '../../types/game.js';
+import type { StoryEvent } from '../../types/storyEvents';
+import { AbilityName } from '../../types/game';
 
 export const interactionEvents: StoryEvent[] = [
 

@@ -5,7 +5,7 @@
  * All values are easily tunable to balance progression.
  */
 
-import { AbilityRarity } from '../types/game.js';
+import { AbilityRarity } from '../types/game';
 
 // ============================================================================
 // MATCH ENERGY COST

@@ -3,9 +3,9 @@
  * Events related to meeting and developing a relationship with Alex
  */
 
-import type { StoryEvent } from '../../types/storyEvents.js';
-import { ChallengeManager } from '../../game/ChallengeManager.js';
-import { CHALLENGE_IMPRESS_ALEX, CHALLENGE_PRACTICE_MAKES_PERFECT } from '../challengeTemplates.js';
+import type { StoryEvent } from '../../types/storyEvents';
+import { ChallengeManager } from '../../game/ChallengeManager';
+import { CHALLENGE_IMPRESS_ALEX, CHALLENGE_PRACTICE_MAKES_PERFECT } from '../challengeTemplates';
 
 export const romanceEvents: StoryEvent[] = [
   {

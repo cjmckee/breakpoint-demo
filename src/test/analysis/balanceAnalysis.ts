@@ -4,18 +4,18 @@
  * Run with: npm run analyze
  */
 
-import type { ShotType, ShotContext, ShotDetail, CourtSurface } from '../../types/index.js';
-import { PointType } from '../../types/index.js';
-import { ShotCalculator } from '../../core/ShotCalculator.js';
-import { MatchSimulator } from '../../core/MatchSimulator.js';
-import { PointSimulator } from '../../core/PointSimulator.js';
-import { aggregateArchetypeEffects } from '../../data/archetypeTree.js';
-import { createUniformPlayer, createArchetypePlayer } from './playerFactory.js';
-import { computeStats } from './stats.js';
-import type { ArchetypeProfile, GamePhase, PhasePathId, SpecialtyTier } from '../../types/archetype.js';
+import type { ShotType, ShotContext, ShotDetail, CourtSurface } from '../../types';
+import { PointType } from '../../types';
+import { ShotCalculator } from '../../core/ShotCalculator';
+import { MatchSimulator } from '../../core/MatchSimulator';
+import { PointSimulator } from '../../core/PointSimulator';
+import { aggregateArchetypeEffects } from '../../data/archetypeTree';
+import { createUniformPlayer, createArchetypePlayer } from './playerFactory';
+import { computeStats } from './stats';
+import type { ArchetypeProfile, GamePhase, PhasePathId, SpecialtyTier } from '../../types/archetype';
 import {
   print, printBanner, printHeader, printTable, printHistogram, fmtPct, fmtNum,
-} from './formatters.js';
+} from './formatters';
 import {
   SERVE_CONSISTENCY,
   SERVE_CONTEST,
@@ -26,7 +26,7 @@ import {
   MIN_QUALITY_FLOORS,
   OPPONENT_STAT_ADJUSTMENTS,
   getShotCategory,
-} from '../../config/shotThresholds.js';
+} from '../../config/shotThresholds';
 
 // ─── Configuration ───────────────────────────────────────────
 

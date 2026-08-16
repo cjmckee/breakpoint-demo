@@ -28,11 +28,11 @@
  * Run: npm run build:node && node dist/src/test/analysis/serveCurve.js
  */
 
-import type { PlayerStats, ShotContext } from '../../types/index.js';
-import type { ArchetypeProfile } from '../../types/archetype.js';
-import { PlayerProfile } from '../../core/PlayerProfile.js';
-import { ShotCalculator } from '../../core/ShotCalculator.js';
-import { SERVE_CONSISTENCY, PROBABILITY_STEEPNESS, sigmoidProbability } from '../../config/shotThresholds.js';
+import type { PlayerStats, ShotContext } from '../../types';
+import type { ArchetypeProfile } from '../../types/archetype';
+import { PlayerProfile } from '../../core/PlayerProfile';
+import { ShotCalculator } from '../../core/ShotCalculator';
+import { SERVE_CONSISTENCY, PROBABILITY_STEEPNESS, sigmoidProbability } from '../../config/shotThresholds';
 
 const NONE: ArchetypeProfile = { broad: null, phases: {}, specializationPoints: 0, respecTokens: 0 };
 const _origLog = console.log;

@@ -3,10 +3,10 @@
  * Significant achievements and career milestones
  */
 
-import type { StoryEvent } from '../../types/storyEvents.js';
-import { ChallengeManager } from '../../game/ChallengeManager.js';
-import { POWER_RACQUET, CONTROL_RACQUET, ALLROUND_RACQUET, COURT_SHOES, SPORTS_DRINK } from '../items.js';
-import { CHALLENGE_TEN_WINS } from '../challengeTemplates.js';
+import type { StoryEvent } from '../../types/storyEvents';
+import { ChallengeManager } from '../../game/ChallengeManager';
+import { POWER_RACQUET, CONTROL_RACQUET, ALLROUND_RACQUET, COURT_SHOES, SPORTS_DRINK } from '../items';
+import { CHALLENGE_TEN_WINS } from '../challengeTemplates';
 
 export const milestoneEvents: StoryEvent[] = [
   {

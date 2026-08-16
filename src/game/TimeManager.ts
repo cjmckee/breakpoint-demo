@@ -10,7 +10,7 @@ import {
   TIME_SLOT_NAMES,
   TimeDisplayInfo,
   DEFAULT_CALENDAR,
-} from '../types/game.js';
+} from '../types/game';
 
 export class TimeManager {
   /**

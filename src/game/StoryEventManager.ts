@@ -3,17 +3,17 @@
  * Main orchestrator for story event system
  */
 
-import { StoryEventRepository } from '../data/storyEvents/index.js';
-import { PrerequisiteChecker } from './PrerequisiteChecker.js';
+import { StoryEventRepository } from '../data/storyEvents';
+import { PrerequisiteChecker } from './PrerequisiteChecker';
 import type {
   StoryEvent,
   StoryEventOption,
   StoryEventOutcome,
   StoryEventResult,
   StoryEventTag,
-} from '../types/storyEvents.js';
-import type { Player, GameCalendar } from '../types/game.js';
-import type { ActiveTournament } from '../types/tournaments.js';
+} from '../types/storyEvents';
+import type { Player, GameCalendar } from '../types/game';
+import type { ActiveTournament } from '../types/tournaments';
 
 export class StoryEventManager {
   /**

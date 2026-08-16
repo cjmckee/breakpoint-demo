@@ -1,11 +1,10 @@
 # Balance testing — how to check whether a change did what you wanted
 
-Every harness lives in `src/test/analysis/` and runs as a plain node script. There is no test
-runner; each one prints a table.
+Every harness lives in `src/test/analysis/` and runs via `tsx`, directly against the TypeScript
+source. There is no test runner; each one prints a table.
 
 ```bash
-npm run build:node                                   # required after ANY source edit
-node dist/src/test/analysis/<harness>.js             # then run one
+npx tsx src/test/analysis/<harness>.ts
 ```
 
 Options are environment variables, listed in each file's header and summarised below.
@@ -17,11 +16,10 @@ Options are environment variables, listed in each file's header and summarised b
 1. **Run `matchAnatomy` and keep the output.** This is the before picture.
 2. **Make the change.** One constant at a time if you can — the tables below cannot tell you which
    of two simultaneous changes caused what.
-3. **`npm run build:node`.** Easy to forget; the harnesses run compiled output, so skipping this
-   silently measures the old code.
-4. **Run `matchAnatomy` again and diff.** Look at the sections you did *not* aim at. Most balance
-   changes have a side effect somewhere else, and the point of this report is to show it.
-5. **If the change touches what a stat is worth**, also run `statChannels`. It takes ~12 minutes.
+3. **Run `matchAnatomy` again and diff.** `tsx` runs straight from source, so there is no build step
+   to forget. Look at the sections you did *not* aim at. Most balance changes have a side effect
+   somewhere else, and the point of this report is to show it.
+4. **If the change touches what a stat is worth**, also run `statChannels`. It takes ~12 minutes.
 
 That is the whole workflow. The rest of this document is about not fooling yourself.
 
@@ -106,11 +104,11 @@ feel". For shipped content:
 
 ```bash
 # stat values at tier-1 ratings and tier-1 build constraints
-N=8000 LO=25 HI=50 POINTS=3 MAX_TIER=1 PARTS=A node dist/src/test/analysis/statChannels.js
+N=8000 LO=25 HI=50 POINTS=3 MAX_TIER=1 PARTS=A npx tsx src/test/analysis/statChannels.ts
 
 # what a tier-1 match looks like
-L=35 node dist/src/test/analysis/matchAnatomy.js
-L=35 node dist/src/test/analysis/shotMixProbe.js
+L=35 npx tsx src/test/analysis/matchAnatomy.ts
+L=35 npx tsx src/test/analysis/shotMixProbe.ts
 ```
 
 `MAX_TIER=1` matters: `gameStore.upgradePhase` blocks every specialty upgrade below player tier 2,

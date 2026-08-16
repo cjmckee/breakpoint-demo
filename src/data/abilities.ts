@@ -3,7 +3,7 @@ import {
   AbilityRarity,
   AbilityName,
   EffectKey,
-} from '../types/game.js';
+} from '../types/game';
 
 // Complete ability definitions with all rarities.
 // Abilities are effects-only — no stat boosts. Stats come from training and equipment.

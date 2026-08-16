@@ -58,11 +58,11 @@
  * paths and never reached tier III at all.
  */
 
-import type { MatchFormat, MatchState, PlayerStats } from '../../types/index.js';
-import type { ArchetypeProfile, PhaseSpec, GamePhase } from '../../types/archetype.js';
-import { PlayerProfile } from '../../core/PlayerProfile.js';
-import { PointSimulator } from '../../core/PointSimulator.js';
-import { ScoreTracker } from '../../core/ScoreTracker.js';
+import type { MatchFormat, MatchState, PlayerStats } from '../../types';
+import type { ArchetypeProfile, PhaseSpec, GamePhase } from '../../types/archetype';
+import { PlayerProfile } from '../../core/PlayerProfile';
+import { PointSimulator } from '../../core/PointSimulator';
+import { ScoreTracker } from '../../core/ScoreTracker';
 import {
   MATCH_FATIGUE,
   SHOT_COMPOSITE_WEIGHTS,
@@ -73,9 +73,9 @@ import {
   SERVE_MODIFIER_BANDS,
   OPPONENT_STAT_ADJUSTMENTS,
   SHOOTER_STAT_ADJUSTMENTS,
-} from '../../config/shotThresholds.js';
-import { aggregateArchetypeEffects, profileForArchetype, type LegacyArchetype } from '../../data/archetypeTree.js';
-import { drawPlayerProfile } from './playerFactory.js';
+} from '../../config/shotThresholds';
+import { aggregateArchetypeEffects, profileForArchetype, type LegacyArchetype } from '../../data/archetypeTree';
+import { drawPlayerProfile } from './playerFactory';
 
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
 const _origLog = console.log;

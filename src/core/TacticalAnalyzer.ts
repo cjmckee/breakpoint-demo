@@ -11,8 +11,8 @@ import type {
   TacticalOpportunity,
   CourtPosition,
   BallQuality,
-} from '../types/index.js';
-import { getQualityThresholds } from '../utils/qualityThresholds.js';
+} from '../types';
+import { getQualityThresholds } from '../utils/qualityThresholds';
 
 export class TacticalAnalyzer {
   /**

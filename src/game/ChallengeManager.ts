@@ -3,7 +3,7 @@
  * Pure business logic for the challenge system
  */
 
-import type { Player, GameCalendar } from '../types/game.js';
+import type { Player, GameCalendar } from '../types/game';
 import type {
   Challenge,
   ChallengeRequirement,
@@ -16,10 +16,10 @@ import type {
   AbilityUnlockProgress,
   MatchCountProgress,
   RelationshipLevelProgress,
-} from '../types/challenges.js';
-import type { PlayerStats } from '../types/index.js';
-import { PlayerManager } from './PlayerManager.js';
-import { ItemManager } from './ItemManager.js';
+} from '../types/challenges';
+import type { PlayerStats } from '../types';
+import { PlayerManager } from './PlayerManager';
+import { ItemManager } from './ItemManager';
 
 export class ChallengeManager {
   /**

@@ -10,7 +10,7 @@
  * player tries (ShotSelector/PointSimulator), never how well they execute.
  */
 
-import { EffectKey } from '../types/game.js';
+import { EffectKey } from '../types/game';
 import type {
   ArchetypeProfile,
   BroadArchetype,
@@ -19,7 +19,7 @@ import type {
   PhaseSpec,
   SpecialtyRole,
   SpecialtyTier,
-} from '../types/archetype.js';
+} from '../types/archetype';
 
 export interface PhasePathDef {
   id: PhasePathId;

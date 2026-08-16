@@ -31,17 +31,17 @@
  * Env: N=400 (BO3)  SEED=1  LO=25 HI=90  POINTS=6  MAX_TIER=3
  */
 
-import type { MatchFormat, MatchState, PlayerStats, ShotDetail, ShotType } from '../../types/index.js';
-import type { ArchetypeProfile } from '../../types/archetype.js';
-import { PlayerProfile } from '../../core/PlayerProfile.js';
-import { PointSimulator } from '../../core/PointSimulator.js';
-import { ScoreTracker } from '../../core/ScoreTracker.js';
+import type { MatchFormat, MatchState, PlayerStats, ShotDetail, ShotType } from '../../types';
+import type { ArchetypeProfile } from '../../types/archetype';
+import { PlayerProfile } from '../../core/PlayerProfile';
+import { PointSimulator } from '../../core/PointSimulator';
+import { ScoreTracker } from '../../core/ScoreTracker';
 import {
   MATCH_FATIGUE, SHOT_CLASSIFICATIONS, STAT_MODIFIER_BANDS, NEUTRAL_STAT,
   isTacticalShot, isDefensiveShot, isOffensiveShot,
-} from '../../config/shotThresholds.js';
-import { aggregateArchetypeEffects, profileForArchetype, type LegacyArchetype } from '../../data/archetypeTree.js';
-import { drawPlayerProfile } from './playerFactory.js';
+} from '../../config/shotThresholds';
+import { aggregateArchetypeEffects, profileForArchetype, type LegacyArchetype } from '../../data/archetypeTree';
+import { drawPlayerProfile } from './playerFactory';
 
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
 const _origLog = console.log;

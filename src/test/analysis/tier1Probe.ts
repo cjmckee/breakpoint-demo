@@ -45,13 +45,13 @@
  * Env: N=40 (BO3 per row)  N_C=1000 (part C only — see its note)  PARTS=ABCD
  */
 
-import type { MatchFormat, MatchState, PlayerStats } from '../../types/index.js';
-import { PointType } from '../../types/index.js';
-import type { ArchetypeProfile } from '../../types/archetype.js';
-import { PlayerProfile } from '../../core/PlayerProfile.js';
-import { PointSimulator } from '../../core/PointSimulator.js';
-import { ScoreTracker } from '../../core/ScoreTracker.js';
-import { MATCH_FATIGUE } from '../../config/shotThresholds.js';
+import type { MatchFormat, MatchState, PlayerStats } from '../../types';
+import { PointType } from '../../types';
+import type { ArchetypeProfile } from '../../types/archetype';
+import { PlayerProfile } from '../../core/PlayerProfile';
+import { PointSimulator } from '../../core/PointSimulator';
+import { ScoreTracker } from '../../core/ScoreTracker';
+import { MATCH_FATIGUE } from '../../config/shotThresholds';
 
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
 const _origLog = console.log;

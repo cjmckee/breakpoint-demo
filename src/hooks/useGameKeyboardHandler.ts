@@ -1,6 +1,6 @@
 import { useEffect, useCallback } from 'react';
-import { useGameStore } from '../stores/gameStore.js';
-import { useMenuStore } from './useMenuModal.js';
+import { useGameStore } from '../stores/gameStore';
+import { useMenuStore } from './useMenuModal';
 
 function isInputFocused(): boolean {
   const el = document.activeElement as HTMLElement | null;

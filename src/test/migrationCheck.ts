@@ -16,9 +16,9 @@
  * Run: npm run build:node && node dist/src/test/migrationCheck.js
  */
 
-import { migrateStore, CURRENT_STORE_VERSION, type PersistedStoreState } from '../stores/migrations.js';
-import { PlayerProfile } from '../core/PlayerProfile.js';
-import { calculateOverallRating } from '../utils/overallRating.js';
+import { migrateStore, CURRENT_STORE_VERSION, type PersistedStoreState } from '../stores/migrations';
+import { PlayerProfile } from '../core/PlayerProfile';
+import { calculateOverallRating } from '../utils/overallRating';
 
 const RETIRED = ['volley', 'overhead', 'dropShot', 'agility', 'recovery',
   'shotVariety', 'offensive', 'defensive'] as const;

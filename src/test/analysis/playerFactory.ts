@@ -1,9 +1,9 @@
-import type { PlayerStats } from '../../types/index.js';
+import type { PlayerStats } from '../../types';
 import type {
   ArchetypeProfile, BroadArchetype, GamePhase, PhaseSpec, SpecialtyTier,
-} from '../../types/archetype.js';
-import { PlayerProfile } from '../../core/PlayerProfile.js';
-import { PATHS_BY_PHASE } from '../../data/archetypeTree.js';
+} from '../../types/archetype';
+import { PlayerProfile } from '../../core/PlayerProfile';
+import { PATHS_BY_PHASE } from '../../data/archetypeTree';
 
 /**
  * Create a player with ALL 20 stats set to the same value.

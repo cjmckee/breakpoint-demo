@@ -16,14 +16,14 @@ import type {
   TacticalOpportunity,
   CourtPosition,
   CourtSurface,
-} from '../types/index.js';
-import { PlayerProfile } from './PlayerProfile.js';
-import { TacticalAnalyzer } from './TacticalAnalyzer.js';
-import { getQualityThresholds } from '../utils/qualityThresholds.js';
+} from '../types';
+import { PlayerProfile } from './PlayerProfile';
+import { TacticalAnalyzer } from './TacticalAnalyzer';
+import { getQualityThresholds } from '../utils/qualityThresholds';
 import {
   SURFACE_EFFECTS, NET_APPROACH_BIAS_SCALE, NET_APPROACH_BASE, NET_APPROACH_FLOOR,
-} from '../config/shotThresholds.js';
-import { EffectKey } from '../types/game.js';
+} from '../config/shotThresholds';
+import { EffectKey } from '../types/game';
 
 /** Archetype behavior effects threaded from the active-effects map. */
 type BehaviorEffects = Record<string, number>;

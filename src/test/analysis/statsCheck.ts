@@ -6,12 +6,12 @@
  * Run with: npm run build:node && node --experimental-specifier-resolution=node dist/src/test/analysis/statsCheck.js
  */
 
-import type { MatchFormat, MatchState, PlayerStats } from '../../types/index.js';
-import { PlayerProfile } from '../../core/PlayerProfile.js';
-import { PointSimulator } from '../../core/PointSimulator.js';
-import { ScoreTracker } from '../../core/ScoreTracker.js';
-import { MatchStatistics } from '../../core/MatchStatistics.js';
-import { OPPONENTS_BY_TIER, getOpponentArchetypeProfile } from '../../data/opponents.js';
+import type { MatchFormat, MatchState, PlayerStats } from '../../types';
+import { PlayerProfile } from '../../core/PlayerProfile';
+import { PointSimulator } from '../../core/PointSimulator';
+import { ScoreTracker } from '../../core/ScoreTracker';
+import { MatchStatistics } from '../../core/MatchStatistics';
+import { OPPONENTS_BY_TIER, getOpponentArchetypeProfile } from '../../data/opponents';
 
 const CHARACTER: PlayerStats = {
   core: { serve: 72, forehand: 56, backhand: 45, return: 52, net: 41 },

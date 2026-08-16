@@ -4,10 +4,10 @@
  * Uses tactical counter system: options are strong/weak against specific archetypes.
  */
 
-import { TacticalOption, SecondaryEffect } from '../data/tacticalOptions.js';
-import type { ArchetypeType } from '../data/archetypes.js';
-import { PointType } from '../types/index.js';
-import { PlayerStats, EffectKey } from '../types/game.js';
+import { TacticalOption, SecondaryEffect } from '../data/tacticalOptions';
+import type { ArchetypeType } from '../data/archetypes';
+import { PointType } from '../types';
+import { PlayerStats, EffectKey } from '../types/game';
 
 /** Counter bonus when option is strongAgainst the opponent's archetype */
 const COUNTER_BONUS = 15;

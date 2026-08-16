@@ -1,4 +1,4 @@
-import { TutorialStep } from '../hooks/useTutorialSpotlight.js';
+import { TutorialStep } from '../hooks/useTutorialSpotlight';
 
 export type LiveMatchTarget = 'court' | 'log' | 'your-stats';
 export type KmTarget = 'header' | 'options-matchup' | 'options-effects';

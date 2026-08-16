@@ -16,7 +16,7 @@
  */
 
 import { useCallback, useRef, useState } from 'react';
-import { audioManager } from '../../audio/AudioManager.js';
+import { audioManager } from '../../audio/AudioManager';
 
 export const TOTAL_ROUNDS = 3;
 

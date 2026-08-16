@@ -4,8 +4,8 @@
  * when the spotlight walks the player through them.
  */
 
-import type { MatchScore } from '../types/keyMoments.js';
-import type { MatchStatistics } from '../types/index.js';
+import type { MatchScore } from '../types/keyMoments';
+import type { MatchStatistics } from '../types';
 
 export const TUTORIAL_MOCK_SCORE: MatchScore = {
   sets: [],

@@ -3,17 +3,17 @@
  * Central registry and lookup functions for all story events
  */
 
-import type { StoryEvent, StoryEventTag } from '../../types/storyEvents.js';
-import { welcomeEvents } from './welcomeEvents.js';
-import { coachEvents } from './coachStoryline.js';
-import { romanceEvents } from './romanceStoryline.js';
-import { careerEvents } from './careerStoryline.js';
-import { familyEvents } from './familyStoryline.js';
-import { rivalEvents } from './rivalStoryline.js';
-import { milestoneEvents } from './milestoneEvents.js';
-import { tournamentEvents } from './tournamentStoryline.js';
-import { miscEvents } from './miscEvents.js';
-import { interactionEvents } from './interactionEvents.js';
+import type { StoryEvent, StoryEventTag } from '../../types/storyEvents';
+import { welcomeEvents } from './welcomeEvents';
+import { coachEvents } from './coachStoryline';
+import { romanceEvents } from './romanceStoryline';
+import { careerEvents } from './careerStoryline';
+import { familyEvents } from './familyStoryline';
+import { rivalEvents } from './rivalStoryline';
+import { milestoneEvents } from './milestoneEvents';
+import { tournamentEvents } from './tournamentStoryline';
+import { miscEvents } from './miscEvents';
+import { interactionEvents } from './interactionEvents';
 
 // Combine all events from different storylines
 const ALL_EVENTS: StoryEvent[] = [

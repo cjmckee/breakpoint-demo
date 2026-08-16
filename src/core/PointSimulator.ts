@@ -18,14 +18,14 @@ import {
   BallQuality,
   TacticalOpportunity,
   PointType,
-} from '../types/index.js';
-import { PlayerProfile } from './PlayerProfile.js';
-import { ShotCalculator } from './ShotCalculator.js';
-import { ShotSelector } from './ShotSelector.js';
-import { TacticalAnalyzer } from './TacticalAnalyzer.js';
-import { getQualityThresholds, getMatchLevel, RelativeThresholds } from '../utils/qualityThresholds.js';
-import { RALLY_CONFIG, DIFFICULTY_SCORE_FACTORS, DIFFICULTY_THRESHOLDS } from '../config/shotThresholds.js';
-import { EffectKey } from '../types/game.js';
+} from '../types';
+import { PlayerProfile } from './PlayerProfile';
+import { ShotCalculator } from './ShotCalculator';
+import { ShotSelector } from './ShotSelector';
+import { TacticalAnalyzer } from './TacticalAnalyzer';
+import { getQualityThresholds, getMatchLevel, RelativeThresholds } from '../utils/qualityThresholds';
+import { RALLY_CONFIG, DIFFICULTY_SCORE_FACTORS, DIFFICULTY_THRESHOLDS } from '../config/shotThresholds';
+import { EffectKey } from '../types/game';
 
 export class PointSimulator {
   private shotCalculator: ShotCalculator;

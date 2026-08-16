@@ -5,7 +5,7 @@
  * Adjust these values to fine-tune match realism and difficulty.
  */
 
-import type { ShotType, CourtPosition, CourtSurface } from '../types/index.js';
+import type { ShotType, CourtPosition, CourtSurface } from '../types';
 
 /**
  * Relative quality requirements for each shot type

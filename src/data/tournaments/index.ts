@@ -3,9 +3,9 @@
  * Central registry for all tournament configurations
  */
 
-import type { ActiveTournament, TournamentConfig } from '../../types/tournaments.js';
-import type { Player, TournamentCompletion } from '../../types/game.js';
-import { riversideOpen } from './riversideOpen.js';
+import type { ActiveTournament, TournamentConfig } from '../../types/tournaments';
+import type { Player, TournamentCompletion } from '../../types/game';
+import { riversideOpen } from './riversideOpen';
 
 const ALL_TOURNAMENTS: TournamentConfig[] = [
   riversideOpen,

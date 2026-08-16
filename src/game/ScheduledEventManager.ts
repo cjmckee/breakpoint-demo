@@ -3,8 +3,8 @@
  * Generic system for scheduling any activity type for specific day/time slots
  */
 
-import type { ScheduledEvent, GameCalendar, ScheduledEventMetadata } from '../types/game.js';
-import { TimeSlot } from '../types/game.js';
+import type { ScheduledEvent, GameCalendar, ScheduledEventMetadata } from '../types/game';
+import { TimeSlot } from '../types/game';
 
 export class ScheduledEventManager {
   /**

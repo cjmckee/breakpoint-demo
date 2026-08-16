@@ -16,18 +16,18 @@
  * Env: L=40 (shooter level)  OPP=30 (opponent level)
  */
 
-import type { PlayerStats, ShotContext, ShotDetail, ShotType } from '../../types/index.js';
-import { PointType } from '../../types/index.js';
-import type { ArchetypeProfile } from '../../types/archetype.js';
-import { PlayerProfile } from '../../core/PlayerProfile.js';
-import { ShotCalculator } from '../../core/ShotCalculator.js';
+import type { PlayerStats, ShotContext, ShotDetail, ShotType } from '../../types';
+import { PointType } from '../../types';
+import type { ArchetypeProfile } from '../../types/archetype';
+import { PlayerProfile } from '../../core/PlayerProfile';
+import { ShotCalculator } from '../../core/ShotCalculator';
 import {
   RELATIVE_QUALITY_REQUIREMENTS, WINNER_REQUIREMENTS, MINIMUM_WINNER_THRESHOLDS,
   WINNER_FLOOR_OFFSET, WINNER_FLOOR_RETRIEVAL_WEIGHT, WINNER_FLOOR_RETRIEVAL_REF,
   MIN_QUALITY_FLOORS, FLOOR_CALIBRATION_LEVEL, OPPONENT_STAT_ADJUSTMENTS,
   SHOOTER_STAT_ADJUSTMENTS, POSITION_ADJUSTMENTS, SURFACE_EFFECTS,
   getShotCategory, PROBABILITY_STEEPNESS, sigmoidProbability,
-} from '../../config/shotThresholds.js';
+} from '../../config/shotThresholds';
 
 const NONE: ArchetypeProfile = { broad: null, phases: {}, specializationPoints: 0, respecTokens: 0 };
 const _origLog = console.log;

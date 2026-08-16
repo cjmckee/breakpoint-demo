@@ -7,9 +7,9 @@
  * CURRENT_VERSION must match the `version` field in the persist config.
  */
 
-import type { Player, GameCalendar, CurrentStatus, ActivityResult, ShopItem, OpponentTier, Modifiers } from '../types/game.js';
-import type { Challenge } from '../types/challenges.js';
-import { createEmptyArchetypeProfile } from '../data/archetypeTree.js';
+import type { Player, GameCalendar, CurrentStatus, ActivityResult, ShopItem, OpponentTier, Modifiers } from '../types/game';
+import type { Challenge } from '../types/challenges';
+import { createEmptyArchetypeProfile } from '../data/archetypeTree';
 
 export interface AudioSettings {
   musicVolume: number;

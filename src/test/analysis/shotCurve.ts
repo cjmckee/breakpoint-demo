@@ -34,14 +34,14 @@
  * that change was validated before it was written properly.
  */
 
-import type { PlayerStats, ShotContext, ShotDetail, ShotType } from '../../types/index.js';
-import { PointType } from '../../types/index.js';
-import type { ArchetypeProfile } from '../../types/archetype.js';
-import { PlayerProfile } from '../../core/PlayerProfile.js';
-import { ShotCalculator } from '../../core/ShotCalculator.js';
+import type { PlayerStats, ShotContext, ShotDetail, ShotType } from '../../types';
+import { PointType } from '../../types';
+import type { ArchetypeProfile } from '../../types/archetype';
+import { PlayerProfile } from '../../core/PlayerProfile';
+import { ShotCalculator } from '../../core/ShotCalculator';
 import {
   PROBABILITY_STEEPNESS, sigmoidProbability, TOTAL_MODIFIER_CAPS,
-} from '../../config/shotThresholds.js';
+} from '../../config/shotThresholds';
 
 const NONE: ArchetypeProfile = { broad: null, phases: {}, specializationPoints: 0, respecTokens: 0 };
 const _origLog = console.log;

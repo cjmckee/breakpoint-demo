@@ -7,7 +7,7 @@
  * this function that had to be edited in lockstep whenever a stat moved bucket.
  */
 
-import type { PlayerStats } from '../types/index.js';
+import type { PlayerStats } from '../types';
 
 /**
  * Relative weight of each stat category. Category weights rather than per-stat

@@ -4,8 +4,8 @@
  * Pure utility — no React or store dependencies.
  */
 
-import { PointType } from '../types/index.js';
-import type { KeyMomentResult } from '../game/KeyMomentResolver.js';
+import { PointType } from '../types';
+import type { KeyMomentResult } from '../game/KeyMomentResolver';
 
 /** Simple point data for narration (matches keyMoments.ts PointResult) */
 interface NarrationPoint {

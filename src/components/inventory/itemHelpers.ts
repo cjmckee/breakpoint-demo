@@ -2,7 +2,7 @@
  * Shared visual helpers for inventory / equipment UI.
  */
 
-import type { Item, EquipmentSlot, ItemType } from '../../types/items.js';
+import type { Item, EquipmentSlot, ItemType } from '../../types/items';
 
 export const SLOT_ICONS: Record<EquipmentSlot, string> = {
   racquet: '🎾',

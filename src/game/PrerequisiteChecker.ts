@@ -3,10 +3,10 @@
  * Pure functions for checking if a player meets story event requirements
  */
 
-import type { PlayerStats } from '../types/index.js';
-import type { Player, GameCalendar, Ability } from '../types/game.js';
-import type { StoryEventPrerequisite, StoryEventOption, StoryEvent } from '../types/storyEvents.js';
-import type { ActiveTournament } from '../types/tournaments.js';
+import type { PlayerStats } from '../types';
+import type { Player, GameCalendar, Ability } from '../types/game';
+import type { StoryEventPrerequisite, StoryEventOption, StoryEvent } from '../types/storyEvents';
+import type { ActiveTournament } from '../types/tournaments';
 
 export class PrerequisiteChecker {
   /**

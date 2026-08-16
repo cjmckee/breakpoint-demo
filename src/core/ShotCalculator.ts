@@ -20,12 +20,12 @@ import type {
   CourtSurface,
   QualityThresholds,
   ShotDetail,
-} from '../types/index.js';
-import { PointType } from '../types/index.js';
-import { EffectKey } from '../types/game.js';
-import { PlayerProfile } from './PlayerProfile.js';
-import { getPrimaryStatName } from './shotStatMapping.js';
-import { getQualityThresholds, getMatchLevel } from '../utils/qualityThresholds.js';
+} from '../types';
+import { PointType } from '../types';
+import { EffectKey } from '../types/game';
+import { PlayerProfile } from './PlayerProfile';
+import { getPrimaryStatName } from './shotStatMapping';
+import { getQualityThresholds, getMatchLevel } from '../utils/qualityThresholds';
 import {
   RELATIVE_QUALITY_REQUIREMENTS,
   WINNER_REQUIREMENTS,
@@ -59,7 +59,7 @@ import {
   isDefensiveShot,
   isOffensiveShot,
   SHOT_CLASSIFICATIONS,
-} from '../config/shotThresholds.js';
+} from '../config/shotThresholds';
 
 /**
  * Sliding scale ranges for different shot difficulties and contexts

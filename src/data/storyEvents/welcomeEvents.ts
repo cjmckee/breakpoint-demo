@@ -3,10 +3,10 @@
  * Initial story events that introduce the player to the game world
  */
 
-import type { StoryEvent } from '../../types/storyEvents.js';
-import { TimeSlot, type StoryMatchMetadata } from '../../types/game.js';
-import { BEGINNER_RACQUET, RUNNING_SHOES } from '../items.js';
-import { profileForArchetype } from '../archetypeTree.js';
+import type { StoryEvent } from '../../types/storyEvents';
+import { TimeSlot, type StoryMatchMetadata } from '../../types/game';
+import { BEGINNER_RACQUET, RUNNING_SHOES } from '../items';
+import { profileForArchetype } from '../archetypeTree';
 
 export const welcomeEvents: StoryEvent[] = [
   /** Welcome to Riverside Tennis Academy */

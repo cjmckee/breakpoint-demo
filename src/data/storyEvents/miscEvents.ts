@@ -5,9 +5,9 @@
  * These events should occur randomly throughout the player's journey for flavor and provide stat boosts, relationship changes, abilities, items, and other effects.
  */
 
-import type { StoryEvent } from '../../types/storyEvents.js'
-import { ChallengeManager } from '../../game/ChallengeManager.js'
-import { BANANA, LUCKY_PENNY, MOTIVATIONAL_PLAYLIST, TENNIS_BALL_KEYCHAIN, ENERGY_DRINK, ICE_BATH_VOUCHER, STRAWBERRIES, ORANGE_SLICE } from '../items.js'
+import type { StoryEvent } from '../../types/storyEvents'
+import { ChallengeManager } from '../../game/ChallengeManager'
+import { BANANA, LUCKY_PENNY, MOTIVATIONAL_PLAYLIST, TENNIS_BALL_KEYCHAIN, ENERGY_DRINK, ICE_BATH_VOUCHER, STRAWBERRIES, ORANGE_SLICE } from '../items'
 import {
     CHALLENGE_SLICE_SPECIALIST,
     CHALLENGE_TOUCH_ARTIST,
@@ -19,7 +19,7 @@ import {
     CHALLENGE_WALL_CLIMBER,
     CHALLENGE_PRECISION_CUTTER,
     CHALLENGE_ESCAPE_ARTIST,
-} from '../challengeTemplates.js'
+} from '../challengeTemplates'
 
 export const miscEvents: StoryEvent[] = [
     {

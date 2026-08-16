@@ -10,23 +10,23 @@
  * (they depend on live user choices).
  */
 
-import type { MatchFormat, MatchState, PlayerStats, MatchStatistics as IMatchStatistics } from '../../types/index.js';
-import type { Ability } from '../../types/game.js';
-import type { ArchetypeProfile } from '../../types/archetype.js';
-import { PlayerProfile } from '../../core/PlayerProfile.js';
-import { PointSimulator } from '../../core/PointSimulator.js';
-import { ScoreTracker } from '../../core/ScoreTracker.js';
-import { MatchStatistics } from '../../core/MatchStatistics.js';
-import { MATCH_FATIGUE } from '../../config/shotThresholds.js';
-import { aggregateArchetypeEffects } from '../../data/archetypeTree.js';
+import type { MatchFormat, MatchState, PlayerStats, MatchStatistics as IMatchStatistics } from '../../types';
+import type { Ability } from '../../types/game';
+import type { ArchetypeProfile } from '../../types/archetype';
+import { PlayerProfile } from '../../core/PlayerProfile';
+import { PointSimulator } from '../../core/PointSimulator';
+import { ScoreTracker } from '../../core/ScoreTracker';
+import { MatchStatistics } from '../../core/MatchStatistics';
+import { MATCH_FATIGUE } from '../../config/shotThresholds';
+import { aggregateArchetypeEffects } from '../../data/archetypeTree';
 import {
   OPPONENTS_BY_TIER,
   getScaledOpponentStats,
   getOpponentArchetypeProfile,
   type OpponentPreset,
-} from '../../data/opponents.js';
-import { riversideOpen } from '../../data/tournaments/riversideOpen.js';
-import { print, printBanner, printHeader, printTable, fmtNum } from './formatters.js';
+} from '../../data/opponents';
+import { riversideOpen } from '../../data/tournaments/riversideOpen';
+import { print, printBanner, printHeader, printTable, fmtNum } from './formatters';
 
 // ─── Configuration ───────────────────────────────────────────
 

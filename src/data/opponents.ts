@@ -4,12 +4,12 @@
  * One is randomly selected per match from the chosen tier.
  */
 
-import type { PlayerStats, OpponentTier, Ability } from '../types/game.js';
-import { AbilityName } from '../types/game.js';
-import type { ArchetypeType } from './archetypes.js';
-import type { ArchetypeProfile } from '../types/archetype.js';
-import { profileForArchetype } from './archetypeTree.js';
-import { ABILITY_DEFINITIONS } from './abilities.js';
+import type { PlayerStats, OpponentTier, Ability } from '../types/game';
+import { AbilityName } from '../types/game';
+import type { ArchetypeType } from './archetypes';
+import type { ArchetypeProfile } from '../types/archetype';
+import { profileForArchetype } from './archetypeTree';
+import { ABILITY_DEFINITIONS } from './abilities';
 
 export interface OpponentPreset {
   name: string;

@@ -9,13 +9,13 @@
  * Env: N=60 (BO3 per build)  RATING=60 (uniform rating; use 35 for tier 1)
  */
 
-import type { MatchFormat, MatchState, PlayerStats, ShotType, PointResult } from '../../types/index.js';
-import type { ArchetypeProfile, PhaseSpec, GamePhase } from '../../types/archetype.js';
-import { PlayerProfile } from '../../core/PlayerProfile.js';
-import { PointSimulator } from '../../core/PointSimulator.js';
-import { ScoreTracker } from '../../core/ScoreTracker.js';
-import { MATCH_FATIGUE } from '../../config/shotThresholds.js';
-import { aggregateArchetypeEffects } from '../../data/archetypeTree.js';
+import type { MatchFormat, MatchState, PlayerStats, ShotType, PointResult } from '../../types';
+import type { ArchetypeProfile, PhaseSpec, GamePhase } from '../../types/archetype';
+import { PlayerProfile } from '../../core/PlayerProfile';
+import { PointSimulator } from '../../core/PointSimulator';
+import { ScoreTracker } from '../../core/ScoreTracker';
+import { MATCH_FATIGUE } from '../../config/shotThresholds';
+import { aggregateArchetypeEffects } from '../../data/archetypeTree';
 
 const N_MATCHES = Number(process.env.N ?? 60);
 /** Uniform rating for both players. The shipped ladder is OVR 20-49, so pass

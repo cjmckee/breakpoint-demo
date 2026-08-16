@@ -24,14 +24,14 @@
  * Env: N=30 (BO3 per build)  L=55
  */
 
-import type { MatchFormat, MatchState, PlayerStats, ShotDetail } from '../../types/index.js';
-import { PointType } from '../../types/index.js';
-import type { ArchetypeProfile, PhaseSpec, GamePhase } from '../../types/archetype.js';
-import { PlayerProfile, getShotStatWeights } from '../../core/PlayerProfile.js';
-import { PointSimulator } from '../../core/PointSimulator.js';
-import { ScoreTracker } from '../../core/ScoreTracker.js';
-import { MATCH_FATIGUE } from '../../config/shotThresholds.js';
-import { aggregateArchetypeEffects } from '../../data/archetypeTree.js';
+import type { MatchFormat, MatchState, PlayerStats, ShotDetail } from '../../types';
+import { PointType } from '../../types';
+import type { ArchetypeProfile, PhaseSpec, GamePhase } from '../../types/archetype';
+import { PlayerProfile, getShotStatWeights } from '../../core/PlayerProfile';
+import { PointSimulator } from '../../core/PointSimulator';
+import { ScoreTracker } from '../../core/ScoreTracker';
+import { MATCH_FATIGUE } from '../../config/shotThresholds';
+import { aggregateArchetypeEffects } from '../../data/archetypeTree';
 
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
 const _origLog = console.log;

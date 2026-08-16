@@ -16,15 +16,15 @@ import type {
   PointResult,
   PlayerMatchFatigue,
   PointType,
-} from '../types/index.js';
-import { MATCH_FATIGUE, STAMINA_RECOVERY } from '../config/shotThresholds.js';
-import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds.js';
-import { PlayerProfile } from './PlayerProfile.js';
-import { PointSimulator } from './PointSimulator.js';
-import { ScoreTracker } from './ScoreTracker.js';
-import { MatchStatistics } from './MatchStatistics.js';
-import { MomentumEngine, ClutchLevel } from './MomentumEngine.js';
-import { aggregateArchetypeEffects } from '../data/archetypeTree.js';
+} from '../types';
+import { MATCH_FATIGUE, STAMINA_RECOVERY } from '../config/shotThresholds';
+import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds';
+import { PlayerProfile } from './PlayerProfile';
+import { PointSimulator } from './PointSimulator';
+import { ScoreTracker } from './ScoreTracker';
+import { MatchStatistics } from './MatchStatistics';
+import { MomentumEngine, ClutchLevel } from './MomentumEngine';
+import { aggregateArchetypeEffects } from '../data/archetypeTree';
 
 export interface MatchConfig {
   player: PlayerProfile;

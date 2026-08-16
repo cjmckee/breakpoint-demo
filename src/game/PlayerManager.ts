@@ -9,9 +9,9 @@ import {
   DEFAULT_PLAYER_STATS,
   StatBoosts,
   Ability
-} from '../types/game.js';
-import { AbilitySystem } from './AbilitySystem.js';
-import { createEmptyArchetypeProfile } from '../data/archetypeTree.js';
+} from '../types/game';
+import { AbilitySystem } from './AbilitySystem';
+import { createEmptyArchetypeProfile } from '../data/archetypeTree';
 
 export class PlayerManager {
   /**

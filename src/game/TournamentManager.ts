@@ -7,10 +7,10 @@ import type {
   ActiveTournament,
   TournamentConfig,
   TournamentMatchMetadata,
-} from '../types/tournaments.js';
-import type { ScheduledEvent, GameCalendar } from '../types/game.js';
-import { TournamentRegistry } from '../data/tournaments/index.js';
-import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards.js';
+} from '../types/tournaments';
+import type { ScheduledEvent, GameCalendar } from '../types/game';
+import { TournamentRegistry } from '../data/tournaments';
+import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
 
 export class TournamentManager {
   /**

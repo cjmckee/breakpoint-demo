@@ -5,9 +5,9 @@
  * runtime state is added when instantiated via ChallengeManager.createFromTemplate().
  */
 
-import type { ChallengeTemplate } from '../types/challenges.js';
-import { AbilityName } from '../types/game.js';
-import { CHAMPION_WRISTBAND, STYLISH_HEADBAND } from './items.js';
+import type { ChallengeTemplate } from '../types/challenges';
+import { AbilityName } from '../types/game';
+import { CHAMPION_WRISTBAND, STYLISH_HEADBAND } from './items';
 
 // ============================================================================
 // COACH STORYLINE CHALLENGES

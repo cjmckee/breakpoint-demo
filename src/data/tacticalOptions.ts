@@ -5,8 +5,8 @@
  * and secondary effects that apply beyond point outcome.
  */
 
-import { PointType } from '../types/index.js';
-import type { ArchetypeType } from './archetypes.js';
+import { PointType } from '../types';
+import type { ArchetypeType } from './archetypes';
 
 export interface SecondaryEffect {
   type: 'momentum' | 'energy' | 'pressure' | 'mood';

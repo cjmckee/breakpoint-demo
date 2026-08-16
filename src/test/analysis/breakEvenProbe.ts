@@ -20,13 +20,13 @@
  * Run: npm run build:node && node dist/src/test/analysis/breakEvenProbe.js
  */
 
-import type { MatchFormat, MatchState, PlayerStats } from '../../types/index.js';
-import type { ArchetypeProfile, PhaseSpec, GamePhase } from '../../types/archetype.js';
-import { PlayerProfile } from '../../core/PlayerProfile.js';
-import { PointSimulator } from '../../core/PointSimulator.js';
-import { ScoreTracker } from '../../core/ScoreTracker.js';
-import { MATCH_FATIGUE } from '../../config/shotThresholds.js';
-import { aggregateArchetypeEffects } from '../../data/archetypeTree.js';
+import type { MatchFormat, MatchState, PlayerStats } from '../../types';
+import type { ArchetypeProfile, PhaseSpec, GamePhase } from '../../types/archetype';
+import { PlayerProfile } from '../../core/PlayerProfile';
+import { PointSimulator } from '../../core/PointSimulator';
+import { ScoreTracker } from '../../core/ScoreTracker';
+import { MATCH_FATIGUE } from '../../config/shotThresholds';
+import { aggregateArchetypeEffects } from '../../data/archetypeTree';
 
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
 const N = 150;

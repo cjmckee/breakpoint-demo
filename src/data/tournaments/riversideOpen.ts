@@ -3,9 +3,9 @@
  * The first tournament featuring 4 rounds with named opponents
  */
 
-import type { TournamentConfig, MatchOpponent } from '../../types/tournaments.js';
-import { AbilityName } from '../../types/game.js';
-import { ABILITY_DEFINITIONS } from '../abilities.js';
+import type { TournamentConfig, MatchOpponent } from '../../types/tournaments';
+import { AbilityName } from '../../types/game';
+import { ABILITY_DEFINITIONS } from '../abilities';
 
 // ============================================================================
 // OPPONENT DEFINITIONS

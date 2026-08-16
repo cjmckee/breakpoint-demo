@@ -1,5 +1,5 @@
-import type { DistributionStats } from './stats.js';
-import { computeHistogram } from './stats.js';
+import type { DistributionStats } from './stats';
+import { computeHistogram } from './stats';
 
 const _log = console.log;
 
