@@ -6,6 +6,7 @@
  */
 
 import { PointType } from '../types';
+import type { StatName } from '../types';
 import type { ArchetypeType } from './archetypes';
 
 export interface SecondaryEffect {
@@ -25,14 +26,14 @@ export interface TacticalOption {
   worstAgainstHint: string; // Human-readable "bad against" hint (mirror of bestAgainstHint)
   secondaryEffects: SecondaryEffect[];
   playerStatWeights: {
-    primary: string;
+    primary: StatName;
     primaryWeight: number;
-    secondary: Array<{ stat: string; weight: number }>;
+    secondary: Array<{ stat: StatName; weight: number }>;
   };
   opponentStatWeights: {
-    primary: string;
+    primary: StatName;
     primaryWeight: number;
-    secondary: Array<{ stat: string; weight: number }>;
+    secondary: Array<{ stat: StatName; weight: number }>;
   };
   shotOutcomes: {
     success: { outcome: PointType; shotType: string; shooter: 'player' | 'opponent' };
@@ -80,7 +81,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         secondary: [
           { stat: 'strength', weight: 0.25 },
           { stat: 'placement', weight: 0.2 },
-          { stat: 'offensive', weight: 0.1 },
+          { stat: 'tactics', weight: 0.1 },
           { stat: 'focus', weight: 0.1 },
         ],
       },
@@ -89,8 +90,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         primaryWeight: 0.4,
         secondary: [
           { stat: 'anticipation', weight: 0.25 },
-          { stat: 'speed', weight: 0.2 },
-          { stat: 'agility', weight: 0.15 },
+          { stat: 'speed', weight: 0.35 },
         ],
       },
       shotOutcomes: {
@@ -113,13 +113,12 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
 
       ],
       playerStatWeights: {
-        primary: 'volley',
+        primary: 'net',
         primaryWeight: 0.25,
         secondary: [
           { stat: 'serve', weight: 0.25 },
-          { stat: 'agility', weight: 0.2 },
-          { stat: 'speed', weight: 0.15 },
-          { stat: 'overhead', weight: 0.15 },
+          { stat: 'speed', weight: 0.35 },
+          { stat: 'anticipation', weight: 0.15 },
         ],
       },
       opponentStatWeights: {
@@ -128,8 +127,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         secondary: [
           { stat: 'forehand', weight: 0.2 },
           { stat: 'placement', weight: 0.2 },
-          { stat: 'shotVariety', weight: 0.15 },
-          { stat: 'offensive', weight: 0.15 },
+          { stat: 'spin', weight: 0.15 },
+          { stat: 'tactics', weight: 0.15 },
         ],
       },
       shotOutcomes: {
@@ -158,14 +157,14 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
           { stat: 'spin', weight: 0.25 },
           { stat: 'placement', weight: 0.2 },
           { stat: 'focus', weight: 0.15 },
-          { stat: 'defensive', weight: 0.15 },
+          { stat: 'tactics', weight: 0.15 },
         ],
       },
       opponentStatWeights: {
         primary: 'return',
         primaryWeight: 0.3,
         secondary: [
-          { stat: 'offensive', weight: 0.25 },
+          { stat: 'tactics', weight: 0.25 },
           { stat: 'forehand', weight: 0.2 },
           { stat: 'strength', weight: 0.15 },
           { stat: 'speed', weight: 0.1 },
@@ -203,7 +202,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         secondary: [
           { stat: 'forehand', weight: 0.2 },
           { stat: 'strength', weight: 0.2 },
-          { stat: 'offensive', weight: 0.15 },
+          { stat: 'tactics', weight: 0.15 },
           { stat: 'placement', weight: 0.15 },
         ],
       },
@@ -212,7 +211,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         primaryWeight: 0.35,
         secondary: [
           { stat: 'placement', weight: 0.25 },
-          { stat: 'defensive', weight: 0.2 },
+          { stat: 'tactics', weight: 0.2 },
           { stat: 'anticipation', weight: 0.2 },
         ],
       },
@@ -240,7 +239,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         primary: 'return',
         primaryWeight: 0.3,
         secondary: [
-          { stat: 'defensive', weight: 0.25 },
+          { stat: 'tactics', weight: 0.25 },
           { stat: 'focus', weight: 0.2 },
           { stat: 'stamina', weight: 0.15 },
           { stat: 'anticipation', weight: 0.1 },
@@ -250,7 +249,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         primary: 'serve',
         primaryWeight: 0.35,
         secondary: [
-          { stat: 'offensive', weight: 0.25 },
+          { stat: 'tactics', weight: 0.25 },
           { stat: 'strength', weight: 0.2 },
           { stat: 'forehand', weight: 0.2 },
         ],
@@ -275,22 +274,21 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
 
       ],
       playerStatWeights: {
-        primary: 'volley',
+        primary: 'net',
         primaryWeight: 0.25,
         secondary: [
           { stat: 'slice', weight: 0.2 },
           { stat: 'return', weight: 0.2 },
-          { stat: 'agility', weight: 0.2 },
-          { stat: 'speed', weight: 0.15 },
+          { stat: 'speed', weight: 0.35 },
         ],
       },
       opponentStatWeights: {
         primary: 'serve',
         primaryWeight: 0.3,
         secondary: [
-          { stat: 'shotVariety', weight: 0.25 },
+          { stat: 'spin', weight: 0.25 },
           { stat: 'forehand', weight: 0.2 },
-          { stat: 'offensive', weight: 0.15 },
+          { stat: 'tactics', weight: 0.15 },
           { stat: 'placement', weight: 0.1 },
         ],
       },
@@ -326,7 +324,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         secondary: [
           { stat: 'strength', weight: 0.25 },
           { stat: 'focus', weight: 0.2 },
-          { stat: 'offensive', weight: 0.15 },
+          { stat: 'tactics', weight: 0.15 },
           { stat: 'placement', weight: 0.1 },
         ],
       },
@@ -359,13 +357,12 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
 
       ],
       playerStatWeights: {
-        primary: 'volley',
+        primary: 'net',
         primaryWeight: 0.25,
         secondary: [
           { stat: 'serve', weight: 0.25 },
-          { stat: 'agility', weight: 0.2 },
-          { stat: 'speed', weight: 0.15 },
-          { stat: 'overhead', weight: 0.15 },
+          { stat: 'speed', weight: 0.35 },
+          { stat: 'anticipation', weight: 0.15 },
         ],
       },
       opponentStatWeights: {
@@ -374,8 +371,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         secondary: [
           { stat: 'forehand', weight: 0.2 },
           { stat: 'placement', weight: 0.2 },
-          { stat: 'shotVariety', weight: 0.15 },
-          { stat: 'offensive', weight: 0.15 },
+          { stat: 'spin', weight: 0.15 },
+          { stat: 'tactics', weight: 0.15 },
         ],
       },
       shotOutcomes: {
@@ -404,14 +401,14 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
           { stat: 'spin', weight: 0.25 },
           { stat: 'placement', weight: 0.2 },
           { stat: 'focus', weight: 0.15 },
-          { stat: 'defensive', weight: 0.15 },
+          { stat: 'tactics', weight: 0.15 },
         ],
       },
       opponentStatWeights: {
         primary: 'return',
         primaryWeight: 0.3,
         secondary: [
-          { stat: 'offensive', weight: 0.25 },
+          { stat: 'tactics', weight: 0.25 },
           { stat: 'forehand', weight: 0.2 },
           { stat: 'strength', weight: 0.15 },
           { stat: 'speed', weight: 0.1 },
@@ -449,7 +446,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         secondary: [
           { stat: 'strength', weight: 0.2 },
           { stat: 'forehand', weight: 0.2 },
-          { stat: 'offensive', weight: 0.15 },
+          { stat: 'tactics', weight: 0.15 },
           { stat: 'focus', weight: 0.15 },
         ],
       },
@@ -459,7 +456,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         secondary: [
           { stat: 'placement', weight: 0.25 },
           { stat: 'strength', weight: 0.2 },
-          { stat: 'offensive', weight: 0.2 },
+          { stat: 'tactics', weight: 0.2 },
         ],
       },
       shotOutcomes: {
@@ -488,7 +485,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         secondary: [
           { stat: 'backhand', weight: 0.2 },
           { stat: 'anticipation', weight: 0.2 },
-          { stat: 'defensive', weight: 0.2 },
+          { stat: 'tactics', weight: 0.2 },
           { stat: 'stamina', weight: 0.15 },
         ],
       },
@@ -497,7 +494,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         primaryWeight: 0.3,
         secondary: [
           { stat: 'forehand', weight: 0.25 },
-          { stat: 'offensive', weight: 0.2 },
+          { stat: 'tactics', weight: 0.2 },
           { stat: 'stamina', weight: 0.15 },
           { stat: 'strength', weight: 0.1 },
         ],
@@ -522,12 +519,12 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         { type: 'momentum', value: 8, condition: 'on_success' },
       ],
       playerStatWeights: {
-        primary: 'dropShot',
+        primary: 'placement',
         primaryWeight: 0.3,
         secondary: [
           { stat: 'return', weight: 0.2 },
-          { stat: 'shotVariety', weight: 0.2 },
-          { stat: 'placement', weight: 0.15 },
+          { stat: 'spin', weight: 0.2 },
+          { stat: 'tactics', weight: 0.15 },
           { stat: 'focus', weight: 0.15 },
         ],
       },
@@ -536,8 +533,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         primaryWeight: 0.3,
         secondary: [
           { stat: 'anticipation', weight: 0.25 },
-          { stat: 'agility', weight: 0.25 },
-          { stat: 'recovery', weight: 0.2 },
+          { stat: 'net', weight: 0.25 },
+          { stat: 'stamina', weight: 0.2 },
         ],
       },
       shotOutcomes: {
@@ -573,7 +570,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
           { stat: 'strength', weight: 0.25 },
           { stat: 'placement', weight: 0.2 },
           { stat: 'focus', weight: 0.15 },
-          { stat: 'offensive', weight: 0.1 },
+          { stat: 'tactics', weight: 0.1 },
         ],
       },
       opponentStatWeights: {
@@ -582,7 +579,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         secondary: [
           { stat: 'anticipation', weight: 0.25 },
           { stat: 'speed', weight: 0.2 },
-          { stat: 'offensive', weight: 0.2 },
+          { stat: 'tactics', weight: 0.2 },
         ],
       },
       shotOutcomes: {
@@ -611,7 +608,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         secondary: [
           { stat: 'serve', weight: 0.25 },
           { stat: 'placement', weight: 0.2 },
-          { stat: 'shotVariety', weight: 0.15 },
+          { stat: 'spin', weight: 0.15 },
           { stat: 'focus', weight: 0.15 },
         ],
       },
@@ -620,8 +617,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         primaryWeight: 0.3,
         secondary: [
           { stat: 'forehand', weight: 0.25 },
-          { stat: 'agility', weight: 0.2 },
-          { stat: 'offensive', weight: 0.15 },
+          { stat: 'speed', weight: 0.2 },
+          { stat: 'tactics', weight: 0.15 },
           { stat: 'spin', weight: 0.1 },
         ],
       },
@@ -645,13 +642,12 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
 
       ],
       playerStatWeights: {
-        primary: 'volley',
+        primary: 'net',
         primaryWeight: 0.25,
         secondary: [
           { stat: 'serve', weight: 0.25 },
-          { stat: 'agility', weight: 0.2 },
-          { stat: 'speed', weight: 0.15 },
-          { stat: 'overhead', weight: 0.15 },
+          { stat: 'speed', weight: 0.35 },
+          { stat: 'anticipation', weight: 0.15 },
         ],
       },
       opponentStatWeights: {
@@ -660,8 +656,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         secondary: [
           { stat: 'forehand', weight: 0.2 },
           { stat: 'placement', weight: 0.2 },
-          { stat: 'shotVariety', weight: 0.15 },
-          { stat: 'offensive', weight: 0.15 },
+          { stat: 'spin', weight: 0.15 },
+          { stat: 'tactics', weight: 0.15 },
         ],
       },
       shotOutcomes: {
@@ -691,18 +687,17 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         { type: 'pressure', value: -5, condition: 'on_success' },
       ],
       playerStatWeights: {
-        primary: 'defensive',
+        primary: 'tactics',
         primaryWeight: 0.25,
         secondary: [
-          { stat: 'stamina', weight: 0.2 },
+          { stat: 'stamina', weight: 0.35 },
           { stat: 'speed', weight: 0.2 },
-          { stat: 'recovery', weight: 0.15 },
           { stat: 'focus', weight: 0.1 },
           { stat: 'anticipation', weight: 0.1 },
         ],
       },
       opponentStatWeights: {
-        primary: 'offensive',
+        primary: 'tactics',
         primaryWeight: 0.3,
         secondary: [
           { stat: 'strength', weight: 0.25 },
@@ -737,19 +732,18 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         primaryWeight: 0.25,
         secondary: [
           { stat: 'strength', weight: 0.2 },
-          { stat: 'shotVariety', weight: 0.2 },
-          { stat: 'offensive', weight: 0.2 },
+          { stat: 'spin', weight: 0.2 },
+          { stat: 'tactics', weight: 0.2 },
           { stat: 'placement', weight: 0.15 },
         ],
       },
       opponentStatWeights: {
-        primary: 'defensive',
+        primary: 'tactics',
         primaryWeight: 0.3,
         secondary: [
           { stat: 'anticipation', weight: 0.25 },
-          { stat: 'speed', weight: 0.2 },
-          { stat: 'agility', weight: 0.15 },
-          { stat: 'recovery', weight: 0.1 },
+          { stat: 'speed', weight: 0.35 },
+          { stat: 'stamina', weight: 0.1 },
         ],
       },
       shotOutcomes: {
@@ -772,12 +766,12 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         { type: 'momentum', value: 8, condition: 'on_success' },
       ],
       playerStatWeights: {
-        primary: 'dropShot',
+        primary: 'placement',
         primaryWeight: 0.3,
         secondary: [
-          { stat: 'shotVariety', weight: 0.2 },
+          { stat: 'spin', weight: 0.2 },
           { stat: 'slice', weight: 0.2 },
-          { stat: 'placement', weight: 0.15 },
+          { stat: 'tactics', weight: 0.15 },
           { stat: 'focus', weight: 0.15 },
         ],
       },
@@ -786,8 +780,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         primaryWeight: 0.3,
         secondary: [
           { stat: 'anticipation', weight: 0.25 },
-          { stat: 'agility', weight: 0.25 },
-          { stat: 'recovery', weight: 0.2 },
+          { stat: 'net', weight: 0.25 },
+          { stat: 'stamina', weight: 0.2 },
         ],
       },
       shotOutcomes: {
@@ -823,7 +817,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
           { stat: 'strength', weight: 0.2 },
           { stat: 'placement', weight: 0.2 },
           { stat: 'focus', weight: 0.15 },
-          { stat: 'offensive', weight: 0.15 },
+          { stat: 'tactics', weight: 0.15 },
         ],
       },
       opponentStatWeights: {
@@ -855,13 +849,12 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
 
       ],
       playerStatWeights: {
-        primary: 'volley',
+        primary: 'net',
         primaryWeight: 0.25,
         secondary: [
           { stat: 'serve', weight: 0.25 },
-          { stat: 'agility', weight: 0.2 },
-          { stat: 'speed', weight: 0.15 },
-          { stat: 'overhead', weight: 0.15 },
+          { stat: 'speed', weight: 0.35 },
+          { stat: 'anticipation', weight: 0.15 },
         ],
       },
       opponentStatWeights: {
@@ -870,8 +863,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         secondary: [
           { stat: 'forehand', weight: 0.2 },
           { stat: 'placement', weight: 0.2 },
-          { stat: 'shotVariety', weight: 0.15 },
-          { stat: 'offensive', weight: 0.15 },
+          { stat: 'spin', weight: 0.15 },
+          { stat: 'tactics', weight: 0.15 },
         ],
       },
       shotOutcomes: {
@@ -902,14 +895,14 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
           { stat: 'focus', weight: 0.2 },
           { stat: 'placement', weight: 0.15 },
           { stat: 'stamina', weight: 0.1 },
-          { stat: 'defensive', weight: 0.1 },
+          { stat: 'tactics', weight: 0.1 },
         ],
       },
       opponentStatWeights: {
         primary: 'return',
         primaryWeight: 0.3,
         secondary: [
-          { stat: 'offensive', weight: 0.25 },
+          { stat: 'tactics', weight: 0.25 },
           { stat: 'forehand', weight: 0.2 },
           { stat: 'strength', weight: 0.15 },
           { stat: 'speed', weight: 0.1 },
@@ -947,7 +940,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         secondary: [
           { stat: 'strength', weight: 0.2 },
           { stat: 'forehand', weight: 0.2 },
-          { stat: 'offensive', weight: 0.15 },
+          { stat: 'tactics', weight: 0.15 },
           { stat: 'focus', weight: 0.15 },
         ],
       },
@@ -957,7 +950,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         secondary: [
           { stat: 'placement', weight: 0.25 },
           { stat: 'strength', weight: 0.2 },
-          { stat: 'offensive', weight: 0.2 },
+          { stat: 'tactics', weight: 0.2 },
         ],
       },
       shotOutcomes: {
@@ -987,16 +980,15 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
           { stat: 'return', weight: 0.25 },
           { stat: 'backhand', weight: 0.2 },
           { stat: 'placement', weight: 0.15 },
-          { stat: 'agility', weight: 0.15 },
+          { stat: 'speed', weight: 0.15 },
         ],
       },
       opponentStatWeights: {
         primary: 'serve',
         primaryWeight: 0.35,
         secondary: [
-          { stat: 'spin', weight: 0.2 },
+          { stat: 'spin', weight: 0.35 },
           { stat: 'placement', weight: 0.2 },
-          { stat: 'shotVariety', weight: 0.15 },
           { stat: 'strength', weight: 0.1 },
         ],
       },
@@ -1020,22 +1012,21 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
 
       ],
       playerStatWeights: {
-        primary: 'volley',
+        primary: 'net',
         primaryWeight: 0.25,
         secondary: [
           { stat: 'slice', weight: 0.2 },
           { stat: 'return', weight: 0.2 },
-          { stat: 'agility', weight: 0.2 },
-          { stat: 'speed', weight: 0.15 },
+          { stat: 'speed', weight: 0.35 },
         ],
       },
       opponentStatWeights: {
         primary: 'serve',
         primaryWeight: 0.3,
         secondary: [
-          { stat: 'shotVariety', weight: 0.25 },
+          { stat: 'spin', weight: 0.25 },
           { stat: 'forehand', weight: 0.2 },
-          { stat: 'offensive', weight: 0.15 },
+          { stat: 'tactics', weight: 0.15 },
           { stat: 'placement', weight: 0.1 },
         ],
       },
@@ -1072,7 +1063,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         secondary: [
           { stat: 'strength', weight: 0.25 },
           { stat: 'placement', weight: 0.2 },
-          { stat: 'offensive', weight: 0.15 },
+          { stat: 'tactics', weight: 0.15 },
           { stat: 'focus', weight: 0.1 },
         ],
       },
@@ -1081,8 +1072,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         primaryWeight: 0.35,
         secondary: [
           { stat: 'anticipation', weight: 0.25 },
-          { stat: 'speed', weight: 0.2 },
-          { stat: 'agility', weight: 0.2 },
+          { stat: 'speed', weight: 0.4 },
         ],
       },
       shotOutcomes: {
@@ -1110,7 +1100,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         primaryWeight: 0.25,
         secondary: [
           { stat: 'serve', weight: 0.25 },
-          { stat: 'defensive', weight: 0.2 },
+          { stat: 'tactics', weight: 0.2 },
           { stat: 'stamina', weight: 0.15 },
           { stat: 'focus', weight: 0.15 },
         ],
@@ -1119,7 +1109,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         primary: 'return',
         primaryWeight: 0.3,
         secondary: [
-          { stat: 'offensive', weight: 0.25 },
+          { stat: 'tactics', weight: 0.25 },
           { stat: 'forehand', weight: 0.2 },
           { stat: 'strength', weight: 0.15 },
           { stat: 'speed', weight: 0.1 },
@@ -1145,13 +1135,12 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
 
       ],
       playerStatWeights: {
-        primary: 'volley',
+        primary: 'net',
         primaryWeight: 0.25,
         secondary: [
           { stat: 'serve', weight: 0.25 },
-          { stat: 'agility', weight: 0.2 },
-          { stat: 'speed', weight: 0.15 },
-          { stat: 'overhead', weight: 0.15 },
+          { stat: 'speed', weight: 0.35 },
+          { stat: 'anticipation', weight: 0.15 },
         ],
       },
       opponentStatWeights: {
@@ -1160,8 +1149,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         secondary: [
           { stat: 'forehand', weight: 0.2 },
           { stat: 'placement', weight: 0.2 },
-          { stat: 'shotVariety', weight: 0.15 },
-          { stat: 'offensive', weight: 0.15 },
+          { stat: 'spin', weight: 0.15 },
+          { stat: 'tactics', weight: 0.15 },
         ],
       },
       shotOutcomes: {
@@ -1198,7 +1187,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         secondary: [
           { stat: 'strength', weight: 0.2 },
           { stat: 'forehand', weight: 0.2 },
-          { stat: 'offensive', weight: 0.15 },
+          { stat: 'tactics', weight: 0.15 },
           { stat: 'focus', weight: 0.15 },
         ],
       },
@@ -1208,7 +1197,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         secondary: [
           { stat: 'placement', weight: 0.25 },
           { stat: 'strength', weight: 0.2 },
-          { stat: 'offensive', weight: 0.2 },
+          { stat: 'tactics', weight: 0.2 },
         ],
       },
       shotOutcomes: {
@@ -1235,7 +1224,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         primary: 'return',
         primaryWeight: 0.25,
         secondary: [
-          { stat: 'defensive', weight: 0.2 },
+          { stat: 'tactics', weight: 0.2 },
           { stat: 'stamina', weight: 0.2 },
           { stat: 'focus', weight: 0.15 },
           { stat: 'anticipation', weight: 0.1 },
@@ -1246,7 +1235,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         primary: 'serve',
         primaryWeight: 0.3,
         secondary: [
-          { stat: 'offensive', weight: 0.25 },
+          { stat: 'tactics', weight: 0.25 },
           { stat: 'strength', weight: 0.2 },
           { stat: 'stamina', weight: 0.15 },
           { stat: 'forehand', weight: 0.1 },
@@ -1273,10 +1262,10 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         { type: 'pressure', value: -5, condition: 'on_success' },
       ],
       playerStatWeights: {
-        primary: 'shotVariety',
+        primary: 'spin',
         primaryWeight: 0.25,
         secondary: [
-          { stat: 'defensive', weight: 0.2 },
+          { stat: 'tactics', weight: 0.2 },
           { stat: 'placement', weight: 0.2 },
           { stat: 'focus', weight: 0.15 },
           { stat: 'anticipation', weight: 0.1 },
@@ -1284,12 +1273,11 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         ],
       },
       opponentStatWeights: {
-        primary: 'overhead',
+        primary: 'net',
         primaryWeight: 0.3,
         secondary: [
-          { stat: 'speed', weight: 0.2 },
-          { stat: 'agility', weight: 0.2 },
-          { stat: 'offensive', weight: 0.15 },
+          { stat: 'speed', weight: 0.4 },
+          { stat: 'tactics', weight: 0.15 },
           { stat: 'strength', weight: 0.15 },
         ],
       },
@@ -1320,17 +1308,17 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         { type: 'mood', value: -5, condition: 'on_failure' },
       ],
       playerStatWeights: {
-        primary: 'offensive',
+        primary: 'tactics',
         primaryWeight: 0.3,
         secondary: [
           { stat: 'forehand', weight: 0.25 },
           { stat: 'strength', weight: 0.2 },
-          { stat: 'offensive', weight: 0.15 },
+          { stat: 'placement', weight: 0.15 },
           { stat: 'focus', weight: 0.1 },
         ],
       },
       opponentStatWeights: {
-        primary: 'defensive',
+        primary: 'tactics',
         primaryWeight: 0.35,
         secondary: [
           { stat: 'focus', weight: 0.25 },
@@ -1359,7 +1347,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         { type: 'pressure', value: -3, condition: 'on_success' },
       ],
       playerStatWeights: {
-        primary: 'defensive',
+        primary: 'tactics',
         primaryWeight: 0.3,
         secondary: [
           { stat: 'focus', weight: 0.25 },
@@ -1369,7 +1357,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         ],
       },
       opponentStatWeights: {
-        primary: 'offensive',
+        primary: 'tactics',
         primaryWeight: 0.3,
         secondary: [
           { stat: 'focus', weight: 0.25 },
@@ -1398,13 +1386,12 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         { type: 'momentum', value: -5, condition: 'on_failure' },
       ],
       playerStatWeights: {
-        primary: 'volley',
+        primary: 'net',
         primaryWeight: 0.3,
         secondary: [
-          { stat: 'offensive', weight: 0.25 },
-          { stat: 'agility', weight: 0.2 },
-          { stat: 'overhead', weight: 0.15 },
-          { stat: 'speed', weight: 0.1 },
+          { stat: 'tactics', weight: 0.25 },
+          { stat: 'speed', weight: 0.3 },
+          { stat: 'anticipation', weight: 0.15 },
         ],
       },
       opponentStatWeights: {
@@ -1412,8 +1399,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
         primaryWeight: 0.35,
         secondary: [
           { stat: 'forehand', weight: 0.25 },
-          { stat: 'offensive', weight: 0.2 },
-          { stat: 'shotVariety', weight: 0.1 },
+          { stat: 'tactics', weight: 0.2 },
+          { stat: 'spin', weight: 0.1 },
           { stat: 'anticipation', weight: 0.1 },
         ],
       },

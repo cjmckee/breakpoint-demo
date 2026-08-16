@@ -249,7 +249,62 @@ function migrate3to4(state: PersistedStoreState): PersistedStoreState {
   // activityHistory is deliberately left alone: it is a log of what happened
   // under the old system, and rewriting past training records to stat names
   // that did not exist at the time would make the history lie.
-  return { ...state, player: nextPlayer, shopItems };
+  return { ...state, player: nextPlayer, shopItems, calendar: migrateCalendar(state.calendar) };
+}
+
+/**
+ * Collapse a flat PlayerStats-shaped blob from the 20-stat layout to 14, if it
+ * still carries retired keys. Used both for the player's own ratings and for
+ * opponent stat snapshots embedded in `calendar` — practice opponents
+ * (regenerated each time slot, but can still be mid-slot when a save loads)
+ * and story/team match metadata (scheduled days ahead, so a stale snapshot
+ * can outlive the player's own migration by a long time — this is the "Jen
+ * has 0 tactics" bug). All of them are flat PlayerStats blobs copied from
+ * source data that has since moved to the 14-stat shape, so they collapse the
+ * same way the player's own ratings do.
+ */
+function collapseEmbeddedStats(stats: unknown): unknown {
+  if (!stats || typeof stats !== 'object') return stats;
+  const s = stats as Record<string, NumberMap>;
+  if (!s.core || !s.technical || !s.physical || !s.mental) return stats;
+  if (!hasLegacyStats([s.core, s.technical, s.physical, s.mental])) return stats;
+
+  const merged = collapseStats(
+    { ...s.core, ...s.technical, ...s.physical, ...s.mental },
+    'level',
+  );
+  const pick = <K extends string>(...keys: K[]): Record<K, number> =>
+    Object.fromEntries(keys.map(k => [k, merged[k] ?? 25])) as Record<K, number>;
+
+  return {
+    core: pick('serve', 'forehand', 'backhand', 'return', 'net'),
+    technical: pick('slice', 'spin', 'placement'),
+    physical: pick('speed', 'stamina', 'strength'),
+    mental: pick('focus', 'anticipation', 'tactics'),
+  };
+}
+
+/** Remap the opponent stat snapshots embedded in `calendar`. See collapseEmbeddedStats. */
+function migrateCalendar(calendar: PersistedStoreState['calendar']): PersistedStoreState['calendar'] {
+  if (!calendar) return calendar;
+
+  const practiceOpponents = Object.fromEntries(
+    Object.entries(calendar.practiceOpponents ?? {}).map(([tier, opponent]) => [
+      tier,
+      opponent ? { ...opponent, stats: collapseEmbeddedStats(opponent.stats) } : opponent,
+    ]),
+  ) as GameCalendar['practiceOpponents'];
+
+  const scheduledEvents = (calendar.scheduledEvents ?? []).map((event) => {
+    const metadata = event.metadata as (Record<string, unknown> & { opponentStats?: unknown }) | undefined;
+    if (!metadata?.opponentStats) return event;
+    return {
+      ...event,
+      metadata: { ...metadata, opponentStats: collapseEmbeddedStats(metadata.opponentStats) },
+    };
+  });
+
+  return { ...calendar, practiceOpponents, scheduledEvents };
 }
 
 // ----------------------------------------------------------------------------

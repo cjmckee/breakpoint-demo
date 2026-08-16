@@ -7,6 +7,7 @@
 import { TacticalOption, SecondaryEffect } from '../data/tacticalOptions';
 import type { ArchetypeType } from '../data/archetypes';
 import { PointType } from '../types';
+import type { StatName } from '../types';
 import { PlayerStats, EffectKey } from '../types/game';
 
 /** Counter bonus when option is strongAgainst the opponent's archetype */
@@ -265,9 +266,9 @@ export class KeyMomentResolver {
   private static calculateWeightedStat(
     stats: PlayerStats,
     weights: {
-      primary: string;
+      primary: StatName;
       primaryWeight: number;
-      secondary: Array<{ stat: string; weight: number }>;
+      secondary: Array<{ stat: StatName; weight: number }>;
     }
   ): number {
     const primaryValue = this.getStatValue(stats, weights.primary);
@@ -286,7 +287,7 @@ export class KeyMomentResolver {
   /**
    * Get stat value by name
    */
-  private static getStatValue(stats: PlayerStats, statName: string): number {
+  private static getStatValue(stats: PlayerStats, statName: StatName): number {
     const normalizedName = statName.toLowerCase().replace(/_/g, '');
 
     const categories = ['core', 'technical', 'physical', 'mental'] as const;

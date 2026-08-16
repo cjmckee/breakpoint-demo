@@ -9,11 +9,15 @@
  *
  * This asserts the v3 → v4 migration end to end on a save carrying the things
  * that actually break: 20-stat ratings, an equipped item whose boosts name
- * retired stats, a pending consumable buff, and shop stock.
+ * retired stats, a pending consumable buff, and shop stock — plus the
+ * calendar-embedded opponent snapshots that an earlier version of this
+ * migration missed: a practice opponent and a scheduled story-match opponent
+ * (the "Jen has 0 tactics" bug — her stats were snapshotted into `calendar`
+ * before the consolidation, and the migration originally only touched `player`).
  *
  * Exits non-zero on the first failure, so it can gate a release.
  *
- * Run: npm run build:node && node dist/src/test/migrationCheck.js
+ * Run: npx tsx src/test/migrationCheck.ts
  */
 
 import { migrateStore, CURRENT_STORE_VERSION, type PersistedStoreState } from '../stores/migrations';
@@ -76,7 +80,33 @@ function legacySave(): PersistedStoreState {
     activityHistory: [], completedStoryEvents: [], completedStoryEventChoices: {},
     relationships: {}, hangoutThresholdsSeen: {}, storyEventTriggerChance: 0,
     activeChallenges: [], completedChallenges: [], unlockedTiers: [1],
-    calendar: {}, currentStatus: {},
+    calendar: {
+      practiceOpponents: {
+        1: {
+          opponentId: 'practice_1', name: 'Practice Bot', tier: 1,
+          stats: {
+            core: { serve: 30, forehand: 32, backhand: 28, return: 31, slice: 20 },
+            technical: { volley: 40, overhead: 36, dropShot: 18, spin: 25, placement: 23 },
+            physical: { speed: 29, stamina: 34, strength: 27, agility: 21, recovery: 19 },
+            mental: { focus: 26, anticipation: 24, shotVariety: 16, offensive: 20, defensive: 22 },
+          },
+        },
+      },
+      scheduledEvents: [{
+        eventType: 'story_match', scheduledDay: 5, scheduledTimeSlot: 0,
+        metadata: {
+          opponentId: 'jen', opponentName: 'Jen', opponentTier: 1,
+          winEventId: 'tutorial_jen_win', lossEventId: 'tutorial_jen_loss',
+          opponentStats: {
+            core: { serve: 23, forehand: 25, backhand: 21, return: 25, slice: 20 },
+            technical: { volley: 22, overhead: 18, dropShot: 15, spin: 19, placement: 23 },
+            physical: { speed: 30, stamina: 25, strength: 20, agility: 20, recovery: 20 },
+            mental: { focus: 23, anticipation: 27, shotVariety: 15, offensive: 27, defensive: 27 },
+          },
+        },
+      }],
+    },
+    currentStatus: {},
     audioSettings: { musicVolume: 1, sfxVolume: 1, muteMusic: false, muteSfx: false },
   } as unknown as PersistedStoreState;
 }
@@ -150,6 +180,22 @@ function main(): void {
       'forehand_approach'] as const)
       .every(shot => Number.isFinite(profile.getStatForShot(shot))));
 
+  console.log('\n── calendar-embedded opponents (the "Jen has 0 tactics" bug) ──');
+  const practiceStats = after.calendar!.practiceOpponents![1]!.stats as unknown as Record<string, Record<string, number>>;
+  const jenMeta = after.calendar!.scheduledEvents![0].metadata as unknown as { opponentStats: Record<string, Record<string, number>> };
+  const jenStats = jenMeta.opponentStats;
+  const embeddedKeys = [
+    ...Object.values(practiceStats).flatMap(b => Object.keys(b)),
+    ...Object.values(jenStats).flatMap(b => Object.keys(b)),
+  ];
+  check('no retired stat survives in practiceOpponents or scheduledEvents',
+    RETIRED.every(k => !embeddedKeys.includes(k)),
+    `found: ${RETIRED.filter(k => embeddedKeys.includes(k)).join(', ')}`);
+  near('practice opponent: net = avg(volley 40, overhead 36) = 38', practiceStats.core.net, 38);
+  near('practice opponent: tactics = avg(offensive 20, defensive 22) = 21', practiceStats.mental.tactics, 21);
+  near('Jen (scheduled story match): net = avg(volley 22, overhead 18) = 20', jenStats.core.net, 20);
+  near('Jen: tactics = avg(offensive 27, defensive 27) = 27 — was reading 0', jenStats.mental.tactics, 27);
+
   console.log('\n── the reset this prevents ──');
   // What the player WOULD have read had the migration not run: createDefaultStats
   // Object.assigns the old keys over the new defaults, so the merged stats fall
@@ -170,6 +216,8 @@ function main(): void {
   const twice = migrateStore(after, 3);
   check('running the migration again is a no-op',
     JSON.stringify(twice.player!.stats) === JSON.stringify(player.stats));
+  check('running the migration again is a no-op for calendar too',
+    JSON.stringify(twice.calendar) === JSON.stringify(after.calendar));
 
   console.log(failures === 0
     ? '\n✅ all checks passed\n'
