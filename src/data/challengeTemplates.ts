@@ -237,7 +237,7 @@ export const CHALLENGE_RIVAL_READY: ChallengeTemplate = {
       type: 'statThreshold',
       statName: 'tactics',
       targetValue: 35,
-      description: 'Reach 35 Offensive',
+      description: 'Reach 35 Tactics',
     },
   ],
   reward: {
@@ -391,13 +391,13 @@ export const CHALLENGE_TOUCH_ARTIST: ChallengeTemplate = {
 export const CHALLENGE_OVERHEAD_AUTHORITY: ChallengeTemplate = {
   id: 'challenge_overhead_authority',
   name: 'Overhead Authority',
-  description: 'All those volleyball spikes translated to the court. Train your overhead to 30.',
+  description: 'All those volleyball spikes translated to the court. Train your net game to 30.',
   requirements: [
     {
       type: 'statThreshold',
       statName: 'net',
       targetValue: 30,
-      description: 'Reach 30 Overhead',
+      description: 'Reach 30 Net',
     },
   ],
   reward: {
@@ -432,13 +432,13 @@ export const CHALLENGE_NEED_FOR_SPEED: ChallengeTemplate = {
 export const CHALLENGE_NET_DOMINATOR: ChallengeTemplate = {
   id: 'challenge_net_dominator',
   name: 'Net Dominator',
-  description: 'Badminton showed you the power of net play. Train your volley to 30.',
+  description: 'Badminton showed you the power of net play. Train your net game to 30.',
   requirements: [
     {
       type: 'statThreshold',
       statName: 'net',
       targetValue: 30,
-      description: 'Reach 30 Volley',
+      description: 'Reach 30 Net',
     },
   ],
   reward: {
@@ -453,13 +453,13 @@ export const CHALLENGE_NET_DOMINATOR: ChallengeTemplate = {
 export const CHALLENGE_IRON_RECOVERY: ChallengeTemplate = {
   id: 'challenge_iron_recovery',
   name: 'Iron Recovery',
-  description: 'Hot yoga nearly killed you, but you survived. Train your recovery to 30.',
+  description: 'Hot yoga nearly killed you, but you survived. Train your stamina to 30.',
   requirements: [
     {
       type: 'statThreshold',
       statName: 'stamina',
       targetValue: 30,
-      description: 'Reach 30 Recovery',
+      description: 'Reach 30 Stamina',
     },
   ],
   reward: {
@@ -609,19 +609,19 @@ export const CHALLENGE_SIBLING_TEACHER: ChallengeTemplate = {
 export const CHALLENGE_TRICK_SHOT_MASTER: ChallengeTemplate = {
   id: 'challenge_trick_shot_master',
   name: 'Trick Shot Master',
-  description: "Coach Gonzalez believes you can learn some flashy moves. Don't embarrass him. Reach 30 Drop Shot and 35 Shot Variety.",
+  description: "Coach Gonzalez believes you can learn some flashy moves. Don't embarrass him. Reach 30 Placement and 35 Spin.",
   requirements: [
     {
       type: 'statThreshold',
       statName: 'placement',
       targetValue: 30,
-      description: 'Reach 30 Drop Shot',
+      description: 'Reach 30 Placement',
     },
     {
       type: 'statThreshold',
       statName: 'spin',
       targetValue: 35,
-      description: 'Reach 35 Shot Variety',
+      description: 'Reach 35 Spin',
     },
   ],
   reward: {
@@ -640,13 +640,13 @@ export const CHALLENGE_TRICK_SHOT_MASTER: ChallengeTemplate = {
 export const CHALLENGE_DOUBLES_INSTINCTS: ChallengeTemplate = {
   id: 'challenge_doubles_instincts',
   name: 'Doubles Instincts',
-  description: "Adapting to Jordan's chaos sharpened your net game. Reach 45 Volley.",
+  description: "Adapting to Jordan's chaos sharpened your net game. Reach 45 Net.",
   requirements: [
     {
       type: 'statThreshold',
       statName: 'net',
       targetValue: 45,
-      description: 'Reach 45 Volley',
+      description: 'Reach 45 Net',
     },
   ],
   reward: {

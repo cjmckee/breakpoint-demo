@@ -63,27 +63,23 @@ export const STATS_GUIDE: GlossarySection[] = [
       { term: 'Forehand', definition: 'Power and control on your forehand side. The foundation of most players\' games. Offensive players are typically defined by a strong forehand.' },
       { term: 'Backhand', definition: 'Power and control on your backhand side. Essential for continuing rallies, and some players even prefer it to their forehand.' },
       { term: 'Return', definition: 'Your ability to return serves effectively. Affects how well you break opponent serves.' },
-      { term: 'Slice', definition: 'Your ability to hit slice shots with backspin. Useful for defense and extending rallies to force mistakes from opponents. A pusher\'s best weapon.' },
+      { term: 'Net', definition: 'Everything you hit at net — volleys, half-volleys, and overhead smashes. Higher net rating means stronger serve-and-volley play and cleaner put-aways once you get forward.' },
     ],
   },
   {
     title: 'Technical Stats',
     entries: [
-      { term: 'Volley', definition: 'Skill at hitting volleys near the net. Important for serve-and-volley and net play styles.' },
-      { term: 'Overhead', definition: 'Ability to execute overhead smashes. Critical for converting high balls into points.' },
-      { term: 'Drop Shot', definition: 'Skill at hitting effective drop shots. Used to punish poor positioning or slow opponents, it causes them to rush forward to keep up.' },
+      { term: 'Slice', definition: 'Your ability to hit slice shots with backspin. Useful for defense and extending rallies to force mistakes from opponents. A pusher\'s best weapon.' },
       { term: 'Spin', definition: 'Your ability to generate and control spin. More spin means better control and trickier shots.' },
-      { term: 'Placement', definition: 'Your ability to hit shots to specific targets. Better placement creates angles and winners.' },
+      { term: 'Placement', definition: 'Your ability to hit shots to specific targets — angles, lobs, passing shots, and drop shots. Better placement creates winners and keeps your shot selection varied enough to keep opponents guessing.' },
     ],
   },
   {
     title: 'Physical Stats',
     entries: [
-      { term: 'Speed', definition: 'How quickly you move around the court. Affects your ability to reach shots and get into position.' },
-      { term: 'Stamina', definition: 'Your endurance during long matches. Higher stamina means you play better in the later stages.' },
+      { term: 'Speed', definition: 'How quickly you move around the court and change direction. Affects your ability to reach shots, cover the net, and get into position.' },
+      { term: 'Stamina', definition: 'Your endurance during long matches and how quickly you recover between points. Higher stamina means you play better in the later stages and bounce back from fatigue faster.' },
       { term: 'Strength', definition: 'Raw power in your shots. Contributes to serve speed and shot pace.' },
-      { term: 'Agility', definition: 'How well you change direction and move efficiently. Affects court coverage and positioning.' },
-      { term: 'Recovery', definition: 'How quickly you recover between points. Higher recovery means recovering from fatigue more quickly in a match.' },
     ],
   },
   {
@@ -91,9 +87,7 @@ export const STATS_GUIDE: GlossarySection[] = [
     entries: [
       { term: 'Focus', definition: 'Your concentration during crucial moments. Higher focus improves clutch performance.' },
       { term: 'Anticipation', definition: 'Your ability to read opponents and predict shots. Helps with positioning and reactions.' },
-      { term: 'Shot Variety', definition: 'Your ability to mix up shots effectively. Keeps opponents off-balance.' },
-      { term: 'Offensive', definition: 'Your aggressive play ability. Higher offensive rating improves your ability to attack and finish points.' },
-      { term: 'Defensive', definition: 'Your defensive skills. Higher defensive rating helps you retrieve shots and extend rallies.' },
+      { term: 'Tactics', definition: 'Executing the shot you choose, whether attacking or defending. Higher tactics improves both your ability to attack and finish points and your ability to retrieve tough shots and extend rallies.' },
     ],
   },
 ];

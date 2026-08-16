@@ -789,8 +789,9 @@ export const useGameStore = create<GameState>()(
             return false;
           }
 
-          // Restore state, applying all migrations so imported saves stay current
-          const migrated = migrateStore({
+          // Imports are trusted to already be on the current schema — the store
+          // no longer migrates old shapes, it resets them (see migrations.ts).
+          set({
             player: data.player,
             calendar: data.calendar,
             currentStatus: data.currentStatus || initialStatus,
@@ -805,9 +806,6 @@ export const useGameStore = create<GameState>()(
             unlockedTiers: data.unlockedTiers || [1],
             shopItems: data.shopItems || [],
             audioSettings: data.audioSettings || { musicVolume: 0.7, sfxVolume: 0.7, muteMusic: false, muteSfx: false },
-          }, 0);
-          set({
-            ...migrated,
             eventRecovery: data.eventRecovery || DEFAULT_EVENT_RECOVERY,
             gamePhase: { type: 'idle', overlay: null },
             isInitialized: true,

@@ -12,6 +12,8 @@ import type { MatchReward } from '../types/game';
 import type { MatchStatistics } from '../types';
 import type { KeyMomentHistoryEntry } from '../types/gamePhase';
 import type { AccumulatedMatchEffects } from '../game/MatchOrchestrator';
+import { getPrimaryStatName } from '../core/shotStatMapping';
+import { formatStatName } from '../config/statIcons';
 
 interface MatchSummaryModalProps {
   isOpen: boolean;
@@ -619,36 +621,14 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
 
               {/* Stat Utilization */}
               {Object.keys(matchStatistics.shotTypeStats).length > 0 && (() => {
-                const shotToStat: Record<string, string> = {};
-                const assignStat = (prefix: string, stat: string) => {
-                  Object.keys(matchStatistics.shotTypeStats).forEach(shotType => {
-                    if (shotType.includes(prefix) && !shotToStat[shotType]) {
-                      shotToStat[shotType] = stat;
-                    }
-                  });
-                };
-                assignStat('serve', 'serve');
-                assignStat('return', 'return');
-                assignStat('volley', 'volley');
-                assignStat('half_volley', 'volley');
-                assignStat('overhead', 'overhead');
-                assignStat('drop_shot', 'dropShot');
-                assignStat('slice', 'slice');
-                assignStat('defensive_slice', 'slice');
-                assignStat('angle_shot', 'placement');
-                assignStat('down_the_line', 'placement');
-                assignStat('cross_court', 'placement');
-                assignStat('lob', 'placement');
-                assignStat('passing_shot', 'placement');
-                assignStat('forehand', 'forehand');
-                assignStat('backhand', 'backhand');
-
+                // Which stat actually governs each shot's quality — same mapping ShotCalculator
+                // uses, so this panel can't drift out of sync with the real composite again.
                 const statAgg: Record<string, { attempts: number; successful: number; winners: number; errors: number }> = {};
                 let totalAttempts = 0;
 
                 Object.entries(matchStatistics.shotTypeStats).forEach(([shotType, stats]) => {
                   if (!stats) return;
-                  const stat = shotToStat[shotType] || 'other';
+                  const stat = getPrimaryStatName(shotType);
                   if (!statAgg[stat]) {
                     statAgg[stat] = { attempts: 0, successful: 0, winners: 0, errors: 0 };
                   }
@@ -664,12 +644,6 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
                   .sort(([, a], [, b]) => b.attempts - a.attempts);
 
                 if (statEntries.length === 0) return null;
-
-                const displayNames: Record<string, string> = {
-                  serve: 'Serve', forehand: 'Forehand', backhand: 'Backhand',
-                  volley: 'Volley', overhead: 'Overhead', dropShot: 'Drop Shot',
-                  slice: 'Slice', return: 'Return', placement: 'Placement', other: 'Other',
-                };
 
                 return (
                   <div className="border-t-2 border-pixel-border pt-4">
@@ -688,7 +662,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
                         const successRate = data.attempts > 0 ? Math.round((data.successful / data.attempts) * 100) : 0;
                         return (
                           <div key={stat} className="grid items-center gap-2" style={{ gridTemplateColumns: '10rem 1fr 3.5rem 3.5rem 3.5rem' }}>
-                            <div className="text-sm font-bold text-pixel-text truncate">{displayNames[stat] || stat}</div>
+                            <div className="text-sm font-bold text-pixel-text truncate">{formatStatName(stat)}</div>
                             <div className="bg-pixel-bg border border-pixel-border h-3 overflow-hidden">
                               <div
                                 className="h-full bg-pixel-accent bg-opacity-60"
