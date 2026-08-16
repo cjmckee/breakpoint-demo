@@ -774,6 +774,7 @@ export const useGameStore = create<GameState>()(
           eventRecovery: state.eventRecovery,
           exportedAt: new Date().toISOString(),
           version: '1.0.0',
+          storeVersion: CURRENT_STORE_VERSION,
         };
         return JSON.stringify(exportData, null, 2);
       },
@@ -789,8 +790,15 @@ export const useGameStore = create<GameState>()(
             return false;
           }
 
-          // Imports are trusted to already be on the current schema — the store
-          // no longer migrates old shapes, it resets them (see migrations.ts).
+          // Rehydration resets anything below CURRENT_STORE_VERSION rather than
+          // half-migrating it (see migrations.ts) — an import needs the same
+          // guard, since an export made before a stat-shape change is exactly
+          // the kind of stale-schema data that path is meant to catch.
+          if (data.storeVersion !== CURRENT_STORE_VERSION) {
+            console.error('Save data is from an incompatible version and cannot be imported');
+            return false;
+          }
+
           set({
             player: data.player,
             calendar: data.calendar,
