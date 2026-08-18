@@ -507,8 +507,14 @@ export const useGameStore = create<GameState>()(
 
         // Consume the additional (energy/mood) portion of pending consumable buffs —
         // stat boosts stay pending, they only apply to the player's next match.
-        const { player: finalPlayer, additional: consumableBufAdditional } =
+        const { player: buffedPlayer, additional: consumableBufAdditional } =
           ItemManager.consumeAdditionalBuffs(updatedPlayer);
+
+        // Drives trainingCount challenge requirements (see the week-one training goal)
+        const finalPlayer: Player = {
+          ...buffedPlayer,
+          trainingSessionsCompleted: buffedPlayer.trainingSessionsCompleted + 1,
+        };
 
         // Apply energy/mood effects from items/abilities + consumed activity buffs
         const { effects: trainingEffects } = EffectAggregator.getActiveEffects(finalPlayer);

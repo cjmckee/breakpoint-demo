@@ -64,6 +64,7 @@ function staleSave(): PersistedStoreState {
       seenItemIds: [], activeIndicators: [], seenChallengeIds: [],
       level: 5, experience: 0, totalExperienceEarned: 0, tier: 1,
       createdAt: '', updatedAt: '',
+      trainingSessionsCompleted: 0,
       cumulativeMatchStats: { aces: 0, winners: 0, longRallies: 0, netPoints: 0, breakPoints: 0 },
       flags: {},
       archetypeProfile: { broad: null, phases: {}, specializationPoints: 0, respecTokens: 0 },

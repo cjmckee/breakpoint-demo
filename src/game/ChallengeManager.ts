@@ -15,6 +15,7 @@ import type {
   MatchStatProgress,
   AbilityUnlockProgress,
   MatchCountProgress,
+  TrainingCountProgress,
   RelationshipLevelProgress,
 } from '../types/challenges';
 import type { PlayerStats } from '../types';
@@ -103,6 +104,10 @@ export class ChallengeManager {
         return matchesWon >= requirement.targetWins;
       }
 
+      case 'trainingCount': {
+        return player.trainingSessionsCompleted >= requirement.targetCount;
+      }
+
       case 'relationshipLevel': {
         const currentLevel = gameState.relationships[requirement.characterId] || 0;
         return currentLevel >= requirement.targetLevel;
@@ -173,6 +178,17 @@ export class ChallengeManager {
         return { type: 'matchCount', progress };
       }
 
+      case 'trainingCount': {
+        const currentCount = player.trainingSessionsCompleted;
+        const percentage = Math.min(100, (currentCount / requirement.targetCount) * 100);
+        const progress: TrainingCountProgress = {
+          currentCount,
+          targetCount: requirement.targetCount,
+          percentage,
+        };
+        return { type: 'trainingCount', progress };
+      }
+
       case 'relationshipLevel': {
         const currentLevel = gameState.relationships[requirement.characterId] || 0;
         const percentage = Math.min(100, (currentLevel / requirement.targetLevel) * 100);
@@ -223,6 +239,7 @@ export class ChallengeManager {
         case 'statThreshold':
         case 'matchStat':
         case 'matchCount':
+        case 'trainingCount':
         case 'relationshipLevel':
           return sum + rp.progress.percentage;
         case 'abilityUnlock':

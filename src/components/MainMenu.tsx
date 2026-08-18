@@ -28,8 +28,11 @@ import { BROAD_ARCHETYPE_LABELS, DEFAULT_ARCHETYPE_LABEL } from '../data/archety
 import { calculateOverallRating } from '../core/PlayerProfile';
 import { getLetterGrade } from '../utils/playerStats';
 import type { OverlayState } from '../types/gamePhase';
-import { EffectKey, TimeSlot } from '../types/game';
+import { EffectKey, PlayerFlag, TimeSlot } from '../types/game';
 import { HANGOUT_CHARACTERS, hasUnseenTierEvent } from '../data/hangoutCharacters';
+import { useTutorialSpotlight } from '../hooks/useTutorialSpotlight';
+import { TutorialCallout } from './tutorial/TutorialCallout';
+import { MAIN_MENU_TUTORIAL_STEPS, MainMenuTarget } from '../data/tutorialSteps';
 
 interface MainMenuProps {
   overlay: OverlayState | null;
@@ -62,6 +65,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const dismissStoryEventResult = useGameStore((state) => state.dismissStoryEventResult);
   const dismissHangoutUnlock = useGameStore((state) => state.dismissHangoutUnlock);
   const clearIndicator = useGameStore((state) => state.clearIndicator);
+  const setFlag = useGameStore((state) => state.setFlag);
 
   // Unseen-content indicators
   const hasUnseenTraining = (player?.activeIndicators ?? []).includes('training');
@@ -93,6 +97,28 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   // Check if story match is scheduled for current time
   const scheduledStoryMatch = getScheduledStoryMatch();
   const isStoryMatchScheduled = scheduledStoryMatch !== null;
+
+  // First-run walkthrough of the daily loop. Held back until the welcome story event
+  // has been dismissed so the two don't stack; the ref guard inside the hook keeps it
+  // to a single showing, and the flag keeps it from returning on later sessions.
+  const {
+    currentStep,
+    activeStep,
+    isSpotlit,
+    next: tutorialNext,
+    back: tutorialBack,
+    canGoBack: canGoBackTutorial,
+  } = useTutorialSpotlight(
+    MAIN_MENU_TUTORIAL_STEPS,
+    player !== null && overlay === null && player.flags[PlayerFlag.SEEN_MAIN_MENU_TUTORIAL] !== true,
+    () => setFlag(PlayerFlag.SEEN_MAIN_MENU_TUTORIAL, true),
+  );
+
+  // Lifts a spotlit section above the dark overlay; keeps others at z-0
+  const spotlightClass = (target: MainMenuTarget): string =>
+    isSpotlit(target)
+      ? 'relative z-[60] ring-4 ring-yellow-400 rounded transition-all duration-300'
+      : 'relative z-0 transition-all duration-300';
 
   // Pre-match events are now triggered by navigateTo('idle') in gameStore — no useEffects needed.
 
@@ -248,7 +274,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
 
   return (
     <div className={`min-h-screen bg-pixel-bg ${isNightTime ? 'night-mode' : ''}`}>
-      <StatusBar />
+      <div className={spotlightClass('status')}>
+        <StatusBar />
+      </div>
 
       <div className="px-4 md:px-8 max-w-7xl mx-auto pb-8">
         {/* Hero Header: who the player is, at a glance */}
@@ -330,7 +358,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
         </Card>
 
         {/* Action Hub — daily actions get the biggest targets */}
-        <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-3 sm:mb-4">
+        <div className={`grid grid-cols-3 gap-3 sm:gap-4 mb-3 sm:mb-4 ${spotlightClass('actions')}`}>
           <ActionTile
             icon="🏋️"
             label="Training"
@@ -399,7 +427,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
         {/* Challenges — compact summary strip; the full list lives on its own screen */}
         <button
           onClick={() => navigateTo('challenges')}
-          className="w-full mb-6 flex items-center gap-3 bg-pixel-card border-4 border-pixel-border hover:border-pixel-accent px-4 py-3 transition-colors text-left"
+          className={`w-full mb-6 flex items-center gap-3 bg-pixel-card border-4 border-pixel-border hover:border-pixel-accent px-4 py-3 transition-colors text-left ${spotlightClass('challenges')}`}
         >
           <span className="text-2xl relative shrink-0">
             📋
@@ -433,6 +461,25 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
         {/* Full-width player stats */}
         <PlayerStatsDisplay collapsible={true} defaultCollapsed={isMobile} />
       </div>
+
+      {/* First-run walkthrough: dim everything, lift the spotlit section, dock the callout */}
+      {activeStep && (
+        <>
+          <div className="fixed inset-0 z-50 bg-black bg-opacity-75 pointer-events-none" />
+          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[70] w-full max-w-md px-4">
+            <TutorialCallout
+              step={currentStep!}
+              totalSteps={MAIN_MENU_TUTORIAL_STEPS.length}
+              title={activeStep.title}
+              body={activeStep.body}
+              onNext={tutorialNext}
+              onBack={tutorialBack}
+              canGoBack={canGoBackTutorial}
+              finalLabel="Let's Train"
+            />
+          </div>
+        </>
+      )}
 
       {/* Overlay Renderer */}
       {renderOverlay()}

@@ -7,6 +7,8 @@ import type { StoryEvent } from '../../types/storyEvents';
 import { TimeSlot, type StoryMatchMetadata } from '../../types/game';
 import { BEGINNER_RACQUET, RUNNING_SHOES } from '../items';
 import { profileForArchetype } from '../archetypeTree';
+import { ChallengeManager } from '../../game/ChallengeManager';
+import { CHALLENGE_PUTTING_IN_THE_REPS } from '../challengeTemplates';
 
 export const welcomeEvents: StoryEvent[] = [
   /** Welcome to Riverside Tennis Academy */
@@ -55,6 +57,13 @@ export const welcomeEvents: StoryEvent[] = [
         itemsGained: [BEGINNER_RACQUET, RUNNING_SHOES],
         revealEncyclopediaSections: ['tennis-terms', 'stats-guide', 'scoring', 'key-shortcuts'], // Unlock the encyclopedia tabs
       },
+      // Gives days 1-4 a concrete goal — the main-menu tutorial points the player at it
+      challengesAssigned: [
+        ChallengeManager.createFromTemplate(CHALLENGE_PUTTING_IN_THE_REPS, {
+          type: 'story',
+          eventId: 'welcome_to_tennis_rpg',
+        }),
+      ],
     },
   },
 

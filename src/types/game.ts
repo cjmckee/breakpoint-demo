@@ -453,6 +453,7 @@ export type ActivityResult = TrainingResult | MatchResult | TournamentMatchResul
 export const PlayerFlag = {
   TOURNAMENTS_UNLOCKED: 'tournamentsUnlocked',
   HANGOUT_UNLOCKED_PREFIX: 'hangoutUnlocked_',
+  SEEN_MAIN_MENU_TUTORIAL: 'seenMainMenuTutorial',
 } as const;
 
 /** Returns the player flag key for a character's hangout unlock */
@@ -487,6 +488,9 @@ export interface Player {
   practiceWinsPerTier?: Partial<Record<OpponentTier, number>>;  // Wins per tier for opponent difficulty scaling
   createdAt: string;
   updatedAt: string;
+
+  // Lifetime training sessions completed, for challenge tracking
+  trainingSessionsCompleted: number;
 
   // Cumulative match statistics for challenge tracking (aces, winners, etc.)
   cumulativeMatchStats: {
