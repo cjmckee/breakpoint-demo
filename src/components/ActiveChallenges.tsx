@@ -83,29 +83,6 @@ export const ActiveChallenges: React.FC = () => {
     }
   };
 
-  const getRewardSummary = (challenge: Challenge): string => {
-    const parts: string[] = [];
-
-    if (challenge.reward.modifiers?.statBoosts) {
-      const statCount = Object.keys(challenge.reward.modifiers.statBoosts).length;
-      parts.push(`+${statCount} stats`);
-    }
-
-    if (challenge.reward.abilities && challenge.reward.abilities.length > 0) {
-      parts.push(`${challenge.reward.abilities.length} ability(s)`);
-    }
-
-    if (challenge.reward.items && challenge.reward.items.length > 0) {
-      parts.push(`${challenge.reward.items.length} item(s)`);
-    }
-
-    if (challenge.reward.experience) {
-      parts.push(`+${challenge.reward.experience} XP`);
-    }
-
-    return parts.length > 0 ? parts.join(', ') : 'Rewards';
-  };
-
   if (activeChallenges.length === 0) {
     return (
       <Card padding="sm">
@@ -213,9 +190,6 @@ export const ActiveChallenges: React.FC = () => {
                   {/* Rewards */}
                   <div className="mb-3">
                     <div className="text-xs font-bold text-pixel-text mb-1">Rewards:</div>
-                    <div className="text-xs text-pixel-text-muted">
-                      {getRewardSummary(challenge)}
-                    </div>
 
                     {/* Show detailed rewards */}
                     <div className="mt-2">
