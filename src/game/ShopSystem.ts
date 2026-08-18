@@ -8,18 +8,23 @@ import type {
   StatBoosts,
   Ability,
 } from '../types/game';
-import type { PlayerStats } from '../types/index';
+import type { PlayerStats, StatCategory, StatName } from '../types/index';
 import type { Item } from '../types/items';
 import { ABILITY_DEFINITIONS } from '../data/abilities';
-import { AbilityRarity } from '../types/game';
+import { AbilityRarity, DEFAULT_PLAYER_STATS } from '../types/game';
 import { ALL_CONSUMABLES, ALL_EQUIPMENT, CONSUMABLE_SHOP_COSTS } from '../data/items';
 
-const CORE_STATS = ['serve', 'forehand', 'backhand', 'return', 'slice'] as const;
-const TECHNICAL_STATS = ['volley', 'overhead', 'dropShot', 'spin', 'placement'] as const;
-const PHYSICAL_STATS = ['speed', 'stamina', 'strength', 'agility', 'recovery'] as const;
-const MENTAL_STATS = ['focus', 'anticipation', 'shotVariety', 'offensive', 'defensive'] as const;
+// Derived from DEFAULT_PLAYER_STATS rather than hand-listed, so a stat rename
+// or category move can't leave a retired name behind for applyStatBoosts to
+// silently swallow.
+const STATS_BY_CATEGORY: Record<StatCategory, readonly StatName[]> = {
+  core: Object.keys(DEFAULT_PLAYER_STATS.core) as StatName[],
+  technical: Object.keys(DEFAULT_PLAYER_STATS.technical) as StatName[],
+  physical: Object.keys(DEFAULT_PLAYER_STATS.physical) as StatName[],
+  mental: Object.keys(DEFAULT_PLAYER_STATS.mental) as StatName[],
+};
 
-function getStatValue(stats: PlayerStats, statName: string): number {
+function getStatValue(stats: PlayerStats, statName: StatName): number {
   if (statName in stats.core) return stats.core[statName as keyof typeof stats.core];
   if (statName in stats.technical) return stats.technical[statName as keyof typeof stats.technical];
   if (statName in stats.physical) return stats.physical[statName as keyof typeof stats.physical];
@@ -46,39 +51,27 @@ function rollStatRarity(): ItemRarity {
 
 function createStatIncreaseItem(playerStats: PlayerStats | null): StatIncreaseItem {
   const rarity = rollStatRarity();
-  const numStatsMap: Record<ItemRarity, number> = {
-    common: 1,
-    uncommon: 2,
-    rare: 3,
-    legendary: 4,
-  };
+  const numStatsMap: Record<ItemRarity, number> = { common: 1, uncommon: 2, rare: 3, legendary: 4 };
   const numStats = numStatsMap[rarity];
 
-  const category = Math.random() < 0.3 ? 'core' : (Math.random() < 0.33 ? 'technical' : Math.random() < 0.5 ? 'physical' : 'mental');
-
-  const statNames: Record<string, readonly string[]> = {
-    core: CORE_STATS,
-    technical: TECHNICAL_STATS,
-    physical: PHYSICAL_STATS,
-    mental: MENTAL_STATS,
-  };
+  const category: StatCategory = Math.random() < 0.3 ? 'core' : (Math.random() < 0.33 ? 'technical' : Math.random() < 0.5 ? 'physical' : 'mental');
 
   const statBoosts: StatBoosts = {};
-  const usedStats = new Set<string>();
+  const usedStats = new Set<StatName>();
   let totalIncrease = 0;
 
-  const availableStats = statNames[category];
+  const availableStats = STATS_BY_CATEGORY[category];
   for (let i = 0; i < numStats; i++) {
     const remaining = availableStats.filter(s => !usedStats.has(s));
     if (remaining.length === 0) break;
     const stat = remaining[Math.floor(Math.random() * remaining.length)];
     usedStats.add(stat);
     const boost = randInt(1, 5);
-    (statBoosts as Record<string, number>)[stat] = boost;
+    statBoosts[stat] = boost;
     totalIncrease += boost;
   }
 
-  const statKeys = Object.keys(statBoosts);
+  const statKeys = Object.keys(statBoosts) as StatName[];
   const avgCurrentValue = playerStats
     ? statKeys.reduce((sum, stat) => sum + getStatValue(playerStats, stat), 0) / statKeys.length
     : 0;

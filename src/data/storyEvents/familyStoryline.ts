@@ -14,10 +14,7 @@ export const familyEvents: StoryEvent[] = [
     name: 'Family Comes to a Match',
     tags: ['family', 'celebration'],
     timeSlotsRequired: 1,
-    prerequisites: {
-      minMatchesPlayed: 2,
-      minDay: 7,
-    },
+    prerequisites: { minMatchesPlayed: 2, minDay: 7 },
     skippable: false,
     description: 'Your family surprises you by coming to watch one of your matches.',
     dialogue: [
@@ -28,7 +25,7 @@ export const familyEvents: StoryEvent[] = [
     defaultOutcome: {
       resultText: ['Seeing your family in the stands fills you with warmth and motivation. It seems like mom figured out the phone camera and it even looks like dad knew the score! Everyone is making progress.'],
       effects: {
-        statChanges: { dropShot: 1, slice: 1, serve: 1, forehand: 1 },
+        statChanges: { placement: 1, slice: 1, serve: 1, forehand: 1 },
         moodChange: 35,
         energyChange: -5,
         relationshipChanges: { family: 25 },
@@ -63,7 +60,7 @@ export const familyEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You feel a sudden inspiration. You know there\'s no turning back now. You feel the pressure to keep pushing in your tennis career. Purple clay does sound pretty cool, though.'],
           effects: {
-            statChanges: { focus: 1, strength: 3, stamina: 2, speed: 2, recovery: 1 },
+            statChanges: { focus: 1, strength: 3, stamina: 2, speed: 2 },
             moodChange: 15,
             energyChange: -15,
             relationshipChanges: { family: 20 },
@@ -99,7 +96,7 @@ export const familyEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You can be pretty persuasive, and purple clay sounds like a dream. You offer to try and sell this thing as hard as you can to recover some losses.'],
           effects: {
-            statChanges: { focus: -1, recovery: 2, shotVariety: 2, speed: 1 },
+            statChanges: { focus: -1, stamina: 2, spin: 2, speed: 1 },
             moodChange: 10,
             energyChange: 0,
             relationshipChanges: { family: 30 },
@@ -131,7 +128,7 @@ export const familyEvents: StoryEvent[] = [
     defaultOutcome: {
       resultText: ['You stand up to demonstrate your new serve toss. Everyone watches expectantly. The roll goes up, you snap your wrist, and you absolutely crater a water glass across the table. There\'s a brief silence. Then, applause. Cheering. Yelling from the waiter. Your serve technique is unquestionably better.'],
       effects: {
-        statChanges: { serve: 2, strength: 1, shotVariety: 1 },
+        statChanges: { serve: 2, strength: 1, spin: 1 },
         moodChange: 20,
         energyChange: -5,
         relationshipChanges: { family: 15 },
@@ -163,7 +160,7 @@ export const familyEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You engage in the most elaborate display of slow-motion errors ever seen on a residential driveway. You lose 10-2 and your little brother runs victory laps around the car. Your patience and defensive footwork are somehow improved from all the deliberate maneuvering.'],
           effects: {
-            statChanges: { defensive: 2, recovery: 2, agility: 1 },
+            statChanges: { tactics: 2, stamina: 2, speed: 1 },
             moodChange: 20,
             energyChange: -10,
             relationshipChanges: { family: 20 },
@@ -178,7 +175,7 @@ export const familyEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You decide that if they want a challenge, they\'ll get one. You win 10-0. Your brother stares at you for a long moment, then breaks into tears. This is oddly motivating for both of you. Your competitive edge feels sharpened. Your little brother may be picking another sport.'],
           effects: {
-            statChanges: { forehand: 2, serve: 2, offensive: 2 },
+            statChanges: { forehand: 2, serve: 2, tactics: 2 },
             moodChange: 20,
             energyChange: -15,
             relationshipChanges: { family: 5 },
@@ -230,7 +227,7 @@ export const familyEvents: StoryEvent[] = [
     defaultOutcome: {
       resultText: ['The box contains: two dozen homemade cookies, a sports drink variety pack, socks with little tennis racquets on them, and a framed photo of you at age seven in a massive tennis visor. Grandma\'s letter encourages you to "keep shuttlecocking." You feel loved.'],
       effects: {
-        statChanges: { stamina: 2, focus: 1, recovery: 2 },
+        statChanges: { stamina: 2, focus: 1 },
         moodChange: 40,
         energyChange: 10,
         relationshipChanges: { family: 20 },

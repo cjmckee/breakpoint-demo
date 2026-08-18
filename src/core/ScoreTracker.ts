@@ -47,7 +47,7 @@ import type {
   SetScore,
   MatchFormat,
   ScoreSnapshot,
-} from '../types/index.js';
+} from '../types';
 
 export class ScoreTracker {
   private score: MatchScore;

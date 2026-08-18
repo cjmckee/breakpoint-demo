@@ -35,7 +35,7 @@ export const PlayerCreation: React.FC = () => {
       title: 'Defensive',
       emoji: '🛡️',
       description: 'Consistent retrieval and court coverage.',
-      bonuses: '+5 Speed, +5 Stamina, +3 Defensive',
+      bonuses: '+5 Speed, +5 Stamina, +3 Tactics',
     },
     balanced: {
       title: 'Balanced',

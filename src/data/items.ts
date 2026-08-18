@@ -18,10 +18,7 @@ export const BEGINNER_RACQUET: Item = {
   equipmentSlot: 'racquet',
   shopAvailable: false,
   modifiers: {
-    statBoosts: {
-      serve: 2,
-      forehand: 2,
-    },
+    statBoosts: { serve: 2, forehand: 2 },
   },
 };
 
@@ -33,12 +30,7 @@ export const PRO_RACQUET: Item = {
   equipmentSlot: 'racquet',
   shopAvailable: false,
   modifiers: {
-    statBoosts: {
-      serve: 5,
-      forehand: 3,
-      backhand: 3,
-      spin: 5,
-    },
+    statBoosts: { serve: 5, forehand: 3, backhand: 3, spin: 5 },
   },
 };
 
@@ -49,13 +41,7 @@ export const POWER_RACQUET: Item = {
   type: 'equipment',
   equipmentSlot: 'racquet',
   modifiers: {
-    statBoosts: {
-      serve: 8,
-      strength: 5,
-      forehand: 2,
-      backhand: 2,
-      overhead: 5
-    },
+    statBoosts: { serve: 8, strength: 5, forehand: 2, backhand: 2, net: 5 },
   },
 };
 
@@ -66,12 +52,7 @@ export const CONTROL_RACQUET: Item = {
   type: 'equipment',
   equipmentSlot: 'racquet',
   modifiers: {
-    statBoosts: {
-      placement: 6,
-      spin: 4,
-      slice: 5,
-      return: 5
-    },
+    statBoosts: { placement: 6, spin: 4, slice: 5, return: 5 },
   },
 };
 
@@ -82,12 +63,7 @@ export const SPIN_RACQUET: Item = {
   type: 'equipment',
   equipmentSlot: 'racquet',
   modifiers: {
-    statBoosts: {
-      spin: 8,
-      forehand: 3,
-      slice: 3,
-      placement: 2,
-    },
+    statBoosts: { spin: 8, forehand: 3, slice: 3, placement: 2 },
   },
 };
 
@@ -98,14 +74,7 @@ export const ALLROUND_RACQUET: Item = {
   type: 'equipment',
   equipmentSlot: 'racquet',
   modifiers: {
-    statBoosts: {
-      serve: 3,
-      forehand: 3,
-      backhand: 3,
-      return: 3,
-      volley: 3,
-      slice: 3
-    },
+    statBoosts: { serve: 3, forehand: 3, backhand: 3, return: 3, net: 3, slice: 3 },
   },
 };
 
@@ -121,11 +90,7 @@ export const RUNNING_SHOES: Item = {
   equipmentSlot: 'shoes',
   shopAvailable: false,
   modifiers: {
-    statBoosts: {
-      speed: 3,
-      agility: 2,
-      stamina: 2
-    },
+    statBoosts: { speed: 3, stamina: 2 },
   },
 };
 
@@ -136,12 +101,7 @@ export const COURT_SHOES: Item = {
   type: 'equipment',
   equipmentSlot: 'shoes',
   modifiers: {
-    statBoosts: {
-      speed: 5,
-      agility: 5,
-      stamina: 2,
-      anticipation: 3
-    },
+    statBoosts: { speed: 5, stamina: 2, anticipation: 3 },
   },
 };
 
@@ -152,12 +112,7 @@ export const CLAY_COURT_SHOES: Item = {
   type: 'equipment',
   equipmentSlot: 'shoes',
   modifiers: {
-    statBoosts: {
-      speed: 4,
-      agility: 6,
-      defensive: 3,
-      spin: 2
-    },
+    statBoosts: { speed: 6, tactics: 3, spin: 2 },
   },
 };
 
@@ -168,14 +123,8 @@ export const LIGHTWEIGHT_TRAINERS: Item = {
   type: 'equipment',
   equipmentSlot: 'shoes',
   modifiers: {
-    statBoosts: {
-      speed: 8,
-      agility: 3,
-      stamina: 2
-    },
-    additional: {
-      energy_cost_reduction: 2,
-    },
+    statBoosts: { speed: 8, stamina: 2 },
+    additional: { energy_cost_reduction: 2 },
   },
 };
 
@@ -186,13 +135,7 @@ export const GRASS_COURT_SHOES: Item = {
   type: 'equipment',
   equipmentSlot: 'shoes',
   modifiers: {
-    statBoosts: {
-      speed: 5,
-      agility: 4,
-      volley: 3,
-      overhead: 3,
-      offensive: 2
-    },
+    statBoosts: { speed: 5, net: 3, tactics: 2 },
   },
 };
 
@@ -207,11 +150,7 @@ export const PRACTICE_OUTFIT: Item = {
   type: 'equipment',
   equipmentSlot: 'outfit',
   modifiers: {
-    statBoosts: {
-      stamina: 2,
-      recovery: 1,
-      speed: 1
-    },
+    statBoosts: { stamina: 2, speed: 1 },
   },
 };
 
@@ -222,13 +161,7 @@ export const TOURNAMENT_OUTFIT: Item = {
   type: 'equipment',
   equipmentSlot: 'outfit',
   modifiers: {
-    statBoosts: {
-      stamina: 4,
-      focus: 3,
-      recovery: 2,
-      anticipation: 3,
-      placement: 4
-    },
+    statBoosts: { stamina: 4, focus: 3, anticipation: 3, placement: 4 },
   },
 };
 
@@ -239,14 +172,8 @@ export const COMPRESSION_OUTFIT: Item = {
   type: 'equipment',
   equipmentSlot: 'outfit',
   modifiers: {
-    statBoosts: {
-      stamina: 6,
-      recovery: 4,
-      strength: 2,
-    },
-    additional: {
-      energy_cost_reduction: 3,
-    },
+    statBoosts: { stamina: 6, strength: 2 },
+    additional: { energy_cost_reduction: 3 },
   },
 };
 
@@ -257,16 +184,8 @@ export const RETRO_OUTFIT: Item = {
   type: 'equipment',
   equipmentSlot: 'outfit',
   modifiers: {
-    statBoosts: {
-      focus: 6,
-      serve: 4,
-      volley: 4,
-      overhead: 2,
-      offensive: 2
-    },
-    additional: {
-      mood_gain_bonus: 2,
-    },
+    statBoosts: { focus: 6, serve: 4, net: 4, tactics: 2 },
+    additional: { mood_gain_bonus: 2 },
   },
 };
 
@@ -278,14 +197,7 @@ export const SPONSOR_OUTFIT: Item = {
   equipmentSlot: 'outfit',
   shopAvailable: false,
   modifiers: {
-    statBoosts: {
-      stamina: 5,
-      strength: 3,
-      focus: 3,
-      forehand: 3,
-      backhand: 3,
-      return: 2
-    },
+    statBoosts: { stamina: 5, strength: 3, focus: 3, forehand: 3, backhand: 3, return: 2 },
     additional: {
       training_stat_multiplier: 0.1,
     },
@@ -300,14 +212,7 @@ export const SPACE_SUIT: Item = {
   equipmentSlot: 'outfit',
   shopAvailable: false,
   modifiers: {
-    statBoosts: {
-      stamina: 3,
-      offensive: 2,
-      speed: 3,
-      spin: 3,
-      anticipation: 2,
-      slice: 3
-    }
+    statBoosts: { stamina: 3, tactics: 2, speed: 3, spin: 3, anticipation: 2, slice: 3 }
   }
 }
 
@@ -322,10 +227,7 @@ export const VISOR: Item = {
   type: 'equipment',
   equipmentSlot: 'hat',
   modifiers: {
-    statBoosts: {
-      focus: 2,
-      anticipation: 1
-    },
+    statBoosts: { focus: 2, anticipation: 1 },
   },
 };
 
@@ -336,12 +238,7 @@ export const HEADBAND: Item = {
   type: 'equipment',
   equipmentSlot: 'hat',
   modifiers: {
-    statBoosts: {
-      focus: 3,
-      anticipation: 2,
-      recovery: 3,
-      stamina: 2
-    },
+    statBoosts: { focus: 3, anticipation: 2, stamina: 3 },
     additional: {
       training_stat_multiplier: 0.1,
     },
@@ -355,11 +252,7 @@ export const CAP: Item = {
   type: 'equipment',
   equipmentSlot: 'hat',
   modifiers: {
-    statBoosts: {
-      focus: 3,
-      offensive: 5,
-      strength: 2
-    },
+    statBoosts: { focus: 3, tactics: 5, strength: 2 },
   },
 };
 
@@ -370,12 +263,7 @@ export const LUCKY_HAT: Item = {
   type: 'equipment',
   equipmentSlot: 'hat',
   modifiers: {
-    statBoosts: {
-      focus: 4,
-      anticipation: 3,
-      shotVariety: 2,
-      slice: 4
-    },
+    statBoosts: { focus: 4, anticipation: 3, spin: 2, slice: 4 },
   },
 };
 
@@ -386,11 +274,7 @@ export const SWEATBAND: Item = {
   type: 'equipment',
   equipmentSlot: 'hat',
   modifiers: {
-    statBoosts: {
-      stamina: 3,
-      focus: 3,
-      recovery: 6,
-    },
+    statBoosts: { stamina: 6, focus: 3 },
   },
 };
 
@@ -401,11 +285,7 @@ export const BANDANA: Item = {
   type: 'equipment',
   equipmentSlot: 'hat',
   modifiers: {
-    statBoosts: {
-      offensive: 5,
-      strength: 4,
-      serve: 4,
-    },
+    statBoosts: { tactics: 5, strength: 4, serve: 4 },
   },
 };
 
@@ -417,12 +297,7 @@ export const CHEF_HAT: Item = {
   equipmentSlot: 'hat',
   shopAvailable: false,
   modifiers: {
-    statBoosts: {
-      slice: 7,
-      spin: 4,
-      volley: 3,
-      dropShot: 3,
-    }
+    statBoosts: { slice: 7, spin: 4, net: 3, placement: 3 }
   }
 }
 
@@ -433,11 +308,7 @@ export const STYLISH_HEADBAND: Item = {
   type: 'equipment',
   equipmentSlot: 'hat',
   modifiers: {
-    statBoosts: {
-      focus: 4,
-      stamina: 4,
-      speed: 3
-    },
+    statBoosts: { focus: 4, stamina: 4, speed: 3 },
   },
 }
 
@@ -452,9 +323,7 @@ export const ENERGY_DRINK: Item = {
   type: 'consumable',
   consumableEffect: {
     type: 'instant',
-    instantEffects: {
-      energyChange: 30,
-    },
+    instantEffects: { energyChange: 30 },
   },
 };
 
@@ -465,9 +334,7 @@ export const GAME_PLAN_NOTEBOOK: Item = {
   type: 'consumable',
   consumableEffect: {
     type: 'instant',
-    instantEffects: {
-      respecTokens: 1,
-    },
+    instantEffects: { respecTokens: 1 },
   },
 };
 
@@ -478,10 +345,7 @@ export const SPORTS_DRINK: Item = {
   type: 'consumable',
   consumableEffect: {
     type: 'instant',
-    instantEffects: {
-      energyChange: 20,
-      moodChange: 5,
-    },
+    instantEffects: { energyChange: 20, moodChange: 5 },
   },
 };
 
@@ -492,10 +356,7 @@ export const RECOVERY_SHAKE: Item = {
   type: 'consumable',
   consumableEffect: {
     type: 'instant',
-    instantEffects: {
-      energyChange: 15,
-      moodChange: 10,
-    },
+    instantEffects: { energyChange: 15, moodChange: 10 },
   },
 };
 
@@ -506,9 +367,7 @@ export const SUPER_ENERGY_GEL: Item = {
   type: 'consumable',
   consumableEffect: {
     type: 'instant',
-    instantEffects: {
-      energyChange: 50,
-    },
+    instantEffects: { energyChange: 50 },
   },
 };
 
@@ -519,10 +378,7 @@ export const GRANDMAS_LUCKY_COOKIES: Item = {
   type: 'consumable',
   consumableEffect: {
     type: 'instant',
-    instantEffects: {
-      energyChange: 20,
-      moodChange: 15,
-    },
+    instantEffects: { energyChange: 20, moodChange: 15 },
   },
 };
 
@@ -534,10 +390,7 @@ export const SKI_PASS: Item = {
   shopAvailable: false,
   consumableEffect: {
     type: 'instant',
-    instantEffects: {
-      energyChange: 20,
-      moodChange: 25,
-    },
+    instantEffects: { energyChange: 20, moodChange: 25 },
   }
 }
 
@@ -553,10 +406,7 @@ export const FOCUS_PILL: Item = {
   consumableEffect: {
     type: 'next_activity',
     nextActivityBuffs: {
-      statBoosts: {
-        focus: 10,
-        anticipation: 5,
-      },
+      statBoosts: { focus: 10, anticipation: 5 },
     },
   },
 };
@@ -569,12 +419,7 @@ export const PERFORMANCE_ENHANCER: Item = {
   consumableEffect: {
     type: 'next_activity',
     nextActivityBuffs: {
-      statBoosts: {
-        serve: 5,
-        forehand: 5,
-        backhand: 5,
-        volley: 5,
-      },
+      statBoosts: { serve: 5, forehand: 5, backhand: 5, net: 5 },
     },
   },
 };
@@ -587,10 +432,7 @@ export const STAMINA_BOOST: Item = {
   consumableEffect: {
     type: 'next_activity',
     nextActivityBuffs: {
-      statBoosts: {
-        stamina: 10,
-        recovery: 5,
-      },
+      statBoosts: { stamina: 10 },
     },
   },
 };
@@ -603,10 +445,7 @@ export const POWER_SUPPLEMENT: Item = {
   consumableEffect: {
     type: 'next_activity',
     nextActivityBuffs: {
-      statBoosts: {
-        strength: 8,
-        serve: 4,
-      },
+      statBoosts: { strength: 8, serve: 4 },
     },
   },
 };
@@ -619,10 +458,7 @@ export const SPEED_BOOSTER: Item = {
   consumableEffect: {
     type: 'next_activity',
     nextActivityBuffs: {
-      statBoosts: {
-        speed: 10,
-        agility: 8,
-      },
+      statBoosts: { speed: 10 },
     },
   },
 };
@@ -635,13 +471,8 @@ export const CONFIDENCE_TAPE: Item = {
   consumableEffect: {
     type: 'next_activity',
     nextActivityBuffs: {
-      statBoosts: {
-        offensive: 6,
-        defensive: 6,
-      },
-      additional: {
-        mood_gain_bonus: 5,
-      },
+      statBoosts: { tactics: 6 },
+      additional: { mood_gain_bonus: 5 },
     },
   },
 };
@@ -654,11 +485,7 @@ export const COACHES_NOTES: Item = {
   consumableEffect: {
     type: 'next_activity',
     nextActivityBuffs: {
-      statBoosts: {
-        anticipation: 12,
-        placement: 6,
-        return: 4,
-      },
+      statBoosts: { anticipation: 12, placement: 6, return: 4 },
     },
   },
 };
@@ -670,10 +497,7 @@ export const BANANA: Item = {
   type: 'consumable',
   consumableEffect: {
     type: 'instant',
-    instantEffects: {
-      energyChange: 15,
-      moodChange: 3,
-    },
+    instantEffects: { energyChange: 15, moodChange: 3 },
   },
 };
 
@@ -684,10 +508,7 @@ export const STRAWBERRIES: Item = {
   type: 'consumable',
   consumableEffect: {
     type: 'instant',
-    instantEffects: {
-      energyChange: 10,
-      moodChange: 5,
-    },
+    instantEffects: { energyChange: 10, moodChange: 5 },
   },
 }
 
@@ -698,10 +519,7 @@ export const ORANGE_SLICE: Item = {
   type: 'consumable',
   consumableEffect: {
     type: 'instant',
-    instantEffects: {
-      energyChange: 5,
-      moodChange: 20,
-    },
+    instantEffects: { energyChange: 5, moodChange: 20 },
   },
 };
 
@@ -713,14 +531,8 @@ export const MOTIVATIONAL_PLAYLIST: Item = {
   consumableEffect: {
     type: 'next_activity',
     nextActivityBuffs: {
-      statBoosts: {
-        focus: 5,
-        strength: 5,
-        speed: 3,
-      },
-      additional: {
-        mood_gain_bonus: 3,
-      },
+      statBoosts: { focus: 5, strength: 5, speed: 3 },
+      additional: { mood_gain_bonus: 3 },
     },
   },
 };
@@ -732,10 +544,7 @@ export const ICE_BATH_VOUCHER: Item = {
   type: 'consumable',
   consumableEffect: {
     type: 'instant',
-    instantEffects: {
-      energyChange: 40,
-      moodChange: -5,
-    },
+    instantEffects: { energyChange: 40, moodChange: -5 },
   },
 };
 
@@ -749,15 +558,8 @@ export const LUCKY_PENNY: Item = {
   description: 'Found heads-up on the ground. Abe would want you to hit more volleys.',
   type: 'lucky',
   modifiers: {
-    statBoosts: {
-      serve: 3,
-      volley: 3,
-      overhead: 3,
-      offensive: 2
-    },
-    additional: {
-      ability_chance_bonus: 15,
-    },
+    statBoosts: { serve: 3, net: 3, tactics: 2 },
+    additional: { ability_chance_bonus: 15 },
   },
 };
 
@@ -767,17 +569,8 @@ export const LUCKY_CHARM: Item = {
   description: 'A mysterious charm that brings good fortune. Provides passive bonuses while in inventory.',
   type: 'lucky',
   modifiers: {
-    statBoosts: {
-      serve: 2,
-      forehand: 2,
-      backhand: 2,
-      speed: 2,
-      focus: 2,
-    },
-    additional: {
-      event_trigger_bonus: 5,
-      mood_gain_bonus: 1,
-    },
+    statBoosts: { serve: 2, forehand: 2, backhand: 2, speed: 2, focus: 2 },
+    additional: { event_trigger_bonus: 5, mood_gain_bonus: 1 },
   },
 };
 
@@ -787,20 +580,8 @@ export const FOUR_LEAF_CLOVER: Item = {
   description: 'A rare clover that brings subtle improvements across all areas.',
   type: 'lucky',
   modifiers: {
-    statBoosts: {
-      serve: 1,
-      forehand: 1,
-      backhand: 1,
-      volley: 1,
-      speed: 1,
-      stamina: 1,
-      focus: 1,
-      anticipation: 1,
-    },
-    additional: {
-      event_trigger_bonus: 10,
-      training_tier_bonus: 1,
-    },
+    statBoosts: { serve: 1, forehand: 1, backhand: 1, net: 1, speed: 1, stamina: 1, focus: 1, anticipation: 1 },
+    additional: { event_trigger_bonus: 10, training_tier_bonus: 1 },
   },
 };
 
@@ -811,15 +592,8 @@ export const TENNIS_BALL_KEYCHAIN: Item = {
   type: 'lucky',
   shopAvailable: false,
   modifiers: {
-    statBoosts: {
-      offensive: 3,
-      spin: 5,
-      anticipation: 2,
-    },
-    additional: {
-      mood_gain_bonus: 2,
-      relationship_gain_bonus: 3,
-    },
+    statBoosts: { tactics: 3, spin: 5, anticipation: 2 },
+    additional: { mood_gain_bonus: 2, relationship_gain_bonus: 3 },
   },
 };
 
@@ -830,12 +604,7 @@ export const LUCKY_SPROUT: Item = {
   type: 'lucky',
   shopAvailable: false,
   modifiers: {
-    statBoosts: {
-      defensive: 4,
-      strength: 4,
-      slice: 2,
-      shotVariety: 4
-    }
+    statBoosts: { tactics: 4, strength: 4, slice: 2, spin: 4 }
   }
 }
 
@@ -846,12 +615,7 @@ export const LUCKY_JACKET: Item = {
   type: 'lucky',
   shopAvailable: false,
   modifiers: {
-    statBoosts: {
-      speed: 3,
-      focus: 3,
-      overhead: 2,
-      spin: 3
-    }
+    statBoosts: { speed: 3, focus: 3, net: 2, spin: 3 }
   }
 }
 
@@ -862,12 +626,7 @@ export const LUCKY_TEETH: Item = {
   type: 'lucky',
   shopAvailable: false,
   modifiers: {
-    statBoosts: {
-      serve: 3,
-      return: 2,
-      recovery: 3,
-      focus: 2
-    }
+    statBoosts: { serve: 3, return: 2, stamina: 3, focus: 2 }
   }
 }
 
@@ -877,13 +636,7 @@ export const CHAMPION_WRISTBAND: Item = {
   description: 'A symbolic wristband marking your rise from beginner to competitor. Wear it with pride.',
   type: 'lucky',
   modifiers: {
-    statBoosts: {
-      focus: 3,
-      forehand: 3,
-      backhand: 2,
-      return: 4,
-      slice: 4
-    },
+    statBoosts: { focus: 3, forehand: 3, backhand: 2, return: 4, slice: 4 },
   },
 }
 
@@ -898,12 +651,7 @@ export const DROPSHOT_RACQUET: Item = {
   type: 'equipment',
   equipmentSlot: 'racquet',
   modifiers: {
-    statBoosts: {
-      dropShot: 6,
-      slice: 4,
-      placement: 5,
-      volley: 3,
-    },
+    statBoosts: { placement: 6, slice: 4, net: 3 },
   },
 };
 
@@ -914,14 +662,7 @@ export const GRAND_SLAM_RACQUET: Item = {
   type: 'equipment',
   equipmentSlot: 'racquet',
   modifiers: {
-    statBoosts: {
-      serve: 6,
-      forehand: 5,
-      backhand: 5,
-      overhead: 4,
-      strength: 4,
-      placement: 4,
-    },
+    statBoosts: { serve: 6, forehand: 5, backhand: 5, net: 4, strength: 4, placement: 4 },
   },
 };
 
@@ -936,12 +677,7 @@ export const HARD_COURT_SHOES: Item = {
   type: 'equipment',
   equipmentSlot: 'shoes',
   modifiers: {
-    statBoosts: {
-      speed: 5,
-      agility: 4,
-      stamina: 3,
-      return: 3,
-    },
+    statBoosts: { speed: 5, stamina: 3, return: 3 },
   },
 };
 
@@ -952,11 +688,7 @@ export const RECOVERY_BOOTS: Item = {
   type: 'equipment',
   equipmentSlot: 'shoes',
   modifiers: {
-    statBoosts: {
-      stamina: 5,
-      recovery: 6,
-      speed: 3,
-    },
+    statBoosts: { stamina: 6, speed: 3 },
     additional: {
       [EffectKey.ENERGY_COST_REDUCTION]: 2,
     },
@@ -974,12 +706,7 @@ export const AERODYNAMIC_SUIT: Item = {
   type: 'equipment',
   equipmentSlot: 'outfit',
   modifiers: {
-    statBoosts: {
-      speed: 5,
-      agility: 5,
-      offensive: 4,
-      strength: 3,
-    },
+    statBoosts: { speed: 5, tactics: 4, strength: 3 },
   },
 };
 
@@ -990,12 +717,7 @@ export const MENTAL_FOCUS_JERSEY: Item = {
   type: 'equipment',
   equipmentSlot: 'outfit',
   modifiers: {
-    statBoosts: {
-      focus: 6,
-      anticipation: 5,
-      recovery: 4,
-      shotVariety: 3,
-    },
+    statBoosts: { focus: 6, anticipation: 5, stamina: 4, spin: 3 },
     additional: {
       [EffectKey.MOOD_GAIN_BONUS]: 2,
     },
@@ -1013,11 +735,7 @@ export const PRECISION_VISOR: Item = {
   type: 'equipment',
   equipmentSlot: 'hat',
   modifiers: {
-    statBoosts: {
-      placement: 5,
-      anticipation: 4,
-      return: 3,
-    },
+    statBoosts: { placement: 5, anticipation: 4, return: 3 },
   },
 };
 
@@ -1028,12 +746,7 @@ export const RALLY_KING_HEADBAND: Item = {
   type: 'equipment',
   equipmentSlot: 'hat',
   modifiers: {
-    statBoosts: {
-      stamina: 5,
-      recovery: 4,
-      backhand: 3,
-      spin: 3,
-    },
+    statBoosts: { stamina: 5, backhand: 3, spin: 3 },
     additional: {
       [EffectKey.FOCUS_DURATION]: 1,
     },
@@ -1048,13 +761,7 @@ export const CHAMPIONS_CAP: Item = {
   equipmentSlot: 'hat',
   shopAvailable: false,
   modifiers: {
-    statBoosts: {
-      focus: 5,
-      serve: 4,
-      forehand: 3,
-      backhand: 3,
-      anticipation: 4,
-    },
+    statBoosts: { focus: 5, serve: 4, forehand: 3, backhand: 3, anticipation: 4 },
     additional: {
       [EffectKey.CLUTCH_PERFORMANCE]: 1,
     },
@@ -1072,10 +779,7 @@ export const TENNIS_ELBOW_GEL: Item = {
   type: 'consumable',
   consumableEffect: {
     type: 'instant',
-    instantEffects: {
-      energyChange: 35,
-      moodChange: -5,
-    },
+    instantEffects: { energyChange: 35, moodChange: -5 },
   },
 };
 
@@ -1087,11 +791,7 @@ export const ZONE_WATER: Item = {
   consumableEffect: {
     type: 'next_activity',
     nextActivityBuffs: {
-      statBoosts: {
-        focus: 8,
-        anticipation: 6,
-        recovery: 4,
-      },
+      statBoosts: { focus: 8, anticipation: 6, stamina: 4 },
       additional: {
         [EffectKey.MENTAL_RESILIENCE]: 1,
       },
@@ -1107,12 +807,7 @@ export const NUTRITION_PACK: Item = {
   consumableEffect: {
     type: 'next_activity',
     nextActivityBuffs: {
-      statBoosts: {
-        stamina: 8,
-        strength: 6,
-        serve: 5,
-        forehand: 5,
-      },
+      statBoosts: { stamina: 8, strength: 6, serve: 5, forehand: 5 },
     },
   },
 };
@@ -1123,28 +818,7 @@ export const NUTRITION_PACK: Item = {
 // Used by ShopSystem instead of the flat cost: 10 default.
 // ============================================================================
 
-export const CONSUMABLE_SHOP_COSTS: Partial<Record<string, number>> = {
-  banana: 5,
-  strawberries: 5,
-  orange_slice: 7,
-  energy_drink: 10,
-  sports_drink: 12,
-  recovery_shake: 12,
-  ice_bath_voucher: 18,
-  super_energy_gel: 22,
-  grandmas_lucky_cookies: 16,
-  focus_pill: 18,
-  performance_enhancer: 20,
-  stamina_boost: 16,
-  power_supplement: 15,
-  speed_booster: 18,
-  confidence_tape: 14,
-  coaches_notes: 22,
-  motivational_playlist: 16,
-  tennis_elbow_gel: 20,
-  zone_water: 25,
-  nutrition_pack: 35,
-};
+export const CONSUMABLE_SHOP_COSTS: Partial<Record<string, number>> = { banana: 5, strawberries: 5, orange_slice: 7, energy_drink: 10, sports_drink: 12, recovery_shake: 12, ice_bath_voucher: 18, super_energy_gel: 22, grandmas_lucky_cookies: 16, focus_pill: 18, performance_enhancer: 20, stamina_boost: 16, power_supplement: 15, speed_booster: 18, confidence_tape: 14, coaches_notes: 22, motivational_playlist: 16, tennis_elbow_gel: 20, zone_water: 25, nutrition_pack: 35 };
 
 // ============================================================================
 // ITEM COLLECTIONS - Derived from filtering individual items by type

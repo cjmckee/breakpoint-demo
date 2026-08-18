@@ -10,23 +10,23 @@
  * (they depend on live user choices).
  */
 
-import type { MatchFormat, MatchState, PlayerStats, MatchStatistics as IMatchStatistics } from '../../types/index.js';
-import type { Ability } from '../../types/game.js';
-import type { ArchetypeProfile } from '../../types/archetype.js';
-import { PlayerProfile } from '../../core/PlayerProfile.js';
-import { PointSimulator } from '../../core/PointSimulator.js';
-import { ScoreTracker } from '../../core/ScoreTracker.js';
-import { MatchStatistics } from '../../core/MatchStatistics.js';
-import { MATCH_FATIGUE } from '../../config/shotThresholds.js';
-import { aggregateArchetypeEffects } from '../../data/archetypeTree.js';
+import type { MatchFormat, MatchState, PlayerStats, MatchStatistics as IMatchStatistics } from '../../types';
+import type { Ability } from '../../types/game';
+import type { ArchetypeProfile } from '../../types/archetype';
+import { PlayerProfile } from '../../core/PlayerProfile';
+import { PointSimulator } from '../../core/PointSimulator';
+import { ScoreTracker } from '../../core/ScoreTracker';
+import { MatchStatistics } from '../../core/MatchStatistics';
+import { MATCH_FATIGUE } from '../../config/shotThresholds';
+import { aggregateArchetypeEffects } from '../../data/archetypeTree';
 import {
   OPPONENTS_BY_TIER,
   getScaledOpponentStats,
   getOpponentArchetypeProfile,
   type OpponentPreset,
-} from '../../data/opponents.js';
-import { riversideOpen } from '../../data/tournaments/riversideOpen.js';
-import { print, printBanner, printHeader, printTable, fmtNum } from './formatters.js';
+} from '../../data/opponents';
+import { riversideOpen } from '../../data/tournaments/riversideOpen';
+import { print, printBanner, printHeader, printTable, fmtNum } from './formatters';
 
 // ─── Configuration ───────────────────────────────────────────
 
@@ -38,17 +38,17 @@ const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true,
 // The day-39 character, as shown on the stats screen.
 // "Effective" = base stat + item boost (item boosts apply in matches).
 const CHARACTER_EFFECTIVE: PlayerStats = {
-  core: { serve: 72, forehand: 56, backhand: 45, return: 52, slice: 44 },
-  technical: { volley: 40, overhead: 42, dropShot: 30, spin: 49, placement: 52 },
-  physical: { speed: 53, stamina: 66, strength: 47, agility: 44, recovery: 55 },
-  mental: { focus: 57, anticipation: 42, shotVariety: 36, offensive: 51, defensive: 58 },
+  core: { serve: 72, forehand: 56, backhand: 45, return: 52, net: 41 },
+  technical: { slice: 44, spin: 49, placement: 52 },
+  physical: { speed: 53, stamina: 66, strength: 47 },
+  mental: { focus: 57, anticipation: 42, tactics: 55 },
 };
 
 const CHARACTER_BASE: PlayerStats = {
-  core: { serve: 64, forehand: 47, backhand: 37, return: 44, slice: 38 },
-  technical: { volley: 40, overhead: 42, dropShot: 30, spin: 44, placement: 52 },
-  physical: { speed: 47, stamina: 55, strength: 40, agility: 42, recovery: 52 },
-  mental: { focus: 45, anticipation: 42, shotVariety: 32, offensive: 51, defensive: 54 },
+  core: { serve: 64, forehand: 47, backhand: 37, return: 44, net: 41 },
+  technical: { slice: 38, spin: 44, placement: 52 },
+  physical: { speed: 47, stamina: 55, strength: 40 },
+  mental: { focus: 45, anticipation: 42, tactics: 53 },
 };
 
 // ─── Suppress console.log during simulation ──────────────────
@@ -167,11 +167,11 @@ function runMatch(
     // Fatigue
     matchState.fatigue.player = calculateNewFatigue(
       matchState.fatigue.player, pointResult.rallyLength,
-      player.stats.physical.stamina, player.stats.physical.recovery,
+      player.stats.physical.stamina, player.stats.physical.stamina,
     );
     matchState.fatigue.opponent = calculateNewFatigue(
       matchState.fatigue.opponent, pointResult.rallyLength,
-      opponent.stats.physical.stamina, opponent.stats.physical.recovery,
+      opponent.stats.physical.stamina, opponent.stats.physical.stamina,
     );
 
     points++;
@@ -444,10 +444,10 @@ function runServeStyleShowcase(): void {
 
   const jake = OPPONENTS_BY_TIER[2][2];
   const base = (r: number): PlayerStats => ({
-    core: { serve: r, forehand: r, backhand: r, return: r, slice: r },
-    technical: { volley: r, overhead: r, dropShot: r, spin: r, placement: r },
-    physical: { speed: r, stamina: r, strength: r, agility: r, recovery: r },
-    mental: { focus: r, anticipation: r, shotVariety: r, offensive: r, defensive: r },
+    core: { serve: r, forehand: r, backhand: r, return: r, net: r },
+    technical: { slice: r, spin: r, placement: r },
+    physical: { speed: r, stamina: r, strength: r },
+    mental: { focus: r, anticipation: r, tactics: r },
   });
 
   // Each build moves 40 points around within serve-related stats, net zero
@@ -499,10 +499,10 @@ function runGapCurve(): void {
     const summaries: MatchupSummary[] = [];
     for (const gap of [0, 3, 5, 8, 12, 16, 20]) {
       const stats = (r: number): PlayerStats => ({
-        core: { serve: r, forehand: r, backhand: r, return: r, slice: r },
-        technical: { volley: r, overhead: r, dropShot: r, spin: r, placement: r },
-        physical: { speed: r, stamina: r, strength: r, agility: r, recovery: r },
-        mental: { focus: r, anticipation: r, shotVariety: r, offensive: r, defensive: r },
+        core: { serve: r, forehand: r, backhand: r, return: r, net: r },
+        technical: { slice: r, spin: r, placement: r },
+        physical: { speed: r, stamina: r, strength: r },
+        mental: { focus: r, anticipation: r, tactics: r },
       });
       summaries.push(summarize(
         `50 vs ${50 + gap} (Bo${format.bestOfSets})`,

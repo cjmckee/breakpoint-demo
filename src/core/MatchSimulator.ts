@@ -16,15 +16,15 @@ import type {
   PointResult,
   PlayerMatchFatigue,
   PointType,
-} from '../types/index.js';
-import { MATCH_FATIGUE, STAMINA_RECOVERY } from '../config/shotThresholds.js';
-import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds.js';
-import { PlayerProfile } from './PlayerProfile.js';
-import { PointSimulator } from './PointSimulator.js';
-import { ScoreTracker } from './ScoreTracker.js';
-import { MatchStatistics } from './MatchStatistics.js';
-import { MomentumEngine, ClutchLevel } from './MomentumEngine.js';
-import { aggregateArchetypeEffects } from '../data/archetypeTree.js';
+} from '../types';
+import { MATCH_FATIGUE, STAMINA_RECOVERY } from '../config/shotThresholds';
+import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds';
+import { PlayerProfile } from './PlayerProfile';
+import { PointSimulator } from './PointSimulator';
+import { ScoreTracker } from './ScoreTracker';
+import { MatchStatistics } from './MatchStatistics';
+import { MomentumEngine, ClutchLevel } from './MomentumEngine';
+import { aggregateArchetypeEffects } from '../data/archetypeTree';
 
 export interface MatchConfig {
   player: PlayerProfile;
@@ -292,12 +292,12 @@ export class MatchSimulator {
   private applyRestRecovery(setCompleted: boolean): void {
     this.matchState.fatigue.player = this.recoverFatigue(
       this.matchState.fatigue.player,
-      this.config.player.stats.physical.recovery,
+      this.config.player.stats.physical.stamina,
       setCompleted
     );
     this.matchState.fatigue.opponent = this.recoverFatigue(
       this.matchState.fatigue.opponent,
-      this.config.opponent.stats.physical.recovery,
+      this.config.opponent.stats.physical.stamina,
       setCompleted
     );
   }
@@ -367,14 +367,14 @@ export class MatchSimulator {
       this.matchState.fatigue.player,
       rallyLength,
       this.config.player.stats.physical.stamina,
-      this.config.player.stats.physical.recovery
+      this.config.player.stats.physical.stamina
     );
 
     this.matchState.fatigue.opponent = this.calculateNewFatigue(
       this.matchState.fatigue.opponent,
       rallyLength,
       this.config.opponent.stats.physical.stamina,
-      this.config.opponent.stats.physical.recovery
+      this.config.opponent.stats.physical.stamina
     );
   }
 

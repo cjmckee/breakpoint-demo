@@ -4,28 +4,29 @@
  * Run with: npm run analyze
  */
 
-import type { ShotType, ShotContext, ShotDetail, CourtSurface } from '../../types/index.js';
-import { PointType } from '../../types/index.js';
-import { ShotCalculator } from '../../core/ShotCalculator.js';
-import { MatchSimulator } from '../../core/MatchSimulator.js';
-import { PointSimulator } from '../../core/PointSimulator.js';
-import { aggregateArchetypeEffects } from '../../data/archetypeTree.js';
-import { createUniformPlayer, createArchetypePlayer } from './playerFactory.js';
-import { computeStats } from './stats.js';
-import type { ArchetypeProfile, GamePhase, PhasePathId, SpecialtyTier } from '../../types/archetype.js';
+import type { ShotType, ShotContext, ShotDetail, CourtSurface } from '../../types';
+import { PointType } from '../../types';
+import { ShotCalculator } from '../../core/ShotCalculator';
+import { MatchSimulator } from '../../core/MatchSimulator';
+import { PointSimulator } from '../../core/PointSimulator';
+import { aggregateArchetypeEffects } from '../../data/archetypeTree';
+import { createUniformPlayer, createArchetypePlayer } from './playerFactory';
+import { computeStats } from './stats';
+import type { ArchetypeProfile, GamePhase, PhasePathId, SpecialtyTier } from '../../types/archetype';
 import {
   print, printBanner, printHeader, printTable, printHistogram, fmtPct, fmtNum,
-} from './formatters.js';
+} from './formatters';
 import {
-  SERVE_BASELINE,
+  SERVE_CONSISTENCY,
   SERVE_CONTEST,
   RELATIVE_QUALITY_REQUIREMENTS,
   OUTCOME_MULTIPLIERS,
+  WINNER_REQUIREMENTS,
   MINIMUM_WINNER_THRESHOLDS,
   MIN_QUALITY_FLOORS,
   OPPONENT_STAT_ADJUSTMENTS,
   getShotCategory,
-} from '../../config/shotThresholds.js';
+} from '../../config/shotThresholds';
 
 // ─── Configuration ───────────────────────────────────────────
 
@@ -71,7 +72,7 @@ function makeIncomingShotDetail(quality: number, shotType: ShotType = 'forehand'
     outcome: PointType.IN_PLAY,
     statUsed: 'forehand',
     modifiers: {
-      spinBonus: 0, placementBonus: 0, physicalModifier: 1, mentalModifier: 1,
+      spinModifier: 1, placementModifier: 1, physicalModifier: 1, mentalModifier: 1,
       difficultyModifier: 1, pressureModifier: 1, rallyLengthModifier: 1, finalAdjustment: 1,
       fatigueModifier: 1, momentumModifier: 1,
     },
@@ -89,8 +90,8 @@ function runServeAnalysis(): void {
   const calculator = new ShotCalculator();
 
   for (const serveType of SERVE_TYPES) {
-    const serveKey = serveType as keyof typeof SERVE_BASELINE;
-    const baseline = SERVE_BASELINE[serveKey];
+    const serveKey = serveType as keyof typeof SERVE_CONSISTENCY;
+    const baseline = SERVE_CONSISTENCY[serveKey];
     if (!baseline) continue;
 
     for (const oppReturnRating of OPPONENT_RETURN_RATINGS) {
@@ -100,7 +101,7 @@ function runServeAnalysis(): void {
       const aceThreshold = contest.aceBase + oppReturnRating * contest.acePerResistance;
 
       print(`  ${serveType} vs Opponent Return: ${oppReturnRating}`);
-      print(`  InPlay Threshold (base): ${baseline.inPlayThreshold} │ Ace Threshold (base): ${fmtNum(aceThreshold)}`);
+      print(`  InPlay midpoint: ${baseline.base} + ${baseline.perAccuracy} × expected accuracy │ Ace Threshold (base): ${fmtNum(aceThreshold)}`);
       print('');
 
       const rows: (string | number)[][] = [];
@@ -145,7 +146,7 @@ function runServeAnalysis(): void {
         if (quals) {
           print(`\n  Quality Distribution (Rating ${rating}, ${serveType}):`);
           printHistogram(quals, [
-            { label: 'InPlay', value: baseline.inPlayThreshold },
+            { label: 'InPlay', value: baseline.base + baseline.perAccuracy * rating },
             { label: 'Ace', value: aceThreshold },
           ]);
         }
@@ -168,19 +169,19 @@ function computeRallyThresholds(
   const category = getShotCategory(shotType);
   const multipliers = OUTCOME_MULTIPLIERS[category];
   const floor = MIN_QUALITY_FLOORS[category];
-  const winnerFloor = MINIMUM_WINNER_THRESHOLDS[category];
+  const winnerFloor = MINIMUM_WINNER_THRESHOLDS[shotType];
 
   // Base requirement from incoming quality
   let inPlayReq = incomingQuality * relativeReq;
 
   // Opponent stat adjustments: (stat - 50) * multiplier
-  inPlayReq += (opponentDefensive - 50) * OPPONENT_STAT_ADJUSTMENTS.defensive;
+  inPlayReq += (opponentDefensive - 50) * OPPONENT_STAT_ADJUSTMENTS.tactics;
   inPlayReq += (opponentSpeed - 50) * OPPONENT_STAT_ADJUSTMENTS.speed;
 
   // Apply minimum floor
   inPlayReq = Math.max(inPlayReq, floor);
 
-  const winnerReq = Math.max(inPlayReq * multipliers.winner, winnerFloor);
+  const winnerReq = Math.max(inPlayReq * WINNER_REQUIREMENTS[shotType], winnerFloor);
   const forcedErrorReq = inPlayReq * multipliers.forcedError;
 
   return { inPlay: inPlayReq, winner: winnerReq, forcedError: forcedErrorReq };
@@ -379,8 +380,8 @@ function runModifierBreakdown(): void {
       const m = result.modifiers;
       print(`    Rating ${rating}:`);
       print(`      Primary stat:       ${rating}`);
-      print(`      Spin bonus:         x${fmtNum(1 + m.spinBonus / 100, 3)}`);
-      print(`      Placement bonus:    x${fmtNum(1 + m.placementBonus / 100, 3)}`);
+      print(`      Spin modifier:      x${fmtNum(m.spinModifier, 3)}`);
+      print(`      Placement modifier: x${fmtNum(m.placementModifier, 3)}`);
       print(`      Physical modifier:  x${fmtNum(m.physicalModifier, 3)}`);
       print(`      Mental modifier:    x${fmtNum(m.mentalModifier, 3)}`);
       print(`      Difficulty mod:     x${fmtNum(m.difficultyModifier, 3)}`);

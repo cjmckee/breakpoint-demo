@@ -27,14 +27,9 @@ export const CHALLENGE_FOREHAND_FUNDAMENTALS: ChallengeTemplate = {
   ],
   reward: {
     modifiers: {
-      statBoosts: {
-        placement: 5,
-        spin: 3,
-      },
+      statBoosts: { placement: 5, spin: 3 },
     },
-    relationshipChanges: {
-      coach_gonzalez: 5,
-    },
+    relationshipChanges: { coach_gonzalez: 5 },
     experience: 15,
   },
 };
@@ -52,14 +47,9 @@ export const CHALLENGE_FIRST_VICTORIES: ChallengeTemplate = {
   ],
   reward: {
     modifiers: {
-      statBoosts: {
-        focus: 5,
-        anticipation: 5,
-      },
+      statBoosts: { focus: 5, anticipation: 5 },
     },
-    relationshipChanges: {
-      coach_gonzalez: 10,
-    },
+    relationshipChanges: { coach_gonzalez: 10 },
     experience: 15,
   },
 };
@@ -79,14 +69,9 @@ export const CHALLENGE_SERVE_MASTERY: ChallengeTemplate = {
   reward: {
     abilities: [AbilityName.HEAVY_HITTER],
     modifiers: {
-      statBoosts: {
-        serve: 5,
-        strength: 3,
-      },
+      statBoosts: { serve: 5, strength: 3 },
     },
-    relationshipChanges: {
-      coach_gonzalez: 5,
-    },
+    relationshipChanges: { coach_gonzalez: 5 },
     experience: 15,
   },
 };
@@ -112,15 +97,9 @@ export const CHALLENGE_BASELINE_WARRIOR: ChallengeTemplate = {
   reward: {
     abilities: [AbilityName.BASELINER],
     modifiers: {
-      statBoosts: {
-        placement: 5,
-        defensive: 5,
-        stamina: 3,
-      },
+      statBoosts: { placement: 5, tactics: 5, stamina: 3 },
     },
-    relationshipChanges: {
-      coach_gonzalez: 5,
-    },
+    relationshipChanges: { coach_gonzalez: 5 },
     experience: 15,
   },
 };
@@ -140,15 +119,9 @@ export const CHALLENGE_MENTAL_EDGE: ChallengeTemplate = {
   reward: {
     abilities: [AbilityName.CLUTCH],
     modifiers: {
-      statBoosts: {
-        focus: 5,
-        anticipation: 5,
-        offensive: 3,
-      },
+      statBoosts: { focus: 5, anticipation: 5, tactics: 3 },
     },
-    relationshipChanges: {
-      coach_gonzalez: 10,
-    },
+    relationshipChanges: { coach_gonzalez: 10 },
     experience: 15,
   },
 };
@@ -173,14 +146,9 @@ export const CHALLENGE_BALANCED_APPROACH: ChallengeTemplate = {
   ],
   reward: {
     modifiers: {
-      statBoosts: {
-        shotVariety: 8,
-        placement: 4,
-      },
+      statBoosts: { spin: 8, placement: 4 },
     },
-    relationshipChanges: {
-      coach_gonzalez: 10,
-    },
+    relationshipChanges: { coach_gonzalez: 10 },
     experience: 15,
   },
 };
@@ -205,15 +173,10 @@ export const CHALLENGE_ATHLETIC_FOUNDATION: ChallengeTemplate = {
   ],
   reward: {
     modifiers: {
-      statBoosts: {
-        agility: 5,
-        recovery: 5,
-      },
+      statBoosts: { speed: 5, stamina: 5 },
     },
     items: [STYLISH_HEADBAND],
-    relationshipChanges: {
-      coach_gonzalez: 10,
-    },
+    relationshipChanges: { coach_gonzalez: 10 },
     experience: 15,
   },
 };
@@ -235,11 +198,7 @@ export const CHALLENGE_TEN_WINS: ChallengeTemplate = {
   ],
   reward: {
     modifiers: {
-      statBoosts: {
-        focus: 5,
-        offensive: 5,
-        defensive: 5,
-      },
+      statBoosts: { focus: 5, tactics: 5 },
     },
     items: [CHAMPION_WRISTBAND],
     experience: 25,
@@ -263,10 +222,7 @@ export const CHALLENGE_PROVE_THEM_WRONG: ChallengeTemplate = {
   ],
   reward: {
     modifiers: {
-      statBoosts: {
-        offensive: 3,
-        defensive: 3,
-      },
+      statBoosts: { tactics: 3 },
     },
     experience: 40,
   },
@@ -279,21 +235,16 @@ export const CHALLENGE_RIVAL_READY: ChallengeTemplate = {
   requirements: [
     {
       type: 'statThreshold',
-      statName: 'offensive',
+      statName: 'tactics',
       targetValue: 35,
-      description: 'Reach 35 Offensive',
+      description: 'Reach 35 Tactics',
     },
   ],
   reward: {
     modifiers: {
-      statBoosts: {
-        backhand: 3,
-        anticipation: 3,
-      },
+      statBoosts: { backhand: 3, anticipation: 3 },
     },
-    relationshipChanges: {
-      jordan_rival: -5,
-    },
+    relationshipChanges: { jordan_rival: -5 },
     experience: 40,
   },
 };
@@ -315,16 +266,9 @@ export const CHALLENGE_MAKE_THEM_PROUD: ChallengeTemplate = {
   ],
   reward: {
     modifiers: {
-      statBoosts: {
-        stamina: 3,
-        focus: 3,
-        shotVariety: 3,
-        dropShot: 2
-      },
+      statBoosts: { stamina: 3, focus: 3, spin: 3, placement: 2 },
     },
-    relationshipChanges: {
-      family: 15,
-    },
+    relationshipChanges: { family: 15 },
     experience: 25,
   },
 };
@@ -348,12 +292,7 @@ export const CHALLENGE_TEAM_SPIRIT: ChallengeTemplate = {
   ],
   reward: {
     modifiers: {
-      statBoosts: {
-        defensive: 3,
-        return: 3,
-        serve: 2,
-        spin: 2
-      },
+      statBoosts: { tactics: 3, return: 3, serve: 2, spin: 2 },
     },
     experience: 15,
   },
@@ -374,9 +313,7 @@ export const CHALLENGE_SPONSOR_WORTHY: ChallengeTemplate = {
   ],
   reward: {
     modifiers: {
-      statBoosts: {
-        serve: 5,
-      },
+      statBoosts: { serve: 5 },
     },
     experience: 15,
   },
@@ -400,14 +337,9 @@ export const CHALLENGE_IMPRESS_ALEX: ChallengeTemplate = {
   ],
   reward: {
     modifiers: {
-      statBoosts: {
-        backhand: 2,
-        spin: 2,
-      },
+      statBoosts: { backhand: 2, spin: 2 },
     },
-    relationshipChanges: {
-      alex_romance: 10,
-    },
+    relationshipChanges: { alex_romance: 10 },
     experience: 25,
   },
 };
@@ -430,10 +362,7 @@ export const CHALLENGE_SLICE_SPECIALIST: ChallengeTemplate = {
   ],
   reward: {
     modifiers: {
-      statBoosts: {
-        slice: 3,
-        shotVariety: 2,
-      },
+      statBoosts: { slice: 3, spin: 2 },
     },
     experience: 15,
   },
@@ -446,17 +375,14 @@ export const CHALLENGE_TOUCH_ARTIST: ChallengeTemplate = {
   requirements: [
     {
       type: 'statThreshold',
-      statName: 'dropShot',
+      statName: 'placement',
       targetValue: 30,
       description: 'Reach 30 Drop Shot',
     },
   ],
   reward: {
     modifiers: {
-      statBoosts: {
-        dropShot: 5,
-        volley: 2,
-      },
+      statBoosts: { placement: 5, net: 2 },
     },
     experience: 15,
   },
@@ -465,21 +391,18 @@ export const CHALLENGE_TOUCH_ARTIST: ChallengeTemplate = {
 export const CHALLENGE_OVERHEAD_AUTHORITY: ChallengeTemplate = {
   id: 'challenge_overhead_authority',
   name: 'Overhead Authority',
-  description: 'All those volleyball spikes translated to the court. Train your overhead to 30.',
+  description: 'All those volleyball spikes translated to the court. Train your net game to 30.',
   requirements: [
     {
       type: 'statThreshold',
-      statName: 'overhead',
+      statName: 'net',
       targetValue: 30,
-      description: 'Reach 30 Overhead',
+      description: 'Reach 30 Net',
     },
   ],
   reward: {
     modifiers: {
-      statBoosts: {
-        overhead: 5,
-        strength: 2,
-      },
+      statBoosts: { net: 5, strength: 2 },
     },
     experience: 15,
   },
@@ -500,10 +423,7 @@ export const CHALLENGE_NEED_FOR_SPEED: ChallengeTemplate = {
   reward: {
     abilities: [AbilityName.SPEED_DEMON],
     modifiers: {
-      statBoosts: {
-        speed: 3,
-        agility: 2,
-      },
+      statBoosts: { speed: 3 },
     },
     experience: 15,
   },
@@ -512,22 +432,19 @@ export const CHALLENGE_NEED_FOR_SPEED: ChallengeTemplate = {
 export const CHALLENGE_NET_DOMINATOR: ChallengeTemplate = {
   id: 'challenge_net_dominator',
   name: 'Net Dominator',
-  description: 'Badminton showed you the power of net play. Train your volley to 30.',
+  description: 'Badminton showed you the power of net play. Train your net game to 30.',
   requirements: [
     {
       type: 'statThreshold',
-      statName: 'volley',
+      statName: 'net',
       targetValue: 30,
-      description: 'Reach 30 Volley',
+      description: 'Reach 30 Net',
     },
   ],
   reward: {
     abilities: [AbilityName.NETCRASHER],
     modifiers: {
-      statBoosts: {
-        volley: 3,
-        dropShot: 2,
-      },
+      statBoosts: { net: 3, placement: 2 },
     },
     experience: 15,
   },
@@ -536,21 +453,18 @@ export const CHALLENGE_NET_DOMINATOR: ChallengeTemplate = {
 export const CHALLENGE_IRON_RECOVERY: ChallengeTemplate = {
   id: 'challenge_iron_recovery',
   name: 'Iron Recovery',
-  description: 'Hot yoga nearly killed you, but you survived. Train your recovery to 30.',
+  description: 'Hot yoga nearly killed you, but you survived. Train your stamina to 30.',
   requirements: [
     {
       type: 'statThreshold',
-      statName: 'recovery',
+      statName: 'stamina',
       targetValue: 30,
-      description: 'Reach 30 Recovery',
+      description: 'Reach 30 Stamina',
     },
   ],
   reward: {
     modifiers: {
-      statBoosts: {
-        recovery: 3,
-        stamina: 2,
-      },
+      statBoosts: { stamina: 3 },
     },
     experience: 15,
   },
@@ -571,10 +485,7 @@ export const CHALLENGE_WINNER_MACHINE: ChallengeTemplate = {
   ],
   reward: {
     modifiers: {
-      statBoosts: {
-        offensive: 3,
-        strength: 2,
-      },
+      statBoosts: { tactics: 3, strength: 2 },
     },
     experience: 25,
   },
@@ -594,10 +505,7 @@ export const CHALLENGE_WALL_CLIMBER: ChallengeTemplate = {
   ],
   reward: {
     modifiers: {
-      statBoosts: {
-        strength: 3,
-        serve: 2,
-      },
+      statBoosts: { strength: 3, serve: 2 },
     },
     experience: 15,
   },
@@ -617,10 +525,7 @@ export const CHALLENGE_PRECISION_CUTTER: ChallengeTemplate = {
   ],
   reward: {
     modifiers: {
-      statBoosts: {
-        placement: 3,
-        dropShot: 2,
-      },
+      statBoosts: { placement: 3 },
     },
     experience: 15,
   },
@@ -641,11 +546,7 @@ export const CHALLENGE_ESCAPE_ARTIST: ChallengeTemplate = {
   ],
   reward: {
     modifiers: {
-      statBoosts: {
-        return: 3,
-        anticipation: 2,
-        speed: 3
-      },
+      statBoosts: { return: 3, anticipation: 2, speed: 3 },
     },
     experience: 25,
   },
@@ -669,16 +570,9 @@ export const CHALLENGE_PRACTICE_MAKES_PERFECT: ChallengeTemplate = {
   ],
   reward: {
     modifiers: {
-      statBoosts: {
-        speed: 3,
-        anticipation: 3,
-        slice: 2,
-        defensive: 4
-      },
+      statBoosts: { speed: 3, anticipation: 3, slice: 2, tactics: 4 },
     },
-    relationshipChanges: {
-      alex_romance: 15,
-    },
+    relationshipChanges: { alex_romance: 15 },
     experience: 10,
   },
 };
@@ -701,15 +595,9 @@ export const CHALLENGE_SIBLING_TEACHER: ChallengeTemplate = {
   ],
   reward: {
     modifiers: {
-      statBoosts: {
-        focus: 3,
-        spin: 2,
-        strength: 2
-      },
+      statBoosts: { focus: 3, spin: 2, strength: 2 },
     },
-    relationshipChanges: {
-      family: 10,
-    },
+    relationshipChanges: { family: 10 },
     experience: 15,
   },
 };
@@ -721,34 +609,26 @@ export const CHALLENGE_SIBLING_TEACHER: ChallengeTemplate = {
 export const CHALLENGE_TRICK_SHOT_MASTER: ChallengeTemplate = {
   id: 'challenge_trick_shot_master',
   name: 'Trick Shot Master',
-  description: "Coach Gonzalez believes you can learn some flashy moves. Don't embarrass him. Reach 30 Drop Shot and 35 Shot Variety.",
+  description: "Coach Gonzalez believes you can learn some flashy moves. Don't embarrass him. Reach 30 Placement and 35 Spin.",
   requirements: [
     {
       type: 'statThreshold',
-      statName: 'dropShot',
+      statName: 'placement',
       targetValue: 30,
-      description: 'Reach 30 Drop Shot',
+      description: 'Reach 30 Placement',
     },
     {
       type: 'statThreshold',
-      statName: 'shotVariety',
+      statName: 'spin',
       targetValue: 35,
-      description: 'Reach 35 Shot Variety',
+      description: 'Reach 35 Spin',
     },
   ],
   reward: {
     modifiers: {
-      statBoosts: {
-        dropShot: 4,
-        shotVariety: 4,
-        placement: 2,
-        defensive: 4,
-        slice: 4
-      },
+      statBoosts: { placement: 4, spin: 4, tactics: 4, slice: 4 },
     },
-    relationshipChanges: {
-      coach_gonzalez: 5,
-    },
+    relationshipChanges: { coach_gonzalez: 5 },
     experience: 15,
   },
 };
@@ -760,23 +640,18 @@ export const CHALLENGE_TRICK_SHOT_MASTER: ChallengeTemplate = {
 export const CHALLENGE_DOUBLES_INSTINCTS: ChallengeTemplate = {
   id: 'challenge_doubles_instincts',
   name: 'Doubles Instincts',
-  description: "Adapting to Jordan's chaos sharpened your net game. Reach 45 Volley.",
+  description: "Adapting to Jordan's chaos sharpened your net game. Reach 45 Net.",
   requirements: [
     {
       type: 'statThreshold',
-      statName: 'volley',
+      statName: 'net',
       targetValue: 45,
-      description: 'Reach 45 Volley',
+      description: 'Reach 45 Net',
     },
   ],
   reward: {
     modifiers: {
-      statBoosts: {
-        volley: 3,
-        return: 2,
-        overhead: 3,
-        offensive: 2
-      },
+      statBoosts: { net: 3, return: 2, tactics: 2 },
     },
     experience: 25,
   },

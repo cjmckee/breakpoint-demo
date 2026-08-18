@@ -533,18 +533,7 @@ export class MatchOrchestrator {
       quality,
       outcome,
       statUsed: getPrimaryStatName(shotType),
-      modifiers: {
-        spinBonus: 0,
-        placementBonus: 0,
-        physicalModifier: 1,
-        mentalModifier: 1,
-        difficultyModifier: 1,
-        pressureModifier: 1,
-        rallyLengthModifier: 1,
-        finalAdjustment: 1,
-        fatigueModifier: 1,
-        momentumModifier: 1,
-      },
+      modifiers: { spinModifier: 1, placementModifier: 1, physicalModifier: 1, mentalModifier: 1, difficultyModifier: 1, pressureModifier: 1, rallyLengthModifier: 1, finalAdjustment: 1, fatigueModifier: 1, momentumModifier: 1 },
       timestamp: timestamp + shotNumber * 100,
       shotNumber: shotNumber++,
       context: {
@@ -1116,12 +1105,12 @@ export class MatchOrchestrator {
     if (!this.playerStats || !this.opponentStats) return;
     this.fatigue.player = this.recoverFatigue(
       this.fatigue.player,
-      this.playerStats.physical.recovery,
+      this.playerStats.physical.stamina,
       setCompleted
     );
     this.fatigue.opponent = this.recoverFatigue(
       this.fatigue.opponent,
-      this.opponentStats.physical.recovery,
+      this.opponentStats.physical.stamina,
       setCompleted
     );
   }
@@ -1147,7 +1136,7 @@ export class MatchOrchestrator {
       this.fatigue.player,
       rallyLength,
       this.playerStats.physical.stamina,
-      this.playerStats.physical.recovery,
+      this.playerStats.physical.stamina,
       fatigueMultiplier
     );
 
@@ -1155,7 +1144,7 @@ export class MatchOrchestrator {
       this.fatigue.opponent,
       rallyLength,
       this.opponentStats.physical.stamina,
-      this.opponentStats.physical.recovery
+      this.opponentStats.physical.stamina
     );
   }
 

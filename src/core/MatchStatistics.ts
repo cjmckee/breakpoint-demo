@@ -15,8 +15,8 @@ import {
   type StatName,
   type PlayerStats,
   PointType,
-} from '../types/index.js';
-import { PlayerProfile } from './PlayerProfile.js';
+} from '../types';
+import { PlayerProfile } from './PlayerProfile';
 
 export class MatchStatistics {
   private statistics: IMatchStatistics;

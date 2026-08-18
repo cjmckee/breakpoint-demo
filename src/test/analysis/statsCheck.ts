@@ -6,18 +6,18 @@
  * Run with: npm run build:node && node --experimental-specifier-resolution=node dist/src/test/analysis/statsCheck.js
  */
 
-import type { MatchFormat, MatchState, PlayerStats } from '../../types/index.js';
-import { PlayerProfile } from '../../core/PlayerProfile.js';
-import { PointSimulator } from '../../core/PointSimulator.js';
-import { ScoreTracker } from '../../core/ScoreTracker.js';
-import { MatchStatistics } from '../../core/MatchStatistics.js';
-import { OPPONENTS_BY_TIER, getOpponentArchetypeProfile } from '../../data/opponents.js';
+import type { MatchFormat, MatchState, PlayerStats } from '../../types';
+import { PlayerProfile } from '../../core/PlayerProfile';
+import { PointSimulator } from '../../core/PointSimulator';
+import { ScoreTracker } from '../../core/ScoreTracker';
+import { MatchStatistics } from '../../core/MatchStatistics';
+import { OPPONENTS_BY_TIER, getOpponentArchetypeProfile } from '../../data/opponents';
 
 const CHARACTER: PlayerStats = {
-  core: { serve: 72, forehand: 56, backhand: 45, return: 52, slice: 44 },
-  technical: { volley: 40, overhead: 42, dropShot: 30, spin: 49, placement: 52 },
-  physical: { speed: 53, stamina: 66, strength: 47, agility: 44, recovery: 55 },
-  mental: { focus: 57, anticipation: 42, shotVariety: 36, offensive: 51, defensive: 58 },
+  core: { serve: 72, forehand: 56, backhand: 45, return: 52, net: 41 },
+  technical: { slice: 44, spin: 49, placement: 52 },
+  physical: { speed: 53, stamina: 66, strength: 47 },
+  mental: { focus: 57, anticipation: 42, tactics: 55 },
 };
 
 const BO1: MatchFormat = { bestOfSets: 1, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };

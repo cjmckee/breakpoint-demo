@@ -18,14 +18,14 @@ import {
   BallQuality,
   TacticalOpportunity,
   PointType,
-} from '../types/index.js';
-import { PlayerProfile } from './PlayerProfile.js';
-import { ShotCalculator } from './ShotCalculator.js';
-import { ShotSelector } from './ShotSelector.js';
-import { TacticalAnalyzer } from './TacticalAnalyzer.js';
-import { getQualityThresholds, getMatchLevel, RelativeThresholds } from '../utils/qualityThresholds.js';
-import { RALLY_CONFIG, DIFFICULTY_SCORE_FACTORS, DIFFICULTY_THRESHOLDS } from '../config/shotThresholds.js';
-import { EffectKey } from '../types/game.js';
+} from '../types';
+import { PlayerProfile } from './PlayerProfile';
+import { ShotCalculator } from './ShotCalculator';
+import { ShotSelector } from './ShotSelector';
+import { TacticalAnalyzer } from './TacticalAnalyzer';
+import { getQualityThresholds, getMatchLevel, RelativeThresholds } from '../utils/qualityThresholds';
+import { RALLY_CONFIG, DIFFICULTY_SCORE_FACTORS, DIFFICULTY_THRESHOLDS } from '../config/shotThresholds';
+import { EffectKey } from '../types/game';
 
 export class PointSimulator {
   private shotCalculator: ShotCalculator;
@@ -158,6 +158,8 @@ export class PointSimulator {
         shotNumber: 1,
         context: firstServeContext,
         thresholds: firstServeResult.thresholds,
+        opponentPosition: firstServeResult.opponentPosition,
+        ballQuality: firstServeResult.ballQuality,
       };
       shots.push(firstServeShot);
 
@@ -185,6 +187,8 @@ export class PointSimulator {
         shotNumber: 1,
         context: firstServeContext,
         thresholds: firstServeResult.thresholds,
+        opponentPosition: firstServeResult.opponentPosition,
+        ballQuality: firstServeResult.ballQuality,
       };
       shots.push(firstServeShot);
 
@@ -210,6 +214,8 @@ export class PointSimulator {
       shotNumber: 1,
       context: firstServeContext,
       thresholds: firstServeResult.thresholds,
+        opponentPosition: firstServeResult.opponentPosition,
+        ballQuality: firstServeResult.ballQuality,
     };
     shots.push(faultServeShot);
 
@@ -244,6 +250,8 @@ export class PointSimulator {
       shotNumber: 1, // Second serve is shot #1 when it starts the rally
       context: secondServeContext,
       thresholds: secondServeResult.thresholds,
+        opponentPosition: secondServeResult.opponentPosition,
+        ballQuality: secondServeResult.ballQuality,
     };
 
     shots.push(secondServeShot);
@@ -447,7 +455,9 @@ export class PointSimulator {
         timestamp: Date.now(),
         shotNumber,
         context: shotContext,
-        thresholds: shotResult.thresholds, // NEW: include thresholds for analysis
+        thresholds: shotResult.thresholds,
+        opponentPosition: shotResult.opponentPosition,
+        ballQuality: shotResult.ballQuality, // NEW: include thresholds for analysis
       };
 
       shots.push(shotDetail);

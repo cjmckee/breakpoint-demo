@@ -13,20 +13,20 @@ import type {
   ShotType,
   StatName,
   StatCategory
-} from '../types/index.js';
-import type { ArchetypeProfile, BroadArchetype } from '../types/archetype.js';
-import { EffectKey } from '../types/game.js';
+} from '../types';
+import type { ArchetypeProfile, BroadArchetype } from '../types/archetype';
+import { EffectKey } from '../types/game';
 import {
   aggregateArchetypeEffects,
   createEmptyArchetypeProfile,
-} from '../data/archetypeTree.js';
+} from '../data/archetypeTree';
 import {
   SERVE_QUALITY_WEIGHTS,
   SERVE_ACCURACY_WEIGHTS,
   RETURN_COMPOSITE_WEIGHTS,
   SHOT_COMPOSITE_WEIGHTS,
   MATCH_FORM,
-} from '../config/shotThresholds.js';
+} from '../config/shotThresholds';
 
 const ARCHETYPE_DESCRIPTIONS: Record<PlayStyle['type'], string> = {
   serve_volley: 'Aggressive net player who serves and volleys',
@@ -61,20 +61,71 @@ const BROAD_TENDENCY_NUDGES: Record<BroadArchetype, { aggression: number; netApp
 };
 const NO_NUDGE = { aggression: 0, netApproach: 0, consistency: 0, power: 0 };
 
-export function calculateOverallRating(stats: PlayerStats): number {
-  const avg = (vals: object) => {
-    const v = Object.values(vals) as number[];
-    return v.reduce((s, x) => s + x, 0) / v.length;
-  };
-  return Math.round(
-    avg(stats.core) * 0.45 +
-    avg(stats.technical) * 0.15 +
-    avg(stats.physical) * 0.25 +
-    avg(stats.mental) * 0.15
-  );
-}
+/** Re-exported so existing importers keep working; defined once in utils/playerStats. */
+export { calculateOverallRating } from '../utils/overallRating';
+import { calculateOverallRating } from '../utils/overallRating';
+
 
 const clampDial = (v: number): number => Math.max(0, Math.min(100, v));
+
+/**
+ * Which stat leads each rally shot, and which composite family sets the
+ * supporting weights. Module-level rather than per-call: this is read on every
+ * rally shot of every point.
+ *
+ * Serves and returns are not here — they have their own weight tables
+ * (SERVE_QUALITY_WEIGHTS, RETURN_COMPOSITE_WEIGHTS) with no single "primary".
+ */
+export const RALLY_SHOT_FAMILIES: Partial<Record<ShotType, { stat: StatName; family: string }>> = {
+  'forehand': { stat: 'forehand', family: 'groundstroke' },
+  'backhand': { stat: 'backhand', family: 'groundstroke' },
+  'forehand_approach': { stat: 'forehand', family: 'approach' },
+  'backhand_approach': { stat: 'backhand', family: 'approach' },
+  'forehand_power': { stat: 'forehand', family: 'powerGroundstroke' },
+  'backhand_power': { stat: 'backhand', family: 'powerGroundstroke' },
+  'slice_forehand': { stat: 'slice', family: 'slice' },
+  'slice_backhand': { stat: 'slice', family: 'slice' },
+  'defensive_slice_forehand': { stat: 'slice', family: 'slice' },
+  'defensive_slice_backhand': { stat: 'slice', family: 'slice' },
+  'volley_forehand': { stat: 'net', family: 'volley' },
+  'volley_backhand': { stat: 'net', family: 'volley' },
+  'volley_forehand_power': { stat: 'net', family: 'volley' },
+  'volley_backhand_power': { stat: 'net', family: 'volley' },
+  'half_volley_forehand': { stat: 'net', family: 'volley' },
+  'half_volley_backhand': { stat: 'net', family: 'volley' },
+  'overhead': { stat: 'net', family: 'overhead' },
+  'defensive_overhead': { stat: 'net', family: 'overhead' },
+  'drop_shot_forehand': { stat: 'placement', family: 'dropShot' },
+  'drop_shot_backhand': { stat: 'placement', family: 'dropShot' },
+  'angle_shot_forehand': { stat: 'placement', family: 'angle' },
+  'angle_shot_backhand': { stat: 'placement', family: 'angle' },
+  'lob_forehand': { stat: 'placement', family: 'lob' },
+  'lob_backhand': { stat: 'placement', family: 'lob' },
+  'passing_shot_forehand': { stat: 'placement', family: 'passing' },
+  'passing_shot_backhand': { stat: 'placement', family: 'passing' },
+};
+
+/**
+ * The stats that set a shot's quality, by name, with the weight each carries.
+ * Player-independent — this is the shape of the composite, not its value — so
+ * it answers "which stats does this shot pay?" without simulating anybody.
+ */
+export function getShotStatWeights(shotType: ShotType): Record<string, number> {
+  if (shotType === 'serve_first' || shotType === 'serve_second') {
+    return { ...SERVE_QUALITY_WEIGHTS[shotType] };
+  }
+  if (shotType.startsWith('return_')) {
+    return { ...RETURN_COMPOSITE_WEIGHTS };
+  }
+  const entry = RALLY_SHOT_FAMILIES[shotType];
+  if (!entry) {
+    throw new Error(`Unknown shot type: ${shotType}`);
+  }
+  const { primary, ...supports } = SHOT_COMPOSITE_WEIGHTS[entry.family];
+  const weights: Record<string, number> = { ...supports };
+  weights[entry.stat] = (weights[entry.stat] ?? 0) + primary;
+  return weights;
+}
 
 /**
  * Map a profile's aggregated behavior dials onto one of the legacy five PlayStyle
@@ -204,12 +255,10 @@ export class PlayerProfile implements IPlayerProfile {
         forehand: 25,
         backhand: 25,
         return: 25,
-        slice: 25,
+        net: 25,
       },
       technical: {
-        volley: 25,
-        overhead: 25,
-        dropShot: 25,
+        slice: 25,
         spin: 25,
         placement: 25,
       },
@@ -217,15 +266,11 @@ export class PlayerProfile implements IPlayerProfile {
         speed: 25,
         stamina: 25,
         strength: 25,
-        agility: 25,
-        recovery: 25,
       },
       mental: {
         focus: 25,
         anticipation: 25,
-        shotVariety: 25,
-        offensive: 25,
-        defensive: 25,
+        tactics: 25,
       },
     };
 
@@ -313,38 +358,9 @@ export class PlayerProfile implements IPlayerProfile {
   private getRallyCompositeSpec(
     shotType: ShotType,
   ): { primaryValue: number; weights: { primary: number; [stat: string]: number } } | null {
-    const families: Partial<Record<ShotType, { stat: number; family: string }>> = {
-      'forehand': { stat: this.stats.core.forehand, family: 'groundstroke' },
-      'backhand': { stat: this.stats.core.backhand, family: 'groundstroke' },
-      'forehand_approach': { stat: this.stats.core.forehand, family: 'groundstroke' },
-      'backhand_approach': { stat: this.stats.core.backhand, family: 'groundstroke' },
-      'forehand_power': { stat: this.stats.core.forehand, family: 'powerGroundstroke' },
-      'backhand_power': { stat: this.stats.core.backhand, family: 'powerGroundstroke' },
-      'slice_forehand': { stat: this.stats.core.slice, family: 'slice' },
-      'slice_backhand': { stat: this.stats.core.slice, family: 'slice' },
-      'defensive_slice_forehand': { stat: this.stats.core.slice, family: 'slice' },
-      'defensive_slice_backhand': { stat: this.stats.core.slice, family: 'slice' },
-      'volley_forehand': { stat: this.stats.technical.volley, family: 'volley' },
-      'volley_backhand': { stat: this.stats.technical.volley, family: 'volley' },
-      'volley_forehand_power': { stat: this.stats.technical.volley, family: 'volley' },
-      'volley_backhand_power': { stat: this.stats.technical.volley, family: 'volley' },
-      'half_volley_forehand': { stat: this.stats.technical.volley, family: 'volley' },
-      'half_volley_backhand': { stat: this.stats.technical.volley, family: 'volley' },
-      'overhead': { stat: this.stats.technical.overhead, family: 'overhead' },
-      'defensive_overhead': { stat: this.stats.technical.overhead, family: 'overhead' },
-      'drop_shot_forehand': { stat: this.stats.technical.dropShot, family: 'dropShot' },
-      'drop_shot_backhand': { stat: this.stats.technical.dropShot, family: 'dropShot' },
-      'angle_shot_forehand': { stat: this.stats.technical.placement, family: 'angle' },
-      'angle_shot_backhand': { stat: this.stats.technical.placement, family: 'angle' },
-      'lob_forehand': { stat: this.stats.technical.placement, family: 'lob' },
-      'lob_backhand': { stat: this.stats.technical.placement, family: 'lob' },
-      'passing_shot_forehand': { stat: this.stats.technical.placement, family: 'passing' },
-      'passing_shot_backhand': { stat: this.stats.technical.placement, family: 'passing' },
-    };
-
-    const entry = families[shotType];
+    const entry = RALLY_SHOT_FAMILIES[shotType];
     if (!entry) return null;
-    return { primaryValue: entry.stat, weights: SHOT_COMPOSITE_WEIGHTS[entry.family] };
+    return { primaryValue: this.getStat(entry.stat), weights: SHOT_COMPOSITE_WEIGHTS[entry.family] };
   }
 
   /**
@@ -430,11 +446,11 @@ export class PlayerProfile implements IPlayerProfile {
   public get preferredSurface(): CourtSurface {
     const serve = this.stats.core.serve;
     const speed = this.stats.physical.speed;
-    const defensive = this.stats.mental.defensive;
+    const defensive = this.stats.mental.tactics;
     const spin = this.stats.technical.spin;
 
     // Grass favors serve and volley
-    if (serve >= 70 && this.stats.technical.volley >= 65) {
+    if (serve >= 70 && this.stats.core.net >= 65) {
       return 'grass';
     }
 
@@ -547,12 +563,10 @@ export class PlayerProfile implements IPlayerProfile {
         forehand: generateStat(),
         backhand: generateStat(),
         return: generateStat(),
-        slice: generateStat(),
+        net: generateStat(),
       },
       technical: {
-        volley: generateStat(),
-        overhead: generateStat(),
-        dropShot: generateStat(),
+        slice: generateStat(),
         spin: generateStat(),
         placement: generateStat(),
       },
@@ -560,15 +574,11 @@ export class PlayerProfile implements IPlayerProfile {
         speed: generateStat(),
         stamina: generateStat(),
         strength: generateStat(),
-        agility: generateStat(),
-        recovery: generateStat(),
       },
       mental: {
         focus: generateStat(),
         anticipation: generateStat(),
-        shotVariety: generateStat(),
-        offensive: generateStat(),
-        defensive: generateStat(),
+        tactics: generateStat(),
       },
     };
 

@@ -51,17 +51,8 @@ export const careerEvents: StoryEvent[] = [
       effects: {
         moodChange: 10,
         energyChange: -5,
-        relationshipChanges: {
-          keith: 2,
-          jen: 2,
-        },
-        statChanges: {
-          forehand: 1,
-          backhand: 1,
-          serve: 1,
-          slice: 1,
-          volley: 1,
-        }
+        relationshipChanges: { keith: 2, jen: 2 },
+        statChanges: { forehand: 1, backhand: 1, serve: 1, slice: 1, net: 1 }
       },
       challengesAssigned: [
         ChallengeManager.createFromTemplate(CHALLENGE_TEAM_SPIRIT, {
@@ -105,18 +96,8 @@ export const careerEvents: StoryEvent[] = [
       effects: {
         moodChange: 5,
         energyChange: -25,
-        relationshipChanges: {
-          keith: 1,
-          jen: 2,
-          jordan_rival: 2,
-        },
-        statChanges: {
-          return: 2,
-          spin: 2,
-          placement: 1,
-          offensive: 1,
-          defensive: 1
-        },
+        relationshipChanges: { keith: 1, jen: 2, jordan_rival: 2 },
+        statChanges: { return: 2, spin: 2, placement: 1, tactics: 1 },
       },
     },
   },
@@ -157,11 +138,7 @@ export const careerEvents: StoryEvent[] = [
       effects: {
         moodChange: 10,
         energyChange: 0,
-        relationshipChanges: {
-          keith: 1,
-          jen: 1,
-          coach_gonzalez: 2,
-        },
+        relationshipChanges: { keith: 1, jen: 1, coach_gonzalez: 2 },
         scheduledEvents: [
           {
             eventType: 'story_match',
@@ -205,9 +182,7 @@ export const careerEvents: StoryEvent[] = [
       effects: {
         moodChange: 5,
         energyChange: -5,
-        relationshipChanges: {
-          chet_vale: 2,
-        },
+        relationshipChanges: { chet_vale: 2 },
       }
     }
   },
@@ -243,18 +218,8 @@ export const careerEvents: StoryEvent[] = [
       effects: {
         moodChange: 25,
         energyChange: -10,
-        relationshipChanges: {
-          keith: 3,
-          jen: 2,
-          coach_gonzalez: 3,
-          chet_vale: -5,
-        },
-        statChanges: {
-          speed: 2,
-          stamina: 1,
-          agility: 1,
-          volley: 2
-        },
+        relationshipChanges: { keith: 3, jen: 2, coach_gonzalez: 3, chet_vale: -5 },
+        statChanges: { speed: 2, stamina: 1, net: 2 },
         itemsGained: [SKI_PASS],
       }
     }
@@ -291,17 +256,8 @@ export const careerEvents: StoryEvent[] = [
       effects: {
         moodChange: -10,
         energyChange: -15,
-        relationshipChanges: {
-          keith: 2,
-          jen: 2,
-          coach_gonzalez: 1,
-          chet_vale: 3,
-        },
-        statChanges: {
-          speed: 1,
-          agility: 1,
-          defensive: 1,
-        },
+        relationshipChanges: { keith: 2, jen: 2, coach_gonzalez: 1, chet_vale: 3 },
+        statChanges: { speed: 1, tactics: 1 },
         itemsGained: [SKI_PASS]
       }
     }
@@ -340,11 +296,7 @@ export const careerEvents: StoryEvent[] = [
       effects: {
         moodChange: 10,
         energyChange: 5,
-        relationshipChanges: {
-          jen: 2,
-          greg: 2,
-          coach_gonzalez: 2
-        },
+        relationshipChanges: { jen: 2, greg: 2, coach_gonzalez: 2 },
         scheduledEvents: [
           {
             eventType: 'story_match',
@@ -386,9 +338,7 @@ export const careerEvents: StoryEvent[] = [
       effects: {
         moodChange: 5,
         energyChange: -10,
-        relationshipChanges: {
-          richard_soil: 2
-        },
+        relationshipChanges: { richard_soil: 2 },
       }
     }
   },
@@ -424,18 +374,8 @@ export const careerEvents: StoryEvent[] = [
       effects: {
         moodChange: 20,
         energyChange: -20,
-        relationshipChanges: {
-          keith: 3,
-          jen: 2,
-          coach_gonzalez: 3,
-          richard_soil: -5
-        },
-        statChanges: {
-          backhand: 1,
-          slice: 2,
-          agility: 2,
-          shotVariety: 1
-        },
+        relationshipChanges: { keith: 3, jen: 2, coach_gonzalez: 3, richard_soil: -5 },
+        statChanges: { backhand: 1, slice: 2, speed: 2, spin: 1 },
         itemsGained: [LUCKY_SPROUT]
       }
     }
@@ -471,17 +411,8 @@ export const careerEvents: StoryEvent[] = [
       effects: {
         moodChange: -10,
         energyChange: -20,
-        relationshipChanges: {
-          keith: 2,
-          jen: 2,
-          coach_gonzalez: 2,
-          richard_soil: 1
-        },
-        statChanges: {
-          volley: 1,
-          overhead: 1,
-          serve: 2,
-        },
+        relationshipChanges: { keith: 2, jen: 2, coach_gonzalez: 2, richard_soil: 1 },
+        statChanges: { net: 1, serve: 2 },
         itemsGained: [LUCKY_SPROUT]
       }
     }
@@ -522,11 +453,7 @@ export const careerEvents: StoryEvent[] = [
       effects: {
         moodChange: 5,
         energyChange: 0,
-        relationshipChanges: {
-          jen: 1,
-          keith: 1,
-          coach_gonzalez: 1,
-        },
+        relationshipChanges: { jen: 1, keith: 1, coach_gonzalez: 1 },
         scheduledEvents: [
           {
             eventType: 'story_match',
@@ -573,9 +500,7 @@ export const careerEvents: StoryEvent[] = [
       effects: {
         moodChange: 5,
         energyChange: 5,
-        relationshipChanges: {
-          martia_estrella: 5,
-        },
+        relationshipChanges: { martia_estrella: 5 },
       }
     }
   },
@@ -608,16 +533,8 @@ export const careerEvents: StoryEvent[] = [
       effects: {
         moodChange: 25,
         energyChange: 20,
-        relationshipChanges: {
-          jen: 2,
-          coach_gonzalez: 3,
-          martia_estrella: 2,
-        },
-        statChanges: {
-          focus: 3,
-          anticipation: 2,
-          placement: 2,
-        },
+        relationshipChanges: { jen: 2, coach_gonzalez: 3, martia_estrella: 2 },
+        statChanges: { focus: 3, anticipation: 2, placement: 2 },
         itemsGained: [SPACE_SUIT],
       }
     }
@@ -654,17 +571,8 @@ export const careerEvents: StoryEvent[] = [
       effects: {
         moodChange: -10,
         energyChange: -20,
-        relationshipChanges: {
-          keith: 2,
-          jen: 2,
-          coach_gonzalez: 2,
-          martia_estrella: 3,
-        },
-        statChanges: {
-          focus: 2,
-          defensive: 2,
-          anticipation: 1,
-        },
+        relationshipChanges: { keith: 2, jen: 2, coach_gonzalez: 2, martia_estrella: 3 },
+        statChanges: { focus: 2, tactics: 2, anticipation: 1 },
         itemsGained: [SPACE_SUIT]
       }
     }
@@ -705,12 +613,7 @@ export const careerEvents: StoryEvent[] = [
       effects: {
         moodChange: 5,
         energyChange: 0,
-        relationshipChanges: {
-          jen: 1,
-          greg: 1,
-          keith: 1,
-          coach_gonzalez: 2,
-        },
+        relationshipChanges: { jen: 1, greg: 1, keith: 1, coach_gonzalez: 2 },
         scheduledEvents: [
           {
             eventType: 'story_match',
@@ -754,9 +657,7 @@ export const careerEvents: StoryEvent[] = [
       effects: {
         moodChange: 5,
         energyChange: 5,
-        relationshipChanges: {
-          reginald_werther: 2,
-        },
+        relationshipChanges: { reginald_werther: 2 },
       }
     }
   },
@@ -790,17 +691,8 @@ export const careerEvents: StoryEvent[] = [
       effects: {
         moodChange: 25,
         energyChange: -20,
-        relationshipChanges: {
-          keith: 3,
-          jen: 2,
-          coach_gonzalez: 3,
-          reginald_werther: 2,
-        },
-        statChanges: {
-          placement: 3,
-          anticipation: 2,
-          stamina: 2,
-        },
+        relationshipChanges: { keith: 3, jen: 2, coach_gonzalez: 3, reginald_werther: 2 },
+        statChanges: { placement: 3, anticipation: 2, stamina: 2 },
         itemsGained: [LUCKY_TEETH],
       }
     }
@@ -836,17 +728,8 @@ export const careerEvents: StoryEvent[] = [
       effects: {
         moodChange: -10,
         energyChange: -20,
-        relationshipChanges: {
-          keith: 2,
-          jen: 2,
-          coach_gonzalez: 2,
-          reginald_werther: 3,
-        },
-        statChanges: {
-          placement: 2,
-          defensive: 2,
-          anticipation: 1,
-        },
+        relationshipChanges: { keith: 2, jen: 2, coach_gonzalez: 2, reginald_werther: 3 },
+        statChanges: { placement: 2, tactics: 2, anticipation: 1 },
         itemsGained: [LUCKY_TEETH]
       }
     }
@@ -888,11 +771,7 @@ export const careerEvents: StoryEvent[] = [
       effects: {
         moodChange: 5,
         energyChange: 0,
-        relationshipChanges: {
-          jen: 1,
-          greg: 1,
-          coach_gonzalez: 2,
-        },
+        relationshipChanges: { jen: 1, greg: 1, coach_gonzalez: 2 },
         scheduledEvents: [
           {
             eventType: 'story_match',
@@ -934,9 +813,7 @@ export const careerEvents: StoryEvent[] = [
       effects: {
         moodChange: 5,
         energyChange: 5,
-        relationshipChanges: {
-          olivia_gulp: 1,
-        },
+        relationshipChanges: { olivia_gulp: 1 },
       }
     }
   },
@@ -971,18 +848,8 @@ export const careerEvents: StoryEvent[] = [
       effects: {
         moodChange: 30,
         energyChange: 25,
-        relationshipChanges: {
-          keith: 3,
-          jen: 3,
-          coach_gonzalez: 3,
-          olivia_gulp: 2,
-        },
-        statChanges: {
-          stamina: 3,
-          offensive: 2,
-          speed: 2,
-          recovery: 2,
-        },
+        relationshipChanges: { keith: 3, jen: 3, coach_gonzalez: 3, olivia_gulp: 2 },
+        statChanges: { stamina: 3, tactics: 2, speed: 2 },
         itemsGained: [CHEF_HAT],
       }
     }
@@ -1018,17 +885,8 @@ export const careerEvents: StoryEvent[] = [
       effects: {
         moodChange: -10,
         energyChange: -20,
-        relationshipChanges: {
-          keith: 2,
-          jen: 2,
-          coach_gonzalez: 2,
-          olivia_gulp: 3,
-        },
-        statChanges: {
-          stamina: 2,
-          recovery: 3,
-          offensive: 1,
-        },
+        relationshipChanges: { keith: 2, jen: 2, coach_gonzalez: 2, olivia_gulp: 3 },
+        statChanges: { stamina: 3, tactics: 1 },
         itemsGained: [CHEF_HAT]
       }
     }
@@ -1047,10 +905,7 @@ export const careerEvents: StoryEvent[] = [
     name: 'First Sponsorship Offer',
     tags: ['sponsor', 'decision', 'media'],
     timeSlotsRequired: 2,
-    prerequisites: {
-      minMatchesWon: 3,
-      minDay: 15,
-    },
+    prerequisites: { minMatchesWon: 3, minDay: 15 },
     skippable: false,
     description: 'A local sports equipment company has noticed your recent wins and wants to sponsor you.',
     dialogue: [
@@ -1111,7 +966,7 @@ export const careerEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You politely decline, explaining that you want to focus on your development before taking on sponsorship obligations. The representative seems to take it well. Maybe too well... I hope they come back soon.'],
           effects: {
-            statChanges: { recovery: 2, shotVariety: 1 },
+            statChanges: { stamina: 2, spin: 1 },
             moodChange: 10,
             energyChange: 0,
           },
@@ -1125,10 +980,7 @@ export const careerEvents: StoryEvent[] = [
     name: 'First Media Interview',
     tags: ['media', 'decision'],
     timeSlotsRequired: 1,
-    prerequisites: {
-      minMatchesWon: 5,
-      minDay: 20,
-    },
+    prerequisites: { minMatchesWon: 5, minDay: 20 },
     skippable: false,
     description: 'A local sports journalist wants to interview you about your tennis journey.',
     dialogue: [
@@ -1142,7 +994,7 @@ export const careerEvents: StoryEvent[] = [
     defaultOutcome: {
       resultText: ['You give your best effort during the interview, but ultimately you\'re still confused. Everyone seems to know ', {characterId: 'jordan_rival'}, ' except you.'],
       effects: {
-        statChanges: { stamina: 2, overhead: 1 },
+        statChanges: { stamina: 2, net: 1 },
         moodChange: -5,
         energyChange: -5,
       }
@@ -1175,13 +1027,10 @@ export const careerEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You sign with the agent, who immediately begins making calls and setting up opportunities. But you didn\'t sell out, right?'],
           effects: {
-            statChanges: { anticipation: 3, slice: 1, dropShot: 1, forehand: 1, backhand: 1, serve: 1 },
+            statChanges: { anticipation: 3, slice: 1, placement: 1, forehand: 1, backhand: 1, serve: 1 },
             moodChange: 10,
             energyChange: -10,
-            relationshipChanges: {
-              coach_gonzalez: -25,
-              agent: 10,
-            }
+            relationshipChanges: { coach_gonzalez: -25, agent: 10 }
           },
         },
       },
@@ -1192,10 +1041,7 @@ export const careerEvents: StoryEvent[] = [
         description: 'Not ready to commit yet',
         outcome: {
           resultText: ['You ask for some time to think it over. They are clearly not happy, but they are giving you the opportunity to consider your options. You aren\'t sure if this window will stay open.'],
-          effects: {
-            moodChange: 5,
-            energyChange: 0,
-          },
+          effects: { moodChange: 5, energyChange: 0 },
         },
       },
       {
@@ -1206,7 +1052,7 @@ export const careerEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You politely decline, explaining that you want to maintain control over your career at this stage. Plus you can\'t help but feel like you owe', {characterId: 'coach_gonzalez'}, 'something for all their support.'],
           effects: {
-            statChanges: { recovery: 2, focus: -3, anticipation: -1 },
+            statChanges: { stamina: 2, focus: -3, anticipation: -1 },
             moodChange: -15,
             energyChange: 0,
           },
@@ -1234,7 +1080,7 @@ export const careerEvents: StoryEvent[] = [
     defaultOutcome: {
       resultText: ['You accept the invitation with excitement and gratitude. This is the opportunity you\'ve been working toward. But are you ready?'],
       effects: {
-        statChanges: { focus: 1, volley: 2, anticipation: 2, offensive: 2 },
+        statChanges: { focus: 1, net: 2, anticipation: 2, tactics: 2 },
         moodChange: 30,
         energyChange: -10,
       },
@@ -1267,7 +1113,7 @@ export const careerEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You choose a power-oriented setup with a heavier racquet and stiffer strings. The equipment feels powerful in your hands. You start hitting bigger serves and more aggressive groundstrokes, adding a new dimension to your game.'],
           effects: {
-            statChanges: { serve: 4, forehand: 3, strength: 2, offensive: 3 },
+            statChanges: { serve: 4, forehand: 3, strength: 2, tactics: 3 },
             moodChange: 25,
             energyChange: -10,
             itemsGained: [POWER_RACQUET, COURT_SHOES],
@@ -1282,7 +1128,7 @@ export const careerEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You opt for a control-oriented setup with a more flexible frame and softer strings. The racquet gives you incredible feel and precision. Your shot placement improves dramatically, and you feel more confident in constructing points.'],
           effects: {
-            statChanges: { spin: 3, placement: 3, anticipation: 2, defensive: 3, return: 2 },
+            statChanges: { spin: 3, placement: 3, anticipation: 2, tactics: 3, return: 2 },
             moodChange: 25,
             energyChange: -10,
             itemsGained: [CONTROL_RACQUET, COURT_SHOES],
@@ -1297,7 +1143,7 @@ export const careerEvents: StoryEvent[] = [
         outcome: {
           resultText: ['You choose a balanced setup that doesn\'t sacrifice power or control. The versatile equipment allows you to adapt your game to different opponents and situations. You feel prepared for any challenge.'],
           effects: {
-            statChanges: { serve: 2, forehand: 2, backhand: 2, anticipation: 2, offensive: 1, defensive: 1 },
+            statChanges: { serve: 2, forehand: 2, backhand: 2, anticipation: 2, tactics: 1 },
             moodChange: 25,
             energyChange: -10,
             itemsGained: [ALLROUND_RACQUET, COURT_SHOES],

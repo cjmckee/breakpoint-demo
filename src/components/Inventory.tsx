@@ -74,6 +74,11 @@ export const Inventory: React.FC = () => {
     setSelectedItem(item);
   };
 
+  const handleDragStart = (item: Item) => {
+    markItemSeen(item.id);
+    setDraggingItem(item);
+  };
+
   const handleEquip = (item: Item) => {
     if (item.equipmentSlot) {
       equipItem(item.id, item.equipmentSlot);
@@ -131,7 +136,7 @@ export const Inventory: React.FC = () => {
                     hoveredItem={hoveredItem}
                     onEquip={handleEquip}
                     onClickEquipped={openItem}
-                    onDragStartEquipped={setDraggingItem}
+                    onDragStartEquipped={handleDragStart}
                     onDragEnd={() => setDraggingItem(null)}
                   />
                 ))}
@@ -211,7 +216,7 @@ export const Inventory: React.FC = () => {
                         isNew={isItemNew(item)}
                         equippedInSlot={equippedInSlot(item)}
                         onClick={openItem}
-                        onDragStart={setDraggingItem}
+                        onDragStart={handleDragStart}
                         onDragEnd={() => setDraggingItem(null)}
                         onHoverStart={setHoveredItem}
                         onHoverEnd={() => setHoveredItem(null)}

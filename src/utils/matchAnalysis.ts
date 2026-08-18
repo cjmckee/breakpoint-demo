@@ -5,7 +5,7 @@
  * sub-agent that validates tennis realism and design goal compliance.
  */
 
-import type { MatchAnalysisData } from '../types/index.js';
+import type { MatchAnalysisData } from '../types';
 import * as fs from 'fs';
 import * as path from 'path';
 

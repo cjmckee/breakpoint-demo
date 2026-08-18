@@ -21,12 +21,12 @@ export const TUTORIAL_MOCK_STATS: Pick<
   MatchStatistics,
   'aces' | 'doubleFaults' | 'winners' | 'unforcedErrors' | 'firstServePercentage' | 'totalPoints'
 > = {
-  aces:                 { player: 2,  opponent: 1  },
-  doubleFaults:         { player: 1,  opponent: 3  },
-  winners:              { player: 5,  opponent: 4  },
-  unforcedErrors:       { player: 4,  opponent: 6  },
+  aces:                 { player: 2, opponent: 1 },
+  doubleFaults:         { player: 1, opponent: 3 },
+  winners:              { player: 5, opponent: 4 },
+  unforcedErrors:       { player: 4, opponent: 6 },
   firstServePercentage: { player: 68, opponent: 54 },
-  totalPoints:          { player: 11, opponent: 9  },
+  totalPoints:          { player: 11, opponent: 9 },
 };
 
 export const TUTORIAL_MOCK_LOG: string[] = [

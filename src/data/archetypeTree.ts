@@ -10,7 +10,7 @@
  * player tries (ShotSelector/PointSimulator), never how well they execute.
  */
 
-import { EffectKey } from '../types/game.js';
+import { EffectKey } from '../types/game';
 import type {
   ArchetypeProfile,
   BroadArchetype,
@@ -332,11 +332,38 @@ export function getSpecialtyEffects(path: PhasePathId, tier: SpecialtyTier): Rec
 }
 
 /**
- * Aggregate all behavior effects from an archetype profile (across every phase,
- * including broad-archetype defaults).
+ * Behavior effects granted by the broad archetype alone, before any phase is
+ * specialized. Deliberately about a third of a tier-1 specialty (which opens at
+ * NET_APPROACH_BIAS 16) for the same reason TENDENCY_NUDGE is smaller than
+ * ABOVE_BASELINE_THRESHOLD: picking an identity is a lean, not a shortcut. It
+ * should be visible in how the player plays without standing in for the points
+ * they haven't spent yet.
+ */
+export const BROAD_ARCHETYPE_EFFECTS: Record<BroadArchetype, Record<string, number>> = {
+  net_attacker: {
+    [EffectKey.NET_APPROACH_BIAS]: 6,
+    [EffectKey.SERVE_AND_VOLLEY_BIAS]: 2,
+    [EffectKey.RALLY_PATIENCE]: -4,
+  },
+  baseliner: {
+    [EffectKey.RALLY_PATIENCE]: 6,
+    [EffectKey.NET_APPROACH_BIAS]: -4,
+  },
+  // Neutral by design, matching its zero entry in BROAD_TENDENCY_NUDGES.
+  all_courter: {},
+};
+
+/**
+ * Aggregate all behavior effects from an archetype profile: the broad-archetype
+ * defaults plus every specialized phase.
  */
 export function aggregateArchetypeEffects(profile: ArchetypeProfile): Record<string, number> {
   const effects: Record<string, number> = {};
+  if (profile.broad) {
+    for (const [key, value] of Object.entries(BROAD_ARCHETYPE_EFFECTS[profile.broad])) {
+      effects[key] = (effects[key] ?? 0) + value;
+    }
+  }
   for (const phase of ALL_PHASES) {
     const spec = resolvePhaseSpec(profile, phase);
     if (!spec) continue;

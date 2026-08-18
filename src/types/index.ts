@@ -21,36 +21,37 @@ export interface PlayerStats {
  * Core skills — the 5 most impactful stats that drive match outcomes.
  * These are weighted most heavily in overallRating and matchLevel calculations.
  */
+/**
+ * The five core stats map one-to-one onto GamePhase: the serve stat covers both
+ * serve phases, and the rest are `return`, `forehand`, `backhand` and `net`. A
+ * core stat is a phase of the point — which is why `slice` is technical (it is a
+ * stroke shape applied within the forehand and backhand phases, not a phase) and
+ * `net` is core (it is one).
+ */
 export interface CoreStats {
   serve: number;        // Serve power and accuracy
   forehand: number;     // Forehand groundstroke effectiveness
   backhand: number;     // Backhand groundstroke effectiveness
   return: number;       // Return of serve capability
-  slice: number;        // Slice shot effectiveness (defensive shots)
+  net: number;          // Everything struck from the net: volleys, half-volleys, overheads
 }
 
 export interface TechnicalStats {
-  volley: number;       // Net play effectiveness
-  overhead: number;     // Overhead/smash shots
-  dropShot: number;     // Drop shot placement and execution
-  spin: number;         // Topspin application affecting ball physics
-  placement: number;    // Shot placement accuracy and court targeting
+  slice: number;        // Slice and defensive slice, both wings
+  spin: number;         // Topspin and shape; also the touch behind tactical shots
+  placement: number;    // Court targeting: angles, lobs, passing shots, drop shots
 }
 
 export interface PhysicalStats {
-  speed: number;        // Court movement speed and foot speed
-  stamina: number;      // Overall endurance and energy reserves
-  strength: number;     // Shot power and physical strength
-  agility: number;      // Quick directional changes and balance
-  recovery: number;     // Recovery between points, after tough rallies
+  speed: number;        // Court coverage and reaction time at the net
+  stamina: number;      // Endurance during rallies and recovery between points
+  strength: number;     // Shot power
 }
 
 export interface MentalStats {
   focus: number;        // Concentration under pressure and key moments
   anticipation: number; // Reading opponent shots and positioning
-  shotVariety: number;  // Tactical shot selection and strategic options
-  offensive: number;    // Aggressive play style effectiveness
-  defensive: number;    // Defensive play style effectiveness
+  tactics: number;      // Executing the shot you chose, attacking or defending
 }
 
 // =======================
@@ -214,6 +215,18 @@ export interface ShotResult {
   statUsed: StatName;
   modifiers: ShotModifiers;
   thresholds?: QualityThresholds;
+  /**
+   * Where the OPPONENT was standing when this shot was struck, and what the
+   * incoming ball was like. Both are inputs the calculator already had; they are
+   * returned so the shot record can carry them.
+   *
+   * Several support bands gate on exactly these two — `reading` on the opponent
+   * being at net or well positioned, `reactions` on a rushed ball — and without
+   * them on the record there is no way to measure how often those gates open.
+   * `ballQuality` is undefined for serves, which have no incoming ball.
+   */
+  opponentPosition?: CourtPosition;
+  ballQuality?: BallQuality;
   /** Sigmoid probabilities at time of outcome determination (for debugging) */
   outcomeProbabilities?: {
     winner?: number;
@@ -228,8 +241,8 @@ export interface ShotResult {
  * Modifiers applied to shot calculation
  */
 export interface ShotModifiers {
-  spinBonus: number;
-  placementBonus: number;
+  spinModifier: number;
+  placementModifier: number;
   physicalModifier: number;
   mentalModifier: number;
   difficultyModifier: number;
@@ -262,8 +275,13 @@ export interface ShotDetail {
   modifiers: ShotModifiers;
   timestamp: number;
   shotNumber: number;
+  /** The SHOOTER's own situation. `opponentPosition` below is the other side. */
   context: ShotContext;
   thresholds?: QualityThresholds; // NEW: for transparency and match analysis
+  /** Where the opponent stood when this was struck — what the `reading` band gates on. */
+  opponentPosition?: CourtPosition;
+  /** The incoming ball; undefined for serves. `timeAvailable` is what `reactions` gates on. */
+  ballQuality?: BallQuality;
 }
 
 export enum PointType {

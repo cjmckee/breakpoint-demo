@@ -774,6 +774,7 @@ export const useGameStore = create<GameState>()(
           eventRecovery: state.eventRecovery,
           exportedAt: new Date().toISOString(),
           version: '1.0.0',
+          storeVersion: CURRENT_STORE_VERSION,
         };
         return JSON.stringify(exportData, null, 2);
       },
@@ -789,8 +790,16 @@ export const useGameStore = create<GameState>()(
             return false;
           }
 
-          // Restore state, applying all migrations so imported saves stay current
-          const migrated = migrateStore({
+          // Rehydration resets anything below CURRENT_STORE_VERSION rather than
+          // half-migrating it (see migrations.ts) — an import needs the same
+          // guard, since an export made before a stat-shape change is exactly
+          // the kind of stale-schema data that path is meant to catch.
+          if (data.storeVersion !== CURRENT_STORE_VERSION) {
+            console.error('Save data is from an incompatible version and cannot be imported');
+            return false;
+          }
+
+          set({
             player: data.player,
             calendar: data.calendar,
             currentStatus: data.currentStatus || initialStatus,
@@ -805,9 +814,6 @@ export const useGameStore = create<GameState>()(
             unlockedTiers: data.unlockedTiers || [1],
             shopItems: data.shopItems || [],
             audioSettings: data.audioSettings || { musicVolume: 0.7, sfxVolume: 0.7, muteMusic: false, muteSfx: false },
-          }, 0);
-          set({
-            ...migrated,
             eventRecovery: data.eventRecovery || DEFAULT_EVENT_RECOVERY,
             gamePhase: { type: 'idle', overlay: null },
             isInitialized: true,

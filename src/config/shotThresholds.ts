@@ -5,7 +5,7 @@
  * Adjust these values to fine-tune match realism and difficulty.
  */
 
-import type { ShotType, CourtPosition, CourtSurface } from '../types/index.js';
+import type { ShotType, CourtPosition, CourtSurface } from '../types';
 
 /**
  * Relative quality requirements for each shot type
@@ -69,9 +69,14 @@ export const RELATIVE_QUALITY_REQUIREMENTS: Record<ShotType, number> = {
   'lob_forehand': 0.30,
   'lob_backhand': 0.30,
 
-  // Passing shots (offensive, high requirement)
-  'passing_shot_forehand': 0.75,
-  'passing_shot_backhand': 0.75,
+  // Passing shots. Lower than it looks: the defender facing a net player also
+  // pays POSITION_ADJUSTMENTS.at_net (+10), so a high multiplier here counted the
+  // net player's advantage twice. At 0.75 — joint-highest in the game with the
+  // return — passing shots missed about 70% of the time, so the defender's only
+  // aggressive option was a coin flip weighted against them and the net player
+  // rarely got a ball to volley.
+  'passing_shot_forehand': 0.60,
+  'passing_shot_backhand': 0.60,
 };
 
 /**
@@ -87,70 +92,287 @@ export const MIN_QUALITY_FLOORS = {
 };
 
 /**
- * Minimum winner thresholds by shot category
+ * The match level MIN_QUALITY_FLOORS is calibrated at.
  *
- * Even against very weak incoming shots, you need minimum quality to hit a winner.
- * This prevents situations where after long rallies with degraded quality,
- * the first shot hit becomes an automatic winner.
+ * The floors are absolute values inside an otherwise relative system, so at low
+ * levels they stop being a backstop and become the operative requirement: a
+ * 20-quality ball asks 0.50 x 20 = 10 for a groundstroke, which the neutral
+ * floor raises to 15 — a 50% higher bar than the relative system computed, from
+ * a constant chosen for play around 70. Scaling them by matchLevel keeps them
+ * doing their intended job (stopping requirements collapsing toward zero after
+ * long degraded rallies) at every level rather than only at this one.
  *
- * Example: After a quality-26 shot, defensive slice would normally only need
- * quality 30 to win. With floor of 55, it now needs quality 55+ to be a winner.
+ * MINIMUM_WINNER_THRESHOLDS deliberately does NOT scale — see its own note.
  */
-export const MINIMUM_WINNER_THRESHOLDS = {
-  defensive: 60,    // Even perfect setup, defensive shot needs 60+ quality to win
-  neutral: 55,      // Regular shots need 55+ quality to be winners
-  offensive: 50,    // Power shots can win with 50+ quality (lower floor, high reward)
+export const FLOOR_CALIBRATION_LEVEL = 70;
+
+/**
+ * Minimum winner threshold per shot type — an absolute quality floor a shot must
+ * approach before it can be an outright winner, regardless of how weak the
+ * incoming ball was.
+ *
+ * Per-shot rather than per-category, because with three category values
+ * (50/55/60) this floor binds for nearly every shot at mid level and flattens
+ * the whole shot set together: at level 40 a player produced ~36 quality against
+ * floors 10-24 points above it, and PROBABILITY_STEEPNESS.rally.winner is
+ * deliberately flat, so everything landed between 16% and 28% winners. Shot
+ * choice stopped mattering exactly in the middle of the range.
+ *
+ * Spreading the floors per shot restores that differentiation without touching
+ * the sigmoid: at level 40 winner rates now run from 0.5% (defensive slice) to
+ * 22% (overhead). Sweeping steepness from 0.05 to 0.16 barely moved the fit —
+ * this was never a steepness problem.
+ *
+ * Values above 100 are legitimate. These are sigmoid midpoints, not hard cutoffs,
+ * so a floor of 111 means "vanishingly rare at every level" rather than
+ * "impossible" — which is the intent for a defensive slice.
+ *
+ * These stay absolute rather than scaling with match level. Scaling them was
+ * measured and is worse than leaving them alone: at tier-1 levels it takes
+ * winners from 7% of points to 40% and makes rallies shorter, the exact failure
+ * this floor exists to prevent.
+ */
+/**
+ * Global offset applied to every winner floor — the single dial for how often
+ * points end in a winner rather than an error, without disturbing the ordering
+ * the table sets. Negative values mean more winners.
+ *
+ * Measured across the ladder with the current tables and retrieval blend
+ * (winners as a share of points):
+ *
+ *   offset     new player (20)   Jordan (46)   uniform 55   uniform 70
+ *        0                4.3%         15.1%        17.6%        30.3%
+ *       -8                7.1%         20.4%        24.2%        37.5%
+ *      -16                9.4%         27.7%        30.5%        41.5%
+ *
+ * For reference, the three per-category floors this table replaced gave
+ * 11.7% / 34.2% / 37.3% / 40.4% — more winners everywhere, but with almost no
+ * differentiation between shots in the middle of the range.
+ */
+export const WINNER_FLOOR_OFFSET = 0;
+
+/**
+ * How far the winner floor follows the opponent instead of standing still.
+ *
+ * A purely absolute floor makes the shot economy change character with level,
+ * because shot quality rises roughly with the stat while the floor does not.
+ * Measured against a same-level opponent, a forehand went from 1.2% winners at
+ * level 20 to 23.4% at level 85 — the floor acts as a step, and once quality
+ * clears it every shot starts winning. That is the concern the two-player
+ * average was originally reaching for.
+ *
+ * Scaling the floor fully with the opponent is the opposite failure: it flattens
+ * progression, since a same-level opponent's retrieval rises in step with the
+ * shooter's quality and the two cancel. So this is a blend. 0 is a fixed floor;
+ * 1 follows the opponent completely.
+ *
+ * Anchored to the OPPONENT only — never the shooter, and never the two-player
+ * average — so improving your own stats can never raise your own winner bar.
+ *
+ * Measured, winners as a share of points:
+ *
+ *   weight    new player (20)   Jordan (46)   uniform 55   uniform 70
+ *        0               2.0%         13.2%        21.7%        36.7%
+ *     0.35               5.3%         16.6%        19.9%        30.5%
+ *     0.50               7.1%         16.2%        19.7%        23.1%
+ *
+ * And per-shot against a same-level opponent, forehand winners by level
+ * (20/30/40/60/85): 1.2/2.5/4.9/18.9/23.4 at weight 0, versus 6.5/7.4/8.2/
+ * 11.4/20.0 at weight 0.5 — the same game at every level rather than a
+ * different one. Progression is still paid: against a PINNED level-30
+ * opponent, a forehand at weight 0.5 goes 3.5% to 89.7% as the shooter climbs
+ * 20 to 85, ahead of the 1.1% to 74.0% a fixed floor gives.
+ */
+export const WINNER_FLOOR_RETRIEVAL_WEIGHT = 0.35;
+
+/** Opponent retrieval at which the blended floor equals its table value. */
+export const WINNER_FLOOR_RETRIEVAL_REF = 50;
+
+export const MINIMUM_WINNER_THRESHOLDS: Record<ShotType, number> = {
+  // Serves resolve through determineServeOutcome and never read this.
+  'serve_first': 50,
+  'serve_second': 50,
+
+  // Put-aways — the lowest bar in the game
+  'overhead': 57,
+  'defensive_overhead': 80,
+
+  // Power shots
+  'forehand_power': 61,
+  'backhand_power': 61,
+  'volley_forehand_power': 61,
+  'volley_backhand_power': 61,
+  'return_forehand_power': 68,
+  'return_backhand_power': 68,
+
+  // Passing shots and volleys finish points from open positions
+  'passing_shot_forehand': 66,
+  'passing_shot_backhand': 66,
+  'volley_forehand': 67,
+  'volley_backhand': 67,
+  'half_volley_forehand': 75,
+  'half_volley_backhand': 75,
+
+  // Touch and angle
+  'drop_shot_forehand': 70,
+  'drop_shot_backhand': 70,
+  'angle_shot_forehand': 81,
+  'angle_shot_backhand': 81,
+
+  // Rally balls — a clean groundstroke can win, but it is not a put-away
+  'forehand': 80,
+  'backhand': 80,
+  'forehand_approach': 85,
+  'backhand_approach': 85,
+
+  // Defensive shots should almost never be the winning shot
+  'slice_forehand': 93,
+  'slice_backhand': 93,
+  'return_forehand': 114,
+  'return_backhand': 114,
+  'lob_forehand': 100,
+  'lob_backhand': 100,
+  'defensive_slice_forehand': 105,
+  'defensive_slice_backhand': 105,
 };
 
 /**
  * Outcome multipliers for determining winners and forced errors
  *
- * Different shot categories have different winner multipliers:
- * - Defensive shots: EASY to keep in play, HARD to hit winners (high multiplier)
- * - Offensive shots: HARDER to keep in play, EASIER to hit winners (low multiplier)
- * - Neutral shots: Balanced
- *
- * This creates realistic shot dynamics: defensive slices extend rallies but rarely win,
- * power shots are risky but can win points if executed well.
+ * Categories set how easy a shot is to keep in play and where the forced/unforced
+ * error line falls. Winner difficulty is per-shot — see WINNER_REQUIREMENTS.
  */
 export const OUTCOME_MULTIPLIERS = {
   // Defensive shots: slices, lobs, defensive overheads
   defensive: {
     inPlay: 1.0,        // Base requirement (easiest to keep in play)
-    winner: 3.5,        // Need 3.5x the requirement for winner (very hard)
     forcedError: 0.7,   // Below 70% = forced error
   },
 
   // Neutral shots: regular groundstrokes, volleys
   neutral: {
     inPlay: 1.0,        // Base requirement
-    winner: 2.5,        // Need 2.5x the requirement for winner (raised from 2.0)
     forcedError: 0.7,   // Below 70% = forced error
   },
 
   // Offensive shots: power shots, overheads, passing shots, angles
   offensive: {
     inPlay: 1.0,        // Base requirement
-    winner: 1.8,        // Need 1.8x the requirement for winner (raised from 1.5)
     forcedError: 0.7,   // Below 70% = forced error
   },
 };
 
 /**
- * Serve baseline requirements (absolute thresholds)
+ * Winner requirement per shot type, as a multiple of the shot's in-play
+ * requirement.
  *
- * Serves don't have incoming shots, so use absolute thresholds.
- * inPlayThreshold: Quality needed to get serve in. Scaled by the SERVER's own
- *   overall rating (not the match level), so serve consistency depends on how
- *   the serve fits the server's own game — never on who is standing across the net.
+ * This is per-shot rather than per-category because the in-play requirement it
+ * multiplies already varies from 0.25 (defensive slice) to 0.85 (power return).
+ * A single category multiplier on top of that produced an effective winner
+ * difficulty ranging from 0.81 to 2.63 times incoming quality, in no relation
+ * to which shots are supposed to end points.
+ *
+ * That mattered because shot quality is bounded — it clamps at 100, and
+ * TOTAL_MODIFIER_CAPS.rally holds it near there from about level 60 up — while
+ * these midpoints are not. At high levels every shot produces ~96-99 quality,
+ * so the ordering of who wins points is decided entirely by this product. Under
+ * the old category multipliers an expert's best point-ender was the drop shot
+ * (75% winners) followed by the defensive slice (45%), while the passing shot
+ * managed 11%, the volley 3% and the return 0.3%. Backwards end to end.
+ *
+ * Values are set from the intended winner rate at the top of the stat range:
+ * shots meant to finish points (overhead, power, passing, volley, drop) climb
+ * with level, while defensive shots (slice, lob, return) stay rare no matter
+ * how good the player is. MINIMUM_WINNER_THRESHOLDS keeps them all rare at the
+ * bottom, where it binds.
  */
-export const SERVE_BASELINE = {
-  serve_first: {
-    inPlayThreshold: 62,      // Scaled by serverOVR/70. ~62% first serves in at stat parity
-  },
-  serve_second: {
-    inPlayThreshold: 32,      // Scaled by serverOVR/70. ~90% second serves in at parity → ~4-6% DFs
-  },
+export const WINNER_REQUIREMENTS: Record<ShotType, number> = {
+  // Serves resolve through determineServeOutcome and never read this.
+  'serve_first': 1.80,
+  'serve_second': 1.80,
+
+  // Neutral groundstrokes — a solid rally ball, not a finisher
+  'forehand': 2.20,
+  'backhand': 2.20,
+
+  // Power shots — the primary point-enders
+  'forehand_power': 1.65,
+  'backhand_power': 1.65,
+
+  // Approach shots set up the finish rather than being it
+  'forehand_approach': 2.10,
+  'backhand_approach': 2.10,
+
+  // Volleys finish points; the power volley finishes harder
+  'volley_forehand': 1.95,
+  'volley_backhand': 1.95,
+  'volley_forehand_power': 1.65,
+  'volley_backhand_power': 1.65,
+  'half_volley_forehand': 2.00,
+  'half_volley_backhand': 2.00,
+
+  // Overheads are the cleanest put-away in the game
+  'overhead': 1.85,
+  'defensive_overhead': 2.60,
+
+  // Drop shots win, but not three times more often than a smash
+  'drop_shot_forehand': 2.60,
+  'drop_shot_backhand': 2.60,
+
+  // Angles open the court and win outright reasonably often
+  'angle_shot_forehand': 1.90,
+  'angle_shot_backhand': 1.90,
+
+  // Slices extend rallies — they should almost never be the winning shot
+  'slice_forehand': 3.50,
+  'slice_backhand': 3.50,
+  'defensive_slice_forehand': 4.95,
+  'defensive_slice_backhand': 4.95,
+
+  // Returns are survival, not offence; the power return is a real weapon
+  'return_forehand': 2.25,
+  'return_backhand': 2.25,
+  'return_forehand_power': 1.80,
+  'return_backhand_power': 1.80,
+
+  // Lobs reset the point
+  'lob_forehand': 4.15,
+  'lob_backhand': 4.15,
+
+  // Passing shots are hit to win
+  'passing_shot_forehand': 1.60,
+  'passing_shot_backhand': 1.60,
+};
+
+/**
+ * Serve-in consistency: where the serve-in midpoint sits relative to the serve
+ * the player was going to hit anyway.
+ *
+ * The roll is the accuracy composite through the shot modifiers, plus variance
+ * and match form. The midpoint is an affine function of the SAME expected
+ * accuracy, so the margin between them is a property of the player's serve and
+ * nothing else.
+ *
+ * This replaces a midpoint of `overallRating x inPlayThreshold / 70`. That was a
+ * fixed proportion of overall rating while the roll carried finalAdjustment,
+ * which climbs from about 0.71 at low stats to a cap of 1.0. The margin was
+ * therefore `L x (finalAdjustment - 0.886)` — two terms both scaling with L,
+ * nearly cancelling, so first-serve-in sat at 43-45% from OVR 20 to 30 and only
+ * moved once finalAdjustment crossed 0.886 around OVR 41. It also meant training
+ * any unrelated stat raised overallRating and so raised the player's own
+ * serve-in bar: the last self-coupling left in the system.
+ *
+ * Constants are fitted to a target curve rather than to tennis broadcast
+ * numbers, because 20 on this scale is a genuine beginner. First serves in run
+ * roughly 45% at OVR 20 to 71% at OVR 90; second serves 50% to 95%, giving a
+ * double-fault rate around 28% for a beginner falling to a couple of percent at
+ * the top.
+ *
+ *   midpoint = base + perAccuracy x (accuracyComposite x finalAdjustment)
+ */
+export const SERVE_CONSISTENCY = {
+  serve_first: { base: 5.1, perAccuracy: 0.817 },
+  serve_second: { base: 11.3, perAccuracy: 0.376 },
 };
 
 /**
@@ -188,7 +410,7 @@ export const SERVE_CONTEST = {
  * Weights within each entry must sum to 1 so uniform-stat players keep their rating.
  */
 export const SERVE_QUALITY_WEIGHTS = {
-  serve_first: { serve: 0.60, strength: 0.20, offensive: 0.10, spin: 0.10 },
+  serve_first: { serve: 0.60, strength: 0.20, tactics: 0.10, spin: 0.10 },
   serve_second: { serve: 0.55, spin: 0.25, strength: 0.10, placement: 0.10 },
 };
 
@@ -222,14 +444,24 @@ export const RETURN_COMPOSITE_WEIGHTS = {
  */
 export const SHOT_COMPOSITE_WEIGHTS: Record<string, { primary: number; [stat: string]: number }> = {
   groundstroke: { primary: 0.80, strength: 0.10, spin: 0.10 },
+  // An approach is a groundstroke that starts the net phase, so the wing still
+  // leads but `net` carries a large share: it is the first shot of that phase,
+  // and it is what the net archetypes actually buy when they raise
+  // NET_APPROACH_BIAS. Without this the net stat only touched the volley and
+  // the overhead, about 10% of a net specialist's rally shots, while approaches
+  // were another 31% and paid the forehand instead.
+  approach: { primary: 0.50, net: 0.35, placement: 0.15 },
   powerGroundstroke: { primary: 0.70, strength: 0.25, spin: 0.05 },
-  volley: { primary: 0.70, agility: 0.20, anticipation: 0.10 },
-  overhead: { primary: 0.70, strength: 0.15, agility: 0.15 },
-  dropShot: { primary: 0.70, placement: 0.20, spin: 0.10 },
+  // volley and overhead share the `net` primary; the supports differ because a
+  // volley is a reaction and an overhead is a strike.
+  volley: { primary: 0.70, speed: 0.20, anticipation: 0.10 },
+  overhead: { primary: 0.70, strength: 0.15, speed: 0.15 },
+  // Drop shots are placement-primary now, so touch comes from spin instead.
+  dropShot: { primary: 0.70, spin: 0.20, speed: 0.10 },
   slice: { primary: 0.75, spin: 0.15, placement: 0.10 },
-  angle: { primary: 0.70, spin: 0.15, agility: 0.15 },
-  lob: { primary: 0.70, anticipation: 0.15, agility: 0.15 },
-  passing: { primary: 0.65, speed: 0.20, agility: 0.15 },
+  angle: { primary: 0.70, spin: 0.15, speed: 0.15 },
+  lob: { primary: 0.70, anticipation: 0.15, speed: 0.15 },
+  passing: { primary: 0.65, speed: 0.20, spin: 0.15 },
 };
 
 /**
@@ -245,9 +477,27 @@ export const OPPONENT_STAT_ADJUSTMENTS = {
   // Kept small: these apply to EVERY rally shot, so they compound across the
   // rally and then across the match. Large values turn small stat gaps into
   // near-certain match outcomes.
-  defensive: 0.12,   // Defensive stat makes winners harder
+  tactics: 0.12,     // A tactically sharp defender makes winners harder
   speed: 0.12,       // Speed helps cover court
-  return: 0.12,      // Return stat makes aces harder, serves only
+  // Only applies while the opponent is at the net, where it modulates
+  // POSITION_ADJUSTMENTS.at_net. Larger than the others because it is
+  // conditional: they apply to every rally shot, this one to the passing
+  // attempts against a player who has actually come forward.
+  //
+  // NOT A TUNING DIAL, despite looking like one — `netCoverageProbe.ts` sweeps
+  // it and the curve is flat. A net-75 attacker holds the net against a net-25
+  // one by 45.5pp with this switched off entirely, and by 48.0 at 0.30; every
+  // value between is inside the noise. Two things cap it. Downward it runs into
+  // the `Math.max(POSITION_ADJUSTMENTS.well_positioned, ...)` clamp in
+  // calculateQualityRequirements, so for a weak volleyer it can only pull the
+  // bar from +10 to +3 and then stops mattering above about 0.28. Upward there
+  // is nothing left to win: a net-75 attacker already takes 93% of net points,
+  // so raising the passer's bar further changes no outcomes.
+  //
+  // Keep it — the effect is real and the intent is right — but the thing that
+  // actually makes a bad volleyer easy to pass is the volley composite, not
+  // this. Tune the composite, not this constant.
+  netCoverage: 0.20, // Covering the net makes the pass harder to thread
 };
 
 /**
@@ -264,17 +514,60 @@ export const SHOOTER_STAT_ADJUSTMENTS = {
 };
 
 /**
- * Shot quality modifiers for the targeted mental-stat bonuses.
- * Applied inside calculateMentalModifier.
+ * Support-stat quality modifiers.
+ *
+ * Every one of these is a supporting stat layered on top of the shot's primary
+ * stat, which already carries the player's skill at that shot. They are
+ * therefore expressed as a symmetric band around NEUTRAL_STAT: a player whose
+ * support stat sits at the neutral point multiplies by exactly 1.0, above it
+ * they gain, below it they lose.
+ *
+ * This matters because the modifiers multiply. When they were anchored so that
+ * only a 100-stat player was neutral, a low-stat player compounded three or
+ * four sub-1 factors and produced quality far below their primary stat — a
+ * uniform-20 player reached 0.605 on an overhead. That double-counted skill
+ * (the primary stat had already accounted for it) and it collided with
+ * RELATIVE_QUALITY_REQUIREMENTS, whose multipliers sit inside the same range,
+ * leaving several shots with success rates that did not improve with level at
+ * all. Centering removes the collision: quality tracks the primary stat, and
+ * these express build SHAPE — which supports you have invested in relative to
+ * the rest of your game.
  */
-export const MENTAL_SHOT_BONUSES = {
-  /** Tactical-shot bonus range from shotVariety stat: 0.95 → 1.10 over 0-100 */
-  variety: { base: 0.95, perStat: 0.15 / 100 },
-  /** Defensive-shot bonus range from defensive stat: 1.00 → 1.10 over 0-100 */
-  defense: { base: 1.00, perStat: 0.10 / 100 },
-  /** Offensive-shot bonus range from offensive stat: 0.8 → 1.10 over 0-100 */
-  offense: { base: 0.8, perStat: 0.30 / 100 },
-};
+export const NEUTRAL_STAT = 50;
+
+/**
+ * Global scale on every support band. 1.0 keeps today's spread while centering
+ * it; lower values make support stats matter less and the primary stat more.
+ */
+export const MODIFIER_SPREAD = 1.0;
+
+/**
+ * Half-width of each support band at MODIFIER_SPREAD 1. A band of 0.10 means
+ * stat 0 multiplies by 0.90 and stat 100 by 1.10.
+ */
+export const STAT_MODIFIER_BANDS = {
+  /** speed, on defensive shots and from a defensive court position */
+  courtCoverage: 0.10,
+  /** speed, on net shots and any ball that arrives rushed */
+  reactions: 0.15,
+  /** strength, on power shots */
+  power: 0.10,
+  /** anticipation, when the opponent is at net or well positioned */
+  reading: 0.10,
+  /** spin, on tactical shots (drop, angle, lob, passing) */
+  touch: 0.075,
+  /** tactics, on whichever kind of shot was chosen — attacking or defending */
+  tactics: 0.15,
+  /** spin, on shots that are made of spin (slice, drop, defensive slice) */
+  shape: 0.10,
+  /** placement, on shots that are made of placement (drop, angle, lob) */
+  precision: 0.075,
+} as const;
+
+/** Support-stat multiplier: 1.0 at NEUTRAL_STAT, band-wide at the extremes. */
+export function statModifier(stat: number, band: number): number {
+  return 1 + ((stat - NEUTRAL_STAT) / NEUTRAL_STAT) * band * MODIFIER_SPREAD;
+}
 
 /**
  * Position adjustments
@@ -283,13 +576,80 @@ export const MENTAL_SHOT_BONUSES = {
  * Positive = harder to hit winners (well positioned)
  * Negative = easier to hit winners (out of position)
  */
+/**
+ * How strongly NET_APPROACH_BIAS moves the chance of coming forward.
+ *
+ * Playstyle owns this axis: how often a player approaches is an archetype
+ * choice, and the net rating decides how they do once they arrive. No stat
+ * belongs in the frequency.
+ *
+ * Sized against measured arrival — the share of rallies past the return in which
+ * the player reaches the net. A player gets only ~1.4 baseline shots per rally
+ * where an approach is possible, so arrival works out as
+ * `1 - (1 - p)^chances` times the approach success rate, and reaching ~50% for a
+ * specialist needs the per-chance rate near 53%.
+ *
+ * Measured arrival at uniform 60:
+ *
+ *   scale   unspecialized   broad net_attacker   net_downhill T3   net-averse
+ *    0.50           13.2%                16.8%             25.1%         ~2%
+ *    1.20           17.1%                23.3%             35.7%
+ *    3.00           15.7%                31.3%             47.9%         3.0%
+ *
+ * At 3.0 the merged `net` stat also clears the bar for a core slot: it covers
+ * 11.0% of a specialist's rally shots, against 5.2% before this change.
+ */
+export const NET_APPROACH_BIAS_SCALE = 3.0;
+
+/**
+ * Base per-opportunity chance of coming forward, before archetype bias.
+ *
+ * NET_APPROACH_BIAS_SCALE was sized against what a SPECIALIST reaches, and the
+ * bias is applied additively, so at scale 3.0 a bias of -12 subtracts 0.36 from
+ * a 0.12 base — three times the whole base. Every net-averse build therefore
+ * landed on the floor and stopped coming forward at all, which is not what
+ * "prefers the baseline" should mean: measured, a net_apologist reached the net
+ * on 3.4% of rallies past the return, and so did a plain backhand specialist who
+ * had merely picked `baseliner` as their broad identity.
+ *
+ * Sized against matchAnatomy's CAME FORWARD / past return, which counts an
+ * approach that ended the point as well as one that led to a net shot.
+ * Measured, uniform 45 mirror matches:
+ *
+ *   base / floor      unspecialized   net_apologist   bh_samurai   net_downhill T3
+ *   0.12 / 0.02              15.1%            3.4%         3.4%             33.0%
+ *   0.18 / 0.05              19.1%            6.7%         9.8%             34.0%
+ *   0.20 / 0.05              20.4%            7.1%        11.2%             34.0%
+ *
+ * A player with no net identity now comes forward on about one rally in five,
+ * and one who actively avoids it still does on about one in fourteen. The
+ * bh_samurai row is why this mattered: a plain backhand specialist who had only
+ * picked `baseliner` as their broad identity was as net-averse as the archetype
+ * built to avoid the net, because the broad nudge alone cleared the old base.
+ *
+ * Cost, same builds: rallies reaching 6+ shots fall from 16.4% to 15.3% of
+ * points and winners from 14.5% to 13.7%, while unforced errors rise 17.1% to
+ * 18.2% — coming forward more often shortens points and adds risk, which is
+ * what it should do.
+ */
+export const NET_APPROACH_BASE = 0.20;
+
+/**
+ * Lower bound on the per-opportunity chance. A build can prefer the baseline;
+ * it cannot forget the net exists.
+ */
+export const NET_APPROACH_FLOOR = 0.05;
+
 export const POSITION_ADJUSTMENTS: Record<CourtPosition, number> = {
   'well_positioned': +3,      // Opponent ready and centered
   'slightly_off': +0,         // Neutral
   'way_out_wide': -8,         // Opponent pushed wide (easier to win)
   'way_back_deep': -5,        // Opponent behind baseline
   'recovering': -3,           // Opponent in transition
-  'at_net': +10,              // Very hard to pass opponent at net
+  // Baseline for a neutral (50) volleyer; the real bar scales with the net
+  // player's `net` rating via OPPONENT_STAT_ADJUSTMENTS.netCoverage. Coming
+  // forward is only a threat if you can actually cover what you opened up.
+  'at_net': +10,
 };
 
 /**
@@ -331,28 +691,33 @@ export const RALLY_SHOT_VARIANCE = {
 };  // Creates realistic errors independent of fatigue
 
 /**
- * Serve stat bonuses
+ * Serve stat bands — which stats shade serve quality beyond the composite blend,
+ * and by how much. First serve is strength and tactics; second serve is
+ * consistency and tactics. Spin shades both, and matters more on the second.
  *
- * Which stats bonus serve quality and by how much.
- * First serve: offensive, strength-based
- * Second serve: consistency, spin-based
+ * These are read through `statModifier`, so they are symmetric around
+ * NEUTRAL_STAT exactly like the rally bands: 1.0 at 50, band-wide at 100, and
+ * band-wide *down* at 0.
  *
- * IMPORTANT: These are multipliers applied to physicalModifier, not direct additions.
- * Each bonus is capped individually to prevent extreme stacking.
- * Keep them small to avoid quality hitting 100 constantly.
+ * They replace a table of the shape `(stat / 100) x multiplier`, floored by a
+ * per-stat `maxBonus`, which was wrong in three separate ways:
+ *
+ *   1. It was a pure bonus. A serve stat of 0 gave a x1.0 modifier — neutral —
+ *      so weak stats never made a serve worse, they merely failed to help.
+ *   2. It was not centered. An average player at 50 got a free +3%, so "no
+ *      modifier" sat at a different place here than everywhere else in the sim.
+ *   3. Every cap bound INSIDE the playable range: strength stopped paying at
+ *      67, tactics at 62, spin at 75. Past those points the stat was dead on
+ *      the serve, which is the hardcoded-threshold failure this audit has been
+ *      removing everywhere else.
+ *
+ * Sized so that a maxed server reaches roughly the same ceiling the old caps
+ * allowed; what changes is that the range below is now live.
  */
-export const SERVE_BONUSES = {
-  first: {
-    offensive: { multiplier: 0.08, maxBonus: 0.05 },   // Max 5% bonus from offensive
-    strength: { multiplier: 0.06, maxBonus: 0.04 },    // Max 4% bonus from strength
-    spin: { multiplier: 0.04, maxBonus: 0.03 },        // Max 3% bonus from spin
-  },
-  second: {
-    consistency: { multiplier: 0.10, maxBonus: 0.06 }, // Max 6% bonus from consistency
-    spin: { multiplier: 0.08, maxBonus: 0.05 },        // Max 5% bonus from spin
-    defensive: { multiplier: 0.05, maxBonus: 0.03 },   // Max 3% bonus from defensive
-  },
-};
+export const SERVE_MODIFIER_BANDS = {
+  first: { strength: 0.06, tactics: 0.05, spin: 0.03 },
+  second: { consistency: 0.06, tactics: 0.03, spin: 0.05 },
+} as const;
 
 /**
  * Total modifier caps
@@ -363,7 +728,25 @@ export const SERVE_BONUSES = {
  * Example: serve stat 75 × 115% cap = 86.25 max (before variance)
  */
 export const TOTAL_MODIFIER_CAPS = {
-  serve: 1.0,     // Serve quality should center around the serve stat, not above it
+  // The serve bands are centered on NEUTRAL_STAT, so an average player lands on
+  // 1.0 and the serve "centers around the serve stat" by construction rather
+  // than by clipping. At 1.0 this bound from L~35 up on the first serve and
+  // across the ENTIRE range on the second, which left every positive serve
+  // modifier dead while the negative ones still applied.
+  //
+  // Tighter than the other two on purpose. Expected accuracy is
+  // `accuracyComposite x finalAdjustment` and it sets the serve-in midpoint, so
+  // a large cap lets it run past its own 100 ceiling: the roll saturates, the
+  // midpoint does not, and first-serve-in% peaks around L=80 and falls. Measured
+  // first-serve-in% at L=70/80/90:
+  //
+  //   1.05    65.1  68.3  70.4     monotonic
+  //   1.10    66.1  69.5  69.4     plateaus
+  //   1.20    68.4  70.2  68.9     inverts
+  //
+  // 1.05 also keeps the accuracy channel live furthest up the range — it does
+  // not reach 100 until L~95, against L~83 at a cap of 1.20.
+  serve: 1.05,
   return: 1.20,   // Max 120% total modifier for returns
   rally: 1.25,    // Max 125% total modifier for rally shots
 };
@@ -754,6 +1137,23 @@ export const SURFACE_EFFECTS: Record<CourtSurface, SurfaceEffects> = {
  * Shot types that express tactical creativity (drop, angle, lob, passing).
  * Targeted by shotVariety bonus in calculateMentalModifier.
  */
+/**
+ * Shot-type classifications that gate the support bands.
+ *
+ * These sit here rather than in ShotCalculator because they are data of the same
+ * kind as RELATIVE_QUALITY_REQUIREMENTS and the winner tables, and because the
+ * analysis harnesses need them to measure how often each band's gate is open.
+ * A band whose gate is open on nearly every shot is not reading context, it is
+ * a composite weight with extra steps.
+ */
+export const SHOT_CLASSIFICATIONS: Record<string, readonly ShotType[]> = {
+  powerShots: ['serve_first', 'forehand_power', 'backhand_power', 'return_forehand_power', 'return_backhand_power', 'overhead', 'passing_shot_forehand', 'passing_shot_backhand', 'volley_forehand_power', 'volley_backhand_power'],
+  spinShots: ['slice_forehand', 'slice_backhand', 'drop_shot_forehand', 'drop_shot_backhand', 'defensive_slice_forehand', 'defensive_slice_backhand'],
+  placementShots: ['drop_shot_forehand', 'drop_shot_backhand', 'angle_shot_forehand', 'angle_shot_backhand', 'lob_forehand', 'lob_backhand'],
+  netShots: ['volley_forehand', 'volley_backhand', 'volley_forehand_power', 'volley_backhand_power', 'half_volley_forehand', 'half_volley_backhand', 'overhead', 'defensive_overhead'],
+  defensiveShots: ['defensive_slice_forehand', 'defensive_slice_backhand', 'defensive_overhead', 'return_forehand', 'return_backhand', 'lob_forehand', 'lob_backhand', 'passing_shot_forehand', 'passing_shot_backhand'],
+};
+
 export function isTacticalShot(shotType: ShotType): boolean {
   const s = shotType.toString();
   return (
