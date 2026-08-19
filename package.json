@@ -9,6 +9,8 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "tsx src/test/migrationCheck.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "test:rally": "tsx test/testRallyAnalysis.ts",
     "analyze": "tsx src/test/analysis/balanceAnalysis.ts",
     "typecheck:node": "tsc -p tsconfig.node.json --noEmit",
@@ -24,6 +26,7 @@
   "author": "Claude Code",
   "license": "MIT",
   "devDependencies": {
+    "@playwright/test": "~1.61.0",
     "@types/node": "^20.0.0",
     "@types/react": "^19.2.4",
     "@types/react-dom": "^19.2.3",
@@ -44,6 +47,10 @@
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "//overrides": "serialize-javascript@7 reads the Web Crypto global, which Node 18 exposes to CJS but not ESM. vite-plugin-pwa imports workbox-build (-> @rollup/plugin-terser -> serialize-javascript) from ESM, so the build dies with a misleading 'Dynamic require of workbox-build' message. 6.0.2 uses require('randombytes') instead. Drop this override once the toolchain moves to Node 20+.",
+  "overrides": {
+    "serialize-javascript": "6.0.2"
   },
   "dependencies": {
     "mixpanel-browser": "^2.78.0",

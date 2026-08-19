@@ -28,5 +28,11 @@ coverage/
 analysis/test-matches/
 report_*.txt
 
+# playwright
+test-results/
+playwright-report/
+blob-report/
+.playwright/
+
 # claude code local state
 .claude/settings.local.json

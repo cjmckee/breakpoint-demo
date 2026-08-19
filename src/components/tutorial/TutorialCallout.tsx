@@ -34,7 +34,7 @@ export const TutorialCallout: React.FC<TutorialCalloutProps> = ({
   const buttonLabel = nextLabel ?? (step === totalSteps - 1 ? finalLabel : 'Next');
 
   return (
-    <div className="border-4 border-yellow-400 bg-gray-900 p-4">
+    <div className="border-4 border-yellow-400 bg-gray-900 p-4" data-testid="tutorial-callout">
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs font-bold text-yellow-400 tracking-widest uppercase">
           Tutorial — Step {step + 1} / {totalSteps}

@@ -98,9 +98,15 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const scheduledStoryMatch = getScheduledStoryMatch();
   const isStoryMatchScheduled = scheduledStoryMatch !== null;
 
+  // App renders item_acquired/hangout_unlock modals *beside* MainMenu with overlay={null},
+  // so the prop alone can't tell us the screen is clear — read the phase directly.
+  const activeOverlay = useGameStore((state) =>
+    state.gamePhase.type === 'idle' ? state.gamePhase.overlay : null
+  );
+
   // First-run walkthrough of the daily loop. Held back until the welcome story event
-  // has been dismissed so the two don't stack; the ref guard inside the hook keeps it
-  // to a single showing, and the flag keeps it from returning on later sessions.
+  // and its item popups have been dismissed so nothing stacks; the ref guard inside the
+  // hook keeps it to a single showing, and the flag keeps it from returning later.
   const {
     currentStep,
     activeStep,
@@ -110,7 +116,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
     canGoBack: canGoBackTutorial,
   } = useTutorialSpotlight(
     MAIN_MENU_TUTORIAL_STEPS,
-    player !== null && overlay === null && player.flags[PlayerFlag.SEEN_MAIN_MENU_TUTORIAL] !== true,
+    player !== null && activeOverlay === null && player.flags[PlayerFlag.SEEN_MAIN_MENU_TUTORIAL] !== true,
     () => setFlag(PlayerFlag.SEEN_MAIN_MENU_TUTORIAL, true),
   );
 
