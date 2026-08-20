@@ -41,12 +41,15 @@ async function startNewGame(page: Page, name = 'Testy McTestface'): Promise<void
   await expect(page.getByTestId('tutorial-callout')).toBeVisible();
 }
 
-/** Advances past the three-step walkthrough so the plain menu is reachable. */
+/** The walkthrough's steps, in order, ending on the button that closes it. */
+const WALKTHROUGH_ADVANCE = ['Next', 'Next', 'Next', "Let's Train"] as const;
+
+/** Advances past the walkthrough so the plain menu is reachable. */
 async function dismissWalkthrough(page: Page): Promise<void> {
   await expect(callout(page)).toBeVisible();
-  await callout(page).getByRole('button', { name: 'Next' }).click();
-  await callout(page).getByRole('button', { name: 'Next' }).click();
-  await callout(page).getByRole('button', { name: "Let's Train" }).click();
+  for (const label of WALKTHROUGH_ADVANCE) {
+    await callout(page).getByRole('button', { name: label }).click();
+  }
   await expect(callout(page)).toBeHidden();
 }
 
@@ -55,23 +58,29 @@ test('day-1 walkthrough explains the loop and hands off to the training goal', a
   const card = callout(page);
 
   // Step 1 — the day economy
-  await expect(card.getByText('Tutorial — Step 1 / 3')).toBeVisible();
+  await expect(card.getByText('Tutorial — Step 1 / 4')).toBeVisible();
   await expect(card.getByRole('heading', { name: 'Your Day' })).toBeVisible();
-  await expect(card.getByText(/four time slots/i)).toBeVisible();
+  await expect(card.getByText(/four timeslots/i)).toBeVisible();
 
-  // Step 2 — must state Training's payoff *and* push back on Rest, since defaulting
+  // Step 2 — the ratings, anchored on the grades in the hero header
+  await card.getByRole('button', { name: 'Next' }).click();
+  await expect(card.getByText('Tutorial — Step 2 / 4')).toBeVisible();
+  await expect(card.getByRole('heading', { name: 'Your stats' })).toBeVisible();
+  await expect(card.getByText(/14 ratings/i)).toBeVisible();
+
+  // Step 3 — must state Training's payoff *and* push back on Rest, since defaulting
   // to Rest is the behaviour this walkthrough exists to correct.
   await card.getByRole('button', { name: 'Next' }).click();
-  await expect(card.getByText('Tutorial — Step 2 / 3')).toBeVisible();
-  await expect(card.getByRole('heading', { name: 'Where Your Time Goes' })).toBeVisible();
-  await expect(card.getByText(/guaranteed \+1 to a core stat/i)).toBeVisible();
-  await expect(card.getByText(/Rest only refills energy and still burns a slot/i)).toBeVisible();
+  await expect(card.getByText('Tutorial — Step 3 / 4')).toBeVisible();
+  await expect(card.getByRole('heading', { name: 'Where to start' })).toBeVisible();
+  await expect(card.getByText(/Training is a surefire way to improve your stats/i)).toBeVisible();
+  await expect(card.getByText(/only recovers 20 energy/i)).toBeVisible();
 
-  // Step 3 — points at the goal
+  // Step 4 — points at the goal
   await card.getByRole('button', { name: 'Next' }).click();
-  await expect(card.getByText('Tutorial — Step 3 / 3')).toBeVisible();
-  await expect(card.getByRole('heading', { name: 'Your Goals' })).toBeVisible();
-  await expect(card.getByText(/six training sessions before your Day 5 assessment/i)).toBeVisible();
+  await expect(card.getByText('Tutorial — Step 4 / 4')).toBeVisible();
+  await expect(card.getByRole('heading', { name: 'Challenges' })).toBeVisible();
+  await expect(card.getByText(/six training sessions/i)).toBeVisible();
 
   // Dismissing leaves the player on the menu with the walkthrough gone for good
   await card.getByRole('button', { name: "Let's Train" }).click();
@@ -105,9 +114,9 @@ test('the walkthrough never covers the section it points at', async ({ page }) =
   const spotlit = page.locator('[data-spotlit]');
 
   // The callout is docked to a viewport edge, and on a phone the menu is barely taller
-  // than the screen — so it has to dodge to the opposite half rather than sit on top of
-  // its own subject. Step 3 is the tight one: the challenge strip sits low on the page.
-  for (const advance of ['Next', 'Next', "Let's Train"]) {
+  // than the screen — so it has to dodge to the roomier side rather than sit on top of
+  // its own subject. The last step is the tight one: the strip sits low on the page.
+  for (const advance of WALKTHROUGH_ADVANCE) {
     await expect(spotlit).toHaveCount(1);
     const target = await spotlit.boundingBox();
     const callout = await card.boundingBox();

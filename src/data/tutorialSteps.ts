@@ -3,7 +3,7 @@ import { TutorialStep } from '../hooks/useTutorialSpotlight';
 export type LiveMatchTarget = 'court' | 'log' | 'your-stats';
 export type KmTarget = 'header' | 'options-matchup' | 'options-effects';
 export type KmResultTarget = 'outcome' | 'tactic' | 'effects';
-export type MainMenuTarget = 'status' | 'actions' | 'challenges';
+export type MainMenuTarget = 'status' | 'stats' | 'actions' | 'challenges';
 
 // Runs once on day 1. Week one has no matches and no shop, so the daily loop is
 // all the player has — these steps say what a slot is worth, why Rest is not a
@@ -12,17 +12,22 @@ export const MAIN_MENU_TUTORIAL_STEPS: TutorialStep<MainMenuTarget>[] = [
   {
     target: 'status',
     title: 'Your Day',
-    body: 'A day is four time slots, and almost everything costs one. Energy ⚡ is your second budget — a training session spends 20. Tap 📅 to see what is coming.',
+    body: 'Each day has four timeslots: morning, afternoon, evening, and night. Each action, such as training or playing a match, takes up a timeslot. Story and relationship events may also take up timeslots. At night, the only action you can take is resting for 50 energy.',
+  },
+  {
+    target: 'stats',
+    title: 'Your stats',
+    body: 'Your stats are broken down into 14 ratings ranging from 20 (beginner) to 100 (ATP pro). Every stat plays into your match play, but you should try to focus on improving your core stats. I mean, look at all those F ratings.'
   },
   {
     target: 'actions',
-    title: 'Where Your Time Goes',
-    body: 'Training is what makes you better: a guaranteed +1 to a core stat, more if you play the drill well. Rest only refills energy and still burns a slot, so save it for when you are low. At night, Sleep starts the next day.',
+    title: 'Where to start',
+    body: 'Training is a surefire way to improve your stats. As one of the newest members of the Academy, your stats are quite weak to begin with, so you\'ll need to focus most of your early timeslots on developing your skills. Resting during the morning, afternoon, or evening uses a timeslot and only recovers 20 energy, so try to only Rest in a pinch!',
   },
   {
     target: 'challenges',
-    title: 'Your Goals',
-    body: 'Your goals live here — first up: six training sessions before your Day 5 assessment. Tap to track progress and claim rewards.',
+    title: 'Challenges',
+    body: 'Your goals live here — first up: six training sessions to help prepare yourself for the road ahead. Tap to track progress and claim rewards.',
   },
 ];
 

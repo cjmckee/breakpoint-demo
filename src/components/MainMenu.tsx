@@ -100,6 +100,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
 
   const sectionRefs = useRef<Record<MainMenuTarget, HTMLElement | null>>({
     status: null,
+    stats: null,
     actions: null,
     challenges: null,
   });
@@ -371,7 +372,11 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
 
             {/* Rating + core grades — ml-auto keeps this right-justified when it wraps
                 to its own line on narrow viewports */}
-            <div className="flex items-center gap-4 sm:gap-5 ml-auto">
+            <div
+              ref={(el) => { sectionRefs.current.stats = el; }}
+              data-spotlit={isSpotlit('stats') || undefined}
+              className={`flex items-center gap-4 sm:gap-5 ml-auto ${spotlightClass('stats')}`}
+            >
               <div className="flex flex-col items-center">
                 <span className="text-4xl sm:text-5xl font-bold text-pixel-accent leading-none">
                   {overallRating}
