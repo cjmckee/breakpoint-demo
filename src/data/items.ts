@@ -549,7 +549,12 @@ export const ICE_BATH_VOUCHER: Item = {
 };
 
 // ============================================================================
-// LUCKY ITEMS
+// LUCKY ITEMS (CHARM SLOT)
+//
+// One charm is active at a time — they all take the single `charm` equipment
+// slot. Every charm carries a distinct effect alongside its stats, so picking
+// one is a question of what you want out of the week, not which stat pile is
+// biggest.
 // ============================================================================
 
 export const LUCKY_PENNY: Item = {
@@ -557,6 +562,7 @@ export const LUCKY_PENNY: Item = {
   name: 'Lucky Penny',
   description: 'Found heads-up on the ground. Abe would want you to hit more volleys.',
   type: 'lucky',
+  equipmentSlot: 'charm',
   modifiers: {
     statBoosts: { serve: 3, net: 3, tactics: 2 },
     additional: { [EffectKey.ABILITY_DROP_BONUS]: 0.15 },
@@ -566,11 +572,12 @@ export const LUCKY_PENNY: Item = {
 export const LUCKY_CHARM: Item = {
   id: 'lucky_charm',
   name: 'Lucky Charm',
-  description: 'A mysterious charm that brings good fortune. Provides passive bonuses while in inventory.',
+  description: 'A mysterious charm that brings good fortune. Keeps your spirits up and draws opportunity your way.',
   type: 'lucky',
+  equipmentSlot: 'charm',
   modifiers: {
     statBoosts: { serve: 2, forehand: 2, backhand: 2, speed: 2, focus: 2 },
-    additional: { event_trigger_bonus: 5, mood_gain_bonus: 1 },
+    additional: { [EffectKey.EVENT_TRIGGER_BONUS]: 5, [EffectKey.MOOD_GAIN_BONUS]: 1 },
   },
 };
 
@@ -579,6 +586,7 @@ export const FOUR_LEAF_CLOVER: Item = {
   name: 'Four-Leaf Clover',
   description: 'A rare clover that brings subtle improvements across all areas.',
   type: 'lucky',
+  equipmentSlot: 'charm',
   modifiers: {
     statBoosts: { serve: 1, forehand: 1, backhand: 1, net: 1, speed: 1, stamina: 1, focus: 1, anticipation: 1 },
     additional: { [EffectKey.EVENT_TRIGGER_BONUS]: 10, [EffectKey.TRAINING_BONUS_SUPPORT_CHANCE]: 0.25 },
@@ -591,22 +599,26 @@ export const TENNIS_BALL_KEYCHAIN: Item = {
   description: 'A miniature tennis ball keychain given to you by a fan. Reminds you why you play.',
   type: 'lucky',
   shopAvailable: false,
+  equipmentSlot: 'charm',
   modifiers: {
     statBoosts: { tactics: 3, spin: 5, anticipation: 2 },
-    additional: { mood_gain_bonus: 2, relationship_gain_bonus: 3 },
+    additional: { [EffectKey.MOOD_GAIN_BONUS]: 2, [EffectKey.RELATIONSHIP_GAIN_BONUS]: 3 },
   },
 };
 
 export const LUCKY_SPROUT: Item = {
   id: 'lucky_sprout',
   name: 'Lucky Sprout',
-  description: 'A small plant left behind by an opponent from Azalea Forest. You enjoy taking care of it.',
+  description: 'A small plant left behind by an opponent from Azalea Forest. Tending to it every evening settles you.',
   type: 'lucky',
   shopAvailable: false,
+  equipmentSlot: 'charm',
   modifiers: {
-    statBoosts: { tactics: 4, strength: 4, slice: 2, spin: 4 }
-  }
-}
+    statBoosts: { tactics: 4, strength: 4, slice: 2, spin: 4 },
+    // The caretaking routine is the point — you rest better while you have it.
+    additional: { [EffectKey.ENERGY_GAIN_BONUS]: 3 },
+  },
+};
 
 export const LUCKY_JACKET: Item = {
   id: 'lucky_jacket',
@@ -614,10 +626,13 @@ export const LUCKY_JACKET: Item = {
   description: 'One of your parents left you this retro jacket. You think they were going to donate it, but now it\'s yours.',
   type: 'lucky',
   shopAvailable: false,
+  equipmentSlot: 'charm',
   modifiers: {
-    statBoosts: { speed: 3, focus: 3, net: 2, spin: 3 }
-  }
-}
+    statBoosts: { speed: 3, focus: 3, net: 2, spin: 3 },
+    // Insulation, literally and otherwise: a bad patch costs you less momentum.
+    additional: { [EffectKey.MOMENTUM_SHIELD]: 3 },
+  },
+};
 
 export const LUCKY_TEETH: Item = {
   id: 'lucky_teeth',
@@ -625,20 +640,26 @@ export const LUCKY_TEETH: Item = {
   description: 'You found these dentures after the Sunset Drive team match. You don\'t know who they belong to, but they make your smile really pop.',
   type: 'lucky',
   shopAvailable: false,
+  equipmentSlot: 'charm',
   modifiers: {
-    statBoosts: { serve: 3, return: 2, stamina: 3, focus: 2 }
-  }
-}
+    statBoosts: { serve: 3, return: 2, stamina: 3, focus: 2 },
+    // Hard to tighten up when you're grinning like that.
+    additional: { [EffectKey.CLUTCH_PERFORMANCE]: 3 },
+  },
+};
 
 export const CHAMPION_WRISTBAND: Item = {
   id: 'champion_wristband',
   name: 'Champion Wristband',
   description: 'A symbolic wristband marking your rise from beginner to competitor. Wear it with pride.',
   type: 'lucky',
+  equipmentSlot: 'charm',
   modifiers: {
     statBoosts: { focus: 3, forehand: 3, backhand: 2, return: 4, slice: 4 },
+    // Runs are what a competitor does with a lead.
+    additional: { [EffectKey.UNSTOPPABLE_MOMENTUM]: 2 },
   },
-}
+};
 
 // ============================================================================
 // NEW EQUIPMENT - RACQUETS

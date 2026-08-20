@@ -43,6 +43,8 @@ const EFFECT_META: Record<string, EffectMeta> = {
   [EffectKey.FOCUS_DURATION]: { label: 'Focus Duration', icon: '🧘', kind: 'tier' },
   [EffectKey.CLUTCH_PERFORMANCE]: { label: 'Clutch Performance', icon: '🔥', kind: 'tier' },
   [EffectKey.MENTAL_RESILIENCE]: { label: 'Mental Resilience', icon: '🛡️', kind: 'tier' },
+  [EffectKey.MOMENTUM_SHIELD]: { label: 'Momentum Shield', icon: '🧱', kind: 'tier' },
+  [EffectKey.UNSTOPPABLE_MOMENTUM]: { label: 'Momentum Swing', icon: '🌊', kind: 'tier' },
 };
 
 function titleCaseKey(key: string): string {

@@ -1,7 +1,11 @@
 /**
  * EffectAggregator
  * Collects and merges all active stat boosts and additional effects
- * from a player's equipped items, lucky items, story items, and abilities.
+ * from a player's equipped items, story items, and abilities.
+ *
+ * Lucky items count only while equipped in the `charm` slot. They used to apply
+ * from inventory, which meant holding all eight stacked to ~87 stat points with
+ * no decision attached.
  */
 
 import type { Player, StatBoosts } from '../types/game';
@@ -15,7 +19,7 @@ export interface AggregatedEffects {
 export class EffectAggregator {
   /**
    * Collect all active stat boosts and additional effects from
-   * equipped items, lucky items, story items, and abilities.
+   * equipped items (charm included), story items, and abilities.
    */
   static getActiveEffects(player: Player): AggregatedEffects {
     const statBoosts: StatBoosts = {};
@@ -24,14 +28,6 @@ export class EffectAggregator {
     // Equipped items
     for (const item of Object.values(player.equippedItems)) {
       if (item?.modifiers) {
-        this.mergeStatBoosts(statBoosts, item.modifiers.statBoosts);
-        this.mergeEffects(effects, item.modifiers.additional);
-      }
-    }
-
-    // Lucky items in inventory (passive)
-    for (const item of player.inventory) {
-      if (item.type === 'lucky' && item.modifiers) {
         this.mergeStatBoosts(statBoosts, item.modifiers.statBoosts);
         this.mergeEffects(effects, item.modifiers.additional);
       }

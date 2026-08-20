@@ -66,6 +66,7 @@ export class PlayerManager {
         shoes: null,
         outfit: null,
         hat: null,
+        charm: null,
       },
       storyItems: [],
       nextActivityBuffs: [],

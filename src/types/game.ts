@@ -484,7 +484,7 @@ export interface Player {
 
   // Item system
   inventory: Item[];  // Regular items (max 10)
-  equippedItems: Record<EquipmentSlot, Item | null>;  // 4 equipment slots
+  equippedItems: Record<EquipmentSlot, Item | null>;  // 4 gear slots + 1 charm slot
   storyItems: Item[];  // Story items (no limit, don't count toward inventory)
   nextActivityBuffs: Modifiers[];  // Pending consumable buffs; stat boosts apply to the player's next match, additional effects apply to their next activity
   seenItemIds: string[];  // Item IDs the player has viewed in inventory

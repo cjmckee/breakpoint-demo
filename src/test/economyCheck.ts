@@ -29,7 +29,10 @@ import {
 } from '../game/AnchorTrainingSystem';
 import { MatchStatistics } from '../core/MatchStatistics';
 import { PlayerProfile } from '../core/PlayerProfile';
-import { ALL_ITEMS } from '../data/items';
+import { EffectAggregator } from '../core/EffectAggregator';
+import { ItemManager } from '../game/ItemManager';
+import { ALL_ITEMS, ALL_LUCKY_ITEMS, LUCKY_PENNY, FOUR_LEAF_CLOVER, VISOR } from '../data/items';
+import { SLOT_ITEM_TYPE } from '../types/items';
 import { ABILITY_DEFINITIONS } from '../data/abilities';
 import { EffectKey } from '../types/game';
 import type { Player, StatBoosts } from '../types/game';
@@ -230,6 +233,70 @@ function main(): void {
       dropsWith > dropsWithout, `with=${dropsWith} without=${dropsWithout}`);
     check('the baseline still drops abilities at all (sweep covers the threshold)',
       dropsWithout > 0, `without=${dropsWithout}`);
+  }
+
+  console.log('\n── one charm at a time ──');
+  {
+    const mismatched = ALL_LUCKY_ITEMS.filter((item) => item.equipmentSlot !== 'charm');
+    check('every lucky item declares the charm slot',
+      mismatched.length === 0, mismatched.map((i) => i.name).join(', '));
+
+    const wrongType = ALL_ITEMS.filter(
+      (item) => item.equipmentSlot && item.type !== SLOT_ITEM_TYPE[item.equipmentSlot]
+    );
+    check('no item declares a slot that rejects its own type',
+      wrongType.length === 0,
+      wrongType.map((i) => `${i.name} (${i.type} -> ${i.equipmentSlot})`).join(', '));
+
+    // With only one slot, a charm whose whole identity is a stat pile makes the
+    // choice arithmetic rather than a decision.
+    const effectless = ALL_LUCKY_ITEMS.filter(
+      (item) => Object.keys(item.modifiers?.additional ?? {}).length === 0
+    );
+    check('every charm carries an effect, not just stats',
+      effectless.length === 0, effectless.map((i) => i.name).join(', '));
+
+    const originalWarn = console.warn;
+    try {
+      console.warn = (): void => {};
+
+      const held = ItemManager.addItem(freshPlayer(), LUCKY_PENNY);
+      const heldEffects = EffectAggregator.getActiveEffects(held);
+      check('a charm sitting in inventory grants nothing',
+        EffectAggregator.getEffect(heldEffects.effects, EffectKey.ABILITY_DROP_BONUS) === 0 &&
+          Object.keys(heldEffects.statBoosts).length === 0,
+        JSON.stringify(heldEffects));
+
+      const wearing = ItemManager.equipItem(held, LUCKY_PENNY.id, 'charm');
+      const wornEffects = EffectAggregator.getActiveEffects(wearing);
+      check('equipping the charm turns its effect on',
+        EffectAggregator.getEffect(wornEffects.effects, EffectKey.ABILITY_DROP_BONUS) === 0.15,
+        JSON.stringify(wornEffects.effects));
+
+      // The whole point of the slot: a second charm displaces the first.
+      const bothHeld = ItemManager.addItem(wearing, FOUR_LEAF_CLOVER);
+      const swapped = ItemManager.equipItem(bothHeld, FOUR_LEAF_CLOVER.id, 'charm');
+      const swappedEffects = EffectAggregator.getActiveEffects(swapped);
+      check('equipping a second charm displaces the first',
+        swapped.equippedItems.charm?.id === FOUR_LEAF_CLOVER.id &&
+          swapped.inventory.some((i) => i.id === LUCKY_PENNY.id),
+        `charm=${swapped.equippedItems.charm?.id}`);
+      check('the displaced charm stops contributing',
+        EffectAggregator.getEffect(swappedEffects.effects, EffectKey.ABILITY_DROP_BONUS) === 0,
+        JSON.stringify(swappedEffects.effects));
+
+      // Slots stay type-exclusive in both directions.
+      const charmIntoHat = ItemManager.equipItem(held, LUCKY_PENNY.id, 'hat');
+      check('a charm cannot be equipped into a gear slot',
+        charmIntoHat.equippedItems.hat === null);
+
+      const gearHeld = ItemManager.addItem(freshPlayer(), VISOR);
+      const gearIntoCharm = ItemManager.equipItem(gearHeld, VISOR.id, 'charm');
+      check('gear cannot be equipped into the charm slot',
+        gearIntoCharm.equippedItems.charm === null);
+    } finally {
+      console.warn = originalWarn;
+    }
   }
 
   console.log(failures === 0

@@ -38,10 +38,12 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
 }) => {
   if (!item) return null;
 
-  const isEquipment = item.type === 'equipment';
+  // Keyed off the slot, not the type — charms are `type: 'lucky'` but still
+  // occupy a slot and still compare against whatever is in it.
+  const isEquippable = Boolean(item.equipmentSlot);
   const canTrash = item.type !== 'story' && !isEquipped;
   // Show comparison only when equipping *would* change the loadout.
-  const showComparison = isEquipment && !isEquipped;
+  const showComparison = isEquippable && !isEquipped;
 
   return (
     <Modal isOpen={item !== null} onClose={onClose} size="md" title={item.name}>
@@ -76,12 +78,12 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
 
       {/* Actions */}
       <div className="flex gap-2 flex-wrap">
-        {isEquipment && item.equipmentSlot && !isEquipped && (
+        {isEquippable && item.equipmentSlot && !isEquipped && (
           <Button onClick={() => onEquip(item)} variant="primary">
             {equippedInSlot ? 'Equip (Swap)' : 'Equip'}
           </Button>
         )}
-        {isEquipment && item.equipmentSlot && isEquipped && (
+        {isEquippable && item.equipmentSlot && isEquipped && (
           <Button onClick={() => onUnequip(item)} variant="secondary">
             Unequip
           </Button>
