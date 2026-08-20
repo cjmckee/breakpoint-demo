@@ -11,7 +11,6 @@
 
 import React, { JSX, useEffect, useRef, useState } from 'react';
 import { useGameStore, defaultRestEnergy, defaultSleepBonus } from '../stores/gameStore';
-import { useIsMobile } from '../hooks/useIsMobile';
 import { EffectAggregator } from '../core/EffectAggregator';
 import { Card } from './ui/Card';
 import { ActionTile } from './ui/ActionTile';
@@ -41,7 +40,6 @@ interface MainMenuProps {
 const MATCH_ENERGY_COST = 50;
 
 export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
-  const isMobile = useIsMobile();
   const player = useGameStore((state) => state.player);
   const currentStatus = useGameStore((state) => state.currentStatus);
   const calendar = useGameStore((state) => state.calendar);
@@ -149,10 +147,21 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
     const el = sectionRefs.current[activeStep.target];
     if (!el) return;
 
+    const viewport = window.innerHeight;
+
+    // A section taller than the viewport — the full stat breakdown — can't be dodged:
+    // there is no clear side to move to. Anchor its top instead and take the bottom
+    // edge, so the start of the section stays readable and the rest is a scroll away.
+    if (el.getBoundingClientRect().height > viewport * 0.7) {
+      el.scrollIntoView({ block: 'start' });
+      setDock({ atTop: false, maxHeight: Math.round(viewport * 0.4) });
+      return;
+    }
+
     el.scrollIntoView({ block: 'nearest' });
     const rect = el.getBoundingClientRect();
     const spaceAbove = rect.top;
-    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceBelow = viewport - rect.bottom;
     const atTop = spaceAbove > spaceBelow;
 
     setDock({
@@ -372,11 +381,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
 
             {/* Rating + core grades — ml-auto keeps this right-justified when it wraps
                 to its own line on narrow viewports */}
-            <div
-              ref={(el) => { sectionRefs.current.stats = el; }}
-              data-spotlit={isSpotlit('stats') || undefined}
-              className={`flex items-center gap-4 sm:gap-5 ml-auto ${spotlightClass('stats')}`}
-            >
+            <div className="flex items-center gap-4 sm:gap-5 ml-auto">
               <div className="flex flex-col items-center">
                 <span className="text-4xl sm:text-5xl font-bold text-pixel-accent leading-none">
                   {overallRating}
@@ -513,8 +518,15 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
           <UpcomingTeamMatchCard />
         </div>
 
-        {/* Full-width player stats */}
-        <PlayerStatsDisplay collapsible={true} defaultCollapsed={isMobile} />
+        {/* Full-width player stats — the walkthrough points here for the full 14-stat
+            breakdown, so it starts open on every viewport rather than as a closed drawer */}
+        <div
+          ref={(el) => { sectionRefs.current.stats = el; }}
+          data-spotlit={isSpotlit('stats') || undefined}
+          className={spotlightClass('stats')}
+        >
+          <PlayerStatsDisplay collapsible={true} />
+        </div>
       </div>
 
       {/* First-run walkthrough: dim everything, lift the spotlit section, dock the callout */}
