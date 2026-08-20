@@ -21,17 +21,17 @@ import { CHAMPION_WRISTBAND, STYLISH_HEADBAND } from './items';
 export const CHALLENGE_PUTTING_IN_THE_REPS: ChallengeTemplate = {
   id: 'challenge_putting_in_the_reps',
   name: 'Putting In The Reps',
-  description: 'Nobody arrives at Riverside ready. You get assessed on the court on Day 5 — spend your time slots on the practice courts until then.',
+  description: 'Nobody arrives at Riverside ready. You\'ll get the chance to show your skills on Day 5 — spend your time slots on the practice courts until then.',
   requirements: [
     {
       type: 'trainingCount',
-      targetCount: 6,
-      description: 'Complete 6 training sessions',
+      targetCount: 8,
+      description: 'Complete 8 training sessions',
     },
   ],
   reward: {
     modifiers: {
-      statBoosts: { stamina: 3, focus: 3 },
+      statBoosts: { stamina: 3, focus: 3, slice: 3 },
     },
     experience: 20,
   },
