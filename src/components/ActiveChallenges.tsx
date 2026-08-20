@@ -66,6 +66,12 @@ export const ActiveChallenges: React.FC = () => {
           target: progress.progress.targetWins,
           percentage: progress.progress.percentage,
         };
+      case 'trainingCount':
+        return {
+          current: progress.progress.currentCount,
+          target: progress.progress.targetCount,
+          percentage: progress.progress.percentage,
+        };
       case 'relationshipLevel':
         return {
           current: progress.progress.currentLevel,

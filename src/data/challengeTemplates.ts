@@ -10,6 +10,34 @@ import { AbilityName } from '../types/game';
 import { CHAMPION_WRISTBAND, STYLISH_HEADBAND } from './items';
 
 // ============================================================================
+// ONBOARDING CHALLENGES
+// ============================================================================
+
+/**
+ * Assigned on day 1. The first week has no matches and no shop, so this is the
+ * only concrete goal the player has — it names the day-5 assessment as the
+ * deadline so training reads as preparation rather than busywork.
+ */
+export const CHALLENGE_PUTTING_IN_THE_REPS: ChallengeTemplate = {
+  id: 'challenge_putting_in_the_reps',
+  name: 'Putting In The Reps',
+  description: 'Nobody arrives at Riverside ready. You\'ll get the chance to show your skills on Day 5 — spend your time slots on the practice courts until then.',
+  requirements: [
+    {
+      type: 'trainingCount',
+      targetCount: 8,
+      description: 'Complete 8 training sessions',
+    },
+  ],
+  reward: {
+    modifiers: {
+      statBoosts: { stamina: 3, focus: 3, slice: 3 },
+    },
+    experience: 20,
+  },
+};
+
+// ============================================================================
 // COACH STORYLINE CHALLENGES
 // ============================================================================
 
@@ -665,6 +693,8 @@ export const CHALLENGE_DOUBLES_INSTINCTS: ChallengeTemplate = {
  * All challenge templates indexed by ID for easy lookup.
  */
 export const CHALLENGE_TEMPLATES: Record<string, ChallengeTemplate> = {
+  // Onboarding
+  [CHALLENGE_PUTTING_IN_THE_REPS.id]: CHALLENGE_PUTTING_IN_THE_REPS,
   // Coach
   [CHALLENGE_FOREHAND_FUNDAMENTALS.id]: CHALLENGE_FOREHAND_FUNDAMENTALS,
   [CHALLENGE_FIRST_VICTORIES.id]: CHALLENGE_FIRST_VICTORIES,

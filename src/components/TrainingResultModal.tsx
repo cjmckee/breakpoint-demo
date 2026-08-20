@@ -173,7 +173,7 @@ export const TrainingResultModal: React.FC<TrainingResultModalProps> = ({
         {/* Close Button */}
         <div className="pt-4">
           <Button variant="primary" fullWidth size="lg" onClick={onClose}>
-            Continue Training
+            Back to Menu
           </Button>
         </div>
       </div>

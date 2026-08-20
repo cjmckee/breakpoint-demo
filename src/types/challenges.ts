@@ -62,6 +62,15 @@ export interface MatchCountRequirement extends BaseRequirement {
 }
 
 /**
+ * Training count requirement
+ * Complete when the player has completed X training sessions in total
+ */
+export interface TrainingCountRequirement extends BaseRequirement {
+  type: 'trainingCount';
+  targetCount: number;
+}
+
+/**
  * Relationship level requirement
  * Complete when relationship with character reaches target level
  */
@@ -80,6 +89,7 @@ export type ChallengeRequirement =
   | MatchStatRequirement
   | AbilityUnlockRequirement
   | MatchCountRequirement
+  | TrainingCountRequirement
   | RelationshipLevelRequirement;
 
 // ============================================================================
@@ -121,6 +131,15 @@ export interface MatchCountProgress {
 }
 
 /**
+ * Progress for training count requirement
+ */
+export interface TrainingCountProgress {
+  currentCount: number;
+  targetCount: number;
+  percentage: number;
+}
+
+/**
  * Progress for relationship level requirement
  */
 export interface RelationshipLevelProgress {
@@ -137,6 +156,7 @@ export type RequirementProgress =
   | { type: 'matchStat'; progress: MatchStatProgress }
   | { type: 'abilityUnlock'; progress: AbilityUnlockProgress }
   | { type: 'matchCount'; progress: MatchCountProgress }
+  | { type: 'trainingCount'; progress: TrainingCountProgress }
   | { type: 'relationshipLevel'; progress: RelationshipLevelProgress };
 
 /**
