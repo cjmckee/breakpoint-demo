@@ -289,13 +289,11 @@ export class ChallengeManager {
       }
     }
 
-    // Grant experience
+    // Grant experience through addExperience so challenge XP levels the player up
+    // and grants specialization points, exactly like match XP does. Writing the
+    // counters directly here made matches the only path to a level.
     if (challenge.reward.experience) {
-      updatedPlayer = {
-        ...updatedPlayer,
-        experience: updatedPlayer.experience + challenge.reward.experience,
-        totalExperienceEarned: (updatedPlayer.totalExperienceEarned ?? 0) + challenge.reward.experience,
-      };
+      updatedPlayer = PlayerManager.addExperience(updatedPlayer, challenge.reward.experience).player;
     }
 
     return updatedPlayer;

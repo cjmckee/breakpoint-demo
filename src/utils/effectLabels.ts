@@ -38,10 +38,7 @@ const EFFECT_META: Record<string, EffectMeta> = {
   [EffectKey.FOCUS_DURATION]: { label: 'Focus Duration', icon: '🧘', kind: 'tier' },
   [EffectKey.CLUTCH_PERFORMANCE]: { label: 'Clutch Performance', icon: '🔥', kind: 'tier' },
   [EffectKey.MENTAL_RESILIENCE]: { label: 'Mental Resilience', icon: '🛡️', kind: 'tier' },
-  // Keys used in item data that aren't in EffectKey enum yet:
-  training_stat_multiplier: { label: 'Training Gains', icon: '💪', kind: 'fraction' },
-  ability_chance_bonus: { label: 'Ability Trigger', icon: '✨', kind: 'percent' },
-  training_tier_bonus: { label: 'Training Tier', icon: '⭐', kind: 'tier' },
+  [EffectKey.NET_GAME]: { label: 'Net Game', icon: '🥅', kind: 'flat' },
 };
 
 function titleCaseKey(key: string): string {
