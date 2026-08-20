@@ -22,6 +22,12 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
+    // The menu collapses hard below sm: labels drop out of the status bar and the
+    // stats panel starts collapsed, so the walkthrough is worth checking at width.
+    {
+      name: 'mobile',
+      use: { ...devices['Pixel 5'] },
+    },
   ],
   webServer: {
     command: 'npm run dev',

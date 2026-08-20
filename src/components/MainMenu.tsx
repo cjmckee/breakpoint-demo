@@ -9,7 +9,7 @@
  * panels (full stats, tournament, activity log) below the fold.
  */
 
-import React, { JSX } from 'react';
+import React, { JSX, useEffect, useRef, useState } from 'react';
 import { useGameStore, defaultRestEnergy, defaultSleepBonus } from '../stores/gameStore';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { EffectAggregator } from '../core/EffectAggregator';
@@ -98,6 +98,12 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const scheduledStoryMatch = getScheduledStoryMatch();
   const isStoryMatchScheduled = scheduledStoryMatch !== null;
 
+  const sectionRefs = useRef<Record<MainMenuTarget, HTMLElement | null>>({
+    status: null,
+    actions: null,
+    challenges: null,
+  });
+
   // App renders item_acquired/hangout_unlock modals *beside* MainMenu with overlay={null},
   // so the prop alone can't tell us the screen is clear — read the phase directly.
   const activeOverlay = useGameStore((state) =>
@@ -120,11 +126,39 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
     () => setFlag(PlayerFlag.SEEN_MAIN_MENU_TUTORIAL, true),
   );
 
-  // Lifts a spotlit section above the dark overlay; keeps others at z-0
+  // Lifts a spotlit section above the dark overlay; keeps others at z-0.
+  // scroll-mt clears the status bar when the section is scrolled to.
   const spotlightClass = (target: MainMenuTarget): string =>
     isSpotlit(target)
-      ? 'relative z-[60] ring-4 ring-yellow-400 rounded transition-all duration-300'
-      : 'relative z-0 transition-all duration-300';
+      ? 'relative z-[60] ring-4 ring-yellow-400 rounded transition-all duration-300 scroll-mt-24'
+      : 'relative z-0 transition-all duration-300 scroll-mt-24';
+
+  // A fixed dock would cover the very section it describes — on a phone the menu is
+  // barely taller than the viewport, so scrolling can't move the target out of the way.
+  // Bring the target into view, dock the callout on whichever side has more room, and
+  // cap it to that room so a long step can't spill back over the target (it scrolls
+  // instead). Scroll instantly, not smoothly, so the measurement isn't mid-animation.
+  const [dock, setDock] = useState<{ atTop: boolean; maxHeight: number } | null>(null);
+
+  useEffect(() => {
+    if (!activeStep) {
+      setDock(null);
+      return;
+    }
+    const el = sectionRefs.current[activeStep.target];
+    if (!el) return;
+
+    el.scrollIntoView({ block: 'nearest' });
+    const rect = el.getBoundingClientRect();
+    const spaceAbove = rect.top;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const atTop = spaceAbove > spaceBelow;
+
+    setDock({
+      atTop,
+      maxHeight: Math.max(160, (atTop ? spaceAbove : spaceBelow) - 24),
+    });
+  }, [activeStep]);
 
   // Pre-match events are now triggered by navigateTo('idle') in gameStore — no useEffects needed.
 
@@ -280,7 +314,11 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
 
   return (
     <div className={`min-h-screen bg-pixel-bg ${isNightTime ? 'night-mode' : ''}`}>
-      <div className={spotlightClass('status')}>
+      <div
+        ref={(el) => { sectionRefs.current.status = el; }}
+        data-spotlit={isSpotlit('status') || undefined}
+        className={spotlightClass('status')}
+      >
         <StatusBar />
       </div>
 
@@ -364,7 +402,11 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
         </Card>
 
         {/* Action Hub — daily actions get the biggest targets */}
-        <div className={`grid grid-cols-3 gap-3 sm:gap-4 mb-3 sm:mb-4 ${spotlightClass('actions')}`}>
+        <div
+          ref={(el) => { sectionRefs.current.actions = el; }}
+          data-spotlit={isSpotlit('actions') || undefined}
+          className={`grid grid-cols-3 gap-3 sm:gap-4 mb-3 sm:mb-4 ${spotlightClass('actions')}`}
+        >
           <ActionTile
             icon="🏋️"
             label="Training"
@@ -432,6 +474,8 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
 
         {/* Challenges — compact summary strip; the full list lives on its own screen */}
         <button
+          ref={(el) => { sectionRefs.current.challenges = el; }}
+          data-spotlit={isSpotlit('challenges') || undefined}
           onClick={() => navigateTo('challenges')}
           className={`w-full mb-6 flex items-center gap-3 bg-pixel-card border-4 border-pixel-border hover:border-pixel-accent px-4 py-3 transition-colors text-left ${spotlightClass('challenges')}`}
         >
@@ -472,7 +516,12 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
       {activeStep && (
         <>
           <div className="fixed inset-0 z-50 bg-black bg-opacity-75 pointer-events-none" />
-          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[70] w-full max-w-md px-4">
+          <div
+            className={`fixed left-1/2 -translate-x-1/2 z-[70] w-full max-w-md px-4 overflow-y-auto ${
+              dock?.atTop ? 'top-2' : 'bottom-2'
+            }`}
+            style={dock ? { maxHeight: `${dock.maxHeight}px` } : undefined}
+          >
             <TutorialCallout
               step={currentStep!}
               totalSteps={MAIN_MENU_TUTORIAL_STEPS.length}

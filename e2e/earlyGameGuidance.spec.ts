@@ -99,6 +99,33 @@ test('the week-one training goal is seeded on day 1', async ({ page }) => {
   await expect(page.getByText('0/6')).toBeVisible();
 });
 
+test('the walkthrough never covers the section it points at', async ({ page }) => {
+  await startNewGame(page);
+  const card = page.getByTestId('tutorial-callout');
+  const spotlit = page.locator('[data-spotlit]');
+
+  // The callout is docked to a viewport edge, and on a phone the menu is barely taller
+  // than the screen — so it has to dodge to the opposite half rather than sit on top of
+  // its own subject. Step 3 is the tight one: the challenge strip sits low on the page.
+  for (const advance of ['Next', 'Next', "Let's Train"]) {
+    await expect(spotlit).toHaveCount(1);
+    const target = await spotlit.boundingBox();
+    const callout = await card.boundingBox();
+    expect(target, 'spotlit section should be laid out').not.toBeNull();
+    expect(callout, 'callout should be laid out').not.toBeNull();
+
+    const overlaps =
+      target!.x < callout!.x + callout!.width &&
+      callout!.x < target!.x + target!.width &&
+      target!.y < callout!.y + callout!.height &&
+      callout!.y < target!.y + target!.height;
+    expect(overlaps, `callout overlaps the section it describes`).toBe(false);
+
+    await card.getByRole('button', { name: advance }).click();
+    await page.waitForTimeout(400);
+  }
+});
+
 test('match and shop are gated but visibly dated, not silently missing', async ({ page }) => {
   await startNewGame(page);
   await dismissWalkthrough(page);
