@@ -41,7 +41,8 @@ export class MatchRewardSystem {
   static calculateRewards(
     matchStatistics: MatchStatistics,
     opponentTier: OpponentTier,
-    isWin: boolean
+    isWin: boolean,
+    abilityDropBonus: number = 0
   ): MatchReward {
     // 1. Calculate performance scores for each category
     const performance = this.analyzePerformance(matchStatistics);
@@ -49,9 +50,11 @@ export class MatchRewardSystem {
     // 2. Calculate performance drop multiplier (0.5–1.5× based on overall score)
     const dropMultiplier = this.calculateDropMultiplier(performance.overallScore);
 
-    // 3. Roll for ability drops (win only), scaled by performance
+    // 3. Roll for ability drops (win only), scaled by performance.
+    //    EffectKey.ABILITY_DROP_BONUS stacks onto the same multiplier performance
+    //    uses, so a lucky item reads as a straight % lift on the tier's base rates.
     const abilities = isWin
-      ? this.rollAbilityDrops(opponentTier, dropMultiplier)
+      ? this.rollAbilityDrops(opponentTier, dropMultiplier + abilityDropBonus)
       : [];
 
     // 4. Roll for item drops, scaled by performance

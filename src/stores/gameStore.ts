@@ -1351,8 +1351,16 @@ export const useGameStore = create<GameState>()(
 
         const countsForMilestones = phase.storyMatchMetadata?.countsForMilestones ?? true;
 
-        // Calculate rewards
-        const rewards = MatchRewardSystem.calculateRewards(matchStatistics, opponentTier, isWin);
+        // Calculate rewards. Lucky items can lift the ability drop rate, so the
+        // player's aggregated effects have to reach the roll.
+        const { effects: rewardEffects } = EffectAggregator.getActiveEffects(state.player);
+        const abilityDropBonus = EffectAggregator.getEffect(rewardEffects, EffectKey.ABILITY_DROP_BONUS);
+        const rewards = MatchRewardSystem.calculateRewards(
+          matchStatistics,
+          opponentTier,
+          isWin,
+          abilityDropBonus
+        );
 
         // Apply rewards to player
         let updatedPlayer = { ...state.player };

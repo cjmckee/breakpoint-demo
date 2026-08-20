@@ -199,7 +199,7 @@ export const SPONSOR_OUTFIT: Item = {
   modifiers: {
     statBoosts: { stamina: 5, strength: 3, focus: 3, forehand: 3, backhand: 3, return: 2 },
     additional: {
-      [EffectKey.MINIGAME_WINDOW_BONUS]: 0.1,
+      [EffectKey.TRAINING_STAT_UPGRADE_CHANCE]: 0.1,
     },
   },
 };
@@ -240,7 +240,7 @@ export const HEADBAND: Item = {
   modifiers: {
     statBoosts: { focus: 3, anticipation: 2, stamina: 3 },
     additional: {
-      [EffectKey.MINIGAME_WINDOW_BONUS]: 0.1,
+      [EffectKey.TRAINING_STAT_UPGRADE_CHANCE]: 0.1,
     },
   },
 };
@@ -559,7 +559,7 @@ export const LUCKY_PENNY: Item = {
   type: 'lucky',
   modifiers: {
     statBoosts: { serve: 3, net: 3, tactics: 2 },
-    additional: { [EffectKey.NET_GAME]: 3 },
+    additional: { [EffectKey.ABILITY_DROP_BONUS]: 0.15 },
   },
 };
 
@@ -581,7 +581,7 @@ export const FOUR_LEAF_CLOVER: Item = {
   type: 'lucky',
   modifiers: {
     statBoosts: { serve: 1, forehand: 1, backhand: 1, net: 1, speed: 1, stamina: 1, focus: 1, anticipation: 1 },
-    additional: { [EffectKey.EVENT_TRIGGER_BONUS]: 10, [EffectKey.MINIGAME_WINDOW_BONUS]: 0.05 },
+    additional: { [EffectKey.EVENT_TRIGGER_BONUS]: 10, [EffectKey.TRAINING_BONUS_SUPPORT_CHANCE]: 0.25 },
   },
 };
 

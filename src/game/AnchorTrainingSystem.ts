@@ -116,17 +116,38 @@ const BRONZE_MOOD_CHANGE = 2;
 export type SupportCount = 0 | 1 | 2 | 3;
 
 /**
+ * Effect-driven improvements to a session's payout, aggregated from the player's
+ * items and abilities. Passed in rather than read off the player so this module
+ * stays free of store/effect dependencies and testable on its own.
+ */
+export interface TrainingBonuses {
+  /** 0-1 chance each stat the session grants is worth +2 instead of +1. */
+  statUpgradeChance: number;
+  /** 0-1 chance to draw one extra support beyond the reps the minigame earned. */
+  bonusSupportChance: number;
+}
+
+export const NO_TRAINING_BONUSES: TrainingBonuses = {
+  statUpgradeChance: 0,
+  bonusSupportChance: 0,
+};
+
+/**
  * Draw `count` supports from the anchor's themed pool.
  * De-prioritizes stats handed out very recently so repeat sessions stay fresh,
  * but never fails to fill the count (falls back to recent stats if the pool is small).
  * A count of 0 (missed the first attempt) yields no supports — the core +1 still applies.
+ *
+ * Counts above the minigame's 3 are reachable via TRAINING_BONUS_SUPPORT_CHANCE,
+ * so the ceiling here is the pool size, not the rep cap.
  */
 export function resolveSupports(
   core: CoreStat,
   count: number,
   recentSupports: SupportStat[] = []
 ): SupportStat[] {
-  const clamped = Math.max(0, Math.min(3, Math.floor(count)));
+  const poolSize = CORE_ANCHORS[core].supportPool.length;
+  const clamped = Math.max(0, Math.min(poolSize, Math.floor(count)));
   if (clamped === 0) return [];
 
   const pool = CORE_ANCHORS[core].supportPool;
@@ -141,12 +162,22 @@ export function resolveSupports(
 
 /**
  * Build the StatBoosts for a session: +1 core anchor, +1 per drawn support.
+ *
+ * Each grant rolls independently against `statUpgradeChance` for a +2 instead.
+ * Rolling per stat rather than once per session keeps the expected gain linear
+ * in the chance, which is what makes "+10%" on the item card literally true.
  */
-export function buildAnchorStatBoosts(core: CoreStat, supports: SupportStat[]): StatBoosts {
+export function buildAnchorStatBoosts(
+  core: CoreStat,
+  supports: SupportStat[],
+  statUpgradeChance: number = 0
+): StatBoosts {
+  const grant = (): number => (Math.random() < statUpgradeChance ? 2 : 1);
+
   const boosts: StatBoosts = {};
-  boosts[core] = 1;
+  boosts[core] = grant();
   for (const stat of supports) {
-    boosts[stat] = 1;
+    boosts[stat] = grant();
   }
   return boosts;
 }
@@ -158,11 +189,18 @@ export function buildAnchorStatBoosts(core: CoreStat, supports: SupportStat[]): 
 export function buildAnchorTrainingResult(
   core: CoreStat,
   count: number,
-  recentSupports: SupportStat[] = []
+  recentSupports: SupportStat[] = [],
+  bonuses: TrainingBonuses = NO_TRAINING_BONUSES
 ): TrainingResult {
   const anchor = CORE_ANCHORS[core];
-  const supports = resolveSupports(core, count, recentSupports);
-  const statBoosts = buildAnchorStatBoosts(core, supports);
+
+  // A bonus rep rides along on a session that landed something. A session where
+  // every attempt missed stays a miss — otherwise the "tough session" message
+  // would ship alongside a support the player never earned.
+  const bonusSupport = count > 0 && Math.random() < bonuses.bonusSupportChance ? 1 : 0;
+
+  const supports = resolveSupports(core, count + bonusSupport, recentSupports);
+  const statBoosts = buildAnchorStatBoosts(core, supports, bonuses.statUpgradeChance);
 
   return {
     id: generateId(),
@@ -180,7 +218,7 @@ export function buildAnchorTrainingResult(
     sessionTier: 'bronze',
     tier: 'bronze',
     sessionType: `${core}_anchor`,
-    message: buildMessage(anchor.name, supports.length),
+    message: buildMessage(anchor.name, Math.min(Math.max(0, Math.floor(count)), 3), bonusSupport > 0),
   };
 }
 
@@ -196,11 +234,16 @@ export function recentSupportsFrom(lastStatBoosts: StatBoosts | undefined): Supp
     .map(([stat]) => stat as SupportStat);
 }
 
-function buildMessage(anchorName: string, supportCount: number): string {
+/**
+ * Reads off the reps the player actually landed, not the supports handed out —
+ * a bonus rep would otherwise let a 2-for-3 session claim "three for three".
+ */
+function buildMessage(anchorName: string, reps: number, gotBonusRep: boolean): string {
   const shot = anchorName.toLowerCase();
-  if (supportCount >= 3) return `Perfect ${shot} session — three for three! Keep it up!`;
-  if (supportCount === 2) return `Strong ${shot} work — two clean reps. Almost there!`;
-  if (supportCount === 1) return `${anchorName} session — one clean rep. Keep practicing!`;
+  const bonus = gotBonusRep ? ' Lucky bounce — a bonus rep on top!' : '';
+  if (reps >= 3) return `Perfect ${shot} session — three for three!${bonus || ' Keep it up!'}`;
+  if (reps === 2) return `Strong ${shot} work — two clean reps.${bonus || ' Almost there!'}`;
+  if (reps === 1) return `${anchorName} session — one clean rep.${bonus || ' Keep practicing!'}`;
   return `Tough ${shot} session — you hate to see it.`;
 }
 

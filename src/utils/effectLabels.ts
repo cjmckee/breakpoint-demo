@@ -33,12 +33,16 @@ const EFFECT_META: Record<string, EffectMeta> = {
   [EffectKey.WIN_EXP_BONUS]: { label: 'Win XP', icon: '🏆', kind: 'flat' },
   [EffectKey.LOSS_EXP_BONUS]: { label: 'Loss XP', icon: '📚', kind: 'flat' },
   [EffectKey.MINIGAME_WINDOW_BONUS]: { label: 'Training Timing', icon: '🎯', kind: 'fraction' },
+  // A session grants ~3 stats and each rolls independently, so the upgrade chance
+  // and the expected lift in training gains are the same number.
+  [EffectKey.TRAINING_STAT_UPGRADE_CHANCE]: { label: 'Training Gains', icon: '💪', kind: 'fraction' },
+  [EffectKey.TRAINING_BONUS_SUPPORT_CHANCE]: { label: 'Bonus Rep Chance', icon: '🍀', kind: 'fraction' },
+  [EffectKey.ABILITY_DROP_BONUS]: { label: 'Ability Find Rate', icon: '✨', kind: 'fraction' },
   [EffectKey.EVENT_TRIGGER_BONUS]: { label: 'Event Chance', icon: '❗', kind: 'percent' },
   [EffectKey.RELATIONSHIP_GAIN_BONUS]: { label: 'Relationship Gain', icon: '🤝', kind: 'flat' },
   [EffectKey.FOCUS_DURATION]: { label: 'Focus Duration', icon: '🧘', kind: 'tier' },
   [EffectKey.CLUTCH_PERFORMANCE]: { label: 'Clutch Performance', icon: '🔥', kind: 'tier' },
   [EffectKey.MENTAL_RESILIENCE]: { label: 'Mental Resilience', icon: '🛡️', kind: 'tier' },
-  [EffectKey.NET_GAME]: { label: 'Net Game', icon: '🥅', kind: 'flat' },
 };
 
 function titleCaseKey(key: string): string {

@@ -21,10 +21,18 @@
 
 import { PlayerManager } from '../game/PlayerManager';
 import { ChallengeManager } from '../game/ChallengeManager';
+import { MatchRewardSystem } from '../game/MatchRewardSystem';
+import {
+  buildAnchorStatBoosts,
+  buildAnchorTrainingResult,
+  NO_TRAINING_BONUSES,
+} from '../game/AnchorTrainingSystem';
+import { MatchStatistics } from '../core/MatchStatistics';
+import { PlayerProfile } from '../core/PlayerProfile';
 import { ALL_ITEMS } from '../data/items';
 import { ABILITY_DEFINITIONS } from '../data/abilities';
 import { EffectKey } from '../types/game';
-import type { Player } from '../types/game';
+import type { Player, StatBoosts } from '../types/game';
 import type { Challenge } from '../types/challenges';
 
 let failures = 0;
@@ -147,6 +155,81 @@ function main(): void {
 
     check('no item or ability declares an effect key outside EffectKey',
       orphans.length === 0, orphans.join('\n          '));
+  }
+
+  console.log('\n── training effects change the session payout ──');
+  {
+    const supports: ('strength' | 'placement')[] = ['strength', 'placement'];
+
+    const upgraded = buildAnchorStatBoosts('serve', supports, 1);
+    check('a certain upgrade makes every granted stat worth +2',
+      upgraded.serve === 2 && upgraded.strength === 2 && upgraded.placement === 2,
+      JSON.stringify(upgraded));
+
+    const plain = buildAnchorStatBoosts('serve', supports, 0);
+    check('no upgrade chance leaves every grant at +1',
+      plain.serve === 1 && plain.strength === 1 && plain.placement === 1,
+      JSON.stringify(plain));
+
+    const countSupports = (boosts: StatBoosts): number =>
+      Object.keys(boosts).filter((stat) => stat !== 'serve').length;
+
+    const certainBonus = { statUpgradeChance: 0, bonusSupportChance: 1 };
+    const withBonus = buildAnchorTrainingResult('serve', 2, [], certainBonus);
+    const withoutBonus = buildAnchorTrainingResult('serve', 2, [], NO_TRAINING_BONUSES);
+
+    check('two reps draw two supports on their own',
+      countSupports(withoutBonus.statBoosts) === 2,
+      `${countSupports(withoutBonus.statBoosts)} supports`);
+    check('a certain bonus rep adds one support beyond the reps earned',
+      countSupports(withBonus.statBoosts) === 3,
+      `${countSupports(withBonus.statBoosts)} supports`);
+
+    // The session message reads off reps landed, not supports handed out.
+    const bonusMessage = withBonus.message ?? '';
+    check('a bonus rep does not let a two-rep session claim three for three',
+      bonusMessage.length > 0 && !bonusMessage.includes('three for three'), bonusMessage);
+
+    const whiffed = buildAnchorTrainingResult('serve', 0, [], certainBonus);
+    check('a bonus rep never rescues a session that landed nothing',
+      countSupports(whiffed.statBoosts) === 0,
+      `${countSupports(whiffed.statBoosts)} supports: ${whiffed.message}`);
+  }
+
+  console.log('\n── the ability drop bonus reaches the post-match roll ──');
+  {
+    const emptyStats = new MatchStatistics(
+      new PlayerProfile('p', 'Player'),
+      new PlayerProfile('o', 'Opponent')
+    ).getStatistics();
+
+    // Rather than assume where the drop threshold sits, sweep the roll across the
+    // low end and count how often each configuration drops. A bonus that reaches
+    // the roll must widen the band of rolls that succeed.
+    const originalRandom = Math.random;
+    const originalLog = console.log;
+    let dropsWithout = 0;
+    let dropsWith = 0;
+    try {
+      console.log = (): void => {};
+      for (let roll = 0; roll < 0.12; roll += 0.001) {
+        Math.random = (): number => roll;
+        if ((MatchRewardSystem.calculateRewards(emptyStats, 1, true, 0).abilitiesGained ?? []).length > 0) {
+          dropsWithout++;
+        }
+        if ((MatchRewardSystem.calculateRewards(emptyStats, 1, true, 0.15).abilitiesGained ?? []).length > 0) {
+          dropsWith++;
+        }
+      }
+    } finally {
+      Math.random = originalRandom;
+      console.log = originalLog;
+    }
+
+    check('a drop bonus widens the band of rolls that yield an ability',
+      dropsWith > dropsWithout, `with=${dropsWith} without=${dropsWithout}`);
+    check('the baseline still drops abilities at all (sweep covers the threshold)',
+      dropsWithout > 0, `without=${dropsWithout}`);
   }
 
   console.log(failures === 0
