@@ -5,6 +5,7 @@
 
 import type { Player, Modifiers, StatBoosts } from '../types/game';
 import type { Item, EquipmentSlot } from '../types/items';
+import { SLOT_ITEM_TYPE } from '../types/items';
 
 const MAX_INVENTORY_SIZE = 10;
 
@@ -44,8 +45,8 @@ export class ItemManager {
       return player;
     }
 
-    if (item.type !== 'equipment') {
-      console.warn('Item is not equipment type:', item.name);
+    if (item.type !== SLOT_ITEM_TYPE[slot]) {
+      console.warn(`Item ${item.name} (${item.type}) does not belong in the ${slot} slot`);
       return player;
     }
 
@@ -111,7 +112,7 @@ export class ItemManager {
       return player;
     }
 
-    if (newItem.type !== 'equipment' || newItem.equipmentSlot !== slot) {
+    if (newItem.type !== SLOT_ITEM_TYPE[slot] || newItem.equipmentSlot !== slot) {
       console.warn('Invalid item for slot:', slot);
       return player;
     }
@@ -252,7 +253,8 @@ export class ItemManager {
 
   /**
    * Calculate total passive stat boosts from equipped items and inventory
-   * Equipment items and lucky items provide passive boosts
+   * Equipped items (including the charm slot) and story items provide passive
+   * boosts. Items sitting in inventory contribute nothing.
    */
   static getTotalPassiveBoosts(player: Player): StatBoosts {
     const boosts: StatBoosts = {};
@@ -260,13 +262,6 @@ export class ItemManager {
     // Add boosts from equipped items
     Object.values(player.equippedItems).forEach((item) => {
       if (item?.modifiers?.statBoosts) {
-        this.mergeStatBoosts(boosts, item.modifiers.statBoosts);
-      }
-    });
-
-    // Add boosts from lucky items in inventory (passive effect)
-    player.inventory.forEach((item) => {
-      if (item.type === 'lucky' && item.modifiers?.statBoosts) {
         this.mergeStatBoosts(boosts, item.modifiers.statBoosts);
       }
     });
@@ -322,7 +317,7 @@ export class ItemManager {
 
   /**
    * Aggregate the passive "additional" effects (energy cost reduction, mood
-   * gain, etc.) from equipped items, lucky items in inventory, and story items.
+   * gain, etc.) from equipped items and story items.
    * Mirrors getTotalPassiveBoosts but for the Modifiers.additional field.
    */
   static getTotalPassiveEffects(player: Player): Record<string, number> {
@@ -335,9 +330,6 @@ export class ItemManager {
     };
 
     Object.values(player.equippedItems).forEach((item) => addFrom(item?.modifiers?.additional));
-    player.inventory.forEach((item) => {
-      if (item.type === 'lucky') addFrom(item.modifiers?.additional);
-    });
     player.storyItems.forEach((item) => addFrom(item.modifiers?.additional));
 
     return effects;

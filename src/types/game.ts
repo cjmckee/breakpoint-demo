@@ -53,9 +53,11 @@ export interface Modifiers {
  * Game systems query these keys to apply effects.
  *
  * Sections:
- *   Training    — AnchorTraining.tsx reads these, widens minigame success windows
+ *   Training    — AnchorTraining.tsx reads these, then AnchorTrainingSystem
+ *                 applies them to the session payout
  *   Event       — gameStore.ts story event logic
  *   Mood/Energy — gameStore.ts training/match/rest
+ *   Drops       — MatchRewardSystem post-match reward rolls
  *   Relationship— gameStore.ts relationship gains
  *   Match shot  — ShotCalculator.applyAbilityEffects
  *   Match pos   — PointSimulator position recovery
@@ -66,6 +68,12 @@ export const EffectKey = {
   // --- Training effects ---
   // Fractional widening of training minigame success windows (0.10 = +10%).
   MINIGAME_WINDOW_BONUS: 'minigame_window_bonus',
+  // 0-1 chance that each stat a session grants is worth +2 instead of +1.
+  // A session grants ~3 stats, so 0.10 here really is ~+10% training gains.
+  TRAINING_STAT_UPGRADE_CHANCE: 'training_stat_upgrade_chance',
+  // 0-1 chance a session draws one extra support beyond the reps it earned.
+  // Only rolls on a session that landed at least one rep.
+  TRAINING_BONUS_SUPPORT_CHANCE: 'training_bonus_support_chance',
 
   // --- Event effects ---
   EVENT_TRIGGER_BONUS: 'event_trigger_bonus',
@@ -77,6 +85,11 @@ export const EffectKey = {
   EXPERIENCE_GAIN_BONUS: 'experience_gain_bonus', // multiplier on match XP (0.1 = +10%)
   WIN_EXP_BONUS: 'win_exp_bonus',                 // flat XP bonus added on match wins
   LOSS_EXP_BONUS: 'loss_exp_bonus',               // flat XP bonus added on match losses
+
+  // --- Drop effects (MatchRewardSystem) ---
+  // Added to the post-match ability drop multiplier, which performance already
+  // scales over 0.5-1.5. 0.15 is +15% relative to the tier's base drop rates.
+  ABILITY_DROP_BONUS: 'ability_drop_bonus',
 
   // --- Relationship effects ---
   RELATIONSHIP_GAIN_BONUS: 'relationship_gain_bonus',
@@ -471,7 +484,7 @@ export interface Player {
 
   // Item system
   inventory: Item[];  // Regular items (max 10)
-  equippedItems: Record<EquipmentSlot, Item | null>;  // 4 equipment slots
+  equippedItems: Record<EquipmentSlot, Item | null>;  // 4 gear slots + 1 charm slot
   storyItems: Item[];  // Story items (no limit, don't count toward inventory)
   nextActivityBuffs: Modifiers[];  // Pending consumable buffs; stat boosts apply to the player's next match, additional effects apply to their next activity
   seenItemIds: string[];  // Item IDs the player has viewed in inventory
