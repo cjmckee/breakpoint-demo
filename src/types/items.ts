@@ -11,9 +11,22 @@ import type { Modifiers } from './game';
 export type ItemType = 'equipment' | 'consumable' | 'lucky' | 'story';
 
 /**
- * Equipment slot types
+ * Equipment slot types.
+ *
+ * `charm` is the odd one out: it holds `type: 'lucky'` items rather than
+ * `type: 'equipment'`. Lucky items used to apply passively from inventory, so
+ * holding all of them stacked — the slot makes them a choice instead.
  */
-export type EquipmentSlot = 'racquet' | 'shoes' | 'outfit' | 'hat';
+export type EquipmentSlot = 'racquet' | 'shoes' | 'outfit' | 'hat' | 'charm';
+
+/** The item type a given slot accepts. */
+export const SLOT_ITEM_TYPE: Record<EquipmentSlot, ItemType> = {
+  racquet: 'equipment',
+  shoes: 'equipment',
+  outfit: 'equipment',
+  hat: 'equipment',
+  charm: 'lucky',
+};
 
 /**
  * Consumable effect types

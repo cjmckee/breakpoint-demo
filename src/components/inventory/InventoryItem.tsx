@@ -1,7 +1,7 @@
 /**
  * InventoryItem — a single draggable card in the inventory grid.
  *
- * Equipment cards carry an always-on net-rating badge comparing them to whatever
+ * Slotted cards carry an always-on net-rating badge comparing them to whatever
  * is equipped in their slot, so the player can scan the whole grid and instantly
  * see upgrades (▲) vs. downgrades (▼) without opening anything.
  */
@@ -37,14 +37,16 @@ export const InventoryItem: React.FC<InventoryItemProps> = ({
   onHoverEnd,
 }) => {
   const meta = ITEM_TYPE_META[item.type];
-  const isEquipment = item.type === 'equipment';
-  const netDelta = isEquipment
+  // Keyed off the slot, not the type — charms are `type: 'lucky'` but still
+  // occupy a slot, so they drag and compare like the rest of the loadout.
+  const isSlotted = Boolean(item.equipmentSlot);
+  const netDelta = isSlotted
     ? ItemManager.getItemRating(item) - ItemManager.getItemRating(equippedInSlot)
     : 0;
 
   return (
     <div
-      draggable={isEquipment}
+      draggable={isSlotted}
       onDragStart={(e) => {
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', item.id);
@@ -57,12 +59,12 @@ export const InventoryItem: React.FC<InventoryItemProps> = ({
     >
       <Card
         padding="sm"
-        className={`cursor-pointer hover:border-pixel-accent transition-colors relative ${isEquipment ? 'active:cursor-grabbing' : ''}`}
+        className={`cursor-pointer hover:border-pixel-accent transition-colors relative ${isSlotted ? 'active:cursor-grabbing' : ''}`}
       >
         {isNew && <UnseenBadge className="absolute -top-2 -right-2" />}
 
-        {/* Comparison badge — only for equipment, and only when it changes rating. */}
-        {isEquipment && (
+        {/* Comparison badge — only for slotted items, and only when it changes rating. */}
+        {isSlotted && (
           <div className="absolute -top-2 -left-2">
             <NetRatingBadge delta={netDelta} />
           </div>

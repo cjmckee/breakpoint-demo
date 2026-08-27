@@ -166,7 +166,7 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
           <span className="font-bold text-pixel-text">{(player.matchesPlayed ?? 0) - (player.matchesWon ?? 0)}</span> L
         </span>
         <span>
-          <span className="font-bold text-yellow-400">{player.totalExperienceEarned ?? 0}</span> XP earned
+          <span className="font-bold text-yellow-400">{player.totalExperienceEarned}</span> XP earned
         </span>
       </div>
     </Card>

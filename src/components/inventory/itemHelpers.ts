@@ -9,6 +9,7 @@ export const SLOT_ICONS: Record<EquipmentSlot, string> = {
   shoes: '👟',
   outfit: '👕',
   hat: '🧢',
+  charm: '🍀',
 };
 
 export const SLOT_NAMES: Record<EquipmentSlot, string> = {
@@ -16,9 +17,12 @@ export const SLOT_NAMES: Record<EquipmentSlot, string> = {
   shoes: 'Shoes',
   outfit: 'Outfit',
   hat: 'Hat',
+  charm: 'Charm',
 };
 
-export const EQUIPMENT_SLOTS: EquipmentSlot[] = ['racquet', 'shoes', 'outfit', 'hat'];
+// Charm sits last — it holds lucky items rather than gear, so it reads as a
+// separate kind of choice below the four equipment slots.
+export const EQUIPMENT_SLOTS: EquipmentSlot[] = ['racquet', 'shoes', 'outfit', 'hat', 'charm'];
 
 interface ItemTypeMeta {
   label: string;

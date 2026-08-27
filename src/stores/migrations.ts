@@ -45,7 +45,9 @@ export interface PersistedStoreState {
   // eventRecovery omitted — transient, always reset on load
 }
 
-export const CURRENT_STORE_VERSION = 5;
+// 6: lucky items moved from passive-in-inventory to the `charm` equipment slot,
+//    which adds a key to Player.equippedItems that old saves don't carry.
+export const CURRENT_STORE_VERSION = 6;
 
 /** The state a brand-new game starts with. Also what a stale save resets to. */
 export function createDefaultPersistedState(): PersistedStoreState {

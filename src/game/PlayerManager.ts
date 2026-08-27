@@ -66,6 +66,7 @@ export class PlayerManager {
         shoes: null,
         outfit: null,
         hat: null,
+        charm: null,
       },
       storyItems: [],
       nextActivityBuffs: [],
@@ -211,11 +212,19 @@ export class PlayerManager {
   }
 
   /**
-   * Add experience and check for level up
+   * Add experience and check for level up.
+   *
+   * The player carries two XP counters, and they do different jobs:
+   *   totalExperienceEarned — lifetime XP, only ever increases. Drives level.
+   *   experience            — spendable balance, drawn down by shop purchases.
+   *
+   * Level must read the lifetime counter. Deriving it from the spendable balance
+   * lets a shop purchase demote the player, and re-earning that XP then grants
+   * the same specialization point a second time.
    */
   static addExperience(player: Player, exp: number): { player: Player; leveledUp: boolean } {
-    const newExperience = player.experience + exp;
-    const newLevel = this.calculateLevel(newExperience);
+    const newTotalEarned = player.totalExperienceEarned + exp;
+    const newLevel = this.calculateLevel(newTotalEarned);
     const leveledUp = newLevel > player.level;
 
     // Each level gained grants one specialization point for the archetype tree.
@@ -227,8 +236,8 @@ export class PlayerManager {
     return {
       player: {
         ...player,
-        experience: newExperience,
-        totalExperienceEarned: (player.totalExperienceEarned ?? 0) + exp,
+        experience: player.experience + exp,
+        totalExperienceEarned: newTotalEarned,
         level: newLevel,
         archetypeProfile,
         updatedAt: new Date().toISOString(),
@@ -238,11 +247,11 @@ export class PlayerManager {
   }
 
   /**
-   * Calculate level from experience
+   * Calculate level from lifetime experience earned (never the spendable balance).
    * Uses exponential curve: level = floor(sqrt(exp / 100)) + 1
    */
-  static calculateLevel(experience: number): number {
-    return Math.floor(Math.sqrt(experience / 100)) + 1;
+  static calculateLevel(totalExperienceEarned: number): number {
+    return Math.floor(Math.sqrt(totalExperienceEarned / 100)) + 1;
   }
 
   /**
@@ -258,7 +267,7 @@ export class PlayerManager {
   static experienceProgress(player: Player): number {
     const currentLevelExp = this.experienceForNextLevel(player.level - 1);
     const nextLevelExp = this.experienceForNextLevel(player.level);
-    const expIntoLevel = player.experience - currentLevelExp;
+    const expIntoLevel = player.totalExperienceEarned - currentLevelExp;
     const expNeeded = nextLevelExp - currentLevelExp;
 
     return Math.min(100, (expIntoLevel / expNeeded) * 100);

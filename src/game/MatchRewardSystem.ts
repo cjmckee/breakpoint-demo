@@ -41,7 +41,8 @@ export class MatchRewardSystem {
   static calculateRewards(
     matchStatistics: MatchStatistics,
     opponentTier: OpponentTier,
-    isWin: boolean
+    isWin: boolean,
+    abilityDropBonus: number = 0
   ): MatchReward {
     // 1. Calculate performance scores for each category
     const performance = this.analyzePerformance(matchStatistics);
@@ -49,9 +50,13 @@ export class MatchRewardSystem {
     // 2. Calculate performance drop multiplier (0.5–1.5× based on overall score)
     const dropMultiplier = this.calculateDropMultiplier(performance.overallScore);
 
-    // 3. Roll for ability drops (win only), scaled by performance
+    // 3. Roll for ability drops (win only), scaled by performance.
+    //    EffectKey.ABILITY_DROP_BONUS scales the performance multiplier rather than
+    //    adding to it. Added, its worth would depend on how well you played — +30%
+    //    after a bad match, +10% after a great one — while the item card shows a
+    //    flat "+15%". Multiplying makes the number on the card the number you get.
     const abilities = isWin
-      ? this.rollAbilityDrops(opponentTier, dropMultiplier)
+      ? this.rollAbilityDrops(opponentTier, dropMultiplier * (1 + abilityDropBonus))
       : [];
 
     // 4. Roll for item drops, scaled by performance

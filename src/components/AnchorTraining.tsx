@@ -19,6 +19,7 @@ import {
   buildAnchorTrainingResult,
   recentSupportsFrom,
   type CoreStat,
+  type TrainingBonuses,
 } from '../game/AnchorTrainingSystem';
 import { EffectKey, type StatBoosts, type TrainingResult } from '../types/game';
 import { EffectAggregator } from '../core/EffectAggregator';
@@ -66,6 +67,12 @@ export const AnchorTraining: React.FC = () => {
   const { effects } = EffectAggregator.getActiveEffects(player);
   const windowBonus = EffectAggregator.getEffect(effects, EffectKey.MINIGAME_WINDOW_BONUS);
 
+  // Item/ability effects that improve the session payout rather than the minigame itself.
+  const trainingBonuses: TrainingBonuses = {
+    statUpgradeChance: EffectAggregator.getEffect(effects, EffectKey.TRAINING_STAT_UPGRADE_CHANCE),
+    bonusSupportChance: EffectAggregator.getEffect(effects, EffectKey.TRAINING_BONUS_SUPPORT_CHANCE),
+  };
+
   // Supports handed out in the most recent training session, so we can bias away
   // from repeating them.
   const lastTrainingBoosts: StatBoosts | undefined = activityHistory.find(
@@ -74,7 +81,7 @@ export const AnchorTraining: React.FC = () => {
 
   const resolve = (core: CoreStat, count: number): void => {
     const recent = recentSupportsFrom(lastTrainingBoosts);
-    const result = buildAnchorTrainingResult(core, count, recent);
+    const result = buildAnchorTrainingResult(core, count, recent, trainingBonuses);
     // applyTrainingResult transitions to idle with the training_result overlay,
     // then advanceTime moves the clock forward — mirrors the old training flow.
     applyTrainingResult(result);
