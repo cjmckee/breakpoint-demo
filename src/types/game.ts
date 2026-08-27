@@ -87,8 +87,9 @@ export const EffectKey = {
   LOSS_EXP_BONUS: 'loss_exp_bonus',               // flat XP bonus added on match losses
 
   // --- Drop effects (MatchRewardSystem) ---
-  // Added to the post-match ability drop multiplier, which performance already
-  // scales over 0.5-1.5. 0.15 is +15% relative to the tier's base drop rates.
+  // Scales the post-match ability drop multiplier, which performance already
+  // scales over 0.5-1.5. 0.15 is +15% on the tier's base drop rates at any
+  // performance level, matching the "+15%" the item card advertises.
   ABILITY_DROP_BONUS: 'ability_drop_bonus',
 
   // --- Relationship effects ---

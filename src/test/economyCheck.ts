@@ -206,33 +206,50 @@ function main(): void {
       new PlayerProfile('o', 'Opponent')
     ).getStatistics();
 
-    // Rather than assume where the drop threshold sits, sweep the roll across the
-    // low end and count how often each configuration drops. A bonus that reaches
-    // the roll must widen the band of rolls that succeed.
+    // A drop happens exactly when the roll lands under the scaled rate, so the
+    // outcome is monotonic in the roll and the effective rate is recoverable by
+    // bisecting for the flip point. That gives the real number the bonus produces
+    // rather than a bucket count, which is what lets the ratio below be exact.
     const originalRandom = Math.random;
     const originalLog = console.log;
-    let dropsWithout = 0;
-    let dropsWith = 0;
-    try {
-      console.log = (): void => {};
-      for (let roll = 0; roll < 0.12; roll += 0.001) {
-        Math.random = (): number => roll;
-        if ((MatchRewardSystem.calculateRewards(emptyStats, 1, true, 0).abilitiesGained ?? []).length > 0) {
-          dropsWithout++;
-        }
-        if ((MatchRewardSystem.calculateRewards(emptyStats, 1, true, 0.15).abilitiesGained ?? []).length > 0) {
-          dropsWith++;
+    const dropThreshold = (bonus: number): number => {
+      let lo = 0;      // always drops
+      let hi = 0.12;   // never drops
+      for (let i = 0; i < 40; i++) {
+        const mid = (lo + hi) / 2;
+        Math.random = (): number => mid;
+        if ((MatchRewardSystem.calculateRewards(emptyStats, 1, true, bonus).abilitiesGained ?? []).length > 0) {
+          lo = mid;
+        } else {
+          hi = mid;
         }
       }
+      return lo;
+    };
+
+    let without = 0;
+    let withBonus = 0;
+    try {
+      console.log = (): void => {};
+      without = dropThreshold(0);
+      withBonus = dropThreshold(0.15);
     } finally {
       Math.random = originalRandom;
       console.log = originalLog;
     }
 
     check('a drop bonus widens the band of rolls that yield an ability',
-      dropsWith > dropsWithout, `with=${dropsWith} without=${dropsWithout}`);
-    check('the baseline still drops abilities at all (sweep covers the threshold)',
-      dropsWithout > 0, `without=${dropsWithout}`);
+      withBonus > without, `with=${withBonus} without=${without}`);
+    check('the baseline still drops abilities at all (bisection found a threshold)',
+      without > 0 && without < 0.12, `without=${without}`);
+
+    // The rate must grow by the bonus itself, not by the bonus divided by however
+    // well the match went. Adding the bonus to the performance multiplier instead
+    // would land at 1 + 0.15/0.765 = 1.196x here, and would drift with performance.
+    const widening = withBonus / without;
+    check('the bonus scales the rate rather than riding on how well you played',
+      Math.abs(widening - 1.15) < 0.01,
+      `widened ${widening.toFixed(4)}x (expected 1.15x, additive would be ~1.196x)`);
   }
 
   console.log('\n── one charm at a time ──');

@@ -388,11 +388,12 @@ export class ItemManager {
   }
 
   /**
-   * Get items from inventory that match a specific equipment slot
+   * Get items from inventory that can go in a specific slot.
+   * Matches on the slot's accepted type, so the charm slot returns lucky items.
    */
   static getItemsBySlot(player: Player, slot: EquipmentSlot): Item[] {
     return player.inventory.filter(
-      (item) => item.type === 'equipment' && item.equipmentSlot === slot
+      (item) => item.type === SLOT_ITEM_TYPE[slot] && item.equipmentSlot === slot
     );
   }
 

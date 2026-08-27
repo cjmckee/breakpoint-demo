@@ -51,10 +51,12 @@ export class MatchRewardSystem {
     const dropMultiplier = this.calculateDropMultiplier(performance.overallScore);
 
     // 3. Roll for ability drops (win only), scaled by performance.
-    //    EffectKey.ABILITY_DROP_BONUS stacks onto the same multiplier performance
-    //    uses, so a lucky item reads as a straight % lift on the tier's base rates.
+    //    EffectKey.ABILITY_DROP_BONUS scales the performance multiplier rather than
+    //    adding to it. Added, its worth would depend on how well you played — +30%
+    //    after a bad match, +10% after a great one — while the item card shows a
+    //    flat "+15%". Multiplying makes the number on the card the number you get.
     const abilities = isWin
-      ? this.rollAbilityDrops(opponentTier, dropMultiplier + abilityDropBonus)
+      ? this.rollAbilityDrops(opponentTier, dropMultiplier * (1 + abilityDropBonus))
       : [];
 
     // 4. Roll for item drops, scaled by performance
