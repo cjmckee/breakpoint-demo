@@ -9,15 +9,10 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { audioManager } from '../../audio/AudioManager';
-import {
-  MinigameShell,
-  SupportResult,
-  RoundPips,
-  MinigameActionButton,
-  countNote,
-} from './MinigameShell';
+import { MinigameShell, RoundPips, MinigameActionButton } from './MinigameShell';
+import { SupportResult, countNote } from './trainingReadout';
 import type { MinigameProps } from '../../minigames/types';
-import { useMinigameRounds, roundSpeed } from './useMinigameRounds';
+import { useMinigameRounds } from './useMinigameRounds';
 import { Sparks, ComboBadge, useHitstop, type Burst } from './minigameJuice';
 import { isActionKey } from '../../utils/gameKeys';
 
@@ -29,8 +24,8 @@ const SWEEP_MAX = 1150;
 const AMP = 44; // % swing amplitude around center
 const POP_MS = 400; // ms the struck ball stays on screen
 
-export const TouchSliceMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt }) => {
-  const rounds = useMinigameRounds('touch_slice', onComplete, onFirstAttempt);
+export const TouchSliceMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt, config }) => {
+  const rounds = useMinigameRounds({ minigame: 'touch_slice', config }, onComplete, onFirstAttempt);
   const { frozen, trigger: hitstop } = useHitstop();
   const zoneHalf = 10 * (1 + windowBonus);
 
@@ -106,7 +101,7 @@ export const TouchSliceMinigame: React.FC<MinigameProps> = ({ onComplete, window
     zoneCenterRef.current = 22 + Math.random() * 56;
     tiltRef.current = (Math.random() < 0.5 ? -1 : 1) * Math.random() * 30;
     // Shorter period = faster swing, so the ramp divides into it.
-    sweepRef.current = (SWEEP_MIN + Math.random() * (SWEEP_MAX - SWEEP_MIN)) / roundSpeed(rounds.round);
+    sweepRef.current = (SWEEP_MIN + Math.random() * (SWEEP_MAX - SWEEP_MIN)) / rounds.speed;
     startRef.current = performance.now();
     runningRef.current = true;
     setHits(0);

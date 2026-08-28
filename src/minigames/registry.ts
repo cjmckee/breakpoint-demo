@@ -13,6 +13,7 @@ import { RallyRhythmMinigame } from '../components/training/RallyRhythmMinigame'
 import { CornerPainterMinigame } from '../components/training/CornerPainterMinigame';
 import { ReadReturnMinigame } from '../components/training/ReadReturnMinigame';
 import { TouchSliceMinigame } from '../components/training/TouchSliceMinigame';
+import { FishingCastMinigame } from './games/FishingCastMinigame';
 
 export const MINIGAMES: Record<MinigameId, React.FC<MinigameProps>> = {
   toss_and_strike: ServeMinigame,
@@ -20,4 +21,5 @@ export const MINIGAMES: Record<MinigameId, React.FC<MinigameProps>> = {
   corner_paint: CornerPainterMinigame,
   read_return: ReadReturnMinigame,
   touch_slice: TouchSliceMinigame,
+  fishing_cast: FishingCastMinigame,
 };

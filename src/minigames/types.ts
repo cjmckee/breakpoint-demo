@@ -7,8 +7,7 @@
  * against a pass line. The caller owns the meaning.
  *
  * Pure types, no React — so game logic (AnchorTrainingSystem) can name a minigame
- * without reaching into the component layer. See
- * docs/proposals/story-minigames.md.
+ * without reaching into the component layer.
  */
 
 /** Every minigame the game can launch. */
@@ -17,7 +16,24 @@ export type MinigameId =
   | 'rally_rhythm' // forehand
   | 'corner_paint' // backhand
   | 'read_return' // return
-  | 'touch_slice'; // net (reuses the touch minigame until a net-specific one exists)
+  | 'touch_slice' // net (reuses the touch minigame until a net-specific one exists)
+  | 'fishing_cast'; // story-only: five casts at the fish, no tennis involved
+
+/**
+ * The shape of a run.
+ *
+ * Round count and score scale are independent: three pass/fail attempts is one
+ * shape, and so is a single round in which the player lands several catches.
+ * Each game declares its own natural defaults; a caller can override them.
+ */
+export interface MinigameConfig {
+  /** Attempts the player gets. */
+  rounds?: number;
+  /** Per-attempt speed multipliers. The last entry repeats if rounds outruns it. */
+  speedRamp?: number[];
+  /** The scale the score is reported against. Defaults to `rounds`. */
+  maxScore?: number;
+}
 
 /** What a completed run reports back. */
 export interface MinigameScore {
@@ -36,6 +52,8 @@ export interface MinigameScore {
 /** How a caller asks for a minigame. */
 export interface MinigameRequest {
   minigame: MinigameId;
+  /** Overrides the game's own defaults. Omit to play it as the game intends. */
+  config?: MinigameConfig;
 }
 
 /** The props every minigame component takes. */
@@ -46,4 +64,6 @@ export interface MinigameProps {
   windowBonus?: number;
   /** Called once, the moment the player commits their first attempt. */
   onFirstAttempt?: () => void;
+  /** Overrides the game's default shape. */
+  config?: MinigameConfig;
 }

@@ -9,15 +9,10 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { audioManager } from '../../audio/AudioManager';
-import {
-  MinigameShell,
-  SupportResult,
-  RoundPips,
-  MinigameActionButton,
-  countNote,
-} from './MinigameShell';
+import { MinigameShell, RoundPips, MinigameActionButton } from './MinigameShell';
+import { SupportResult, countNote } from './trainingReadout';
 import type { MinigameProps } from '../../minigames/types';
-import { useMinigameRounds, roundSpeed } from './useMinigameRounds';
+import { useMinigameRounds } from './useMinigameRounds';
 import { Sparks, ComboBadge, useHitstop, type Burst } from './minigameJuice';
 import { isActionKey } from '../../utils/gameKeys';
 
@@ -33,8 +28,8 @@ const TOLERANCE = 52; // px radius on the reference court counted as "on the rin
 const SWEEP_MIN = 4.0; // rad/sec
 const SWEEP_MAX = 5.0;
 
-export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt }) => {
-  const rounds = useMinigameRounds('corner_paint', onComplete, onFirstAttempt);
+export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt, config }) => {
+  const rounds = useMinigameRounds({ minigame: 'corner_paint', config }, onComplete, onFirstAttempt);
   const { trigger: hitstop } = useHitstop();
   const tol = TOLERANCE * (1 + windowBonus);
 
@@ -90,7 +85,7 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
     sweepRef.current = 0;
     startRef.current = performance.now();
     // Rolled per round, then ramped — later corners sweep faster to lock.
-    const speed = (SWEEP_MIN + Math.random() * (SWEEP_MAX - SWEEP_MIN)) * roundSpeed(rounds.round);
+    const speed = (SWEEP_MIN + Math.random() * (SWEEP_MAX - SWEEP_MIN)) * rounds.speed;
     const loop = (now: number): void => {
       if (stageRef.current === 'done') return;
       const el = (now - startRef.current) / 1000;

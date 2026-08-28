@@ -9,15 +9,10 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { audioManager } from '../../audio/AudioManager';
-import {
-  MinigameShell,
-  SupportResult,
-  RoundPips,
-  MinigameActionButton,
-  countNote,
-} from './MinigameShell';
+import { MinigameShell, RoundPips, MinigameActionButton } from './MinigameShell';
+import { SupportResult, countNote } from './trainingReadout';
 import type { MinigameProps } from '../../minigames/types';
-import { useMinigameRounds, roundSpeed } from './useMinigameRounds';
+import { useMinigameRounds } from './useMinigameRounds';
 import { Sparks, ComboBadge, useHitstop, type Burst } from './minigameJuice';
 import { directionFromKey, isActionKey } from '../../utils/gameKeys';
 
@@ -48,8 +43,8 @@ const randomToss = (speed: number): Toss => ({
   vx: (Math.random() < 0.5 ? -1 : 1) * (12 + Math.random() * 7) * speed,
 });
 
-export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt }) => {
-  const rounds = useMinigameRounds('toss_and_strike', onComplete, onFirstAttempt);
+export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt, config }) => {
+  const rounds = useMinigameRounds({ minigame: 'toss_and_strike', config }, onComplete, onFirstAttempt);
   const { frozen, trigger: hitstop } = useHitstop();
 
   const boxRef = useRef<HTMLDivElement | null>(null);
@@ -117,7 +112,7 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
   // Arm a fresh toss for each playing attempt.
   useEffect(() => {
     if (rounds.phase !== 'playing') return;
-    const toss = randomToss(roundSpeed(rounds.round));
+    const toss = randomToss(rounds.speed);
     ballRef.current = { x: 50, y: START_Y, vx: toss.vx, vy: toss.vy0 };
     struckRef.current = false;
     setStruck(false);

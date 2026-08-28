@@ -7,7 +7,7 @@
  * phase's continuation to decide, not this component's.
  *
  * Training does not route through here — it already has a screen and mounts the
- * same component inline. See docs/proposals/story-minigames.md.
+ * same component inline.
  */
 
 import React from 'react';

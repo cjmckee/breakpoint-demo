@@ -17,7 +17,6 @@
 
 import React, { useEffect } from 'react';
 import type { MinigameRounds, RoundPhase } from './useMinigameRounds';
-import { TOTAL_ROUNDS } from './useMinigameRounds';
 import { isActionKey } from '../../utils/gameKeys';
 
 /** Start overlay shown over the arena while phase === 'ready'. Space/Enter (or the button) begins. */
@@ -88,12 +87,16 @@ export const MinigameShell: React.FC<{
 };
 
 /**
- * Three-slot progress row: each attempt shows hit (green) or miss (red) once played,
- * the current attempt gets an accent ring, and unplayed attempts are dim.
+ * One slot per attempt: each shows hit (green) or miss (red) once played, the
+ * current attempt gets an accent ring, and unplayed attempts are dim. Sized off
+ * the run's own round count, so three reps and five casts both read correctly.
+ *
+ * Opt-in — a game supplies its own footer, so one that scores a single continuous
+ * round shows a readout instead of pips.
  */
-export const RoundPips: React.FC<MinigameRounds> = ({ round, results, successes, phase }) => (
+export const RoundPips: React.FC<MinigameRounds> = ({ round, total, results, successes, phase }) => (
   <div className="flex items-center justify-center gap-2">
-    {Array.from({ length: TOTAL_ROUNDS }).map((_, i) => {
+    {Array.from({ length: total }).map((_, i) => {
       const played = results[i];
       const isCurrent = phase !== 'done' && i === round;
       const cls =
@@ -107,31 +110,10 @@ export const RoundPips: React.FC<MinigameRounds> = ({ round, results, successes,
       return <div key={i} className={`w-9 h-3 border-2 ${cls}`} />;
     })}
     <span className="text-xs text-pixel-text-muted ml-2">
-      {successes}/{TOTAL_ROUNDS}
+      {successes}/{total}
     </span>
   </div>
 );
-
-/** The shared "+N support stats earned" readout shown after all attempts resolve. */
-export const SupportResult: React.FC<{ count: number; note: string }> = ({ count, note }) => (
-  <div className="text-center">
-    <div className={`text-5xl font-bold mb-1 ${count > 0 ? 'text-pixel-success' : 'text-pixel-text-muted'}`}>
-      +{count}
-    </div>
-    <div className="text-sm text-pixel-text-muted">{note}</div>
-    <div className="text-xs text-pixel-text-muted mt-2">
-      {count === 0 ? 'no bonus stats — the core rep still counts' : `bonus ${count === 1 ? 'stat' : 'stats'} earned`}
-    </div>
-  </div>
-);
-
-/** Standard flavor note keyed by how many supports were earned (0-3). */
-export function countNote(count: number, clean: string, ok: string, low: string, none: string): string {
-  if (count >= 3) return clean;
-  if (count === 2) return ok;
-  if (count === 1) return low;
-  return none;
-}
 
 /**
  * Primary action button for a minigame. Fires on pointer DOWN (not click) so touch

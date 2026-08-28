@@ -16,6 +16,7 @@
  */
 
 import { StoryEventManager } from '../game/StoryEventManager';
+import { StoryEventRepository } from '../data/storyEvents';
 import type { StoryEvent, StoryEventOption, StoryEventOutcome } from '../types/storyEvents';
 import type { MinigameScore } from '../minigames/types';
 
@@ -126,6 +127,29 @@ function main(): void {
   check('69 of 100 does not',
     StoryEventManager.getOutcome(event, outOfHundred,
       { minigame: 'corner_paint', score: 69, maxScore: 100 }) === FAIL_OUTCOME);
+
+  console.log('\n── authored checks are real checks ──');
+  // A check that cannot be failed, or whose branches pay the same, is decoration
+  // that costs the player a minigame. These scan every event in the game.
+  const checked = StoryEventRepository.getAllEvents().flatMap((e) =>
+    e.options
+      .filter((o) => o.minigame !== undefined)
+      .map((o) => ({ event: e.id, option: o }))
+  );
+
+  check('at least one event actually uses a minigame check',
+    checked.length > 0);
+
+  check('every pass line needs at least one success',
+    checked.every(({ option }) => option.minigame!.passThreshold >= 1),
+    'a threshold of 0 passes without playing');
+
+  check('every check has a fail branch distinct from its pass branch',
+    checked.every(({ option }) => option.minigame!.failOutcome !== option.outcome));
+
+  check('every check tells the player it is coming, before they pick it',
+    checked.every(({ option }) => (option.description ?? '').length > 0),
+    'an option that silently launches a minigame is a trap');
 
   console.log(failures === 0
     ? '\n✅ all checks passed\n'

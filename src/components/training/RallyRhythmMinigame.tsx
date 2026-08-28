@@ -10,14 +10,10 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { audioManager } from '../../audio/AudioManager';
-import {
-  MinigameShell,
-  SupportResult,
-  RoundPips,
-  countNote,
-} from './MinigameShell';
+import { MinigameShell, RoundPips } from './MinigameShell';
+import { SupportResult, countNote } from './trainingReadout';
 import type { MinigameProps } from '../../minigames/types';
-import { useMinigameRounds, roundSpeed } from './useMinigameRounds';
+import { useMinigameRounds } from './useMinigameRounds';
 import { Sparks, ComboBadge, useHitstop, type Burst } from './minigameJuice';
 import { directionFromKey } from '../../utils/gameKeys';
 
@@ -43,8 +39,8 @@ interface Note {
 const laneC = (i: number): number => ((i + 0.5) / LANES) * 100;
 const LANE_GLYPH = ['◀', '●', '▶'];
 
-export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt }) => {
-  const rounds = useMinigameRounds('rally_rhythm', onComplete, onFirstAttempt);
+export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt, config }) => {
+  const rounds = useMinigameRounds({ minigame: 'rally_rhythm', config }, onComplete, onFirstAttempt);
   const { frozen, trigger: hitstop } = useHitstop();
   const hitWin = 155 * (1 + windowBonus);
 
@@ -110,7 +106,7 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
   // beat stays dead even inside a set while every set runs at its own speed.
   useEffect(() => {
     if (rounds.phase !== 'playing') return;
-    const tempo = (1 - TEMPO_SPAN / 2 + Math.random() * TEMPO_SPAN) * roundSpeed(rounds.round);
+    const tempo = (1 - TEMPO_SPAN / 2 + Math.random() * TEMPO_SPAN) * rounds.speed;
     const travel = TRAVEL / tempo;
     const interval = INTERVAL / tempo;
     const base = performance.now() + travel + LEAD_IN;
