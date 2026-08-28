@@ -6,7 +6,7 @@ Split by what you would use the document for, not by subject.
 docs/
 ├── balance-testing.md    how to verify a simulation change      <- start here
 ├── research/             what was measured, and what it settled
-└── proposals/            designs not yet built
+└── proposals/            designs not yet built    <- currently empty
 ```
 
 ## Active guidance
@@ -40,11 +40,9 @@ under, and a behaviour change invalidates every number measured before it.
 Designs that have not shipped. Check the code before trusting one — a proposal that has been built
 belongs in git history, not here.
 
-- **[`proposals/story-minigames.md`](./proposals/story-minigames.md)** — a context-agnostic scoring
-  contract so one minigame runtime can serve both training and story events. **Partially built**:
-  the training half shipped in #78, and the doc opens with a table of what is already in the code.
-  The story half — a parameterized harness, a minigame phase, and a minigame attached to a story
-  option — has not.
+Nothing is currently proposed and unbuilt. `story-minigames.md` was executed and deleted; the
+minigame runtime lives in [`src/minigames/`](../src/minigames/) and the story route runs through the
+`minigame_active` phase.
 
 Executed plans are deleted rather than archived. The code and its comments are the outcome, and a
 stale plan next to shipped code is worse than no plan.
