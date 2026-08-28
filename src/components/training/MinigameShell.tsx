@@ -4,8 +4,8 @@
  * Every core anchor has its own minigame with a distinct interaction, but they all
  * share the same frame, the same 3-attempt round pips, and the same result readout so
  * the training screen feels like one system. Each minigame runs three pass/fail
- * attempts (see useMinigameRounds) and reports the number of successes (0-3) via
- * onComplete. See docs/training-redesign.md.
+ * attempts (see useMinigameRounds) and reports a MinigameScore. The props a minigame
+ * takes are the shared contract in minigames/types.ts. See docs/training-redesign.md.
  *
  * Every game opens on a standardized start screen (phase === 'ready'): the how-to line
  * plus a Start button, with Space/Enter to begin — so the first attempt is never a
@@ -19,15 +19,6 @@ import React, { useEffect } from 'react';
 import type { MinigameRounds, RoundPhase } from './useMinigameRounds';
 import { TOTAL_ROUNDS } from './useMinigameRounds';
 import { isActionKey } from '../../utils/gameKeys';
-
-export interface MinigameProps {
-  /** Called once all attempts resolve, with the number of supports earned (0-3). */
-  onComplete: (successes: number) => void;
-  /** Fractional widening of the success window from EffectKey.MINIGAME_WINDOW_BONUS (0.10 = +10%). */
-  windowBonus?: number;
-  /** Called once, the moment the player commits their first attempt. */
-  onFirstAttempt?: () => void;
-}
 
 /** Start overlay shown over the arena while phase === 'ready'. Space/Enter (or the button) begins. */
 const StartGate: React.FC<{ onStart: () => void; controls?: string }> = ({ onStart, controls }) => {

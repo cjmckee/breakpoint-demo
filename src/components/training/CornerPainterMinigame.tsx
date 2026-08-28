@@ -15,8 +15,8 @@ import {
   RoundPips,
   MinigameActionButton,
   countNote,
-  type MinigameProps,
 } from './MinigameShell';
+import type { MinigameProps } from '../../minigames/types';
 import { useMinigameRounds, roundSpeed } from './useMinigameRounds';
 import { Sparks, ComboBadge, useHitstop, type Burst } from './minigameJuice';
 import { isActionKey } from '../../utils/gameKeys';
@@ -34,7 +34,7 @@ const SWEEP_MIN = 4.0; // rad/sec
 const SWEEP_MAX = 5.0;
 
 export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt }) => {
-  const rounds = useMinigameRounds(onComplete, onFirstAttempt);
+  const rounds = useMinigameRounds('corner_paint', onComplete, onFirstAttempt);
   const { trigger: hitstop } = useHitstop();
   const tol = TOLERANCE * (1 + windowBonus);
 

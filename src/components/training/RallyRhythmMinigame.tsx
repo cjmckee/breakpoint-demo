@@ -15,8 +15,8 @@ import {
   SupportResult,
   RoundPips,
   countNote,
-  type MinigameProps,
 } from './MinigameShell';
+import type { MinigameProps } from '../../minigames/types';
 import { useMinigameRounds, roundSpeed } from './useMinigameRounds';
 import { Sparks, ComboBadge, useHitstop, type Burst } from './minigameJuice';
 import { directionFromKey } from '../../utils/gameKeys';
@@ -44,7 +44,7 @@ const laneC = (i: number): number => ((i + 0.5) / LANES) * 100;
 const LANE_GLYPH = ['◀', '●', '▶'];
 
 export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt }) => {
-  const rounds = useMinigameRounds(onComplete, onFirstAttempt);
+  const rounds = useMinigameRounds('rally_rhythm', onComplete, onFirstAttempt);
   const { frozen, trigger: hitstop } = useHitstop();
   const hitWin = 155 * (1 + windowBonus);
 

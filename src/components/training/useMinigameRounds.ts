@@ -13,10 +13,14 @@
  * standardized entry screen (see MinigameShell) can gate the first attempt — no more
  * getting dropped mid-action. `streak` tracks trailing consecutive cleans for the
  * shared combo pop.
+ *
+ * The run reports a MinigameScore rather than a bare count, so a caller that is not
+ * training can read it against its own scale.
  */
 
 import { useCallback, useRef, useState } from 'react';
 import { audioManager } from '../../audio/AudioManager';
+import type { MinigameId, MinigameScore } from '../../minigames/types';
 
 export const TOTAL_ROUNDS = 3;
 
@@ -64,7 +68,8 @@ function trailingStreak(results: boolean[]): number {
 }
 
 export function useMinigameRounds(
-  onComplete: (successes: number) => void,
+  minigame: MinigameId,
+  onComplete: (score: MinigameScore) => void,
   onFirstAttempt?: () => void
 ): MinigameRounds {
   const [round, setRound] = useState(0);
@@ -92,9 +97,13 @@ export function useMinigameRounds(
       // A clean sweep gets its own sting; the overall training_done cue fires
       // separately once the result screen takes over.
       if (successes === TOTAL_ROUNDS) audioManager.playSfx('ace');
-      window.setTimeout(() => onComplete(successes), FINISH_MS);
+      // One point per clean attempt, so the score is the success count.
+      window.setTimeout(
+        () => onComplete({ minigame, score: successes, maxScore: TOTAL_ROUNDS }),
+        FINISH_MS
+      );
     },
-    [onComplete]
+    [minigame, onComplete]
   );
 
   const commit = useCallback(
