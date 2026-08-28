@@ -1,207 +1,235 @@
 # Story Minigames & the Unified Minigame Score
 
-**Status:** Proposal
-**Scope:** Refactor the training minigames onto a single, context-agnostic scoring
-contract so the same runtime can power both training sessions and interactive
-story events.
+**Status:** Partially built. The training half shipped in #78; the story half has not.
+**Scope:** Generalize the minigame harness so round count and scoring are inputs
+rather than constants, and add a minigame phase that a story event can route
+through and come back from.
 
 ---
 
-## Motivation
+## What already exists
 
-Today the training minigames each do two jobs: they run a small skill game **and**
-they know how to turn the result into stat gains. That couples the game to
-training and blocks reuse.
+The original version of this proposal was written before #78. Most of its
+training-side argument has since shipped, so this section is the baseline — do not
+re-plan it.
 
-We want to queue minigames inside story events too — e.g. an aquarium event with
-Keith where you play a fishing minigame, and clearing a threshold picks the "pass"
-branch. That only works if a minigame is a **self-contained, scorable unit** that
-reports how you did and lets the *caller* decide what the score means.
+| Original proposal item | Status |
+| --- | --- |
+| Standardized entry screen | **Built.** `StartGate` in `MinigameShell.tsx` gates the first attempt behind a how-to line and a Start button |
+| Minigames stop applying stats themselves | **Built.** They report through `onComplete` and nothing else |
+| Continuous drills bucketed to discrete attempts | **Built.** Every game runs three pass/fail attempts via `useMinigameRounds` |
+| Training resolver reads the count directly | **Built.** `AnchorTrainingSystem` takes the success count as the support count |
+| A `MinigameId` registry | **Built**, but living in `AnchorTrainingSystem.ts` with the id→component map inline in `AnchorTraining.tsx` |
+| Per-attempt difficulty ramp | **Built** (`ROUND_SPEED`), and was not in the original proposal |
 
-One runtime, two consumers:
-
-```
-        ┌──────────────────────────────────┐
-        │   Minigame runtime (shell)        │
-        │   preview → play → MinigameScore  │
-        └─────────────────┬────────────────┘
-              ┌───────────┴────────────┐
-   ┌──────────▼──────────┐   ┌──────────▼───────────┐
-   │  Training resolver   │   │   Story resolver      │
-   │  score → supports    │   │  score ≥ threshold?   │
-   │  (+ anchor +1)       │   │  → pass / fail branch │
-   └──────────────────────┘   └───────────────────────┘
-```
+What did *not* ship: any notion of a score that is not "successes out of three",
+and any consumer other than training.
 
 ---
 
-## The contract
+## Correcting the original story-side design
 
-A minigame owns its own scoring and counting system. It reports the raw score in
-**its own units**, plus the scale, and nothing else. It does not know whether it
-is being played for training or for a story beat.
+The first version specified a `MinigameStoryStep` with `onPass` / `onFail`
+pointing at named outcomes. **Story events have no step machine and no outcome
+registry.** A `StoryEvent` is flat: description, dialogue, and `options[]`, each
+carrying one inlined `StoryEventOutcome`. There is nothing for `onPass:
+'keith_impressed'` to reference, and building a step runtime to support it would
+be a far larger project than this one.
+
+The design below attaches the minigame to an **option** instead, which needs no
+new runtime — only a branch at the single point where the outcome is already
+chosen.
+
+---
+
+## 1. The harness takes its shape as input
+
+`useMinigameRounds` currently hardcodes `TOTAL_ROUNDS = 3`, and `MinigameShell`'s
+`RoundPips` imports that constant to decide how many pips to draw. Three stays the
+default, but it becomes a parameter, so the harness can host a five-cast fishing
+game as readily as a three-rep drill.
 
 ```typescript
-/** The single unit every minigame returns. */
+export interface MinigameConfig {
+  /** Attempts the player gets. Default 3. */
+  rounds?: number;
+  /** Per-attempt speed multipliers; the last entry repeats if rounds exceed it.
+   *  Default [1, 1.1, 1.22]. */
+  speedRamp?: number[];
+  /** Points a clean attempt is worth. Default 1, making score == successes. */
+  pointsPerRound?: number;
+}
+
+useMinigameRounds(config, onComplete, onFirstAttempt);
+```
+
+Consequences:
+
+- `TOTAL_ROUNDS` stops being exported. `MinigameRounds` gains a `total` field and
+  `RoundPips` reads it from the rounds object it is already handed.
+- `roundSpeed()` takes the ramp from config rather than a module constant. Its
+  existing clamp already gives the "last entry repeats" behavior for free.
+- The clean-sweep sting in `useMinigameRounds` compares against `total`, not `3`.
+
+**Open:** whether an attempt should be able to score partially (`commit` taking
+points rather than a boolean). Everything shipped is pass/fail, and the pips
+render green/red off that boolean. Recommend keeping `commit(passed: boolean)` and
+adding partial scoring only when a game actually wants it — `pointsPerRound`
+already covers "this game's attempts are worth more" without touching the pips.
+
+---
+
+## 2. The score contract
+
+A minigame reports its result in its own units, plus the scale. It does not know
+whether it was played for training or for a story beat.
+
+```typescript
 export interface MinigameScore {
   minigame: MinigameId;
-  /** Raw score, in this game's own units. */
+  /** Raw score in this game's own units. */
   score: number;
-  /** The scale — e.g. 3 for a discrete three-attempt drill, 100 for accuracy. */
+  /** The scale — 3 for a three-rep drill, 5 for a five-cast fishing game. */
   maxScore: number;
 }
 
-/** How a caller launches a minigame. */
 export interface MinigameRequest {
   minigame: MinigameId;
-  /** 0 = default. Story events may raise difficulty for the same game. */
-  difficulty?: number;
-  /** Optional determinism for replays. */
-  seed?: string;
+  config?: MinigameConfig;
 }
-
-/** The runtime is context-agnostic: it plays and scores, nothing more. */
-export type RunMinigame = (req: MinigameRequest) => Promise<MinigameScore>;
 ```
 
-Notes:
+`MinigameProps.onComplete` changes from `(successes: number)` to
+`(score: MinigameScore)`. Training's resolver keeps reading `score.score` as its
+support count, which is the identity mapping it already uses.
 
-- **No normalization.** A discrete drill returns `{ score: 2, maxScore: 3 }`; an
-  accuracy game returns `{ score: 78, maxScore: 100 }`. Consumers interpret the
-  score against the scale they know the game uses.
-- **`detail` is deferred.** If a future story event needs a non-score fact (biggest
-  fish, fastest reaction), we add an optional `detail?: Record<string, number>`
-  then — not before something needs it.
+**Dropped from the original proposal:** `difficulty` and `seed`. Nothing needs
+either yet, and `config` already carries the only knob a harder variant actually
+wants. Add them when a second consumer asks.
+
+**Registry move:** `MinigameId` and the id→component map move out of
+`AnchorTrainingSystem.ts` and `AnchorTraining.tsx` into a runtime module that both
+consumers import. A training system owning the identity of a story minigame is the
+exact coupling this proposal exists to remove.
 
 ---
 
-## Training consumer — score *is* supports
+## 3. The minigame canvas phase
 
-**Training minigames are always `maxScore: 3` by design.** They exist to compute
-supports, and supports are discrete (0–3), so the game must be too. Each game is
-three discrete attempts, each a clean/miss; the score is how many landed.
+The story flow needs to leave the event, hand the screen to a minigame, and come
+back with a result. **This is the same route story matches already take**, so it
+should be built the same way rather than invented:
 
-That means the score maps to supports as the identity — there is no threshold and
-no mapping function:
-
-```typescript
-// A training minigame returns { score: 2, maxScore: 3 }.
-const supportCount = result.score; // 0–3, used directly
-
-// AnchorTrainingSystem then runs unchanged:
-//   • anchor stat  → +1
-//   • supportCount → that many supports drawn from the anchor's themed pool
+```
+story event → continuation: match_setup → match plays → result → back
+story event → continuation: minigame    → game plays  → score  → outcome
 ```
 
-This lands back on the original anchor model (three reps → up to three supports),
-so `AnchorTrainingSystem`'s support-drawing logic needs essentially no change. The
-only thing that moves is *where* the result is applied: the minigame stops
-applying stats itself and simply returns a `MinigameScore`.
-
-### Bucketing continuous drills to 0–3
-
-Drills whose feel is continuous still report a discrete score. The interesting
-mechanic lives *inside* a rep; the countable unit stays discrete.
-
-| Drill | Internal feel | Reported score |
-| --- | --- | --- |
-| Toss & Strike (Serve) | track + strike the toss | 3 tosses, each hit/miss → 0–3 |
-| Corner Painter (Backhand) | two-axis placement | 3 corners, each on-target/not → 0–3 |
-| Rally Rhythm (Forehand) | lane + timing | 3 exchanges, each on-beat/not → 0–3 |
-| Touch Carve (Slice) | carve rally that eases in | 3 carves, each in-zone/not → 0–3 |
-| Catch Return (Return) | catch the falling balls | existing count → 0–3 |
-
-Existing mechanics are preserved — Catch Return keeps its current game exactly;
-it only needs to *report* a `MinigameScore` instead of applying stats.
-
----
-
-## Story consumer — score vs. a per-event threshold
-
-A story event step declares a minigame check and its branches. The pass line is
-authored **per event, in that game's own units**.
-
 ```typescript
-export interface MinigameStoryStep {
-  type: 'minigame';
+/** A minigame has the screen. Its score decides where we go next. */
+export interface MinigamePhase {
+  type: 'minigame_active';
   request: MinigameRequest;
-  /** Pass line, in the game's own units (e.g. 3 out of 5, or 70 out of 100). */
-  passThreshold: number;
-  onPass: StoryOutcomeRef;
-  onFail: StoryOutcomeRef;
+  continuation: PhaseContinuation;
 }
 
-// Resolution:
-//   const result = await runMinigame(step.request);
-//   const branch = result.score >= step.passThreshold ? step.onPass : step.onFail;
+// PhaseContinuation gains the return path that carries the score home:
+| { type: 'story_outcome'; event: StoryEvent; optionId: string }
 ```
 
-Examples across scales:
+The canvas is deliberately thin. Minigames already own their own arena, controls,
+and footer through `MinigameShell`, so the phase renders the game from the registry
+and does nothing else. On completion it calls a `completeMinigame(score)` store
+action, which reads the phase's continuation and dispatches — for a story event,
+into `executeStoryEvent(eventId, optionId, score)`.
 
-| Minigame | `maxScore` | `passThreshold` | Meaning |
-| --- | --- | --- | --- |
-| Rally Rhythm (reused for a story practice set) | 3 | 2 | 2 of 3 clean exchanges |
-| Fishing Cast (Keith aquarium event) | 5 | 3 | land 3 of 5 casts |
-| An accuracy-based game | 100 | 70 | 70% accuracy |
+Training does **not** route through this phase. It already has a screen and mounts
+the game inline; the component is context-agnostic, so where it is mounted is the
+caller's business. Both paths render the same component from the same registry.
 
-Because the story resolver keeps the raw `score` (not a boolean), today's pass/fail
-can grow into tiered outcomes later — `>= 4` great, `>= 3` ok, else fail — with no
-change to the runtime.
+**Refresh recovery.** `PersistedEventState` already persists `pendingMatchSetup`
+for the match route, so the symmetrical move is a `pendingMinigame`. Recommend
+*not* doing that: a half-played minigame cannot be meaningfully resumed, and the
+modal already restores `selectedChoices`. On reload, drop back to the event with
+the option still selected and let the player play it again. Cheaper, and it avoids
+persisting state that is only valid for the length of one screen.
+
+---
+
+## 4. The story consumer
+
+The minigame hangs off the option the player picked. `outcome` stays the pass
+branch, so every existing option in the data is untouched.
+
+```typescript
+interface StoryEventOption {
+  // ...existing fields
+  /** Play a minigame after this choice; the score picks which outcome lands. */
+  minigame?: {
+    request: MinigameRequest;
+    /** Pass line in the game's own units (e.g. 3 of 5). */
+    passThreshold: number;
+    /** `outcome` is the pass branch; this is the miss. */
+    failOutcome: StoryEventOutcome;
+  };
+}
+```
+
+Resolution needs one branch, at `StoryEventManager.getOutcome` — already the single
+choke point that `gameStore.executeStoryEvent` funnels through:
+
+```typescript
+const passed = score !== undefined && score.score >= option.minigame.passThreshold;
+const outcome = passed ? option.outcome : option.minigame.failOutcome;
+```
+
+Because the resolver keeps the raw score rather than a boolean, today's pass/fail
+can grow into tiered outcomes later without touching the runtime.
 
 ### Worked example — the aquarium event
 
+An option that reads "Try to out-fish him", a five-cast fishing game, and a pass
+line of three:
+
 ```typescript
-const aquariumWithKeith: MinigameStoryStep = {
-  type: 'minigame',
-  request: { minigame: 'fishing_cast', difficulty: 1 },
-  passThreshold: 3, // out of the game's maxScore of 5
-  onPass: 'keith_impressed',
-  onFail: 'keith_laughs_it_off',
-};
+{
+  id: 'try_to_outfish',
+  text: 'Try to out-fish him',
+  minigame: {
+    request: { minigame: 'fishing_cast', config: { rounds: 5 } },
+    passThreshold: 3,
+    failOutcome: { /* Keith laughs it off */ },
+  },
+  outcome: { /* Keith is impressed */ },
+}
 ```
 
 ---
 
-## Why this shape
+## Rollout
 
-- **One place to build minigames.** Training drills and story set-pieces share the
-  same shell, standardized entry screen, and scoring. No divergent code paths.
-- **Reuse both directions.** A training game (Rally Rhythm) can appear in a story;
-  a story game (fishing) is just another `MinigameId` and could later become a
-  trainable drill.
-- **Separation of concerns.** The minigame owns scoring; the consumer owns meaning.
-  A minigame that "knows" it is training becomes unrepresentable — matching the
-  project's type-safety and pure-logic principles.
-- **Simplifies training.** The minigame components stop importing `StatBoosts`,
-  energy, or supports. They return a number; `AnchorTrainingSystem` does the rest.
+1. Parameterize `useMinigameRounds` / `RoundPips` on `MinigameConfig`; three stays
+   the default so every existing game is unchanged.
+2. Introduce `MinigameScore` / `MinigameRequest`; move `MinigameId` and the
+   component registry into their own module; switch `onComplete` to the score.
+3. Add the `minigame_active` phase, the `story_outcome` continuation, and
+   `completeMinigame`.
+4. Add `option.minigame` and the branch in `getOutcome`; thread the score through
+   `executeStoryEvent`.
+5. Build the first story-only game (fishing cast) and the aquarium event.
 
----
-
-## Standardized entry screen
-
-Every minigame — training or story — opens on the same preview screen: icon, the
-one-line "how to play", the controls, and a Start button, followed by a short
-ready beat before live play. This is a shell responsibility, not per-game, and it
-fixes the current issue where a game that drops you straight in (Catch Return)
-makes the first attempt an easy miss.
+Steps 1–2 are refactors with no player-visible change and can land on their own.
+Nothing before step 5 is worth shipping without it.
 
 ---
 
-## Open decisions
+## Still open
 
-- **Difficulty knob.** Start with a single scalar `difficulty`? A per-game config
-  object is more expressive for story set-pieces but heavier; scalar is enough for
-  the first pass.
-- **Registry location.** A single `MinigameId` registry with training and
-  story-only games living side by side (e.g. `minigames/` with the shell,
-  `minigames/story/` for story-only games).
-
----
-
-## Rollout sketch
-
-1. Introduce `MinigameScore` / `MinigameRequest` and the shell entry screen.
-2. Move stat application out of the training minigames; have them return
-   `{ score, maxScore: 3 }`.
-3. Point `AnchorTrainingSystem` at `result.score` for its support count.
-4. Add the `MinigameStoryStep` resolver and wire the first story minigame.
+- **Partial per-attempt scoring** (see §1). Recommend deferring.
+- **Retry on fail.** Training has no retry and a miss simply costs a support. A
+  story fail branch is heavier — decide whether a failed check is final, and
+  whether an event should signal that in the option text before it is played.
+- **Does the fail branch cost the time slot?** Slot consumption is decided in
+  `executeStoryEvent` before the outcome is applied, so the answer is currently
+  "yes, always" by construction. That is probably right, but it is a decision
+  rather than an accident and should be stated.
