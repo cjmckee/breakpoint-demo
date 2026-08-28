@@ -14,6 +14,7 @@ import type {
 } from '../types/storyEvents';
 import type { Player, GameCalendar } from '../types/game';
 import type { ActiveTournament } from '../types/tournaments';
+import type { MinigameScore } from '../minigames/types';
 
 export class StoryEventManager {
   /**
@@ -299,10 +300,11 @@ export class StoryEventManager {
       activeTournament?: ActiveTournament | null;
       mood?: number;
     },
-    actualTimeSlotsUsed?: number
+    actualTimeSlotsUsed?: number,
+    minigameScore?: MinigameScore
   ): StoryEventResult {
     // Get the outcome (from selected option or default)
-    const outcome = this.getOutcome(event, selectedOption);
+    const outcome = this.getOutcome(event, selectedOption, minigameScore);
 
     // Get stat changes from outcome
     const statChanges: Record<string, number> = {
@@ -341,8 +343,20 @@ export class StoryEventManager {
   /**
    * Get the outcome for an event (from option or default)
    */
-  static getOutcome(event: StoryEvent, selectedOption: StoryEventOption | null): StoryEventOutcome {
+  static getOutcome(
+    event: StoryEvent,
+    selectedOption: StoryEventOption | null,
+    minigameScore?: MinigameScore
+  ): StoryEventOutcome {
     if (selectedOption) {
+      const check = selectedOption.minigame;
+      if (check) {
+        // The raw score is kept rather than a boolean, so a pass line can grow
+        // into tiered outcomes later without changing how a game reports.
+        const passed =
+          minigameScore !== undefined && minigameScore.score >= check.passThreshold;
+        return passed ? selectedOption.outcome : check.failOutcome;
+      }
       return selectedOption.outcome;
     }
 

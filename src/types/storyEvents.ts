@@ -9,6 +9,7 @@ import type { StatName } from './index';
 import type { Item } from './items';
 import type { EncyclopediaSectionId } from '../hooks/useMenuModal';
 import type { BroadArchetype } from './archetype';
+import type { MinigameRequest } from '../minigames/types';
 
 // ============================================================================
 // TEXT FORMATTING SYSTEM
@@ -175,6 +176,24 @@ export interface StoryEventOption {
 
   // Outcome when selected
   outcome: StoryEventOutcome;
+
+  /**
+   * Play a minigame after this choice; its score picks which outcome lands.
+   * `outcome` is the pass branch, so an option without a minigame is unaffected.
+   */
+  minigame?: MinigameCheck;
+}
+
+/**
+ * A skill check inside a story event. The pass line is authored in the game's
+ * own units, so it must be read against the scale that game reports.
+ */
+export interface MinigameCheck {
+  request: MinigameRequest;
+  /** Pass line in the game's own units (e.g. 3 of 5). */
+  passThreshold: number;
+  /** Outcome when the score falls short. The option's `outcome` is the pass. */
+  failOutcome: StoryEventOutcome;
 }
 
 // ============================================================================
