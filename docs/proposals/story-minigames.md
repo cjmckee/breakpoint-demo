@@ -42,12 +42,15 @@ chosen.
 
 ---
 
-## 1. The harness takes its shape as input
+## 1. The harness takes its shape and its scale as inputs
 
 `useMinigameRounds` currently hardcodes `TOTAL_ROUNDS = 3`, and `MinigameShell`'s
-`RoundPips` imports that constant to decide how many pips to draw. Three stays the
-default, but it becomes a parameter, so the harness can host a five-cast fishing
-game as readily as a three-rep drill.
+`RoundPips` imports that constant to decide how many pips to draw.
+
+**Round count and score scale are independent axes.** Three pass/fail attempts is
+one shape; so is a single round in which the player lands several catches or scores
+one action out of a hundred. Nothing says a game's scale equals its attempt count,
+so the harness takes both:
 
 ```typescript
 export interface MinigameConfig {
@@ -56,10 +59,24 @@ export interface MinigameConfig {
   /** Per-attempt speed multipliers; the last entry repeats if rounds exceed it.
    *  Default [1, 1.1, 1.22]. */
   speedRamp?: number[];
+  /** The score scale this run reports against. Defaults to `rounds`, which is the
+   *  pass/fail case where a clean attempt is worth one point. */
+  maxScore?: number;
 }
 
 useMinigameRounds(config, onComplete, onFirstAttempt);
 ```
+
+An attempt reports what it was worth, rather than only whether it landed:
+
+```typescript
+commit(passed: boolean, points?: number)
+```
+
+`points` defaults to 1 on a pass and 0 on a miss, so every call site in the five
+shipped games is unchanged. `passed` keeps driving the pips; `points` accumulates
+into `score`. A one-round game scoring out of 100 is
+`{ rounds: 1, maxScore: 100 }` with a single `commit(true, 78)`.
 
 Consequences:
 
@@ -67,15 +84,17 @@ Consequences:
   `RoundPips` reads it from the rounds object it is already handed.
 - `roundSpeed()` takes the ramp from config rather than a module constant. Its
   existing clamp already gives the "last entry repeats" behavior for free.
-- The clean-sweep sting in `useMinigameRounds` compares against `total`, not `3`.
+- The clean-sweep sting fires on `score === maxScore`, not on three successes.
 
-Scoring stays what it already is: one point per clean attempt, so `score` is the
-success count and `maxScore` is the round count. An earlier draft of this section
-added a `pointsPerRound` knob, which had no consumer in any example here — the same
-objection that removed `difficulty` below. Partial per-attempt scoring (`commit`
-taking points rather than a boolean) is a real option, but everything shipped is
-pass/fail and the pips render green/red off that boolean, so it should wait for a
-game that wants it.
+**The shell already tolerates the odd shapes.** `footer` is a per-game slot and
+`RoundPips` is an opt-in component each game imports, so a one-round scored game
+renders its own progress display without touching `MinigameShell`. Three pips for
+three reps is a convention of the training games, not a rule of the harness.
+
+One thing does need to move: `SupportResult` lives in `MinigameShell` but reads
+`"+N bonus stats earned"` and `"the core rep still counts"` — training vocabulary
+in the context-agnostic shell, and precisely the coupling this proposal exists to
+remove. It belongs beside the training screen that means it.
 
 ---
 
@@ -89,7 +108,8 @@ export interface MinigameScore {
   minigame: MinigameId;
   /** Raw score in this game's own units. */
   score: number;
-  /** The scale — 3 for a three-rep drill, 5 for a five-cast fishing game. */
+  /** The scale — 3 for a three-rep drill, 100 for a single scored action. Not
+   *  derivable from the round count, so the run reports it. */
   maxScore: number;
 }
 
@@ -226,23 +246,24 @@ line of three:
 3. Add `option.minigame` and the branch in `getOutcome`; thread the score through
    `executeStoryEvent`.
 4. Build the fishing game and the aquarium event, and parameterize
-   `useMinigameRounds` / `RoundPips` on `MinigameConfig` *as part of it* — five
-   casts is what forces round count to become an input.
+   `useMinigameRounds` / `RoundPips` on `MinigameConfig` *as part of it* — the
+   first game that is not three pass/fail reps is what forces round count and
+   score scale to become inputs. Move `SupportResult` out of the shell here too,
+   since this is the first game that must not show it.
 
 The harness parameterization is deliberately last rather than first. Done up front
-it is a generalization with nothing exercising it; done alongside the five-round
-game, the first caller proves the shape. Only step 1 is worth landing on its own.
+it is a generalization with nothing exercising it; done alongside the first game
+with a different shape, that game proves the shape is right. Only step 1 is worth
+landing on its own.
 
 ---
 
 ## Still open
 
-- **Partial per-attempt scoring** (see §1). Recommend deferring.
-- **Is `maxScore` worth carrying?** The caller supplies `config.rounds`, so it
-  already knows the scale it asked for, making `maxScore` a second source of truth.
-  It earns its place only if a game can end before its rounds are used up — a
-  fishing run cut short by a bad cast, say. Keep it if games may end early; drop it
-  if every game always plays all its rounds, as all five current ones do.
+- **Does the pass line want to be a fraction?** `passThreshold` is authored in the
+  game's own units, which is right while a game's scale is stable. If the same
+  game is ever launched at two different scales, every event authored against it
+  needs revisiting. Worth watching, not worth pre-solving.
 - **Retry on fail.** Training has no retry and a miss simply costs a support. A
   story fail branch is heavier — decide whether a failed check is final, and
   whether an event should signal that in the option text before it is played.
