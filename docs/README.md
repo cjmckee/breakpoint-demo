@@ -41,7 +41,10 @@ Designs that have not shipped. Check the code before trusting one — a proposal
 belongs in git history, not here.
 
 - **[`proposals/story-minigames.md`](./proposals/story-minigames.md)** — a context-agnostic scoring
-  contract so one minigame runtime can serve both training and story events. Not built.
+  contract so one minigame runtime can serve both training and story events. **Partially built**:
+  the training half shipped in #78, and the doc opens with a table of what is already in the code.
+  The story half — a parameterized harness, a minigame phase, and a minigame attached to a story
+  option — has not.
 
 Executed plans are deleted rather than archived. The code and its comments are the outcome, and a
 stale plan next to shipped code is worse than no plan.
