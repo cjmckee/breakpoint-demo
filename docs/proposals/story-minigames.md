@@ -56,8 +56,6 @@ export interface MinigameConfig {
   /** Per-attempt speed multipliers; the last entry repeats if rounds exceed it.
    *  Default [1, 1.1, 1.22]. */
   speedRamp?: number[];
-  /** Points a clean attempt is worth. Default 1, making score == successes. */
-  pointsPerRound?: number;
 }
 
 useMinigameRounds(config, onComplete, onFirstAttempt);
@@ -71,11 +69,13 @@ Consequences:
   existing clamp already gives the "last entry repeats" behavior for free.
 - The clean-sweep sting in `useMinigameRounds` compares against `total`, not `3`.
 
-**Open:** whether an attempt should be able to score partially (`commit` taking
-points rather than a boolean). Everything shipped is pass/fail, and the pips
-render green/red off that boolean. Recommend keeping `commit(passed: boolean)` and
-adding partial scoring only when a game actually wants it — `pointsPerRound`
-already covers "this game's attempts are worth more" without touching the pips.
+Scoring stays what it already is: one point per clean attempt, so `score` is the
+success count and `maxScore` is the round count. An earlier draft of this section
+added a `pointsPerRound` knob, which had no consumer in any example here — the same
+objection that removed `difficulty` below. Partial per-attempt scoring (`commit`
+taking points rather than a boolean) is a real option, but everything shipped is
+pass/fail and the pips render green/red off that boolean, so it should wait for a
+game that wants it.
 
 ---
 
@@ -147,12 +147,15 @@ Training does **not** route through this phase. It already has a screen and moun
 the game inline; the component is context-agnostic, so where it is mounted is the
 caller's business. Both paths render the same component from the same registry.
 
-**Refresh recovery.** `PersistedEventState` already persists `pendingMatchSetup`
-for the match route, so the symmetrical move is a `pendingMinigame`. Recommend
-*not* doing that: a half-played minigame cannot be meaningfully resumed, and the
-modal already restores `selectedChoices`. On reload, drop back to the event with
-the option still selected and let the player play it again. Cheaper, and it avoids
-persisting state that is only valid for the length of one screen.
+**Refresh recovery needs no work.** `gamePhase` is not in the store's `partialize`
+selection — it resets to `uninitialized` on load, and `initializeGame` rebuilds the
+screen from `eventRecovery`, which *is* persisted. So a `minigame_active` phase
+cannot survive a refresh even deliberately, and the minigame route inherits
+whatever mid-event refresh already does today. Do **not** add a `pendingMinigame`
+alongside `pendingMatchSetup`: a half-played minigame cannot be meaningfully
+resumed, and `selectedChoices` already brings the player back to the event with
+their option still selected. They replay the game. That is the correct behavior and
+it is free.
 
 ---
 
@@ -186,6 +189,13 @@ const outcome = passed ? option.outcome : option.minigame.failOutcome;
 Because the resolver keeps the raw score rather than a boolean, today's pass/fail
 can grow into tiered outcomes later without touching the runtime.
 
+**What this shape costs.** Every minigame option needs two complete
+`StoryEventOutcome` bodies — result text, dialogue, and effects for both the pass
+and the miss. For a handful of set-pieces that is the right trade against building
+a step machine. If minigame checks ever become common, that authoring tax is the
+argument for revisiting the step-machine design, and it is the reason to keep them
+rare rather than sprinkling them through ordinary events.
+
 ### Worked example — the aquarium event
 
 An option that reads "Try to out-fish him", a five-cast fishing game, and a pass
@@ -208,24 +218,31 @@ line of three:
 
 ## Rollout
 
-1. Parameterize `useMinigameRounds` / `RoundPips` on `MinigameConfig`; three stays
-   the default so every existing game is unchanged.
-2. Introduce `MinigameScore` / `MinigameRequest`; move `MinigameId` and the
-   component registry into their own module; switch `onComplete` to the score.
-3. Add the `minigame_active` phase, the `story_outcome` continuation, and
+1. Introduce `MinigameScore` / `MinigameRequest`; move `MinigameId` and the
+   component registry out of the training system into their own module; switch
+   `onComplete` to the score. Pure refactor, no player-visible change, lands alone.
+2. Add the `minigame_active` phase, the `story_outcome` continuation, and
    `completeMinigame`.
-4. Add `option.minigame` and the branch in `getOutcome`; thread the score through
+3. Add `option.minigame` and the branch in `getOutcome`; thread the score through
    `executeStoryEvent`.
-5. Build the first story-only game (fishing cast) and the aquarium event.
+4. Build the fishing game and the aquarium event, and parameterize
+   `useMinigameRounds` / `RoundPips` on `MinigameConfig` *as part of it* — five
+   casts is what forces round count to become an input.
 
-Steps 1–2 are refactors with no player-visible change and can land on their own.
-Nothing before step 5 is worth shipping without it.
+The harness parameterization is deliberately last rather than first. Done up front
+it is a generalization with nothing exercising it; done alongside the five-round
+game, the first caller proves the shape. Only step 1 is worth landing on its own.
 
 ---
 
 ## Still open
 
 - **Partial per-attempt scoring** (see §1). Recommend deferring.
+- **Is `maxScore` worth carrying?** The caller supplies `config.rounds`, so it
+  already knows the scale it asked for, making `maxScore` a second source of truth.
+  It earns its place only if a game can end before its rounds are used up — a
+  fishing run cut short by a bad cast, say. Keep it if games may end early; drop it
+  if every game always plays all its rounds, as all five current ones do.
 - **Retry on fail.** Training has no retry and a miss simply costs a support. A
   story fail branch is heavier — decide whether a failed check is final, and
   whether an event should signal that in the option text before it is played.
