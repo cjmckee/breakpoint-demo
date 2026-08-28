@@ -27,7 +27,7 @@ export const MAIN_MENU_TUTORIAL_STEPS: TutorialStep<MainMenuTarget>[] = [
   {
     target: 'challenges',
     title: 'Challenges',
-    body: 'Your goals live here — first up: six training sessions to help prepare yourself for the road ahead. Tap to track progress and claim rewards.',
+    body: 'Your goals live here — first up: eight training sessions to help prepare yourself for the road ahead. Tap to track progress and claim rewards.',
   },
 ];
 

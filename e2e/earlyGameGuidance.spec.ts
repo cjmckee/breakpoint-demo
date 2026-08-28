@@ -1,57 +1,11 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+import { callout, startNewGame, dismissWalkthrough, WALKTHROUGH_ADVANCE } from './helpers';
 
 /**
  * Covers the day-1 onboarding path: the first week has no matches and no shop, so
  * a new player's only signposts are the main-menu walkthrough and the seeded
  * training goal. These assertions pin both to the screen.
  */
-
-/** The walkthrough card. Scoped because "Next" also appears elsewhere on the menu. */
-const callout = (page: Page) => page.getByTestId('tutorial-callout');
-
-/** Creates a player and clicks through the welcome story event to reach the main menu. */
-async function startNewGame(page: Page, name = 'Testy McTestface'): Promise<void> {
-  await page.goto('/');
-
-  // Demo splash shown over the creation form
-  await page.getByRole('button', { name: 'Start Your Journey' }).click();
-
-  await page.locator('#player-name').fill(name);
-  await page.getByRole('button', { name: 'Create Player' }).click();
-
-  // welcome_to_tennis_rpg runs dialogue, resolves, then grants two items — so the chain
-  // is Continue through the dialogue and result, then Next/Got it through the item
-  // popups. Drain every dialog until none remain.
-  const dialog = page.getByRole('dialog');
-  for (let i = 0; i < 30; i++) {
-    if ((await dialog.count()) === 0) break;
-    const advance = dialog
-      .last()
-      .getByRole('button')
-      .filter({ hasText: /^(Continue|Next|Got it)$/ })
-      .first();
-    if (!(await advance.isVisible().catch(() => false))) break;
-    await advance.click();
-    await page.waitForTimeout(120);
-  }
-
-  // The walkthrough must wait for a genuinely clear screen: App renders the item
-  // popups beside MainMenu with overlay={null}, so this is the regression guard.
-  await expect(dialog).toHaveCount(0);
-  await expect(page.getByTestId('tutorial-callout')).toBeVisible();
-}
-
-/** The walkthrough's steps, in order, ending on the button that closes it. */
-const WALKTHROUGH_ADVANCE = ['Next', 'Next', 'Next', "Let's Train"] as const;
-
-/** Advances past the walkthrough so the plain menu is reachable. */
-async function dismissWalkthrough(page: Page): Promise<void> {
-  await expect(callout(page)).toBeVisible();
-  for (const label of WALKTHROUGH_ADVANCE) {
-    await callout(page).getByRole('button', { name: label }).click();
-  }
-  await expect(callout(page)).toBeHidden();
-}
 
 test('day-1 walkthrough explains the loop and hands off to the training goal', async ({ page }) => {
   await startNewGame(page);
@@ -80,7 +34,7 @@ test('day-1 walkthrough explains the loop and hands off to the training goal', a
   await card.getByRole('button', { name: 'Next' }).click();
   await expect(card.getByText('Tutorial — Step 4 / 4')).toBeVisible();
   await expect(card.getByRole('heading', { name: 'Challenges' })).toBeVisible();
-  await expect(card.getByText(/six training sessions/i)).toBeVisible();
+  await expect(card.getByText(/eight training sessions/i)).toBeVisible();
 
   // Dismissing leaves the player on the menu with the walkthrough gone for good
   await card.getByRole('button', { name: "Let's Train" }).click();
@@ -104,8 +58,8 @@ test('the week-one training goal is seeded on day 1', async ({ page }) => {
 
   // Cards start collapsed — requirements and progress live behind a tap
   await page.getByText('Putting In The Reps').click();
-  await expect(page.getByText('Complete 6 training sessions')).toBeVisible();
-  await expect(page.getByText('0/6')).toBeVisible();
+  await expect(page.getByText('Complete 8 training sessions')).toBeVisible();
+  await expect(page.getByText('0/8')).toBeVisible();
 });
 
 test('the walkthrough keeps the section it points at visible', async ({ page }) => {
