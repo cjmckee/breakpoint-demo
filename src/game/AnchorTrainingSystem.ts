@@ -14,20 +14,13 @@
 
 import type { CoreStats } from '../types';
 import type { StatBoosts, TrainingResult } from '../types/game';
+import type { MinigameId } from '../minigames/types';
 
 /** The five core stats a player can anchor a training session on. */
 export type CoreStat = keyof CoreStats;
 
 /** Non-core stat names eligible to appear as supports. */
 export type SupportStat = Exclude<keyof StatBoosts, CoreStat>;
-
-/** Identifier for the themed minigame a core anchor uses. */
-export type MinigameId =
-  | 'toss_and_strike' // serve
-  | 'rally_rhythm' // forehand
-  | 'corner_paint' // backhand
-  | 'read_return' // return
-  | 'touch_slice' // net (reuses the touch minigame until a net-specific one exists)
 
 export interface CoreAnchorConfig {
   core: CoreStat;

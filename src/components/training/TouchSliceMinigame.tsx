@@ -15,8 +15,8 @@ import {
   RoundPips,
   MinigameActionButton,
   countNote,
-  type MinigameProps,
 } from './MinigameShell';
+import type { MinigameProps } from '../../minigames/types';
 import { useMinigameRounds, roundSpeed } from './useMinigameRounds';
 import { Sparks, ComboBadge, useHitstop, type Burst } from './minigameJuice';
 import { isActionKey } from '../../utils/gameKeys';
@@ -30,7 +30,7 @@ const AMP = 44; // % swing amplitude around center
 const POP_MS = 400; // ms the struck ball stays on screen
 
 export const TouchSliceMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt }) => {
-  const rounds = useMinigameRounds(onComplete, onFirstAttempt);
+  const rounds = useMinigameRounds('touch_slice', onComplete, onFirstAttempt);
   const { frozen, trigger: hitstop } = useHitstop();
   const zoneHalf = 10 * (1 + windowBonus);
 

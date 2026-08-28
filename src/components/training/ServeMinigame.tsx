@@ -15,8 +15,8 @@ import {
   RoundPips,
   MinigameActionButton,
   countNote,
-  type MinigameProps,
 } from './MinigameShell';
+import type { MinigameProps } from '../../minigames/types';
 import { useMinigameRounds, roundSpeed } from './useMinigameRounds';
 import { Sparks, ComboBadge, useHitstop, type Burst } from './minigameJuice';
 import { directionFromKey, isActionKey } from '../../utils/gameKeys';
@@ -49,7 +49,7 @@ const randomToss = (speed: number): Toss => ({
 });
 
 export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt }) => {
-  const rounds = useMinigameRounds(onComplete, onFirstAttempt);
+  const rounds = useMinigameRounds('toss_and_strike', onComplete, onFirstAttempt);
   const { frozen, trigger: hitstop } = useHitstop();
 
   const boxRef = useRef<HTMLDivElement | null>(null);
