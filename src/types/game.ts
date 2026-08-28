@@ -141,6 +141,12 @@ export const EffectKey = {
   PUTAWAY_VOLLEY_BIAS: 'putaway_volley_bias',       // tendency to go for a winner volley when ball is attackable at net
 } as const;
 
+/**
+ * The union of every effect key string. `effectLabels.ts` keys its display
+ * registry on this, so a new EffectKey cannot ship without display text.
+ */
+export type EffectKeyValue = (typeof EffectKey)[keyof typeof EffectKey];
+
 export const AbilityName = {
   // common
   BASELINER: 'baseliner',
