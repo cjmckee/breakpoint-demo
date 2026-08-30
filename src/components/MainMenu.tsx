@@ -115,6 +115,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const {
     currentStep,
     activeStep,
+    isActive: tutorialActive,
     isSpotlit,
     next: tutorialNext,
     back: tutorialBack,
@@ -127,10 +128,17 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
 
   // Lifts a spotlit section above the dark overlay; keeps others at z-0.
   // scroll-mt clears the status bar when the section is scrolled to.
-  const spotlightClass = (target: MainMenuTarget): string =>
-    isSpotlit(target)
+  //
+  // Only positions anything while the walkthrough is actually running. `relative
+  // z-0` creates a stacking context, which traps the z-index of anything inside
+  // it — that is what stopped night mode from lifting the Sleep tile out of the
+  // dimming overlay, since the tile sits inside the action hub.
+  const spotlightClass = (target: MainMenuTarget): string => {
+    if (!tutorialActive) return '';
+    return isSpotlit(target)
       ? 'relative z-[60] ring-4 ring-yellow-400 rounded transition-all duration-300 scroll-mt-24'
       : 'relative z-0 transition-all duration-300 scroll-mt-24';
+  };
 
   // A fixed dock would cover the very section it describes — on a phone the menu is
   // barely taller than the viewport, so scrolling can't move the target out of the way.
@@ -415,6 +423,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
         <div
           ref={(el) => { sectionRefs.current.actions = el; }}
           data-spotlit={isSpotlit('actions') || undefined}
+          data-testid="action-hub"
           className={`grid grid-cols-3 gap-3 sm:gap-4 mb-3 sm:mb-4 ${spotlightClass('actions')}`}
         >
           <ActionTile
