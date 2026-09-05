@@ -12,8 +12,8 @@ import { SURFACE_EFFECTS } from '../config/shotThresholds';
 import { ARCHETYPE_DATA } from '../data/archetypes';
 import type { PlayerStats, PlayStyle, CourtSurface, StatName } from '../types';
 import type { Modifiers, Ability, AbilityRarity } from '../types/game';
-import { EffectKey } from '../types/game';
 import type { ArchetypeType } from '../data/archetypes';
+import { describeEffects } from '../utils/effectLabels';
 import {
   calculateOverallRating,
   getTierLabel,
@@ -306,38 +306,9 @@ function ScoutingReport({ playStyle }: { playStyle: PlayStyle }) {
   );
 }
 
-const ADDITIONAL_EFFECT_LABELS: Partial<Record<string, string>> = {
-  // Training effects
-  [EffectKey.MOOD_GAIN_BONUS]: 'Mood Gain Bonus',
-  [EffectKey.ENERGY_COST_REDUCTION]: 'Energy Cost Reduction',
-  [EffectKey.ENERGY_GAIN_BONUS]: 'Energy Gain Bonus',
-  [EffectKey.EXPERIENCE_GAIN_BONUS]: 'Experience Gain Bonus',
-  [EffectKey.MINIGAME_WINDOW_BONUS]: 'Training Window Bonus',
-  [EffectKey.RELATIONSHIP_GAIN_BONUS]: 'Relationship Gain Bonus',
-  // Match: shot quality effects
-  [EffectKey.PACE]: 'Shot Pace Bonus',
-  [EffectKey.SIDE_SPIN]: 'Side Spin Bonus',
-  [EffectKey.TOUCH]: 'Touch & Finesse Bonus',
-  [EffectKey.SMASH_POWER]: 'Smash Power Bonus',
-  [EffectKey.NET_GAME]: 'Net Game Bonus',
-  [EffectKey.PERFECT_TIMING]: 'Timing Precision',
-  [EffectKey.RALLY_MOMENTUM]: 'Rally Momentum',
-  // Match: positioning effects
-  [EffectKey.REACH]: 'Extended Reach',
-  [EffectKey.COURT_COVERAGE]: 'Court Coverage',
-  [EffectKey.RECOVERY_SPEED]: 'Recovery Speed',
-  // Match: momentum/fatigue effects
-  [EffectKey.UNSTOPPABLE_MOMENTUM]: 'Unstoppable Momentum',
-  [EffectKey.FOCUS_DURATION]: 'Focus Duration',
-  [EffectKey.CHAMPION_AURA]: 'Champion Aura',
-  // Match: key moment effects
-  [EffectKey.CLUTCH_PERFORMANCE]: 'Clutch Performance',
-  [EffectKey.MENTAL_RESILIENCE]: 'Mental Resilience',
-};
-
 function ActiveBuffsDisplay({ buffs }: { buffs: Modifiers }) {
   const statBoostEntries = Object.entries(buffs.statBoosts).filter(([, v]) => v !== 0);
-  const additionalEntries = Object.entries(buffs.additional ?? {}).filter(([, v]) => v !== 0);
+  const additionalEntries = describeEffects(buffs.additional);
 
   if (statBoostEntries.length === 0 && additionalEntries.length === 0) return null;
 
@@ -353,10 +324,12 @@ function ActiveBuffsDisplay({ buffs }: { buffs: Modifiers }) {
             <span className="text-yellow-400 font-bold">+{value}</span>
           </div>
         ))}
-        {additionalEntries.map(([key, value]) => (
-          <div key={key} className="flex justify-between items-center text-sm">
-            <span className="text-yellow-300">{ADDITIONAL_EFFECT_LABELS[key] ?? key}</span>
-            <span className="text-yellow-400 font-bold">+{value}</span>
+        {additionalEntries.map((effect) => (
+          <div key={effect.key} className="flex justify-between items-center text-sm">
+            <span className="text-yellow-300">
+              {effect.icon} {effect.label}
+            </span>
+            <span className="text-yellow-400 font-bold">{effect.value}</span>
           </div>
         ))}
       </div>
