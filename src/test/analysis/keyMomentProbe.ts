@@ -493,6 +493,69 @@ async function probeBaseChanceVsFrequency(
   print('Cells near 50% are balanced for an even matchup.');
 }
 
+
+// ─── 9. Serve/return split ───────────────────────────────────────────────────
+
+/**
+ * baseChance is flat, but a key moment means something different depending on who
+ * is serving: holding from break point down is the server's to lose, converting a
+ * break point is the returner's to win. Real tennis sits near a 60/40 split. If the
+ * flat base is producing the same rate on both sides, the layer is over-rewarding
+ * the returner and under-rewarding the server by the same amount.
+ */
+async function probeServeReturnSplit(nMatches: number): Promise<void> {
+  printHeader(`Key moment outcomes by who is serving (${nMatches} matches, random picks)`);
+
+  let servingTotal = 0;
+  let servingWon = 0;
+  let returningTotal = 0;
+  let returningWon = 0;
+
+  for (let i = 0; i < nMatches; i++) {
+    const orchestrator = new MatchOrchestrator();
+    let pendingServer: 'player' | 'opponent' = 'player';
+    suppressLogs();
+    await orchestrator.simulateInteractiveMatch({
+      playerStats: statsAt(50),
+      opponentStats: statsAt(50),
+      surface: 'hard',
+      mood: 0,
+      energy: 100,
+      enableKeyMoments: true,
+      matchFormat: 'best-of-3',
+      disableMatchForm: true,
+      pointDelayMs: 0,
+      onKeyMoment: async (km) => {
+        pendingServer = km.matchContext.server;
+        return km.options[Math.floor(Math.random() * km.options.length)];
+      },
+      onKeyMomentResult: async (result) => {
+        const won = result.pointWinner === 'player';
+        if (pendingServer === 'player') {
+          servingTotal++;
+          if (won) servingWon++;
+        } else {
+          returningTotal++;
+          if (won) returningWon++;
+        }
+      },
+    });
+    restoreLogs();
+  }
+
+  printTable(
+    ['Player is', 'Key moments', 'Player wins the point'],
+    [
+      ['Serving', servingTotal, `${fmtNum((100 * servingWon) / servingTotal)}%`],
+      ['Returning', returningTotal, `${fmtNum((100 * returningWon) / returningTotal)}%`],
+    ],
+  );
+  print('');
+  print('A flat baseChance gives the same rate on both sides. Real tennis holds');
+  print('break points around 60% of the time, so a server-relative base would put');
+  print('these two rows on either side of 50 rather than on top of each other.');
+}
+
 printBanner('KEY MOMENT PROBE');
 
 /** SECTIONS=sweep runs only the base-chance sweep; default runs everything else. */
@@ -505,6 +568,10 @@ if (SECTIONS === 'all') {
   probeContextSwing();
   probeRealisticScenarios();
   await probeMatchImpact(N_MATCHES);
+}
+
+if (SECTIONS === 'split') {
+  await probeServeReturnSplit(N_MATCHES);
 }
 
 if (SECTIONS === 'grid') {
