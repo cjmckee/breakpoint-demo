@@ -1,17 +1,16 @@
 /**
- * Migration check — does a stale save get reset instead of half-migrated?
+ * Migration check — does an old save load with its progress intact, and does a
+ * save from before the breaking floor still get reset?
  *
- * The store no longer migrates old persisted shapes field-by-field (see
- * migrations.ts for why: the 20 → 14 stat consolidation kept surfacing new
- * corners a granular migration missed after shipping — opponent snapshots
- * embedded in scheduled events, fractional item boosts from an unrounded
- * average). Any save below CURRENT_STORE_VERSION is discarded and replaced
- * with a fresh default state instead.
+ * The store carries saves forward one version at a time (see migrations.ts).
+ * Two things have to hold for that to be safe to ship:
  *
- * This asserts that reset behavior: a save carrying old-shape garbage (20-stat
- * ratings, retired stat keys, whatever) comes back as an untouched, playable
- * default state — not a half-transformed hybrid — while a save that's already
- * current passes through unchanged.
+ *   - every version between RESET_BEFORE_VERSION and CURRENT_STORE_VERSION has
+ *     a registered step, so a release that bumps the version without writing a
+ *     migration fails here rather than wiping saves in the wild;
+ *   - a save below the floor — the pre-consolidation 20-stat shape, which this
+ *     project tried and failed to migrate field-by-field — still comes back as
+ *     a clean default state rather than a half-transformed hybrid.
  *
  * Exits non-zero on the first failure, so it can gate a release.
  *
@@ -20,11 +19,16 @@
 
 import {
   migrateStore,
+  runMigrations,
+  missingMigrationVersions,
   createDefaultPersistedState,
   CURRENT_STORE_VERSION,
+  RESET_BEFORE_VERSION,
   type PersistedStoreState,
 } from '../stores/migrations';
 import { PlayerProfile } from '../core/PlayerProfile';
+import { LUCKY_SPROUT } from '../data/items';
+import { EffectKey } from '../types/game';
 
 let failures = 0;
 
@@ -37,8 +41,77 @@ function check(label: string, condition: boolean, detail?: string): void {
   }
 }
 
+/**
+ * A save written at store version 5: current 14-stat shape, but from before
+ * charms had an equipment slot. Its equippedItems has no `charm` key and its
+ * lucky items carry neither `equipmentSlot` nor the effects they since gained.
+ */
+function version5Save(): PersistedStoreState {
+  return {
+    player: {
+      id: 'p1',
+      name: 'Mid-Season Player',
+      stats: {
+        core: { serve: 44, forehand: 46, backhand: 41, return: 43, net: 38 },
+        technical: { slice: 30, spin: 35, placement: 33 },
+        physical: { speed: 39, stamina: 44, strength: 37 },
+        mental: { focus: 36, anticipation: 34, tactics: 31 },
+      },
+      abilities: [],
+      inventory: [
+        // The v5 shape of a lucky item: no slot, and Lucky Sprout's effect
+        // block did not exist yet.
+        {
+          id: 'lucky_sprout',
+          name: 'Lucky Sprout',
+          description: 'A small plant left behind by an opponent from Azalea Forest.',
+          type: 'lucky',
+          shopAvailable: false,
+          modifiers: { statBoosts: { tactics: 4, strength: 4, slice: 2, spin: 4 } },
+        },
+        {
+          id: 'banana',
+          name: 'Banana',
+          description: 'Quick energy.',
+          type: 'consumable',
+          consumableEffect: { type: 'instant', instantEffects: { energyChange: 10 } },
+        },
+      ],
+      storyItems: [],
+      equippedItems: {
+        racquet: {
+          id: 'beginner_racquet', name: 'Beginner Racquet', description: '', type: 'equipment',
+          equipmentSlot: 'racquet',
+          modifiers: { statBoosts: { serve: 3 } },
+        },
+        shoes: null, outfit: null, hat: null,
+      },
+      nextActivityBuffs: [],
+      seenItemIds: [], activeIndicators: [], seenChallengeIds: [],
+      level: 7, experience: 120, totalExperienceEarned: 900, tier: 2,
+      createdAt: '', updatedAt: '',
+      trainingSessionsCompleted: 22,
+      cumulativeMatchStats: { aces: 12, winners: 40, longRallies: 9, netPoints: 15, breakPoints: 6 },
+      flags: { hangoutUnlocked_jen: true },
+      archetypeProfile: { broad: null, phases: {}, specializationPoints: 2, respecTokens: 0 },
+    },
+    activityHistory: [{ type: 'training', day: 12 }],
+    completedStoryEvents: ['club_team_first_practice'],
+    completedStoryEventChoices: { club_team_first_practice: 'a' },
+    relationships: { jen: 30 },
+    hangoutThresholdsSeen: { jen: [25] },
+    storyEventTriggerChance: 40,
+    activeChallenges: [], completedChallenges: ['first_win'],
+    unlockedTiers: [1, 2],
+    shopItems: [],
+    calendar: { practiceOpponents: {}, scheduledEvents: [] },
+    currentStatus: { energy: 62, mood: 15, lastActivity: 'training' },
+    audioSettings: { musicVolume: 1, sfxVolume: 1, muteMusic: false, muteSfx: false },
+  } as unknown as PersistedStoreState;
+}
+
 /** A save carrying pre-consolidation garbage: 20-stat ratings, retired keys everywhere. */
-function staleSave(): PersistedStoreState {
+function preConsolidationSave(): PersistedStoreState {
   return {
     player: {
       id: 'p1',
@@ -108,13 +181,57 @@ function staleSave(): PersistedStoreState {
 }
 
 function main(): void {
-  console.log('\n╔══ MIGRATION CHECK — a stale save resets instead of half-migrating ══╗\n');
+  console.log('\n╔══ MIGRATION CHECK — old saves load, pre-floor saves reset ══╗\n');
 
-  console.log('── a save below CURRENT_STORE_VERSION is discarded ──');
-  const stale = staleSave();
-  const reset = migrateStore(stale, CURRENT_STORE_VERSION - 1);
+  console.log('── every version above the floor has a registered step ──');
+  const gaps = missingMigrationVersions();
+  check('no version between the floor and current is missing a migration',
+    gaps.length === 0,
+    gaps.length ? `missing steps for version(s): ${gaps.join(', ')}` : undefined);
+  check('the floor is not above the current version',
+    RESET_BEFORE_VERSION <= CURRENT_STORE_VERSION);
+
+  console.log('\n── a version 5 save migrates forward with its progress intact ──');
+  const outcome = runMigrations(version5Save(), 5);
+  check('outcome is a migration, not a reset',
+    outcome.status === 'migrated',
+    outcome.status === 'reset' ? outcome.reason : undefined);
+
+  const migrated = outcome.state;
+  const player = migrated.player!;
+  check('player survives', player !== null && player.name === 'Mid-Season Player');
+  check('level and experience survive', player.level === 7 && player.experience === 120);
+  check('stats are untouched', player.stats.core.serve === 44 && player.stats.mental.tactics === 31);
+  check('story progress survives',
+    migrated.completedStoryEvents.includes('club_team_first_practice') &&
+    migrated.relationships.jen === 30);
+  check('tier progression survives',
+    JSON.stringify(migrated.unlockedTiers) === JSON.stringify([1, 2]));
+  check('current status survives', migrated.currentStatus.energy === 62);
+
+  console.log('\n  the 5 → 6 change itself:');
+  check('equippedItems gains the charm slot, empty',
+    'charm' in player.equippedItems && player.equippedItems.charm === null);
+  check('existing equipment stays equipped',
+    player.equippedItems.racquet?.id === 'beginner_racquet');
+
+  const sprout = player.inventory.find(i => i.id === 'lucky_sprout');
+  check('the held lucky item is still in the inventory', sprout !== undefined);
+  check('it gains the charm slot, so it can actually be equipped',
+    sprout?.equipmentSlot === 'charm');
+  check('it picks up the effect Lucky Sprout gained in the same release',
+    sprout?.modifiers?.additional?.[EffectKey.ENERGY_GAIN_BONUS] ===
+      LUCKY_SPROUT.modifiers?.additional?.[EffectKey.ENERGY_GAIN_BONUS]);
+  check('non-lucky inventory items are left alone',
+    player.inventory.find(i => i.id === 'banana')?.equipmentSlot === undefined);
+
+  console.log('\n── a save below the breaking floor is discarded ──');
+  const stale = preConsolidationSave();
+  const staleOutcome = runMigrations(stale, RESET_BEFORE_VERSION - 1);
   const fresh = createDefaultPersistedState();
 
+  check('outcome is a reset, with a reason', staleOutcome.status === 'reset');
+  const reset = staleOutcome.state;
   check('reset player is null (no half-migrated stats survive)', reset.player === null);
   check('reset calendar matches a brand-new game',
     JSON.stringify(reset.calendar) === JSON.stringify(fresh.calendar));
@@ -143,10 +260,23 @@ function main(): void {
 
   console.log('\n── a save already on CURRENT_STORE_VERSION passes through untouched ──');
   const current = createDefaultPersistedState();
-  current.player = staleSave().player; // arbitrary non-null marker, shouldn't matter
-  const passedThrough = migrateStore(current, CURRENT_STORE_VERSION);
-  check('current-version state is returned as-is',
-    JSON.stringify(passedThrough) === JSON.stringify(current));
+  current.player = version5Save().player; // arbitrary non-null marker, shouldn't matter
+  const currentOutcome = runMigrations(current, CURRENT_STORE_VERSION);
+  check('current-version state is reported as current', currentOutcome.status === 'current');
+  check('current-version state is returned as-is', currentOutcome.state === current);
+
+  console.log('\n── junk and impossible versions reset instead of loading ──');
+  check('a save from a newer build resets',
+    runMigrations(createDefaultPersistedState(), CURRENT_STORE_VERSION + 1).status === 'reset');
+  check('a missing save resets', runMigrations(null, CURRENT_STORE_VERSION).status === 'reset');
+  check('a non-save object resets',
+    runMigrations({ nonsense: true }, CURRENT_STORE_VERSION).status === 'reset');
+
+  console.log('\n── migrateStore (the rehydration entry point) returns the state itself ──');
+  check('a version 5 save comes back migrated',
+    migrateStore(version5Save(), 5).player?.equippedItems.charm === null);
+  check('a pre-floor save comes back as a default game',
+    migrateStore(preConsolidationSave(), RESET_BEFORE_VERSION - 1).player === null);
 
   console.log(failures === 0
     ? '\n✅ all checks passed\n'
