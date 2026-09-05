@@ -1066,6 +1066,58 @@ export const KEY_MOMENT_OPPONENT_DRAIN = {
 };
 
 /** Pressure bank configuration for key moment system */
+/**
+ * Key moment tuning.
+ *
+ * A key moment resolves one big point on a single roll instead of a simulated
+ * rally, so these constants decide how much of that outcome is the player's read,
+ * how much is their stats, and how much is the conditions they walked in with.
+ *
+ * `baseChance` is NOT "an even player should win half of these". Key moments fire
+ * exclusively on break/set/match points, so they are worth far more than an average
+ * point — a neutral rate of 50% hands an evenly-matched player the match. It is
+ * tuned instead so that an even player choosing at random finishes near a 50%
+ * MATCH win rate; see src/test/analysis/keyMomentProbe.ts.
+ */
+export const KEY_MOMENT = {
+  /**
+   * Success chance for a neutral option, even stats, neutral conditions.
+   *
+   * Measured, not guessed: at 16 key moments per match this value produces a
+   * ~50% match win rate for an even matchup (probe: 50.7%, vs a 45.3% control
+   * with key moments disabled). It trades off steeply against frequency —
+   * roughly +10pp of match win rate per +5 here — so raising it means firing
+   * fewer key moments per match. Re-run the sweep before changing it.
+   */
+  baseChance: 35,
+  /** Added when the option is strongAgainst the opponent's archetype. */
+  counterBonus: 15,
+  /** Added (negative) when the option is weakAgainst the opponent's archetype. */
+  weakPenalty: -8,
+  /** How much each point of weighted stat differential is worth. */
+  statMultiplier: 0.4,
+  /** Floor and ceiling on the final success probability. */
+  minProbability: 10,
+  maxProbability: 90,
+
+  /**
+   * Pressure is scored against the player's focus rather than charged as a flat
+   * toll: focus above the moment's pressure is an edge, below it a penalty. Key
+   * moments fire on high-pressure points by definition, so a one-sided penalty
+   * would tax every one of them instead of testing the player's nerve.
+   */
+  pressureVsFocusScale: 0.1,
+  pressureClamp: 10,
+  /** Each point of MENTAL_RESILIENCE is worth this much effective focus. */
+  resilienceToFocus: 15,
+
+  /** Energy at or above this reads as fresh; below it fatigue starts to bite. */
+  energyNeutral: 70,
+  /** Bonus at full energy, and penalty at empty. Empty costs more than fresh pays. */
+  energyMaxBonus: 5,
+  energyMaxPenalty: 10,
+};
+
 export const PRESSURE_BANK = {
   /** Max absolute value the bank can reach */
   clamp: 40,

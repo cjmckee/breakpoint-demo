@@ -9,18 +9,7 @@ import type { ArchetypeType } from '../data/archetypes';
 import { PointType } from '../types';
 import type { StatName } from '../types';
 import { PlayerStats, EffectKey } from '../types/game';
-
-/** Counter bonus when option is strongAgainst the opponent's archetype */
-const COUNTER_BONUS = 15;
-
-/** Penalty when option is weakAgainst the opponent's archetype */
-const WEAK_PENALTY = -8;
-
-/** Base chance before stat differential and counter bonuses */
-const BASE_CHANCE = 35;
-
-/** How much stat differential affects probability */
-const STAT_MULTIPLIER = 0.4;
+import { KEY_MOMENT } from '../config/shotThresholds';
 
 export type OutcomeType = 'critical-success' | 'success' | 'failure' | 'critical-failure';
 
@@ -81,19 +70,24 @@ export class KeyMomentResolver {
 
     // Base probability with stat differential
     const differential = playerScore - opponentScore;
-    let probability = BASE_CHANCE + (differential * STAT_MULTIPLIER);
+    let probability = KEY_MOMENT.baseChance + (differential * KEY_MOMENT.statMultiplier);
 
     // Apply counter bonuses
     if (option.strongAgainst.includes(opponentArchetype)) {
-      probability += COUNTER_BONUS;
+      probability += KEY_MOMENT.counterBonus;
     }
     if (option.weakAgainst.includes(opponentArchetype)) {
-      probability += WEAK_PENALTY;
+      probability += KEY_MOMENT.weakPenalty;
     }
 
     // Apply context modifiers if provided
     if (context) {
-      probability = this.applyContextModifiers(probability, context, activeEffects);
+      probability = this.applyContextModifiers(
+        probability,
+        context,
+        this.getStatValue(playerStats, 'focus'),
+        activeEffects
+      );
     }
 
     // Apply ability effects to key moment probability
@@ -102,8 +96,10 @@ export class KeyMomentResolver {
       probability += activeEffects[EffectKey.CLUTCH_PERFORMANCE] ?? 0;
     }
 
-    // Clamp between 10% and 90%
-    return Math.max(10, Math.min(90, probability));
+    return Math.max(
+      KEY_MOMENT.minProbability,
+      Math.min(KEY_MOMENT.maxProbability, probability)
+    );
   }
 
   /**
@@ -314,9 +310,16 @@ export class KeyMomentResolver {
 
   /**
    * Compute individual context modifiers for display and calculation.
-   * Each modifier can contribute up to ±10% to success probability.
+   *
+   * All four channels are two-sided: good conditions add, bad conditions subtract.
+   * Pressure is scored against the player's focus (see KEY_MOMENT.pressureVsFocusScale)
+   * so that a big occasion rewards a composed player instead of taxing everyone.
    */
-  static getContextModifiers(context: Partial<KeyMomentContext>): {
+  static getContextModifiers(
+    context: Partial<KeyMomentContext>,
+    playerFocus: number,
+    activeEffects?: Record<string, number>
+  ): {
     momentum: number;
     energy: number;
     mood: number;
@@ -328,25 +331,32 @@ export class KeyMomentResolver {
       ? (context.mood / 100) * 10
       : 0;
 
-    // Pressure: 0 to -10 (linear, always a penalty)
-    const pressure = context.pressure !== undefined
-      ? -(context.pressure / 100) * 10
-      : 0;
+    // Pressure: scored against focus, so the moment is a test rather than a toll.
+    // Focus above the pressure of the moment is an edge; below it, a penalty.
+    // MENTAL_RESILIENCE buys effective focus, which is what makes a player clutch.
+    let pressure = 0;
+    if (context.pressure !== undefined) {
+      const resilience = activeEffects?.[EffectKey.MENTAL_RESILIENCE] ?? 0;
+      const effectiveFocus = playerFocus + resilience * KEY_MOMENT.resilienceToFocus;
+      pressure = Math.max(
+        -KEY_MOMENT.pressureClamp,
+        Math.min(KEY_MOMENT.pressureClamp, (effectiveFocus - context.pressure) * KEY_MOMENT.pressureVsFocusScale)
+      );
+    }
 
     // Momentum: -10 to +10 (linear across full range)
     const momentum = context.momentum !== undefined
       ? (context.momentum / 100) * 10
       : 0;
 
-    // Energy: 0 to -10 (scales from 100% down, not just below 50%)
-    // Full energy = 0 penalty, empty = -10
+    // Energy: +5 when fully fresh down to -10 when empty, neutral at KEY_MOMENT.energyNeutral.
+    // The penalty curve below neutral is steeper than the bonus above it — running
+    // on empty should cost more than being fresh pays.
     let energy = 0;
     if (context.energy !== undefined) {
-      const energyPercent = context.energy / 100;
-      // Gentle curve: low penalty above 70%, accelerates below 50%
-      if (energyPercent < 0.7) {
-        energy = -((0.7 - energyPercent) / 0.7) * 10;
-      }
+      energy = context.energy >= KEY_MOMENT.energyNeutral
+        ? ((context.energy - KEY_MOMENT.energyNeutral) / (100 - KEY_MOMENT.energyNeutral)) * KEY_MOMENT.energyMaxBonus
+        : -((KEY_MOMENT.energyNeutral - context.energy) / KEY_MOMENT.energyNeutral) * KEY_MOMENT.energyMaxPenalty;
     }
 
     return {
@@ -360,25 +370,18 @@ export class KeyMomentResolver {
 
   /**
    * Apply context modifiers to base probability.
-   * Each factor contributes up to ±10% for a potential ±40% total swing.
+   * Momentum, mood and pressure each contribute up to ±10 and energy -10..+5,
+   * so conditions can swing a key moment by roughly ±35.
    */
   private static applyContextModifiers(
     baseProbability: number,
     context: Partial<KeyMomentContext>,
+    playerFocus: number,
     activeEffects?: Record<string, number>
   ): number {
-    const modifiers = this.getContextModifiers(context);
-    let total = modifiers.total;
-
-    // mental_resilience: reduce the pressure penalty
-    const mentalResilience = activeEffects?.[EffectKey.MENTAL_RESILIENCE] ?? 0;
-    if (mentalResilience > 0 && modifiers.pressure < 0) {
-      const pressureReduction = mentalResilience * 1.5;
-      total -= modifiers.pressure; // Remove original pressure
-      total += Math.min(0, modifiers.pressure + pressureReduction); // Add reduced pressure (still capped at 0)
-    }
-
-    return baseProbability + total;
+    // MENTAL_RESILIENCE is folded into the pressure term inside getContextModifiers,
+    // so the modifiers the UI displays are exactly the ones applied here.
+    return baseProbability + this.getContextModifiers(context, playerFocus, activeEffects).total;
   }
 
   /**

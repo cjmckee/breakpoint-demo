@@ -27,7 +27,7 @@ import { MATCH_FATIGUE, PRESSURE_BANK, STAMINA_RECOVERY, KEY_MOMENT_OPPONENT_DRA
 import { MomentumEngine, ClutchLevel } from '../core/MomentumEngine';
 import { getPrimaryStatName } from '../core/shotStatMapping';
 import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds';
-import { DEFAULT_KEY_MOMENTS_PER_MATCH } from '../config/matchRewards';
+import { DEFAULT_KEY_MOMENTS_PER_MATCH, DEFAULT_POINT_DELAY_MS } from '../config/matchRewards';
 
 export interface AccumulatedMatchEffects {
   energyDelta: number;  // Net energy change from key moment choices
@@ -105,8 +105,11 @@ export class MatchOrchestrator {
   /**
    * Extract additional effects from abilities for match-time mechanics.
    * Abilities are effects-only — no stat boosts applied during match.
+   *
+   * Static so the key-moment UI can derive the same effect set from the match
+   * config and display exactly the modifiers the resolver will apply.
    */
-  private extractActiveEffects(
+  public static extractActiveEffects(
     abilities?: Ability[],
     archetypeProfile?: ArchetypeProfile,
   ): Record<string, number> {
@@ -158,8 +161,8 @@ export class MatchOrchestrator {
       : config.playerStats;
 
     // Extract ability + archetype behavior effects for match-time mechanics
-    this.activeEffects = this.extractActiveEffects(config.playerAbilities, config.playerArchetypeProfile);
-    this.opponentActiveEffects = this.extractActiveEffects(config.opponentAbilities, config.opponentArchetypeProfile);
+    this.activeEffects = MatchOrchestrator.extractActiveEffects(config.playerAbilities, config.playerArchetypeProfile);
+    this.opponentActiveEffects = MatchOrchestrator.extractActiveEffects(config.opponentAbilities, config.opponentArchetypeProfile);
 
     // Initialize match simulator with PlayerProfile objects, carrying their
     // archetype identities so shot selection reflects their chosen specialties.
@@ -394,10 +397,12 @@ export class MatchOrchestrator {
       // Check if match is complete
       isComplete = this.isMatchComplete(currentScore);
 
-      // Add delay between points for visual updates (1000ms)
-      // Skip delay if match is complete to show final score immediately
-      if (!isComplete) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      // Pause between points so the UI can animate them. Skipped when the match
+      // is complete (show the final score immediately) and when the caller opts
+      // out with pointDelayMs: 0 (offline analysis).
+      const pointDelayMs = config.pointDelayMs ?? DEFAULT_POINT_DELAY_MS;
+      if (!isComplete && pointDelayMs > 0) {
+        await new Promise(resolve => setTimeout(resolve, pointDelayMs));
       }
     }
 

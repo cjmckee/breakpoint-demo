@@ -137,6 +137,12 @@ export interface InteractiveMatchConfig {
   enableKeyMoments: boolean;
   keyMomentsPerMatch?: number; // Default: DEFAULT_KEY_MOMENTS_PER_MATCH
   matchFormat?: 'best-of-1' | 'best-of-3' | 'best-of-5'; // Default: best-of-3
+  /**
+   * Pause between points, in ms, so the UI can animate each one.
+   * Default DEFAULT_POINT_DELAY_MS. Set to 0 to run a match as fast as the
+   * machine allows — used by the offline analysis probes.
+   */
+  pointDelayMs?: number;
 }
 
 /**

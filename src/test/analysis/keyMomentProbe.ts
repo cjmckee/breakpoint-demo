@@ -13,12 +13,21 @@
  */
 
 import { KeyMomentResolver } from '../../game/KeyMomentResolver';
+import { MatchOrchestrator } from '../../game/MatchOrchestrator';
+import { KEY_MOMENT } from '../../config/shotThresholds';
 import { TACTICAL_OPTIONS, TacticalOption, KeyMomentType } from '../../data/tacticalOptions';
 import { ARCHETYPE_DATA } from '../../data/archetypes';
 import type { ArchetypeType } from '../../data/archetypes';
 import type { PlayerStats } from '../../types/game';
 import { createUniformPlayer } from './playerFactory';
 import { print, printBanner, printHeader, printTable, fmtNum } from './formatters';
+
+const _origLog = console.log;
+const suppressLogs = (): void => { console.log = () => {}; };
+const restoreLogs = (): void => { console.log = _origLog; };
+
+/** Match count for the match-level probe; override with N_MATCHES=200. */
+const N_MATCHES = Number(process.env.N_MATCHES ?? 60);
 
 const ARCHETYPES = Object.keys(ARCHETYPE_DATA) as ArchetypeType[];
 const ALL_OPTIONS: Array<{ type: KeyMomentType; option: TacticalOption }> = Object.entries(
@@ -185,19 +194,19 @@ function probeContextSwing(): void {
   const rows: (string | number)[][] = [
     ['Best case (mom +100, mood +100, energy 100, pressure 0)',
       fmtNum(KeyMomentResolver.getContextModifiers(
-        { momentum: 100, mood: 100, energy: 100, pressure: 0 }).total)],
+        { momentum: 100, mood: 100, energy: 100, pressure: 0 }, 50).total)],
     ['Typical good (mom +30, mood +20, energy 70, pressure 40)',
       fmtNum(KeyMomentResolver.getContextModifiers(
-        { momentum: 30, mood: 20, energy: 70, pressure: 40 }).total)],
+        { momentum: 30, mood: 20, energy: 70, pressure: 40 }, 50).total)],
     ['Neutral (all mid)',
       fmtNum(KeyMomentResolver.getContextModifiers(
-        { momentum: 0, mood: 0, energy: 70, pressure: 50 }).total)],
+        { momentum: 0, mood: 0, energy: 70, pressure: 50 }, 50).total)],
     ['Typical bad (mom -30, mood -20, energy 45, pressure 70)',
       fmtNum(KeyMomentResolver.getContextModifiers(
-        { momentum: -30, mood: -20, energy: 45, pressure: 70 }).total)],
+        { momentum: -30, mood: -20, energy: 45, pressure: 70 }, 50).total)],
     ['Worst case (mom -100, mood -100, energy 0, pressure 100)',
       fmtNum(KeyMomentResolver.getContextModifiers(
-        { momentum: -100, mood: -100, energy: 0, pressure: 100 }).total)],
+        { momentum: -100, mood: -100, energy: 0, pressure: 100 }, 50).total)],
   ];
   printTable(['Context', 'Total modifier (%)'], rows);
 }
@@ -209,7 +218,8 @@ function probeContextSwing(): void {
  * Key moments fire on close games late in sets — exactly the conditions
  * MatchOrchestrator.updatePressure() scores highest. Base score pressure is 30,
  * +20 for a close game at 3+, +30 for a close set, +20 once a set is complete.
- * So a key moment is never played at low pressure, and pressure is a pure penalty.
+ * So a key moment is never played at low pressure, which is why the pressure
+ * channel is scored against focus rather than charged as a flat penalty.
  */
 function probeRealisticScenarios(): void {
   printHeader('What a player actually sees at a key moment');
@@ -252,15 +262,258 @@ function probeRealisticScenarios(): void {
 
   printTable(['Scenario', 'Good read', 'Neutral', 'Bad read'], rows);
   print('');
-  print('Pressure and energy are one-sided penalties in getContextModifiers() —');
-  print('they can only subtract. Only momentum and mood can add. Since key moments');
-  print('fire on high-pressure points by definition, the context layer is a net');
-  print('negative essentially every time it is consulted.');
+  print('All four context channels are two-sided, so neutral conditions net to 0.');
+  print('Pressure is scored against focus: a composed player gains on the big');
+  print('points, a fragile one loses, rather than every player paying a flat toll.');
+}
+
+
+// ─── 6. Match-level impact ───────────────────────────────────────────────────
+
+/**
+ * Drives full interactive matches headlessly with a scripted key-moment policy,
+ * so a change to BASE_CHANCE or the context modifiers can be judged by its effect
+ * on match win rate rather than on per-moment probability alone. Key moments land
+ * on the biggest points of a match, so a shift in their success rate is amplified.
+ */
+async function probeMatchImpact(nMatches: number): Promise<void> {
+  printHeader(`Match-level impact (${nMatches} matches per policy, best-of-3, even stats)`);
+
+  const policies: Array<{ label: string; pick: (opts: TacticalOption[], arch: ArchetypeType) => TacticalOption }> = [
+    {
+      label: 'Always best read',
+      pick: (opts, arch) =>
+        opts.find((o) => o.strongAgainst.includes(arch))
+        ?? opts.find((o) => !o.weakAgainst.includes(arch))
+        ?? opts[0],
+    },
+    {
+      label: 'Random pick',
+      pick: (opts) => opts[Math.floor(Math.random() * opts.length)],
+    },
+    {
+      label: 'Always worst read',
+      pick: (opts, arch) =>
+        opts.find((o) => o.weakAgainst.includes(arch))
+        ?? opts.find((o) => !o.strongAgainst.includes(arch))
+        ?? opts[0],
+    },
+  ];
+
+  const rows: (string | number)[][] = [];
+  let archetypeSeen = '';
+
+  for (const policy of policies) {
+    let wins = 0;
+    let kmWins = 0;
+    let kmTotal = 0;
+
+    for (let i = 0; i < nMatches; i++) {
+      const orchestrator = new MatchOrchestrator();
+      suppressLogs();
+      const final = await orchestrator.simulateInteractiveMatch({
+        playerStats: statsAt(50),
+        opponentStats: statsAt(50),
+        surface: 'hard',
+        mood: 0,
+        energy: 100,
+        enableKeyMoments: true,
+        matchFormat: 'best-of-3',
+        disableMatchForm: true,
+        pointDelayMs: 0,
+        onKeyMoment: async (km) => {
+          archetypeSeen = km.opponentArchetype;
+          kmTotal++;
+          return policy.pick(km.options, km.opponentArchetype);
+        },
+      });
+      restoreLogs();
+
+      const stats = orchestrator.getMatchStatistics();
+      if (stats) {
+        kmWins += stats.keyMomentsWon.player;
+      }
+      if (final.winner === 'player') wins++;
+    }
+
+    rows.push([
+      policy.label,
+      `${fmtNum((100 * wins) / nMatches)}%`,
+      kmTotal > 0 ? `${fmtNum((100 * kmWins) / kmTotal)}%` : '—',
+      fmtNum(kmTotal / nMatches),
+    ]);
+  }
+
+  printTable(
+    ['KM policy', 'Match win rate', 'KM win rate', 'KMs per match'],
+    rows,
+  );
+  print('');
+  print(`Opponent archetype in these matches: ${archetypeSeen}`);
+}
+
+
+// ─── 7. Base chance sweep ────────────────────────────────────────────────────
+
+/**
+ * Key moments land on break/set/match points, so their success rate is amplified
+ * far beyond an equivalent shift on ordinary points. The right baseChance is
+ * therefore whatever makes an evenly-matched player who chooses at random land
+ * near a 50% MATCH win rate — not whatever makes the per-moment number read 50%.
+ */
+async function probeBaseChanceSweep(values: number[], nMatches: number): Promise<void> {
+  printHeader(`Base chance sweep (${nMatches} matches per value, even stats, random picks)`);
+
+  const original = KEY_MOMENT.baseChance;
+  const rows: (string | number)[][] = [];
+
+  // Control: the same matchup with key moments off. If this is not near 50%,
+  // the underlying sim is not even and there is no point tuning against it.
+  {
+    let wins = 0;
+    for (let i = 0; i < nMatches; i++) {
+      const orchestrator = new MatchOrchestrator();
+      suppressLogs();
+      const final = await orchestrator.simulateInteractiveMatch({
+        playerStats: statsAt(50),
+        opponentStats: statsAt(50),
+        surface: 'hard',
+        mood: 0,
+        energy: 100,
+        enableKeyMoments: false,
+        matchFormat: 'best-of-3',
+        disableMatchForm: true,
+        pointDelayMs: 0,
+      });
+      restoreLogs();
+      if (final.winner === 'player') wins++;
+    }
+    rows.push(['(control: KMs off)', `${fmtNum((100 * wins) / nMatches)}%`, '—']);
+  }
+
+  for (const base of values) {
+    KEY_MOMENT.baseChance = base;
+    let wins = 0;
+    let kmWins = 0;
+    let kmTotal = 0;
+
+    for (let i = 0; i < nMatches; i++) {
+      const orchestrator = new MatchOrchestrator();
+      suppressLogs();
+      const final = await orchestrator.simulateInteractiveMatch({
+        playerStats: statsAt(50),
+        opponentStats: statsAt(50),
+        surface: 'hard',
+        mood: 0,
+        energy: 100,
+        enableKeyMoments: true,
+        matchFormat: 'best-of-3',
+        disableMatchForm: true,
+        pointDelayMs: 0,
+        onKeyMoment: async (km) => {
+          kmTotal++;
+          return km.options[Math.floor(Math.random() * km.options.length)];
+        },
+      });
+      restoreLogs();
+      const stats = orchestrator.getMatchStatistics();
+      if (stats) kmWins += stats.keyMomentsWon.player;
+      if (final.winner === 'player') wins++;
+    }
+
+    rows.push([
+      base,
+      `${fmtNum((100 * wins) / nMatches)}%`,
+      kmTotal > 0 ? `${fmtNum((100 * kmWins) / kmTotal)}%` : '—',
+    ]);
+  }
+
+  KEY_MOMENT.baseChance = original;
+  printTable(['baseChance', 'Match win rate', 'KM win rate'], rows);
+  print('');
+  print('Target: match win rate near 50% for an even matchup.');
+}
+
+
+// ─── 8. baseChance × key moments per match ───────────────────────────────────
+
+/**
+ * baseChance and keyMomentsPerMatch trade off directly: a key moment always lands
+ * on a break/set/match point, so raising its success rate or firing more of them
+ * both hand the player more of the points that decide games. This grid shows which
+ * combinations keep an even matchup near a 50% match win rate, so "key moments
+ * should feel winnable" can be bought by running fewer of them.
+ */
+async function probeBaseChanceVsFrequency(
+  bases: number[],
+  frequencies: number[],
+  nMatches: number,
+): Promise<void> {
+  printHeader(`baseChance x keyMomentsPerMatch (${nMatches} matches per cell, random picks)`);
+
+  const original = KEY_MOMENT.baseChance;
+  const rows: (string | number)[][] = [];
+
+  for (const base of bases) {
+    KEY_MOMENT.baseChance = base;
+    const row: (string | number)[] = [base];
+    for (const freq of frequencies) {
+      let wins = 0;
+      for (let i = 0; i < nMatches; i++) {
+        const orchestrator = new MatchOrchestrator();
+        suppressLogs();
+        const final = await orchestrator.simulateInteractiveMatch({
+          playerStats: statsAt(50),
+          opponentStats: statsAt(50),
+          surface: 'hard',
+          mood: 0,
+          energy: 100,
+          enableKeyMoments: true,
+          keyMomentsPerMatch: freq,
+          matchFormat: 'best-of-3',
+          disableMatchForm: true,
+          pointDelayMs: 0,
+          onKeyMoment: async (km) =>
+            km.options[Math.floor(Math.random() * km.options.length)],
+        });
+        restoreLogs();
+        if (final.winner === 'player') wins++;
+      }
+      row.push(`${fmtNum((100 * wins) / nMatches)}%`);
+    }
+    rows.push(row);
+  }
+
+  KEY_MOMENT.baseChance = original;
+  printTable(
+    ['baseChance', ...frequencies.map((f) => `${f} KMs`)],
+    rows,
+  );
+  print('');
+  print('Cells near 50% are balanced for an even matchup.');
 }
 
 printBanner('KEY MOMENT PROBE');
-probeSuccessRates();
-probeCounterCoverage();
-probeOutcomeBands();
-probeContextSwing();
-probeRealisticScenarios();
+
+/** SECTIONS=sweep runs only the base-chance sweep; default runs everything else. */
+const SECTIONS = process.env.SECTIONS ?? 'all';
+
+if (SECTIONS === 'all') {
+  probeSuccessRates();
+  probeCounterCoverage();
+  probeOutcomeBands();
+  probeContextSwing();
+  probeRealisticScenarios();
+  await probeMatchImpact(N_MATCHES);
+}
+
+if (SECTIONS === 'grid') {
+  await probeBaseChanceVsFrequency([35, 42, 50], [4, 8, 16], N_MATCHES);
+}
+
+if (SECTIONS === 'sweep' || SECTIONS === 'all') {
+  await probeBaseChanceSweep(
+    (process.env.SWEEP ?? '35,40,45,50').split(',').map(Number),
+    N_MATCHES,
+  );
+}

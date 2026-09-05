@@ -14,6 +14,7 @@ import { KeyMoment } from '../types/keyMoments';
 import { TacticalOption, SecondaryEffect } from '../data/tacticalOptions';
 import { ARCHETYPE_DATA, getRelevantTendency } from '../data/archetypes';
 import { KeyMomentResolver, KeyMomentResult, AppliedEffect } from '../game/KeyMomentResolver';
+import { MatchOrchestrator } from '../game/MatchOrchestrator';
 import { useMatchStore } from '../stores/matchStore';
 import { PlayerStats } from '../types/game';
 import { useTutorialSpotlight } from '../hooks/useTutorialSpotlight';
@@ -178,12 +179,25 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   const tendency = getRelevantTendency(activeKeyMoment.opponentArchetype, opponentIsServing);
 
   const ctx = activeKeyMoment.matchContext;
-  const modifiers = KeyMomentResolver.getContextModifiers({
-    momentum: ctx.momentum,
-    energy: ctx.energy,
-    mood: ctx.mood,
-    pressure: ctx.pressure,
-  });
+  // Focus and ability effects both feed the pressure term, so the strip has to
+  // read them the same way the resolver does or the displayed odds drift.
+  const playerFocus = matchConfig
+    ? statValue(matchConfig.playerStats as PlayerStats, 'focus')
+    : 50;
+  const playerEffects = MatchOrchestrator.extractActiveEffects(
+    matchConfig?.playerAbilities,
+    matchConfig?.playerArchetypeProfile,
+  );
+  const modifiers = KeyMomentResolver.getContextModifiers(
+    {
+      momentum: ctx.momentum,
+      energy: ctx.energy,
+      mood: ctx.mood,
+      pressure: ctx.pressure,
+    },
+    playerFocus,
+    playerEffects,
+  );
 
   // ── Conditions strip: "how this moment tilts the point" ─────────────────────
 
@@ -210,14 +224,14 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     });
   }
   conditions.push({
-    icon: '🔋',
-    label: 'Energy',
+    icon: modifiers.energy >= 1 ? '⚡' : '🔋',
+    label: modifiers.energy >= 1 ? 'Fresh legs' : 'Energy',
     value: `${Math.round(ctx.energy)}%`,
-    helps: modifiers.energy >= 0 ? null : false,
+    helps: modifiers.energy >= 1 ? true : modifiers.energy <= -1 ? false : null,
     modifier: modifiers.energy,
-    tooltip: modifiers.energy <= -1
-      ? `${modifiers.energy}% from energy`
-      : 'No fatigue penalty',
+    tooltip: Math.abs(modifiers.energy) >= 1
+      ? `${modifiers.energy > 0 ? '+' : ''}${modifiers.energy}% from energy`
+      : 'Energy is not a factor here',
   });
   if (Math.abs(modifiers.mood) >= 1) {
     const helps = modifiers.mood > 0;
@@ -231,14 +245,20 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
       tooltip: `${sign}${modifiers.mood}% from mood`,
     });
   }
-  if (modifiers.pressure <= -1) {
+  // Pressure is scored against focus: a composed player gains on the big points,
+  // a fragile one loses. Both directions are worth showing.
+  if (Math.abs(modifiers.pressure) >= 1) {
+    const helps = modifiers.pressure > 0;
+    const sign = helps ? '+' : '';
     conditions.push({
-      icon: '😰',
-      label: 'Big-point pressure',
-      value: `${modifiers.pressure}`,
-      helps: false,
+      icon: helps ? '🧊' : '😰',
+      label: helps ? 'Ice in the veins' : 'Big-point pressure',
+      value: `${sign}${modifiers.pressure}`,
+      helps,
       modifier: modifiers.pressure,
-      tooltip: `${modifiers.pressure}% from pressure`,
+      tooltip: helps
+        ? `+${modifiers.pressure}% — your focus is above the pressure of this moment`
+        : `${modifiers.pressure}% — this moment's pressure is above your focus`,
     });
   }
 
