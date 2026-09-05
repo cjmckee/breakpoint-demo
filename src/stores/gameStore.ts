@@ -5,7 +5,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { migrateStore, CURRENT_STORE_VERSION } from './migrations';
+import { migrateStore, runMigrations, CURRENT_STORE_VERSION, type PersistedStoreState } from './migrations';
 import {
   Player,
   PlayerFlag,
@@ -796,16 +796,14 @@ export const useGameStore = create<GameState>()(
             return false;
           }
 
-          // Rehydration resets anything below CURRENT_STORE_VERSION rather than
-          // half-migrating it (see migrations.ts) — an import needs the same
-          // guard, since an export made before a stat-shape change is exactly
-          // the kind of stale-schema data that path is meant to catch.
-          if (data.storeVersion !== CURRENT_STORE_VERSION) {
-            console.error('Save data is from an incompatible version and cannot be imported');
-            return false;
-          }
-
-          set({
+          // An import runs the same migrations rehydration does, so a save from
+          // an older release loads with its progress intact. The one difference
+          // is what a reset means here: rehydration owns the save it is loading
+          // and can hand back a default game, but an import would be replacing
+          // a game already in progress, so an unmigratable file is refused
+          // instead of silently wiping what the player is playing.
+          const storeVersion = typeof data.storeVersion === 'number' ? data.storeVersion : 0;
+          const incoming: PersistedStoreState = {
             player: data.player,
             calendar: data.calendar,
             currentStatus: data.currentStatus || initialStatus,
@@ -820,6 +818,19 @@ export const useGameStore = create<GameState>()(
             unlockedTiers: data.unlockedTiers || [1],
             shopItems: data.shopItems || [],
             audioSettings: data.audioSettings || { musicVolume: 0.7, sfxVolume: 0.7, muteMusic: false, muteSfx: false },
+          };
+
+          const outcome = runMigrations(incoming, storeVersion);
+          if (outcome.status === 'reset') {
+            console.error(`Save data cannot be imported — ${outcome.reason}`);
+            return false;
+          }
+          if (outcome.status === 'migrated') {
+            console.log(`Imported save migrated from version ${outcome.fromVersion} to ${CURRENT_STORE_VERSION}`);
+          }
+
+          set({
+            ...outcome.state,
             eventRecovery: data.eventRecovery || DEFAULT_EVENT_RECOVERY,
             gamePhase: { type: 'idle', overlay: null },
             isInitialized: true,

@@ -7,19 +7,23 @@ filename is the label — no registration step).
 Export one with the Debug Panel's Export button, which stamps the current
 `storeVersion` into the JSON.
 
-## These go stale, and they go stale silently
+## They survive a version bump, but not a breaking one
 
-`gameStore.importSave` rejects any save whose `storeVersion` doesn't equal
-`CURRENT_STORE_VERSION` — the same guard rehydration uses, for the same reason
-(see `stores/migrations.ts`: this project tried field-by-field migration once and
-kept finding corners it missed). A save recorded before a shape change is exactly
-the stale-schema data that guard exists to catch.
+`gameStore.importSave` runs the same migrations rehydration does (see
+`stores/migrations.ts`), so a save recorded against an older `storeVersion` loads
+with its progress carried forward. Two cases still fail, and they fail silently —
+the button just doesn't load:
 
-So **every bump of `CURRENT_STORE_VERSION` invalidates every file in this
-folder.** Nothing warns you at build time; the button just fails to load. When
-you bump the version, re-record the scenarios you still want.
+- a save below `RESET_BEFORE_VERSION`, the breaking floor. Raising that floor
+  invalidates every file here that predates it, so re-record the scenarios you
+  still want when you raise it;
+- a save from a build *newer* than the one you're running, e.g. after checking
+  out an older branch.
+
+Note that an import refuses these rather than resetting: rehydration owns the
+save it loads and can hand back a fresh game, but an import would be replacing
+the game you're currently playing.
 
 The two saves that used to live here were removed at store version 6 — they
 predated the `storeVersion` field entirely and still carried the pre-consolidation
-20-stat shape (`slice` in `core` rather than `net`), so they had been dead for a
-while without anyone noticing.
+20-stat shape (`slice` in `core` rather than `net`), which is below the floor.
