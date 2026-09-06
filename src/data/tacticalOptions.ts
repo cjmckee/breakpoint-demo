@@ -1,24 +1,39 @@
 /**
- * Tactical Options Database
- * Complete set of user choices for key moments.
- * Each option has strongAgainst/weakAgainst archetype relationships
- * and secondary effects that apply beyond point outcome.
+ * Tactical Options
+ *
+ * One flat pool. An option declares what it *is* — which side of the ball it can
+ * be played from, how it plays the point, how wide its outcome spread is — and
+ * the draw works out which options a given key moment may offer. The archetype
+ * matchup comes from the option's posture via POSTURE_VS_ARCHETYPE, not from
+ * per-option lists, so adding an option costs two tags rather than five
+ * hand-authored relationships.
  */
 
 import { PointType } from '../types';
 import type { StatName } from '../types';
-import type { ArchetypeType } from './archetypes';
 
-export interface SecondaryEffect {
-  type: 'momentum' | 'energy' | 'pressure' | 'mood';
-  value: number;
-  condition: 'always' | 'on_success' | 'on_failure';
-}
+/**
+ * Which side of the ball the option is played from — the hard constraint on what
+ * can appear in a menu. Facing break point on your own serve, every option has to
+ * be a serve; converting one, every option has to be a return.
+ *
+ * `rally` covers the 30-30 / 40-40 moments, which test how you construct the point
+ * rather than how you start it. A rally situation still has a server, so its menu
+ * draws from the rally pool *and* the serving or returning pool as appropriate —
+ * which is why this is a list: an option can be playable from more than one.
+ */
+export type KeyMomentRole = 'serve' | 'return' | 'rally';
+
+/** What is on the line. */
+export type KeyMomentStakes = 'deuce' | 'break' | 'set' | 'match';
+
+/** Whether the player is chasing the point or hanging on to it. */
+export type KeyMomentPressure = 'converting' | 'defending';
 
 /**
  * How the option plays the point. Posture — not the individual option — is what an
  * opponent's archetype is strong or weak against, so the matchup lives in one
- * POSTURE x ARCHETYPE table rather than in hand-authored lists on every option.
+ * POSTURE x ARCHETYPE table (see data/postures.ts).
  */
 export type KeyMomentPosture =
   | 'power'       // Overpower them, end it early
@@ -35,17 +50,11 @@ export type KeyMomentPosture =
  */
 export type KeyMomentRisk = 'safe' | 'balanced' | 'bold';
 
-/**
- * Which side of the ball the option is played from — the hard constraint on what
- * can appear in a menu. Facing break point on your own serve, every option has to
- * be a serve; converting one, every option has to be a return.
- *
- * `rally` covers the 30-30 / 40-40 moments, which test how you construct the point
- * rather than how you start it. A rally situation still has a server, so its menu
- * draws from the rally pool *and* the serving or returning pool as appropriate —
- * which is why this is a list: an option can be playable from more than one.
- */
-export type KeyMomentRole = 'serve' | 'return' | 'rally';
+export interface SecondaryEffect {
+  type: 'momentum' | 'energy' | 'pressure' | 'mood';
+  value: number;
+  condition: 'always' | 'on_success' | 'on_failure';
+}
 
 export interface TacticalOption {
   id: string;
@@ -58,28 +67,1615 @@ export interface TacticalOption {
   posture: KeyMomentPosture;
   /** How wide the outcome spread is. */
   risk: KeyMomentRisk;
-  strongAgainst: ArchetypeType[];
-  weakAgainst: ArchetypeType[];
-  bestAgainstHint: string; // Human-readable "good against" hint (doesn't name archetypes directly)
-  worstAgainstHint: string; // Human-readable "bad against" hint (mirror of bestAgainstHint)
+  /** Restrict to certain stakes. Omitted = eligible at any. */
+  stakes?: KeyMomentStakes[];
+  /** Restrict to converting or defending. Omitted = eligible either way. */
+  pressure?: KeyMomentPressure[];
+  /**
+   * Aim at whichever of the opponent's wings is actually weaker. The resolver
+   * swaps the `backhand` term in opponentStatWeights for `forehand` when that is
+   * the lower of the two, so the option reads the opponent rather than assuming.
+   */
+  targetsWeakerWing?: boolean;
   secondaryEffects: SecondaryEffect[];
-  playerStatWeights: {
-    primary: StatName;
-    primaryWeight: number;
-    secondary: Array<{ stat: StatName; weight: number }>;
-  };
-  opponentStatWeights: {
-    primary: StatName;
-    primaryWeight: number;
-    secondary: Array<{ stat: StatName; weight: number }>;
-  };
+  playerStatWeights: StatWeights;
+  opponentStatWeights: StatWeights;
   shotOutcomes: {
     success: { outcome: PointType; shotType: string; shooter: 'player' | 'opponent' };
     failure: { outcome: PointType; shotType: string; shooter: 'player' | 'opponent' };
   };
-  successProbability?: number; // Calculated dynamically
 }
 
+export interface StatWeights {
+  primary: StatName;
+  primaryWeight: number;
+  secondary: Array<{ stat: StatName; weight: number }>;
+}
+
+/**
+ * Secondary effects by risk level. Risk is variance, so a bolder option does not
+ * win more often — it swings harder in both directions and costs more to attempt.
+ * Every level carries a cost on failure: a safe option is low-variance, not free.
+ */
+const RISK_EFFECTS: Record<KeyMomentRisk, SecondaryEffect[]> = {
+  safe: [
+    { type: 'energy', value: -2, condition: 'always' },
+    { type: 'mood', value: 2, condition: 'on_success' },
+    { type: 'pressure', value: -3, condition: 'on_success' },
+    { type: 'pressure', value: 2, condition: 'on_failure' },
+  ],
+  balanced: [
+    { type: 'energy', value: -4, condition: 'always' },
+    { type: 'momentum', value: 8, condition: 'on_success' },
+    { type: 'momentum', value: -5, condition: 'on_failure' },
+    { type: 'mood', value: -2, condition: 'on_failure' },
+  ],
+  bold: [
+    { type: 'energy', value: -6, condition: 'always' },
+    { type: 'momentum', value: 14, condition: 'on_success' },
+    { type: 'momentum', value: -9, condition: 'on_failure' },
+    { type: 'mood', value: -5, condition: 'on_failure' },
+  ],
+};
+
+/** The whole authored pool. Situation eligibility is a property of each option. */
+export const TACTICAL_OPTIONS: TacticalOption[] = [
+  {
+    id: 's_power_t',
+    emoji: '🚀',
+    name: 'Power serve down the T',
+    description: 'Overpower them before the rally starts',
+    roles: ['serve'],
+    posture: 'power',
+    risk: 'bold',
+    secondaryEffects: RISK_EFFECTS.bold,
+    playerStatWeights: {
+      primary: 'serve',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'strength', weight: 0.3 },
+        { stat: 'placement', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'return',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'speed', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.ACE, shotType: 'serve', shooter: 'player' },
+      failure: { outcome: PointType.DOUBLE_FAULT, shotType: 'serve', shooter: 'player' },
+    },
+  },
+  {
+    id: 's_power_wide',
+    emoji: '💥',
+    name: 'Big serve out wide',
+    description: 'Drag them off the court and take the opening',
+    roles: ['serve'],
+    posture: 'power',
+    risk: 'bold',
+    secondaryEffects: RISK_EFFECTS.bold,
+    playerStatWeights: {
+      primary: 'serve',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'strength', weight: 0.3 },
+        { stat: 'placement', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'return',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'speed', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.ACE, shotType: 'serve', shooter: 'player' },
+      failure: { outcome: PointType.DOUBLE_FAULT, shotType: 'serve', shooter: 'player' },
+    },
+  },
+  {
+    id: 's_second_gamble',
+    emoji: '🎲',
+    name: 'Go big on the second serve',
+    description: 'No safety net — hit it like a first serve',
+    roles: ['serve'],
+    posture: 'power',
+    risk: 'bold',
+    secondaryEffects: RISK_EFFECTS.bold,
+    playerStatWeights: {
+      primary: 'serve',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'strength', weight: 0.3 },
+        { stat: 'placement', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'return',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'speed', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.ACE, shotType: 'serve', shooter: 'player' },
+      failure: { outcome: PointType.DOUBLE_FAULT, shotType: 'serve', shooter: 'player' },
+    },
+  },
+  {
+    id: 's_body_jam',
+    emoji: '🎯',
+    name: 'Flat serve into the body',
+    description: 'Cramp the return without flirting with the line',
+    roles: ['serve'],
+    posture: 'power',
+    risk: 'balanced',
+    secondaryEffects: RISK_EFFECTS.balanced,
+    playerStatWeights: {
+      primary: 'serve',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'strength', weight: 0.3 },
+        { stat: 'placement', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'return',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'speed', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.ACE, shotType: 'serve', shooter: 'player' },
+      failure: { outcome: PointType.DOUBLE_FAULT, shotType: 'serve', shooter: 'player' },
+    },
+  },
+  {
+    id: 's_serve_volley',
+    emoji: '🏃',
+    name: 'Serve and volley',
+    description: 'Follow the serve in and finish at the net',
+    roles: ['serve'],
+    posture: 'net',
+    risk: 'bold',
+    secondaryEffects: RISK_EFFECTS.bold,
+    playerStatWeights: {
+      primary: 'net',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'serve', weight: 0.3 },
+        { stat: 'speed', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'placement',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'speed', weight: 0.3 },
+        { stat: 'forehand', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
+      failure: { outcome: PointType.WINNER, shotType: 'passing_shot', shooter: 'opponent' },
+    },
+  },
+  {
+    id: 's_wide_close',
+    emoji: '📐',
+    name: 'Serve wide, close the angle',
+    description: 'Pull them wide, then cover the line',
+    roles: ['serve'],
+    posture: 'net',
+    risk: 'balanced',
+    secondaryEffects: RISK_EFFECTS.balanced,
+    playerStatWeights: {
+      primary: 'net',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'serve', weight: 0.3 },
+        { stat: 'speed', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'placement',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'speed', weight: 0.3 },
+        { stat: 'forehand', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
+      failure: { outcome: PointType.WINNER, shotType: 'passing_shot', shooter: 'opponent' },
+    },
+  },
+  {
+    id: 's_kick_approach',
+    emoji: '🪃',
+    name: 'Sneak in behind a kick serve',
+    description: 'The high ball buys you time to get forward',
+    roles: ['serve'],
+    posture: 'net',
+    risk: 'balanced',
+    secondaryEffects: RISK_EFFECTS.balanced,
+    playerStatWeights: {
+      primary: 'net',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'serve', weight: 0.3 },
+        { stat: 'speed', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'placement',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'speed', weight: 0.3 },
+        { stat: 'forehand', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
+      failure: { outcome: PointType.WINNER, shotType: 'passing_shot', shooter: 'opponent' },
+    },
+  },
+  {
+    id: 's_kick_heavy',
+    emoji: '🌪️',
+    name: 'Heavy kick serve',
+    description: 'Start the rally on your terms',
+    roles: ['serve'],
+    posture: 'neutralize',
+    risk: 'safe',
+    secondaryEffects: RISK_EFFECTS.safe,
+    playerStatWeights: {
+      primary: 'spin',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'serve', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'tactics',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'forehand', weight: 0.3 },
+        { stat: 'strength', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'return', shooter: 'opponent' },
+      failure: { outcome: PointType.WINNER, shotType: 'return', shooter: 'opponent' },
+    },
+  },
+  {
+    id: 's_percentage_bh',
+    emoji: '✅',
+    name: 'High-percentage serve to the backhand',
+    description: 'Take the miss out of it',
+    roles: ['serve'],
+    posture: 'neutralize',
+    risk: 'safe',
+    secondaryEffects: RISK_EFFECTS.safe,
+    playerStatWeights: {
+      primary: 'spin',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'serve', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'tactics',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'forehand', weight: 0.3 },
+        { stat: 'strength', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'return', shooter: 'opponent' },
+      failure: { outcome: PointType.WINNER, shotType: 'return', shooter: 'opponent' },
+    },
+  },
+  {
+    id: 's_slice_reset',
+    emoji: '🔄',
+    name: 'Slice serve wide, reset',
+    description: 'Get a neutral rally started',
+    roles: ['serve'],
+    posture: 'neutralize',
+    risk: 'safe',
+    secondaryEffects: RISK_EFFECTS.safe,
+    playerStatWeights: {
+      primary: 'spin',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'serve', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'tactics',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'forehand', weight: 0.3 },
+        { stat: 'strength', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'return', shooter: 'opponent' },
+      failure: { outcome: PointType.WINNER, shotType: 'return', shooter: 'opponent' },
+    },
+  },
+  {
+    id: 's_disguise_second',
+    emoji: '🎭',
+    name: 'Disguised second serve',
+    description: 'Same toss, different spin',
+    roles: ['serve'],
+    posture: 'deception',
+    risk: 'bold',
+    secondaryEffects: RISK_EFFECTS.bold,
+    playerStatWeights: {
+      primary: 'placement',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'spin', weight: 0.3 },
+        { stat: 'serve', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'speed',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'focus', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'drop_shot', shooter: 'player' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'drop_shot', shooter: 'player' },
+    },
+  },
+  {
+    id: 's_body_disguise',
+    emoji: '🃏',
+    name: 'Body serve off a wide pattern',
+    description: 'Reads as wide, arrives at their hip',
+    roles: ['serve'],
+    posture: 'deception',
+    risk: 'balanced',
+    secondaryEffects: RISK_EFFECTS.balanced,
+    playerStatWeights: {
+      primary: 'placement',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'spin', weight: 0.3 },
+        { stat: 'serve', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'speed',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'focus', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'drop_shot', shooter: 'player' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'drop_shot', shooter: 'player' },
+    },
+  },
+  {
+    id: 's_wide_then_drop',
+    emoji: '🩰',
+    name: 'Serve wide, drop the reply',
+    description: 'Pull them out, then bring them in',
+    roles: ['serve'],
+    posture: 'deception',
+    risk: 'bold',
+    secondaryEffects: RISK_EFFECTS.bold,
+    playerStatWeights: {
+      primary: 'placement',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'spin', weight: 0.3 },
+        { stat: 'serve', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'speed',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'focus', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'drop_shot', shooter: 'player' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'drop_shot', shooter: 'player' },
+    },
+  },
+  {
+    id: 's_kick_grind',
+    emoji: '⛏️',
+    name: 'Kick serve deep and grind',
+    description: 'Accept the rally and out-last them',
+    roles: ['serve'],
+    posture: 'attrition',
+    risk: 'safe',
+    secondaryEffects: RISK_EFFECTS.safe,
+    playerStatWeights: {
+      primary: 'stamina',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'spin', weight: 0.3 },
+        { stat: 'focus', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'stamina',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'focus', weight: 0.3 },
+        { stat: 'backhand', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'opponent' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'backhand', shooter: 'player' },
+    },
+  },
+  {
+    id: 's_hammer_weak',
+    emoji: '🔨',
+    name: 'Hammer their weaker wing',
+    description: 'Serve there, then keep going there',
+    roles: ['serve'],
+    posture: 'attrition',
+    risk: 'balanced',
+    targetsWeakerWing: true,
+    secondaryEffects: RISK_EFFECTS.balanced,
+    playerStatWeights: {
+      primary: 'stamina',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'spin', weight: 0.3 },
+        { stat: 'focus', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'stamina',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'focus', weight: 0.3 },
+        { stat: 'backhand', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'opponent' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'backhand', shooter: 'player' },
+    },
+  },
+  {
+    id: 's_long_rally',
+    emoji: '🐘',
+    name: 'Settle in for a long one',
+    description: 'Trade the odds on this point for their legs',
+    roles: ['serve'],
+    posture: 'attrition',
+    risk: 'safe',
+    secondaryEffects: RISK_EFFECTS.safe,
+    playerStatWeights: {
+      primary: 'stamina',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'spin', weight: 0.3 },
+        { stat: 'focus', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'stamina',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'focus', weight: 0.3 },
+        { stat: 'backhand', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'opponent' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'backhand', shooter: 'player' },
+    },
+  },
+  {
+    id: 's_slice_timing',
+    emoji: '🌀',
+    name: 'Slice serve to break their timing',
+    description: 'Take the rhythm away',
+    roles: ['serve'],
+    posture: 'variety',
+    risk: 'balanced',
+    secondaryEffects: RISK_EFFECTS.balanced,
+    playerStatWeights: {
+      primary: 'placement',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'anticipation',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'focus', weight: 0.3 },
+        { stat: 'return', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'return', shooter: 'opponent' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'serve', shooter: 'player' },
+    },
+  },
+  {
+    id: 's_quick_serve',
+    emoji: '⏱️',
+    name: 'Quick-serve them',
+    description: 'Go before they are set',
+    roles: ['serve'],
+    posture: 'variety',
+    risk: 'balanced',
+    secondaryEffects: RISK_EFFECTS.balanced,
+    playerStatWeights: {
+      primary: 'placement',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'anticipation',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'focus', weight: 0.3 },
+        { stat: 'return', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'return', shooter: 'opponent' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'serve', shooter: 'player' },
+    },
+  },
+  {
+    id: 's_break_pattern',
+    emoji: '🔀',
+    name: 'Break your own pattern',
+    description: 'You have gone there twice — go somewhere else',
+    roles: ['serve'],
+    posture: 'variety',
+    risk: 'balanced',
+    secondaryEffects: RISK_EFFECTS.balanced,
+    playerStatWeights: {
+      primary: 'placement',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'anticipation',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'focus', weight: 0.3 },
+        { stat: 'return', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'return', shooter: 'opponent' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'serve', shooter: 'player' },
+    },
+  },
+  {
+    id: 'r_attack_cross',
+    emoji: '⚡',
+    name: 'Aggressive crosscourt return',
+    description: 'Attack with power and depth crosscourt',
+    roles: ['return'],
+    posture: 'power',
+    risk: 'bold',
+    secondaryEffects: RISK_EFFECTS.bold,
+    playerStatWeights: {
+      primary: 'return',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'forehand', weight: 0.3 },
+        { stat: 'strength', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'serve',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'speed', weight: 0.3 },
+        { stat: 'anticipation', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'return', shooter: 'player' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
+    },
+  },
+  {
+    id: 'r_early_line',
+    emoji: '🎯',
+    name: 'Step in and take it down the line',
+    description: 'Take it early and go for the line',
+    roles: ['return'],
+    posture: 'power',
+    risk: 'bold',
+    secondaryEffects: RISK_EFFECTS.bold,
+    playerStatWeights: {
+      primary: 'return',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'forehand', weight: 0.3 },
+        { stat: 'strength', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'serve',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'speed', weight: 0.3 },
+        { stat: 'anticipation', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'return', shooter: 'player' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
+    },
+  },
+  {
+    id: 'r_rip_second',
+    emoji: '💢',
+    name: 'Rip the second serve',
+    description: 'Step in and swing out of your shoes',
+    roles: ['return'],
+    posture: 'power',
+    risk: 'bold',
+    secondaryEffects: RISK_EFFECTS.bold,
+    playerStatWeights: {
+      primary: 'return',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'forehand', weight: 0.3 },
+        { stat: 'strength', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'serve',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'speed', weight: 0.3 },
+        { stat: 'anticipation', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'return', shooter: 'player' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
+    },
+  },
+  {
+    id: 'r_nothing_to_lose',
+    emoji: '🔥',
+    name: 'Nothing-to-lose swing',
+    description: 'Swing free — you have nothing to protect',
+    roles: ['return'],
+    posture: 'power',
+    risk: 'bold',
+    pressure: ['defending'],
+    secondaryEffects: RISK_EFFECTS.bold,
+    playerStatWeights: {
+      primary: 'return',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'forehand', weight: 0.3 },
+        { stat: 'strength', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'serve',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'speed', weight: 0.3 },
+        { stat: 'anticipation', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'return', shooter: 'player' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
+    },
+  },
+  {
+    id: 'r_chip_charge',
+    emoji: '🏃',
+    name: 'Chip and charge',
+    description: 'Short slice return and rush the net',
+    roles: ['return'],
+    posture: 'net',
+    risk: 'balanced',
+    secondaryEffects: RISK_EFFECTS.balanced,
+    playerStatWeights: {
+      primary: 'net',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'return', weight: 0.3 },
+        { stat: 'speed', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'placement',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'speed', weight: 0.3 },
+        { stat: 'forehand', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
+      failure: { outcome: PointType.WINNER, shotType: 'passing_shot', shooter: 'opponent' },
+    },
+  },
+  {
+    id: 'r_block_follow',
+    emoji: '🛡️',
+    name: 'Block it and follow it in',
+    description: 'Take the pace off and get forward',
+    roles: ['return'],
+    posture: 'net',
+    risk: 'balanced',
+    secondaryEffects: RISK_EFFECTS.balanced,
+    playerStatWeights: {
+      primary: 'net',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'return', weight: 0.3 },
+        { stat: 'speed', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'placement',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'speed', weight: 0.3 },
+        { stat: 'forehand', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
+      failure: { outcome: PointType.WINNER, shotType: 'passing_shot', shooter: 'opponent' },
+    },
+  },
+  {
+    id: 'r_attack_short',
+    emoji: '🗡️',
+    name: 'Attack the short reply',
+    description: 'Wait for the ball to sit up, then come in',
+    roles: ['return'],
+    posture: 'net',
+    risk: 'bold',
+    secondaryEffects: RISK_EFFECTS.bold,
+    playerStatWeights: {
+      primary: 'net',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'return', weight: 0.3 },
+        { stat: 'speed', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'placement',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'speed', weight: 0.3 },
+        { stat: 'forehand', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
+      failure: { outcome: PointType.WINNER, shotType: 'passing_shot', shooter: 'opponent' },
+    },
+  },
+  {
+    id: 'r_deep_neutral',
+    emoji: '🧱',
+    name: 'Deep neutralizing return',
+    description: 'Get it back with depth and extend the rally',
+    roles: ['return'],
+    posture: 'neutralize',
+    risk: 'safe',
+    secondaryEffects: RISK_EFFECTS.safe,
+    playerStatWeights: {
+      primary: 'slice',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'return', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'tactics',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'forehand', weight: 0.3 },
+        { stat: 'strength', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
+      failure: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'opponent' },
+    },
+  },
+  {
+    id: 'r_lob_reset',
+    emoji: '☁️',
+    name: 'Lob return and reset',
+    description: 'Buy time and take the net away',
+    roles: ['return'],
+    posture: 'neutralize',
+    risk: 'safe',
+    secondaryEffects: RISK_EFFECTS.safe,
+    playerStatWeights: {
+      primary: 'slice',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'return', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'tactics',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'forehand', weight: 0.3 },
+        { stat: 'strength', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
+      failure: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'opponent' },
+    },
+  },
+  {
+    id: 'r_block_restart',
+    emoji: '✅',
+    name: 'Block it back and start again',
+    description: 'No ambition — just get into the point',
+    roles: ['return'],
+    posture: 'neutralize',
+    risk: 'safe',
+    secondaryEffects: RISK_EFFECTS.safe,
+    playerStatWeights: {
+      primary: 'slice',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'return', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'tactics',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'forehand', weight: 0.3 },
+        { stat: 'strength', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
+      failure: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'opponent' },
+    },
+  },
+  {
+    id: 'r_drop_return',
+    emoji: '🩰',
+    name: 'Drop shot off the return',
+    description: 'Catch them flat-footed behind the baseline',
+    roles: ['return'],
+    posture: 'deception',
+    risk: 'bold',
+    secondaryEffects: RISK_EFFECTS.bold,
+    playerStatWeights: {
+      primary: 'placement',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'slice', weight: 0.3 },
+        { stat: 'return', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'speed',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'focus', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'drop_shot', shooter: 'player' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'drop_shot', shooter: 'player' },
+    },
+  },
+  {
+    id: 'r_slice_short',
+    emoji: '🎭',
+    name: 'Disguised slice, short and low',
+    description: 'Punish anyone camped deep',
+    roles: ['return'],
+    posture: 'deception',
+    risk: 'bold',
+    secondaryEffects: RISK_EFFECTS.bold,
+    playerStatWeights: {
+      primary: 'placement',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'slice', weight: 0.3 },
+        { stat: 'return', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'speed',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'focus', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'drop_shot', shooter: 'player' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'drop_shot', shooter: 'player' },
+    },
+  },
+  {
+    id: 'r_fake_drive',
+    emoji: '🃏',
+    name: 'Fake the drive, roll it deep',
+    description: 'Show the big swing, take the pace off',
+    roles: ['return'],
+    posture: 'deception',
+    risk: 'balanced',
+    secondaryEffects: RISK_EFFECTS.balanced,
+    playerStatWeights: {
+      primary: 'placement',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'slice', weight: 0.3 },
+        { stat: 'return', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'speed',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'focus', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'drop_shot', shooter: 'player' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'drop_shot', shooter: 'player' },
+    },
+  },
+  {
+    id: 'r_deep_grind',
+    emoji: '⛏️',
+    name: 'Deep return and grind',
+    description: 'Make them earn every ball',
+    roles: ['return'],
+    posture: 'attrition',
+    risk: 'safe',
+    secondaryEffects: RISK_EFFECTS.safe,
+    playerStatWeights: {
+      primary: 'stamina',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'backhand', weight: 0.3 },
+        { stat: 'focus', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'stamina',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'focus', weight: 0.3 },
+        { stat: 'backhand', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'opponent' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'backhand', shooter: 'player' },
+    },
+  },
+  {
+    id: 'r_target_weak_wing',
+    emoji: '🔨',
+    name: 'Return to their weaker wing',
+    description: 'Go there, and keep going there',
+    roles: ['return'],
+    posture: 'attrition',
+    risk: 'balanced',
+    targetsWeakerWing: true,
+    secondaryEffects: RISK_EFFECTS.balanced,
+    playerStatWeights: {
+      primary: 'stamina',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'backhand', weight: 0.3 },
+        { stat: 'focus', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'stamina',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'focus', weight: 0.3 },
+        { stat: 'backhand', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'opponent' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'backhand', shooter: 'player' },
+    },
+  },
+  {
+    id: 'r_five_more',
+    emoji: '🐘',
+    name: 'Make them play five more',
+    description: 'Trade the point for their legs',
+    roles: ['return'],
+    posture: 'attrition',
+    risk: 'safe',
+    secondaryEffects: RISK_EFFECTS.safe,
+    playerStatWeights: {
+      primary: 'stamina',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'backhand', weight: 0.3 },
+        { stat: 'focus', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'stamina',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'focus', weight: 0.3 },
+        { stat: 'backhand', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'opponent' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'backhand', shooter: 'player' },
+    },
+  },
+  {
+    id: 'r_read_react',
+    emoji: '👁️',
+    name: 'Read and react',
+    description: 'Pick the direction and redirect with precision',
+    roles: ['return'],
+    posture: 'variety',
+    risk: 'balanced',
+    secondaryEffects: RISK_EFFECTS.balanced,
+    playerStatWeights: {
+      primary: 'anticipation',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'tactics', weight: 0.3 },
+        { stat: 'speed', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'anticipation',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'focus', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'return', shooter: 'player' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
+    },
+  },
+  {
+    id: 'r_stand_deep',
+    emoji: '🔙',
+    name: 'Stand deep, take the pace off',
+    description: 'Change where the point starts',
+    roles: ['return'],
+    posture: 'variety',
+    risk: 'balanced',
+    secondaryEffects: RISK_EFFECTS.balanced,
+    playerStatWeights: {
+      primary: 'anticipation',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'tactics', weight: 0.3 },
+        { stat: 'speed', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'anticipation',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'focus', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'return', shooter: 'player' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
+    },
+  },
+  {
+    id: 'r_sabr',
+    emoji: '🥷',
+    name: 'Charge the second serve',
+    description: 'Sprint in and take it on the rise',
+    roles: ['return'],
+    posture: 'variety',
+    risk: 'bold',
+    secondaryEffects: RISK_EFFECTS.bold,
+    playerStatWeights: {
+      primary: 'anticipation',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'tactics', weight: 0.3 },
+        { stat: 'speed', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'anticipation',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'focus', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'return', shooter: 'player' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
+    },
+  },
+  {
+    id: 'y_accelerate',
+    emoji: '🚀',
+    name: 'Push the accelerator',
+    description: 'Take control and force the winner',
+    roles: ['rally'],
+    posture: 'power',
+    risk: 'bold',
+    secondaryEffects: RISK_EFFECTS.bold,
+    playerStatWeights: {
+      primary: 'forehand',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'strength', weight: 0.3 },
+        { stat: 'placement', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'speed',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'backhand', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'player' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'forehand', shooter: 'player' },
+    },
+  },
+  {
+    id: 'y_flatten_line',
+    emoji: '💥',
+    name: 'Flatten it out down the line',
+    description: 'Change direction with everything you have',
+    roles: ['rally'],
+    posture: 'power',
+    risk: 'bold',
+    secondaryEffects: RISK_EFFECTS.bold,
+    playerStatWeights: {
+      primary: 'forehand',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'strength', weight: 0.3 },
+        { stat: 'placement', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'speed',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'backhand', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'player' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'forehand', shooter: 'player' },
+    },
+  },
+  {
+    id: 'y_attack_net',
+    emoji: '🏃',
+    name: 'Attack the net',
+    description: 'Force the approach and close the point out',
+    roles: ['rally'],
+    posture: 'net',
+    risk: 'bold',
+    secondaryEffects: RISK_EFFECTS.bold,
+    playerStatWeights: {
+      primary: 'net',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'speed', weight: 0.3 },
+        { stat: 'anticipation', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'placement',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'speed', weight: 0.3 },
+        { stat: 'backhand', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
+      failure: { outcome: PointType.WINNER, shotType: 'passing_shot', shooter: 'opponent' },
+    },
+  },
+  {
+    id: 'y_build_approach',
+    emoji: '📐',
+    name: 'Build the approach, then close',
+    description: 'Earn the short ball before you come in',
+    roles: ['rally'],
+    posture: 'net',
+    risk: 'balanced',
+    secondaryEffects: RISK_EFFECTS.balanced,
+    playerStatWeights: {
+      primary: 'net',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'speed', weight: 0.3 },
+        { stat: 'anticipation', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'placement',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'speed', weight: 0.3 },
+        { stat: 'backhand', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
+      failure: { outcome: PointType.WINNER, shotType: 'passing_shot', shooter: 'opponent' },
+    },
+  },
+  {
+    id: 'y_reset_height',
+    emoji: '☁️',
+    name: 'Reset with height and depth',
+    description: 'Take the sting out and recover',
+    roles: ['rally'],
+    posture: 'neutralize',
+    risk: 'safe',
+    secondaryEffects: RISK_EFFECTS.safe,
+    playerStatWeights: {
+      primary: 'spin',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'slice', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'tactics',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'strength', weight: 0.3 },
+        { stat: 'spin', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'slice', shooter: 'player' },
+    },
+  },
+  {
+    id: 'y_drop_behind',
+    emoji: '🩰',
+    name: 'Drop it behind them',
+    description: 'They are deep and leaning — bring them in',
+    roles: ['rally'],
+    posture: 'deception',
+    risk: 'bold',
+    secondaryEffects: RISK_EFFECTS.bold,
+    playerStatWeights: {
+      primary: 'placement',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'slice', weight: 0.3 },
+        { stat: 'spin', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'speed',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'net', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'drop_shot', shooter: 'player' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'drop_shot', shooter: 'player' },
+    },
+  },
+  {
+    id: 'y_disguise_direction',
+    emoji: '🃏',
+    name: 'Disguised change of direction',
+    description: 'Show one way, go the other',
+    roles: ['rally'],
+    posture: 'deception',
+    risk: 'balanced',
+    secondaryEffects: RISK_EFFECTS.balanced,
+    playerStatWeights: {
+      primary: 'placement',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'slice', weight: 0.3 },
+        { stat: 'spin', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'speed',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'net', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'drop_shot', shooter: 'player' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'drop_shot', shooter: 'player' },
+    },
+  },
+  {
+    id: 'y_construct',
+    emoji: '🧩',
+    name: 'Patiently construct the point',
+    description: 'Move them around and wait for the opening',
+    roles: ['rally'],
+    posture: 'attrition',
+    risk: 'safe',
+    secondaryEffects: RISK_EFFECTS.safe,
+    playerStatWeights: {
+      primary: 'stamina',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'backhand', weight: 0.3 },
+        { stat: 'focus', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'stamina',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'focus', weight: 0.3 },
+        { stat: 'slice', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'opponent' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'backhand', shooter: 'player' },
+    },
+  },
+  {
+    id: 'y_corner_to_corner',
+    emoji: '🏃',
+    name: 'Run them corner to corner',
+    description: 'Make the point cost them',
+    roles: ['rally'],
+    posture: 'attrition',
+    risk: 'balanced',
+    secondaryEffects: RISK_EFFECTS.balanced,
+    playerStatWeights: {
+      primary: 'stamina',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'backhand', weight: 0.3 },
+        { stat: 'focus', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'stamina',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'focus', weight: 0.3 },
+        { stat: 'slice', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'opponent' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'backhand', shooter: 'player' },
+    },
+  },
+  {
+    id: 'y_change_pattern',
+    emoji: '🔀',
+    name: 'Change the pattern',
+    description: 'Break your own rhythm before they read it',
+    roles: ['rally'],
+    posture: 'variety',
+    risk: 'balanced',
+    secondaryEffects: RISK_EFFECTS.balanced,
+    playerStatWeights: {
+      primary: 'tactics',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'speed', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'anticipation',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'focus', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'player' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'forehand', shooter: 'player' },
+    },
+  },
+  {
+    id: 'y_two_speed',
+    emoji: '🎚️',
+    name: 'Take one early, then take pace off',
+    description: 'Never let them groove',
+    roles: ['rally'],
+    posture: 'variety',
+    risk: 'balanced',
+    secondaryEffects: RISK_EFFECTS.balanced,
+    playerStatWeights: {
+      primary: 'tactics',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'speed', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'anticipation',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'focus', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'player' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'forehand', shooter: 'player' },
+    },
+  },];
+
+/** A key moment situation, decomposed into the axes that decide eligibility. */
+export interface KeyMomentSituation {
+  role: KeyMomentRole;
+  /** For a rally moment, who is serving — its menu mixes rally and serve/return. */
+  serverRole: 'serve' | 'return';
+  stakes: KeyMomentStakes;
+  pressure: KeyMomentPressure;
+}
+
+/** Every option this situation is allowed to offer. */
+export function getEligibleOptions(situation: KeyMomentSituation): TacticalOption[] {
+  const allowedRoles: KeyMomentRole[] = situation.role === 'rally'
+    ? ['rally', situation.serverRole]
+    : [situation.role];
+
+  return TACTICAL_OPTIONS.filter((option) =>
+    option.roles.some((r) => allowedRoles.includes(r))
+    && (!option.stakes || option.stakes.includes(situation.stakes))
+    && (!option.pressure || option.pressure.includes(situation.pressure))
+  );
+}
+
+/**
+ * Draw a menu for a situation.
+ *
+ * Constraints rather than fixed slots, so the *shape* of the hand varies too:
+ * sometimes safe/bold/net, sometimes two bold options of different postures. The
+ * two guarantees are that there is always a real choice of exposure (at least two
+ * risk levels) and always a matchup decision to make (at least two postures).
+ *
+ * `avoidPostures` lets the caller keep consecutive moments from repeating — it is
+ * a preference, not a filter, so a thin pool still returns a full menu.
+ */
+export function drawOptions(
+  situation: KeyMomentSituation,
+  count = 3,
+  avoidPostures: KeyMomentPosture[] = []
+): TacticalOption[] {
+  const pool = shuffle(getEligibleOptions(situation));
+  if (pool.length <= count) return pool;
+
+  // Prefer postures the previous moment did not use, but fall back to the whole
+  // pool rather than returning a short menu.
+  const fresh = pool.filter((o) => !avoidPostures.includes(o.posture));
+  const ordered = [...fresh, ...pool.filter((o) => avoidPostures.includes(o.posture))];
+
+  const picked: TacticalOption[] = [];
+  const take = (predicate: (o: TacticalOption) => boolean): void => {
+    const found = ordered.find((o) => !picked.includes(o) && predicate(o));
+    if (found) picked.push(found);
+  };
+
+  // Seed both ends of the risk axis so exposure is always a real choice.
+  take((o) => o.risk === 'bold');
+  take((o) => o.risk !== 'bold');
+
+  // Fill the rest, preferring postures not already on the menu.
+  while (picked.length < count) {
+    const postures = picked.map((o) => o.posture);
+    const before = picked.length;
+    take((o) => !postures.includes(o.posture));
+    if (picked.length === before) take(() => true);
+    if (picked.length === before) break;
+  }
+
+  return shuffle(picked);
+}
+
+function shuffle<T>(items: T[]): T[] {
+  const result = [...items];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+/**
+ * The situations the match engine detects. Retained as an enumeration because the
+ * engine reasons about the score, but it is now just a label for a point on the
+ * (role, stakes, pressure) axes rather than a content bucket with its own menu.
+ */
 export type KeyMomentType =
   | 'break-point-serve'
   | 'break-point-return'
@@ -93,1476 +1689,41 @@ export type KeyMomentType =
   | 'match-point-opponent-return'
   | 'key-rally';
 
-export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
-  // ============================================================
-  // BREAK POINT - SERVING (you're serving, facing break point)
-  // ============================================================
-  'break-point-serve': [
-    {
-      id: 'power_serve_t',
-      emoji: '🚀',
-      name: 'Power serve down the T',
-      description: 'Overpower them before the rally starts',
-      roles: ['serve'],
-      posture: 'power',
-      risk: 'bold',
-      strongAgainst: ['defensive', 'counterpuncher'],
-      weakAgainst: ['aggressive'],
-      bestAgainstHint: 'Best against patient opponents who sit back',
-      worstAgainstHint: 'Weak against big returners who punish a predictable serve',
-      secondaryEffects: [
-        { type: 'energy', value: -5, condition: 'always' },
-        { type: 'momentum', value: 10, condition: 'on_success' },
-        { type: 'momentum', value: -5, condition: 'on_failure' },
-        { type: 'mood', value: -3, condition: 'on_failure' },
-      ],
-      playerStatWeights: {
-        primary: 'serve',
-        primaryWeight: 0.35,
-        secondary: [
-          { stat: 'strength', weight: 0.25 },
-          { stat: 'placement', weight: 0.2 },
-          { stat: 'tactics', weight: 0.1 },
-          { stat: 'focus', weight: 0.1 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.4,
-        secondary: [
-          { stat: 'anticipation', weight: 0.25 },
-          { stat: 'speed', weight: 0.35 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.ACE, shotType: 'serve', shooter: 'player' },
-        failure: { outcome: PointType.DOUBLE_FAULT, shotType: 'serve', shooter: 'player' },
-      },
-    },
-    {
-      id: 'serve_volley_surprise',
-      emoji: '🏃',
-      name: 'Serve and charge the net',
-      description: 'Follow your serve in and finish with a volley',
-      roles: ['serve'],
-      posture: 'net',
-      risk: 'bold',
-      strongAgainst: ['counterpuncher', 'defensive'],
-      weakAgainst: ['serve_volley', 'all_court'],
-      bestAgainstHint: 'Best against baseline players who struggle with net pressure',
-      worstAgainstHint: 'Weak against players comfortable at the net who pass well',
-      secondaryEffects: [
-        { type: 'energy', value: -4, condition: 'always' },
-        { type: 'momentum', value: 8, condition: 'on_success' },
-
-      ],
-      playerStatWeights: {
-        primary: 'net',
-        primaryWeight: 0.25,
-        secondary: [
-          { stat: 'serve', weight: 0.25 },
-          { stat: 'speed', weight: 0.35 },
-          { stat: 'anticipation', weight: 0.15 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'forehand', weight: 0.2 },
-          { stat: 'placement', weight: 0.2 },
-          { stat: 'spin', weight: 0.15 },
-          { stat: 'tactics', weight: 0.15 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
-        failure: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'opponent' },
-      },
-    },
-    {
-      id: 'safe_spin_serve',
-      emoji: '🌪️',
-      name: 'Safe spin serve',
-      description: 'Heavy kick serve to start the rally on your terms',
-      roles: ['serve'],
-      posture: 'neutralize',
-      risk: 'safe',
-      strongAgainst: ['aggressive', 'serve_volley'],
-      weakAgainst: ['counterpuncher'],
-      bestAgainstHint: 'Best against attackers who thrive on pace',
-      worstAgainstHint: 'Weak against counterpunchers who love a slower ball to redirect',
-      secondaryEffects: [
-        { type: 'energy', value: -2, condition: 'always' },
-        { type: 'mood', value: 3, condition: 'on_success' },
-        { type: 'pressure', value: -3, condition: 'on_success' },
-      ],
-      playerStatWeights: {
-        primary: 'serve',
-        primaryWeight: 0.25,
-        secondary: [
-          { stat: 'spin', weight: 0.25 },
-          { stat: 'placement', weight: 0.2 },
-          { stat: 'focus', weight: 0.15 },
-          { stat: 'tactics', weight: 0.15 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'tactics', weight: 0.25 },
-          { stat: 'forehand', weight: 0.2 },
-          { stat: 'strength', weight: 0.15 },
-          { stat: 'speed', weight: 0.1 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.FORCED_ERROR, shotType: 'return', shooter: 'opponent' },
-        failure: { outcome: PointType.WINNER, shotType: 'return', shooter: 'opponent' },
-      },
-    },
-  ],
-
-  // ============================================================
-  // BREAK POINT - RETURNING (you're returning, chance to break)
-  // ============================================================
-  'break-point-return': [
-    {
-      id: 'aggressive_return_crosscourt',
-      emoji: '🔨',
-      name: 'Aggressive crosscourt return',
-      description: 'Attack with power and placement crosscourt',
-      roles: ['return'],
-      posture: 'power',
-      risk: 'bold',
-      strongAgainst: ['defensive', 'counterpuncher'],
-      weakAgainst: ['aggressive'],
-      bestAgainstHint: 'Best against opponents who sit deep behind the baseline',
-      worstAgainstHint: 'Weak against big hitters who feed off your pace',
-      secondaryEffects: [
-        { type: 'energy', value: -4, condition: 'always' },
-        { type: 'momentum', value: 10, condition: 'on_success' },
-        { type: 'momentum', value: -5, condition: 'on_failure' },
-        { type: 'mood', value: -3, condition: 'on_failure' },
-      ],
-      playerStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'forehand', weight: 0.2 },
-          { stat: 'strength', weight: 0.2 },
-          { stat: 'tactics', weight: 0.15 },
-          { stat: 'placement', weight: 0.15 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'serve',
-        primaryWeight: 0.35,
-        secondary: [
-          { stat: 'placement', weight: 0.25 },
-          { stat: 'tactics', weight: 0.2 },
-          { stat: 'anticipation', weight: 0.2 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.WINNER, shotType: 'return', shooter: 'player' },
-        failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
-      },
-    },
-    {
-      id: 'safe_return_deep',
-      emoji: '🏔️',
-      name: 'Deep neutralizing return',
-      description: 'Get the return in play with depth, extend the rally',
-      roles: ['return'],
-      posture: 'neutralize',
-      risk: 'safe',
-      strongAgainst: ['aggressive', 'serve_volley'],
-      weakAgainst: ['counterpuncher', 'defensive'],
-      bestAgainstHint: 'Best against attackers who want to end points quickly',
-      worstAgainstHint: 'Weak against grinders happy to rally all day',
-      secondaryEffects: [
-        { type: 'energy', value: 2, condition: 'always' },
-
-        { type: 'mood', value: 3, condition: 'on_success' },
-        { type: 'pressure', value: -3, condition: 'on_success' },
-      ],
-      playerStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'tactics', weight: 0.25 },
-          { stat: 'focus', weight: 0.2 },
-          { stat: 'stamina', weight: 0.15 },
-          { stat: 'anticipation', weight: 0.1 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'serve',
-        primaryWeight: 0.35,
-        secondary: [
-          { stat: 'tactics', weight: 0.25 },
-          { stat: 'strength', weight: 0.2 },
-          { stat: 'forehand', weight: 0.2 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.UNFORCED_ERROR, shotType: 'backhand', shooter: 'opponent' },
-        failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
-      },
-    },
-    {
-      id: 'chip_return_approach',
-      emoji: '🎿',
-      name: 'Chip and charge',
-      description: 'Short slice return and rush the net',
-      roles: ['return'],
-      posture: 'net',
-      risk: 'balanced',
-      strongAgainst: ['counterpuncher', 'defensive'],
-      weakAgainst: ['serve_volley', 'all_court'],
-      bestAgainstHint: 'Best against baseline grinders who hate net pressure',
-      worstAgainstHint: 'Weak against players who pass and lob comfortably',
-      secondaryEffects: [
-        { type: 'energy', value: -4, condition: 'always' },
-        { type: 'momentum', value: 8, condition: 'on_success' },
-
-      ],
-      playerStatWeights: {
-        primary: 'net',
-        primaryWeight: 0.25,
-        secondary: [
-          { stat: 'slice', weight: 0.2 },
-          { stat: 'return', weight: 0.2 },
-          { stat: 'speed', weight: 0.35 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'serve',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'spin', weight: 0.25 },
-          { stat: 'forehand', weight: 0.2 },
-          { stat: 'tactics', weight: 0.15 },
-          { stat: 'placement', weight: 0.1 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
-        failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
-      },
-    },
-  ],
-
-  // ============================================================
-  // SET POINT FOR PLAYER — PLAYER SERVING
-  // ============================================================
-  'set-point-player-serve': [
-    {
-      id: 'clutch_power_serve',
-      emoji: '💣',
-      name: 'Clutch power serve',
-      description: 'Channel everything into one massive serve',
-      roles: ['serve'],
-      posture: 'power',
-      risk: 'bold',
-      strongAgainst: ['defensive', 'counterpuncher'],
-      weakAgainst: ['aggressive'],
-      bestAgainstHint: 'Best against opponents who rely on getting the ball back',
-      worstAgainstHint: 'Weak against strong returners who thrive on pace',
-      secondaryEffects: [
-        { type: 'energy', value: -6, condition: 'always' },
-        { type: 'momentum', value: 12, condition: 'on_success' },
-        { type: 'momentum', value: -8, condition: 'on_failure' },
-        { type: 'mood', value: -5, condition: 'on_failure' },
-      ],
-      playerStatWeights: {
-        primary: 'serve',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'strength', weight: 0.25 },
-          { stat: 'focus', weight: 0.2 },
-          { stat: 'tactics', weight: 0.15 },
-          { stat: 'placement', weight: 0.1 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.35,
-        secondary: [
-          { stat: 'focus', weight: 0.25 },
-          { stat: 'anticipation', weight: 0.2 },
-          { stat: 'speed', weight: 0.2 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.ACE, shotType: 'serve', shooter: 'player' },
-        failure: { outcome: PointType.DOUBLE_FAULT, shotType: 'serve', shooter: 'player' },
-      },
-    },
-    {
-      id: 'serve_and_volley_set',
-      emoji: '🏄',
-      name: 'Serve and volley',
-      description: 'Get to the net quickly and put the volley away',
-      roles: ['serve'],
-      posture: 'net',
-      risk: 'bold',
-      strongAgainst: ['counterpuncher', 'defensive'],
-      weakAgainst: ['serve_volley', 'all_court'],
-      bestAgainstHint: 'Best against opponents anchored to the baseline',
-      worstAgainstHint: 'Weak against opponents who pass cleanly at the net',
-      secondaryEffects: [
-        { type: 'energy', value: -5, condition: 'always' },
-        { type: 'momentum', value: 10, condition: 'on_success' },
-
-      ],
-      playerStatWeights: {
-        primary: 'net',
-        primaryWeight: 0.25,
-        secondary: [
-          { stat: 'serve', weight: 0.25 },
-          { stat: 'speed', weight: 0.35 },
-          { stat: 'anticipation', weight: 0.15 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'forehand', weight: 0.2 },
-          { stat: 'placement', weight: 0.2 },
-          { stat: 'spin', weight: 0.15 },
-          { stat: 'tactics', weight: 0.15 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
-        failure: { outcome: PointType.WINNER, shotType: 'return', shooter: 'opponent' },
-      },
-    },
-    {
-      id: 'safe_spin_serve_set',
-      emoji: '💫',
-      name: 'Smart spin serve',
-      description: 'Get the serve in with heavy spin and build from there',
-      roles: ['serve'],
-      posture: 'neutralize',
-      risk: 'safe',
-      strongAgainst: ['aggressive', 'serve_volley'],
-      weakAgainst: ['counterpuncher'],
-      bestAgainstHint: 'Best against opponents who attack the return aggressively',
-      worstAgainstHint: 'Weak against counterpunchers who feast on a slow serve',
-      secondaryEffects: [
-        { type: 'energy', value: -2, condition: 'always' },
-        { type: 'mood', value: 3, condition: 'on_success' },
-        { type: 'pressure', value: -3, condition: 'on_success' },
-      ],
-      playerStatWeights: {
-        primary: 'serve',
-        primaryWeight: 0.25,
-        secondary: [
-          { stat: 'spin', weight: 0.25 },
-          { stat: 'placement', weight: 0.2 },
-          { stat: 'focus', weight: 0.15 },
-          { stat: 'tactics', weight: 0.15 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'tactics', weight: 0.25 },
-          { stat: 'forehand', weight: 0.2 },
-          { stat: 'strength', weight: 0.15 },
-          { stat: 'speed', weight: 0.1 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.FORCED_ERROR, shotType: 'return', shooter: 'opponent' },
-        failure: { outcome: PointType.WINNER, shotType: 'return', shooter: 'opponent' },
-      },
-    },
-  ],
-
-  // ============================================================
-  // SET POINT FOR PLAYER — PLAYER RETURNING
-  // ============================================================
-  'set-point-player-return': [
-    {
-      id: 'aggressive_return_set',
-      emoji: '🪓',
-      name: 'Aggressive return',
-      description: 'Take control with a powerful return',
-      roles: ['return'],
-      posture: 'power',
-      risk: 'bold',
-      strongAgainst: ['defensive', 'counterpuncher'],
-      weakAgainst: ['aggressive'],
-      bestAgainstHint: 'Best against opponents with weak serves who play safe',
-      worstAgainstHint: 'Weak against big servers who overpower your return',
-      secondaryEffects: [
-        { type: 'energy', value: -4, condition: 'always' },
-        { type: 'momentum', value: 12, condition: 'on_success' },
-        { type: 'momentum', value: -5, condition: 'on_failure' },
-        { type: 'mood', value: -5, condition: 'on_failure' },
-      ],
-      playerStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'strength', weight: 0.2 },
-          { stat: 'forehand', weight: 0.2 },
-          { stat: 'tactics', weight: 0.15 },
-          { stat: 'focus', weight: 0.15 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'serve',
-        primaryWeight: 0.35,
-        secondary: [
-          { stat: 'placement', weight: 0.25 },
-          { stat: 'strength', weight: 0.2 },
-          { stat: 'tactics', weight: 0.2 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.WINNER, shotType: 'return', shooter: 'player' },
-        failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
-      },
-    },
-    {
-      id: 'block_return_rally',
-      emoji: '🧱',
-      name: 'Block return and rally',
-      description: 'Neutralize the serve and grind out the point',
-      roles: ['return'],
-      posture: 'neutralize',
-      risk: 'safe',
-      strongAgainst: ['aggressive', 'serve_volley'],
-      weakAgainst: ['counterpuncher', 'defensive'],
-      bestAgainstHint: 'Best against big servers who fade in long rallies',
-      worstAgainstHint: 'Weak against retrievers who out-rally you',
-      secondaryEffects: [
-        { type: 'energy', value: 2, condition: 'always' },
-
-        { type: 'mood', value: 3, condition: 'on_success' },
-        { type: 'pressure', value: -3, condition: 'on_success' },
-      ],
-      playerStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.25,
-        secondary: [
-          { stat: 'backhand', weight: 0.2 },
-          { stat: 'anticipation', weight: 0.2 },
-          { stat: 'tactics', weight: 0.2 },
-          { stat: 'stamina', weight: 0.15 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'serve',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'forehand', weight: 0.25 },
-          { stat: 'tactics', weight: 0.2 },
-          { stat: 'stamina', weight: 0.15 },
-          { stat: 'strength', weight: 0.1 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.UNFORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
-        failure: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'player' },
-      },
-    },
-    {
-      id: 'drop_shot_return_set',
-      emoji: '🦋',
-      name: 'Drop shot off the return',
-      description: 'Catch them off guard with a disguised drop shot',
-      roles: ['return'],
-      posture: 'deception',
-      risk: 'bold',
-      strongAgainst: ['counterpuncher', 'defensive'],
-      weakAgainst: ['serve_volley', 'all_court'],
-      bestAgainstHint: 'Best against opponents who hang back expecting a rally',
-      worstAgainstHint: 'Weak against quick opponents who read the drop and counter',
-      secondaryEffects: [
-        { type: 'energy', value: -2, condition: 'always' },
-
-        { type: 'momentum', value: 8, condition: 'on_success' },
-      ],
-      playerStatWeights: {
-        primary: 'placement',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'return', weight: 0.2 },
-          { stat: 'spin', weight: 0.2 },
-          { stat: 'tactics', weight: 0.15 },
-          { stat: 'focus', weight: 0.15 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'speed',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'anticipation', weight: 0.25 },
-          { stat: 'net', weight: 0.25 },
-          { stat: 'stamina', weight: 0.2 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.WINNER, shotType: 'dropShot', shooter: 'player' },
-        failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
-      },
-    },
-  ],
-
-  // ============================================================
-  // SET POINT FOR OPPONENT — PLAYER SERVING
-  // ============================================================
-    'set-point-opponent-serve': [
-    {
-      id: 'big_serve_pressure',
-      emoji: '🌋',
-      name: 'Big serve under pressure',
-      description: 'Go for a powerful serve to take control of the point',
-      roles: ['return'],
-      posture: 'power',
-      risk: 'bold',
-      strongAgainst: ['defensive', 'counterpuncher'],
-      weakAgainst: ['aggressive'],
-      bestAgainstHint: 'Best against opponents with weak returns who play safe',
-      worstAgainstHint: 'Weak against sharp returners who punish anything short',
-      secondaryEffects: [
-        { type: 'energy', value: -5, condition: 'always' },
-        { type: 'momentum', value: 10, condition: 'on_success' },
-        { type: 'momentum', value: -8, condition: 'on_failure' },
-        { type: 'mood', value: -3, condition: 'on_failure' },
-      ],
-      playerStatWeights: {
-        primary: 'serve',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'strength', weight: 0.25 },
-          { stat: 'placement', weight: 0.2 },
-          { stat: 'focus', weight: 0.15 },
-          { stat: 'tactics', weight: 0.1 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.35,
-        secondary: [
-          { stat: 'anticipation', weight: 0.25 },
-          { stat: 'speed', weight: 0.2 },
-          { stat: 'tactics', weight: 0.2 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.ACE, shotType: 'serve', shooter: 'player' },
-        failure: { outcome: PointType.DOUBLE_FAULT, shotType: 'serve', shooter: 'player' },
-      },
-    },
-    {
-      id: 'slice_serve_rally',
-      emoji: '🪃',
-      name: 'Slice serve and rally',
-      description: 'Use a slice serve to disrupt their timing, then build the point',
-      roles: ['return'],
-      posture: 'variety',
-      risk: 'balanced',
-      strongAgainst: ['aggressive', 'serve_volley'],
-      weakAgainst: ['counterpuncher'],
-      bestAgainstHint: 'Best against opponents who attack returns aggressively',
-      worstAgainstHint: 'Weak against counterpunchers who neutralize spin',
-      secondaryEffects: [
-        { type: 'energy', value: -2, condition: 'always' },
-
-        { type: 'mood', value: 2, condition: 'on_success' },
-        { type: 'pressure', value: -3, condition: 'on_success' },
-      ],
-      playerStatWeights: {
-        primary: 'slice',
-        primaryWeight: 0.25,
-        secondary: [
-          { stat: 'serve', weight: 0.25 },
-          { stat: 'placement', weight: 0.2 },
-          { stat: 'spin', weight: 0.15 },
-          { stat: 'focus', weight: 0.15 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'forehand', weight: 0.25 },
-          { stat: 'speed', weight: 0.2 },
-          { stat: 'tactics', weight: 0.15 },
-          { stat: 'spin', weight: 0.1 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.FORCED_ERROR, shotType: 'return', shooter: 'opponent' },
-        failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
-      },
-    },
-    {
-      id: 'serve_volley_set_opp',
-      emoji: '🦅',
-      name: 'Serve and volley',
-      description: 'Rush the net after your serve to end the point quickly',
-      roles: ['return'],
-      posture: 'net',
-      risk: 'bold',
-      strongAgainst: ['counterpuncher', 'defensive'],
-      weakAgainst: ['serve_volley', 'all_court'],
-      bestAgainstHint: 'Best against opponents who struggle to pass at the net',
-      worstAgainstHint: 'Weak against opponents who pass and lob under pressure',
-      secondaryEffects: [
-        { type: 'energy', value: -5, condition: 'always' },
-        { type: 'momentum', value: 10, condition: 'on_success' },
-
-      ],
-      playerStatWeights: {
-        primary: 'net',
-        primaryWeight: 0.25,
-        secondary: [
-          { stat: 'serve', weight: 0.25 },
-          { stat: 'speed', weight: 0.35 },
-          { stat: 'anticipation', weight: 0.15 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'forehand', weight: 0.2 },
-          { stat: 'placement', weight: 0.2 },
-          { stat: 'spin', weight: 0.15 },
-          { stat: 'tactics', weight: 0.15 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
-        failure: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'opponent' },
-      },
-    },
-  ],
-
-  // ============================================================
-  // SET POINT FOR OPPONENT — PLAYER RETURNING
-  // ============================================================
-  'set-point-opponent-return': [
-    {
-      id: 'defensive_rally_setup',
-      emoji: '🏰',
-      name: 'Defensive rally setup',
-      description: 'Stay in the point with consistency and court coverage',
-      roles: ['return'],
-      posture: 'neutralize',
-      risk: 'safe',
-      strongAgainst: ['aggressive', 'serve_volley'],
-      weakAgainst: ['counterpuncher', 'defensive'],
-      bestAgainstHint: 'Best against opponents who go for too much under pressure',
-      worstAgainstHint: 'Weak against grinders who out-last you in the rally',
-      secondaryEffects: [
-        { type: 'energy', value: 2, condition: 'always' },
-
-        { type: 'mood', value: 3, condition: 'on_success' },
-        { type: 'pressure', value: -5, condition: 'on_success' },
-      ],
-      playerStatWeights: {
-        primary: 'tactics',
-        primaryWeight: 0.25,
-        secondary: [
-          { stat: 'stamina', weight: 0.35 },
-          { stat: 'speed', weight: 0.2 },
-          { stat: 'focus', weight: 0.1 },
-          { stat: 'anticipation', weight: 0.1 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'tactics',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'strength', weight: 0.25 },
-          { stat: 'placement', weight: 0.2 },
-          { stat: 'forehand', weight: 0.15 },
-          { stat: 'spin', weight: 0.1 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.UNFORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
-        failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
-      },
-    },
-    {
-      id: 'pressure_free_swing',
-      emoji: '🎪',
-      name: 'Nothing-to-lose swing',
-      description: 'Swing freely — go for winners with variety',
-      roles: ['return'],
-      posture: 'power',
-      risk: 'bold',
-      strongAgainst: ['defensive', 'counterpuncher'],
-      weakAgainst: ['aggressive'],
-      bestAgainstHint: 'Best against opponents who expect you to play safe',
-      worstAgainstHint: 'Weak against big hitters who beat you to the punch',
-      secondaryEffects: [
-        { type: 'energy', value: -5, condition: 'always' },
-        { type: 'momentum', value: 12, condition: 'on_success' },
-
-        { type: 'momentum', value: -5, condition: 'on_failure' },
-        { type: 'mood', value: -5, condition: 'on_failure' },
-      ],
-      playerStatWeights: {
-        primary: 'forehand',
-        primaryWeight: 0.25,
-        secondary: [
-          { stat: 'strength', weight: 0.2 },
-          { stat: 'spin', weight: 0.2 },
-          { stat: 'tactics', weight: 0.2 },
-          { stat: 'placement', weight: 0.15 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'tactics',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'anticipation', weight: 0.25 },
-          { stat: 'speed', weight: 0.35 },
-          { stat: 'stamina', weight: 0.1 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'player' },
-        failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'backhand', shooter: 'player' },
-      },
-    },
-    {
-      id: 'drop_shot_surprise',
-      emoji: '🎭',
-      name: 'Drop shot surprise',
-      description: 'Catch them off guard with a disguised drop shot',
-      roles: ['return'],
-      posture: 'deception',
-      risk: 'bold',
-      strongAgainst: ['counterpuncher', 'defensive'],
-      weakAgainst: ['serve_volley', 'all_court'],
-      bestAgainstHint: 'Best against opponents who camp deep behind the baseline',
-      worstAgainstHint: 'Weak against fast opponents who chase down the drop',
-      secondaryEffects: [
-        { type: 'energy', value: -2, condition: 'always' },
-
-        { type: 'momentum', value: 8, condition: 'on_success' },
-      ],
-      playerStatWeights: {
-        primary: 'placement',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'spin', weight: 0.2 },
-          { stat: 'slice', weight: 0.2 },
-          { stat: 'tactics', weight: 0.15 },
-          { stat: 'focus', weight: 0.15 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'speed',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'anticipation', weight: 0.25 },
-          { stat: 'net', weight: 0.25 },
-          { stat: 'stamina', weight: 0.2 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.WINNER, shotType: 'dropShot', shooter: 'player' },
-        failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
-      },
-    },
-  ],
-
-  // ============================================================
-  // MATCH POINT FOR PLAYER — PLAYER SERVING
-  // ============================================================
-  'match-point-player-serve': [
-    {
-      id: 'match_winning_serve',
-      emoji: '🏹',
-      name: 'Championship serve',
-      description: 'Go for the match-winning ace with power and placement',
-      roles: ['serve'],
-      posture: 'power',
-      risk: 'bold',
-      strongAgainst: ['defensive', 'counterpuncher'],
-      weakAgainst: ['aggressive'],
-      bestAgainstHint: 'Best against opponents who rely on getting the ball back',
-      worstAgainstHint: 'Weak against elite returners who thrive under pressure',
-      secondaryEffects: [
-        { type: 'energy', value: -6, condition: 'always' },
-        { type: 'momentum', value: 15, condition: 'on_success' },
-        { type: 'momentum', value: -10, condition: 'on_failure' },
-        { type: 'mood', value: -5, condition: 'on_failure' },
-      ],
-      playerStatWeights: {
-        primary: 'serve',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'strength', weight: 0.2 },
-          { stat: 'placement', weight: 0.2 },
-          { stat: 'focus', weight: 0.15 },
-          { stat: 'tactics', weight: 0.15 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.35,
-        secondary: [
-          { stat: 'anticipation', weight: 0.25 },
-          { stat: 'speed', weight: 0.2 },
-          { stat: 'focus', weight: 0.2 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.ACE, shotType: 'serve', shooter: 'player' },
-        failure: { outcome: PointType.DOUBLE_FAULT, shotType: 'serve', shooter: 'player' },
-      },
-    },
-    {
-      id: 'serve_volley_finish',
-      emoji: '🌊',
-      name: 'Serve and volley',
-      description: 'Get to the net quickly and put the match away at the net',
-      roles: ['serve'],
-      posture: 'net',
-      risk: 'bold',
-      strongAgainst: ['counterpuncher', 'defensive'],
-      weakAgainst: ['serve_volley', 'all_court'],
-      bestAgainstHint: 'Best against baseline players who can\'t pass',
-      worstAgainstHint: 'Weak against opponents who pass with ease',
-      secondaryEffects: [
-        { type: 'energy', value: -5, condition: 'always' },
-        { type: 'momentum', value: 10, condition: 'on_success' },
-
-      ],
-      playerStatWeights: {
-        primary: 'net',
-        primaryWeight: 0.25,
-        secondary: [
-          { stat: 'serve', weight: 0.25 },
-          { stat: 'speed', weight: 0.35 },
-          { stat: 'anticipation', weight: 0.15 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'forehand', weight: 0.2 },
-          { stat: 'placement', weight: 0.2 },
-          { stat: 'spin', weight: 0.15 },
-          { stat: 'tactics', weight: 0.15 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
-        failure: { outcome: PointType.WINNER, shotType: 'return', shooter: 'opponent' },
-      },
-    },
-    {
-      id: 'match_safe_serve',
-      emoji: '🐚',
-      name: 'Smart spin serve',
-      description: 'Get the serve in with heavy spin and work the rally',
-      roles: ['serve'],
-      posture: 'neutralize',
-      risk: 'safe',
-      strongAgainst: ['aggressive', 'serve_volley'],
-      weakAgainst: ['counterpuncher'],
-      bestAgainstHint: 'Best against opponents who attack the return aggressively',
-      worstAgainstHint: 'Weak against counterpunchers who redirect the spin',
-      secondaryEffects: [
-        { type: 'energy', value: -3, condition: 'always' },
-
-        { type: 'mood', value: 3, condition: 'on_success' },
-        { type: 'pressure', value: -5, condition: 'on_success' },
-      ],
-      playerStatWeights: {
-        primary: 'serve',
-        primaryWeight: 0.25,
-        secondary: [
-          { stat: 'spin', weight: 0.2 },
-          { stat: 'focus', weight: 0.2 },
-          { stat: 'placement', weight: 0.15 },
-          { stat: 'stamina', weight: 0.1 },
-          { stat: 'tactics', weight: 0.1 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'tactics', weight: 0.25 },
-          { stat: 'forehand', weight: 0.2 },
-          { stat: 'strength', weight: 0.15 },
-          { stat: 'speed', weight: 0.1 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.FORCED_ERROR, shotType: 'serve', shooter: 'opponent' },
-        failure: { outcome: PointType.WINNER, shotType: 'return', shooter: 'opponent' },
-      },
-    },
-  ],
-
-  // ============================================================
-  // MATCH POINT FOR PLAYER — PLAYER RETURNING
-  // ============================================================
-  'match-point-player-return': [
-    {
-      id: 'aggressive_return_match',
-      emoji: '💢',
-      name: 'Aggressive return',
-      description: 'Take control with a powerful return to win the match',
-      roles: ['return'],
-      posture: 'power',
-      risk: 'bold',
-      strongAgainst: ['defensive', 'counterpuncher'],
-      weakAgainst: ['aggressive'],
-      bestAgainstHint: 'Best against opponents with weak serves',
-      worstAgainstHint: 'Weak against big servers who take your pace and run',
-      secondaryEffects: [
-        { type: 'energy', value: -5, condition: 'always' },
-        { type: 'momentum', value: 15, condition: 'on_success' },
-        { type: 'momentum', value: -5, condition: 'on_failure' },
-        { type: 'mood', value: -5, condition: 'on_failure' },
-      ],
-      playerStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'strength', weight: 0.2 },
-          { stat: 'forehand', weight: 0.2 },
-          { stat: 'tactics', weight: 0.15 },
-          { stat: 'focus', weight: 0.15 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'serve',
-        primaryWeight: 0.35,
-        secondary: [
-          { stat: 'placement', weight: 0.25 },
-          { stat: 'strength', weight: 0.2 },
-          { stat: 'tactics', weight: 0.2 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.WINNER, shotType: 'return', shooter: 'player' },
-        failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
-      },
-    },
-    {
-      id: 'read_and_react',
-      emoji: '🔮',
-      name: 'Read and react',
-      description: 'Anticipate the serve direction and redirect with precision',
-      roles: ['return'],
-      posture: 'variety',
-      risk: 'balanced',
-      strongAgainst: ['aggressive', 'serve_volley'],
-      weakAgainst: ['all_court'],
-      bestAgainstHint: 'Best against predictable servers with big wind-ups',
-      worstAgainstHint: 'Weak against versatile servers who disguise their placement',
-      secondaryEffects: [
-        { type: 'energy', value: -2, condition: 'always' },
-
-        { type: 'mood', value: 3, condition: 'on_success' },
-        { type: 'pressure', value: -5, condition: 'on_success' },
-      ],
-      playerStatWeights: {
-        primary: 'anticipation',
-        primaryWeight: 0.25,
-        secondary: [
-          { stat: 'return', weight: 0.25 },
-          { stat: 'backhand', weight: 0.2 },
-          { stat: 'placement', weight: 0.15 },
-          { stat: 'speed', weight: 0.15 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'serve',
-        primaryWeight: 0.35,
-        secondary: [
-          { stat: 'spin', weight: 0.35 },
-          { stat: 'placement', weight: 0.2 },
-          { stat: 'strength', weight: 0.1 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.FORCED_ERROR, shotType: 'return', shooter: 'opponent' },
-        failure: { outcome: PointType.FORCED_ERROR, shotType: 'return', shooter: 'player' },
-      },
-    },
-    {
-      id: 'chip_charge_match',
-      emoji: '🃏',
-      name: 'Chip and charge',
-      description: 'Slice the return and rush the net to end it',
-      roles: ['return'],
-      posture: 'net',
-      risk: 'balanced',
-      strongAgainst: ['counterpuncher', 'defensive'],
-      weakAgainst: ['serve_volley', 'all_court'],
-      bestAgainstHint: 'Best against baseline grinders who hate net pressure',
-      worstAgainstHint: 'Weak against opponents comfortable passing at the net',
-      secondaryEffects: [
-        { type: 'energy', value: -5, condition: 'always' },
-        { type: 'momentum', value: 10, condition: 'on_success' },
-
-      ],
-      playerStatWeights: {
-        primary: 'net',
-        primaryWeight: 0.25,
-        secondary: [
-          { stat: 'slice', weight: 0.2 },
-          { stat: 'return', weight: 0.2 },
-          { stat: 'speed', weight: 0.35 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'serve',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'spin', weight: 0.25 },
-          { stat: 'forehand', weight: 0.2 },
-          { stat: 'tactics', weight: 0.15 },
-          { stat: 'placement', weight: 0.1 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
-        failure: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'opponent' },
-      },
-    },
-  ],
-
-  // ============================================================
-  // MATCH POINT FOR OPPONENT — PLAYER SERVING
-  // ============================================================
-  'match-point-opponent-serve': [
-    {
-      id: 'desperate_winner_attempt',
-      emoji: '🎲',
-      name: 'Big serve to survive',
-      description: 'Go for a huge serve to stay in the match',
-      roles: ['serve'],
-      posture: 'power',
-      risk: 'bold',
-      strongAgainst: ['defensive', 'counterpuncher'],
-      weakAgainst: ['aggressive'],
-      bestAgainstHint: 'Best against opponents who struggle with pace on the return',
-      worstAgainstHint: 'Weak against returners who feed off pace',
-      secondaryEffects: [
-        { type: 'energy', value: -6, condition: 'always' },
-        { type: 'momentum', value: 12, condition: 'on_success' },
-
-        { type: 'momentum', value: -5, condition: 'on_failure' },
-        { type: 'mood', value: -5, condition: 'on_failure' },
-      ],
-      playerStatWeights: {
-        primary: 'serve',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'strength', weight: 0.25 },
-          { stat: 'placement', weight: 0.2 },
-          { stat: 'tactics', weight: 0.15 },
-          { stat: 'focus', weight: 0.1 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.35,
-        secondary: [
-          { stat: 'anticipation', weight: 0.25 },
-          { stat: 'speed', weight: 0.4 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.ACE, shotType: 'serve', shooter: 'player' },
-        failure: { outcome: PointType.DOUBLE_FAULT, shotType: 'serve', shooter: 'player' },
-      },
-    },
-    {
-      id: 'slice_serve_grind',
-      emoji: '🌙',
-      name: 'Slice serve and grind',
-      description: 'Disrupt their timing and make them work for it',
-      roles: ['serve'],
-      posture: 'attrition',
-      risk: 'balanced',
-      strongAgainst: ['aggressive', 'serve_volley'],
-      weakAgainst: ['counterpuncher'],
-      bestAgainstHint: 'Best against opponents who attack returns aggressively',
-      worstAgainstHint: 'Weak against counterpunchers who love the slower ball',
-      secondaryEffects: [
-        { type: 'energy', value: 2, condition: 'always' },
-
-        { type: 'mood', value: 3, condition: 'on_success' },
-        { type: 'pressure', value: -5, condition: 'on_success' },
-      ],
-      playerStatWeights: {
-        primary: 'slice',
-        primaryWeight: 0.25,
-        secondary: [
-          { stat: 'serve', weight: 0.25 },
-          { stat: 'tactics', weight: 0.2 },
-          { stat: 'stamina', weight: 0.15 },
-          { stat: 'focus', weight: 0.15 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'tactics', weight: 0.25 },
-          { stat: 'forehand', weight: 0.2 },
-          { stat: 'strength', weight: 0.15 },
-          { stat: 'speed', weight: 0.1 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
-        failure: { outcome: PointType.WINNER, shotType: 'return', shooter: 'opponent' },
-      },
-    },
-    {
-      id: 'serve_volley_desperation',
-      emoji: '🏇',
-      name: 'Serve and charge',
-      description: 'Rush the net — force them to hit a passing shot under pressure',
-      roles: ['serve'],
-      posture: 'net',
-      risk: 'bold',
-      strongAgainst: ['counterpuncher', 'defensive'],
-      weakAgainst: ['serve_volley', 'all_court'],
-      bestAgainstHint: 'Best against opponents who freeze when you come to the net',
-      worstAgainstHint: 'Weak against clean passers who punish the net rush',
-      secondaryEffects: [
-        { type: 'energy', value: -5, condition: 'always' },
-        { type: 'momentum', value: 10, condition: 'on_success' },
-
-      ],
-      playerStatWeights: {
-        primary: 'net',
-        primaryWeight: 0.25,
-        secondary: [
-          { stat: 'serve', weight: 0.25 },
-          { stat: 'speed', weight: 0.35 },
-          { stat: 'anticipation', weight: 0.15 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'forehand', weight: 0.2 },
-          { stat: 'placement', weight: 0.2 },
-          { stat: 'spin', weight: 0.15 },
-          { stat: 'tactics', weight: 0.15 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
-        failure: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'opponent' },
-      },
-    },
-  ],
-
-  
-  // ============================================================
-  // MATCH POINT FOR OPPONENT — PLAYER RETURNING
-  // ============================================================
-  'match-point-opponent-return': [
-    {
-      id: 'desperate_attack_return',
-      emoji: '🧨',
-      name: 'All-out attack return',
-      description: 'Nothing to lose — go after the return with everything',
-      roles: ['return'],
-      posture: 'power',
-      risk: 'bold',
-      strongAgainst: ['defensive', 'counterpuncher'],
-      weakAgainst: ['aggressive'],
-      bestAgainstHint: 'Best against opponents with tentative serves under pressure',
-      worstAgainstHint: 'Weak against big servers who overpower the attack',
-      secondaryEffects: [
-        { type: 'energy', value: -5, condition: 'always' },
-        { type: 'momentum', value: 12, condition: 'on_success' },
-
-        { type: 'momentum', value: -5, condition: 'on_failure' },
-        { type: 'mood', value: -5, condition: 'on_failure' },
-      ],
-      playerStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'strength', weight: 0.2 },
-          { stat: 'forehand', weight: 0.2 },
-          { stat: 'tactics', weight: 0.15 },
-          { stat: 'focus', weight: 0.15 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'serve',
-        primaryWeight: 0.35,
-        secondary: [
-          { stat: 'placement', weight: 0.25 },
-          { stat: 'strength', weight: 0.2 },
-          { stat: 'tactics', weight: 0.2 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.WINNER, shotType: 'return', shooter: 'player' },
-        failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
-      },
-    },
-    {
-      id: 'deep_return_grind',
-      emoji: '⛰️',
-      name: 'Deep return and grind',
-      description: 'Get the return deep and make them earn the match',
-      roles: ['return'],
-      posture: 'attrition',
-      risk: 'safe',
-      strongAgainst: ['aggressive', 'serve_volley'],
-      weakAgainst: ['counterpuncher', 'defensive'],
-      bestAgainstHint: 'Best against opponents who crack under extended rallies',
-      worstAgainstHint: 'Weak against retrievers who happily extend the rally',
-      secondaryEffects: [
-        { type: 'energy', value: 2, condition: 'always' },
-
-        { type: 'mood', value: 3, condition: 'on_success' },
-        { type: 'pressure', value: -5, condition: 'on_success' },
-      ],
-      playerStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.25,
-        secondary: [
-          { stat: 'tactics', weight: 0.2 },
-          { stat: 'stamina', weight: 0.2 },
-          { stat: 'focus', weight: 0.15 },
-          { stat: 'anticipation', weight: 0.1 },
-          { stat: 'speed', weight: 0.1 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'serve',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'tactics', weight: 0.25 },
-          { stat: 'strength', weight: 0.2 },
-          { stat: 'stamina', weight: 0.15 },
-          { stat: 'forehand', weight: 0.1 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.UNFORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
-        failure: { outcome: PointType.FORCED_ERROR, shotType: 'return', shooter: 'player' },
-      },
-    },
-    {
-      id: 'lob_and_reset_match',
-      emoji: '🌈',
-      name: 'Lob and reset',
-      description: 'Buy time with a high lob to reset the rally',
-      roles: ['return'],
-      posture: 'neutralize',
-      risk: 'safe',
-      strongAgainst: ['counterpuncher', 'defensive'],
-      weakAgainst: ['serve_volley', 'all_court'],
-      bestAgainstHint: 'Best against opponents stuck deep who struggle with overheads',
-      worstAgainstHint: 'Weak against opponents with a crushing overhead',
-      secondaryEffects: [
-        { type: 'energy', value: 3, condition: 'always' },
-
-        { type: 'mood', value: 3, condition: 'on_success' },
-        { type: 'pressure', value: -5, condition: 'on_success' },
-      ],
-      playerStatWeights: {
-        primary: 'spin',
-        primaryWeight: 0.25,
-        secondary: [
-          { stat: 'tactics', weight: 0.2 },
-          { stat: 'placement', weight: 0.2 },
-          { stat: 'focus', weight: 0.15 },
-          { stat: 'anticipation', weight: 0.1 },
-          { stat: 'speed', weight: 0.1 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'net',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'speed', weight: 0.4 },
-          { stat: 'tactics', weight: 0.15 },
-          { stat: 'strength', weight: 0.15 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.UNFORCED_ERROR, shotType: 'overhead', shooter: 'opponent' },
-        failure: { outcome: PointType.WINNER, shotType: 'overhead', shooter: 'opponent' },
-      },
-    },
-  ],
-
-  // ============================================================
-  // KEY RALLY - Mid-game rally key moment at 40-40 or 30-30
-  // ============================================================
-  'key-rally': [
-    {
-      id: 'aggressive_rally_push',
-      emoji: '🏎️',
-      name: 'Push the accelerator',
-      description: 'Go for broke - take control and force the winner',
-      roles: ['rally'],
-      posture: 'power',
-      risk: 'bold',
-      strongAgainst: ['defensive', 'counterpuncher'],
-      weakAgainst: ['aggressive', 'all_court'],
-      bestAgainstHint: 'Best against opponents who play conservatively',
-      worstAgainstHint: 'Weak against opponents who counter pace and take time away',
-      secondaryEffects: [
-        { type: 'energy', value: -4, condition: 'always' },
-        { type: 'momentum', value: 10, condition: 'on_success' },
-        { type: 'momentum', value: -8, condition: 'on_failure' },
-        { type: 'mood', value: -5, condition: 'on_failure' },
-      ],
-      playerStatWeights: {
-        primary: 'tactics',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'forehand', weight: 0.25 },
-          { stat: 'strength', weight: 0.2 },
-          { stat: 'placement', weight: 0.15 },
-          { stat: 'focus', weight: 0.1 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'tactics',
-        primaryWeight: 0.35,
-        secondary: [
-          { stat: 'focus', weight: 0.25 },
-          { stat: 'anticipation', weight: 0.2 },
-          { stat: 'stamina', weight: 0.1 },
-          { stat: 'speed', weight: 0.1 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'player' },
-        failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'forehand', shooter: 'player' },
-      },
-    },
-    {
-      id: 'patient_rally_construct',
-      emoji: '🧩',
-      name: 'Patiently construct the point',
-      description: 'Stay patient - move the opponent around and wait for the opening',
-      roles: ['rally'],
-      posture: 'attrition',
-      risk: 'safe',
-      strongAgainst: ['aggressive', 'all_court'],
-      weakAgainst: ['defensive', 'counterpuncher'],
-      bestAgainstHint: 'Best against opponents who overcommit and take big swings',
-      worstAgainstHint: 'Weak against grinders who out-patient you',
-      secondaryEffects: [
-        { type: 'energy', value: 2, condition: 'always' },
-        { type: 'mood', value: 3, condition: 'on_success' },
-        { type: 'pressure', value: -3, condition: 'on_success' },
-      ],
-      playerStatWeights: {
-        primary: 'tactics',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'focus', weight: 0.25 },
-          { stat: 'anticipation', weight: 0.2 },
-          { stat: 'backhand', weight: 0.15 },
-          { stat: 'stamina', weight: 0.1 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'tactics',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'focus', weight: 0.25 },
-          { stat: 'forehand', weight: 0.2 },
-          { stat: 'strength', weight: 0.15 },
-          { stat: 'placement', weight: 0.1 }
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'opponent' },
-        failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'backhand', shooter: 'player' },
-      },
-    },
-    {
-      id: 'net_attack_command',
-      emoji: '🧗',
-      name: 'Attack the net',
-      description: 'Move to the net - force an approach shot and close out the point',
-      roles: ['rally'],
-      posture: 'net',
-      risk: 'bold',
-      strongAgainst: ['counterpuncher', 'defensive'],
-      weakAgainst: ['serve_volley', 'aggressive'],
-      bestAgainstHint: 'Best against opponents who play defensively and stay back',
-      worstAgainstHint: 'Weak against opponents who pass well and love a target at the net',
-      secondaryEffects: [
-        { type: 'energy', value: -5, condition: 'always' },
-        { type: 'momentum', value: 12, condition: 'on_success' },
-        { type: 'momentum', value: -5, condition: 'on_failure' },
-      ],
-      playerStatWeights: {
-        primary: 'net',
-        primaryWeight: 0.3,
-        secondary: [
-          { stat: 'tactics', weight: 0.25 },
-          { stat: 'speed', weight: 0.3 },
-          { stat: 'anticipation', weight: 0.15 },
-        ],
-      },
-      opponentStatWeights: {
-        primary: 'return',
-        primaryWeight: 0.35,
-        secondary: [
-          { stat: 'forehand', weight: 0.25 },
-          { stat: 'tactics', weight: 0.2 },
-          { stat: 'spin', weight: 0.1 },
-          { stat: 'anticipation', weight: 0.1 },
-        ],
-      },
-      shotOutcomes: {
-        success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
-        failure: { outcome: PointType.WINNER, shotType: 'return', shooter: 'opponent' },
-      },
-    },
-  ],
+const SITUATIONS: Record<KeyMomentType, Omit<KeyMomentSituation, 'serverRole'>> = {
+  'break-point-serve':           { role: 'serve',  stakes: 'break', pressure: 'defending' },
+  'break-point-return':          { role: 'return', stakes: 'break', pressure: 'converting' },
+  'set-point-player-serve':      { role: 'serve',  stakes: 'set',   pressure: 'converting' },
+  'set-point-player-return':     { role: 'return', stakes: 'set',   pressure: 'converting' },
+  'set-point-opponent-serve':    { role: 'serve',  stakes: 'set',   pressure: 'defending' },
+  'set-point-opponent-return':   { role: 'return', stakes: 'set',   pressure: 'defending' },
+  'match-point-player-serve':    { role: 'serve',  stakes: 'match', pressure: 'converting' },
+  'match-point-player-return':   { role: 'return', stakes: 'match', pressure: 'converting' },
+  'match-point-opponent-serve':  { role: 'serve',  stakes: 'match', pressure: 'defending' },
+  'match-point-opponent-return': { role: 'return', stakes: 'match', pressure: 'defending' },
+  // A deuce point tests point construction, so it draws rally options alongside
+  // the serving or returning ones for whoever happens to be serving.
+  'key-rally':                   { role: 'rally',  stakes: 'deuce', pressure: 'converting' },
 };
 
-/**
- * Get tactical options for a specific key moment type
- */
-export function getOptionsForSituation(momentType: KeyMomentType): TacticalOption[] {
-  return TACTICAL_OPTIONS[momentType] || [];
+/** Decompose a detected key moment into the axes that decide option eligibility. */
+export function getSituation(
+  type: KeyMomentType,
+  server: 'player' | 'opponent'
+): KeyMomentSituation {
+  return { ...SITUATIONS[type], serverRole: server === 'player' ? 'serve' : 'return' };
 }
 
-/**
- * Get a specific option by ID
- */
+/** Draw the menu for a detected key moment. */
+export function getOptionsForSituation(
+  type: KeyMomentType,
+  server: 'player' | 'opponent',
+  count = 3,
+  avoidPostures: KeyMomentPosture[] = []
+): TacticalOption[] {
+  return drawOptions(getSituation(type, server), count, avoidPostures);
+}
+
+/** Get a specific option by ID. */
 export function getOptionById(id: string): TacticalOption | undefined {
-  for (const options of Object.values(TACTICAL_OPTIONS)) {
-    const found = options.find(option => option.id === id);
-    if (found) return found;
-  }
-  return undefined;
+  return TACTICAL_OPTIONS.find((option) => option.id === id);
 }

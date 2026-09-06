@@ -15,7 +15,12 @@
 import { KeyMomentResolver } from '../../game/KeyMomentResolver';
 import { MatchOrchestrator } from '../../game/MatchOrchestrator';
 import { KEY_MOMENT } from '../../config/shotThresholds';
-import { TACTICAL_OPTIONS, TacticalOption, KeyMomentType } from '../../data/tacticalOptions';
+import {
+  TACTICAL_OPTIONS, TacticalOption, KeyMomentType,
+  getSituation, getEligibleOptions, getOptionsForSituation,
+} from '../../data/tacticalOptions';
+import { getMatchup } from '../../data/postures';
+import { KEY_MOMENT_OPTIONS_PER_MENU } from '../../config/matchRewards';
 import { ARCHETYPE_DATA } from '../../data/archetypes';
 import type { ArchetypeType } from '../../data/archetypes';
 import type { PlayerStats } from '../../types/game';
@@ -40,11 +45,17 @@ const N_MATCHES = Number(process.env.N_MATCHES ?? 60);
 const FORMAT = (process.env.FORMAT ?? 'best-of-1') as 'best-of-1' | 'best-of-3';
 
 const ARCHETYPES = Object.keys(ARCHETYPE_DATA) as ArchetypeType[];
-const ALL_OPTIONS: Array<{ type: KeyMomentType; option: TacticalOption }> = Object.entries(
-  TACTICAL_OPTIONS,
-).flatMap(([type, opts]) =>
-  opts.map((option) => ({ type: type as KeyMomentType, option })),
-);
+const ALL_OPTIONS: Array<{ option: TacticalOption }> = TACTICAL_OPTIONS.map((option) => ({ option }));
+
+/** Every situation the engine can detect. */
+const SITUATION_TYPES: KeyMomentType[] = [
+  'break-point-serve', 'break-point-return',
+  'set-point-player-serve', 'set-point-player-return',
+  'set-point-opponent-serve', 'set-point-opponent-return',
+  'match-point-player-serve', 'match-point-player-return',
+  'match-point-opponent-serve', 'match-point-opponent-return',
+  'key-rally',
+];
 
 const statsAt = (rating: number): PlayerStats =>
   createUniformPlayer(`p${rating}`, rating).stats as unknown as PlayerStats;
@@ -67,11 +78,8 @@ function probeSuccessRates(): void {
         const p = KeyMomentResolver.calculateSuccessProbability(
           player, opponent, option, arch,
         );
-        const key = option.strongAgainst.includes(arch)
-          ? 'counter'
-          : option.weakAgainst.includes(arch)
-            ? 'weak'
-            : 'neutral';
+        const verdict = getMatchup(option.posture, arch);
+        const key = verdict === 'strong' ? 'counter' : verdict === 'weak' ? 'weak' : 'neutral';
         bucket[key].push(p);
       }
     }
@@ -104,8 +112,9 @@ function probeCounterCoverage(): void {
     let weak = 0;
     let neutral = 0;
     for (const { option } of ALL_OPTIONS) {
-      if (option.strongAgainst.includes(arch)) strong++;
-      else if (option.weakAgainst.includes(arch)) weak++;
+      const verdict = getMatchup(option.posture, arch);
+      if (verdict === 'strong') strong++;
+      else if (verdict === 'weak') weak++;
       else neutral++;
     }
     rows.push([
@@ -121,26 +130,42 @@ function probeCounterCoverage(): void {
     rows,
   );
 
-  // Per-situation view: within a single 3-option menu, how many are a good read?
-  printHeader('Reads available inside one menu (per situation × opponent)');
-  const dist: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0 };
-  const deadMenus: string[] = [];
-  for (const [type, opts] of Object.entries(TACTICAL_OPTIONS)) {
-    for (const arch of ARCHETYPES) {
-      const n = opts.filter((o) => o.strongAgainst.includes(arch)).length;
-      dist[n] = (dist[n] ?? 0) + 1;
-      if (n === 0) deadMenus.push(`${type} vs ${arch}`);
+  // A drawn menu is 3 options, not the whole eligible pool, so sample real draws.
+  printHeader('Good reads in an actual drawn menu (1000 draws per situation x opponent)');
+  const dist: Record<number, number> = {};
+  const noRead: Record<string, number> = {};
+  for (const type of SITUATION_TYPES) {
+    for (const server of ['player', 'opponent'] as const) {
+      for (const arch of ARCHETYPES) {
+        for (let i = 0; i < 1000; i++) {
+          const menu = getOptionsForSituation(type, server, KEY_MOMENT_OPTIONS_PER_MENU);
+          const n = menu.filter((o) => getMatchup(o.posture, arch) === 'strong').length;
+          dist[n] = (dist[n] ?? 0) + 1;
+          if (n === 0) noRead[arch] = (noRead[arch] ?? 0) + 1;
+        }
+      }
     }
   }
+  const totalDraws = Object.values(dist).reduce((a, b) => a + b, 0);
   printTable(
-    ['Good reads in the menu', 'How many (situation × opponent) pairs'],
-    Object.entries(dist).map(([n, c]) => [n, c]),
+    ['Good reads in the menu', 'Share of draws'],
+    Object.entries(dist)
+      .sort((a, b) => Number(a[0]) - Number(b[0]))
+      .map(([n, c]) => [n, `${fmtNum((100 * c) / totalDraws)}%`]),
   );
-  if (deadMenus.length) {
-    print('');
-    print(`Menus with NO countering option (${deadMenus.length}):`);
-    for (const m of deadMenus) print(`  · ${m}`);
-  }
+
+  const perArch = totalDraws / ARCHETYPES.length;
+  printTable(
+    ['Opponent', 'Draws with no good read'],
+    ARCHETYPES.map((a) => [
+      ARCHETYPE_DATA[a].label,
+      `${fmtNum((100 * (noRead[a] ?? 0)) / perArch)}%`,
+    ]),
+  );
+  print('');
+  print('All-court at 100% is by design — it is neutral to every posture, and what');
+  print('beats it is refusing to repeat yourself rather than any single shot.');
+  print('Any OTHER archetype near 100% would be the all-court bug coming back.');
 }
 
 // ─── 3. Outcome band split ───────────────────────────────────────────────────
@@ -164,14 +189,10 @@ function probeOutcomeBands(): void {
     let n = 0;
     for (let i = 0; i < N; i++) {
       const { option } = ALL_OPTIONS[i % ALL_OPTIONS.length];
-      const arch =
-        pick === 'counter'
-          ? option.strongAgainst[0]
-          : pick === 'weak'
-            ? option.weakAgainst[0]
-            : ARCHETYPES.find(
-                (a) => !option.strongAgainst.includes(a) && !option.weakAgainst.includes(a),
-              );
+      const arch = ARCHETYPES.find((a) => {
+        const v = getMatchup(option.posture, a);
+        return pick === 'counter' ? v === 'strong' : pick === 'weak' ? v === 'weak' : v === 'neutral';
+      });
       if (!arch) continue;
       const r = KeyMomentResolver.resolveKeyMoment(player, opponent, option, arch);
       tally[r.outcome]++;
@@ -257,11 +278,8 @@ function probeRealisticScenarios(): void {
         const p = KeyMomentResolver.calculateSuccessProbability(
           player, opponent, option, arch, ctx,
         );
-        const key = option.strongAgainst.includes(arch)
-          ? 'counter'
-          : option.weakAgainst.includes(arch)
-            ? 'weak'
-            : 'neutral';
+        const verdict = getMatchup(option.posture, arch);
+        const key = verdict === 'strong' ? 'counter' : verdict === 'weak' ? 'weak' : 'neutral';
         bucket[key].push(p);
       }
     }
@@ -293,8 +311,8 @@ async function probeMatchImpact(nMatches: number): Promise<void> {
     {
       label: 'Always best read',
       pick: (opts, arch) =>
-        opts.find((o) => o.strongAgainst.includes(arch))
-        ?? opts.find((o) => !o.weakAgainst.includes(arch))
+        opts.find((o) => getMatchup(o.posture, arch) === 'strong')
+        ?? opts.find((o) => getMatchup(o.posture, arch) !== 'weak')
         ?? opts[0],
     },
     {
@@ -304,8 +322,8 @@ async function probeMatchImpact(nMatches: number): Promise<void> {
     {
       label: 'Always worst read',
       pick: (opts, arch) =>
-        opts.find((o) => o.weakAgainst.includes(arch))
-        ?? opts.find((o) => !o.strongAgainst.includes(arch))
+        opts.find((o) => getMatchup(o.posture, arch) === 'weak')
+        ?? opts.find((o) => getMatchup(o.posture, arch) !== 'strong')
         ?? opts[0],
     },
   ];
@@ -602,11 +620,12 @@ function probeTagCoverage(): void {
   // Which menus can even offer a given posture today.
   printHeader('Postures available per situation');
   printTable(
-    ['Situation', 'Postures on offer'],
-    Object.entries(TACTICAL_OPTIONS).map(([type, opts]) => [
-      type,
-      [...new Set(opts.map((o) => o.posture))].join(', '),
-    ]),
+    ['Situation', 'Eligible options', 'Postures reachable'],
+    SITUATION_TYPES.map((type) => {
+      const opts = (['player', 'opponent'] as const)
+        .flatMap((server) => getEligibleOptions(getSituation(type, server)));
+      return [type, new Set(opts.map((o) => o.id)).size, new Set(opts.map((o) => o.posture)).size];
+    }),
   );
 }
 

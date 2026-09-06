@@ -1096,10 +1096,16 @@ export const KEY_MOMENT = {
    * Re-run src/test/analysis/keyMomentProbe.ts (SECTIONS=sweep) before changing.
    */
   baseChance: 40,
-  /** Added when the option is strongAgainst the opponent's archetype. */
-  counterBonus: 15,
-  /** Added (negative) when the option is weakAgainst the opponent's archetype. */
-  weakPenalty: -8,
+  /**
+   * Applied when the option's posture is strong against the opponent's archetype,
+   * and its mirror when the posture is weak. Symmetric because the matchup matrix
+   * is symmetric — every archetype has as many postures strong against it as weak,
+   * and every posture is strong against as many archetypes as it is weak against —
+   * so there is no longer a reason for a good read and a bad one to be worth
+   * different amounts.
+   */
+  counterBonus: 12,
+  weakPenalty: -12,
   /** How much each point of weighted stat differential is worth. */
   statMultiplier: 0.4,
   /** Floor and ceiling on the final success probability. */

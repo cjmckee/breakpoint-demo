@@ -334,14 +334,14 @@ change; nothing reads the tags yet.
 Still to add here: `roles`, `stakes` and `pressure` per the eligibility model above, which is
 what lets the eleven authored menus collapse into one filtered pool.
 
-### 2. Derive the matchup from the matrix
+### 2. Derive the matchup from the matrix — **done**
 
 Add `POSTURE_VS_ARCHETYPE` to config; `KeyMomentResolver` reads the matrix instead of
 `strongAgainst`/`weakAgainst`, and those two fields come off `TacticalOption`. Add a probe
 assertion that coverage stays symmetric. **This is the chunk that fixes all-court and the
 aggressive/counterpuncher skew**, and it fixes them structurally rather than by re-authoring.
 
-**Decided:** `counterBonus` / `weakPenalty` become symmetric (±12 to start). They land with
+**Done:** `counterBonus` / `weakPenalty` are now symmetric at ±12. They landed with
 this chunk rather than before it — a symmetric penalty applied to today's skewed chart would
 deepen the all-court hole rather than fix it, since all-court currently has one strong option
 against twelve weak ones.
@@ -357,12 +357,12 @@ Two independent changes:
   all key moments currently fire the loudest banner in the game, carrying no information.
 - **Variance by risk tag.** Crit width and authored swing scale with `risk`.
 
-### 4. Menu draw
+### 4. Menu draw — **done**
 
 Implement the constrained draw over the tagged pool. Depends on 1. Low risk, immediately
 visible.
 
-### 5. Write more options
+### 5. Write more options — **done**
 
 Draft catalogue: **[`key-moment-option-catalogue.md`](./key-moment-option-catalogue.md)**.
 
@@ -410,12 +410,27 @@ it is on `InteractiveMatchConfig` today and has zero effect on key moments.
 - Risk-shape bar per card, from the `risk` tag.
 - Separate choice-grade from point-result on the reveal.
 
-### 7. Re-baseline
+### 7. Re-baseline — **now blocking**
 
-`baseChance` is currently 40, tuned against all-court — the worst-case archetype — so it
-is very likely too high once the matrix lands. Re-measure across the real archetype spread,
-and fix the probe fixture, which produces an all-court opponent by accident because
-`createUniformPlayer` has no archetype profile.
+`baseChance` 40 was tuned against all-court under the *old* skewed chart. Under the matrix,
+all-court is exactly neutral, so it is now a clean "no matchup" baseline rather than a
+worst case — an even matchup against it measures 50.0% match win rate at 40, which is the
+right number for the situation it describes.
+
+But the probe fixture still produces an all-court opponent, because `createUniformPlayer`
+carries no archetype profile. That was a distortion before; now it is a blind spot, and the
+match-impact numbers show exactly why:
+
+| KM policy | Match win rate | KM win rate |
+|---|---|---|
+| Always best read | 47.5% | 42.1% |
+| Random pick | 50.0% | 42.2% |
+| Always worst read | 40.0% | 39.1% |
+
+All three converge, because against an archetype neutral to every posture there is nothing
+to read — correct behaviour, and useless for measuring the skill layer. **The fixture has to
+carry a real archetype before the base chance can be re-baselined**, and before the skill
+spread the overhaul is meant to deliver can be measured at all.
 
 Also open: best-of-3 is untuned. One base cannot serve both formats, because a single set
 fires ~8.5 key moments that cover most of that set's pivotal points while a best-of-3

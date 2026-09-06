@@ -4,7 +4,8 @@
  * Uses tactical counter system: options are strong/weak against specific archetypes.
  */
 
-import { TacticalOption, SecondaryEffect } from '../data/tacticalOptions';
+import { TacticalOption, SecondaryEffect, StatWeights } from '../data/tacticalOptions';
+import { getMatchup } from '../data/postures';
 import type { ArchetypeType } from '../data/archetypes';
 import { PointType } from '../types';
 import type { StatName } from '../types';
@@ -65,18 +66,18 @@ export class KeyMomentResolver {
     // Calculate weighted opponent stat
     const opponentScore = this.calculateWeightedStat(
       opponentStats,
-      option.opponentStatWeights
+      this.resolveOpponentWeights(option, opponentStats)
     );
 
     // Base probability with stat differential
     const differential = playerScore - opponentScore;
     let probability = KEY_MOMENT.baseChance + (differential * KEY_MOMENT.statMultiplier);
 
-    // Apply counter bonuses
-    if (option.strongAgainst.includes(opponentArchetype)) {
+    // Apply the posture matchup
+    const matchup = getMatchup(option.posture, opponentArchetype);
+    if (matchup === 'strong') {
       probability += KEY_MOMENT.counterBonus;
-    }
-    if (option.weakAgainst.includes(opponentArchetype)) {
+    } else if (matchup === 'weak') {
       probability += KEY_MOMENT.weakPenalty;
     }
 
@@ -119,7 +120,7 @@ export class KeyMomentResolver {
     );
     const opponentScore = this.calculateWeightedStat(
       opponentStats,
-      option.opponentStatWeights
+      this.resolveOpponentWeights(option, opponentStats)
     );
     const baseProbability = this.calculateSuccessProbability(
       playerStats,
@@ -131,8 +132,9 @@ export class KeyMomentResolver {
     );
     const finalProbability = baseProbability;
 
-    const isCounter = option.strongAgainst.includes(opponentArchetype);
-    const isWeakChoice = option.weakAgainst.includes(opponentArchetype);
+    const matchup = getMatchup(option.posture, opponentArchetype);
+    const isCounter = matchup === 'strong';
+    const isWeakChoice = matchup === 'weak';
 
     // Roll for outcome (0-100)
     const roll = Math.random() * 100;
@@ -234,7 +236,10 @@ export class KeyMomentResolver {
     option: TacticalOption
   ): 'advantage' | 'even' | 'disadvantage' {
     const playerScore = this.calculateWeightedStat(playerStats, option.playerStatWeights);
-    const opponentScore = this.calculateWeightedStat(opponentStats, option.opponentStatWeights);
+    const opponentScore = this.calculateWeightedStat(
+      opponentStats,
+      this.resolveOpponentWeights(option, opponentStats)
+    );
     const diff = playerScore - opponentScore;
 
     if (diff > 10) return 'advantage';
@@ -252,8 +257,40 @@ export class KeyMomentResolver {
     option: TacticalOption
   ): { playerScore: number; opponentScore: number } {
     const playerScore = this.calculateWeightedStat(playerStats, option.playerStatWeights);
-    const opponentScore = this.calculateWeightedStat(opponentStats, option.opponentStatWeights);
+    const opponentScore = this.calculateWeightedStat(
+      opponentStats,
+      this.resolveOpponentWeights(option, opponentStats)
+    );
     return { playerScore: Math.round(playerScore), opponentScore: Math.round(opponentScore) };
+  }
+
+  /**
+   * Opponent weights for an option, after weakness targeting.
+   *
+   * An option flagged targetsWeakerWing aims at whichever wing is actually weaker,
+   * so the `backhand` term becomes `forehand` when the forehand is the lower of
+   * the two. Everything else is returned untouched.
+   */
+  private static resolveOpponentWeights(
+    option: TacticalOption,
+    opponentStats: PlayerStats
+  ): StatWeights {
+    if (!option.targetsWeakerWing) {
+      return option.opponentStatWeights;
+    }
+
+    const weakerWing: StatName =
+      this.getStatValue(opponentStats, 'forehand') < this.getStatValue(opponentStats, 'backhand')
+        ? 'forehand'
+        : 'backhand';
+
+    const swap = (stat: StatName): StatName => (stat === 'backhand' ? weakerWing : stat);
+    const weights = option.opponentStatWeights;
+    return {
+      primary: swap(weights.primary),
+      primaryWeight: weights.primaryWeight,
+      secondary: weights.secondary.map((s) => ({ ...s, stat: swap(s.stat) })),
+    };
   }
 
   /**
@@ -261,11 +298,7 @@ export class KeyMomentResolver {
    */
   private static calculateWeightedStat(
     stats: PlayerStats,
-    weights: {
-      primary: StatName;
-      primaryWeight: number;
-      secondary: Array<{ stat: StatName; weight: number }>;
-    }
+    weights: StatWeights
   ): number {
     const primaryValue = this.getStatValue(stats, weights.primary);
     let total = primaryValue * weights.primaryWeight;

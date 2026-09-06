@@ -13,6 +13,7 @@ import { Modal } from './ui/Modal';
 import { KeyMoment } from '../types/keyMoments';
 import { TacticalOption, SecondaryEffect } from '../data/tacticalOptions';
 import { ARCHETYPE_DATA, getRelevantTendency } from '../data/archetypes';
+import { POSTURE_META } from '../data/postures';
 import { KeyMomentResolver, KeyMomentResult, AppliedEffect } from '../game/KeyMomentResolver';
 import { MatchOrchestrator } from '../game/MatchOrchestrator';
 import { useMatchStore } from '../stores/matchStore';
@@ -584,6 +585,9 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
         <div className="flex items-center gap-2 mb-0.5">
           <span className="text-lg">{option.emoji}</span>
           <h4 className="text-base font-bold text-pixel-text">{option.name}</h4>
+          <span className="ml-auto text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded bg-pixel-bg text-pixel-text-muted shrink-0">
+            {POSTURE_META[option.posture].label}
+          </span>
         </div>
         <p className="text-sm text-pixel-text-muted leading-snug">{option.description}</p>
       </div>
@@ -592,11 +596,11 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
       <div className="p-3 border-b-2 border-pixel-border flex flex-col gap-2">
         <div className="text-sm text-pixel-text leading-relaxed">
           <span className="text-xs px-1.5 py-0.5 rounded bg-green-500 bg-opacity-20 text-green-400 mr-2 uppercase">Good against</span>
-          {option.bestAgainstHint.replace(/^Best against /i, '')}
+          {POSTURE_META[option.posture].bestAgainstHint}
         </div>
         <div className="text-sm text-pixel-text leading-relaxed">
           <span className="text-xs px-1.5 py-0.5 rounded bg-red-500 bg-opacity-20 text-red-400 mr-2 uppercase">Bad against</span>
-          {option.worstAgainstHint.replace(/^Weak against /i, '')}
+          {POSTURE_META[option.posture].worstAgainstHint}
         </div>
       </div>
 

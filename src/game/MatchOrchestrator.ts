@@ -10,6 +10,7 @@ import { MatchStatistics } from '../core/MatchStatistics';
 import { PointSimulator } from '../core/PointSimulator';
 import { KeyMomentResolver, KeyMomentResult, AppliedEffect } from './KeyMomentResolver';
 import { getOptionsForSituation, KeyMomentType } from '../data/tacticalOptions';
+import type { KeyMomentPosture } from '../data/tacticalOptions';
 import type { ArchetypeType } from '../data/archetypes';
 import type { ArchetypeProfile } from '../types/archetype';
 import { aggregateArchetypeEffects } from '../data/archetypeTree';
@@ -27,7 +28,7 @@ import { MATCH_FATIGUE, PRESSURE_BANK, STAMINA_RECOVERY, KEY_MOMENT_OPPONENT_DRA
 import { MomentumEngine, ClutchLevel } from '../core/MomentumEngine';
 import { getPrimaryStatName } from '../core/shotStatMapping';
 import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds';
-import { DEFAULT_KEY_MOMENTS_PER_MATCH, DEFAULT_POINT_DELAY_MS } from '../config/matchRewards';
+import { DEFAULT_KEY_MOMENTS_PER_MATCH, DEFAULT_POINT_DELAY_MS, KEY_MOMENT_OPTIONS_PER_MENU } from '../config/matchRewards';
 
 export interface AccumulatedMatchEffects {
   energyDelta: number;  // Net energy change from key moment choices
@@ -64,6 +65,10 @@ export class MatchOrchestrator {
 
   // Tracks key moment types that have already fired in the current game (resets at each new game)
   private firedKeyMomentTypesInGame: Set<KeyMomentType> = new Set();
+
+  // Postures offered by the previous key moment. The draw prefers fresh postures
+  // so consecutive moments do not present the same menu twice running.
+  private lastOfferedPostures: KeyMomentPosture[] = [];
 
   /**
    * Apply flat stat boosts to player stats (clamped to 100).
@@ -488,8 +493,15 @@ export class MatchOrchestrator {
     // Mark this type as fired for the current game
     this.firedKeyMomentTypesInGame.add(momentType);
     
-    // Get options and shuffle them for variety
-    const options = this.shuffleArray([...getOptionsForSituation(momentType)]);
+    // Draw a menu: eligible for this situation, spanning at least two risk levels
+    // and two postures, preferring postures the previous moment did not offer.
+    const options = getOptionsForSituation(
+      momentType,
+      score.server,
+      KEY_MOMENT_OPTIONS_PER_MENU,
+      this.lastOfferedPostures,
+    );
+    this.lastOfferedPostures = options.map((o) => o.posture);
 
     return {
       id: `km-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
