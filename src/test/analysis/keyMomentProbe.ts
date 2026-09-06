@@ -25,6 +25,8 @@ import { ARCHETYPE_DATA } from '../../data/archetypes';
 import type { ArchetypeType } from '../../data/archetypes';
 import type { PlayerStats } from '../../types/game';
 import { createUniformPlayer } from './playerFactory';
+import { profileForArchetype } from '../../data/archetypeTree';
+import { PlayerProfile } from '../../core/PlayerProfile';
 import { print, printBanner, printHeader, printTable, fmtNum } from './formatters';
 
 const _origLog = console.log;
@@ -59,6 +61,25 @@ const SITUATION_TYPES: KeyMomentType[] = [
 
 const statsAt = (rating: number): PlayerStats =>
   createUniformPlayer(`p${rating}`, rating).stats as unknown as PlayerStats;
+
+/**
+ * The archetype the match-level probes put across the net.
+ *
+ * This matters more than it looks. A uniform player carries no archetype profile,
+ * so PlayerProfile.playStyle derives `all_court` — the one archetype that is
+ * neutral to every posture. Measuring the skill layer against it reports no
+ * spread between a good read and a bad one, because against all-court there is
+ * genuinely nothing to read. Override with OPPONENT=defensive|counterpuncher|
+ * serve_volley|aggressive|all_court.
+ */
+const OPPONENT_ARCHETYPE = (process.env.OPPONENT ?? 'defensive') as ArchetypeType;
+
+/** A uniform-rating opponent that actually plays as the named archetype. */
+const opponentProfile = () => profileForArchetype(OPPONENT_ARCHETYPE);
+
+/** Sanity: what archetype does that profile actually resolve to? */
+const resolvedArchetype = (): ArchetypeType =>
+  new PlayerProfile('probe', 'Probe', statsAt(50), opponentProfile()).playStyle.type;
 
 // ─── 1. Success rate vs. stat gap and matchup ────────────────────────────────
 
@@ -171,19 +192,19 @@ function probeCounterCoverage(): void {
 // ─── 3. Outcome band split ───────────────────────────────────────────────────
 
 function probeOutcomeBands(): void {
-  printHeader('Outcome bands — does "critical" track choice quality?');
+  printHeader('Outcome bands — crit should track RISK, not choice quality');
 
   const N = 40000;
   const player = statsAt(50);
   const opponent = statsAt(50);
-  const rows: (string | number)[][] = [];
 
+  // 1. By choice quality. Win rate must move; crit share of wins must not.
+  const byChoice: (string | number)[][] = [];
   const scenarios: Array<{ label: string; pick: 'counter' | 'neutral' | 'weak' }> = [
     { label: 'Good read', pick: 'counter' },
     { label: 'Neutral', pick: 'neutral' },
     { label: 'Bad read', pick: 'weak' },
   ];
-
   for (const { label, pick } of scenarios) {
     const tally = { 'critical-success': 0, success: 0, failure: 0, 'critical-failure': 0 };
     let n = 0;
@@ -194,27 +215,53 @@ function probeOutcomeBands(): void {
         return pick === 'counter' ? v === 'strong' : pick === 'weak' ? v === 'weak' : v === 'neutral';
       });
       if (!arch) continue;
-      const r = KeyMomentResolver.resolveKeyMoment(player, opponent, option, arch);
-      tally[r.outcome]++;
+      tally[KeyMomentResolver.resolveKeyMoment(player, opponent, option, arch).outcome]++;
       n++;
     }
-    const pct = (x: number): string => `${fmtNum((100 * x) / n)}%`;
     const wins = tally['critical-success'] + tally.success;
     const losses = tally.failure + tally['critical-failure'];
-    rows.push([
+    byChoice.push([
       label,
-      pct(wins),
-      pct(tally['critical-success']),
-      pct(tally['critical-failure']),
+      `${fmtNum((100 * wins) / n)}%`,
       `${fmtNum((100 * tally['critical-success']) / wins)}%`,
       `${fmtNum((100 * tally['critical-failure']) / losses)}%`,
     ]);
   }
+  printTable(['Choice', 'Win rate', 'of wins, crit', 'of losses, crit'], byChoice);
+  print('');
+  print('Crit shares should now be flat down these two columns. Previously they ran');
+  print('30% / 38% / 48% of wins — the worse the read, the more spectacular the win.');
 
+  // 2. By risk. This is where the spread should live instead.
+  const byRisk: (string | number)[][] = [];
+  for (const risk of ['safe', 'balanced', 'bold'] as const) {
+    const pool = ALL_OPTIONS.filter(({ option }) => option.risk === risk);
+    if (!pool.length) continue;
+    const tally = { 'critical-success': 0, success: 0, failure: 0, 'critical-failure': 0 };
+    let n = 0;
+    for (let i = 0; i < N; i++) {
+      const { option } = pool[i % pool.length];
+      const arch = ARCHETYPES[i % ARCHETYPES.length];
+      tally[KeyMomentResolver.resolveKeyMoment(player, opponent, option, arch).outcome]++;
+      n++;
+    }
+    const wins = tally['critical-success'] + tally.success;
+    const crits = tally['critical-success'] + tally['critical-failure'];
+    byRisk.push([
+      risk,
+      `${fmtNum((100 * wins) / n)}%`,
+      `${fmtNum((100 * crits) / n)}%`,
+      `${fmtNum((100 * tally['critical-success']) / n)}%`,
+      `${fmtNum((100 * tally['critical-failure']) / n)}%`,
+    ]);
+  }
   printTable(
-    ['Choice', 'Win rate', 'Crit success', 'Crit failure', 'of wins, crit', 'of losses, crit'],
-    rows,
+    ['Risk', 'Win rate', 'Critical (either way)', 'Crit success', 'Crit failure'],
+    byRisk,
   );
+  print('');
+  print('Win rate should be similar across risk levels — risk is variance, not odds.');
+  print('The Critical column is what risk buys: emphatic outcomes in both directions.');
 }
 
 // ─── 4. Context modifier reach ───────────────────────────────────────────────
@@ -342,6 +389,7 @@ async function probeMatchImpact(nMatches: number): Promise<void> {
       const final = await orchestrator.simulateInteractiveMatch({
         playerStats: statsAt(50),
         opponentStats: statsAt(50),
+        opponentArchetypeProfile: opponentProfile(),
         surface: 'hard',
         mood: 0,
         energy: 100,
@@ -378,6 +426,7 @@ async function probeMatchImpact(nMatches: number): Promise<void> {
   );
   print('');
   print(`Opponent archetype in these matches: ${archetypeSeen}`);
+  print(`(requested ${OPPONENT_ARCHETYPE}; override with OPPONENT=<archetype>)`);
 }
 
 
@@ -405,6 +454,7 @@ async function probeBaseChanceSweep(values: number[], nMatches: number): Promise
       const final = await orchestrator.simulateInteractiveMatch({
         playerStats: statsAt(50),
         opponentStats: statsAt(50),
+        opponentArchetypeProfile: opponentProfile(),
         surface: 'hard',
         mood: 0,
         energy: 100,
@@ -431,6 +481,7 @@ async function probeBaseChanceSweep(values: number[], nMatches: number): Promise
       const final = await orchestrator.simulateInteractiveMatch({
         playerStats: statsAt(50),
         opponentStats: statsAt(50),
+        opponentArchetypeProfile: opponentProfile(),
         surface: 'hard',
         mood: 0,
         energy: 100,
@@ -494,6 +545,7 @@ async function probeBaseChanceVsFrequency(
         const final = await orchestrator.simulateInteractiveMatch({
           playerStats: statsAt(50),
           opponentStats: statsAt(50),
+          opponentArchetypeProfile: opponentProfile(),
           surface: 'hard',
           mood: 0,
           energy: 100,

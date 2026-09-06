@@ -1123,6 +1123,37 @@ export const KEY_MOMENT = {
   /** Each point of MENTAL_RESILIENCE is worth this much effective focus. */
   resilienceToFocus: 15,
 
+  /**
+   * Share of wins (and of losses) that resolve as critical, by the option's risk.
+   *
+   * Rolled INSIDE the outcome rather than carved off the ends of the roll, so the
+   * crit rate no longer moves with the odds. The previous end-carving made crits
+   * fire on roughly a third of all key moments and, worse, anti-correlate with
+   * choice quality — 48% of a bad read's wins were flagged CRITICAL SUCCESS
+   * against 30% of a good read's, so the loudest feedback in the game was
+   * pointing the wrong way.
+   *
+   * This is also where `risk` earns its name: a bold option does not win more
+   * often than a safe one at the same probability, it resolves emphatically far
+   * more often in both directions.
+   */
+  criticalShareByRisk: {
+    safe: 0.08,
+    balanced: 0.18,
+    bold: 0.32,
+  } as Record<string, number>,
+
+  /**
+   * Multiplier on a critical outcome's secondary effects, by risk. A bold option
+   * swings momentum and mood harder when it lands emphatically; a safe one barely
+   * moves regardless, which is the whole point of picking it.
+   */
+  criticalEffectMultiplierByRisk: {
+    safe: 1.5,
+    balanced: 2,
+    bold: 2.5,
+  } as Record<string, number>,
+
   /** Energy at or above this reads as fresh; below it fatigue starts to bite. */
   energyNeutral: 70,
   /** Bonus at full energy, and penalty at empty. Empty costs more than fresh pays. */

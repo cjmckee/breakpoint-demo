@@ -346,16 +346,21 @@ this chunk rather than before it — a symmetric penalty applied to today's skew
 deepen the all-court hole rather than fix it, since all-court currently has one strong option
 against twelve weak ones.
 
-### 3. Outcome model
+### 3. Outcome model — **done**
 
 Two independent changes:
 
-- **Crit reordering.** Roll the outcome, then roll whether it was critical *within* that
-  outcome. Today crit bands are carved off the ends of a 0-100 roll, which makes crit rate
-  ~13-16% regardless of the odds and *anti*-correlated with choice quality: 48% of a bad
-  read's wins get flagged CRITICAL SUCCESS against 30% of a good read's. Roughly a third of
-  all key moments currently fire the loudest banner in the game, carrying no information.
-- **Variance by risk tag.** Crit width and authored swing scale with `risk`.
+- **Crit reordering.** The outcome is rolled first, on the probability alone; whether it reads
+  as critical is a second roll against the option's risk. Previously the crit bands were
+  carved off the ends of one 0-100 roll, which made the crit rate move with the odds and
+  *anti*-correlate with choice quality — 48% of a bad read's wins were flagged CRITICAL
+  SUCCESS against 30% of a good read's. Now flat at ~20% of wins and ~20% of losses whatever
+  the read.
+- **Variance by risk tag.** `criticalShareByRisk` (8 / 18 / 32%) and
+  `criticalEffectMultiplierByRisk` (1.5 / 2 / 2.5) make risk mean variance. Measured: win
+  rate 39.9 / 40.1 / 39.7% across safe / balanced / bold — identical odds — against critical
+  rates of 8.0 / 18.1 / 32.2%. A bold option does not win more often; it resolves emphatically
+  four times as often, in both directions.
 
 ### 4. Menu draw — **done**
 
@@ -417,20 +422,27 @@ all-court is exactly neutral, so it is now a clean "no matchup" baseline rather 
 worst case — an even matchup against it measures 50.0% match win rate at 40, which is the
 right number for the situation it describes.
 
-But the probe fixture still produces an all-court opponent, because `createUniformPlayer`
-carries no archetype profile. That was a distortion before; now it is a blind spot, and the
-match-impact numbers show exactly why:
+**Fixture fixed.** The probe now builds its opponent with `profileForArchetype`, selected by
+`OPPONENT=` (default `defensive`); all five legacy archetypes verified to resolve to
+themselves. Previously `createUniformPlayer` carried no archetype profile, so every
+match-level number in this repo was measured against all-court.
 
-| KM policy | Match win rate | KM win rate |
-|---|---|---|
-| Always best read | 47.5% | 42.1% |
-| Random pick | 50.0% | 42.2% |
-| Always worst read | 40.0% | 39.1% |
+That mattered exactly as much as expected. Against all-court every policy converges, because
+an archetype neutral to every posture offers nothing to read:
 
-All three converge, because against an archetype neutral to every posture there is nothing
-to read — correct behaviour, and useless for measuring the skill layer. **The fixture has to
-carry a real archetype before the base chance can be re-baselined**, and before the skill
-spread the overhaul is meant to deliver can be measured at all.
+| KM policy | vs all_court | vs defensive | vs counterpuncher |
+|---|---|---|---|
+| Always best read | 47.5% | 69.0% | 71.0% |
+| Random pick | 50.0% | 62.0% | 60.0% |
+| Always worst read | 40.0% | 35.0% | 41.0% |
+
+A ~7pp spread against all-court (noise) against 30-34pp once there is a matchup to read.
+That is the skill layer the overhaul was for, and it was invisible until the fixture changed.
+
+Still open: random-pick sits at 60-62% against these archetypes rather than ~50%, and that
+cannot be attributed to the key-moment layer without a key-moments-disabled control per
+archetype — the archetype profile also changes how the opponent plays ordinary rally points.
+Run the sweep section per archetype before touching `baseChance`.
 
 Also open: best-of-3 is untuned. One base cannot serve both formats, because a single set
 fires ~8.5 key moments that cover most of that set's pivotal points while a best-of-3

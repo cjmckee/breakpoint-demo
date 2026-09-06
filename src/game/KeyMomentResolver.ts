@@ -136,36 +136,24 @@ export class KeyMomentResolver {
     const isCounter = matchup === 'strong';
     const isWeakChoice = matchup === 'weak';
 
-    // Roll for outcome (0-100)
+    // Two rolls, in this order: did it work, and then was it emphatic.
+    //
+    // The point outcome is decided first and on the probability alone, so the win
+    // rate is exactly finalProbability. Whether that outcome reads as critical is
+    // a separate roll against the option's risk, which keeps the crit rate
+    // independent of the odds — a good read and a bad one crit at the same rate,
+    // and a bold option crits far more often than a safe one either way.
     const roll = Math.random() * 100;
+    const won = roll <= finalProbability;
 
-    // Calculate critical ranges
-    const critSuccessRange = 10 + (finalProbability * 0.1);
-    const critFailureRange = 10 + ((100 - finalProbability) * 0.1);
-    const critFailureThreshold = 100 - critFailureRange;
+    const criticalShare = KEY_MOMENT.criticalShareByRisk[option.risk] ?? 0;
+    const isCritical = Math.random() < criticalShare;
 
-    // Determine outcome type
-    let outcome: OutcomeType;
-    let shotOutcome;
-    let pointWinner: 'player' | 'opponent';
-
-    if (roll <= critSuccessRange) {
-      outcome = 'critical-success';
-      shotOutcome = option.shotOutcomes.success;
-      pointWinner = 'player';
-    } else if (roll >= critFailureThreshold) {
-      outcome = 'critical-failure';
-      shotOutcome = option.shotOutcomes.failure;
-      pointWinner = 'opponent';
-    } else if (roll <= finalProbability) {
-      outcome = 'success';
-      shotOutcome = option.shotOutcomes.success;
-      pointWinner = 'player';
-    } else {
-      outcome = 'failure';
-      shotOutcome = option.shotOutcomes.failure;
-      pointWinner = 'opponent';
-    }
+    const outcome: OutcomeType = won
+      ? (isCritical ? 'critical-success' : 'success')
+      : (isCritical ? 'critical-failure' : 'failure');
+    const shotOutcome = won ? option.shotOutcomes.success : option.shotOutcomes.failure;
+    const pointWinner: 'player' | 'opponent' = won ? 'player' : 'opponent';
 
     // Resolve secondary effects
     const appliedEffects = this.resolveSecondaryEffects(option, outcome);
@@ -188,7 +176,8 @@ export class KeyMomentResolver {
 
   /**
    * Resolve secondary effects based on outcome.
-   * Critical outcomes double effect values.
+   * Critical outcomes scale effect values by the option's risk — a bold play that
+   * comes off swings the match harder than a safe one that does.
    */
   static resolveSecondaryEffects(
     option: TacticalOption,
@@ -196,7 +185,9 @@ export class KeyMomentResolver {
   ): AppliedEffect[] {
     const isSuccess = outcome === 'success' || outcome === 'critical-success';
     const isCritical = outcome === 'critical-success' || outcome === 'critical-failure';
-    const multiplier = isCritical ? 2 : 1;
+    const multiplier = isCritical
+      ? (KEY_MOMENT.criticalEffectMultiplierByRisk[option.risk] ?? 2)
+      : 1;
 
     const effects: AppliedEffect[] = [];
 
