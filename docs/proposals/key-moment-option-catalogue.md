@@ -26,8 +26,10 @@ duplicates collapse and the real gaps become visible:
 | neutralize | 1 → 3 | 1 → 3 |
 | deception | 0 → 3 | 1 → 3 |
 | attrition | 1 → 3 | 1 → 3 |
-| tempo | 1 → 3 | 1 → 3 |
+| variety | 1 → 3 | 1 → 3 |
 | **total** | **5 → 19** | **6 → 19** |
+
+Plus 11 rally options (see below), for **49** total against 13 real tactics today.
 
 38 options against 13 real ones today. Every posture reaches both roles, so every situation
 can offer any of the six and the constrained draw always has something to pick.
@@ -77,13 +79,13 @@ can offer any of the six and the constrained draw always has something to pick.
 | Hammer the backhand every ball | balanced | Reads the opponent's actual weaker wing |
 | Accept the long rally | safe | Explicitly trades this point's odds for their legs |
 
-### tempo — change the rhythm
+### variety — refuse to be predictable
 
 | Option | Risk | Notes |
 |---|---|---|
 | Slice serve to disrupt their timing | balanced | `[existing]` |
 | Quick-serve them before they're set | balanced | Rushes a returner who likes a routine |
-| Take your time, then the big one | balanced | The gamesmanship slot; pressure/mood effects lead |
+| Serve wide after two down the T | balanced | Breaks your own pattern rather than theirs |
 
 ---
 
@@ -130,13 +132,39 @@ can offer any of the six and the constrained draw always has something to pick.
 | Return to the backhand and extend | balanced | Weakness-targeting on the return side |
 | Make them play five more | safe | Trades the point for their stamina |
 
-### tempo
+### variety
 
 | Option | Risk | Notes |
 |---|---|---|
 | Read and react | balanced | `[existing]` |
-| Stand deep, take the pace off | balanced | Slows a big server's rhythm |
-| Stand in, rush their rhythm | bold | Court position as a tempo lever |
+| Stand deep, take the pace off | balanced | Court position as a rhythm lever |
+| Charge the second serve | bold | The SABR — take it on the rise from inside the baseline |
+
+---
+
+## Rally
+
+30-30 and 40-40 fire `key-rally`, which tests how the point is *constructed* rather than how it
+is started. A deuce point still has a server, so these are drawn **alongside** the serving or
+returning pool for whoever is serving — the menu mixes "attack the net mid-rally" with "big
+serve down the T".
+
+| Posture | Option | Risk | Notes |
+|---|---|---|---|
+| power | Push the accelerator | bold | `[existing]` |
+| power | Flatten it out down the line | bold | Higher ceiling, higher miss |
+| net | Attack the net | bold | `[existing]` |
+| net | Build the approach, then close | balanced | Earns the approach instead of forcing it |
+| neutralize | Reset with height and depth | safe | Buys recovery time mid-rally |
+| deception | Drop shot behind them | bold | Wants them deep first; pairs with attrition |
+| deception | Disguised change of direction | balanced | Cheap, small payoff |
+| attrition | Patiently construct the point | safe | `[existing]` |
+| attrition | Run them corner to corner | balanced | Explicit stamina trade |
+| variety | Change the pattern | balanced | Break your own rhythm before they read it |
+| variety | Take one early, then take pace off | balanced | Two-speed rally |
+
+Eleven rally options across five postures. `neutralize` has one because a rally-phase reset is
+genuinely one idea; the mix with serve/return options covers the gap.
 
 ---
 
@@ -156,19 +184,18 @@ assumption that any posture is reachable in any situation. Three consequences:
 
 ---
 
-## Open questions
+## Open questions — resolved
 
-- **Gamesmanship has no posture.** "Take your time", "big fist pump" are tactics whose payoff
-  is pressure and mood rather than the point. The draft parks the timing one under `tempo`
-  and drops the rest. The alternative is a seventh posture — but a posture the matchup matrix
-  cannot meaningfully rank against archetypes is not really a posture, so it may want a
-  different mechanism entirely.
-- **Weakness-targeting is a modifier, not a tactic.** "Hammer the backhand" reads the
-  opponent's actual lowest stat. That could be a property any option carries rather than two
-  dedicated options.
-- **Second-serve awareness.** "Rip the second serve" only makes sense on a second serve, which
-  the key-moment layer does not currently model — key moments resolve on one roll with no
-  serve count.
-- **Stat weights are not drafted here.** Each option still needs `playerStatWeights` /
-  `opponentStatWeights`, and the posture's stat leanings from the overhaul doc are the
-  starting point.
+- **Gamesmanship: cut.** Not worth a posture the matrix cannot rank, and not worth a
+  seventh column. The one option that survives is "take your time, then the big one",
+  reframed under `variety` as breaking your own pattern.
+- **Weakness-targeting: keep, on two options.** "Hammer the backhand" and "Return to the
+  backhand and extend" stay as authored options rather than becoming a property every option
+  carries. Each picks **forehand or backhand, whichever is weaker for that opponent** — a
+  read of two stats, not a general modifier.
+- **Second serve: flavour only.** "Rip the second serve" needs no second-serve model. It reads
+  as `power` + `bold`, which is what it is in that situation, and the tags carry the mechanics.
+- **Stat weights: still required.** Each option needs `playerStatWeights` /
+  `opponentStatWeights`, three stats apiece as the current options have. Roughly balanced
+  exposure across the stat pool rather than exactly equal — some stats should matter more —
+  with each posture's stat leanings from the overhaul doc as the starting point.

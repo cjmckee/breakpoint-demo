@@ -106,7 +106,7 @@ the tactic did. Decompose the situation instead:
 
 ```typescript
 /** Which side of the ball — decides which options are physically possible. */
-export type KeyMomentRole = 'serve' | 'return';
+export type KeyMomentRole = 'serve' | 'return' | 'rally';
 
 /** What is on the line. */
 export type KeyMomentStakes = 'deuce' | 'break' | 'set' | 'match';
@@ -119,7 +119,7 @@ An option declares eligibility rather than belonging to a menu:
 
 ```typescript
 interface TacticalOption {
-  roles: KeyMomentRole[];       // most options are one; rally-phase tactics can be both
+  roles: KeyMomentRole[];       // most options are one; rally tactics reach more
   posture: KeyMomentPosture;
   risk: KeyMomentRisk;
   stakes?: KeyMomentStakes[];   // omitted = any
@@ -146,10 +146,24 @@ redesign:
 | `match-point-player-return` | return | match | converting |
 | `match-point-opponent-serve` | serve | match | defending |
 | `match-point-opponent-return` | return | match | defending |
-| `key-rally` | either | deuce | — |
+| `key-rally` | rally + the server's side | deuce | — |
 
 Stakes stop being a content bucket and become what they always were: a pressure level, which
 `updatePressure()` already computes.
+
+**The rally role is not optional.** `isDeucePoint` fires at 30-30 and 40-40, and those moments
+test how you *construct* the point rather than how you start it — that is what the existing
+`key-rally` menu is for. But a deuce point still has a server, so its menu should draw from
+the rally pool **and** the serving or returning pool as appropriate, mixing "attack the net
+mid-rally" with "big serve down the T". That mix is exactly why `roles` is a list rather than
+a single value.
+
+| Situation | Draws from |
+|---|---|
+| break / set / match point, player serving | `serve` |
+| break / set / match point, player returning | `return` |
+| 30-30 or 40-40, player serving | `rally` + `serve` |
+| 30-30 or 40-40, player returning | `rally` + `return` |
 
 ### Postures
 
@@ -164,23 +178,74 @@ stats (`slice`, `backhand`) somewhere to live:
 | `neutralize` | Absorb pace, reset, start the rally on your terms | spin, slice, tactics |
 | `deception` | Drop shot, disguise, wrong-foot | placement, spin, slice |
 | `attrition` | Extend it, make them run, win the next one | stamina, backhand, focus |
-| `tempo` | Change the rhythm — take it early or slow it right down | anticipation, tactics, speed |
+| `variety` | Refuse to be predictable — change pace, angle, court position | anticipation, tactics, speed |
 
 ### The matchup matrix
 
 Replaces 33 hand-authored `strongAgainst`/`weakAgainst` lists with one 6 × 5 table that
 can be read, reviewed and validated at a glance.
 
-|              | power | net | neutralize | deception | attrition | tempo |
-|--------------|-------|-----|------------|-----------|-----------|-------|
+|              | power | net | neutralize | deception | attrition | variety |
+|--------------|-------|-----|------------|-----------|-----------|---------|
 | **aggressive**     | ✗ | ✗ | ✓ | ✓ | – | – |
-| **defensive**      | ✓ | ✓ | ✗ | – | ✗ | – |
-| **counterpuncher** | ✗ | – | – | ✓ | ✗ | ✓ |
-| **serve_volley**   | – | ✗ | ✗ | ✓ | ✓ | – |
+| **defensive**      | ✓ | ✓ | ✗ | – | – | ✗ |
+| **counterpuncher** | ✗ | ✓ | – | – | ✗ | ✓ |
+| **serve_volley**   | ✓ | ✗ | – | ✗ | ✓ | – |
 | **all_court**      | – | – | – | – | – | – |
 
-Every archetype gets exactly two postures that beat it and two that play into its hands, so
-coverage is symmetric by construction and a new option cannot quietly break it.
+Read as tennis:
+
+- **power** beats a pusher (overpower them) and a serve-volleyer (returns at their feet); loses
+  to a bigger hitter and to a counterpuncher who feeds on pace.
+- **net** beats a pusher (finish the floaters) and a counterpuncher (they need time); loses to a
+  baseliner who passes and to someone better at the net than you.
+- **neutralize** beats a big hitter (absorb, make them over-hit); loses to a pusher, whose game
+  it is.
+- **deception** beats a hitter committed early; loses to a serve-volleyer, because a short ball
+  is an invitation forward.
+- **attrition** beats a serve-volleyer (make them rally); loses to a counterpuncher, who wants
+  the long one.
+- **variety** beats a counterpuncher (break the rhythm they feed on); loses to a pusher, who
+  does not care how pretty it is — you have to actually hurt them.
+
+Balanced on **both** axes, which the first draft was not:
+
+- every archetype has exactly 2 postures strong against it, 2 weak, 2 neutral
+- every posture is strong against exactly as many archetypes as it is weak against — `power`
+  and `net` at 2/2, the other four at 1/1
+
+The first draft balanced rows only, which left `deception` strong against three archetypes
+and weak against none, and `tempo` strong against one and weak against none: two postures
+that were strictly better than neutral and could never be punished.
+
+### How many postures does the matrix actually need?
+
+Worth stating, because six is not obviously the right number. With `A` real archetypes (4 —
+all-court is neutral everywhere, so it constrains nothing), `k` postures strong against each
+archetype and `m` archetypes each posture is strong against, a fully symmetric design needs
+`A·k = P·m`, with `m ≤ A/2` so no posture beats more than half the field.
+
+| Postures | Per archetype | Per posture | Neutral cells per archetype |
+|---|---|---|---|
+| **4** | 2 strong, 2 weak | 2 / 2 | 0 |
+| 4 | 1 strong, 1 weak | 1 / 1 | 2 |
+| 6 | 3 strong, 3 weak | 2 / 2 | 0 |
+| 8 | 2 strong, 2 weak | 1 / 1 | 4 |
+
+**Four is the mathematical minimum**, and five admits no fully symmetric design at all
+(`4k = 5m` has no valid integer solution). At six, full symmetry forces 3 strong and 3 weak
+per archetype — *every* posture matters against every archetype, no neutral cells, which makes
+every pick a hard read with no middle ground.
+
+The matrix above instead relaxes the constraint to the one that actually matters — **no
+posture is strictly better than another** — while letting postures differ in how polarising
+they are. That admits 2 strong / 2 weak / 2 neutral per archetype at six postures, with two
+broad postures (power, net) and four specialised ones.
+
+So six is not required by the matrix; four would do. Six is justified by the **draw**: the
+repeat-posture decay needs somewhere to rotate to, and four postures at three options each is
+a thin pool that would go stale inside one match. The matrix is the constraint that six must
+satisfy, not the reason for it.
 
 **All-court is deliberately neutral to every posture.** It is not an oversight to be filled
 in; it is the archetype that has no hole. What beats it is *variety* — see the repeat-posture

@@ -26,7 +26,7 @@ export type KeyMomentPosture =
   | 'neutralize'  // Absorb pace, reset, start the rally on your terms
   | 'deception'   // Drop shot, disguise, wrong-foot
   | 'attrition'   // Extend it, make them run, win the next one
-  | 'tempo';      // Change the rhythm - take it early or slow it right down
+  | 'variety';    // Refuse to be predictable - change pace, angle, court position
 
 /**
  * How wide the outcome spread is, NOT how likely the option is to succeed.
@@ -35,11 +35,25 @@ export type KeyMomentPosture =
  */
 export type KeyMomentRisk = 'safe' | 'balanced' | 'bold';
 
+/**
+ * Which side of the ball the option is played from — the hard constraint on what
+ * can appear in a menu. Facing break point on your own serve, every option has to
+ * be a serve; converting one, every option has to be a return.
+ *
+ * `rally` covers the 30-30 / 40-40 moments, which test how you construct the point
+ * rather than how you start it. A rally situation still has a server, so its menu
+ * draws from the rally pool *and* the serving or returning pool as appropriate —
+ * which is why this is a list: an option can be playable from more than one.
+ */
+export type KeyMomentRole = 'serve' | 'return' | 'rally';
+
 export interface TacticalOption {
   id: string;
   emoji: string;
   name: string;
   description: string;
+  /** Which side of the ball this can be played from. */
+  roles: KeyMomentRole[];
   /** How this plays the point; drives the archetype matchup. */
   posture: KeyMomentPosture;
   /** How wide the outcome spread is. */
@@ -89,6 +103,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🚀',
       name: 'Power serve down the T',
       description: 'Overpower them before the rally starts',
+      roles: ['serve'],
       posture: 'power',
       risk: 'bold',
       strongAgainst: ['defensive', 'counterpuncher'],
@@ -129,6 +144,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🏃',
       name: 'Serve and charge the net',
       description: 'Follow your serve in and finish with a volley',
+      roles: ['serve'],
       posture: 'net',
       risk: 'bold',
       strongAgainst: ['counterpuncher', 'defensive'],
@@ -169,6 +185,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🌪️',
       name: 'Safe spin serve',
       description: 'Heavy kick serve to start the rally on your terms',
+      roles: ['serve'],
       posture: 'neutralize',
       risk: 'safe',
       strongAgainst: ['aggressive', 'serve_volley'],
@@ -216,6 +233,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🔨',
       name: 'Aggressive crosscourt return',
       description: 'Attack with power and placement crosscourt',
+      roles: ['return'],
       posture: 'power',
       risk: 'bold',
       strongAgainst: ['defensive', 'counterpuncher'],
@@ -257,6 +275,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🏔️',
       name: 'Deep neutralizing return',
       description: 'Get the return in play with depth, extend the rally',
+      roles: ['return'],
       posture: 'neutralize',
       risk: 'safe',
       strongAgainst: ['aggressive', 'serve_volley'],
@@ -298,6 +317,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🎿',
       name: 'Chip and charge',
       description: 'Short slice return and rush the net',
+      roles: ['return'],
       posture: 'net',
       risk: 'balanced',
       strongAgainst: ['counterpuncher', 'defensive'],
@@ -344,6 +364,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '💣',
       name: 'Clutch power serve',
       description: 'Channel everything into one massive serve',
+      roles: ['serve'],
       posture: 'power',
       risk: 'bold',
       strongAgainst: ['defensive', 'counterpuncher'],
@@ -385,6 +406,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🏄',
       name: 'Serve and volley',
       description: 'Get to the net quickly and put the volley away',
+      roles: ['serve'],
       posture: 'net',
       risk: 'bold',
       strongAgainst: ['counterpuncher', 'defensive'],
@@ -425,6 +447,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '💫',
       name: 'Smart spin serve',
       description: 'Get the serve in with heavy spin and build from there',
+      roles: ['serve'],
       posture: 'neutralize',
       risk: 'safe',
       strongAgainst: ['aggressive', 'serve_volley'],
@@ -472,6 +495,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🪓',
       name: 'Aggressive return',
       description: 'Take control with a powerful return',
+      roles: ['return'],
       posture: 'power',
       risk: 'bold',
       strongAgainst: ['defensive', 'counterpuncher'],
@@ -513,6 +537,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🧱',
       name: 'Block return and rally',
       description: 'Neutralize the serve and grind out the point',
+      roles: ['return'],
       posture: 'neutralize',
       risk: 'safe',
       strongAgainst: ['aggressive', 'serve_volley'],
@@ -555,6 +580,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🦋',
       name: 'Drop shot off the return',
       description: 'Catch them off guard with a disguised drop shot',
+      roles: ['return'],
       posture: 'deception',
       risk: 'bold',
       strongAgainst: ['counterpuncher', 'defensive'],
@@ -601,6 +627,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🌋',
       name: 'Big serve under pressure',
       description: 'Go for a powerful serve to take control of the point',
+      roles: ['return'],
       posture: 'power',
       risk: 'bold',
       strongAgainst: ['defensive', 'counterpuncher'],
@@ -642,7 +669,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🪃',
       name: 'Slice serve and rally',
       description: 'Use a slice serve to disrupt their timing, then build the point',
-      posture: 'tempo',
+      roles: ['return'],
+      posture: 'variety',
       risk: 'balanced',
       strongAgainst: ['aggressive', 'serve_volley'],
       weakAgainst: ['counterpuncher'],
@@ -684,6 +712,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🦅',
       name: 'Serve and volley',
       description: 'Rush the net after your serve to end the point quickly',
+      roles: ['return'],
       posture: 'net',
       risk: 'bold',
       strongAgainst: ['counterpuncher', 'defensive'],
@@ -730,6 +759,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🏰',
       name: 'Defensive rally setup',
       description: 'Stay in the point with consistency and court coverage',
+      roles: ['return'],
       posture: 'neutralize',
       risk: 'safe',
       strongAgainst: ['aggressive', 'serve_volley'],
@@ -772,6 +802,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🎪',
       name: 'Nothing-to-lose swing',
       description: 'Swing freely — go for winners with variety',
+      roles: ['return'],
       posture: 'power',
       risk: 'bold',
       strongAgainst: ['defensive', 'counterpuncher'],
@@ -814,6 +845,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🎭',
       name: 'Drop shot surprise',
       description: 'Catch them off guard with a disguised drop shot',
+      roles: ['return'],
       posture: 'deception',
       risk: 'bold',
       strongAgainst: ['counterpuncher', 'defensive'],
@@ -860,6 +892,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🏹',
       name: 'Championship serve',
       description: 'Go for the match-winning ace with power and placement',
+      roles: ['serve'],
       posture: 'power',
       risk: 'bold',
       strongAgainst: ['defensive', 'counterpuncher'],
@@ -901,6 +934,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🌊',
       name: 'Serve and volley',
       description: 'Get to the net quickly and put the match away at the net',
+      roles: ['serve'],
       posture: 'net',
       risk: 'bold',
       strongAgainst: ['counterpuncher', 'defensive'],
@@ -941,6 +975,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🐚',
       name: 'Smart spin serve',
       description: 'Get the serve in with heavy spin and work the rally',
+      roles: ['serve'],
       posture: 'neutralize',
       risk: 'safe',
       strongAgainst: ['aggressive', 'serve_volley'],
@@ -990,6 +1025,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '💢',
       name: 'Aggressive return',
       description: 'Take control with a powerful return to win the match',
+      roles: ['return'],
       posture: 'power',
       risk: 'bold',
       strongAgainst: ['defensive', 'counterpuncher'],
@@ -1031,7 +1067,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🔮',
       name: 'Read and react',
       description: 'Anticipate the serve direction and redirect with precision',
-      posture: 'tempo',
+      roles: ['return'],
+      posture: 'variety',
       risk: 'balanced',
       strongAgainst: ['aggressive', 'serve_volley'],
       weakAgainst: ['all_court'],
@@ -1072,6 +1109,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🃏',
       name: 'Chip and charge',
       description: 'Slice the return and rush the net to end it',
+      roles: ['return'],
       posture: 'net',
       risk: 'balanced',
       strongAgainst: ['counterpuncher', 'defensive'],
@@ -1118,6 +1156,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🎲',
       name: 'Big serve to survive',
       description: 'Go for a huge serve to stay in the match',
+      roles: ['serve'],
       posture: 'power',
       risk: 'bold',
       strongAgainst: ['defensive', 'counterpuncher'],
@@ -1159,6 +1198,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🌙',
       name: 'Slice serve and grind',
       description: 'Disrupt their timing and make them work for it',
+      roles: ['serve'],
       posture: 'attrition',
       risk: 'balanced',
       strongAgainst: ['aggressive', 'serve_volley'],
@@ -1201,6 +1241,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🏇',
       name: 'Serve and charge',
       description: 'Rush the net — force them to hit a passing shot under pressure',
+      roles: ['serve'],
       posture: 'net',
       risk: 'bold',
       strongAgainst: ['counterpuncher', 'defensive'],
@@ -1248,6 +1289,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🧨',
       name: 'All-out attack return',
       description: 'Nothing to lose — go after the return with everything',
+      roles: ['return'],
       posture: 'power',
       risk: 'bold',
       strongAgainst: ['defensive', 'counterpuncher'],
@@ -1290,6 +1332,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '⛰️',
       name: 'Deep return and grind',
       description: 'Get the return deep and make them earn the match',
+      roles: ['return'],
       posture: 'attrition',
       risk: 'safe',
       strongAgainst: ['aggressive', 'serve_volley'],
@@ -1333,6 +1376,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🌈',
       name: 'Lob and reset',
       description: 'Buy time with a high lob to reset the rally',
+      roles: ['return'],
       posture: 'neutralize',
       risk: 'safe',
       strongAgainst: ['counterpuncher', 'defensive'],
@@ -1381,6 +1425,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🏎️',
       name: 'Push the accelerator',
       description: 'Go for broke - take control and force the winner',
+      roles: ['rally'],
       posture: 'power',
       risk: 'bold',
       strongAgainst: ['defensive', 'counterpuncher'],
@@ -1423,6 +1468,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🧩',
       name: 'Patiently construct the point',
       description: 'Stay patient - move the opponent around and wait for the opening',
+      roles: ['rally'],
       posture: 'attrition',
       risk: 'safe',
       strongAgainst: ['aggressive', 'all_court'],
@@ -1464,6 +1510,7 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🧗',
       name: 'Attack the net',
       description: 'Move to the net - force an approach shot and close out the point',
+      roles: ['rally'],
       posture: 'net',
       risk: 'bold',
       strongAgainst: ['counterpuncher', 'defensive'],
