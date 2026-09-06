@@ -83,6 +83,74 @@ One authored fact per option feeds three systems. A new option inherits sane mat
 coverage, a real risk profile and menu eligibility from its tags, instead of needing 33
 new hand-authored relationships.
 
+### Situation eligibility — role, stakes, pressure
+
+An option is not valid everywhere. Facing break point **on your serve**, every option must be
+a serve; converting break point **on their serve**, every option must be a return. That
+constraint is real and the draw has to respect it.
+
+Today it is enforced by enumerating eleven `KeyMomentType`s and authoring a separate menu for
+each. That is why the pool duplicates so heavily — grouping the 33 options by role and
+posture shows only **13 distinct tactics**:
+
+| Role | Posture / risk | Copies | Written as |
+|---|---|---|---|
+| serve | power / bold | 5 | Power serve down the T, Clutch power serve, Big serve under pressure, Championship serve, Big serve to survive |
+| serve | net / bold | 5 | Serve and charge the net, Serve and volley, Serve and charge |
+| serve | neutralize / safe | 3 | Safe spin serve, Smart spin serve |
+| return | power / bold | 5 | Aggressive crosscourt return, Aggressive return, All-out attack return, Nothing-to-lose swing |
+| return | neutralize / safe | 4 | Deep neutralizing return, Block return and rally, Defensive rally setup, Lob and reset |
+
+The same serve-and-volley is written five times because the stakes tier changed, not because
+the tactic did. Decompose the situation instead:
+
+```typescript
+/** Which side of the ball — decides which options are physically possible. */
+export type KeyMomentRole = 'serve' | 'return';
+
+/** What is on the line. */
+export type KeyMomentStakes = 'deuce' | 'break' | 'set' | 'match';
+
+/** Whether the player is chasing the point or hanging on to it. */
+export type KeyMomentPressure = 'converting' | 'defending';
+```
+
+An option declares eligibility rather than belonging to a menu:
+
+```typescript
+interface TacticalOption {
+  roles: KeyMomentRole[];       // most options are one; rally-phase tactics can be both
+  posture: KeyMomentPosture;
+  risk: KeyMomentRisk;
+  stakes?: KeyMomentStakes[];   // omitted = any
+  pressure?: KeyMomentPressure[]; // omitted = either
+}
+```
+
+The draw filters the pool by the situation, then applies the tag constraints. "Nothing-to-lose
+swing" declares `pressure: ['defending']` and simply never appears when you are the one
+converting — which is the behaviour the eleven hand-authored menus were approximating.
+
+The eleven current types decompose cleanly, so this is a re-description rather than a
+redesign:
+
+| `KeyMomentType` | role | stakes | pressure |
+|---|---|---|---|
+| `break-point-serve` | serve | break | defending |
+| `break-point-return` | return | break | converting |
+| `set-point-player-serve` | serve | set | converting |
+| `set-point-player-return` | return | set | converting |
+| `set-point-opponent-serve` | serve | set | defending |
+| `set-point-opponent-return` | return | set | defending |
+| `match-point-player-serve` | serve | match | converting |
+| `match-point-player-return` | return | match | converting |
+| `match-point-opponent-serve` | serve | match | defending |
+| `match-point-opponent-return` | return | match | defending |
+| `key-rally` | either | deuce | — |
+
+Stakes stop being a content bucket and become what they always were: a pressure level, which
+`updatePressure()` already computes.
+
 ### Postures
 
 A posture is *how you are playing the point* — the thing an opponent's style is strong or
@@ -192,11 +260,14 @@ recovery, on a slow per-game tick.
 
 Ordered by dependency. Each lands independently and is measurable on its own.
 
-### 1. Tag the options *(foundation — everything else depends on it)*
+### 1. Tag the options *(foundation — everything else depends on it)* — **done**
 
-Add `posture` and `risk` to `TacticalOption`; tag the existing 33. (A `family` tag was
+Added `posture` and `risk` to `TacticalOption` and tagged the existing 33. (A `family` tag was
 considered and dropped — it would have carried flavour only, and nothing reads it.) No behaviour
-change, no new content. Ships as a pure refactor with the probe confirming identical output.
+change; nothing reads the tags yet.
+
+Still to add here: `roles`, `stakes` and `pressure` per the eligibility model above, which is
+what lets the eleven authored menus collapse into one filtered pool.
 
 ### 2. Derive the matchup from the matrix
 
@@ -227,6 +298,8 @@ Implement the constrained draw over the tagged pool. Depends on 1. Low risk, imm
 visible.
 
 ### 5. Write more options
+
+Draft catalogue: **[`key-moment-option-catalogue.md`](./key-moment-option-catalogue.md)**.
 
 Not optional polish — the matrix is only as good as the pool feeding it. Tagging the existing
 33 (chunk 1, done) shows how thin the new postures are:

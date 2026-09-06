@@ -45,6 +45,10 @@ belongs in git history, not here.
   hand-authored matchup lists, a constrained draw in place of the fixed triple, and risk as
   outcome variance rather than an energy cost. Records why the current chart leaves all-court
   3% counterable. Not built.
+- **[`proposals/key-moment-option-catalogue.md`](./proposals/key-moment-option-catalogue.md)** —
+  the draft option set for that overhaul, 38 options across six postures and two roles.
+  Records that today's 33 options are only 13 distinct tactics repeated across stakes tiers.
+  Not built.
 - **[`proposals/story-minigames.md`](./proposals/story-minigames.md)** — a context-agnostic scoring
   contract so one minigame runtime can serve both training and story events. Not built.
 
