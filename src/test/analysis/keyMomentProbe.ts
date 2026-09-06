@@ -26,8 +26,18 @@ const _origLog = console.log;
 const suppressLogs = (): void => { console.log = () => {}; };
 const restoreLogs = (): void => { console.log = _origLog; };
 
-/** Match count for the match-level probe; override with N_MATCHES=200. */
+/** Match count for the match-level probes; override with N_MATCHES=200. */
 const N_MATCHES = Number(process.env.N_MATCHES ?? 60);
+
+/**
+ * Match format under test; override with FORMAT=best-of-3.
+ *
+ * Defaults to best-of-1 because that is what the game actually plays: MatchSetup,
+ * story matches and tournament matches are all best-of-1, and only team matches
+ * run best-of-3. Balance conclusions drawn from best-of-3 do not transfer — a
+ * single set is shorter, swingier, and fires far fewer key moments.
+ */
+const FORMAT = (process.env.FORMAT ?? 'best-of-1') as 'best-of-1' | 'best-of-3';
 
 const ARCHETYPES = Object.keys(ARCHETYPE_DATA) as ArchetypeType[];
 const ALL_OPTIONS: Array<{ type: KeyMomentType; option: TacticalOption }> = Object.entries(
@@ -277,7 +287,7 @@ function probeRealisticScenarios(): void {
  * on the biggest points of a match, so a shift in their success rate is amplified.
  */
 async function probeMatchImpact(nMatches: number): Promise<void> {
-  printHeader(`Match-level impact (${nMatches} matches per policy, best-of-3, even stats)`);
+  printHeader(`Match-level impact (${nMatches} ${FORMAT} matches per policy, even stats)`);
 
   const policies: Array<{ label: string; pick: (opts: TacticalOption[], arch: ArchetypeType) => TacticalOption }> = [
     {
@@ -318,7 +328,7 @@ async function probeMatchImpact(nMatches: number): Promise<void> {
         mood: 0,
         energy: 100,
         enableKeyMoments: true,
-        matchFormat: 'best-of-3',
+        matchFormat: FORMAT,
         disableMatchForm: true,
         pointDelayMs: 0,
         onKeyMoment: async (km) => {
@@ -362,7 +372,7 @@ async function probeMatchImpact(nMatches: number): Promise<void> {
  * near a 50% MATCH win rate — not whatever makes the per-moment number read 50%.
  */
 async function probeBaseChanceSweep(values: number[], nMatches: number): Promise<void> {
-  printHeader(`Base chance sweep (${nMatches} matches per value, even stats, random picks)`);
+  printHeader(`Base chance sweep (${nMatches} ${FORMAT} matches per value, even stats, random picks)`);
 
   const original = KEY_MOMENT.baseChance;
   const rows: (string | number)[][] = [];
@@ -381,14 +391,14 @@ async function probeBaseChanceSweep(values: number[], nMatches: number): Promise
         mood: 0,
         energy: 100,
         enableKeyMoments: false,
-        matchFormat: 'best-of-3',
+        matchFormat: FORMAT,
         disableMatchForm: true,
         pointDelayMs: 0,
       });
       restoreLogs();
       if (final.winner === 'player') wins++;
     }
-    rows.push(['(control: KMs off)', `${fmtNum((100 * wins) / nMatches)}%`, '—']);
+    rows.push(['(control: KMs off)', `${fmtNum((100 * wins) / nMatches)}%`, '—', '0']);
   }
 
   for (const base of values) {
@@ -407,7 +417,7 @@ async function probeBaseChanceSweep(values: number[], nMatches: number): Promise
         mood: 0,
         energy: 100,
         enableKeyMoments: true,
-        matchFormat: 'best-of-3',
+        matchFormat: FORMAT,
         disableMatchForm: true,
         pointDelayMs: 0,
         onKeyMoment: async (km) => {
@@ -425,11 +435,12 @@ async function probeBaseChanceSweep(values: number[], nMatches: number): Promise
       base,
       `${fmtNum((100 * wins) / nMatches)}%`,
       kmTotal > 0 ? `${fmtNum((100 * kmWins) / kmTotal)}%` : '—',
+      fmtNum(kmTotal / nMatches),
     ]);
   }
 
   KEY_MOMENT.baseChance = original;
-  printTable(['baseChance', 'Match win rate', 'KM win rate'], rows);
+  printTable(['baseChance', 'Match win rate', 'KM win rate', 'KMs/match'], rows);
   print('');
   print('Target: match win rate near 50% for an even matchup.');
 }
@@ -449,7 +460,7 @@ async function probeBaseChanceVsFrequency(
   frequencies: number[],
   nMatches: number,
 ): Promise<void> {
-  printHeader(`baseChance x keyMomentsPerMatch (${nMatches} matches per cell, random picks)`);
+  printHeader(`baseChance x keyMomentsPerMatch (${nMatches} ${FORMAT} matches per cell, random picks)`);
 
   const original = KEY_MOMENT.baseChance;
   const rows: (string | number)[][] = [];
@@ -470,7 +481,7 @@ async function probeBaseChanceVsFrequency(
           energy: 100,
           enableKeyMoments: true,
           keyMomentsPerMatch: freq,
-          matchFormat: 'best-of-3',
+          matchFormat: FORMAT,
           disableMatchForm: true,
           pointDelayMs: 0,
           onKeyMoment: async (km) =>
@@ -499,12 +510,12 @@ async function probeBaseChanceVsFrequency(
 /**
  * baseChance is flat, but a key moment means something different depending on who
  * is serving: holding from break point down is the server's to lose, converting a
- * break point is the returner's to win. Real tennis sits near a 60/40 split. If the
- * flat base is producing the same rate on both sides, the layer is over-rewarding
- * the returner and under-rewarding the server by the same amount.
+ * break point is the returner's to win. This checks whether that asymmetry leaks
+ * into outcomes. It currently does not — the two sides land within ~2pp of each
+ * other — so the flat base is not the problem it looked like on smaller samples.
  */
 async function probeServeReturnSplit(nMatches: number): Promise<void> {
-  printHeader(`Key moment outcomes by who is serving (${nMatches} matches, random picks)`);
+  printHeader(`Key moment outcomes by who is serving (${nMatches} ${FORMAT} matches, random picks)`);
 
   let servingTotal = 0;
   let servingWon = 0;
@@ -551,9 +562,10 @@ async function probeServeReturnSplit(nMatches: number): Promise<void> {
     ],
   );
   print('');
-  print('A flat baseChance gives the same rate on both sides. Real tennis holds');
-  print('break points around 60% of the time, so a server-relative base would put');
-  print('these two rows on either side of 50 rather than on top of each other.');
+  print('Measured near-even at best-of-1 (32.4% serving / 34.9% returning over 250');
+  print('matches), so the flat baseChance is not currently producing a serve/return');
+  print('bias worth correcting. An earlier 8.5pp gap came from a 120-match');
+  print('best-of-3 run and did not survive the larger sample or the real format.');
 }
 
 printBanner('KEY MOMENT PROBE');
@@ -567,6 +579,10 @@ if (SECTIONS === 'all') {
   probeOutcomeBands();
   probeContextSwing();
   probeRealisticScenarios();
+  await probeMatchImpact(N_MATCHES);
+}
+
+if (SECTIONS === 'impact') {
   await probeMatchImpact(N_MATCHES);
 }
 

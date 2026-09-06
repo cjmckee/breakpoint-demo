@@ -1077,19 +1077,25 @@ export const KEY_MOMENT_OPPONENT_DRAIN = {
  * exclusively on break/set/match points, so they are worth far more than an average
  * point — a neutral rate of 50% hands an evenly-matched player the match. It is
  * tuned instead so that an even player choosing at random finishes near a 50%
- * MATCH win rate; see src/test/analysis/keyMomentProbe.ts.
+ * MATCH win rate in best-of-1; see src/test/analysis/keyMomentProbe.ts.
  */
 export const KEY_MOMENT = {
   /**
    * Success chance for a neutral option, even stats, neutral conditions.
    *
-   * Measured, not guessed: at 16 key moments per match this value produces a
-   * ~50% match win rate for an even matchup (probe: 50.7%, vs a 45.3% control
-   * with key moments disabled). It trades off steeply against frequency —
-   * roughly +10pp of match win rate per +5 here — so raising it means firing
-   * fewer key moments per match. Re-run the sweep before changing it.
+   * Measured, not guessed, and measured against best-of-1 — the format the game
+   * actually plays (MatchSetup, story and tournament matches are all best-of-1;
+   * only team matches run best-of-3). At 200 simulated even matches this value
+   * yields a ~49% match win rate against a 49% key-moments-disabled control.
+   *
+   * It trades off steeply: 35 drops an even player to 30%, 45 lifts them to 60%.
+   * The format matters as much as the number — a single set fires ~8.5 key
+   * moments but they cover most of that set's pivotal points, so the layer has
+   * more leverage per match than the ~15 it fires across a best-of-3.
+   *
+   * Re-run src/test/analysis/keyMomentProbe.ts (SECTIONS=sweep) before changing.
    */
-  baseChance: 35,
+  baseChance: 40,
   /** Added when the option is strongAgainst the opponent's archetype. */
   counterBonus: 15,
   /** Added (negative) when the option is weakAgainst the opponent's archetype. */
