@@ -439,10 +439,31 @@ an archetype neutral to every posture offers nothing to read:
 A ~7pp spread against all-court (noise) against 30-34pp once there is a matchup to read.
 That is the skill layer the overhaul was for, and it was invisible until the fixture changed.
 
-Still open: random-pick sits at 60-62% against these archetypes rather than ~50%, and that
-cannot be attributed to the key-moment layer without a key-moments-disabled control per
-archetype — the archetype profile also changes how the opponent plays ordinary rally points.
-Run the sweep section per archetype before touching `baseChance`.
+**And the control says that 60-62% is not the key-moment layer's doing.** Against a defensive
+opponent, 120 best-of-1 matches with key moments *disabled*:
+
+| baseChance | Match win rate | KM win rate |
+|---|---|---|
+| (control: KMs off) | **63.3%** | — |
+| 32 | 43.3% | 33.5% |
+| 36 | 44.2% | 36.1% |
+| 40 | 58.3% | 43.3% |
+
+A uniform-50 player beats a uniform-50 *defensive* opponent 63% of the time with no key
+moments at all. The archetype profile changes how the opponent plays ordinary rally points,
+and the rally sim is not neutral across archetypes — which is a finding about the sim, not
+about this layer.
+
+This changes what `baseChance` should be tuned against. "Near 50% match win rate" is not a
+reachable target per archetype, because the *control* is not 50% per archetype. The right
+target is that the key-moment layer be roughly **neutral relative to its own control** for a
+random picker: with key moments on, an uninformed player should land near where they would
+have landed without them, and the read is what moves them off it. By that standard 40 is
+close (58.3% against a 63.3% control, so about -5pp) and 32/36 are far too punishing.
+
+Before finalising, run the sweep for all five archetypes and tune against the average gap to
+control — and raise the archetype rally imbalance separately, because a 63% control is worth
+understanding on its own terms.
 
 Also open: best-of-3 is untuned. One base cannot serve both formats, because a single set
 fires ~8.5 key moments that cover most of that set's pivotal points while a best-of-3
