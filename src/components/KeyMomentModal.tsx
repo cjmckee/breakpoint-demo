@@ -13,8 +13,9 @@ import { Modal } from './ui/Modal';
 import { KeyMoment } from '../types/keyMoments';
 import { TacticalOption, SecondaryEffect } from '../data/tacticalOptions';
 import { ARCHETYPE_DATA, getRelevantTendency } from '../data/archetypes';
-import { POSTURE_META } from '../data/postures';
+import { POSTURE_META, getMatchup } from '../data/postures';
 import { KeyMomentResolver, KeyMomentResult, AppliedEffect } from '../game/KeyMomentResolver';
+import type { OptionVerdict, OutcomeSpread } from '../game/KeyMomentResolver';
 import { MatchOrchestrator } from '../game/MatchOrchestrator';
 import { useMatchStore } from '../stores/matchStore';
 import { PlayerStats } from '../types/game';
@@ -53,29 +54,63 @@ const abbrevStat = (name: string): string => {
 };
 
 /**
- * Advantage chip label + colour. Yellow at "Even", deepening to forest green as the player's
- * weighted edge grows and to deep scarlet as the disadvantage grows (continuous by score diff).
+ * Verdict chip label + colour.
+ *
+ * One word per card, folding every term that decides the option: base chance, the
+ * stat differential, the posture matchup and the live conditions. The old chip was
+ * computed from the stat differential alone — the weakest of the four, worth a few
+ * points — so a card could show a confident "Advantage" while carrying a matchup
+ * penalty three times larger. Colour runs scarlet through amber to forest green.
  */
-const advInfo = (diff: number): { label: string; bg: string; fg: string } => {
-  const label = diff > 10 ? 'Advantage' : diff < -10 ? 'Disadvantage' : 'Even';
-  const mag = Math.min(1, Math.abs(diff) / 25);
-  let hue: number;
-  let sat: number;
-  let light: number;
-  if (diff >= 0) {
-    hue = lerp(50, 130, mag);
-    sat = lerp(85, 62, mag);
-    light = lerp(52, 30, mag);
-  } else {
-    hue = lerp(50, 2, mag);
-    sat = lerp(85, 68, mag);
-    light = lerp(52, 33, mag);
-  }
+const VERDICT_LABELS: Record<OptionVerdict, string> = {
+  strong: 'Strong',
+  favoured: 'Favoured',
+  even: 'Even',
+  risky: 'Risky',
+  poor: 'Poor',
+};
+
+const verdictInfo = (verdict: OptionVerdict): { label: string; bg: string; fg: string } => {
+  // -1 (poor) .. +1 (strong), so colour and label always agree.
+  const scale: Record<OptionVerdict, number> = {
+    strong: 1, favoured: 0.5, even: 0, risky: -0.5, poor: -1,
+  };
+  const t = scale[verdict];
+  const mag = Math.abs(t);
+  const hue = t >= 0 ? lerp(50, 130, mag) : lerp(50, 2, mag);
+  const sat = lerp(85, t >= 0 ? 62 : 68, mag);
+  const light = lerp(52, t >= 0 ? 30 : 33, mag);
   return {
-    label,
+    label: VERDICT_LABELS[verdict],
     bg: `hsl(${hue.toFixed(0)}, ${sat.toFixed(0)}%, ${light.toFixed(0)}%)`,
     fg: light < 46 ? '#ffffff' : '#2a1c02',
   };
+};
+
+/**
+ * The outcome-spread bar: how this option's results are shaped, not how likely it
+ * is to work. A safe option draws a solid block of plain outcomes; a bold one shows
+ * fat tails at both ends. Same win rate can look completely different here, which is
+ * the whole point of the risk tag.
+ */
+const RiskShapeBar: React.FC<{ spread: OutcomeSpread }> = ({ spread }) => {
+  const segments: Array<{ share: number; color: string; title: string }> = [
+    { share: spread.criticalSuccess, color: '#facc15', title: 'Critical success' },
+    { share: spread.success, color: '#16a34a', title: 'Success' },
+    { share: spread.failure, color: '#b91c1c', title: 'Failure' },
+    { share: spread.criticalFailure, color: '#7f1d1d', title: 'Critical failure' },
+  ];
+  return (
+    <div className="flex h-1.5 w-full overflow-hidden rounded-sm" aria-hidden="true">
+      {segments.map((seg, i) => (
+        <span
+          key={i}
+          title={seg.title}
+          style={{ width: `${Math.max(0, seg.share * 100)}%`, backgroundColor: seg.color }}
+        />
+      ))}
+    </div>
+  );
 };
 
 /**
@@ -441,6 +476,37 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
               <h3 className="text-2xl font-bold text-pixel-text">{style.title}</h3>
               <p className="text-base text-pixel-text mt-1">{getOutcomeMessage()}</p>
             </div>
+
+            {/* The choice is graded separately from the point.
+                A good read that loses is a different thing from a bad read that
+                loses, and one banner cannot say both — which is what made a
+                correct choice on a lost point read as a mistake. */}
+            <div
+              className={`border-2 border-t-0 px-4 py-3 text-center text-sm ${
+                result.isCounter
+                  ? 'border-green-600 bg-green-600 bg-opacity-10 text-green-400'
+                  : result.isWeakChoice
+                    ? 'border-red-600 bg-red-600 bg-opacity-10 text-red-400'
+                    : 'border-pixel-border bg-pixel-bg text-pixel-text-muted'
+              }`}
+            >
+              <span className="font-bold">
+                {result.isCounter
+                  ? '🎯 Great read'
+                  : result.isWeakChoice
+                    ? '⚠️ Bad matchup'
+                    : '— Fair call'}
+              </span>
+              <span className="ml-2">
+                {result.isCounter
+                  ? `— ${chosenOption.name} counters their style. ${
+                      result.pointWinner === 'player' ? 'And it paid off.' : 'It just did not land this time.'
+                    }`
+                  : result.isWeakChoice
+                    ? `— ${chosenOption.name} played into their strengths.`
+                    : `— nothing in the matchup for or against it.`}
+              </span>
+            </div>
           </div>
 
           {/* Chosen tactic + matchup feedback — spotlit on step 1 */}
@@ -453,16 +519,6 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
               </div>
             </div>
 
-            {result.isCounter && (
-              <div className="text-base px-4 py-3 border-2 border-green-600 bg-green-600 bg-opacity-10 text-green-400 mt-3">
-                🎯 Great read — your tactic countered their style.
-              </div>
-            )}
-            {result.isWeakChoice && (
-              <div className="text-base px-4 py-3 border-2 border-red-600 bg-red-600 bg-opacity-10 text-red-400 mt-3">
-                ⚠️ Bad matchup — that tactic played into their strengths.
-              </div>
-            )}
           </div>
 
           {/* Applied effects — spotlit on step 2 */}
@@ -529,6 +585,23 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     );
   };
 
+  /**
+   * The option's full success probability — base, stats, posture matchup and live
+   * conditions — computed exactly as the resolver will when the choice is committed,
+   * so the chip can never disagree with the outcome it is predicting.
+   */
+  const probabilityFor = (option: TacticalOption): number => {
+    if (!matchConfig) return 50;
+    return KeyMomentResolver.calculateSuccessProbability(
+      matchConfig.playerStats as PlayerStats,
+      matchConfig.opponentStats as PlayerStats,
+      option,
+      activeKeyMoment.opponentArchetype,
+      { momentum: ctx.momentum, energy: ctx.energy, mood: ctx.mood, pressure: ctx.pressure },
+      playerEffects,
+    );
+  };
+
   // During the matchup/effects tutorial steps, force focus to the first option so the
   // walkthrough always points at populated detail.
   const forcedFocus = kmSpotlit('options-matchup') || kmSpotlit('options-effects') ? 0 : null;
@@ -577,6 +650,47 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     );
   };
 
+  /**
+   * The three terms behind an option's verdict, each reduced to a word: whether the
+   * posture reads the opponent, whether the stats favour you, and whether the
+   * conditions are helping. Deliberately no numbers — the player needs to know
+   * which lever is doing the work, not to re-derive the probability.
+   */
+  const breakdownFor = (
+    option: TacticalOption,
+  ): Array<{ label: string; icon: string; verdict: string; tone: string }> => {
+    const good = 'text-green-400';
+    const bad = 'text-red-400';
+    const flat = 'text-pixel-text-muted';
+
+    const matchup = getMatchup(option.posture, activeKeyMoment.opponentArchetype);
+    const read = matchup === 'strong'
+      ? { icon: '⚔', verdict: 'Counters their style', tone: good }
+      : matchup === 'weak'
+        ? { icon: '⚠', verdict: 'Plays to their strength', tone: bad }
+        : { icon: '—', verdict: 'Neither helps nor hurts', tone: flat };
+
+    const { playerScore, opponentScore } = scoresFor(option);
+    const diff = playerScore - opponentScore;
+    const stats = diff > 10
+      ? { icon: '▲', verdict: 'Your stats suit this', tone: good }
+      : diff < -10
+        ? { icon: '▼', verdict: 'Their stats suit this', tone: bad }
+        : { icon: '=', verdict: 'Evenly matched', tone: flat };
+
+    const conditions = modifiers.total > 2
+      ? { icon: '▲', verdict: 'Conditions favour you', tone: good }
+      : modifiers.total < -2
+        ? { icon: '▼', verdict: 'Conditions against you', tone: bad }
+        : { icon: '=', verdict: 'Conditions neutral', tone: flat };
+
+    return [
+      { label: 'The read', ...read },
+      { label: 'The stats', ...stats },
+      { label: 'Conditions', ...conditions },
+    ];
+  };
+
   // Right pane: the qualitative read on the focused tactic (matchup + effects) + commit button.
   const DetailPane: React.FC<{ option: TacticalOption }> = ({ option }) => (
     <div className="flex flex-col border-2 border-pixel-accent rounded bg-pixel-card overflow-hidden">
@@ -590,6 +704,19 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
           </span>
         </div>
         <p className="text-sm text-pixel-text-muted leading-snug">{option.description}</p>
+      </div>
+
+      {/* Why the verdict says what it says — the three terms, each as a word.
+          The card gives one judgement; this pane is where it is accountable. */}
+      <div className="p-3 border-b-2 border-pixel-border flex flex-col gap-1.5">
+        {breakdownFor(option).map((row) => (
+          <div key={row.label} className="flex items-center gap-2 text-sm">
+            <span className="w-24 shrink-0 text-[10px] font-bold uppercase tracking-wide text-pixel-text-muted">
+              {row.label}
+            </span>
+            <span className={row.tone}>{row.icon} {row.verdict}</span>
+          </div>
+        ))}
       </div>
 
       {/* Matchup */}
@@ -673,7 +800,9 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
             <div className="flex flex-col gap-2.5">
               {activeKeyMoment.options.map((option, index) => {
                 const { playerScore, opponentScore } = scoresFor(option);
-                const adv = advInfo(playerScore - opponentScore);
+                const probability = probabilityFor(option);
+                const adv = verdictInfo(KeyMomentResolver.getVerdict(probability));
+                const spread = KeyMomentResolver.getOutcomeSpread(probability, option.risk);
                 const isActive = index === activeIdx;
                 return (
                   <button
@@ -696,6 +825,14 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                       >
                         {adv.label}
                       </span>
+                    </div>
+                    {/* How the outcomes are shaped — flat for a safe option, fat-tailed for a
+                        bold one. Same width whatever the odds; it reads shape, not chance. */}
+                    <div className="mb-2 flex items-center gap-2">
+                      <span className="text-[9px] font-bold uppercase tracking-wide text-pixel-text-muted shrink-0">
+                        {option.risk}
+                      </span>
+                      <RiskShapeBar spread={spread} />
                     </div>
                     {/* Composites + the stats that drive them, per side. Grid so the You/Opp rows
                         share columns and the chips line up regardless of abbreviation length. */}

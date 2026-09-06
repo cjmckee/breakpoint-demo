@@ -405,15 +405,30 @@ time, big fist pump — low win chance, large pressure and mood swings), true pe
 signature shots gated on abilities, and surface-specific plays. Surface is worth calling out:
 it is on `InteractiveMatchConfig` today and has zero effect on key moments.
 
-### 6. Legibility
+### 6. Legibility — **done**
 
-- Fold the matchup into the card's verdict chip. Today the Advantage/Even chip is computed
-  from stat differential alone — the *weakest* term, worth ±2-6pp — while the counter that
-  decides the point (±8-15pp) appears only on the result screen, after the player commits.
-  One word per card; the breakdown (read / stats / conditions) in the detail pane that
-  already exists. No percentages.
-- Risk-shape bar per card, from the `risk` tag.
-- Separate choice-grade from point-result on the reveal.
+- **Verdict chip.** One word per card — Strong / Favoured / Even / Risky / Poor — from the
+  full success probability, computed by the same resolver call that will decide the point, so
+  the chip cannot disagree with the outcome it predicts. Replaces a chip computed from the
+  stat differential alone: the weakest of the four terms, which meant a card could show a
+  confident "Advantage" while carrying a matchup penalty three times larger.
+
+  Bucketed **relative to `baseChance`**, not to 50%. A key moment is a break/set/match point,
+  so its absolute odds sit well under half; judging against 50 labelled every ordinary option
+  "Risky" and left the scale nowhere to put an actually bad one. Relative thresholds also
+  survive chunk 7's re-tune without the labels drifting.
+- **Risk-shape bar.** Four segments — critical success / success / failure / critical failure —
+  so two options at the same odds look different when their risk differs. A safe option at 38%
+  draws one bright segment and one dark tail; a bold option at the same 38% draws two and four.
+- **Breakdown rows** in the detail pane: the read, the stats, the conditions, each as a word
+  with no numbers, so the verdict is accountable without inviting arithmetic.
+- **Choice grade split from point result** on the reveal: the outcome banner says what happened
+  to the point, and a separate line grades the decision — "Great read … it just did not land
+  this time" reads differently from a plain ❌, which is the whole complaint about a correct
+  choice on a lost point.
+
+Not done here: the **Surprise pips**, because the repeat-posture *decay* they surface is not
+built yet — the draw currently prefers fresh postures but nothing penalises repetition.
 
 ### 7. Re-baseline — **now blocking**
 
