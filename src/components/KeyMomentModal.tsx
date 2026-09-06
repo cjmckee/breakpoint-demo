@@ -12,10 +12,10 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import { KeyMoment } from '../types/keyMoments';
 import { TacticalOption, SecondaryEffect } from '../data/tacticalOptions';
+import type { KeyMomentRisk } from '../data/tacticalOptions';
 import { ARCHETYPE_DATA, getRelevantTendency } from '../data/archetypes';
 import { POSTURE_META, getMatchup } from '../data/postures';
 import { KeyMomentResolver, KeyMomentResult, AppliedEffect } from '../game/KeyMomentResolver';
-import type { OptionVerdict, OutcomeSpread } from '../game/KeyMomentResolver';
 import { MatchOrchestrator } from '../game/MatchOrchestrator';
 import { useMatchStore } from '../stores/matchStore';
 import { PlayerStats } from '../types/game';
@@ -54,62 +54,56 @@ const abbrevStat = (name: string): string => {
 };
 
 /**
- * Verdict chip label + colour.
+ * Stat chip label + colour, from the weighted stat differential alone.
  *
- * One word per card, folding every term that decides the option: base chance, the
- * stat differential, the posture matchup and the live conditions. The old chip was
- * computed from the stat differential alone — the weakest of the four, worth a few
- * points — so a card could show a confident "Advantage" while carrying a matchup
- * penalty three times larger. Colour runs scarlet through amber to forest green.
+ * Deliberately NOT the full success probability. Folding the posture matchup in
+ * turns the card into an answer key — measured, "take the highest verdict" beat
+ * every other policy and tied even a resource-aware version of itself, so the
+ * chip was solving the point rather than informing it. The matchup reaches the
+ * player as prose instead ("retrievers who sit back"), which has to be mapped
+ * onto the opponent in the header. That mapping is the skill.
+ *
+ * Labelled "Stats" so it cannot be misread as an overall verdict.
  */
-const VERDICT_LABELS: Record<OptionVerdict, string> = {
-  strong: 'Strong',
-  favoured: 'Favoured',
-  even: 'Even',
-  risky: 'Risky',
-  poor: 'Poor',
-};
-
-const verdictInfo = (verdict: OptionVerdict): { label: string; bg: string; fg: string } => {
-  // -1 (poor) .. +1 (strong), so colour and label always agree.
-  const scale: Record<OptionVerdict, number> = {
-    strong: 1, favoured: 0.5, even: 0, risky: -0.5, poor: -1,
-  };
-  const t = scale[verdict];
-  const mag = Math.abs(t);
-  const hue = t >= 0 ? lerp(50, 130, mag) : lerp(50, 2, mag);
-  const sat = lerp(85, t >= 0 ? 62 : 68, mag);
-  const light = lerp(52, t >= 0 ? 30 : 33, mag);
+const statChipInfo = (diff: number): { label: string; bg: string; fg: string } => {
+  const label = diff > 10 ? 'Stats favour you' : diff < -10 ? 'Stats favour them' : 'Stats even';
+  const mag = Math.min(1, Math.abs(diff) / 25);
+  const hue = diff >= 0 ? lerp(50, 130, mag) : lerp(50, 2, mag);
+  const sat = lerp(85, diff >= 0 ? 62 : 68, mag);
+  const light = lerp(52, diff >= 0 ? 30 : 33, mag);
   return {
-    label: VERDICT_LABELS[verdict],
+    label,
     bg: `hsl(${hue.toFixed(0)}, ${sat.toFixed(0)}%, ${light.toFixed(0)}%)`,
     fg: light < 46 ? '#ffffff' : '#2a1c02',
   };
 };
 
 /**
- * The outcome-spread bar: how this option's results are shaped, not how likely it
- * is to work. A safe option draws a solid block of plain outcomes; a bold one shows
- * fat tails at both ends. Same win rate can look completely different here, which is
- * the whole point of the risk tag.
+ * Volatility indicator, from the risk tag alone.
+ *
+ * An outcome-spread bar would have leaked the success probability — the split
+ * between its light and dark halves *is* the win chance — so this reports only
+ * the shape: how often this option resolves emphatically, in either direction.
  */
-const RiskShapeBar: React.FC<{ spread: OutcomeSpread }> = ({ spread }) => {
-  const segments: Array<{ share: number; color: string; title: string }> = [
-    { share: spread.criticalSuccess, color: '#facc15', title: 'Critical success' },
-    { share: spread.success, color: '#16a34a', title: 'Success' },
-    { share: spread.failure, color: '#b91c1c', title: 'Failure' },
-    { share: spread.criticalFailure, color: '#7f1d1d', title: 'Critical failure' },
-  ];
+const RISK_META: Record<KeyMomentRisk, { label: string; pips: number; tone: string }> = {
+  safe: { label: 'Steady', pips: 1, tone: 'text-green-400' },
+  balanced: { label: 'Mixed', pips: 2, tone: 'text-yellow-400' },
+  bold: { label: 'Swingy', pips: 3, tone: 'text-red-400' },
+};
+
+const RiskIndicator: React.FC<{ risk: KeyMomentRisk }> = ({ risk }) => {
+  const meta = RISK_META[risk];
   return (
-    <div className="flex h-1.5 w-full overflow-hidden rounded-sm" aria-hidden="true">
-      {segments.map((seg, i) => (
-        <span
-          key={i}
-          title={seg.title}
-          style={{ width: `${Math.max(0, seg.share * 100)}%`, backgroundColor: seg.color }}
-        />
-      ))}
-    </div>
+    <span
+      className={`flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide ${meta.tone}`}
+      title={`${meta.label} — how often this resolves emphatically, win or lose`}
+    >
+      <span className="tracking-tighter">
+        {'\u25c6'.repeat(meta.pips)}
+        <span className="opacity-25">{'\u25c6'.repeat(3 - meta.pips)}</span>
+      </span>
+      {meta.label}
+    </span>
   );
 };
 
@@ -585,23 +579,6 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     );
   };
 
-  /**
-   * The option's full success probability — base, stats, posture matchup and live
-   * conditions — computed exactly as the resolver will when the choice is committed,
-   * so the chip can never disagree with the outcome it is predicting.
-   */
-  const probabilityFor = (option: TacticalOption): number => {
-    if (!matchConfig) return 50;
-    return KeyMomentResolver.calculateSuccessProbability(
-      matchConfig.playerStats as PlayerStats,
-      matchConfig.opponentStats as PlayerStats,
-      option,
-      activeKeyMoment.opponentArchetype,
-      { momentum: ctx.momentum, energy: ctx.energy, mood: ctx.mood, pressure: ctx.pressure },
-      playerEffects,
-    );
-  };
-
   // During the matchup/effects tutorial steps, force focus to the first option so the
   // walkthrough always points at populated detail.
   const forcedFocus = kmSpotlit('options-matchup') || kmSpotlit('options-effects') ? 0 : null;
@@ -650,47 +627,6 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     );
   };
 
-  /**
-   * The three terms behind an option's verdict, each reduced to a word: whether the
-   * posture reads the opponent, whether the stats favour you, and whether the
-   * conditions are helping. Deliberately no numbers — the player needs to know
-   * which lever is doing the work, not to re-derive the probability.
-   */
-  const breakdownFor = (
-    option: TacticalOption,
-  ): Array<{ label: string; icon: string; verdict: string; tone: string }> => {
-    const good = 'text-green-400';
-    const bad = 'text-red-400';
-    const flat = 'text-pixel-text-muted';
-
-    const matchup = getMatchup(option.posture, activeKeyMoment.opponentArchetype);
-    const read = matchup === 'strong'
-      ? { icon: '⚔', verdict: 'Counters their style', tone: good }
-      : matchup === 'weak'
-        ? { icon: '⚠', verdict: 'Plays to their strength', tone: bad }
-        : { icon: '—', verdict: 'Neither helps nor hurts', tone: flat };
-
-    const { playerScore, opponentScore } = scoresFor(option);
-    const diff = playerScore - opponentScore;
-    const stats = diff > 10
-      ? { icon: '▲', verdict: 'Your stats suit this', tone: good }
-      : diff < -10
-        ? { icon: '▼', verdict: 'Their stats suit this', tone: bad }
-        : { icon: '=', verdict: 'Evenly matched', tone: flat };
-
-    const conditions = modifiers.total > 2
-      ? { icon: '▲', verdict: 'Conditions favour you', tone: good }
-      : modifiers.total < -2
-        ? { icon: '▼', verdict: 'Conditions against you', tone: bad }
-        : { icon: '=', verdict: 'Conditions neutral', tone: flat };
-
-    return [
-      { label: 'The read', ...read },
-      { label: 'The stats', ...stats },
-      { label: 'Conditions', ...conditions },
-    ];
-  };
-
   // Right pane: the qualitative read on the focused tactic (matchup + effects) + commit button.
   const DetailPane: React.FC<{ option: TacticalOption }> = ({ option }) => (
     <div className="flex flex-col border-2 border-pixel-accent rounded bg-pixel-card overflow-hidden">
@@ -704,19 +640,6 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
           </span>
         </div>
         <p className="text-sm text-pixel-text-muted leading-snug">{option.description}</p>
-      </div>
-
-      {/* Why the verdict says what it says — the three terms, each as a word.
-          The card gives one judgement; this pane is where it is accountable. */}
-      <div className="p-3 border-b-2 border-pixel-border flex flex-col gap-1.5">
-        {breakdownFor(option).map((row) => (
-          <div key={row.label} className="flex items-center gap-2 text-sm">
-            <span className="w-24 shrink-0 text-[10px] font-bold uppercase tracking-wide text-pixel-text-muted">
-              {row.label}
-            </span>
-            <span className={row.tone}>{row.icon} {row.verdict}</span>
-          </div>
-        ))}
       </div>
 
       {/* Matchup */}
@@ -800,9 +723,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
             <div className="flex flex-col gap-2.5">
               {activeKeyMoment.options.map((option, index) => {
                 const { playerScore, opponentScore } = scoresFor(option);
-                const probability = probabilityFor(option);
-                const adv = verdictInfo(KeyMomentResolver.getVerdict(probability));
-                const spread = KeyMomentResolver.getOutcomeSpread(probability, option.risk);
+                const adv = statChipInfo(playerScore - opponentScore);
                 const isActive = index === activeIdx;
                 return (
                   <button
@@ -826,13 +747,9 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                         {adv.label}
                       </span>
                     </div>
-                    {/* How the outcomes are shaped — flat for a safe option, fat-tailed for a
-                        bold one. Same width whatever the odds; it reads shape, not chance. */}
-                    <div className="mb-2 flex items-center gap-2">
-                      <span className="text-[9px] font-bold uppercase tracking-wide text-pixel-text-muted shrink-0">
-                        {option.risk}
-                      </span>
-                      <RiskShapeBar spread={spread} />
+                    {/* Volatility only — how emphatic this tends to be, not how likely. */}
+                    <div className="mb-2">
+                      <RiskIndicator risk={option.risk} />
                     </div>
                     {/* Composites + the stats that drive them, per side. Grid so the You/Opp rows
                         share columns and the chips line up regardless of abbreviation length. */}

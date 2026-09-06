@@ -14,24 +14,6 @@ import { KEY_MOMENT } from '../config/shotThresholds';
 
 export type OutcomeType = 'critical-success' | 'success' | 'failure' | 'critical-failure';
 
-/**
- * A one-word read on an option, folding every term that decides it — base chance,
- * the stat differential, the posture matchup and the live conditions.
- *
- * The UI shows this instead of a percentage. The player needs to know which option
- * is the better bet, not by how much; a number invites arithmetic that the four
- * contributing systems do not reward.
- */
-export type OptionVerdict = 'strong' | 'favoured' | 'even' | 'risky' | 'poor';
-
-/** Shares of each outcome band, for the card's risk-shape bar. Sums to 1. */
-export interface OutcomeSpread {
-  criticalSuccess: number;
-  success: number;
-  failure: number;
-  criticalFailure: number;
-}
-
 export interface AppliedEffect {
   type: SecondaryEffect['type'];
   value: number; // Final value after critical multiplier
@@ -233,47 +215,6 @@ export class KeyMomentResolver {
     }
 
     return effects;
-  }
-
-  /**
-   * The one-word verdict for an option, from its full success probability.
-   *
-   * Bucketed rather than reported, so the card carries a judgement instead of a
-   * number, and bucketed *relative to the neutral baseline* so the words mean
-   * "better or worse than an ordinary choice here" rather than "better or worse
-   * than a coin flip". Thresholds live here so the UI cannot drift from the maths.
-   */
-  static getVerdict(probability: number): OptionVerdict {
-    // Measured against the neutral baseline, not against 50%. A key moment is a
-    // break/set/match point, so its absolute odds sit well under half — judging
-    // against 50 would label every ordinary option "risky" and leave the scale
-    // with nowhere to put an actually bad one. Relative thresholds also survive a
-    // baseChance re-tune without the labels silently drifting.
-    const edge = probability - KEY_MOMENT.baseChance;
-    if (edge >= 12) return 'strong';
-    if (edge >= 5) return 'favoured';
-    if (edge >= -5) return 'even';
-    if (edge >= -12) return 'risky';
-    return 'poor';
-  }
-
-  /**
-   * How an option's outcomes are expected to split, given its odds and its risk.
-   *
-   * Two options with the same probability have the same win rate but different
-   * shapes: a safe one resolves plainly, a bold one resolves emphatically four
-   * times as often in both directions. That difference is invisible in a single
-   * number, which is why the card draws it.
-   */
-  static getOutcomeSpread(probability: number, risk: TacticalOption['risk']): OutcomeSpread {
-    const win = Math.max(0, Math.min(1, probability / 100));
-    const critShare = KEY_MOMENT.criticalShareByRisk[risk] ?? 0;
-    return {
-      criticalSuccess: win * critShare,
-      success: win * (1 - critShare),
-      failure: (1 - win) * (1 - critShare),
-      criticalFailure: (1 - win) * critShare,
-    };
   }
 
   /**

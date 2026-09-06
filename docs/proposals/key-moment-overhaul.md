@@ -430,6 +430,48 @@ it is on `InteractiveMatchConfig` today and has zero effect on key moments.
 Not done here: the **Surprise pips**, because the repeat-posture *decay* they surface is not
 built yet — the draw currently prefers fresh postures but nothing penalises repetition.
 
+### 6b. Decorrelate risk from posture — **done**
+
+The generated pool had risk confounded with posture — four postures had no safe option and
+two had no bold one, so "play it safe" meant "play neutralize or attrition" and risk was a
+second name for a matchup decision. Every posture now spans the range (safe 32% / balanced
+32% / bold 36% overall, no empty cells).
+
+Measured against a defensive opponent, 150 best-of-1 matches per policy:
+
+| KM policy | before decorrelation | after |
+|---|---|---|
+| Highest odds | 65.3% | 72.0% |
+| Highest odds, prefer safe | 65.3% | 62.7% |
+| Always safest | 44.0% | 54.0% |
+| Always boldest | 61.3% | 57.3% |
+| Random pick | 54.0% | 46.0% |
+
+The first two rows are the point. They were **identical** before — the risk axis contributed
+nothing at match level — and are now 9.3pp apart at near-identical key-moment win rates
+(52.0% vs 52.1%). Risk now does something.
+
+**But it is a lever, not yet a trade-off.** It rewards bold unconditionally: a bold win drains
+the opponent 3.6 fatigue against a safe win's 1.2 (`fatiguePerEnergySpent` × energy spent) and
+banks +14 momentum against safe's zero, while the only cost is 4 more energy. Safe's upside —
+mood +2, pressure -3 — does not compete. Until safe has a reason to exist, "bold with a good
+read" is simply the answer.
+
+### 6c. Chip shows less — **done**
+
+The verdict chip folded every term into one word, which measured as an answer key: "take the
+highest verdict" beat every other policy and tied even a resource-aware version of itself. The
+card now shows the weighted **stat** comparison, labelled as such, and the matchup reaches the
+player only as prose ("retrievers who sit back") that has to be mapped onto the opponent in
+the header. That mapping is the skill, and the result screen's read-grade is where it is
+learned over a career.
+
+The outcome-spread bar went with it — the split between its light and dark halves *is* the
+success probability. Replaced by a volatility indicator (Steady / Mixed / Swingy) from the
+risk tag alone, which says how emphatic an option is without saying how likely.
+
+`getVerdict` and `getOutcomeSpread` are deleted rather than left unused.
+
 ### 7. Re-baseline — **now blocking**
 
 `baseChance` 40 was tuned against all-court under the *old* skewed chart. Under the matrix,
