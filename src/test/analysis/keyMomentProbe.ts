@@ -354,7 +354,30 @@ function probeRealisticScenarios(): void {
 async function probeMatchImpact(nMatches: number): Promise<void> {
   printHeader(`Match-level impact (${nMatches} ${FORMAT} matches per policy, even stats)`);
 
+  const player = statsAt(50);
+  const opponent = statsAt(50);
+  const probOf = (o: TacticalOption, arch: ArchetypeType): number =>
+    KeyMomentResolver.calculateSuccessProbability(player, opponent, o, arch);
+  const best = (opts: TacticalOption[], arch: ArchetypeType): TacticalOption =>
+    [...opts].sort((a, b) => probOf(b, arch) - probOf(a, arch))[0];
+
   const policies: Array<{ label: string; pick: (opts: TacticalOption[], arch: ArchetypeType) => TacticalOption }> = [
+    // Does the verdict chip solve the game? If "always take the highest verdict"
+    // strictly dominates every resource-aware policy, then showing the folded
+    // probability has removed the decision rather than informed it.
+    { label: 'Highest verdict', pick: (opts, arch) => best(opts, arch) },
+    {
+      label: 'Highest, prefer safe',
+      pick: (opts, arch) => {
+        const top = probOf(best(opts, arch), arch);
+        const within = opts.filter((o) => probOf(o, arch) >= top - 6);
+        return within.find((o) => o.risk === 'safe')
+          ?? within.find((o) => o.risk === 'balanced')
+          ?? within[0];
+      },
+    },
+    { label: 'Always safest', pick: (opts) => opts.find((o) => o.risk === 'safe') ?? opts[0] },
+    { label: 'Always boldest', pick: (opts) => opts.find((o) => o.risk === 'bold') ?? opts[0] },
     {
       label: 'Always best read',
       pick: (opts, arch) =>
