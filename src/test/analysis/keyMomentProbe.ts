@@ -568,18 +568,65 @@ async function probeServeReturnSplit(nMatches: number): Promise<void> {
   print('best-of-3 run and did not survive the larger sample or the real format.');
 }
 
+
+// ─── 10. Tag coverage ────────────────────────────────────────────────────────
+
+/**
+ * Posture and risk are the substrate for the matchup matrix, the menu draw and the
+ * outcome spread, so a thin posture is a hole in all three at once. This reports
+ * how the authored pool is distributed and where it needs writing.
+ */
+function probeTagCoverage(): void {
+  printHeader('Posture and risk coverage across the authored pool');
+
+  const byPosture = new Map<string, number>();
+  const byRisk = new Map<string, number>();
+  for (const { option } of ALL_OPTIONS) {
+    byPosture.set(option.posture, (byPosture.get(option.posture) ?? 0) + 1);
+    byRisk.set(option.risk, (byRisk.get(option.risk) ?? 0) + 1);
+  }
+
+  printTable(
+    ['Posture', 'Options', 'Share'],
+    [...byPosture.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([k, v]) => [k, v, `${fmtNum((100 * v) / ALL_OPTIONS.length)}%`]),
+  );
+  printTable(
+    ['Risk', 'Options', 'Share'],
+    [...byRisk.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([k, v]) => [k, v, `${fmtNum((100 * v) / ALL_OPTIONS.length)}%`]),
+  );
+
+  // Which menus can even offer a given posture today.
+  printHeader('Postures available per situation');
+  printTable(
+    ['Situation', 'Postures on offer'],
+    Object.entries(TACTICAL_OPTIONS).map(([type, opts]) => [
+      type,
+      [...new Set(opts.map((o) => o.posture))].join(', '),
+    ]),
+  );
+}
+
 printBanner('KEY MOMENT PROBE');
 
 /** SECTIONS=sweep runs only the base-chance sweep; default runs everything else. */
 const SECTIONS = process.env.SECTIONS ?? 'all';
 
 if (SECTIONS === 'all') {
+  probeTagCoverage();
   probeSuccessRates();
   probeCounterCoverage();
   probeOutcomeBands();
   probeContextSwing();
   probeRealisticScenarios();
   await probeMatchImpact(N_MATCHES);
+}
+
+if (SECTIONS === 'tags') {
+  probeTagCoverage();
 }
 
 if (SECTIONS === 'impact') {

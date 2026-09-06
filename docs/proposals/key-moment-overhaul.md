@@ -70,7 +70,6 @@ small set of tags, and derive the chart, the menu and the variance from them.
         │  TacticalOption                              │
         │    posture:  how you are playing the point   │
         │    risk:     how wide the outcome spread is  │
-        │    family:   flavour / content grouping      │
         └───────┬─────────────┬────────────────┬───────┘
                 │             │                │
     ┌───────────▼──┐  ┌───────▼────────┐  ┌────▼──────────┐
@@ -153,12 +152,39 @@ safe/bold/net, sometimes two different bold postures — and lets the situation 
 further: down 0-40 the hand can omit the safe option entirely, because there isn't a safe
 play.
 
-### Repeat-posture penalty
+### Repeat-posture decay, and how to show it
 
 Track postures the player has already used this match. Repeating one attracts a growing
-penalty, surfaced as *"they're sitting on it."* This is what makes the same card play
-differently the third time, and it is how all-court is countered — the adaptation penalty
-scales up against an opponent whose whole identity is reading you.
+penalty. This is what makes the same card play differently the third time, and it is how
+all-court is countered — the decay scales up against an opponent whose whole identity is
+reading you.
+
+Surfacing it as commentary ("they're sitting on it") is the wrong register: it reads as
+flavour text, it costs a whole line of card space, and it does not tell the player how much
+is left. It is a depleting resource, so show it as one:
+
+> **Surprise** — a short pip row on the card, full when a posture is fresh, depleting as it
+> is reused. `●●●` → `●●○` → `●○○`.
+
+Why this shape:
+
+- **It is the mechanic, not a comment on it.** Pips deplete; that is what the penalty does.
+- **It costs almost nothing.** One small row on a card that already carries an emoji, a
+  name, a verdict chip and a stat grid.
+- **It teaches posture implicitly.** The pips are per-*posture*, so every card sharing a
+  posture depletes together. A player who serve-and-volleys twice sees the chip-and-charge
+  card dim too, and learns that the game groups them — without a tutorial.
+- **It needs no number.** Hover can carry one line ("you have gone to the net three times")
+  for players who want it.
+
+The penalty also flows into the card's verdict chip, so a player who never looks at the pips
+still *feels* the decay as the verdict softens from Strong toward Even. The pips only answer
+"why did that change".
+
+Open: whether surprise recovers over time (a posture unused for several games freshening
+back up) or decays monotonically for the match. Recovery is more forgiving and rewards
+rotation rather than rationing; monotonic is simpler and makes the endgame tighter. Leaning
+recovery, on a slow per-game tick.
 
 ---
 
@@ -168,7 +194,8 @@ Ordered by dependency. Each lands independently and is measurable on its own.
 
 ### 1. Tag the options *(foundation — everything else depends on it)*
 
-Add `posture`, `risk` and `family` to `TacticalOption`; tag the existing 33. No behaviour
+Add `posture` and `risk` to `TacticalOption`; tag the existing 33. (A `family` tag was
+considered and dropped — it would have carried flavour only, and nothing reads it.) No behaviour
 change, no new content. Ships as a pure refactor with the probe confirming identical output.
 
 ### 2. Derive the matchup from the matrix
@@ -178,8 +205,10 @@ Add `POSTURE_VS_ARCHETYPE` to config; `KeyMomentResolver` reads the matrix inste
 assertion that coverage stays symmetric. **This is the chunk that fixes all-court and the
 aggressive/counterpuncher skew**, and it fixes them structurally rather than by re-authoring.
 
-Open question: `counterBonus: +15` / `weakPenalty: -8` are currently asymmetric. With a
-symmetric matrix there is no longer a reason for that; worth testing ±12 both ways.
+**Decided:** `counterBonus` / `weakPenalty` become symmetric (±12 to start). They land with
+this chunk rather than before it — a symmetric penalty applied to today's skewed chart would
+deepen the all-court hole rather than fix it, since all-court currently has one strong option
+against twelve weak ones.
 
 ### 3. Outcome model
 
@@ -197,12 +226,41 @@ Two independent changes:
 Implement the constrained draw over the tagged pool. Depends on 1. Low risk, immediately
 visible.
 
-### 5. New tactic families
+### 5. Write more options
 
-Content, unblocked by 1-4: deception, attrition, target-the-weakness, tempo, gamesmanship,
-percentage play, signature shots, surface-specific plays. Each new option is now three tags
-plus stat weights, not 33 relationships. Surface is worth calling out — it is on
-`InteractiveMatchConfig` today and has zero effect on key moments.
+Not optional polish — the matrix is only as good as the pool feeding it. Tagging the existing
+33 (chunk 1, done) shows how thin the new postures are:
+
+| Posture | Options | Share |
+|---|---|---|
+| power | 11 | 33.3% |
+| net | 8 | 24.2% |
+| neutralize | 7 | 21.2% |
+| attrition | 3 | 9.1% |
+| deception | 2 | 6.1% |
+| tempo | 2 | 6.1% |
+
+| Risk | Options | Share |
+|---|---|---|
+| bold | 19 | 57.6% |
+| safe | 9 | 27.3% |
+| balanced | 5 | 15.2% |
+
+**`power` appears in all eleven menus.** That, more than the count of three, is why every key
+moment feels the same — one of your options is always the same posture. `deception`, `tempo`
+and `attrition` together appear in six menus and never more than one at a time, so the
+constrained draw has nothing to draw from and the matrix has three columns that barely exist.
+
+Rough target: enough per posture that every situation can offer at least three of the six,
+and enough `balanced` options that the risk axis is a real spine rather than a bold/safe
+binary. Each new option is two tags plus stat weights, not 33 hand-authored relationships.
+
+Content to write, from the earlier brainstorm: deception (drop shot, disguised slice, body
+serve), attrition (heavy ball to the backhand, extend the rally), target-the-weakness (reads
+the opponent's actual lowest stat), tempo (take it early, slow it down), gamesmanship (take
+time, big fist pump — low win chance, large pressure and mood swings), true percentage play,
+signature shots gated on abilities, and surface-specific plays. Surface is worth calling out:
+it is on `InteractiveMatchConfig` today and has zero effect on key moments.
 
 ### 6. Legibility
 

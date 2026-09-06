@@ -15,11 +15,35 @@ export interface SecondaryEffect {
   condition: 'always' | 'on_success' | 'on_failure';
 }
 
+/**
+ * How the option plays the point. Posture — not the individual option — is what an
+ * opponent's archetype is strong or weak against, so the matchup lives in one
+ * POSTURE x ARCHETYPE table rather than in hand-authored lists on every option.
+ */
+export type KeyMomentPosture =
+  | 'power'       // Overpower them, end it early
+  | 'net'         // Take the net, finish short
+  | 'neutralize'  // Absorb pace, reset, start the rally on your terms
+  | 'deception'   // Drop shot, disguise, wrong-foot
+  | 'attrition'   // Extend it, make them run, win the next one
+  | 'tempo';      // Change the rhythm - take it early or slow it right down
+
+/**
+ * How wide the outcome spread is, NOT how likely the option is to succeed.
+ * Two options at the same success chance win the point equally often; the bolder
+ * one resolves as a critical far more often and swings momentum harder when it does.
+ */
+export type KeyMomentRisk = 'safe' | 'balanced' | 'bold';
+
 export interface TacticalOption {
   id: string;
   emoji: string;
   name: string;
   description: string;
+  /** How this plays the point; drives the archetype matchup. */
+  posture: KeyMomentPosture;
+  /** How wide the outcome spread is. */
+  risk: KeyMomentRisk;
   strongAgainst: ArchetypeType[];
   weakAgainst: ArchetypeType[];
   bestAgainstHint: string; // Human-readable "good against" hint (doesn't name archetypes directly)
@@ -65,6 +89,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🚀',
       name: 'Power serve down the T',
       description: 'Overpower them before the rally starts',
+      posture: 'power',
+      risk: 'bold',
       strongAgainst: ['defensive', 'counterpuncher'],
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against patient opponents who sit back',
@@ -103,6 +129,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🏃',
       name: 'Serve and charge the net',
       description: 'Follow your serve in and finish with a volley',
+      posture: 'net',
+      risk: 'bold',
       strongAgainst: ['counterpuncher', 'defensive'],
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against baseline players who struggle with net pressure',
@@ -141,6 +169,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🌪️',
       name: 'Safe spin serve',
       description: 'Heavy kick serve to start the rally on your terms',
+      posture: 'neutralize',
+      risk: 'safe',
       strongAgainst: ['aggressive', 'serve_volley'],
       weakAgainst: ['counterpuncher'],
       bestAgainstHint: 'Best against attackers who thrive on pace',
@@ -186,6 +216,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🔨',
       name: 'Aggressive crosscourt return',
       description: 'Attack with power and placement crosscourt',
+      posture: 'power',
+      risk: 'bold',
       strongAgainst: ['defensive', 'counterpuncher'],
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against opponents who sit deep behind the baseline',
@@ -225,6 +257,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🏔️',
       name: 'Deep neutralizing return',
       description: 'Get the return in play with depth, extend the rally',
+      posture: 'neutralize',
+      risk: 'safe',
       strongAgainst: ['aggressive', 'serve_volley'],
       weakAgainst: ['counterpuncher', 'defensive'],
       bestAgainstHint: 'Best against attackers who want to end points quickly',
@@ -264,6 +298,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🎿',
       name: 'Chip and charge',
       description: 'Short slice return and rush the net',
+      posture: 'net',
+      risk: 'balanced',
       strongAgainst: ['counterpuncher', 'defensive'],
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against baseline grinders who hate net pressure',
@@ -308,6 +344,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '💣',
       name: 'Clutch power serve',
       description: 'Channel everything into one massive serve',
+      posture: 'power',
+      risk: 'bold',
       strongAgainst: ['defensive', 'counterpuncher'],
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against opponents who rely on getting the ball back',
@@ -347,6 +385,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🏄',
       name: 'Serve and volley',
       description: 'Get to the net quickly and put the volley away',
+      posture: 'net',
+      risk: 'bold',
       strongAgainst: ['counterpuncher', 'defensive'],
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against opponents anchored to the baseline',
@@ -385,6 +425,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '💫',
       name: 'Smart spin serve',
       description: 'Get the serve in with heavy spin and build from there',
+      posture: 'neutralize',
+      risk: 'safe',
       strongAgainst: ['aggressive', 'serve_volley'],
       weakAgainst: ['counterpuncher'],
       bestAgainstHint: 'Best against opponents who attack the return aggressively',
@@ -430,6 +472,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🪓',
       name: 'Aggressive return',
       description: 'Take control with a powerful return',
+      posture: 'power',
+      risk: 'bold',
       strongAgainst: ['defensive', 'counterpuncher'],
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against opponents with weak serves who play safe',
@@ -469,6 +513,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🧱',
       name: 'Block return and rally',
       description: 'Neutralize the serve and grind out the point',
+      posture: 'neutralize',
+      risk: 'safe',
       strongAgainst: ['aggressive', 'serve_volley'],
       weakAgainst: ['counterpuncher', 'defensive'],
       bestAgainstHint: 'Best against big servers who fade in long rallies',
@@ -509,6 +555,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🦋',
       name: 'Drop shot off the return',
       description: 'Catch them off guard with a disguised drop shot',
+      posture: 'deception',
+      risk: 'bold',
       strongAgainst: ['counterpuncher', 'defensive'],
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against opponents who hang back expecting a rally',
@@ -553,6 +601,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🌋',
       name: 'Big serve under pressure',
       description: 'Go for a powerful serve to take control of the point',
+      posture: 'power',
+      risk: 'bold',
       strongAgainst: ['defensive', 'counterpuncher'],
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against opponents with weak returns who play safe',
@@ -592,6 +642,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🪃',
       name: 'Slice serve and rally',
       description: 'Use a slice serve to disrupt their timing, then build the point',
+      posture: 'tempo',
+      risk: 'balanced',
       strongAgainst: ['aggressive', 'serve_volley'],
       weakAgainst: ['counterpuncher'],
       bestAgainstHint: 'Best against opponents who attack returns aggressively',
@@ -632,6 +684,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🦅',
       name: 'Serve and volley',
       description: 'Rush the net after your serve to end the point quickly',
+      posture: 'net',
+      risk: 'bold',
       strongAgainst: ['counterpuncher', 'defensive'],
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against opponents who struggle to pass at the net',
@@ -676,6 +730,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🏰',
       name: 'Defensive rally setup',
       description: 'Stay in the point with consistency and court coverage',
+      posture: 'neutralize',
+      risk: 'safe',
       strongAgainst: ['aggressive', 'serve_volley'],
       weakAgainst: ['counterpuncher', 'defensive'],
       bestAgainstHint: 'Best against opponents who go for too much under pressure',
@@ -716,6 +772,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🎪',
       name: 'Nothing-to-lose swing',
       description: 'Swing freely — go for winners with variety',
+      posture: 'power',
+      risk: 'bold',
       strongAgainst: ['defensive', 'counterpuncher'],
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against opponents who expect you to play safe',
@@ -756,6 +814,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🎭',
       name: 'Drop shot surprise',
       description: 'Catch them off guard with a disguised drop shot',
+      posture: 'deception',
+      risk: 'bold',
       strongAgainst: ['counterpuncher', 'defensive'],
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against opponents who camp deep behind the baseline',
@@ -800,6 +860,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🏹',
       name: 'Championship serve',
       description: 'Go for the match-winning ace with power and placement',
+      posture: 'power',
+      risk: 'bold',
       strongAgainst: ['defensive', 'counterpuncher'],
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against opponents who rely on getting the ball back',
@@ -839,6 +901,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🌊',
       name: 'Serve and volley',
       description: 'Get to the net quickly and put the match away at the net',
+      posture: 'net',
+      risk: 'bold',
       strongAgainst: ['counterpuncher', 'defensive'],
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against baseline players who can\'t pass',
@@ -877,6 +941,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🐚',
       name: 'Smart spin serve',
       description: 'Get the serve in with heavy spin and work the rally',
+      posture: 'neutralize',
+      risk: 'safe',
       strongAgainst: ['aggressive', 'serve_volley'],
       weakAgainst: ['counterpuncher'],
       bestAgainstHint: 'Best against opponents who attack the return aggressively',
@@ -924,6 +990,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '💢',
       name: 'Aggressive return',
       description: 'Take control with a powerful return to win the match',
+      posture: 'power',
+      risk: 'bold',
       strongAgainst: ['defensive', 'counterpuncher'],
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against opponents with weak serves',
@@ -963,6 +1031,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🔮',
       name: 'Read and react',
       description: 'Anticipate the serve direction and redirect with precision',
+      posture: 'tempo',
+      risk: 'balanced',
       strongAgainst: ['aggressive', 'serve_volley'],
       weakAgainst: ['all_court'],
       bestAgainstHint: 'Best against predictable servers with big wind-ups',
@@ -1002,6 +1072,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🃏',
       name: 'Chip and charge',
       description: 'Slice the return and rush the net to end it',
+      posture: 'net',
+      risk: 'balanced',
       strongAgainst: ['counterpuncher', 'defensive'],
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against baseline grinders who hate net pressure',
@@ -1046,6 +1118,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🎲',
       name: 'Big serve to survive',
       description: 'Go for a huge serve to stay in the match',
+      posture: 'power',
+      risk: 'bold',
       strongAgainst: ['defensive', 'counterpuncher'],
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against opponents who struggle with pace on the return',
@@ -1085,6 +1159,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🌙',
       name: 'Slice serve and grind',
       description: 'Disrupt their timing and make them work for it',
+      posture: 'attrition',
+      risk: 'balanced',
       strongAgainst: ['aggressive', 'serve_volley'],
       weakAgainst: ['counterpuncher'],
       bestAgainstHint: 'Best against opponents who attack returns aggressively',
@@ -1125,6 +1201,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🏇',
       name: 'Serve and charge',
       description: 'Rush the net — force them to hit a passing shot under pressure',
+      posture: 'net',
+      risk: 'bold',
       strongAgainst: ['counterpuncher', 'defensive'],
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against opponents who freeze when you come to the net',
@@ -1170,6 +1248,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🧨',
       name: 'All-out attack return',
       description: 'Nothing to lose — go after the return with everything',
+      posture: 'power',
+      risk: 'bold',
       strongAgainst: ['defensive', 'counterpuncher'],
       weakAgainst: ['aggressive'],
       bestAgainstHint: 'Best against opponents with tentative serves under pressure',
@@ -1210,6 +1290,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '⛰️',
       name: 'Deep return and grind',
       description: 'Get the return deep and make them earn the match',
+      posture: 'attrition',
+      risk: 'safe',
       strongAgainst: ['aggressive', 'serve_volley'],
       weakAgainst: ['counterpuncher', 'defensive'],
       bestAgainstHint: 'Best against opponents who crack under extended rallies',
@@ -1251,6 +1333,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🌈',
       name: 'Lob and reset',
       description: 'Buy time with a high lob to reset the rally',
+      posture: 'neutralize',
+      risk: 'safe',
       strongAgainst: ['counterpuncher', 'defensive'],
       weakAgainst: ['serve_volley', 'all_court'],
       bestAgainstHint: 'Best against opponents stuck deep who struggle with overheads',
@@ -1297,6 +1381,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🏎️',
       name: 'Push the accelerator',
       description: 'Go for broke - take control and force the winner',
+      posture: 'power',
+      risk: 'bold',
       strongAgainst: ['defensive', 'counterpuncher'],
       weakAgainst: ['aggressive', 'all_court'],
       bestAgainstHint: 'Best against opponents who play conservatively',
@@ -1337,6 +1423,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🧩',
       name: 'Patiently construct the point',
       description: 'Stay patient - move the opponent around and wait for the opening',
+      posture: 'attrition',
+      risk: 'safe',
       strongAgainst: ['aggressive', 'all_court'],
       weakAgainst: ['defensive', 'counterpuncher'],
       bestAgainstHint: 'Best against opponents who overcommit and take big swings',
@@ -1376,6 +1464,8 @@ export const TACTICAL_OPTIONS: Record<KeyMomentType, TacticalOption[]> = {
       emoji: '🧗',
       name: 'Attack the net',
       description: 'Move to the net - force an approach shot and close out the point',
+      posture: 'net',
+      risk: 'bold',
       strongAgainst: ['counterpuncher', 'defensive'],
       weakAgainst: ['serve_volley', 'aggressive'],
       bestAgainstHint: 'Best against opponents who play defensively and stay back',
