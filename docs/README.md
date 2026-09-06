@@ -40,6 +40,11 @@ under, and a behaviour change invalidates every number measured before it.
 Designs that have not shipped. Check the code before trusting one — a proposal that has been built
 belongs in git history, not here.
 
+- **[`proposals/key-moment-overhaul.md`](./proposals/key-moment-overhaul.md)** — rebuild the
+  key-moment tactical layer around option tags: a posture x archetype matrix in place of 33
+  hand-authored matchup lists, a constrained draw in place of the fixed triple, and risk as
+  outcome variance rather than an energy cost. Records why the current chart leaves all-court
+  3% counterable. Not built.
 - **[`proposals/story-minigames.md`](./proposals/story-minigames.md)** — a context-agnostic scoring
   contract so one minigame runtime can serve both training and story events. Not built.
 
