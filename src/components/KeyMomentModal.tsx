@@ -636,30 +636,40 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
 
   // Right pane: the qualitative read on the focused tactic (matchup + effects) + commit button.
   const DetailPane: React.FC<{ option: TacticalOption }> = ({ option }) => (
-    <div className="flex flex-col border-2 border-pixel-accent rounded bg-pixel-card overflow-hidden">
+    // The whole panel takes the posture's colour, not just its banner — the frame
+    // around the option you are about to commit to is the strongest available cue
+    // for "this is a net play", and it costs no space at all.
+    <div
+      className="flex flex-col border-2 rounded bg-pixel-card overflow-hidden"
+      style={{ borderColor: POSTURE_META[option.posture].color }}
+    >
       {/* Posture banner — the kind of play this is, and the thing the opponent's
           style is actually strong or weak against. Given its own band, in its own
           colour, because "which of the six is this" is the decision underneath the
-          decision: a player who learns the colours has learned the matchup. */}
+          decision: a player who learns the colours has learned the matchup.
+          Label and risk share the top line; the summary gets its own so it is not
+          competing for width and truncating. */}
       <div
-        className="px-3 py-2 border-b-2 flex items-center gap-2"
+        className="px-3 py-2 border-b-2"
         style={{
           backgroundColor: `${POSTURE_META[option.posture].color}22`,
           borderColor: POSTURE_META[option.posture].color,
         }}
       >
-        <span
-          className="text-sm font-bold uppercase tracking-wider"
-          style={{ color: POSTURE_META[option.posture].color }}
-        >
-          {POSTURE_META[option.posture].label}
-        </span>
-        <span className="text-xs text-pixel-text-muted truncate">
+        <div className="flex items-center gap-2">
+          <span
+            className="text-sm font-bold uppercase tracking-wider"
+            style={{ color: POSTURE_META[option.posture].color }}
+          >
+            {POSTURE_META[option.posture].label}
+          </span>
+          <span className="ml-auto shrink-0">
+            <RiskIndicator risk={option.risk} />
+          </span>
+        </div>
+        <p className="text-xs text-pixel-text-muted leading-snug mt-0.5">
           {POSTURE_META[option.posture].summary}
-        </span>
-        <span className="ml-auto shrink-0">
-          <RiskIndicator risk={option.risk} />
-        </span>
+        </p>
       </div>
 
       {/* Tactic header */}
@@ -704,11 +714,19 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
         </div>
       </div>
 
-      {/* Commit — pushed to the bottom so the pane fills the column height cleanly */}
+      {/* Commit — pushed to the bottom so the pane fills the column height cleanly.
+          Takes the posture's colour along with the frame; left on the app accent it
+          read as an error state inside a green or blue panel. Size and position
+          still carry "this is the primary action". */}
       <button
         onClick={() => (kmTutorialActive ? undefined : handleKeyMomentChoice(option))}
         disabled={kmTutorialActive}
-        className="mt-auto mx-3 mb-3 py-3 gap-5 border-4 border-pixel-accent bg-pixel-accent bg-opacity-20 text-pixel-accent font-bold uppercase text-sm tracking-wide hover:bg-opacity-30 transition-colors disabled:opacity-40 disabled:cursor-default disabled:hover:bg-opacity-20 flex items-center justify-center gap-2 leading-none"
+        style={{
+          borderColor: POSTURE_META[option.posture].color,
+          color: POSTURE_META[option.posture].color,
+          backgroundColor: `${POSTURE_META[option.posture].color}33`,
+        }}
+        className="mt-auto mx-3 mb-3 py-3 border-4 font-bold uppercase text-sm tracking-wide hover:brightness-125 transition-all disabled:opacity-40 disabled:cursor-default flex items-center justify-center gap-2 leading-none"
       >
         <span className="text-2xl leading-none relative -top-1">{option.emoji}</span>
         <span className="leading-none">Go!</span>
