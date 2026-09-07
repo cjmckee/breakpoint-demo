@@ -476,14 +476,17 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
               <h3 className="text-2xl font-bold text-pixel-text">{style.title}</h3>
               <p className="text-base text-pixel-text mt-1">{getOutcomeMessage()}</p>
             </div>
+          </div>
 
+          {/* Chosen tactic + how its posture graded — spotlit on step 1 */}
+          <div className={resultSectionClass('tactic')}>
             {/* The choice is graded separately from the point, and graded on the
                 POSTURE rather than the tactic. The lesson that transfers is "net
                 play beats a retriever", not "that particular volley worked" — the
                 player will never see this exact option again, but they will see
                 the posture in every menu for the rest of their career. */}
             <div
-              className="border-2 border-t-0 px-4 py-3 text-center text-sm"
+              className="border-2 px-4 py-3 text-center text-sm"
               style={{
                 borderColor: POSTURE_META[chosenOption.posture].color,
                 backgroundColor: `${POSTURE_META[chosenOption.posture].color}1a`,
@@ -505,11 +508,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                 {getArchetypeLabel(activeKeyMoment.opponentArchetype)}s.
               </span>
             </div>
-          </div>
-
-          {/* Chosen tactic + matchup feedback — spotlit on step 1 */}
-          <div className={resultSectionClass('tactic')}>
-            <div className="flex items-center gap-4 p-4 bg-pixel-bg border-2 border-pixel-border">
+            <div className="flex items-center gap-4 p-4 bg-pixel-bg border-2 border-pixel-border border-t-0">
               <span className="text-3xl">{chosenOption.emoji}</span>
               <div>
                 <div className="text-base font-bold text-pixel-text">{chosenOption.name}</div>
@@ -585,7 +584,10 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
 
   // During the matchup/effects tutorial steps, force focus to the first option so the
   // walkthrough always points at populated detail.
-  const forcedFocus = kmSpotlit('options-matchup') || kmSpotlit('options-effects') ? 0 : null;
+  const forcedFocus =
+    kmSpotlit('options-posture') || kmSpotlit('options-matchup') || kmSpotlit('options-effects')
+      ? 0
+      : null;
   const activeIdx = forcedFocus ?? focusIdx;
   const activeOption = activeKeyMoment.options[activeIdx];
 
@@ -647,7 +649,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
           Label and risk share the top line; the summary gets its own so it is not
           competing for width and truncating. */}
       <div
-        className="px-3 py-2 border-b-2"
+        className={`px-3 py-2 border-b-2 ${kmSpotlit('options-posture') ? 'ring-4 ring-yellow-400 ring-inset' : ''}`}
         style={{
           backgroundColor: `${POSTURE_META[option.posture].color}22`,
           borderColor: POSTURE_META[option.posture].color,
