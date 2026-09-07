@@ -218,27 +218,6 @@ export class KeyMomentResolver {
   }
 
   /**
-   * Get qualitative stat matchup indicator for UI.
-   * Returns 'advantage' | 'even' | 'disadvantage' based on stat differential.
-   */
-  static getStatMatchup(
-    playerStats: PlayerStats,
-    opponentStats: PlayerStats,
-    option: TacticalOption
-  ): 'advantage' | 'even' | 'disadvantage' {
-    const playerScore = this.calculateWeightedStat(playerStats, option.playerStatWeights);
-    const opponentScore = this.calculateWeightedStat(
-      opponentStats,
-      this.resolveOpponentWeights(option, opponentStats)
-    );
-    const diff = playerScore - opponentScore;
-
-    if (diff > 10) return 'advantage';
-    if (diff < -10) return 'disadvantage';
-    return 'even';
-  }
-
-  /**
    * Get weighted scores for both players for UI display.
    * Returns { playerScore, opponentScore } for comparing matchup strength.
    */

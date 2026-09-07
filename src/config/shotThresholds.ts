@@ -1108,6 +1108,24 @@ export const KEY_MOMENT = {
   weakPenalty: -12,
   /** How much each point of weighted stat differential is worth. */
   statMultiplier: 0.4,
+  /**
+   * Weighted-composite gap at which the card's stat chip stops saying "even".
+   *
+   * Measured against the shipped roster: for a level-matched player the gap between
+   * the options in one menu runs about -7..+5, while the gap carrying a level
+   * mismatch runs to ±20 or beyond (a 20-point rating deficit is a -22 composite gap,
+   * worth -8.8pp). So the interesting range is roughly ±25, and the old ±10 sat above
+   * the 90th percentile of the level-matched case — nearly every card read "even",
+   * at every tier, including when one option genuinely was the better fit.
+   *
+   * At ±5 the chip stays quiet when the options really are equivalent and speaks
+   * when they are not, without inventing significance for a one-point difference.
+   */
+  statChipThreshold: 5,
+
+  /** Gap at which the chip's colour reaches full saturation. */
+  statChipFullScale: 25,
+
   /** Floor and ceiling on the final success probability. */
   minProbability: 10,
   maxProbability: 90,

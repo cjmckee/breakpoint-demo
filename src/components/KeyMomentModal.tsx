@@ -23,6 +23,7 @@ import { useTutorialSpotlight } from '../hooks/useTutorialSpotlight';
 import { TutorialCallout } from './tutorial/TutorialCallout';
 import { KM_TUTORIAL_STEPS, KM_RESULT_STEPS, KmTarget, KmResultTarget } from '../data/tutorialSteps';
 import { formatStatName } from '../config/statIcons';
+import { KEY_MOMENT } from '../config/shotThresholds';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -64,10 +65,14 @@ const abbrevStat = (name: string): string => {
  * onto the opponent in the header. That mapping is the skill.
  *
  * Labelled "Stats" so it cannot be misread as an overall verdict.
+ *
+ * Thresholds live in KEY_MOMENT so the wording tracks the measured spread rather
+ * than a guess — see statChipThreshold for what the gap actually looks like.
  */
 const statChipInfo = (diff: number): { label: string; bg: string; fg: string } => {
-  const label = diff > 10 ? 'Stats favour you' : diff < -10 ? 'Stats favour them' : 'Stats even';
-  const mag = Math.min(1, Math.abs(diff) / 25);
+  const t = KEY_MOMENT.statChipThreshold;
+  const label = diff > t ? 'Stats favour you' : diff < -t ? 'Stats favour them' : 'Stats even';
+  const mag = Math.min(1, Math.abs(diff) / KEY_MOMENT.statChipFullScale);
   const hue = diff >= 0 ? lerp(50, 130, mag) : lerp(50, 2, mag);
   const sat = lerp(85, diff >= 0 ? 62 : 68, mag);
   const light = lerp(52, diff >= 0 ? 30 : 33, mag);
