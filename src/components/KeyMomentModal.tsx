@@ -498,14 +498,10 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
               </span>
               <span className="text-pixel-text ml-2">
                 {result.isCounter
-                  ? `is strong against this kind of player.${
-                      result.pointWinner === 'player' ? '' : ' The read was right — the ball was not.'
-                    }`
+                  ? `is strong against this kind of player.`
                   : result.isWeakChoice
-                    ? `plays into this kind of player.${
-                        result.pointWinner === 'player' ? ' You got away with it.' : ''
-                      }`
-                    : 'is neither strong nor weak against this kind of player — that one came down to your stats and the conditions.'}
+                    ? `is weak against this kind of player.`
+                    : 'is neutral against this kind of player.'}
               </span>
             </div>
           </div>
@@ -667,9 +663,9 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
             <RiskIndicator risk={option.risk} />
           </span>
         </div>
-        <p className="text-xs text-pixel-text-muted leading-snug mt-0.5">
+        {/* <p className="text-xs text-pixel-text-muted leading-snug mt-0.5">
           {POSTURE_META[option.posture].summary}
-        </p>
+        </p> */}
       </div>
 
       {/* Tactic header */}
@@ -770,7 +766,6 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
             <div className="flex flex-col gap-2.5">
               {activeKeyMoment.options.map((option, index) => {
                 const { playerScore, opponentScore } = scoresFor(option);
-                const adv = statChipInfo(playerScore - opponentScore);
                 const isActive = index === activeIdx;
                 return (
                   <button
@@ -788,7 +783,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                       <h4 className="text-base font-bold text-pixel-text truncate">{option.name}</h4>
                     </div>
                     {/* Row 2: what kind of play it is (posture + risk), then the stat read. */}
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-4 mb-2">
                       <span
                         className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded shrink-0"
                         style={{
@@ -799,12 +794,6 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                         {POSTURE_META[option.posture].label}
                       </span>
                       <RiskIndicator risk={option.risk} />
-                      <span
-                        className="ml-auto text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded whitespace-nowrap shrink-0"
-                        style={{ backgroundColor: adv.bg, color: adv.fg }}
-                      >
-                        {adv.label}
-                      </span>
                     </div>
                     {/* Composites + the stats that drive them, per side. Grid so the You/Opp rows
                         share columns and the chips line up regardless of abbreviation length. */}
