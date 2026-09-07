@@ -79,41 +79,54 @@ export interface PostureMeta {
   summary: string;
   bestAgainstHint: string;
   worstAgainstHint: string;
+  /**
+   * The posture's colour, used everywhere it appears. Posture is the unit the
+   * matchup keys off, so a player who learns "the blue ones beat this opponent"
+   * has learned the actual mechanic — the colour is a shortcut to the grouping,
+   * not decoration. Six distinct hues, all legible on the dark pixel ground.
+   */
+  color: string;
 }
 
 export const POSTURE_META: Record<KeyMomentPosture, PostureMeta> = {
   power: {
     label: 'Power',
+    color: '#ef4444',
     summary: 'Overpower them and end it early',
     bestAgainstHint: 'retrievers who sit back, and anyone rushing the net',
     worstAgainstHint: 'bigger hitters, and players who feed off your pace',
   },
   net: {
     label: 'Net',
+    color: '#f97316',
     summary: 'Take the net and finish short',
     bestAgainstHint: 'players who float the ball back, and anyone who needs time',
     worstAgainstHint: 'clean passers, and players more comfortable at the net than you',
   },
   neutralize: {
     label: 'Neutralize',
+    color: '#38bdf8',
     summary: 'Absorb the pace and start the rally on your terms',
     bestAgainstHint: 'big hitters who will over-press if you give them nothing',
     worstAgainstHint: 'patient retrievers who are happy to rally all day',
   },
   deception: {
     label: 'Deception',
+    color: '#a855f7',
     summary: 'Wrong-foot them',
     bestAgainstHint: 'players who commit early and load up on the ball',
     worstAgainstHint: 'anyone already moving forward — a short ball invites them in',
   },
   attrition: {
     label: 'Attrition',
+    color: '#22c55e',
     summary: 'Extend it and make them pay later',
     bestAgainstHint: 'net-rushers who would rather not rally at all',
     worstAgainstHint: 'counterpunchers who want the long rally as much as you do',
   },
   variety: {
     label: 'Variety',
+    color: '#eab308',
     summary: 'Refuse to be predictable',
     bestAgainstHint: 'players who settle into a rhythm and feed on it',
     worstAgainstHint: 'retrievers who chase everything down regardless',

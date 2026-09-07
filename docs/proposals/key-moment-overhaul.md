@@ -285,39 +285,17 @@ safe/bold/net, sometimes two different bold postures — and lets the situation 
 further: down 0-40 the hand can omit the safe option entirely, because there isn't a safe
 play.
 
-### Repeat-posture decay, and how to show it
+### Repeat-posture decay — dropped
 
-Track postures the player has already used this match. Repeating one attracts a growing
-penalty. This is what makes the same card play differently the third time, and it is how
-all-court is countered — the decay scales up against an opponent whose whole identity is
-reading you.
+The plan carried a growing penalty for reusing a posture, surfaced as a depleting
+"Surprise" pip row. It is **not being built**: with 50 options across six postures and a
+draw that already prefers postures the previous moment did not offer, there is enough
+variety without punishing the player for having a favourite.
 
-Surfacing it as commentary ("they're sitting on it") is the wrong register: it reads as
-flavour text, it costs a whole line of card space, and it does not tell the player how much
-is left. It is a depleting resource, so show it as one:
-
-> **Surprise** — a short pip row on the card, full when a posture is fresh, depleting as it
-> is reused. `●●●` → `●●○` → `●○○`.
-
-Why this shape:
-
-- **It is the mechanic, not a comment on it.** Pips deplete; that is what the penalty does.
-- **It costs almost nothing.** One small row on a card that already carries an emoji, a
-  name, a verdict chip and a stat grid.
-- **It teaches posture implicitly.** The pips are per-*posture*, so every card sharing a
-  posture depletes together. A player who serve-and-volleys twice sees the chip-and-charge
-  card dim too, and learns that the game groups them — without a tutorial.
-- **It needs no number.** Hover can carry one line ("you have gone to the net three times")
-  for players who want it.
-
-The penalty also flows into the card's verdict chip, so a player who never looks at the pips
-still *feels* the decay as the verdict softens from Strong toward Even. The pips only answer
-"why did that change".
-
-Open: whether surprise recovers over time (a posture unused for several games freshening
-back up) or decays monotonically for the match. Recovery is more forgiving and rewards
-rotation rather than rationing; monotonic is simpler and makes the endgame tighter. Leaning
-recovery, on a slow per-game tick.
+The draw keeps its `avoidPostures` preference — that shapes the menu, it does not tax the
+choice. What this does leave open is all-court, whose identity in the matrix is "countered
+by refusing to be predictable"; with no decay it is simply the archetype where the matchup
+layer is silent and stats decide.
 
 ---
 

@@ -79,16 +79,18 @@ const statChipInfo = (diff: number): { label: string; bg: string; fg: string } =
 };
 
 /**
- * Volatility indicator, from the risk tag alone.
+ * Risk indicator, from the risk tag alone.
  *
- * An outcome-spread bar would have leaked the success probability — the split
- * between its light and dark halves *is* the win chance — so this reports only
- * the shape: how often this option resolves emphatically, in either direction.
+ * Names the tag rather than inventing a synonym for it — a player who reads "Bold"
+ * on a card and "bold" in a tooltip is learning one word, not three. An
+ * outcome-spread bar would have leaked the success probability (the split between
+ * its halves *is* the win chance), so this reports only how emphatic the option
+ * tends to be, in either direction.
  */
 const RISK_META: Record<KeyMomentRisk, { label: string; pips: number; tone: string }> = {
-  safe: { label: 'Steady', pips: 1, tone: 'text-green-400' },
-  balanced: { label: 'Mixed', pips: 2, tone: 'text-yellow-400' },
-  bold: { label: 'Swingy', pips: 3, tone: 'text-red-400' },
+  safe: { label: 'Safe', pips: 1, tone: 'text-green-400' },
+  balanced: { label: 'Balanced', pips: 2, tone: 'text-yellow-400' },
+  bold: { label: 'Bold', pips: 3, tone: 'text-red-400' },
 };
 
 const RiskIndicator: React.FC<{ risk: KeyMomentRisk }> = ({ risk }) => {
@@ -96,7 +98,7 @@ const RiskIndicator: React.FC<{ risk: KeyMomentRisk }> = ({ risk }) => {
   return (
     <span
       className={`flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide ${meta.tone}`}
-      title={`${meta.label} — how often this resolves emphatically, win or lose`}
+      title={`${meta.label} — how big the swing is either way, not how likely it is to work`}
     >
       <span className="tracking-tighter">
         {'\u25c6'.repeat(meta.pips)}
@@ -471,34 +473,34 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
               <p className="text-base text-pixel-text mt-1">{getOutcomeMessage()}</p>
             </div>
 
-            {/* The choice is graded separately from the point.
-                A good read that loses is a different thing from a bad read that
-                loses, and one banner cannot say both — which is what made a
-                correct choice on a lost point read as a mistake. */}
+            {/* The choice is graded separately from the point, and graded on the
+                POSTURE rather than the tactic. The lesson that transfers is "net
+                play beats a retriever", not "that particular volley worked" — the
+                player will never see this exact option again, but they will see
+                the posture in every menu for the rest of their career. */}
             <div
-              className={`border-2 border-t-0 px-4 py-3 text-center text-sm ${
-                result.isCounter
-                  ? 'border-green-600 bg-green-600 bg-opacity-10 text-green-400'
-                  : result.isWeakChoice
-                    ? 'border-red-600 bg-red-600 bg-opacity-10 text-red-400'
-                    : 'border-pixel-border bg-pixel-bg text-pixel-text-muted'
-              }`}
+              className="border-2 border-t-0 px-4 py-3 text-center text-sm"
+              style={{
+                borderColor: POSTURE_META[chosenOption.posture].color,
+                backgroundColor: `${POSTURE_META[chosenOption.posture].color}1a`,
+              }}
             >
-              <span className="font-bold">
-                {result.isCounter
-                  ? '🎯 Great read'
-                  : result.isWeakChoice
-                    ? '⚠️ Bad matchup'
-                    : '— Fair call'}
+              <span
+                className="font-bold uppercase tracking-wider"
+                style={{ color: POSTURE_META[chosenOption.posture].color }}
+              >
+                {POSTURE_META[chosenOption.posture].label}
               </span>
-              <span className="ml-2">
+              <span className="text-pixel-text ml-2">
                 {result.isCounter
-                  ? `— ${chosenOption.name} counters their style. ${
-                      result.pointWinner === 'player' ? 'And it paid off.' : 'It just did not land this time.'
+                  ? `is strong against this kind of player.${
+                      result.pointWinner === 'player' ? '' : ' The read was right — the ball was not.'
                     }`
                   : result.isWeakChoice
-                    ? `— ${chosenOption.name} played into their strengths.`
-                    : `— nothing in the matchup for or against it.`}
+                    ? `plays into this kind of player.${
+                        result.pointWinner === 'player' ? ' You got away with it.' : ''
+                      }`
+                    : 'is neither strong nor weak against this kind of player — that one came down to your stats and the conditions.'}
               </span>
             </div>
           </div>
@@ -630,14 +632,36 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   // Right pane: the qualitative read on the focused tactic (matchup + effects) + commit button.
   const DetailPane: React.FC<{ option: TacticalOption }> = ({ option }) => (
     <div className="flex flex-col border-2 border-pixel-accent rounded bg-pixel-card overflow-hidden">
+      {/* Posture banner — the kind of play this is, and the thing the opponent's
+          style is actually strong or weak against. Given its own band, in its own
+          colour, because "which of the six is this" is the decision underneath the
+          decision: a player who learns the colours has learned the matchup. */}
+      <div
+        className="px-3 py-2 border-b-2 flex items-center gap-2"
+        style={{
+          backgroundColor: `${POSTURE_META[option.posture].color}22`,
+          borderColor: POSTURE_META[option.posture].color,
+        }}
+      >
+        <span
+          className="text-sm font-bold uppercase tracking-wider"
+          style={{ color: POSTURE_META[option.posture].color }}
+        >
+          {POSTURE_META[option.posture].label}
+        </span>
+        <span className="text-xs text-pixel-text-muted truncate">
+          {POSTURE_META[option.posture].summary}
+        </span>
+        <span className="ml-auto shrink-0">
+          <RiskIndicator risk={option.risk} />
+        </span>
+      </div>
+
       {/* Tactic header */}
       <div className="p-3 border-b-2 border-pixel-border">
         <div className="flex items-center gap-2 mb-0.5">
           <span className="text-lg">{option.emoji}</span>
           <h4 className="text-base font-bold text-pixel-text">{option.name}</h4>
-          <span className="ml-auto text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded bg-pixel-bg text-pixel-text-muted shrink-0">
-            {POSTURE_META[option.posture].label}
-          </span>
         </div>
         <p className="text-sm text-pixel-text-muted leading-snug">{option.description}</p>
       </div>
@@ -735,21 +759,29 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                       isActive ? 'border-pixel-accent' : 'border-pixel-border hover:border-pixel-accent hover:border-opacity-50'
                     }`}
                   >
-                    <div className="flex items-center justify-between gap-2 mb-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-xl shrink-0">{option.emoji}</span>
-                        <h4 className="text-base font-bold text-pixel-text truncate">{option.name}</h4>
-                      </div>
+                    {/* Row 1: the tactic, full width — names are long and were truncating. */}
+                    <div className="flex items-center gap-2 mb-1.5 min-w-0">
+                      <span className="text-xl shrink-0">{option.emoji}</span>
+                      <h4 className="text-base font-bold text-pixel-text truncate">{option.name}</h4>
+                    </div>
+                    {/* Row 2: what kind of play it is (posture + risk), then the stat read. */}
+                    <div className="flex items-center gap-2 mb-2">
                       <span
-                        className="text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded whitespace-nowrap"
+                        className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded shrink-0"
+                        style={{
+                          color: POSTURE_META[option.posture].color,
+                          border: `1px solid ${POSTURE_META[option.posture].color}`,
+                        }}
+                      >
+                        {POSTURE_META[option.posture].label}
+                      </span>
+                      <RiskIndicator risk={option.risk} />
+                      <span
+                        className="ml-auto text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded whitespace-nowrap shrink-0"
                         style={{ backgroundColor: adv.bg, color: adv.fg }}
                       >
                         {adv.label}
                       </span>
-                    </div>
-                    {/* Volatility only — how emphatic this tends to be, not how likely. */}
-                    <div className="mb-2">
-                      <RiskIndicator risk={option.risk} />
                     </div>
                     {/* Composites + the stats that drive them, per side. Grid so the You/Opp rows
                         share columns and the chips line up regardless of abbreviation length. */}
