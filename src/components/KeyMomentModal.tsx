@@ -13,7 +13,7 @@ import { Modal } from './ui/Modal';
 import { KeyMoment } from '../types/keyMoments';
 import { TacticalOption, SecondaryEffect } from '../data/tacticalOptions';
 import type { KeyMomentRisk } from '../data/tacticalOptions';
-import { ARCHETYPE_DATA, getRelevantTendency } from '../data/archetypes';
+import { getRelevantTendency, getArchetypeLabel } from '../data/archetypes';
 import { POSTURE_META, getMatchup } from '../data/postures';
 import { KeyMomentResolver, KeyMomentResult, AppliedEffect } from '../game/KeyMomentResolver';
 import { MatchOrchestrator } from '../game/MatchOrchestrator';
@@ -212,7 +212,6 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   };
 
   const opponentIsServing = activeKeyMoment.matchContext.server === 'opponent';
-  const archetypeData = ARCHETYPE_DATA[activeKeyMoment.opponentArchetype];
   const tendency = getRelevantTendency(activeKeyMoment.opponentArchetype, opponentIsServing);
 
   const ctx = activeKeyMoment.matchContext;
@@ -352,9 +351,8 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
             Opponent Archetype
           </div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2 py-0.5 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent font-bold whitespace-nowrap flex items-center gap-1.5">
-              <span aria-hidden="true">{archetypeData.glyph}</span>
-              {archetypeData.label}
+            <span className="px-2 py-0.5 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent font-bold whitespace-nowrap">
+              {getArchetypeLabel(activeKeyMoment.opponentArchetype)}
             </span>
           </div>
           <p className="text-sm text-pixel-text-muted italic">"{tendency}"</p>
@@ -504,7 +502,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                   lesson only transfers if the player can attach it to something they
                   will see again in the header of the next match. */}
               <span className="font-bold text-pixel-text ml-1">
-                <span aria-hidden="true">{archetypeData.glyph}</span> {archetypeData.label}s.
+                {getArchetypeLabel(activeKeyMoment.opponentArchetype)}s.
               </span>
             </div>
           </div>

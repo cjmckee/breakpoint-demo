@@ -84,8 +84,15 @@ export function getRelevantTendency(archetype: ArchetypeType, isServing: boolean
 }
 
 /**
- * Get archetype label for display.
+ * Get archetype label for display, glyph included.
+ *
+ * The glyph lives here rather than at each call site so the same mark appears
+ * everywhere the archetype is named — match setup, the pre-match screen, the
+ * opponent preview and the key moment header — and a player has seen it several
+ * times before a key moment asks them to act on it. `ARCHETYPE_DATA[t].label`
+ * remains the plain text for anywhere that needs it without the glyph.
  */
 export function getArchetypeLabel(archetype: ArchetypeType): string {
-  return ARCHETYPE_DATA[archetype].label;
+  const data = ARCHETYPE_DATA[archetype];
+  return `${data.glyph} ${data.label}`;
 }
