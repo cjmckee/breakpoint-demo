@@ -1,0 +1,657 @@
+{
+  "player": {
+    "id": "player-1788102514987-iozuvvouu",
+    "name": "testguy",
+    "stats": {
+      "core": {
+        "serve": 26,
+        "forehand": 23,
+        "backhand": 23,
+        "return": 26,
+        "net": 23
+      },
+      "technical": {
+        "slice": 27,
+        "spin": 25,
+        "placement": 25
+      },
+      "physical": {
+        "speed": 24,
+        "stamina": 28,
+        "strength": 25
+      },
+      "mental": {
+        "focus": 26,
+        "anticipation": 27,
+        "tactics": 24
+      }
+    },
+    "abilities": [],
+    "archetypeProfile": {
+      "broad": null,
+      "phases": {},
+      "specializationPoints": 1,
+      "respecTokens": 0
+    },
+    "inventory": [],
+    "equippedItems": {
+      "racquet": {
+        "id": "beginner_racquet",
+        "name": "Beginner Racquet",
+        "description": "A basic racquet for learning the fundamentals.",
+        "type": "equipment",
+        "equipmentSlot": "racquet",
+        "shopAvailable": false,
+        "modifiers": {
+          "statBoosts": {
+            "serve": 2,
+            "forehand": 2
+          }
+        }
+      },
+      "shoes": {
+        "id": "running_shoes",
+        "name": "Running Shoes",
+        "description": "Lightweight shoes for quick movement around the court.",
+        "type": "equipment",
+        "equipmentSlot": "shoes",
+        "shopAvailable": false,
+        "modifiers": {
+          "statBoosts": {
+            "speed": 3,
+            "stamina": 2
+          }
+        }
+      },
+      "outfit": null,
+      "hat": null,
+      "charm": null
+    },
+    "storyItems": [],
+    "nextActivityBuffs": [],
+    "seenItemIds": [
+      "beginner_racquet",
+      "running_shoes"
+    ],
+    "activeIndicators": [
+      "calendar",
+      "shop"
+    ],
+    "seenChallengeIds": [
+      "challenge_putting_in_the_reps"
+    ],
+    "level": 2,
+    "experience": 148,
+    "totalExperienceEarned": 148,
+    "tier": 1,
+    "trainingSessionsCompleted": 13,
+    "cumulativeMatchStats": {
+      "aces": 5,
+      "winners": 4,
+      "longRallies": 25,
+      "netPoints": 3,
+      "breakPoints": 6
+    },
+    "createdAt": "2026-08-30T15:08:34.987Z",
+    "updatedAt": "2026-09-07T11:31:33.152Z",
+    "flags": {
+      "seenMainMenuTutorial": true,
+      "hangoutUnlocked_keith": true,
+      "hangoutUnlocked_jen": true
+    }
+  },
+  "calendar": {
+    "currentSeason": 1,
+    "currentDay": 7,
+    "currentTimeSlot": 0,
+    "practiceOpponents": {},
+    "scheduledEvents": [
+      {
+        "eventType": "story",
+        "scheduledDay": 8,
+        "scheduledTimeSlot": 1,
+        "metadata": {
+          "storyEventId": "rival_first_encounter"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 9,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "club_team_intro"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 10,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "coach_first_meeting"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 11,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "coach_archetype_selection"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 11,
+        "scheduledTimeSlot": 1,
+        "metadata": {
+          "storyEventId": "club_team_first_practice"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 12,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "coach_training_focus"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 13,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "first_team_match_scheduled"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 16,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "coach_balanced_development"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 17,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "second_team_match_scheduled"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 21,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "third_team_match_scheduled"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 25,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "fourth_team_match_scheduled"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 29,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "fifth_team_match_scheduled"
+        }
+      },
+      {
+        "eventType": "story",
+        "scheduledDay": 33,
+        "scheduledTimeSlot": 0,
+        "metadata": {
+          "storyEventId": "riverside_open_prep"
+        }
+      }
+    ],
+    "activeTournament": null,
+    "completedTournaments": []
+  },
+  "currentStatus": {
+    "energy": 100,
+    "mood": 43,
+    "lastActivity": {
+      "id": "story-1788780693152",
+      "type": "story",
+      "source": "story_event",
+      "timestamp": "2026-09-07T11:31:33.152Z",
+      "timeSlotsUsed": 0,
+      "energyCost": 0,
+      "moodResult": 0,
+      "eventId": "shop_basics",
+      "eventName": "Exp Shop Basics",
+      "tags": [
+        "intro"
+      ],
+      "resultText": [
+        "You eagerly await your first chance to check out the shop. How do you even spend experience anyway?"
+      ],
+      "statChanges": {},
+      "relationshipChanges": {
+        "keith": 1
+      },
+      "abilitiesGained": [],
+      "itemsGained": [],
+      "hangoutsUnlocked": []
+    }
+  },
+  "activityHistory": [
+    {
+      "id": "story-1788780693152",
+      "type": "story",
+      "source": "story_event",
+      "timestamp": "2026-09-07T11:31:33.152Z",
+      "timeSlotsUsed": 0,
+      "energyCost": 0,
+      "moodResult": 0,
+      "eventId": "shop_basics",
+      "eventName": "Exp Shop Basics",
+      "tags": [
+        "intro"
+      ],
+      "resultText": [
+        "You eagerly await your first chance to check out the shop. How do you even spend experience anyway?"
+      ],
+      "statChanges": {},
+      "relationshipChanges": {
+        "keith": 1
+      },
+      "abilitiesGained": [],
+      "itemsGained": [],
+      "hangoutsUnlocked": []
+    },
+    {
+      "id": "rest-1788780689451",
+      "type": "rest",
+      "source": "rest_activity",
+      "timestamp": "2026-09-07T11:31:29.451Z",
+      "timeSlotsUsed": 1,
+      "energyCost": 0,
+      "moodResult": 5,
+      "restType": "deep",
+      "energyRestored": 50
+    },
+    {
+      "id": "anchor-training-1788780681699-4hkk7ag",
+      "type": "training",
+      "source": "training_activity",
+      "timestamp": "2026-09-07T11:31:21.699Z",
+      "statBoosts": {
+        "backhand": 1,
+        "slice": 1,
+        "stamina": 1
+      },
+      "energyCost": 20,
+      "timeSlotsUsed": 1,
+      "trainingType": "backhand_anchor",
+      "trainingName": "Backhand Training",
+      "efficiency": 1,
+      "moodResult": 2,
+      "moodChange": 2,
+      "sessionTier": "bronze",
+      "tier": "bronze",
+      "sessionType": "backhand_anchor",
+      "message": "Strong backhand work — two clean reps. Almost there!"
+    },
+    {
+      "id": "anchor-training-1788780654446-f3wluph",
+      "type": "training",
+      "source": "training_activity",
+      "timestamp": "2026-09-07T11:30:54.446Z",
+      "statBoosts": {
+        "return": 1,
+        "anticipation": 1,
+        "tactics": 1
+      },
+      "energyCost": 20,
+      "timeSlotsUsed": 1,
+      "trainingType": "return_anchor",
+      "trainingName": "Return Training",
+      "efficiency": 1,
+      "moodResult": 2,
+      "moodChange": 2,
+      "sessionTier": "bronze",
+      "tier": "bronze",
+      "sessionType": "return_anchor",
+      "message": "Strong return work — two clean reps. Almost there!"
+    },
+    {
+      "id": "story-1788103592900",
+      "type": "story",
+      "source": "story_event",
+      "timestamp": "2026-08-30T15:26:32.900Z",
+      "timeSlotsUsed": 1,
+      "energyCost": 10,
+      "moodResult": 15,
+      "eventId": "keith_hangout_tier0",
+      "eventName": "Recon Mission",
+      "tags": [
+        "interaction",
+        "friend"
+      ],
+      "resultText": [
+        "You spend hours in the main building without ever making it to the courts. You realize this might have been ",
+        {
+          "characterId": "keith"
+        },
+        "'s plan all along. The alligator exhibit was worth the walk, anyway."
+      ],
+      "statChanges": {
+        "anticipation": 1,
+        "return": 1
+      },
+      "relationshipChanges": {
+        "keith": 3
+      },
+      "abilitiesGained": [],
+      "itemsGained": [],
+      "hangoutsUnlocked": []
+    },
+    {
+      "id": "story-1788103583174",
+      "type": "story",
+      "source": "story_event",
+      "timestamp": "2026-08-30T15:26:23.174Z",
+      "timeSlotsUsed": 0,
+      "energyCost": 0,
+      "moodResult": 0,
+      "eventId": "relationship_basics",
+      "eventName": "Relationship Basics",
+      "tags": [
+        "intro"
+      ],
+      "resultText": [
+        "Building relationships and hanging out with people around the academy will be key to your growth here."
+      ],
+      "statChanges": {},
+      "relationshipChanges": {
+        "keith": 5
+      },
+      "abilitiesGained": [],
+      "itemsGained": [],
+      "hangoutsUnlocked": [
+        "keith",
+        "jen"
+      ]
+    },
+    {
+      "id": "rest-1788103581058",
+      "type": "rest",
+      "source": "rest_activity",
+      "timestamp": "2026-08-30T15:26:21.058Z",
+      "timeSlotsUsed": 1,
+      "energyCost": 0,
+      "moodResult": 5,
+      "restType": "deep",
+      "energyRestored": 50
+    },
+    {
+      "id": "anchor-training-1788103579110-71fjlom",
+      "type": "training",
+      "source": "training_activity",
+      "timestamp": "2026-08-30T15:26:19.110Z",
+      "statBoosts": {
+        "forehand": 1,
+        "slice": 1,
+        "stamina": 1
+      },
+      "energyCost": 20,
+      "timeSlotsUsed": 1,
+      "trainingType": "forehand_anchor",
+      "trainingName": "Forehand Training",
+      "efficiency": 1,
+      "moodResult": 2,
+      "moodChange": 2,
+      "sessionTier": "bronze",
+      "tier": "bronze",
+      "sessionType": "forehand_anchor",
+      "message": "Strong forehand work — two clean reps. Almost there!"
+    },
+    {
+      "id": "story-1788103499949",
+      "type": "story",
+      "source": "story_event",
+      "timestamp": "2026-08-30T15:24:59.949Z",
+      "timeSlotsUsed": 0,
+      "energyCost": 0,
+      "moodResult": 2,
+      "eventId": "training_session_intro",
+      "eventName": "Training Session Introduction",
+      "tags": [
+        "intro"
+      ],
+      "resultText": [
+        "Right now you only have access to Bronze training sessions. You'll have access to a bit more variety as more content is added to the demo over time."
+      ],
+      "statChanges": {},
+      "relationshipChanges": {
+        "jen": 2,
+        "keith": 2
+      },
+      "abilitiesGained": [],
+      "itemsGained": [],
+      "hangoutsUnlocked": []
+    },
+    {
+      "id": "story-1788103488549",
+      "type": "story",
+      "source": "story_event",
+      "timestamp": "2026-08-30T15:24:48.549Z",
+      "timeSlotsUsed": 0,
+      "energyCost": 50,
+      "moodResult": 15,
+      "eventId": "tutorial_jen_win",
+      "eventName": "Practice Match Victory",
+      "tags": [
+        "tutorial"
+      ],
+      "resultText": [
+        "You pull off the win! Your confidence is growing. ",
+        {
+          "characterId": "jen"
+        },
+        " warns you about the strong players at the Academy, even at the Club tier. Make sure you do your training!"
+      ],
+      "statChanges": {},
+      "relationshipChanges": {
+        "jen": 5
+      },
+      "abilitiesGained": [],
+      "itemsGained": [],
+      "hangoutsUnlocked": []
+    }
+  ],
+  "completedStoryEvents": [
+    "welcome_to_tennis_rpg",
+    "making_connections",
+    "food_hall_gossip",
+    "player_tier_intro",
+    "match_play_basics",
+    "tutorial_keith_win",
+    "tutorial_jen_win",
+    "training_session_intro",
+    "relationship_basics",
+    "keith_hangout_tier0",
+    "shop_basics"
+  ],
+  "completedStoryEventChoices": {},
+  "relationships": {
+    "jordan_rival": -10,
+    "jen": 15,
+    "keith": 19
+  },
+  "hangoutThresholdsSeen": {
+    "keith": [
+      0
+    ]
+  },
+  "storyEventTriggerChance": 40,
+  "activeChallenges": [],
+  "completedChallenges": [
+    "challenge_putting_in_the_reps"
+  ],
+  "unlockedTiers": [
+    1
+  ],
+  "shopItems": [
+    {
+      "id": "stat-1788780689453-dwo",
+      "category": "stat_increase",
+      "name": "Common +5 anticipation",
+      "description": "Increase anticipation by a total of +5",
+      "cost": 67,
+      "purchased": false,
+      "statBoosts": {
+        "anticipation": 5
+      },
+      "rarity": "common"
+    },
+    {
+      "id": "stat-1788780689453-k3z",
+      "category": "stat_increase",
+      "name": "Uncommon +5 return + backhand",
+      "description": "Increase return + backhand by a total of +5",
+      "cost": 67,
+      "purchased": false,
+      "statBoosts": {
+        "return": 2,
+        "backhand": 3
+      },
+      "rarity": "uncommon"
+    },
+    {
+      "id": "stat-1788780689453-iba",
+      "category": "stat_increase",
+      "name": "Common +3 tactics",
+      "description": "Increase tactics by a total of +3",
+      "cost": 31,
+      "purchased": false,
+      "statBoosts": {
+        "tactics": 3
+      },
+      "rarity": "common"
+    },
+    {
+      "id": "stat-1788780689453-vso",
+      "category": "stat_increase",
+      "name": "Uncommon +6 speed + stamina",
+      "description": "Increase speed + stamina by a total of +6",
+      "cost": 88,
+      "purchased": false,
+      "statBoosts": {
+        "speed": 1,
+        "stamina": 5
+      },
+      "rarity": "uncommon"
+    },
+    {
+      "id": "consumable-1788780689453-im0",
+      "category": "consumable",
+      "sourceItemId": "game_plan_notebook",
+      "name": "Game Plan Notebook",
+      "description": "Pages of tactical notes. Studying them lets you rethink one part of your game — grants a respec token to re-pick a phase specialty.",
+      "instantEffects": {
+        "respecTokens": 1
+      },
+      "cost": 10,
+      "purchased": false,
+      "rarity": "common"
+    },
+    {
+      "id": "consumable-1788780689453-5zh",
+      "category": "consumable",
+      "sourceItemId": "orange_slice",
+      "name": "Orange Slice",
+      "description": "A refreshing slice of orange. From a very nice lady.",
+      "instantEffects": {
+        "energyChange": 5,
+        "moodChange": 20
+      },
+      "cost": 7,
+      "purchased": false,
+      "rarity": "common"
+    },
+    {
+      "id": "equipment-1788780689453-4ti",
+      "category": "equipment",
+      "sourceItemId": "mental_focus_jersey",
+      "name": "Mental Focus Jersey",
+      "description": "Designed with biometric feedback tech. Reminds you to breathe, slow down, and play smart.",
+      "statBoosts": {
+        "focus": 6,
+        "anticipation": 5,
+        "stamina": 4,
+        "spin": 3
+      },
+      "slot": "outfit",
+      "cost": 229,
+      "purchased": false,
+      "rarity": "uncommon"
+    },
+    {
+      "id": "equipment-1788780689453-f9z",
+      "category": "equipment",
+      "sourceItemId": "lucky_hat",
+      "name": "Lucky Hat",
+      "description": "An old, worn hat that seems to bring good fortune.",
+      "statBoosts": {
+        "focus": 4,
+        "anticipation": 3,
+        "spin": 2,
+        "slice": 4
+      },
+      "slot": "hat",
+      "cost": 145,
+      "purchased": false,
+      "rarity": "uncommon"
+    },
+    {
+      "id": "ability-rangy_return-1788780689453-wxh",
+      "category": "ability",
+      "name": "rangy_return",
+      "description": "Your exceptional reach lets you get to balls others would call winners. Nothing is truly out of range.",
+      "effects": "Reduces difficulty penalty when stretched out of position.",
+      "cost": 70,
+      "purchased": false,
+      "abilityId": "rangy_return",
+      "statBoosts": {},
+      "rarity": "common"
+    },
+    {
+      "id": "ability-crowd_favorite-1788780689453-jr5",
+      "category": "ability",
+      "name": "crowd_favorite",
+      "description": "The crowd loves you and the other players respect you. You draw energy from every interaction.",
+      "effects": "Bonus mood gains. Bonus relationship gains.",
+      "cost": 70,
+      "purchased": false,
+      "abilityId": "crowd_favorite",
+      "statBoosts": {},
+      "rarity": "common"
+    }
+  ],
+  "audioSettings": {
+    "musicVolume": 0.05,
+    "sfxVolume": 0.3,
+    "muteMusic": false,
+    "muteSfx": false
+  },
+  "eventRecovery": {
+    "currentEventId": null,
+    "currentDialogueIndex": 0,
+    "selectedChoices": {},
+    "pendingMatchSetup": null,
+    "pendingEventResult": null,
+    "idleOverlay": null
+  },
+  "exportedAt": "2026-09-07T11:31:42.578Z",
+  "version": "1.0.0",
+  "storeVersion": 6
+}
