@@ -497,11 +497,13 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                 {POSTURE_META[chosenOption.posture].label}
               </span>
               <span className="text-pixel-text ml-2">
-                {result.isCounter
-                  ? `is strong against this kind of player.`
-                  : result.isWeakChoice
-                    ? `is weak against this kind of player.`
-                    : 'is neutral against this kind of player.'}
+                {result.isCounter ? 'is strong against' : result.isWeakChoice ? 'is weak against' : 'is neutral against'}
+              </span>
+              {/* Name the archetype rather than saying "this kind of player". The
+                  lesson only transfers if the player can attach it to something they
+                  will see again in the header of the next match. */}
+              <span className="font-bold text-pixel-text ml-1">
+                {archetypeData.label}s.
               </span>
             </div>
           </div>
