@@ -23,6 +23,80 @@ import {
 
 export const miscEvents: StoryEvent[] = [
     {
+        id: 'aquarium_with_keith',
+        name: 'The Aquarium',
+        tags: ['misc', 'friend'],
+        timeSlotsRequired: 1,
+        // Needs enough history with Keith that turning up to a pond with him tracks.
+        prerequisites: { minDay: 12, relationships: { keith: { min: 15 } } },
+        skippable: false,
+        moodTier: 'neutral',
+        description: 'Keith has discovered that the aquarium has a pond out back.',
+        dialogue: [
+            ['keith', ['The aquarium has a pond behind it. You can rent a rod for four dollars.']],
+            ['player', ['Is the pond part of the aquarium?']],
+            ['keith', ['It is adjacent to the aquarium. Same parking lot.']],
+            [null, ['He has brought his own tackle box anyway. It is enormous. Among the lures and the spare line there is, for reasons he does not explain, a sandwich.']],
+            ['keith', ['Five casts each. Whoever catches less buys the other one a penguin from the gift shop.']],
+        ],
+        characters: ['keith'],
+        options: [
+            {
+                id: 'try_to_outfish',
+                text: 'Take the bet',
+                description: 'Five casts, most fish wins. You will have to actually catch them.',
+                emoji: '🎣',
+                minigame: {
+                    request: { minigame: 'fishing_cast' },
+                    // Three of five. Keith is not good at this, but he is committed.
+                    passThreshold: 3,
+                    failOutcome: {
+                        resultText: [
+                            'Keith catches two. You do not catch two.',
+                            'He does not gloat, which is somehow worse. He picks out the largest penguin in the gift shop, holds it up to the light, and says he wants you to know he chose it carefully. You spend eleven dollars. He carries it under one arm for the rest of the afternoon and talks to it on the bus.',
+                        ],
+                        effects: {
+                            moodChange: 8,
+                            energyChange: -5,
+                            relationshipChanges: { keith: 3 },
+                        },
+                    },
+                },
+                outcome: {
+                    resultText: [
+                        'You out-fish him, and it is not close.',
+                        { characterId: 'keith' }, ' takes the loss with enormous dignity, which lasts until the gift shop, where he spends a long time deciding and eventually buys you a keychain instead of a penguin because "the penguin felt like a grudge." You sit on the pond wall until it gets dark. Nobody mentions tennis once.',
+                    ],
+                    effects: {
+                        statChanges: { focus: 2, placement: 1 },
+                        moodChange: 20,
+                        energyChange: -5,
+                        relationshipChanges: { keith: 5 },
+                        itemsGained: [TENNIS_BALL_KEYCHAIN],
+                    },
+                },
+            },
+            {
+                id: 'just_watch',
+                text: 'Let him fish, just watch',
+                description: 'No rod, no bet. You sit on the wall.',
+                emoji: '🐟',
+                outcome: {
+                    resultText: [
+                        'You sit on the wall and let ', { characterId: 'keith' }, ' fish.',
+                        'He catches one, immediately releases it, and explains at length that this was always the plan. It is a very quiet afternoon and you badly needed one.',
+                    ],
+                    effects: {
+                        moodChange: 12,
+                        energyChange: -5,
+                        relationshipChanges: { keith: 2 },
+                    },
+                },
+            },
+        ],
+    },
+
+    {
         id: 'disc_golf_adventure',
         name: 'Disc Golf Adventure',
         tags: ['misc'],

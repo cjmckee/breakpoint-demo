@@ -16,15 +16,10 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { audioManager } from '../../audio/AudioManager';
-import {
-  MinigameShell,
-  SupportResult,
-  RoundPips,
-  MinigameActionButton,
-  countNote,
-  type MinigameProps,
-} from './MinigameShell';
-import { useMinigameRounds, roundSpeed } from './useMinigameRounds';
+import { MinigameShell, RoundPips, MinigameActionButton } from './MinigameShell';
+import { SupportResult, countNote } from './trainingReadout';
+import type { MinigameProps } from '../../minigames/types';
+import { useMinigameRounds } from './useMinigameRounds';
 import { Sparks, ComboBadge, useHitstop, type Burst } from './minigameJuice';
 import { directionFromKey, isActionKey } from '../../utils/gameKeys';
 
@@ -81,8 +76,8 @@ function planServe(speed: number): Serve {
   };
 }
 
-export const ReadReturnMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt }) => {
-  const rounds = useMinigameRounds(onComplete, onFirstAttempt);
+export const ReadReturnMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt, config }) => {
+  const rounds = useMinigameRounds({ minigame: 'read_return', config }, onComplete, onFirstAttempt);
   const { frozen, trigger: hitstop } = useHitstop();
 
   const boxRef = useRef<HTMLDivElement | null>(null);
@@ -151,7 +146,7 @@ export const ReadReturnMinigame: React.FC<MinigameProps> = ({ onComplete, window
 
   const launchServe = useCallback(() => {
     const token = ++tokenRef.current;
-    const speed = (SPEED_MIN + Math.random() * SPEED_SPAN) * roundSpeed(rounds.round);
+    const speed = (SPEED_MIN + Math.random() * SPEED_SPAN) * rounds.speed;
     const serve = planServe(speed);
 
     ballRef.current = { x: ENTRY_X, y: serve.entryY, vx: -serve.vx, vy: serve.vy };

@@ -20,6 +20,7 @@ import type { TacticalOption } from '../data/tacticalOptions';
 import type { KeyMomentResult } from '../game/KeyMomentResolver';
 import type { AccumulatedMatchEffects } from '../game/MatchOrchestrator';
 import type { Item } from './items';
+import type { MinigameRequest } from '../minigames/types';
 
 // ============================================================================
 // GAME PHASE — the single source of truth for "where are we?"
@@ -36,6 +37,7 @@ export type GamePhase =
   | MatchSetupPhase
   | MatchActivePhase
   | MatchResultsPhase
+  | MinigamePhase
   | { type: 'tournament_list' }
   | { type: 'inventory' }
   | { type: 'relationships' }
@@ -142,6 +144,19 @@ export interface KeyMomentHistoryEntry {
   result: KeyMomentResult;
 }
 
+/**
+ * A minigame has the screen. Its score decides where we go next.
+ *
+ * Same route a story match already takes: leave the event, hand the screen to
+ * something that produces a result, come back with it. The phase is thin — the
+ * minigame owns its own arena and controls through MinigameShell.
+ */
+export interface MinigamePhase {
+  type: 'minigame_active';
+  request: MinigameRequest;
+  continuation: PhaseContinuation;
+}
+
 // ============================================================================
 // OVERLAYS — modals shown on top of the idle (main menu) screen
 // ============================================================================
@@ -203,7 +218,20 @@ export type PhaseContinuation =
   | { type: 'idle' }
   | { type: 'milestone_check' }
   | { type: 'match_setup'; matchType: MatchType; matchConfig: PreMatchConfig }
-  | { type: 'story_event'; event: StoryEvent; availableOptions: StoryEventOption[]; continuation?: PhaseContinuation };
+  | { type: 'story_event'; event: StoryEvent; availableOptions: StoryEventOption[]; continuation?: PhaseContinuation }
+  /**
+   * Return path for a minigame played inside a story event: resolve the option
+   * the player already chose, using the score the game just produced. Carries
+   * the event back with it because leaving the story_event phase to play the
+   * game is what loses it, and `next` is where the event chain was headed.
+   */
+  | {
+      type: 'story_outcome';
+      event: StoryEvent;
+      availableOptions: StoryEventOption[];
+      optionId: string;
+      next: PhaseContinuation;
+    };
 
 // ============================================================================
 // MATCH COMPLETION — data passed from matchStore → component → gameStore

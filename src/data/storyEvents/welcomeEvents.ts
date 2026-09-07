@@ -228,8 +228,8 @@ export const welcomeEvents: StoryEvent[] = [
               opponentName: 'Jen',
               opponentStats: {
           core: { serve: 23, forehand: 25, backhand: 21, return: 25, net: 20 },
-          technical: { slice: 20, spin: 19, placement: 23 },
-          physical: { speed: 30, stamina: 25, strength: 20 },
+          technical: { slice: 20, spin: 30, placement: 23 },
+          physical: { speed: 30, stamina: 35, strength: 20 },
           mental: { focus: 23, anticipation: 27, tactics: 27 },
         },
               opponentTier: 1,
