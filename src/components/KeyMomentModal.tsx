@@ -352,7 +352,8 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
             Opponent Archetype
           </div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2 py-0.5 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent font-bold whitespace-nowrap">
+            <span className="px-2 py-0.5 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent font-bold whitespace-nowrap flex items-center gap-1.5">
+              <span aria-hidden="true">{archetypeData.glyph}</span>
               {archetypeData.label}
             </span>
           </div>
@@ -503,7 +504,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                   lesson only transfers if the player can attach it to something they
                   will see again in the header of the next match. */}
               <span className="font-bold text-pixel-text ml-1">
-                {archetypeData.label}s.
+                <span aria-hidden="true">{archetypeData.glyph}</span> {archetypeData.label}s.
               </span>
             </div>
           </div>
