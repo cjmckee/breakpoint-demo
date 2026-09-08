@@ -136,8 +136,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       ],
     },
     shotOutcomes: {
-      success: { outcome: PointType.ACE, shotType: 'serve', shooter: 'player' },
-      failure: { outcome: PointType.DOUBLE_FAULT, shotType: 'serve', shooter: 'player' },
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'return', shooter: 'opponent' },
+      failure: { outcome: PointType.WINNER, shotType: 'return', shooter: 'opponent' },
     },
   },
   {
@@ -167,7 +167,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     },
     shotOutcomes: {
       success: { outcome: PointType.ACE, shotType: 'serve', shooter: 'player' },
-      failure: { outcome: PointType.DOUBLE_FAULT, shotType: 'serve', shooter: 'player' },
+      failure: { outcome: PointType.WINNER, shotType: 'return', shooter: 'opponent' },
     },
   },
   {
@@ -226,7 +226,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       ],
     },
     shotOutcomes: {
-      success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'passing_shot', shooter: 'opponent' },
       failure: { outcome: PointType.WINNER, shotType: 'passing_shot', shooter: 'opponent' },
     },
   },
@@ -287,7 +287,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     },
     shotOutcomes: {
       success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
-      failure: { outcome: PointType.WINNER, shotType: 'passing_shot', shooter: 'opponent' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'volley', shooter: 'player' },
     },
   },
   {
@@ -346,8 +346,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       ],
     },
     shotOutcomes: {
-      success: { outcome: PointType.FORCED_ERROR, shotType: 'return', shooter: 'opponent' },
-      failure: { outcome: PointType.WINNER, shotType: 'return', shooter: 'opponent' },
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
+      failure: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'opponent' },
     },
   },
   {
@@ -376,8 +376,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       ],
     },
     shotOutcomes: {
-      success: { outcome: PointType.FORCED_ERROR, shotType: 'return', shooter: 'opponent' },
-      failure: { outcome: PointType.WINNER, shotType: 'return', shooter: 'opponent' },
+      success: { outcome: PointType.WINNER, shotType: 'slice', shooter: 'player' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'slice', shooter: 'player' },
     },
   },
   {
@@ -406,8 +406,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       ],
     },
     shotOutcomes: {
-      success: { outcome: PointType.WINNER, shotType: 'drop_shot', shooter: 'player' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'drop_shot', shooter: 'player' },
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'return', shooter: 'opponent' },
+      failure: { outcome: PointType.WINNER, shotType: 'return', shooter: 'opponent' },
     },
   },
   {
@@ -436,8 +436,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       ],
     },
     shotOutcomes: {
-      success: { outcome: PointType.WINNER, shotType: 'drop_shot', shooter: 'player' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'drop_shot', shooter: 'player' },
+      success: { outcome: PointType.ACE, shotType: 'serve', shooter: 'player' },
+      failure: { outcome: PointType.WINNER, shotType: 'return', shooter: 'opponent' },
     },
   },
   {
@@ -497,7 +497,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     },
     shotOutcomes: {
       success: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'opponent' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'backhand', shooter: 'player' },
+      failure: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'player' },
     },
   },
   {
@@ -528,7 +528,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     },
     shotOutcomes: {
       success: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'opponent' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'backhand', shooter: 'player' },
+      failure: { outcome: PointType.WINNER, shotType: 'backhand', shooter: 'opponent' },
     },
   },
   {
@@ -558,7 +558,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     },
     shotOutcomes: {
       success: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'opponent' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'backhand', shooter: 'player' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'forehand', shooter: 'player' },
     },
   },
   {
@@ -588,7 +588,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     },
     shotOutcomes: {
       success: { outcome: PointType.FORCED_ERROR, shotType: 'return', shooter: 'opponent' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'serve', shooter: 'player' },
+      failure: { outcome: PointType.WINNER, shotType: 'return', shooter: 'opponent' },
     },
   },
   {
@@ -617,8 +617,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       ],
     },
     shotOutcomes: {
-      success: { outcome: PointType.FORCED_ERROR, shotType: 'return', shooter: 'opponent' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'serve', shooter: 'player' },
+      success: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'player' },
+      failure: { outcome: PointType.WINNER, shotType: 'return', shooter: 'opponent' },
     },
   },
   {
@@ -647,8 +647,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       ],
     },
     shotOutcomes: {
-      success: { outcome: PointType.FORCED_ERROR, shotType: 'return', shooter: 'opponent' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'serve', shooter: 'player' },
+      success: { outcome: PointType.ACE, shotType: 'serve', shooter: 'player' },
+      failure: { outcome: PointType.DOUBLE_FAULT, shotType: 'serve', shooter: 'player' },
     },
   },
   {
@@ -677,8 +677,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       ],
     },
     shotOutcomes: {
-      success: { outcome: PointType.WINNER, shotType: 'return', shooter: 'player' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
+      failure: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'opponent' },
     },
   },
   {
@@ -708,7 +708,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     },
     shotOutcomes: {
       success: { outcome: PointType.WINNER, shotType: 'return', shooter: 'player' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
+      failure: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'opponent' },
     },
   },
   {
@@ -767,7 +767,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       ],
     },
     shotOutcomes: {
-      success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'passing_shot', shooter: 'opponent' },
       failure: { outcome: PointType.WINNER, shotType: 'passing_shot', shooter: 'opponent' },
     },
   },
@@ -828,7 +828,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     },
     shotOutcomes: {
       success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
-      failure: { outcome: PointType.WINNER, shotType: 'passing_shot', shooter: 'opponent' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'volley', shooter: 'player' },
     },
   },
   {
@@ -888,7 +888,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     },
     shotOutcomes: {
       success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
-      failure: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'opponent' },
+      failure: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'player' },
     },
   },
   {
@@ -917,8 +917,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       ],
     },
     shotOutcomes: {
-      success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
-      failure: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'opponent' },
+      success: { outcome: PointType.WINNER, shotType: 'lob', shooter: 'player' },
+      failure: { outcome: PointType.WINNER, shotType: 'overhead', shooter: 'opponent' },
     },
   },
   {
@@ -947,8 +947,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       ],
     },
     shotOutcomes: {
-      success: { outcome: PointType.WINNER, shotType: 'drop_shot', shooter: 'player' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'drop_shot', shooter: 'player' },
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
+      failure: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'opponent' },
     },
   },
   {
@@ -977,8 +977,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       ],
     },
     shotOutcomes: {
-      success: { outcome: PointType.WINNER, shotType: 'drop_shot', shooter: 'player' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'drop_shot', shooter: 'player' },
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'slice', shooter: 'player' },
     },
   },
   {
@@ -1038,7 +1038,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     },
     shotOutcomes: {
       success: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'opponent' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'backhand', shooter: 'player' },
+      failure: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'player' },
     },
   },
   {
@@ -1069,7 +1069,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     },
     shotOutcomes: {
       success: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'opponent' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'backhand', shooter: 'player' },
+      failure: { outcome: PointType.WINNER, shotType: 'backhand', shooter: 'opponent' },
     },
   },
   {
@@ -1098,7 +1098,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       ],
     },
     shotOutcomes: {
-      success: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'opponent' },
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
       failure: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'player' },
     },
   },
@@ -1128,8 +1128,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       ],
     },
     shotOutcomes: {
-      success: { outcome: PointType.WINNER, shotType: 'return', shooter: 'player' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
+      failure: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'opponent' },
     },
   },
   {
@@ -1159,7 +1159,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     },
     shotOutcomes: {
       success: { outcome: PointType.WINNER, shotType: 'return', shooter: 'player' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
+      failure: { outcome: PointType.ACE, shotType: 'serve', shooter: 'opponent' },
     },
   },
   {
@@ -1218,8 +1218,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       ],
     },
     shotOutcomes: {
-      success: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'player' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'forehand', shooter: 'player' },
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
+      failure: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'opponent' },
     },
   },
   {
@@ -1249,7 +1249,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     },
     shotOutcomes: {
       success: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'player' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'forehand', shooter: 'player' },
+      failure: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'opponent' },
     },
   },
   {
@@ -1339,7 +1339,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     },
     shotOutcomes: {
       success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
-      failure: { outcome: PointType.WINNER, shotType: 'passing_shot', shooter: 'opponent' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'volley', shooter: 'player' },
     },
   },
   {
@@ -1369,7 +1369,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     },
     shotOutcomes: {
       success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'slice', shooter: 'player' },
+      failure: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'opponent' },
     },
   },
   {
@@ -1398,8 +1398,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       ],
     },
     shotOutcomes: {
-      success: { outcome: PointType.WINNER, shotType: 'drop_shot', shooter: 'player' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'drop_shot', shooter: 'player' },
+      success: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'player' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'forehand', shooter: 'player' },
     },
   },
   {
@@ -1458,8 +1458,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       ],
     },
     shotOutcomes: {
-      success: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'opponent' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'backhand', shooter: 'player' },
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
+      failure: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'player' },
     },
   },
   {
@@ -1488,8 +1488,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       ],
     },
     shotOutcomes: {
-      success: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'opponent' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'backhand', shooter: 'player' },
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'forehand', shooter: 'player' },
     },
   },
   {
@@ -1518,7 +1518,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       ],
     },
     shotOutcomes: {
-      success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'passing_shot', shooter: 'opponent' },
       failure: { outcome: PointType.WINNER, shotType: 'passing_shot', shooter: 'opponent' },
     },
   },
@@ -1548,8 +1548,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       ],
     },
     shotOutcomes: {
-      success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'slice', shooter: 'player' },
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'opponent' },
+      failure: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'player' },
     },
   },
   {
@@ -1578,7 +1578,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       ],
     },
     shotOutcomes: {
-      success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
+      success: { outcome: PointType.WINNER, shotType: 'slice', shooter: 'player' },
       failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'slice', shooter: 'player' },
     },
   },
@@ -1608,8 +1608,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       ],
     },
     shotOutcomes: {
-      success: { outcome: PointType.WINNER, shotType: 'drop_shot', shooter: 'player' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'drop_shot', shooter: 'player' },
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'opponent' },
+      failure: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'opponent' },
     },
   },
   {
@@ -1639,7 +1639,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     },
     shotOutcomes: {
       success: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'opponent' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'backhand', shooter: 'player' },
+      failure: { outcome: PointType.WINNER, shotType: 'backhand', shooter: 'opponent' },
     },
   },
   {
@@ -1698,8 +1698,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       ],
     },
     shotOutcomes: {
-      success: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'player' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'forehand', shooter: 'player' },
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
+      failure: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'opponent' },
     },
   },
   {
@@ -1729,7 +1729,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     },
     shotOutcomes: {
       success: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'player' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'forehand', shooter: 'player' },
+      failure: { outcome: PointType.WINNER, shotType: 'backhand', shooter: 'opponent' },
     },
   },
 ];
