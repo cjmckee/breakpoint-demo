@@ -24,12 +24,6 @@ import type { StatName } from '../types';
  */
 export type KeyMomentRole = 'serve' | 'return' | 'rally';
 
-/** What is on the line. */
-export type KeyMomentStakes = 'deuce' | 'break' | 'set' | 'match';
-
-/** Whether the player is chasing the point or hanging on to it. */
-export type KeyMomentPressure = 'converting' | 'defending';
-
 /**
  * How the option plays the point. Posture — not the individual option — is what an
  * opponent's archetype is strong or weak against, so the matchup lives in one
@@ -67,10 +61,6 @@ export interface TacticalOption {
   posture: KeyMomentPosture;
   /** How wide the outcome spread is. */
   risk: KeyMomentRisk;
-  /** Restrict to certain stakes. Omitted = eligible at any. */
-  stakes?: KeyMomentStakes[];
-  /** Restrict to converting or defending. Omitted = eligible either way. */
-  pressure?: KeyMomentPressure[];
   /**
    * Aim at whichever of the opponent's wings is actually weaker. The resolver
    * swaps the `backhand` term in opponentStatWeights for `forehand` when that is
@@ -185,36 +175,6 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     emoji: '🚀',
     name: 'Power serve down the T',
     description: 'Overpower them before the rally starts',
-    roles: ['serve'],
-    posture: 'power',
-    risk: 'bold',
-    secondaryEffects: RISK_EFFECTS.bold,
-    playerStatWeights: {
-      primary: 'serve',
-      primaryWeight: 0.4,
-      secondary: [
-        { stat: 'strength', weight: 0.3 },
-        { stat: 'placement', weight: 0.3 },
-      ],
-    },
-    opponentStatWeights: {
-      primary: 'return',
-      primaryWeight: 0.4,
-      secondary: [
-        { stat: 'anticipation', weight: 0.3 },
-        { stat: 'speed', weight: 0.3 },
-      ],
-    },
-    shotOutcomes: {
-      success: { outcome: PointType.ACE, shotType: 'serve', shooter: 'player' },
-      failure: { outcome: PointType.DOUBLE_FAULT, shotType: 'serve', shooter: 'player' },
-    },
-  },
-  {
-    id: 's_power_wide',
-    emoji: '💥',
-    name: 'Big serve out wide',
-    description: 'Drag them off the court and take the opening',
     roles: ['serve'],
     posture: 'power',
     risk: 'bold',
@@ -759,37 +719,6 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     roles: ['return'],
     posture: 'power',
     risk: 'bold',
-    secondaryEffects: RISK_EFFECTS.bold,
-    playerStatWeights: {
-      primary: 'return',
-      primaryWeight: 0.4,
-      secondary: [
-        { stat: 'forehand', weight: 0.3 },
-        { stat: 'strength', weight: 0.3 },
-      ],
-    },
-    opponentStatWeights: {
-      primary: 'serve',
-      primaryWeight: 0.4,
-      secondary: [
-        { stat: 'speed', weight: 0.3 },
-        { stat: 'anticipation', weight: 0.3 },
-      ],
-    },
-    shotOutcomes: {
-      success: { outcome: PointType.WINNER, shotType: 'return', shooter: 'player' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
-    },
-  },
-  {
-    id: 'r_nothing_to_lose',
-    emoji: '🔥',
-    name: 'Nothing-to-lose swing',
-    description: 'Swing free — if you make it, it\'s a winner',
-    roles: ['return'],
-    posture: 'power',
-    risk: 'bold',
-    pressure: ['defending'],
     secondaryEffects: RISK_EFFECTS.bold,
     playerStatWeights: {
       primary: 'return',
@@ -1564,6 +1493,186 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     },
   },
   {
+    id: 'y_close_short',
+    emoji: '✅',
+    name: 'Close only on a short ball',
+    description: 'Come in when the ball earns it, not before',
+    roles: ['rally'],
+    posture: 'net',
+    risk: 'safe',
+    secondaryEffects: RISK_EFFECTS.safe,
+    playerStatWeights: {
+      primary: 'net',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'speed', weight: 0.3 },
+        { stat: 'anticipation', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'placement',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'speed', weight: 0.3 },
+        { stat: 'backhand', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
+      failure: { outcome: PointType.WINNER, shotType: 'passing_shot', shooter: 'opponent' },
+    },
+  },
+  {
+    id: 'y_roll_deep',
+    emoji: '↩️',
+    name: 'Roll it deep crosscourt',
+    description: 'Heavy and safe into the big part of the court',
+    roles: ['rally'],
+    posture: 'neutralize',
+    risk: 'balanced',
+    secondaryEffects: RISK_EFFECTS.balanced,
+    playerStatWeights: {
+      primary: 'spin',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'slice', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'tactics',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'strength', weight: 0.3 },
+        { stat: 'spin', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'slice', shooter: 'player' },
+    },
+  },
+  {
+    id: 'y_carve_low',
+    emoji: '🪶',
+    name: 'Skid a low slice at their feet',
+    description: 'A fine margin, but nothing comes back clean',
+    roles: ['rally'],
+    posture: 'neutralize',
+    risk: 'bold',
+    secondaryEffects: RISK_EFFECTS.bold,
+    playerStatWeights: {
+      primary: 'spin',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'slice', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'tactics',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'strength', weight: 0.3 },
+        { stat: 'spin', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'slice', shooter: 'player' },
+    },
+  },
+  {
+    id: 'y_show_drop',
+    emoji: '🃏',
+    name: 'Show the drop, hit it deep',
+    description: 'Sell the short ball, then go long',
+    roles: ['rally'],
+    posture: 'deception',
+    risk: 'safe',
+    secondaryEffects: RISK_EFFECTS.safe,
+    playerStatWeights: {
+      primary: 'placement',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'slice', weight: 0.3 },
+        { stat: 'spin', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'speed',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'net', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'drop_shot', shooter: 'player' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'drop_shot', shooter: 'player' },
+    },
+  },
+  {
+    id: 'y_grind_backhand',
+    emoji: '⛏️',
+    name: 'Grind the backhand',
+    description: 'Go there again. And again.',
+    roles: ['rally'],
+    posture: 'attrition',
+    risk: 'balanced',
+    secondaryEffects: RISK_EFFECTS.balanced,
+    playerStatWeights: {
+      primary: 'stamina',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'backhand', weight: 0.3 },
+        { stat: 'focus', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'stamina',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'focus', weight: 0.3 },
+        { stat: 'slice', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'opponent' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'backhand', shooter: 'player' },
+    },
+  },
+  {
+    id: 'y_sudden_change',
+    emoji: '🎲',
+    name: 'Change everything at once',
+    description: 'New pace, new direction, new height',
+    roles: ['rally'],
+    posture: 'variety',
+    risk: 'bold',
+    secondaryEffects: RISK_EFFECTS.bold,
+    playerStatWeights: {
+      primary: 'tactics',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'speed', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'anticipation',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'focus', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'player' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'forehand', shooter: 'player' },
+    },
+  },
+  {
     id: 'y_two_speed',
     emoji: '🎚️',
     name: 'Take one early, then take pace off',
@@ -1625,30 +1734,26 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
 ];
 
-/** A key moment situation, decomposed into the axes that decide eligibility. */
-export interface KeyMomentSituation {
-  role: KeyMomentRole;
-  /** For a rally moment, who is serving — its menu mixes rally and serve/return. */
-  serverRole: 'serve' | 'return';
-  stakes: KeyMomentStakes;
-  pressure: KeyMomentPressure;
-}
-
-/** Every option this situation is allowed to offer. */
-export function getEligibleOptions(situation: KeyMomentSituation): TacticalOption[] {
-  const allowedRoles: KeyMomentRole[] = situation.role === 'rally'
-    ? ['rally', situation.serverRole]
-    : [situation.role];
-
-  return TACTICAL_OPTIONS.filter((option) =>
-    option.roles.some((r) => allowedRoles.includes(r))
-    && (!option.stakes || option.stakes.includes(situation.stakes))
-    && (!option.pressure || option.pressure.includes(situation.pressure))
-  );
+/**
+ * Every option this role is allowed to offer.
+ *
+ * Role is the only axis: what is on the line and whether you are chasing or
+ * hanging on change the *stakes* of a key moment, not which shots are physically
+ * available. An earlier model also filtered on those two, but nothing ever used
+ * the stakes filter and only one authored pair used pressure — a "nothing to
+ * lose" swing that existed to avoid deleting a duplicate. Both axes came out
+ * with it.
+ *
+ * The three roles are discrete: a deuce point draws rally options only. That
+ * keeps each pool a clean 18 — one option per posture x risk — so a menu can
+ * never show the same kind of play twice.
+ */
+export function getEligibleOptions(role: KeyMomentRole): TacticalOption[] {
+  return TACTICAL_OPTIONS.filter((option) => option.roles.includes(role));
 }
 
 /**
- * Draw a menu for a situation.
+ * Draw a menu for a role.
  *
  * Constraints rather than fixed slots, so the *shape* of the hand varies too:
  * sometimes safe/bold/net, sometimes two bold options of different postures. The
@@ -1659,11 +1764,11 @@ export function getEligibleOptions(situation: KeyMomentSituation): TacticalOptio
  * a preference, not a filter, so a thin pool still returns a full menu.
  */
 export function drawOptions(
-  situation: KeyMomentSituation,
+  role: KeyMomentRole,
   count = 3,
   avoidPostures: KeyMomentPosture[] = []
 ): TacticalOption[] {
-  const pool = shuffle(getEligibleOptions(situation));
+  const pool = shuffle(getEligibleOptions(role));
   if (pool.length <= count) return pool;
 
   // Prefer postures the previous moment did not use, but fall back to the whole
@@ -1720,38 +1825,37 @@ export type KeyMomentType =
   | 'match-point-opponent-return'
   | 'key-rally';
 
-const SITUATIONS: Record<KeyMomentType, Omit<KeyMomentSituation, 'serverRole'>> = {
-  'break-point-serve':           { role: 'serve',  stakes: 'break', pressure: 'defending' },
-  'break-point-return':          { role: 'return', stakes: 'break', pressure: 'converting' },
-  'set-point-player-serve':      { role: 'serve',  stakes: 'set',   pressure: 'converting' },
-  'set-point-player-return':     { role: 'return', stakes: 'set',   pressure: 'converting' },
-  'set-point-opponent-serve':    { role: 'serve',  stakes: 'set',   pressure: 'defending' },
-  'set-point-opponent-return':   { role: 'return', stakes: 'set',   pressure: 'defending' },
-  'match-point-player-serve':    { role: 'serve',  stakes: 'match', pressure: 'converting' },
-  'match-point-player-return':   { role: 'return', stakes: 'match', pressure: 'converting' },
-  'match-point-opponent-serve':  { role: 'serve',  stakes: 'match', pressure: 'defending' },
-  'match-point-opponent-return': { role: 'return', stakes: 'match', pressure: 'defending' },
-  // A deuce point tests point construction, so it draws rally options alongside
-  // the serving or returning ones for whoever happens to be serving.
-  'key-rally':                   { role: 'rally',  stakes: 'deuce', pressure: 'converting' },
+/**
+ * Which side of the ball each detected moment is played from. Stakes are carried
+ * by the score and by updatePressure(), not by the option pool.
+ */
+const ROLE_BY_TYPE: Record<KeyMomentType, KeyMomentRole> = {
+  'break-point-serve': 'serve',
+  'break-point-return': 'return',
+  'set-point-player-serve': 'serve',
+  'set-point-player-return': 'return',
+  'set-point-opponent-serve': 'serve',
+  'set-point-opponent-return': 'return',
+  'match-point-player-serve': 'serve',
+  'match-point-player-return': 'return',
+  'match-point-opponent-serve': 'serve',
+  'match-point-opponent-return': 'return',
+  // A deuce point tests how the point is constructed rather than how it starts.
+  'key-rally': 'rally',
 };
 
-/** Decompose a detected key moment into the axes that decide option eligibility. */
-export function getSituation(
-  type: KeyMomentType,
-  server: 'player' | 'opponent'
-): KeyMomentSituation {
-  return { ...SITUATIONS[type], serverRole: server === 'player' ? 'serve' : 'return' };
+/** The role a detected key moment draws from. */
+export function getRole(type: KeyMomentType): KeyMomentRole {
+  return ROLE_BY_TYPE[type];
 }
 
 /** Draw the menu for a detected key moment. */
 export function getOptionsForSituation(
   type: KeyMomentType,
-  server: 'player' | 'opponent',
   count = 3,
   avoidPostures: KeyMomentPosture[] = []
 ): TacticalOption[] {
-  return drawOptions(getSituation(type, server), count, avoidPostures);
+  return drawOptions(getRole(type), count, avoidPostures);
 }
 
 /** Get a specific option by ID. */

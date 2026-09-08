@@ -1,7 +1,7 @@
 import { TutorialStep } from '../hooks/useTutorialSpotlight';
 
 export type LiveMatchTarget = 'court' | 'log' | 'your-stats';
-export type KmTarget = 'header' | 'options-matchup' | 'options-effects';
+export type KmTarget = 'header' | 'options-posture' | 'options-matchup' | 'options-effects';
 export type KmResultTarget = 'outcome' | 'tactic' | 'effects';
 export type MainMenuTarget = 'status' | 'stats' | 'actions' | 'challenges';
 
@@ -54,17 +54,22 @@ export const KM_TUTORIAL_STEPS: TutorialStep<KmTarget>[] = [
   {
     target: 'header',
     title: 'The Situation',
-    body: 'The type of key moment, your opponent\'s archetype, and any modifiers — momentum, pressure and energy that nudge your odds this point. Consider their archetype and attack the weakness!',
+    body: 'What is on the line, and who you are facing. Every opponent plays to an archetype — the animal is their badge, and you will see the same one in match setup and the preview. Below that, the conditions nudging this point: momentum, energy, mood, and the pressure of the moment tested against your focus.',
+  },
+  {
+    target: 'options-posture',
+    title: 'Postures',
+    body: 'Every tactic is one of six postures — Power, Net, Neutralize, Deception, Attrition, Variety — each with its own colour. Posture is the thing an opponent\'s archetype is strong or weak against, so it matters more than the individual shot. The diamonds beside it are risk: Safe, Balanced or Bold. Risk is how big the swing is, not how likely you are to win — a Bold tactic does not succeed more often, it succeeds and fails harder.',
   },
   {
     target: 'options-matchup',
-    title: 'The Advantage Chip',
-    body: 'Hover a tactic (we\'ve opened the first one) to see the full matchup: what it beats, what beats it, and the exact ratings with the stats that drive them. They all affect the outcome!',
+    title: 'Reading the Matchup',
+    body: 'Each posture says who it beats and who beats it, in plain words rather than by naming an archetype — "retrievers who sit back", "players who feed off your pace". Match those against the opponent in the header yourself. Nothing on this screen tells you which option is best; working that out is the skill, and the result screen will confirm whether you had it right.',
   },
   {
     target: 'options-effects',
     title: 'Secondary Effects',
-    body: 'Each tactic also carries effects that apply win or loss — momentum, energy, mood, pressure. Green helps you, red hurts (a drop in pressure is good, so it shows green). Pick the tactic that best counters their style — nothing is guaranteed!',
+    body: 'Each tactic also carries effects that land win or lose — momentum, energy, mood, pressure. Green helps you, red hurts (a drop in pressure is good, so it shows green). Bolder tactics cost more energy and swing momentum harder in both directions.',
   },
 ];
 
@@ -72,16 +77,16 @@ export const KM_RESULT_STEPS: TutorialStep<KmResultTarget>[] = [
   {
     target: 'outcome',
     title: 'The Result',
-    body: 'The point result is shown here: win or lose. Critical outcomes (🌟 / 💥) mean your tactic landed perfectly — or backfired spectacularly. You can pick the right option and still lose! That\'s tennis, baby.',
+    body: 'Whether you won the point. A critical (🌟 / 💥) says the point ended emphatically, not that you chose well — how often that happens is set by your tactic\'s risk, so a Bold play criticals far more often in both directions than a Safe one. You can pick the right option and still lose. That\'s tennis, baby.',
   },
   {
     target: 'tactic',
-    title: 'Your Tactic',
-    body: 'Your chosen tactic is shown here along with whether it countered their style (🎯) or played into their strengths (⚠️). Countering their playstyles improves your odds, but stats can still greatly impact your chances of success.',
+    title: 'Your Read',
+    body: 'What you played, and how that posture matches up against this archetype. This is the line worth remembering — the exact tactic will not come round again, but the posture is in every menu, and the matchup holds for every opponent of that type you ever face.',
   },
   {
     target: 'effects',
     title: 'Effects Applied',
-    body: 'Win or lose, your tactic\'s secondary effects still apply — momentum swings, energy changes, mood and pressure shifts carry into the rest of the match. Critical success and critical failure double the effects!',
+    body: 'Win or lose, your tactic\'s secondary effects still apply — momentum swings, energy changes, mood and pressure shifts carry into the rest of the match. A critical scales them, and by more the bolder the tactic was.',
   },
 ];

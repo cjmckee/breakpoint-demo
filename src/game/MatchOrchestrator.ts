@@ -497,7 +497,6 @@ export class MatchOrchestrator {
     // and two postures, preferring postures the previous moment did not offer.
     const options = getOptionsForSituation(
       momentType,
-      score.server,
       KEY_MOMENT_OPTIONS_PER_MENU,
       this.lastOfferedPostures,
     );
