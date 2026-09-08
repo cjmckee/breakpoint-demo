@@ -123,8 +123,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primary: 'serve',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'strength', weight: 0.3 },
         { stat: 'placement', weight: 0.3 },
+        { stat: 'focus', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
@@ -153,16 +153,16 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primary: 'serve',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'strength', weight: 0.3 },
         { stat: 'placement', weight: 0.3 },
+        { stat: 'strength', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
       primary: 'return',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'anticipation', weight: 0.3 },
         { stat: 'speed', weight: 0.3 },
+        { stat: 'anticipation', weight: 0.3 },
       ],
     },
     shotOutcomes: {
@@ -202,7 +202,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 's_kick_approach',
-    emoji: '🪃',x
+    emoji: '👣',
     name: 'Sneak in behind a kick serve',
     description: 'The high ball buys you time to get forward',
     roles: ['serve'],
@@ -210,18 +210,18 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     risk: 'safe',
     secondaryEffects: RISK_EFFECTS.safe,
     playerStatWeights: {
-      primary: 'net',
+      primary: 'spin',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'serve', weight: 0.3 },
+        { stat: 'net', weight: 0.3 },
         { stat: 'speed', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
-      primary: 'placement',
+      primary: 'return',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'speed', weight: 0.3 },
+        { stat: 'placement', weight: 0.3 },
         { stat: 'forehand', weight: 0.3 },
       ],
     },
@@ -243,7 +243,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primary: 'net',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'serve', weight: 0.3 },
+        { stat: 'placement', weight: 0.3 },
         { stat: 'speed', weight: 0.3 },
       ],
     },
@@ -304,15 +304,15 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primaryWeight: 0.4,
       secondary: [
         { stat: 'serve', weight: 0.3 },
-        { stat: 'tactics', weight: 0.3 },
+        { stat: 'placement', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
       primary: 'tactics',
       primaryWeight: 0.4,
       secondary: [
+        { stat: 'slice', weight: 0.3 },
         { stat: 'forehand', weight: 0.3 },
-        { stat: 'strength', weight: 0.3 },
       ],
     },
     shotOutcomes: {
@@ -330,7 +330,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     risk: 'balanced',
     secondaryEffects: RISK_EFFECTS.balanced,
     playerStatWeights: {
-      primary: 'spin',
+      primary: 'slice',
       primaryWeight: 0.4,
       secondary: [
         { stat: 'serve', weight: 0.3 },
@@ -352,7 +352,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 's_carve_low',
-    emoji: '🪶',x
+    emoji: '✂️',
     name: 'Slice it low over the net',
     description: 'A fine margin, but nothing comes back clean',
     roles: ['serve'],
@@ -360,19 +360,19 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     risk: 'bold',
     secondaryEffects: RISK_EFFECTS.bold,
     playerStatWeights: {
-      primary: 'spin',
+      primary: 'slice',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'serve', weight: 0.3 },
-        { stat: 'tactics', weight: 0.3 },
+        { stat: 'placement', weight: 0.3 },
+        { stat: 'spin', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
       primary: 'tactics',
       primaryWeight: 0.4,
       secondary: [
+        { stat: 'speed', weight: 0.3 },
         { stat: 'forehand', weight: 0.3 },
-        { stat: 'strength', weight: 0.3 },
       ],
     },
     shotOutcomes: {
@@ -393,15 +393,15 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primary: 'placement',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'spin', weight: 0.3 },
-        { stat: 'serve', weight: 0.3 },
+        { stat: 'slice', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
-      primary: 'speed',
+      primary: 'anticipation',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'speed', weight: 0.3 },
         { stat: 'focus', weight: 0.3 },
       ],
     },
@@ -420,19 +420,19 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     risk: 'balanced',
     secondaryEffects: RISK_EFFECTS.balanced,
     playerStatWeights: {
-      primary: 'placement',
+      primary: 'spin',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'spin', weight: 0.3 },
+        { stat: 'placement', weight: 0.3 },
         { stat: 'serve', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
-      primary: 'speed',
+      primary: 'anticipation',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'anticipation', weight: 0.3 },
         { stat: 'focus', weight: 0.3 },
+        { stat: 'return', weight: 0.3 },
       ],
     },
     shotOutcomes: {
@@ -453,8 +453,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primary: 'placement',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'spin', weight: 0.3 },
         { stat: 'serve', weight: 0.3 },
+        { stat: 'spin', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
@@ -462,7 +462,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primaryWeight: 0.4,
       secondary: [
         { stat: 'anticipation', weight: 0.3 },
-        { stat: 'focus', weight: 0.3 },
+        { stat: 'stamina', weight: 0.3 },
       ],
     },
     shotOutcomes: {
@@ -511,19 +511,19 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     targetsWeakerWing: true,
     secondaryEffects: RISK_EFFECTS.balanced,
     playerStatWeights: {
-      primary: 'stamina',
+      primary: 'serve',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'spin', weight: 0.3 },
+        { stat: 'placement', weight: 0.3 },
         { stat: 'focus', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
-      primary: 'stamina',
+      primary: 'backhand',
       primaryWeight: 0.4,
       secondary: [
+        { stat: 'stamina', weight: 0.3 },
         { stat: 'focus', weight: 0.3 },
-        { stat: 'backhand', weight: 0.3 },
       ],
     },
     shotOutcomes: {
@@ -544,7 +544,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primary: 'stamina',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'spin', weight: 0.3 },
+        { stat: 'speed', weight: 0.3 },
         { stat: 'focus', weight: 0.3 },
       ],
     },
@@ -552,8 +552,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primary: 'stamina',
       primaryWeight: 0.4,
       secondary: [
+        { stat: 'speed', weight: 0.3 },
         { stat: 'focus', weight: 0.3 },
-        { stat: 'backhand', weight: 0.3 },
       ],
     },
     shotOutcomes: {
@@ -571,10 +571,10 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     risk: 'safe',
     secondaryEffects: RISK_EFFECTS.safe,
     playerStatWeights: {
-      primary: 'placement',
+      primary: 'spin',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'placement', weight: 0.3 },
         { stat: 'tactics', weight: 0.3 },
       ],
     },
@@ -601,10 +601,10 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     risk: 'balanced',
     secondaryEffects: RISK_EFFECTS.balanced,
     playerStatWeights: {
-      primary: 'placement',
+      primary: 'slice',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'placement', weight: 0.3 },
         { stat: 'tactics', weight: 0.3 },
       ],
     },
@@ -631,7 +631,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     risk: 'bold',
     secondaryEffects: RISK_EFFECTS.bold,
     playerStatWeights: {
-      primary: 'placement',
+      primary: 'serve',
       primaryWeight: 0.4,
       secondary: [
         { stat: 'anticipation', weight: 0.3 },
@@ -665,7 +665,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primaryWeight: 0.4,
       secondary: [
         { stat: 'forehand', weight: 0.3 },
-        { stat: 'strength', weight: 0.3 },
+        { stat: 'focus', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
@@ -724,7 +724,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primary: 'return',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'forehand', weight: 0.3 },
+        { stat: 'placement', weight: 0.3 },
         { stat: 'strength', weight: 0.3 },
       ],
     },
@@ -762,8 +762,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primary: 'placement',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'speed', weight: 0.3 },
         { stat: 'forehand', weight: 0.3 },
+        { stat: 'speed', weight: 0.3 },
       ],
     },
     shotOutcomes: {
@@ -781,10 +781,10 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     risk: 'balanced',
     secondaryEffects: RISK_EFFECTS.balanced,
     playerStatWeights: {
-      primary: 'net',
+      primary: 'slice',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'return', weight: 0.3 },
+        { stat: 'net', weight: 0.3 },
         { stat: 'speed', weight: 0.3 },
       ],
     },
@@ -814,7 +814,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primary: 'net',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'return', weight: 0.3 },
+        { stat: 'anticipation', weight: 0.3 },
         { stat: 'speed', weight: 0.3 },
       ],
     },
@@ -841,18 +841,18 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     risk: 'safe',
     secondaryEffects: RISK_EFFECTS.safe,
     playerStatWeights: {
-      primary: 'slice',
+      primary: 'return',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'return', weight: 0.3 },
-        { stat: 'tactics', weight: 0.3 },
+        { stat: 'backhand', weight: 0.3 },
+        { stat: 'focus', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
-      primary: 'tactics',
+      primary: 'serve',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'forehand', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
         { stat: 'strength', weight: 0.3 },
       ],
     },
@@ -871,19 +871,19 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     risk: 'balanced',
     secondaryEffects: RISK_EFFECTS.balanced,
     playerStatWeights: {
-      primary: 'slice',
+      primary: 'return',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'return', weight: 0.3 },
-        { stat: 'tactics', weight: 0.3 },
+        { stat: 'placement', weight: 0.3 },
+        { stat: 'spin', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
       primary: 'tactics',
       primaryWeight: 0.4,
       secondary: [
+        { stat: 'slice', weight: 0.3 },
         { stat: 'forehand', weight: 0.3 },
-        { stat: 'strength', weight: 0.3 },
       ],
     },
     shotOutcomes: {
@@ -901,18 +901,18 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     risk: 'bold',
     secondaryEffects: RISK_EFFECTS.bold,
     playerStatWeights: {
-      primary: 'slice',
+      primary: 'placement',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'return', weight: 0.3 },
-        { stat: 'tactics', weight: 0.3 },
+        { stat: 'slice', weight: 0.3 },
+        { stat: 'speed', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
-      primary: 'tactics',
+      primary: 'net',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'forehand', weight: 0.3 },
+        { stat: 'anticipation', weight: 0.3 },
         { stat: 'strength', weight: 0.3 },
       ],
     },
@@ -931,18 +931,18 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     risk: 'safe',
     secondaryEffects: RISK_EFFECTS.safe,
     playerStatWeights: {
-      primary: 'placement',
+      primary: 'slice',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'slice', weight: 0.3 },
-        { stat: 'return', weight: 0.3 },
+        { stat: 'placement', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
-      primary: 'speed',
+      primary: 'anticipation',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'speed', weight: 0.3 },
         { stat: 'focus', weight: 0.3 },
       ],
     },
@@ -961,10 +961,10 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     risk: 'balanced',
     secondaryEffects: RISK_EFFECTS.balanced,
     playerStatWeights: {
-      primary: 'placement',
+      primary: 'slice',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'slice', weight: 0.3 },
+        { stat: 'placement', weight: 0.3 },
         { stat: 'return', weight: 0.3 },
       ],
     },
@@ -1003,7 +1003,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primaryWeight: 0.4,
       secondary: [
         { stat: 'anticipation', weight: 0.3 },
-        { stat: 'focus', weight: 0.3 },
+        { stat: 'net', weight: 0.3 },
       ],
     },
     shotOutcomes: {
@@ -1021,11 +1021,11 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     risk: 'safe',
     secondaryEffects: RISK_EFFECTS.safe,
     playerStatWeights: {
-      primary: 'stamina',
+      primary: 'return',
       primaryWeight: 0.4,
       secondary: [
         { stat: 'backhand', weight: 0.3 },
-        { stat: 'focus', weight: 0.3 },
+        { stat: 'stamina', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
@@ -1052,19 +1052,19 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     targetsWeakerWing: true,
     secondaryEffects: RISK_EFFECTS.balanced,
     playerStatWeights: {
-      primary: 'stamina',
+      primary: 'return',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'backhand', weight: 0.3 },
-        { stat: 'focus', weight: 0.3 },
+        { stat: 'placement', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
-      primary: 'stamina',
+      primary: 'backhand',
       primaryWeight: 0.4,
       secondary: [
         { stat: 'focus', weight: 0.3 },
-        { stat: 'backhand', weight: 0.3 },
+        { stat: 'stamina', weight: 0.3 },
       ],
     },
     shotOutcomes: {
@@ -1085,7 +1085,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primary: 'stamina',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'backhand', weight: 0.3 },
+        { stat: 'speed', weight: 0.3 },
         { stat: 'focus', weight: 0.3 },
       ],
     },
@@ -1093,8 +1093,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primary: 'stamina',
       primaryWeight: 0.4,
       secondary: [
+        { stat: 'strength', weight: 0.3 },
         { stat: 'focus', weight: 0.3 },
-        { stat: 'backhand', weight: 0.3 },
       ],
     },
     shotOutcomes: {
@@ -1112,19 +1112,19 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     risk: 'safe',
     secondaryEffects: RISK_EFFECTS.safe,
     playerStatWeights: {
-      primary: 'anticipation',
+      primary: 'return',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'tactics', weight: 0.3 },
-        { stat: 'speed', weight: 0.3 },
+        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'spin', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
-      primary: 'anticipation',
+      primary: 'serve',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'focus', weight: 0.3 },
         { stat: 'tactics', weight: 0.3 },
+        { stat: 'focus', weight: 0.3 },
       ],
     },
     shotOutcomes: {
@@ -1145,12 +1145,12 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primary: 'anticipation',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'tactics', weight: 0.3 },
-        { stat: 'speed', weight: 0.3 },
+        { stat: 'placement', weight: 0.3 },
+        { stat: 'return', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
-      primary: 'anticipation',
+      primary: 'serve',
       primaryWeight: 0.4,
       secondary: [
         { stat: 'focus', weight: 0.3 },
@@ -1164,7 +1164,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'r_sabr',
-    emoji: '🥷',x
+    emoji: '💨',
     name: 'Charge the second serve',
     description: 'Sprint in and take it on the rise',
     roles: ['return'],
@@ -1172,15 +1172,15 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     risk: 'bold',
     secondaryEffects: RISK_EFFECTS.bold,
     playerStatWeights: {
-      primary: 'anticipation',
+      primary: 'speed',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'tactics', weight: 0.3 },
-        { stat: 'speed', weight: 0.3 },
+        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'return', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
-      primary: 'anticipation',
+      primary: 'serve',
       primaryWeight: 0.4,
       secondary: [
         { stat: 'focus', weight: 0.3 },
@@ -1205,7 +1205,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primary: 'forehand',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'strength', weight: 0.3 },
+        { stat: 'backhand', weight: 0.3 },
         { stat: 'placement', weight: 0.3 },
       ],
     },
@@ -1213,8 +1213,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primary: 'speed',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'anticipation', weight: 0.3 },
         { stat: 'backhand', weight: 0.3 },
+        { stat: 'anticipation', weight: 0.3 },
       ],
     },
     shotOutcomes: {
@@ -1266,7 +1266,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primaryWeight: 0.4,
       secondary: [
         { stat: 'strength', weight: 0.3 },
-        { stat: 'placement', weight: 0.3 },
+        { stat: 'spin', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
@@ -1295,8 +1295,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primary: 'net',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'speed', weight: 0.3 },
-        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'placement', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
@@ -1355,15 +1355,15 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primary: 'spin',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'slice', weight: 0.3 },
-        { stat: 'tactics', weight: 0.3 },
+        { stat: 'placement', weight: 0.3 },
+        { stat: 'stamina', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
       primary: 'tactics',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'strength', weight: 0.3 },
+        { stat: 'slice', weight: 0.3 },
         { stat: 'spin', weight: 0.3 },
       ],
     },
@@ -1385,15 +1385,15 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primary: 'placement',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'slice', weight: 0.3 },
-        { stat: 'spin', weight: 0.3 },
+        { stat: 'forehand', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
-      primary: 'speed',
+      primary: 'anticipation',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'speed', weight: 0.3 },
         { stat: 'net', weight: 0.3 },
       ],
     },
@@ -1442,11 +1442,11 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     risk: 'safe',
     secondaryEffects: RISK_EFFECTS.safe,
     playerStatWeights: {
-      primary: 'stamina',
+      primary: 'tactics',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'backhand', weight: 0.3 },
-        { stat: 'focus', weight: 0.3 },
+        { stat: 'placement', weight: 0.3 },
+        { stat: 'stamina', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
@@ -1454,7 +1454,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primaryWeight: 0.4,
       secondary: [
         { stat: 'focus', weight: 0.3 },
-        { stat: 'slice', weight: 0.3 },
+        { stat: 'speed', weight: 0.3 },
       ],
     },
     shotOutcomes: {
@@ -1475,16 +1475,16 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primary: 'stamina',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'backhand', weight: 0.3 },
-        { stat: 'focus', weight: 0.3 },
+        { stat: 'placement', weight: 0.3 },
+        { stat: 'speed', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
       primary: 'stamina',
       primaryWeight: 0.4,
       secondary: [
+        { stat: 'speed', weight: 0.3 },
         { stat: 'focus', weight: 0.3 },
-        { stat: 'slice', weight: 0.3 },
       ],
     },
     shotOutcomes: {
@@ -1505,8 +1505,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primary: 'net',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'speed', weight: 0.3 },
         { stat: 'anticipation', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
@@ -1535,8 +1535,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primary: 'spin',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'slice', weight: 0.3 },
-        { stat: 'tactics', weight: 0.3 },
+        { stat: 'forehand', weight: 0.3 },
+        { stat: 'placement', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
@@ -1554,7 +1554,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'y_carve_low',
-    emoji: '🪶',
+    emoji: '✂️',
     name: 'Skid a low slice at their feet',
     description: 'A fine margin, but nothing comes back clean',
     roles: ['rally'],
@@ -1562,19 +1562,19 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     risk: 'bold',
     secondaryEffects: RISK_EFFECTS.bold,
     playerStatWeights: {
-      primary: 'spin',
+      primary: 'slice',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'slice', weight: 0.3 },
-        { stat: 'tactics', weight: 0.3 },
+        { stat: 'placement', weight: 0.3 },
+        { stat: 'spin', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
       primary: 'tactics',
       primaryWeight: 0.4,
       secondary: [
+        { stat: 'speed', weight: 0.3 },
         { stat: 'strength', weight: 0.3 },
-        { stat: 'spin', weight: 0.3 },
       ],
     },
     shotOutcomes: {
@@ -1596,14 +1596,14 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primaryWeight: 0.4,
       secondary: [
         { stat: 'slice', weight: 0.3 },
-        { stat: 'spin', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
-      primary: 'speed',
+      primary: 'anticipation',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'speed', weight: 0.3 },
         { stat: 'net', weight: 0.3 },
       ],
     },
@@ -1622,19 +1622,19 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     risk: 'balanced',
     secondaryEffects: RISK_EFFECTS.balanced,
     playerStatWeights: {
-      primary: 'stamina',
+      primary: 'backhand',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'backhand', weight: 0.3 },
-        { stat: 'focus', weight: 0.3 },
+        { stat: 'placement', weight: 0.3 },
+        { stat: 'stamina', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
-      primary: 'stamina',
+      primary: 'backhand',
       primaryWeight: 0.4,
       secondary: [
         { stat: 'focus', weight: 0.3 },
-        { stat: 'slice', weight: 0.3 },
+        { stat: 'stamina', weight: 0.3 },
       ],
     },
     shotOutcomes: {
@@ -1655,8 +1655,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primary: 'tactics',
       primaryWeight: 0.4,
       secondary: [
-        { stat: 'anticipation', weight: 0.3 },
-        { stat: 'speed', weight: 0.3 },
+        { stat: 'spin', weight: 0.3 },
+        { stat: 'placement', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
@@ -1664,7 +1664,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primaryWeight: 0.4,
       secondary: [
         { stat: 'focus', weight: 0.3 },
-        { stat: 'tactics', weight: 0.3 },
+        { stat: 'speed', weight: 0.3 },
       ],
     },
     shotOutcomes: {
@@ -1682,11 +1682,11 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     risk: 'safe',
     secondaryEffects: RISK_EFFECTS.safe,
     playerStatWeights: {
-      primary: 'tactics',
+      primary: 'spin',
       primaryWeight: 0.4,
       secondary: [
+        { stat: 'tactics', weight: 0.3 },
         { stat: 'anticipation', weight: 0.3 },
-        { stat: 'speed', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
@@ -1715,8 +1715,8 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
       primary: 'tactics',
       primaryWeight: 0.4,
       secondary: [
+        { stat: 'placement', weight: 0.3 },
         { stat: 'anticipation', weight: 0.3 },
-        { stat: 'speed', weight: 0.3 },
       ],
     },
     opponentStatWeights: {
