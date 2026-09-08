@@ -17,7 +17,7 @@ import { MatchOrchestrator } from '../../game/MatchOrchestrator';
 import { KEY_MOMENT } from '../../config/shotThresholds';
 import {
   TACTICAL_OPTIONS, TacticalOption, KeyMomentType,
-  getSituation, getEligibleOptions, getOptionsForSituation,
+  getRole, getEligibleOptions, getOptionsForSituation,
 } from '../../data/tacticalOptions';
 import { getMatchup } from '../../data/postures';
 import { KEY_MOMENT_OPTIONS_PER_MENU } from '../../config/matchRewards';
@@ -716,7 +716,7 @@ function probeTagCoverage(): void {
   const missing: string[] = [];
   for (const type of SITUATION_TYPES) {
     const have = new Set(
-      getEligibleOptions(getSituation(type)).map((o) => `${o.posture}/${o.risk}`),
+      getEligibleOptions(getRole(type)).map((o) => `${o.posture}/${o.risk}`),
     );
     for (const posture of ['power', 'net', 'neutralize', 'deception', 'attrition', 'variety']) {
       for (const risk of ['safe', 'balanced', 'bold']) {
@@ -726,10 +726,48 @@ function probeTagCoverage(): void {
   }
   print(missing.length === 0 ? '  none.' : missing.map((m) => `  ${m}`).join('\n'));
 
+  // Every stat should reach the key moment layer somewhere. Uneven is expected and
+  // correct — serve belongs in serve options — but a stat that appears nowhere is a
+  // stat a player can train and never feel here.
+  printHeader('Stat coverage across the option pool');
+  const ALL_STATS = [
+    'serve', 'forehand', 'backhand', 'return', 'net',
+    'slice', 'spin', 'placement',
+    'speed', 'stamina', 'strength',
+    'focus', 'anticipation', 'tactics',
+  ];
+  const asPlayer = new Map<string, number>();
+  const asOpponent = new Map<string, number>();
+  const bump = (m: Map<string, number>, k: string): void => {
+    m.set(k, (m.get(k) ?? 0) + 1);
+  };
+  for (const { option } of ALL_OPTIONS) {
+    bump(asPlayer, option.playerStatWeights.primary);
+    for (const w of option.playerStatWeights.secondary) bump(asPlayer, w.stat);
+    bump(asOpponent, option.opponentStatWeights.primary);
+    for (const w of option.opponentStatWeights.secondary) bump(asOpponent, w.stat);
+  }
+  printTable(
+    ['Stat', 'As yours', 'As theirs', 'Total'],
+    ALL_STATS
+      .map((stat) => [stat, asPlayer.get(stat) ?? 0, asOpponent.get(stat) ?? 0,
+        (asPlayer.get(stat) ?? 0) + (asOpponent.get(stat) ?? 0)])
+      .sort((a, b) => Number(b[3]) - Number(a[3])),
+  );
+  const unusedByPlayer = ALL_STATS.filter((s) => !asPlayer.has(s));
+  const unusedAnywhere = ALL_STATS.filter((s) => !asPlayer.has(s) && !asOpponent.has(s));
+  print('');
+  print(unusedAnywhere.length === 0
+    ? '  Every stat appears somewhere.'
+    : `  NEVER USED AT ALL: ${unusedAnywhere.join(', ')}`);
+  print(unusedByPlayer.length === 0
+    ? '  Every stat is one the player is rated on somewhere.'
+    : `  Never one of YOUR stats: ${unusedByPlayer.join(', ')}`);
+
   printTable(
     ['Situation', 'Eligible options', 'Postures reachable'],
     SITUATION_TYPES.map((type) => {
-      const opts = getEligibleOptions(getSituation(type));
+      const opts = getEligibleOptions(getRole(type));
       return [type, opts.length, new Set(opts.map((o) => o.posture)).size];
     }),
   );

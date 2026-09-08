@@ -24,12 +24,6 @@ import type { StatName } from '../types';
  */
 export type KeyMomentRole = 'serve' | 'return' | 'rally';
 
-/** What is on the line. */
-export type KeyMomentStakes = 'deuce' | 'break' | 'set' | 'match';
-
-/** Whether the player is chasing the point or hanging on to it. */
-export type KeyMomentPressure = 'converting' | 'defending';
-
 /**
  * How the option plays the point. Posture — not the individual option — is what an
  * opponent's archetype is strong or weak against, so the matchup lives in one
@@ -67,10 +61,6 @@ export interface TacticalOption {
   posture: KeyMomentPosture;
   /** How wide the outcome spread is. */
   risk: KeyMomentRisk;
-  /** Restrict to certain stakes. Omitted = eligible at any. */
-  stakes?: KeyMomentStakes[];
-  /** Restrict to converting or defending. Omitted = eligible either way. */
-  pressure?: KeyMomentPressure[];
   /**
    * Aim at whichever of the opponent's wings is actually weaker. The resolver
    * swaps the `backhand` term in opponentStatWeights for `forehand` when that is
@@ -729,38 +719,6 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     roles: ['return'],
     posture: 'power',
     risk: 'bold',
-    pressure: ['converting'],
-    secondaryEffects: RISK_EFFECTS.bold,
-    playerStatWeights: {
-      primary: 'return',
-      primaryWeight: 0.4,
-      secondary: [
-        { stat: 'forehand', weight: 0.3 },
-        { stat: 'strength', weight: 0.3 },
-      ],
-    },
-    opponentStatWeights: {
-      primary: 'serve',
-      primaryWeight: 0.4,
-      secondary: [
-        { stat: 'speed', weight: 0.3 },
-        { stat: 'anticipation', weight: 0.3 },
-      ],
-    },
-    shotOutcomes: {
-      success: { outcome: PointType.WINNER, shotType: 'return', shooter: 'player' },
-      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'return', shooter: 'player' },
-    },
-  },
-  {
-    id: 'r_nothing_to_lose',
-    emoji: '🔥',
-    name: 'Nothing-to-lose swing',
-    description: 'Swing free — you have nothing to protect',
-    roles: ['return'],
-    posture: 'power',
-    risk: 'bold',
-    pressure: ['defending'],
     secondaryEffects: RISK_EFFECTS.bold,
     playerStatWeights: {
       primary: 'return',
@@ -1776,32 +1734,26 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
 ];
 
-/** A key moment situation, decomposed into the axes that decide eligibility. */
-export interface KeyMomentSituation {
-  role: KeyMomentRole;
-  stakes: KeyMomentStakes;
-  pressure: KeyMomentPressure;
-}
-
 /**
- * Every option this situation is allowed to offer.
+ * Every option this role is allowed to offer.
  *
- * The three roles are discrete: a deuce point draws rally options only, not a mix
- * of rally and whichever side of the ball the player happens to be on. That keeps
- * each pool a clean 18 — one option per posture x risk — so a menu can never show
- * the same kind of play twice, and gives the three roles genuinely different
- * option sets rather than two that overlap.
+ * Role is the only axis: what is on the line and whether you are chasing or
+ * hanging on change the *stakes* of a key moment, not which shots are physically
+ * available. An earlier model also filtered on those two, but nothing ever used
+ * the stakes filter and only one authored pair used pressure — a "nothing to
+ * lose" swing that existed to avoid deleting a duplicate. Both axes came out
+ * with it.
+ *
+ * The three roles are discrete: a deuce point draws rally options only. That
+ * keeps each pool a clean 18 — one option per posture x risk — so a menu can
+ * never show the same kind of play twice.
  */
-export function getEligibleOptions(situation: KeyMomentSituation): TacticalOption[] {
-  return TACTICAL_OPTIONS.filter((option) =>
-    option.roles.includes(situation.role)
-    && (!option.stakes || option.stakes.includes(situation.stakes))
-    && (!option.pressure || option.pressure.includes(situation.pressure))
-  );
+export function getEligibleOptions(role: KeyMomentRole): TacticalOption[] {
+  return TACTICAL_OPTIONS.filter((option) => option.roles.includes(role));
 }
 
 /**
- * Draw a menu for a situation.
+ * Draw a menu for a role.
  *
  * Constraints rather than fixed slots, so the *shape* of the hand varies too:
  * sometimes safe/bold/net, sometimes two bold options of different postures. The
@@ -1812,11 +1764,11 @@ export function getEligibleOptions(situation: KeyMomentSituation): TacticalOptio
  * a preference, not a filter, so a thin pool still returns a full menu.
  */
 export function drawOptions(
-  situation: KeyMomentSituation,
+  role: KeyMomentRole,
   count = 3,
   avoidPostures: KeyMomentPosture[] = []
 ): TacticalOption[] {
-  const pool = shuffle(getEligibleOptions(situation));
+  const pool = shuffle(getEligibleOptions(role));
   if (pool.length <= count) return pool;
 
   // Prefer postures the previous moment did not use, but fall back to the whole
@@ -1873,25 +1825,28 @@ export type KeyMomentType =
   | 'match-point-opponent-return'
   | 'key-rally';
 
-const SITUATIONS: Record<KeyMomentType, KeyMomentSituation> = {
-  'break-point-serve':           { role: 'serve',  stakes: 'break', pressure: 'defending' },
-  'break-point-return':          { role: 'return', stakes: 'break', pressure: 'converting' },
-  'set-point-player-serve':      { role: 'serve',  stakes: 'set',   pressure: 'converting' },
-  'set-point-player-return':     { role: 'return', stakes: 'set',   pressure: 'converting' },
-  'set-point-opponent-serve':    { role: 'serve',  stakes: 'set',   pressure: 'defending' },
-  'set-point-opponent-return':   { role: 'return', stakes: 'set',   pressure: 'defending' },
-  'match-point-player-serve':    { role: 'serve',  stakes: 'match', pressure: 'converting' },
-  'match-point-player-return':   { role: 'return', stakes: 'match', pressure: 'converting' },
-  'match-point-opponent-serve':  { role: 'serve',  stakes: 'match', pressure: 'defending' },
-  'match-point-opponent-return': { role: 'return', stakes: 'match', pressure: 'defending' },
-  // A deuce point tests how the point is constructed rather than how it starts,
-  // so it draws from the rally pool alone.
-  'key-rally':                   { role: 'rally',  stakes: 'deuce', pressure: 'converting' },
+/**
+ * Which side of the ball each detected moment is played from. Stakes are carried
+ * by the score and by updatePressure(), not by the option pool.
+ */
+const ROLE_BY_TYPE: Record<KeyMomentType, KeyMomentRole> = {
+  'break-point-serve': 'serve',
+  'break-point-return': 'return',
+  'set-point-player-serve': 'serve',
+  'set-point-player-return': 'return',
+  'set-point-opponent-serve': 'serve',
+  'set-point-opponent-return': 'return',
+  'match-point-player-serve': 'serve',
+  'match-point-player-return': 'return',
+  'match-point-opponent-serve': 'serve',
+  'match-point-opponent-return': 'return',
+  // A deuce point tests how the point is constructed rather than how it starts.
+  'key-rally': 'rally',
 };
 
-/** Decompose a detected key moment into the axes that decide option eligibility. */
-export function getSituation(type: KeyMomentType): KeyMomentSituation {
-  return SITUATIONS[type];
+/** The role a detected key moment draws from. */
+export function getRole(type: KeyMomentType): KeyMomentRole {
+  return ROLE_BY_TYPE[type];
 }
 
 /** Draw the menu for a detected key moment. */
@@ -1900,7 +1855,7 @@ export function getOptionsForSituation(
   count = 3,
   avoidPostures: KeyMomentPosture[] = []
 ): TacticalOption[] {
-  return drawOptions(getSituation(type), count, avoidPostures);
+  return drawOptions(getRole(type), count, avoidPostures);
 }
 
 /** Get a specific option by ID. */
