@@ -12,14 +12,18 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import { KeyMoment } from '../types/keyMoments';
 import { TacticalOption, SecondaryEffect } from '../data/tacticalOptions';
-import { ARCHETYPE_DATA, getRelevantTendency } from '../data/archetypes';
+import type { KeyMomentRisk } from '../data/tacticalOptions';
+import { getRelevantTendency, getArchetypeLabel } from '../data/archetypes';
+import { POSTURE_META, getMatchup } from '../data/postures';
 import { KeyMomentResolver, KeyMomentResult, AppliedEffect } from '../game/KeyMomentResolver';
+import { MatchOrchestrator } from '../game/MatchOrchestrator';
 import { useMatchStore } from '../stores/matchStore';
 import { PlayerStats } from '../types/game';
 import { useTutorialSpotlight } from '../hooks/useTutorialSpotlight';
 import { TutorialCallout } from './tutorial/TutorialCallout';
 import { KM_TUTORIAL_STEPS, KM_RESULT_STEPS, KmTarget, KmResultTarget } from '../data/tutorialSteps';
 import { formatStatName } from '../config/statIcons';
+import { KEY_MOMENT } from '../config/shotThresholds';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -51,29 +55,63 @@ const abbrevStat = (name: string): string => {
 };
 
 /**
- * Advantage chip label + colour. Yellow at "Even", deepening to forest green as the player's
- * weighted edge grows and to deep scarlet as the disadvantage grows (continuous by score diff).
+ * Stat chip label + colour, from the weighted stat differential alone.
+ *
+ * Deliberately NOT the full success probability. Folding the posture matchup in
+ * turns the card into an answer key — measured, "take the highest verdict" beat
+ * every other policy and tied even a resource-aware version of itself, so the
+ * chip was solving the point rather than informing it. The matchup reaches the
+ * player as prose instead ("retrievers who sit back"), which has to be mapped
+ * onto the opponent in the header. That mapping is the skill.
+ *
+ * Labelled "Stats" so it cannot be misread as an overall verdict.
+ *
+ * Thresholds live in KEY_MOMENT so the wording tracks the measured spread rather
+ * than a guess — see statChipThreshold for what the gap actually looks like.
  */
-const advInfo = (diff: number): { label: string; bg: string; fg: string } => {
-  const label = diff > 10 ? 'Advantage' : diff < -10 ? 'Disadvantage' : 'Even';
-  const mag = Math.min(1, Math.abs(diff) / 25);
-  let hue: number;
-  let sat: number;
-  let light: number;
-  if (diff >= 0) {
-    hue = lerp(50, 130, mag);
-    sat = lerp(85, 62, mag);
-    light = lerp(52, 30, mag);
-  } else {
-    hue = lerp(50, 2, mag);
-    sat = lerp(85, 68, mag);
-    light = lerp(52, 33, mag);
-  }
+const statChipInfo = (diff: number): { label: string; bg: string; fg: string } => {
+  const t = KEY_MOMENT.statChipThreshold;
+  const label = diff > t ? 'Stats favour you' : diff < -t ? 'Stats favour them' : 'Stats even';
+  const mag = Math.min(1, Math.abs(diff) / KEY_MOMENT.statChipFullScale);
+  const hue = diff >= 0 ? lerp(50, 130, mag) : lerp(50, 2, mag);
+  const sat = lerp(85, diff >= 0 ? 62 : 68, mag);
+  const light = lerp(52, diff >= 0 ? 30 : 33, mag);
   return {
     label,
     bg: `hsl(${hue.toFixed(0)}, ${sat.toFixed(0)}%, ${light.toFixed(0)}%)`,
     fg: light < 46 ? '#ffffff' : '#2a1c02',
   };
+};
+
+/**
+ * Risk indicator, from the risk tag alone.
+ *
+ * Names the tag rather than inventing a synonym for it — a player who reads "Bold"
+ * on a card and "bold" in a tooltip is learning one word, not three. An
+ * outcome-spread bar would have leaked the success probability (the split between
+ * its halves *is* the win chance), so this reports only how emphatic the option
+ * tends to be, in either direction.
+ */
+const RISK_META: Record<KeyMomentRisk, { label: string; pips: number; tone: string }> = {
+  safe: { label: 'Safe', pips: 1, tone: 'text-green-400' },
+  balanced: { label: 'Balanced', pips: 2, tone: 'text-yellow-400' },
+  bold: { label: 'Bold', pips: 3, tone: 'text-red-400' },
+};
+
+const RiskIndicator: React.FC<{ risk: KeyMomentRisk }> = ({ risk }) => {
+  const meta = RISK_META[risk];
+  return (
+    <span
+      className={`flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide ${meta.tone}`}
+      title={`${meta.label} — how big the swing is either way, not how likely it is to work`}
+    >
+      <span className="tracking-tighter">
+        {'\u25c6'.repeat(meta.pips)}
+        <span className="opacity-25">{'\u25c6'.repeat(3 - meta.pips)}</span>
+      </span>
+      {meta.label}
+    </span>
+  );
 };
 
 /**
@@ -174,16 +212,28 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   };
 
   const opponentIsServing = activeKeyMoment.matchContext.server === 'opponent';
-  const archetypeData = ARCHETYPE_DATA[activeKeyMoment.opponentArchetype];
   const tendency = getRelevantTendency(activeKeyMoment.opponentArchetype, opponentIsServing);
 
   const ctx = activeKeyMoment.matchContext;
-  const modifiers = KeyMomentResolver.getContextModifiers({
-    momentum: ctx.momentum,
-    energy: ctx.energy,
-    mood: ctx.mood,
-    pressure: ctx.pressure,
-  });
+  // Focus and ability effects both feed the pressure term, so the strip has to
+  // read them the same way the resolver does or the displayed odds drift.
+  const playerFocus = matchConfig
+    ? statValue(matchConfig.playerStats as PlayerStats, 'focus')
+    : 50;
+  const playerEffects = MatchOrchestrator.extractActiveEffects(
+    matchConfig?.playerAbilities,
+    matchConfig?.playerArchetypeProfile,
+  );
+  const modifiers = KeyMomentResolver.getContextModifiers(
+    {
+      momentum: ctx.momentum,
+      energy: ctx.energy,
+      mood: ctx.mood,
+      pressure: ctx.pressure,
+    },
+    playerFocus,
+    playerEffects,
+  );
 
   // ── Conditions strip: "how this moment tilts the point" ─────────────────────
 
@@ -210,14 +260,14 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     });
   }
   conditions.push({
-    icon: '🔋',
-    label: 'Energy',
+    icon: modifiers.energy >= 1 ? '⚡' : '🔋',
+    label: modifiers.energy >= 1 ? 'Fresh legs' : 'Energy',
     value: `${Math.round(ctx.energy)}%`,
-    helps: modifiers.energy >= 0 ? null : false,
+    helps: modifiers.energy >= 1 ? true : modifiers.energy <= -1 ? false : null,
     modifier: modifiers.energy,
-    tooltip: modifiers.energy <= -1
-      ? `${modifiers.energy}% from energy`
-      : 'No fatigue penalty',
+    tooltip: Math.abs(modifiers.energy) >= 1
+      ? `${modifiers.energy > 0 ? '+' : ''}${modifiers.energy}% from energy`
+      : 'Energy is not a factor here',
   });
   if (Math.abs(modifiers.mood) >= 1) {
     const helps = modifiers.mood > 0;
@@ -231,14 +281,20 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
       tooltip: `${sign}${modifiers.mood}% from mood`,
     });
   }
-  if (modifiers.pressure <= -1) {
+  // Pressure is scored against focus: a composed player gains on the big points,
+  // a fragile one loses. Both directions are worth showing.
+  if (Math.abs(modifiers.pressure) >= 1) {
+    const helps = modifiers.pressure > 0;
+    const sign = helps ? '+' : '';
     conditions.push({
-      icon: '😰',
-      label: 'Big-point pressure',
-      value: `${modifiers.pressure}`,
-      helps: false,
+      icon: helps ? '🧊' : '😰',
+      label: helps ? 'Ice in the veins' : 'Big-point pressure',
+      value: `${sign}${modifiers.pressure}`,
+      helps,
       modifier: modifiers.pressure,
-      tooltip: `${modifiers.pressure}% from pressure`,
+      tooltip: helps
+        ? `+${modifiers.pressure}% — your focus is above the pressure of this moment`
+        : `${modifiers.pressure}% — this moment's pressure is above your focus`,
     });
   }
 
@@ -296,7 +352,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
           </div>
           <div className="flex items-center gap-2 mb-1">
             <span className="px-2 py-0.5 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent font-bold whitespace-nowrap">
-              {archetypeData.label}
+              {getArchetypeLabel(activeKeyMoment.opponentArchetype)}
             </span>
           </div>
           <p className="text-sm text-pixel-text-muted italic">"{tendency}"</p>
@@ -422,9 +478,37 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
             </div>
           </div>
 
-          {/* Chosen tactic + matchup feedback — spotlit on step 1 */}
+          {/* Chosen tactic + how its posture graded — spotlit on step 1 */}
           <div className={resultSectionClass('tactic')}>
-            <div className="flex items-center gap-4 p-4 bg-pixel-bg border-2 border-pixel-border">
+            {/* The choice is graded separately from the point, and graded on the
+                POSTURE rather than the tactic. The lesson that transfers is "net
+                play beats a retriever", not "that particular volley worked" — the
+                player will never see this exact option again, but they will see
+                the posture in every menu for the rest of their career. */}
+            <div
+              className="border-2 px-4 py-3 text-center text-sm"
+              style={{
+                borderColor: POSTURE_META[chosenOption.posture].color,
+                backgroundColor: `${POSTURE_META[chosenOption.posture].color}1a`,
+              }}
+            >
+              <span
+                className="font-bold uppercase tracking-wider"
+                style={{ color: POSTURE_META[chosenOption.posture].color }}
+              >
+                {POSTURE_META[chosenOption.posture].label}
+              </span>
+              <span className="text-pixel-text ml-2">
+                {result.isCounter ? 'is strong against' : result.isWeakChoice ? 'is weak against' : 'is neutral against'}
+              </span>
+              {/* Name the archetype rather than saying "this kind of player". The
+                  lesson only transfers if the player can attach it to something they
+                  will see again in the header of the next match. */}
+              <span className="font-bold text-pixel-text ml-1">
+                {getArchetypeLabel(activeKeyMoment.opponentArchetype)}s.
+              </span>
+            </div>
+            <div className="flex items-center gap-4 p-4 bg-pixel-bg border-2 border-pixel-border border-t-0">
               <span className="text-3xl">{chosenOption.emoji}</span>
               <div>
                 <div className="text-base font-bold text-pixel-text">{chosenOption.name}</div>
@@ -432,16 +516,6 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
               </div>
             </div>
 
-            {result.isCounter && (
-              <div className="text-base px-4 py-3 border-2 border-green-600 bg-green-600 bg-opacity-10 text-green-400 mt-3">
-                🎯 Great read — your tactic countered their style.
-              </div>
-            )}
-            {result.isWeakChoice && (
-              <div className="text-base px-4 py-3 border-2 border-red-600 bg-red-600 bg-opacity-10 text-red-400 mt-3">
-                ⚠️ Bad matchup — that tactic played into their strengths.
-              </div>
-            )}
           </div>
 
           {/* Applied effects — spotlit on step 2 */}
@@ -510,7 +584,10 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
 
   // During the matchup/effects tutorial steps, force focus to the first option so the
   // walkthrough always points at populated detail.
-  const forcedFocus = kmSpotlit('options-matchup') || kmSpotlit('options-effects') ? 0 : null;
+  const forcedFocus =
+    kmSpotlit('options-posture') || kmSpotlit('options-matchup') || kmSpotlit('options-effects')
+      ? 0
+      : null;
   const activeIdx = forcedFocus ?? focusIdx;
   const activeOption = activeKeyMoment.options[activeIdx];
 
@@ -558,7 +635,42 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
 
   // Right pane: the qualitative read on the focused tactic (matchup + effects) + commit button.
   const DetailPane: React.FC<{ option: TacticalOption }> = ({ option }) => (
-    <div className="flex flex-col border-2 border-pixel-accent rounded bg-pixel-card overflow-hidden">
+    // The whole panel takes the posture's colour, not just its banner — the frame
+    // around the option you are about to commit to is the strongest available cue
+    // for "this is a net play", and it costs no space at all.
+    <div
+      className="flex flex-col border-2 rounded bg-pixel-card overflow-hidden"
+      style={{ borderColor: POSTURE_META[option.posture].color }}
+    >
+      {/* Posture banner — the kind of play this is, and the thing the opponent's
+          style is actually strong or weak against. Given its own band, in its own
+          colour, because "which of the six is this" is the decision underneath the
+          decision: a player who learns the colours has learned the matchup.
+          Label and risk share the top line; the summary gets its own so it is not
+          competing for width and truncating. */}
+      <div
+        className={`px-3 py-2 border-b-2 ${kmSpotlit('options-posture') ? 'ring-4 ring-yellow-400 ring-inset' : ''}`}
+        style={{
+          backgroundColor: `${POSTURE_META[option.posture].color}22`,
+          borderColor: POSTURE_META[option.posture].color,
+        }}
+      >
+        <div className="flex items-center gap-2">
+          <span
+            className="text-sm font-bold uppercase tracking-wider"
+            style={{ color: POSTURE_META[option.posture].color }}
+          >
+            {POSTURE_META[option.posture].label}
+          </span>
+          <span className="ml-auto shrink-0">
+            <RiskIndicator risk={option.risk} />
+          </span>
+        </div>
+        {/* <p className="text-xs text-pixel-text-muted leading-snug mt-0.5">
+          {POSTURE_META[option.posture].summary}
+        </p> */}
+      </div>
+
       {/* Tactic header */}
       <div className="p-3 border-b-2 border-pixel-border">
         <div className="flex items-center gap-2 mb-0.5">
@@ -572,11 +684,11 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
       <div className="p-3 border-b-2 border-pixel-border flex flex-col gap-2">
         <div className="text-sm text-pixel-text leading-relaxed">
           <span className="text-xs px-1.5 py-0.5 rounded bg-green-500 bg-opacity-20 text-green-400 mr-2 uppercase">Good against</span>
-          {option.bestAgainstHint.replace(/^Best against /i, '')}
+          {POSTURE_META[option.posture].bestAgainstHint}
         </div>
         <div className="text-sm text-pixel-text leading-relaxed">
           <span className="text-xs px-1.5 py-0.5 rounded bg-red-500 bg-opacity-20 text-red-400 mr-2 uppercase">Bad against</span>
-          {option.worstAgainstHint.replace(/^Weak against /i, '')}
+          {POSTURE_META[option.posture].worstAgainstHint}
         </div>
       </div>
 
@@ -601,11 +713,19 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
         </div>
       </div>
 
-      {/* Commit — pushed to the bottom so the pane fills the column height cleanly */}
+      {/* Commit — pushed to the bottom so the pane fills the column height cleanly.
+          Takes the posture's colour along with the frame; left on the app accent it
+          read as an error state inside a green or blue panel. Size and position
+          still carry "this is the primary action". */}
       <button
         onClick={() => (kmTutorialActive ? undefined : handleKeyMomentChoice(option))}
         disabled={kmTutorialActive}
-        className="mt-auto mx-3 mb-3 py-3 gap-5 border-4 border-pixel-accent bg-pixel-accent bg-opacity-20 text-pixel-accent font-bold uppercase text-sm tracking-wide hover:bg-opacity-30 transition-colors disabled:opacity-40 disabled:cursor-default disabled:hover:bg-opacity-20 flex items-center justify-center gap-2 leading-none"
+        style={{
+          borderColor: POSTURE_META[option.posture].color,
+          color: POSTURE_META[option.posture].color,
+          backgroundColor: `${POSTURE_META[option.posture].color}33`,
+        }}
+        className="mt-auto mx-3 mb-3 py-3 border-4 font-bold uppercase text-sm tracking-wide hover:brightness-125 transition-all disabled:opacity-40 disabled:cursor-default flex items-center justify-center gap-2 leading-none"
       >
         <span className="text-2xl leading-none relative -top-1">{option.emoji}</span>
         <span className="leading-none">Go!</span>
@@ -649,7 +769,6 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
             <div className="flex flex-col gap-2.5">
               {activeKeyMoment.options.map((option, index) => {
                 const { playerScore, opponentScore } = scoresFor(option);
-                const adv = advInfo(playerScore - opponentScore);
                 const isActive = index === activeIdx;
                 return (
                   <button
@@ -661,17 +780,23 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                       isActive ? 'border-pixel-accent' : 'border-pixel-border hover:border-pixel-accent hover:border-opacity-50'
                     }`}
                   >
-                    <div className="flex items-center justify-between gap-2 mb-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-xl shrink-0">{option.emoji}</span>
-                        <h4 className="text-base font-bold text-pixel-text truncate">{option.name}</h4>
-                      </div>
+                    {/* Row 1: the tactic, full width — names are long and were truncating. */}
+                    <div className="flex items-center gap-2 mb-1.5 min-w-0">
+                      <span className="text-xl shrink-0">{option.emoji}</span>
+                      <h4 className="text-base font-bold text-pixel-text truncate">{option.name}</h4>
+                    </div>
+                    {/* Row 2: what kind of play it is (posture + risk), then the stat read. */}
+                    <div className="flex items-center gap-4 mb-2">
                       <span
-                        className="text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded whitespace-nowrap"
-                        style={{ backgroundColor: adv.bg, color: adv.fg }}
+                        className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded shrink-0"
+                        style={{
+                          color: POSTURE_META[option.posture].color,
+                          border: `1px solid ${POSTURE_META[option.posture].color}`,
+                        }}
                       >
-                        {adv.label}
+                        {POSTURE_META[option.posture].label}
                       </span>
+                      <RiskIndicator risk={option.risk} />
                     </div>
                     {/* Composites + the stats that drive them, per side. Grid so the You/Opp rows
                         share columns and the chips line up regardless of abbreviation length. */}

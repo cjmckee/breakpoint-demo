@@ -1066,6 +1066,119 @@ export const KEY_MOMENT_OPPONENT_DRAIN = {
 };
 
 /** Pressure bank configuration for key moment system */
+/**
+ * Key moment tuning.
+ *
+ * A key moment resolves one big point on a single roll instead of a simulated
+ * rally, so these constants decide how much of that outcome is the player's read,
+ * how much is their stats, and how much is the conditions they walked in with.
+ *
+ * `baseChance` is NOT "an even player should win half of these". Key moments fire
+ * exclusively on break/set/match points, so they are worth far more than an average
+ * point — a neutral rate of 50% hands an evenly-matched player the match. It is
+ * tuned instead so that an even player choosing at random finishes near a 50%
+ * MATCH win rate in best-of-1; see src/test/analysis/keyMomentProbe.ts.
+ */
+export const KEY_MOMENT = {
+  /**
+   * Success chance for a neutral option, even stats, neutral conditions.
+   *
+   * Measured, not guessed, and measured against best-of-1 — the format the game
+   * actually plays (MatchSetup, story and tournament matches are all best-of-1;
+   * only team matches run best-of-3). At 200 simulated even matches this value
+   * yields a ~49% match win rate against a 49% key-moments-disabled control.
+   *
+   * It trades off steeply: 35 drops an even player to 30%, 45 lifts them to 60%.
+   * The format matters as much as the number — a single set fires ~8.5 key
+   * moments but they cover most of that set's pivotal points, so the layer has
+   * more leverage per match than the ~15 it fires across a best-of-3.
+   *
+   * Re-run src/test/analysis/keyMomentProbe.ts (SECTIONS=sweep) before changing.
+   */
+  baseChance: 40,
+  /**
+   * Applied when the option's posture is strong against the opponent's archetype,
+   * and its mirror when the posture is weak. Symmetric because the matchup matrix
+   * is symmetric — every archetype has as many postures strong against it as weak,
+   * and every posture is strong against as many archetypes as it is weak against —
+   * so there is no longer a reason for a good read and a bad one to be worth
+   * different amounts.
+   */
+  counterBonus: 12,
+  weakPenalty: -12,
+  /** How much each point of weighted stat differential is worth. */
+  statMultiplier: 0.4,
+  /**
+   * Weighted-composite gap at which the card's stat chip stops saying "even".
+   *
+   * Measured against the shipped roster: for a level-matched player the gap between
+   * the options in one menu runs about -7..+5, while the gap carrying a level
+   * mismatch runs to ±20 or beyond (a 20-point rating deficit is a -22 composite gap,
+   * worth -8.8pp). So the interesting range is roughly ±25, and the old ±10 sat above
+   * the 90th percentile of the level-matched case — nearly every card read "even",
+   * at every tier, including when one option genuinely was the better fit.
+   *
+   * At ±5 the chip stays quiet when the options really are equivalent and speaks
+   * when they are not, without inventing significance for a one-point difference.
+   */
+  statChipThreshold: 5,
+
+  /** Gap at which the chip's colour reaches full saturation. */
+  statChipFullScale: 25,
+
+  /** Floor and ceiling on the final success probability. */
+  minProbability: 10,
+  maxProbability: 90,
+
+  /**
+   * Pressure is scored against the player's focus rather than charged as a flat
+   * toll: focus above the moment's pressure is an edge, below it a penalty. Key
+   * moments fire on high-pressure points by definition, so a one-sided penalty
+   * would tax every one of them instead of testing the player's nerve.
+   */
+  pressureVsFocusScale: 0.1,
+  pressureClamp: 10,
+  /** Each point of MENTAL_RESILIENCE is worth this much effective focus. */
+  resilienceToFocus: 15,
+
+  /**
+   * Share of wins (and of losses) that resolve as critical, by the option's risk.
+   *
+   * Rolled INSIDE the outcome rather than carved off the ends of the roll, so the
+   * crit rate no longer moves with the odds. The previous end-carving made crits
+   * fire on roughly a third of all key moments and, worse, anti-correlate with
+   * choice quality — 48% of a bad read's wins were flagged CRITICAL SUCCESS
+   * against 30% of a good read's, so the loudest feedback in the game was
+   * pointing the wrong way.
+   *
+   * This is also where `risk` earns its name: a bold option does not win more
+   * often than a safe one at the same probability, it resolves emphatically far
+   * more often in both directions.
+   */
+  criticalShareByRisk: {
+    safe: 0.08,
+    balanced: 0.18,
+    bold: 0.32,
+  } as Record<string, number>,
+
+  /**
+   * Multiplier on a critical outcome's secondary effects, by risk. A bold option
+   * swings momentum and mood harder when it lands emphatically; a safe one barely
+   * moves regardless, which is the whole point of picking it.
+   */
+  criticalEffectMultiplierByRisk: {
+    safe: 1.5,
+    balanced: 2,
+    bold: 2.5,
+  } as Record<string, number>,
+
+  /** Energy at or above this reads as fresh; below it fatigue starts to bite. */
+  energyNeutral: 70,
+  /** Bonus at full energy, and penalty at empty. Empty costs more than fresh pays. */
+  energyMaxBonus: 5,
+  energyMaxPenalty: 10,
+};
+
 export const PRESSURE_BANK = {
   /** Max absolute value the bank can reach */
   clamp: 40,

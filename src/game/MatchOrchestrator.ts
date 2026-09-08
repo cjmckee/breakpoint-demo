@@ -10,6 +10,7 @@ import { MatchStatistics } from '../core/MatchStatistics';
 import { PointSimulator } from '../core/PointSimulator';
 import { KeyMomentResolver, KeyMomentResult, AppliedEffect } from './KeyMomentResolver';
 import { getOptionsForSituation, KeyMomentType } from '../data/tacticalOptions';
+import type { KeyMomentPosture } from '../data/tacticalOptions';
 import type { ArchetypeType } from '../data/archetypes';
 import type { ArchetypeProfile } from '../types/archetype';
 import { aggregateArchetypeEffects } from '../data/archetypeTree';
@@ -27,7 +28,7 @@ import { MATCH_FATIGUE, PRESSURE_BANK, STAMINA_RECOVERY, KEY_MOMENT_OPPONENT_DRA
 import { MomentumEngine, ClutchLevel } from '../core/MomentumEngine';
 import { getPrimaryStatName } from '../core/shotStatMapping';
 import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds';
-import { DEFAULT_KEY_MOMENTS_PER_MATCH } from '../config/matchRewards';
+import { DEFAULT_KEY_MOMENTS_PER_MATCH, DEFAULT_POINT_DELAY_MS, KEY_MOMENT_OPTIONS_PER_MENU } from '../config/matchRewards';
 
 export interface AccumulatedMatchEffects {
   energyDelta: number;  // Net energy change from key moment choices
@@ -64,6 +65,10 @@ export class MatchOrchestrator {
 
   // Tracks key moment types that have already fired in the current game (resets at each new game)
   private firedKeyMomentTypesInGame: Set<KeyMomentType> = new Set();
+
+  // Postures offered by the previous key moment. The draw prefers fresh postures
+  // so consecutive moments do not present the same menu twice running.
+  private lastOfferedPostures: KeyMomentPosture[] = [];
 
   /**
    * Apply flat stat boosts to player stats (clamped to 100).
@@ -105,8 +110,11 @@ export class MatchOrchestrator {
   /**
    * Extract additional effects from abilities for match-time mechanics.
    * Abilities are effects-only — no stat boosts applied during match.
+   *
+   * Static so the key-moment UI can derive the same effect set from the match
+   * config and display exactly the modifiers the resolver will apply.
    */
-  private extractActiveEffects(
+  public static extractActiveEffects(
     abilities?: Ability[],
     archetypeProfile?: ArchetypeProfile,
   ): Record<string, number> {
@@ -158,8 +166,8 @@ export class MatchOrchestrator {
       : config.playerStats;
 
     // Extract ability + archetype behavior effects for match-time mechanics
-    this.activeEffects = this.extractActiveEffects(config.playerAbilities, config.playerArchetypeProfile);
-    this.opponentActiveEffects = this.extractActiveEffects(config.opponentAbilities, config.opponentArchetypeProfile);
+    this.activeEffects = MatchOrchestrator.extractActiveEffects(config.playerAbilities, config.playerArchetypeProfile);
+    this.opponentActiveEffects = MatchOrchestrator.extractActiveEffects(config.opponentAbilities, config.opponentArchetypeProfile);
 
     // Initialize match simulator with PlayerProfile objects, carrying their
     // archetype identities so shot selection reflects their chosen specialties.
@@ -394,10 +402,12 @@ export class MatchOrchestrator {
       // Check if match is complete
       isComplete = this.isMatchComplete(currentScore);
 
-      // Add delay between points for visual updates (1000ms)
-      // Skip delay if match is complete to show final score immediately
-      if (!isComplete) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      // Pause between points so the UI can animate them. Skipped when the match
+      // is complete (show the final score immediately) and when the caller opts
+      // out with pointDelayMs: 0 (offline analysis).
+      const pointDelayMs = config.pointDelayMs ?? DEFAULT_POINT_DELAY_MS;
+      if (!isComplete && pointDelayMs > 0) {
+        await new Promise(resolve => setTimeout(resolve, pointDelayMs));
       }
     }
 
@@ -483,8 +493,14 @@ export class MatchOrchestrator {
     // Mark this type as fired for the current game
     this.firedKeyMomentTypesInGame.add(momentType);
     
-    // Get options and shuffle them for variety
-    const options = this.shuffleArray([...getOptionsForSituation(momentType)]);
+    // Draw a menu: eligible for this situation, spanning at least two risk levels
+    // and two postures, preferring postures the previous moment did not offer.
+    const options = getOptionsForSituation(
+      momentType,
+      KEY_MOMENT_OPTIONS_PER_MENU,
+      this.lastOfferedPostures,
+    );
+    this.lastOfferedPostures = options.map((o) => o.posture);
 
     return {
       id: `km-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,

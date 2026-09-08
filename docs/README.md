@@ -27,6 +27,13 @@ exactly the kind of thing that gets rediscovered otherwise.
   repo had been measuring content that does not exist, that the support modifiers double-counted
   skill, and that winner rates inverted with skill. Section 5 records the "rating tax" hypothesis
   being falsified by its own test.
+- **[`research/key-moment-matchups.md`](./research/key-moment-matchups.md)** — whether the
+  key-moment layer delivers the skill test it is meant to. Settles that the matchup chart had
+  drifted to leave one archetype 3% counterable, that two of the four context channels could only
+  subtract, that criticals were anti-correlated with choosing well, and that every match-level
+  figure in the repo had been measured against the one archetype with nothing to read. Section 7
+  records five hypotheses tested and withdrawn, including a serve/return asymmetry that did not
+  survive the correct match format.
 - **[`research/stat-channels.md`](./research/stat-channels.md)** — a stat reaches a shot through
   several mechanisms; which ones carry load. Settles that `bonus` was the band channel in different
   units, that `slice` is conditional rather than broken, and that the band channel earns its

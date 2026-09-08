@@ -39,7 +39,15 @@ That is the whole workflow. The rest of this document is about not fooling yours
 | What shots does each build actually hit? | `shotMixProbe` | ~30 s |
 | Do the support bands read match context or just shot type? | `bandGateProbe` | ~30 s |
 | Is the winner floor still doing its job? | `winnerFloorProbe` | instant, analytic |
+| Does the key-moment layer reward reading the opponent? | `keyMomentProbe` | ~10 s, or ~6 min with match sections |
 | Does a save survive the stat consolidation? | `npm test` | ~5 s |
+
+`keyMomentProbe` is sectioned: `SECTIONS=tags` is instant and answers the content questions
+(posture and risk coverage, duplicate or missing cells, stat coverage); `sweep`, `grid`, `split`
+and `impact` drive real matches and take minutes. `OPPONENT=` picks the archetype across the net
+and **matters** — the default fixture used to produce an all-court opponent, the one archetype
+neutral to every posture, which silently flattened every result. `FORMAT=` defaults to best-of-1
+because that is what the game plays.
 
 `sliceProbe` and `netCoverageProbe` are worked examples of the targeted pattern in §"Three ways to
 fool yourself" below — copy one when you need to ask about a specific constant.

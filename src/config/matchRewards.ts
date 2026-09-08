@@ -17,6 +17,15 @@ export const DEFAULT_MATCH_ENERGY_COST = 50;
 // ============================================================================
 export const DEFAULT_KEY_MOMENTS_PER_MATCH = 16;
 
+/** How many tactical options a key moment offers. */
+export const KEY_MOMENT_OPTIONS_PER_MENU = 3;
+
+/**
+ * Pause between points during an interactive match, in ms, so the UI can
+ * animate each point. Analysis probes pass pointDelayMs: 0 to run headless.
+ */
+export const DEFAULT_POINT_DELAY_MS = 1000;
+
 // ============================================================================
 // OPPONENT TIER TYPE
 // ============================================================================
