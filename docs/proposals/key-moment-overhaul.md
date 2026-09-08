@@ -106,7 +106,7 @@ the tactic did. Decompose the situation instead:
 
 ```typescript
 /** Which side of the ball — decides which options are physically possible. */
-export type KeyMomentRole = 'serve' | 'return' | 'rally';
+export type KeyMomentRole = 'serve' | 'return' | 'rally';   // discrete pools
 
 /** What is on the line. */
 export type KeyMomentStakes = 'deuce' | 'break' | 'set' | 'match';
@@ -146,24 +146,29 @@ redesign:
 | `match-point-player-return` | return | match | converting |
 | `match-point-opponent-serve` | serve | match | defending |
 | `match-point-opponent-return` | return | match | defending |
-| `key-rally` | rally + the server's side | deuce | — |
+| `key-rally` | rally | deuce | — |
 
 Stakes stop being a content bucket and become what they always were: a pressure level, which
 `updatePressure()` already computes.
 
 **The rally role is not optional.** `isDeucePoint` fires at 30-30 and 40-40, and those moments
 test how you *construct* the point rather than how you start it — that is what the existing
-`key-rally` menu is for. But a deuce point still has a server, so its menu should draw from
-the rally pool **and** the serving or returning pool as appropriate, mixing "attack the net
-mid-rally" with "big serve down the T". That mix is exactly why `roles` is a list rather than
-a single value.
+`key-rally` menu is for.
+
+The three pools are **discrete**: a deuce point draws rally options only.
 
 | Situation | Draws from |
 |---|---|
 | break / set / match point, player serving | `serve` |
 | break / set / match point, player returning | `return` |
-| 30-30 or 40-40, player serving | `rally` + `serve` |
-| 30-30 or 40-40, player returning | `rally` + `return` |
+| 30-30 or 40-40 | `rally` |
+
+An earlier draft mixed rally with whichever side of the ball the player was on, on the
+reasoning that a deuce point still has a server. That was dropped: it doubled every
+posture x risk cell in the deuce pool, so a menu could show two cards carrying identical
+badges, and it left only two genuinely distinct option sets rather than three. Keeping the
+pools separate holds each at a clean 18 — one option per cell — and makes the deuce menu its
+own thing rather than a superset of the serve one.
 
 ### Postures
 

@@ -1779,20 +1779,22 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
 /** A key moment situation, decomposed into the axes that decide eligibility. */
 export interface KeyMomentSituation {
   role: KeyMomentRole;
-  /** For a rally moment, who is serving — its menu mixes rally and serve/return. */
-  serverRole: 'serve' | 'return';
   stakes: KeyMomentStakes;
   pressure: KeyMomentPressure;
 }
 
-/** Every option this situation is allowed to offer. */
+/**
+ * Every option this situation is allowed to offer.
+ *
+ * The three roles are discrete: a deuce point draws rally options only, not a mix
+ * of rally and whichever side of the ball the player happens to be on. That keeps
+ * each pool a clean 18 — one option per posture x risk — so a menu can never show
+ * the same kind of play twice, and gives the three roles genuinely different
+ * option sets rather than two that overlap.
+ */
 export function getEligibleOptions(situation: KeyMomentSituation): TacticalOption[] {
-  const allowedRoles: KeyMomentRole[] = situation.role === 'rally'
-    ? ['rally', situation.serverRole]
-    : [situation.role];
-
   return TACTICAL_OPTIONS.filter((option) =>
-    option.roles.some((r) => allowedRoles.includes(r))
+    option.roles.includes(situation.role)
     && (!option.stakes || option.stakes.includes(situation.stakes))
     && (!option.pressure || option.pressure.includes(situation.pressure))
   );
@@ -1823,18 +1825,8 @@ export function drawOptions(
   const ordered = [...fresh, ...pool.filter((o) => avoidPostures.includes(o.posture))];
 
   const picked: TacticalOption[] = [];
-
-  // No two cards in a menu may share a posture AND a risk — they would carry
-  // identical badges and read as the same choice twice. This has to be enforced
-  // here rather than in the pool because a deuce point draws from the rally pool
-  // *and* the serving or returning one, so the same cell is legitimately filled
-  // twice in the eligible set (a big serve and a rally accelerator are both
-  // power/bold, and both belong at 30-30).
-  const cellTaken = (o: TacticalOption): boolean =>
-    picked.some((p) => p.posture === o.posture && p.risk === o.risk);
-
   const take = (predicate: (o: TacticalOption) => boolean): void => {
-    const found = ordered.find((o) => !picked.includes(o) && !cellTaken(o) && predicate(o));
+    const found = ordered.find((o) => !picked.includes(o) && predicate(o));
     if (found) picked.push(found);
   };
 
@@ -1881,7 +1873,7 @@ export type KeyMomentType =
   | 'match-point-opponent-return'
   | 'key-rally';
 
-const SITUATIONS: Record<KeyMomentType, Omit<KeyMomentSituation, 'serverRole'>> = {
+const SITUATIONS: Record<KeyMomentType, KeyMomentSituation> = {
   'break-point-serve':           { role: 'serve',  stakes: 'break', pressure: 'defending' },
   'break-point-return':          { role: 'return', stakes: 'break', pressure: 'converting' },
   'set-point-player-serve':      { role: 'serve',  stakes: 'set',   pressure: 'converting' },
@@ -1892,27 +1884,23 @@ const SITUATIONS: Record<KeyMomentType, Omit<KeyMomentSituation, 'serverRole'>> 
   'match-point-player-return':   { role: 'return', stakes: 'match', pressure: 'converting' },
   'match-point-opponent-serve':  { role: 'serve',  stakes: 'match', pressure: 'defending' },
   'match-point-opponent-return': { role: 'return', stakes: 'match', pressure: 'defending' },
-  // A deuce point tests point construction, so it draws rally options alongside
-  // the serving or returning ones for whoever happens to be serving.
+  // A deuce point tests how the point is constructed rather than how it starts,
+  // so it draws from the rally pool alone.
   'key-rally':                   { role: 'rally',  stakes: 'deuce', pressure: 'converting' },
 };
 
 /** Decompose a detected key moment into the axes that decide option eligibility. */
-export function getSituation(
-  type: KeyMomentType,
-  server: 'player' | 'opponent'
-): KeyMomentSituation {
-  return { ...SITUATIONS[type], serverRole: server === 'player' ? 'serve' : 'return' };
+export function getSituation(type: KeyMomentType): KeyMomentSituation {
+  return SITUATIONS[type];
 }
 
 /** Draw the menu for a detected key moment. */
 export function getOptionsForSituation(
   type: KeyMomentType,
-  server: 'player' | 'opponent',
   count = 3,
   avoidPostures: KeyMomentPosture[] = []
 ): TacticalOption[] {
-  return drawOptions(getSituation(type, server), count, avoidPostures);
+  return drawOptions(getSituation(type), count, avoidPostures);
 }
 
 /** Get a specific option by ID. */

@@ -159,7 +159,7 @@ function probeCounterCoverage(): void {
     for (const server of ['player', 'opponent'] as const) {
       for (const arch of ARCHETYPES) {
         for (let i = 0; i < 1000; i++) {
-          const menu = getOptionsForSituation(type, server, KEY_MOMENT_OPTIONS_PER_MENU);
+          const menu = getOptionsForSituation(type, KEY_MOMENT_OPTIONS_PER_MENU);
           const n = menu.filter((o) => getMatchup(o.posture, arch) === 'strong').length;
           dist[n] = (dist[n] ?? 0) + 1;
           if (n === 0) noRead[arch] = (noRead[arch] ?? 0) + 1;
@@ -698,16 +698,14 @@ function probeTagCoverage(): void {
   // badges read as the same choice twice. Enforced in drawOptions rather than in
   // the pool, because a deuce point legitimately draws the same cell from both the
   // rally pool and the serving one, so this samples real draws.
-  printHeader('Duplicate posture x risk within a drawn menu (2000 draws per situation)');
+  printHeader('Duplicate posture x risk within a drawn menu (4000 draws per situation)');
   const dupes: string[] = [];
   for (const type of SITUATION_TYPES) {
-    for (const server of ['player', 'opponent'] as const) {
-      for (let i = 0; i < 2000; i++) {
-        const menu = getOptionsForSituation(type, server, KEY_MOMENT_OPTIONS_PER_MENU);
-        const cells = menu.map((o) => `${o.posture}/${o.risk}`);
-        if (new Set(cells).size !== cells.length) {
-          dupes.push(`${type} (${server} serving): ${menu.map((o) => o.id).join(' + ')}`);
-        }
+    for (let i = 0; i < 4000; i++) {
+      const menu = getOptionsForSituation(type, KEY_MOMENT_OPTIONS_PER_MENU);
+      const cells = menu.map((o) => `${o.posture}/${o.risk}`);
+      if (new Set(cells).size !== cells.length) {
+        dupes.push(`${type}: ${menu.map((o) => o.id).join(' + ')}`);
       }
     }
   }
@@ -717,16 +715,12 @@ function probeTagCoverage(): void {
   printHeader('Missing posture x risk cells within a single situation');
   const missing: string[] = [];
   for (const type of SITUATION_TYPES) {
-    for (const server of ['player', 'opponent'] as const) {
-      const have = new Set(
-        getEligibleOptions(getSituation(type, server)).map((o) => `${o.posture}/${o.risk}`),
-      );
-      for (const posture of ['power', 'net', 'neutralize', 'deception', 'attrition', 'variety']) {
-        for (const risk of ['safe', 'balanced', 'bold']) {
-          if (!have.has(`${posture}/${risk}`)) {
-            missing.push(`${type} (${server} serving) — ${posture}/${risk}`);
-          }
-        }
+    const have = new Set(
+      getEligibleOptions(getSituation(type)).map((o) => `${o.posture}/${o.risk}`),
+    );
+    for (const posture of ['power', 'net', 'neutralize', 'deception', 'attrition', 'variety']) {
+      for (const risk of ['safe', 'balanced', 'bold']) {
+        if (!have.has(`${posture}/${risk}`)) missing.push(`${type} — ${posture}/${risk}`);
       }
     }
   }
@@ -735,9 +729,8 @@ function probeTagCoverage(): void {
   printTable(
     ['Situation', 'Eligible options', 'Postures reachable'],
     SITUATION_TYPES.map((type) => {
-      const opts = (['player', 'opponent'] as const)
-        .flatMap((server) => getEligibleOptions(getSituation(type, server)));
-      return [type, new Set(opts.map((o) => o.id)).size, new Set(opts.map((o) => o.posture)).size];
+      const opts = getEligibleOptions(getSituation(type));
+      return [type, opts.length, new Set(opts.map((o) => o.posture)).size];
     }),
   );
 }
