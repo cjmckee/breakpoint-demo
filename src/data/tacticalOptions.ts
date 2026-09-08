@@ -211,36 +211,6 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     },
   },
   {
-    id: 's_power_wide',
-    emoji: '💥',
-    name: 'Big serve out wide',
-    description: 'Drag them off the court and take the opening',
-    roles: ['serve'],
-    posture: 'power',
-    risk: 'bold',
-    secondaryEffects: RISK_EFFECTS.bold,
-    playerStatWeights: {
-      primary: 'serve',
-      primaryWeight: 0.4,
-      secondary: [
-        { stat: 'strength', weight: 0.3 },
-        { stat: 'placement', weight: 0.3 },
-      ],
-    },
-    opponentStatWeights: {
-      primary: 'return',
-      primaryWeight: 0.4,
-      secondary: [
-        { stat: 'anticipation', weight: 0.3 },
-        { stat: 'speed', weight: 0.3 },
-      ],
-    },
-    shotOutcomes: {
-      success: { outcome: PointType.ACE, shotType: 'serve', shooter: 'player' },
-      failure: { outcome: PointType.DOUBLE_FAULT, shotType: 'serve', shooter: 'player' },
-    },
-  },
-  {
     id: 's_kick_approach',
     emoji: '🪃',
     name: 'Sneak in behind a kick serve',
@@ -759,6 +729,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     roles: ['return'],
     posture: 'power',
     risk: 'bold',
+    pressure: ['converting'],
     secondaryEffects: RISK_EFFECTS.bold,
     playerStatWeights: {
       primary: 'return',
@@ -1564,6 +1535,186 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     },
   },
   {
+    id: 'y_close_short',
+    emoji: '✅',
+    name: 'Close only on a short ball',
+    description: 'Come in when the ball earns it, not before',
+    roles: ['rally'],
+    posture: 'net',
+    risk: 'safe',
+    secondaryEffects: RISK_EFFECTS.safe,
+    playerStatWeights: {
+      primary: 'net',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'speed', weight: 0.3 },
+        { stat: 'anticipation', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'placement',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'speed', weight: 0.3 },
+        { stat: 'backhand', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'volley', shooter: 'player' },
+      failure: { outcome: PointType.WINNER, shotType: 'passing_shot', shooter: 'opponent' },
+    },
+  },
+  {
+    id: 'y_roll_deep',
+    emoji: '↩️',
+    name: 'Roll it deep crosscourt',
+    description: 'Heavy and safe into the big part of the court',
+    roles: ['rally'],
+    posture: 'neutralize',
+    risk: 'balanced',
+    secondaryEffects: RISK_EFFECTS.balanced,
+    playerStatWeights: {
+      primary: 'spin',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'slice', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'tactics',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'strength', weight: 0.3 },
+        { stat: 'spin', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'slice', shooter: 'player' },
+    },
+  },
+  {
+    id: 'y_carve_low',
+    emoji: '🪶',
+    name: 'Skid a low slice at their feet',
+    description: 'A fine margin, but nothing comes back clean',
+    roles: ['rally'],
+    posture: 'neutralize',
+    risk: 'bold',
+    secondaryEffects: RISK_EFFECTS.bold,
+    playerStatWeights: {
+      primary: 'spin',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'slice', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'tactics',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'strength', weight: 0.3 },
+        { stat: 'spin', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'forehand', shooter: 'opponent' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'slice', shooter: 'player' },
+    },
+  },
+  {
+    id: 'y_show_drop',
+    emoji: '🃏',
+    name: 'Show the drop, hit it deep',
+    description: 'Sell the short ball, then go long',
+    roles: ['rally'],
+    posture: 'deception',
+    risk: 'safe',
+    secondaryEffects: RISK_EFFECTS.safe,
+    playerStatWeights: {
+      primary: 'placement',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'slice', weight: 0.3 },
+        { stat: 'spin', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'speed',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'net', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'drop_shot', shooter: 'player' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'drop_shot', shooter: 'player' },
+    },
+  },
+  {
+    id: 'y_grind_backhand',
+    emoji: '⛏️',
+    name: 'Grind the backhand',
+    description: 'Go there again. And again.',
+    roles: ['rally'],
+    posture: 'attrition',
+    risk: 'balanced',
+    secondaryEffects: RISK_EFFECTS.balanced,
+    playerStatWeights: {
+      primary: 'stamina',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'backhand', weight: 0.3 },
+        { stat: 'focus', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'stamina',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'focus', weight: 0.3 },
+        { stat: 'slice', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.FORCED_ERROR, shotType: 'backhand', shooter: 'opponent' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'backhand', shooter: 'player' },
+    },
+  },
+  {
+    id: 'y_sudden_change',
+    emoji: '🎲',
+    name: 'Change everything at once',
+    description: 'New pace, new direction, new height',
+    roles: ['rally'],
+    posture: 'variety',
+    risk: 'bold',
+    secondaryEffects: RISK_EFFECTS.bold,
+    playerStatWeights: {
+      primary: 'tactics',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'anticipation', weight: 0.3 },
+        { stat: 'speed', weight: 0.3 },
+      ],
+    },
+    opponentStatWeights: {
+      primary: 'anticipation',
+      primaryWeight: 0.4,
+      secondary: [
+        { stat: 'focus', weight: 0.3 },
+        { stat: 'tactics', weight: 0.3 },
+      ],
+    },
+    shotOutcomes: {
+      success: { outcome: PointType.WINNER, shotType: 'forehand', shooter: 'player' },
+      failure: { outcome: PointType.UNFORCED_ERROR, shotType: 'forehand', shooter: 'player' },
+    },
+  },
+  {
     id: 'y_two_speed',
     emoji: '🎚️',
     name: 'Take one early, then take pace off',
@@ -1672,8 +1823,18 @@ export function drawOptions(
   const ordered = [...fresh, ...pool.filter((o) => avoidPostures.includes(o.posture))];
 
   const picked: TacticalOption[] = [];
+
+  // No two cards in a menu may share a posture AND a risk — they would carry
+  // identical badges and read as the same choice twice. This has to be enforced
+  // here rather than in the pool because a deuce point draws from the rally pool
+  // *and* the serving or returning one, so the same cell is legitimately filled
+  // twice in the eligible set (a big serve and a rally accelerator are both
+  // power/bold, and both belong at 30-30).
+  const cellTaken = (o: TacticalOption): boolean =>
+    picked.some((p) => p.posture === o.posture && p.risk === o.risk);
+
   const take = (predicate: (o: TacticalOption) => boolean): void => {
-    const found = ordered.find((o) => !picked.includes(o) && predicate(o));
+    const found = ordered.find((o) => !picked.includes(o) && !cellTaken(o) && predicate(o));
     if (found) picked.push(found);
   };
 

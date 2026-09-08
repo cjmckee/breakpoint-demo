@@ -694,6 +694,44 @@ function probeTagCoverage(): void {
 
   // Which menus can even offer a given posture today.
   printHeader('Postures available per situation');
+  // Two cards in one menu must never share a posture AND a risk — identical
+  // badges read as the same choice twice. Enforced in drawOptions rather than in
+  // the pool, because a deuce point legitimately draws the same cell from both the
+  // rally pool and the serving one, so this samples real draws.
+  printHeader('Duplicate posture x risk within a drawn menu (2000 draws per situation)');
+  const dupes: string[] = [];
+  for (const type of SITUATION_TYPES) {
+    for (const server of ['player', 'opponent'] as const) {
+      for (let i = 0; i < 2000; i++) {
+        const menu = getOptionsForSituation(type, server, KEY_MOMENT_OPTIONS_PER_MENU);
+        const cells = menu.map((o) => `${o.posture}/${o.risk}`);
+        if (new Set(cells).size !== cells.length) {
+          dupes.push(`${type} (${server} serving): ${menu.map((o) => o.id).join(' + ')}`);
+        }
+      }
+    }
+  }
+  print(dupes.length === 0 ? '  none.' : [...new Set(dupes)].slice(0, 10).map((d) => `  ${d}`).join('\n'));
+
+  // And the mirror: cells a situation cannot fill at all.
+  printHeader('Missing posture x risk cells within a single situation');
+  const missing: string[] = [];
+  for (const type of SITUATION_TYPES) {
+    for (const server of ['player', 'opponent'] as const) {
+      const have = new Set(
+        getEligibleOptions(getSituation(type, server)).map((o) => `${o.posture}/${o.risk}`),
+      );
+      for (const posture of ['power', 'net', 'neutralize', 'deception', 'attrition', 'variety']) {
+        for (const risk of ['safe', 'balanced', 'bold']) {
+          if (!have.has(`${posture}/${risk}`)) {
+            missing.push(`${type} (${server} serving) — ${posture}/${risk}`);
+          }
+        }
+      }
+    }
+  }
+  print(missing.length === 0 ? '  none.' : missing.map((m) => `  ${m}`).join('\n'));
+
   printTable(
     ['Situation', 'Eligible options', 'Postures reachable'],
     SITUATION_TYPES.map((type) => {
