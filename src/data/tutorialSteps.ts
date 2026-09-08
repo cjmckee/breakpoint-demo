@@ -64,7 +64,7 @@ export const KM_TUTORIAL_STEPS: TutorialStep<KmTarget>[] = [
   {
     target: 'options-matchup',
     title: 'Reading the Matchup',
-    body: 'Each posture says who it beats and who beats it, in plain words rather than by naming an archetype — "retrievers who sit back", "players who feed off your pace". Match those against the opponent in the header yourself. Nothing on this screen tells you which option is best; working that out is the skill, and the result screen will confirm whether you had it right.',
+    body: 'Each posture says who it beats and who beats it, in plain words rather than by naming an archetype — "retrievers who sit back", "players who feed off your pace". Match those against the opponent in the header yourself. Pick the option that fits best against your opponent!',
   },
   {
     target: 'options-effects',
@@ -77,16 +77,16 @@ export const KM_RESULT_STEPS: TutorialStep<KmResultTarget>[] = [
   {
     target: 'outcome',
     title: 'The Result',
-    body: 'Whether you won the point. A critical (🌟 / 💥) says the point ended emphatically, not that you chose well — how often that happens is set by your tactic\'s risk, so a Bold play criticals far more often in both directions than a Safe one. You can pick the right option and still lose. That\'s tennis, baby.',
+    body: 'Whether you won the point. A critical (🌟 / 💥) says the point ended emphatically — how often that happens is set by your tactic\'s risk, so a Bold play criticals far more often in both directions than a Safe one. You can pick the right option and still lose. That\'s tennis, baby.',
   },
   {
     target: 'tactic',
     title: 'Your Read',
-    body: 'What you played, and how that posture matches up against this archetype. This is the line worth remembering — the exact tactic will not come round again, but the posture is in every menu, and the matchup holds for every opponent of that type you ever face.',
+    body: 'What you played, and how that posture matches up against this archetype. Remember the color for each posture and how it matches up against your opponent\'s archetype. You may not see this exact option again, but you may want to select one of the same color later on!',
   },
   {
     target: 'effects',
     title: 'Effects Applied',
-    body: 'Win or lose, your tactic\'s secondary effects still apply — momentum swings, energy changes, mood and pressure shifts carry into the rest of the match. A critical scales them, and by more the bolder the tactic was.',
+    body: 'Win or lose, your tactic\'s secondary effects still apply — momentum swings, energy changes, mood and pressure shifts carry into the rest of the match. A critical result scales the outcomes based on the risk level. Also, you can view this tutorial any time in the settings menu by clicking \'Replay Match Tutorial\'. Good luck!',
   },
 ];
