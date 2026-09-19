@@ -23,21 +23,23 @@ import {
 
 export const miscEvents: StoryEvent[] = [
     {
-        id: 'aquarium_with_keith',
-        name: 'The Aquarium',
+        id: 'pond_with_keith',
+        name: 'The Pond',
         tags: ['misc', 'friend'],
         timeSlotsRequired: 1,
         // Needs enough history with Keith that turning up to a pond with him tracks.
         prerequisites: { minDay: 12, relationships: { keith: { min: 15 } } },
         skippable: false,
         moodTier: 'neutral',
-        description: 'Keith has discovered that the aquarium has a pond out back.',
+        description: 'Keith discovers a nearby pond.',
         dialogue: [
-            ['keith', ['The aquarium has a pond behind it. You can rent a rod for four dollars.']],
-            ['player', ['Is the pond part of the aquarium?']],
-            ['keith', ['It is adjacent to the aquarium. Same parking lot.']],
-            [null, ['He has brought his own tackle box anyway. It is enormous. Among the lures and the spare line there is, for reasons he does not explain, a sandwich.']],
-            ['keith', ['Five casts each. Whoever catches less buys the other one a penguin from the gift shop.']],
+            ['keith', ['You\'ll never guess what I found behind the old practice courts! I snuck through the bushes and BAM! A huge pond. Huge.']],
+            ['keith', ['You can rent a rod for four dollars. My treat. Let\'s go!']],
+            ['player', ['Is the pond part of that local pet store, by chance?']],
+            ['keith', ['It is adjacent to the pet store. Same parking lot. Unrelated.']],
+            ['player', ['I\'m not so sure they\'re unrelated, ', {characterId: 'keith'}, '...']],
+            [null, ['He has brought his own tackle box anyway. It is loaded with gizmos and gadgets. Among the lures and the spare line there is a sandwich. Not clear how long he was planning this.']],
+            ['keith', ['Five casts each. Whoever catches less buys the other one that huge plush toy from the Academy shop. I\'ve been saving my points!']],
         ],
         characters: ['keith'],
         options: [
@@ -53,7 +55,7 @@ export const miscEvents: StoryEvent[] = [
                     failOutcome: {
                         resultText: [
                             'Keith catches two. You do not catch two.',
-                            'He does not gloat, which is somehow worse. He picks out the largest penguin in the gift shop, holds it up to the light, and says he wants you to know he chose it carefully. You spend eleven dollars. He carries it under one arm for the rest of the afternoon and talks to it on the bus.',
+                            'He does not gloat, which is somehow worse. At the Academy shop he walks straight to the huge plush, holds it up to the light, and says he wants you to know he chose it carefully. It costs most of your points. He carries it under one arm for the rest of the afternoon and talks to it on the bus.',
                         ],
                         effects: {
                             moodChange: 8,
@@ -65,7 +67,7 @@ export const miscEvents: StoryEvent[] = [
                 outcome: {
                     resultText: [
                         'You out-fish him, and it is not close.',
-                        { characterId: 'keith' }, ' takes the loss with enormous dignity, which lasts until the gift shop, where he spends a long time deciding and eventually buys you a keychain instead of a penguin because "the penguin felt like a grudge." You sit on the pond wall until it gets dark. Nobody mentions tennis once.',
+                        { characterId: 'keith' }, ' takes the loss with enormous dignity, which lasts until the Academy shop, where he stands in front of the huge plush for a long time and eventually buys you a keychain instead, because "the plush felt like a grudge." You sit on the pond wall until it gets dark. Nobody mentions tennis once.',
                     ],
                     effects: {
                         statChanges: { focus: 2, placement: 1 },
@@ -73,23 +75,6 @@ export const miscEvents: StoryEvent[] = [
                         energyChange: -5,
                         relationshipChanges: { keith: 5 },
                         itemsGained: [TENNIS_BALL_KEYCHAIN],
-                    },
-                },
-            },
-            {
-                id: 'just_watch',
-                text: 'Let him fish, just watch',
-                description: 'No rod, no bet. You sit on the wall.',
-                emoji: '🐟',
-                outcome: {
-                    resultText: [
-                        'You sit on the wall and let ', { characterId: 'keith' }, ' fish.',
-                        'He catches one, immediately releases it, and explains at length that this was always the plan. It is a very quiet afternoon and you badly needed one.',
-                    ],
-                    effects: {
-                        moodChange: 12,
-                        energyChange: -5,
-                        relationshipChanges: { keith: 2 },
                     },
                 },
             },

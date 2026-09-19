@@ -21,8 +21,8 @@ test('a story event plays its minigame and resolves on the score', async ({ page
   await dismissWalkthrough(page);
 
   await page.getByTitle('Debug Panel').click();
-  await page.getByPlaceholder('Filter by id, name, or tag').fill('aquarium');
-  await page.getByRole('button', { name: /The Aquarium/ }).click();
+  await page.getByPlaceholder('Filter by id, name, or tag').fill('pond');
+  await page.getByRole('button', { name: /The Pond/ }).click();
 
   // Dialogue runs before the choices appear.
   for (let i = 0; i < 20; i++) {
@@ -32,8 +32,9 @@ test('a story event plays its minigame and resolves on the score', async ({ page
     await page.waitForTimeout(120);
   }
 
+  // The event's only option, so there is nothing to pick and no confirm step: its
+  // own button runs it.
   await page.getByRole('button', { name: /Take the bet/ }).click();
-  await page.getByRole('button', { name: 'Confirm Choice' }).click();
 
   // The option handed the screen to MinigameHost, which resolved 'fishing_cast'
   // out of the registry. Nothing else in the suite mounts a game this way.
@@ -45,7 +46,7 @@ test('a story event plays its minigame and resolves on the score', async ({ page
   // under the lure is irrelevant; both branches are a legitimate resolution.
   // Either branch, but a branch — the score came back and picked one. The keychain
   // branch names it in the text and in the item card, hence first().
-  await expect(page.getByText(/penguin|keychain/i).first()).toBeVisible({ timeout: 45_000 });
+  await expect(page.getByText(/plush|keychain/i).first()).toBeVisible({ timeout: 45_000 });
 
   // The event arrived as an overlay on the menu, so its result belongs there too.
   // Leaving for the minigame is what loses that, so this is the regression guard.
