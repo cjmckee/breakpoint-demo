@@ -24,24 +24,20 @@ import { Sparks, ComboBadge, useHitstop, type Burst } from '../shared/minigameJu
 import { MinigameArena, ARENA_H, u, uMin, pctY } from '../shared/MinigameArena';
 import { directionFromKey, isActionKey } from '../../utils/gameKeys';
 
-// Everything is in arena units (see MinigameArena). The court is anchored to the
-// bottom of the arena and COURT_H tall; the space above it is headroom the serve
-// never uses and the zone can't reach.
-const COURT_H = 43.8;
-const COURT_TOP = ARENA_H - COURT_H;
+// Everything is in arena units (see MinigameArena).
 const LINE_X = 16; // the return line the strike zone rides
 const ENTRY_X = 104; // just off the right edge
-const FLOOR = COURT_TOP + 39.5; // where the serve bounces
+const FLOOR = ARENA_H - 4.3; // where the serve bounces
 const BOUNCE_MIN = 40; // nearest the bounce is ever allowed to the line
-const BOUNCE_MAX = 70;
-const ENTRY_Y_MIN = COURT_TOP + 2.6; // keeps the serve on screen when it enters
-const ENTRY_Y_MAX = COURT_TOP + 33.3;
-const CROSS_MIN = COURT_TOP + 7.9; // band the ball can cross the line in (must be reachable)
-const CROSS_MAX = COURT_TOP + 33.3;
+const BOUNCE_MAX = 78;
+const ENTRY_Y_MIN = 3; // keeps the serve on screen when it enters
+const ENTRY_Y_MAX = 52;
+const CROSS_MIN = 6; // band the ball can cross the line in (must be reachable)
+const CROSS_MAX = 54;
 const MIN_REACTION = 0.34; // s — floor on the bounce→line reaction budget
 const ZONE_W = 9.6; // strike zone
 const ZONE_H = 11.3;
-const ZONE_START = COURT_TOP + 21.9; // where the zone waits for each serve
+const ZONE_START = (CROSS_MIN + CROSS_MAX) / 2; // where the zone waits for each serve
 const ZONE_SPEED = 54.4; // units/sec the zone slides
 const SPEED_MIN = 52; // units/sec horizontal
 const SPEED_SPAN = 9;
@@ -62,23 +58,34 @@ interface Serve {
  * true reflection, which is what keeps the read legible at speed: mirror the incoming
  * line off the floor and that's the crossing height.
  *
- * With entryY = FLOOR - (FLOOR - crossY) * ratio, the feasible crossY band inverts
- * straight out of the entry-height limits — and across the whole bounce range that band
- * is never narrower than ~7 units, so a single roll always lands a valid serve.
+ * The crossing height is rolled first, evenly across the whole band, and the bounce is
+ * then chosen to produce it. Rolling the bounce first skews crossings low: only bounces
+ * far from the line can rise high without the serve entering above the screen, so the
+ * top of the court would hardly ever be used.
+ *
+ * With ratio = (ENTRY_X - bounceX) / (bounceX - LINE_X) and
+ * entryY = FLOOR - (FLOOR - crossY) * ratio, keeping entryY on screen bounds the ratio,
+ * and so the bounce, directly. That range overlaps [nearest, BOUNCE_MAX] for every
+ * crossing in [CROSS_MIN, CROSS_MAX] (tightest at the top, where it is 59–78), so one
+ * roll always lands a valid serve. The rise stays shallow enough that the swing window
+ * is still set by the ball crossing the zone's width, not its height.
  */
 function planServe(speed: number): Serve {
   // Never bounce so close to the line that there's no time to react to the rise.
   const nearest = Math.min(BOUNCE_MAX - 8, Math.max(BOUNCE_MIN, LINE_X + MIN_REACTION * speed));
-  const bounceX = nearest + Math.random() * (BOUNCE_MAX - nearest);
+  const crossY = CROSS_MIN + Math.random() * (CROSS_MAX - CROSS_MIN);
+  const rise = FLOOR - crossY;
+  const bounceForRatio = (ratio: number): number => (ENTRY_X + ratio * LINE_X) / (1 + ratio);
+  // A larger ratio means a bounce nearer the line, so the ratio bounds swap ends.
+  const lo = Math.max(nearest, bounceForRatio((FLOOR - ENTRY_Y_MIN) / rise));
+  const hi = Math.min(BOUNCE_MAX, bounceForRatio((FLOOR - ENTRY_Y_MAX) / rise));
+  const bounceX = lo + Math.random() * Math.max(0, hi - lo);
   const ratio = (ENTRY_X - bounceX) / (bounceX - LINE_X);
-  const lo = Math.max(CROSS_MIN, FLOOR - (FLOOR - ENTRY_Y_MIN) / ratio);
-  const hi = Math.min(CROSS_MAX, FLOOR - (FLOOR - ENTRY_Y_MAX) / ratio);
-  const crossY = lo + Math.random() * (hi - lo);
   return {
-    entryY: FLOOR - (FLOOR - crossY) * ratio,
+    entryY: FLOOR - rise * ratio,
     bounceX,
     vx: speed,
-    vy: (FLOOR - crossY) / ((bounceX - LINE_X) / speed),
+    vy: rise / ((bounceX - LINE_X) / speed),
     crossY,
   };
 }
@@ -166,7 +173,7 @@ export const ReadReturnMinigame: React.FC<MinigameProps> = ({ onComplete, window
       }
 
       const h = halfRef.current;
-      zoneRef.current = Math.max(COURT_TOP + h.y, Math.min(ARENA_H - h.y, zoneRef.current + moveRef.current * ZONE_SPEED * dt));
+      zoneRef.current = Math.max(h.y, Math.min(ARENA_H - h.y, zoneRef.current + moveRef.current * ZONE_SPEED * dt));
       setZone(zoneRef.current);
       setBall({ x: b.x, y: b.y, visible: true });
       setTrail((prev) => [{ x: b.x, y: b.y }, ...prev].slice(0, 6));

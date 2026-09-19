@@ -23,13 +23,6 @@ import { isActionKey } from '../../utils/gameKeys';
  */
 const TOLERANCE = 8.9; // arena units — radius counted as "on the ring"
 const RING = 11; // arena units — the drawn ring's diameter
-/**
- * The depth sweep crosses the court's full height, which is taller relative to its
- * width than the court this was tuned on (a 584×224 box). Slowing that sweep by the
- * same ratio keeps the time the line spends inside the window what it was, so a
- * taller court doesn't make the depth lock harder.
- */
-const DEPTH_SWEEP_SCALE = (224 / 584) * (100 / ARENA_H);
 const SWEEP_MIN = 4.0; // rad/sec
 const SWEEP_MAX = 5.0;
 
@@ -98,7 +91,7 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
       const dt = (now - last) / 1000;
       last = now;
       if (!frozen.current) {
-        phase += dt * speed * (stageRef.current === 'y' ? DEPTH_SWEEP_SCALE : 1);
+        phase += dt * speed;
       }
       sweepRef.current = (Math.sin(phase) * 0.5 + 0.5) * 100;
       setSweep(sweepRef.current);
