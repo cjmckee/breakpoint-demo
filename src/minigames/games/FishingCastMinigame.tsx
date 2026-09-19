@@ -18,6 +18,7 @@ import { audioManager } from '../../audio/AudioManager';
 import { MinigameShell, RoundPips } from '../shared/MinigameShell';
 import { useMinigameRounds } from '../shared/useMinigameRounds';
 import { Sparks, ComboBadge, useHitstop, type Burst } from '../shared/minigameJuice';
+import { MinigameArena, ARENA_W, ARENA_H, u, uMin, pctY } from '../shared/MinigameArena';
 import { directionFromKey, type Direction } from '../../utils/gameKeys';
 import type { MinigameProps } from '../types';
 
@@ -33,10 +34,11 @@ const CAST_TIME = 5000; // ms before the fish loses interest
 const BITE_MS = 600;
 const LEG_MIN_MS = 500; // shortest time the fish holds one heading
 const LEG_MAX_MS = 1500; // longest
-const FISH_SPEED = 95; // px/sec at ramp 1
-const LURE_SPEED = 230; // px/sec — has to outrun the fish at the top of the ramp
-const LURE_PX = 64; // lure box side
-const FISH_MARGIN = 18; // px the fish keeps from the glass
+// Distances are in arena units (see MinigameArena); the tank is the whole arena.
+const FISH_SPEED = 17.1; // units/sec at ramp 1
+const LURE_SPEED = 41.4; // units/sec — has to outrun the fish at the top of the ramp
+const LURE_SIZE = 12.9; // lure box side
+const FISH_MARGIN = 3.2; // how close the fish swims to the glass
 const SPLASH_MS = 420;
 
 interface Vec {
@@ -84,9 +86,8 @@ export const FishingCastMinigame: React.FC<MinigameProps> = ({
     onFirstAttempt
   );
   const { frozen, trigger: hitstop } = useHitstop();
-  const lureHalf = (LURE_PX * (1 + windowBonus)) / 2;
+  const lureHalf = (LURE_SIZE * (1 + windowBonus)) / 2;
 
-  const tankRef = useRef<HTMLDivElement | null>(null);
   const runningRef = useRef(false);
   const fishRef = useRef<Fish>({ x: 0, y: 0, vx: 0, vy: 0, turnAt: 0 });
   const lureRef = useRef<Vec>({ x: 0, y: 0 });
@@ -120,13 +121,10 @@ export const FishingCastMinigame: React.FC<MinigameProps> = ({
     (caught: boolean) => {
       if (!runningRef.current) return;
       runningRef.current = false;
-      const tank = tankRef.current;
-      const w = tank?.clientWidth || 1;
-      const h = tank?.clientHeight || 1;
       const at = caught ? fishRef.current : lureRef.current;
-      // Sparks and the splash sit on a % grid, so convert out of tank pixels.
-      const x = (at.x / w) * 100;
-      const y = (at.y / h) * 100;
+      // Sparks and the splash sit on a % grid, so convert out of arena units.
+      const x = at.x;
+      const y = pctY(at.y);
       const now = performance.now();
       setBurst({ id: now, x, y, tone: caught ? 'good' : 'bad' });
       setSplash({ id: now, x, y, caught });
@@ -147,9 +145,8 @@ export const FishingCastMinigame: React.FC<MinigameProps> = ({
   // far enough away that you have to go and get it.
   useEffect(() => {
     if (rounds.phase !== 'playing') return;
-    const tank = tankRef.current;
-    const w = tank?.clientWidth || 600;
-    const h = tank?.clientHeight || 256;
+    const w = ARENA_W;
+    const h = ARENA_H;
     const speed = FISH_SPEED * rounds.speed;
 
     lureRef.current = { x: w / 2, y: h / 2 };
@@ -181,19 +178,15 @@ export const FishingCastMinigame: React.FC<MinigameProps> = ({
       last = now;
       elapsed += dtMs;
 
-      // Re-read the tank every frame so a resize mid-cast can't strand either one outside it.
-      const tw = tankRef.current?.clientWidth || w;
-      const th = tankRef.current?.clientHeight || h;
-
       const fish = fishRef.current;
       if (elapsed >= fish.turnAt) Object.assign(fish, newLeg(speed, elapsed));
       fish.x += fish.vx * dt;
       fish.y += fish.vy * dt;
       // Bounce off the glass so the fish never leaves the tank.
       if (fish.x < FISH_MARGIN) { fish.x = FISH_MARGIN; fish.vx = Math.abs(fish.vx); }
-      if (fish.x > tw - FISH_MARGIN) { fish.x = tw - FISH_MARGIN; fish.vx = -Math.abs(fish.vx); }
+      if (fish.x > w - FISH_MARGIN) { fish.x = w - FISH_MARGIN; fish.vx = -Math.abs(fish.vx); }
       if (fish.y < FISH_MARGIN) { fish.y = FISH_MARGIN; fish.vy = Math.abs(fish.vy); }
-      if (fish.y > th - FISH_MARGIN) { fish.y = th - FISH_MARGIN; fish.vy = -Math.abs(fish.vy); }
+      if (fish.y > h - FISH_MARGIN) { fish.y = h - FISH_MARGIN; fish.vy = -Math.abs(fish.vy); }
 
       // Diagonals are normalized so they are no faster than a straight line.
       let mx = 0;
@@ -205,8 +198,8 @@ export const FishingCastMinigame: React.FC<MinigameProps> = ({
       const mag = Math.hypot(mx, my);
       const lure = lureRef.current;
       if (mag > 0) {
-        lure.x = clamp(lure.x + (mx / mag) * LURE_SPEED * dt, lureHalf, tw - lureHalf);
-        lure.y = clamp(lure.y + (my / mag) * LURE_SPEED * dt, lureHalf, th - lureHalf);
+        lure.x = clamp(lure.x + (mx / mag) * LURE_SPEED * dt, lureHalf, w - lureHalf);
+        lure.y = clamp(lure.y + (my / mag) * LURE_SPEED * dt, lureHalf, h - lureHalf);
       }
 
       const covered = Math.abs(fish.x - lure.x) <= lureHalf && Math.abs(fish.y - lure.y) <= lureHalf;
@@ -333,7 +326,8 @@ export const FishingCastMinigame: React.FC<MinigameProps> = ({
         </>
       }
     >
-      <div className="relative w-full bg-pixel-bg border-2 border-pixel-border overflow-hidden mb-4 p-3">
+      <MinigameArena>
+        <div className="absolute inset-0 bg-pixel-secondary/20" />
         <ComboBadge streak={rounds.streak} />
 
         {/* How long until the fish loses interest */}
@@ -342,76 +336,72 @@ export const FishingCastMinigame: React.FC<MinigameProps> = ({
           style={{ width: `${Math.max(0, (1 - view.timeFrac) * 100)}%` }}
         />
 
-        {/* The tank. Everything inside is positioned in its own pixels. */}
-        <div
-          ref={tankRef}
-          className="relative h-64 w-full border-2 border-pixel-border rounded bg-pixel-secondary/20 overflow-hidden"
-        >
-          {playing && (
-            <>
-              {/* The lure */}
-              <div
-                className={`absolute border-2 border-dashed rounded ${
-                  onFish ? 'border-pixel-success bg-pixel-success/20' : 'border-pixel-accent bg-pixel-accent/10'
-                }`}
-                style={{
-                  left: view.lure.x,
-                  top: view.lure.y,
-                  width: lureHalf * 2,
-                  height: lureHalf * 2,
-                  transform: 'translate(-50%, -50%)',
-                }}
-              >
-                {/* How close the fish is to biting */}
-                <div
-                  className="absolute bottom-0 left-0 h-1 bg-pixel-success"
-                  style={{ width: `${view.biteFrac * 100}%` }}
-                />
-              </div>
-
-              {/* The fish. The emoji faces left, so mirror it when it swims right. */}
-              <div
-                className="absolute text-2xl select-none pointer-events-none"
-                style={{
-                  left: view.fish.x,
-                  top: view.fish.y,
-                  transform: `translate(-50%, -50%) scaleX(${view.facingRight ? -1 : 1})`,
-                }}
-              >
-                🐟
-              </div>
-            </>
-          )}
-
-          {/* Where the cast ended. The outer div owns the centering transform because
-              animate-pixel-scale animates transform and would clobber it. */}
-          {splash && (
+        {playing && (
+          <>
+            {/* The lure */}
             <div
-              className="absolute"
-              style={{ left: `${splash.x}%`, top: `${splash.y}%`, transform: 'translate(-50%, -50%)' }}
+              className={`absolute border-2 border-dashed rounded ${
+                onFish ? 'border-pixel-success bg-pixel-success/20' : 'border-pixel-accent bg-pixel-accent/10'
+              }`}
+              style={{
+                left: u(view.lure.x),
+                top: u(view.lure.y),
+                width: u(lureHalf * 2),
+                height: u(lureHalf * 2),
+                transform: 'translate(-50%, -50%)',
+              }}
             >
+              {/* How close the fish is to biting */}
               <div
-                key={splash.id}
-                className={`w-10 h-10 rounded-full border-4 flex items-center justify-center text-lg animate-pixel-scale ${
-                  splash.caught
-                    ? 'bg-pixel-success/30 border-pixel-success'
-                    : 'bg-pixel-bg border-pixel-error'
-                }`}
-              >
-                {splash.caught ? '🐟' : '💧'}
-              </div>
+                className="absolute bottom-0 left-0 h-1 bg-pixel-success"
+                style={{ width: `${view.biteFrac * 100}%` }}
+              />
             </div>
-          )}
 
-          <Sparks burst={burst} />
-        </div>
+            {/* The fish. The emoji faces left, so mirror it when it swims right. */}
+            <div
+              className="absolute select-none pointer-events-none"
+              style={{
+                left: u(view.fish.x),
+                top: u(view.fish.y),
+                fontSize: uMin(4.3, 16),
+                transform: `translate(-50%, -50%) scaleX(${view.facingRight ? -1 : 1})`,
+              }}
+            >
+              🐟
+            </div>
+          </>
+        )}
+
+        {/* Where the cast ended. The outer div owns the centering transform because
+            animate-pixel-scale animates transform and would clobber it. */}
+        {splash && (
+          <div
+            className="absolute"
+            style={{ left: `${splash.x}%`, top: `${splash.y}%`, transform: 'translate(-50%, -50%)' }}
+          >
+            <div
+              key={splash.id}
+              className={`rounded-full border-4 flex items-center justify-center animate-pixel-scale ${
+                splash.caught
+                  ? 'bg-pixel-success/30 border-pixel-success'
+                  : 'bg-pixel-bg border-pixel-error'
+              }`}
+              style={{ width: uMin(7.2, 28), height: uMin(7.2, 28), fontSize: uMin(3.2, 12) }}
+            >
+              {splash.caught ? '🐟' : '💧'}
+            </div>
+          </div>
+        )}
+
+        <Sparks burst={burst} />
 
         {playing && (
           <div className="absolute top-2 left-2 text-xs text-pixel-text-muted z-10">
             Cast {rounds.round + 1}/{rounds.total}
           </div>
         )}
-      </div>
+      </MinigameArena>
     </MinigameShell>
   );
 };

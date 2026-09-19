@@ -14,32 +14,37 @@ import { SupportResult, countNote } from '../shared/trainingReadout';
 import type { MinigameProps } from '../types';
 import { useMinigameRounds } from '../shared/useMinigameRounds';
 import { Sparks, ComboBadge, useHitstop, type Burst } from '../shared/minigameJuice';
+import { MinigameArena, ARENA_H, u, uMin, pctY } from '../shared/MinigameArena';
 import { directionFromKey, isActionKey } from '../../utils/gameKeys';
 
-const Y_STRIKE = 60; // % from top — where the pocket sits
-const ZONE_SPEED = 74; // %/sec the strike zone slides
-const START_Y = 92;
-/** Pocket size in px — kept near-square (~10% wider than tall) regardless of the box aspect. */
-const POCKET_W = 58;
-const POCKET_H = 52;
+// Everything is in arena units (see MinigameArena). The toss is anchored to the
+// bottom of the court; the space above its apex is headroom.
+const START_Y = ARENA_H - 3.5; // where the toss leaves the hand
+const Y_STRIKE = START_Y - 14; // where the pocket sits
+const X_MIN = 8; // the toss bounces off these so it stays on court
+const X_MAX = 92;
+const ZONE_SPEED = 74; // units/sec the strike zone slides
+/** Pocket size — near-square, ~10% wider than tall. */
+const POCKET_W = 9.9;
+const POCKET_H = 8.9;
 
 interface Toss {
-  vy0: number; // %/sec upward launch
-  g: number; // %/sec^2 gravity
-  vx: number; // %/sec horizontal drift
+  vy0: number; // units/sec upward launch
+  g: number; // units/sec^2 gravity
+  vx: number; // units/sec horizontal drift
 }
 
 /**
- * A high, fast arc: the apex lands near the top of the box, so the ball crosses the
- * strike band on the way up and again on the way down.
+ * A high, fast arc: the apex climbs ~41 units, so the ball crosses the strike band on
+ * the way up and again on the way down.
  *
  * `speed` replays the same arc faster rather than changing its shape — apex height is
  * vy0²/2g, so scaling vy0 by k and g by k² leaves it untouched while the whole flight
  * runs 1/k as long. Later attempts get less time in the pocket, not a different toss.
  */
 const randomToss = (speed: number): Toss => ({
-  vy0: -(150 + Math.random() * 10) * speed,
-  g: (120 + Math.random() * 15) * speed * speed,
+  vy0: -(65.8 + Math.random() * 4.4) * speed,
+  g: (52.6 + Math.random() * 6.6) * speed * speed,
   vx: (Math.random() < 0.5 ? -1 : 1) * (12 + Math.random() * 7) * speed,
 });
 
@@ -47,10 +52,9 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
   const rounds = useMinigameRounds({ minigame: 'toss_and_strike', config }, onComplete, onFirstAttempt);
   const { frozen, trigger: hitstop } = useHitstop();
 
-  const boxRef = useRef<HTMLDivElement | null>(null);
-  // Pocket half-extents as % of the box, derived from the px size so it stays square.
-  const halfRef = useRef({ x: 8, y: 10 });
-  const [half, setHalf] = useState(halfRef.current);
+  const half = { x: (POCKET_W * (1 + windowBonus)) / 2, y: (POCKET_H * (1 + windowBonus)) / 2 };
+  const halfRef = useRef(half);
+  halfRef.current = half;
 
   const ballRef = useRef({ x: 50, y: START_Y, vx: 0, vy: 0 });
   const zoneRef = useRef(50);
@@ -66,27 +70,6 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
 
   const playing = rounds.phase === 'playing';
 
-  // Measure the box so the pocket's px size can be expressed in the ball's % space.
-  // Re-runs on phase change because the box only mounts once the start gate clears.
-  useEffect(() => {
-    const el = boxRef.current;
-    if (!el) return;
-    const measure = (): void => {
-      const rect = el.getBoundingClientRect();
-      if (!rect.width || !rect.height) return;
-      const next = {
-        x: ((POCKET_W * (1 + windowBonus)) / 2 / rect.width) * 100,
-        y: ((POCKET_H * (1 + windowBonus)) / 2 / rect.height) * 100,
-      };
-      halfRef.current = next;
-      setHalf(next);
-    };
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [windowBonus, rounds.phase]);
-
   const isInPocket = useCallback(() => {
     const b = ballRef.current;
     const h = halfRef.current;
@@ -98,7 +81,7 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
     struckRef.current = true;
     const passed = isInPocket();
     const b = ballRef.current;
-    setBurst({ id: performance.now(), x: b.x, y: b.y, tone: passed ? 'good' : 'bad' });
+    setBurst({ id: performance.now(), x: b.x, y: pctY(b.y), tone: passed ? 'good' : 'bad' });
     if (passed) {
       hitstop();
       setStruck(true);
@@ -132,14 +115,14 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
       b.vy += toss.g * dt;
       b.y += b.vy * dt;
       b.x += b.vx * dt;
-      if (b.x < 8) { b.x = 8; b.vx = Math.abs(b.vx); }
-      if (b.x > 92) { b.x = 92; b.vx = -Math.abs(b.vx); }
+      if (b.x < X_MIN) { b.x = X_MIN; b.vx = Math.abs(b.vx); }
+      if (b.x > X_MAX) { b.x = X_MAX; b.vx = -Math.abs(b.vx); }
       const edge = halfRef.current.x;
       zoneRef.current = Math.max(edge, Math.min(100 - edge, zoneRef.current + moveRef.current * ZONE_SPEED * dt));
       setBall({ x: b.x, y: b.y });
       setZone(zoneRef.current);
       setInPocket(isInPocket());
-      if (b.y > 104 && !struckRef.current) {
+      if (b.y > ARENA_H + 1.75 && !struckRef.current) {
         struckRef.current = true;
         setBurst({ id: now, x: b.x, y: 98, tone: 'bad' });
         rounds.commit(false);
@@ -238,7 +221,7 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
         </>
       }
     >
-      <div ref={boxRef} className="relative h-64 w-full bg-pixel-bg border-2 border-pixel-border overflow-hidden mb-4">
+      <MinigameArena>
         <ComboBadge streak={rounds.streak} />
 
         {/* Baseline + toss shadow for depth */}
@@ -246,7 +229,7 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
         {playing && !struck && (
           <div
             className="absolute bottom-1 h-2 rounded-full bg-black/40"
-            style={{ left: `${ball.x}%`, width: 28, transform: 'translateX(-50%)', opacity: Math.max(0.15, 1 - ball.y / 100) }}
+            style={{ left: u(ball.x), width: u(4.8), transform: 'translateX(-50%)', opacity: Math.max(0.15, 1 - ball.y / ARENA_H) }}
           />
         )}
 
@@ -254,10 +237,10 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
         <div
           className={`absolute border-4 ${inPocket ? 'border-pixel-success bg-pixel-success/20' : 'border-pixel-accent/70'}`}
           style={{
-            left: `${zone}%`,
-            top: `${Y_STRIKE}%`,
-            width: `${half.x * 2}%`,
-            height: `${half.y * 2}%`,
+            left: u(zone),
+            top: u(Y_STRIKE),
+            width: u(half.x * 2),
+            height: u(half.y * 2),
             transform: 'translate(-50%, -50%)',
           }}
         />
@@ -265,23 +248,30 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
         {/* The ball */}
         {playing && !struck && (
           <div
-            className="absolute w-9 h-9 rounded-full bg-pixel-ball border-2 border-pixel-text flex items-center justify-center text-base"
-            style={{ left: `${ball.x}%`, top: `${ball.y}%`, transform: 'translate(-50%, -50%)' }}
+            className="absolute rounded-full bg-pixel-ball border-2 border-pixel-text flex items-center justify-center"
+            style={{
+              left: u(ball.x),
+              top: u(ball.y),
+              width: uMin(6.2, 24),
+              height: uMin(6.2, 24),
+              fontSize: uMin(2.7, 11),
+              transform: 'translate(-50%, -50%)',
+            }}
           >
             🎾
           </div>
         )}
         {struck && (
           <div
-            className="absolute text-2xl"
-            style={{ left: `${ball.x}%`, top: `${Math.max(6, ball.y - 20)}%`, transform: 'translate(-50%, -50%)' }}
+            className="absolute"
+            style={{ left: u(ball.x), top: u(Math.max(2.6, ball.y - 8.8)), fontSize: uMin(4.1, 16), transform: 'translate(-50%, -50%)' }}
           >
             💥
           </div>
         )}
 
         <Sparks burst={burst} />
-      </div>
+      </MinigameArena>
     </MinigameShell>
   );
 };

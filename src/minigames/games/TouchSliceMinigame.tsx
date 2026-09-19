@@ -14,6 +14,7 @@ import { SupportResult, countNote } from '../shared/trainingReadout';
 import type { MinigameProps } from '../types';
 import { useMinigameRounds } from '../shared/useMinigameRounds';
 import { Sparks, ComboBadge, useHitstop, type Burst } from '../shared/minigameJuice';
+import { MinigameArena, u, uMin } from '../shared/MinigameArena';
 import { isActionKey } from '../../utils/gameKeys';
 
 const HITS_NEEDED = 3;
@@ -23,6 +24,10 @@ const SWEEP_MIN = 780; // ms period
 const SWEEP_MAX = 1150;
 const AMP = 44; // % swing amplitude around center
 const POP_MS = 400; // ms the struck ball stays on screen
+
+// Swing strip, in arena units. Judging is a % of the strip, so these are looks only.
+const STRIP_INSET = 4; // units in from each side
+const STRIP_H = 11;
 
 export const TouchSliceMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt, config }) => {
   const rounds = useMinigameRounds({ minigame: 'touch_slice', config }, onComplete, onFirstAttempt);
@@ -181,7 +186,7 @@ export const TouchSliceMinigame: React.FC<MinigameProps> = ({ onComplete, window
         </>
       }
     >
-      <div className="relative h-64 w-full bg-pixel-bg border-2 border-pixel-border overflow-hidden mb-4 flex items-center justify-center">
+      <MinigameArena>
         <ComboBadge streak={rounds.streak} />
 
         {/* Round timer */}
@@ -189,27 +194,32 @@ export const TouchSliceMinigame: React.FC<MinigameProps> = ({ onComplete, window
 
         {/* Tilted swing line */}
         <div
-          className="absolute left-6 right-6 h-16 border border-pixel-border rounded bg-pixel-secondary/20 transition-transform duration-300"
-          style={{ transform: `rotate(${tilt}deg)` }}
+          className="absolute top-1/2 border border-pixel-border rounded bg-pixel-secondary/20 transition-transform duration-300"
+          style={{
+            left: u(STRIP_INSET),
+            right: u(STRIP_INSET),
+            height: u(STRIP_H),
+            transform: `translateY(-50%) rotate(${tilt}deg)`,
+          }}
         >
           {/* Zone */}
           <div
-            className={`absolute top-[-6px] bottom-[-6px] border-l-2 border-r-2 border-dashed ${inZone ? 'border-pixel-success bg-pixel-success/20' : 'border-pixel-accent bg-pixel-accent/10'}`}
-            style={{ left: `${zoneCenter}%`, width: `${zoneHalf * 2}%`, transform: 'translateX(-50%)' }}
+            className={`absolute border-l-2 border-r-2 border-dashed ${inZone ? 'border-pixel-success bg-pixel-success/20' : 'border-pixel-accent bg-pixel-accent/10'}`}
+            style={{ left: `${zoneCenter}%`, top: u(-1), bottom: u(-1), width: `${zoneHalf * 2}%`, transform: 'translateX(-50%)' }}
           />
           {/* Arc trail */}
           {playing && view.trail.map((p, i) => (
             <div
               key={i}
               className="absolute top-1/2 w-1.5 rounded-full bg-pixel-text"
-              style={{ left: `${p}%`, height: 18, transform: 'translate(-50%, -50%)', opacity: (1 - i / view.trail.length) * 0.35 }}
+              style={{ left: `${p}%`, height: u(3), transform: 'translate(-50%, -50%)', opacity: (1 - i / view.trail.length) * 0.35 }}
             />
           ))}
           {/* Marker */}
           {playing && (
             <div
-              className={`absolute top-[-10px] bottom-[-10px] w-1.5 rounded-full ${inZone ? 'bg-pixel-success' : 'bg-pixel-accent'}`}
-              style={{ left: `${view.pos}%`, transform: 'translateX(-50%)', boxShadow: '0 0 10px currentColor' }}
+              className={`absolute w-1.5 rounded-full ${inZone ? 'bg-pixel-success' : 'bg-pixel-accent'}`}
+              style={{ left: `${view.pos}%`, top: u(-1.7), bottom: u(-1.7), transform: 'translateX(-50%)', boxShadow: '0 0 10px currentColor' }}
             />
           )}
           {/* The ball left where the swing connected. The outer div owns the centering
@@ -222,9 +232,10 @@ export const TouchSliceMinigame: React.FC<MinigameProps> = ({ onComplete, window
             >
               <div
                 key={pop.id}
-                className={`w-10 h-10 rounded-full bg-pixel-ball border-4 flex items-center justify-center text-lg animate-pixel-scale ${
+                className={`rounded-full bg-pixel-ball border-4 flex items-center justify-center animate-pixel-scale ${
                   pop.good ? 'border-pixel-success' : 'border-pixel-error'
                 }`}
+                style={{ width: uMin(6.8, 28), height: uMin(6.8, 28), fontSize: uMin(3, 12) }}
               >
                 🎾
               </div>
@@ -237,7 +248,7 @@ export const TouchSliceMinigame: React.FC<MinigameProps> = ({ onComplete, window
         {playing && (
           <div className="absolute top-2 left-2 text-xs text-pixel-text-muted">{hits}/{HITS_NEEDED} sliced</div>
         )}
-      </div>
+      </MinigameArena>
     </MinigameShell>
   );
 };

@@ -21,30 +21,37 @@ import { SupportResult, countNote } from '../shared/trainingReadout';
 import type { MinigameProps } from '../types';
 import { useMinigameRounds } from '../shared/useMinigameRounds';
 import { Sparks, ComboBadge, useHitstop, type Burst } from '../shared/minigameJuice';
+import { MinigameArena, ARENA_H, u, uMin, pctY } from '../shared/MinigameArena';
 import { directionFromKey, isActionKey } from '../../utils/gameKeys';
 
-const LINE_X = 16; // % — the return line the strike zone rides
-const ENTRY_X = 104; // % — just off the right edge
-const FLOOR = 90; // % — where the serve bounces
-const BOUNCE_MIN = 40; // % — nearest the bounce is ever allowed to the line
+// Everything is in arena units (see MinigameArena). The court is anchored to the
+// bottom of the arena and COURT_H tall; the space above it is headroom the serve
+// never uses and the zone can't reach.
+const COURT_H = 43.8;
+const COURT_TOP = ARENA_H - COURT_H;
+const LINE_X = 16; // the return line the strike zone rides
+const ENTRY_X = 104; // just off the right edge
+const FLOOR = COURT_TOP + 39.5; // where the serve bounces
+const BOUNCE_MIN = 40; // nearest the bounce is ever allowed to the line
 const BOUNCE_MAX = 70;
-const ENTRY_Y_MIN = 6; // % — keeps the serve on screen when it enters
-const ENTRY_Y_MAX = 76;
-const CROSS_MIN = 18; // % — band the ball can cross the line in (must be reachable)
-const CROSS_MAX = 76;
+const ENTRY_Y_MIN = COURT_TOP + 2.6; // keeps the serve on screen when it enters
+const ENTRY_Y_MAX = COURT_TOP + 33.3;
+const CROSS_MIN = COURT_TOP + 7.9; // band the ball can cross the line in (must be reachable)
+const CROSS_MAX = COURT_TOP + 33.3;
 const MIN_REACTION = 0.34; // s — floor on the bounce→line reaction budget
-const ZONE_W = 56; // px — strike zone, kept in px so it doesn't stretch with the box
-const ZONE_H = 66;
-const ZONE_SPEED = 124; // %/sec the zone slides
-const SPEED_MIN = 52; // %/sec horizontal
+const ZONE_W = 9.6; // strike zone
+const ZONE_H = 11.3;
+const ZONE_START = COURT_TOP + 21.9; // where the zone waits for each serve
+const ZONE_SPEED = 54.4; // units/sec the zone slides
+const SPEED_MIN = 52; // units/sec horizontal
 const SPEED_SPAN = 9;
 
 interface Serve {
   /** Height the ball enters the right edge at. */
   entryY: number;
   bounceX: number;
-  vx: number; // %/sec, magnitude — unchanged through the bounce
-  vy: number; // %/sec, down before the bounce and up after it
+  vx: number; // units/sec, magnitude — unchanged through the bounce
+  vy: number; // units/sec, down before the bounce and up after it
   /** Height the ball meets the return line at — the answer the player is solving for. */
   crossY: number;
 }
@@ -57,7 +64,7 @@ interface Serve {
  *
  * With entryY = FLOOR - (FLOOR - crossY) * ratio, the feasible crossY band inverts
  * straight out of the entry-height limits — and across the whole bounce range that band
- * is never narrower than ~17%, so a single roll always lands a valid serve.
+ * is never narrower than ~7 units, so a single roll always lands a valid serve.
  */
 function planServe(speed: number): Serve {
   // Never bounce so close to the line that there's no time to react to the rise.
@@ -80,14 +87,13 @@ export const ReadReturnMinigame: React.FC<MinigameProps> = ({ onComplete, window
   const rounds = useMinigameRounds({ minigame: 'read_return', config }, onComplete, onFirstAttempt);
   const { frozen, trigger: hitstop } = useHitstop();
 
-  const boxRef = useRef<HTMLDivElement | null>(null);
-  // Zone half-extents as % of the box, derived from the px size so it stays a fixed shape.
-  const halfRef = useRef({ x: 6, y: 11 });
-  const [half, setHalf] = useState(halfRef.current);
+  const half = { x: (ZONE_W * (1 + windowBonus)) / 2, y: (ZONE_H * (1 + windowBonus)) / 2 };
+  const halfRef = useRef(half);
+  halfRef.current = half;
 
   const ballRef = useRef({ x: ENTRY_X, y: 0, vx: 0, vy: 0 });
   const bouncedRef = useRef(false);
-  const zoneRef = useRef(50);
+  const zoneRef = useRef(ZONE_START);
   const moveRef = useRef(0);
   const swungRef = useRef(false);
   const liveRef = useRef(false);
@@ -95,7 +101,7 @@ export const ReadReturnMinigame: React.FC<MinigameProps> = ({ onComplete, window
   const rafRef = useRef<number | null>(null);
 
   const [ball, setBall] = useState({ x: ENTRY_X, y: 0, visible: false });
-  const [zone, setZone] = useState(50);
+  const [zone, setZone] = useState(ZONE_START);
   const [inZone, setInZone] = useState(false);
   const [trail, setTrail] = useState<Array<{ x: number; y: number }>>([]);
   /** Where the live serve WILL bounce — shown from the moment it's struck, so the read
@@ -105,34 +111,13 @@ export const ReadReturnMinigame: React.FC<MinigameProps> = ({ onComplete, window
 
   const playing = rounds.phase === 'playing';
 
-  // Measure the box so the zone's px size can be expressed in the ball's % space.
-  // Re-runs on phase change because the court only mounts once the start gate clears.
-  useEffect(() => {
-    const el = boxRef.current;
-    if (!el) return;
-    const measure = (): void => {
-      const rect = el.getBoundingClientRect();
-      if (!rect.width || !rect.height) return;
-      const next = {
-        x: ((ZONE_W * (1 + windowBonus)) / 2 / rect.width) * 100,
-        y: ((ZONE_H * (1 + windowBonus)) / 2 / rect.height) * 100,
-      };
-      halfRef.current = next;
-      setHalf(next);
-    };
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [windowBonus, rounds.phase]);
-
   /** One serve per attempt: whatever happens to it settles the attempt. */
   const resolve = useCallback(
     (good: boolean) => {
       if (!liveRef.current) return;
       liveRef.current = false;
       const b = ballRef.current;
-      setBurst({ id: performance.now(), x: b.x, y: b.y, tone: good ? 'good' : 'bad' });
+      setBurst({ id: performance.now(), x: b.x, y: pctY(b.y), tone: good ? 'good' : 'bad' });
       if (good) {
         hitstop();
         audioManager.playSfx('hit_volley');
@@ -181,7 +166,7 @@ export const ReadReturnMinigame: React.FC<MinigameProps> = ({ onComplete, window
       }
 
       const h = halfRef.current;
-      zoneRef.current = Math.max(h.y, Math.min(100 - h.y, zoneRef.current + moveRef.current * ZONE_SPEED * dt));
+      zoneRef.current = Math.max(COURT_TOP + h.y, Math.min(ARENA_H - h.y, zoneRef.current + moveRef.current * ZONE_SPEED * dt));
       setZone(zoneRef.current);
       setBall({ x: b.x, y: b.y, visible: true });
       setTrail((prev) => [{ x: b.x, y: b.y }, ...prev].slice(0, 6));
@@ -209,8 +194,8 @@ export const ReadReturnMinigame: React.FC<MinigameProps> = ({ onComplete, window
   // Arm a fresh serve for each playing attempt.
   useEffect(() => {
     if (rounds.phase !== 'playing') return;
-    zoneRef.current = 50;
-    setZone(50);
+    zoneRef.current = ZONE_START;
+    setZone(ZONE_START);
     launchServe();
     return () => {
       liveRef.current = false;
@@ -304,17 +289,17 @@ export const ReadReturnMinigame: React.FC<MinigameProps> = ({ onComplete, window
         </>
       }
     >
-      <div ref={boxRef} className="relative h-64 w-full bg-pixel-bg border-2 border-pixel-border overflow-hidden mb-4">
+      <MinigameArena>
         <ComboBadge streak={rounds.streak} />
 
         {/* Court floor */}
-        <div className="absolute inset-x-0 bg-pixel-secondary/25" style={{ top: `${FLOOR}%`, bottom: 0 }} />
-        <div className="absolute inset-x-0 h-0.5 bg-pixel-border" style={{ top: `${FLOOR}%` }} />
+        <div className="absolute inset-x-0 bg-pixel-secondary/25" style={{ top: u(FLOOR), bottom: 0 }} />
+        <div className="absolute inset-x-0 h-0.5 bg-pixel-border" style={{ top: u(FLOOR) }} />
 
         {/* The return line the zone rides */}
         <div
           className="absolute top-0 bottom-0 border-l-2 border-dashed border-pixel-border"
-          style={{ left: `${LINE_X}%` }}
+          style={{ left: u(LINE_X) }}
         />
 
         {/* Where this serve lands: a dashed target while it's in the air, a solid pop on
@@ -322,11 +307,12 @@ export const ReadReturnMinigame: React.FC<MinigameProps> = ({ onComplete, window
         {playing && bounceSpot && (
           <div
             className="absolute"
-            style={{ left: `${bounceSpot.x}%`, top: `${FLOOR}%`, transform: 'translate(-50%, -50%)' }}
+            style={{ left: u(bounceSpot.x), top: u(FLOOR), transform: 'translate(-50%, -50%)' }}
           >
             <div
               key={`${bounceSpot.x}-${bounceSpot.struck}`}
-              className={`w-5 h-5 rounded-full border-2 ${
+              style={{ width: uMin(3.4, 14), height: uMin(3.4, 14) }}
+              className={`rounded-full border-2 ${
                 bounceSpot.struck
                   ? 'border-pixel-warning bg-pixel-warning/40 animate-pixel-scale'
                   : 'border-dashed border-pixel-warning/70'
@@ -339,10 +325,10 @@ export const ReadReturnMinigame: React.FC<MinigameProps> = ({ onComplete, window
         <div
           className={`absolute border-4 ${inZone ? 'border-pixel-success bg-pixel-success/20' : 'border-pixel-accent/70'}`}
           style={{
-            left: `${LINE_X}%`,
-            top: `${zone}%`,
-            width: `${half.x * 2}%`,
-            height: `${half.y * 2}%`,
+            left: u(LINE_X),
+            top: u(zone),
+            width: u(half.x * 2),
+            height: u(half.y * 2),
             transform: 'translate(-50%, -50%)',
           }}
         />
@@ -353,8 +339,8 @@ export const ReadReturnMinigame: React.FC<MinigameProps> = ({ onComplete, window
             key={i}
             className="absolute w-2 h-2 rounded-full bg-pixel-text pointer-events-none"
             style={{
-              left: `${p.x}%`,
-              top: `${p.y}%`,
+              left: u(p.x),
+              top: u(p.y),
               transform: 'translate(-50%, -50%)',
               opacity: (1 - i / trail.length) * 0.3,
             }}
@@ -364,15 +350,22 @@ export const ReadReturnMinigame: React.FC<MinigameProps> = ({ onComplete, window
         {/* The serve */}
         {playing && ball.visible && (
           <div
-            className="absolute w-9 h-9 rounded-full bg-pixel-ball border-2 border-pixel-text flex items-center justify-center text-base pointer-events-none"
-            style={{ left: `${ball.x}%`, top: `${ball.y}%`, transform: 'translate(-50%, -50%)' }}
+            className="absolute rounded-full bg-pixel-ball border-2 border-pixel-text flex items-center justify-center pointer-events-none"
+            style={{
+              left: u(ball.x),
+              top: u(ball.y),
+              width: uMin(6.2, 24),
+              height: uMin(6.2, 24),
+              fontSize: uMin(2.7, 11),
+              transform: 'translate(-50%, -50%)',
+            }}
           >
             🎾
           </div>
         )}
 
         <Sparks burst={burst} />
-      </div>
+      </MinigameArena>
     </MinigameShell>
   );
 };
