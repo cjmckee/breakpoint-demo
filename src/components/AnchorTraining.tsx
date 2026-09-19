@@ -29,21 +29,7 @@ import { STAT_ICONS, formatStatName } from '../config/statIcons';
 import { StatIcon } from './ui/StatIcon';
 import { CoreStatPentagon } from './training/CoreStatPentagon';
 import { audioManager } from '../audio/AudioManager';
-import type { MinigameId } from '../game/AnchorTrainingSystem';
-import type { MinigameProps } from './training/MinigameShell';
-import { ServeMinigame } from './training/ServeMinigame';
-import { RallyRhythmMinigame } from './training/RallyRhythmMinigame';
-import { CornerPainterMinigame } from './training/CornerPainterMinigame';
-import { ReadReturnMinigame } from './training/ReadReturnMinigame';
-import { TouchSliceMinigame } from './training/TouchSliceMinigame';
-
-const MINIGAMES: Record<MinigameId, React.FC<MinigameProps>> = {
-  toss_and_strike: ServeMinigame,
-  rally_rhythm: RallyRhythmMinigame,
-  corner_paint: CornerPainterMinigame,
-  read_return: ReadReturnMinigame,
-  touch_slice: TouchSliceMinigame,
-};
+import { MINIGAMES } from '../minigames/registry';
 
 type Step = { kind: 'pick' } | { kind: 'play'; core: CoreStat };
 
@@ -115,7 +101,9 @@ export const AnchorTraining: React.FC = () => {
             const Minigame = MINIGAMES[anchor.minigame];
             return (
               <Minigame
-                onComplete={(count) => resolve(step.core, count)}
+                // Training reads the score as its support count — the identity
+                // mapping, since a clean rep is worth one point and one support.
+                onComplete={(score) => resolve(step.core, score.score)}
                 windowBonus={windowBonus}
                 onFirstAttempt={() => setHasAttempted(true)}
               />

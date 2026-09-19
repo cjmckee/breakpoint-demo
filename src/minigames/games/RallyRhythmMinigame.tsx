@@ -10,15 +10,12 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { audioManager } from '../../audio/AudioManager';
-import {
-  MinigameShell,
-  SupportResult,
-  RoundPips,
-  countNote,
-  type MinigameProps,
-} from './MinigameShell';
-import { useMinigameRounds, roundSpeed } from './useMinigameRounds';
-import { Sparks, ComboBadge, useHitstop, type Burst } from './minigameJuice';
+import { MinigameShell, RoundPips } from '../shared/MinigameShell';
+import { SupportResult, countNote } from '../shared/trainingReadout';
+import type { MinigameProps } from '../types';
+import { useMinigameRounds } from '../shared/useMinigameRounds';
+import { Sparks, ComboBadge, useHitstop, type Burst } from '../shared/minigameJuice';
+import { MinigameArena, uMin } from '../shared/MinigameArena';
 import { directionFromKey } from '../../utils/gameKeys';
 
 const LANES = 3;
@@ -29,8 +26,12 @@ const INTERVAL = 420; // ms between the set's beats, at speed 1
 const LEAD_IN = 300;
 /** Per-set tempo wobble, on top of the round ramp — no two sets feel identical. */
 const TEMPO_SPAN = 0.1;
+// Heights as a % of the arena. Judging is by time alone, so the court's shape
+// only changes how far a ball falls on screen, never how long it takes.
 const TOP_Y = -6; // %
 const STRIKE_Y = 80; // %
+/** Ball and target diameter, in arena units. */
+const BALL = 8.2;
 
 interface Note {
   id: number;
@@ -43,8 +44,8 @@ interface Note {
 const laneC = (i: number): number => ((i + 0.5) / LANES) * 100;
 const LANE_GLYPH = ['◀', '●', '▶'];
 
-export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt }) => {
-  const rounds = useMinigameRounds(onComplete, onFirstAttempt);
+export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt, config }) => {
+  const rounds = useMinigameRounds({ minigame: 'rally_rhythm', config }, onComplete, onFirstAttempt);
   const { frozen, trigger: hitstop } = useHitstop();
   const hitWin = 155 * (1 + windowBonus);
 
@@ -90,7 +91,7 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
 
   const pressTrack = useCallback(
     (track: number) => {
-      if (!runningRef.current) return;
+      if (!runningRef.current || frozen.current) return;
       const now = performance.now();
       let best: Note | null = null;
       let bestDt = Infinity;
@@ -103,14 +104,14 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
       if (!best || bestDt > hitWin * 1.8) return; // stray tap on an empty track — ignore
       judgeNote(best, bestDt <= hitWin);
     },
-    [hitWin, judgeNote]
+    [hitWin, judgeNote, frozen]
   );
 
   // Arm a fresh set for each playing round. The tempo is rolled once per set, so the
   // beat stays dead even inside a set while every set runs at its own speed.
   useEffect(() => {
     if (rounds.phase !== 'playing') return;
-    const tempo = (1 - TEMPO_SPAN / 2 + Math.random() * TEMPO_SPAN) * roundSpeed(rounds.round);
+    const tempo = (1 - TEMPO_SPAN / 2 + Math.random() * TEMPO_SPAN) * rounds.speed;
     const travel = TRAVEL / tempo;
     const interval = INTERVAL / tempo;
     const base = performance.now() + travel + LEAD_IN;
@@ -127,11 +128,20 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
     setSetHits(0);
     setSoClose(false);
 
+    // Notes are scheduled at absolute times, so a freeze has to push every one of
+    // them back by however long it lasted, or they all fall past the line meanwhile.
+    let frozenAt: number | null = null;
     const loop = (now: number): void => {
       if (!runningRef.current) return;
       if (frozen.current) {
+        frozenAt ??= now;
         rafRef.current = requestAnimationFrame(loop);
         return;
+      }
+      if (frozenAt !== null) {
+        const held = now - frozenAt;
+        for (const n of notesRef.current) n.time += held;
+        frozenAt = null;
       }
       let nearBeat = false;
       const vis: Array<{ id: number; track: number; y: number }> = [];
@@ -210,7 +220,7 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
         </>
       }
     >
-      <div className="relative h-64 w-full bg-pixel-bg border-2 border-pixel-border overflow-hidden mb-4">
+      <MinigameArena>
         <ComboBadge streak={rounds.streak} />
 
         {/* Track dividers + dashed target balls on the strike line */}
@@ -220,8 +230,8 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
               <div className="absolute top-0 bottom-0 border-l border-dashed border-pixel-border/60" style={{ left: `${(i / LANES) * 100}%` }} />
             )}
             <div
-              className="absolute w-12 h-12 rounded-full border-2 border-dashed border-pixel-text-muted/50"
-              style={{ left: `${laneC(i)}%`, top: `${STRIKE_Y}%`, transform: 'translate(-50%, -50%)' }}
+              className="absolute rounded-full border-2 border-dashed border-pixel-text-muted/50"
+              style={{ left: `${laneC(i)}%`, top: `${STRIKE_Y}%`, width: uMin(BALL, 32), height: uMin(BALL, 32), transform: 'translate(-50%, -50%)' }}
             />
           </React.Fragment>
         ))}
@@ -237,8 +247,15 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
         {render.map((n) => (
           <div
             key={n.id}
-            className="absolute w-12 h-12 rounded-full bg-pixel-ball border-2 border-pixel-text flex items-center justify-center text-2xl"
-            style={{ left: `${laneC(n.track)}%`, top: `${n.y}%`, transform: 'translate(-50%, -50%)' }}
+            className="absolute rounded-full bg-pixel-ball border-2 border-pixel-text flex items-center justify-center"
+            style={{
+              left: `${laneC(n.track)}%`,
+              top: `${n.y}%`,
+              width: uMin(BALL, 32),
+              height: uMin(BALL, 32),
+              fontSize: uMin(4.1, 16),
+              transform: 'translate(-50%, -50%)',
+            }}
           >
             🎾
           </div>
@@ -257,7 +274,7 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
             <span className="text-xl font-bold text-pixel-warning">2/3 — so close!</span>
           </div>
         )}
-      </div>
+      </MinigameArena>
     </MinigameShell>
   );
 };

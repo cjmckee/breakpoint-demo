@@ -9,33 +9,26 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { audioManager } from '../../audio/AudioManager';
-import {
-  MinigameShell,
-  SupportResult,
-  RoundPips,
-  MinigameActionButton,
-  countNote,
-  type MinigameProps,
-} from './MinigameShell';
-import { useMinigameRounds, roundSpeed } from './useMinigameRounds';
-import { Sparks, ComboBadge, useHitstop, type Burst } from './minigameJuice';
+import { MinigameShell, RoundPips, MinigameActionButton } from '../shared/MinigameShell';
+import { SupportResult, countNote } from '../shared/trainingReadout';
+import type { MinigameProps } from '../types';
+import { useMinigameRounds } from '../shared/useMinigameRounds';
+import { Sparks, ComboBadge, useHitstop, type Burst } from '../shared/minigameJuice';
+import { MinigameArena, ARENA_H, u, uMin } from '../shared/MinigameArena';
 import { isActionKey } from '../../utils/gameKeys';
 
 /**
- * The landing window is measured against a fixed reference court rather than the live
- * element, so it stays exactly as tuned however the court renders. Measuring the live
- * box tied difficulty to layout: a taller court tightened the depth lock, and a narrow
- * phone loosened the sideline lock, neither of them on purpose.
+ * Sweeps and targets are placed as a % of each axis; the landing check converts to
+ * arena units so the window is a true circle on every screen.
  */
-const REF_W = 584; // px — the court at max-w-2xl, where the window below was tuned
-const REF_H = 224;
-const TOLERANCE = 52; // px radius on the reference court counted as "on the ring"
+const TOLERANCE = 8.9; // arena units — radius counted as "on the ring"
+const RING = 11; // arena units — the drawn ring's diameter
 const SWEEP_MIN = 4.0; // rad/sec
 const SWEEP_MAX = 5.0;
 
-export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt }) => {
-  const rounds = useMinigameRounds(onComplete, onFirstAttempt);
-  const { trigger: hitstop } = useHitstop();
+export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt, config }) => {
+  const rounds = useMinigameRounds({ minigame: 'corner_paint', config }, onComplete, onFirstAttempt);
+  const { frozen, trigger: hitstop } = useHitstop();
   const tol = TOLERANCE * (1 + windowBonus);
 
   const targetsRef = useRef<Array<{ x: number; y: number }>>(
@@ -44,7 +37,6 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
   const stageRef = useRef<'x' | 'y' | 'done'>('x');
   const lockXRef = useRef(50);
   const sweepRef = useRef(0);
-  const startRef = useRef(0);
   const rafRef = useRef<number | null>(null);
 
   const [sweep, setSweep] = useState(0);
@@ -56,7 +48,7 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
   const playing = rounds.phase === 'playing';
 
   const lock = useCallback(() => {
-    if (rounds.phase !== 'playing') return;
+    if (rounds.phase !== 'playing' || frozen.current) return;
     if (stageRef.current === 'x') {
       lockXRef.current = sweepRef.current;
       stageRef.current = 'y';
@@ -69,7 +61,7 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
       setStage('done');
       const lockY = sweepRef.current;
       const lockX = lockXRef.current;
-      const dist = Math.hypot(((lockX - target.x) / 100) * REF_W, ((lockY - target.y) / 100) * REF_H);
+      const dist = Math.hypot(lockX - target.x, ((lockY - target.y) / 100) * ARENA_H);
       const passed = dist <= tol;
       setShot({ x: lockX, y: lockY, good: passed });
       setBurst({ id: performance.now(), x: lockX, y: lockY, tone: passed ? 'good' : 'bad' });
@@ -79,7 +71,7 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
       }
       rounds.commit(passed);
     }
-  }, [rounds, target, tol, hitstop]);
+  }, [rounds, target, tol, hitstop, frozen]);
 
   // Arm a fresh corner for each playing round.
   useEffect(() => {
@@ -88,13 +80,20 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
     setStage('x');
     setShot(null);
     sweepRef.current = 0;
-    startRef.current = performance.now();
     // Rolled per round, then ramped — later corners sweep faster to lock.
-    const speed = (SWEEP_MIN + Math.random() * (SWEEP_MAX - SWEEP_MIN)) * roundSpeed(rounds.round);
+    const speed = (SWEEP_MIN + Math.random() * (SWEEP_MAX - SWEEP_MIN)) * rounds.speed;
+    // Phase is accumulated rather than read off the clock, so the depth sweep can run
+    // at its own rate without jumping, and a freeze simply stops it advancing.
+    let phase = 0;
+    let last = performance.now();
     const loop = (now: number): void => {
       if (stageRef.current === 'done') return;
-      const el = (now - startRef.current) / 1000;
-      sweepRef.current = (Math.sin(el * speed) * 0.5 + 0.5) * 100;
+      const dt = (now - last) / 1000;
+      last = now;
+      if (!frozen.current) {
+        phase += dt * speed;
+      }
+      sweepRef.current = (Math.sin(phase) * 0.5 + 0.5) * 100;
       setSweep(sweepRef.current);
       rafRef.current = requestAnimationFrame(loop);
     };
@@ -155,13 +154,13 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
         </>
       }
     >
-      <div className="relative h-64 w-full bg-pixel-bg border-2 border-pixel-border overflow-hidden mb-4">
+      <MinigameArena>
         <ComboBadge streak={rounds.streak} />
 
         {/* Target ring */}
         <div
           className="absolute rounded-full border-4 border-dashed border-pixel-warning/80"
-          style={{ left: `${target.x}%`, top: `${target.y}%`, width: 64, height: 64, transform: 'translate(-50%, -50%)' }}
+          style={{ left: `${target.x}%`, top: `${target.y}%`, width: u(RING), height: u(RING), transform: 'translate(-50%, -50%)' }}
         >
           <div className="absolute left-1/2 top-1/2 w-2 h-2 rounded-full bg-pixel-warning" style={{ transform: 'translate(-50%, -50%)' }} />
         </div>
@@ -193,8 +192,15 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
               />
             </svg>
             <div
-              className={`absolute w-9 h-9 rounded-full bg-pixel-ball border-4 flex items-center justify-center text-base ${shot.good ? 'border-pixel-success' : 'border-pixel-error'}`}
-              style={{ left: `${shot.x}%`, top: `${shot.y}%`, transform: 'translate(-50%, -50%)' }}
+              className={`absolute rounded-full bg-pixel-ball border-4 flex items-center justify-center ${shot.good ? 'border-pixel-success' : 'border-pixel-error'}`}
+              style={{
+                left: `${shot.x}%`,
+                top: `${shot.y}%`,
+                width: uMin(6.2, 24),
+                height: uMin(6.2, 24),
+                fontSize: uMin(2.7, 11),
+                transform: 'translate(-50%, -50%)',
+              }}
             >
               🎾
             </div>
@@ -202,7 +208,7 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
         )}
 
         <Sparks burst={burst} />
-      </div>
+      </MinigameArena>
     </MinigameShell>
   );
 };

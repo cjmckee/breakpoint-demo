@@ -78,6 +78,14 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
   const playerName = usePlayerName();
 
   const isLinearEvent = event.options.length === 0;
+  // One option is not a choice: the event runs it straight from a single button, so an
+  // event can send the player into a minigame without offering a way out. Only when
+  // that option is actually open to them — otherwise they see why it is locked.
+  const onlyOption =
+    event.options.length === 1 && availableOptions.some((o) => o.id === event.options[0].id)
+      ? event.options[0]
+      : null;
+  const hasChoice = !isLinearEvent && !onlyOption;
   const {dialogue} = event;
   const hasDialogue = dialogue && dialogue.length > 0;
   const allDialogueShown = !hasDialogue || currentDialogueIndex >= dialogue.length - 1;
@@ -101,6 +109,8 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
     if (isLinearEvent) {
       // Linear event - just execute with no option
       onSelectOption(event.id);
+    } else if (onlyOption) {
+      onSelectOption(event.id, onlyOption.id);
     } else {
       // Choice event - execute with selected option
       if (selectedOptionId) {
@@ -137,14 +147,14 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
         e.preventDefault();
         goBackDialogue();
       } else if (dir === 'down') {
-        if (allDialogueShown && !isLinearEvent && selectableOptions.length > 0) {
+        if (allDialogueShown && hasChoice && selectableOptions.length > 0) {
           e.preventDefault();
           const currentIndex = selectableOptions.findIndex((o) => o.id === selectedOptionId);
           const nextIndex = currentIndex < selectableOptions.length - 1 ? currentIndex + 1 : 0;
           handleOptionSelect(selectableOptions[nextIndex].id);
         }
       } else if (dir === 'up') {
-        if (allDialogueShown && !isLinearEvent && selectableOptions.length > 0) {
+        if (allDialogueShown && hasChoice && selectableOptions.length > 0) {
           e.preventDefault();
           const currentIndex = selectableOptions.findIndex((o) => o.id === selectedOptionId);
           const prevIndex = currentIndex > 0 ? currentIndex - 1 : selectableOptions.length - 1;
@@ -152,7 +162,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
         }
       }
     },
-    [isOpen, isHidden, allDialogueShown, isLinearEvent, selectableOptions, selectedOptionId, advanceDialogue, goBackDialogue, handleContinue, handleOptionSelect]
+    [isOpen, isHidden, allDialogueShown, hasChoice, selectableOptions, selectedOptionId, advanceDialogue, goBackDialogue, handleContinue, handleOptionSelect]
   );
 
   useEffect(() => {
@@ -265,8 +275,15 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
       ) : (
         <>
           {/* Options or Continue Button */}
-          {isLinearEvent ? (
-            // Linear event - just show continue button
+          {!hasChoice ? (
+            // Linear or single-option event - one button, no choice to make
+            <>
+            {onlyOption?.description && (
+              <p className="mb-4 text-pixel-text-muted">
+                {onlyOption.emoji && <span className="mr-2">{onlyOption.emoji}</span>}
+                {onlyOption.description}
+              </p>
+            )}
             <div className="flex justify-between">
               {hasDialogue && dialogue!.length > 1 ? (
                 <Button onClick={goBackDialogue} variant="secondary">
@@ -282,10 +299,11 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
                   </Button>
                 )}
                 <Button onClick={handleContinue} variant="primary">
-                  Continue
+                  {onlyOption ? onlyOption.text : 'Continue'}
                 </Button>
               </div>
             </div>
+            </>
           ) : (
             // Choice event - show options
             <div>

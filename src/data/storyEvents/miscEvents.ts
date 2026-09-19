@@ -23,6 +23,65 @@ import {
 
 export const miscEvents: StoryEvent[] = [
     {
+        id: 'pond_with_keith',
+        name: 'The Pond',
+        tags: ['misc', 'friend'],
+        timeSlotsRequired: 1,
+        // Needs enough history with Keith that turning up to a pond with him tracks.
+        prerequisites: { minDay: 12, relationships: { keith: { min: 15 } } },
+        skippable: false,
+        moodTier: 'neutral',
+        description: 'Keith discovers a nearby pond.',
+        dialogue: [
+            ['keith', ['You\'ll never guess what I found behind the old practice courts! I snuck through the bushes and BAM! A huge pond. Huge.']],
+            ['keith', ['You can rent a rod for four dollars. My treat. Let\'s go!']],
+            ['player', ['Is the pond part of that local pet store, by chance?']],
+            ['keith', ['It is adjacent to the pet store. Same parking lot. Unrelated.']],
+            ['player', ['I\'m not so sure they\'re unrelated, ', {characterId: 'keith'}, '...']],
+            [null, ['He has brought his own tackle box anyway. It is loaded with gizmos and gadgets. Among the lures and the spare line there is a sandwich. Not clear how long he was planning this.']],
+            ['keith', ['Five casts each. Whoever catches less buys the other one that huge plush toy from the Academy shop. I\'ve been saving my points!']],
+        ],
+        characters: ['keith'],
+        options: [
+            {
+                id: 'try_to_outfish',
+                text: 'Take the bet',
+                description: 'Five casts, most fish wins. You will have to actually catch them.',
+                emoji: '🎣',
+                minigame: {
+                    request: { minigame: 'fishing_cast' },
+                    // Three of five. Keith is not good at this, but he is committed.
+                    passThreshold: 3,
+                    failOutcome: {
+                        resultText: [
+                            'Keith catches two. You do not catch two.',
+                            'He does not gloat, which is somehow worse. At the Academy shop he walks straight to the huge plush, holds it up to the light, and says he wants you to know he chose it carefully. It costs most of your points. He carries it under one arm for the rest of the afternoon and talks to it on the bus.',
+                        ],
+                        effects: {
+                            moodChange: 8,
+                            energyChange: -5,
+                            relationshipChanges: { keith: 3 },
+                        },
+                    },
+                },
+                outcome: {
+                    resultText: [
+                        'You out-fish him, and it is not close.',
+                        { characterId: 'keith' }, ' takes the loss with enormous dignity, which lasts until the Academy shop, where he stands in front of the huge plush for a long time and eventually buys you a keychain instead, because "the plush felt like a grudge." You sit on the pond wall until it gets dark. Nobody mentions tennis once.',
+                    ],
+                    effects: {
+                        statChanges: { focus: 2, placement: 1 },
+                        moodChange: 20,
+                        energyChange: -5,
+                        relationshipChanges: { keith: 5 },
+                        itemsGained: [TENNIS_BALL_KEYCHAIN],
+                    },
+                },
+            },
+        ],
+    },
+
+    {
         id: 'disc_golf_adventure',
         name: 'Disc Golf Adventure',
         tags: ['misc'],

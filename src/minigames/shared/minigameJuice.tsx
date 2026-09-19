@@ -1,15 +1,17 @@
 /**
- * Shared "juice" for the training minigames.
+ * Shared "juice" for the minigames.
  *
- * Small, fast, non-blocking feedback so every rep feels punchy — these drills are
- * played constantly, so the polish lives in one place and stays consistent across all
- * five games:
+ * Small, fast, non-blocking feedback so every rep feels punchy — the training drills
+ * are played constantly, so the polish lives in one place and stays consistent across
+ * every game:
  *   - <Sparks>: a one-shot particle burst at a point (green on a clean hit, red on a miss).
  *   - <ComboBadge>: a "×N" pop for trailing consecutive cleans (cosmetic; score stays 0-3).
- *   - useHitstop(): a ~40ms freeze-frame games apply in their rAF loop on clean contact.
+ *   - useHitstop(): a ~40ms freeze-frame games apply in their rAF loop on clean contact,
+ *     which also holds the game still while the menu is open.
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useMenuStore } from '../../hooks/useMenuModal';
 
 export interface Burst {
   /** Bump this to fire a fresh burst (remounts the particles). */
@@ -82,21 +84,49 @@ export const ComboBadge: React.FC<{ streak: number; className?: string }> = ({ s
 };
 
 /**
+ * Whether a menu is covering the game. The menu is a global overlay, so the game
+ * underneath keeps running unless it asks.
+ */
+export function isGamePaused(): boolean {
+  const { isOpen, isCalendarOpen } = useMenuStore.getState();
+  return isOpen || isCalendarOpen;
+}
+
+/**
  * ~40ms freeze-frame on clean contact. Games check `frozen.current` in their rAF loop
  * and, while frozen, re-baseline their timestamp and skip advancing so the moment of
  * contact reads as a beat before motion resumes.
+ *
+ * `frozen` is also true while the menu is open, so every game that honours the
+ * hitstop pauses with the menu for free. Games should ignore input while frozen too:
+ * the menu is still listening for keys, and so is the game behind it.
  */
 export function useHitstop(): { frozen: React.MutableRefObject<boolean>; trigger: (ms?: number) => void } {
-  const frozen = useRef(false);
+  const frozen = useRef(isGamePaused());
+  const hitstopping = useRef(false);
+  const paused = useRef(isGamePaused());
   const timer = useRef<number | null>(null);
+  const sync = useCallback(() => {
+    frozen.current = hitstopping.current || paused.current;
+  }, []);
   const trigger = useCallback((ms = 40) => {
-    frozen.current = true;
+    hitstopping.current = true;
+    sync();
     if (timer.current !== null) window.clearTimeout(timer.current);
     timer.current = window.setTimeout(() => {
-      frozen.current = false;
+      hitstopping.current = false;
       timer.current = null;
+      sync();
     }, ms);
-  }, []);
+  }, [sync]);
+  useEffect(() => {
+    paused.current = isGamePaused();
+    sync();
+    return useMenuStore.subscribe(() => {
+      paused.current = isGamePaused();
+      sync();
+    });
+  }, [sync]);
   useEffect(() => () => {
     if (timer.current !== null) window.clearTimeout(timer.current);
   }, []);

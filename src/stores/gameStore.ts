@@ -31,6 +31,7 @@ import { PlayerManager } from '../game/PlayerManager';
 import { TimeManager } from '../game/TimeManager';
 import { StoryEventManager } from '../game/StoryEventManager';
 import { PrerequisiteChecker } from '../game/PrerequisiteChecker';
+import { StoryEventRepository } from '../data/storyEvents';
 import { ChallengeManager } from '../game/ChallengeManager';
 import { MatchRewardSystem } from '../game/MatchRewardSystem';
 import { ItemManager } from '../game/ItemManager';
@@ -49,8 +50,9 @@ import { createEmptyArchetypeProfile, profileForArchetype, STARTING_SPECIALIZATI
 import { useMenuStore } from '../hooks/useMenuModal';
 import type { PlayStyle } from '../types';
 import type { ArchetypeProfile, GamePhase as ArchetypePhase, PhasePathId } from '../types/archetype';
-import type { GamePhase, MatchType, PreMatchConfig, PhaseContinuation, IdlePhase, MatchCompletionData, PersistedEventState, DEFAULT_PERSISTED_EVENT_STATE } from '../types/gamePhase';
+import type { GamePhase, MatchType, PreMatchConfig, PhaseContinuation, IdlePhase, StoryEventOverlay, MatchCompletionData, PersistedEventState, DEFAULT_PERSISTED_EVENT_STATE } from '../types/gamePhase';
 import { DEFAULT_PERSISTED_EVENT_STATE as DEFAULT_EVENT_RECOVERY } from '../types/gamePhase';
+import type { MinigameScore } from '../minigames/types';
 import type { InteractiveMatchConfig } from '../types/keyMoments';
 import {
   trackPlayerCreated,
@@ -153,10 +155,13 @@ interface GameState {
 
   // Story event actions
   checkForStoryEventById: (eventId: string) => void;
+  /** Dev-only: force an event to run, bypassing its prerequisites. */
+  debugTriggerStoryEvent: (eventId: string) => void;
   checkForStoryEventByTag: (tag: StoryEventTag, customChance?: number) => void;
   resolveMilestoneCheck: () => void;
   checkForRandomStoryEvent: (customChance?: number) => void;
-  executeStoryEvent: (eventId: string, optionId?: string) => void;
+  executeStoryEvent: (eventId: string, optionId?: string, minigameScore?: MinigameScore) => void;
+  completeMinigame: (score: MinigameScore) => void;
   cancelStoryEvent: () => void;
   updateRelationship: (character: string, change: number) => void;
   setStoryEventTriggerChance: (chance: number) => void;
@@ -1973,6 +1978,55 @@ export const useGameStore = create<GameState>()(
       },
 
       /**
+       * Dev-only: run an event by id regardless of whether it could fire.
+       *
+       * checkForStoryEventById still enforces event prerequisites, and random
+       * events additionally have to win a roll and then a category draw, so
+       * reaching a specific one meant editing a save and advancing slots until
+       * it came up. This skips straight to it.
+       *
+       * Event-level prerequisites are bypassed; option-level ones are not, so
+       * the choices on screen are the ones a qualifying player would see.
+       */
+      debugTriggerStoryEvent: (eventId: string) => {
+        const { player, gamePhase } = get();
+        if (!player) return;
+
+        const event = StoryEventRepository.getEventById(eventId);
+        if (!event) {
+          console.warn(`[Debug] No story event with id "${eventId}"`);
+          return;
+        }
+
+        const gameState = get();
+        const availableOptions = PrerequisiteChecker.getAvailableOptions(event, player, {
+          completedStoryEvents: gameState.completedStoryEvents,
+          completedStoryEventChoices: gameState.completedStoryEventChoices,
+          relationships: gameState.relationships,
+          calendar: gameState.calendar,
+          activeTournament: gameState.calendar.activeTournament,
+        });
+
+        console.log(`[Debug] Forcing story event "${event.name}" (${event.id})`);
+
+        const overlay: StoryEventOverlay = {
+          type: 'story_event',
+          event,
+          availableOptions,
+          continuation: { type: 'idle' },
+        };
+
+        // Match the real path: an event that arrives while the player is on the
+        // menu shows as an overlay, so its result comes back as one too.
+        set({
+          gamePhase:
+            gamePhase.type === 'idle'
+              ? { ...gamePhase, overlay }
+              : overlay,
+        });
+      },
+
+      /**
        * Run the post-match milestone check and navigate to idle if nothing fires.
        * Gathers ALL eligible milestones and chains them so none are skipped when
        * multiple milestones become eligible in the same match.
@@ -2193,21 +2247,57 @@ export const useGameStore = create<GameState>()(
       },
 
       // Execute story event with player's choice
-      executeStoryEvent: (eventId: string, optionId?: string) => {
+      completeMinigame: (score: MinigameScore) => {
+        const { gamePhase } = get();
+        if (gamePhase.type !== 'minigame_active') return;
+
+        const { continuation } = gamePhase;
+        if (continuation.type === 'story_outcome') {
+          // executeStoryEvent reads its event off gamePhase, so put the event
+          // back before calling in. Both happen in one tick, so the modal never
+          // paints — the player goes from the game straight to the outcome.
+          //
+          // It has to go back the way it came: executeStoryEvent decides between
+          // an overlay result and a full-screen one by where it found the event,
+          // so restoring a random event as a full-screen phase would kick the
+          // player off the main menu on the way back.
+          const restored: StoryEventOverlay = {
+            type: 'story_event',
+            event: continuation.event,
+            availableOptions: continuation.availableOptions,
+            continuation: continuation.next,
+          };
+          set({
+            gamePhase: continuation.wasOverlay
+              ? { type: 'idle', overlay: restored }
+              : restored,
+          });
+          get().executeStoryEvent(continuation.event.id, continuation.optionId, score);
+          return;
+        }
+
+        // No other consumer routes through this phase yet.
+        get().navigateTo('idle');
+      },
+
+      executeStoryEvent: (eventId: string, optionId?: string, minigameScore?: MinigameScore) => {
         const { player, calendar } = get();
         if (!player) return;
 
         // Read event from gamePhase (either story_event phase or idle overlay)
         let storyEvent: StoryEvent | null = null;
+        let availableOptions: StoryEventOption[] = [];
         let continuation: PhaseContinuation = { type: 'idle' };
         let isOverlay = false;
 
         const { gamePhase } = get();
         if (gamePhase.type === 'story_event') {
           storyEvent = gamePhase.event;
+          availableOptions = gamePhase.availableOptions;
           continuation = gamePhase.continuation;
         } else if (gamePhase.type === 'idle' && gamePhase.overlay?.type === 'story_event') {
           storyEvent = gamePhase.overlay.event;
+          availableOptions = gamePhase.overlay.availableOptions;
           continuation = gamePhase.overlay.continuation;
           isOverlay = true;
         }
@@ -2219,8 +2309,30 @@ export const useGameStore = create<GameState>()(
           ? storyEvent.options.find((opt: StoryEventOption) => opt.id === optionId) || null
           : null;
 
+        // An option carrying a minigame resolves in two passes: this first one
+        // hands the screen to the game and stops, and completeMinigame calls back
+        // in with the score, which is what picks the outcome. Nothing has been
+        // applied yet, so bailing here costs the player nothing.
+        if (selectedOption?.minigame && minigameScore === undefined) {
+          set({
+            gamePhase: {
+              type: 'minigame_active',
+              request: selectedOption.minigame.request,
+              continuation: {
+                type: 'story_outcome',
+                event: storyEvent,
+                availableOptions,
+                optionId: selectedOption.id,
+                wasOverlay: isOverlay,
+                next: continuation,
+              },
+            },
+          });
+          return;
+        }
+
         // Get outcome for applying effects
-        const outcome = StoryEventManager.getOutcome(storyEvent, selectedOption);
+        const outcome = StoryEventManager.getOutcome(storyEvent, selectedOption, minigameScore);
 
         // Handle time slot consumption with overflow protection
         // Check both NIGHT overflow AND scheduled event conflicts
@@ -2263,7 +2375,8 @@ export const useGameStore = create<GameState>()(
             relationships: gameState.relationships,
             calendar: gameState.calendar,
           },
-          actualSlotsConsumed
+          actualSlotsConsumed,
+          minigameScore
         );
 
         // Apply stat changes to player

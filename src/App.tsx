@@ -6,6 +6,7 @@ import { useAudioTransitions } from './audio/AudioTransitionManager';
 import { PlayerCreation } from './components/PlayerCreation';
 import { MainMenu } from './components/MainMenu';
 import { AnchorTraining } from './components/AnchorTraining';
+import { MinigameHost } from './components/MinigameHost';
 import { MatchSetup } from './components/MatchSetup';
 import { LiveMatchViewer } from './components/LiveMatchViewer';
 import { Inventory } from './components/Inventory';
@@ -85,6 +86,9 @@ function App() {
 
       case 'training':
         return <AnchorTraining />;
+
+      case 'minigame_active':
+        return <MinigameHost />;
 
       case 'match_setup':
         if (gamePhase.matchType === 'tournament') {
