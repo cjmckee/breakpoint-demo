@@ -71,7 +71,7 @@ export const TouchSliceMinigame: React.FC<MinigameProps> = ({ onComplete, window
   );
 
   const slice = useCallback(() => {
-    if (!runningRef.current) return;
+    if (!runningRef.current || frozen.current) return;
     const now = performance.now();
     if (now - lastPressRef.current < COOLDOWN) return;
     lastPressRef.current = now;
@@ -89,7 +89,7 @@ export const TouchSliceMinigame: React.FC<MinigameProps> = ({ onComplete, window
     } else {
       audioManager.playSfx('ui_click');
     }
-  }, [zoneHalf, hitstop, endRound]);
+  }, [zoneHalf, hitstop, endRound, frozen]);
 
   // Arm a fresh round: new zone offset, tilt, and steady speed.
   useEffect(() => {
@@ -112,7 +112,13 @@ export const TouchSliceMinigame: React.FC<MinigameProps> = ({ onComplete, window
     let last = performance.now();
     const loop = (now: number): void => {
       if (!runningRef.current) return;
-      if (frozen.current) { last = now; rafRef.current = requestAnimationFrame(loop); return; }
+      if (frozen.current) {
+        // Slide the round's start forward too, or the clock runs on behind a pause.
+        startRef.current += now - last;
+        last = now;
+        rafRef.current = requestAnimationFrame(loop);
+        return;
+      }
       const dt = now - last;
       last = now;
       phaseRef.current += (dt * 2 * Math.PI) / sweepRef.current;

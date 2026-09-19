@@ -18,11 +18,13 @@
 import React, { useEffect } from 'react';
 import type { MinigameRounds, RoundPhase } from './useMinigameRounds';
 import { isActionKey } from '../../utils/gameKeys';
+import { isGamePaused } from './minigameJuice';
 
 /** Start overlay shown over the arena while phase === 'ready'. Space/Enter (or the button) begins. */
 const StartGate: React.FC<{ onStart: () => void; controls?: string }> = ({ onStart, controls }) => {
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
+      if (isGamePaused()) return;
       if (isActionKey(e) || e.code === 'Enter' || e.key === 'Enter') {
         e.preventDefault();
         onStart();

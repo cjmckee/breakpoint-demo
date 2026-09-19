@@ -197,14 +197,14 @@ export const ReadReturnMinigame: React.FC<MinigameProps> = ({ onComplete, window
   }, [rounds.round, resolve, frozen]);
 
   const swing = useCallback(() => {
-    if (!liveRef.current || swungRef.current) return;
+    if (!liveRef.current || swungRef.current || frozen.current) return;
     swungRef.current = true;
     const b = ballRef.current;
     const h = halfRef.current;
     const good = Math.abs(b.y - zoneRef.current) <= h.y && Math.abs(b.x - LINE_X) <= h.x;
     if (!good) audioManager.playSfx('ui_click');
     resolve(good);
-  }, [resolve]);
+  }, [resolve, frozen]);
 
   // Arm a fresh serve for each playing attempt.
   useEffect(() => {

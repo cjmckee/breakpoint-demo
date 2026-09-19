@@ -94,7 +94,7 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
   }, []);
 
   const strike = useCallback(() => {
-    if (rounds.phase !== 'playing' || struckRef.current) return;
+    if (rounds.phase !== 'playing' || struckRef.current || frozen.current) return;
     struckRef.current = true;
     const passed = isInPocket();
     const b = ballRef.current;
@@ -107,7 +107,7 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
       audioManager.playSfx('ui_click');
     }
     rounds.commit(passed);
-  }, [rounds, isInPocket, hitstop]);
+  }, [rounds, isInPocket, hitstop, frozen]);
 
   // Arm a fresh toss for each playing attempt.
   useEffect(() => {

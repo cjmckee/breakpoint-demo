@@ -30,7 +30,7 @@ const SWEEP_MAX = 5.0;
 
 export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt, config }) => {
   const rounds = useMinigameRounds({ minigame: 'corner_paint', config }, onComplete, onFirstAttempt);
-  const { trigger: hitstop } = useHitstop();
+  const { frozen, trigger: hitstop } = useHitstop();
   const tol = TOLERANCE * (1 + windowBonus);
 
   const targetsRef = useRef<Array<{ x: number; y: number }>>(
@@ -51,7 +51,7 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
   const playing = rounds.phase === 'playing';
 
   const lock = useCallback(() => {
-    if (rounds.phase !== 'playing') return;
+    if (rounds.phase !== 'playing' || frozen.current) return;
     if (stageRef.current === 'x') {
       lockXRef.current = sweepRef.current;
       stageRef.current = 'y';
@@ -74,7 +74,7 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
       }
       rounds.commit(passed);
     }
-  }, [rounds, target, tol, hitstop]);
+  }, [rounds, target, tol, hitstop, frozen]);
 
   // Arm a fresh corner for each playing round.
   useEffect(() => {
@@ -86,8 +86,17 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
     startRef.current = performance.now();
     // Rolled per round, then ramped — later corners sweep faster to lock.
     const speed = (SWEEP_MIN + Math.random() * (SWEEP_MAX - SWEEP_MIN)) * rounds.speed;
+    let last = performance.now();
     const loop = (now: number): void => {
       if (stageRef.current === 'done') return;
+      if (frozen.current) {
+        // Slide the start forward so the sweep resumes where it stopped.
+        startRef.current += now - last;
+        last = now;
+        rafRef.current = requestAnimationFrame(loop);
+        return;
+      }
+      last = now;
       const el = (now - startRef.current) / 1000;
       sweepRef.current = (Math.sin(el * speed) * 0.5 + 0.5) * 100;
       setSweep(sweepRef.current);

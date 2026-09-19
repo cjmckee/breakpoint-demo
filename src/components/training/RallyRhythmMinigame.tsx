@@ -86,7 +86,7 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
 
   const pressTrack = useCallback(
     (track: number) => {
-      if (!runningRef.current) return;
+      if (!runningRef.current || frozen.current) return;
       const now = performance.now();
       let best: Note | null = null;
       let bestDt = Infinity;
@@ -99,7 +99,7 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
       if (!best || bestDt > hitWin * 1.8) return; // stray tap on an empty track — ignore
       judgeNote(best, bestDt <= hitWin);
     },
-    [hitWin, judgeNote]
+    [hitWin, judgeNote, frozen]
   );
 
   // Arm a fresh set for each playing round. The tempo is rolled once per set, so the
@@ -123,11 +123,20 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
     setSetHits(0);
     setSoClose(false);
 
+    // Notes are scheduled at absolute times, so a freeze has to push every one of
+    // them back by however long it lasted, or they all fall past the line meanwhile.
+    let frozenAt: number | null = null;
     const loop = (now: number): void => {
       if (!runningRef.current) return;
       if (frozen.current) {
+        frozenAt ??= now;
         rafRef.current = requestAnimationFrame(loop);
         return;
+      }
+      if (frozenAt !== null) {
+        const held = now - frozenAt;
+        for (const n of notesRef.current) n.time += held;
+        frozenAt = null;
       }
       let nearBeat = false;
       const vis: Array<{ id: number; track: number; y: number }> = [];
