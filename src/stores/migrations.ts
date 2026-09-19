@@ -28,8 +28,9 @@
 
 import type { Player, GameCalendar, CurrentStatus, ActivityResult, ShopItem, OpponentTier } from '../types/game';
 import type { Challenge } from '../types/challenges';
-import type { EquipmentSlot, Item } from '../types/items';
+import type { EquipmentSlot, OwnedItem } from '../types/items';
 import { TimeManager } from '../game/TimeManager';
+import { ItemManager } from '../game/ItemManager';
 import { ALL_ITEMS } from '../data/items';
 
 export interface AudioSettings {
@@ -60,7 +61,8 @@ export interface PersistedStoreState {
 
 // 6: lucky items moved from passive-in-inventory to the `charm` equipment slot,
 //    which adds a key to Player.equippedItems that older saves don't carry.
-export const CURRENT_STORE_VERSION = 6;
+// 7: held items gained a per-copy `instanceId`, so duplicates can be told apart.
+export const CURRENT_STORE_VERSION = 7;
 
 /** Saves below this version are wiped instead of migrated. See the header. */
 export const RESET_BEFORE_VERSION = 5;
@@ -109,9 +111,10 @@ const EQUIPMENT_SLOTS: readonly EquipmentSlot[] = ['racquet', 'shoes', 'outfit',
  * the four effect-less charms gained in the same release. Ids no longer in the
  * catalogue are left untouched.
  */
-function refreshLuckyItem(item: Item): Item {
+function refreshLuckyItem(item: OwnedItem): OwnedItem {
   if (item.type !== 'lucky') return item;
-  return ALL_ITEMS.find((candidate) => candidate.id === item.id) ?? item;
+  const fresh = ALL_ITEMS.find((candidate) => candidate.id === item.id);
+  return fresh ? { ...item, ...fresh } : item;
 }
 
 /** 5 → 6: add the `charm` slot and make held lucky items equippable into it. */
@@ -134,9 +137,40 @@ function migrate5to6(state: PersistedStoreState): PersistedStoreState {
   };
 }
 
+/**
+ * Held items used to be told apart only by catalogue id, so acting on one of
+ * two bananas acted on both. Give every held copy that lacks one an instanceId.
+ */
+function ensureInstanceId(item: OwnedItem): OwnedItem {
+  return item.instanceId ? item : ItemManager.createOwnedItem(item);
+}
+
+/** 6 → 7: stamp an instanceId on every item the player holds. */
+function migrate6to7(state: PersistedStoreState): PersistedStoreState {
+  const player = state.player;
+  if (!player) return state;
+
+  const equippedItems = { ...player.equippedItems };
+  for (const slot of EQUIPMENT_SLOTS) {
+    const item = equippedItems[slot];
+    equippedItems[slot] = item ? ensureInstanceId(item) : null;
+  }
+
+  return {
+    ...state,
+    player: {
+      ...player,
+      inventory: player.inventory.map(ensureInstanceId),
+      equippedItems,
+      storyItems: player.storyItems.map(ensureInstanceId),
+    },
+  };
+}
+
 /** Keyed by the version each step produces: MIGRATIONS[n] takes n-1 → n. */
 const MIGRATIONS: Readonly<Record<number, MigrationFn | typeof NO_CHANGE>> = {
   6: migrate5to6,
+  7: migrate6to7,
 };
 
 // ----------------------------------------------------------------------------

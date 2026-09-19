@@ -76,6 +76,13 @@ function version5Save(): PersistedStoreState {
           type: 'consumable',
           consumableEffect: { type: 'instant', instantEffects: { energyChange: 10 } },
         },
+        {
+          id: 'banana',
+          name: 'Banana',
+          description: 'Quick energy.',
+          type: 'consumable',
+          consumableEffect: { type: 'instant', instantEffects: { energyChange: 10 } },
+        },
       ],
       storyItems: [],
       equippedItems: {
@@ -224,6 +231,17 @@ function main(): void {
       LUCKY_SPROUT.modifiers?.additional?.[EffectKey.ENERGY_GAIN_BONUS]);
   check('non-lucky inventory items are left alone',
     player.inventory.find(i => i.id === 'banana')?.equipmentSlot === undefined);
+
+  console.log('\n  the 6 → 7 change itself:');
+  const heldItems = [...player.inventory, player.equippedItems.racquet!];
+  check('every held item gains an instance id',
+    heldItems.every(i => typeof i.instanceId === 'string' && i.instanceId.length > 0));
+  const bananaIds = player.inventory.filter(i => i.id === 'banana').map(i => i.instanceId);
+  check('duplicate copies get distinct instance ids',
+    bananaIds.length === 2 && bananaIds[0] !== bananaIds[1], bananaIds.join(' / '));
+  const rerun = runMigrations(migrated, 6).state.player!;
+  check('re-running the step keeps existing instance ids',
+    rerun.inventory.every((item, i) => item.instanceId === player.inventory[i].instanceId));
 
   console.log('\n── a save below the breaking floor is discarded ──');
   const stale = preConsolidationSave();

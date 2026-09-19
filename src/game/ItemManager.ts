@@ -4,21 +4,34 @@
  */
 
 import type { Player, Modifiers, StatBoosts } from '../types/game';
-import type { Item, EquipmentSlot } from '../types/items';
+import type { Item, OwnedItem, EquipmentSlot } from '../types/items';
 import { SLOT_ITEM_TYPE } from '../types/items';
 
 const MAX_INVENTORY_SIZE = 10;
 
 export class ItemManager {
   /**
+   * Stamp a catalogue item as a distinct copy the player holds, so two copies
+   * of the same item can be equipped, used or trashed independently.
+   */
+  static createOwnedItem(item: Item): OwnedItem {
+    return {
+      ...item,
+      instanceId: `item-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+    };
+  }
+
+  /**
    * Add an item to the player's inventory or story items
    * Story items bypass the inventory limit
    */
   static addItem(player: Player, item: Item): Player {
+    const owned = this.createOwnedItem(item);
+
     if (item.type === 'story') {
       return {
         ...player,
-        storyItems: [...player.storyItems, item],
+        storyItems: [...player.storyItems, owned],
       };
     }
 
@@ -30,7 +43,7 @@ export class ItemManager {
 
     return {
       ...player,
-      inventory: [...player.inventory, item],
+      inventory: [...player.inventory, owned],
     };
   }
 
@@ -38,10 +51,10 @@ export class ItemManager {
    * Equip an item from inventory to an equipment slot
    * Returns the previously equipped item to inventory
    */
-  static equipItem(player: Player, itemId: string, slot: EquipmentSlot): Player {
-    const item = this.findItemInInventory(player, itemId);
+  static equipItem(player: Player, instanceId: string, slot: EquipmentSlot): Player {
+    const item = this.findItemInInventory(player, instanceId);
     if (!item) {
-      console.warn('Item not found in inventory:', itemId);
+      console.warn('Item not found in inventory:', instanceId);
       return player;
     }
 
@@ -56,7 +69,7 @@ export class ItemManager {
     }
 
     // Remove item from inventory
-    const newInventory = player.inventory.filter((i) => i.id !== itemId);
+    const newInventory = player.inventory.filter((i) => i.instanceId !== instanceId);
 
     // Get previously equipped item
     const previousItem = player.equippedItems[slot];
@@ -105,10 +118,10 @@ export class ItemManager {
   /**
    * Swap an equipped item directly with an inventory item
    */
-  static swapEquipment(player: Player, newItemId: string, slot: EquipmentSlot): Player {
-    const newItem = this.findItemInInventory(player, newItemId);
+  static swapEquipment(player: Player, instanceId: string, slot: EquipmentSlot): Player {
+    const newItem = this.findItemInInventory(player, instanceId);
     if (!newItem) {
-      console.warn('New item not found in inventory:', newItemId);
+      console.warn('New item not found in inventory:', instanceId);
       return player;
     }
 
@@ -118,7 +131,7 @@ export class ItemManager {
     }
 
     const previousItem = player.equippedItems[slot];
-    const newInventory = player.inventory.filter((i) => i.id !== newItemId);
+    const newInventory = player.inventory.filter((i) => i.instanceId !== instanceId);
 
     if (previousItem) {
       newInventory.push(previousItem);
@@ -138,15 +151,15 @@ export class ItemManager {
    * Use a consumable item
    * Applies instant effects and/or sets next activity buffs
    */
-  static useConsumable(player: Player, itemId: string): {
+  static useConsumable(player: Player, instanceId: string): {
     player: Player;
     energyChange: number;
     moodChange: number;
     buffApplied: boolean;
   } {
-    const item = this.findItemInInventory(player, itemId);
+    const item = this.findItemInInventory(player, instanceId);
     if (!item) {
-      console.warn('Item not found:', itemId);
+      console.warn('Item not found:', instanceId);
       return { player, energyChange: 0, moodChange: 0, buffApplied: false };
     }
 
@@ -183,7 +196,7 @@ export class ItemManager {
     }
 
     // Remove item from inventory
-    updatedPlayer.inventory = player.inventory.filter((i) => i.id !== itemId);
+    updatedPlayer.inventory = player.inventory.filter((i) => i.instanceId !== instanceId);
 
     return { player: updatedPlayer, energyChange, moodChange, buffApplied };
   }
@@ -351,37 +364,18 @@ export class ItemManager {
   }
 
   /**
-   * Find an item in the player's inventory by ID
+   * Find a specific held copy in the player's inventory
    */
-  static findItemInInventory(player: Player, itemId: string): Item | null {
-    return player.inventory.find((item) => item.id === itemId) || null;
-  }
-
-  /**
-   * Find an item in any of the player's item locations
-   */
-  static findItemById(player: Player, itemId: string): Item | null {
-    // Check inventory
-    const inInventory = player.inventory.find((item) => item.id === itemId);
-    if (inInventory) return inInventory;
-
-    // Check equipped items
-    const equipped = Object.values(player.equippedItems).find((item) => item?.id === itemId);
-    if (equipped) return equipped;
-
-    // Check story items
-    const inStoryItems = player.storyItems.find((item) => item.id === itemId);
-    if (inStoryItems) return inStoryItems;
-
-    return null;
+  static findItemInInventory(player: Player, instanceId: string): OwnedItem | null {
+    return player.inventory.find((item) => item.instanceId === instanceId) || null;
   }
 
   /**
    * Get all items (inventory + equipped + story items)
    */
-  static getAllItems(player: Player): Item[] {
+  static getAllItems(player: Player): OwnedItem[] {
     const equippedItems = Object.values(player.equippedItems).filter(
-      (item): item is Item => item !== null
+      (item): item is OwnedItem => item !== null
     );
 
     return [...player.inventory, ...equippedItems, ...player.storyItems];
@@ -391,7 +385,7 @@ export class ItemManager {
    * Get items from inventory that can go in a specific slot.
    * Matches on the slot's accepted type, so the charm slot returns lucky items.
    */
-  static getItemsBySlot(player: Player, slot: EquipmentSlot): Item[] {
+  static getItemsBySlot(player: Player, slot: EquipmentSlot): OwnedItem[] {
     return player.inventory.filter(
       (item) => item.type === SLOT_ITEM_TYPE[slot] && item.equipmentSlot === slot
     );
@@ -401,10 +395,10 @@ export class ItemManager {
    * Trash/remove an item from inventory permanently
    * Cannot trash story items or currently equipped items
    */
-  static trashItem(player: Player, itemId: string): Player {
-    const item = this.findItemInInventory(player, itemId);
+  static trashItem(player: Player, instanceId: string): Player {
+    const item = this.findItemInInventory(player, instanceId);
     if (!item) {
-      console.warn('Item not found in inventory:', itemId);
+      console.warn('Item not found in inventory:', instanceId);
       return player;
     }
 
@@ -415,7 +409,7 @@ export class ItemManager {
 
     return {
       ...player,
-      inventory: player.inventory.filter((i) => i.id !== itemId),
+      inventory: player.inventory.filter((i) => i.instanceId !== instanceId),
     };
   }
 

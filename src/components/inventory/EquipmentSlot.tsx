@@ -7,7 +7,7 @@
  */
 
 import React, { useState } from 'react';
-import type { Item, EquipmentSlot as SlotType } from '../../types/items';
+import type { OwnedItem, EquipmentSlot as SlotType } from '../../types/items';
 import { SLOT_ICONS, SLOT_NAMES, getItemIcon, supportsHover } from './itemHelpers';
 import { StatDeltaList } from './StatDeltaList';
 import { StatPill, EffectChips } from './ItemEffects';
@@ -15,14 +15,14 @@ import { describeEffects } from '../../utils/effectLabels';
 
 interface EquipmentSlotProps {
   slot: SlotType;
-  equippedItem: Item | null;
+  equippedItem: OwnedItem | null;
   /** Item currently being dragged anywhere (null if no drag in progress). */
-  draggingItem: Item | null;
+  draggingItem: OwnedItem | null;
   /** Item currently hovered in the inventory grid (null if none). */
-  hoveredItem: Item | null;
-  onEquip: (item: Item) => void;
-  onClickEquipped: (item: Item) => void;
-  onDragStartEquipped: (item: Item) => void;
+  hoveredItem: OwnedItem | null;
+  onEquip: (item: OwnedItem) => void;
+  onClickEquipped: (item: OwnedItem) => void;
+  onDragStartEquipped: (item: OwnedItem) => void;
   onDragEnd: () => void;
 }
 
@@ -38,13 +38,13 @@ export const EquipmentSlot: React.FC<EquipmentSlotProps> = ({
 }) => {
   const [isDropTarget, setIsDropTarget] = useState(false);
 
-  const draggingCompatible = draggingItem?.equipmentSlot === slot && draggingItem.id !== equippedItem?.id;
+  const draggingCompatible = draggingItem?.equipmentSlot === slot && draggingItem.instanceId !== equippedItem?.instanceId;
 
   // Which item to compare against the equipped one — a compatible drag wins over hover.
   const compareItem =
     draggingCompatible
       ? draggingItem
-      : hoveredItem?.equipmentSlot === slot && hoveredItem.id !== equippedItem?.id
+      : hoveredItem?.equipmentSlot === slot && hoveredItem.instanceId !== equippedItem?.instanceId
         ? hoveredItem
         : null;
 
@@ -95,7 +95,7 @@ export const EquipmentSlot: React.FC<EquipmentSlotProps> = ({
           draggable
           onDragStart={(e) => {
             e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/plain', equippedItem.id);
+            e.dataTransfer.setData('text/plain', equippedItem.instanceId);
             onDragStartEquipped(equippedItem);
           }}
           onDragEnd={onDragEnd}

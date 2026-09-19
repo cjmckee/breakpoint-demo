@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import type { Item } from '../../types/items';
+import type { OwnedItem } from '../../types/items';
 import { Card } from '../ui/Card';
 import { UnseenBadge } from '../ui/UnseenBadge';
 import { ItemManager } from '../../game/ItemManager';
@@ -15,14 +15,14 @@ import { ITEM_TYPE_META, getItemIcon } from './itemHelpers';
 import { NetRatingBadge } from './StatDeltaList';
 
 interface InventoryItemProps {
-  item: Item;
+  item: OwnedItem;
   isNew: boolean;
   /** Item equipped in this item's slot — used for the comparison badge. */
-  equippedInSlot: Item | null;
-  onClick: (item: Item) => void;
-  onDragStart: (item: Item) => void;
+  equippedInSlot: OwnedItem | null;
+  onClick: (item: OwnedItem) => void;
+  onDragStart: (item: OwnedItem) => void;
   onDragEnd: () => void;
-  onHoverStart: (item: Item) => void;
+  onHoverStart: (item: OwnedItem) => void;
   onHoverEnd: () => void;
 }
 
@@ -49,7 +49,7 @@ export const InventoryItem: React.FC<InventoryItemProps> = ({
       draggable={isSlotted}
       onDragStart={(e) => {
         e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/plain', item.id);
+        e.dataTransfer.setData('text/plain', item.instanceId);
         onDragStart(item);
       }}
       onDragEnd={onDragEnd}

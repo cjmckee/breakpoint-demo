@@ -7,7 +7,7 @@ import type {
   StatName, PlayerStats } from './index';
 import type { ArchetypeProfile } from './archetype';
 import type { StoryEventResult } from './storyEvents';
-import type { Item, EquipmentSlot } from './items';
+import type { Item, OwnedItem, EquipmentSlot } from './items';
 import type { ActiveTournament, TournamentMatchMetadata, MatchOpponent } from './tournaments';
 
 export type { PlayerStats };
@@ -490,11 +490,11 @@ export interface Player {
   archetypeProfile: ArchetypeProfile;
 
   // Item system
-  inventory: Item[];  // Regular items (max 10)
-  equippedItems: Record<EquipmentSlot, Item | null>;  // 4 gear slots + 1 charm slot
-  storyItems: Item[];  // Story items (no limit, don't count toward inventory)
+  inventory: OwnedItem[];  // Regular items (max 10)
+  equippedItems: Record<EquipmentSlot, OwnedItem | null>;  // 4 gear slots + 1 charm slot
+  storyItems: OwnedItem[];  // Story items (no limit, don't count toward inventory)
   nextActivityBuffs: Modifiers[];  // Pending consumable buffs; stat boosts apply to the player's next match, additional effects apply to their next activity
-  seenItemIds: string[];  // Item IDs the player has viewed in inventory
+  seenItemIds: string[];  // Catalogue item IDs the player has viewed in inventory
   activeIndicators: string[];  // Generic UI indicator keys (e.g. 'calendar', 'training')
   seenChallengeIds: string[];  // Challenge IDs the player has seen
 

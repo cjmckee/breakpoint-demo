@@ -12,7 +12,7 @@ import { useGameStore } from '../stores/gameStore';
 import { Card } from './ui/Card';
 import { StatusBar } from './StatusBar';
 import { ItemManager } from '../game/ItemManager';
-import type { Item } from '../types/items';
+import type { OwnedItem } from '../types/items';
 import { EQUIPMENT_SLOTS } from './inventory/itemHelpers';
 import { EquipmentSlot as EquipmentSlotCard } from './inventory/EquipmentSlot';
 import { InventoryItem } from './inventory/InventoryItem';
@@ -42,9 +42,9 @@ export const Inventory: React.FC = () => {
   const trashItem = useGameStore((state) => state.trashItem);
   const markItemSeen = useGameStore((state) => state.markItemSeen);
 
-  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
-  const [draggingItem, setDraggingItem] = useState<Item | null>(null);
-  const [hoveredItem, setHoveredItem] = useState<Item | null>(null);
+  const [selectedItem, setSelectedItem] = useState<OwnedItem | null>(null);
+  const [draggingItem, setDraggingItem] = useState<OwnedItem | null>(null);
+  const [hoveredItem, setHoveredItem] = useState<OwnedItem | null>(null);
   const [filter, setFilter] = useState<FilterTab>('all');
   const [isGridDropTarget, setIsGridDropTarget] = useState(false);
 
@@ -59,35 +59,35 @@ export const Inventory: React.FC = () => {
     filter === 'all' ? true : item.type === filter
   );
 
-  const isItemNew = (item: Item): boolean => !(player.seenItemIds ?? []).includes(item.id);
+  const isItemNew = (item: OwnedItem): boolean => !(player.seenItemIds ?? []).includes(item.id);
 
-  const equippedInSlot = (item: Item): Item | null =>
+  const equippedInSlot = (item: OwnedItem): OwnedItem | null =>
     item.equipmentSlot ? player.equippedItems[item.equipmentSlot] ?? null : null;
 
   const isDraggingEquipped =
     draggingItem !== null &&
-    Object.values(player.equippedItems).some((i) => i?.id === draggingItem.id);
+    Object.values(player.equippedItems).some((i) => i?.instanceId === draggingItem.instanceId);
 
   // --- Handlers ---
-  const openItem = (item: Item) => {
+  const openItem = (item: OwnedItem) => {
     markItemSeen(item.id);
     setSelectedItem(item);
   };
 
-  const handleDragStart = (item: Item) => {
+  const handleDragStart = (item: OwnedItem) => {
     markItemSeen(item.id);
     setDraggingItem(item);
   };
 
-  const handleEquip = (item: Item) => {
+  const handleEquip = (item: OwnedItem) => {
     if (item.equipmentSlot) {
-      equipItem(item.id, item.equipmentSlot);
+      equipItem(item.instanceId, item.equipmentSlot);
       setSelectedItem(null);
       setDraggingItem(null);
     }
   };
 
-  const handleUnequip = (item: Item) => {
+  const handleUnequip = (item: OwnedItem) => {
     if (item.equipmentSlot) {
       unequipItem(item.equipmentSlot);
       setSelectedItem(null);
@@ -95,13 +95,13 @@ export const Inventory: React.FC = () => {
     }
   };
 
-  const handleUse = (item: Item) => {
-    useConsumable(item.id);
+  const handleUse = (item: OwnedItem) => {
+    useConsumable(item.instanceId);
     setSelectedItem(null);
   };
 
-  const handleTrash = (item: Item) => {
-    trashItem(item.id);
+  const handleTrash = (item: OwnedItem) => {
+    trashItem(item.instanceId);
     setSelectedItem(null);
   };
 
@@ -211,7 +211,7 @@ export const Inventory: React.FC = () => {
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                     {filteredInventory.map((item) => (
                       <InventoryItem
-                        key={item.id}
+                        key={item.instanceId}
                         item={item}
                         isNew={isItemNew(item)}
                         equippedInSlot={equippedInSlot(item)}
@@ -251,7 +251,7 @@ export const Inventory: React.FC = () => {
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                   {player.storyItems.map((item) => (
                     <InventoryItem
-                      key={item.id}
+                      key={item.instanceId}
                       item={item}
                       isNew={isItemNew(item)}
                       equippedInSlot={null}
@@ -273,7 +273,7 @@ export const Inventory: React.FC = () => {
           equippedInSlot={selectedItem ? equippedInSlot(selectedItem) : null}
           isEquipped={
             selectedItem?.equipmentSlot
-              ? player.equippedItems[selectedItem.equipmentSlot]?.id === selectedItem.id
+              ? player.equippedItems[selectedItem.equipmentSlot]?.instanceId === selectedItem.instanceId
               : false
           }
           onClose={() => setSelectedItem(null)}

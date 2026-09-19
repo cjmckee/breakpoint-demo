@@ -31,7 +31,7 @@ import { MatchStatistics } from '../core/MatchStatistics';
 import { PlayerProfile } from '../core/PlayerProfile';
 import { EffectAggregator } from '../core/EffectAggregator';
 import { ItemManager } from '../game/ItemManager';
-import { ALL_ITEMS, ALL_LUCKY_ITEMS, LUCKY_PENNY, FOUR_LEAF_CLOVER, VISOR } from '../data/items';
+import { ALL_ITEMS, ALL_LUCKY_ITEMS, LUCKY_PENNY, FOUR_LEAF_CLOVER, VISOR, BANANA } from '../data/items';
 import { SLOT_ITEM_TYPE } from '../types/items';
 import { ABILITY_DEFINITIONS } from '../data/abilities';
 import { EffectKey } from '../types/game';
@@ -284,7 +284,8 @@ function main(): void {
           Object.keys(heldEffects.statBoosts).length === 0,
         JSON.stringify(heldEffects));
 
-      const wearing = ItemManager.equipItem(held, LUCKY_PENNY.id, 'charm');
+      const pennyCopy = held.inventory[0].instanceId;
+      const wearing = ItemManager.equipItem(held, pennyCopy, 'charm');
       const wornEffects = EffectAggregator.getActiveEffects(wearing);
       check('equipping the charm turns its effect on',
         EffectAggregator.getEffect(wornEffects.effects, EffectKey.ABILITY_DROP_BONUS) === 0.15,
@@ -292,7 +293,8 @@ function main(): void {
 
       // The whole point of the slot: a second charm displaces the first.
       const bothHeld = ItemManager.addItem(wearing, FOUR_LEAF_CLOVER);
-      const swapped = ItemManager.equipItem(bothHeld, FOUR_LEAF_CLOVER.id, 'charm');
+      const cloverCopy = bothHeld.inventory.find((i) => i.id === FOUR_LEAF_CLOVER.id)!.instanceId;
+      const swapped = ItemManager.equipItem(bothHeld, cloverCopy, 'charm');
       const swappedEffects = EffectAggregator.getActiveEffects(swapped);
       check('equipping a second charm displaces the first',
         swapped.equippedItems.charm?.id === FOUR_LEAF_CLOVER.id &&
@@ -303,14 +305,36 @@ function main(): void {
         JSON.stringify(swappedEffects.effects));
 
       // Slots stay type-exclusive in both directions.
-      const charmIntoHat = ItemManager.equipItem(held, LUCKY_PENNY.id, 'hat');
+      const charmIntoHat = ItemManager.equipItem(held, pennyCopy, 'hat');
       check('a charm cannot be equipped into a gear slot',
         charmIntoHat.equippedItems.hat === null);
 
       const gearHeld = ItemManager.addItem(freshPlayer(), VISOR);
-      const gearIntoCharm = ItemManager.equipItem(gearHeld, VISOR.id, 'charm');
+      const gearIntoCharm = ItemManager.equipItem(gearHeld, gearHeld.inventory[0].instanceId, 'charm');
       check('gear cannot be equipped into the charm slot',
         gearIntoCharm.equippedItems.charm === null);
+
+      // Two copies of one item share a catalogue id but must act independently.
+      const twoBananas = ItemManager.addItem(ItemManager.addItem(freshPlayer(), BANANA), BANANA);
+      const [first, second] = twoBananas.inventory;
+      check('duplicate copies get distinct instance ids',
+        first.instanceId !== second.instanceId, `${first.instanceId} / ${second.instanceId}`);
+      const oneEaten = ItemManager.useConsumable(twoBananas, first.instanceId).player;
+      check('using one copy leaves the other',
+        oneEaten.inventory.length === 1 && oneEaten.inventory[0].instanceId === second.instanceId,
+        `inventory=${oneEaten.inventory.length}`);
+      const oneTrashed = ItemManager.trashItem(twoBananas, second.instanceId);
+      check('trashing one copy leaves the other',
+        oneTrashed.inventory.length === 1 && oneTrashed.inventory[0].instanceId === first.instanceId,
+        `inventory=${oneTrashed.inventory.length}`);
+
+      const twoVisors = ItemManager.addItem(ItemManager.addItem(freshPlayer(), VISOR), VISOR);
+      const visorWorn = ItemManager.equipItem(twoVisors, twoVisors.inventory[0].instanceId, 'hat');
+      check('equipping one copy leaves the other in the inventory',
+        visorWorn.equippedItems.hat?.instanceId === twoVisors.inventory[0].instanceId &&
+          visorWorn.inventory.length === 1 &&
+          visorWorn.inventory[0].instanceId === twoVisors.inventory[1].instanceId,
+        `inventory=${visorWorn.inventory.length}`);
     } finally {
       console.warn = originalWarn;
     }
