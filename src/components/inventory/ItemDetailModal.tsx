@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import type { Item } from '../../types/items';
+import type { OwnedItem } from '../../types/items';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { ItemEffects } from './ItemEffects';
@@ -15,15 +15,15 @@ import { StatDeltaList } from './StatDeltaList';
 import { getItemIcon, SLOT_NAMES } from './itemHelpers';
 
 interface ItemDetailModalProps {
-  item: Item | null;
+  item: OwnedItem | null;
   /** Item equipped in the same slot (for comparison). Null if slot empty / N/A. */
-  equippedInSlot: Item | null;
+  equippedInSlot: OwnedItem | null;
   isEquipped: boolean;
   onClose: () => void;
-  onEquip: (item: Item) => void;
-  onUnequip: (item: Item) => void;
-  onUseConsumable: (item: Item) => void;
-  onTrash: (item: Item) => void;
+  onEquip: (item: OwnedItem) => void;
+  onUnequip: (item: OwnedItem) => void;
+  onUseConsumable: (item: OwnedItem) => void;
+  onTrash: (item: OwnedItem) => void;
 }
 
 export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({

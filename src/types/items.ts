@@ -52,7 +52,7 @@ export interface ConsumableEffect {
  * Uses the same Modifiers pattern as abilities for consistency
  */
 export interface Item {
-  id: string; // Unique identifier for tracking
+  id: string; // Catalogue id — shared by every copy of this item
   name: string;
   description: string;
   type: ItemType;
@@ -60,4 +60,15 @@ export interface Item {
   equipmentSlot?: EquipmentSlot; // Only for equipment type
   consumableEffect?: ConsumableEffect; // Only for consumable type
   shopAvailable?: boolean; // Whether item appears in shop (default true). Set false for story/reward-only items
+}
+
+/**
+ * A copy of an item the player actually holds.
+ *
+ * `id` names the catalogue entry, so two bananas share it. Anything that acts
+ * on one specific copy — equip, use, trash, React keys — goes by `instanceId`,
+ * which ItemManager.addItem stamps when the item enters the player's hands.
+ */
+export interface OwnedItem extends Item {
+  instanceId: string;
 }

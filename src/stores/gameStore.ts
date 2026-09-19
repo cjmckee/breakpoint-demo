@@ -25,7 +25,7 @@ import {
 import type { StoryEvent, StoryEventTag, StoryEventOption } from '../types/storyEvents';
 import { HANGOUT_CHARACTERS, HANGOUT_ENERGY_COST, getHangoutTier } from '../data/hangoutCharacters';
 import type { Challenge } from '../types/challenges';
-import type { Item, EquipmentSlot } from '../types/items';
+import type { Item, OwnedItem, EquipmentSlot } from '../types/items';
 import type { ActiveTournament, TournamentMatchMetadata } from '../types/tournaments';
 import { PlayerManager } from '../game/PlayerManager';
 import { TimeManager } from '../game/TimeManager';
@@ -170,16 +170,16 @@ interface GameState {
 
   // Item actions
   addItem: (item: Item) => void;
-  equipItem: (itemId: string, slot: EquipmentSlot) => void;
+  equipItem: (instanceId: string, slot: EquipmentSlot) => void;
   unequipItem: (slot: EquipmentSlot) => void;
-  swapEquipment: (itemId: string, slot: EquipmentSlot) => void;
-  useConsumable: (itemId: string) => void;
-  trashItem: (itemId: string) => void;
+  swapEquipment: (instanceId: string, slot: EquipmentSlot) => void;
+  useConsumable: (instanceId: string) => void;
+  trashItem: (instanceId: string) => void;
   markItemSeen: (itemId: string) => void;
   setIndicator: (key: string) => void;
   clearIndicator: (key: string) => void;
   markChallengeSeen: (challengeId: string) => void;
-  getPlayerItems: () => Item[];
+  getPlayerItems: () => OwnedItem[];
 
   // Tournament actions
   startTournament: (tournamentId: string, options?: { skipCeremony?: boolean }) => void;
@@ -2686,11 +2686,11 @@ export const useGameStore = create<GameState>()(
       },
 
       // Equip an item from inventory
-      equipItem: (itemId: string, slot: EquipmentSlot) => {
+      equipItem: (instanceId: string, slot: EquipmentSlot) => {
         const { player } = get();
         if (!player) return;
 
-        const updatedPlayer = ItemManager.equipItem(player, itemId, slot);
+        const updatedPlayer = ItemManager.equipItem(player, instanceId, slot);
         set({ player: updatedPlayer });
       },
 
@@ -2704,20 +2704,20 @@ export const useGameStore = create<GameState>()(
       },
 
       // Swap equipment directly
-      swapEquipment: (itemId: string, slot: EquipmentSlot) => {
+      swapEquipment: (instanceId: string, slot: EquipmentSlot) => {
         const { player } = get();
         if (!player) return;
 
-        const updatedPlayer = ItemManager.swapEquipment(player, itemId, slot);
+        const updatedPlayer = ItemManager.swapEquipment(player, instanceId, slot);
         set({ player: updatedPlayer });
       },
 
       // Use a consumable item
-      useConsumable: (itemId: string) => {
+      useConsumable: (instanceId: string) => {
         const { player, currentStatus } = get();
         if (!player) return;
 
-        const result = ItemManager.useConsumable(player, itemId);
+        const result = ItemManager.useConsumable(player, instanceId);
 
         // Update player and apply instant effects
         const newEnergy = Math.max(
@@ -2744,11 +2744,11 @@ export const useGameStore = create<GameState>()(
       },
 
       // Trash/remove an item from inventory permanently
-      trashItem: (itemId: string) => {
+      trashItem: (instanceId: string) => {
         const { player } = get();
         if (!player) return;
 
-        const updatedPlayer = ItemManager.trashItem(player, itemId);
+        const updatedPlayer = ItemManager.trashItem(player, instanceId);
         set({ player: updatedPlayer });
       },
 
@@ -2793,7 +2793,7 @@ export const useGameStore = create<GameState>()(
       },
 
       // Get all player items
-      getPlayerItems: (): Item[] => {
+      getPlayerItems: (): OwnedItem[] => {
         const { player } = get();
         if (!player) return [];
         return ItemManager.getAllItems(player);
