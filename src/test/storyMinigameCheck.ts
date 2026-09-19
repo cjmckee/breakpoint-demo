@@ -144,8 +144,13 @@ function main(): void {
     checked.every(({ option }) => option.minigame!.passThreshold >= 1),
     'a threshold of 0 passes without playing');
 
+  // Compared by content, not identity: two separately-authored branches that
+  // happen to say and do the same thing are the case worth catching, and those
+  // are never the same object.
   check('every check has a fail branch distinct from its pass branch',
-    checked.every(({ option }) => option.minigame!.failOutcome !== option.outcome));
+    checked.every(({ option }) =>
+      JSON.stringify(option.minigame!.failOutcome) !== JSON.stringify(option.outcome)),
+    'identical branches make the minigame decoration the player pays for');
 
   check('every check tells the player it is coming, before they pick it',
     checked.every(({ option }) => (option.description ?? '').length > 0),

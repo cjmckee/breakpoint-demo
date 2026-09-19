@@ -3,11 +3,15 @@
  * Lets you export/import the full save state and quick-load bundled test
  * saves from src/debug/saves/, so you can jump straight into a scenario
  * (e.g. "day 11 story event") instead of replaying up to it every time.
+ *
+ * Also runs any story event on demand, which is the faster route when the
+ * scenario you want is a single event rather than a whole game state.
  */
 
-import React, { useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useGameStore } from '../stores/gameStore';
+import { StoryEventRepository } from '../data/storyEvents';
 
 // Lazy so bundled test-save JSON isn't pulled into the eagerly-loaded chunk.
 const testSaveModules = import.meta.glob('./saves/*.json') as Record<
@@ -19,10 +23,43 @@ function saveNameFromPath(path: string): string {
   return path.replace('./saves/', '').replace(/\.json$/, '');
 }
 
+/** Events shown at once. The list is long enough that the panel needs a lid on it. */
+const EVENT_RESULT_LIMIT = 25;
+
 export const DebugPanel: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+  const [eventFilter, setEventFilter] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Sorted once: the repository is a static module-level array.
+  const allEvents = useMemo(
+    () =>
+      [...StoryEventRepository.getAllEvents()].sort((a, b) => a.id.localeCompare(b.id)),
+    []
+  );
+
+  const matchingEvents = useMemo(() => {
+    const needle = eventFilter.trim().toLowerCase();
+    if (!needle) return allEvents;
+    return allEvents.filter(
+      (event) =>
+        event.id.toLowerCase().includes(needle) ||
+        event.name.toLowerCase().includes(needle) ||
+        event.tags.some((tag) => tag.includes(needle))
+    );
+  }, [allEvents, eventFilter]);
+
+  const handleTriggerEvent = (eventId: string, eventName: string) => {
+    const { player, debugTriggerStoryEvent } = useGameStore.getState();
+    if (!player) {
+      setStatus('Create a player first — an event has nobody to happen to.');
+      return;
+    }
+    debugTriggerStoryEvent(eventId);
+    setStatus(`Triggered "${eventName}".`);
+    setIsOpen(false);
+  };
 
   const handleExport = () => {
     const { exportSave, calendar } = useGameStore.getState();
@@ -113,6 +150,44 @@ export const DebugPanel: React.FC = () => {
                 </button>
               ))}
             </div>
+          )}
+        </div>
+
+        <div className="mb-5">
+          <h3 className="text-sm font-bold text-pixel-text-muted uppercase tracking-wider mb-1">Trigger Story Event</h3>
+          <p className="text-xs text-pixel-text-muted mb-2">
+            Runs the event now, ignoring its prerequisites. Choices are still filtered by
+            their own prerequisites, so you see what a qualifying player would.
+          </p>
+          <input
+            type="text"
+            value={eventFilter}
+            onChange={(e) => setEventFilter(e.target.value)}
+            placeholder="Filter by id, name, or tag…"
+            className="w-full bg-pixel-bg-dark border-2 border-pixel-border text-pixel-text px-3 py-2 text-sm mb-2"
+          />
+          <div className="max-h-56 overflow-y-auto space-y-1 border-2 border-pixel-border p-1">
+            {matchingEvents.length === 0 ? (
+              <p className="text-xs text-pixel-text-muted p-2">No event matches "{eventFilter}".</p>
+            ) : (
+              matchingEvents.slice(0, EVENT_RESULT_LIMIT).map((event) => (
+                <button
+                  key={event.id}
+                  onClick={() => handleTriggerEvent(event.id, event.name)}
+                  className="w-full text-left bg-pixel-bg-dark border-2 border-pixel-border text-pixel-text px-3 py-2 text-sm hover:bg-pixel-secondary hover:text-white transition-colors"
+                >
+                  <span className="font-bold">{event.name}</span>
+                  <span className="block text-xs opacity-70">
+                    {event.id} · {event.tags.join(', ')}
+                  </span>
+                </button>
+              ))
+            )}
+          </div>
+          {matchingEvents.length > EVENT_RESULT_LIMIT && (
+            <p className="text-xs text-pixel-text-muted mt-1">
+              Showing {EVENT_RESULT_LIMIT} of {matchingEvents.length} — narrow the filter.
+            </p>
           )}
         </div>
 

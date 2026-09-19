@@ -230,6 +230,12 @@ export type PhaseContinuation =
       event: StoryEvent;
       availableOptions: StoryEventOption[];
       optionId: string;
+      /**
+       * Whether the event was showing as an idle overlay rather than its own
+       * screen. Leaving for the minigame is what loses that, and it decides
+       * whether the result comes back as a modal over the menu or full-screen.
+       */
+      wasOverlay: boolean;
       next: PhaseContinuation;
     };
 

@@ -38,7 +38,11 @@ export const MinigameHost: React.FC = () => {
       <StatusBar />
 
       <div className="max-w-2xl mx-auto px-4 pb-8">
-        <Minigame onComplete={completeMinigame} windowBonus={windowBonus} />
+        <Minigame
+          onComplete={completeMinigame}
+          windowBonus={windowBonus}
+          config={gamePhase.request.config}
+        />
       </div>
     </div>
   );
