@@ -3,8 +3,8 @@
  *
  * These say "support stats" and "the core rep still counts", which is training's
  * vocabulary and nobody else's — a story minigame must not show them. They lived
- * in MinigameShell, which is meant to be context-agnostic, so they moved here to
- * sit beside the screen that means them.
+ * in MinigameShell, which is meant to be context-agnostic, so they have a file of
+ * their own that only the training games import.
  */
 
 import React from 'react';

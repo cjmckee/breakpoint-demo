@@ -1,9 +1,9 @@
 /**
- * Shared "juice" for the training minigames.
+ * Shared "juice" for the minigames.
  *
- * Small, fast, non-blocking feedback so every rep feels punchy — these drills are
- * played constantly, so the polish lives in one place and stays consistent across all
- * five games:
+ * Small, fast, non-blocking feedback so every rep feels punchy — the training drills
+ * are played constantly, so the polish lives in one place and stays consistent across
+ * every game:
  *   - <Sparks>: a one-shot particle burst at a point (green on a clean hit, red on a miss).
  *   - <ComboBadge>: a "×N" pop for trailing consecutive cleans (cosmetic; score stays 0-3).
  *   - useHitstop(): a ~40ms freeze-frame games apply in their rAF loop on clean contact,

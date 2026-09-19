@@ -10,16 +10,14 @@
  * bites. The fish gets faster each cast, and if you take too long it loses interest.
  *
  * Nothing here knows why it is being played. It reports a score out of five and
- * the caller decides what that means. (The shell and the attempt hook still live
- * under components/training, which is where they were built; they are shared, not
- * training-specific.)
+ * the caller decides what that means.
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { audioManager } from '../../audio/AudioManager';
-import { MinigameShell, RoundPips } from '../../components/training/MinigameShell';
-import { useMinigameRounds } from '../../components/training/useMinigameRounds';
-import { Sparks, ComboBadge, useHitstop, type Burst } from '../../components/training/minigameJuice';
+import { MinigameShell, RoundPips } from '../shared/MinigameShell';
+import { useMinigameRounds } from '../shared/useMinigameRounds';
+import { Sparks, ComboBadge, useHitstop, type Burst } from '../shared/minigameJuice';
 import { directionFromKey, type Direction } from '../../utils/gameKeys';
 import type { MinigameProps } from '../types';
 

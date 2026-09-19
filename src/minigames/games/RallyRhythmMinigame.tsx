@@ -10,11 +10,11 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { audioManager } from '../../audio/AudioManager';
-import { MinigameShell, RoundPips } from './MinigameShell';
-import { SupportResult, countNote } from './trainingReadout';
-import type { MinigameProps } from '../../minigames/types';
-import { useMinigameRounds } from './useMinigameRounds';
-import { Sparks, ComboBadge, useHitstop, type Burst } from './minigameJuice';
+import { MinigameShell, RoundPips } from '../shared/MinigameShell';
+import { SupportResult, countNote } from '../shared/trainingReadout';
+import type { MinigameProps } from '../types';
+import { useMinigameRounds } from '../shared/useMinigameRounds';
+import { Sparks, ComboBadge, useHitstop, type Burst } from '../shared/minigameJuice';
 import { directionFromKey } from '../../utils/gameKeys';
 
 const LANES = 3;

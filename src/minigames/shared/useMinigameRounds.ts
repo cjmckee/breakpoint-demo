@@ -22,7 +22,7 @@
 
 import { useCallback, useRef, useState } from 'react';
 import { audioManager } from '../../audio/AudioManager';
-import type { MinigameConfig, MinigameId, MinigameScore } from '../../minigames/types';
+import type { MinigameConfig, MinigameId, MinigameScore } from '../types';
 
 /** Attempts a game runs when it does not say otherwise. */
 export const DEFAULT_ROUNDS = 3;
