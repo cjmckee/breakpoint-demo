@@ -29,6 +29,7 @@ import { MomentumEngine, ClutchLevel } from '../core/MomentumEngine';
 import { getPrimaryStatName } from '../core/shotStatMapping';
 import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds';
 import { DEFAULT_KEY_MOMENTS_PER_MATCH, DEFAULT_POINT_DELAY_MS, KEY_MOMENT_OPTIONS_PER_MENU } from '../config/matchRewards';
+import { trace } from '../core/trace';
 
 /** The match formats an interactive match can be played at. */
 type MatchFormatLabel = NonNullable<InteractiveMatchConfig['matchFormat']>;
@@ -197,10 +198,10 @@ export class MatchOrchestrator {
     const oTech = opponent.getStatCategoryAverage('technical');
     const oPhys = opponent.getStatCategoryAverage('physical');
     const oMent = opponent.getStatCategoryAverage('mental');
-    console.log(`🎾 Starting match: ${player.name} vs ${config.opponentName ?? opponent.name}`);
-    console.log(`📊 Player overall: ${player.overallRating} (tech=${pTech.toFixed(1)}, phys=${pPhys.toFixed(1)}, mental=${pMent.toFixed(1)})`);
-    console.log(`📊 Opponent overall: ${opponent.overallRating} (tech=${oTech.toFixed(1)}, phys=${oPhys.toFixed(1)}, mental=${oMent.toFixed(1)}) → matchLevel: ${matchLevel}`);
-    console.log(`📏 Quality thresholds: exceptional=${thresholds.exceptional.toFixed(1)}, high=${thresholds.high.toFixed(1)}, good=${thresholds.good.toFixed(1)}, average=${thresholds.average.toFixed(1)}, weak=${thresholds.weak.toFixed(1)}`);
+    trace(`🎾 Starting match: ${player.name} vs ${config.opponentName ?? opponent.name}`);
+    trace(`📊 Player overall: ${player.overallRating} (tech=${pTech.toFixed(1)}, phys=${pPhys.toFixed(1)}, mental=${pMent.toFixed(1)})`);
+    trace(`📊 Opponent overall: ${opponent.overallRating} (tech=${oTech.toFixed(1)}, phys=${oPhys.toFixed(1)}, mental=${oMent.toFixed(1)}) → matchLevel: ${matchLevel}`);
+    trace(`📏 Quality thresholds: exceptional=${thresholds.exceptional.toFixed(1)}, high=${thresholds.high.toFixed(1)}, good=${thresholds.good.toFixed(1)}, average=${thresholds.average.toFixed(1)}, weak=${thresholds.weak.toFixed(1)}`);
 
     // Roll match-day form for both players (mood-biased for the player) and read the
     // results back for the UI's hot/cold form indicator. The interactive path runs its
@@ -210,7 +211,7 @@ export class MatchOrchestrator {
     opponent.rollMatchForm({ variance: matchFormVariance });
     this.playerMatchForm = player.matchForm;
     this.opponentMatchForm = opponent.matchForm;
-    console.log(`🎲 Match-day form: player ${player.matchForm >= 0 ? '+' : ''}${player.matchForm.toFixed(1)}, opponent ${opponent.matchForm >= 0 ? '+' : ''}${opponent.matchForm.toFixed(1)}`);
+    trace(`🎲 Match-day form: player ${player.matchForm >= 0 ? '+' : ''}${player.matchForm.toFixed(1)}, opponent ${opponent.matchForm >= 0 ? '+' : ''}${opponent.matchForm.toFixed(1)}`);
 
     // Initialize statistics tracker
     this.matchStatistics = new MatchStatistics(player, opponent);
