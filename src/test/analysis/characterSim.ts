@@ -51,12 +51,6 @@ const CHARACTER_BASE: PlayerStats = {
   mental: { focus: 45, anticipation: 42, tactics: 53 },
 };
 
-// ─── Suppress console.log during simulation ──────────────────
-
-const _origLog = console.log;
-function suppressLogs(): void { console.log = () => {}; }
-function restoreLogs(): void { console.log = _origLog; }
-
 // ─── Match runner (mirrors MatchSimulator/MatchOrchestrator loop) ──
 
 interface RunResult {
@@ -230,7 +224,6 @@ function summarize(
   let oppOvr = 0;
   const scoreCounts = new Map<string, number>();
 
-  suppressLogs();
   for (let i = 0; i < n; i++) {
     const player = playerProfileFactory();
     const opponent = opponentProfileFactory();
@@ -259,7 +252,6 @@ function summarize(
     oServeTotal += r.serveTotal.opponent;
     fatP += r.endFatigue.player; fatO += r.endFatigue.opponent;
   }
-  restoreLogs();
 
   const topScores = [...scoreCounts.entries()]
     .sort((a, b) => b[1] - a[1])

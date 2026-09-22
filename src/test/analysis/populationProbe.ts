@@ -37,7 +37,6 @@ import { aggregateArchetypeEffects, profileForArchetype, PATHS_BY_PHASE, type Le
 import { drawPlayerProfile } from './playerFactory';
 
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
-const _origLog = console.log;
 
 const STAT_ORDER = [
   'serve', 'forehand', 'backhand', 'return', 'net',
@@ -245,7 +244,6 @@ function main(): void {
   const t = newTally();
   const pathHits = new Map<string, number>();
   const tierHits = new Map<number, number>();
-  console.log = () => {};
   for (let i = 0; i < N; i++) {
     const [pn, pp] = draw[0]();
     const [on, op] = draw[1]();
@@ -256,7 +254,6 @@ function main(): void {
       pn, on, aggregateArchetypeEffects(pp), aggregateArchetypeEffects(op), t,
     );
   }
-  console.log = _origLog;
 
   console.log('── who is in the population, and what net phase they bought ──\n');
   const head = ['archetype'.padEnd(16), 'share'.padStart(8), 'reaches net'.padStart(13), '  net phase'].join('');

@@ -30,7 +30,6 @@ import {
 } from '../../config/shotThresholds';
 
 const NONE: ArchetypeProfile = { broad: null, phases: {}, specializationPoints: 0, respecTokens: 0 };
-const _origLog = console.log;
 
 const uniform = (r: number): PlayerStats => ({
   core: { serve: r, forehand: r, backhand: r, return: r, net: r },
@@ -77,11 +76,9 @@ function meanQuality(shot: ShotType, L: number, oppL: number, incomingQ: number,
   const o = new PlayerProfile('o', 'O', uniform(oppL), NONE);
   p.matchForm = 0; o.matchForm = 0;
   let q = 0;
-  console.log = () => {};
   for (let i = 0; i < n; i++) {
     q += calc.calculateShotSuccess(p, shot, CONTEXT, o, 'well_positioned', incoming(incomingQ)).quality;
   }
-  console.log = _origLog;
   return q / n;
 }
 

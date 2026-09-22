@@ -44,7 +44,6 @@ import {
 } from '../../config/shotThresholds';
 
 const NONE: ArchetypeProfile = { broad: null, phases: {}, specializationPoints: 0, respecTokens: 0 };
-const _origLog = console.log;
 
 const uniform = (r: number): PlayerStats => ({
   core: { serve: r, forehand: r, backhand: r, return: r, net: r },
@@ -93,7 +92,6 @@ function measure(shot: ShotType, L: number, N: number, oppL: number): Row {
   const cap = TOTAL_MODIFIER_CAPS.rally;
 
   let adj = 0, capped = 0, q = 0, mIn = 0, mWin = 0, pIn = 0, pWin = 0;
-  console.log = () => {};
   for (let i = 0; i < N; i++) {
     const r = calc.calculateShotSuccess(p, shot, CONTEXT, o, 'well_positioned', incoming(oppL));
     adj += r.modifiers.finalAdjustment;
@@ -104,7 +102,6 @@ function measure(shot: ShotType, L: number, N: number, oppL: number): Row {
     pIn += sigmoidProbability(r.quality, t.inPlay, PROBABILITY_STEEPNESS.rally.inPlay);
     pWin += sigmoidProbability(r.quality, t.winner, PROBABILITY_STEEPNESS.rally.winner);
   }
-  console.log = _origLog;
   return {
     adj: adj / N, capped: (capped / N) * 100, quality: q / N,
     inPlay: mIn / N, winner: mWin / N, pIn: (pIn / N) * 100, pWin: (pWin / N) * 100,

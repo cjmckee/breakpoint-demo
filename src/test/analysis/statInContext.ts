@@ -25,7 +25,6 @@ import { MATCH_FATIGUE } from '../../config/shotThresholds';
 import { aggregateArchetypeEffects } from '../../data/archetypeTree';
 
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
-const _origLog = console.log;
 
 const uniform = (r: number): PlayerStats => ({
   core: { serve: r, forehand: r, backhand: r, return: r, net: r },
@@ -86,14 +85,12 @@ function runMatch(p: PlayerProfile, o: PlayerProfile, eff: Record<string, number
 function trial(bucket: keyof PlayerStats, key: string, prof: ArchetypeProfile, base: number, bump: number, n: number): number {
   const eff = aggregateArchetypeEffects(prof);
   let won = 0, tot = 0;
-  console.log = () => {};
   for (let i = 0; i < n; i++) {
     const p = new PlayerProfile('p', 'P', withStat(base, bucket, key, bump), prof);
     const o = new PlayerProfile('o', 'O', uniform(base), prof);
     const [w, t] = runMatch(p, o, eff);
     won += w; tot += t;
   }
-  console.log = _origLog;
   return (won / tot) * 100 - 50;
 }
 

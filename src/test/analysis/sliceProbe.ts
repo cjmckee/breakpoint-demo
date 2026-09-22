@@ -50,7 +50,6 @@ import {
 import { aggregateArchetypeEffects } from '../../data/archetypeTree';
 
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
-const _origLog = console.log;
 
 const profileOf = (phases: Partial<Record<GamePhase, PhaseSpec>>, broad: ArchetypeProfile['broad'] = null): ArchetypeProfile =>
   ({ broad, phases, specializationPoints: 0, respecTokens: 0 });
@@ -117,7 +116,6 @@ function runMatch(p: PlayerProfile, o: PlayerProfile, eff: Record<string, number
 function trial(prof: ArchetypeProfile, base: number, bump: number, n: number): number {
   const eff = aggregateArchetypeEffects(prof);
   let won = 0, tot = 0;
-  console.log = () => {};
   for (let i = 0; i < n; i++) {
     const [w, t] = runMatch(
       new PlayerProfile('p', 'P', withSlice(base, bump), prof),
@@ -125,7 +123,6 @@ function trial(prof: ArchetypeProfile, base: number, bump: number, n: number): n
     );
     won += w; tot += t;
   }
-  console.log = _origLog;
   return (won / tot) * 100 - 50;
 }
 

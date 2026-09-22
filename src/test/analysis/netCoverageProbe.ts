@@ -41,7 +41,6 @@ import { MATCH_FATIGUE, OPPONENT_STAT_ADJUSTMENTS } from '../../config/shotThres
 import { aggregateArchetypeEffects } from '../../data/archetypeTree';
 
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
-const _origLog = console.log;
 
 const NET_ATTACKER: ArchetypeProfile = {
   broad: 'net_attacker', phases: { net: { path: 'net_downhill', tier: 3 } },
@@ -134,7 +133,6 @@ function runMatch(attacker: PlayerProfile, passer: PlayerProfile, t: Tally): voi
 
 function measure(attackerNet: number, level: number, n: number): Tally {
   const t = newTally();
-  console.log = () => {};
   for (let i = 0; i < n; i++) {
     runMatch(
       new PlayerProfile('a', 'A', stats(level, attackerNet), NET_ATTACKER),
@@ -142,7 +140,6 @@ function measure(attackerNet: number, level: number, n: number): Tally {
       t,
     );
   }
-  console.log = _origLog;
   return t;
 }
 

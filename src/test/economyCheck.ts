@@ -211,7 +211,6 @@ function main(): void {
     // bisecting for the flip point. That gives the real number the bonus produces
     // rather than a bucket count, which is what lets the ratio below be exact.
     const originalRandom = Math.random;
-    const originalLog = console.log;
     const dropThreshold = (bonus: number): number => {
       let lo = 0;      // always drops
       let hi = 0.12;   // never drops
@@ -230,12 +229,10 @@ function main(): void {
     let without = 0;
     let withBonus = 0;
     try {
-      console.log = (): void => {};
       without = dropThreshold(0);
       withBonus = dropThreshold(0.15);
     } finally {
       Math.random = originalRandom;
-      console.log = originalLog;
     }
 
     check('a drop bonus widens the band of rolls that yield an ability',

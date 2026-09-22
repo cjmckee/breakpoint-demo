@@ -23,13 +23,32 @@ import {
   PointResult as SimplePointResult,
 } from '../types/keyMoments';
 import { PlayerStats, Ability, StatBoosts, EffectKey } from '../types/game';
-import { MatchStatistics as IMatchStatistics, MatchState, PointResult, PointType, PlayerMatchFatigue, CourtSurface } from '../types';
+import { MatchStatistics as IMatchStatistics, MatchState, PointResult, PointType, PlayerMatchFatigue, CourtSurface, ShotDetail, ShotType } from '../types';
 import { MATCH_FATIGUE, PRESSURE_BANK, STAMINA_RECOVERY, KEY_MOMENT_OPPONENT_DRAIN } from '../config/shotThresholds';
 import { MomentumEngine, ClutchLevel } from '../core/MomentumEngine';
 import { getPrimaryStatName } from '../core/shotStatMapping';
 import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds';
 import { DEFAULT_KEY_MOMENTS_PER_MATCH, DEFAULT_POINT_DELAY_MS, KEY_MOMENT_OPTIONS_PER_MENU } from '../config/matchRewards';
 import { trace } from '../core/trace';
+
+/**
+ * The coarse shot labels authored on tactical options, mapped onto the ShotType the
+ * simulation records. Keep this total over the `shotType` values in
+ * data/tacticalOptions.ts: an unmapped label silently falls back to 'forehand',
+ * which would misattribute the shot.
+ */
+const TACTIC_SHOT_TYPES: Record<string, ShotType> = {
+  serve: 'serve_first',
+  return: 'return_forehand',
+  forehand: 'forehand',
+  backhand: 'backhand',
+  volley: 'volley_forehand',
+  slice: 'slice_forehand',
+  drop_shot: 'drop_shot_forehand',
+  lob: 'lob_forehand',
+  overhead: 'overhead',
+  passing_shot: 'angle_shot_forehand',
+};
 
 /** The match formats an interactive match can be played at. */
 type MatchFormatLabel = NonNullable<InteractiveMatchConfig['matchFormat']>;
@@ -538,20 +557,20 @@ export class MatchOrchestrator {
     shotOutcome: { outcome: PointType; shotType: string; shooter: 'player' | 'opponent' },
     pointWinner: 'player' | 'opponent',
     currentServer: 'player' | 'opponent'
-  ): { shots: any[]; serveType: 'first' | 'second' } {
-    const shots: any[] = [];
+  ): { shots: ShotDetail[]; serveType: 'first' | 'second' } {
+    const shots: ShotDetail[] = [];
     const timestamp = Date.now();
     let shotNumber = 1;
     let serveType: 'first' | 'second' = 'first';
 
     // Helper to create a shot detail
     const createShot = (
-      shotType: string,
+      shotType: ShotType,
       shooter: 'server' | 'returner',
       success: boolean,
-      outcome: string,
+      outcome: PointType,
       quality: number = 70
-    ) => ({
+    ): ShotDetail => ({
       shotType,
       shooter,
       success,
@@ -566,8 +585,17 @@ export class MatchOrchestrator {
         pressure: 'high' as const,
         courtPosition: 'baseline' as const,
         rallyLength: shotNumber - 1,
+        courtSurface: this.courtSurface,
       },
     });
+
+    // The tactic that produced this point names its shot in the coarse vocabulary
+    // authored in data/tacticalOptions.ts ('return', 'volley', 'slice'), not the
+    // precise ShotType the simulation records. Translate, so a key moment's shots
+    // land in the same shotTypeStats buckets as simulated ones instead of opening
+    // parallel buckets under names nothing else uses. Every mapping keeps what
+    // getPrimaryStatName resolves the label to, so stat attribution is unchanged.
+    const shotType = TACTIC_SHOT_TYPES[shotOutcome.shotType] ?? 'forehand';
 
     // Determine winner in server/returner terms
     const winnerRole = pointWinner === currentServer ? 'server' as const : 'returner' as const;
@@ -576,25 +604,25 @@ export class MatchOrchestrator {
     switch (shotOutcome.outcome) {
       case PointType.ACE:
         // ACE: Just the serve
-        shots.push(createShot('serve_first', 'server', true, 'winner', 85));
+        shots.push(createShot('serve_first', 'server', true, PointType.WINNER, 85));
         serveType = 'first';
         break;
 
       case PointType.DOUBLE_FAULT:
         // DOUBLE_FAULT: First serve fault, then second serve fault
-        shots.push(createShot('serve_first', 'server', false, 'error', 30));
-        shots.push(createShot('serve_second', 'server', false, 'error', 35));
+        shots.push(createShot('serve_first', 'server', false, PointType.FAULT, 30));
+        shots.push(createShot('serve_second', 'server', false, PointType.FAULT, 35));
         serveType = 'second';
         break;
 
       case PointType.WINNER:
         // WINNER: Serve + return + winner shot (3-5 shots)
         // Serve (successful first serve)
-        shots.push(createShot('serve_first', 'server', true, 'in_play', 75));
+        shots.push(createShot('serve_first', 'server', true, PointType.IN_PLAY, 75));
         serveType = 'first';
 
         // Return
-        shots.push(createShot('return_forehand', 'returner', true, 'in_play', 65));
+        shots.push(createShot('return_forehand', 'returner', true, PointType.IN_PLAY, 65));
 
         // 1-3 rally shots before winner
         const rallyShots = 1 + Math.floor(Math.random() * 3); // 1-3 rally shots
@@ -604,17 +632,17 @@ export class MatchOrchestrator {
             isServerShot ? 'forehand' : 'backhand',
             isServerShot ? 'server' : 'returner',
             true,
-            'in_play',
+            PointType.IN_PLAY,
             70
           ));
         }
 
         // Final winner shot
         shots.push(createShot(
-          shotOutcome.shotType,
+          shotType,
           winnerRole,
           true,
-          'winner',
+          PointType.WINNER,
           90
         ));
         break;
@@ -623,11 +651,11 @@ export class MatchOrchestrator {
       case PointType.UNFORCED_ERROR:
         // ERROR: Serve + return + rally ending in error
         // Serve (successful first serve)
-        shots.push(createShot('serve_first', 'server', true, 'in_play', 75));
+        shots.push(createShot('serve_first', 'server', true, PointType.IN_PLAY, 75));
         serveType = 'first';
 
         // Return
-        shots.push(createShot('return_forehand', 'returner', true, 'in_play', 65));
+        shots.push(createShot('return_forehand', 'returner', true, PointType.IN_PLAY, 65));
 
         // 1-3 rally shots before error
         const rallyErrorShots = 1 + Math.floor(Math.random() * 3);
@@ -637,7 +665,7 @@ export class MatchOrchestrator {
             isServerShot ? 'forehand' : 'backhand',
             isServerShot ? 'server' : 'returner',
             true,
-            'in_play',
+            PointType.IN_PLAY,
             70
           ));
         }
@@ -645,18 +673,20 @@ export class MatchOrchestrator {
         // Final error shot (loser makes the error)
         const loserRole = pointWinner === currentServer ? 'returner' as const : 'server' as const;
         shots.push(createShot(
-          shotOutcome.shotType,
+          shotType,
           loserRole,
           false,
-          shotOutcome.outcome === PointType.FORCED_ERROR ? 'forced_error' : 'unforced_error',
+          shotOutcome.outcome === PointType.FORCED_ERROR
+            ? PointType.FORCED_ERROR
+            : PointType.UNFORCED_ERROR,
           40
         ));
         break;
 
       default:
         // Fallback: simple serve + rally
-        shots.push(createShot('serve_first', 'server', true, 'in_play', 75));
-        shots.push(createShot('forehand', winnerRole, true, 'winner', 80));
+        shots.push(createShot('serve_first', 'server', true, PointType.IN_PLAY, 75));
+        shots.push(createShot('forehand', winnerRole, true, PointType.WINNER, 80));
         serveType = 'first';
     }
 

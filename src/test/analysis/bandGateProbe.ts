@@ -44,7 +44,6 @@ import { aggregateArchetypeEffects, profileForArchetype, type LegacyArchetype } 
 import { drawPlayerProfile } from './playerFactory';
 
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
-const _origLog = console.log;
 const LEGACY: LegacyArchetype[] = ['aggressive', 'defensive', 'counterpuncher', 'serve_volley', 'all_court'];
 
 function mulberry32(seed: number): () => number {
@@ -161,7 +160,6 @@ function main(): void {
   for (const g of GATES) counts.set(`${g.stat}.${g.band}`, { open: 0, contextOnly: 0 });
   let rallyShots = 0;
 
-  console.log = () => {};
   for (let i = 0; i < N; i++) {
     const pProf = drawPlayerProfile(rng, POINTS, MAX_TIER);
     const oProf = opponentProf();
@@ -207,7 +205,6 @@ function main(): void {
       ms.score = tracker.getScore(); ms.currentServer = tracker.getCurrentServer(); ms.pointsPlayed = ++pts;
     }
   }
-  console.log = _origLog;
 
   console.log(`\n╔══ BAND GATES — is the band channel reading context, or just shot type? ══╗`);
   console.log(`\n   ${N} pairings, real build population, ${rallyShots} rally shots.`);

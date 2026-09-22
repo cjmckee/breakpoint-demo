@@ -12,6 +12,7 @@ import {
 } from '../types/game';
 import { AbilitySystem } from './AbilitySystem';
 import { createEmptyArchetypeProfile } from '../data/archetypeTree';
+import { addToEachStat } from '../core/statAccess';
 
 export class PlayerManager {
   /**
@@ -36,18 +37,10 @@ export class PlayerManager {
       baseStats.mental.tactics += 3;
     } else if (playstyle === 'balanced') {
       // Small bonus to all stats
-      Object.keys(baseStats.core).forEach((key) => {
-        (baseStats.core as any)[key] += 1;
-      });
-      Object.keys(baseStats.technical).forEach((key) => {
-        (baseStats.technical as any)[key] += 1;
-      });
-      Object.keys(baseStats.physical).forEach((key) => {
-        (baseStats.physical as any)[key] += 1;
-      });
-      Object.keys(baseStats.mental).forEach((key) => {
-        (baseStats.mental as any)[key] += 1;
-      });
+      addToEachStat(baseStats.core, 1);
+      addToEachStat(baseStats.technical, 1);
+      addToEachStat(baseStats.physical, 1);
+      addToEachStat(baseStats.mental, 1);
     }
 
     return {

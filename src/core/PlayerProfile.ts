@@ -64,6 +64,7 @@ const NO_NUDGE = { aggression: 0, netApproach: 0, consistency: 0, power: 0 };
 /** Re-exported so existing importers keep working; defined once in utils/playerStats. */
 export { calculateOverallRating } from '../utils/overallRating';
 import { calculateOverallRating } from '../utils/overallRating';
+import { ownsKey } from './statAccess';
 
 
 const clampDial = (v: number): number => Math.max(0, Math.min(100, v));
@@ -367,18 +368,13 @@ export class PlayerProfile implements IPlayerProfile {
    * Get stat value by name (for generic access)
    */
   public getStat(statName: StatName): number {
-    if (statName in this.stats.core) {
-      return this.stats.core[statName as keyof typeof this.stats.core];
-    }
-    if (statName in this.stats.technical) {
-      return this.stats.technical[statName as keyof typeof this.stats.technical];
-    }
-    if (statName in this.stats.physical) {
-      return this.stats.physical[statName as keyof typeof this.stats.physical];
-    }
-    if (statName in this.stats.mental) {
-      return this.stats.mental[statName as keyof typeof this.stats.mental];
-    }
+    const { core, technical, physical, mental } = this.stats;
+
+    if (ownsKey(core, statName)) return core[statName];
+    if (ownsKey(technical, statName)) return technical[statName];
+    if (ownsKey(physical, statName)) return physical[statName];
+    if (ownsKey(mental, statName)) return mental[statName];
+
     throw new Error(`Unknown stat name: ${statName}`);
   }
 
@@ -387,18 +383,13 @@ export class PlayerProfile implements IPlayerProfile {
    */
   public updateStat(statName: StatName, value: number): void {
     const clampedValue = Math.max(0, Math.min(100, value));
+    const { core, technical, physical, mental } = this.stats;
 
-    if (statName in this.stats.core) {
-      (this.stats.core as any)[statName] = clampedValue;
-    } else if (statName in this.stats.technical) {
-      (this.stats.technical as any)[statName] = clampedValue;
-    } else if (statName in this.stats.physical) {
-      (this.stats.physical as any)[statName] = clampedValue;
-    } else if (statName in this.stats.mental) {
-      (this.stats.mental as any)[statName] = clampedValue;
-    } else {
-      throw new Error(`Unknown stat name: ${statName}`);
-    }
+    if (ownsKey(core, statName)) core[statName] = clampedValue;
+    else if (ownsKey(technical, statName)) technical[statName] = clampedValue;
+    else if (ownsKey(physical, statName)) physical[statName] = clampedValue;
+    else if (ownsKey(mental, statName)) mental[statName] = clampedValue;
+    else throw new Error(`Unknown stat name: ${statName}`);
   }
 
   /**

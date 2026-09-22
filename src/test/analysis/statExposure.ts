@@ -34,7 +34,6 @@ import { MATCH_FATIGUE } from '../../config/shotThresholds';
 import { aggregateArchetypeEffects } from '../../data/archetypeTree';
 
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
-const _origLog = console.log;
 
 const STAT_ORDER = [
   'serve', 'forehand', 'backhand', 'return', 'net',
@@ -121,12 +120,10 @@ function runMatch(p: PlayerProfile, o: PlayerProfile, eff: Record<string, number
 function measure(prof: ArchetypeProfile, level: number, n: number): Tally {
   const eff = aggregateArchetypeEffects(prof);
   const t = newTally();
-  console.log = () => {};
   for (let i = 0; i < n; i++) {
     runMatch(new PlayerProfile('p', 'P', uniform(level), prof),
       new PlayerProfile('o', 'O', uniform(level), prof), eff, t);
   }
-  console.log = _origLog;
   return t;
 }
 

@@ -35,8 +35,6 @@ const B_MATCHES = 1400; // total randomized pairings (Part B)
 const BASE = 50;
 const BUMP = 90;
 
-const _origLog = console.log;
-
 // ─── Stat plumbing ───────────────────────────────────────────
 
 const BUCKETS = ['core', 'technical', 'physical', 'mental'] as const;
@@ -141,7 +139,6 @@ interface ARow { bucket: Bucket; key: string; byProfile: number[]; mean: number 
 
 function partA(): ARow[] {
   const rows: ARow[] = [];
-  console.log = () => {};
   for (const { bucket, key } of STAT_KEYS) {
     const byProfile: number[] = [];
     for (const { profile } of A_PROFILES) {
@@ -157,13 +154,11 @@ function partA(): ARow[] {
     }
     rows.push({ bucket, key, byProfile, mean: byProfile.reduce((s, x) => s + x, 0) / byProfile.length });
   }
-  console.log = _origLog;
   return rows;
 }
 
 /** Control run: uniform 50 vs uniform 50 should land on 0.00. */
 function partAControl(): number {
-  console.log = () => {};
   let pw = 0, tot = 0;
   for (let i = 0; i < A_MATCHES * 4; i++) {
     const p = new PlayerProfile('p', 'P', uniformStats(BASE), profileOf({}));
@@ -171,7 +166,6 @@ function partAControl(): number {
     const [a, b] = runMatch(p, o, {}, {});
     pw += a; tot += b;
   }
-  console.log = _origLog;
   return (pw / tot) * 100 - 50;
 }
 
@@ -198,7 +192,6 @@ interface BRow { bucket: Bucket; key: string; slope: number; se: number }
 function partB(): { rows: BRow[]; n: number } {
   const diffs: number[][] = [];
   const ys: number[] = [];
-  console.log = () => {};
   for (let i = 0; i < B_MATCHES; i++) {
     const ps = randomStats(), os = randomStats();
     const pp = randomProfile(), op = randomProfile();
@@ -210,7 +203,6 @@ function partB(): { rows: BRow[]; n: number } {
     diffs.push(pf.map((v, j) => v - of[j]));
     ys.push((won / tot) * 100 - 50);
   }
-  console.log = _origLog;
 
   const n = ys.length;
   const rows: BRow[] = STAT_KEYS.map(({ bucket, key }, j) => {

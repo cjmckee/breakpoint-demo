@@ -23,8 +23,6 @@ const N_MATCHES = Number(process.env.N ?? 60);
 const RATING = Number(process.env.RATING ?? 60);
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
 
-const _origLog = console.log;
-
 function uniformStats(r: number): PlayerStats {
   return {
     core: { serve: r, forehand: r, backhand: r, return: r, net: r },
@@ -175,13 +173,11 @@ function main(): void {
     const tally = newTally();
     const pEff = aggregateArchetypeEffects(build.profile);
     const capture: PointResult[] = [];
-    console.log = () => {};
     for (let i = 0; i < N_MATCHES; i++) {
       const player = new PlayerProfile('p', 'Player', uniformStats(RATING), build.profile);
       const opponent = new PlayerProfile('o', 'Opponent', uniformStats(RATING), profile({}));
       runMatch(player, opponent, pEff, {}, tally, capture);
     }
-    console.log = _origLog;
     results.push({ label: build.label, tally, effects: pEff });
     caseStudies[build.label] = capture;
   }
@@ -291,7 +287,6 @@ export function lobProbe(): void {
   const pEff = aggregateArchetypeEffects(prof);
   const capture: PointResult[] = [];
   const tally = newTally();
-  console.log = () => {};
   for (let i = 0; i < 120; i++) {
     const player = new PlayerProfile('p', 'Player', uniformStats(RATING), prof);
     const opponent = new PlayerProfile('o', 'Opponent', uniformStats(RATING), profile({}));
@@ -299,7 +294,6 @@ export function lobProbe(): void {
     runMatch(player, opponent, pEff, {}, tally, cap);
     capture.push(...cap);
   }
-  console.log = _origLog;
 
   // Find every lob hit while the OTHER player was at net, bucket by lob quality.
   const buckets = new Map<string, { n: number; lobWon: number; nextShot: Map<string, number> }>();

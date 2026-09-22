@@ -47,12 +47,6 @@ const RALLY_SHOT_TYPES: ShotType[] = [
 const INCOMING_QUALITIES = [30, 50, 70];
 const OPPONENT_RETURN_RATINGS = [30, 50, 70];
 
-// ─── Suppress console.log during simulation ──────────────────
-
-const _origLog = console.log;
-function suppressLogs(): void { console.log = () => {}; }
-function restoreLogs(): void { console.log = _origLog; }
-
 // ─── Helpers ─────────────────────────────────────────────────
 
 function makeServeContext(courtSurface: CourtSurface = 'hard'): ShotContext {
@@ -114,7 +108,6 @@ function runServeAnalysis(): void {
         let inPlay = 0;
         let aces = 0;
 
-        suppressLogs();
         for (let i = 0; i < N_SHOTS; i++) {
           const result = calculator.calculateShotSuccess(
             player, serveType, makeServeContext(), opponent, 'well_positioned',
@@ -124,7 +117,6 @@ function runServeAnalysis(): void {
           else if (result.outcome === PointType.ACE) aces++;
           else inPlay++;
         }
-        restoreLogs();
 
         const stats = computeStats(qualities);
         allQualities.set(rating, qualities);
@@ -219,7 +211,6 @@ function runRallyAnalysis(): void {
         let forcedErrors = 0;
         let unforcedErrors = 0;
 
-        suppressLogs();
         for (let i = 0; i < N_SHOTS; i++) {
           const result = calculator.calculateShotSuccess(
             player, shotType, makeRallyContext(), opponent, 'well_positioned',
@@ -233,7 +224,6 @@ function runRallyAnalysis(): void {
             case PointType.UNFORCED_ERROR: unforcedErrors++; break;
           }
         }
-        restoreLogs();
 
         const stats = computeStats(qualities);
         allQualities.set(rating, qualities);
@@ -291,14 +281,12 @@ function runMatchAnalysis(): void {
         const player = createUniformPlayer('Player', r1);
         const opponent = createUniformPlayer('Opponent', r2);
 
-        suppressLogs();
         const results = MatchSimulator.simulateMultipleMatches({
           player,
           opponent,
           courtSurface: surface,
           matchFormat: { bestOfSets: 1, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 },
         }, N_MATCHES);
-        restoreLogs();
 
         const playerWins = results.filter(r => r.winner === 'player').length;
         const avgAces = results.reduce((s, r) => s + r.statistics.aces.player, 0) / N_MATCHES;
@@ -369,13 +357,11 @@ function runModifierBreakdown(): void {
     for (const rating of RATINGS) {
       const player = createUniformPlayer('Player', rating);
 
-      suppressLogs();
       const result = calculator.calculateShotSuccess(
         player, type, isServe ? makeServeContext() : makeRallyContext(),
         opponent, 'well_positioned',
         isServe ? undefined : incomingShot,
       );
-      restoreLogs();
 
       const m = result.modifiers;
       print(`    Rating ${rating}:`);
@@ -422,14 +408,12 @@ interface ArchAgg {
 }
 
 function runArchetypeMatches(playerProfile: ArchetypeProfile, opponentProfile: ArchetypeProfile): ArchAgg {
-  suppressLogs();
   const results = MatchSimulator.simulateMultipleMatches({
     player: createArchetypePlayer('P', ARCH_RATING, playerProfile),
     opponent: createArchetypePlayer('O', ARCH_RATING, opponentProfile),
     courtSurface: 'hard',
     matchFormat: { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 },
   }, N_ARCH_MATCHES);
-  restoreLogs();
 
   const n = results.length;
   const avg = (f: (r: typeof results[number]) => number) => results.reduce((s, r) => s + f(r), 0) / n;
@@ -537,7 +521,6 @@ function runArchetypeStyle(profile: ArchetypeProfile, n: number): StyleRates {
   let serverShots = 0, powerShots = 0, powerWin = 0, powerErr = 0;
   let approaches = 0, bh = 0, bhSlice = 0, rallyTotal = 0;
 
-  suppressLogs();
   for (let i = 0; i < n; i++) {
     const r = ps.simulatePoint('player', player, opp, styleMatchState() as never, fx, {});
     points++;
@@ -557,7 +540,6 @@ function runArchetypeStyle(profile: ArchetypeProfile, n: number): StyleRates {
       if (s.shotType.includes('backhand')) { bh++; if (s.shotType.includes('slice')) bhSlice++; }
     }
   }
-  restoreLogs();
 
   const rallyShots = serverShots - firstServes; // exclude first serves from "shot" denominators
   return {

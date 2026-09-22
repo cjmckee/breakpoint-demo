@@ -45,7 +45,6 @@ import { MATCH_FATIGUE } from '../../config/shotThresholds';
 import { aggregateArchetypeEffects } from '../../data/archetypeTree';
 
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
-const _origLog = console.log;
 const MODE = process.env.ML_MODE ?? 'mean';
 
 function uniformStats(r: number): PlayerStats {
@@ -110,26 +109,22 @@ function matchup(strong: number, weak: number, n: number): PointStats {
   const prof = profileOf({});
   const eff = aggregateArchetypeEffects(prof);
   const acc: PointStats = { points: 0, playerWon: 0, rallySum: 0, short: 0 };
-  console.log = () => {};
   for (let i = 0; i < n; i++) {
     const p = new PlayerProfile('p', 'P', uniformStats(strong), prof);
     const o = new PlayerProfile('o', 'O', uniformStats(weak), prof);
     runMatch(p, o, eff, eff, acc);
   }
-  console.log = _origLog;
   return acc;
 }
 
 function taxTrial(bucket: keyof PlayerStats, key: string, prof: ArchetypeProfile, n: number): number {
   const eff = aggregateArchetypeEffects(prof);
   const acc: PointStats = { points: 0, playerWon: 0, rallySum: 0, short: 0 };
-  console.log = () => {};
   for (let i = 0; i < n; i++) {
     const p = new PlayerProfile('p', 'P', bump(50, bucket, key, 90), prof);
     const o = new PlayerProfile('o', 'O', uniformStats(50), prof);
     runMatch(p, o, eff, eff, acc);
   }
-  console.log = _origLog;
   return (acc.playerWon / acc.points) * 100 - 50;
 }
 
@@ -149,9 +144,7 @@ function part1(): void {
     const cells: string[] = [];
     for (const q of [60, 75, 90]) {
       const shot: ShotDetail = { shotType: 'forehand_power', quality: q, outcome: 'in_play', player: 'player' } as unknown as ShotDetail;
-      console.log = () => {};
       const bq = calc.calculateBallQuality(shot, ml);
-      console.log = _origLog;
       // replicate getBallQualityModifier (private) with defender speed/agility 40
       let mod = 1.0;
       if (bq.timeAvailable === 'rushed') mod *= 0.6 + (40 / 100) * 0.4;

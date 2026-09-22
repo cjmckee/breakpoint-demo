@@ -483,7 +483,7 @@ export class MatchSimulator {
    * Log detailed point result for debugging
    */
   private logPointResult(
-    pointResult: any,
+    pointResult: PointResult,
     currentServer: 'player' | 'opponent',
     pointWinner: 'player' | 'opponent'
   ): void {
