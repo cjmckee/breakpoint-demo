@@ -594,29 +594,16 @@ export class MatchStatistics {
   /**
    * Calculate stat effectiveness for all stats
    */
-  private calculateStatEffectiveness(): PlayerPerformance['statEffectiveness'] {
-    const stats = this.playerProfile.stats;
-    const effectiveness: any = {};
+  private calculateStatEffectiveness(): Record<StatName, number> {
+    const { core, technical, physical, mental } = this.playerProfile.stats;
 
-    // Core stats
-    Object.keys(stats.core).forEach(stat => {
-      effectiveness[stat] = this.getStatEffectiveness(stat as StatName);
-    });
-
-    // Technical stats
-    Object.keys(stats.technical).forEach(stat => {
-      effectiveness[stat] = this.getStatEffectiveness(stat as StatName);
-    });
-
-    // Physical stats
-    Object.keys(stats.physical).forEach(stat => {
-      effectiveness[stat] = this.getStatEffectiveness(stat as StatName);
-    });
-
-    // Mental stats
-    Object.keys(stats.mental).forEach(stat => {
-      effectiveness[stat] = this.getStatEffectiveness(stat as StatName);
-    });
+    // Start from a flattened copy of the stats themselves: the result is keyed by
+    // exactly StatName and already complete, so the ratings can be written in place
+    // without a partial accumulator or a cast on the way out.
+    const effectiveness = { ...core, ...technical, ...physical, ...mental };
+    for (const stat of Object.keys(effectiveness) as StatName[]) {
+      effectiveness[stat] = this.getStatEffectiveness(stat);
+    }
 
     return effectiveness;
   }

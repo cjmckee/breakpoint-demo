@@ -200,8 +200,12 @@ export class ChallengeManager {
         return { type: 'relationshipLevel', progress };
       }
 
-      default:
-        throw new Error(`Unknown requirement type: ${(requirement as any).type}`);
+      default: {
+        // `never` here is the exhaustiveness guard: add a requirement variant without
+        // a case above and this stops compiling.
+        const unhandled: never = requirement;
+        throw new Error(`Unknown requirement type: ${JSON.stringify(unhandled)}`);
+      }
     }
   }
 

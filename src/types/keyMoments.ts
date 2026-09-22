@@ -5,7 +5,7 @@
 
 import { TacticalOption, KeyMomentType } from '../data/tacticalOptions';
 import { KeyMomentResult } from '../game/KeyMomentResolver';
-import { Ability, StatBoosts } from './game';
+import { Ability, StatBoosts, PlayerStats } from './game';
 import { MatchStatistics, ShotDetail } from './index';
 import type { ArchetypeType } from '../data/archetypes';
 import type { ArchetypeProfile } from './archetype';
@@ -103,8 +103,8 @@ export interface MatchScore {
  * Match configuration for interactive matches
  */
 export interface InteractiveMatchConfig {
-  playerStats: any; // PlayerProfile from core
-  opponentStats: any; // PlayerProfile from core
+  playerStats: PlayerStats;
+  opponentStats: PlayerStats;
   playerName?: string;   // Player's display name
   opponentName?: string; // Opponent's display name
   opponentTier?: number; // Opponent tier (1-4) for reward calculation
@@ -127,7 +127,7 @@ export interface InteractiveMatchConfig {
 
   // Callbacks
   onKeyMoment?: KeyMomentCallback;
-  onKeyMomentResult?: (result: any) => Promise<void>; // Called after key moment is resolved; awaited before resuming
+  onKeyMomentResult?: (result: KeyMomentResult) => Promise<void>; // Called after key moment is resolved; awaited before resuming
   onScoreUpdate?: ScoreUpdateCallback;
   onStatsUpdate?: StatsUpdateCallback; // Called after each point with current statistics
   onPointComplete?: (result: PointResult) => void;

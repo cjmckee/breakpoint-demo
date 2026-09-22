@@ -605,14 +605,13 @@ export interface PlayerPerformance {
   physicalPerformance: number;
   mentalPerformance: number;
 
-  // Specific stat effectiveness
-  statEffectiveness: {
-    [K in keyof PlayerStats['technical']]: number;
-  } & {
-    [K in keyof PlayerStats['physical']]: number;
-  } & {
-    [K in keyof PlayerStats['mental']]: number;
-  };
+  /**
+   * Effectiveness rating (0-100) for every stat, keyed by StatName. The producer
+   * has always written core stats too; the intersection this replaced listed only
+   * technical, physical and mental, so those five keys were absent from the type
+   * while present in the object.
+   */
+  statEffectiveness: Record<StatName, number>;
 
   // Situational performance
   pressurePointsWon: number;
