@@ -51,6 +51,15 @@ export const LIVE_MATCH_TUTORIAL_STEPS: TutorialStep<LiveMatchTarget>[] = [
 ];
 
 export const KM_TUTORIAL_STEPS: TutorialStep<KmTarget>[] = [
+  // Opens on the header, which is already showing the banner ("Break Point For You
+  // - 30-40") this step is explaining. Nothing else in the game teaches tennis
+  // scoring, and the whole key moment layer is built on knowing which points are
+  // worth stopping for — so say it plainly before asking anyone to play one.
+  {
+    target: 'header',
+    title: 'What Is a Key Moment?',
+    body: 'Tennis does not weigh every point the same. A game runs 15, 30, 40, game — but it has to be won by two, so 40-40 (deuce) can go on for a while. Serving is a real advantage, so holding your own serve is the expectation, and a break — the returner taking the server\'s game — is usually what decides a set. That makes a break point, where the returner is one point from doing it, the biggest point in tennis. 30-30 and deuce matter because they are the door to one. These are the points that stop the match and ask you for a tactic; the rest play themselves.',
+  },
   {
     target: 'header',
     title: 'The Situation',
