@@ -33,11 +33,12 @@ import { trace } from '../core/trace';
 
 /**
  * The coarse shot labels authored on tactical options, mapped onto the ShotType the
- * simulation records. Keep this total over the `shotType` values in
- * data/tacticalOptions.ts: an unmapped label silently falls back to 'forehand',
- * which would misattribute the shot.
+ * simulation records. This has to stay total over the `shotType` values in
+ * data/tacticalOptions.ts — an unmapped label falls back to 'forehand', which
+ * would misattribute the shot silently. Exported so shotTypeMapCheck can assert
+ * that against the authored data rather than against a copy of this table.
  */
-const TACTIC_SHOT_TYPES: Record<string, ShotType> = {
+export const TACTIC_SHOT_TYPES: Record<string, ShotType> = {
   serve: 'serve_first',
   return: 'return_forehand',
   forehand: 'forehand',
