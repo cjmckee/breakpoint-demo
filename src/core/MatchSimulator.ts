@@ -25,6 +25,7 @@ import { ScoreTracker } from './ScoreTracker';
 import { MatchStatistics } from './MatchStatistics';
 import { MomentumEngine, ClutchLevel } from './MomentumEngine';
 import { aggregateArchetypeEffects } from '../data/archetypeTree';
+import { trace } from './trace';
 
 export interface MatchConfig {
   player: PlayerProfile;
@@ -85,9 +86,9 @@ export class MatchSimulator {
     const matchLevel = getMatchLevel(this.config.player.overallRating, this.config.opponent.overallRating);
     const thresholds = getQualityThresholds(matchLevel);
 
-    console.log(`🎾 Starting match: ${this.config.player.name} vs ${this.config.opponent.name}`);
-    console.log(`📊 Player ratings: ${this.config.player.overallRating} vs ${this.config.opponent.overallRating} → matchLevel: ${matchLevel}`);
-    console.log(`📏 Quality thresholds: exceptional=${thresholds.exceptional.toFixed(1)}, high=${thresholds.high.toFixed(1)}, good=${thresholds.good.toFixed(1)}, average=${thresholds.average.toFixed(1)}, weak=${thresholds.weak.toFixed(1)}`);
+    trace(`🎾 Starting match: ${this.config.player.name} vs ${this.config.opponent.name}`);
+    trace(`📊 Player ratings: ${this.config.player.overallRating} vs ${this.config.opponent.overallRating} → matchLevel: ${matchLevel}`);
+    trace(`📏 Quality thresholds: exceptional=${thresholds.exceptional.toFixed(1)}, high=${thresholds.high.toFixed(1)}, good=${thresholds.good.toFixed(1)}, average=${thresholds.average.toFixed(1)}, weak=${thresholds.weak.toFixed(1)}`);
 
     let pointCount = 0;
     const maxPoints = 200; // Safety limit to prevent infinite matches
@@ -118,7 +119,7 @@ export class MatchSimulator {
       const opponentSets = completedSets.filter(set => set.winner === 'opponent').length;
 
       // Always display player score first
-      console.log(`📊 Score - Sets: ${playerSets}-${opponentSets} | Games: ${setGames.player}-${setGames.opponent} | Points: ${playerPoints}-${opponentPoints}`);
+      trace(`📊 Score - Sets: ${playerSets}-${opponentSets} | Games: ${setGames.player}-${setGames.opponent} | Points: ${playerPoints}-${opponentPoints}`);
 
       // Update fatigue based on the point just played
       const lastPoint = this.pointResults[this.pointResults.length - 1];
@@ -126,7 +127,7 @@ export class MatchSimulator {
 
       // Log progress occasionally
       if (pointCount % 20 === 0) {
-        console.log(`🎾 Point ${pointCount}: ${this.scoreTracker.getScoreString()}`);
+        trace(`🎾 Point ${pointCount}: ${this.scoreTracker.getScoreString()}`);
       }
     }
 
@@ -134,8 +135,8 @@ export class MatchSimulator {
     this.matchStatistics.finalizeStatistics();
 
     const matchResult = this.createMatchResult();
-    console.log(`🏆 Match complete: ${matchResult.winner} wins ${matchResult.finalScore}`);
-    console.log(`📈 Duration: ${matchResult.duration} minutes, ${pointCount} points played`);
+    trace(`🏆 Match complete: ${matchResult.winner} wins ${matchResult.finalScore}`);
+    trace(`📈 Duration: ${matchResult.duration} minutes, ${pointCount} points played`);
 
     return matchResult;
   }
@@ -482,7 +483,7 @@ export class MatchSimulator {
    * Log detailed point result for debugging
    */
   private logPointResult(
-    pointResult: any,
+    pointResult: PointResult,
     currentServer: 'player' | 'opponent',
     pointWinner: 'player' | 'opponent'
   ): void {
@@ -507,7 +508,7 @@ export class MatchSimulator {
     // Add serve type indicator
     const serveIndicator = pointResult.serveType === 'second' ? ' [2nd serve]' : '';
 
-    console.log(
+    trace(
       `🎾 Point: ${serverName} serving${serveIndicator} → ${resultMessage} (${pointResult.rallyLength} shots) - ${winnerName} wins`
     );
 
@@ -515,7 +516,7 @@ export class MatchSimulator {
     if (pointResult.keyShot) {
       const keyShooter = pointResult.keyShot.shooter === 'server' ? serverName :
                          (currentServer === 'player' ? this.config.opponent.name : this.config.player.name);
-      console.log(
+      trace(
         `🔥 Key shot by ${keyShooter}: ${pointResult.keyShot.shotType} (${pointResult.keyShot.quality.toFixed(1)} quality, ${pointResult.keyShot.statUsed})`
       );
     }
@@ -638,7 +639,7 @@ export class MatchSimulator {
   ): MatchResult[] {
     const results: MatchResult[] = [];
 
-    console.log(`🎾 Simulating ${numberOfMatches} matches...`);
+    trace(`🎾 Simulating ${numberOfMatches} matches...`);
 
     for (let i = 0; i < numberOfMatches; i++) {
       // Create fresh player profiles for each match
@@ -656,7 +657,7 @@ export class MatchSimulator {
       results.push(result);
 
       if (i % 10 === 0) {
-        console.log(`📊 Completed ${i + 1}/${numberOfMatches} matches`);
+        trace(`📊 Completed ${i + 1}/${numberOfMatches} matches`);
       }
     }
 
@@ -664,7 +665,7 @@ export class MatchSimulator {
     const playerWins = results.filter(result => result.winner === 'player').length;
     const winPercentage = (playerWins / numberOfMatches) * 100;
 
-    console.log(`🏆 Results: ${playerWins}/${numberOfMatches} wins (${winPercentage.toFixed(1)}%)`);
+    trace(`🏆 Results: ${playerWins}/${numberOfMatches} wins (${winPercentage.toFixed(1)}%)`);
 
     return results;
   }

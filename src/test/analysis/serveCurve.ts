@@ -35,7 +35,6 @@ import { ShotCalculator } from '../../core/ShotCalculator';
 import { SERVE_CONSISTENCY, PROBABILITY_STEEPNESS, sigmoidProbability } from '../../config/shotThresholds';
 
 const NONE: ArchetypeProfile = { broad: null, phases: {}, specializationPoints: 0, respecTokens: 0 };
-const _origLog = console.log;
 
 const uniform = (r: number): PlayerStats => ({
   core: { serve: r, forehand: r, backhand: r, return: r, net: r },
@@ -66,7 +65,6 @@ function main(): void {
       p.matchForm = 0; o.matchForm = 0;
 
       let adjSum = 0, accSum = 0, inSum = 0;
-      console.log = () => {};
       for (let i = 0; i < N; i++) {
         const r = calc.calculateShotSuccess(p, serveType, CONTEXT, o, 'well_positioned');
         adjSum += r.modifiers.finalAdjustment;
@@ -74,7 +72,6 @@ function main(): void {
         inSum += sigmoidProbability(r.modifiers.serveAccuracy ?? 0, r.thresholds?.inPlay ?? 0,
           PROBABILITY_STEEPNESS.serve.inPlay);
       }
-      console.log = _origLog;
 
       const adj = adjSum / N, acc = accSum / N;
       // Mirrors ShotCalculator: expected accuracy is clamped to 0-100 before it

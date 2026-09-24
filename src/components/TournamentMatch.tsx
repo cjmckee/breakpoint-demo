@@ -11,7 +11,6 @@ import { TournamentManager } from '../game/TournamentManager';
 import { Card } from './ui/Card';
 import { PreMatchScreen } from './PreMatchScreen';
 import { buildPlayStyle } from '../core/PlayerProfile';
-import type { PlayerStats, PlayStyle } from '../types';
 import { ItemManager } from '../game/ItemManager';
 import type { PreMatchConfig } from '../types/gamePhase';
 import { calculateOverallRating } from '../utils/playerStats';
@@ -60,7 +59,7 @@ export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig })
         ...ItemManager.getTotalPassiveBoosts(player),
         ...pendingBuffs.statBoosts,
       },
-      opponentStats: matchConfig.opponentStats as PlayerStats,
+      opponentStats: matchConfig.opponentStats,
       opponentName: matchConfig.opponentName,
       opponentTier: matchConfig.opponentTier,
       surface: matchConfig.surface,
@@ -136,7 +135,7 @@ export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig })
       opponentName={matchConfig.opponentName}
       opponentTier={matchConfig.opponentTier}
       opponentDescription={matchConfig.opponentDescription}
-      opponentStats={matchConfig.opponentStats as PlayerStats}
+      opponentStats={matchConfig.opponentStats}
       opponentPlayStyle={matchConfig.opponentPlayStyle}
       surface={matchConfig.surface}
       matchFormat={matchConfig.matchFormat === 'best-of-3' ? 'best-of-3' : 'best-of-1'}

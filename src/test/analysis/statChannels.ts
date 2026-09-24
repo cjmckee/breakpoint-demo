@@ -78,7 +78,6 @@ import { aggregateArchetypeEffects, profileForArchetype, type LegacyArchetype } 
 import { drawPlayerProfile } from './playerFactory';
 
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
-const _origLog = console.log;
 
 // ─── Stat plumbing ───────────────────────────────────────────
 
@@ -287,7 +286,6 @@ interface Slopes { slope: number[]; se: number[] }
 function measure(pop: Pairing[]): Slopes {
   const diffs: number[][] = [];
   const ys: number[] = [];
-  console.log = () => {};
   for (const pair of pop) {
     const [won, tot] = runMatch(pair);
     if (tot === 0) continue;
@@ -295,7 +293,6 @@ function measure(pop: Pairing[]): Slopes {
     diffs.push(pf.map((v, j) => v - of[j]));
     ys.push((won / tot) * 100 - 50);
   }
-  console.log = _origLog;
 
   const n = ys.length;
   const my = ys.reduce((s, x) => s + x, 0) / n;
@@ -454,7 +451,6 @@ function partM(levels: number[], matches: number): void {
 
   for (const L of levels) {
     let n = 0, phys = 0, ment = 0, spin = 0, place = 0, prod = 0;
-    console.log = () => {};
     for (let i = 0; i < matches; i++) {
       const pair: Pairing = {
         pStats: uniformStats(L), oStats: uniformStats(L),
@@ -489,7 +485,6 @@ function partM(levels: number[], matches: number): void {
         ms.pointsPlayed = ++points;
       }
     }
-    console.log = _origLog;
     const mean = prod / n;
     console.log([
       String(L).padStart(6),

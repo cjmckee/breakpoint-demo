@@ -12,6 +12,7 @@ import React, { useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useGameStore } from '../stores/gameStore';
 import { StoryEventRepository } from '../data/storyEvents';
+import { isTracing, setTracing } from '../core/trace';
 
 // Lazy so bundled test-save JSON isn't pulled into the eagerly-loaded chunk.
 const testSaveModules = import.meta.glob('./saves/*.json') as Record<
@@ -28,6 +29,7 @@ const EVENT_RESULT_LIMIT = 25;
 
 export const DebugPanel: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [tracing, setTracingState] = useState(isTracing());
   const [status, setStatus] = useState<string | null>(null);
   const [eventFilter, setEventFilter] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -130,6 +132,29 @@ export const DebugPanel: React.FC = () => {
               className="hidden"
             />
           </div>
+        </div>
+
+        <div className="mb-5">
+          <h3 className="text-sm font-bold text-pixel-text-muted uppercase tracking-wider mb-1">Match Tracing</h3>
+          <p className="text-xs text-pixel-text-muted mb-2">
+            Narrates every shot to the console — the stat, its modifiers, the sigmoid
+            midpoints and the outcome cascade. Off by default: one match is tens of
+            thousands of lines, enough to make the console useless for anything else.
+          </p>
+          <button
+            onClick={() => {
+              const next = !tracing;
+              setTracing(next);
+              setTracingState(next);
+            }}
+            className={`w-full border-4 font-bold px-3 py-2 text-sm ${
+              tracing
+                ? 'bg-pixel-accent border-pixel-accent-dark text-white hover:bg-pixel-accent-light'
+                : 'bg-pixel-bg-dark border-pixel-border text-pixel-text hover:border-pixel-accent'
+            }`}
+          >
+            {tracing ? 'Tracing ON — click to stop' : 'Tracing OFF — click to start'}
+          </button>
         </div>
 
         <div className="mb-5">

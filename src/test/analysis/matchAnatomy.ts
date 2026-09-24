@@ -32,7 +32,6 @@ import { MATCH_FATIGUE } from '../../config/shotThresholds';
 import { aggregateArchetypeEffects } from '../../data/archetypeTree';
 
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
-const _origLog = console.log;
 
 const profileOf = (phases: Partial<Record<GamePhase, PhaseSpec>>, broad: ArchetypeProfile['broad'] = null): ArchetypeProfile =>
   ({ broad, phases, specializationPoints: 0, respecTokens: 0 });
@@ -121,7 +120,6 @@ function family(t: string): string {
 function run(prof: ArchetypeProfile, level: number, n: number): Anatomy {
   const eff = aggregateArchetypeEffects(prof);
   const a = newAnatomy();
-  console.log = () => {};
   for (let i = 0; i < n; i++) {
     const p = new PlayerProfile('p', 'P', uniform(level), prof);
     const o = new PlayerProfile('o', 'O', uniform(level), prof);
@@ -189,7 +187,6 @@ function run(prof: ArchetypeProfile, level: number, n: number): Anatomy {
       ms.score = tracker.getScore(); ms.currentServer = tracker.getCurrentServer(); ms.pointsPlayed = ++pts;
     }
   }
-  console.log = _origLog;
   return a;
 }
 

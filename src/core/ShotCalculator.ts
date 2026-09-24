@@ -26,6 +26,7 @@ import { EffectKey } from '../types/game';
 import { PlayerProfile } from './PlayerProfile';
 import { getPrimaryStatName } from './shotStatMapping';
 import { getQualityThresholds, getMatchLevel } from '../utils/qualityThresholds';
+import { trace, isTracing } from './trace';
 import {
   RELATIVE_QUALITY_REQUIREMENTS,
   WINNER_REQUIREMENTS,
@@ -112,17 +113,17 @@ export class ShotCalculator {
     momentum: number = 0,
     activeEffects?: Record<string, number>
   ): ShotResult {
-    console.log('Calculating shot success for', shotType);
-    console.log('Incoming shot quality:', incomingShot?.quality);
+    trace('Calculating shot success for', shotType);
+    trace('Incoming shot quality:', incomingShot?.quality);
     // Step 1: Get primary stat for this shot type
     const primaryStat = shooterProfile.getStatForShot(shotType);
 
     // Log serve stat for debugging
     if (shotType.includes('serve')) {
-      console.log('🎾 SERVE CALCULATION START');
-      console.log('  Serve stat (primary):', primaryStat);
-      console.log('  Player name:', shooterProfile.name);
-      console.log('  Player energy:', shooterProfile.energy);
+      trace('🎾 SERVE CALCULATION START');
+      trace('  Serve stat (primary):', primaryStat);
+      trace('  Player name:', shooterProfile.name);
+      trace('  Player energy:', shooterProfile.energy);
     }
 
     // Step 2: Derive ball quality from incoming shot (if available)
@@ -144,8 +145,8 @@ export class ShotCalculator {
     );
 
     // Log modifiers for serves
-    if (shotType.includes('serve')) {
-      console.log('  Modifiers:', {
+    if (shotType.includes('serve') && isTracing()) {
+      trace('  Modifiers:', {
         spinModifier: modifiers.spinModifier.toFixed(3),
         placementModifier: modifiers.placementModifier.toFixed(3),
         physicalModifier: modifiers.physicalModifier.toFixed(3),
@@ -180,8 +181,8 @@ export class ShotCalculator {
 
     // Log quality calculation for serves
     if (shotType.includes('serve')) {
-      console.log('  Base quality (stat × finalAdjustment):', (primaryStat * modifiers.finalAdjustment).toFixed(1));
-      console.log('  Final quality (after variance and surface):', quality.toFixed(1));
+      trace('  Base quality (stat × finalAdjustment):', (primaryStat * modifiers.finalAdjustment).toFixed(1));
+      trace('  Final quality (after variance and surface):', quality.toFixed(1));
     }
 
     // Step 4: Determine outcome based on shot type
@@ -253,7 +254,7 @@ export class ShotCalculator {
           forcedError: sigmoidProbability(quality, thresholds.forcedError, PROBABILITY_STEEPNESS.rally.forcedError),
         };
 
-    console.log(`Shot quality: ${quality.toFixed(1)} | Outcome: ${outcome}`);
+    trace(`Shot quality: ${quality.toFixed(1)} | Outcome: ${outcome}`);
 
     return {
       success: outcome === PointType.ACE || outcome === PointType.WINNER || outcome === PointType.IN_PLAY,
@@ -286,7 +287,7 @@ export class ShotCalculator {
     courtSurface: CourtSurface,
     matchLevel: number
   ): QualityThresholds {
-    console.log('Sigmoid midpoint calculation for', shotType);
+    trace('Sigmoid midpoint calculation for', shotType);
     // Get base multiplier for this shot type
     const baseMultiplier = RELATIVE_QUALITY_REQUIREMENTS[shotType];
     const baseRequirement = incomingQuality * baseMultiplier;
@@ -346,8 +347,8 @@ export class ShotCalculator {
       (MINIMUM_WINNER_THRESHOLDS[shotType] + WINNER_FLOOR_OFFSET) * floorScale
     );
 
-    console.log(`  Incoming: ${incomingQuality.toFixed(1)} × ${baseMultiplier.toFixed(2)} = ${baseRequirement.toFixed(1)} base | Adjustments: def ${defensiveAdj >= 0 ? '+' : ''}${defensiveAdj.toFixed(1)} (surface ×${surfaceEffects.defensiveAdjustmentMultiplier}), spd ${speedAdj >= 0 ? '+' : ''}${speedAdj.toFixed(1)}, ant -${anticipationAdj.toFixed(1)}, pos ${positionAdj >= 0 ? '+' : ''}${positionAdj.toFixed(1)} | Floor: ${scaledFloor.toFixed(1)}`);
-    console.log(`  Sigmoid midpoints → inPlay: ${inPlayReq.toFixed(1)} | winner: ${winnerThreshold.toFixed(1)} | forcedError: ${(inPlayReq * multipliers.forcedError).toFixed(1)}`);
+    trace(`  Incoming: ${incomingQuality.toFixed(1)} × ${baseMultiplier.toFixed(2)} = ${baseRequirement.toFixed(1)} base | Adjustments: def ${defensiveAdj >= 0 ? '+' : ''}${defensiveAdj.toFixed(1)} (surface ×${surfaceEffects.defensiveAdjustmentMultiplier}), spd ${speedAdj >= 0 ? '+' : ''}${speedAdj.toFixed(1)}, ant -${anticipationAdj.toFixed(1)}, pos ${positionAdj >= 0 ? '+' : ''}${positionAdj.toFixed(1)} | Floor: ${scaledFloor.toFixed(1)}`);
+    trace(`  Sigmoid midpoints → inPlay: ${inPlayReq.toFixed(1)} | winner: ${winnerThreshold.toFixed(1)} | forcedError: ${(inPlayReq * multipliers.forcedError).toFixed(1)}`);
 
     // Calculate derived thresholds
     return {
@@ -370,23 +371,23 @@ export class ShotCalculator {
   ): PointType {
     const pWinner = sigmoidProbability(quality, thresholds.winner, PROBABILITY_STEEPNESS.rally.winner);
     if (Math.random() < pWinner) {
-      console.log(`  Outcome cascade → winner? ${(pWinner * 100).toFixed(1)}% chance → hit! WINNER`);
+      trace(`  Outcome cascade → winner? ${(pWinner * 100).toFixed(1)}% chance → hit! WINNER`);
       return PointType.WINNER;
     }
 
     const pInPlay = sigmoidProbability(quality, thresholds.inPlay, PROBABILITY_STEEPNESS.rally.inPlay);
     if (Math.random() < pInPlay) {
-      console.log(`  Outcome cascade → winner? ${(pWinner * 100).toFixed(1)}% chance → miss | inPlay? ${(pInPlay * 100).toFixed(1)}% chance → hit! IN_PLAY`);
+      trace(`  Outcome cascade → winner? ${(pWinner * 100).toFixed(1)}% chance → miss | inPlay? ${(pInPlay * 100).toFixed(1)}% chance → hit! IN_PLAY`);
       return PointType.IN_PLAY;
     }
 
     const pForcedError = sigmoidProbability(quality, thresholds.forcedError, PROBABILITY_STEEPNESS.rally.forcedError);
     if (Math.random() < pForcedError) {
-      console.log(`  Outcome cascade → winner? ${(pWinner * 100).toFixed(1)}% → miss | inPlay? ${(pInPlay * 100).toFixed(1)}% → miss | forcedError? ${(pForcedError * 100).toFixed(1)}% → hit! FORCED_ERROR`);
+      trace(`  Outcome cascade → winner? ${(pWinner * 100).toFixed(1)}% → miss | inPlay? ${(pInPlay * 100).toFixed(1)}% → miss | forcedError? ${(pForcedError * 100).toFixed(1)}% → hit! FORCED_ERROR`);
       return PointType.FORCED_ERROR;
     }
 
-    console.log(`  Outcome cascade → winner? ${(pWinner * 100).toFixed(1)}% → miss | inPlay? ${(pInPlay * 100).toFixed(1)}% → miss | forcedError? ${(pForcedError * 100).toFixed(1)}% → miss → UNFORCED_ERROR`);
+    trace(`  Outcome cascade → winner? ${(pWinner * 100).toFixed(1)}% → miss | inPlay? ${(pInPlay * 100).toFixed(1)}% → miss | forcedError? ${(pForcedError * 100).toFixed(1)}% → miss → UNFORCED_ERROR`);
     return PointType.UNFORCED_ERROR;
   }
 
@@ -433,10 +434,10 @@ export class ShotCalculator {
     // when it lands and still miss often
     const pServeIn = sigmoidProbability(serveAccuracy, scaledInPlayThreshold, PROBABILITY_STEEPNESS.serve.inPlay);
 
-    console.log(`  🎯 ${serveType} sigmoid calculation:`);
-    console.log(`    Serve quality: ${serveQuality.toFixed(1)} | accuracy: ${serveAccuracy.toFixed(1)}`);
-    console.log(`    InPlay sigmoid → midpoint: ${scaledInPlayThreshold.toFixed(1)} (${consistency.base} + ${consistency.perAccuracy} × expected ${expectedAccuracy.toFixed(1)}) vs accuracy, steepness: ${PROBABILITY_STEEPNESS.serve.inPlay}, P(in): ${(pServeIn * 100).toFixed(1)}%`);
-    console.log(`    Ace sigmoid    → midpoint: ${aceThreshold.toFixed(1)} (base ${contest.aceBase} + resistance ${resistance.toFixed(1)} × ${contest.acePerResistance} × surface ${surfaceEffects.returnAdjustmentMultiplier}), steepness: ${PROBABILITY_STEEPNESS.serve.ace}`);
+    trace(`  🎯 ${serveType} sigmoid calculation:`);
+    trace(`    Serve quality: ${serveQuality.toFixed(1)} | accuracy: ${serveAccuracy.toFixed(1)}`);
+    trace(`    InPlay sigmoid → midpoint: ${scaledInPlayThreshold.toFixed(1)} (${consistency.base} + ${consistency.perAccuracy} × expected ${expectedAccuracy.toFixed(1)}) vs accuracy, steepness: ${PROBABILITY_STEEPNESS.serve.inPlay}, P(in): ${(pServeIn * 100).toFixed(1)}%`);
+    trace(`    Ace sigmoid    → midpoint: ${aceThreshold.toFixed(1)} (base ${contest.aceBase} + resistance ${resistance.toFixed(1)} × ${contest.acePerResistance} × surface ${surfaceEffects.returnAdjustmentMultiplier}), steepness: ${PROBABILITY_STEEPNESS.serve.ace}`);
 
     const thresholds: QualityThresholds = {
       winner: aceThreshold,
@@ -446,18 +447,18 @@ export class ShotCalculator {
 
     // Roll for serve in
     if (Math.random() >= pServeIn) {
-      console.log(`  Serve cascade → in? ${(pServeIn * 100).toFixed(1)}% chance → miss! FAULT`);
+      trace(`  Serve cascade → in? ${(pServeIn * 100).toFixed(1)}% chance → miss! FAULT`);
       return { outcome: PointType.FAULT, thresholds };
     }
 
     // Sigmoid probability for ace
     const pAce = sigmoidProbability(serveQuality, aceThreshold, PROBABILITY_STEEPNESS.serve.ace);
     if (Math.random() < pAce) {
-      console.log(`  Serve cascade → in? ${(pServeIn * 100).toFixed(1)}% → hit | ace? ${(pAce * 100).toFixed(1)}% chance → hit! ACE`);
+      trace(`  Serve cascade → in? ${(pServeIn * 100).toFixed(1)}% → hit | ace? ${(pAce * 100).toFixed(1)}% chance → hit! ACE`);
       return { outcome: PointType.ACE, thresholds };
     }
 
-    console.log(`  Serve cascade → in? ${(pServeIn * 100).toFixed(1)}% → hit | ace? ${(pAce * 100).toFixed(1)}% → miss → IN_PLAY`);
+    trace(`  Serve cascade → in? ${(pServeIn * 100).toFixed(1)}% → hit | ace? ${(pAce * 100).toFixed(1)}% → miss → IN_PLAY`);
     return { outcome: PointType.IN_PLAY, thresholds };
   }
 

@@ -218,7 +218,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   // Focus and ability effects both feed the pressure term, so the strip has to
   // read them the same way the resolver does or the displayed odds drift.
   const playerFocus = matchConfig
-    ? statValue(matchConfig.playerStats as PlayerStats, 'focus')
+    ? statValue(matchConfig.playerStats, 'focus')
     : 50;
   const playerEffects = MatchOrchestrator.extractActiveEffects(
     matchConfig?.playerAbilities,
@@ -576,8 +576,8 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   const scoresFor = (option: TacticalOption): { playerScore: number; opponentScore: number } => {
     if (!matchConfig) return { playerScore: 50, opponentScore: 50 };
     return KeyMomentResolver.getWeightedScores(
-      matchConfig.playerStats as PlayerStats,
-      matchConfig.opponentStats as PlayerStats,
+      matchConfig.playerStats,
+      matchConfig.opponentStats,
       option,
     );
   };
@@ -599,7 +599,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     side: 'player' | 'opponent';
     composite: number;
   }> = ({ option, side, composite }) => {
-    const stats = (side === 'player' ? matchConfig?.playerStats : matchConfig?.opponentStats) as PlayerStats | undefined;
+    const stats = side === 'player' ? matchConfig?.playerStats : matchConfig?.opponentStats;
     const weights = side === 'player' ? option.playerStatWeights : option.opponentStatWeights;
     const tone = side === 'player' ? 'text-pixel-success' : 'text-pixel-error';
     const label = side === 'player' ? 'You' : 'Opp';
@@ -770,15 +770,25 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
               {activeKeyMoment.options.map((option, index) => {
                 const { playerScore, opponentScore } = scoresFor(option);
                 const isActive = index === activeIdx;
+                const postureColor = POSTURE_META[option.posture].color;
                 return (
                   <button
                     key={index}
                     onMouseEnter={() => setFocusIdx(index)}
                     onFocus={() => setFocusIdx(index)}
                     onClick={() => setFocusIdx(index)}
-                    className={`w-full text-left p-3 border-4 bg-pixel-card transition-all ${
-                      isActive ? 'border-pixel-accent' : 'border-pixel-border hover:border-pixel-accent hover:border-opacity-50'
-                    }`}
+                    // The card wears its posture's colour the same way the detail pane
+                    // does, so the menu reads as "one of each kind" before a single word
+                    // is. Focus is carried by the strength of that colour rather than by
+                    // swapping in the app accent, which is itself near-identical to the
+                    // Power red and so made every Power card look permanently selected.
+                    // The inset shadow tints the card body over bg-pixel-card; an inline
+                    // background would replace that card colour instead of sitting on it.
+                    className="w-full text-left p-3 border-4 bg-pixel-card transition-all"
+                    style={{
+                      borderColor: isActive ? postureColor : `${postureColor}59`,
+                      boxShadow: isActive ? `inset 0 0 0 9999px ${postureColor}1a` : undefined,
+                    }}
                   >
                     {/* Row 1: the tactic, full width — names are long and were truncating. */}
                     <div className="flex items-center gap-2 mb-1.5 min-w-0">

@@ -1,10 +1,10 @@
 /**
  * Match Orchestrator
- * Coordinates match simulation with key moment system
- * Wraps the existing MatchSimulator to add interactive key moments
+ * Runs the interactive match loop: points come from PointSimulator, and the
+ * orchestrator owns scoring, fatigue, momentum and the key moment system.
+ * MatchSimulator drives the non-interactive (analysis) path instead.
  */
 
-import { MatchSimulator } from '../core/MatchSimulator';
 import { PlayerProfile } from '../core/PlayerProfile';
 import { MatchStatistics } from '../core/MatchStatistics';
 import { PointSimulator } from '../core/PointSimulator';
@@ -23,12 +23,36 @@ import {
   PointResult as SimplePointResult,
 } from '../types/keyMoments';
 import { PlayerStats, Ability, StatBoosts, EffectKey } from '../types/game';
-import { MatchStatistics as IMatchStatistics, MatchState, PointResult, PointType, PlayerMatchFatigue } from '../types';
+import { MatchStatistics as IMatchStatistics, MatchState, PointResult, PointType, PlayerMatchFatigue, CourtSurface, ShotDetail, ShotType } from '../types';
 import { MATCH_FATIGUE, PRESSURE_BANK, STAMINA_RECOVERY, KEY_MOMENT_OPPONENT_DRAIN } from '../config/shotThresholds';
 import { MomentumEngine, ClutchLevel } from '../core/MomentumEngine';
 import { getPrimaryStatName } from '../core/shotStatMapping';
 import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds';
 import { DEFAULT_KEY_MOMENTS_PER_MATCH, DEFAULT_POINT_DELAY_MS, KEY_MOMENT_OPTIONS_PER_MENU } from '../config/matchRewards';
+import { trace } from '../core/trace';
+
+/**
+ * The coarse shot labels authored on tactical options, mapped onto the ShotType the
+ * simulation records. This has to stay total over the `shotType` values in
+ * data/tacticalOptions.ts — an unmapped label falls back to 'forehand', which
+ * would misattribute the shot silently. Exported so shotTypeMapCheck can assert
+ * that against the authored data rather than against a copy of this table.
+ */
+export const TACTIC_SHOT_TYPES: Record<string, ShotType> = {
+  serve: 'serve_first',
+  return: 'return_forehand',
+  forehand: 'forehand',
+  backhand: 'backhand',
+  volley: 'volley_forehand',
+  slice: 'slice_forehand',
+  drop_shot: 'drop_shot_forehand',
+  lob: 'lob_forehand',
+  overhead: 'overhead',
+  passing_shot: 'angle_shot_forehand',
+};
+
+/** The match formats an interactive match can be played at. */
+type MatchFormatLabel = NonNullable<InteractiveMatchConfig['matchFormat']>;
 
 export interface AccumulatedMatchEffects {
   energyDelta: number;  // Net energy change from key moment choices
@@ -53,6 +77,12 @@ export class MatchOrchestrator {
   private cancelled = false;
   private playerStats: PlayerStats | null = null;
   private opponentStats: PlayerStats | null = null;
+
+  // Set at the top of simulateInteractiveMatch and read for the rest of the match.
+  private matchFormat: MatchFormatLabel = 'best-of-3';
+  private playerProfile: PlayerProfile | null = null;
+  private opponentProfile: PlayerProfile | null = null;
+  private courtSurface: CourtSurface = 'hard';
   private opponentArchetype: ArchetypeType = 'defensive';
   private accumulatedEffects: AccumulatedMatchEffects = { energyDelta: 0, moodDelta: 0, opponentEnergyDelta: 0 };
   private activeEffects: Record<string, number> = {};
@@ -156,8 +186,7 @@ export class MatchOrchestrator {
    * Simulate an interactive match with key moments
    */
   async simulateInteractiveMatch(config: InteractiveMatchConfig): Promise<MatchScore> {
-    // Store match format
-    (this as any).matchFormat = config.matchFormat || 'best-of-3';
+    this.matchFormat = config.matchFormat ?? 'best-of-3';
 
     // Apply item boosts to player stats (only for the duration of the match)
     // Abilities are effects-only — their match bonuses come via activeEffects, not stat inflation
@@ -177,6 +206,10 @@ export class MatchOrchestrator {
     // Opponent archetype label (from their authored profile) for key-moment context
     this.opponentArchetype = opponent.playStyle.type;
 
+    this.playerProfile = player;
+    this.opponentProfile = opponent;
+    this.courtSurface = config.surface;
+
     const matchLevel = getMatchLevel(player.overallRating, opponent.overallRating);
     const thresholds = getQualityThresholds(matchLevel);
     const pTech = player.getStatCategoryAverage('technical');
@@ -185,24 +218,20 @@ export class MatchOrchestrator {
     const oTech = opponent.getStatCategoryAverage('technical');
     const oPhys = opponent.getStatCategoryAverage('physical');
     const oMent = opponent.getStatCategoryAverage('mental');
-    console.log(`🎾 Starting match: ${player.name} vs ${config.opponentName ?? opponent.name}`);
-    console.log(`📊 Player overall: ${player.overallRating} (tech=${pTech.toFixed(1)}, phys=${pPhys.toFixed(1)}, mental=${pMent.toFixed(1)})`);
-    console.log(`📊 Opponent overall: ${opponent.overallRating} (tech=${oTech.toFixed(1)}, phys=${oPhys.toFixed(1)}, mental=${oMent.toFixed(1)}) → matchLevel: ${matchLevel}`);
-    console.log(`📏 Quality thresholds: exceptional=${thresholds.exceptional.toFixed(1)}, high=${thresholds.high.toFixed(1)}, good=${thresholds.good.toFixed(1)}, average=${thresholds.average.toFixed(1)}, weak=${thresholds.weak.toFixed(1)}`);
+    trace(`🎾 Starting match: ${player.name} vs ${config.opponentName ?? opponent.name}`);
+    trace(`📊 Player overall: ${player.overallRating} (tech=${pTech.toFixed(1)}, phys=${pPhys.toFixed(1)}, mental=${pMent.toFixed(1)})`);
+    trace(`📊 Opponent overall: ${opponent.overallRating} (tech=${oTech.toFixed(1)}, phys=${oPhys.toFixed(1)}, mental=${oMent.toFixed(1)}) → matchLevel: ${matchLevel}`);
+    trace(`📏 Quality thresholds: exceptional=${thresholds.exceptional.toFixed(1)}, high=${thresholds.high.toFixed(1)}, good=${thresholds.good.toFixed(1)}, average=${thresholds.average.toFixed(1)}, weak=${thresholds.weak.toFixed(1)}`);
 
-    const matchSim = new MatchSimulator({
-      player,
-      opponent,
-      courtSurface: config.surface,
-      matchFormVariance: config.disableMatchForm ? 0 : undefined,
-      playerMood: config.mood,
-    });
-
-    // MatchSimulator's constructor rolls match-day form for both players (mood-biased for
-    // the player); read the results back for the UI's hot/cold form indicator.
+    // Roll match-day form for both players (mood-biased for the player) and read the
+    // results back for the UI's hot/cold form indicator. The interactive path runs its
+    // own point loop, so it rolls form directly rather than through MatchSimulator.
+    const matchFormVariance = config.disableMatchForm ? 0 : undefined;
+    player.rollMatchForm({ variance: matchFormVariance, mood: config.mood });
+    opponent.rollMatchForm({ variance: matchFormVariance });
     this.playerMatchForm = player.matchForm;
     this.opponentMatchForm = opponent.matchForm;
-    console.log(`🎲 Match-day form: player ${player.matchForm >= 0 ? '+' : ''}${player.matchForm.toFixed(1)}, opponent ${opponent.matchForm >= 0 ? '+' : ''}${opponent.matchForm.toFixed(1)}`);
+    trace(`🎲 Match-day form: player ${player.matchForm >= 0 ? '+' : ''}${player.matchForm.toFixed(1)}, opponent ${opponent.matchForm >= 0 ? '+' : ''}${opponent.matchForm.toFixed(1)}`);
 
     // Initialize statistics tracker
     this.matchStatistics = new MatchStatistics(player, opponent);
@@ -336,7 +365,7 @@ export class MatchOrchestrator {
       } else {
         // NORMAL SIMULATION
         // Use point simulator to determine point with full statistics
-        const pointResult = this.simulatePointWithStats(matchSim, currentScore);
+        const pointResult = this.simulatePointWithStats(currentScore);
         const pointWinner = pointResult.winner === 'server'
           ? currentScore.server
           : (currentScore.server === 'player' ? 'opponent' : 'player');
@@ -529,20 +558,20 @@ export class MatchOrchestrator {
     shotOutcome: { outcome: PointType; shotType: string; shooter: 'player' | 'opponent' },
     pointWinner: 'player' | 'opponent',
     currentServer: 'player' | 'opponent'
-  ): { shots: any[]; serveType: 'first' | 'second' } {
-    const shots: any[] = [];
+  ): { shots: ShotDetail[]; serveType: 'first' | 'second' } {
+    const shots: ShotDetail[] = [];
     const timestamp = Date.now();
     let shotNumber = 1;
     let serveType: 'first' | 'second' = 'first';
 
     // Helper to create a shot detail
     const createShot = (
-      shotType: string,
+      shotType: ShotType,
       shooter: 'server' | 'returner',
       success: boolean,
-      outcome: string,
+      outcome: PointType,
       quality: number = 70
-    ) => ({
+    ): ShotDetail => ({
       shotType,
       shooter,
       success,
@@ -557,8 +586,17 @@ export class MatchOrchestrator {
         pressure: 'high' as const,
         courtPosition: 'baseline' as const,
         rallyLength: shotNumber - 1,
+        courtSurface: this.courtSurface,
       },
     });
+
+    // The tactic that produced this point names its shot in the coarse vocabulary
+    // authored in data/tacticalOptions.ts ('return', 'volley', 'slice'), not the
+    // precise ShotType the simulation records. Translate, so a key moment's shots
+    // land in the same shotTypeStats buckets as simulated ones instead of opening
+    // parallel buckets under names nothing else uses. Every mapping keeps what
+    // getPrimaryStatName resolves the label to, so stat attribution is unchanged.
+    const shotType = TACTIC_SHOT_TYPES[shotOutcome.shotType] ?? 'forehand';
 
     // Determine winner in server/returner terms
     const winnerRole = pointWinner === currentServer ? 'server' as const : 'returner' as const;
@@ -567,25 +605,25 @@ export class MatchOrchestrator {
     switch (shotOutcome.outcome) {
       case PointType.ACE:
         // ACE: Just the serve
-        shots.push(createShot('serve_first', 'server', true, 'winner', 85));
+        shots.push(createShot('serve_first', 'server', true, PointType.WINNER, 85));
         serveType = 'first';
         break;
 
       case PointType.DOUBLE_FAULT:
         // DOUBLE_FAULT: First serve fault, then second serve fault
-        shots.push(createShot('serve_first', 'server', false, 'error', 30));
-        shots.push(createShot('serve_second', 'server', false, 'error', 35));
+        shots.push(createShot('serve_first', 'server', false, PointType.FAULT, 30));
+        shots.push(createShot('serve_second', 'server', false, PointType.FAULT, 35));
         serveType = 'second';
         break;
 
       case PointType.WINNER:
         // WINNER: Serve + return + winner shot (3-5 shots)
         // Serve (successful first serve)
-        shots.push(createShot('serve_first', 'server', true, 'in_play', 75));
+        shots.push(createShot('serve_first', 'server', true, PointType.IN_PLAY, 75));
         serveType = 'first';
 
         // Return
-        shots.push(createShot('return_forehand', 'returner', true, 'in_play', 65));
+        shots.push(createShot('return_forehand', 'returner', true, PointType.IN_PLAY, 65));
 
         // 1-3 rally shots before winner
         const rallyShots = 1 + Math.floor(Math.random() * 3); // 1-3 rally shots
@@ -595,17 +633,17 @@ export class MatchOrchestrator {
             isServerShot ? 'forehand' : 'backhand',
             isServerShot ? 'server' : 'returner',
             true,
-            'in_play',
+            PointType.IN_PLAY,
             70
           ));
         }
 
         // Final winner shot
         shots.push(createShot(
-          shotOutcome.shotType,
+          shotType,
           winnerRole,
           true,
-          'winner',
+          PointType.WINNER,
           90
         ));
         break;
@@ -614,11 +652,11 @@ export class MatchOrchestrator {
       case PointType.UNFORCED_ERROR:
         // ERROR: Serve + return + rally ending in error
         // Serve (successful first serve)
-        shots.push(createShot('serve_first', 'server', true, 'in_play', 75));
+        shots.push(createShot('serve_first', 'server', true, PointType.IN_PLAY, 75));
         serveType = 'first';
 
         // Return
-        shots.push(createShot('return_forehand', 'returner', true, 'in_play', 65));
+        shots.push(createShot('return_forehand', 'returner', true, PointType.IN_PLAY, 65));
 
         // 1-3 rally shots before error
         const rallyErrorShots = 1 + Math.floor(Math.random() * 3);
@@ -628,7 +666,7 @@ export class MatchOrchestrator {
             isServerShot ? 'forehand' : 'backhand',
             isServerShot ? 'server' : 'returner',
             true,
-            'in_play',
+            PointType.IN_PLAY,
             70
           ));
         }
@@ -636,18 +674,20 @@ export class MatchOrchestrator {
         // Final error shot (loser makes the error)
         const loserRole = pointWinner === currentServer ? 'returner' as const : 'server' as const;
         shots.push(createShot(
-          shotOutcome.shotType,
+          shotType,
           loserRole,
           false,
-          shotOutcome.outcome === PointType.FORCED_ERROR ? 'forced_error' : 'unforced_error',
+          shotOutcome.outcome === PointType.FORCED_ERROR
+            ? PointType.FORCED_ERROR
+            : PointType.UNFORCED_ERROR,
           40
         ));
         break;
 
       default:
         // Fallback: simple serve + rally
-        shots.push(createShot('serve_first', 'server', true, 'in_play', 75));
-        shots.push(createShot('forehand', winnerRole, true, 'winner', 80));
+        shots.push(createShot('serve_first', 'server', true, PointType.IN_PLAY, 75));
+        shots.push(createShot('forehand', winnerRole, true, PointType.WINNER, 80));
         serveType = 'first';
     }
 
@@ -708,16 +748,13 @@ export class MatchOrchestrator {
    * Simulate a normal point using the full PointSimulator
    * This ensures realistic shot-by-shot simulation and accurate statistics
    */
-  private simulatePointWithStats(
-    matchSim: MatchSimulator,
-    score: MatchScore
-  ): PointResult {
-    if (!this.pointSimulator) {
-      throw new Error('PointSimulator not initialized');
+  private simulatePointWithStats(score: MatchScore): PointResult {
+    if (!this.pointSimulator || !this.playerProfile || !this.opponentProfile) {
+      throw new Error('Match not initialized');
     }
 
-    const playerProfile = (matchSim as any).config.player;
-    const opponentProfile = (matchSim as any).config.opponent;
+    const playerProfile = this.playerProfile;
+    const opponentProfile = this.opponentProfile;
     const currentServer = score.server;
 
     // Determine server and returner profiles
@@ -744,7 +781,7 @@ export class MatchOrchestrator {
         isMatchComplete: score.isComplete,
         winner: score.winner,
         matchFormat: {
-          bestOfSets: (this as any).matchFormat === 'best-of-1' ? 1 : (this as any).matchFormat === 'best-of-3' ? 3 : 5,
+          bestOfSets: this.setsToWin() * 2 - 1,
           gamesPerSet: 6,
           enableTiebreaks: true,
           tiebreakAt: 6,
@@ -755,7 +792,7 @@ export class MatchOrchestrator {
           : undefined,
       },
       currentServer: currentServer,
-      courtSurface: (matchSim as any).config.courtSurface,
+      courtSurface: this.courtSurface,
       momentum: this.momentum,
       pressure: this.pressure > 60 ? 'high' as const : this.pressure > 30 ? 'medium' as const : 'low' as const,
       matchLength: this.pointsPlayed * 0.5, // Rough estimate: 30 seconds per point
@@ -896,7 +933,7 @@ export class MatchOrchestrator {
         this.tiebreakPointsPlayed = 0;
 
         // Check match complete
-        newScore.isComplete = this.isMatchWon(newScore.sets, (this as any).matchFormat || 'best-of-3');
+        newScore.isComplete = this.isMatchWon(newScore.sets);
         if (newScore.isComplete) {
           newScore.winner = tbWinner;
         }
@@ -946,7 +983,7 @@ export class MatchOrchestrator {
 
         // Check match complete
         const setWinner = this.getSetWinner({ ...newScore.sets[newScore.sets.length - 1] });
-        newScore.isComplete = this.isMatchWon(newScore.sets, (this as any).matchFormat || 'best-of-3');
+        newScore.isComplete = this.isMatchWon(newScore.sets);
         if (newScore.isComplete) {
           newScore.winner = setWinner;
         }
@@ -956,12 +993,17 @@ export class MatchOrchestrator {
     return newScore;
   }
 
+  /** Sets one side must take to win the match in progress. */
+  private setsToWin(): number {
+    return this.matchFormat === 'best-of-1' ? 1 : this.matchFormat === 'best-of-3' ? 2 : 3;
+  }
+
   /**
    * Check whether the match has been won based on the completed sets array.
    * Extracted to avoid code duplication between standard set and tiebreak paths.
    */
-  private isMatchWon(sets: Array<{ player: number; opponent: number }>, format: string): boolean {
-    const setsToWin = format === 'best-of-1' ? 1 : format === 'best-of-3' ? 2 : 3;
+  private isMatchWon(sets: Array<{ player: number; opponent: number }>): boolean {
+    const setsToWin = this.setsToWin();
     const playerSets = sets.filter(s => s.player > s.opponent).length;
     const opponentSets = sets.filter(s => s.opponent > s.player).length;
     return playerSets >= setsToWin || opponentSets >= setsToWin;
@@ -1275,9 +1317,7 @@ export class MatchOrchestrator {
       player === 'player' ? s.player > s.opponent : s.opponent > s.player
     ).length;
 
-    // Determine sets needed to win based on match format
-    const format = (this as any).matchFormat || 'best-of-3';
-    const setsToWin = format === 'best-of-1' ? 1 : format === 'best-of-3' ? 2 : 3;
+    const setsToWin = this.setsToWin();
 
     // Match point if: winning this set would win the match
     // That means: player has (setsToWin - 1) sets already, and this is set point

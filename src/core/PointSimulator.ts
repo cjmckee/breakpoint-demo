@@ -26,6 +26,7 @@ import { TacticalAnalyzer } from './TacticalAnalyzer';
 import { getQualityThresholds, getMatchLevel, RelativeThresholds } from '../utils/qualityThresholds';
 import { RALLY_CONFIG, DIFFICULTY_SCORE_FACTORS, DIFFICULTY_THRESHOLDS } from '../config/shotThresholds';
 import { EffectKey } from '../types/game';
+import { trace } from './trace';
 
 export class PointSimulator {
   private shotCalculator: ShotCalculator;
@@ -511,10 +512,10 @@ export class PointSimulator {
         serverPosition = newOpponentPosition;
       }
 
-      console.log('Current shooter:', currentShooter);
-      console.log('Current shot number:', shotNumber);
-      console.log('Shooter position:', shooterPosition);
-      console.log('Opponent position:', opponentPosition);
+      trace('Current shooter:', currentShooter);
+      trace('Current shot number:', shotNumber);
+      trace('Shooter position:', shooterPosition);
+      trace('Opponent position:', opponentPosition);
 
       currentShooter = currentShooter === 'server' ? 'returner' : 'server';
       shotNumber++;

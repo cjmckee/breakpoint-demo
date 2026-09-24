@@ -22,9 +22,6 @@ const CHARACTER: PlayerStats = {
 
 const BO1: MatchFormat = { bestOfSets: 1, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
 
-const _origLog = console.log;
-console.log = () => {};
-
 const yuki = OPPONENTS_BY_TIER[2][4];
 const yukiProfile = getOpponentArchetypeProfile(yuki);
 
@@ -96,8 +93,6 @@ for (let i = 0; i < N; i++) {
   statsOppServe += s.pointsWon.opponent.serve;
   statsOppReturn += s.pointsWon.opponent.return;
 }
-
-console.log = _origLog;
 
 console.log(`Across ${N} Bo1 matches vs ${yuki.name}:`);
 console.log(`  DIRECT: player serve won ${directPlayerServeWon}/${directPlayerServeTotal}, player return won ${directPlayerReturnWon} (${dfByOpp} via opp DF)`);

@@ -54,7 +54,6 @@ import { ScoreTracker } from '../../core/ScoreTracker';
 import { MATCH_FATIGUE } from '../../config/shotThresholds';
 
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
-const _origLog = console.log;
 const NONE: ArchetypeProfile = { broad: null, phases: {}, specializationPoints: 0, respecTokens: 0 };
 
 const stats = (
@@ -150,11 +149,9 @@ const uniform = (r: number): PlayerStats =>
 
 function play(a: PlayerStats, b: PlayerStats, n: number): Acc {
   const acc = zero();
-  console.log = () => {};
   for (let i = 0; i < n; i++) {
     runMatch(new PlayerProfile('p', 'P', a, NONE), new PlayerProfile('o', 'O', b, NONE), acc);
   }
-  console.log = _origLog;
   return acc;
 }
 
@@ -234,11 +231,9 @@ function partC(_N: number): void {
   ];
   for (const [label, stats, prof] of cells) {
     const acc = zero();
-    console.log = () => {};
     for (let i = 0; i < N; i++) {
       runMatch(new PlayerProfile('p', 'P', stats, prof), new PlayerProfile('o', 'O', base, prof), acc);
     }
-    console.log = _origLog;
     const d = (acc.playerWon / acc.points) * 100 - 50;
     console.log(`  ${label.padEnd(20)} ${(d >= 0 ? '+' : '') + d.toFixed(2)}`);
   }
@@ -265,7 +260,6 @@ function partD(N: number): void {
   for (const [name, s] of ladder) {
     const tally: Record<string, number> = {};
     let total = 0, retErr = 0, long = 0;
-    console.log = () => {};
     for (let i = 0; i < N; i++) {
       const p = new PlayerProfile('p', 'P', s, NONE);
       const o = new PlayerProfile('o', 'O', s, NONE);
@@ -281,7 +275,6 @@ function partD(N: number): void {
             && shots.length >= 2) retErr++;
       });
     }
-    console.log = _origLog;
     const p = (k: string): string => (((tally[k] ?? 0) / total) * 100).toFixed(1);
     console.log([name.padEnd(24), String(ovrOf(s)).padStart(4),
       p(PointType.ACE).padStart(7), p(PointType.DOUBLE_FAULT).padStart(7),

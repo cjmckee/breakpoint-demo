@@ -29,10 +29,6 @@ import { profileForArchetype } from '../../data/archetypeTree';
 import { PlayerProfile } from '../../core/PlayerProfile';
 import { print, printBanner, printHeader, printTable, fmtNum } from './formatters';
 
-const _origLog = console.log;
-const suppressLogs = (): void => { console.log = () => {}; };
-const restoreLogs = (): void => { console.log = _origLog; };
-
 /** Match count for the match-level probes; override with N_MATCHES=200. */
 const N_MATCHES = Number(process.env.N_MATCHES ?? 60);
 
@@ -289,7 +285,6 @@ function probeContextSwing(): void {
   printTable(['Context', 'Total modifier (%)'], rows);
 }
 
-
 // ─── 5. Realistic in-match scenarios ─────────────────────────────────────────
 
 /**
@@ -341,7 +336,6 @@ function probeRealisticScenarios(): void {
   print('Pressure is scored against focus: a composed player gains on the big');
   print('points, a fragile one loses, rather than every player paying a flat toll.');
 }
-
 
 // ─── 6. Match-level impact ───────────────────────────────────────────────────
 
@@ -408,7 +402,6 @@ async function probeMatchImpact(nMatches: number): Promise<void> {
 
     for (let i = 0; i < nMatches; i++) {
       const orchestrator = new MatchOrchestrator();
-      suppressLogs();
       const final = await orchestrator.simulateInteractiveMatch({
         playerStats: statsAt(50),
         opponentStats: statsAt(50),
@@ -426,7 +419,6 @@ async function probeMatchImpact(nMatches: number): Promise<void> {
           return policy.pick(km.options, km.opponentArchetype);
         },
       });
-      restoreLogs();
 
       const stats = orchestrator.getMatchStatistics();
       if (stats) {
@@ -452,7 +444,6 @@ async function probeMatchImpact(nMatches: number): Promise<void> {
   print(`(requested ${OPPONENT_ARCHETYPE}; override with OPPONENT=<archetype>)`);
 }
 
-
 // ─── 7. Base chance sweep ────────────────────────────────────────────────────
 
 /**
@@ -473,7 +464,6 @@ async function probeBaseChanceSweep(values: number[], nMatches: number): Promise
     let wins = 0;
     for (let i = 0; i < nMatches; i++) {
       const orchestrator = new MatchOrchestrator();
-      suppressLogs();
       const final = await orchestrator.simulateInteractiveMatch({
         playerStats: statsAt(50),
         opponentStats: statsAt(50),
@@ -486,7 +476,6 @@ async function probeBaseChanceSweep(values: number[], nMatches: number): Promise
         disableMatchForm: true,
         pointDelayMs: 0,
       });
-      restoreLogs();
       if (final.winner === 'player') wins++;
     }
     rows.push(['(control: KMs off)', `${fmtNum((100 * wins) / nMatches)}%`, '—', '0']);
@@ -500,7 +489,6 @@ async function probeBaseChanceSweep(values: number[], nMatches: number): Promise
 
     for (let i = 0; i < nMatches; i++) {
       const orchestrator = new MatchOrchestrator();
-      suppressLogs();
       const final = await orchestrator.simulateInteractiveMatch({
         playerStats: statsAt(50),
         opponentStats: statsAt(50),
@@ -517,7 +505,6 @@ async function probeBaseChanceSweep(values: number[], nMatches: number): Promise
           return km.options[Math.floor(Math.random() * km.options.length)];
         },
       });
-      restoreLogs();
       const stats = orchestrator.getMatchStatistics();
       if (stats) kmWins += stats.keyMomentsWon.player;
       if (final.winner === 'player') wins++;
@@ -536,7 +523,6 @@ async function probeBaseChanceSweep(values: number[], nMatches: number): Promise
   print('');
   print('Target: match win rate near 50% for an even matchup.');
 }
-
 
 // ─── 8. baseChance × key moments per match ───────────────────────────────────
 
@@ -564,7 +550,6 @@ async function probeBaseChanceVsFrequency(
       let wins = 0;
       for (let i = 0; i < nMatches; i++) {
         const orchestrator = new MatchOrchestrator();
-        suppressLogs();
         const final = await orchestrator.simulateInteractiveMatch({
           playerStats: statsAt(50),
           opponentStats: statsAt(50),
@@ -580,7 +565,6 @@ async function probeBaseChanceVsFrequency(
           onKeyMoment: async (km) =>
             km.options[Math.floor(Math.random() * km.options.length)],
         });
-        restoreLogs();
         if (final.winner === 'player') wins++;
       }
       row.push(`${fmtNum((100 * wins) / nMatches)}%`);
@@ -596,7 +580,6 @@ async function probeBaseChanceVsFrequency(
   print('');
   print('Cells near 50% are balanced for an even matchup.');
 }
-
 
 // ─── 9. Serve/return split ───────────────────────────────────────────────────
 
@@ -618,7 +601,6 @@ async function probeServeReturnSplit(nMatches: number): Promise<void> {
   for (let i = 0; i < nMatches; i++) {
     const orchestrator = new MatchOrchestrator();
     let pendingServer: 'player' | 'opponent' = 'player';
-    suppressLogs();
     await orchestrator.simulateInteractiveMatch({
       playerStats: statsAt(50),
       opponentStats: statsAt(50),
@@ -644,7 +626,6 @@ async function probeServeReturnSplit(nMatches: number): Promise<void> {
         }
       },
     });
-    restoreLogs();
   }
 
   printTable(
@@ -660,7 +641,6 @@ async function probeServeReturnSplit(nMatches: number): Promise<void> {
   print('bias worth correcting. An earlier 8.5pp gap came from a 120-match');
   print('best-of-3 run and did not survive the larger sample or the real format.');
 }
-
 
 // ─── 10. Tag coverage ────────────────────────────────────────────────────────
 

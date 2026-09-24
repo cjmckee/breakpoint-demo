@@ -30,7 +30,6 @@ import { aggregateArchetypeEffects } from '../../data/archetypeTree';
 
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
 const N = 150;
-const _origLog = console.log;
 
 function uniformStats(r: number): PlayerStats {
   return {
@@ -89,14 +88,12 @@ function runMatch(p: PlayerProfile, o: PlayerProfile, pe: Record<string, number>
 function trial(bucket: keyof PlayerStats, key: string, prof: ArchetypeProfile): number {
   const eff = aggregateArchetypeEffects(prof);
   let won = 0, tot = 0;
-  console.log = () => {};
   for (let i = 0; i < N; i++) {
     const p = new PlayerProfile('p', 'P', bump(50, bucket, key, 90), prof);
     const o = new PlayerProfile('o', 'O', uniformStats(50), prof);
     const [w, t] = runMatch(p, o, eff, eff);
     won += w; tot += t;
   }
-  console.log = _origLog;
   return (won / tot) * 100 - 50;
 }
 

@@ -40,7 +40,7 @@ That is the whole workflow. The rest of this document is about not fooling yours
 | Do the support bands read match context or just shot type? | `bandGateProbe` | ~30 s |
 | Is the winner floor still doing its job? | `winnerFloorProbe` | instant, analytic |
 | Does the key-moment layer reward reading the opponent? | `keyMomentProbe` | ~10 s, or ~6 min with match sections |
-| Does a save survive the stat consolidation? | `npm test` | ~5 s |
+| Do the invariants still hold (save migration, economy, minigame branches, tactic shot labels)? | `npm test` | ~5 s |
 
 `keyMomentProbe` is sectioned: `SECTIONS=tags` is instant and answers the content questions
 (posture and risk coverage, duplicate or missing cells, stat coverage); `sweep`, `grid`, `split`

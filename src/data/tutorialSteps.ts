@@ -51,6 +51,15 @@ export const LIVE_MATCH_TUTORIAL_STEPS: TutorialStep<LiveMatchTarget>[] = [
 ];
 
 export const KM_TUTORIAL_STEPS: TutorialStep<KmTarget>[] = [
+  // Opens on the header, which is already showing the banner ("Break Point For You
+  // - 30-40") this step is naming. Nothing else in the game teaches tennis scoring,
+  // and the whole key moment layer assumes you know which points are worth stopping
+  // for — so name the three you will actually see before asking anyone to play one.
+  {
+    target: 'header',
+    title: 'What Is a Key Moment?',
+    body: 'Most points play themselves — the match only stops for the ones that can swing a game. Serving is an advantage, so a break (the returner taking the server\'s game) is usually what decides a set. You will mostly see three: a break point for you, where the next point takes their service game; a break point against you, where they take yours; and a key rally, a tied game at 30-30 or deuce where the next point decides whether a break point happens at all. Set and match points are the same idea with more riding on them.',
+  },
   {
     target: 'header',
     title: 'The Situation',
