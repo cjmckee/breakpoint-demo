@@ -67,6 +67,7 @@ import { calculateOverallRating } from '../utils/overallRating';
 import { ownsKey } from './statAccess';
 
 
+import { random } from './random';
 const clampDial = (v: number): number => Math.max(0, Math.min(100, v));
 
 /**
@@ -217,7 +218,7 @@ export class PlayerProfile implements IPlayerProfile {
     const moodBias = options.mood !== undefined
       ? (Math.max(-100, Math.min(100, options.mood)) / 100) * MATCH_FORM.moodInfluence
       : 0;
-    const roll = Math.max(-1, Math.min(1, (Math.random() * 2 - 1) + moodBias));
+    const roll = Math.max(-1, Math.min(1, (random() * 2 - 1) + moodBias));
     this.matchForm = roll * variance;
   }
 
@@ -544,7 +545,7 @@ export class PlayerProfile implements IPlayerProfile {
     const variance = 10; // ±10 points variance
 
     const generateStat = () => {
-      const base = targetRating + (Math.random() - 0.5) * variance * 2;
+      const base = targetRating + (random() - 0.5) * variance * 2;
       return Math.max(10, Math.min(90, Math.round(base)));
     };
 

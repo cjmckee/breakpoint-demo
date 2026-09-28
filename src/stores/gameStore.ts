@@ -61,6 +61,7 @@ import {
   trackStoryEventChoice,
 } from '../analytics/analytics';
 
+import { random } from '../core/random';
 export interface AudioSettings {
   musicVolume: number; // 0–1
   sfxVolume: number;   // 0–1
@@ -2094,7 +2095,7 @@ export const useGameStore = create<GameState>()(
         const { effects } = EffectAggregator.getActiveEffects(player);
         const triggerBonus = EffectAggregator.getEffect(effects, EffectKey.EVENT_TRIGGER_BONUS);
         const chance = (customChance ?? storyEventTriggerChance) + triggerBonus;
-        const roll = Math.random() * 100;
+        const roll = random() * 100;
         const triggered = roll < chance;
 
         console.log(`[Story Event] Tag: ${tag} | Roll: ${roll.toFixed(2)} vs ${chance}% - ${triggered ? 'TRIGGERED' : 'Not triggered'}`);
@@ -2177,7 +2178,7 @@ export const useGameStore = create<GameState>()(
         const { effects } = EffectAggregator.getActiveEffects(player);
         const triggerBonus = EffectAggregator.getEffect(effects, EffectKey.EVENT_TRIGGER_BONUS);
         const chance = (customChance ?? storyEventTriggerChance) + triggerBonus;
-        const roll = Math.random() * 100;
+        const roll = random() * 100;
         const triggered = roll < chance;
 
         console.log(`[Story Event] Random | Roll: ${roll.toFixed(2)} vs ${chance}% - ${triggered ? 'TRIGGERED' : 'Not triggered'}`);

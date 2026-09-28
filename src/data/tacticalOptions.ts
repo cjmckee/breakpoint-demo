@@ -12,6 +12,7 @@
 import { PointType } from '../types';
 import type { StatName } from '../types';
 
+import { random } from '../core/random';
 /**
  * Which side of the ball the option is played from — the hard constraint on what
  * can appear in a menu. Facing break point on your own serve, every option has to
@@ -1801,7 +1802,7 @@ export function drawOptions(
 function shuffle<T>(items: T[]): T[] {
   const result = [...items];
   for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(random() * (i + 1));
     [result[i], result[j]] = [result[j], result[i]];
   }
   return result;

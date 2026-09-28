@@ -11,6 +11,7 @@ import type { ArchetypeProfile } from '../types/archetype';
 import { profileForArchetype } from './archetypeTree';
 import { ABILITY_DEFINITIONS } from './abilities';
 
+import { random } from '../core/random';
 export interface OpponentPreset {
   name: string;
   description: string;
@@ -323,7 +324,7 @@ export const OPPONENTS_BY_TIER: Record<OpponentTier, OpponentPreset[]> = {
  */
 export function getRandomOpponent(tier: OpponentTier): OpponentPreset {
   const opponents = OPPONENTS_BY_TIER[tier];
-  return opponents[Math.floor(Math.random() * opponents.length)];
+  return opponents[Math.floor(random() * opponents.length)];
 }
 
 /**

@@ -7,6 +7,7 @@ import type { Player, Modifiers, StatBoosts } from '../types/game';
 import type { Item, OwnedItem, EquipmentSlot } from '../types/items';
 import { SLOT_ITEM_TYPE } from '../types/items';
 
+import { random } from '../core/random';
 const MAX_INVENTORY_SIZE = 10;
 
 export class ItemManager {
@@ -17,7 +18,7 @@ export class ItemManager {
   static createOwnedItem(item: Item): OwnedItem {
     return {
       ...item,
-      instanceId: `item-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+      instanceId: `item-${Date.now()}-${random().toString(36).substring(2, 11)}`,
     };
   }
 

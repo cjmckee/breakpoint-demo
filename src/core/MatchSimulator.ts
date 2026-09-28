@@ -27,6 +27,7 @@ import { MomentumEngine, ClutchLevel } from './MomentumEngine';
 import { aggregateArchetypeEffects } from '../data/archetypeTree';
 import { trace } from './trace';
 
+import { random } from './random';
 export interface MatchConfig {
   player: PlayerProfile;
   opponent: PlayerProfile;
@@ -442,7 +443,7 @@ export class MatchSimulator {
    * Determine initial server (random if not specified)
    */
   private determineInitialServer(): 'player' | 'opponent' {
-    return Math.random() < 0.5 ? 'player' : 'opponent';
+    return random() < 0.5 ? 'player' : 'opponent';
   }
 
   /**

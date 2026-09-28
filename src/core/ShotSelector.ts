@@ -25,6 +25,7 @@ import {
 } from '../config/shotThresholds';
 import { EffectKey } from '../types/game';
 
+import { random } from './random';
 /** Archetype behavior effects threaded from the active-effects map. */
 type BehaviorEffects = Record<string, number>;
 
@@ -61,12 +62,12 @@ export class ShotSelector {
       const winnerBias = behaviorEffects[EffectKey.RALLY_WINNER_BIAS] ?? 0;
       // Neutral ~12%; RETURN_AGGRESSION is the primary driver, RALLY_WINNER_BIAS secondary
       const powerReturnChance = 0.12 + (returnAgg / 100) * 0.55 + (winnerBias / 100) * 0.10;
-      if (Math.random() < powerReturnChance) {
-        return Math.random() < shotPreference.forehandProbability
+      if (random() < powerReturnChance) {
+        return random() < shotPreference.forehandProbability
           ? 'return_forehand_power'
           : 'return_backhand_power';
       }
-      return Math.random() < shotPreference.forehandProbability
+      return random() < shotPreference.forehandProbability
         ? 'return_forehand'
         : 'return_backhand';
     }
@@ -84,12 +85,12 @@ export class ShotSelector {
       const lobBias = behaviorEffects[EffectKey.LOB_BIAS] ?? 0;
       const baseLobChance = rushed ? 0.6 : 0.35;
       const lobChance = Math.min(0.90, baseLobChance + (lobBias / 100) * 0.40);
-      if (Math.random() < lobChance) {
-        return Math.random() < shotPreference.forehandProbability
+      if (random() < lobChance) {
+        return random() < shotPreference.forehandProbability
           ? 'lob_forehand'
           : 'lob_backhand';
       }
-      return Math.random() < shotPreference.forehandProbability
+      return random() < shotPreference.forehandProbability
         ? 'passing_shot_forehand'
         : 'passing_shot_backhand';
     }
@@ -99,7 +100,7 @@ export class ShotSelector {
       const defenseOptions: ShotType[] = [];
 
       // Always have defensive slice as option
-      if (Math.random() < shotPreference.forehandProbability) {
+      if (random() < shotPreference.forehandProbability) {
         defenseOptions.push('defensive_slice_forehand');
       } else {
         defenseOptions.push('defensive_slice_backhand');
@@ -107,31 +108,31 @@ export class ShotSelector {
 
       // Add lob for variety
       defenseOptions.push(
-        Math.random() < shotPreference.forehandProbability ? 'lob_forehand' : 'lob_backhand'
+        random() < shotPreference.forehandProbability ? 'lob_forehand' : 'lob_backhand'
       );
 
       // Patient players include a slice option more often (neutral 25%)
-      if (Math.random() < 0.25 + (patience / 100) * 0.40) {
+      if (random() < 0.25 + (patience / 100) * 0.40) {
         defenseOptions.push(
-          Math.random() < shotPreference.forehandProbability ? 'slice_forehand' : 'slice_backhand'
+          random() < shotPreference.forehandProbability ? 'slice_forehand' : 'slice_backhand'
         );
       }
 
-      return defenseOptions[Math.floor(Math.random() * defenseOptions.length)];
+      return defenseOptions[Math.floor(random() * defenseOptions.length)];
     }
 
     // DECISION TREE: Check for special shots first
 
     // 1. Net approach?
     if (this.shouldApproachNet(shooter, opportunity, rallyState, matchState.courtSurface, behaviorEffects)) {
-      return Math.random() < shotPreference.forehandProbability
+      return random() < shotPreference.forehandProbability
         ? 'forehand_approach'
         : 'backhand_approach';
     }
 
     // 2. Go for winner/power shot?
     if (this.shouldAttemptWinner(shooter, opportunity, rallyState, behaviorEffects)) {
-      return Math.random() < shotPreference.forehandProbability
+      return random() < shotPreference.forehandProbability
         ? 'forehand_power'
         : 'backhand_power';
     }
@@ -139,7 +140,7 @@ export class ShotSelector {
     // 3. Tactical shot?
     const tacticalDecision = this.shouldUseTacticalShot(shooter, rallyState, opportunity, behaviorEffects);
     if (tacticalDecision.use) {
-      const isForehand = Math.random() < shotPreference.forehandProbability;
+      const isForehand = random() < shotPreference.forehandProbability;
 
       switch (tacticalDecision.type) {
         case 'drop_shot':
@@ -152,15 +153,15 @@ export class ShotSelector {
     }
 
     // 4. Long rally defensive shift (11+ shots)
-    if (rallyLength > 10 && Math.random() < 0.25 + (patience / 100) * 0.20) {
-      return Math.random() < shotPreference.forehandProbability
+    if (rallyLength > 10 && random() < 0.25 + (patience / 100) * 0.20) {
+      return random() < shotPreference.forehandProbability
         ? 'slice_forehand'
         : 'slice_backhand';
     }
 
     // 5. DEFAULT: Regular groundstroke using shot preference.
     // Per-wing slice preference lets archetypes express "topspin FH, slice BH".
-    const isForehand = Math.random() < shotPreference.forehandProbability;
+    const isForehand = random() < shotPreference.forehandProbability;
     if (this.shouldSliceGroundstroke(isForehand, behaviorEffects)) {
       return isForehand ? 'slice_forehand' : 'slice_backhand';
     }
@@ -180,7 +181,7 @@ export class ShotSelector {
     if (pref <= 0) return false;
     // ~0.25 at tier I (10), ~0.6 cap at tier III (24); never fully locks the wing.
     const probability = Math.min(0.85, (pref / 100) * 2.5);
-    return Math.random() < probability;
+    return random() < probability;
   }
 
   /**
@@ -221,7 +222,7 @@ export class ShotSelector {
     rallyState: RallyState,
     behaviorEffects: BehaviorEffects
   ): ShotType {
-    const isForehand = Math.random() < shotPreference.forehandProbability;
+    const isForehand = random() < shotPreference.forehandProbability;
 
     const thresholds = getQualityThresholds(rallyState.matchLevel);
 
@@ -244,7 +245,7 @@ export class ShotSelector {
 
     if (putawayBias > 0 && ballIsAttackable) {
       const putawayChance = Math.min(0.75, (putawayBias / 100) * 1.2);
-      if (Math.random() < putawayChance) {
+      if (random() < putawayChance) {
         return isForehand ? 'volley_forehand_power' : 'volley_backhand_power';
       }
     }
@@ -254,7 +255,7 @@ export class ShotSelector {
       rallyState.ballQuality.spin === 'heavy_topspin' ||
       (rallyState.ballQuality.baseQuality >= thresholds.high && rallyState.ballQuality.timeAvailable === 'rushed');
 
-    if (isLowBall && Math.random() < 0.6) {
+    if (isLowBall && random() < 0.6) {
       return isForehand ? 'half_volley_forehand' : 'half_volley_backhand';
     }
 
@@ -313,7 +314,7 @@ export class ShotSelector {
       }
     }
 
-    return Math.random() < Math.min(0.9, probability);
+    return random() < Math.min(0.9, probability);
   }
 
   /**
@@ -338,13 +339,13 @@ export class ShotSelector {
     let baseProbability = Math.max(0.03, 0.15 + winnerBias * 0.01);
 
     // Early-rally aggression, for builds that lean on it
-    if (winnerBias > 0 && Math.random() < (winnerBias / 100) * 1.5
+    if (winnerBias > 0 && random() < (winnerBias / 100) * 1.5
         && rallyState.rallyLength >= 3 && rallyState.rallyLength <= 5) {
       baseProbability *= 1.5;
     }
 
     if (!opportunity.winnerAttemptSuitable) {
-      if (Math.random() < (winnerBias / 100) * 0.30) {
+      if (random() < (winnerBias / 100) * 0.30) {
         return true;
       }
       return false;
@@ -359,7 +360,7 @@ export class ShotSelector {
     const winnerThresholds = getQualityThresholds(rallyState.matchLevel);
     if (rallyState.lastShotQuality >= winnerThresholds.exceptional) probability *= 1.4;
 
-    return Math.random() < Math.min(0.90, probability);
+    return random() < Math.min(0.90, probability);
   }
 
   /**
@@ -385,12 +386,12 @@ export class ShotSelector {
     // --- Other tactical shots (lob, angle) still use shotVariety ---
     const shotVariety = shooter.stats.technical.spin;
     const baseProbability = 0.01 + (shotVariety / 100) * 0.24;
-    if (Math.random() > baseProbability) return { use: false };
+    if (random() > baseProbability) return { use: false };
 
     // Positive lob bias tilts toward lob; default prefers angle shot
     const lobBias = behaviorEffects[EffectKey.LOB_BIAS] ?? 0;
     const lobChance = Math.max(0, 0.15 + (lobBias / 100) * 0.50);
-    if (Math.random() < lobChance) return { use: true, type: 'lob' };
+    if (random() < lobChance) return { use: true, type: 'lob' };
     return { use: true, type: 'angle_shot' };
   }
 
@@ -449,7 +450,7 @@ export class ShotSelector {
       probability *= Math.max(0, 1 + (dropBias / 30));
     }
 
-    return Math.random() < probability
+    return random() < probability
       ? { use: true, type: 'drop_shot' }
       : { use: false };
   }

@@ -16,6 +16,7 @@ import type { CoreStats } from '../types';
 import type { StatBoosts, TrainingResult } from '../types/game';
 import type { MinigameId } from '../minigames/types';
 
+import { random } from '../core/random';
 /** The five core stats a player can anchor a training session on. */
 export type CoreStat = keyof CoreStats;
 
@@ -165,7 +166,7 @@ export function buildAnchorStatBoosts(
   supports: SupportStat[],
   statUpgradeChance: number = 0
 ): StatBoosts {
-  const grant = (): number => (Math.random() < statUpgradeChance ? 2 : 1);
+  const grant = (): number => (random() < statUpgradeChance ? 2 : 1);
 
   const boosts: StatBoosts = {};
   boosts[core] = grant();
@@ -190,7 +191,7 @@ export function buildAnchorTrainingResult(
   // A bonus rep rides along on a session that landed something. A session where
   // every attempt missed stays a miss — otherwise the "tough session" message
   // would ship alongside a support the player never earned.
-  const bonusSupport = count > 0 && Math.random() < bonuses.bonusSupportChance ? 1 : 0;
+  const bonusSupport = count > 0 && random() < bonuses.bonusSupportChance ? 1 : 0;
 
   const supports = resolveSupports(core, count + bonusSupport, recentSupports);
   const statBoosts = buildAnchorStatBoosts(core, supports, bonuses.statUpgradeChance);
@@ -243,12 +244,12 @@ function buildMessage(anchorName: string, reps: number, gotBonusRep: boolean): s
 function shuffle<T>(array: T[]): T[] {
   const copy = [...array];
   for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(random() * (i + 1));
     [copy[i], copy[j]] = [copy[j], copy[i]];
   }
   return copy;
 }
 
 function generateId(): string {
-  return `anchor-training-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+  return `anchor-training-${Date.now()}-${random().toString(36).substring(2, 9)}`;
 }

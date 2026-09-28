@@ -12,6 +12,7 @@ import type { StatName } from '../types';
 import { PlayerStats, EffectKey } from '../types/game';
 import { KEY_MOMENT } from '../config/shotThresholds';
 
+import { random } from '../core/random';
 export type OutcomeType = 'critical-success' | 'success' | 'failure' | 'critical-failure';
 
 export interface AppliedEffect {
@@ -143,11 +144,11 @@ export class KeyMomentResolver {
     // a separate roll against the option's risk, which keeps the crit rate
     // independent of the odds — a good read and a bad one crit at the same rate,
     // and a bold option crits far more often than a safe one either way.
-    const roll = Math.random() * 100;
+    const roll = random() * 100;
     const won = roll <= finalProbability;
 
     const criticalShare = KEY_MOMENT.criticalShareByRisk[option.risk] ?? 0;
-    const isCritical = Math.random() < criticalShare;
+    const isCritical = random() < criticalShare;
 
     const outcome: OutcomeType = won
       ? (isCritical ? 'critical-success' : 'success')

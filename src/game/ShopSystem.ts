@@ -14,6 +14,7 @@ import { ABILITY_DEFINITIONS } from '../data/abilities';
 import { AbilityRarity, DEFAULT_PLAYER_STATS } from '../types/game';
 import { ALL_CONSUMABLES, ALL_EQUIPMENT, CONSUMABLE_SHOP_COSTS } from '../data/items';
 
+import { random } from '../core/random';
 // Derived from DEFAULT_PLAYER_STATS rather than hand-listed, so a stat rename
 // or category move can't leave a retired name behind for applyStatBoosts to
 // silently swallow.
@@ -38,11 +39,11 @@ function calculateStatIncreaseCost(currentValue: number, increase: number): numb
 }
 
 function randInt(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+  return Math.floor(random() * (max - min + 1)) + min;
 }
 
 function rollStatRarity(): ItemRarity {
-  const roll = Math.random() * 100;
+  const roll = random() * 100;
   if (roll < 60) return 'common';
   if (roll < 85) return 'uncommon';
   if (roll < 97) return 'rare';
@@ -54,7 +55,7 @@ function createStatIncreaseItem(playerStats: PlayerStats | null): StatIncreaseIt
   const numStatsMap: Record<ItemRarity, number> = { common: 1, uncommon: 2, rare: 3, legendary: 4 };
   const numStats = numStatsMap[rarity];
 
-  const category: StatCategory = Math.random() < 0.3 ? 'core' : (Math.random() < 0.33 ? 'technical' : Math.random() < 0.5 ? 'physical' : 'mental');
+  const category: StatCategory = random() < 0.3 ? 'core' : (random() < 0.33 ? 'technical' : random() < 0.5 ? 'physical' : 'mental');
 
   const statBoosts: StatBoosts = {};
   const usedStats = new Set<StatName>();
@@ -64,7 +65,7 @@ function createStatIncreaseItem(playerStats: PlayerStats | null): StatIncreaseIt
   for (let i = 0; i < numStats; i++) {
     const remaining = availableStats.filter(s => !usedStats.has(s));
     if (remaining.length === 0) break;
-    const stat = remaining[Math.floor(Math.random() * remaining.length)];
+    const stat = remaining[Math.floor(random() * remaining.length)];
     usedStats.add(stat);
     const boost = randInt(1, 5);
     statBoosts[stat] = boost;
@@ -87,7 +88,7 @@ function createStatIncreaseItem(playerStats: PlayerStats | null): StatIncreaseIt
   };
 
   return {
-    id: `stat-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
+    id: `stat-${Date.now()}-${random().toString(36).slice(2, 5)}`,
     category: 'stat_increase',
     name: `${rarityName[rarity]} +${total} ${affectedStats}`,
     description: `Increase ${affectedStats} by a total of +${total}`,
@@ -101,10 +102,10 @@ function createStatIncreaseItem(playerStats: PlayerStats | null): StatIncreaseIt
 const SHOP_CONSUMABLE_ITEMS: Item[] = ALL_CONSUMABLES.filter(item => item.shopAvailable !== false);
 
 function createConsumableItem(): ConsumableItem {
-  const sourceItem = SHOP_CONSUMABLE_ITEMS[Math.floor(Math.random() * SHOP_CONSUMABLE_ITEMS.length)];
+  const sourceItem = SHOP_CONSUMABLE_ITEMS[Math.floor(random() * SHOP_CONSUMABLE_ITEMS.length)];
   const effect = sourceItem.consumableEffect;
   return {
-    id: `consumable-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
+    id: `consumable-${Date.now()}-${random().toString(36).slice(2, 5)}`,
     category: 'consumable',
     sourceItemId: sourceItem.id,
     name: sourceItem.name,
@@ -125,10 +126,10 @@ function calculateEquipmentCost(statBoosts: StatBoosts): number {
 }
 
 function createEquipmentItem(): EquipmentItem {
-  const sourceItem = SHOP_EQUIPMENT_ITEMS[Math.floor(Math.random() * SHOP_EQUIPMENT_ITEMS.length)];
+  const sourceItem = SHOP_EQUIPMENT_ITEMS[Math.floor(random() * SHOP_EQUIPMENT_ITEMS.length)];
   const statBoosts = sourceItem.modifiers?.statBoosts ?? {};
   return {
-    id: `equipment-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
+    id: `equipment-${Date.now()}-${random().toString(36).slice(2, 5)}`,
     category: 'equipment',
     sourceItemId: sourceItem.id,
     name: sourceItem.name,
@@ -159,7 +160,7 @@ function calculateAbilityCost(statBoosts: StatBoosts, rarity: AbilityRarity): nu
 }
 
 function createAbilityItem(ownedLevels: Map<string, number> = new Map()): AbilityItem | null {
-  const roll = Math.random();
+  const roll = random();
   let pool: Ability[] = ABILITIES;
 
   if (roll < 0.5) {
@@ -173,7 +174,7 @@ function createAbilityItem(ownedLevels: Map<string, number> = new Map()): Abilit
   }
 
   if (pool.length === 0) return null;
-  const template = pool[Math.floor(Math.random() * pool.length)];
+  const template = pool[Math.floor(random() * pool.length)];
   const currentLevel = ownedLevels.get(template.name) ?? 0;
   const nextLevel = currentLevel + 1;
   const hasAbility = currentLevel > 0;
@@ -184,7 +185,7 @@ function createAbilityItem(ownedLevels: Map<string, number> = new Map()): Abilit
     : baseCost;
 
   return {
-    id: `ability-${template.name}-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
+    id: `ability-${template.name}-${Date.now()}-${random().toString(36).slice(2, 5)}`,
     category: 'ability',
     name: nextLevel > 1 ? `${template.name} Lv${nextLevel}` : template.name,
     description: template.description,

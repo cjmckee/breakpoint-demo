@@ -17,6 +17,7 @@ import { Sparks, ComboBadge, useHitstop, type Burst } from '../shared/minigameJu
 import { MinigameArena, u, uMin } from '../shared/MinigameArena';
 import { isActionKey } from '../../utils/gameKeys';
 
+import { random } from '../../core/random';
 const HITS_NEEDED = 3;
 const ROUND_TIME = 4000; // ms
 const COOLDOWN = 240; // ms — no mashing
@@ -103,10 +104,10 @@ export const TouchSliceMinigame: React.FC<MinigameProps> = ({ onComplete, window
     phaseRef.current = 0;
     lastPressRef.current = 0;
     trailRef.current = [];
-    zoneCenterRef.current = 22 + Math.random() * 56;
-    tiltRef.current = (Math.random() < 0.5 ? -1 : 1) * Math.random() * 30;
+    zoneCenterRef.current = 22 + random() * 56;
+    tiltRef.current = (random() < 0.5 ? -1 : 1) * random() * 30;
     // Shorter period = faster swing, so the ramp divides into it.
-    sweepRef.current = (SWEEP_MIN + Math.random() * (SWEEP_MAX - SWEEP_MIN)) / rounds.speed;
+    sweepRef.current = (SWEEP_MIN + random() * (SWEEP_MAX - SWEEP_MIN)) / rounds.speed;
     startRef.current = performance.now();
     runningRef.current = true;
     setHits(0);

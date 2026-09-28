@@ -18,6 +18,7 @@ import { Sparks, ComboBadge, useHitstop, type Burst } from '../shared/minigameJu
 import { MinigameArena, uMin } from '../shared/MinigameArena';
 import { directionFromKey } from '../../utils/gameKeys';
 
+import { random } from '../../core/random';
 const LANES = 3;
 const PER_SET = 3;
 const TRAVEL = 750; // ms a ball takes to fall to the line, at speed 1
@@ -111,13 +112,13 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
   // beat stays dead even inside a set while every set runs at its own speed.
   useEffect(() => {
     if (rounds.phase !== 'playing') return;
-    const tempo = (1 - TEMPO_SPAN / 2 + Math.random() * TEMPO_SPAN) * rounds.speed;
+    const tempo = (1 - TEMPO_SPAN / 2 + random() * TEMPO_SPAN) * rounds.speed;
     const travel = TRAVEL / tempo;
     const interval = INTERVAL / tempo;
     const base = performance.now() + travel + LEAD_IN;
     notesRef.current = Array.from({ length: PER_SET }, (_, k) => ({
       id: rounds.round * 10 + k,
-      track: Math.floor(Math.random() * LANES),
+      track: Math.floor(random() * LANES),
       time: base + k * interval,
       judged: false,
       hit: false,

@@ -62,6 +62,7 @@ import {
   SHOT_CLASSIFICATIONS,
 } from '../config/shotThresholds';
 
+import { random } from './random';
 /**
  * Sliding scale ranges for different shot difficulties and contexts
  * NOTE: Winner determination now uses quality thresholds, not probability
@@ -196,7 +197,7 @@ export class ShotCalculator {
       // variance. Quality decides how hurtful the serve is; accuracy decides
       // whether it lands.
       const serveType = shotType as 'serve_first' | 'serve_second';
-      const accuracyVariance = (Math.random() * 2 - 1) *
+      const accuracyVariance = (random() * 2 - 1) *
         (serveType === 'serve_first' ? SERVE_VARIANCE.first : SERVE_VARIANCE.second);
       // Clamped to the same 0-100 scale as the roll it is compared against.
       // The roll saturates at 100 and the midpoint is derived from this value,
@@ -370,19 +371,19 @@ export class ShotCalculator {
     thresholds: QualityThresholds
   ): PointType {
     const pWinner = sigmoidProbability(quality, thresholds.winner, PROBABILITY_STEEPNESS.rally.winner);
-    if (Math.random() < pWinner) {
+    if (random() < pWinner) {
       trace(`  Outcome cascade → winner? ${(pWinner * 100).toFixed(1)}% chance → hit! WINNER`);
       return PointType.WINNER;
     }
 
     const pInPlay = sigmoidProbability(quality, thresholds.inPlay, PROBABILITY_STEEPNESS.rally.inPlay);
-    if (Math.random() < pInPlay) {
+    if (random() < pInPlay) {
       trace(`  Outcome cascade → winner? ${(pWinner * 100).toFixed(1)}% chance → miss | inPlay? ${(pInPlay * 100).toFixed(1)}% chance → hit! IN_PLAY`);
       return PointType.IN_PLAY;
     }
 
     const pForcedError = sigmoidProbability(quality, thresholds.forcedError, PROBABILITY_STEEPNESS.rally.forcedError);
-    if (Math.random() < pForcedError) {
+    if (random() < pForcedError) {
       trace(`  Outcome cascade → winner? ${(pWinner * 100).toFixed(1)}% → miss | inPlay? ${(pInPlay * 100).toFixed(1)}% → miss | forcedError? ${(pForcedError * 100).toFixed(1)}% → hit! FORCED_ERROR`);
       return PointType.FORCED_ERROR;
     }
@@ -446,14 +447,14 @@ export class ShotCalculator {
     };
 
     // Roll for serve in
-    if (Math.random() >= pServeIn) {
+    if (random() >= pServeIn) {
       trace(`  Serve cascade → in? ${(pServeIn * 100).toFixed(1)}% chance → miss! FAULT`);
       return { outcome: PointType.FAULT, thresholds };
     }
 
     // Sigmoid probability for ace
     const pAce = sigmoidProbability(serveQuality, aceThreshold, PROBABILITY_STEEPNESS.serve.ace);
-    if (Math.random() < pAce) {
+    if (random() < pAce) {
       trace(`  Serve cascade → in? ${(pServeIn * 100).toFixed(1)}% → hit | ace? ${(pAce * 100).toFixed(1)}% chance → hit! ACE`);
       return { outcome: PointType.ACE, thresholds };
     }
@@ -499,7 +500,7 @@ export class ShotCalculator {
       mentalModifier *= statModifier(stats.mental.tactics, SERVE_MODIFIER_BANDS.first.tactics);
       spinModifier *= statModifier(stats.technical.spin, SERVE_MODIFIER_BANDS.first.spin);
 
-      serveVariance = (Math.random() - 0.5) * 2 * SERVE_VARIANCE.first;
+      serveVariance = (random() - 0.5) * 2 * SERVE_VARIANCE.first;
     } else if (shotType === 'serve_second') {
       // Second serve: a decision under risk. Consistency and tactics hold it
       // together, and spin is what makes a second serve safe at all.
@@ -507,13 +508,13 @@ export class ShotCalculator {
         * statModifier(stats.mental.tactics, SERVE_MODIFIER_BANDS.second.tactics);
       spinModifier *= statModifier(stats.technical.spin, SERVE_MODIFIER_BANDS.second.spin);
 
-      serveVariance = (Math.random() - 0.5) * 2 * SERVE_VARIANCE.second;
+      serveVariance = (random() - 0.5) * 2 * SERVE_VARIANCE.second;
     }
 
     // Return-specific variance
     let returnVariance = 0;
     if (shotType.includes('return')) {
-      returnVariance = (Math.random() - 0.5) * 2 * RETURN_VARIANCE;
+      returnVariance = (random() - 0.5) * 2 * RETURN_VARIANCE;
     }
 
     // Rally shot variance (applies to all non-serve, non-return shots)
@@ -523,7 +524,7 @@ export class ShotCalculator {
       const incomingQuality = incomingShot.quality;
       const totalVariance = RALLY_SHOT_VARIANCE.base +
         (incomingQuality / 100) * RALLY_SHOT_VARIANCE.qualityMultiplier;
-      rallyVariance = (Math.random() - 0.5) * 2 * totalVariance;
+      rallyVariance = (random() - 0.5) * 2 * totalVariance;
     }
 
     // Situational modifiers
@@ -847,7 +848,7 @@ export class ShotCalculator {
     // risk on aggressive groundstrokes. Leveling the specialty narrows it back down.
     const powerVariance = effects[EffectKey.POWER_VARIANCE] ?? 0;
     if (powerVariance > 0 && shotType.includes('power')) {
-      bonus += (Math.random() - 0.5) * 2 * powerVariance;
+      bonus += (random() - 0.5) * 2 * powerVariance;
     }
 
     return Math.min(100, Math.max(0, quality + bonus));
@@ -936,7 +937,7 @@ export class ShotCalculator {
     // Angle shots and passing shots increase difficulty
     if (shotType.includes('angle') || shotType.includes('passing')) qualityModifier += 5;
 
-    const randomVariance = (Math.random() - 0.5) * 10; // ±5 points
+    const randomVariance = (random() - 0.5) * 10; // ±5 points
     const baseQuality = Math.max(0, Math.min(100, quality + randomVariance + qualityModifier));
 
     return {

@@ -17,6 +17,7 @@ import { Sparks, ComboBadge, useHitstop, type Burst } from '../shared/minigameJu
 import { MinigameArena, ARENA_H, u, uMin, pctY } from '../shared/MinigameArena';
 import { directionFromKey, isActionKey } from '../../utils/gameKeys';
 
+import { random } from '../../core/random';
 // Everything is in arena units (see MinigameArena). The toss is anchored to the
 // bottom of the court; the space above its apex is headroom.
 const START_Y = ARENA_H - 3.5; // where the toss leaves the hand
@@ -43,9 +44,9 @@ interface Toss {
  * runs 1/k as long. Later attempts get less time in the pocket, not a different toss.
  */
 const randomToss = (speed: number): Toss => ({
-  vy0: -(65.8 + Math.random() * 4.4) * speed,
-  g: (52.6 + Math.random() * 6.6) * speed * speed,
-  vx: (Math.random() < 0.5 ? -1 : 1) * (12 + Math.random() * 7) * speed,
+  vy0: -(65.8 + random() * 4.4) * speed,
+  g: (52.6 + random() * 6.6) * speed * speed,
+  vx: (random() < 0.5 ? -1 : 1) * (12 + random() * 7) * speed,
 });
 
 export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt, config }) => {

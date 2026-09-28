@@ -28,6 +28,7 @@ import { RALLY_CONFIG, DIFFICULTY_SCORE_FACTORS, DIFFICULTY_THRESHOLDS } from '.
 import { EffectKey } from '../types/game';
 import { trace } from './trace';
 
+import { random } from './random';
 export class PointSimulator {
   private shotCalculator: ShotCalculator;
   private shotSelector: ShotSelector;
@@ -51,7 +52,7 @@ export class PointSimulator {
     opponentActiveEffects?: Record<string, number>
   ): PointResult {
     const shots: ShotDetail[] = [];
-    const pointId = `point_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const pointId = `point_${Date.now()}_${random().toString(36).substr(2, 9)}`;
     let shotNumber = 1;
 
     // Step 1: Serve sequence (server's archetype shapes serve aggression / fault risk)
@@ -312,7 +313,7 @@ export class PointSimulator {
     // misses — a first serve that lands in, or a second serve that avoids a double
     // fault. This is the upside of placement/spin/safe serve specialties.
     if (outcome === PointType.FAULT && faultRisk < 0) {
-      if (Math.random() < Math.min(0.75, Math.abs(faultRisk) / 100)) {
+      if (random() < Math.min(0.75, Math.abs(faultRisk) / 100)) {
         return PointType.IN_PLAY;
       }
       return outcome;
@@ -325,11 +326,11 @@ export class PointSimulator {
       : (effects[EffectKey.SECOND_SERVE_AGGRESSION] ?? 0);
 
     // Aggression converts some would-be in-play serves into aces.
-    if (aggression > 0 && Math.random() < (aggression / 100) * 0.35) {
+    if (aggression > 0 && random() < (aggression / 100) * 0.35) {
       return PointType.ACE;
     }
     // Fault risk converts some would-be in-play serves into misses.
-    if (faultRisk > 0 && Math.random() < (faultRisk / 100) * 0.5) {
+    if (faultRisk > 0 && random() < (faultRisk / 100) * 0.5) {
       return PointType.FAULT;
     }
     return outcome;

@@ -16,6 +16,7 @@ import type { Player, GameCalendar } from '../types/game';
 import type { ActiveTournament } from '../types/tournaments';
 import type { MinigameScore } from '../minigames/types';
 
+import { random } from '../core/random';
 export class StoryEventManager {
   /**
    * Check if the current day has scheduled events or an active tournament.
@@ -237,7 +238,7 @@ export class StoryEventManager {
 
     // Pick a random category
     const tags = Array.from(eventsByTag.keys());
-    const randomTag = tags[Math.floor(Math.random() * tags.length)];
+    const randomTag = tags[Math.floor(random() * tags.length)];
     const categoryEvents = eventsByTag.get(randomTag)!;
 
     console.log(`🔍 Selected random event from category: ${randomTag}`);
@@ -248,7 +249,7 @@ export class StoryEventManager {
       return this.selectWeightedMiscEvent(categoryEvents, mood);
     }
 
-    return categoryEvents[Math.floor(Math.random() * categoryEvents.length)];
+    return categoryEvents[Math.floor(random() * categoryEvents.length)];
   }
 
   /**
@@ -270,7 +271,7 @@ export class StoryEventManager {
     });
 
     const total = weights.reduce((sum, w) => sum + w, 0);
-    let roll = Math.random() * total;
+    let roll = random() * total;
     for (let i = 0; i < events.length; i++) {
       roll -= weights[i];
       if (roll <= 0) return events[i];
@@ -282,7 +283,7 @@ export class StoryEventManager {
    * Check if a story event should trigger based on probability
    */
   static shouldTriggerEvent(triggerChance: number): boolean {
-    return Math.random() * 100 < triggerChance;
+    return random() * 100 < triggerChance;
   }
 
   /**
