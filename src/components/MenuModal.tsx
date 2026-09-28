@@ -14,6 +14,10 @@ import { Button } from './ui/Button';
 import { UnseenBadge } from './ui/UnseenBadge';
 import { Encyclopedia } from './Encyclopedia';
 import { TutorialGuideModal } from './tutorial/TutorialGuideModal';
+import { MATCH_SPEED_META, type MatchSpeed } from '../config/matchRewards';
+
+/** Speeds in the order the settings picker shows them, slowest first. */
+const MATCH_SPEEDS: readonly MatchSpeed[] = ['slow', 'normal', 'fast', 'instant'];
 
 const GISCUS_CONFIG = {
   repo: 'cjmckee/breakpoint-demo',
@@ -223,6 +227,8 @@ interface SettingsContentProps {
 
 function SettingsContent({ onOpenTutorialGuide }: SettingsContentProps) {
   const audioSettings = useGameStore((state) => state.audioSettings);
+  const matchSpeed = useGameStore((state) => state.matchSpeed);
+  const setMatchSpeed = useGameStore((state) => state.setMatchSpeed);
   const updateAudioSettings = useGameStore((state) => state.updateAudioSettings);
   const clearAllData = useGameStore((state) => state.clearAllData);
   const currentDay = useGameStore((state) => state.calendar.currentDay);
@@ -311,6 +317,34 @@ function SettingsContent({ onOpenTutorialGuide }: SettingsContentProps) {
       </div>
 
       <AudioCredits />
+
+      <div className="border-t border-pixel-border pt-4">
+        <label className="text-pixel-text font-bold block mb-1">Match Speed</label>
+        <p className="text-xs text-pixel-text-muted mb-2">
+          How long the game pauses between points. Key moments always wait for you.
+        </p>
+        <div className="grid grid-cols-4 gap-1.5">
+          {MATCH_SPEEDS.map((speed) => {
+            const isActive = matchSpeed === speed;
+            return (
+              <button
+                key={speed}
+                data-testid={`match-speed-${speed}`}
+                aria-pressed={isActive}
+                onClick={() => setMatchSpeed(speed)}
+                className={`border-2 px-2 py-2 text-xs font-bold transition-colors ${
+                  isActive
+                    ? 'border-pixel-accent bg-pixel-accent text-white'
+                    : 'border-pixel-border text-pixel-text hover:border-pixel-accent'
+                }`}
+              >
+                {MATCH_SPEED_META[speed].label}
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-xs text-pixel-text-muted mt-2">{MATCH_SPEED_META[matchSpeed].hint}</p>
+      </div>
 
       {currentDay >= 5 && (
         <div className="border-t border-pixel-border pt-4">

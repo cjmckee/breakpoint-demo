@@ -11,7 +11,7 @@ import { PreMatchScreen } from './PreMatchScreen';
 import { ItemManager } from '../game/ItemManager';
 import { buildPlayStyle } from '../core/PlayerProfile';
 import type { PreMatchConfig } from '../types/gamePhase';
-import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
+import { DEFAULT_MATCH_ENERGY_COST, MATCH_SPEED_DELAYS } from '../config/matchRewards';
 import { calculateOverallRating, getTierLabel } from '../utils/playerStats';
 
 export const PracticeMatch: React.FC<{ matchConfig: PreMatchConfig | null }> = ({ matchConfig }) => {
@@ -19,6 +19,7 @@ export const PracticeMatch: React.FC<{ matchConfig: PreMatchConfig | null }> = (
   const currentStatus = useGameStore((state) => state.currentStatus);
   const navigateTo = useGameStore((state) => state.navigateTo);
   const beginMatch = useGameStore((state) => state.beginMatch);
+  const matchSpeed = useGameStore((state) => state.matchSpeed);
 
   if (!player || !matchConfig) {
     return null;
@@ -50,6 +51,7 @@ export const PracticeMatch: React.FC<{ matchConfig: PreMatchConfig | null }> = (
       energy: currentStatus.energy,
       enableKeyMoments: true,
       matchFormat: matchConfig.matchFormat,
+      pointDelayMs: MATCH_SPEED_DELAYS[matchSpeed],
     };
 
     beginMatch(config, 'regular');

@@ -65,7 +65,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="" size="lg">
+    <Modal isOpen={isOpen} onClose={handleClose} title="" size="lg" testId="match-results">
       <div className="space-y-6">
         {/* Result Header */}
         <div
