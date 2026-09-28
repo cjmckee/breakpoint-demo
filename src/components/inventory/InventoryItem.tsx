@@ -45,7 +45,15 @@ export const InventoryItem: React.FC<InventoryItemProps> = ({
     : 0;
 
   return (
-    <div
+    // A button, not a div: the card has always been click-to-open, so it needs the
+    // role, keyboard activation and focus ring that come with one for free.
+    // `text-left` and `w-full` undo the button defaults the Card layout assumes.
+    <button
+      type="button"
+      data-testid={`inventory-item-${item.instanceId}`}
+      data-item-id={item.id}
+      aria-label={item.name}
+      className="w-full text-left"
       draggable={isSlotted}
       onDragStart={(e) => {
         e.dataTransfer.effectAllowed = 'move';
@@ -78,6 +86,6 @@ export const InventoryItem: React.FC<InventoryItemProps> = ({
           <div className="text-sm font-bold text-pixel-text truncate">{item.name}</div>
         </div>
       </Card>
-    </div>
+    </button>
   );
 };

@@ -14,6 +14,8 @@ interface ButtonProps {
   disabled?: boolean;
   fullWidth?: boolean;
   className?: string;
+  /** Stable hook for e2e. See the test id convention in CLAUDE.md. */
+  testId?: string;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -24,6 +26,7 @@ export const Button: React.FC<ButtonProps> = ({
   disabled = false,
   fullWidth = false,
   className = '',
+  testId,
 }) => {
   const baseStyles =
     'font-bold border-4 transition-all duration-150 ease-in-out cursor-pointer disabled:cursor-not-allowed disabled:opacity-50';
@@ -58,6 +61,7 @@ export const Button: React.FC<ButtonProps> = ({
     <button
       onClick={handleClick}
       disabled={disabled}
+      data-testid={testId}
       className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${widthStyle} truncate ${className}`}
     >
       {children}

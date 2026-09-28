@@ -129,6 +129,7 @@ export const AnchorTraining: React.FC = () => {
 
           {!hasAttempted && (
             <Button
+              testId="training-quick-sim"
               variant="secondary"
               fullWidth
               className="mt-4"
@@ -187,6 +188,7 @@ export const AnchorTraining: React.FC = () => {
               return (
                 <button
                   key={core}
+                  data-testid={`training-anchor-${core}`}
                   onClick={() => handlePickCore(core)}
                   onMouseEnter={() => setHovered(core)}
                   onMouseLeave={() => setHovered(null)}

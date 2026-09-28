@@ -46,6 +46,7 @@ const StartGate: React.FC<{ onStart: () => void; controls?: string }> = ({ onSta
       </div>
       <button
         type="button"
+        data-testid="minigame-start"
         onPointerDown={(e) => {
           e.preventDefault();
           onStart();

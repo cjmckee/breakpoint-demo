@@ -13,6 +13,8 @@ interface ModalProps {
   showCloseButton?: boolean;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   belowContent?: React.ReactNode;
+  /** Stable hook for e2e. See the test id convention in CLAUDE.md. */
+  testId?: string;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -23,6 +25,7 @@ export const Modal: React.FC<ModalProps> = ({
   showCloseButton = true,
   size = 'md',
   belowContent,
+  testId,
 }) => {
   if (!isOpen) return null;
 
@@ -39,6 +42,7 @@ export const Modal: React.FC<ModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-label={title || undefined}
+      data-testid={testId}
     >
       {/* Backdrop */}
       <div

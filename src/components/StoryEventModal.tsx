@@ -199,7 +199,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
   );
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={event.name} size="xl" showCloseButton={false} belowContent={hideButton}>
+    <Modal isOpen={isOpen} onClose={onClose} title={event.name} size="xl" showCloseButton={false} belowContent={hideButton} testId="story-event">
       {/* Tags and time slots */}
       <div className="flex gap-2 mb-4 flex-wrap">
         {event.tags.map((tag) => (
@@ -268,7 +268,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
           ) : (
             <div />
           )}
-          <Button onClick={advanceDialogue} variant="primary">
+          <Button onClick={advanceDialogue} variant="primary" testId="story-advance">
             Continue
           </Button>
         </div>
@@ -298,7 +298,9 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
                     Skip Event
                   </Button>
                 )}
-                <Button onClick={handleContinue} variant="primary">
+                {/* The no-choice path: its label is the option's own text, so the id
+                    is the only stable handle on it. */}
+                <Button onClick={handleContinue} variant="primary" testId="story-resolve">
                   {onlyOption ? onlyOption.text : 'Continue'}
                 </Button>
               </div>
@@ -316,6 +318,8 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
               return (
                 <button
                   key={option.id}
+                  data-testid={`story-option-${option.id}`}
+                  data-available={isAvailable}
                   onClick={() => isAvailable && handleOptionSelect(option.id)}
                   disabled={!isAvailable}
                   className={`
@@ -357,7 +361,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
                   Cancel
                 </Button>
               )}
-              <Button onClick={handleContinue} variant="primary" disabled={!selectedOptionId}>
+              <Button onClick={handleContinue} variant="primary" disabled={!selectedOptionId} testId="story-confirm">
                 Confirm Choice
               </Button>
             </div>

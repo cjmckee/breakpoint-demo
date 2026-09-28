@@ -21,6 +21,8 @@ interface ActionTileProps {
   size?: 'lg' | 'sm';
   variant?: 'primary' | 'secondary' | 'success';
   className?: string;
+  /** Stable hook for e2e. See the test id convention in CLAUDE.md. */
+  testId?: string;
 }
 
 export const ActionTile: React.FC<ActionTileProps> = ({
@@ -33,6 +35,7 @@ export const ActionTile: React.FC<ActionTileProps> = ({
   size = 'lg',
   variant = 'primary',
   className = '',
+  testId,
 }) => {
   const variantStyles = {
     primary: 'bg-pixel-accent border-pixel-accent-dark hover:bg-pixel-accent-light',
@@ -56,6 +59,7 @@ export const ActionTile: React.FC<ActionTileProps> = ({
     <button
       onClick={handleClick}
       disabled={disabled}
+      data-testid={testId}
       className={`relative flex flex-col items-center justify-center border-4 text-white font-bold transition-all duration-150 ease-in-out cursor-pointer active:translate-y-1 disabled:cursor-not-allowed disabled:opacity-50 disabled:active:translate-y-0 ${variantStyles[variant]} ${sizeStyles} ${className}`}
     >
       {badge && <UnseenBadge className="absolute -top-2 -right-2 z-10" />}

@@ -46,7 +46,7 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
   const showComparison = isEquippable && !isEquipped;
 
   return (
-    <Modal isOpen={item !== null} onClose={onClose} size="md" title={item.name}>
+    <Modal isOpen={item !== null} onClose={onClose} size="md" title={item.name} testId="item-detail">
       <div className="flex items-start gap-3 mb-4">
         <span className="text-4xl">{getItemIcon(item)}</span>
         <div>
@@ -79,22 +79,22 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
       {/* Actions */}
       <div className="flex gap-2 flex-wrap">
         {isEquippable && item.equipmentSlot && !isEquipped && (
-          <Button onClick={() => onEquip(item)} variant="primary">
+          <Button onClick={() => onEquip(item)} variant="primary" testId="item-equip">
             {equippedInSlot ? 'Equip (Swap)' : 'Equip'}
           </Button>
         )}
         {isEquippable && item.equipmentSlot && isEquipped && (
-          <Button onClick={() => onUnequip(item)} variant="secondary">
+          <Button onClick={() => onUnequip(item)} variant="secondary" testId="item-unequip">
             Unequip
           </Button>
         )}
         {item.type === 'consumable' && (
-          <Button onClick={() => onUseConsumable(item)} variant="success">
+          <Button onClick={() => onUseConsumable(item)} variant="success" testId="item-use">
             Use
           </Button>
         )}
         {canTrash && (
-          <Button onClick={() => onTrash(item)} variant="danger">
+          <Button onClick={() => onTrash(item)} variant="danger" testId="item-trash">
             Trash
           </Button>
         )}

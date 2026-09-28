@@ -379,6 +379,9 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
             <div />
           )}
           <Button
+            // The screen offers the same action top and bottom, so the ids name the
+            // position rather than the action — a bare `start-match` would be ambiguous.
+            testId="start-match-header"
             variant="primary"
             size="lg"
             onClick={onStartMatch}
@@ -485,6 +488,7 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
 
         <div className="mb-6">
           <Button
+            testId="start-match-footer"
             variant="primary"
             size="lg"
             fullWidth
