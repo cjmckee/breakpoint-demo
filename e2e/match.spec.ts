@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loadSave, setMatchSpeed, playMatch } from './helpers';
+import { loadSave, setMatchSpeed, playMatch, readGame, readMatch } from './helpers';
 
 /**
  * Drives a practice match from the menu to the results screen.
@@ -23,6 +23,8 @@ test('a practice match plays through its key moments to a result', async ({ page
   await loadSave(page, SAVE, 1234);
   await setMatchSpeed(page, 'instant');
 
+  const energyBefore = (await readGame(page)).currentStatus.energy;
+
   await page.getByTestId('action-match').click();
   await page.getByTestId('preview-match').click();
   await page.getByTestId('start-match-footer').click();
@@ -33,6 +35,16 @@ test('a practice match plays through its key moments to a result', async ({ page
   // "results are visible" check while proving nothing about key moments.
   expect(run.keyMoments).toBeGreaterThan(0);
   await expect(page.getByTestId('match-results')).toBeVisible();
+
+  // The store is the only place some of this is legible at all — the modal
+  // shows a scoreline, not how many decisions were recorded against it.
+  const match = await readMatch(page);
+  expect(match.keyMomentHistory).toHaveLength(run.keyMoments);
+  expect(match.currentScore).not.toBeNull();
+
+  // Playing a match costs energy, which the results screen never states.
+  const game = await readGame(page);
+  expect(game.currentStatus.energy).toBeLessThan(energyBefore);
 });
 
 test('the same seed replays the same match', async ({ page }) => {

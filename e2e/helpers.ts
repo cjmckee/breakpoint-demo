@@ -1,5 +1,15 @@
 import { expect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
+// Type-only: erased at runtime, so importing from src pulls nothing into the
+// spec process. Used to derive the store shapes for readGame/readMatch.
+import type { useGameStore as useGameStoreType } from '../src/stores/gameStore';
+import type { useMatchStore as useMatchStoreType } from '../src/stores/matchStore';
+// Imported for its `declare global` block, which is what types `window.__test__`
+// inside the page.evaluate callbacks below.
+import type { TestHandle } from '../src/debug/testHandle';
+
+/** Re-exported so a spec can name the handle's shape without reaching into src. */
+export type { TestHandle };
 
 /**
  * Shared setup for specs that need a real player past the onboarding gate.
@@ -87,6 +97,65 @@ export async function loadSave(page: Page, name: string, seed?: number): Promise
 
   await page.goto(seed === undefined ? '/' : `/?seed=${seed}`);
   await expect(page.getByTestId('action-training')).toBeVisible();
+}
+
+// ---------------------------------------------------------------------------
+// State handle
+// ---------------------------------------------------------------------------
+
+/**
+ * Snapshots of the two stores, as plain data.
+ *
+ * `JSON.parse(JSON.stringify(...))` inside the page drops the actions and
+ * leaves the state, which is both what crosses Playwright's boundary cleanly
+ * and what a spec wants to assert on. The types are derived from the stores
+ * themselves, so they cannot drift; the imports are type-only and erase at
+ * runtime, so nothing from src is actually loaded here.
+ */
+type GameState = ReturnType<typeof useGameStoreType.getState>;
+type MatchState = ReturnType<typeof useMatchStoreType.getState>;
+
+/**
+ * Reads the persisted game store — player, calendar, inventory, progression.
+ *
+ * Use this to arrange a scenario and to assert an outcome, never to make the
+ * move itself. A spec that acts through the store and then checks the store
+ * passes with the UI completely broken, which defeats the point of driving a
+ * browser at all.
+ *
+ * @example
+ *   const before = await readGame(page);
+ *   await page.getByTestId('action-training').click();
+ *   const after = await readGame(page);
+ *   expect(after.currentStatus.energy).toBe(before.currentStatus.energy - 20);
+ */
+export async function readGame(page: Page): Promise<GameState> {
+  return page.evaluate(() => {
+    const handle = window.__test__;
+    if (!handle) throw new Error('window.__test__ missing — is this a dev build?');
+    return JSON.parse(JSON.stringify(handle.game.getState()));
+  });
+}
+
+/** Same, for transient match state — score, key moment history, accumulated effects. */
+export async function readMatch(page: Page): Promise<MatchState> {
+  return page.evaluate(() => {
+    const handle = window.__test__;
+    if (!handle) throw new Error('window.__test__ missing — is this a dev build?');
+    return JSON.parse(JSON.stringify(handle.match.getState()));
+  });
+}
+
+/**
+ * Re-seeds the RNG mid-session, so the *next* thing that happens is
+ * reproducible regardless of what the run did to get here.
+ */
+export async function reseed(page: Page, seed: number): Promise<void> {
+  await page.evaluate((s) => {
+    const handle = window.__test__;
+    if (!handle) throw new Error('__test__ missing — is this a dev build?');
+    handle.seed.set(s);
+  }, seed);
 }
 
 // ---------------------------------------------------------------------------
