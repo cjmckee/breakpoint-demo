@@ -97,6 +97,9 @@ Keep it tight:
   `.isVisible().catch(() => false)` for a presence check.
 - A bare timeout with no diagnostic almost always means one of the above. Look at
   `test-results/*/error-context.md` and the screenshot before changing timings.
+- A `Failed to load resource` console error from a host that isn't
+  `localhost` is a third-party load, not a game bug. Add the host to
+  `THIRD_PARTY` in `e2e/helpers.ts` rather than filtering the error in a spec.
 - If the bot throws on an **unhandled phase**, add the case to `bot.ts`; don't
   work around it in the spec. If it reports a **softlock**, that is probably a
   real game bug — investigate it, don't raise `maxActions`.
