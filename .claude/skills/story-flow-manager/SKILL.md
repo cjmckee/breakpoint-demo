@@ -1,3 +1,8 @@
+---
+name: story-flow-manager
+description: Wire story events, matches, tournaments and ceremonies together — insert, append, reorder or branch events in a chain, start a new storyline, hook events to tournament outcomes, and keep `completedEvents` / `excludedEvents` / `completedEventChoices` prerequisites consistent downstream. Also use to explain why an event isn't triggering or what becomes available after a given event.
+---
+
 # Story Flow Manager Skill
 
 Manage the dependency graph between story events, matches, tournaments, and ceremonies. Understands event prerequisites, chains, and branching so you don't have to manually wire up `completedEvents`, `excludedEvents`, `completedEventChoices`, etc.
