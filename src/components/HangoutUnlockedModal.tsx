@@ -27,7 +27,7 @@ export const HangoutUnlockedModal: React.FC<HangoutUnlockedModalProps> = ({
     ?? characterId.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Hangout Unlocked" size="sm">
+    <Modal isOpen={isOpen} onClose={onClose} title="Hangout Unlocked" size="sm" testId="hangout-unlocked">
       <div className="text-center space-y-6 py-2">
         <div className="text-5xl">🎾</div>
         <p className="text-lg font-semibold text-pixel-text">
@@ -39,7 +39,7 @@ export const HangoutUnlockedModal: React.FC<HangoutUnlockedModalProps> = ({
         </p>
       </div>
       <div className="flex justify-center mt-6">
-        <Button onClick={onClose} variant="primary">
+        <Button onClick={onClose} variant="primary" testId="hangout-unlocked-dismiss">
           {hasMore ? 'Next' : 'Got it'}
         </Button>
       </div>

@@ -32,6 +32,7 @@ import { HANGOUT_CHARACTERS, hasUnseenTierEvent } from '../data/hangoutCharacter
 import { useTutorialSpotlight } from '../hooks/useTutorialSpotlight';
 import { TutorialCallout } from './tutorial/TutorialCallout';
 import { MAIN_MENU_TUTORIAL_STEPS, MainMenuTarget } from '../data/tutorialSteps';
+import { ANCHOR_TRAINING_ENERGY_COST } from '../game/AnchorTrainingSystem';
 
 interface MainMenuProps {
   overlay: OverlayState | null;
@@ -262,6 +263,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const isBlocked = isEventPending || isMatchScheduled;
   const blockedReason = isEventPending ? 'Event pending' : 'Match scheduled';
   const canAffordMatch = currentStatus.energy >= MATCH_ENERGY_COST;
+  const canAffordTraining = currentStatus.energy >= ANCHOR_TRAINING_ENERGY_COST;
   const isEnergyFull = currentStatus.energy >= 100;
   const energyGainBonus = EffectAggregator.getEffect(
     EffectAggregator.getActiveEffects(player).effects,
@@ -270,7 +272,13 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const restEnergyGain = defaultRestEnergy + energyGainBonus;
   const sleepEnergyGain = defaultRestEnergy + defaultSleepBonus + energyGainBonus;
 
-  const trainingCaption = isBlocked ? blockedReason : isNightTime ? 'Asleep' : undefined;
+  const trainingCaption = isBlocked
+    ? blockedReason
+    : isNightTime
+      ? 'Asleep'
+      : !canAffordTraining
+        ? `Needs ${ANCHOR_TRAINING_ENERGY_COST} energy`
+        : `${ANCHOR_TRAINING_ENERGY_COST} energy`;
   const matchCaption = !matchUnlocked
     ? 'Unlocks Day 5'
     : isBlocked
@@ -431,7 +439,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
             icon="🏋️"
             label="Training"
             caption={trainingCaption}
-            disabled={isBlocked || isNightTime}
+            disabled={isBlocked || isNightTime || !canAffordTraining}
             badge={hasUnseenTraining}
             onClick={() => navigateTo('training')}
           />

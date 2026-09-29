@@ -7,6 +7,11 @@ import type { useMatchStore as useMatchStoreType } from '../src/stores/matchStor
 // Imported for its `declare global` block, which is what types `window.__test__`
 // inside the page.evaluate callbacks below.
 import type { TestHandle } from '../src/debug/testHandle';
+// A value import, unlike the two above: the repository is a plain module-level
+// array with no app dependencies, so a spec can enumerate the real event list
+// instead of keeping its own copy in sync.
+import { StoryEventRepository } from '../src/data/storyEvents/index';
+import { ALL_ITEMS } from '../src/data/items';
 
 /** Re-exported so a spec can name the handle's shape without reaching into src. */
 export type { TestHandle };
@@ -147,6 +152,49 @@ export async function readMatch(page: Page): Promise<MatchState> {
 }
 
 /**
+ * Forces a story event to run now, ignoring its prerequisites.
+ *
+ * This is the same action the Debug Panel's event list calls, reached through
+ * the handle rather than by driving that panel's UI — arranging a scenario, not
+ * playing it. Most of the 130-odd events gate on a day and a relationship level
+ * no test wants to play its way to, so this is the only practical way to see
+ * them all. The options a qualifying player would see are still filtered by
+ * their own prerequisites, so what appears is what a real player would get.
+ */
+export async function triggerStoryEvent(page: Page, eventId: string): Promise<void> {
+  await page.evaluate((id) => {
+    const handle = window.__test__;
+    if (!handle) throw new Error('window.__test__ missing — is this a dev build?');
+    handle.game.getState().debugTriggerStoryEvent(id);
+  }, eventId);
+}
+
+/** Every story event id the game knows about, for a sweep. */
+export function allStoryEventIds(): string[] {
+  return StoryEventRepository.getAllEvents().map((event) => event.id);
+}
+
+/**
+ * Puts a catalogue item in the player's bag.
+ *
+ * Scenario setup, not a thing under test — the bundled saves carry an empty bag,
+ * and buying one through the shop would make every equipment spec depend on
+ * that day's stock and the player's balance. The item is looked up from the real
+ * catalogue here in Node and handed across as plain data, so nothing has to
+ * mirror the item list.
+ */
+export async function grantItem(page: Page, itemId: string): Promise<void> {
+  const item = ALL_ITEMS.find((candidate) => candidate.id === itemId);
+  if (!item) throw new Error(`no such item "${itemId}" in the catalogue`);
+
+  await page.evaluate((plain) => {
+    const handle = window.__test__;
+    if (!handle) throw new Error('window.__test__ missing — is this a dev build?');
+    handle.game.getState().addItem(plain);
+  }, JSON.parse(JSON.stringify(item)) as typeof item);
+}
+
+/**
  * Re-seeds the RNG mid-session, so the *next* thing that happens is
  * reproducible regardless of what the run did to get here.
  */
@@ -188,6 +236,8 @@ export interface MatchRun {
   keyMoments: number;
   /** Tactic ids chosen, in order — the decision trail for a reproducible run. */
   chosen: string[];
+  /** Tutorial spotlight steps advanced. Non-zero only on a tutorial match. */
+  tutorialSteps: number;
 }
 
 /**
@@ -201,14 +251,26 @@ export interface MatchRun {
 export async function playMatch(
   page: Page,
   policy: TacticPolicy = 'first',
-  timeoutMs = 120_000
+  timeoutMs = 45_000
 ): Promise<MatchRun> {
-  const run: MatchRun = { keyMoments: 0, chosen: [] };
+  const run: MatchRun = { keyMoments: 0, chosen: [], tutorialSteps: 0 };
   const deadline = Date.now() + timeoutMs;
 
   while (Date.now() < deadline) {
     // Results screen — the match is over.
     if (await page.getByTestId('match-results').isVisible().catch(() => false)) break;
+
+    // A tutorial match opens on a spotlight that *pauses the simulation*
+    // (matchStore.isTutorialPaused) and, on the key moment screens, disables the
+    // commit button until it is dismissed. So this has to come first: while a
+    // callout is up, nothing else on screen will respond and the match cannot
+    // advance on its own.
+    const tutorial = page.getByTestId('tutorial-next');
+    if (await tutorial.first().isVisible().catch(() => false)) {
+      await tutorial.first().click();
+      run.tutorialSteps++;
+      continue;
+    }
 
     const choice = page.getByTestId('km-choice');
     if (await choice.isVisible().catch(() => false)) {

@@ -18,7 +18,7 @@ import { loadSave, setMatchSpeed, playMatch, readGame, readMatch } from './helpe
 const SAVE = 'save-day7-1';
 
 test('a practice match plays through its key moments to a result', async ({ page }) => {
-  test.setTimeout(120_000);
+  test.setTimeout(60_000);
 
   await loadSave(page, SAVE, 1234);
   await setMatchSpeed(page, 'instant');
@@ -48,7 +48,7 @@ test('a practice match plays through its key moments to a result', async ({ page
 });
 
 test('the same seed replays the same match', async ({ page }) => {
-  test.setTimeout(180_000);
+  test.setTimeout(90_000);
 
   // Same seed, same save, same policy — so the tactics offered, and therefore
   // the ids chosen, have to come out identical. This is the guard on the seeded
