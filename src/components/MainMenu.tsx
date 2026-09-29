@@ -365,6 +365,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                   /* Split chip: a pronounced identity pill that grows a red DEVELOP
                      call-to-action only when there are specialization points to spend. */
                   <button
+                    data-testid="action-archetype"
                     onClick={() => navigateTo('archetype')}
                     title="Open archetype tree"
                     className="inline-flex items-stretch text-sm font-bold shadow-[0_0_12px_rgba(233,69,96,0.35)] hover:shadow-[0_0_18px_rgba(233,69,96,0.6)] transition-shadow"

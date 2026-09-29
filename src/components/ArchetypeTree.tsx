@@ -78,9 +78,12 @@ const PrimaryAction: React.FC<{
   cost: string;
   disabled?: boolean;
   onClick: () => void;
-}> = ({ label, cost, disabled, onClick }) => (
+  /** Stable hook for e2e. See the test id convention in CLAUDE.md. */
+  testId?: string;
+}> = ({ label, cost, disabled, onClick, testId }) => (
   <button
     type="button"
+    data-testid={testId}
     disabled={disabled}
     onClick={() => { audioManager.playSfx('ui_click'); onClick(); }}
     className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold border-2 border-pixel-accent bg-pixel-accent text-white transition-[filter] hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100"
@@ -150,6 +153,7 @@ export const ArchetypeTree: React.FC = () => {
       <button
         key={phase}
         type="button"
+        data-testid={`archetype-phase-${phase}`}
         onClick={() => setActivePhase(phase)}
         className="absolute w-[104px] sm:w-[112px] -translate-x-1/2 -translate-y-1/2 border-2 px-1.5 py-1.5 text-center transition-transform hover:scale-105 focus:outline-none focus:scale-105"
         style={{
@@ -237,6 +241,7 @@ export const ArchetypeTree: React.FC = () => {
                   {/* Specialize: phase has no pick yet */}
                   {!phaseManuallySet && (
                     <PrimaryAction
+                      testId={`archetype-specialize-${path.id}`}
                       label="Specialize"
                       cost="1 pt"
                       disabled={points < 1}
