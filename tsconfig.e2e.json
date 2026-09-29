@@ -1,0 +1,15 @@
+{
+  // The e2e specs were outside every tsconfig, so `tsc` never saw them. Playwright
+  // runs them through esbuild, which strips types without checking them, so a spec
+  // could call a function with the wrong arity or pass an invalid literal and fail
+  // at runtime — or worse, pass while asserting on undefined.
+  //
+  // Specs import types from src (see e2e/helpers.ts), so src is included too, but
+  // nothing here emits.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "include": ["e2e", "src", "playwright.config.ts"]
+}
