@@ -28,6 +28,12 @@ export default defineConfig({
     // render swallows the entire run and reports as a bare timeout with no
     // diagnostic. That cost a lot of wall clock before it was spotted.
     actionTimeout: 10_000,
+    // Sandboxes with a preinstalled Chromium (Claude Code on the web ships one at
+    // /opt/pw-browsers/chromium) often lag the pinned Playwright's expected build,
+    // and cannot download a new one. Point at it rather than failing to launch.
+    ...(process.env.PLAYWRIGHT_CHROMIUM_PATH && {
+      launchOptions: { executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH },
+    }),
   },
   projects: [
     {
