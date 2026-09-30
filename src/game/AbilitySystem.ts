@@ -12,6 +12,7 @@ import {
 
 import { ABILITY_DEFINITIONS } from '../data/abilities';
 
+import { random } from '../core/random';
 export class AbilitySystem {
   /**
    * Get ability definition by name
@@ -75,7 +76,7 @@ export class AbilitySystem {
       return null;
     }
 
-    const randomIndex = Math.floor(Math.random() * abilities.length);
+    const randomIndex = Math.floor(random() * abilities.length);
     return abilities[randomIndex];
   }
 

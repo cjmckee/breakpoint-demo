@@ -12,10 +12,22 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: 'list',
+  // Hard ceilings. A spec that hangs should fail with its diagnostic while
+  // someone is still watching, not grind out ten minutes first — the whole point
+  // of a driven-browser suite is a fast answer. A spec that genuinely needs
+  // longer raises it for itself with test.setTimeout, and should say why.
+  timeout: 60_000,
+  globalTimeout: 600_000,
+  expect: { timeout: 10_000 },
   use: {
     baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    // Without this, a single action inherits the whole test budget: `isEnabled()`
+    // auto-waits for its element, so one probe for a button this screen does not
+    // render swallows the entire run and reports as a bare timeout with no
+    // diagnostic. That cost a lot of wall clock before it was spotted.
+    actionTimeout: 10_000,
   },
   projects: [
     {

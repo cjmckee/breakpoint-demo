@@ -32,6 +32,7 @@ import type { EquipmentSlot, OwnedItem } from '../types/items';
 import { TimeManager } from '../game/TimeManager';
 import { ItemManager } from '../game/ItemManager';
 import { ALL_ITEMS } from '../data/items';
+import { DEFAULT_MATCH_SPEED, type MatchSpeed } from '../config/matchRewards';
 
 export interface AudioSettings {
   musicVolume: number;
@@ -56,13 +57,15 @@ export interface PersistedStoreState {
   unlockedTiers: OpponentTier[];
   shopItems: ShopItem[];
   audioSettings: AudioSettings;
+  matchSpeed: MatchSpeed;
   // eventRecovery omitted — transient, always reset on load
 }
 
 // 6: lucky items moved from passive-in-inventory to the `charm` equipment slot,
 //    which adds a key to Player.equippedItems that older saves don't carry.
 // 7: held items gained a per-copy `instanceId`, so duplicates can be told apart.
-export const CURRENT_STORE_VERSION = 7;
+// 8: match speed became a persisted setting.
+export const CURRENT_STORE_VERSION = 8;
 
 /** Saves below this version are wiped instead of migrated. See the header. */
 export const RESET_BEFORE_VERSION = 5;
@@ -84,6 +87,7 @@ export function createDefaultPersistedState(): PersistedStoreState {
     unlockedTiers: [1],
     shopItems: [],
     audioSettings: { musicVolume: 0.5, sfxVolume: 0.7, muteMusic: false, muteSfx: false },
+    matchSpeed: DEFAULT_MATCH_SPEED,
   };
 }
 
@@ -168,9 +172,15 @@ function migrate6to7(state: PersistedStoreState): PersistedStoreState {
 }
 
 /** Keyed by the version each step produces: MIGRATIONS[n] takes n-1 → n. */
+/** 7 → 8: match speed became a setting; existing saves keep the pace they had. */
+function migrate7to8(state: PersistedStoreState): PersistedStoreState {
+  return { ...state, matchSpeed: DEFAULT_MATCH_SPEED };
+}
+
 const MIGRATIONS: Readonly<Record<number, MigrationFn | typeof NO_CHANGE>> = {
   6: migrate5to6,
   7: migrate6to7,
+  8: migrate7to8,
 };
 
 // ----------------------------------------------------------------------------

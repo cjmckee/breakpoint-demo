@@ -26,6 +26,33 @@ export const KEY_MOMENT_OPTIONS_PER_MENU = 3;
  */
 export const DEFAULT_POINT_DELAY_MS = 1000;
 
+/** How fast an interactive match plays out. A persisted player preference. */
+export type MatchSpeed = 'slow' | 'normal' | 'fast' | 'instant';
+
+/**
+ * Point delay per speed. `instant` resolves the match as fast as the machine
+ * can, which is how the e2e driver plays one without waiting out the animation.
+ */
+export const MATCH_SPEED_DELAYS: Readonly<Record<MatchSpeed, number>> = {
+  slow: 1500,
+  normal: DEFAULT_POINT_DELAY_MS,
+  fast: 500,
+  instant: 0,
+};
+
+/** Label and blurb for each speed, for the settings menu. */
+export const MATCH_SPEED_META: Readonly<
+  Record<MatchSpeed, { label: string; hint: string }>
+> = {
+  slow: { label: 'Slow', hint: 'Time to read every point' },
+  normal: { label: 'Normal', hint: 'The default pace' },
+  fast: { label: 'Fast', hint: 'Half the wait between points' },
+  instant: { label: 'Instant', hint: 'No pause — key moments still stop play' },
+};
+
+/** The speed a new game starts on. */
+export const DEFAULT_MATCH_SPEED: MatchSpeed = 'normal';
+
 // ============================================================================
 // OPPONENT TIER TYPE
 // ============================================================================

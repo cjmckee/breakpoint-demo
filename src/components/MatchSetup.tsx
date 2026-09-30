@@ -204,6 +204,7 @@ export const MatchSetup: React.FC = () => {
           {/* Preview Match Button */}
           <div className="pt-4">
             <Button
+              testId="preview-match"
               variant="primary"
               size="lg"
               fullWidth

@@ -29,6 +29,7 @@ import {
 import { PlayerProfile } from '../core/PlayerProfile';
 import { LUCKY_SPROUT } from '../data/items';
 import { EffectKey } from '../types/game';
+import { DEFAULT_MATCH_SPEED, MATCH_SPEED_DELAYS } from '../config/matchRewards';
 
 let failures = 0;
 
@@ -242,6 +243,14 @@ function main(): void {
   const rerun = runMigrations(migrated, 6).state.player!;
   check('re-running the step keeps existing instance ids',
     rerun.inventory.every((item, i) => item.instanceId === player.inventory[i].instanceId));
+
+  console.log('\n  the 7 → 8 change itself:');
+  // The field did not exist before 8, so a carried-forward save has to come out
+  // holding a real speed — anything reading it expects one, not undefined.
+  check('a save without the field gains the default match speed',
+    migrated.matchSpeed === DEFAULT_MATCH_SPEED, String(migrated.matchSpeed));
+  check('the default speed is one the delay table knows',
+    MATCH_SPEED_DELAYS[migrated.matchSpeed] !== undefined);
 
   console.log('\n── a save below the breaking floor is discarded ──');
   const stale = preConsolidationSave();

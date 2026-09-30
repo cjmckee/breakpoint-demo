@@ -34,6 +34,7 @@ import {
 import { getRandomItem, getItemsByTier } from '../data/items';
 import { AbilitySystem } from './AbilitySystem';
 
+import { random } from '../core/random';
 export class MatchRewardSystem {
   /**
    * Main entry point: Calculate all rewards from a completed match
@@ -366,7 +367,7 @@ export class MatchRewardSystem {
     // Roll for each rarity tier
     for (const [rarity, rate] of Object.entries(dropRates)) {
       const scaledRate = rate * dropMultiplier;
-      const roll = Math.random() * 100;
+      const roll = random() * 100;
       if (scaledRate > 0 && roll < scaledRate) {
         console.log(`Rolled ability drop: ${rarity} (rate ${scaledRate.toFixed(2)}%, roll ${roll.toFixed(2)}%)`);
         const ability = AbilitySystem.getRandomAbilityByRarity(rarity as AbilityRarity);
@@ -387,7 +388,7 @@ export class MatchRewardSystem {
     const winModifier = isWin ? ITEM_DROP_WIN_MULTIPLIER : 0.5;
     const finalRate = baseRate * winModifier * dropMultiplier;
 
-    const roll = Math.random() * 100;
+    const roll = random() * 100;
 
     if (roll < finalRate) {
       const availableItems = getItemsByTier(tier);

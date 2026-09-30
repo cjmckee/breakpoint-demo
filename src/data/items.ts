@@ -6,6 +6,7 @@
 import type { Item, ItemType } from '../types/items';
 import { EffectKey } from '../types/game';
 
+import { random } from '../core/random';
 // ============================================================================
 // EQUIPMENT - RACQUETS
 // ============================================================================
@@ -945,7 +946,7 @@ export const ALL_CONSUMABLES_BUFF = ALL_CONSUMABLES.filter(
  * Get a random item from a specific category
  */
 export function getRandomItem(items: Item[]): Item {
-  return items[Math.floor(Math.random() * items.length)];
+  return items[Math.floor(random() * items.length)];
 }
 
 /**

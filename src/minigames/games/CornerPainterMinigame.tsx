@@ -17,6 +17,7 @@ import { Sparks, ComboBadge, useHitstop, type Burst } from '../shared/minigameJu
 import { MinigameArena, ARENA_H, u, uMin } from '../shared/MinigameArena';
 import { isActionKey } from '../../utils/gameKeys';
 
+import { random } from '../../core/random';
 /**
  * Sweeps and targets are placed as a % of each axis; the landing check converts to
  * arena units so the window is a true circle on every screen.
@@ -32,7 +33,7 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
   const tol = TOLERANCE * (1 + windowBonus);
 
   const targetsRef = useRef<Array<{ x: number; y: number }>>(
-    Array.from({ length: 3 }, () => ({ x: 14 + Math.random() * 72, y: 14 + Math.random() * 72 }))
+    Array.from({ length: 3 }, () => ({ x: 14 + random() * 72, y: 14 + random() * 72 }))
   );
   const stageRef = useRef<'x' | 'y' | 'done'>('x');
   const lockXRef = useRef(50);
@@ -81,7 +82,7 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
     setShot(null);
     sweepRef.current = 0;
     // Rolled per round, then ramped — later corners sweep faster to lock.
-    const speed = (SWEEP_MIN + Math.random() * (SWEEP_MAX - SWEEP_MIN)) * rounds.speed;
+    const speed = (SWEEP_MIN + random() * (SWEEP_MAX - SWEEP_MIN)) * rounds.speed;
     // Phase is accumulated rather than read off the clock, so the depth sweep can run
     // at its own rate without jumping, and a freeze simply stops it advancing.
     let phase = 0;

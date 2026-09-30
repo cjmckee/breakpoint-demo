@@ -64,6 +64,9 @@ export const TutorialCallout: React.FC<TutorialCalloutProps> = ({
           )}
           <button
             onClick={onNext}
+          // The label changes per step and per flow ('Next', 'Got It', "Let's Train"),
+          // so the id is the only stable way to advance a tutorial.
+          data-testid="tutorial-next"
             className="flex-1 bg-yellow-400 hover:bg-yellow-300 text-black font-bold py-2 px-4 text-sm tracking-wide transition-colors"
           >
             {buttonLabel}
@@ -72,6 +75,9 @@ export const TutorialCallout: React.FC<TutorialCalloutProps> = ({
       ) : (
         <button
           onClick={onNext}
+          // The label changes per step and per flow ('Next', 'Got It', "Let's Train"),
+          // so the id is the only stable way to advance a tutorial.
+          data-testid="tutorial-next"
           className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-bold py-2 px-4 text-sm tracking-wide transition-colors"
         >
           {buttonLabel}

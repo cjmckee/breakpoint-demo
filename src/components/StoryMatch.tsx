@@ -15,6 +15,7 @@ import type { PreMatchConfig } from '../types/gamePhase';
 import type { PlayerStats, PlayStyle } from '../types';
 import { calculateOverallRating } from '../utils/playerStats';
 
+import { MATCH_SPEED_DELAYS } from '../config/matchRewards';
 interface StoryMatchProps {
   matchConfig: PreMatchConfig | null;
 }
@@ -23,6 +24,7 @@ export const StoryMatch: React.FC<StoryMatchProps> = ({ matchConfig }) => {
   const player = useGameStore((state) => state.player);
   const currentStatus = useGameStore((state) => state.currentStatus);
   const beginMatch = useGameStore((state) => state.beginMatch);
+  const matchSpeed = useGameStore((state) => state.matchSpeed);
 
   if (!player || !matchConfig) {
     return null;
@@ -54,6 +56,7 @@ export const StoryMatch: React.FC<StoryMatchProps> = ({ matchConfig }) => {
       energy: currentStatus.energy,
       enableKeyMoments: true,
       matchFormat: (matchConfig.matchFormat || 'best-of-1') as 'best-of-1' | 'best-of-3',
+      pointDelayMs: MATCH_SPEED_DELAYS[matchSpeed],
       isStoryMatch: true,
       isTutorial: matchConfig.storyMatchMetadata?.isTutorial ?? false,
       disableMatchForm: matchConfig.storyMatchMetadata?.disableMatchForm ?? false,

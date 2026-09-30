@@ -988,6 +988,42 @@ Use Zustand persistence:
 - Match state is transient (not persisted)
 - Clear persistence keys on version changes
 
+### Test IDs
+
+E2E specs address the UI through `data-testid`, not through visible text. Text
+changes whenever the copy does, several buttons carry only an emoji, and some
+labels are authored data (a story option's `text`) rather than anything a spec
+can predict. A test id is a contract: renaming one should be a deliberate act.
+
+The shared primitives take an optional `testId` prop — `Button`, `ActionTile`
+and `Modal` — so most surfaces get one without touching their markup. Reach for
+a raw `data-testid` attribute only on bespoke elements.
+
+**Naming**: `surface-element`, kebab-case, with the id naming the *role* rather
+than the current label. `action-rest` stays correct when the tile reads "Sleep"
+at night; `action-sleep` would not.
+
+```tsx
+<Button testId="story-confirm">Confirm Choice</Button>
+<ActionTile testId="action-training" label="Training" />
+```
+
+**Collections** suffix the member's stable identity, and carry the data a driver
+needs to choose without reading layout:
+
+```tsx
+<button data-testid={`km-tactic-${index}`} data-tactic-id={option.id} data-posture={option.posture}>
+<div data-testid={`equipment-slot-${slot}`} data-equipped={equippedItem?.id ?? ''}>
+```
+
+Prefer a fixed domain key over an index where one exists — `equipment-slot-racquet`
+survives a reordering that `equipment-slot-0` would not. Index is fine where the
+set genuinely is positional, as with the tactic menu.
+
+**Two of the same action need two ids.** `PreMatchScreen` offers Start Match at
+the top and bottom of the page, so they are `start-match-header` and
+`start-match-footer` — a bare `start-match` would be a strict-mode violation.
+
 ### Backwards Compatibility
 
 Backwards compatibility is NOT required. Do not create fallbacks for types as we make changes in the code.

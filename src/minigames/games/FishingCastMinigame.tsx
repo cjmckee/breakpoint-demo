@@ -22,6 +22,7 @@ import { MinigameArena, ARENA_W, ARENA_H, u, uMin, pctY } from '../shared/Miniga
 import { directionFromKey, type Direction } from '../../utils/gameKeys';
 import type { MinigameProps } from '../types';
 
+import { random } from '../../core/random';
 /** Five casts, ramping. Longer than a training drill, so the ramp is gentler. */
 const CASTS = 5;
 const SPEED_RAMP = [1, 1.06, 1.13, 1.21, 1.3];
@@ -55,11 +56,11 @@ interface Fish extends Vec {
 
 /** A fresh heading at the given speed, held for a random 0.5–1.5s from `elapsed`. */
 function newLeg(speed: number, elapsed: number): Pick<Fish, 'vx' | 'vy' | 'turnAt'> {
-  const angle = Math.random() * Math.PI * 2;
+  const angle = random() * Math.PI * 2;
   return {
     vx: Math.cos(angle) * speed,
     vy: Math.sin(angle) * speed,
-    turnAt: elapsed + LEG_MIN_MS + Math.random() * (LEG_MAX_MS - LEG_MIN_MS),
+    turnAt: elapsed + LEG_MIN_MS + random() * (LEG_MAX_MS - LEG_MIN_MS),
   };
 }
 
@@ -153,8 +154,8 @@ export const FishingCastMinigame: React.FC<MinigameProps> = ({
     let spawn: Vec = { x: FISH_MARGIN, y: FISH_MARGIN };
     for (let i = 0; i < 12; i++) {
       spawn = {
-        x: FISH_MARGIN + Math.random() * (w - FISH_MARGIN * 2),
-        y: FISH_MARGIN + Math.random() * (h - FISH_MARGIN * 2),
+        x: FISH_MARGIN + random() * (w - FISH_MARGIN * 2),
+        y: FISH_MARGIN + random() * (h - FISH_MARGIN * 2),
       };
       if (Math.hypot(spawn.x - w / 2, spawn.y - h / 2) > Math.min(w, h) * 0.45) break;
     }

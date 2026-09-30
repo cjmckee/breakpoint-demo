@@ -14,6 +14,7 @@ import { AbilitySystem } from './AbilitySystem';
 import { createEmptyArchetypeProfile } from '../data/archetypeTree';
 import { addToEachStat } from '../core/statAccess';
 
+import { random } from '../core/random';
 export class PlayerManager {
   /**
    * Create a new player with default stats and optional playstyle
@@ -342,6 +343,6 @@ export class PlayerManager {
    * Generate a unique player ID
    */
   private static generateId(): string {
-    return `player-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+    return `player-${Date.now()}-${random().toString(36).substring(2, 11)}`;
   }
 }

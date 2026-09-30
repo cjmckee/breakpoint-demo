@@ -42,7 +42,7 @@ import { StoryMatchManager } from '../game/StoryMatchManager';
 import { generateDailyShopItems } from '../game/ShopSystem';
 import { ALL_ITEMS } from '../data/items';
 import { getRandomOpponent, getScaledOpponentStats, getOpponentArchetypeProfile } from '../data/opponents';
-import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
+import { DEFAULT_MATCH_ENERGY_COST, DEFAULT_MATCH_SPEED, type MatchSpeed } from '../config/matchRewards';
 import { EffectAggregator } from '../core/EffectAggregator';
 import { EffectKey } from '../types/game';
 import { buildPlayStyle } from '../core/PlayerProfile';
@@ -61,6 +61,7 @@ import {
   trackStoryEventChoice,
 } from '../analytics/analytics';
 
+import { random } from '../core/random';
 export interface AudioSettings {
   musicVolume: number; // 0–1
   sfxVolume: number;   // 0–1
@@ -100,6 +101,9 @@ interface GameState {
   // Audio settings (persisted)
   audioSettings: AudioSettings;
 
+  /** How fast interactive matches play out. */
+  matchSpeed: MatchSpeed;
+
   // Shop state
   shopItems: ShopItem[];
 
@@ -114,6 +118,7 @@ interface GameState {
 
   // Audio settings action
   updateAudioSettings: (settings: Partial<AudioSettings>) => void;
+  setMatchSpeed: (speed: MatchSpeed) => void;
 
   // Actions
   initializeGame: () => void;
@@ -254,6 +259,8 @@ export const useGameStore = create<GameState>()(
         muteMusic: false,
         muteSfx: false,
       },
+
+      matchSpeed: DEFAULT_MATCH_SPEED,
 
       shopItems: [],
 
@@ -442,6 +449,10 @@ export const useGameStore = create<GameState>()(
         set((state) => ({
           audioSettings: { ...state.audioSettings, ...settings },
         }));
+      },
+
+      setMatchSpeed: (speed: MatchSpeed) => {
+        set({ matchSpeed: speed });
       },
 
       // Create new player
@@ -823,6 +834,7 @@ export const useGameStore = create<GameState>()(
             unlockedTiers: data.unlockedTiers || [1],
             shopItems: data.shopItems || [],
             audioSettings: data.audioSettings || { musicVolume: 0.7, sfxVolume: 0.7, muteMusic: false, muteSfx: false },
+            matchSpeed: data.matchSpeed || DEFAULT_MATCH_SPEED,
           };
 
           const outcome = runMigrations(incoming, storeVersion);
@@ -2094,7 +2106,7 @@ export const useGameStore = create<GameState>()(
         const { effects } = EffectAggregator.getActiveEffects(player);
         const triggerBonus = EffectAggregator.getEffect(effects, EffectKey.EVENT_TRIGGER_BONUS);
         const chance = (customChance ?? storyEventTriggerChance) + triggerBonus;
-        const roll = Math.random() * 100;
+        const roll = random() * 100;
         const triggered = roll < chance;
 
         console.log(`[Story Event] Tag: ${tag} | Roll: ${roll.toFixed(2)} vs ${chance}% - ${triggered ? 'TRIGGERED' : 'Not triggered'}`);
@@ -2177,7 +2189,7 @@ export const useGameStore = create<GameState>()(
         const { effects } = EffectAggregator.getActiveEffects(player);
         const triggerBonus = EffectAggregator.getEffect(effects, EffectKey.EVENT_TRIGGER_BONUS);
         const chance = (customChance ?? storyEventTriggerChance) + triggerBonus;
-        const roll = Math.random() * 100;
+        const roll = random() * 100;
         const triggered = roll < chance;
 
         console.log(`[Story Event] Random | Roll: ${roll.toFixed(2)} vs ${chance}% - ${triggered ? 'TRIGGERED' : 'Not triggered'}`);
@@ -3294,6 +3306,9 @@ export const useGameStore = create<GameState>()(
 
         // Audio settings
         audioSettings: state.audioSettings,
+
+        // Match pacing
+        matchSpeed: state.matchSpeed,
 
         // Event recovery state (for browser refresh recovery)
         eventRecovery: state.eventRecovery,

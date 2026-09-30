@@ -453,7 +453,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     };
 
     return (
-      <Modal isOpen={isOpen} title="" size="xl" showCloseButton={false} belowContent={peekButton}>
+      <Modal isOpen={isOpen} title="" size="xl" showCloseButton={false} belowContent={peekButton} testId="km-result">
         <div className="space-y-5">
           {kmResultActiveStep && (
             <TutorialCallout
@@ -560,6 +560,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
 
           {/* Continue — blocked while result tutorial is active */}
           <button
+            data-testid="km-result-continue"
             onClick={kmResultTutorialActive ? undefined : hideKeyMomentResult}
             disabled={kmResultTutorialActive}
             className="w-full py-4 border-4 border-pixel-accent bg-pixel-accent bg-opacity-20 text-pixel-accent font-bold hover:bg-opacity-30 transition-colors text-base disabled:opacity-40 disabled:cursor-default disabled:hover:bg-opacity-20"
@@ -718,6 +719,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
           read as an error state inside a green or blue panel. Size and position
           still carry "this is the primary action". */}
       <button
+        data-testid="km-commit"
         onClick={() => (kmTutorialActive ? undefined : handleKeyMomentChoice(option))}
         disabled={kmTutorialActive}
         style={{
@@ -738,7 +740,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   );
 
   return (
-    <Modal isOpen={isOpen} title="" size="xl" showCloseButton={false} belowContent={peekButton}>
+    <Modal isOpen={isOpen} title="" size="xl" showCloseButton={false} belowContent={peekButton} testId="km-choice">
       <div className="space-y-5">
         {kmActiveStep && (
           <TutorialCallout
@@ -774,6 +776,11 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                 return (
                   <button
                     key={index}
+                    // Index picks the Nth card; the tactic id and posture let a driver
+                    // choose a strategy ("always aggressive") without knowing the layout.
+                    data-testid={`km-tactic-${index}`}
+                    data-tactic-id={option.id}
+                    data-posture={option.posture}
                     onMouseEnter={() => setFocusIdx(index)}
                     onFocus={() => setFocusIdx(index)}
                     onClick={() => setFocusIdx(index)}

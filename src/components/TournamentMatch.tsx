@@ -15,6 +15,7 @@ import { ItemManager } from '../game/ItemManager';
 import type { PreMatchConfig } from '../types/gamePhase';
 import { calculateOverallRating } from '../utils/playerStats';
 
+import { MATCH_SPEED_DELAYS } from '../config/matchRewards';
 interface TournamentMatchProps {
   matchConfig: PreMatchConfig | null;
 }
@@ -24,6 +25,7 @@ export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig })
   const currentStatus = useGameStore((state) => state.currentStatus);
   const activeTournament = useGameStore((state) => state.calendar.activeTournament);
   const beginMatch = useGameStore((state) => state.beginMatch);
+  const matchSpeed = useGameStore((state) => state.matchSpeed);
 
   if (!player || !activeTournament || !matchConfig) {
     return null;
@@ -67,6 +69,7 @@ export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig })
       energy: currentStatus.energy,
       enableKeyMoments: true,
       matchFormat: matchConfig.matchFormat === 'best-of-3' ? 'best-of-3' as const : 'best-of-1' as const,
+      pointDelayMs: MATCH_SPEED_DELAYS[matchSpeed],
       isTournamentMatch: true,
     };
 

@@ -31,6 +31,7 @@ import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds'
 import { DEFAULT_KEY_MOMENTS_PER_MATCH, DEFAULT_POINT_DELAY_MS, KEY_MOMENT_OPTIONS_PER_MENU } from '../config/matchRewards';
 import { trace } from '../core/trace';
 
+import { random } from '../core/random';
 /**
  * The coarse shot labels authored on tactical options, mapped onto the ShotType the
  * simulation records. This has to stay total over the `shotType` values in
@@ -176,7 +177,7 @@ export class MatchOrchestrator {
   private shuffleArray<T>(array: T[]): T[] {
     const result = [...array];
     for (let i = result.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(random() * (i + 1));
       [result[i], result[j]] = [result[j], result[i]];
     }
     return result;
@@ -532,7 +533,7 @@ export class MatchOrchestrator {
     this.lastOfferedPostures = options.map((o) => o.posture);
 
     return {
-      id: `km-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `km-${Date.now()}-${random().toString(36).substr(2, 9)}`,
       type: momentType,
       situation: this.getSituationDescription(momentType, score),
       description: this.getKeyMomentDescription(momentType),
@@ -626,7 +627,7 @@ export class MatchOrchestrator {
         shots.push(createShot('return_forehand', 'returner', true, PointType.IN_PLAY, 65));
 
         // 1-3 rally shots before winner
-        const rallyShots = 1 + Math.floor(Math.random() * 3); // 1-3 rally shots
+        const rallyShots = 1 + Math.floor(random() * 3); // 1-3 rally shots
         for (let i = 0; i < rallyShots - 1; i++) {
           const isServerShot = i % 2 === 0;
           shots.push(createShot(
@@ -659,7 +660,7 @@ export class MatchOrchestrator {
         shots.push(createShot('return_forehand', 'returner', true, PointType.IN_PLAY, 65));
 
         // 1-3 rally shots before error
-        const rallyErrorShots = 1 + Math.floor(Math.random() * 3);
+        const rallyErrorShots = 1 + Math.floor(random() * 3);
         for (let i = 0; i < rallyErrorShots - 1; i++) {
           const isServerShot = i % 2 === 0;
           shots.push(createShot(
@@ -1379,7 +1380,7 @@ export class MatchOrchestrator {
       sets: [],
       currentSet: { player: 0, opponent: 0 },
       currentGame: { player: 0, opponent: 0 },
-      server: Math.random() < 0.5 ? 'player' : 'opponent',
+      server: random() < 0.5 ? 'player' : 'opponent',
       isComplete: false,
       momentum: 0,
       energy: this.matchEnergy,

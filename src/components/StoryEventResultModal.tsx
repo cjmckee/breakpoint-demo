@@ -26,7 +26,7 @@ export const StoryEventResultModal: React.FC<StoryEventResultModalProps> = ({
   const playerName = usePlayerName();
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={result.eventName} size="lg">
+    <Modal isOpen={isOpen} onClose={onClose} title={result.eventName} size="lg" testId="story-result">
       {/* Tags */}
       <div className="flex gap-2 mb-4 flex-wrap">
         {result.tags.map((tag) => (
@@ -159,7 +159,7 @@ export const StoryEventResultModal: React.FC<StoryEventResultModalProps> = ({
 
       {/* Continue button */}
       <div className="flex justify-center">
-        <Button onClick={onClose} variant="primary">
+        <Button onClick={onClose} variant="primary" testId="story-result-dismiss">
           Continue
         </Button>
       </div>

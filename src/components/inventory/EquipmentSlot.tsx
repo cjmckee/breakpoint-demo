@@ -77,6 +77,10 @@ export const EquipmentSlot: React.FC<EquipmentSlotProps> = ({
 
   return (
     <div
+      // The slot ids are fixed by SlotType, so a driver can address "the racquet slot"
+      // and read what is in it without knowing the loadout.
+      data-testid={`equipment-slot-${slot}`}
+      data-equipped={equippedItem?.id ?? ''}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -92,6 +96,7 @@ export const EquipmentSlot: React.FC<EquipmentSlotProps> = ({
       {equippedItem ? (
         <button
           type="button"
+          data-testid={`equipment-slot-${slot}-item`}
           draggable
           onDragStart={(e) => {
             e.dataTransfer.effectAllowed = 'move';

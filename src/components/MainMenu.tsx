@@ -32,6 +32,7 @@ import { HANGOUT_CHARACTERS, hasUnseenTierEvent } from '../data/hangoutCharacter
 import { useTutorialSpotlight } from '../hooks/useTutorialSpotlight';
 import { TutorialCallout } from './tutorial/TutorialCallout';
 import { MAIN_MENU_TUTORIAL_STEPS, MainMenuTarget } from '../data/tutorialSteps';
+import { ANCHOR_TRAINING_ENERGY_COST } from '../game/AnchorTrainingSystem';
 
 interface MainMenuProps {
   overlay: OverlayState | null;
@@ -262,6 +263,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const isBlocked = isEventPending || isMatchScheduled;
   const blockedReason = isEventPending ? 'Event pending' : 'Match scheduled';
   const canAffordMatch = currentStatus.energy >= MATCH_ENERGY_COST;
+  const canAffordTraining = currentStatus.energy >= ANCHOR_TRAINING_ENERGY_COST;
   const isEnergyFull = currentStatus.energy >= 100;
   const energyGainBonus = EffectAggregator.getEffect(
     EffectAggregator.getActiveEffects(player).effects,
@@ -270,7 +272,13 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const restEnergyGain = defaultRestEnergy + energyGainBonus;
   const sleepEnergyGain = defaultRestEnergy + defaultSleepBonus + energyGainBonus;
 
-  const trainingCaption = isBlocked ? blockedReason : isNightTime ? 'Asleep' : undefined;
+  const trainingCaption = isBlocked
+    ? blockedReason
+    : isNightTime
+      ? 'Asleep'
+      : !canAffordTraining
+        ? `Needs ${ANCHOR_TRAINING_ENERGY_COST} energy`
+        : `${ANCHOR_TRAINING_ENERGY_COST} energy`;
   const matchCaption = !matchUnlocked
     ? 'Unlocks Day 5'
     : isBlocked
@@ -357,6 +365,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                   /* Split chip: a pronounced identity pill that grows a red DEVELOP
                      call-to-action only when there are specialization points to spend. */
                   <button
+                    data-testid="action-archetype"
                     onClick={() => navigateTo('archetype')}
                     title="Open archetype tree"
                     className="inline-flex items-stretch text-sm font-bold shadow-[0_0_12px_rgba(233,69,96,0.35)] hover:shadow-[0_0_18px_rgba(233,69,96,0.6)] transition-shadow"
@@ -427,14 +436,16 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
           className={`grid grid-cols-3 gap-3 sm:gap-4 mb-3 sm:mb-4 ${spotlightClass('actions')}`}
         >
           <ActionTile
+            testId="action-training"
             icon="🏋️"
             label="Training"
             caption={trainingCaption}
-            disabled={isBlocked || isNightTime}
+            disabled={isBlocked || isNightTime || !canAffordTraining}
             badge={hasUnseenTraining}
             onClick={() => navigateTo('training')}
           />
           <ActionTile
+            testId="action-match"
             icon="🎾"
             label="Play Match"
             caption={matchCaption}
@@ -443,6 +454,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
             onClick={() => navigateTo('match_setup')}
           />
           <ActionTile
+            // One tile, two actions — the id follows the slot, not the label, so a
+            // driver can burn the slot without first checking the clock.
+            testId="action-rest"
             icon={isNightTime ? '🌙' : '😴'}
             label={isNightTime ? 'Sleep' : 'Rest'}
             caption={
@@ -462,6 +476,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
           {/* "Relationships" is too wide for a third-width tile in the pixel font,
               so it takes the full first row on phones */}
           <ActionTile
+            testId="action-relationships"
             size="sm"
             variant="secondary"
             icon="🤝"
@@ -472,6 +487,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
             className="col-span-2 sm:col-span-1"
           />
           <ActionTile
+            testId="action-inventory"
             size="sm"
             variant="secondary"
             icon="🎒"
@@ -480,6 +496,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
             onClick={() => { clearIndicator('inventory'); navigateTo('inventory'); }}
           />
           <ActionTile
+            testId="action-shop"
             size="sm"
             variant="secondary"
             icon="🛒"
@@ -495,6 +512,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
         <button
           ref={(el) => { sectionRefs.current.challenges = el; }}
           data-spotlit={isSpotlit('challenges') || undefined}
+          data-testid="action-challenges"
           onClick={() => navigateTo('challenges')}
           className={`w-full mb-6 flex items-center gap-3 bg-pixel-card border-4 border-pixel-border hover:border-pixel-accent px-4 py-3 transition-colors text-left ${spotlightClass('challenges')}`}
         >

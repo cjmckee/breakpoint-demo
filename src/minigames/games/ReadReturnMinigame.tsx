@@ -24,6 +24,7 @@ import { Sparks, ComboBadge, useHitstop, type Burst } from '../shared/minigameJu
 import { MinigameArena, ARENA_H, u, uMin, pctY } from '../shared/MinigameArena';
 import { directionFromKey, isActionKey } from '../../utils/gameKeys';
 
+import { random } from '../../core/random';
 // Everything is in arena units (see MinigameArena).
 const LINE_X = 16; // the return line the strike zone rides
 const ENTRY_X = 104; // just off the right edge
@@ -73,13 +74,13 @@ interface Serve {
 function planServe(speed: number): Serve {
   // Never bounce so close to the line that there's no time to react to the rise.
   const nearest = Math.min(BOUNCE_MAX - 8, Math.max(BOUNCE_MIN, LINE_X + MIN_REACTION * speed));
-  const crossY = CROSS_MIN + Math.random() * (CROSS_MAX - CROSS_MIN);
+  const crossY = CROSS_MIN + random() * (CROSS_MAX - CROSS_MIN);
   const rise = FLOOR - crossY;
   const bounceForRatio = (ratio: number): number => (ENTRY_X + ratio * LINE_X) / (1 + ratio);
   // A larger ratio means a bounce nearer the line, so the ratio bounds swap ends.
   const lo = Math.max(nearest, bounceForRatio((FLOOR - ENTRY_Y_MIN) / rise));
   const hi = Math.min(BOUNCE_MAX, bounceForRatio((FLOOR - ENTRY_Y_MAX) / rise));
-  const bounceX = lo + Math.random() * Math.max(0, hi - lo);
+  const bounceX = lo + random() * Math.max(0, hi - lo);
   const ratio = (ENTRY_X - bounceX) / (bounceX - LINE_X);
   return {
     entryY: FLOOR - rise * ratio,
@@ -138,7 +139,7 @@ export const ReadReturnMinigame: React.FC<MinigameProps> = ({ onComplete, window
 
   const launchServe = useCallback(() => {
     const token = ++tokenRef.current;
-    const speed = (SPEED_MIN + Math.random() * SPEED_SPAN) * rounds.speed;
+    const speed = (SPEED_MIN + random() * SPEED_SPAN) * rounds.speed;
     const serve = planServe(speed);
 
     ballRef.current = { x: ENTRY_X, y: serve.entryY, vx: -serve.vx, vy: serve.vy };
