@@ -1,3 +1,8 @@
+---
+name: dialogue-converter
+description: Convert plain-text dialogue (narration lines, `speaker: line`, `{name}` placeholders) into the TypeScript `DialogueLine[]` arrays used by story events in src/data/storyEvents/. Use when the user pastes a script or dialogue for a story event and wants it in code.
+---
+
 # Dialogue Converter Skill
 
 Convert plain-text dialogue into the TypeScript `DialogueLine[]` format used in story events.
