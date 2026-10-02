@@ -41,7 +41,8 @@ balance, what it makes possible, and what it would take to build
      can't buy anticipation or tactics without Mind. The fix is a 20% general share on every
      session, a 10% Mind share, Mind-led matches and a 2:1 exchange.
    - **Escalating prices front-load progression.** Matching today's player takes income ×1.2 at
-     day 23 but about ×2.2 at day 40. Income has to grow over the career (§9.3, §9.6).
+     day 15 and ×1.4 at day 31 (about +5% per team match) for a realistic player (§9.7). The
+     rigid planner's ×2.2 at day 40 overstated it.
 8. **Slice is fixed in the sim** ([`slice-at-tier-1.md`](../research/slice-at-tier-1.md)).
    +20 slice is now worth 1.7–2.6× what it was at tier 1. Match texture is unchanged. It does not
    rescue the baseliner identity on its own.
@@ -718,17 +719,51 @@ What this says:
 
 ---
 
+### 9.7 Through day 31: all five team matches
+
+The same setup as §9.6, run to day 31 and measured at every team match. Mean point-win % of the
+four identities against that day's opponent. "Today" is pooled over the three runs.
+
+| day | opponent (rating)     | today | currency ×1.2 | ×1.4 | ×1.6 |
+| --- | --------------------- | ----- | ------------- | ---- | ---- |
+| 15  | Chet Vale (29)        | 48.4  | 49.0          | 50.9 | 52.8 |
+| 19  | Rich Soil (34)        | 48.2  | 48.5          | 49.7 | 52.4 |
+| 23  | Martia Estrella (36)  | 46.2  | 45.9          | 48.1 | 50.5 |
+| 27  | Reginald Werther (38) | 47.0  | 45.8          | 47.5 | 50.6 |
+| 31  | Olivia Gulp (41)      | 47.5  | 45.7          | 47.8 | 51.6 |
+
+Match-win % for today's player against the same opponents: 45, 44, 36, 41, 42.
+
+- **The story keeps pace with today's player.** A typical player is a slight underdog at every
+  team match: 46–48% of points and 36–45% of matches. Team match 3 is the hardest of the five.
+- **The parity scale drifts up slowly.** From about ×1.15 at day 15 to ×1.2 at day 23, ×1.35 at
+  day 27 and ×1.4 at day 31. That is about 20% growth across the stretch, or roughly +5% per
+  team match played.
+- **The 80% figure in §9.6 was the rigid planner.** A realistic player keeps half its stats in
+  the cheap ×1 band below 40 for longer, so the step curve bites less. Front-loading is real but
+  mild.
+- **The identity spread holds.** At ×1.4 on day 31 the four identities span 4.5 points (baseliner
+  45.6 to net rusher 50.1), against 4.2 for today's player. The currency system neither widens nor
+  narrows it.
+- **A typical build on day 31,** currency ×1.4: key stats at 47–50, the rest at 31–33. A baseliner
+  with strength, stamina and spin at 50 still has a serve of 32.
+
+**Income recommendation for tier 1:** start at ×1.15 and add about 5% per team match, reaching
+×1.4 by the Riverside Open.
+
+---
+
 ## 10. Next avenues
 
 Updated priority order:
 
 1. ~~Re-test the baseliner with archetypes on.~~ Done (§3.4).
-2. ~~Calibrate income with a career sim.~~ Done to day 23 against team match 3 (§9.6): ×1.2.
-   Still to do: income growth toward the ×2.2 that day 40 needs (§9.3).
+2. ~~Calibrate income with a career sim.~~ Done through all five team matches (§9.7): ×1.15
+   rising to ×1.4.
 3. ~~Decide `slice`.~~ Fixed in the sim.
-4. **Income growth by story progress.** Add it to `careerSim`, then re-run §9.6 at team matches
-   4 and 5 (days 27 and 31) and the Riverside Open. Also try match pay weighted by performance
-   area alone (§9.6, last point).
+4. **Income growth by story progress.** Build the +5% per team match into `careerSim` and confirm
+   that it tracks today's player at every match. Then extend the sim to the Riverside Open. Also
+   try match pay weighted by performance area alone (§9.6, last point).
 5. **Band width.** Re-run §3.3 and §9.4 with recipe lengths 2 / 3 / 5, through a `recipes` cost
    model in `allocationProbe`.
 6. **Price abilities.** Measure each on-court ability's point-win value the way `statChannels`
@@ -744,6 +779,7 @@ N=250 PARTS=B BUDGETS=280 CURVES=flat,banded npx tsx src/test/analysis/allocatio
 N=250 PARTS=B BUDGETS=280 CURVES=flat ID='\+' npx tsx src/test/analysis/allocationProbe.ts
 npx tsx src/test/analysis/statIncome.ts
 INCOME_SCALE=1.2 npx tsx src/test/analysis/careerSim.ts         # §9.6, ~4 min
+DAYS=31 CHECK=15,19,23,27,31 INCOME_SCALE=1.4 npx tsx src/test/analysis/careerSim.ts   # §9.7, ~8 min
 TRACE=baseliner INCOME_SCALE=1.2 npx tsx src/test/analysis/careerSim.ts   # one career, day by day
 ```
 
