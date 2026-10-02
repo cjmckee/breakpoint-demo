@@ -56,13 +56,16 @@ export const AnchorTraining: React.FC = () => {
   // Item/ability effects that improve the session payout rather than the minigame itself.
   const trainingBonuses: TrainingBonuses = {
     statUpgradeChance: EffectAggregator.getEffect(effects, EffectKey.TRAINING_STAT_UPGRADE_CHANCE),
-    bonusSupportChance: EffectAggregator.getEffect(effects, EffectKey.TRAINING_BONUS_SUPPORT_CHANCE),
+    bonusSupportChance: EffectAggregator.getEffect(
+      effects,
+      EffectKey.TRAINING_BONUS_SUPPORT_CHANCE,
+    ),
   };
 
   // Supports handed out in the most recent training session, so we can bias away
   // from repeating them.
   const lastTrainingBoosts: StatBoosts | undefined = activityHistory.find(
-    (a): a is TrainingResult => a.type === 'training'
+    (a): a is TrainingResult => a.type === 'training',
   )?.statBoosts;
 
   const resolve = (core: CoreStat, count: number): void => {

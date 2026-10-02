@@ -69,17 +69,9 @@
     },
     "storyItems": [],
     "nextActivityBuffs": [],
-    "seenItemIds": [
-      "beginner_racquet",
-      "running_shoes"
-    ],
-    "activeIndicators": [
-      "calendar",
-      "shop"
-    ],
-    "seenChallengeIds": [
-      "challenge_putting_in_the_reps"
-    ],
+    "seenItemIds": ["beginner_racquet", "running_shoes"],
+    "activeIndicators": ["calendar", "shop"],
+    "seenChallengeIds": ["challenge_putting_in_the_reps"],
     "level": 2,
     "experience": 148,
     "totalExperienceEarned": 148,
@@ -227,9 +219,7 @@
       "moodResult": 0,
       "eventId": "shop_basics",
       "eventName": "Exp Shop Basics",
-      "tags": [
-        "intro"
-      ],
+      "tags": ["intro"],
       "resultText": [
         "You eagerly await your first chance to check out the shop. How do you even spend experience anyway?"
       ],
@@ -253,9 +243,7 @@
       "moodResult": 0,
       "eventId": "shop_basics",
       "eventName": "Exp Shop Basics",
-      "tags": [
-        "intro"
-      ],
+      "tags": ["intro"],
       "resultText": [
         "You eagerly await your first chance to check out the shop. How do you even spend experience anyway?"
       ],
@@ -332,10 +320,7 @@
       "moodResult": 15,
       "eventId": "keith_hangout_tier0",
       "eventName": "Recon Mission",
-      "tags": [
-        "interaction",
-        "friend"
-      ],
+      "tags": ["interaction", "friend"],
       "resultText": [
         "You spend hours in the main building without ever making it to the courts. You realize this might have been ",
         {
@@ -364,9 +349,7 @@
       "moodResult": 0,
       "eventId": "relationship_basics",
       "eventName": "Relationship Basics",
-      "tags": [
-        "intro"
-      ],
+      "tags": ["intro"],
       "resultText": [
         "Building relationships and hanging out with people around the academy will be key to your growth here."
       ],
@@ -376,10 +359,7 @@
       },
       "abilitiesGained": [],
       "itemsGained": [],
-      "hangoutsUnlocked": [
-        "keith",
-        "jen"
-      ]
+      "hangoutsUnlocked": ["keith", "jen"]
     },
     {
       "id": "rest-1788103581058",
@@ -424,9 +404,7 @@
       "moodResult": 2,
       "eventId": "training_session_intro",
       "eventName": "Training Session Introduction",
-      "tags": [
-        "intro"
-      ],
+      "tags": ["intro"],
       "resultText": [
         "Right now you only have access to Bronze training sessions. You'll have access to a bit more variety as more content is added to the demo over time."
       ],
@@ -449,9 +427,7 @@
       "moodResult": 15,
       "eventId": "tutorial_jen_win",
       "eventName": "Practice Match Victory",
-      "tags": [
-        "tutorial"
-      ],
+      "tags": ["tutorial"],
       "resultText": [
         "You pull off the win! Your confidence is growing. ",
         {
@@ -488,18 +464,12 @@
     "keith": 19
   },
   "hangoutThresholdsSeen": {
-    "keith": [
-      0
-    ]
+    "keith": [0]
   },
   "storyEventTriggerChance": 40,
   "activeChallenges": [],
-  "completedChallenges": [
-    "challenge_putting_in_the_reps"
-  ],
-  "unlockedTiers": [
-    1
-  ],
+  "completedChallenges": ["challenge_putting_in_the_reps"],
+  "unlockedTiers": [1],
   "shopItems": [
     {
       "id": "stat-1788780689453-dwo",

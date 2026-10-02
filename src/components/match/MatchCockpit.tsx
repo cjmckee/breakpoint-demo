@@ -102,7 +102,10 @@ interface SetPipsProps {
 }
 
 const SetPips: React.FC<SetPipsProps> = ({ won, total, who, alignEnd }) => (
-  <div className={`flex gap-1 ${alignEnd ? 'flex-row-reverse' : ''}`} aria-label={`${won} of ${total} sets won`}>
+  <div
+    className={`flex gap-1 ${alignEnd ? 'flex-row-reverse' : ''}`}
+    aria-label={`${won} of ${total} sets won`}
+  >
     {Array.from({ length: total }).map((_, i) => (
       <span
         key={i}
@@ -135,7 +138,10 @@ const StaminaTank: React.FC<StaminaTankProps> = ({ value, owner }) => {
   return (
     <div className="flex flex-col items-center gap-1.5 justify-end h-full">
       <div className="relative w-12 sm:w-14 flex-1 min-h-[150px] bg-pixel-secondary border-2 border-pixel-border rounded-md overflow-hidden flex items-end">
-        <div className={`w-full transition-[height] duration-500 ease-out ${staminaFill(v)}`} style={{ height: `${v}%` }} />
+        <div
+          className={`w-full transition-[height] duration-500 ease-out ${staminaFill(v)}`}
+          style={{ height: `${v}%` }}
+        />
       </div>
       <span className={`text-[10px] ${text}`}>{Math.round(v)}%</span>
       <span className={`text-[8px] tracking-wide uppercase ${ownerColor}`}>Sta</span>
@@ -154,7 +160,10 @@ const StaminaBar: React.FC<StaminaTankProps> = ({ value, owner }) => {
         <span className="text-[9px] text-pixel-text-muted">{Math.round(v)}%</span>
       </div>
       <div className="h-3 bg-pixel-secondary border-2 border-pixel-border rounded-full overflow-hidden">
-        <div className={`h-full transition-[width] duration-500 ease-out ${staminaFill(v)}`} style={{ width: `${v}%` }} />
+        <div
+          className={`h-full transition-[width] duration-500 ease-out ${staminaFill(v)}`}
+          style={{ width: `${v}%` }}
+        />
       </div>
     </div>
   );
@@ -212,7 +221,9 @@ export const MatchCockpit: React.FC<MatchCockpitProps> = ({
         <div className="flex flex-col gap-1.5 min-w-0">
           <div className="flex items-center gap-2 min-w-0">
             {server === 'player' && <ServeDot />}
-            <span className="text-sm sm:text-base font-bold text-pixel-success truncate">{playerName}</span>
+            <span className="text-sm sm:text-base font-bold text-pixel-success truncate">
+              {playerName}
+            </span>
           </div>
           <FormBadge form={score.playerForm} who="player" />
           <SetPips won={setsWon.player} total={setsToWin} who="player" />
@@ -226,9 +237,13 @@ export const MatchCockpit: React.FC<MatchCockpitProps> = ({
           </span>
           {/* Big point score */}
           <div className="flex items-center gap-3 sm:gap-5">
-            <span className="text-3xl sm:text-5xl text-pixel-success leading-none min-w-[54px] text-right">{playerPoints}</span>
+            <span className="text-3xl sm:text-5xl text-pixel-success leading-none min-w-[54px] text-right">
+              {playerPoints}
+            </span>
             <span className="text-xl sm:text-2xl text-pixel-text-muted">–</span>
-            <span className="text-3xl sm:text-5xl text-pixel-error leading-none min-w-[54px] text-left">{opponentPoints}</span>
+            <span className="text-3xl sm:text-5xl text-pixel-error leading-none min-w-[54px] text-left">
+              {opponentPoints}
+            </span>
           </div>
         </div>
 
@@ -236,7 +251,9 @@ export const MatchCockpit: React.FC<MatchCockpitProps> = ({
         <div className="flex flex-col gap-1.5 items-end text-right min-w-0">
           <div className="flex items-center gap-2 flex-row-reverse min-w-0">
             {server === 'opponent' && <ServeDot />}
-            <span className="text-sm sm:text-base font-bold text-pixel-error truncate">{opponentName}</span>
+            <span className="text-sm sm:text-base font-bold text-pixel-error truncate">
+              {opponentName}
+            </span>
           </div>
           <FormBadge form={score.opponentForm} who="opponent" />
           <SetPips won={setsWon.opponent} total={setsToWin} who="opponent" alignEnd />
@@ -255,7 +272,11 @@ export const MatchCockpit: React.FC<MatchCockpitProps> = ({
           className={`relative h-[18px] bg-pixel-secondary border-2 border-pixel-border rounded-full overflow-hidden ${
             pulseSide ? 'animate-momentum-pulse' : ''
           }`}
-          style={pulseSide ? ({ '--pulse-color': PULSE_COLOR[pulseSide] } as React.CSSProperties) : undefined}
+          style={
+            pulseSide
+              ? ({ '--pulse-color': PULSE_COLOR[pulseSide] } as React.CSSProperties)
+              : undefined
+          }
           onAnimationEnd={() => setPulseSide(null)}
         >
           <div

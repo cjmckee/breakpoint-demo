@@ -112,7 +112,7 @@ const PERSIST_KEY = 'tennis-rpg-game-store';
  */
 export async function loadSave(page: Page, name: string, seed?: number): Promise<void> {
   const save = JSON.parse(
-    readFileSync(new URL(`../src/debug/saves/${name}.json`, import.meta.url), 'utf8')
+    readFileSync(new URL(`../src/debug/saves/${name}.json`, import.meta.url), 'utf8'),
   ) as { storeVersion: number };
 
   await stubThirdParty(page);
@@ -120,10 +120,10 @@ export async function loadSave(page: Page, name: string, seed?: number): Promise
     ({ key, state }) => {
       window.localStorage.setItem(
         key,
-        JSON.stringify({ state, version: (state as { storeVersion: number }).storeVersion })
+        JSON.stringify({ state, version: (state as { storeVersion: number }).storeVersion }),
       );
     },
-    { key: PERSIST_KEY, state: save }
+    { key: PERSIST_KEY, state: save },
   );
 
   await page.goto(seed === undefined ? '/' : `/?seed=${seed}`);
@@ -213,11 +213,14 @@ export async function grantItem(page: Page, itemId: string): Promise<void> {
   const item = ALL_ITEMS.find((candidate) => candidate.id === itemId);
   if (!item) throw new Error(`no such item "${itemId}" in the catalogue`);
 
-  await page.evaluate((plain) => {
-    const handle = window.__test__;
-    if (!handle) throw new Error('window.__test__ missing — is this a dev build?');
-    handle.game.getState().addItem(plain);
-  }, JSON.parse(JSON.stringify(item)) as typeof item);
+  await page.evaluate(
+    (plain) => {
+      const handle = window.__test__;
+      if (!handle) throw new Error('window.__test__ missing — is this a dev build?');
+      handle.game.getState().addItem(plain);
+    },
+    JSON.parse(JSON.stringify(item)) as typeof item,
+  );
 }
 
 /**
@@ -244,7 +247,7 @@ export async function reseed(page: Page, seed: number): Promise<void> {
  */
 export async function setMatchSpeed(
   page: Page,
-  speed: 'slow' | 'normal' | 'fast' | 'instant'
+  speed: 'slow' | 'normal' | 'fast' | 'instant',
 ): Promise<void> {
   await page.getByTitle(/Open Menu/).click();
   const button = page.getByTestId(`match-speed-${speed}`);
@@ -277,14 +280,20 @@ export interface MatchRun {
 export async function playMatch(
   page: Page,
   policy: TacticPolicy = 'first',
-  timeoutMs = 45_000
+  timeoutMs = 45_000,
 ): Promise<MatchRun> {
   const run: MatchRun = { keyMoments: 0, chosen: [], tutorialSteps: 0 };
   const deadline = Date.now() + timeoutMs;
 
   while (Date.now() < deadline) {
     // Results screen — the match is over.
-    if (await page.getByTestId('match-results').isVisible().catch(() => false)) break;
+    if (
+      await page
+        .getByTestId('match-results')
+        .isVisible()
+        .catch(() => false)
+    )
+      break;
 
     // A tutorial match opens on a spotlight that *pauses the simulation*
     // (matchStore.isTutorialPaused) and, on the key moment screens, disables the
@@ -292,7 +301,12 @@ export async function playMatch(
     // callout is up, nothing else on screen will respond and the match cannot
     // advance on its own.
     const tutorial = page.getByTestId('tutorial-next');
-    if (await tutorial.first().isVisible().catch(() => false)) {
+    if (
+      await tutorial
+        .first()
+        .isVisible()
+        .catch(() => false)
+    ) {
       await tutorial.first().click();
       run.tutorialSteps++;
       continue;

@@ -20,25 +20,23 @@ export class TournamentManager {
   static getScheduledTournamentMatch(
     activeTournament: ActiveTournament | null,
     scheduledEvents: ScheduledEvent[],
-    calendar: GameCalendar
+    calendar: GameCalendar,
   ): ScheduledEvent | null {
     console.log('Checking scheduled tournament match...');
     console.log('activeTournament:', activeTournament);
     console.log('scheduledEvents:', scheduledEvents);
     console.log('calendar:', calendar);
-    
+
     if (!activeTournament || !activeTournament.isActive) {
       return null;
     }
 
- 
-
     // Find tournament match scheduled for current time
     const tournamentMatch = scheduledEvents.find(
-      event =>
+      (event) =>
         event.eventType === 'tournament_match' &&
         event.scheduledDay === calendar.currentDay &&
-        event.scheduledTimeSlot === calendar.currentTimeSlot
+        event.scheduledTimeSlot === calendar.currentTimeSlot,
     );
 
     return tournamentMatch || null;
@@ -49,19 +47,14 @@ export class TournamentManager {
    * Uses default energy cost unless player has less energy
    * then uses all remaining energy
    */
-  static calculateMatchEnergyCost(
-    currentEnergy: number
-  ): number {
+  static calculateMatchEnergyCost(currentEnergy: number): number {
     return Math.min(DEFAULT_MATCH_ENERGY_COST, currentEnergy);
   }
 
   /**
    * Get current round configuration
    */
-  static getCurrentRound(
-    tournament: TournamentConfig,
-    currentRound: number
-  ) {
+  static getCurrentRound(tournament: TournamentConfig, currentRound: number) {
     if (currentRound < 0 || currentRound >= tournament.rounds.length) {
       return null;
     }
@@ -74,14 +67,12 @@ export class TournamentManager {
   static getPrematchEventId(
     tournament: TournamentConfig,
     currentRound: number,
-    bracket: 'winner' | 'loser'
+    bracket: 'winner' | 'loser',
   ): string | null {
     const round = this.getCurrentRound(tournament, currentRound);
     if (!round) return null;
 
-    return bracket === 'winner'
-      ? round.prematchEventWinner
-      : round.prematchEventLoser;
+    return bracket === 'winner' ? round.prematchEventWinner : round.prematchEventLoser;
   }
 
   /**
@@ -90,7 +81,7 @@ export class TournamentManager {
   static getPostMatchEventId(
     tournament: TournamentConfig,
     currentRound: number,
-    result: 'win' | 'loss'
+    result: 'win' | 'loss',
   ): string | null {
     const round = this.getCurrentRound(tournament, currentRound);
     if (!round) return null;
@@ -101,19 +92,14 @@ export class TournamentManager {
   /**
    * Check if tournament is complete
    */
-  static isTournamentComplete(
-    tournament: TournamentConfig,
-    currentRound: number
-  ): boolean {
+  static isTournamentComplete(tournament: TournamentConfig, currentRound: number): boolean {
     return currentRound >= tournament.rounds.length;
   }
 
   /**
    * Extract tournament match metadata from scheduled event
    */
-  static getTournamentMatchMetadata(
-    event: ScheduledEvent
-  ): TournamentMatchMetadata | null {
+  static getTournamentMatchMetadata(event: ScheduledEvent): TournamentMatchMetadata | null {
     if (event.eventType !== 'tournament_match' || !event.metadata) {
       return null;
     }

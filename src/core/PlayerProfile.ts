@@ -12,14 +12,11 @@ import type {
   CourtSurface,
   ShotType,
   StatName,
-  StatCategory
+  StatCategory,
 } from '../types';
 import type { ArchetypeProfile, BroadArchetype } from '../types/archetype';
 import { EffectKey } from '../types/game';
-import {
-  aggregateArchetypeEffects,
-  createEmptyArchetypeProfile,
-} from '../data/archetypeTree';
+import { aggregateArchetypeEffects, createEmptyArchetypeProfile } from '../data/archetypeTree';
 import {
   SERVE_QUALITY_WEIGHTS,
   SERVE_ACCURACY_WEIGHTS,
@@ -54,9 +51,22 @@ const ABOVE_BASELINE_THRESHOLD = 15;
  * specialized classification — it's a lean, not a shortcut.
  */
 const TENDENCY_NUDGE = 8;
-const BROAD_TENDENCY_NUDGES: Record<BroadArchetype, { aggression: number; netApproach: number; consistency: number; power: number }> = {
-  net_attacker: { aggression: TENDENCY_NUDGE, netApproach: TENDENCY_NUDGE, consistency: -TENDENCY_NUDGE, power: -TENDENCY_NUDGE },
-  baseliner: { aggression: -TENDENCY_NUDGE, netApproach: -TENDENCY_NUDGE, consistency: TENDENCY_NUDGE, power: TENDENCY_NUDGE },
+const BROAD_TENDENCY_NUDGES: Record<
+  BroadArchetype,
+  { aggression: number; netApproach: number; consistency: number; power: number }
+> = {
+  net_attacker: {
+    aggression: TENDENCY_NUDGE,
+    netApproach: TENDENCY_NUDGE,
+    consistency: -TENDENCY_NUDGE,
+    power: -TENDENCY_NUDGE,
+  },
+  baseliner: {
+    aggression: -TENDENCY_NUDGE,
+    netApproach: -TENDENCY_NUDGE,
+    consistency: TENDENCY_NUDGE,
+    power: TENDENCY_NUDGE,
+  },
   all_courter: { aggression: 0, netApproach: 0, consistency: 0, power: 0 },
 };
 const NO_NUDGE = { aggression: 0, netApproach: 0, consistency: 0, power: 0 };
@@ -65,7 +75,6 @@ const NO_NUDGE = { aggression: 0, netApproach: 0, consistency: 0, power: 0 };
 export { calculateOverallRating } from '../utils/overallRating';
 import { calculateOverallRating } from '../utils/overallRating';
 import { ownsKey } from './statAccess';
-
 
 import { random } from './random';
 const clampDial = (v: number): number => Math.max(0, Math.min(100, v));
@@ -79,32 +88,32 @@ const clampDial = (v: number): number => Math.max(0, Math.min(100, v));
  * (SERVE_QUALITY_WEIGHTS, RETURN_COMPOSITE_WEIGHTS) with no single "primary".
  */
 export const RALLY_SHOT_FAMILIES: Partial<Record<ShotType, { stat: StatName; family: string }>> = {
-  'forehand': { stat: 'forehand', family: 'groundstroke' },
-  'backhand': { stat: 'backhand', family: 'groundstroke' },
-  'forehand_approach': { stat: 'forehand', family: 'approach' },
-  'backhand_approach': { stat: 'backhand', family: 'approach' },
-  'forehand_power': { stat: 'forehand', family: 'powerGroundstroke' },
-  'backhand_power': { stat: 'backhand', family: 'powerGroundstroke' },
-  'slice_forehand': { stat: 'slice', family: 'slice' },
-  'slice_backhand': { stat: 'slice', family: 'slice' },
-  'defensive_slice_forehand': { stat: 'slice', family: 'slice' },
-  'defensive_slice_backhand': { stat: 'slice', family: 'slice' },
-  'volley_forehand': { stat: 'net', family: 'volley' },
-  'volley_backhand': { stat: 'net', family: 'volley' },
-  'volley_forehand_power': { stat: 'net', family: 'volley' },
-  'volley_backhand_power': { stat: 'net', family: 'volley' },
-  'half_volley_forehand': { stat: 'net', family: 'volley' },
-  'half_volley_backhand': { stat: 'net', family: 'volley' },
-  'overhead': { stat: 'net', family: 'overhead' },
-  'defensive_overhead': { stat: 'net', family: 'overhead' },
-  'drop_shot_forehand': { stat: 'placement', family: 'dropShot' },
-  'drop_shot_backhand': { stat: 'placement', family: 'dropShot' },
-  'angle_shot_forehand': { stat: 'placement', family: 'angle' },
-  'angle_shot_backhand': { stat: 'placement', family: 'angle' },
-  'lob_forehand': { stat: 'placement', family: 'lob' },
-  'lob_backhand': { stat: 'placement', family: 'lob' },
-  'passing_shot_forehand': { stat: 'placement', family: 'passing' },
-  'passing_shot_backhand': { stat: 'placement', family: 'passing' },
+  forehand: { stat: 'forehand', family: 'groundstroke' },
+  backhand: { stat: 'backhand', family: 'groundstroke' },
+  forehand_approach: { stat: 'forehand', family: 'approach' },
+  backhand_approach: { stat: 'backhand', family: 'approach' },
+  forehand_power: { stat: 'forehand', family: 'powerGroundstroke' },
+  backhand_power: { stat: 'backhand', family: 'powerGroundstroke' },
+  slice_forehand: { stat: 'slice', family: 'slice' },
+  slice_backhand: { stat: 'slice', family: 'slice' },
+  defensive_slice_forehand: { stat: 'slice', family: 'slice' },
+  defensive_slice_backhand: { stat: 'slice', family: 'slice' },
+  volley_forehand: { stat: 'net', family: 'volley' },
+  volley_backhand: { stat: 'net', family: 'volley' },
+  volley_forehand_power: { stat: 'net', family: 'volley' },
+  volley_backhand_power: { stat: 'net', family: 'volley' },
+  half_volley_forehand: { stat: 'net', family: 'volley' },
+  half_volley_backhand: { stat: 'net', family: 'volley' },
+  overhead: { stat: 'net', family: 'overhead' },
+  defensive_overhead: { stat: 'net', family: 'overhead' },
+  drop_shot_forehand: { stat: 'placement', family: 'dropShot' },
+  drop_shot_backhand: { stat: 'placement', family: 'dropShot' },
+  angle_shot_forehand: { stat: 'placement', family: 'angle' },
+  angle_shot_backhand: { stat: 'placement', family: 'angle' },
+  lob_forehand: { stat: 'placement', family: 'lob' },
+  lob_backhand: { stat: 'placement', family: 'lob' },
+  passing_shot_forehand: { stat: 'placement', family: 'passing' },
+  passing_shot_backhand: { stat: 'placement', family: 'passing' },
 };
 
 /**
@@ -140,7 +149,7 @@ export function getShotStatWeights(shotType: ShotType): Record<string, number> {
  */
 function summarizeArchetypeType(
   dials: Pick<PlayStyle, 'aggression' | 'netApproach' | 'consistency'>,
-  fx: Record<string, number>
+  fx: Record<string, number>,
 ): PlayStyle['type'] {
   const { aggression, netApproach, consistency } = dials;
   const threshold = DIAL_BASELINE + ABOVE_BASELINE_THRESHOLD;
@@ -215,10 +224,11 @@ export class PlayerProfile implements IPlayerProfile {
    */
   public rollMatchForm(options: { variance?: number; mood?: number } = {}): void {
     const variance = options.variance ?? MATCH_FORM.variance;
-    const moodBias = options.mood !== undefined
-      ? (Math.max(-100, Math.min(100, options.mood)) / 100) * MATCH_FORM.moodInfluence
-      : 0;
-    const roll = Math.max(-1, Math.min(1, (random() * 2 - 1) + moodBias));
+    const moodBias =
+      options.mood !== undefined
+        ? (Math.max(-100, Math.min(100, options.mood)) / 100) * MATCH_FORM.moodInfluence
+        : 0;
+    const roll = Math.max(-1, Math.min(1, random() * 2 - 1 + moodBias));
     this.matchForm = roll * variance;
   }
 
@@ -235,7 +245,7 @@ export class PlayerProfile implements IPlayerProfile {
     id: string,
     name: string,
     stats?: Partial<PlayerStats>,
-    archetypeProfile?: ArchetypeProfile
+    archetypeProfile?: ArchetypeProfile,
   ) {
     this.id = id;
     this.archetypeProfile = archetypeProfile ?? createEmptyArchetypeProfile();
@@ -362,7 +372,10 @@ export class PlayerProfile implements IPlayerProfile {
   ): { primaryValue: number; weights: { primary: number; [stat: string]: number } } | null {
     const entry = RALLY_SHOT_FAMILIES[shotType];
     if (!entry) return null;
-    return { primaryValue: this.getStat(entry.stat), weights: SHOT_COMPOSITE_WEIGHTS[entry.family] };
+    return {
+      primaryValue: this.getStat(entry.stat),
+      weights: SHOT_COMPOSITE_WEIGHTS[entry.family],
+    };
   }
 
   /**

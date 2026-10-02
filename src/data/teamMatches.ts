@@ -64,7 +64,8 @@ const reginaldWerther: MatchOpponent = {
   name: 'Reginald Werther',
   tier: 1,
   archetype: 'defensive',
-  description: 'A steady, patient player from Sunset Drive. He won tournaments 100 years before you were born.',
+  description:
+    'A steady, patient player from Sunset Drive. He won tournaments 100 years before you were born.',
   stats: {
     core: { serve: 39, forehand: 42, backhand: 38, return: 39, net: 34 },
     technical: { slice: 38, spin: 36, placement: 41 },
@@ -79,7 +80,8 @@ const oliviaGulp: MatchOpponent = {
   name: 'Olivia Gulp',
   tier: 1,
   archetype: 'aggressive',
-  description: 'A talented chef with a variety of skills on the court. If you can\'t take the heat, you could get burned.',
+  description:
+    "A talented chef with a variety of skills on the court. If you can't take the heat, you could get burned.",
   stats: {
     core: { serve: 42, forehand: 46, backhand: 39, return: 44, net: 34 },
     technical: { slice: 46, spin: 39, placement: 41 },

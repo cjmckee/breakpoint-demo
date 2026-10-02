@@ -38,7 +38,10 @@ import { ANCHOR_TRAINING_ENERGY_COST } from '../src/game/AnchorTrainingSystem';
  */
 async function usable(locator: Locator): Promise<boolean> {
   if ((await locator.count()) === 0) return false;
-  return locator.first().isEnabled({ timeout: 2_000 }).catch(() => false);
+  return locator
+    .first()
+    .isEnabled({ timeout: 2_000 })
+    .catch(() => false);
 }
 
 /** What the bot did, for the run report. */
@@ -148,7 +151,8 @@ export async function runBot(page: Page, options: BotOptions): Promise<BotLog> {
       repeats++;
       if (repeats > 60) {
         throw new Error(
-          `softlock: stuck in phase "${phaseKey}" for ${repeats} actions on day ${day}.` + describe()
+          `softlock: stuck in phase "${phaseKey}" for ${repeats} actions on day ${day}.` +
+            describe(),
         );
       }
     } else {
@@ -166,7 +170,8 @@ export async function runBot(page: Page, options: BotOptions): Promise<BotLog> {
       if (dayStalledFor > 150) {
         throw new Error(
           `softlock: ${dayStalledFor} actions on day ${day} without the calendar advancing — ` +
-            `the bot is going round in circles.` + describe()
+            `the bot is going round in circles.` +
+            describe(),
         );
       }
     } else {
@@ -175,14 +180,25 @@ export async function runBot(page: Page, options: BotOptions): Promise<BotLog> {
     }
 
     actions++;
-    await step(page, state, phase, log, { tactics, playMatches }, () => ANCHORS[anchorIndex++ % ANCHORS.length]);
+    await step(
+      page,
+      state,
+      phase,
+      log,
+      { tactics, playMatches },
+      () => ANCHORS[anchorIndex++ % ANCHORS.length],
+    );
   }
 
   if (actions >= maxActions) {
-    throw new Error(`bot gave up after ${maxActions} actions on day ${log.day} — likely a slow softlock`);
+    throw new Error(
+      `bot gave up after ${maxActions} actions on day ${log.day} — likely a slow softlock`,
+    );
   }
   if (log.unhandledPhases.length > 0) {
-    throw new Error(`bot hit phases it has no handler for: ${[...new Set(log.unhandledPhases)].join(', ')}`);
+    throw new Error(
+      `bot hit phases it has no handler for: ${[...new Set(log.unhandledPhases)].join(', ')}`,
+    );
   }
 
   return log;
@@ -201,7 +217,7 @@ export async function runBot(page: Page, options: BotOptions): Promise<BotLog> {
  */
 export async function drainToIdle(
   page: Page,
-  opts: { maxActions?: number; tactics?: TacticPolicy } = {}
+  opts: { maxActions?: number; tactics?: TacticPolicy } = {},
 ): Promise<BotLog> {
   const { maxActions = 60, tactics = 'first' } = opts;
   const log = emptyLog();
@@ -214,18 +230,27 @@ export async function drainToIdle(
 
     if (phase.type === 'idle' && !phase.overlay) {
       if (log.unhandledPhases.length > 0) {
-        throw new Error(`unhandled phases while draining: ${[...new Set(log.unhandledPhases)].join(', ')}`);
+        throw new Error(
+          `unhandled phases while draining: ${[...new Set(log.unhandledPhases)].join(', ')}`,
+        );
       }
       return log;
     }
 
-    await step(page, state, phase, log, { tactics, playMatches: true }, () => ANCHORS[anchorIndex++ % ANCHORS.length]);
+    await step(
+      page,
+      state,
+      phase,
+      log,
+      { tactics, playMatches: true },
+      () => ANCHORS[anchorIndex++ % ANCHORS.length],
+    );
   }
 
   const where = (await readGame(page)).gamePhase;
   throw new Error(
     `could not get back to the menu after ${maxActions} actions — stuck on phase "${where.type}". ` +
-      `Something here has no exit.`
+      `Something here has no exit.`,
   );
 }
 
@@ -236,7 +261,7 @@ async function step(
   phase: Awaited<ReturnType<typeof readGame>>['gamePhase'],
   log: BotLog,
   policy: { tactics: TacticPolicy; playMatches: boolean },
-  nextAnchor: () => string
+  nextAnchor: () => string,
 ): Promise<void> {
   switch (phase.type) {
     case 'idle': {
@@ -332,7 +357,7 @@ async function step(
       if ((await back.count()) === 0) {
         throw new Error(
           'pre-match screen with nothing usable: Start is disabled and there is ' +
-            'no Back button, so a player here cannot proceed or leave.'
+            'no Back button, so a player here cannot proceed or leave.',
         );
       }
       await back.first().click({ timeout: 5_000 });
@@ -347,7 +372,11 @@ async function step(
 
     case 'match_results': {
       if (phase.finalScore?.winner === 'player') log.matchesWon++;
-      await page.getByTestId('match-results').getByRole('button', { name: /Continue|Close modal|Back/ }).first().click();
+      await page
+        .getByTestId('match-results')
+        .getByRole('button', { name: /Continue|Close modal|Back/ })
+        .first()
+        .click();
       return;
     }
 
@@ -426,7 +455,7 @@ export function formatLog(log: BotLog): string {
   lines.push('  day   energy  overall     xp');
   for (const d of log.daily) {
     lines.push(
-      `  ${String(d.day).padStart(3)}   ${String(d.energy).padStart(6)}  ${String(d.overall).padStart(7)}  ${String(d.xp).padStart(5)}`
+      `  ${String(d.day).padStart(3)}   ${String(d.energy).padStart(6)}  ${String(d.overall).padStart(7)}  ${String(d.xp).padStart(5)}`,
     );
   }
   return lines.join('\n');

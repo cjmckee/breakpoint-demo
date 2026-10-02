@@ -9,35 +9,50 @@ import type { OpponentTier } from '../types/game';
 import type { ArchetypeType } from '../data/archetypes';
 import { getArchetypeLabel as getArchetypeLabelRaw, ARCHETYPE_DATA } from '../data/archetypes';
 
-
 export function getTierLabel(tier: OpponentTier | number): string {
   switch (tier) {
-    case 1: return 'Club';
-    case 2: return 'Regional';
-    case 3: return 'Professional';
-    case 4: return 'Elite';
-    case 5: return 'Champion';
-    default: return 'Unknown';
+    case 1:
+      return 'Club';
+    case 2:
+      return 'Regional';
+    case 3:
+      return 'Professional';
+    case 4:
+      return 'Elite';
+    case 5:
+      return 'Champion';
+    default:
+      return 'Unknown';
   }
 }
 
 export function getTierColor(tier: OpponentTier | number): string {
   switch (tier) {
-    case 1: return 'border-green-500';
-    case 2: return 'border-yellow-500';
-    case 3: return 'border-orange-500';
-    case 4: return 'border-red-500';
-    default: return 'border-pixel-border';
+    case 1:
+      return 'border-green-500';
+    case 2:
+      return 'border-yellow-500';
+    case 3:
+      return 'border-orange-500';
+    case 4:
+      return 'border-red-500';
+    default:
+      return 'border-pixel-border';
   }
 }
 
 export function getSurfaceEmoji(surface: CourtSurface | string): string {
   switch (surface) {
-    case 'hard': return '🏟️';
-    case 'clay': return '🧱';
-    case 'grass': return '🌱';
-    case 'carpet': return '📋';
-    default: return '🎾';
+    case 'hard':
+      return '🏟️';
+    case 'clay':
+      return '🧱';
+    case 'grass':
+      return '🌱';
+    case 'carpet':
+      return '📋';
+    default:
+      return '🎾';
   }
 }
 
@@ -74,15 +89,21 @@ export function flattenStats(stats: PlayerStats): StatDisplay[] {
   (Object.entries(stats.core) as [keyof typeof stats.core, number][]).forEach(([key, value]) => {
     entries.push({ name: key, value, label: STAT_LABELS[key] });
   });
-  (Object.entries(stats.technical) as [keyof typeof stats.technical, number][]).forEach(([key, value]) => {
-    entries.push({ name: key, value, label: STAT_LABELS[key] });
-  });
-  (Object.entries(stats.physical) as [keyof typeof stats.physical, number][]).forEach(([key, value]) => {
-    entries.push({ name: key, value, label: STAT_LABELS[key] });
-  });
-  (Object.entries(stats.mental) as [keyof typeof stats.mental, number][]).forEach(([key, value]) => {
-    entries.push({ name: key, value, label: STAT_LABELS[key] });
-  });
+  (Object.entries(stats.technical) as [keyof typeof stats.technical, number][]).forEach(
+    ([key, value]) => {
+      entries.push({ name: key, value, label: STAT_LABELS[key] });
+    },
+  );
+  (Object.entries(stats.physical) as [keyof typeof stats.physical, number][]).forEach(
+    ([key, value]) => {
+      entries.push({ name: key, value, label: STAT_LABELS[key] });
+    },
+  );
+  (Object.entries(stats.mental) as [keyof typeof stats.mental, number][]).forEach(
+    ([key, value]) => {
+      entries.push({ name: key, value, label: STAT_LABELS[key] });
+    },
+  );
 
   return entries;
 }

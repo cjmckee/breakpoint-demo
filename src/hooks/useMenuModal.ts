@@ -79,9 +79,7 @@ export const useMenuStore = create<MenuState>()(
       revealEncyclopediaSection: (sectionId: EncyclopediaSectionId) => {
         set((state) => ({
           encyclopediaSections: state.encyclopediaSections.map((section) =>
-            section.id === sectionId
-              ? { ...section, isRevealed: true, isNew: true }
-              : section
+            section.id === sectionId ? { ...section, isRevealed: true, isNew: true } : section,
           ),
         }));
       },
@@ -89,7 +87,7 @@ export const useMenuStore = create<MenuState>()(
       markSectionSeen: (sectionId: EncyclopediaSectionId) => {
         set((state) => ({
           encyclopediaSections: state.encyclopediaSections.map((section) =>
-            section.id === sectionId ? { ...section, isNew: false } : section
+            section.id === sectionId ? { ...section, isNew: false } : section,
           ),
         }));
       },
@@ -97,8 +95,8 @@ export const useMenuStore = create<MenuState>()(
       openCalendar: () => set({ isCalendarOpen: true }),
       closeCalendar: () => set({ isCalendarOpen: false }),
     }),
-    { name: 'menu-storage' }
-  )
+    { name: 'menu-storage' },
+  ),
 );
 
 export function useMenuKeyboardHandler() {
@@ -114,7 +112,7 @@ export function useMenuKeyboardHandler() {
         }
       }
     },
-    [isOpen, openMenu, closeMenu]
+    [isOpen, openMenu, closeMenu],
   );
 
   useEffect(() => {
@@ -127,7 +125,7 @@ export function useMenuKeyboardHandler() {
 
 export function useMenuModal() {
   const encyclopediaSections = useMenuStore((state) => state.encyclopediaSections);
-  
+
   return {
     isOpen: useMenuStore((state) => state.isOpen),
     activeTab: useMenuStore((state) => state.activeTab),

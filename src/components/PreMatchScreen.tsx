@@ -105,17 +105,36 @@ function getSurfaceEffects(surface: CourtSurface): SurfaceEffectDisplay[] {
 
 const getFormatLabel = (format: 'best-of-1' | 'best-of-3'): string => {
   switch (format) {
-    case 'best-of-1': return 'Best of 1 Set';
-    case 'best-of-3': return 'Best of 3 Sets';
-    default: return format;
+    case 'best-of-1':
+      return 'Best of 1 Set';
+    case 'best-of-3':
+      return 'Best of 3 Sets';
+    default:
+      return format;
   }
 };
 
 const RARITY_STYLES: Record<string, { badge: string; text: string; label: string }> = {
-  common:    { badge: 'bg-pixel-bg border-pixel-border text-pixel-text-muted', text: 'text-pixel-text-muted', label: 'Common' },
-  uncommon:  { badge: 'bg-green-950/50 border-green-700 text-green-400',       text: 'text-green-300',       label: 'Uncommon' },
-  rare:      { badge: 'bg-blue-950/50 border-blue-700 text-blue-400',          text: 'text-blue-300',        label: 'Rare' },
-  legendary: { badge: 'bg-yellow-950/50 border-yellow-600 text-yellow-400',    text: 'text-yellow-300',      label: 'Legendary' },
+  common: {
+    badge: 'bg-pixel-bg border-pixel-border text-pixel-text-muted',
+    text: 'text-pixel-text-muted',
+    label: 'Common',
+  },
+  uncommon: {
+    badge: 'bg-green-950/50 border-green-700 text-green-400',
+    text: 'text-green-300',
+    label: 'Uncommon',
+  },
+  rare: {
+    badge: 'bg-blue-950/50 border-blue-700 text-blue-400',
+    text: 'text-blue-300',
+    label: 'Rare',
+  },
+  legendary: {
+    badge: 'bg-yellow-950/50 border-yellow-600 text-yellow-400',
+    text: 'text-yellow-300',
+    label: 'Legendary',
+  },
 };
 
 interface PlayerCardProps {
@@ -128,7 +147,15 @@ interface PlayerCardProps {
   isPlayer: boolean;
 }
 
-function PlayerCard({ name, tier, overallRating, stats, playStyle, abilities, isPlayer }: PlayerCardProps) {
+function PlayerCard({
+  name,
+  tier,
+  overallRating,
+  stats,
+  playStyle,
+  abilities,
+  isPlayer,
+}: PlayerCardProps) {
   const topStats = getTopNStats(stats, 5);
   const bottomStats = getBottomNStats(stats, 5);
   // Opponents are hand-authored to a legacy archetype (drives their tactical
@@ -161,7 +188,9 @@ function PlayerCard({ name, tier, overallRating, stats, playStyle, abilities, is
 
       <div className="space-y-3">
         <div>
-          <div className="text-xs text-pixel-text-muted mb-1 uppercase tracking-wide">Strengths</div>
+          <div className="text-xs text-pixel-text-muted mb-1 uppercase tracking-wide">
+            Strengths
+          </div>
           <div className="space-y-1">
             {topStats.map((stat) => {
               const grade = getLetterGrade(stat.value);
@@ -173,7 +202,9 @@ function PlayerCard({ name, tier, overallRating, stats, playStyle, abilities, is
                   </span>
                   <span className="text-green-400 font-bold flex items-center gap-2">
                     <span className="text-green-400/70">{stat.value}</span>
-                    <span style={{ color: grade.color }} className="w-6 text-right">{grade.grade}</span>
+                    <span style={{ color: grade.color }} className="w-6 text-right">
+                      {grade.grade}
+                    </span>
                   </span>
                 </div>
               );
@@ -182,7 +213,9 @@ function PlayerCard({ name, tier, overallRating, stats, playStyle, abilities, is
         </div>
 
         <div>
-          <div className="text-xs text-pixel-text-muted mb-1 uppercase tracking-wide">Weaknesses</div>
+          <div className="text-xs text-pixel-text-muted mb-1 uppercase tracking-wide">
+            Weaknesses
+          </div>
           <div className="space-y-1">
             {bottomStats.map((stat) => {
               const grade = getLetterGrade(stat.value);
@@ -194,7 +227,9 @@ function PlayerCard({ name, tier, overallRating, stats, playStyle, abilities, is
                   </span>
                   <span className="text-orange-400 font-bold flex items-center gap-2">
                     <span className="text-orange-400/70">{stat.value}</span>
-                    <span style={{ color: grade.color }} className="w-6 text-right">{grade.grade}</span>
+                    <span style={{ color: grade.color }} className="w-6 text-right">
+                      {grade.grade}
+                    </span>
                   </span>
                 </div>
               );
@@ -218,7 +253,9 @@ function PlayerCard({ name, tier, overallRating, stats, playStyle, abilities, is
 
         {abilities && abilities.length > 0 && (
           <div>
-            <div className="text-xs text-pixel-text-muted mb-1 uppercase tracking-wide">Abilities</div>
+            <div className="text-xs text-pixel-text-muted mb-1 uppercase tracking-wide">
+              Abilities
+            </div>
             <div className="space-y-1.5">
               {abilities.map((ability) => {
                 const style = RARITY_STYLES[ability.rarity as string] ?? RARITY_STYLES.common;
@@ -230,7 +267,9 @@ function PlayerCard({ name, tier, overallRating, stats, playStyle, abilities, is
                       </span>
                       <span className={`text-sm font-medium ${style.text}`}>{ability.name}</span>
                     </div>
-                    <div className="text-xs text-pixel-text-muted ml-1 mt-0.5">{ability.effects}</div>
+                    <div className="text-xs text-pixel-text-muted ml-1 mt-0.5">
+                      {ability.effects}
+                    </div>
                   </div>
                 );
               })}
@@ -246,9 +285,7 @@ function SurfaceEffectsDisplay({ surface }: { surface: CourtSurface }) {
   const effects = getSurfaceEffects(surface);
 
   if (effects.length === 0) {
-    return (
-      <span className="text-pixel-text-muted text-sm">No surface effects</span>
-    );
+    return <span className="text-pixel-text-muted text-sm">No surface effects</span>;
   }
 
   return (
@@ -387,19 +424,13 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
             onClick={onStartMatch}
             disabled={!canAfford}
           >
-            {!canAfford ? (
-              <>Not Enough Energy ({energyCost})</>
-            ) : (
-              <>🎾 Start Match</>
-            )}
+            {!canAfford ? <>Not Enough Energy ({energyCost})</> : <>🎾 Start Match</>}
           </Button>
         </div>
 
         {headerContent ?? (
           <Card title={title} className="mb-6">
-            {subtitle && (
-              <p className="text-pixel-text-muted mb-4">{subtitle}</p>
-            )}
+            {subtitle && <p className="text-pixel-text-muted mb-4">{subtitle}</p>}
           </Card>
         )}
 
@@ -466,7 +497,9 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
             <div className="p-3 bg-pixel-card border-2 border-pixel-border">
               <div className="flex justify-between items-center">
                 <span className="text-pixel-text-muted">Energy Cost:</span>
-                <span className={`text-xl font-bold ${canAfford ? 'text-green-500' : 'text-red-500'}`}>
+                <span
+                  className={`text-xl font-bold ${canAfford ? 'text-green-500' : 'text-red-500'}`}
+                >
                   {energyCost} Energy
                 </span>
               </div>

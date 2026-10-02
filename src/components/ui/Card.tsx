@@ -34,8 +34,8 @@ export const Card: React.FC<CardProps> = ({
     <div
       className={`bg-pixel-card border-4 border-pixel-border ${paddingStyles[padding]} ${className}`}
     >
-      {title && (
-        collapsible ? (
+      {title &&
+        (collapsible ? (
           <button
             className={`w-full flex items-center justify-between border-b-4 border-pixel-border pb-2 ${collapsed ? '' : 'mb-4'}`}
             onClick={() => setCollapsed((c) => !c)}
@@ -47,8 +47,7 @@ export const Card: React.FC<CardProps> = ({
           <h2 className="text-2xl font-bold mb-4 text-pixel-text border-b-4 border-pixel-border pb-2">
             {title}
           </h2>
-        )
-      )}
+        ))}
       {(!collapsible || !collapsed) && children}
     </div>
   );

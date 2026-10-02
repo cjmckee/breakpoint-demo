@@ -26,11 +26,20 @@ export const StoryEventResultModal: React.FC<StoryEventResultModalProps> = ({
   const playerName = usePlayerName();
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={result.eventName} size="lg" testId="story-result">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={result.eventName}
+      size="lg"
+      testId="story-result"
+    >
       {/* Tags */}
       <div className="flex gap-2 mb-4 flex-wrap">
         {result.tags.map((tag) => (
-          <span key={tag} className="px-2 py-1 bg-gray-600 text-white rounded text-sm font-semibold">
+          <span
+            key={tag}
+            className="px-2 py-1 bg-gray-600 text-white rounded text-sm font-semibold"
+          >
             #{tag}
           </span>
         ))}
@@ -67,9 +76,7 @@ export const StoryEventResultModal: React.FC<StoryEventResultModalProps> = ({
                   <div
                     key={stat}
                     className={`px-3 py-2 rounded font-semibold ${
-                      value > 0
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
+                      value > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                     }`}
                   >
                     {stat}: {value > 0 ? '+' : ''}
@@ -92,8 +99,9 @@ export const StoryEventResultModal: React.FC<StoryEventResultModalProps> = ({
                       value > 0 ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'
                     }`}
                   >
-                    {getCharacterName(char, playerName) || char.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}:{' '}
-                    {value > 0 ? '+' : ''}
+                    {getCharacterName(char, playerName) ||
+                      char.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                    : {value > 0 ? '+' : ''}
                     {value}
                   </div>
                 ))}
@@ -139,9 +147,7 @@ export const StoryEventResultModal: React.FC<StoryEventResultModalProps> = ({
             {result.moodResult !== 0 && (
               <div
                 className={`flex-1 px-3 py-2 rounded font-semibold ${
-                  result.moodResult > 0
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-red-100 text-red-800'
+                  result.moodResult > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                 }`}
               >
                 {result.moodResult > 0 ? '😊' : '😞'} Mood: {result.moodResult > 0 ? '+' : ''}

@@ -56,19 +56,8 @@ export const StatCard: React.FC<StatCardProps> = ({
         ? `0 0 8px ${color}`
         : `0 ${Math.floor(threeDIntensity * 3)}px ${Math.floor(threeDIntensity * 6)}px rgba(0,0,0,0.3)`,
       fontSize:
-        value >= 90
-          ? 'text-4xl'
-          : value >= 80
-            ? 'text-3xl'
-            : value >= 70
-              ? 'text-2xl'
-              : 'text-xl',
-      fontWeight:
-        value >= 90
-          ? 'font-black'
-          : value >= 80
-            ? 'font-bold'
-            : 'font-semibold',
+        value >= 90 ? 'text-4xl' : value >= 80 ? 'text-3xl' : value >= 70 ? 'text-2xl' : 'text-xl',
+      fontWeight: value >= 90 ? 'font-black' : value >= 80 ? 'font-bold' : 'font-semibold',
       pulseIntensity,
       bounceAnimation,
       threeDIntensity,
@@ -123,13 +112,9 @@ export const StatCard: React.FC<StatCardProps> = ({
 
       {/* Numerical Value */}
       <div className="text-center">
-        <span className="text-xs text-pixel-text-muted font-mono">
-          {value}
-        </span>
+        <span className="text-xs text-pixel-text-muted font-mono">{value}</span>
         {boost > 0 && (
-          <span className="text-xs font-bold text-cyan-400 ml-1 font-mono">
-            +{boost}
-          </span>
+          <span className="text-xs font-bold text-cyan-400 ml-1 font-mono">+{boost}</span>
         )}
       </div>
 

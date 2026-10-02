@@ -30,7 +30,12 @@ const POP_MS = 400; // ms the struck ball stays on screen
 const STRIP_INSET = 4; // units in from each side
 const STRIP_H = 11;
 
-export const TouchSliceMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt, config }) => {
+export const TouchSliceMinigame: React.FC<MinigameProps> = ({
+  onComplete,
+  windowBonus = 0,
+  onFirstAttempt,
+  config,
+}) => {
   const rounds = useMinigameRounds({ minigame: 'touch_slice', config }, onComplete, onFirstAttempt);
   const { frozen, trigger: hitstop } = useHitstop();
   const zoneHalf = 10 * (1 + windowBonus);
@@ -64,7 +69,7 @@ export const TouchSliceMinigame: React.FC<MinigameProps> = ({ onComplete, window
     () => () => {
       if (popTimerRef.current !== null) window.clearTimeout(popTimerRef.current);
     },
-    []
+    [],
   );
 
   const endRound = useCallback(
@@ -73,7 +78,7 @@ export const TouchSliceMinigame: React.FC<MinigameProps> = ({ onComplete, window
       runningRef.current = false;
       rounds.commit(won);
     },
-    [rounds]
+    [rounds],
   );
 
   const slice = useCallback(() => {
@@ -134,7 +139,10 @@ export const TouchSliceMinigame: React.FC<MinigameProps> = ({ onComplete, window
       const timeFrac = (now - startRef.current) / ROUND_TIME;
       setView({ pos: posRef.current, timeFrac, trail });
       setInZone(Math.abs(posRef.current - zoneCenterRef.current) <= zoneHalf);
-      if (timeFrac >= 1) { endRound(false); return; }
+      if (timeFrac >= 1) {
+        endRound(false);
+        return;
+      }
       rafRef.current = requestAnimationFrame(loop);
     };
     rafRef.current = requestAnimationFrame(loop);
@@ -147,7 +155,10 @@ export const TouchSliceMinigame: React.FC<MinigameProps> = ({ onComplete, window
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
-      if (isActionKey(e)) { e.preventDefault(); slice(); }
+      if (isActionKey(e)) {
+        e.preventDefault();
+        slice();
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -176,7 +187,7 @@ export const TouchSliceMinigame: React.FC<MinigameProps> = ({ onComplete, window
                 'Three clean rounds — pure touch!',
                 'Two clean rounds. Nice hands.',
                 'One clean round. Keep practicing!',
-                "Let's find that touch next time."
+                "Let's find that touch next time.",
               )}
             />
           ) : (
@@ -191,7 +202,10 @@ export const TouchSliceMinigame: React.FC<MinigameProps> = ({ onComplete, window
         <ComboBadge streak={rounds.streak} />
 
         {/* Round timer */}
-        <div className="absolute top-0 left-0 h-1 bg-pixel-warning" style={{ width: `${Math.max(0, (1 - view.timeFrac) * 100)}%` }} />
+        <div
+          className="absolute top-0 left-0 h-1 bg-pixel-warning"
+          style={{ width: `${Math.max(0, (1 - view.timeFrac) * 100)}%` }}
+        />
 
         {/* Tilted swing line */}
         <div
@@ -206,21 +220,39 @@ export const TouchSliceMinigame: React.FC<MinigameProps> = ({ onComplete, window
           {/* Zone */}
           <div
             className={`absolute border-l-2 border-r-2 border-dashed ${inZone ? 'border-pixel-success bg-pixel-success/20' : 'border-pixel-accent bg-pixel-accent/10'}`}
-            style={{ left: `${zoneCenter}%`, top: u(-1), bottom: u(-1), width: `${zoneHalf * 2}%`, transform: 'translateX(-50%)' }}
+            style={{
+              left: `${zoneCenter}%`,
+              top: u(-1),
+              bottom: u(-1),
+              width: `${zoneHalf * 2}%`,
+              transform: 'translateX(-50%)',
+            }}
           />
           {/* Arc trail */}
-          {playing && view.trail.map((p, i) => (
-            <div
-              key={i}
-              className="absolute top-1/2 w-1.5 rounded-full bg-pixel-text"
-              style={{ left: `${p}%`, height: u(3), transform: 'translate(-50%, -50%)', opacity: (1 - i / view.trail.length) * 0.35 }}
-            />
-          ))}
+          {playing &&
+            view.trail.map((p, i) => (
+              <div
+                key={i}
+                className="absolute top-1/2 w-1.5 rounded-full bg-pixel-text"
+                style={{
+                  left: `${p}%`,
+                  height: u(3),
+                  transform: 'translate(-50%, -50%)',
+                  opacity: (1 - i / view.trail.length) * 0.35,
+                }}
+              />
+            ))}
           {/* Marker */}
           {playing && (
             <div
               className={`absolute w-1.5 rounded-full ${inZone ? 'bg-pixel-success' : 'bg-pixel-accent'}`}
-              style={{ left: `${view.pos}%`, top: u(-1.7), bottom: u(-1.7), transform: 'translateX(-50%)', boxShadow: '0 0 10px currentColor' }}
+              style={{
+                left: `${view.pos}%`,
+                top: u(-1.7),
+                bottom: u(-1.7),
+                transform: 'translateX(-50%)',
+                boxShadow: '0 0 10px currentColor',
+              }}
             />
           )}
           {/* The ball left where the swing connected. The outer div owns the centering
@@ -247,7 +279,9 @@ export const TouchSliceMinigame: React.FC<MinigameProps> = ({ onComplete, window
         <Sparks burst={burst} />
 
         {playing && (
-          <div className="absolute top-2 left-2 text-xs text-pixel-text-muted">{hits}/{HITS_NEEDED} sliced</div>
+          <div className="absolute top-2 left-2 text-xs text-pixel-text-muted">
+            {hits}/{HITS_NEEDED} sliced
+          </div>
         )}
       </MinigameArena>
     </MinigameShell>

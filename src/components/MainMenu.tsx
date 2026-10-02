@@ -73,11 +73,15 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const hasUnseenInventory = (player?.activeIndicators ?? []).includes('inventory');
 
   // Check for unseen items in inventory
-  const hasUnseenItems = player ? [
-    ...player.inventory,
-    ...Object.values(player.equippedItems).filter((i): i is NonNullable<typeof i> => i !== null),
-    ...player.storyItems,
-  ].some((item) => !(player.seenItemIds ?? []).includes(item.id)) : false;
+  const hasUnseenItems = player
+    ? [
+        ...player.inventory,
+        ...Object.values(player.equippedItems).filter(
+          (i): i is NonNullable<typeof i> => i !== null,
+        ),
+        ...player.storyItems,
+      ].some((item) => !(player.seenItemIds ?? []).includes(item.id))
+    : false;
 
   // Check if it's night time - only rest/next day action allowed
   const isNightTime = calendar.currentTimeSlot === TimeSlot.NIGHT;
@@ -107,7 +111,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   // App renders item_acquired/hangout_unlock modals *beside* MainMenu with overlay={null},
   // so the prop alone can't tell us the screen is clear — read the phase directly.
   const activeOverlay = useGameStore((state) =>
-    state.gamePhase.type === 'idle' ? state.gamePhase.overlay : null
+    state.gamePhase.type === 'idle' ? state.gamePhase.overlay : null,
   );
 
   // First-run walkthrough of the daily loop. Held back until the welcome story event
@@ -123,7 +127,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
     canGoBack: canGoBackTutorial,
   } = useTutorialSpotlight(
     MAIN_MENU_TUTORIAL_STEPS,
-    player !== null && activeOverlay === null && player.flags[PlayerFlag.SEEN_MAIN_MENU_TUTORIAL] !== true,
+    player !== null &&
+      activeOverlay === null &&
+      player.flags[PlayerFlag.SEEN_MAIN_MENU_TUTORIAL] !== true,
     () => setFlag(PlayerFlag.SEEN_MAIN_MENU_TUTORIAL, true),
   );
 
@@ -200,12 +206,14 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
 
   // Key characters that the player has met, has hangout unlocked, AND have a new unseen tier event
   const hangoutsAvailable = calendar.currentDay >= 6;
-  const metHangoutCharacters = hangoutsAvailable ? Object.keys(HANGOUT_CHARACTERS).filter(
-    (id) =>
-      id in relationships &&
-      player.flags[`hangoutUnlocked_${id}`] === true &&
-      hasUnseenTierEvent(id, relationships[id] ?? 0, hangoutThresholdsSeen)
-  ) : [];
+  const metHangoutCharacters = hangoutsAvailable
+    ? Object.keys(HANGOUT_CHARACTERS).filter(
+        (id) =>
+          id in relationships &&
+          player.flags[`hangoutUnlocked_${id}`] === true &&
+          hasUnseenTierEvent(id, relationships[id] ?? 0, hangoutThresholdsSeen),
+      )
+    : [];
 
   const hasNewHangouts = metHangoutCharacters.length > 0;
 
@@ -213,16 +221,28 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const challengeCount = activeChallenges.length;
   const claimableCount = activeChallenges.filter((c) => c.status === 'completed').length;
   const hasUnseenChallenge = activeChallenges.some(
-    (c) => !(player.seenChallengeIds ?? []).includes(c.id)
+    (c) => !(player.seenChallengeIds ?? []).includes(c.id),
   );
 
   const getTierName = (tier: number): string => {
-    const tierNames = ['', 'Club Player', 'Regional Competitor', 'Tour Professional', 'World Champion'];
+    const tierNames = [
+      '',
+      'Club Player',
+      'Regional Competitor',
+      'Tour Professional',
+      'World Champion',
+    ];
     return tierNames[tier] || 'Unknown';
   };
 
   const getTierColor = (tier: number): string => {
-    const tierColors = ['', 'text-amber-700', 'text-gray-400', 'text-yellow-400', 'text-purple-400'];
+    const tierColors = [
+      '',
+      'text-amber-700',
+      'text-gray-400',
+      'text-yellow-400',
+      'text-purple-400',
+    ];
     return tierColors[tier] || 'text-pixel-text-muted';
   };
 
@@ -267,7 +287,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const isEnergyFull = currentStatus.energy >= 100;
   const energyGainBonus = EffectAggregator.getEffect(
     EffectAggregator.getActiveEffects(player).effects,
-    EffectKey.ENERGY_GAIN_BONUS
+    EffectKey.ENERGY_GAIN_BONUS,
   );
   const restEnergyGain = defaultRestEnergy + energyGainBonus;
   const sleepEnergyGain = defaultRestEnergy + defaultSleepBonus + energyGainBonus;
@@ -296,11 +316,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
     switch (overlay.type) {
       case 'training_result': {
         return (
-          <TrainingResultModal
-            isOpen={true}
-            onClose={dismissOverlay}
-            result={overlay.result}
-          />
+          <TrainingResultModal isOpen={true} onClose={dismissOverlay} result={overlay.result} />
         );
       }
       case 'story_event': {
@@ -341,7 +357,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   return (
     <div className={`min-h-screen bg-pixel-bg ${isNightTime ? 'night-mode' : ''}`}>
       <div
-        ref={(el) => { sectionRefs.current.status = el; }}
+        ref={(el) => {
+          sectionRefs.current.status = el;
+        }}
         data-spotlit={isSpotlit('status') || undefined}
         className={spotlightClass('status')}
       >
@@ -416,7 +434,10 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                       className="flex flex-col items-center bg-pixel-bg border-2 border-pixel-border rounded px-1 py-1.5 w-10 sm:w-11"
                       title={`${name}: ${value}`}
                     >
-                      <span className="text-base sm:text-lg font-bold leading-none" style={{ color }}>
+                      <span
+                        className="text-base sm:text-lg font-bold leading-none"
+                        style={{ color }}
+                      >
                         {grade}
                       </span>
                       <span className="text-[8px] text-pixel-text-muted mt-1">{label}</span>
@@ -430,7 +451,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
 
         {/* Action Hub — daily actions get the biggest targets */}
         <div
-          ref={(el) => { sectionRefs.current.actions = el; }}
+          ref={(el) => {
+            sectionRefs.current.actions = el;
+          }}
           data-spotlit={isSpotlit('actions') || undefined}
           data-testid="action-hub"
           className={`grid grid-cols-3 gap-3 sm:gap-4 mb-3 sm:mb-4 ${spotlightClass('actions')}`}
@@ -472,7 +495,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
             onClick={() => rest()}
           />
         </div>
-        <div className={`grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4 mb-6 ${isNightTime ? 'night-exempt' : ''}`}>
+        <div
+          className={`grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4 mb-6 ${isNightTime ? 'night-exempt' : ''}`}
+        >
           {/* "Relationships" is too wide for a third-width tile in the pixel font,
               so it takes the full first row on phones */}
           <ActionTile
@@ -493,7 +518,10 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
             icon="🎒"
             label="Inventory"
             badge={hasUnseenInventory || hasUnseenItems}
-            onClick={() => { clearIndicator('inventory'); navigateTo('inventory'); }}
+            onClick={() => {
+              clearIndicator('inventory');
+              navigateTo('inventory');
+            }}
           />
           <ActionTile
             testId="action-shop"
@@ -504,13 +532,18 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
             caption={calendar.currentDay < 7 ? 'Unlocks Day 7' : undefined}
             disabled={calendar.currentDay < 7}
             badge={hasUnseenShop && calendar.currentDay >= 7}
-            onClick={() => { clearIndicator('shop'); navigateTo('shop'); }}
+            onClick={() => {
+              clearIndicator('shop');
+              navigateTo('shop');
+            }}
           />
         </div>
 
         {/* Challenges — compact summary strip; the full list lives on its own screen */}
         <button
-          ref={(el) => { sectionRefs.current.challenges = el; }}
+          ref={(el) => {
+            sectionRefs.current.challenges = el;
+          }}
           data-spotlit={isSpotlit('challenges') || undefined}
           data-testid="action-challenges"
           onClick={() => navigateTo('challenges')}
@@ -518,9 +551,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
         >
           <span className="text-2xl relative shrink-0">
             📋
-            {hasUnseenChallenge && (
-              <UnseenBadge size="sm" className="absolute -top-2 -right-2" />
-            )}
+            {hasUnseenChallenge && <UnseenBadge size="sm" className="absolute -top-2 -right-2" />}
           </span>
           <div className="flex-1 min-w-0">
             <div className="font-bold text-pixel-text">Challenges</div>
@@ -548,7 +579,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
         {/* Full-width player stats — the walkthrough points here for the full 14-stat
             breakdown, so it starts open on every viewport rather than as a closed drawer */}
         <div
-          ref={(el) => { sectionRefs.current.stats = el; }}
+          ref={(el) => {
+            sectionRefs.current.stats = el;
+          }}
           data-spotlit={isSpotlit('stats') || undefined}
           className={spotlightClass('stats')}
         >

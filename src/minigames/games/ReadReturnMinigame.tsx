@@ -91,7 +91,12 @@ function planServe(speed: number): Serve {
   };
 }
 
-export const ReadReturnMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt, config }) => {
+export const ReadReturnMinigame: React.FC<MinigameProps> = ({
+  onComplete,
+  windowBonus = 0,
+  onFirstAttempt,
+  config,
+}) => {
   const rounds = useMinigameRounds({ minigame: 'read_return', config }, onComplete, onFirstAttempt);
   const { frozen, trigger: hitstop } = useHitstop();
 
@@ -134,7 +139,7 @@ export const ReadReturnMinigame: React.FC<MinigameProps> = ({ onComplete, window
       setBounceSpot(null); // the mark belongs to this serve only
       rounds.commit(good);
     },
-    [hitstop, rounds]
+    [hitstop, rounds],
   );
 
   const launchServe = useCallback(() => {
@@ -174,7 +179,10 @@ export const ReadReturnMinigame: React.FC<MinigameProps> = ({ onComplete, window
       }
 
       const h = halfRef.current;
-      zoneRef.current = Math.max(h.y, Math.min(ARENA_H - h.y, zoneRef.current + moveRef.current * ZONE_SPEED * dt));
+      zoneRef.current = Math.max(
+        h.y,
+        Math.min(ARENA_H - h.y, zoneRef.current + moveRef.current * ZONE_SPEED * dt),
+      );
       setZone(zoneRef.current);
       setBall({ x: b.x, y: b.y, visible: true });
       setTrail((prev) => [{ x: b.x, y: b.y }, ...prev].slice(0, 6));
@@ -217,9 +225,16 @@ export const ReadReturnMinigame: React.FC<MinigameProps> = ({ onComplete, window
   useEffect(() => {
     const down = (e: KeyboardEvent): void => {
       const dir = directionFromKey(e);
-      if (dir === 'up') { e.preventDefault(); moveRef.current = -1; }
-      else if (dir === 'down') { e.preventDefault(); moveRef.current = 1; }
-      else if (isActionKey(e)) { e.preventDefault(); swing(); }
+      if (dir === 'up') {
+        e.preventDefault();
+        moveRef.current = -1;
+      } else if (dir === 'down') {
+        e.preventDefault();
+        moveRef.current = 1;
+      } else if (isActionKey(e)) {
+        e.preventDefault();
+        swing();
+      }
     };
     const up = (e: KeyboardEvent): void => {
       const dir = directionFromKey(e);
@@ -236,9 +251,16 @@ export const ReadReturnMinigame: React.FC<MinigameProps> = ({ onComplete, window
   }, [swing]);
 
   const hold = (dir: number) => ({
-    onPointerDown: (e: React.PointerEvent) => { e.preventDefault(); moveRef.current = dir; },
-    onPointerUp: () => { moveRef.current = 0; },
-    onPointerLeave: () => { moveRef.current = 0; },
+    onPointerDown: (e: React.PointerEvent) => {
+      e.preventDefault();
+      moveRef.current = dir;
+    },
+    onPointerUp: () => {
+      moveRef.current = 0;
+    },
+    onPointerLeave: () => {
+      moveRef.current = 0;
+    },
   });
 
   const idle = rounds.phase === 'ready';
@@ -264,7 +286,7 @@ export const ReadReturnMinigame: React.FC<MinigameProps> = ({ onComplete, window
                 'Three serves read, three returned!',
                 'Two clean returns. Reading it well.',
                 'One clean return. Watch the bounce!',
-                'Aced — pick the line up earlier.'
+                'Aced — pick the line up earlier.',
               )}
             />
           ) : (
@@ -301,7 +323,10 @@ export const ReadReturnMinigame: React.FC<MinigameProps> = ({ onComplete, window
         <ComboBadge streak={rounds.streak} />
 
         {/* Court floor */}
-        <div className="absolute inset-x-0 bg-pixel-secondary/25" style={{ top: u(FLOOR), bottom: 0 }} />
+        <div
+          className="absolute inset-x-0 bg-pixel-secondary/25"
+          style={{ top: u(FLOOR), bottom: 0 }}
+        />
         <div className="absolute inset-x-0 h-0.5 bg-pixel-border" style={{ top: u(FLOOR) }} />
 
         {/* The return line the zone rides */}
@@ -342,18 +367,20 @@ export const ReadReturnMinigame: React.FC<MinigameProps> = ({ onComplete, window
         />
 
         {/* Flight trail — the angle is the read, so it needs to be legible at speed */}
-        {playing && ball.visible && trail.map((p, i) => (
-          <div
-            key={i}
-            className="absolute w-2 h-2 rounded-full bg-pixel-text pointer-events-none"
-            style={{
-              left: u(p.x),
-              top: u(p.y),
-              transform: 'translate(-50%, -50%)',
-              opacity: (1 - i / trail.length) * 0.3,
-            }}
-          />
-        ))}
+        {playing &&
+          ball.visible &&
+          trail.map((p, i) => (
+            <div
+              key={i}
+              className="absolute w-2 h-2 rounded-full bg-pixel-text pointer-events-none"
+              style={{
+                left: u(p.x),
+                top: u(p.y),
+                transform: 'translate(-50%, -50%)',
+                opacity: (1 - i / trail.length) * 0.3,
+              }}
+            />
+          ))}
 
         {/* The serve */}
         {playing && ball.visible && (

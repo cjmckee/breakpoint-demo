@@ -56,13 +56,13 @@ export const Inventory: React.FC = () => {
   const hasPassiveEffects = Object.keys(passiveEffects).length > 0;
 
   const filteredInventory = player.inventory.filter((item) =>
-    filter === 'all' ? true : item.type === filter
+    filter === 'all' ? true : item.type === filter,
   );
 
   const isItemNew = (item: OwnedItem): boolean => !(player.seenItemIds ?? []).includes(item.id);
 
   const equippedInSlot = (item: OwnedItem): OwnedItem | null =>
-    item.equipmentSlot ? player.equippedItems[item.equipmentSlot] ?? null : null;
+    item.equipmentSlot ? (player.equippedItems[item.equipmentSlot] ?? null) : null;
 
   const isDraggingEquipped =
     draggingItem !== null &&
@@ -233,12 +233,16 @@ export const Inventory: React.FC = () => {
                           >
                             <div className="text-center text-pixel-text-muted text-xs">Empty</div>
                           </Card>
-                        )
+                        ),
                       )}
                   </div>
                 ) : (
                   <div className="text-sm text-pixel-text-muted text-center py-8">
-                    No {filter === 'all' ? '' : FILTER_TABS.find((t) => t.id === filter)?.label.toLowerCase()} items.
+                    No{' '}
+                    {filter === 'all'
+                      ? ''
+                      : FILTER_TABS.find((t) => t.id === filter)?.label.toLowerCase()}{' '}
+                    items.
                   </div>
                 )}
               </div>
@@ -273,7 +277,8 @@ export const Inventory: React.FC = () => {
           equippedInSlot={selectedItem ? equippedInSlot(selectedItem) : null}
           isEquipped={
             selectedItem?.equipmentSlot
-              ? player.equippedItems[selectedItem.equipmentSlot]?.instanceId === selectedItem.instanceId
+              ? player.equippedItems[selectedItem.equipmentSlot]?.instanceId ===
+                selectedItem.instanceId
               : false
           }
           onClose={() => setSelectedItem(null)}

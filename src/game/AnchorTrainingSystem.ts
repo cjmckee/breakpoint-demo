@@ -138,7 +138,7 @@ export const NO_TRAINING_BONUSES: TrainingBonuses = {
 export function resolveSupports(
   core: CoreStat,
   count: number,
-  recentSupports: SupportStat[] = []
+  recentSupports: SupportStat[] = [],
 ): SupportStat[] {
   const poolSize = CORE_ANCHORS[core].supportPool.length;
   const clamped = Math.max(0, Math.min(poolSize, Math.floor(count)));
@@ -164,7 +164,7 @@ export function resolveSupports(
 export function buildAnchorStatBoosts(
   core: CoreStat,
   supports: SupportStat[],
-  statUpgradeChance: number = 0
+  statUpgradeChance: number = 0,
 ): StatBoosts {
   const grant = (): number => (random() < statUpgradeChance ? 2 : 1);
 
@@ -184,7 +184,7 @@ export function buildAnchorTrainingResult(
   core: CoreStat,
   count: number,
   recentSupports: SupportStat[] = [],
-  bonuses: TrainingBonuses = NO_TRAINING_BONUSES
+  bonuses: TrainingBonuses = NO_TRAINING_BONUSES,
 ): TrainingResult {
   const anchor = CORE_ANCHORS[core];
 
@@ -212,7 +212,11 @@ export function buildAnchorTrainingResult(
     sessionTier: 'bronze',
     tier: 'bronze',
     sessionType: `${core}_anchor`,
-    message: buildMessage(anchor.name, Math.min(Math.max(0, Math.floor(count)), 3), bonusSupport > 0),
+    message: buildMessage(
+      anchor.name,
+      Math.min(Math.max(0, Math.floor(count)), 3),
+      bonusSupport > 0,
+    ),
   };
 }
 

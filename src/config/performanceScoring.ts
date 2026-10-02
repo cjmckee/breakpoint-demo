@@ -19,8 +19,8 @@ export const SERVING_WEIGHTS = {
 
   // First serve percentage — normalized from 40-75% range to 0-35 points.
   // Prevents first serve % from dominating the entire score.
-  firstServePercentMin: 40,       // 40% first serve = 0 points
-  firstServePercentMax: 75,       // 75% first serve = max points
+  firstServePercentMin: 40, // 40% first serve = 0 points
+  firstServePercentMax: 75, // 75% first serve = max points
   firstServePercentMaxPoints: 35,
 
   // First serve points won (ratio * weight)
@@ -45,8 +45,8 @@ export const RETURN_WEIGHTS = {
   breakOpportunityCap: 20,
 
   // Return points won (normalized from 25-50% range to 0-50 points)
-  returnWinMinRate: 0.25,  // 25% return win rate = 0 points
-  returnWinMaxRate: 0.50,  // 50% return win rate = 50 points
+  returnWinMinRate: 0.25, // 25% return win rate = 0 points
+  returnWinMaxRate: 0.5, // 50% return win rate = 50 points
   returnWinMaxPoints: 50,
 };
 
@@ -57,8 +57,8 @@ export const RALLY_WEIGHTS = {
   // Rally win rate (won / played when shot count > 2) — primary metric (0-50 points).
   // Directly measures how well the player performs once a rally develops.
   // Normalized from 30-70% range so 50% (perfectly even) = 25pts, 70%+ = 50pts.
-  rallyWinRateMinRate: 0.30,
-  rallyWinRateMaxRate: 0.70,
+  rallyWinRateMinRate: 0.3,
+  rallyWinRateMaxRate: 0.7,
   rallyWinRateMaxPoints: 50,
 
   // Consistency: unforced error rate penalty (0-30 points).
@@ -113,8 +113,8 @@ export const MENTAL_WEIGHTS = {
 export const OVERALL_SCORE_WEIGHTS = {
   serving: 0.22,
   returning: 0.22,
-  rallying: 0.30,
-  netPlay: 0.10,
+  rallying: 0.3,
+  netPlay: 0.1,
   mental: 0.16,
 };
 
@@ -122,8 +122,8 @@ export const OVERALL_SCORE_WEIGHTS = {
 // PERFORMANCE THRESHOLDS
 // ============================================================================
 export const PERFORMANCE_THRESHOLDS = {
-  excellent: 75,  // Above this = excellent performance boost
-  good: 60,       // Above this = good performance boost
-  average: 45,    // Above this = average performance boost
+  excellent: 75, // Above this = excellent performance boost
+  good: 60, // Above this = good performance boost
+  average: 45, // Above this = average performance boost
   // Below 45 = bad (no boost)
 };

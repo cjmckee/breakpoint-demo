@@ -53,8 +53,8 @@ export type StoryEventTag =
   | 'sponsor'
   | 'media'
   | 'story_match'
-  | 'tournament_match'      // For match-specific events
-  | 'tournament_ceremony'   // For opening/closing ceremonies
+  | 'tournament_match' // For match-specific events
+  | 'tournament_ceremony' // For opening/closing ceremonies
   | 'agent'
   | 'team'
 
@@ -100,12 +100,12 @@ export interface StoryEventPrerequisite {
   };
 
   // Event completion requirements
-  completedEvents?: string[];      // Must have completed these events
-  excludedEvents?: string[];       // Must NOT have completed these events
+  completedEvents?: string[]; // Must have completed these events
+  excludedEvents?: string[]; // Must NOT have completed these events
 
   // Choice-based requirements (for branching storylines)
-  completedEventChoices?: Record<string, string | string[]>;  // eventId -> optionId(s) that must have been chosen (array = OR)
-  excludedEventChoices?: Record<string, string | string[]>;   // eventId -> optionId(s) that blocks this event (array = OR)
+  completedEventChoices?: Record<string, string | string[]>; // eventId -> optionId(s) that must have been chosen (array = OR)
+  excludedEventChoices?: Record<string, string | string[]>; // eventId -> optionId(s) that blocks this event (array = OR)
 
   // Time/season requirements
   minDay?: number;
@@ -123,12 +123,12 @@ export interface StoryEventPrerequisite {
   // Match history requirements
   minMatchesPlayed?: number;
   minMatchesWon?: number;
-  minWinStreak?: number;           // Minimum consecutive wins (from latestMatchResults)
+  minWinStreak?: number; // Minimum consecutive wins (from latestMatchResults)
 
   // Tournament requirements
-  activeTournament?: string;           // Must be in specific tournament
-  tournamentBracket?: 'winner' | 'loser';  // Must be in specific bracket
-  tournamentRound?: number;            // Must be at specific round (0-based index)
+  activeTournament?: string; // Must be in specific tournament
+  tournamentBracket?: 'winner' | 'loser'; // Must be in specific bracket
+  tournamentRound?: number; // Must be at specific round (0-based index)
 }
 
 // ============================================================================
@@ -137,8 +137,8 @@ export interface StoryEventPrerequisite {
 
 export interface StoryEventOutcome {
   // Narrative text shown after choice
-  resultText: FormattedText;           // Formatted text with character references
-  dialogue?: DialogueLine[];           // Optional additional dialogue with speakers
+  resultText: FormattedText; // Formatted text with character references
+  dialogue?: DialogueLine[]; // Optional additional dialogue with speakers
 
   // Effects applied to player
   effects: {
@@ -149,12 +149,12 @@ export interface StoryEventOutcome {
     abilitiesGained?: string[];
     itemsGained?: Item[];
     scheduledEvents?: ScheduledEventTemplate[];
-    scheduleNextTournamentMatch?: boolean;  // Trigger tournament match scheduling
-    startTournament?: string;  // Tournament ID to activate when this event completes
-    tierChange?: number;  // Set player tier to this value (e.g., 2 for Regional)
-    revealEncyclopediaSections?: EncyclopediaSectionId[];  // Reveal encyclopedia sections and mark as new
-    hangoutUnlocks?: string[];  // Character IDs whose hangout option becomes available
-    setArchetypeBroad?: BroadArchetype;  // Set the player's broad archetype and seed default specialties (Coach Gonzalez event)
+    scheduleNextTournamentMatch?: boolean; // Trigger tournament match scheduling
+    startTournament?: string; // Tournament ID to activate when this event completes
+    tierChange?: number; // Set player tier to this value (e.g., 2 for Regional)
+    revealEncyclopediaSections?: EncyclopediaSectionId[]; // Reveal encyclopedia sections and mark as new
+    hangoutUnlocks?: string[]; // Character IDs whose hangout option becomes available
+    setArchetypeBroad?: BroadArchetype; // Set the player's broad archetype and seed default specialties (Coach Gonzalez event)
   };
 
   // Challenges assigned by this outcome
@@ -166,10 +166,10 @@ export interface StoryEventOutcome {
 // ============================================================================
 
 export interface StoryEventOption {
-  id: string;                      // Unique within the event (e.g., 'accept_offer', 'decline')
-  text: string;                    // Button text
-  description?: string;            // Tooltip/subtitle explaining the choice
-  emoji?: string;                  // Optional emoji for visual distinction
+  id: string; // Unique within the event (e.g., 'accept_offer', 'decline')
+  text: string; // Button text
+  description?: string; // Tooltip/subtitle explaining the choice
+  emoji?: string; // Optional emoji for visual distinction
 
   // Requirements to show this option
   prerequisites?: StoryEventPrerequisite;
@@ -203,18 +203,18 @@ export interface MinigameCheck {
 export interface StoryEvent {
   id: string;
   name: string;
-  tags: StoryEventTag[];           // Multiple tags for flexible categorization
+  tags: StoryEventTag[]; // Multiple tags for flexible categorization
 
   // Timing
   timeSlotsRequired: 0 | 1 | 2 | 3;
 
   // Availability
   prerequisites: StoryEventPrerequisite;
-  skippable: boolean;              // Whether player can skip this event
+  skippable: boolean; // Whether player can skip this event
 
   // Narrative content
   description: string;
-  dialogue?: DialogueLine[];       // Dialogue lines with speaker and text
+  dialogue?: DialogueLine[]; // Dialogue lines with speaker and text
 
   // Characters involved
   characters: string[];
@@ -223,10 +223,10 @@ export interface StoryEvent {
   moodTier?: 'good' | 'neutral' | 'bad';
 
   // Player choices (if any)
-  options: StoryEventOption[];     // Empty array = linear event with only defaultOutcome
+  options: StoryEventOption[]; // Empty array = linear event with only defaultOutcome
 
   // For linear events (no choices)
-  defaultOutcome?: StoryEventOutcome;  // Used when options.length === 0
+  defaultOutcome?: StoryEventOutcome; // Used when options.length === 0
 
   // Scheduled events to create after this event completes
   scheduledEvents?: ScheduledEventTemplate[];

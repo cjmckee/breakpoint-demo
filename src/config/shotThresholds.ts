@@ -18,56 +18,56 @@ import type { ShotType, CourtPosition, CourtSurface } from '../types';
  */
 export const RELATIVE_QUALITY_REQUIREMENTS: Record<ShotType, number> = {
   // Serves (not used in relative calculation, but included for completeness)
-  'serve_first': 0.50,
-  'serve_second': 0.50,
+  serve_first: 0.5,
+  serve_second: 0.5,
 
   // Basic groundstrokes (neutral, moderate requirement)
-  'forehand': 0.50,
-  'backhand': 0.50,
+  forehand: 0.5,
+  backhand: 0.5,
 
   // Power shots (offensive, high requirement = risky)
-  'forehand_power': 0.70,
-  'backhand_power': 0.70,
+  forehand_power: 0.7,
+  backhand_power: 0.7,
 
   // Approach shots (moderate-high requirement)
-  'forehand_approach': 0.60,
-  'backhand_approach': 0.60,
+  forehand_approach: 0.6,
+  backhand_approach: 0.6,
 
   // Volleys (moderate requirement, need decent execution)
-  'volley_forehand': 0.60,
-  'volley_backhand': 0.60,
-  'volley_forehand_power': 0.70,
-  'volley_backhand_power': 0.70,
-  'half_volley_forehand': 0.65,
-  'half_volley_backhand': 0.65,
+  volley_forehand: 0.6,
+  volley_backhand: 0.6,
+  volley_forehand_power: 0.7,
+  volley_backhand_power: 0.7,
+  half_volley_forehand: 0.65,
+  half_volley_backhand: 0.65,
 
   // Overheads (offensive, moderate requirement)
-  'overhead': 0.60,
-  'defensive_overhead': 0.70,
+  overhead: 0.6,
+  defensive_overhead: 0.7,
 
   // Drop shots (moderate-low requirement)
-  'drop_shot_forehand': 0.45,
-  'drop_shot_backhand': 0.45,
+  drop_shot_forehand: 0.45,
+  drop_shot_backhand: 0.45,
 
   // Angle shots (moderate-high requirement)
-  'angle_shot_forehand': 0.65,
-  'angle_shot_backhand': 0.65,
+  angle_shot_forehand: 0.65,
+  angle_shot_backhand: 0.65,
 
   // Slice shots (defensive, low requirement = forgiving)
-  'slice_forehand': 0.35,
-  'slice_backhand': 0.35,
-  'defensive_slice_forehand': 0.25,
-  'defensive_slice_backhand': 0.25,
+  slice_forehand: 0.35,
+  slice_backhand: 0.35,
+  defensive_slice_forehand: 0.25,
+  defensive_slice_backhand: 0.25,
 
   // Returns (high requirement - returning serve is hard!)
-  'return_forehand': 0.75,
-  'return_backhand': 0.75,
-  'return_forehand_power': 0.85,
-  'return_backhand_power': 0.85,
+  return_forehand: 0.75,
+  return_backhand: 0.75,
+  return_forehand_power: 0.85,
+  return_backhand_power: 0.85,
 
   // Lobs (defensive, low requirement)
-  'lob_forehand': 0.30,
-  'lob_backhand': 0.30,
+  lob_forehand: 0.3,
+  lob_backhand: 0.3,
 
   // Passing shots. Lower than it looks: the defender facing a net player also
   // pays POSITION_ADJUSTMENTS.at_net (+10), so a high multiplier here counted the
@@ -75,8 +75,8 @@ export const RELATIVE_QUALITY_REQUIREMENTS: Record<ShotType, number> = {
   // return — passing shots missed about 70% of the time, so the defender's only
   // aggressive option was a coin flip weighted against them and the net player
   // rarely got a ball to volley.
-  'passing_shot_forehand': 0.60,
-  'passing_shot_backhand': 0.60,
+  passing_shot_forehand: 0.6,
+  passing_shot_backhand: 0.6,
 };
 
 /**
@@ -86,9 +86,9 @@ export const RELATIVE_QUALITY_REQUIREMENTS: Record<ShotType, number> = {
  * Prevents requirements from becoming impossibly low.
  */
 export const MIN_QUALITY_FLOORS = {
-  offensive: 20,    // Power shots, passing shots, etc.
-  neutral: 15,      // Regular groundstrokes
-  defensive: 10,    // Slices, lobs, defensive shots
+  offensive: 20, // Power shots, passing shots, etc.
+  neutral: 15, // Regular groundstrokes
+  defensive: 10, // Slices, lobs, defensive shots
 };
 
 /**
@@ -190,50 +190,50 @@ export const WINNER_FLOOR_RETRIEVAL_REF = 50;
 
 export const MINIMUM_WINNER_THRESHOLDS: Record<ShotType, number> = {
   // Serves resolve through determineServeOutcome and never read this.
-  'serve_first': 50,
-  'serve_second': 50,
+  serve_first: 50,
+  serve_second: 50,
 
   // Put-aways — the lowest bar in the game
-  'overhead': 57,
-  'defensive_overhead': 80,
+  overhead: 57,
+  defensive_overhead: 80,
 
   // Power shots
-  'forehand_power': 61,
-  'backhand_power': 61,
-  'volley_forehand_power': 61,
-  'volley_backhand_power': 61,
-  'return_forehand_power': 68,
-  'return_backhand_power': 68,
+  forehand_power: 61,
+  backhand_power: 61,
+  volley_forehand_power: 61,
+  volley_backhand_power: 61,
+  return_forehand_power: 68,
+  return_backhand_power: 68,
 
   // Passing shots and volleys finish points from open positions
-  'passing_shot_forehand': 66,
-  'passing_shot_backhand': 66,
-  'volley_forehand': 67,
-  'volley_backhand': 67,
-  'half_volley_forehand': 75,
-  'half_volley_backhand': 75,
+  passing_shot_forehand: 66,
+  passing_shot_backhand: 66,
+  volley_forehand: 67,
+  volley_backhand: 67,
+  half_volley_forehand: 75,
+  half_volley_backhand: 75,
 
   // Touch and angle
-  'drop_shot_forehand': 70,
-  'drop_shot_backhand': 70,
-  'angle_shot_forehand': 81,
-  'angle_shot_backhand': 81,
+  drop_shot_forehand: 70,
+  drop_shot_backhand: 70,
+  angle_shot_forehand: 81,
+  angle_shot_backhand: 81,
 
   // Rally balls — a clean groundstroke can win, but it is not a put-away
-  'forehand': 80,
-  'backhand': 80,
-  'forehand_approach': 85,
-  'backhand_approach': 85,
+  forehand: 80,
+  backhand: 80,
+  forehand_approach: 85,
+  backhand_approach: 85,
 
   // Defensive shots should almost never be the winning shot
-  'slice_forehand': 93,
-  'slice_backhand': 93,
-  'return_forehand': 114,
-  'return_backhand': 114,
-  'lob_forehand': 100,
-  'lob_backhand': 100,
-  'defensive_slice_forehand': 105,
-  'defensive_slice_backhand': 105,
+  slice_forehand: 93,
+  slice_backhand: 93,
+  return_forehand: 114,
+  return_backhand: 114,
+  lob_forehand: 100,
+  lob_backhand: 100,
+  defensive_slice_forehand: 105,
+  defensive_slice_backhand: 105,
 };
 
 /**
@@ -245,20 +245,20 @@ export const MINIMUM_WINNER_THRESHOLDS: Record<ShotType, number> = {
 export const OUTCOME_MULTIPLIERS = {
   // Defensive shots: slices, lobs, defensive overheads
   defensive: {
-    inPlay: 1.0,        // Base requirement (easiest to keep in play)
-    forcedError: 0.7,   // Below 70% = forced error
+    inPlay: 1.0, // Base requirement (easiest to keep in play)
+    forcedError: 0.7, // Below 70% = forced error
   },
 
   // Neutral shots: regular groundstrokes, volleys
   neutral: {
-    inPlay: 1.0,        // Base requirement
-    forcedError: 0.7,   // Below 70% = forced error
+    inPlay: 1.0, // Base requirement
+    forcedError: 0.7, // Below 70% = forced error
   },
 
   // Offensive shots: power shots, overheads, passing shots, angles
   offensive: {
-    inPlay: 1.0,        // Base requirement
-    forcedError: 0.7,   // Below 70% = forced error
+    inPlay: 1.0, // Base requirement
+    forcedError: 0.7, // Below 70% = forced error
   },
 };
 
@@ -288,60 +288,60 @@ export const OUTCOME_MULTIPLIERS = {
  */
 export const WINNER_REQUIREMENTS: Record<ShotType, number> = {
   // Serves resolve through determineServeOutcome and never read this.
-  'serve_first': 1.80,
-  'serve_second': 1.80,
+  serve_first: 1.8,
+  serve_second: 1.8,
 
   // Neutral groundstrokes — a solid rally ball, not a finisher
-  'forehand': 2.20,
-  'backhand': 2.20,
+  forehand: 2.2,
+  backhand: 2.2,
 
   // Power shots — the primary point-enders
-  'forehand_power': 1.65,
-  'backhand_power': 1.65,
+  forehand_power: 1.65,
+  backhand_power: 1.65,
 
   // Approach shots set up the finish rather than being it
-  'forehand_approach': 2.10,
-  'backhand_approach': 2.10,
+  forehand_approach: 2.1,
+  backhand_approach: 2.1,
 
   // Volleys finish points; the power volley finishes harder
-  'volley_forehand': 1.95,
-  'volley_backhand': 1.95,
-  'volley_forehand_power': 1.65,
-  'volley_backhand_power': 1.65,
-  'half_volley_forehand': 2.00,
-  'half_volley_backhand': 2.00,
+  volley_forehand: 1.95,
+  volley_backhand: 1.95,
+  volley_forehand_power: 1.65,
+  volley_backhand_power: 1.65,
+  half_volley_forehand: 2.0,
+  half_volley_backhand: 2.0,
 
   // Overheads are the cleanest put-away in the game
-  'overhead': 1.85,
-  'defensive_overhead': 2.60,
+  overhead: 1.85,
+  defensive_overhead: 2.6,
 
   // Drop shots win, but not three times more often than a smash
-  'drop_shot_forehand': 2.60,
-  'drop_shot_backhand': 2.60,
+  drop_shot_forehand: 2.6,
+  drop_shot_backhand: 2.6,
 
   // Angles open the court and win outright reasonably often
-  'angle_shot_forehand': 1.90,
-  'angle_shot_backhand': 1.90,
+  angle_shot_forehand: 1.9,
+  angle_shot_backhand: 1.9,
 
   // Slices extend rallies — they should almost never be the winning shot
-  'slice_forehand': 3.50,
-  'slice_backhand': 3.50,
-  'defensive_slice_forehand': 4.95,
-  'defensive_slice_backhand': 4.95,
+  slice_forehand: 3.5,
+  slice_backhand: 3.5,
+  defensive_slice_forehand: 4.95,
+  defensive_slice_backhand: 4.95,
 
   // Returns are survival, not offence; the power return is a real weapon
-  'return_forehand': 2.25,
-  'return_backhand': 2.25,
-  'return_forehand_power': 1.80,
-  'return_backhand_power': 1.80,
+  return_forehand: 2.25,
+  return_backhand: 2.25,
+  return_forehand_power: 1.8,
+  return_backhand_power: 1.8,
 
   // Lobs reset the point
-  'lob_forehand': 4.15,
-  'lob_backhand': 4.15,
+  lob_forehand: 4.15,
+  lob_backhand: 4.15,
 
   // Passing shots are hit to win
-  'passing_shot_forehand': 1.60,
-  'passing_shot_backhand': 1.60,
+  passing_shot_forehand: 1.6,
+  passing_shot_backhand: 1.6,
 };
 
 /**
@@ -410,8 +410,8 @@ export const SERVE_CONTEST = {
  * Weights within each entry must sum to 1 so uniform-stat players keep their rating.
  */
 export const SERVE_QUALITY_WEIGHTS = {
-  serve_first: { serve: 0.60, strength: 0.20, tactics: 0.10, spin: 0.10 },
-  serve_second: { serve: 0.55, spin: 0.25, strength: 0.10, placement: 0.10 },
+  serve_first: { serve: 0.6, strength: 0.2, tactics: 0.1, spin: 0.1 },
+  serve_second: { serve: 0.55, spin: 0.25, strength: 0.1, placement: 0.1 },
 };
 
 export const SERVE_ACCURACY_WEIGHTS = {
@@ -427,7 +427,7 @@ export const SERVE_ACCURACY_WEIGHTS = {
  * Weights must sum to 1 so uniform-stat players keep their rating.
  */
 export const RETURN_COMPOSITE_WEIGHTS = {
-  return: 0.60,
+  return: 0.6,
   anticipation: 0.25,
   speed: 0.15,
 };
@@ -443,25 +443,25 @@ export const RETURN_COMPOSITE_WEIGHTS = {
  * primary + rest must sum to 1 so uniform-stat players keep their rating.
  */
 export const SHOT_COMPOSITE_WEIGHTS: Record<string, { primary: number; [stat: string]: number }> = {
-  groundstroke: { primary: 0.80, strength: 0.10, spin: 0.10 },
+  groundstroke: { primary: 0.8, strength: 0.1, spin: 0.1 },
   // An approach is a groundstroke that starts the net phase, so the wing still
   // leads but `net` carries a large share: it is the first shot of that phase,
   // and it is what the net archetypes actually buy when they raise
   // NET_APPROACH_BIAS. Without this the net stat only touched the volley and
   // the overhead, about 10% of a net specialist's rally shots, while approaches
   // were another 31% and paid the forehand instead.
-  approach: { primary: 0.50, net: 0.35, placement: 0.15 },
-  powerGroundstroke: { primary: 0.70, strength: 0.25, spin: 0.05 },
+  approach: { primary: 0.5, net: 0.35, placement: 0.15 },
+  powerGroundstroke: { primary: 0.7, strength: 0.25, spin: 0.05 },
   // volley and overhead share the `net` primary; the supports differ because a
   // volley is a reaction and an overhead is a strike.
-  volley: { primary: 0.70, speed: 0.20, anticipation: 0.10 },
-  overhead: { primary: 0.70, strength: 0.15, speed: 0.15 },
+  volley: { primary: 0.7, speed: 0.2, anticipation: 0.1 },
+  overhead: { primary: 0.7, strength: 0.15, speed: 0.15 },
   // Drop shots are placement-primary now, so touch comes from spin instead.
-  dropShot: { primary: 0.70, spin: 0.20, speed: 0.10 },
-  slice: { primary: 0.75, spin: 0.15, placement: 0.10 },
-  angle: { primary: 0.70, spin: 0.15, speed: 0.15 },
-  lob: { primary: 0.70, anticipation: 0.15, speed: 0.15 },
-  passing: { primary: 0.65, speed: 0.20, spin: 0.15 },
+  dropShot: { primary: 0.7, spin: 0.2, speed: 0.1 },
+  slice: { primary: 0.75, spin: 0.15, placement: 0.1 },
+  angle: { primary: 0.7, spin: 0.15, speed: 0.15 },
+  lob: { primary: 0.7, anticipation: 0.15, speed: 0.15 },
+  passing: { primary: 0.65, speed: 0.2, spin: 0.15 },
 };
 
 /**
@@ -477,8 +477,8 @@ export const OPPONENT_STAT_ADJUSTMENTS = {
   // Kept small: these apply to EVERY rally shot, so they compound across the
   // rally and then across the match. Large values turn small stat gaps into
   // near-certain match outcomes.
-  tactics: 0.12,     // A tactically sharp defender makes winners harder
-  speed: 0.12,       // Speed helps cover court
+  tactics: 0.12, // A tactically sharp defender makes winners harder
+  speed: 0.12, // Speed helps cover court
   // Only applies while the opponent is at the net, where it modulates
   // POSITION_ADJUSTMENTS.at_net. Larger than the others because it is
   // conditional: they apply to every rally shot, this one to the passing
@@ -497,7 +497,7 @@ export const OPPONENT_STAT_ADJUSTMENTS = {
   // Keep it — the effect is real and the intent is right — but the thing that
   // actually makes a bad volleyer easy to pass is the volley composite, not
   // this. Tune the composite, not this constant.
-  netCoverage: 0.20, // Covering the net makes the pass harder to thread
+  netCoverage: 0.2, // Covering the net makes the pass harder to thread
 };
 
 /**
@@ -510,7 +510,7 @@ export const OPPONENT_STAT_ADJUSTMENTS = {
  * Example: shooter anticipation 10 → (10-50) × 0.15 = +6 to threshold (harder)
  */
 export const SHOOTER_STAT_ADJUSTMENTS = {
-  anticipation: 0.10,  // Reading the incoming ball makes responding easier
+  anticipation: 0.1, // Reading the incoming ball makes responding easier
 };
 
 /**
@@ -547,19 +547,19 @@ export const MODIFIER_SPREAD = 1.0;
  */
 export const STAT_MODIFIER_BANDS = {
   /** speed, on defensive shots and from a defensive court position */
-  courtCoverage: 0.10,
+  courtCoverage: 0.1,
   /** speed, on net shots and any ball that arrives rushed */
   reactions: 0.15,
   /** strength, on power shots */
-  power: 0.10,
+  power: 0.1,
   /** anticipation, when the opponent is at net or well positioned */
-  reading: 0.10,
+  reading: 0.1,
   /** spin, on tactical shots (drop, angle, lob, passing) */
   touch: 0.075,
   /** tactics, on whichever kind of shot was chosen — attacking or defending */
   tactics: 0.15,
   /** spin, on shots that are made of spin (slice, drop, defensive slice) */
-  shape: 0.10,
+  shape: 0.1,
   /** placement, on shots that are made of placement (drop, angle, lob) */
   precision: 0.075,
 } as const;
@@ -632,7 +632,7 @@ export const NET_APPROACH_BIAS_SCALE = 3.0;
  * 18.2% — coming forward more often shortens points and adds risk, which is
  * what it should do.
  */
-export const NET_APPROACH_BASE = 0.20;
+export const NET_APPROACH_BASE = 0.2;
 
 /**
  * Lower bound on the per-opportunity chance. A build can prefer the baseline;
@@ -641,15 +641,15 @@ export const NET_APPROACH_BASE = 0.20;
 export const NET_APPROACH_FLOOR = 0.05;
 
 export const POSITION_ADJUSTMENTS: Record<CourtPosition, number> = {
-  'well_positioned': +3,      // Opponent ready and centered
-  'slightly_off': +0,         // Neutral
-  'way_out_wide': -8,         // Opponent pushed wide (easier to win)
-  'way_back_deep': -5,        // Opponent behind baseline
-  'recovering': -3,           // Opponent in transition
+  well_positioned: +3, // Opponent ready and centered
+  slightly_off: +0, // Neutral
+  way_out_wide: -8, // Opponent pushed wide (easier to win)
+  way_back_deep: -5, // Opponent behind baseline
+  recovering: -3, // Opponent in transition
   // Baseline for a neutral (50) volleyer; the real bar scales with the net
   // player's `net` rating via OPPONENT_STAT_ADJUSTMENTS.netCoverage. Coming
   // forward is only a threat if you can actually cover what you opened up.
-  'at_net': +10,
+  at_net: +10,
 };
 
 /**
@@ -663,8 +663,8 @@ export const POSITION_ADJUSTMENTS: Record<CourtPosition, number> = {
  * Keep reasonable to avoid constant 100 quality or negative quality.
  */
 export const SERVE_VARIANCE = {
-  first: 12,    // ±12 quality variance on first serve (widened for more natural spread)
-  second: 6,    // ±6 quality variance on second serve
+  first: 12, // ±12 quality variance on first serve (widened for more natural spread)
+  second: 6, // ±6 quality variance on second serve
 };
 
 /**
@@ -673,7 +673,7 @@ export const SERVE_VARIANCE = {
  * Applied as ±variance to return quality.
  * Adds realistic variation to returns instead of constant quality values.
  */
-export const RETURN_VARIANCE = 10;  // ±10 quality variance on returns
+export const RETURN_VARIANCE = 10; // ±10 quality variance on returns
 
 /**
  * Rally shot variance (quality randomness)
@@ -686,9 +686,9 @@ export const RETURN_VARIANCE = 10;  // ±10 quality variance on returns
  * Example: vs quality 80 shot → 4 + (80/100) * 6 = 4 + 4.8 = ±8.8 variance
  */
 export const RALLY_SHOT_VARIANCE = {
-  base: 9,              // Base ±9 variance on all rally shots (widened for upset potential)
+  base: 9, // Base ±9 variance on all rally shots (widened for upset potential)
   qualityMultiplier: 6, // Additional variance based on incoming shot quality
-};  // Creates realistic errors independent of fatigue
+}; // Creates realistic errors independent of fatigue
 
 /**
  * Serve stat bands — which stats shade serve quality beyond the composite blend,
@@ -747,8 +747,8 @@ export const TOTAL_MODIFIER_CAPS = {
   // 1.05 also keeps the accuracy channel live furthest up the range — it does
   // not reach 100 until L~95, against L~83 at a cap of 1.20.
   serve: 1.05,
-  return: 1.20,   // Max 120% total modifier for returns
-  rally: 1.25,    // Max 125% total modifier for rally shots
+  return: 1.2, // Max 120% total modifier for returns
+  rally: 1.25, // Max 125% total modifier for rally shots
 };
 
 /**
@@ -762,15 +762,15 @@ export const TOTAL_MODIFIER_CAPS = {
  */
 export const PROBABILITY_STEEPNESS = {
   serve: {
-    inPlay: 0.08,      // ~45-point band for serve fault/in
-    ace: 0.08,          // ~45-point band for aces (very gradual)
+    inPlay: 0.08, // ~45-point band for serve fault/in
+    ace: 0.08, // ~45-point band for aces (very gradual)
   },
   rally: {
     // Deliberately flat: rally shots are repeated contests, so per-shot edges
     // compound. Flat curves keep small stat gaps from deciding whole matches.
-    winner: 0.07,       // ~50-point band for winners
-    inPlay: 0.08,       // ~45-point band for keeping in play
-    forcedError: 0.10,  // ~36-point band for forced vs unforced
+    winner: 0.07, // ~50-point band for winners
+    inPlay: 0.08, // ~45-point band for keeping in play
+    forcedError: 0.1, // ~36-point band for forced vs unforced
   },
 };
 
@@ -805,11 +805,7 @@ export function getShotCategory(shotType: ShotType): 'offensive' | 'neutral' | '
   }
 
   // Defensive shots
-  if (
-    shotStr.includes('slice') ||
-    shotStr.includes('lob') ||
-    shotStr.includes('defensive')
-  ) {
+  if (shotStr.includes('slice') || shotStr.includes('lob') || shotStr.includes('defensive')) {
     return 'defensive';
   }
 
@@ -845,7 +841,7 @@ export const DIFFICULTY_SCORE_FACTORS = {
     recovering: 20,
     slightly_off: 10,
     well_positioned: 0,
-    at_net: 10,   // volleying is a reaction shot — not a free putaway
+    at_net: 10, // volleying is a reaction shot — not a free putaway
   } as Record<CourtPosition, number>,
 
   /** Incoming ball quality thresholds (relative to match level) */
@@ -952,15 +948,15 @@ export const MATCH_FATIGUE = {
 
 /** Fatigue quality modifier: linear from 1.0 (fatigue=0) to minModifier (fatigue=100) */
 export const FATIGUE_MODIFIER = {
-  minModifier: 0.80, // 20% max penalty at total exhaustion
+  minModifier: 0.8, // 20% max penalty at total exhaustion
 };
 
 /** Momentum quality modifier */
 export const MOMENTUM_MODIFIER = {
   /** Max bonus from positive momentum (+100) */
-  maxBonus: 0.10,
+  maxBonus: 0.1,
   /** Max penalty from negative momentum (-100) */
-  maxPenalty: 0.10,
+  maxPenalty: 0.1,
   /** Focus stat mitigation: at focus 100, negative penalty reduced by this fraction */
   focusMitigation: 0.5,
 };
@@ -1016,8 +1012,8 @@ export const MOMENTUM = {
    * favour, so it can flip the sign outright even against a prior run of play.
    */
   breakOfServe: {
-    target: 45,     // absolute momentum a break pulls toward (signed to the breaker)
-    takeover: 0.5,  // fraction of the way to target (still flips through 0, a touch gentler)
+    target: 45, // absolute momentum a break pulls toward (signed to the breaker)
+    takeover: 0.5, // fraction of the way to target (still flips through 0, a touch gentler)
   },
 
   /**
@@ -1025,8 +1021,8 @@ export const MOMENTUM = {
    * mostly wipes and keeps only a small tilt toward whoever took the set.
    */
   setWon: {
-    damp: 0.3,   // retain this fraction of pre-set momentum
-    nudge: 12,   // small signed nudge toward the set winner
+    damp: 0.3, // retain this fraction of pre-set momentum
+    nudge: 12, // small signed nudge toward the set winner
   },
 };
 
@@ -1183,7 +1179,7 @@ export const PRESSURE_BANK = {
   /** Max absolute value the bank can reach */
   clamp: 40,
   /** Decay multiplier per point */
-  decay: 0.90,
+  decay: 0.9,
 };
 
 // =======================
@@ -1210,11 +1206,11 @@ export interface SurfaceEffects {
 export const SURFACE_EFFECTS: Record<CourtSurface, SurfaceEffects> = {
   // Baseline — reference balance that existing tuning is calibrated against.
   hard: {
-    serveQualityMultiplier: 1.00,
-    rallyPaceMultiplier: 1.00,
-    netApproachBonus: 0.00,
-    defensiveAdjustmentMultiplier: 1.00,
-    returnAdjustmentMultiplier: 1.00,
+    serveQualityMultiplier: 1.0,
+    rallyPaceMultiplier: 1.0,
+    netApproachBonus: 0.0,
+    defensiveAdjustmentMultiplier: 1.0,
+    returnAdjustmentMultiplier: 1.0,
   },
   // Slow surface: serves weaker, rallies longer, defense rewarded, net play risky.
   clay: {
@@ -1228,7 +1224,7 @@ export const SURFACE_EFFECTS: Record<CourtSurface, SurfaceEffects> = {
   grass: {
     serveQualityMultiplier: 1.05,
     rallyPaceMultiplier: 1.03,
-    netApproachBonus: 0.40,
+    netApproachBonus: 0.4,
     defensiveAdjustmentMultiplier: 0.85,
     returnAdjustmentMultiplier: 0.85,
   },
@@ -1260,11 +1256,55 @@ export const SURFACE_EFFECTS: Record<CourtSurface, SurfaceEffects> = {
  * a composite weight with extra steps.
  */
 export const SHOT_CLASSIFICATIONS: Record<string, readonly ShotType[]> = {
-  powerShots: ['serve_first', 'forehand_power', 'backhand_power', 'return_forehand_power', 'return_backhand_power', 'overhead', 'passing_shot_forehand', 'passing_shot_backhand', 'volley_forehand_power', 'volley_backhand_power'],
-  spinShots: ['slice_forehand', 'slice_backhand', 'drop_shot_forehand', 'drop_shot_backhand', 'defensive_slice_forehand', 'defensive_slice_backhand'],
-  placementShots: ['drop_shot_forehand', 'drop_shot_backhand', 'angle_shot_forehand', 'angle_shot_backhand', 'lob_forehand', 'lob_backhand'],
-  netShots: ['volley_forehand', 'volley_backhand', 'volley_forehand_power', 'volley_backhand_power', 'half_volley_forehand', 'half_volley_backhand', 'overhead', 'defensive_overhead'],
-  defensiveShots: ['defensive_slice_forehand', 'defensive_slice_backhand', 'defensive_overhead', 'return_forehand', 'return_backhand', 'lob_forehand', 'lob_backhand', 'passing_shot_forehand', 'passing_shot_backhand'],
+  powerShots: [
+    'serve_first',
+    'forehand_power',
+    'backhand_power',
+    'return_forehand_power',
+    'return_backhand_power',
+    'overhead',
+    'passing_shot_forehand',
+    'passing_shot_backhand',
+    'volley_forehand_power',
+    'volley_backhand_power',
+  ],
+  spinShots: [
+    'slice_forehand',
+    'slice_backhand',
+    'drop_shot_forehand',
+    'drop_shot_backhand',
+    'defensive_slice_forehand',
+    'defensive_slice_backhand',
+  ],
+  placementShots: [
+    'drop_shot_forehand',
+    'drop_shot_backhand',
+    'angle_shot_forehand',
+    'angle_shot_backhand',
+    'lob_forehand',
+    'lob_backhand',
+  ],
+  netShots: [
+    'volley_forehand',
+    'volley_backhand',
+    'volley_forehand_power',
+    'volley_backhand_power',
+    'half_volley_forehand',
+    'half_volley_backhand',
+    'overhead',
+    'defensive_overhead',
+  ],
+  defensiveShots: [
+    'defensive_slice_forehand',
+    'defensive_slice_backhand',
+    'defensive_overhead',
+    'return_forehand',
+    'return_backhand',
+    'lob_forehand',
+    'lob_backhand',
+    'passing_shot_forehand',
+    'passing_shot_backhand',
+  ],
 };
 
 export function isTacticalShot(shotType: ShotType): boolean {
@@ -1283,11 +1323,7 @@ export function isTacticalShot(shotType: ShotType): boolean {
  */
 export function isDefensiveShot(shotType: ShotType): boolean {
   const s = shotType.toString();
-  return (
-    s.includes('slice') ||
-    s.includes('lob') ||
-    s.includes('defensive_')
-  );
+  return s.includes('slice') || s.includes('lob') || s.includes('defensive_');
 }
 
 /**
@@ -1298,8 +1334,7 @@ export function isOffensiveShot(shotType: ShotType): boolean {
   return (
     s.includes('serve_first') ||
     s.includes('_power') ||
-    s.includes('overhead') || 
+    s.includes('overhead') ||
     s.includes('_approach')
   );
 }
-

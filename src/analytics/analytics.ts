@@ -62,10 +62,10 @@ function statsSnapshot(player: Player): Record<string, number> {
 
   const avg = (vals: number[]) => vals.reduce((s, v) => s + v, 0) / vals.length;
 
-  const coreAvg     = avg(Object.values(core));
+  const coreAvg = avg(Object.values(core));
   const technicalAvg = avg(Object.values(technical));
-  const physicalAvg  = avg(Object.values(physical));
-  const mentalAvg    = avg(Object.values(mental));
+  const physicalAvg = avg(Object.values(physical));
+  const mentalAvg = avg(Object.values(mental));
 
   // Simple mean of all 20 stats
   const statAverage = avg([coreAvg, technicalAvg, physicalAvg, mentalAvg]);
@@ -73,10 +73,7 @@ function statsSnapshot(player: Player): Record<string, number> {
   // Weighted overall rating — mirrors PlayerProfile.overallRating
   // Core has the most impact on match outcomes
   const overallRating = Math.round(
-    coreAvg * 0.45 +
-    technicalAvg * 0.15 +
-    physicalAvg * 0.25 +
-    mentalAvg * 0.15
+    coreAvg * 0.45 + technicalAvg * 0.15 + physicalAvg * 0.25 + mentalAvg * 0.15,
   );
 
   return {
@@ -137,16 +134,11 @@ export function trackPlayerCreated(
 // Training
 // ---------------------------------------------------------------------------
 
-export function trackTrainingCompleted(
-  result: TrainingResult,
-  player: Player,
-): void {
+export function trackTrainingCompleted(result: TrainingResult, player: Player): void {
   // Find the stat with the largest boost for "primary stat trained" label
   const boostEntries = Object.entries(result.statBoosts);
   const primaryStat =
-    boostEntries.length > 0
-      ? boostEntries.reduce((a, b) => (b[1] > a[1] ? b : a))[0]
-      : 'none';
+    boostEntries.length > 0 ? boostEntries.reduce((a, b) => (b[1] > a[1] ? b : a))[0] : 'none';
   const totalGain = boostEntries.reduce((sum, [, v]) => sum + v, 0);
 
   track('training_completed', {

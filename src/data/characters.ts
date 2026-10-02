@@ -106,7 +106,6 @@ export const CHARACTERS: Record<string, Character> = {
     name: 'Chet Vale',
     role: 'Opponent',
   },
-
 };
 
 /**
@@ -122,7 +121,10 @@ export function getCharacterName(characterId: string | null, playerName?: string
     return playerName || 'You';
   }
 
-  return CHARACTERS[characterId]?.name || characterId.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+  return (
+    CHARACTERS[characterId]?.name ||
+    characterId.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
+  );
 }
 
 /**

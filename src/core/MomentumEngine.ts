@@ -39,8 +39,7 @@ export interface MomentumPointEvent {
   setWonBy?: 'player' | 'opponent';
 }
 
-const clamp = (v: number): number =>
-  Math.max(-MOMENTUM.clamp, Math.min(MOMENTUM.clamp, v));
+const clamp = (v: number): number => Math.max(-MOMENTUM.clamp, Math.min(MOMENTUM.clamp, v));
 
 export class MomentumEngine {
   private value = 0;
@@ -85,19 +84,16 @@ export class MomentumEngine {
     // 3. Break of serve — a takeover that lerps strongly toward the breaker.
     //    (Holds produce no game event; they simply keep momentum where it is.)
     if (event.game?.wasBreak) {
-      const target = event.game.winner === 'player'
-        ? MOMENTUM.breakOfServe.target
-        : -MOMENTUM.breakOfServe.target;
-      this.value = clamp(
-        this.value + (target - this.value) * MOMENTUM.breakOfServe.takeover
-      );
+      const target =
+        event.game.winner === 'player'
+          ? MOMENTUM.breakOfServe.target
+          : -MOMENTUM.breakOfServe.target;
+      this.value = clamp(this.value + (target - this.value) * MOMENTUM.breakOfServe.takeover);
     }
 
     // 4. Set boundary — mostly reset, small tilt to the set winner.
     if (event.setWonBy) {
-      const nudge = event.setWonBy === 'player'
-        ? MOMENTUM.setWon.nudge
-        : -MOMENTUM.setWon.nudge;
+      const nudge = event.setWonBy === 'player' ? MOMENTUM.setWon.nudge : -MOMENTUM.setWon.nudge;
       this.value = clamp(this.value * MOMENTUM.setWon.damp + nudge);
     }
   }

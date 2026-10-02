@@ -33,19 +33,40 @@ import { PlayerProfile, getShotStatWeights } from '../../core/PlayerProfile';
 import { PointSimulator } from '../../core/PointSimulator';
 import { ScoreTracker } from '../../core/ScoreTracker';
 import { MATCH_FATIGUE } from '../../config/shotThresholds';
-import { aggregateArchetypeEffects, profileForArchetype, PATHS_BY_PHASE, type LegacyArchetype } from '../../data/archetypeTree';
+import {
+  aggregateArchetypeEffects,
+  profileForArchetype,
+  PATHS_BY_PHASE,
+  type LegacyArchetype,
+} from '../../data/archetypeTree';
 import { drawPlayerProfile } from './playerFactory';
 
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
 
 const STAT_ORDER = [
-  'serve', 'forehand', 'backhand', 'return', 'net',
-  'slice', 'spin', 'placement',
-  'speed', 'stamina', 'strength',
-  'focus', 'anticipation', 'tactics',
+  'serve',
+  'forehand',
+  'backhand',
+  'return',
+  'net',
+  'slice',
+  'spin',
+  'placement',
+  'speed',
+  'stamina',
+  'strength',
+  'focus',
+  'anticipation',
+  'tactics',
 ] as const;
 
-const LEGACY: LegacyArchetype[] = ['aggressive', 'defensive', 'counterpuncher', 'serve_volley', 'all_court'];
+const LEGACY: LegacyArchetype[] = [
+  'aggressive',
+  'defensive',
+  'counterpuncher',
+  'serve_volley',
+  'all_court',
+];
 
 /** The net phase each legacy archetype buys — the thing that decides net frequency. */
 const NET_PATH: Record<string, string> = {
@@ -83,7 +104,7 @@ function profileOf(phases: Partial<Record<GamePhase, PhaseSpec>>): ArchetypeProf
 function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
   return () => {
-    a = (a + 0x6D2B79F5) >>> 0;
+    a = (a + 0x6d2b79f5) >>> 0;
     let t = Math.imul(a ^ (a >>> 15), 1 | a);
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
@@ -96,7 +117,8 @@ function calcFatigue(cur: number, rally: number, stam: number): number {
   if (rally > MATCH_FATIGUE.longRallyThreshold) {
     gain += (rally - MATCH_FATIGUE.longRallyThreshold) * MATCH_FATIGUE.longRallyExtra * sf;
   }
-  const rec = MATCH_FATIGUE.baseRecoveryPerPoint +
+  const rec =
+    MATCH_FATIGUE.baseRecoveryPerPoint +
     (stam / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
   return Math.max(0, Math.min(100, cur + gain - rec));
 }
@@ -116,35 +138,62 @@ interface Tally {
 }
 
 const newTally = (): Tally => ({
-  weight: new Map(), rallyShots: 0, sliceFamily: 0, defensiveSlice: 0, netFamily: 0,
-  points: 0, netPoints: 0, shotsVsNetman: 0, byArchetype: new Map(),
+  weight: new Map(),
+  rallyShots: 0,
+  sliceFamily: 0,
+  defensiveSlice: 0,
+  netFamily: 0,
+  points: 0,
+  netPoints: 0,
+  shotsVsNetman: 0,
+  byArchetype: new Map(),
 });
 
-function isSliceFamily(t: string): boolean { return t.includes('slice'); }
+function isSliceFamily(t: string): boolean {
+  return t.includes('slice');
+}
 function isNetFamily(t: string): boolean {
   return t.includes('volley') || t.includes('overhead');
 }
 
 function runMatch(
-  p: PlayerProfile, o: PlayerProfile, pName: string, oName: string,
-  pEff: Record<string, number>, oEff: Record<string, number>, t: Tally,
+  p: PlayerProfile,
+  o: PlayerProfile,
+  pName: string,
+  oName: string,
+  pEff: Record<string, number>,
+  oEff: Record<string, number>,
+  t: Tally,
 ): void {
   const tracker = new ScoreTracker(BO3);
   tracker.setInitialServer(Math.random() < 0.5 ? 'player' : 'opponent');
-  p.rollMatchForm(); o.rollMatchForm();
+  p.rollMatchForm();
+  o.rollMatchForm();
   const sim = new PointSimulator();
   const ms: MatchState = {
-    score: tracker.getScore(), currentServer: tracker.getCurrentServer(), courtSurface: 'hard',
-    momentum: 0, pressure: 'low', matchLength: 0, pointsPlayed: 0,
-    isKeyMoment: false, fatigue: { player: 0, opponent: 0 },
+    score: tracker.getScore(),
+    currentServer: tracker.getCurrentServer(),
+    courtSurface: 'hard',
+    momentum: 0,
+    pressure: 'low',
+    matchLength: 0,
+    pointsPlayed: 0,
+    isKeyMoment: false,
+    fatigue: { player: 0, opponent: 0 },
   };
 
   let pts = 0;
   while (!tracker.isComplete() && pts < 600) {
     const server = tracker.getCurrentServer();
     ms.isKeyMoment = tracker.isKeyMoment();
-    const pr = sim.simulatePoint(server, server === 'player' ? p : o,
-      server === 'player' ? o : p, ms, pEff, oEff);
+    const pr = sim.simulatePoint(
+      server,
+      server === 'player' ? p : o,
+      server === 'player' ? o : p,
+      ms,
+      pEff,
+      oEff,
+    );
 
     t.points++;
     const playerRole = server === 'player' ? 'server' : 'returner';
@@ -186,17 +235,26 @@ function runMatch(
 
     if (anyoneAtNet) t.netPoints++;
 
-    for (const [name, role] of [[pName, playerRole], [oName, playerRole === 'server' ? 'returner' : 'server']] as const) {
+    for (const [name, role] of [
+      [pName, playerRole],
+      [oName, playerRole === 'server' ? 'returner' : 'server'],
+    ] as const) {
       const e = t.byArchetype.get(name) ?? { rallies: 0, arrived: 0 };
       e.rallies++;
       if (arrived[role as 'server' | 'returner']) e.arrived++;
       t.byArchetype.set(name, e);
     }
 
-    tracker.addPoint(pr.winner === 'server' ? server : (server === 'player' ? 'opponent' : 'player'));
+    tracker.addPoint(pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player');
     ms.fatigue.player = calcFatigue(ms.fatigue.player, pr.rallyLength, p.stats.physical.stamina);
-    ms.fatigue.opponent = calcFatigue(ms.fatigue.opponent, pr.rallyLength, o.stats.physical.stamina);
-    ms.score = tracker.getScore(); ms.currentServer = tracker.getCurrentServer(); ms.pointsPlayed = ++pts;
+    ms.fatigue.opponent = calcFatigue(
+      ms.fatigue.opponent,
+      pr.rallyLength,
+      o.stats.physical.stamina,
+    );
+    ms.score = tracker.getScore();
+    ms.currentServer = tracker.getCurrentServer();
+    ms.pointsPlayed = ++pts;
   }
 }
 
@@ -227,19 +285,22 @@ function main(): void {
     const a = LEGACY[Math.floor(rng() * LEGACY.length)];
     return [a, profileForArchetype(a)];
   };
-  const drawPlayer = (): [string, ArchetypeProfile] => ['player build', drawPlayerProfile(rng, POINTS, MAX_TIER)];
+  const drawPlayer = (): [string, ArchetypeProfile] => [
+    'player build',
+    drawPlayerProfile(rng, POINTS, MAX_TIER),
+  ];
 
   // Which side of the net each build model represents. `presets` reproduces the
   // old symmetric draw for comparison against previously published numbers.
-  const draw = MODE === 'presets'
-    ? [drawOpponent, drawOpponent]
-    : [drawPlayer, drawOpponent];
+  const draw = MODE === 'presets' ? [drawOpponent, drawOpponent] : [drawPlayer, drawOpponent];
 
   console.log(`\n╔══ POPULATION PROBE — what the regression harnesses actually sample ══╗`);
   console.log(`\n   ${N} pairings, stats ~ U(${LO}, ${HI}), seed ${SEED}.`);
-  console.log(MODE === 'presets'
-    ? `   POP=presets: both sides drawn from the five authored opponent profiles.\n`
-    : `   POP=real: player side spends ${POINTS} specialization points (max tier ${MAX_TIER});\n   opponent side drawn from the five authored profiles.\n`);
+  console.log(
+    MODE === 'presets'
+      ? `   POP=presets: both sides drawn from the five authored opponent profiles.\n`
+      : `   POP=real: player side spends ${POINTS} specialization points (max tier ${MAX_TIER});\n   opponent side drawn from the five authored profiles.\n`,
+  );
 
   const t = newTally();
   const pathHits = new Map<string, number>();
@@ -247,50 +308,86 @@ function main(): void {
   for (let i = 0; i < N; i++) {
     const [pn, pp] = draw[0]();
     const [on, op] = draw[1]();
-    for (const [phase, spec] of Object.entries(pp.phases)) pathHits.set(spec.path, (pathHits.get(spec.path) ?? 0) + 1), tierHits.set(spec.tier, (tierHits.get(spec.tier) ?? 0) + 1), void phase;
-    for (const [phase, spec] of Object.entries(op.phases)) pathHits.set(spec.path, (pathHits.get(spec.path) ?? 0) + 1), tierHits.set(spec.tier, (tierHits.get(spec.tier) ?? 0) + 1), void phase;
+    for (const [phase, spec] of Object.entries(pp.phases))
+      (pathHits.set(spec.path, (pathHits.get(spec.path) ?? 0) + 1),
+        tierHits.set(spec.tier, (tierHits.get(spec.tier) ?? 0) + 1),
+        void phase);
+    for (const [phase, spec] of Object.entries(op.phases))
+      (pathHits.set(spec.path, (pathHits.get(spec.path) ?? 0) + 1),
+        tierHits.set(spec.tier, (tierHits.get(spec.tier) ?? 0) + 1),
+        void phase);
     runMatch(
-      new PlayerProfile('p', 'P', drawStats(), pp), new PlayerProfile('o', 'O', drawStats(), op),
-      pn, on, aggregateArchetypeEffects(pp), aggregateArchetypeEffects(op), t,
+      new PlayerProfile('p', 'P', drawStats(), pp),
+      new PlayerProfile('o', 'O', drawStats(), op),
+      pn,
+      on,
+      aggregateArchetypeEffects(pp),
+      aggregateArchetypeEffects(op),
+      t,
     );
   }
 
   console.log('── who is in the population, and what net phase they bought ──\n');
-  const head = ['archetype'.padEnd(16), 'share'.padStart(8), 'reaches net'.padStart(13), '  net phase'].join('');
+  const head = [
+    'archetype'.padEnd(16),
+    'share'.padStart(8),
+    'reaches net'.padStart(13),
+    '  net phase',
+  ].join('');
   console.log(head);
   console.log('-'.repeat(head.length));
   const totalRallies = [...t.byArchetype.values()].reduce((a, e) => a + e.rallies, 0);
-  for (const [name, e] of [...t.byArchetype.entries()].sort((a, b) => b[1].rallies - a[1].rallies)) {
-    console.log([
-      name.padEnd(16),
-      pc(e.rallies, totalRallies).padStart(8),
-      pc(e.arrived, e.rallies).padStart(13),
-      `  ${NET_PATH[name] ?? '?'}`,
-    ].join(''));
+  for (const [name, e] of [...t.byArchetype.entries()].sort(
+    (a, b) => b[1].rallies - a[1].rallies,
+  )) {
+    console.log(
+      [
+        name.padEnd(16),
+        pc(e.rallies, totalRallies).padStart(8),
+        pc(e.arrived, e.rallies).padStart(13),
+        `  ${NET_PATH[name] ?? '?'}`,
+      ].join(''),
+    );
   }
 
   console.log('\n\n── specialty coverage: does the draw reach what the game contains? ──\n');
-  const allPaths = Object.values(PATHS_BY_PHASE).flat().map(d => d.id);
-  const unseen = allPaths.filter(id => !pathHits.has(id));
+  const allPaths = Object.values(PATHS_BY_PHASE)
+    .flat()
+    .map((d) => d.id);
+  const unseen = allPaths.filter((id) => !pathHits.has(id));
   console.log(`  paths reached      ${allPaths.length - unseen.length} of ${allPaths.length}`);
   if (unseen.length) console.log(`  NEVER SAMPLED      ${unseen.join(', ')}`);
   const tierTotal = [...tierHits.values()].reduce((a, b) => a + b, 0);
-  console.log(`  specialties by tier  ` +
-    [1, 2, 3].map(tr => `T${tr} ${pc(tierHits.get(tr) ?? 0, tierTotal)}`).join('   '));
+  console.log(
+    `  specialties by tier  ` +
+      [1, 2, 3].map((tr) => `T${tr} ${pc(tierHits.get(tr) ?? 0, tierTotal)}`).join('   '),
+  );
 
   console.log('\n\n── how often the conditional gates are open ──\n');
-  console.log(`  points where either player reached the net   ${pc(t.netPoints, t.points).padStart(8)}`);
-  console.log(`  rally shots hit against a player at the net  ${pc(t.shotsVsNetman, t.rallyShots).padStart(8)}   <- netCoverage's gate`);
-  console.log(`  rally shots from the net (volley/overhead)   ${pc(t.netFamily, t.rallyShots).padStart(8)}   <- the net stat's own shots`);
-  console.log(`  rally shots in the slice family             ${pc(t.sliceFamily, t.rallyShots).padStart(8)}   <- the slice stat's own shots`);
-  console.log(`    of which DEFENSIVE slice                  ${pc(t.defensiveSlice, t.sliceFamily).padStart(8)}   <- a shot hit while losing the point`);
+  console.log(
+    `  points where either player reached the net   ${pc(t.netPoints, t.points).padStart(8)}`,
+  );
+  console.log(
+    `  rally shots hit against a player at the net  ${pc(t.shotsVsNetman, t.rallyShots).padStart(8)}   <- netCoverage's gate`,
+  );
+  console.log(
+    `  rally shots from the net (volley/overhead)   ${pc(t.netFamily, t.rallyShots).padStart(8)}   <- the net stat's own shots`,
+  );
+  console.log(
+    `  rally shots in the slice family             ${pc(t.sliceFamily, t.rallyShots).padStart(8)}   <- the slice stat's own shots`,
+  );
+  console.log(
+    `    of which DEFENSIVE slice                  ${pc(t.defensiveSlice, t.sliceFamily).padStart(8)}   <- a shot hit while losing the point`,
+  );
   console.log('\n  slice preference sources:');
   for (const [name, path] of Object.entries(SLICE_PATH)) {
     if (path !== '—') console.log(`    opponent preset ${name} -> ${path}`);
   }
-  console.log(MODE === 'presets'
-    ? '    fs_curveball (the only SLICE_PREFERENCE_FOREHAND) is NEVER SAMPLED here'
-    : '    player builds can also buy bh_samurai and fs_curveball at any tier');
+  console.log(
+    MODE === 'presets'
+      ? '    fs_curveball (the only SLICE_PREFERENCE_FOREHAND) is NEVER SAMPLED here'
+      : '    player builds can also buy bh_samurai and fs_curveball at any tier',
+  );
 
   console.log('\n\n── share of the shot-quality budget, over the whole population ──\n');
   const total = [...t.weight.values()].reduce((a, b) => a + b, 0);

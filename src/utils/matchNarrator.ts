@@ -10,8 +10,8 @@ import type { KeyMomentResult } from '../game/KeyMomentResolver';
 /** Simple point data for narration (matches keyMoments.ts PointResult) */
 interface NarrationPoint {
   winner: 'player' | 'opponent';
-  outcome: string;       // PointType value
-  shotType?: string;      // ShotType value of the decisive shot
+  outcome: string; // PointType value
+  shotType?: string; // ShotType value of the decisive shot
   rallyLength?: number;
   server?: 'player' | 'opponent';
 }
@@ -61,19 +61,19 @@ function formatShotType(shotType: string): string {
 export function narratePoint(
   point: NarrationPoint,
   playerName: string,
-  opponentName: string
+  opponentName: string,
 ): string {
   const winnerName = point.winner === 'player' ? playerName : opponentName;
   const loserName = point.winner === 'player' ? opponentName : playerName;
   const serverName = point.server === 'player' ? playerName : opponentName;
   // Don't describe serve shot types for non-serve outcomes (e.g. "unforced error on the first serve")
   const isServeShot = point.shotType?.includes('serve');
-  const isServeOutcome = point.outcome === PointType.ACE || point.outcome === PointType.DOUBLE_FAULT;
-  const effectiveShotType = (isServeShot && !isServeOutcome) ? undefined : point.shotType;
+  const isServeOutcome =
+    point.outcome === PointType.ACE || point.outcome === PointType.DOUBLE_FAULT;
+  const effectiveShotType = isServeShot && !isServeOutcome ? undefined : point.shotType;
   const shotDesc = effectiveShotType ? formatShotType(effectiveShotType) : 'shot';
-  const rallyPrefix = (point.rallyLength && point.rallyLength >= 8)
-    ? `After a ${point.rallyLength}-shot rally, `
-    : '';
+  const rallyPrefix =
+    point.rallyLength && point.rallyLength >= 8 ? `After a ${point.rallyLength}-shot rally, ` : '';
 
   switch (point.outcome) {
     case PointType.ACE: {
@@ -131,15 +131,13 @@ export function narratePoint(
 /**
  * Generate narration for a key moment result.
  */
-export function narrateKeyMoment(
-  result: KeyMomentResult,
-  playerName: string
-): string {
-  const outcomeText = result.outcome === 'critical-success'
-    ? 'INCREDIBLE! '
-    : result.outcome === 'critical-failure'
-    ? 'DISASTER! '
-    : '';
+export function narrateKeyMoment(result: KeyMomentResult, playerName: string): string {
+  const outcomeText =
+    result.outcome === 'critical-success'
+      ? 'INCREDIBLE! '
+      : result.outcome === 'critical-failure'
+        ? 'DISASTER! '
+        : '';
 
   const won = result.pointWinner === 'player';
   const shotDesc = formatShotType(result.shotOutcome.shotType);

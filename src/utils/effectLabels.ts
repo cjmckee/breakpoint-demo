@@ -38,8 +38,16 @@ const EFFECT_META: Record<EffectKeyValue, EffectMeta> = {
   [EffectKey.MINIGAME_WINDOW_BONUS]: { label: 'Training Timing', icon: '🎯', kind: 'fraction' },
   // A session grants ~3 stats and each rolls independently, so the upgrade chance
   // and the expected lift in training gains are the same number.
-  [EffectKey.TRAINING_STAT_UPGRADE_CHANCE]: { label: 'Training Gains', icon: '💪', kind: 'fraction' },
-  [EffectKey.TRAINING_BONUS_SUPPORT_CHANCE]: { label: 'Bonus Rep Chance', icon: '🍀', kind: 'fraction' },
+  [EffectKey.TRAINING_STAT_UPGRADE_CHANCE]: {
+    label: 'Training Gains',
+    icon: '💪',
+    kind: 'fraction',
+  },
+  [EffectKey.TRAINING_BONUS_SUPPORT_CHANCE]: {
+    label: 'Bonus Rep Chance',
+    icon: '🍀',
+    kind: 'fraction',
+  },
 
   // --- Events ---
   [EffectKey.EVENT_TRIGGER_BONUS]: { label: 'Event Chance', icon: '❗', kind: 'percent' },
@@ -92,7 +100,11 @@ const EFFECT_META: Record<EffectKeyValue, EffectMeta> = {
   [EffectKey.NET_APPROACH_BIAS]: { label: 'Net Approaches', icon: '🥅', kind: 'flat' },
   [EffectKey.RALLY_PATIENCE]: { label: 'Rally Patience', icon: '🧊', kind: 'flat' },
   [EffectKey.RETURN_AGGRESSION]: { label: 'Return Aggression', icon: '⚔️', kind: 'flat' },
-  [EffectKey.SECOND_SERVE_AGGRESSION]: { label: 'Second Serve Aggression', icon: '🎾', kind: 'flat' },
+  [EffectKey.SECOND_SERVE_AGGRESSION]: {
+    label: 'Second Serve Aggression',
+    icon: '🎾',
+    kind: 'flat',
+  },
   [EffectKey.FIRST_SERVE_AGGRESSION]: { label: 'First Serve Aggression', icon: '💣', kind: 'flat' },
   [EffectKey.FAULT_RISK]: { label: 'Fault Risk', icon: '⚠️', kind: 'flat' },
   [EffectKey.SERVE_SPEED]: { label: 'Serve Speed', icon: '🚀', kind: 'flat' },

@@ -36,7 +36,12 @@ export const POSTURE_VS_ARCHETYPE: Record<
 > = {
   // Beats a pusher (overpower them) and a serve-volleyer (returns at their feet).
   // Loses to a bigger hitter, and to a counterpuncher who feeds on pace.
-  power: { defensive: 'strong', serve_volley: 'strong', aggressive: 'weak', counterpuncher: 'weak' },
+  power: {
+    defensive: 'strong',
+    serve_volley: 'strong',
+    aggressive: 'weak',
+    counterpuncher: 'weak',
+  },
 
   // Beats a pusher (finish the floaters) and a counterpuncher (they need time).
   // Loses to a baseliner who passes, and to someone better at the net than you.
@@ -60,10 +65,7 @@ export const POSTURE_VS_ARCHETYPE: Record<
 };
 
 /** How a posture fares against a given archetype. */
-export function getMatchup(
-  posture: KeyMomentPosture,
-  archetype: ArchetypeType
-): MatchupVerdict {
+export function getMatchup(posture: KeyMomentPosture, archetype: ArchetypeType): MatchupVerdict {
   return POSTURE_VS_ARCHETYPE[posture][archetype] ?? 'neutral';
 }
 

@@ -11,9 +11,7 @@ import { WelcomeOverlay } from './WelcomeOverlay';
 
 export const PlayerCreation: React.FC = () => {
   const [name, setName] = useState('');
-  const [playstyle, setPlaystyle] = useState<'offensive' | 'defensive' | 'balanced'>(
-    'balanced'
-  );
+  const [playstyle, setPlaystyle] = useState<'offensive' | 'defensive' | 'balanced'>('balanced');
   const [showWelcome, setShowWelcome] = useState(true);
   const createPlayer = useGameStore((state) => state.createPlayer);
 
@@ -48,47 +46,43 @@ export const PlayerCreation: React.FC = () => {
   return (
     <>
       <WelcomeOverlay isOpen={showWelcome} onClose={() => setShowWelcome(false)} />
-    <div className="min-h-screen bg-pixel-bg flex items-center justify-center p-4">
-      <Card className="max-w-2xl w-full">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-pixel-text mb-2">
-            Create Your Tennis Player
-          </h1>
-          <p className="text-pixel-text-muted">
-            Begin your journey to becoming a tennis champion
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Name Input */}
-          <div>
-            <label
-              htmlFor="player-name"
-              className="block text-lg font-bold text-pixel-text mb-2"
-            >
-              Player Name
-            </label>
-            <input
-              id="player-name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter your name..."
-              className="w-full px-4 py-3 bg-pixel-bg border-4 border-pixel-border text-pixel-text text-lg focus:border-pixel-accent focus:outline-none"
-              maxLength={20}
-              autoComplete="off"
-              required
-            />
+      <div className="min-h-screen bg-pixel-bg flex items-center justify-center p-4">
+        <Card className="max-w-2xl w-full">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-pixel-text mb-2">Create Your Tennis Player</h1>
+            <p className="text-pixel-text-muted">
+              Begin your journey to becoming a tennis champion
+            </p>
           </div>
 
-          {/* Playstyle Selection */}
-          <div>
-            <label className="block text-lg font-bold text-pixel-text mb-3">
-              Choose Your Playstyle
-            </label>
-            <div className="grid grid-cols-1 gap-4">
-              {(Object.keys(playstyleDescriptions) as Array<keyof typeof playstyleDescriptions>).map(
-                (style) => {
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Name Input */}
+            <div>
+              <label htmlFor="player-name" className="block text-lg font-bold text-pixel-text mb-2">
+                Player Name
+              </label>
+              <input
+                id="player-name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter your name..."
+                className="w-full px-4 py-3 bg-pixel-bg border-4 border-pixel-border text-pixel-text text-lg focus:border-pixel-accent focus:outline-none"
+                maxLength={20}
+                autoComplete="off"
+                required
+              />
+            </div>
+
+            {/* Playstyle Selection */}
+            <div>
+              <label className="block text-lg font-bold text-pixel-text mb-3">
+                Choose Your Playstyle
+              </label>
+              <div className="grid grid-cols-1 gap-4">
+                {(
+                  Object.keys(playstyleDescriptions) as Array<keyof typeof playstyleDescriptions>
+                ).map((style) => {
                   const info = playstyleDescriptions[style];
                   const isSelected = playstyle === style;
 
@@ -106,36 +100,26 @@ export const PlayerCreation: React.FC = () => {
                       <div className="flex items-start gap-3">
                         <span className="text-3xl">{info.emoji}</span>
                         <div className="flex-1">
-                          <h3 className="text-xl font-bold text-pixel-text mb-1">
-                            {info.title}
-                          </h3>
+                          <h3 className="text-xl font-bold text-pixel-text mb-1">{info.title}</h3>
                           <p className="text-pixel-text-muted mb-2">{info.description}</p>
-                          <p className="text-sm text-pixel-accent font-bold">
-                            {info.bonuses}
-                          </p>
+                          <p className="text-sm text-pixel-accent font-bold">{info.bonuses}</p>
                         </div>
                       </div>
                     </button>
                   );
-                }
-              )}
+                })}
+              </div>
             </div>
-          </div>
 
-          {/* Submit Button */}
-          <div className="pt-4">
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              disabled={!name.trim()}
-            >
-              Create Player
-            </Button>
-          </div>
-        </form>
-      </Card>
-    </div>
+            {/* Submit Button */}
+            <div className="pt-4">
+              <Button variant="primary" size="lg" fullWidth disabled={!name.trim()}>
+                Create Player
+              </Button>
+            </div>
+          </form>
+        </Card>
+      </div>
     </>
   );
 };

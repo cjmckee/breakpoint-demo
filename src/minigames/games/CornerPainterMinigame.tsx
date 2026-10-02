@@ -27,13 +27,22 @@ const RING = 11; // arena units — the drawn ring's diameter
 const SWEEP_MIN = 4.0; // rad/sec
 const SWEEP_MAX = 5.0;
 
-export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt, config }) => {
-  const rounds = useMinigameRounds({ minigame: 'corner_paint', config }, onComplete, onFirstAttempt);
+export const CornerPainterMinigame: React.FC<MinigameProps> = ({
+  onComplete,
+  windowBonus = 0,
+  onFirstAttempt,
+  config,
+}) => {
+  const rounds = useMinigameRounds(
+    { minigame: 'corner_paint', config },
+    onComplete,
+    onFirstAttempt,
+  );
   const { frozen, trigger: hitstop } = useHitstop();
   const tol = TOLERANCE * (1 + windowBonus);
 
   const targetsRef = useRef<Array<{ x: number; y: number }>>(
-    Array.from({ length: 3 }, () => ({ x: 14 + random() * 72, y: 14 + random() * 72 }))
+    Array.from({ length: 3 }, () => ({ x: 14 + random() * 72, y: 14 + random() * 72 })),
   );
   const stageRef = useRef<'x' | 'y' | 'done'>('x');
   const lockXRef = useRef(50);
@@ -107,7 +116,10 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
-      if (isActionKey(e)) { e.preventDefault(); lock(); }
+      if (isActionKey(e)) {
+        e.preventDefault();
+        lock();
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -136,7 +148,7 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
                 'Three corners painted!',
                 'Two on the money. Sharp!',
                 'One clean corner. Keep aiming!',
-                'Sprayed it — line it up next time.'
+                'Sprayed it — line it up next time.',
               )}
             />
           ) : (
@@ -161,27 +173,48 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({ onComplete, win
         {/* Target ring */}
         <div
           className="absolute rounded-full border-4 border-dashed border-pixel-warning/80"
-          style={{ left: `${target.x}%`, top: `${target.y}%`, width: u(RING), height: u(RING), transform: 'translate(-50%, -50%)' }}
+          style={{
+            left: `${target.x}%`,
+            top: `${target.y}%`,
+            width: u(RING),
+            height: u(RING),
+            transform: 'translate(-50%, -50%)',
+          }}
         >
-          <div className="absolute left-1/2 top-1/2 w-2 h-2 rounded-full bg-pixel-warning" style={{ transform: 'translate(-50%, -50%)' }} />
+          <div
+            className="absolute left-1/2 top-1/2 w-2 h-2 rounded-full bg-pixel-warning"
+            style={{ transform: 'translate(-50%, -50%)' }}
+          />
         </div>
 
         {/* Sweeps */}
         {playing && stage === 'x' && (
-          <div className="absolute top-0 bottom-0 w-0.5 bg-pixel-success shadow-[0_0_8px_rgba(46,204,113,0.8)]" style={{ left: `${sweep}%` }} />
+          <div
+            className="absolute top-0 bottom-0 w-0.5 bg-pixel-success shadow-[0_0_8px_rgba(46,204,113,0.8)]"
+            style={{ left: `${sweep}%` }}
+          />
         )}
         {playing && stage === 'y' && (
-          <div className="absolute left-0 right-0 h-0.5 bg-pixel-success shadow-[0_0_8px_rgba(46,204,113,0.8)]" style={{ top: `${sweep}%` }} />
+          <div
+            className="absolute left-0 right-0 h-0.5 bg-pixel-success shadow-[0_0_8px_rgba(46,204,113,0.8)]"
+            style={{ top: `${sweep}%` }}
+          />
         )}
         {/* Locked sideline stays visible while picking depth */}
         {(stage === 'y' || stage === 'done') && (
-          <div className="absolute top-0 bottom-0 w-0.5 bg-pixel-warning" style={{ left: `${lockXRef.current}%` }} />
+          <div
+            className="absolute top-0 bottom-0 w-0.5 bg-pixel-warning"
+            style={{ left: `${lockXRef.current}%` }}
+          />
         )}
 
         {/* Shot line + the ball where it landed — both tinted by the result */}
         {shot && (
           <>
-            <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none">
+            <svg
+              className="absolute inset-0 w-full h-full pointer-events-none"
+              preserveAspectRatio="none"
+            >
               <line
                 x1="50%"
                 y1="100%"

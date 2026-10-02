@@ -37,19 +37,34 @@ import { PlayerProfile } from '../../core/PlayerProfile';
 import { PointSimulator } from '../../core/PointSimulator';
 import { ScoreTracker } from '../../core/ScoreTracker';
 import {
-  MATCH_FATIGUE, SHOT_CLASSIFICATIONS, STAT_MODIFIER_BANDS, NEUTRAL_STAT,
-  isTacticalShot, isDefensiveShot, isOffensiveShot,
+  MATCH_FATIGUE,
+  SHOT_CLASSIFICATIONS,
+  STAT_MODIFIER_BANDS,
+  NEUTRAL_STAT,
+  isTacticalShot,
+  isDefensiveShot,
+  isOffensiveShot,
 } from '../../config/shotThresholds';
-import { aggregateArchetypeEffects, profileForArchetype, type LegacyArchetype } from '../../data/archetypeTree';
+import {
+  aggregateArchetypeEffects,
+  profileForArchetype,
+  type LegacyArchetype,
+} from '../../data/archetypeTree';
 import { drawPlayerProfile } from './playerFactory';
 
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
-const LEGACY: LegacyArchetype[] = ['aggressive', 'defensive', 'counterpuncher', 'serve_volley', 'all_court'];
+const LEGACY: LegacyArchetype[] = [
+  'aggressive',
+  'defensive',
+  'counterpuncher',
+  'serve_volley',
+  'all_court',
+];
 
 function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
   return () => {
-    a = (a + 0x6D2B79F5) >>> 0;
+    a = (a + 0x6d2b79f5) >>> 0;
     let t = Math.imul(a ^ (a >>> 15), 1 | a);
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
@@ -71,7 +86,8 @@ function calcFatigue(cur: number, rally: number, stam: number): number {
   if (rally > MATCH_FATIGUE.longRallyThreshold) {
     gain += (rally - MATCH_FATIGUE.longRallyThreshold) * MATCH_FATIGUE.longRallyExtra * sf;
   }
-  const rec = MATCH_FATIGUE.baseRecoveryPerPoint +
+  const rec =
+    MATCH_FATIGUE.baseRecoveryPerPoint +
     (stam / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
   return Math.max(0, Math.min(100, cur + gain - rec));
 }
@@ -93,48 +109,67 @@ interface Gate {
 
 const GATES: Gate[] = [
   {
-    stat: 'speed', band: 'courtCoverage', size: STAT_MODIFIER_BANDS.courtCoverage,
-    byShot: t => inList(SHOT_CLASSIFICATIONS.defensiveShots, t),
-    byContext: s => s.context?.courtPosition === 'defensive',
+    stat: 'speed',
+    band: 'courtCoverage',
+    size: STAT_MODIFIER_BANDS.courtCoverage,
+    byShot: (t) => inList(SHOT_CLASSIFICATIONS.defensiveShots, t),
+    byContext: (s) => s.context?.courtPosition === 'defensive',
   },
   {
-    stat: 'speed', band: 'reactions', size: STAT_MODIFIER_BANDS.reactions,
-    byShot: t => inList(SHOT_CLASSIFICATIONS.netShots, t),
-    byContext: s => s.ballQuality?.timeAvailable === 'rushed',
+    stat: 'speed',
+    band: 'reactions',
+    size: STAT_MODIFIER_BANDS.reactions,
+    byShot: (t) => inList(SHOT_CLASSIFICATIONS.netShots, t),
+    byContext: (s) => s.ballQuality?.timeAvailable === 'rushed',
   },
   {
-    stat: 'strength', band: 'power', size: STAT_MODIFIER_BANDS.power,
-    byShot: t => inList(SHOT_CLASSIFICATIONS.powerShots, t),
+    stat: 'strength',
+    band: 'power',
+    size: STAT_MODIFIER_BANDS.power,
+    byShot: (t) => inList(SHOT_CLASSIFICATIONS.powerShots, t),
     byContext: () => false,
   },
   {
-    stat: 'anticipation', band: 'reading', size: STAT_MODIFIER_BANDS.reading,
+    stat: 'anticipation',
+    band: 'reading',
+    size: STAT_MODIFIER_BANDS.reading,
     byShot: () => false,
-    byContext: s => s.opponentPosition === 'at_net' || s.opponentPosition === 'well_positioned',
+    byContext: (s) => s.opponentPosition === 'at_net' || s.opponentPosition === 'well_positioned',
   },
   {
-    stat: 'spin', band: 'touch', size: STAT_MODIFIER_BANDS.touch,
-    byShot: t => isTacticalShot(t),
+    stat: 'spin',
+    band: 'touch',
+    size: STAT_MODIFIER_BANDS.touch,
+    byShot: (t) => isTacticalShot(t),
     byContext: () => false,
   },
   {
-    stat: 'spin', band: 'shape', size: STAT_MODIFIER_BANDS.shape,
-    byShot: t => inList(SHOT_CLASSIFICATIONS.spinShots, t),
+    stat: 'spin',
+    band: 'shape',
+    size: STAT_MODIFIER_BANDS.shape,
+    byShot: (t) => inList(SHOT_CLASSIFICATIONS.spinShots, t),
     byContext: () => false,
   },
   {
-    stat: 'placement', band: 'precision', size: STAT_MODIFIER_BANDS.precision,
-    byShot: t => inList(SHOT_CLASSIFICATIONS.placementShots, t),
+    stat: 'placement',
+    band: 'precision',
+    size: STAT_MODIFIER_BANDS.precision,
+    byShot: (t) => inList(SHOT_CLASSIFICATIONS.placementShots, t),
     byContext: () => false,
   },
   {
-    stat: 'tactics', band: 'tactics', size: STAT_MODIFIER_BANDS.tactics,
-    byShot: t => isDefensiveShot(t) || isOffensiveShot(t),
+    stat: 'tactics',
+    band: 'tactics',
+    size: STAT_MODIFIER_BANDS.tactics,
+    byShot: (t) => isDefensiveShot(t) || isOffensiveShot(t),
     byContext: () => false,
   },
 ];
 
-interface Counts { open: number; contextOnly: number }
+interface Counts {
+  open: number;
+  contextOnly: number;
+}
 
 function main(): void {
   const N = Number(process.env.N ?? 400);
@@ -154,7 +189,8 @@ function main(): void {
     }
     return s;
   };
-  const opponentProf = (): ArchetypeProfile => profileForArchetype(LEGACY[Math.floor(rng() * LEGACY.length)]);
+  const opponentProf = (): ArchetypeProfile =>
+    profileForArchetype(LEGACY[Math.floor(rng() * LEGACY.length)]);
 
   const counts = new Map<string, Counts>();
   for (const g of GATES) counts.set(`${g.stat}.${g.band}`, { open: 0, contextOnly: 0 });
@@ -170,20 +206,33 @@ function main(): void {
 
     const tracker = new ScoreTracker(BO3);
     tracker.setInitialServer(i % 2 === 0 ? 'player' : 'opponent');
-    p.rollMatchForm(); o.rollMatchForm();
+    p.rollMatchForm();
+    o.rollMatchForm();
     const sim = new PointSimulator();
     const ms: MatchState = {
-      score: tracker.getScore(), currentServer: tracker.getCurrentServer(), courtSurface: 'hard',
-      momentum: 0, pressure: 'low', matchLength: 0, pointsPlayed: 0,
-      isKeyMoment: false, fatigue: { player: 0, opponent: 0 },
+      score: tracker.getScore(),
+      currentServer: tracker.getCurrentServer(),
+      courtSurface: 'hard',
+      momentum: 0,
+      pressure: 'low',
+      matchLength: 0,
+      pointsPlayed: 0,
+      isKeyMoment: false,
+      fatigue: { player: 0, opponent: 0 },
     };
 
     let pts = 0;
     while (!tracker.isComplete() && pts < 600) {
       const server = tracker.getCurrentServer();
       ms.isKeyMoment = tracker.isKeyMoment();
-      const pr = sim.simulatePoint(server, server === 'player' ? p : o,
-        server === 'player' ? o : p, ms, pEff, oEff);
+      const pr = sim.simulatePoint(
+        server,
+        server === 'player' ? p : o,
+        server === 'player' ? o : p,
+        ms,
+        pEff,
+        oEff,
+      );
 
       pr.shots.forEach((s: ShotDetail) => {
         const t = s.shotType;
@@ -199,10 +248,18 @@ function main(): void {
         }
       });
 
-      tracker.addPoint(pr.winner === 'server' ? server : (server === 'player' ? 'opponent' : 'player'));
+      tracker.addPoint(
+        pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player',
+      );
       ms.fatigue.player = calcFatigue(ms.fatigue.player, pr.rallyLength, p.stats.physical.stamina);
-      ms.fatigue.opponent = calcFatigue(ms.fatigue.opponent, pr.rallyLength, o.stats.physical.stamina);
-      ms.score = tracker.getScore(); ms.currentServer = tracker.getCurrentServer(); ms.pointsPlayed = ++pts;
+      ms.fatigue.opponent = calcFatigue(
+        ms.fatigue.opponent,
+        pr.rallyLength,
+        o.stats.physical.stamina,
+      );
+      ms.score = tracker.getScore();
+      ms.currentServer = tracker.getCurrentServer();
+      ms.pointsPlayed = ++pts;
     }
   }
 
@@ -211,27 +268,41 @@ function main(): void {
   console.log(`   size: the band's half-width. value: quality points per +10 stat at rating 55,`);
   console.log(`   weighted by how often the gate is actually open.\n`);
 
-  const head = ['stat.band'.padEnd(24), 'size'.padStart(7), 'OPEN%'.padStart(8),
-    'CONTEXT%'.padStart(10), 'when open'.padStart(11), 'weighted'.padStart(10)].join('');
+  const head = [
+    'stat.band'.padEnd(24),
+    'size'.padStart(7),
+    'OPEN%'.padStart(8),
+    'CONTEXT%'.padStart(10),
+    'when open'.padStart(11),
+    'weighted'.padStart(10),
+  ].join('');
   console.log(head);
   console.log('-'.repeat(head.length));
 
-  const rows = GATES.map(g => {
+  const rows = GATES.map((g) => {
     const c = counts.get(`${g.stat}.${g.band}`)!;
     const open = c.open / rallyShots;
     const whenOpen = 55 * 0.2 * g.size;
-    return { g, open, contextShare: c.open === 0 ? 0 : c.contextOnly / c.open, whenOpen, weighted: whenOpen * open };
+    return {
+      g,
+      open,
+      contextShare: c.open === 0 ? 0 : c.contextOnly / c.open,
+      whenOpen,
+      weighted: whenOpen * open,
+    };
   }).sort((a, b) => b.weighted - a.weighted);
 
   for (const r of rows) {
-    console.log([
-      `${r.g.stat}.${r.g.band}`.padEnd(24),
-      r.g.size.toFixed(3).padStart(7),
-      `${(r.open * 100).toFixed(1)}%`.padStart(8),
-      `${(r.contextShare * 100).toFixed(1)}%`.padStart(10),
-      r.whenOpen.toFixed(2).padStart(11),
-      r.weighted.toFixed(3).padStart(10),
-    ].join(''));
+    console.log(
+      [
+        `${r.g.stat}.${r.g.band}`.padEnd(24),
+        r.g.size.toFixed(3).padStart(7),
+        `${(r.open * 100).toFixed(1)}%`.padStart(8),
+        `${(r.contextShare * 100).toFixed(1)}%`.padStart(10),
+        r.whenOpen.toFixed(2).padStart(11),
+        r.weighted.toFixed(3).padStart(10),
+      ].join(''),
+    );
   }
 
   console.log(`\nNEUTRAL_STAT is ${NEUTRAL_STAT}, so every band is 1.0 for an average player and`);

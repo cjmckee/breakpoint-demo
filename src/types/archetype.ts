@@ -12,13 +12,7 @@
  */
 
 /** The decision contexts a player specializes into. Baseline is folded into FH/BH. */
-export type GamePhase =
-  | 'first_serve'
-  | 'second_serve'
-  | 'return'
-  | 'forehand'
-  | 'backhand'
-  | 'net';
+export type GamePhase = 'first_serve' | 'second_serve' | 'return' | 'forehand' | 'backhand' | 'net';
 
 /** Broad identity chosen via the Coach Gonzalez event; seeds default specialties. */
 export type BroadArchetype = 'baseliner' | 'net_attacker' | 'all_courter';
@@ -26,17 +20,29 @@ export type BroadArchetype = 'baseliner' | 'net_attacker' | 'all_courter';
 /** Every selectable specialty across all phases. */
 export type PhasePathId =
   // first serve
-  | 'fs_bomber' | 'fs_sniper' | 'fs_curveball'
+  | 'fs_bomber'
+  | 'fs_sniper'
+  | 'fs_curveball'
   // second serve
-  | 'ss_pancake' | 'ss_kicker' | 'ss_gambler'
+  | 'ss_pancake'
+  | 'ss_kicker'
+  | 'ss_gambler'
   // return
-  | 'rt_extinguisher' | 'rt_redliner' | 'rt_sneaky_beaky'
+  | 'rt_extinguisher'
+  | 'rt_redliner'
+  | 'rt_sneaky_beaky'
   // forehand
-  | 'fh_rpm_overdrive' | 'fh_laserbeam' | 'fh_survivor'
+  | 'fh_rpm_overdrive'
+  | 'fh_laserbeam'
+  | 'fh_survivor'
   // backhand
-  | 'bh_bazooka' | 'bh_samurai' | 'bh_brick_wall'
+  | 'bh_bazooka'
+  | 'bh_samurai'
+  | 'bh_brick_wall'
   // net
-  | 'net_downhill' | 'net_opportunist' | 'net_apologist';
+  | 'net_downhill'
+  | 'net_opportunist'
+  | 'net_apologist';
 
 export type SpecialtyTier = 1 | 2 | 3;
 

@@ -7,7 +7,11 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../ui/Modal';
 import { TutorialCallout } from './TutorialCallout';
-import { LIVE_MATCH_TUTORIAL_STEPS, KM_TUTORIAL_STEPS, KM_RESULT_STEPS } from '../../data/tutorialSteps';
+import {
+  LIVE_MATCH_TUTORIAL_STEPS,
+  KM_TUTORIAL_STEPS,
+  KM_RESULT_STEPS,
+} from '../../data/tutorialSteps';
 
 interface GuideSection {
   title: string;

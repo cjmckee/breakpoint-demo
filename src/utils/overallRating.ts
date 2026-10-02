@@ -28,8 +28,8 @@ export function calculateOverallRating(stats: PlayerStats): number {
   };
   return Math.round(
     avg(stats.core) * STAT_CATEGORY_WEIGHTS.core +
-    avg(stats.technical) * STAT_CATEGORY_WEIGHTS.technical +
-    avg(stats.physical) * STAT_CATEGORY_WEIGHTS.physical +
-    avg(stats.mental) * STAT_CATEGORY_WEIGHTS.mental
+      avg(stats.technical) * STAT_CATEGORY_WEIGHTS.technical +
+      avg(stats.physical) * STAT_CATEGORY_WEIGHTS.physical +
+      avg(stats.mental) * STAT_CATEGORY_WEIGHTS.mental,
   );
 }

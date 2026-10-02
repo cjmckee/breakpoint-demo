@@ -86,7 +86,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
       ? event.options[0]
       : null;
   const hasChoice = !isLinearEvent && !onlyOption;
-  const {dialogue} = event;
+  const { dialogue } = event;
   const hasDialogue = dialogue && dialogue.length > 0;
   const allDialogueShown = !hasDialogue || currentDialogueIndex >= dialogue.length - 1;
 
@@ -126,7 +126,8 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
     (e: KeyboardEvent) => {
       if (!isOpen || isHidden) return;
       const el = document.activeElement as HTMLElement | null;
-      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable))
+        return;
 
       // Arrows and WASD are interchangeable; the guard above keeps WASD out of the way
       // of any focused text field.
@@ -162,7 +163,18 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
         }
       }
     },
-    [isOpen, isHidden, allDialogueShown, hasChoice, selectableOptions, selectedOptionId, advanceDialogue, goBackDialogue, handleContinue, handleOptionSelect]
+    [
+      isOpen,
+      isHidden,
+      allDialogueShown,
+      hasChoice,
+      selectableOptions,
+      selectedOptionId,
+      advanceDialogue,
+      goBackDialogue,
+      handleContinue,
+      handleOptionSelect,
+    ],
   );
 
   useEffect(() => {
@@ -199,11 +211,22 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
   );
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={event.name} size="xl" showCloseButton={false} belowContent={hideButton} testId="story-event">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={event.name}
+      size="xl"
+      showCloseButton={false}
+      belowContent={hideButton}
+      testId="story-event"
+    >
       {/* Tags and time slots */}
       <div className="flex gap-2 mb-4 flex-wrap">
         {event.tags.map((tag) => (
-          <span key={tag} className="px-2 py-1 bg-gray-600 text-white rounded text-sm font-semibold">
+          <span
+            key={tag}
+            className="px-2 py-1 bg-gray-600 text-white rounded text-sm font-semibold"
+          >
             #{tag}
           </span>
         ))}
@@ -278,95 +301,100 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
           {!hasChoice ? (
             // Linear or single-option event - one button, no choice to make
             <>
-            {onlyOption?.description && (
-              <p className="mb-4 text-pixel-text-muted">
-                {onlyOption.emoji && <span className="mr-2">{onlyOption.emoji}</span>}
-                {onlyOption.description}
-              </p>
-            )}
-            <div className="flex justify-between">
-              {hasDialogue && dialogue!.length > 1 ? (
-                <Button onClick={goBackDialogue} variant="secondary">
-                  Back
-                </Button>
-              ) : (
-                <div />
+              {onlyOption?.description && (
+                <p className="mb-4 text-pixel-text-muted">
+                  {onlyOption.emoji && <span className="mr-2">{onlyOption.emoji}</span>}
+                  {onlyOption.description}
+                </p>
               )}
-              <div className="flex gap-2">
-                {canSkip && (
-                  <Button onClick={onClose} variant="secondary">
-                    Skip Event
+              <div className="flex justify-between">
+                {hasDialogue && dialogue!.length > 1 ? (
+                  <Button onClick={goBackDialogue} variant="secondary">
+                    Back
                   </Button>
+                ) : (
+                  <div />
                 )}
-                {/* The no-choice path: its label is the option's own text, so the id
+                <div className="flex gap-2">
+                  {canSkip && (
+                    <Button onClick={onClose} variant="secondary">
+                      Skip Event
+                    </Button>
+                  )}
+                  {/* The no-choice path: its label is the option's own text, so the id
                     is the only stable handle on it. */}
-                <Button onClick={handleContinue} variant="primary" testId="story-resolve">
-                  {onlyOption ? onlyOption.text : 'Continue'}
-                </Button>
+                  <Button onClick={handleContinue} variant="primary" testId="story-resolve">
+                    {onlyOption ? onlyOption.text : 'Continue'}
+                  </Button>
+                </div>
               </div>
-            </div>
             </>
           ) : (
             // Choice event - show options
             <div>
               <h3 className="font-bold mb-3 text-lg">Choose your action:</h3>
-          <div className="space-y-3 mb-6">
-            {event.options.map((option) => {
-              const isAvailable = availableOptions.some((o) => o.id === option.id);
-              const isSelected = selectedOptionId === option.id;
+              <div className="space-y-3 mb-6">
+                {event.options.map((option) => {
+                  const isAvailable = availableOptions.some((o) => o.id === option.id);
+                  const isSelected = selectedOptionId === option.id;
 
-              return (
-                <button
-                  key={option.id}
-                  data-testid={`story-option-${option.id}`}
-                  data-available={isAvailable}
-                  onClick={() => isAvailable && handleOptionSelect(option.id)}
-                  disabled={!isAvailable}
-                  className={`
+                  return (
+                    <button
+                      key={option.id}
+                      data-testid={`story-option-${option.id}`}
+                      data-available={isAvailable}
+                      onClick={() => isAvailable && handleOptionSelect(option.id)}
+                      disabled={!isAvailable}
+                      className={`
                     w-full p-4 rounded border-2 text-left transition
                     ${isSelected ? 'border-blue-500 bg-blue-100' : 'border-gray-400 bg-white'}
                     ${!isAvailable ? 'opacity-50 cursor-not-allowed' : 'hover:border-blue-400 hover:bg-gray-50 cursor-pointer'}
                   `}
-                >
-                  <div className="flex items-center gap-3">
-                    {option.emoji && <span className="text-3xl">{option.emoji}</span>}
-                    <div className="flex-1">
-                      <div className="font-bold text-lg text-gray-900">{option.text}</div>
-                      {option.description && (
-                        <div className="text-sm text-gray-700 mt-1">{option.description}</div>
-                      )}
-                      {!isAvailable && (
-                        <div className="text-sm text-red-700 mt-1 font-semibold">
-                          ❌ Requirements not met
+                    >
+                      <div className="flex items-center gap-3">
+                        {option.emoji && <span className="text-3xl">{option.emoji}</span>}
+                        <div className="flex-1">
+                          <div className="font-bold text-lg text-gray-900">{option.text}</div>
+                          {option.description && (
+                            <div className="text-sm text-gray-700 mt-1">{option.description}</div>
+                          )}
+                          {!isAvailable && (
+                            <div className="text-sm text-red-700 mt-1 font-semibold">
+                              ❌ Requirements not met
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
 
-          <div className="flex justify-between">
-            {hasDialogue && dialogue!.length > 1 ? (
-              <Button onClick={goBackDialogue} variant="secondary">
-                Back
-              </Button>
-            ) : (
-              <div />
-            )}
-            <div className="flex gap-2">
-              {canSkip && (
-                <Button onClick={onClose} variant="secondary">
-                  Cancel
-                </Button>
-              )}
-              <Button onClick={handleContinue} variant="primary" disabled={!selectedOptionId} testId="story-confirm">
-                Confirm Choice
-              </Button>
+              <div className="flex justify-between">
+                {hasDialogue && dialogue!.length > 1 ? (
+                  <Button onClick={goBackDialogue} variant="secondary">
+                    Back
+                  </Button>
+                ) : (
+                  <div />
+                )}
+                <div className="flex gap-2">
+                  {canSkip && (
+                    <Button onClick={onClose} variant="secondary">
+                      Cancel
+                    </Button>
+                  )}
+                  <Button
+                    onClick={handleContinue}
+                    variant="primary"
+                    disabled={!selectedOptionId}
+                    testId="story-confirm"
+                  >
+                    Confirm Choice
+                  </Button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
           )}
         </>
       )}

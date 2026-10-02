@@ -25,11 +25,18 @@ const BO1: MatchFormat = { bestOfSets: 1, gamesPerSet: 6, enableTiebreaks: true,
 const yuki = OPPONENTS_BY_TIER[2][4];
 const yukiProfile = getOpponentArchetypeProfile(yuki);
 
-let directPlayerServeWon = 0, directPlayerServeTotal = 0;
-let directOppServeWon = 0, directOppServeTotal = 0;
-let directPlayerReturnWon = 0, directOppReturnWon = 0;
-let dfByPlayer = 0, dfByOpp = 0;
-let statsPlayerServe = 0, statsPlayerReturn = 0, statsOppServe = 0, statsOppReturn = 0;
+let directPlayerServeWon = 0,
+  directPlayerServeTotal = 0;
+let directOppServeWon = 0,
+  directOppServeTotal = 0;
+let directPlayerReturnWon = 0,
+  directOppReturnWon = 0;
+let dfByPlayer = 0,
+  dfByOpp = 0;
+let statsPlayerServe = 0,
+  statsPlayerReturn = 0,
+  statsOppServe = 0,
+  statsOppReturn = 0;
 
 const N = 100;
 for (let i = 0; i < N; i++) {
@@ -60,7 +67,8 @@ for (let i = 0; i < N; i++) {
     const breakPointFor = tracker.getBreakPointFor();
 
     const pr = pointSim.simulatePoint(server, serverProfile, returnerProfile, matchState, {}, {});
-    const pointWinner = pr.winner === 'server' ? server : (server === 'player' ? 'opponent' : 'player');
+    const pointWinner =
+      pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player';
     tracker.addPoint(pointWinner);
     stats.addPointResult(pr, server, breakPointFor);
 
@@ -95,10 +103,16 @@ for (let i = 0; i < N; i++) {
 }
 
 console.log(`Across ${N} Bo1 matches vs ${yuki.name}:`);
-console.log(`  DIRECT: player serve won ${directPlayerServeWon}/${directPlayerServeTotal}, player return won ${directPlayerReturnWon} (${dfByOpp} via opp DF)`);
-console.log(`  DIRECT: opp serve won ${directOppServeWon}/${directOppServeTotal}, opp return won ${directOppReturnWon} (${dfByPlayer} via player DF)`);
+console.log(
+  `  DIRECT: player serve won ${directPlayerServeWon}/${directPlayerServeTotal}, player return won ${directPlayerReturnWon} (${dfByOpp} via opp DF)`,
+);
+console.log(
+  `  DIRECT: opp serve won ${directOppServeWon}/${directOppServeTotal}, opp return won ${directOppReturnWon} (${dfByPlayer} via player DF)`,
+);
 console.log(`  STATS : pointsWon.player = serve ${statsPlayerServe}, return ${statsPlayerReturn}`);
 console.log(`  STATS : pointsWon.opponent = serve ${statsOppServe}, return ${statsOppReturn}`);
 console.log('');
 console.log('  Expected match: stats.player.serve == direct player serve won, etc.');
-console.log('  (stats excludes double-fault wins from .return by design — see updateBasicStatistics)');
+console.log(
+  '  (stats excludes double-fault wins from .return by design — see updateBasicStatistics)',
+);

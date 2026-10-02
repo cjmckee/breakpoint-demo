@@ -36,9 +36,8 @@ export const DebugPanel: React.FC = () => {
 
   // Sorted once: the repository is a static module-level array.
   const allEvents = useMemo(
-    () =>
-      [...StoryEventRepository.getAllEvents()].sort((a, b) => a.id.localeCompare(b.id)),
-    []
+    () => [...StoryEventRepository.getAllEvents()].sort((a, b) => a.id.localeCompare(b.id)),
+    [],
   );
 
   const matchingEvents = useMemo(() => {
@@ -48,7 +47,7 @@ export const DebugPanel: React.FC = () => {
       (event) =>
         event.id.toLowerCase().includes(needle) ||
         event.name.toLowerCase().includes(needle) ||
-        event.tags.some((tag) => tag.includes(needle))
+        event.tags.some((tag) => tag.includes(needle)),
     );
   }, [allEvents, eventFilter]);
 
@@ -73,12 +72,16 @@ export const DebugPanel: React.FC = () => {
     a.download = `save-day${calendar.currentDay}-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    setStatus(`Exported save (day ${calendar.currentDay}). Drop it in src/debug/saves/ to reuse it as a test save.`);
+    setStatus(
+      `Exported save (day ${calendar.currentDay}). Drop it in src/debug/saves/ to reuse it as a test save.`,
+    );
   };
 
   const applyImport = (json: string, label: string) => {
     const success = useGameStore.getState().importSave(json);
-    setStatus(success ? `Loaded "${label}".` : `Failed to load "${label}" — check console for details.`);
+    setStatus(
+      success ? `Loaded "${label}".` : `Failed to load "${label}" — check console for details.`,
+    );
   };
 
   const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -107,10 +110,14 @@ export const DebugPanel: React.FC = () => {
         style={{ pointerEvents: 'auto' }}
       >
         <h2 className="text-xl font-bold text-pixel-text mb-1">🐛 Debug Panel</h2>
-        <p className="text-xs text-pixel-text-muted mb-4">Dev-only. Not present in production builds.</p>
+        <p className="text-xs text-pixel-text-muted mb-4">
+          Dev-only. Not present in production builds.
+        </p>
 
         <div className="mb-5">
-          <h3 className="text-sm font-bold text-pixel-text-muted uppercase tracking-wider mb-2">Current Save</h3>
+          <h3 className="text-sm font-bold text-pixel-text-muted uppercase tracking-wider mb-2">
+            Current Save
+          </h3>
           <div className="flex gap-2">
             <button
               onClick={handleExport}
@@ -135,11 +142,13 @@ export const DebugPanel: React.FC = () => {
         </div>
 
         <div className="mb-5">
-          <h3 className="text-sm font-bold text-pixel-text-muted uppercase tracking-wider mb-1">Match Tracing</h3>
+          <h3 className="text-sm font-bold text-pixel-text-muted uppercase tracking-wider mb-1">
+            Match Tracing
+          </h3>
           <p className="text-xs text-pixel-text-muted mb-2">
-            Narrates every shot to the console — the stat, its modifiers, the sigmoid
-            midpoints and the outcome cascade. Off by default: one match is tens of
-            thousands of lines, enough to make the console useless for anything else.
+            Narrates every shot to the console — the stat, its modifiers, the sigmoid midpoints and
+            the outcome cascade. Off by default: one match is tens of thousands of lines, enough to
+            make the console useless for anything else.
           </p>
           <button
             onClick={() => {
@@ -158,31 +167,38 @@ export const DebugPanel: React.FC = () => {
         </div>
 
         <div className="mb-5">
-          <h3 className="text-sm font-bold text-pixel-text-muted uppercase tracking-wider mb-2">Test Saves</h3>
+          <h3 className="text-sm font-bold text-pixel-text-muted uppercase tracking-wider mb-2">
+            Test Saves
+          </h3>
           {Object.keys(testSaveModules).length === 0 ? (
             <p className="text-xs text-pixel-text-muted">
-              None yet. Export a save above and drop the file into src/debug/saves/ to make it a quick-load scenario.
+              None yet. Export a save above and drop the file into src/debug/saves/ to make it a
+              quick-load scenario.
             </p>
           ) : (
             <div className="space-y-2">
-              {Object.keys(testSaveModules).sort().map((path) => (
-                <button
-                  key={path}
-                  onClick={() => handleLoadTestSave(path)}
-                  className="w-full text-left bg-pixel-bg-dark border-2 border-pixel-border text-pixel-text px-3 py-2 text-sm hover:bg-pixel-secondary hover:text-white transition-colors"
-                >
-                  {saveNameFromPath(path)}
-                </button>
-              ))}
+              {Object.keys(testSaveModules)
+                .sort()
+                .map((path) => (
+                  <button
+                    key={path}
+                    onClick={() => handleLoadTestSave(path)}
+                    className="w-full text-left bg-pixel-bg-dark border-2 border-pixel-border text-pixel-text px-3 py-2 text-sm hover:bg-pixel-secondary hover:text-white transition-colors"
+                  >
+                    {saveNameFromPath(path)}
+                  </button>
+                ))}
             </div>
           )}
         </div>
 
         <div className="mb-5">
-          <h3 className="text-sm font-bold text-pixel-text-muted uppercase tracking-wider mb-1">Trigger Story Event</h3>
+          <h3 className="text-sm font-bold text-pixel-text-muted uppercase tracking-wider mb-1">
+            Trigger Story Event
+          </h3>
           <p className="text-xs text-pixel-text-muted mb-2">
-            Runs the event now, ignoring its prerequisites. Choices are still filtered by
-            their own prerequisites, so you see what a qualifying player would.
+            Runs the event now, ignoring its prerequisites. Choices are still filtered by their own
+            prerequisites, so you see what a qualifying player would.
           </p>
           <input
             type="text"
@@ -217,7 +233,9 @@ export const DebugPanel: React.FC = () => {
         </div>
 
         {status && (
-          <p className="text-xs text-pixel-text-muted border-t border-pixel-border pt-3 mb-3">{status}</p>
+          <p className="text-xs text-pixel-text-muted border-t border-pixel-border pt-3 mb-3">
+            {status}
+          </p>
         )}
 
         <button

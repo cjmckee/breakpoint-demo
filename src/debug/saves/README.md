@@ -17,7 +17,7 @@ the button just doesn't load:
 - a save below `RESET_BEFORE_VERSION`, the breaking floor. Raising that floor
   invalidates every file here that predates it, so re-record the scenarios you
   still want when you raise it;
-- a save from a build *newer* than the one you're running, e.g. after checking
+- a save from a build _newer_ than the one you're running, e.g. after checking
   out an older branch.
 
 Note that an import refuses these rather than resetting: rehydration owns the

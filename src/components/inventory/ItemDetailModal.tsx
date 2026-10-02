@@ -46,7 +46,13 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
   const showComparison = isEquippable && !isEquipped;
 
   return (
-    <Modal isOpen={item !== null} onClose={onClose} size="md" title={item.name} testId="item-detail">
+    <Modal
+      isOpen={item !== null}
+      onClose={onClose}
+      size="md"
+      title={item.name}
+      testId="item-detail"
+    >
       <div className="flex items-start gap-3 mb-4">
         <span className="text-4xl">{getItemIcon(item)}</span>
         <div>
@@ -65,7 +71,8 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
           </div>
           <div className="bg-pixel-card border-2 border-pixel-accent/60 p-3">
             <div className="text-xs font-bold uppercase tracking-wide text-pixel-text-muted mb-2">
-              vs. {equippedInSlot ? equippedInSlot.name : `Empty ${SLOT_NAMES[item.equipmentSlot!]}`}
+              vs.{' '}
+              {equippedInSlot ? equippedInSlot.name : `Empty ${SLOT_NAMES[item.equipmentSlot!]}`}
             </div>
             <StatDeltaList current={equippedInSlot} candidate={item} variant="full" />
           </div>

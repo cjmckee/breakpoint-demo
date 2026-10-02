@@ -43,7 +43,10 @@ export const MatchToasts: React.FC<MatchToastsProps> = ({ playerName, opponentNa
   const push = (text: string, tone: Tone): void => {
     const id = ++idRef.current;
     setToasts((t) => [...t, { id, text, tone, dying: false }].slice(-3));
-    window.setTimeout(() => setToasts((t) => t.map((x) => x.id === id ? { ...x, dying: true } : x)), 1000);
+    window.setTimeout(
+      () => setToasts((t) => t.map((x) => (x.id === id ? { ...x, dying: true } : x))),
+      1000,
+    );
     window.setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 2000);
   };
 
@@ -55,7 +58,8 @@ export const MatchToasts: React.FC<MatchToastsProps> = ({ playerName, opponentNa
     // Use the latest narration from the match log as the toast text.
     const narration = matchLog.length > 0 ? matchLog[matchLog.length - 1] : null;
 
-    const nameOf = (side: 'player' | 'opponent'): string => (side === 'player' ? playerName : opponentName);
+    const nameOf = (side: 'player' | 'opponent'): string =>
+      side === 'player' ? playerName : opponentName;
 
     // ── Set / match win (a completed set was just recorded) ──────────────────
     const setsLen = currentScore.sets.length;
@@ -98,7 +102,10 @@ export const MatchToasts: React.FC<MatchToastsProps> = ({ playerName, opponentNa
         push(narration ?? `${nameOf(r.winner)} winner!`, r.winner === 'player' ? 'good' : 'bad');
         break;
       case PointType.FORCED_ERROR:
-        push(narration ?? `${nameOf(r.winner)} forces an error`, r.winner === 'player' ? 'good' : 'bad');
+        push(
+          narration ?? `${nameOf(r.winner)} forces an error`,
+          r.winner === 'player' ? 'good' : 'bad',
+        );
         break;
       case PointType.UNFORCED_ERROR:
         push(narration ?? `Unforced error`, r.winner === 'player' ? 'good' : 'bad');

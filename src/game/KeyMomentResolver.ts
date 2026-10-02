@@ -56,23 +56,20 @@ export class KeyMomentResolver {
     option: TacticalOption,
     opponentArchetype: ArchetypeType,
     context?: Partial<KeyMomentContext>,
-    activeEffects?: Record<string, number>
+    activeEffects?: Record<string, number>,
   ): number {
     // Calculate weighted player stat
-    const playerScore = this.calculateWeightedStat(
-      playerStats,
-      option.playerStatWeights
-    );
+    const playerScore = this.calculateWeightedStat(playerStats, option.playerStatWeights);
 
     // Calculate weighted opponent stat
     const opponentScore = this.calculateWeightedStat(
       opponentStats,
-      this.resolveOpponentWeights(option, opponentStats)
+      this.resolveOpponentWeights(option, opponentStats),
     );
 
     // Base probability with stat differential
     const differential = playerScore - opponentScore;
-    let probability = KEY_MOMENT.baseChance + (differential * KEY_MOMENT.statMultiplier);
+    let probability = KEY_MOMENT.baseChance + differential * KEY_MOMENT.statMultiplier;
 
     // Apply the posture matchup
     const matchup = getMatchup(option.posture, opponentArchetype);
@@ -88,7 +85,7 @@ export class KeyMomentResolver {
         probability,
         context,
         this.getStatValue(playerStats, 'focus'),
-        activeEffects
+        activeEffects,
       );
     }
 
@@ -98,10 +95,7 @@ export class KeyMomentResolver {
       probability += activeEffects[EffectKey.CLUTCH_PERFORMANCE] ?? 0;
     }
 
-    return Math.max(
-      KEY_MOMENT.minProbability,
-      Math.min(KEY_MOMENT.maxProbability, probability)
-    );
+    return Math.max(KEY_MOMENT.minProbability, Math.min(KEY_MOMENT.maxProbability, probability));
   }
 
   /**
@@ -113,15 +107,12 @@ export class KeyMomentResolver {
     option: TacticalOption,
     opponentArchetype: ArchetypeType,
     context?: Partial<KeyMomentContext>,
-    activeEffects?: Record<string, number>
+    activeEffects?: Record<string, number>,
   ): KeyMomentResult {
-    const playerScore = this.calculateWeightedStat(
-      playerStats,
-      option.playerStatWeights
-    );
+    const playerScore = this.calculateWeightedStat(playerStats, option.playerStatWeights);
     const opponentScore = this.calculateWeightedStat(
       opponentStats,
-      this.resolveOpponentWeights(option, opponentStats)
+      this.resolveOpponentWeights(option, opponentStats),
     );
     const baseProbability = this.calculateSuccessProbability(
       playerStats,
@@ -129,7 +120,7 @@ export class KeyMomentResolver {
       option,
       opponentArchetype,
       context,
-      activeEffects
+      activeEffects,
     );
     const finalProbability = baseProbability;
 
@@ -151,8 +142,12 @@ export class KeyMomentResolver {
     const isCritical = random() < criticalShare;
 
     const outcome: OutcomeType = won
-      ? (isCritical ? 'critical-success' : 'success')
-      : (isCritical ? 'critical-failure' : 'failure');
+      ? isCritical
+        ? 'critical-success'
+        : 'success'
+      : isCritical
+        ? 'critical-failure'
+        : 'failure';
     const shotOutcome = won ? option.shotOutcomes.success : option.shotOutcomes.failure;
     const pointWinner: 'player' | 'opponent' = won ? 'player' : 'opponent';
 
@@ -180,10 +175,7 @@ export class KeyMomentResolver {
    * Critical outcomes scale effect values by the option's risk — a bold play that
    * comes off swings the match harder than a safe one that does.
    */
-  static resolveSecondaryEffects(
-    option: TacticalOption,
-    outcome: OutcomeType
-  ): AppliedEffect[] {
+  static resolveSecondaryEffects(option: TacticalOption, outcome: OutcomeType): AppliedEffect[] {
     const isSuccess = outcome === 'success' || outcome === 'critical-success';
     const isCritical = outcome === 'critical-success' || outcome === 'critical-failure';
     const multiplier = isCritical
@@ -225,12 +217,12 @@ export class KeyMomentResolver {
   static getWeightedScores(
     playerStats: PlayerStats,
     opponentStats: PlayerStats,
-    option: TacticalOption
+    option: TacticalOption,
   ): { playerScore: number; opponentScore: number } {
     const playerScore = this.calculateWeightedStat(playerStats, option.playerStatWeights);
     const opponentScore = this.calculateWeightedStat(
       opponentStats,
-      this.resolveOpponentWeights(option, opponentStats)
+      this.resolveOpponentWeights(option, opponentStats),
     );
     return { playerScore: Math.round(playerScore), opponentScore: Math.round(opponentScore) };
   }
@@ -244,7 +236,7 @@ export class KeyMomentResolver {
    */
   private static resolveOpponentWeights(
     option: TacticalOption,
-    opponentStats: PlayerStats
+    opponentStats: PlayerStats,
   ): StatWeights {
     if (!option.targetsWeakerWing) {
       return option.opponentStatWeights;
@@ -267,10 +259,7 @@ export class KeyMomentResolver {
   /**
    * Calculate weighted stat value from stat weights
    */
-  private static calculateWeightedStat(
-    stats: PlayerStats,
-    weights: StatWeights
-  ): number {
+  private static calculateWeightedStat(stats: PlayerStats, weights: StatWeights): number {
     const primaryValue = this.getStatValue(stats, weights.primary);
     let total = primaryValue * weights.primaryWeight;
     let totalWeight = weights.primaryWeight;
@@ -322,7 +311,7 @@ export class KeyMomentResolver {
   static getContextModifiers(
     context: Partial<KeyMomentContext>,
     playerFocus: number,
-    activeEffects?: Record<string, number>
+    activeEffects?: Record<string, number>,
   ): {
     momentum: number;
     energy: number;
@@ -331,9 +320,7 @@ export class KeyMomentResolver {
     total: number;
   } {
     // Mood: -10 to +10 (linear across full range)
-    const mood = context.mood !== undefined
-      ? (context.mood / 100) * 10
-      : 0;
+    const mood = context.mood !== undefined ? (context.mood / 100) * 10 : 0;
 
     // Pressure: scored against focus, so the moment is a test rather than a toll.
     // Focus above the pressure of the moment is an edge; below it, a penalty.
@@ -344,23 +331,27 @@ export class KeyMomentResolver {
       const effectiveFocus = playerFocus + resilience * KEY_MOMENT.resilienceToFocus;
       pressure = Math.max(
         -KEY_MOMENT.pressureClamp,
-        Math.min(KEY_MOMENT.pressureClamp, (effectiveFocus - context.pressure) * KEY_MOMENT.pressureVsFocusScale)
+        Math.min(
+          KEY_MOMENT.pressureClamp,
+          (effectiveFocus - context.pressure) * KEY_MOMENT.pressureVsFocusScale,
+        ),
       );
     }
 
     // Momentum: -10 to +10 (linear across full range)
-    const momentum = context.momentum !== undefined
-      ? (context.momentum / 100) * 10
-      : 0;
+    const momentum = context.momentum !== undefined ? (context.momentum / 100) * 10 : 0;
 
     // Energy: +5 when fully fresh down to -10 when empty, neutral at KEY_MOMENT.energyNeutral.
     // The penalty curve below neutral is steeper than the bonus above it — running
     // on empty should cost more than being fresh pays.
     let energy = 0;
     if (context.energy !== undefined) {
-      energy = context.energy >= KEY_MOMENT.energyNeutral
-        ? ((context.energy - KEY_MOMENT.energyNeutral) / (100 - KEY_MOMENT.energyNeutral)) * KEY_MOMENT.energyMaxBonus
-        : -((KEY_MOMENT.energyNeutral - context.energy) / KEY_MOMENT.energyNeutral) * KEY_MOMENT.energyMaxPenalty;
+      energy =
+        context.energy >= KEY_MOMENT.energyNeutral
+          ? ((context.energy - KEY_MOMENT.energyNeutral) / (100 - KEY_MOMENT.energyNeutral)) *
+            KEY_MOMENT.energyMaxBonus
+          : -((KEY_MOMENT.energyNeutral - context.energy) / KEY_MOMENT.energyNeutral) *
+            KEY_MOMENT.energyMaxPenalty;
     }
 
     return {
@@ -381,7 +372,7 @@ export class KeyMomentResolver {
     baseProbability: number,
     context: Partial<KeyMomentContext>,
     playerFocus: number,
-    activeEffects?: Record<string, number>
+    activeEffects?: Record<string, number>,
   ): number {
     // MENTAL_RESILIENCE is folded into the pressure term inside getContextModifiers,
     // so the modifiers the UI displays are exactly the ones applied here.

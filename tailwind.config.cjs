@@ -1,9 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
       colors: {
@@ -34,8 +31,8 @@ module.exports = {
         'dark-pixel-text-secondary': '#a0a0a0',
       },
       fontFamily: {
-        'game': ['"Press Start 2P"', 'monospace'],
-        'mono': ['monospace'],
+        game: ['"Press Start 2P"', 'monospace'],
+        mono: ['monospace'],
       },
       animation: {
         'pulse-heartbeat': 'pulse-heartbeat 1.5s ease-in-out infinite',
@@ -108,4 +105,4 @@ module.exports = {
   },
   plugins: [],
   darkMode: 'class',
-}
+};

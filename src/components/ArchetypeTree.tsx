@@ -24,12 +24,7 @@ import {
   PATHS_BY_PHASE,
   BROAD_ARCHETYPE_LABELS,
 } from '../data/archetypeTree';
-import type {
-  GamePhase,
-  PhasePathId,
-  SpecialtyRole,
-  SpecialtyTier,
-} from '../types/archetype';
+import type { GamePhase, PhasePathId, SpecialtyRole, SpecialtyTier } from '../types/archetype';
 
 /** Presentation for each tactical role. Colors are UI-only; role lives in data. */
 const ROLE_META: Record<SpecialtyRole, { label: string; color: string }> = {
@@ -85,20 +80,31 @@ const PrimaryAction: React.FC<{
     type="button"
     data-testid={testId}
     disabled={disabled}
-    onClick={() => { audioManager.playSfx('ui_click'); onClick(); }}
+    onClick={() => {
+      audioManager.playSfx('ui_click');
+      onClick();
+    }}
     className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold border-2 border-pixel-accent bg-pixel-accent text-white transition-[filter] hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100"
   >
     {label}
-    <span className="font-mono text-[10px] font-extrabold px-1.5 py-px rounded-full bg-white text-pixel-accent">{cost}</span>
+    <span className="font-mono text-[10px] font-extrabold px-1.5 py-px rounded-full bg-white text-pixel-accent">
+      {cost}
+    </span>
   </button>
 );
 
 /** Respec — deliberately quiet (ghost), token cost in the currency gold. */
-const RespecAction: React.FC<{ disabled?: boolean; onClick: () => void }> = ({ disabled, onClick }) => (
+const RespecAction: React.FC<{ disabled?: boolean; onClick: () => void }> = ({
+  disabled,
+  onClick,
+}) => (
   <button
     type="button"
     disabled={disabled}
-    onClick={() => { audioManager.playSfx('ui_click'); onClick(); }}
+    onClick={() => {
+      audioManager.playSfx('ui_click');
+      onClick();
+    }}
     className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold border-2 border-pixel-border bg-transparent text-pixel-text-muted transition-colors hover:border-pixel-text-muted hover:text-pixel-text disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-pixel-border"
   >
     Respec
@@ -129,7 +135,9 @@ export const ArchetypeTree: React.FC = () => {
       <div className="min-h-screen bg-pixel-bg p-4">
         <div className="max-w-7xl mx-auto">
           <div className="mb-6">
-            <Button variant="secondary" onClick={() => navigateTo('idle')}>← Back to Menu</Button>
+            <Button variant="secondary" onClick={() => navigateTo('idle')}>
+              ← Back to Menu
+            </Button>
           </div>
           <Card title="Player Archetype">
             <p className="text-pixel-text-muted">
@@ -172,7 +180,9 @@ export const ArchetypeTree: React.FC = () => {
             <div className="text-xs font-bold mt-0.5 leading-tight break-words" style={{ color }}>
               {path.label}
             </div>
-            <div className="mt-1"><TierDots tier={spec!.tier} color={color} /></div>
+            <div className="mt-1">
+              <TierDots tier={spec!.tier} color={color} />
+            </div>
           </>
         ) : (
           <div className="text-[11px] font-bold mt-0.5" style={{ color: EMPTY_COLOR }}>
@@ -194,7 +204,9 @@ export const ArchetypeTree: React.FC = () => {
       );
     }
 
-    const paths = [...PATHS_BY_PHASE[activePhase]].sort((a, b) => ROLE_ORDER[a.role] - ROLE_ORDER[b.role]);
+    const paths = [...PATHS_BY_PHASE[activePhase]].sort(
+      (a, b) => ROLE_ORDER[a.role] - ROLE_ORDER[b.role],
+    );
     const chosen = profile.phases[activePhase];
     const phaseManuallySet = !!chosen;
 
@@ -215,7 +227,9 @@ export const ArchetypeTree: React.FC = () => {
               <div
                 key={path.id}
                 className="flex flex-col p-4 border-b border-pixel-border md:border-b-0 md:border-r md:last:border-r-0"
-                style={{ borderTop: isChosen ? `3px solid ${role.color}` : '3px solid transparent' }}
+                style={{
+                  borderTop: isChosen ? `3px solid ${role.color}` : '3px solid transparent',
+                }}
               >
                 <div className="text-[9px] uppercase tracking-widest" style={{ color: role.color }}>
                   {role.label}
@@ -228,11 +242,15 @@ export const ArchetypeTree: React.FC = () => {
 
                 <dl className="mt-3 mb-3 flex flex-col gap-2">
                   <div>
-                    <dt className="text-[9px] uppercase tracking-widest text-pixel-text-muted opacity-70">Tradeoff</dt>
+                    <dt className="text-[9px] uppercase tracking-widest text-pixel-text-muted opacity-70">
+                      Tradeoff
+                    </dt>
                     <dd className="text-xs text-pixel-text-muted mt-0.5">{path.tradeoff}</dd>
                   </div>
                   <div>
-                    <dt className="text-[9px] uppercase tracking-widest text-pixel-text-muted opacity-70">Leveling</dt>
+                    <dt className="text-[9px] uppercase tracking-widest text-pixel-text-muted opacity-70">
+                      Leveling
+                    </dt>
                     <dd className="text-xs text-pixel-text-muted mt-0.5">{path.leveling}</dd>
                   </div>
                 </dl>
@@ -269,9 +287,14 @@ export const ArchetypeTree: React.FC = () => {
                           />
                         )
                       ) : (
-                        <span className="text-[11px] text-center text-pixel-text-muted py-1.5">Tier III · Maxed</span>
+                        <span className="text-[11px] text-center text-pixel-text-muted py-1.5">
+                          Tier III · Maxed
+                        </span>
                       )}
-                      <RespecAction disabled={tokens < 1} onClick={() => respecPhase(activePhase)} />
+                      <RespecAction
+                        disabled={tokens < 1}
+                        onClick={() => respecPhase(activePhase)}
+                      />
                     </>
                   )}
 
@@ -294,17 +317,25 @@ export const ArchetypeTree: React.FC = () => {
     <div className="min-h-screen bg-pixel-bg p-4">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
-          <Button variant="secondary" onClick={() => navigateTo('idle')}>← Back to Menu</Button>
+          <Button variant="secondary" onClick={() => navigateTo('idle')}>
+            ← Back to Menu
+          </Button>
         </div>
 
         <Card title="Playing Identity" className="mb-4">
           {/* role legend */}
           <div className="flex flex-wrap gap-4 mb-3 text-[11px]">
             {(Object.keys(ROLE_META) as SpecialtyRole[]).map((r) => (
-              <span key={r} className="inline-flex items-center gap-1.5 uppercase tracking-wide text-pixel-text-muted">
+              <span
+                key={r}
+                className="inline-flex items-center gap-1.5 uppercase tracking-wide text-pixel-text-muted"
+              >
                 <span
                   className="inline-block w-3 h-3"
-                  style={{ backgroundColor: ROLE_META[r].color, boxShadow: `0 0 8px ${ROLE_META[r].color}` }}
+                  style={{
+                    backgroundColor: ROLE_META[r].color,
+                    boxShadow: `0 0 8px ${ROLE_META[r].color}`,
+                  }}
                 />
                 {ROLE_META[r].label}
               </span>
@@ -330,7 +361,15 @@ export const ArchetypeTree: React.FC = () => {
                   </defs>
                   <rect x="0" y="0" width="560" height="300" fill="#26406a" />
                   <rect x="20" y="20" width="520" height="260" fill="url(#courtGrad)" />
-                  <rect x="20" y="20" width="520" height="260" fill="none" stroke="#f3f6ff" strokeWidth="2.5" />
+                  <rect
+                    x="20"
+                    y="20"
+                    width="520"
+                    height="260"
+                    fill="none"
+                    stroke="#f3f6ff"
+                    strokeWidth="2.5"
+                  />
                   <line x1="20" y1="52" x2="540" y2="52" stroke="#f3f6ff" strokeWidth="2" />
                   <line x1="20" y1="248" x2="540" y2="248" stroke="#f3f6ff" strokeWidth="2" />
                   <line x1="140" y1="52" x2="140" y2="248" stroke="#f3f6ff" strokeWidth="2" />
@@ -339,8 +378,24 @@ export const ArchetypeTree: React.FC = () => {
                   <line x1="280" y1="150" x2="420" y2="150" stroke="#f3f6ff" strokeWidth="2" />
                   <line x1="20" y1="150" x2="32" y2="150" stroke="#f3f6ff" strokeWidth="2" />
                   <line x1="528" y1="150" x2="540" y2="150" stroke="#f3f6ff" strokeWidth="2" />
-                  <line x1="280" y1="14" x2="280" y2="286" stroke="#0d1526" strokeWidth="6" opacity="0.55" />
-                  <line x1="280" y1="14" x2="280" y2="286" stroke="#f3f6ff" strokeWidth="2.5" strokeDasharray="3 3" />
+                  <line
+                    x1="280"
+                    y1="14"
+                    x2="280"
+                    y2="286"
+                    stroke="#0d1526"
+                    strokeWidth="6"
+                    opacity="0.55"
+                  />
+                  <line
+                    x1="280"
+                    y1="14"
+                    x2="280"
+                    y2="286"
+                    stroke="#f3f6ff"
+                    strokeWidth="2.5"
+                    strokeDasharray="3 3"
+                  />
                 </svg>
                 {ALL_PHASES.map(renderNode)}
               </div>
@@ -349,23 +404,35 @@ export const ArchetypeTree: React.FC = () => {
             {/* Stat panel: archetype · currencies · live tendencies */}
             <aside className="w-full sm:w-44 flex flex-col gap-3 border-2 border-pixel-border bg-pixel-card p-3">
               <div>
-                <div className="text-[9px] uppercase tracking-widest text-pixel-text-muted">Archetype</div>
+                <div className="text-[9px] uppercase tracking-widest text-pixel-text-muted">
+                  Archetype
+                </div>
                 <div className="text-sm font-bold text-pixel-text leading-tight mt-0.5">
                   {BROAD_ARCHETYPE_LABELS[profile.broad] ?? profile.broad}
                 </div>
               </div>
               <div className="flex gap-2">
                 <div className="flex-1 border border-pixel-border bg-pixel-bg py-1.5 text-center">
-                  <div className="font-mono text-lg font-bold text-pixel-accent leading-none">{points}</div>
-                  <div className="text-[8.5px] uppercase tracking-wide text-pixel-text-muted mt-1">Spec Points</div>
+                  <div className="font-mono text-lg font-bold text-pixel-accent leading-none">
+                    {points}
+                  </div>
+                  <div className="text-[8.5px] uppercase tracking-wide text-pixel-text-muted mt-1">
+                    Spec Points
+                  </div>
                 </div>
                 <div className="flex-1 border border-pixel-border bg-pixel-bg py-1.5 text-center">
-                  <div className="font-mono text-lg font-bold text-yellow-400 leading-none">{tokens}</div>
-                  <div className="text-[8.5px] uppercase tracking-wide text-pixel-text-muted mt-1">Respec Tokens</div>
+                  <div className="font-mono text-lg font-bold text-yellow-400 leading-none">
+                    {tokens}
+                  </div>
+                  <div className="text-[8.5px] uppercase tracking-wide text-pixel-text-muted mt-1">
+                    Respec Tokens
+                  </div>
                 </div>
               </div>
               <div>
-                <div className="text-[9px] uppercase tracking-widest text-pixel-text-muted mb-1.5">Tendencies</div>
+                <div className="text-[9px] uppercase tracking-widest text-pixel-text-muted mb-1.5">
+                  Tendencies
+                </div>
                 <TendencyBars playStyle={playStyle} />
               </div>
             </aside>

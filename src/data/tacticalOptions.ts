@@ -31,12 +31,12 @@ export type KeyMomentRole = 'serve' | 'return' | 'rally';
  * POSTURE x ARCHETYPE table (see data/postures.ts).
  */
 export type KeyMomentPosture =
-  | 'power'       // Overpower them, end it early
-  | 'net'         // Take the net, finish short
-  | 'neutralize'  // Absorb pace, reset, start the rally on your terms
-  | 'deception'   // Drop shot, disguise, wrong-foot
-  | 'attrition'   // Extend it, make them run, win the next one
-  | 'variety';    // Refuse to be predictable - change pace, angle, court position
+  | 'power' // Overpower them, end it early
+  | 'net' // Take the net, finish short
+  | 'neutralize' // Absorb pace, reset, start the rally on your terms
+  | 'deception' // Drop shot, disguise, wrong-foot
+  | 'attrition' // Extend it, make them run, win the next one
+  | 'variety'; // Refuse to be predictable - change pace, angle, court position
 
 /**
  * How wide the outcome spread is, NOT how likely the option is to succeed.
@@ -596,7 +596,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
     id: 's_slice_timing',
     emoji: '🌀',
     name: 'Slice serve to break their timing',
-    description: 'Don\'t let them get in rhythm',
+    description: "Don't let them get in rhythm",
     roles: ['serve'],
     posture: 'variety',
     risk: 'balanced',
@@ -1767,7 +1767,7 @@ export function getEligibleOptions(role: KeyMomentRole): TacticalOption[] {
 export function drawOptions(
   role: KeyMomentRole,
   count = 3,
-  avoidPostures: KeyMomentPosture[] = []
+  avoidPostures: KeyMomentPosture[] = [],
 ): TacticalOption[] {
   const pool = shuffle(getEligibleOptions(role));
   if (pool.length <= count) return pool;
@@ -1854,7 +1854,7 @@ export function getRole(type: KeyMomentType): KeyMomentRole {
 export function getOptionsForSituation(
   type: KeyMomentType,
   count = 3,
-  avoidPostures: KeyMomentPosture[] = []
+  avoidPostures: KeyMomentPosture[] = [],
 ): TacticalOption[] {
   return drawOptions(getRole(type), count, avoidPostures);
 }

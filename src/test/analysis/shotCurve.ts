@@ -40,10 +40,17 @@ import type { ArchetypeProfile } from '../../types/archetype';
 import { PlayerProfile } from '../../core/PlayerProfile';
 import { ShotCalculator } from '../../core/ShotCalculator';
 import {
-  PROBABILITY_STEEPNESS, sigmoidProbability, TOTAL_MODIFIER_CAPS,
+  PROBABILITY_STEEPNESS,
+  sigmoidProbability,
+  TOTAL_MODIFIER_CAPS,
 } from '../../config/shotThresholds';
 
-const NONE: ArchetypeProfile = { broad: null, phases: {}, specializationPoints: 0, respecTokens: 0 };
+const NONE: ArchetypeProfile = {
+  broad: null,
+  phases: {},
+  specializationPoints: 0,
+  respecTokens: 0,
+};
 
 const uniform = (r: number): PlayerStats => ({
   core: { serve: r, forehand: r, backhand: r, return: r, net: r },
@@ -53,27 +60,52 @@ const uniform = (r: number): PlayerStats => ({
 });
 
 const CONTEXT: ShotContext = {
-  difficulty: 'normal', pressure: 'low', courtPosition: 'baseline',
-  rallyLength: 4, courtSurface: 'hard',
+  difficulty: 'normal',
+  pressure: 'low',
+  courtPosition: 'baseline',
+  rallyLength: 4,
+  courtSurface: 'hard',
 };
 
 const SHOTS: ShotType[] = [
-  'forehand', 'forehand_power', 'return_forehand', 'slice_backhand',
-  'defensive_slice_forehand', 'volley_forehand', 'overhead', 'lob_forehand',
-  'drop_shot_forehand', 'angle_shot_forehand', 'passing_shot_forehand',
+  'forehand',
+  'forehand_power',
+  'return_forehand',
+  'slice_backhand',
+  'defensive_slice_forehand',
+  'volley_forehand',
+  'overhead',
+  'lob_forehand',
+  'drop_shot_forehand',
+  'angle_shot_forehand',
+  'passing_shot_forehand',
   'forehand_approach',
 ];
 
 function incoming(q: number): ShotDetail {
   return {
-    shotType: 'forehand', shooter: 'server', success: true, quality: q,
-    outcome: PointType.IN_PLAY, statUsed: 'forehand',
-    modifiers: {} as ShotDetail['modifiers'], timestamp: 0, shotNumber: 3,
+    shotType: 'forehand',
+    shooter: 'server',
+    success: true,
+    quality: q,
+    outcome: PointType.IN_PLAY,
+    statUsed: 'forehand',
+    modifiers: {} as ShotDetail['modifiers'],
+    timestamp: 0,
+    shotNumber: 3,
     context: CONTEXT,
   };
 }
 
-interface Row { adj: number; capped: number; quality: number; inPlay: number; winner: number; pIn: number; pWin: number; }
+interface Row {
+  adj: number;
+  capped: number;
+  quality: number;
+  inPlay: number;
+  winner: number;
+  pIn: number;
+  pWin: number;
+}
 
 /**
  * @param L     the shooter's level
@@ -88,23 +120,36 @@ function measure(shot: ShotType, L: number, N: number, oppL: number): Row {
   const calc = new ShotCalculator();
   const p = new PlayerProfile('p', 'P', uniform(L), NONE);
   const o = new PlayerProfile('o', 'O', uniform(oppL), NONE);
-  p.matchForm = 0; o.matchForm = 0;
+  p.matchForm = 0;
+  o.matchForm = 0;
   const cap = TOTAL_MODIFIER_CAPS.rally;
 
-  let adj = 0, capped = 0, q = 0, mIn = 0, mWin = 0, pIn = 0, pWin = 0;
+  let adj = 0,
+    capped = 0,
+    q = 0,
+    mIn = 0,
+    mWin = 0,
+    pIn = 0,
+    pWin = 0;
   for (let i = 0; i < N; i++) {
     const r = calc.calculateShotSuccess(p, shot, CONTEXT, o, 'well_positioned', incoming(oppL));
     adj += r.modifiers.finalAdjustment;
     if (r.modifiers.finalAdjustment >= cap - 1e-9) capped++;
     q += r.quality;
     const t = r.thresholds ?? { inPlay: 0, winner: 0, forcedError: 0 };
-    mIn += t.inPlay; mWin += t.winner;
+    mIn += t.inPlay;
+    mWin += t.winner;
     pIn += sigmoidProbability(r.quality, t.inPlay, PROBABILITY_STEEPNESS.rally.inPlay);
     pWin += sigmoidProbability(r.quality, t.winner, PROBABILITY_STEEPNESS.rally.winner);
   }
   return {
-    adj: adj / N, capped: (capped / N) * 100, quality: q / N,
-    inPlay: mIn / N, winner: mWin / N, pIn: (pIn / N) * 100, pWin: (pWin / N) * 100,
+    adj: adj / N,
+    capped: (capped / N) * 100,
+    quality: q / N,
+    inPlay: mIn / N,
+    winner: mWin / N,
+    pIn: (pIn / N) * 100,
+    pWin: (pWin / N) * 100,
   };
 }
 
@@ -115,27 +160,51 @@ function main(): void {
   const oppFixed = process.env.OPP ? Number(process.env.OPP) : null;
 
   console.log(`\n╔══ SHOT CURVE — ${N} rolls/cell ══╗`);
-  console.log(oppFixed === null
-    ? '\nOpponent tracks the shooter (same-level match).'
-    : `\nOpponent PINNED at level ${oppFixed}: incoming ball quality and the opponent's`
-      + '\nspeed/defensive contribution to the bar are held constant, so the curve'
-      + '\nshows the shooter\'s own scaling only.');
-  console.log('\nquality: what the shooter produces | in/win: sigmoid midpoints they are measured against');
-  console.log('margin = quality − inPlay midpoint. A shot that scales has a margin that grows with L.\n');
+  console.log(
+    oppFixed === null
+      ? '\nOpponent tracks the shooter (same-level match).'
+      : `\nOpponent PINNED at level ${oppFixed}: incoming ball quality and the opponent's` +
+          '\nspeed/defensive contribution to the bar are held constant, so the curve' +
+          "\nshows the shooter's own scaling only.",
+  );
+  console.log(
+    '\nquality: what the shooter produces | in/win: sigmoid midpoints they are measured against',
+  );
+  console.log(
+    'margin = quality − inPlay midpoint. A shot that scales has a margin that grows with L.\n',
+  );
 
   for (const shot of shots) {
     console.log(`── ${shot} ──`);
-    console.log(['L'.padStart(4), 'finalAdj'.padStart(10), 'capped%'.padStart(9), 'quality'.padStart(9),
-      'inPlay'.padStart(8), 'margin'.padStart(8), 'p(in)'.padStart(8),
-      'winner'.padStart(8), 'p(win)'.padStart(8)].join(''));
+    console.log(
+      [
+        'L'.padStart(4),
+        'finalAdj'.padStart(10),
+        'capped%'.padStart(9),
+        'quality'.padStart(9),
+        'inPlay'.padStart(8),
+        'margin'.padStart(8),
+        'p(in)'.padStart(8),
+        'winner'.padStart(8),
+        'p(win)'.padStart(8),
+      ].join(''),
+    );
     for (const L of levels) {
       const r = measure(shot, L, N, oppFixed ?? L);
       const margin = r.quality - r.inPlay;
-      console.log([String(L).padStart(4), r.adj.toFixed(3).padStart(10), r.capped.toFixed(0).padStart(9),
-        r.quality.toFixed(1).padStart(9), r.inPlay.toFixed(1).padStart(8),
-        ((margin >= 0 ? '+' : '') + margin.toFixed(1)).padStart(8),
-        `${r.pIn.toFixed(1)}%`.padStart(8), r.winner.toFixed(1).padStart(8),
-        `${r.pWin.toFixed(1)}%`.padStart(8)].join(''));
+      console.log(
+        [
+          String(L).padStart(4),
+          r.adj.toFixed(3).padStart(10),
+          r.capped.toFixed(0).padStart(9),
+          r.quality.toFixed(1).padStart(9),
+          r.inPlay.toFixed(1).padStart(8),
+          ((margin >= 0 ? '+' : '') + margin.toFixed(1)).padStart(8),
+          `${r.pIn.toFixed(1)}%`.padStart(8),
+          r.winner.toFixed(1).padStart(8),
+          `${r.pWin.toFixed(1)}%`.padStart(8),
+        ].join(''),
+      );
     }
     console.log('');
   }

@@ -14,7 +14,9 @@ import type { PreMatchConfig } from '../types/gamePhase';
 import { DEFAULT_MATCH_ENERGY_COST, MATCH_SPEED_DELAYS } from '../config/matchRewards';
 import { calculateOverallRating, getTierLabel } from '../utils/playerStats';
 
-export const PracticeMatch: React.FC<{ matchConfig: PreMatchConfig | null }> = ({ matchConfig }) => {
+export const PracticeMatch: React.FC<{ matchConfig: PreMatchConfig | null }> = ({
+  matchConfig,
+}) => {
   const player = useGameStore((state) => state.player);
   const currentStatus = useGameStore((state) => state.currentStatus);
   const navigateTo = useGameStore((state) => state.navigateTo);
@@ -67,8 +69,8 @@ export const PracticeMatch: React.FC<{ matchConfig: PreMatchConfig | null }> = (
           <strong className="text-pixel-text">Practice Match</strong>
         </p>
         <p>
-          Test your skills against a {getTierLabel(matchConfig.opponentTier).toLowerCase()} tier opponent.
-          Wins here improve your performance against similar opponents.
+          Test your skills against a {getTierLabel(matchConfig.opponentTier).toLowerCase()} tier
+          opponent. Wins here improve your performance against similar opponents.
         </p>
       </div>
     </Card>

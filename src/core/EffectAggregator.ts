@@ -68,7 +68,10 @@ export class EffectAggregator {
     }
   }
 
-  private static mergeEffects(target: Record<string, number>, source?: Record<string, number>): void {
+  private static mergeEffects(
+    target: Record<string, number>,
+    source?: Record<string, number>,
+  ): void {
     if (!source) return;
     for (const [key, value] of Object.entries(source)) {
       target[key] = (target[key] || 0) + value;

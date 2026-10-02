@@ -34,17 +34,15 @@ export const StatChangeIndicator: React.FC<StatChangeIndicatorProps> = ({ change
       const removeTimer = setTimeout(() => {
         setVisibleChanges((prev) =>
           prev.map((item) =>
-            newChanges.find((nc) => nc.id === item.id)
-              ? { ...item, removing: true }
-              : item
-          )
+            newChanges.find((nc) => nc.id === item.id) ? { ...item, removing: true } : item,
+          ),
         );
       }, 2000);
 
       // Actually remove after animation completes
       const clearTimer = setTimeout(() => {
         setVisibleChanges((prev) =>
-          prev.filter((item) => !newChanges.find((nc) => nc.id === item.id))
+          prev.filter((item) => !newChanges.find((nc) => nc.id === item.id)),
         );
       }, 2500);
 

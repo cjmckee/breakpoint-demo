@@ -1,6 +1,10 @@
 import type { PlayerStats } from '../../types';
 import type {
-  ArchetypeProfile, BroadArchetype, GamePhase, PhaseSpec, SpecialtyTier,
+  ArchetypeProfile,
+  BroadArchetype,
+  GamePhase,
+  PhaseSpec,
+  SpecialtyTier,
 } from '../../types/archetype';
 import { PlayerProfile } from '../../core/PlayerProfile';
 import { PATHS_BY_PHASE } from '../../data/archetypeTree';
@@ -13,16 +17,26 @@ export function createUniformPlayer(name: string, rating: number): PlayerProfile
   const r = Math.max(0, Math.min(100, rating));
   const stats: PlayerStats = {
     core: {
-      serve: r, forehand: r, backhand: r, return: r, net: r,
+      serve: r,
+      forehand: r,
+      backhand: r,
+      return: r,
+      net: r,
     },
     technical: {
-      slice: r, spin: r, placement: r,
+      slice: r,
+      spin: r,
+      placement: r,
     },
     physical: {
-      speed: r, stamina: r, strength: r,
+      speed: r,
+      stamina: r,
+      strength: r,
     },
     mental: {
-      focus: r, anticipation: r, tactics: r,
+      focus: r,
+      anticipation: r,
+      tactics: r,
     },
   };
   return new PlayerProfile(`uniform_${rating}`, name, stats);
@@ -62,16 +76,26 @@ export function createSkewedPlayer(
   const m = Math.max(0, Math.min(100, mentalRating));
   const stats: PlayerStats = {
     core: {
-      serve: t, forehand: t, backhand: t, return: t, net: t,
+      serve: t,
+      forehand: t,
+      backhand: t,
+      return: t,
+      net: t,
     },
     technical: {
-      slice: t, spin: t, placement: t,
+      slice: t,
+      spin: t,
+      placement: t,
     },
     physical: {
-      speed: p, stamina: p, strength: p,
+      speed: p,
+      stamina: p,
+      strength: p,
     },
     mental: {
-      focus: m, anticipation: m, tactics: m,
+      focus: m,
+      anticipation: m,
+      tactics: m,
     },
   };
   return new PlayerProfile(`skewed_${t}_${p}_${m}`, name, stats);
@@ -127,7 +151,7 @@ export function drawPlayerProfile(
       remaining--;
     }
     // Every phase already at maxTier: nothing left to buy, so stop.
-    if (phases.every(p => (chosen[p]?.tier ?? 0) >= maxTier)) break;
+    if (phases.every((p) => (chosen[p]?.tier ?? 0) >= maxTier)) break;
   }
 
   return {

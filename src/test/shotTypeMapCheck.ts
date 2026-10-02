@@ -55,25 +55,33 @@ function main(): void {
 
   const labels = authoredLabels();
 
-  check('the options author at least one shot label',
+  check(
+    'the options author at least one shot label',
     labels.length > 0,
-    'nothing to check means the data moved and this check is looking at the wrong place');
+    'nothing to check means the data moved and this check is looking at the wrong place',
+  );
 
   const unmapped = labels.filter((label) => !(label in TACTIC_SHOT_TYPES));
-  check('every authored label has a mapping',
+  check(
+    'every authored label has a mapping',
     unmapped.length === 0,
-    `unmapped, so these fall back to 'forehand': ${unmapped.join(', ')}`);
+    `unmapped, so these fall back to 'forehand': ${unmapped.join(', ')}`,
+  );
 
   const misattributed = labels
     .filter((label) => label in TACTIC_SHOT_TYPES)
     .map((label) => ({ label, shotType: TACTIC_SHOT_TYPES[label] }))
     .filter(({ label, shotType }) => getPrimaryStatName(label) !== getPrimaryStatName(shotType));
-  check('every mapping keeps the stat its label resolves to',
+  check(
+    'every mapping keeps the stat its label resolves to',
     misattributed.length === 0,
     misattributed
-      .map(({ label, shotType }) =>
-        `${label} (${getPrimaryStatName(label)}) → ${shotType} (${getPrimaryStatName(shotType)})`)
-      .join('\n          '));
+      .map(
+        ({ label, shotType }) =>
+          `${label} (${getPrimaryStatName(label)}) → ${shotType} (${getPrimaryStatName(shotType)})`,
+      )
+      .join('\n          '),
+  );
 
   // Not a failure: a mapping can outlive the label that needed it, and carrying a
   // spare costs nothing. Worth printing so the table can be pruned on purpose.
@@ -84,9 +92,11 @@ function main(): void {
 
   console.log(`\n  ${labels.length} authored label${labels.length === 1 ? '' : 's'} checked`);
 
-  console.log(failures === 0
-    ? '\n✅ all checks passed\n'
-    : `\n❌ ${failures} check${failures === 1 ? '' : 's'} failed\n`);
+  console.log(
+    failures === 0
+      ? '\n✅ all checks passed\n'
+      : `\n❌ ${failures} check${failures === 1 ? '' : 's'} failed\n`,
+  );
   process.exit(failures === 0 ? 0 : 1);
 }
 

@@ -24,7 +24,7 @@ export const TournamentRegistry = {
    * Get a specific tournament by ID
    */
   getTournament(id: string): TournamentConfig | undefined {
-    return ALL_TOURNAMENTS.find(t => t.id === id);
+    return ALL_TOURNAMENTS.find((t) => t.id === id);
   },
 
   /**
@@ -38,12 +38,12 @@ export const TournamentRegistry = {
         completedTournaments: TournamentCompletion[];
       };
       completedStoryEvents: string[];
-    }
+    },
   ): TournamentConfig[] {
-    return ALL_TOURNAMENTS.filter(tournament => {
+    return ALL_TOURNAMENTS.filter((tournament) => {
       // Check if already completed
       const alreadyCompleted = gameState.calendar.completedTournaments.some(
-        completion => completion.tournamentId === tournament.id
+        (completion) => completion.tournamentId === tournament.id,
       );
       if (alreadyCompleted) {
         return false;
@@ -55,14 +55,17 @@ export const TournamentRegistry = {
       }
 
       // Check matches played requirement
-      if (tournament.minMatchesPlayed && (player.matchesPlayed || 0) < tournament.minMatchesPlayed) {
+      if (
+        tournament.minMatchesPlayed &&
+        (player.matchesPlayed || 0) < tournament.minMatchesPlayed
+      ) {
         return false;
       }
 
       // Check required story events
       if (tournament.requiredEvents) {
-        const hasAllEvents = tournament.requiredEvents.every(eventId =>
-          gameState.completedStoryEvents.includes(eventId)
+        const hasAllEvents = tournament.requiredEvents.every((eventId) =>
+          gameState.completedStoryEvents.includes(eventId),
         );
         if (!hasAllEvents) {
           return false;

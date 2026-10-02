@@ -25,7 +25,10 @@ export class MatchStatistics {
   private opponentProfile: PlayerProfile;
 
   // Track break point opportunities
-  private breakPointOpportunities: { player: number; opponent: number } = { player: 0, opponent: 0 };
+  private breakPointOpportunities: { player: number; opponent: number } = {
+    player: 0,
+    opponent: 0,
+  };
 
   // Track serve attempts for accurate percentage calculations
   private firstServeAttempts: { player: number; opponent: number } = { player: 0, opponent: 0 };
@@ -87,7 +90,7 @@ export class MatchStatistics {
   public addPointResult(
     pointResult: PointResult,
     currentServer: 'player' | 'opponent',
-    breakPointFor?: 'player' | 'opponent'
+    breakPointFor?: 'player' | 'opponent',
   ): void {
     this.pointResults.push(pointResult);
 
@@ -121,13 +124,16 @@ export class MatchStatistics {
    */
   public updateScoreState(
     setScore: { player: number; opponent: number },
-    gameScore: { player: number; opponent: number }
+    gameScore: { player: number; opponent: number },
   ): void {
     const gameDeficit = setScore.opponent - setScore.player;
     if (gameDeficit < 2) return;
 
     // Severity: primary = game deficit, secondary = how close opponent is to winning current game
-    const severity = gameDeficit * 1000 + Math.max(0, gameScore.opponent - gameScore.player) * 10 + gameScore.opponent;
+    const severity =
+      gameDeficit * 1000 +
+      Math.max(0, gameScore.opponent - gameScore.player) * 10 +
+      gameScore.opponent;
 
     if (severity > this.worstDeficitSeverity) {
       this.worstDeficitSeverity = severity;
@@ -135,10 +141,14 @@ export class MatchStatistics {
       // Convert raw point counts to tennis display format
       const pointToTennis = (p: number): string => {
         switch (p) {
-          case 0: return '0';
-          case 1: return '15';
-          case 2: return '30';
-          default: return '40';
+          case 0:
+            return '0';
+          case 1:
+            return '15';
+          case 2:
+            return '30';
+          default:
+            return '40';
         }
       };
 
@@ -159,7 +169,10 @@ export class MatchStatistics {
   /**
    * Update basic point totals
    */
-  private updateBasicStatistics(pointResult: PointResult, currentServer: 'player' | 'opponent'): void {
+  private updateBasicStatistics(
+    pointResult: PointResult,
+    currentServer: 'player' | 'opponent',
+  ): void {
     const winner = this.convertPointWinnerToPlayer(pointResult.winner, currentServer);
 
     // Total points
@@ -202,15 +215,24 @@ export class MatchStatistics {
   /**
    * Update shot-specific statistics
    */
-  private updateShotStatistics(shots: ShotDetail[], pointWinner: 'server' | 'returner', currentServer: 'player' | 'opponent'): void {
+  private updateShotStatistics(
+    shots: ShotDetail[],
+    pointWinner: 'server' | 'returner',
+    currentServer: 'player' | 'opponent',
+  ): void {
     // Track which players were at net when the point ended
     // A player is "at net" once they hit an approach, volley, or overhead,
     // and stays at net for the rest of the point (matching PointSimulator behavior)
     const atNet: { server: boolean; returner: boolean } = { server: false, returner: false };
 
-    shots.forEach(shot => {
+    shots.forEach((shot) => {
       // Correctly map shooter to player/opponent based on who was serving
-      const player = shot.shooter === 'server' ? currentServer : (currentServer === 'player' ? 'opponent' : 'player');
+      const player =
+        shot.shooter === 'server'
+          ? currentServer
+          : currentServer === 'player'
+            ? 'opponent'
+            : 'player';
       const shotType = shot.shotType;
 
       // Initialize shot type stats if not exists
@@ -255,7 +277,12 @@ export class MatchStatistics {
     // A "net point won" = the point ended while that player was at the net and they won
     // This includes winners, forcing errors from net position, or opponent errors while you're at net
     if (atNet.server || atNet.returner) {
-      const winnerIdentity = pointWinner === 'server' ? currentServer : (currentServer === 'player' ? 'opponent' : 'player');
+      const winnerIdentity =
+        pointWinner === 'server'
+          ? currentServer
+          : currentServer === 'player'
+            ? 'opponent'
+            : 'player';
       if (atNet[pointWinner]) {
         this.statistics.netPointsWon[winnerIdentity]++;
       }
@@ -268,7 +295,10 @@ export class MatchStatistics {
    *   - Ace = 1, Double fault = 0, Serve + return winner = 2
    *   - A "rally" is any point where rallyLength > 2 (at least one exchange after the return)
    */
-  private updateRallyStatistics(pointResult: PointResult, currentServer: 'player' | 'opponent'): void {
+  private updateRallyStatistics(
+    pointResult: PointResult,
+    currentServer: 'player' | 'opponent',
+  ): void {
     const rallyLength = pointResult.rallyLength;
     const winner = this.convertPointWinnerToPlayer(pointResult.winner, currentServer);
     const isRally = rallyLength > 2;
@@ -311,7 +341,10 @@ export class MatchStatistics {
   /**
    * Update service-related statistics
    */
-  private updateServiceStatistics(pointResult: PointResult, currentServer: 'player' | 'opponent'): void {
+  private updateServiceStatistics(
+    pointResult: PointResult,
+    currentServer: 'player' | 'opponent',
+  ): void {
     const shots = pointResult.shots;
     if (shots.length === 0) return;
 
@@ -321,7 +354,7 @@ export class MatchStatistics {
     // Derive first serve status from shot data: if a second serve was attempted,
     // the first serve must have been a fault. This keeps serve percentage in sync
     // with shot breakdown stats regardless of how the point was generated (simulation or key moment).
-    const hasSecondServe = shots.some(shot => shot.shotType === 'serve_second');
+    const hasSecondServe = shots.some((shot) => shot.shotType === 'serve_second');
     const isFirstServeIn = !hasSecondServe;
 
     if (isFirstServeIn) {
@@ -330,9 +363,10 @@ export class MatchStatistics {
 
     // Track second serve attempt (only when first serve was a fault)
     if (hasSecondServe) {
-      const secondServeShot = shots.find(shot => shot.shotType === 'serve_second')!;
+      const secondServeShot = shots.find((shot) => shot.shotType === 'serve_second')!;
       // Second serve is "in" if it's not an error (can be 'in_play' or 'ace')
-      const isSecondServeIn = secondServeShot.outcome === PointType.IN_PLAY || secondServeShot.outcome === PointType.ACE;
+      const isSecondServeIn =
+        secondServeShot.outcome === PointType.IN_PLAY || secondServeShot.outcome === PointType.ACE;
 
       this.secondServeAttempts[currentServer]++;
 
@@ -366,7 +400,7 @@ export class MatchStatistics {
   private updateBreakPointStatistics(
     pointResult: PointResult,
     currentServer: 'player' | 'opponent',
-    breakPointFor?: 'player' | 'opponent'
+    breakPointFor?: 'player' | 'opponent',
   ): void {
     if (!breakPointFor) return;
 
@@ -403,7 +437,11 @@ export class MatchStatistics {
     this.analyzeStatCorrelation('backhand', playerStats.core.backhand, opponentStats.core.backhand);
     this.analyzeStatCorrelation('return', playerStats.core.return, opponentStats.core.return);
     this.analyzeStatCorrelation('focus', playerStats.mental.focus, opponentStats.mental.focus);
-    this.analyzeStatCorrelation('stamina', playerStats.physical.stamina, opponentStats.physical.stamina);
+    this.analyzeStatCorrelation(
+      'stamina',
+      playerStats.physical.stamina,
+      opponentStats.physical.stamina,
+    );
   }
 
   /**
@@ -412,7 +450,7 @@ export class MatchStatistics {
   private analyzeStatCorrelation(
     statName: string,
     playerStatValue: number,
-    opponentStatValue: number
+    opponentStatValue: number,
   ): void {
     // Calculate expected performance based on stat difference
     const statDifference = playerStatValue - opponentStatValue;
@@ -466,8 +504,9 @@ export class MatchStatistics {
 
     if (playerServePoints + opponentServePoints === 0) return 0;
 
-    const playerServeSuccess = (playerAces - playerDF + playerServePoints) /
-                               Math.max(1, playerServePoints + opponentServePoints);
+    const playerServeSuccess =
+      (playerAces - playerDF + playerServePoints) /
+      Math.max(1, playerServePoints + opponentServePoints);
 
     return (playerServeSuccess - 0.5) * 2; // Convert to -1 to +1 range
   }
@@ -480,7 +519,7 @@ export class MatchStatistics {
     let opponentSuccessRate = 0;
     let totalAttempts = 0;
 
-    shotTypes.forEach(shotType => {
+    shotTypes.forEach((shotType) => {
       const stats = this.statistics.shotTypeStats[shotType];
       if (stats) {
         const playerAttempts = stats.attempts.player;
@@ -504,7 +543,7 @@ export class MatchStatistics {
     const avgPlayerRate = playerSuccessRate / totalAttempts;
     const avgOpponentRate = opponentSuccessRate / totalAttempts;
 
-    return (avgPlayerRate - avgOpponentRate); // Performance difference
+    return avgPlayerRate - avgOpponentRate; // Performance difference
   }
 
   /**
@@ -538,12 +577,12 @@ export class MatchStatistics {
    * Calculate stamina performance (performance in long rallies)
    */
   private calculateStaminaPerformance(): number {
-    const longRallyPoints = this.pointResults.filter(point => point.rallyLength > 10);
+    const longRallyPoints = this.pointResults.filter((point) => point.rallyLength > 10);
 
     if (longRallyPoints.length === 0) return 0;
 
-    const playerLongRallyWins = longRallyPoints.filter(point =>
-      this.convertPointWinnerToPlayer(point.winner, 'player') === 'player'
+    const playerLongRallyWins = longRallyPoints.filter(
+      (point) => this.convertPointWinnerToPlayer(point.winner, 'player') === 'player',
     ).length;
 
     return (playerLongRallyWins / longRallyPoints.length - 0.5) * 2;
@@ -556,7 +595,7 @@ export class MatchStatistics {
     // Simplified correlation: how well actual matches expected
     const maxDifference = 2; // Max possible difference
     const difference = Math.abs(expected - actual);
-    return 1 - (difference / maxDifference);
+    return 1 - difference / maxDifference;
   }
 
   /**
@@ -584,8 +623,9 @@ export class MatchStatistics {
    */
   private calculateCategoryPerformance(category: 'technical' | 'physical' | 'mental'): number {
     const categoryStats = this.playerProfile.stats[category];
-    const avgStat = Object.values(categoryStats).reduce((sum, val) => sum + val, 0) /
-                    Object.values(categoryStats).length;
+    const avgStat =
+      Object.values(categoryStats).reduce((sum, val) => sum + val, 0) /
+      Object.values(categoryStats).length;
 
     // Convert stat value to performance rating (0-100)
     return avgStat;
@@ -616,7 +656,7 @@ export class MatchStatistics {
     if (!correlation) return 50; // Default neutral rating
 
     // Convert correlation to 0-100 effectiveness rating
-    return Math.round(50 + (correlation.correlation * 50));
+    return Math.round(50 + correlation.correlation * 50);
   }
 
   /**
@@ -671,13 +711,16 @@ export class MatchStatistics {
     return 'dominant';
   }
 
-  private identifyKeyFactor(): 'serving' | 'returning' | 'consistency' | 'power' | 'pressure' | 'fitness' {
+  private identifyKeyFactor():
+    'serving' | 'returning' | 'consistency' | 'power' | 'pressure' | 'fitness' {
     // Simplified logic - could be enhanced with more sophisticated analysis
     if (this.statistics.aces.player > this.statistics.aces.opponent * 2) return 'serving';
-    if (this.statistics.pointsWon.player.return > this.statistics.pointsWon.opponent.return * 1.5) return 'returning';
+    if (this.statistics.pointsWon.player.return > this.statistics.pointsWon.opponent.return * 1.5)
+      return 'returning';
     if (this.statistics.errors.player < this.statistics.errors.opponent * 0.8) return 'consistency';
     if (this.statistics.winners.player > this.statistics.winners.opponent * 1.5) return 'power';
-    if (this.statistics.breakPointsConverted.player > this.statistics.breakPointsConverted.opponent) return 'pressure';
+    if (this.statistics.breakPointsConverted.player > this.statistics.breakPointsConverted.opponent)
+      return 'pressure';
     return 'fitness';
   }
 
@@ -750,7 +793,7 @@ export class MatchStatistics {
 
   private convertPointWinnerToPlayer(
     pointWinner: 'server' | 'returner',
-    currentServer: 'player' | 'opponent'
+    currentServer: 'player' | 'opponent',
   ): 'player' | 'opponent' {
     if (pointWinner === 'server') {
       return currentServer;
@@ -759,7 +802,12 @@ export class MatchStatistics {
   }
 
   private isNetShot(shotType: ShotType): boolean {
-    return shotType.includes('volley') || shotType.includes('half_volley') || shotType.includes('approach') || shotType.includes('overhead');
+    return (
+      shotType.includes('volley') ||
+      shotType.includes('half_volley') ||
+      shotType.includes('approach') ||
+      shotType.includes('overhead')
+    );
   }
 
   public getStatistics(): IMatchStatistics {

@@ -27,16 +27,13 @@ export const TournamentList: React.FC = () => {
   const allTournaments = TournamentRegistry.getAllTournaments();
 
   // Check eligibility for each tournament
-  const eligibleTournaments = TournamentRegistry.getEligibleTournaments(
-    player,
-    {
-      completedStoryEvents,
-      calendar: {
-        activeTournament,
-        completedTournaments: calendar.completedTournaments,
-      },
-    }
-  );
+  const eligibleTournaments = TournamentRegistry.getEligibleTournaments(player, {
+    completedStoryEvents,
+    calendar: {
+      activeTournament,
+      completedTournaments: calendar.completedTournaments,
+    },
+  });
 
   const handleEnterTournament = (tournamentId: string) => {
     startTournament(tournamentId);
@@ -79,12 +76,16 @@ export const TournamentList: React.FC = () => {
 
   const getTournamentCompletion = (tournamentId: string) => {
     return calendar.completedTournaments.find(
-      (completion) => completion.tournamentId === tournamentId
+      (completion) => completion.tournamentId === tournamentId,
     );
   };
 
   const getIneligibilityReason = (tournament: TournamentConfig): string | null => {
-    if (!tournament.minPlayerTier && !tournament.minMatchesPlayed && !tournament.requiredEvents?.length) {
+    if (
+      !tournament.minPlayerTier &&
+      !tournament.minMatchesPlayed &&
+      !tournament.requiredEvents?.length
+    ) {
       return null;
     }
 
@@ -101,7 +102,7 @@ export const TournamentList: React.FC = () => {
     if (tournament.requiredEvents?.length) {
       const completedEvents = useGameStore.getState().completedStoryEvents;
       const missingEvents = tournament.requiredEvents.filter(
-        (eventId) => !completedEvents.includes(eventId)
+        (eventId) => !completedEvents.includes(eventId),
       );
       if (missingEvents.length > 0) {
         reasons.push('Complete prerequisite events');
@@ -123,7 +124,8 @@ export const TournamentList: React.FC = () => {
         {activeTournament && activeTournament.isActive && (
           <Card title="Active Tournament" className="mb-6 border-4 border-yellow-400">
             <p className="text-pixel-text text-lg mb-2">
-              You are currently competing in <span className="font-bold">{activeTournament.tournamentName}</span>
+              You are currently competing in{' '}
+              <span className="font-bold">{activeTournament.tournamentName}</span>
             </p>
             <p className="text-pixel-text-muted mb-4">
               Return to the main menu to continue your tournament matches.
@@ -135,7 +137,11 @@ export const TournamentList: React.FC = () => {
               <Button
                 variant="danger"
                 onClick={() => {
-                  if (window.confirm(`Are you sure you want to forfeit ${activeTournament.tournamentName}? All progress will be lost.`)) {
+                  if (
+                    window.confirm(
+                      `Are you sure you want to forfeit ${activeTournament.tournamentName}? All progress will be lost.`,
+                    )
+                  ) {
                     cancelTournament();
                   }
                 }}
@@ -179,9 +185,7 @@ export const TournamentList: React.FC = () => {
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-xl font-bold text-pixel-text">
-                          {tournament.name}
-                        </h3>
+                        <h3 className="text-xl font-bold text-pixel-text">{tournament.name}</h3>
                         {completion && completion.won && (
                           <span className="text-yellow-400 text-xl" title="Champion">
                             👑
@@ -190,7 +194,7 @@ export const TournamentList: React.FC = () => {
                       </div>
                       <span
                         className={`inline-block px-2 py-1 text-sm font-bold border-2 ${getSurfaceColor(
-                          tournament.surface
+                          tournament.surface,
                         )}`}
                       >
                         {getSurfaceEmoji(tournament.surface)} {tournament.surface.toUpperCase()}
@@ -213,9 +217,7 @@ export const TournamentList: React.FC = () => {
                   </div>
 
                   {/* Description */}
-                  <p className="text-pixel-text-muted mb-3 text-sm">
-                    {tournament.description}
-                  </p>
+                  <p className="text-pixel-text-muted mb-3 text-sm">{tournament.description}</p>
 
                   {/* Tournament Info */}
                   <div className="space-y-2 mb-4">
@@ -226,13 +228,17 @@ export const TournamentList: React.FC = () => {
                     {tournament.minPlayerTier && (
                       <div className="flex justify-between text-sm">
                         <span className="text-pixel-text-muted">Min Tier:</span>
-                        <span className="font-bold text-pixel-text">Tier {tournament.minPlayerTier}</span>
+                        <span className="font-bold text-pixel-text">
+                          Tier {tournament.minPlayerTier}
+                        </span>
                       </div>
                     )}
                     {tournament.minMatchesPlayed && (
                       <div className="flex justify-between text-sm">
                         <span className="text-pixel-text-muted">Min Matches:</span>
-                        <span className="font-bold text-pixel-text">{tournament.minMatchesPlayed}</span>
+                        <span className="font-bold text-pixel-text">
+                          {tournament.minMatchesPlayed}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -268,10 +274,10 @@ export const TournamentList: React.FC = () => {
                         ? 'Champion'
                         : 'Completed'
                       : isInActiveTournament
-                      ? 'Already Entered'
-                      : !eligible
-                      ? 'Not Eligible'
-                      : 'Enter Tournament'}
+                        ? 'Already Entered'
+                        : !eligible
+                          ? 'Not Eligible'
+                          : 'Enter Tournament'}
                   </Button>
                 </div>
               );

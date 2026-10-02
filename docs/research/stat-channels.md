@@ -11,7 +11,7 @@ behaviour, and whether any of it measures at the ratings the game actually ships
 
 1. **There were four channels; there are now three, and two more the list never mentioned.**
    `bonus` was not a separate mechanism — `(1 + statBonus(s, B)/100)` and `statModifier(s, B/100)`
-   are the same function. It has been folded into the bands. Meanwhile shot *selection* (which
+   are the same function. It has been folded into the bands. Meanwhile shot _selection_ (which
    shots get hit) and the out-of-quality systems (fatigue, pressure, momentum) each carry more stat
    value than the two small quality channels, and neither was in the list.
 2. **The band channel is real, and real for four stats.** `anticipation` +1.12, `tactics` +0.90,
@@ -34,18 +34,18 @@ behaviour, and whether any of it measures at the ratings the game actually ships
 
 In the order the engine applies them:
 
-| # | channel | where | shape |
-|---|---|---|---|
-| 1 | **composite** | `PlayerProfile.getStatForShot` — `SHOT_COMPOSITE_WEIGHTS`, `SERVE_QUALITY_WEIGHTS`, `SERVE_ACCURACY_WEIGHTS`, `RETURN_COMPOSITE_WEIGHTS` | additive, weights sum to 1, keyed on shot family |
-| 2 | **band** | `ShotCalculator.calculateModifiers` — `STAT_MODIFIER_BANDS`, `SERVE_MODIFIER_BANDS` | multiplicative, centered on `NEUTRAL_STAT`, gated on a shot classification *or a live context flag* |
-| 3 | **threshold** | `ShotCalculator.calculateQualityRequirements` — `OPPONENT_STAT_ADJUSTMENTS`, `SHOOTER_STAT_ADJUSTMENTS` | moves the bar, not the shot |
+| #   | channel       | where                                                                                                                                    | shape                                                                                               |
+| --- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| 1   | **composite** | `PlayerProfile.getStatForShot` — `SHOT_COMPOSITE_WEIGHTS`, `SERVE_QUALITY_WEIGHTS`, `SERVE_ACCURACY_WEIGHTS`, `RETURN_COMPOSITE_WEIGHTS` | additive, weights sum to 1, keyed on shot family                                                    |
+| 2   | **band**      | `ShotCalculator.calculateModifiers` — `STAT_MODIFIER_BANDS`, `SERVE_MODIFIER_BANDS`                                                      | multiplicative, centered on `NEUTRAL_STAT`, gated on a shot classification _or a live context flag_ |
+| 3   | **threshold** | `ShotCalculator.calculateQualityRequirements` — `OPPONENT_STAT_ADJUSTMENTS`, `SHOOTER_STAT_ADJUSTMENTS`                                  | moves the bar, not the shot                                                                         |
 
 And the two that were not on the list but carry more than 2 and 3 combined:
 
-| # | channel | where | what it does |
-|---|---|---|---|
-| 4 | **selection** | `ShotSelector` | `forehand`/`backhand` set the wing ratio; `spin` sets the tactical-shot rate; `placement` sets the drop-shot rate. Changes *which shots happen*, not how well they go. |
-| 5 | **state** | pressure, momentum, fatigue | `focus` and `stamina` reach a shot only here. Neither has any band or threshold entry. |
+| #   | channel       | where                       | what it does                                                                                                                                                           |
+| --- | ------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 4   | **selection** | `ShotSelector`              | `forehand`/`backhand` set the wing ratio; `spin` sets the tactical-shot rate; `placement` sets the drop-shot rate. Changes _which shots happen_, not how well they go. |
+| 5   | **state**     | pressure, momentum, fatigue | `focus` and `stamina` reach a shot only here. Neither has any band or threshold entry.                                                                                 |
 
 ### The bonus channel, and why it is gone
 
@@ -90,7 +90,7 @@ No sampling, so no noise; it bounds what PART A could ever detect.
 
 **PART M — measured dynamic range.** Every band is centered on `NEUTRAL_STAT`, so a uniform-50
 player multiplies by exactly 1.000 on every shot. Running uniform players at other ratings reads
-the channel's whole range straight off the shots — whatever the product differs from 1.0 *is* the
+the channel's whole range straight off the shots — whatever the product differs from 1.0 _is_ the
 band channel's entire contribution.
 
 **PART A — ablation.** The randomized-population regression `statSensitivity` Part B uses:
@@ -113,17 +113,17 @@ The harness originally drew **both** sides from `profileForArchetype` — the fi
 Those are not legacy debt: they are how every authored opponent in the game is built
 (`data/opponents.ts`, `teamMatches.ts`, `welcomeEvents.ts`, and the practice/tournament paths in
 `gameStore`), and the shipped roster is exactly uniform across them, four opponents each. What was
-wrong is that they were used for the *player* side too, and a player does not have an archetype
+wrong is that they were used for the _player_ side too, and a player does not have an archetype
 preset. A player picks a broad identity and spends one specialization point per level across six
 phases, three paths each, up to tier III.
 
 Measured with `populationProbe`, the symmetric preset draw reached:
 
-| | preset draw (old) | real draw (now) |
-|---|---|---|
-| specialty paths reached | **13 of 18** | 18 of 18 |
-| tier III specialties | **0.0%** | 5.4% |
-| never sampled | `fs_sniper`, `fs_curveball`, `ss_pancake`, `ss_gambler`, `bh_bazooka` | — |
+|                         | preset draw (old)                                                     | real draw (now) |
+| ----------------------- | --------------------------------------------------------------------- | --------------- |
+| specialty paths reached | **13 of 18**                                                          | 18 of 18        |
+| tier III specialties    | **0.0%**                                                              | 5.4%            |
+| never sampled           | `fs_sniper`, `fs_curveball`, `ss_pancake`, `ss_gambler`, `bh_bazooka` | —               |
 
 `fs_curveball` is the one that bites: it carries the game's only `SLICE_PREFERENCE_FOREHAND`, so a
 preset-only population makes `slice` a backhand-only stat before any measurement begins. And no
@@ -150,7 +150,7 @@ N=8000 PARTS=A LO=25 HI=50 node dist/src/test/analysis/statChannels.js  # shippe
 ### Two limits worth stating
 
 **The composite column only measures a stat in its SUPPORT role.** The ablation pushes support
-weight onto whichever stat is primary, so primary stats go *up* and their column is not an ablation
+weight onto whichever stat is primary, so primary stats go _up_ and their column is not an ablation
 of them at all — that is why `serve` reads −1.75 and `return` −1.17. There is no ablation that
 isolates a primary stat, because removing it removes the shot.
 
@@ -165,21 +165,21 @@ itself slightly.
 
 Points of shot quality per +10 stat, at rating 55. Abridged; run the harness for all rows.
 
-| stat | channel | when active | gate |
-|---|---|---|---|
-| forehand / backhand / net / slice / placement | composite | **8.00** | primary slot, w=0.50–0.80 |
-| serve | composite | **6.00** | 4 shot families @ w=0.35–0.60 |
-| return | composite | **6.00** | 1 shot family @ w=0.60 |
-| net | threshold | 2.00 | opponent's stat, only while at net |
-| speed | band | 1.65 | net shot or rushed ball |
-| tactics | band | 1.65 | any offensive or defensive shot |
-| return / speed / tactics | threshold | 1.20 | opponent's stat |
-| spin | band | 1.10 | spin shots (slice/drop/defensive slice) |
-| anticipation | band | 1.10 | opponent at net / well positioned |
-| strength | band | 1.10 | power shots |
-| anticipation | threshold | 1.00 | own stat, every rally shot |
-| placement / spin | band | 0.82 | placement shots / tactical shots |
-| stamina | — | — | **no shot-quality channel at all** |
+| stat                                          | channel   | when active | gate                                    |
+| --------------------------------------------- | --------- | ----------- | --------------------------------------- |
+| forehand / backhand / net / slice / placement | composite | **8.00**    | primary slot, w=0.50–0.80               |
+| serve                                         | composite | **6.00**    | 4 shot families @ w=0.35–0.60           |
+| return                                        | composite | **6.00**    | 1 shot family @ w=0.60                  |
+| net                                           | threshold | 2.00        | opponent's stat, only while at net      |
+| speed                                         | band      | 1.65        | net shot or rushed ball                 |
+| tactics                                       | band      | 1.65        | any offensive or defensive shot         |
+| return / speed / tactics                      | threshold | 1.20        | opponent's stat                         |
+| spin                                          | band      | 1.10        | spin shots (slice/drop/defensive slice) |
+| anticipation                                  | band      | 1.10        | opponent at net / well positioned       |
+| strength                                      | band      | 1.10        | power shots                             |
+| anticipation                                  | threshold | 1.00        | own stat, every rally shot              |
+| placement / spin                              | band      | 0.82        | placement shots / tactical shots        |
+| stamina                                       | —         | —           | **no shot-quality channel at all**      |
 
 The composite is an order of magnitude ahead before gating is even considered, and then the gates
 cut further: measured against the shot mix, `spinShots` is ~5.8% of an unspecialized player's rally
@@ -192,12 +192,12 @@ shots and `placementShots` ~9.2%.
 Uniform players, so the composite base rating equals the level exactly.
 
 | level | support × | quality Δ | phys × | ment × | spin × | place × |
-|---|---|---|---|---|---|---|
-| 20 | 0.828 | −3.43 | 0.941 | 0.894 | 0.986 | 0.997 |
-| 30 | 0.888 | −3.36 | 0.963 | 0.931 | 0.992 | 0.998 |
-| 50 | 1.000 | +0.00 | 1.000 | 1.000 | 1.000 | 1.000 |
-| 70 | 1.129 | +9.05 | 1.039 | 1.072 | 1.009 | 1.004 |
-| 90 | 1.297 | +26.69 | 1.080 | 1.149 | 1.027 | 1.016 |
+| ----- | --------- | --------- | ------ | ------ | ------ | ------- |
+| 20    | 0.828     | −3.43     | 0.941  | 0.894  | 0.986  | 0.997   |
+| 30    | 0.888     | −3.36     | 0.963  | 0.931  | 0.992  | 0.998   |
+| 50    | 1.000     | +0.00     | 1.000  | 1.000  | 1.000  | 1.000   |
+| 70    | 1.129     | +9.05     | 1.039  | 1.072  | 1.009  | 1.004   |
+| 90    | 1.297     | +26.69    | 1.080  | 1.149  | 1.027  | 1.016   |
 
 In aggregate the band channel is not small — ×0.83 to ×1.30 — and the mental factor (`tactics` +
 `anticipation` + `spin` touch) carries most of it. But that is every support stat moving at once
@@ -218,45 +218,45 @@ low.
 
 ### Over U(25, 90), real build population. `±95%` on `full` is 0.18.
 
-| stat | full | control | composite | band | threshold |
-|---|---|---|---|---|---|
-| anticipation | +2.85 | +0.04 | **+1.48** | **+0.97** | **+0.34** |
-| return | +2.75 | +0.01 | *−1.22* | −0.31 | −0.17 |
-| serve | +2.50 | −0.01 | *−1.74* | −0.01 | +0.03 |
-| speed | +2.45 | +0.01 | **+1.14** | **+0.57** | **+0.31** |
-| tactics | +2.22 | −0.05 | **+0.58** | **+1.07** | **+0.47** |
-| focus | +1.83 | +0.02 | **+0.50** | −0.06 | −0.07 |
-| placement | +1.58 | +0.02 | **+0.51** | +0.11 | −0.09 |
-| spin | +1.31 | −0.10 | **+0.89** | +0.25 | −0.09 |
-| strength | +1.24 | −0.04 | **+0.99** | **+0.41** | −0.02 |
-| forehand | +1.03 | −0.04 | *−0.24* | −0.13 | −0.14 |
-| stamina | +1.02 | −0.01 | +0.19 | −0.07 | −0.06 |
-| backhand | +0.96 | +0.00 | *−0.30* | −0.18 | −0.04 |
-| net | +0.79 | +0.07 | **+0.55** | −0.03 | +0.05 |
-| slice | +0.52 | −0.06 | *−0.17* | +0.09 | +0.02 |
+| stat         | full  | control | composite | band      | threshold |
+| ------------ | ----- | ------- | --------- | --------- | --------- |
+| anticipation | +2.85 | +0.04   | **+1.48** | **+0.97** | **+0.34** |
+| return       | +2.75 | +0.01   | _−1.22_   | −0.31     | −0.17     |
+| serve        | +2.50 | −0.01   | _−1.74_   | −0.01     | +0.03     |
+| speed        | +2.45 | +0.01   | **+1.14** | **+0.57** | **+0.31** |
+| tactics      | +2.22 | −0.05   | **+0.58** | **+1.07** | **+0.47** |
+| focus        | +1.83 | +0.02   | **+0.50** | −0.06     | −0.07     |
+| placement    | +1.58 | +0.02   | **+0.51** | +0.11     | −0.09     |
+| spin         | +1.31 | −0.10   | **+0.89** | +0.25     | −0.09     |
+| strength     | +1.24 | −0.04   | **+0.99** | **+0.41** | −0.02     |
+| forehand     | +1.03 | −0.04   | _−0.24_   | −0.13     | −0.14     |
+| stamina      | +1.02 | −0.01   | +0.19     | −0.07     | −0.06     |
+| backhand     | +0.96 | +0.00   | _−0.30_   | −0.18     | −0.04     |
+| net          | +0.79 | +0.07   | **+0.55** | −0.03     | +0.05     |
+| slice        | +0.52 | −0.06   | _−0.17_   | +0.09     | +0.02     |
 
 ### Over U(25, 50), tier-1 build constraints. `±95%` on `full` is 0.40.
 
 `POINTS=3 MAX_TIER=1` — a club player, where `upgradePhase` caps every specialty at tier I.
 
-| stat | full (25-50) | full (25-90) | composite | band | threshold |
-|---|---|---|---|---|---|
-| return | +3.19 | +2.75 | *−1.94* | +0.03 | +0.02 |
-| serve | +3.16 | +2.50 | *−1.66* | +0.05 | +0.31 |
-| speed | +2.99 | +2.45 | **+1.49** | **+0.70** | **+0.65** |
-| anticipation | +2.87 | +2.85 | **+1.29** | **+0.73** | **+0.57** |
-| tactics | +2.25 | +2.22 | +0.14 | **+0.51** | **+0.56** |
-| spin | +1.65 | +1.31 | **+1.71** | +0.31 | **+0.44** |
-| placement | +1.60 | +1.58 | **+0.56** | −0.22 | +0.11 |
-| forehand | +1.43 | +1.03 | *−0.73* | −0.19 | −0.06 |
-| focus | +1.39 | +1.83 | +0.13 | −0.60 | −0.33 |
-| **net** | **+1.35** | +0.79 | **+0.74** | +0.25 | **+0.44** |
-| strength | +1.22 | +1.24 | **+0.60** | **+0.47** | −0.35 |
-| backhand | +1.15 | +0.96 | *−0.71* | −0.34 | −0.03 |
-| stamina | +0.67 | +1.02 | −0.03 | +0.11 | +0.01 |
-| slice | −0.24 | +0.52 | −0.95 | −0.76 | −0.87 |
+| stat         | full (25-50) | full (25-90) | composite | band      | threshold |
+| ------------ | ------------ | ------------ | --------- | --------- | --------- |
+| return       | +3.19        | +2.75        | _−1.94_   | +0.03     | +0.02     |
+| serve        | +3.16        | +2.50        | _−1.66_   | +0.05     | +0.31     |
+| speed        | +2.99        | +2.45        | **+1.49** | **+0.70** | **+0.65** |
+| anticipation | +2.87        | +2.85        | **+1.29** | **+0.73** | **+0.57** |
+| tactics      | +2.25        | +2.22        | +0.14     | **+0.51** | **+0.56** |
+| spin         | +1.65        | +1.31        | **+1.71** | +0.31     | **+0.44** |
+| placement    | +1.60        | +1.58        | **+0.56** | −0.22     | +0.11     |
+| forehand     | +1.43        | +1.03        | _−0.73_   | −0.19     | −0.06     |
+| focus        | +1.39        | +1.83        | +0.13     | −0.60     | −0.33     |
+| **net**      | **+1.35**    | +0.79        | **+0.74** | +0.25     | **+0.44** |
+| strength     | +1.22        | +1.24        | **+0.60** | **+0.47** | −0.35     |
+| backhand     | +1.15        | +0.96        | _−0.71_   | −0.34     | −0.03     |
+| stamina      | +0.67        | +1.02        | −0.03     | +0.11     | +0.01     |
+| slice        | −0.24        | +0.52        | −0.95     | −0.76     | −0.87     |
 
-**Measurement baseline.** Both tables were taken *after* `NET_APPROACH_BASE` rose from 0.12 to
+**Measurement baseline.** Both tables were taken _after_ `NET_APPROACH_BASE` rose from 0.12 to
 0.20 (see §12). At the wide range that change moved nothing outside the ±0.18 interval. At tier-1
 it moved `net` from +0.77 to **+1.35** — the largest single move in the table and the one predicted
 by the mechanism, since more approaches means the `net` stat is paid more often exactly where the
@@ -267,7 +267,7 @@ The tier-1 `slice` and `backhand` cells also moved by more than 0.7, but the tie
 column swings that far on its own (slice reads −0.24 full against +0.53 control in the same run), so
 those are not resolved at this sample size and should not be read as effects.
 
-*Italic* composite cells are the primary-role artifact from §2 — not ablations.
+_Italic_ composite cells are the primary-role artifact from §2 — not ablations.
 
 **Where the unaccounted value goes.** `focus` measures +1.98 with only +0.26 accounted across all
 three channels; the rest is the pressure modifier and momentum mitigation. `stamina` measures +1.11
@@ -279,22 +279,22 @@ and `slice` are primary stats whose composite column is not an ablation, plus wh
 
 `POINTS=3 MAX_TIER=1` — a club player, where `upgradePhase` caps every specialty at tier I.
 
-| stat | full (25-50) | full (25-90) | composite | band | threshold |
-|---|---|---|---|---|---|
-| anticipation | +3.27 | +2.87 | **+1.71** | **+1.40** | **+0.72** |
-| return | +2.96 | +2.61 | *−1.83* | −0.05 | +0.05 |
-| serve | +2.81 | +2.50 | *−2.04* | −0.31 | −0.15 |
-| speed | +2.72 | +2.55 | **+1.24** | +0.35 | **+1.13** |
-| tactics | +2.32 | +2.34 | +0.30 | **+0.80** | **+0.80** |
-| backhand | +1.90 | +1.01 | *−0.09* | +0.25 | **+0.42** |
-| placement | +1.77 | +1.51 | **+0.41** | +0.20 | −0.06 |
-| strength | +1.60 | +1.21 | **+0.96** | **+0.55** | +0.10 |
-| forehand | +1.48 | +1.09 | *−0.76* | +0.10 | **+0.39** |
-| spin | +1.36 | +1.23 | **+1.24** | +0.08 | +0.30 |
-| focus | +1.06 | +1.98 | −0.32 | −0.13 | −0.26 |
-| stamina | +0.90 | +0.77 | **+0.38** | +0.20 | +0.19 |
-| net | +0.77 | +0.68 | **+0.23** | −0.40 | +0.27 |
-| slice | +0.48 | +0.50 | +0.18 | −0.21 | +0.14 |
+| stat         | full (25-50) | full (25-90) | composite | band      | threshold |
+| ------------ | ------------ | ------------ | --------- | --------- | --------- |
+| anticipation | +3.27        | +2.87        | **+1.71** | **+1.40** | **+0.72** |
+| return       | +2.96        | +2.61        | _−1.83_   | −0.05     | +0.05     |
+| serve        | +2.81        | +2.50        | _−2.04_   | −0.31     | −0.15     |
+| speed        | +2.72        | +2.55        | **+1.24** | +0.35     | **+1.13** |
+| tactics      | +2.32        | +2.34        | +0.30     | **+0.80** | **+0.80** |
+| backhand     | +1.90        | +1.01        | _−0.09_   | +0.25     | **+0.42** |
+| placement    | +1.77        | +1.51        | **+0.41** | +0.20     | −0.06     |
+| strength     | +1.60        | +1.21        | **+0.96** | **+0.55** | +0.10     |
+| forehand     | +1.48        | +1.09        | _−0.76_   | +0.10     | **+0.39** |
+| spin         | +1.36        | +1.23        | **+1.24** | +0.08     | +0.30     |
+| focus        | +1.06        | +1.98        | −0.32     | −0.13     | −0.26     |
+| stamina      | +0.90        | +0.77        | **+0.38** | +0.20     | +0.19     |
+| net          | +0.77        | +0.68        | **+0.23** | −0.40     | +0.27     |
+| slice        | +0.48        | +0.50        | +0.18     | −0.21     | +0.14     |
 
 The `control` column over this band reaches ±0.53, so treat anything under ~0.5 as unresolved.
 
@@ -317,9 +317,9 @@ conditional; see §7.
 This is the practical answer to "can we measure stat usage where the game lives".
 
 | population | ±95% on `full`, N=8000 | matches needed to reach ±0.18 |
-|---|---|---|
-| U(25, 90) | 0.18 | 8,000 |
-| U(25, 50) | 0.39 | **~38,000** |
+| ---------- | ---------------------- | ----------------------------- |
+| U(25, 90)  | 0.18                   | 8,000                         |
+| U(25, 50)  | 0.39                   | **~38,000**                   |
 
 The regression's precision scales with the spread of the regressor. Narrowing the stat draw from a
 65-point range to a 25-point range shrinks that spread by 0.385, so the standard error rises by
@@ -373,7 +373,7 @@ a tier-1 player feels when their serve improves is almost entirely the double fa
 the first serve landing.
 
 **The ladder is not monotonic in the 25-30 band.** Lin Chen (OVR 29) reads 44.3% first-serve-in,
-*below* the OVR-20 starting player's 45.2%, and Danny Park (26) reads 49.7% against Big Steve's
+_below_ the OVR-20 starting player's 45.2%, and Danny Park (26) reads 49.7% against Big Steve's
 (29) 47.7%. That is build shape rather than a bug — `SERVE_ACCURACY_WEIGHTS` is
 serve/placement/focus/spin, and these are authored rosters, not uniform builds — but it means early
 opponents do not present as a smoothly rising serve challenge.
@@ -383,11 +383,11 @@ opponents do not present as a smoothly rising serve challenge.
 The consolidation gated the core slot on approach frequency, measured at uniform 60. Re-measured
 down the range:
 
-| build | metric | L=25 | L=35 | L=45 | L=60 |
-|---|---|---|---|---|---|
-| net_downhill T3 | net arrival (rallies past the return) | 32.1% | 35.0% | 40.4% | 45.2% |
-| net_downhill T3 | **`net`-stat share of rally shots (v+oh%)** | **10.6%** | **10.9%** | **10.3%** | **9.5%** |
-| no specialization | net arrival | 10.6% | 12.1% | 13.2% | 14.3% |
+| build             | metric                                      | L=25      | L=35      | L=45      | L=60     |
+| ----------------- | ------------------------------------------- | --------- | --------- | --------- | -------- |
+| net_downhill T3   | net arrival (rallies past the return)       | 32.1%     | 35.0%     | 40.4%     | 45.2%    |
+| net_downhill T3   | **`net`-stat share of rally shots (v+oh%)** | **10.6%** | **10.9%** | **10.3%** | **9.5%** |
+| no specialization | net arrival                                 | 10.6%     | 12.1%     | 13.2%     | 14.3%    |
 
 Arrival is lower at tier 1 — 32% against 45% — because the approach lands less often (61% in at
 L=25 against 72% at L=60). But **usage share, which is what the core slot was argued on, is flat to
@@ -396,14 +396,14 @@ the consolidation was argued on is not an artifact of measuring at 60.
 
 Value, `statInContext` at tier-1 scale (30 → 45, N=1000, ±~0.8):
 
-| stat | build | Δ pt-win% |
-|---|---|---|
-| net | no specialization | +0.58 |
-| net | net_downhill T3 | **+1.58** |
-| forehand | no specialization | +1.58 |
-| backhand | no specialization | +1.66 |
-| slice | max slice build | +1.86 |
-| slice | no specialization | +0.54 |
+| stat     | build             | Δ pt-win% |
+| -------- | ----------------- | --------- |
+| net      | no specialization | +0.58     |
+| net      | net_downhill T3   | **+1.58** |
+| forehand | no specialization | +1.58     |
+| backhand | no specialization | +1.66     |
+| slice    | max slice build   | +1.86     |
+| slice    | no specialization | +0.54     |
 
 **To a net player at shipped ratings, `net` is worth exactly what `forehand` is worth to everybody.**
 That is the bar a core slot has to clear, and it clears it. `slice` reaching +1.86 in the build made
@@ -427,7 +427,6 @@ placed as technical rather than core.
 - **Sample-size defaults.** `tier1Probe` part C defaults to N=40 and `statInContext` to N=120; both
   are an order of magnitude under what their designs need. Raising the defaults would stop them
   reporting noise as findings.
-
 
 ---
 
@@ -456,13 +455,13 @@ Asked properly — [`netCoverageProbe.ts`](../../src/test/analysis/netCoveragePr
 `net_downhill T3` attacker against a uniform-45 baseliner, sweeping the constant while the
 attacker's `net` rating is 25 or 75 — the answer is that it barely matters either.
 
-| netCoverage | passer wins @ attacker net 25 | @ net 75 | spread |
-|---|---|---|---|
-| 0.00 (off) | 52.0% | 6.6% | **+45.5pp** |
-| 0.05 | 51.6% | 6.9% | +44.7pp |
-| 0.10 | 51.4% | 7.0% | +44.4pp |
-| **0.20 (shipped)** | 53.5% | 6.9% | **+46.7pp** |
-| 0.30 | 54.0% | 6.0% | +48.0pp |
+| netCoverage        | passer wins @ attacker net 25 | @ net 75 | spread      |
+| ------------------ | ----------------------------- | -------- | ----------- |
+| 0.00 (off)         | 52.0%                         | 6.6%     | **+45.5pp** |
+| 0.05               | 51.6%                         | 6.9%     | +44.7pp     |
+| 0.10               | 51.4%                         | 7.0%     | +44.4pp     |
+| **0.20 (shipped)** | 53.5%                         | 6.9%     | **+46.7pp** |
+| 0.30               | 54.0%                         | 6.0%     | +48.0pp     |
 
 500 BO3 per cell; the spread carries roughly ±2pp. Switching the mechanism off entirely costs about
 2.5pp of a 46pp effect — one standard error. A wider sweep to 0.50 and 1.00 adds nothing.
@@ -477,7 +476,7 @@ Two structural reasons it cannot do more:
   the passer's bar further changes no outcomes.
 
 So it stays — the effect is real, the intent is right, and deleting it would lose a couple of points
-of differentiation for no gain — but it is documented at the constant as *not a tuning dial*. The
+of differentiation for no gain — but it is documented at the constant as _not a tuning dial_. The
 thing that actually makes a bad volleyer easy to pass is the volley composite: 45.5pp of the 46.7
 total, with this mechanism switched off.
 
@@ -488,7 +487,6 @@ gate held open answers "does this work at all". The two `net` results in this do
 clearing a core slot, the threshold entry not earning its dial — came from asking the second
 question after the first one came back empty.
 
-
 ---
 
 ## 10. `slice`, resolved — and four levers that do not help
@@ -497,18 +495,18 @@ question after the first one came back empty.
 The obvious hypotheses are both wrong, and the third one is the answer.
 
 **Not rarity.** `populationProbe` puts slice at 10.1% of rally shots and 4.8% of the shot-quality
-budget — *more* exposure than `net`, which measures higher. It is paid.
+budget — _more_ exposure than `net`, which measures higher. It is paid.
 
 **Not a broken curve either, though it looked like one.** `shotCurve` against a same-level opponent,
 across the whole 20-85 range:
 
-| shot | p(in) | p(win) |
-|---|---|---|
+| shot            | p(in)         | p(win)          |
+| --------------- | ------------- | --------------- |
 | defensive slice | 69.4% → 99.6% | **0.9% → 4.0%** |
-| slice | 67.9% → 99.3% | 1.9% → 9.2% |
-| forehand | 67.5% → 95.1% | 4.5% → 19.9% |
+| slice           | 67.9% → 99.3% | 1.9% → 9.2%     |
+| forehand        | 67.5% → 95.1% | 4.5% → 19.9%    |
 
-73% of all slice usage is the defensive slice, and that shot gains as much *reliability* per stat
+73% of all slice usage is the defensive slice, and that shot gains as much _reliability_ per stat
 point as a forehand does. What it cannot do is convert any of it into ending points: three points of
 winner probability across the entire scale, against the forehand's fifteen. Its
 `MINIMUM_WINNER_THRESHOLDS` is 105 on a scale that clamps at 100, scaled down only by the opponent's
@@ -517,15 +515,15 @@ retrieval.
 That reads like something to fix. `sliceProbe` sweeps the two constants that control it, 3000 BO3
 per cell, control ±0.6:
 
-| lever | CONTROL | no specialization | bh_samurai T3 | max slice build |
-|---|---|---|---|---|
-| **shipped** | −0.06 | +0.77 | **+3.17** | **+4.67** |
-| requirement 0.25 → 0.40 | +0.40 | +1.06 | +3.27 | +4.48 |
-| requirement 0.25 → 0.55 | −0.34 | +0.66 | +3.76 | +4.61 |
-| winner floor 105 → 85 | −0.15 | +0.90 | +2.96 | **+3.72** |
-| winner floor 105 → 70 | −0.38 | +0.66 | +3.64 | **+3.79** |
+| lever                   | CONTROL | no specialization | bh_samurai T3 | max slice build |
+| ----------------------- | ------- | ----------------- | ------------- | --------------- |
+| **shipped**             | −0.06   | +0.77             | **+3.17**     | **+4.67**       |
+| requirement 0.25 → 0.40 | +0.40   | +1.06             | +3.27         | +4.48           |
+| requirement 0.25 → 0.55 | −0.34   | +0.66             | +3.76         | +4.61           |
+| winner floor 105 → 85   | −0.15   | +0.90             | +2.96         | **+3.72**       |
+| winner floor 105 → 70   | −0.38   | +0.66             | +3.64         | **+3.79**       |
 
-Neither requirement change moves anything past the control. Both floor changes make slice *worse*
+Neither requirement change moves anything past the control. Both floor changes make slice _worse_
 for the build that cares most — lowering the floor lowers it for the opponent too, and turning the
 scramble shot into an occasional point-ender adds variance that dilutes the skill difference rather
 than expressing it. This is the same failure the audit found when it first set the floor: at 44.6%
@@ -534,7 +532,7 @@ winners the defensive slice was an expert's second-best point-ender, which is ex
 **The shipped column is the finding.** To a build that commits to it, `slice` is worth +3.17 at
 `bh_samurai` T3 and **+4.67 at the full slice build** — against unconditional cores measured the
 same way at +4.5 to +5.2 (`serve` +5.01, `return` +5.23, `forehand` +5.15, `backhand` +4.69). And
-that is *more* than `net` pays its own specialist: +2.31 at `net_downhill` T3.
+that is _more_ than `net` pays its own specialist: +2.31 at `net_downhill` T3.
 
 So `slice` behaves exactly as a conditional technical stat should — near-zero to the builds that
 ignore it, core-grade to the build made for it. The +0.50 population figure is an average over a
@@ -555,16 +553,16 @@ The first run could not answer it. Two gates read state `ShotDetail` did not car
 the probe modelled `reading` as at-net-only and reported 1.9%, which was wrong by a factor of
 thirty. Both fields are now recorded on every shot, so every gate is exact:
 
-| stat.band | size | OPEN% | CONTEXT% | when open | weighted |
-|---|---|---|---|---|---|
-| tactics.tactics | 0.150 | 44.9% | 0.0% | 1.65 | 0.742 |
-| **anticipation.reading** | 0.100 | **65.3%** | **100.0%** | 1.10 | 0.719 |
-| speed.courtCoverage | 0.100 | 59.6% | 2.3% | 1.10 | 0.656 |
-| **speed.reactions** | 0.150 | 17.5% | **79.7%** | 1.65 | 0.288 |
-| strength.power | 0.100 | 15.0% | 0.0% | 1.10 | 0.165 |
-| spin.touch | 0.075 | 18.8% | 0.0% | 0.82 | 0.155 |
-| spin.shape | 0.100 | 10.9% | 0.0% | 1.10 | 0.120 |
-| placement.precision | 0.075 | 13.3% | 0.0% | 0.82 | 0.110 |
+| stat.band                | size  | OPEN%     | CONTEXT%   | when open | weighted |
+| ------------------------ | ----- | --------- | ---------- | --------- | -------- |
+| tactics.tactics          | 0.150 | 44.9%     | 0.0%       | 1.65      | 0.742    |
+| **anticipation.reading** | 0.100 | **65.3%** | **100.0%** | 1.10      | 0.719    |
+| speed.courtCoverage      | 0.100 | 59.6%     | 2.3%       | 1.10      | 0.656    |
+| **speed.reactions**      | 0.150 | 17.5%     | **79.7%**  | 1.65      | 0.288    |
+| strength.power           | 0.100 | 15.0%     | 0.0%       | 1.10      | 0.165    |
+| spin.touch               | 0.075 | 18.8%     | 0.0%       | 0.82      | 0.155    |
+| spin.shape               | 0.100 | 10.9%     | 0.0%       | 1.10      | 0.120    |
+| placement.precision      | 0.075 | 13.3%     | 0.0%       | 0.82      | 0.110    |
 
 Six of the eight read nothing but shot type and could be expressed as composite weight with no
 behavioural loss. But the two that do read context are the 2nd and 4th most valuable bands, and
@@ -579,7 +577,7 @@ than the config's shape implies, and it is concentrated in two stats.
 ## 12. Net frequency — a floor doing unmeasured work
 
 `shouldApproachNet` computed `max(0.02, 0.12 + (netBias/100) × NET_APPROACH_BIAS_SCALE)`. The scale
-(3.0) was sized against what a *specialist* reaches, and the bias applies additively, so a bias of
+(3.0) was sized against what a _specialist_ reaches, and the bias applies additively, so a bias of
 −12 subtracted 0.36 from a 0.12 base — three times the whole base. Every net-averse build landed on
 the 0.02 floor, and that floor was a token epsilon nobody had measured.
 
@@ -590,13 +588,13 @@ return — identical to `net_apologist`, because the broad nudge alone cleared t
 Base 0.12 → **0.20**, floor 0.02 → **0.05**, both now named constants in config. Measured on
 `matchAnatomy`'s CAME FORWARD / rallies past the return, uniform 45 mirror matches:
 
-| build | before | after |
-|---|---|---|
-| no specialization | 15.1% | **20.4%** |
-| net_apologist T3 (net-averse) | 3.4% | **7.1%** |
-| bh_samurai T3 (baseliner) | 3.4% | **11.2%** |
-| net_attacker (broad) | — | 27.0% |
-| net_downhill T3 | 33.0% | 34.0% |
+| build                         | before | after     |
+| ----------------------------- | ------ | --------- |
+| no specialization             | 15.1%  | **20.4%** |
+| net_apologist T3 (net-averse) | 3.4%   | **7.1%**  |
+| bh_samurai T3 (baseliner)     | 3.4%   | **11.2%** |
+| net_attacker (broad)          | —      | 27.0%     |
+| net_downhill T3               | 33.0%  | 34.0%     |
 
 The specialist is essentially unchanged; the bug was only ever at the negative end. Cost, same
 builds: rallies reaching 6+ shots 16.4% → 15.3% of points, winners 14.5% → 13.7%, unforced errors

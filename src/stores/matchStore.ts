@@ -73,7 +73,10 @@ interface MatchState {
   tutorialPauseResolver: (() => void) | null;
 
   // Actions
-  startMatch: (config: InteractiveMatchConfig, onComplete: (data: MatchCompletionData) => void) => Promise<void>;
+  startMatch: (
+    config: InteractiveMatchConfig,
+    onComplete: (data: MatchCompletionData) => void,
+  ) => Promise<void>;
   handleKeyMomentChoice: (option: TacticalOption) => void;
   setKeyMomentResult: (result: KeyMomentResult) => Promise<void>;
   hideKeyMomentResult: () => void;
@@ -105,7 +108,10 @@ export const useMatchStore = create<MatchState>((set, get) => ({
   tutorialPauseResolver: null,
 
   // Start a new match
-  startMatch: async (config: InteractiveMatchConfig, onComplete?: (data: MatchCompletionData) => void) => {
+  startMatch: async (
+    config: InteractiveMatchConfig,
+    onComplete?: (data: MatchCompletionData) => void,
+  ) => {
     const orchestrator = new MatchOrchestrator();
 
     // Create config with callbacks
@@ -149,7 +155,10 @@ export const useMatchStore = create<MatchState>((set, get) => ({
         set((s) => {
           const last = s.lastPointResult;
           const matchHistory = last
-            ? [...s.matchHistory, { pointNumber: s.matchHistory.length + 1, winner: last.winner, score }]
+            ? [
+                ...s.matchHistory,
+                { pointNumber: s.matchHistory.length + 1, winner: last.winner, score },
+              ]
             : s.matchHistory;
           return { currentScore: score, matchHistory };
         });
@@ -250,7 +259,9 @@ export const useMatchStore = create<MatchState>((set, get) => ({
     const { currentKeyMoment, lastChosenOption, keyMomentHistory } = get();
 
     if (!currentKeyMoment || !lastChosenOption) {
-      console.error('setKeyMomentResult called without currentKeyMoment or lastChosenOption in state');
+      console.error(
+        'setKeyMomentResult called without currentKeyMoment or lastChosenOption in state',
+      );
       return Promise.resolve();
     }
 

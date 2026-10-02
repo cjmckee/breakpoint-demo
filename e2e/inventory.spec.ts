@@ -56,7 +56,7 @@ test('equipping from the bag swaps the slot and returns the old item', async ({ 
   // The slot card should now name the new item, so the screen agrees with the model.
   await expect(page.getByTestId('equipment-slot-racquet')).toHaveAttribute(
     'data-equipped',
-    UPGRADE
+    UPGRADE,
   );
 });
 
@@ -77,7 +77,9 @@ test('unequipping empties the slot and puts the item back in the bag', async ({ 
   await expect(page.getByTestId('equipment-slot-racquet')).toHaveAttribute('data-equipped', '');
 });
 
-test('an equipped item actually changes what the match is told about the player', async ({ page }) => {
+test('an equipped item actually changes what the match is told about the player', async ({
+  page,
+}) => {
   await loadSave(page, SAVE, 7);
 
   // The baseline includes the beginner racquet the save already wears, so the

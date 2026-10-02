@@ -1,9 +1,4 @@
-import {
-  Ability,
-  AbilityRarity,
-  AbilityName,
-  EffectKey,
-} from '../types/game';
+import { Ability, AbilityRarity, AbilityName, EffectKey } from '../types/game';
 
 // Complete ability definitions with all rarities.
 // Abilities are effects-only — no stat boosts. Stats come from training and equipment.
@@ -58,7 +53,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       },
     },
     description:
-      "Your touch at the net is pure art. Drop shots, slices, and angles barely clear the net. Opponents can only watch.",
+      'Your touch at the net is pure art. Drop shots, slices, and angles barely clear the net. Opponents can only watch.',
     effects: 'Bonus quality on drop shots and volleys.',
   },
 
@@ -165,7 +160,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       },
     },
     description:
-      "Wherever you go, something interesting happens. Sponsors, media, fans — life on tour has a way of finding you.",
+      'Wherever you go, something interesting happens. Sponsors, media, fans — life on tour has a way of finding you.',
     effects: 'More frequent special events.',
   },
 
@@ -199,7 +194,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       },
     },
     description:
-      "Your legs never seem to give out. Long five-setters are where you truly shine — opponents crack before you do.",
+      'Your legs never seem to give out. Long five-setters are where you truly shine — opponents crack before you do.',
     effects: 'Significantly reduces energy cost of all activities. Minor position recovery bonus.',
   },
 
@@ -215,7 +210,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       },
     },
     description:
-      "Your serve is a weapon. First balls land like missiles, second serves still hurt, and overheads end points clean.",
+      'Your serve is a weapon. First balls land like missiles, second serves still hurt, and overheads end points clean.',
     effects: 'Bonus quality on overhead shots and power shots.',
   },
 
@@ -245,10 +240,9 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       },
     },
     description:
-      "You bounce back faster than anyone. Rest days feel like twice as long for you — you show up recharged and ready.",
+      'You bounce back faster than anyone. Rest days feel like twice as long for you — you show up recharged and ready.',
     effects: 'Gain more energy from rest and recovery activities.',
   },
-
 
   // ==================== RARE ABILITIES ====================
 
@@ -279,7 +273,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       },
     },
     description:
-      "Pressure is your oxygen. The tighter the situation, the more precise you become. Opponents expect you to crack — you never do.",
+      'Pressure is your oxygen. The tighter the situation, the more precise you become. Opponents expect you to crack — you never do.',
     effects: 'Recovers shot quality lost to pressure. Reduces pressure penalties.',
   },
 
@@ -295,7 +289,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       },
     },
     description:
-      "You read the court like a chess grandmaster. Every ball is reachable, every corner covered.",
+      'You read the court like a chess grandmaster. Every ball is reachable, every corner covered.',
     effects: 'Major court coverage improvement. Extended reach reduces difficulty when stretched.',
   },
 
@@ -311,7 +305,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       },
     },
     description:
-      "You are built for the long haul. Three-hour matches, five-setters, back-to-back days — you show up the same every time.",
+      'You are built for the long haul. Three-hour matches, five-setters, back-to-back days — you show up the same every time.',
     effects: 'Reduces fatigue accumulation during matches. Minor energy cost reduction.',
   },
 
@@ -322,11 +316,11 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.EXPERIENCE_GAIN_BONUS]: 0.10,
+        [EffectKey.EXPERIENCE_GAIN_BONUS]: 0.1,
       },
     },
     description:
-      "Every match teaches you more than it teaches your opponent. Win or lose, you walk away sharper.",
+      'Every match teaches you more than it teaches your opponent. Win or lose, you walk away sharper.',
     effects: '+10% experience gained from matches.',
   },
 
@@ -337,11 +331,11 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.MINIGAME_WINDOW_BONUS]: 0.10,
+        [EffectKey.MINIGAME_WINDOW_BONUS]: 0.1,
       },
     },
     description:
-      "Training is your religion. You consistently get more out of every practice session — the timing always feels a little more forgiving.",
+      'Training is your religion. You consistently get more out of every practice session — the timing always feels a little more forgiving.',
     effects: '+10% wider success window in training minigames.',
   },
 
@@ -358,12 +352,13 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
         [EffectKey.PERFECT_TIMING]: 5,
         [EffectKey.UNSTOPPABLE_MOMENTUM]: 3,
         [EffectKey.CHAMPION_AURA]: 2,
-        [EffectKey.MINIGAME_WINDOW_BONUS]: 0.20,
+        [EffectKey.MINIGAME_WINDOW_BONUS]: 0.2,
       },
     },
     description:
       "You have the focus of a champion. When you're in the zone, nothing can stop you. Every dimension of your game elevates.",
-    effects: '+8% key moment win probability. Timing precision under pressure. Amplified winning momentum. +20% wider training minigame window.',
+    effects:
+      '+8% key moment win probability. Timing precision under pressure. Amplified winning momentum. +20% wider training minigame window.',
   },
 
   [AbilityName.APEX_PREDATOR]: {
@@ -383,8 +378,9 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       },
     },
     description:
-      "You are the complete player. Every shot is a threat, every defensive position is temporary. Opponents see no way out.",
-    effects: 'Bonuses to power, spin, finesse, and court coverage. Amplified winning momentum and rally dominance.',
+      'You are the complete player. Every shot is a threat, every defensive position is temporary. Opponents see no way out.',
+    effects:
+      'Bonuses to power, spin, finesse, and court coverage. Amplified winning momentum and rally dominance.',
   },
 
   // ==================== RELATIONSHIP ABILITIES (story-only) ====================
@@ -401,7 +397,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       },
     },
     description:
-      "Coach Gonzalez taught you the lob his old mentor used to hit — so high it briefly leaves the frame. Somehow it always lands in.",
+      'Coach Gonzalez taught you the lob his old mentor used to hit — so high it briefly leaves the frame. Somehow it always lands in.',
     effects: 'Bonus quality on all defensive and lob shots.',
   },
 
@@ -418,7 +414,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       },
     },
     description:
-      "Jordan put their pride aside and asked you for help. If they can do that, pressure has nothing on you.",
+      'Jordan put their pride aside and asked you for help. If they can do that, pressure has nothing on you.',
     effects: 'Reduces negative effects of pressure and momentum.',
   },
 
@@ -451,7 +447,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       },
     },
     description:
-      "Jen showed you that losing is just winning with extra steps. You gain more from every match now — especially the ones you lose.",
+      'Jen showed you that losing is just winning with extra steps. You gain more from every match now — especially the ones you lose.',
     effects: '+5 bonus XP for wins. +10 bonus XP for losses.',
   },
 
@@ -467,7 +463,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       },
     },
     description:
-      "You got kissed in the rain. It was cinematic. Now every first point feels like the start of something beautiful.",
+      'You got kissed in the rain. It was cinematic. Now every first point feels like the start of something beautiful.',
     effects: '+3 to all stats on the first point of each game.',
   },
 };

@@ -62,7 +62,7 @@ test('a fresh player reaches each early unlock by playing', async ({ page }) => 
   const state = await readGame(page);
   expect(
     state.player!.archetypeProfile.broad,
-    'the coach event should have set a broad archetype by day 12'
+    'the coach event should have set a broad archetype by day 12',
   ).not.toBeNull();
 
   const archetypeButton = page.getByTestId('action-archetype');
@@ -76,7 +76,10 @@ test('a fresh player reaches each early unlock by playing', async ({ page }) => 
 
   // The tree opens on the court diagram with a node per phase and no paths
   // showing; picking a phase is what reveals its three specialisations.
-  await page.getByTestId(/^archetype-phase-/).first().click();
+  await page
+    .getByTestId(/^archetype-phase-/)
+    .first()
+    .click();
 
   const specialize = page.getByTestId(/^archetype-specialize-/).first();
   await expect(specialize).toBeEnabled();

@@ -33,13 +33,21 @@ const uniform = (r: number): PlayerStats => ({
   mental: { focus: r, anticipation: r, tactics: r },
 });
 
-function withStat(base: number, bucket: keyof PlayerStats, key: string, value: number): PlayerStats {
+function withStat(
+  base: number,
+  bucket: keyof PlayerStats,
+  key: string,
+  value: number,
+): PlayerStats {
   const s = uniform(base);
   (s[bucket] as unknown as Record<string, number>)[key] = value;
   return s;
 }
 
-function profileOf(phases: Partial<Record<GamePhase, PhaseSpec>>, broad: ArchetypeProfile['broad'] = null): ArchetypeProfile {
+function profileOf(
+  phases: Partial<Record<GamePhase, PhaseSpec>>,
+  broad: ArchetypeProfile['broad'] = null,
+): ArchetypeProfile {
   return { broad, phases, specializationPoints: 0, respecTokens: 0 };
 }
 
@@ -49,31 +57,58 @@ function calcFatigue(cur: number, rally: number, stam: number): number {
   if (rally > MATCH_FATIGUE.longRallyThreshold) {
     gain += (rally - MATCH_FATIGUE.longRallyThreshold) * MATCH_FATIGUE.longRallyExtra * sf;
   }
-  const rec = MATCH_FATIGUE.baseRecoveryPerPoint + (stam / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
+  const rec =
+    MATCH_FATIGUE.baseRecoveryPerPoint +
+    (stam / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
   return Math.max(0, Math.min(100, cur + gain - rec));
 }
 
-function runMatch(p: PlayerProfile, o: PlayerProfile, eff: Record<string, number>): [number, number] {
+function runMatch(
+  p: PlayerProfile,
+  o: PlayerProfile,
+  eff: Record<string, number>,
+): [number, number] {
   const tracker = new ScoreTracker(BO3);
   tracker.setInitialServer(Math.random() < 0.5 ? 'player' : 'opponent');
-  p.rollMatchForm(); o.rollMatchForm();
+  p.rollMatchForm();
+  o.rollMatchForm();
   const sim = new PointSimulator();
   const ms: MatchState = {
-    score: tracker.getScore(), currentServer: tracker.getCurrentServer(), courtSurface: 'hard',
-    momentum: 0, pressure: 'low', matchLength: 0, pointsPlayed: 0, isKeyMoment: false,
+    score: tracker.getScore(),
+    currentServer: tracker.getCurrentServer(),
+    courtSurface: 'hard',
+    momentum: 0,
+    pressure: 'low',
+    matchLength: 0,
+    pointsPlayed: 0,
+    isKeyMoment: false,
     fatigue: { player: 0, opponent: 0 },
   };
-  let pts = 0, won = 0;
+  let pts = 0,
+    won = 0;
   while (!tracker.isComplete() && pts < 600) {
     const server = tracker.getCurrentServer();
     ms.isKeyMoment = tracker.isKeyMoment();
-    const pr = sim.simulatePoint(server, server === 'player' ? p : o, server === 'player' ? o : p, ms, eff, eff);
-    const w = pr.winner === 'server' ? server : (server === 'player' ? 'opponent' : 'player');
+    const pr = sim.simulatePoint(
+      server,
+      server === 'player' ? p : o,
+      server === 'player' ? o : p,
+      ms,
+      eff,
+      eff,
+    );
+    const w = pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player';
     if (w === 'player') won++;
     tracker.addPoint(w);
     ms.fatigue.player = calcFatigue(ms.fatigue.player, pr.rallyLength, p.stats.physical.stamina);
-    ms.fatigue.opponent = calcFatigue(ms.fatigue.opponent, pr.rallyLength, o.stats.physical.stamina);
-    ms.score = tracker.getScore(); ms.currentServer = tracker.getCurrentServer(); ms.pointsPlayed = ++pts;
+    ms.fatigue.opponent = calcFatigue(
+      ms.fatigue.opponent,
+      pr.rallyLength,
+      o.stats.physical.stamina,
+    );
+    ms.score = tracker.getScore();
+    ms.currentServer = tracker.getCurrentServer();
+    ms.pointsPlayed = ++pts;
   }
   return [won, pts];
 }
@@ -82,14 +117,23 @@ function runMatch(p: PlayerProfile, o: PlayerProfile, eff: Record<string, number
  * Both players carry the same archetype so the only difference is the stat.
  * Returns the bumped player's point-win% minus 50.
  */
-function trial(bucket: keyof PlayerStats, key: string, prof: ArchetypeProfile, base: number, bump: number, n: number): number {
+function trial(
+  bucket: keyof PlayerStats,
+  key: string,
+  prof: ArchetypeProfile,
+  base: number,
+  bump: number,
+  n: number,
+): number {
   const eff = aggregateArchetypeEffects(prof);
-  let won = 0, tot = 0;
+  let won = 0,
+    tot = 0;
   for (let i = 0; i < n; i++) {
     const p = new PlayerProfile('p', 'P', withStat(base, bucket, key, bump), prof);
     const o = new PlayerProfile('o', 'O', uniform(base), prof);
     const [w, t] = runMatch(p, o, eff);
-    won += w; tot += t;
+    won += w;
+    tot += t;
   }
   return (won / tot) * 100 - 50;
 }
@@ -101,10 +145,13 @@ const SAMURAI = profileOf({ backhand: { path: 'bh_samurai', tier: 3 } }, 'baseli
  * The most slice a build can reach. `fs_curveball` carries the game's only
  * SLICE_PREFERENCE_FOREHAND, so without it slice is a backhand-only stat.
  */
-const SLICER = profileOf({
-  backhand: { path: 'bh_samurai', tier: 3 },
-  first_serve: { path: 'fs_curveball', tier: 3 },
-}, 'baseliner');
+const SLICER = profileOf(
+  {
+    backhand: { path: 'bh_samurai', tier: 3 },
+    first_serve: { path: 'fs_curveball', tier: 3 },
+  },
+  'baseliner',
+);
 
 const f = (x: number): string => (x >= 0 ? '+' : '') + x.toFixed(2);
 
@@ -141,11 +188,19 @@ function main(): void {
 
   const rows: Array<[string, string, number]> = specs
     .filter(([stat]) => !only || only.has(stat))
-    .map(([stat, build, bucket, key, prof]) => [stat, build, trial(bucket, key, prof, BASE, BUMP, N)]);
+    .map(([stat, build, bucket, key, prof]) => [
+      stat,
+      build,
+      trial(bucket, key, prof, BASE, BUMP, N),
+    ]);
 
   console.log(['stat'.padEnd(12), 'build'.padEnd(22), 'Δ pt-win%'.padStart(10)].join(''));
   console.log('-'.repeat(44));
-  console.log(['CONTROL'.padEnd(12), `${BASE} v ${BASE}, no bump`.padEnd(22), f(control).padStart(10)].join(''));
+  console.log(
+    ['CONTROL'.padEnd(12), `${BASE} v ${BASE}, no bump`.padEnd(22), f(control).padStart(10)].join(
+      '',
+    ),
+  );
   console.log('-'.repeat(44));
   for (const [stat, build, v] of rows) {
     console.log([stat.padEnd(12), build.padEnd(22), f(v).padStart(10)].join(''));

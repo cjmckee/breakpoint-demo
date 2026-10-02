@@ -10,6 +10,7 @@ Manage the dependency graph between story events, matches, tournaments, and cere
 ## When to use
 
 Use this skill when the user wants to:
+
 - Add new events to an existing chain (insert between, append after, prepend before)
 - Create a new storyline or event chain from scratch
 - Reorder events within a chain
@@ -22,19 +23,25 @@ Use this skill when the user wants to:
 ## Core concepts
 
 ### Event chains
+
 A linear sequence where each event requires the previous one via `completedEvents`. Example from welcomeEvents:
+
 ```
 welcome_to_tennis_rpg -> making_connections -> food_hall_gossip -> player_tier_intro -> training_session_intro -> [relationship_basics, abilities_basics] -> riverside_open_prep
 ```
 
 ### Branching
+
 Events can fork based on:
+
 - **Choice branches**: `completedEventChoices` / `excludedEventChoices` - require or block based on which option was picked in a prior event
 - **Condition branches**: Different `stats`, `relationships`, `minMatchesWon`, etc. prerequisites on sibling events that share the same `completedEvents` parent
 - **Tournament brackets**: `tournamentBracket: 'winner' | 'loser'` for winner/loser path events
 
 ### Tournament event structure
+
 Each tournament round has up to 4 associated story events:
+
 - `prematchEventWinner` - before match, winner bracket
 - `prematchEventLoser` - before match, loser bracket
 - `winEventId` - after winning
@@ -57,6 +64,7 @@ When the user says "add event X after event Y" or "insert event between A and B"
 5. Add the event to the storyline array in the correct position
 
 **Example**: Insert `court_tour` between `making_connections` and `food_hall_gossip`:
+
 - New event: `court_tour` with `completedEvents: ['making_connections']`
 - Update `food_hall_gossip`: change `completedEvents: ['making_connections']` to `completedEvents: ['court_tour']`
 
@@ -78,6 +86,7 @@ When the user wants two events available after one event, based on a choice:
 4. Both should also have `completedEvents: ['parent_id']`
 
 For condition-based branching (not choice-based):
+
 1. Create sibling events that share the same `completedEvents` parent
 2. Use `excludedEvents` on each to prevent both paths from being taken
 3. Differentiate with stat/relationship/other prerequisites
@@ -117,6 +126,7 @@ When the user asks "what events come after X" or "show me the flow":
 1. Read ALL storyline files from `src/data/storyEvents/`
 2. Build a dependency graph: for each event, find what it requires and what requires it
 3. Present the chain as an indented tree or arrow notation:
+
 ```
 welcome_to_tennis_rpg
   -> making_connections
@@ -127,6 +137,7 @@ welcome_to_tennis_rpg
           -> abilities_basics (parallel with above)
             -> riverside_open_prep (requires: abilities_basics + stats + matchesWon)
 ```
+
 4. Note any non-event prerequisites (stats, relationships, day requirements) on relevant nodes
 
 ### 8. Debug prerequisite issues

@@ -45,22 +45,30 @@ import { PlayerProfile } from '../../core/PlayerProfile';
 import { PointSimulator } from '../../core/PointSimulator';
 import { ScoreTracker } from '../../core/ScoreTracker';
 import {
-  MATCH_FATIGUE, RELATIVE_QUALITY_REQUIREMENTS, MINIMUM_WINNER_THRESHOLDS, STAT_MODIFIER_BANDS,
+  MATCH_FATIGUE,
+  RELATIVE_QUALITY_REQUIREMENTS,
+  MINIMUM_WINNER_THRESHOLDS,
+  STAT_MODIFIER_BANDS,
 } from '../../config/shotThresholds';
 import { aggregateArchetypeEffects } from '../../data/archetypeTree';
 
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
 
-const profileOf = (phases: Partial<Record<GamePhase, PhaseSpec>>, broad: ArchetypeProfile['broad'] = null): ArchetypeProfile =>
-  ({ broad, phases, specializationPoints: 0, respecTokens: 0 });
+const profileOf = (
+  phases: Partial<Record<GamePhase, PhaseSpec>>,
+  broad: ArchetypeProfile['broad'] = null,
+): ArchetypeProfile => ({ broad, phases, specializationPoints: 0, respecTokens: 0 });
 
 const NONE = profileOf({});
 const SAMURAI = profileOf({ backhand: { path: 'bh_samurai', tier: 3 } }, 'baseliner');
 /** The most slice a build can reach: fs_curveball carries the only forehand slice. */
-const SLICER = profileOf({
-  backhand: { path: 'bh_samurai', tier: 3 },
-  first_serve: { path: 'fs_curveball', tier: 3 },
-}, 'baseliner');
+const SLICER = profileOf(
+  {
+    backhand: { path: 'bh_samurai', tier: 3 },
+    first_serve: { path: 'fs_curveball', tier: 3 },
+  },
+  'baseliner',
+);
 
 function uniform(r: number): PlayerStats {
   return {
@@ -83,45 +91,74 @@ function calcFatigue(cur: number, rally: number, stam: number): number {
   if (rally > MATCH_FATIGUE.longRallyThreshold) {
     gain += (rally - MATCH_FATIGUE.longRallyThreshold) * MATCH_FATIGUE.longRallyExtra * sf;
   }
-  const rec = MATCH_FATIGUE.baseRecoveryPerPoint +
+  const rec =
+    MATCH_FATIGUE.baseRecoveryPerPoint +
     (stam / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
   return Math.max(0, Math.min(100, cur + gain - rec));
 }
 
-function runMatch(p: PlayerProfile, o: PlayerProfile, eff: Record<string, number>): [number, number] {
+function runMatch(
+  p: PlayerProfile,
+  o: PlayerProfile,
+  eff: Record<string, number>,
+): [number, number] {
   const tracker = new ScoreTracker(BO3);
   tracker.setInitialServer(Math.random() < 0.5 ? 'player' : 'opponent');
-  p.rollMatchForm(); o.rollMatchForm();
+  p.rollMatchForm();
+  o.rollMatchForm();
   const sim = new PointSimulator();
   const ms: MatchState = {
-    score: tracker.getScore(), currentServer: tracker.getCurrentServer(), courtSurface: 'hard',
-    momentum: 0, pressure: 'low', matchLength: 0, pointsPlayed: 0,
-    isKeyMoment: false, fatigue: { player: 0, opponent: 0 },
+    score: tracker.getScore(),
+    currentServer: tracker.getCurrentServer(),
+    courtSurface: 'hard',
+    momentum: 0,
+    pressure: 'low',
+    matchLength: 0,
+    pointsPlayed: 0,
+    isKeyMoment: false,
+    fatigue: { player: 0, opponent: 0 },
   };
-  let pts = 0, won = 0;
+  let pts = 0,
+    won = 0;
   while (!tracker.isComplete() && pts < 600) {
     const server = tracker.getCurrentServer();
     ms.isKeyMoment = tracker.isKeyMoment();
-    const pr = sim.simulatePoint(server, server === 'player' ? p : o, server === 'player' ? o : p, ms, eff, eff);
-    const w = pr.winner === 'server' ? server : (server === 'player' ? 'opponent' : 'player');
+    const pr = sim.simulatePoint(
+      server,
+      server === 'player' ? p : o,
+      server === 'player' ? o : p,
+      ms,
+      eff,
+      eff,
+    );
+    const w = pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player';
     if (w === 'player') won++;
     tracker.addPoint(w);
     ms.fatigue.player = calcFatigue(ms.fatigue.player, pr.rallyLength, p.stats.physical.stamina);
-    ms.fatigue.opponent = calcFatigue(ms.fatigue.opponent, pr.rallyLength, o.stats.physical.stamina);
-    ms.score = tracker.getScore(); ms.currentServer = tracker.getCurrentServer(); ms.pointsPlayed = ++pts;
+    ms.fatigue.opponent = calcFatigue(
+      ms.fatigue.opponent,
+      pr.rallyLength,
+      o.stats.physical.stamina,
+    );
+    ms.score = tracker.getScore();
+    ms.currentServer = tracker.getCurrentServer();
+    ms.pointsPlayed = ++pts;
   }
   return [won, pts];
 }
 
 function trial(prof: ArchetypeProfile, base: number, bump: number, n: number): number {
   const eff = aggregateArchetypeEffects(prof);
-  let won = 0, tot = 0;
+  let won = 0,
+    tot = 0;
   for (let i = 0; i < n; i++) {
     const [w, t] = runMatch(
       new PlayerProfile('p', 'P', withSlice(base, bump), prof),
-      new PlayerProfile('o', 'O', uniform(base), prof), eff,
+      new PlayerProfile('o', 'O', uniform(base), prof),
+      eff,
     );
-    won += w; tot += t;
+    won += w;
+    tot += t;
   }
   return (won / tot) * 100 - 50;
 }
@@ -146,10 +183,30 @@ function restore(): void {
 
 const levers: Lever[] = [
   { label: 'shipped', apply: () => {} },
-  { label: `REQ ${SHIPPED.req} -> 0.40`, apply: () => { for (const s of DEF_SLICE) RELATIVE_QUALITY_REQUIREMENTS[s] = 0.40; } },
-  { label: `REQ ${SHIPPED.req} -> 0.55`, apply: () => { for (const s of DEF_SLICE) RELATIVE_QUALITY_REQUIREMENTS[s] = 0.55; } },
-  { label: `FLOOR ${SHIPPED.floor} -> 85`, apply: () => { for (const s of DEF_SLICE) MINIMUM_WINNER_THRESHOLDS[s] = 85; } },
-  { label: `FLOOR ${SHIPPED.floor} -> 70`, apply: () => { for (const s of DEF_SLICE) MINIMUM_WINNER_THRESHOLDS[s] = 70; } },
+  {
+    label: `REQ ${SHIPPED.req} -> 0.40`,
+    apply: () => {
+      for (const s of DEF_SLICE) RELATIVE_QUALITY_REQUIREMENTS[s] = 0.4;
+    },
+  },
+  {
+    label: `REQ ${SHIPPED.req} -> 0.55`,
+    apply: () => {
+      for (const s of DEF_SLICE) RELATIVE_QUALITY_REQUIREMENTS[s] = 0.55;
+    },
+  },
+  {
+    label: `FLOOR ${SHIPPED.floor} -> 85`,
+    apply: () => {
+      for (const s of DEF_SLICE) MINIMUM_WINNER_THRESHOLDS[s] = 85;
+    },
+  },
+  {
+    label: `FLOOR ${SHIPPED.floor} -> 70`,
+    apply: () => {
+      for (const s of DEF_SLICE) MINIMUM_WINNER_THRESHOLDS[s] = 70;
+    },
+  },
 ];
 
 const f = (x: number): string => (x >= 0 ? '+' : '') + x.toFixed(2);
@@ -171,7 +228,11 @@ function main(): void {
     ['max slice build', SLICER],
   ];
 
-  const head = ['lever'.padEnd(20), 'CONTROL'.padStart(10), ...builds.map(([n]) => n.slice(0, 16).padStart(18))].join('');
+  const head = [
+    'lever'.padEnd(20),
+    'CONTROL'.padStart(10),
+    ...builds.map(([n]) => n.slice(0, 16).padStart(18)),
+  ].join('');
   console.log(head);
   console.log('-'.repeat(head.length));
 
@@ -180,11 +241,13 @@ function main(): void {
     lever.apply();
     const control = trial(NONE, BASE, BASE, N);
     const cells = builds.map(([, prof]) => trial(prof, BASE, BUMP, N));
-    console.log([
-      lever.label.padEnd(20),
-      f(control).padStart(10),
-      ...cells.map(c => f(c).padStart(18)),
-    ].join(''));
+    console.log(
+      [
+        lever.label.padEnd(20),
+        f(control).padStart(10),
+        ...cells.map((c) => f(c).padStart(18)),
+      ].join(''),
+    );
   }
   restore();
 

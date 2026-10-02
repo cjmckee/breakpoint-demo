@@ -23,7 +23,9 @@ export const StatPill: React.FC<{ stat: string; value: number }> = ({ stat, valu
 );
 
 export const StatPills: React.FC<{ statBoosts: StatBoosts }> = ({ statBoosts }) => {
-  const entries = Object.entries(statBoosts).filter((e): e is [string, number] => (e[1] ?? 0) !== 0);
+  const entries = Object.entries(statBoosts).filter(
+    (e): e is [string, number] => (e[1] ?? 0) !== 0,
+  );
   if (entries.length === 0) return null;
   return (
     <div className="flex flex-wrap gap-1.5">

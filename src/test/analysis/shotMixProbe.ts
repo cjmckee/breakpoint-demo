@@ -32,7 +32,10 @@ function uniformStats(r: number): PlayerStats {
   };
 }
 
-function profile(phases: Partial<Record<GamePhase, PhaseSpec>>, broad: ArchetypeProfile['broad'] = null): ArchetypeProfile {
+function profile(
+  phases: Partial<Record<GamePhase, PhaseSpec>>,
+  broad: ArchetypeProfile['broad'] = null,
+): ArchetypeProfile {
   return { broad, phases, specializationPoints: 0, respecTokens: 0 };
 }
 
@@ -61,7 +64,8 @@ function calcFatigue(cur: number, rally: number, stam: number, rec: number): num
   if (rally > MATCH_FATIGUE.longRallyThreshold) {
     gain += (rally - MATCH_FATIGUE.longRallyThreshold) * MATCH_FATIGUE.longRallyExtra * sf;
   }
-  const recovery = MATCH_FATIGUE.baseRecoveryPerPoint +
+  const recovery =
+    MATCH_FATIGUE.baseRecoveryPerPoint +
     (rec / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
   return Math.max(0, Math.min(100, cur + gain - recovery));
 }
@@ -76,7 +80,14 @@ interface Tally {
 }
 
 function newTally(): Tally {
-  return { rallyShots: 0, byFamily: new Map(), byType: new Map(), netPointsEntered: 0, shotsWhileAtNet: 0, points: 0 };
+  return {
+    rallyShots: 0,
+    byFamily: new Map(),
+    byType: new Map(),
+    netPointsEntered: 0,
+    shotsWhileAtNet: 0,
+    points: 0,
+  };
 }
 
 function runMatch(
@@ -127,15 +138,28 @@ function runMatch(
       tally.byType.set(String(shot.shotType), (tally.byType.get(String(shot.shotType)) ?? 0) + 1);
       if (shot.context?.courtPosition === 'net') {
         tally.shotsWhileAtNet++;
-        if (!enteredNet) { tally.netPointsEntered++; enteredNet = true; }
+        if (!enteredNet) {
+          tally.netPointsEntered++;
+          enteredNet = true;
+        }
       }
     }
     if (capture && capture.length < 400) capture.push(pr);
 
-    const winner = pr.winner === 'server' ? server : (server === 'player' ? 'opponent' : 'player');
+    const winner = pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player';
     tracker.addPoint(winner);
-    matchState.fatigue.player = calcFatigue(matchState.fatigue.player, pr.rallyLength, player.stats.physical.stamina, player.stats.physical.stamina);
-    matchState.fatigue.opponent = calcFatigue(matchState.fatigue.opponent, pr.rallyLength, opponent.stats.physical.stamina, opponent.stats.physical.stamina);
+    matchState.fatigue.player = calcFatigue(
+      matchState.fatigue.player,
+      pr.rallyLength,
+      player.stats.physical.stamina,
+      player.stats.physical.stamina,
+    );
+    matchState.fatigue.opponent = calcFatigue(
+      matchState.fatigue.opponent,
+      pr.rallyLength,
+      opponent.stats.physical.stamina,
+      opponent.stats.physical.stamina,
+    );
     matchState.score = tracker.getScore();
     matchState.currentServer = tracker.getCurrentServer();
     matchState.pointsPlayed = ++points;
@@ -151,18 +175,52 @@ function pct(n: number, d: number): string {
 const BUILDS: Array<{ label: string; profile: ArchetypeProfile }> = [
   { label: 'No specialization (doc baseline)', profile: profile({}) },
   { label: 'Broad net_attacker, NO phase points', profile: profile({}, 'net_attacker') },
-  { label: 'net_downhill T1', profile: profile({ net: { path: 'net_downhill', tier: 1 } }, 'net_attacker') },
-  { label: 'net_downhill T3', profile: profile({ net: { path: 'net_downhill', tier: 3 } }, 'net_attacker') },
-  { label: 'net_downhill T3 + fs_bomber T2 (serve-volley)', profile: profile({ net: { path: 'net_downhill', tier: 3 }, first_serve: { path: 'fs_bomber', tier: 2 } }, 'net_attacker') },
-  { label: 'net_apologist T3 (net-averse)', profile: profile({ net: { path: 'net_apologist', tier: 3 } }, 'baseliner') },
-  { label: 'bh_samurai T3 (slice specialist)', profile: profile({ backhand: { path: 'bh_samurai', tier: 3 } }, 'baseliner') },
-  { label: 'bh_samurai T3 + fh_survivor T3 (counterpuncher)', profile: profile({ backhand: { path: 'bh_samurai', tier: 3 }, forehand: { path: 'fh_survivor', tier: 3 } }, 'baseliner') },
+  {
+    label: 'net_downhill T1',
+    profile: profile({ net: { path: 'net_downhill', tier: 1 } }, 'net_attacker'),
+  },
+  {
+    label: 'net_downhill T3',
+    profile: profile({ net: { path: 'net_downhill', tier: 3 } }, 'net_attacker'),
+  },
+  {
+    label: 'net_downhill T3 + fs_bomber T2 (serve-volley)',
+    profile: profile(
+      { net: { path: 'net_downhill', tier: 3 }, first_serve: { path: 'fs_bomber', tier: 2 } },
+      'net_attacker',
+    ),
+  },
+  {
+    label: 'net_apologist T3 (net-averse)',
+    profile: profile({ net: { path: 'net_apologist', tier: 3 } }, 'baseliner'),
+  },
+  {
+    label: 'bh_samurai T3 (slice specialist)',
+    profile: profile({ backhand: { path: 'bh_samurai', tier: 3 } }, 'baseliner'),
+  },
+  {
+    label: 'bh_samurai T3 + fh_survivor T3 (counterpuncher)',
+    profile: profile(
+      { backhand: { path: 'bh_samurai', tier: 3 }, forehand: { path: 'fh_survivor', tier: 3 } },
+      'baseliner',
+    ),
+  },
 ];
 
 const FAMILY_ORDER = [
-  'return', 'groundstroke', 'groundstroke (power)', 'approach (groundstroke)',
-  'slice', 'defensive slice', 'volley', 'half-volley', 'overhead',
-  'lob', 'passing', 'angle', 'drop shot',
+  'return',
+  'groundstroke',
+  'groundstroke (power)',
+  'approach (groundstroke)',
+  'slice',
+  'defensive slice',
+  'volley',
+  'half-volley',
+  'overhead',
+  'lob',
+  'passing',
+  'angle',
+  'drop shot',
 ];
 
 function main(): void {
@@ -183,13 +241,16 @@ function main(): void {
   }
 
   // ─── Table ───
-  console.log(`\n╔══ SHOT MIX BY BUILD — player rally shots only, uniform-${RATING} vs uniform-${RATING}, hard, ${N_MATCHES} BO3 ══╗\n`);
+  console.log(
+    `\n╔══ SHOT MIX BY BUILD — player rally shots only, uniform-${RATING} vs uniform-${RATING}, hard, ${N_MATCHES} BO3 ══╗\n`,
+  );
   const header = ['family'.padEnd(24), ...results.map((_, i) => `B${i + 1}`.padStart(8))].join(' ');
   console.log(header);
   console.log('-'.repeat(header.length));
   for (const fam of FAMILY_ORDER) {
     const row = [fam.padEnd(24)];
-    for (const r of results) row.push(pct(r.tally.byFamily.get(fam) ?? 0, r.tally.rallyShots).padStart(8));
+    for (const r of results)
+      row.push(pct(r.tally.byFamily.get(fam) ?? 0, r.tally.rallyShots).padStart(8));
     console.log(row.join(' '));
   }
   console.log('-'.repeat(header.length));
@@ -198,7 +259,10 @@ function main(): void {
   const nRow = ['n (rally shots)'.padEnd(24)];
   for (const r of results) {
     const t = r.tally;
-    const net = (t.byFamily.get('volley') ?? 0) + (t.byFamily.get('half-volley') ?? 0) + (t.byFamily.get('overhead') ?? 0);
+    const net =
+      (t.byFamily.get('volley') ?? 0) +
+      (t.byFamily.get('half-volley') ?? 0) +
+      (t.byFamily.get('overhead') ?? 0);
     netRow.push(pct(net, t.rallyShots).padStart(8));
     approachRow.push(pct(t.netPointsEntered, t.points).padStart(8));
     nRow.push(String(t.rallyShots).padStart(8));
@@ -209,7 +273,10 @@ function main(): void {
 
   console.log('\nLegend:');
   results.forEach((r, i) => {
-    const eff = Object.entries(r.effects).map(([k, v]) => `${k}=${v}`).join(', ') || '(none)';
+    const eff =
+      Object.entries(r.effects)
+        .map(([k, v]) => `${k}=${v}`)
+        .join(', ') || '(none)';
     console.log(`  B${i + 1}  ${r.label}\n       effects: ${eff}`);
   });
 
@@ -218,15 +285,17 @@ function main(): void {
   const dh = caseStudies['net_downhill T3'] ?? [];
   let shown = 0;
   for (const pr of dh) {
-    const hasApproach = pr.shots.some(s => String(s.shotType).includes('approach'));
+    const hasApproach = pr.shots.some((s) => String(s.shotType).includes('approach'));
     if (!hasApproach || shown >= 6) continue;
     shown++;
-    console.log(`\n--- point ${shown} (server: ${pr.server}, winner: ${pr.winner}, rally ${pr.rallyLength}) ---`);
+    console.log(
+      `\n--- point ${shown} (server: ${pr.server}, winner: ${pr.winner}, rally ${pr.rallyLength}) ---`,
+    );
     for (const s of pr.shots) {
       const pos = s.context?.courtPosition ?? '?';
       const q = s.quality.toFixed(0).padStart(3);
       console.log(
-        `  ${String(s.shotNumber).padStart(2)}. [${s.shooter.padEnd(8)}] ${String(s.shotType).padEnd(26)} q=${q} pos=${String(pos).padEnd(15)} ${s.success ? '' : 'MISS '}${s.outcome}`
+        `  ${String(s.shotNumber).padStart(2)}. [${s.shooter.padEnd(8)}] ${String(s.shotType).padEnd(26)} q=${q} pos=${String(pos).padEnd(15)} ${s.success ? '' : 'MISS '}${s.outcome}`,
       );
     }
   }
@@ -236,15 +305,17 @@ function main(): void {
   const sam = caseStudies['bh_samurai T3 (slice specialist)'] ?? [];
   shown = 0;
   for (const pr of sam) {
-    const hasSlice = pr.shots.some(s => String(s.shotType).includes('slice'));
+    const hasSlice = pr.shots.some((s) => String(s.shotType).includes('slice'));
     if (!hasSlice || shown >= 5) continue;
     shown++;
-    console.log(`\n--- point ${shown} (server: ${pr.server}, winner: ${pr.winner}, rally ${pr.rallyLength}) ---`);
+    console.log(
+      `\n--- point ${shown} (server: ${pr.server}, winner: ${pr.winner}, rally ${pr.rallyLength}) ---`,
+    );
     for (const s of pr.shots) {
       const pos = s.context?.courtPosition ?? '?';
       const q = s.quality.toFixed(0).padStart(3);
       console.log(
-        `  ${String(s.shotNumber).padStart(2)}. [${s.shooter.padEnd(8)}] ${String(s.shotType).padEnd(26)} q=${q} pos=${String(pos).padEnd(15)} ${s.success ? '' : 'MISS '}${s.outcome}`
+        `  ${String(s.shotNumber).padStart(2)}. [${s.shooter.padEnd(8)}] ${String(s.shotType).padEnd(26)} q=${q} pos=${String(pos).padEnd(15)} ${s.success ? '' : 'MISS '}${s.outcome}`,
       );
     }
   }
@@ -260,7 +331,13 @@ function main(): void {
       if (!String(s.shotType).includes('approach') || !s.success) continue;
       approaches++;
       const opp = pr.shots[i + 1];
-      if (!opp) { nextShotByOpp.set('(approach ended point)', (nextShotByOpp.get('(approach ended point)') ?? 0) + 1); continue; }
+      if (!opp) {
+        nextShotByOpp.set(
+          '(approach ended point)',
+          (nextShotByOpp.get('(approach ended point)') ?? 0) + 1,
+        );
+        continue;
+      }
       const k = family(opp.shotType) + (opp.success ? '' : ' [MISS]');
       nextShotByOpp.set(k, (nextShotByOpp.get(k) ?? 0) + 1);
       const mine = pr.shots[i + 2];
@@ -269,11 +346,11 @@ function main(): void {
     }
   }
   console.log(`successful approaches: ${approaches}\n`);
-  console.log('opponent\'s reply to the approach:');
+  console.log("opponent's reply to the approach:");
   for (const [k, v] of [...nextShotByOpp.entries()].sort((a, b) => b[1] - a[1])) {
     console.log(`  ${k.padEnd(30)} ${String(v).padStart(4)}  ${pct(v, approaches)}`);
   }
-  console.log('\nplayer\'s NEXT shot at net (2 shots after approach):');
+  console.log("\nplayer's NEXT shot at net (2 shots after approach):");
   for (const [k, v] of [...playerNextAtNet.entries()].sort((a, b) => b[1] - a[1])) {
     console.log(`  ${k.padEnd(30)} ${String(v).padStart(4)}  ${pct(v, approaches)}`);
   }
@@ -307,7 +384,14 @@ export function lobProbe(): void {
       const nextIsNet = next && next.context?.courtPosition === 'net';
       if (!wasVsNet && !nextIsNet) continue;
       const q = s.quality;
-      const b = q < 45 ? 'weak   (q<45)' : q < 60 ? 'medium (45-60)' : q < 75 ? 'good   (60-75)' : 'great  (q>=75)';
+      const b =
+        q < 45
+          ? 'weak   (q<45)'
+          : q < 60
+            ? 'medium (45-60)'
+            : q < 75
+              ? 'good   (60-75)'
+              : 'great  (q>=75)';
       if (!buckets.has(b)) buckets.set(b, { n: 0, lobWon: 0, nextShot: new Map() });
       const e = buckets.get(b)!;
       e.n++;
@@ -323,7 +407,9 @@ export function lobProbe(): void {
     if (!e) continue;
     console.log(`${key}   n=${String(e.n).padStart(4)}   outright winner: ${pct(e.lobWon, e.n)}`);
     const top = [...e.nextShot.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
-    console.log(`   net player's reply: ${top.map(([k, v]) => `${k} ${pct(v, e.n).trim()}`).join(' | ')}`);
+    console.log(
+      `   net player's reply: ${top.map(([k, v]) => `${k} ${pct(v, e.n).trim()}`).join(' | ')}`,
+    );
   }
 }
 

@@ -12,11 +12,11 @@
 
 /** Tunable calibration constants */
 const CALIBRATION = {
-  exceptional: { scale: 1.15, offset: 4.5 },  // ~85 at ML=70, ~39 at ML=30
-  high:        { scale: 1.0,  offset: 5 },     // ~75 at ML=70, ~35 at ML=30
-  good:        { scale: 0.85, offset: 2 },      // ~62 at ML=70, ~28 at ML=30
-  average:     { scale: 0.70, offset: 1 },      // ~50 at ML=70, ~22 at ML=30
-  weak:        { scale: 0.42, offset: 0 },      // ~29 at ML=70, ~13 at ML=30
+  exceptional: { scale: 1.15, offset: 4.5 }, // ~85 at ML=70, ~39 at ML=30
+  high: { scale: 1.0, offset: 5 }, // ~75 at ML=70, ~35 at ML=30
+  good: { scale: 0.85, offset: 2 }, // ~62 at ML=70, ~28 at ML=30
+  average: { scale: 0.7, offset: 1 }, // ~50 at ML=70, ~22 at ML=30
+  weak: { scale: 0.42, offset: 0 }, // ~29 at ML=70, ~13 at ML=30
 };
 
 export interface RelativeThresholds {
@@ -40,10 +40,10 @@ export interface RelativeThresholds {
 export function getQualityThresholds(matchLevel: number): RelativeThresholds {
   return {
     exceptional: matchLevel * CALIBRATION.exceptional.scale + CALIBRATION.exceptional.offset,
-    high:        matchLevel * CALIBRATION.high.scale        + CALIBRATION.high.offset,
-    good:        matchLevel * CALIBRATION.good.scale        + CALIBRATION.good.offset,
-    average:     matchLevel * CALIBRATION.average.scale     + CALIBRATION.average.offset,
-    weak:        matchLevel * CALIBRATION.weak.scale        + CALIBRATION.weak.offset,
+    high: matchLevel * CALIBRATION.high.scale + CALIBRATION.high.offset,
+    good: matchLevel * CALIBRATION.good.scale + CALIBRATION.good.offset,
+    average: matchLevel * CALIBRATION.average.scale + CALIBRATION.average.offset,
+    weak: matchLevel * CALIBRATION.weak.scale + CALIBRATION.weak.offset,
   };
 }
 

@@ -105,10 +105,10 @@ export interface MatchScore {
 export interface InteractiveMatchConfig {
   playerStats: PlayerStats;
   opponentStats: PlayerStats;
-  playerName?: string;   // Player's display name
+  playerName?: string; // Player's display name
   opponentName?: string; // Opponent's display name
   opponentTier?: number; // Opponent tier (1-4) for reward calculation
-  playerArchetypeProfile?: ArchetypeProfile;   // Drives player shot-selection behavior
+  playerArchetypeProfile?: ArchetypeProfile; // Drives player shot-selection behavior
   opponentArchetypeProfile?: ArchetypeProfile; // Drives opponent shot-selection behavior
   playerAbilities?: Ability[]; // Player abilities to apply during match
   opponentAbilities?: Ability[]; // Opponent abilities to apply during match
@@ -121,9 +121,9 @@ export interface InteractiveMatchConfig {
 
   // Match type
   isTournamentMatch?: boolean; // True if this is a tournament match
-  isStoryMatch?: boolean;      // True if this is a story-driven match
-  isTutorial?: boolean;        // True if this is the player's first tutorial match
-  disableMatchForm?: boolean;  // True to zero out match-day form variance (e.g. tutorial matches)
+  isStoryMatch?: boolean; // True if this is a story-driven match
+  isTutorial?: boolean; // True if this is the player's first tutorial match
+  disableMatchForm?: boolean; // True to zero out match-day form variance (e.g. tutorial matches)
 
   // Callbacks
   onKeyMoment?: KeyMomentCallback;

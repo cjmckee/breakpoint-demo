@@ -18,7 +18,7 @@ export const UpcomingTeamMatchCard: React.FC = () => {
       event.eventType === 'story_match' &&
       (event.scheduledDay > calendar.currentDay ||
         (event.scheduledDay === calendar.currentDay &&
-          event.scheduledTimeSlot >= calendar.currentTimeSlot))
+          event.scheduledTimeSlot >= calendar.currentTimeSlot)),
   );
 
   if (!nextTeamMatch) {
@@ -34,20 +34,29 @@ export const UpcomingTeamMatchCard: React.FC = () => {
 
   const getTimeSlotLabel = (slot: number): string => {
     switch (slot) {
-      case 0: return 'Morning';
-      case 1: return 'Afternoon';
-      case 2: return 'Evening';
-      default: return 'Unknown';
+      case 0:
+        return 'Morning';
+      case 1:
+        return 'Afternoon';
+      case 2:
+        return 'Evening';
+      default:
+        return 'Unknown';
     }
   };
 
   const getSurfaceEmoji = (surface?: string): string => {
     switch (surface) {
-      case 'hard': return '🏟️';
-      case 'clay': return '🧱';
-      case 'grass': return '🌱';
-      case 'carpet': return '📋';
-      default: return '🎾';
+      case 'hard':
+        return '🏟️';
+      case 'clay':
+        return '🧱';
+      case 'grass':
+        return '🌱';
+      case 'carpet':
+        return '📋';
+      default:
+        return '🎾';
     }
   };
 
@@ -75,9 +84,7 @@ export const UpcomingTeamMatchCard: React.FC = () => {
             vs {metadata.opponentName}
           </span>
         </div>
-        <div className="text-xs text-pixel-text-muted truncate">
-          {detailParts.join(' · ')}
-        </div>
+        <div className="text-xs text-pixel-text-muted truncate">{detailParts.join(' · ')}</div>
       </div>
       <span className="shrink-0 text-xs font-bold px-2 py-1 bg-purple-500 bg-opacity-20 border border-purple-400 text-purple-400">
         {daysUntil === 0 ? '⚡ Today' : `${daysUntil}d`}

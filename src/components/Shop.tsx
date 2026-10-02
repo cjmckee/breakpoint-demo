@@ -36,13 +36,16 @@ const RARITY_BG_COLORS: Record<ItemRarity, string> = {
 
 function getRarityColor(rarity?: ItemRarity): string {
   switch (rarity) {
-    case 'legendary': return 'text-yellow-400';
-    case 'rare': return 'text-blue-400';
-    case 'uncommon': return 'text-green-400';
-    default: return 'text-gray-300';
+    case 'legendary':
+      return 'text-yellow-400';
+    case 'rare':
+      return 'text-blue-400';
+    case 'uncommon':
+      return 'text-green-400';
+    default:
+      return 'text-gray-300';
   }
 }
-
 
 // Price tag colored by affordability so the catalog can be scanned without
 // reading button states: yellow = in reach, red = can't afford yet.
@@ -69,7 +72,11 @@ const BuyButton: React.FC<{
   onBuy: (itemId: string) => void;
 }> = ({ item, canAfford, onBuy }) => {
   if (item.purchased) {
-    return <Button disabled className="w-full bg-gray-700 text-gray-400 cursor-not-allowed">Sold Out</Button>;
+    return (
+      <Button disabled className="w-full bg-gray-700 text-gray-400 cursor-not-allowed">
+        Sold Out
+      </Button>
+    );
   }
   return (
     <Button onClick={() => onBuy(item.id)} disabled={!canAfford} className="w-full">
@@ -91,7 +98,9 @@ const StatBoostCard: React.FC<{
   const totalIncrease = statEntries.reduce((sum, [, value]) => sum + value, 0);
 
   return (
-    <Card className={`border-2 p-4 ${item.purchased ? 'opacity-60' : ''} ${rarityBg} border-gray-600 flex flex-col`}>
+    <Card
+      className={`border-2 p-4 ${item.purchased ? 'opacity-60' : ''} ${rarityBg} border-gray-600 flex flex-col`}
+    >
       <div className="flex flex-col gap-2 flex-1">
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-2">
@@ -122,8 +131,10 @@ const ConsumableShopCard: React.FC<{
   onBuy: (itemId: string) => void;
 }> = ({ item, playerExperience, onBuy }) => {
   const canAfford = playerExperience >= item.cost;
-  const hasInstant = item.instantEffects && (item.instantEffects.energyChange || item.instantEffects.moodChange);
-  const hasNextActivity = item.nextActivityBuffs?.statBoosts && Object.keys(item.nextActivityBuffs.statBoosts).length > 0;
+  const hasInstant =
+    item.instantEffects && (item.instantEffects.energyChange || item.instantEffects.moodChange);
+  const hasNextActivity =
+    item.nextActivityBuffs?.statBoosts && Object.keys(item.nextActivityBuffs.statBoosts).length > 0;
 
   return (
     <Card className="border-2 p-4 bg-gray-900 border-gray-600">
@@ -158,7 +169,9 @@ const ConsumableShopCard: React.FC<{
         )}
 
         {hasNextActivity && (
-          <div className="mt-2 pt-2 border-t border-gray-700 text-xs text-gray-400">Next Session</div>
+          <div className="mt-2 pt-2 border-t border-gray-700 text-xs text-gray-400">
+            Next Session
+          </div>
         )}
         {item.nextActivityBuffs?.statBoosts && (
           <StatBoostList statBoosts={item.nextActivityBuffs.statBoosts} variant="list" />
@@ -180,7 +193,9 @@ const EquipmentShopCard: React.FC<{
   const canAfford = playerExperience >= item.cost;
 
   return (
-    <Card className={`border-2 p-4 ${item.purchased ? 'opacity-60' : ''} bg-gray-900 border-gray-600 flex flex-col`}>
+    <Card
+      className={`border-2 p-4 ${item.purchased ? 'opacity-60' : ''} bg-gray-900 border-gray-600 flex flex-col`}
+    >
       <div className="flex flex-col gap-2 flex-1">
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-2">
@@ -192,9 +207,7 @@ const EquipmentShopCard: React.FC<{
           <CostTag cost={item.cost} canAfford={canAfford} purchased={item.purchased} />
         </div>
 
-        <div className="text-sm text-gray-400">
-          {SLOT_NAMES[item.slot] || item.slot}
-        </div>
+        <div className="text-sm text-gray-400">{SLOT_NAMES[item.slot] || item.slot}</div>
 
         <div className="mt-2 pt-2 border-t border-gray-700">
           <StatBoostList statBoosts={item.statBoosts} variant="grid" showTotal />
@@ -218,13 +231,17 @@ const AbilityShopCard: React.FC<{
   const rarityBg = RARITY_BG_COLORS[item.rarity];
 
   return (
-    <Card className={`border-2 p-4 ${item.purchased ? 'opacity-60' : ''} ${rarityBg} border-gray-600 flex flex-col`}>
+    <Card
+      className={`border-2 p-4 ${item.purchased ? 'opacity-60' : ''} ${rarityBg} border-gray-600 flex flex-col`}
+    >
       <div className="flex flex-col gap-2 flex-1">
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-2">
             <span className="text-2xl">✨</span>
             <div>
-              <h3 className={`text-lg font-bold ${rarityColor}`}>{formatAbilityName(item.abilityId)}</h3>
+              <h3 className={`text-lg font-bold ${rarityColor}`}>
+                {formatAbilityName(item.abilityId)}
+              </h3>
               <span className={`text-xs ${rarityColor}`}>{RARITY_LABELS[item.rarity]} Ability</span>
             </div>
           </div>
@@ -253,12 +270,15 @@ export const Shop: React.FC = () => {
   const purchaseItem = useGameStore((state) => state.purchaseItem);
   const calendar = useGameStore((state) => state.calendar);
 
-  const grouped = useMemo(() => ({
-    stat_increase: shopItems.filter((i): i is StatIncreaseItem => i.category === 'stat_increase'),
-    consumable: shopItems.filter((i): i is ConsumableItem => i.category === 'consumable'),
-    equipment: shopItems.filter((i): i is EquipmentItem => i.category === 'equipment'),
-    ability: shopItems.filter((i): i is AbilityItem => i.category === 'ability'),
-  }), [shopItems]);
+  const grouped = useMemo(
+    () => ({
+      stat_increase: shopItems.filter((i): i is StatIncreaseItem => i.category === 'stat_increase'),
+      consumable: shopItems.filter((i): i is ConsumableItem => i.category === 'consumable'),
+      equipment: shopItems.filter((i): i is EquipmentItem => i.category === 'equipment'),
+      ability: shopItems.filter((i): i is AbilityItem => i.category === 'ability'),
+    }),
+    [shopItems],
+  );
 
   if (!player) return null;
 
@@ -275,7 +295,6 @@ export const Shop: React.FC = () => {
         <div className="sticky top-2 z-20 mb-6 bg-yellow-900 border-4 border-yellow-500 px-4 py-2 flex items-center justify-between gap-3">
           <div className="flex items-baseline gap-3 min-w-0">
             <span className="text-sm font-bold text-yellow-200 whitespace-nowrap">💰 Balance</span>
-            
           </div>
           <span className="text-2xl font-bold text-yellow-400 whitespace-nowrap">
             {player.experience} XP

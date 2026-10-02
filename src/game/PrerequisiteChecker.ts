@@ -14,7 +14,7 @@ export class PrerequisiteChecker {
    */
   static checkStatPrerequisites(
     playerStats: PlayerStats,
-    requirements?: StoryEventPrerequisite['stats']
+    requirements?: StoryEventPrerequisite['stats'],
   ): boolean {
     if (!requirements) return true;
 
@@ -34,7 +34,7 @@ export class PrerequisiteChecker {
    */
   static checkRelationshipPrerequisites(
     relationships: Record<string, number>,
-    requirements?: StoryEventPrerequisite['relationships']
+    requirements?: StoryEventPrerequisite['relationships'],
   ): boolean {
     if (!requirements) return true;
 
@@ -59,7 +59,7 @@ export class PrerequisiteChecker {
       excludedEvents?: string[];
       completedEventChoices?: Record<string, string | string[]>;
       excludedEventChoices?: Record<string, string | string[]>;
-    }
+    },
   ): boolean {
     // Check required completed events
     if (requirements.completedEvents) {
@@ -77,7 +77,9 @@ export class PrerequisiteChecker {
 
     // Check required choices (specific option must have been selected)
     if (requirements.completedEventChoices) {
-      for (const [eventId, requiredOptionId] of Object.entries(requirements.completedEventChoices)) {
+      for (const [eventId, requiredOptionId] of Object.entries(
+        requirements.completedEventChoices,
+      )) {
         const playerChoice = completedChoices[eventId];
 
         // Array means OR - player's choice must be in the array
@@ -113,7 +115,7 @@ export class PrerequisiteChecker {
    */
   static checkTimePrerequisites(
     calendar: GameCalendar,
-    requirements?: Pick<StoryEventPrerequisite, 'minDay' | 'maxDay' | 'minSeason'>
+    requirements?: Pick<StoryEventPrerequisite, 'minDay' | 'maxDay' | 'minSeason'>,
   ): boolean {
     if (!requirements) return true;
 
@@ -135,7 +137,7 @@ export class PrerequisiteChecker {
    */
   static checkAbilityPrerequisites(
     abilities: Ability[],
-    requirements?: Pick<StoryEventPrerequisite, 'hasAbilities' | 'lacksAbilities'>
+    requirements?: Pick<StoryEventPrerequisite, 'hasAbilities' | 'lacksAbilities'>,
   ): boolean {
     if (!requirements) return true;
 
@@ -163,7 +165,10 @@ export class PrerequisiteChecker {
    */
   static checkMatchHistoryPrerequisites(
     player: Player,
-    requirements?: Pick<StoryEventPrerequisite, 'minMatchesPlayed' | 'minMatchesWon' | 'minWinStreak'>
+    requirements?: Pick<
+      StoryEventPrerequisite,
+      'minMatchesPlayed' | 'minMatchesWon' | 'minWinStreak'
+    >,
   ): boolean {
     if (!requirements) return true;
 
@@ -195,7 +200,7 @@ export class PrerequisiteChecker {
    */
   static checkMoodPrerequisites(
     mood: number | undefined,
-    requirements?: Pick<StoryEventPrerequisite, 'minMood' | 'maxMood'>
+    requirements?: Pick<StoryEventPrerequisite, 'minMood' | 'maxMood'>,
   ): boolean {
     if (!requirements?.minMood && !requirements?.maxMood) return true;
     if (mood === undefined) return true;
@@ -209,7 +214,10 @@ export class PrerequisiteChecker {
    */
   static checkTournamentPrerequisites(
     activeTournament: ActiveTournament | null,
-    requirements?: Pick<StoryEventPrerequisite, 'activeTournament' | 'tournamentBracket' | 'tournamentRound'>
+    requirements?: Pick<
+      StoryEventPrerequisite,
+      'activeTournament' | 'tournamentBracket' | 'tournamentRound'
+    >,
   ): boolean {
     if (!requirements) return true;
 
@@ -250,7 +258,7 @@ export class PrerequisiteChecker {
       calendar: GameCalendar;
       activeTournament?: ActiveTournament | null;
       mood?: number;
-    }
+    },
   ): boolean {
     return (
       this.checkStatPrerequisites(player.stats, prerequisites.stats) &&
@@ -263,7 +271,7 @@ export class PrerequisiteChecker {
           excludedEvents: prerequisites.excludedEvents,
           completedEventChoices: prerequisites.completedEventChoices,
           excludedEventChoices: prerequisites.excludedEventChoices,
-        }
+        },
       ) &&
       this.checkTimePrerequisites(gameState.calendar, prerequisites) &&
       this.checkAbilityPrerequisites(player.abilities, prerequisites) &&
@@ -286,7 +294,7 @@ export class PrerequisiteChecker {
       calendar: GameCalendar;
       activeTournament?: ActiveTournament | null;
       mood?: number;
-    }
+    },
   ): boolean {
     if (!option.prerequisites) return true;
     return this.checkAllPrerequisites(option.prerequisites, player, gameState);
@@ -305,9 +313,11 @@ export class PrerequisiteChecker {
       calendar: GameCalendar;
       activeTournament?: ActiveTournament | null;
       mood?: number;
-    }
+    },
   ): StoryEventOption[] {
-    return event.options.filter((option) => this.checkOptionPrerequisites(option, player, gameState));
+    return event.options.filter((option) =>
+      this.checkOptionPrerequisites(option, player, gameState),
+    );
   }
 
   /**

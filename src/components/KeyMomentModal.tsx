@@ -21,7 +21,12 @@ import { useMatchStore } from '../stores/matchStore';
 import { PlayerStats } from '../types/game';
 import { useTutorialSpotlight } from '../hooks/useTutorialSpotlight';
 import { TutorialCallout } from './tutorial/TutorialCallout';
-import { KM_TUTORIAL_STEPS, KM_RESULT_STEPS, KmTarget, KmResultTarget } from '../data/tutorialSteps';
+import {
+  KM_TUTORIAL_STEPS,
+  KM_RESULT_STEPS,
+  KmTarget,
+  KmResultTarget,
+} from '../data/tutorialSteps';
 import { formatStatName } from '../config/statIcons';
 import { KEY_MOMENT } from '../config/shotThresholds';
 
@@ -48,9 +53,15 @@ const statValue = (stats: PlayerStats, name: string): number => {
  * first three letters otherwise ('serve' → 'SER'). Full name goes in the chip's title.
  */
 const abbrevStat = (name: string): string => {
-  const words = name.replace(/([A-Z])/g, ' $1').trim().split(/\s+/);
+  const words = name
+    .replace(/([A-Z])/g, ' $1')
+    .trim()
+    .split(/\s+/);
   return words.length > 1
-    ? words.map((w) => w[0]).join('').toUpperCase()
+    ? words
+        .map((w) => w[0])
+        .join('')
+        .toUpperCase()
     : name.slice(0, 3).toUpperCase();
 };
 
@@ -118,8 +129,10 @@ const RiskIndicator: React.FC<{ risk: KeyMomentRisk }> = ({ risk }) => {
  * Whether an effect is beneficial to the player. Pressure is inverted from the other three:
  * reducing pressure (negative value) is good, so a negative pressure value is beneficial.
  */
-const isBeneficial = (effect: { type: SecondaryEffect['type'] | AppliedEffect['type']; value: number }): boolean =>
-  effect.type === 'pressure' ? effect.value < 0 : effect.value > 0;
+const isBeneficial = (effect: {
+  type: SecondaryEffect['type'] | AppliedEffect['type'];
+  value: number;
+}): boolean => (effect.type === 'pressure' ? effect.value < 0 : effect.value > 0);
 
 interface KeyMomentModalProps {
   isOpen: boolean;
@@ -134,7 +147,9 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   const [hoveredCondition, setHoveredCondition] = useState<number | null>(null);
 
   // Reset focus when the modal opens or a new key moment arrives.
-  useEffect(() => { setFocusIdx(0); }, [isOpen, keyMoment?.id]);
+  useEffect(() => {
+    setFocusIdx(0);
+  }, [isOpen, keyMoment?.id]);
 
   const handleKeyMomentChoice = useMatchStore((state) => state.handleKeyMomentChoice);
   const matchConfig = useMatchStore((state) => state.matchConfig);
@@ -176,19 +191,18 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     next: kmResultNext,
     back: kmResultBack,
     canGoBack: kmResultCanGoBack,
-  } = useTutorialSpotlight(
-    KM_RESULT_STEPS,
-    isOpen && isResultPhase && isTutorial,
-  );
+  } = useTutorialSpotlight(KM_RESULT_STEPS, isOpen && isResultPhase && isTutorial);
 
   const kmSectionClass = (target: KmTarget): string => {
-    if (kmSpotlit(target)) return 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-black transition-all duration-200';
+    if (kmSpotlit(target))
+      return 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-black transition-all duration-200';
     if (kmDimmed(target)) return 'opacity-25 transition-all duration-200';
     return '';
   };
 
   const resultSectionClass = (target: KmResultTarget): string => {
-    if (resultSpotlit(target)) return 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-black transition-all duration-200';
+    if (resultSpotlit(target))
+      return 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-black transition-all duration-200';
     if (resultDimmed(target)) return 'opacity-25 transition-all duration-200';
     return '';
   };
@@ -217,9 +231,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   const ctx = activeKeyMoment.matchContext;
   // Focus and ability effects both feed the pressure term, so the strip has to
   // read them the same way the resolver does or the displayed odds drift.
-  const playerFocus = matchConfig
-    ? statValue(matchConfig.playerStats, 'focus')
-    : 50;
+  const playerFocus = matchConfig ? statValue(matchConfig.playerStats, 'focus') : 50;
   const playerEffects = MatchOrchestrator.extractActiveEffects(
     matchConfig?.playerAbilities,
     matchConfig?.playerArchetypeProfile,
@@ -265,9 +277,10 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     value: `${Math.round(ctx.energy)}%`,
     helps: modifiers.energy >= 1 ? true : modifiers.energy <= -1 ? false : null,
     modifier: modifiers.energy,
-    tooltip: Math.abs(modifiers.energy) >= 1
-      ? `${modifiers.energy > 0 ? '+' : ''}${modifiers.energy}% from energy`
-      : 'Energy is not a factor here',
+    tooltip:
+      Math.abs(modifiers.energy) >= 1
+        ? `${modifiers.energy > 0 ? '+' : ''}${modifiers.energy}% from energy`
+        : 'Energy is not a factor here',
   });
   if (Math.abs(modifiers.mood) >= 1) {
     const helps = modifiers.mood > 0;
@@ -299,7 +312,8 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   }
 
   const net = modifiers.total;
-  const netTone = net > 2 ? 'text-pixel-success' : net < -2 ? 'text-pixel-error' : 'text-pixel-text-muted';
+  const netTone =
+    net > 2 ? 'text-pixel-success' : net < -2 ? 'text-pixel-error' : 'text-pixel-text-muted';
 
   const conditionColor = (helps: boolean | null): string =>
     helps === true
@@ -331,7 +345,8 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
         ))}
       </div>
       <div className={`text-xs font-bold ${netTone}`}>
-        Overall effects: {net > 0 ? '+' : ''}{Math.round(net)}%
+        Overall effects: {net > 0 ? '+' : ''}
+        {Math.round(net)}%
       </div>
     </div>
   );
@@ -388,28 +403,39 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
 
   const getEffectIcon = (effect: SecondaryEffect): string => {
     switch (effect.type) {
-      case 'momentum': return effect.value > 0 ? '📈' : '📉';
-      case 'energy': return effect.value > 0 ? '⚡' : '🔋';
-      case 'pressure': return effect.value < 0 ? '😌' : '😰';
-      case 'mood': return effect.value > 0 ? '😊' : '😤';
+      case 'momentum':
+        return effect.value > 0 ? '📈' : '📉';
+      case 'energy':
+        return effect.value > 0 ? '⚡' : '🔋';
+      case 'pressure':
+        return effect.value < 0 ? '😌' : '😰';
+      case 'mood':
+        return effect.value > 0 ? '😊' : '😤';
     }
   };
 
   const getEffectLabel = (effect: SecondaryEffect): string => {
     const sign = effect.value > 0 ? '+' : '';
     switch (effect.type) {
-      case 'momentum': return `${sign}${effect.value} Momentum`;
-      case 'energy': return `${sign}${effect.value} Energy`;
-      case 'pressure': return `${sign}${effect.value} Pressure`;
-      case 'mood': return `${sign}${effect.value} Mood`;
+      case 'momentum':
+        return `${sign}${effect.value} Momentum`;
+      case 'energy':
+        return `${sign}${effect.value} Energy`;
+      case 'pressure':
+        return `${sign}${effect.value} Pressure`;
+      case 'mood':
+        return `${sign}${effect.value} Mood`;
     }
   };
 
   const getConditionLabel = (condition: SecondaryEffect['condition']): string => {
     switch (condition) {
-      case 'always': return '';
-      case 'on_success': return 'on win';
-      case 'on_failure': return 'on loss';
+      case 'always':
+        return '';
+      case 'on_success':
+        return 'on win';
+      case 'on_failure':
+        return 'on loss';
     }
   };
 
@@ -421,39 +447,64 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
 
     const getOutcomeStyle = (outcome: KeyMomentResult['outcome']) => {
       switch (outcome) {
-        case 'critical-success': return { color: 'border-yellow-500 bg-yellow-500', icon: '🌟', title: 'CRITICAL SUCCESS' };
-        case 'success': return { color: 'border-green-500 bg-green-500', icon: '✅', title: 'Success' };
-        case 'failure': return { color: 'border-red-500 bg-red-500', icon: '❌', title: 'Failure' };
-        case 'critical-failure': return { color: 'border-red-800 bg-red-800', icon: '💥', title: 'CRITICAL FAILURE' };
+        case 'critical-success':
+          return {
+            color: 'border-yellow-500 bg-yellow-500',
+            icon: '🌟',
+            title: 'CRITICAL SUCCESS',
+          };
+        case 'success':
+          return { color: 'border-green-500 bg-green-500', icon: '✅', title: 'Success' };
+        case 'failure':
+          return { color: 'border-red-500 bg-red-500', icon: '❌', title: 'Failure' };
+        case 'critical-failure':
+          return { color: 'border-red-800 bg-red-800', icon: '💥', title: 'CRITICAL FAILURE' };
       }
     };
 
     const style = getOutcomeStyle(result.outcome);
-    const isCritical = result.outcome === 'critical-success' || result.outcome === 'critical-failure';
+    const isCritical =
+      result.outcome === 'critical-success' || result.outcome === 'critical-failure';
 
     const getOutcomeMessage = (): string => {
       const shot = result.shotOutcome.outcome.replace(/_/g, ' ');
       switch (result.outcome) {
-        case 'critical-success': return `INCREDIBLE ${shot.toUpperCase()}! Point won.`;
-        case 'success': return `${shot} — point won.`;
-        case 'failure': return `${shot} — point lost.`;
-        case 'critical-failure': return `DISASTER! ${shot.toUpperCase()}. Point lost.`;
-        default: return result.pointWinner === 'player' ? 'Point won.' : 'Point lost.';
+        case 'critical-success':
+          return `INCREDIBLE ${shot.toUpperCase()}! Point won.`;
+        case 'success':
+          return `${shot} — point won.`;
+        case 'failure':
+          return `${shot} — point lost.`;
+        case 'critical-failure':
+          return `DISASTER! ${shot.toUpperCase()}. Point lost.`;
+        default:
+          return result.pointWinner === 'player' ? 'Point won.' : 'Point lost.';
       }
     };
 
     const formatEffect = (effect: AppliedEffect): string => {
       const sign = effect.value > 0 ? '+' : '';
       switch (effect.type) {
-        case 'momentum': return `${sign}${effect.value} Momentum`;
-        case 'energy': return `${sign}${effect.value} Energy`;
-        case 'pressure': return `${sign}${effect.value} Pressure`;
-        case 'mood': return `${sign}${effect.value} Mood`;
+        case 'momentum':
+          return `${sign}${effect.value} Momentum`;
+        case 'energy':
+          return `${sign}${effect.value} Energy`;
+        case 'pressure':
+          return `${sign}${effect.value} Pressure`;
+        case 'mood':
+          return `${sign}${effect.value} Mood`;
       }
     };
 
     return (
-      <Modal isOpen={isOpen} title="" size="xl" showCloseButton={false} belowContent={peekButton} testId="km-result">
+      <Modal
+        isOpen={isOpen}
+        title=""
+        size="xl"
+        showCloseButton={false}
+        belowContent={peekButton}
+        testId="km-result"
+      >
         <div className="space-y-5">
           {kmResultActiveStep && (
             <TutorialCallout
@@ -499,7 +550,11 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                 {POSTURE_META[chosenOption.posture].label}
               </span>
               <span className="text-pixel-text ml-2">
-                {result.isCounter ? 'is strong against' : result.isWeakChoice ? 'is weak against' : 'is neutral against'}
+                {result.isCounter
+                  ? 'is strong against'
+                  : result.isWeakChoice
+                    ? 'is weak against'
+                    : 'is neutral against'}
               </span>
               {/* Name the archetype rather than saying "this kind of player". The
                   lesson only transfers if the player can attach it to something they
@@ -515,48 +570,53 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                 <div className="text-sm text-pixel-text-muted">{chosenOption.description}</div>
               </div>
             </div>
-
           </div>
 
           {/* Applied effects — spotlit on step 2 */}
-          {result.appliedEffects.length > 0 && (() => {
-            // Calculate opponent energy drain (mirrors MatchOrchestrator logic)
-            const energySpent = result.pointWinner === 'player'
-              ? Math.abs(
-                  chosenOption.secondaryEffects
-                    .filter(e => e.type === 'energy' && e.value < 0)
-                    .reduce((sum, e) => sum + e.value, 0)
-                )
-              : 0;
-            const opponentDrain = energySpent * (isCritical ? 2 : 1);
+          {result.appliedEffects.length > 0 &&
+            (() => {
+              // Calculate opponent energy drain (mirrors MatchOrchestrator logic)
+              const energySpent =
+                result.pointWinner === 'player'
+                  ? Math.abs(
+                      chosenOption.secondaryEffects
+                        .filter((e) => e.type === 'energy' && e.value < 0)
+                        .reduce((sum, e) => sum + e.value, 0),
+                    )
+                  : 0;
+              const opponentDrain = energySpent * (isCritical ? 2 : 1);
 
-            return (
-              <div className={resultSectionClass('effects')}>
-                <h4 className="text-sm font-bold text-pixel-text-muted mb-2 uppercase tracking-wide">
-                  Effects Applied
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {result.appliedEffects.map((effect, i) => (
-                    <span
-                      key={i}
-                      className={`text-sm px-2.5 py-1 border border-pixel-border bg-pixel-bg font-bold ${
-                        isBeneficial(effect) ? 'text-green-400' : 'text-red-400'
-                      }`}
-                    >
-                      {formatEffect(effect)}
-                      {isCritical && <span className="text-pixel-text-muted ml-1 font-normal">(2×)</span>}
-                    </span>
-                  ))}
-                  {opponentDrain > 0 && (
-                    <span className="text-sm px-2.5 py-1 border border-pixel-border bg-pixel-bg font-bold text-red-400">
-                      −{opponentDrain} Opponent Energy
-                      {isCritical && <span className="text-pixel-text-muted ml-1 font-normal">(2×)</span>}
-                    </span>
-                  )}
+              return (
+                <div className={resultSectionClass('effects')}>
+                  <h4 className="text-sm font-bold text-pixel-text-muted mb-2 uppercase tracking-wide">
+                    Effects Applied
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {result.appliedEffects.map((effect, i) => (
+                      <span
+                        key={i}
+                        className={`text-sm px-2.5 py-1 border border-pixel-border bg-pixel-bg font-bold ${
+                          isBeneficial(effect) ? 'text-green-400' : 'text-red-400'
+                        }`}
+                      >
+                        {formatEffect(effect)}
+                        {isCritical && (
+                          <span className="text-pixel-text-muted ml-1 font-normal">(2×)</span>
+                        )}
+                      </span>
+                    ))}
+                    {opponentDrain > 0 && (
+                      <span className="text-sm px-2.5 py-1 border border-pixel-border bg-pixel-bg font-bold text-red-400">
+                        −{opponentDrain} Opponent Energy
+                        {isCritical && (
+                          <span className="text-pixel-text-muted ml-1 font-normal">(2×)</span>
+                        )}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })()}
+              );
+            })()}
 
           {/* Continue — blocked while result tutorial is active */}
           <button
@@ -624,11 +684,12 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
               className="text-[10px] px-2 py-1 rounded bg-pixel-bg text-pixel-text-muted whitespace-nowrap text-center"
               title={formatStatName(w.stat)}
             >
-              {abbrevStat(w.stat)} <span className="text-pixel-text">{stats ? statValue(stats, w.stat) : 0}</span>
+              {abbrevStat(w.stat)}{' '}
+              <span className="text-pixel-text">{stats ? statValue(stats, w.stat) : 0}</span>
             </span>
           ) : (
             <span key={i} />
-          )
+          ),
         )}
       </>
     );
@@ -684,18 +745,26 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
       {/* Matchup */}
       <div className="p-3 border-b-2 border-pixel-border flex flex-col gap-2">
         <div className="text-sm text-pixel-text leading-relaxed">
-          <span className="text-xs px-1.5 py-0.5 rounded bg-green-500 bg-opacity-20 text-green-400 mr-2 uppercase">Good against</span>
+          <span className="text-xs px-1.5 py-0.5 rounded bg-green-500 bg-opacity-20 text-green-400 mr-2 uppercase">
+            Good against
+          </span>
           {POSTURE_META[option.posture].bestAgainstHint}
         </div>
         <div className="text-sm text-pixel-text leading-relaxed">
-          <span className="text-xs px-1.5 py-0.5 rounded bg-red-500 bg-opacity-20 text-red-400 mr-2 uppercase">Bad against</span>
+          <span className="text-xs px-1.5 py-0.5 rounded bg-red-500 bg-opacity-20 text-red-400 mr-2 uppercase">
+            Bad against
+          </span>
           {POSTURE_META[option.posture].worstAgainstHint}
         </div>
       </div>
 
       {/* Secondary effects — spotlit on the effects tutorial step */}
-      <div className={`p-3 ${kmSpotlit('options-effects') ? 'ring-4 ring-yellow-400 ring-inset' : ''}`}>
-        <div className="text-[10px] font-bold text-pixel-text-muted uppercase tracking-wide mb-1.5">Effects (win or loss)</div>
+      <div
+        className={`p-3 ${kmSpotlit('options-effects') ? 'ring-4 ring-yellow-400 ring-inset' : ''}`}
+      >
+        <div className="text-[10px] font-bold text-pixel-text-muted uppercase tracking-wide mb-1.5">
+          Effects (win or loss)
+        </div>
         <div className="flex flex-wrap gap-1.5">
           {option.secondaryEffects.map((effect, i) => {
             const condLabel = getConditionLabel(effect.condition);
@@ -740,7 +809,14 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   );
 
   return (
-    <Modal isOpen={isOpen} title="" size="xl" showCloseButton={false} belowContent={peekButton} testId="km-choice">
+    <Modal
+      isOpen={isOpen}
+      title=""
+      size="xl"
+      showCloseButton={false}
+      belowContent={peekButton}
+      testId="km-choice"
+    >
       <div className="space-y-5">
         {kmActiveStep && (
           <TutorialCallout
@@ -761,10 +837,14 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
         {/* Tactical Options — compact list (left) for at-a-glance comparison, detail pane (right) */}
         <div>
           <h3 className="text-base font-bold text-pixel-text mb-1">⚔️ Choose Your Tactic</h3>
-          <p className="text-xs text-pixel-text-muted mb-4">Hover a tactic to inspect it — commit with the button in the panel.</p>
+          <p className="text-xs text-pixel-text-muted mb-4">
+            Hover a tactic to inspect it — commit with the button in the panel.
+          </p>
           <div
             className={`grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] gap-4 ${
-              kmSpotlit('options-matchup') ? 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-black rounded transition-all duration-200' : ''
+              kmSpotlit('options-matchup')
+                ? 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-black rounded transition-all duration-200'
+                : ''
             }`}
           >
             {/* Left: option cards — each carries its own composite + driving stats for comparison */}
@@ -800,7 +880,9 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                     {/* Row 1: the tactic, full width — names are long and were truncating. */}
                     <div className="flex items-center gap-2 mb-1.5 min-w-0">
                       <span className="text-xl shrink-0">{option.emoji}</span>
-                      <h4 className="text-base font-bold text-pixel-text truncate">{option.name}</h4>
+                      <h4 className="text-base font-bold text-pixel-text truncate">
+                        {option.name}
+                      </h4>
                     </div>
                     {/* Row 2: what kind of play it is (posture + risk), then the stat read. */}
                     <div className="flex items-center gap-4 mb-2">

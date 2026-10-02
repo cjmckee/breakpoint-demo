@@ -17,12 +17,12 @@ export const MAIN_MENU_TUTORIAL_STEPS: TutorialStep<MainMenuTarget>[] = [
   {
     target: 'stats',
     title: 'Your stats',
-    body: 'Your stats are broken down into 14 ratings ranging from 20 (beginner) to 100 (ATP pro). Every stat plays into your match play, but you should try to focus on improving your core stats. I mean, look at all those F ratings.'
+    body: 'Your stats are broken down into 14 ratings ranging from 20 (beginner) to 100 (ATP pro). Every stat plays into your match play, but you should try to focus on improving your core stats. I mean, look at all those F ratings.',
   },
   {
     target: 'actions',
     title: 'Where to start',
-    body: 'Training is a surefire way to improve your stats. As one of the newest members of the Academy, your stats are quite weak to begin with, so you\'ll need to focus most of your early timeslots on developing your skills. Resting during the morning, afternoon, or evening uses a timeslot and only recovers 20 energy, so try to only Rest in a pinch!',
+    body: "Training is a surefire way to improve your stats. As one of the newest members of the Academy, your stats are quite weak to begin with, so you'll need to focus most of your early timeslots on developing your skills. Resting during the morning, afternoon, or evening uses a timeslot and only recovers 20 energy, so try to only Rest in a pinch!",
   },
   {
     target: 'challenges',
@@ -41,7 +41,7 @@ export const LIVE_MATCH_TUTORIAL_STEPS: TutorialStep<LiveMatchTarget>[] = [
   {
     target: 'your-stats',
     title: 'Live Stats',
-    body: 'Both players\' stats side by side, with the leader on each row highlighted. When a stat changes the row flashes — green when it is good for you, red when it is not.',
+    body: "Both players' stats side by side, with the leader on each row highlighted. When a stat changes the row flashes — green when it is good for you, red when it is not.",
   },
   {
     target: 'log',
@@ -58,7 +58,7 @@ export const KM_TUTORIAL_STEPS: TutorialStep<KmTarget>[] = [
   {
     target: 'header',
     title: 'What Is a Key Moment?',
-    body: 'Most points play themselves — the match only stops for the ones that can swing a game. Serving is an advantage, so a break (the returner taking the server\'s game) is usually what decides a set. You will mostly see three: a break point for you, where the next point takes their service game; a break point against you, where they take yours; and a key rally, a tied game at 30-30 or deuce where the next point decides whether a break point happens at all. Set and match points are the same idea with more riding on them.',
+    body: "Most points play themselves — the match only stops for the ones that can swing a game. Serving is an advantage, so a break (the returner taking the server's game) is usually what decides a set. You will mostly see three: a break point for you, where the next point takes their service game; a break point against you, where they take yours; and a key rally, a tied game at 30-30 or deuce where the next point decides whether a break point happens at all. Set and match points are the same idea with more riding on them.",
   },
   {
     target: 'header',
@@ -68,7 +68,7 @@ export const KM_TUTORIAL_STEPS: TutorialStep<KmTarget>[] = [
   {
     target: 'options-posture',
     title: 'Postures',
-    body: 'Every tactic is one of six postures — Power, Net, Neutralize, Deception, Attrition, Variety — each with its own colour. Posture is the thing an opponent\'s archetype is strong or weak against, so it matters more than the individual shot. The diamonds beside it are risk: Safe, Balanced or Bold. Risk is how big the swing is, not how likely you are to win — a Bold tactic does not succeed more often, it succeeds and fails harder.',
+    body: "Every tactic is one of six postures — Power, Net, Neutralize, Deception, Attrition, Variety — each with its own colour. Posture is the thing an opponent's archetype is strong or weak against, so it matters more than the individual shot. The diamonds beside it are risk: Safe, Balanced or Bold. Risk is how big the swing is, not how likely you are to win — a Bold tactic does not succeed more often, it succeeds and fails harder.",
   },
   {
     target: 'options-matchup',
@@ -86,16 +86,16 @@ export const KM_RESULT_STEPS: TutorialStep<KmResultTarget>[] = [
   {
     target: 'outcome',
     title: 'The Result',
-    body: 'Whether you won the point. A critical (🌟 / 💥) says the point ended emphatically — how often that happens is set by your tactic\'s risk, so a Bold play criticals far more often in both directions than a Safe one. You can pick the right option and still lose. That\'s tennis, baby.',
+    body: "Whether you won the point. A critical (🌟 / 💥) says the point ended emphatically — how often that happens is set by your tactic's risk, so a Bold play criticals far more often in both directions than a Safe one. You can pick the right option and still lose. That's tennis, baby.",
   },
   {
     target: 'tactic',
     title: 'Your Read',
-    body: 'What you played, and how that posture matches up against this archetype. Remember the color for each posture and how it matches up against your opponent\'s archetype. You may not see this exact option again, but you may want to select one of the same color later on!',
+    body: "What you played, and how that posture matches up against this archetype. Remember the color for each posture and how it matches up against your opponent's archetype. You may not see this exact option again, but you may want to select one of the same color later on!",
   },
   {
     target: 'effects',
     title: 'Effects Applied',
-    body: 'Win or lose, your tactic\'s secondary effects still apply — momentum swings, energy changes, mood and pressure shifts carry into the rest of the match. A critical result scales the outcomes based on the risk level. Also, you can view this tutorial any time in the settings menu by clicking \'Replay Match Tutorial\'. Good luck!',
+    body: "Win or lose, your tactic's secondary effects still apply — momentum swings, energy changes, mood and pressure shifts carry into the rest of the match. A critical result scales the outcomes based on the risk level. Also, you can view this tutorial any time in the settings menu by clicking 'Replay Match Tutorial'. Good luck!",
   },
 ];

@@ -7,6 +7,7 @@ This document provides comprehensive guidelines for maintaining and extending th
 **Breakpoint - Tennis RPG** is a stat-based tennis simulation game built with React, TypeScript, and Zustand. The game simulates tennis matches using detailed player statistics, realistic shot mechanics, and transparent probability calculations.
 
 ### Tech Stack
+
 - **Frontend**: React 19.2.0 with TypeScript
 - **State Management**: Zustand 5.0.8 with persistence
 - **Build Tool**: Vite
@@ -64,6 +65,7 @@ function isPlayerProfile(obj: unknown): obj is PlayerProfile {
 ```
 
 **Key type safety rules:**
+
 - Enable all strict TypeScript flags (already configured)
 - Never use `any` - use `unknown` and type guards instead
 - Use discriminated unions for result types
@@ -92,6 +94,7 @@ player.stats.technical.serve += 5;
 ```
 
 **Zustand store patterns:**
+
 ```typescript
 // ✅ GOOD: Immutable state updates in stores
 set((state) => ({
@@ -115,6 +118,7 @@ set((state) => {
 ### Interface vs Type
 
 **Prefer interfaces for object shapes:**
+
 ```typescript
 // ✅ GOOD: Interface for extensible objects
 interface PlayerProfile {
@@ -131,6 +135,7 @@ type StatName = keyof TechnicalStats | keyof PhysicalStats | keyof MentalStats;
 ### Utility Types
 
 **Leverage built-in utility types:**
+
 ```typescript
 // ✅ GOOD: Reuse existing types
 type PartialStats = Partial<PlayerStats>;
@@ -144,6 +149,7 @@ type MatchOutcome = MatchResult['winner'];
 ### Type Narrowing
 
 **Use type guards for runtime safety:**
+
 ```typescript
 // ✅ GOOD: Type guard functions
 function isShotResult(value: unknown): value is ShotResult {
@@ -175,6 +181,7 @@ function processActivity(activity: ActivityResult) {
 ### Avoid Type Assertions
 
 **Minimize `as` usage:**
+
 ```typescript
 // ❌ BAD: Type assertion without validation
 const player = data as PlayerProfile;
@@ -230,6 +237,7 @@ export function PlayerStatsDisplay({
 ```
 
 **Component organization:**
+
 1. Props interface definition
 2. Component function with explicit return type
 3. Hooks (state, effects, context)
@@ -248,10 +256,13 @@ const shotProbabilities = useMemo(() => {
 }, [player.stats, opponent.stats]);
 
 // ✅ GOOD: Callback with proper dependencies
-const handleMatchComplete = useCallback((result: MatchResult) => {
-  addMatchResult(result);
-  updatePlayerStats(result.playerPerformance);
-}, [addMatchResult, updatePlayerStats]);
+const handleMatchComplete = useCallback(
+  (result: MatchResult) => {
+    addMatchResult(result);
+    updatePlayerStats(result.playerPerformance);
+  },
+  [addMatchResult, updatePlayerStats],
+);
 
 // ❌ BAD: Missing dependencies
 const handleClick = useCallback(() => {
@@ -299,19 +310,22 @@ export const useGameStore = create<GameStore>()((set, get) => ({
 
   updatePlayerStats: (stats) => {
     set((state) => ({
-      player: state.player ? {
-        ...state.player,
-        stats: {
-          ...state.player.stats,
-          ...stats,
-        },
-      } : null,
+      player: state.player
+        ? {
+            ...state.player,
+            stats: {
+              ...state.player.stats,
+              ...stats,
+            },
+          }
+        : null,
     }));
   },
 }));
 ```
 
 **Store usage in components:**
+
 ```typescript
 // ✅ GOOD: Select only needed state
 const player = useGameStore((state) => state.player);
@@ -362,12 +376,14 @@ src/
 ### Naming Conventions
 
 **Files:**
+
 - Components: PascalCase (`PlayerStatsDisplay.tsx`)
 - Types: PascalCase (`index.ts` for types/index.ts)
 - Utilities: camelCase (`matchAnalysis.ts`)
 - Stores: camelCase with suffix (`gameStore.ts`)
 
 **Code:**
+
 - Interfaces/Types: PascalCase (`PlayerProfile`, `ShotResult`)
 - Variables/Functions: camelCase (`calculateShot`, `playerStats`)
 - Constants: UPPER_SNAKE_CASE (`MAX_STAT_VALUE`, `DEFAULT_ENERGY`)
@@ -385,11 +401,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 // 2. Types
-import type {
-  PlayerProfile,
-  MatchResult,
-  ShotResult,
-} from '../types';
+import type { PlayerProfile, MatchResult, ShotResult } from '../types';
 
 // 3. Internal modules
 import { ShotCalculator } from '../core/ShotCalculator';
@@ -412,7 +424,7 @@ import { useGameStore } from './stores/gameStore';
 function calculateShotQuality(
   playerStat: number,
   difficulty: number,
-  modifiers: ShotModifiers
+  modifiers: ShotModifiers,
 ): number {
   const base = playerStat;
   const adjusted = base + modifiers.spinBonus + modifiers.placementBonus;
@@ -438,7 +450,7 @@ class MatchSimulator {
   constructor(
     private shotCalculator: ShotCalculator,
     private pointSimulator: PointSimulator,
-    private scoreTracker: ScoreTracker
+    private scoreTracker: ScoreTracker,
   ) {}
 
   simulateMatch(player: PlayerProfile, opponent: PlayerProfile): MatchResult {
@@ -447,9 +459,9 @@ class MatchSimulator {
 }
 
 // ❌ BAD: Deep inheritance hierarchies
-class BaseSimulator { }
-class TennisSimulator extends BaseSimulator { }
-class MatchSimulator extends TennisSimulator { }
+class BaseSimulator {}
+class TennisSimulator extends BaseSimulator {}
+class MatchSimulator extends TennisSimulator {}
 ```
 
 ### Avoid Premature Abstraction
@@ -494,7 +506,7 @@ interface OperationResult<T> {
 
 function simulatePoint(
   server: PlayerProfile,
-  returner: PlayerProfile
+  returner: PlayerProfile,
 ): OperationResult<PointResult> {
   try {
     const result = internalSimulation(server, returner);
@@ -530,7 +542,7 @@ if (result.success && result.data) {
 function updatePlayerStat(
   player: PlayerProfile,
   stat: StatName,
-  value: number
+  value: number,
 ): OperationResult<PlayerProfile> {
   if (value < 0 || value > 100) {
     return {
@@ -609,13 +621,18 @@ const handleClick = useCallback(() => {
   doSomething();
 }, []);
 
-const config = useMemo(() => ({
-  setting1: value1,
-  setting2: value2,
-}), [value1, value2]);
+const config = useMemo(
+  () => ({
+    setting1: value1,
+    setting2: value2,
+  }),
+  [value1, value2],
+);
 
 // ❌ BAD: New reference on every render
-const handleClick = () => { doSomething(); };
+const handleClick = () => {
+  doSomething();
+};
 const config = { setting1: value1, setting2: value2 };
 ```
 
@@ -632,7 +649,7 @@ const config = { setting1: value1, setting2: value2 };
 export function calculateWinProbability(
   playerStats: PlayerStats,
   opponentStats: PlayerStats,
-  surface: CourtSurface
+  surface: CourtSurface,
 ): number {
   // Pure calculation
   const playerRating = calculateRating(playerStats, surface);
@@ -748,13 +765,14 @@ export interface RallyState {
 ### State Updates
 
 **Player stat updates:**
+
 ```typescript
 // ✅ GOOD: Deep immutable update
 function updatePlayerStat(
   player: PlayerProfile,
   category: 'technical' | 'physical' | 'mental',
   stat: string,
-  value: number
+  value: number,
 ): PlayerProfile {
   return {
     ...player,
@@ -772,6 +790,7 @@ function updatePlayerStat(
 ### Calculations
 
 **Probability-based outcomes:**
+
 ```typescript
 // ✅ GOOD: Clear probability logic
 function determineOutcome(quality: number, thresholds: QualityThresholds): ShotOutcome {
@@ -796,6 +815,7 @@ function determineOutcome(quality: number, thresholds: QualityThresholds): ShotO
 ### Zustand Actions
 
 **Complex state updates:**
+
 ```typescript
 // ✅ GOOD: Transaction-like updates
 addMatchResult: (result: MatchResult) => {
@@ -880,6 +900,7 @@ return <PlayerDisplay stats={player.stats} />;
 ## Git Commit Guidelines
 
 **Format:**
+
 ```
 <type>: <description>
 
@@ -888,6 +909,7 @@ return <PlayerDisplay stats={player.stats} />;
 ```
 
 **Types:**
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `refactor`: Code change without behavior change
@@ -898,6 +920,7 @@ return <PlayerDisplay stats={player.stats} />;
 - `chore`: Build, dependencies, tooling
 
 **Examples:**
+
 ```
 feat: add key moment system for interactive match decisions
 
@@ -960,6 +983,7 @@ standalone ShotCalculator class for better testability.
 ### Stats System
 
 All stats use 0-100 range:
+
 - Never allow stats outside this range
 - Use `Math.max(0, Math.min(100, value))` when updating
 - Consider diminishing returns for high stats
@@ -967,6 +991,7 @@ All stats use 0-100 range:
 ### Match Simulation
 
 The simulation is deterministic with explicit randomness:
+
 - All random decisions use `Math.random()`
 - Document variance ranges in code
 - Store random seed for replay (future feature)
@@ -974,6 +999,7 @@ The simulation is deterministic with explicit randomness:
 ### Quality Calculations
 
 Shot quality follows this pattern:
+
 1. Base stat value (0-100)
 2. Apply bonuses (spin, placement, etc.)
 3. Apply modifiers (physical, mental, situational)
@@ -984,9 +1010,16 @@ Shot quality follows this pattern:
 ### State Persistence
 
 Use Zustand persistence:
+
 - Game state auto-saves via `gameStore`
 - Match state is transient (not persisted)
 - Clear persistence keys on version changes
+
+### Formatting
+
+Prettier owns formatting (`.prettierrc`: single quotes, 100 columns). Run
+`npm run format` before committing; `npm run format:check` verifies without writing.
+Don't hand-align comments or values into columns — Prettier collapses them.
 
 ### Test IDs
 
@@ -999,7 +1032,7 @@ The shared primitives take an optional `testId` prop — `Button`, `ActionTile`
 and `Modal` — so most surfaces get one without touching their markup. Reach for
 a raw `data-testid` attribute only on bespoke elements.
 
-**Naming**: `surface-element`, kebab-case, with the id naming the *role* rather
+**Naming**: `surface-element`, kebab-case, with the id naming the _role_ rather
 than the current label. `action-rest` stays correct when the tile reads "Sleep"
 at night; `action-sleep` would not.
 
@@ -1027,6 +1060,7 @@ the top and bottom of the page, so they are `start-match-header` and
 ### Backwards Compatibility
 
 Backwards compatibility is NOT required. Do not create fallbacks for types as we make changes in the code.
+
 - No need to write comments such as "legacy code did X, now we do Y."
 - Simply update the code to use the newest version of data
 
@@ -1047,6 +1081,7 @@ When encountering ambiguity:
 ## Summary
 
 **Core Principles:**
+
 - Type safety above all
 - Immutability for state
 - Pure functions for logic
@@ -1057,6 +1092,7 @@ When encountering ambiguity:
 - Keep it simple until complexity is needed
 
 **When in doubt:**
+
 - Choose the simpler approach
 - Favor readability over cleverness
 - Make invalid states unrepresentable in types

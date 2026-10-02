@@ -113,7 +113,7 @@ body {
   content: '';
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.40);
+  background: rgba(0, 0, 0, 0.4);
   pointer-events: none;
   z-index: 10;
 }

@@ -17,7 +17,7 @@ Options are environment variables, listed in each file's header and summarised b
 2. **Make the change.** One constant at a time if you can — the tables below cannot tell you which
    of two simultaneous changes caused what.
 3. **Run `matchAnatomy` again and diff.** `tsx` runs straight from source, so there is no build step
-   to forget. Look at the sections you did *not* aim at. Most balance changes have a side effect
+   to forget. Look at the sections you did _not_ aim at. Most balance changes have a side effect
    somewhere else, and the point of this report is to show it.
 4. **If the change touches what a stat is worth**, also run `statChannels`. It takes ~12 minutes.
 
@@ -27,20 +27,20 @@ That is the whole workflow. The rest of this document is about not fooling yours
 
 ## Which harness answers which question
 
-| question | harness | runtime |
-|---|---|---|
-| What does a match look like right now? | `matchAnatomy` | ~1 min |
-| How does the real character fare against the real ladder? | `characterSim` | ~2 min |
-| What is each stat worth, and through which mechanism? | `statChannels` | ~12 min |
-| What is a stat worth to the build that actually uses it? | `statInContext` | ~1 min |
-| Does the population I am measuring contain the thing I care about? | `populationProbe` | ~5 s |
-| Does a single shot type scale across the stat range? | `shotCurve`, `serveCurve` | ~10 s |
-| How often does the player come to the net, by every denominator? | `netProbe`, `matchAnatomy` §D | ~30 s |
-| What shots does each build actually hit? | `shotMixProbe` | ~30 s |
-| Do the support bands read match context or just shot type? | `bandGateProbe` | ~30 s |
-| Is the winner floor still doing its job? | `winnerFloorProbe` | instant, analytic |
-| Does the key-moment layer reward reading the opponent? | `keyMomentProbe` | ~10 s, or ~6 min with match sections |
-| Do the invariants still hold (save migration, economy, minigame branches, tactic shot labels)? | `npm test` | ~5 s |
+| question                                                                                       | harness                       | runtime                              |
+| ---------------------------------------------------------------------------------------------- | ----------------------------- | ------------------------------------ |
+| What does a match look like right now?                                                         | `matchAnatomy`                | ~1 min                               |
+| How does the real character fare against the real ladder?                                      | `characterSim`                | ~2 min                               |
+| What is each stat worth, and through which mechanism?                                          | `statChannels`                | ~12 min                              |
+| What is a stat worth to the build that actually uses it?                                       | `statInContext`               | ~1 min                               |
+| Does the population I am measuring contain the thing I care about?                             | `populationProbe`             | ~5 s                                 |
+| Does a single shot type scale across the stat range?                                           | `shotCurve`, `serveCurve`     | ~10 s                                |
+| How often does the player come to the net, by every denominator?                               | `netProbe`, `matchAnatomy` §D | ~30 s                                |
+| What shots does each build actually hit?                                                       | `shotMixProbe`                | ~30 s                                |
+| Do the support bands read match context or just shot type?                                     | `bandGateProbe`               | ~30 s                                |
+| Is the winner floor still doing its job?                                                       | `winnerFloorProbe`            | instant, analytic                    |
+| Does the key-moment layer reward reading the opponent?                                         | `keyMomentProbe`              | ~10 s, or ~6 min with match sections |
+| Do the invariants still hold (save migration, economy, minigame branches, tactic shot labels)? | `npm test`                    | ~5 s                                 |
 
 `keyMomentProbe` is sectioned: `SECTIONS=tags` is instant and answers the content questions
 (posture and risk coverage, duplicate or missing cells, stat coverage); `sweep`, `grid`, `split`
@@ -54,22 +54,22 @@ fool yourself" below — copy one when you need to ask about a specific constant
 
 ### The rest of what is in the folder
 
-| harness | what it is | state |
-|---|---|---|
-| `tier1Probe` | the shipped ladder: serve behaviour, real matchups, point endings, progression. `PARTS=ABCDE` | current |
-| `statSensitivity` | the original two designs — one-at-a-time and randomized regression | superseded by `statChannels`, whose `full` column is the same regression |
-| `statExposure` | composite exposure for hand-picked builds | generalised by `populationProbe`, still useful for one build |
-| `anchorProbe` | what `matchLevel` controls; the rating-tax falsification | question resolved — the tax was withdrawn |
-| `breakEvenProbe` | the break-even frequency a stat needs to pay | premise withdrawn; kept as the record |
-| `balanceAnalysis` | broad ratings sweep, `npm run analyze` | older, pre-consolidation framing |
-| `statsCheck` | quick distribution sanity check | fine |
-| `characterSim` | the shipped character against the real roster, with score distributions and per-opponent win rates | current — the closest thing to "how does the game actually play" |
+| harness           | what it is                                                                                         | state                                                                    |
+| ----------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `tier1Probe`      | the shipped ladder: serve behaviour, real matchups, point endings, progression. `PARTS=ABCDE`      | current                                                                  |
+| `statSensitivity` | the original two designs — one-at-a-time and randomized regression                                 | superseded by `statChannels`, whose `full` column is the same regression |
+| `statExposure`    | composite exposure for hand-picked builds                                                          | generalised by `populationProbe`, still useful for one build             |
+| `anchorProbe`     | what `matchLevel` controls; the rating-tax falsification                                           | question resolved — the tax was withdrawn                                |
+| `breakEvenProbe`  | the break-even frequency a stat needs to pay                                                       | premise withdrawn; kept as the record                                    |
+| `balanceAnalysis` | broad ratings sweep, `npm run analyze`                                                             | older, pre-consolidation framing                                         |
+| `statsCheck`      | quick distribution sanity check                                                                    | fine                                                                     |
+| `characterSim`    | the shipped character against the real roster, with score distributions and per-opponent win rates | current — the closest thing to "how does the game actually play"         |
 
 ---
 
 ## Two conventions, and why they exist
 
-**Every ablation prints a `control` column.** It re-measures the *unmodified* config, so the table
+**Every ablation prints a `control` column.** It re-measures the _unmodified_ config, so the table
 reports its own noise floor. Any column smaller than the control is a mechanism you could delete
 without anyone noticing. Three separate mechanisms looked real before this column existed.
 
@@ -85,12 +85,12 @@ these harnesses.
 
 The defaults are set so a run means something. If you lower them, know what you are giving up.
 
-| harness | design | default | interval |
-|---|---|---|---|
-| `statChannels` | regression over a randomized population | N=1500 | ±0.18 at N=8000, `U(25,90)` |
-| `statInContext` | one-at-a-time, two cells | N=1000 | ~±0.5 per cell |
-| `tier1Probe` part C | one-at-a-time, two cells | N_C=1000 | ~±0.5 per cell |
-| `matchAnatomy` | descriptive | N=150 | rates stable to ~±1pp |
+| harness             | design                                  | default  | interval                    |
+| ------------------- | --------------------------------------- | -------- | --------------------------- |
+| `statChannels`      | regression over a randomized population | N=1500   | ±0.18 at N=8000, `U(25,90)` |
+| `statInContext`     | one-at-a-time, two cells                | N=1000   | ~±0.5 per cell              |
+| `tier1Probe` part C | one-at-a-time, two cells                | N_C=1000 | ~±0.5 per cell              |
+| `matchAnatomy`      | descriptive                             | N=150    | rates stable to ~±1pp       |
 
 **One-at-a-time designs are much noisier than they look.** They compare two cells and read the
 answer off the difference, so the noise is per-cell rather than pooled. At N=150, `statInContext`
@@ -157,34 +157,34 @@ move in that table, and it would have been missed by trusting the earlier run.
 
 Uniform-45 mirror matches, `matchAnatomy` defaults, as of this document. Diff against these.
 
-| | no specialization | net_downhill T3 | bh_samurai T3 |
-|---|---|---|---|
-| mean shots per point | 3.2 | 3.0 | 3.4 |
-| % past the return | 51.0% | 51.7% | 51.1% |
-| winners | 13.7% | 12.6% | 13.7% |
-| double faults | 17.7% | 17.5% | 17.9% |
-| unforced errors | 18.2% | 20.4% | 17.0% |
-| CAME FORWARD / past return | 20.4% | 34.0% | 11.2% |
-| slice family, share of rally shots | 4.5% | 3.0% | 16.9% |
+|                                    | no specialization | net_downhill T3 | bh_samurai T3 |
+| ---------------------------------- | ----------------- | --------------- | ------------- |
+| mean shots per point               | 3.2               | 3.0             | 3.4           |
+| % past the return                  | 51.0%             | 51.7%           | 51.1%         |
+| winners                            | 13.7%             | 12.6%           | 13.7%         |
+| double faults                      | 17.7%             | 17.5%           | 17.9%         |
+| unforced errors                    | 18.2%             | 20.4%           | 17.0%         |
+| CAME FORWARD / past return         | 20.4%             | 34.0%           | 11.2%         |
+| slice family, share of rally shots | 4.5%              | 3.0%            | 16.9%         |
 
 Stat values, `statChannels` `full` column, real build population:
 
-| stat | U(25,90) | U(25,50), tier-1 |
-|---|---|---|
-| anticipation | +2.85 | +2.87 |
-| return | +2.75 | +3.19 |
-| serve | +2.50 | +3.16 |
-| speed | +2.45 | +2.99 |
-| tactics | +2.22 | +2.25 |
-| focus | +1.83 | +1.39 |
-| placement | +1.58 | +1.60 |
-| spin | +1.31 | +1.65 |
-| strength | +1.24 | +1.22 |
-| forehand | +1.03 | +1.43 |
-| stamina | +1.02 | +0.67 |
-| backhand | +0.96 | +1.15 |
-| net | +0.79 | +1.35 |
-| slice | +0.52 | −0.24 |
+| stat         | U(25,90) | U(25,50), tier-1 |
+| ------------ | -------- | ---------------- |
+| anticipation | +2.85    | +2.87            |
+| return       | +2.75    | +3.19            |
+| serve        | +2.50    | +3.16            |
+| speed        | +2.45    | +2.99            |
+| tactics      | +2.22    | +2.25            |
+| focus        | +1.83    | +1.39            |
+| placement    | +1.58    | +1.60            |
+| spin         | +1.31    | +1.65            |
+| strength     | +1.24    | +1.22            |
+| forehand     | +1.03    | +1.43            |
+| stamina      | +1.02    | +0.67            |
+| backhand     | +0.96    | +1.15            |
+| net          | +0.79    | +1.35            |
+| slice        | +0.52    | −0.24            |
 
 Units are point-win-% per +10 stat. Intervals are ±0.18 and ±0.40 respectively — over the tier-1
 band the bottom half of that table is not separable, and the `slice` and `backhand` cells in
@@ -202,7 +202,6 @@ a value; several record what was already tried and rejected.
 [`research/stat-channels.md`](./research/stat-channels.md) are
 the findings record: what was measured, what changed as a result, and which hypotheses were tested
 and withdrawn. Check them before re-deriving something.
-
 
 ---
 

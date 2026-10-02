@@ -87,32 +87,75 @@ export function useGameKeyboardHandler() {
         case 'c':
           if (onIdle || isCalendarOpen) {
             event.preventDefault();
-            if (isCalendarOpen) closeCalendar(); else openCalendar();
+            if (isCalendarOpen) closeCalendar();
+            else openCalendar();
           }
           break;
         case 't':
-          if (onIdle) { event.preventDefault(); navigateTo('training'); }
-          else if (phase === 'training') { event.preventDefault(); navigateTo('idle'); }
+          if (onIdle) {
+            event.preventDefault();
+            navigateTo('training');
+          } else if (phase === 'training') {
+            event.preventDefault();
+            navigateTo('idle');
+          }
           break;
         case 'm':
-          if (onIdle && isMatchUnlocked()) { event.preventDefault(); navigateTo('match_setup'); }
-          else if (phase === 'match_setup') { event.preventDefault(); navigateTo('idle'); }
+          if (onIdle && isMatchUnlocked()) {
+            event.preventDefault();
+            navigateTo('match_setup');
+          } else if (phase === 'match_setup') {
+            event.preventDefault();
+            navigateTo('idle');
+          }
           break;
         case 'i':
-          if (onIdle) { event.preventDefault(); clearIndicator('inventory'); navigateTo('inventory'); }
-          else if (phase === 'inventory') { event.preventDefault(); navigateTo('idle'); }
+          if (onIdle) {
+            event.preventDefault();
+            clearIndicator('inventory');
+            navigateTo('inventory');
+          } else if (phase === 'inventory') {
+            event.preventDefault();
+            navigateTo('idle');
+          }
           break;
         case 'r':
-          if (onIdle) { event.preventDefault(); navigateTo('relationships'); }
-          else if (phase === 'relationships') { event.preventDefault(); navigateTo('idle'); }
+          if (onIdle) {
+            event.preventDefault();
+            navigateTo('relationships');
+          } else if (phase === 'relationships') {
+            event.preventDefault();
+            navigateTo('idle');
+          }
           break;
         case 's':
-          if (onIdle && isShopUnlocked()) { event.preventDefault(); clearIndicator('shop'); navigateTo('shop'); }
-          else if (phase === 'shop') { event.preventDefault(); navigateTo('idle'); }
+          if (onIdle && isShopUnlocked()) {
+            event.preventDefault();
+            clearIndicator('shop');
+            navigateTo('shop');
+          } else if (phase === 'shop') {
+            event.preventDefault();
+            navigateTo('idle');
+          }
           break;
       }
     },
-    [gamePhase, isShopUnlocked, isMatchUnlocked, navigateTo, clearIndicator, dismissMatchResults, dismissStoryEventResult, dismissHangoutUnlock, dismissItemAcquired, dismissOverlay, isMenuOpen, isCalendarOpen, openCalendar, closeCalendar]
+    [
+      gamePhase,
+      isShopUnlocked,
+      isMatchUnlocked,
+      navigateTo,
+      clearIndicator,
+      dismissMatchResults,
+      dismissStoryEventResult,
+      dismissHangoutUnlock,
+      dismissItemAcquired,
+      dismissOverlay,
+      isMenuOpen,
+      isCalendarOpen,
+      openCalendar,
+      closeCalendar,
+    ],
   );
 
   useEffect(() => {

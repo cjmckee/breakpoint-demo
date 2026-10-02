@@ -33,8 +33,10 @@ import { aggregateArchetypeEffects } from '../../data/archetypeTree';
 
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
 
-const profileOf = (phases: Partial<Record<GamePhase, PhaseSpec>>, broad: ArchetypeProfile['broad'] = null): ArchetypeProfile =>
-  ({ broad, phases, specializationPoints: 0, respecTokens: 0 });
+const profileOf = (
+  phases: Partial<Record<GamePhase, PhaseSpec>>,
+  broad: ArchetypeProfile['broad'] = null,
+): ArchetypeProfile => ({ broad, phases, specializationPoints: 0, respecTokens: 0 });
 
 const BUILDS: Array<[string, ArchetypeProfile]> = [
   ['no specialization', profileOf({})],
@@ -59,7 +61,8 @@ function calcFatigue(cur: number, rally: number, stam: number): number {
   if (rally > MATCH_FATIGUE.longRallyThreshold) {
     gain += (rally - MATCH_FATIGUE.longRallyThreshold) * MATCH_FATIGUE.longRallyExtra * sf;
   }
-  const rec = MATCH_FATIGUE.baseRecoveryPerPoint +
+  const rec =
+    MATCH_FATIGUE.baseRecoveryPerPoint +
     (stam / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
   return Math.max(0, Math.min(100, cur + gain - rec));
 }
@@ -94,10 +97,22 @@ interface Anatomy {
 }
 
 const newAnatomy = (): Anatomy => ({
-  points: 0, ralliesPastReturn: 0, rallyLen: [], endings: new Map(), rallyShots: 0,
-  family: new Map(), approachesHit: 0, approachesIn: 0, arrivedPoints: 0,
-  arrivedPastReturn: 0, cameForward: 0, cameForwardPastReturn: 0,
-  netShots: 0, netPointsWon: 0, sliceOffensive: 0, sliceDefensive: 0,
+  points: 0,
+  ralliesPastReturn: 0,
+  rallyLen: [],
+  endings: new Map(),
+  rallyShots: 0,
+  family: new Map(),
+  approachesHit: 0,
+  approachesIn: 0,
+  arrivedPoints: 0,
+  arrivedPastReturn: 0,
+  cameForward: 0,
+  cameForwardPastReturn: 0,
+  netShots: 0,
+  netPointsWon: 0,
+  sliceOffensive: 0,
+  sliceDefensive: 0,
 });
 
 function family(t: string): string {
@@ -125,20 +140,33 @@ function run(prof: ArchetypeProfile, level: number, n: number): Anatomy {
     const o = new PlayerProfile('o', 'O', uniform(level), prof);
     const tracker = new ScoreTracker(BO3);
     tracker.setInitialServer(i % 2 === 0 ? 'player' : 'opponent');
-    p.rollMatchForm(); o.rollMatchForm();
+    p.rollMatchForm();
+    o.rollMatchForm();
     const sim = new PointSimulator();
     const ms: MatchState = {
-      score: tracker.getScore(), currentServer: tracker.getCurrentServer(), courtSurface: 'hard',
-      momentum: 0, pressure: 'low', matchLength: 0, pointsPlayed: 0,
-      isKeyMoment: false, fatigue: { player: 0, opponent: 0 },
+      score: tracker.getScore(),
+      currentServer: tracker.getCurrentServer(),
+      courtSurface: 'hard',
+      momentum: 0,
+      pressure: 'low',
+      matchLength: 0,
+      pointsPlayed: 0,
+      isKeyMoment: false,
+      fatigue: { player: 0, opponent: 0 },
     };
     let pts = 0;
     while (!tracker.isComplete() && pts < 600) {
       const server = tracker.getCurrentServer();
       ms.isKeyMoment = tracker.isKeyMoment();
-      const pr = sim.simulatePoint(server, server === 'player' ? p : o,
-        server === 'player' ? o : p, ms, eff, eff);
-      const winner = pr.winner === 'server' ? server : (server === 'player' ? 'opponent' : 'player');
+      const pr = sim.simulatePoint(
+        server,
+        server === 'player' ? p : o,
+        server === 'player' ? o : p,
+        ms,
+        eff,
+        eff,
+      );
+      const winner = pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player';
       const role = server === 'player' ? 'server' : 'returner';
 
       a.points++;
@@ -183,8 +211,14 @@ function run(prof: ArchetypeProfile, level: number, n: number): Anatomy {
 
       tracker.addPoint(winner);
       ms.fatigue.player = calcFatigue(ms.fatigue.player, pr.rallyLength, p.stats.physical.stamina);
-      ms.fatigue.opponent = calcFatigue(ms.fatigue.opponent, pr.rallyLength, o.stats.physical.stamina);
-      ms.score = tracker.getScore(); ms.currentServer = tracker.getCurrentServer(); ms.pointsPlayed = ++pts;
+      ms.fatigue.opponent = calcFatigue(
+        ms.fatigue.opponent,
+        pr.rallyLength,
+        o.stats.physical.stamina,
+      );
+      ms.score = tracker.getScore();
+      ms.currentServer = tracker.getCurrentServer();
+      ms.pointsPlayed = ++pts;
     }
   }
   return a;
@@ -209,48 +243,72 @@ function main(): void {
   console.log('── A. rally length ──\n');
   console.log(head);
   console.log('-'.repeat(head.length));
-  cols('mean shots per point', a => (a.rallyLen.reduce((x, y) => x + y, 0) / a.points).toFixed(2));
-  cols('median', a => String([...a.rallyLen].sort((x, y) => x - y)[Math.floor(a.rallyLen.length / 2)]));
-  cols('% ending on serve (<=1)', a => pc(a.rallyLen.filter(r => r <= 1).length, a.points));
-  cols('% ending on return (==2)', a => pc(a.rallyLen.filter(r => r === 2).length, a.points));
-  cols('% past the return (>=3)', a => pc(a.ralliesPastReturn, a.points));
-  cols('% reaching 6+ shots', a => pc(a.rallyLen.filter(r => r >= 6).length, a.points));
-  cols('% reaching 10+ shots', a => pc(a.rallyLen.filter(r => r >= 10).length, a.points));
+  cols('mean shots per point', (a) =>
+    (a.rallyLen.reduce((x, y) => x + y, 0) / a.points).toFixed(2),
+  );
+  cols('median', (a) =>
+    String([...a.rallyLen].sort((x, y) => x - y)[Math.floor(a.rallyLen.length / 2)]),
+  );
+  cols('% ending on serve (<=1)', (a) => pc(a.rallyLen.filter((r) => r <= 1).length, a.points));
+  cols('% ending on return (==2)', (a) => pc(a.rallyLen.filter((r) => r === 2).length, a.points));
+  cols('% past the return (>=3)', (a) => pc(a.ralliesPastReturn, a.points));
+  cols('% reaching 6+ shots', (a) => pc(a.rallyLen.filter((r) => r >= 6).length, a.points));
+  cols('% reaching 10+ shots', (a) => pc(a.rallyLen.filter((r) => r >= 10).length, a.points));
 
   console.log('\n── B. how points end (share of all points) ──\n');
   console.log(head);
   console.log('-'.repeat(head.length));
-  for (const k of [PointType.ACE, PointType.DOUBLE_FAULT, PointType.WINNER,
-    PointType.FORCED_ERROR, PointType.UNFORCED_ERROR]) {
-    cols(String(k), a => pc(a.endings.get(k) ?? 0, a.points));
+  for (const k of [
+    PointType.ACE,
+    PointType.DOUBLE_FAULT,
+    PointType.WINNER,
+    PointType.FORCED_ERROR,
+    PointType.UNFORCED_ERROR,
+  ]) {
+    cols(String(k), (a) => pc(a.endings.get(k) ?? 0, a.points));
   }
 
-  console.log('\n── C. shot mix (share of the player\'s rally shots) ──\n');
+  console.log("\n── C. shot mix (share of the player's rally shots) ──\n");
   console.log(head);
   console.log('-'.repeat(head.length));
-  const fams = ['return', 'groundstroke', 'groundstroke (power)', 'approach', 'slice',
-    'defensive slice', 'volley', 'half-volley', 'overhead', 'lob', 'passing', 'angle', 'drop shot'];
-  for (const f of fams) cols(f, a => pc(a.family.get(f) ?? 0, a.rallyShots));
+  const fams = [
+    'return',
+    'groundstroke',
+    'groundstroke (power)',
+    'approach',
+    'slice',
+    'defensive slice',
+    'volley',
+    'half-volley',
+    'overhead',
+    'lob',
+    'passing',
+    'angle',
+    'drop shot',
+  ];
+  for (const f of fams) cols(f, (a) => pc(a.family.get(f) ?? 0, a.rallyShots));
 
   console.log('\n── D. the net funnel ──\n');
   console.log(head);
   console.log('-'.repeat(head.length));
-  cols('approaches hit / rally shots', a => pc(a.approachesHit, a.rallyShots));
-  cols('approaches that landed', a => pc(a.approachesIn, a.approachesHit));
-  cols('CAME FORWARD / all points', a => pc(a.cameForward, a.points));
-  cols('CAME FORWARD / past return', a => pc(a.cameForwardPastReturn, a.ralliesPastReturn));
-  cols('  hit from net / all points', a => pc(a.arrivedPoints, a.points));
-  cols('  hit from net / past return', a => pc(a.arrivedPastReturn, a.ralliesPastReturn));
-  cols('net shots / rally shots', a => pc(a.netShots, a.rallyShots));
-  cols('net points won', a => pc(a.netPointsWon, a.arrivedPoints));
+  cols('approaches hit / rally shots', (a) => pc(a.approachesHit, a.rallyShots));
+  cols('approaches that landed', (a) => pc(a.approachesIn, a.approachesHit));
+  cols('CAME FORWARD / all points', (a) => pc(a.cameForward, a.points));
+  cols('CAME FORWARD / past return', (a) => pc(a.cameForwardPastReturn, a.ralliesPastReturn));
+  cols('  hit from net / all points', (a) => pc(a.arrivedPoints, a.points));
+  cols('  hit from net / past return', (a) => pc(a.arrivedPastReturn, a.ralliesPastReturn));
+  cols('net shots / rally shots', (a) => pc(a.netShots, a.rallyShots));
+  cols('net points won', (a) => pc(a.netPointsWon, a.arrivedPoints));
 
-  console.log('\n── E. the slice split (share of the player\'s rally shots) ──\n');
+  console.log("\n── E. the slice split (share of the player's rally shots) ──\n");
   console.log(head);
   console.log('-'.repeat(head.length));
-  cols('slice family, total', a => pc(a.sliceOffensive + a.sliceDefensive, a.rallyShots));
-  cols('  offensive slice', a => pc(a.sliceOffensive, a.rallyShots));
-  cols('  defensive slice', a => pc(a.sliceDefensive, a.rallyShots));
-  cols('defensive share of slice', a => pc(a.sliceDefensive, a.sliceOffensive + a.sliceDefensive));
+  cols('slice family, total', (a) => pc(a.sliceOffensive + a.sliceDefensive, a.rallyShots));
+  cols('  offensive slice', (a) => pc(a.sliceOffensive, a.rallyShots));
+  cols('  defensive slice', (a) => pc(a.sliceDefensive, a.rallyShots));
+  cols('defensive share of slice', (a) =>
+    pc(a.sliceDefensive, a.sliceOffensive + a.sliceDefensive),
+  );
   console.log('');
 }
 

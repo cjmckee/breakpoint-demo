@@ -23,8 +23,16 @@ import { PlayerProfile } from './PlayerProfile';
 import { ShotCalculator } from './ShotCalculator';
 import { ShotSelector } from './ShotSelector';
 import { TacticalAnalyzer } from './TacticalAnalyzer';
-import { getQualityThresholds, getMatchLevel, RelativeThresholds } from '../utils/qualityThresholds';
-import { RALLY_CONFIG, DIFFICULTY_SCORE_FACTORS, DIFFICULTY_THRESHOLDS } from '../config/shotThresholds';
+import {
+  getQualityThresholds,
+  getMatchLevel,
+  RelativeThresholds,
+} from '../utils/qualityThresholds';
+import {
+  RALLY_CONFIG,
+  DIFFICULTY_SCORE_FACTORS,
+  DIFFICULTY_THRESHOLDS,
+} from '../config/shotThresholds';
 import { EffectKey } from '../types/game';
 import { trace } from './trace';
 
@@ -49,15 +57,24 @@ export class PointSimulator {
     returner: PlayerProfile,
     matchState: MatchState,
     activeEffects?: Record<string, number>,
-    opponentActiveEffects?: Record<string, number>
+    opponentActiveEffects?: Record<string, number>,
   ): PointResult {
     const shots: ShotDetail[] = [];
     const pointId = `point_${Date.now()}_${random().toString(36).substr(2, 9)}`;
     let shotNumber = 1;
 
     // Step 1: Serve sequence (server's archetype shapes serve aggression / fault risk)
-    const serverBehaviorEffects = currentServer === 'player' ? activeEffects : opponentActiveEffects;
-    const serveResult = this.simulateServe(server, returner, matchState, pointId, shotNumber, currentServer, serverBehaviorEffects);
+    const serverBehaviorEffects =
+      currentServer === 'player' ? activeEffects : opponentActiveEffects;
+    const serveResult = this.simulateServe(
+      server,
+      returner,
+      matchState,
+      pointId,
+      shotNumber,
+      currentServer,
+      serverBehaviorEffects,
+    );
     shots.push(...serveResult.shots);
     shotNumber += serveResult.shots.length;
 
@@ -69,7 +86,7 @@ export class PointSimulator {
         shots,
         serveResult.pointType!,
         matchState,
-        serveResult.serveType
+        serveResult.serveType,
       );
     }
 
@@ -84,7 +101,7 @@ export class PointSimulator {
       serveResult.nextShooter!,
       currentServer,
       activeEffects,
-      opponentActiveEffects
+      opponentActiveEffects,
     );
     shots.push(...rallyResult.shots);
 
@@ -92,7 +109,14 @@ export class PointSimulator {
     const winner = rallyResult.winner;
     const pointType = rallyResult.pointType;
 
-    return this.createPointResult(currentServer, winner, shots, pointType, matchState, serveResult.serveType);
+    return this.createPointResult(
+      currentServer,
+      winner,
+      shots,
+      pointType,
+      matchState,
+      serveResult.serveType,
+    );
   }
 
   /**
@@ -105,7 +129,7 @@ export class PointSimulator {
     pointId: string,
     shotNumber: number,
     currentServer: 'player' | 'opponent',
-    serverBehaviorEffects?: Record<string, number>
+    serverBehaviorEffects?: Record<string, number>,
   ): {
     shots: ShotDetail[];
     pointEnded: boolean;
@@ -138,12 +162,16 @@ export class PointSimulator {
       undefined,
       undefined,
       serverFatigue,
-      serverMomentum
+      serverMomentum,
     );
 
     // Apply the server's archetype serve behavior (power → more aces, fault risk
     // → more misses) before resolving the first-serve outcome.
-    const firstOutcome = this.applyServeBehavior(firstServeResult.outcome, 'first', serverBehaviorEffects);
+    const firstOutcome = this.applyServeBehavior(
+      firstServeResult.outcome,
+      'first',
+      serverBehaviorEffects,
+    );
 
     // Check first serve result
     if (firstOutcome === PointType.ACE) {
@@ -216,8 +244,8 @@ export class PointSimulator {
       shotNumber: 1,
       context: firstServeContext,
       thresholds: firstServeResult.thresholds,
-        opponentPosition: firstServeResult.opponentPosition,
-        ballQuality: firstServeResult.ballQuality,
+      opponentPosition: firstServeResult.opponentPosition,
+      ballQuality: firstServeResult.ballQuality,
     };
     shots.push(faultServeShot);
 
@@ -232,13 +260,17 @@ export class PointSimulator {
       undefined,
       undefined,
       serverFatigue,
-      serverMomentum
+      serverMomentum,
     );
 
     // Apply serve behavior to the second serve BEFORE recording the shot, so the
     // recorded outcome matches how the point actually resolves: aggression → more
     // aces, fault risk → more double faults, reliability → rescued double faults.
-    const secondOutcome = this.applyServeBehavior(secondServeResult.outcome, 'second', serverBehaviorEffects);
+    const secondOutcome = this.applyServeBehavior(
+      secondServeResult.outcome,
+      'second',
+      serverBehaviorEffects,
+    );
 
     const secondServeShot: ShotDetail = {
       shotType: 'serve_second',
@@ -252,8 +284,8 @@ export class PointSimulator {
       shotNumber: 1, // Second serve is shot #1 when it starts the rally
       context: secondServeContext,
       thresholds: secondServeResult.thresholds,
-        opponentPosition: secondServeResult.opponentPosition,
-        ballQuality: secondServeResult.ballQuality,
+      opponentPosition: secondServeResult.opponentPosition,
+      ballQuality: secondServeResult.ballQuality,
     };
 
     shots.push(secondServeShot);
@@ -303,7 +335,7 @@ export class PointSimulator {
   private applyServeBehavior(
     outcome: PointType,
     serveType: 'first' | 'second',
-    effects?: Record<string, number>
+    effects?: Record<string, number>,
   ): PointType {
     if (!effects) return outcome;
 
@@ -321,9 +353,10 @@ export class PointSimulator {
 
     if (outcome !== PointType.IN_PLAY) return outcome;
 
-    const aggression = serveType === 'first'
-      ? (effects[EffectKey.FIRST_SERVE_AGGRESSION] ?? 0)
-      : (effects[EffectKey.SECOND_SERVE_AGGRESSION] ?? 0);
+    const aggression =
+      serveType === 'first'
+        ? (effects[EffectKey.FIRST_SERVE_AGGRESSION] ?? 0)
+        : (effects[EffectKey.SECOND_SERVE_AGGRESSION] ?? 0);
 
     // Aggression converts some would-be in-play serves into aces.
     if (aggression > 0 && random() < (aggression / 100) * 0.35) {
@@ -348,7 +381,7 @@ export class PointSimulator {
     firstShooter: 'server' | 'returner',
     currentServer: 'player' | 'opponent',
     activeEffects?: Record<string, number>,
-    opponentActiveEffects?: Record<string, number>
+    opponentActiveEffects?: Record<string, number>,
   ): {
     shots: ShotDetail[];
     winner: 'server' | 'returner';
@@ -389,7 +422,8 @@ export class PointSimulator {
       // Resolve shooter identity for fatigue/momentum/ability/archetype lookup
       const shooterIdentity: 'player' | 'opponent' =
         (currentShooter === 'server') === (currentServer === 'player') ? 'player' : 'opponent';
-      const shooterBehaviorEffects = shooterIdentity === 'player' ? activeEffects : opponentActiveEffects;
+      const shooterBehaviorEffects =
+        shooterIdentity === 'player' ? activeEffects : opponentActiveEffects;
 
       // Use ShotSelector, passing the shooter's archetype behavior effects so
       // shot selection reflects their chosen specialties.
@@ -398,7 +432,7 @@ export class PointSimulator {
         opponentProfile,
         rallyState,
         matchState,
-        shooterBehaviorEffects
+        shooterBehaviorEffects,
       );
 
       // Create context for this shot (using actual ball quality and opponent position)
@@ -409,16 +443,17 @@ export class PointSimulator {
         thresholds,
         rallyState.ballQuality,
         rallyState.opponentPosition,
-        shooterIdentity === 'player' ? activeEffects : opponentActiveEffects
+        shooterIdentity === 'player' ? activeEffects : opponentActiveEffects,
       );
 
       // Calculate tactical opportunity using unified analyzer
       const tacticalOpportunity = this.tacticalAnalyzer.evaluateTacticalSituation(
         rallyState,
-        shooterPosition
+        shooterPosition,
       );
       const shooterFatigue = matchState.fatigue[shooterIdentity];
-      const shooterMomentum = shooterIdentity === 'player' ? matchState.momentum : -matchState.momentum;
+      const shooterMomentum =
+        shooterIdentity === 'player' ? matchState.momentum : -matchState.momentum;
 
       // Calculate shot result with threshold system
       // Apply appropriate ability effects based on shooter identity
@@ -433,7 +468,7 @@ export class PointSimulator {
         tacticalOpportunity,
         shooterFatigue,
         shooterMomentum,
-        shooterEffects
+        shooterEffects,
       );
 
       // Error classification now handled by threshold system
@@ -473,9 +508,14 @@ export class PointSimulator {
         };
       }
 
-      if (shotResult.outcome === PointType.FORCED_ERROR || shotResult.outcome === PointType.UNFORCED_ERROR || shotResult.outcome === PointType.FAULT) {
+      if (
+        shotResult.outcome === PointType.FORCED_ERROR ||
+        shotResult.outcome === PointType.UNFORCED_ERROR ||
+        shotResult.outcome === PointType.FAULT
+      ) {
         const opponent = currentShooter === 'server' ? 'returner' : 'server';
-        const pointType = errorType === 'forced' ? PointType.FORCED_ERROR : PointType.UNFORCED_ERROR;
+        const pointType =
+          errorType === 'forced' ? PointType.FORCED_ERROR : PointType.UNFORCED_ERROR;
         return {
           shots,
           winner: opponent,
@@ -491,7 +531,7 @@ export class PointSimulator {
         shotResult,
         shotType,
         opponentPosition,
-        thresholds
+        thresholds,
       );
 
       const newShooterPosition = this.updateShooterPosition(
@@ -501,7 +541,7 @@ export class PointSimulator {
         rallyLength,
         previousShot.quality,
         thresholds,
-        shooterIdentity === 'player' ? activeEffects : opponentActiveEffects
+        shooterIdentity === 'player' ? activeEffects : opponentActiveEffects,
       );
 
       // Update positions for both players
@@ -523,7 +563,8 @@ export class PointSimulator {
     }
 
     // Rally went too long, award to player with better stamina
-    const winner = server.stats.physical.stamina >= returner.stats.physical.stamina ? 'server' : 'returner';
+    const winner =
+      server.stats.physical.stamina >= returner.stats.physical.stamina ? 'server' : 'returner';
     return {
       shots,
       winner,
@@ -536,19 +577,30 @@ export class PointSimulator {
    * Forced error: Opponent hit a great shot that made it very difficult
    * Unforced error: Player made a mistake on a routine shot
    */
-  private classifyError(previousShot: ShotDetail | null, currentContext: ShotContext, thresholds: RelativeThresholds): 'forced' | 'unforced' {
+  private classifyError(
+    previousShot: ShotDetail | null,
+    currentContext: ShotContext,
+    thresholds: RelativeThresholds,
+  ): 'forced' | 'unforced' {
     // No previous shot (e.g., return error) - likely unforced
     if (!previousShot) {
       return 'unforced';
     }
 
     // If opponent's previous shot was high quality or context is hard/extreme, it's forced
-    if (previousShot.quality >= thresholds.high || currentContext.difficulty === 'hard' || currentContext.difficulty === 'extreme') {
+    if (
+      previousShot.quality >= thresholds.high ||
+      currentContext.difficulty === 'hard' ||
+      currentContext.difficulty === 'extreme'
+    ) {
       return 'forced';
     }
 
     // If context was easy/normal and opponent's shot quality was below good, it's unforced
-    if ((currentContext.difficulty === 'easy' || currentContext.difficulty === 'normal') && previousShot.quality < thresholds.good) {
+    if (
+      (currentContext.difficulty === 'easy' || currentContext.difficulty === 'normal') &&
+      previousShot.quality < thresholds.good
+    ) {
       return 'unforced';
     }
 
@@ -579,7 +631,8 @@ export class PointSimulator {
       courtPosition: 'baseline',
       rallyLength: 1,
       courtSurface: matchState.courtSurface,
-      isFirstPointOfGame: matchState.score.currentGame.server === 0 && matchState.score.currentGame.returner === 0,
+      isFirstPointOfGame:
+        matchState.score.currentGame.server === 0 && matchState.score.currentGame.returner === 0,
     };
   }
 
@@ -594,7 +647,7 @@ export class PointSimulator {
     thresholds: RelativeThresholds,
     ballQuality?: BallQuality,
     opponentPosition?: CourtPosition,
-    activeEffects?: Record<string, number>
+    activeEffects?: Record<string, number>,
   ): ShotContext {
     // Calculate difficulty based on actual situation
     const difficulty = this.calculateShotDifficulty(
@@ -603,7 +656,7 @@ export class PointSimulator {
       opponentPosition,
       ballQuality,
       rallyLength,
-      activeEffects
+      activeEffects,
     );
 
     // Pressure from match situation
@@ -628,7 +681,8 @@ export class PointSimulator {
       courtPosition,
       rallyLength,
       courtSurface: matchState.courtSurface,
-      isFirstPointOfGame: matchState.score.currentGame.server === 0 && matchState.score.currentGame.returner === 0,
+      isFirstPointOfGame:
+        matchState.score.currentGame.server === 0 && matchState.score.currentGame.returner === 0,
     };
   }
 
@@ -648,7 +702,7 @@ export class PointSimulator {
     opponentPosition?: CourtPosition,
     ballQuality?: BallQuality,
     rallyLength?: number,
-    activeEffects?: Record<string, number>
+    activeEffects?: Record<string, number>,
   ): ShotContext['difficulty'] {
     let difficultyScore = 0;
 
@@ -692,8 +746,12 @@ export class PointSimulator {
 
     // reach: reduces difficulty when out of position
     const reach = activeEffects?.[EffectKey.REACH] ?? 0;
-    if (reach > 0 && shooterPosition &&
-      shooterPosition !== 'well_positioned' && shooterPosition !== 'at_net') {
+    if (
+      reach > 0 &&
+      shooterPosition &&
+      shooterPosition !== 'well_positioned' &&
+      shooterPosition !== 'at_net'
+    ) {
       difficultyScore -= reach;
     }
 
@@ -720,7 +778,7 @@ export class PointSimulator {
     rallyLength: number,
     incomingQuality: number,
     thresholds: RelativeThresholds,
-    activeEffects?: Record<string, number>
+    activeEffects?: Record<string, number>,
   ): CourtPosition {
     // If shot was an error, position doesn't matter (point is over)
     if (!shotResult.success) return currentPosition;
@@ -794,7 +852,7 @@ export class PointSimulator {
     shotResult: ShotResult,
     shotType: ShotType,
     currentPosition: CourtPosition,
-    thresholds: RelativeThresholds
+    thresholds: RelativeThresholds,
   ): CourtPosition {
     // If shot was an error, opponent doesn't need to move (they won the point)
     if (!shotResult.success) return currentPosition;
@@ -850,7 +908,6 @@ export class PointSimulator {
     return 'well_positioned';
   }
 
-
   /**
    * Create complete point result with statistics
    */
@@ -860,17 +917,17 @@ export class PointSimulator {
     shots: ShotDetail[],
     pointType: PointType,
     matchState: MatchState,
-    serveType: 'first' | 'second'
+    serveType: 'first' | 'second',
   ): PointResult {
     // rallyLength counts only in-play shots (excludes serve faults)
-    const rallyLength = shots.filter(s => s.outcome !== PointType.FAULT).length;
+    const rallyLength = shots.filter((s) => s.outcome !== PointType.FAULT).length;
     const keyShot = this.identifyKeyShot(shots);
     const statistics = this.calculatePointStatistics(shots);
 
     // Estimate point duration based on total shots (faults still take time)
     const baseDuration = shots.length * RALLY_CONFIG.durationPerShot;
-    const rallyCostMultiplier = rallyLength > RALLY_CONFIG.longRallyThreshold
-      ? RALLY_CONFIG.longRallyCostMultiplier : 1.0;
+    const rallyCostMultiplier =
+      rallyLength > RALLY_CONFIG.longRallyThreshold ? RALLY_CONFIG.longRallyCostMultiplier : 1.0;
     const duration = Math.round(baseDuration * rallyCostMultiplier);
 
     return {
@@ -891,22 +948,27 @@ export class PointSimulator {
    */
   private identifyKeyShot(shots: ShotDetail[]): ShotDetail | undefined {
     // Ace or winner shot is always key
-    const winnerShot = shots.find(shot => shot.outcome === PointType.ACE || shot.outcome === PointType.WINNER);
+    const winnerShot = shots.find(
+      (shot) => shot.outcome === PointType.ACE || shot.outcome === PointType.WINNER,
+    );
     if (winnerShot) return winnerShot;
 
     // The last shot ended the point — if it's a fault or error, it's the key shot
     const lastShot = shots[shots.length - 1];
-    if (lastShot && (lastShot.outcome === PointType.FAULT ||
+    if (
+      lastShot &&
+      (lastShot.outcome === PointType.FAULT ||
         lastShot.outcome === PointType.UNFORCED_ERROR ||
-        lastShot.outcome === PointType.FORCED_ERROR)) {
+        lastShot.outcome === PointType.FORCED_ERROR)
+    ) {
       return lastShot;
     }
 
     // Highest quality shot in the rally (exclude serve faults — they didn't affect the rally)
-    const rallyShots = shots.filter(shot => shot.outcome !== PointType.FAULT);
+    const rallyShots = shots.filter((shot) => shot.outcome !== PointType.FAULT);
     if (rallyShots.length > 0) {
       return rallyShots.reduce((best, current) =>
-        current.quality > best.quality ? current : best
+        current.quality > best.quality ? current : best,
       );
     }
 
@@ -918,26 +980,31 @@ export class PointSimulator {
    */
   private calculatePointStatistics(shots: ShotDetail[]): PointStatistics {
     const totalShots = shots.length;
-    const winnerCount = shots.filter(shot => shot.outcome === PointType.ACE || shot.outcome === PointType.WINNER).length;
-    const errorCount = shots.filter(shot => shot.outcome === PointType.FAULT).length;
-    const netApproaches = shots.filter(shot =>
-      shot.shotType.includes('volley') ||
-      shot.shotType.includes('approach')
+    const winnerCount = shots.filter(
+      (shot) => shot.outcome === PointType.ACE || shot.outcome === PointType.WINNER,
+    ).length;
+    const errorCount = shots.filter((shot) => shot.outcome === PointType.FAULT).length;
+    const netApproaches = shots.filter(
+      (shot) => shot.shotType.includes('volley') || shot.shotType.includes('approach'),
     ).length;
     const rallyExchanges = Math.max(0, totalShots - 2); // Exclude serve and return
-    const pressureMoments = shots.filter(shot =>
-      shot.context.pressure === 'high' || shot.context.rallyLength > 10
+    const pressureMoments = shots.filter(
+      (shot) => shot.context.pressure === 'high' || shot.context.rallyLength > 10,
     ).length;
 
     // Find most common shot type
-    const shotCounts = shots.reduce((counts, shot) => {
-      counts[shot.shotType] = (counts[shot.shotType] || 0) + 1;
-      return counts;
-    }, {} as Record<ShotType, number>);
+    const shotCounts = shots.reduce(
+      (counts, shot) => {
+        counts[shot.shotType] = (counts[shot.shotType] || 0) + 1;
+        return counts;
+      },
+      {} as Record<ShotType, number>,
+    );
 
-    const dominantShotEntry = Object.entries(shotCounts).reduce((dominant, [shotType, count]) =>
-      count > dominant[1] ? [shotType, count] as [string, number] : dominant,
-      ['', 0] as [string, number]
+    const dominantShotEntry = Object.entries(shotCounts).reduce(
+      (dominant, [shotType, count]) =>
+        count > dominant[1] ? ([shotType, count] as [string, number]) : dominant,
+      ['', 0] as [string, number],
     );
 
     const dominantShot = dominantShotEntry[0] as ShotType;

@@ -14,7 +14,14 @@
 import type { MatchScore, InteractiveMatchConfig } from './keyMoments';
 import type { MatchStatistics, PlayStyle } from './index';
 import type { ArchetypeProfile } from './archetype';
-import type { MatchReward, OpponentTier, TrainingResult, StoryMatchMetadata, PlayerStats, Ability } from './game';
+import type {
+  MatchReward,
+  OpponentTier,
+  TrainingResult,
+  StoryMatchMetadata,
+  PlayerStats,
+  Ability,
+} from './game';
 import type { StoryEvent, StoryEventOption, StoryEventResult } from './storyEvents';
 import type { TacticalOption } from '../data/tacticalOptions';
 import type { KeyMomentResult } from '../game/KeyMomentResolver';
@@ -104,7 +111,7 @@ export interface MatchResultsPhase {
   /** The tournament round index that was just played (before advancing) */
   tournamentRoundPlayed?: number;
   /** The tournament ID for post-match event lookup (needed when tournament ends mid-match) */
-tournamentId?: string;
+  tournamentId?: string;
 }
 
 export type InventoryTab = 'inventory' | 'relationships' | 'shop';
@@ -218,7 +225,12 @@ export type PhaseContinuation =
   | { type: 'idle' }
   | { type: 'milestone_check' }
   | { type: 'match_setup'; matchType: MatchType; matchConfig: PreMatchConfig }
-  | { type: 'story_event'; event: StoryEvent; availableOptions: StoryEventOption[]; continuation?: PhaseContinuation }
+  | {
+      type: 'story_event';
+      event: StoryEvent;
+      availableOptions: StoryEventOption[];
+      continuation?: PhaseContinuation;
+    }
   /**
    * Return path for a minigame played inside a story event: resolve the option
    * the player already chose, using the score the game just produced. Carries

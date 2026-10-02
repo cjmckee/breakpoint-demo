@@ -29,29 +29,29 @@ export interface PlayerStats {
  * `net` is core (it is one).
  */
 export interface CoreStats {
-  serve: number;        // Serve power and accuracy
-  forehand: number;     // Forehand groundstroke effectiveness
-  backhand: number;     // Backhand groundstroke effectiveness
-  return: number;       // Return of serve capability
-  net: number;          // Everything struck from the net: volleys, half-volleys, overheads
+  serve: number; // Serve power and accuracy
+  forehand: number; // Forehand groundstroke effectiveness
+  backhand: number; // Backhand groundstroke effectiveness
+  return: number; // Return of serve capability
+  net: number; // Everything struck from the net: volleys, half-volleys, overheads
 }
 
 export interface TechnicalStats {
-  slice: number;        // Slice and defensive slice, both wings
-  spin: number;         // Topspin and shape; also the touch behind tactical shots
-  placement: number;    // Court targeting: angles, lobs, passing shots, drop shots
+  slice: number; // Slice and defensive slice, both wings
+  spin: number; // Topspin and shape; also the touch behind tactical shots
+  placement: number; // Court targeting: angles, lobs, passing shots, drop shots
 }
 
 export interface PhysicalStats {
-  speed: number;        // Court coverage and reaction time at the net
-  stamina: number;      // Endurance during rallies and recovery between points
-  strength: number;     // Shot power
+  speed: number; // Court coverage and reaction time at the net
+  stamina: number; // Endurance during rallies and recovery between points
+  strength: number; // Shot power
 }
 
 export interface MentalStats {
-  focus: number;        // Concentration under pressure and key moments
+  focus: number; // Concentration under pressure and key moments
   anticipation: number; // Reading opponent shots and positioning
-  tactics: number;      // Executing the shot you chose, attacking or defending
+  tactics: number; // Executing the shot you chose, attacking or defending
 }
 
 // =======================
@@ -142,12 +142,12 @@ export interface ShotContext {
  * Unified type that handles positioning on court
  */
 export type CourtPosition =
-  | 'well_positioned'     // Centered, ready, good coverage
-  | 'slightly_off'        // A bit off center or slightly back
-  | 'way_out_wide'        // Pushed wide to deuce or ad side
-  | 'way_back_deep'       // Pushed behind baseline
-  | 'at_net'              // At the net (player or opponent)
-  | 'recovering';         // In transition, moving to position
+  | 'well_positioned' // Centered, ready, good coverage
+  | 'slightly_off' // A bit off center or slightly back
+  | 'way_out_wide' // Pushed wide to deuce or ad side
+  | 'way_back_deep' // Pushed behind baseline
+  | 'at_net' // At the net (player or opponent)
+  | 'recovering'; // In transition, moving to position
 
 /**
  * Simplified incoming ball characteristics
@@ -199,9 +199,9 @@ export interface RallyState {
  * Quality thresholds for determining shot outcomes
  */
 export interface QualityThresholds {
-  winner: number;         // Quality needed for winner
-  inPlay: number;         // Quality needed to succeed
-  forcedError: number;    // Below this = forced error (vs unforced)
+  winner: number; // Quality needed for winner
+  inPlay: number; // Quality needed to succeed
+  forcedError: number; // Below this = forced error (vs unforced)
 }
 
 /**
@@ -249,12 +249,12 @@ export interface ShotModifiers {
   pressureModifier: number;
   rallyLengthModifier: number;
   finalAdjustment: number;
-  serveVariance?: number;   // Serve-specific variance applied
-  serveAccuracy?: number;   // Serve accuracy roll (drives the serve-in check, separate from quality)
-  returnVariance?: number;  // Return-specific variance applied
-  rallyVariance?: number;   // Rally-specific variance applied (based on incoming shot quality)
-  fatigueModifier: number;   // Match-level fatigue penalty (1.0 = fresh, 0.8 = exhausted)
-  momentumModifier: number;  // Momentum quality modifier (0.95 to 1.05)
+  serveVariance?: number; // Serve-specific variance applied
+  serveAccuracy?: number; // Serve accuracy roll (drives the serve-in check, separate from quality)
+  returnVariance?: number; // Return-specific variance applied
+  rallyVariance?: number; // Rally-specific variance applied (based on incoming shot quality)
+  fatigueModifier: number; // Match-level fatigue penalty (1.0 = fresh, 0.8 = exhausted)
+  momentumModifier: number; // Momentum quality modifier (0.95 to 1.05)
 }
 
 // =======================
@@ -291,7 +291,7 @@ export enum PointType {
   UNFORCED_ERROR = 'unforced_error',
   DOUBLE_FAULT = 'double_fault',
   FAULT = 'fault', // Serve fault (first or second serve that doesn't end the point)
-  IN_PLAY = 'in_play'
+  IN_PLAY = 'in_play',
 }
 
 /**
@@ -330,8 +330,8 @@ export interface PointStatistics {
  * Tennis game score (within a set)
  */
 export interface GameScore {
-  server: number;    // Points won by server in current game
-  returner: number;  // Points won by returner in current game
+  server: number; // Points won by server in current game
+  returner: number; // Points won by returner in current game
   advantage?: 'server' | 'returner' | null;
   isDeuce: boolean;
 }
@@ -340,8 +340,8 @@ export interface GameScore {
  * Tennis set score
  */
 export interface SetScore {
-  player: number;    // Games won by player in current set
-  opponent: number;  // Games won by opponent in current set
+  player: number; // Games won by player in current set
+  opponent: number; // Games won by opponent in current set
   tiebreak?: TiebreakScore;
   winner?: 'player' | 'opponent';
   isComplete: boolean;
@@ -353,8 +353,8 @@ export interface SetScore {
  * The loser's score is typically shown in parentheses: e.g., 7-6(4) means loser got 4 points.
  */
 export interface TiebreakScore {
-  player: number;    // Tiebreak points won by player
-  opponent: number;  // Tiebreak points won by opponent
+  player: number; // Tiebreak points won by player
+  opponent: number; // Tiebreak points won by opponent
   winner?: 'player' | 'opponent';
 }
 
@@ -588,9 +588,9 @@ export interface MatchStatistics {
 
   // Comeback tracking - largest game deficit the player faced
   largestDeficit?: {
-    games: string;        // Set score at worst moment, e.g., "1-4"
-    gameScore?: string;   // Game score if facing game point, e.g., "0-40"
-    deficitSize: number;  // How many games behind (2+)
+    games: string; // Set score at worst moment, e.g., "1-4"
+    gameScore?: string; // Game score if facing game point, e.g., "0-40"
+    deficitSize: number; // How many games behind (2+)
   };
 }
 
@@ -717,10 +717,7 @@ export interface TrainingResult {
  * All possible stat names for easy reference
  */
 export type StatName =
-  | keyof CoreStats
-  | keyof TechnicalStats
-  | keyof PhysicalStats
-  | keyof MentalStats;
+  keyof CoreStats | keyof TechnicalStats | keyof PhysicalStats | keyof MentalStats;
 
 /**
  * Stat category types
