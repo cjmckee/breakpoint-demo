@@ -20,20 +20,45 @@
  *
  * Under COST=flat a budget point buys +1. Under COST=curve each +1 costs
  * costOf(currentValue) currency — see COST_CURVES — so concentrating gets
- * expensive. Point-win % against fixed tier-1 opponents, no archetypes.
+ * expensive. Point-win % against fixed tier-1 opponents.
+ *
+ * PART A: every strategy above, no archetypes on either side unless OPP_ARCH=1
+ *         (which gives the opponents their authored archetype).
+ * PART B: the identity builds again, with archetypes on — the player carries a
+ *         broad identity and four tier-I specialties matching the build, and
+ *         every opponent plays its authored archetype. Three columns per
+ *         identity separate what the stats are worth from what the behaviour is
+ *         worth:
+ *           bare      identity stats, no archetype (opponents still have theirs)
+ *           styled    identity stats + matching archetype — the real player
+ *           styleOnly even-spread stats + the identity's archetype
+ *         Asked because PART A without archetypes left the groundstroke
+ *         baseliner ~10 points behind every other identity, and a real
+ *         baseliner's specialties shift its shot mix toward the wings.
  *
  * Run: npx tsx src/test/analysis/allocationProbe.ts
  * Env: N=60 (BO3 per cell)  BUDGETS=140,280  CURVES=flat,step20,step15,banded
+ *      PARTS=A  OPP_ARCH=0  ID=<regex over PART B identity names>
  */
 
 import type { MatchFormat, MatchState, PlayerStats, StatName } from '../../types';
-import type { ArchetypeProfile } from '../../types/archetype';
+import type {
+  ArchetypeProfile,
+  BroadArchetype,
+  GamePhase,
+  PhasePathId,
+} from '../../types/archetype';
 import { PlayerProfile } from '../../core/PlayerProfile';
 import { PointSimulator } from '../../core/PointSimulator';
 import { ScoreTracker } from '../../core/ScoreTracker';
 import { MATCH_FATIGUE } from '../../config/shotThresholds';
 import { calculateOverallRating } from '../../utils/overallRating';
 import { CORE_ANCHORS, CORE_ANCHOR_ORDER } from '../../game/AnchorTrainingSystem';
+import {
+  aggregateArchetypeEffects,
+  profileForArchetype,
+  type LegacyArchetype,
+} from '../../data/archetypeTree';
 
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
 const NONE: ArchetypeProfile = {
@@ -55,11 +80,31 @@ const stats = (
   mental: { focus: ment[0], anticipation: ment[1], tactics: ment[2] },
 });
 
-const OPPONENTS: Array<[string, PlayerStats]> = [
-  ['Big Steve (30)', stats([35, 32, 32, 23, 35], [23, 23, 25], [28, 28, 33], [28, 31, 26])],
-  ['Olivia Gulp (42)', stats([42, 46, 39, 44, 34], [46, 39, 41], [36, 48, 35], [41, 43, 41])],
-  ['Jordan (47)', stats([50, 50, 46, 47, 43], [48, 40, 48], [44, 48, 46], [46, 40, 40])],
+/** Stats and archetypes as authored in data/opponents.ts, teamMatches.ts, riversideOpen.ts. */
+const OPPONENTS: Array<[string, PlayerStats, LegacyArchetype]> = [
+  [
+    'Big Steve (30)',
+    stats([35, 32, 32, 23, 35], [23, 23, 25], [28, 28, 33], [28, 31, 26]),
+    'serve_volley',
+  ],
+  [
+    'Olivia Gulp (42)',
+    stats([42, 46, 39, 44, 34], [46, 39, 41], [36, 48, 35], [41, 43, 41]),
+    'aggressive',
+  ],
+  [
+    'Jordan (47)',
+    stats([50, 50, 46, 47, 43], [48, 40, 48], [44, 48, 46], [46, 40, 40]),
+    'serve_volley',
+  ],
 ];
+
+/** A side of the net: stats plus the archetype it plays. */
+interface Side {
+  stats: PlayerStats;
+  profile: ArchetypeProfile;
+}
+const side = (stats: PlayerStats, profile: ArchetypeProfile = NONE): Side => ({ stats, profile });
 
 const ALL_STATS: StatName[] = [
   'serve',
@@ -243,12 +288,16 @@ function calcFatigue(cur: number, rally: number, stam: number): number {
   return Math.max(0, Math.min(100, cur + gain - rec));
 }
 
-function pointWinPct(a: PlayerStats, b: PlayerStats, n: number): number {
+function pointWinPct(pa: Side, pb: Side, n: number): number {
+  const a = pa.stats;
+  const b = pb.stats;
+  const aFx = aggregateArchetypeEffects(pa.profile);
+  const bFx = aggregateArchetypeEffects(pb.profile);
   let won = 0;
   let total = 0;
   for (let m = 0; m < n; m++) {
-    const p = new PlayerProfile('p', 'P', a, NONE);
-    const o = new PlayerProfile('o', 'O', b, NONE);
+    const p = new PlayerProfile('p', 'P', a, pa.profile);
+    const o = new PlayerProfile('o', 'O', b, pb.profile);
     const tracker = new ScoreTracker(BO3);
     tracker.setInitialServer(Math.random() < 0.5 ? 'player' : 'opponent');
     p.rollMatchForm();
@@ -274,8 +323,8 @@ function pointWinPct(a: PlayerStats, b: PlayerStats, n: number): number {
         server === 'player' ? p : o,
         server === 'player' ? o : p,
         ms,
-        {},
-        {},
+        server === 'player' ? aFx : bFx,
+        server === 'player' ? bFx : aFx,
       );
       const w = pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player';
       total++;
@@ -291,16 +340,161 @@ function pointWinPct(a: PlayerStats, b: PlayerStats, n: number): number {
   return (won / total) * 100;
 }
 
+const tier1 = (
+  broad: BroadArchetype,
+  paths: Partial<Record<GamePhase, PhasePathId>>,
+): ArchetypeProfile => ({
+  broad,
+  phases: Object.fromEntries(
+    Object.entries(paths).map(([phase, path]) => [phase, { path, tier: 1 }]),
+  ),
+  specializationPoints: 0,
+  respecTokens: 0,
+});
+
+/**
+ * PART B identities. Four tier-I specialties each: the 3 starting points plus
+ * one level, and gameStore blocks tier II until player tier 2, so this is a
+ * late-tier-1 player. Two baseliners because "baseliner" covers both the
+ * player who swings and the one who grinds.
+ */
+const IDENTITIES: Array<{ name: string; targets: StatName[]; profile: ArchetypeProfile }> = [
+  {
+    name: 'bigServer',
+    targets: STRATEGIES.bigServer,
+    profile: tier1('all_courter', {
+      first_serve: 'fs_bomber',
+      second_serve: 'ss_kicker',
+      forehand: 'fh_laserbeam',
+      net: 'net_opportunist',
+    }),
+  },
+  {
+    name: 'counter',
+    targets: STRATEGIES.counter,
+    profile: tier1('baseliner', {
+      return: 'rt_extinguisher',
+      forehand: 'fh_survivor',
+      backhand: 'bh_samurai',
+      net: 'net_apologist',
+    }),
+  },
+  {
+    name: 'netRusher',
+    targets: STRATEGIES.netRusher,
+    profile: tier1('net_attacker', {
+      net: 'net_downhill',
+      first_serve: 'fs_bomber',
+      return: 'rt_sneaky_beaky',
+      second_serve: 'ss_kicker',
+    }),
+  },
+  {
+    name: 'baseliner/swing',
+    targets: STRATEGIES.baseliner,
+    profile: tier1('baseliner', {
+      forehand: 'fh_laserbeam',
+      backhand: 'bh_bazooka',
+      return: 'rt_redliner',
+      net: 'net_apologist',
+    }),
+  },
+  {
+    name: 'baseliner/grind',
+    targets: STRATEGIES.baseliner,
+    profile: tier1('baseliner', {
+      forehand: 'fh_rpm_overdrive',
+      backhand: 'bh_brick_wall',
+      return: 'rt_extinguisher',
+      net: 'net_apologist',
+    }),
+  },
+  {
+    // slice is worth ~0 at tier 1 (stat-channels §10); is the gap just slice?
+    name: 'baseliner/swing -slice',
+    targets: ['forehand', 'backhand', 'spin', 'strength', 'stamina', 'placement'],
+    profile: tier1('baseliner', {
+      forehand: 'fh_laserbeam',
+      backhand: 'bh_bazooka',
+      return: 'rt_redliner',
+      net: 'net_apologist',
+    }),
+  },
+  // Diagnostics: every other identity buys serve or return plus speed or
+  // anticipation; the baseliner buys none. Swap slice for one of them.
+  ...(
+    [
+      ['return', 'return'],
+      ['speed', 'speed'],
+      ['serve', 'serve'],
+    ] as Array<[string, StatName]>
+  ).map(([label, stat]) => ({
+    name: `baseliner/swing +${label}`,
+    targets: ['forehand', 'backhand', 'spin', 'strength', 'stamina', stat] as StatName[],
+    profile: tier1('baseliner', {
+      forehand: 'fh_laserbeam',
+      backhand: 'bh_bazooka',
+      return: 'rt_redliner',
+      net: 'net_apologist',
+    }),
+  })),
+];
+
+function partB(N: number, budgets: number[], curves: string[]): void {
+  const opponents = OPPONENTS.map(([n, s, a]): [string, Side] => [
+    n,
+    side(s, profileForArchetype(a)),
+  ]);
+  for (const curveName of curves) {
+    const cost = COST_CURVES[curveName];
+    for (const budget of budgets) {
+      console.log(`\n=== PART B  cost=${curveName}  budget=${budget}  N=${N} BO3/cell ===`);
+      console.log(['identity', 'column', ...opponents.map(([n]) => n), 'mean'].join('\t'));
+      const spread = fromFlat(spendRoundRobin(budget, STRATEGIES.spread, cost));
+      const control: Array<[string, Side]> = [['spread (no style)', side(spread)]];
+      for (const [label, s] of control) {
+        const row = opponents.map(([, o]) => pointWinPct(s, o, N));
+        const mean = row.reduce((x, y) => x + y, 0) / row.length;
+        console.log(
+          [label, 'control', ...row.map((v) => v.toFixed(1)), mean.toFixed(1)].join('\t'),
+        );
+      }
+      const only = process.env.ID ? new RegExp(process.env.ID) : null;
+      for (const id of IDENTITIES.filter((i) => !only || only.test(i.name))) {
+        const built = fromFlat(spendRoundRobin(budget, id.targets, cost));
+        const columns: Array<[string, Side]> = [
+          ['bare', side(built)],
+          ['styled', side(built, id.profile)],
+          ['styleOnly', side(spread, id.profile)],
+        ];
+        for (const [col, s] of columns) {
+          const row = opponents.map(([, o]) => pointWinPct(s, o, N));
+          const mean = row.reduce((x, y) => x + y, 0) / row.length;
+          console.log([id.name, col, ...row.map((v) => v.toFixed(1)), mean.toFixed(1)].join('\t'));
+        }
+      }
+    }
+  }
+}
+
 function main(): void {
   const N = Number(process.env.N ?? 60);
   const budgets = (process.env.BUDGETS ?? '140,280').split(',').map(Number);
   const curves = (process.env.CURVES ?? 'flat,step20,step15').split(',');
+  const parts = process.env.PARTS ?? 'A';
+  if (parts.includes('B')) partB(N, budgets, curves);
+  if (!parts.includes('A')) return;
+  const oppArch = process.env.OPP_ARCH === '1';
+  const opponents = OPPONENTS.map(([n, s, a]): [string, Side] => [
+    n,
+    side(s, oppArch ? profileForArchetype(a) : NONE),
+  ]);
 
   for (const curveName of curves) {
     const cost = COST_CURVES[curveName];
     for (const budget of budgets) {
       console.log(`\n=== cost=${curveName}  budget=${budget}  N=${N} BO3/cell ===`);
-      const header = ['strategy', 'OVR', 'pts', 'max', ...OPPONENTS.map(([n]) => n)];
+      const header = ['strategy', 'OVR', 'pts', 'max', ...opponents.map(([n]) => n)];
       console.log(header.join('\t'));
       const builds: Array<[string, Flat]> = [
         ...Object.entries(STRATEGIES).map(([name, targets]): [string, Flat] => [
@@ -313,7 +507,7 @@ function main(): void {
         const s = fromFlat(f);
         const gained = ALL_STATS.reduce((acc, k) => acc + f[k] - 20, 0);
         const max = Math.max(...ALL_STATS.map((k) => f[k]));
-        const row = OPPONENTS.map(([, o]) => pointWinPct(s, o, N).toFixed(1));
+        const row = opponents.map(([, o]) => pointWinPct(side(s), o, N).toFixed(1));
         console.log([name, calculateOverallRating(s), gained, max, ...row].join('\t'));
       }
     }

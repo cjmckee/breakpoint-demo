@@ -50,8 +50,9 @@ belongs in git history, not here.
 - **[`proposals/stat-currency-progression.md`](./proposals/stat-currency-progression.md)** —
   earning generic attribute points (Power, Quickness, Technique, Mind) and spending them on stats
   instead of receiving stats directly. Measures that free allocation at a flat price is a solved
-  game, that escalating cost alone does not fix it, and that per-stat price bands do. Still an
-  investigation; its §8 lists the decisions it needs.
+  game, that escalating cost alone does not fix it, and that per-stat price bands do. Re-tests the
+  groundstroke baseliner with archetypes on: a trap build, caused by `slice` and by skipping serve and
+  return. Design direction agreed (§8); income calibration and ability pricing still open.
 
 `story-minigames.md` was executed and deleted; the
 minigame runtime lives in [`src/minigames/`](../src/minigames/) and the story route runs through the
