@@ -14,7 +14,7 @@ interface AbilityDisplayProps {
 }
 
 export function formatAbilityName(name: string): string {
-  return name.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  return name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 // Touch-only devices can't hover, so they toggle the detail overlay on tap instead.
@@ -129,7 +129,9 @@ export const AbilityDisplay: React.FC<AbilityDisplayProps> = ({ abilities }) => 
               {...interactionHandlers}
             >
               <div className="flex justify-between items-start mb-2 gap-2">
-                <h5 className={`font-bold text-sm ${style.textColor} transition-colors duration-200`}>
+                <h5
+                  className={`font-bold text-sm ${style.textColor} transition-colors duration-200`}
+                >
                   {formatAbilityName(ability.name)}
                 </h5>
                 <span
@@ -138,7 +140,9 @@ export const AbilityDisplay: React.FC<AbilityDisplayProps> = ({ abilities }) => 
                   Lv.{ability.level || 1}
                 </span>
               </div>
-              <div className={`text-xs ${style.textColor} opacity-75 transition-opacity duration-200 capitalize`}>
+              <div
+                className={`text-xs ${style.textColor} opacity-75 transition-opacity duration-200 capitalize`}
+              >
                 {getRarityLabel(ability.rarity)}
               </div>
             </button>
@@ -194,9 +198,7 @@ export const AbilityDisplay: React.FC<AbilityDisplayProps> = ({ abilities }) => 
               {getRarityLabel(selected.rarity)} rarity
             </div>
             {selected.description && (
-              <p className="text-sm text-pixel-text mb-3 leading-relaxed">
-                {selected.description}
-              </p>
+              <p className="text-sm text-pixel-text mb-3 leading-relaxed">{selected.description}</p>
             )}
             {selected.effects && (
               <div className="text-xs text-pixel-text-muted">

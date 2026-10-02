@@ -8,7 +8,10 @@
 import React from 'react';
 import type { PlayStyle } from '../types';
 
-const TENDENCY_DIALS: { key: keyof Pick<PlayStyle, 'aggression' | 'netApproach' | 'consistency' | 'power'>; label: string }[] = [
+const TENDENCY_DIALS: {
+  key: keyof Pick<PlayStyle, 'aggression' | 'netApproach' | 'consistency' | 'power'>;
+  label: string;
+}[] = [
   { key: 'aggression', label: 'Aggression' },
   { key: 'netApproach', label: 'Net Play' },
   { key: 'consistency', label: 'Consistency' },

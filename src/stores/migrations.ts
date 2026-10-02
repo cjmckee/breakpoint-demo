@@ -26,7 +26,14 @@
  * gap, and at runtime such a save resets rather than loading half-shaped.
  */
 
-import type { Player, GameCalendar, CurrentStatus, ActivityResult, ShopItem, OpponentTier } from '../types/game';
+import type {
+  Player,
+  GameCalendar,
+  CurrentStatus,
+  ActivityResult,
+  ShopItem,
+  OpponentTier,
+} from '../types/game';
 import type { Challenge } from '../types/challenges';
 import type { EquipmentSlot, OwnedItem } from '../types/items';
 import { TimeManager } from '../game/TimeManager';
@@ -202,10 +209,7 @@ function resetOutcome(reason: string): MigrationOutcome {
 /** Cheap shape check at the storage boundary — the fields every save carries. */
 function isPersistedStoreState(value: unknown): value is PersistedStoreState {
   return (
-    typeof value === 'object' &&
-    value !== null &&
-    'calendar' in value &&
-    'currentStatus' in value
+    typeof value === 'object' && value !== null && 'calendar' in value && 'currentStatus' in value
   );
 }
 
@@ -236,13 +240,13 @@ export function runMigrations(persistedState: unknown, fromVersion: number): Mig
 
   if (fromVersion > CURRENT_STORE_VERSION) {
     return resetOutcome(
-      `save is from a newer build (version ${fromVersion}, this build reads ${CURRENT_STORE_VERSION})`
+      `save is from a newer build (version ${fromVersion}, this build reads ${CURRENT_STORE_VERSION})`,
     );
   }
 
   if (fromVersion < RESET_BEFORE_VERSION) {
     return resetOutcome(
-      `save version ${fromVersion} predates the breaking change at version ${RESET_BEFORE_VERSION}`
+      `save version ${fromVersion} predates the breaking change at version ${RESET_BEFORE_VERSION}`,
     );
   }
 
@@ -281,7 +285,9 @@ export function migrateStore(persistedState: unknown, fromVersion: number): Pers
   if (outcome.status === 'reset') {
     console.warn(`[store] save reset — ${outcome.reason}`);
   } else if (outcome.status === 'migrated') {
-    console.log(`[store] save migrated from version ${outcome.fromVersion} to ${CURRENT_STORE_VERSION}`);
+    console.log(
+      `[store] save migrated from version ${outcome.fromVersion} to ${CURRENT_STORE_VERSION}`,
+    );
   }
 
   return outcome.state;

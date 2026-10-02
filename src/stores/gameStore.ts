@@ -5,7 +5,12 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { migrateStore, runMigrations, CURRENT_STORE_VERSION, type PersistedStoreState } from './migrations';
+import {
+  migrateStore,
+  runMigrations,
+  CURRENT_STORE_VERSION,
+  type PersistedStoreState,
+} from './migrations';
 import {
   Player,
   PlayerFlag,
@@ -41,16 +46,44 @@ import { ScheduledEventManager } from '../game/ScheduledEventManager';
 import { StoryMatchManager } from '../game/StoryMatchManager';
 import { generateDailyShopItems } from '../game/ShopSystem';
 import { ALL_ITEMS } from '../data/items';
-import { getRandomOpponent, getScaledOpponentStats, getOpponentArchetypeProfile } from '../data/opponents';
-import { DEFAULT_MATCH_ENERGY_COST, DEFAULT_MATCH_SPEED, type MatchSpeed } from '../config/matchRewards';
+import {
+  getRandomOpponent,
+  getScaledOpponentStats,
+  getOpponentArchetypeProfile,
+} from '../data/opponents';
+import {
+  DEFAULT_MATCH_ENERGY_COST,
+  DEFAULT_MATCH_SPEED,
+  type MatchSpeed,
+} from '../config/matchRewards';
 import { EffectAggregator } from '../core/EffectAggregator';
 import { EffectKey } from '../types/game';
 import { buildPlayStyle } from '../core/PlayerProfile';
-import { createEmptyArchetypeProfile, profileForArchetype, STARTING_SPECIALIZATION_POINTS, PATH_DEFS, PATHS_BY_PHASE } from '../data/archetypeTree';
+import {
+  createEmptyArchetypeProfile,
+  profileForArchetype,
+  STARTING_SPECIALIZATION_POINTS,
+  PATH_DEFS,
+  PATHS_BY_PHASE,
+} from '../data/archetypeTree';
 import { useMenuStore } from '../hooks/useMenuModal';
 import type { PlayStyle } from '../types';
-import type { ArchetypeProfile, GamePhase as ArchetypePhase, PhasePathId } from '../types/archetype';
-import type { GamePhase, MatchType, PreMatchConfig, PhaseContinuation, IdlePhase, StoryEventOverlay, MatchCompletionData, PersistedEventState, DEFAULT_PERSISTED_EVENT_STATE } from '../types/gamePhase';
+import type {
+  ArchetypeProfile,
+  GamePhase as ArchetypePhase,
+  PhasePathId,
+} from '../types/archetype';
+import type {
+  GamePhase,
+  MatchType,
+  PreMatchConfig,
+  PhaseContinuation,
+  IdlePhase,
+  StoryEventOverlay,
+  MatchCompletionData,
+  PersistedEventState,
+  DEFAULT_PERSISTED_EVENT_STATE,
+} from '../types/gamePhase';
 import { DEFAULT_PERSISTED_EVENT_STATE as DEFAULT_EVENT_RECOVERY } from '../types/gamePhase';
 import type { MinigameScore } from '../minigames/types';
 import type { InteractiveMatchConfig } from '../types/keyMoments';
@@ -64,7 +97,7 @@ import {
 import { random } from '../core/random';
 export interface AudioSettings {
   musicVolume: number; // 0–1
-  sfxVolume: number;   // 0–1
+  sfxVolume: number; // 0–1
   muteMusic: boolean;
   muteSfx: boolean;
 }
@@ -136,10 +169,34 @@ interface GameState {
   pendingShopAcquisitions: Item[];
 
   // Phase transition actions
-  navigateTo: (target: 'idle' | 'training' | 'match_setup' | 'tournament_list' | 'inventory' | 'relationships' | 'shop' | 'archetype' | 'challenges') => void;
+  navigateTo: (
+    target:
+      | 'idle'
+      | 'training'
+      | 'match_setup'
+      | 'tournament_list'
+      | 'inventory'
+      | 'relationships'
+      | 'shop'
+      | 'archetype'
+      | 'challenges',
+  ) => void;
   navigateToScheduledMatch: (matchType: 'tournament' | 'story') => void;
-  setMatchSetup: (config: Omit<PreMatchConfig, 'opponentDescription' | 'matchTitle' | 'matchDescription' | 'storyMatchMetadata'>, matchType: MatchType) => void;
-  getPracticeOpponent: (tier: OpponentTier) => { opponentId: string; name: string; stats: PlayerStats; tier: OpponentTier; abilities?: Ability[]; archetypeProfile?: ArchetypeProfile };
+  setMatchSetup: (
+    config: Omit<
+      PreMatchConfig,
+      'opponentDescription' | 'matchTitle' | 'matchDescription' | 'storyMatchMetadata'
+    >,
+    matchType: MatchType,
+  ) => void;
+  getPracticeOpponent: (tier: OpponentTier) => {
+    opponentId: string;
+    name: string;
+    stats: PlayerStats;
+    tier: OpponentTier;
+    abilities?: Ability[];
+    archetypeProfile?: ArchetypeProfile;
+  };
   beginMatch: (config: InteractiveMatchConfig, matchType: MatchType) => void;
   onMatchComplete: (data: MatchCompletionData) => void;
 
@@ -153,7 +210,11 @@ interface GameState {
   dismissHangoutUnlock: () => void;
   dismissItemAcquired: () => void;
   dismissOverlay: () => void;
-  routeThroughAcquisitionQueue: (items: Item[], hangoutsUnlocked: string[], continuation: PhaseContinuation) => void;
+  routeThroughAcquisitionQueue: (
+    items: Item[],
+    hangoutsUnlocked: string[],
+    continuation: PhaseContinuation,
+  ) => void;
 
   // Hangout actions
   hangoutWithCharacter: (characterId: string) => void;
@@ -216,7 +277,6 @@ interface GameState {
   refreshShop: () => void;
   isShopUnlocked: () => boolean;
   isMatchUnlocked: () => boolean;
-
 }
 
 const initialCalendar = TimeManager.createCalendar();
@@ -251,7 +311,7 @@ export const useGameStore = create<GameState>()(
       completedChallenges: [],
 
       // Opponent tier progression initial state
-      unlockedTiers: [1],  // Start with only tier 1 unlocked
+      unlockedTiers: [1], // Start with only tier 1 unlocked
 
       audioSettings: {
         musicVolume: 0.5,
@@ -272,13 +332,15 @@ export const useGameStore = create<GameState>()(
       // Event recovery initial state
       eventRecovery: DEFAULT_EVENT_RECOVERY,
 
-      updateEventRecovery: (update) => set((state) => ({
-        eventRecovery: { ...state.eventRecovery, ...update },
-      })),
+      updateEventRecovery: (update) =>
+        set((state) => ({
+          eventRecovery: { ...state.eventRecovery, ...update },
+        })),
 
-      clearEventRecovery: () => set({
-        eventRecovery: DEFAULT_EVENT_RECOVERY,
-      }),
+      clearEventRecovery: () =>
+        set({
+          eventRecovery: DEFAULT_EVENT_RECOVERY,
+        }),
 
       // Initialize game (Zustand auto-loads persisted state)
       initializeGame: () => {
@@ -297,26 +359,31 @@ export const useGameStore = create<GameState>()(
 
           while (missedEvents.length > 0) {
             const missed = missedEvents[0];
-            const action = missed.eventType === 'tournament_match' || missed.eventType === 'story_match'
-              ? `Rescheduling to Day ${state.calendar.currentDay + 1} ${TIME_SLOT_NAMES[missed.scheduledTimeSlot]}`
-              : missed.eventType === 'story' ? 'Clearing (will re-check via normal flow)' : 'Discarding';
+            const action =
+              missed.eventType === 'tournament_match' || missed.eventType === 'story_match'
+                ? `Rescheduling to Day ${state.calendar.currentDay + 1} ${TIME_SLOT_NAMES[missed.scheduledTimeSlot]}`
+                : missed.eventType === 'story'
+                  ? 'Clearing (will re-check via normal flow)'
+                  : 'Discarding';
             console.warn(
               `[EventReconciliation:Load] Missed ${missed.eventType} event ` +
-              `scheduled for Day ${missed.scheduledDay} ${TIME_SLOT_NAMES[missed.scheduledTimeSlot]}` +
-              `${missed.metadata ? ` (${JSON.stringify(missed.metadata)})` : ''}. ${action}.`
+                `scheduled for Day ${missed.scheduledDay} ${TIME_SLOT_NAMES[missed.scheduledTimeSlot]}` +
+                `${missed.metadata ? ` (${JSON.stringify(missed.metadata)})` : ''}. ${action}.`,
             );
 
             const { updatedEvents } = ScheduledEventManager.reconcileMissedEvent(
               events,
               missed,
-              state.calendar
+              state.calendar,
             );
             events = updatedEvents;
             missedEvents = ScheduledEventManager.getMissedEvents(events, state.calendar);
           }
 
           if (events !== state.calendar.scheduledEvents) {
-            console.warn(`[EventReconciliation:Load] Reconciliation complete — updated scheduled events on load.`);
+            console.warn(
+              `[EventReconciliation:Load] Reconciliation complete — updated scheduled events on load.`,
+            );
             set({
               calendar: {
                 ...state.calendar,
@@ -333,12 +400,12 @@ export const useGameStore = create<GameState>()(
         const activeTournament = currentState.calendar.activeTournament;
         if (activeTournament?.isActive) {
           const hasTournamentMatch = currentState.calendar.scheduledEvents.some(
-            e => e.eventType === 'tournament_match'
+            (e) => e.eventType === 'tournament_match',
           );
           if (!hasTournamentMatch) {
             console.warn(
               `[TournamentRecovery] Active tournament "${activeTournament.tournamentName}" ` +
-              `has no scheduled match — scheduling next match now.`
+                `has no scheduled match — scheduling next match now.`,
             );
             get().scheduleNextTournamentMatch();
           }
@@ -378,16 +445,18 @@ export const useGameStore = create<GameState>()(
           const event = StoryEventManager.getEligibleEventById(
             eventRecovery.currentEventId,
             player,
-            eventContext
+            eventContext,
           );
 
           if (event) {
-            console.log(`[EventRecovery] Restoring event "${event.id}" at dialogue ${eventRecovery.currentDialogueIndex}`);
+            console.log(
+              `[EventRecovery] Restoring event "${event.id}" at dialogue ${eventRecovery.currentDialogueIndex}`,
+            );
 
             const availableOptions = PrerequisiteChecker.getAvailableOptions(
               event,
               player,
-              eventContext
+              eventContext,
             );
 
             set({
@@ -402,7 +471,9 @@ export const useGameStore = create<GameState>()(
             return;
           } else {
             // Event no longer exists or is no longer eligible, clear recovery state
-            console.warn(`[EventRecovery] Event "${eventRecovery.currentEventId}" no longer eligible, clearing recovery state`);
+            console.warn(
+              `[EventRecovery] Event "${eventRecovery.currentEventId}" no longer eligible, clearing recovery state`,
+            );
             get().clearEventRecovery();
           }
         }
@@ -463,31 +534,131 @@ export const useGameStore = create<GameState>()(
         // rather than relying on random chance triggers
         const initialStorySchedule: ScheduledEvent[] = [
           // Tutorial events - spaced out so the player has time to explore between them
-          { eventType: 'story', scheduledDay: 2, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'making_connections' } },
-          { eventType: 'story', scheduledDay: 3, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'food_hall_gossip' } },
-          { eventType: 'story', scheduledDay: 4, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'player_tier_intro' } },
-          { eventType: 'story', scheduledDay: 5, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'match_play_basics'}},
-          { eventType: 'story', scheduledDay: 5, scheduledTimeSlot: TimeSlot.EVENING, metadata: { storyEventId: 'training_session_intro' } },
-          { eventType: 'story', scheduledDay: 6, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'relationship_basics' } },
-          { eventType: 'story', scheduledDay: 7, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'shop_basics' } },
+          {
+            eventType: 'story',
+            scheduledDay: 2,
+            scheduledTimeSlot: TimeSlot.MORNING,
+            metadata: { storyEventId: 'making_connections' },
+          },
+          {
+            eventType: 'story',
+            scheduledDay: 3,
+            scheduledTimeSlot: TimeSlot.MORNING,
+            metadata: { storyEventId: 'food_hall_gossip' },
+          },
+          {
+            eventType: 'story',
+            scheduledDay: 4,
+            scheduledTimeSlot: TimeSlot.MORNING,
+            metadata: { storyEventId: 'player_tier_intro' },
+          },
+          {
+            eventType: 'story',
+            scheduledDay: 5,
+            scheduledTimeSlot: TimeSlot.MORNING,
+            metadata: { storyEventId: 'match_play_basics' },
+          },
+          {
+            eventType: 'story',
+            scheduledDay: 5,
+            scheduledTimeSlot: TimeSlot.EVENING,
+            metadata: { storyEventId: 'training_session_intro' },
+          },
+          {
+            eventType: 'story',
+            scheduledDay: 6,
+            scheduledTimeSlot: TimeSlot.MORNING,
+            metadata: { storyEventId: 'relationship_basics' },
+          },
+          {
+            eventType: 'story',
+            scheduledDay: 7,
+            scheduledTimeSlot: TimeSlot.MORNING,
+            metadata: { storyEventId: 'shop_basics' },
+          },
           // Post-tutorial storyline events
-          { eventType: 'story', scheduledDay: 8, scheduledTimeSlot: TimeSlot.AFTERNOON, metadata: { storyEventId: 'rival_first_encounter' } },
-          { eventType: 'story', scheduledDay: 9, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'club_team_intro' } },
-          { eventType: 'story', scheduledDay: 10, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'coach_first_meeting' } },
-          { eventType: 'story', scheduledDay: 11, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'coach_archetype_selection' } },
-          { eventType: 'story', scheduledDay: 11, scheduledTimeSlot: TimeSlot.AFTERNOON, metadata: { storyEventId: 'club_team_first_practice' } },
-          { eventType: 'story', scheduledDay: 12, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'coach_training_focus' } },
-          { eventType: 'story', scheduledDay: 13, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'first_team_match_scheduled' } },
+          {
+            eventType: 'story',
+            scheduledDay: 8,
+            scheduledTimeSlot: TimeSlot.AFTERNOON,
+            metadata: { storyEventId: 'rival_first_encounter' },
+          },
+          {
+            eventType: 'story',
+            scheduledDay: 9,
+            scheduledTimeSlot: TimeSlot.MORNING,
+            metadata: { storyEventId: 'club_team_intro' },
+          },
+          {
+            eventType: 'story',
+            scheduledDay: 10,
+            scheduledTimeSlot: TimeSlot.MORNING,
+            metadata: { storyEventId: 'coach_first_meeting' },
+          },
+          {
+            eventType: 'story',
+            scheduledDay: 11,
+            scheduledTimeSlot: TimeSlot.MORNING,
+            metadata: { storyEventId: 'coach_archetype_selection' },
+          },
+          {
+            eventType: 'story',
+            scheduledDay: 11,
+            scheduledTimeSlot: TimeSlot.AFTERNOON,
+            metadata: { storyEventId: 'club_team_first_practice' },
+          },
+          {
+            eventType: 'story',
+            scheduledDay: 12,
+            scheduledTimeSlot: TimeSlot.MORNING,
+            metadata: { storyEventId: 'coach_training_focus' },
+          },
+          {
+            eventType: 'story',
+            scheduledDay: 13,
+            scheduledTimeSlot: TimeSlot.MORNING,
+            metadata: { storyEventId: 'first_team_match_scheduled' },
+          },
           // Continue coach storyline between matches
-          { eventType: 'story', scheduledDay: 16, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'coach_balanced_development' } },
+          {
+            eventType: 'story',
+            scheduledDay: 16,
+            scheduledTimeSlot: TimeSlot.MORNING,
+            metadata: { storyEventId: 'coach_balanced_development' },
+          },
           // Team matches 2-5 - all before the Riverside Open
           // Each announcement fires 2 days before the match plays (relativeDays: 2 in each event)
-          { eventType: 'story', scheduledDay: 17, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'second_team_match_scheduled' } },
-          { eventType: 'story', scheduledDay: 21, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'third_team_match_scheduled' } },
-          { eventType: 'story', scheduledDay: 25, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'fourth_team_match_scheduled' } },
-          { eventType: 'story', scheduledDay: 29, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'fifth_team_match_scheduled' } },
+          {
+            eventType: 'story',
+            scheduledDay: 17,
+            scheduledTimeSlot: TimeSlot.MORNING,
+            metadata: { storyEventId: 'second_team_match_scheduled' },
+          },
+          {
+            eventType: 'story',
+            scheduledDay: 21,
+            scheduledTimeSlot: TimeSlot.MORNING,
+            metadata: { storyEventId: 'third_team_match_scheduled' },
+          },
+          {
+            eventType: 'story',
+            scheduledDay: 25,
+            scheduledTimeSlot: TimeSlot.MORNING,
+            metadata: { storyEventId: 'fourth_team_match_scheduled' },
+          },
+          {
+            eventType: 'story',
+            scheduledDay: 29,
+            scheduledTimeSlot: TimeSlot.MORNING,
+            metadata: { storyEventId: 'fifth_team_match_scheduled' },
+          },
           // Tournament trigger - after all 5 team matches (day 31 is last match, prep on day 33, ceremony day 36)
-          { eventType: 'story', scheduledDay: 33, scheduledTimeSlot: TimeSlot.MORNING, metadata: { storyEventId: 'riverside_open_prep' } }
+          {
+            eventType: 'story',
+            scheduledDay: 33,
+            scheduledTimeSlot: TimeSlot.MORNING,
+            metadata: { storyEventId: 'riverside_open_prep' },
+          },
         ];
 
         set({
@@ -495,10 +666,7 @@ export const useGameStore = create<GameState>()(
           gamePhase: { type: 'idle', overlay: null },
           calendar: {
             ...get().calendar,
-            scheduledEvents: [
-              ...get().calendar.scheduledEvents,
-              ...initialStorySchedule,
-            ],
+            scheduledEvents: [...get().calendar.scheduledEvents, ...initialStorySchedule],
           },
         });
 
@@ -534,16 +702,24 @@ export const useGameStore = create<GameState>()(
 
         // Apply energy/mood effects from items/abilities + consumed activity buffs
         const { effects: trainingEffects } = EffectAggregator.getActiveEffects(finalPlayer);
-        const energyCostReduction = EffectAggregator.getEffect(trainingEffects, EffectKey.ENERGY_COST_REDUCTION)
-          + (consumableBufAdditional[EffectKey.ENERGY_COST_REDUCTION] ?? 0);
-        const moodGainBonus = result.moodChange > 0
-          ? EffectAggregator.getEffect(trainingEffects, EffectKey.MOOD_GAIN_BONUS)
-            + (consumableBufAdditional[EffectKey.MOOD_GAIN_BONUS] ?? 0)
-          : 0;
+        const energyCostReduction =
+          EffectAggregator.getEffect(trainingEffects, EffectKey.ENERGY_COST_REDUCTION) +
+          (consumableBufAdditional[EffectKey.ENERGY_COST_REDUCTION] ?? 0);
+        const moodGainBonus =
+          result.moodChange > 0
+            ? EffectAggregator.getEffect(trainingEffects, EffectKey.MOOD_GAIN_BONUS) +
+              (consumableBufAdditional[EffectKey.MOOD_GAIN_BONUS] ?? 0)
+            : 0;
 
         // Update energy and mood
-        const newEnergy = Math.max(0, currentStatus.energy - Math.max(0, result.energyCost - energyCostReduction));
-        const newMood = Math.max(-100, Math.min(100, currentStatus.mood + result.moodChange + moodGainBonus));
+        const newEnergy = Math.max(
+          0,
+          currentStatus.energy - Math.max(0, result.energyCost - energyCostReduction),
+        );
+        const newMood = Math.max(
+          -100,
+          Math.min(100, currentStatus.mood + result.moodChange + moodGainBonus),
+        );
 
         set({
           player: finalPlayer,
@@ -599,27 +775,30 @@ export const useGameStore = create<GameState>()(
         // Process one missed event per advanceTime call to avoid modal stacking
         const missedEvents = ScheduledEventManager.getMissedEvents(
           get().calendar.scheduledEvents,
-          newCalendar
+          newCalendar,
         );
 
         if (missedEvents.length > 0) {
           const missed = missedEvents[0];
           console.warn(
             `[EventReconciliation] Missed ${missed.eventType} event ` +
-            `scheduled for Day ${missed.scheduledDay} ${TIME_SLOT_NAMES[missed.scheduledTimeSlot]}` +
-            `${missed.metadata ? ` (${JSON.stringify(missed.metadata)})` : ''}` +
-            ` — now Day ${newCalendar.currentDay} ${TIME_SLOT_NAMES[newCalendar.currentTimeSlot]}.` +
-            ` ${missed.eventType === 'tournament_match' || missed.eventType === 'story_match'
-              ? `Rescheduling to Day ${newCalendar.currentDay + 1} ${TIME_SLOT_NAMES[missed.scheduledTimeSlot]}.`
-              : missed.eventType === 'story' ? 'Triggering now.' : 'Discarding.'
-            }` +
-            ` (${missedEvents.length} total missed event(s) remaining)`
+              `scheduled for Day ${missed.scheduledDay} ${TIME_SLOT_NAMES[missed.scheduledTimeSlot]}` +
+              `${missed.metadata ? ` (${JSON.stringify(missed.metadata)})` : ''}` +
+              ` — now Day ${newCalendar.currentDay} ${TIME_SLOT_NAMES[newCalendar.currentTimeSlot]}.` +
+              ` ${
+                missed.eventType === 'tournament_match' || missed.eventType === 'story_match'
+                  ? `Rescheduling to Day ${newCalendar.currentDay + 1} ${TIME_SLOT_NAMES[missed.scheduledTimeSlot]}.`
+                  : missed.eventType === 'story'
+                    ? 'Triggering now.'
+                    : 'Discarding.'
+              }` +
+              ` (${missedEvents.length} total missed event(s) remaining)`,
           );
 
           const { updatedEvents, storyEventToTrigger } = ScheduledEventManager.reconcileMissedEvent(
             get().calendar.scheduledEvents,
             missed,
-            newCalendar
+            newCalendar,
           );
 
           set({
@@ -630,7 +809,8 @@ export const useGameStore = create<GameState>()(
           });
 
           if (storyEventToTrigger) {
-            const storyEventId = (storyEventToTrigger.metadata as Record<string, unknown>)?.storyEventId as string | undefined;
+            const storyEventId = (storyEventToTrigger.metadata as Record<string, unknown>)
+              ?.storyEventId as string | undefined;
             if (storyEventId) {
               get().checkForStoryEventById(storyEventId);
             }
@@ -649,20 +829,25 @@ export const useGameStore = create<GameState>()(
         //   pendingRandomEvent when it detects an overlay.
         const currentPhase = get().gamePhase;
         const isMatchResults = currentPhase.type === 'match_results';
-        const hasOverlay = currentPhase.type === 'idle' && (currentPhase as IdlePhase).overlay != null;
+        const hasOverlay =
+          currentPhase.type === 'idle' && (currentPhase as IdlePhase).overlay != null;
 
         if (newCalendar.currentTimeSlot !== TimeSlot.NIGHT && !isMatchResults) {
           const scheduledEvent = ScheduledEventManager.getScheduledEvent(
             get().calendar.scheduledEvents,
-            get().calendar
+            get().calendar,
           );
 
           if (scheduledEvent && scheduledEvent.eventType === 'story') {
             if (!hasOverlay) {
               // No overlay — trigger immediately
-              const storyEventId = (scheduledEvent.metadata as Record<string, unknown>)?.storyEventId as string | undefined;
+              const storyEventId = (scheduledEvent.metadata as Record<string, unknown>)
+                ?.storyEventId as string | undefined;
               if (storyEventId) {
-                get().clearScheduledEvent(get().calendar.currentDay, get().calendar.currentTimeSlot);
+                get().clearScheduledEvent(
+                  get().calendar.currentDay,
+                  get().calendar.currentTimeSlot,
+                );
                 get().checkForStoryEventById(storyEventId);
               }
             }
@@ -740,8 +925,10 @@ export const useGameStore = create<GameState>()(
         // advanceTime() only handles story events — navigateTo('idle') handles all types.
         // Skip if advanceTime already set up a story event overlay/phase to avoid overwriting it.
         const phaseAfterAdvance = get().gamePhase;
-        const hasStoryOverlay = phaseAfterAdvance.type === 'story_event' ||
-          (phaseAfterAdvance.type === 'idle' && (phaseAfterAdvance as IdlePhase).overlay?.type === 'story_event');
+        const hasStoryOverlay =
+          phaseAfterAdvance.type === 'story_event' ||
+          (phaseAfterAdvance.type === 'idle' &&
+            (phaseAfterAdvance as IdlePhase).overlay?.type === 'story_event');
         if (phaseAfterAdvance.type === 'idle' && !hasStoryOverlay) {
           get().navigateTo('idle');
         }
@@ -833,7 +1020,12 @@ export const useGameStore = create<GameState>()(
             completedChallenges: data.completedChallenges || [],
             unlockedTiers: data.unlockedTiers || [1],
             shopItems: data.shopItems || [],
-            audioSettings: data.audioSettings || { musicVolume: 0.7, sfxVolume: 0.7, muteMusic: false, muteSfx: false },
+            audioSettings: data.audioSettings || {
+              musicVolume: 0.7,
+              sfxVolume: 0.7,
+              muteMusic: false,
+              muteSfx: false,
+            },
             matchSpeed: data.matchSpeed || DEFAULT_MATCH_SPEED,
           };
 
@@ -843,7 +1035,9 @@ export const useGameStore = create<GameState>()(
             return false;
           }
           if (outcome.status === 'migrated') {
-            console.log(`Imported save migrated from version ${outcome.fromVersion} to ${CURRENT_STORE_VERSION}`);
+            console.log(
+              `Imported save migrated from version ${outcome.fromVersion} to ${CURRENT_STORE_VERSION}`,
+            );
           }
 
           set({
@@ -903,9 +1097,17 @@ export const useGameStore = create<GameState>()(
 
           // Check for scheduled matches with pre-match events
           const state = get();
-          const { calendar, completedStoryEvents, completedStoryEventChoices, relationships, player } = state;
+          const {
+            calendar,
+            completedStoryEvents,
+            completedStoryEventChoices,
+            relationships,
+            player,
+          } = state;
 
-          console.log(`[navigateTo:idle] Day ${calendar.currentDay}, slot ${calendar.currentTimeSlot}`);
+          console.log(
+            `[navigateTo:idle] Day ${calendar.currentDay}, slot ${calendar.currentTimeSlot}`,
+          );
 
           // Check tournament match first
           const tournamentMatch = state.getScheduledTournamentMatch();
@@ -915,18 +1117,26 @@ export const useGameStore = create<GameState>()(
               const prematchEventId = TournamentManager.getPrematchEventId(
                 config,
                 calendar.activeTournament.currentRound,
-                calendar.activeTournament.currentBracket
+                calendar.activeTournament.currentBracket,
               );
               if (prematchEventId && player) {
                 const event = StoryEventManager.getEligibleEventById(prematchEventId, player, {
-                  completedStoryEvents, completedStoryEventChoices, relationships, calendar,
+                  completedStoryEvents,
+                  completedStoryEventChoices,
+                  relationships,
+                  calendar,
                   activeTournament: calendar.activeTournament,
                 });
                 if (event) {
-                  const round = TournamentManager.getCurrentRound(config, calendar.activeTournament!.currentRound);
+                  const round = TournamentManager.getCurrentRound(
+                    config,
+                    calendar.activeTournament!.currentRound,
+                  );
                   const opponent = round?.opponent;
                   const tournamentTier = (opponent?.tier || 1) as OpponentTier;
-                  const opponentArchetypeProfile = profileForArchetype(opponent?.archetype ?? 'all_court');
+                  const opponentArchetypeProfile = profileForArchetype(
+                    opponent?.archetype ?? 'all_court',
+                  );
                   const matchConfig: PreMatchConfig = {
                     opponentName: opponent?.name || 'Opponent',
                     opponentStats: opponent?.stats ?? ({} as PlayerStats),
@@ -940,7 +1150,10 @@ export const useGameStore = create<GameState>()(
                     matchTitle: `${config.name} - Round ${calendar.activeTournament!.currentRound + 1}`,
                   };
                   const availableOptions = PrerequisiteChecker.getAvailableOptions(event, player, {
-                    completedStoryEvents, completedStoryEventChoices, relationships, calendar,
+                    completedStoryEvents,
+                    completedStoryEventChoices,
+                    relationships,
+                    calendar,
                     activeTournament: calendar.activeTournament,
                   });
                   set({
@@ -959,13 +1172,22 @@ export const useGameStore = create<GameState>()(
 
           // Check story match
           const storyMatch = state.getScheduledStoryMatch();
-          console.log(`[navigateTo:idle] Story match scheduled:`, storyMatch ? `Day ${storyMatch.scheduledDay} slot ${storyMatch.scheduledTimeSlot}` : 'none');
+          console.log(
+            `[navigateTo:idle] Story match scheduled:`,
+            storyMatch
+              ? `Day ${storyMatch.scheduledDay} slot ${storyMatch.scheduledTimeSlot}`
+              : 'none',
+          );
           if (storyMatch && player) {
             const metadata = StoryMatchManager.getStoryMatchMetadata(storyMatch);
-            console.log(`[navigateTo:idle] Story match metadata:`, metadata ? `prematchEventId=${metadata.prematchEventId}` : 'none');
+            console.log(
+              `[navigateTo:idle] Story match metadata:`,
+              metadata ? `prematchEventId=${metadata.prematchEventId}` : 'none',
+            );
             if (metadata) {
               const storyTier = metadata.opponentTier as OpponentTier;
-              const opponentArchetypeProfile = metadata.opponentArchetypeProfile ?? createEmptyArchetypeProfile();
+              const opponentArchetypeProfile =
+                metadata.opponentArchetypeProfile ?? createEmptyArchetypeProfile();
               const matchConfig: PreMatchConfig = {
                 opponentName: metadata.opponentName,
                 opponentStats: metadata.opponentStats,
@@ -981,14 +1203,27 @@ export const useGameStore = create<GameState>()(
                 storyMatchMetadata: metadata,
               };
               if (metadata.prematchEventId) {
-                const event = StoryEventManager.getEligibleEventById(metadata.prematchEventId, player, {
-                  completedStoryEvents, completedStoryEventChoices, relationships, calendar,
-                  activeTournament: calendar.activeTournament,
-                });
-                console.log(`[navigateTo:idle] Pre-match event "${metadata.prematchEventId}" eligible:`, !!event);
+                const event = StoryEventManager.getEligibleEventById(
+                  metadata.prematchEventId,
+                  player,
+                  {
+                    completedStoryEvents,
+                    completedStoryEventChoices,
+                    relationships,
+                    calendar,
+                    activeTournament: calendar.activeTournament,
+                  },
+                );
+                console.log(
+                  `[navigateTo:idle] Pre-match event "${metadata.prematchEventId}" eligible:`,
+                  !!event,
+                );
                 if (event) {
                   const availableOptions = PrerequisiteChecker.getAvailableOptions(event, player, {
-                    completedStoryEvents, completedStoryEventChoices, relationships, calendar,
+                    completedStoryEvents,
+                    completedStoryEventChoices,
+                    relationships,
+                    calendar,
                     activeTournament: calendar.activeTournament,
                   });
                   set({
@@ -1011,10 +1246,11 @@ export const useGameStore = create<GameState>()(
           // Check for scheduled story events in the current time slot
           const scheduledEvent = ScheduledEventManager.getScheduledEvent(
             calendar.scheduledEvents,
-            calendar
+            calendar,
           );
           if (scheduledEvent && scheduledEvent.eventType === 'story') {
-            const storyEventId = (scheduledEvent.metadata as Record<string, unknown>)?.storyEventId as string | undefined;
+            const storyEventId = (scheduledEvent.metadata as Record<string, unknown>)
+              ?.storyEventId as string | undefined;
             if (storyEventId) {
               set({ gamePhase: { type: 'idle', overlay: null } });
               get().clearScheduledEvent(calendar.currentDay, calendar.currentTimeSlot);
@@ -1081,18 +1317,35 @@ export const useGameStore = create<GameState>()(
       navigateToScheduledMatch: (matchType) => {
         console.log(`[navigateToScheduledMatch] matchType=${matchType}`);
         const state = get();
-        const { completedStoryEvents, completedStoryEventChoices, relationships, calendar, player } = state;
-        const eventContext = { completedStoryEvents, completedStoryEventChoices, relationships, calendar, activeTournament: calendar.activeTournament };
+        const {
+          completedStoryEvents,
+          completedStoryEventChoices,
+          relationships,
+          calendar,
+          player,
+        } = state;
+        const eventContext = {
+          completedStoryEvents,
+          completedStoryEventChoices,
+          relationships,
+          calendar,
+          activeTournament: calendar.activeTournament,
+        };
 
         if (matchType === 'tournament') {
           const tournamentMatch = state.getScheduledTournamentMatch();
           if (tournamentMatch && calendar.activeTournament) {
             const config = TournamentRegistry.getTournament(calendar.activeTournament.tournamentId);
             if (config) {
-              const round = TournamentManager.getCurrentRound(config, calendar.activeTournament!.currentRound);
+              const round = TournamentManager.getCurrentRound(
+                config,
+                calendar.activeTournament!.currentRound,
+              );
               const opponent = round?.opponent;
               const tournamentTier = (opponent?.tier || 1) as OpponentTier;
-              const opponentArchetypeProfile = profileForArchetype(opponent?.archetype ?? 'all_court');
+              const opponentArchetypeProfile = profileForArchetype(
+                opponent?.archetype ?? 'all_court',
+              );
               const matchConfig: PreMatchConfig = {
                 opponentName: opponent?.name || 'Opponent',
                 opponentStats: opponent?.stats ?? ({} as PlayerStats),
@@ -1108,12 +1361,22 @@ export const useGameStore = create<GameState>()(
 
               // Check for pre-match event before going to match setup
               const prematchEventId = TournamentManager.getPrematchEventId(
-                config, calendar.activeTournament.currentRound, calendar.activeTournament.currentBracket
+                config,
+                calendar.activeTournament.currentRound,
+                calendar.activeTournament.currentBracket,
               );
               if (prematchEventId && player) {
-                const event = StoryEventManager.getEligibleEventById(prematchEventId, player, eventContext);
+                const event = StoryEventManager.getEligibleEventById(
+                  prematchEventId,
+                  player,
+                  eventContext,
+                );
                 if (event) {
-                  const availableOptions = PrerequisiteChecker.getAvailableOptions(event, player, eventContext);
+                  const availableOptions = PrerequisiteChecker.getAvailableOptions(
+                    event,
+                    player,
+                    eventContext,
+                  );
                   set({
                     gamePhase: {
                       type: 'story_event',
@@ -1135,7 +1398,8 @@ export const useGameStore = create<GameState>()(
             const metadata = StoryMatchManager.getStoryMatchMetadata(storyMatch);
             if (metadata) {
               const storyTier = metadata.opponentTier as OpponentTier;
-              const opponentArchetypeProfile = metadata.opponentArchetypeProfile ?? createEmptyArchetypeProfile();
+              const opponentArchetypeProfile =
+                metadata.opponentArchetypeProfile ?? createEmptyArchetypeProfile();
               const matchConfig: PreMatchConfig = {
                 opponentName: metadata.opponentName,
                 opponentStats: metadata.opponentStats,
@@ -1153,9 +1417,17 @@ export const useGameStore = create<GameState>()(
 
               // Check for pre-match event before going to match setup
               if (metadata.prematchEventId && player) {
-                const event = StoryEventManager.getEligibleEventById(metadata.prematchEventId, player, eventContext);
+                const event = StoryEventManager.getEligibleEventById(
+                  metadata.prematchEventId,
+                  player,
+                  eventContext,
+                );
                 if (event) {
-                  const availableOptions = PrerequisiteChecker.getAvailableOptions(event, player, eventContext);
+                  const availableOptions = PrerequisiteChecker.getAvailableOptions(
+                    event,
+                    player,
+                    eventContext,
+                  );
                   set({
                     gamePhase: {
                       type: 'story_event',
@@ -1176,7 +1448,8 @@ export const useGameStore = create<GameState>()(
           if (storyMatch) {
             const metadata = StoryMatchManager.getStoryMatchMetadata(storyMatch);
             if (metadata) {
-              const opponentArchetypeProfile = metadata.opponentArchetypeProfile ?? createEmptyArchetypeProfile();
+              const opponentArchetypeProfile =
+                metadata.opponentArchetypeProfile ?? createEmptyArchetypeProfile();
               const matchConfig: PreMatchConfig = {
                 opponentName: metadata.opponentName,
                 opponentStats: metadata.opponentStats,
@@ -1204,7 +1477,9 @@ export const useGameStore = create<GameState>()(
           opponentStats: config.opponentStats,
           opponentTier: config.opponentTier,
           opponentArchetypeProfile: config.opponentArchetypeProfile,
-          opponentPlayStyle: buildPlayStyle(config.opponentArchetypeProfile ?? createEmptyArchetypeProfile()),
+          opponentPlayStyle: buildPlayStyle(
+            config.opponentArchetypeProfile ?? createEmptyArchetypeProfile(),
+          ),
           opponentAbilities: config.opponentAbilities,
           surface: config.surface,
           matchFormat: config.matchFormat,
@@ -1239,9 +1514,9 @@ export const useGameStore = create<GameState>()(
         if (!player) return;
         const profile = player.archetypeProfile;
         const current = profile.phases[phase];
-        if (!current) return;                         // can only upgrade a chosen specialty
-        if (current.tier >= 3) return;                // max tier
-        if (player.tier <= 1) return;                 // Club Player (tier 1) is capped at specialty tier I
+        if (!current) return; // can only upgrade a chosen specialty
+        if (current.tier >= 3) return; // max tier
+        if (player.tier <= 1) return; // Club Player (tier 1) is capped at specialty tier I
         if (profile.specializationPoints < 1) return;
 
         set({
@@ -1265,7 +1540,7 @@ export const useGameStore = create<GameState>()(
         const profile = player.archetypeProfile;
         const current = profile.phases[phase];
         if (!current) return;
-        if (profile.respecTokens < 1) return;  // respec requires a token (no free respec)
+        if (profile.respecTokens < 1) return; // respec requires a token (no free respec)
 
         // Consume a token, clear the phase (reverts to broad default), and refund
         // the points invested in it so they can be reallocated.
@@ -1337,10 +1612,12 @@ export const useGameStore = create<GameState>()(
       beginMatch: (config, matchType) => {
         // Preserve storyMatchMetadata from setup phase
         const currentPhase = get().gamePhase;
-        const storyMatchMetadata = currentPhase.type === 'match_setup' && currentPhase.matchConfig?.storyMatchMetadata;
+        const storyMatchMetadata =
+          currentPhase.type === 'match_setup' && currentPhase.matchConfig?.storyMatchMetadata;
 
         // Persist match setup for recovery in case of browser refresh
-        const pendingMatchConfig = currentPhase.type === 'match_setup' ? currentPhase.matchConfig : null;
+        const pendingMatchConfig =
+          currentPhase.type === 'match_setup' ? currentPhase.matchConfig : null;
 
         set({
           gamePhase: {
@@ -1382,12 +1659,15 @@ export const useGameStore = create<GameState>()(
         // Calculate rewards. Lucky items can lift the ability drop rate, so the
         // player's aggregated effects have to reach the roll.
         const { effects: rewardEffects } = EffectAggregator.getActiveEffects(state.player);
-        const abilityDropBonus = EffectAggregator.getEffect(rewardEffects, EffectKey.ABILITY_DROP_BONUS);
+        const abilityDropBonus = EffectAggregator.getEffect(
+          rewardEffects,
+          EffectKey.ABILITY_DROP_BONUS,
+        );
         const rewards = MatchRewardSystem.calculateRewards(
           matchStatistics,
           opponentTier,
           isWin,
-          abilityDropBonus
+          abilityDropBonus,
         );
 
         // Apply rewards to player
@@ -1420,11 +1700,19 @@ export const useGameStore = create<GameState>()(
             }
           }
           const currentResults = updatedPlayer.latestMatchResults || [];
-          updatedPlayer.latestMatchResults = ([isWin ? 'win' : 'loss', ...currentResults] as ('win' | 'loss')[]).slice(0, 10);
+          updatedPlayer.latestMatchResults = (
+            [isWin ? 'win' : 'loss', ...currentResults] as ('win' | 'loss')[]
+          ).slice(0, 10);
         }
 
         // Accumulate match statistics for challenge tracking
-        const prevStats = updatedPlayer.cumulativeMatchStats || { aces: 0, winners: 0, longRallies: 0, netPoints: 0, breakPoints: 0 };
+        const prevStats = updatedPlayer.cumulativeMatchStats || {
+          aces: 0,
+          winners: 0,
+          longRallies: 0,
+          netPoints: 0,
+          breakPoints: 0,
+        };
         updatedPlayer = {
           ...updatedPlayer,
           cumulativeMatchStats: {
@@ -1432,7 +1720,8 @@ export const useGameStore = create<GameState>()(
             winners: prevStats.winners + (matchStatistics.winners?.player ?? 0),
             longRallies: prevStats.longRallies + (matchStatistics.rallyPointsWon?.player ?? 0),
             netPoints: prevStats.netPoints + (matchStatistics.netPointsWon?.player ?? 0),
-            breakPoints: prevStats.breakPoints + (matchStatistics.breakPointsConverted?.player ?? 0),
+            breakPoints:
+              prevStats.breakPoints + (matchStatistics.breakPointsConverted?.player ?? 0),
           },
         };
 
@@ -1447,7 +1736,9 @@ export const useGameStore = create<GameState>()(
 
         // Opponent energy drain bonus: draining the opponent's energy through risky
         // key moment choices yields a small mood reward (dominance feeling).
-        const opponentEnergyDrained = accumulatedEffects ? Math.abs(accumulatedEffects.opponentEnergyDelta) : 0;
+        const opponentEnergyDrained = accumulatedEffects
+          ? Math.abs(accumulatedEffects.opponentEnergyDelta)
+          : 0;
         const opponentDrainMoodBonus = Math.round(opponentEnergyDrained * 0.3);
 
         let energyCost: number;
@@ -1459,20 +1750,32 @@ export const useGameStore = create<GameState>()(
           energyCost = DEFAULT_MATCH_ENERGY_COST;
         }
 
-        const matchEnergyCostReduction = consumableMatchAdditional[EffectKey.ENERGY_COST_REDUCTION] ?? 0;
-        const matchMoodGainBonus = rewards.moodChange > 0
-          ? (consumableMatchAdditional[EffectKey.MOOD_GAIN_BONUS] ?? 0)
-          : 0;
+        const matchEnergyCostReduction =
+          consumableMatchAdditional[EffectKey.ENERGY_COST_REDUCTION] ?? 0;
+        const matchMoodGainBonus =
+          rewards.moodChange > 0 ? (consumableMatchAdditional[EffectKey.MOOD_GAIN_BONUS] ?? 0) : 0;
 
-        const newEnergy = Math.max(0, state.currentStatus.energy - Math.max(0, energyCost - matchEnergyCostReduction));
-        const newMood = Math.max(-100, Math.min(100, state.currentStatus.mood + rewards.moodChange + matchMoodGainBonus + keyMomentMoodChange + opponentDrainMoodBonus));
+        const newEnergy = Math.max(
+          0,
+          state.currentStatus.energy - Math.max(0, energyCost - matchEnergyCostReduction),
+        );
+        const newMood = Math.max(
+          -100,
+          Math.min(
+            100,
+            state.currentStatus.mood +
+              rewards.moodChange +
+              matchMoodGainBonus +
+              keyMomentMoodChange +
+              opponentDrainMoodBonus,
+          ),
+        );
 
         // Apply match experience (with EXPERIENCE_GAIN_BONUS multiplier if active)
         const { effects: matchEffects } = EffectAggregator.getActiveEffects(state.player);
         const expBonus = EffectAggregator.getEffect(matchEffects, EffectKey.EXPERIENCE_GAIN_BONUS);
-        let adjustedExp = expBonus > 0
-          ? Math.round(rewards.experience * (1 + expBonus))
-          : rewards.experience;
+        let adjustedExp =
+          expBonus > 0 ? Math.round(rewards.experience * (1 + expBonus)) : rewards.experience;
         // WIN_EXP_BONUS / LOSS_EXP_BONUS: flat XP added based on match result
         const winExpBonus = EffectAggregator.getEffect(matchEffects, EffectKey.WIN_EXP_BONUS);
         const lossExpBonus = EffectAggregator.getEffect(matchEffects, EffectKey.LOSS_EXP_BONUS);
@@ -1489,7 +1792,7 @@ export const useGameStore = create<GameState>()(
             scheduledEvents: ScheduledEventManager.clearScheduledEvent(
               calendarUpdate.scheduledEvents,
               calendarUpdate.currentDay,
-              calendarUpdate.currentTimeSlot
+              calendarUpdate.currentTimeSlot,
             ),
           };
         }
@@ -1523,9 +1826,18 @@ export const useGameStore = create<GameState>()(
 
             // Check if tournament is complete
             const isEliminated = !isWin && tournament.currentBracket === 'loser';
-            const noConsolationRounds = !isWin && tournament.currentBracket === 'winner' && tournament.currentRound + 1 >= totalRounds;
-            const isChampion = isWin && tournament.currentRound + 1 >= totalRounds && tournament.currentBracket === 'winner';
-            const isConsolationWinner = isWin && tournament.currentRound + 1 >= config.rounds.length && tournament.currentBracket === 'loser';
+            const noConsolationRounds =
+              !isWin &&
+              tournament.currentBracket === 'winner' &&
+              tournament.currentRound + 1 >= totalRounds;
+            const isChampion =
+              isWin &&
+              tournament.currentRound + 1 >= totalRounds &&
+              tournament.currentBracket === 'winner';
+            const isConsolationWinner =
+              isWin &&
+              tournament.currentRound + 1 >= config.rounds.length &&
+              tournament.currentBracket === 'loser';
 
             if (isEliminated || noConsolationRounds || isChampion || isConsolationWinner) {
               // Tournament over
@@ -1554,7 +1866,7 @@ export const useGameStore = create<GameState>()(
             scheduledEvents: ScheduledEventManager.clearScheduledEvent(
               calendarUpdate.scheduledEvents,
               calendarUpdate.currentDay,
-              calendarUpdate.currentTimeSlot
+              calendarUpdate.currentTimeSlot,
             ),
           };
         }
@@ -1637,13 +1949,17 @@ export const useGameStore = create<GameState>()(
                 activeTournament: state.calendar.activeTournament,
               });
               if (event) {
-                const availableOptions = PrerequisiteChecker.getAvailableOptions(event, state.player, {
-                  completedStoryEvents: state.completedStoryEvents,
-                  completedStoryEventChoices: state.completedStoryEventChoices,
-                  relationships: state.relationships,
-                  calendar: state.calendar,
-                  activeTournament: state.calendar.activeTournament,
-                });
+                const availableOptions = PrerequisiteChecker.getAvailableOptions(
+                  event,
+                  state.player,
+                  {
+                    completedStoryEvents: state.completedStoryEvents,
+                    completedStoryEventChoices: state.completedStoryEventChoices,
+                    relationships: state.relationships,
+                    calendar: state.calendar,
+                    activeTournament: state.calendar.activeTournament,
+                  },
+                );
                 continuation = {
                   type: 'story_event',
                   event,
@@ -1677,15 +1993,28 @@ export const useGameStore = create<GameState>()(
             // Build an ordered chain of events to show:
             //   1. Post-match round event (e.g. "riverside_r1_loss")
             //   2. Completion event if tournament ended (victory / elimination)
-            const eventChain: Array<{ event: StoryEvent; availableOptions: StoryEventOption[] }> = [];
+            const eventChain: Array<{ event: StoryEvent; availableOptions: StoryEventOption[] }> =
+              [];
 
             // --- Post-match round event ---
             const roundPlayed = phase.tournamentRoundPlayed ?? tournament?.currentRound ?? 0;
-            const postMatchEventId = TournamentManager.getPostMatchEventId(config, roundPlayed, result);
+            const postMatchEventId = TournamentManager.getPostMatchEventId(
+              config,
+              roundPlayed,
+              result,
+            );
             if (postMatchEventId) {
-              const event = StoryEventManager.getEligibleEventById(postMatchEventId, state.player, storyContext);
+              const event = StoryEventManager.getEligibleEventById(
+                postMatchEventId,
+                state.player,
+                storyContext,
+              );
               if (event) {
-                const availableOptions = PrerequisiteChecker.getAvailableOptions(event, state.player, storyContext);
+                const availableOptions = PrerequisiteChecker.getAvailableOptions(
+                  event,
+                  state.player,
+                  storyContext,
+                );
                 eventChain.push({ event, availableOptions });
               }
             }
@@ -1700,9 +2029,17 @@ export const useGameStore = create<GameState>()(
                   : config.eliminationEventId;
                 if (completionEventId) {
                   const completionContext = { ...storyContext, activeTournament: null };
-                  const event = StoryEventManager.getEligibleEventById(completionEventId, state.player, completionContext);
+                  const event = StoryEventManager.getEligibleEventById(
+                    completionEventId,
+                    state.player,
+                    completionContext,
+                  );
                   if (event) {
-                    const availableOptions = PrerequisiteChecker.getAvailableOptions(event, state.player, completionContext);
+                    const availableOptions = PrerequisiteChecker.getAvailableOptions(
+                      event,
+                      state.player,
+                      completionContext,
+                    );
                     eventChain.push({ event, availableOptions });
                   }
                 }
@@ -1710,13 +2047,14 @@ export const useGameStore = create<GameState>()(
                 // Schedule consolation promotion event for 3 days later
                 if (!lastCompleted.won && config.consolationEventId) {
                   const consolationDay = state.calendar.currentDay + 3;
-                  const { updatedEvents } = ScheduledEventManager.scheduleEventWithConflictResolution(
-                    state.calendar.scheduledEvents,
-                    'story',
-                    consolationDay,
-                    TimeSlot.AFTERNOON,
-                    { storyEventId: config.consolationEventId },
-                  );
+                  const { updatedEvents } =
+                    ScheduledEventManager.scheduleEventWithConflictResolution(
+                      state.calendar.scheduledEvents,
+                      'story',
+                      consolationDay,
+                      TimeSlot.AFTERNOON,
+                      { storyEventId: config.consolationEventId },
+                    );
                   set((prev) => ({
                     calendar: { ...prev.calendar, scheduledEvents: updatedEvents },
                   }));
@@ -1766,7 +2104,7 @@ export const useGameStore = create<GameState>()(
           get().routeThroughAcquisitionQueue(
             phase.result.itemsGained ?? [],
             phase.result.hangoutsUnlocked,
-            phase.continuation
+            phase.continuation,
           );
           return;
         }
@@ -1776,7 +2114,7 @@ export const useGameStore = create<GameState>()(
           get().routeThroughAcquisitionQueue(
             currentPhase.overlay.result.itemsGained ?? [],
             currentPhase.overlay.result.hangoutsUnlocked,
-            currentPhase.overlay.continuation
+            currentPhase.overlay.continuation,
           );
         }
       },
@@ -1805,9 +2143,22 @@ export const useGameStore = create<GameState>()(
           } else if (continuation.type === 'milestone_check') {
             get().resolveMilestoneCheck();
           } else if (continuation.type === 'match_setup') {
-            set({ gamePhase: { type: 'match_setup', matchType: continuation.matchType, matchConfig: continuation.matchConfig } });
+            set({
+              gamePhase: {
+                type: 'match_setup',
+                matchType: continuation.matchType,
+                matchConfig: continuation.matchConfig,
+              },
+            });
           } else if (continuation.type === 'story_event') {
-            set({ gamePhase: { type: 'story_event', event: continuation.event, availableOptions: continuation.availableOptions, continuation: continuation.continuation ?? { type: 'idle' } } });
+            set({
+              gamePhase: {
+                type: 'story_event',
+                event: continuation.event,
+                availableOptions: continuation.availableOptions,
+                continuation: continuation.continuation ?? { type: 'idle' },
+              },
+            });
           }
         }
       },
@@ -1848,9 +2199,22 @@ export const useGameStore = create<GameState>()(
         } else if (continuation.type === 'milestone_check') {
           get().resolveMilestoneCheck();
         } else if (continuation.type === 'match_setup') {
-          set({ gamePhase: { type: 'match_setup', matchType: continuation.matchType, matchConfig: continuation.matchConfig } });
+          set({
+            gamePhase: {
+              type: 'match_setup',
+              matchType: continuation.matchType,
+              matchConfig: continuation.matchConfig,
+            },
+          });
         } else if (continuation.type === 'story_event') {
-          set({ gamePhase: { type: 'story_event', event: continuation.event, availableOptions: continuation.availableOptions, continuation: continuation.continuation ?? { type: 'idle' } } });
+          set({
+            gamePhase: {
+              type: 'story_event',
+              event: continuation.event,
+              availableOptions: continuation.availableOptions,
+              continuation: continuation.continuation ?? { type: 'idle' },
+            },
+          });
         }
       },
 
@@ -1891,9 +2255,22 @@ export const useGameStore = create<GameState>()(
           } else if (continuation.type === 'milestone_check') {
             get().resolveMilestoneCheck();
           } else if (continuation.type === 'match_setup') {
-            set({ gamePhase: { type: 'match_setup', matchType: continuation.matchType, matchConfig: continuation.matchConfig } });
+            set({
+              gamePhase: {
+                type: 'match_setup',
+                matchType: continuation.matchType,
+                matchConfig: continuation.matchConfig,
+              },
+            });
           } else if (continuation.type === 'story_event') {
-            set({ gamePhase: { type: 'story_event', event: continuation.event, availableOptions: continuation.availableOptions, continuation: continuation.continuation ?? { type: 'idle' } } });
+            set({
+              gamePhase: {
+                type: 'story_event',
+                event: continuation.event,
+                availableOptions: continuation.availableOptions,
+                continuation: continuation.continuation ?? { type: 'idle' },
+              },
+            });
           }
         }
       },
@@ -2031,10 +2408,7 @@ export const useGameStore = create<GameState>()(
         // Match the real path: an event that arrives while the player is on the
         // menu shows as an overlay, so its result comes back as one too.
         set({
-          gamePhase:
-            gamePhase.type === 'idle'
-              ? { ...gamePhase, overlay }
-              : overlay,
+          gamePhase: gamePhase.type === 'idle' ? { ...gamePhase, overlay } : overlay,
         });
       },
 
@@ -2059,7 +2433,11 @@ export const useGameStore = create<GameState>()(
           activeTournament: gameState.calendar.activeTournament,
         };
 
-        const eligibleEvents = StoryEventManager.getEligibleEventsByTag('milestone', player, storyContext);
+        const eligibleEvents = StoryEventManager.getEligibleEventsByTag(
+          'milestone',
+          player,
+          storyContext,
+        );
         if (eligibleEvents.length === 0) {
           get().navigateTo('idle');
           return;
@@ -2109,7 +2487,9 @@ export const useGameStore = create<GameState>()(
         const roll = random() * 100;
         const triggered = roll < chance;
 
-        console.log(`[Story Event] Tag: ${tag} | Roll: ${roll.toFixed(2)} vs ${chance}% - ${triggered ? 'TRIGGERED' : 'Not triggered'}`);
+        console.log(
+          `[Story Event] Tag: ${tag} | Roll: ${roll.toFixed(2)} vs ${chance}% - ${triggered ? 'TRIGGERED' : 'Not triggered'}`,
+        );
 
         if (!triggered) {
           return;
@@ -2117,23 +2497,25 @@ export const useGameStore = create<GameState>()(
 
         // Get eligible events for this tag
         const gameState = get();
-        const eligibleEvents = StoryEventManager.getEligibleEventsByTag(
-          tag,
-          player,
-          {
-            completedStoryEvents: gameState.completedStoryEvents,
-            completedStoryEventChoices: gameState.completedStoryEventChoices,
-            relationships: gameState.relationships,
-            calendar: gameState.calendar,
-            activeTournament: gameState.calendar.activeTournament,
-            mood: gameState.currentStatus.mood,
-          }
+        const eligibleEvents = StoryEventManager.getEligibleEventsByTag(tag, player, {
+          completedStoryEvents: gameState.completedStoryEvents,
+          completedStoryEventChoices: gameState.completedStoryEventChoices,
+          relationships: gameState.relationships,
+          calendar: gameState.calendar,
+          activeTournament: gameState.calendar.activeTournament,
+          mood: gameState.currentStatus.mood,
+        });
+
+        console.log(
+          `[Story Event] Eligible events with tag '${tag}' (${eligibleEvents.length}):`,
+          eligibleEvents.map((e) => e.name),
         );
 
-        console.log(`[Story Event] Eligible events with tag '${tag}' (${eligibleEvents.length}):`, eligibleEvents.map(e => e.name));
-
         // Select random event
-        const selectedEvent = StoryEventManager.selectRandomEvent(eligibleEvents, gameState.currentStatus.mood);
+        const selectedEvent = StoryEventManager.selectRandomEvent(
+          eligibleEvents,
+          gameState.currentStatus.mood,
+        );
 
         if (selectedEvent) {
           console.log(`[Story Event] Selected: "${selectedEvent.name}"`);
@@ -2192,7 +2574,9 @@ export const useGameStore = create<GameState>()(
         const roll = random() * 100;
         const triggered = roll < chance;
 
-        console.log(`[Story Event] Random | Roll: ${roll.toFixed(2)} vs ${chance}% - ${triggered ? 'TRIGGERED' : 'Not triggered'}`);
+        console.log(
+          `[Story Event] Random | Roll: ${roll.toFixed(2)} vs ${chance}% - ${triggered ? 'TRIGGERED' : 'Not triggered'}`,
+        );
 
         if (!triggered) {
           return;
@@ -2200,22 +2584,25 @@ export const useGameStore = create<GameState>()(
 
         // Get all eligible events
         const gameState = get();
-        const eligibleEvents = StoryEventManager.getAllEligibleEvents(
-          player,
-          {
-            completedStoryEvents: gameState.completedStoryEvents,
-            completedStoryEventChoices: gameState.completedStoryEventChoices,
-            relationships: gameState.relationships,
-            calendar: gameState.calendar,
-            activeTournament: gameState.calendar.activeTournament,
-            mood: gameState.currentStatus.mood,
-          }
+        const eligibleEvents = StoryEventManager.getAllEligibleEvents(player, {
+          completedStoryEvents: gameState.completedStoryEvents,
+          completedStoryEventChoices: gameState.completedStoryEventChoices,
+          relationships: gameState.relationships,
+          calendar: gameState.calendar,
+          activeTournament: gameState.calendar.activeTournament,
+          mood: gameState.currentStatus.mood,
+        });
+
+        console.log(
+          `[Story Event] All eligible events (${eligibleEvents.length}):`,
+          eligibleEvents.map((e) => e.name),
         );
 
-        console.log(`[Story Event] All eligible events (${eligibleEvents.length}):`, eligibleEvents.map(e => e.name));
-
         // Select random event
-        const selectedEvent = StoryEventManager.selectRandomEvent(eligibleEvents, gameState.currentStatus.mood);
+        const selectedEvent = StoryEventManager.selectRandomEvent(
+          eligibleEvents,
+          gameState.currentStatus.mood,
+        );
 
         if (selectedEvent) {
           console.log(`[Story Event] Selected: "${selectedEvent.name}"`);
@@ -2229,7 +2616,9 @@ export const useGameStore = create<GameState>()(
 
           if (hasOverlay) {
             // An overlay (e.g. training_result) is showing — defer until dismissed.
-            console.log(`[Story Event] Overlay active, storing as pending: "${selectedEvent.name}"`);
+            console.log(
+              `[Story Event] Overlay active, storing as pending: "${selectedEvent.name}"`,
+            );
             set({ pendingRandomEvent: { event: selectedEvent, availableOptions } });
           } else if (gamePhase.type === 'idle') {
             set({
@@ -2280,9 +2669,7 @@ export const useGameStore = create<GameState>()(
             continuation: continuation.next,
           };
           set({
-            gamePhase: continuation.wasOverlay
-              ? { type: 'idle', overlay: restored }
-              : restored,
+            gamePhase: continuation.wasOverlay ? { type: 'idle', overlay: restored } : restored,
           });
           get().executeStoryEvent(continuation.event.id, continuation.optionId, score);
           return;
@@ -2366,7 +2753,7 @@ export const useGameStore = create<GameState>()(
           const hasScheduledEvent = ScheduledEventManager.hasScheduledEvent(
             calendar.scheduledEvents,
             calendar.currentDay,
-            slotToCheck as TimeSlot
+            slotToCheck as TimeSlot,
           );
 
           if (hasScheduledEvent) {
@@ -2388,7 +2775,7 @@ export const useGameStore = create<GameState>()(
             calendar: gameState.calendar,
           },
           actualSlotsConsumed,
-          minigameScore
+          minigameScore,
         );
 
         // Apply stat changes to player
@@ -2426,7 +2813,8 @@ export const useGameStore = create<GameState>()(
               ...updatedPlayer.archetypeProfile,
               broad: outcome.effects.setArchetypeBroad,
               specializationPoints:
-                updatedPlayer.archetypeProfile.specializationPoints + STARTING_SPECIALIZATION_POINTS,
+                updatedPlayer.archetypeProfile.specializationPoints +
+                STARTING_SPECIALIZATION_POINTS,
             },
           };
         }
@@ -2465,11 +2853,11 @@ export const useGameStore = create<GameState>()(
         const currentStatus = get().currentStatus;
         const newEnergy = Math.max(
           0,
-          Math.min(100, currentStatus.energy + (outcome.effects.energyChange || 0))
+          Math.min(100, currentStatus.energy + (outcome.effects.energyChange || 0)),
         );
         const newMood = Math.max(
           -100,
-          Math.min(100, currentStatus.mood + (outcome.effects.moodChange || 0))
+          Math.min(100, currentStatus.mood + (outcome.effects.moodChange || 0)),
         );
 
         const newCalendar = { ...calendar };
@@ -2502,7 +2890,7 @@ export const useGameStore = create<GameState>()(
               template.eventType,
               preferredDay,
               template.scheduledTimeSlot,
-              template.metadata
+              template.metadata,
             );
             updatedScheduledEvents = updatedEvents;
           }
@@ -2598,9 +2986,22 @@ export const useGameStore = create<GameState>()(
 
         // Follow continuation
         if (continuation.type === 'match_setup') {
-          set({ gamePhase: { type: 'match_setup', matchType: continuation.matchType, matchConfig: continuation.matchConfig } });
+          set({
+            gamePhase: {
+              type: 'match_setup',
+              matchType: continuation.matchType,
+              matchConfig: continuation.matchConfig,
+            },
+          });
         } else if (continuation.type === 'story_event') {
-          set({ gamePhase: { type: 'story_event', event: continuation.event, availableOptions: continuation.availableOptions, continuation: continuation.continuation ?? { type: 'idle' } } });
+          set({
+            gamePhase: {
+              type: 'story_event',
+              event: continuation.event,
+              availableOptions: continuation.availableOptions,
+              continuation: continuation.continuation ?? { type: 'idle' },
+            },
+          });
         } else if (continuation.type === 'milestone_check') {
           get().resolveMilestoneCheck();
         } else {
@@ -2714,9 +3115,10 @@ export const useGameStore = create<GameState>()(
           ...challenge,
           progress: newProgress,
           status: newProgress.isComplete ? 'completed' : 'active',
-          completedAt: newProgress.isComplete && !challenge.completedAt
-            ? new Date().toISOString()
-            : challenge.completedAt,
+          completedAt:
+            newProgress.isComplete && !challenge.completedAt
+              ? new Date().toISOString()
+              : challenge.completedAt,
         };
 
         set({ activeChallenges: updatedChallenges });
@@ -2845,14 +3247,8 @@ export const useGameStore = create<GameState>()(
         const result = ItemManager.useConsumable(player, instanceId);
 
         // Update player and apply instant effects
-        const newEnergy = Math.max(
-          0,
-          Math.min(100, currentStatus.energy + result.energyChange)
-        );
-        const newMood = Math.max(
-          -100,
-          Math.min(100, currentStatus.mood + result.moodChange)
-        );
+        const newEnergy = Math.max(0, Math.min(100, currentStatus.energy + result.energyChange));
+        const newMood = Math.max(-100, Math.min(100, currentStatus.mood + result.moodChange));
 
         set({
           player: result.player,
@@ -2864,7 +3260,7 @@ export const useGameStore = create<GameState>()(
         });
 
         console.log(
-          `Consumable used: Energy ${result.energyChange >= 0 ? '+' : ''}${result.energyChange}, Mood ${result.moodChange >= 0 ? '+' : ''}${result.moodChange}, Buff: ${result.buffApplied}`
+          `Consumable used: Energy ${result.energyChange >= 0 ? '+' : ''}${result.energyChange}, Mood ${result.moodChange >= 0 ? '+' : ''}${result.moodChange}, Buff: ${result.buffApplied}`,
         );
       },
 
@@ -2932,12 +3328,12 @@ export const useGameStore = create<GameState>()(
         const { player, shopItems } = get();
         if (!player) return false;
 
-        const item = shopItems.find(i => i.id === itemId);
+        const item = shopItems.find((i) => i.id === itemId);
         if (!item || item.purchased || player.experience < item.cost) return false;
 
         const cost = item.cost;
         const markPurchased = (items: ShopItem[]) =>
-          items.map(i => i.id === itemId ? { ...i, purchased: true } : i);
+          items.map((i) => (i.id === itemId ? { ...i, purchased: true } : i));
 
         if (item.category === 'stat_increase') {
           const updatedPlayer = PlayerManager.applyStatBoosts(player, item.statBoosts);
@@ -2949,7 +3345,7 @@ export const useGameStore = create<GameState>()(
         }
 
         if (item.category === 'consumable') {
-          const sourceItem = ALL_ITEMS.find(i => i.id === item.sourceItemId);
+          const sourceItem = ALL_ITEMS.find((i) => i.id === item.sourceItemId);
           if (!sourceItem) return false;
           const updatedPlayer = ItemManager.addItem(player, sourceItem);
           set({
@@ -2961,7 +3357,7 @@ export const useGameStore = create<GameState>()(
         }
 
         if (item.category === 'equipment') {
-          const sourceItem = ALL_ITEMS.find(i => i.id === item.sourceItemId);
+          const sourceItem = ALL_ITEMS.find((i) => i.id === item.sourceItemId);
           if (!sourceItem) return false;
           const updatedPlayer = ItemManager.addItem(player, sourceItem);
           set({
@@ -2986,7 +3382,7 @@ export const useGameStore = create<GameState>()(
 
       refreshShop: () => {
         const { player } = get();
-        const ownedLevels = new Map(player?.abilities.map(a => [a.name, a.level]) ?? []);
+        const ownedLevels = new Map(player?.abilities.map((a) => [a.name, a.level]) ?? []);
         const newItems = generateDailyShopItems(player?.stats ?? null, ownedLevels);
         set({ shopItems: newItems });
       },
@@ -3038,7 +3434,9 @@ export const useGameStore = create<GameState>()(
         if (!options?.skipCeremony) {
           // Check if opening ceremony already completed
           const completedStoryEvents = get().completedStoryEvents;
-          const ceremonyAlreadyCompleted = completedStoryEvents.includes(config.openingCeremonyEventId);
+          const ceremonyAlreadyCompleted = completedStoryEvents.includes(
+            config.openingCeremonyEventId,
+          );
 
           if (ceremonyAlreadyCompleted) {
             // Skip ceremony and schedule first match directly
@@ -3050,13 +3448,17 @@ export const useGameStore = create<GameState>()(
             const player = get().player;
             if (player) {
               const gameState = get();
-              const event = StoryEventManager.getEligibleEventById(config.openingCeremonyEventId, player, {
-                completedStoryEvents: gameState.completedStoryEvents,
-                completedStoryEventChoices: gameState.completedStoryEventChoices,
-                relationships: gameState.relationships,
-                calendar: gameState.calendar,
-                activeTournament: gameState.calendar.activeTournament,
-              });
+              const event = StoryEventManager.getEligibleEventById(
+                config.openingCeremonyEventId,
+                player,
+                {
+                  completedStoryEvents: gameState.completedStoryEvents,
+                  completedStoryEventChoices: gameState.completedStoryEventChoices,
+                  relationships: gameState.relationships,
+                  calendar: gameState.calendar,
+                  activeTournament: gameState.calendar.activeTournament,
+                },
+              );
               if (event) {
                 const availableOptions = PrerequisiteChecker.getAvailableOptions(event, player, {
                   completedStoryEvents: gameState.completedStoryEvents,
@@ -3112,16 +3514,27 @@ export const useGameStore = create<GameState>()(
         console.log('Metadata for scheduled event:', metadata);
 
         // Schedule with conflict resolution
-        const { event: scheduledEvent, actualDay, actualSlot, updatedEvents } =
-          ScheduledEventManager.scheduleEventWithConflictResolution(
-            calendar.scheduledEvents,
-            'tournament_match',
-            preferredDay,
-            preferredSlot,
-            metadata
-          );
+        const {
+          event: scheduledEvent,
+          actualDay,
+          actualSlot,
+          updatedEvents,
+        } = ScheduledEventManager.scheduleEventWithConflictResolution(
+          calendar.scheduledEvents,
+          'tournament_match',
+          preferredDay,
+          preferredSlot,
+          metadata,
+        );
 
-        console.log('Scheduled event created:', scheduledEvent, 'at day:', actualDay, 'slot:', actualSlot);
+        console.log(
+          'Scheduled event created:',
+          scheduledEvent,
+          'at day:',
+          actualDay,
+          'slot:',
+          actualSlot,
+        );
 
         set((state) => ({
           calendar: {
@@ -3156,7 +3569,7 @@ export const useGameStore = create<GameState>()(
             }
 
             // All round-specific events (prematch and postmatch for both brackets)
-            config.rounds.forEach(round => {
+            config.rounds.forEach((round) => {
               eventIdsToRemove.push(round.prematchEventWinner);
               eventIdsToRemove.push(round.prematchEventLoser);
               eventIdsToRemove.push(round.winEventId);
@@ -3167,7 +3580,7 @@ export const useGameStore = create<GameState>()(
 
         // Remove tournament events from completed list (except opening ceremony)
         const updatedCompletedEvents = completedStoryEvents.filter(
-          eventId => !eventIdsToRemove.includes(eventId)
+          (eventId) => !eventIdsToRemove.includes(eventId),
         );
 
         set((state) => ({
@@ -3176,7 +3589,7 @@ export const useGameStore = create<GameState>()(
             activeTournament: null,
             // Clear tournament_match scheduled events
             scheduledEvents: state.calendar.scheduledEvents.filter(
-              event => event.eventType !== 'tournament_match'
+              (event) => event.eventType !== 'tournament_match',
             ),
           },
           completedStoryEvents: updatedCompletedEvents,
@@ -3194,13 +3607,17 @@ export const useGameStore = create<GameState>()(
             activeTournament: calendar.activeTournament,
             completedTournaments: calendar.completedTournaments,
           },
-        }).map(t => t.id);
+        }).map((t) => t.id);
       },
 
       // Get scheduled tournament match
       getScheduledTournamentMatch: (): ScheduledEvent | null => {
         const { calendar } = get();
-        return TournamentManager.getScheduledTournamentMatch(calendar.activeTournament, calendar.scheduledEvents, calendar);
+        return TournamentManager.getScheduledTournamentMatch(
+          calendar.activeTournament,
+          calendar.scheduledEvents,
+          calendar,
+        );
       },
 
       // Check if tournament match is scheduled
@@ -3262,7 +3679,11 @@ export const useGameStore = create<GameState>()(
         set((state) => ({
           calendar: {
             ...state.calendar,
-            scheduledEvents: ScheduledEventManager.clearScheduledEvent(state.calendar.scheduledEvents, day, slot),
+            scheduledEvents: ScheduledEventManager.clearScheduledEvent(
+              state.calendar.scheduledEvents,
+              day,
+              slot,
+            ),
           },
         }));
       },
@@ -3272,7 +3693,6 @@ export const useGameStore = create<GameState>()(
         const { calendar } = get();
         return ScheduledEventManager.getScheduledEvent(calendar.scheduledEvents, calendar);
       },
-
     }),
     {
       name: 'tennis-rpg-game-store',
@@ -3313,8 +3733,8 @@ export const useGameStore = create<GameState>()(
         // Event recovery state (for browser refresh recovery)
         eventRecovery: state.eventRecovery,
       }),
-    }
-  )
+    },
+  ),
 );
 
 // Log every phase transition for debugging

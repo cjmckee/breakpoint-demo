@@ -38,15 +38,15 @@ export const EquipmentSlot: React.FC<EquipmentSlotProps> = ({
 }) => {
   const [isDropTarget, setIsDropTarget] = useState(false);
 
-  const draggingCompatible = draggingItem?.equipmentSlot === slot && draggingItem.instanceId !== equippedItem?.instanceId;
+  const draggingCompatible =
+    draggingItem?.equipmentSlot === slot && draggingItem.instanceId !== equippedItem?.instanceId;
 
   // Which item to compare against the equipped one — a compatible drag wins over hover.
-  const compareItem =
-    draggingCompatible
-      ? draggingItem
-      : hoveredItem?.equipmentSlot === slot && hoveredItem.instanceId !== equippedItem?.instanceId
-        ? hoveredItem
-        : null;
+  const compareItem = draggingCompatible
+    ? draggingItem
+    : hoveredItem?.equipmentSlot === slot && hoveredItem.instanceId !== equippedItem?.instanceId
+      ? hoveredItem
+      : null;
 
   const handleDragOver = (e: React.DragEvent) => {
     if (!draggingCompatible) return;

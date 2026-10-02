@@ -88,18 +88,35 @@ function version5Save(): PersistedStoreState {
       storyItems: [],
       equippedItems: {
         racquet: {
-          id: 'beginner_racquet', name: 'Beginner Racquet', description: '', type: 'equipment',
+          id: 'beginner_racquet',
+          name: 'Beginner Racquet',
+          description: '',
+          type: 'equipment',
           equipmentSlot: 'racquet',
           modifiers: { statBoosts: { serve: 3 } },
         },
-        shoes: null, outfit: null, hat: null,
+        shoes: null,
+        outfit: null,
+        hat: null,
       },
       nextActivityBuffs: [],
-      seenItemIds: [], activeIndicators: [], seenChallengeIds: [],
-      level: 7, experience: 120, totalExperienceEarned: 900, tier: 2,
-      createdAt: '', updatedAt: '',
+      seenItemIds: [],
+      activeIndicators: [],
+      seenChallengeIds: [],
+      level: 7,
+      experience: 120,
+      totalExperienceEarned: 900,
+      tier: 2,
+      createdAt: '',
+      updatedAt: '',
       trainingSessionsCompleted: 22,
-      cumulativeMatchStats: { aces: 12, winners: 40, longRallies: 9, netPoints: 15, breakPoints: 6 },
+      cumulativeMatchStats: {
+        aces: 12,
+        winners: 40,
+        longRallies: 9,
+        netPoints: 15,
+        breakPoints: 6,
+      },
       flags: { hangoutUnlocked_jen: true },
       archetypeProfile: { broad: null, phases: {}, specializationPoints: 2, respecTokens: 0 },
     },
@@ -109,7 +126,8 @@ function version5Save(): PersistedStoreState {
     relationships: { jen: 30 },
     hangoutThresholdsSeen: { jen: [25] },
     storyEventTriggerChance: 40,
-    activeChallenges: [], completedChallenges: ['first_win'],
+    activeChallenges: [],
+    completedChallenges: ['first_win'],
     unlockedTiers: [1, 2],
     shopItems: [],
     calendar: { practiceOpponents: {}, scheduledEvents: [] },
@@ -135,32 +153,58 @@ function preConsolidationSave(): PersistedStoreState {
       storyItems: [],
       equippedItems: {
         racquet: {
-          id: 'net_racquet', name: 'Net Racquet', description: '', type: 'equipment',
+          id: 'net_racquet',
+          name: 'Net Racquet',
+          description: '',
+          type: 'equipment',
           equipmentSlot: 'racquet',
           modifiers: { statBoosts: { volley: 6, overhead: 4, serve: 3 } },
         },
-        shoes: null, apparel: null, accessory: null,
+        shoes: null,
+        apparel: null,
+        accessory: null,
       },
       nextActivityBuffs: [{ statBoosts: { agility: 4 } }],
-      seenItemIds: [], activeIndicators: [], seenChallengeIds: [],
-      level: 5, experience: 0, totalExperienceEarned: 0, tier: 1,
-      createdAt: '', updatedAt: '',
+      seenItemIds: [],
+      activeIndicators: [],
+      seenChallengeIds: [],
+      level: 5,
+      experience: 0,
+      totalExperienceEarned: 0,
+      tier: 1,
+      createdAt: '',
+      updatedAt: '',
       trainingSessionsCompleted: 0,
       cumulativeMatchStats: { aces: 0, winners: 0, longRallies: 0, netPoints: 0, breakPoints: 0 },
       flags: {},
       archetypeProfile: { broad: null, phases: {}, specializationPoints: 0, respecTokens: 0 },
     },
-    shopItems: [{
-      id: 'shop_volley', category: 'stat_increase', name: 'Volley Lesson', description: '',
-      cost: 100, purchased: false, statBoosts: { volley: 2, overhead: 2 },
-    }],
-    activityHistory: [], completedStoryEvents: [], completedStoryEventChoices: {},
-    relationships: {}, hangoutThresholdsSeen: {}, storyEventTriggerChance: 0,
-    activeChallenges: [], completedChallenges: [], unlockedTiers: [1],
+    shopItems: [
+      {
+        id: 'shop_volley',
+        category: 'stat_increase',
+        name: 'Volley Lesson',
+        description: '',
+        cost: 100,
+        purchased: false,
+        statBoosts: { volley: 2, overhead: 2 },
+      },
+    ],
+    activityHistory: [],
+    completedStoryEvents: [],
+    completedStoryEventChoices: {},
+    relationships: {},
+    hangoutThresholdsSeen: {},
+    storyEventTriggerChance: 0,
+    activeChallenges: [],
+    completedChallenges: [],
+    unlockedTiers: [1],
     calendar: {
       practiceOpponents: {
         1: {
-          opponentId: 'practice_1', name: 'Practice Bot', tier: 1,
+          opponentId: 'practice_1',
+          name: 'Practice Bot',
+          tier: 1,
           stats: {
             core: { serve: 30, forehand: 32, backhand: 28, return: 31, slice: 20 },
             technical: { volley: 40, overhead: 36, dropShot: 18, spin: 25, placement: 23 },
@@ -169,19 +213,32 @@ function preConsolidationSave(): PersistedStoreState {
           },
         },
       },
-      scheduledEvents: [{
-        eventType: 'story_match', scheduledDay: 5, scheduledTimeSlot: 0,
-        metadata: {
-          opponentId: 'jen', opponentName: 'Jen', opponentTier: 1,
-          winEventId: 'tutorial_jen_win', lossEventId: 'tutorial_jen_loss',
-          opponentStats: {
-            core: { serve: 23, forehand: 25, backhand: 21, return: 25, slice: 20 },
-            technical: { volley: 22, overhead: 18, dropShot: 15, spin: 19, placement: 23 },
-            physical: { speed: 30, stamina: 25, strength: 20, agility: 20, recovery: 20 },
-            mental: { focus: 23, anticipation: 27, shotVariety: 15, offensive: 27, defensive: 27 },
+      scheduledEvents: [
+        {
+          eventType: 'story_match',
+          scheduledDay: 5,
+          scheduledTimeSlot: 0,
+          metadata: {
+            opponentId: 'jen',
+            opponentName: 'Jen',
+            opponentTier: 1,
+            winEventId: 'tutorial_jen_win',
+            lossEventId: 'tutorial_jen_loss',
+            opponentStats: {
+              core: { serve: 23, forehand: 25, backhand: 21, return: 25, slice: 20 },
+              technical: { volley: 22, overhead: 18, dropShot: 15, spin: 19, placement: 23 },
+              physical: { speed: 30, stamina: 25, strength: 20, agility: 20, recovery: 20 },
+              mental: {
+                focus: 23,
+                anticipation: 27,
+                shotVariety: 15,
+                offensive: 27,
+                defensive: 27,
+              },
+            },
           },
         },
-      }],
+      ],
     },
     currentStatus: { energy: 50, mood: 10, lastActivity: 'training' },
     audioSettings: { musicVolume: 1, sfxVolume: 1, muteMusic: false, muteSfx: false },
@@ -193,64 +250,99 @@ function main(): void {
 
   console.log('── every version above the floor has a registered step ──');
   const gaps = missingMigrationVersions();
-  check('no version between the floor and current is missing a migration',
+  check(
+    'no version between the floor and current is missing a migration',
     gaps.length === 0,
-    gaps.length ? `missing steps for version(s): ${gaps.join(', ')}` : undefined);
-  check('the floor is not above the current version',
-    RESET_BEFORE_VERSION <= CURRENT_STORE_VERSION);
+    gaps.length ? `missing steps for version(s): ${gaps.join(', ')}` : undefined,
+  );
+  check(
+    'the floor is not above the current version',
+    RESET_BEFORE_VERSION <= CURRENT_STORE_VERSION,
+  );
 
   console.log('\n── a version 5 save migrates forward with its progress intact ──');
   const outcome = runMigrations(version5Save(), 5);
-  check('outcome is a migration, not a reset',
+  check(
+    'outcome is a migration, not a reset',
     outcome.status === 'migrated',
-    outcome.status === 'reset' ? outcome.reason : undefined);
+    outcome.status === 'reset' ? outcome.reason : undefined,
+  );
 
   const migrated = outcome.state;
   const player = migrated.player!;
   check('player survives', player !== null && player.name === 'Mid-Season Player');
   check('level and experience survive', player.level === 7 && player.experience === 120);
-  check('stats are untouched', player.stats.core.serve === 44 && player.stats.mental.tactics === 31);
-  check('story progress survives',
+  check(
+    'stats are untouched',
+    player.stats.core.serve === 44 && player.stats.mental.tactics === 31,
+  );
+  check(
+    'story progress survives',
     migrated.completedStoryEvents.includes('club_team_first_practice') &&
-    migrated.relationships.jen === 30);
-  check('tier progression survives',
-    JSON.stringify(migrated.unlockedTiers) === JSON.stringify([1, 2]));
+      migrated.relationships.jen === 30,
+  );
+  check(
+    'tier progression survives',
+    JSON.stringify(migrated.unlockedTiers) === JSON.stringify([1, 2]),
+  );
   check('current status survives', migrated.currentStatus.energy === 62);
 
   console.log('\n  the 5 → 6 change itself:');
-  check('equippedItems gains the charm slot, empty',
-    'charm' in player.equippedItems && player.equippedItems.charm === null);
-  check('existing equipment stays equipped',
-    player.equippedItems.racquet?.id === 'beginner_racquet');
+  check(
+    'equippedItems gains the charm slot, empty',
+    'charm' in player.equippedItems && player.equippedItems.charm === null,
+  );
+  check(
+    'existing equipment stays equipped',
+    player.equippedItems.racquet?.id === 'beginner_racquet',
+  );
 
-  const sprout = player.inventory.find(i => i.id === 'lucky_sprout');
+  const sprout = player.inventory.find((i) => i.id === 'lucky_sprout');
   check('the held lucky item is still in the inventory', sprout !== undefined);
-  check('it gains the charm slot, so it can actually be equipped',
-    sprout?.equipmentSlot === 'charm');
-  check('it picks up the effect Lucky Sprout gained in the same release',
+  check(
+    'it gains the charm slot, so it can actually be equipped',
+    sprout?.equipmentSlot === 'charm',
+  );
+  check(
+    'it picks up the effect Lucky Sprout gained in the same release',
     sprout?.modifiers?.additional?.[EffectKey.ENERGY_GAIN_BONUS] ===
-      LUCKY_SPROUT.modifiers?.additional?.[EffectKey.ENERGY_GAIN_BONUS]);
-  check('non-lucky inventory items are left alone',
-    player.inventory.find(i => i.id === 'banana')?.equipmentSlot === undefined);
+      LUCKY_SPROUT.modifiers?.additional?.[EffectKey.ENERGY_GAIN_BONUS],
+  );
+  check(
+    'non-lucky inventory items are left alone',
+    player.inventory.find((i) => i.id === 'banana')?.equipmentSlot === undefined,
+  );
 
   console.log('\n  the 6 → 7 change itself:');
   const heldItems = [...player.inventory, player.equippedItems.racquet!];
-  check('every held item gains an instance id',
-    heldItems.every(i => typeof i.instanceId === 'string' && i.instanceId.length > 0));
-  const bananaIds = player.inventory.filter(i => i.id === 'banana').map(i => i.instanceId);
-  check('duplicate copies get distinct instance ids',
-    bananaIds.length === 2 && bananaIds[0] !== bananaIds[1], bananaIds.join(' / '));
+  check(
+    'every held item gains an instance id',
+    heldItems.every((i) => typeof i.instanceId === 'string' && i.instanceId.length > 0),
+  );
+  const bananaIds = player.inventory.filter((i) => i.id === 'banana').map((i) => i.instanceId);
+  check(
+    'duplicate copies get distinct instance ids',
+    bananaIds.length === 2 && bananaIds[0] !== bananaIds[1],
+    bananaIds.join(' / '),
+  );
   const rerun = runMigrations(migrated, 6).state.player!;
-  check('re-running the step keeps existing instance ids',
-    rerun.inventory.every((item, i) => item.instanceId === player.inventory[i].instanceId));
+  check(
+    're-running the step keeps existing instance ids',
+    rerun.inventory.every((item, i) => item.instanceId === player.inventory[i].instanceId),
+  );
 
   console.log('\n  the 7 → 8 change itself:');
   // The field did not exist before 8, so a carried-forward save has to come out
   // holding a real speed — anything reading it expects one, not undefined.
-  check('a save without the field gains the default match speed',
-    migrated.matchSpeed === DEFAULT_MATCH_SPEED, String(migrated.matchSpeed));
-  check('the default speed is one the delay table knows',
-    MATCH_SPEED_DELAYS[migrated.matchSpeed] !== undefined);
+  check(
+    'a save without the field gains the default match speed',
+    migrated.matchSpeed === DEFAULT_MATCH_SPEED,
+    String(migrated.matchSpeed),
+  );
+  check(
+    'the default speed is one the delay table knows',
+    MATCH_SPEED_DELAYS[migrated.matchSpeed] !== undefined,
+  );
 
   console.log('\n── a save below the breaking floor is discarded ──');
   const stale = preConsolidationSave();
@@ -260,30 +352,44 @@ function main(): void {
   check('outcome is a reset, with a reason', staleOutcome.status === 'reset');
   const reset = staleOutcome.state;
   check('reset player is null (no half-migrated stats survive)', reset.player === null);
-  check('reset calendar matches a brand-new game',
-    JSON.stringify(reset.calendar) === JSON.stringify(fresh.calendar));
-  check('reset currentStatus matches a brand-new game',
-    JSON.stringify(reset.currentStatus) === JSON.stringify(fresh.currentStatus));
+  check(
+    'reset calendar matches a brand-new game',
+    JSON.stringify(reset.calendar) === JSON.stringify(fresh.calendar),
+  );
+  check(
+    'reset currentStatus matches a brand-new game',
+    JSON.stringify(reset.currentStatus) === JSON.stringify(fresh.currentStatus),
+  );
   check('reset shopItems is empty', reset.shopItems.length === 0);
-  check('reset unlockedTiers is just tier 1',
-    JSON.stringify(reset.unlockedTiers) === JSON.stringify([1]));
-  check('reset never carries the stale player\'s data forward',
-    JSON.stringify(reset) !== JSON.stringify(stale));
+  check(
+    'reset unlockedTiers is just tier 1',
+    JSON.stringify(reset.unlockedTiers) === JSON.stringify([1]),
+  );
+  check(
+    "reset never carries the stale player's data forward",
+    JSON.stringify(reset) !== JSON.stringify(stale),
+  );
 
   console.log('\n── the reset save is immediately playable ──');
   // A player built fresh from a null-reset state uses PlayerManager's own
   // defaults, not the stale save's — just confirming the reset player slot
   // is a clean null a caller has to fill in, not a half-built object.
-  check('createDefaultPersistedState().player is also null (createPlayer fills it)',
-    fresh.player === null);
+  check(
+    'createDefaultPersistedState().player is also null (createPlayer fills it)',
+    fresh.player === null,
+  );
   const testProfile = new PlayerProfile('p1', 'Fresh Player');
-  check('a freshly created profile has finite overallRating',
-    Number.isFinite(testProfile.overallRating) && testProfile.overallRating > 0);
-  check('a fresh profile has exactly the 14 current stats, no retired keys',
+  check(
+    'a freshly created profile has finite overallRating',
+    Number.isFinite(testProfile.overallRating) && testProfile.overallRating > 0,
+  );
+  check(
+    'a fresh profile has exactly the 14 current stats, no retired keys',
     Object.keys(testProfile.stats.core).length === 5 &&
-    Object.keys(testProfile.stats.technical).length === 3 &&
-    Object.keys(testProfile.stats.physical).length === 3 &&
-    Object.keys(testProfile.stats.mental).length === 3);
+      Object.keys(testProfile.stats.technical).length === 3 &&
+      Object.keys(testProfile.stats.physical).length === 3 &&
+      Object.keys(testProfile.stats.mental).length === 3,
+  );
 
   console.log('\n── a save already on CURRENT_STORE_VERSION passes through untouched ──');
   const current = createDefaultPersistedState();
@@ -293,21 +399,31 @@ function main(): void {
   check('current-version state is returned as-is', currentOutcome.state === current);
 
   console.log('\n── junk and impossible versions reset instead of loading ──');
-  check('a save from a newer build resets',
-    runMigrations(createDefaultPersistedState(), CURRENT_STORE_VERSION + 1).status === 'reset');
+  check(
+    'a save from a newer build resets',
+    runMigrations(createDefaultPersistedState(), CURRENT_STORE_VERSION + 1).status === 'reset',
+  );
   check('a missing save resets', runMigrations(null, CURRENT_STORE_VERSION).status === 'reset');
-  check('a non-save object resets',
-    runMigrations({ nonsense: true }, CURRENT_STORE_VERSION).status === 'reset');
+  check(
+    'a non-save object resets',
+    runMigrations({ nonsense: true }, CURRENT_STORE_VERSION).status === 'reset',
+  );
 
   console.log('\n── migrateStore (the rehydration entry point) returns the state itself ──');
-  check('a version 5 save comes back migrated',
-    migrateStore(version5Save(), 5).player?.equippedItems.charm === null);
-  check('a pre-floor save comes back as a default game',
-    migrateStore(preConsolidationSave(), RESET_BEFORE_VERSION - 1).player === null);
+  check(
+    'a version 5 save comes back migrated',
+    migrateStore(version5Save(), 5).player?.equippedItems.charm === null,
+  );
+  check(
+    'a pre-floor save comes back as a default game',
+    migrateStore(preConsolidationSave(), RESET_BEFORE_VERSION - 1).player === null,
+  );
 
-  console.log(failures === 0
-    ? '\n✅ all checks passed\n'
-    : `\n❌ ${failures} check${failures === 1 ? '' : 's'} failed\n`);
+  console.log(
+    failures === 0
+      ? '\n✅ all checks passed\n'
+      : `\n❌ ${failures} check${failures === 1 ? '' : 's'} failed\n`,
+  );
   process.exit(failures === 0 ? 0 : 1);
 }
 

@@ -61,7 +61,7 @@ export const AnimatedWords: React.FC<AnimatedWordsProps> = ({ content, intensity
         return renderWordSpan(
           characterName || segment.characterId,
           `${segIdx}-char`,
-          'font-bold text-purple-600 dark:text-purple-400'
+          'font-bold text-purple-600 dark:text-purple-400',
         );
       })}
     </span>

@@ -49,9 +49,7 @@ test('night dims the menu and leaves Sleep lit', async ({ page }) => {
 
   // ...which only holds if no ancestor boxes it into its own stacking context.
   // This is the regression: the action hub used to be an unpositioned grid.
-  const hubZ = await page
-    .getByTestId('action-hub')
-    .evaluate((el) => getComputedStyle(el).zIndex);
+  const hubZ = await page.getByTestId('action-hub').evaluate((el) => getComputedStyle(el).zIndex);
   expect(hubZ, 'action hub must not create a stacking context outside the tutorial').toBe('auto');
 });
 
@@ -72,7 +70,5 @@ test('the walkthrough still stacks above the page while it runs', async ({ page 
   // Polled rather than read once: the spotlight carries transition-all, and
   // z-index is an animatable integer, so a single read lands mid-flight on
   // whatever step the interpolation is on.
-  await expect
-    .poll(() => hub.evaluate((el) => getComputedStyle(el).zIndex))
-    .toBe('60');
+  await expect.poll(() => hub.evaluate((el) => getComputedStyle(el).zIndex)).toBe('60');
 });

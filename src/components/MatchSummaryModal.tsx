@@ -48,10 +48,14 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
   };
 
   // Helper function to get performance level color and label
-  const getPerformanceDisplay = (score: number): { color: string; bgColor: string; label: string } => {
-    if (score >= 75) return { color: 'text-green-500', bgColor: 'bg-green-500', label: 'Excellent' };
+  const getPerformanceDisplay = (
+    score: number,
+  ): { color: string; bgColor: string; label: string } => {
+    if (score >= 75)
+      return { color: 'text-green-500', bgColor: 'bg-green-500', label: 'Excellent' };
     if (score >= 60) return { color: 'text-blue-500', bgColor: 'bg-blue-500', label: 'Good' };
-    if (score >= 45) return { color: 'text-yellow-500', bgColor: 'bg-yellow-500', label: 'Average' };
+    if (score >= 45)
+      return { color: 'text-yellow-500', bgColor: 'bg-yellow-500', label: 'Average' };
     return { color: 'text-red-500', bgColor: 'bg-red-500', label: 'Poor' };
   };
 
@@ -82,21 +86,21 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
 
         {/* Final Score */}
         <div className="bg-pixel-card border-4 border-pixel-border p-4">
-          <h3 className="text-lg font-bold text-pixel-text mb-4 text-center">
-            📊 Final Score
-          </h3>
+          <h3 className="text-lg font-bold text-pixel-text mb-4 text-center">📊 Final Score</h3>
 
           {/* Set-by-Set Scores */}
           <div className="space-y-3 mb-4">
             {finalScore.sets.map((set, index) => (
               <div key={index} className="grid grid-cols-3 gap-4 items-center">
-                <div className={`text-right font-bold ${set.player > set.opponent ? 'text-green-500' : 'text-pixel-text'}`}>
+                <div
+                  className={`text-right font-bold ${set.player > set.opponent ? 'text-green-500' : 'text-pixel-text'}`}
+                >
                   {set.player}
                 </div>
-                <div className="text-center text-sm text-pixel-text-muted">
-                  Set {index + 1}
-                </div>
-                <div className={`text-left font-bold ${set.opponent > set.player ? 'text-red-500' : 'text-pixel-text'}`}>
+                <div className="text-center text-sm text-pixel-text-muted">Set {index + 1}</div>
+                <div
+                  className={`text-left font-bold ${set.opponent > set.player ? 'text-red-500' : 'text-pixel-text'}`}
+                >
                   {set.opponent}
                 </div>
               </div>
@@ -109,14 +113,14 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
               <div className="text-right">
                 <div className="text-sm text-pixel-text-muted mb-1">You</div>
                 <div className="text-4xl font-bold text-green-500">
-                  {finalScore.sets.filter(s => s.player > s.opponent).length}
+                  {finalScore.sets.filter((s) => s.player > s.opponent).length}
                 </div>
               </div>
               <div className="text-center text-2xl font-bold text-pixel-text-muted">-</div>
               <div className="text-left">
                 <div className="text-sm text-pixel-text-muted mb-1">Opponent</div>
                 <div className="text-4xl font-bold text-red-500">
-                  {finalScore.sets.filter(s => s.opponent > s.player).length}
+                  {finalScore.sets.filter((s) => s.opponent > s.player).length}
                 </div>
               </div>
             </div>
@@ -125,9 +129,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
 
         {/* Match Highlights */}
         <div className="bg-pixel-card border-4 border-yellow-500 p-4">
-          <h3 className="text-lg font-bold text-pixel-text mb-4 text-center">
-            Highlights
-          </h3>
+          <h3 className="text-lg font-bold text-pixel-text mb-4 text-center">Highlights</h3>
           <div className="space-y-2">
             {(() => {
               const highlights: Array<{ icon: string; text: string }> = [];
@@ -161,7 +163,9 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
               }
 
               if (keyMomentHistory && keyMomentHistory.length > 0) {
-                const won = keyMomentHistory.filter(km => km.result.pointWinner === 'player').length;
+                const won = keyMomentHistory.filter(
+                  (km) => km.result.pointWinner === 'player',
+                ).length;
                 highlights.push({
                   icon: won > keyMomentHistory.length / 2 ? '🏅' : '⚡',
                   text: `${won}/${keyMomentHistory.length} key moments won`,
@@ -189,9 +193,11 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
                 });
               }
 
-
-
-              if (isWinner && matchStatistics.largestDeficit && matchStatistics.largestDeficit.deficitSize >= 2) {
+              if (
+                isWinner &&
+                matchStatistics.largestDeficit &&
+                matchStatistics.largestDeficit.deficitSize >= 2
+              ) {
                 const deficit = matchStatistics.largestDeficit;
                 const comebackText = deficit.gameScore
                   ? `Came back from ${deficit.games}, ${deficit.gameScore}`
@@ -207,7 +213,10 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
               }
 
               return highlights.map((h, idx) => (
-                <div key={idx} className="flex items-center gap-3 p-2 bg-yellow-500 bg-opacity-10 border border-yellow-500 border-opacity-30">
+                <div
+                  key={idx}
+                  className="flex items-center gap-3 p-2 bg-yellow-500 bg-opacity-10 border border-yellow-500 border-opacity-30"
+                >
                   <span className="text-xl">{h.icon}</span>
                   <span className="text-sm text-pixel-text">{h.text}</span>
                 </div>
@@ -219,12 +228,12 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
         {/* Performance & Rewards Section */}
         {/* Overall Performance Grade */}
         <div className="bg-pixel-card border-4 border-pixel-accent p-6 text-center">
-          <h3 className="text-lg font-bold text-pixel-text mb-3">
-            📊 Match Performance
-          </h3>
+          <h3 className="text-lg font-bold text-pixel-text mb-3">📊 Match Performance</h3>
           <div className="flex items-center justify-center gap-6">
             <div>
-              <div className={`text-6xl font-bold ${getPerformanceDisplay(matchRewards.performanceBreakdown.overallScore).color}`}>
+              <div
+                className={`text-6xl font-bold ${getPerformanceDisplay(matchRewards.performanceBreakdown.overallScore).color}`}
+              >
                 {getOverallGrade(matchRewards.performanceBreakdown.overallScore)}
               </div>
               <div className="text-sm text-pixel-text-muted mt-2">Overall Grade</div>
@@ -245,11 +254,31 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
           </h3>
           <div className="space-y-3">
             {[
-              { name: 'Serving', score: matchRewards.performanceBreakdown.servingScore, icon: '🎾' },
-              { name: 'Returning', score: matchRewards.performanceBreakdown.returningScore, icon: '↩️' },
-              { name: 'Rally Play', score: matchRewards.performanceBreakdown.rallyScore, icon: '🔁' },
-              { name: 'Net Play', score: matchRewards.performanceBreakdown.netPlayScore, icon: '🥅' },
-              { name: 'Mental Game', score: matchRewards.performanceBreakdown.mentalScore, icon: '🧠' },
+              {
+                name: 'Serving',
+                score: matchRewards.performanceBreakdown.servingScore,
+                icon: '🎾',
+              },
+              {
+                name: 'Returning',
+                score: matchRewards.performanceBreakdown.returningScore,
+                icon: '↩️',
+              },
+              {
+                name: 'Rally Play',
+                score: matchRewards.performanceBreakdown.rallyScore,
+                icon: '🔁',
+              },
+              {
+                name: 'Net Play',
+                score: matchRewards.performanceBreakdown.netPlayScore,
+                icon: '🥅',
+              },
+              {
+                name: 'Mental Game',
+                score: matchRewards.performanceBreakdown.mentalScore,
+                icon: '🧠',
+              },
             ].map(({ name, score, icon }) => {
               const display = getPerformanceDisplay(score);
               return (
@@ -277,22 +306,23 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
 
         {/* Rewards Earned */}
         <div className="bg-pixel-card border-4 border-pixel-accent p-4">
-          <h3 className="text-lg font-bold text-pixel-text mb-4 text-center">
-            🎁 Rewards Earned
-          </h3>
+          <h3 className="text-lg font-bold text-pixel-text mb-4 text-center">🎁 Rewards Earned</h3>
 
           {/* Experience & Mood */}
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div className="bg-blue-500 bg-opacity-20 border-2 border-blue-500 p-3 text-center">
               <div className="text-xs text-pixel-text-muted mb-1">Experience</div>
-              <div className="text-2xl font-bold text-blue-500">
-                +{matchRewards.experience}
-              </div>
+              <div className="text-2xl font-bold text-blue-500">+{matchRewards.experience}</div>
             </div>
-            <div className={`${matchRewards.moodChange >= 0 ? 'bg-green-500' : 'bg-red-500'} bg-opacity-20 border-2 ${matchRewards.moodChange >= 0 ? 'border-green-500' : 'border-red-500'} p-3 text-center`}>
+            <div
+              className={`${matchRewards.moodChange >= 0 ? 'bg-green-500' : 'bg-red-500'} bg-opacity-20 border-2 ${matchRewards.moodChange >= 0 ? 'border-green-500' : 'border-red-500'} p-3 text-center`}
+            >
               <div className="text-xs text-pixel-text-muted mb-1">Mood</div>
-              <div className={`text-2xl font-bold ${matchRewards.moodChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                {matchRewards.moodChange >= 0 ? '+' : ''}{matchRewards.moodChange}
+              <div
+                className={`text-2xl font-bold ${matchRewards.moodChange >= 0 ? 'text-green-500' : 'text-red-500'}`}
+              >
+                {matchRewards.moodChange >= 0 ? '+' : ''}
+                {matchRewards.moodChange}
               </div>
             </div>
           </div>
@@ -300,17 +330,21 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
           {/* XP Breakdown */}
           {matchRewards.experienceBreakdown && (
             <div className="mb-4">
-              <h4 className="text-sm font-bold text-pixel-text mb-3 text-center">
-                XP Breakdown
-              </h4>
+              <h4 className="text-sm font-bold text-pixel-text mb-3 text-center">XP Breakdown</h4>
               <div className="space-y-1 text-xs text-pixel-text-muted">
                 <div className="flex justify-between">
-                  <span>Base ({matchRewards.experienceBreakdown.base === 40 ? 'Win' : 'Loss'})</span>
+                  <span>
+                    Base ({matchRewards.experienceBreakdown.base === 40 ? 'Win' : 'Loss'})
+                  </span>
                   <span className="text-blue-400">+{matchRewards.experienceBreakdown.base}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Performance bonus (×{matchRewards.experienceBreakdown.tierMultiplier} tier)</span>
-                  <span className="text-blue-400">+{matchRewards.experienceBreakdown.performanceBonus}</span>
+                  <span>
+                    Performance bonus (×{matchRewards.experienceBreakdown.tierMultiplier} tier)
+                  </span>
+                  <span className="text-blue-400">
+                    +{matchRewards.experienceBreakdown.performanceBonus}
+                  </span>
                 </div>
                 <div className="flex justify-between border-t border-pixel-border pt-1 mt-1 font-bold text-pixel-text">
                   <span>Total XP</span>
@@ -331,20 +365,28 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
                   <div
                     key={idx}
                     className={`p-3 border-2 ${
-                      ability.rarity === 'legendary' ? 'border-purple-500 bg-purple-500' :
-                      ability.rarity === 'rare' ? 'border-orange-500 bg-orange-500' :
-                      ability.rarity === 'uncommon' ? 'border-blue-500 bg-blue-500' :
-                      'border-gray-500 bg-gray-500'
+                      ability.rarity === 'legendary'
+                        ? 'border-purple-500 bg-purple-500'
+                        : ability.rarity === 'rare'
+                          ? 'border-orange-500 bg-orange-500'
+                          : ability.rarity === 'uncommon'
+                            ? 'border-blue-500 bg-blue-500'
+                            : 'border-gray-500 bg-gray-500'
                     } bg-opacity-20`}
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-pixel-text">{ability.name}</span>
-                      <span className={`text-xs px-2 py-1 border ${
-                        ability.rarity === 'legendary' ? 'border-purple-500 text-purple-500' :
-                        ability.rarity === 'rare' ? 'border-orange-500 text-orange-500' :
-                        ability.rarity === 'uncommon' ? 'border-blue-500 text-blue-500' :
-                        'border-gray-500 text-gray-500'
-                      } uppercase`}>
+                      <span
+                        className={`text-xs px-2 py-1 border ${
+                          ability.rarity === 'legendary'
+                            ? 'border-purple-500 text-purple-500'
+                            : ability.rarity === 'rare'
+                              ? 'border-orange-500 text-orange-500'
+                              : ability.rarity === 'uncommon'
+                                ? 'border-blue-500 text-blue-500'
+                                : 'border-gray-500 text-gray-500'
+                        } uppercase`}
+                      >
                         {ability.rarity}
                       </span>
                     </div>
@@ -362,12 +404,8 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
             onClick={() => setShowDetailedStats(!showDetailedStats)}
             className="w-full p-4 flex items-center justify-between hover:bg-pixel-bg transition-colors"
           >
-            <h3 className="text-lg font-bold text-pixel-text">
-              📊 Detailed Statistics
-            </h3>
-            <span className="text-2xl text-pixel-text">
-              {showDetailedStats ? '▼' : '▶'}
-            </span>
+            <h3 className="text-lg font-bold text-pixel-text">📊 Detailed Statistics</h3>
+            <span className="text-2xl text-pixel-text">{showDetailedStats ? '▼' : '▶'}</span>
           </button>
 
           {showDetailedStats && (
@@ -398,7 +436,8 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
                           Choice: {km.chosenOption.name}
                         </div>
                         <div className="text-xs text-pixel-text-muted">
-                          Result: {km.result.outcome} ({Math.round(km.result.finalProbability)}% chance)
+                          Result: {km.result.outcome} ({Math.round(km.result.finalProbability)}%
+                          chance)
                         </div>
                       </div>
                     ))}
@@ -448,31 +487,49 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
                   <div className="grid grid-cols-3 gap-2 text-sm">
                     <div className="text-pixel-text-muted">Aces</div>
                     <div className="text-pixel-text text-center">{matchStatistics.aces.player}</div>
-                    <div className="text-pixel-text text-center">{matchStatistics.aces.opponent}</div>
+                    <div className="text-pixel-text text-center">
+                      {matchStatistics.aces.opponent}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2 text-sm">
                     <div className="text-pixel-text-muted">Double Faults</div>
-                    <div className="text-pixel-text text-center">{matchStatistics.doubleFaults.player}</div>
-                    <div className="text-pixel-text text-center">{matchStatistics.doubleFaults.opponent}</div>
+                    <div className="text-pixel-text text-center">
+                      {matchStatistics.doubleFaults.player}
+                    </div>
+                    <div className="text-pixel-text text-center">
+                      {matchStatistics.doubleFaults.opponent}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2 text-sm">
                     <div className="text-pixel-text-muted">1st Serve %</div>
-                    <div className="text-pixel-text text-center">{Math.round(matchStatistics.firstServePercentage.player)}%</div>
-                    <div className="text-pixel-text text-center">{Math.round(matchStatistics.firstServePercentage.opponent)}%</div>
+                    <div className="text-pixel-text text-center">
+                      {Math.round(matchStatistics.firstServePercentage.player)}%
+                    </div>
+                    <div className="text-pixel-text text-center">
+                      {Math.round(matchStatistics.firstServePercentage.opponent)}%
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2 text-sm">
                     <div className="text-pixel-text-muted">1st Serve Points Won</div>
-                    <div className="text-pixel-text text-center">{matchStatistics.firstServePointsWon.player}</div>
-                    <div className="text-pixel-text text-center">{matchStatistics.firstServePointsWon.opponent}</div>
+                    <div className="text-pixel-text text-center">
+                      {matchStatistics.firstServePointsWon.player}
+                    </div>
+                    <div className="text-pixel-text text-center">
+                      {matchStatistics.firstServePointsWon.opponent}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2 text-sm">
                     <div className="text-pixel-text-muted">2nd Serve Points Won</div>
-                    <div className="text-pixel-text text-center">{matchStatistics.secondServePointsWon.player}</div>
-                    <div className="text-pixel-text text-center">{matchStatistics.secondServePointsWon.opponent}</div>
+                    <div className="text-pixel-text text-center">
+                      {matchStatistics.secondServePointsWon.player}
+                    </div>
+                    <div className="text-pixel-text text-center">
+                      {matchStatistics.secondServePointsWon.opponent}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -489,26 +546,42 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
 
                   <div className="grid grid-cols-3 gap-2 text-sm">
                     <div className="text-pixel-text-muted">Total Points Won</div>
-                    <div className="text-pixel-text text-center">{matchStatistics.totalPoints.player}</div>
-                    <div className="text-pixel-text text-center">{matchStatistics.totalPoints.opponent}</div>
+                    <div className="text-pixel-text text-center">
+                      {matchStatistics.totalPoints.player}
+                    </div>
+                    <div className="text-pixel-text text-center">
+                      {matchStatistics.totalPoints.opponent}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2 text-sm">
                     <div className="text-pixel-text-muted">Winners</div>
-                    <div className="text-pixel-text text-center">{matchStatistics.winners.player}</div>
-                    <div className="text-pixel-text text-center">{matchStatistics.winners.opponent}</div>
+                    <div className="text-pixel-text text-center">
+                      {matchStatistics.winners.player}
+                    </div>
+                    <div className="text-pixel-text text-center">
+                      {matchStatistics.winners.opponent}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2 text-sm">
                     <div className="text-pixel-text-muted">Unforced Errors</div>
-                    <div className="text-pixel-text text-center">{matchStatistics.unforcedErrors.player}</div>
-                    <div className="text-pixel-text text-center">{matchStatistics.unforcedErrors.opponent}</div>
+                    <div className="text-pixel-text text-center">
+                      {matchStatistics.unforcedErrors.player}
+                    </div>
+                    <div className="text-pixel-text text-center">
+                      {matchStatistics.unforcedErrors.opponent}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2 text-sm">
                     <div className="text-pixel-text-muted">Forced Errors</div>
-                    <div className="text-pixel-text text-center">{matchStatistics.forcedErrors.player}</div>
-                    <div className="text-pixel-text text-center">{matchStatistics.forcedErrors.opponent}</div>
+                    <div className="text-pixel-text text-center">
+                      {matchStatistics.forcedErrors.player}
+                    </div>
+                    <div className="text-pixel-text text-center">
+                      {matchStatistics.forcedErrors.opponent}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -525,27 +598,45 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
 
                   <div className="grid grid-cols-3 gap-2 text-sm">
                     <div className="text-pixel-text-muted">Opportunities</div>
-                    <div className="text-pixel-text text-center">{matchStatistics.breakPointOpportunities.player}</div>
-                    <div className="text-pixel-text text-center">{matchStatistics.breakPointOpportunities.opponent}</div>
+                    <div className="text-pixel-text text-center">
+                      {matchStatistics.breakPointOpportunities.player}
+                    </div>
+                    <div className="text-pixel-text text-center">
+                      {matchStatistics.breakPointOpportunities.opponent}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2 text-sm">
                     <div className="text-pixel-text-muted">Converted</div>
-                    <div className="text-pixel-text text-center">{matchStatistics.breakPointsConverted.player}</div>
-                    <div className="text-pixel-text text-center">{matchStatistics.breakPointsConverted.opponent}</div>
+                    <div className="text-pixel-text text-center">
+                      {matchStatistics.breakPointsConverted.player}
+                    </div>
+                    <div className="text-pixel-text text-center">
+                      {matchStatistics.breakPointsConverted.opponent}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2 text-sm">
                     <div className="text-pixel-text-muted">Conversion %</div>
                     <div className="text-pixel-text text-center">
                       {matchStatistics.breakPointOpportunities.player > 0
-                        ? Math.round((matchStatistics.breakPointsConverted.player / matchStatistics.breakPointOpportunities.player) * 100)
-                        : 0}%
+                        ? Math.round(
+                            (matchStatistics.breakPointsConverted.player /
+                              matchStatistics.breakPointOpportunities.player) *
+                              100,
+                          )
+                        : 0}
+                      %
                     </div>
                     <div className="text-pixel-text text-center">
                       {matchStatistics.breakPointOpportunities.opponent > 0
-                        ? Math.round((matchStatistics.breakPointsConverted.opponent / matchStatistics.breakPointOpportunities.opponent) * 100)
-                        : 0}%
+                        ? Math.round(
+                            (matchStatistics.breakPointsConverted.opponent /
+                              matchStatistics.breakPointOpportunities.opponent) *
+                              100,
+                          )
+                        : 0}
+                      %
                     </div>
                   </div>
                 </div>
@@ -587,7 +678,10 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
                 <div className="border-t-2 border-pixel-border pt-4">
                   <h4 className="text-md font-bold text-pixel-text mb-3">🏸 Shot Breakdown</h4>
                   <div className="space-y-2">
-                    <div className="grid gap-2 text-xs text-pixel-text-muted font-bold mb-1" style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr' }}>
+                    <div
+                      className="grid gap-2 text-xs text-pixel-text-muted font-bold mb-1"
+                      style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr' }}
+                    >
                       <div>Shot Type</div>
                       <div className="text-center">Used</div>
                       <div className="text-center">Success %</div>
@@ -600,18 +694,29 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
                       .map(([shotType, stats]) => {
                         if (!stats) return null;
                         const attempts = stats.attempts.player;
-                        const successRate = attempts > 0 ? Math.round((stats.successful.player / attempts) * 100) : 0;
-                        const displayName = shotType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                        const successRate =
+                          attempts > 0 ? Math.round((stats.successful.player / attempts) * 100) : 0;
+                        const displayName = shotType
+                          .replace(/_/g, ' ')
+                          .replace(/\b\w/g, (c) => c.toUpperCase());
                         return (
-                          <div key={shotType} className="grid gap-2 text-sm items-center" style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr' }}>
+                          <div
+                            key={shotType}
+                            className="grid gap-2 text-sm items-center"
+                            style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr' }}
+                          >
                             <div className="text-pixel-text text-xs truncate">{displayName}</div>
                             <div className="text-pixel-text text-center">{attempts}</div>
                             <div className="text-center">
-                              <span className={`font-bold ${successRate >= 70 ? 'text-green-500' : successRate >= 50 ? 'text-yellow-500' : 'text-red-500'}`}>
+                              <span
+                                className={`font-bold ${successRate >= 70 ? 'text-green-500' : successRate >= 50 ? 'text-yellow-500' : 'text-red-500'}`}
+                              >
                                 {successRate}%
                               </span>
                             </div>
-                            <div className="text-pixel-text text-center">{stats.winners.player}</div>
+                            <div className="text-pixel-text text-center">
+                              {stats.winners.player}
+                            </div>
                           </div>
                         );
                       })}
@@ -620,69 +725,95 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
               )}
 
               {/* Stat Utilization */}
-              {Object.keys(matchStatistics.shotTypeStats).length > 0 && (() => {
-                // Which stat actually governs each shot's quality — same mapping ShotCalculator
-                // uses, so this panel can't drift out of sync with the real composite again.
-                const statAgg: Record<string, { attempts: number; successful: number; winners: number; errors: number }> = {};
-                let totalAttempts = 0;
+              {Object.keys(matchStatistics.shotTypeStats).length > 0 &&
+                (() => {
+                  // Which stat actually governs each shot's quality — same mapping ShotCalculator
+                  // uses, so this panel can't drift out of sync with the real composite again.
+                  const statAgg: Record<
+                    string,
+                    { attempts: number; successful: number; winners: number; errors: number }
+                  > = {};
+                  let totalAttempts = 0;
 
-                Object.entries(matchStatistics.shotTypeStats).forEach(([shotType, stats]) => {
-                  if (!stats) return;
-                  const stat = getPrimaryStatName(shotType);
-                  if (!statAgg[stat]) {
-                    statAgg[stat] = { attempts: 0, successful: 0, winners: 0, errors: 0 };
-                  }
-                  statAgg[stat].attempts += stats.attempts.player;
-                  statAgg[stat].successful += stats.successful.player;
-                  statAgg[stat].winners += stats.winners.player;
-                  statAgg[stat].errors += stats.errors.player;
-                  totalAttempts += stats.attempts.player;
-                });
+                  Object.entries(matchStatistics.shotTypeStats).forEach(([shotType, stats]) => {
+                    if (!stats) return;
+                    const stat = getPrimaryStatName(shotType);
+                    if (!statAgg[stat]) {
+                      statAgg[stat] = { attempts: 0, successful: 0, winners: 0, errors: 0 };
+                    }
+                    statAgg[stat].attempts += stats.attempts.player;
+                    statAgg[stat].successful += stats.successful.player;
+                    statAgg[stat].winners += stats.winners.player;
+                    statAgg[stat].errors += stats.errors.player;
+                    totalAttempts += stats.attempts.player;
+                  });
 
-                const statEntries = Object.entries(statAgg)
-                  .filter(([_, data]) => data.attempts > 0)
-                  .sort(([, a], [, b]) => b.attempts - a.attempts);
+                  const statEntries = Object.entries(statAgg)
+                    .filter(([_, data]) => data.attempts > 0)
+                    .sort(([, a], [, b]) => b.attempts - a.attempts);
 
-                if (statEntries.length === 0) return null;
+                  if (statEntries.length === 0) return null;
 
-                return (
-                  <div className="border-t-2 border-pixel-border pt-4">
-                    <h4 className="text-md font-bold text-pixel-text mb-3">📊 Stat Utilization</h4>
-                    <p className="text-xs text-pixel-text-muted mb-3">How often each stat was used as the primary stat for shots</p>
-                    <div className="space-y-2">
-                      <div className="grid gap-2 text-xs text-pixel-text-muted font-bold mb-1" style={{ gridTemplateColumns: '10rem 1fr 3.5rem 3.5rem 3.5rem' }}>
-                        <div>Stat</div>
-                        <div>Usage</div>
-                        <div className="text-center">Count</div>
-                        <div className="text-center">Succ%</div>
-                        <div className="text-center">W</div>
+                  return (
+                    <div className="border-t-2 border-pixel-border pt-4">
+                      <h4 className="text-md font-bold text-pixel-text mb-3">
+                        📊 Stat Utilization
+                      </h4>
+                      <p className="text-xs text-pixel-text-muted mb-3">
+                        How often each stat was used as the primary stat for shots
+                      </p>
+                      <div className="space-y-2">
+                        <div
+                          className="grid gap-2 text-xs text-pixel-text-muted font-bold mb-1"
+                          style={{ gridTemplateColumns: '10rem 1fr 3.5rem 3.5rem 3.5rem' }}
+                        >
+                          <div>Stat</div>
+                          <div>Usage</div>
+                          <div className="text-center">Count</div>
+                          <div className="text-center">Succ%</div>
+                          <div className="text-center">W</div>
+                        </div>
+                        {statEntries.map(([stat, data]) => {
+                          const pct = totalAttempts > 0 ? (data.attempts / totalAttempts) * 100 : 0;
+                          const successRate =
+                            data.attempts > 0
+                              ? Math.round((data.successful / data.attempts) * 100)
+                              : 0;
+                          return (
+                            <div
+                              key={stat}
+                              className="grid items-center gap-2"
+                              style={{ gridTemplateColumns: '10rem 1fr 3.5rem 3.5rem 3.5rem' }}
+                            >
+                              <div className="text-sm font-bold text-pixel-text truncate">
+                                {formatStatName(stat)}
+                              </div>
+                              <div className="bg-pixel-bg border border-pixel-border h-3 overflow-hidden">
+                                <div
+                                  className="h-full bg-pixel-accent bg-opacity-60"
+                                  style={{ width: `${Math.min(100, pct)}%` }}
+                                />
+                              </div>
+                              <div className="text-xs text-pixel-text text-center">
+                                {data.attempts}
+                              </div>
+                              <div className="text-center">
+                                <span
+                                  className={`text-xs font-bold ${successRate >= 70 ? 'text-green-500' : successRate >= 50 ? 'text-yellow-500' : 'text-red-500'}`}
+                                >
+                                  {successRate}%
+                                </span>
+                              </div>
+                              <div className="text-xs text-pixel-text text-center">
+                                {data.winners}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                      {statEntries.map(([stat, data]) => {
-                        const pct = totalAttempts > 0 ? (data.attempts / totalAttempts) * 100 : 0;
-                        const successRate = data.attempts > 0 ? Math.round((data.successful / data.attempts) * 100) : 0;
-                        return (
-                          <div key={stat} className="grid items-center gap-2" style={{ gridTemplateColumns: '10rem 1fr 3.5rem 3.5rem 3.5rem' }}>
-                            <div className="text-sm font-bold text-pixel-text truncate">{formatStatName(stat)}</div>
-                            <div className="bg-pixel-bg border border-pixel-border h-3 overflow-hidden">
-                              <div
-                                className="h-full bg-pixel-accent bg-opacity-60"
-                                style={{ width: `${Math.min(100, pct)}%` }}
-                              />
-                            </div>
-                            <div className="text-xs text-pixel-text text-center">{data.attempts}</div>
-                            <div className="text-center">
-                              <span className={`text-xs font-bold ${successRate >= 70 ? 'text-green-500' : successRate >= 50 ? 'text-yellow-500' : 'text-red-500'}`}>
-                                {successRate}%
-                              </span>
-                            </div>
-                            <div className="text-xs text-pixel-text text-center">{data.winners}</div>
-                          </div>
-                        );
-                      })}
                     </div>
-                  </div>
-                );
-              })()}
+                  );
+                })()}
 
               {/* Key Moments Performance */}
               {keyMomentHistory && keyMomentHistory.length > 0 && (
@@ -691,19 +822,18 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-green-500 bg-opacity-10 border-2 border-green-500 p-3 text-center">
                       <div className="text-2xl font-bold text-green-500">
-                        {keyMomentHistory.filter(km => km.result.pointWinner === 'player').length}
+                        {keyMomentHistory.filter((km) => km.result.pointWinner === 'player').length}
                       </div>
-                      <div className="text-xs text-pixel-text-muted mt-1">
-                        Key Moments Won
-                      </div>
+                      <div className="text-xs text-pixel-text-muted mt-1">Key Moments Won</div>
                     </div>
                     <div className="bg-red-500 bg-opacity-10 border-2 border-red-500 p-3 text-center">
                       <div className="text-2xl font-bold text-red-500">
-                        {keyMomentHistory.filter(km => km.result.pointWinner === 'opponent').length}
+                        {
+                          keyMomentHistory.filter((km) => km.result.pointWinner === 'opponent')
+                            .length
+                        }
                       </div>
-                      <div className="text-xs text-pixel-text-muted mt-1">
-                        Key Moments Lost
-                      </div>
+                      <div className="text-xs text-pixel-text-muted mt-1">Key Moments Lost</div>
                     </div>
                   </div>
                 </div>

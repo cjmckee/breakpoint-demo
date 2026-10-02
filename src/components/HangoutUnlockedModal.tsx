@@ -23,16 +23,22 @@ export const HangoutUnlockedModal: React.FC<HangoutUnlockedModalProps> = ({
   onClose,
 }) => {
   const playerName = usePlayerName();
-  const characterName = getCharacterName(characterId, playerName)
-    ?? characterId.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+  const characterName =
+    getCharacterName(characterId, playerName) ??
+    characterId.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Hangout Unlocked" size="sm" testId="hangout-unlocked">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Hangout Unlocked"
+      size="sm"
+      testId="hangout-unlocked"
+    >
       <div className="text-center space-y-6 py-2">
         <div className="text-5xl">🎾</div>
         <p className="text-lg font-semibold text-pixel-text">
-          You can now hang out with{' '}
-          <span className="text-pixel-accent">{characterName}</span>!
+          You can now hang out with <span className="text-pixel-accent">{characterName}</span>!
         </p>
         <p className="text-sm text-pixel-text-muted">
           Visit the Hang Out option from the main menu to spend time together.

@@ -64,7 +64,7 @@ export function useTutorialSpotlight<T extends string>(
   const canGoBack = currentStep !== null && currentStep > 0;
 
   const isSpotlit = (target: T) => activeStep?.target === target;
-  const isDimmed  = (target: T) => isActive && !isSpotlit(target);
+  const isDimmed = (target: T) => isActive && !isSpotlit(target);
 
   return { currentStep, activeStep, isActive, isSpotlit, isDimmed, next, back, canGoBack };
 }

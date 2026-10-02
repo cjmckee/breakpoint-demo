@@ -89,7 +89,7 @@ export function isHangoutCharacter(characterId: string): boolean {
 export function hasUnseenTierEvent(
   characterId: string,
   relationshipValue: number,
-  hangoutThresholdsSeen: Record<string, number[]>
+  hangoutThresholdsSeen: Record<string, number[]>,
 ): boolean {
   const seenForChar = hangoutThresholdsSeen[characterId] ?? [];
   const currentTier = getHangoutTier(characterId, relationshipValue);

@@ -32,9 +32,18 @@ import type { PlayerStats, ShotContext } from '../../types';
 import type { ArchetypeProfile } from '../../types/archetype';
 import { PlayerProfile } from '../../core/PlayerProfile';
 import { ShotCalculator } from '../../core/ShotCalculator';
-import { SERVE_CONSISTENCY, PROBABILITY_STEEPNESS, sigmoidProbability } from '../../config/shotThresholds';
+import {
+  SERVE_CONSISTENCY,
+  PROBABILITY_STEEPNESS,
+  sigmoidProbability,
+} from '../../config/shotThresholds';
 
-const NONE: ArchetypeProfile = { broad: null, phases: {}, specializationPoints: 0, respecTokens: 0 };
+const NONE: ArchetypeProfile = {
+  broad: null,
+  phases: {},
+  specializationPoints: 0,
+  respecTokens: 0,
+};
 
 const uniform = (r: number): PlayerStats => ({
   core: { serve: r, forehand: r, backhand: r, return: r, net: r },
@@ -44,8 +53,11 @@ const uniform = (r: number): PlayerStats => ({
 });
 
 const CONTEXT: ShotContext = {
-  difficulty: 'normal', pressure: 'low', courtPosition: 'baseline',
-  rallyLength: 1, courtSurface: 'hard',
+  difficulty: 'normal',
+  pressure: 'low',
+  courtPosition: 'baseline',
+  rallyLength: 1,
+  courtSurface: 'hard',
 };
 
 function main(): void {
@@ -54,32 +66,56 @@ function main(): void {
 
   for (const serveType of ['serve_first', 'serve_second'] as const) {
     const c = SERVE_CONSISTENCY[serveType];
-    console.log(`\n── ${serveType}: midpoint = ${c.base} + ${c.perAccuracy} × expected accuracy ──`);
-    console.log(['L'.padStart(4), 'finalAdj'.padStart(10), 'accuracy'.padStart(10), 'midpoint'.padStart(10),
-      'margin'.padStart(9), 'p(in)'.padStart(8)].join(''));
+    console.log(
+      `\n── ${serveType}: midpoint = ${c.base} + ${c.perAccuracy} × expected accuracy ──`,
+    );
+    console.log(
+      [
+        'L'.padStart(4),
+        'finalAdj'.padStart(10),
+        'accuracy'.padStart(10),
+        'midpoint'.padStart(10),
+        'margin'.padStart(9),
+        'p(in)'.padStart(8),
+      ].join(''),
+    );
     console.log('-'.repeat(53));
 
     for (const L of [20, 25, 30, 40, 50, 60, 70, 80, 90]) {
       const p = new PlayerProfile('p', 'P', uniform(L), NONE);
       const o = new PlayerProfile('o', 'O', uniform(L), NONE);
-      p.matchForm = 0; o.matchForm = 0;
+      p.matchForm = 0;
+      o.matchForm = 0;
 
-      let adjSum = 0, accSum = 0, inSum = 0;
+      let adjSum = 0,
+        accSum = 0,
+        inSum = 0;
       for (let i = 0; i < N; i++) {
         const r = calc.calculateShotSuccess(p, serveType, CONTEXT, o, 'well_positioned');
         adjSum += r.modifiers.finalAdjustment;
         accSum += r.modifiers.serveAccuracy ?? 0;
-        inSum += sigmoidProbability(r.modifiers.serveAccuracy ?? 0, r.thresholds?.inPlay ?? 0,
-          PROBABILITY_STEEPNESS.serve.inPlay);
+        inSum += sigmoidProbability(
+          r.modifiers.serveAccuracy ?? 0,
+          r.thresholds?.inPlay ?? 0,
+          PROBABILITY_STEEPNESS.serve.inPlay,
+        );
       }
 
-      const adj = adjSum / N, acc = accSum / N;
+      const adj = adjSum / N,
+        acc = accSum / N;
       // Mirrors ShotCalculator: expected accuracy is clamped to 0-100 before it
       // sets the midpoint, because the roll it is compared against saturates there.
       const mid = c.base + c.perAccuracy * Math.min(100, adj * L);
-      console.log([String(L).padStart(4), adj.toFixed(3).padStart(10), acc.toFixed(1).padStart(10),
-        mid.toFixed(1).padStart(10), (acc - mid >= 0 ? '+' : '') + (acc - mid).toFixed(1).padStart(8),
-        `${((inSum / N) * 100).toFixed(1)}%`.padStart(8)].join(''));
+      console.log(
+        [
+          String(L).padStart(4),
+          adj.toFixed(3).padStart(10),
+          acc.toFixed(1).padStart(10),
+          mid.toFixed(1).padStart(10),
+          (acc - mid >= 0 ? '+' : '') + (acc - mid).toFixed(1).padStart(8),
+          `${((inSum / N) * 100).toFixed(1)}%`.padStart(8),
+        ].join(''),
+      );
     }
     console.log('\nmargin now depends only on the expected accuracy, not on overall rating.');
   }

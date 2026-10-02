@@ -43,9 +43,7 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
   if (!player) {
     return (
       <Card title="Player Stats" collapsible={collapsible} defaultCollapsed={defaultCollapsed}>
-        <div className="text-center py-8 text-pixel-text-muted">
-          No player data available
-        </div>
+        <div className="text-center py-8 text-pixel-text-muted">No player data available</div>
       </Card>
     );
   }
@@ -150,9 +148,7 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
       {/* Abilities Section */}
       {player.abilities && player.abilities.length > 0 && (
         <div className="mt-6 pt-6 border-t-4 border-pixel-border">
-          <h4 className="font-semibold text-pixel-text-muted text-sm pb-2 mb-3">
-            Abilities
-          </h4>
+          <h4 className="font-semibold text-pixel-text-muted text-sm pb-2 mb-3">Abilities</h4>
           <AbilityDisplay abilities={player.abilities} />
         </div>
       )}
@@ -161,12 +157,15 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
       <div className="mt-6 pt-4 border-t-2 border-pixel-border flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-pixel-text-muted">
         <span className="font-semibold uppercase tracking-wide">Career</span>
         <span>
-          <span className="font-bold text-pixel-text">{player.matchesWon ?? 0}</span> W
-          {' – '}
-          <span className="font-bold text-pixel-text">{(player.matchesPlayed ?? 0) - (player.matchesWon ?? 0)}</span> L
+          <span className="font-bold text-pixel-text">{player.matchesWon ?? 0}</span> W{' – '}
+          <span className="font-bold text-pixel-text">
+            {(player.matchesPlayed ?? 0) - (player.matchesWon ?? 0)}
+          </span>{' '}
+          L
         </span>
         <span>
-          <span className="font-bold text-yellow-400">{player.totalExperienceEarned}</span> XP earned
+          <span className="font-bold text-yellow-400">{player.totalExperienceEarned}</span> XP
+          earned
         </span>
       </div>
     </Card>

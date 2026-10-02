@@ -98,7 +98,7 @@ test('the walkthrough keeps the section it points at visible', async ({ page }) 
 
     expect(
       clearBand,
-      `step ${index + 1}: too little of the spotlit section is clear of the callout`
+      `step ${index + 1}: too little of the spotlit section is clear of the callout`,
     ).toBeGreaterThanOrEqual(required);
 
     await card.getByRole('button', { name: advance }).click();

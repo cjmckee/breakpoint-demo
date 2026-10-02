@@ -84,7 +84,7 @@ function speedFor(ramp: number[], round: number): number {
 export function useMinigameRounds(
   request: { minigame: MinigameId; config?: MinigameConfig },
   onComplete: (score: MinigameScore) => void,
-  onFirstAttempt?: () => void
+  onFirstAttempt?: () => void,
 ): MinigameRounds {
   const { minigame, config } = request;
   const total = config?.rounds ?? DEFAULT_ROUNDS;
@@ -117,12 +117,9 @@ export function useMinigameRounds(
       // A perfect run gets its own sting; the overall training_done cue fires
       // separately once the result screen takes over.
       if (finalScore >= maxScore) audioManager.playSfx('ace');
-      window.setTimeout(
-        () => onComplete({ minigame, score: finalScore, maxScore }),
-        FINISH_MS
-      );
+      window.setTimeout(() => onComplete({ minigame, score: finalScore, maxScore }), FINISH_MS);
     },
-    [minigame, maxScore, onComplete]
+    [minigame, maxScore, onComplete],
   );
 
   const commit = useCallback(
@@ -154,7 +151,7 @@ export function useMinigameRounds(
         setPhase('playing');
       }, TRANSITION_MS);
     },
-    [finish, onFirstAttempt, total]
+    [finish, onFirstAttempt, total],
   );
 
   return {

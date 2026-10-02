@@ -23,6 +23,7 @@ coach_gonzalez: Welcome, {keith}! Let's get started.
 ```
 
 ### Conventions:
+
 - Lines WITHOUT a `character_id:` prefix = narration (speaker is `null`)
 - Lines WITH a `character_id:` prefix = that character speaking
 - `{character_id}` anywhere in text = character reference, rendered as `{characterId: 'character_id'}` in the output
@@ -39,19 +40,23 @@ type FormattedText = (string | { characterId: string })[];
 ### Rules:
 
 1. **Narrator/narration lines** (no speaker prefix) use `null` as the speaker:
+
    ```typescript
-   [null, ['The sun sets over the courts.']]
+   [null, ['The sun sets over the courts.']];
    ```
 
 2. **Character lines** (`character_id: text`) use their ID string as the speaker:
+
    ```typescript
-   ['keith', ['Hey, have you seen the new racquets?']]
+   ['keith', ['Hey, have you seen the new racquets?']];
    ```
 
 3. **Character references** in text (`{character_id}`) become `{characterId: 'character_id'}` objects in the FormattedText array. Split the surrounding text into separate string segments:
+
    ```typescript
-   [null, [{characterId: 'jen'}, ' walks over with a grin.']]
-   ['coach_gonzalez', ['Welcome, ', {characterId: 'keith'}, '! Let\'s get started.']]
+   [null, [{ characterId: 'jen' }, ' walks over with a grin.']][
+     ('coach_gonzalez', ['Welcome, ', { characterId: 'keith' }, "! Let's get started."])
+   ];
    ```
 
 4. **Escape single quotes** in strings (use `\'`).
@@ -63,6 +68,7 @@ type FormattedText = (string | { characterId: string })[];
 ## Example transformation
 
 Input:
+
 ```
 It's a quiet day at the Academy.
 keith: AAAHHHH! I made it!
@@ -72,6 +78,7 @@ coach_gonzalez: Alright, everyone. {keith}? I can't believe you're on this team.
 ```
 
 Output:
+
 ```typescript
 dialogue: [
   [null, ['It\'s a quiet day at the Academy.']],

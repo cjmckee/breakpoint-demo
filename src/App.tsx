@@ -63,9 +63,7 @@ function App() {
         return (
           <div className="min-h-screen bg-pixel-bg text-pixel-text flex items-center justify-center p-4">
             <div className="text-center max-w-2xl">
-              <h1 className="text-5xl font-bold text-pixel-accent mb-4">
-                🎾 Breakpoint
-              </h1>
+              <h1 className="text-5xl font-bold text-pixel-accent mb-4">🎾 Breakpoint</h1>
               <p className="text-xl text-pixel-text-muted mb-8">
                 Rise from the lowest ranks to become a tennis legend!
               </p>
@@ -151,7 +149,9 @@ function App() {
             onClose={() => useGameStore.getState().cancelStoryEvent()}
             event={gamePhase.event}
             availableOptions={gamePhase.availableOptions}
-            onSelectOption={(eventId, optionId) => useGameStore.getState().executeStoryEvent(eventId, optionId)}
+            onSelectOption={(eventId, optionId) =>
+              useGameStore.getState().executeStoryEvent(eventId, optionId)
+            }
           />
         );
 
@@ -200,7 +200,8 @@ function App() {
     }
   };
 
-  const showFloatingUI = isInitialized && gamePhase.type !== 'uninitialized' && gamePhase.type !== 'welcome';
+  const showFloatingUI =
+    isInitialized && gamePhase.type !== 'uninitialized' && gamePhase.type !== 'welcome';
 
   return (
     <>

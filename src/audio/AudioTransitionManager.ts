@@ -15,15 +15,15 @@ import type { GamePhase, PhaseContinuation } from '../types/gamePhase';
 import type { StoryEventTag } from '../types/storyEvents';
 
 /** Maps story event tags to music tracks, checked in order. First match wins. */
-const TAG_MUSIC_MAP: [StoryEventTag, MusicTrack][] = [
-  ['romance', 'romance'],
-];
+const TAG_MUSIC_MAP: [StoryEventTag, MusicTrack][] = [['romance', 'romance']];
 
 function getStoryEventTags(gamePhase: GamePhase): StoryEventTag[] {
   if (gamePhase.type === 'story_event') return gamePhase.event.tags;
   if (gamePhase.type === 'story_event_result') return gamePhase.result.tags;
-  if (gamePhase.type === 'idle' && gamePhase.overlay?.type === 'story_event') return gamePhase.overlay.event.tags;
-  if (gamePhase.type === 'idle' && gamePhase.overlay?.type === 'story_event_result') return gamePhase.overlay.result.tags;
+  if (gamePhase.type === 'idle' && gamePhase.overlay?.type === 'story_event')
+    return gamePhase.overlay.event.tags;
+  if (gamePhase.type === 'idle' && gamePhase.overlay?.type === 'story_event_result')
+    return gamePhase.overlay.result.tags;
   return [];
 }
 
@@ -34,14 +34,22 @@ function getMusicTrackForPhase(gamePhase: GamePhase): MusicTrack | null {
     gamePhase.overlay != null &&
     (gamePhase.overlay.type === 'story_event' || gamePhase.overlay.type === 'story_event_result');
 
-  if (hasStoryOverlay || gamePhase.type === 'story_event' || gamePhase.type === 'story_event_result') {
+  if (
+    hasStoryOverlay ||
+    gamePhase.type === 'story_event' ||
+    gamePhase.type === 'story_event_result'
+  ) {
     const continuation: PhaseContinuation | null =
-      gamePhase.type === 'story_event' ? gamePhase.continuation
-      : gamePhase.type === 'story_event_result' ? gamePhase.continuation
-      : gamePhase.type === 'idle' && gamePhase.overlay &&
-        (gamePhase.overlay.type === 'story_event' || gamePhase.overlay.type === 'story_event_result')
-        ? gamePhase.overlay.continuation
-        : null;
+      gamePhase.type === 'story_event'
+        ? gamePhase.continuation
+        : gamePhase.type === 'story_event_result'
+          ? gamePhase.continuation
+          : gamePhase.type === 'idle' &&
+              gamePhase.overlay &&
+              (gamePhase.overlay.type === 'story_event' ||
+                gamePhase.overlay.type === 'story_event_result')
+            ? gamePhase.overlay.continuation
+            : null;
 
     if (continuation?.type === 'match_setup') return 'prematch_buildup';
 
@@ -67,7 +75,9 @@ function getMusicTrackForPhase(gamePhase: GamePhase): MusicTrack | null {
       return 'match_tension';
     case 'match_setup':
       // Continue pre-match buildup for story and tournament matches
-      return (gamePhase.matchType === 'story' || gamePhase.matchType === 'tournament') ? 'prematch_buildup' : 'match_tension'
+      return gamePhase.matchType === 'story' || gamePhase.matchType === 'tournament'
+        ? 'prematch_buildup'
+        : 'match_tension';
     default:
       return null;
   }

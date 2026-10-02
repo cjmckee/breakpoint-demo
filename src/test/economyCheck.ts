@@ -31,7 +31,14 @@ import { MatchStatistics } from '../core/MatchStatistics';
 import { PlayerProfile } from '../core/PlayerProfile';
 import { EffectAggregator } from '../core/EffectAggregator';
 import { ItemManager } from '../game/ItemManager';
-import { ALL_ITEMS, ALL_LUCKY_ITEMS, LUCKY_PENNY, FOUR_LEAF_CLOVER, VISOR, BANANA } from '../data/items';
+import {
+  ALL_ITEMS,
+  ALL_LUCKY_ITEMS,
+  LUCKY_PENNY,
+  FOUR_LEAF_CLOVER,
+  VISOR,
+  BANANA,
+} from '../data/items';
 import { SLOT_ITEM_TYPE } from '../types/items';
 import { ABILITY_DEFINITIONS } from '../data/abilities';
 import { EffectKey } from '../types/game';
@@ -79,20 +86,30 @@ function main(): void {
     // 400 lifetime XP is exactly level 3 on the sqrt curve.
     const earned = PlayerManager.addExperience(freshPlayer(), 400).player;
     check('earning 400 XP reaches level 3', earned.level === 3, `got level ${earned.level}`);
-    check('both counters hold 400 before spending',
+    check(
+      'both counters hold 400 before spending',
       earned.experience === 400 && earned.totalExperienceEarned === 400,
-      `experience=${earned.experience} totalEarned=${earned.totalExperienceEarned}`);
+      `experience=${earned.experience} totalEarned=${earned.totalExperienceEarned}`,
+    );
 
     // Spend most of the balance in the shop, then earn a single point.
     const afterShop = spend(earned, 300);
     const afterNextGain = PlayerManager.addExperience(afterShop, 1).player;
-    check('spending 300 XP then earning again does not demote the player',
-      afterNextGain.level >= 3, `dropped to level ${afterNextGain.level}`);
-    check('spending does not rewind lifetime XP',
+    check(
+      'spending 300 XP then earning again does not demote the player',
+      afterNextGain.level >= 3,
+      `dropped to level ${afterNextGain.level}`,
+    );
+    check(
+      'spending does not rewind lifetime XP',
       afterNextGain.totalExperienceEarned === 401,
-      `totalEarned=${afterNextGain.totalExperienceEarned}`);
-    check('the spendable balance still reflects the purchase',
-      afterNextGain.experience === 101, `experience=${afterNextGain.experience}`);
+      `totalEarned=${afterNextGain.totalExperienceEarned}`,
+    );
+    check(
+      'the spendable balance still reflects the purchase',
+      afterNextGain.experience === 101,
+      `experience=${afterNextGain.experience}`,
+    );
   }
 
   console.log('\n── specialization points are granted once per level ──');
@@ -103,18 +120,22 @@ function main(): void {
     // Straight climb to level 3.
     const straight = PlayerManager.addExperience(base, 400).player;
     const straightPoints = straight.archetypeProfile.specializationPoints;
-    check('climbing to level 3 grants 2 points',
+    check(
+      'climbing to level 3 grants 2 points',
       straightPoints - startingPoints === 2,
-      `granted ${straightPoints - startingPoints}`);
+      `granted ${straightPoints - startingPoints}`,
+    );
 
     // The double-grant sequence: spend, take any small gain (which is what used
     // to write the demoted level back onto the player), then climb past the same
     // threshold again — the level-3 point got handed out twice.
     const tick = PlayerManager.addExperience(spend(straight, 300), 1).player;
     const reclimbed = PlayerManager.addExperience(tick, 300).player;
-    check('crossing the same level threshold twice grants no extra points',
+    check(
+      'crossing the same level threshold twice grants no extra points',
       reclimbed.archetypeProfile.specializationPoints === straightPoints,
-      `${straightPoints} -> ${reclimbed.archetypeProfile.specializationPoints}`);
+      `${straightPoints} -> ${reclimbed.archetypeProfile.specializationPoints}`,
+    );
   }
 
   console.log('\n── challenge XP levels the player up, like match XP ──');
@@ -123,13 +144,18 @@ function main(): void {
     const rewarded = ChallengeManager.applyRewards(xpChallenge(400), base);
 
     check('challenge XP raises level', rewarded.level === 3, `got level ${rewarded.level}`);
-    check('challenge XP grants specialization points',
-      rewarded.archetypeProfile.specializationPoints
-        - base.archetypeProfile.specializationPoints === 2,
-      `granted ${rewarded.archetypeProfile.specializationPoints - base.archetypeProfile.specializationPoints}`);
-    check('challenge XP credits both counters',
+    check(
+      'challenge XP grants specialization points',
+      rewarded.archetypeProfile.specializationPoints -
+        base.archetypeProfile.specializationPoints ===
+        2,
+      `granted ${rewarded.archetypeProfile.specializationPoints - base.archetypeProfile.specializationPoints}`,
+    );
+    check(
+      'challenge XP credits both counters',
       rewarded.experience === 400 && rewarded.totalExperienceEarned === 400,
-      `experience=${rewarded.experience} totalEarned=${rewarded.totalExperienceEarned}`);
+      `experience=${rewarded.experience} totalEarned=${rewarded.totalExperienceEarned}`,
+    );
   }
 
   console.log('\n── every declared effect key is one the game reads ──');
@@ -156,8 +182,11 @@ function main(): void {
       }
     }
 
-    check('no item or ability declares an effect key outside EffectKey',
-      orphans.length === 0, orphans.join('\n          '));
+    check(
+      'no item or ability declares an effect key outside EffectKey',
+      orphans.length === 0,
+      orphans.join('\n          '),
+    );
   }
 
   console.log('\n── training effects change the session payout ──');
@@ -165,14 +194,18 @@ function main(): void {
     const supports: ('strength' | 'placement')[] = ['strength', 'placement'];
 
     const upgraded = buildAnchorStatBoosts('serve', supports, 1);
-    check('a certain upgrade makes every granted stat worth +2',
+    check(
+      'a certain upgrade makes every granted stat worth +2',
       upgraded.serve === 2 && upgraded.strength === 2 && upgraded.placement === 2,
-      JSON.stringify(upgraded));
+      JSON.stringify(upgraded),
+    );
 
     const plain = buildAnchorStatBoosts('serve', supports, 0);
-    check('no upgrade chance leaves every grant at +1',
+    check(
+      'no upgrade chance leaves every grant at +1',
       plain.serve === 1 && plain.strength === 1 && plain.placement === 1,
-      JSON.stringify(plain));
+      JSON.stringify(plain),
+    );
 
     const countSupports = (boosts: StatBoosts): number =>
       Object.keys(boosts).filter((stat) => stat !== 'serve').length;
@@ -181,29 +214,38 @@ function main(): void {
     const withBonus = buildAnchorTrainingResult('serve', 2, [], certainBonus);
     const withoutBonus = buildAnchorTrainingResult('serve', 2, [], NO_TRAINING_BONUSES);
 
-    check('two reps draw two supports on their own',
+    check(
+      'two reps draw two supports on their own',
       countSupports(withoutBonus.statBoosts) === 2,
-      `${countSupports(withoutBonus.statBoosts)} supports`);
-    check('a certain bonus rep adds one support beyond the reps earned',
+      `${countSupports(withoutBonus.statBoosts)} supports`,
+    );
+    check(
+      'a certain bonus rep adds one support beyond the reps earned',
       countSupports(withBonus.statBoosts) === 3,
-      `${countSupports(withBonus.statBoosts)} supports`);
+      `${countSupports(withBonus.statBoosts)} supports`,
+    );
 
     // The session message reads off reps landed, not supports handed out.
     const bonusMessage = withBonus.message ?? '';
-    check('a bonus rep does not let a two-rep session claim three for three',
-      bonusMessage.length > 0 && !bonusMessage.includes('three for three'), bonusMessage);
+    check(
+      'a bonus rep does not let a two-rep session claim three for three',
+      bonusMessage.length > 0 && !bonusMessage.includes('three for three'),
+      bonusMessage,
+    );
 
     const whiffed = buildAnchorTrainingResult('serve', 0, [], certainBonus);
-    check('a bonus rep never rescues a session that landed nothing',
+    check(
+      'a bonus rep never rescues a session that landed nothing',
       countSupports(whiffed.statBoosts) === 0,
-      `${countSupports(whiffed.statBoosts)} supports: ${whiffed.message}`);
+      `${countSupports(whiffed.statBoosts)} supports: ${whiffed.message}`,
+    );
   }
 
   console.log('\n── the ability drop bonus reaches the post-match roll ──');
   {
     const emptyStats = new MatchStatistics(
       new PlayerProfile('p', 'Player'),
-      new PlayerProfile('o', 'Opponent')
+      new PlayerProfile('o', 'Opponent'),
     ).getStatistics();
 
     // A drop happens exactly when the roll lands under the scaled rate, so the
@@ -212,12 +254,15 @@ function main(): void {
     // rather than a bucket count, which is what lets the ratio below be exact.
     const originalRandom = Math.random;
     const dropThreshold = (bonus: number): number => {
-      let lo = 0;      // always drops
-      let hi = 0.12;   // never drops
+      let lo = 0; // always drops
+      let hi = 0.12; // never drops
       for (let i = 0; i < 40; i++) {
         const mid = (lo + hi) / 2;
         Math.random = (): number => mid;
-        if ((MatchRewardSystem.calculateRewards(emptyStats, 1, true, bonus).abilitiesGained ?? []).length > 0) {
+        if (
+          (MatchRewardSystem.calculateRewards(emptyStats, 1, true, bonus).abilitiesGained ?? [])
+            .length > 0
+        ) {
           lo = mid;
         } else {
           hi = mid;
@@ -235,40 +280,56 @@ function main(): void {
       Math.random = originalRandom;
     }
 
-    check('a drop bonus widens the band of rolls that yield an ability',
-      withBonus > without, `with=${withBonus} without=${without}`);
-    check('the baseline still drops abilities at all (bisection found a threshold)',
-      without > 0 && without < 0.12, `without=${without}`);
+    check(
+      'a drop bonus widens the band of rolls that yield an ability',
+      withBonus > without,
+      `with=${withBonus} without=${without}`,
+    );
+    check(
+      'the baseline still drops abilities at all (bisection found a threshold)',
+      without > 0 && without < 0.12,
+      `without=${without}`,
+    );
 
     // The rate must grow by the bonus itself, not by the bonus divided by however
     // well the match went. Adding the bonus to the performance multiplier instead
     // would land at 1 + 0.15/0.765 = 1.196x here, and would drift with performance.
     const widening = withBonus / without;
-    check('the bonus scales the rate rather than riding on how well you played',
+    check(
+      'the bonus scales the rate rather than riding on how well you played',
       Math.abs(widening - 1.15) < 0.01,
-      `widened ${widening.toFixed(4)}x (expected 1.15x, additive would be ~1.196x)`);
+      `widened ${widening.toFixed(4)}x (expected 1.15x, additive would be ~1.196x)`,
+    );
   }
 
   console.log('\n── one charm at a time ──');
   {
     const mismatched = ALL_LUCKY_ITEMS.filter((item) => item.equipmentSlot !== 'charm');
-    check('every lucky item declares the charm slot',
-      mismatched.length === 0, mismatched.map((i) => i.name).join(', '));
+    check(
+      'every lucky item declares the charm slot',
+      mismatched.length === 0,
+      mismatched.map((i) => i.name).join(', '),
+    );
 
     const wrongType = ALL_ITEMS.filter(
-      (item) => item.equipmentSlot && item.type !== SLOT_ITEM_TYPE[item.equipmentSlot]
+      (item) => item.equipmentSlot && item.type !== SLOT_ITEM_TYPE[item.equipmentSlot],
     );
-    check('no item declares a slot that rejects its own type',
+    check(
+      'no item declares a slot that rejects its own type',
       wrongType.length === 0,
-      wrongType.map((i) => `${i.name} (${i.type} -> ${i.equipmentSlot})`).join(', '));
+      wrongType.map((i) => `${i.name} (${i.type} -> ${i.equipmentSlot})`).join(', '),
+    );
 
     // With only one slot, a charm whose whole identity is a stat pile makes the
     // choice arithmetic rather than a decision.
     const effectless = ALL_LUCKY_ITEMS.filter(
-      (item) => Object.keys(item.modifiers?.additional ?? {}).length === 0
+      (item) => Object.keys(item.modifiers?.additional ?? {}).length === 0,
     );
-    check('every charm carries an effect, not just stats',
-      effectless.length === 0, effectless.map((i) => i.name).join(', '));
+    check(
+      'every charm carries an effect, not just stats',
+      effectless.length === 0,
+      effectless.map((i) => i.name).join(', '),
+    );
 
     const originalWarn = console.warn;
     try {
@@ -276,70 +337,95 @@ function main(): void {
 
       const held = ItemManager.addItem(freshPlayer(), LUCKY_PENNY);
       const heldEffects = EffectAggregator.getActiveEffects(held);
-      check('a charm sitting in inventory grants nothing',
+      check(
+        'a charm sitting in inventory grants nothing',
         EffectAggregator.getEffect(heldEffects.effects, EffectKey.ABILITY_DROP_BONUS) === 0 &&
           Object.keys(heldEffects.statBoosts).length === 0,
-        JSON.stringify(heldEffects));
+        JSON.stringify(heldEffects),
+      );
 
       const pennyCopy = held.inventory[0].instanceId;
       const wearing = ItemManager.equipItem(held, pennyCopy, 'charm');
       const wornEffects = EffectAggregator.getActiveEffects(wearing);
-      check('equipping the charm turns its effect on',
+      check(
+        'equipping the charm turns its effect on',
         EffectAggregator.getEffect(wornEffects.effects, EffectKey.ABILITY_DROP_BONUS) === 0.15,
-        JSON.stringify(wornEffects.effects));
+        JSON.stringify(wornEffects.effects),
+      );
 
       // The whole point of the slot: a second charm displaces the first.
       const bothHeld = ItemManager.addItem(wearing, FOUR_LEAF_CLOVER);
       const cloverCopy = bothHeld.inventory.find((i) => i.id === FOUR_LEAF_CLOVER.id)!.instanceId;
       const swapped = ItemManager.equipItem(bothHeld, cloverCopy, 'charm');
       const swappedEffects = EffectAggregator.getActiveEffects(swapped);
-      check('equipping a second charm displaces the first',
+      check(
+        'equipping a second charm displaces the first',
         swapped.equippedItems.charm?.id === FOUR_LEAF_CLOVER.id &&
           swapped.inventory.some((i) => i.id === LUCKY_PENNY.id),
-        `charm=${swapped.equippedItems.charm?.id}`);
-      check('the displaced charm stops contributing',
+        `charm=${swapped.equippedItems.charm?.id}`,
+      );
+      check(
+        'the displaced charm stops contributing',
         EffectAggregator.getEffect(swappedEffects.effects, EffectKey.ABILITY_DROP_BONUS) === 0,
-        JSON.stringify(swappedEffects.effects));
+        JSON.stringify(swappedEffects.effects),
+      );
 
       // Slots stay type-exclusive in both directions.
       const charmIntoHat = ItemManager.equipItem(held, pennyCopy, 'hat');
-      check('a charm cannot be equipped into a gear slot',
-        charmIntoHat.equippedItems.hat === null);
+      check('a charm cannot be equipped into a gear slot', charmIntoHat.equippedItems.hat === null);
 
       const gearHeld = ItemManager.addItem(freshPlayer(), VISOR);
-      const gearIntoCharm = ItemManager.equipItem(gearHeld, gearHeld.inventory[0].instanceId, 'charm');
-      check('gear cannot be equipped into the charm slot',
-        gearIntoCharm.equippedItems.charm === null);
+      const gearIntoCharm = ItemManager.equipItem(
+        gearHeld,
+        gearHeld.inventory[0].instanceId,
+        'charm',
+      );
+      check(
+        'gear cannot be equipped into the charm slot',
+        gearIntoCharm.equippedItems.charm === null,
+      );
 
       // Two copies of one item share a catalogue id but must act independently.
       const twoBananas = ItemManager.addItem(ItemManager.addItem(freshPlayer(), BANANA), BANANA);
       const [first, second] = twoBananas.inventory;
-      check('duplicate copies get distinct instance ids',
-        first.instanceId !== second.instanceId, `${first.instanceId} / ${second.instanceId}`);
+      check(
+        'duplicate copies get distinct instance ids',
+        first.instanceId !== second.instanceId,
+        `${first.instanceId} / ${second.instanceId}`,
+      );
       const oneEaten = ItemManager.useConsumable(twoBananas, first.instanceId).player;
-      check('using one copy leaves the other',
+      check(
+        'using one copy leaves the other',
         oneEaten.inventory.length === 1 && oneEaten.inventory[0].instanceId === second.instanceId,
-        `inventory=${oneEaten.inventory.length}`);
+        `inventory=${oneEaten.inventory.length}`,
+      );
       const oneTrashed = ItemManager.trashItem(twoBananas, second.instanceId);
-      check('trashing one copy leaves the other',
-        oneTrashed.inventory.length === 1 && oneTrashed.inventory[0].instanceId === first.instanceId,
-        `inventory=${oneTrashed.inventory.length}`);
+      check(
+        'trashing one copy leaves the other',
+        oneTrashed.inventory.length === 1 &&
+          oneTrashed.inventory[0].instanceId === first.instanceId,
+        `inventory=${oneTrashed.inventory.length}`,
+      );
 
       const twoVisors = ItemManager.addItem(ItemManager.addItem(freshPlayer(), VISOR), VISOR);
       const visorWorn = ItemManager.equipItem(twoVisors, twoVisors.inventory[0].instanceId, 'hat');
-      check('equipping one copy leaves the other in the inventory',
+      check(
+        'equipping one copy leaves the other in the inventory',
         visorWorn.equippedItems.hat?.instanceId === twoVisors.inventory[0].instanceId &&
           visorWorn.inventory.length === 1 &&
           visorWorn.inventory[0].instanceId === twoVisors.inventory[1].instanceId,
-        `inventory=${visorWorn.inventory.length}`);
+        `inventory=${visorWorn.inventory.length}`,
+      );
     } finally {
       console.warn = originalWarn;
     }
   }
 
-  console.log(failures === 0
-    ? '\n✅ all checks passed\n'
-    : `\n❌ ${failures} check${failures === 1 ? '' : 's'} failed\n`);
+  console.log(
+    failures === 0
+      ? '\n✅ all checks passed\n'
+      : `\n❌ ${failures} check${failures === 1 ? '' : 's'} failed\n`,
+  );
   process.exit(failures === 0 ? 0 : 1);
 }
 

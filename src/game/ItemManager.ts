@@ -152,7 +152,10 @@ export class ItemManager {
    * Use a consumable item
    * Applies instant effects and/or sets next activity buffs
    */
-  static useConsumable(player: Player, instanceId: string): {
+  static useConsumable(
+    player: Player,
+    instanceId: string,
+  ): {
     player: Player;
     energyChange: number;
     moodChange: number;
@@ -192,7 +195,10 @@ export class ItemManager {
 
     // Apply next activity buffs — stack with any already pending
     if (consumableEffect.nextActivityBuffs) {
-      updatedPlayer.nextActivityBuffs = [...player.nextActivityBuffs, consumableEffect.nextActivityBuffs];
+      updatedPlayer.nextActivityBuffs = [
+        ...player.nextActivityBuffs,
+        consumableEffect.nextActivityBuffs,
+      ];
       buffApplied = true;
     }
 
@@ -298,7 +304,7 @@ export class ItemManager {
     if (!item?.modifiers?.statBoosts) return 0;
     return Object.values(item.modifiers.statBoosts).reduce<number>(
       (sum, value) => sum + (value ?? 0),
-      0
+      0,
     );
   }
 
@@ -310,7 +316,7 @@ export class ItemManager {
    */
   static getStatDeltas(
     current: Item | null,
-    candidate: Item
+    candidate: Item,
   ): Array<{ stat: keyof StatBoosts; from: number; to: number; delta: number }> {
     const currentBoosts = current?.modifiers?.statBoosts ?? {};
     const candidateBoosts = candidate.modifiers?.statBoosts ?? {};
@@ -376,7 +382,7 @@ export class ItemManager {
    */
   static getAllItems(player: Player): OwnedItem[] {
     const equippedItems = Object.values(player.equippedItems).filter(
-      (item): item is OwnedItem => item !== null
+      (item): item is OwnedItem => item !== null,
     );
 
     return [...player.inventory, ...equippedItems, ...player.storyItems];
@@ -388,7 +394,7 @@ export class ItemManager {
    */
   static getItemsBySlot(player: Player, slot: EquipmentSlot): OwnedItem[] {
     return player.inventory.filter(
-      (item) => item.type === SLOT_ITEM_TYPE[slot] && item.equipmentSlot === slot
+      (item) => item.type === SLOT_ITEM_TYPE[slot] && item.equipmentSlot === slot,
     );
   }
 

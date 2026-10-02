@@ -86,30 +86,46 @@ function main(): void {
   console.log('\n╔══ STORY MINIGAME CHECK — a score picks the branch ══╗\n');
 
   console.log('── the score decides which outcome lands ──');
-  check('meeting the pass line takes the option outcome',
-    StoryEventManager.getOutcome(event, checkedOption, score(3)) === PASS_OUTCOME);
-  check('exceeding the pass line still passes',
-    StoryEventManager.getOutcome(event, checkedOption, score(5, 5)) === PASS_OUTCOME);
-  check('falling one short takes the fail outcome',
-    StoryEventManager.getOutcome(event, checkedOption, score(2)) === FAIL_OUTCOME);
-  check('scoring nothing takes the fail outcome',
-    StoryEventManager.getOutcome(event, checkedOption, score(0)) === FAIL_OUTCOME);
+  check(
+    'meeting the pass line takes the option outcome',
+    StoryEventManager.getOutcome(event, checkedOption, score(3)) === PASS_OUTCOME,
+  );
+  check(
+    'exceeding the pass line still passes',
+    StoryEventManager.getOutcome(event, checkedOption, score(5, 5)) === PASS_OUTCOME,
+  );
+  check(
+    'falling one short takes the fail outcome',
+    StoryEventManager.getOutcome(event, checkedOption, score(2)) === FAIL_OUTCOME,
+  );
+  check(
+    'scoring nothing takes the fail outcome',
+    StoryEventManager.getOutcome(event, checkedOption, score(0)) === FAIL_OUTCOME,
+  );
 
   console.log('\n── an unplayed check is not a pass ──');
   // This is the first pass through executeStoryEvent, before the game has run.
   // If it read as a pass, the option would pay out without being played.
-  check('no score at all takes the fail outcome, never the pass',
-    StoryEventManager.getOutcome(event, checkedOption, undefined) === FAIL_OUTCOME);
+  check(
+    'no score at all takes the fail outcome, never the pass',
+    StoryEventManager.getOutcome(event, checkedOption, undefined) === FAIL_OUTCOME,
+  );
 
   console.log('\n── options without a check are untouched ──');
-  check('a plain option takes its outcome with no score',
-    StoryEventManager.getOutcome(event, plainOption, undefined) === PASS_OUTCOME);
-  check('a plain option ignores a score it never asked for',
-    StoryEventManager.getOutcome(event, plainOption, score(0)) === PASS_OUTCOME);
-  check('a linear event still falls back to its default outcome',
-    StoryEventManager.getOutcome(event, null, undefined) === DEFAULT_OUTCOME);
+  check(
+    'a plain option takes its outcome with no score',
+    StoryEventManager.getOutcome(event, plainOption, undefined) === PASS_OUTCOME,
+  );
+  check(
+    'a plain option ignores a score it never asked for',
+    StoryEventManager.getOutcome(event, plainOption, score(0)) === PASS_OUTCOME,
+  );
+  check(
+    'a linear event still falls back to its default outcome',
+    StoryEventManager.getOutcome(event, null, undefined) === DEFAULT_OUTCOME,
+  );
 
-  console.log('\n── the pass line is read in the game\'s own units ──');
+  console.log("\n── the pass line is read in the game's own units ──");
   // maxScore varies by game, so a threshold must not be treated as a fraction.
   const outOfHundred: StoryEventOption = {
     id: 'precise',
@@ -121,44 +137,61 @@ function main(): void {
       failOutcome: FAIL_OUTCOME,
     },
   };
-  check('70 of 100 passes a line of 70',
-    StoryEventManager.getOutcome(event, outOfHundred,
-      { minigame: 'corner_paint', score: 70, maxScore: 100 }) === PASS_OUTCOME);
-  check('69 of 100 does not',
-    StoryEventManager.getOutcome(event, outOfHundred,
-      { minigame: 'corner_paint', score: 69, maxScore: 100 }) === FAIL_OUTCOME);
+  check(
+    '70 of 100 passes a line of 70',
+    StoryEventManager.getOutcome(event, outOfHundred, {
+      minigame: 'corner_paint',
+      score: 70,
+      maxScore: 100,
+    }) === PASS_OUTCOME,
+  );
+  check(
+    '69 of 100 does not',
+    StoryEventManager.getOutcome(event, outOfHundred, {
+      minigame: 'corner_paint',
+      score: 69,
+      maxScore: 100,
+    }) === FAIL_OUTCOME,
+  );
 
   console.log('\n── authored checks are real checks ──');
   // A check that cannot be failed, or whose branches pay the same, is decoration
   // that costs the player a minigame. These scan every event in the game.
   const checked = StoryEventRepository.getAllEvents().flatMap((e) =>
-    e.options
-      .filter((o) => o.minigame !== undefined)
-      .map((o) => ({ event: e.id, option: o }))
+    e.options.filter((o) => o.minigame !== undefined).map((o) => ({ event: e.id, option: o })),
   );
 
-  check('at least one event actually uses a minigame check',
-    checked.length > 0);
+  check('at least one event actually uses a minigame check', checked.length > 0);
 
-  check('every pass line needs at least one success',
+  check(
+    'every pass line needs at least one success',
     checked.every(({ option }) => option.minigame!.passThreshold >= 1),
-    'a threshold of 0 passes without playing');
+    'a threshold of 0 passes without playing',
+  );
 
   // Compared by content, not identity: two separately-authored branches that
   // happen to say and do the same thing are the case worth catching, and those
   // are never the same object.
-  check('every check has a fail branch distinct from its pass branch',
-    checked.every(({ option }) =>
-      JSON.stringify(option.minigame!.failOutcome) !== JSON.stringify(option.outcome)),
-    'identical branches make the minigame decoration the player pays for');
+  check(
+    'every check has a fail branch distinct from its pass branch',
+    checked.every(
+      ({ option }) =>
+        JSON.stringify(option.minigame!.failOutcome) !== JSON.stringify(option.outcome),
+    ),
+    'identical branches make the minigame decoration the player pays for',
+  );
 
-  check('every check tells the player it is coming, before they pick it',
+  check(
+    'every check tells the player it is coming, before they pick it',
     checked.every(({ option }) => (option.description ?? '').length > 0),
-    'an option that silently launches a minigame is a trap');
+    'an option that silently launches a minigame is a trap',
+  );
 
-  console.log(failures === 0
-    ? '\n✅ all checks passed\n'
-    : `\n❌ ${failures} check${failures === 1 ? '' : 's'} failed\n`);
+  console.log(
+    failures === 0
+      ? '\n✅ all checks passed\n'
+      : `\n❌ ${failures} check${failures === 1 ? '' : 's'} failed\n`,
+  );
   process.exit(failures === 0 ? 0 : 1);
 }
 

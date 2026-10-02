@@ -20,7 +20,7 @@ asserts on the store passes with the UI completely broken.
 - **Arrange**: `loadSave`, `grantItem`, `triggerStoryEvent`, `reseed`, or the bot.
   Fine to do through the handle — it is scenario setup, not the thing under test.
 - **Act**: clicks, via `getByTestId`. Always.
-- **Assert**: `readGame` / `readMatch` for the model, *and* the screen where the
+- **Assert**: `readGame` / `readMatch` for the model, _and_ the screen where the
   UI is supposed to agree (a `data-*` attribute, a caption). Asserting only one
   side misses the class of bug where they diverge.
 
@@ -33,16 +33,16 @@ with no React/store dependencies — anything else pulls the app into Node.
 
 Pick the cheapest route that is still honest:
 
-| Need | Use |
-| --- | --- |
-| A brand-new player on the menu | `startNewGame(page)` then `dismissWalkthrough(page)` |
-| A mid-game player, fixed state | `loadSave(page, 'save-day7-1', seed)` — saves in `src/debug/saves/` |
-| "Can a player still *reach* X by playing?" | `runBot(page, { untilDay })` from `e2e/bot.ts` |
-| A specific story event | `triggerStoryEvent(page, id)` then `drainToIdle(page)` |
-| Every event / item / whatever | enumerate the real data (`allStoryEventIds()`, `ALL_ITEMS`) and shard into batches — see `storyEvents.spec.ts` |
-| An item in the bag | `grantItem(page, itemId)` |
-| A match | `setMatchSpeed(page, 'instant')`, click into it, `playMatch(page)` |
-| A reproducible roll | `?seed=N` on load (`loadSave`'s 3rd arg), or `reseed(page, N)` right before the roll |
+| Need                                       | Use                                                                                                            |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| A brand-new player on the menu             | `startNewGame(page)` then `dismissWalkthrough(page)`                                                           |
+| A mid-game player, fixed state             | `loadSave(page, 'save-day7-1', seed)` — saves in `src/debug/saves/`                                            |
+| "Can a player still _reach_ X by playing?" | `runBot(page, { untilDay })` from `e2e/bot.ts`                                                                 |
+| A specific story event                     | `triggerStoryEvent(page, id)` then `drainToIdle(page)`                                                         |
+| Every event / item / whatever              | enumerate the real data (`allStoryEventIds()`, `ALL_ITEMS`) and shard into batches — see `storyEvents.spec.ts` |
+| An item in the bag                         | `grantItem(page, itemId)`                                                                                      |
+| A match                                    | `setMatchSpeed(page, 'instant')`, click into it, `playMatch(page)`                                             |
+| A reproducible roll                        | `?seed=N` on load (`loadSave`'s 3rd arg), or `reseed(page, N)` right before the roll                           |
 
 If a scenario needs setup that none of these cover and a second spec is likely
 to want it, add a helper to `e2e/helpers.ts` with a doc comment saying why it
@@ -69,13 +69,13 @@ several buttons are emoji-only.
 
 1. **Lead with a doc comment saying what could go wrong that this catches** and
    why it isn't catchable more cheaply. The existing specs all do this; match
-   them. Inline comments explain *why* an assertion is there ("an empty shop
+   them. Inline comments explain _why_ an assertion is there ("an empty shop
    would pass a 'the screen opened' check while being useless"), not what it does.
 2. **Enabled is not reachable.** After asserting a button is enabled, click it
    and check the phase changed (`readGame(page).gamePhase.type`). After asserting
    a resource was spent, check it bought something.
-3. **Assert the negative too** where it matters: the item left the bag *and*
-   arrived in the slot; the gate is shut *and* says so.
+3. **Assert the negative too** where it matters: the item left the bag _and_
+   arrived in the slot; the gate is shut _and_ says so.
 4. **Give `expect` a message** on any assertion whose failure would otherwise
    be opaque (`expect(x, 'save should start with a racquet equipped')`).
 5. **One walk over many small tests** when the expensive part is getting there

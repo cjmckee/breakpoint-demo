@@ -41,9 +41,7 @@ export const MATCH_SPEED_DELAYS: Readonly<Record<MatchSpeed, number>> = {
 };
 
 /** Label and blurb for each speed, for the settings menu. */
-export const MATCH_SPEED_META: Readonly<
-  Record<MatchSpeed, { label: string; hint: string }>
-> = {
+export const MATCH_SPEED_META: Readonly<Record<MatchSpeed, { label: string; hint: string }>> = {
   slow: { label: 'Slow', hint: 'Time to read every point' },
   normal: { label: 'Normal', hint: 'The default pace' },
   fast: { label: 'Fast', hint: 'Half the wait between points' },
@@ -63,14 +61,17 @@ export type PerformanceLevel = 'excellent' | 'good' | 'average' | 'bad';
 // ============================================================================
 // TIER MULTIPLIERS
 // ============================================================================
-export const TIER_REWARD_MULTIPLIERS: Record<OpponentTier, {
-  win: number;
-  loss: number;
-}> = {
-  1: { win: 1, loss: 1 },     // Club Player
-  2: { win: 2, loss: 1 },     // Regional Competitor
-  3: { win: 3, loss: 1 },     // Tour Professional
-  4: { win: 4, loss: 2 },     // World Champion
+export const TIER_REWARD_MULTIPLIERS: Record<
+  OpponentTier,
+  {
+    win: number;
+    loss: number;
+  }
+> = {
+  1: { win: 1, loss: 1 }, // Club Player
+  2: { win: 2, loss: 1 }, // Regional Competitor
+  3: { win: 3, loss: 1 }, // Tour Professional
+  4: { win: 4, loss: 2 }, // World Champion
 };
 
 // ============================================================================
@@ -81,25 +82,25 @@ export const ABILITY_DROP_RATES: Record<OpponentTier, Record<AbilityRarity, numb
     [AbilityRarity.COMMON]: 5,
     [AbilityRarity.UNCOMMON]: 0,
     [AbilityRarity.RARE]: 0,
-    [AbilityRarity.LEGENDARY]: 0
+    [AbilityRarity.LEGENDARY]: 0,
   },
   2: {
     [AbilityRarity.COMMON]: 10,
     [AbilityRarity.UNCOMMON]: 3,
     [AbilityRarity.RARE]: 0,
-    [AbilityRarity.LEGENDARY]: 0
+    [AbilityRarity.LEGENDARY]: 0,
   },
   3: {
     [AbilityRarity.COMMON]: 15,
     [AbilityRarity.UNCOMMON]: 8,
     [AbilityRarity.RARE]: 2,
-    [AbilityRarity.LEGENDARY]: 0
+    [AbilityRarity.LEGENDARY]: 0,
   },
   4: {
     [AbilityRarity.COMMON]: 20,
     [AbilityRarity.UNCOMMON]: 12,
     [AbilityRarity.RARE]: 5,
-    [AbilityRarity.LEGENDARY]: 1
+    [AbilityRarity.LEGENDARY]: 1,
   },
 };
 

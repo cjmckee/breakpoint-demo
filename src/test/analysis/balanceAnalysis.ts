@@ -12,9 +12,20 @@ import { PointSimulator } from '../../core/PointSimulator';
 import { aggregateArchetypeEffects } from '../../data/archetypeTree';
 import { createUniformPlayer, createArchetypePlayer } from './playerFactory';
 import { computeStats } from './stats';
-import type { ArchetypeProfile, GamePhase, PhasePathId, SpecialtyTier } from '../../types/archetype';
+import type {
+  ArchetypeProfile,
+  GamePhase,
+  PhasePathId,
+  SpecialtyTier,
+} from '../../types/archetype';
 import {
-  print, printBanner, printHeader, printTable, printHistogram, fmtPct, fmtNum,
+  print,
+  printBanner,
+  printHeader,
+  printTable,
+  printHistogram,
+  fmtPct,
+  fmtNum,
 } from './formatters';
 import {
   SERVE_CONSISTENCY,
@@ -40,8 +51,14 @@ const N_MATCHES = 50;
 const SERVE_TYPES: ShotType[] = ['serve_first', 'serve_second'];
 
 const RALLY_SHOT_TYPES: ShotType[] = [
-  'forehand', 'backhand', 'forehand_power', 'slice_forehand',
-  'return_forehand', 'passing_shot_forehand', 'lob_forehand', 'drop_shot_forehand',
+  'forehand',
+  'backhand',
+  'forehand_power',
+  'slice_forehand',
+  'return_forehand',
+  'passing_shot_forehand',
+  'lob_forehand',
+  'drop_shot_forehand',
 ];
 
 const INCOMING_QUALITIES = [30, 50, 70];
@@ -50,14 +67,33 @@ const OPPONENT_RETURN_RATINGS = [30, 50, 70];
 // ─── Helpers ─────────────────────────────────────────────────
 
 function makeServeContext(courtSurface: CourtSurface = 'hard'): ShotContext {
-  return { difficulty: 'normal', pressure: 'low', courtPosition: 'baseline', rallyLength: 1, courtSurface };
+  return {
+    difficulty: 'normal',
+    pressure: 'low',
+    courtPosition: 'baseline',
+    rallyLength: 1,
+    courtSurface,
+  };
 }
 
-function makeRallyContext(rallyLength: number = 3, courtSurface: CourtSurface = 'hard'): ShotContext {
-  return { difficulty: 'normal', pressure: 'low', courtPosition: 'baseline', rallyLength, courtSurface };
+function makeRallyContext(
+  rallyLength: number = 3,
+  courtSurface: CourtSurface = 'hard',
+): ShotContext {
+  return {
+    difficulty: 'normal',
+    pressure: 'low',
+    courtPosition: 'baseline',
+    rallyLength,
+    courtSurface,
+  };
 }
 
-function makeIncomingShotDetail(quality: number, shotType: ShotType = 'forehand', courtSurface: CourtSurface = 'hard'): ShotDetail {
+function makeIncomingShotDetail(
+  quality: number,
+  shotType: ShotType = 'forehand',
+  courtSurface: CourtSurface = 'hard',
+): ShotDetail {
   return {
     shotType,
     shooter: 'returner',
@@ -66,9 +102,16 @@ function makeIncomingShotDetail(quality: number, shotType: ShotType = 'forehand'
     outcome: PointType.IN_PLAY,
     statUsed: 'forehand',
     modifiers: {
-      spinModifier: 1, placementModifier: 1, physicalModifier: 1, mentalModifier: 1,
-      difficultyModifier: 1, pressureModifier: 1, rallyLengthModifier: 1, finalAdjustment: 1,
-      fatigueModifier: 1, momentumModifier: 1,
+      spinModifier: 1,
+      placementModifier: 1,
+      physicalModifier: 1,
+      mentalModifier: 1,
+      difficultyModifier: 1,
+      pressureModifier: 1,
+      rallyLengthModifier: 1,
+      finalAdjustment: 1,
+      fatigueModifier: 1,
+      momentumModifier: 1,
     },
     timestamp: Date.now(),
     shotNumber: 2,
@@ -95,7 +138,9 @@ function runServeAnalysis(): void {
       const aceThreshold = contest.aceBase + oppReturnRating * contest.acePerResistance;
 
       print(`  ${serveType} vs Opponent Return: ${oppReturnRating}`);
-      print(`  InPlay midpoint: ${baseline.base} + ${baseline.perAccuracy} × expected accuracy │ Ace Threshold (base): ${fmtNum(aceThreshold)}`);
+      print(
+        `  InPlay midpoint: ${baseline.base} + ${baseline.perAccuracy} × expected accuracy │ Ace Threshold (base): ${fmtNum(aceThreshold)}`,
+      );
       print('');
 
       const rows: (string | number)[][] = [];
@@ -110,10 +155,15 @@ function runServeAnalysis(): void {
 
         for (let i = 0; i < N_SHOTS; i++) {
           const result = calculator.calculateShotSuccess(
-            player, serveType, makeServeContext(), opponent, 'well_positioned',
+            player,
+            serveType,
+            makeServeContext(),
+            opponent,
+            'well_positioned',
           );
           qualities.push(result.quality);
-          if (result.outcome === PointType.FAULT || result.outcome === PointType.DOUBLE_FAULT) faults++;
+          if (result.outcome === PointType.FAULT || result.outcome === PointType.DOUBLE_FAULT)
+            faults++;
           else if (result.outcome === PointType.ACE) aces++;
           else inPlay++;
         }
@@ -122,8 +172,16 @@ function runServeAnalysis(): void {
         allQualities.set(rating, qualities);
 
         rows.push([
-          String(rating), stats.mean, stats.stddev, stats.p10, stats.p25, stats.p75, stats.p90,
-          fmtPct(faults, N_SHOTS), fmtPct(inPlay, N_SHOTS), fmtPct(aces, N_SHOTS),
+          String(rating),
+          stats.mean,
+          stats.stddev,
+          stats.p10,
+          stats.p25,
+          stats.p75,
+          stats.p90,
+          fmtPct(faults, N_SHOTS),
+          fmtPct(inPlay, N_SHOTS),
+          fmtPct(aces, N_SHOTS),
         ]);
       }
 
@@ -157,7 +215,7 @@ function computeRallyThresholds(
   opponentDefensive: number,
   opponentSpeed: number,
 ): { inPlay: number; winner: number; forcedError: number } {
-  const relativeReq = RELATIVE_QUALITY_REQUIREMENTS[shotType] ?? 0.50;
+  const relativeReq = RELATIVE_QUALITY_REQUIREMENTS[shotType] ?? 0.5;
   const category = getShotCategory(shotType);
   const multipliers = OUTCOME_MULTIPLIERS[category];
   const floor = MIN_QUALITY_FLOORS[category];
@@ -186,7 +244,7 @@ function runRallyAnalysis(): void {
 
   for (const shotType of RALLY_SHOT_TYPES) {
     const category = getShotCategory(shotType);
-    const relativeReq = RELATIVE_QUALITY_REQUIREMENTS[shotType] ?? 0.50;
+    const relativeReq = RELATIVE_QUALITY_REQUIREMENTS[shotType] ?? 0.5;
 
     print(`  ┌─ ${shotType} (${category}) ── relative requirement: ${relativeReq}`);
 
@@ -197,7 +255,9 @@ function runRallyAnalysis(): void {
 
       print(`  │`);
       print(`  ├─ Incoming Quality: ${incomingQ} │ Opponent: 50-rated`);
-      print(`  │  InPlay: ${fmtNum(thresholds.inPlay)} │ Winner: ${fmtNum(thresholds.winner)} │ ForcedError: ${fmtNum(thresholds.forcedError)}`);
+      print(
+        `  │  InPlay: ${fmtNum(thresholds.inPlay)} │ Winner: ${fmtNum(thresholds.winner)} │ ForcedError: ${fmtNum(thresholds.forcedError)}`,
+      );
       print('');
 
       const rows: (string | number)[][] = [];
@@ -213,15 +273,27 @@ function runRallyAnalysis(): void {
 
         for (let i = 0; i < N_SHOTS; i++) {
           const result = calculator.calculateShotSuccess(
-            player, shotType, makeRallyContext(), opponent, 'well_positioned',
+            player,
+            shotType,
+            makeRallyContext(),
+            opponent,
+            'well_positioned',
             incomingShot,
           );
           qualities.push(result.quality);
           switch (result.outcome) {
-            case PointType.WINNER: winners++; break;
-            case PointType.IN_PLAY: inPlayCount++; break;
-            case PointType.FORCED_ERROR: forcedErrors++; break;
-            case PointType.UNFORCED_ERROR: unforcedErrors++; break;
+            case PointType.WINNER:
+              winners++;
+              break;
+            case PointType.IN_PLAY:
+              inPlayCount++;
+              break;
+            case PointType.FORCED_ERROR:
+              forcedErrors++;
+              break;
+            case PointType.UNFORCED_ERROR:
+              unforcedErrors++;
+              break;
           }
         }
 
@@ -229,9 +301,15 @@ function runRallyAnalysis(): void {
         allQualities.set(rating, qualities);
 
         rows.push([
-          String(rating), stats.mean, stats.stddev, stats.p10, stats.p90,
-          fmtPct(unforcedErrors, N_SHOTS), fmtPct(forcedErrors, N_SHOTS),
-          fmtPct(inPlayCount, N_SHOTS), fmtPct(winners, N_SHOTS),
+          String(rating),
+          stats.mean,
+          stats.stddev,
+          stats.p10,
+          stats.p90,
+          fmtPct(unforcedErrors, N_SHOTS),
+          fmtPct(forcedErrors, N_SHOTS),
+          fmtPct(inPlayCount, N_SHOTS),
+          fmtPct(winners, N_SHOTS),
         ]);
       }
 
@@ -281,19 +359,24 @@ function runMatchAnalysis(): void {
         const player = createUniformPlayer('Player', r1);
         const opponent = createUniformPlayer('Opponent', r2);
 
-        const results = MatchSimulator.simulateMultipleMatches({
-          player,
-          opponent,
-          courtSurface: surface,
-          matchFormat: { bestOfSets: 1, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 },
-        }, N_MATCHES);
+        const results = MatchSimulator.simulateMultipleMatches(
+          {
+            player,
+            opponent,
+            courtSurface: surface,
+            matchFormat: { bestOfSets: 1, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 },
+          },
+          N_MATCHES,
+        );
 
-        const playerWins = results.filter(r => r.winner === 'player').length;
+        const playerWins = results.filter((r) => r.winner === 'player').length;
         const avgAces = results.reduce((s, r) => s + r.statistics.aces.player, 0) / N_MATCHES;
         const avgWinners = results.reduce((s, r) => s + r.statistics.winners.player, 0) / N_MATCHES;
-        const avgUE = results.reduce((s, r) => s + r.statistics.unforcedErrors.player, 0) / N_MATCHES;
+        const avgUE =
+          results.reduce((s, r) => s + r.statistics.unforcedErrors.player, 0) / N_MATCHES;
         const avgFE = results.reduce((s, r) => s + r.statistics.forcedErrors.player, 0) / N_MATCHES;
-        const avgRally = results.reduce((s, r) => s + r.statistics.averageRallyLength, 0) / N_MATCHES;
+        const avgRally =
+          results.reduce((s, r) => s + r.statistics.averageRallyLength, 0) / N_MATCHES;
 
         // Get most common score
         const scoreCounts = new Map<string, number>();
@@ -303,14 +386,29 @@ function runMatchAnalysis(): void {
         const topScore = [...scoreCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? '?';
 
         rows.push([
-          `${r1}v${r2}`, fmtPct(playerWins, N_MATCHES), topScore,
-          avgAces, avgWinners, avgUE, avgFE, avgRally,
+          `${r1}v${r2}`,
+          fmtPct(playerWins, N_MATCHES),
+          topScore,
+          avgAces,
+          avgWinners,
+          avgUE,
+          avgFE,
+          avgRally,
         ]);
       }
     }
 
     printTable(
-      ['Matchup', 'P1 Win%', 'Top Score', 'Avg Aces', 'Avg Winners', 'Avg UE', 'Avg FE', 'Avg Rally'],
+      [
+        'Matchup',
+        'P1 Win%',
+        'Top Score',
+        'Avg Aces',
+        'Avg Winners',
+        'Avg UE',
+        'Avg FE',
+        'Avg Rally',
+      ],
       rows,
     );
 
@@ -327,10 +425,7 @@ function runMatchAnalysis(): void {
       }
       matrixRows.push(matrixRow);
     }
-    printTable(
-      ['P1 \\ P2', ...MATCHUP_RATINGS.map(String)],
-      matrixRows,
-    );
+    printTable(['P1 \\ P2', ...MATCHUP_RATINGS.map(String)], matrixRows);
 
     print(`  └${'─'.repeat(70)}`);
   }
@@ -358,8 +453,11 @@ function runModifierBreakdown(): void {
       const player = createUniformPlayer('Player', rating);
 
       const result = calculator.calculateShotSuccess(
-        player, type, isServe ? makeServeContext() : makeRallyContext(),
-        opponent, 'well_positioned',
+        player,
+        type,
+        isServe ? makeServeContext() : makeRallyContext(),
+        opponent,
+        'well_positioned',
         isServe ? undefined : incomingShot,
       );
 
@@ -374,13 +472,24 @@ function runModifierBreakdown(): void {
       print(`      Pressure mod:       x${fmtNum(m.pressureModifier, 3)}`);
       print(`      Rally length mod:   x${fmtNum(m.rallyLengthModifier, 3)}`);
       print(`      Final adjustment:   x${fmtNum(m.finalAdjustment, 3)}`);
-      if (m.serveVariance !== undefined) print(`      Serve variance:     ${m.serveVariance > 0 ? '+' : ''}${fmtNum(m.serveVariance)}`);
-      if (m.returnVariance !== undefined) print(`      Return variance:    ${m.returnVariance > 0 ? '+' : ''}${fmtNum(m.returnVariance)}`);
-      if (m.rallyVariance !== undefined) print(`      Rally variance:     ${m.rallyVariance > 0 ? '+' : ''}${fmtNum(m.rallyVariance)}`);
+      if (m.serveVariance !== undefined)
+        print(
+          `      Serve variance:     ${m.serveVariance > 0 ? '+' : ''}${fmtNum(m.serveVariance)}`,
+        );
+      if (m.returnVariance !== undefined)
+        print(
+          `      Return variance:    ${m.returnVariance > 0 ? '+' : ''}${fmtNum(m.returnVariance)}`,
+        );
+      if (m.rallyVariance !== undefined)
+        print(
+          `      Rally variance:     ${m.rallyVariance > 0 ? '+' : ''}${fmtNum(m.rallyVariance)}`,
+        );
       print(`      Final quality:      ${fmtNum(result.quality)}`);
       print(`      Outcome:            ${result.outcome}`);
       if (result.thresholds) {
-        print(`      Thresholds:         InPlay=${fmtNum(result.thresholds.inPlay)} Winner=${fmtNum(result.thresholds.winner)} FE=${fmtNum(result.thresholds.forcedError)}`);
+        print(
+          `      Thresholds:         InPlay=${fmtNum(result.thresholds.inPlay)} Winner=${fmtNum(result.thresholds.winner)} FE=${fmtNum(result.thresholds.forcedError)}`,
+        );
       }
       print('');
     }
@@ -403,28 +512,40 @@ function archProfile(
 }
 
 interface ArchAgg {
-  winPct: number; aces: number; df: number; winners: number; ue: number;
-  firstServePct: number; rally: number;
+  winPct: number;
+  aces: number;
+  df: number;
+  winners: number;
+  ue: number;
+  firstServePct: number;
+  rally: number;
 }
 
-function runArchetypeMatches(playerProfile: ArchetypeProfile, opponentProfile: ArchetypeProfile): ArchAgg {
-  const results = MatchSimulator.simulateMultipleMatches({
-    player: createArchetypePlayer('P', ARCH_RATING, playerProfile),
-    opponent: createArchetypePlayer('O', ARCH_RATING, opponentProfile),
-    courtSurface: 'hard',
-    matchFormat: { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 },
-  }, N_ARCH_MATCHES);
+function runArchetypeMatches(
+  playerProfile: ArchetypeProfile,
+  opponentProfile: ArchetypeProfile,
+): ArchAgg {
+  const results = MatchSimulator.simulateMultipleMatches(
+    {
+      player: createArchetypePlayer('P', ARCH_RATING, playerProfile),
+      opponent: createArchetypePlayer('O', ARCH_RATING, opponentProfile),
+      courtSurface: 'hard',
+      matchFormat: { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 },
+    },
+    N_ARCH_MATCHES,
+  );
 
   const n = results.length;
-  const avg = (f: (r: typeof results[number]) => number) => results.reduce((s, r) => s + f(r), 0) / n;
+  const avg = (f: (r: (typeof results)[number]) => number) =>
+    results.reduce((s, r) => s + f(r), 0) / n;
   return {
-    winPct: results.filter(r => r.winner === 'player').length / n,
-    aces: avg(r => r.statistics.aces.player),
-    df: avg(r => r.statistics.doubleFaults.player),
-    winners: avg(r => r.statistics.winners.player),
-    ue: avg(r => r.statistics.unforcedErrors.player),
-    firstServePct: avg(r => r.statistics.firstServePercentage.player),
-    rally: avg(r => r.statistics.averageRallyLength),
+    winPct: results.filter((r) => r.winner === 'player').length / n,
+    aces: avg((r) => r.statistics.aces.player),
+    df: avg((r) => r.statistics.doubleFaults.player),
+    winners: avg((r) => r.statistics.winners.player),
+    ue: avg((r) => r.statistics.unforcedErrors.player),
+    firstServePct: avg((r) => r.statistics.firstServePercentage.player),
+    rally: avg((r) => r.statistics.averageRallyLength),
   };
 }
 
@@ -453,8 +574,14 @@ function runArchetypeReport(): void {
   for (const [label, prof] of scenarios) {
     const a = runArchetypeMatches(prof, neutral);
     rows.push([
-      label, fmtPct(Math.round(a.winPct * N_ARCH_MATCHES), N_ARCH_MATCHES),
-      fmtNum(a.aces), fmtNum(a.df), fmtNum(a.firstServePct), fmtNum(a.winners), fmtNum(a.ue), fmtNum(a.rally),
+      label,
+      fmtPct(Math.round(a.winPct * N_ARCH_MATCHES), N_ARCH_MATCHES),
+      fmtNum(a.aces),
+      fmtNum(a.df),
+      fmtNum(a.firstServePct),
+      fmtNum(a.winners),
+      fmtNum(a.ue),
+      fmtNum(a.rally),
     ]);
   }
   printTable(
@@ -465,10 +592,36 @@ function runArchetypeReport(): void {
   // Archetype-vs-archetype matchups.
   print('');
   print('  Matchups (player listed first; Win% is for that player):');
-  const netRusher = archProfile({ net: { path: 'net_downhill', tier: 2 }, first_serve: { path: 'fs_bomber', tier: 2 }, return: { path: 'rt_sneaky_beaky', tier: 2 } }, 'net_attacker');
-  const grinder = archProfile({ forehand: { path: 'fh_survivor', tier: 2 }, backhand: { path: 'bh_brick_wall', tier: 2 }, return: { path: 'rt_extinguisher', tier: 2 }, net: { path: 'net_apologist', tier: 2 } }, 'baseliner');
-  const aggressive = archProfile({ forehand: { path: 'fh_laserbeam', tier: 2 }, first_serve: { path: 'fs_bomber', tier: 2 }, return: { path: 'rt_redliner', tier: 2 } });
-  const counter = archProfile({ forehand: { path: 'fh_survivor', tier: 2 }, backhand: { path: 'bh_samurai', tier: 2 }, return: { path: 'rt_extinguisher', tier: 2 } }, 'baseliner');
+  const netRusher = archProfile(
+    {
+      net: { path: 'net_downhill', tier: 2 },
+      first_serve: { path: 'fs_bomber', tier: 2 },
+      return: { path: 'rt_sneaky_beaky', tier: 2 },
+    },
+    'net_attacker',
+  );
+  const grinder = archProfile(
+    {
+      forehand: { path: 'fh_survivor', tier: 2 },
+      backhand: { path: 'bh_brick_wall', tier: 2 },
+      return: { path: 'rt_extinguisher', tier: 2 },
+      net: { path: 'net_apologist', tier: 2 },
+    },
+    'baseliner',
+  );
+  const aggressive = archProfile({
+    forehand: { path: 'fh_laserbeam', tier: 2 },
+    first_serve: { path: 'fs_bomber', tier: 2 },
+    return: { path: 'rt_redliner', tier: 2 },
+  });
+  const counter = archProfile(
+    {
+      forehand: { path: 'fh_survivor', tier: 2 },
+      backhand: { path: 'bh_samurai', tier: 2 },
+      return: { path: 'rt_extinguisher', tier: 2 },
+    },
+    'baseliner',
+  );
 
   const netOnly = archProfile({ net: { path: 'net_downhill', tier: 3 } }, 'net_attacker');
   const netT1 = archProfile({ net: { path: 'net_downhill', tier: 1 } }, 'net_attacker');
@@ -483,7 +636,13 @@ function runArchetypeReport(): void {
   const mrows: (string | number)[][] = [];
   for (const [label, p, o] of matchups) {
     const a = runArchetypeMatches(p, o);
-    mrows.push([label, fmtPct(Math.round(a.winPct * N_ARCH_MATCHES), N_ARCH_MATCHES), fmtNum(a.winners), fmtNum(a.ue), fmtNum(a.rally)]);
+    mrows.push([
+      label,
+      fmtPct(Math.round(a.winPct * N_ARCH_MATCHES), N_ARCH_MATCHES),
+      fmtNum(a.winners),
+      fmtNum(a.ue),
+      fmtNum(a.rally),
+    ]);
   }
   printTable(['Matchup', 'P1 Win%', 'P1 Winners', 'P1 UE', 'AvgRally'], mrows);
 }
@@ -499,16 +658,27 @@ const N_STYLE_POINTS = 4000;
 function styleMatchState(): unknown {
   return {
     score: { currentGame: { server: 1, returner: 1 } },
-    currentServer: 'player', courtSurface: 'hard', momentum: 0,
-    pressure: 'low', matchLength: 10, pointsPlayed: 10, isKeyMoment: false,
+    currentServer: 'player',
+    courtSurface: 'hard',
+    momentum: 0,
+    pressure: 'low',
+    matchLength: 10,
+    pointsPlayed: 10,
+    isKeyMoment: false,
     fatigue: { player: 0, opponent: 0 },
   };
 }
 
 interface StyleRates {
-  acePct: number; dfPct: number; firstInPct: number;
-  powerWinPct: number; powerUEPct: number; powerShare: number;
-  netApproachPct: number; bhSlicePct: number; avgRally: number;
+  acePct: number;
+  dfPct: number;
+  firstInPct: number;
+  powerWinPct: number;
+  powerUEPct: number;
+  powerShare: number;
+  netApproachPct: number;
+  bhSlicePct: number;
+  avgRally: number;
 }
 
 function runArchetypeStyle(profile: ArchetypeProfile, n: number): StyleRates {
@@ -517,9 +687,19 @@ function runArchetypeStyle(profile: ArchetypeProfile, n: number): StyleRates {
   const player = createArchetypePlayer('P', ARCH_RATING, profile);
   const opp = createUniformPlayer('O', ARCH_RATING);
 
-  let points = 0, df = 0, aces = 0, firstServes = 0, firstIn = 0;
-  let serverShots = 0, powerShots = 0, powerWin = 0, powerErr = 0;
-  let approaches = 0, bh = 0, bhSlice = 0, rallyTotal = 0;
+  let points = 0,
+    df = 0,
+    aces = 0,
+    firstServes = 0,
+    firstIn = 0;
+  let serverShots = 0,
+    powerShots = 0,
+    powerWin = 0,
+    powerErr = 0;
+  let approaches = 0,
+    bh = 0,
+    bhSlice = 0,
+    rallyTotal = 0;
 
   for (let i = 0; i < n; i++) {
     const r = ps.simulatePoint('player', player, opp, styleMatchState() as never, fx, {});
@@ -529,29 +709,36 @@ function runArchetypeStyle(profile: ArchetypeProfile, n: number): StyleRates {
     for (const s of r.shots) {
       if (s.shooter !== 'server') continue; // the archetype player's own shots
       serverShots++;
-      if (s.shotType === 'serve_first') { firstServes++; if (s.outcome !== PointType.FAULT) firstIn++; }
+      if (s.shotType === 'serve_first') {
+        firstServes++;
+        if (s.outcome !== PointType.FAULT) firstIn++;
+      }
       if (s.outcome === PointType.ACE) aces++;
       if (s.shotType.includes('power')) {
         powerShots++;
         if (s.outcome === PointType.WINNER) powerWin++;
-        if (s.outcome === PointType.UNFORCED_ERROR || s.outcome === PointType.FORCED_ERROR) powerErr++;
+        if (s.outcome === PointType.UNFORCED_ERROR || s.outcome === PointType.FORCED_ERROR)
+          powerErr++;
       }
       if (s.shotType.includes('approach')) approaches++;
-      if (s.shotType.includes('backhand')) { bh++; if (s.shotType.includes('slice')) bhSlice++; }
+      if (s.shotType.includes('backhand')) {
+        bh++;
+        if (s.shotType.includes('slice')) bhSlice++;
+      }
     }
   }
 
   const rallyShots = serverShots - firstServes; // exclude first serves from "shot" denominators
   return {
-    acePct: points ? (100 * aces / points) : 0,
-    dfPct: points ? (100 * df / points) : 0,
-    firstInPct: firstServes ? (100 * firstIn / firstServes) : 0,
-    powerWinPct: powerShots ? (100 * powerWin / powerShots) : 0,
-    powerUEPct: powerShots ? (100 * powerErr / powerShots) : 0,
-    powerShare: rallyShots > 0 ? (100 * powerShots / rallyShots) : 0,
-    netApproachPct: rallyShots > 0 ? (100 * approaches / rallyShots) : 0,
-    bhSlicePct: bh ? (100 * bhSlice / bh) : 0,
-    avgRally: points ? (rallyTotal / points) : 0,
+    acePct: points ? (100 * aces) / points : 0,
+    dfPct: points ? (100 * df) / points : 0,
+    firstInPct: firstServes ? (100 * firstIn) / firstServes : 0,
+    powerWinPct: powerShots ? (100 * powerWin) / powerShots : 0,
+    powerUEPct: powerShots ? (100 * powerErr) / powerShots : 0,
+    powerShare: rallyShots > 0 ? (100 * powerShots) / rallyShots : 0,
+    netApproachPct: rallyShots > 0 ? (100 * approaches) / rallyShots : 0,
+    bhSlicePct: bh ? (100 * bhSlice) / bh : 0,
+    avgRally: points ? rallyTotal / points : 0,
   };
 }
 
@@ -570,7 +757,17 @@ function runArchetypeStyleReport(): void {
     ['Flat FH III', archProfile({ forehand: { path: 'fh_laserbeam', tier: 3 } })],
     ['Net-Rusher III', archProfile({ net: { path: 'net_downhill', tier: 3 } }, 'net_attacker')],
     ['Slice BH III', archProfile({ backhand: { path: 'bh_samurai', tier: 3 } }, 'baseliner')],
-    ['Grinder', archProfile({ forehand: { path: 'fh_survivor', tier: 2 }, backhand: { path: 'bh_brick_wall', tier: 2 }, net: { path: 'net_apologist', tier: 2 } }, 'baseliner')],
+    [
+      'Grinder',
+      archProfile(
+        {
+          forehand: { path: 'fh_survivor', tier: 2 },
+          backhand: { path: 'bh_brick_wall', tier: 2 },
+          net: { path: 'net_apologist', tier: 2 },
+        },
+        'baseliner',
+      ),
+    ],
   ];
 
   const rows: (string | number)[][] = [];
@@ -578,16 +775,35 @@ function runArchetypeStyleReport(): void {
     const s = runArchetypeStyle(prof, N_STYLE_POINTS);
     rows.push([
       label,
-      fmtNum(s.acePct), fmtNum(s.dfPct), fmtNum(s.firstInPct),
-      fmtNum(s.powerShare), fmtNum(s.powerWinPct), fmtNum(s.powerUEPct),
-      fmtNum(s.netApproachPct), fmtNum(s.bhSlicePct), fmtNum(s.avgRally),
+      fmtNum(s.acePct),
+      fmtNum(s.dfPct),
+      fmtNum(s.firstInPct),
+      fmtNum(s.powerShare),
+      fmtNum(s.powerWinPct),
+      fmtNum(s.powerUEPct),
+      fmtNum(s.netApproachPct),
+      fmtNum(s.bhSlicePct),
+      fmtNum(s.avgRally),
     ]);
   }
   printTable(
-    ['Scenario', 'Ace%', 'DF%', '1stIn%', 'Power%', 'PwrWin%', 'PwrUE%', 'NetAppr%', 'BHslice%', 'Rally'],
+    [
+      'Scenario',
+      'Ace%',
+      'DF%',
+      '1stIn%',
+      'Power%',
+      'PwrWin%',
+      'PwrUE%',
+      'NetAppr%',
+      'BHslice%',
+      'Rally',
+    ],
     rows,
   );
-  print('  (Ace%/DF% per point; 1stIn% of first serves; Power%/NetAppr%/BHslice% of the player\'s rally shots)');
+  print(
+    "  (Ace%/DF% per point; 1stIn% of first serves; Power%/NetAppr%/BHslice% of the player's rally shots)",
+  );
 }
 
 // ─── Main ────────────────────────────────────────────────────

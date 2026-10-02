@@ -13,10 +13,14 @@ interface ItemAcquiredModalProps {
 function itemEmoji(item: Item): string {
   if (item.type === 'equipment') {
     switch (item.equipmentSlot) {
-      case 'racquet': return '🎾';
-      case 'shoes': return '👟';
-      case 'hat': return '🧢';
-      case 'outfit': return '👕';
+      case 'racquet':
+        return '🎾';
+      case 'shoes':
+        return '👟';
+      case 'hat':
+        return '🧢';
+      case 'outfit':
+        return '👕';
     }
   }
   if (item.type === 'consumable') return '⚡';

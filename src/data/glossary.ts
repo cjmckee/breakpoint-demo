@@ -17,40 +17,136 @@ export const TENNIS_TERMS: GlossarySection[] = [
   {
     title: 'Shot Types',
     entries: [
-      { term: 'Forehand', definition: 'A shot hit with the dominant arm. This is typically a player\'s best shot. Hits balls on the right side of the court for right-handed players.' },
-      { term: 'Backhand', definition: 'A shot hit with the non-dominant arm, usually utilizing more leg power. Can be one-handed or two-handed. Hits balls on the left side of the court for right-handed players.' },
-      { term: 'Serve', definition: "Every point begins with a serve. The server will stand behind the baseline, toss the ball, and hit it into the service box cross-court from them. A player gets two serves each point, so typically one is more focused on offense and one is more focused on consistency." },
-      { term: 'Return', definition: 'The shot hit when returning a serve. On first serve returns, typically players block a fast serve and try to neutralize the advantage. On second serve returns, players have a bit more freedom to attack and get on offense.' },
-      { term: 'Volley', definition: 'A shot hit out of the air, typically at the net. Getting closer to the net improves your angles and simplifies the shots, typically resulting in higher success when players get to the net successfully.' },
-      { term: 'Lob', definition: 'A high, arcing shot aimed over the opponent\'s head, useful for passing net players. This is typically a defensive shot, but many players struggle to return it well, and it can quickly turn into an offensive opportunity.' },
-      { term: 'Drop Shot', definition: 'A soft, short shot that barely clears the net, usually with a lot of spin. It forces the opponent to rush forward, and if you catch them out of position, it can be an offensive weapon for defenders.' },
-      { term: 'Slice', definition: 'A shot hit with backspin, and is usually considered a defensive shot. However, it usually provides increased control, so players with good placement can utilize slices as a weapon.' },
-      { term: 'Topspin', definition: 'A typical "tennis shot." This is the basic type of shot. Forward spin on the ball that makes it dip down faster and bounce higher.' },
-      { term: 'Overhead Smash', definition: 'A powerful overhead swing, used to put away shots in the air. They can be difficult to master, but closing out net points is much easier with strong overheads.' },
+      {
+        term: 'Forehand',
+        definition:
+          "A shot hit with the dominant arm. This is typically a player's best shot. Hits balls on the right side of the court for right-handed players.",
+      },
+      {
+        term: 'Backhand',
+        definition:
+          'A shot hit with the non-dominant arm, usually utilizing more leg power. Can be one-handed or two-handed. Hits balls on the left side of the court for right-handed players.',
+      },
+      {
+        term: 'Serve',
+        definition:
+          'Every point begins with a serve. The server will stand behind the baseline, toss the ball, and hit it into the service box cross-court from them. A player gets two serves each point, so typically one is more focused on offense and one is more focused on consistency.',
+      },
+      {
+        term: 'Return',
+        definition:
+          'The shot hit when returning a serve. On first serve returns, typically players block a fast serve and try to neutralize the advantage. On second serve returns, players have a bit more freedom to attack and get on offense.',
+      },
+      {
+        term: 'Volley',
+        definition:
+          'A shot hit out of the air, typically at the net. Getting closer to the net improves your angles and simplifies the shots, typically resulting in higher success when players get to the net successfully.',
+      },
+      {
+        term: 'Lob',
+        definition:
+          "A high, arcing shot aimed over the opponent's head, useful for passing net players. This is typically a defensive shot, but many players struggle to return it well, and it can quickly turn into an offensive opportunity.",
+      },
+      {
+        term: 'Drop Shot',
+        definition:
+          'A soft, short shot that barely clears the net, usually with a lot of spin. It forces the opponent to rush forward, and if you catch them out of position, it can be an offensive weapon for defenders.',
+      },
+      {
+        term: 'Slice',
+        definition:
+          'A shot hit with backspin, and is usually considered a defensive shot. However, it usually provides increased control, so players with good placement can utilize slices as a weapon.',
+      },
+      {
+        term: 'Topspin',
+        definition:
+          'A typical "tennis shot." This is the basic type of shot. Forward spin on the ball that makes it dip down faster and bounce higher.',
+      },
+      {
+        term: 'Overhead Smash',
+        definition:
+          'A powerful overhead swing, used to put away shots in the air. They can be difficult to master, but closing out net points is much easier with strong overheads.',
+      },
     ],
   },
   {
     title: 'Court & Positions',
     entries: [
-      { term: 'Cross-court', definition: 'Hitting from one side of the lengthwise center line to the other. From the player\'s perspective, the player will start on the right side of the court, and my opponent will start on the left.'},
-      { term: 'Baseline', definition: 'The line at each end of the court. Most regular play happens at or behind these lines. This is referred to as "baseline play."' },
-      { term: 'Net', definition: "In between the two sides of the court. Volleys are typically hit close to the net to get better angles." },
-      { term: 'Service Box', definition: 'The boxes just beyond the net. A serve must land in the box cross-court from the server.' },
-      { term: 'Court Surface', definition: 'The material the court is made of. Different surfaces (hard, clay, grass) affect ball bounce and speed.' },
+      {
+        term: 'Cross-court',
+        definition:
+          "Hitting from one side of the lengthwise center line to the other. From the player's perspective, the player will start on the right side of the court, and my opponent will start on the left.",
+      },
+      {
+        term: 'Baseline',
+        definition:
+          'The line at each end of the court. Most regular play happens at or behind these lines. This is referred to as "baseline play."',
+      },
+      {
+        term: 'Net',
+        definition:
+          'In between the two sides of the court. Volleys are typically hit close to the net to get better angles.',
+      },
+      {
+        term: 'Service Box',
+        definition:
+          'The boxes just beyond the net. A serve must land in the box cross-court from the server.',
+      },
+      {
+        term: 'Court Surface',
+        definition:
+          'The material the court is made of. Different surfaces (hard, clay, grass) affect ball bounce and speed.',
+      },
     ],
   },
   {
     title: 'Special Terms',
     entries: [
-      { term: 'Ace', definition: "A serve that lands in and the opponent fails to touch. This requires the server to hit with speed and precision." },
-      { term: 'Double Fault', definition: 'A missed serve is called a \'fault\'. Players get two serves on each point. Failing both serves results in losing the point.' },
-      { term: 'Break Point', definition: 'When the player is not serving, but has the chance to win the game. As players improve and serves become stronger, this becomes harder and harder to do. Break points usually decide matches.' },
-      { term: 'Hold of Serve', definition: 'When a player wins the game they were serving. The server has the advantage when the point begins, so having a strong serve is always helpful.'},
-      { term: 'Break of Serve', definition: 'When the receiver wins a game while the opponent was serving. Since players at the top level almost always hold serve, a match score is sometimes measured in this, referring to being "up a break" or "up two breaks."' },
-      { term: 'Rally', definition: 'An exchange of shots between players, starting after the serve and ending when one player wins the point. Many people confuse this with "volley," which is to hit the ball out of the air.' },
-      { term: 'Unforced Error', definition: 'A mistake made without pressure from the opponent. Sometimes going for an offensive shot can end in a mistake. Sometimes you just miss. Happens to the pros, too.' },
-      { term: 'Forced Error', definition: 'A mistake caused by good play from the opponent. Someone hitting a strong ball where the player needs to stretch and hit a defensive shot would qualify. The player was forced into a more difficult position and that caused them to miss.' },
-      { term: 'Winner', definition: 'A shot that the opponent cannot reach or return. Like aces, this usually requires a combination of power and precision. However, clever players can take advantage of angles or court positioning to hit winners, as well.' },
+      {
+        term: 'Ace',
+        definition:
+          'A serve that lands in and the opponent fails to touch. This requires the server to hit with speed and precision.',
+      },
+      {
+        term: 'Double Fault',
+        definition:
+          "A missed serve is called a 'fault'. Players get two serves on each point. Failing both serves results in losing the point.",
+      },
+      {
+        term: 'Break Point',
+        definition:
+          'When the player is not serving, but has the chance to win the game. As players improve and serves become stronger, this becomes harder and harder to do. Break points usually decide matches.',
+      },
+      {
+        term: 'Hold of Serve',
+        definition:
+          'When a player wins the game they were serving. The server has the advantage when the point begins, so having a strong serve is always helpful.',
+      },
+      {
+        term: 'Break of Serve',
+        definition:
+          'When the receiver wins a game while the opponent was serving. Since players at the top level almost always hold serve, a match score is sometimes measured in this, referring to being "up a break" or "up two breaks."',
+      },
+      {
+        term: 'Rally',
+        definition:
+          'An exchange of shots between players, starting after the serve and ending when one player wins the point. Many people confuse this with "volley," which is to hit the ball out of the air.',
+      },
+      {
+        term: 'Unforced Error',
+        definition:
+          'A mistake made without pressure from the opponent. Sometimes going for an offensive shot can end in a mistake. Sometimes you just miss. Happens to the pros, too.',
+      },
+      {
+        term: 'Forced Error',
+        definition:
+          'A mistake caused by good play from the opponent. Someone hitting a strong ball where the player needs to stretch and hit a defensive shot would qualify. The player was forced into a more difficult position and that caused them to miss.',
+      },
+      {
+        term: 'Winner',
+        definition:
+          'A shot that the opponent cannot reach or return. Like aces, this usually requires a combination of power and precision. However, clever players can take advantage of angles or court positioning to hit winners, as well.',
+      },
     ],
   },
 ];
@@ -59,35 +155,90 @@ export const STATS_GUIDE: GlossarySection[] = [
   {
     title: 'Core Stats - Most Important',
     entries: [
-      { term: 'Serve', definition: 'Your ability to hit powerful, accurate serves. Higher serve means more aces and easier holds.' },
-      { term: 'Forehand', definition: 'Power and control on your forehand side. The foundation of most players\' games. Offensive players are typically defined by a strong forehand.' },
-      { term: 'Backhand', definition: 'Power and control on your backhand side. Essential for continuing rallies, and some players even prefer it to their forehand.' },
-      { term: 'Return', definition: 'Your ability to return serves effectively. Affects how well you break opponent serves.' },
-      { term: 'Net', definition: 'Everything you hit at net — volleys, half-volleys, and overhead smashes. Higher net rating means stronger serve-and-volley play and cleaner put-aways once you get forward.' },
+      {
+        term: 'Serve',
+        definition:
+          'Your ability to hit powerful, accurate serves. Higher serve means more aces and easier holds.',
+      },
+      {
+        term: 'Forehand',
+        definition:
+          "Power and control on your forehand side. The foundation of most players' games. Offensive players are typically defined by a strong forehand.",
+      },
+      {
+        term: 'Backhand',
+        definition:
+          'Power and control on your backhand side. Essential for continuing rallies, and some players even prefer it to their forehand.',
+      },
+      {
+        term: 'Return',
+        definition:
+          'Your ability to return serves effectively. Affects how well you break opponent serves.',
+      },
+      {
+        term: 'Net',
+        definition:
+          'Everything you hit at net — volleys, half-volleys, and overhead smashes. Higher net rating means stronger serve-and-volley play and cleaner put-aways once you get forward.',
+      },
     ],
   },
   {
     title: 'Technical Stats',
     entries: [
-      { term: 'Slice', definition: 'Your ability to hit slice shots with backspin. Useful for defense and extending rallies to force mistakes from opponents. A pusher\'s best weapon.' },
-      { term: 'Spin', definition: 'Your ability to generate and control spin. More spin means better control and trickier shots.' },
-      { term: 'Placement', definition: 'Your ability to hit shots to specific targets — angles, lobs, passing shots, and drop shots. Better placement creates winners and keeps your shot selection varied enough to keep opponents guessing.' },
+      {
+        term: 'Slice',
+        definition:
+          "Your ability to hit slice shots with backspin. Useful for defense and extending rallies to force mistakes from opponents. A pusher's best weapon.",
+      },
+      {
+        term: 'Spin',
+        definition:
+          'Your ability to generate and control spin. More spin means better control and trickier shots.',
+      },
+      {
+        term: 'Placement',
+        definition:
+          'Your ability to hit shots to specific targets — angles, lobs, passing shots, and drop shots. Better placement creates winners and keeps your shot selection varied enough to keep opponents guessing.',
+      },
     ],
   },
   {
     title: 'Physical Stats',
     entries: [
-      { term: 'Speed', definition: 'How quickly you move around the court and change direction. Affects your ability to reach shots, cover the net, and get into position.' },
-      { term: 'Stamina', definition: 'Your endurance during long matches and how quickly you recover between points. Higher stamina means you play better in the later stages and bounce back from fatigue faster.' },
-      { term: 'Strength', definition: 'Raw power in your shots. Contributes to serve speed and shot pace.' },
+      {
+        term: 'Speed',
+        definition:
+          'How quickly you move around the court and change direction. Affects your ability to reach shots, cover the net, and get into position.',
+      },
+      {
+        term: 'Stamina',
+        definition:
+          'Your endurance during long matches and how quickly you recover between points. Higher stamina means you play better in the later stages and bounce back from fatigue faster.',
+      },
+      {
+        term: 'Strength',
+        definition: 'Raw power in your shots. Contributes to serve speed and shot pace.',
+      },
     ],
   },
   {
     title: 'Mental Stats',
     entries: [
-      { term: 'Focus', definition: 'Your concentration during crucial moments. Higher focus improves clutch performance.' },
-      { term: 'Anticipation', definition: 'Your ability to read opponents and predict shots. Helps with positioning and reactions.' },
-      { term: 'Tactics', definition: 'Executing the shot you choose, whether attacking or defending. Higher tactics improves both your ability to attack and finish points and your ability to retrieve tough shots and extend rallies.' },
+      {
+        term: 'Focus',
+        definition:
+          'Your concentration during crucial moments. Higher focus improves clutch performance.',
+      },
+      {
+        term: 'Anticipation',
+        definition:
+          'Your ability to read opponents and predict shots. Helps with positioning and reactions.',
+      },
+      {
+        term: 'Tactics',
+        definition:
+          'Executing the shot you choose, whether attacking or defending. Higher tactics improves both your ability to attack and finish points and your ability to retrieve tough shots and extend rallies.',
+      },
     ],
   },
 ];
@@ -98,17 +249,33 @@ export const STATS_GUIDE: GlossarySection[] = [
  * the stat cards/tiles to reveal "what this stat does" on hover/tap.
  */
 export const STAT_DESCRIPTIONS: Record<string, string> = Object.fromEntries(
-  STATS_GUIDE.flatMap((section) => section.entries.map((entry) => [entry.term, entry.definition]))
+  STATS_GUIDE.flatMap((section) => section.entries.map((entry) => [entry.term, entry.definition])),
 );
 
 export const SURFACE_GUIDE: GlossarySection[] = [
   {
     title: 'Court Surfaces',
     entries: [
-      { term: 'Hard Court', definition: 'Fast, consistent bounce. Balance of power and control. Most common professional surface.' },
-      { term: 'Clay Court', definition: 'Slower surface with higher bounce. Rewards endurance and defensive play. European/South American favorite.' },
-      { term: 'Grass Court', definition: 'Fastest surface with low bounce. Traditional Wimbledon surface. Rewards serve-and-volley.' },
-      { term: 'Carpet', definition: 'Bounces are less consistent in favor of flexibility of putting up these courts in non-traditional venues. Players treat it similar to grass.'}
+      {
+        term: 'Hard Court',
+        definition:
+          'Fast, consistent bounce. Balance of power and control. Most common professional surface.',
+      },
+      {
+        term: 'Clay Court',
+        definition:
+          'Slower surface with higher bounce. Rewards endurance and defensive play. European/South American favorite.',
+      },
+      {
+        term: 'Grass Court',
+        definition:
+          'Fastest surface with low bounce. Traditional Wimbledon surface. Rewards serve-and-volley.',
+      },
+      {
+        term: 'Carpet',
+        definition:
+          'Bounces are less consistent in favor of flexibility of putting up these courts in non-traditional venues. Players treat it similar to grass.',
+      },
     ],
   },
 ];
@@ -117,9 +284,20 @@ export const KEY_SHORTCUTS_GUIDE: GlossarySection[] = [
   {
     title: 'Navigation',
     entries: [
-      { term: 'Enter / Space', definition: 'Dismiss match results, story event results, and training result overlays.' },
-      { term: 'T', definition: 'Open / close the Training screen. Press T on the hub to go to training, press T again to return.' },
-      { term: 'M', definition: 'Open / close the Match Setup screen. Only available once matches are unlocked.' },
+      {
+        term: 'Enter / Space',
+        definition: 'Dismiss match results, story event results, and training result overlays.',
+      },
+      {
+        term: 'T',
+        definition:
+          'Open / close the Training screen. Press T on the hub to go to training, press T again to return.',
+      },
+      {
+        term: 'M',
+        definition:
+          'Open / close the Match Setup screen. Only available once matches are unlocked.',
+      },
       { term: 'I', definition: 'Open / close your Inventory.' },
       { term: 'R', definition: 'Open / close the Relationships screen.' },
       { term: 'S', definition: 'Open / close the Shop. Only available once the shop is unlocked.' },
@@ -133,35 +311,85 @@ export const SCORING_GUIDE: GlossarySection[] = [
   {
     title: 'Game Scoring',
     entries: [
-      { term: 'Love', definition: 'Zero points. "Love all" means 0-0. "15-Love" means the server has 15 points and the receiver has 0.' },
-      { term: 'Basic Scoring', definition: 'The score goes: Love-15-30-40. Don\'t ask me why. You win the game by winning when you have 40 points.' },
-      { term: 'Deuce', definition: 'When the score reaches 40-40, or "40 all." You must win by two points from deuce. Winning at deuce puts you at advantage.' },
-      { term: 'Advantage', definition: 'Always from the server\'s perspective, the winner of deuce has "Ad-in," and the loser has "Ad-out." If you serve and win at deuce, the score is "Ad-in" for you.' },
+      {
+        term: 'Love',
+        definition:
+          'Zero points. "Love all" means 0-0. "15-Love" means the server has 15 points and the receiver has 0.',
+      },
+      {
+        term: 'Basic Scoring',
+        definition:
+          "The score goes: Love-15-30-40. Don't ask me why. You win the game by winning when you have 40 points.",
+      },
+      {
+        term: 'Deuce',
+        definition:
+          'When the score reaches 40-40, or "40 all." You must win by two points from deuce. Winning at deuce puts you at advantage.',
+      },
+      {
+        term: 'Advantage',
+        definition:
+          'Always from the server\'s perspective, the winner of deuce has "Ad-in," and the loser has "Ad-out." If you serve and win at deuce, the score is "Ad-in" for you.',
+      },
     ],
   },
   {
     title: 'Set & Match Scoring',
     entries: [
-      { term: 'Games', definition: 'Each game is worth 1 point toward the set. See above for individual game scoring.' },
-      { term: 'Sets', definition: 'A set is won by being the first to 6 games, win by 2. Sets can continue until 6-5, after which the set either ends at 7-5 or the set moves to 6-6, and a 7-point tiebreak is played to determine the winner.' },
-      { term: 'Tiebreaks', definition: 'If a set is tied at 6-6, a 7-point tiebreak is played. A player must reach 7 points, win by 2. The tiebreak continues until one player wins by 2 points, and often can end with scores of 12-10 or more.'},
-      { term: 'Match Score', definition: 'A full potential match score: 6-3, 4-6, 7-6 (5) - indicates the player won the first set 6-3, lost the second set 4-6, and won the third set in a tiebreak (set score of 6-6) with a tiebreak score of 7-5. Yes, it\'s annoying.' },
+      {
+        term: 'Games',
+        definition:
+          'Each game is worth 1 point toward the set. See above for individual game scoring.',
+      },
+      {
+        term: 'Sets',
+        definition:
+          'A set is won by being the first to 6 games, win by 2. Sets can continue until 6-5, after which the set either ends at 7-5 or the set moves to 6-6, and a 7-point tiebreak is played to determine the winner.',
+      },
+      {
+        term: 'Tiebreaks',
+        definition:
+          'If a set is tied at 6-6, a 7-point tiebreak is played. A player must reach 7 points, win by 2. The tiebreak continues until one player wins by 2 points, and often can end with scores of 12-10 or more.',
+      },
+      {
+        term: 'Match Score',
+        definition:
+          "A full potential match score: 6-3, 4-6, 7-6 (5) - indicates the player won the first set 6-3, lost the second set 4-6, and won the third set in a tiebreak (set score of 6-6) with a tiebreak score of 7-5. Yes, it's annoying.",
+      },
     ],
   },
   {
     title: 'Tiebreaks',
     entries: [
       { term: 'When', definition: 'A tiebreak is played when the set score reaches 6-6.' },
-      { term: 'How', definition: 'First to 7 points (with a 2-point lead) wins the tiebreak and the set at 7-6. The loser\'s score is indicated in parentheses, so winning 7-4 would give a set score of 7-6 (4).' },
-      { term: 'Scoring', definition: 'Tiebreak points are counted as 1, 2, 3, etc. (not 15, 30, 40).' },
-      { term: 'Serving', definition: 'In a tiebreak, one player serves first, and then players alternate every two serves for the rest of the tiebreak.' },
+      {
+        term: 'How',
+        definition:
+          "First to 7 points (with a 2-point lead) wins the tiebreak and the set at 7-6. The loser's score is indicated in parentheses, so winning 7-4 would give a set score of 7-6 (4).",
+      },
+      {
+        term: 'Scoring',
+        definition: 'Tiebreak points are counted as 1, 2, 3, etc. (not 15, 30, 40).',
+      },
+      {
+        term: 'Serving',
+        definition:
+          'In a tiebreak, one player serves first, and then players alternate every two serves for the rest of the tiebreak.',
+      },
     ],
   },
   {
     title: 'Match Format',
     entries: [
-      { term: 'Best of 1', definition: 'First to win one set wins the match. Used in some tournaments and our practice matches.' },
-      { term: 'Best of 3', definition: 'First to win two sets wins the match. If tied 1-1, a third set is played.' },
+      {
+        term: 'Best of 1',
+        definition:
+          'First to win one set wins the match. Used in some tournaments and our practice matches.',
+      },
+      {
+        term: 'Best of 3',
+        definition: 'First to win two sets wins the match. If tied 1-1, a third set is played.',
+      },
     ],
   },
 ];
@@ -172,23 +400,28 @@ export const MATCH_HELP_GUIDE: GlossarySection[] = [
     entries: [
       {
         term: 'Commentary',
-        definition: 'A running, plain-language call of each point as it resolves — aces, winners, errors, rallies. Shown as a compact ticker; normal points need no input. Pop-up toasts over the court flag the big beats (aces, breaks, set wins).',
+        definition:
+          'A running, plain-language call of each point as it resolves — aces, winners, errors, rallies. Shown as a compact ticker; normal points need no input. Pop-up toasts over the court flag the big beats (aces, breaks, set wins).',
       },
       {
         term: 'Score Format',
-        definition: 'The score shows Sets → Games → Points. Points go: Love (0) → 15 → 30 → 40 → Game. At 40-40 (Deuce), a player must win two consecutive points to win the game.',
+        definition:
+          'The score shows Sets → Games → Points. Points go: Love (0) → 15 → 30 → 40 → Game. At 40-40 (Deuce), a player must win two consecutive points to win the game.',
       },
       {
         term: 'Live Stats',
-        definition: 'Both players\' stats in one table (aces, winners, errors, 1st serve %, points won). The leader on each row is highlighted, and a row flashes when it changes — green when the change helps you, red when it does not.',
+        definition:
+          "Both players' stats in one table (aces, winners, errors, 1st serve %, points won). The leader on each row is highlighted, and a row flashes when it changes — green when the change helps you, red when it does not.",
       },
       {
         term: 'Momentum Bar',
-        definition: 'Shown in the court visualizer as a center-out tug-of-war. Green toward you means you are on a winning streak; red toward the opponent means they are on a run. Momentum modifies your Key Moment odds.',
+        definition:
+          'Shown in the court visualizer as a center-out tug-of-war. Green toward you means you are on a winning streak; red toward the opponent means they are on a run. Momentum modifies your Key Moment odds.',
       },
       {
         term: 'Stamina Tanks',
-        definition: 'The tanks either side of the court show live stamina for both players, draining as rallies wear on. Some Key Moment tactics also cost energy — tired players are at a disadvantage.',
+        definition:
+          'The tanks either side of the court show live stamina for both players, draining as rallies wear on. Some Key Moment tactics also cost energy — tired players are at a disadvantage.',
       },
     ],
   },
@@ -197,23 +430,28 @@ export const MATCH_HELP_GUIDE: GlossarySection[] = [
     entries: [
       {
         term: 'What Is a Key Moment?',
-        definition: 'When a high-stakes situation arises — break point, set point, or match point — the match pauses and asks you to choose a tactic. Your decision affects both the point outcome and your match state.',
+        definition:
+          'When a high-stakes situation arises — break point, set point, or match point — the match pauses and asks you to choose a tactic. Your decision affects both the point outcome and your match state.',
       },
       {
         term: 'Advantage Chip',
-        definition: 'Each tactic\'s chip sums up the matchup: green means your stats favour it, yellow is even, red means the opponent\'s do — and the deeper the colour, the bigger the gap. Combine it with the opponent\'s archetype to choose.',
+        definition:
+          "Each tactic's chip sums up the matchup: green means your stats favour it, yellow is even, red means the opponent's do — and the deeper the colour, the bigger the gap. Combine it with the opponent's archetype to choose.",
       },
       {
         term: 'Tactic Ratings',
-        definition: 'Hover a tactic to open its breakdown: the ratings it uses — a weighted blend of your stats versus the opponent\'s, with the priority stat (the biggest driver) shown large. A higher rating for you means your game favours that tactic.',
+        definition:
+          "Hover a tactic to open its breakdown: the ratings it uses — a weighted blend of your stats versus the opponent's, with the priority stat (the biggest driver) shown large. A higher rating for you means your game favours that tactic.",
       },
       {
         term: 'Opponent Archetype',
-        definition: 'Describes the opponent\'s play style (e.g., Aggressive, Defensive, All-Court). Tactics are strong or weak against certain archetypes — hover a tactic to see what it is good and bad against.',
+        definition:
+          "Describes the opponent's play style (e.g., Aggressive, Defensive, All-Court). Tactics are strong or weak against certain archetypes — hover a tactic to see what it is good and bad against.",
       },
       {
         term: 'Secondary Effects',
-        definition: 'Every tactic carries bonus effects — momentum, energy, mood, or pressure — that apply on a win, a loss, or always. These affect the rest of the match beyond just the current point. Choose wisely.',
+        definition:
+          'Every tactic carries bonus effects — momentum, energy, mood, or pressure — that apply on a win, a loss, or always. These affect the rest of the match beyond just the current point. Choose wisely.',
       },
     ],
   },
@@ -222,28 +460,34 @@ export const MATCH_HELP_GUIDE: GlossarySection[] = [
     entries: [
       {
         term: 'Critical Success / Success',
-        definition: 'You won the point. A Critical Success means you outperformed the odds — expect larger secondary effect bonuses.',
+        definition:
+          'You won the point. A Critical Success means you outperformed the odds — expect larger secondary effect bonuses.',
       },
       {
         term: 'Failure / Critical Failure',
-        definition: 'You lost the point. A Critical Failure means the outcome was particularly bad — secondary effect penalties are amplified.',
+        definition:
+          'You lost the point. A Critical Failure means the outcome was particularly bad — secondary effect penalties are amplified.',
       },
       {
         term: 'Stats + Luck',
-        definition: 'Even the best tactic can fail. Your stat advantage increases the odds in your favor, but there is always an element of randomness. A poor result does not necessarily mean you made the wrong choice — keep at it.',
+        definition:
+          'Even the best tactic can fail. Your stat advantage increases the odds in your favor, but there is always an element of randomness. A poor result does not necessarily mean you made the wrong choice — keep at it.',
       },
       {
         term: 'Counter (🎯 Great Read)',
-        definition: 'Your tactic specifically countered the opponent\'s archetype. This bonus improves your chance of success on the point.',
+        definition:
+          "Your tactic specifically countered the opponent's archetype. This bonus improves your chance of success on the point.",
       },
       {
         term: 'Bad Matchup (⚠️)',
-        definition: 'Your tactic played into the opponent\'s strengths. This penalty reduces your chance of success on the point.',
+        definition:
+          "Your tactic played into the opponent's strengths. This penalty reduces your chance of success on the point.",
       },
       {
         term: 'Post-match',
-        definition: 'After the match, you can view your key moment results in the advanced statistics section of the match result. You can see how your choices affect the outcomes!'
-      }
+        definition:
+          'After the match, you can view your key moment results in the advanced statistics section of the match result. You can see how your choices affect the outcomes!',
+      },
     ],
   },
 ];

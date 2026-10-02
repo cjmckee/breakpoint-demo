@@ -70,17 +70,17 @@ import { random } from './random';
 const SHOT_RANGES = {
   // Pressure modifier ranges (multiplier based on focus stat)
   pressureModifiers: {
-    low: { min: 1.0, max: 1.05 },      // Slight bonus for high focus under low pressure
-    medium: { min: 0.75, max: 1.0 },   // Scaling pressure impact
-    high: { min: 0.4, max: 1.15 },     // Elite focus players can thrive under pressure
+    low: { min: 1.0, max: 1.05 }, // Slight bonus for high focus under low pressure
+    medium: { min: 0.75, max: 1.0 }, // Scaling pressure impact
+    high: { min: 0.4, max: 1.15 }, // Elite focus players can thrive under pressure
   },
 
   // Rally length fatigue ranges (multiplier based on stamina stat)
   rallyLengthModifiers: {
-    short: { min: 1.0, max: 1.0 },     // 0-5 shots, no fatigue effect
-    medium: { min: 0.90, max: 1.0 },   // 6-10 shots
-    long: { min: 0.80, max: 1.0 },     // 11-15 shots
-    extreme: { min: 0.75, max: 1.0 },  // 16+ shots
+    short: { min: 1.0, max: 1.0 }, // 0-5 shots, no fatigue effect
+    medium: { min: 0.9, max: 1.0 }, // 6-10 shots
+    long: { min: 0.8, max: 1.0 }, // 11-15 shots
+    extreme: { min: 0.75, max: 1.0 }, // 16+ shots
   },
 } as const;
 
@@ -112,7 +112,7 @@ export class ShotCalculator {
     tacticalOpportunity?: TacticalOpportunity,
     matchFatigue: number = 0,
     momentum: number = 0,
-    activeEffects?: Record<string, number>
+    activeEffects?: Record<string, number>,
   ): ShotResult {
     trace('Calculating shot success for', shotType);
     trace('Incoming shot quality:', incomingShot?.quality);
@@ -130,7 +130,9 @@ export class ShotCalculator {
     // Step 2: Derive ball quality from incoming shot (if available)
     const matchLevel = getMatchLevel(shooterProfile.overallRating, opponentProfile.overallRating);
     this.currentMatchLevel = matchLevel;
-    const ballQuality = incomingShot ? this.calculateBallQuality(incomingShot, matchLevel) : undefined;
+    const ballQuality = incomingShot
+      ? this.calculateBallQuality(incomingShot, matchLevel)
+      : undefined;
 
     // Step 3: Calculate all modifiers
     const modifiers = this.calculateModifiers(
@@ -142,7 +144,7 @@ export class ShotCalculator {
       tacticalOpportunity,
       opponentPosition,
       matchFatigue,
-      momentum
+      momentum,
     );
 
     // Log modifiers for serves
@@ -182,7 +184,10 @@ export class ShotCalculator {
 
     // Log quality calculation for serves
     if (shotType.includes('serve')) {
-      trace('  Base quality (stat × finalAdjustment):', (primaryStat * modifiers.finalAdjustment).toFixed(1));
+      trace(
+        '  Base quality (stat × finalAdjustment):',
+        (primaryStat * modifiers.finalAdjustment).toFixed(1),
+      );
       trace('  Final quality (after variance and surface):', quality.toFixed(1));
     }
 
@@ -197,18 +202,21 @@ export class ShotCalculator {
       // variance. Quality decides how hurtful the serve is; accuracy decides
       // whether it lands.
       const serveType = shotType as 'serve_first' | 'serve_second';
-      const accuracyVariance = (random() * 2 - 1) *
+      const accuracyVariance =
+        (random() * 2 - 1) *
         (serveType === 'serve_first' ? SERVE_VARIANCE.first : SERVE_VARIANCE.second);
       // Clamped to the same 0-100 scale as the roll it is compared against.
       // The roll saturates at 100 and the midpoint is derived from this value,
       // so leaving it unbounded lets the bar keep climbing after the roll
       // cannot: serve-in% peaked at L=80 and then fell.
-      const expectedAccuracy = Math.min(100, Math.max(0,
-        shooterProfile.getServeAccuracy(serveType) * modifiers.finalAdjustment
-      ));
-      const serveAccuracy = Math.min(100, Math.max(0,
-        expectedAccuracy + accuracyVariance + shooterProfile.matchForm
-      ));
+      const expectedAccuracy = Math.min(
+        100,
+        Math.max(0, shooterProfile.getServeAccuracy(serveType) * modifiers.finalAdjustment),
+      );
+      const serveAccuracy = Math.min(
+        100,
+        Math.max(0, expectedAccuracy + accuracyVariance + shooterProfile.matchForm),
+      );
       modifiers.serveAccuracy = serveAccuracy;
 
       const serveOutcome = this.determineServeOutcome(
@@ -218,13 +226,15 @@ export class ShotCalculator {
         serveType,
         shooterProfile,
         opponentProfile,
-        surface
+        surface,
       );
       outcome = serveOutcome.outcome;
       thresholds = serveOutcome.thresholds;
     } else {
       if (!incomingShot) {
-        throw new Error('Incoming shot is required for non-serve shots to calculate quality thresholds.');
+        throw new Error(
+          'Incoming shot is required for non-serve shots to calculate quality thresholds.',
+        );
       }
 
       // Regular shots use relative quality system
@@ -237,7 +247,7 @@ export class ShotCalculator {
         opponentProfile.stats,
         opponentPosition,
         surface,
-        matchLevel
+        matchLevel,
       );
 
       outcome = this.determineOutcome(quality, thresholds);
@@ -246,19 +256,36 @@ export class ShotCalculator {
     // Calculate outcome probabilities for debugging transparency
     const outcomeProbabilities = shotType.includes('serve')
       ? {
-          serveIn: sigmoidProbability(quality, thresholds.inPlay, PROBABILITY_STEEPNESS.serve.inPlay),
+          serveIn: sigmoidProbability(
+            quality,
+            thresholds.inPlay,
+            PROBABILITY_STEEPNESS.serve.inPlay,
+          ),
           ace: sigmoidProbability(quality, thresholds.winner, PROBABILITY_STEEPNESS.serve.ace),
         }
       : {
-          winner: sigmoidProbability(quality, thresholds.winner, PROBABILITY_STEEPNESS.rally.winner),
-          inPlay: sigmoidProbability(quality, thresholds.inPlay, PROBABILITY_STEEPNESS.rally.inPlay),
-          forcedError: sigmoidProbability(quality, thresholds.forcedError, PROBABILITY_STEEPNESS.rally.forcedError),
+          winner: sigmoidProbability(
+            quality,
+            thresholds.winner,
+            PROBABILITY_STEEPNESS.rally.winner,
+          ),
+          inPlay: sigmoidProbability(
+            quality,
+            thresholds.inPlay,
+            PROBABILITY_STEEPNESS.rally.inPlay,
+          ),
+          forcedError: sigmoidProbability(
+            quality,
+            thresholds.forcedError,
+            PROBABILITY_STEEPNESS.rally.forcedError,
+          ),
         };
 
     trace(`Shot quality: ${quality.toFixed(1)} | Outcome: ${outcome}`);
 
     return {
-      success: outcome === PointType.ACE || outcome === PointType.WINNER || outcome === PointType.IN_PLAY,
+      success:
+        outcome === PointType.ACE || outcome === PointType.WINNER || outcome === PointType.IN_PLAY,
       outcome,
       quality,
       shotType,
@@ -286,7 +313,7 @@ export class ShotCalculator {
     opponentStats: PlayerStats,
     opponentPosition: CourtPosition,
     courtSurface: CourtSurface,
-    matchLevel: number
+    matchLevel: number,
   ): QualityThresholds {
     trace('Sigmoid midpoint calculation for', shotType);
     // Get base multiplier for this shot type
@@ -309,7 +336,8 @@ export class ShotCalculator {
     inPlayReq += speedAdj;
 
     // Shooter anticipation adjustment — reading the ball lowers the difficulty
-    const anticipationAdj = (shooterStats.mental.anticipation - 50) * SHOOTER_STAT_ADJUSTMENTS.anticipation;
+    const anticipationAdj =
+      (shooterStats.mental.anticipation - 50) * SHOOTER_STAT_ADJUSTMENTS.anticipation;
     inPlayReq -= anticipationAdj;
 
     // Position adjustment
@@ -318,7 +346,8 @@ export class ShotCalculator {
     // threaded, a bad one is standing in the way of a ball he cannot reach.
     let positionAdj = POSITION_ADJUSTMENTS[opponentPosition];
     if (opponentPosition === 'at_net') {
-      const coverage = (opponentStats.core.net - NEUTRAL_STAT) * OPPONENT_STAT_ADJUSTMENTS.netCoverage;
+      const coverage =
+        (opponentStats.core.net - NEUTRAL_STAT) * OPPONENT_STAT_ADJUSTMENTS.netCoverage;
       // Never below `well_positioned`: a weak volleyer at the net is easier to
       // pass than a good one, but he is still standing between you and the
       // court, so he cannot be softer than a baseliner who is set and ready.
@@ -341,15 +370,21 @@ export class ShotCalculator {
     // stays "a ball this opponent cannot reach" at every level rather than a
     // fixed number that means something different at 25 than at 60.
     const retrieval = (opponentStats.physical.speed + opponentStats.mental.tactics) / 2;
-    const floorScale = (1 - WINNER_FLOOR_RETRIEVAL_WEIGHT)
-      + WINNER_FLOOR_RETRIEVAL_WEIGHT * (retrieval / WINNER_FLOOR_RETRIEVAL_REF);
+    const floorScale =
+      1 -
+      WINNER_FLOOR_RETRIEVAL_WEIGHT +
+      WINNER_FLOOR_RETRIEVAL_WEIGHT * (retrieval / WINNER_FLOOR_RETRIEVAL_REF);
     const winnerThreshold = Math.max(
       calculatedWinner,
-      (MINIMUM_WINNER_THRESHOLDS[shotType] + WINNER_FLOOR_OFFSET) * floorScale
+      (MINIMUM_WINNER_THRESHOLDS[shotType] + WINNER_FLOOR_OFFSET) * floorScale,
     );
 
-    trace(`  Incoming: ${incomingQuality.toFixed(1)} × ${baseMultiplier.toFixed(2)} = ${baseRequirement.toFixed(1)} base | Adjustments: def ${defensiveAdj >= 0 ? '+' : ''}${defensiveAdj.toFixed(1)} (surface ×${surfaceEffects.defensiveAdjustmentMultiplier}), spd ${speedAdj >= 0 ? '+' : ''}${speedAdj.toFixed(1)}, ant -${anticipationAdj.toFixed(1)}, pos ${positionAdj >= 0 ? '+' : ''}${positionAdj.toFixed(1)} | Floor: ${scaledFloor.toFixed(1)}`);
-    trace(`  Sigmoid midpoints → inPlay: ${inPlayReq.toFixed(1)} | winner: ${winnerThreshold.toFixed(1)} | forcedError: ${(inPlayReq * multipliers.forcedError).toFixed(1)}`);
+    trace(
+      `  Incoming: ${incomingQuality.toFixed(1)} × ${baseMultiplier.toFixed(2)} = ${baseRequirement.toFixed(1)} base | Adjustments: def ${defensiveAdj >= 0 ? '+' : ''}${defensiveAdj.toFixed(1)} (surface ×${surfaceEffects.defensiveAdjustmentMultiplier}), spd ${speedAdj >= 0 ? '+' : ''}${speedAdj.toFixed(1)}, ant -${anticipationAdj.toFixed(1)}, pos ${positionAdj >= 0 ? '+' : ''}${positionAdj.toFixed(1)} | Floor: ${scaledFloor.toFixed(1)}`,
+    );
+    trace(
+      `  Sigmoid midpoints → inPlay: ${inPlayReq.toFixed(1)} | winner: ${winnerThreshold.toFixed(1)} | forcedError: ${(inPlayReq * multipliers.forcedError).toFixed(1)}`,
+    );
 
     // Calculate derived thresholds
     return {
@@ -366,29 +401,44 @@ export class ShotCalculator {
    * a hard cutoff. This creates gradual transitions between outcome types,
    * making every stat point matter proportionally.
    */
-  private determineOutcome(
-    quality: number,
-    thresholds: QualityThresholds
-  ): PointType {
-    const pWinner = sigmoidProbability(quality, thresholds.winner, PROBABILITY_STEEPNESS.rally.winner);
+  private determineOutcome(quality: number, thresholds: QualityThresholds): PointType {
+    const pWinner = sigmoidProbability(
+      quality,
+      thresholds.winner,
+      PROBABILITY_STEEPNESS.rally.winner,
+    );
     if (random() < pWinner) {
       trace(`  Outcome cascade → winner? ${(pWinner * 100).toFixed(1)}% chance → hit! WINNER`);
       return PointType.WINNER;
     }
 
-    const pInPlay = sigmoidProbability(quality, thresholds.inPlay, PROBABILITY_STEEPNESS.rally.inPlay);
+    const pInPlay = sigmoidProbability(
+      quality,
+      thresholds.inPlay,
+      PROBABILITY_STEEPNESS.rally.inPlay,
+    );
     if (random() < pInPlay) {
-      trace(`  Outcome cascade → winner? ${(pWinner * 100).toFixed(1)}% chance → miss | inPlay? ${(pInPlay * 100).toFixed(1)}% chance → hit! IN_PLAY`);
+      trace(
+        `  Outcome cascade → winner? ${(pWinner * 100).toFixed(1)}% chance → miss | inPlay? ${(pInPlay * 100).toFixed(1)}% chance → hit! IN_PLAY`,
+      );
       return PointType.IN_PLAY;
     }
 
-    const pForcedError = sigmoidProbability(quality, thresholds.forcedError, PROBABILITY_STEEPNESS.rally.forcedError);
+    const pForcedError = sigmoidProbability(
+      quality,
+      thresholds.forcedError,
+      PROBABILITY_STEEPNESS.rally.forcedError,
+    );
     if (random() < pForcedError) {
-      trace(`  Outcome cascade → winner? ${(pWinner * 100).toFixed(1)}% → miss | inPlay? ${(pInPlay * 100).toFixed(1)}% → miss | forcedError? ${(pForcedError * 100).toFixed(1)}% → hit! FORCED_ERROR`);
+      trace(
+        `  Outcome cascade → winner? ${(pWinner * 100).toFixed(1)}% → miss | inPlay? ${(pInPlay * 100).toFixed(1)}% → miss | forcedError? ${(pForcedError * 100).toFixed(1)}% → hit! FORCED_ERROR`,
+      );
       return PointType.FORCED_ERROR;
     }
 
-    trace(`  Outcome cascade → winner? ${(pWinner * 100).toFixed(1)}% → miss | inPlay? ${(pInPlay * 100).toFixed(1)}% → miss | forcedError? ${(pForcedError * 100).toFixed(1)}% → miss → UNFORCED_ERROR`);
+    trace(
+      `  Outcome cascade → winner? ${(pWinner * 100).toFixed(1)}% → miss | inPlay? ${(pInPlay * 100).toFixed(1)}% → miss | forcedError? ${(pForcedError * 100).toFixed(1)}% → miss → UNFORCED_ERROR`,
+    );
     return PointType.UNFORCED_ERROR;
   }
 
@@ -412,7 +462,7 @@ export class ShotCalculator {
     serveType: 'serve_first' | 'serve_second',
     serverProfile: PlayerProfile,
     returnerProfile: PlayerProfile,
-    courtSurface: CourtSurface
+    courtSurface: CourtSurface,
   ): { outcome: PointType; thresholds: QualityThresholds } {
     const consistency = SERVE_CONSISTENCY[serveType];
     const contest = SERVE_CONTEST[serveType];
@@ -428,17 +478,26 @@ export class ShotCalculator {
     const resistance =
       SERVE_CONTEST.resistanceOvrBlend * returnerProfile.overallRating +
       (1 - SERVE_CONTEST.resistanceOvrBlend) * returnerProfile.getReturnComposite();
-    const aceThreshold = contest.aceBase +
+    const aceThreshold =
+      contest.aceBase +
       resistance * contest.acePerResistance * surfaceEffects.returnAdjustmentMultiplier;
 
     // Serve-in is rolled on ACCURACY, not quality — a flat bomb can be huge
     // when it lands and still miss often
-    const pServeIn = sigmoidProbability(serveAccuracy, scaledInPlayThreshold, PROBABILITY_STEEPNESS.serve.inPlay);
+    const pServeIn = sigmoidProbability(
+      serveAccuracy,
+      scaledInPlayThreshold,
+      PROBABILITY_STEEPNESS.serve.inPlay,
+    );
 
     trace(`  🎯 ${serveType} sigmoid calculation:`);
     trace(`    Serve quality: ${serveQuality.toFixed(1)} | accuracy: ${serveAccuracy.toFixed(1)}`);
-    trace(`    InPlay sigmoid → midpoint: ${scaledInPlayThreshold.toFixed(1)} (${consistency.base} + ${consistency.perAccuracy} × expected ${expectedAccuracy.toFixed(1)}) vs accuracy, steepness: ${PROBABILITY_STEEPNESS.serve.inPlay}, P(in): ${(pServeIn * 100).toFixed(1)}%`);
-    trace(`    Ace sigmoid    → midpoint: ${aceThreshold.toFixed(1)} (base ${contest.aceBase} + resistance ${resistance.toFixed(1)} × ${contest.acePerResistance} × surface ${surfaceEffects.returnAdjustmentMultiplier}), steepness: ${PROBABILITY_STEEPNESS.serve.ace}`);
+    trace(
+      `    InPlay sigmoid → midpoint: ${scaledInPlayThreshold.toFixed(1)} (${consistency.base} + ${consistency.perAccuracy} × expected ${expectedAccuracy.toFixed(1)}) vs accuracy, steepness: ${PROBABILITY_STEEPNESS.serve.inPlay}, P(in): ${(pServeIn * 100).toFixed(1)}%`,
+    );
+    trace(
+      `    Ace sigmoid    → midpoint: ${aceThreshold.toFixed(1)} (base ${contest.aceBase} + resistance ${resistance.toFixed(1)} × ${contest.acePerResistance} × surface ${surfaceEffects.returnAdjustmentMultiplier}), steepness: ${PROBABILITY_STEEPNESS.serve.ace}`,
+    );
 
     const thresholds: QualityThresholds = {
       winner: aceThreshold,
@@ -455,11 +514,15 @@ export class ShotCalculator {
     // Sigmoid probability for ace
     const pAce = sigmoidProbability(serveQuality, aceThreshold, PROBABILITY_STEEPNESS.serve.ace);
     if (random() < pAce) {
-      trace(`  Serve cascade → in? ${(pServeIn * 100).toFixed(1)}% → hit | ace? ${(pAce * 100).toFixed(1)}% chance → hit! ACE`);
+      trace(
+        `  Serve cascade → in? ${(pServeIn * 100).toFixed(1)}% → hit | ace? ${(pAce * 100).toFixed(1)}% chance → hit! ACE`,
+      );
       return { outcome: PointType.ACE, thresholds };
     }
 
-    trace(`  Serve cascade → in? ${(pServeIn * 100).toFixed(1)}% → hit | ace? ${(pAce * 100).toFixed(1)}% → miss → IN_PLAY`);
+    trace(
+      `  Serve cascade → in? ${(pServeIn * 100).toFixed(1)}% → hit | ace? ${(pAce * 100).toFixed(1)}% → miss → IN_PLAY`,
+    );
     return { outcome: PointType.IN_PLAY, thresholds };
   }
 
@@ -475,7 +538,7 @@ export class ShotCalculator {
     tacticalOpportunity?: TacticalOpportunity,
     opponentPosition?: CourtPosition,
     matchFatigue: number = 0,
-    momentum: number = 0
+    momentum: number = 0,
   ): ShotModifiers {
     const stats = shooterProfile.stats;
     const playStyle = shooterProfile.playStyle;
@@ -487,16 +550,31 @@ export class ShotCalculator {
     const placementModifier = this.calculatePlacementModifier(shotType, stats.technical.placement);
 
     // Physical modifiers (speed, agility, strength)
-    let physicalModifier = this.calculatePhysicalModifier(shotType, context, stats.physical, ballQuality);
+    let physicalModifier = this.calculatePhysicalModifier(
+      shotType,
+      context,
+      stats.physical,
+      ballQuality,
+    );
 
     // Mental modifiers (focus, anticipation, shot variety, defensive)
-    let mentalModifier = this.calculateMentalModifier(shotType, context, stats.mental, stats.technical, playStyle, opponentPosition);
+    let mentalModifier = this.calculateMentalModifier(
+      shotType,
+      context,
+      stats.mental,
+      stats.technical,
+      playStyle,
+      opponentPosition,
+    );
 
     // Serve-specific bonuses and variance
     let serveVariance = 0;
     if (shotType === 'serve_first') {
       // First serve: a strike. Strength drives it, tactics aims it, spin shapes it.
-      physicalModifier *= statModifier(stats.physical.strength, SERVE_MODIFIER_BANDS.first.strength);
+      physicalModifier *= statModifier(
+        stats.physical.strength,
+        SERVE_MODIFIER_BANDS.first.strength,
+      );
       mentalModifier *= statModifier(stats.mental.tactics, SERVE_MODIFIER_BANDS.first.tactics);
       spinModifier *= statModifier(stats.technical.spin, SERVE_MODIFIER_BANDS.first.spin);
 
@@ -504,8 +582,9 @@ export class ShotCalculator {
     } else if (shotType === 'serve_second') {
       // Second serve: a decision under risk. Consistency and tactics hold it
       // together, and spin is what makes a second serve safe at all.
-      mentalModifier *= statModifier(playStyle.consistency, SERVE_MODIFIER_BANDS.second.consistency)
-        * statModifier(stats.mental.tactics, SERVE_MODIFIER_BANDS.second.tactics);
+      mentalModifier *=
+        statModifier(playStyle.consistency, SERVE_MODIFIER_BANDS.second.consistency) *
+        statModifier(stats.mental.tactics, SERVE_MODIFIER_BANDS.second.tactics);
       spinModifier *= statModifier(stats.technical.spin, SERVE_MODIFIER_BANDS.second.spin);
 
       serveVariance = (random() - 0.5) * 2 * SERVE_VARIANCE.second;
@@ -522,19 +601,30 @@ export class ShotCalculator {
     if (!shotType.includes('serve') && !shotType.includes('return') && incomingShot) {
       // Base variance + additional based on incoming shot quality
       const incomingQuality = incomingShot.quality;
-      const totalVariance = RALLY_SHOT_VARIANCE.base +
-        (incomingQuality / 100) * RALLY_SHOT_VARIANCE.qualityMultiplier;
+      const totalVariance =
+        RALLY_SHOT_VARIANCE.base + (incomingQuality / 100) * RALLY_SHOT_VARIANCE.qualityMultiplier;
       rallyVariance = (random() - 0.5) * 2 * totalVariance;
     }
 
     // Situational modifiers
     const difficultyModifier = this.getDifficultyModifier(context.difficulty);
     const pressureModifier = this.getPressureModifier(context.pressure, stats.mental.focus);
-    const rallyLengthModifier = this.getRallyLengthModifier(context.rallyLength, stats.physical.stamina);
+    const rallyLengthModifier = this.getRallyLengthModifier(
+      context.rallyLength,
+      stats.physical.stamina,
+    );
 
     // Context-aware modifiers
-    const ballQualityModifier = this.getBallQualityModifier(ballQuality, stats.physical, this.currentMatchLevel);
-    const tacticalModifier = this.getTacticalModifier(shotType, tacticalOpportunity, opponentPosition);
+    const ballQualityModifier = this.getBallQualityModifier(
+      ballQuality,
+      stats.physical,
+      this.currentMatchLevel,
+    );
+    const tacticalModifier = this.getTacticalModifier(
+      shotType,
+      tacticalOpportunity,
+      opponentPosition,
+    );
 
     // Match-level modifiers
     const fatigueModifier = this.getFatigueModifier(matchFatigue);
@@ -609,13 +699,15 @@ export class ShotCalculator {
     shotType: ShotType,
     context: ShotContext,
     physical: PlayerStats['physical'],
-    ballQuality?: BallQuality
+    ballQuality?: BallQuality,
   ): number {
     let modifier = 1.0;
 
     // Speed helps with defensive shots and court coverage
-    if (SHOT_CLASSIFICATIONS.defensiveShots.includes(shotType) ||
-        context.courtPosition === 'defensive') {
+    if (
+      SHOT_CLASSIFICATIONS.defensiveShots.includes(shotType) ||
+      context.courtPosition === 'defensive'
+    ) {
       modifier *= statModifier(physical.speed, STAT_MODIFIER_BANDS.courtCoverage);
     }
 
@@ -651,7 +743,7 @@ export class ShotCalculator {
     mental: PlayerStats['mental'],
     technical: PlayerStats['technical'],
     playStyle: PlayStyle,
-    opponentPosition?: CourtPosition
+    opponentPosition?: CourtPosition,
   ): number {
     let modifier = 1.0;
 
@@ -766,7 +858,6 @@ export class ShotCalculator {
     return Math.min(100, Math.max(0, quality));
   }
 
-
   /**
    * Apply ability additional effects to shot quality.
    * Small additive bonuses for specific shot types based on equipped abilities.
@@ -776,7 +867,7 @@ export class ShotCalculator {
     shotType: ShotType,
     context: ShotContext,
     modifiers: ShotModifiers,
-    effects: Record<string, number>
+    effects: Record<string, number>,
   ): number {
     let bonus = 0;
 
@@ -829,11 +920,12 @@ export class ShotCalculator {
 
     // lob_quality: bonus quality on defensive and lob shots
     const lobQuality = effects[EffectKey.LOB_QUALITY] ?? 0;
-    if (lobQuality > 0 && (
-      shotType.includes('lob') ||
-      shotType.includes('defensive_slice') ||
-      shotType === 'defensive_overhead'
-    )) {
+    if (
+      lobQuality > 0 &&
+      (shotType.includes('lob') ||
+        shotType.includes('defensive_slice') ||
+        shotType === 'defensive_overhead')
+    ) {
       bonus += lobQuality * 2;
     }
 
@@ -869,7 +961,10 @@ export class ShotCalculator {
    * This is public so other components (like PointSimulator) can use it
    * to derive ball quality for RallyState
    */
-  public calculateBallQuality(previousShot: ShotDetail, matchLevel: number = this.currentMatchLevel): BallQuality {
+  public calculateBallQuality(
+    previousShot: ShotDetail,
+    matchLevel: number = this.currentMatchLevel,
+  ): BallQuality {
     const { shotType, quality } = previousShot;
     const thresholds = getQualityThresholds(matchLevel);
 
@@ -954,7 +1049,7 @@ export class ShotCalculator {
   private getBallQualityModifier(
     ballQuality: BallQuality | undefined,
     physical: PlayerStats['physical'],
-    matchLevel: number
+    matchLevel: number,
   ): number {
     if (!ballQuality) return 1.0; // No penalty if not tracking ball quality
 
@@ -991,7 +1086,7 @@ export class ShotCalculator {
   private getTacticalModifier(
     shotType: ShotType,
     tacticalOpportunity: TacticalOpportunity | undefined,
-    opponentPosition: CourtPosition | undefined
+    opponentPosition: CourtPosition | undefined,
   ): number {
     if (!tacticalOpportunity || !opponentPosition) return 1.0;
 
@@ -1039,7 +1134,7 @@ export class ShotCalculator {
   public explainShotCalculation(
     shooterProfile: PlayerProfile,
     shotType: ShotType,
-    context: ShotContext
+    context: ShotContext,
   ): string {
     const primaryStat = shooterProfile.getStatForShot(shotType);
     const modifiers = this.calculateModifiers(shooterProfile, shotType, context);
@@ -1078,7 +1173,7 @@ export class ShotCalculator {
     shooterProfile: PlayerProfile,
     shotType: ShotType,
     context: ShotContext,
-    statImprovement: number
+    statImprovement: number,
   ): { beforeRate: number; afterRate: number; improvement: number } {
     // Calculate current quality
     const beforeStat = shooterProfile.getStatForShot(shotType);

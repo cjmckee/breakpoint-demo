@@ -4,11 +4,7 @@
  * Wraps ScheduledEventManager with higher-level functionality
  */
 
-import type {
-  GameCalendar,
-  ScheduledEvent,
-  ScheduledEventMetadata,
-} from '../types/game';
+import type { GameCalendar, ScheduledEvent, ScheduledEventMetadata } from '../types/game';
 import { TimeSlot } from '../types/game';
 import { ScheduledEventManager } from './ScheduledEventManager';
 
@@ -62,12 +58,9 @@ export class CalendarService {
   /**
    * Get all events within a date range (inclusive)
    */
-  static getEventsInRange(
-    calendar: GameCalendar,
-    range: DateRange
-  ): ScheduledEvent[] {
+  static getEventsInRange(calendar: GameCalendar, range: DateRange): ScheduledEvent[] {
     return calendar.scheduledEvents.filter(
-      (e) => e.scheduledDay >= range.startDay && e.scheduledDay <= range.endDay
+      (e) => e.scheduledDay >= range.startDay && e.scheduledDay <= range.endDay,
     );
   }
 
@@ -76,7 +69,7 @@ export class CalendarService {
    */
   static getEventsOfType(
     calendar: GameCalendar,
-    eventType: ScheduledEvent['eventType']
+    eventType: ScheduledEvent['eventType'],
   ): ScheduledEvent[] {
     return calendar.scheduledEvents.filter((e) => e.eventType === eventType);
   }
@@ -84,29 +77,15 @@ export class CalendarService {
   /**
    * Get events for a specific day
    */
-  static getEventsForDay(
-    calendar: GameCalendar,
-    day: number
-  ): ScheduledEvent[] {
-    return ScheduledEventManager.getScheduledEventsForDay(
-      calendar.scheduledEvents,
-      day
-    );
+  static getEventsForDay(calendar: GameCalendar, day: number): ScheduledEvent[] {
+    return ScheduledEventManager.getScheduledEventsForDay(calendar.scheduledEvents, day);
   }
 
   /**
    * Check if a specific day/slot combination is available
    */
-  static isSlotAvailable(
-    calendar: GameCalendar,
-    day: number,
-    slot: TimeSlot
-  ): boolean {
-    return !ScheduledEventManager.hasScheduledEvent(
-      calendar.scheduledEvents,
-      day,
-      slot
-    );
+  static isSlotAvailable(calendar: GameCalendar, day: number, slot: TimeSlot): boolean {
+    return !ScheduledEventManager.hasScheduledEvent(calendar.scheduledEvents, day, slot);
   }
 
   /**
@@ -115,7 +94,7 @@ export class CalendarService {
   static findAvailableSlots(
     calendar: GameCalendar,
     count: number,
-    preferences?: Partial<SchedulingPreferences>
+    preferences?: Partial<SchedulingPreferences>,
   ): AvailableSlot[] {
     const slots: AvailableSlot[] = [];
     const maxDays = preferences?.maxDaysAhead ?? 30;
@@ -173,7 +152,7 @@ export class CalendarService {
    */
   static getNextEventOfType(
     calendar: GameCalendar,
-    eventType: ScheduledEvent['eventType']
+    eventType: ScheduledEvent['eventType'],
   ): ScheduledEvent | null {
     const futureEvents = calendar.scheduledEvents
       .filter((e) => {
@@ -198,10 +177,7 @@ export class CalendarService {
    * Get event at current time slot
    */
   static getCurrentEvent(calendar: GameCalendar): ScheduledEvent | null {
-    return ScheduledEventManager.getScheduledEvent(
-      calendar.scheduledEvents,
-      calendar
-    );
+    return ScheduledEventManager.getScheduledEvent(calendar.scheduledEvents, calendar);
   }
 
   // ==========================================================================
@@ -216,21 +192,16 @@ export class CalendarService {
     calendar: GameCalendar,
     eventType: ScheduledEvent['eventType'],
     preferences: SchedulingPreferences,
-    metadata?: ScheduledEventMetadata
+    metadata?: ScheduledEventMetadata,
   ): ScheduleResult {
     // Resolve preferred day from relative or absolute
     const preferredDay =
-      preferences.preferredDay ??
-      calendar.currentDay + (preferences.relativeDays ?? 1);
+      preferences.preferredDay ?? calendar.currentDay + (preferences.relativeDays ?? 1);
 
     const preferredSlot = preferences.preferredSlot ?? TimeSlot.AFTERNOON;
 
     // Check if preferred slot is available
-    const preferredAvailable = this.isSlotAvailable(
-      calendar,
-      preferredDay,
-      preferredSlot
-    );
+    const preferredAvailable = this.isSlotAvailable(calendar, preferredDay, preferredSlot);
 
     // Use conflict resolution to find actual slot
     const { event, actualDay, actualSlot, updatedEvents } =
@@ -239,12 +210,11 @@ export class CalendarService {
         eventType,
         preferredDay,
         preferredSlot,
-        metadata
+        metadata,
       );
 
-    const wasShifted = !preferredAvailable ||
-      actualDay !== preferredDay ||
-      actualSlot !== preferredSlot;
+    const wasShifted =
+      !preferredAvailable || actualDay !== preferredDay || actualSlot !== preferredSlot;
 
     return {
       calendar: {
@@ -260,17 +230,13 @@ export class CalendarService {
   /**
    * Remove an event at a specific day/slot
    */
-  static removeEvent(
-    calendar: GameCalendar,
-    day: number,
-    slot: TimeSlot
-  ): GameCalendar {
+  static removeEvent(calendar: GameCalendar, day: number, slot: TimeSlot): GameCalendar {
     return {
       ...calendar,
       scheduledEvents: ScheduledEventManager.clearScheduledEvent(
         calendar.scheduledEvents,
         day,
-        slot
+        slot,
       ),
     };
   }
@@ -280,13 +246,11 @@ export class CalendarService {
    */
   static removeEventsOfType(
     calendar: GameCalendar,
-    eventType: ScheduledEvent['eventType']
+    eventType: ScheduledEvent['eventType'],
   ): GameCalendar {
     return {
       ...calendar,
-      scheduledEvents: calendar.scheduledEvents.filter(
-        (e) => e.eventType !== eventType
-      ),
+      scheduledEvents: calendar.scheduledEvents.filter((e) => e.eventType !== eventType),
     };
   }
 
@@ -296,10 +260,7 @@ export class CalendarService {
   static clearPastEvents(calendar: GameCalendar): GameCalendar {
     return {
       ...calendar,
-      scheduledEvents: ScheduledEventManager.clearPastEvents(
-        calendar.scheduledEvents,
-        calendar
-      ),
+      scheduledEvents: ScheduledEventManager.clearPastEvents(calendar.scheduledEvents, calendar),
     };
   }
 

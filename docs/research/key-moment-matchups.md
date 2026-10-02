@@ -14,7 +14,7 @@ opponent, choose accordingly — and what each of its systems was actually contr
    the eleven menus offered no good read against them. Random-pick EV swung 11pp by which
    opponent you drew, and how much reading the matchup was worth varied 2.4×.
 2. **Two of the four context channels could only ever subtract.** Pressure and energy ran 0 to
-   −10 with no positive half, and key moments fire *only* on the high-pressure points that
+   −10 with no positive half, and key moments fire _only_ on the high-pressure points that
    `updatePressure()` scores highest. Neutral conditions netted **−5%**; a set-two break point
    ran ~8pp below the intended base chance. Clutch was a tax, not a test.
 3. **Criticals were anti-correlated with choosing well.** Both crit bands were carved off the
@@ -43,13 +43,13 @@ uniform-rating players, unless a row says otherwise. Any behaviour change invali
 
 Counterability by archetype, over the whole option pool:
 
-| archetype | before | after |
-|---|---|---|
-| Aggressive Baseliner | 33.3% | 30.6% |
-| Defensive Pusher | 66.7% | 36.7% |
-| Counter-Puncher | 66.7% | 32.7% |
-| Serve & Volleyer | 30.3% | 36.7% |
-| All-Court Player | **3.0%** | **0% by design** |
+| archetype            | before   | after            |
+| -------------------- | -------- | ---------------- |
+| Aggressive Baseliner | 33.3%    | 30.6%            |
+| Defensive Pusher     | 66.7%    | 36.7%            |
+| Counter-Puncher      | 66.7%    | 32.7%            |
+| Serve & Volleyer     | 30.3%    | 36.7%            |
+| All-Court Player     | **3.0%** | **0% by design** |
 
 The matchup now derives from a 6 × 5 posture × archetype matrix
 (`src/data/postures.ts`) rather than from `strongAgainst`/`weakAgainst` authored per option.
@@ -68,11 +68,11 @@ required by the matrix — it is justified by the draw needing enough distinct k
 Pressure is now scored against the player's focus rather than charged flat, and energy gained a
 freshness bonus above its neutral point:
 
-| context | before | after |
-|---|---|---|
-| best case | +20.0 | +30.0 |
-| neutral | **−5.0** | **0.0** |
-| worst case | −40.0 | −35.0 |
+| context    | before   | after   |
+| ---------- | -------- | ------- |
+| best case  | +20.0    | +30.0   |
+| neutral    | **−5.0** | **0.0** |
+| worst case | −40.0    | −35.0   |
 
 `MENTAL_RESILIENCE` buys effective focus rather than attenuating a penalty, which also fixed a
 display bug: the ability moved the maths but not the number the UI showed.
@@ -84,19 +84,19 @@ display bug: the ability moved the maths but not the number the UI showed.
 The outcome is now rolled first, on the probability alone; whether it reads as critical is a
 second roll against the option's risk.
 
-| choice | win rate | of wins, crit (before → after) |
-|---|---|---|
-| Good read | 52.1% | 30% → 20.3% |
-| Neutral | 40.4% | 38% → 20.4% |
-| Bad read | 28.2% | 48% → 20.3% |
+| choice    | win rate | of wins, crit (before → after) |
+| --------- | -------- | ------------------------------ |
+| Good read | 52.1%    | 30% → 20.3%                    |
+| Neutral   | 40.4%    | 38% → 20.4%                    |
+| Bad read  | 28.2%    | 48% → 20.3%                    |
 
 Risk now carries the variance instead:
 
-| risk | win rate | critical either way | self-inflicted failure | outright win |
-|---|---|---|---|---|
-| safe | 39.9% | 8.0% | 0/18 | 0/18 |
-| balanced | 40.1% | 18.1% | 2/18 | 11/18 |
-| bold | 39.7% | 32.2% | 16/18 | 15/18 |
+| risk     | win rate | critical either way | self-inflicted failure | outright win |
+| -------- | -------- | ------------------- | ---------------------- | ------------ |
+| safe     | 39.9%    | 8.0%                | 0/18                   | 0/18         |
+| balanced | 40.1%    | 18.1%               | 2/18                   | 11/18        |
+| bold     | 39.7%    | 32.2%               | 16/18                  | 15/18        |
 
 Identical odds, four times the emphatic outcomes, and the difference now shows in the
 commentary and match statistics rather than only in the crit rate.
@@ -112,14 +112,14 @@ moments land only on break/set/match points.
 matches against a 49% key-moments-disabled control:
 
 | baseChance | best-of-1 match win rate | best-of-3 |
-|---|---|---|
-| 35 | **30.0%** | **50.7%** |
-| 40 | 49.0% | 60.0% |
-| 45 | 60.0% | 72.7% |
+| ---------- | ------------------------ | --------- |
+| 35         | **30.0%**                | **50.7%** |
+| 40         | 49.0%                    | 60.0%     |
+| 45         | 60.0%                    | 72.7%     |
 
 The same constant is 20pp apart across formats. A single set fires ~8.5 key moments but they
 cover most of that set's pivotal points; a best-of-3 spreads ~15 across three times the games,
-so the layer has *more* leverage in the shorter format despite firing fewer moments. Best-of-1
+so the layer has _more_ leverage in the shorter format despite firing fewer moments. Best-of-1
 is what the game plays outside team matches.
 
 ---
@@ -130,19 +130,19 @@ is what the game plays outside team matches.
 before this work was taken against all-court — the one archetype with nothing to read. The
 probe now builds opponents with `profileForArchetype`, selected by `OPPONENT=`.
 
-| KM policy | vs all_court | vs defensive | vs counterpuncher |
-|---|---|---|---|
-| Always best read | 47.5% | 69.0% | 71.0% |
-| Random pick | 50.0% | 62.0% | 60.0% |
-| Always worst read | 40.0% | 35.0% | 41.0% |
+| KM policy         | vs all_court | vs defensive | vs counterpuncher |
+| ----------------- | ------------ | ------------ | ----------------- |
+| Always best read  | 47.5%        | 69.0%        | 71.0%             |
+| Random pick       | 50.0%        | 62.0%        | 60.0%             |
+| Always worst read | 40.0%        | 35.0%        | 41.0%             |
 
 A ~7pp spread (noise) against all-court, 30-34pp once there is a matchup to read.
 
-**And a finding outside this layer.** A uniform-50 player beats a uniform-50 *defensive*
+**And a finding outside this layer.** A uniform-50 player beats a uniform-50 _defensive_
 opponent **63.3%** of the time with key moments disabled entirely. The archetype profile changes
 how the opponent plays ordinary rally points and the rally sim is not neutral across archetypes.
 This means "near 50% match win rate" is not a reachable tuning target per archetype, because the
-*control* is not 50% per archetype — the layer should instead be roughly neutral relative to its
+_control_ is not 50% per archetype — the layer should instead be roughly neutral relative to its
 own control. It also means the 63% is worth understanding on its own terms.
 
 ---
@@ -151,10 +151,10 @@ own control. It also means the 63% is worth understanding on its own terms.
 
 The stat differential does two jobs through one number, and only one of them is small:
 
-| what it carries | worth |
-|---|---|
+| what it carries                                                | worth       |
+| -------------------------------------------------------------- | ----------- |
 | which option suits you (spread across one menu, level-matched) | 2.8 – 4.4pp |
-| how outmatched you are (20-point rating gap) | ±8.8pp |
+| how outmatched you are (20-point rating gap)                   | ±8.8pp      |
 
 An earlier draft of this document claimed "stats are decoration" in the key-moment layer. That
 was drawn from the level-matched case only, which zeroes out the level component, and is
@@ -174,7 +174,7 @@ level-matched gap at every tier, so it read "even" almost everywhere. At ±5 it 
   server-relative base chance. At best-of-1 over 250 matches it is 32.4% / 34.9% — noise. The
   gap did not survive the larger sample or the correct format, and the fix was never built.
 - **Showing the player the folded success probability.** A one-word verdict chip combining every
-  term measured as an answer key: "take the highest verdict" beat every other policy and *tied*
+  term measured as an answer key: "take the highest verdict" beat every other policy and _tied_
   a resource-aware version of itself, so it was solving the point rather than informing it. The
   card now shows the stat comparison only, and the matchup reaches the player as prose they have
   to map onto the opponent themselves.

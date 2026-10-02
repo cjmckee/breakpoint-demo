@@ -40,7 +40,9 @@ const StartGate: React.FC<{ onStart: () => void; controls?: string }> = ({ onSta
           real controls — this is the only place that's stated. */}
       <div className="flex flex-col items-center gap-2">
         {controls && (
-          <p className="text-sm text-pixel-text uppercase tracking-wide leading-relaxed">{controls}</p>
+          <p className="text-sm text-pixel-text uppercase tracking-wide leading-relaxed">
+            {controls}
+          </p>
         )}
         <p className="text-xs text-pixel-text-muted">or use the buttons below once you start</p>
       </div>
@@ -97,7 +99,13 @@ export const MinigameShell: React.FC<{
  * Opt-in — a game supplies its own footer, so one that scores a single continuous
  * round shows a readout instead of pips.
  */
-export const RoundPips: React.FC<MinigameRounds> = ({ round, total, results, successes, phase }) => (
+export const RoundPips: React.FC<MinigameRounds> = ({
+  round,
+  total,
+  results,
+  successes,
+  phase,
+}) => (
   <div className="flex items-center justify-center gap-2">
     {Array.from({ length: total }).map((_, i) => {
       const played = results[i];

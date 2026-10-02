@@ -24,11 +24,14 @@ export class StoryEventManager {
    * not randomly trigger, to avoid causing the player to miss matches or
    * other important scheduled activities.
    */
-  private static isDayBusy(calendar: GameCalendar, activeTournament?: ActiveTournament | null): boolean {
+  private static isDayBusy(
+    calendar: GameCalendar,
+    activeTournament?: ActiveTournament | null,
+  ): boolean {
     if (activeTournament) return true;
 
     const hasScheduledEventsToday = calendar.scheduledEvents.some(
-      (e) => e.scheduledDay === calendar.currentDay
+      (e) => e.scheduledDay === calendar.currentDay,
     );
     return hasScheduledEventsToday;
   }
@@ -64,7 +67,7 @@ export class StoryEventManager {
       calendar: GameCalendar;
       activeTournament?: ActiveTournament | null;
       mood?: number;
-    }
+    },
   ): StoryEvent | null {
     console.log(`🔍 Getting event by ID: ${eventId}`);
 
@@ -85,7 +88,7 @@ export class StoryEventManager {
     const isEligible = PrerequisiteChecker.checkAllPrerequisites(
       event.prerequisites,
       player,
-      gameState
+      gameState,
     );
 
     if (!isEligible) {
@@ -110,7 +113,7 @@ export class StoryEventManager {
       calendar: GameCalendar;
       activeTournament?: ActiveTournament | null;
       mood?: number;
-    }
+    },
   ): StoryEvent[] {
     console.log(`🔍 Getting eligible events for tag: ${tag}`);
 
@@ -154,7 +157,7 @@ export class StoryEventManager {
       calendar: GameCalendar;
       activeTournament?: ActiveTournament | null;
       mood?: number;
-    }
+    },
   ): StoryEvent[] {
     console.log(`🔍 Getting all eligible events for player: ${player.id}`);
 
@@ -179,7 +182,11 @@ export class StoryEventManager {
 
       // Let's just filter out tournament events for now.
       // We manually queue them when needed
-      if (event.tags.includes('tournament_match') || event.tags.includes('tournament_ceremony') || event.tags.includes('story_match')) {
+      if (
+        event.tags.includes('tournament_match') ||
+        event.tags.includes('tournament_ceremony') ||
+        event.tags.includes('story_match')
+      ) {
         return false;
       }
 
@@ -219,7 +226,7 @@ export class StoryEventManager {
         !storyEvent.tags.includes('tournament_ceremony') &&
         !storyEvent.tags.includes('tournament_match') &&
         !storyEvent.tags.includes('interaction')
-      )
+      );
     });
 
     // Group filtered events by their first tag (primary category)
@@ -302,7 +309,7 @@ export class StoryEventManager {
       mood?: number;
     },
     actualTimeSlotsUsed?: number,
-    minigameScore?: MinigameScore
+    minigameScore?: MinigameScore,
   ): StoryEventResult {
     // Get the outcome (from selected option or default)
     const outcome = this.getOutcome(event, selectedOption, minigameScore);
@@ -347,15 +354,14 @@ export class StoryEventManager {
   static getOutcome(
     event: StoryEvent,
     selectedOption: StoryEventOption | null,
-    minigameScore?: MinigameScore
+    minigameScore?: MinigameScore,
   ): StoryEventOutcome {
     if (selectedOption) {
       const check = selectedOption.minigame;
       if (check) {
         // The raw score is kept rather than a boolean, so a pass line can grow
         // into tiered outcomes later without changing how a game reports.
-        const passed =
-          minigameScore !== undefined && minigameScore.score >= check.passThreshold;
+        const passed = minigameScore !== undefined && minigameScore.score >= check.passThreshold;
         return passed ? selectedOption.outcome : check.failOutcome;
       }
       return selectedOption.outcome;

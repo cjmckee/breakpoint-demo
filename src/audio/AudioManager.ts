@@ -84,10 +84,18 @@ class AudioManager {
     this.muteSfx = mute;
   }
 
-  getMusicVolume() { return this.musicVolume; }
-  getSfxVolume()   { return this.sfxVolume; }
-  isMusicMuted()   { return this.muteMusic; }
-  isSfxMuted()     { return this.muteSfx; }
+  getMusicVolume() {
+    return this.musicVolume;
+  }
+  getSfxVolume() {
+    return this.sfxVolume;
+  }
+  isMusicMuted() {
+    return this.muteMusic;
+  }
+  isSfxMuted() {
+    return this.muteSfx;
+  }
 
   // ─── Music ────────────────────────────────────────────────────────────────
 
@@ -133,7 +141,7 @@ class AudioManager {
     if (!this.nowPlaying) return;
     const { track, index, poolSize } = this.nowPlaying;
     if (poolSize < 2) return;
-    const next = ((index + delta) % poolSize + poolSize) % poolSize;
+    const next = (((index + delta) % poolSize) + poolSize) % poolSize;
     // A deliberate button press should feel immediate, so use a short crossfade
     // rather than the slow ambient transition used for phase changes.
     this.startEntry(track, next, MANUAL_CROSSFADE_DURATION);
@@ -195,7 +203,9 @@ class AudioManager {
     incoming.volume = 0;
     console.log(`[Audio] Now playing: ${entry.title}`);
     incoming.currentTime = 0;
-    incoming.play().catch(() => {/* autoplay blocked — user hasn't interacted yet */});
+    incoming.play().catch(() => {
+      /* autoplay blocked — user hasn't interacted yet */
+    });
 
     this.currentTrack = track;
     this.activeMusicEl = this.activeMusicEl === 'A' ? 'B' : 'A';

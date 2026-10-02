@@ -84,12 +84,19 @@ export class MatchSimulator {
    * Simulate a complete match
    */
   public simulateMatch(): MatchResult {
-    const matchLevel = getMatchLevel(this.config.player.overallRating, this.config.opponent.overallRating);
+    const matchLevel = getMatchLevel(
+      this.config.player.overallRating,
+      this.config.opponent.overallRating,
+    );
     const thresholds = getQualityThresholds(matchLevel);
 
     trace(`🎾 Starting match: ${this.config.player.name} vs ${this.config.opponent.name}`);
-    trace(`📊 Player ratings: ${this.config.player.overallRating} vs ${this.config.opponent.overallRating} → matchLevel: ${matchLevel}`);
-    trace(`📏 Quality thresholds: exceptional=${thresholds.exceptional.toFixed(1)}, high=${thresholds.high.toFixed(1)}, good=${thresholds.good.toFixed(1)}, average=${thresholds.average.toFixed(1)}, weak=${thresholds.weak.toFixed(1)}`);
+    trace(
+      `📊 Player ratings: ${this.config.player.overallRating} vs ${this.config.opponent.overallRating} → matchLevel: ${matchLevel}`,
+    );
+    trace(
+      `📏 Quality thresholds: exceptional=${thresholds.exceptional.toFixed(1)}, high=${thresholds.high.toFixed(1)}, good=${thresholds.good.toFixed(1)}, average=${thresholds.average.toFixed(1)}, weak=${thresholds.weak.toFixed(1)}`,
+    );
 
     let pointCount = 0;
     const maxPoints = 200; // Safety limit to prevent infinite matches
@@ -111,16 +118,22 @@ export class MatchSimulator {
 
       // Convert current game points from server/returner to player/opponent
       const playerIsServer = currentScore.currentServer === 'player';
-      const playerPoints = playerIsServer ? currentScore.currentGame.server : currentScore.currentGame.returner;
-      const opponentPoints = playerIsServer ? currentScore.currentGame.returner : currentScore.currentGame.server;
+      const playerPoints = playerIsServer
+        ? currentScore.currentGame.server
+        : currentScore.currentGame.returner;
+      const opponentPoints = playerIsServer
+        ? currentScore.currentGame.returner
+        : currentScore.currentGame.server;
 
       // Count completed sets for each player
-      const completedSets = currentScore.sets.filter(s => s.isComplete);
-      const playerSets = completedSets.filter(set => set.winner === 'player').length;
-      const opponentSets = completedSets.filter(set => set.winner === 'opponent').length;
+      const completedSets = currentScore.sets.filter((s) => s.isComplete);
+      const playerSets = completedSets.filter((set) => set.winner === 'player').length;
+      const opponentSets = completedSets.filter((set) => set.winner === 'opponent').length;
 
       // Always display player score first
-      trace(`📊 Score - Sets: ${playerSets}-${opponentSets} | Games: ${setGames.player}-${setGames.opponent} | Points: ${playerPoints}-${opponentPoints}`);
+      trace(
+        `📊 Score - Sets: ${playerSets}-${opponentSets} | Games: ${setGames.player}-${setGames.opponent} | Points: ${playerPoints}-${opponentPoints}`,
+      );
 
       // Update fatigue based on the point just played
       const lastPoint = this.pointResults[this.pointResults.length - 1];
@@ -158,7 +171,7 @@ export class MatchSimulator {
     // Capture pre-point state for momentum (clutch level + game/set diffing)
     const clutch = this.detectClutch();
     const beforeScore = this.scoreTracker.getScore();
-    const beforeCompletedSets = beforeScore.sets.filter(s => s.isComplete).length;
+    const beforeCompletedSets = beforeScore.sets.filter((s) => s.isComplete).length;
     const beforeGamesTotal = beforeScore.sets.reduce((sum, s) => sum + s.player + s.opponent, 0);
     const beforeCurrentSetPlayerGames = beforeScore.sets[beforeScore.sets.length - 1].player;
     const wasTiebreak = beforeScore.isTiebreak;
@@ -173,7 +186,7 @@ export class MatchSimulator {
       returnerProfile,
       this.matchState,
       this.playerEffects,
-      this.opponentEffects
+      this.opponentEffects,
     );
 
     // Store point result and key moment status for later analysis
@@ -195,7 +208,7 @@ export class MatchSimulator {
       beforeCompletedSets,
       beforeGamesTotal,
       beforeCurrentSetPlayerGames,
-      wasTiebreak
+      wasTiebreak,
     );
 
     // Update statistics with break point information
@@ -221,10 +234,10 @@ export class MatchSimulator {
     // also a break point is the "serving/returning for the set" case.
     if (isKeyMoment && !breakPointFor) {
       const score = this.scoreTracker.getScore();
-      const completed = score.sets.filter(s => s.isComplete);
+      const completed = score.sets.filter((s) => s.isComplete);
       const setsToWin = Math.ceil(score.matchFormat.bestOfSets / 2);
-      const playerSets = completed.filter(s => s.winner === 'player').length;
-      const opponentSets = completed.filter(s => s.winner === 'opponent').length;
+      const playerSets = completed.filter((s) => s.winner === 'player').length;
+      const opponentSets = completed.filter((s) => s.winner === 'opponent').length;
       if (playerSets === setsToWin - 1 || opponentSets === setsToWin - 1) {
         return 'matchPoint';
       }
@@ -247,10 +260,10 @@ export class MatchSimulator {
     beforeCompletedSets: number,
     beforeGamesTotal: number,
     beforeCurrentSetPlayerGames: number,
-    wasTiebreak: boolean
+    wasTiebreak: boolean,
   ): void {
     const afterScore = this.scoreTracker.getScore();
-    const afterCompletedSets = afterScore.sets.filter(s => s.isComplete).length;
+    const afterCompletedSets = afterScore.sets.filter((s) => s.isComplete).length;
     const afterGamesTotal = afterScore.sets.reduce((sum, s) => sum + s.player + s.opponent, 0);
 
     let setWonBy: 'player' | 'opponent' | undefined;
@@ -295,12 +308,12 @@ export class MatchSimulator {
     this.matchState.fatigue.player = this.recoverFatigue(
       this.matchState.fatigue.player,
       this.config.player.stats.physical.stamina,
-      setCompleted
+      setCompleted,
     );
     this.matchState.fatigue.opponent = this.recoverFatigue(
       this.matchState.fatigue.opponent,
       this.config.opponent.stats.physical.stamina,
-      setCompleted
+      setCompleted,
     );
   }
 
@@ -316,7 +329,7 @@ export class MatchSimulator {
    */
   private convertPointWinner(
     pointWinner: 'server' | 'returner',
-    currentServer: 'player' | 'opponent'
+    currentServer: 'player' | 'opponent',
   ): 'player' | 'opponent' {
     if (pointWinner === 'server') {
       return currentServer;
@@ -369,14 +382,14 @@ export class MatchSimulator {
       this.matchState.fatigue.player,
       rallyLength,
       this.config.player.stats.physical.stamina,
-      this.config.player.stats.physical.stamina
+      this.config.player.stats.physical.stamina,
     );
 
     this.matchState.fatigue.opponent = this.calculateNewFatigue(
       this.matchState.fatigue.opponent,
       rallyLength,
       this.config.opponent.stats.physical.stamina,
-      this.config.opponent.stats.physical.stamina
+      this.config.opponent.stats.physical.stamina,
     );
   }
 
@@ -387,25 +400,29 @@ export class MatchSimulator {
     currentFatigue: number,
     rallyLength: number,
     staminaStat: number,
-    recoveryStat: number
+    recoveryStat: number,
   ): number {
     // Stamina reduces fatigue accumulation rate
     // stamina 0 = full rate (1.0), stamina 100 = minFatigueRate (0.3)
-    const staminaFactor = MATCH_FATIGUE.minFatigueRate +
-      (1 - MATCH_FATIGUE.minFatigueRate) * (1 - staminaStat / 100);
+    const staminaFactor =
+      MATCH_FATIGUE.minFatigueRate + (1 - MATCH_FATIGUE.minFatigueRate) * (1 - staminaStat / 100);
 
     // Base fatigue from rally
     let fatigueGain = rallyLength * MATCH_FATIGUE.basePerShot * staminaFactor;
 
     // Extra fatigue for long rallies
     if (rallyLength > MATCH_FATIGUE.longRallyThreshold) {
-      fatigueGain += (rallyLength - MATCH_FATIGUE.longRallyThreshold) *
-        MATCH_FATIGUE.longRallyExtra * staminaFactor;
+      fatigueGain +=
+        (rallyLength - MATCH_FATIGUE.longRallyThreshold) *
+        MATCH_FATIGUE.longRallyExtra *
+        staminaFactor;
     }
 
     // Recovery between points, scaled by recovery stat
-    const recovery = MATCH_FATIGUE.baseRecoveryPerPoint +
-      (recoveryStat / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
+    const recovery =
+      MATCH_FATIGUE.baseRecoveryPerPoint +
+      (recoveryStat / 100) *
+        (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
 
     return Math.max(0, Math.min(100, currentFatigue + fatigueGain - recovery));
   }
@@ -433,8 +450,16 @@ export class MatchSimulator {
       pointsPlayed: 0,
       isKeyMoment: false,
       fatigue: {
-        player: Math.max(0, (MATCH_FATIGUE.energyFullStaminaThreshold - this.config.player.energy) * MATCH_FATIGUE.energyToFatigueFactor),
-        opponent: Math.max(0, (MATCH_FATIGUE.energyFullStaminaThreshold - this.config.opponent.energy) * MATCH_FATIGUE.energyToFatigueFactor),
+        player: Math.max(
+          0,
+          (MATCH_FATIGUE.energyFullStaminaThreshold - this.config.player.energy) *
+            MATCH_FATIGUE.energyToFatigueFactor,
+        ),
+        opponent: Math.max(
+          0,
+          (MATCH_FATIGUE.energyFullStaminaThreshold - this.config.opponent.energy) *
+            MATCH_FATIGUE.energyToFatigueFactor,
+        ),
       },
     };
   }
@@ -486,11 +511,14 @@ export class MatchSimulator {
   private logPointResult(
     pointResult: PointResult,
     currentServer: 'player' | 'opponent',
-    pointWinner: 'player' | 'opponent'
+    pointWinner: 'player' | 'opponent',
   ): void {
-    const serverName = currentServer === 'player' ? this.config.player.name : this.config.opponent.name;
-    const winnerName = pointWinner === 'player' ? this.config.player.name : this.config.opponent.name;
-    const loserName = pointWinner === 'player' ? this.config.opponent.name : this.config.player.name;
+    const serverName =
+      currentServer === 'player' ? this.config.player.name : this.config.opponent.name;
+    const winnerName =
+      pointWinner === 'player' ? this.config.player.name : this.config.opponent.name;
+    const loserName =
+      pointWinner === 'player' ? this.config.opponent.name : this.config.player.name;
 
     // Format point result message based on point type
     let resultMessage = '';
@@ -510,15 +538,19 @@ export class MatchSimulator {
     const serveIndicator = pointResult.serveType === 'second' ? ' [2nd serve]' : '';
 
     trace(
-      `🎾 Point: ${serverName} serving${serveIndicator} → ${resultMessage} (${pointResult.rallyLength} shots) - ${winnerName} wins`
+      `🎾 Point: ${serverName} serving${serveIndicator} → ${resultMessage} (${pointResult.rallyLength} shots) - ${winnerName} wins`,
     );
 
     // Log key shot with shooter information
     if (pointResult.keyShot) {
-      const keyShooter = pointResult.keyShot.shooter === 'server' ? serverName :
-                         (currentServer === 'player' ? this.config.opponent.name : this.config.player.name);
+      const keyShooter =
+        pointResult.keyShot.shooter === 'server'
+          ? serverName
+          : currentServer === 'player'
+            ? this.config.opponent.name
+            : this.config.player.name;
       trace(
-        `🔥 Key shot by ${keyShooter}: ${pointResult.keyShot.shotType} (${pointResult.keyShot.quality.toFixed(1)} quality, ${pointResult.keyShot.statUsed})`
+        `🔥 Key shot by ${keyShooter}: ${pointResult.keyShot.shotType} (${pointResult.keyShot.quality.toFixed(1)} quality, ${pointResult.keyShot.statUsed})`,
       );
     }
   }
@@ -565,11 +597,11 @@ export class MatchSimulator {
 
     // Convert point results to analysis format
     const points: PointAnalysisData[] = this.pointResults.map((pointResult, index) => {
-      const {server, winner} = pointResult;
+      const { server, winner } = pointResult;
 
       // Convert winner from server/returner to player/opponent
-      const pointWinner = winner === 'server' ? server :
-                          (server === 'player' ? 'opponent' : 'player');
+      const pointWinner =
+        winner === 'server' ? server : server === 'player' ? 'opponent' : 'player';
 
       // Get the score snapshot for this point (if available)
       const scoreSnapshot = this.scoreProgression[index];
@@ -585,19 +617,21 @@ export class MatchSimulator {
         shots: pointResult.shots,
         keyShot: pointResult.keyShot,
         statistics: pointResult.statistics,
-        matchState: scoreSnapshot ? {
-          pressure: this.matchState.pressure,
-          momentum: scoreSnapshot.momentum,
-          isKeyMoment: this.pointKeyMoments[index] || false, // Use saved key moment status
-          gameScore: scoreSnapshot.gameScore,
-          setScore: scoreSnapshot.setScore,
-        } : {
-          pressure: 'low',
-          momentum: 0,
-          isKeyMoment: false,
-          gameScore: { server: 0, returner: 0, isDeuce: false },
-          setScore: { player: 0, opponent: 0, isComplete: false },
-        },
+        matchState: scoreSnapshot
+          ? {
+              pressure: this.matchState.pressure,
+              momentum: scoreSnapshot.momentum,
+              isKeyMoment: this.pointKeyMoments[index] || false, // Use saved key moment status
+              gameScore: scoreSnapshot.gameScore,
+              setScore: scoreSnapshot.setScore,
+            }
+          : {
+              pressure: 'low',
+              momentum: 0,
+              isKeyMoment: false,
+              gameScore: { server: 0, returner: 0, isDeuce: false },
+              setScore: { player: 0, opponent: 0, isComplete: false },
+            },
       };
     });
 
@@ -636,7 +670,7 @@ export class MatchSimulator {
    */
   public static simulateMultipleMatches(
     config: MatchConfig,
-    numberOfMatches: number
+    numberOfMatches: number,
   ): MatchResult[] {
     const results: MatchResult[] = [];
 
@@ -663,7 +697,7 @@ export class MatchSimulator {
     }
 
     // Summary statistics
-    const playerWins = results.filter(result => result.winner === 'player').length;
+    const playerWins = results.filter((result) => result.winner === 'player').length;
     const winPercentage = (playerWins / numberOfMatches) * 100;
 
     trace(`🏆 Results: ${playerWins}/${numberOfMatches} wins (${winPercentage.toFixed(1)}%)`);

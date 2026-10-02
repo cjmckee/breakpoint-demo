@@ -45,8 +45,17 @@ interface Note {
 const laneC = (i: number): number => ((i + 0.5) / LANES) * 100;
 const LANE_GLYPH = ['◀', '●', '▶'];
 
-export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt, config }) => {
-  const rounds = useMinigameRounds({ minigame: 'rally_rhythm', config }, onComplete, onFirstAttempt);
+export const RallyRhythmMinigame: React.FC<MinigameProps> = ({
+  onComplete,
+  windowBonus = 0,
+  onFirstAttempt,
+  config,
+}) => {
+  const rounds = useMinigameRounds(
+    { minigame: 'rally_rhythm', config },
+    onComplete,
+    onFirstAttempt,
+  );
   const { frozen, trigger: hitstop } = useHitstop();
   const hitWin = 155 * (1 + windowBonus);
 
@@ -84,10 +93,15 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
         hitstop();
         audioManager.playSfx('hit_ground');
       }
-      setBurst({ id: performance.now() + note.id, x: laneC(note.track), y: STRIKE_Y, tone: hit ? 'good' : 'bad' });
+      setBurst({
+        id: performance.now() + note.id,
+        x: laneC(note.track),
+        y: STRIKE_Y,
+        tone: hit ? 'good' : 'bad',
+      });
       if (judgedRef.current >= PER_SET) finishSet();
     },
-    [hitstop, finishSet]
+    [hitstop, finishSet],
   );
 
   const pressTrack = useCallback(
@@ -99,13 +113,16 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
       for (const n of notesRef.current) {
         if (n.track === track && !n.judged) {
           const dt = Math.abs(now - n.time);
-          if (dt < bestDt) { bestDt = dt; best = n; }
+          if (dt < bestDt) {
+            bestDt = dt;
+            best = n;
+          }
         }
       }
       if (!best || bestDt > hitWin * 1.8) return; // stray tap on an empty track — ignore
       judgeNote(best, bestDt <= hitWin);
     },
-    [hitWin, judgeNote, frozen]
+    [hitWin, judgeNote, frozen],
   );
 
   // Arm a fresh set for each playing round. The tempo is rolled once per set, so the
@@ -148,7 +165,10 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
       const vis: Array<{ id: number; track: number; y: number }> = [];
       for (const n of notesRef.current) {
         if (!n.judged && Math.abs(now - n.time) < 90) nearBeat = true;
-        if (!n.judged && now > n.time + hitWin * 1.8) { judgeNote(n, false); continue; }
+        if (!n.judged && now > n.time + hitWin * 1.8) {
+          judgeNote(n, false);
+          continue;
+        }
         if (n.judged) continue;
         const p = (now - (n.time - travel)) / travel;
         if (p < 0) continue;
@@ -171,9 +191,16 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
       // Center takes both the down and up keys — S sits under the resting hand on WASD,
       // W is where the thumb reaches on the arrows.
       const dir = directionFromKey(e);
-      if (dir === 'left') { e.preventDefault(); pressTrack(0); }
-      else if (dir === 'down' || dir === 'up') { e.preventDefault(); pressTrack(1); }
-      else if (dir === 'right') { e.preventDefault(); pressTrack(2); }
+      if (dir === 'left') {
+        e.preventDefault();
+        pressTrack(0);
+      } else if (dir === 'down' || dir === 'up') {
+        e.preventDefault();
+        pressTrack(1);
+      } else if (dir === 'right') {
+        e.preventDefault();
+        pressTrack(2);
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -200,7 +227,7 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
                 'Perfect rhythm — nine for nine!',
                 'Two clean sets. Nearly flawless!',
                 'One clean set. Keep the beat!',
-                'Lost the rhythm — try again!'
+                'Lost the rhythm — try again!',
               )}
             />
           ) : (
@@ -210,7 +237,10 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
                   key={i}
                   type="button"
                   disabled={!playing}
-                  onPointerDown={(e) => { e.preventDefault(); pressTrack(i); }}
+                  onPointerDown={(e) => {
+                    e.preventDefault();
+                    pressTrack(i);
+                  }}
                   className="flex-1 font-bold border-4 border-pixel-border bg-pixel-card text-pixel-text-muted px-4 py-4 text-xl select-none touch-none active:translate-y-1 disabled:opacity-50 border-t-pixel-accent/60"
                 >
                   {LANE_GLYPH[i]}
@@ -228,11 +258,20 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({ onComplete, windo
         {Array.from({ length: LANES }).map((_, i) => (
           <React.Fragment key={i}>
             {i > 0 && (
-              <div className="absolute top-0 bottom-0 border-l border-dashed border-pixel-border/60" style={{ left: `${(i / LANES) * 100}%` }} />
+              <div
+                className="absolute top-0 bottom-0 border-l border-dashed border-pixel-border/60"
+                style={{ left: `${(i / LANES) * 100}%` }}
+              />
             )}
             <div
               className="absolute rounded-full border-2 border-dashed border-pixel-text-muted/50"
-              style={{ left: `${laneC(i)}%`, top: `${STRIKE_Y}%`, width: uMin(BALL, 32), height: uMin(BALL, 32), transform: 'translate(-50%, -50%)' }}
+              style={{
+                left: `${laneC(i)}%`,
+                top: `${STRIKE_Y}%`,
+                width: uMin(BALL, 32),
+                height: uMin(BALL, 32),
+                transform: 'translate(-50%, -50%)',
+              }}
             />
           </React.Fragment>
         ))}

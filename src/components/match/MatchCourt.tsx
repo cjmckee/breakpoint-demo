@@ -26,11 +26,15 @@ interface MatchCourtProps {
 
 const getCourtColors = (surface: CourtSurface): { court: string; lines: string } => {
   switch (surface) {
-    case 'clay':   return { court: '#CD853F', lines: '#FFFFFF' };
-    case 'grass':  return { court: '#228B22', lines: '#FFFFFF' };
-    case 'carpet': return { court: '#6B46C1', lines: '#FFFFFF' };
+    case 'clay':
+      return { court: '#CD853F', lines: '#FFFFFF' };
+    case 'grass':
+      return { court: '#228B22', lines: '#FFFFFF' };
+    case 'carpet':
+      return { court: '#6B46C1', lines: '#FFFFFF' };
     case 'hard':
-    default:       return { court: '#4A90E2', lines: '#FFFFFF' };
+    default:
+      return { court: '#4A90E2', lines: '#FFFFFF' };
   }
 };
 
@@ -43,10 +47,23 @@ const rand = (a: number, b: number): number => a + Math.random() * (b - a);
 const clamp = (v: number, a: number, b: number): number => Math.max(a, Math.min(b, v));
 const cornerY = (): number => (Math.random() < 0.5 ? rand(24, 46) : rand(104, 126));
 
-interface Pt { x: number; y: number }
-interface Frame { ball: Pt; p: Pt; o: Pt; dur: number }
+interface Pt {
+  x: number;
+  y: number;
+}
+interface Frame {
+  ball: Pt;
+  p: Pt;
+  o: Pt;
+  dur: number;
+}
 
-const IDLE: Frame = { ball: { x: NET, y: 75 }, p: { x: 40, y: 75 }, o: { x: 260, y: 75 }, dur: 200 };
+const IDLE: Frame = {
+  ball: { x: NET, y: 75 },
+  p: { x: 40, y: 75 },
+  o: { x: 260, y: 75 },
+  dur: 200,
+};
 
 // Depth (x) within a player's own half, by court position.
 const depthX = (side: Side, cp?: string): number => {
@@ -79,7 +96,9 @@ const recover = (pos: Pt, side: Side): Pt => ({
 const deepCorner = (side: Side): Pt =>
   side === 'player' ? { x: rand(18, 50), y: cornerY() } : { x: rand(250, 282), y: cornerY() };
 const netArea = (side: Side): Pt =>
-  side === 'player' ? { x: rand(126, 146), y: rand(55, 95) } : { x: rand(154, 174), y: rand(55, 95) };
+  side === 'player'
+    ? { x: rand(126, 146), y: rand(55, 95) }
+    : { x: rand(154, 174), y: rand(55, 95) };
 
 const shooterSide = (shooter: 'server' | 'returner', server: Side): Side =>
   shooter === 'server' ? server : other(server);
@@ -105,9 +124,17 @@ function buildFromShots(r: SimplePointResult): Frame[] {
 
   picked.forEach((s, k) => {
     const side = shooterSide(s.shooter, server);
-    const contact = { x: depthX(side, s.context?.courtPosition), y: lateralY(s.shotType, s.context?.courtPosition) };
-    if (side === 'player') { p = contact; o = recover(o, 'opponent'); }
-    else { o = contact; p = recover(p, 'player'); }
+    const contact = {
+      x: depthX(side, s.context?.courtPosition),
+      y: lateralY(s.shotType, s.context?.courtPosition),
+    };
+    if (side === 'player') {
+      p = contact;
+      o = recover(o, 'opponent');
+    } else {
+      o = contact;
+      p = recover(p, 'player');
+    }
     frames.push({ ball: contact, p, o, dur: k === 0 ? 100 : 72 });
   });
 
@@ -135,18 +162,32 @@ function buildFallback(r: SimplePointResult): Frame[] {
   const frames: Frame[] = [];
   const hit = (side: Side, cp: string, shotType: string, dur: number): void => {
     const c = { x: depthX(side, cp), y: lateralY(shotType, cp) };
-    if (side === 'player') { p = c; o = recover(o, 'opponent'); }
-    else { o = c; p = recover(p, 'player'); }
+    if (side === 'player') {
+      p = c;
+      o = recover(o, 'opponent');
+    } else {
+      o = c;
+      p = recover(p, 'player');
+    }
     frames.push({ ball: c, p, o, dur });
   };
 
   hit(server, 'baseline', 'serve', 100);
-  if (outcome.includes('ace')) { frames.push({ ball: deepCorner(returner), p, o, dur: 120 }); return frames; }
-  if (outcome.includes('double_fault') || outcome === 'fault') { frames.push({ ball: netArea(server), p, o, dur: 120 }); return frames; }
+  if (outcome.includes('ace')) {
+    frames.push({ ball: deepCorner(returner), p, o, dur: 120 });
+    return frames;
+  }
+  if (outcome.includes('double_fault') || outcome === 'fault') {
+    frames.push({ ball: netArea(server), p, o, dur: 120 });
+    return frames;
+  }
 
   const hops = clamp(Math.round((r.rallyLength ?? 4) / 2), 1, 3);
   let side = server;
-  for (let i = 0; i < hops; i++) { side = other(side); hit(side, 'baseline', i % 2 ? 'backhand' : 'forehand', 80); }
+  for (let i = 0; i < hops; i++) {
+    side = other(side);
+    hit(side, 'baseline', i % 2 ? 'backhand' : 'forehand', 80);
+  }
 
   const landing = outcome.includes('winner') ? deepCorner(loser) : netArea(loser);
   frames.push({ ball: landing, p, o, dur: 120 });
@@ -174,7 +215,10 @@ export const MatchCourt: React.FC<MatchCourtProps> = ({ courtSurface, overlay })
 
     let i = 0;
     const tick = (): void => {
-      if (i >= frames.length) { timer.current = null; return; }
+      if (i >= frames.length) {
+        timer.current = null;
+        return;
+      }
       const f = frames[i];
       setFrame(f);
       i += 1;
@@ -183,32 +227,72 @@ export const MatchCourt: React.FC<MatchCourtProps> = ({ courtSurface, overlay })
     tick();
   }, [pointSeq, lastPointResult]);
 
-  useEffect(() => () => { if (timer.current) window.clearTimeout(timer.current); }, []);
+  useEffect(
+    () => () => {
+      if (timer.current) window.clearTimeout(timer.current);
+    },
+    [],
+  );
 
   return (
-    <div className="relative rounded-sm overflow-hidden border-2" style={{ borderColor: colors.lines }}>
-      <svg viewBox="0 0 300 150" className="block w-full h-full" preserveAspectRatio="none" style={{ minHeight: 150 }}>
+    <div
+      className="relative rounded-sm overflow-hidden border-2"
+      style={{ borderColor: colors.lines }}
+    >
+      <svg
+        viewBox="0 0 300 150"
+        className="block w-full h-full"
+        preserveAspectRatio="none"
+        style={{ minHeight: 150 }}
+      >
         <rect x="0" y="0" width="300" height="150" fill={colors.court} />
-        <rect x="10" y="10" width="280" height="130" fill="none" stroke={colors.lines} strokeWidth="2" />
+        <rect
+          x="10"
+          y="10"
+          width="280"
+          height="130"
+          fill="none"
+          stroke={colors.lines}
+          strokeWidth="2"
+        />
         <line x1="150" y1="6" x2="150" y2="144" stroke={colors.lines} strokeWidth="2" />
         <line x1="70" y1="10" x2="70" y2="140" stroke={colors.lines} strokeWidth="1" />
         <line x1="230" y1="10" x2="230" y2="140" stroke={colors.lines} strokeWidth="1" />
         <line x1="70" y1="75" x2="230" y2="75" stroke={colors.lines} strokeWidth="1" />
 
         {/* Player token (left half) */}
-        <g style={{ transform: `translate(${frame.p.x}px, ${frame.p.y}px)`, transition: `transform ${frame.dur}ms ease-out` }}>
+        <g
+          style={{
+            transform: `translate(${frame.p.x}px, ${frame.p.y}px)`,
+            transition: `transform ${frame.dur}ms ease-out`,
+          }}
+        >
           <circle r="12" fill="#10B981" stroke="#FFFFFF" strokeWidth="2" />
-          <text x="0" y="4" textAnchor="middle" className="fill-white" style={{ fontSize: 11 }}>P</text>
+          <text x="0" y="4" textAnchor="middle" className="fill-white" style={{ fontSize: 11 }}>
+            P
+          </text>
         </g>
 
         {/* Opponent token (right half) */}
-        <g style={{ transform: `translate(${frame.o.x}px, ${frame.o.y}px)`, transition: `transform ${frame.dur}ms ease-out` }}>
+        <g
+          style={{
+            transform: `translate(${frame.o.x}px, ${frame.o.y}px)`,
+            transition: `transform ${frame.dur}ms ease-out`,
+          }}
+        >
           <circle r="12" fill="#EF4444" stroke="#FFFFFF" strokeWidth="2" />
-          <text x="0" y="4" textAnchor="middle" className="fill-white" style={{ fontSize: 11 }}>O</text>
+          <text x="0" y="4" textAnchor="middle" className="fill-white" style={{ fontSize: 11 }}>
+            O
+          </text>
         </g>
 
         {/* Ball */}
-        <g style={{ transform: `translate(${frame.ball.x}px, ${frame.ball.y}px)`, transition: `transform ${frame.dur}ms linear` }}>
+        <g
+          style={{
+            transform: `translate(${frame.ball.x}px, ${frame.ball.y}px)`,
+            transition: `transform ${frame.dur}ms linear`,
+          }}
+        >
           <circle r="4.5" fill="#F4E04A" stroke="#B59A00" strokeWidth="1" />
         </g>
       </svg>

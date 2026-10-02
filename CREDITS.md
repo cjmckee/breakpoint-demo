@@ -15,30 +15,30 @@ In-game attribution is also available in the Settings menu.
 All tracks below by **Tim Kulig** — [timkulig.com](https://timkulig.com) · [IMDB](https://www.imdb.com/name/nm0997280/)
 Licensed under [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/).
 
-| Track | File |
-|---|---|
-| Main Theme | `public/audio/music/main_theme.mp3` |
-| Renegade | `public/audio/music/renegade.mp3` |
-| 8 Bit Open World | `public/audio/music/8_bit_open_world.mp3` |
+| Track                    | File                                              |
+| ------------------------ | ------------------------------------------------- |
+| Main Theme               | `public/audio/music/main_theme.mp3`               |
+| Renegade                 | `public/audio/music/renegade.mp3`                 |
+| 8 Bit Open World         | `public/audio/music/8_bit_open_world.mp3`         |
 | Beep Boopity Exploration | `public/audio/music/beep_boopity_exploration.mp3` |
-| Music Box Mayhem | `public/audio/music/music_box_mayhem.mp3` |
-| Pixelated Drive | `public/audio/music/pixelated_drive.mp3` |
-| Have a Good Time | `public/audio/music/have_a_good_time.mp3` |
-| Spelunker Pete | `public/audio/music/spelunker_pete.mp3` |
-| Arcadia Remembers | `public/audio/music/arcadia_remembers.mp3` |
-| The Bunny Song | `public/audio/music/the_bunny_song.mp3` |
-| On The Run | `public/audio/music/on_the_run.mp3` |
-| Keys Are In It | `public/audio/music/keys_are_in_it.mp3` |
-| Feel the Burn | `public/audio/music/feel_the_burn.mp3` |
-| Lambo | `public/audio/music/lambo.mp3` |
-| Computing | `public/audio/music/computing.mp3` |
-| Assembly Montage | `public/audio/music/assembly_montage.mp3` |
+| Music Box Mayhem         | `public/audio/music/music_box_mayhem.mp3`         |
+| Pixelated Drive          | `public/audio/music/pixelated_drive.mp3`          |
+| Have a Good Time         | `public/audio/music/have_a_good_time.mp3`         |
+| Spelunker Pete           | `public/audio/music/spelunker_pete.mp3`           |
+| Arcadia Remembers        | `public/audio/music/arcadia_remembers.mp3`        |
+| The Bunny Song           | `public/audio/music/the_bunny_song.mp3`           |
+| On The Run               | `public/audio/music/on_the_run.mp3`               |
+| Keys Are In It           | `public/audio/music/keys_are_in_it.mp3`           |
+| Feel the Burn            | `public/audio/music/feel_the_burn.mp3`            |
+| Lambo                    | `public/audio/music/lambo.mp3`                    |
+| Computing                | `public/audio/music/computing.mp3`                |
+| Assembly Montage         | `public/audio/music/assembly_montage.mp3`         |
 
 ### Other Artists
 
-| Track | Artist | File |
-|---|---|---|
-| Neon | Dopestuff | `public/audio/music/neon.mp3` |
+| Track           | Artist        | File                                     |
+| --------------- | ------------- | ---------------------------------------- |
+| Neon            | Dopestuff     | `public/audio/music/neon.mp3`            |
 | Lady of the 80s | Grand Project | `public/audio/music/lady_of_the_80s.mp3` |
 
 Tracks are used in their original form with no modifications to the audio

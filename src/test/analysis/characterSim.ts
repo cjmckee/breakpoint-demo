@@ -10,7 +10,12 @@
  * (they depend on live user choices).
  */
 
-import type { MatchFormat, MatchState, PlayerStats, MatchStatistics as IMatchStatistics } from '../../types';
+import type {
+  MatchFormat,
+  MatchState,
+  PlayerStats,
+  MatchStatistics as IMatchStatistics,
+} from '../../types';
 import type { Ability } from '../../types/game';
 import type { ArchetypeProfile } from '../../types/archetype';
 import { PlayerProfile } from '../../core/PlayerProfile';
@@ -70,23 +75,29 @@ function calculateNewFatigue(
   staminaStat: number,
   recoveryStat: number,
 ): number {
-  const staminaFactor = MATCH_FATIGUE.minFatigueRate +
-    (1 - MATCH_FATIGUE.minFatigueRate) * (1 - staminaStat / 100);
+  const staminaFactor =
+    MATCH_FATIGUE.minFatigueRate + (1 - MATCH_FATIGUE.minFatigueRate) * (1 - staminaStat / 100);
 
   let fatigueGain = rallyLength * MATCH_FATIGUE.basePerShot * staminaFactor;
   if (rallyLength > MATCH_FATIGUE.longRallyThreshold) {
-    fatigueGain += (rallyLength - MATCH_FATIGUE.longRallyThreshold) *
-      MATCH_FATIGUE.longRallyExtra * staminaFactor;
+    fatigueGain +=
+      (rallyLength - MATCH_FATIGUE.longRallyThreshold) *
+      MATCH_FATIGUE.longRallyExtra *
+      staminaFactor;
   }
 
-  const recovery = MATCH_FATIGUE.baseRecoveryPerPoint +
+  const recovery =
+    MATCH_FATIGUE.baseRecoveryPerPoint +
     (recoveryStat / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
 
   return Math.max(0, Math.min(100, currentFatigue + fatigueGain - recovery));
 }
 
 /** Ability "additional" effects + archetype behavior effects, as the orchestrator builds them. */
-function buildEffects(abilities?: Ability[], archetypeProfile?: ArchetypeProfile): Record<string, number> {
+function buildEffects(
+  abilities?: Ability[],
+  archetypeProfile?: ArchetypeProfile,
+): Record<string, number> {
   const effects: Record<string, number> = {};
   for (const ability of abilities ?? []) {
     for (const [key, value] of Object.entries(ability.modifiers?.additional ?? {})) {
@@ -141,12 +152,16 @@ function runMatch(
     const breakPointFor = tracker.getBreakPointFor();
 
     const pointResult = pointSim.simulatePoint(
-      server, serverProfile, returnerProfile, matchState, playerEffects, opponentEffects,
+      server,
+      serverProfile,
+      returnerProfile,
+      matchState,
+      playerEffects,
+      opponentEffects,
     );
 
-    const pointWinner = pointResult.winner === 'server'
-      ? server
-      : (server === 'player' ? 'opponent' : 'player');
+    const pointWinner =
+      pointResult.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player';
     tracker.addPoint(pointWinner);
     stats.addPointResult(pointResult, server, breakPointFor);
     serveTotal[server]++;
@@ -155,17 +170,21 @@ function runMatch(
     // Momentum: last-5-points form, as in MatchSimulator
     recentWinners.push(pointWinner);
     if (recentWinners.length > 5) recentWinners.shift();
-    const pw = recentWinners.filter(w => w === 'player').length;
+    const pw = recentWinners.filter((w) => w === 'player').length;
     matchState.momentum = ((pw - (recentWinners.length - pw)) / recentWinners.length) * 100;
 
     // Fatigue
     matchState.fatigue.player = calculateNewFatigue(
-      matchState.fatigue.player, pointResult.rallyLength,
-      player.stats.physical.stamina, player.stats.physical.stamina,
+      matchState.fatigue.player,
+      pointResult.rallyLength,
+      player.stats.physical.stamina,
+      player.stats.physical.stamina,
     );
     matchState.fatigue.opponent = calculateNewFatigue(
-      matchState.fatigue.opponent, pointResult.rallyLength,
-      opponent.stats.physical.stamina, opponent.stats.physical.stamina,
+      matchState.fatigue.opponent,
+      pointResult.rallyLength,
+      opponent.stats.physical.stamina,
+      opponent.stats.physical.stamina,
     );
 
     points++;
@@ -179,9 +198,10 @@ function runMatch(
 
   return {
     winner: tracker.getWinner() ?? 'player',
-    sets: tracker.getScore().sets
-      .filter(s => s.isComplete)
-      .map(s => ({ player: s.player, opponent: s.opponent })),
+    sets: tracker
+      .getScore()
+      .sets.filter((s) => s.isComplete)
+      .map((s) => ({ player: s.player, opponent: s.opponent })),
     stats: stats.getStatistics(),
     endFatigue: { ...matchState.fatigue },
     points,
@@ -198,13 +218,20 @@ interface MatchupSummary {
   winPct: number;
   gamesWon: number;
   gamesLost: number;
-  bagelSetPct: number;      // sets won 6-0 by player / total sets
-  setsLostPct: number;      // sets won by opponent / total sets
-  pAces: number; pDf: number; pWinners: number; pUe: number;
-  oAces: number; oWinners: number; oUe: number;
+  bagelSetPct: number; // sets won 6-0 by player / total sets
+  setsLostPct: number; // sets won by opponent / total sets
+  pAces: number;
+  pDf: number;
+  pWinners: number;
+  pUe: number;
+  oAces: number;
+  oWinners: number;
+  oUe: number;
   avgRally: number;
-  pHoldPct: number; oHoldPct: number;
-  endFatigueP: number; endFatigueO: number;
+  pHoldPct: number;
+  oHoldPct: number;
+  endFatigueP: number;
+  endFatigueO: number;
   topScores: string;
 }
 
@@ -217,10 +244,26 @@ function summarize(
   format: MatchFormat,
   n: number,
 ): MatchupSummary {
-  let wins = 0, gamesWon = 0, gamesLost = 0, bagels = 0, setsLost = 0, totalSets = 0;
-  let pAces = 0, pDf = 0, pWinners = 0, pUe = 0, oAces = 0, oWinners = 0, oUe = 0, rally = 0;
-  let pServeWon = 0, pServeTotal = 0, oServeWon = 0, oServeTotal = 0;
-  let fatP = 0, fatO = 0;
+  let wins = 0,
+    gamesWon = 0,
+    gamesLost = 0,
+    bagels = 0,
+    setsLost = 0,
+    totalSets = 0;
+  let pAces = 0,
+    pDf = 0,
+    pWinners = 0,
+    pUe = 0,
+    oAces = 0,
+    oWinners = 0,
+    oUe = 0,
+    rally = 0;
+  let pServeWon = 0,
+    pServeTotal = 0,
+    oServeWon = 0,
+    oServeTotal = 0;
+  let fatP = 0,
+    fatO = 0;
   let oppOvr = 0;
   const scoreCounts = new Map<string, number>();
 
@@ -231,7 +274,7 @@ function summarize(
     const r = runMatch(player, opponent, playerEffects, opponentEffects, format);
 
     if (r.winner === 'player') wins++;
-    const scoreStr = r.sets.map(s => `${s.player}-${s.opponent}`).join(' ');
+    const scoreStr = r.sets.map((s) => `${s.player}-${s.opponent}`).join(' ');
     scoreCounts.set(scoreStr, (scoreCounts.get(scoreStr) ?? 0) + 1);
     for (const s of r.sets) {
       totalSets++;
@@ -240,9 +283,12 @@ function summarize(
       if (s.player === 6 && s.opponent === 0) bagels++;
       if (s.opponent > s.player) setsLost++;
     }
-    pAces += r.stats.aces.player; pDf += r.stats.doubleFaults.player;
-    pWinners += r.stats.winners.player; pUe += r.stats.unforcedErrors.player;
-    oAces += r.stats.aces.opponent; oWinners += r.stats.winners.opponent;
+    pAces += r.stats.aces.player;
+    pDf += r.stats.doubleFaults.player;
+    pWinners += r.stats.winners.player;
+    pUe += r.stats.unforcedErrors.player;
+    oAces += r.stats.aces.opponent;
+    oWinners += r.stats.winners.opponent;
     oUe += r.stats.unforcedErrors.opponent;
     rally += r.stats.averageRallyLength;
     // Serve-point win rates tallied directly in the match loop
@@ -250,51 +296,78 @@ function summarize(
     pServeTotal += r.serveTotal.player;
     oServeWon += r.serveWon.opponent;
     oServeTotal += r.serveTotal.opponent;
-    fatP += r.endFatigue.player; fatO += r.endFatigue.opponent;
+    fatP += r.endFatigue.player;
+    fatO += r.endFatigue.opponent;
   }
 
   const topScores = [...scoreCounts.entries()]
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3)
-    .map(([score, count]) => `${score} (${Math.round(100 * count / n)}%)`)
+    .map(([score, count]) => `${score} (${Math.round((100 * count) / n)}%)`)
     .join(', ');
 
   return {
     label,
     oppOvr,
-    winPct: 100 * wins / n,
+    winPct: (100 * wins) / n,
     gamesWon: gamesWon / n,
     gamesLost: gamesLost / n,
-    bagelSetPct: totalSets ? 100 * bagels / totalSets : 0,
-    setsLostPct: totalSets ? 100 * setsLost / totalSets : 0,
-    pAces: pAces / n, pDf: pDf / n, pWinners: pWinners / n, pUe: pUe / n,
-    oAces: oAces / n, oWinners: oWinners / n, oUe: oUe / n,
+    bagelSetPct: totalSets ? (100 * bagels) / totalSets : 0,
+    setsLostPct: totalSets ? (100 * setsLost) / totalSets : 0,
+    pAces: pAces / n,
+    pDf: pDf / n,
+    pWinners: pWinners / n,
+    pUe: pUe / n,
+    oAces: oAces / n,
+    oWinners: oWinners / n,
+    oUe: oUe / n,
     avgRally: rally / n,
-    pHoldPct: pServeTotal ? 100 * pServeWon / pServeTotal : 0,
-    oHoldPct: oServeTotal ? 100 * oServeWon / oServeTotal : 0,
-    endFatigueP: fatP / n, endFatigueO: fatO / n,
+    pHoldPct: pServeTotal ? (100 * pServeWon) / pServeTotal : 0,
+    oHoldPct: oServeTotal ? (100 * oServeWon) / oServeTotal : 0,
+    endFatigueP: fatP / n,
+    endFatigueO: fatO / n,
     topScores,
   };
 }
 
 function summaryRow(s: MatchupSummary): (string | number)[] {
   return [
-    s.label, String(s.oppOvr),
+    s.label,
+    String(s.oppOvr),
     fmtNum(s.winPct, 1) + '%',
     `${fmtNum(s.gamesWon, 1)}-${fmtNum(s.gamesLost, 1)}`,
     fmtNum(s.bagelSetPct, 0) + '%',
     fmtNum(s.setsLostPct, 1) + '%',
     fmtNum(s.pHoldPct, 0) + '/' + fmtNum(s.oHoldPct, 0),
-    fmtNum(s.pAces, 1), fmtNum(s.pDf, 1), fmtNum(s.pWinners, 1), fmtNum(s.pUe, 1),
-    fmtNum(s.oAces, 1), fmtNum(s.oWinners, 1), fmtNum(s.oUe, 1),
+    fmtNum(s.pAces, 1),
+    fmtNum(s.pDf, 1),
+    fmtNum(s.pWinners, 1),
+    fmtNum(s.pUe, 1),
+    fmtNum(s.oAces, 1),
+    fmtNum(s.oWinners, 1),
+    fmtNum(s.oUe, 1),
     fmtNum(s.avgRally, 1),
     `${fmtNum(s.endFatigueP, 0)}/${fmtNum(s.endFatigueO, 0)}`,
   ];
 }
 
 const SUMMARY_HEADER = [
-  'Opponent', 'OVR', 'Win%', 'AvgGames', 'Bagel%', 'SetLoss%', 'SrvPt% P/O',
-  'P.Ace', 'P.DF', 'P.Wnr', 'P.UE', 'O.Ace', 'O.Wnr', 'O.UE', 'Rally', 'EndFat P/O',
+  'Opponent',
+  'OVR',
+  'Win%',
+  'AvgGames',
+  'Bagel%',
+  'SetLoss%',
+  'SrvPt% P/O',
+  'P.Ace',
+  'P.DF',
+  'P.Wnr',
+  'P.UE',
+  'O.Ace',
+  'O.Wnr',
+  'O.UE',
+  'Rally',
+  'EndFat P/O',
 ];
 
 // ─── Scenario runners ────────────────────────────────────────
@@ -318,20 +391,24 @@ function runPresetGroup(
 ): void {
   printHeader(title);
   const player = makeCharacter(playerStats);
-  print(`  Character OVR: ${player.overallRating} │ tierWins boost: +${Math.min(tierWins * 2, 20)} │ format: Bo${format.bestOfSets} │ n=${N_MATCHES}/opponent`);
+  print(
+    `  Character OVR: ${player.overallRating} │ tierWins boost: +${Math.min(tierWins * 2, 20)} │ format: Bo${format.bestOfSets} │ n=${N_MATCHES}/opponent`,
+  );
   print('');
 
   const summaries: MatchupSummary[] = [];
   for (const preset of presets) {
-    summaries.push(summarize(
-      preset.name,
-      () => makeCharacter(playerStats),
-      opponentFromPreset(preset, tierWins),
-      {}, // player: no ability/archetype effects (unknown build) — see note in output
-      buildEffects(preset.abilities, getOpponentArchetypeProfile(preset)),
-      format,
-      N_MATCHES,
-    ));
+    summaries.push(
+      summarize(
+        preset.name,
+        () => makeCharacter(playerStats),
+        opponentFromPreset(preset, tierWins),
+        {}, // player: no ability/archetype effects (unknown build) — see note in output
+        buildEffects(preset.abilities, getOpponentArchetypeProfile(preset)),
+        format,
+        N_MATCHES,
+      ),
+    );
   }
   printTable(SUMMARY_HEADER, summaries.map(summaryRow));
   print('');
@@ -358,15 +435,17 @@ function runRiverside(playerStats: PlayerStats): void {
       stats: opp.stats,
       abilities: opp.abilities,
     };
-    summaries.push(summarize(
-      `R${round.roundNumber} ${opp.name}`,
-      () => makeCharacter(playerStats),
-      opponentFromPreset(preset, 0),
-      {},
-      buildEffects(preset.abilities, getOpponentArchetypeProfile(preset)),
-      BO3,
-      N_MATCHES,
-    ));
+    summaries.push(
+      summarize(
+        `R${round.roundNumber} ${opp.name}`,
+        () => makeCharacter(playerStats),
+        opponentFromPreset(preset, 0),
+        {},
+        buildEffects(preset.abilities, getOpponentArchetypeProfile(preset)),
+        BO3,
+        N_MATCHES,
+      ),
+    );
   }
   printTable(SUMMARY_HEADER, summaries.map(summaryRow));
 }
@@ -387,15 +466,17 @@ function runServeSweep(): void {
       core: { ...CHARACTER_EFFECTIVE.core, serve },
     };
     const ovr = makeCharacter(stats).overallRating;
-    summaries.push(summarize(
-      `serve=${serve} (OVR ${ovr})`,
-      () => makeCharacter(stats),
-      opponentFromPreset(jake, 0),
-      {},
-      buildEffects(jake.abilities, getOpponentArchetypeProfile(jake)),
-      BO1,
-      N_MATCHES,
-    ));
+    summaries.push(
+      summarize(
+        `serve=${serve} (OVR ${ovr})`,
+        () => makeCharacter(stats),
+        opponentFromPreset(jake, 0),
+        {},
+        buildEffects(jake.abilities, getOpponentArchetypeProfile(jake)),
+        BO1,
+        N_MATCHES,
+      ),
+    );
   }
   printTable(SUMMARY_HEADER, summaries.map(summaryRow));
 }
@@ -414,15 +495,17 @@ function runReturnSweep(): void {
       core: { ...CHARACTER_EFFECTIVE.core, return: ret },
     };
     const ovr = makeCharacter(stats).overallRating;
-    summaries.push(summarize(
-      `return=${ret} (OVR ${ovr})`,
-      () => makeCharacter(stats),
-      opponentFromPreset(jake, 0),
-      {},
-      buildEffects(jake.abilities, getOpponentArchetypeProfile(jake)),
-      BO1,
-      N_MATCHES,
-    ));
+    summaries.push(
+      summarize(
+        `return=${ret} (OVR ${ovr})`,
+        () => makeCharacter(stats),
+        opponentFromPreset(jake, 0),
+        {},
+        buildEffects(jake.abilities, getOpponentArchetypeProfile(jake)),
+        BO1,
+        N_MATCHES,
+      ),
+    );
   }
   printTable(SUMMARY_HEADER, summaries.map(summaryRow));
 }
@@ -466,15 +549,17 @@ function runServeStyleShowcase(): void {
     ['Precise server', precise],
   ] as const) {
     const ovr = new PlayerProfile('p', label, stats).overallRating;
-    summaries.push(summarize(
-      `${label} (OVR ${ovr})`,
-      () => new PlayerProfile('p', label, stats),
-      opponentFromPreset(jake, 0),
-      {},
-      buildEffects(jake.abilities, getOpponentArchetypeProfile(jake)),
-      BO1,
-      N_MATCHES,
-    ));
+    summaries.push(
+      summarize(
+        `${label} (OVR ${ovr})`,
+        () => new PlayerProfile('p', label, stats),
+        opponentFromPreset(jake, 0),
+        {},
+        buildEffects(jake.abilities, getOpponentArchetypeProfile(jake)),
+        BO1,
+        N_MATCHES,
+      ),
+    );
   }
   printTable(SUMMARY_HEADER, summaries.map(summaryRow));
 }
@@ -496,15 +581,17 @@ function runGapCurve(): void {
         physical: { speed: r, stamina: r, strength: r },
         mental: { focus: r, anticipation: r, tactics: r },
       });
-      summaries.push(summarize(
-        `50 vs ${50 + gap} (Bo${format.bestOfSets})`,
-        () => new PlayerProfile('p', 'P', stats(50)),
-        () => new PlayerProfile('o', 'O', stats(50 + gap)),
-        {},
-        {},
-        format,
-        N_MATCHES,
-      ));
+      summaries.push(
+        summarize(
+          `50 vs ${50 + gap} (Bo${format.bestOfSets})`,
+          () => new PlayerProfile('p', 'P', stats(50)),
+          () => new PlayerProfile('o', 'O', stats(50 + gap)),
+          {},
+          {},
+          format,
+          N_MATCHES,
+        ),
+      );
     }
     printTable(SUMMARY_HEADER, summaries.map(summaryRow));
     print('');
@@ -517,34 +604,49 @@ function main(): void {
   printBanner('CHARACTER BALANCE SIMULATION (day-39 build)');
 
   print('  Player modeled WITHOUT abilities/archetype effects (build unknown) —');
-  print('  real results should skew slightly further in the player\'s favor.');
+  print("  real results should skew slightly further in the player's favor.");
   print('  Key moments excluded (user-choice dependent).');
 
   runPresetGroup(
     'Tier 1 practice, +20 win-scaling (10 wins), Bo1 — "still dominating" case',
-    OPPONENTS_BY_TIER[1], 10, CHARACTER_EFFECTIVE, BO1,
+    OPPONENTS_BY_TIER[1],
+    10,
+    CHARACTER_EFFECTIVE,
+    BO1,
   );
 
   runPresetGroup(
     'Tier 1 practice, unscaled, Bo1 — reference',
-    OPPONENTS_BY_TIER[1], 0, CHARACTER_EFFECTIVE, BO1,
+    OPPONENTS_BY_TIER[1],
+    0,
+    CHARACTER_EFFECTIVE,
+    BO1,
   );
 
   runRiverside(CHARACTER_EFFECTIVE);
 
   runPresetGroup(
     'Tier 2 practice, unscaled, Bo1 — the intended next challenge',
-    OPPONENTS_BY_TIER[2], 0, CHARACTER_EFFECTIVE, BO1,
+    OPPONENTS_BY_TIER[2],
+    0,
+    CHARACTER_EFFECTIVE,
+    BO1,
   );
 
   runPresetGroup(
     'Tier 2 practice, unscaled, Bo3 — long-match behavior',
-    OPPONENTS_BY_TIER[2], 0, CHARACTER_EFFECTIVE, BO3,
+    OPPONENTS_BY_TIER[2],
+    0,
+    CHARACTER_EFFECTIVE,
+    BO3,
   );
 
   runPresetGroup(
     'Tier 1 practice, +20 scaling, Bo1 — WITHOUT item boosts (base stats)',
-    OPPONENTS_BY_TIER[1], 10, CHARACTER_BASE, BO1,
+    OPPONENTS_BY_TIER[1],
+    10,
+    CHARACTER_BASE,
+    BO1,
   );
 
   runServeSweep();

@@ -3,13 +3,7 @@
  * Handles player creation, stat management, and level progression
  */
 
-import {
-  Player,
-  PlayerStats,
-  DEFAULT_PLAYER_STATS,
-  StatBoosts,
-  Ability
-} from '../types/game';
+import { Player, PlayerStats, DEFAULT_PLAYER_STATS, StatBoosts, Ability } from '../types/game';
 import { AbilitySystem } from './AbilitySystem';
 import { createEmptyArchetypeProfile } from '../data/archetypeTree';
 import { addToEachStat } from '../core/statAccess';
@@ -71,7 +65,7 @@ export class PlayerManager {
       level: 1,
       experience: 0,
       totalExperienceEarned: 0,
-      tier: 1,  // All players start at tier 1
+      tier: 1, // All players start at tier 1
       trainingSessionsCompleted: 0,
       cumulativeMatchStats: { aces: 0, winners: 0, longRallies: 0, netPoints: 0, breakPoints: 0 },
       createdAt: new Date().toISOString(),
@@ -136,16 +130,15 @@ export class PlayerManager {
    */
   static addAbility(player: Player, abilityOrName: Ability | string): Player {
     // If string, look up ability from AbilitySystem
-    const ability = typeof abilityOrName === 'string'
-      ? AbilitySystem.getAbility(abilityOrName)
-      : abilityOrName;
+    const ability =
+      typeof abilityOrName === 'string' ? AbilitySystem.getAbility(abilityOrName) : abilityOrName;
 
     if (!ability) {
       console.warn(`Ability not found: ${abilityOrName}`);
       return player;
     }
 
-    const existingAbility = player.abilities.find(a => a.name === ability.name);
+    const existingAbility = player.abilities.find((a) => a.name === ability.name);
 
     if (existingAbility) {
       // Upgrade existing ability
@@ -169,7 +162,7 @@ export class PlayerManager {
    * Upgrade an existing ability level
    */
   static upgradeAbility(player: Player, abilityName: string): Player {
-    const abilityIndex = player.abilities.findIndex(a => a.name === abilityName);
+    const abilityIndex = player.abilities.findIndex((a) => a.name === abilityName);
 
     if (abilityIndex === -1) {
       return player;
@@ -223,9 +216,13 @@ export class PlayerManager {
 
     // Each level gained grants one specialization point for the archetype tree.
     const pointsGained = Math.max(0, newLevel - player.level);
-    const archetypeProfile = pointsGained > 0
-      ? { ...player.archetypeProfile, specializationPoints: player.archetypeProfile.specializationPoints + pointsGained }
-      : player.archetypeProfile;
+    const archetypeProfile =
+      pointsGained > 0
+        ? {
+            ...player.archetypeProfile,
+            specializationPoints: player.archetypeProfile.specializationPoints + pointsGained,
+          }
+        : player.archetypeProfile;
 
     return {
       player: {
@@ -252,7 +249,7 @@ export class PlayerManager {
    * Calculate experience required for next level
    */
   static experienceForNextLevel(currentLevel: number): number {
-    return (currentLevel * currentLevel) * 100;
+    return currentLevel * currentLevel * 100;
   }
 
   /**
@@ -301,8 +298,14 @@ export class PlayerManager {
     total: number;
   } {
     const core = Object.values(stats.core).reduce((sum: number, val: number) => sum + val, 0);
-    const technical = Object.values(stats.technical).reduce((sum: number, val: number) => sum + val, 0);
-    const physical = Object.values(stats.physical).reduce((sum: number, val: number) => sum + val, 0);
+    const technical = Object.values(stats.technical).reduce(
+      (sum: number, val: number) => sum + val,
+      0,
+    );
+    const physical = Object.values(stats.physical).reduce(
+      (sum: number, val: number) => sum + val,
+      0,
+    );
     const mental = Object.values(stats.mental).reduce((sum: number, val: number) => sum + val, 0);
 
     return {
@@ -325,7 +328,7 @@ export class PlayerManager {
       ...Object.values(stats.mental),
     ];
 
-    return allValues.every(value => value >= 0 && value <= 100);
+    return allValues.every((value) => value >= 0 && value <= 100);
   }
 
   /**

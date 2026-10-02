@@ -17,20 +17,29 @@ export const ActiveTournamentCard: React.FC = () => {
 
   const getSurfaceEmoji = (surface: string): string => {
     switch (surface) {
-      case 'hard': return '🏟️';
-      case 'clay': return '🧱';
-      case 'grass': return '🌱';
-      case 'carpet': return '📋';
-      default: return '🎾';
+      case 'hard':
+        return '🏟️';
+      case 'clay':
+        return '🧱';
+      case 'grass':
+        return '🌱';
+      case 'carpet':
+        return '📋';
+      default:
+        return '🎾';
     }
   };
 
   const getTimeSlotLabel = (slot: number): string => {
     switch (slot) {
-      case 0: return 'Morning';
-      case 1: return 'Afternoon';
-      case 2: return 'Evening';
-      default: return 'Unknown';
+      case 0:
+        return 'Morning';
+      case 1:
+        return 'Afternoon';
+      case 2:
+        return 'Evening';
+      default:
+        return 'Unknown';
     }
   };
 
@@ -43,11 +52,15 @@ export const ActiveTournamentCard: React.FC = () => {
 
   // Show scheduled tournament card when tournament hasn't started yet
   if (!activeTournament?.isActive) {
-    const ceremonyEvent = scheduledEvents.find(event => {
+    const ceremonyEvent = scheduledEvents.find((event) => {
       if (event.eventType !== 'story') return false;
-      const storyEventId = (event.metadata as Record<string, unknown>)?.storyEventId as string | undefined;
-      return storyEventId && TournamentRegistry.getAllTournaments().some(
-        t => t.openingCeremonyEventId === storyEventId
+      const storyEventId = (event.metadata as Record<string, unknown>)?.storyEventId as
+        string | undefined;
+      return (
+        storyEventId &&
+        TournamentRegistry.getAllTournaments().some(
+          (t) => t.openingCeremonyEventId === storyEventId,
+        )
       );
     });
 
@@ -55,7 +68,7 @@ export const ActiveTournamentCard: React.FC = () => {
 
     const storyEventId = (ceremonyEvent.metadata as Record<string, unknown>).storyEventId as string;
     const scheduledTournament = TournamentRegistry.getAllTournaments().find(
-      t => t.openingCeremonyEventId === storyEventId
+      (t) => t.openingCeremonyEventId === storyEventId,
     );
 
     if (!scheduledTournament) return null;
@@ -94,7 +107,7 @@ export const ActiveTournamentCard: React.FC = () => {
   // Get current round data
   const currentRoundConfig = TournamentManager.getCurrentRound(
     tournament,
-    activeTournament.currentRound
+    activeTournament.currentRound,
   );
 
   if (!currentRoundConfig) {
@@ -109,7 +122,7 @@ export const ActiveTournamentCard: React.FC = () => {
   const scheduledTournamentMatch = TournamentManager.getScheduledTournamentMatch(
     activeTournament,
     scheduledEvents,
-    calendar
+    calendar,
   );
   const isReady = scheduledTournamentMatch !== null;
 
@@ -118,7 +131,8 @@ export const ActiveTournamentCard: React.FC = () => {
     (event) =>
       event.eventType === 'tournament_match' &&
       (event.scheduledDay > calendar.currentDay ||
-        (event.scheduledDay === calendar.currentDay && event.scheduledTimeSlot >= calendar.currentTimeSlot))
+        (event.scheduledDay === calendar.currentDay &&
+          event.scheduledTimeSlot >= calendar.currentTimeSlot)),
   );
 
   const bracketLabel = activeTournament.currentBracket === 'winner' ? 'Main Draw' : 'Consolation';

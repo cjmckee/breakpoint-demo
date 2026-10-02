@@ -55,10 +55,7 @@ export class ChallengeManager {
    * Create a challenge from a reusable template.
    * Optionally attach source metadata for story event tracking.
    */
-  static createFromTemplate(
-    template: ChallengeTemplate,
-    source?: Challenge['source']
-  ): Challenge {
+  static createFromTemplate(template: ChallengeTemplate, source?: Challenge['source']): Challenge {
     return this.createChallenge({
       ...template,
       source,
@@ -81,7 +78,7 @@ export class ChallengeManager {
         netPoints?: number;
         breakPoints?: number;
       };
-    }
+    },
   ): boolean {
     switch (requirement.type) {
       case 'statThreshold': {
@@ -134,7 +131,7 @@ export class ChallengeManager {
         netPoints?: number;
         breakPoints?: number;
       };
-    }
+    },
   ): RequirementProgress {
     switch (requirement.type) {
       case 'statThreshold': {
@@ -160,7 +157,9 @@ export class ChallengeManager {
       }
 
       case 'abilityUnlock': {
-        const hasAbility = player.abilities.some((ability) => ability.name === requirement.abilityName);
+        const hasAbility = player.abilities.some(
+          (ability) => ability.name === requirement.abilityName,
+        );
         const progress: AbilityUnlockProgress = {
           hasAbility,
         };
@@ -225,16 +224,16 @@ export class ChallengeManager {
         netPoints?: number;
         breakPoints?: number;
       };
-    }
+    },
   ): ChallengeProgress {
     // Calculate progress for each requirement
     const requirementProgress = challenge.requirements.map((req) =>
-      this.calculateRequirementProgress(req, player, gameState)
+      this.calculateRequirementProgress(req, player, gameState),
     );
 
     // Check if all requirements are met
     const allMet = challenge.requirements.every((req) =>
-      this.checkRequirement(req, player, gameState)
+      this.checkRequirement(req, player, gameState),
     );
 
     // Calculate overall completion percentage
@@ -276,7 +275,10 @@ export class ChallengeManager {
 
     // Apply stat boosts from modifiers
     if (challenge.reward.modifiers?.statBoosts) {
-      updatedPlayer = PlayerManager.applyStatBoosts(updatedPlayer, challenge.reward.modifiers.statBoosts);
+      updatedPlayer = PlayerManager.applyStatBoosts(
+        updatedPlayer,
+        challenge.reward.modifiers.statBoosts,
+      );
     }
 
     // Grant abilities
@@ -297,7 +299,10 @@ export class ChallengeManager {
     // and grants specialization points, exactly like match XP does. Writing the
     // counters directly here made matches the only path to a level.
     if (challenge.reward.experience) {
-      updatedPlayer = PlayerManager.addExperience(updatedPlayer, challenge.reward.experience).player;
+      updatedPlayer = PlayerManager.addExperience(
+        updatedPlayer,
+        challenge.reward.experience,
+      ).player;
     }
 
     return updatedPlayer;

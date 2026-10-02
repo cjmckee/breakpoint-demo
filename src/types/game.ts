@@ -3,8 +3,7 @@
  * Ported from ai-slop-gaming and adapted for ai-slop-tennis
  */
 
-import type {
-  StatName, PlayerStats } from './index';
+import type { StatName, PlayerStats } from './index';
 import type { ArchetypeProfile } from './archetype';
 import type { StoryEventResult } from './storyEvents';
 import type { Item, OwnedItem, EquipmentSlot } from './items';
@@ -83,8 +82,8 @@ export const EffectKey = {
   ENERGY_GAIN_BONUS: 'energy_gain_bonus',
   ENERGY_COST_REDUCTION: 'energy_cost_reduction',
   EXPERIENCE_GAIN_BONUS: 'experience_gain_bonus', // multiplier on match XP (0.1 = +10%)
-  WIN_EXP_BONUS: 'win_exp_bonus',                 // flat XP bonus added on match wins
-  LOSS_EXP_BONUS: 'loss_exp_bonus',               // flat XP bonus added on match losses
+  WIN_EXP_BONUS: 'win_exp_bonus', // flat XP bonus added on match wins
+  LOSS_EXP_BONUS: 'loss_exp_bonus', // flat XP bonus added on match losses
 
   // --- Drop effects (MatchRewardSystem) ---
   // Scales the post-match ability drop multiplier, which performance already
@@ -96,20 +95,20 @@ export const EffectKey = {
   RELATIONSHIP_GAIN_BONUS: 'relationship_gain_bonus',
 
   // --- Match: shot quality effects (ShotCalculator) ---
-  PACE: 'pace',                       // bonus quality on power shots
-  SIDE_SPIN: 'side_spin',             // bonus scaled by spin modifier
-  TOUCH: 'touch',                     // bonus on drop shots and volleys
-  SMASH_POWER: 'smash_power',         // bonus on overhead shots
-  NET_GAME: 'net_game',               // bonus quality on all shots when player is at net
-  PERFECT_TIMING: 'perfect_timing',   // recovers quality lost to pressure
-  RALLY_MOMENTUM: 'rally_momentum',   // bonus quality when rally length > 4
-  LOB_QUALITY: 'lob_quality',         // bonus quality on defensive and lob shots
+  PACE: 'pace', // bonus quality on power shots
+  SIDE_SPIN: 'side_spin', // bonus scaled by spin modifier
+  TOUCH: 'touch', // bonus on drop shots and volleys
+  SMASH_POWER: 'smash_power', // bonus on overhead shots
+  NET_GAME: 'net_game', // bonus quality on all shots when player is at net
+  PERFECT_TIMING: 'perfect_timing', // recovers quality lost to pressure
+  RALLY_MOMENTUM: 'rally_momentum', // bonus quality when rally length > 4
+  LOB_QUALITY: 'lob_quality', // bonus quality on defensive and lob shots
   FIRST_POINT_STAT_BOOST: 'first_point_stat_boost', // flat boost to all stats on first point of each game
 
   // --- Match: positioning effects (PointSimulator) ---
-  REACH: 'reach',                     // reduces off-position difficulty
-  COURT_COVERAGE: 'court_coverage',   // court coverage / position recovery speed
-  RECOVERY_SPEED: 'recovery_speed',   // faster position recovery tier
+  REACH: 'reach', // reduces off-position difficulty
+  COURT_COVERAGE: 'court_coverage', // court coverage / position recovery speed
+  RECOVERY_SPEED: 'recovery_speed', // faster position recovery tier
 
   // --- Match: momentum/fatigue effects (MatchOrchestrator) ---
   UNSTOPPABLE_MOMENTUM: 'unstoppable_momentum',
@@ -119,26 +118,26 @@ export const EffectKey = {
 
   // --- Match: key moment effects (KeyMomentResolver) ---
   CLUTCH_PERFORMANCE: 'clutch_performance', // flat % bonus to key moment win probability
-  MENTAL_RESILIENCE: 'mental_resilience',   // attenuates pressure penalty in key moments
+  MENTAL_RESILIENCE: 'mental_resilience', // attenuates pressure penalty in key moments
 
   // --- Archetype behavior effects (DECISION layer; read ONLY by ShotSelector/PointSimulator) ---
   // These bias WHAT shot the player tries, never shot quality. Values are in
   // "dial points" magnitude (cumulative across specialty tiers); consumers scale them.
-  RALLY_WINNER_BIAS: 'rally_winner_bias',           // more likely to attempt winners/power shots during rallies
-  NET_APPROACH_BIAS: 'net_approach_bias',           // more likely to approach the net
-  RALLY_PATIENCE: 'rally_patience',                 // prefers extending rallies / steady play
-  RETURN_AGGRESSION: 'return_aggression',           // attacks the return rather than blocking deep
+  RALLY_WINNER_BIAS: 'rally_winner_bias', // more likely to attempt winners/power shots during rallies
+  NET_APPROACH_BIAS: 'net_approach_bias', // more likely to approach the net
+  RALLY_PATIENCE: 'rally_patience', // prefers extending rallies / steady play
+  RETURN_AGGRESSION: 'return_aggression', // attacks the return rather than blocking deep
   SECOND_SERVE_AGGRESSION: 'second_serve_aggression', // goes after the second serve
   FIRST_SERVE_AGGRESSION: 'first_serve_aggression', // leans on power over placement on first serve
-  FAULT_RISK: 'fault_risk',                         // tradeoff: raises serve fault probability
-  SERVE_SPEED: 'serve_speed',                       // tradeoff: negative = weaker/softer serve (easier to return)
-  POWER_VARIANCE: 'power_variance',                 // tradeoff: widens quality swing on power shots (boom-or-bust)
+  FAULT_RISK: 'fault_risk', // tradeoff: raises serve fault probability
+  SERVE_SPEED: 'serve_speed', // tradeoff: negative = weaker/softer serve (easier to return)
+  POWER_VARIANCE: 'power_variance', // tradeoff: widens quality swing on power shots (boom-or-bust)
   SLICE_PREFERENCE_FOREHAND: 'slice_preference_forehand', // slices forehands rather than driving
   SLICE_PREFERENCE_BACKHAND: 'slice_preference_backhand', // slices backhands rather than driving
-  SERVE_AND_VOLLEY_BIAS: 'serve_and_volley_bias',   // tendency to rush net on first ball after own serve
-  DROP_SHOT_BIAS: 'drop_shot_bias',                 // tendency to attempt drop shots; negative = never uses them
-  LOB_BIAS: 'lob_bias',                             // tendency to lob defensively and vs net players
-  PUTAWAY_VOLLEY_BIAS: 'putaway_volley_bias',       // tendency to go for a winner volley when ball is attackable at net
+  SERVE_AND_VOLLEY_BIAS: 'serve_and_volley_bias', // tendency to rush net on first ball after own serve
+  DROP_SHOT_BIAS: 'drop_shot_bias', // tendency to attempt drop shots; negative = never uses them
+  LOB_BIAS: 'lob_bias', // tendency to lob defensively and vs net players
+  PUTAWAY_VOLLEY_BIAS: 'putaway_volley_bias', // tendency to go for a winner volley when ball is attackable at net
 } as const;
 
 /**
@@ -215,7 +214,7 @@ export const TIME_SLOT_NAMES: Record<TimeSlot, string> = {
 
 export interface TournamentCompletion {
   tournamentId: string;
-  won: boolean;  // True if player won the championship
+  won: boolean; // True if player won the championship
   completedAt: string;
 }
 
@@ -226,14 +225,19 @@ export interface GameCalendar {
   // Note: energy and mood are tracked in CurrentStatus, not in the calendar
 
   // Practice opponents per tier (regenerated each time slot)
-  practiceOpponents: Partial<Record<OpponentTier, {
-    opponentId: string;
-    name: string;
-    stats: PlayerStats;
-    tier: OpponentTier;
-    abilities?: Ability[];
-    archetypeProfile?: ArchetypeProfile;
-  }>>;
+  practiceOpponents: Partial<
+    Record<
+      OpponentTier,
+      {
+        opponentId: string;
+        name: string;
+        stats: PlayerStats;
+        tier: OpponentTier;
+        abilities?: Ability[];
+        archetypeProfile?: ArchetypeProfile;
+      }
+    >
+  >;
 
   // Scheduled events and tournament state
   scheduledEvents: ScheduledEvent[];
@@ -254,17 +258,17 @@ export interface StoryMatchMetadata {
   opponentDescription?: string;
 
   // Story event linkage
-  prematchEventId?: string;     // Optional: event to play before match
-  winEventId: string;           // Required: event to play after winning
-  lossEventId: string;          // Required: event to play after losing
+  prematchEventId?: string; // Optional: event to play before match
+  winEventId: string; // Required: event to play after winning
+  lossEventId: string; // Required: event to play after losing
 
   // Match configuration
   surface?: 'hard' | 'clay' | 'grass' | 'carpet';
   matchFormat?: 'best-of-1' | 'best-of-3';
 
   // Display info
-  matchTitle?: string;          // e.g., "Challenge Match vs Keith"
-  matchDescription?: string;    // Story context for the match
+  matchTitle?: string; // e.g., "Challenge Match vs Keith"
+  matchDescription?: string; // Story context for the match
 
   // Opponent abilities applied during match simulation
   opponentAbilities?: Ability[];
@@ -274,8 +278,8 @@ export interface StoryMatchMetadata {
 
   // Whether this match counts toward milestones and stats
   countsForMilestones?: boolean; // defaults to true
-  isTutorial?: boolean;          // show in-match tutorial guidance
-  disableMatchForm?: boolean;    // zero out match-day form variance for a predictable outcome
+  isTutorial?: boolean; // show in-match tutorial guidance
+  disableMatchForm?: boolean; // zero out match-day form variance for a predictable outcome
 }
 
 /**
@@ -303,9 +307,7 @@ export interface TeamMatchConfig {
  * Each eventType has its corresponding metadata type
  */
 export type ScheduledEventMetadata =
-  | TournamentMatchMetadata
-  | StoryMatchMetadata
-  | Record<string, unknown>;  // For training, story, rest which have no fixed schema (yet)
+  TournamentMatchMetadata | StoryMatchMetadata | Record<string, unknown>; // For training, story, rest which have no fixed schema (yet)
 
 /**
  * Generic scheduled event
@@ -324,7 +326,7 @@ export interface ScheduledEvent {
  */
 export interface ScheduledEventTemplate {
   eventType: 'tournament_match' | 'training' | 'story' | 'rest' | 'story_match';
-  relativeDays: number;  // Days from current day (1 = tomorrow)
+  relativeDays: number; // Days from current day (1 = tomorrow)
   scheduledTimeSlot: TimeSlot;
   metadata?: ScheduledEventMetadata;
 }
@@ -356,13 +358,7 @@ export interface MoodDisplayInfo {
 // ACTIVITY SYSTEM
 // ============================================================================
 
-export type ActivityType =
-  | 'training'
-  | 'match'
-  | 'story'
-  | 'rest'
-  | 'tournament_match'
-  | 'skip';
+export type ActivityType = 'training' | 'match' | 'story' | 'rest' | 'tournament_match' | 'skip';
 
 export interface Activity {
   id: string;
@@ -384,14 +380,14 @@ export interface TrainingResult extends Activity {
   abilityLevel?: number;
   tierModification?: TierModification;
   sessionTier?: TrainingSessionTier;
-  tier?: TrainingSessionTier;  // Alias for sessionTier
+  tier?: TrainingSessionTier; // Alias for sessionTier
   sessionType?: string;
   ability?: string;
   roll?: number;
   threshold?: number;
   baseChance?: number;
-  message?: string;  // Success message
-  moodChange: number;  // Mood change from training
+  message?: string; // Success message
+  moodChange: number; // Mood change from training
 }
 
 // ============================================================================
@@ -463,7 +459,8 @@ export interface TournamentMatchResult extends Omit<MatchResult, 'type' | 'sourc
   bracket: 'winner' | 'loser';
 }
 
-export type ActivityResult = TrainingResult | MatchResult | TournamentMatchResult | RestResult | StoryEventResult;
+export type ActivityResult =
+  TrainingResult | MatchResult | TournamentMatchResult | RestResult | StoryEventResult;
 
 // ============================================================================
 // PLAYER & GAME STATE
@@ -490,22 +487,22 @@ export interface Player {
   archetypeProfile: ArchetypeProfile;
 
   // Item system
-  inventory: OwnedItem[];  // Regular items (max 10)
-  equippedItems: Record<EquipmentSlot, OwnedItem | null>;  // 4 gear slots + 1 charm slot
-  storyItems: OwnedItem[];  // Story items (no limit, don't count toward inventory)
-  nextActivityBuffs: Modifiers[];  // Pending consumable buffs; stat boosts apply to the player's next match, additional effects apply to their next activity
-  seenItemIds: string[];  // Catalogue item IDs the player has viewed in inventory
-  activeIndicators: string[];  // Generic UI indicator keys (e.g. 'calendar', 'training')
-  seenChallengeIds: string[];  // Challenge IDs the player has seen
+  inventory: OwnedItem[]; // Regular items (max 10)
+  equippedItems: Record<EquipmentSlot, OwnedItem | null>; // 4 gear slots + 1 charm slot
+  storyItems: OwnedItem[]; // Story items (no limit, don't count toward inventory)
+  nextActivityBuffs: Modifiers[]; // Pending consumable buffs; stat boosts apply to the player's next match, additional effects apply to their next activity
+  seenItemIds: string[]; // Catalogue item IDs the player has viewed in inventory
+  activeIndicators: string[]; // Generic UI indicator keys (e.g. 'calendar', 'training')
+  seenChallengeIds: string[]; // Challenge IDs the player has seen
 
   level: number;
   experience: number;
   totalExperienceEarned: number;
   matchesPlayed?: number;
   matchesWon?: number;
-  tier: OpponentTier;  // Player's current tier (1-4) determines available opponents and training
-  latestMatchResults?: ('win' | 'loss')[];  // Rolling record of last 10 match results (newest first)
-  practiceWinsPerTier?: Partial<Record<OpponentTier, number>>;  // Wins per tier for opponent difficulty scaling
+  tier: OpponentTier; // Player's current tier (1-4) determines available opponents and training
+  latestMatchResults?: ('win' | 'loss')[]; // Rolling record of last 10 match results (newest first)
+  practiceWinsPerTier?: Partial<Record<OpponentTier, number>>; // Wins per tier for opponent difficulty scaling
   createdAt: string;
   updatedAt: string;
 

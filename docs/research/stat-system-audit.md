@@ -35,14 +35,14 @@
 
 Five harnesses, all in `src/test/analysis/`:
 
-| Harness | What it measures |
-|---|---|
-| `shotMixProbe.ts` | Which shots each playstyle actually hits; the approach→net funnel |
-| `statSensitivity.ts` | Marginal value of every stat, two independent designs |
-| `anchorProbe.ts` | What `matchLevel` controls; the rating-tax falsification |
-| `tier1Probe.ts` | The shipped tier-1 ladder: serve behaviour, matchups, point endings, progression |
-| `shotCurve.ts` | Per-shot scaling across the 0-100 range |
-| `serveCurve.ts` | Why the first serve was flat below OVR 40 |
+| Harness              | What it measures                                                                 |
+| -------------------- | -------------------------------------------------------------------------------- |
+| `shotMixProbe.ts`    | Which shots each playstyle actually hits; the approach→net funnel                |
+| `statSensitivity.ts` | Marginal value of every stat, two independent designs                            |
+| `anchorProbe.ts`     | What `matchLevel` controls; the rating-tax falsification                         |
+| `tier1Probe.ts`      | The shipped tier-1 ladder: serve behaviour, matchups, point endings, progression |
+| `shotCurve.ts`       | Per-shot scaling across the 0-100 range                                          |
+| `serveCurve.ts`      | Why the first serve was flat below OVR 40                                        |
 
 ```
 npm run build:node
@@ -64,12 +64,12 @@ Cells of 150 BO3 carry about ±0.7 at 95%.
 
 This is the correction that reframes everything else.
 
-| group | opponents | OVR |
-|---|---|---|
-| player start | `DEFAULT_PLAYER_STATS`, all 20s | **20** |
-| practice | Danny Park, Marta Ruiz, Rick Tanaka, Big Steve, Lin Chen | 25–29 |
-| team storyline | Chet Vale, Rich Soil, Martia Estrella, Reginald Werther, Olivia Gulp | 29–41 |
-| Riverside Open | Keith, Chris, Max, Jordan | 36–45 |
+| group          | opponents                                                            | OVR    |
+| -------------- | -------------------------------------------------------------------- | ------ |
+| player start   | `DEFAULT_PLAYER_STATS`, all 20s                                      | **20** |
+| practice       | Danny Park, Marta Ruiz, Rick Tanaka, Big Steve, Lin Chen             | 25–29  |
+| team storyline | Chet Vale, Rich Soil, Martia Estrella, Reginald Werther, Olivia Gulp | 29–41  |
+| Riverside Open | Keith, Chris, Max, Jordan                                            | 36–45  |
 
 Practice opponents scale with `getScaledOpponentStats` (+2 per tier win, capped at +20), so Danny
 Park reaches OVR 45 and Lin Chen 49. `matchLevel` for a new player therefore runs 22.5–32.5, and
@@ -89,13 +89,13 @@ Shot quality is `primaryStat × finalAdjustment`, where `finalAdjustment` is the
 eight modifiers. Every one was shaped "0 stat = 0.8×, 100 stat = 1.0×" — only a maxed player was
 neutral. Because they multiply, a uniform-20 build compounded three or four sub-1 factors:
 
-| shot | finalAdjustment at L=20 | at L=85 |
-|---|---|---|
-| overhead | 0.605 | 1.198 |
-| passing shot | 0.637 | 1.074 |
-| return | 0.691 | 0.932 |
-| forehand | 0.822 | 0.961 |
-| slice backhand | 0.873 | 1.220 |
+| shot           | finalAdjustment at L=20 | at L=85 |
+| -------------- | ----------------------- | ------- |
+| overhead       | 0.605                   | 1.198   |
+| passing shot   | 0.637                   | 1.074   |
+| return         | 0.691                   | 0.932   |
+| forehand       | 0.822                   | 0.961   |
+| slice backhand | 0.873                   | 1.220   |
 
 The primary stat already carries skill at that shot. Multiplying by more stat-derived factors
 squares the skill dependence, and it hits aggressive shots hardest because they trigger more
@@ -113,13 +113,13 @@ margin = L × finalAdjustment − L × 0.886 = L × (finalAdjustment − 0.886)
 Both terms scale with L, so the product barely moves until `finalAdjustment` crosses 0.886 — at
 roughly L=41.
 
-| L | finalAdj | accuracy | midpoint | margin | p(in) |
-|---|---|---|---|---|---|
-| 20 | 0.711 | 14.3 | 17.7 | **−3.5** | 43.6% |
-| 30 | 0.786 | 23.7 | 26.6 | **−2.9** | 44.7% |
-| 40 | 0.868 | 34.9 | 35.4 | −0.5 | 49.1% |
-| 50 | 0.956 | 47.6 | 44.3 | +3.3 | 56.2% |
-| 70 | 1.000 | 70.2 | 62.0 | +8.2 | 64.8% |
+| L   | finalAdj | accuracy | midpoint | margin   | p(in) |
+| --- | -------- | -------- | -------- | -------- | ----- |
+| 20  | 0.711    | 14.3     | 17.7     | **−3.5** | 43.6% |
+| 30  | 0.786    | 23.7     | 26.6     | **−2.9** | 44.7% |
+| 40  | 0.868    | 34.9     | 35.4     | −0.5     | 49.1% |
+| 50  | 0.956    | 47.6     | 44.3     | +3.3     | 56.2% |
+| 70  | 1.000    | 70.2     | 62.0     | +8.2     | 64.8% |
 
 The second serve is the control that proves the mechanism: its ratio is 32/70 = 0.457, below
 `finalAdjustment` everywhere, and it scaled correctly from the bottom (66.9% → 95.3%).
@@ -127,8 +127,8 @@ The second serve is the control that proves the mechanism: its ratio is 32/70 = 
 The return has the same shape for the same reason — its `RELATIVE_QUALITY_REQUIREMENTS` multiplier
 is 0.75, inside the band `finalAdjustment` travels:
 
-| L | 20 | 30 | 40 | 50 | 60 | 70 | 85 |
-|---|---|---|---|---|---|---|---|
+| L          | 20    | 30    | 40    | 50    | 60    | 70    | 85    |
+| ---------- | ----- | ----- | ----- | ----- | ----- | ----- | ----- |
 | p(in play) | 47.9% | 47.7% | 47.8% | 47.8% | 50.8% | 55.1% | 64.0% |
 
 Flat across the entire implemented game, on 44% of all rally shots.
@@ -147,15 +147,15 @@ neutral floor raised to 15 — a 50% higher bar than the relative system compute
 
 Two mirror players at quality L, neutral groundstroke:
 
-| L | midpoint | margin | p(in play) | expected rally |
-|---|---|---|---|---|
-| 20 | 15 *(floored)* | 5 | 60% | 2.5 |
-| 30 | 15 *(floored)* | 15 | 77% | 4.3 |
-| 70 | 35 | 35 | 94% | 16.7 |
+| L   | midpoint       | margin | p(in play) | expected rally |
+| --- | -------------- | ------ | ---------- | -------------- |
+| 20  | 15 _(floored)_ | 5      | 60%        | 2.5            |
+| 30  | 15 _(floored)_ | 15     | 77%        | 4.3            |
+| 70  | 35             | 35     | 94%        | 16.7           |
 
 `MINIMUM_WINNER_THRESHOLDS` is also absolute, and testing showed it **should stay that way**:
 scaling it with match level takes tier-1 winners from 7% of points to 40% and makes rallies
-*shorter*, which is the exact failure it exists to prevent.
+_shorter_, which is the exact failure it exists to prevent.
 
 ### 3.5 Winner rates inverted with skill
 
@@ -164,15 +164,15 @@ there from about L=60 up. Winner midpoints were `inPlayReq × a per-category mul
 At L=85 every shot produced 96-99 quality, so winner rates were decided entirely by the product of
 the requirement multiplier and the category multiplier:
 
-| shot | quality | winner midpoint | p(win) |
-|---|---|---|---|
-| drop shot | 99.0 | 83.1 | **75.3%** |
-| defensive slice | 98.9 | 102.0 | **44.6%** |
-| overhead | 98.9 | 106.0 | 37.8% |
-| power | 99.0 | 121.3 | 17.4% |
-| passing | 98.8 | 129.0 | 10.8% |
-| volley | 96.0 | 147.3 | 2.7% |
-| return | 95.3 | **179.1** | 0.3% |
+| shot            | quality | winner midpoint | p(win)    |
+| --------------- | ------- | --------------- | --------- |
+| drop shot       | 99.0    | 83.1            | **75.3%** |
+| defensive slice | 98.9    | 102.0           | **44.6%** |
+| overhead        | 98.9    | 106.0           | 37.8%     |
+| power           | 99.0    | 121.3           | 17.4%     |
+| passing         | 98.8    | 129.0           | 10.8%     |
+| volley          | 96.0    | 147.3           | 2.7%      |
+| return          | 95.3    | **179.1**       | 0.3%      |
 
 A midpoint of 179 on a 0-100 scale is unreachable by construction. The category multiplier was
 applied on top of a requirement that already ranged 0.25 to 0.85, so it never expressed shot intent
@@ -186,12 +186,12 @@ end them.
 Even matchups between weak players were already even on points — 49.1% for a new player against
 Danny Park, 49.8% for a trained mirror. The gap was texture:
 
-| build | OVR | ace | DF | winner | forced | unforced | ends on return | rally ≥4 |
-|---|---|---|---|---|---|---|---|---|
-| new player | 20 | 2.1 | 28.0 | 7.0 | 32.1 | 30.8 | 38.6 | **12.9%** |
-| Big Steve | 28 | 2.8 | 24.8 | 12.8 | 32.9 | 26.7 | 35.5 | 18.3% |
-| Jordan | 46 | 1.7 | 16.9 | 31.3 | 35.0 | 15.0 | 29.2 | 23.9% |
-| uniform 70 | 70 | 4.0 | 6.6 | 27.8 | 47.8 | 13.8 | 39.7 | 31.8% |
+| build      | OVR | ace | DF   | winner | forced | unforced | ends on return | rally ≥4  |
+| ---------- | --- | --- | ---- | ------ | ------ | -------- | -------------- | --------- |
+| new player | 20  | 2.1 | 28.0 | 7.0    | 32.1   | 30.8     | 38.6           | **12.9%** |
+| Big Steve  | 28  | 2.8 | 24.8 | 12.8   | 32.9   | 26.7     | 35.5           | 18.3%     |
+| Jordan     | 46  | 1.7 | 16.9 | 31.3   | 35.0   | 15.0     | 29.2           | 23.9%     |
+| uniform 70 | 70  | 4.0 | 6.6  | 27.8   | 47.8   | 13.8     | 39.7           | 31.8%     |
 
 91% of tier-1 points ended in an error, which is right for beginners. But 87% never reached four
 shots and 28% never got a ball in play at all. Weak players weren't hitting worse shots — they were
@@ -206,12 +206,12 @@ raises `matchLevel`, raises every threshold, so a stat only pays if its shot fre
 break-even point. It offered its own falsification: pin `matchLevel` and the slice sign flip should
 disappear. It doesn't.
 
-| config | slice→90, never slices | slice→90, slice specialist |
-|---|---|---|
-| baseline | −1.15 | +0.46 |
-| `matchLevel` pinned | −0.53 | +0.91 |
-| serve-in midpoint pinned | **+0.03** | +1.72 |
-| both pinned | −0.40 | +0.48 |
+| config                   | slice→90, never slices | slice→90, slice specialist |
+| ------------------------ | ---------------------- | -------------------------- |
+| baseline                 | −1.15                  | +0.46                      |
+| `matchLevel` pinned      | −0.53                  | +0.91                      |
+| serve-in midpoint pinned | **+0.03**              | +1.72                      |
+| both pinned              | −0.40                  | +0.48                      |
 
 Every cell sits within about one noise band of the others, and three of four have the
 "never slices" case indistinguishable from zero. Re-run at tier-1 magnitudes (slice 20→40 against
@@ -237,12 +237,12 @@ four different ways barely moves outcomes.
 
 At OVR 50-90:
 
-| anchor | 90 v 40 pt-win% | mean rally | ≤2-shot |
-|---|---|---|---|
-| mean (shipped) | 99.1 | 1.57 | 96.7% |
-| shooter | 98.8 | 1.51 | 96.5% |
-| receiver | 99.8 | 1.54 | 97.3% |
-| fixed 70 | 99.0 | 1.54 | 96.5% |
+| anchor         | 90 v 40 pt-win% | mean rally | ≤2-shot |
+| -------------- | --------------- | ---------- | ------- |
+| mean (shipped) | 99.1            | 1.57       | 96.7%   |
+| shooter        | 98.8            | 1.51       | 96.5%   |
+| receiver       | 99.8            | 1.54       | 97.3%   |
+| fixed 70       | 99.0            | 1.54       | 96.5%   |
 
 At real tier-1 ratings, new player (20) v Jordan (46): 14.5% mean, 14.8% shooter, 18.4% receiver,
 14.0% fixed. The anchor moves it by at most four points.
@@ -253,11 +253,11 @@ Tested directly: pin `matchLevel` to a tier-1 constant of 32 so the bar stops ri
 improves, and sweep a player from OVR 20 to 50 against fixed opponents.
 
 | player OVR | vs Big Steve (28), mean anchor | tier-anchored | vs Jordan (46), mean | tier-anchored |
-|---|---|---|---|---|
-| 20 | 31.8% | 40.1% | 9.0% | 10.4% |
-| 30 | 50.2% | 55.4% | 16.1% | 15.5% |
-| 40 | 71.3% | 70.1% | 37.5% | 39.0% |
-| 50 | 91.2% | 87.5% | 56.5% | 53.5% |
+| ---------- | ------------------------------ | ------------- | -------------------- | ------------- |
+| 20         | 31.8%                          | 40.1%         | 9.0%                 | 10.4%         |
+| 30         | 50.2%                          | 55.4%         | 16.1%                | 15.5%         |
+| 40         | 71.3%                          | 70.1%         | 37.5%                | 39.0%         |
+| 50         | 91.2%                          | 87.5%         | 56.5%                | 53.5%         |
 
 The curves are the same within noise. The reward for improving inside a tier is already steep and
 anchor-independent — 31.8% to 91.2% of points against a fixed opponent — because it comes from the
@@ -273,38 +273,38 @@ is doing exactly the job it was invented for.
 
 ## 7. Changes made
 
-| commit | change |
-|---|---|
-| `c4abfd9` | Broad archetype wired into behaviour; `spinShots` typo fixed |
-| `d50e7db` | Support-stat modifiers centered on a neutral stat of 50 |
-| `31afb15` | `MIN_QUALITY_FLOORS` scales with match level |
-| `39464ed` | Winner difficulty set per shot instead of per category |
-| *(this change)* | Winner floors set per shot; mid-level differentiation restored |
-| *(this change)* | Winner floor follows opponent retrieval; both winner tables refit |
-| *(this change)* | Serve-in measured against expected accuracy, not overall rating |
+| commit          | change                                                            |
+| --------------- | ----------------------------------------------------------------- |
+| `c4abfd9`       | Broad archetype wired into behaviour; `spinShots` typo fixed      |
+| `d50e7db`       | Support-stat modifiers centered on a neutral stat of 50           |
+| `31afb15`       | `MIN_QUALITY_FLOORS` scales with match level                      |
+| `39464ed`       | Winner difficulty set per shot instead of per category            |
+| _(this change)_ | Winner floors set per shot; mid-level differentiation restored    |
+| _(this change)_ | Winner floor follows opponent retrieval; both winner tables refit |
+| _(this change)_ | Serve-in measured against expected accuracy, not overall rating   |
 
 ### Result on the shipped ladder
 
-| build | OVR | 1st in% before → after | DF% before → after |
-|---|---|---|---|
-| new player | 20 | 40.9 → 42.7 | 27.8 → 25.6 |
-| Danny Park | 25 | 42.2 → 50.4 | 24.9 → 18.2 |
-| Big Steve | 28 | 41.1 → 47.4 | 23.1 → 20.6 |
-| Olivia Gulp | 41 | 41.7 → 52.3 | 20.6 → 14.5 |
-| Jordan | 46 | 41.3 → 55.9 | 18.5 → 11.5 |
-| uniform 70 | 70 | 61.5 → 64.6 | 6.0 → 3.2 |
+| build       | OVR | 1st in% before → after | DF% before → after |
+| ----------- | --- | ---------------------- | ------------------ |
+| new player  | 20  | 40.9 → 42.7            | 27.8 → 25.6        |
+| Danny Park  | 25  | 42.2 → 50.4            | 24.9 → 18.2        |
+| Big Steve   | 28  | 41.1 → 47.4            | 23.1 → 20.6        |
+| Olivia Gulp | 41  | 41.7 → 52.3            | 20.6 → 14.5        |
+| Jordan      | 46  | 41.3 → 55.9            | 18.5 → 11.5        |
+| uniform 70  | 70  | 61.5 → 64.6            | 6.0 → 3.2          |
 
 ### Result on texture
 
 New player, mirror match:
 
-| | before | after |
-|---|---|---|
-| rally ≥4 shots | 12.9% | **25.3%** |
-| ends on return | 38.6% | 29.1% |
-| unforced errors | 30.8% | 24.5% |
-| winners | 7.0% | 11.7% |
-| double faults | 28.0% | 22.0% |
+|                 | before | after     |
+| --------------- | ------ | --------- |
+| rally ≥4 shots  | 12.9%  | **25.3%** |
+| ends on return  | 38.6%  | 29.1%     |
+| unforced errors | 30.8%  | 24.5%     |
+| winners         | 7.0%   | 11.7%     |
+| double faults   | 28.0%  | 22.0%     |
 
 Still a beginner's error rate — about 86% of points end in a mistake — but the ball goes back and
 forth now.
@@ -313,8 +313,8 @@ forth now.
 
 Winner rate at L=85, before → after:
 
-| overhead | power | passing | volley | drop | forehand | slice | lob | def. slice | return |
-|---|---|---|---|---|---|---|---|---|---|
+| overhead        | power           | passing         | volley         | drop        | forehand   | slice     | lob        | def. slice     | return    |
+| --------------- | --------------- | --------------- | -------------- | ----------- | ---------- | --------- | ---------- | -------------- | --------- |
 | 37.8 → **47.8** | 17.4 → **40.4** | 10.8 → **30.2** | 2.7 → **29.7** | 75.3 → 24.3 | 7.4 → 22.5 | 7.7 → 7.8 | 22.1 → 6.0 | 44.6 → **3.7** | 0.3 → 0.1 |
 
 Across the ladder, winners now rise with level instead of peaking mid-range: 11.7% of points for a
@@ -329,28 +329,28 @@ new player, 34.2% for Jordan, 40.4% at uniform 70, 52.2% at uniform 85.
 it describes a population the game does not yet contain. The tier-1-scale equivalent is
 `tier1Probe.ts` part C.
 
-| stat | bucket | before | after | |
-|---|---|---|---|---|
-| serve | core | +3.61 | +3.34 | strong |
-| anticipation | mental | +2.99 | +3.11 | strong |
-| return | core | +2.26 | **+2.65** | strong |
-| focus | mental | +1.75 | +1.78 | strong |
-| spin | technical | +1.69 | +1.53 | strong |
-| speed | physical | +1.92 | +1.50 | strong |
-| strength | physical | +1.37 | +1.22 | strong |
-| forehand | core | +0.63 | **+1.17** | strong |
-| placement | technical | +1.36 | +0.97 | strong |
-| stamina | physical | +0.86 | +0.86 | strong |
-| backhand | core | +1.07 | +0.82 | strong |
-| defensive | mental | +0.75 | +0.73 | moderate |
-| offensive | mental | +1.15 | +0.66 | moderate |
-| agility | physical | +0.08 | +0.14 | **noise** |
-| recovery | physical | +0.25 | +0.01 | **noise** |
-| overhead | technical | +0.24 | −0.12 | **noise** |
-| slice | core | +0.32 | −0.12 | **noise** |
-| volley | technical | +0.31 | −0.24 | **noise** |
-| dropShot | technical | +0.09 | −0.33 | **noise** |
-| shotVariety | mental | +0.05 | −0.37 | **noise** |
+| stat         | bucket    | before | after     |           |
+| ------------ | --------- | ------ | --------- | --------- |
+| serve        | core      | +3.61  | +3.34     | strong    |
+| anticipation | mental    | +2.99  | +3.11     | strong    |
+| return       | core      | +2.26  | **+2.65** | strong    |
+| focus        | mental    | +1.75  | +1.78     | strong    |
+| spin         | technical | +1.69  | +1.53     | strong    |
+| speed        | physical  | +1.92  | +1.50     | strong    |
+| strength     | physical  | +1.37  | +1.22     | strong    |
+| forehand     | core      | +0.63  | **+1.17** | strong    |
+| placement    | technical | +1.36  | +0.97     | strong    |
+| stamina      | physical  | +0.86  | +0.86     | strong    |
+| backhand     | core      | +1.07  | +0.82     | strong    |
+| defensive    | mental    | +0.75  | +0.73     | moderate  |
+| offensive    | mental    | +1.15  | +0.66     | moderate  |
+| agility      | physical  | +0.08  | +0.14     | **noise** |
+| recovery     | physical  | +0.25  | +0.01     | **noise** |
+| overhead     | technical | +0.24  | −0.12     | **noise** |
+| slice        | core      | +0.32  | −0.12     | **noise** |
+| volley       | technical | +0.31  | −0.24     | **noise** |
+| dropShot     | technical | +0.09  | −0.33     | **noise** |
+| shotVariety  | mental    | +0.05  | −0.37     | **noise** |
 
 Bucket totals: core +7.87 (was +7.88), mental +5.92 (was +6.69), physical +3.74 (was +4.48),
 technical +1.82 (was +3.70).
@@ -398,10 +398,10 @@ deliberate flatness stays and the floors carry the differentiation.
 
 Winner rate at L=40, before and after:
 
-| | overhead | power | passing | volley | drop | angle | forehand | approach | slice | lob | def. slice | return |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| before | 24.3 | 28.1 | 28.0 | 23.4 | 28.0 | 23.8 | 24.3 | 23.2 | 18.1 | 16.4 | 17.4 | 3.3 |
-| after | 23.4 | 18.9 | 15.8 | 15.8 | 12.7 | 10.5 | 4.8 | 2.8 | 1.3 | 0.7 | 0.6 | 1.2 |
+|        | overhead | power | passing | volley | drop | angle | forehand | approach | slice | lob  | def. slice | return |
+| ------ | -------- | ----- | ------- | ------ | ---- | ----- | -------- | -------- | ----- | ---- | ---------- | ------ |
+| before | 24.3     | 28.1  | 28.0    | 23.4   | 28.0 | 23.8  | 24.3     | 23.2     | 18.1  | 16.4 | 17.4       | 3.3    |
+| after  | 23.4     | 18.9  | 15.8    | 15.8   | 12.7 | 10.5  | 4.8      | 2.8      | 1.3   | 0.7  | 0.6        | 1.2    |
 
 Spread at L=40 goes from about 12 points to 22.8. At L=20 everything stays between 0.1% and 6.8%.
 
@@ -433,29 +433,29 @@ the ball being hit at the shooter and reports the winner rate with and without i
 player facing a level-30 opponent:
 
 | incoming quality | relative midpoint | floor | p(win) | p(win) with no floor |
-|---|---|---|---|---|
-| 5 | 16.1 | 70.5 | 12.8% | **86.8%** |
-| 15 | 16.1 | 70.5 | 11.4% | 85.3% |
-| 30 | 30.5 | 70.5 | 9.8% | 64.2% |
-| 60 | 62.8 | 70.5 | 6.9% | 11.2% |
-| 80 | 84.3 | 70.5 | 2.9% | 2.9% |
+| ---------------- | ----------------- | ----- | ------ | -------------------- |
+| 5                | 16.1              | 70.5  | 12.8%  | **86.8%**            |
+| 15               | 16.1              | 70.5  | 11.4%  | 85.3%                |
+| 30               | 30.5              | 70.5  | 9.8%   | 64.2%                |
+| 60               | 62.8              | 70.5  | 6.9%   | 11.2%                |
+| 80               | 84.3              | 70.5  | 2.9%   | 2.9%                 |
 
 Without it, the next shot after a degraded rally wins outright almost nine times in ten. The probe
 also shows the division of labour: the floor governs below about incoming quality 60-80 and the
-relative term above it — so `WINNER_REQUIREMENTS` is what makes winners hard *under pressure*, and
-`MINIMUM_WINNER_THRESHOLDS` is what makes them hard *off a nothing ball*.
+relative term above it — so `WINNER_REQUIREMENTS` is what makes winners hard _under pressure_, and
+`MINIMUM_WINNER_THRESHOLDS` is what makes them hard _off a nothing ball_.
 
 Both tables were then refit with the retrieval blend active (they had been fitted against a flat
 floor), targeting a deliberately flatter curve across levels. Mean absolute error 1.87pp against
 2.39 before. Winner rates by level (20/30/40/60/85), same-level opponent:
 
-| shot | | | | | |
-|---|---|---|---|---|---|
+| shot     |      |      |      |      |      |
+| -------- | ---- | ---- | ---- | ---- | ---- |
 | overhead | 11.1 | 15.2 | 23.7 | 34.8 | 33.3 |
-| power | 10.0 | 14.0 | 20.2 | 28.9 | 29.7 |
-| forehand | 4.5 | 5.8 | 8.1 | 15.0 | 19.5 |
-| slice | 2.0 | 2.6 | 3.3 | 7.1 | 7.8 |
-| return | 0.7 | 0.7 | 0.9 | 1.5 | 1.0 |
+| power    | 10.0 | 14.0 | 20.2 | 28.9 | 29.7 |
+| forehand | 4.5  | 5.8  | 8.1  | 15.0 | 19.5 |
+| slice    | 2.0  | 2.6  | 3.3  | 7.1  | 7.8  |
+| return   | 0.7  | 0.7  | 0.9  | 1.5  | 1.0  |
 
 Ordering holds at every level and the range each shot travels is now 3-4× rather than 20×.
 
@@ -473,10 +473,10 @@ built from, so the margin is a property of the player's serve and nothing else:
 midpoint = base + perAccuracy × (accuracyComposite × finalAdjustment)
 ```
 
-| L | 20 | 30 | 40 | 50 | 60 | 70 | 90 |
-|---|---|---|---|---|---|---|---|
+| L                      | 20    | 30    | 40    | 50    | 60    | 70    | 90    |
+| ---------------------- | ----- | ----- | ----- | ----- | ----- | ----- | ----- |
 | first serve in, before | 43.6% | 44.7% | 49.1% | 56.2% | 62.7% | 64.8% | 68.2% |
-| first serve in, after | 45.7% | 50.1% | 53.8% | 56.3% | 60.6% | 63.9% | 70.0% |
+| first serve in, after  | 45.7% | 50.1% | 53.8% | 56.3% | 60.6% | 63.9% | 70.0% |
 | second serve in, after | 52.6% | 64.3% | 74.6% | 83.0% | 88.8% | 92.8% | 97.2% |
 
 Smooth from the bottom rather than flat to L=41 then jumping. On the shipped ladder the
@@ -506,7 +506,6 @@ ordering; see its note for the measured curve at 0, −6 and −12.
 new player takes 6.8% of points off Jordan, down from 14.5% — accepted as correct for a 20-point
 rating gap); the tier-anchored threshold scale (measured, no effect); and the forced/unforced split,
 which is a label applied after the point is already lost and drives nothing but the stats screen.
-
 
 - **Where the winner curve should sit.** The floor table fixes which shots end points and the
   retrieval blend keeps that consistent across levels; the overall rate is `WINNER_FLOOR_OFFSET`,

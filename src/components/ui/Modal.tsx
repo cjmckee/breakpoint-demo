@@ -52,9 +52,7 @@ export const Modal: React.FC<ModalProps> = ({
 
       {/* Modal content + optional below-content */}
       <div className={`relative flex flex-col items-center ${sizeStyles[size]} w-full mx-4`}>
-        <div
-          className="bg-pixel-bg border-8 border-pixel-border w-full max-h-[90vh] overflow-y-auto"
-        >
+        <div className="bg-pixel-bg border-8 border-pixel-border w-full max-h-[90vh] overflow-y-auto">
           {/* Header — omitted when there's no title and no close button */}
           {(title || (showCloseButton && onClose)) && (
             <div className="bg-pixel-card border-b-4 border-pixel-border p-4 flex items-center justify-between sticky top-0 z-10">
@@ -75,9 +73,7 @@ export const Modal: React.FC<ModalProps> = ({
           <div className="p-6">{children}</div>
         </div>
 
-        {belowContent && (
-          <div className="w-full mt-3">{belowContent}</div>
-        )}
+        {belowContent && <div className="w-full mt-3">{belowContent}</div>}
       </div>
     </div>
   );

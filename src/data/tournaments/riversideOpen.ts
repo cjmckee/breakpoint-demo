@@ -16,7 +16,8 @@ const keith: MatchOpponent = {
   name: 'Keith',
   tier: 1,
   archetype: 'aggressive',
-  description: 'He lost to his little sister, but he\'s been training hard since. Don\'t underestimate his speed.',
+  description:
+    "He lost to his little sister, but he's been training hard since. Don't underestimate his speed.",
   stats: {
     core: { serve: 37, forehand: 39, backhand: 33, return: 37, net: 34 },
     technical: { slice: 33, spin: 41, placement: 45 },
@@ -31,7 +32,8 @@ const chris: MatchOpponent = {
   name: 'Chris',
   tier: 1,
   archetype: 'counterpuncher',
-  description: 'A tactical player with strong mental game and consistent groundstrokes. He\'s improved noticeably since you last saw him.',
+  description:
+    "A tactical player with strong mental game and consistent groundstrokes. He's improved noticeably since you last saw him.",
   stats: {
     core: { serve: 41, forehand: 40, backhand: 44, return: 42, net: 34 },
     technical: { slice: 42, spin: 37, placement: 43 },
@@ -46,7 +48,8 @@ const max: MatchOpponent = {
   name: 'Max',
   tier: 1,
   archetype: 'defensive',
-  description: 'A defensive specialist with great court coverage. His return game and placement are his biggest weapons. Don\'t let him get comfortable.',
+  description:
+    "A defensive specialist with great court coverage. His return game and placement are his biggest weapons. Don't let him get comfortable.",
   stats: {
     core: { serve: 44, forehand: 42, backhand: 44, return: 52, net: 33 },
     technical: { slice: 46, spin: 44, placement: 48 },
@@ -61,7 +64,8 @@ const jordan: MatchOpponent = {
   name: 'Jordan',
   tier: 1,
   archetype: 'serve_volley',
-  description: 'Your rival. He\'s been preparing for this tournament seriously and it shows. Well-rounded, competitive, and dangerous in every situation.',
+  description:
+    "Your rival. He's been preparing for this tournament seriously and it shows. Well-rounded, competitive, and dangerous in every situation.",
   stats: {
     core: { serve: 50, forehand: 50, backhand: 46, return: 47, net: 43 },
     technical: { slice: 48, spin: 40, placement: 48 },
@@ -78,14 +82,15 @@ const jordan: MatchOpponent = {
 export const riversideOpen: TournamentConfig = {
   id: 'riverside_open',
   name: 'Riverside Open',
-  description: 'A local club tournament featuring rising players in the region. This is your chance to prove yourself against increasingly skilled opponents.',
+  description:
+    'A local club tournament featuring rising players in the region. This is your chance to prove yourself against increasingly skilled opponents.',
 
   surface: 'hard',
 
   // Prerequisites
   minPlayerTier: 1,
   minMatchesPlayed: 3,
-  requiredEvents: ['riverside_open_prep'],  // Player must complete prep event first
+  requiredEvents: ['riverside_open_prep'], // Player must complete prep event first
 
   // Story events
   openingCeremonyEventId: 'riverside_open_opening_ceremony',

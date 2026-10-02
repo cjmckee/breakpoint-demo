@@ -36,10 +36,20 @@ import { aggregateArchetypeEffects } from '../../data/archetypeTree';
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
 
 const STAT_ORDER = [
-  'serve', 'forehand', 'backhand', 'return', 'net',
-  'slice', 'spin', 'placement',
-  'speed', 'stamina', 'strength',
-  'focus', 'anticipation', 'tactics',
+  'serve',
+  'forehand',
+  'backhand',
+  'return',
+  'net',
+  'slice',
+  'spin',
+  'placement',
+  'speed',
+  'stamina',
+  'strength',
+  'focus',
+  'anticipation',
+  'tactics',
 ] as const;
 
 const uniform = (r: number): PlayerStats => ({
@@ -49,7 +59,10 @@ const uniform = (r: number): PlayerStats => ({
   mental: { focus: r, anticipation: r, tactics: r },
 });
 
-function profileOf(phases: Partial<Record<GamePhase, PhaseSpec>>, broad: ArchetypeProfile['broad'] = null): ArchetypeProfile {
+function profileOf(
+  phases: Partial<Record<GamePhase, PhaseSpec>>,
+  broad: ArchetypeProfile['broad'] = null,
+): ArchetypeProfile {
   return { broad, phases, specializationPoints: 0, respecTokens: 0 };
 }
 
@@ -59,7 +72,9 @@ function calcFatigue(cur: number, rally: number, stam: number): number {
   if (rally > MATCH_FATIGUE.longRallyThreshold) {
     gain += (rally - MATCH_FATIGUE.longRallyThreshold) * MATCH_FATIGUE.longRallyExtra * sf;
   }
-  const rec = MATCH_FATIGUE.baseRecoveryPerPoint + (stam / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
+  const rec =
+    MATCH_FATIGUE.baseRecoveryPerPoint +
+    (stam / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
   return Math.max(0, Math.min(100, cur + gain - rec));
 }
 
@@ -73,8 +88,15 @@ interface Tally {
   totalShots: number;
 }
 
-const newTally = (): Tally => ({ weight: new Map(), shots: new Map(), leads: new Map(), totalShots: 0 });
-const add = (m: Map<string, number>, k: string, v: number): void => { m.set(k, (m.get(k) ?? 0) + v); };
+const newTally = (): Tally => ({
+  weight: new Map(),
+  shots: new Map(),
+  leads: new Map(),
+  totalShots: 0,
+});
+const add = (m: Map<string, number>, k: string, v: number): void => {
+  m.set(k, (m.get(k) ?? 0) + v);
+};
 
 function scorePoint(shots: ShotDetail[], role: 'server' | 'returner', t: Tally): void {
   for (const s of shots) {
@@ -87,7 +109,10 @@ function scorePoint(shots: ShotDetail[], role: 'server' | 'returner', t: Tally):
     for (const [stat, w] of Object.entries(weights)) {
       add(t.weight, stat, w);
       add(t.shots, stat, 1);
-      if (w > bestW) { bestW = w; best = stat; }
+      if (w > bestW) {
+        bestW = w;
+        best = stat;
+      }
     }
     if (best) add(t.leads, best, 1);
   }
@@ -96,24 +121,47 @@ function scorePoint(shots: ShotDetail[], role: 'server' | 'returner', t: Tally):
 function runMatch(p: PlayerProfile, o: PlayerProfile, eff: Record<string, number>, t: Tally): void {
   const tracker = new ScoreTracker(BO3);
   tracker.setInitialServer(Math.random() < 0.5 ? 'player' : 'opponent');
-  p.rollMatchForm(); o.rollMatchForm();
+  p.rollMatchForm();
+  o.rollMatchForm();
   const sim = new PointSimulator();
   const ms: MatchState = {
-    score: tracker.getScore(), currentServer: tracker.getCurrentServer(), courtSurface: 'hard',
-    momentum: 0, pressure: 'low', matchLength: 0, pointsPlayed: 0, isKeyMoment: false,
+    score: tracker.getScore(),
+    currentServer: tracker.getCurrentServer(),
+    courtSurface: 'hard',
+    momentum: 0,
+    pressure: 'low',
+    matchLength: 0,
+    pointsPlayed: 0,
+    isKeyMoment: false,
     fatigue: { player: 0, opponent: 0 },
   };
   let pts = 0;
   while (!tracker.isComplete() && pts < 600) {
     const server = tracker.getCurrentServer();
     ms.isKeyMoment = tracker.isKeyMoment();
-    const pr = sim.simulatePoint(server, server === 'player' ? p : o, server === 'player' ? o : p, ms, eff, eff);
-    scorePoint(pr.shots.filter(s => s.outcome !== PointType.FAULT || s.shotType.includes('serve')),
-      server === 'player' ? 'server' : 'returner', t);
-    tracker.addPoint(pr.winner === 'server' ? server : (server === 'player' ? 'opponent' : 'player'));
+    const pr = sim.simulatePoint(
+      server,
+      server === 'player' ? p : o,
+      server === 'player' ? o : p,
+      ms,
+      eff,
+      eff,
+    );
+    scorePoint(
+      pr.shots.filter((s) => s.outcome !== PointType.FAULT || s.shotType.includes('serve')),
+      server === 'player' ? 'server' : 'returner',
+      t,
+    );
+    tracker.addPoint(pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player');
     ms.fatigue.player = calcFatigue(ms.fatigue.player, pr.rallyLength, p.stats.physical.stamina);
-    ms.fatigue.opponent = calcFatigue(ms.fatigue.opponent, pr.rallyLength, o.stats.physical.stamina);
-    ms.score = tracker.getScore(); ms.currentServer = tracker.getCurrentServer(); ms.pointsPlayed = ++pts;
+    ms.fatigue.opponent = calcFatigue(
+      ms.fatigue.opponent,
+      pr.rallyLength,
+      o.stats.physical.stamina,
+    );
+    ms.score = tracker.getScore();
+    ms.currentServer = tracker.getCurrentServer();
+    ms.pointsPlayed = ++pts;
   }
 }
 
@@ -121,8 +169,12 @@ function measure(prof: ArchetypeProfile, level: number, n: number): Tally {
   const eff = aggregateArchetypeEffects(prof);
   const t = newTally();
   for (let i = 0; i < n; i++) {
-    runMatch(new PlayerProfile('p', 'P', uniform(level), prof),
-      new PlayerProfile('o', 'O', uniform(level), prof), eff, t);
+    runMatch(
+      new PlayerProfile('p', 'P', uniform(level), prof),
+      new PlayerProfile('o', 'O', uniform(level), prof),
+      eff,
+      t,
+    );
   }
   return t;
 }
@@ -139,8 +191,10 @@ function main(): void {
   const N = Number(process.env.N ?? 30);
   const L = Number(process.env.L ?? 55);
 
-  console.log(`\n╔══ STAT EXPOSURE — share of the shot-quality budget, uniform ${L}, ${N} BO3 per build ══╗`);
-  console.log('\nEach cell is the stat\'s summed composite weight as a share of all weight');
+  console.log(
+    `\n╔══ STAT EXPOSURE — share of the shot-quality budget, uniform ${L}, ${N} BO3 per build ══╗`,
+  );
+  console.log("\nEach cell is the stat's summed composite weight as a share of all weight");
   console.log('the player spent. compOnly: the composite channel only — stamina and focus');
   console.log('act through fatigue and pressure and correctly read 0 here.\n');
 
@@ -163,7 +217,8 @@ function main(): void {
   console.log('-'.repeat(head.length));
   for (const stat of STAT_ORDER) {
     const cells = tallies.map(([, t]) =>
-      `${(((t.leads.get(stat) ?? 0) / t.totalShots) * 100).toFixed(1)}%`.padStart(15));
+      `${(((t.leads.get(stat) ?? 0) / t.totalShots) * 100).toFixed(1)}%`.padStart(15),
+    );
     console.log([stat.padEnd(13), ...cells].join(''));
   }
   console.log('');

@@ -55,7 +55,14 @@ function createStatIncreaseItem(playerStats: PlayerStats | null): StatIncreaseIt
   const numStatsMap: Record<ItemRarity, number> = { common: 1, uncommon: 2, rare: 3, legendary: 4 };
   const numStats = numStatsMap[rarity];
 
-  const category: StatCategory = random() < 0.3 ? 'core' : (random() < 0.33 ? 'technical' : random() < 0.5 ? 'physical' : 'mental');
+  const category: StatCategory =
+    random() < 0.3
+      ? 'core'
+      : random() < 0.33
+        ? 'technical'
+        : random() < 0.5
+          ? 'physical'
+          : 'mental';
 
   const statBoosts: StatBoosts = {};
   const usedStats = new Set<StatName>();
@@ -63,7 +70,7 @@ function createStatIncreaseItem(playerStats: PlayerStats | null): StatIncreaseIt
 
   const availableStats = STATS_BY_CATEGORY[category];
   for (let i = 0; i < numStats; i++) {
-    const remaining = availableStats.filter(s => !usedStats.has(s));
+    const remaining = availableStats.filter((s) => !usedStats.has(s));
     if (remaining.length === 0) break;
     const stat = remaining[Math.floor(random() * remaining.length)];
     usedStats.add(stat);
@@ -99,7 +106,9 @@ function createStatIncreaseItem(playerStats: PlayerStats | null): StatIncreaseIt
   };
 }
 
-const SHOP_CONSUMABLE_ITEMS: Item[] = ALL_CONSUMABLES.filter(item => item.shopAvailable !== false);
+const SHOP_CONSUMABLE_ITEMS: Item[] = ALL_CONSUMABLES.filter(
+  (item) => item.shopAvailable !== false,
+);
 
 function createConsumableItem(): ConsumableItem {
   const sourceItem = SHOP_CONSUMABLE_ITEMS[Math.floor(random() * SHOP_CONSUMABLE_ITEMS.length)];
@@ -118,7 +127,7 @@ function createConsumableItem(): ConsumableItem {
   };
 }
 
-const SHOP_EQUIPMENT_ITEMS: Item[] = ALL_EQUIPMENT.filter(item => item.shopAvailable !== false);
+const SHOP_EQUIPMENT_ITEMS: Item[] = ALL_EQUIPMENT.filter((item) => item.shopAvailable !== false);
 
 function calculateEquipmentCost(statBoosts: StatBoosts): number {
   const total = Object.values(statBoosts).reduce((a, b) => a + b, 0);
@@ -143,7 +152,7 @@ function createEquipmentItem(): EquipmentItem {
 }
 
 const ABILITIES: Ability[] = Object.values(ABILITY_DEFINITIONS).filter(
-  ability => ability.shopAvailable !== false
+  (ability) => ability.shopAvailable !== false,
 );
 
 const RARITY_MULTIPLIERS: Record<AbilityRarity, number> = {
@@ -164,13 +173,15 @@ function createAbilityItem(ownedLevels: Map<string, number> = new Map()): Abilit
   let pool: Ability[] = ABILITIES;
 
   if (roll < 0.5) {
-    pool = ABILITIES.filter(a => a.rarity === AbilityRarity.COMMON);
+    pool = ABILITIES.filter((a) => a.rarity === AbilityRarity.COMMON);
   } else if (roll < 0.75) {
-    pool = ABILITIES.filter(a => a.rarity !== AbilityRarity.LEGENDARY);
+    pool = ABILITIES.filter((a) => a.rarity !== AbilityRarity.LEGENDARY);
   } else if (roll < 0.9) {
-    pool = ABILITIES.filter(a => a.rarity !== AbilityRarity.COMMON && a.rarity !== AbilityRarity.LEGENDARY);
+    pool = ABILITIES.filter(
+      (a) => a.rarity !== AbilityRarity.COMMON && a.rarity !== AbilityRarity.LEGENDARY,
+    );
   } else {
-    pool = ABILITIES.filter(a => a.rarity === AbilityRarity.LEGENDARY);
+    pool = ABILITIES.filter((a) => a.rarity === AbilityRarity.LEGENDARY);
   }
 
   if (pool.length === 0) return null;
@@ -200,13 +211,13 @@ function createAbilityItem(ownedLevels: Map<string, number> = new Map()): Abilit
 
 export function generateDailyShopItems(
   playerStats: PlayerStats | null = null,
-  ownedLevels: Map<string, number> = new Map()
+  ownedLevels: Map<string, number> = new Map(),
 ): ShopItem[] {
   const items: ShopItem[] = [];
   const usedNames = new Set<string>();
 
   // Generate 4 stat increases
-  while (items.filter(i => i.category === 'stat_increase').length < 4) {
+  while (items.filter((i) => i.category === 'stat_increase').length < 4) {
     const item = createStatIncreaseItem(playerStats);
     if (!usedNames.has(item.name)) {
       items.push(item);
@@ -215,7 +226,7 @@ export function generateDailyShopItems(
   }
 
   // Generate 2 consumables
-  while (items.filter(i => i.category === 'consumable').length < 2) {
+  while (items.filter((i) => i.category === 'consumable').length < 2) {
     const item = createConsumableItem();
     if (!usedNames.has(item.name)) {
       items.push(item);
@@ -224,7 +235,7 @@ export function generateDailyShopItems(
   }
 
   // Generate 2 equipment
-  while (items.filter(i => i.category === 'equipment').length < 2) {
+  while (items.filter((i) => i.category === 'equipment').length < 2) {
     const item = createEquipmentItem();
     if (!usedNames.has(item.name)) {
       items.push(item);
@@ -233,7 +244,7 @@ export function generateDailyShopItems(
   }
 
   // Generate 2 abilities
-  while (items.filter(i => i.category === 'ability').length < 2) {
+  while (items.filter((i) => i.category === 'ability').length < 2) {
     const abilityItem = createAbilityItem(ownedLevels);
     if (abilityItem && !usedNames.has(abilityItem.name)) {
       items.push(abilityItem);

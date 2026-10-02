@@ -45,7 +45,7 @@ export const ActiveChallenges: React.FC = () => {
 
   const getRequirementProgress = (
     requirement: Challenge['requirements'][0],
-    progress: Challenge['progress']['requirementProgress'][0]
+    progress: Challenge['progress']['requirementProgress'][0],
   ): { current: number; target: number; percentage: number } => {
     switch (progress.type) {
       case 'statThreshold':
@@ -135,7 +135,9 @@ export const ActiveChallenges: React.FC = () => {
                     <span className="font-bold text-pixel-text text-sm truncate">
                       {challenge.name}
                     </span>
-                    <span className={`text-xs shrink-0 ${isCompleted ? 'text-green-500 font-bold' : 'text-pixel-text-muted'}`}>
+                    <span
+                      className={`text-xs shrink-0 ${isCompleted ? 'text-green-500 font-bold' : 'text-pixel-text-muted'}`}
+                    >
                       {isCompleted ? 'Complete!' : `${pct}%`}
                     </span>
                   </div>
@@ -157,7 +159,9 @@ export const ActiveChallenges: React.FC = () => {
                     </Button>
                   </span>
                 )}
-                <div className="text-pixel-text-muted text-sm shrink-0">{isExpanded ? '▼' : '▶'}</div>
+                <div className="text-pixel-text-muted text-sm shrink-0">
+                  {isExpanded ? '▼' : '▶'}
+                </div>
               </div>
 
               {/* Expanded View */}

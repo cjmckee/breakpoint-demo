@@ -43,11 +43,16 @@ import { aggregateArchetypeEffects } from '../../data/archetypeTree';
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
 
 const NET_ATTACKER: ArchetypeProfile = {
-  broad: 'net_attacker', phases: { net: { path: 'net_downhill', tier: 3 } },
-  specializationPoints: 0, respecTokens: 0,
+  broad: 'net_attacker',
+  phases: { net: { path: 'net_downhill', tier: 3 } },
+  specializationPoints: 0,
+  respecTokens: 0,
 };
 const BASELINER: ArchetypeProfile = {
-  broad: 'baseliner', phases: {}, specializationPoints: 0, respecTokens: 0,
+  broad: 'baseliner',
+  phases: {},
+  specializationPoints: 0,
+  respecTokens: 0,
 };
 
 function stats(r: number, net: number): PlayerStats {
@@ -65,7 +70,8 @@ function calcFatigue(cur: number, rally: number, stam: number): number {
   if (rally > MATCH_FATIGUE.longRallyThreshold) {
     gain += (rally - MATCH_FATIGUE.longRallyThreshold) * MATCH_FATIGUE.longRallyExtra * sf;
   }
-  const rec = MATCH_FATIGUE.baseRecoveryPerPoint +
+  const rec =
+    MATCH_FATIGUE.baseRecoveryPerPoint +
     (stam / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
   return Math.max(0, Math.min(100, cur + gain - rec));
 }
@@ -80,8 +86,13 @@ interface Tally {
   passWinners: number;
 }
 
-const newTally = (): Tally =>
-  ({ netPoints: 0, passerWon: 0, passAttempts: 0, passIn: 0, passWinners: 0 });
+const newTally = (): Tally => ({
+  netPoints: 0,
+  passerWon: 0,
+  passAttempts: 0,
+  passIn: 0,
+  passWinners: 0,
+});
 
 /** The attacker is 'player'; the passer is 'opponent'. */
 function runMatch(attacker: PlayerProfile, passer: PlayerProfile, t: Tally): void {
@@ -89,12 +100,19 @@ function runMatch(attacker: PlayerProfile, passer: PlayerProfile, t: Tally): voi
   const pEff = aggregateArchetypeEffects(BASELINER);
   const tracker = new ScoreTracker(BO3);
   tracker.setInitialServer(Math.random() < 0.5 ? 'player' : 'opponent');
-  attacker.rollMatchForm(); passer.rollMatchForm();
+  attacker.rollMatchForm();
+  passer.rollMatchForm();
   const sim = new PointSimulator();
   const ms: MatchState = {
-    score: tracker.getScore(), currentServer: tracker.getCurrentServer(), courtSurface: 'hard',
-    momentum: 0, pressure: 'low', matchLength: 0, pointsPlayed: 0,
-    isKeyMoment: false, fatigue: { player: 0, opponent: 0 },
+    score: tracker.getScore(),
+    currentServer: tracker.getCurrentServer(),
+    courtSurface: 'hard',
+    momentum: 0,
+    pressure: 'low',
+    matchLength: 0,
+    pointsPlayed: 0,
+    isKeyMoment: false,
+    fatigue: { player: 0, opponent: 0 },
   };
 
   let pts = 0;
@@ -102,15 +120,19 @@ function runMatch(attacker: PlayerProfile, passer: PlayerProfile, t: Tally): voi
     const server = tracker.getCurrentServer();
     ms.isKeyMoment = tracker.isKeyMoment();
     const pr = sim.simulatePoint(
-      server, server === 'player' ? attacker : passer,
-      server === 'player' ? passer : attacker, ms, aEff, pEff,
+      server,
+      server === 'player' ? attacker : passer,
+      server === 'player' ? passer : attacker,
+      ms,
+      aEff,
+      pEff,
     );
 
     const attackerRole = server === 'player' ? 'server' : 'returner';
     const reachedNet = pr.shots.some(
       (s: ShotDetail) => s.shooter === attackerRole && s.context?.courtPosition === 'net',
     );
-    const winner = pr.winner === 'server' ? server : (server === 'player' ? 'opponent' : 'player');
+    const winner = pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player';
 
     if (reachedNet) {
       t.netPoints++;
@@ -119,15 +141,27 @@ function runMatch(attacker: PlayerProfile, passer: PlayerProfile, t: Tally): voi
         if (s.shooter === attackerRole) continue;
         if (!String(s.shotType).includes('passing')) continue;
         t.passAttempts++;
-        if (s.outcome === PointType.WINNER) { t.passWinners++; t.passIn++; }
-        else if (s.outcome === PointType.IN_PLAY) t.passIn++;
+        if (s.outcome === PointType.WINNER) {
+          t.passWinners++;
+          t.passIn++;
+        } else if (s.outcome === PointType.IN_PLAY) t.passIn++;
       }
     }
 
     tracker.addPoint(winner);
-    ms.fatigue.player = calcFatigue(ms.fatigue.player, pr.rallyLength, attacker.stats.physical.stamina);
-    ms.fatigue.opponent = calcFatigue(ms.fatigue.opponent, pr.rallyLength, passer.stats.physical.stamina);
-    ms.score = tracker.getScore(); ms.currentServer = tracker.getCurrentServer(); ms.pointsPlayed = ++pts;
+    ms.fatigue.player = calcFatigue(
+      ms.fatigue.player,
+      pr.rallyLength,
+      attacker.stats.physical.stamina,
+    );
+    ms.fatigue.opponent = calcFatigue(
+      ms.fatigue.opponent,
+      pr.rallyLength,
+      passer.stats.physical.stamina,
+    );
+    ms.score = tracker.getScore();
+    ms.currentServer = tracker.getCurrentServer();
+    ms.pointsPlayed = ++pts;
   }
 }
 
@@ -153,19 +187,29 @@ function main(): void {
 
   console.log(`\n╔══ NET COVERAGE — what does OPPONENT_STAT_ADJUSTMENTS.netCoverage buy? ══╗`);
   console.log(`\n   net_downhill T3 attacker vs a uniform-${L} baseliner, ${N} BO3 per cell.`);
-  console.log(`   Everything but the attacker's \`net\` is uniform ${L}. Shipped value is ${SHIPPED}.`);
+  console.log(
+    `   Everything but the attacker's \`net\` is uniform ${L}. Shipped value is ${SHIPPED}.`,
+  );
   console.log(`   All figures are from the PASSER's side, on points where the attacker`);
   console.log(`   actually reached the net.\n`);
 
-  const header = ['coverage'.padEnd(10), 'net'.padStart(5), 'net pts'.padStart(9),
-    'passer won'.padStart(12), 'pass in%'.padStart(10), 'pass win%'.padStart(11)].join('');
+  const header = [
+    'coverage'.padEnd(10),
+    'net'.padStart(5),
+    'net pts'.padStart(9),
+    'passer won'.padStart(12),
+    'pass in%'.padStart(10),
+    'pass win%'.padStart(11),
+  ].join('');
 
   const rows: Array<[number, number, number]> = []; // [coverage, passerWon@25, passerWon@75]
 
   const sweep = (process.env.COVERAGES ?? `0,${SHIPPED},0.5,1.0`).split(',').map(Number);
   for (const coverage of sweep) {
     (OPPONENT_STAT_ADJUSTMENTS as unknown as Record<string, number>).netCoverage = coverage;
-    console.log(`\n── netCoverage = ${coverage.toFixed(2)}${coverage === SHIPPED ? '  (shipped)' : ''} ──`);
+    console.log(
+      `\n── netCoverage = ${coverage.toFixed(2)}${coverage === SHIPPED ? '  (shipped)' : ''} ──`,
+    );
     console.log(header);
     console.log('-'.repeat(header.length));
 
@@ -174,32 +218,44 @@ function main(): void {
       const t = measure(attackerNet, L, N);
       const passerWon = pct(t.passerWon, t.netPoints);
       won.push(passerWon);
-      console.log([
-        ''.padEnd(10),
-        String(attackerNet).padStart(5),
-        String(t.netPoints).padStart(9),
-        `${passerWon.toFixed(1)}%`.padStart(12),
-        `${pct(t.passIn, t.passAttempts).toFixed(1)}%`.padStart(10),
-        `${pct(t.passWinners, t.passAttempts).toFixed(1)}%`.padStart(11),
-      ].join(''));
+      console.log(
+        [
+          ''.padEnd(10),
+          String(attackerNet).padStart(5),
+          String(t.netPoints).padStart(9),
+          `${passerWon.toFixed(1)}%`.padStart(12),
+          `${pct(t.passIn, t.passAttempts).toFixed(1)}%`.padStart(10),
+          `${pct(t.passWinners, t.passAttempts).toFixed(1)}%`.padStart(11),
+        ].join(''),
+      );
     }
-    console.log(`${''.padEnd(10)}${'SPREAD'.padStart(5)}${''.padStart(9)}${f(won[0] - won[1]).padStart(11)}pp`);
+    console.log(
+      `${''.padEnd(10)}${'SPREAD'.padStart(5)}${''.padStart(9)}${f(won[0] - won[1]).padStart(11)}pp`,
+    );
     rows.push([coverage, won[0], won[1]]);
   }
 
   (OPPONENT_STAT_ADJUSTMENTS as unknown as Record<string, number>).netCoverage = SHIPPED;
 
   console.log('\n\n── SPREAD by coverage — how much a good volleyer is protected ──\n');
-  console.log(['coverage'.padStart(10), 'passer won @net25'.padStart(19),
-    '@net75'.padStart(10), 'spread'.padStart(9)].join(''));
+  console.log(
+    [
+      'coverage'.padStart(10),
+      'passer won @net25'.padStart(19),
+      '@net75'.padStart(10),
+      'spread'.padStart(9),
+    ].join(''),
+  );
   console.log('-'.repeat(48));
   for (const [coverage, lo, hi] of rows) {
-    console.log([
-      coverage.toFixed(2).padStart(10),
-      `${lo.toFixed(1)}%`.padStart(19),
-      `${hi.toFixed(1)}%`.padStart(10),
-      `${f(lo - hi)}pp`.padStart(9),
-    ].join(''));
+    console.log(
+      [
+        coverage.toFixed(2).padStart(10),
+        `${lo.toFixed(1)}%`.padStart(19),
+        `${hi.toFixed(1)}%`.padStart(10),
+        `${f(lo - hi)}pp`.padStart(9),
+      ].join(''),
+    );
   }
   console.log('\nSpread at coverage 0 is what the volley composite and approach quality');
   console.log('already buy. Everything above that line is the mechanism. If the column');

@@ -49,8 +49,17 @@ const randomToss = (speed: number): Toss => ({
   vx: (random() < 0.5 ? -1 : 1) * (12 + random() * 7) * speed,
 });
 
-export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus = 0, onFirstAttempt, config }) => {
-  const rounds = useMinigameRounds({ minigame: 'toss_and_strike', config }, onComplete, onFirstAttempt);
+export const ServeMinigame: React.FC<MinigameProps> = ({
+  onComplete,
+  windowBonus = 0,
+  onFirstAttempt,
+  config,
+}) => {
+  const rounds = useMinigameRounds(
+    { minigame: 'toss_and_strike', config },
+    onComplete,
+    onFirstAttempt,
+  );
   const { frozen, trigger: hitstop } = useHitstop();
 
   const half = { x: (POCKET_W * (1 + windowBonus)) / 2, y: (POCKET_H * (1 + windowBonus)) / 2 };
@@ -116,10 +125,19 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
       b.vy += toss.g * dt;
       b.y += b.vy * dt;
       b.x += b.vx * dt;
-      if (b.x < X_MIN) { b.x = X_MIN; b.vx = Math.abs(b.vx); }
-      if (b.x > X_MAX) { b.x = X_MAX; b.vx = -Math.abs(b.vx); }
+      if (b.x < X_MIN) {
+        b.x = X_MIN;
+        b.vx = Math.abs(b.vx);
+      }
+      if (b.x > X_MAX) {
+        b.x = X_MAX;
+        b.vx = -Math.abs(b.vx);
+      }
       const edge = halfRef.current.x;
-      zoneRef.current = Math.max(edge, Math.min(100 - edge, zoneRef.current + moveRef.current * ZONE_SPEED * dt));
+      zoneRef.current = Math.max(
+        edge,
+        Math.min(100 - edge, zoneRef.current + moveRef.current * ZONE_SPEED * dt),
+      );
       setBall({ x: b.x, y: b.y });
       setZone(zoneRef.current);
       setInPocket(isInPocket());
@@ -142,13 +160,23 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
   useEffect(() => {
     const down = (e: KeyboardEvent): void => {
       const dir = directionFromKey(e);
-      if (dir === 'left') { e.preventDefault(); moveRef.current = -1; }
-      else if (dir === 'right') { e.preventDefault(); moveRef.current = 1; }
-      else if (isActionKey(e)) { e.preventDefault(); strike(); }
+      if (dir === 'left') {
+        e.preventDefault();
+        moveRef.current = -1;
+      } else if (dir === 'right') {
+        e.preventDefault();
+        moveRef.current = 1;
+      } else if (isActionKey(e)) {
+        e.preventDefault();
+        strike();
+      }
     };
     const up = (e: KeyboardEvent): void => {
       const dir = directionFromKey(e);
-      if ((dir === 'left' && moveRef.current === -1) || (dir === 'right' && moveRef.current === 1)) {
+      if (
+        (dir === 'left' && moveRef.current === -1) ||
+        (dir === 'right' && moveRef.current === 1)
+      ) {
         moveRef.current = 0;
       }
     };
@@ -161,9 +189,16 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
   }, [strike]);
 
   const hold = (dir: number) => ({
-    onPointerDown: (e: React.PointerEvent) => { e.preventDefault(); moveRef.current = dir; },
-    onPointerUp: () => { moveRef.current = 0; },
-    onPointerLeave: () => { moveRef.current = 0; },
+    onPointerDown: (e: React.PointerEvent) => {
+      e.preventDefault();
+      moveRef.current = dir;
+    },
+    onPointerUp: () => {
+      moveRef.current = 0;
+    },
+    onPointerLeave: () => {
+      moveRef.current = 0;
+    },
   });
 
   const idle = rounds.phase === 'ready';
@@ -189,7 +224,7 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
                 'Three perfect serves!',
                 'Two clean serves. Not bad.',
                 'One clean serve. Keep practicing!',
-                'Nothing clean — wait for the pocket.'
+                'Nothing clean — wait for the pocket.',
               )}
             />
           ) : (
@@ -230,7 +265,12 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
         {playing && !struck && (
           <div
             className="absolute bottom-1 h-2 rounded-full bg-black/40"
-            style={{ left: u(ball.x), width: u(4.8), transform: 'translateX(-50%)', opacity: Math.max(0.15, 1 - ball.y / ARENA_H) }}
+            style={{
+              left: u(ball.x),
+              width: u(4.8),
+              transform: 'translateX(-50%)',
+              opacity: Math.max(0.15, 1 - ball.y / ARENA_H),
+            }}
           />
         )}
 
@@ -265,7 +305,12 @@ export const ServeMinigame: React.FC<MinigameProps> = ({ onComplete, windowBonus
         {struck && (
           <div
             className="absolute"
-            style={{ left: u(ball.x), top: u(Math.max(2.6, ball.y - 8.8)), fontSize: uMin(4.1, 16), transform: 'translate(-50%, -50%)' }}
+            style={{
+              left: u(ball.x),
+              top: u(Math.max(2.6, ball.y - 8.8)),
+              fontSize: uMin(4.1, 16),
+              transform: 'translate(-50%, -50%)',
+            }}
           >
             💥
           </div>

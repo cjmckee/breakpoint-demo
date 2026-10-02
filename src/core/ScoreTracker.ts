@@ -41,13 +41,7 @@
  * https://www.itftennis.com/media/7221/2026-rules-of-tennis-english.pdf
  */
 
-import type {
-  MatchScore,
-  GameScore,
-  SetScore,
-  MatchFormat,
-  ScoreSnapshot,
-} from '../types';
+import type { MatchScore, GameScore, SetScore, MatchFormat, ScoreSnapshot } from '../types';
 
 export class ScoreTracker {
   private score: MatchScore;
@@ -56,7 +50,14 @@ export class ScoreTracker {
   private tiebreakFirstServer: 'player' | 'opponent' | null = null;
   private tiebreakPointsPlayed: number = 0;
 
-  constructor(matchFormat: MatchFormat = { bestOfSets: 1, gamesPerSet: 6, enableTiebreaks: false, tiebreakAt: 6 }) {
+  constructor(
+    matchFormat: MatchFormat = {
+      bestOfSets: 1,
+      gamesPerSet: 6,
+      enableTiebreaks: false,
+      tiebreakAt: 6,
+    },
+  ) {
     this.score = this.createInitialScore(matchFormat);
   }
 
@@ -66,12 +67,14 @@ export class ScoreTracker {
 
   private createInitialScore(matchFormat: MatchFormat): MatchScore {
     return {
-      sets: [{
-        player: 0,
-        opponent: 0,
-        winner: undefined,
-        isComplete: false,
-      }],
+      sets: [
+        {
+          player: 0,
+          opponent: 0,
+          winner: undefined,
+          isComplete: false,
+        },
+      ],
       currentGame: {
         server: 0,
         returner: 0,
@@ -187,8 +190,10 @@ export class ScoreTracker {
    */
   private isNormalGameComplete(): boolean {
     const game = this.score.currentGame;
-    return (game.server >= 4 && game.server - game.returner >= 2) ||
-           (game.returner >= 4 && game.returner - game.server >= 2);
+    return (
+      (game.server >= 4 && game.server - game.returner >= 2) ||
+      (game.returner >= 4 && game.returner - game.server >= 2)
+    );
   }
 
   /**
@@ -226,8 +231,10 @@ export class ScoreTracker {
   private isNormalSetComplete(): boolean {
     const currentSet = this.getCurrentSet();
     const gamesPerSet = this.score.matchFormat.gamesPerSet;
-    return (currentSet.player >= gamesPerSet && currentSet.player - currentSet.opponent >= 2) ||
-           (currentSet.opponent >= gamesPerSet && currentSet.opponent - currentSet.player >= 2);
+    return (
+      (currentSet.player >= gamesPerSet && currentSet.player - currentSet.opponent >= 2) ||
+      (currentSet.opponent >= gamesPerSet && currentSet.opponent - currentSet.player >= 2)
+    );
   }
 
   /**
@@ -236,8 +243,10 @@ export class ScoreTracker {
   private getNormalSetWinner(): 'player' | 'opponent' | undefined {
     const currentSet = this.getCurrentSet();
     const gamesPerSet = this.score.matchFormat.gamesPerSet;
-    if (currentSet.player >= gamesPerSet && currentSet.player - currentSet.opponent >= 2) return 'player';
-    if (currentSet.opponent >= gamesPerSet && currentSet.opponent - currentSet.player >= 2) return 'opponent';
+    if (currentSet.player >= gamesPerSet && currentSet.player - currentSet.opponent >= 2)
+      return 'player';
+    if (currentSet.opponent >= gamesPerSet && currentSet.opponent - currentSet.player >= 2)
+      return 'opponent';
     return undefined;
   }
 
@@ -281,8 +290,10 @@ export class ScoreTracker {
   private shouldStartTiebreak(): boolean {
     if (!this.score.matchFormat.enableTiebreaks) return false;
     const currentSet = this.getCurrentSet();
-    return currentSet.player === this.score.matchFormat.tiebreakAt &&
-           currentSet.opponent === this.score.matchFormat.tiebreakAt;
+    return (
+      currentSet.player === this.score.matchFormat.tiebreakAt &&
+      currentSet.opponent === this.score.matchFormat.tiebreakAt
+    );
   }
 
   /**
@@ -369,8 +380,10 @@ export class ScoreTracker {
    */
   private isTiebreakComplete(): boolean {
     const tb = this.score.currentTiebreak!;
-    return (tb.player >= 7 && tb.player - tb.opponent >= 2) ||
-           (tb.opponent >= 7 && tb.opponent - tb.player >= 2);
+    return (
+      (tb.player >= 7 && tb.player - tb.opponent >= 2) ||
+      (tb.opponent >= 7 && tb.opponent - tb.player >= 2)
+    );
   }
 
   /**
@@ -440,9 +453,9 @@ export class ScoreTracker {
    */
   private isMatchNowComplete(): boolean {
     const setsToWin = Math.ceil(this.score.matchFormat.bestOfSets / 2);
-    const completedSets = this.score.sets.filter(s => s.isComplete);
-    const playerSets = completedSets.filter(s => s.winner === 'player').length;
-    const opponentSets = completedSets.filter(s => s.winner === 'opponent').length;
+    const completedSets = this.score.sets.filter((s) => s.isComplete);
+    const playerSets = completedSets.filter((s) => s.winner === 'player').length;
+    const opponentSets = completedSets.filter((s) => s.winner === 'opponent').length;
     return playerSets >= setsToWin || opponentSets >= setsToWin;
   }
 
@@ -451,9 +464,9 @@ export class ScoreTracker {
    */
   private getMatchWinner(): 'player' | 'opponent' | undefined {
     const setsToWin = Math.ceil(this.score.matchFormat.bestOfSets / 2);
-    const completedSets = this.score.sets.filter(s => s.isComplete);
-    const playerSets = completedSets.filter(s => s.winner === 'player').length;
-    const opponentSets = completedSets.filter(s => s.winner === 'opponent').length;
+    const completedSets = this.score.sets.filter((s) => s.isComplete);
+    const playerSets = completedSets.filter((s) => s.winner === 'player').length;
+    const opponentSets = completedSets.filter((s) => s.winner === 'opponent').length;
     if (playerSets >= setsToWin) return 'player';
     if (opponentSets >= setsToWin) return 'opponent';
     return undefined;
@@ -534,9 +547,12 @@ export class ScoreTracker {
         gameDisplay = 'Deuce';
       } else if (game.advantage) {
         // Show whose advantage it is from the player's perspective
-        const advHolder = game.advantage === 'server'
-          ? this.score.currentServer
-          : (this.score.currentServer === 'player' ? 'opponent' : 'player');
+        const advHolder =
+          game.advantage === 'server'
+            ? this.score.currentServer
+            : this.score.currentServer === 'player'
+              ? 'opponent'
+              : 'player';
         gameDisplay = advHolder === 'player' ? 'Ad-In' : 'Ad-Out';
       } else {
         const pts = ['0', '15', '30', '40'];
@@ -612,8 +628,10 @@ export class ScoreTracker {
     // Set point: winning this game would win the current set for either player.
     // player_games + 1 >= gamesPerSet AND lead by 2 simplifies to:
     // player_games >= gamesPerSet - 1 AND player_games > opponent_games
-    const playerSetPoint = currentSet.player >= gamesPerSet - 1 && currentSet.player > currentSet.opponent;
-    const opponentSetPoint = currentSet.opponent >= gamesPerSet - 1 && currentSet.opponent > currentSet.player;
+    const playerSetPoint =
+      currentSet.player >= gamesPerSet - 1 && currentSet.player > currentSet.opponent;
+    const opponentSetPoint =
+      currentSet.opponent >= gamesPerSet - 1 && currentSet.opponent > currentSet.player;
     if (playerSetPoint || opponentSetPoint) {
       return true;
     }

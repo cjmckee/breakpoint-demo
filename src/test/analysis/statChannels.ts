@@ -74,7 +74,11 @@ import {
   OPPONENT_STAT_ADJUSTMENTS,
   SHOOTER_STAT_ADJUSTMENTS,
 } from '../../config/shotThresholds';
-import { aggregateArchetypeEffects, profileForArchetype, type LegacyArchetype } from '../../data/archetypeTree';
+import {
+  aggregateArchetypeEffects,
+  profileForArchetype,
+  type LegacyArchetype,
+} from '../../data/archetypeTree';
 import { drawPlayerProfile } from './playerFactory';
 
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
@@ -82,13 +86,25 @@ const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true,
 // ─── Stat plumbing ───────────────────────────────────────────
 
 const BUCKETS = ['core', 'technical', 'physical', 'mental'] as const;
-type Bucket = typeof BUCKETS[number];
+type Bucket = (typeof BUCKETS)[number];
 
 const STAT_KEYS: Array<{ bucket: Bucket; key: string }> = [
-  ...(['serve', 'forehand', 'backhand', 'return', 'net'] as const).map(k => ({ bucket: 'core' as Bucket, key: k })),
-  ...(['slice', 'spin', 'placement'] as const).map(k => ({ bucket: 'technical' as Bucket, key: k })),
-  ...(['speed', 'stamina', 'strength'] as const).map(k => ({ bucket: 'physical' as Bucket, key: k })),
-  ...(['focus', 'anticipation', 'tactics'] as const).map(k => ({ bucket: 'mental' as Bucket, key: k })),
+  ...(['serve', 'forehand', 'backhand', 'return', 'net'] as const).map((k) => ({
+    bucket: 'core' as Bucket,
+    key: k,
+  })),
+  ...(['slice', 'spin', 'placement'] as const).map((k) => ({
+    bucket: 'technical' as Bucket,
+    key: k,
+  })),
+  ...(['speed', 'stamina', 'strength'] as const).map((k) => ({
+    bucket: 'physical' as Bucket,
+    key: k,
+  })),
+  ...(['focus', 'anticipation', 'tactics'] as const).map((k) => ({
+    bucket: 'mental' as Bucket,
+    key: k,
+  })),
 ];
 
 function uniformStats(r: number): PlayerStats {
@@ -114,18 +130,26 @@ function profileOf(phases: Partial<Record<GamePhase, PhaseSpec>>): ArchetypeProf
 function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
   return () => {
-    a = (a + 0x6D2B79F5) >>> 0;
+    a = (a + 0x6d2b79f5) >>> 0;
     let t = Math.imul(a ^ (a >>> 15), 1 | a);
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
 
-const LEGACY: LegacyArchetype[] = ['aggressive', 'defensive', 'counterpuncher', 'serve_volley', 'all_court'];
+const LEGACY: LegacyArchetype[] = [
+  'aggressive',
+  'defensive',
+  'counterpuncher',
+  'serve_volley',
+  'all_court',
+];
 
 interface Pairing {
-  pStats: PlayerStats; oStats: PlayerStats;
-  pProf: ArchetypeProfile; oProf: ArchetypeProfile;
+  pStats: PlayerStats;
+  oStats: PlayerStats;
+  pProf: ArchetypeProfile;
+  oProf: ArchetypeProfile;
   serveFirst: boolean;
 }
 
@@ -136,8 +160,13 @@ interface Pairing {
  * about the players who actually exist.
  */
 function drawPopulation(
-  n: number, seed: number, lo: number, hi: number,
-  mode: string, points: number, maxTier: 1 | 2 | 3,
+  n: number,
+  seed: number,
+  lo: number,
+  hi: number,
+  mode: string,
+  points: number,
+  maxTier: 1 | 2 | 3,
 ): Pairing[] {
   const rng = mulberry32(seed);
   const stats = (): PlayerStats => {
@@ -162,7 +191,13 @@ function drawPopulation(
 
   const out: Pairing[] = [];
   for (let i = 0; i < n; i++) {
-    out.push({ pStats: stats(), oStats: stats(), pProf: drawP(), oProf: opponentProf(), serveFirst: rng() < 0.5 });
+    out.push({
+      pStats: stats(),
+      oStats: stats(),
+      pProf: drawP(),
+      oProf: opponentProf(),
+      serveFirst: rng() < 0.5,
+    });
   }
   return out;
 }
@@ -174,17 +209,24 @@ type Channel = 'composite' | 'band' | 'threshold';
 type Column = Channel | 'control';
 
 /** Deep snapshot of every table an ablation touches, so configs can be restored. */
-const ORIGINAL = JSON.parse(JSON.stringify({
-  SHOT_COMPOSITE_WEIGHTS, SERVE_QUALITY_WEIGHTS, SERVE_ACCURACY_WEIGHTS, RETURN_COMPOSITE_WEIGHTS,
-  STAT_MODIFIER_BANDS, SERVE_MODIFIER_BANDS,
-  OPPONENT_STAT_ADJUSTMENTS, SHOOTER_STAT_ADJUSTMENTS,
-}));
+const ORIGINAL = JSON.parse(
+  JSON.stringify({
+    SHOT_COMPOSITE_WEIGHTS,
+    SERVE_QUALITY_WEIGHTS,
+    SERVE_ACCURACY_WEIGHTS,
+    RETURN_COMPOSITE_WEIGHTS,
+    STAT_MODIFIER_BANDS,
+    SERVE_MODIFIER_BANDS,
+    OPPONENT_STAT_ADJUSTMENTS,
+    SHOOTER_STAT_ADJUSTMENTS,
+  }),
+);
 
 function restore(): void {
   const assign = (target: Record<string, unknown>, src: Record<string, unknown>): void => {
     for (const k of Object.keys(target)) delete target[k];
     for (const [k, v] of Object.entries(src)) {
-      target[k] = (v !== null && typeof v === 'object') ? JSON.parse(JSON.stringify(v)) : v;
+      target[k] = v !== null && typeof v === 'object' ? JSON.parse(JSON.stringify(v)) : v;
     }
   };
   assign(SHOT_COMPOSITE_WEIGHTS as never, ORIGINAL.SHOT_COMPOSITE_WEIGHTS);
@@ -204,7 +246,9 @@ function restore(): void {
  */
 function ablate(ch: Column): void {
   restore();
-  const zero = (o: Record<string, number>): void => { for (const k of Object.keys(o)) o[k] = 0; };
+  const zero = (o: Record<string, number>): void => {
+    for (const k of Object.keys(o)) o[k] = 0;
+  };
 
   if (ch === 'control') {
     return; // shipped config, re-measured — the column exists to show what zero looks like
@@ -237,7 +281,8 @@ function calcFatigue(cur: number, rally: number, stam: number): number {
   if (rally > MATCH_FATIGUE.longRallyThreshold) {
     gain += (rally - MATCH_FATIGUE.longRallyThreshold) * MATCH_FATIGUE.longRallyExtra * sf;
   }
-  const rec = MATCH_FATIGUE.baseRecoveryPerPoint +
+  const rec =
+    MATCH_FATIGUE.baseRecoveryPerPoint +
     (stam / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
   return Math.max(0, Math.min(100, cur + gain - rec));
 }
@@ -255,9 +300,15 @@ function runMatch(pair: Pairing): [number, number] {
   const sim = new PointSimulator();
 
   const ms: MatchState = {
-    score: tracker.getScore(), currentServer: tracker.getCurrentServer(), courtSurface: 'hard',
-    momentum: 0, pressure: 'low', matchLength: 0, pointsPlayed: 0,
-    isKeyMoment: false, fatigue: { player: 0, opponent: 0 },
+    score: tracker.getScore(),
+    currentServer: tracker.getCurrentServer(),
+    courtSurface: 'hard',
+    momentum: 0,
+    pressure: 'low',
+    matchLength: 0,
+    pointsPlayed: 0,
+    isKeyMoment: false,
+    fatigue: { player: 0, opponent: 0 },
   };
 
   let points = 0;
@@ -265,13 +316,27 @@ function runMatch(pair: Pairing): [number, number] {
   while (!tracker.isComplete() && points < 600) {
     const server = tracker.getCurrentServer();
     ms.isKeyMoment = tracker.isKeyMoment();
-    const pr = sim.simulatePoint(server, server === 'player' ? player : opponent,
-      server === 'player' ? opponent : player, ms, pEff, oEff);
-    const winner = pr.winner === 'server' ? server : (server === 'player' ? 'opponent' : 'player');
+    const pr = sim.simulatePoint(
+      server,
+      server === 'player' ? player : opponent,
+      server === 'player' ? opponent : player,
+      ms,
+      pEff,
+      oEff,
+    );
+    const winner = pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player';
     if (winner === 'player') playerPoints++;
     tracker.addPoint(winner);
-    ms.fatigue.player = calcFatigue(ms.fatigue.player, pr.rallyLength, player.stats.physical.stamina);
-    ms.fatigue.opponent = calcFatigue(ms.fatigue.opponent, pr.rallyLength, opponent.stats.physical.stamina);
+    ms.fatigue.player = calcFatigue(
+      ms.fatigue.player,
+      pr.rallyLength,
+      player.stats.physical.stamina,
+    );
+    ms.fatigue.opponent = calcFatigue(
+      ms.fatigue.opponent,
+      pr.rallyLength,
+      opponent.stats.physical.stamina,
+    );
     ms.score = tracker.getScore();
     ms.currentServer = tracker.getCurrentServer();
     ms.pointsPlayed = ++points;
@@ -281,7 +346,10 @@ function runMatch(pair: Pairing): [number, number] {
 
 // ─── Regression ──────────────────────────────────────────────
 
-interface Slopes { slope: number[]; se: number[] }
+interface Slopes {
+  slope: number[];
+  se: number[];
+}
 
 function measure(pop: Pairing[]): Slopes {
   const diffs: number[][] = [];
@@ -289,7 +357,8 @@ function measure(pop: Pairing[]): Slopes {
   for (const pair of pop) {
     const [won, tot] = runMatch(pair);
     if (tot === 0) continue;
-    const pf = flatten(pair.pStats), of = flatten(pair.oStats);
+    const pf = flatten(pair.pStats),
+      of = flatten(pair.oStats);
     diffs.push(pf.map((v, j) => v - of[j]));
     ys.push((won / tot) * 100 - 50);
   }
@@ -299,15 +368,22 @@ function measure(pop: Pairing[]): Slopes {
   const slope: number[] = [];
   const se: number[] = [];
   STAT_KEYS.forEach((_, j) => {
-    const xs = diffs.map(d => d[j]);
+    const xs = diffs.map((d) => d[j]);
     const mx = xs.reduce((s, x) => s + x, 0) / n;
-    let sxy = 0, sxx = 0;
-    for (let i = 0; i < n; i++) { sxy += (xs[i] - mx) * (ys[i] - my); sxx += (xs[i] - mx) ** 2; }
+    let sxy = 0,
+      sxx = 0;
+    for (let i = 0; i < n; i++) {
+      sxy += (xs[i] - mx) * (ys[i] - my);
+      sxx += (xs[i] - mx) ** 2;
+    }
     const b = sxy / sxx;
     let sse = 0;
-    for (let i = 0; i < n; i++) { const pred = my + b * (xs[i] - mx); sse += (ys[i] - pred) ** 2; }
-    slope.push(b * 10);                                   // per +10 stat
-    se.push(Math.sqrt((sse / (n - 2)) / sxx) * 10);
+    for (let i = 0; i < n; i++) {
+      const pred = my + b * (xs[i] - mx);
+      sse += (ys[i] - pred) ** 2;
+    }
+    slope.push(b * 10); // per +10 stat
+    se.push(Math.sqrt(sse / (n - 2) / sxx) * 10);
   });
   return { slope, se };
 }
@@ -350,8 +426,12 @@ function staticMargins(ref: number): Map<string, Margin[]> {
   for (const [, w] of Object.entries(SHOT_COMPOSITE_WEIGHTS)) {
     for (const [stat, weight] of Object.entries(w)) noteComp(stat, weight);
   }
-  for (const table of [SERVE_QUALITY_WEIGHTS.serve_first, SERVE_QUALITY_WEIGHTS.serve_second,
-    SERVE_ACCURACY_WEIGHTS.serve_first, SERVE_ACCURACY_WEIGHTS.serve_second]) {
+  for (const table of [
+    SERVE_QUALITY_WEIGHTS.serve_first,
+    SERVE_QUALITY_WEIGHTS.serve_second,
+    SERVE_ACCURACY_WEIGHTS.serve_first,
+    SERVE_ACCURACY_WEIGHTS.serve_second,
+  ]) {
     for (const [stat, weight] of Object.entries(table)) noteComp(stat, weight);
   }
   for (const [stat, weight] of Object.entries(RETURN_COMPOSITE_WEIGHTS)) noteComp(stat, weight);
@@ -360,16 +440,24 @@ function staticMargins(ref: number): Map<string, Margin[]> {
     // against the stats that can hold it rather than as a stat of its own.
     if (stat === 'primary') continue;
     push(stat, {
-      channel: 'composite', size: 10 * e.hi,
-      gate: e.lo === e.hi ? `${e.n} shot famil${e.n === 1 ? 'y' : 'ies'} @ w=${e.hi.toFixed(2)}`
-        : `${e.n} shot families @ w=${e.lo.toFixed(2)}-${e.hi.toFixed(2)}`,
+      channel: 'composite',
+      size: 10 * e.hi,
+      gate:
+        e.lo === e.hi
+          ? `${e.n} shot famil${e.n === 1 ? 'y' : 'ies'} @ w=${e.hi.toFixed(2)}`
+          : `${e.n} shot families @ w=${e.lo.toFixed(2)}-${e.hi.toFixed(2)}`,
     });
   }
   // The primary slot itself, for the five stats that can own a shot.
-  const primaries = new Set(Object.values(SHOT_COMPOSITE_WEIGHTS).map(w => w.primary));
-  const pLo = Math.min(...primaries), pHi = Math.max(...primaries);
+  const primaries = new Set(Object.values(SHOT_COMPOSITE_WEIGHTS).map((w) => w.primary));
+  const pLo = Math.min(...primaries),
+    pHi = Math.max(...primaries);
   for (const stat of ['forehand', 'backhand', 'net', 'slice', 'placement']) {
-    push(stat, { channel: 'composite', size: 10 * pHi, gate: `primary slot, w=${pLo.toFixed(2)}-${pHi.toFixed(2)}` });
+    push(stat, {
+      channel: 'composite',
+      size: 10 * pHi,
+      gate: `primary slot, w=${pLo.toFixed(2)}-${pHi.toFixed(2)}`,
+    });
   }
 
   // 2. BAND — multiplicative supports.
@@ -390,37 +478,61 @@ function staticMargins(ref: number): Map<string, Margin[]> {
   band('spin', SERVE_MODIFIER_BANDS.second.spin, 'second serve');
 
   // 3. THRESHOLD — moves the bar. Opponent-side entries are the OPPONENT's stat.
-  push('tactics', { channel: 'threshold', size: 10 * OPPONENT_STAT_ADJUSTMENTS.tactics, gate: "opponent's stat, every rally shot" });
-  push('speed', { channel: 'threshold', size: 10 * OPPONENT_STAT_ADJUSTMENTS.speed, gate: "opponent's stat, every rally shot" });
-  push('net', { channel: 'threshold', size: 10 * OPPONENT_STAT_ADJUSTMENTS.netCoverage, gate: "opponent's stat, only while at net" });
-  push('anticipation', { channel: 'threshold', size: 10 * SHOOTER_STAT_ADJUSTMENTS.anticipation, gate: 'own stat, every rally shot' });
+  push('tactics', {
+    channel: 'threshold',
+    size: 10 * OPPONENT_STAT_ADJUSTMENTS.tactics,
+    gate: "opponent's stat, every rally shot",
+  });
+  push('speed', {
+    channel: 'threshold',
+    size: 10 * OPPONENT_STAT_ADJUSTMENTS.speed,
+    gate: "opponent's stat, every rally shot",
+  });
+  push('net', {
+    channel: 'threshold',
+    size: 10 * OPPONENT_STAT_ADJUSTMENTS.netCoverage,
+    gate: "opponent's stat, only while at net",
+  });
+  push('anticipation', {
+    channel: 'threshold',
+    size: 10 * SHOOTER_STAT_ADJUSTMENTS.anticipation,
+    gate: 'own stat, every rally shot',
+  });
 
   return out;
 }
 
 function partS(ref: number): void {
-  console.log(`\n╔══ PART S: points of shot quality per +10 stat, by channel, at rating ${ref} ══╗`);
+  console.log(
+    `\n╔══ PART S: points of shot quality per +10 stat, by channel, at rating ${ref} ══╗`,
+  );
   console.log('\nNo simulation — arithmetic on the config tables. `when active` is the size the');
   console.log('channel pays on a shot whose gate is open; a channel that pays a lot but almost');
   console.log('never opens is worth little, and PART A is what settles that.\n');
 
   const margins = staticMargins(ref);
-  const hdr = ['stat'.padEnd(13), 'channel'.padEnd(11), 'when active'.padStart(12), '  gate'].join('');
+  const hdr = ['stat'.padEnd(13), 'channel'.padEnd(11), 'when active'.padStart(12), '  gate'].join(
+    '',
+  );
   console.log(hdr);
   console.log('-'.repeat(78));
   for (const { key } of STAT_KEYS) {
     const rows = (margins.get(key) ?? []).sort((a, b) => b.size - a.size);
     if (rows.length === 0) {
-      console.log([key.padEnd(13), '—'.padEnd(11), '—'.padStart(12), '  no shot-quality channel'].join(''));
+      console.log(
+        [key.padEnd(13), '—'.padEnd(11), '—'.padStart(12), '  no shot-quality channel'].join(''),
+      );
       continue;
     }
     rows.forEach((m, i) => {
-      console.log([
-        (i === 0 ? key : '').padEnd(13),
-        m.channel.padEnd(11),
-        m.size.toFixed(2).padStart(12),
-        `  ${m.gate}`,
-      ].join(''));
+      console.log(
+        [
+          (i === 0 ? key : '').padEnd(13),
+          m.channel.padEnd(11),
+          m.size.toFixed(2).padStart(12),
+          `  ${m.gate}`,
+        ].join(''),
+      );
     });
   }
   console.log('');
@@ -444,60 +556,96 @@ function partM(levels: number[], matches: number): void {
   console.log('band is 1.000 at 50 by construction. `support ×` is the measured product of the');
   console.log('physical, mental, spin and placement factors — the entire band channel.\n');
 
-  const hdr = ['level'.padStart(6), 'support ×'.padStart(11), 'quality Δ'.padStart(11),
-    'phys ×'.padStart(9), 'ment ×'.padStart(9), 'spin ×'.padStart(9), 'place ×'.padStart(9)].join('');
+  const hdr = [
+    'level'.padStart(6),
+    'support ×'.padStart(11),
+    'quality Δ'.padStart(11),
+    'phys ×'.padStart(9),
+    'ment ×'.padStart(9),
+    'spin ×'.padStart(9),
+    'place ×'.padStart(9),
+  ].join('');
   console.log(hdr);
   console.log('-'.repeat(hdr.length));
 
   for (const L of levels) {
-    let n = 0, phys = 0, ment = 0, spin = 0, place = 0, prod = 0;
+    let n = 0,
+      phys = 0,
+      ment = 0,
+      spin = 0,
+      place = 0,
+      prod = 0;
     for (let i = 0; i < matches; i++) {
       const pair: Pairing = {
-        pStats: uniformStats(L), oStats: uniformStats(L),
-        pProf: profileOf({}), oProf: profileOf({}), serveFirst: i % 2 === 0,
+        pStats: uniformStats(L),
+        oStats: uniformStats(L),
+        pProf: profileOf({}),
+        oProf: profileOf({}),
+        serveFirst: i % 2 === 0,
       };
       const player = new PlayerProfile('p', 'P', pair.pStats, pair.pProf);
       const opponent = new PlayerProfile('o', 'O', pair.oStats, pair.oProf);
       const tracker = new ScoreTracker(BO3);
       tracker.setInitialServer(pair.serveFirst ? 'player' : 'opponent');
-      player.rollMatchForm(); opponent.rollMatchForm();
+      player.rollMatchForm();
+      opponent.rollMatchForm();
       const sim = new PointSimulator();
       const ms: MatchState = {
-        score: tracker.getScore(), currentServer: tracker.getCurrentServer(), courtSurface: 'hard',
-        momentum: 0, pressure: 'low', matchLength: 0, pointsPlayed: 0,
-        isKeyMoment: false, fatigue: { player: 0, opponent: 0 },
+        score: tracker.getScore(),
+        currentServer: tracker.getCurrentServer(),
+        courtSurface: 'hard',
+        momentum: 0,
+        pressure: 'low',
+        matchLength: 0,
+        pointsPlayed: 0,
+        isKeyMoment: false,
+        fatigue: { player: 0, opponent: 0 },
       };
       let points = 0;
       while (!tracker.isComplete() && points < 600) {
         const server = tracker.getCurrentServer();
-        const pr = sim.simulatePoint(server, server === 'player' ? player : opponent,
-          server === 'player' ? opponent : player, ms, {}, {});
+        const pr = sim.simulatePoint(
+          server,
+          server === 'player' ? player : opponent,
+          server === 'player' ? opponent : player,
+          ms,
+          {},
+          {},
+        );
         for (const s of pr.shots) {
           const m = s.modifiers;
           const sp = m.spinModifier;
           const pl = m.placementModifier;
-          phys += m.physicalModifier; ment += m.mentalModifier; spin += sp; place += pl;
+          phys += m.physicalModifier;
+          ment += m.mentalModifier;
+          spin += sp;
+          place += pl;
           prod += m.physicalModifier * m.mentalModifier * sp * pl;
           n++;
         }
-        tracker.addPoint(pr.winner === 'server' ? server : (server === 'player' ? 'opponent' : 'player'));
-        ms.score = tracker.getScore(); ms.currentServer = tracker.getCurrentServer();
+        tracker.addPoint(
+          pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player',
+        );
+        ms.score = tracker.getScore();
+        ms.currentServer = tracker.getCurrentServer();
         ms.pointsPlayed = ++points;
       }
     }
     const mean = prod / n;
-    console.log([
-      String(L).padStart(6),
-      mean.toFixed(4).padStart(11),
-      f((mean - 1) * L, 2).padStart(11),
-      (phys / n).toFixed(4).padStart(9),
-      (ment / n).toFixed(4).padStart(9),
-      (spin / n).toFixed(4).padStart(9),
-      (place / n).toFixed(4).padStart(9),
-    ].join(''));
+    console.log(
+      [
+        String(L).padStart(6),
+        mean.toFixed(4).padStart(11),
+        f((mean - 1) * L, 2).padStart(11),
+        (phys / n).toFixed(4).padStart(9),
+        (ment / n).toFixed(4).padStart(9),
+        (spin / n).toFixed(4).padStart(9),
+        (place / n).toFixed(4).padStart(9),
+      ].join(''),
+    );
   }
   console.log('\n`quality Δ` is the points of shot quality the whole band channel adds or');
-  console.log('removes at that level — compare it against PART S\'s composite column, which is');
+  console.log("removes at that level — compare it against PART S's composite column, which is");
   console.log('2.5 to 8.0 points for a single +10.\n');
 }
 
@@ -522,9 +670,11 @@ function main(): void {
 
   console.log(`\n╔══ PART A: where each stat's measured value comes from ══╗`);
   console.log(`   ${N} randomized pairings per configuration, stats ~ U(${LO}, ${HI}), seed ${SEED}.
-   Builds: ${POP === 'presets'
-    ? 'both sides from the five authored opponent profiles'
-    : `player side spends ${POINTS} points (max tier ${MAX_TIER}), opponent side authored`}.
+   Builds: ${
+     POP === 'presets'
+       ? 'both sides from the five authored opponent profiles'
+       : `player side spends ${POINTS} points (max tier ${MAX_TIER}), opponent side authored`
+   }.
    Identical build population in every column.`);
   console.log(`   Units: point-win-% per +10 stat.\n`);
 
@@ -540,34 +690,49 @@ function main(): void {
   restore();
   console.log(' done.\n');
 
-  const hdr = ['stat'.padEnd(13), 'full'.padStart(9), '±95%'.padStart(7),
-    ...CHANNELS.map(c => `−${c}`.padStart(11))].join('');
+  const hdr = [
+    'stat'.padEnd(13),
+    'full'.padStart(9),
+    '±95%'.padStart(7),
+    ...CHANNELS.map((c) => `−${c}`.padStart(11)),
+  ].join('');
   console.log(hdr);
   console.log('-'.repeat(hdr.length));
 
   const order = STAT_KEYS.map((_, j) => j).sort((a, b) => full.slope[b] - full.slope[a]);
   for (const j of order) {
-    const cells = CHANNELS.map(c => f(ablated[c].slope[j]).padStart(11));
-    console.log([
-      STAT_KEYS[j].key.padEnd(13),
-      f(full.slope[j]).padStart(9),
-      full.se[j] === 0 ? '  n/a' : (full.se[j] * 1.96).toFixed(2).padStart(7),
-      ...cells,
-    ].join(''));
+    const cells = CHANNELS.map((c) => f(ablated[c].slope[j]).padStart(11));
+    console.log(
+      [
+        STAT_KEYS[j].key.padEnd(13),
+        f(full.slope[j]).padStart(9),
+        full.se[j] === 0 ? '  n/a' : (full.se[j] * 1.96).toFixed(2).padStart(7),
+        ...cells,
+      ].join(''),
+    );
   }
 
-  console.log('\n\n── CHANNEL CONTRIBUTION: full − ablated, i.e. how much of the stat\'s value that channel carries ──\n');
-  const hdr2 = ['stat'.padEnd(13), 'full'.padStart(9), ...CHANNELS.map(c => c.padStart(11)), 'accounted'.padStart(11)].join('');
+  console.log(
+    "\n\n── CHANNEL CONTRIBUTION: full − ablated, i.e. how much of the stat's value that channel carries ──\n",
+  );
+  const hdr2 = [
+    'stat'.padEnd(13),
+    'full'.padStart(9),
+    ...CHANNELS.map((c) => c.padStart(11)),
+    'accounted'.padStart(11),
+  ].join('');
   console.log(hdr2);
   console.log('-'.repeat(hdr2.length));
   for (const j of order) {
-    const deltas = CHANNELS.map(c => full.slope[j] - ablated[c].slope[j]);
-    console.log([
-      STAT_KEYS[j].key.padEnd(13),
-      f(full.slope[j]).padStart(9),
-      ...deltas.map(d => f(d).padStart(11)),
-      f(deltas.reduce((s, d) => s + d, 0)).padStart(11),
-    ].join(''));
+    const deltas = CHANNELS.map((c) => full.slope[j] - ablated[c].slope[j]);
+    console.log(
+      [
+        STAT_KEYS[j].key.padEnd(13),
+        f(full.slope[j]).padStart(9),
+        ...deltas.map((d) => f(d).padStart(11)),
+        f(deltas.reduce((s, d) => s + d, 0)).padStart(11),
+      ].join(''),
+    );
   }
 
   console.log('\nReading it:');

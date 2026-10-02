@@ -12,12 +12,11 @@ export class ScheduledEventManager {
    */
   static getScheduledEvent(
     scheduledEvents: ScheduledEvent[],
-    calendar: GameCalendar
+    calendar: GameCalendar,
   ): ScheduledEvent | null {
     const event = scheduledEvents.find(
-      e =>
-        e.scheduledDay === calendar.currentDay &&
-        e.scheduledTimeSlot === calendar.currentTimeSlot
+      (e) =>
+        e.scheduledDay === calendar.currentDay && e.scheduledTimeSlot === calendar.currentTimeSlot,
     );
 
     return event || null;
@@ -30,7 +29,7 @@ export class ScheduledEventManager {
     eventType: ScheduledEvent['eventType'],
     day: number,
     slot: TimeSlot,
-    metadata?: ScheduledEventMetadata
+    metadata?: ScheduledEventMetadata,
   ): ScheduledEvent {
     return {
       eventType,
@@ -47,11 +46,9 @@ export class ScheduledEventManager {
   static clearScheduledEvent(
     scheduledEvents: ScheduledEvent[],
     day: number,
-    slot: TimeSlot
+    slot: TimeSlot,
   ): ScheduledEvent[] {
-    return scheduledEvents.filter(
-      e => !(e.scheduledDay === day && e.scheduledTimeSlot === slot)
-    );
+    return scheduledEvents.filter((e) => !(e.scheduledDay === day && e.scheduledTimeSlot === slot));
   }
 
   /**
@@ -60,11 +57,9 @@ export class ScheduledEventManager {
   static hasScheduledEvent(
     scheduledEvents: ScheduledEvent[],
     day: number,
-    slot: TimeSlot
+    slot: TimeSlot,
   ): boolean {
-    return scheduledEvents.some(
-      e => e.scheduledDay === day && e.scheduledTimeSlot === slot
-    );
+    return scheduledEvents.some((e) => e.scheduledDay === day && e.scheduledTimeSlot === slot);
   }
 
   /**
@@ -72,9 +67,9 @@ export class ScheduledEventManager {
    */
   static getScheduledEventsForDay(
     scheduledEvents: ScheduledEvent[],
-    day: number
+    day: number,
   ): ScheduledEvent[] {
-    return scheduledEvents.filter(e => e.scheduledDay === day);
+    return scheduledEvents.filter((e) => e.scheduledDay === day);
   }
 
   /**
@@ -91,9 +86,9 @@ export class ScheduledEventManager {
    */
   static clearPastEvents(
     scheduledEvents: ScheduledEvent[],
-    calendar: GameCalendar
+    calendar: GameCalendar,
   ): ScheduledEvent[] {
-    return scheduledEvents.filter(e => {
+    return scheduledEvents.filter((e) => {
       // Keep if day is after current day
       if (e.scheduledDay > calendar.currentDay) return true;
 
@@ -124,10 +119,10 @@ export class ScheduledEventManager {
    */
   static getMissedEvents(
     scheduledEvents: ScheduledEvent[],
-    calendar: GameCalendar
+    calendar: GameCalendar,
   ): ScheduledEvent[] {
     return scheduledEvents
-      .filter(e => this.isEventInPast(e, calendar))
+      .filter((e) => this.isEventInPast(e, calendar))
       .sort((a, b) => {
         if (a.scheduledDay !== b.scheduledDay) return a.scheduledDay - b.scheduledDay;
         return a.scheduledTimeSlot - b.scheduledTimeSlot;
@@ -144,10 +139,10 @@ export class ScheduledEventManager {
   static reconcileMissedEvent(
     scheduledEvents: ScheduledEvent[],
     missedEvent: ScheduledEvent,
-    calendar: GameCalendar
+    calendar: GameCalendar,
   ): { updatedEvents: ScheduledEvent[]; storyEventToTrigger: ScheduledEvent | null } {
     // Remove the missed event from the array
-    const withoutMissed = scheduledEvents.filter(e => e !== missedEvent);
+    const withoutMissed = scheduledEvents.filter((e) => e !== missedEvent);
 
     if (missedEvent.eventType === 'tournament_match' || missedEvent.eventType === 'story_match') {
       // Reschedule match for tomorrow at its original time slot
@@ -157,7 +152,7 @@ export class ScheduledEventManager {
         missedEvent.eventType,
         rescheduleDay,
         missedEvent.scheduledTimeSlot,
-        missedEvent.metadata
+        missedEvent.metadata,
       );
       return { updatedEvents, storyEventToTrigger: null };
     }
@@ -179,7 +174,7 @@ export class ScheduledEventManager {
   static findNextAvailableSlot(
     scheduledEvents: ScheduledEvent[],
     startDay: number,
-    preferredSlot: TimeSlot
+    preferredSlot: TimeSlot,
   ): { day: number; slot: TimeSlot } {
     // Valid slots for scheduling (excludes NIGHT)
     const validSlots = [TimeSlot.MORNING, TimeSlot.AFTERNOON, TimeSlot.EVENING];
@@ -220,13 +215,18 @@ export class ScheduledEventManager {
     eventType: ScheduledEvent['eventType'],
     preferredDay: number,
     preferredSlot: TimeSlot,
-    metadata?: ScheduledEventMetadata
-  ): { event: ScheduledEvent; actualDay: number; actualSlot: TimeSlot; updatedEvents: ScheduledEvent[] } {
+    metadata?: ScheduledEventMetadata,
+  ): {
+    event: ScheduledEvent;
+    actualDay: number;
+    actualSlot: TimeSlot;
+    updatedEvents: ScheduledEvent[];
+  } {
     // Find the next available slot
     const { day: actualDay, slot: actualSlot } = this.findNextAvailableSlot(
       scheduledEvents,
       preferredDay,
-      preferredSlot
+      preferredSlot,
     );
 
     // Create the event

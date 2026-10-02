@@ -12,7 +12,12 @@ import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { StatusBar } from './StatusBar';
 import { CHARACTERS } from '../data/characters';
-import { HANGOUT_CHARACTERS, HANGOUT_ENERGY_COST, getHangoutTier, hasUnseenTierEvent } from '../data/hangoutCharacters';
+import {
+  HANGOUT_CHARACTERS,
+  HANGOUT_ENERGY_COST,
+  getHangoutTier,
+  hasUnseenTierEvent,
+} from '../data/hangoutCharacters';
 import { UnseenBadge } from './ui/UnseenBadge';
 import { TimeSlot } from '../types/game';
 
@@ -37,8 +42,12 @@ export const Relationships: React.FC = () => {
     .filter((c) => c.role !== 'Opponent');
 
   const isHangoutReady = (characterId: string): boolean => {
-    const isUnlocked = calendar.currentDay >= 6 && player.flags[`hangoutUnlocked_${characterId}`] === true;
-    return isUnlocked && hasUnseenTierEvent(characterId, relationships[characterId] ?? 0, hangoutThresholdsSeen);
+    const isUnlocked =
+      calendar.currentDay >= 6 && player.flags[`hangoutUnlocked_${characterId}`] === true;
+    return (
+      isUnlocked &&
+      hasUnseenTierEvent(characterId, relationships[characterId] ?? 0, hangoutThresholdsSeen)
+    );
   };
 
   // Sort: hangout-ready first (the actionable ones), then key characters, then others
@@ -85,7 +94,8 @@ export const Relationships: React.FC = () => {
               <div className="text-6xl mb-4">👥</div>
               <h2 className="text-2xl font-bold text-pixel-text mb-2">No Relationships Yet</h2>
               <p className="text-pixel-text-muted">
-                As you play the game and complete story events, you'll meet characters and build relationships with them.
+                As you play the game and complete story events, you'll meet characters and build
+                relationships with them.
               </p>
             </div>
           </Card>
@@ -99,9 +109,10 @@ export const Relationships: React.FC = () => {
               const hasNewTierEvent = isHangoutReady(character.id);
               const isHangoutDisabled = isNightTime || !canAffordHangout;
               // The first locked threshold is the player's current goal — it pulses
-              const nextThreshold = isKey && hangoutConfig
-                ? hangoutConfig.thresholds.find((t) => relationshipValue < t)
-                : undefined;
+              const nextThreshold =
+                isKey && hangoutConfig
+                  ? hangoutConfig.thresholds.find((t) => relationshipValue < t)
+                  : undefined;
 
               return (
                 <Card
@@ -111,16 +122,25 @@ export const Relationships: React.FC = () => {
                 >
                   <div className="flex items-center gap-4">
                     <div className="text-4xl">
-                      {character.role === 'Coach' ? '👨‍🏫' :
-                       character.role === 'Rival' ? '⚔️' :
-                       character.role === 'Family' ? '👨‍👩‍👧' :
-                       character.role === 'Friend' ? '🤝' :
-                       character.role === 'Sponsor' ? '💼' :
-                       character.role === 'Career' ? '📈' :
-                       character.role === 'Media' ? '📰' :
-                       character.role === 'Official' ? '🏆' :
-                       character.role === 'Romance' ? '💖' :
-                       '🎾'}
+                      {character.role === 'Coach'
+                        ? '👨‍🏫'
+                        : character.role === 'Rival'
+                          ? '⚔️'
+                          : character.role === 'Family'
+                            ? '👨‍👩‍👧'
+                            : character.role === 'Friend'
+                              ? '🤝'
+                              : character.role === 'Sponsor'
+                                ? '💼'
+                                : character.role === 'Career'
+                                  ? '📈'
+                                  : character.role === 'Media'
+                                    ? '📰'
+                                    : character.role === 'Official'
+                                      ? '🏆'
+                                      : character.role === 'Romance'
+                                        ? '💖'
+                                        : '🎾'}
                     </div>
                     <div className="flex-1">
                       <div className="flex justify-between items-center mb-1">
@@ -152,29 +172,35 @@ export const Relationships: React.FC = () => {
                         {/* Center line */}
                         <div className="absolute left-1/2 top-0 h-full w-0.5 bg-white opacity-50 transform -translate-x-1/2" />
                         {/* Threshold notches for key characters */}
-                        {isKey && hangoutConfig && hangoutConfig.thresholds.map((threshold) => {
-                          const notchPct = ((threshold + 100) / 200) * 100;
-                          const isUnlocked = relationshipValue >= threshold;
-                          const isNext = threshold === nextThreshold;
-                          return (
-                            <div
-                              key={threshold}
-                              className="absolute top-0 h-full flex flex-col items-center"
-                              style={{ left: `${notchPct}%`, transform: 'translateX(-50%)' }}
-                              title={isUnlocked ? `Unlocked at ${formatValue(threshold)}` : `Next event at ${formatValue(threshold)}`}
-                            >
+                        {isKey &&
+                          hangoutConfig &&
+                          hangoutConfig.thresholds.map((threshold) => {
+                            const notchPct = ((threshold + 100) / 200) * 100;
+                            const isUnlocked = relationshipValue >= threshold;
+                            const isNext = threshold === nextThreshold;
+                            return (
                               <div
-                                className={`h-full ${
+                                key={threshold}
+                                className="absolute top-0 h-full flex flex-col items-center"
+                                style={{ left: `${notchPct}%`, transform: 'translateX(-50%)' }}
+                                title={
                                   isUnlocked
-                                    ? 'w-1 bg-yellow-300'
-                                    : isNext
-                                      ? 'w-1.5 bg-yellow-300 animate-pulse'
-                                      : 'w-1 bg-white opacity-60'
-                                }`}
-                              />
-                            </div>
-                          );
-                        })}
+                                    ? `Unlocked at ${formatValue(threshold)}`
+                                    : `Next event at ${formatValue(threshold)}`
+                                }
+                              >
+                                <div
+                                  className={`h-full ${
+                                    isUnlocked
+                                      ? 'w-1 bg-yellow-300'
+                                      : isNext
+                                        ? 'w-1.5 bg-yellow-300 animate-pulse'
+                                        : 'w-1 bg-white opacity-60'
+                                  }`}
+                                />
+                              </div>
+                            );
+                          })}
                       </div>
 
                       <div className="text-center text-xs mt-1 font-bold text-pixel-text">

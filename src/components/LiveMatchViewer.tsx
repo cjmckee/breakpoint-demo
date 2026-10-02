@@ -13,8 +13,15 @@ import { audioManager } from '../audio/AudioManager';
 import type { SfxKey } from '../audio/sounds';
 import { useTutorialSpotlight } from '../hooks/useTutorialSpotlight';
 import { TutorialCallout } from './tutorial/TutorialCallout';
-import { TUTORIAL_MOCK_SCORE, TUTORIAL_MOCK_STATS, TUTORIAL_MOCK_LOG } from '../data/tutorialMockData';
-import { LIVE_MATCH_TUTORIAL_STEPS as TUTORIAL_STEPS, LiveMatchTarget } from '../data/tutorialSteps';
+import {
+  TUTORIAL_MOCK_SCORE,
+  TUTORIAL_MOCK_STATS,
+  TUTORIAL_MOCK_LOG,
+} from '../data/tutorialMockData';
+import {
+  LIVE_MATCH_TUTORIAL_STEPS as TUTORIAL_STEPS,
+  LiveMatchTarget,
+} from '../data/tutorialSteps';
 
 interface MatchStats {
   aces: number;
@@ -46,11 +53,7 @@ export const LiveMatchViewer: React.FC = () => {
     next: handleTutorialNext,
     back: handleTutorialBack,
     canGoBack: canGoBackTutorial,
-  } = useTutorialSpotlight(
-    TUTORIAL_STEPS,
-    isTutorialPaused,
-    resumeFromTutorial,
-  );
+  } = useTutorialSpotlight(TUTORIAL_STEPS, isTutorialPaused, resumeFromTutorial);
 
   // Lifts a spotlit section above the dark overlay; keeps others at z-0
   const spotlightClass = (target: LiveMatchTarget) =>
@@ -84,11 +87,12 @@ export const LiveMatchViewer: React.FC = () => {
     const curr = matchStatistics;
 
     if (prev && curr) {
-      const playerAcesDelta   = (curr.aces?.player ?? 0)          - (prev.aces?.player ?? 0);
-      const playerFaultsDelta = (curr.doubleFaults?.player ?? 0)   - (prev.doubleFaults?.player ?? 0);
-      const playerWinsDelta   = (curr.winners?.player ?? 0)        - (prev.winners?.player ?? 0);
-      const oppFaultsDelta    = (curr.doubleFaults?.opponent ?? 0) - (prev.doubleFaults?.opponent ?? 0);
-      const oppWinsDelta      = (curr.winners?.opponent ?? 0)      - (prev.winners?.opponent ?? 0);
+      const playerAcesDelta = (curr.aces?.player ?? 0) - (prev.aces?.player ?? 0);
+      const playerFaultsDelta = (curr.doubleFaults?.player ?? 0) - (prev.doubleFaults?.player ?? 0);
+      const playerWinsDelta = (curr.winners?.player ?? 0) - (prev.winners?.player ?? 0);
+      const oppFaultsDelta =
+        (curr.doubleFaults?.opponent ?? 0) - (prev.doubleFaults?.opponent ?? 0);
+      const oppWinsDelta = (curr.winners?.opponent ?? 0) - (prev.winners?.opponent ?? 0);
 
       if (playerAcesDelta > 0) {
         audioManager.playSfx('ace');
@@ -100,7 +104,8 @@ export const LiveMatchViewer: React.FC = () => {
         const sfx: SfxKey = Math.random() < 0.5 ? 'hit_ground' : 'hit_ground_alt';
         audioManager.playSfx(sfx);
       } else {
-        const sfx: SfxKey = Math.random() < 0.4 ? 'hit_volley' : Math.random() < 0.5 ? 'hit_ground' : 'serve';
+        const sfx: SfxKey =
+          Math.random() < 0.4 ? 'hit_volley' : Math.random() < 0.5 ? 'hit_ground' : 'serve';
         audioManager.playSfx(sfx);
       }
     }
@@ -115,14 +120,16 @@ export const LiveMatchViewer: React.FC = () => {
     const pointScored = historyLen > prevHistoryLen.current;
 
     if (prev && curr && pointScored) {
-      const setWonByPlayer = curr.sets.length > prev.sets.length &&
-        (curr.sets[curr.sets.length - 1]?.player ?? 0) > (curr.sets[curr.sets.length - 1]?.opponent ?? 0);
+      const setWonByPlayer =
+        curr.sets.length > prev.sets.length &&
+        (curr.sets[curr.sets.length - 1]?.player ?? 0) >
+          (curr.sets[curr.sets.length - 1]?.opponent ?? 0);
       const setWonByOpp = curr.sets.length > prev.sets.length && !setWonByPlayer;
 
-      const gameWonByPlayer = !setWonByPlayer && !setWonByOpp &&
-        curr.currentSet.player > prev.currentSet.player;
-      const gameWonByOpp = !setWonByPlayer && !setWonByOpp &&
-        curr.currentSet.opponent > prev.currentSet.opponent;
+      const gameWonByPlayer =
+        !setWonByPlayer && !setWonByOpp && curr.currentSet.player > prev.currentSet.player;
+      const gameWonByOpp =
+        !setWonByPlayer && !setWonByOpp && curr.currentSet.opponent > prev.currentSet.opponent;
 
       if (setWonByPlayer) {
         audioManager.playSfx('set_win');
@@ -173,7 +180,7 @@ export const LiveMatchViewer: React.FC = () => {
   }, [handleBeforeUnload]);
 
   // During the tutorial pause use mock data so sections aren't empty
-  const statsSource = (isTutorialPaused && !matchStatistics) ? TUTORIAL_MOCK_STATS : matchStatistics;
+  const statsSource = isTutorialPaused && !matchStatistics ? TUTORIAL_MOCK_STATS : matchStatistics;
 
   const playerStats: MatchStats = {
     aces: statsSource?.aces.player ?? 0,
@@ -194,7 +201,7 @@ export const LiveMatchViewer: React.FC = () => {
   };
 
   // Show mock log entries when the log is spotlit during the tutorial and the real log is empty
-  const visibleLog = (isTutorialPaused && matchLog.length === 0) ? TUTORIAL_MOCK_LOG : matchLog;
+  const visibleLog = isTutorialPaused && matchLog.length === 0 ? TUTORIAL_MOCK_LOG : matchLog;
 
   return (
     <div className="min-h-screen bg-pixel-bg p-4">
@@ -258,7 +265,10 @@ export const LiveMatchViewer: React.FC = () => {
         {/* Commentary — demoted to a compact ticker; the flavour-text narrator still drives it */}
         <div className={spotlightClass('log')}>
           <Card title="Commentary">
-            <div ref={logContainerRef} className="bg-pixel-bg border-2 border-pixel-border p-3 h-24 overflow-y-auto">
+            <div
+              ref={logContainerRef}
+              className="bg-pixel-bg border-2 border-pixel-border p-3 h-24 overflow-y-auto"
+            >
               {visibleLog.length === 0 ? (
                 <p className="text-pixel-text-muted text-center py-6 text-sm">Match starting…</p>
               ) : (
@@ -276,7 +286,6 @@ export const LiveMatchViewer: React.FC = () => {
             </div>
           </Card>
         </div>
-
       </div>
     </div>
   );

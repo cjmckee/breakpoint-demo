@@ -88,7 +88,10 @@ export const StatusBar: React.FC<StatusBarProps> = ({ onBack }) => {
         </button>
 
         {/* Time-slot pips: past slots dimmed, current highlighted */}
-        <div className="flex items-center gap-1.5" aria-label={`Current time: ${TIME_SLOTS[currentSlot]?.name ?? 'Unknown'}`}>
+        <div
+          className="flex items-center gap-1.5"
+          aria-label={`Current time: ${TIME_SLOTS[currentSlot]?.name ?? 'Unknown'}`}
+        >
           {TIME_SLOTS.map((slot, i) => (
             <span
               key={slot.name}
@@ -111,7 +114,9 @@ export const StatusBar: React.FC<StatusBarProps> = ({ onBack }) => {
 
         {/* Energy */}
         <div className="flex items-center gap-2 flex-1 min-w-0 sm:min-w-[150px]">
-          <span className="text-sm leading-none" title="Energy">⚡</span>
+          <span className="text-sm leading-none" title="Energy">
+            ⚡
+          </span>
           <div className="flex-1 h-3.5 bg-pixel-bg border-2 border-pixel-border">
             <div
               className={`h-full ${getEnergyColor(currentStatus.energy)} transition-all`}
@@ -119,14 +124,17 @@ export const StatusBar: React.FC<StatusBarProps> = ({ onBack }) => {
             />
           </div>
           <span className="text-sm font-bold text-pixel-text whitespace-nowrap">
-            {currentStatus.energy}<span className="hidden sm:inline text-pixel-text-muted font-normal">/100</span>
+            {currentStatus.energy}
+            <span className="hidden sm:inline text-pixel-text-muted font-normal">/100</span>
           </span>
         </div>
 
         {/* Mood */}
         <div className="flex items-center gap-1.5" title={`Mood: ${currentStatus.mood}`}>
           <span className="text-base leading-none">{mood.emoji}</span>
-          <span className={`hidden sm:inline text-sm font-bold ${mood.color} whitespace-nowrap`}>{mood.label}</span>
+          <span className={`hidden sm:inline text-sm font-bold ${mood.color} whitespace-nowrap`}>
+            {mood.label}
+          </span>
         </div>
       </div>
     </div>

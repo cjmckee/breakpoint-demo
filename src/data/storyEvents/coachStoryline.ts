@@ -26,17 +26,34 @@ export const coachEvents: StoryEvent[] = [
       completedEvents: ['shop_basics'],
     },
     skippable: false,
-    description: 'One of the academy\'s tennis coaches has taken interest in your development.',
+    description: "One of the academy's tennis coaches has taken interest in your development.",
     dialogue: [
-      ['coach_gonzalez', ['I\'ve been watching you play. You have some raw talent, but you\'re going to need a lot of work to compete at this level.']],
-      ['coach_gonzalez', ['I mean, look around. A former top 10 under-16 player over there. That guy played for Spain in the junior Olympics. And she\'s a two-time national champion committed to Duke now.']],
-      ['coach_gonzalez', ['And that guy... he\'s the #4 rated player in a country I\'ve never even heard of.']],
+      [
+        'coach_gonzalez',
+        [
+          "I've been watching you play. You have some raw talent, but you're going to need a lot of work to compete at this level.",
+        ],
+      ],
+      [
+        'coach_gonzalez',
+        [
+          "I mean, look around. A former top 10 under-16 player over there. That guy played for Spain in the junior Olympics. And she's a two-time national champion committed to Duke now.",
+        ],
+      ],
+      [
+        'coach_gonzalez',
+        ["And that guy... he's the #4 rated player in a country I've never even heard of."],
+      ],
       ['coach_gonzalez', ['You have a long way to go, kid. But I think I can help.']],
     ],
     characters: ['coach_gonzalez'],
     options: [],
     defaultOutcome: {
-      resultText: ['You spend an hour listening to ', { characterId: 'coach_gonzalez' }, ' talk about his tennis experiences and what it takes to be the best. You realize you haven\'t even gotten a word in since you sat down. But you find it oddly helpful.'],
+      resultText: [
+        'You spend an hour listening to ',
+        { characterId: 'coach_gonzalez' },
+        " talk about his tennis experiences and what it takes to be the best. You realize you haven't even gotten a word in since you sat down. But you find it oddly helpful.",
+      ],
       effects: {
         statChanges: { placement: 1, net: 1, anticipation: 1 },
         moodChange: 15,
@@ -67,8 +84,18 @@ export const coachEvents: StoryEvent[] = [
     skippable: false,
     description: 'Coach Gonzalez wants to define the identity your game will be built around.',
     dialogue: [
-      ['coach_gonzalez', ['Talent is nothing without an identity. Every great player is known for *something*. So tell me — what kind of player do you want to be?']],
-      ['coach_gonzalez', ['Don\'t worry about being perfect at everything. We\'ll build your game around a core philosophy, and you\'ll specialize the details as you grow.']],
+      [
+        'coach_gonzalez',
+        [
+          'Talent is nothing without an identity. Every great player is known for *something*. So tell me — what kind of player do you want to be?',
+        ],
+      ],
+      [
+        'coach_gonzalez',
+        [
+          "Don't worry about being perfect at everything. We'll build your game around a core philosophy, and you'll specialize the details as you grow.",
+        ],
+      ],
     ],
     characters: ['coach_gonzalez'],
     options: [
@@ -78,7 +105,11 @@ export const coachEvents: StoryEvent[] = [
         emoji: '🎾',
         description: 'Live at the back of the court. Outlast and out-rally your opponents.',
         outcome: {
-          resultText: ['"A baseliner," ', { characterId: 'coach_gonzalez' }, ' nods. "Patient. Relentless. You\'ll grind opponents down from the back of the court until they crack. Good. Now let\'s build that game."'],
+          resultText: [
+            '"A baseliner," ',
+            { characterId: 'coach_gonzalez' },
+            ' nods. "Patient. Relentless. You\'ll grind opponents down from the back of the court until they crack. Good. Now let\'s build that game."',
+          ],
           effects: {
             setArchetypeBroad: 'baseliner',
             moodChange: 8,
@@ -92,7 +123,11 @@ export const coachEvents: StoryEvent[] = [
         emoji: '⚡',
         description: 'Get forward and finish at the net. End points early and apply pressure.',
         outcome: {
-          resultText: ['"A net attacker!" ', { characterId: 'coach_gonzalez' }, ' grins. "Brave. You\'ll take time away from people and finish at the net. High risk, high reward. I like it. Let\'s sharpen those approaches."'],
+          resultText: [
+            '"A net attacker!" ',
+            { characterId: 'coach_gonzalez' },
+            ' grins. "Brave. You\'ll take time away from people and finish at the net. High risk, high reward. I like it. Let\'s sharpen those approaches."',
+          ],
           effects: {
             setArchetypeBroad: 'net_attacker',
             moodChange: 8,
@@ -106,7 +141,11 @@ export const coachEvents: StoryEvent[] = [
         emoji: '🌐',
         description: 'Comfortable everywhere. Adapt your game to whatever the moment demands.',
         outcome: {
-          resultText: ['"An all-courter," ', { characterId: 'coach_gonzalez' }, ' says thoughtfully. "The hardest path — you have to do everything well. But the most dangerous when it comes together. Let\'s make you unpredictable."'],
+          resultText: [
+            '"An all-courter," ',
+            { characterId: 'coach_gonzalez' },
+            ' says thoughtfully. "The hardest path — you have to do everything well. But the most dangerous when it comes together. Let\'s make you unpredictable."',
+          ],
           effects: {
             setArchetypeBroad: 'all_courter',
             moodChange: 8,
@@ -128,8 +167,11 @@ export const coachEvents: StoryEvent[] = [
     skippable: false,
     description: 'Coach Gonzalez wants to know what aspect of your game to prioritize in training.',
     dialogue: [
-      ['coach_gonzalez', ['Everyone has different strengths and weaknesses. You - you have many weaknesses.']],
-      ['coach_gonzalez', ['Let\'s take one of those weaknesses and make it just average!']],
+      [
+        'coach_gonzalez',
+        ['Everyone has different strengths and weaknesses. You - you have many weaknesses.'],
+      ],
+      ['coach_gonzalez', ["Let's take one of those weaknesses and make it just average!"]],
     ],
     characters: ['coach_gonzalez'],
     options: [
@@ -139,7 +181,11 @@ export const coachEvents: StoryEvent[] = [
         emoji: '🚀',
         description: 'Focus on developing a dominant serve',
         outcome: {
-          resultText: ['You spend intensive sessions working on serve technique. ', { characterId: 'coach_gonzalez' }, ' helps you generate more power while maintaining accuracy. Your serve improves noticeably.'],
+          resultText: [
+            'You spend intensive sessions working on serve technique. ',
+            { characterId: 'coach_gonzalez' },
+            ' helps you generate more power while maintaining accuracy. Your serve improves noticeably.',
+          ],
           effects: {
             statChanges: { serve: 5, strength: 3 },
             moodChange: 10,
@@ -161,7 +207,11 @@ export const coachEvents: StoryEvent[] = [
         emoji: '🎯',
         description: 'Improve groundstrokes and consistency',
         outcome: {
-          resultText: ['You work tirelessly on groundstroke mechanics. ', { characterId: 'coach_gonzalez' }, ' refines your technique on both wings. Your forehand and backhand both show marked improvement.'],
+          resultText: [
+            'You work tirelessly on groundstroke mechanics. ',
+            { characterId: 'coach_gonzalez' },
+            ' refines your technique on both wings. Your forehand and backhand both show marked improvement.',
+          ],
           effects: {
             statChanges: { forehand: 4, backhand: 4, tactics: 2 },
             moodChange: 10,
@@ -183,7 +233,10 @@ export const coachEvents: StoryEvent[] = [
         emoji: '🧠',
         description: 'Develop focus and competitive mindset',
         outcome: {
-          resultText: [{ characterId: 'coach_gonzalez' }, ' introduces you to sports psychology techniques. You learn breathing exercises, visualization methods, and how to stay focused under pressure. The mental game is just as important as the physical.'],
+          resultText: [
+            { characterId: 'coach_gonzalez' },
+            ' introduces you to sports psychology techniques. You learn breathing exercises, visualization methods, and how to stay focused under pressure. The mental game is just as important as the physical.',
+          ],
           effects: {
             statChanges: { focus: 5, anticipation: 3, tactics: 2 },
             moodChange: 15,
@@ -214,7 +267,12 @@ export const coachEvents: StoryEvent[] = [
     skippable: false,
     description: 'Coach Gonzalez emphasizes the importance of developing all aspects of your game.',
     dialogue: [
-      ['coach_gonzalez', ['You\'re making good progress, but a truly great player needs balance. You can specialize, but you can\'t have glaring weaknesses. Let\'s work on rounding out your game.']],
+      [
+        'coach_gonzalez',
+        [
+          "You're making good progress, but a truly great player needs balance. You can specialize, but you can't have glaring weaknesses. Let's work on rounding out your game.",
+        ],
+      ],
     ],
     characters: ['coach_gonzalez'],
     options: [
@@ -224,7 +282,11 @@ export const coachEvents: StoryEvent[] = [
         emoji: '⚖️',
         description: 'Work on becoming equally strong on both wings',
         outcome: {
-          resultText: ['You dedicate equal time to both forehand and backhand. ', { characterId: 'coach_gonzalez' }, ' helps you build consistency across both shots, eliminating the predictability of having a weaker side.'],
+          resultText: [
+            'You dedicate equal time to both forehand and backhand. ',
+            { characterId: 'coach_gonzalez' },
+            ' helps you build consistency across both shots, eliminating the predictability of having a weaker side.',
+          ],
           effects: {
             statChanges: { forehand: 3, backhand: 3, spin: 2 },
             moodChange: 10,
@@ -245,7 +307,10 @@ export const coachEvents: StoryEvent[] = [
         emoji: '💪',
         description: 'Build your physical conditioning',
         outcome: {
-          resultText: [{ characterId: 'coach_gonzalez' }, ' introduces you to a strength and conditioning program. You work on explosive speed, endurance, and recovery. Your body starts to feel like a finely-tuned machine.'],
+          resultText: [
+            { characterId: 'coach_gonzalez' },
+            ' introduces you to a strength and conditioning program. You work on explosive speed, endurance, and recovery. Your body starts to feel like a finely-tuned machine.',
+          ],
           effects: {
             statChanges: { speed: 4, stamina: 4 },
             moodChange: 10,
@@ -275,7 +340,12 @@ export const coachEvents: StoryEvent[] = [
     skippable: false,
     description: 'Coach Gonzalez has prepared hours of match footage for you to analyze.',
     dialogue: [
-      ['coach_gonzalez', ["I've compiled twelve hours of footage from your last eight matches, your opponents, and three professionals with similar playing styles. We'll cover it all today."]],
+      [
+        'coach_gonzalez',
+        [
+          "I've compiled twelve hours of footage from your last eight matches, your opponents, and three professionals with similar playing styles. We'll cover it all today.",
+        ],
+      ],
       ['coach_gonzalez', ["No, I'm not joking. Sit down. At least I brought snacks this time."]],
     ],
     characters: ['coach_gonzalez'],
@@ -286,7 +356,11 @@ export const coachEvents: StoryEvent[] = [
         emoji: '👀',
         description: 'Every minute of it',
         outcome: {
-          resultText: ['Three hours in, you\'re still laser focused. ', { characterId: 'coach_gonzalez' }, ' looks genuinely startled when you start pointing out patterns before he does. He falls asleep, but you soldier on. You notice tendencies in your own game you\'d never seen before. Your anticipation and return positioning are sharper almost immediately.'],
+          resultText: [
+            "Three hours in, you're still laser focused. ",
+            { characterId: 'coach_gonzalez' },
+            " looks genuinely startled when you start pointing out patterns before he does. He falls asleep, but you soldier on. You notice tendencies in your own game you'd never seen before. Your anticipation and return positioning are sharper almost immediately.",
+          ],
           effects: {
             statChanges: { anticipation: 3, return: 2, placement: 2 },
             moodChange: 10,
@@ -301,7 +375,11 @@ export const coachEvents: StoryEvent[] = [
         emoji: '😴',
         description: 'You tried your best',
         outcome: {
-          resultText: ['You make it forty-seven minutes before your eyes start to close. You realize this is about two minutes longer than ', { characterId: 'coach_gonzalez' }, '. You watch for a few more minutes and suddenly you noticed a footwork mistake you could clean up. You absorbed more than you realized.'],
+          resultText: [
+            'You make it forty-seven minutes before your eyes start to close. You realize this is about two minutes longer than ',
+            { characterId: 'coach_gonzalez' },
+            '. You watch for a few more minutes and suddenly you noticed a footwork mistake you could clean up. You absorbed more than you realized.',
+          ],
           effects: {
             statChanges: { anticipation: 1, return: 1, focus: 1 },
             moodChange: 5,
@@ -316,7 +394,11 @@ export const coachEvents: StoryEvent[] = [
         emoji: '🙋',
         description: 'Make the most of it',
         outcome: {
-          resultText: ['You pause the footage approximately forty times to ask follow-up questions. ', { characterId: 'coach_gonzalez' }, ' eventually takes the remote away from you. You don\'t finish the footage. You do, however, understand your game better than ever.'],
+          resultText: [
+            'You pause the footage approximately forty times to ask follow-up questions. ',
+            { characterId: 'coach_gonzalez' },
+            " eventually takes the remote away from you. You don't finish the footage. You do, however, understand your game better than ever.",
+          ],
           effects: {
             statChanges: { return: 3, anticipation: 2, tactics: 2 },
             moodChange: 15,
@@ -340,15 +422,30 @@ export const coachEvents: StoryEvent[] = [
     skippable: false,
     description: 'Coach Gonzalez accidentally reveals more about his past than he intended.',
     dialogue: [
-      ['coach_gonzalez', ["When I was at the Open - I mean, when I watched the Open on television - I noticed..."]],
-      [null, ['You realize that for as much as Coach talks, you never heard much about their pro days.']],
-      ['coach_gonzalez', ["Alright, look. I played in it. In fact, I played in all the majors. Fine. The furthest I ever made it was the quarterfinals, but I never had enough to take it further."]],
-      ['coach_gonzalez', ['I really should be charging more for your lessons.']]
+      [
+        'coach_gonzalez',
+        ['When I was at the Open - I mean, when I watched the Open on television - I noticed...'],
+      ],
+      [
+        null,
+        ['You realize that for as much as Coach talks, you never heard much about their pro days.'],
+      ],
+      [
+        'coach_gonzalez',
+        [
+          'Alright, look. I played in it. In fact, I played in all the majors. Fine. The furthest I ever made it was the quarterfinals, but I never had enough to take it further.',
+        ],
+      ],
+      ['coach_gonzalez', ['I really should be charging more for your lessons.']],
     ],
     characters: ['coach_gonzalez'],
     options: [],
     defaultOutcome: {
-      resultText: ['The story comes out in pieces. ', { characterId: 'coach_gonzalez' }, ' reached the quarterfinals of a Grand Slam at age 24. A knee injury in the fifth set ended his run and eventually his career. It\'s still a pinnacle of tennis that only a select few will ever reach. So no matter how crazy he seems, you decide it\'s best to listen to Coach.'],
+      resultText: [
+        'The story comes out in pieces. ',
+        { characterId: 'coach_gonzalez' },
+        " reached the quarterfinals of a Grand Slam at age 24. A knee injury in the fifth set ended his run and eventually his career. It's still a pinnacle of tennis that only a select few will ever reach. So no matter how crazy he seems, you decide it's best to listen to Coach.",
+      ],
       effects: {
         statChanges: { focus: 3, tactics: 2, serve: 1 },
         moodChange: 20,
@@ -367,10 +464,21 @@ export const coachEvents: StoryEvent[] = [
       completedEvents: ['coach_video_analysis'],
     },
     skippable: false,
-    description: 'The Academy News wants to run a segment on the tennis team. They asked for a trick shot clip to put on TV.',
+    description:
+      'The Academy News wants to run a segment on the tennis team. They asked for a trick shot clip to put on TV.',
     dialogue: [
-      ['coach_gonzalez', ["So I may have told the Academy News that you could hit an around-the-net winner by end of practice."]],
-      ['coach_gonzalez', ['They paid me in lunch, and I already ate that lunch. So I really need you to come through here.']],
+      [
+        'coach_gonzalez',
+        [
+          'So I may have told the Academy News that you could hit an around-the-net winner by end of practice.',
+        ],
+      ],
+      [
+        'coach_gonzalez',
+        [
+          'They paid me in lunch, and I already ate that lunch. So I really need you to come through here.',
+        ],
+      ],
     ],
     characters: ['coach_gonzalez'],
     options: [
@@ -383,7 +491,11 @@ export const coachEvents: StoryEvent[] = [
           stats: { spin: { min: 20 } },
         },
         outcome: {
-          resultText: ['You spend the entire session doing nothing but around-the-net attempts. Most go into the net. Some fly wide. One hits ', { characterId: 'coach_gonzalez' }, ' in the shin. But by the end, you\'re threading it clean.'],
+          resultText: [
+            'You spend the entire session doing nothing but around-the-net attempts. Most go into the net. Some fly wide. One hits ',
+            { characterId: 'coach_gonzalez' },
+            " in the shin. But by the end, you're threading it clean.",
+          ],
           effects: {
             statChanges: { placement: 3, spin: 3 },
             moodChange: 20,
@@ -404,7 +516,11 @@ export const coachEvents: StoryEvent[] = [
         emoji: '🤞',
         description: 'How hard can it be',
         outcome: {
-          resultText: ['You decide you can probably just feel your way through this. Spoiler: you cannot. You hit the net 14 times, clip the post twice, and on your final attempt the ball bounces off the frame in a direction no one predicted, rolls across two courts, and stops at ', { characterId: 'coach_gonzalez' }, '\'s feet. They may need to repay that lunch. Your instincts, at least, are sharpening.'],
+          resultText: [
+            'You decide you can probably just feel your way through this. Spoiler: you cannot. You hit the net 14 times, clip the post twice, and on your final attempt the ball bounces off the frame in a direction no one predicted, rolls across two courts, and stops at ',
+            { characterId: 'coach_gonzalez' },
+            "'s feet. They may need to repay that lunch. Your instincts, at least, are sharpening.",
+          ],
           effects: {
             statChanges: { placement: 1, spin: 2, net: 1 },
             moodChange: 10,
@@ -419,7 +535,11 @@ export const coachEvents: StoryEvent[] = [
         emoji: '🤝',
         description: 'Surely there are other options',
         outcome: {
-          resultText: ['You manage to negotiate with the photographer to let you take a picture your way. You decide the best way to drum up interest for the tennis team is a beach photoshoot. ', {characterId: 'coach_gonzalez'}, ' seems to have no issue with the change in plans, and grabs his swim trunks as well.'],
+          resultText: [
+            'You manage to negotiate with the photographer to let you take a picture your way. You decide the best way to drum up interest for the tennis team is a beach photoshoot. ',
+            { characterId: 'coach_gonzalez' },
+            ' seems to have no issue with the change in plans, and grabs his swim trunks as well.',
+          ],
           effects: {
             statChanges: { spin: 3, speed: 2, net: 1 },
             moodChange: 15,

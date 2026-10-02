@@ -57,20 +57,33 @@ export const PHASE_LABELS: Record<GamePhase, string> = {
 const PATHS: PhasePathDef[] = [
   // ============================ FIRST SERVE ============================
   {
-    id: 'fs_bomber', phase: 'first_serve', label: 'Bomber', role: 'offense',
-    description: 'Swing for the fences — huge first serves that end points before they start. Sometimes, you hit the fences.',
+    id: 'fs_bomber',
+    phase: 'first_serve',
+    label: 'Bomber',
+    role: 'offense',
+    description:
+      'Swing for the fences — huge first serves that end points before they start. Sometimes, you hit the fences.',
     tradeoff: 'More aces, at the cost of missed first serves.',
     leveling: 'Tightens it up — fewer misses.',
     tierEffects: [
-      { [EffectKey.FIRST_SERVE_AGGRESSION]: 18, [EffectKey.FAULT_RISK]: 12, [EffectKey.SERVE_AND_VOLLEY_BIAS]: 4 },
+      {
+        [EffectKey.FIRST_SERVE_AGGRESSION]: 18,
+        [EffectKey.FAULT_RISK]: 12,
+        [EffectKey.SERVE_AND_VOLLEY_BIAS]: 4,
+      },
       { [EffectKey.FAULT_RISK]: -4 },
       { [EffectKey.FAULT_RISK]: -4 },
     ],
   },
   {
-    id: 'fs_sniper', phase: 'first_serve', label: 'Sniper', role: 'defense',
-    description: 'Pinpoint placement over raw power — paint the lines and set up the next ball. A line cheater\'s worst nightmare.',
-    tradeoff: 'Softer, well-placed serves — lands far more often, but the returner gets a look at it.',
+    id: 'fs_sniper',
+    phase: 'first_serve',
+    label: 'Sniper',
+    role: 'defense',
+    description:
+      "Pinpoint placement over raw power — paint the lines and set up the next ball. A line cheater's worst nightmare.",
+    tradeoff:
+      'Softer, well-placed serves — lands far more often, but the returner gets a look at it.',
     leveling: 'Lowers your fault risk even further.',
     tierEffects: [
       { [EffectKey.FAULT_RISK]: -12, [EffectKey.RALLY_WINNER_BIAS]: 5 },
@@ -79,12 +92,20 @@ const PATHS: PhasePathDef[] = [
     ],
   },
   {
-    id: 'fs_curveball', phase: 'first_serve', label: 'Curveball', role: 'balanced',
-    description: 'Heavy spin that jumps off the court and pulls returners out of position. Punishes players like YOU (yes, you!) who don\'t bend their knees.',
+    id: 'fs_curveball',
+    phase: 'first_serve',
+    label: 'Curveball',
+    role: 'balanced',
+    description:
+      "Heavy spin that jumps off the court and pulls returners out of position. Punishes players like YOU (yes, you!) who don't bend their knees.",
     tradeoff: 'Rarely free points, but reliable and sets up the rally.',
     leveling: 'Lowers fault risk further and improves rally tolerance.',
     tierEffects: [
-      { [EffectKey.FAULT_RISK]: -8, [EffectKey.SERVE_SPEED]: -3, [EffectKey.SLICE_PREFERENCE_FOREHAND]: 6 },
+      {
+        [EffectKey.FAULT_RISK]: -8,
+        [EffectKey.SERVE_SPEED]: -3,
+        [EffectKey.SLICE_PREFERENCE_FOREHAND]: 6,
+      },
       { [EffectKey.FAULT_RISK]: -4, [EffectKey.DROP_SHOT_BIAS]: 4 },
       { [EffectKey.FAULT_RISK]: -3, [EffectKey.DROP_SHOT_BIAS]: 4 },
     ],
@@ -92,34 +113,62 @@ const PATHS: PhasePathDef[] = [
 
   // ============================ SECOND SERVE ============================
   {
-    id: 'ss_pancake', phase: 'second_serve', label: 'Pancake', role: 'defense',
-    description: 'Get it in, start the point. No heroics on the second ball. You could make this with a frying pan.',
+    id: 'ss_pancake',
+    phase: 'second_serve',
+    label: 'Pancake',
+    role: 'defense',
+    description:
+      'Get it in, start the point. No heroics on the second ball. You could make this with a frying pan.',
     tradeoff: 'Almost never double-faults, but the soft ball gets attacked.',
     leveling: 'Lowers fault risk further and improves second-serve aggression.',
     tierEffects: [
-      { [EffectKey.FAULT_RISK]: -14, [EffectKey.SERVE_SPEED]: -4, [EffectKey.SECOND_SERVE_AGGRESSION]: -8 },
+      {
+        [EffectKey.FAULT_RISK]: -14,
+        [EffectKey.SERVE_SPEED]: -4,
+        [EffectKey.SECOND_SERVE_AGGRESSION]: -8,
+      },
       { [EffectKey.FAULT_RISK]: -4, [EffectKey.SECOND_SERVE_AGGRESSION]: 3 },
-      { [EffectKey.FAULT_RISK]: -4, [EffectKey.SERVE_SPEED]: 2, [EffectKey.SECOND_SERVE_AGGRESSION]: 3 },
+      {
+        [EffectKey.FAULT_RISK]: -4,
+        [EffectKey.SERVE_SPEED]: 2,
+        [EffectKey.SECOND_SERVE_AGGRESSION]: 3,
+      },
     ],
   },
   {
-    id: 'ss_kicker', phase: 'second_serve', label: 'Kicker', role: 'balanced',
-    description: 'A high, heavy kick with some aggression that pushes the returner back. One-handed backhands hate this guy.',
+    id: 'ss_kicker',
+    phase: 'second_serve',
+    label: 'Kicker',
+    role: 'balanced',
+    description:
+      'A high, heavy kick with some aggression that pushes the returner back. One-handed backhands hate this guy.',
     tradeoff: 'Balanced — some bite without much double-fault risk.',
     leveling: 'Improves second-serve aggression further.',
     tierEffects: [
-      { [EffectKey.SECOND_SERVE_AGGRESSION]: 5, [EffectKey.RALLY_PATIENCE]: 4, [EffectKey.SERVE_SPEED]: -1 },
+      {
+        [EffectKey.SECOND_SERVE_AGGRESSION]: 5,
+        [EffectKey.RALLY_PATIENCE]: 4,
+        [EffectKey.SERVE_SPEED]: -1,
+      },
       { [EffectKey.SECOND_SERVE_AGGRESSION]: 4, [EffectKey.RALLY_PATIENCE]: 3 },
       { [EffectKey.SECOND_SERVE_AGGRESSION]: 3, [EffectKey.RALLY_PATIENCE]: 3 },
     ],
   },
   {
-    id: 'ss_gambler', phase: 'second_serve', label: 'Gambler', role: 'offense',
-    description: 'You basically have two first serves. Go after the second ball just as hard. You miss the court sometimes.',
+    id: 'ss_gambler',
+    phase: 'second_serve',
+    label: 'Gambler',
+    role: 'offense',
+    description:
+      'You basically have two first serves. Go after the second ball just as hard. You miss the court sometimes.',
     tradeoff: 'Steals free points but double-faults are more common.',
     leveling: 'Reins in the mistakes.',
     tierEffects: [
-      { [EffectKey.SECOND_SERVE_AGGRESSION]: 16, [EffectKey.FAULT_RISK]: 14, [EffectKey.SERVE_AND_VOLLEY_BIAS]: 5 },
+      {
+        [EffectKey.SECOND_SERVE_AGGRESSION]: 16,
+        [EffectKey.FAULT_RISK]: 14,
+        [EffectKey.SERVE_AND_VOLLEY_BIAS]: 5,
+      },
       { [EffectKey.FAULT_RISK]: -5 },
       { [EffectKey.FAULT_RISK]: -5 },
     ],
@@ -127,30 +176,50 @@ const PATHS: PhasePathDef[] = [
 
   // ============================ RETURN ============================
   {
-    id: 'rt_extinguisher', phase: 'return', label: 'Extinguisher', role: 'defense',
-    description: 'Block it back deep, take the server out of their rhythm, and reset to neutral. Don\'t let your opponent get hot.',
+    id: 'rt_extinguisher',
+    phase: 'return',
+    label: 'Extinguisher',
+    role: 'defense',
+    description:
+      "Block it back deep, take the server out of their rhythm, and reset to neutral. Don't let your opponent get hot.",
     tradeoff: 'Rarely misses but hands over the initiative.',
     leveling: 'Lets you neutralize less passively.',
     tierEffects: [
-      { [EffectKey.RETURN_AGGRESSION]: -10, [EffectKey.RALLY_PATIENCE]: 6, [EffectKey.LOB_BIAS]: 4 },
+      {
+        [EffectKey.RETURN_AGGRESSION]: -10,
+        [EffectKey.RALLY_PATIENCE]: 6,
+        [EffectKey.LOB_BIAS]: 4,
+      },
       { [EffectKey.RETURN_AGGRESSION]: 3 },
       { [EffectKey.RETURN_AGGRESSION]: 3 },
     ],
   },
   {
-    id: 'rt_redliner', phase: 'return', label: 'Redliner', role: 'offense',
-    description: 'Turn the return into an attack by taking a huge swing. You only know one speed. Sometimes you even close your eyes to swing.',
+    id: 'rt_redliner',
+    phase: 'return',
+    label: 'Redliner',
+    role: 'offense',
+    description:
+      'Turn the return into an attack by taking a huge swing. You only know one speed. Sometimes you even close your eyes to swing.',
     tradeoff: 'Steals points and applies pressure, but sprays errors.',
     leveling: 'Tightens the aggressive return — less boom-or-bust.',
     tierEffects: [
-      { [EffectKey.RETURN_AGGRESSION]: 16, [EffectKey.RALLY_WINNER_BIAS]: 4, [EffectKey.POWER_VARIANCE]: 12 },
+      {
+        [EffectKey.RETURN_AGGRESSION]: 16,
+        [EffectKey.RALLY_WINNER_BIAS]: 4,
+        [EffectKey.POWER_VARIANCE]: 12,
+      },
       { [EffectKey.POWER_VARIANCE]: -5 },
       { [EffectKey.POWER_VARIANCE]: -4 },
     ],
   },
   {
-    id: 'rt_sneaky_beaky', phase: 'return', label: 'Sneaky Beaky', role: 'balanced',
-    description: 'Find ways to take time from the opponent. Chip the return and follow it in. By the time they look up, you\'re at the net again.',
+    id: 'rt_sneaky_beaky',
+    phase: 'return',
+    label: 'Sneaky Beaky',
+    role: 'balanced',
+    description:
+      "Find ways to take time from the opponent. Chip the return and follow it in. By the time they look up, you're at the net again.",
     tradeoff: 'Gets to the net quickly but exposed to the pass.',
     leveling: 'Sharpens your net finish.',
     tierEffects: [
@@ -162,34 +231,58 @@ const PATHS: PhasePathDef[] = [
 
   // ============================ FOREHAND ============================
   {
-    id: 'fh_rpm_overdrive', phase: 'forehand', label: 'RPM Overdrive', role: 'balanced',
-    description: 'High-margin, heavy shots with lots of spin that builds pressure and pushes opponents back. Some coaches would make you play lefty, too.',
+    id: 'fh_rpm_overdrive',
+    phase: 'forehand',
+    label: 'RPM Overdrive',
+    role: 'balanced',
+    description:
+      'High-margin, heavy shots with lots of spin that builds pressure and pushes opponents back. Some coaches would make you play lefty, too.',
     tradeoff: 'Dictates with safety and tons of spin, but fewer flat-out winners.',
     leveling: 'Improves both winner bias and rally tolerance further.',
     tierEffects: [
-      { [EffectKey.RALLY_PATIENCE]: 8, [EffectKey.RALLY_WINNER_BIAS]: -5, [EffectKey.POWER_VARIANCE]: -4 },
+      {
+        [EffectKey.RALLY_PATIENCE]: 8,
+        [EffectKey.RALLY_WINNER_BIAS]: -5,
+        [EffectKey.POWER_VARIANCE]: -4,
+      },
       { [EffectKey.RALLY_PATIENCE]: 4, [EffectKey.RALLY_WINNER_BIAS]: 2 },
       { [EffectKey.RALLY_PATIENCE]: 3, [EffectKey.RALLY_WINNER_BIAS]: 3 },
     ],
   },
   {
-    id: 'fh_laserbeam', phase: 'forehand', label: 'Laserbeam', role: 'offense',
-    description: 'Flat, penetrating power — first strike to take the ball early and end it. Not really sure how you make that sound with your racquet.',
+    id: 'fh_laserbeam',
+    phase: 'forehand',
+    label: 'Laserbeam',
+    role: 'offense',
+    description:
+      'Flat, penetrating power — first strike to take the ball early and end it. Not really sure how you make that sound with your racquet.',
     tradeoff: 'Big winners but big misses.',
     leveling: 'Tightens the accuracy — less boom-or-bust.',
     tierEffects: [
-      { [EffectKey.RALLY_WINNER_BIAS]: 16, [EffectKey.POWER_VARIANCE]: 12, [EffectKey.SERVE_AND_VOLLEY_BIAS]: 3 },
+      {
+        [EffectKey.RALLY_WINNER_BIAS]: 16,
+        [EffectKey.POWER_VARIANCE]: 12,
+        [EffectKey.SERVE_AND_VOLLEY_BIAS]: 3,
+      },
       { [EffectKey.POWER_VARIANCE]: -5 },
       { [EffectKey.POWER_VARIANCE]: -4 },
     ],
   },
   {
-    id: 'fh_survivor', phase: 'forehand', label: 'Survivor', role: 'defense',
-    description: 'Rock-solid rally forehand — keep the ball deep and wait for the error. You can survive two days in the desert and still get the ball back.',
+    id: 'fh_survivor',
+    phase: 'forehand',
+    label: 'Survivor',
+    role: 'defense',
+    description:
+      'Rock-solid rally forehand — keep the ball deep and wait for the error. You can survive two days in the desert and still get the ball back.',
     tradeoff: 'Outlasts opponents but rarely forces it.',
     leveling: 'Lets you maintain rallies without losing aggressiveness.',
     tierEffects: [
-      { [EffectKey.RALLY_PATIENCE]: 12, [EffectKey.RALLY_WINNER_BIAS]: -6, [EffectKey.LOB_BIAS]: 6 },
+      {
+        [EffectKey.RALLY_PATIENCE]: 12,
+        [EffectKey.RALLY_WINNER_BIAS]: -6,
+        [EffectKey.LOB_BIAS]: 6,
+      },
       { [EffectKey.RALLY_WINNER_BIAS]: 3, [EffectKey.LOB_BIAS]: 3 },
       { [EffectKey.RALLY_WINNER_BIAS]: 3 },
     ],
@@ -197,30 +290,51 @@ const PATHS: PhasePathDef[] = [
 
   // ============================ BACKHAND ============================
   {
-    id: 'bh_bazooka', phase: 'backhand', label: 'Bazooka', role: 'offense',
-    description: 'An offensive two-hander that drives through the ball flat and hard. You swing as hard as you can and usually the point ends one way or another.',
+    id: 'bh_bazooka',
+    phase: 'backhand',
+    label: 'Bazooka',
+    role: 'offense',
+    description:
+      'An offensive two-hander that drives through the ball flat and hard. You swing as hard as you can and usually the point ends one way or another.',
     tradeoff: 'A weapon with no cushion.',
     leveling: 'Tightens the drive — less boom-or-bust.',
     tierEffects: [
-      { [EffectKey.RALLY_WINNER_BIAS]: 12, [EffectKey.SLICE_PREFERENCE_BACKHAND]: -8, [EffectKey.POWER_VARIANCE]: 12, [EffectKey.DROP_SHOT_BIAS]: -6 },
+      {
+        [EffectKey.RALLY_WINNER_BIAS]: 12,
+        [EffectKey.SLICE_PREFERENCE_BACKHAND]: -8,
+        [EffectKey.POWER_VARIANCE]: 12,
+        [EffectKey.DROP_SHOT_BIAS]: -6,
+      },
       { [EffectKey.POWER_VARIANCE]: -5 },
       { [EffectKey.POWER_VARIANCE]: -4 },
     ],
   },
   {
-    id: 'bh_samurai', phase: 'backhand', label: 'Samurai', role: 'defense',
-    description: 'A low, knifing slice — change the rhythm and look for your opportunity. You\'ve spent years studying the Wilson Blade.',
+    id: 'bh_samurai',
+    phase: 'backhand',
+    label: 'Samurai',
+    role: 'defense',
+    description:
+      "A low, knifing slice — change the rhythm and look for your opportunity. You've spent years studying the Wilson Blade.",
     tradeoff: 'Great variety and defense, but cedes pace and offense.',
     leveling: 'Deepens the slice and improves rally tolerance further.',
     tierEffects: [
-      { [EffectKey.SLICE_PREFERENCE_BACKHAND]: 10, [EffectKey.RALLY_PATIENCE]: 4, [EffectKey.DROP_SHOT_BIAS]: 8 },
+      {
+        [EffectKey.SLICE_PREFERENCE_BACKHAND]: 10,
+        [EffectKey.RALLY_PATIENCE]: 4,
+        [EffectKey.DROP_SHOT_BIAS]: 8,
+      },
       { [EffectKey.SLICE_PREFERENCE_BACKHAND]: 7, [EffectKey.DROP_SHOT_BIAS]: 5 },
       { [EffectKey.SLICE_PREFERENCE_BACKHAND]: 7, [EffectKey.RALLY_PATIENCE]: 2 },
     ],
   },
   {
-    id: 'bh_brick_wall', phase: 'backhand', label: 'Brick Wall', role: 'balanced',
-    description: 'A dependable two-hander that holds up under pressure and keeps rallies alive. Winning doesn\'t always have to be pretty.',
+    id: 'bh_brick_wall',
+    phase: 'backhand',
+    label: 'Brick Wall',
+    role: 'balanced',
+    description:
+      "A dependable two-hander that holds up under pressure and keeps rallies alive. Winning doesn't always have to be pretty.",
     tradeoff: 'Reliable, but neither a weapon nor a defensive specialty.',
     leveling: 'Improves rally tolerance further.',
     tierEffects: [
@@ -232,8 +346,12 @@ const PATHS: PhasePathDef[] = [
 
   // ============================ NET ============================
   {
-    id: 'net_downhill', phase: 'net', label: 'Downhill', role: 'offense',
-    description: 'Look to get forward at every opportunity and finish points quickly. You basically have a summer home at the net.',
+    id: 'net_downhill',
+    phase: 'net',
+    label: 'Downhill',
+    role: 'offense',
+    description:
+      'Look to get forward at every opportunity and finish points quickly. You basically have a summer home at the net.',
     tradeoff: 'Ends points early but exposed to the pass.',
     leveling: 'Sharpens your net finishing.',
     tierEffects: [
@@ -243,8 +361,12 @@ const PATHS: PhasePathDef[] = [
     ],
   },
   {
-    id: 'net_opportunist', phase: 'net', label: 'Opportunist', role: 'balanced',
-    description: 'Come forward only on a genuine short ball — controlled aggression. You\'re only as good as your approach shot.',
+    id: 'net_opportunist',
+    phase: 'net',
+    label: 'Opportunist',
+    role: 'balanced',
+    description:
+      "Come forward only on a genuine short ball — controlled aggression. You're only as good as your approach shot.",
     tradeoff: 'Balanced — picks good moments without overexposing.',
     leveling: 'Improves net approach frequency further.',
     tierEffects: [
@@ -254,12 +376,21 @@ const PATHS: PhasePathDef[] = [
     ],
   },
   {
-    id: 'net_apologist', phase: 'net', label: 'Apologist', role: 'defense',
-    description: 'No thanks, you\'d rather not. Live at the baseline — only approach when absolutely forced. The net is scary.',
+    id: 'net_apologist',
+    phase: 'net',
+    label: 'Apologist',
+    role: 'defense',
+    description:
+      "No thanks, you'd rather not. Live at the baseline — only approach when absolutely forced. The net is scary.",
     tradeoff: 'Safe from the back but no net threat.',
     leveling: 'Improves rally tolerance further.',
     tierEffects: [
-      { [EffectKey.NET_APPROACH_BIAS]: -8, [EffectKey.SERVE_AND_VOLLEY_BIAS]: -8, [EffectKey.RALLY_PATIENCE]: 3, [EffectKey.LOB_BIAS]: 4 },
+      {
+        [EffectKey.NET_APPROACH_BIAS]: -8,
+        [EffectKey.SERVE_AND_VOLLEY_BIAS]: -8,
+        [EffectKey.RALLY_PATIENCE]: 3,
+        [EffectKey.LOB_BIAS]: 4,
+      },
       { [EffectKey.RALLY_PATIENCE]: 3 },
       { [EffectKey.RALLY_PATIENCE]: 3 },
     ],
@@ -312,15 +443,15 @@ export const DEFAULT_ARCHETYPE_LABEL = 'Balanced';
  * point to specialize it. There are no automatic defaults — every specialty is an
  * opt-in bonus the player selects; unspecialized phases use baseline behavior.
  */
-export function resolvePhaseSpec(
-  profile: ArchetypeProfile,
-  phase: GamePhase,
-): PhaseSpec | null {
+export function resolvePhaseSpec(profile: ArchetypeProfile, phase: GamePhase): PhaseSpec | null {
   return profile.phases[phase] ?? null;
 }
 
 /** Sum a specialty's cumulative tier effects up to (and including) its tier. */
-export function getSpecialtyEffects(path: PhasePathId, tier: SpecialtyTier): Record<string, number> {
+export function getSpecialtyEffects(
+  path: PhasePathId,
+  tier: SpecialtyTier,
+): Record<string, number> {
   const def = PATH_DEFS[path];
   const result: Record<string, number> = {};
   for (let i = 0; i < tier && i < def.tierEffects.length; i++) {
@@ -381,11 +512,7 @@ export function createEmptyArchetypeProfile(): ArchetypeProfile {
 
 /** The five legacy archetype labels still used to author opponents and counters. */
 export type LegacyArchetype =
-  | 'aggressive'
-  | 'defensive'
-  | 'counterpuncher'
-  | 'serve_volley'
-  | 'all_court';
+  'aggressive' | 'defensive' | 'counterpuncher' | 'serve_volley' | 'all_court';
 
 /**
  * Build a full archetype profile from a legacy archetype label. Opponents (and

@@ -51,7 +51,7 @@ export const CoreStatPentagon: React.FC<CoreStatPentagonProps> = ({
   className = '',
 }) => {
   const shapePoints = CORE_ANCHOR_ORDER.map((stat, i) =>
-    vertex(i, (core[stat] / 100) * RADIUS).join(',')
+    vertex(i, (core[stat] / 100) * RADIUS).join(','),
   ).join(' ');
 
   return (
@@ -63,11 +63,17 @@ export const CoreStatPentagon: React.FC<CoreStatPentagonProps> = ({
       preserveAspectRatio="xMidYMid meet"
       role="img"
       aria-label={`Core stats: ${CORE_ANCHOR_ORDER.map(
-        (stat) => `${CORE_ANCHORS[stat].name} ${core[stat]}`
+        (stat) => `${CORE_ANCHORS[stat].name} ${core[stat]}`,
       ).join(', ')}`}
     >
       {RINGS.map((scale) => (
-        <polygon key={scale} points={ringPoints(scale)} fill="none" stroke="#232c46" strokeWidth={1} />
+        <polygon
+          key={scale}
+          points={ringPoints(scale)}
+          fill="none"
+          stroke="#232c46"
+          strokeWidth={1}
+        />
       ))}
 
       {CORE_ANCHOR_ORDER.map((stat, i) => {

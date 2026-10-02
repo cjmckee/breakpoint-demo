@@ -20,7 +20,8 @@ export const Challenges: React.FC = () => {
       <div className="max-w-4xl mx-auto px-4 pb-8">
         <h1 className="text-3xl font-bold text-pixel-text mb-1">Challenges</h1>
         <p className="text-sm text-pixel-text-muted mb-4">
-          Complete quests to earn stats, abilities, items, and XP. Tap a challenge to see its requirements and rewards.
+          Complete quests to earn stats, abilities, items, and XP. Tap a challenge to see its
+          requirements and rewards.
         </p>
         <ActiveChallenges />
         <CompletedChallenges />

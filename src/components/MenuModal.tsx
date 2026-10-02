@@ -180,7 +180,9 @@ function NowPlayingPanel() {
           <>
             <div className="min-w-0 flex-1">
               <div className="text-pixel-text font-bold truncate">{nowPlaying.entry.title}</div>
-              <div className="text-xs text-pixel-text-muted truncate">{nowPlaying.entry.artist}</div>
+              <div className="text-xs text-pixel-text-muted truncate">
+                {nowPlaying.entry.artist}
+              </div>
               {muteMusic && (
                 <div className="text-xs text-pixel-text-muted italic mt-0.5">Music is muted</div>
               )}
@@ -285,7 +287,9 @@ function SettingsContent({ onOpenTutorialGuide }: SettingsContentProps) {
         />
         <div className="flex justify-between text-xs text-pixel-text-muted mt-1">
           <span>Off</span>
-          <span>{Math.round((audioSettings.muteMusic ? 0 : audioSettings.musicVolume) * 100)}%</span>
+          <span>
+            {Math.round((audioSettings.muteMusic ? 0 : audioSettings.musicVolume) * 100)}%
+          </span>
           <span>Max</span>
         </div>
       </div>
@@ -362,11 +366,7 @@ function SettingsContent({ onOpenTutorialGuide }: SettingsContentProps) {
           Data
         </h3>
         {!confirmingReset ? (
-          <Button
-            variant="danger"
-            fullWidth
-            onClick={() => setConfirmingReset(true)}
-          >
+          <Button variant="danger" fullWidth onClick={() => setConfirmingReset(true)}>
             Clear All Progress
           </Button>
         ) : (
@@ -386,11 +386,7 @@ function SettingsContent({ onOpenTutorialGuide }: SettingsContentProps) {
               >
                 Yes, Delete Everything
               </Button>
-              <Button
-                variant="secondary"
-                fullWidth
-                onClick={() => setConfirmingReset(false)}
-              >
+              <Button variant="secondary" fullWidth onClick={() => setConfirmingReset(false)}>
                 Cancel
               </Button>
             </div>
@@ -433,12 +429,10 @@ function FeedbackContent() {
     <div className="space-y-4">
       <div className="text-sm text-pixel-text-muted space-y-2">
         <p>
-          Have a bug to report, an idea for the game, or just want to say hi?
-          Leave a comment below — you'll need a free GitHub account to post.
+          Have a bug to report, an idea for the game, or just want to say hi? Leave a comment below
+          — you'll need a free GitHub account to post.
         </p>
-        <p>
-          Comments are public and stored in this project's GitHub Discussions.
-        </p>
+        <p>Comments are public and stored in this project's GitHub Discussions.</p>
       </div>
 
       <div
@@ -450,7 +444,8 @@ function FeedbackContent() {
 }
 
 export const MenuModal: React.FC = () => {
-  const { isOpen, activeTab, setActiveTab, closeMenu, hasAnyNewSection, encyclopediaSections } = useMenuModal();
+  const { isOpen, activeTab, setActiveTab, closeMenu, hasAnyNewSection, encyclopediaSections } =
+    useMenuModal();
   const [isTutorialGuideOpen, setIsTutorialGuideOpen] = useState(false);
 
   const openTutorialGuide = () => {
@@ -473,18 +468,25 @@ export const MenuModal: React.FC = () => {
 
   const tabs = [
     { id: 'settings', label: 'Settings', icon: '⚙️' },
-    ...(encyclopediaSections.some(s => s.isRevealed) 
-      ? [{ id: 'encyclopedia', label: 'Encyclopedia', icon: '📚', hasNew: hasAnyNewSection } as const]
+    ...(encyclopediaSections.some((s) => s.isRevealed)
+      ? [
+          {
+            id: 'encyclopedia',
+            label: 'Encyclopedia',
+            icon: '📚',
+            hasNew: hasAnyNewSection,
+          } as const,
+        ]
       : []),
     { id: 'feedback', label: 'Feedback', icon: '💬' },
   ];
 
   const modalContent = (
-    <div 
+    <div
       className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90"
       style={{ zIndex: 99998, pointerEvents: 'auto' }}
     >
-      <div 
+      <div
         className="bg-pixel-card border-4 border-pixel-border w-full max-w-2xl mx-4 p-6 max-h-[90vh] flex flex-col"
         style={{ pointerEvents: 'auto' }}
       >
@@ -508,9 +510,7 @@ export const MenuModal: React.FC = () => {
           ))}
         </div>
 
-        <div className="flex-1 min-h-0 overflow-y-auto">
-          {renderTabContent()}
-        </div>
+        <div className="flex-1 min-h-0 overflow-y-auto">{renderTabContent()}</div>
 
         <Button variant="primary" fullWidth onClick={closeMenu} className="mt-4 shrink-0">
           Close
@@ -522,7 +522,10 @@ export const MenuModal: React.FC = () => {
   return (
     <>
       {isOpen && createPortal(modalContent, document.body)}
-      <TutorialGuideModal isOpen={isTutorialGuideOpen} onClose={() => setIsTutorialGuideOpen(false)} />
+      <TutorialGuideModal
+        isOpen={isTutorialGuideOpen}
+        onClose={() => setIsTutorialGuideOpen(false)}
+      />
     </>
   );
 };

@@ -4,11 +4,7 @@ A stat-based tennis career simulation where you rise from club player to elite c
 
 [Try it here](https://cjmckee.github.io/breakpoint-demo/)
 
-
-
 https://github.com/user-attachments/assets/89e2e7da-4380-474b-b45c-0763cf81c882
-
-
 
 ## How to Play
 

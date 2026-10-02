@@ -84,7 +84,7 @@ export const FishingCastMinigame: React.FC<MinigameProps> = ({
   const rounds = useMinigameRounds(
     { minigame: 'fishing_cast', config: { rounds: CASTS, speedRamp: SPEED_RAMP, ...config } },
     onComplete,
-    onFirstAttempt
+    onFirstAttempt,
   );
   const { frozen, trigger: hitstop } = useHitstop();
   const lureHalf = (LURE_SIZE * (1 + windowBonus)) / 2;
@@ -106,7 +106,12 @@ export const FishingCastMinigame: React.FC<MinigameProps> = ({
   });
   const [burst, setBurst] = useState<Burst | null>(null);
   /** Where the cast ended, kept on screen briefly so a miss is legible. */
-  const [splash, setSplash] = useState<{ id: number; x: number; y: number; caught: boolean } | null>(null);
+  const [splash, setSplash] = useState<{
+    id: number;
+    x: number;
+    y: number;
+    caught: boolean;
+  } | null>(null);
 
   const playing = rounds.phase === 'playing';
   const onFish = view.biteFrac > 0;
@@ -115,7 +120,7 @@ export const FishingCastMinigame: React.FC<MinigameProps> = ({
     () => () => {
       if (splashTimerRef.current !== null) window.clearTimeout(splashTimerRef.current);
     },
-    []
+    [],
   );
 
   const settle = useCallback(
@@ -139,7 +144,7 @@ export const FishingCastMinigame: React.FC<MinigameProps> = ({
       }
       rounds.commit(caught);
     },
-    [rounds, hitstop]
+    [rounds, hitstop],
   );
 
   // Arm a fresh cast: the lure starts in the middle, and the fish starts somewhere
@@ -184,10 +189,22 @@ export const FishingCastMinigame: React.FC<MinigameProps> = ({
       fish.x += fish.vx * dt;
       fish.y += fish.vy * dt;
       // Bounce off the glass so the fish never leaves the tank.
-      if (fish.x < FISH_MARGIN) { fish.x = FISH_MARGIN; fish.vx = Math.abs(fish.vx); }
-      if (fish.x > w - FISH_MARGIN) { fish.x = w - FISH_MARGIN; fish.vx = -Math.abs(fish.vx); }
-      if (fish.y < FISH_MARGIN) { fish.y = FISH_MARGIN; fish.vy = Math.abs(fish.vy); }
-      if (fish.y > h - FISH_MARGIN) { fish.y = h - FISH_MARGIN; fish.vy = -Math.abs(fish.vy); }
+      if (fish.x < FISH_MARGIN) {
+        fish.x = FISH_MARGIN;
+        fish.vx = Math.abs(fish.vx);
+      }
+      if (fish.x > w - FISH_MARGIN) {
+        fish.x = w - FISH_MARGIN;
+        fish.vx = -Math.abs(fish.vx);
+      }
+      if (fish.y < FISH_MARGIN) {
+        fish.y = FISH_MARGIN;
+        fish.vy = Math.abs(fish.vy);
+      }
+      if (fish.y > h - FISH_MARGIN) {
+        fish.y = h - FISH_MARGIN;
+        fish.vy = -Math.abs(fish.vy);
+      }
 
       // Diagonals are normalized so they are no faster than a straight line.
       let mx = 0;
@@ -203,7 +220,8 @@ export const FishingCastMinigame: React.FC<MinigameProps> = ({
         lure.y = clamp(lure.y + (my / mag) * LURE_SPEED * dt, lureHalf, h - lureHalf);
       }
 
-      const covered = Math.abs(fish.x - lure.x) <= lureHalf && Math.abs(fish.y - lure.y) <= lureHalf;
+      const covered =
+        Math.abs(fish.x - lure.x) <= lureHalf && Math.abs(fish.y - lure.y) <= lureHalf;
       // If the fish slips out from under the lure, the bite starts over.
       bite = covered ? bite + dtMs : 0;
 
@@ -342,7 +360,9 @@ export const FishingCastMinigame: React.FC<MinigameProps> = ({
             {/* The lure */}
             <div
               className={`absolute border-2 border-dashed rounded ${
-                onFish ? 'border-pixel-success bg-pixel-success/20' : 'border-pixel-accent bg-pixel-accent/10'
+                onFish
+                  ? 'border-pixel-success bg-pixel-success/20'
+                  : 'border-pixel-accent bg-pixel-accent/10'
               }`}
               style={{
                 left: u(view.lure.x),
@@ -379,7 +399,11 @@ export const FishingCastMinigame: React.FC<MinigameProps> = ({
         {splash && (
           <div
             className="absolute"
-            style={{ left: `${splash.x}%`, top: `${splash.y}%`, transform: 'translate(-50%, -50%)' }}
+            style={{
+              left: `${splash.x}%`,
+              top: `${splash.y}%`,
+              transform: 'translate(-50%, -50%)',
+            }}
           >
             <div
               key={splash.id}

@@ -50,7 +50,10 @@ const uniform = (r: number): PlayerStats => ({
   mental: { focus: r, anticipation: r, tactics: r },
 });
 
-function profileOf(phases: Partial<Record<GamePhase, PhaseSpec>>, broad: ArchetypeProfile['broad'] = null): ArchetypeProfile {
+function profileOf(
+  phases: Partial<Record<GamePhase, PhaseSpec>>,
+  broad: ArchetypeProfile['broad'] = null,
+): ArchetypeProfile {
   return { broad, phases, specializationPoints: 0, respecTokens: 0 };
 }
 
@@ -60,7 +63,9 @@ function calcFatigue(cur: number, rally: number, stam: number, rec: number): num
   if (rally > MATCH_FATIGUE.longRallyThreshold) {
     gain += (rally - MATCH_FATIGUE.longRallyThreshold) * MATCH_FATIGUE.longRallyExtra * sf;
   }
-  const rec2 = MATCH_FATIGUE.baseRecoveryPerPoint + (rec / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
+  const rec2 =
+    MATCH_FATIGUE.baseRecoveryPerPoint +
+    (rec / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
   return Math.max(0, Math.min(100, cur + gain - rec2));
 }
 
@@ -70,9 +75,9 @@ const isNetShot = (t: string): boolean => isVolley(t) || isOverhead(t);
 
 interface Tally {
   points: number;
-  pastReturn: number;      // rallies that got beyond the return
-  arrived: number;         // ...in which the player reached the net
-  hit: number;             // ...in which the player struck a ball from the net
+  pastReturn: number; // rallies that got beyond the return
+  arrived: number; // ...in which the player reached the net
+  hit: number; // ...in which the player struck a ball from the net
   rallyShots: number;
   volleys: number;
   overheads: number;
@@ -92,19 +97,39 @@ interface Tally {
 }
 
 const newTally = (): Tally => ({
-  points: 0, pastReturn: 0, arrived: 0, hit: 0, rallyShots: 0,
-  volleys: 0, overheads: 0, approaches: 0, approachesIn: 0, afterApproach: new Map(),
-  seq: new Map(), netShot1: new Map(), reply2: new Map(), netShot2: new Map(),
-  volleyQ: [], reply2Q: [], approachChances: 0,
+  points: 0,
+  pastReturn: 0,
+  arrived: 0,
+  hit: 0,
+  rallyShots: 0,
+  volleys: 0,
+  overheads: 0,
+  approaches: 0,
+  approachesIn: 0,
+  afterApproach: new Map(),
+  seq: new Map(),
+  netShot1: new Map(),
+  reply2: new Map(),
+  netShot2: new Map(),
+  volleyQ: [],
+  reply2Q: [],
+  approachChances: 0,
 });
 
-const bump = (m: Map<string, number>, k: string): void => { m.set(k, (m.get(k) ?? 0) + 1); };
+const bump = (m: Map<string, number>, k: string): void => {
+  m.set(k, (m.get(k) ?? 0) + 1);
+};
 
 const outcomeName = (o: PointType): string =>
-  o === PointType.WINNER ? 'winner'
-  : o === PointType.IN_PLAY ? 'in play'
-  : o === PointType.FORCED_ERROR ? 'forced error'
-  : o === PointType.UNFORCED_ERROR ? 'unforced error' : String(o);
+  o === PointType.WINNER
+    ? 'winner'
+    : o === PointType.IN_PLAY
+      ? 'in play'
+      : o === PointType.FORCED_ERROR
+        ? 'forced error'
+        : o === PointType.UNFORCED_ERROR
+          ? 'unforced error'
+          : String(o);
 
 /**
  * Walk the sequence after a successful approach:
@@ -113,36 +138,65 @@ const outcomeName = (o: PointType): string =>
  * away, how often does it continue, and when it continues what comes back?
  */
 function traceNetSequence(shots: ShotDetail[], role: 'server' | 'returner', t: Tally): void {
-  const i = shots.findIndex(s => s.shooter === role && s.shotType.includes('approach') && s.outcome === PointType.IN_PLAY);
+  const i = shots.findIndex(
+    (s) => s.shooter === role && s.shotType.includes('approach') && s.outcome === PointType.IN_PLAY,
+  );
   if (i < 0) return;
   const reply = shots[i + 1];
-  if (!reply) { bump(t.seq, '1. approach won the point outright'); return; }
-  const kind = reply.shotType.includes('lob') ? 'lob' : reply.shotType.includes('passing') ? 'passing shot' : 'other reply';
-  if (reply.outcome !== PointType.IN_PLAY) { bump(t.seq, `2. ${kind} missed`); return; }
+  if (!reply) {
+    bump(t.seq, '1. approach won the point outright');
+    return;
+  }
+  const kind = reply.shotType.includes('lob')
+    ? 'lob'
+    : reply.shotType.includes('passing')
+      ? 'passing shot'
+      : 'other reply';
+  if (reply.outcome !== PointType.IN_PLAY) {
+    bump(t.seq, `2. ${kind} missed`);
+    return;
+  }
   bump(t.seq, `3. ${kind} in play`);
 
   const net1 = shots[i + 2];
-  if (!net1) { bump(t.netShot1, 'point ended before a net shot'); return; }
-  const fam1 = isOverhead(net1.shotType) ? 'overhead' : isVolley(net1.shotType) ? 'volley' : 'baseline shot';
+  if (!net1) {
+    bump(t.netShot1, 'point ended before a net shot');
+    return;
+  }
+  const fam1 = isOverhead(net1.shotType)
+    ? 'overhead'
+    : isVolley(net1.shotType)
+      ? 'volley'
+      : 'baseline shot';
   bump(t.netShot1, `${fam1}: ${outcomeName(net1.outcome)}`);
   if (fam1 === 'volley') t.volleyQ.push(net1.quality);
   if (net1.outcome !== PointType.IN_PLAY) return;
 
   const r2 = shots[i + 3];
-  if (!r2) { bump(t.reply2, 'point ended'); return; }
+  if (!r2) {
+    bump(t.reply2, 'point ended');
+    return;
+  }
   bump(t.reply2, outcomeName(r2.outcome));
   if (r2.outcome !== PointType.IN_PLAY) return;
   t.reply2Q.push(r2.quality);
 
   const net2 = shots[i + 4];
-  if (!net2) { bump(t.netShot2, 'point ended'); return; }
-  const fam2 = isOverhead(net2.shotType) ? 'overhead' : isVolley(net2.shotType) ? 'volley' : 'baseline shot';
+  if (!net2) {
+    bump(t.netShot2, 'point ended');
+    return;
+  }
+  const fam2 = isOverhead(net2.shotType)
+    ? 'overhead'
+    : isVolley(net2.shotType)
+      ? 'volley'
+      : 'baseline shot';
   bump(t.netShot2, `${fam2}: ${outcomeName(net2.outcome)}`);
 }
 
 function scorePoint(shots: ShotDetail[], role: 'server' | 'returner', t: Tally): void {
-  const mine = shots.filter(s => s.shooter === role && s.outcome !== PointType.FAULT);
-  const rally = shots.filter(s => s.outcome !== PointType.FAULT);
+  const mine = shots.filter((s) => s.shooter === role && s.outcome !== PointType.FAULT);
+  const rally = shots.filter((s) => s.outcome !== PointType.FAULT);
   t.points++;
   for (const s of mine) {
     if (s.shotType.includes('serve')) continue;
@@ -160,22 +214,27 @@ function scorePoint(shots: ShotDetail[], role: 'server' | 'returner', t: Tally):
     t.approachChances++;
   }
 
-  if (rally.length < 3) return;   // never got past the return
+  if (rally.length < 3) return; // never got past the return
   t.pastReturn++;
 
-  const hitFromNet = mine.some(s => isNetShot(s.shotType) || s.context.courtPosition === 'net');
-  const approachedIn = mine.some(s => s.shotType.includes('approach') && s.outcome === PointType.IN_PLAY);
+  const hitFromNet = mine.some((s) => isNetShot(s.shotType) || s.context.courtPosition === 'net');
+  const approachedIn = mine.some(
+    (s) => s.shotType.includes('approach') && s.outcome === PointType.IN_PLAY,
+  );
   if (hitFromNet) t.hit++;
   if (hitFromNet || approachedIn) t.arrived++;
 
   // classify the ball after a successful approach
-  const idx = shots.findIndex(s => s.shooter === role && s.shotType.includes('approach') && s.outcome === PointType.IN_PLAY);
+  const idx = shots.findIndex(
+    (s) => s.shooter === role && s.shotType.includes('approach') && s.outcome === PointType.IN_PLAY,
+  );
   if (idx >= 0) {
     const reply = shots[idx + 1];
     const next = shots[idx + 2];
     let key: string;
     if (!reply) key = 'approach ended the point';
-    else if (reply.outcome !== PointType.IN_PLAY) key = `opponent ${reply.shotType.includes('lob') ? 'lob' : 'reply'} missed`;
+    else if (reply.outcome !== PointType.IN_PLAY)
+      key = `opponent ${reply.shotType.includes('lob') ? 'lob' : 'reply'} missed`;
     else if (!next) key = 'point ended on the reply';
     else if (isOverhead(next.shotType)) key = 'overhead';
     else if (isVolley(next.shotType)) key = 'volley';
@@ -185,31 +244,64 @@ function scorePoint(shots: ShotDetail[], role: 'server' | 'returner', t: Tally):
   traceNetSequence(shots, role, t);
 }
 
-function runMatch(p: PlayerProfile, o: PlayerProfile, eff: Record<string, number>, oEff: Record<string, number>, t: Tally): void {
+function runMatch(
+  p: PlayerProfile,
+  o: PlayerProfile,
+  eff: Record<string, number>,
+  oEff: Record<string, number>,
+  t: Tally,
+): void {
   const tracker = new ScoreTracker(BO3);
   tracker.setInitialServer(Math.random() < 0.5 ? 'player' : 'opponent');
-  p.rollMatchForm(); o.rollMatchForm();
+  p.rollMatchForm();
+  o.rollMatchForm();
   const sim = new PointSimulator();
   const ms: MatchState = {
-    score: tracker.getScore(), currentServer: tracker.getCurrentServer(), courtSurface: 'hard',
-    momentum: 0, pressure: 'low', matchLength: 0, pointsPlayed: 0, isKeyMoment: false,
+    score: tracker.getScore(),
+    currentServer: tracker.getCurrentServer(),
+    courtSurface: 'hard',
+    momentum: 0,
+    pressure: 'low',
+    matchLength: 0,
+    pointsPlayed: 0,
+    isKeyMoment: false,
     fatigue: { player: 0, opponent: 0 },
   };
   let pts = 0;
   while (!tracker.isComplete() && pts < 600) {
     const server = tracker.getCurrentServer();
     ms.isKeyMoment = tracker.isKeyMoment();
-    const pr = sim.simulatePoint(server, server === 'player' ? p : o, server === 'player' ? o : p, ms, eff, oEff);
+    const pr = sim.simulatePoint(
+      server,
+      server === 'player' ? p : o,
+      server === 'player' ? o : p,
+      ms,
+      eff,
+      oEff,
+    );
     scorePoint(pr.shots, server === 'player' ? 'server' : 'returner', t);
-    const w = pr.winner === 'server' ? server : (server === 'player' ? 'opponent' : 'player');
+    const w = pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player';
     tracker.addPoint(w);
-    ms.fatigue.player = calcFatigue(ms.fatigue.player, pr.rallyLength, p.stats.physical.stamina, p.stats.physical.stamina);
-    ms.fatigue.opponent = calcFatigue(ms.fatigue.opponent, pr.rallyLength, o.stats.physical.stamina, o.stats.physical.stamina);
-    ms.score = tracker.getScore(); ms.currentServer = tracker.getCurrentServer(); ms.pointsPlayed = ++pts;
+    ms.fatigue.player = calcFatigue(
+      ms.fatigue.player,
+      pr.rallyLength,
+      p.stats.physical.stamina,
+      p.stats.physical.stamina,
+    );
+    ms.fatigue.opponent = calcFatigue(
+      ms.fatigue.opponent,
+      pr.rallyLength,
+      o.stats.physical.stamina,
+      o.stats.physical.stamina,
+    );
+    ms.score = tracker.getScore();
+    ms.currentServer = tracker.getCurrentServer();
+    ms.pointsPlayed = ++pts;
   }
 }
 
-const pct = (a: number, b: number): string => b === 0 ? '   -  ' : `${((a / b) * 100).toFixed(1)}%`;
+const pct = (a: number, b: number): string =>
+  b === 0 ? '   -  ' : `${((a / b) * 100).toFixed(1)}%`;
 
 function main(): void {
   const N = Number(process.env.N ?? 40);
@@ -220,16 +312,35 @@ function main(): void {
     ['broad net_attacker only', profileOf({}, 'net_attacker')],
     ['net_downhill T1', profileOf({ net: { path: 'net_downhill', tier: 1 } }, 'net_attacker')],
     ['net_downhill T3', profileOf({ net: { path: 'net_downhill', tier: 3 } }, 'net_attacker')],
-    ['net_downhill T3 + fs_bomber T2', profileOf({ net: { path: 'net_downhill', tier: 3 }, first_serve: { path: 'fs_bomber', tier: 2 } }, 'net_attacker')],
-    ['net_apologist T3 (net-averse)', profileOf({ net: { path: 'net_apologist', tier: 3 } }, 'baseliner')],
+    [
+      'net_downhill T3 + fs_bomber T2',
+      profileOf(
+        { net: { path: 'net_downhill', tier: 3 }, first_serve: { path: 'fs_bomber', tier: 2 } },
+        'net_attacker',
+      ),
+    ],
+    [
+      'net_apologist T3 (net-averse)',
+      profileOf({ net: { path: 'net_apologist', tier: 3 } }, 'baseliner'),
+    ],
   ];
 
   console.log(`\n╔══ NET PROBE — uniform-${L} vs uniform-${L}, ${N} BO3 per build ══╗`);
   console.log('\nARRIVED / HIT are shares of rallies that got PAST THE RETURN.');
-  console.log('The last two columns are shares of the player\'s rally shots.\n');
-  console.log(['build'.padEnd(32), 'ARRIVED'.padStart(9), 'HIT'.padStart(8), 'appr in'.padStart(9),
-    'volley%'.padStart(9), 'v+oh%'.padStart(8), 'appr%'.padStart(7), 'appr/chance'.padStart(12),
-    'chances/rally'.padStart(14)].join(''));
+  console.log("The last two columns are shares of the player's rally shots.\n");
+  console.log(
+    [
+      'build'.padEnd(32),
+      'ARRIVED'.padStart(9),
+      'HIT'.padStart(8),
+      'appr in'.padStart(9),
+      'volley%'.padStart(9),
+      'v+oh%'.padStart(8),
+      'appr%'.padStart(7),
+      'appr/chance'.padStart(12),
+      'chances/rally'.padStart(14),
+    ].join(''),
+  );
   console.log('-'.repeat(76));
 
   const tallies: Array<[string, Tally]> = [];
@@ -238,15 +349,28 @@ function main(): void {
     const base = aggregateArchetypeEffects(profileOf({}));
     const t = newTally();
     for (let i = 0; i < N; i++) {
-      runMatch(new PlayerProfile('p', 'P', uniform(L), prof), new PlayerProfile('o', 'O', uniform(L), profileOf({})), eff, base, t);
+      runMatch(
+        new PlayerProfile('p', 'P', uniform(L), prof),
+        new PlayerProfile('o', 'O', uniform(L), profileOf({})),
+        eff,
+        base,
+        t,
+      );
     }
     tallies.push([name, t]);
-    console.log([name.padEnd(32), pct(t.arrived, t.pastReturn).padStart(9), pct(t.hit, t.pastReturn).padStart(8),
-      pct(t.approachesIn, t.approaches).padStart(9), pct(t.volleys, t.rallyShots).padStart(9),
-      pct(t.volleys + t.overheads, t.rallyShots).padStart(8),
-      pct(t.approaches, t.rallyShots).padStart(7),
-      pct(t.approaches, t.approachChances).padStart(12),
-      (t.approachChances / Math.max(1, t.pastReturn)).toFixed(2).padStart(14)].join(''));
+    console.log(
+      [
+        name.padEnd(32),
+        pct(t.arrived, t.pastReturn).padStart(9),
+        pct(t.hit, t.pastReturn).padStart(8),
+        pct(t.approachesIn, t.approaches).padStart(9),
+        pct(t.volleys, t.rallyShots).padStart(9),
+        pct(t.volleys + t.overheads, t.rallyShots).padStart(8),
+        pct(t.approaches, t.rallyShots).padStart(7),
+        pct(t.approaches, t.approachChances).padStart(12),
+        (t.approachChances / Math.max(1, t.pastReturn)).toFixed(2).padStart(14),
+      ].join(''),
+    );
   }
 
   const t3 = tallies.find(([n]) => n === 'net_downhill T3')?.[1];
@@ -258,13 +382,16 @@ function main(): void {
         console.log(`    ${k.padEnd(36)} ${pct(v, total).padStart(7)}`);
       }
     };
-    const mean = (a: number[]): string => a.length ? (a.reduce((x, y) => x + y, 0) / a.length).toFixed(1) : '-';
+    const mean = (a: number[]): string =>
+      a.length ? (a.reduce((x, y) => x + y, 0) / a.length).toFixed(1) : '-';
     console.log('\n── the net sequence, net_downhill T3 ──');
     show('step 1: opponent reply to the approach', t3.seq);
-    show('step 2: the net player\'s first shot', t3.netShot1);
+    show("step 2: the net player's first shot", t3.netShot1);
     show('step 3: opponent reply to that net shot', t3.reply2);
-    show('step 4: the net player\'s second shot', t3.netShot2);
-    console.log(`\n  mean volley quality: ${mean(t3.volleyQ)}   mean quality of the ball coming back: ${mean(t3.reply2Q)}`);
+    show("step 4: the net player's second shot", t3.netShot2);
+    console.log(
+      `\n  mean volley quality: ${mean(t3.volleyQ)}   mean quality of the ball coming back: ${mean(t3.reply2Q)}`,
+    );
   }
   console.log('');
 }

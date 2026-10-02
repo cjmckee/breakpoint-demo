@@ -6,23 +6,31 @@
 import React, { useState, useEffect } from 'react';
 import { useMenuModal, type EncyclopediaSectionId } from '../hooks/useMenuModal';
 import { UnseenBadge } from './ui/UnseenBadge';
-import { TENNIS_TERMS, STATS_GUIDE, SURFACE_GUIDE, SCORING_GUIDE, KEY_SHORTCUTS_GUIDE, MATCH_HELP_GUIDE, type GlossarySection } from '../data/glossary';
+import {
+  TENNIS_TERMS,
+  STATS_GUIDE,
+  SURFACE_GUIDE,
+  SCORING_GUIDE,
+  KEY_SHORTCUTS_GUIDE,
+  MATCH_HELP_GUIDE,
+  type GlossarySection,
+} from '../data/glossary';
 
 const SECTION_CONTENT: Record<EncyclopediaSectionId, GlossarySection[]> = {
-  'scoring': SCORING_GUIDE,
+  scoring: SCORING_GUIDE,
   'tennis-terms': TENNIS_TERMS,
   'stats-guide': STATS_GUIDE,
   'surface-guide': SURFACE_GUIDE,
   'key-shortcuts': KEY_SHORTCUTS_GUIDE,
   'match-help': MATCH_HELP_GUIDE,
-  'relationships': [],
+  relationships: [],
 };
 
 export const Encyclopedia: React.FC = () => {
   const { encyclopediaSections, markSectionSeen } = useMenuModal();
   const revealedSections = encyclopediaSections.filter((s) => s.isRevealed);
   const [activeSection, setActiveSection] = useState<EncyclopediaSectionId | null>(
-    revealedSections[0]?.id || null
+    revealedSections[0]?.id || null,
   );
 
   // Mark the first section as seen when encyclopedia opens
@@ -54,9 +62,9 @@ export const Encyclopedia: React.FC = () => {
             key={section.id}
             onClick={() => handleSectionClick(section.id)}
             className={`flex items-center gap-1.5 px-3 py-2 rounded text-sm font-bold transition-colors ${
-                activeSection === section.id
-                  ? 'bg-pixel-accent text-white'
-                  : 'bg-pixel-bg-dark text-pixel-text-muted hover:text-pixel-text'
+              activeSection === section.id
+                ? 'bg-pixel-accent text-white'
+                : 'bg-pixel-bg-dark text-pixel-text-muted hover:text-pixel-text'
             }`}
           >
             <span>{section.icon}</span>

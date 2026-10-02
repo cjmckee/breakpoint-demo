@@ -49,16 +49,19 @@ export const MatchSetup: React.FC = () => {
     const opponent = getPracticeOpponent(selectedTier);
 
     const opponentArchetypeProfile = opponent.archetypeProfile ?? createEmptyArchetypeProfile();
-    setMatchSetup({
-      opponentStats: opponent.stats,
-      opponentName: opponent.name,
-      opponentTier: opponent.tier,
-      opponentArchetypeProfile,
-      opponentPlayStyle: buildPlayStyle(opponentArchetypeProfile),
-      opponentAbilities: opponent.abilities,
-      surface: selectedSurface,
-      matchFormat: 'best-of-1',
-    }, 'regular');
+    setMatchSetup(
+      {
+        opponentStats: opponent.stats,
+        opponentName: opponent.name,
+        opponentTier: opponent.tier,
+        opponentArchetypeProfile,
+        opponentPlayStyle: buildPlayStyle(opponentArchetypeProfile),
+        opponentAbilities: opponent.abilities,
+        surface: selectedSurface,
+        matchFormat: 'best-of-1',
+      },
+      'regular',
+    );
   };
 
   const matchEnergyCost = DEFAULT_MATCH_ENERGY_COST;
@@ -115,9 +118,7 @@ export const MatchSetup: React.FC = () => {
 
           {/* Tier Selection */}
           <div className="mb-6">
-            <h3 className="text-xl font-bold text-pixel-text mb-3">
-              Choose Opponent Tier
-            </h3>
+            <h3 className="text-xl font-bold text-pixel-text mb-3">Choose Opponent Tier</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {TIER_INFO.map((info) => {
                 const isSelected = selectedTier === info.tier;
@@ -132,28 +133,19 @@ export const MatchSetup: React.FC = () => {
                       !isUnlocked
                         ? 'opacity-50 cursor-not-allowed border-pixel-border bg-pixel-bg'
                         : isSelected
-                        ? 'border-blue-400 bg-blue-500 bg-opacity-20'
-                        : getTierColor(info.tier)
+                          ? 'border-blue-400 bg-blue-500 bg-opacity-20'
+                          : getTierColor(info.tier)
                     } ${isUnlocked && 'hover:scale-105'}`}
                   >
-                    {!isUnlocked && (
-                      <div className="absolute top-2 right-2 text-3xl">
-                        🔒
-                      </div>
-                    )}
+                    {!isUnlocked && <div className="absolute top-2 right-2 text-3xl">🔒</div>}
                     <div className="flex justify-between items-start mb-2">
-                      <h4 className="text-lg font-bold text-pixel-text">
-                        {info.name}
-                      </h4>
+                      <h4 className="text-lg font-bold text-pixel-text">{info.name}</h4>
                       <span className="text-xs px-2 py-1 bg-pixel-bg border-2 border-pixel-border text-pixel-text uppercase">
                         Tier {info.tier}
                       </span>
                     </div>
                     <p className="text-sm text-pixel-text-muted mb-3">
-                      {isUnlocked
-                        ? info.description
-                        : 'Beat the previous tier to unlock!'
-                      }
+                      {isUnlocked ? info.description : 'Beat the previous tier to unlock!'}
                     </p>
                     {isUnlocked && (
                       <div className="flex flex-wrap gap-1">
@@ -175,9 +167,7 @@ export const MatchSetup: React.FC = () => {
 
           {/* Surface Selection */}
           <div className="mb-6">
-            <h3 className="text-xl font-bold text-pixel-text mb-3">
-              Choose Court Surface
-            </h3>
+            <h3 className="text-xl font-bold text-pixel-text mb-3">Choose Court Surface</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {(['hard', 'clay', 'grass', 'carpet'] as CourtSurface[]).map((surface) => {
                 const isSelected = selectedSurface === surface;
@@ -192,9 +182,7 @@ export const MatchSetup: React.FC = () => {
                     } hover:scale-105`}
                   >
                     <div className="text-4xl mb-2">{getSurfaceEmoji(surface)}</div>
-                    <div className="font-bold text-pixel-text capitalize">
-                      {surface}
-                    </div>
+                    <div className="font-bold text-pixel-text capitalize">{surface}</div>
                   </button>
                 );
               })}

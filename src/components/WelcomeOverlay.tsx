@@ -18,15 +18,20 @@ export const WelcomeOverlay: React.FC<WelcomeOverlayProps> = ({ isOpen, onClose 
   const [progressExpanded, setProgressExpanded] = useState(false);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Welcome to the Breakpoint demo" size="xl" showCloseButton={false}>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Welcome to the Breakpoint demo"
+      size="xl"
+      showCloseButton={false}
+    >
       {/* Welcome */}
       <div className="space-y-6">
         <div className="text-center">
           <div className="text-5xl mb-3">🎾</div>
           <p className="text-pixel-text leading-relaxed">
-            Rise from amateur circuits to the top of the world rankings. Train your
-            skills, navigate rivalries, compete in tournaments, and write your own
-            tennis story.
+            Rise from amateur circuits to the top of the world rankings. Train your skills, navigate
+            rivalries, compete in tournaments, and write your own tennis story.
           </p>
         </div>
 
@@ -40,14 +45,15 @@ export const WelcomeOverlay: React.FC<WelcomeOverlayProps> = ({ isOpen, onClose 
           </ul>
           <br />
           <p className="text-pixel-text-muted text-sm leading-relaxed">
-            Your stats and your playstyle affect the outcome on every point. Every serve,
-            every forehand, and every defensive slice are individually computed to create
-            realistic rallies with a variety of outcomes.
+            Your stats and your playstyle affect the outcome on every point. Every serve, every
+            forehand, and every defensive slice are individually computed to create realistic
+            rallies with a variety of outcomes.
           </p>
           <p className="text-pixel-text-muted text-sm leading-relaxed">
             Stronger stats will impact a player's success rate AND their shot selection. Baseliners
-            rip the ball at you with groundstrokes, while volleyers come up the court. Your 
-            opponent's stats, the match environment, and your stamina will also affect your performance.
+            rip the ball at you with groundstrokes, while volleyers come up the court. Your
+            opponent's stats, the match environment, and your stamina will also affect your
+            performance.
           </p>
         </div>
 
@@ -55,13 +61,13 @@ export const WelcomeOverlay: React.FC<WelcomeOverlayProps> = ({ isOpen, onClose 
         <div className="bg-pixel-bg border-4 border-pixel-warning p-4 space-y-2">
           <h3 className="text-pixel-warning font-bold text-lg">Work in Progress</h3>
           <p className="text-pixel-text-muted text-sm leading-relaxed">
-            This is a personal side project under active development. Expect rough
-            edges, placeholder content, and the occasional broken thing. All narrative text
-            is written by me, but the game code is written using AI-assisted tooling.
+            This is a personal side project under active development. Expect rough edges,
+            placeholder content, and the occasional broken thing. All narrative text is written by
+            me, but the game code is written using AI-assisted tooling.
           </p>
           <p className="text-pixel-text-muted text-sm leading-relaxed">
-            Thanks for giving this a try, and feel free to contact me with any feedback. If you have any funny tennis stories
-            you'd like to see enshrined in history, send them my way.
+            Thanks for giving this a try, and feel free to contact me with any feedback. If you have
+            any funny tennis stories you'd like to see enshrined in history, send them my way.
           </p>
         </div>
 
@@ -79,9 +85,7 @@ export const WelcomeOverlay: React.FC<WelcomeOverlayProps> = ({ isOpen, onClose 
             <div className="p-4 space-y-5">
               {GAME_PROGRESS.map((section) => (
                 <div key={section.title}>
-                  <h4 className="text-pixel-accent font-bold text-sm mb-2">
-                    {section.title}
-                  </h4>
+                  <h4 className="text-pixel-accent font-bold text-sm mb-2">{section.title}</h4>
                   <div className="space-y-2">
                     {section.items.map((item) => (
                       <div key={item.label}>

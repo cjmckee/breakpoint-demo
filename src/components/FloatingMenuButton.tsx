@@ -25,10 +25,7 @@ export const FloatingMenuButton: React.FC = () => {
       style={{ bottom: '1.5rem', right: '1.5rem', zIndex: 40 }}
       title="Open Menu (ESC)"
     >
-      ☰
-      {hasAnyNewSection && (
-        <UnseenBadge className="absolute -top-2 -right-2" />
-      )}
+      ☰{hasAnyNewSection && <UnseenBadge className="absolute -top-2 -right-2" />}
     </button>
   );
 
@@ -58,12 +55,9 @@ export const FloatingMenuButtonWithPointerEvents: React.FC = () => {
       onClick={handleClick}
       className="fixed w-14 h-14 bg-pixel-card border-4 border-pixel-border rounded-full flex items-center justify-center text-2xl shadow-lg hover:bg-pixel-secondary transition-colors"
       style={{ bottom: '1.5rem', right: '1.5rem', zIndex: 99999, pointerEvents: 'auto' }}
-      title={isOpen ? "Close Menu (ESC)" : "Open Menu (ESC)"}
+      title={isOpen ? 'Close Menu (ESC)' : 'Open Menu (ESC)'}
     >
-      ☰
-      {hasAnyNewSection && (
-        <UnseenBadge className="absolute -top-2 -right-2" />
-      )}
+      ☰{hasAnyNewSection && <UnseenBadge className="absolute -top-2 -right-2" />}
     </button>
   );
 

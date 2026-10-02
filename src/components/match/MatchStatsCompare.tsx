@@ -142,7 +142,9 @@ export const MatchStatsCompare: React.FC<MatchStatsCompareProps> = ({
             }`}
           >
             <div className="flex items-center gap-2">
-              <span className={`font-bold ${leader === 'player' ? 'text-pixel-success' : 'text-pixel-text'}`}>
+              <span
+                className={`font-bold ${leader === 'player' ? 'text-pixel-success' : 'text-pixel-text'}`}
+              >
                 {fmt(row, player[row.key])}
               </span>
               {pf && <DeltaChip flash={pf} pct={row.pct} />}
@@ -150,7 +152,9 @@ export const MatchStatsCompare: React.FC<MatchStatsCompareProps> = ({
             <span className="text-center px-3 text-xs text-pixel-text-muted">{row.label}</span>
             <div className="flex items-center gap-2 justify-end">
               {of && <DeltaChip flash={of} pct={row.pct} />}
-              <span className={`font-bold ${leader === 'opponent' ? 'text-pixel-error' : 'text-pixel-text'}`}>
+              <span
+                className={`font-bold ${leader === 'opponent' ? 'text-pixel-error' : 'text-pixel-text'}`}
+              >
                 {fmt(row, opponent[row.key])}
               </span>
             </div>

@@ -181,7 +181,10 @@ const TIER_3_OPPONENTS: OpponentPreset[] = [
       physical: { speed: 68, stamina: 60, strength: 80 },
       mental: { focus: 65, anticipation: 60, tactics: 60 },
     },
-    abilities: [ABILITY_DEFINITIONS[AbilityName.HEAVY_HITTER], ABILITY_DEFINITIONS[AbilityName.SERVE_CANNON]],
+    abilities: [
+      ABILITY_DEFINITIONS[AbilityName.HEAVY_HITTER],
+      ABILITY_DEFINITIONS[AbilityName.SERVE_CANNON],
+    ],
   },
   {
     name: 'Anna Kowalski',
@@ -194,7 +197,10 @@ const TIER_3_OPPONENTS: OpponentPreset[] = [
       physical: { speed: 72, stamina: 78, strength: 58 },
       mental: { focus: 72, anticipation: 70, tactics: 63 },
     },
-    abilities: [ABILITY_DEFINITIONS[AbilityName.BASELINER], ABILITY_DEFINITIONS[AbilityName.SPEED_DEMON]],
+    abilities: [
+      ABILITY_DEFINITIONS[AbilityName.BASELINER],
+      ABILITY_DEFINITIONS[AbilityName.SPEED_DEMON],
+    ],
   },
   {
     name: 'Alex Novak',
@@ -207,7 +213,10 @@ const TIER_3_OPPONENTS: OpponentPreset[] = [
       physical: { speed: 70, stamina: 72, strength: 68 },
       mental: { focus: 72, anticipation: 70, tactics: 65 },
     },
-    abilities: [ABILITY_DEFINITIONS[AbilityName.SPIN_MASTER], ABILITY_DEFINITIONS[AbilityName.CLUTCH]],
+    abilities: [
+      ABILITY_DEFINITIONS[AbilityName.SPIN_MASTER],
+      ABILITY_DEFINITIONS[AbilityName.CLUTCH],
+    ],
   },
   {
     name: 'James Whitfield',
@@ -220,7 +229,10 @@ const TIER_3_OPPONENTS: OpponentPreset[] = [
       physical: { speed: 70, stamina: 58, strength: 72 },
       mental: { focus: 68, anticipation: 72, tactics: 60 },
     },
-    abilities: [ABILITY_DEFINITIONS[AbilityName.NETCRASHER], ABILITY_DEFINITIONS[AbilityName.SERVE_CANNON]],
+    abilities: [
+      ABILITY_DEFINITIONS[AbilityName.NETCRASHER],
+      ABILITY_DEFINITIONS[AbilityName.SERVE_CANNON],
+    ],
   },
   {
     name: 'Elena Varga',
@@ -233,7 +245,10 @@ const TIER_3_OPPONENTS: OpponentPreset[] = [
       physical: { speed: 78, stamina: 82, strength: 55 },
       mental: { focus: 78, anticipation: 78, tactics: 58 },
     },
-    abilities: [ABILITY_DEFINITIONS[AbilityName.RANGY_RETURN], ABILITY_DEFINITIONS[AbilityName.SPEED_DEMON]],
+    abilities: [
+      ABILITY_DEFINITIONS[AbilityName.RANGY_RETURN],
+      ABILITY_DEFINITIONS[AbilityName.SPEED_DEMON],
+    ],
   },
 ];
 
@@ -253,7 +268,10 @@ const TIER_4_OPPONENTS: OpponentPreset[] = [
       physical: { speed: 82, stamina: 78, strength: 92 },
       mental: { focus: 85, anticipation: 80, tactics: 75 },
     },
-    abilities: [ABILITY_DEFINITIONS[AbilityName.HEAVY_HITTER], ABILITY_DEFINITIONS[AbilityName.SERVE_CANNON]],
+    abilities: [
+      ABILITY_DEFINITIONS[AbilityName.HEAVY_HITTER],
+      ABILITY_DEFINITIONS[AbilityName.SERVE_CANNON],
+    ],
   },
   {
     name: 'Nadia Volkov',
@@ -266,7 +284,10 @@ const TIER_4_OPPONENTS: OpponentPreset[] = [
       physical: { speed: 88, stamina: 92, strength: 75 },
       mental: { focus: 90, anticipation: 88, tactics: 78 },
     },
-    abilities: [ABILITY_DEFINITIONS[AbilityName.BASELINER], ABILITY_DEFINITIONS[AbilityName.SPEED_DEMON]],
+    abilities: [
+      ABILITY_DEFINITIONS[AbilityName.BASELINER],
+      ABILITY_DEFINITIONS[AbilityName.SPEED_DEMON],
+    ],
   },
   {
     name: 'Thomas Lund',
@@ -279,7 +300,10 @@ const TIER_4_OPPONENTS: OpponentPreset[] = [
       physical: { speed: 85, stamina: 88, strength: 82 },
       mental: { focus: 90, anticipation: 88, tactics: 81 },
     },
-    abilities: [ABILITY_DEFINITIONS[AbilityName.SOFT_HANDS], ABILITY_DEFINITIONS[AbilityName.CLUTCH]],
+    abilities: [
+      ABILITY_DEFINITIONS[AbilityName.SOFT_HANDS],
+      ABILITY_DEFINITIONS[AbilityName.CLUTCH],
+    ],
   },
   {
     name: 'Patrick Rafter Jr.',
@@ -292,7 +316,10 @@ const TIER_4_OPPONENTS: OpponentPreset[] = [
       physical: { speed: 85, stamina: 75, strength: 85 },
       mental: { focus: 85, anticipation: 88, tactics: 72 },
     },
-    abilities: [ABILITY_DEFINITIONS[AbilityName.NETCRASHER], ABILITY_DEFINITIONS[AbilityName.SERVE_CANNON]],
+    abilities: [
+      ABILITY_DEFINITIONS[AbilityName.NETCRASHER],
+      ABILITY_DEFINITIONS[AbilityName.SERVE_CANNON],
+    ],
   },
   {
     name: 'Kim Soo-jin',
@@ -305,7 +332,10 @@ const TIER_4_OPPONENTS: OpponentPreset[] = [
       physical: { speed: 90, stamina: 95, strength: 72 },
       mental: { focus: 92, anticipation: 92, tactics: 68 },
     },
-    abilities: [ABILITY_DEFINITIONS[AbilityName.SPEED_DEMON], ABILITY_DEFINITIONS[AbilityName.CLUTCH]],
+    abilities: [
+      ABILITY_DEFINITIONS[AbilityName.SPEED_DEMON],
+      ABILITY_DEFINITIONS[AbilityName.CLUTCH],
+    ],
   },
 ];
 
@@ -331,7 +361,9 @@ export function getRandomOpponent(tier: OpponentTier): OpponentPreset {
  * Build the full phase-based archetype profile for an opponent from its authored
  * archetype label, so it plays with a coherent identity in the match engine.
  */
-export function getOpponentArchetypeProfile(preset: { archetype: ArchetypeType }): ArchetypeProfile {
+export function getOpponentArchetypeProfile(preset: {
+  archetype: ArchetypeType;
+}): ArchetypeProfile {
   return profileForArchetype(preset.archetype);
 }
 

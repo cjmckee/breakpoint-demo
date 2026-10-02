@@ -23,12 +23,30 @@ import {
   PointResult as SimplePointResult,
 } from '../types/keyMoments';
 import { PlayerStats, Ability, StatBoosts, EffectKey } from '../types/game';
-import { MatchStatistics as IMatchStatistics, MatchState, PointResult, PointType, PlayerMatchFatigue, CourtSurface, ShotDetail, ShotType } from '../types';
-import { MATCH_FATIGUE, PRESSURE_BANK, STAMINA_RECOVERY, KEY_MOMENT_OPPONENT_DRAIN } from '../config/shotThresholds';
+import {
+  MatchStatistics as IMatchStatistics,
+  MatchState,
+  PointResult,
+  PointType,
+  PlayerMatchFatigue,
+  CourtSurface,
+  ShotDetail,
+  ShotType,
+} from '../types';
+import {
+  MATCH_FATIGUE,
+  PRESSURE_BANK,
+  STAMINA_RECOVERY,
+  KEY_MOMENT_OPPONENT_DRAIN,
+} from '../config/shotThresholds';
 import { MomentumEngine, ClutchLevel } from '../core/MomentumEngine';
 import { getPrimaryStatName } from '../core/shotStatMapping';
 import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds';
-import { DEFAULT_KEY_MOMENTS_PER_MATCH, DEFAULT_POINT_DELAY_MS, KEY_MOMENT_OPTIONS_PER_MENU } from '../config/matchRewards';
+import {
+  DEFAULT_KEY_MOMENTS_PER_MATCH,
+  DEFAULT_POINT_DELAY_MS,
+  KEY_MOMENT_OPTIONS_PER_MENU,
+} from '../config/matchRewards';
 import { trace } from '../core/trace';
 
 import { random } from '../core/random';
@@ -56,8 +74,8 @@ export const TACTIC_SHOT_TYPES: Record<string, ShotType> = {
 type MatchFormatLabel = NonNullable<InteractiveMatchConfig['matchFormat']>;
 
 export interface AccumulatedMatchEffects {
-  energyDelta: number;  // Net energy change from key moment choices
-  moodDelta: number;    // Net mood change from key moment choices
+  energyDelta: number; // Net energy change from key moment choices
+  moodDelta: number; // Net mood change from key moment choices
   opponentEnergyDelta: number; // Net opponent energy change from key moment outcomes
 }
 
@@ -85,7 +103,11 @@ export class MatchOrchestrator {
   private opponentProfile: PlayerProfile | null = null;
   private courtSurface: CourtSurface = 'hard';
   private opponentArchetype: ArchetypeType = 'defensive';
-  private accumulatedEffects: AccumulatedMatchEffects = { energyDelta: 0, moodDelta: 0, opponentEnergyDelta: 0 };
+  private accumulatedEffects: AccumulatedMatchEffects = {
+    energyDelta: 0,
+    moodDelta: 0,
+    opponentEnergyDelta: 0,
+  };
   private activeEffects: Record<string, number> = {};
   private opponentActiveEffects: Record<string, number> = {};
 
@@ -196,13 +218,29 @@ export class MatchOrchestrator {
       : config.playerStats;
 
     // Extract ability + archetype behavior effects for match-time mechanics
-    this.activeEffects = MatchOrchestrator.extractActiveEffects(config.playerAbilities, config.playerArchetypeProfile);
-    this.opponentActiveEffects = MatchOrchestrator.extractActiveEffects(config.opponentAbilities, config.opponentArchetypeProfile);
+    this.activeEffects = MatchOrchestrator.extractActiveEffects(
+      config.playerAbilities,
+      config.playerArchetypeProfile,
+    );
+    this.opponentActiveEffects = MatchOrchestrator.extractActiveEffects(
+      config.opponentAbilities,
+      config.opponentArchetypeProfile,
+    );
 
     // Initialize match simulator with PlayerProfile objects, carrying their
     // archetype identities so shot selection reflects their chosen specialties.
-    const player = new PlayerProfile('player', 'Player', playerStatsWithBoosts, config.playerArchetypeProfile);
-    const opponent = new PlayerProfile('opponent', 'Opponent', config.opponentStats, config.opponentArchetypeProfile);
+    const player = new PlayerProfile(
+      'player',
+      'Player',
+      playerStatsWithBoosts,
+      config.playerArchetypeProfile,
+    );
+    const opponent = new PlayerProfile(
+      'opponent',
+      'Opponent',
+      config.opponentStats,
+      config.opponentArchetypeProfile,
+    );
 
     // Opponent archetype label (from their authored profile) for key-moment context
     this.opponentArchetype = opponent.playStyle.type;
@@ -220,9 +258,15 @@ export class MatchOrchestrator {
     const oPhys = opponent.getStatCategoryAverage('physical');
     const oMent = opponent.getStatCategoryAverage('mental');
     trace(`🎾 Starting match: ${player.name} vs ${config.opponentName ?? opponent.name}`);
-    trace(`📊 Player overall: ${player.overallRating} (tech=${pTech.toFixed(1)}, phys=${pPhys.toFixed(1)}, mental=${pMent.toFixed(1)})`);
-    trace(`📊 Opponent overall: ${opponent.overallRating} (tech=${oTech.toFixed(1)}, phys=${oPhys.toFixed(1)}, mental=${oMent.toFixed(1)}) → matchLevel: ${matchLevel}`);
-    trace(`📏 Quality thresholds: exceptional=${thresholds.exceptional.toFixed(1)}, high=${thresholds.high.toFixed(1)}, good=${thresholds.good.toFixed(1)}, average=${thresholds.average.toFixed(1)}, weak=${thresholds.weak.toFixed(1)}`);
+    trace(
+      `📊 Player overall: ${player.overallRating} (tech=${pTech.toFixed(1)}, phys=${pPhys.toFixed(1)}, mental=${pMent.toFixed(1)})`,
+    );
+    trace(
+      `📊 Opponent overall: ${opponent.overallRating} (tech=${oTech.toFixed(1)}, phys=${oPhys.toFixed(1)}, mental=${oMent.toFixed(1)}) → matchLevel: ${matchLevel}`,
+    );
+    trace(
+      `📏 Quality thresholds: exceptional=${thresholds.exceptional.toFixed(1)}, high=${thresholds.high.toFixed(1)}, good=${thresholds.good.toFixed(1)}, average=${thresholds.average.toFixed(1)}, weak=${thresholds.weak.toFixed(1)}`,
+    );
 
     // Roll match-day form for both players (mood-biased for the player) and read the
     // results back for the UI's hot/cold form indicator. The interactive path runs its
@@ -232,7 +276,9 @@ export class MatchOrchestrator {
     opponent.rollMatchForm({ variance: matchFormVariance });
     this.playerMatchForm = player.matchForm;
     this.opponentMatchForm = opponent.matchForm;
-    trace(`🎲 Match-day form: player ${player.matchForm >= 0 ? '+' : ''}${player.matchForm.toFixed(1)}, opponent ${opponent.matchForm >= 0 ? '+' : ''}${opponent.matchForm.toFixed(1)}`);
+    trace(
+      `🎲 Match-day form: player ${player.matchForm >= 0 ? '+' : ''}${player.matchForm.toFixed(1)}, opponent ${opponent.matchForm >= 0 ? '+' : ''}${opponent.matchForm.toFixed(1)}`,
+    );
 
     // Initialize statistics tracker
     this.matchStatistics = new MatchStatistics(player, opponent);
@@ -244,7 +290,11 @@ export class MatchOrchestrator {
 
     // Initialize fatigue from pre-match energy
     this.fatigue = {
-      player: Math.max(0, (MATCH_FATIGUE.energyFullStaminaThreshold - (config.energy ?? 100)) * MATCH_FATIGUE.energyToFatigueFactor),
+      player: Math.max(
+        0,
+        (MATCH_FATIGUE.energyFullStaminaThreshold - (config.energy ?? 100)) *
+          MATCH_FATIGUE.energyToFatigueFactor,
+      ),
       opponent: 0,
     };
 
@@ -269,8 +319,7 @@ export class MatchOrchestrator {
     while (!isComplete && !this.cancelled) {
       // Check if this should be a key moment
       const shouldTriggerKeyMoment =
-        config.enableKeyMoments &&
-        this.shouldTriggerKeyMoment(currentScore, config);
+        config.enableKeyMoments && this.shouldTriggerKeyMoment(currentScore, config);
 
       // Simple point result for onPointComplete callback
       let simplePointResult: SimplePointResult | undefined;
@@ -294,7 +343,7 @@ export class MatchOrchestrator {
             momentum: this.momentum,
             pressure: this.pressure + (this.activeEffects[EffectKey.CHAMPION_AURA] ?? 0) * 3,
           },
-          this.activeEffects
+          this.activeEffects,
         );
 
         // Apply secondary effects to match state
@@ -308,14 +357,15 @@ export class MatchOrchestrator {
         if (result.pointWinner === 'player') {
           const energySpent = Math.abs(
             selectedOption.secondaryEffects
-              .filter(e => e.type === 'energy' && e.value < 0)
-              .reduce((sum, e) => sum + e.value, 0)
+              .filter((e) => e.type === 'energy' && e.value < 0)
+              .reduce((sum, e) => sum + e.value, 0),
           );
           if (energySpent > 0) {
             const isCritical = result.outcome === 'critical-success';
-            const drain = energySpent
-              * KEY_MOMENT_OPPONENT_DRAIN.fatiguePerEnergySpent
-              * (isCritical ? KEY_MOMENT_OPPONENT_DRAIN.criticalMultiplier : 1);
+            const drain =
+              energySpent *
+              KEY_MOMENT_OPPONENT_DRAIN.fatiguePerEnergySpent *
+              (isCritical ? KEY_MOMENT_OPPONENT_DRAIN.criticalMultiplier : 1);
             this.fatigue.opponent = Math.max(0, Math.min(100, this.fatigue.opponent + drain));
             // Tracked for the post-match mood bonus (grinding the opponent down feels good).
             this.accumulatedEffects.opponentEnergyDelta -= drain;
@@ -331,7 +381,9 @@ export class MatchOrchestrator {
         if (this.matchStatistics) {
           const pointResult = this.createPointResultFromKeyMoment(result, currentScore.server);
           const breakPointFor = this.isBreakPoint(currentScore)
-            ? (currentScore.server === 'player' ? 'opponent' : 'player')
+            ? currentScore.server === 'player'
+              ? 'opponent'
+              : 'player'
             : undefined;
           this.matchStatistics.addPointResult(pointResult, currentScore.server, breakPointFor);
           this.matchStatistics.addKeyMomentResult(result.pointWinner);
@@ -367,9 +419,12 @@ export class MatchOrchestrator {
         // NORMAL SIMULATION
         // Use point simulator to determine point with full statistics
         const pointResult = this.simulatePointWithStats(currentScore);
-        const pointWinner = pointResult.winner === 'server'
-          ? currentScore.server
-          : (currentScore.server === 'player' ? 'opponent' : 'player');
+        const pointWinner =
+          pointResult.winner === 'server'
+            ? currentScore.server
+            : currentScore.server === 'player'
+              ? 'opponent'
+              : 'player';
 
         // Build simple point result for callback. Include the full shot-by-shot detail so the
         // court can animate the real rally (key-moment points omit this — their shots are synthetic).
@@ -437,7 +492,7 @@ export class MatchOrchestrator {
       // out with pointDelayMs: 0 (offline analysis).
       const pointDelayMs = config.pointDelayMs ?? DEFAULT_POINT_DELAY_MS;
       if (!isComplete && pointDelayMs > 0) {
-        await new Promise(resolve => setTimeout(resolve, pointDelayMs));
+        await new Promise((resolve) => setTimeout(resolve, pointDelayMs));
       }
     }
 
@@ -452,10 +507,7 @@ export class MatchOrchestrator {
   /**
    * Determine if a key moment should trigger
    */
-  private shouldTriggerKeyMoment(
-    score: MatchScore,
-    config: InteractiveMatchConfig
-  ): boolean {
+  private shouldTriggerKeyMoment(score: MatchScore, config: InteractiveMatchConfig): boolean {
     // Don't exceed max key moments per match
     const maxKeyMoments = config.keyMomentsPerMatch ?? DEFAULT_KEY_MOMENTS_PER_MATCH;
     if (this.keyMomentsTriggered >= maxKeyMoments) {
@@ -514,15 +566,12 @@ export class MatchOrchestrator {
   /**
    * Create a key moment object
    */
-  private createKeyMoment(
-    score: MatchScore,
-    config: InteractiveMatchConfig
-  ): KeyMoment {
+  private createKeyMoment(score: MatchScore, config: InteractiveMatchConfig): KeyMoment {
     const momentType = this.detectKeyMomentType(score)!;
-    
+
     // Mark this type as fired for the current game
     this.firedKeyMomentTypesInGame.add(momentType);
-    
+
     // Draw a menu: eligible for this situation, spanning at least two risk levels
     // and two postures, preferring postures the previous moment did not offer.
     const options = getOptionsForSituation(
@@ -558,7 +607,7 @@ export class MatchOrchestrator {
   private synthesizeRallyShots(
     shotOutcome: { outcome: PointType; shotType: string; shooter: 'player' | 'opponent' },
     pointWinner: 'player' | 'opponent',
-    currentServer: 'player' | 'opponent'
+    currentServer: 'player' | 'opponent',
   ): { shots: ShotDetail[]; serveType: 'first' | 'second' } {
     const shots: ShotDetail[] = [];
     const timestamp = Date.now();
@@ -571,7 +620,7 @@ export class MatchOrchestrator {
       shooter: 'server' | 'returner',
       success: boolean,
       outcome: PointType,
-      quality: number = 70
+      quality: number = 70,
     ): ShotDetail => ({
       shotType,
       shooter,
@@ -579,7 +628,18 @@ export class MatchOrchestrator {
       quality,
       outcome,
       statUsed: getPrimaryStatName(shotType),
-      modifiers: { spinModifier: 1, placementModifier: 1, physicalModifier: 1, mentalModifier: 1, difficultyModifier: 1, pressureModifier: 1, rallyLengthModifier: 1, finalAdjustment: 1, fatigueModifier: 1, momentumModifier: 1 },
+      modifiers: {
+        spinModifier: 1,
+        placementModifier: 1,
+        physicalModifier: 1,
+        mentalModifier: 1,
+        difficultyModifier: 1,
+        pressureModifier: 1,
+        rallyLengthModifier: 1,
+        finalAdjustment: 1,
+        fatigueModifier: 1,
+        momentumModifier: 1,
+      },
       timestamp: timestamp + shotNumber * 100,
       shotNumber: shotNumber++,
       context: {
@@ -600,7 +660,7 @@ export class MatchOrchestrator {
     const shotType = TACTIC_SHOT_TYPES[shotOutcome.shotType] ?? 'forehand';
 
     // Determine winner in server/returner terms
-    const winnerRole = pointWinner === currentServer ? 'server' as const : 'returner' as const;
+    const winnerRole = pointWinner === currentServer ? ('server' as const) : ('returner' as const);
 
     // Generate shots based on outcome type
     switch (shotOutcome.outcome) {
@@ -630,23 +690,19 @@ export class MatchOrchestrator {
         const rallyShots = 1 + Math.floor(random() * 3); // 1-3 rally shots
         for (let i = 0; i < rallyShots - 1; i++) {
           const isServerShot = i % 2 === 0;
-          shots.push(createShot(
-            isServerShot ? 'forehand' : 'backhand',
-            isServerShot ? 'server' : 'returner',
-            true,
-            PointType.IN_PLAY,
-            70
-          ));
+          shots.push(
+            createShot(
+              isServerShot ? 'forehand' : 'backhand',
+              isServerShot ? 'server' : 'returner',
+              true,
+              PointType.IN_PLAY,
+              70,
+            ),
+          );
         }
 
         // Final winner shot
-        shots.push(createShot(
-          shotType,
-          winnerRole,
-          true,
-          PointType.WINNER,
-          90
-        ));
+        shots.push(createShot(shotType, winnerRole, true, PointType.WINNER, 90));
         break;
 
       case PointType.FORCED_ERROR:
@@ -663,26 +719,31 @@ export class MatchOrchestrator {
         const rallyErrorShots = 1 + Math.floor(random() * 3);
         for (let i = 0; i < rallyErrorShots - 1; i++) {
           const isServerShot = i % 2 === 0;
-          shots.push(createShot(
-            isServerShot ? 'forehand' : 'backhand',
-            isServerShot ? 'server' : 'returner',
-            true,
-            PointType.IN_PLAY,
-            70
-          ));
+          shots.push(
+            createShot(
+              isServerShot ? 'forehand' : 'backhand',
+              isServerShot ? 'server' : 'returner',
+              true,
+              PointType.IN_PLAY,
+              70,
+            ),
+          );
         }
 
         // Final error shot (loser makes the error)
-        const loserRole = pointWinner === currentServer ? 'returner' as const : 'server' as const;
-        shots.push(createShot(
-          shotType,
-          loserRole,
-          false,
-          shotOutcome.outcome === PointType.FORCED_ERROR
-            ? PointType.FORCED_ERROR
-            : PointType.UNFORCED_ERROR,
-          40
-        ));
+        const loserRole =
+          pointWinner === currentServer ? ('returner' as const) : ('server' as const);
+        shots.push(
+          createShot(
+            shotType,
+            loserRole,
+            false,
+            shotOutcome.outcome === PointType.FORCED_ERROR
+              ? PointType.FORCED_ERROR
+              : PointType.UNFORCED_ERROR,
+            40,
+          ),
+        );
         break;
 
       default:
@@ -700,27 +761,31 @@ export class MatchOrchestrator {
    */
   private createPointResultFromKeyMoment(
     keyMomentResult: KeyMomentResult,
-    currentServer: 'player' | 'opponent'
+    currentServer: 'player' | 'opponent',
   ): PointResult {
-    const winner = keyMomentResult.pointWinner === currentServer ? 'server' as const : 'returner' as const;
+    const winner =
+      keyMomentResult.pointWinner === currentServer ? ('server' as const) : ('returner' as const);
     const pointType = keyMomentResult.shotOutcome.outcome;
 
     // Synthesize realistic shot sequence
     const { shots, serveType } = this.synthesizeRallyShots(
       keyMomentResult.shotOutcome,
       keyMomentResult.pointWinner,
-      currentServer
+      currentServer,
     );
 
     // rallyLength counts only in-play shots (excludes serve faults)
-    const rallyLength = shots.filter(s => s.outcome !== PointType.FAULT).length;
-    const winnerCount = shots.filter(s => s.outcome === PointType.ACE || s.outcome === PointType.WINNER).length;
-    const errorCount = shots.filter(s =>
-      s.outcome === PointType.FAULT ||
-      s.outcome === PointType.FORCED_ERROR ||
-      s.outcome === PointType.UNFORCED_ERROR
+    const rallyLength = shots.filter((s) => s.outcome !== PointType.FAULT).length;
+    const winnerCount = shots.filter(
+      (s) => s.outcome === PointType.ACE || s.outcome === PointType.WINNER,
     ).length;
-    const netApproaches = shots.filter(s => s.shotType.includes('volley')).length;
+    const errorCount = shots.filter(
+      (s) =>
+        s.outcome === PointType.FAULT ||
+        s.outcome === PointType.FORCED_ERROR ||
+        s.outcome === PointType.UNFORCED_ERROR,
+    ).length;
+    const netApproaches = shots.filter((s) => s.shotType.includes('volley')).length;
     const rallyExchanges = Math.floor(rallyLength / 2);
 
     // Estimate duration: 2-3 seconds per shot (use total shots including faults for timing)
@@ -765,7 +830,7 @@ export class MatchOrchestrator {
     // Convert MatchScore (keyMoments.ts) to MatchState (types/index.ts) for PointSimulator
     const matchState: MatchState = {
       score: {
-        sets: score.sets.map(s => ({
+        sets: score.sets.map((s) => ({
           player: s.player,
           opponent: s.opponent,
           tiebreak: undefined,
@@ -795,7 +860,12 @@ export class MatchOrchestrator {
       currentServer: currentServer,
       courtSurface: this.courtSurface,
       momentum: this.momentum,
-      pressure: this.pressure > 60 ? 'high' as const : this.pressure > 30 ? 'medium' as const : 'low' as const,
+      pressure:
+        this.pressure > 60
+          ? ('high' as const)
+          : this.pressure > 30
+            ? ('medium' as const)
+            : ('low' as const),
       matchLength: this.pointsPlayed * 0.5, // Rough estimate: 30 seconds per point
       pointsPlayed: this.pointsPlayed,
       isKeyMoment: false,
@@ -809,13 +879,15 @@ export class MatchOrchestrator {
       returnerProfile,
       matchState,
       this.activeEffects,
-      this.opponentActiveEffects
+      this.opponentActiveEffects,
     );
 
     // Track statistics
     if (this.matchStatistics) {
       const breakPointFor = this.isBreakPoint(score)
-        ? (score.server === 'player' ? 'opponent' : 'player')
+        ? score.server === 'player'
+          ? 'opponent'
+          : 'player'
         : undefined;
       this.matchStatistics.addPointResult(pointResult, currentServer, breakPointFor);
     }
@@ -863,7 +935,10 @@ export class MatchOrchestrator {
           this.momentum = this.momentumEngine.get();
           break;
         case 'pressure':
-          this.pressureBank = Math.max(0, Math.min(PRESSURE_BANK.clamp, this.pressureBank + effect.value));
+          this.pressureBank = Math.max(
+            0,
+            Math.min(PRESSURE_BANK.clamp, this.pressureBank + effect.value),
+          );
           break;
         case 'energy':
           this.matchEnergy = Math.max(0, Math.min(100, this.matchEnergy + effect.value));
@@ -894,9 +969,9 @@ export class MatchOrchestrator {
   private updateScore(score: MatchScore, winner: 'player' | 'opponent'): MatchScore {
     const newScore = {
       ...score,
-      currentGame: { ...score.currentGame },  // deep copy to avoid mutating the original
+      currentGame: { ...score.currentGame }, // deep copy to avoid mutating the original
       currentSet: { ...score.currentSet },
-      sets: score.sets,                        // array ref is fine; we replace it on set win
+      sets: score.sets, // array ref is fine; we replace it on set win
       momentum: this.momentum,
       energy: this.matchEnergy,
     };
@@ -912,7 +987,8 @@ export class MatchOrchestrator {
 
       // Check if tiebreak is decided (7+ points with 2-point margin)
       if (this.isTiebreakGameWon(newScore.currentGame)) {
-        const tbWinner = newScore.currentGame.player > newScore.currentGame.opponent ? 'player' : 'opponent';
+        const tbWinner =
+          newScore.currentGame.player > newScore.currentGame.opponent ? 'player' : 'opponent';
 
         // Set is over: 7-6 for tiebreak winner
         newScore.currentSet[tbWinner] = 7;
@@ -1005,8 +1081,8 @@ export class MatchOrchestrator {
    */
   private isMatchWon(sets: Array<{ player: number; opponent: number }>): boolean {
     const setsToWin = this.setsToWin();
-    const playerSets = sets.filter(s => s.player > s.opponent).length;
-    const opponentSets = sets.filter(s => s.opponent > s.player).length;
+    const playerSets = sets.filter((s) => s.player > s.opponent).length;
+    const opponentSets = sets.filter((s) => s.opponent > s.player).length;
     return playerSets >= setsToWin || opponentSets >= setsToWin;
   }
 
@@ -1040,8 +1116,7 @@ export class MatchOrchestrator {
    */
   private isTiebreakGameWon(game: { player: number; opponent: number }): boolean {
     const { player, opponent } = game;
-    return (player >= 7 && player - opponent >= 2) ||
-           (opponent >= 7 && opponent - player >= 2);
+    return (player >= 7 && player - opponent >= 2) || (opponent >= 7 && opponent - player >= 2);
   }
 
   /**
@@ -1049,7 +1124,10 @@ export class MatchOrchestrator {
    * A tiebreak set point exists when winning the next point would win the tiebreak:
    *   player_pts >= 6 AND player_pts > opponent_pts
    */
-  private isTiebreakSetPoint(game: { player: number; opponent: number }, player: 'player' | 'opponent'): boolean {
+  private isTiebreakSetPoint(
+    game: { player: number; opponent: number },
+    player: 'player' | 'opponent',
+  ): boolean {
     const playerScore = game[player];
     const opponentScore = game[player === 'player' ? 'opponent' : 'player'];
     return playerScore >= 6 && playerScore > opponentScore;
@@ -1069,7 +1147,10 @@ export class MatchOrchestrator {
     pointType: PointType | string,
     clutch: ClutchLevel,
     isKeyMoment: boolean,
-    boundary: { game?: { winner: 'player' | 'opponent'; wasBreak: boolean }; setWonBy?: 'player' | 'opponent' }
+    boundary: {
+      game?: { winner: 'player' | 'opponent'; wasBreak: boolean };
+      setWonBy?: 'player' | 'opponent';
+    },
   ): void {
     const isPlayerPoint = winner === 'player';
 
@@ -1128,11 +1209,15 @@ export class MatchOrchestrator {
   private detectBoundary(
     prev: MatchScore,
     next: MatchScore,
-    serverOfPoint: 'player' | 'opponent'
-  ): { game?: { winner: 'player' | 'opponent'; wasBreak: boolean }; setWonBy?: 'player' | 'opponent' } {
+    serverOfPoint: 'player' | 'opponent',
+  ): {
+    game?: { winner: 'player' | 'opponent'; wasBreak: boolean };
+    setWonBy?: 'player' | 'opponent';
+  } {
     const gamesOf = (s: MatchScore): number =>
       s.sets.reduce((sum, set) => sum + set.player + set.opponent, 0) +
-      s.currentSet.player + s.currentSet.opponent;
+      s.currentSet.player +
+      s.currentSet.opponent;
 
     let setWonBy: 'player' | 'opponent' | undefined;
     if (next.sets.length > prev.sets.length) {
@@ -1165,12 +1250,12 @@ export class MatchOrchestrator {
     this.fatigue.player = this.recoverFatigue(
       this.fatigue.player,
       this.playerStats.physical.stamina,
-      setCompleted
+      setCompleted,
     );
     this.fatigue.opponent = this.recoverFatigue(
       this.fatigue.opponent,
       this.opponentStats.physical.stamina,
-      setCompleted
+      setCompleted,
     );
   }
 
@@ -1196,14 +1281,14 @@ export class MatchOrchestrator {
       rallyLength,
       this.playerStats.physical.stamina,
       this.playerStats.physical.stamina,
-      fatigueMultiplier
+      fatigueMultiplier,
     );
 
     this.fatigue.opponent = this.calculateNewFatigue(
       this.fatigue.opponent,
       rallyLength,
       this.opponentStats.physical.stamina,
-      this.opponentStats.physical.stamina
+      this.opponentStats.physical.stamina,
     );
   }
 
@@ -1215,20 +1300,24 @@ export class MatchOrchestrator {
     rallyLength: number,
     staminaStat: number,
     recoveryStat: number,
-    fatigueMultiplier: number = 1
+    fatigueMultiplier: number = 1,
   ): number {
-    const staminaFactor = MATCH_FATIGUE.minFatigueRate +
-      (1 - MATCH_FATIGUE.minFatigueRate) * (1 - staminaStat / 100);
+    const staminaFactor =
+      MATCH_FATIGUE.minFatigueRate + (1 - MATCH_FATIGUE.minFatigueRate) * (1 - staminaStat / 100);
 
     let fatigueGain = rallyLength * MATCH_FATIGUE.basePerShot * staminaFactor * fatigueMultiplier;
 
     if (rallyLength > MATCH_FATIGUE.longRallyThreshold) {
-      fatigueGain += (rallyLength - MATCH_FATIGUE.longRallyThreshold) *
-        MATCH_FATIGUE.longRallyExtra * staminaFactor;
+      fatigueGain +=
+        (rallyLength - MATCH_FATIGUE.longRallyThreshold) *
+        MATCH_FATIGUE.longRallyExtra *
+        staminaFactor;
     }
 
-    const recovery = MATCH_FATIGUE.baseRecoveryPerPoint +
-      (recoveryStat / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
+    const recovery =
+      MATCH_FATIGUE.baseRecoveryPerPoint +
+      (recoveryStat / 100) *
+        (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
 
     return Math.max(0, Math.min(100, currentFatigue + fatigueGain - recovery));
   }
@@ -1274,8 +1363,8 @@ export class MatchOrchestrator {
     const { currentGame } = score;
     return (
       !score.isTiebreak &&
-      currentGame.player >= 2 && 
-      currentGame.opponent >= 2 && 
+      currentGame.player >= 2 &&
+      currentGame.opponent >= 2 &&
       currentGame.player === currentGame.opponent
     );
   }
@@ -1314,18 +1403,21 @@ export class MatchOrchestrator {
   }
 
   private isMatchPoint(score: MatchScore, player: 'player' | 'opponent'): boolean {
-    const playerSets = score.sets.filter(s =>
-      player === 'player' ? s.player > s.opponent : s.opponent > s.player
+    const playerSets = score.sets.filter((s) =>
+      player === 'player' ? s.player > s.opponent : s.opponent > s.player,
     ).length;
 
     const setsToWin = this.setsToWin();
 
     // Match point if: winning this set would win the match
     // That means: player has (setsToWin - 1) sets already, and this is set point
-    return playerSets === (setsToWin - 1) && this.isSetPoint(score, player);
+    return playerSets === setsToWin - 1 && this.isSetPoint(score, player);
   }
 
-  private canWinGame(game: { player: number; opponent: number }, player: 'player' | 'opponent'): boolean {
+  private canWinGame(
+    game: { player: number; opponent: number },
+    player: 'player' | 'opponent',
+  ): boolean {
     const playerScore = game[player];
     const opponentScore = game[player === 'player' ? 'opponent' : 'player'];
 
@@ -1394,7 +1486,7 @@ export class MatchOrchestrator {
   }
 
   private formatScore(score: MatchScore): string {
-    const sets = score.sets.map(s => `${s.player}-${s.opponent}`).join(', ');
+    const sets = score.sets.map((s) => `${s.player}-${s.opponent}`).join(', ');
     const current = `${score.currentSet.player}-${score.currentSet.opponent}`;
     const game = this.formatGameScore(score.currentGame, score.isTiebreak);
     return `Sets: ${sets || 'none'} | Current: ${current} (${game})`;
@@ -1405,7 +1497,10 @@ export class MatchOrchestrator {
    * During tiebreaks, points are shown numerically (0-7+) per ITF rules.
    * During standard games, points use Love/15/30/40/Deuce/Ad notation.
    */
-  private formatGameScore(game: { player: number; opponent: number }, isTiebreak?: boolean): string {
+  private formatGameScore(
+    game: { player: number; opponent: number },
+    isTiebreak?: boolean,
+  ): string {
     // Tiebreak: points are raw numbers (ITF Rule 27 Appendix)
     if (isTiebreak) {
       return `${game.player}-${game.opponent}`;
@@ -1445,7 +1540,8 @@ export class MatchOrchestrator {
       'break-point-return': 'Your chance to break serve and take control!',
       'set-point-player-serve': 'One serve away from winning the set! Stay focused!',
       'set-point-player-return': 'A chance here to break for the set! Find your rhythm!',
-      'set-point-opponent-serve': 'Fight to stay in this set! A great serve can pull you back in it!',
+      'set-point-opponent-serve':
+        'Fight to stay in this set! A great serve can pull you back in it!',
       'set-point-opponent-return': 'Fight to stay in this set! You need to get this ball back!',
       'match-point-player-serve': 'This is it! One point for victory! One last push!',
       'match-point-player-return': 'Deep breath. Focus on the return. One more time!',

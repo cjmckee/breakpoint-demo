@@ -71,7 +71,10 @@ export const Sparks: React.FC<{ burst: Burst | null }> = ({ burst }) => {
 };
 
 /** "×N" combo pop for trailing consecutive cleans. Renders nothing below 2. */
-export const ComboBadge: React.FC<{ streak: number; className?: string }> = ({ streak, className }) => {
+export const ComboBadge: React.FC<{ streak: number; className?: string }> = ({
+  streak,
+  className,
+}) => {
   if (streak < 2) return null;
   return (
     <div
@@ -101,7 +104,10 @@ export function isGamePaused(): boolean {
  * hitstop pauses with the menu for free. Games should ignore input while frozen too:
  * the menu is still listening for keys, and so is the game behind it.
  */
-export function useHitstop(): { frozen: React.MutableRefObject<boolean>; trigger: (ms?: number) => void } {
+export function useHitstop(): {
+  frozen: React.MutableRefObject<boolean>;
+  trigger: (ms?: number) => void;
+} {
   const frozen = useRef(isGamePaused());
   const hitstopping = useRef(false);
   const paused = useRef(isGamePaused());
@@ -109,16 +115,19 @@ export function useHitstop(): { frozen: React.MutableRefObject<boolean>; trigger
   const sync = useCallback(() => {
     frozen.current = hitstopping.current || paused.current;
   }, []);
-  const trigger = useCallback((ms = 40) => {
-    hitstopping.current = true;
-    sync();
-    if (timer.current !== null) window.clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => {
-      hitstopping.current = false;
-      timer.current = null;
+  const trigger = useCallback(
+    (ms = 40) => {
+      hitstopping.current = true;
       sync();
-    }, ms);
-  }, [sync]);
+      if (timer.current !== null) window.clearTimeout(timer.current);
+      timer.current = window.setTimeout(() => {
+        hitstopping.current = false;
+        timer.current = null;
+        sync();
+      }, ms);
+    },
+    [sync],
+  );
   useEffect(() => {
     paused.current = isGamePaused();
     sync();
@@ -127,8 +136,11 @@ export function useHitstop(): { frozen: React.MutableRefObject<boolean>; trigger
       sync();
     });
   }, [sync]);
-  useEffect(() => () => {
-    if (timer.current !== null) window.clearTimeout(timer.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (timer.current !== null) window.clearTimeout(timer.current);
+    },
+    [],
+  );
   return { frozen, trigger };
 }

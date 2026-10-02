@@ -13,13 +13,13 @@ export class StoryMatchManager {
    */
   static getScheduledStoryMatch(
     scheduledEvents: ScheduledEvent[],
-    calendar: GameCalendar
+    calendar: GameCalendar,
   ): ScheduledEvent | null {
     const storyMatch = scheduledEvents.find(
       (event) =>
         event.eventType === 'story_match' &&
         event.scheduledDay === calendar.currentDay &&
-        event.scheduledTimeSlot === calendar.currentTimeSlot
+        event.scheduledTimeSlot === calendar.currentTimeSlot,
     );
 
     return storyMatch || null;
@@ -51,7 +51,10 @@ export class StoryMatchManager {
       !metadata.winEventId ||
       !metadata.lossEventId
     ) {
-      console.warn('StoryMatchManager: Invalid story match metadata - missing required fields', metadata);
+      console.warn(
+        'StoryMatchManager: Invalid story match metadata - missing required fields',
+        metadata,
+      );
       return null;
     }
 
@@ -61,10 +64,7 @@ export class StoryMatchManager {
   /**
    * Get post-match event ID based on match result
    */
-  static getPostMatchEventId(
-    metadata: StoryMatchMetadata,
-    result: 'win' | 'loss'
-  ): string {
+  static getPostMatchEventId(metadata: StoryMatchMetadata, result: 'win' | 'loss'): string {
     return result === 'win' ? metadata.winEventId : metadata.lossEventId;
   }
 }

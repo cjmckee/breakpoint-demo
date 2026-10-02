@@ -4,11 +4,7 @@
  * Ability data lives in src/data/abilities.ts.
  */
 
-import {
-  Ability,
-  AbilityRarity,
-  StatBoosts,
-} from '../types/game';
+import { Ability, AbilityRarity, StatBoosts } from '../types/game';
 
 import { ABILITY_DEFINITIONS } from '../data/abilities';
 
@@ -61,9 +57,7 @@ export class AbilitySystem {
    * Get all abilities of a specific rarity
    */
   static getAbilitiesByRarity(rarity: AbilityRarity): Ability[] {
-    return Object.values(ABILITY_DEFINITIONS).filter(
-      ability => ability.rarity === rarity
-    );
+    return Object.values(ABILITY_DEFINITIONS).filter((ability) => ability.rarity === rarity);
   }
 
   /**
@@ -130,14 +124,14 @@ export class AbilitySystem {
    * Check if player has a specific ability
    */
   static hasAbility(abilities: Ability[], abilityName: string): boolean {
-    return abilities.some(ability => ability.name === abilityName);
+    return abilities.some((ability) => ability.name === abilityName);
   }
 
   /**
    * Get ability level
    */
   static getAbilityLevel(abilities: Ability[], abilityName: string): number {
-    const ability = abilities.find(a => a.name === abilityName);
+    const ability = abilities.find((a) => a.name === abilityName);
     return ability?.level || 0;
   }
 

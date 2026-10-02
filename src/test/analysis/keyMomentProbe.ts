@@ -16,8 +16,12 @@ import { KeyMomentResolver } from '../../game/KeyMomentResolver';
 import { MatchOrchestrator } from '../../game/MatchOrchestrator';
 import { KEY_MOMENT } from '../../config/shotThresholds';
 import {
-  TACTICAL_OPTIONS, TacticalOption, KeyMomentType,
-  getRole, getEligibleOptions, getOptionsForSituation,
+  TACTICAL_OPTIONS,
+  TacticalOption,
+  KeyMomentType,
+  getRole,
+  getEligibleOptions,
+  getOptionsForSituation,
 } from '../../data/tacticalOptions';
 import { getMatchup } from '../../data/postures';
 import { KEY_MOMENT_OPTIONS_PER_MENU } from '../../config/matchRewards';
@@ -43,15 +47,22 @@ const N_MATCHES = Number(process.env.N_MATCHES ?? 60);
 const FORMAT = (process.env.FORMAT ?? 'best-of-1') as 'best-of-1' | 'best-of-3';
 
 const ARCHETYPES = Object.keys(ARCHETYPE_DATA) as ArchetypeType[];
-const ALL_OPTIONS: Array<{ option: TacticalOption }> = TACTICAL_OPTIONS.map((option) => ({ option }));
+const ALL_OPTIONS: Array<{ option: TacticalOption }> = TACTICAL_OPTIONS.map((option) => ({
+  option,
+}));
 
 /** Every situation the engine can detect. */
 const SITUATION_TYPES: KeyMomentType[] = [
-  'break-point-serve', 'break-point-return',
-  'set-point-player-serve', 'set-point-player-return',
-  'set-point-opponent-serve', 'set-point-opponent-return',
-  'match-point-player-serve', 'match-point-player-return',
-  'match-point-opponent-serve', 'match-point-opponent-return',
+  'break-point-serve',
+  'break-point-return',
+  'set-point-player-serve',
+  'set-point-player-return',
+  'set-point-opponent-serve',
+  'set-point-opponent-return',
+  'match-point-player-serve',
+  'match-point-player-return',
+  'match-point-opponent-serve',
+  'match-point-opponent-return',
   'key-rally',
 ];
 
@@ -92,9 +103,7 @@ function probeSuccessRates(): void {
 
     for (const { option } of ALL_OPTIONS) {
       for (const arch of ARCHETYPES) {
-        const p = KeyMomentResolver.calculateSuccessProbability(
-          player, opponent, option, arch,
-        );
+        const p = KeyMomentResolver.calculateSuccessProbability(player, opponent, option, arch);
         const verdict = getMatchup(option.posture, arch);
         const key = verdict === 'strong' ? 'counter' : verdict === 'weak' ? 'weak' : 'neutral';
         bucket[key].push(p);
@@ -208,7 +217,11 @@ function probeOutcomeBands(): void {
       const { option } = ALL_OPTIONS[i % ALL_OPTIONS.length];
       const arch = ARCHETYPES.find((a) => {
         const v = getMatchup(option.posture, a);
-        return pick === 'counter' ? v === 'strong' : pick === 'weak' ? v === 'weak' : v === 'neutral';
+        return pick === 'counter'
+          ? v === 'strong'
+          : pick === 'weak'
+            ? v === 'weak'
+            : v === 'neutral';
       });
       if (!arch) continue;
       tally[KeyMomentResolver.resolveKeyMoment(player, opponent, option, arch).outcome]++;
@@ -251,10 +264,7 @@ function probeOutcomeBands(): void {
       `${fmtNum((100 * tally['critical-failure']) / n)}%`,
     ]);
   }
-  printTable(
-    ['Risk', 'Win rate', 'Critical (either way)', 'Crit success', 'Crit failure'],
-    byRisk,
-  );
+  printTable(['Risk', 'Win rate', 'Critical (either way)', 'Crit success', 'Crit failure'], byRisk);
   print('');
   print('Win rate should be similar across risk levels — risk is variance, not odds.');
   print('The Critical column is what risk buys: emphatic outcomes in both directions.');
@@ -266,21 +276,51 @@ function probeContextSwing(): void {
   printHeader('How far live context can move a key moment');
 
   const rows: (string | number)[][] = [
-    ['Best case (mom +100, mood +100, energy 100, pressure 0)',
-      fmtNum(KeyMomentResolver.getContextModifiers(
-        { momentum: 100, mood: 100, energy: 100, pressure: 0 }, 50).total)],
-    ['Typical good (mom +30, mood +20, energy 70, pressure 40)',
-      fmtNum(KeyMomentResolver.getContextModifiers(
-        { momentum: 30, mood: 20, energy: 70, pressure: 40 }, 50).total)],
-    ['Neutral (all mid)',
-      fmtNum(KeyMomentResolver.getContextModifiers(
-        { momentum: 0, mood: 0, energy: 70, pressure: 50 }, 50).total)],
-    ['Typical bad (mom -30, mood -20, energy 45, pressure 70)',
-      fmtNum(KeyMomentResolver.getContextModifiers(
-        { momentum: -30, mood: -20, energy: 45, pressure: 70 }, 50).total)],
-    ['Worst case (mom -100, mood -100, energy 0, pressure 100)',
-      fmtNum(KeyMomentResolver.getContextModifiers(
-        { momentum: -100, mood: -100, energy: 0, pressure: 100 }, 50).total)],
+    [
+      'Best case (mom +100, mood +100, energy 100, pressure 0)',
+      fmtNum(
+        KeyMomentResolver.getContextModifiers(
+          { momentum: 100, mood: 100, energy: 100, pressure: 0 },
+          50,
+        ).total,
+      ),
+    ],
+    [
+      'Typical good (mom +30, mood +20, energy 70, pressure 40)',
+      fmtNum(
+        KeyMomentResolver.getContextModifiers(
+          { momentum: 30, mood: 20, energy: 70, pressure: 40 },
+          50,
+        ).total,
+      ),
+    ],
+    [
+      'Neutral (all mid)',
+      fmtNum(
+        KeyMomentResolver.getContextModifiers(
+          { momentum: 0, mood: 0, energy: 70, pressure: 50 },
+          50,
+        ).total,
+      ),
+    ],
+    [
+      'Typical bad (mom -30, mood -20, energy 45, pressure 70)',
+      fmtNum(
+        KeyMomentResolver.getContextModifiers(
+          { momentum: -30, mood: -20, energy: 45, pressure: 70 },
+          50,
+        ).total,
+      ),
+    ],
+    [
+      'Worst case (mom -100, mood -100, energy 0, pressure 100)',
+      fmtNum(
+        KeyMomentResolver.getContextModifiers(
+          { momentum: -100, mood: -100, energy: 0, pressure: 100 },
+          50,
+        ).total,
+      ),
+    ],
   ];
   printTable(['Context', 'Total modifier (%)'], rows);
 }
@@ -298,14 +338,59 @@ function probeRealisticScenarios(): void {
   printHeader('What a player actually sees at a key moment');
 
   const scenarios: Array<{
-    label: string; playerRating: number; oppRating: number;
-    pressure: number; energy: number; momentum: number; mood: number;
+    label: string;
+    playerRating: number;
+    oppRating: number;
+    pressure: number;
+    energy: number;
+    momentum: number;
+    mood: number;
   }> = [
-    { label: 'Set 1 break pt, even match', playerRating: 50, oppRating: 50, pressure: 50, energy: 85, momentum: 0, mood: 0 },
-    { label: 'Set 2 break pt, even match', playerRating: 50, oppRating: 50, pressure: 70, energy: 65, momentum: 0, mood: 0 },
-    { label: 'Set 3 match pt, even match', playerRating: 50, oppRating: 50, pressure: 100, energy: 45, momentum: 0, mood: 0 },
-    { label: 'Set 2 break pt, player +10', playerRating: 60, oppRating: 50, pressure: 70, energy: 65, momentum: 20, mood: 10 },
-    { label: 'Set 2 break pt, player -10', playerRating: 40, oppRating: 50, pressure: 70, energy: 65, momentum: -20, mood: -10 },
+    {
+      label: 'Set 1 break pt, even match',
+      playerRating: 50,
+      oppRating: 50,
+      pressure: 50,
+      energy: 85,
+      momentum: 0,
+      mood: 0,
+    },
+    {
+      label: 'Set 2 break pt, even match',
+      playerRating: 50,
+      oppRating: 50,
+      pressure: 70,
+      energy: 65,
+      momentum: 0,
+      mood: 0,
+    },
+    {
+      label: 'Set 3 match pt, even match',
+      playerRating: 50,
+      oppRating: 50,
+      pressure: 100,
+      energy: 45,
+      momentum: 0,
+      mood: 0,
+    },
+    {
+      label: 'Set 2 break pt, player +10',
+      playerRating: 60,
+      oppRating: 50,
+      pressure: 70,
+      energy: 65,
+      momentum: 20,
+      mood: 10,
+    },
+    {
+      label: 'Set 2 break pt, player -10',
+      playerRating: 40,
+      oppRating: 50,
+      pressure: 70,
+      energy: 65,
+      momentum: -20,
+      mood: -10,
+    },
   ];
 
   const rows: (string | number)[][] = [];
@@ -318,7 +403,11 @@ function probeRealisticScenarios(): void {
     for (const { option } of ALL_OPTIONS) {
       for (const arch of ARCHETYPES) {
         const p = KeyMomentResolver.calculateSuccessProbability(
-          player, opponent, option, arch, ctx,
+          player,
+          opponent,
+          option,
+          arch,
+          ctx,
         );
         const verdict = getMatchup(option.posture, arch);
         const key = verdict === 'strong' ? 'counter' : verdict === 'weak' ? 'weak' : 'neutral';
@@ -355,7 +444,10 @@ async function probeMatchImpact(nMatches: number): Promise<void> {
   const best = (opts: TacticalOption[], arch: ArchetypeType): TacticalOption =>
     [...opts].sort((a, b) => probOf(b, arch) - probOf(a, arch))[0];
 
-  const policies: Array<{ label: string; pick: (opts: TacticalOption[], arch: ArchetypeType) => TacticalOption }> = [
+  const policies: Array<{
+    label: string;
+    pick: (opts: TacticalOption[], arch: ArchetypeType) => TacticalOption;
+  }> = [
     // Does the verdict chip solve the game? If "always take the highest verdict"
     // strictly dominates every resource-aware policy, then showing the folded
     // probability has removed the decision rather than informed it.
@@ -365,9 +457,11 @@ async function probeMatchImpact(nMatches: number): Promise<void> {
       pick: (opts, arch) => {
         const top = probOf(best(opts, arch), arch);
         const within = opts.filter((o) => probOf(o, arch) >= top - 6);
-        return within.find((o) => o.risk === 'safe')
-          ?? within.find((o) => o.risk === 'balanced')
-          ?? within[0];
+        return (
+          within.find((o) => o.risk === 'safe') ??
+          within.find((o) => o.risk === 'balanced') ??
+          within[0]
+        );
       },
     },
     { label: 'Always safest', pick: (opts) => opts.find((o) => o.risk === 'safe') ?? opts[0] },
@@ -375,9 +469,9 @@ async function probeMatchImpact(nMatches: number): Promise<void> {
     {
       label: 'Always best read',
       pick: (opts, arch) =>
-        opts.find((o) => getMatchup(o.posture, arch) === 'strong')
-        ?? opts.find((o) => getMatchup(o.posture, arch) !== 'weak')
-        ?? opts[0],
+        opts.find((o) => getMatchup(o.posture, arch) === 'strong') ??
+        opts.find((o) => getMatchup(o.posture, arch) !== 'weak') ??
+        opts[0],
     },
     {
       label: 'Random pick',
@@ -386,9 +480,9 @@ async function probeMatchImpact(nMatches: number): Promise<void> {
     {
       label: 'Always worst read',
       pick: (opts, arch) =>
-        opts.find((o) => getMatchup(o.posture, arch) === 'weak')
-        ?? opts.find((o) => getMatchup(o.posture, arch) !== 'strong')
-        ?? opts[0],
+        opts.find((o) => getMatchup(o.posture, arch) === 'weak') ??
+        opts.find((o) => getMatchup(o.posture, arch) !== 'strong') ??
+        opts[0],
     },
   ];
 
@@ -435,10 +529,7 @@ async function probeMatchImpact(nMatches: number): Promise<void> {
     ]);
   }
 
-  printTable(
-    ['KM policy', 'Match win rate', 'KM win rate', 'KMs per match'],
-    rows,
-  );
+  printTable(['KM policy', 'Match win rate', 'KM win rate', 'KMs per match'], rows);
   print('');
   print(`Opponent archetype in these matches: ${archetypeSeen}`);
   print(`(requested ${OPPONENT_ARCHETYPE}; override with OPPONENT=<archetype>)`);
@@ -453,7 +544,9 @@ async function probeMatchImpact(nMatches: number): Promise<void> {
  * near a 50% MATCH win rate — not whatever makes the per-moment number read 50%.
  */
 async function probeBaseChanceSweep(values: number[], nMatches: number): Promise<void> {
-  printHeader(`Base chance sweep (${nMatches} ${FORMAT} matches per value, even stats, random picks)`);
+  printHeader(
+    `Base chance sweep (${nMatches} ${FORMAT} matches per value, even stats, random picks)`,
+  );
 
   const original = KEY_MOMENT.baseChance;
   const rows: (string | number)[][] = [];
@@ -538,7 +631,9 @@ async function probeBaseChanceVsFrequency(
   frequencies: number[],
   nMatches: number,
 ): Promise<void> {
-  printHeader(`baseChance x keyMomentsPerMatch (${nMatches} ${FORMAT} matches per cell, random picks)`);
+  printHeader(
+    `baseChance x keyMomentsPerMatch (${nMatches} ${FORMAT} matches per cell, random picks)`,
+  );
 
   const original = KEY_MOMENT.baseChance;
   const rows: (string | number)[][] = [];
@@ -562,8 +657,7 @@ async function probeBaseChanceVsFrequency(
           matchFormat: FORMAT,
           disableMatchForm: true,
           pointDelayMs: 0,
-          onKeyMoment: async (km) =>
-            km.options[Math.floor(Math.random() * km.options.length)],
+          onKeyMoment: async (km) => km.options[Math.floor(Math.random() * km.options.length)],
         });
         if (final.winner === 'player') wins++;
       }
@@ -573,10 +667,7 @@ async function probeBaseChanceVsFrequency(
   }
 
   KEY_MOMENT.baseChance = original;
-  printTable(
-    ['baseChance', ...frequencies.map((f) => `${f} KMs`)],
-    rows,
-  );
+  printTable(['baseChance', ...frequencies.map((f) => `${f} KMs`)], rows);
   print('');
   print('Cells near 50% are balanced for an even matchup.');
 }
@@ -591,7 +682,9 @@ async function probeBaseChanceVsFrequency(
  * other — so the flat base is not the problem it looked like on smaller samples.
  */
 async function probeServeReturnSplit(nMatches: number): Promise<void> {
-  printHeader(`Key moment outcomes by who is serving (${nMatches} ${FORMAT} matches, random picks)`);
+  printHeader(
+    `Key moment outcomes by who is serving (${nMatches} ${FORMAT} matches, random picks)`,
+  );
 
   let servingTotal = 0;
   let servingWon = 0;
@@ -689,15 +782,20 @@ function probeTagCoverage(): void {
       }
     }
   }
-  print(dupes.length === 0 ? '  none.' : [...new Set(dupes)].slice(0, 10).map((d) => `  ${d}`).join('\n'));
+  print(
+    dupes.length === 0
+      ? '  none.'
+      : [...new Set(dupes)]
+          .slice(0, 10)
+          .map((d) => `  ${d}`)
+          .join('\n'),
+  );
 
   // And the mirror: cells a situation cannot fill at all.
   printHeader('Missing posture x risk cells within a single situation');
   const missing: string[] = [];
   for (const type of SITUATION_TYPES) {
-    const have = new Set(
-      getEligibleOptions(getRole(type)).map((o) => `${o.posture}/${o.risk}`),
-    );
+    const have = new Set(getEligibleOptions(getRole(type)).map((o) => `${o.posture}/${o.risk}`));
     for (const posture of ['power', 'net', 'neutralize', 'deception', 'attrition', 'variety']) {
       for (const risk of ['safe', 'balanced', 'bold']) {
         if (!have.has(`${posture}/${risk}`)) missing.push(`${type} — ${posture}/${risk}`);
@@ -711,10 +809,20 @@ function probeTagCoverage(): void {
   // stat a player can train and never feel here.
   printHeader('Stat coverage across the option pool');
   const ALL_STATS = [
-    'serve', 'forehand', 'backhand', 'return', 'net',
-    'slice', 'spin', 'placement',
-    'speed', 'stamina', 'strength',
-    'focus', 'anticipation', 'tactics',
+    'serve',
+    'forehand',
+    'backhand',
+    'return',
+    'net',
+    'slice',
+    'spin',
+    'placement',
+    'speed',
+    'stamina',
+    'strength',
+    'focus',
+    'anticipation',
+    'tactics',
   ];
   const asPlayer = new Map<string, number>();
   const asOpponent = new Map<string, number>();
@@ -729,20 +837,26 @@ function probeTagCoverage(): void {
   }
   printTable(
     ['Stat', 'As yours', 'As theirs', 'Total'],
-    ALL_STATS
-      .map((stat) => [stat, asPlayer.get(stat) ?? 0, asOpponent.get(stat) ?? 0,
-        (asPlayer.get(stat) ?? 0) + (asOpponent.get(stat) ?? 0)])
-      .sort((a, b) => Number(b[3]) - Number(a[3])),
+    ALL_STATS.map((stat) => [
+      stat,
+      asPlayer.get(stat) ?? 0,
+      asOpponent.get(stat) ?? 0,
+      (asPlayer.get(stat) ?? 0) + (asOpponent.get(stat) ?? 0),
+    ]).sort((a, b) => Number(b[3]) - Number(a[3])),
   );
   const unusedByPlayer = ALL_STATS.filter((s) => !asPlayer.has(s));
   const unusedAnywhere = ALL_STATS.filter((s) => !asPlayer.has(s) && !asOpponent.has(s));
   print('');
-  print(unusedAnywhere.length === 0
-    ? '  Every stat appears somewhere.'
-    : `  NEVER USED AT ALL: ${unusedAnywhere.join(', ')}`);
-  print(unusedByPlayer.length === 0
-    ? '  Every stat is one the player is rated on somewhere.'
-    : `  Never one of YOUR stats: ${unusedByPlayer.join(', ')}`);
+  print(
+    unusedAnywhere.length === 0
+      ? '  Every stat appears somewhere.'
+      : `  NEVER USED AT ALL: ${unusedAnywhere.join(', ')}`,
+  );
+  print(
+    unusedByPlayer.length === 0
+      ? '  Every stat is one the player is rated on somewhere.'
+      : `  Never one of YOUR stats: ${unusedByPlayer.join(', ')}`,
+  );
 
   printTable(
     ['Situation', 'Eligible options', 'Postures reachable'],

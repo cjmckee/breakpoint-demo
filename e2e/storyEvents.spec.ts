@@ -59,8 +59,7 @@ test.describe('every story event resolves and hands control back', () => {
         // If it does not, the trigger silently did nothing, and every assertion
         // after this would be vacuous.
         const after = await readGame(page);
-        const started =
-          after.gamePhase.type !== 'idle' || after.gamePhase.overlay !== null;
+        const started = after.gamePhase.type !== 'idle' || after.gamePhase.overlay !== null;
         expect(started, `triggering "${id}" did not open anything`).toBe(true);
 
         // The real check: can a player get out of it?

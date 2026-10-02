@@ -68,7 +68,8 @@ export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig })
       mood: currentStatus.mood,
       energy: currentStatus.energy,
       enableKeyMoments: true,
-      matchFormat: matchConfig.matchFormat === 'best-of-3' ? 'best-of-3' as const : 'best-of-1' as const,
+      matchFormat:
+        matchConfig.matchFormat === 'best-of-3' ? ('best-of-3' as const) : ('best-of-1' as const),
       pointDelayMs: MATCH_SPEED_DELAYS[matchSpeed],
       isTournamentMatch: true,
     };
@@ -104,20 +105,21 @@ export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig })
         {activeTournament.currentBracket === 'winner' ? (
           <>
             <p className="mb-2">
-              <strong className="text-yellow-400">Main Draw:</strong> You're still in contention for the championship!
+              <strong className="text-yellow-400">Main Draw:</strong> You're still in contention for
+              the championship!
             </p>
             <p>
-              Win this match to advance to the next round. A loss will move you to the consolation bracket.
+              Win this match to advance to the next round. A loss will move you to the consolation
+              bracket.
             </p>
           </>
         ) : (
           <>
             <p className="mb-2">
-              <strong className={getBracketColor('loser')}>Consolation Bracket:</strong> You're playing for pride and experience.
+              <strong className={getBracketColor('loser')}>Consolation Bracket:</strong> You're
+              playing for pride and experience.
             </p>
-            <p>
-              Each match is a chance to prove yourself and improve your skills.
-            </p>
+            <p>Each match is a chance to prove yourself and improve your skills.</p>
           </>
         )}
       </div>

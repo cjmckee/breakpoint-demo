@@ -34,14 +34,16 @@ export function printTable(headers: string[], rows: (string | number)[][]): void
   // Header row
   const headerLine = headers.map((h, i) => h.padEnd(widths[i])).join(' │ ');
   print(`  ${headerLine}`);
-  print(`  ${widths.map(w => '─'.repeat(w)).join('─┼─')}`);
+  print(`  ${widths.map((w) => '─'.repeat(w)).join('─┼─')}`);
 
   // Data rows
   for (const row of rows) {
-    const line = row.map((cell, i) => {
-      const str = typeof cell === 'number' ? cell.toFixed(1) : String(cell);
-      return str.padStart(widths[i]);
-    }).join(' │ ');
+    const line = row
+      .map((cell, i) => {
+        const str = typeof cell === 'number' ? cell.toFixed(1) : String(cell);
+        return str.padStart(widths[i]);
+      })
+      .join(' │ ');
     print(`  ${line}`);
   }
 }
@@ -62,15 +64,15 @@ export function printHistogram(
   for (let i = 0; i < buckets.length; i++) {
     const lo = i * bucketSize;
     const hi = lo + bucketSize;
-    const pct = (buckets[i] / n * 100);
+    const pct = (buckets[i] / n) * 100;
     const bar = '█'.repeat(Math.round(buckets[i] * barScale));
     const label = `${String(lo).padStart(3)}-${String(hi).padEnd(3)}`;
     const pctStr = `${pct.toFixed(1)}%`.padStart(6);
 
     // Check if any threshold falls in this bucket
     const markers = (thresholds ?? [])
-      .filter(t => t.value >= lo && t.value < hi)
-      .map(t => ` ◄ ${t.label}=${t.value.toFixed(0)}`)
+      .filter((t) => t.value >= lo && t.value < hi)
+      .map((t) => ` ◄ ${t.label}=${t.value.toFixed(0)}`)
       .join('');
 
     print(`    ${label}: ${bar} ${pctStr}${markers}`);
@@ -78,7 +80,7 @@ export function printHistogram(
 }
 
 export function fmtPct(count: number, total: number): string {
-  return `${(count / total * 100).toFixed(1)}%`;
+  return `${((count / total) * 100).toFixed(1)}%`;
 }
 
 export function fmtNum(n: number, decimals: number = 1): string {

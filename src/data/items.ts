@@ -208,14 +208,15 @@ export const SPONSOR_OUTFIT: Item = {
 export const SPACE_SUIT: Item = {
   id: 'space_suit',
   name: 'Space Suit',
-  description: 'You found this left over after your match with Cosmo Comet. It is a bit bulky though.',
+  description:
+    'You found this left over after your match with Cosmo Comet. It is a bit bulky though.',
   type: 'equipment',
   equipmentSlot: 'outfit',
   shopAvailable: false,
   modifiers: {
-    statBoosts: { stamina: 3, tactics: 2, speed: 3, spin: 3, anticipation: 2, slice: 3 }
-  }
-}
+    statBoosts: { stamina: 3, tactics: 2, speed: 3, spin: 3, anticipation: 2, slice: 3 },
+  },
+};
 
 // ============================================================================
 // EQUIPMENT - HATS
@@ -292,26 +293,28 @@ export const BANDANA: Item = {
 
 export const CHEF_HAT: Item = {
   id: 'chef_hat',
-  name: 'Chef\'s Hat',
-  description: 'One of the players from Dobry Pomidor left this behind. You put it on and instantly feel more confident with your slices.',
+  name: "Chef's Hat",
+  description:
+    'One of the players from Dobry Pomidor left this behind. You put it on and instantly feel more confident with your slices.',
   type: 'equipment',
   equipmentSlot: 'hat',
   shopAvailable: false,
   modifiers: {
-    statBoosts: { slice: 7, spin: 4, net: 3, placement: 3 }
-  }
-}
+    statBoosts: { slice: 7, spin: 4, net: 3, placement: 3 },
+  },
+};
 
 export const STYLISH_HEADBAND: Item = {
   id: 'stylish_headband',
   name: 'Stylish Headband',
-  description: 'A lightweight headband that helps you stay focused on the rallies. And your opponents focus on how stylish it is.',
+  description:
+    'A lightweight headband that helps you stay focused on the rallies. And your opponents focus on how stylish it is.',
   type: 'equipment',
   equipmentSlot: 'hat',
   modifiers: {
     statBoosts: { focus: 4, stamina: 4, speed: 3 },
   },
-}
+};
 
 // ============================================================================
 // CONSUMABLES - INSTANT
@@ -331,7 +334,8 @@ export const ENERGY_DRINK: Item = {
 export const GAME_PLAN_NOTEBOOK: Item = {
   id: 'game_plan_notebook',
   name: 'Game Plan Notebook',
-  description: 'Pages of tactical notes. Studying them lets you rethink one part of your game — grants a respec token to re-pick a phase specialty.',
+  description:
+    'Pages of tactical notes. Studying them lets you rethink one part of your game — grants a respec token to re-pick a phase specialty.',
   type: 'consumable',
   consumableEffect: {
     type: 'instant',
@@ -386,14 +390,15 @@ export const GRANDMAS_LUCKY_COOKIES: Item = {
 export const SKI_PASS: Item = {
   id: 'ski_pass',
   name: 'Aspen Slopes Ski Pass',
-  description: 'A ski pass someone left from the Aspen Slopes match. It\'s still valid for one more trip.',
+  description:
+    "A ski pass someone left from the Aspen Slopes match. It's still valid for one more trip.",
   type: 'consumable',
   shopAvailable: false,
   consumableEffect: {
     type: 'instant',
     instantEffects: { energyChange: 20, moodChange: 25 },
-  }
-}
+  },
+};
 
 // ============================================================================
 // CONSUMABLES - NEXT ACTIVITY
@@ -511,7 +516,7 @@ export const STRAWBERRIES: Item = {
     type: 'instant',
     instantEffects: { energyChange: 10, moodChange: 5 },
   },
-}
+};
 
 export const ORANGE_SLICE: Item = {
   id: 'orange_slice',
@@ -573,7 +578,8 @@ export const LUCKY_PENNY: Item = {
 export const LUCKY_CHARM: Item = {
   id: 'lucky_charm',
   name: 'Lucky Charm',
-  description: 'A mysterious charm that brings good fortune. Keeps your spirits up and draws opportunity your way.',
+  description:
+    'A mysterious charm that brings good fortune. Keeps your spirits up and draws opportunity your way.',
   type: 'lucky',
   equipmentSlot: 'charm',
   modifiers: {
@@ -589,8 +595,20 @@ export const FOUR_LEAF_CLOVER: Item = {
   type: 'lucky',
   equipmentSlot: 'charm',
   modifiers: {
-    statBoosts: { serve: 1, forehand: 1, backhand: 1, net: 1, speed: 1, stamina: 1, focus: 1, anticipation: 1 },
-    additional: { [EffectKey.EVENT_TRIGGER_BONUS]: 10, [EffectKey.TRAINING_BONUS_SUPPORT_CHANCE]: 0.25 },
+    statBoosts: {
+      serve: 1,
+      forehand: 1,
+      backhand: 1,
+      net: 1,
+      speed: 1,
+      stamina: 1,
+      focus: 1,
+      anticipation: 1,
+    },
+    additional: {
+      [EffectKey.EVENT_TRIGGER_BONUS]: 10,
+      [EffectKey.TRAINING_BONUS_SUPPORT_CHANCE]: 0.25,
+    },
   },
 };
 
@@ -610,7 +628,8 @@ export const TENNIS_BALL_KEYCHAIN: Item = {
 export const LUCKY_SPROUT: Item = {
   id: 'lucky_sprout',
   name: 'Lucky Sprout',
-  description: 'A small plant left behind by an opponent from Azalea Forest. Tending to it every evening settles you.',
+  description:
+    'A small plant left behind by an opponent from Azalea Forest. Tending to it every evening settles you.',
   type: 'lucky',
   shopAvailable: false,
   equipmentSlot: 'charm',
@@ -624,7 +643,8 @@ export const LUCKY_SPROUT: Item = {
 export const LUCKY_JACKET: Item = {
   id: 'lucky_jacket',
   name: 'Lucky Ski Jacket',
-  description: 'One of your parents left you this retro jacket. You think they were going to donate it, but now it\'s yours.',
+  description:
+    "One of your parents left you this retro jacket. You think they were going to donate it, but now it's yours.",
   type: 'lucky',
   shopAvailable: false,
   equipmentSlot: 'charm',
@@ -638,7 +658,8 @@ export const LUCKY_JACKET: Item = {
 export const LUCKY_TEETH: Item = {
   id: 'lucky_teeth',
   name: 'Lucky fake teeth',
-  description: 'You found these dentures after the Sunset Drive team match. You don\'t know who they belong to, but they make your smile really pop.',
+  description:
+    "You found these dentures after the Sunset Drive team match. You don't know who they belong to, but they make your smile really pop.",
   type: 'lucky',
   shopAvailable: false,
   equipmentSlot: 'charm',
@@ -652,7 +673,8 @@ export const LUCKY_TEETH: Item = {
 export const CHAMPION_WRISTBAND: Item = {
   id: 'champion_wristband',
   name: 'Champion Wristband',
-  description: 'A symbolic wristband marking your rise from beginner to competitor. Wear it with pride.',
+  description:
+    'A symbolic wristband marking your rise from beginner to competitor. Wear it with pride.',
   type: 'lucky',
   equipmentSlot: 'charm',
   modifiers: {
@@ -669,7 +691,8 @@ export const CHAMPION_WRISTBAND: Item = {
 export const DROPSHOT_RACQUET: Item = {
   id: 'dropshot_racquet',
   name: 'Dropshot Specialist',
-  description: 'A finely tuned racquet for players who win points at the net with touch and deception.',
+  description:
+    'A finely tuned racquet for players who win points at the net with touch and deception.',
   type: 'equipment',
   equipmentSlot: 'racquet',
   modifiers: {
@@ -695,7 +718,8 @@ export const GRAND_SLAM_RACQUET: Item = {
 export const HARD_COURT_SHOES: Item = {
   id: 'hard_court_shoes',
   name: 'Hard Court Shoes',
-  description: 'Durable shoes built for the grind of hard court surfaces. Great all-around traction.',
+  description:
+    'Durable shoes built for the grind of hard court surfaces. Great all-around traction.',
   type: 'equipment',
   equipmentSlot: 'shoes',
   modifiers: {
@@ -706,7 +730,8 @@ export const HARD_COURT_SHOES: Item = {
 export const RECOVERY_BOOTS: Item = {
   id: 'recovery_boots',
   name: 'Recovery Boots',
-  description: 'Heavily cushioned shoes that reduce fatigue and keep your legs fresh late in matches.',
+  description:
+    'Heavily cushioned shoes that reduce fatigue and keep your legs fresh late in matches.',
   type: 'equipment',
   equipmentSlot: 'shoes',
   modifiers: {
@@ -724,7 +749,8 @@ export const RECOVERY_BOOTS: Item = {
 export const AERODYNAMIC_SUIT: Item = {
   id: 'aerodynamic_suit',
   name: 'Aerodynamic Suit',
-  description: 'A form-fitting performance suit that reduces drag and maximizes explosive movement.',
+  description:
+    'A form-fitting performance suit that reduces drag and maximizes explosive movement.',
   type: 'equipment',
   equipmentSlot: 'outfit',
   modifiers: {
@@ -735,7 +761,8 @@ export const AERODYNAMIC_SUIT: Item = {
 export const MENTAL_FOCUS_JERSEY: Item = {
   id: 'mental_focus_jersey',
   name: 'Mental Focus Jersey',
-  description: 'Designed with biometric feedback tech. Reminds you to breathe, slow down, and play smart.',
+  description:
+    'Designed with biometric feedback tech. Reminds you to breathe, slow down, and play smart.',
   type: 'equipment',
   equipmentSlot: 'outfit',
   modifiers: {
@@ -753,7 +780,8 @@ export const MENTAL_FOCUS_JERSEY: Item = {
 export const PRECISION_VISOR: Item = {
   id: 'precision_visor',
   name: 'Precision Visor',
-  description: 'A visor fitted with a subtle trajectory guide strip. Helps your eye track placement.',
+  description:
+    'A visor fitted with a subtle trajectory guide strip. Helps your eye track placement.',
   type: 'equipment',
   equipmentSlot: 'hat',
   modifiers: {
@@ -764,7 +792,8 @@ export const PRECISION_VISOR: Item = {
 export const RALLY_KING_HEADBAND: Item = {
   id: 'rally_king_headband',
   name: 'Rally King Headband',
-  description: 'A thick headband worn by players who thrive in long exchanges. Keeps focus sharp late in rallies.',
+  description:
+    'A thick headband worn by players who thrive in long exchanges. Keeps focus sharp late in rallies.',
   type: 'equipment',
   equipmentSlot: 'hat',
   modifiers: {
@@ -778,7 +807,8 @@ export const RALLY_KING_HEADBAND: Item = {
 export const CHAMPIONS_CAP: Item = {
   id: 'champions_cap',
   name: "Champion's Cap",
-  description: "A cap presented only to tournament champions. Wearing it, you feel like you belong in the big moments.",
+  description:
+    'A cap presented only to tournament champions. Wearing it, you feel like you belong in the big moments.',
   type: 'equipment',
   equipmentSlot: 'hat',
   shopAvailable: false,
@@ -797,7 +827,8 @@ export const CHAMPIONS_CAP: Item = {
 export const TENNIS_ELBOW_GEL: Item = {
   id: 'tennis_elbow_gel',
   name: 'Tennis Elbow Gel',
-  description: 'A topical gel that numbs the ache and gets you back on the court fast. It stings at first.',
+  description:
+    'A topical gel that numbs the ache and gets you back on the court fast. It stings at first.',
   type: 'consumable',
   consumableEffect: {
     type: 'instant',
@@ -808,7 +839,8 @@ export const TENNIS_ELBOW_GEL: Item = {
 export const ZONE_WATER: Item = {
   id: 'zone_water',
   name: 'Zone Water',
-  description: 'An electrolyte drink with adaptogens. Supposedly puts you in the zone. Weirdly, it works.',
+  description:
+    'An electrolyte drink with adaptogens. Supposedly puts you in the zone. Weirdly, it works.',
   type: 'consumable',
   consumableEffect: {
     type: 'next_activity',
@@ -840,7 +872,28 @@ export const NUTRITION_PACK: Item = {
 // Used by ShopSystem instead of the flat cost: 10 default.
 // ============================================================================
 
-export const CONSUMABLE_SHOP_COSTS: Partial<Record<string, number>> = { banana: 5, strawberries: 5, orange_slice: 7, energy_drink: 10, sports_drink: 12, recovery_shake: 12, ice_bath_voucher: 18, super_energy_gel: 22, grandmas_lucky_cookies: 16, focus_pill: 18, performance_enhancer: 20, stamina_boost: 16, power_supplement: 15, speed_booster: 18, confidence_tape: 14, coaches_notes: 22, motivational_playlist: 16, tennis_elbow_gel: 20, zone_water: 25, nutrition_pack: 35 };
+export const CONSUMABLE_SHOP_COSTS: Partial<Record<string, number>> = {
+  banana: 5,
+  strawberries: 5,
+  orange_slice: 7,
+  energy_drink: 10,
+  sports_drink: 12,
+  recovery_shake: 12,
+  ice_bath_voucher: 18,
+  super_energy_gel: 22,
+  grandmas_lucky_cookies: 16,
+  focus_pill: 18,
+  performance_enhancer: 20,
+  stamina_boost: 16,
+  power_supplement: 15,
+  speed_booster: 18,
+  confidence_tape: 14,
+  coaches_notes: 22,
+  motivational_playlist: 16,
+  tennis_elbow_gel: 20,
+  zone_water: 25,
+  nutrition_pack: 35,
+};
 
 // ============================================================================
 // ITEM COLLECTIONS - Derived from filtering individual items by type
@@ -923,23 +976,23 @@ const ITEM_COLLECTIONS: Item[] = [
 export const ALL_ITEMS: Item[] = ITEM_COLLECTIONS;
 
 export function getItemsByType(type: ItemType): Item[] {
-  return ALL_ITEMS.filter(item => item.type === type);
+  return ALL_ITEMS.filter((item) => item.type === type);
 }
 
 export const ALL_EQUIPMENT = getItemsByType('equipment');
 export const ALL_CONSUMABLES = getItemsByType('consumable');
 export const ALL_LUCKY_ITEMS = getItemsByType('lucky');
 
-export const ALL_RACQUETS = ALL_EQUIPMENT.filter(item => item.equipmentSlot === 'racquet');
-export const ALL_SHOES = ALL_EQUIPMENT.filter(item => item.equipmentSlot === 'shoes');
-export const ALL_OUTFITS = ALL_EQUIPMENT.filter(item => item.equipmentSlot === 'outfit');
-export const ALL_HATS = ALL_EQUIPMENT.filter(item => item.equipmentSlot === 'hat');
+export const ALL_RACQUETS = ALL_EQUIPMENT.filter((item) => item.equipmentSlot === 'racquet');
+export const ALL_SHOES = ALL_EQUIPMENT.filter((item) => item.equipmentSlot === 'shoes');
+export const ALL_OUTFITS = ALL_EQUIPMENT.filter((item) => item.equipmentSlot === 'outfit');
+export const ALL_HATS = ALL_EQUIPMENT.filter((item) => item.equipmentSlot === 'hat');
 
 export const ALL_CONSUMABLES_INSTANT = ALL_CONSUMABLES.filter(
-  item => item.consumableEffect?.type === 'instant'
+  (item) => item.consumableEffect?.type === 'instant',
 );
 export const ALL_CONSUMABLES_BUFF = ALL_CONSUMABLES.filter(
-  item => item.consumableEffect?.type === 'next_activity'
+  (item) => item.consumableEffect?.type === 'next_activity',
 );
 
 /**

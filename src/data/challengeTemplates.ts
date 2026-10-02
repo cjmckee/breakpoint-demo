@@ -21,7 +21,8 @@ import { CHAMPION_WRISTBAND, STYLISH_HEADBAND } from './items';
 export const CHALLENGE_PUTTING_IN_THE_REPS: ChallengeTemplate = {
   id: 'challenge_putting_in_the_reps',
   name: 'Putting In The Reps',
-  description: 'Nobody arrives at Riverside ready. You\'ll get the chance to show your skills on Day 5 — spend your time slots on the practice courts until then.',
+  description:
+    "Nobody arrives at Riverside ready. You'll get the chance to show your skills on Day 5 — spend your time slots on the practice courts until then.",
   requirements: [
     {
       type: 'trainingCount',
@@ -44,7 +45,8 @@ export const CHALLENGE_PUTTING_IN_THE_REPS: ChallengeTemplate = {
 export const CHALLENGE_FOREHAND_FUNDAMENTALS: ChallengeTemplate = {
   id: 'challenge_forehand_fundamentals',
   name: 'Forehand Fundamentals',
-  description: 'Coach Gonzalez wants you to master the basics of the forehand. Train your forehand stat to 30.',
+  description:
+    'Coach Gonzalez wants you to master the basics of the forehand. Train your forehand stat to 30.',
   requirements: [
     {
       type: 'statThreshold',
@@ -65,7 +67,8 @@ export const CHALLENGE_FOREHAND_FUNDAMENTALS: ChallengeTemplate = {
 export const CHALLENGE_FIRST_VICTORIES: ChallengeTemplate = {
   id: 'challenge_first_victories',
   name: 'First Victories',
-  description: "Coach Gonzalez challenges you to use what you've learned on the court. Win three matches.",
+  description:
+    "Coach Gonzalez challenges you to use what you've learned on the court. Win three matches.",
   requirements: [
     {
       type: 'matchCount',
@@ -85,7 +88,8 @@ export const CHALLENGE_FIRST_VICTORIES: ChallengeTemplate = {
 export const CHALLENGE_SERVE_MASTERY: ChallengeTemplate = {
   id: 'coach_challenge_serve_mastery',
   name: "Coach's Challenge: Serve Mastery",
-  description: 'Coach Gonzalez wants you to develop your serve to a passable level. Train your serve to 40.',
+  description:
+    'Coach Gonzalez wants you to develop your serve to a passable level. Train your serve to 40.',
   requirements: [
     {
       type: 'statThreshold',
@@ -107,7 +111,8 @@ export const CHALLENGE_SERVE_MASTERY: ChallengeTemplate = {
 export const CHALLENGE_BASELINE_WARRIOR: ChallengeTemplate = {
   id: 'coach_challenge_baseline_warrior',
   name: "Coach's Challenge: Baseline Warrior",
-  description: 'Coach Gonzalez challenges you to become a complete baseline player. Train both forehand and backhand to 35.',
+  description:
+    'Coach Gonzalez challenges you to become a complete baseline player. Train both forehand and backhand to 35.',
   requirements: [
     {
       type: 'statThreshold',
@@ -135,7 +140,8 @@ export const CHALLENGE_BASELINE_WARRIOR: ChallengeTemplate = {
 export const CHALLENGE_MENTAL_EDGE: ChallengeTemplate = {
   id: 'coach_challenge_mental_edge',
   name: "Coach's Challenge: Mental Edge",
-  description: 'Coach Gonzalez wants you to develop the mental fortitude of a champion. Train your focus to 40.',
+  description:
+    'Coach Gonzalez wants you to develop the mental fortitude of a champion. Train your focus to 40.',
   requirements: [
     {
       type: 'statThreshold',
@@ -157,7 +163,8 @@ export const CHALLENGE_MENTAL_EDGE: ChallengeTemplate = {
 export const CHALLENGE_BALANCED_APPROACH: ChallengeTemplate = {
   id: 'challenge_balanced_approach',
   name: 'Balanced Approach',
-  description: 'Coach Gonzalez wants you to become a well-rounded player. Raise both forehand and backhand to 40.',
+  description:
+    'Coach Gonzalez wants you to become a well-rounded player. Raise both forehand and backhand to 40.',
   requirements: [
     {
       type: 'statThreshold',
@@ -184,7 +191,8 @@ export const CHALLENGE_BALANCED_APPROACH: ChallengeTemplate = {
 export const CHALLENGE_ATHLETIC_FOUNDATION: ChallengeTemplate = {
   id: 'challenge_athletic_foundation',
   name: 'Athletic Foundation',
-  description: 'Coach Gonzalez challenges you to build elite-level fitness. Reach 35 in both speed and stamina.',
+  description:
+    'Coach Gonzalez challenges you to build elite-level fitness. Reach 35 in both speed and stamina.',
   requirements: [
     {
       type: 'statThreshold',
@@ -216,7 +224,8 @@ export const CHALLENGE_ATHLETIC_FOUNDATION: ChallengeTemplate = {
 export const CHALLENGE_TEN_WINS: ChallengeTemplate = {
   id: 'milestone_challenge_ten_wins',
   name: 'Pursuit of Excellence',
-  description: 'Your winning streak has proven you can compete. Now push yourself to reach 10 total match wins to establish yourself as a serious competitor.',
+  description:
+    'Your winning streak has proven you can compete. Now push yourself to reach 10 total match wins to establish yourself as a serious competitor.',
   requirements: [
     {
       type: 'matchCount',
@@ -240,7 +249,7 @@ export const CHALLENGE_TEN_WINS: ChallengeTemplate = {
 export const CHALLENGE_PROVE_THEM_WRONG: ChallengeTemplate = {
   id: 'challenge_prove_them_wrong',
   name: 'Prove Them Wrong',
-  description: 'Jordan thinks you\'re nothing. Show them what you\'re made of by winning 5 matches.',
+  description: "Jordan thinks you're nothing. Show them what you're made of by winning 5 matches.",
   requirements: [
     {
       type: 'matchCount',
@@ -259,7 +268,8 @@ export const CHALLENGE_PROVE_THEM_WRONG: ChallengeTemplate = {
 export const CHALLENGE_RIVAL_READY: ChallengeTemplate = {
   id: 'challenge_rival_ready',
   name: 'Ready for Anything',
-  description: 'Jordan\'s trash talk lit a fire. Channel that energy and sharpen your offense to 35.',
+  description:
+    "Jordan's trash talk lit a fire. Channel that energy and sharpen your offense to 35.",
   requirements: [
     {
       type: 'statThreshold',
@@ -284,7 +294,8 @@ export const CHALLENGE_RIVAL_READY: ChallengeTemplate = {
 export const CHALLENGE_MAKE_THEM_PROUD: ChallengeTemplate = {
   id: 'challenge_make_them_proud',
   name: 'Make Them Proud',
-  description: 'You can\'t help but keep your family in the back of your mind as you play. Win 3 matches and keep focused on the road ahead.',
+  description:
+    "You can't help but keep your family in the back of your mind as you play. Win 3 matches and keep focused on the road ahead.",
   requirements: [
     {
       type: 'matchCount',
@@ -308,7 +319,8 @@ export const CHALLENGE_MAKE_THEM_PROUD: ChallengeTemplate = {
 export const CHALLENGE_TEAM_SPIRIT: ChallengeTemplate = {
   id: 'challenge_team_spirit',
   name: 'Team Spirit',
-  description: 'You\'re part of the Academy team now. Build your relationship with Coach Gonzalez to prove you\'re a team player.',
+  description:
+    "You're part of the Academy team now. Build your relationship with Coach Gonzalez to prove you're a team player.",
   requirements: [
     {
       type: 'relationshipLevel',
@@ -329,7 +341,8 @@ export const CHALLENGE_TEAM_SPIRIT: ChallengeTemplate = {
 export const CHALLENGE_SPONSOR_WORTHY: ChallengeTemplate = {
   id: 'challenge_sponsor_worthy',
   name: 'Sponsor Worthy',
-  description: 'You have a sponsor now, and they love big, flashy serves. Hit 10 aces across your matches.',
+  description:
+    'You have a sponsor now, and they love big, flashy serves. Hit 10 aces across your matches.',
   requirements: [
     {
       type: 'matchStat',
@@ -399,7 +412,8 @@ export const CHALLENGE_SLICE_SPECIALIST: ChallengeTemplate = {
 export const CHALLENGE_TOUCH_ARTIST: ChallengeTemplate = {
   id: 'challenge_touch_artist',
   name: 'Touch Artist',
-  description: 'The ping pong master showed you what true touch looks like. Train your drop shot to 30.',
+  description:
+    'The ping pong master showed you what true touch looks like. Train your drop shot to 30.',
   requirements: [
     {
       type: 'statThreshold',
@@ -562,7 +576,8 @@ export const CHALLENGE_PRECISION_CUTTER: ChallengeTemplate = {
 export const CHALLENGE_ESCAPE_ARTIST: ChallengeTemplate = {
   id: 'challenge_escape_artist',
   name: 'Escape Artist',
-  description: 'You escaped the room. Now escape your opponents. Win 5 break points across your matches.',
+  description:
+    'You escaped the room. Now escape your opponents. Win 5 break points across your matches.',
   requirements: [
     {
       type: 'matchStat',
@@ -587,7 +602,8 @@ export const CHALLENGE_ESCAPE_ARTIST: ChallengeTemplate = {
 export const CHALLENGE_PRACTICE_MAKES_PERFECT: ChallengeTemplate = {
   id: 'challenge_practice_makes_perfect',
   name: 'Practice Makes Perfect',
-  description: "Alex has secretly been holding back. They gave you some pointers on serve return. Reach 40 Return.",
+  description:
+    'Alex has secretly been holding back. They gave you some pointers on serve return. Reach 40 Return.',
   requirements: [
     {
       type: 'statThreshold',
@@ -612,7 +628,8 @@ export const CHALLENGE_PRACTICE_MAKES_PERFECT: ChallengeTemplate = {
 export const CHALLENGE_SIBLING_TEACHER: ChallengeTemplate = {
   id: 'challenge_sibling_teacher',
   name: 'Best in the Family',
-  description: 'You started teaching your sibling. Finish the job by mastering placement yourself. Reach 40 Placement.',
+  description:
+    'You started teaching your sibling. Finish the job by mastering placement yourself. Reach 40 Placement.',
   requirements: [
     {
       type: 'statThreshold',
@@ -637,7 +654,8 @@ export const CHALLENGE_SIBLING_TEACHER: ChallengeTemplate = {
 export const CHALLENGE_TRICK_SHOT_MASTER: ChallengeTemplate = {
   id: 'challenge_trick_shot_master',
   name: 'Trick Shot Master',
-  description: "Coach Gonzalez believes you can learn some flashy moves. Don't embarrass him. Reach 30 Placement and 35 Spin.",
+  description:
+    "Coach Gonzalez believes you can learn some flashy moves. Don't embarrass him. Reach 30 Placement and 35 Spin.",
   requirements: [
     {
       type: 'statThreshold',

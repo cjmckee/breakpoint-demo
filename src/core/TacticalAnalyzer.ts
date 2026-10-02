@@ -6,12 +6,7 @@
  * to ensure consistent tactical assessment throughout the simulation.
  */
 
-import type {
-  RallyState,
-  TacticalOpportunity,
-  CourtPosition,
-  BallQuality,
-} from '../types';
+import type { RallyState, TacticalOpportunity, CourtPosition, BallQuality } from '../types';
 import { getQualityThresholds } from '../utils/qualityThresholds';
 
 export class TacticalAnalyzer {
@@ -29,7 +24,7 @@ export class TacticalAnalyzer {
    */
   public evaluateTacticalSituation(
     rallyState: RallyState,
-    shooterPosition?: CourtPosition
+    shooterPosition?: CourtPosition,
   ): TacticalOpportunity {
     const { opponentPosition, lastShotQuality, ballQuality, rallyLength, matchLevel } = rallyState;
     const thresholds = getQualityThresholds(matchLevel);
@@ -41,7 +36,8 @@ export class TacticalAnalyzer {
     attackScore += this.getPositionAttackScore(opponentPosition);
 
     // Our previous shot quality matters (relative to match level)
-    if (lastShotQuality >= thresholds.high) attackScore += 30; // We hit a great shot
+    if (lastShotQuality >= thresholds.high)
+      attackScore += 30; // We hit a great shot
     else if (lastShotQuality >= thresholds.good) attackScore += 15; // We hit a good shot
 
     // Incoming ball quality
@@ -58,7 +54,7 @@ export class TacticalAnalyzer {
       opponentPosition,
       lastShotQuality,
       thresholds,
-      shooterPosition
+      shooterPosition,
     );
 
     // Classify attack opportunity level
@@ -67,19 +63,14 @@ export class TacticalAnalyzer {
     // Net approach suitability — lowered threshold so net play happens more often
     // Even in neutral rallies (attackScore ~10-15), players can consider approaching
     const netApproachSuitable =
-      attackScore >= 10 &&
-      rallyLength >= 2 &&
-      !defensiveRequired &&
-      shooterPosition !== 'at_net'; // Don't approach if already at net
+      attackScore >= 10 && rallyLength >= 2 && !defensiveRequired && shooterPosition !== 'at_net'; // Don't approach if already at net
 
     // Winner attempt suitability
     const winnerAttemptSuitable = attackScore >= 30 && !defensiveRequired;
 
     // Tactical shot suitability (drop shots, angles, lobs)
     const tacticalShotSuitable =
-      rallyLength >= 5 &&
-      ballQuality.timeAvailable !== 'rushed' &&
-      !defensiveRequired;
+      rallyLength >= 5 && ballQuality.timeAvailable !== 'rushed' && !defensiveRequired;
 
     return {
       attackOpportunity: attackLevel,
@@ -116,7 +107,10 @@ export class TacticalAnalyzer {
   /**
    * Calculate attack score contribution from incoming ball quality
    */
-  private getBallQualityAttackScore(ballQuality: BallQuality, thresholds: ReturnType<typeof getQualityThresholds>): number {
+  private getBallQualityAttackScore(
+    ballQuality: BallQuality,
+    thresholds: ReturnType<typeof getQualityThresholds>,
+  ): number {
     let score = 0;
 
     // Weak incoming shots = attack opportunity (relative to match level)
@@ -141,7 +135,7 @@ export class TacticalAnalyzer {
     opponentPosition: CourtPosition,
     lastShotQuality: number,
     thresholds: ReturnType<typeof getQualityThresholds>,
-    shooterPosition?: CourtPosition
+    shooterPosition?: CourtPosition,
   ): boolean {
     // Rushed time = must defend
     if (ballQuality.timeAvailable === 'rushed') return true;
@@ -179,7 +173,7 @@ export class TacticalAnalyzer {
       rallyState.opponentPosition,
       rallyState.lastShotQuality,
       thresholds,
-      shooterPosition
+      shooterPosition,
     );
   }
 
