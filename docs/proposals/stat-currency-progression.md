@@ -39,10 +39,15 @@ balance, what it makes possible, and what it would take to build
    - **Pure anchor supply starves identities.** Any recipe that needs a currency the identity's
      anchors never pay becomes a hard wall: the counterpuncher can't buy speed without Power, and
      can't buy anticipation or tactics without Mind. The fix is a 20% general share on every
-     session, a 10% Mind share, Mind-led matches and a 2:1 exchange.
-   - **Escalating prices front-load progression.** Matching today's player takes income ×1.2 at
-     day 15 and ×1.4 at day 31 (about +5% per team match) for a realistic player (§9.7). The
-     rigid planner's ×2.2 at day 40 overstated it.
+     session, a 10% Mind share and Mind-led matches.
+   - **No exchange is needed.** A realistic player spends surplus currency on its weaker stats
+     instead of trading it. Dropping the exchange makes players stronger at the same income
+     (§9.8).
+   - **Income ×1.2 tracks today's player at all five team matches** (§9.8). Growth over tier 1 is
+     at most a few percent. The "income must grow" findings in §9.3 and §9.7 came from players
+     that traded currency away at a loss.
+   - **Mind is an ability budget.** A baseliner banks ~60 Mind by day 31 that no stat it wants
+     uses. That stockpile is what Mind-priced abilities should be sized against.
 8. **Slice is fixed in the sim** ([`slice-at-tier-1.md`](../research/slice-at-tier-1.md)).
    +20 slice is now worth 1.7–2.6× what it was at tier 1. Match texture is unchanged. It does not
    rescue the baseliner identity on its own.
@@ -408,10 +413,10 @@ and tactics). Most of it comes from:
 
 - **Story events,** whose fiction is often mental.
 
-**A 2:1 exchange.** Any two units of a currency the player is not saving with trade for one unit
-they are short of. This is the leak valve: no pile goes to waste, but converting costs half, so
-training to the build still wins. It is a natural coach or relationship feature (a coach who
-trades at 3:2).
+**No exchange.** An earlier version traded spare currency 2:1 for whatever the player was short
+of. With a realistic spender it does nothing useful (§9.8). Prices are balanced enough that
+surplus Power just buys strength or serve. A coach who converts currency could still exist as
+flavor, but the economy should not depend on it.
 
 `TRAINING_STAT_UPGRADE_CHANCE` and `TRAINING_BONUS_SUPPORT_CHANCE` (Lucky items) retarget to
 "chance of +1 unit per unit" and "chance of a bonus rep".
@@ -748,8 +753,81 @@ Match-win % for today's player against the same opponents: 45, 44, 36, 41, 42.
 - **A typical build on day 31,** currency ×1.4: key stats at 47–50, the rest at 31–33. A baseliner
   with strength, stamina and spin at 50 still has a serve of 32.
 
-**Income recommendation for tier 1:** start at ×1.15 and add about 5% per team match, reaching
-×1.4 by the Riverside Open.
+**Superseded by §9.8.** These figures used the impatient player, which traded currency away at
+2:1 whenever its next stat was unaffordable. Its losses grew with every match's Mind, and that
+is what made the parity scale drift.
+
+---
+
+### 9.8 Why the sim was trading, and what happens when it stops
+
+The §9.6–9.7 player traded spare currency the moment the stat it wanted most was unaffordable.
+Only after that would it look for something else to buy, and then only three stats down its
+list. That was a leftover from the rigid planner, which would not buy outside its identity and
+needed the exchange to avoid wasting currency.
+
+Over 31 days at ×1.4 the trace shows:
+
+- the baseliner trading 57 times and losing 94 units, mostly Mind traded for Power;
+- the counterpuncher losing 69.
+
+Three players replace it, none of which exchange:
+
+- **patient** saves for the stat it most needs, but spends every currency that stat does not use
+  on the weakest stat that does. A defensive player sitting on Power buys strength or serve. It
+  will not push a stat more than 8 points past where its shape wants it. Past that, spare currency
+  is banked.
+- **patient, uncapped**: the same without the 8-point limit.
+- **affordable** never saves: it buys the weakest stat it can afford right now.
+
+Mean point-win % of the four identities against that day's team-match opponent, all at ×1.4:
+
+| day | today | impatient + exchange | patient, uncapped | affordable | patient |
+| --- | ----- | -------------------- | ----------------- | ---------- | ------- |
+| 15  | 48.4  | 50.9                 | 52.2              | 52.4       | 52.1    |
+| 19  | 47.9  | 49.7                 | 51.8              | 51.0       | 52.2    |
+| 23  | 46.0  | 48.1                 | 49.2              | 50.2       | 48.9    |
+| 27  | 47.1  | 47.5                 | 51.2              | 51.1       | 50.0    |
+| 31  | 47.5  | 47.8                 | 50.1              | 51.3       | 49.6    |
+
+- **The exchange was costing 1.8–3.5 points of point-win** by day 31. The baseliner gained most
+  (45.6 → 48.6–50.5), because it was the one trading away the Mind its matches paid.
+- **Saving barely pays.** The affordable player, which never saves, is as strong as either
+  patient one. Prices are balanced enough that buying whatever helps now is close to optimal.
+  That is good for the UI: a "spend what you have" flow is not a trap.
+- **The cap shows where currency would pile up.** With it, spare currency the player has no use
+  for stays in the wallet. By day 31 at ×1.4:
+  - the baseliner banks **85 Mind**;
+  - the big server banks ~30 Quickness;
+  - the counterpuncher banks ~20 Technique.
+
+  Uncapped, the baseliner pours that Mind into the one Mind-only recipe and ends with **focus 62**,
+  its highest stat. Single-currency recipes (focus 2 Mind, slice 2 Technique, strength 3 Power)
+  are where surplus drains.
+
+**Recalibrated:** the patient player, capped, at the parity scale:
+
+| day | opponent         | today | patient ×1.1 | patient ×1.2 |
+| --- | ---------------- | ----- | ------------ | ------------ |
+| 15  | Chet Vale        | 48.4  | 48.9         | 48.8         |
+| 19  | Rich Soil        | 47.9  | 47.6         | 49.6         |
+| 23  | Martia Estrella  | 46.0  | 45.9         | 46.2         |
+| 27  | Reginald Werther | 47.1  | 45.9         | 46.6         |
+| 31  | Olivia Gulp      | 47.5  | 44.9         | 46.5         |
+
+Today's column is pooled over six runs. The patient ×1.2 match-win % reads 46, 50, 36, 40, 38,
+against today's 45, 43, 36, 41, 42.
+
+- **×1.2 holds within about a point at every team match.** That is about 10 units for a two-rep
+  session. Day 31 sits a point low, so income might grow a few percent over tier 1, not the 20–80%
+  the earlier sections suggested.
+- **The Mind bank is an ability budget.** At ×1.2 the baseliner banks ~60 Mind by day 31. The
+  other identities bank under 10, because they have Mind stats to buy. So Mind-priced abilities
+  around 30–60 Mind at tier 1 would give a baseliner one or two over the stretch and make Mind
+  matter to every build. That is the next calibration, with §6.4.
+- **The identity spread is about 6 points at ×1.2 on day 31**: baseliner 43.8, net rusher 49.6.
+  The baseliner sits lowest partly because its Mind is banked rather than spent. An ability would
+  return that value.
 
 ---
 
@@ -758,12 +836,12 @@ Match-win % for today's player against the same opponents: 45, 44, 36, 41, 42.
 Updated priority order:
 
 1. ~~Re-test the baseliner with archetypes on.~~ Done (§3.4).
-2. ~~Calibrate income with a career sim.~~ Done through all five team matches (§9.7): ×1.15
-   rising to ×1.4.
+2. ~~Calibrate income with a career sim.~~ Done through all five team matches (§9.8): ×1.2,
+   roughly flat, once the player stops trading currency away.
 3. ~~Decide `slice`.~~ Fixed in the sim.
-4. **Income growth by story progress.** Build the +5% per team match into `careerSim` and confirm
-   that it tracks today's player at every match. Then extend the sim to the Riverside Open. Also
-   try match pay weighted by performance area alone (§9.6, last point).
+4. **Abilities as the Mind sink.** Give `careerSim` an ability purchase: price on-court abilities
+   in currency per §6.4, scaled so the ~60 Mind a baseliner banks buys one or two. Then check
+   that Mind earns its keep for every identity. Also extend the sim to the Riverside Open.
 5. **Band width.** Re-run §3.3 and §9.4 with recipe lengths 2 / 3 / 5, through a `recipes` cost
    model in `allocationProbe`.
 6. **Price abilities.** Measure each on-court ability's point-win value the way `statChannels`
@@ -778,8 +856,9 @@ N=250 BUDGETS=280 CURVES=flat,step20,banded npx tsx src/test/analysis/allocation
 N=250 PARTS=B BUDGETS=280 CURVES=flat,banded npx tsx src/test/analysis/allocationProbe.ts
 N=250 PARTS=B BUDGETS=280 CURVES=flat ID='\+' npx tsx src/test/analysis/allocationProbe.ts
 npx tsx src/test/analysis/statIncome.ts
-INCOME_SCALE=1.2 npx tsx src/test/analysis/careerSim.ts         # §9.6, ~4 min
-DAYS=31 CHECK=15,19,23,27,31 INCOME_SCALE=1.4 npx tsx src/test/analysis/careerSim.ts   # §9.7, ~8 min
+DAYS=31 CHECK=15,19,23,27,31 npx tsx src/test/analysis/careerSim.ts       # §9.8, ~8 min
+SPEND=impatient EXCHANGE=2 DAYS=31 CHECK=15,19,23,27,31 INCOME_SCALE=1.4 \
+  npx tsx src/test/analysis/careerSim.ts                                     # §9.7 as run
 TRACE=baseliner INCOME_SCALE=1.2 npx tsx src/test/analysis/careerSim.ts   # one career, day by day
 ```
 

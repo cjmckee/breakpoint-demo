@@ -40,8 +40,7 @@
  *           it Mind and the rest by MatchRewardSystem's per-area scores
  *           (serving→Power, returning→Quickness, rally→Technique,
  *           net→Quickness+Technique, mental→Mind). Each evening the player buys
- *           toward its shape, saving when the next stat is unaffordable and
- *           trading spare currency at EXCHANGE:1.
+ *           toward its shape (SPEND, see buyTowardShape).
  *
  * Readiness is measured at each CHECK day against that day's team-match
  * opponent, on the mean build of each identity: point-win % and match-win %
@@ -52,10 +51,12 @@
  * Env: RUNS=20 (careers per identity per system)  N=200 (BO3 per readiness cell)
  *      DAYS=23  CHECK=15,19,23  MATCH_EVERY=2  REPS_P=0.7  ADAPT=0.7
  *      KEY_W=0.8,1.2  OFF_W=0.25,0.55
- *      OTHER_PER_DAY=2.2  SHOP_SHARE=0.25  INCOME_SCALE=2.2
+ *      OTHER_PER_DAY=2.2  SHOP_SHARE=0.25  INCOME_SCALE=1.2
  *      TRAIN_BASE=2  TRAIN_PER_REP=3  TRAIN_GENERAL_SHARE=0.2  TRAIN_MIND_SHARE=0.1
- *      MATCH_UNITS=8  MATCH_MIND_SHARE=0.6  EXCHANGE=2
- *      SPEND=player|level|rr  (level/rr: the rigid planners of the first pass)
+ *      MATCH_UNITS=8  MATCH_MIND_SHARE=0.6  EXCHANGE=0
+ *      SPEND=patient|affordable|impatient  (see buyTowardShape)  OVERBUILD=8
+ *            |level|rr  (the rigid planners of the first pass)
+ *      §9.6–9.7 were run with SPEND=impatient EXCHANGE=2
  *      TRACE=<identity> prints one currency career day by day: every slot, match
  *      payout, purchase, exchange, and what the player is saving for
  */
@@ -120,7 +121,7 @@ const MATCH_EVERY = env('MATCH_EVERY', 2);
 const REPS_P = env('REPS_P', 0.7);
 const OTHER_PER_DAY = env('OTHER_PER_DAY', 2.2);
 const SHOP_SHARE = env('SHOP_SHARE', 0.25);
-const INCOME_SCALE = env('INCOME_SCALE', 2.2);
+const INCOME_SCALE = env('INCOME_SCALE', 1.2);
 const TRAIN_BASE = env('TRAIN_BASE', 2);
 const TRAIN_PER_REP = env('TRAIN_PER_REP', 3);
 const MATCH_UNITS = env('MATCH_UNITS', 8);
@@ -474,7 +475,8 @@ function applyBoosts(s: PlayerStats, b: StatBoosts): void {
 /**
  * How the player spends each evening.
  *
- * player (default) buys toward its preference shape — see buyTowardShape().
+ * patient | affordable | impatient
+ *        buy toward the player's preference shape — see buyTowardShape().
  * level  the first pass's rigid planner: always buys the identity's LOWEST stat, saving
  *        for it when it is unaffordable. Currencies that stat does not need
  *        stay free for the identity's other stats. Spill only spends a
@@ -484,13 +486,16 @@ function applyBoosts(s: PlayerStats, b: StatBoosts): void {
  * rr     round-robin over the identity's stats, then spill everything left
  *        cheapest-first — a player who buys whatever is affordable.
  */
-const SPEND = process.env.SPEND ?? 'player';
+const SPEND = process.env.SPEND ?? 'patient';
 
 /**
  * EXCHANGE=r lets the planner trade r units of a currency its target does not
  * use for 1 unit of one it is short of. 0 disables it.
  */
-const EXCHANGE = env('EXCHANGE', 2);
+const EXCHANGE = env('EXCHANGE', 0);
+
+/** patient: how far past its shape a stat may be bought with spare currency. */
+const OVERBUILD = env('OVERBUILD', 8);
 
 /** Cover `price` by converting from currencies outside it, if that is enough. */
 function exchangeFor(w: Wallet, price: Amounts): boolean {
@@ -550,20 +555,44 @@ const shapeOrder = (s: PlayerStats, w: Weights): StatName[] =>
   ALL_STATS.filter((k) => get(s, k) < 100).sort((x, y) => behind(s, w, x) - behind(s, w, y));
 
 /**
- * Buy toward the shape: the stat furthest behind first; if it is unaffordable,
- * trade spare currency for it, and failing that save for it — buying one of
- * the next few only with currencies the saved-for stat does not need.
+ * Buy toward the shape, the stat furthest behind first.
+ *
+ * patient     (default) if that stat is unaffordable, save for it — but spend
+ *             every currency it does not need on the weakest stat that uses
+ *             only those. A defensive player sitting on Power buys strength or
+ *             serve with it rather than trading it away. It will not push a
+ *             stat more than OVERBUILD points past where its shape wants it:
+ *             past that, spare currency is banked (Mind for abilities, say).
+ * affordable  never save: buy the weakest stat it can afford right now.
+ * impatient   the first version: trade spare currency at EXCHANGE:1 the moment
+ *             the target is unaffordable, and look only three stats down the
+ *             list for anything else to buy. Kept to reproduce §9.6–9.7.
  */
 function buyTowardShape(s: PlayerStats, wallet: Wallet, w: Weights): void {
   for (;;) {
     const order = shapeOrder(s, w);
     if (order.length === 0) return;
+    if (SPEND === 'affordable') {
+      if (!order.some((k) => buy(s, wallet, k))) return;
+      continue;
+    }
     const target = order[0];
     if (buy(s, wallet, target)) continue;
-    if (exchangeFor(wallet, priceOf(target, get(s, target))) && buy(s, wallet, target)) continue;
+    if (
+      SPEND === 'impatient' &&
+      exchangeFor(wallet, priceOf(target, get(s, target))) &&
+      buy(s, wallet, target)
+    )
+      continue;
     const reserved = new Set(Object.keys(RECIPES[target]) as Currency[]);
     const free = new Set(CURRENCIES.filter((c) => !reserved.has(c)));
-    const other = order.slice(1, 4).find((k) => usesOnly(k, free) && buy(s, wallet, k));
+    // Where the shape wants stat k, at the target's rate of growth.
+    const wanted = (k: StatName): number => 20 + w[k] * behind(s, w, target);
+    const candidates =
+      SPEND === 'impatient'
+        ? order.slice(1, 4)
+        : order.slice(1).filter((k) => get(s, k) < wanted(k) + OVERBUILD);
+    const other = candidates.find((k) => usesOnly(k, free) && buy(s, wallet, k));
     if (!other) {
       note(
         `      saving for ${target} ${get(s, target)}→${get(s, target) + 1}: ` +
@@ -597,7 +626,7 @@ function anchorCurrency(s: PlayerStats, wallet: Wallet, w: Weights, id: Identity
 }
 
 function spend(s: PlayerStats, w: Wallet, buys: StatName[], weights: Weights): void {
-  if (SPEND === 'player') return buyTowardShape(s, w, weights);
+  if (SPEND !== 'level' && SPEND !== 'rr') return buyTowardShape(s, w, weights);
   if (SPEND === 'rr') {
     let i = 0;
     let stalled = 0;
@@ -770,7 +799,7 @@ function career(
         );
       } else if (energy >= 20) {
         const core =
-          SPEND !== 'player'
+          SPEND === 'level' || SPEND === 'rr'
             ? id.anchors[anchorIdx++ % id.anchors.length]
             : system === 'today'
               ? anchorToday(stats, weights, id)
