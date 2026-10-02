@@ -25,6 +25,14 @@ jobs:
 
       - run: npm ci
 
+      - name: Check formatting
+        run: npm run format:check
+
+      # The probe and check scripts run under tsx, which strips types without
+      # checking them, and `build` never sees the top-level test/ directory.
+      - name: Typecheck Node scripts
+        run: npm run typecheck:node
+
       - name: Typecheck and build
         run: npm run build
 
