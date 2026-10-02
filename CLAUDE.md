@@ -1015,6 +1015,12 @@ Use Zustand persistence:
 - Match state is transient (not persisted)
 - Clear persistence keys on version changes
 
+### Formatting
+
+Prettier owns formatting (`.prettierrc`: single quotes, 100 columns). Run
+`npm run format` before committing; `npm run format:check` verifies without writing.
+Don't hand-align comments or values into columns — Prettier collapses them.
+
 ### Test IDs
 
 E2E specs address the UI through `data-testid`, not through visible text. Text

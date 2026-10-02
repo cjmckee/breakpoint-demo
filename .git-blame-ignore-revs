@@ -1,0 +1,6 @@
+# Mechanical reformat commits, skipped by `git blame`.
+# GitHub honours this file automatically; locally run:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# style: format the codebase with Prettier
+51943df548b4181fe751a7faa7100db39d19a6f4
