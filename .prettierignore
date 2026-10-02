@@ -1,0 +1,4 @@
+package-lock.json
+
+# Other checkouts of this repo live here; each formats itself.
+.claude/worktrees/
