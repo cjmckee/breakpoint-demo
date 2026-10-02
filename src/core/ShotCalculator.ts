@@ -60,6 +60,7 @@ import {
   isDefensiveShot,
   isOffensiveShot,
   SHOT_CLASSIFICATIONS,
+  SLICE_TUNING,
 } from '../config/shotThresholds';
 
 import { random } from './random';
@@ -566,6 +567,14 @@ export class ShotCalculator {
       playStyle,
       opponentPosition,
     );
+
+    // The slice is the bail-out shot: its support bands may reward, not tax.
+    const sliceFloor = SLICE_TUNING.supportFloor;
+    if (sliceFloor !== null && shotType.includes('slice')) {
+      spinModifier = Math.max(sliceFloor, spinModifier);
+      physicalModifier = Math.max(sliceFloor, physicalModifier);
+      mentalModifier = Math.max(sliceFloor, mentalModifier);
+    }
 
     // Serve-specific bonuses and variance
     let serveVariance = 0;

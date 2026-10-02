@@ -25,6 +25,7 @@ import {
   NET_APPROACH_BIAS_SCALE,
   NET_APPROACH_BASE,
   NET_APPROACH_FLOOR,
+  SLICE_TUNING,
 } from '../config/shotThresholds';
 import { EffectKey } from '../types/game';
 
@@ -172,25 +173,39 @@ export class ShotSelector {
     // 5. DEFAULT: Regular groundstroke using shot preference.
     // Per-wing slice preference lets archetypes express "topspin FH, slice BH".
     const isForehand = random() < shotPreference.forehandProbability;
-    if (this.shouldSliceGroundstroke(isForehand, behaviorEffects)) {
+    if (this.shouldSliceGroundstroke(shooter, isForehand, behaviorEffects)) {
       return isForehand ? 'slice_forehand' : 'slice_backhand';
     }
     return isForehand ? 'forehand' : 'backhand';
   }
 
   /**
-   * Decide whether a routine groundstroke is hit as a slice, driven by the
-   * archetype's per-wing slice-preference behavior effect (e.g. a slice/defensive
-   * backhand specialist knifes most backhands while still driving forehands).
+   * Decide whether a routine groundstroke is hit as a slice. Two sources add up:
+   * the archetype's per-wing slice preference (a slice backhand specialist
+   * knifes most backhands while still driving forehands), and — like the wing
+   * ratio — how far the slice stat sits above that wing's own stat.
    */
-  private shouldSliceGroundstroke(isForehand: boolean, behaviorEffects: BehaviorEffects): boolean {
+  private shouldSliceGroundstroke(
+    shooter: PlayerProfile,
+    isForehand: boolean,
+    behaviorEffects: BehaviorEffects,
+  ): boolean {
     const key = isForehand
       ? EffectKey.SLICE_PREFERENCE_FOREHAND
       : EffectKey.SLICE_PREFERENCE_BACKHAND;
     const pref = behaviorEffects[key] ?? 0;
-    if (pref <= 0) return false;
     // ~0.25 at tier I (10), ~0.6 cap at tier III (24); never fully locks the wing.
-    const probability = Math.min(0.85, (pref / 100) * 2.5);
+    const fromArchetype = pref > 0 ? (pref / 100) * 2.5 : 0;
+
+    const wing = isForehand ? shooter.stats.core.forehand : shooter.stats.core.backhand;
+    const edge = shooter.stats.technical.slice - wing;
+    const fromStat = Math.min(
+      SLICE_TUNING.selectionCap,
+      Math.max(0, edge) * SLICE_TUNING.selectionPerStatPoint,
+    );
+
+    const probability = Math.min(0.85, fromArchetype + fromStat);
+    if (probability <= 0) return false;
     return random() < probability;
   }
 

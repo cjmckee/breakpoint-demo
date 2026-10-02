@@ -423,13 +423,16 @@ export const SERVE_ACCURACY_WEIGHTS = {
  * Composite stat weights for return quality and ace resistance.
  *
  * Returning is reading the serve (anticipation) and getting to it (speed)
- * as much as the return technique itself.
+ * as much as the return technique itself. `slice` is the chip and the block:
+ * without it the slice stat paid on ~10% of points, while the return is the
+ * most-hit shot in the game (see SLICE_TUNING).
  * Weights must sum to 1 so uniform-stat players keep their rating.
  */
-export const RETURN_COMPOSITE_WEIGHTS = {
-  return: 0.6,
+export const RETURN_COMPOSITE_WEIGHTS: Record<string, number> = {
+  return: 0.5,
   anticipation: 0.25,
   speed: 0.15,
+  slice: 0.1,
 };
 
 /**
@@ -816,6 +819,44 @@ export function getShotCategory(shotType: ShotType): 'offensive' | 'neutral' | '
 // =======================
 // RALLY & DIFFICULTY
 // =======================
+
+/**
+ * The slice at tier-1 ratings. See docs/research/slice-at-tier-1.md.
+ *
+ * Before this, +20 slice at tier 1 was worth about a fifth of +20 forehand, for
+ * two reasons, neither of them the shot's winner floor or requirement
+ * (stat-channels §10 rules those out):
+ *
+ * - **It was dominated at equal rating.** A slice passes three support bands no
+ *   drive touches — `shape` (spin), `courtCoverage` (speed, as a defensive
+ *   shot) and `tactics` (as a defensive shot). Every band is centred on
+ *   NEUTRAL_STAT, so below 50 each one subtracts, and the whole tier-1 ladder
+ *   sits below 50: a uniform-30 slice carried ×0.68–0.71 total adjustment
+ *   against a drive's ×0.98. `supportFloor` makes those bands bonus-only on
+ *   slices — the slice is the bail-out shot, and should not need above-average
+ *   supports to be playable.
+ * - **Its usage could not grow.** The wing ratio moves toward the better wing
+ *   (calculateShotPreference); slice usage came only from archetype effects,
+ *   so the stat paid on a fixed ~10% of points. `selectionPerStatPoint` slices
+ *   a routine groundstroke more often when the slice stat sits above that
+ *   wing's own, at the wing ratio's own slope. Never negative, so a weak slice
+ *   does not stop an archetype that prefers slicing.
+ *
+ * The third part is the chip return: RETURN_COMPOSITE_WEIGHTS carries slice.
+ *
+ * supportFloor          null leaves the bands symmetric on slices
+ * selectionPerStatPoint 0 disables stat-driven slice selection
+ * selectionCap          ceiling on the stat-driven share alone
+ */
+export const SLICE_TUNING: {
+  supportFloor: number | null;
+  selectionPerStatPoint: number;
+  selectionCap: number;
+} = {
+  supportFloor: 1,
+  selectionPerStatPoint: 0.005,
+  selectionCap: 0.35,
+};
 
 /** Rally length limits and point duration estimation */
 export const RALLY_CONFIG = {
