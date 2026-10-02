@@ -6,7 +6,7 @@ Split by what you would use the document for, not by subject.
 docs/
 ├── balance-testing.md    how to verify a simulation change      <- start here
 ├── research/             what was measured, and what it settled
-└── proposals/            designs not yet built    <- currently empty
+└── proposals/            designs not yet built
 ```
 
 ## Active guidance
@@ -47,7 +47,13 @@ under, and a behaviour change invalidates every number measured before it.
 Designs that have not shipped. Check the code before trusting one — a proposal that has been built
 belongs in git history, not here.
 
-Nothing is currently proposed and unbuilt. `story-minigames.md` was executed and deleted; the
+- **[`proposals/stat-currency-progression.md`](./proposals/stat-currency-progression.md)** —
+  earning generic attribute points (Power, Quickness, Technique, Mind) and spending them on stats
+  instead of receiving stats directly. Measures that free allocation at a flat price is a solved
+  game, that escalating cost alone does not fix it, and that per-stat price bands do. Still an
+  investigation; its §8 lists the decisions it needs.
+
+`story-minigames.md` was executed and deleted; the
 minigame runtime lives in [`src/minigames/`](../src/minigames/) and the story route runs through the
 `minigame_active` phase.
 
