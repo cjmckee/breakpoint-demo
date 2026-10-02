@@ -8,7 +8,7 @@
  * ratings (yours + opponent's, priority stat enlarged, advantage chip between them).
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Modal } from './ui/Modal';
 import { KeyMoment } from '../types/keyMoments';
 import { TacticalOption, SecondaryEffect } from '../data/tacticalOptions';
@@ -139,16 +139,43 @@ interface KeyMomentModalProps {
   keyMoment: KeyMoment | null;
 }
 
+// How long the pointer must stay on a tactic card before hovering it moves focus. Without
+// it, a pointer crossing other cards on its way to the commit button swaps the detail pane,
+// and the button then commits that tactic.
+const HOVER_INTENT_MS = 150;
+
 export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMoment }) => {
   const [isHidden, setIsHidden] = useState(false);
   // Which tactic's detail is shown in the right pane. Persists so options are easy to compare
   // side by side; hover (desktop) or tap (touch) moves focus, an explicit button commits.
   const [focusIdx, setFocusIdx] = useState(0);
   const [hoveredCondition, setHoveredCondition] = useState<number | null>(null);
+  const hoverTimer = useRef<number | null>(null);
 
-  // Reset focus when the modal opens or a new key moment arrives.
+  const cancelHoverFocus = (): void => {
+    if (hoverTimer.current !== null) {
+      window.clearTimeout(hoverTimer.current);
+      hoverTimer.current = null;
+    }
+  };
+
+  // Starts on pointer movement rather than on enter: when the modal scrolls a card under a
+  // still pointer, the browser fires enter (and a move with no movement) on that card, and
+  // the commit button would again take a tactic nobody pointed at.
+  const scheduleHoverFocus = (event: React.MouseEvent, index: number): void => {
+    if (event.movementX === 0 && event.movementY === 0) return;
+    if (hoverTimer.current !== null) return;
+    hoverTimer.current = window.setTimeout(() => {
+      hoverTimer.current = null;
+      setFocusIdx(index);
+    }, HOVER_INTENT_MS);
+  };
+
+  // Reset focus when the modal opens or a new key moment arrives. A hover still pending from
+  // the last key moment would otherwise land on this one's menu.
   useEffect(() => {
     setFocusIdx(0);
+    return cancelHoverFocus;
   }, [isOpen, keyMoment?.id]);
 
   const handleKeyMomentChoice = useMatchStore((state) => state.handleKeyMomentChoice);
@@ -861,9 +888,13 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                     data-testid={`km-tactic-${index}`}
                     data-tactic-id={option.id}
                     data-posture={option.posture}
-                    onMouseEnter={() => setFocusIdx(index)}
+                    onMouseMove={(event) => scheduleHoverFocus(event, index)}
+                    onMouseLeave={cancelHoverFocus}
                     onFocus={() => setFocusIdx(index)}
-                    onClick={() => setFocusIdx(index)}
+                    onClick={() => {
+                      cancelHoverFocus();
+                      setFocusIdx(index);
+                    }}
                     // The card wears its posture's colour the same way the detail pane
                     // does, so the menu reads as "one of each kind" before a single word
                     // is. Focus is carried by the strength of that colour rather than by
