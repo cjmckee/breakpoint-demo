@@ -42,6 +42,12 @@ exactly the kind of thing that gets rediscovered otherwise.
   almost nothing at the ratings that ship. At equal rating the slice was a dominated shot, taxed by
   three below-neutral support bands no drive touches, and its usage could not grow with the stat.
   Records five levers that did not help, and the three-part change that roughly doubled its value.
+- **[`research/stamina-at-tier-1.md`](./research/stamina-at-tier-1.md)** — why stamina is the worst
+  buy per unit. It works only through match fatigue, and fatigue costs little. Its rally-length
+  channel is inert at tier 1, and recovery reading stamina is not the problem. A stronger
+  fatigue penalty doubles its value but hurts tired players, so it is recorded as a decision,
+  not applied. Also records that the analysis harnesses' point loops leave out changeover
+  recovery.
 
 Note the **measurement baseline** headers. Figures are only valid for the config they were taken
 under, and a behaviour change invalidates every number measured before it.

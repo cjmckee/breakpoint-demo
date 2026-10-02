@@ -18,7 +18,12 @@
  *   bigServer / counter / netRusher / baseliner
  *              six-stat identity builds — the choices a stylistic player makes
  *
- * Under COST=flat a budget point buys +1. Under COST=curve each +1 costs
+ * Under COST=flat a budget point buys +1. Under CURVES=recipes the budget is
+ * currency units, shaped like the training each strategy would do (walletFor), and
+ * every +1 pays the real recipe at the real step price (statEconomy.ts, the
+ * proposal's §6.1); whatever the strategy cannot use goes on the weakest stat
+ * still affordable, as a player would spend it. 860 units buys about the same
+ * even spread as 280 flat points. Under COST=curve each +1 costs
  * costOf(currentValue) currency — see COST_CURVES — so concentrating gets
  * expensive. Point-win % against fixed tier-1 opponents.
  *
@@ -53,6 +58,7 @@ import { PointSimulator } from '../../core/PointSimulator';
 import { ScoreTracker } from '../../core/ScoreTracker';
 import { MATCH_FATIGUE } from '../../config/shotThresholds';
 import { calculateOverallRating } from '../../utils/overallRating';
+import { CURRENCIES, RECIPES, canAfford, pay, priceOf, unitsOf, type Wallet } from './statEconomy';
 import { CORE_ANCHORS, CORE_ANCHOR_ORDER } from '../../game/AnchorTrainingSystem';
 import {
   aggregateArchetypeEffects,
@@ -149,7 +155,9 @@ const uniformFlat = (v: number): Flat => Object.fromEntries(ALL_STATS.map((s) =>
 
 /**
  * Point-win % per +10 at tier-1 ratings, from docs/research/stat-channels.md
- * (U(25,50) table). Used to price stats by value and to drive the greedy spender.
+ * (U(25,50) table), taken before the slice change. Used to price stats by value
+ * for the `banded` curve and to drive the greedy spender under the multiplier
+ * curves, so those rows reproduce the proposal's §3.
  */
 const STAT_VALUE: Record<StatName, number> = {
   anticipation: 3.27,
@@ -166,6 +174,28 @@ const STAT_VALUE: Record<StatName, number> = {
   stamina: 0.9,
   net: 0.77,
   slice: 0.48,
+};
+
+/**
+ * The same, re-measured after the slice change (slice-at-tier-1.md §5). Drives
+ * the greedy spender under the `recipes` cost model, which prices the sim as it
+ * now stands.
+ */
+const STAT_VALUE_NOW: Record<StatName, number> = {
+  anticipation: 3.12,
+  serve: 2.62,
+  speed: 2.62,
+  return: 2.52,
+  tactics: 2.32,
+  spin: 1.79,
+  focus: 1.6,
+  strength: 1.58,
+  placement: 1.55,
+  forehand: 1.54,
+  backhand: 1.33,
+  net: 1.31,
+  slice: 1.13,
+  stamina: 0.64,
 };
 
 /** Three price bands rather than a per-stat price — something a player can learn. */
@@ -261,6 +291,76 @@ function spendGreedy(budget: number, cost: Cost): Flat {
     left -= cost(best, f[best]);
     f[best]++;
   }
+}
+
+// ─── The real recipes (statEconomy.ts) ───────────────────────
+
+/**
+ * A currency budget of `units` shaped like the training that would earn it:
+ * 70% in proportion to what the targets' recipes need — a player trains the
+ * anchors that pay its build — and 30% even, the general and Mind shares every
+ * session and match pays whatever was trained (proposal §6.2).
+ */
+function walletFor(units: number, targets: StatName[]): Wallet {
+  const need: Record<string, number> = Object.fromEntries(CURRENCIES.map((c) => [c, 0]));
+  for (const k of targets) for (const [c, n] of Object.entries(RECIPES[k])) need[c] += n ?? 0;
+  const total = CURRENCIES.reduce((t, c) => t + need[c], 0);
+  return Object.fromEntries(
+    CURRENCIES.map((c) => [c, units * (0.7 * (need[c] / total) + 0.3 / CURRENCIES.length)]),
+  ) as Wallet;
+}
+
+function buyRecipe(f: Flat, w: Wallet, k: StatName): boolean {
+  const price = priceOf(k, f[k]);
+  if (f[k] >= 100 || !canAfford(w, price)) return false;
+  pay(w, price);
+  f[k]++;
+  return true;
+}
+
+/** Whatever no target can use goes on the weakest stat it can still afford. */
+function spendLeftovers(f: Flat, w: Wallet): void {
+  for (;;) {
+    const order = [...ALL_STATS].sort((x, y) => f[x] - f[y]);
+    if (!order.some((k) => buyRecipe(f, w, k))) return;
+  }
+}
+
+/** Round-robin over `targets` at the real recipe prices, then spend what is left. */
+function spendRecipes(units: number, targets: StatName[]): Flat {
+  const f = uniformFlat(20);
+  const w = walletFor(units, targets);
+  let i = 0;
+  let stalled = 0;
+  while (stalled < targets.length) {
+    if (buyRecipe(f, w, targets[i++ % targets.length])) stalled = 0;
+    else stalled++;
+  }
+  spendLeftovers(f, w);
+  return f;
+}
+
+/**
+ * Best current value per unit of real price, among what the wallet affords.
+ * It trains for the five most valuable stats, so its wallet is shaped like theirs.
+ */
+function greedyRecipes(units: number): Flat {
+  const f = uniformFlat(20);
+  const top5 = [...ALL_STATS].sort((x, y) => STAT_VALUE_NOW[y] - STAT_VALUE_NOW[x]).slice(0, 5);
+  const w = walletFor(units, top5);
+  for (;;) {
+    const options = ALL_STATS.filter((k) => f[k] < 100 && canAfford(w, priceOf(k, f[k])));
+    if (options.length === 0) return f;
+    const ratio = (k: StatName): number => STAT_VALUE_NOW[k] / unitsOf(priceOf(k, f[k]));
+    buyRecipe(f, w, options.sort((x, y) => ratio(y) - ratio(x))[0]);
+  }
+}
+
+/** Dispatch a strategy to the multiplier curves or to the real recipes. */
+function build(curve: string, budget: number, targets: StatName[]): Flat {
+  return curve === 'recipes'
+    ? spendRecipes(budget, targets)
+    : spendRoundRobin(budget, targets, COST_CURVES[curve]);
 }
 
 const STRATEGIES: Record<string, StatName[]> = {
@@ -446,11 +546,10 @@ function partB(N: number, budgets: number[], curves: string[]): void {
     side(s, profileForArchetype(a)),
   ]);
   for (const curveName of curves) {
-    const cost = COST_CURVES[curveName];
     for (const budget of budgets) {
       console.log(`\n=== PART B  cost=${curveName}  budget=${budget}  N=${N} BO3/cell ===`);
       console.log(['identity', 'column', ...opponents.map(([n]) => n), 'mean'].join('\t'));
-      const spread = fromFlat(spendRoundRobin(budget, STRATEGIES.spread, cost));
+      const spread = fromFlat(build(curveName, budget, STRATEGIES.spread));
       const control: Array<[string, Side]> = [['spread (no style)', side(spread)]];
       for (const [label, s] of control) {
         const row = opponents.map(([, o]) => pointWinPct(s, o, N));
@@ -461,7 +560,7 @@ function partB(N: number, budgets: number[], curves: string[]): void {
       }
       const only = process.env.ID ? new RegExp(process.env.ID) : null;
       for (const id of IDENTITIES.filter((i) => !only || only.test(i.name))) {
-        const built = fromFlat(spendRoundRobin(budget, id.targets, cost));
+        const built = fromFlat(build(curveName, budget, id.targets));
         const columns: Array<[string, Side]> = [
           ['bare', side(built)],
           ['styled', side(built, id.profile)],
@@ -491,7 +590,7 @@ function main(): void {
   ]);
 
   for (const curveName of curves) {
-    const cost = COST_CURVES[curveName];
+    const cost = COST_CURVES[curveName] ?? COST_CURVES.flat;
     for (const budget of budgets) {
       console.log(`\n=== cost=${curveName}  budget=${budget}  N=${N} BO3/cell ===`);
       const header = ['strategy', 'OVR', 'pts', 'max', ...opponents.map(([n]) => n)];
@@ -499,9 +598,9 @@ function main(): void {
       const builds: Array<[string, Flat]> = [
         ...Object.entries(STRATEGIES).map(([name, targets]): [string, Flat] => [
           name,
-          spendRoundRobin(budget, targets, cost),
+          build(curveName, budget, targets),
         ]),
-        ['greedy', spendGreedy(budget, cost)],
+        ['greedy', curveName === 'recipes' ? greedyRecipes(budget) : spendGreedy(budget, cost)],
       ];
       for (const [name, f] of builds) {
         const s = fromFlat(f);

@@ -62,7 +62,12 @@
  *      payout, purchase, exchange, and what the player is saving for
  */
 
-import type { MatchFormat, MatchState, PlayerStats, StatName } from '../../types';
+import type {
+  MatchFormat,
+  MatchStatistics as IMatchStatistics,
+  PlayerStats,
+  StatName,
+} from '../../types';
 import type {
   ArchetypeProfile,
   BroadArchetype,
@@ -71,10 +76,20 @@ import type {
 } from '../../types/archetype';
 import type { StatBoosts } from '../../types/game';
 import { PlayerProfile } from '../../core/PlayerProfile';
-import { PointSimulator } from '../../core/PointSimulator';
-import { ScoreTracker } from '../../core/ScoreTracker';
-import { MatchStatistics } from '../../core/MatchStatistics';
-import { MATCH_FATIGUE } from '../../config/shotThresholds';
+import {
+  CURRENCIES,
+  RECIPES,
+  canAfford,
+  earn,
+  inRatio,
+  pay,
+  priceOf,
+  unitsOf,
+  type Amounts,
+  type Currency,
+  type Wallet,
+} from './statEconomy';
+import { MatchSimulator } from '../../core/MatchSimulator';
 import { calculateOverallRating } from '../../utils/overallRating';
 import { PlayerManager } from '../../game/PlayerManager';
 import { MatchRewardSystem } from '../../game/MatchRewardSystem';
@@ -176,57 +191,6 @@ const clone = (s: PlayerStats): PlayerStats => ({
   physical: { ...s.physical },
   mental: { ...s.mental },
 });
-
-// ─── Currency design (proposal §6) ───────────────────────────
-
-type Currency = 'power' | 'quickness' | 'technique' | 'mind';
-const CURRENCIES: Currency[] = ['power', 'quickness', 'technique', 'mind'];
-type Wallet = Record<Currency, number>;
-type Amounts = Partial<Wallet>;
-
-const RECIPES: Record<StatName, Amounts> = {
-  serve: { power: 3, technique: 1 },
-  return: { quickness: 2, technique: 1, mind: 1 },
-  anticipation: { mind: 3, quickness: 1 },
-  speed: { quickness: 3, power: 1 },
-  tactics: { mind: 3, technique: 1 },
-  forehand: { power: 2, technique: 1 },
-  backhand: { technique: 2, quickness: 1 },
-  placement: { technique: 2, mind: 1 },
-  strength: { power: 3 },
-  spin: { technique: 2, power: 1 },
-  focus: { mind: 2 },
-  stamina: { power: 1, quickness: 1 },
-  net: { quickness: 1, technique: 1 },
-  slice: { technique: 2 },
-};
-
-/** ×1 below 40, ×2 in the 40s-50s, ×3 in the 60s-70s, ×4 from 80. */
-const stepMultiplier = (v: number): number => 1 + Math.floor(Math.max(0, v - 20) / 20);
-
-const priceOf = (stat: StatName, value: number): Amounts => {
-  const m = stepMultiplier(value);
-  const out: Amounts = {};
-  for (const [c, n] of Object.entries(RECIPES[stat]) as Array<[Currency, number]>) out[c] = n * m;
-  return out;
-};
-const unitsOf = (a: Amounts): number => Object.values(a).reduce((x, y) => x + (y ?? 0), 0);
-const canAfford = (w: Wallet, p: Amounts): boolean =>
-  (Object.entries(p) as Array<[Currency, number]>).every(([c, n]) => w[c] >= n);
-const pay = (w: Wallet, p: Amounts): void => {
-  for (const [c, n] of Object.entries(p) as Array<[Currency, number]>) w[c] -= n;
-};
-const earn = (w: Wallet, a: Amounts, scale = 1): void => {
-  for (const [c, n] of Object.entries(a) as Array<[Currency, number]>) w[c] += n * scale;
-};
-/** Split `units` across a recipe in its own ratio. */
-const inRatio = (recipe: Amounts, units: number): Amounts => {
-  const total = unitsOf(recipe);
-  const out: Amounts = {};
-  for (const [c, n] of Object.entries(recipe) as Array<[Currency, number]>)
-    out[c] = (units * n) / total;
-  return out;
-};
 
 // ─── "Other" income: story, challenges, shop ─────────────────
 
@@ -376,77 +340,40 @@ const IDENTITIES: Identity[] = [
 
 // ─── Match runner ────────────────────────────────────────────
 
-function fatigue(cur: number, rally: number, stam: number): number {
-  const sf = MATCH_FATIGUE.minFatigueRate + (1 - MATCH_FATIGUE.minFatigueRate) * (1 - stam / 100);
-  let gain = rally * MATCH_FATIGUE.basePerShot * sf;
-  if (rally > MATCH_FATIGUE.longRallyThreshold) {
-    gain += (rally - MATCH_FATIGUE.longRallyThreshold) * MATCH_FATIGUE.longRallyExtra * sf;
-  }
-  const rec =
-    MATCH_FATIGUE.baseRecoveryPerPoint +
-    (stam / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
-  return Math.max(0, Math.min(100, cur + gain - rec));
-}
-
 interface Side {
   stats: PlayerStats;
   profile: ArchetypeProfile;
 }
 
+/**
+ * One match through the game's own MatchSimulator, so fatigue, changeover and
+ * set-break recovery, momentum and the starting fatigue of a tired player
+ * (`energy`, the player's energy going in) are all the real thing. The
+ * opponent always arrives fresh.
+ */
 function playMatch(
   a: Side,
   b: Side,
   format: MatchFormat,
-  withStats: boolean,
   surface: CourtSurface = 'hard',
-): { won: number; points: number; winner: 'player' | 'opponent'; stats?: MatchStatistics } {
-  const p = new PlayerProfile('p', 'P', a.stats, a.profile);
-  const o = new PlayerProfile('o', 'O', b.stats, b.profile);
-  const aFx = aggregateArchetypeEffects(a.profile);
-  const bFx = aggregateArchetypeEffects(b.profile);
-  const tracker = new ScoreTracker(format);
-  tracker.setInitialServer(Math.random() < 0.5 ? 'player' : 'opponent');
-  p.rollMatchForm();
-  o.rollMatchForm();
-  const sim = new PointSimulator();
-  const stats = withStats ? new MatchStatistics(p, o) : undefined;
-  const ms: MatchState = {
-    score: tracker.getScore(),
-    currentServer: tracker.getCurrentServer(),
+  energy = 100,
+): { won: number; points: number; winner: 'player' | 'opponent'; stats: IMatchStatistics } {
+  const player = new PlayerProfile('p', 'P', a.stats, a.profile);
+  player.energy = energy;
+  const sim = new MatchSimulator({
+    player,
+    opponent: new PlayerProfile('o', 'O', b.stats, b.profile),
     courtSurface: surface,
-    momentum: 0,
-    pressure: 'low',
-    matchLength: 0,
-    pointsPlayed: 0,
-    isKeyMoment: false,
-    fatigue: { player: 0, opponent: 0 },
+    matchFormat: format,
+  });
+  const result = silently(() => sim.simulateMatch());
+  const points = sim.exportMatchData().points;
+  return {
+    won: points.filter((pt) => pt.winner === 'player').length,
+    points: points.length,
+    winner: result.winner,
+    stats: sim.getStatistics(),
   };
-  let pts = 0;
-  let won = 0;
-  while (!tracker.isComplete() && pts < 600) {
-    const server = tracker.getCurrentServer();
-    ms.isKeyMoment = tracker.isKeyMoment();
-    const breakPointFor = tracker.getBreakPointFor();
-    const pr = sim.simulatePoint(
-      server,
-      server === 'player' ? p : o,
-      server === 'player' ? o : p,
-      ms,
-      server === 'player' ? aFx : bFx,
-      server === 'player' ? bFx : aFx,
-    );
-    const w = pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player';
-    if (w === 'player') won++;
-    tracker.addPoint(w);
-    stats?.addPointResult(pr, server, breakPointFor);
-    ms.fatigue.player = fatigue(ms.fatigue.player, pr.rallyLength, a.stats.physical.stamina);
-    ms.fatigue.opponent = fatigue(ms.fatigue.opponent, pr.rallyLength, b.stats.physical.stamina);
-    ms.score = tracker.getScore();
-    ms.currentServer = tracker.getCurrentServer();
-    ms.pointsPlayed = ++pts;
-  }
-  stats?.finalizeStatistics();
-  return { won, points: pts, winner: tracker.getWinner() ?? 'player', stats };
 }
 
 // ─── A career ────────────────────────────────────────────────
@@ -699,10 +626,8 @@ function silently<T>(fn: () => T): T {
 }
 
 /** Match currency: Mind share plus per-area scores (serving→Power, …). */
-function payMatch(wallet: Wallet, ms: MatchStatistics, won: boolean): string {
-  const perf = silently(() =>
-    MatchRewardSystem.calculateRewards(ms.getStatistics(), 1, won),
-  ).performanceBreakdown;
+function payMatch(wallet: Wallet, ms: IMatchStatistics, won: boolean): string {
+  const perf = silently(() => MatchRewardSystem.calculateRewards(ms, 1, won)).performanceBreakdown;
   const units = MATCH_UNITS * (0.5 + perf.overallScore / 100) * INCOME_SCALE;
   const areaUnits = units * (1 - MATCH_MIND_SHARE);
   const area = {
@@ -761,13 +686,12 @@ function career(
           { stats, profile },
           teamSide(team),
           BO3_FOR[team.matchFormat] ?? BO3,
-          system === 'currency',
           team.surface,
+          energy,
         );
         energy -= Math.min(50, energy);
         teamWon.set(day, r.winner === 'player');
-        const perf =
-          system === 'currency' && r.stats ? payMatch(wallet, r.stats, r.winner === 'player') : '';
+        const perf = system === 'currency' ? payMatch(wallet, r.stats, r.winner === 'player') : '';
         note(
           `  ${slotName} TEAM MATCH vs ${team.opponent.name} on ${team.surface} — ` +
             `${r.winner === 'player' ? 'WON' : 'lost'}, ${r.won}/${r.points} points. ${perf} ` +
@@ -783,7 +707,8 @@ function career(
             profile: getOpponentArchetypeProfile(opp),
           },
           BO1,
-          system === 'currency',
+          'hard',
+          energy,
         );
         energy -= 50;
         matchesPlayed++;
@@ -791,8 +716,7 @@ function career(
           matchesWon++;
           tierWins++;
         }
-        const perf =
-          system === 'currency' && r.stats ? payMatch(wallet, r.stats, r.winner === 'player') : '';
+        const perf = system === 'currency' ? payMatch(wallet, r.stats, r.winner === 'player') : '';
         note(
           `  ${slotName} practice vs ${opp.name} (+${bump}) — ` +
             `${r.winner === 'player' ? 'WON' : 'lost'}, ${r.won}/${r.points} points. ${perf} ` +
@@ -895,7 +819,7 @@ function readiness(
   let pts = 0;
   let matches = 0;
   for (let i = 0; i < N; i++) {
-    const r = playMatch({ stats: s, profile }, teamSide(team), BO3, false, team.surface);
+    const r = playMatch({ stats: s, profile }, teamSide(team), BO3, team.surface);
     won += r.won;
     pts += r.points;
     if (r.winner === 'player') matches++;

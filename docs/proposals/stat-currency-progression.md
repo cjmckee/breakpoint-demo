@@ -276,6 +276,54 @@ broken:
   there is no respec to recover from a bad pick. The sim's weakest stats need to be fixed or
   clearly priced before the screen ships.
 
+### 3.6 The real recipes
+
+§3.1–3.3 priced stats with multipliers. `allocationProbe` now has `CURVES=recipes`, which buys
+through the actual §6.1 recipes at the actual step prices (`statEconomy.ts`, shared with
+`careerSim`).
+
+The budget is in currency units, shaped like the training each strategy would do:
+
+- 70% in proportion to what its own recipes need;
+- 30% even, the general and Mind shares.
+
+Whatever a strategy cannot use goes on the weakest stat it can still afford. 860 units buys about
+the same even spread as 280 flat points. The slice change is in, and the greedy spender uses the
+re-measured value table.
+
+| budget 860, recipes | stat points bought | v Big Steve | v Olivia | v Jordan |
+| ------------------- | ------------------ | ----------- | -------- | -------- |
+| spread              | 274                | **68.9**    | **48.0** | **38.5** |
+| training            | 263                | 68.2        | 46.0     | 37.4     |
+| top5                | 168                | 61.8        | 44.9     | 38.5     |
+| top3                | 148                | 57.3        | 39.9     | 31.8     |
+| greedy              | 231                | 66.9        | 46.1     | 37.5     |
+
+- **The real recipes hold the min-max line.** Nothing beats an even spread. The five-stat build
+  matches it against Jordan and trails against the other two. The greedy spender, buying the
+  best value per unit of real price, does no better.
+- **They also tax specialisation.** Identity builds against the spread control (mean point-win
+  % across the three opponents, PART B, archetypes on):
+
+  | build               | styled | v spread (51.3) |
+  | ------------------- | ------ | --------------- |
+  | netRusher           | 49.0   | −2.3            |
+  | counter             | 45.4   | −5.9            |
+  | bigServer           | 43.9   | −7.4            |
+  | baseliner (grind)   | 40.5   | −10.8           |
+  | baseliner (+ serve) | 43.7   | −7.6            |
+
+  A build that concentrates on six stats pushes them into the ×2 and ×3 price steps while a
+  spread stays at ×1 and ×2. So it buys 17–33% fewer stat points for the same currency. Under the
+  multiplier bands (§3.3) the identity builds were within a few points of spread. Under the real
+  recipes they all trail it.
+
+  The career sim's realistic player softens this: it puts about a third of its weight on non-key stats, so it ends up much nearer a spread (§9.6). But a player who commits hard to a
+  playstyle is now paying for it. Whether that is the intended feel is open (§10).
+
+- **The baseliner is still the weakest identity**, as in §3.4, and swapping slice for serve still
+  recovers part of the gap (40.0 → 43.7).
+
 ### 3.5 Second-order effects
 
 - **OVR inflation and deflation.** OVR is display plus `matchLevel`, and opponents do not scale
@@ -470,8 +518,8 @@ The table in §6.1 was **drafted by hand**, in three steps:
    checked so that buying +1 of everything needs roughly equal amounts of each:
    11 Power, 9 Quickness, 13 Technique and 10 Mind.
 
-None of this was optimized. §3.3 tested price multipliers, not these recipes; the `recipes` cost
-model in §10 is still to do.
+None of this was optimized. §3.3 tested price multipliers; §3.6 tests these recipes. Both
+`careerSim` and `allocationProbe` pay them from one table, `src/test/analysis/statEconomy.ts`.
 
 **Value per unit.** Point-win % per +10 stat, divided by recipe length. "Before" is the table the
 bands were cut from; "after" is the re-measurement following the slice change
@@ -500,10 +548,11 @@ bands were cut from; "after" is the re-measurement following the slice change
   ±0.2, so only these stand out:
   - **Focus is underpriced** (0.80 per unit). It is also the only Mind-only recipe, which is
     where surplus Mind drains (§9.8). The candidate fix is standard: 2 Mind · 1 Quickness.
-  - **Stamina is overpriced** (0.32). It is the fatigue system's only input, and fatigue barely
-    bites in a best-of-one. Like slice was, that is a sim question first. If the sim stays as it
-    is, the candidate is a single unit (1 Power), or folding stamina's value into something that
-    pays.
+  - **Stamina is overpriced** (0.32). It works only through match fatigue, and fatigue costs
+    little. [`stamina-at-tier-1.md`](../research/stamina-at-tier-1.md) investigates. A stronger
+    fatigue penalty (×0.8 → ×0.6) roughly doubles its value, but costs tired players in every
+    match, so it is a design decision. If the sim stays as it is, the candidate is a single unit
+    (1 Power).
 - **The slice fix moved two cells the right way.** Slice went from 0.24 to 0.56 and net from 0.39
   to 0.66, both into the pack.
 
@@ -532,7 +581,7 @@ identity per system, income ×1.2, patient player (§9.8). Each cell is today / 
 - **Read this with care.** The sim's players buy by preference weight, not by price. So this
   table mostly reflects the player model. It shows that the economy can afford every shape a
   player wants, not that prices steer anyone. Whether prices steer is the min-maxer's question,
-  and that belongs to the `recipes` run of `allocationProbe` (§10).
+  answered in §3.6.
 - **Where currency and today's system differ, it is today's supply that is skewed.**
   - Placement (24.5 today) and stamina (23.8) are over-supplied today. Placement sits in three
     training support pools, and stamina is story content's most-granted stat (§1). Under
@@ -617,8 +666,8 @@ Test ids, following the `CLAUDE.md` conventions:
   - every on-court ability has a currency cost and every off-court one has none.
 - A new e2e spec, `development.spec.ts`: train, open Development, plan, undo, confirm, check the
   stat. The training assertions in `trainingMinigame.spec.ts` and `bot.ts` need updating.
-- `allocationProbe` gains a `recipes` cost model that buys through the §6.1 table with a
-  currency-typed budget.
+- `allocationProbe` has a `recipes` cost model (§3.6), and both harnesses pay from
+  `statEconomy.ts`, so a recipe change reaches every measurement at once.
 
 ---
 
@@ -914,32 +963,66 @@ against today's 45, 43, 36, 41, 42.
 
 ---
 
+### 9.9 On the game's own match engine
+
+§9.6–9.8 ran matches through a hand-copied point loop. That loop leaves out changeover and
+set-break recovery and the starting fatigue of a tired player
+([`stamina-at-tier-1.md` §5](../research/stamina-at-tier-1.md)). `careerSim` now plays every
+match through `MatchSimulator` and passes in the player's energy, so a team match after a day of
+training starts tired. The rest is the §9.8 setup (patient player, no exchange).
+
+Mean point-win % against each team-match opponent. "Today" is pooled over both runs:
+
+| day | opponent         | today | currency ×1.2 | ×1.3 |
+| --- | ---------------- | ----- | ------------- | ---- |
+| 15  | Chet Vale        | 48.1  | 49.9          | 50.8 |
+| 19  | Rich Soil        | 47.7  | 49.4          | 51.0 |
+| 23  | Martia Estrella  | 44.4  | 45.7          | 47.2 |
+| 27  | Reginald Werther | 45.8  | 46.0          | 47.4 |
+| 31  | Olivia Gulp      | 46.4  | 44.7          | 46.5 |
+
+- **Parity runs from about ×1.1 at the first team matches to ×1.3 at day 31.** That is the mild
+  front-loading of §9.3 again, about 15–20% growth across tier 1, now on the real engine. The
+  earlier "flat ×1.2" (§9.8) sat inside the old loop's error.
+- **Recommendation:** start income at ×1.1 and step it up to ×1.3 by the fifth team match. About
+  +5% per team match does it.
+- **Every check is a slight underdog fight under both systems:** 32–43% match wins for today's player, 33–50% for currency at ×1.2.
+
+---
+
 ## 10. Next avenues
 
 Updated priority order:
 
 1. ~~Re-test the baseliner with archetypes on.~~ Done (§3.4).
-2. ~~Calibrate income with a career sim.~~ Done through all five team matches (§9.8): ×1.2,
-   roughly flat, once the player stops trading currency away.
+2. ~~Calibrate income with a career sim.~~ Done through all five team matches on the real match
+   engine (§9.9): ×1.1 rising to ×1.3.
 3. ~~Decide `slice`.~~ Fixed in the sim.
 4. **Abilities as the Mind sink.** Give `careerSim` an ability purchase: price on-court abilities
    in currency per §6.4, scaled so the ~60 Mind a baseliner banks buys one or two. Then check
    that Mind earns its keep for every identity. Also extend the sim to the Riverside Open.
-5. **Band width.** Re-run §3.3 and §9.4 with recipe lengths 2 / 3 / 5, through a `recipes` cost
-   model in `allocationProbe`.
-6. **Price abilities.** Measure each on-court ability's point-win value the way `statChannels`
+5. **The specialisation tax** (§3.6). Under the real recipes every six-stat identity trails an
+   even spread by 2–11 points. Decide whether committing to a playstyle should cost that much.
+   If not, the lever is the step curve (gentler steps, or steps measured from the player's
+   average rather than from 20), not the recipes. `allocationProbe CURVES=recipes` measures it.
+6. **Stamina** ([`stamina-at-tier-1.md`](../research/stamina-at-tier-1.md)): a stronger fatigue
+   penalty, a 1-unit recipe, or an out-of-match job. Decide, then re-measure §6.5.
+7. **Focus** to a standard recipe (2 Mind · 1 Quickness), so surplus Mind stops draining into it.
+8. **Price abilities.** Measure each on-court ability's point-win value the way `statChannels`
    values a stat, and set its currency cost at the same exchange rate.
-7. **Paper-prototype the Development screen and the training result's "what this buys".**
-8. **Script the content conversion** of `statChanges` to currency, and review the diff for
-   fiction.
+9. **Paper-prototype the Development screen and the training result's "what this buys".**
+10. **Script the content conversion** of `statChanges` to currency, and review the diff for
+    fiction.
 
 ```
 npx tsx src/test/analysis/allocationProbe.ts                    # PART A, ~2 min at N=60
 N=250 BUDGETS=280 CURVES=flat,step20,banded npx tsx src/test/analysis/allocationProbe.ts
 N=250 PARTS=B BUDGETS=280 CURVES=flat,banded npx tsx src/test/analysis/allocationProbe.ts
 N=250 PARTS=B BUDGETS=280 CURVES=flat ID='\+' npx tsx src/test/analysis/allocationProbe.ts
+N=250 BUDGETS=430,860 CURVES=recipes npx tsx src/test/analysis/allocationProbe.ts   # §3.6
+N=250 PARTS=B BUDGETS=860 CURVES=recipes npx tsx src/test/analysis/allocationProbe.ts
 npx tsx src/test/analysis/statIncome.ts
-DAYS=31 CHECK=15,19,23,27,31 npx tsx src/test/analysis/careerSim.ts       # §9.8, ~8 min
+DAYS=31 CHECK=15,19,23,27,31 npx tsx src/test/analysis/careerSim.ts       # §9.9, ~10 min
 SPEND=impatient EXCHANGE=2 DAYS=31 CHECK=15,19,23,27,31 INCOME_SCALE=1.4 \
   npx tsx src/test/analysis/careerSim.ts                                     # §9.7 as run
 TRACE=baseliner INCOME_SCALE=1.2 npx tsx src/test/analysis/careerSim.ts   # one career, day by day
