@@ -38,6 +38,10 @@ exactly the kind of thing that gets rediscovered otherwise.
   several mechanisms; which ones carry load. Settles that `bonus` was the band channel in different
   units, that `slice` is conditional rather than broken, and that the band channel earns its
   separate existence on two stats rather than eight.
+- **[`research/slice-at-tier-1.md`](./research/slice-at-tier-1.md)** — why the slice stat paid
+  almost nothing at the ratings that ship. At equal rating the slice was a dominated shot, taxed by
+  three below-neutral support bands no drive touches, and its usage could not grow with the stat.
+  Records five levers that did not help, and the three-part change that roughly doubled its value.
 
 Note the **measurement baseline** headers. Figures are only valid for the config they were taken
 under, and a behaviour change invalidates every number measured before it.
@@ -52,7 +56,8 @@ belongs in git history, not here.
   instead of receiving stats directly. Measures that free allocation at a flat price is a solved
   game, that escalating cost alone does not fix it, and that per-stat price bands do. Re-tests the
   groundstroke baseliner with archetypes on: a trap build, caused by `slice` and by skipping serve and
-  return. Design direction agreed (§8); income calibration and ability pricing still open.
+  return. Design direction agreed (§8). A 40-day career sim (§9) sizes the economy. It finds that pure
+  anchor supply starves identities and that escalating prices front-load progression.
 
 `story-minigames.md` was executed and deleted; the
 minigame runtime lives in [`src/minigames/`](../src/minigames/) and the story route runs through the

@@ -10,10 +10,12 @@ balance, what it makes possible, and what it would take to build
 
 ## Summary
 
-1. **Today a player's build choices barely change how strong they are.** Spending the same budget
-   the way anchor training spreads it performs the same as `+1` to every stat in turn (41% of points
-   against Jordan either way). Training choice decides _shape_, almost never _power_. That is
-   healthy, but it is also why choice feels low-stakes.
+1. **Today's training choices already decide power, not just shape.** Spending a budget the way
+   training spreads it, with anchors chosen _evenly_, performs the same as `+1` to every stat in
+   turn (41% of points against Jordan either way). But a player who trains like an identity ends
+   up in a 20-point spread. In the career sim the net rusher wins 77% of points against the
+   tier-1 bosses by day 40 and the baseliner 57%, because the net, serve and return anchors draw
+   anticipation, tactics and speed as supports (§9).
 2. **Free allocation at a flat price is a solved game.** A player who puts the same 280 points into
    the five strongest stats wins **62%** of points against Jordan instead of 41%. Under an iid model
    that is roughly 98% of best-of-one matches instead of 5%. The rest of tier 1 collapses with it.
@@ -31,7 +33,19 @@ balance, what it makes possible, and what it would take to build
    slice for serve brings it to ~51% (§3.4).
 6. **Design (§6):** four typed currencies. Each recipe's length is its price band. Training pays
    currency in its anchor's recipe ratio, so forehand training pays what a serve costs. Matches
-   pay Mind. The shop sells items and abilities, with on-court abilities costing currency plus XP.
+   pay Mind plus currencies by what went well. The shop sells items and abilities, with on-court
+   abilities costing currency plus XP.
+7. **The 40-day career sim (§9) sizes the economy, and found two problems:**
+   - **Pure anchor supply starves identities.** Any recipe that needs a currency the identity's
+     anchors never pay becomes a hard wall: the counterpuncher can't buy speed without Power, and
+     can't buy anticipation or tactics without Mind. The fix is a 20% general share on every
+     session, a 10% Mind share, Mind-led matches and a 2:1 exchange.
+   - **Escalating prices front-load progression.** At income ×2.2 the currency player leads today's
+     player at day 10 (38% v 32%) and trails at day 40 (60% v 65%). Income has to grow over the
+     career.
+8. **Slice is fixed in the sim** ([`slice-at-tier-1.md`](../research/slice-at-tier-1.md)).
+   +20 slice is now worth 1.7–2.6× what it was at tier 1. Match texture is unchanged. It does not
+   rescue the baseliner identity on its own.
 
 ---
 
@@ -300,243 +314,93 @@ broken:
 
 ## 5. Risks and costs
 
-| risk                                                              | mitigation                                                                                                                                        |
-| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Solvable min-max (§3.1)                                           | recipe length carries the price band (§3.3); re-derive the bands whenever `statChannels` moves                                                    |
-| Trap stats, with no respec to recover from them (§3.4)            | fix or price `slice` first. A plan-then-confirm screen with undo before confirm. The bands are visible on every recipe                            |
-| Training no longer shows a stat bump (decision 2)                 | the result modal leads with "what this buys": the cheapest affordable upgrade for the anchor's stat, as a one-tap spend                           |
-| Extra step after every training: decision fatigue                 | "spend later" is the default. Buying is a separate screen, not a gate on the training loop                                                        |
-| Four currencies plus XP plus specialization points                | each one does a distinct job: currencies buy stats and on-court abilities; XP buys items and the XP share of abilities; spec points buy behaviour |
-| Hoarding: players never spend, then lose                          | unspent-currency indicator (the `activeIndicators` system); prompt on the pre-match screen                                                        |
-| Price table becomes a maintained balance artefact                 | live next to `shotThresholds.ts` and add an `economyCheck` invariant, e.g. band order matches the measured value                                  |
-| Content conversion: 127 story `statChanges`, 29 challenge rewards | mechanical: map each stat to its recipe's currencies. Script it, then hand-review the outliers                                                    |
+| risk                                                   | mitigation                                                                                     |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| Solvable min-max (§3.1)                                | recipe length carries the price band (§3.3); re-derive the bands whenever `statChannels` moves |
+| Trap stats, with no respec to recover from them (§3.4) | change, cumulative                                                                             | counter, day 40   | unspent at day 40 |
+| -----------------------------------------------------  | ---------------                                                                                | ----------------- |
+| none (matches 40% Mind)                                | not measured                                                                                   | Q 361, T 552      |
+| Mind only: 15% training share, matches 60% Mind        | 51%                                                                                            | Q 263, T 382      |
+| general share 20% (Mind share 10%) instead             | 58%                                                                                            | T 318             |
+| + 2:1 exchange                                         | **60%**                                                                                        | ~17 units in all  |
+
+With the exchange every identity's six stats come out level, within a point or two of each
+other, and wallets end near empty.
+
+### 9.2 Calibration
+
+Full design (§6.2), income ×2.2. Mean point-win % against the three bosses:
+
+| identity        | system   | day 10 | day 20 | day 30 | day 40 | total stats, day 40 |
+| --------------- | -------- | ------ | ------ | ------ | ------ | ------------------- |
+| netRusher       | today    | 36.1   | 48.7   | 64.7   | 76.9   | 658                 |
+|                 | currency | 41.5   | 53.7   | 63.4   | 71.4   | 605                 |
+| counter         | today    | 31.7   | 44.7   | 58.9   | 69.9   | 654                 |
+|                 | currency | 39.0   | 51.8   | 58.6   | 63.2   | 605                 |
+| bigServer       | today    | 32.6   | 41.5   | 52.4   | 60.5   | 654                 |
+|                 | currency | 38.5   | 48.2   | 54.6   | 57.8   | 629                 |
+| baseliner       | today    | 29.0   | 39.5   | 47.0   | 58.0   | 655                 |
+|                 | currency | 33.3   | 41.6   | 48.1   | 52.7   | 668                 |
+| baseliner+serve | today    | 29.5   | 38.2   | 47.5   | 57.4   | 653                 |
+|                 | currency | 35.5   | 45.3   | 51.6   | 56.1   | 634                 |
+| **mean**        | today    | 31.8   | 42.5   | 54.1   | 64.5   |                     |
+|                 | currency | 37.6   | 48.1   | 55.3   | 60.2   |                     |
+
+At ×2.0 the day-40 currency mean is 58.6, so each +0.1 of scale buys about +0.8 at day 40.
+
+### 9.3 Escalating prices front-load progression
+
+The currency player is ahead through day 20 and behind by day 40, at every income scale tried.
+The step curve is the reason: below 40 a stat costs ×1, so the first weeks buy fast, and from 40
+it costs ×2. Today's grants are flat, so today's curve is a straight line.
+
+One income scale cannot match both ends. Two options:
+
+- **Income that grows** with the content: opponent tier, player level, or session tier. This
+  fits the game: a tier-2 practice match should teach more than a tier-1 one. It also makes the
+  currency pace track the tier the player is in.
+- **A gentler first step,** for example ×1.5 at 40 rather than ×2. This flattens the curve but
+  gives back some of what the step curve does against min-maxing (§3.2).
+
+The first is recommended. The step curve is doing balance work, and income is the free dial.
+
+### 9.4 The identity spread survives
+
+Under a planner, the day-40 spread across identities is 19 points under both systems (52.7–71.4
+currency, 57.4–76.9 today). The earlier halving came from a naive round-robin spender. Recipe
+lengths of 2 / 3 / 4 give price ratios of 0.67 / 1 / 1.33, while the measured value spread from
+weakest to strongest stat is ~3×. So the net rusher, whose six stats include four premium ones,
+still buys the most value per unit.
+
+Widening the bands, say to 2 / 3 / 5, is the obvious dial. The other is the content: whether the
+net rusher's 77% is too strong is a sim question, the same shape as the baseliner's weakness.
+
+### 9.5 Slice and the baseliner
+
+The career sim was re-run with the slice change on
+([`slice-at-tier-1.md`](../research/slice-at-tier-1.md)), at income ×2.1. The baseliner moves from
+an interpolated 51.9 to 52.5 at day 40. That is inside noise. The baseliner's gap is skipping
+serve and return, as §3.4 found. The `baseliner+serve` row (56.1) is what fixes it, and the
+forehand anchor's Power is what pays for that serve.
 
 ---
 
-## 6. The design, with decisions applied
-
-Decisions from review: typed currencies (XP sits alongside, never alone), no direct stat grant
-from training, no stat respec (playstyle respec stays as it is), bands shown openly, no stat caps
-for now, and the shop sells items and abilities only. The rest of this section is the design
-those decisions leave.
-
-### 6.1 Currencies and recipes
-
-There are four currencies: Power, Quickness, Technique and Mind. Each +1 to a stat costs its
-recipe, multiplied by the step curve: ×1 below 40, ×2 in the 40s and 50s, ×3 in the 60s and 70s,
-×4 from 80. A recipe's length _is_ its price band: cheap 2, standard 3, premium 4. That gives
-ratios of 0.67 / 1 / 1.33, close to the measured bands. Players learn a stat's value from how
-long its recipe is, which decision 4 allows.
-
-| stat         | band     | recipe                             |
-| ------------ | -------- | ---------------------------------- |
-| serve        | premium  | 3 Power · 1 Technique              |
-| return       | premium  | 2 Quickness · 1 Technique · 1 Mind |
-| anticipation | premium  | 3 Mind · 1 Quickness               |
-| speed        | premium  | 3 Quickness · 1 Power              |
-| tactics      | premium  | 3 Mind · 1 Technique               |
-| forehand     | standard | 2 Power · 1 Technique              |
-| backhand     | standard | 2 Technique · 1 Quickness          |
-| placement    | standard | 2 Technique · 1 Mind               |
-| strength     | standard | 3 Power                            |
-| spin         | standard | 2 Technique · 1 Power              |
-| focus        | cheap    | 2 Mind                             |
-| stamina      | cheap    | 1 Power · 1 Quickness              |
-| net          | cheap    | 1 Quickness · 1 Technique          |
-| slice        | cheap    | 2 Technique (see §3.4)             |
-
-Buying +1 of everything takes 11 Power, 9 Quickness, 13 Technique and 10 Mind.
-
-### 6.2 Training: currency only, lined up with the anchor
-
-Per decision 2, training stops granting stats. A session pays currency in the **same ratio as
-its anchor's recipe**, so the stat you trained is always the natural thing to buy. Neighbouring
-stats come cheapest, because they share currencies:
-
-| anchor   | pays, in ratio                     | also feeds                   |
-| -------- | ---------------------------------- | ---------------------------- |
-| serve    | 3 Power : 1 Technique              | strength, forehand, spin     |
-| forehand | 2 Power : 1 Technique              | serve, strength, spin        |
-| backhand | 2 Technique : 1 Quickness          | slice, placement, net        |
-| return   | 2 Quickness : 1 Technique : 1 Mind | speed, anticipation, stamina |
-| net      | 1 Quickness : 1 Technique          | speed, backhand, stamina     |
-
-Session size scales with the minigame, just as supports do today. Today a session averages ~3 stat
-points, which is ~9 currency units at standard prices below 40, and §3.3 says income needs
-+10–15% over that. So the starting point is **~10 units for a two-rep session**. The career sim
-(§9) sets the real numbers.
-
-The forehand row is what fixes the baseliner (§3.4). Two Power and one Technique is most of a serve.
-
-**Mind is deliberately scarce from training.** Only the return anchor pays it, and it is the
-currency of the two strongest stats (anticipation and tactics). The rest comes from:
-
-- **Matches:** a little Mind per match, scaled by the performance score `MatchRewardSystem`
-  already computes. "You learn the game by playing it."
-- **Story events,** whose fiction is often mental.
-
-That gives matches a stat purpose they lack today, where they pay XP only.
-
-`TRAINING_STAT_UPGRADE_CHANCE` and `TRAINING_BONUS_SUPPORT_CHANCE` (Lucky items) retarget to
-"chance of +1 unit per unit" and "chance of a bonus rep".
-
-### 6.3 Other sources
-
-- Story events and challenges pay currency in place of `statChanges`. The conversion maps each
-  stat to its recipe, so `anticipation: 2` becomes roughly 6 Mind and 2 Quickness. Each one is then
-  rounded and hand-reviewed for fiction: a gym scene should pay Power, whatever the old stat was.
-- Challenges with a `statThreshold` requirement stay as written. Their rewards must be worth more
-  than buying the threshold outright, or the challenge is pointless.
-
-### 6.4 The shop: items and abilities
-
-`stat_increase` items are removed. What the shop sells:
-
-- **Consumables and equipment:** XP only, as today.
-- **On-court abilities:** currency matched to the effect, plus XP by rarity. The effect keys map
-  cleanly:
-
-  | effect                                                                     | currency  |
-  | -------------------------------------------------------------------------- | --------- |
-  | `pace`, `smash_power`                                                      | Power     |
-  | `touch`, `side_spin`, `lob_quality`, `net_game`                            | Technique |
-  | `reach`, `court_coverage`, `recovery_speed`                                | Quickness |
-  | `clutch_performance`, `mental_resilience`, `perfect_timing`, momentum keys | Mind      |
-
-  For example, Heavy Hitter (`pace`) costs Power and a common's XP. Serve Cannon (`smash_power`,
-  `pace`) costs more Power and an uncommon's XP.
-
-- **Off-court abilities:** XP only. These are the ones whose effects act outside the match
-  (`crowd_favorite`, `spotlight`, `quick_recovery`, `iron_legs`, `grinder`, `dedicated`). They do
-  not compete with stats, so they should not cost a stat currency.
-
-This sets an exchange rate. Power spent on Heavy Hitter is Power not spent on strength, so an
-ability's currency cost has to match what its effect is worth in a match. That needs the same
-kind of measurement as the stat bands (§9).
-
----
-
-## 7. What would need to be built
-
-### Types (`src/types/`)
-
-- `AttributeCurrency = 'power' | 'quickness' | 'technique' | 'mind'`
-- `CurrencyAmounts = Partial<Record<AttributeCurrency, number>>`
-- `Player.wallet: Record<AttributeCurrency, number>`
-- `AbilityItem` gains `currencyCost: CurrencyAmounts` next to its XP `cost`.
-- No purchase ledger, since there is no stat respec.
-
-### Data and config
-
-- `src/data/statRecipes.ts`: the §6.1 table.
-- Each anchor's payout ratio sits next to `CORE_ANCHORS`.
-- Ability currency costs, derived from effect keys (§6.4) rather than hand-written per ability.
-- The step curve lives in config, and so does an unused `STAT_CAP_BY_TIER` (decision 5: a lever,
-  not shipped).
-
-### Core logic (`src/game/StatDevelopment.ts`, pure)
-
-- `priceOf(stat, currentValue)` returns `CurrencyAmounts`.
-- `canAfford(wallet, price)`.
-- `purchase(player, stat)` returns `OperationResult<Player>`.
-- `planCost(player, plan)`, for the confirm-at-once screen.
-
-### Sources rewritten to pay currency
-
-| source                      | change                                                                                                                                            |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `AnchorTrainingSystem`      | no `statBoosts`. `TrainingResult` carries `currencyGained` in the anchor's ratio, scaled by reps. Support pools and `resolveSupports` are deleted |
-| `StoryEventOutcome.effects` | `statChanges` becomes `currency` (127 sites; scripted conversion)                                                                                 |
-| challenge rewards           | `modifiers.statBoosts` becomes `currency` (29 sites)                                                                                              |
-| `ShopSystem`                | `createStatIncreaseItem` and `calculateStatIncreaseCost` are deleted. Ability items gain a currency cost                                          |
-| match rewards               | new: Mind per match, scaled by performance, through `MatchRewardSystem`                                                                           |
-| `PlayerManager`             | `applyStatBoosts` remains only for purchases. `addAbility` / `upgradeAbility` stop applying ability `statBoosts`, which are empty anyway          |
-
-### Store (`gameStore.ts`)
-
-- `purchaseStats(plan)`, which validates the whole plan and applies it at once.
-- Wallet updates go into `applyTrainingResult`, story outcome application, `claimChallenge`,
-  match rewards and the shop.
-- `checkChallengeCompletion()` runs after a purchase, since a purchase can satisfy a `statThreshold`.
-- Migration: backwards compatibility is not required. A new version adds `wallet` at zero, and the
-  existing stats stay as they are. `migrationCheck` needs the entry.
-
-### Screens
-
-| screen                                                              | change                                                                                                                                                                                                                                                                         |
-| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Development** (new)                                               | Stats by category, current value, recipe chips showing the band, `+1` buttons that build a pending plan, undo, and a confirm that warns the purchase is permanent. Opens from the main menu, the wallet chip and the training result. Reuses `StatTile` / `PlayerStatsDisplay` |
-| `StatusBar`                                                         | wallet chip, with an indicator when currency is unspent                                                                                                                                                                                                                        |
-| `TrainingResultModal`                                               | currency earned, and what it buys now: "+1 Serve ready" as a one-tap spend                                                                                                                                                                                                     |
-| `StoryEventResultModal`, `ChallengeRewardChips`, `ui/StatBoostList` | render currency                                                                                                                                                                                                                                                                |
-| `Shop`                                                              | no stat tab. Ability cards show the currency + XP price                                                                                                                                                                                                                        |
-| `AnchorTraining`                                                    | the anchor card shows the currencies it pays and the stats they feed                                                                                                                                                                                                           |
-| `MatchSummaryModal`                                                 | Mind earned                                                                                                                                                                                                                                                                    |
-| tutorial (`tutorialSteps.ts`)                                       | a new step for spending, and the training step reworded                                                                                                                                                                                                                        |
-| `Encyclopedia` / `glossary.ts`                                      | entries for the currencies and price bands                                                                                                                                                                                                                                     |
-
-Test ids, following the `CLAUDE.md` conventions:
-
-- `dev-stat-${stat}` (with `data-value` and `data-affordable`)
-- `dev-buy-${stat}`
-- `dev-undo`
-- `dev-confirm`
-- `wallet-chip`
-
-### Tests and harnesses
-
-- `economyCheck`:
-  - prices are monotonic in value;
-  - recipe length matches the band;
-  - a plan never exceeds the wallet;
-  - each anchor's payout ratio matches its stat's recipe;
-  - every on-court ability has a currency cost and every off-court one has none.
-- A new e2e spec, `development.spec.ts`: train, open Development, plan, undo, confirm, check the
-  stat. The training assertions in `trainingMinigame.spec.ts` and `bot.ts` need updating.
-- `allocationProbe` gains a `recipes` cost model that buys through the §6.1 table with a
-  currency-typed budget.
-
----
-
-## 8. Decisions
-
-Settled in review:
-
-| #   | question                       | decision                                                                                    |
-| --- | ------------------------------ | ------------------------------------------------------------------------------------------- |
-| 1   | single or typed currency       | **typed.** XP can combine with currencies, but never stands alone as a stat currency        |
-| 2   | direct core `+1` from training | **no.** Training pays currency lined up with the anchor's upgrade and its neighbours (§6.2) |
-| 3   | respec                         | **none for stats.** Playstyle respec stays as it is                                         |
-| 4   | show the value bands           | **yes**, through recipe length                                                              |
-| 5   | stat caps per tier             | **not now.** Held as a balance lever                                                        |
-| 6   | shop                           | **items and abilities only.** Abilities cost currency + XP by what they do (§6.4)           |
-
-Still open:
-
-- **What to do about `slice` at tier 1** (§3.4): a sim fix, or the cheapest recipe and an
-  in-game note that it pays off later.
-- **Whether matches pay only Mind**, or a small share of every currency, with Mind weighted
-  heaviest.
-
----
-
-## 9. Next avenues
+## 10. Next avenues
 
 Updated priority order:
 
-1. ~~Re-test the baseliner with archetypes on.~~ Done (§3.4). The gap is real, archetypes do not
-   close it, and it is mostly slice plus skipping serve and return.
-2. **Calibrate income with a career sim.** Run 40 days of play under the §6 design, and match the
-   day-39 power level in `characterSim`. This sets units per session, Mind per match, and checks
-   that Mind's scarcity does not starve the counterpuncher identity.
-3. **Add a `recipes` cost model to `allocationProbe`.** Re-run §3.3 against the real recipe table
-   with a typed budget, to confirm that recipe-length banding holds the min-max line as well as
-   the multiplier did.
-4. **Price abilities.** Measure each on-court ability's point-win value the way `statChannels`
+1. ~~Re-test the baseliner with archetypes on.~~ Done (§3.4).
+2. ~~Calibrate income with a career sim.~~ First pass done (§9). Still to do: income growth by
+   tier (§9.3).
+3. ~~Decide `slice`.~~ Fixed in the sim.
+4. **Income growth by tier.** Add it to `careerSim`, and extend the sim past day 40 into tier 2,
+   once tier-2 content exists.
+5. **Band width.** Re-run §3.3 and §9.4 with recipe lengths 2 / 3 / 5, through a `recipes` cost
+   model in `allocationProbe`.
+6. **Price abilities.** Measure each on-court ability's point-win value the way `statChannels`
    values a stat, and set its currency cost at the same exchange rate.
-5. **Decide `slice`.**
-6. **Paper-prototype the Development screen and the training result's "what this buys".**
-7. **Script the content conversion** of `statChanges` to currency, and review the diff for
+7. **Paper-prototype the Development screen and the training result's "what this buys".**
+8. **Script the content conversion** of `statChanges` to currency, and review the diff for
    fiction.
 
 ```
@@ -545,7 +409,10 @@ N=250 BUDGETS=280 CURVES=flat,step20,banded npx tsx src/test/analysis/allocation
 N=250 PARTS=B BUDGETS=280 CURVES=flat,banded npx tsx src/test/analysis/allocationProbe.ts
 N=250 PARTS=B BUDGETS=280 CURVES=flat ID='\+' npx tsx src/test/analysis/allocationProbe.ts
 npx tsx src/test/analysis/statIncome.ts
+RUNS=10 N=120 ALL_CHECKS=1 INCOME_SCALE=2.2 MATCH_MIND_SHARE=0.6 TRAIN_MIND_SHARE=0.1 \
+  TRAIN_GENERAL_SHARE=0.2 EXCHANGE=2 npx tsx src/test/analysis/careerSim.ts   # ~10 min
 ```
 
-**Measurement baseline:** taken on `a680f19`. A change to the simulation invalidates the
-point-win figures and the price bands derived from them.
+**Measurement baseline:** §3 was taken on `a680f19`, before the slice change. §9 was taken
+with the slice change off, apart from §9.5. The slice change moves slice and return values, so
+the §3 figures that involve slice (the baseliner rows) are pre-change.
