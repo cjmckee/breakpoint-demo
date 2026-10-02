@@ -42,6 +42,8 @@
  *      TRAIN_GENERAL_SHARE=0 (share of every session split evenly over all four)
  *      EXCHANGE=0 (r units of a spare currency buy 1 of a short one; 0 = off)
  *      ALL_CHECKS=1 measures strength at every checkpoint, not just the last
+ *      TRACE=<identity> prints one currency career day by day: every slot, match
+ *      payout, purchase, exchange, and what the planner is saving for
  */
 
 import type { MatchFormat, MatchState, PlayerStats, StatName } from '../../types';
@@ -429,6 +431,13 @@ function exchangeFor(w: Wallet, price: Amounts): boolean {
       short -= take;
     }
   }
+  const gave = CURRENCIES.filter((c) => trial[c] < w[c]).map(
+    (c) => `${(w[c] - trial[c]).toFixed(1)}${SHORT[c]}`,
+  );
+  const got = CURRENCIES.filter((c) => trial[c] > w[c]).map(
+    (c) => `${(trial[c] - w[c]).toFixed(1)}${SHORT[c]}`,
+  );
+  note(`      exchange ${gave.join(' ')} → ${got.join(' ')}`);
   Object.assign(w, trial);
   return true;
 }
@@ -469,7 +478,13 @@ function spend(s: PlayerStats, w: Wallet, buys: StatName[]): void {
     const reserved = new Set(Object.keys(RECIPES[open[0]]) as Currency[]);
     const free = new Set(CURRENCIES.filter((c) => !reserved.has(c)));
     const other = open.slice(1).find((k) => usesOnly(k, free) && buy(s, w, k));
-    if (!other) break;
+    if (!other) {
+      note(
+        `      saving for ${open[0]} ${get(s, open[0])}→${get(s, open[0]) + 1}: ` +
+          `costs ${fmtAmounts(priceOf(open[0], get(s, open[0])))}`,
+      );
+      break;
+    }
   }
 
   const identityCurrencies = new Set(buys.flatMap((k) => Object.keys(RECIPES[k]) as Currency[]));
@@ -482,6 +497,22 @@ function spend(s: PlayerStats, w: Wallet, buys: StatName[]): void {
     if (!options.some((k) => buy(s, w, k))) return;
   }
 }
+
+// ─── Trace ───────────────────────────────────────────────────
+
+/** TRACE=<identity> prints one currency career's every slot and purchase. */
+const TRACE = process.env.TRACE;
+let traceLog: string[] | null = null;
+const note = (line: string): void => {
+  traceLog?.push(line);
+};
+const SHORT: Record<Currency, string> = { power: 'P', quickness: 'Q', technique: 'T', mind: 'M' };
+const fmtAmounts = (a: Amounts): string =>
+  CURRENCIES.filter((c) => (a[c] ?? 0) > 0.05)
+    .map((c) => `${(a[c] ?? 0).toFixed(1).replace(/\.0$/, '')}${SHORT[c]}`)
+    .join(' ');
+const diffWallet = (after: Wallet, before: Wallet): Amounts =>
+  Object.fromEntries(CURRENCIES.map((c) => [c, after[c] - before[c]])) as Amounts;
 
 function silently<T>(fn: () => T): T {
   const log = console.log;
@@ -512,7 +543,10 @@ function career(id: Identity, system: System): Map<number, Snapshot> {
 
   for (let day = 1; day <= DAYS; day++) {
     const matchDay = day >= 5 && (day - 5) % MATCH_EVERY === 0;
+    note(`Day ${day}  (energy ${energy})`);
     for (let slot = 0; slot < 3; slot++) {
+      const slotName = ['morning  ', 'afternoon', 'evening  '][slot];
+      const walletBefore = { ...wallet };
       if (matchDay && slot === 1 && energy >= 50) {
         const opp = roster[matchesPlayed % roster.length];
         const r = playMatch(
@@ -546,6 +580,13 @@ function career(id: Identity, system: System): Map<number, Snapshot> {
           const areaTotal = Object.values(area).reduce((a, b) => a + b, 0) || 1;
           for (const c of CURRENCIES) wallet[c] += (areaUnits * area[c]) / areaTotal;
           wallet.mind += units * MATCH_MIND_SHARE;
+          note(
+            `  ${slotName} MATCH vs ${opp.name} (+${Math.min(tierWins * 2, 20) - (r.winner === 'player' ? 2 : 0)}) — ` +
+              `${r.winner === 'player' ? 'WON' : 'lost'}, ${r.won}/${r.points} points. ` +
+              `perf ${perf.overallScore.toFixed(0)} (serve ${perf.servingScore.toFixed(0)}, return ${perf.returningScore.toFixed(0)}, ` +
+              `rally ${perf.rallyScore.toFixed(0)}, net ${perf.netPlayScore.toFixed(0)}, mental ${perf.mentalScore.toFixed(0)}) ` +
+              `→ +${fmtAmounts(diffWallet(wallet, walletBefore))}`,
+          );
         }
       } else if (energy >= 20) {
         const core = id.anchors[anchorIdx++ % id.anchors.length];
@@ -562,12 +603,18 @@ function career(id: Identity, system: System): Map<number, Snapshot> {
           earn(wallet, inRatio(RECIPES[core], units - general - units * TRAIN_MIND_SHARE));
           wallet.mind += units * TRAIN_MIND_SHARE;
           for (const c of CURRENCIES) wallet[c] += general / CURRENCIES.length;
+          note(
+            `  ${slotName} train ${core} — ${n}/3 reps → +${fmtAmounts(diffWallet(wallet, walletBefore))}`,
+          );
         }
       } else {
         energy = Math.min(100, energy + 20);
+        note(`  ${slotName} rest (energy ${energy})`);
       }
     }
     energy = Math.min(100, energy + 50);
+    note(`  night     sleep (energy ${energy})`);
+    const beforeOther = { ...wallet };
 
     // Story, challenges and (today only) the shop, as a steady trickle.
     const otherToday = system === 'today' ? OTHER_PER_DAY : OTHER_PER_DAY * (1 - SHOP_SHARE);
@@ -581,9 +628,24 @@ function career(id: Identity, system: System): Map<number, Snapshot> {
     }
 
     if (system === 'currency') {
+      const otherGain = diffWallet(wallet, beforeOther);
+      if (unitsOf(otherGain) > 0.05) note(`  story/challenges → +${fmtAmounts(otherGain)}`);
       const before = { ...wallet };
+      const statsBefore = clone(stats);
+      if (traceLog) note('  evening spend:');
       spend(stats, wallet, id.buys);
       for (const c of CURRENCIES) spent[c] += before[c] - wallet[c];
+      const bought = ALL_STATS.filter((k) => get(stats, k) !== get(statsBefore, k)).map(
+        (k) => `${k} ${get(statsBefore, k)}→${get(stats, k)}`,
+      );
+      if (bought.length)
+        note(
+          `      bought ${bought.join(', ')}  (spent ${fmtAmounts(diffWallet(before, wallet))})`,
+        );
+      note(
+        `  wallet ${fmtAmounts(wallet) || 'empty'}  |  ` +
+          id.buys.map((k) => `${k} ${get(stats, k)}`).join(', '),
+      );
     }
 
     if (CHECK.includes(day)) {
@@ -656,7 +718,29 @@ function strength(s: PlayerStats, profile: ArchetypeProfile): number[] {
   });
 }
 
+function traceCareer(name: string): void {
+  const id = IDENTITIES.find((i) => i.name === name);
+  if (!id)
+    throw new Error(
+      `TRACE: no identity '${name}' — try ${IDENTITIES.map((i) => i.name).join(', ')}`,
+    );
+  traceLog = [];
+  const snaps = career(id, 'currency');
+  console.log(traceLog.join('\n'));
+  traceLog = null;
+  const last = snaps.get(CHECK[CHECK.length - 1]);
+  if (last) {
+    const s = last.stats;
+    console.log(
+      `\nFinal (day ${CHECK[CHECK.length - 1]}): total ${ALL_STATS.reduce((a, k) => a + get(s, k), 0)}, ` +
+        `OVR ${calculateOverallRating(s)}, matches ${last.matchesWon}-${last.matchesPlayed - last.matchesWon}`,
+    );
+    console.log(ALL_STATS.map((k) => `${k} ${get(s, k)}`).join(', '));
+  }
+}
+
 function main(): void {
+  if (TRACE) return traceCareer(TRACE);
   console.log(
     `careerSim  RUNS=${RUNS} N=${N} DAYS=${DAYS} MATCH_EVERY=${MATCH_EVERY} REPS_P=${REPS_P} ` +
       `OTHER_PER_DAY=${OTHER_PER_DAY} SHOP_SHARE=${SHOP_SHARE} INCOME_SCALE=${INCOME_SCALE} ` +
