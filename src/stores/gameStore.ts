@@ -2805,16 +2805,16 @@ export const useGameStore = create<GameState>()(
         }
 
         // Set broad archetype (Coach Gonzalez event): the broad's default
-        // specialties apply automatically; grant starting specialization points.
+        // specialties apply automatically. Points from levels gained before the
+        // tree opened are replaced, not added to, so every player starts with the
+        // same hand.
         if (outcome.effects.setArchetypeBroad) {
           updatedPlayer = {
             ...updatedPlayer,
             archetypeProfile: {
               ...updatedPlayer.archetypeProfile,
               broad: outcome.effects.setArchetypeBroad,
-              specializationPoints:
-                updatedPlayer.archetypeProfile.specializationPoints +
-                STARTING_SPECIALIZATION_POINTS,
+              specializationPoints: STARTING_SPECIALIZATION_POINTS,
             },
           };
         }

@@ -415,8 +415,12 @@ export const PATHS_BY_PHASE: Record<GamePhase, PhasePathDef[]> = ALL_PHASES.redu
   {} as Record<GamePhase, PhasePathDef[]>,
 );
 
-/** Starting specialization points granted when the broad archetype is chosen. */
-export const STARTING_SPECIALIZATION_POINTS = 2;
+/**
+ * Specialization points a player holds when the broad archetype is chosen and the tree
+ * opens. The coach event sets the balance to this rather than adding to it, so the
+ * opening hand is fixed no matter how many levels the player gained beforehand.
+ */
+export const STARTING_SPECIALIZATION_POINTS = 3;
 
 /**
  * Display labels for the player's broad archetype — the one-time identity

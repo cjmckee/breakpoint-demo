@@ -1,6 +1,14 @@
 import { test, expect } from '@playwright/test';
-import { startNewGame, dismissWalkthrough, setMatchSpeed, readGame } from './helpers';
+import {
+  startNewGame,
+  dismissWalkthrough,
+  setMatchSpeed,
+  readGame,
+  loadSave,
+  triggerStoryEvent,
+} from './helpers';
 import { runBot } from './bot';
+import { STARTING_SPECIALIZATION_POINTS } from '../src/data/archetypeTree';
 
 /**
  * Walks a brand-new player through the early-game unlocks in one sitting.
@@ -89,4 +97,40 @@ test('a fresh player reaches each early unlock by playing', async ({ page }) => 
   expect(after.player!.archetypeProfile.specializationPoints).toBe(pointsBefore - 1);
   // The point has to have bought something, not just been deducted.
   expect(Object.keys(after.player!.archetypeProfile.phases).length).toBeGreaterThan(0);
+});
+
+/**
+ * The tree opens with a fixed hand. Level-ups grant points from day 1, long before
+ * the coach event makes the tree reachable, so a balance that was added to would
+ * open at 3 + however many levels the player happened to gain first.
+ */
+test('the coach event opens the tree with the starting points, whatever was banked', async ({
+  page,
+}) => {
+  await loadSave(page, 'save-day7-1');
+
+  // Arrange a player who levelled up a few times before meeting the coach.
+  await page.evaluate(() => {
+    const game = window.__test__!.game;
+    const player = game.getState().player!;
+    game.setState({
+      player: {
+        ...player,
+        archetypeProfile: { ...player.archetypeProfile, broad: null, specializationPoints: 4 },
+      },
+    });
+  });
+
+  await triggerStoryEvent(page, 'coach_archetype_selection');
+  const option = page.getByTestId('story-option-choose_baseliner');
+  const advance = page.getByTestId('story-advance');
+  await expect(advance.or(option).first()).toBeVisible();
+  while (await advance.isVisible()) await advance.click();
+  await option.click();
+  await page.getByTestId('story-confirm').click();
+  await page.getByTestId('story-result-dismiss').click();
+
+  const profile = (await readGame(page)).player!.archetypeProfile;
+  expect(profile.broad).toBe('baseliner');
+  expect(profile.specializationPoints).toBe(STARTING_SPECIALIZATION_POINTS);
 });

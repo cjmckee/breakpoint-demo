@@ -121,9 +121,9 @@ export function createSkewedPlayer(
  * construction before any measurement starts.
  *
  * @param rng     0-1 source, so callers can seed a reproducible population
- * @param points  specialization points to spend. A player gets
- *                STARTING_SPECIALIZATION_POINTS at the Coach Gonzalez event and
- *                one per level after, so ~6 is a mid-game build.
+ * @param points  specialization points to spend. A player holds
+ *                STARTING_SPECIALIZATION_POINTS after the Coach Gonzalez event and
+ *                gains one per level after, so ~6 is a mid-game build.
  * @param maxTier highest specialty tier to allow. gameStore blocks upgrades
  *                entirely below player tier 2, so pass 1 to model the shipped
  *                tier-1 ladder, where every specialty is capped at tier I.
