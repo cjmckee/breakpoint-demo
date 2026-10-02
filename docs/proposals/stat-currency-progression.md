@@ -457,6 +457,89 @@ kind of measurement as the stat bands (§9).
 
 ---
 
+### 6.5 How the recipes were built, and how balanced they are
+
+The table in §6.1 was **drafted by hand**, in three steps:
+
+1. **Band.** Each stat's band (cheap, standard or premium) comes from its tier-1 value in
+   [`stat-channels.md` §5](../research/stat-channels.md), the U(25, 50) table. The five most
+   valuable stats are premium, the four least valuable are cheap, and the rest are standard.
+   This mirrors the price multipliers that removed the dominant strategy in §3.3.
+2. **Length.** Cheap = 2 units, standard = 3, premium = 4.
+3. **Currencies.** Each recipe's currencies are chosen by theme (serve is mostly Power), then
+   checked so that buying +1 of everything needs roughly equal amounts of each:
+   11 Power, 9 Quickness, 13 Technique and 10 Mind.
+
+None of this was optimized. §3.3 tested price multipliers, not these recipes; the `recipes` cost
+model in §10 is still to do.
+
+**Value per unit.** Point-win % per +10 stat, divided by recipe length. "Before" is the table the
+bands were cut from; "after" is the re-measurement following the slice change
+([`slice-at-tier-1.md` §5](../research/slice-at-tier-1.md)), ±0.39 per value.
+
+| stat         | recipe                    | units | value before | per unit | value after | per unit |
+| ------------ | ------------------------- | ----- | ------------ | -------- | ----------- | -------- |
+| focus        | 2 Mind                    | 2     | 1.06         | 0.53     | 1.60        | **0.80** |
+| anticipation | 3 Mind · 1 Quick          | 4     | 3.27         | 0.82     | 3.12        | 0.78     |
+| serve        | 3 Power · 1 Tech          | 4     | 2.81         | 0.70     | 2.62        | 0.66     |
+| speed        | 3 Quick · 1 Power         | 4     | 2.72         | 0.68     | 2.62        | 0.66     |
+| net          | 1 Quick · 1 Tech          | 2     | 0.77         | 0.39     | 1.31        | 0.66     |
+| return       | 2 Quick · 1 Tech · 1 Mind | 4     | 2.96         | 0.74     | 2.52        | 0.63     |
+| spin         | 2 Tech · 1 Power          | 3     | 1.36         | 0.45     | 1.79        | 0.60     |
+| tactics      | 3 Mind · 1 Tech           | 4     | 2.32         | 0.58     | 2.32        | 0.58     |
+| slice        | 2 Tech                    | 2     | 0.48         | 0.24     | 1.13        | 0.56     |
+| strength     | 3 Power                   | 3     | 1.60         | 0.53     | 1.58        | 0.53     |
+| placement    | 2 Tech · 1 Mind           | 3     | 1.77         | 0.59     | 1.55        | 0.52     |
+| forehand     | 2 Power · 1 Tech          | 3     | 1.48         | 0.49     | 1.54        | 0.51     |
+| backhand     | 2 Tech · 1 Quick          | 3     | 1.90         | 0.63     | 1.33        | 0.44     |
+| stamina      | 1 Power · 1 Quick         | 2     | 0.90         | 0.45     | 0.64        | **0.32** |
+
+- **Recipes roughly halve the value spread.** Per unit of currency, the stats vary by 21%
+  (coefficient of variation). If every stat cost the same they would vary by 38%.
+- **Two clear outliers.** At the noise level, a cheap stat's per-unit figure is good to about
+  ±0.2, so only these stand out:
+  - **Focus is underpriced** (0.80 per unit). It is also the only Mind-only recipe, which is
+    where surplus Mind drains (§9.8). The candidate fix is standard: 2 Mind · 1 Quickness.
+  - **Stamina is overpriced** (0.32). It is the fatigue system's only input, and fatigue barely
+    bites in a best-of-one. Like slice was, that is a sim question first. If the sim stays as it
+    is, the candidate is a single unit (1 Power), or folding stamina's value into something that
+    pays.
+- **The slice fix moved two cells the right way.** Slice went from 0.24 to 0.56 and net from 0.39
+  to 0.66, both into the pack.
+
+**Which stats get bought.** Stat gain over the starting 21 by day 31, mean build, 30 careers per
+identity per system, income ×1.2, patient player (§9.8). Each cell is today / currency.
+
+| stat         | big server | counter | net rusher | baseliner | mean today | mean currency |
+| ------------ | ---------- | ------- | ---------- | --------- | ---------- | ------------- |
+| serve        | 24 / 24    | 9 / 9   | 23 / 24    | 9 / 9     | 16.2       | 16.5          |
+| forehand     | 24 / 24    | 9 / 8   | 9 / 9      | 24 / 23   | 16.5       | 16.0          |
+| backhand     | 10 / 9     | 25 / 23 | 10 / 9     | 25 / 25   | 17.5       | 16.5          |
+| return       | 9 / 9      | 24 / 23 | 11 / 10    | 9 / 10    | 13.2       | 13.0          |
+| net          | 10 / 9     | 10 / 9  | 24 / 25    | 10 / 10   | 13.5       | 13.2          |
+| slice        | 18 / 10    | 19 / 17 | 12 / 11    | 25 / 27   | 18.5       | 16.2          |
+| spin         | 26 / 24    | 13 / 9  | 19 / 10    | 20 / 23   | 19.5       | 16.5          |
+| placement    | 23 / 25    | 24 / 15 | 27 / 24    | 24 / 12   | 24.5       | 19.0          |
+| speed        | 12 / 12    | 20 / 23 | 20 / 25    | 12 / 9    | 16.0       | 17.2          |
+| stamina      | 25 / 14    | 24 / 23 | 17 / 11    | 29 / 24   | 23.8       | 18.0          |
+| strength     | 25 / 25    | 11 / 10 | 18 / 12    | 18 / 24   | 18.0       | 17.8          |
+| focus        | 20 / 32    | 20 / 16 | 20 / 15    | 13 / 18   | 18.2       | 20.2          |
+| anticipation | 16 / 16    | 27 / 24 | 24 / 24    | 23 / 17   | 22.5       | 20.2          |
+| tactics      | 15 / 9     | 22 / 26 | 22 / 24    | 14 / 14   | 18.2       | 18.2          |
+
+- **Every stat gets bought.** The lowest average is 13, for return and net, and those are each
+  one identity's core stat that the others only top up.
+- **Read this with care.** The sim's players buy by preference weight, not by price. So this
+  table mostly reflects the player model. It shows that the economy can afford every shape a
+  player wants, not that prices steer anyone. Whether prices steer is the min-maxer's question,
+  and that belongs to the `recipes` run of `allocationProbe` (§10).
+- **Where currency and today's system differ, it is today's supply that is skewed.**
+  - Placement (24.5 today) and stamina (23.8) are over-supplied today. Placement sits in three
+    training support pools, and stamina is story content's most-granted stat (§1). Under
+    currency they drop to 19 and 18.
+  - Focus rises (20.2), because it is the Mind drain. The big server, with focus as a key stat,
+    reaches +32.
+
 ## 7. What would need to be built
 
 ### Types (`src/types/`)

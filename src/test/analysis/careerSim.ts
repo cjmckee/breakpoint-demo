@@ -55,6 +55,7 @@
  *      TRAIN_BASE=2  TRAIN_PER_REP=3  TRAIN_GENERAL_SHARE=0.2  TRAIN_MIND_SHARE=0.1
  *      MATCH_UNITS=8  MATCH_MIND_SHARE=0.6  EXCHANGE=0
  *      SPEND=patient|affordable|impatient  (see buyTowardShape)  OVERBUILD=8
+ *      STATS=1 prints every stat of the mean build instead of the lowest/top three
  *            |level|rr  (the rigid planners of the first pass)
  *      §9.6–9.7 were run with SPEND=impatient EXCHANGE=2
  *      TRACE=<identity> prints one currency career day by day: every slot, match
@@ -987,7 +988,9 @@ function main(): void {
             Number.isNaN(mw) ? '' : mw.toFixed(0),
             Number.isNaN(inCareer) ? '' : `${inCareer.toFixed(0)}%`,
             system === 'currency' ? w : '',
-            `${fmt(sorted.slice(0, 3))} / ${fmt(sorted.slice(-3).reverse())}`,
+            process.env.STATS === '1'
+              ? ALL_STATS.map((k) => `${k} ${get(s, k)}`).join(', ')
+              : `${fmt(sorted.slice(0, 3))} / ${fmt(sorted.slice(-3).reverse())}`,
           ].join('\t'),
         );
       }
