@@ -30,6 +30,7 @@ import { PlayerProfile } from '../core/PlayerProfile';
 import { LUCKY_SPROUT } from '../data/items';
 import { EffectKey } from '../types/game';
 import { DEFAULT_MATCH_SPEED, MATCH_SPEED_DELAYS } from '../config/matchRewards';
+import { contentCurrency } from '../game/CurrencyIncome';
 
 let failures = 0;
 
@@ -362,6 +363,31 @@ function main(): void {
   check(
     're-running the step keeps an existing wallet',
     walletRerun.wallet.power === 5 && walletRerun.wallet.mind === 2,
+  );
+
+  console.log('\n  the 9 → 10 change itself:');
+  // A held challenge carries its own copy of the reward, saved in the old shape.
+  const heldChallenge = {
+    id: 'held',
+    name: 'Held',
+    description: '',
+    requirements: [],
+    reward: { modifiers: { statBoosts: { focus: 5, serve: 2 } }, experience: 10 },
+    status: 'active',
+    progress: { requirementProgress: [], isComplete: false, completionPercentage: 0 },
+    assignedAt: '2026-01-01T00:00:00.000Z',
+  };
+  const challengeSave = { ...migrated, activeChallenges: [heldChallenge] };
+  const [converted] = runMigrations(challengeSave, 9).state.activeChallenges;
+  const expected = contentCurrency({ focus: 5, serve: 2 });
+  check(
+    "a held challenge's stat boosts become the same currency the templates got",
+    JSON.stringify(converted.reward.currency) === JSON.stringify(expected),
+    JSON.stringify(converted.reward),
+  );
+  check(
+    'the rest of the reward is kept and the stat boosts are gone',
+    converted.reward.experience === 10 && !('modifiers' in converted.reward),
   );
 
   console.log('\n── a save below the breaking floor is discarded ──');

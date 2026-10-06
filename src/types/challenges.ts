@@ -4,7 +4,7 @@
  */
 
 import type { StatName } from './index';
-import type { Modifiers } from './game';
+import type { CurrencyAmounts } from './game';
 import type { Item } from './items';
 
 // ============================================================================
@@ -176,7 +176,7 @@ export interface ChallengeProgress {
  * Rewards for completing a challenge
  */
 export interface ChallengeReward {
-  modifiers?: Modifiers; // Stat boosts and additional effects
+  currency?: CurrencyAmounts; // Training currency
   abilities?: string[]; // Ability names to grant
   items?: Item[]; // Items to grant
   relationshipChanges?: Record<string, number>; // Character ID -> change amount

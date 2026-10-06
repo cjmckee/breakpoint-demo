@@ -1,9 +1,10 @@
 /**
- * Stat Income — how many permanent stat points the authored content hands out,
- * and to which stats.
+ * Content Income — how much training currency the authored content hands out,
+ * and in which currencies.
  *
  * Tallies story event outcomes (every option, including minigame fail
- * branches), challenge template rewards, and ability base stat boosts. Story
+ * branches) and challenge template rewards in currency, and ability base stat
+ * boosts in stat points. Story
  * totals are across all branches, so they bound what one playthrough can
  * collect; "sum of best outcome per event" is the tighter bound.
  * Also lists every statThreshold challenge requirement, since those are the
@@ -15,11 +16,10 @@
 import { StoryEventRepository } from '../../data/storyEvents';
 import * as CT from '../../data/challengeTemplates';
 import { ABILITY_DEFINITIONS } from '../../data/abilities';
-import type { StatBoosts } from '../../types/game';
 import type { ChallengeTemplate } from '../../types/challenges';
 
 type Tot = Record<string, { pos: number; neg: number; n: number }>;
-function add(t: Tot, b: StatBoosts | undefined) {
+function add(t: Tot, b: Partial<Record<string, number>> | undefined): number {
   if (!b) return 0;
   let s = 0;
   for (const [k, v] of Object.entries(b)) {
@@ -48,8 +48,8 @@ for (const e of StoryEventRepository.getAllEvents()) {
   let best = 0;
   for (const o of outs) {
     outcomes++;
-    const s = add(story, o.effects.statChanges);
-    if (o.effects.statChanges && Object.keys(o.effects.statChanges).length) {
+    const s = add(story, o.effects.currency);
+    if (o.effects.currency && Object.keys(o.effects.currency).length) {
       withStats++;
       sizes.push(s);
     }
@@ -89,11 +89,11 @@ const isTemplate = (v: unknown): v is ChallengeTemplate =>
   typeof v === 'object' && v !== null && 'reward' in v && 'requirements' in v;
 for (const [name, t] of Object.entries(CT)) {
   if (!isTemplate(t)) continue;
-  chTot += add(ch, t.reward.modifiers?.statBoosts);
+  chTot += add(ch, t.reward.currency);
   for (const r of t.requirements)
     if (r.type === 'statThreshold') thresholds.push(`${name}: ${r.statName}>=${r.targetValue}`);
 }
-console.log('challenge stat total', chTot);
+console.log('challenge currency total', chTot);
 console.table(ch);
 console.log(thresholds);
 const ab: Tot = {};

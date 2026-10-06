@@ -76,7 +76,6 @@ export const welcomeEvents: StoryEvent[] = [
         `You feel a mixture of excitement and nerves as you head to your room. It's only been a few weeks since you received that unexpected acceptance letter. If you want to make it in the tennis world, this is just the start. Also, who even was that guy?`,
       ],
       effects: {
-        statChanges: {},
         moodChange: 20, // Excitement about the new beginning
         energyChange: 0,
         relationshipChanges: {
@@ -149,7 +148,6 @@ export const welcomeEvents: StoryEvent[] = [
         "It's nice to finally meet some of the other rookies. You wonder how they found out about the Academy.",
       ],
       effects: {
-        statChanges: {},
         moodChange: 10,
         energyChange: 0,
         relationshipChanges: { jen: 2, keith: 2 },
@@ -212,7 +210,6 @@ export const welcomeEvents: StoryEvent[] = [
         "You feel more connected to your fellow players, but you can't help but feel a little anxious about the road ahead. What will it take to be promoted to the Academy's upper echelons?",
       ],
       effects: {
-        statChanges: {},
         relationshipChanges: { jen: 2, keith: 2 },
       },
     },
@@ -295,7 +292,6 @@ export const welcomeEvents: StoryEvent[] = [
         "'s little sister...?",
       ],
       effects: {
-        statChanges: {},
         moodChange: 2,
         relationshipChanges: { jen: 2, keith: 2 },
       },
@@ -373,7 +369,7 @@ export const welcomeEvents: StoryEvent[] = [
         " decides he wants to challenge you to see what you're made of.",
       ],
       effects: {
-        statChanges: { serve: 1, return: 1 },
+        currency: { power: 4, quickness: 2, technique: 2, mind: 1 },
         moodChange: 5,
         relationshipChanges: { jen: 2, keith: 2 },
         revealEncyclopediaSections: ['surface-guide', 'match-help'],
@@ -664,7 +660,6 @@ export const welcomeEvents: StoryEvent[] = [
         "Right now you only have access to Bronze training sessions. You'll have access to a bit more variety as more content is added to the demo over time.",
       ],
       effects: {
-        statChanges: {},
         moodChange: 2,
         relationshipChanges: { jen: 2, keith: 2 },
       },
@@ -717,7 +712,6 @@ export const welcomeEvents: StoryEvent[] = [
         'Building relationships and hanging out with people around the academy will be key to your growth here.',
       ],
       effects: {
-        statChanges: {},
         relationshipChanges: { keith: 5 },
         hangoutUnlocks: ['keith', 'jen'],
       },
@@ -778,7 +772,6 @@ export const welcomeEvents: StoryEvent[] = [
         'You eagerly await your first chance to check out the shop. How do you even spend experience anyway?',
       ],
       effects: {
-        statChanges: {},
         energyChange: 0,
         relationshipChanges: { keith: 1 },
       },
@@ -819,7 +812,6 @@ export const welcomeEvents: StoryEvent[] = [
         'You commit to doing your best for the Riverside Open. The first real step in your tennis journey begins there.',
       ],
       effects: {
-        statChanges: {},
         moodChange: 5,
         energyChange: 0,
         relationshipChanges: { jen: 5 },

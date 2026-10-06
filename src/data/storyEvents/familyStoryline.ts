@@ -32,7 +32,7 @@ export const familyEvents: StoryEvent[] = [
         'Seeing your family in the stands fills you with warmth and motivation. It seems like mom figured out the phone camera and it even looks like dad knew the score! Everyone is making progress.',
       ],
       effects: {
-        statChanges: { placement: 1, slice: 1, serve: 1, forehand: 1 },
+        currency: { power: 6, technique: 7, mind: 1 },
         moodChange: 35,
         energyChange: -5,
         relationshipChanges: { family: 25 },
@@ -89,7 +89,7 @@ export const familyEvents: StoryEvent[] = [
             "You feel a sudden inspiration. You know there's no turning back now. You feel the pressure to keep pushing in your tennis career. Purple clay does sound pretty cool, though.",
           ],
           effects: {
-            statChanges: { focus: 1, strength: 3, stamina: 2, speed: 2 },
+            currency: { power: 16, quickness: 10, mind: 2 },
             moodChange: 15,
             energyChange: -15,
             relationshipChanges: { family: 20 },
@@ -112,7 +112,7 @@ export const familyEvents: StoryEvent[] = [
             "You look for sponsors to help with your training costs and save the burden on your family. The options are getting shadier and shadier as you keep looking. I hope you won't be forced to make a deal you'll regret.",
           ],
           effects: {
-            statChanges: { focus: 1, anticipation: 2, slice: 1 },
+            currency: { quickness: 2, technique: 2, mind: 10 },
             moodChange: 10,
             energyChange: -10,
             relationshipChanges: { family: 15 },
@@ -129,7 +129,7 @@ export const familyEvents: StoryEvent[] = [
             'You can be pretty persuasive, and purple clay sounds like a dream. You offer to try and sell this thing as hard as you can to recover some losses.',
           ],
           effects: {
-            statChanges: { focus: -1, stamina: 2, spin: 2, speed: 1 },
+            currency: { power: 6, quickness: 6, technique: 5, mind: -2 },
             moodChange: 10,
             energyChange: 0,
             relationshipChanges: { family: 30 },
@@ -169,7 +169,7 @@ export const familyEvents: StoryEvent[] = [
         "You stand up to demonstrate your new serve toss. Everyone watches expectantly. The roll goes up, you snap your wrist, and you absolutely crater a water glass across the table. There's a brief silence. Then, applause. Cheering. Yelling from the waiter. Your serve technique is unquestionably better.",
       ],
       effects: {
-        statChanges: { serve: 2, strength: 1, spin: 1 },
+        currency: { power: 12, technique: 5 },
         moodChange: 20,
         energyChange: -5,
         relationshipChanges: { family: 15 },
@@ -208,7 +208,7 @@ export const familyEvents: StoryEvent[] = [
             'You engage in the most elaborate display of slow-motion errors ever seen on a residential driveway. You lose 10-2 and your little brother runs victory laps around the car. Your patience and defensive footwork are somehow improved from all the deliberate maneuvering.',
           ],
           effects: {
-            statChanges: { tactics: 2, stamina: 2, speed: 1 },
+            currency: { power: 4, quickness: 6, technique: 2, mind: 7 },
             moodChange: 20,
             energyChange: -10,
             relationshipChanges: { family: 20 },
@@ -225,7 +225,7 @@ export const familyEvents: StoryEvent[] = [
             "You decide that if they want a challenge, they'll get one. You win 10-0. Your brother stares at you for a long moment, then breaks into tears. This is oddly motivating for both of you. Your competitive edge feels sharpened. Your little brother may be picking another sport.",
           ],
           effects: {
-            statChanges: { forehand: 2, serve: 2, tactics: 2 },
+            currency: { power: 12, technique: 7, mind: 7 },
             moodChange: 20,
             energyChange: -15,
             relationshipChanges: { family: 5 },
@@ -242,7 +242,7 @@ export const familyEvents: StoryEvent[] = [
             'You spend two hours breaking down grip, footwork, and swing plane. Your brother is actually a quick learner. At some point you realize that explaining techniques out loud is helping to clarify them in your own head too. Teaching is, somehow, training.',
           ],
           effects: {
-            statChanges: { placement: 2, spin: 2, anticipation: 1 },
+            currency: { power: 2, quickness: 1, technique: 10, mind: 6 },
             moodChange: 25,
             energyChange: -15,
             relationshipChanges: { family: 25 },
@@ -291,7 +291,7 @@ export const familyEvents: StoryEvent[] = [
         'The box contains: two dozen homemade cookies, a sports drink variety pack, socks with little tennis racquets on them, and a framed photo of you at age seven in a massive tennis visor. Grandma\'s letter encourages you to "keep shuttlecocking." You feel loved.',
       ],
       effects: {
-        statChanges: { stamina: 2, focus: 1 },
+        currency: { power: 2, quickness: 2, mind: 2 },
         moodChange: 40,
         energyChange: 10,
         relationshipChanges: { family: 20 },

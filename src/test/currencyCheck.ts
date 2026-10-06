@@ -15,6 +15,7 @@ import type { Player } from '../types/game';
 import { CURRENCIES, STAT_RECIPES } from '../config/economy';
 import { PlayerManager } from '../game/PlayerManager';
 import {
+  contentCurrency,
   matchPayout,
   matchPayoutLines,
   roundAmounts,
@@ -43,6 +44,13 @@ function check(label: string, condition: boolean, detail?: string): void {
     console.log(`  FAIL  ${label}${detail ? ` — ${detail}` : ''}`);
   }
 }
+
+const emptyWalletFor = (): Player['wallet'] => ({
+  power: 0,
+  quickness: 0,
+  technique: 0,
+  mind: 0,
+});
 
 function playerWith(
   wallet: Player['wallet'],
@@ -217,6 +225,25 @@ function main(): void {
     JSON.stringify(match),
   );
 
+  console.log('\n── content ──');
+  const grant = contentCurrency({ focus: 5, serve: 2 });
+  check(
+    'a story grant pays each point through its recipe at 1.2',
+    grant.mind === 12 && grant.power === 7 && grant.technique === 2,
+    JSON.stringify(grant),
+  );
+  const penalty = contentCurrency({ focus: -3 });
+  check('a penalty becomes a loss', penalty.mind === -7, JSON.stringify(penalty));
+  check(
+    'a loss bigger than the balance clamps at zero',
+    applyCurrency({ power: 0, quickness: 0, technique: 0, mind: 4 }, penalty).mind === 0,
+  );
+  check(
+    'gains and penalties net per currency',
+    contentCurrency({ focus: 2, tactics: -1 }).technique === -1,
+    JSON.stringify(contentCurrency({ focus: 2, tactics: -1 })),
+  );
+
   console.log('\n── match pay, line by line ──');
   let mismatches = 0;
   for (let i = 0; i < 200; i++) {
@@ -275,6 +302,14 @@ function main(): void {
     'a match with no performance pays only the base',
     nothing.length === 1 && nothing[0].label === 'Won match',
   );
+
+  console.log('\n── direct stat changes ──');
+  const lowered = PlayerManager.applyStatBoosts(playerWith(emptyWalletFor()), { focus: -50 });
+  check('a stat loss bigger than the stat stops at 0', getStat(lowered.stats, 'focus') === 0);
+  const raised = PlayerManager.applyStatBoosts(playerWith(emptyWalletFor(), { focus: 98 }), {
+    focus: 5,
+  });
+  check('a stat gain stops at 100', getStat(raised.stats, 'focus') === 100);
 
   console.log(
     failures === 0

@@ -41,6 +41,8 @@ import { ItemManager } from '../game/ItemManager';
 import { ALL_ITEMS } from '../data/items';
 import { DEFAULT_MATCH_SPEED, type MatchSpeed } from '../config/matchRewards';
 import { emptyWallet } from '../game/StatDevelopment';
+import { contentCurrency } from '../game/CurrencyIncome';
+import type { StatName } from '../types';
 
 export interface AudioSettings {
   musicVolume: number;
@@ -74,7 +76,8 @@ export interface PersistedStoreState {
 // 7: held items gained a per-copy `instanceId`, so duplicates can be told apart.
 // 8: match speed became a persisted setting.
 // 9: the player gained a training-currency wallet.
-export const CURRENT_STORE_VERSION = 9;
+// 10: challenge rewards pay currency instead of stat boosts.
+export const CURRENT_STORE_VERSION = 10;
 
 /** Saves below this version are wiped instead of migrated. See the header. */
 export const RESET_BEFORE_VERSION = 5;
@@ -193,11 +196,39 @@ function migrate8to9(state: PersistedStoreState): PersistedStoreState {
   return { ...state, player: { ...player, wallet: emptyWallet() } };
 }
 
+/** A challenge reward as saved before 10: stat boosts under `modifiers`. */
+interface StatBoostReward {
+  modifiers?: { statBoosts?: Partial<Record<StatName, number>> };
+}
+
+const hasStatBoostReward = (reward: object): reward is StatBoostReward => 'modifiers' in reward;
+
+/**
+ * 9 → 10: a challenge a save already holds carries its reward, so convert its
+ * stat boosts the same way the templates were converted (contentCurrency).
+ */
+function migrate9to10(state: PersistedStoreState): PersistedStoreState {
+  return {
+    ...state,
+    activeChallenges: state.activeChallenges.map((challenge) => {
+      const reward = challenge.reward;
+      if (!hasStatBoostReward(reward)) return challenge;
+      const { modifiers, ...rest } = reward;
+      const boosts = modifiers?.statBoosts ?? {};
+      return {
+        ...challenge,
+        reward: Object.keys(boosts).length ? { ...rest, currency: contentCurrency(boosts) } : rest,
+      };
+    }),
+  };
+}
+
 const MIGRATIONS: Readonly<Record<number, MigrationFn | typeof NO_CHANGE>> = {
   6: migrate5to6,
   7: migrate6to7,
   8: migrate7to8,
   9: migrate8to9,
+  10: migrate9to10,
 };
 
 // ----------------------------------------------------------------------------

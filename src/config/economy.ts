@@ -88,7 +88,7 @@ export const MATCH_PAYOUT = {
 
 /**
  * Story and challenge stat grants convert to currency at this rate per stat
- * point through the stat's recipe (contentConversion.ts).
+ * point through the stat's recipe (CurrencyIncome.contentCurrency).
  */
 export const CONTENT_SCALE = INCOME_SCALE;
 

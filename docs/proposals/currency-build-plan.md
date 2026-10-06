@@ -71,7 +71,7 @@ plan)` returning `OperationResult<Player>`, `applyCurrency(wallet, delta)` with 
 - Apply the content conversion: story `statChanges` and challenge `statBoosts` become `currency`,
   penalties as losses clamped at zero. The dry run
   ([`content-conversion-dry-run.md`](./content-conversion-dry-run.md)) is the review copy; the
-  script writes the change.
+  change is applied with `contentCurrency`, and a save migration converts challenges a save holds.
 - Types: `StoryEventOutcome.effects.currency`, challenge `reward.currency`.
 - `StoryEventResultModal`, `ChallengeRewardChips`, `ChallengeRewardModal`, `StatBoostList` render
   currency.

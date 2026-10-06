@@ -40,7 +40,7 @@ export const rivalEvents: StoryEvent[] = [
         ' already left anyway.',
       ],
       effects: {
-        statChanges: { focus: 1, tactics: 2, net: 2 },
+        currency: { quickness: 2, technique: 5, mind: 10 },
         moodChange: -10,
         energyChange: 0,
         relationshipChanges: { jordan_rival: -20 },
@@ -95,7 +95,7 @@ export const rivalEvents: StoryEvent[] = [
         'The most hurtful part of that exchange is that no one told you there was italian in the Academy cafeteria. You love italian. Mama mia.',
       ],
       effects: {
-        statChanges: { stamina: 2, slice: 2, tactics: 2 },
+        currency: { power: 2, quickness: 2, technique: 7, mind: 7 },
         moodChange: -5,
         energyChange: 0,
         relationshipChanges: { jordan_rival: 5 },
@@ -139,7 +139,7 @@ export const rivalEvents: StoryEvent[] = [
             ' tells them not to swing at volleys. Small victories.',
           ],
           effects: {
-            statChanges: { tactics: 2, return: 1, strength: 1 },
+            currency: { power: 4, quickness: 2, technique: 4, mind: 8 },
             moodChange: 15,
             energyChange: -15,
             relationshipChanges: { jordan_rival: -15 },
@@ -157,7 +157,7 @@ export const rivalEvents: StoryEvent[] = [
             'You end up needing to play a lot stronger defense to support Jordan, but it turns into a fun challenge. Exhausting, but fun.',
           ],
           effects: {
-            statChanges: { tactics: 2, return: 2, anticipation: 2 },
+            currency: { quickness: 7, technique: 5, mind: 17 },
             moodChange: 10,
             energyChange: -20,
             relationshipChanges: { jordan_rival: 5 },
@@ -181,7 +181,7 @@ export const rivalEvents: StoryEvent[] = [
             'Towards the end of the drill, you get a slowly bouncing ball at the baseline and decide to take a very healthy swing. It "accidentally" catches them square in the butt and they jump about six feet straight in the air. That one is going to leave a bruise.',
           ],
           effects: {
-            statChanges: { tactics: 3, speed: 1 },
+            currency: { power: 1, quickness: 4, technique: 4, mind: 11 },
             moodChange: 20,
             energyChange: -15,
             relationshipChanges: { jordan_rival: -20 },
@@ -225,7 +225,7 @@ export const rivalEvents: StoryEvent[] = [
             ' looks at you with contempt. You continue: "I\'ve seen him do worse to even tournament champions." That seems to soften Jordan up a little.',
           ],
           effects: {
-            statChanges: { focus: 2, tactics: 2, stamina: 1 },
+            currency: { power: 1, quickness: 1, technique: 2, mind: 12 },
             moodChange: 20,
             energyChange: 0,
             relationshipChanges: { jordan_rival: 20 },
@@ -244,7 +244,7 @@ export const rivalEvents: StoryEvent[] = [
             ' is still staring at their racquet when you pass. The understanding is clear, and no need to rub it in. Your focus returns to your own game.',
           ],
           effects: {
-            statChanges: { focus: 2, anticipation: 1 },
+            currency: { quickness: 1, mind: 8 },
             moodChange: 10,
             energyChange: 0,
             relationshipChanges: { jordan_rival: 0 },
@@ -263,7 +263,7 @@ export const rivalEvents: StoryEvent[] = [
             '. "At least he was nice enough to give you a free lesson." They look up. You walk away before they can respond. Your competitive fire is still alive.',
           ],
           effects: {
-            statChanges: { tactics: 2, serve: 1 },
+            currency: { power: 4, technique: 4, mind: 7 },
             moodChange: 10,
             energyChange: 0,
             relationshipChanges: { jordan_rival: -25 },
