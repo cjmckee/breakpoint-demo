@@ -66,14 +66,19 @@ export const TRAINING_PAYOUT = {
 };
 
 /**
- * A match pays units × (0.5 + overall/100) × INCOME_SCALE, by the performance
- * breakdown's overall score: mindShare as Mind, the rest by the per-area scores
- * (serving → Power, returning → Quickness, rally → Technique, net → Quickness
- * and Technique, mental → Mind).
+ * A match pays a base by result, the same however it went, plus a performance
+ * pool of pool × overall/100 split by the per-area scores (serving → Power,
+ * returning → Quickness, rally → Technique, net → Quickness and Technique,
+ * mental → Mind). The base means every match pays some of every currency; the
+ * pool means how you played still decides most of the difference. Amounts are
+ * literal units — INCOME_SCALE does not apply.
  */
 export const MATCH_PAYOUT = {
-  units: 16,
-  mindShare: 0.6,
+  base: {
+    lost: { power: 2, quickness: 2, technique: 2, mind: 5 },
+    won: { power: 3, quickness: 3, technique: 3, mind: 6 },
+  },
+  pool: 20,
 };
 
 /**

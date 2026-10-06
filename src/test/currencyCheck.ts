@@ -177,13 +177,27 @@ function main(): void {
     mentalScore: 20,
     overallScore: 50,
   };
-  const match = matchPayout(perf);
+  const lostFlat = matchPayout({ ...perf, overallScore: 0 }, false);
   check(
-    'a match pays 16 × (0.5 + overall/100) × 1.2 units',
-    unitsOf(match) === Math.round(16 * 1.0 * 1.2),
+    'a loss with no performance still pays 2 of each currency and 5 Mind',
+    lostFlat.power === 2 &&
+      lostFlat.quickness === 2 &&
+      lostFlat.technique === 2 &&
+      lostFlat.mind === 5,
+    JSON.stringify(lostFlat),
+  );
+  const wonFlat = matchPayout({ ...perf, overallScore: 0 }, true);
+  check(
+    'a win raises the base to 3 of each and 6 Mind',
+    wonFlat.power === 3 && wonFlat.quickness === 3 && wonFlat.technique === 3 && wonFlat.mind === 6,
+    JSON.stringify(wonFlat),
+  );
+  const match = matchPayout(perf, true);
+  check(
+    'performance adds a pool of 20 × overall/100 on top of the base',
+    unitsOf(match) === 15 + Math.round(20 * 0.5),
     JSON.stringify(match),
   );
-  check('a match pays mostly Mind', (match.mind ?? 0) >= unitsOf(match) * 0.55);
   check(
     'a serving-led match pays more Power than Quickness',
     (match.power ?? 0) > (match.quickness ?? 0),
@@ -202,8 +216,9 @@ function main(): void {
       mentalScore: r(),
       overallScore: r(),
     };
-    const total = matchPayout(pf);
-    const lines = matchPayoutLines(pf);
+    const won = i % 2 === 0;
+    const total = matchPayout(pf, won);
+    const lines = matchPayoutLines(pf, won);
     for (const c of CURRENCIES) {
       const summed = lines.reduce((s, l) => s + (l.amounts[c] ?? 0), 0);
       if (summed !== (total[c] ?? 0)) mismatches++;
@@ -214,30 +229,39 @@ function main(): void {
     mismatches === 0,
     `${mismatches} mismatches`,
   );
-  const flat = matchPayoutLines({
-    servingScore: 50,
-    returningScore: 0,
-    rallyScore: 0,
-    netPlayScore: 0,
-    mentalScore: 0,
-    overallScore: 50,
-  });
-  check(
-    'the flat Mind share is its own line, and a scoreless area has none',
-    flat[0].label === 'For playing' &&
-      (flat[0].amounts.mind ?? 0) > 0 &&
-      !flat.some((l) => l.label === 'Returning'),
-    JSON.stringify(flat),
+  const serveOnly = matchPayoutLines(
+    {
+      servingScore: 50,
+      returningScore: 0,
+      rallyScore: 0,
+      netPlayScore: 0,
+      mentalScore: 0,
+      overallScore: 50,
+    },
+    false,
   );
-  const empty = matchPayoutLines({
-    servingScore: 0,
-    returningScore: 0,
-    rallyScore: 0,
-    netPlayScore: 0,
-    mentalScore: 0,
-    overallScore: 0,
-  });
-  check('a match with no scored areas pays it all for playing', empty.length === 1);
+  check(
+    'the base is its own line, named for the result, and a scoreless area has none',
+    serveOnly[0].label === 'Lost match' &&
+      serveOnly[0].amounts.mind === 5 &&
+      !serveOnly.some((l) => l.label === 'Returning'),
+    JSON.stringify(serveOnly),
+  );
+  const nothing = matchPayoutLines(
+    {
+      servingScore: 0,
+      returningScore: 0,
+      rallyScore: 0,
+      netPlayScore: 0,
+      mentalScore: 0,
+      overallScore: 0,
+    },
+    true,
+  );
+  check(
+    'a match with no performance pays only the base',
+    nothing.length === 1 && nothing[0].label === 'Won match',
+  );
 
   console.log(
     failures === 0
