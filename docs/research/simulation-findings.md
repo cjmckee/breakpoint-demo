@@ -380,6 +380,72 @@ compound.
 isn't built for it, so the net rusher's lead rests on its stats. (2) Re-tune story opponents
 for the boost (their tiers, or byTier for tier 2). (3) Re-check the career spread.
 
+### Round 4: abilities to budget, abilities in the economy, loose ends
+
+Decisions: rarity budgets confirmed (common ~+1, uncommon +1.5–2, rare ~+2.5 point-win at level 1 on
+the build each suits); rhythm on; balance between identities accepted for now (net play is strong
+in tennis too).
+
+**Rhythm on (`cad6547`).** `MOMENTUM.rhythm.swing` 4.
+
+**Ability retune (`5dd874c`).** Measured on the current engine with `abilityProbe` (N=1000) and
+`mentalAbilityProbe` (N=600), rhythm off in memory so seeds stay paired. Best-build point-win at
+level 1, before → after:
+
+| ability           | rarity   | before | after | change                                          |
+| ----------------- | -------- | ------ | ----- | ----------------------------------------------- |
+| Heavy Hitter      | common   | +3.0   | +1.3  | pace 7 → 2.5                                    |
+| Baseliner         | common   | +3.2   | +0.9  | rally momentum 6 → 2.4                          |
+| Netcrasher        | common   | +3.6   | +1.05 | net game 5 → 1.1, touch 2 → 0.4                 |
+| Soft Hands        | common   | +3.5   | +1.0  | touch 7 → 1.6                                   |
+| Overhead Smash    | common   | +1.1   | +1.0  | unchanged                                       |
+| Spin Master       | common   | +0.5   | +1.1  | side spin 7 → 9, slices and drop shots only     |
+| Rangy Return      | common   | +0.3   | +1.0  | reach 7 → 5.5, reach now adds quality           |
+| Slider            | common   | 0      | +0.65 | coverage rebuilt, reach 7 added                 |
+| Serve Cannon      | uncommon | +2.2   | +1.6  | real serve effect: serve speed 1.5, smash 4     |
+| Speed Demon       | uncommon | 0      | +1.7  | coverage and recovery rebuilt, reach 8, rally 2 |
+| Clutch            | uncommon | +1.8   | +1.8  | unchanged                                       |
+| Pressure Cooker   | rare     | +1.3   | +2.4  | timing 7 → 14, resilience 3 → 6                 |
+| All-Court Maestro | rare     | +0.2   | +2.7  | coverage 12, reach 8, rally momentum 4          |
+| Mental Fortitude  | rare     | +2.7   | +2.9  | unchanged                                       |
+| Iron Will         | rare     | +1.7   | +2.9  | focus duration 2 → 4, fatigue floor 0.8 → 0.5   |
+
+Engine changes behind it: **serves never received ability effects** (both serve calls left the
+argument out); court coverage is a chance per point to hold position when an opponent's shot
+pushes you out of it, recovery speed a chance to recover in one ball, reach also adds quality on
+stretched balls (`MOVEMENT_ABILITIES`); levels follow `ABILITY_LEVEL_MULTIPLIER` (×1, ×1.6, ×2,
+×2.3, ×2.5). Level 3 now measures 1.6–2.7× level 1 (Heavy Hitter used to go +4.9 → +11.4).
+
+**Abilities in the career economy (`e4da89f`).** `careerSim` buys abilities (`abilityEconomy.ts`):
+two offers a day (50% common, 35% uncommon, 15% rare), a fixed price per rarity in the effect's
+currency (15 / 28 / 40 units) plus the shop's XP (70 / 140 / 250), levels escalating as the shop
+does; the player buys when point-win per unit beats a typical stat buy (0.05). 30 careers, day 31:
+
+| identity   | ability levels | most owned                                   | unspent Mind, off → on |
+| ---------- | -------------- | -------------------------------------------- | ---------------------- |
+| big server | 2.2            | Clutch, Overhead Smash, Mental Fortitude     | 58 → 25                |
+| counter    | 2.3            | Baseliner, Clutch, Rangy Return              | 27 → 14                |
+| net rusher | 1.8            | Rangy Return, Clutch, Soft Hands, Netcrasher | 15 → 12                |
+| baseliner  | 3.5            | Clutch, Spin Master, Mental Fortitude        | 132 → 66               |
+
+Abilities trade evenly with stats (readiness within noise of stats-only; the identity match-win
+spread against Olivia 36 → 29), which is what pricing them at the stat exchange rate should do.
+XP does not bind: careers earn ~850 by day 31 and spend 200–430 on abilities, so XP is free to
+become the match → ability pipeline if Mind is rebalanced.
+
+**Loose ends.**
+
+- Income needs no recalibration: day-31 readiness after all of this (33 / 36 / 54 / 25% match-win
+  for big server / counter / net rusher / baseliner) is close to before the engine changes
+  (23 / 32 / 50 / 31%).
+- `net_apologist`'s specialty boost goes to forehand and backhand drives at half strength; its
+  synergy with those stats −1.5 → +1.8.
+- The shop no longer offers legendaries (one was still buyable, and they were 10% of offers);
+  offers are 50% common, 35% uncommon, 15% rare.
+- Content conversion dry run: `docs/proposals/content-conversion-dry-run.md`, 158 sites, 835 stat
+  points → 3,034 currency units; 13 story penalties need a decision.
+- Development screen: a clickable paper prototype with the real recipes and price steps.
+
 ---
 
 ## Reproducing
