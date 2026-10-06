@@ -45,6 +45,7 @@ export class PlayerManager {
       stats: baseStats,
       abilities: [],
       wallet: emptyWallet(),
+      walletSeen: emptyWallet(),
 
       // Phase-based archetype is chosen later (Coach Gonzalez event)
       archetypeProfile: createEmptyArchetypeProfile(),

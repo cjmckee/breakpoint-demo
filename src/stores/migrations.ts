@@ -79,7 +79,8 @@ export interface PersistedStoreState {
 // 9: the player gained a training-currency wallet.
 // 10: challenge rewards pay currency instead of stat boosts.
 // 11: the shop stopped selling stats, and abilities cost currency as well as XP.
-export const CURRENT_STORE_VERSION = 11;
+// 12: the player remembers the wallet as last seen, for the Develop badge.
+export const CURRENT_STORE_VERSION = 12;
 
 /** Saves below this version are wiped instead of migrated. See the header. */
 export const RESET_BEFORE_VERSION = 5;
@@ -236,6 +237,13 @@ function migrate10to11(state: PersistedStoreState): PersistedStoreState {
   return { ...state, shopItems: generateDailyShopItems(owned) };
 }
 
+/** 11 → 12: start the last-seen wallet at the current one, so nothing reads as new. */
+function migrate11to12(state: PersistedStoreState): PersistedStoreState {
+  const player = state.player;
+  if (!player || player.walletSeen) return state;
+  return { ...state, player: { ...player, walletSeen: { ...player.wallet } } };
+}
+
 const MIGRATIONS: Readonly<Record<number, MigrationFn | typeof NO_CHANGE>> = {
   6: migrate5to6,
   7: migrate6to7,
@@ -243,6 +251,7 @@ const MIGRATIONS: Readonly<Record<number, MigrationFn | typeof NO_CHANGE>> = {
   9: migrate8to9,
   10: migrate9to10,
   11: migrate10to11,
+  12: migrate11to12,
 };
 
 // ----------------------------------------------------------------------------

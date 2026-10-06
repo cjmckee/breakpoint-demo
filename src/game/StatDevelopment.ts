@@ -161,7 +161,26 @@ export function purchase(player: Player, plan: readonly StatName[]): OperationRe
   };
 }
 
-/** Whether the player can afford at least one +1 right now (the menu's badge). */
+/** Currency earned since Development was last opened, per currency (gains only). */
+export function newCurrency(player: Player): CurrencyAmounts {
+  const out: CurrencyAmounts = {};
+  for (const c of CURRENCIES) {
+    const gained = Math.floor(player.wallet[c]) - Math.floor(player.walletSeen[c]);
+    if (gained > 0) out[c] = gained;
+  }
+  return out;
+}
+
+/**
+ * The Develop badge: new currency has come in since the last visit and it buys
+ * something. Affordability alone is nearly always true (a net point costs 2
+ * units), so a badge on that would never go out.
+ */
+export function hasNewCurrency(player: Player): boolean {
+  return unitsOf(newCurrency(player)) > 0 && canBuyAny(player);
+}
+
+/** Whether the player can afford at least one +1 right now. */
 export function canBuyAny(player: Player): boolean {
   return STAT_NAMES.some((stat) => {
     const value = getStat(player.stats, stat);

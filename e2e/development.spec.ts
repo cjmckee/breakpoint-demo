@@ -104,3 +104,22 @@ test('D opens Development from the menu and closes it again', async ({ page }) =
   await page.keyboard.press('d');
   await expect(page.getByTestId('action-development')).toBeVisible();
 });
+
+test('the Develop badge lights on new currency and goes out on a visit', async ({ page }) => {
+  await loadSave(page, SAVE, 7);
+  const badge = page.getByTestId('status-wallet');
+  await expect(badge).toHaveAttribute('data-new-currency', 'false');
+
+  // A session's pay is new currency; serve pays enough Power to buy something.
+  await page.getByTestId('action-training').click();
+  await page.getByTestId('training-anchor-serve').click();
+  await page.getByTestId('training-quick-sim').click();
+  await page.getByTestId('training-result-dismiss').click();
+  await expect(badge).toHaveAttribute('data-new-currency', 'true');
+  await expect(page.getByTestId('action-development')).toContainText('to spend');
+
+  // Looking at it is enough; nothing has to be bought.
+  await page.getByTestId('action-development').click();
+  await page.getByRole('button', { name: '← Back' }).click();
+  await expect(page.getByTestId('action-development')).not.toContainText('to spend');
+});

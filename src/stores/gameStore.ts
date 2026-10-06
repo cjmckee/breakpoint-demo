@@ -1322,9 +1322,15 @@ export const useGameStore = create<GameState>()(
           case 'archetype':
             set({ gamePhase: { type: 'archetype' } });
             break;
-          case 'development':
-            set({ gamePhase: { type: 'development' } });
+          case 'development': {
+            // Opening the screen is seeing the new currency, so the badge goes out.
+            const { player } = get();
+            set({
+              gamePhase: { type: 'development' },
+              ...(player ? { player: { ...player, walletSeen: player.wallet } } : {}),
+            });
             break;
+          }
           case 'challenges':
             set({ gamePhase: { type: 'challenges' } });
             break;
@@ -2347,7 +2353,7 @@ export const useGameStore = create<GameState>()(
         }
         const result = purchase(player, plan);
         if (result.success && result.data) {
-          set({ player: result.data });
+          set({ player: { ...result.data, walletSeen: result.data.wallet } });
           // A purchase can satisfy a statThreshold challenge.
           get().checkChallengeCompletion();
         }

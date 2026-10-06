@@ -21,6 +21,8 @@ import {
   STAT_NAMES,
   applyCurrency,
   getStat,
+  hasNewCurrency,
+  newCurrency,
   planCost,
   priceBand,
   priceOf,
@@ -187,6 +189,22 @@ function main(): void {
     (match.power ?? 0) > (match.quickness ?? 0),
     JSON.stringify(match),
   );
+
+  console.log('\n── the Develop badge ──');
+  const seenAll = playerWith({ power: 10, quickness: 10, technique: 10, mind: 10 });
+  const quiet = { ...seenAll, walletSeen: { ...seenAll.wallet } };
+  check('no badge when nothing is new, however much is affordable', !hasNewCurrency(quiet));
+  const earned = { ...quiet, wallet: { ...quiet.wallet, power: 15 } };
+  check('new currency that buys something lights it', hasNewCurrency(earned));
+  check('it counts only what is new', newCurrency(earned).power === 5 && !newCurrency(earned).mind);
+  const spent = { ...quiet, wallet: { ...quiet.wallet, power: 2 } };
+  check('spending is not new currency', !hasNewCurrency(spent));
+  const broke = {
+    ...quiet,
+    wallet: { power: 1, quickness: 0, technique: 0, mind: 0 },
+    walletSeen: { power: 0, quickness: 0, technique: 0, mind: 0 },
+  };
+  check('new currency that buys nothing stays quiet', !hasNewCurrency(broke));
 
   console.log('\n── what a payout buys ──');
   const serveBuys = statsFedBy(trainingPayout('serve', 3));
