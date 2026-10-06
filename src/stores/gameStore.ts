@@ -2824,11 +2824,15 @@ export const useGameStore = create<GameState>()(
           minigameScore,
         );
 
-        // Apply currency (losses clamp each currency at zero)
+        // Apply currency (losses clamp each currency at zero), then any direct
+        // stat changes a rare outcome carries (clamped to 0-100).
         let updatedPlayer: Player = {
           ...player,
           wallet: applyCurrency(player.wallet, outcome.effects.currency ?? {}),
         };
+        if (outcome.effects.statChanges) {
+          updatedPlayer = PlayerManager.applyStatBoosts(updatedPlayer, outcome.effects.statChanges);
+        }
 
         // Apply abilities
         if (outcome.effects.abilitiesGained) {

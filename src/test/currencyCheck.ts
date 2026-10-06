@@ -50,6 +50,13 @@ function check(label: string, condition: boolean, detail?: string): void {
   }
 }
 
+const emptyWalletFor = (): Player['wallet'] => ({
+  power: 0,
+  quickness: 0,
+  technique: 0,
+  mind: 0,
+});
+
 function playerWith(
   wallet: Player['wallet'],
   stats?: Partial<Record<(typeof STAT_NAMES)[number], number>>,
@@ -347,6 +354,14 @@ function main(): void {
     'a match with no performance pays only the base',
     nothing.length === 1 && nothing[0].label === 'Won match',
   );
+
+  console.log('\n── direct stat changes ──');
+  const lowered = PlayerManager.applyStatBoosts(playerWith(emptyWalletFor()), { focus: -50 });
+  check('a stat loss bigger than the stat stops at 0', getStat(lowered.stats, 'focus') === 0);
+  const raised = PlayerManager.applyStatBoosts(playerWith(emptyWalletFor(), { focus: 98 }), {
+    focus: 5,
+  });
+  check('a stat gain stops at 100', getStat(raised.stats, 'focus') === 100);
 
   console.log(
     failures === 0

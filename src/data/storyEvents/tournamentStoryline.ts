@@ -172,7 +172,7 @@ export const tournamentEvents: StoryEvent[] = [
         'You are the Riverside Open champion for the Club level! Your confidence soars. Remember this feeling as you grow and improve.',
       ],
       effects: {
-        currency: { quickness: 2, technique: 7, mind: 14 },
+        statChanges: { focus: 2, placement: 2, slice: 1, anticipation: 2 },
         moodChange: 20,
         tierChange: 2,
         relationshipChanges: { keith: 10, jen: 10, jordan_rival: 5, coach_gonzalez: 8 },

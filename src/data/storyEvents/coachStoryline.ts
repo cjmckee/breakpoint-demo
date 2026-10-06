@@ -447,7 +447,7 @@ export const coachEvents: StoryEvent[] = [
         " reached the quarterfinals of a Grand Slam at age 24. A knee injury in the fifth set ended his run and eventually his career. It's still a pinnacle of tennis that only a select few will ever reach. So no matter how crazy he seems, you decide it's best to listen to Coach.",
       ],
       effects: {
-        currency: { power: 4, technique: 4, mind: 14 },
+        statChanges: { focus: 3, tactics: 2, serve: 1 },
         moodChange: 20,
         energyChange: -5,
         relationshipChanges: { coach_gonzalez: 5 },

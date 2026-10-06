@@ -186,7 +186,7 @@ export const interactionEvents: StoryEvent[] = [
         "It takes you three hours to learn the Ultra Lob. It goes so high that birds scatter. It is absurd. It is beautiful. It is disgusting. Coach watches with tears in his eyes.'",
       ],
       effects: {
-        currency: { technique: 6, mind: 11 },
+        statChanges: { tactics: 3, slice: 1 },
         moodChange: 15,
         energyChange: -20,
         relationshipChanges: { coach_gonzalez: 5 },
@@ -352,7 +352,7 @@ export const interactionEvents: StoryEvent[] = [
         "You spend two hours at the net with Jordan. They listen. They don't trash talk. You see them noticeably improve, and you learn a little yourself about keeping a positive mindset. You can handle pressure a little bit better now.",
       ],
       effects: {
-        currency: { quickness: 2, technique: 2, mind: 5 },
+        statChanges: { net: 2, focus: 2 },
         moodChange: 15,
         energyChange: -20,
         relationshipChanges: { jordan_rival: 5 },
@@ -711,7 +711,7 @@ export const interactionEvents: StoryEvent[] = [
         "After the match, you sit on the bench together. 'You had me,' she says. 'Early on. But I never stop believing I can come back. That's not talent. That's a choice.' She's right. Something about her refusal to quit rewired something in your brain. Every match from now on — win or lose — is going to teach you more.",
       ],
       effects: {
-        currency: { quickness: 1, mind: 8 },
+        statChanges: { focus: 2, anticipation: 1 },
         moodChange: 15,
         energyChange: -20,
         relationshipChanges: { jen: 5 },
@@ -920,7 +920,7 @@ export const interactionEvents: StoryEvent[] = [
         ' laughs. They makes you really happy. You take a little extra confidence into every game with them by your side.',
       ],
       effects: {
-        currency: { power: 1, quickness: 1, mind: 5 },
+        statChanges: { focus: 2, stamina: 1 },
         moodChange: 35,
         energyChange: -10,
         relationshipChanges: { alex_romance: 10 },
