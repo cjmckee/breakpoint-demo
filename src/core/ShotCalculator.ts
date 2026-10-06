@@ -64,6 +64,7 @@ import {
   SLICE_TUNING,
   BIG_POINT_NERVES,
   SPECIALTY_AMPLIFY,
+  MOVEMENT_ABILITIES,
 } from '../config/shotThresholds';
 
 import { random } from './random';
@@ -936,13 +937,14 @@ export class ShotCalculator {
       bonus += pace * 2;
     }
 
-    // side_spin: enhanced spin effectiveness on shots that carry spin
+    // side_spin: enhanced spin effectiveness on slices and drop shots
     // Scales with the spin stat, so it rewards a spin player hitting a spin shot
     // rather than paying out flat. It used to scale with the spin modifier's
     // excess over 1, which is zero below a spin of 50 — dead for most players.
+    // Serves are left to serve abilities: on every service point it was worth
+    // five times its budget.
     const sideSpin = effects[EffectKey.SIDE_SPIN] ?? 0;
-    const carriesSpin =
-      SHOT_CLASSIFICATIONS.spinShots.includes(shotType) || shotType.includes('serve');
+    const carriesSpin = SHOT_CLASSIFICATIONS.spinShots.includes(shotType);
     if (sideSpin > 0 && carriesSpin) {
       bonus += sideSpin * (spinStat / 10) * 0.15;
     }
@@ -977,6 +979,18 @@ export class ShotCalculator {
     const rallyMomentum = effects[EffectKey.RALLY_MOMENTUM] ?? 0;
     if (rallyMomentum > 0 && context.rallyLength > 4) {
       bonus += rallyMomentum * 1.5;
+    }
+
+    // reach: a stretched player still gets more on the ball
+    const reach = effects[EffectKey.REACH] ?? 0;
+    if (reach > 0 && context.courtPosition === 'defensive') {
+      bonus += reach * MOVEMENT_ABILITIES.reachQualityPerPoint;
+    }
+
+    // serve_speed (positive): a bigger first serve
+    const serveSpeed = effects[EffectKey.SERVE_SPEED] ?? 0;
+    if (serveSpeed > 0 && shotType === 'serve_first') {
+      bonus += serveSpeed * MOVEMENT_ABILITIES.serveSpeedQualityPerPoint;
     }
 
     // lob_quality: bonus quality on defensive and lob shots

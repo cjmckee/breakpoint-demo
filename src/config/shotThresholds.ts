@@ -992,6 +992,36 @@ export const MATCH_FORM = {
  * makes committing to an archetype pay with the stats behind it. A path's
  * behaviour effects (biases, risks) still set how it plays.
  */
+/**
+ * How the movement abilities act, per point of their effect value.
+ *
+ * - coveragePerPoint: COURT_COVERAGE is the chance, per point, that a player an
+ *   opponent's shot would push out of position holds one step better (pushed
+ *   wide or deep → slightly off; slightly off → well positioned).
+ * - recoveryPerPoint: RECOVERY_SPEED is the chance, per point, that a player
+ *   recovering after a stretch is back in position for their next ball.
+ * - reachQualityPerPoint: REACH adds this much shot quality per point on shots
+ *   hit from out of position, on top of easing their difficulty.
+ * - serveSpeedQualityPerPoint: positive SERVE_SPEED adds this much first-serve
+ *   quality per point (negative SERVE_SPEED softens serves, as before).
+ * - maxChance: ceiling on either chance.
+ */
+export const MOVEMENT_ABILITIES = {
+  coveragePerPoint: 0.12,
+  recoveryPerPoint: 0.15,
+  reachQualityPerPoint: 1.5,
+  serveSpeedQualityPerPoint: 1.5,
+  maxChance: 0.9,
+};
+
+/**
+ * Ability strength by level: effects are value × LEVEL_MULTIPLIER[level].
+ * Diminishing, so a level-3 ability is twice a level-1 one rather than three
+ * times; ability levels cost more as they rise, and their value should grow
+ * more slowly than their price.
+ */
+export const ABILITY_LEVEL_MULTIPLIER = [0, 1, 1.6, 2, 2.3, 2.5];
+
 export const SPECIALTY_AMPLIFY = {
   from: 30,
   byTier: [0, 0.5, 0.75, 1.0],

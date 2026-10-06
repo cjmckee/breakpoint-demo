@@ -33,11 +33,33 @@ import {
   DIFFICULTY_SCORE_FACTORS,
   DIFFICULTY_THRESHOLDS,
   NET_RUSH,
+  MOVEMENT_ABILITIES,
 } from '../config/shotThresholds';
 import { EffectKey } from '../types/game';
 import { trace } from './trace';
 
 import { random } from './random';
+/**
+ * court_coverage: a player an opponent's shot pushes out of position may hold
+ * one step better. Only rolls when there is something to hold, so players
+ * without coverage draw no randomness.
+ */
+function holdPosition(
+  pushedTo: CourtPosition,
+  effects: Record<string, number> | undefined,
+): CourtPosition {
+  const coverage = effects?.[EffectKey.COURT_COVERAGE] ?? 0;
+  if (coverage <= 0 || pushedTo === 'well_positioned' || pushedTo === 'at_net') return pushedTo;
+  const chance = Math.min(
+    MOVEMENT_ABILITIES.maxChance,
+    coverage * MOVEMENT_ABILITIES.coveragePerPoint,
+  );
+  if (random() >= chance) return pushedTo;
+  return pushedTo === 'way_out_wide' || pushedTo === 'way_back_deep'
+    ? 'slightly_off'
+    : 'well_positioned';
+}
+
 /** Chance a server comes in behind the serve, from SERVE_AND_VOLLEY_BIAS. */
 function serveAndVolleyChance(
   effects: Record<string, number> | undefined,
@@ -182,6 +204,7 @@ export class PointSimulator {
       undefined,
       serverFatigue,
       serverMomentum,
+      serverBehaviorEffects,
     );
 
     // Apply the server's archetype serve behavior (power → more aces, fault risk
@@ -280,6 +303,7 @@ export class PointSimulator {
       undefined,
       serverFatigue,
       serverMomentum,
+      serverBehaviorEffects,
     );
 
     // Apply serve behavior to the second serve BEFORE recording the shot, so the
@@ -552,11 +576,9 @@ export class PointSimulator {
       previousShot = shotDetail;
 
       // Update both shooter and opponent positions based on this shot
-      const newOpponentPosition = this.updateOpponentPosition(
-        shotResult,
-        shotType,
-        opponentPosition,
-        thresholds,
+      const newOpponentPosition = holdPosition(
+        this.updateOpponentPosition(shotResult, shotType, opponentPosition, thresholds),
+        shooterIdentity === 'player' ? opponentActiveEffects : activeEffects,
       );
 
       const newShooterPosition = this.updateShooterPosition(
@@ -858,21 +880,18 @@ export class PointSimulator {
       return currentPosition === 'at_net' ? 'at_net' : 'slightly_off';
     }
 
-    // Default: maintain or recover toward good position
-    // Apply ability effects for position recovery
-    const courtCoverage = activeEffects?.[EffectKey.COURT_COVERAGE] ?? 0;
+    // Default: recover toward good position. recovery_speed is the chance of
+    // getting all the way back from a stretch in one ball.
     const recoverySpeed = activeEffects?.[EffectKey.RECOVERY_SPEED] ?? 0;
+    const recoverChance = Math.min(
+      MOVEMENT_ABILITIES.maxChance,
+      recoverySpeed * MOVEMENT_ABILITIES.recoveryPerPoint,
+    );
 
     if (currentPosition === 'way_out_wide' || currentPosition === 'way_back_deep') {
-      // recovery_speed: upgrade from way_out/deep to slightly_off instead of recovering
-      return recoverySpeed > 0 ? 'slightly_off' : 'recovering';
+      return random() < recoverChance ? 'well_positioned' : 'recovering';
     }
     if (currentPosition === 'recovering') {
-      // court_coverage + court_range: upgrade recovering to well_positioned faster
-      return 'well_positioned';
-    }
-    if (currentPosition === 'slightly_off' && courtCoverage >= 2) {
-      // Strong court coverage: recover from slightly_off to well_positioned
       return 'well_positioned';
     }
 

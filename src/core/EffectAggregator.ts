@@ -10,18 +10,25 @@
 
 import type { Ability, Player, StatBoosts } from '../types/game';
 import { aggregateArchetypeEffects } from '../data/archetypeTree';
+import { ABILITY_LEVEL_MULTIPLIER } from '../config/shotThresholds';
+
+/** An ability level's effect multiplier (level 1 = ×1). */
+export function levelMultiplier(level: number): number {
+  const top = ABILITY_LEVEL_MULTIPLIER.length - 1;
+  return ABILITY_LEVEL_MULTIPLIER[Math.max(1, Math.min(top, Math.round(level)))];
+}
 
 /**
  * The match and activity effects of a set of abilities, summed. Every effect
- * scales linearly with the ability's level (value × level), as the ability data
- * describes: a level-3 Heavy Hitter adds pace 21.
+ * scales with the ability's level by ABILITY_LEVEL_MULTIPLIER: a level-3 Heavy
+ * Hitter is twice a level-1 one.
  */
 export function abilityEffects(abilities: readonly Ability[] = []): Record<string, number> {
   const effects: Record<string, number> = {};
   for (const ability of abilities) {
-    const level = Math.max(1, ability.level);
+    const multiplier = levelMultiplier(ability.level);
     for (const [key, value] of Object.entries(ability.modifiers.additional ?? {})) {
-      effects[key] = (effects[key] ?? 0) + value * level;
+      effects[key] = (effects[key] ?? 0) + value * multiplier;
     }
   }
   return effects;

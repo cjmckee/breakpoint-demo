@@ -1258,7 +1258,7 @@ export class MatchOrchestrator {
 
     // focus_duration: reduces player fatigue accumulation rate
     const focusDuration = this.activeEffects[EffectKey.FOCUS_DURATION] ?? 0;
-    const fatigueMultiplier = Math.max(0.8, 1 - focusDuration * 0.05);
+    const fatigueMultiplier = Math.max(0.5, 1 - focusDuration * 0.05);
 
     this.fatigue.player = fatigueAfterPoint(
       this.fatigue.player,

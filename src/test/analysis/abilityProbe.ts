@@ -169,8 +169,7 @@ const PROBES: Partial<Record<AbilityId, Probe>> = {
   [AbilityName.HEAVY_HITTER]: { stat: 'forehand', applies: (s) => s.shotType.includes('power') },
   [AbilityName.SPIN_MASTER]: {
     stat: 'spin',
-    applies: (s) =>
-      SHOT_CLASSIFICATIONS.spinShots.includes(s.shotType) || s.shotType.includes('serve'),
+    applies: (s) => SHOT_CLASSIFICATIONS.spinShots.includes(s.shotType),
   },
   [AbilityName.SOFT_HANDS]: {
     stat: 'net',
