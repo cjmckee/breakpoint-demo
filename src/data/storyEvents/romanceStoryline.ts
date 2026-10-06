@@ -79,7 +79,7 @@ export const romanceEvents: StoryEvent[] = [
             " shares their own competitive experiences and offers helpful advice based on what they've learned. You gain valuable insights into tournament preparation.",
           ],
           effects: {
-            statChanges: { placement: 1, net: 1, anticipation: 1 },
+            currency: { quickness: 2, technique: 4, mind: 5 },
             moodChange: 15,
             energyChange: -5,
             relationshipChanges: { alex_romance: 10 },
@@ -118,7 +118,7 @@ export const romanceEvents: StoryEvent[] = [
             " seems understanding but you can tell they're a bit disappointed.",
           ],
           effects: {
-            statChanges: { stamina: 1 },
+            currency: { power: 1, quickness: 1 },
             moodChange: 0,
             energyChange: 0,
             relationshipChanges: { alex_romance: -5 },
@@ -182,7 +182,7 @@ export const romanceEvents: StoryEvent[] = [
             ", but it was a lot harder than you expected. You both had a lot of fun, and the kids were impressed. You're starting to think about more excuses to spend time with Alex.",
           ],
           effects: {
-            statChanges: { return: 2, speed: 1, stamina: 1 },
+            currency: { power: 2, quickness: 10, technique: 2, mind: 2 },
             moodChange: 15,
             energyChange: -15,
             relationshipChanges: { alex_romance: 15 },
@@ -203,7 +203,7 @@ export const romanceEvents: StoryEvent[] = [
             " is the best coach ever. You manage to crack a smile even catching wind. Alex has a smile you'd trade it all for.",
           ],
           effects: {
-            statChanges: { return: 1, tactics: 2, spin: 1 },
+            currency: { power: 1, quickness: 2, technique: 6, mind: 8 },
             moodChange: 25,
             energyChange: -15,
             relationshipChanges: { alex_romance: 10 },
@@ -258,7 +258,7 @@ export const romanceEvents: StoryEvent[] = [
             " gets genuinely emotional during a tiebreak scene. You both sit in silence for a full minute after the credits. You don't know what to say, but your mental game somehow feels stronger.",
           ],
           effects: {
-            statChanges: { focus: 2, anticipation: 2, tactics: 1 },
+            currency: { quickness: 2, technique: 1, mind: 16 },
             moodChange: 15,
             energyChange: 5,
             relationshipChanges: { alex_romance: 12 },
@@ -340,7 +340,7 @@ export const romanceEvents: StoryEvent[] = [
         'You spend the rest of the match chatting about life beyond tennis. You find yourself a little more focused on the tennis journey, and a little more focused on Alex as well.',
       ],
       effects: {
-        statChanges: { backhand: 3, net: 2, return: 2 },
+        currency: { quickness: 11, technique: 12, mind: 2 },
         moodChange: 10,
         energyChange: -20,
         relationshipChanges: { alex_romance: 15 },

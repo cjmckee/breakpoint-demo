@@ -1,12 +1,13 @@
 /**
  * ChallengeRewardChips
  * Shared presentational list of a challenge's rewards as colored chips
- * (stat boosts, abilities, items, XP). Used by both active and completed
+ * (currency, abilities, items, XP). Used by both active and completed
  * challenge views so they stay visually consistent.
  */
 
 import React from 'react';
 import type { ChallengeReward } from '../types/challenges';
+import { CurrencyAmounts } from './currency/CurrencyAmounts';
 
 interface ChallengeRewardChipsProps {
   reward: ChallengeReward;
@@ -15,15 +16,11 @@ interface ChallengeRewardChipsProps {
 export const ChallengeRewardChips: React.FC<ChallengeRewardChipsProps> = ({ reward }) => {
   return (
     <div className="space-y-1">
-      {reward.modifiers?.statBoosts &&
-        Object.entries(reward.modifiers.statBoosts).map(([stat, value]) => (
-          <div
-            key={stat}
-            className="text-xs px-2 py-0.5 bg-green-500 bg-opacity-20 border border-green-500 text-green-500 font-bold inline-block mr-1"
-          >
-            +{value} {stat}
-          </div>
-        ))}
+      {reward.currency && (
+        <div className="text-xs px-2 py-0.5 bg-pixel-bg border border-pixel-border inline-block mr-1">
+          <CurrencyAmounts amounts={reward.currency} signed />
+        </div>
+      )}
 
       {reward.abilities?.map((ability) => (
         <div

@@ -14,7 +14,7 @@
 import type { Player } from '../types/game';
 import { CURRENCIES, STAT_RECIPES } from '../config/economy';
 import { PlayerManager } from '../game/PlayerManager';
-import { matchPayout, roundAmounts, trainingPayout } from '../game/CurrencyIncome';
+import { contentCurrency, matchPayout, roundAmounts, trainingPayout } from '../game/CurrencyIncome';
 import {
   STAT_NAMES,
   applyCurrency,
@@ -183,6 +183,25 @@ function main(): void {
     'a serving-led match pays more Power than Quickness',
     (match.power ?? 0) > (match.quickness ?? 0),
     JSON.stringify(match),
+  );
+
+  console.log('\n── content ──');
+  const grant = contentCurrency({ focus: 5, serve: 2 });
+  check(
+    'a story grant pays each point through its recipe at 1.2',
+    grant.mind === 12 && grant.power === 7 && grant.technique === 2,
+    JSON.stringify(grant),
+  );
+  const penalty = contentCurrency({ focus: -3 });
+  check('a penalty becomes a loss', penalty.mind === -7, JSON.stringify(penalty));
+  check(
+    'a loss bigger than the balance clamps at zero',
+    applyCurrency({ power: 0, quickness: 0, technique: 0, mind: 4 }, penalty).mind === 0,
+  );
+  check(
+    'gains and penalties net per currency',
+    contentCurrency({ focus: 2, tactics: -1 }).technique === -1,
+    JSON.stringify(contentCurrency({ focus: 2, tactics: -1 })),
   );
 
   console.log(

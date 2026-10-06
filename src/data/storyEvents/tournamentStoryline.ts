@@ -91,7 +91,7 @@ export const tournamentEvents: StoryEvent[] = [
         'The brackets are released and the courts are assigned. Now is your chance to prove you belong here.',
       ],
       effects: {
-        statChanges: { net: 1, stamina: 2 },
+        currency: { power: 2, quickness: 4, technique: 1 },
         startTournament: 'riverside_open',
         scheduleNextTournamentMatch: true,
       },
@@ -172,7 +172,7 @@ export const tournamentEvents: StoryEvent[] = [
         'You are the Riverside Open champion for the Club level! Your confidence soars. Remember this feeling as you grow and improve.',
       ],
       effects: {
-        statChanges: { focus: 2, placement: 2, slice: 1, anticipation: 2 },
+        currency: { quickness: 2, technique: 7, mind: 14 },
         moodChange: 20,
         tierChange: 2,
         relationshipChanges: { keith: 10, jen: 10, jordan_rival: 5, coach_gonzalez: 8 },
@@ -687,7 +687,7 @@ export const tournamentEvents: StoryEvent[] = [
       ],
       effects: {
         moodChange: 5,
-        statChanges: { stamina: 3, speed: 1 },
+        currency: { power: 5, quickness: 7 },
       },
     },
   },
@@ -783,7 +783,7 @@ export const tournamentEvents: StoryEvent[] = [
       effects: {
         moodChange: -4,
         relationshipChanges: { max: 8 },
-        statChanges: { stamina: 2 },
+        currency: { power: 2, quickness: 2 },
       },
     },
   },
@@ -832,7 +832,7 @@ export const tournamentEvents: StoryEvent[] = [
       resultText: [{ characterId: 'jordan_rival' }, " is ready for battle. This won't be easy."],
       effects: {
         moodChange: 2,
-        statChanges: { strength: 1, speed: 1, anticipation: 2, tactics: 2 },
+        currency: { power: 5, quickness: 6, technique: 2, mind: 14 },
       },
     },
   },
@@ -917,7 +917,7 @@ export const tournamentEvents: StoryEvent[] = [
       effects: {
         moodChange: 10,
         relationshipChanges: { jordan_rival: 6 },
-        statChanges: { net: 1, placement: 1, slice: 1, return: 1, speed: 1, stamina: 1, spin: 1 },
+        currency: { power: 4, quickness: 8, technique: 10, mind: 2 },
       },
     },
   },
@@ -957,7 +957,7 @@ export const tournamentEvents: StoryEvent[] = [
       effects: {
         moodChange: -8,
         relationshipChanges: { jordan_rival: 4 },
-        statChanges: { net: 1, slice: 1, return: 1, stamina: 1, spin: 1 },
+        currency: { power: 2, quickness: 5, technique: 7, mind: 1 },
       },
     },
   },

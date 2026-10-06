@@ -2818,11 +2818,11 @@ export const useGameStore = create<GameState>()(
           minigameScore,
         );
 
-        // Apply stat changes to player
-        let updatedPlayer = { ...player };
-        if (outcome.effects.statChanges) {
-          updatedPlayer = PlayerManager.applyStatBoosts(updatedPlayer, outcome.effects.statChanges);
-        }
+        // Apply currency (losses clamp each currency at zero)
+        let updatedPlayer: Player = {
+          ...player,
+          wallet: applyCurrency(player.wallet, outcome.effects.currency ?? {}),
+        };
 
         // Apply abilities
         if (outcome.effects.abilitiesGained) {

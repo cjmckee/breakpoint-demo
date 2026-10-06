@@ -21,6 +21,7 @@ import type {
 import type { PlayerStats } from '../types';
 import { PlayerManager } from './PlayerManager';
 import { ItemManager } from './ItemManager';
+import { applyCurrency } from './StatDevelopment';
 
 export class ChallengeManager {
   /**
@@ -273,12 +274,11 @@ export class ChallengeManager {
   static applyRewards(challenge: Challenge, player: Player): Player {
     let updatedPlayer = { ...player };
 
-    // Apply stat boosts from modifiers
-    if (challenge.reward.modifiers?.statBoosts) {
-      updatedPlayer = PlayerManager.applyStatBoosts(
-        updatedPlayer,
-        challenge.reward.modifiers.statBoosts,
-      );
+    if (challenge.reward.currency) {
+      updatedPlayer = {
+        ...updatedPlayer,
+        wallet: applyCurrency(updatedPlayer.wallet, challenge.reward.currency),
+      };
     }
 
     // Grant abilities

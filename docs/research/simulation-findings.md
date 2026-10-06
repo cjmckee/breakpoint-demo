@@ -443,7 +443,8 @@ become the match → ability pipeline if Mind is rebalanced.
 - The shop no longer offers legendaries (one was still buyable, and they were 10% of offers);
   offers are 50% common, 35% uncommon, 15% rare.
 - Content conversion dry run: `docs/proposals/content-conversion-dry-run.md`, 158 sites, 835 stat
-  points → 3,034 currency units; 13 story penalties need a decision.
+  points → 3,034 currency units; 13 story penalties need a decision. (Corrected when applied:
+  156 sites, 808 points, 2,923 units gained; two challenge reward items had been miscounted.)
 - Development screen: a clickable paper prototype with the real recipes and price steps.
 
 ---

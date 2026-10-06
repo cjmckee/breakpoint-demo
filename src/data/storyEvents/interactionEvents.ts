@@ -97,7 +97,7 @@ export const interactionEvents: StoryEvent[] = [
         'The ball machine fires at unpredictable angles, speeds, and emotional frequencies. It is genuinely excellent practice. Sounds like the machine has school again in two weeks, though.',
       ],
       effects: {
-        statChanges: { anticipation: 2, return: 1 },
+        currency: { quickness: 5, technique: 1, mind: 8 },
         moodChange: 8,
         energyChange: -15,
         relationshipChanges: { coach_gonzalez: 4 },
@@ -140,7 +140,7 @@ export const interactionEvents: StoryEvent[] = [
         "The coaches go around the circle naming obscure tennis players from the 1980s. When it comes to your turn, the room gets very quiet. You say 'Yannick Noah' and they all nod approvingly. You survive another night.",
       ],
       effects: {
-        statChanges: { focus: 2, anticipation: 1 },
+        currency: { quickness: 1, mind: 8 },
         moodChange: 5,
         energyChange: -20,
         relationshipChanges: { coach_gonzalez: 4 },
@@ -186,7 +186,7 @@ export const interactionEvents: StoryEvent[] = [
         "It takes you three hours to learn the Ultra Lob. It goes so high that birds scatter. It is absurd. It is beautiful. It is disgusting. Coach watches with tears in his eyes.'",
       ],
       effects: {
-        statChanges: { tactics: 3, slice: 1 },
+        currency: { technique: 6, mind: 11 },
         moodChange: 15,
         energyChange: -20,
         relationshipChanges: { coach_gonzalez: 5 },
@@ -221,7 +221,7 @@ export const interactionEvents: StoryEvent[] = [
         "You spend an hour hitting with someone who openly despises you. Every ball Jordan sends back has extra pace on it. You're not sure if that's intentional or just how they feel about you. Either way, good practice.",
       ],
       effects: {
-        statChanges: { return: 1, focus: 1 },
+        currency: { quickness: 2, technique: 1, mind: 4 },
         moodChange: 5,
         energyChange: -15,
         relationshipChanges: { jordan_rival: 3 },
@@ -259,7 +259,7 @@ export const interactionEvents: StoryEvent[] = [
         'You spend an hour picking up balls while Jordan takes a private lesson. It is humbling. It is annoying. The lesson after with Coach Diaz was totally worth it, though.',
       ],
       effects: {
-        statChanges: { forehand: 2, backhand: 2, net: 1, speed: 1 },
+        currency: { power: 6, quickness: 7, technique: 8 },
         moodChange: 3,
         energyChange: -20,
         relationshipChanges: { jordan_rival: 3 },
@@ -298,7 +298,7 @@ export const interactionEvents: StoryEvent[] = [
             "You take charge at the net. Jordan doesn't say anything during the match, which from them is practically a standing ovation. You win in two sets. Afterward, Jordan nods once. A single high five.",
           ],
           effects: {
-            statChanges: { net: 2, tactics: 1 },
+            currency: { quickness: 2, technique: 4, mind: 4 },
             moodChange: 12,
             energyChange: -25,
             relationshipChanges: { jordan_rival: 5 },
@@ -315,7 +315,7 @@ export const interactionEvents: StoryEvent[] = [
             "You stay back and cover everything Jordan can't reach, which isn't much. You lose a close match, but Jordan says 'your defense was fine.' From Jordan, that's basically a love letter.",
           ],
           effects: {
-            statChanges: { tactics: 2, return: 1 },
+            currency: { quickness: 2, technique: 4, mind: 8 },
             moodChange: 8,
             energyChange: -25,
             relationshipChanges: { jordan_rival: 4 },
@@ -352,7 +352,7 @@ export const interactionEvents: StoryEvent[] = [
         "You spend two hours at the net with Jordan. They listen. They don't trash talk. You see them noticeably improve, and you learn a little yourself about keeping a positive mindset. You can handle pressure a little bit better now.",
       ],
       effects: {
-        statChanges: { net: 2, focus: 2 },
+        currency: { quickness: 2, technique: 2, mind: 5 },
         moodChange: 15,
         energyChange: -20,
         relationshipChanges: { jordan_rival: 5 },
@@ -426,7 +426,7 @@ export const interactionEvents: StoryEvent[] = [
         "'s plan all along. The alligator exhibit was worth the walk, anyway.",
       ],
       effects: {
-        statChanges: { anticipation: 1, return: 1 },
+        currency: { quickness: 4, technique: 1, mind: 5 },
         moodChange: 15,
         energyChange: -10,
         relationshipChanges: { keith: 3 },
@@ -498,7 +498,7 @@ export const interactionEvents: StoryEvent[] = [
         ' does not.',
       ],
       effects: {
-        statChanges: { stamina: 1 },
+        currency: { power: 1, quickness: 1 },
         moodChange: 25,
         energyChange: -5,
         relationshipChanges: { keith: 4 },
@@ -538,7 +538,7 @@ export const interactionEvents: StoryEvent[] = [
         'You are holding a glitter glue trophy. Keith is beaming. He makes a four minute long speech. You put the trophy on your nightstand. Every relationship you build from now on feels a little warmer.',
       ],
       effects: {
-        statChanges: { focus: 1, stamina: 1 },
+        currency: { power: 1, quickness: 1, mind: 2 },
         moodChange: 30,
         energyChange: -5,
         relationshipChanges: { keith: 5 },
@@ -588,7 +588,7 @@ export const interactionEvents: StoryEvent[] = [
         'Jen does not mess around. You do sprints, agility drills, burpees, and hill runs. Jen does all of it while maintaining a conversation about racquet tension. You can barely breathe.',
       ],
       effects: {
-        statChanges: { speed: 1, stamina: 1 },
+        currency: { power: 2, quickness: 5 },
         moodChange: 5,
         energyChange: -25,
         relationshipChanges: { jen: 3 },
@@ -628,7 +628,7 @@ export const interactionEvents: StoryEvent[] = [
         "The kids are chaotic. One of them hits a ball into the parking lot. Another has pulled down the pants of at least two other teammates. You barely survive the session, but you're happy to have the experience.",
       ],
       effects: {
-        statChanges: { forehand: 1, placement: 1 },
+        currency: { power: 2, technique: 4, mind: 1 },
         moodChange: 15,
         energyChange: -15,
         relationshipChanges: { jen: 4 },
@@ -671,7 +671,7 @@ export const interactionEvents: StoryEvent[] = [
         ' outside of tennis.',
       ],
       effects: {
-        statChanges: { focus: 1 },
+        currency: { mind: 2 },
         moodChange: 20,
         energyChange: -10,
         relationshipChanges: { jen: 4 },
@@ -711,7 +711,7 @@ export const interactionEvents: StoryEvent[] = [
         "After the match, you sit on the bench together. 'You had me,' she says. 'Early on. But I never stop believing I can come back. That's not talent. That's a choice.' She's right. Something about her refusal to quit rewired something in your brain. Every match from now on — win or lose — is going to teach you more.",
       ],
       effects: {
-        statChanges: { focus: 2, anticipation: 1 },
+        currency: { quickness: 1, mind: 8 },
         moodChange: 15,
         energyChange: -20,
         relationshipChanges: { jen: 5 },
@@ -764,7 +764,7 @@ export const interactionEvents: StoryEvent[] = [
         'You spend two hours dissecting the elimination bracket of a reality show on a garbage network. Alex has theories. You have countertheories. You leave feeling like someone finally understands you.',
       ],
       effects: {
-        statChanges: { speed: 1 },
+        currency: { power: 1, quickness: 4 },
         moodChange: 15,
         energyChange: -10,
         relationshipChanges: { alex_romance: 3 },
@@ -824,7 +824,7 @@ export const interactionEvents: StoryEvent[] = [
         "You spend the rest of the afternoon walking through the city togethr in your new jersey. You're starting to think they like you.",
       ],
       effects: {
-        statChanges: { forehand: 1, focus: 1 },
+        currency: { power: 2, technique: 1, mind: 2 },
         moodChange: 20,
         energyChange: -10,
         relationshipChanges: { alex_romance: 5 },
@@ -863,7 +863,7 @@ export const interactionEvents: StoryEvent[] = [
         "You are not sure how a heart-shaped string pattern is physically possible or whether it's allowed in competition. You don't care. The racquet feels incredible. Every shot has a little extra something.",
       ],
       effects: {
-        statChanges: { forehand: 1, backhand: 1, placement: 1 },
+        currency: { power: 2, quickness: 1, technique: 6, mind: 1 },
         moodChange: 25,
         energyChange: -10,
         relationshipChanges: { alex_romance: 8 },
@@ -920,7 +920,7 @@ export const interactionEvents: StoryEvent[] = [
         ' laughs. They makes you really happy. You take a little extra confidence into every game with them by your side.',
       ],
       effects: {
-        statChanges: { focus: 2, stamina: 1 },
+        currency: { power: 1, quickness: 1, mind: 5 },
         moodChange: 35,
         energyChange: -10,
         relationshipChanges: { alex_romance: 10 },

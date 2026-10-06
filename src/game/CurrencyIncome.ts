@@ -7,8 +7,9 @@
  */
 
 import type { StatName } from '../types';
-import type { CurrencyAmounts, PerformanceRewardBreakdown } from '../types/game';
+import type { Currency, CurrencyAmounts, PerformanceRewardBreakdown } from '../types/game';
 import {
+  CONTENT_SCALE,
   CURRENCIES,
   INCOME_SCALE,
   MATCH_PAYOUT,
@@ -116,4 +117,29 @@ export function matchPayout(
   // A match with no scored areas still pays its non-Mind share, evenly.
   const rest = Object.keys(byArea).length > 0 ? byArea : evenly(units - mind);
   return roundAmounts(sum({ mind }, rest));
+}
+
+/**
+ * What a stat grant in authored content (a story outcome, a challenge reward)
+ * is worth in currency: each point through its stat's recipe at CONTENT_SCALE,
+ * gains and penalties netted per currency, every non-zero currency at least 1.
+ * A negative result is a loss; applyCurrency clamps it at zero.
+ *
+ * The authored content was converted with this once (see
+ * docs/proposals/content-conversion-dry-run.md); the save migration uses it
+ * for challenges a save already holds.
+ */
+export function contentCurrency(grant: Partial<Record<StatName, number>>): CurrencyAmounts {
+  const raw: Record<Currency, number> = { power: 0, quickness: 0, technique: 0, mind: 0 };
+  for (const [stat, points] of Object.entries(grant) as Array<[StatName, number]>) {
+    for (const [c, n] of Object.entries(STAT_RECIPES[stat]) as Array<[Currency, number]>) {
+      raw[c] += points * n * CONTENT_SCALE;
+    }
+  }
+  const out: CurrencyAmounts = {};
+  for (const c of CURRENCIES) {
+    if (raw[c] === 0) continue;
+    out[c] = Math.sign(raw[c]) * Math.max(1, Math.round(Math.abs(raw[c])));
+  }
+  return out;
 }

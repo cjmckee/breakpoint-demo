@@ -55,7 +55,7 @@ export const coachEvents: StoryEvent[] = [
         " talk about his tennis experiences and what it takes to be the best. You realize you haven't even gotten a word in since you sat down. But you find it oddly helpful.",
       ],
       effects: {
-        statChanges: { placement: 1, net: 1, anticipation: 1 },
+        currency: { quickness: 2, technique: 4, mind: 5 },
         moodChange: 15,
         energyChange: -10,
         relationshipChanges: { coach_gonzalez: 5 },
@@ -187,7 +187,7 @@ export const coachEvents: StoryEvent[] = [
             ' helps you generate more power while maintaining accuracy. Your serve improves noticeably.',
           ],
           effects: {
-            statChanges: { serve: 5, strength: 3 },
+            currency: { power: 29, technique: 6 },
             moodChange: 10,
             energyChange: -20,
             relationshipChanges: { coach_gonzalez: 5 },
@@ -213,7 +213,7 @@ export const coachEvents: StoryEvent[] = [
             ' refines your technique on both wings. Your forehand and backhand both show marked improvement.',
           ],
           effects: {
-            statChanges: { forehand: 4, backhand: 4, tactics: 2 },
+            currency: { power: 10, quickness: 5, technique: 17, mind: 7 },
             moodChange: 10,
             energyChange: -20,
             relationshipChanges: { coach_gonzalez: 5 },
@@ -238,7 +238,7 @@ export const coachEvents: StoryEvent[] = [
             ' introduces you to sports psychology techniques. You learn breathing exercises, visualization methods, and how to stay focused under pressure. The mental game is just as important as the physical.',
           ],
           effects: {
-            statChanges: { focus: 5, anticipation: 3, tactics: 2 },
+            currency: { quickness: 4, technique: 2, mind: 30 },
             moodChange: 15,
             energyChange: -15,
             relationshipChanges: { coach_gonzalez: 5 },
@@ -288,7 +288,7 @@ export const coachEvents: StoryEvent[] = [
             ' helps you build consistency across both shots, eliminating the predictability of having a weaker side.',
           ],
           effects: {
-            statChanges: { forehand: 3, backhand: 3, spin: 2 },
+            currency: { power: 10, quickness: 4, technique: 16 },
             moodChange: 10,
             energyChange: -20,
             relationshipChanges: { coach_gonzalez: 10 },
@@ -312,7 +312,7 @@ export const coachEvents: StoryEvent[] = [
             ' introduces you to a strength and conditioning program. You work on explosive speed, endurance, and recovery. Your body starts to feel like a finely-tuned machine.',
           ],
           effects: {
-            statChanges: { speed: 4, stamina: 4 },
+            currency: { power: 10, quickness: 19 },
             moodChange: 10,
             energyChange: -25,
             relationshipChanges: { coach_gonzalez: 10 },
@@ -362,7 +362,7 @@ export const coachEvents: StoryEvent[] = [
             " looks genuinely startled when you start pointing out patterns before he does. He falls asleep, but you soldier on. You notice tendencies in your own game you'd never seen before. Your anticipation and return positioning are sharper almost immediately.",
           ],
           effects: {
-            statChanges: { anticipation: 3, return: 2, placement: 2 },
+            currency: { quickness: 8, technique: 7, mind: 16 },
             moodChange: 10,
             energyChange: -20,
             relationshipChanges: { coach_gonzalez: 10 },
@@ -381,7 +381,7 @@ export const coachEvents: StoryEvent[] = [
             '. You watch for a few more minutes and suddenly you noticed a footwork mistake you could clean up. You absorbed more than you realized.',
           ],
           effects: {
-            statChanges: { anticipation: 1, return: 1, focus: 1 },
+            currency: { quickness: 4, technique: 1, mind: 7 },
             moodChange: 5,
             energyChange: 25,
             relationshipChanges: { coach_gonzalez: -5 },
@@ -400,7 +400,7 @@ export const coachEvents: StoryEvent[] = [
             " eventually takes the remote away from you. You don't finish the footage. You do, however, understand your game better than ever.",
           ],
           effects: {
-            statChanges: { return: 3, anticipation: 2, tactics: 2 },
+            currency: { quickness: 10, technique: 6, mind: 18 },
             moodChange: 15,
             energyChange: -15,
             relationshipChanges: { coach_gonzalez: -10 },
@@ -447,7 +447,7 @@ export const coachEvents: StoryEvent[] = [
         " reached the quarterfinals of a Grand Slam at age 24. A knee injury in the fifth set ended his run and eventually his career. It's still a pinnacle of tennis that only a select few will ever reach. So no matter how crazy he seems, you decide it's best to listen to Coach.",
       ],
       effects: {
-        statChanges: { focus: 3, tactics: 2, serve: 1 },
+        currency: { power: 4, technique: 4, mind: 14 },
         moodChange: 20,
         energyChange: -5,
         relationshipChanges: { coach_gonzalez: 5 },
@@ -497,7 +497,7 @@ export const coachEvents: StoryEvent[] = [
             " in the shin. But by the end, you're threading it clean.",
           ],
           effects: {
-            statChanges: { placement: 3, spin: 3 },
+            currency: { power: 4, technique: 14, mind: 4 },
             moodChange: 20,
             energyChange: -25,
             relationshipChanges: { coach_gonzalez: 2 },
@@ -522,7 +522,7 @@ export const coachEvents: StoryEvent[] = [
             "'s feet. They may need to repay that lunch. Your instincts, at least, are sharpening.",
           ],
           effects: {
-            statChanges: { placement: 1, spin: 2, net: 1 },
+            currency: { power: 2, quickness: 1, technique: 8, mind: 1 },
             moodChange: 10,
             energyChange: -15,
             relationshipChanges: { coach_gonzalez: 2 },
@@ -541,7 +541,7 @@ export const coachEvents: StoryEvent[] = [
             ' seems to have no issue with the change in plans, and grabs his swim trunks as well.',
           ],
           effects: {
-            statChanges: { spin: 3, speed: 2, net: 1 },
+            currency: { power: 6, quickness: 8, technique: 8 },
             moodChange: 15,
             energyChange: -20,
             relationshipChanges: { coach_gonzalez: 3 },

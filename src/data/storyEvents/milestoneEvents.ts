@@ -47,7 +47,7 @@ export const milestoneEvents: StoryEvent[] = [
         "You've proven that you can win at this level. Your confidence is growing, but everything else hurts. I don't think it was supposed to be that hard.",
       ],
       effects: {
-        statChanges: { return: 1, speed: 1, anticipation: 1, tactics: 1 },
+        currency: { power: 1, quickness: 7, technique: 2, mind: 8 },
         itemsGained: [SPORTS_DRINK],
       },
     },
@@ -78,7 +78,7 @@ export const milestoneEvents: StoryEvent[] = [
         "The winning streak has transformed your confidence. You're starting to believe you belong at this level, and other players have noticed your improvement. You feel yourself becoming a legitimate competitor.",
       ],
       effects: {
-        statChanges: { spin: 4, placement: 3, stamina: 2 },
+        currency: { power: 7, quickness: 2, technique: 17, mind: 4 },
         moodChange: 40,
         energyChange: 0,
         relationshipChanges: { coach_gonzalez: 10 },

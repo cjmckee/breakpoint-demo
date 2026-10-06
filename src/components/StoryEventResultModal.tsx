@@ -10,6 +10,7 @@ import type { StoryEventResult } from '../types/storyEvents';
 import { FormattedText } from './FormattedText';
 import { getCharacterName } from '../data/characters';
 import { usePlayerName } from '../hooks/usePlayerName';
+import { CurrencyAmounts } from './currency/CurrencyAmounts';
 
 interface StoryEventResultModalProps {
   isOpen: boolean;
@@ -60,30 +61,18 @@ export const StoryEventResultModal: React.FC<StoryEventResultModalProps> = ({
       </div>
 
       {/* Effects */}
-      {(Object.keys(result.statChanges).length > 0 ||
+      {(Object.keys(result.currency).length > 0 ||
         Object.keys(result.relationshipChanges).length > 0 ||
         result.abilitiesGained.length > 0 ||
         result.itemsGained.length > 0) && (
         <div className="space-y-4 mb-6">
           <h3 className="font-bold text-lg">Effects:</h3>
 
-          {/* Stat changes */}
-          {Object.keys(result.statChanges).length > 0 && (
-            <div>
-              <h4 className="font-semibold mb-2">📊 Stat Changes:</h4>
-              <div className="grid grid-cols-2 gap-2">
-                {Object.entries(result.statChanges).map(([stat, value]) => (
-                  <div
-                    key={stat}
-                    className={`px-3 py-2 rounded font-semibold ${
-                      value > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}
-                  >
-                    {stat}: {value > 0 ? '+' : ''}
-                    {value}
-                  </div>
-                ))}
-              </div>
+          {/* Currency: losses clamp each currency at zero when applied */}
+          {Object.keys(result.currency).length > 0 && (
+            <div data-testid="story-result-currency">
+              <h4 className="font-semibold mb-2">💰 Training currency:</h4>
+              <CurrencyAmounts amounts={result.currency} signed labelled />
             </div>
           )}
 

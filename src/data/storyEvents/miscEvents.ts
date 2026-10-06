@@ -95,7 +95,7 @@ export const miscEvents: StoryEvent[] = [
             ' takes the loss with enormous dignity, which lasts until the Academy shop, where he stands in front of the huge plush for a long time and eventually buys you a keychain instead, because "the plush felt like a grudge." You sit on the pond wall until it gets dark. Nobody mentions tennis once.',
           ],
           effects: {
-            statChanges: { focus: 2, placement: 1 },
+            currency: { technique: 2, mind: 6 },
             moodChange: 20,
             energyChange: -5,
             relationshipChanges: { keith: 5 },
@@ -136,7 +136,7 @@ export const miscEvents: StoryEvent[] = [
           ],
           effects: {
             energyChange: -10,
-            statChanges: { slice: 3, spin: 1, placement: 1 },
+            currency: { power: 1, technique: 12, mind: 1 },
             relationshipChanges: { alison: 5, greg: 5, keith: -5 },
             itemsGained: [LUCKY_PENNY],
           },
@@ -162,7 +162,7 @@ export const miscEvents: StoryEvent[] = [
           ],
           effects: {
             energyChange: 0,
-            statChanges: { stamina: 3 },
+            currency: { power: 4, quickness: 4 },
             relationshipChanges: { alison: 2, greg: 2, keith: 10 },
           },
         },
@@ -179,7 +179,7 @@ export const miscEvents: StoryEvent[] = [
           ],
           effects: {
             energyChange: 5,
-            statChanges: { stamina: 3 },
+            currency: { power: 4, quickness: 4 },
             relationshipChanges: { alison: -2, greg: -2, keith: -5 },
           },
         },
@@ -225,7 +225,7 @@ export const miscEvents: StoryEvent[] = [
           ],
           effects: {
             energyChange: -5,
-            statChanges: { speed: 3 },
+            currency: { power: 4, quickness: 11 },
             itemsGained: [STRAWBERRIES],
           },
         },
@@ -243,7 +243,7 @@ export const miscEvents: StoryEvent[] = [
           ],
           effects: {
             energyChange: 10,
-            statChanges: { anticipation: 2, stamina: 2, spin: 1 },
+            currency: { power: 4, quickness: 5, technique: 2, mind: 7 },
           },
         },
       },
@@ -289,7 +289,7 @@ export const miscEvents: StoryEvent[] = [
       ],
       effects: {
         energyChange: 10,
-        statChanges: { focus: -1, anticipation: -1, speed: -1, placement: 3 },
+        currency: { power: -1, quickness: -5, technique: 7, mind: -2 },
       },
     },
   },
@@ -318,7 +318,7 @@ export const miscEvents: StoryEvent[] = [
       ],
       effects: {
         energyChange: 5,
-        statChanges: { forehand: 1, backhand: 1, slice: 1, return: 1 },
+        currency: { power: 2, quickness: 4, technique: 7, mind: 1 },
       },
     },
   },
@@ -369,7 +369,7 @@ export const miscEvents: StoryEvent[] = [
       effects: {
         energyChange: -10,
         moodChange: 5,
-        statChanges: { tactics: 1, speed: 1 },
+        currency: { power: 1, quickness: 4, technique: 1, mind: 4 },
         relationshipChanges: { keith: 2, jen: 2 },
         itemsGained: [TENNIS_BALL_KEYCHAIN],
       },
@@ -414,7 +414,7 @@ export const miscEvents: StoryEvent[] = [
       effects: {
         energyChange: 15,
         moodChange: 10,
-        statChanges: { stamina: 2 },
+        currency: { power: 2, quickness: 2 },
         relationshipChanges: { keith: 5, jen: 5 },
         itemsGained: [MOTIVATIONAL_PLAYLIST],
       },
@@ -509,7 +509,7 @@ export const miscEvents: StoryEvent[] = [
         moodChange: 10,
         energyChange: 10,
         relationshipChanges: { keith: 5 },
-        statChanges: { focus: -2, speed: 2, anticipation: -1, stamina: 2 },
+        currency: { power: 5, quickness: 8, mind: -8 },
       },
     },
   },
@@ -575,7 +575,7 @@ export const miscEvents: StoryEvent[] = [
           ],
           effects: {
             energyChange: -15,
-            statChanges: { placement: 3, slice: 3, spin: 2 },
+            currency: { power: 2, technique: 19, mind: 4 },
           },
           challengesAssigned: [
             ChallengeManager.createFromTemplate(CHALLENGE_TOUCH_ARTIST, {
@@ -601,7 +601,7 @@ export const miscEvents: StoryEvent[] = [
           ],
           effects: {
             energyChange: -10,
-            statChanges: { placement: 2, net: 2, slice: 1 },
+            currency: { quickness: 2, technique: 10, mind: 2 },
             relationshipChanges: { keith: 5 },
           },
         },
@@ -645,7 +645,7 @@ export const miscEvents: StoryEvent[] = [
       effects: {
         energyChange: -20,
         moodChange: 15,
-        statChanges: { net: 4, strength: 3, speed: 2 },
+        currency: { power: 13, quickness: 12, technique: 5 },
         relationshipChanges: { jen: 3, keith: 3, max: 3 },
       },
       challengesAssigned: [
@@ -690,7 +690,7 @@ export const miscEvents: StoryEvent[] = [
           ],
           effects: {
             energyChange: -15,
-            statChanges: { speed: 4, stamina: 2 },
+            currency: { power: 7, quickness: 17 },
           },
           challengesAssigned: [
             ChallengeManager.createFromTemplate(CHALLENGE_NEED_FOR_SPEED, {
@@ -714,7 +714,7 @@ export const miscEvents: StoryEvent[] = [
           effects: {
             energyChange: -5,
             moodChange: -10,
-            statChanges: { strength: -2, net: -2, stamina: -2 },
+            currency: { power: -10, quickness: -5, technique: -2 },
           },
         },
       },
@@ -763,7 +763,7 @@ export const miscEvents: StoryEvent[] = [
           effects: {
             energyChange: -10,
             moodChange: 15,
-            statChanges: { speed: 3, spin: 2 },
+            currency: { power: 6, quickness: 11, technique: 5 },
             relationshipChanges: { keith: 8 },
           },
           challengesAssigned: [
@@ -791,7 +791,7 @@ export const miscEvents: StoryEvent[] = [
           ],
           effects: {
             energyChange: 5,
-            statChanges: { stamina: 3 },
+            currency: { power: 4, quickness: 4 },
             relationshipChanges: { keith: 2 },
             itemsGained: [BANANA],
           },
@@ -841,7 +841,7 @@ export const miscEvents: StoryEvent[] = [
       effects: {
         energyChange: -15,
         moodChange: 5,
-        statChanges: { net: 3, spin: 2, placement: 1 },
+        currency: { power: 2, quickness: 4, technique: 11, mind: 1 },
       },
       challengesAssigned: [
         ChallengeManager.createFromTemplate(CHALLENGE_NET_DOMINATOR, {
@@ -889,7 +889,7 @@ export const miscEvents: StoryEvent[] = [
           ],
           effects: {
             energyChange: -10,
-            statChanges: { net: 3, placement: 2, speed: 1 },
+            currency: { power: 1, quickness: 7, technique: 8, mind: 2 },
           },
         },
       },
@@ -906,7 +906,7 @@ export const miscEvents: StoryEvent[] = [
           ],
           effects: {
             energyChange: 5,
-            statChanges: { net: 2, slice: 1 },
+            currency: { quickness: 2, technique: 5 },
           },
         },
       },
@@ -965,7 +965,7 @@ export const miscEvents: StoryEvent[] = [
       effects: {
         energyChange: -20,
         moodChange: 5,
-        statChanges: { stamina: 4, speed: 2, strength: 2 },
+        currency: { power: 14, quickness: 12 },
         relationshipChanges: { keith: 5 },
         itemsGained: [ICE_BATH_VOUCHER],
       },
@@ -1013,7 +1013,7 @@ export const miscEvents: StoryEvent[] = [
       effects: {
         energyChange: -20,
         moodChange: -5,
-        statChanges: { speed: 4, stamina: 2 },
+        currency: { power: 7, quickness: 17 },
       },
     },
   },
@@ -1054,7 +1054,7 @@ export const miscEvents: StoryEvent[] = [
           effects: {
             energyChange: -20,
             moodChange: 10,
-            statChanges: { net: 3, strength: 3, stamina: 1 },
+            currency: { power: 12, quickness: 5, technique: 4 },
             relationshipChanges: { max: 5 },
           },
           challengesAssigned: [
@@ -1080,7 +1080,7 @@ export const miscEvents: StoryEvent[] = [
           effects: {
             energyChange: -10,
             moodChange: 5,
-            statChanges: { strength: 2, stamina: 2, net: 2 },
+            currency: { power: 10, quickness: 5, technique: 2 },
             relationshipChanges: { max: 3 },
           },
         },
@@ -1121,7 +1121,7 @@ export const miscEvents: StoryEvent[] = [
       effects: {
         energyChange: -10,
         moodChange: 5,
-        statChanges: { placement: 3, slice: 3 },
+        currency: { technique: 14, mind: 4 },
         relationshipChanges: { greg: 5 },
       },
       challengesAssigned: [
@@ -1173,7 +1173,7 @@ export const miscEvents: StoryEvent[] = [
       effects: {
         energyChange: -25,
         moodChange: 10,
-        statChanges: { focus: -2, stamina: -2, forehand: -1, anticipation: -2 },
+        currency: { power: -5, quickness: -5, technique: -1, mind: -12 },
         relationshipChanges: { keith: 8 },
       },
     },
@@ -1220,7 +1220,7 @@ export const miscEvents: StoryEvent[] = [
           effects: {
             energyChange: -15,
             moodChange: 5,
-            statChanges: { placement: -3, tactics: -2, focus: -1 },
+            currency: { technique: -10, mind: -13 },
             relationshipChanges: { keith: 5, jen: 3 },
           },
         },
@@ -1241,7 +1241,7 @@ export const miscEvents: StoryEvent[] = [
           ],
           effects: {
             energyChange: 5,
-            statChanges: { stamina: 2, placement: 1 },
+            currency: { power: 2, quickness: 2, technique: 2, mind: 1 },
             relationshipChanges: { keith: -2, jen: -2 },
           },
         },
@@ -1284,7 +1284,7 @@ export const miscEvents: StoryEvent[] = [
       effects: {
         energyChange: 5,
         moodChange: -10,
-        statChanges: { forehand: -3, tactics: -2, placement: -2 },
+        currency: { power: -7, technique: -11, mind: -10 },
       },
     },
   },
@@ -1343,7 +1343,7 @@ export const miscEvents: StoryEvent[] = [
           effects: {
             energyChange: -30,
             moodChange: 20,
-            statChanges: { stamina: -3, tactics: -2, net: 2, speed: 2 },
+            currency: { power: -1, quickness: 6, mind: -7 },
             relationshipChanges: { keith: 5, jen: 3 },
           },
         },
@@ -1365,7 +1365,7 @@ export const miscEvents: StoryEvent[] = [
           effects: {
             energyChange: -15,
             moodChange: 5,
-            statChanges: { speed: 2, net: 2, strength: 1 },
+            currency: { power: 6, quickness: 10, technique: 2 },
             relationshipChanges: { jen: 5 },
           },
         },
@@ -1404,7 +1404,7 @@ export const miscEvents: StoryEvent[] = [
       effects: {
         energyChange: 10,
         moodChange: 15,
-        statChanges: { anticipation: -3, focus: -2, tactics: -1, strength: 1 },
+        currency: { power: 4, quickness: -4, technique: -1, mind: -19 },
         relationshipChanges: { keith: 5, jen: 3 },
       },
     },
@@ -1442,7 +1442,7 @@ export const miscEvents: StoryEvent[] = [
       effects: {
         energyChange: -10,
         moodChange: -10,
-        statChanges: { tactics: 2, forehand: -2, placement: 1, slice: 1 },
+        currency: { power: -5, technique: 5, mind: 8 },
         relationshipChanges: { coach_gonzalez: 3 },
       },
     },
@@ -1486,7 +1486,7 @@ export const miscEvents: StoryEvent[] = [
       effects: {
         energyChange: 30,
         moodChange: -5,
-        statChanges: { anticipation: -3, stamina: 3, speed: -1 },
+        currency: { power: 2, quickness: -4, mind: -11 },
       },
     },
   },
@@ -1534,7 +1534,7 @@ export const miscEvents: StoryEvent[] = [
           effects: {
             energyChange: -20,
             moodChange: 15,
-            statChanges: { speed: 3, stamina: 3 },
+            currency: { power: 7, quickness: 14 },
             relationshipChanges: { jen: 5, keith: 5 },
             itemsGained: [ENERGY_DRINK],
           },
@@ -1564,7 +1564,7 @@ export const miscEvents: StoryEvent[] = [
           effects: {
             energyChange: -20,
             moodChange: 10,
-            statChanges: { net: 2, placement: 2, slice: 1, anticipation: 1 },
+            currency: { quickness: 4, technique: 10, mind: 6 },
             relationshipChanges: { jen: 3, keith: 3 },
           },
         },
@@ -1608,7 +1608,7 @@ export const miscEvents: StoryEvent[] = [
       effects: {
         energyChange: -10,
         moodChange: -10,
-        statChanges: { forehand: -1, backhand: -1, net: -1 },
+        currency: { power: -2, quickness: -2, technique: -5 },
         relationshipChanges: { max: 3, alison: 3, keith: 3 },
       },
     },
@@ -1664,7 +1664,7 @@ export const miscEvents: StoryEvent[] = [
       effects: {
         energyChange: 10,
         moodChange: 15,
-        statChanges: { anticipation: 2, stamina: 2 },
+        currency: { power: 2, quickness: 5, mind: 7 },
         itemsGained: [ORANGE_SLICE],
       },
     },
