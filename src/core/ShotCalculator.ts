@@ -24,7 +24,8 @@ import type {
 import { PointType } from '../types';
 import { EffectKey } from '../types/game';
 import { PlayerProfile } from './PlayerProfile';
-import { getPrimaryStatName } from './shotStatMapping';
+import { getPrimaryStatName, phaseOfShot } from './shotStatMapping';
+import { resolvePhaseSpec } from '../data/archetypeTree';
 import { getQualityThresholds, getMatchLevel } from '../utils/qualityThresholds';
 import { trace, isTracing } from './trace';
 import {
@@ -62,9 +63,19 @@ import {
   SHOT_CLASSIFICATIONS,
   SLICE_TUNING,
   BIG_POINT_NERVES,
+  SPECIALTY_AMPLIFY,
 } from '../config/shotThresholds';
 
 import { random } from './random';
+
+/** The shot's stat with the shooter's specialty boost, when the shot is in one of their phases. */
+function amplifyForSpecialty(shooter: PlayerProfile, shotType: ShotType, stat: number): number {
+  const phase = phaseOfShot(shotType);
+  const spec = phase ? resolvePhaseSpec(shooter.archetypeProfile, phase) : null;
+  if (!spec) return stat;
+  const boost = SPECIALTY_AMPLIFY.byTier[spec.tier] ?? 0;
+  return stat + boost * Math.max(0, stat - SPECIALTY_AMPLIFY.from);
+}
 /**
  * Sliding scale ranges for different shot difficulties and contexts
  * NOTE: Winner determination now uses quality thresholds, not probability
@@ -118,8 +129,13 @@ export class ShotCalculator {
   ): ShotResult {
     trace('Calculating shot success for', shotType);
     trace('Incoming shot quality:', incomingShot?.quality);
-    // Step 1: Get primary stat for this shot type
-    const primaryStat = shooterProfile.getStatForShot(shotType);
+    // Step 1: Get primary stat for this shot type, amplified on the shooter's
+    // specialty phases (SPECIALTY_AMPLIFY).
+    const primaryStat = amplifyForSpecialty(
+      shooterProfile,
+      shotType,
+      shooterProfile.getStatForShot(shotType),
+    );
 
     // Log serve stat for debugging
     if (shotType.includes('serve')) {
@@ -220,7 +236,14 @@ export class ShotCalculator {
       // cannot: serve-in% peaked at L=80 and then fell.
       const expectedAccuracy = Math.min(
         100,
-        Math.max(0, shooterProfile.getServeAccuracy(serveType) * modifiers.finalAdjustment),
+        Math.max(
+          0,
+          amplifyForSpecialty(
+            shooterProfile,
+            serveType,
+            shooterProfile.getServeAccuracy(serveType),
+          ) * modifiers.finalAdjustment,
+        ),
       );
       const serveAccuracy = Math.min(
         100,

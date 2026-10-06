@@ -13,6 +13,7 @@
  */
 
 import type { ShotType, StatName } from '../types';
+import type { GamePhase } from '../types/archetype';
 
 export function getPrimaryStatName(shotType: ShotType | string): StatName {
   const s = String(shotType);
@@ -31,4 +32,21 @@ export function getPrimaryStatName(shotType: ShotType | string): StatName {
   if (s.includes('backhand')) return 'backhand';
 
   return 'placement';
+}
+
+/**
+ * The game phase a shot belongs to, for phase specialties: the serve it is, a
+ * return, a net shot, or a forehand or backhand drive. Shots that run on another
+ * stat (slices, drops, lobs, angles, passes) belong to no phase, so a forehand
+ * specialty does not reach a forehand slice.
+ */
+export function phaseOfShot(shotType: ShotType | string): GamePhase | null {
+  const s = String(shotType);
+  if (s === 'serve_first') return 'first_serve';
+  if (s === 'serve_second') return 'second_serve';
+  const stat = getPrimaryStatName(s);
+  if (stat === 'return' || stat === 'net' || stat === 'forehand' || stat === 'backhand') {
+    return stat;
+  }
+  return null;
 }

@@ -980,6 +980,24 @@ export const MATCH_FORM = {
 };
 
 /**
+ * Phase specialties amplify the stat behind them. A player with a path in a
+ * phase has that phase's shot stat count extra on the phase's own shots:
+ * forehand paths on forehand drives, serve paths on that serve, return paths on
+ * returns, net paths on volleys and overheads:
+ *
+ *   effective = stat + byTier[tier] × max(0, stat - from)
+ *
+ * The boost is a share of the stat's excess over `from`, so a specialty does
+ * little on a stat nobody has trained and a lot on one they have. That is what
+ * makes committing to an archetype pay with the stats behind it. A path's
+ * behaviour effects (biases, risks) still set how it plays.
+ */
+export const SPECIALTY_AMPLIFY = {
+  from: 30,
+  byTier: [0, 0.5, 0.75, 1.0],
+};
+
+/**
  * Big-point nerves: on break, set and match points, shot variance widens, so
  * those points are less certain than routine ones. Focus narrows it.
  *
