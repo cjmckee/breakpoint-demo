@@ -54,12 +54,11 @@ export const AnchorTraining: React.FC = () => {
 
   // Item/ability effects that improve the session payout rather than the minigame itself.
   const trainingBonuses: TrainingBonuses = {
-    payoutBonus: EffectAggregator.getEffect(effects, EffectKey.TRAINING_STAT_UPGRADE_CHANCE),
+    doubleChance: EffectAggregator.getEffect(effects, EffectKey.TRAINING_STAT_UPGRADE_CHANCE),
     bonusRepChance: EffectAggregator.getEffect(effects, EffectKey.TRAINING_BONUS_SUPPORT_CHANCE),
   };
   /** What a clean three-for-three session on `core` pays — the card's headline. */
-  const bestPayout = (core: CoreStat): Amounts =>
-    trainingPayout(core, 3, trainingBonuses.payoutBonus);
+  const bestPayout = (core: CoreStat): Amounts => trainingPayout(core, 3);
 
   const resolve = (core: CoreStat, count: number): void => {
     const result = buildAnchorTrainingResult(core, count, trainingBonuses);
@@ -117,9 +116,7 @@ export const AnchorTraining: React.FC = () => {
                   <span className="w-16 text-pixel-text-muted">
                     {reps} rep{reps === 1 ? '' : 's'}
                   </span>
-                  <CurrencyAmounts
-                    amounts={trainingPayout(step.core, reps, trainingBonuses.payoutBonus)}
-                  />
+                  <CurrencyAmounts amounts={trainingPayout(step.core, reps)} />
                 </div>
               ))}
             </div>
