@@ -24,7 +24,6 @@ import {
   priceOf,
   purchase,
   stepMultiplier,
-  suggestPurchases,
   unitsOf,
   withStat,
 } from '../game/StatDevelopment';
@@ -184,20 +183,6 @@ function main(): void {
     'a serving-led match pays more Power than Quickness',
     (match.power ?? 0) > (match.quickness ?? 0),
     JSON.stringify(match),
-  );
-
-  console.log('\n── suggestions ──');
-  const earner = playerWith({ power: 12, quickness: 3, technique: 4, mind: 2 });
-  const picks = suggestPurchases(earner, trainingPayout('serve', 3), 'serve');
-  check('the anchor comes first when affordable', picks[0] === 'serve', picks.join(', '));
-  check(
-    'every suggestion is affordable',
-    picks.length > 0 && picks.every((st) => purchase(earner, [st]).success),
-  );
-  check(
-    'nothing is suggested to an empty wallet',
-    suggestPurchases(playerWith({ power: 0, quickness: 0, technique: 0, mind: 0 }), serve3)
-      .length === 0,
   );
 
   console.log(

@@ -58,7 +58,7 @@ test('a +1 the wallet cannot cover is disabled', async ({ page }) => {
   await expect(page.getByTestId('development-review')).toHaveCount(0);
 });
 
-test('training pays currency, and its result offers the anchor as a +1', async ({ page }) => {
+test('training pays currency, which buys the anchor in Development', async ({ page }) => {
   await loadSave(page, SAVE, 7);
   const before = (await readGame(page)).player!;
 
@@ -78,15 +78,13 @@ test('training pays currency, and its result offers the anchor as a +1', async (
   }
   expect(trained.stats.core.serve, 'training no longer grants stats').toBe(before.stats.core.serve);
 
-  // The save's wallet is empty, so one rep's pay buys the anchor if anything.
-  await grantCurrency(page, { power: 10, technique: 10 });
+  // One serve rep pays more than a serve point costs at the ×1 step.
   await page.getByTestId('training-result-dismiss').click();
-  await page.getByTestId('action-training').click();
-  await page.getByTestId('training-anchor-serve').click();
-  await page.getByTestId('training-quick-sim').click();
-
-  await page.getByTestId('quick-buy-serve').click();
-  await expect(page.getByTestId('quick-buy')).toContainText('Bought +1 Serve');
+  await page.getByTestId('action-development').click();
+  await page.getByTestId('development-plus-serve').click();
+  await page.getByTestId('development-review').click();
+  await page.getByTestId('development-confirm').click();
+  await expect(page.getByTestId('development-message')).toContainText('Bought 1');
   const bought = (await readGame(page)).player!;
   expect(bought.stats.core.serve).toBe(before.stats.core.serve + 1);
 });

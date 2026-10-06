@@ -8,7 +8,6 @@ import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
 import type { TrainingResult } from '../types/game';
 import { CurrencyAmounts } from './currency/CurrencyAmounts';
-import { QuickBuy } from './currency/QuickBuy';
 
 interface TrainingResultModalProps {
   isOpen: boolean;
@@ -54,7 +53,7 @@ export const TrainingResultModal: React.FC<TrainingResultModalProps> = ({
           )}
         </div>
 
-        {/* Currency earned, then what it buys right now */}
+        {/* Currency earned; it's spent on the Development screen */}
         <div className="bg-pixel-card border-4 border-pixel-border p-4">
           <h3 className="text-lg font-bold text-pixel-text mb-3">💰 Earned</h3>
           <CurrencyAmounts
@@ -65,7 +64,6 @@ export const TrainingResultModal: React.FC<TrainingResultModalProps> = ({
             testId="training-result-currency"
           />
         </div>
-        <QuickBuy earned={result.currencyGained} first={result.anchor} />
 
         {/* Ability Roll (Diamond Tier) */}
         {result.tier === 'diamond' &&
