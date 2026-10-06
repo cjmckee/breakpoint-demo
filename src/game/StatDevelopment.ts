@@ -90,6 +90,13 @@ export function applyCurrency(wallet: Wallet, delta: CurrencyAmounts): Wallet {
   return out;
 }
 
+/** The same amounts with the sign flipped: a price as a wallet change. */
+export function negate(amounts: CurrencyAmounts): CurrencyAmounts {
+  const out: CurrencyAmounts = {};
+  for (const c of CURRENCIES) if (amounts[c]) out[c] = -(amounts[c] ?? 0);
+  return out;
+}
+
 /** The sum of two amounts. */
 export function addAmounts(a: CurrencyAmounts, b: CurrencyAmounts): CurrencyAmounts {
   const out: CurrencyAmounts = {};

@@ -14,7 +14,7 @@
  */
 
 import { ABILITY_LEVEL_MULTIPLIER } from '../../config/shotThresholds';
-import { ABILITY_PRICES } from '../../config/economy';
+import { ABILITY_CURRENCY, ABILITY_PRICES } from '../../config/economy';
 import type { Currency } from './statEconomy';
 
 export type Rarity = 'common' | 'uncommon' | 'rare';
@@ -26,23 +26,29 @@ export interface BuyableAbility {
   currency: Currency;
 }
 
-export const BUYABLE: BuyableAbility[] = [
-  { id: 'heavy_hitter', rarity: 'common', currency: 'power' },
-  { id: 'overhead_smash', rarity: 'common', currency: 'power' },
-  { id: 'spin_master', rarity: 'common', currency: 'technique' },
-  { id: 'soft_hands', rarity: 'common', currency: 'technique' },
-  { id: 'baseliner', rarity: 'common', currency: 'technique' },
-  { id: 'netcrasher', rarity: 'common', currency: 'technique' },
-  { id: 'rangy_return', rarity: 'common', currency: 'quickness' },
-  { id: 'slider', rarity: 'common', currency: 'quickness' },
-  { id: 'serve_cannon', rarity: 'uncommon', currency: 'power' },
-  { id: 'speed_demon', rarity: 'uncommon', currency: 'quickness' },
-  { id: 'clutch', rarity: 'uncommon', currency: 'mind' },
-  { id: 'all_court_maestro', rarity: 'rare', currency: 'quickness' },
-  { id: 'mental_fortitude', rarity: 'rare', currency: 'mind' },
-  { id: 'pressure_cooker', rarity: 'rare', currency: 'mind' },
-  { id: 'iron_will', rarity: 'rare', currency: 'mind' },
+/** The shop's on-court abilities; each is priced in ABILITY_CURRENCY (economy.ts). */
+const BUYABLE_IDS: Array<Omit<BuyableAbility, 'currency'>> = [
+  { id: 'heavy_hitter', rarity: 'common' },
+  { id: 'overhead_smash', rarity: 'common' },
+  { id: 'spin_master', rarity: 'common' },
+  { id: 'soft_hands', rarity: 'common' },
+  { id: 'baseliner', rarity: 'common' },
+  { id: 'netcrasher', rarity: 'common' },
+  { id: 'rangy_return', rarity: 'common' },
+  { id: 'slider', rarity: 'common' },
+  { id: 'serve_cannon', rarity: 'uncommon' },
+  { id: 'speed_demon', rarity: 'uncommon' },
+  { id: 'clutch', rarity: 'uncommon' },
+  { id: 'all_court_maestro', rarity: 'rare' },
+  { id: 'mental_fortitude', rarity: 'rare' },
+  { id: 'pressure_cooker', rarity: 'rare' },
+  { id: 'iron_will', rarity: 'rare' },
 ];
+
+export const BUYABLE: BuyableAbility[] = BUYABLE_IDS.map((a) => ({
+  ...a,
+  currency: ABILITY_CURRENCY[a.id],
+}));
 
 /** Level-1 point-win gain, by identity (bigServer, counter, netRusher, baseliner). */
 const VALUES: Record<string, [number, number, number, number]> = {

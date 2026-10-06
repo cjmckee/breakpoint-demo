@@ -42,6 +42,7 @@ import { ALL_ITEMS } from '../data/items';
 import { DEFAULT_MATCH_SPEED, type MatchSpeed } from '../config/matchRewards';
 import { emptyWallet } from '../game/StatDevelopment';
 import { contentCurrency } from '../game/CurrencyIncome';
+import { generateDailyShopItems } from '../game/ShopSystem';
 import type { StatName } from '../types';
 
 export interface AudioSettings {
@@ -77,7 +78,8 @@ export interface PersistedStoreState {
 // 8: match speed became a persisted setting.
 // 9: the player gained a training-currency wallet.
 // 10: challenge rewards pay currency instead of stat boosts.
-export const CURRENT_STORE_VERSION = 10;
+// 11: the shop stopped selling stats, and abilities cost currency as well as XP.
+export const CURRENT_STORE_VERSION = 11;
 
 /** Saves below this version are wiped instead of migrated. See the header. */
 export const RESET_BEFORE_VERSION = 5;
@@ -223,12 +225,24 @@ function migrate9to10(state: PersistedStoreState): PersistedStoreState {
   };
 }
 
+/**
+ * 10 → 11: a saved day's stock may hold stat bundles, which are no longer
+ * sold, and abilities priced in XP alone. Restock it under the new rules; an
+ * empty shop (before day 7) stays empty.
+ */
+function migrate10to11(state: PersistedStoreState): PersistedStoreState {
+  if (state.shopItems.length === 0) return state;
+  const owned = new Map(state.player?.abilities.map((a) => [a.name, a.level]) ?? []);
+  return { ...state, shopItems: generateDailyShopItems(owned) };
+}
+
 const MIGRATIONS: Readonly<Record<number, MigrationFn | typeof NO_CHANGE>> = {
   6: migrate5to6,
   7: migrate6to7,
   8: migrate7to8,
   9: migrate8to9,
   10: migrate9to10,
+  11: migrate10to11,
 };
 
 // ----------------------------------------------------------------------------

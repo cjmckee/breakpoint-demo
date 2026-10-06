@@ -27,6 +27,8 @@ interface CurrencyAmountsProps {
   labelled?: boolean;
   className?: string;
   testId?: string;
+  /** Currencies the viewer can't cover, outlined in the error colour (prices only). */
+  short?: readonly Currency[];
 }
 
 /** A row of amounts in currency order, skipping zeros. Renders nothing when all are zero. */
@@ -36,6 +38,7 @@ export const CurrencyAmounts: React.FC<CurrencyAmountsProps> = ({
   labelled = false,
   className = '',
   testId,
+  short = [],
 }) => {
   const shown = CURRENCIES.filter((c) => Math.round(amounts[c] ?? 0) !== 0);
   if (shown.length === 0) return null;
@@ -50,7 +53,10 @@ export const CurrencyAmounts: React.FC<CurrencyAmountsProps> = ({
         return (
           <span
             key={c}
-            className={`inline-flex items-center gap-0.5 font-bold ${v < 0 ? 'text-pixel-error' : style.text}`}
+            className={`inline-flex items-center gap-0.5 font-bold ${
+              v < 0 ? 'text-pixel-error' : style.text
+            } ${short.includes(c) ? 'ring-2 ring-pixel-error px-1' : ''}`}
+            data-short={short.includes(c) || undefined}
             title={CURRENCY_LABELS[c]}
             data-currency={c}
             data-amount={v}
