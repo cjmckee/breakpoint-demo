@@ -18,7 +18,6 @@ import type {
   PointType,
 } from '../types';
 import { fatigueAfterPoint, fatigueAfterRest } from './fatigue';
-import { formAfterGame } from './rhythm';
 import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds';
 import { PlayerProfile } from './PlayerProfile';
 import { PointSimulator } from './PointSimulator';
@@ -90,6 +89,10 @@ export class MatchSimulator {
     this.scoreTracker = new ScoreTracker(config.matchFormat);
     this.matchStatistics = new MatchStatistics(config.player, config.opponent);
     this.momentumEngine = new MomentumEngine();
+    this.momentumEngine.reset({
+      player: config.player.stats.mental.focus,
+      opponent: config.opponent.stats.mental.focus,
+    });
 
     // Set initial server
     const initialServer = config.initialServer || this.determineInitialServer();
@@ -319,14 +322,14 @@ export class MatchSimulator {
       setWonBy,
     });
     this.matchState.momentum = this.momentumEngine.get();
+    this.config.player.matchForm =
+      this.config.player.matchDayForm + this.momentumEngine.getRhythm('player');
+    this.config.opponent.matchForm =
+      this.config.opponent.matchDayForm + this.momentumEngine.getRhythm('opponent');
 
-    // Changeover / set-break stamina recovery, scaled by each player's recovery stat,
-    // and each player's form takes its game-to-game step.
+    // Changeover / set-break stamina recovery, scaled by each player's recovery stat.
     if (game) {
       this.applyRestRecovery(!!setWonBy);
-      for (const p of [this.config.player, this.config.opponent]) {
-        p.matchForm = formAfterGame(p.matchForm, p.matchDayForm, p.stats.mental.focus);
-      }
     }
   }
 

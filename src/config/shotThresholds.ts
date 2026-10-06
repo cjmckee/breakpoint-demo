@@ -980,24 +980,6 @@ export const MATCH_FORM = {
 };
 
 /**
- * In-match rhythm: form that moves during a match instead of being fixed at the
- * first ball. After every game each player's form takes a random step and is
- * pulled part of the way back toward their match-day roll, so it wanders in
- * spells of a few games — a hot set, a cold patch — rather than deciding the
- * match before it starts. Focus steadies it.
- *
- *   form += -reversion × (form - matchDayRoll) + swing × (1 - focusDamping × focus/100) × z
- *
- * with z roughly standard normal. Spread settles near swing / sqrt(2·reversion).
- * swing 0 turns rhythm off (form stays at the match-day roll).
- */
-export const MATCH_RHYTHM = {
-  swing: 0,
-  reversion: 0.2,
-  focusDamping: 0.5,
-};
-
-/**
  * Big-point nerves: on break, set and match points, shot variance widens, so
  * those points are less certain than routine ones. Focus narrows it.
  *
@@ -1112,6 +1094,22 @@ export const MOMENTUM = {
    * lerps momentum a large fraction of the way to a strong value in the breaker's
    * favour, so it can flip the sign outright even against a prior run of play.
    */
+  /**
+   * Rhythm: the slow, uncaused part of momentum (see MomentumEngine). After every
+   * game each player's rhythm moves by
+   *
+   *   -reversion × rhythm + swing × (1 - focusDamping × focus/100) × z
+   *
+   * with z roughly standard normal, in shot-quality points added to match-day
+   * form. Spread settles near swing / sqrt(2·reversion); reversion 0.12 makes
+   * spells about a set long. swing 0 turns rhythm off and draws no randomness.
+   */
+  rhythm: {
+    swing: 0,
+    reversion: 0.12,
+    focusDamping: 0.5,
+  },
+
   breakOfServe: {
     target: 45, // absolute momentum a break pulls toward (signed to the breaker)
     takeover: 0.5, // fraction of the way to target (still flips through 0, a touch gentler)

@@ -213,7 +213,7 @@ export class PlayerProfile implements IPlayerProfile {
    */
   public matchForm: number = 0;
 
-  /** The match-day roll itself; in-match rhythm (core/rhythm.ts) drifts around it. */
+  /** The match-day roll itself; momentum's rhythm (MomentumEngine) drifts around it. */
   public matchDayForm: number = 0;
 
   /**

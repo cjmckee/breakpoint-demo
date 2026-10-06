@@ -244,10 +244,18 @@ neither. The match-day roll is: whoever rolls the better day tends to win both s
 the roll (round 1's proposal) buys upsets but makes matches even more decided at the first ball
 (three-setters 7.5%).
 
-**New mechanics (off by default, `88d39c8`).** `MATCH_RHYTHM` (`core/rhythm.ts`): after every
-game each player's form takes a random step and is pulled back toward their match-day roll, so it
-runs in spells; focus steadies it. Wired into MatchSimulator and MatchOrchestrator.
-`BIG_POINT_NERVES`: shot variance widens on key points, narrowed by focus.
+**New mechanics (off by default).** Rhythm, first built as its own system (`88d39c8`) and then
+folded into momentum: `MomentumEngine` now has a slow, per-player part next to the fast,
+result-driven one. After every game each player's rhythm takes a random step and drifts back
+toward zero, so it runs in spells about a set long; focus steadies it. Breaks and set resets act
+on the result-driven part only, so a set won does not end a hot spell. Rhythm is in shot-quality
+points and reaches shots through match-day form, because momentum's own quality modifier is
+capped at ±10%, too small to carry it. Config: `MOMENTUM.rhythm`. `BIG_POINT_NERVES`: shot
+variance widens on key points, narrowed by focus.
+
+Momentum alone cannot do this job: it follows results (winning points pushes it your way), so
+it reinforces whoever is already ahead, usually the stronger player, and it fades within a game
+(×0.9 per point).
 
 N=400–500 BO3 per row; "impact kept" is the point-win drop from a 0- to a 10-point gap, relative
 to today, so 100% means stats move point-win exactly as much as now:
@@ -263,15 +271,16 @@ to today, so 100% means stats move point-win exactly as much as now:
 | form ±12, rhythm 3, slow    | 71%         | 36 / 23 / 14 / 2.2                 | 14.0%         | 6.8%             |
 | **form ±8, rhythm 4, slow** | **84%**     | **38 / 22 / 6.2 / 1.6**            | **23.6%**     | **15.2%**        |
 
-("slow" = reversion 0.12, longer spells.)
+("slow" = reversion 0.12, longer spells. Re-run after folding rhythm into momentum, N=1000:
+form ±8, rhythm 4 gives 22% / 7.9% upsets at gaps 6 / 10, 21.6% three-setters, 14.4% comebacks.)
 
-**Proposal.** `MATCH_RHYTHM.swing` 0 → 4, `reversion` 0.2 → 0.12; leave `MATCH_FORM` at 8. Same
+**Proposal.** `MOMENTUM.rhythm.swing` 0 → 4 (reversion 0.12 is the default); leave `MATCH_FORM` at 8. Same
 cost to stat impact as the wider roll, same upset rate at small and medium gaps, twice the
 three-set matches and three times the comebacks, and big mismatches stay mostly safe (6% at a
 10-point gap rather than 12%). Weaker players win by getting hot mid-match, not by rolling a good
 day; focus gains a job. Nerves add little and can stay off.
 
-Reproduce: `TUNE='MATCH_RHYTHM.swing=4;MATCH_RHYTHM.reversion=0.12' PROBE=serveAndUpsetProbe SECTIONS=upset npx tsx src/test/analysis/tuneRun.ts`
+Reproduce: `TUNE='MOMENTUM.rhythm.swing=4' PROBE=serveAndUpsetProbe SECTIONS=upset npx tsx src/test/analysis/tuneRun.ts`
 
 ### Identities: specialties are flat trades that don't grow with their stat
 

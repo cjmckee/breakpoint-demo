@@ -36,7 +36,6 @@ import {
 import { PRESSURE_BANK, KEY_MOMENT_OPPONENT_DRAIN } from '../config/shotThresholds';
 import { abilityEffects } from '../core/EffectAggregator';
 import { fatigueAfterPoint, fatigueAfterRest } from '../core/fatigue';
-import { formAfterGame } from '../core/rhythm';
 import { MomentumEngine, ClutchLevel } from '../core/MomentumEngine';
 import { getPrimaryStatName } from '../core/shotStatMapping';
 import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds';
@@ -286,7 +285,10 @@ export class MatchOrchestrator {
     this.matchMood = config.mood ?? 0;
     this.accumulatedEffects = { energyDelta: 0, moodDelta: 0, opponentEnergyDelta: 0 };
     this.momentum = 0;
-    this.momentumEngine.reset();
+    this.momentumEngine.reset({
+      player: player.stats.mental.focus,
+      opponent: opponent.stats.mental.focus,
+    });
     this.pressureBank = 0;
 
     // Reset tiebreak tracking state for this match
@@ -1165,6 +1167,12 @@ export class MatchOrchestrator {
     }
 
     this.momentum = this.momentumEngine.get();
+    if (this.playerProfile && this.opponentProfile) {
+      this.playerProfile.matchForm =
+        this.playerProfile.matchDayForm + this.momentumEngine.getRhythm('player');
+      this.opponentProfile.matchForm =
+        this.opponentProfile.matchDayForm + this.momentumEngine.getRhythm('opponent');
+    }
   }
 
   /**
@@ -1226,7 +1234,7 @@ export class MatchOrchestrator {
 
   /**
    * Apply changeover (game end) or set-break stamina recovery to both players,
-   * scaled by each player's recovery stat, and step each player's in-match form.
+   * scaled by each player's recovery stat.
    */
   private applyRestRecovery(setCompleted: boolean): void {
     if (!this.playerStats || !this.opponentStats) return;
@@ -1240,9 +1248,6 @@ export class MatchOrchestrator {
       this.opponentStats.physical.stamina,
       setCompleted,
     );
-    for (const p of [this.playerProfile, this.opponentProfile]) {
-      if (p) p.matchForm = formAfterGame(p.matchForm, p.matchDayForm, p.stats.mental.focus);
-    }
   }
 
   /**
