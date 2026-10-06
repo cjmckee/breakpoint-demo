@@ -81,6 +81,8 @@ interface MatchState {
   setKeyMomentResult: (result: KeyMomentResult) => Promise<void>;
   hideKeyMomentResult: () => void;
   resumeFromTutorial: () => void;
+  /** Apply a new between-point delay to the running match, including its current pause. */
+  setPointDelay: (pointDelayMs: number) => void;
   endMatch: () => void;
   resetMatch: () => void;
 }
@@ -313,6 +315,11 @@ export const useMatchStore = create<MatchState>((set, get) => ({
     if (tutorialPauseResolver) {
       tutorialPauseResolver();
     }
+  },
+
+  // Change match speed mid-match
+  setPointDelay: (pointDelayMs: number) => {
+    get().orchestrator?.setPointDelay(pointDelayMs);
   },
 
   // End match early

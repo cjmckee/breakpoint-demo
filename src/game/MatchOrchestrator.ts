@@ -94,6 +94,11 @@ export class MatchOrchestrator {
   private matchStatistics: MatchStatistics | null = null;
   private pointSimulator: PointSimulator | null = null;
   private cancelled = false;
+  // Live pause between points. Seeded from config at match start, then changed
+  // mid-match through setPointDelay when the player picks another match speed.
+  private pointDelayMs = DEFAULT_POINT_DELAY_MS;
+  // Ends the pending between-point pause early so a new delay applies at once.
+  private wakePointDelay: (() => void) | null = null;
   private playerStats: PlayerStats | null = null;
   private opponentStats: PlayerStats | null = null;
 
@@ -311,6 +316,8 @@ export class MatchOrchestrator {
     this.tiebreakFirstServer = null;
     this.tiebreakPointsPlayed = 0;
 
+    this.pointDelayMs = config.pointDelayMs ?? DEFAULT_POINT_DELAY_MS;
+
     // Match state
     let isComplete = false;
     let currentScore: MatchScore = this.initializeScore();
@@ -488,11 +495,10 @@ export class MatchOrchestrator {
       isComplete = this.isMatchComplete(currentScore);
 
       // Pause between points so the UI can animate them. Skipped when the match
-      // is complete (show the final score immediately) and when the caller opts
-      // out with pointDelayMs: 0 (offline analysis).
-      const pointDelayMs = config.pointDelayMs ?? DEFAULT_POINT_DELAY_MS;
-      if (!isComplete && pointDelayMs > 0) {
-        await new Promise((resolve) => setTimeout(resolve, pointDelayMs));
+      // is complete (show the final score immediately) and when the delay is 0
+      // (instant speed, offline analysis).
+      if (!isComplete) {
+        await this.waitBetweenPoints();
       }
     }
 
@@ -919,6 +925,38 @@ export class MatchOrchestrator {
    */
   public cancelMatch(): void {
     this.cancelled = true;
+    this.wakePointDelay?.();
+  }
+
+  /**
+   * Change the pause between points mid-match. Takes effect on the pause already
+   * under way: it is re-measured against the new delay from when it started, so
+   * switching to a faster speed (or instant) cuts the current wait short.
+   */
+  public setPointDelay(pointDelayMs: number): void {
+    this.pointDelayMs = pointDelayMs;
+    this.wakePointDelay?.();
+  }
+
+  /**
+   * Wait out the between-point pause, re-reading the live delay whenever
+   * setPointDelay wakes it. Returns without awaiting when the delay is 0.
+   */
+  private async waitBetweenPoints(): Promise<void> {
+    const startedAt = Date.now();
+    let remaining = this.pointDelayMs;
+    while (remaining > 0 && !this.cancelled) {
+      await new Promise<void>((resolve) => {
+        const wake = (): void => {
+          clearTimeout(timer);
+          this.wakePointDelay = null;
+          resolve();
+        };
+        const timer = setTimeout(wake, remaining);
+        this.wakePointDelay = wake;
+      });
+      remaining = this.pointDelayMs - (Date.now() - startedAt);
+    }
   }
 
   /**
