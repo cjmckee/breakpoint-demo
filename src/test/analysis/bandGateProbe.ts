@@ -31,11 +31,10 @@
  * Env: N=400 (BO3)  SEED=1  LO=25 HI=90  POINTS=6  MAX_TIER=3
  */
 
-import type { MatchFormat, MatchState, PlayerStats, ShotDetail, ShotType } from '../../types';
+import type { PlayerStats, ShotDetail, ShotType } from '../../types';
 import type { ArchetypeProfile } from '../../types/archetype';
 import { PlayerProfile } from '../../core/PlayerProfile';
-import { PointSimulator } from '../../core/PointSimulator';
-import { ScoreTracker } from '../../core/ScoreTracker';
+import { playMatch } from './simMatch';
 import {
   SHOT_CLASSIFICATIONS,
   STAT_MODIFIER_BANDS,
@@ -44,15 +43,9 @@ import {
   isDefensiveShot,
   isOffensiveShot,
 } from '../../config/shotThresholds';
-import {
-  aggregateArchetypeEffects,
-  profileForArchetype,
-  type LegacyArchetype,
-} from '../../data/archetypeTree';
+import { profileForArchetype, type LegacyArchetype } from '../../data/archetypeTree';
 import { drawPlayerProfile } from './playerFactory';
-import { fatigueAfterPoint } from '../../core/fatigue';
 
-const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
 const LEGACY: LegacyArchetype[] = [
   'aggressive',
   'defensive',
@@ -78,10 +71,6 @@ function uniformStats(r: number): PlayerStats {
     physical: { speed: r, stamina: r, strength: r },
     mental: { focus: r, anticipation: r, tactics: r },
   };
-}
-
-function calcFatigue(cur: number, rally: number, stam: number): number {
-  return fatigueAfterPoint(cur, rally, stam);
 }
 
 const inList = (list: readonly ShotType[], t: ShotType): boolean => list.includes(t);
@@ -193,40 +182,10 @@ function main(): void {
     const oProf = opponentProf();
     const p = new PlayerProfile('p', 'P', drawStats(), pProf);
     const o = new PlayerProfile('o', 'O', drawStats(), oProf);
-    const pEff = aggregateArchetypeEffects(pProf);
-    const oEff = aggregateArchetypeEffects(oProf);
 
-    const tracker = new ScoreTracker(BO3);
-    tracker.setInitialServer(i % 2 === 0 ? 'player' : 'opponent');
-    p.rollMatchForm();
-    o.rollMatchForm();
-    const sim = new PointSimulator();
-    const ms: MatchState = {
-      score: tracker.getScore(),
-      currentServer: tracker.getCurrentServer(),
-      courtSurface: 'hard',
-      momentum: 0,
-      pressure: 'low',
-      matchLength: 0,
-      pointsPlayed: 0,
-      isKeyMoment: false,
-      fatigue: { player: 0, opponent: 0 },
-    };
-
-    let pts = 0;
-    while (!tracker.isComplete() && pts < 600) {
-      const server = tracker.getCurrentServer();
-      ms.isKeyMoment = tracker.isKeyMoment();
-      const pr = sim.simulatePoint(
-        server,
-        server === 'player' ? p : o,
-        server === 'player' ? o : p,
-        ms,
-        pEff,
-        oEff,
-      );
-
-      pr.shots.forEach((s: ShotDetail) => {
+    for (const pt of playMatch(p, o, { initialServer: i % 2 === 0 ? 'player' : 'opponent' })
+      .points) {
+      pt.shots.forEach((s: ShotDetail) => {
         const t = s.shotType;
         if (String(t).includes('serve') && !String(t).includes('volley')) return;
         rallyShots++;
@@ -239,19 +198,6 @@ function main(): void {
           if (!byShot && byCtx) c.contextOnly++;
         }
       });
-
-      tracker.addPoint(
-        pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player',
-      );
-      ms.fatigue.player = calcFatigue(ms.fatigue.player, pr.rallyLength, p.stats.physical.stamina);
-      ms.fatigue.opponent = calcFatigue(
-        ms.fatigue.opponent,
-        pr.rallyLength,
-        o.stats.physical.stamina,
-      );
-      ms.score = tracker.getScore();
-      ms.currentServer = tracker.getCurrentServer();
-      ms.pointsPlayed = ++pts;
     }
   }
 

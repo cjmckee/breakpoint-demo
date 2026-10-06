@@ -22,16 +22,11 @@
  * Env: N=150 (BO3 per build)  L=45 (uniform rating)  BUILDS=all|baseline
  */
 
-import type { MatchFormat, MatchState, PlayerStats, ShotDetail } from '../../types';
+import type { PlayerStats, ShotDetail } from '../../types';
 import { PointType } from '../../types';
 import type { ArchetypeProfile, PhaseSpec, GamePhase } from '../../types/archetype';
 import { PlayerProfile } from '../../core/PlayerProfile';
-import { PointSimulator } from '../../core/PointSimulator';
-import { ScoreTracker } from '../../core/ScoreTracker';
-import { aggregateArchetypeEffects } from '../../data/archetypeTree';
-import { fatigueAfterPoint } from '../../core/fatigue';
-
-const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
+import { playMatch } from './simMatch';
 
 const profileOf = (
   phases: Partial<Record<GamePhase, PhaseSpec>>,
@@ -53,10 +48,6 @@ function uniform(r: number): PlayerStats {
     physical: { speed: r, stamina: r, strength: r },
     mental: { focus: r, anticipation: r, tactics: r },
   };
-}
-
-function calcFatigue(cur: number, rally: number, stam: number): number {
-  return fatigueAfterPoint(cur, rally, stam);
 }
 
 interface Anatomy {
@@ -125,51 +116,25 @@ function family(t: string): string {
 }
 
 function run(prof: ArchetypeProfile, level: number, n: number): Anatomy {
-  const eff = aggregateArchetypeEffects(prof);
   const a = newAnatomy();
   for (let i = 0; i < n; i++) {
     const p = new PlayerProfile('p', 'P', uniform(level), prof);
     const o = new PlayerProfile('o', 'O', uniform(level), prof);
-    const tracker = new ScoreTracker(BO3);
-    tracker.setInitialServer(i % 2 === 0 ? 'player' : 'opponent');
-    p.rollMatchForm();
-    o.rollMatchForm();
-    const sim = new PointSimulator();
-    const ms: MatchState = {
-      score: tracker.getScore(),
-      currentServer: tracker.getCurrentServer(),
-      courtSurface: 'hard',
-      momentum: 0,
-      pressure: 'low',
-      matchLength: 0,
-      pointsPlayed: 0,
-      isKeyMoment: false,
-      fatigue: { player: 0, opponent: 0 },
-    };
-    let pts = 0;
-    while (!tracker.isComplete() && pts < 600) {
-      const server = tracker.getCurrentServer();
-      ms.isKeyMoment = tracker.isKeyMoment();
-      const pr = sim.simulatePoint(
-        server,
-        server === 'player' ? p : o,
-        server === 'player' ? o : p,
-        ms,
-        eff,
-        eff,
-      );
-      const winner = pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player';
+    for (const pt of playMatch(p, o, { initialServer: i % 2 === 0 ? 'player' : 'opponent' })
+      .points) {
+      const server = pt.server;
+      const winner = pt.winner;
       const role = server === 'player' ? 'server' : 'returner';
 
       a.points++;
-      a.rallyLen.push(pr.rallyLength);
-      a.endings.set(pr.pointType, (a.endings.get(pr.pointType) ?? 0) + 1);
-      const pastReturn = pr.rallyLength >= 3;
+      a.rallyLen.push(pt.rallyLength);
+      a.endings.set(pt.pointType, (a.endings.get(pt.pointType) ?? 0) + 1);
+      const pastReturn = pt.rallyLength >= 3;
       if (pastReturn) a.ralliesPastReturn++;
 
       let arrived = false;
       let approachLanded = false;
-      for (const s of pr.shots as ShotDetail[]) {
+      for (const s of pt.shots as ShotDetail[]) {
         if (s.shooter !== role) continue;
         const t = String(s.shotType);
         const fam = family(t);
@@ -200,17 +165,6 @@ function run(prof: ArchetypeProfile, level: number, n: number): Anatomy {
         a.cameForward++;
         if (pastReturn) a.cameForwardPastReturn++;
       }
-
-      tracker.addPoint(winner);
-      ms.fatigue.player = calcFatigue(ms.fatigue.player, pr.rallyLength, p.stats.physical.stamina);
-      ms.fatigue.opponent = calcFatigue(
-        ms.fatigue.opponent,
-        pr.rallyLength,
-        o.stats.physical.stamina,
-      );
-      ms.score = tracker.getScore();
-      ms.currentServer = tracker.getCurrentServer();
-      ms.pointsPlayed = ++pts;
     }
   }
   return a;

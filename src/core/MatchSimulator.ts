@@ -38,6 +38,23 @@ export interface MatchConfig {
   matchFormVariance?: number;
   /** Player mood (-100 to 100), used to bias the player's (not opponent's) form roll. */
   playerMood?: number;
+  /**
+   * Effects from outside the archetype (ability `additional` modifiers), added
+   * on top of each player's archetype effects, as MatchOrchestrator does.
+   */
+  playerEffects?: Record<string, number>;
+  opponentEffects?: Record<string, number>;
+}
+
+function addEffects(
+  base: Record<string, number>,
+  extra: Record<string, number> = {},
+): Record<string, number> {
+  const out = { ...base };
+  for (const [key, value] of Object.entries(extra)) {
+    out[key] = (out[key] || 0) + value;
+  }
+  return out;
 }
 
 export class MatchSimulator {
@@ -54,14 +71,20 @@ export class MatchSimulator {
   private pointKeyMoments: boolean[] = []; // Track isKeyMoment status for each point
   private startTime: number;
 
-  // Archetype behavior effects, derived from each player's chosen specialties.
+  // Archetype behavior effects, plus any ability effects passed in the config.
   private playerEffects: Record<string, number>;
   private opponentEffects: Record<string, number>;
 
   constructor(config: MatchConfig) {
     this.config = config;
-    this.playerEffects = aggregateArchetypeEffects(config.player.archetypeProfile);
-    this.opponentEffects = aggregateArchetypeEffects(config.opponent.archetypeProfile);
+    this.playerEffects = addEffects(
+      aggregateArchetypeEffects(config.player.archetypeProfile),
+      config.playerEffects,
+    );
+    this.opponentEffects = addEffects(
+      aggregateArchetypeEffects(config.opponent.archetypeProfile),
+      config.opponentEffects,
+    );
     this.pointSimulator = new PointSimulator();
     this.scoreTracker = new ScoreTracker(config.matchFormat);
     this.matchStatistics = new MatchStatistics(config.player, config.opponent);
@@ -99,7 +122,9 @@ export class MatchSimulator {
     );
 
     let pointCount = 0;
-    const maxPoints = 200; // Safety limit to prevent infinite matches
+    // Safety limit against a runaway loop only. A long best-of-three runs past 200
+    // points (three sets with tiebreaks is ~250), so the cap sits well above that.
+    const maxPoints = 1000;
 
     while (!this.scoreTracker.isComplete() && pointCount < maxPoints) {
       // Simulate one point

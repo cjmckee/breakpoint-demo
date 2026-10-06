@@ -1,17 +1,15 @@
 /**
  * Quick empirical check: does MatchStatistics.pointsWon agree with direct
- * point tallies from the match loop? (Investigating a serve/return
+ * point tallies from the match's own points? (Investigating a serve/return
  * attribution discrepancy noticed during character balance sims.)
  *
  * Run with: npm run build:node && node --experimental-specifier-resolution=node dist/src/test/analysis/statsCheck.js
  */
 
-import type { MatchFormat, MatchState, PlayerStats } from '../../types';
+import type { PlayerStats } from '../../types';
 import { PlayerProfile } from '../../core/PlayerProfile';
-import { PointSimulator } from '../../core/PointSimulator';
-import { ScoreTracker } from '../../core/ScoreTracker';
-import { MatchStatistics } from '../../core/MatchStatistics';
 import { OPPONENTS_BY_TIER, getOpponentArchetypeProfile } from '../../data/opponents';
+import { BO1, playMatch } from './simMatch';
 
 const CHARACTER: PlayerStats = {
   core: { serve: 72, forehand: 56, backhand: 45, return: 52, net: 41 },
@@ -19,8 +17,6 @@ const CHARACTER: PlayerStats = {
   physical: { speed: 53, stamina: 66, strength: 47 },
   mental: { focus: 57, anticipation: 42, tactics: 55 },
 };
-
-const BO1: MatchFormat = { bestOfSets: 1, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
 
 const yuki = OPPONENTS_BY_TIER[2][4];
 const yukiProfile = getOpponentArchetypeProfile(yuki);
@@ -42,60 +38,27 @@ const N = 100;
 for (let i = 0; i < N; i++) {
   const player = new PlayerProfile('character', 'You', CHARACTER);
   const opponent = new PlayerProfile('yuki', yuki.name, yuki.stats, yukiProfile);
-  const tracker = new ScoreTracker(BO1);
-  tracker.setInitialServer(Math.random() < 0.5 ? 'player' : 'opponent');
-  const pointSim = new PointSimulator();
-  const stats = new MatchStatistics(player, opponent);
+  const match = playMatch(player, opponent, { format: BO1 });
 
-  const matchState: MatchState = {
-    score: tracker.getScore(),
-    currentServer: tracker.getCurrentServer(),
-    courtSurface: 'hard',
-    momentum: 0,
-    pressure: 'low',
-    matchLength: 0,
-    pointsPlayed: 0,
-    isKeyMoment: false,
-    fatigue: { player: 0, opponent: 0 },
-  };
-
-  let points = 0;
-  while (!tracker.isComplete() && points < 600) {
-    const server = tracker.getCurrentServer();
-    const serverProfile = server === 'player' ? player : opponent;
-    const returnerProfile = server === 'player' ? opponent : player;
-    const breakPointFor = tracker.getBreakPointFor();
-
-    const pr = pointSim.simulatePoint(server, serverProfile, returnerProfile, matchState, {}, {});
-    const pointWinner =
-      pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player';
-    tracker.addPoint(pointWinner);
-    stats.addPointResult(pr, server, breakPointFor);
-
-    if (server === 'player') {
+  for (const pt of match.points) {
+    if (pt.server === 'player') {
       directPlayerServeTotal++;
-      if (pointWinner === 'player') directPlayerServeWon++;
+      if (pt.winner === 'player') directPlayerServeWon++;
       else {
         directOppReturnWon++;
-        if (pr.pointType === 'double_fault') dfByPlayer++;
+        if (pt.pointType === 'double_fault') dfByPlayer++;
       }
     } else {
       directOppServeTotal++;
-      if (pointWinner === 'opponent') directOppServeWon++;
+      if (pt.winner === 'opponent') directOppServeWon++;
       else {
         directPlayerReturnWon++;
-        if (pr.pointType === 'double_fault') dfByOpp++;
+        if (pt.pointType === 'double_fault') dfByOpp++;
       }
     }
-
-    points++;
-    matchState.score = tracker.getScore();
-    matchState.currentServer = tracker.getCurrentServer();
-    matchState.pointsPlayed = points;
   }
 
-  stats.finalizeStatistics();
-  const s = stats.getStatistics();
+  const s = match.statistics;
   statsPlayerServe += s.pointsWon.player.serve;
   statsPlayerReturn += s.pointsWon.player.return;
   statsOppServe += s.pointsWon.opponent.serve;

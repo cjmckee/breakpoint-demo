@@ -32,16 +32,11 @@
  *            'average' use those thresholds instead of 'high'.
  */
 
-import type { MatchFormat, MatchState, PlayerStats, ShotDetail } from '../../types';
+import type { PlayerStats, ShotDetail } from '../../types';
 import { PointType } from '../../types';
 import type { ArchetypeProfile, PhaseSpec, GamePhase } from '../../types/archetype';
 import { PlayerProfile } from '../../core/PlayerProfile';
-import { PointSimulator } from '../../core/PointSimulator';
-import { ScoreTracker } from '../../core/ScoreTracker';
-import { aggregateArchetypeEffects } from '../../data/archetypeTree';
-import { fatigueAfterPoint } from '../../core/fatigue';
-
-const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
+import { playMatch } from './simMatch';
 
 const uniform = (r: number): PlayerStats => ({
   core: { serve: r, forehand: r, backhand: r, return: r, net: r },
@@ -55,12 +50,6 @@ function profileOf(
   broad: ArchetypeProfile['broad'] = null,
 ): ArchetypeProfile {
   return { broad, phases, specializationPoints: 0, respecTokens: 0 };
-}
-
-// Recovery reads stamina too; the extra argument is kept so call sites read as before.
-function calcFatigue(cur: number, rally: number, stam: number, rec: number): number {
-  void rec;
-  return fatigueAfterPoint(cur, rally, stam);
 }
 
 const isVolley = (t: string): boolean => t.includes('volley');
@@ -238,59 +227,10 @@ function scorePoint(shots: ShotDetail[], role: 'server' | 'returner', t: Tally):
   traceNetSequence(shots, role, t);
 }
 
-function runMatch(
-  p: PlayerProfile,
-  o: PlayerProfile,
-  eff: Record<string, number>,
-  oEff: Record<string, number>,
-  t: Tally,
-): void {
-  const tracker = new ScoreTracker(BO3);
-  tracker.setInitialServer(Math.random() < 0.5 ? 'player' : 'opponent');
-  p.rollMatchForm();
-  o.rollMatchForm();
-  const sim = new PointSimulator();
-  const ms: MatchState = {
-    score: tracker.getScore(),
-    currentServer: tracker.getCurrentServer(),
-    courtSurface: 'hard',
-    momentum: 0,
-    pressure: 'low',
-    matchLength: 0,
-    pointsPlayed: 0,
-    isKeyMoment: false,
-    fatigue: { player: 0, opponent: 0 },
-  };
-  let pts = 0;
-  while (!tracker.isComplete() && pts < 600) {
-    const server = tracker.getCurrentServer();
-    ms.isKeyMoment = tracker.isKeyMoment();
-    const pr = sim.simulatePoint(
-      server,
-      server === 'player' ? p : o,
-      server === 'player' ? o : p,
-      ms,
-      eff,
-      oEff,
-    );
-    scorePoint(pr.shots, server === 'player' ? 'server' : 'returner', t);
-    const w = pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player';
-    tracker.addPoint(w);
-    ms.fatigue.player = calcFatigue(
-      ms.fatigue.player,
-      pr.rallyLength,
-      p.stats.physical.stamina,
-      p.stats.physical.stamina,
-    );
-    ms.fatigue.opponent = calcFatigue(
-      ms.fatigue.opponent,
-      pr.rallyLength,
-      o.stats.physical.stamina,
-      o.stats.physical.stamina,
-    );
-    ms.score = tracker.getScore();
-    ms.currentServer = tracker.getCurrentServer();
-    ms.pointsPlayed = ++pts;
+function runMatch(p: PlayerProfile, o: PlayerProfile, t: Tally): void {
+  for (const pt of playMatch(p, o).points) {
+    const server = pt.server;
+    scorePoint(pt.shots, server === 'player' ? 'server' : 'returner', t);
   }
 }
 
@@ -339,15 +279,11 @@ function main(): void {
 
   const tallies: Array<[string, Tally]> = [];
   for (const [name, prof] of BUILDS) {
-    const eff = aggregateArchetypeEffects(prof);
-    const base = aggregateArchetypeEffects(profileOf({}));
     const t = newTally();
     for (let i = 0; i < N; i++) {
       runMatch(
         new PlayerProfile('p', 'P', uniform(L), prof),
         new PlayerProfile('o', 'O', uniform(L), profileOf({})),
-        eff,
-        base,
         t,
       );
     }
