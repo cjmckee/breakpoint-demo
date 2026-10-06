@@ -24,7 +24,6 @@ import { ChallengeManager } from '../game/ChallengeManager';
 import { MatchRewardSystem } from '../game/MatchRewardSystem';
 import { buildAnchorTrainingResult, NO_TRAINING_BONUSES } from '../game/AnchorTrainingSystem';
 import { unitsOf } from '../game/StatDevelopment';
-import { INCOME_SCALE, TRAINING_PAYOUT } from '../config/economy';
 import { MatchStatistics } from '../core/MatchStatistics';
 import { PlayerProfile } from '../core/PlayerProfile';
 import { EffectAggregator } from '../core/EffectAggregator';
@@ -193,16 +192,14 @@ function main(): void {
       unitsOf(buildAnchorTrainingResult('serve', reps, bonuses).currencyGained);
 
     const plain = paid();
-    const boosted = paid({ payoutBonus: 0.5, bonusRepChance: 0 });
+    const doubled = paid({ doubleChance: 1, bonusRepChance: 0 });
     check(
-      'the payout bonus scales the session payout',
-      // Rounded once, after the bonus: (2 + 3 × 2) × 1.2 × 1.5 = 14.4 → 14.
-      boosted ===
-        Math.round((TRAINING_PAYOUT.base + TRAINING_PAYOUT.perRep * 2) * INCOME_SCALE * 1.5),
-      `${plain} → ${boosted}`,
+      'a certain double-gains roll doubles the session',
+      doubled === plain * 2,
+      `${plain} → ${doubled}`,
     );
 
-    const certainBonus = { payoutBonus: 0, bonusRepChance: 1 };
+    const certainBonus = { doubleChance: 0, bonusRepChance: 1 };
     const withBonus = buildAnchorTrainingResult('serve', 2, certainBonus);
     const withoutBonus = buildAnchorTrainingResult('serve', 2, NO_TRAINING_BONUSES);
     check('two reps count two on their own', withoutBonus.reps === 2, `${withoutBonus.reps} reps`);
