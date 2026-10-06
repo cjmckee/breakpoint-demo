@@ -6,15 +6,14 @@
  * same amounts. Payouts are whole units: the wallet never holds fractions.
  */
 
-import type { StatName } from '../types';
+import type { CoreStats, StatName } from '../types';
 import type { Currency, CurrencyAmounts, PerformanceRewardBreakdown } from '../types/game';
 import {
   CONTENT_SCALE,
   CURRENCIES,
-  INCOME_SCALE,
   MATCH_PAYOUT,
   STAT_RECIPES,
-  TRAINING_PAYOUT,
+  TRAINING_MIXES,
 } from '../config/economy';
 
 /** Split `units` across currencies in proportion to `weights` (fractions kept). */
@@ -59,40 +58,30 @@ function sum(...parts: CurrencyAmounts[]): CurrencyAmounts {
   return out;
 }
 
-/** Training rates with the income scale folded in; careerSim passes tuned copies. */
-export type TrainingRates = typeof TRAINING_PAYOUT & { scale: number };
 export type MatchRates = typeof MATCH_PAYOUT;
 
-const GAME_TRAINING_RATES: TrainingRates = { ...TRAINING_PAYOUT, scale: INCOME_SCALE };
 const GAME_MATCH_RATES: MatchRates = MATCH_PAYOUT;
 
-function evenly(units: number): CurrencyAmounts {
-  const out: CurrencyAmounts = {};
-  for (const c of CURRENCIES) out[c] = units / CURRENCIES.length;
-  return out;
-}
-
 /**
- * A training session on `anchor` with `reps` clean reps pays
- * (base + perRep × reps) × INCOME_SCALE × (1 + payoutBonus) units: the general
- * share spread evenly, the Mind share as Mind, the rest in the anchor's recipe
- * ratio. So serve training pays mostly Power, return mostly Quickness.
+ * A training session on `anchor` pays its mix (TRAINING_MIXES) once, plus once
+ * more per clean rep — whole units, the same currencies every time — doubled
+ * when the session's double-gains roll lands.
  *
- * @param payoutBonus  from items (EffectKey.TRAINING_STAT_UPGRADE_CHANCE): +0.1 pays 10% more.
- * @param p            the game's rates unless a harness is sweeping them.
+ * @param mixes  the game's mixes unless a harness is sweeping them.
  */
 export function trainingPayout(
-  anchor: StatName,
+  anchor: keyof CoreStats,
   reps: number,
-  payoutBonus: number = 0,
-  p: TrainingRates = GAME_TRAINING_RATES,
+  doubled: boolean = false,
+  mixes: Record<keyof CoreStats, CurrencyAmounts> = TRAINING_MIXES,
 ): CurrencyAmounts {
-  const units = (p.base + p.perRep * Math.max(0, reps)) * p.scale * (1 + payoutBonus);
-  const general = units * p.generalShare;
-  const mind = units * p.mindShare;
-  return roundAmounts(
-    sum(evenly(general), { mind }, splitUnits(units - general - mind, STAT_RECIPES[anchor])),
-  );
+  const times = (Math.max(0, Math.floor(reps)) + 1) * (doubled ? 2 : 1);
+  const out: CurrencyAmounts = {};
+  for (const c of CURRENCIES) {
+    const n = mixes[anchor][c] ?? 0;
+    if (n > 0) out[c] = n * times;
+  }
+  return out;
 }
 
 /**

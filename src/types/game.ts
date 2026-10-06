@@ -67,8 +67,8 @@ export const EffectKey = {
   // --- Training effects ---
   // Fractional widening of training minigame success windows (0.10 = +10%).
   MINIGAME_WINDOW_BONUS: 'minigame_window_bonus',
-  // Fraction more currency a session pays: 0.10 pays 10% more. The key predates
-  // currency; saved items carry it, so it keeps its name.
+  // 0-1 chance a training session pays double. The key predates currency; saved
+  // items carry it, so it keeps its name.
   TRAINING_STAT_UPGRADE_CHANCE: 'training_stat_upgrade_chance',
   // 0-1 chance a session counts one extra rep beyond the reps it earned.
   // Only rolls on a session that landed at least one rep.
@@ -377,6 +377,8 @@ export interface TrainingResult extends Activity {
   /** Clean reps landed, including a bonus rep from items. */
   reps: number;
   currencyGained: CurrencyAmounts;
+  /** The session's double-gains roll landed (EffectKey.TRAINING_STAT_UPGRADE_CHANCE). */
+  doubled: boolean;
   trainingType: string;
   trainingName: string;
   efficiency: number;
