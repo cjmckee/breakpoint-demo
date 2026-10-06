@@ -9,9 +9,9 @@
  * by), and prints a Markdown report to review before anything is rewritten.
  * It changes no data.
  *
- * Penalties (negative stat changes) are listed separately: with no stat
- * respec there is no currency to take back, so what they become is a design
- * question, not a conversion.
+ * Penalties (negative stat changes) become currency losses through the same
+ * recipes (decided), netted with the site's gains; a loss clamps each currency
+ * at zero when it is applied. They are also listed on their own for review.
  *
  * Run: npx tsx src/test/analysis/contentConversion.ts > docs/proposals/content-conversion-dry-run.md
  * Env: INCOME_SCALE=1.2
@@ -44,16 +44,24 @@ function findAll(root: unknown, key: string, path = ''): Array<{ path: string; v
   return out;
 }
 
+/**
+ * A site's stat changes as one signed currency change: each stat's points
+ * through its recipe at the income scale, gains and penalties netted per
+ * currency. A penalty is a currency loss; when it lands, each currency is
+ * clamped at zero (a wallet with 40 that loses 60 ends at 0).
+ */
 function toCurrency(grant: Partial<Record<StatName, number>>): Amounts {
   const raw: Record<Currency, number> = { power: 0, quickness: 0, technique: 0, mind: 0 };
   for (const [stat, pts] of Object.entries(grant) as Array<[StatName, number]>) {
-    if (pts <= 0) continue;
     for (const [c, n] of Object.entries(RECIPES[stat]) as Array<[Currency, number]>) {
       raw[c] += pts * n * INCOME_SCALE;
     }
   }
   const out: Amounts = {};
-  for (const c of CURRENCIES) if (raw[c] > 0) out[c] = Math.max(1, Math.round(raw[c]));
+  for (const c of CURRENCIES) {
+    if (raw[c] === 0) continue;
+    out[c] = Math.sign(raw[c]) * Math.max(1, Math.round(Math.abs(raw[c])));
+  }
   return out;
 }
 
@@ -84,7 +92,8 @@ function main(): void {
   const totals = {
     points: 0,
     penaltyPoints: 0,
-    currency: { power: 0, quickness: 0, technique: 0, mind: 0 },
+    gains: { power: 0, quickness: 0, technique: 0, mind: 0 },
+    losses: { power: 0, quickness: 0, technique: 0, mind: 0 },
   };
   for (const s of withGrant) {
     for (const v of Object.values(s.grant)) {
@@ -92,7 +101,11 @@ function main(): void {
       else totals.penaltyPoints += -(v ?? 0);
     }
     const c = toCurrency(s.grant);
-    for (const k of CURRENCIES) totals.currency[k] += c[k] ?? 0;
+    for (const k of CURRENCIES) {
+      const v = c[k] ?? 0;
+      if (v > 0) totals.gains[k] += v;
+      else totals.losses[k] -= v;
+    }
   }
 
   const out: string[] = [];
@@ -122,22 +135,25 @@ function main(): void {
   }
   out.push('');
   out.push(
-    `Converted, all sites: ${fmtAmounts(totals.currency)} — ${unitsOf(totals.currency)} units for ` +
-      `${totals.points} stat points (${(unitsOf(totals.currency) / totals.points).toFixed(2)} units a point).`,
+    `Converted, all sites: gains ${fmtAmounts(totals.gains)} (${unitsOf(totals.gains)} units), ` +
+      `losses ${fmtAmounts(totals.losses)} (${unitsOf(totals.losses)} units), for ` +
+      `${totals.points} stat points granted and ${totals.penaltyPoints} taken.`,
   );
   out.push('');
-  out.push('## Penalties (decision needed)');
+  out.push('## Penalties');
   out.push('');
   out.push(
-    `${penalties.length} sites lower a stat. There is no currency to take back without a respec, so ` +
-      'the options are: keep them as direct stat changes (a stat can still go down), drop them, or ' +
-      'turn them into a lost day of income. The positive part of each site converts as below either way.',
+    `${penalties.length} sites lower a stat. Each becomes a currency loss through the same recipes, ` +
+      "netted with the site's gains (decided). Applying a loss clamps each currency at zero: a " +
+      'wallet with 40 that loses 60 ends at 0. No stat goes down.',
   );
   out.push('');
-  out.push('| source | id | where | grant |');
-  out.push('| --- | --- | --- | --- |');
+  out.push('| source | id | where | today | becomes |');
+  out.push('| --- | --- | --- | --- | --- |');
   for (const s of penalties)
-    out.push(`| ${s.source} | \`${s.id}\` | \`${s.path}\` | ${fmtGrant(s.grant)} |`);
+    out.push(
+      `| ${s.source} | \`${s.id}\` | \`${s.path}\` | ${fmtGrant(s.grant)} | ${fmtAmounts(toCurrency(s.grant))} |`,
+    );
   out.push('');
   out.push('## Every site');
   out.push('');
