@@ -84,7 +84,7 @@ export class MatchRewardSystem {
       abilitiesGained: abilities,
       itemsGained: items,
       performanceBreakdown: performance,
-      currency: matchPayout(performance),
+      currency: matchPayout(performance, isWin),
     };
   }
 
