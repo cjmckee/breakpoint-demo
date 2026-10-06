@@ -334,6 +334,7 @@ export class StoryEventManager {
       resultText: outcome.resultText,
 
       currency: outcome.effects.currency ?? {},
+      statChanges: outcome.effects.statChanges ?? {},
       relationshipChanges: outcome.effects.relationshipChanges || {},
       abilitiesGained: outcome.effects.abilitiesGained || [],
       itemsGained: outcome.effects.itemsGained || [],

@@ -340,7 +340,7 @@ export const romanceEvents: StoryEvent[] = [
         'You spend the rest of the match chatting about life beyond tennis. You find yourself a little more focused on the tennis journey, and a little more focused on Alex as well.',
       ],
       effects: {
-        currency: { quickness: 11, technique: 12, mind: 2 },
+        statChanges: { backhand: 3, net: 2, return: 2 },
         moodChange: 10,
         energyChange: -20,
         relationshipChanges: { alex_romance: 15 },
