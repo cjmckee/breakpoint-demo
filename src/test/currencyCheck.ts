@@ -25,6 +25,7 @@ import {
   priceBand,
   priceOf,
   purchase,
+  statsFedBy,
   stepMultiplier,
   unitsOf,
   withStat,
@@ -186,6 +187,19 @@ function main(): void {
     (match.power ?? 0) > (match.quickness ?? 0),
     JSON.stringify(match),
   );
+
+  console.log('\n── what a payout buys ──');
+  const serveBuys = statsFedBy(trainingPayout('serve', 3));
+  check(
+    'serve training pays for serve and strength',
+    serveBuys.includes('serve') && serveBuys.includes('strength'),
+    serveBuys.join(', '),
+  );
+  check(
+    'return training pays for return',
+    statsFedBy(trainingPayout('return', 3)).includes('return'),
+  );
+  check('an empty payout buys nothing', statsFedBy({}).length === 0);
 
   console.log('\n── content ──');
   const grant = contentCurrency({ focus: 5, serve: 2 });

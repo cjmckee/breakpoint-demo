@@ -82,7 +82,7 @@ export async function startNewGame(page: Page, name = 'Testy McTestface'): Promi
 }
 
 /** The walkthrough's steps, in order, ending on the button that closes it. */
-export const WALKTHROUGH_ADVANCE = ['Next', 'Next', 'Next', "Let's Train"] as const;
+export const WALKTHROUGH_ADVANCE = ['Next', 'Next', 'Next', 'Next', "Let's Train"] as const;
 
 /** Advances past the walkthrough so the plain menu is reachable. */
 export async function dismissWalkthrough(page: Page): Promise<void> {

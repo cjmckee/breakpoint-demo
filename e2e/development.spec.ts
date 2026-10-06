@@ -88,3 +88,11 @@ test('training pays currency, which buys the anchor in Development', async ({ pa
   const bought = (await readGame(page)).player!;
   expect(bought.stats.core.serve).toBe(before.stats.core.serve + 1);
 });
+
+test('D opens Development from the menu and closes it again', async ({ page }) => {
+  await loadSave(page, SAVE, 7);
+  await page.keyboard.press('d');
+  await expect(page.getByTestId('development-wallet')).toBeVisible();
+  await page.keyboard.press('d');
+  await expect(page.getByTestId('action-development')).toBeVisible();
+});

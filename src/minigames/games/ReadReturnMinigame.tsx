@@ -11,13 +11,13 @@
  * vary, so a lazy read still leaves you scrambling on the short leg (reaction).
  *
  * Three serves, one per attempt, each faster than the last. Every clean return banks a
- * support. See docs/training-redesign.md.
+ * clean rep. See docs/training-redesign.md.
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { audioManager } from '../../audio/AudioManager';
 import { MinigameShell, RoundPips, MinigameActionButton } from '../shared/MinigameShell';
-import { SupportResult, countNote } from '../shared/trainingReadout';
+import { RepResult, countNote } from '../shared/trainingReadout';
 import type { MinigameProps } from '../types';
 import { useMinigameRounds } from '../shared/useMinigameRounds';
 import { Sparks, ComboBadge, useHitstop, type Burst } from '../shared/minigameJuice';
@@ -279,7 +279,7 @@ export const ReadReturnMinigame: React.FC<MinigameProps> = ({
           </div>
 
           {rounds.phase === 'done' ? (
-            <SupportResult
+            <RepResult
               count={rounds.successes}
               note={countNote(
                 rounds.successes,

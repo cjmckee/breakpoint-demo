@@ -106,6 +106,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
     status: null,
     stats: null,
     actions: null,
+    develop: null,
     challenges: null,
   });
 
@@ -539,17 +540,25 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
               navigateTo('shop');
             }}
           />
-          <ActionTile
-            testId="action-development"
-            size="sm"
-            variant="secondary"
-            icon="📈"
-            label="Develop"
-            caption={canDevelop ? 'Points to buy' : undefined}
-            badge={canDevelop}
-            onClick={() => navigateTo('development')}
-            className="col-span-2 sm:col-span-1"
-          />
+          <div
+            ref={(el) => {
+              sectionRefs.current.develop = el;
+            }}
+            data-spotlit={isSpotlit('develop') || undefined}
+            className={`col-span-2 sm:col-span-1 flex ${spotlightClass('develop')}`}
+          >
+            <ActionTile
+              testId="action-development"
+              size="sm"
+              variant="secondary"
+              icon="📈"
+              label="Develop"
+              caption={canDevelop ? 'Points to buy' : undefined}
+              badge={canDevelop}
+              onClick={() => navigateTo('development')}
+              className="w-full"
+            />
+          </div>
         </div>
 
         {/* Challenges — compact summary strip; the full list lives on its own screen */}

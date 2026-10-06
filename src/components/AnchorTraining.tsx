@@ -23,9 +23,10 @@ import { EffectKey, type CurrencyAmounts as Amounts } from '../types/game';
 import { EffectAggregator } from '../core/EffectAggregator';
 import { StatusBar } from './StatusBar';
 import { Button } from './ui/Button';
-import { STAT_ICONS } from '../config/statIcons';
+import { STAT_ICONS, formatStatName } from '../config/statIcons';
 import { CURRENCIES, CURRENCY_LABELS } from '../config/economy';
 import { trainingPayout } from '../game/CurrencyIncome';
+import { statsFedBy } from '../game/StatDevelopment';
 import { CurrencyAmounts } from './currency/CurrencyAmounts';
 import { CoreStatPentagon } from './training/CoreStatPentagon';
 import { audioManager } from '../audio/AudioManager';
@@ -223,6 +224,19 @@ export const AnchorTraining: React.FC = () => {
                         Up to
                       </span>
                       <CurrencyAmounts amounts={best} />
+                    </span>
+
+                    <span
+                      className="flex flex-wrap items-center gap-x-2 text-[11px] text-pixel-text-muted"
+                      data-testid={`training-anchor-${core}-buys`}
+                    >
+                      <span className="text-[10px] uppercase tracking-wider">Buys</span>
+                      {statsFedBy(best).map((stat) => (
+                        <span key={stat} className="whitespace-nowrap">
+                          <span aria-hidden="true">{STAT_ICONS[stat]} </span>
+                          {formatStatName(stat)}
+                        </span>
+                      ))}
                     </span>
                   </span>
                 </button>

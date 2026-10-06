@@ -2,7 +2,7 @@
  * Slice Minigame — "Touch & Slice"
  *
  * The ball swings back and forth along a line; slice it while it's inside the zone.
- * Land three clean slices before the round timer to bank the support. Each round
+ * Land three clean slices before the round timer to bank a clean rep. Each round
  * re-rolls the zone position, a random tilt (a slice is rarely dead flat), and a steady
  * sweep speed — so it stays fresh across three rounds. See docs/training-redesign.md.
  */
@@ -10,7 +10,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { audioManager } from '../../audio/AudioManager';
 import { MinigameShell, RoundPips, MinigameActionButton } from '../shared/MinigameShell';
-import { SupportResult, countNote } from '../shared/trainingReadout';
+import { RepResult, countNote } from '../shared/trainingReadout';
 import type { MinigameProps } from '../types';
 import { useMinigameRounds } from '../shared/useMinigameRounds';
 import { Sparks, ComboBadge, useHitstop, type Burst } from '../shared/minigameJuice';
@@ -180,7 +180,7 @@ export const TouchSliceMinigame: React.FC<MinigameProps> = ({
           </div>
 
           {rounds.phase === 'done' ? (
-            <SupportResult
+            <RepResult
               count={rounds.successes}
               note={countNote(
                 rounds.successes,
