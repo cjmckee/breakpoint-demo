@@ -17,17 +17,13 @@
  *      PIN_OVR=1 holds the player's overallRating at uniform BASE (diagnostic)
  */
 
-import type { MatchFormat, MatchState, PlayerStats, ShotDetail } from '../../types';
+import type { PlayerStats, ShotDetail } from '../../types';
 import { PointType } from '../../types';
 import type { ArchetypeProfile, SpecialtyTier } from '../../types/archetype';
-import { fatigueAfterPoint } from '../../core/fatigue';
 import { PlayerProfile } from '../../core/PlayerProfile';
-import { PointSimulator } from '../../core/PointSimulator';
-import { ScoreTracker } from '../../core/ScoreTracker';
-import { aggregateArchetypeEffects } from '../../data/archetypeTree';
 import { getQualityThresholds } from '../../utils/qualityThresholds';
-
-const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
+import { BO3, playMatch } from './simMatch';
+import { RATE_HEADERS, emptyRates, formatRates, tallyMatch, type Rates } from './matchTally';
 const N = Number(process.env.N ?? 400);
 const BASE = Number(process.env.BASE ?? 30);
 const SLICES = (process.env.SLICES ?? '30,50,70').split(',').map(Number);
@@ -97,10 +93,6 @@ const zero = (): Row => ({
   fromBadSpot: 0,
 });
 
-function fatigue(cur: number, rally: number, stam: number): number {
-  return fatigueAfterPoint(cur, rally, stam);
-}
-
 interface PointSplit {
   withSlice: number;
   withSliceWon: number;
@@ -112,7 +104,9 @@ function run(playerStats: PlayerStats): {
   rows: Record<Family, Row>;
   pointWin: number;
   split: PointSplit;
+  rates: Rates;
 } {
+  const rates = emptyRates();
   const split: PointSplit = { withSlice: 0, withSliceWon: 0, without: 0, withoutWon: 0 };
   const rows = {
     'def. slice': zero(),
@@ -121,7 +115,6 @@ function run(playerStats: PlayerStats): {
     backhand: zero(),
     other: zero(),
   } as Record<Family, Row>;
-  const pFx = aggregateArchetypeEffects(SLICER);
   let won = 0;
   let total = 0;
   for (let m = 0; m < N; m++) {
@@ -134,39 +127,14 @@ function run(playerStats: PlayerStats): {
     }
     const o = new PlayerProfile('o', 'O', uniform(BASE), NONE);
     const good = getQualityThresholds((p.overallRating + o.overallRating) / 2).good;
-    const tracker = new ScoreTracker(BO3);
-    tracker.setInitialServer(Math.random() < 0.5 ? 'player' : 'opponent');
-    p.rollMatchForm();
-    o.rollMatchForm();
-    const sim = new PointSimulator();
-    const ms: MatchState = {
-      score: tracker.getScore(),
-      currentServer: tracker.getCurrentServer(),
-      courtSurface: 'hard',
-      momentum: 0,
-      pressure: 'low',
-      matchLength: 0,
-      pointsPlayed: 0,
-      isKeyMoment: false,
-      fatigue: { player: 0, opponent: 0 },
-    };
-    let pts = 0;
-    while (!tracker.isComplete() && pts < 600) {
-      const server = tracker.getCurrentServer();
-      ms.isKeyMoment = tracker.isKeyMoment();
-      const pr = sim.simulatePoint(
-        server,
-        server === 'player' ? p : o,
-        server === 'player' ? o : p,
-        ms,
-        server === 'player' ? pFx : {},
-        server === 'player' ? {} : pFx,
-      );
-      const w = pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player';
+    const { points } = playMatch(p, o);
+    tallyMatch(points, BO3, rates);
+    for (const pt of points) {
+      const w = pt.winner;
       total++;
       if (w === 'player') won++;
-      const playerRole = server === 'player' ? 'server' : 'returner';
-      const shots: ShotDetail[] = pr.shots;
+      const playerRole = pt.server === 'player' ? 'server' : 'returner';
+      const shots: ShotDetail[] = pt.shots;
       const sliced = shots.some(
         (s) => s.shooter === playerRole && s.shotType.toString().includes('slice'),
       );
@@ -196,15 +164,9 @@ function run(playerStats: PlayerStats): {
           row.replyErr++;
         if (reply.outcome === PointType.WINNER) row.replyWinner++;
       });
-      tracker.addPoint(w);
-      ms.fatigue.player = fatigue(ms.fatigue.player, pr.rallyLength, BASE);
-      ms.fatigue.opponent = fatigue(ms.fatigue.opponent, pr.rallyLength, BASE);
-      ms.score = tracker.getScore();
-      ms.currentServer = tracker.getCurrentServer();
-      ms.pointsPlayed = ++pts;
     }
   }
-  return { rows, pointWin: (won / total) * 100, split };
+  return { rows, pointWin: (won / total) * 100, split, rates };
 }
 
 const pct = (a: number, b: number): string => (b ? ((a / b) * 100).toFixed(1) : '-');
@@ -251,7 +213,9 @@ function main(): void {
   );
   for (const [name, build] of sweeps) {
     for (const v of SLICES) {
-      const { rows, pointWin, split } = run(build(v));
+      const { rows, pointWin, split, rates } = run(build(v));
+      const r5 = formatRates(rates);
+      console.log(`${name} ${v}: ${RATE_HEADERS.map((h, i) => `${h} ${r5[i]}`).join('  ')}`);
       console.log(
         `${name} ${v}: points with a player slice ${pct(split.withSlice, split.withSlice + split.without)}% of points, ` +
           `won ${pct(split.withSliceWon, split.withSlice)}%; without ${pct(split.withoutWon, split.without)}%`,

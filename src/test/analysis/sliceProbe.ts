@@ -44,11 +44,9 @@
  *      Tier-1 question: BASE=30 BUMP=50 TIER=1
  */
 
-import type { MatchFormat, MatchState, PlayerStats } from '../../types';
+import type { PlayerStats } from '../../types';
 import type { ArchetypeProfile, PhaseSpec, GamePhase } from '../../types/archetype';
 import { PlayerProfile } from '../../core/PlayerProfile';
-import { PointSimulator } from '../../core/PointSimulator';
-import { ScoreTracker } from '../../core/ScoreTracker';
 import {
   RELATIVE_QUALITY_REQUIREMENTS,
   MINIMUM_WINNER_THRESHOLDS,
@@ -58,10 +56,7 @@ import {
   SHOT_COMPOSITE_WEIGHTS,
 } from '../../config/shotThresholds';
 import type { SpecialtyTier } from '../../types/archetype';
-import { aggregateArchetypeEffects } from '../../data/archetypeTree';
-import { fatigueAfterPoint } from '../../core/fatigue';
-
-const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
+import { playMatch } from './simMatch';
 
 const profileOf = (
   phases: Partial<Record<GamePhase, PhaseSpec>>,
@@ -100,69 +95,18 @@ function withSlice(base: number, slice: number): PlayerStats {
   return s;
 }
 
-function calcFatigue(cur: number, rally: number, stam: number): number {
-  return fatigueAfterPoint(cur, rally, stam);
-}
-
-function runMatch(
-  p: PlayerProfile,
-  o: PlayerProfile,
-  eff: Record<string, number>,
-): [number, number] {
-  const tracker = new ScoreTracker(BO3);
-  tracker.setInitialServer(Math.random() < 0.5 ? 'player' : 'opponent');
-  p.rollMatchForm();
-  o.rollMatchForm();
-  const sim = new PointSimulator();
-  const ms: MatchState = {
-    score: tracker.getScore(),
-    currentServer: tracker.getCurrentServer(),
-    courtSurface: 'hard',
-    momentum: 0,
-    pressure: 'low',
-    matchLength: 0,
-    pointsPlayed: 0,
-    isKeyMoment: false,
-    fatigue: { player: 0, opponent: 0 },
-  };
-  let pts = 0,
-    won = 0;
-  while (!tracker.isComplete() && pts < 600) {
-    const server = tracker.getCurrentServer();
-    ms.isKeyMoment = tracker.isKeyMoment();
-    const pr = sim.simulatePoint(
-      server,
-      server === 'player' ? p : o,
-      server === 'player' ? o : p,
-      ms,
-      eff,
-      eff,
-    );
-    const w = pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player';
-    if (w === 'player') won++;
-    tracker.addPoint(w);
-    ms.fatigue.player = calcFatigue(ms.fatigue.player, pr.rallyLength, p.stats.physical.stamina);
-    ms.fatigue.opponent = calcFatigue(
-      ms.fatigue.opponent,
-      pr.rallyLength,
-      o.stats.physical.stamina,
-    );
-    ms.score = tracker.getScore();
-    ms.currentServer = tracker.getCurrentServer();
-    ms.pointsPlayed = ++pts;
-  }
-  return [won, pts];
+function runMatch(p: PlayerProfile, o: PlayerProfile): [number, number] {
+  const { points } = playMatch(p, o);
+  return [points.filter((pt) => pt.winner === 'player').length, points.length];
 }
 
 function trial(prof: ArchetypeProfile, base: number, bump: number, n: number): number {
-  const eff = aggregateArchetypeEffects(prof);
   let won = 0,
     tot = 0;
   for (let i = 0; i < n; i++) {
     const [w, t] = runMatch(
       new PlayerProfile('p', 'P', withSlice(base, bump), prof),
       new PlayerProfile('o', 'O', uniform(base), prof),
-      eff,
     );
     won += w;
     tot += t;

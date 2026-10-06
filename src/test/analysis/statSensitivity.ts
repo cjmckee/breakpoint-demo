@@ -18,24 +18,17 @@
  * match makes it roughly 10x less noisy for the same runtime.
  *
  * Run with: npm run build:node && node dist/src/test/analysis/statSensitivity.js
+ * Env: N_A=40 (Part A, per stat per profile)  N_B=1400 (Part B pairings)
  */
 
-import type { MatchFormat, MatchState, PlayerStats } from '../../types';
+import type { PlayerStats } from '../../types';
 import type { ArchetypeProfile, PhaseSpec, GamePhase } from '../../types/archetype';
-import { fatigueAfterPoint } from '../../core/fatigue';
 import { PlayerProfile } from '../../core/PlayerProfile';
-import { PointSimulator } from '../../core/PointSimulator';
-import { ScoreTracker } from '../../core/ScoreTracker';
-import {
-  aggregateArchetypeEffects,
-  profileForArchetype,
-  type LegacyArchetype,
-} from '../../data/archetypeTree';
+import { profileForArchetype, type LegacyArchetype } from '../../data/archetypeTree';
+import { playMatch } from './simMatch';
 
-const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
-
-const A_MATCHES = 40; // per stat, per profile (Part A)
-const B_MATCHES = 1400; // total randomized pairings (Part B)
+const A_MATCHES = Number(process.env.N_A ?? 40); // per stat, per profile (Part A)
+const B_MATCHES = Number(process.env.N_B ?? 1400); // total randomized pairings (Part B)
 const BASE = 50;
 const BUMP = 90;
 
@@ -89,69 +82,10 @@ function profileOf(
   return { broad, phases, specializationPoints: 0, respecTokens: 0 };
 }
 
-// Recovery reads stamina too; the extra argument is kept so call sites read as before.
-function calcFatigue(cur: number, rally: number, stam: number, rec: number): number {
-  void rec;
-  return fatigueAfterPoint(cur, rally, stam);
-}
-
-/** Play one match; return [playerPointsWon, totalPoints, playerWonMatch]. */
-function runMatch(
-  player: PlayerProfile,
-  opponent: PlayerProfile,
-  pEff: Record<string, number>,
-  oEff: Record<string, number>,
-): [number, number, boolean] {
-  const tracker = new ScoreTracker(BO3);
-  tracker.setInitialServer(Math.random() < 0.5 ? 'player' : 'opponent');
-  player.rollMatchForm();
-  opponent.rollMatchForm();
-  const sim = new PointSimulator();
-
-  const matchState: MatchState = {
-    score: tracker.getScore(),
-    currentServer: tracker.getCurrentServer(),
-    courtSurface: 'hard',
-    momentum: 0,
-    pressure: 'low',
-    matchLength: 0,
-    pointsPlayed: 0,
-    isKeyMoment: false,
-    fatigue: { player: 0, opponent: 0 },
-  };
-
-  let points = 0;
-  let playerPoints = 0;
-  while (!tracker.isComplete() && points < 600) {
-    const server = tracker.getCurrentServer();
-    const serverProfile = server === 'player' ? player : opponent;
-    const returnerProfile = server === 'player' ? opponent : player;
-    matchState.isKeyMoment = tracker.isKeyMoment();
-
-    const pr = sim.simulatePoint(server, serverProfile, returnerProfile, matchState, pEff, oEff);
-    const winner = pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player';
-    if (winner === 'player') playerPoints++;
-    tracker.addPoint(winner);
-
-    matchState.fatigue.player = calcFatigue(
-      matchState.fatigue.player,
-      pr.rallyLength,
-      player.stats.physical.stamina,
-      player.stats.physical.stamina,
-    );
-    matchState.fatigue.opponent = calcFatigue(
-      matchState.fatigue.opponent,
-      pr.rallyLength,
-      opponent.stats.physical.stamina,
-      opponent.stats.physical.stamina,
-    );
-    matchState.score = tracker.getScore();
-    matchState.currentServer = tracker.getCurrentServer();
-    matchState.pointsPlayed = ++points;
-  }
-  const setsWon = tracker.getScore().sets.filter((s) => s.player > s.opponent).length;
-  const setsLost = tracker.getScore().sets.filter((s) => s.opponent > s.player).length;
-  return [playerPoints, points, setsWon > setsLost];
+/** Play one match; return [playerPointsWon, totalPoints]. */
+function runMatch(player: PlayerProfile, opponent: PlayerProfile): [number, number] {
+  const { points } = playMatch(player, opponent);
+  return [points.filter((pt) => pt.winner === 'player').length, points.length];
 }
 
 // ─── Part A: one-at-a-time ───────────────────────────────────
@@ -175,13 +109,12 @@ function partA(): ARow[] {
   for (const { bucket, key } of STAT_KEYS) {
     const byProfile: number[] = [];
     for (const { profile } of A_PROFILES) {
-      const eff = aggregateArchetypeEffects(profile);
       let pw = 0,
         tot = 0;
       for (let i = 0; i < A_MATCHES; i++) {
         const p = new PlayerProfile('p', 'P', withBump(BASE, bucket, key, BUMP), profile);
         const o = new PlayerProfile('o', 'O', uniformStats(BASE), profile);
-        const [a, b] = runMatch(p, o, eff, eff);
+        const [a, b] = runMatch(p, o);
         pw += a;
         tot += b;
       }
@@ -204,7 +137,7 @@ function partAControl(): number {
   for (let i = 0; i < A_MATCHES * 4; i++) {
     const p = new PlayerProfile('p', 'P', uniformStats(BASE), profileOf({}));
     const o = new PlayerProfile('o', 'O', uniformStats(BASE), profileOf({}));
-    const [a, b] = runMatch(p, o, {}, {});
+    const [a, b] = runMatch(p, o);
     pw += a;
     tot += b;
   }
@@ -252,7 +185,7 @@ function partB(): { rows: BRow[]; n: number } {
       op = randomProfile();
     const p = new PlayerProfile('p', 'P', ps, pp);
     const o = new PlayerProfile('o', 'O', os, op);
-    const [won, tot] = runMatch(p, o, aggregateArchetypeEffects(pp), aggregateArchetypeEffects(op));
+    const [won, tot] = runMatch(p, o);
     if (tot === 0) continue;
     const pf = flatten(ps),
       of = flatten(os);

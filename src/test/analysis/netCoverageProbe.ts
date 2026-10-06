@@ -31,17 +31,12 @@
  *      COVERAGES=0,0.2,0.5,1.0 (the values of netCoverage to sweep)
  */
 
-import type { MatchFormat, MatchState, PlayerStats, ShotDetail } from '../../types';
+import type { PlayerStats, ShotDetail } from '../../types';
 import { PointType } from '../../types';
 import type { ArchetypeProfile } from '../../types/archetype';
 import { PlayerProfile } from '../../core/PlayerProfile';
-import { PointSimulator } from '../../core/PointSimulator';
-import { ScoreTracker } from '../../core/ScoreTracker';
+import { playMatch } from './simMatch';
 import { OPPONENT_STAT_ADJUSTMENTS } from '../../config/shotThresholds';
-import { aggregateArchetypeEffects } from '../../data/archetypeTree';
-import { fatigueAfterPoint } from '../../core/fatigue';
-
-const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
 
 const NET_ATTACKER: ArchetypeProfile = {
   broad: 'net_attacker',
@@ -65,10 +60,6 @@ function stats(r: number, net: number): PlayerStats {
   };
 }
 
-function calcFatigue(cur: number, rally: number, stam: number): number {
-  return fatigueAfterPoint(cur, rally, stam);
-}
-
 interface Tally {
   /** points in which the attacker actually reached the net */
   netPoints: number;
@@ -89,48 +80,19 @@ const newTally = (): Tally => ({
 
 /** The attacker is 'player'; the passer is 'opponent'. */
 function runMatch(attacker: PlayerProfile, passer: PlayerProfile, t: Tally): void {
-  const aEff = aggregateArchetypeEffects(NET_ATTACKER);
-  const pEff = aggregateArchetypeEffects(BASELINER);
-  const tracker = new ScoreTracker(BO3);
-  tracker.setInitialServer(Math.random() < 0.5 ? 'player' : 'opponent');
-  attacker.rollMatchForm();
-  passer.rollMatchForm();
-  const sim = new PointSimulator();
-  const ms: MatchState = {
-    score: tracker.getScore(),
-    currentServer: tracker.getCurrentServer(),
-    courtSurface: 'hard',
-    momentum: 0,
-    pressure: 'low',
-    matchLength: 0,
-    pointsPlayed: 0,
-    isKeyMoment: false,
-    fatigue: { player: 0, opponent: 0 },
-  };
-
-  let pts = 0;
-  while (!tracker.isComplete() && pts < 600) {
-    const server = tracker.getCurrentServer();
-    ms.isKeyMoment = tracker.isKeyMoment();
-    const pr = sim.simulatePoint(
-      server,
-      server === 'player' ? attacker : passer,
-      server === 'player' ? passer : attacker,
-      ms,
-      aEff,
-      pEff,
-    );
+  for (const pt of playMatch(attacker, passer).points) {
+    const server = pt.server;
 
     const attackerRole = server === 'player' ? 'server' : 'returner';
-    const reachedNet = pr.shots.some(
+    const reachedNet = pt.shots.some(
       (s: ShotDetail) => s.shooter === attackerRole && s.context?.courtPosition === 'net',
     );
-    const winner = pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player';
+    const winner = pt.winner;
 
     if (reachedNet) {
       t.netPoints++;
       if (winner === 'opponent') t.passerWon++;
-      for (const s of pr.shots) {
+      for (const s of pt.shots) {
         if (s.shooter === attackerRole) continue;
         if (!String(s.shotType).includes('passing')) continue;
         t.passAttempts++;
@@ -140,21 +102,6 @@ function runMatch(attacker: PlayerProfile, passer: PlayerProfile, t: Tally): voi
         } else if (s.outcome === PointType.IN_PLAY) t.passIn++;
       }
     }
-
-    tracker.addPoint(winner);
-    ms.fatigue.player = calcFatigue(
-      ms.fatigue.player,
-      pr.rallyLength,
-      attacker.stats.physical.stamina,
-    );
-    ms.fatigue.opponent = calcFatigue(
-      ms.fatigue.opponent,
-      pr.rallyLength,
-      passer.stats.physical.stamina,
-    );
-    ms.score = tracker.getScore();
-    ms.currentServer = tracker.getCurrentServer();
-    ms.pointsPlayed = ++pts;
   }
 }
 

@@ -46,7 +46,7 @@
  *      PARTS=A  OPP_ARCH=0  ID=<regex over PART B identity names>
  */
 
-import type { MatchFormat, MatchState, PlayerStats, StatName } from '../../types';
+import type { PlayerStats, StatName } from '../../types';
 import type {
   ArchetypeProfile,
   BroadArchetype,
@@ -54,19 +54,11 @@ import type {
   PhasePathId,
 } from '../../types/archetype';
 import { PlayerProfile } from '../../core/PlayerProfile';
-import { PointSimulator } from '../../core/PointSimulator';
-import { ScoreTracker } from '../../core/ScoreTracker';
 import { calculateOverallRating } from '../../utils/overallRating';
 import { CURRENCIES, RECIPES, canAfford, pay, priceOf, unitsOf, type Wallet } from './statEconomy';
 import { CORE_ANCHORS, CORE_ANCHOR_ORDER } from '../../game/AnchorTrainingSystem';
-import {
-  aggregateArchetypeEffects,
-  profileForArchetype,
-  type LegacyArchetype,
-} from '../../data/archetypeTree';
-import { fatigueAfterPoint } from '../../core/fatigue';
-
-const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
+import { profileForArchetype, type LegacyArchetype } from '../../data/archetypeTree';
+import { playMatch } from './simMatch';
 const NONE: ArchetypeProfile = {
   broad: null,
   phases: {},
@@ -376,58 +368,16 @@ const STRATEGIES: Record<string, StatName[]> = {
   baseliner: ['forehand', 'backhand', 'spin', 'strength', 'stamina', 'slice'],
 };
 
-function calcFatigue(cur: number, rally: number, stam: number): number {
-  return fatigueAfterPoint(cur, rally, stam);
-}
-
 function pointWinPct(pa: Side, pb: Side, n: number): number {
-  const a = pa.stats;
-  const b = pb.stats;
-  const aFx = aggregateArchetypeEffects(pa.profile);
-  const bFx = aggregateArchetypeEffects(pb.profile);
   let won = 0;
   let total = 0;
   for (let m = 0; m < n; m++) {
-    const p = new PlayerProfile('p', 'P', a, pa.profile);
-    const o = new PlayerProfile('o', 'O', b, pb.profile);
-    const tracker = new ScoreTracker(BO3);
-    tracker.setInitialServer(Math.random() < 0.5 ? 'player' : 'opponent');
-    p.rollMatchForm();
-    o.rollMatchForm();
-    const sim = new PointSimulator();
-    const ms: MatchState = {
-      score: tracker.getScore(),
-      currentServer: tracker.getCurrentServer(),
-      courtSurface: 'hard',
-      momentum: 0,
-      pressure: 'low',
-      matchLength: 0,
-      pointsPlayed: 0,
-      isKeyMoment: false,
-      fatigue: { player: 0, opponent: 0 },
-    };
-    let pts = 0;
-    while (!tracker.isComplete() && pts < 600) {
-      const server = tracker.getCurrentServer();
-      ms.isKeyMoment = tracker.isKeyMoment();
-      const pr = sim.simulatePoint(
-        server,
-        server === 'player' ? p : o,
-        server === 'player' ? o : p,
-        ms,
-        server === 'player' ? aFx : bFx,
-        server === 'player' ? bFx : aFx,
-      );
-      const w = pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player';
-      total++;
-      if (w === 'player') won++;
-      tracker.addPoint(w);
-      ms.fatigue.player = calcFatigue(ms.fatigue.player, pr.rallyLength, a.physical.stamina);
-      ms.fatigue.opponent = calcFatigue(ms.fatigue.opponent, pr.rallyLength, b.physical.stamina);
-      ms.score = tracker.getScore();
-      ms.currentServer = tracker.getCurrentServer();
-      ms.pointsPlayed = ++pts;
-    }
+    const { points } = playMatch(
+      new PlayerProfile('p', 'P', pa.stats, pa.profile),
+      new PlayerProfile('o', 'O', pb.stats, pb.profile),
+    );
+    total += points.length;
+    won += points.filter((pt) => pt.winner === 'player').length;
   }
   return (won / total) * 100;
 }

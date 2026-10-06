@@ -9,6 +9,15 @@ npx tsx src/test/analysis/<harness>.ts
 
 Options are environment variables, listed in each file's header and summarised below.
 
+**Every harness plays its matches on the real engine.** Matches go through `MatchSimulator` via
+`playMatch` in `src/test/analysis/simMatch.ts`, so fatigue, changeover and set-break recovery,
+momentum, match-day form and archetype effects are the game's own. Points come from
+`exportMatchData().points`; `simulateMatch().pointResults` is empty. Harnesses that mutate config
+in place for an ablation (`statChannels`, `sliceProbe`) still work, because `MatchSimulator` reads
+the same config objects. Do not write a new point loop: harnesses used to carry their own copies,
+which had no break recovery and no momentum, and so misstated stamina and late-match fatigue once
+break recovery came to scale with stamina.
+
 ---
 
 ## The loop
@@ -163,6 +172,12 @@ move in that table, and it would have been missed by trusting the earlier run.
 ## Current baseline
 
 Uniform-45 mirror matches, `matchAnatomy` defaults, as of this document. Diff against these.
+
+> **These tables, and every number recorded in `docs/research/` before the harnesses moved onto
+> `MatchSimulator`, were taken on the old hand-rolled loop** — no changeover or set-break recovery,
+> no momentum engine, and (in `sliceAnatomy` and `allocationProbe`) archetype effects swapped onto
+> the wrong player whenever the opponent served. Re-run before diffing against them. Stamina's value
+> and anything that depends on late-match fatigue are the numbers most likely to have moved.
 
 |                                    | no specialization | net_downhill T3 | bh_samurai T3 |
 | ---------------------------------- | ----------------- | --------------- | ------------- |
