@@ -27,6 +27,14 @@ test('a confirmed plan raises the stats and charges the plan cost', async ({ pag
   await page.getByTestId('development-plus-focus').click();
   await page.getByTestId('development-plus-serve').click();
   await expect(page.getByTestId('development-stat-focus')).toHaveAttribute('data-planned', '2');
+  // The row says what the planned points cost and what the next one would.
+  await expect(page.getByTestId('development-planned-focus')).toContainText('Planned +2');
+  await expect(page.getByTestId('development-next-focus')).toContainText('Next +1');
+  await expect(page.getByTestId('development-planned-forehand')).toHaveCount(0);
+  // Only currencies the plan spends show their old balance.
+  await expect(
+    page.getByTestId('development-wallet').locator('[data-currency="quickness"]'),
+  ).not.toContainText('→');
 
   // Undo drops the last +1, not the first.
   await page.getByTestId('development-undo').click();

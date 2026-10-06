@@ -10,7 +10,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import type { StatName } from '../types';
 import type { Currency, CurrencyAmounts as Amounts, Wallet } from '../types/game';
-import { CURRENCIES, CURRENCY_LABELS } from '../config/economy';
+import { CURRENCIES, CURRENCY_LABELS, PRICE_STEP } from '../config/economy';
 import { formatStatName, getStatIcon } from '../config/statIcons';
 import { useGameStore } from '../stores/gameStore';
 import { getStat, planCost, priceBand, priceOf, stepMultiplier } from '../game/StatDevelopment';
@@ -27,6 +27,27 @@ const GROUPS: Array<{ title: string; stats: StatName[] }> = [
 ];
 
 const BAND_LABEL = { cheap: 'Cheap', standard: 'Standard', premium: 'Premium' } as const;
+
+/** Where the next price step starts above `value` (100 when it is in the top step). */
+const nextStepAt = (value: number): number =>
+  Math.min(100, PRICE_STEP.from + PRICE_STEP.width * (stepMultiplier(value) - 1));
+
+/** How close to a step the row starts warning about it. */
+const STEP_WARNING = 5;
+
+/**
+ * Plain-language price step for a stat about to be raised from `value`: a warning when
+ * the next step is close, the multiplier while one is in force, nothing below the first
+ * step until it is close.
+ */
+function stepNote(value: number): string | null {
+  const m = stepMultiplier(value);
+  const at = nextStepAt(value);
+  const near = at < 100 && at - value <= STEP_WARNING;
+  if (near) return m === 1 ? `Price doubles at ${at}` : `${m + 1}× price from ${at}`;
+  if (m === 1) return null;
+  return at < 100 ? `${m}× price until ${at}` : `${m}× price`;
+}
 
 const remaining = (wallet: Wallet, cost: Amounts): Wallet =>
   Object.fromEntries(CURRENCIES.map((c) => [c, wallet[c] - (cost[c] ?? 0)])) as Wallet;
@@ -108,7 +129,7 @@ export const DevelopmentScreen: React.FC = () => {
 
         {/* Wallet stays pinned: every +1 is a comparison against it. */}
         <div
-          className="sticky top-2 z-20 mb-6 bg-pixel-card border-4 border-pixel-border px-4 py-2 flex flex-wrap items-center gap-x-5 gap-y-2"
+          className="sticky top-2 z-20 mb-6 bg-pixel-card border-4 border-pixel-border px-3 sm:px-4 py-2 flex flex-nowrap sm:flex-wrap items-center justify-between sm:justify-start gap-x-3 sm:gap-x-5 gap-y-2"
           data-testid="development-wallet"
         >
           {CURRENCIES.map((c) => (
@@ -119,15 +140,17 @@ export const DevelopmentScreen: React.FC = () => {
               data-amount={Math.floor(left[c])}
             >
               <span aria-hidden="true">{CURRENCY_STYLE[c].icon}</span>
+              {(cost[c] ?? 0) > 0 && (
+                <span className="text-xs text-pixel-text-muted whitespace-nowrap">
+                  {Math.floor(player.wallet[c])} →
+                </span>
+              )}
               <span className={`text-xl font-bold ${CURRENCY_STYLE[c].text}`}>
                 {Math.floor(left[c])}
               </span>
-              {plan.length > 0 && (
-                <span className="text-xs text-pixel-text-muted line-through">
-                  {Math.floor(player.wallet[c])}
-                </span>
-              )}
-              <span className="text-xs text-pixel-text-muted">{CURRENCY_LABELS[c]}</span>
+              <span className="hidden sm:inline text-xs text-pixel-text-muted">
+                {CURRENCY_LABELS[c]}
+              </span>
             </span>
           ))}
         </div>
@@ -160,14 +183,14 @@ export const DevelopmentScreen: React.FC = () => {
                   const price = priceOf(stat, next);
                   const short = shortfall(price, left);
                   const atMax = next >= 100;
-                  const stepNext = stepMultiplier(next + 1);
+                  const plannedCost = planned
+                    ? planCost(player.stats, Array<StatName>(planned).fill(stat))
+                    : null;
                   const reason = atMax
                     ? 'At 100'
                     : short.length
                       ? `Needs ${short.map(([c, n]) => `${n} more ${CURRENCY_LABELS[c]}`).join(' and ')}`
-                      : stepNext > stepMultiplier(next)
-                        ? `The point after this costs ×${stepNext}`
-                        : `×${stepMultiplier(next)} price at ${next}`;
+                      : stepNote(next);
                   return (
                     <Card key={stat} padding="sm" className={planned ? 'border-pixel-accent' : ''}>
                       <div
@@ -191,13 +214,34 @@ export const DevelopmentScreen: React.FC = () => {
                             <span className="text-xs uppercase tracking-wider text-pixel-text-muted">
                               {BAND_LABEL[priceBand(stat)]}
                             </span>
-                            {!atMax && <CurrencyAmounts amounts={price} />}
+                            {!atMax && (
+                              <span
+                                className="inline-flex items-center gap-1.5"
+                                data-testid={`development-next-${stat}`}
+                              >
+                                <span className="text-xs text-pixel-text-muted">Next +1</span>
+                                <CurrencyAmounts amounts={price} />
+                              </span>
+                            )}
+                            {plannedCost && (
+                              <span
+                                className="inline-flex items-center gap-1.5"
+                                data-testid={`development-planned-${stat}`}
+                              >
+                                <span className="text-xs text-pixel-accent">
+                                  Planned +{planned}
+                                </span>
+                                <CurrencyAmounts amounts={plannedCost} />
+                              </span>
+                            )}
                           </div>
-                          <div
-                            className={`text-xs mt-1 ${short.length ? 'text-pixel-warning' : 'text-pixel-text-muted'}`}
-                          >
-                            {reason}
-                          </div>
+                          {reason && (
+                            <div
+                              className={`text-xs mt-1 ${short.length ? 'text-pixel-warning' : 'text-pixel-text-muted'}`}
+                            >
+                              {reason}
+                            </div>
+                          )}
                         </div>
                         <Button
                           variant="secondary"
@@ -255,7 +299,7 @@ export const DevelopmentScreen: React.FC = () => {
             </div>
           ) : (
             <>
-              <div className="min-w-0">
+              <div className="min-w-0 w-full sm:w-auto">
                 <div className="font-bold text-pixel-text" data-testid="development-plan">
                   {summary}
                 </div>
