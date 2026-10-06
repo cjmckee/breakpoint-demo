@@ -9,13 +9,13 @@ applied; 2–4 are proposals, reproducible in memory with `tuneRun.ts` without e
 The question behind all five: does a player's choice of stats matter, and can a weaker player
 still win sometimes?
 
-| #   | finding                                                                               | status                                       |
-| --- | ------------------------------------------------------------------------------------- | -------------------------------------------- |
-| 1   | Net play was capped by rally structure, not by archetype                              | applied, `efac2ed`                           |
-| 2   | Double faults end a quarter of early-game points; servers can't hold                  | proposed: second-serve midpoint              |
-| 3   | Upsets are near impossible past a 6-point rating gap                                  | proposed: match-form variance 8 → 14         |
-| 4   | An identity's key stats are its worst buys, but the curve isn't why identities differ | proposed: keep the curve; look at identities |
-| 5   | Abilities: four are dead, rarity is inverted, levels make commons dominant            | proposal only                                |
+| #   | finding                                                                        | status                                     |
+| --- | ------------------------------------------------------------------------------ | ------------------------------------------ |
+| 1   | Net play was capped by rally structure, not by archetype                       | applied, `efac2ed`                         |
+| 2   | Double faults end a quarter of early-game points; servers can't hold           | not an issue (decided)                     |
+| 3   | Upsets are near impossible past a 6-point rating gap                           | proposed: in-match rhythm (round 2)        |
+| 4   | Key stats are an identity's worst buys; specialties don't grow with their stat | investigating: specialty synergy (round 2) |
+| 5   | Abilities: four are dead, rarity is inverted, levels make commons dominant     | proposal only                              |
 
 ---
 
@@ -94,14 +94,14 @@ cannot fix this (it averages out: rally variance 9 → 14 moved a 10-point gap f
 
 **Proposal.** `MATCH_FORM.variance` 8 → **14**.
 
-| gap | point-win, before → after | game-win    | weaker player's match-win |
-| --- | ------------------------- | ----------- | ------------------------- |
-| 0   | 50.6 → 52.1               | 51.6 → 53.5 | 53.0 → 54.5               |
-| 3   | 42.7 → 45.5               | 36.6 → 42.9 | 29.3 → **41.0**           |
-| 6   | 34.5 → 37.0               | 23.1 → 29.9 | 15.5 → **26.0**           |
-| 10  | 23.6 → 29.2               | 9.5 → 20.1  | 2.3 → **14.8**            |
-| 15  | 12.0 → 16.8               | 1.2 → 7.2   | 0.0 → **3.0**             |
-| 20  | 7.5 → 9.1                 | 0.2 → 2.0   | 0.0 → 0.0                 |
+| gap | point-win, before → after                            | game-win                            | weaker player's match-win |
+| --- | ---------------------------------------------------- | ----------------------------------- | ------------------------- |
+| 0   | 50.6 → 52.1                                          | 51.6 → 53.5                         | 53.0 → 54.5               |
+| 3   | Upsets are near impossible past a 6-point rating gap | proposed: in-match rhythm (round 2) |
+| 6   | 34.5 → 37.0                                          | 23.1 → 29.9                         | 15.5 → **26.0**           |
+| 10  | 23.6 → 29.2                                          | 9.5 → 20.1                          | 2.3 → **14.8**            |
+| 15  | 12.0 → 16.8                                          | 1.2 → 7.2                           | 0.0 → **3.0**             |
+| 20  | 7.5 → 9.1                                            | 0.2 → 2.0                           | 0.0 → 0.0                 |
 
 Stats still decide most matches (a 10-point edge wins 85%), but a one-tier-up story opponent is
 beatable on a good day. Tested alternatives: variance 12 gives 25% / 11% / 1% at gaps 6/10/15;
@@ -225,6 +225,112 @@ Live engine, level 1 (key moments won, baseline 33–36%):
 3. Give Serve Cannon a serve effect.
 4. Level curve with diminishing returns (e.g. ×1, ×1.6, ×2) rather than ×level, or keep ×level
    and price the levels steeply. Measure with `LEVEL=2,3` on `abilityProbe`.
+
+---
+
+## Round 2: randomness that comes from the match, and why identities differ
+
+Decisions after round 1: finding 2 is not an issue; finding 3 wants a lever less crude than a
+wider pre-match roll; finding 4 keeps the price curve and investigates the identities.
+
+### Randomness: in-match rhythm instead of a wider match-day roll
+
+**Probe.** `serveAndUpsetProbe` (upset section) now also reports matches that went the
+distance, comebacks (the match winner lost the first set) and the longest run of games.
+
+**Finding.** Between equal players only 11.5% of best-of-threes go to a third set (tennis:
+roughly 35–40%) and 5.5% are comebacks. Momentum is not the cause: switching it off changes
+neither. The match-day roll is: whoever rolls the better day tends to win both sets. Widening
+the roll (round 1's proposal) buys upsets but makes matches even more decided at the first ball
+(three-setters 7.5%).
+
+**New mechanics (off by default, `88d39c8`).** `MATCH_RHYTHM` (`core/rhythm.ts`): after every
+game each player's form takes a random step and is pulled back toward their match-day roll, so it
+runs in spells; focus steadies it. Wired into MatchSimulator and MatchOrchestrator.
+`BIG_POINT_NERVES`: shot variance widens on key points, narrowed by focus.
+
+N=400–500 BO3 per row; "impact kept" is the point-win drop from a 0- to a 10-point gap, relative
+to today, so 100% means stats move point-win exactly as much as now:
+
+| variant                     | impact kept | weaker wins at gap 3 / 6 / 10 / 15 | 3 sets, equal | comebacks, equal |
+| --------------------------- | ----------- | ---------------------------------- | ------------- | ---------------- |
+| today (form ±8)             | 100%        | 29 / 16 / 2.0 / 0.0                | 11.5%         | 5.5%             |
+| form ±14 (round 1)          | 83%         | 41 / 22 / 12 / 4.0                 | 7.5%          | 4.5%             |
+| momentum off                | —           | 29 / 13 / 1.5 / 0.0                | 11.0%         | 6.3%             |
+| nerves ×2                   | —           | 29 / 19 / 3.0 / 0.0                | 10.5%         | 5.0%             |
+| form ±4, rhythm 5           | 88%         | 28 / 9.5 / 2.0 / 0.3               | 33.0%         | 18.3%            |
+| form ±4, rhythm 6, slow     | 68%         | 36 / 20 / 10 / 2.5                 | 28.5%         | 20.8%            |
+| form ±12, rhythm 3, slow    | 71%         | 36 / 23 / 14 / 2.2                 | 14.0%         | 6.8%             |
+| **form ±8, rhythm 4, slow** | **84%**     | **38 / 22 / 6.2 / 1.6**            | **23.6%**     | **15.2%**        |
+
+("slow" = reversion 0.12, longer spells.)
+
+**Proposal.** `MATCH_RHYTHM.swing` 0 → 4, `reversion` 0.2 → 0.12; leave `MATCH_FORM` at 8. Same
+cost to stat impact as the wider roll, same upset rate at small and medium gaps, twice the
+three-set matches and three times the comebacks, and big mismatches stay mostly safe (6% at a
+10-point gap rather than 12%). Weaker players win by getting hot mid-match, not by rolling a good
+day; focus gains a job. Nerves add little and can stay off.
+
+Reproduce: `TUNE='MATCH_RHYTHM.swing=4;MATCH_RHYTHM.reversion=0.12' PROBE=serveAndUpsetProbe SECTIONS=upset npx tsx src/test/analysis/tuneRun.ts`
+
+### Identities: specialties are flat trades that don't grow with their stat
+
+**Probe 1, `identityGapProbe`.** Each identity's day-23 stats crossed with each identity's
+profile, against a uniform 35 with no archetype (N=600 BO3; Reginald and Olivia agree):
+
+| stats \ profile | big server | counter  | net rusher | baseliner | none |
+| --------------- | ---------- | -------- | ---------- | --------- | ---- |
+| big server      | **49.6**   | 50.4     | 49.8       | 50.5      | 50.3 |
+| counter         | 52.8       | **51.6** | 54.2       | 52.0      | 52.7 |
+| net rusher      | 53.4       | 50.3     | **56.1**   | 50.8      | 51.5 |
+| baseliner       | 48.0       | 49.5     | 47.4       | **49.6**  | 49.0 |
+| uniform 35      | 49.9       | 49.5     | 51.8       | 49.5      | 49.7 |
+
+- Only the net rusher's profile helps: +2.1 on a uniform build, +4.6 on its own stats. The other
+  three add −1.1 to +0.6 on their own builds.
+- The mechanics behind it (own stats, own profile v none): the bomber doubles aces (1.8 → 3.8%)
+  and adds double faults (9.7 → 10.9%), and the opportunist path sends a net-28 player forward on
+  10.5% of points to win half; the baseliner's power paths nearly double winners (5.8 → 9.7%) and
+  add unforced errors (11.6 → 13.0%); the counter's apologist path gives up net points it wins
+  69% of the time. Coming forward pays for everyone (60–81% of net points won).
+- Allocation matters too: the counter's movement-and-mind buys are worth +3.0 over spreading
+  evenly, the baseliner's power buys −0.7.
+
+**Probe 2, `specialtySynergyProbe`.** Each of the 18 phase paths alone on a uniform 35, and again
+with its phase stat raised to 50 (N=800 BO3, ± ~0.3):
+
+| path             | alone | backed (stat 50) | synergy  |
+| ---------------- | ----- | ---------------- | -------- |
+| net_downhill     | +2.7  | +4.7             | **+2.0** |
+| net_opportunist  | +0.9  | +1.3             | +0.4     |
+| ss_kicker        | −0.2  | −0.2             | +0.1     |
+| rt_sneaky_beaky  | +2.1  | +2.0             | −0.1     |
+| rt_redliner      | +0.5  | +0.4             | −0.1     |
+| bh_brick_wall    | +0.2  | +0.0             | −0.2     |
+| fh_rpm_overdrive | +0.3  | +0.0             | −0.3     |
+| rt_extinguisher  | +0.2  | −0.1             | −0.3     |
+| ss_pancake       | −0.2  | −0.5             | −0.3     |
+| ss_gambler       | −0.1  | −0.5             | −0.5     |
+| bh_bazooka       | +0.3  | −0.2             | −0.5     |
+| fs_curveball     | −0.2  | −0.7             | −0.6     |
+| fh_survivor      | +0.7  | +0.1             | −0.6     |
+| bh_samurai       | +0.1  | −0.5             | −0.6     |
+| fs_bomber        | +0.5  | −0.3             | −0.8     |
+| fs_sniper        | +2.2  | +1.4             | −0.8     |
+| fh_laserbeam     | +0.8  | −0.1             | −0.8     |
+| net_apologist    | −0.4  | −1.9             | −1.5     |
+
+**Finding.** For 16 of 18 paths the matching stat makes the specialty worth the same or less.
+Most specialties are flat trades (extra variance, fault risk, shot-choice biases) whose costs do
+not shrink as the player gets better at the shot, and added variance hurts whoever is favoured.
+A player who invests in their specialty's stat gets less from the specialty, the opposite of the
+design goal that committing to an archetype should pay.
+
+**Proposal (next).** Make each specialty's cost shrink, or its gain grow, with its phase stat:
+e.g. power variance that narrows as forehand rises, bomber fault risk that falls as serve rises,
+sniper and kicker accuracy that scales with serve. Then re-run `specialtySynergyProbe`; the target
+is positive synergy for every path and own-profile gains for every identity in
+`identityGapProbe`.
 
 ---
 
