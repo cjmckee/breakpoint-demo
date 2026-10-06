@@ -14,7 +14,12 @@
 import type { Player } from '../types/game';
 import { CURRENCIES, STAT_RECIPES } from '../config/economy';
 import { PlayerManager } from '../game/PlayerManager';
-import { matchPayout, roundAmounts, trainingPayout } from '../game/CurrencyIncome';
+import {
+  matchPayout,
+  matchPayoutLines,
+  roundAmounts,
+  trainingPayout,
+} from '../game/CurrencyIncome';
 import {
   STAT_NAMES,
   applyCurrency,
@@ -184,6 +189,55 @@ function main(): void {
     (match.power ?? 0) > (match.quickness ?? 0),
     JSON.stringify(match),
   );
+
+  console.log('\n── match pay, line by line ──');
+  let mismatches = 0;
+  for (let i = 0; i < 200; i++) {
+    const r = (): number => Math.round(Math.random() * 100);
+    const pf = {
+      servingScore: r(),
+      returningScore: r(),
+      rallyScore: r(),
+      netPlayScore: i % 3 === 0 ? 0 : r(),
+      mentalScore: r(),
+      overallScore: r(),
+    };
+    const total = matchPayout(pf);
+    const lines = matchPayoutLines(pf);
+    for (const c of CURRENCIES) {
+      const summed = lines.reduce((s, l) => s + (l.amounts[c] ?? 0), 0);
+      if (summed !== (total[c] ?? 0)) mismatches++;
+    }
+  }
+  check(
+    'the lines add up to the pay exactly, for 200 random matches',
+    mismatches === 0,
+    `${mismatches} mismatches`,
+  );
+  const flat = matchPayoutLines({
+    servingScore: 50,
+    returningScore: 0,
+    rallyScore: 0,
+    netPlayScore: 0,
+    mentalScore: 0,
+    overallScore: 50,
+  });
+  check(
+    'the flat Mind share is its own line, and a scoreless area has none',
+    flat[0].label === 'For playing' &&
+      (flat[0].amounts.mind ?? 0) > 0 &&
+      !flat.some((l) => l.label === 'Returning'),
+    JSON.stringify(flat),
+  );
+  const empty = matchPayoutLines({
+    servingScore: 0,
+    returningScore: 0,
+    rallyScore: 0,
+    netPlayScore: 0,
+    mentalScore: 0,
+    overallScore: 0,
+  });
+  check('a match with no scored areas pays it all for playing', empty.length === 1);
 
   console.log(
     failures === 0
