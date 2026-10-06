@@ -61,10 +61,10 @@ function sum(...parts: CurrencyAmounts[]): CurrencyAmounts {
 
 /** Training rates with the income scale folded in; careerSim passes tuned copies. */
 export type TrainingRates = typeof TRAINING_PAYOUT & { scale: number };
-export type MatchRates = typeof MATCH_PAYOUT & { scale: number };
+export type MatchRates = typeof MATCH_PAYOUT;
 
 const GAME_TRAINING_RATES: TrainingRates = { ...TRAINING_PAYOUT, scale: INCOME_SCALE };
-const GAME_MATCH_RATES: MatchRates = { ...MATCH_PAYOUT, scale: INCOME_SCALE };
+const GAME_MATCH_RATES: MatchRates = MATCH_PAYOUT;
 
 function evenly(units: number): CurrencyAmounts {
   const out: CurrencyAmounts = {};
@@ -93,30 +93,6 @@ export function trainingPayout(
   return roundAmounts(
     sum(evenly(general), { mind }, splitUnits(units - general - mind, STAT_RECIPES[anchor])),
   );
-}
-
-/**
- * A match pays units × (0.5 + overall / 100) × INCOME_SCALE: the Mind share as
- * Mind, the rest split by how well each area went (serving → Power, returning
- * → Quickness, rally → Technique, net → Quickness and Technique, mental →
- * Mind). A good serving day pays in Power, which buys serve.
- */
-export function matchPayout(
-  perf: PerformanceRewardBreakdown,
-  p: MatchRates = GAME_MATCH_RATES,
-): CurrencyAmounts {
-  const units = p.units * (0.5 + perf.overallScore / 100) * p.scale;
-  const mind = units * p.mindShare;
-  const area: CurrencyAmounts = {
-    power: perf.servingScore,
-    quickness: perf.returningScore + perf.netPlayScore / 2,
-    technique: perf.rallyScore + perf.netPlayScore / 2,
-    mind: perf.mentalScore,
-  };
-  const byArea = splitUnits(units - mind, area);
-  // A match with no scored areas still pays its non-Mind share, evenly.
-  const rest = Object.keys(byArea).length > 0 ? byArea : evenly(units - mind);
-  return roundAmounts(sum({ mind }, rest));
 }
 
 /**
@@ -152,9 +128,8 @@ export interface PayoutLine {
 
 /**
  * Split `total` whole units across exact parts by largest remainder, so the
- * rounded parts add up to the total. The total is the same rounding of the
- * parts' sum that matchPayout applies, so it never needs more than one extra
- * unit per part.
+ * rounded parts add up to the total. The total is the rounding of the parts'
+ * sum, so it never needs more than one extra unit per part.
  */
 function apportion(total: number, parts: number[]): number[] {
   const floors = parts.map((v) => Math.floor(v));
@@ -168,32 +143,18 @@ function apportion(total: number, parts: number[]): number[] {
   return floors;
 }
 
-/**
- * A match's pay line by line — the flat Mind share for playing, then what each
- * area of the match earned — in whole units that add up to matchPayout exactly.
- * Without it a match rated "Poor" on the mental game can pay mostly Mind, which
- * reads as a bug rather than the flat share it is.
- */
-export function matchPayoutLines(
-  perf: PerformanceRewardBreakdown,
-  p: MatchRates = GAME_MATCH_RATES,
-): PayoutLine[] {
-  const units = p.units * (0.5 + perf.overallScore / 100) * p.scale;
-  const base = units * p.mindShare;
-  const rest = units - base;
+/** The performance pool, area by area, in fractional units. */
+function poolLines(perf: PerformanceRewardBreakdown, p: MatchRates): PayoutLine[] {
+  const pool = p.pool * (perf.overallScore / 100);
   const areas =
     perf.servingScore +
     perf.returningScore +
     perf.rallyScore +
     perf.netPlayScore +
     perf.mentalScore;
-  const share = (score: number): number => (areas > 0 ? (rest * score) / areas : 0);
-
-  const exact: PayoutLine[] = [
-    {
-      label: 'For playing',
-      amounts: areas > 0 ? { mind: base } : sum({ mind: base }, evenly(rest)),
-    },
+  if (pool <= 0 || areas <= 0) return [];
+  const share = (score: number): number => (pool * score) / areas;
+  return [
     { label: 'Serving', amounts: { power: share(perf.servingScore) } },
     { label: 'Returning', amounts: { quickness: share(perf.returningScore) } },
     { label: 'Rallies', amounts: { technique: share(perf.rallyScore) } },
@@ -206,20 +167,51 @@ export function matchPayoutLines(
     },
     { label: 'Mental game', amounts: { mind: share(perf.mentalScore) } },
   ];
+}
 
-  const total = matchPayout(perf, p);
+/**
+ * A match pays its result's base (a loss 2 of each currency and 5 Mind, a win
+ * 3 and 6) plus a performance pool of pool × overall/100, split by how each
+ * area went: a good serving day pays in Power, which buys serve.
+ */
+export function matchPayout(
+  perf: PerformanceRewardBreakdown,
+  won: boolean,
+  p: MatchRates = GAME_MATCH_RATES,
+): CurrencyAmounts {
+  return sum(
+    won ? p.base.won : p.base.lost,
+    roundAmounts(sum(...poolLines(perf, p).map((l) => l.amounts))),
+  );
+}
+
+/**
+ * A match's pay line by line — the base for winning or losing, then what each
+ * area of the match earned — in whole units that add up to matchPayout exactly.
+ * Areas that paid nothing are left out.
+ */
+export function matchPayoutLines(
+  perf: PerformanceRewardBreakdown,
+  won: boolean,
+  p: MatchRates = GAME_MATCH_RATES,
+): PayoutLine[] {
+  const exact = poolLines(perf, p);
+  const pooled = roundAmounts(sum(...exact.map((l) => l.amounts)));
   const rounded: CurrencyAmounts[] = exact.map(() => ({}));
   for (const c of CURRENCIES) {
     const holders = exact.flatMap((line, i) => (line.amounts[c] ? [i] : []));
     const parts = apportion(
-      total[c] ?? 0,
+      pooled[c] ?? 0,
       holders.map((i) => exact[i].amounts[c] ?? 0),
     );
     holders.forEach((i, k) => {
       if (parts[k] > 0) rounded[i][c] = parts[k];
     });
   }
-  return exact
-    .map((line, i) => ({ label: line.label, amounts: rounded[i] }))
-    .filter((line) => Object.keys(line.amounts).length > 0);
+  return [
+    { label: won ? 'Won match' : 'Lost match', amounts: { ...(won ? p.base.won : p.base.lost) } },
+    ...exact
+      .map((line, i) => ({ label: line.label, amounts: rounded[i] }))
+      .filter((line) => Object.keys(line.amounts).length > 0),
+  ];
 }

@@ -341,9 +341,9 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
               labelled
               className="justify-center text-lg"
             />
-            {/* Where it came from: the flat share for playing, then each area. */}
+            {/* Where it came from: the base for the result, then each area. */}
             <div className="mt-3 space-y-1 text-sm text-left" data-testid="match-currency-lines">
-              {matchPayoutLines(matchRewards.performanceBreakdown).map((line) => (
+              {matchPayoutLines(matchRewards.performanceBreakdown, isWinner).map((line) => (
                 <div
                   key={line.label}
                   className="flex justify-between gap-3"
