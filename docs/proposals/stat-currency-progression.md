@@ -1007,6 +1007,69 @@ Mean point-win % against each team-match opponent. "Today" is pooled over both r
 
 ---
 
+### 9.10 Where the currency comes from, and where it goes
+
+`careerSim LEDGER=1` books every unit a currency career earns to its source, and every unit it
+spends to the stat it bought. Patient player, income ×1.2, real match engine, 30 careers per
+identity, means per career.
+
+**Time.** Through day 31 a player has 93 daytime slots:
+
+| use                    | slots | share |
+| ---------------------- | ----- | ----- |
+| training               | 63    | 68%   |
+| practice matches       | 6     | 6%    |
+| team matches           | 5     | 5%    |
+| story events           | 9     | 10%   |
+| rest (short of energy) | 10    | 11%   |
+
+Identity does not change the time budget, only which anchors get trained.
+
+**Income.** About 875 units by day 31 (410 by day 15), whatever the identity:
+
+| source             | units | share | per slot | per 10 energy |
+| ------------------ | ----- | ----- | -------- | ------------- |
+| training           | 627   | 72%   | ~10      | ~5            |
+| story / challenges | 161   | 18%   | —        | —             |
+| practice matches   | 47    | 5%    | ~8       | ~1.6          |
+| team matches       | 41    | 5%    | ~8       | ~1.6          |
+
+- **Training is the economy.** Matches pay about the same per slot as a training session, but a
+  match costs 50 energy against training's 20. So per unit of energy a match pays a third as
+  much.
+- **Matches are not the Mind source §6.2 meant them to be.** 60% of match pay is Mind, but
+  matches are only 10% of income: about 65 Mind of a career's 210–270. Most Mind comes from the
+  training Mind share and general share (~100–150) and from story (~50).
+
+**What players buy.** Share of spending on the identity's six key stats, and where the rest
+went:
+
+| identity  | on key stats | biggest buys                                        | rest of the spend                        |
+| --------- | ------------ | --------------------------------------------------- | ---------------------------------------- |
+| netRusher | 73%          | speed 15%, anticipation 14%, tactics 14%, serve 13% | every other stat 2–4%                    |
+| counter   | 71%          | tactics 16%, anticipation, return, speed 13% each   | placement, serve, slice, focus 4–5%      |
+| bigServer | 67%          | serve 14%, placement 12%, strength 11%, focus 11%   | anticipation 7%, speed 6%, others 2–5%   |
+| baseliner | 59%          | spin, strength, backhand 11% each, forehand 10%     | anticipation 9%, tactics 7%, others 3–5% |
+
+Every stat gets bought, and the least-bought gets about 2% (~20 units). Unspent at day 31 is
+25–30 units, a normal evening's float, except for the baseliner, which sits on 61 Mind it has
+no key stat for (§9.8).
+
+**Training follows the currency, not the identity.** With adaptive training a player trains
+whatever pays what its next purchases need, so anchors drift from the playstyle:
+
+- the big server trains backhand 15 times in 63, for the Technique its placement and spin
+  need;
+- the counterpuncher trains serve 14 times, for the Power its speed and stamina need;
+- the baseliner never trains serve or return.
+
+That is the recipes working as designed (§6.2): each anchor pays its own recipe's currencies.
+But it means a big server improves the backhand training it never wanted, while the stat it
+gains comes from the shop of recipes. Whether training a shot should be the way to earn for an
+unrelated stat is a design question (§10).
+
+---
+
 ## 10. Next avenues
 
 Updated priority order:
@@ -1025,10 +1088,16 @@ Updated priority order:
 6. **Stamina** ([`stamina-at-tier-1.md`](../research/stamina-at-tier-1.md)): a stronger fatigue
    penalty, a 1-unit recipe, or an out-of-match job. Decide, then re-measure §6.5.
 7. **Focus** to a standard recipe (2 Mind · 1 Quickness), so surplus Mind stops draining into it.
-8. **Price abilities.** Measure each on-court ability's point-win value the way `statChannels`
-   values a stat, and set its currency cost at the same exchange rate.
-9. **Paper-prototype the Development screen and the training result's "what this buys".**
-10. **Script the content conversion** of `statChanges` to currency, and review the diff for
+8. **Matches as an earner** (§9.10). Matches pay a third of training per unit of energy and only
+   10% of income, so they fail as the Mind source. Raise match pay, or pay matches per point won
+   rather than per match, then re-run the ledger.
+9. **Training for currency rather than the shot** (§9.10). Decide whether anchors should keep
+   paying in their recipe ratio, or whether every anchor should pay more evenly so players train
+   the shots they care about.
+10. **Price abilities.** Measure each on-court ability's point-win value the way `statChannels`
+    values a stat, and set its currency cost at the same exchange rate.
+11. **Paper-prototype the Development screen and the training result's "what this buys".**
+12. **Script the content conversion** of `statChanges` to currency, and review the diff for
     fiction.
 
 ```
@@ -1043,6 +1112,7 @@ DAYS=31 CHECK=15,19,23,27,31 npx tsx src/test/analysis/careerSim.ts       # §9.
 SPEND=impatient EXCHANGE=2 DAYS=31 CHECK=15,19,23,27,31 INCOME_SCALE=1.4 \
   npx tsx src/test/analysis/careerSim.ts                                     # §9.7 as run
 TRACE=baseliner INCOME_SCALE=1.2 npx tsx src/test/analysis/careerSim.ts   # one career, day by day
+LEDGER=1 RUNS=30 DAYS=31 CHECK=31 npx tsx src/test/analysis/careerSim.ts  # §9.10, seconds
 ```
 
 **Measurement baseline:** §3 was taken on `a680f19`, before the slice change. §9 was taken

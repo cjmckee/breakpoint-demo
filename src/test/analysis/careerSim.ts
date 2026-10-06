@@ -56,6 +56,8 @@
  *      MATCH_UNITS=8  MATCH_MIND_SHARE=0.6  EXCHANGE=0
  *      SPEND=patient|affordable|impatient  (see buyTowardShape)  OVERBUILD=8
  *      STATS=1 prints every stat of the mean build instead of the lowest/top three
+ *      LEDGER=1 reports, per identity, slot use, currency earned by source, and
+ *      currency spent per stat — no readiness matches, so it runs in seconds
  *            |level|rr  (the rigid planners of the first pass)
  *      §9.6–9.7 were run with SPEND=impatient EXCHANGE=2
  *      TRACE=<identity> prints one currency career day by day: every slot, match
@@ -398,7 +400,36 @@ interface Snapshot {
   sessions: number;
   /** Team match results so far, by day. */
   teamWon: Map<number, boolean>;
+  /** Where currency came from and went, and how the slots were spent. */
+  ledger: Ledger;
 }
+
+type Source = 'training' | 'practice' | 'team' | 'story';
+const SOURCES: Source[] = ['training', 'practice', 'team', 'story'];
+type SlotUse = 'train' | 'practice' | 'team' | 'story' | 'rest';
+const SLOT_USES: SlotUse[] = ['train', 'practice', 'team', 'story', 'rest'];
+
+interface Ledger {
+  earned: Record<Source, Wallet>;
+  spentOn: Record<StatName, Wallet>;
+  slots: Record<SlotUse, number>;
+  anchors: Record<CoreStat, number>;
+}
+
+const zeroWallet = (): Wallet => ({ power: 0, quickness: 0, technique: 0, mind: 0 });
+const emptyLedger = (): Ledger => ({
+  earned: Object.fromEntries(SOURCES.map((k) => [k, zeroWallet()])) as Record<Source, Wallet>,
+  spentOn: Object.fromEntries(ALL_STATS.map((k) => [k, zeroWallet()])) as Record<StatName, Wallet>,
+  slots: Object.fromEntries(SLOT_USES.map((k) => [k, 0])) as Record<SlotUse, number>,
+  anchors: { serve: 0, forehand: 0, backhand: 0, return: 0, net: 0 },
+});
+const cloneLedger = (l: Ledger): Ledger => JSON.parse(JSON.stringify(l)) as Ledger;
+const addInto = (into: Wallet, a: Amounts): void => {
+  for (const c of CURRENCIES) into[c] += a[c] ?? 0;
+};
+
+/** Set while a currency career spends, so buy() can book each purchase to its stat. */
+let spendLedger: Record<StatName, Wallet> | null = null;
 
 const reps = (): number => [0, 1, 2].reduce((n) => n + (Math.random() < REPS_P ? 1 : 0), 0);
 
@@ -469,6 +500,7 @@ function buy(s: PlayerStats, w: Wallet, k: StatName): boolean {
   const price = priceOf(k, get(s, k));
   if (get(s, k) >= 100 || !canAfford(w, price)) return false;
   pay(w, price);
+  if (spendLedger) addInto(spendLedger[k], price);
   set(s, k, get(s, k) + 1);
   return true;
 }
@@ -676,6 +708,9 @@ function career(
   let matchesPlayed = 0;
   let sessions = 0;
   const snaps = new Map<number, Snapshot>();
+  const ledger = emptyLedger();
+  const credit = (source: Source, before: Wallet): void =>
+    addInto(ledger.earned[source], diffWallet(wallet, before));
 
   for (let day = 1; day <= DAYS; day++) {
     const team = TEAM_MATCHES.get(day);
@@ -688,6 +723,7 @@ function career(
       const walletBefore = { ...wallet };
       if (storySlots > 0) {
         storySlots--;
+        ledger.slots.story++;
         note(`  ${slotName} story event`);
       } else if (team && slot === 1) {
         const r = playMatch(
@@ -699,7 +735,9 @@ function career(
         );
         energy -= Math.min(50, energy);
         teamWon.set(day, r.winner === 'player');
+        ledger.slots.team++;
         const perf = system === 'currency' ? payMatch(wallet, r.stats, r.winner === 'player') : '';
+        credit('team', walletBefore);
         note(
           `  ${slotName} TEAM MATCH vs ${team.opponent.name} on ${team.surface} — ` +
             `${r.winner === 'player' ? 'WON' : 'lost'}, ${r.won}/${r.points} points. ${perf} ` +
@@ -724,7 +762,9 @@ function career(
           matchesWon++;
           tierWins++;
         }
+        ledger.slots.practice++;
         const perf = system === 'currency' ? payMatch(wallet, r.stats, r.winner === 'player') : '';
+        credit('practice', walletBefore);
         note(
           `  ${slotName} practice vs ${opp.name} (+${bump}) — ` +
             `${r.winner === 'player' ? 'WON' : 'lost'}, ${r.won}/${r.points} points. ${perf} ` +
@@ -740,6 +780,8 @@ function career(
         const n = reps();
         sessions++;
         energy -= 20;
+        ledger.slots.train++;
+        ledger.anchors[core]++;
         if (system === 'today') {
           const result = buildAnchorTrainingResult(core, n, recentSupportsFrom(recent));
           recent = result.statBoosts;
@@ -750,12 +792,14 @@ function career(
           earn(wallet, inRatio(RECIPES[core], units - general - units * TRAIN_MIND_SHARE));
           wallet.mind += units * TRAIN_MIND_SHARE;
           for (const c of CURRENCIES) wallet[c] += general / CURRENCIES.length;
+          credit('training', walletBefore);
           note(
             `  ${slotName} train ${core} — ${n}/3 reps → +${fmtAmounts(diffWallet(wallet, walletBefore))}`,
           );
         }
       } else {
         energy = Math.min(100, energy + 20);
+        ledger.slots.rest++;
         note(`  ${slotName} rest (energy ${energy})`);
       }
     }
@@ -775,12 +819,15 @@ function career(
     }
 
     if (system === 'currency') {
+      credit('story', beforeOther);
       const otherGain = diffWallet(wallet, beforeOther);
       if (unitsOf(otherGain) > 0.05) note(`  story/challenges → +${fmtAmounts(otherGain)}`);
       const before = { ...wallet };
       const statsBefore = clone(stats);
       if (traceLog) note('  evening spend:');
+      spendLedger = ledger.spentOn;
       spend(stats, wallet, id.buys, weights);
+      spendLedger = null;
       for (const c of CURRENCIES) spent[c] += before[c] - wallet[c];
       const bought = ALL_STATS.filter((k) => get(stats, k) !== get(statsBefore, k)).map(
         (k) => `${k} ${get(statsBefore, k)}→${get(stats, k)}`,
@@ -801,6 +848,7 @@ function career(
         matchesPlayed,
         sessions,
         teamWon: new Map(teamWon),
+        ledger: cloneLedger(ledger),
       });
     }
   }
@@ -817,7 +865,6 @@ function meanStats(list: PlayerStats[]): PlayerStats {
   return out;
 }
 
-/** Point-win % and match-win % over N best-of-three matches against `opp`. */
 /** Point, game (hold / break) and match win rates over N best-of-three matches against `team`. */
 function readiness(s: PlayerStats, profile: ArchetypeProfile, team: TeamMatchConfig): Rates {
   const rates = emptyRates();
@@ -859,8 +906,75 @@ function traceCareer(name: string): void {
   }
 }
 
+/**
+ * LEDGER=1: for each identity, RUNS currency careers to the last CHECK day —
+ * how the slots went, where every unit of currency came from, and what it
+ * bought. Means per career.
+ */
+function ledgerReport(): void {
+  const day = CHECK[CHECK.length - 1];
+  const f = (x: number): string => x.toFixed(0);
+  const split = (w: Wallet): string => CURRENCIES.map((c) => f(w[c])).join(' / ');
+  console.log(
+    `careerSim LEDGER  RUNS=${RUNS} day ${day} INCOME_SCALE=${INCOME_SCALE} SPEND=${SPEND}`,
+  );
+  for (const id of IDENTITIES) {
+    const ls = Array.from({ length: RUNS }, () => career(id, 'currency').get(day)!);
+    const mean = (pick: (l: Snapshot) => number): number =>
+      ls.reduce((a, l) => a + pick(l), 0) / ls.length;
+    const meanWallet = (pick: (l: Snapshot) => Wallet): Wallet =>
+      Object.fromEntries(CURRENCIES.map((c) => [c, mean((l) => pick(l)[c])])) as Wallet;
+
+    console.log(`\n== ${id.name}`);
+    console.log(
+      'slots: ' +
+        SLOT_USES.map((u) => `${u} ${mean((l) => l.ledger.slots[u]).toFixed(1)}`).join(', ') +
+        '  |  anchors trained: ' +
+        ANCHORS.map((a) => `${a} ${mean((l) => l.ledger.anchors[a]).toFixed(1)}`).join(', '),
+    );
+    const total = SOURCES.reduce(
+      (t, src) => t + unitsOf(meanWallet((l) => l.ledger.earned[src])),
+      0,
+    );
+    console.log('source\tunits\tshare\tP / Q / T / M');
+    for (const src of SOURCES) {
+      const w = meanWallet((l) => l.ledger.earned[src]);
+      console.log(
+        [src, f(unitsOf(w)), `${((unitsOf(w) / total) * 100).toFixed(0)}%`, split(w)].join('\t'),
+      );
+    }
+    const earnedAll = meanWallet((l) => l.earned);
+    console.log(['earned', f(unitsOf(earnedAll)), '', split(earnedAll)].join('\t'));
+    const unspent = meanWallet((l) => l.wallet);
+    console.log(['unspent', f(unitsOf(unspent)), '', split(unspent)].join('\t'));
+
+    console.log('stat\tunits spent\tshare\tP / Q / T / M\tstat at day ' + day);
+    const spentTotal = ALL_STATS.reduce(
+      (t, k) => t + unitsOf(meanWallet((l) => l.ledger.spentOn[k])),
+      0,
+    );
+    for (const k of [...ALL_STATS].sort(
+      (x, y) =>
+        unitsOf(meanWallet((l) => l.ledger.spentOn[y])) -
+        unitsOf(meanWallet((l) => l.ledger.spentOn[x])),
+    )) {
+      const w = meanWallet((l) => l.ledger.spentOn[k]);
+      console.log(
+        [
+          k,
+          f(unitsOf(w)),
+          `${((unitsOf(w) / spentTotal) * 100).toFixed(0)}%`,
+          split(w),
+          mean((l) => get(l.stats, k)).toFixed(0),
+        ].join('\t'),
+      );
+    }
+  }
+}
+
 function main(): void {
   if (TRACE) return traceCareer(TRACE);
+  if (process.env.LEDGER === '1') return ledgerReport();
   console.log(
     `careerSim  RUNS=${RUNS} N=${N} DAYS=${DAYS} SPEND=${SPEND} ADAPT=${ADAPT} KEY_W=${KEY_W} ` +
       `OFF_W=${OFF_W} MATCH_EVERY=${MATCH_EVERY} REPS_P=${REPS_P} OTHER_PER_DAY=${OTHER_PER_DAY} ` +
