@@ -9,6 +9,7 @@ import { createEmptyArchetypeProfile } from '../data/archetypeTree';
 import { addToEachStat } from '../core/statAccess';
 
 import { random } from '../core/random';
+import { emptyWallet } from './StatDevelopment';
 export class PlayerManager {
   /**
    * Create a new player with default stats and optional playstyle
@@ -43,6 +44,7 @@ export class PlayerManager {
       name,
       stats: baseStats,
       abilities: [],
+      wallet: emptyWallet(),
 
       // Phase-based archetype is chosen later (Coach Gonzalez event)
       archetypeProfile: createEmptyArchetypeProfile(),

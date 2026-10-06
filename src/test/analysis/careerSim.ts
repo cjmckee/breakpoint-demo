@@ -79,6 +79,11 @@ import type {
 } from '../../types/archetype';
 import type { StatBoosts } from '../../types/game';
 import { PlayerProfile } from '../../core/PlayerProfile';
+import {
+  INCOME_SCALE as ECONOMY_INCOME_SCALE,
+  MATCH_PAYOUT,
+  TRAINING_PAYOUT,
+} from '../../config/economy';
 import { abilityEffects } from '../../core/EffectAggregator';
 import { ABILITY_DEFINITIONS } from '../../data/abilities';
 import { dailyOffers, priceFor, valueGain, type IdentityName, type Rarity } from './abilityEconomy';
@@ -144,13 +149,13 @@ const MATCH_EVERY = env('MATCH_EVERY', 2);
 const REPS_P = env('REPS_P', 0.7);
 const OTHER_PER_DAY = env('OTHER_PER_DAY', 2.2);
 const SHOP_SHARE = env('SHOP_SHARE', 0.25);
-const INCOME_SCALE = env('INCOME_SCALE', 1.2);
-const TRAIN_BASE = env('TRAIN_BASE', 2);
-const TRAIN_PER_REP = env('TRAIN_PER_REP', 3);
-const MATCH_UNITS = env('MATCH_UNITS', 16);
-const MATCH_MIND_SHARE = env('MATCH_MIND_SHARE', 0.6);
-const TRAIN_MIND_SHARE = env('TRAIN_MIND_SHARE', 0.1);
-const TRAIN_GENERAL_SHARE = env('TRAIN_GENERAL_SHARE', 0.2);
+const INCOME_SCALE = env('INCOME_SCALE', ECONOMY_INCOME_SCALE);
+const TRAIN_BASE = env('TRAIN_BASE', TRAINING_PAYOUT.base);
+const TRAIN_PER_REP = env('TRAIN_PER_REP', TRAINING_PAYOUT.perRep);
+const MATCH_UNITS = env('MATCH_UNITS', MATCH_PAYOUT.units);
+const MATCH_MIND_SHARE = env('MATCH_MIND_SHARE', MATCH_PAYOUT.mindShare);
+const TRAIN_MIND_SHARE = env('TRAIN_MIND_SHARE', TRAINING_PAYOUT.mindShare);
+const TRAIN_GENERAL_SHARE = env('TRAIN_GENERAL_SHARE', TRAINING_PAYOUT.generalShare);
 /** Ability shopping (abilityEconomy.ts). ABILITIES=0 turns it off. */
 const ABILITIES_ON = process.env.ABILITIES !== '0';
 /** Buy an ability when its point-win per currency unit is at least this (a typical stat buy). */

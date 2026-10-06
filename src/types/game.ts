@@ -477,11 +477,23 @@ export const PlayerFlag = {
 export const getHangoutUnlockedFlag = (characterId: string): string =>
   `${PlayerFlag.HANGOUT_UNLOCKED_PREFIX}${characterId}`;
 
+/** The four training currencies a player spends on stats (docs/proposals/stat-currency-progression.md). */
+export type Currency = 'power' | 'quickness' | 'technique' | 'mind';
+
+/** An amount in each currency; missing means zero. Negative amounts are losses. */
+export type CurrencyAmounts = Partial<Record<Currency, number>>;
+
+/** A player's balance in every currency. Never negative. */
+export type Wallet = Record<Currency, number>;
+
 export interface Player {
   id: string;
   name: string;
   stats: PlayerStats;
   abilities: Ability[];
+
+  // Training currencies, earned from training, matches, story and challenges and spent on stats
+  wallet: Wallet;
 
   // Phase-based archetype identity (the DECISION layer; see types/archetype.ts)
   archetypeProfile: ArchetypeProfile;

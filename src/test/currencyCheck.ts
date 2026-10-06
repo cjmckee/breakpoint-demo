@@ -1,0 +1,147 @@
+/**
+ * Currency check — the stat-currency rules the game relies on.
+ *
+ *   - every stat has a recipe, and its length is a price band (2, 3 or 4 units)
+ *   - the price step: ×1 below 40, ×2 in the 40s-50s, ×3 in the 60s-70s, ×4 from 80
+ *   - a plan of +1s is priced at each point's starting value, in order
+ *   - losses clamp each currency at zero, gains add
+ *   - a purchase applies all of a plan or none of it, and refuses what it can't pay
+ *
+ * Run: npx tsx src/test/currencyCheck.ts  (part of npm test)
+ */
+
+import type { Player } from '../types/game';
+import { CURRENCIES, STAT_RECIPES } from '../config/economy';
+import { PlayerManager } from '../game/PlayerManager';
+import {
+  STAT_NAMES,
+  applyCurrency,
+  getStat,
+  planCost,
+  priceBand,
+  priceOf,
+  purchase,
+  stepMultiplier,
+  unitsOf,
+  withStat,
+} from '../game/StatDevelopment';
+
+let failures = 0;
+
+function check(label: string, condition: boolean, detail?: string): void {
+  if (condition) {
+    console.log(`  ok    ${label}`);
+  } else {
+    failures++;
+    console.log(`  FAIL  ${label}${detail ? ` — ${detail}` : ''}`);
+  }
+}
+
+function playerWith(
+  wallet: Player['wallet'],
+  stats?: Partial<Record<(typeof STAT_NAMES)[number], number>>,
+): Player {
+  const base = PlayerManager.createPlayer('Check', 'balanced');
+  let s = base.stats;
+  for (const [k, v] of Object.entries(stats ?? {}))
+    s = withStat(s, k as (typeof STAT_NAMES)[number], v);
+  return { ...base, stats: s, wallet };
+}
+
+function main(): void {
+  console.log('── recipes ──');
+  check(
+    'every stat has a recipe',
+    STAT_NAMES.every((s) => STAT_RECIPES[s] !== undefined),
+  );
+  check(
+    'every recipe is a price band of 2, 3 or 4 units',
+    STAT_NAMES.every((s) => [2, 3, 4].includes(unitsOf(STAT_RECIPES[s]))),
+  );
+  check(
+    'recipes only use the four currencies',
+    STAT_NAMES.every((s) =>
+      Object.keys(STAT_RECIPES[s]).every((c) => (CURRENCIES as readonly string[]).includes(c)),
+    ),
+  );
+  check(
+    'focus is cheap, serve is premium',
+    priceBand('focus') === 'cheap' && priceBand('serve') === 'premium',
+  );
+
+  console.log('\n── the price step ──');
+  check(
+    '×1 below 40, ×2 at 40-59, ×3 at 60-79, ×4 from 80',
+    stepMultiplier(20) === 1 &&
+      stepMultiplier(39) === 1 &&
+      stepMultiplier(40) === 2 &&
+      stepMultiplier(59) === 2 &&
+      stepMultiplier(60) === 3 &&
+      stepMultiplier(80) === 4,
+  );
+  const serve45 = priceOf('serve', 45);
+  check(
+    'serve at 45 costs 6 Power and 2 Technique',
+    serve45.power === 6 && serve45.technique === 2,
+    JSON.stringify(serve45),
+  );
+
+  console.log('\n── plan cost ──');
+  const stats39 = withStat(PlayerManager.createPlayer('x', 'balanced').stats, 'focus', 39);
+  const cost = planCost(stats39, ['focus', 'focus']);
+  check(
+    'two focus points from 39 cost 2 + 4 Mind (the second crosses 40)',
+    cost.mind === 6,
+    JSON.stringify(cost),
+  );
+  check('an empty plan costs nothing', unitsOf(planCost(stats39, [])) === 0);
+
+  console.log('\n── applying currency ──');
+  const w = { power: 40, quickness: 5, technique: 0, mind: 10 };
+  const lost = applyCurrency(w, { power: -60, mind: -3 });
+  check('a loss bigger than the balance clamps at zero', lost.power === 0, String(lost.power));
+  check('a smaller loss subtracts', lost.mind === 7);
+  check('untouched currencies keep their balance', lost.quickness === 5 && lost.technique === 0);
+  check('gains add', applyCurrency(w, { technique: 4 }).technique === 4);
+  check('the wallet passed in is not changed', w.power === 40);
+
+  console.log('\n── purchase ──');
+  const rich = playerWith({ power: 50, quickness: 50, technique: 50, mind: 50 }, { focus: 30 });
+  const bought = purchase(rich, ['focus', 'focus', 'serve']);
+  check('an affordable plan succeeds', bought.success && bought.data !== undefined, bought.error);
+  if (bought.data) {
+    check('each stat rises by its count', getStat(bought.data.stats, 'focus') === 32);
+    const expected = planCost(rich.stats, ['focus', 'focus', 'serve']);
+    check(
+      'the wallet pays the plan cost exactly',
+      CURRENCIES.every((c) => bought.data!.wallet[c] === rich.wallet[c] - (expected[c] ?? 0)),
+    );
+    check(
+      'the player passed in is not changed',
+      getStat(rich.stats, 'focus') === 30 && rich.wallet.mind === 50,
+    );
+  }
+  const poor = playerWith({ power: 0, quickness: 0, technique: 0, mind: 3 }, { focus: 30 });
+  const refused = purchase(poor, ['focus', 'focus']);
+  check(
+    'an unaffordable plan fails',
+    !refused.success && /Mind/.test(refused.error ?? ''),
+    refused.error,
+  );
+  check('a failed plan buys nothing (no partial purchase)', refused.data === undefined);
+  const capped = purchase(
+    playerWith({ power: 999, quickness: 999, technique: 999, mind: 999 }, { focus: 100 }),
+    ['focus'],
+  );
+  check('a stat at 100 cannot be bought', !capped.success, capped.error);
+  check('an empty plan fails', !purchase(rich, []).success);
+
+  console.log(
+    failures === 0
+      ? '\n✅ all checks passed\n'
+      : `\n❌ ${failures} check${failures === 1 ? '' : 's'} failed\n`,
+  );
+  process.exit(failures === 0 ? 0 : 1);
+}
+
+main();

@@ -344,6 +344,26 @@ function main(): void {
     MATCH_SPEED_DELAYS[migrated.matchSpeed] !== undefined,
   );
 
+  console.log('\n  the 8 → 9 change itself:');
+  check(
+    'the player gains a wallet, empty in every currency',
+    player.wallet !== undefined &&
+      Object.values(player.wallet).length === 4 &&
+      Object.values(player.wallet).every((v) => v === 0),
+    JSON.stringify(player.wallet),
+  );
+  const walletRerun = runMigrations(
+    {
+      ...migrated,
+      player: { ...player, wallet: { power: 5, quickness: 0, technique: 0, mind: 2 } },
+    },
+    8,
+  ).state.player!;
+  check(
+    're-running the step keeps an existing wallet',
+    walletRerun.wallet.power === 5 && walletRerun.wallet.mind === 2,
+  );
+
   console.log('\n── a save below the breaking floor is discarded ──');
   const stale = preConsolidationSave();
   const staleOutcome = runMigrations(stale, RESET_BEFORE_VERSION - 1);

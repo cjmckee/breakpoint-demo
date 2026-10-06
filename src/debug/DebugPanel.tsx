@@ -11,6 +11,7 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useGameStore } from '../stores/gameStore';
+import { CURRENCIES, CURRENCY_LABELS } from '../config/economy';
 import { StoryEventRepository } from '../data/storyEvents';
 import { isTracing, setTracing } from '../core/trace';
 
@@ -31,6 +32,8 @@ export const DebugPanel: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [tracing, setTracingState] = useState(isTracing());
   const [status, setStatus] = useState<string | null>(null);
+  const wallet = useGameStore((state) => state.player?.wallet);
+  const changeCurrency = useGameStore((state) => state.changeCurrency);
   const [eventFilter, setEventFilter] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -113,6 +116,47 @@ export const DebugPanel: React.FC = () => {
         <p className="text-xs text-pixel-text-muted mb-4">
           Dev-only. Not present in production builds.
         </p>
+
+        <div className="mb-5">
+          <h3 className="text-sm font-bold text-pixel-text-muted uppercase tracking-wider mb-1">
+            Training Currency
+          </h3>
+          <p className="text-xs text-pixel-text-muted mb-2" data-testid="debug-wallet">
+            {wallet
+              ? CURRENCIES.map((c) => `${CURRENCY_LABELS[c]} ${Math.floor(wallet[c])}`).join(' · ')
+              : 'Create a player first.'}
+          </p>
+          <div className="flex gap-2">
+            {[25, 100].map((amount) => (
+              <button
+                key={amount}
+                data-testid={`debug-grant-currency-${amount}`}
+                disabled={!wallet}
+                onClick={() =>
+                  changeCurrency({
+                    power: amount,
+                    quickness: amount,
+                    technique: amount,
+                    mind: amount,
+                  })
+                }
+                className="flex-1 border-4 font-bold px-3 py-2 text-sm bg-pixel-bg-dark border-pixel-border text-pixel-text hover:border-pixel-accent disabled:opacity-50"
+              >
+                +{amount} each
+              </button>
+            ))}
+            <button
+              data-testid="debug-empty-wallet"
+              disabled={!wallet}
+              onClick={() =>
+                wallet && changeCurrency(Object.fromEntries(CURRENCIES.map((c) => [c, -wallet[c]])))
+              }
+              className="flex-1 border-4 font-bold px-3 py-2 text-sm bg-pixel-bg-dark border-pixel-border text-pixel-text hover:border-pixel-accent disabled:opacity-50"
+            >
+              Empty
+            </button>
+          </div>
+        </div>
 
         <div className="mb-5">
           <h3 className="text-sm font-bold text-pixel-text-muted uppercase tracking-wider mb-2">

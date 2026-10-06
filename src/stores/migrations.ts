@@ -40,6 +40,7 @@ import { TimeManager } from '../game/TimeManager';
 import { ItemManager } from '../game/ItemManager';
 import { ALL_ITEMS } from '../data/items';
 import { DEFAULT_MATCH_SPEED, type MatchSpeed } from '../config/matchRewards';
+import { emptyWallet } from '../game/StatDevelopment';
 
 export interface AudioSettings {
   musicVolume: number;
@@ -72,7 +73,8 @@ export interface PersistedStoreState {
 //    which adds a key to Player.equippedItems that older saves don't carry.
 // 7: held items gained a per-copy `instanceId`, so duplicates can be told apart.
 // 8: match speed became a persisted setting.
-export const CURRENT_STORE_VERSION = 8;
+// 9: the player gained a training-currency wallet.
+export const CURRENT_STORE_VERSION = 9;
 
 /** Saves below this version are wiped instead of migrated. See the header. */
 export const RESET_BEFORE_VERSION = 5;
@@ -184,10 +186,18 @@ function migrate7to8(state: PersistedStoreState): PersistedStoreState {
   return { ...state, matchSpeed: DEFAULT_MATCH_SPEED };
 }
 
+/** 8 → 9: the training-currency wallet; existing saves start it empty and keep their stats. */
+function migrate8to9(state: PersistedStoreState): PersistedStoreState {
+  const player = state.player;
+  if (!player || player.wallet) return state;
+  return { ...state, player: { ...player, wallet: emptyWallet() } };
+}
+
 const MIGRATIONS: Readonly<Record<number, MigrationFn | typeof NO_CHANGE>> = {
   6: migrate5to6,
   7: migrate6to7,
   8: migrate7to8,
+  9: migrate8to9,
 };
 
 // ----------------------------------------------------------------------------
