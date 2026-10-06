@@ -9,6 +9,15 @@ npx tsx src/test/analysis/<harness>.ts
 
 Options are environment variables, listed in each file's header and summarised below.
 
+**Every harness plays its matches on the real engine.** Matches go through `MatchSimulator` via
+`playMatch` in `src/test/analysis/simMatch.ts`, so fatigue, changeover and set-break recovery,
+momentum, match-day form and archetype effects are the game's own. Points come from
+`exportMatchData().points`; `simulateMatch().pointResults` is empty. Harnesses that mutate config
+in place for an ablation (`statChannels`, `sliceProbe`) still work, because `MatchSimulator` reads
+the same config objects. Do not write a new point loop: harnesses used to carry their own copies,
+which had no break recovery and no momentum, and so misstated stamina and late-match fatigue once
+break recovery came to scale with stamina.
+
 ---
 
 ## The loop
@@ -67,11 +76,18 @@ fool yourself" below — copy one when you need to ask about a specific constant
 
 ---
 
-## Two conventions, and why they exist
+## Three conventions, and why they exist
 
 **Every ablation prints a `control` column.** It re-measures the _unmodified_ config, so the table
 reports its own noise floor. Any column smaller than the control is a mechanism you could delete
 without anyone noticing. Three separate mechanisms looked real before this column existed.
+
+**Every match result reports point, game and match win rates.** Use
+`src/test/analysis/matchTally.ts` (`tallyMatch`, `formatRates`), which also splits games into
+service holds and return breaks. Match win rate swings hard on small edges: a 52% point-winner
+wins most matches. Point win rate is the direct read of the stats. Game win rate sits between,
+and its hold/break split shows whether serve and return stats are doing their jobs. A change that
+moves match win rate without moving the other two is noise or a format effect.
 
 **Every rate names its denominator.** "Players reach the net 6% of the time" and "13% of the time"
 were both true at once — of all points, and of rallies that got past the return. If you are
@@ -156,6 +172,12 @@ move in that table, and it would have been missed by trusting the earlier run.
 ## Current baseline
 
 Uniform-45 mirror matches, `matchAnatomy` defaults, as of this document. Diff against these.
+
+> **These tables, and every number recorded in `docs/research/` before the harnesses moved onto
+> `MatchSimulator`, were taken on the old hand-rolled loop** — no changeover or set-break recovery,
+> no momentum engine, and (in `sliceAnatomy` and `allocationProbe`) archetype effects swapped onto
+> the wrong player whenever the opponent served. Re-run before diffing against them. Stamina's value
+> and anything that depends on late-match fatigue are the numbers most likely to have moved.
 
 |                                    | no specialization | net_downhill T3 | bh_samurai T3 |
 | ---------------------------------- | ----------------- | --------------- | ------------- |

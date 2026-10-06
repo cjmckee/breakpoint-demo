@@ -540,6 +540,11 @@ population that mostly does not slice, and it is the number that is misleading, 
 
 **No change made.** The levers are recorded here so the next person does not re-derive them.
 
+> **At tier 1 this does not hold.** The +4.67 needs tier-III specialties and stats above 50,
+> where the slice's support bands turn into bonuses. At slice 30→50 with tier-I specialties the
+> same builds measured +0.6 to +1.3. The cause and the change that followed are in
+> [`slice-at-tier-1.md`](./slice-at-tier-1.md).
+
 ---
 
 ## 11. Do the bands read context? Mostly — once the shot record could tell us

@@ -24,7 +24,8 @@ import type {
 import { PointType } from '../types';
 import { EffectKey } from '../types/game';
 import { PlayerProfile } from './PlayerProfile';
-import { getPrimaryStatName } from './shotStatMapping';
+import { getPrimaryStatName, phaseOfShot } from './shotStatMapping';
+import { resolvePhaseSpec } from '../data/archetypeTree';
 import { getQualityThresholds, getMatchLevel } from '../utils/qualityThresholds';
 import { trace, isTracing } from './trace';
 import {
@@ -60,9 +61,29 @@ import {
   isDefensiveShot,
   isOffensiveShot,
   SHOT_CLASSIFICATIONS,
+  SLICE_TUNING,
+  BIG_POINT_NERVES,
+  SPECIALTY_AMPLIFY,
+  MOVEMENT_ABILITIES,
 } from '../config/shotThresholds';
 
 import { random } from './random';
+
+/** The shot's stat with the shooter's specialty boost, when the shot is in one of their phases. */
+function amplifyForSpecialty(shooter: PlayerProfile, shotType: ShotType, stat: number): number {
+  const phase = phaseOfShot(shotType);
+  if (!phase) return stat;
+  const spec = resolvePhaseSpec(shooter.archetypeProfile, phase);
+  let boost = spec ? (SPECIALTY_AMPLIFY.byTier[spec.tier] ?? 0) : 0;
+  // net_apologist's boost lives on the drives it stays back to hit.
+  if (phase === 'forehand' || phase === 'backhand') {
+    const net = resolvePhaseSpec(shooter.archetypeProfile, 'net');
+    if (net?.path === 'net_apologist') {
+      boost += (SPECIALTY_AMPLIFY.byTier[net.tier] ?? 0) * SPECIALTY_AMPLIFY.apologistRallyShare;
+    }
+  }
+  return stat + boost * Math.max(0, stat - SPECIALTY_AMPLIFY.from);
+}
 /**
  * Sliding scale ranges for different shot difficulties and contexts
  * NOTE: Winner determination now uses quality thresholds, not probability
@@ -116,8 +137,13 @@ export class ShotCalculator {
   ): ShotResult {
     trace('Calculating shot success for', shotType);
     trace('Incoming shot quality:', incomingShot?.quality);
-    // Step 1: Get primary stat for this shot type
-    const primaryStat = shooterProfile.getStatForShot(shotType);
+    // Step 1: Get primary stat for this shot type, amplified on the shooter's
+    // specialty phases (SPECIALTY_AMPLIFY).
+    const primaryStat = amplifyForSpecialty(
+      shooterProfile,
+      shotType,
+      shooterProfile.getStatForShot(shotType),
+    );
 
     // Log serve stat for debugging
     if (shotType.includes('serve')) {
@@ -170,7 +196,14 @@ export class ShotCalculator {
 
     // Step 3b: Apply ability additional effects
     if (activeEffects) {
-      quality = this.applyAbilityEffects(quality, shotType, context, modifiers, activeEffects);
+      quality = this.applyAbilityEffects(
+        quality,
+        shotType,
+        context,
+        modifiers,
+        activeEffects,
+        shooterProfile.stats.technical.spin,
+      );
     }
 
     // Step 3c: Apply court surface pace multiplier to final quality
@@ -211,7 +244,14 @@ export class ShotCalculator {
       // cannot: serve-in% peaked at L=80 and then fell.
       const expectedAccuracy = Math.min(
         100,
-        Math.max(0, shooterProfile.getServeAccuracy(serveType) * modifiers.finalAdjustment),
+        Math.max(
+          0,
+          amplifyForSpecialty(
+            shooterProfile,
+            serveType,
+            shooterProfile.getServeAccuracy(serveType),
+          ) * modifiers.finalAdjustment,
+        ),
       );
       const serveAccuracy = Math.min(
         100,
@@ -567,6 +607,14 @@ export class ShotCalculator {
       opponentPosition,
     );
 
+    // The slice is the bail-out shot: its support bands may reward, not tax.
+    const sliceFloor = SLICE_TUNING.supportFloor;
+    if (sliceFloor !== null && shotType.includes('slice')) {
+      spinModifier = Math.max(sliceFloor, spinModifier);
+      physicalModifier = Math.max(sliceFloor, physicalModifier);
+      mentalModifier = Math.max(sliceFloor, mentalModifier);
+    }
+
     // Serve-specific bonuses and variance
     let serveVariance = 0;
     if (shotType === 'serve_first') {
@@ -604,6 +652,21 @@ export class ShotCalculator {
       const totalVariance =
         RALLY_SHOT_VARIANCE.base + (incomingQuality / 100) * RALLY_SHOT_VARIANCE.qualityMultiplier;
       rallyVariance = (random() - 0.5) * 2 * totalVariance;
+    }
+
+    // Big-point nerves widen every source of shot variance on break, set and
+    // match points; focus steadies them.
+    const bigPoint = shotType.includes('serve')
+      ? context.pressure !== 'low'
+      : context.pressure === 'high';
+    if (bigPoint && BIG_POINT_NERVES.extraVariance > 0) {
+      const nerves =
+        1 +
+        BIG_POINT_NERVES.extraVariance *
+          (1 - BIG_POINT_NERVES.focusDamping * (stats.mental.focus / 100));
+      serveVariance *= nerves;
+      returnVariance *= nerves;
+      rallyVariance *= nerves;
     }
 
     // Situational modifiers
@@ -815,7 +878,10 @@ export class ShotCalculator {
    * Fatigue 0 = 1.0x (no effect), fatigue 100 = 0.8x (20% penalty)
    */
   private getFatigueModifier(fatigue: number): number {
-    return 1.0 - (fatigue / 100) * (1.0 - FATIGUE_MODIFIER.minModifier);
+    return (
+      1.0 -
+      Math.pow(fatigue / 100, FATIGUE_MODIFIER.exponent) * (1.0 - FATIGUE_MODIFIER.minModifier)
+    );
   }
 
   /**
@@ -868,6 +934,7 @@ export class ShotCalculator {
     context: ShotContext,
     modifiers: ShotModifiers,
     effects: Record<string, number>,
+    spinStat: number,
   ): number {
     let bonus = 0;
 
@@ -877,13 +944,16 @@ export class ShotCalculator {
       bonus += pace * 2;
     }
 
-    // side_spin: enhanced spin effectiveness
-    // Scales with how much spin the shot is already carrying, so it rewards a
-    // spin player hitting a spin shot rather than paying out flat.
+    // side_spin: enhanced spin effectiveness on slices and drop shots
+    // Scales with the spin stat, so it rewards a spin player hitting a spin shot
+    // rather than paying out flat. It used to scale with the spin modifier's
+    // excess over 1, which is zero below a spin of 50 — dead for most players.
+    // Serves are left to serve abilities: on every service point it was worth
+    // five times its budget.
     const sideSpin = effects[EffectKey.SIDE_SPIN] ?? 0;
-    const spinPoints = (modifiers.spinModifier - 1) * 100;
-    if (sideSpin > 0 && spinPoints > 0) {
-      bonus += sideSpin * spinPoints * 0.15;
+    const carriesSpin = SHOT_CLASSIFICATIONS.spinShots.includes(shotType);
+    if (sideSpin > 0 && carriesSpin) {
+      bonus += sideSpin * (spinStat / 10) * 0.15;
     }
 
     // touch: drop shots and volleys
@@ -916,6 +986,18 @@ export class ShotCalculator {
     const rallyMomentum = effects[EffectKey.RALLY_MOMENTUM] ?? 0;
     if (rallyMomentum > 0 && context.rallyLength > 4) {
       bonus += rallyMomentum * 1.5;
+    }
+
+    // reach: a stretched player still gets more on the ball
+    const reach = effects[EffectKey.REACH] ?? 0;
+    if (reach > 0 && context.courtPosition === 'defensive') {
+      bonus += reach * MOVEMENT_ABILITIES.reachQualityPerPoint;
+    }
+
+    // serve_speed (positive): a bigger first serve
+    const serveSpeed = effects[EffectKey.SERVE_SPEED] ?? 0;
+    if (serveSpeed > 0 && shotType === 'serve_first') {
+      bonus += serveSpeed * MOVEMENT_ABILITIES.serveSpeedQualityPerPoint;
     }
 
     // lob_quality: bonus quality on defensive and lob shots

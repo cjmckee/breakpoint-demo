@@ -18,18 +18,16 @@
  * (~10% of shots) — same stat, same magnitude, opposite sign.
  *
  * Run: npm run build:node && node dist/src/test/analysis/breakEvenProbe.js
+ * Env: N=150 (BO3 per row)
+ * Env: N=150 (BO3 per row)
  */
 
-import type { MatchFormat, MatchState, PlayerStats } from '../../types';
+import type { PlayerStats } from '../../types';
 import type { ArchetypeProfile, PhaseSpec, GamePhase } from '../../types/archetype';
 import { PlayerProfile } from '../../core/PlayerProfile';
-import { PointSimulator } from '../../core/PointSimulator';
-import { ScoreTracker } from '../../core/ScoreTracker';
-import { MATCH_FATIGUE } from '../../config/shotThresholds';
-import { aggregateArchetypeEffects } from '../../data/archetypeTree';
+import { playMatch } from './simMatch';
 
-const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
-const N = 150;
+const N = Number(process.env.N ?? 150);
 
 function uniformStats(r: number): PlayerStats {
   return {
@@ -53,83 +51,18 @@ function profileOf(
   return { broad, phases, specializationPoints: 0, respecTokens: 0 };
 }
 
-function calcFatigue(cur: number, rally: number, stam: number, rec: number): number {
-  const sf = MATCH_FATIGUE.minFatigueRate + (1 - MATCH_FATIGUE.minFatigueRate) * (1 - stam / 100);
-  let gain = rally * MATCH_FATIGUE.basePerShot * sf;
-  if (rally > MATCH_FATIGUE.longRallyThreshold) {
-    gain += (rally - MATCH_FATIGUE.longRallyThreshold) * MATCH_FATIGUE.longRallyExtra * sf;
-  }
-  const rec2 =
-    MATCH_FATIGUE.baseRecoveryPerPoint +
-    (rec / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
-  return Math.max(0, Math.min(100, cur + gain - rec2));
-}
-
-function runMatch(
-  p: PlayerProfile,
-  o: PlayerProfile,
-  pe: Record<string, number>,
-  oe: Record<string, number>,
-): [number, number] {
-  const tracker = new ScoreTracker(BO3);
-  tracker.setInitialServer(Math.random() < 0.5 ? 'player' : 'opponent');
-  p.rollMatchForm();
-  o.rollMatchForm();
-  const sim = new PointSimulator();
-  const ms: MatchState = {
-    score: tracker.getScore(),
-    currentServer: tracker.getCurrentServer(),
-    courtSurface: 'hard',
-    momentum: 0,
-    pressure: 'low',
-    matchLength: 0,
-    pointsPlayed: 0,
-    isKeyMoment: false,
-    fatigue: { player: 0, opponent: 0 },
-  };
-  let pts = 0,
-    won = 0;
-  while (!tracker.isComplete() && pts < 600) {
-    const server = tracker.getCurrentServer();
-    ms.isKeyMoment = tracker.isKeyMoment();
-    const pr = sim.simulatePoint(
-      server,
-      server === 'player' ? p : o,
-      server === 'player' ? o : p,
-      ms,
-      pe,
-      oe,
-    );
-    const w = pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player';
-    if (w === 'player') won++;
-    tracker.addPoint(w);
-    ms.fatigue.player = calcFatigue(
-      ms.fatigue.player,
-      pr.rallyLength,
-      p.stats.physical.stamina,
-      p.stats.physical.stamina,
-    );
-    ms.fatigue.opponent = calcFatigue(
-      ms.fatigue.opponent,
-      pr.rallyLength,
-      o.stats.physical.stamina,
-      o.stats.physical.stamina,
-    );
-    ms.score = tracker.getScore();
-    ms.currentServer = tracker.getCurrentServer();
-    ms.pointsPlayed = ++pts;
-  }
-  return [won, pts];
+function runMatch(p: PlayerProfile, o: PlayerProfile): [number, number] {
+  const { points } = playMatch(p, o);
+  return [points.filter((pt) => pt.winner === 'player').length, points.length];
 }
 
 function trial(bucket: keyof PlayerStats, key: string, prof: ArchetypeProfile): number {
-  const eff = aggregateArchetypeEffects(prof);
   let won = 0,
     tot = 0;
   for (let i = 0; i < N; i++) {
     const p = new PlayerProfile('p', 'P', bump(50, bucket, key, 90), prof);
     const o = new PlayerProfile('o', 'O', uniformStats(50), prof);
-    const [w, t] = runMatch(p, o, eff, eff);
+    const [w, t] = runMatch(p, o);
     won += w;
     tot += t;
   }
@@ -151,40 +84,29 @@ function main(): void {
   const rows: Array<[string, string, number, string]> = [];
 
   rows.push([
-    'slice (core)',
+    'slice (technical)',
     'never slices (0.3% of shots)',
-    trial('core', 'slice', NONE),
+    trial('technical', 'slice', NONE),
     'predict NEGATIVE',
   ]);
   rows.push([
-    'slice (core)',
+    'slice (technical)',
     'slice specialist (~10% of shots)',
-    trial('core', 'slice', SAMURAI),
+    trial('technical', 'slice', SAMURAI),
     'predict POSITIVE',
   ]);
   rows.push([
-    'volley (technical)',
+    'net (core)',
     'unspecialized (1.3%)',
-    trial('technical', 'volley', NONE),
+    trial('core', 'net', NONE),
     'predict ~0 / negative',
   ]);
-  rows.push([
-    'volley (technical)',
-    'net specialist (2.0%)',
-    trial('technical', 'volley', DOWNHILL),
-    'predict ~0',
-  ]);
+  rows.push(['net (core)', 'net specialist (2.0%)', trial('core', 'net', DOWNHILL), 'predict ~0']);
   rows.push([
     'return (core)',
     'unspecialized (44%)',
     trial('core', 'return', NONE),
     'control: far above break-even',
-  ]);
-  rows.push([
-    'dropShot (technical)',
-    'unspecialized (0.15%)',
-    trial('technical', 'dropShot', NONE),
-    'control: far below break-even',
   ]);
 
   const w = 20;

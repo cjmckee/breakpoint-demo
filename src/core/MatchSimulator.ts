@@ -17,7 +17,7 @@ import type {
   PlayerMatchFatigue,
   PointType,
 } from '../types';
-import { MATCH_FATIGUE, STAMINA_RECOVERY } from '../config/shotThresholds';
+import { fatigueAfterPoint, fatigueAfterRest } from './fatigue';
 import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds';
 import { PlayerProfile } from './PlayerProfile';
 import { PointSimulator } from './PointSimulator';
@@ -38,6 +38,23 @@ export interface MatchConfig {
   matchFormVariance?: number;
   /** Player mood (-100 to 100), used to bias the player's (not opponent's) form roll. */
   playerMood?: number;
+  /**
+   * Effects from outside the archetype (ability `additional` modifiers), added
+   * on top of each player's archetype effects, as MatchOrchestrator does.
+   */
+  playerEffects?: Record<string, number>;
+  opponentEffects?: Record<string, number>;
+}
+
+function addEffects(
+  base: Record<string, number>,
+  extra: Record<string, number> = {},
+): Record<string, number> {
+  const out = { ...base };
+  for (const [key, value] of Object.entries(extra)) {
+    out[key] = (out[key] || 0) + value;
+  }
+  return out;
 }
 
 export class MatchSimulator {
@@ -54,18 +71,28 @@ export class MatchSimulator {
   private pointKeyMoments: boolean[] = []; // Track isKeyMoment status for each point
   private startTime: number;
 
-  // Archetype behavior effects, derived from each player's chosen specialties.
+  // Archetype behavior effects, plus any ability effects passed in the config.
   private playerEffects: Record<string, number>;
   private opponentEffects: Record<string, number>;
 
   constructor(config: MatchConfig) {
     this.config = config;
-    this.playerEffects = aggregateArchetypeEffects(config.player.archetypeProfile);
-    this.opponentEffects = aggregateArchetypeEffects(config.opponent.archetypeProfile);
+    this.playerEffects = addEffects(
+      aggregateArchetypeEffects(config.player.archetypeProfile),
+      config.playerEffects,
+    );
+    this.opponentEffects = addEffects(
+      aggregateArchetypeEffects(config.opponent.archetypeProfile),
+      config.opponentEffects,
+    );
     this.pointSimulator = new PointSimulator();
     this.scoreTracker = new ScoreTracker(config.matchFormat);
     this.matchStatistics = new MatchStatistics(config.player, config.opponent);
     this.momentumEngine = new MomentumEngine();
+    this.momentumEngine.reset({
+      player: config.player.stats.mental.focus,
+      opponent: config.opponent.stats.mental.focus,
+    });
 
     // Set initial server
     const initialServer = config.initialServer || this.determineInitialServer();
@@ -99,7 +126,9 @@ export class MatchSimulator {
     );
 
     let pointCount = 0;
-    const maxPoints = 200; // Safety limit to prevent infinite matches
+    // Safety limit against a runaway loop only. A long best-of-three runs past 200
+    // points (three sets with tiebreaks is ~250), so the cap sits well above that.
+    const maxPoints = 1000;
 
     while (!this.scoreTracker.isComplete() && pointCount < maxPoints) {
       // Simulate one point
@@ -293,6 +322,10 @@ export class MatchSimulator {
       setWonBy,
     });
     this.matchState.momentum = this.momentumEngine.get();
+    this.config.player.matchForm =
+      this.config.player.matchDayForm + this.momentumEngine.getRhythm('player');
+    this.config.opponent.matchForm =
+      this.config.opponent.matchDayForm + this.momentumEngine.getRhythm('opponent');
 
     // Changeover / set-break stamina recovery, scaled by each player's recovery stat.
     if (game) {
@@ -305,23 +338,16 @@ export class MatchSimulator {
    * Set breaks recover more than changeovers; a high recovery stat recovers more.
    */
   private applyRestRecovery(setCompleted: boolean): void {
-    this.matchState.fatigue.player = this.recoverFatigue(
+    this.matchState.fatigue.player = fatigueAfterRest(
       this.matchState.fatigue.player,
       this.config.player.stats.physical.stamina,
       setCompleted,
     );
-    this.matchState.fatigue.opponent = this.recoverFatigue(
+    this.matchState.fatigue.opponent = fatigueAfterRest(
       this.matchState.fatigue.opponent,
       this.config.opponent.stats.physical.stamina,
       setCompleted,
     );
-  }
-
-  private recoverFatigue(current: number, recoveryStat: number, setCompleted: boolean): number {
-    const base = setCompleted ? STAMINA_RECOVERY.perSetBase : STAMINA_RECOVERY.perGameBase;
-    const scale = setCompleted ? STAMINA_RECOVERY.perSetScale : STAMINA_RECOVERY.perGameScale;
-    const recovered = base + (recoveryStat / 100) * scale;
-    return Math.max(0, current - recovered);
   }
 
   /**
@@ -378,53 +404,17 @@ export class MatchSimulator {
   private updateFatigue(pointResult: PointResult): void {
     const rallyLength = pointResult.rallyLength;
 
-    this.matchState.fatigue.player = this.calculateNewFatigue(
+    this.matchState.fatigue.player = fatigueAfterPoint(
       this.matchState.fatigue.player,
       rallyLength,
       this.config.player.stats.physical.stamina,
-      this.config.player.stats.physical.stamina,
     );
 
-    this.matchState.fatigue.opponent = this.calculateNewFatigue(
+    this.matchState.fatigue.opponent = fatigueAfterPoint(
       this.matchState.fatigue.opponent,
       rallyLength,
       this.config.opponent.stats.physical.stamina,
-      this.config.opponent.stats.physical.stamina,
     );
-  }
-
-  /**
-   * Calculate new fatigue value after a point
-   */
-  private calculateNewFatigue(
-    currentFatigue: number,
-    rallyLength: number,
-    staminaStat: number,
-    recoveryStat: number,
-  ): number {
-    // Stamina reduces fatigue accumulation rate
-    // stamina 0 = full rate (1.0), stamina 100 = minFatigueRate (0.3)
-    const staminaFactor =
-      MATCH_FATIGUE.minFatigueRate + (1 - MATCH_FATIGUE.minFatigueRate) * (1 - staminaStat / 100);
-
-    // Base fatigue from rally
-    let fatigueGain = rallyLength * MATCH_FATIGUE.basePerShot * staminaFactor;
-
-    // Extra fatigue for long rallies
-    if (rallyLength > MATCH_FATIGUE.longRallyThreshold) {
-      fatigueGain +=
-        (rallyLength - MATCH_FATIGUE.longRallyThreshold) *
-        MATCH_FATIGUE.longRallyExtra *
-        staminaFactor;
-    }
-
-    // Recovery between points, scaled by recovery stat
-    const recovery =
-      MATCH_FATIGUE.baseRecoveryPerPoint +
-      (recoveryStat / 100) *
-        (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
-
-    return Math.max(0, Math.min(100, currentFatigue + fatigueGain - recovery));
   }
 
   /**
@@ -449,18 +439,7 @@ export class MatchSimulator {
       matchLength: 0,
       pointsPlayed: 0,
       isKeyMoment: false,
-      fatigue: {
-        player: Math.max(
-          0,
-          (MATCH_FATIGUE.energyFullStaminaThreshold - this.config.player.energy) *
-            MATCH_FATIGUE.energyToFatigueFactor,
-        ),
-        opponent: Math.max(
-          0,
-          (MATCH_FATIGUE.energyFullStaminaThreshold - this.config.opponent.energy) *
-            MATCH_FATIGUE.energyToFatigueFactor,
-        ),
-      },
+      fatigue: { player: 0, opponent: 0 },
     };
   }
 

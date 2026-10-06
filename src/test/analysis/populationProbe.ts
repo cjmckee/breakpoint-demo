@@ -27,21 +27,16 @@
  * Env: N=600 (BO3)  SEED=1  LO=25 HI=90 (matching statChannels)
  */
 
-import type { MatchFormat, MatchState, PlayerStats, ShotDetail } from '../../types';
+import type { PlayerStats, ShotDetail } from '../../types';
 import type { ArchetypeProfile, PhaseSpec, GamePhase } from '../../types/archetype';
 import { PlayerProfile, getShotStatWeights } from '../../core/PlayerProfile';
-import { PointSimulator } from '../../core/PointSimulator';
-import { ScoreTracker } from '../../core/ScoreTracker';
-import { MATCH_FATIGUE } from '../../config/shotThresholds';
 import {
-  aggregateArchetypeEffects,
   profileForArchetype,
   PATHS_BY_PHASE,
   type LegacyArchetype,
 } from '../../data/archetypeTree';
 import { drawPlayerProfile } from './playerFactory';
-
-const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
+import { playMatch } from './simMatch';
 
 const STAT_ORDER = [
   'serve',
@@ -111,18 +106,6 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-function calcFatigue(cur: number, rally: number, stam: number): number {
-  const sf = MATCH_FATIGUE.minFatigueRate + (1 - MATCH_FATIGUE.minFatigueRate) * (1 - stam / 100);
-  let gain = rally * MATCH_FATIGUE.basePerShot * sf;
-  if (rally > MATCH_FATIGUE.longRallyThreshold) {
-    gain += (rally - MATCH_FATIGUE.longRallyThreshold) * MATCH_FATIGUE.longRallyExtra * sf;
-  }
-  const rec =
-    MATCH_FATIGUE.baseRecoveryPerPoint +
-    (stam / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
-  return Math.max(0, Math.min(100, cur + gain - rec));
-}
-
 interface Tally {
   weight: Map<string, number>;
   rallyShots: number;
@@ -161,39 +144,10 @@ function runMatch(
   o: PlayerProfile,
   pName: string,
   oName: string,
-  pEff: Record<string, number>,
-  oEff: Record<string, number>,
   t: Tally,
 ): void {
-  const tracker = new ScoreTracker(BO3);
-  tracker.setInitialServer(Math.random() < 0.5 ? 'player' : 'opponent');
-  p.rollMatchForm();
-  o.rollMatchForm();
-  const sim = new PointSimulator();
-  const ms: MatchState = {
-    score: tracker.getScore(),
-    currentServer: tracker.getCurrentServer(),
-    courtSurface: 'hard',
-    momentum: 0,
-    pressure: 'low',
-    matchLength: 0,
-    pointsPlayed: 0,
-    isKeyMoment: false,
-    fatigue: { player: 0, opponent: 0 },
-  };
-
-  let pts = 0;
-  while (!tracker.isComplete() && pts < 600) {
-    const server = tracker.getCurrentServer();
-    ms.isKeyMoment = tracker.isKeyMoment();
-    const pr = sim.simulatePoint(
-      server,
-      server === 'player' ? p : o,
-      server === 'player' ? o : p,
-      ms,
-      pEff,
-      oEff,
-    );
+  for (const pt of playMatch(p, o).points) {
+    const server = pt.server;
 
     t.points++;
     const playerRole = server === 'player' ? 'server' : 'returner';
@@ -203,13 +157,13 @@ function runMatch(
     // Arrival index per player, so "hit against a netman" can mean what it says:
     // a shot struck AFTER the opponent had already reached the net.
     const arrivedAt: Record<string, number> = {};
-    pr.shots.forEach((s: ShotDetail, i: number) => {
+    pt.shots.forEach((s: ShotDetail, i: number) => {
       if (s.context?.courtPosition === 'net' && arrivedAt[s.shooter] === undefined) {
         arrivedAt[s.shooter] = i;
       }
     });
 
-    pr.shots.forEach((s: ShotDetail, i: number) => {
+    pt.shots.forEach((s: ShotDetail, i: number) => {
       const type = String(s.shotType);
       // Exposure covers every shot the player hit, serves included — `serve`,
       // `focus` and `tactics` are paid through the serve composites and nowhere
@@ -244,17 +198,6 @@ function runMatch(
       if (arrived[role as 'server' | 'returner']) e.arrived++;
       t.byArchetype.set(name, e);
     }
-
-    tracker.addPoint(pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player');
-    ms.fatigue.player = calcFatigue(ms.fatigue.player, pr.rallyLength, p.stats.physical.stamina);
-    ms.fatigue.opponent = calcFatigue(
-      ms.fatigue.opponent,
-      pr.rallyLength,
-      o.stats.physical.stamina,
-    );
-    ms.score = tracker.getScore();
-    ms.currentServer = tracker.getCurrentServer();
-    ms.pointsPlayed = ++pts;
   }
 }
 
@@ -321,8 +264,6 @@ function main(): void {
       new PlayerProfile('o', 'O', drawStats(), op),
       pn,
       on,
-      aggregateArchetypeEffects(pp),
-      aggregateArchetypeEffects(op),
       t,
     );
   }

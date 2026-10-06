@@ -45,15 +45,12 @@
  * Env: N=40 (BO3 per row)  N_C=1000 (part C only — see its note)  PARTS=ABCD
  */
 
-import type { MatchFormat, MatchState, PlayerStats } from '../../types';
+import type { PlayerStats } from '../../types';
 import { PointType } from '../../types';
 import type { ArchetypeProfile } from '../../types/archetype';
 import { PlayerProfile } from '../../core/PlayerProfile';
-import { PointSimulator } from '../../core/PointSimulator';
-import { ScoreTracker } from '../../core/ScoreTracker';
-import { MATCH_FATIGUE } from '../../config/shotThresholds';
-
-const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
+import { BO3, playMatch } from './simMatch';
+import { RATE_HEADERS, emptyRates, formatRates, tallyMatch, type Rates } from './matchTally';
 const NONE: ArchetypeProfile = {
   broad: null,
   phases: {},
@@ -84,18 +81,6 @@ const ROSTER: Array<[string, PlayerStats]> = [
   ['uniform 70 (reference)', stats([70, 70, 70, 70, 70], [70, 70, 70], [70, 70, 70], [70, 70, 70])],
 ];
 
-function calcFatigue(cur: number, rally: number, stam: number, rec: number): number {
-  const sf = MATCH_FATIGUE.minFatigueRate + (1 - MATCH_FATIGUE.minFatigueRate) * (1 - stam / 100);
-  let gain = rally * MATCH_FATIGUE.basePerShot * sf;
-  if (rally > MATCH_FATIGUE.longRallyThreshold) {
-    gain += (rally - MATCH_FATIGUE.longRallyThreshold) * MATCH_FATIGUE.longRallyExtra * sf;
-  }
-  const rec2 =
-    MATCH_FATIGUE.baseRecoveryPerPoint +
-    (rec / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
-  return Math.max(0, Math.min(100, cur + gain - rec2));
-}
-
 interface Acc {
   points: number;
   playerWon: number;
@@ -105,6 +90,7 @@ interface Acc {
   firstIn: number;
   doubleFaults: number;
   aces: number;
+  rates: Rates;
 }
 const zero = (): Acc => ({
   points: 0,
@@ -115,68 +101,33 @@ const zero = (): Acc => ({
   firstIn: 0,
   doubleFaults: 0,
   aces: 0,
+  rates: emptyRates(),
 });
 
-function runMatch(p: PlayerProfile, o: PlayerProfile, acc: Acc): void {
-  const tracker = new ScoreTracker(BO3);
-  tracker.setInitialServer(Math.random() < 0.5 ? 'player' : 'opponent');
-  p.rollMatchForm();
-  o.rollMatchForm();
-  const sim = new PointSimulator();
-  const ms: MatchState = {
-    score: tracker.getScore(),
-    currentServer: tracker.getCurrentServer(),
-    courtSurface: 'hard',
-    momentum: 0,
-    pressure: 'low',
-    matchLength: 0,
-    pointsPlayed: 0,
-    isKeyMoment: false,
-    fatigue: { player: 0, opponent: 0 },
-  };
-  let pts = 0;
-  while (!tracker.isComplete() && pts < 600) {
-    const server = tracker.getCurrentServer();
-    ms.isKeyMoment = tracker.isKeyMoment();
-    const pr = sim.simulatePoint(
-      server,
-      server === 'player' ? p : o,
-      server === 'player' ? o : p,
-      ms,
-      {},
-      {},
-    );
-    const w = pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player';
+/** One BO3 on the real engine; `tap` sees every point as it was played. */
+function runMatch(
+  p: PlayerProfile,
+  o: PlayerProfile,
+  acc: Acc,
+  tap?: (pointType: string, rally: number, shots: unknown[]) => void,
+): void {
+  const { points } = playMatch(p, o);
+  tallyMatch(points, BO3, acc.rates);
+  for (const pt of points) {
+    tap?.(pt.pointType, pt.rallyLength, pt.shots);
     acc.points++;
-    acc.rallySum += pr.rallyLength;
-    if (pr.rallyLength <= 2) acc.short++;
-    if (w === 'player') acc.playerWon++;
+    acc.rallySum += pt.rallyLength;
+    if (pt.rallyLength <= 2) acc.short++;
+    if (pt.winner === 'player') acc.playerWon++;
 
     // serve accounting, player's service points only
-    if (server === 'player') {
+    if (pt.server === 'player') {
       acc.serves++;
-      if (pr.serveType === 'first') acc.firstIn++;
-      const faults = pr.shots.filter((s) => s.outcome === PointType.FAULT).length;
+      if (pt.serveType === 'first') acc.firstIn++;
+      const faults = pt.shots.filter((s) => s.outcome === PointType.FAULT).length;
       if (faults >= 2) acc.doubleFaults++;
-      if (pr.shots.some((s) => s.outcome === PointType.ACE)) acc.aces++;
+      if (pt.shots.some((s) => s.outcome === PointType.ACE)) acc.aces++;
     }
-
-    tracker.addPoint(w);
-    ms.fatigue.player = calcFatigue(
-      ms.fatigue.player,
-      pr.rallyLength,
-      p.stats.physical.stamina,
-      p.stats.physical.stamina,
-    );
-    ms.fatigue.opponent = calcFatigue(
-      ms.fatigue.opponent,
-      pr.rallyLength,
-      o.stats.physical.stamina,
-      o.stats.physical.stamina,
-    );
-    ms.score = tracker.getScore();
-    ms.currentServer = tracker.getCurrentServer();
-    ms.pointsPlayed = ++pts;
   }
 }
 
@@ -252,12 +203,12 @@ function partB(N: number): void {
     [
       'matchup'.padEnd(42),
       'ML'.padStart(5),
-      'pt-win%'.padStart(9),
+      ...RATE_HEADERS.map((h) => h.padStart(11)),
       'mean rally'.padStart(12),
       '≤2-shot%'.padStart(10),
     ].join(''),
   );
-  console.log('-'.repeat(78));
+  console.log('-'.repeat(124));
   const pairs: Array<[string, PlayerStats, string, PlayerStats]> = [
     ['new player', ROSTER[0][1], 'Danny Park', ROSTER[1][1]],
     ['new player', ROSTER[0][1], 'Big Steve', ROSTER[2][1]],
@@ -273,7 +224,7 @@ function partB(N: number): void {
       [
         `${an} (${ovrOf(a)}) v ${bn} (${ovrOf(b)})`.padEnd(42),
         ml.toFixed(1).padStart(5),
-        pct(acc.playerWon, acc.points).padStart(9),
+        ...formatRates(acc.rates).map((r) => r.padStart(11)),
         (acc.rallySum / acc.points).toFixed(2).padStart(12),
         pct(acc.short, acc.points).padStart(10),
       ].join(''),
@@ -366,7 +317,7 @@ function partD(N: number): void {
       const o = new PlayerProfile('o', 'O', s, NONE);
       const acc = zero();
       const seen: string[] = [];
-      runMatchTapped(p, o, acc, (pt, rally, shots) => {
+      runMatch(p, o, acc, (pt, rally, shots) => {
         seen.push(pt);
         total++;
         tally[pt] = (tally[pt] ?? 0) + 1;
@@ -403,62 +354,6 @@ function partD(N: number): void {
   console.log('ending points, and scaling it takes tier-1 winners from 7% to 40%.');
 }
 
-function runMatchTapped(
-  p: PlayerProfile,
-  o: PlayerProfile,
-  acc: Acc,
-  tap: (pointType: string, rally: number, shots: unknown[]) => void,
-): void {
-  const tracker = new ScoreTracker(BO3);
-  tracker.setInitialServer(Math.random() < 0.5 ? 'player' : 'opponent');
-  p.rollMatchForm();
-  o.rollMatchForm();
-  const sim = new PointSimulator();
-  const ms: MatchState = {
-    score: tracker.getScore(),
-    currentServer: tracker.getCurrentServer(),
-    courtSurface: 'hard',
-    momentum: 0,
-    pressure: 'low',
-    matchLength: 0,
-    pointsPlayed: 0,
-    isKeyMoment: false,
-    fatigue: { player: 0, opponent: 0 },
-  };
-  let pts = 0;
-  while (!tracker.isComplete() && pts < 600) {
-    const server = tracker.getCurrentServer();
-    ms.isKeyMoment = tracker.isKeyMoment();
-    const pr = sim.simulatePoint(
-      server,
-      server === 'player' ? p : o,
-      server === 'player' ? o : p,
-      ms,
-      {},
-      {},
-    );
-    tap(pr.pointType, pr.rallyLength, pr.shots);
-    const w = pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player';
-    acc.points++;
-    tracker.addPoint(w);
-    ms.fatigue.player = calcFatigue(
-      ms.fatigue.player,
-      pr.rallyLength,
-      p.stats.physical.stamina,
-      p.stats.physical.stamina,
-    );
-    ms.fatigue.opponent = calcFatigue(
-      ms.fatigue.opponent,
-      pr.rallyLength,
-      o.stats.physical.stamina,
-      o.stats.physical.stamina,
-    );
-    ms.score = tracker.getScore();
-    ms.currentServer = tracker.getCurrentServer();
-    ms.pointsPlayed = ++pts;
-  }
-}
-
 /**
  * Progression sweep: does getting better inside a tier feel like getting
  * better? A player climbing from OVR 20 to 50 plays the same fixed opponents
@@ -478,18 +373,18 @@ function partE(N: number): void {
     console.log(
       [
         '  player OVR'.padEnd(14),
-        'pt-win%'.padStart(9),
+        ...RATE_HEADERS.map((h) => h.padStart(11)),
         'mean rally'.padStart(12),
         '≤2-shot%'.padStart(10),
       ].join(''),
     );
-    console.log('  ' + '-'.repeat(43));
+    console.log('  ' + '-'.repeat(89));
     for (const L of [20, 25, 30, 35, 40, 45, 50]) {
       const acc = play(uniform(L), opp, N);
       console.log(
         [
           `  ${L}`.padEnd(14),
-          pct(acc.playerWon, acc.points).padStart(9),
+          ...formatRates(acc.rates).map((r) => r.padStart(11)),
           (acc.rallySum / acc.points).toFixed(2).padStart(12),
           pct(acc.short, acc.points).padStart(10),
         ].join(''),

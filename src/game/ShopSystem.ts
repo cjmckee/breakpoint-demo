@@ -151,8 +151,9 @@ function createEquipmentItem(): EquipmentItem {
   };
 }
 
+// Legendaries are never sold: they come from the story and rewards only.
 const ABILITIES: Ability[] = Object.values(ABILITY_DEFINITIONS).filter(
-  (ability) => ability.shopAvailable !== false,
+  (ability) => ability.shopAvailable !== false && ability.rarity !== AbilityRarity.LEGENDARY,
 );
 
 const RARITY_MULTIPLIERS: Record<AbilityRarity, number> = {
@@ -172,16 +173,14 @@ function createAbilityItem(ownedLevels: Map<string, number> = new Map()): Abilit
   const roll = random();
   let pool: Ability[] = ABILITIES;
 
+  // How often a rarity appears depends on the rarity: half the offers are
+  // commons, a third uncommons, the rest rares.
   if (roll < 0.5) {
     pool = ABILITIES.filter((a) => a.rarity === AbilityRarity.COMMON);
-  } else if (roll < 0.75) {
-    pool = ABILITIES.filter((a) => a.rarity !== AbilityRarity.LEGENDARY);
-  } else if (roll < 0.9) {
-    pool = ABILITIES.filter(
-      (a) => a.rarity !== AbilityRarity.COMMON && a.rarity !== AbilityRarity.LEGENDARY,
-    );
+  } else if (roll < 0.85) {
+    pool = ABILITIES.filter((a) => a.rarity === AbilityRarity.UNCOMMON);
   } else {
-    pool = ABILITIES.filter((a) => a.rarity === AbilityRarity.LEGENDARY);
+    pool = ABILITIES.filter((a) => a.rarity === AbilityRarity.RARE);
   }
 
   if (pool.length === 0) return null;
