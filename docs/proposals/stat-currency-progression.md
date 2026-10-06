@@ -1144,15 +1144,36 @@ Will — act only in the live MatchOrchestrator and are not here):
   Slider, Speed Demon and the coverage half of All-Court Maestro do almost nothing.
 - **Serve Cannon has no serve effect.** It is pace and smash power: a second Heavy Hitter.
 
-**Engine issues found** (all to fix in one pass with the retune, as decided):
+**Engine issues found, and the one-pass fix.** The table above is the pre-fix state; ability
+strengths are not retuned yet (decided).
 
-1. Ability level is not applied: effects never scale by level, though the data and the ability
-   screen say they do. The probe applies value × level itself.
-2. Clay `netApproachBonus` (−0.35) is documented as multiplicative but added to a 0.2 base, so
-   on clay the approach chance is 0 for everyone but serve-and-volley (0.0–0.1% of points at
-   the net, v ~6% on hard and grass). This includes the day-23 and day-31 team matches.
-3. Spin Master dead below 50 spin; court coverage a threshold, not a scale.
-4. Rarity v strength: retune per the table above.
+1. **Ability level now scales effects** (value × level), in one helper,
+   `abilityEffects` in `core/EffectAggregator.ts`, used by the aggregator, MatchOrchestrator
+   and the harnesses. Before, levels did nothing in a match. Heavy Hitter on the baseliner:
+   +4.3 point-win at level 1, **+10.8 at level 3** (match-win 29% → 50%), so escalating level
+   prices matter.
+2. **Surface net bonus is a multiplier** in `ShotSelector.shouldApproachNet`, as its config
+   doc says: clay ×0.65, grass ×1.4, carpet ×1.35. Share of points with the player at the net
+   (uniform 35s v a defensive opponent):
+
+   | archetype      | hard      | clay      | grass     |
+   | -------------- | --------- | --------- | --------- |
+   | aggressive     | 5.8 → 5.9 | 0.1 → 5.3 | 5.7 → 6.2 |
+   | all_court      | 6.3 → 6.3 | 0.0 → 5.4 | 6.0 → 6.6 |
+   | serve_volley   | 8.7 → 8.9 | 9.8 → 9.2 | 5.9 → 7.9 |
+   | counterpuncher | 1.3 → 1.4 | 0.0 → 0.9 | 4.8 → 1.6 |
+
+   Grass changes too: the old +0.4 tripled everyone's approach chance, so net-averse players
+   (counterpuncher, the defensive opponent: 4.0 → 1.0%) came in on grass as often as attackers.
+   On clay the net rusher's net abilities now count (Netcrasher +0.9, Soft Hands +0.7 v Martia).
+
+3. **Spin Master scales with the spin stat** on shots that carry spin (slices, drop shots,
+   serves): `side_spin × spin/10 × 0.15`, the old maximum at spin 100, no longer zero below 50.
+   Baseliner (spin 40): +0.7 point-win at level 1, +2.0 at level 3.
+4. **Not changed: court coverage.** It is an on/off switch at ≥2, but every ability carrying it
+   is at 6–8, where the switch is already always on and still worth ~0. Making it a scale can
+   only weaken it; making it worth something is a redesign, and belongs with the retune.
+5. Rarity v strength: retune deferred.
 
 Run: `N=1000 ID=baseliner npx tsx src/test/analysis/abilityProbe.ts` (~2 minutes per build).
 

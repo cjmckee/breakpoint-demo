@@ -8,8 +8,24 @@
  * no decision attached.
  */
 
-import type { Player, StatBoosts } from '../types/game';
+import type { Ability, Player, StatBoosts } from '../types/game';
 import { aggregateArchetypeEffects } from '../data/archetypeTree';
+
+/**
+ * The match and activity effects of a set of abilities, summed. Every effect
+ * scales linearly with the ability's level (value × level), as the ability data
+ * describes: a level-3 Heavy Hitter adds pace 21.
+ */
+export function abilityEffects(abilities: readonly Ability[] = []): Record<string, number> {
+  const effects: Record<string, number> = {};
+  for (const ability of abilities) {
+    const level = Math.max(1, ability.level);
+    for (const [key, value] of Object.entries(ability.modifiers.additional ?? {})) {
+      effects[key] = (effects[key] ?? 0) + value * level;
+    }
+  }
+  return effects;
+}
 
 export interface AggregatedEffects {
   statBoosts: StatBoosts;
@@ -42,9 +58,7 @@ export class EffectAggregator {
     }
 
     // Abilities — effects only, no stat boosts (stats come from training and equipment)
-    for (const ability of player.abilities) {
-      this.mergeEffects(effects, ability.modifiers.additional);
-    }
+    this.mergeEffects(effects, abilityEffects(player.abilities));
 
     // Archetype specialties — behavior effects (decision layer), scaled by tier
     this.mergeEffects(effects, aggregateArchetypeEffects(player.archetypeProfile));

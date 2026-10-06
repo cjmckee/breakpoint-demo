@@ -12,7 +12,7 @@
  * matches.
  *
  * Conditions: the baseline build; the build holding one ability (effects ×
- * LEVEL, as the ability data intends — the engine does not scale by level yet);
+ * LEVEL, as the ability data intends);
  * and the build with +CAL points in one stat, for each stat an ability is
  * converted into. An ability's worth is its point-win gain over the calibration
  * slope of its mapped stat, then the units those stat points cost at the build's
@@ -44,6 +44,8 @@ import type {
 } from '../../types/archetype';
 import { PlayerProfile } from '../../core/PlayerProfile';
 import { setSeed } from '../../core/random';
+import { SHOT_CLASSIFICATIONS } from '../../config/shotThresholds';
+import { abilityEffects } from '../../core/EffectAggregator';
 import { ABILITY_DEFINITIONS } from '../../data/abilities';
 import { profileForArchetype } from '../../data/archetypeTree';
 import {
@@ -165,7 +167,11 @@ interface Probe {
  */
 const PROBES: Partial<Record<AbilityId, Probe>> = {
   [AbilityName.HEAVY_HITTER]: { stat: 'forehand', applies: (s) => s.shotType.includes('power') },
-  [AbilityName.SPIN_MASTER]: { stat: 'spin', applies: (s) => s.modifiers.spinModifier > 1 },
+  [AbilityName.SPIN_MASTER]: {
+    stat: 'spin',
+    applies: (s) =>
+      SHOT_CLASSIFICATIONS.spinShots.includes(s.shotType) || s.shotType.includes('serve'),
+  },
   [AbilityName.SOFT_HANDS]: {
     stat: 'net',
     applies: (s) => s.shotType.includes('drop_shot') || s.shotType.includes('volley'),
@@ -196,14 +202,9 @@ const PROBES: Partial<Record<AbilityId, Probe>> = {
   },
 };
 
-/** The ability's effects at LEVEL, scaled value × level as the ability data describes. */
+/** The ability's effects at LEVEL. */
 const effectsAt = (name: AbilityId): Record<string, number> =>
-  Object.fromEntries(
-    Object.entries(ABILITY_DEFINITIONS[name].modifiers.additional ?? {}).map(([k, v]) => [
-      k,
-      v * LEVEL,
-    ]),
-  );
+  abilityEffects([{ ...ABILITY_DEFINITIONS[name], level: LEVEL }]);
 
 // ─── Running ─────────────────────────────────────────────────
 

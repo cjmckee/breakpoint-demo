@@ -16,6 +16,7 @@ import type {
   MatchStatistics as IMatchStatistics,
 } from '../../types';
 import type { Ability } from '../../types/game';
+import { abilityEffects } from '../../core/EffectAggregator';
 import { PlayerProfile } from '../../core/PlayerProfile';
 import {
   OPPONENTS_BY_TIER,
@@ -59,20 +60,6 @@ interface RunResult {
   // Direct tallies (independent of MatchStatistics attribution)
   serveWon: { player: number; opponent: number };
   serveTotal: { player: number; opponent: number };
-}
-
-/**
- * Ability "additional" effects, as the orchestrator builds them. Archetype
- * effects come from the profile; MatchSimulator adds those itself.
- */
-function abilityEffects(abilities?: Ability[]): Record<string, number> {
-  const effects: Record<string, number> = {};
-  for (const ability of abilities ?? []) {
-    for (const [key, value] of Object.entries(ability.modifiers?.additional ?? {})) {
-      effects[key] = (effects[key] || 0) + value;
-    }
-  }
-  return effects;
 }
 
 function runMatch(

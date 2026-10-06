@@ -171,7 +171,14 @@ export class ShotCalculator {
 
     // Step 3b: Apply ability additional effects
     if (activeEffects) {
-      quality = this.applyAbilityEffects(quality, shotType, context, modifiers, activeEffects);
+      quality = this.applyAbilityEffects(
+        quality,
+        shotType,
+        context,
+        modifiers,
+        activeEffects,
+        shooterProfile.stats.technical.spin,
+      );
     }
 
     // Step 3c: Apply court surface pace multiplier to final quality
@@ -880,6 +887,7 @@ export class ShotCalculator {
     context: ShotContext,
     modifiers: ShotModifiers,
     effects: Record<string, number>,
+    spinStat: number,
   ): number {
     let bonus = 0;
 
@@ -889,13 +897,15 @@ export class ShotCalculator {
       bonus += pace * 2;
     }
 
-    // side_spin: enhanced spin effectiveness
-    // Scales with how much spin the shot is already carrying, so it rewards a
-    // spin player hitting a spin shot rather than paying out flat.
+    // side_spin: enhanced spin effectiveness on shots that carry spin
+    // Scales with the spin stat, so it rewards a spin player hitting a spin shot
+    // rather than paying out flat. It used to scale with the spin modifier's
+    // excess over 1, which is zero below a spin of 50 — dead for most players.
     const sideSpin = effects[EffectKey.SIDE_SPIN] ?? 0;
-    const spinPoints = (modifiers.spinModifier - 1) * 100;
-    if (sideSpin > 0 && spinPoints > 0) {
-      bonus += sideSpin * spinPoints * 0.15;
+    const carriesSpin =
+      SHOT_CLASSIFICATIONS.spinShots.includes(shotType) || shotType.includes('serve');
+    if (sideSpin > 0 && carriesSpin) {
+      bonus += sideSpin * (spinStat / 10) * 0.15;
     }
 
     // touch: drop shots and volleys

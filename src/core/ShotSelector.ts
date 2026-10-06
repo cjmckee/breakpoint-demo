@@ -316,8 +316,9 @@ export class ShotSelector {
       NET_APPROACH_FLOOR,
       NET_APPROACH_BASE + (netBias / 100) * NET_APPROACH_BIAS_SCALE,
     );
-    baseProbability += SURFACE_EFFECTS[courtSurface].netApproachBonus;
-    baseProbability = Math.max(0, baseProbability);
+    // The surface scales the chance rather than adding to it: added to a base of
+    // 0.2, clay's -0.35 took every non-serve-volleyer's approach chance to zero.
+    baseProbability *= 1 + SURFACE_EFFECTS[courtSurface].netApproachBonus;
 
     if (!opportunity.netApproachSuitable) return false;
 

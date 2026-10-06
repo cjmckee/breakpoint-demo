@@ -34,6 +34,7 @@ import {
   ShotType,
 } from '../types';
 import { PRESSURE_BANK, KEY_MOMENT_OPPONENT_DRAIN } from '../config/shotThresholds';
+import { abilityEffects } from '../core/EffectAggregator';
 import { fatigueAfterPoint, fatigueAfterRest } from '../core/fatigue';
 import { MomentumEngine, ClutchLevel } from '../core/MomentumEngine';
 import { getPrimaryStatName } from '../core/shotStatMapping';
@@ -167,17 +168,8 @@ export class MatchOrchestrator {
     abilities?: Ability[],
     archetypeProfile?: ArchetypeProfile,
   ): Record<string, number> {
-    const effects: Record<string, number> = {};
-
-    // Ability effects (quality keys, read by ShotCalculator)
-    for (const ability of abilities ?? []) {
-      const additional = ability.modifiers?.additional;
-      if (additional) {
-        for (const [key, value] of Object.entries(additional)) {
-          effects[key] = (effects[key] || 0) + value;
-        }
-      }
-    }
+    // Ability effects (quality keys, read by ShotCalculator), scaled by level
+    const effects = abilityEffects(abilities);
 
     // Archetype behavior effects (decision keys, read by ShotSelector/PointSimulator)
     if (archetypeProfile) {
