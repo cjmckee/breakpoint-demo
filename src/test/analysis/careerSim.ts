@@ -36,10 +36,10 @@
  *           in the anchor's recipe ratio. Story and challenges pay the same stat
  *           points as today through each stat's recipe; the shop no longer sells
  *           stats, so SHOP_SHARE of OTHER_PER_DAY is dropped. Matches pay
- *           MATCH_UNITS × (0.5 + overall/100) × INCOME_SCALE, MATCH_MIND_SHARE of
- *           it Mind and the rest by MatchRewardSystem's per-area scores
- *           (serving→Power, returning→Quickness, rally→Technique,
- *           net→Quickness+Technique, mental→Mind). Each evening the player buys
+ *           CurrencyIncome.matchPayout: a base by result (lost 2/2/2/5, won
+ *           3/3/3/6) plus MATCH_POOL × overall/100 by MatchRewardSystem's
+ *           per-area scores (serving→Power, returning→Quickness,
+ *           rally→Technique, net→Quickness+Technique, mental→Mind). Each evening the player buys
  *           toward its shape (SPEND, see buyTowardShape).
  *
  * Readiness is measured at each CHECK day against that day's team-match
@@ -53,7 +53,7 @@
  *      KEY_W=0.8,1.2  OFF_W=0.25,0.55
  *      OTHER_PER_DAY=2.2  SHOP_SHARE=0.25  INCOME_SCALE=1.2
  *      TRAIN_BASE=2  TRAIN_PER_REP=3  TRAIN_GENERAL_SHARE=0.2  TRAIN_MIND_SHARE=0.1
- *      MATCH_UNITS=16  MATCH_MIND_SHARE=0.6  EXCHANGE=0
+ *      MATCH_POOL=20  EXCHANGE=0
  *      SPEND=patient|affordable|impatient  (see buyTowardShape)  OVERBUILD=8
  *      SYSTEMS=today,currency  STEP_FROM=40 (statEconomy price steps)
  *      STATS=1 prints every stat of the mean build instead of the lowest/top three
@@ -149,8 +149,7 @@ const SHOP_SHARE = env('SHOP_SHARE', 0.25);
 const INCOME_SCALE = env('INCOME_SCALE', ECONOMY_INCOME_SCALE);
 const TRAIN_BASE = env('TRAIN_BASE', TRAINING_PAYOUT.base);
 const TRAIN_PER_REP = env('TRAIN_PER_REP', TRAINING_PAYOUT.perRep);
-const MATCH_UNITS = env('MATCH_UNITS', MATCH_PAYOUT.units);
-const MATCH_MIND_SHARE = env('MATCH_MIND_SHARE', MATCH_PAYOUT.mindShare);
+const MATCH_POOL = env('MATCH_POOL', MATCH_PAYOUT.pool);
 const TRAIN_MIND_SHARE = env('TRAIN_MIND_SHARE', TRAINING_PAYOUT.mindShare);
 const TRAIN_GENERAL_SHARE = env('TRAIN_GENERAL_SHARE', TRAINING_PAYOUT.generalShare);
 /** The game's payout functions, at the rates above (env overrides included). */
@@ -161,7 +160,7 @@ const TRAINING_RATES = {
   mindShare: TRAIN_MIND_SHARE,
   scale: INCOME_SCALE,
 };
-const MATCH_RATES = { units: MATCH_UNITS, mindShare: MATCH_MIND_SHARE, scale: INCOME_SCALE };
+const MATCH_RATES = { ...MATCH_PAYOUT, pool: MATCH_POOL };
 /** Ability shopping (abilityEconomy.ts). ABILITIES=0 turns it off. */
 const ABILITIES_ON = process.env.ABILITIES !== '0';
 /** Buy an ability when its point-win per currency unit is at least this (a typical stat buy). */
@@ -713,7 +712,7 @@ function payMatch(
 ): { perf: string; xp: number } {
   const rewards = silently(() => MatchRewardSystem.calculateRewards(ms, 1, won));
   const perf = rewards.performanceBreakdown;
-  earn(wallet, matchPayout(perf, MATCH_RATES));
+  earn(wallet, matchPayout(perf, won, MATCH_RATES));
   return {
     perf:
       `perf ${perf.overallScore.toFixed(0)} (serve ${perf.servingScore.toFixed(0)}, ` +
@@ -1103,8 +1102,7 @@ function main(): void {
       `OFF_W=${OFF_W} MATCH_EVERY=${MATCH_EVERY} REPS_P=${REPS_P} OTHER_PER_DAY=${OTHER_PER_DAY} ` +
       `SHOP_SHARE=${SHOP_SHARE} INCOME_SCALE=${INCOME_SCALE} TRAIN_BASE=${TRAIN_BASE} ` +
       `TRAIN_PER_REP=${TRAIN_PER_REP} TRAIN_GENERAL_SHARE=${TRAIN_GENERAL_SHARE} ` +
-      `TRAIN_MIND_SHARE=${TRAIN_MIND_SHARE} MATCH_UNITS=${MATCH_UNITS} ` +
-      `MATCH_MIND_SHARE=${MATCH_MIND_SHARE} EXCHANGE=${EXCHANGE}`,
+      `TRAIN_MIND_SHARE=${TRAIN_MIND_SHARE} MATCH_POOL=${MATCH_POOL} EXCHANGE=${EXCHANGE}`,
   );
   console.log(
     [
