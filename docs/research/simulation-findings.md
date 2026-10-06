@@ -341,6 +341,45 @@ sniper and kicker accuracy that scales with serve. Then re-run `specialtySynergy
 is positive synergy for every path and own-profile gains for every identity in
 `identityGapProbe`.
 
+### Round 3: specialties amplify their stat
+
+Decision: a specialty should make the stat behind it count extra (option "amplify the stat").
+
+**Change (`0ac2fcc`).** `SPECIALTY_AMPLIFY`: on a path's own phase shots (forehand drives for
+forehand paths, the matching serve's quality and accuracy for serve paths, returns, volleys and
+overheads), `effective = stat + byTier[tier] × (stat − 30)`, tiers 0.5 / 0.75 / 1.0. A flat ×1.1
+was tried first: it gave every path value on its own but almost no synergy (10% of a 15-point
+stat gain is 1.5 points); amplifying the excess over 30 is what makes investment pay. Serve paths
+needed accuracy amplified too, because serve-in is rolled on accuracy against a midpoint that
+moves with the player's own accuracy. Before this, 6 of 18 paths cost more than they gave
+(STRIP showed costs explain about a third of the negative synergy; the rest was unscoped biases).
+
+**Synergy (`specialtySynergyProbe`, N=800, ± ~0.4):** 17 of 18 paths now gain from their stat:
+first serve −0.8…−0.6 → +0.6…+1.7; second serve −0.5…+0.1 → +0.5…+1.0; return −0.3…−0.1 →
++1.5…+2.1; forehand −0.8…−0.3 → +0.5…+1.1; backhand −0.6…−0.2 → +0.3…+1.1; net_downhill +2.0 →
++1.9. `net_apologist` stays at −1.5: it stays back, so its net boost never applies.
+
+**Identity matrix (own profile on own stats, v uniform 35):** big server −0.7 → +1.7, counter
+−1.1 → +1.5, baseliner +0.6 → +2.3, net rusher +4.6 → +8.0. Every identity's specialties now help.
+
+**But the career got less even** (`careerSim`, 30 careers, readiness N=300; point-win, match-win):
+
+| day v opponent | big server        | counter           | net rusher        | baseliner         | point-win spread |
+| -------------- | ----------------- | ----------------- | ----------------- | ----------------- | ---------------- |
+| 19 Rich Soil   | 50.8 → 51.0 (51%) | 50.7 → 50.5 (52%) | 53.1 → 58.6 (72%) | 47.0 → 46.2 (41%) | 6.1 → 12.4       |
+| 23 Martia      | 45.2 → 41.8 (25%) | 47.3 → 45.1 (35%) | 49.6 → 49.2 (41%) | 41.3 → 39.0 (23%) | 8.3 → 10.2       |
+| 27 Reginald    | 45.6 → 44.7 (30%) | 47.6 → 45.2 (40%) | 52.8 → 53.7 (56%) | 44.4 → 44.1 (38%) | 8.4 → 9.6        |
+| 31 Olivia      | 41.9 → 41.9 (23%) | 44.7 → 43.3 (28%) | 51.3 → 51.4 (48%) | 43.2 → 36.1 (17%) | 9.4 → 15.3       |
+
+Two causes. Story opponents carry tier-2 specialties, so they get the bigger boost (0.75 v the
+player's 0.5): Olivia's tier-2 forehand and serve make her much harder for the baseliner. And
+coming to the net pays for everyone (60–81% of net points won), so the net rusher's paths
+compound.
+
+**Next.** (1) Price coming forward: net points won should fall nearer 55–65% for a player who
+isn't built for it, so the net rusher's lead rests on its stats. (2) Re-tune story opponents
+for the boost (their tiers, or byTier for tier 2). (3) Re-check the career spread.
+
 ---
 
 ## Reproducing
