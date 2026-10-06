@@ -48,6 +48,11 @@ exactly the kind of thing that gets rediscovered otherwise.
   that stamina barely matters early and opens an 11-point gap late in long matches. Team match 1
   against Chet Vale is the worked example. Fatigue rules now live in one module,
   `src/core/fatigue.ts`.
+- **[`research/simulation-findings.md`](./research/simulation-findings.md)** — five findings
+  with before/after data. Net play was capped by rally structure (serve-and-volley and
+  chip-and-charge added). Double faults ended a quarter of early points. Upsets were near
+  impossible past a 6-point gap. Key stats are an identity's worst buys, though the price curve
+  isn't why identities differ. Four abilities are dead, rarity is inverted, and levels run away.
 
 Note the **measurement baseline** headers. Figures are only valid for the config they were taken
 under, and a behaviour change invalidates every number measured before it.
