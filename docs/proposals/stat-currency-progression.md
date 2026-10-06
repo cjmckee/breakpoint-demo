@@ -1068,6 +1068,34 @@ But it means a big server improves the backhand training it never wanted, while 
 gains comes from the shop of recipes. Whether training a shot should be the way to earn for an
 unrelated stat is a design question (§10).
 
+### 9.11 Doubling match pay
+
+Decision: matches should pay more, and §9.10 showed they pay a third of training per energy.
+First step, match pay doubled (`MATCH_UNITS` 8 → 16, now the careerSim default). Same setup as
+§9.10; readiness on N=200 BO3 per cell, so match-win % moves about ±3.5 on noise.
+
+**Income.** About +95 units a career (~+11%); matches go from 10% to 19% of income, training
+from 72% to 65%. Three quarters of the extra is Mind (60% Mind share plus the mental area
+score); Power, Quickness and Technique gain 10–20 units each. Time use does not change: the
+sim's practice-match schedule is fixed, so this measures pay, not a shift in what players do.
+
+**Where the extra Mind goes.** Counterpuncher and net rusher spend it (tactics, anticipation).
+The big server banks 64 unspent Mind (was 11), the baseliner 125 (was 61).
+
+**Readiness**, point / game / match-win % against the team-match opponent, 1× → 2×:
+
+| identity  | day 15 Chet                         | day 23 Martia                       | day 31 Olivia                       |
+| --------- | ----------------------------------- | ----------------------------------- | ----------------------------------- |
+| netRusher | 49.2 / 48.2 / 43 → 51.2 / 52.2 / 53 | 45.5 / 40.9 / 34 → 48.5 / 47.2 / 42 | 45.0 / 40.1 / 28 → 49.4 / 48.7 / 43 |
+| counter   | 48.3 / 46.2 / 39 → 49.6 / 49.7 / 47 | 43.2 / 37.3 / 28 → 48.0 / 46.5 / 45 | 42.5 / 36.4 / 24 → 44.3 / 38.9 / 28 |
+| bigServer | 48.0 / 46.4 / 40 → 49.2 / 48.2 / 42 | 41.4 / 33.6 / 23 → 45.4 / 41.4 / 34 | 41.5 / 32.8 / 18 → 41.1 / 32.6 / 19 |
+| baseliner | 50.3 / 50.7 / 48 → 49.1 / 48.9 / 42 | 43.3 / 37.6 / 31 → 44.6 / 39.8 / 34 | 41.7 / 34.7 / 27 → 42.3 / 35.3 / 26 |
+
+The identities with Mind-priced key stats gain most; the baseliner, which cannot spend Mind,
+gains nothing; the spread between identities widens. Until abilities give Mind a sink, the
+lever that helps every build is `MATCH_MIND_SHARE` (e.g. 0.3–0.4), which moves match pay into
+the performance-weighted P/Q/T split instead.
+
 ---
 
 ## 10. Next avenues

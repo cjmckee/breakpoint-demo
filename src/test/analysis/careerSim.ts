@@ -53,7 +53,7 @@
  *      KEY_W=0.8,1.2  OFF_W=0.25,0.55
  *      OTHER_PER_DAY=2.2  SHOP_SHARE=0.25  INCOME_SCALE=1.2
  *      TRAIN_BASE=2  TRAIN_PER_REP=3  TRAIN_GENERAL_SHARE=0.2  TRAIN_MIND_SHARE=0.1
- *      MATCH_UNITS=8  MATCH_MIND_SHARE=0.6  EXCHANGE=0
+ *      MATCH_UNITS=16  MATCH_MIND_SHARE=0.6  EXCHANGE=0
  *      SPEND=patient|affordable|impatient  (see buyTowardShape)  OVERBUILD=8
  *      STATS=1 prints every stat of the mean build instead of the lowest/top three
  *      LEDGER=1 reports, per identity, slot use, currency earned by source, and
@@ -143,7 +143,7 @@ const SHOP_SHARE = env('SHOP_SHARE', 0.25);
 const INCOME_SCALE = env('INCOME_SCALE', 1.2);
 const TRAIN_BASE = env('TRAIN_BASE', 2);
 const TRAIN_PER_REP = env('TRAIN_PER_REP', 3);
-const MATCH_UNITS = env('MATCH_UNITS', 8);
+const MATCH_UNITS = env('MATCH_UNITS', 16);
 const MATCH_MIND_SHARE = env('MATCH_MIND_SHARE', 0.6);
 const TRAIN_MIND_SHARE = env('TRAIN_MIND_SHARE', 0.1);
 const TRAIN_GENERAL_SHARE = env('TRAIN_GENERAL_SHARE', 0.2);
