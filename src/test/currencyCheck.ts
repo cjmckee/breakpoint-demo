@@ -6,6 +6,7 @@
  *   - a plan of +1s is priced at each point's starting value, in order
  *   - losses clamp each currency at zero, gains add
  *   - a purchase applies all of a plan or none of it, and refuses what it can't pay
+ *   - training and matches pay whole units, in the shapes the economy promises
  *
  * Run: npx tsx src/test/currencyCheck.ts  (part of npm test)
  */
@@ -13,6 +14,7 @@
 import type { Player } from '../types/game';
 import { CURRENCIES, STAT_RECIPES } from '../config/economy';
 import { PlayerManager } from '../game/PlayerManager';
+import { matchPayout, roundAmounts, trainingPayout } from '../game/CurrencyIncome';
 import {
   STAT_NAMES,
   applyCurrency,
@@ -22,6 +24,7 @@ import {
   priceOf,
   purchase,
   stepMultiplier,
+  suggestPurchases,
   unitsOf,
   withStat,
 } from '../game/StatDevelopment';
@@ -135,6 +138,67 @@ function main(): void {
   );
   check('a stat at 100 cannot be bought', !capped.success, capped.error);
   check('an empty plan fails', !purchase(rich, []).success);
+
+  console.log('\n── income ──');
+  const rounded = roundAmounts({ power: 2.4, quickness: 2.4, technique: 2.4, mind: 0.8 });
+  check(
+    'rounding keeps the rounded total and pays whole units',
+    unitsOf(rounded) === 8 && CURRENCIES.every((c) => Number.isInteger(rounded[c] ?? 0)),
+    JSON.stringify(rounded),
+  );
+  const serve3 = trainingPayout('serve', 3);
+  check(
+    'a clean serve session pays 13 units ((2 + 3×3) × 1.2), mostly Power',
+    unitsOf(serve3) === 13 &&
+      (serve3.power ?? 0) > unitsOf(serve3) / 2 &&
+      (serve3.quickness ?? 0) > 0 &&
+      (serve3.mind ?? 0) > 0,
+    JSON.stringify(serve3),
+  );
+  check(
+    'a session with no clean reps still pays the base',
+    unitsOf(trainingPayout('serve', 0)) === 2,
+  );
+  const ret = trainingPayout('return', 3);
+  check(
+    'return training pays mostly Quickness',
+    CURRENCIES.every((c) => (ret[c] ?? 0) <= (ret.quickness ?? 0)),
+    JSON.stringify(ret),
+  );
+  const perf = {
+    servingScore: 80,
+    returningScore: 20,
+    rallyScore: 20,
+    netPlayScore: 0,
+    mentalScore: 20,
+    overallScore: 50,
+  };
+  const match = matchPayout(perf);
+  check(
+    'a match pays 16 × (0.5 + overall/100) × 1.2 units',
+    unitsOf(match) === Math.round(16 * 1.0 * 1.2),
+    JSON.stringify(match),
+  );
+  check('a match pays mostly Mind', (match.mind ?? 0) >= unitsOf(match) * 0.55);
+  check(
+    'a serving-led match pays more Power than Quickness',
+    (match.power ?? 0) > (match.quickness ?? 0),
+    JSON.stringify(match),
+  );
+
+  console.log('\n── suggestions ──');
+  const earner = playerWith({ power: 12, quickness: 3, technique: 4, mind: 2 });
+  const picks = suggestPurchases(earner, trainingPayout('serve', 3), 'serve');
+  check('the anchor comes first when affordable', picks[0] === 'serve', picks.join(', '));
+  check(
+    'every suggestion is affordable',
+    picks.length > 0 && picks.every((st) => purchase(earner, [st]).success),
+  );
+  check(
+    'nothing is suggested to an empty wallet',
+    suggestPurchases(playerWith({ power: 0, quickness: 0, technique: 0, mind: 0 }), serve3)
+      .length === 0,
+  );
 
   console.log(
     failures === 0

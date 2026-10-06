@@ -135,18 +135,17 @@ export function trackPlayerCreated(
 // ---------------------------------------------------------------------------
 
 export function trackTrainingCompleted(result: TrainingResult, player: Player): void {
-  // Find the stat with the largest boost for "primary stat trained" label
-  const boostEntries = Object.entries(result.statBoosts);
-  const primaryStat =
-    boostEntries.length > 0 ? boostEntries.reduce((a, b) => (b[1] > a[1] ? b : a))[0] : 'none';
-  const totalGain = boostEntries.reduce((sum, [, v]) => sum + v, 0);
-
+  const earned = result.currencyGained;
   track('training_completed', {
     training_name: result.trainingName,
     training_type: result.trainingType,
     session_tier: result.sessionTier ?? result.tier ?? 'unknown',
-    primary_stat_trained: primaryStat,
-    total_stat_gain: totalGain,
+    anchor: result.anchor,
+    reps: result.reps,
+    currency_power: earned.power ?? 0,
+    currency_quickness: earned.quickness ?? 0,
+    currency_technique: earned.technique ?? 0,
+    currency_mind: earned.mind ?? 0,
     ability_gained: result.abilityGained ?? null,
     mood_change: result.moodChange,
     player_level: player.level,

@@ -1,13 +1,12 @@
 /**
  * Anchor Training Screen
  *
- * Redesigned training flow:
- *   1. Pick a CORE stat to anchor on (this is your build choice; grants +1 core).
- *   2. Play that shot's themed minigame — three pass/fail attempts, each success banks
- *      a support (0-3) — or Quick Sim for a guaranteed 1.
- *   3. Supports are drawn from a pool themed to the anchored shot.
- *
- * See docs/training-redesign.md.
+ * Training flow:
+ *   1. Pick a CORE shot to work on.
+ *   2. Play that shot's themed minigame — three pass/fail attempts, each clean rep
+ *      adds to the payout — or Quick Sim for a guaranteed one rep.
+ *   3. The session pays training currency, mostly in the shot's recipe currencies,
+ *      to spend on the Development screen.
  */
 
 import React, { useState } from 'react';
@@ -17,16 +16,17 @@ import {
   CORE_ANCHOR_ORDER,
   ANCHOR_TRAINING_ENERGY_COST,
   buildAnchorTrainingResult,
-  recentSupportsFrom,
   type CoreStat,
   type TrainingBonuses,
 } from '../game/AnchorTrainingSystem';
-import { EffectKey, type StatBoosts, type TrainingResult } from '../types/game';
+import { EffectKey, type CurrencyAmounts as Amounts } from '../types/game';
 import { EffectAggregator } from '../core/EffectAggregator';
 import { StatusBar } from './StatusBar';
 import { Button } from './ui/Button';
-import { STAT_ICONS, formatStatName } from '../config/statIcons';
-import { StatIcon } from './ui/StatIcon';
+import { STAT_ICONS } from '../config/statIcons';
+import { CURRENCIES, CURRENCY_LABELS } from '../config/economy';
+import { trainingPayout } from '../game/CurrencyIncome';
+import { CurrencyAmounts } from './currency/CurrencyAmounts';
 import { CoreStatPentagon } from './training/CoreStatPentagon';
 import { audioManager } from '../audio/AudioManager';
 import { MINIGAMES } from '../minigames/registry';
@@ -36,7 +36,6 @@ type Step = { kind: 'pick' } | { kind: 'play'; core: CoreStat };
 export const AnchorTraining: React.FC = () => {
   const player = useGameStore((state) => state.player);
   const currentStatus = useGameStore((state) => state.currentStatus);
-  const activityHistory = useGameStore((state) => state.activityHistory);
   const navigateTo = useGameStore((state) => state.navigateTo);
   const applyTrainingResult = useGameStore((state) => state.applyTrainingResult);
   const advanceTime = useGameStore((state) => state.advanceTime);
@@ -55,22 +54,15 @@ export const AnchorTraining: React.FC = () => {
 
   // Item/ability effects that improve the session payout rather than the minigame itself.
   const trainingBonuses: TrainingBonuses = {
-    statUpgradeChance: EffectAggregator.getEffect(effects, EffectKey.TRAINING_STAT_UPGRADE_CHANCE),
-    bonusSupportChance: EffectAggregator.getEffect(
-      effects,
-      EffectKey.TRAINING_BONUS_SUPPORT_CHANCE,
-    ),
+    payoutBonus: EffectAggregator.getEffect(effects, EffectKey.TRAINING_STAT_UPGRADE_CHANCE),
+    bonusRepChance: EffectAggregator.getEffect(effects, EffectKey.TRAINING_BONUS_SUPPORT_CHANCE),
   };
-
-  // Supports handed out in the most recent training session, so we can bias away
-  // from repeating them.
-  const lastTrainingBoosts: StatBoosts | undefined = activityHistory.find(
-    (a): a is TrainingResult => a.type === 'training',
-  )?.statBoosts;
+  /** What a clean three-for-three session on `core` pays — the card's headline. */
+  const bestPayout = (core: CoreStat): Amounts =>
+    trainingPayout(core, 3, trainingBonuses.payoutBonus);
 
   const resolve = (core: CoreStat, count: number): void => {
-    const recent = recentSupportsFrom(lastTrainingBoosts);
-    const result = buildAnchorTrainingResult(core, count, recent, trainingBonuses);
+    const result = buildAnchorTrainingResult(core, count, trainingBonuses);
     // applyTrainingResult transitions to idle with the training_result overlay,
     // then advanceTime moves the clock forward — mirrors the old training flow.
     applyTrainingResult(result);
@@ -96,16 +88,14 @@ export const AnchorTraining: React.FC = () => {
             <h1 className="text-3xl font-bold text-pixel-text">{anchor.name} Training</h1>
           </div>
           <p className="text-pixel-text-muted mb-6">
-            Guaranteed <span className="text-green-400 font-bold">+1 {anchor.name}</span> — land
-            clean reps below to earn bonus stats too.
+            Every session pays training currency. Land clean reps below to earn more.
           </p>
 
           {(() => {
             const Minigame = MINIGAMES[anchor.minigame];
             return (
               <Minigame
-                // Training reads the score as its support count — the identity
-                // mapping, since a clean rep is worth one point and one support.
+                // Training reads the score as its rep count — a clean rep is one point.
                 onComplete={(score) => resolve(step.core, score.score)}
                 windowBonus={windowBonus}
                 onFirstAttempt={() => setHasAttempted(true)}
@@ -113,19 +103,24 @@ export const AnchorTraining: React.FC = () => {
             );
           })()}
 
-          {/* Themed support pool preview */}
-          <div className="bg-pixel-card border-2 border-pixel-border p-4 mt-4">
+          {/* What the session can pay, so the reps have a visible stake */}
+          <div
+            className="bg-pixel-card border-2 border-pixel-border p-4 mt-4"
+            data-testid="training-payout-preview"
+          >
             <div className="text-xs font-bold text-pixel-text-muted mb-2 uppercase tracking-wide">
-              Also improves
+              Pays
             </div>
-            <div className="flex flex-wrap gap-2">
-              {anchor.supportPool.map((stat) => (
-                <StatIcon
-                  key={stat}
-                  stat={stat}
-                  showLabel
-                  className="text-xs px-2 py-1 bg-pixel-bg border border-pixel-border text-gray-300"
-                />
+            <div className="grid gap-1 text-sm">
+              {[0, 1, 2, 3].map((reps) => (
+                <div key={reps} className="flex items-center gap-3">
+                  <span className="w-16 text-pixel-text-muted">
+                    {reps} rep{reps === 1 ? '' : 's'}
+                  </span>
+                  <CurrencyAmounts
+                    amounts={trainingPayout(step.core, reps, trainingBonuses.payoutBonus)}
+                  />
+                </div>
               ))}
             </div>
           </div>
@@ -139,7 +134,7 @@ export const AnchorTraining: React.FC = () => {
               disabled={!canAfford}
               onClick={() => resolve(step.core, 1)}
             >
-              Quick Sim (skip · +1 bonus)
+              Quick Sim (skip · 1 rep)
             </Button>
           )}
         </div>
@@ -157,7 +152,8 @@ export const AnchorTraining: React.FC = () => {
           <div>
             <h1 className="text-3xl font-bold text-pixel-text">Training</h1>
             <p className="text-pixel-text-muted mt-1">
-              Pick a shot to work on. Train well and you'll pick up bonus stats along the way.
+              Pick a shot to work on. Each pays training currency — mostly in what that shot is made
+              of — to spend on stats in Development.
             </p>
           </div>
           {/* The cost is the same for every shot, so it belongs here and not on all five cards. */}
@@ -188,6 +184,7 @@ export const AnchorTraining: React.FC = () => {
             {CORE_ANCHOR_ORDER.map((core) => {
               const anchor = CORE_ANCHORS[core];
               const value = player.stats.core[core];
+              const best = bestPayout(core);
               return (
                 <button
                   key={core}
@@ -198,8 +195,10 @@ export const AnchorTraining: React.FC = () => {
                   onFocus={() => setHovered(core)}
                   onBlur={() => setHovered(null)}
                   disabled={!canAfford}
-                  aria-label={`Train ${anchor.name}, currently ${value}, for +1. Also improves ${anchor.supportPool
-                    .map(formatStatName)
+                  aria-label={`Train ${anchor.name}, currently ${value}. A clean session pays ${CURRENCIES.filter(
+                    (c) => best[c],
+                  )
+                    .map((c) => `${best[c]} ${CURRENCY_LABELS[c]}`)
                     .join(', ')}.`}
                   className="border-4 border-pixel-border bg-pixel-card px-3 py-2.5 flex items-center gap-3 text-left cursor-pointer transition-all duration-150 hover:brightness-110 hover:border-pixel-accent focus-visible:border-pixel-accent active:translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:translate-y-0 disabled:hover:brightness-100"
                 >
@@ -211,7 +210,7 @@ export const AnchorTraining: React.FC = () => {
                     <span className="flex items-baseline justify-between gap-2">
                       <span className="text-sm font-bold text-pixel-text">{anchor.name}</span>
                       <span className="text-2xl font-bold text-pixel-text leading-none tabular-nums">
-                        {value} <span className="text-xs font-bold text-green-400">+1</span>
+                        {value}
                       </span>
                     </span>
 
@@ -219,10 +218,11 @@ export const AnchorTraining: React.FC = () => {
                       {anchor.description}
                     </span>
 
-                    <span className="flex gap-1 text-[13px]">
-                      {anchor.supportPool.map((stat) => (
-                        <StatIcon key={stat} stat={stat} decorative className="opacity-80" />
-                      ))}
+                    <span className="flex items-center gap-2 text-[13px]">
+                      <span className="text-[10px] uppercase tracking-wider text-pixel-text-muted">
+                        Up to
+                      </span>
+                      <CurrencyAmounts amounts={best} />
                     </span>
                   </span>
                 </button>

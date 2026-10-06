@@ -161,3 +161,30 @@ export function canBuyAny(player: Player): boolean {
     return value < MAX_STAT && canAfford(player.wallet, priceOf(stat, value));
   });
 }
+
+/**
+ * The +1s worth offering right after an activity paid `earned`: stats the
+ * player can afford now, ranked by how much of their recipe the payout covers,
+ * with `first` (the anchor just trained) ahead of the rest when affordable. So
+ * a serve session suggests serve, then strength and forehand, not focus.
+ */
+export function suggestPurchases(
+  player: Player,
+  earned: CurrencyAmounts,
+  first?: StatName,
+  limit: number = 3,
+): StatName[] {
+  const overlap = (stat: StatName): number => {
+    const recipe = STAT_RECIPES[stat];
+    return (
+      CURRENCIES.reduce((sum, c) => sum + (recipe[c] ?? 0) * (earned[c] ?? 0), 0) / unitsOf(recipe)
+    );
+  };
+  const affordable = STAT_NAMES.filter((stat) => {
+    const value = getStat(player.stats, stat);
+    return value < MAX_STAT && canAfford(player.wallet, priceOf(stat, value)) && overlap(stat) > 0;
+  });
+  return affordable
+    .sort((a, b) => Number(b === first) - Number(a === first) || overlap(b) - overlap(a))
+    .slice(0, limit);
+}

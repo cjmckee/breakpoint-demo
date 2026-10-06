@@ -93,7 +93,6 @@ import {
   RECIPES,
   canAfford,
   earn,
-  inRatio,
   pay,
   priceOf,
   unitsOf,
@@ -105,11 +104,9 @@ import { MatchSimulator } from '../../core/MatchSimulator';
 import { calculateOverallRating } from '../../utils/overallRating';
 import { PlayerManager } from '../../game/PlayerManager';
 import { MatchRewardSystem } from '../../game/MatchRewardSystem';
-import {
-  buildAnchorTrainingResult,
-  recentSupportsFrom,
-  type CoreStat,
-} from '../../game/AnchorTrainingSystem';
+import type { CoreStat } from '../../game/AnchorTrainingSystem';
+import { matchPayout, trainingPayout } from '../../game/CurrencyIncome';
+import { legacyTrainingBoosts } from './legacyTraining';
 import {
   OPPONENTS_BY_TIER,
   getScaledOpponentStats,
@@ -156,6 +153,15 @@ const MATCH_UNITS = env('MATCH_UNITS', MATCH_PAYOUT.units);
 const MATCH_MIND_SHARE = env('MATCH_MIND_SHARE', MATCH_PAYOUT.mindShare);
 const TRAIN_MIND_SHARE = env('TRAIN_MIND_SHARE', TRAINING_PAYOUT.mindShare);
 const TRAIN_GENERAL_SHARE = env('TRAIN_GENERAL_SHARE', TRAINING_PAYOUT.generalShare);
+/** The game's payout functions, at the rates above (env overrides included). */
+const TRAINING_RATES = {
+  base: TRAIN_BASE,
+  perRep: TRAIN_PER_REP,
+  generalShare: TRAIN_GENERAL_SHARE,
+  mindShare: TRAIN_MIND_SHARE,
+  scale: INCOME_SCALE,
+};
+const MATCH_RATES = { units: MATCH_UNITS, mindShare: MATCH_MIND_SHARE, scale: INCOME_SCALE };
 /** Ability shopping (abilityEconomy.ts). ABILITIES=0 turns it off. */
 const ABILITIES_ON = process.env.ABILITIES !== '0';
 /** Buy an ability when its point-win per currency unit is at least this (a typical stat buy). */
@@ -707,17 +713,7 @@ function payMatch(
 ): { perf: string; xp: number } {
   const rewards = silently(() => MatchRewardSystem.calculateRewards(ms, 1, won));
   const perf = rewards.performanceBreakdown;
-  const units = MATCH_UNITS * (0.5 + perf.overallScore / 100) * INCOME_SCALE;
-  const areaUnits = units * (1 - MATCH_MIND_SHARE);
-  const area = {
-    power: perf.servingScore,
-    quickness: perf.returningScore + perf.netPlayScore / 2,
-    technique: perf.rallyScore + perf.netPlayScore / 2,
-    mind: perf.mentalScore,
-  };
-  const areaTotal = Object.values(area).reduce((a, b) => a + b, 0) || 1;
-  for (const c of CURRENCIES) wallet[c] += (areaUnits * area[c]) / areaTotal;
-  wallet.mind += units * MATCH_MIND_SHARE;
+  earn(wallet, matchPayout(perf, MATCH_RATES));
   return {
     perf:
       `perf ${perf.overallScore.toFixed(0)} (serve ${perf.servingScore.toFixed(0)}, ` +
@@ -869,15 +865,10 @@ function career(
         ledger.slots.train++;
         ledger.anchors[core]++;
         if (system === 'today') {
-          const result = buildAnchorTrainingResult(core, n, recentSupportsFrom(recent));
-          recent = result.statBoosts;
-          applyBoosts(stats, result.statBoosts);
+          recent = legacyTrainingBoosts(core, n, recent);
+          applyBoosts(stats, recent);
         } else {
-          const units = (TRAIN_BASE + TRAIN_PER_REP * n) * INCOME_SCALE;
-          const general = units * TRAIN_GENERAL_SHARE;
-          earn(wallet, inRatio(RECIPES[core], units - general - units * TRAIN_MIND_SHARE));
-          wallet.mind += units * TRAIN_MIND_SHARE;
-          for (const c of CURRENCIES) wallet[c] += general / CURRENCIES.length;
+          earn(wallet, trainingPayout(core, n, 0, TRAINING_RATES));
           credit('training', walletBefore);
           note(
             `  ${slotName} train ${core} — ${n}/3 reps → +${fmtAmounts(diffWallet(wallet, walletBefore))}`,

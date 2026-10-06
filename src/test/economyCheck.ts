@@ -22,11 +22,9 @@
 import { PlayerManager } from '../game/PlayerManager';
 import { ChallengeManager } from '../game/ChallengeManager';
 import { MatchRewardSystem } from '../game/MatchRewardSystem';
-import {
-  buildAnchorStatBoosts,
-  buildAnchorTrainingResult,
-  NO_TRAINING_BONUSES,
-} from '../game/AnchorTrainingSystem';
+import { buildAnchorTrainingResult, NO_TRAINING_BONUSES } from '../game/AnchorTrainingSystem';
+import { unitsOf } from '../game/StatDevelopment';
+import { INCOME_SCALE, TRAINING_PAYOUT } from '../config/economy';
 import { MatchStatistics } from '../core/MatchStatistics';
 import { PlayerProfile } from '../core/PlayerProfile';
 import { EffectAggregator } from '../core/EffectAggregator';
@@ -191,41 +189,31 @@ function main(): void {
 
   console.log('\n── training effects change the session payout ──');
   {
-    const supports: ('strength' | 'placement')[] = ['strength', 'placement'];
+    const paid = (bonuses = NO_TRAINING_BONUSES, reps = 2): number =>
+      unitsOf(buildAnchorTrainingResult('serve', reps, bonuses).currencyGained);
 
-    const upgraded = buildAnchorStatBoosts('serve', supports, 1);
+    const plain = paid();
+    const boosted = paid({ payoutBonus: 0.5, bonusRepChance: 0 });
     check(
-      'a certain upgrade makes every granted stat worth +2',
-      upgraded.serve === 2 && upgraded.strength === 2 && upgraded.placement === 2,
-      JSON.stringify(upgraded),
+      'the payout bonus scales the session payout',
+      // Rounded once, after the bonus: (2 + 3 × 2) × 1.2 × 1.5 = 14.4 → 14.
+      boosted ===
+        Math.round((TRAINING_PAYOUT.base + TRAINING_PAYOUT.perRep * 2) * INCOME_SCALE * 1.5),
+      `${plain} → ${boosted}`,
     );
 
-    const plain = buildAnchorStatBoosts('serve', supports, 0);
+    const certainBonus = { payoutBonus: 0, bonusRepChance: 1 };
+    const withBonus = buildAnchorTrainingResult('serve', 2, certainBonus);
+    const withoutBonus = buildAnchorTrainingResult('serve', 2, NO_TRAINING_BONUSES);
+    check('two reps count two on their own', withoutBonus.reps === 2, `${withoutBonus.reps} reps`);
     check(
-      'no upgrade chance leaves every grant at +1',
-      plain.serve === 1 && plain.strength === 1 && plain.placement === 1,
-      JSON.stringify(plain),
+      'a certain bonus rep adds one rep, and pays for it',
+      withBonus.reps === 3 &&
+        unitsOf(withBonus.currencyGained) > unitsOf(withoutBonus.currencyGained),
+      `${withBonus.reps} reps`,
     );
 
-    const countSupports = (boosts: StatBoosts): number =>
-      Object.keys(boosts).filter((stat) => stat !== 'serve').length;
-
-    const certainBonus = { statUpgradeChance: 0, bonusSupportChance: 1 };
-    const withBonus = buildAnchorTrainingResult('serve', 2, [], certainBonus);
-    const withoutBonus = buildAnchorTrainingResult('serve', 2, [], NO_TRAINING_BONUSES);
-
-    check(
-      'two reps draw two supports on their own',
-      countSupports(withoutBonus.statBoosts) === 2,
-      `${countSupports(withoutBonus.statBoosts)} supports`,
-    );
-    check(
-      'a certain bonus rep adds one support beyond the reps earned',
-      countSupports(withBonus.statBoosts) === 3,
-      `${countSupports(withBonus.statBoosts)} supports`,
-    );
-
-    // The session message reads off reps landed, not supports handed out.
+    // The session message reads off reps landed, not counting the bonus rep.
     const bonusMessage = withBonus.message ?? '';
     check(
       'a bonus rep does not let a two-rep session claim three for three',
@@ -233,11 +221,11 @@ function main(): void {
       bonusMessage,
     );
 
-    const whiffed = buildAnchorTrainingResult('serve', 0, [], certainBonus);
+    const whiffed = buildAnchorTrainingResult('serve', 0, certainBonus);
     check(
       'a bonus rep never rescues a session that landed nothing',
-      countSupports(whiffed.statBoosts) === 0,
-      `${countSupports(whiffed.statBoosts)} supports: ${whiffed.message}`,
+      whiffed.reps === 0,
+      `${whiffed.reps} reps: ${whiffed.message}`,
     );
   }
 

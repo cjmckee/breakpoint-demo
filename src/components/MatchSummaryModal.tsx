@@ -14,6 +14,7 @@ import type { KeyMomentHistoryEntry } from '../types/gamePhase';
 import type { AccumulatedMatchEffects } from '../game/MatchOrchestrator';
 import { getPrimaryStatName } from '../core/shotStatMapping';
 import { formatStatName } from '../config/statIcons';
+import { CurrencyAmounts } from './currency/CurrencyAmounts';
 
 interface MatchSummaryModalProps {
   isOpen: boolean;
@@ -325,6 +326,20 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
                 {matchRewards.moodChange}
               </div>
             </div>
+          </div>
+
+          {/* Training currency, split by how each area of the match went */}
+          <div
+            className="mb-4 bg-pixel-bg border-2 border-pixel-border p-3 text-center"
+            data-testid="match-results-currency"
+          >
+            <div className="text-xs text-pixel-text-muted mb-1">Training currency</div>
+            <CurrencyAmounts
+              amounts={matchRewards.currency}
+              signed
+              labelled
+              className="justify-center text-lg"
+            />
           </div>
 
           {/* XP Breakdown */}
