@@ -1096,6 +1096,66 @@ gains nothing; the spread between identities widens. Until abilities give Mind a
 lever that helps every build is `MATCH_MIND_SHARE` (e.g. 0.3–0.4), which moves match pay into
 the performance-weighted P/Q/T split instead.
 
+### 9.12 What abilities are worth — Layer 1
+
+Abilities are the Mind sink (§6.4), priced per rarity in currency plus XP (decided). Before the
+career sim can buy them, each needs a value. `abilityProbe.ts` measures it on fixed builds so
+the career sim can use a table instead of live, noisy estimates.
+
+**Method.** Each identity's day-23 mean build v Reginald Werther (day 27, hard), N=1000
+best-of-three per condition, level 1. Ability effects reach the quick sim through
+`MatchConfig.playerEffects` (PR #99). Seeding both arms per match barely narrows the error: the
+matches diverge within a point or two, so precision comes from N (±0.2 point-win at 1000).
+Converting into the ability's "own" stat proved unstable where that stat's slope is near zero
+(forehand for the net rusher), so the yardstick is point-win directly: **+5 in a useful stat is
+worth about +1.0 point-win** (+5 speed 1.0–1.5, +5 focus 1.0–1.1 on every build).
+
+Clay was dropped after the pilot: on clay nobody approaches the net except serve-and-volley
+archetypes (below), which zeroed the net abilities.
+
+**Point-win gain, by build** (± ~0.2; key-moment abilities — Clutch, Mental Fortitude, Iron
+Will — act only in the live MatchOrchestrator and are not here):
+
+| ability           | rarity   | effect                 | baseliner | netRusher | bigServer | counter |
+| ----------------- | -------- | ---------------------- | --------- | --------- | --------- | ------- |
+| Heavy Hitter      | common   | pace 7                 | +4.3      | +1.6      | +1.8      | +1.6    |
+| Baseliner         | common   | rally momentum 6       | +2.6      | +1.4      | +2.2      | +3.3    |
+| Netcrasher        | common   | net game 5, touch 2    | +0.2      | +0.8      | +1.7      | +0.4    |
+| Soft Hands        | common   | touch 7                | +0.2      | +0.4      | +1.4      | +0.3    |
+| Overhead Smash    | common   | smash power 7          | +0.2      | +0.1      | +1.2      | +0.3    |
+| Rangy Return      | common   | reach 7                | +0.6      | +0.2      | +0.1      | +0.3    |
+| Slider            | common   | court coverage 6       | 0         | 0         | 0         | 0       |
+| Spin Master       | common   | side spin 7            | 0         | 0         | 0         | 0       |
+| Serve Cannon      | uncommon | smash 6, pace 4        | +2.9      | +1.3      | +2.1      | +1.2    |
+| Speed Demon       | uncommon | coverage 7, recovery 4 | +0.0      | +0.1      | +0.1      | +0.1    |
+| Iron Legs         | uncommon | energy, recovery 2     | 0         | +0.1      | +0.1      | +0.1    |
+| Pressure Cooker   | rare     | timing 7, resilience 3 | +0.7      | +0.5      | +0.6      | +0.6    |
+| All-Court Maestro | rare     | coverage 8, reach 5    | +0.5      | 0         | 0         | +0.1    |
+
+**Findings.**
+
+- **Rarity is inverted.** The two strongest abilities are commons (Heavy Hitter, Baseliner:
+  +1.4 to +4.3, i.e. 7–20 stat points). The rares sit at +0.5; two uncommons do nothing.
+- **Fit shows.** Heavy Hitter is worth +4.3 to the baseliner (power shots in 22% of its points)
+  and +1.6 elsewhere (6–8%). The net abilities are worth most to the big server, whose net stat
+  is lowest, so a flat quality bonus matters most there.
+- **Dead or near-dead:** Spin Master needs spin above 50 before it applies (the spin modifier is
+  below 1 under 50, the slice problem again). Court coverage is an on/off switch at ≥2, so
+  Slider, Speed Demon and the coverage half of All-Court Maestro do almost nothing.
+- **Serve Cannon has no serve effect.** It is pace and smash power: a second Heavy Hitter.
+
+**Engine issues found** (all to fix in one pass with the retune, as decided):
+
+1. Ability level is not applied: effects never scale by level, though the data and the ability
+   screen say they do. The probe applies value × level itself.
+2. Clay `netApproachBonus` (−0.35) is documented as multiplicative but added to a 0.2 base, so
+   on clay the approach chance is 0 for everyone but serve-and-volley (0.0–0.1% of points at
+   the net, v ~6% on hard and grass). This includes the day-23 and day-31 team matches.
+3. Spin Master dead below 50 spin; court coverage a threshold, not a scale.
+4. Rarity v strength: retune per the table above.
+
+Run: `N=1000 ID=baseliner npx tsx src/test/analysis/abilityProbe.ts` (~2 minutes per build).
+
 ---
 
 ## 10. Next avenues

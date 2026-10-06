@@ -27,7 +27,7 @@
  * `STATS=1 N=1 RUNS=30 DAYS=23 CHECK=23 careerSim.ts`, with its tier-1 profile.
  *
  * Run: npx tsx src/test/analysis/abilityProbe.ts
- * Env: N=400 (BO3 per condition)  ID=baseliner  TEAM=3 (team match opponent, 1-5)
+ * Env: N=400 (BO3 per condition)  ID=baseliner  TEAM=4 (team match opponent, 1-5)
  *      LEVEL=1  CAL=5  SEED=1
  *      ONLY=heavy_hitter,cal:forehand  (subset of conditions; the baseline always runs)
  */
@@ -66,7 +66,7 @@ type StatName =
 const N = Number(process.env.N ?? 400);
 const ID = process.env.ID ?? 'baseliner';
 const TEAM = [TEAM_MATCH_1, TEAM_MATCH_2, TEAM_MATCH_3, TEAM_MATCH_4, TEAM_MATCH_5][
-  Number(process.env.TEAM ?? 3) - 1
+  Number(process.env.TEAM ?? 4) - 1
 ];
 const LEVEL = Number(process.env.LEVEL ?? 1);
 const CAL = Number(process.env.CAL ?? 5);
@@ -158,7 +158,11 @@ interface Probe {
   applies: ((shot: ShotDetail) => boolean) | null;
 }
 
-/** The common abilities that act in a match. */
+/**
+ * The buyable abilities whose effects reach MatchSimulator. Left out: Clutch,
+ * Mental Fortitude and Iron Will act through key moments and momentum, which
+ * only the live MatchOrchestrator runs; the rest act outside matches.
+ */
 const PROBES: Partial<Record<AbilityId, Probe>> = {
   [AbilityName.HEAVY_HITTER]: { stat: 'forehand', applies: (s) => s.shotType.includes('power') },
   [AbilityName.SPIN_MASTER]: { stat: 'spin', applies: (s) => s.modifiers.spinModifier > 1 },
@@ -174,6 +178,22 @@ const PROBES: Partial<Record<AbilityId, Probe>> = {
   [AbilityName.BASELINER]: { stat: 'forehand', applies: (s) => s.context.rallyLength > 4 },
   [AbilityName.SLIDER]: { stat: 'speed', applies: null },
   [AbilityName.NETCRASHER]: { stat: 'net', applies: (s) => s.context.courtPosition === 'net' },
+  // Uncommon
+  [AbilityName.SPEED_DEMON]: { stat: 'speed', applies: null },
+  [AbilityName.IRON_LEGS]: { stat: 'speed', applies: null },
+  [AbilityName.SERVE_CANNON]: {
+    stat: 'forehand',
+    applies: (s) => s.shotType.includes('power') || s.shotType.includes('overhead'),
+  },
+  // Rare
+  [AbilityName.PRESSURE_COOKER]: {
+    stat: 'focus',
+    applies: (s) => s.modifiers.pressureModifier < 1,
+  },
+  [AbilityName.ALL_COURT_MAESTRO]: {
+    stat: 'speed',
+    applies: (s) => s.context.courtPosition === 'defensive',
+  },
 };
 
 /** The ability's effects at LEVEL, scaled value × level as the ability data describes. */
@@ -228,6 +248,7 @@ function run(c: Condition, profile: ArchetypeProfile): Result {
       }
     }
   }
+  process.stderr.write(`  done: ${c.label}\n`);
   return r;
 }
 
