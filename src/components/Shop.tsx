@@ -1,6 +1,7 @@
 /**
  * Shop Component
- * Allows spending experience on stat increases, items, and abilities
+ * Spends XP on items, and XP plus training currency on abilities. Stats are
+ * bought on the Development screen, not here.
  */
 
 import React, { useMemo } from 'react';
@@ -10,15 +11,19 @@ import { Button } from './ui/Button';
 import { StatusBar } from './StatusBar';
 import type {
   ItemRarity,
-  StatIncreaseItem,
   ConsumableItem,
   EquipmentItem,
   AbilityItem,
   ShopItem,
+  CurrencyAmounts as Amounts,
+  Wallet,
 } from '../types/game';
 import { SLOT_NAMES } from './Inventory';
 import { StatBoostList } from './ui/StatBoostList';
 import { formatAbilityName } from './AbilityDisplay';
+import { CurrencyAmounts } from './currency/CurrencyAmounts';
+import { canAfford as walletCovers } from '../game/StatDevelopment';
+import { CURRENCIES, CURRENCY_LABELS } from '../config/economy';
 
 const RARITY_LABELS: Record<ItemRarity, string> = {
   common: 'Common',
@@ -49,12 +54,14 @@ function getRarityColor(rarity?: ItemRarity): string {
 
 // Price tag colored by affordability so the catalog can be scanned without
 // reading button states: yellow = in reach, red = can't afford yet.
-const CostTag: React.FC<{ cost: number; canAfford: boolean; purchased?: boolean }> = ({
-  cost,
-  canAfford,
-  purchased,
-}) => (
+const CostTag: React.FC<{
+  cost: number;
+  canAfford: boolean;
+  purchased?: boolean;
+  currency?: Amounts;
+}> = ({ cost, canAfford, purchased, currency }) => (
   <div className="text-right">
+    {currency && <CurrencyAmounts amounts={currency} className="justify-end text-lg" />}
     <div
       className={`text-xl font-bold ${
         purchased ? 'text-gray-500' : canAfford ? 'text-yellow-400' : 'text-red-400'
@@ -70,58 +77,25 @@ const BuyButton: React.FC<{
   item: ShopItem;
   canAfford: boolean;
   onBuy: (itemId: string) => void;
-}> = ({ item, canAfford, onBuy }) => {
+  /** Why it can't be bought, when it can't. */
+  shortOf?: string;
+  testId: string;
+}> = ({ item, canAfford, onBuy, shortOf = 'Not Enough XP', testId }) => {
   if (item.purchased) {
     return (
-      <Button disabled className="w-full bg-gray-700 text-gray-400 cursor-not-allowed">
+      <Button
+        disabled
+        className="w-full bg-gray-700 text-gray-400 cursor-not-allowed"
+        testId={testId}
+      >
         Sold Out
       </Button>
     );
   }
   return (
-    <Button onClick={() => onBuy(item.id)} disabled={!canAfford} className="w-full">
-      {canAfford ? 'Buy' : 'Not Enough XP'}
+    <Button onClick={() => onBuy(item.id)} disabled={!canAfford} className="w-full" testId={testId}>
+      {canAfford ? 'Buy' : shortOf}
     </Button>
-  );
-};
-
-const StatBoostCard: React.FC<{
-  item: StatIncreaseItem;
-  playerExperience: number;
-  onBuy: (itemId: string) => void;
-}> = ({ item, playerExperience, onBuy }) => {
-  const canAfford = playerExperience >= item.cost;
-  const rarity = item.rarity ?? 'common';
-  const rarityColor = getRarityColor(rarity);
-  const rarityBg = RARITY_BG_COLORS[rarity];
-  const statEntries = Object.entries(item.statBoosts);
-  const totalIncrease = statEntries.reduce((sum, [, value]) => sum + value, 0);
-
-  return (
-    <Card
-      className={`border-2 p-4 ${item.purchased ? 'opacity-60' : ''} ${rarityBg} border-gray-600 flex flex-col`}
-    >
-      <div className="flex flex-col gap-2 flex-1">
-        <div className="flex justify-between items-start">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">📈</span>
-            <div>
-              <h3 className={`text-lg font-bold ${rarityColor}`}>+{totalIncrease} Bundle</h3>
-              <span className={`text-xs ${rarityColor}`}>{RARITY_LABELS[rarity]}</span>
-            </div>
-          </div>
-          <CostTag cost={item.cost} canAfford={canAfford} purchased={item.purchased} />
-        </div>
-
-        <div className="mt-2 pt-2 border-t border-gray-700">
-          <StatBoostList statBoosts={item.statBoosts} variant="grid" showTotal />
-        </div>
-
-        <div className="mt-auto">
-          <BuyButton item={item} canAfford={canAfford} onBuy={onBuy} />
-        </div>
-      </div>
-    </Card>
   );
 };
 
@@ -178,7 +152,12 @@ const ConsumableShopCard: React.FC<{
         )}
 
         <div className="mt-auto">
-          <BuyButton item={item} canAfford={canAfford} onBuy={onBuy} />
+          <BuyButton
+            item={item}
+            canAfford={canAfford}
+            onBuy={onBuy}
+            testId={`shop-buy-${item.sourceItemId}`}
+          />
         </div>
       </div>
     </Card>
@@ -214,7 +193,12 @@ const EquipmentShopCard: React.FC<{
         </div>
 
         <div className="mt-auto">
-          <BuyButton item={item} canAfford={canAfford} onBuy={onBuy} />
+          <BuyButton
+            item={item}
+            canAfford={canAfford}
+            onBuy={onBuy}
+            testId={`shop-buy-${item.sourceItemId}`}
+          />
         </div>
       </div>
     </Card>
@@ -224,9 +208,15 @@ const EquipmentShopCard: React.FC<{
 const AbilityShopCard: React.FC<{
   item: AbilityItem;
   playerExperience: number;
+  wallet: Wallet;
   onBuy: (itemId: string) => void;
-}> = ({ item, playerExperience, onBuy }) => {
-  const canAfford = playerExperience >= item.cost;
+}> = ({ item, playerExperience, wallet, onBuy }) => {
+  const enoughXp = playerExperience >= item.cost;
+  const short = CURRENCIES.filter((c) => wallet[c] < (item.currencyCost[c] ?? 0));
+  const canAfford = enoughXp && walletCovers(wallet, item.currencyCost);
+  const shortOf = enoughXp
+    ? `Not Enough ${short.map((c) => CURRENCY_LABELS[c]).join(' or ')}`
+    : 'Not Enough XP';
   const rarityColor = getRarityColor(item.rarity);
   const rarityBg = RARITY_BG_COLORS[item.rarity];
 
@@ -234,7 +224,11 @@ const AbilityShopCard: React.FC<{
     <Card
       className={`border-2 p-4 ${item.purchased ? 'opacity-60' : ''} ${rarityBg} border-gray-600 flex flex-col`}
     >
-      <div className="flex flex-col gap-2 flex-1">
+      <div
+        className="flex flex-col gap-2 flex-1"
+        data-testid={`shop-ability-${item.abilityId}`}
+        data-level={item.level}
+      >
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-2">
             <span className="text-2xl">✨</span>
@@ -242,10 +236,19 @@ const AbilityShopCard: React.FC<{
               <h3 className={`text-lg font-bold ${rarityColor}`}>
                 {formatAbilityName(item.abilityId)}
               </h3>
-              <span className={`text-xs ${rarityColor}`}>{RARITY_LABELS[item.rarity]} Ability</span>
+              <span className={`text-xs ${rarityColor}`}>
+                {RARITY_LABELS[item.rarity]} Ability
+                {item.level > 1 ? ` · Level ${item.level}` : ''}
+              </span>
             </div>
           </div>
-          <CostTag cost={item.cost} canAfford={canAfford} purchased={item.purchased} />
+          {/* The XP colour is about XP alone; the button names any currency short. */}
+          <CostTag
+            cost={item.cost}
+            canAfford={enoughXp}
+            purchased={item.purchased}
+            currency={item.currencyCost}
+          />
         </div>
 
         <p className="text-sm text-gray-400 italic">{item.description}</p>
@@ -255,7 +258,13 @@ const AbilityShopCard: React.FC<{
         </div>
 
         <div className="mt-auto pt-2">
-          <BuyButton item={item} canAfford={canAfford} onBuy={onBuy} />
+          <BuyButton
+            item={item}
+            canAfford={canAfford}
+            onBuy={onBuy}
+            shortOf={shortOf}
+            testId={`shop-buy-${item.abilityId}`}
+          />
         </div>
       </div>
     </Card>
@@ -272,7 +281,6 @@ export const Shop: React.FC = () => {
 
   const grouped = useMemo(
     () => ({
-      stat_increase: shopItems.filter((i): i is StatIncreaseItem => i.category === 'stat_increase'),
       consumable: shopItems.filter((i): i is ConsumableItem => i.category === 'consumable'),
       equipment: shopItems.filter((i): i is EquipmentItem => i.category === 'equipment'),
       ability: shopItems.filter((i): i is AbilityItem => i.category === 'ability'),
@@ -296,8 +304,11 @@ export const Shop: React.FC = () => {
           <div className="flex items-baseline gap-3 min-w-0">
             <span className="text-sm font-bold text-yellow-200 whitespace-nowrap">💰 Balance</span>
           </div>
-          <span className="text-2xl font-bold text-yellow-400 whitespace-nowrap">
-            {player.experience} XP
+          <span className="flex flex-wrap items-center justify-end gap-x-3">
+            <CurrencyAmounts amounts={player.wallet} testId="shop-wallet" />
+            <span className="text-2xl font-bold text-yellow-400 whitespace-nowrap">
+              {player.experience} XP
+            </span>
           </span>
         </div>
 
@@ -326,22 +337,6 @@ export const Shop: React.FC = () => {
           </Card>
         ) : (
           <>
-            {grouped.stat_increase.length > 0 && (
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold text-pixel-text mb-4">Stat Increases</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {grouped.stat_increase.map((item) => (
-                    <StatBoostCard
-                      key={item.id}
-                      item={item}
-                      playerExperience={player.experience}
-                      onBuy={purchaseItem}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
             {grouped.consumable.length > 0 && (
               <div className="mb-6">
                 <h2 className="text-2xl font-bold text-pixel-text mb-4">Consumables</h2>
@@ -382,6 +377,7 @@ export const Shop: React.FC = () => {
                       key={item.id}
                       item={item}
                       playerExperience={player.experience}
+                      wallet={player.wallet}
                       onBuy={purchaseItem}
                     />
                   ))}

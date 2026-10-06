@@ -600,7 +600,7 @@ export const DEFAULT_CALENDAR: GameCalendar = {
 // SHOP TYPES
 // ============================================================================
 
-export type ShopItemCategory = 'stat_increase' | 'consumable' | 'equipment' | 'ability';
+export type ShopItemCategory = 'consumable' | 'equipment' | 'ability';
 
 export type ItemRarity = 'common' | 'uncommon' | 'rare' | 'legendary';
 
@@ -609,14 +609,10 @@ interface ShopItemBase {
   category: ShopItemCategory;
   name: string;
   description: string;
+  /** XP price. */
   cost: number;
   purchased: boolean;
   rarity?: ItemRarity;
-}
-
-export interface StatIncreaseItem extends ShopItemBase {
-  category: 'stat_increase';
-  statBoosts: StatBoosts;
 }
 
 export interface ConsumableItem extends ShopItemBase {
@@ -639,9 +635,12 @@ export interface EquipmentItem extends ShopItemBase {
 export interface AbilityItem extends ShopItemBase {
   category: 'ability';
   abilityId: string;
-  statBoosts: StatBoosts;
+  /** The level this purchase takes the ability to (1 = learning it). */
+  level: number;
+  /** Currency price on top of `cost` (XP); empty for an off-court ability. */
+  currencyCost: CurrencyAmounts;
   rarity: ItemRarity;
   effects: string;
 }
 
-export type ShopItem = StatIncreaseItem | ConsumableItem | EquipmentItem | AbilityItem;
+export type ShopItem = ConsumableItem | EquipmentItem | AbilityItem;

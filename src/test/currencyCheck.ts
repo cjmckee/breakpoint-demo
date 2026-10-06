@@ -12,7 +12,9 @@
  */
 
 import type { Player } from '../types/game';
-import { CURRENCIES, STAT_RECIPES } from '../config/economy';
+import { ABILITY_CURRENCY, CURRENCIES, STAT_RECIPES } from '../config/economy';
+import { ABILITY_DEFINITIONS } from '../data/abilities';
+import { abilityPrice, generateDailyShopItems } from '../game/ShopSystem';
 import { PlayerManager } from '../game/PlayerManager';
 import { contentCurrency, matchPayout, roundAmounts, trainingPayout } from '../game/CurrencyIncome';
 import {
@@ -202,6 +204,37 @@ function main(): void {
     'gains and penalties net per currency',
     contentCurrency({ focus: 2, tactics: -1 }).technique === -1,
     JSON.stringify(contentCurrency({ focus: 2, tactics: -1 })),
+  );
+
+  console.log('\n── abilities ──');
+  const hh = ABILITY_DEFINITIONS.heavy_hitter;
+  const learn = abilityPrice(hh, 0);
+  check(
+    'a common on-court ability costs 15 of its currency and 70 XP',
+    learn.currency.power === 15 && learn.xp === 70,
+    JSON.stringify(learn),
+  );
+  const level2 = abilityPrice(hh, 1);
+  check(
+    'the next level costs base × 2.25',
+    level2.currency.power === 34 && level2.xp === 158,
+    JSON.stringify(level2),
+  );
+  const offCourt = abilityPrice(ABILITY_DEFINITIONS.grinder, 0);
+  check(
+    'an off-court ability costs XP only',
+    Object.keys(offCourt.currency).length === 0 && offCourt.xp === 250,
+    JSON.stringify(offCourt),
+  );
+  check(
+    'every priced ability exists',
+    Object.keys(ABILITY_CURRENCY).every((id) => ABILITY_DEFINITIONS[id] !== undefined),
+  );
+  const stock = generateDailyShopItems();
+  check(
+    'the shop sells no stats',
+    stock.every((i) => i.category !== ('stat_increase' as string)),
+    stock.map((i) => i.category).join(', '),
   );
 
   console.log(

@@ -390,6 +390,33 @@ function main(): void {
     converted.reward.experience === 10 && !('modifiers' in converted.reward),
   );
 
+  console.log('\n  the 10 → 11 change itself:');
+  const oldStock = [
+    {
+      id: 'stat-1',
+      category: 'stat_increase',
+      name: 'Common +3 serve',
+      description: '',
+      cost: 40,
+      purchased: false,
+      statBoosts: { serve: 3 },
+    },
+  ];
+  const restocked = runMigrations({ ...migrated, shopItems: oldStock }, 10).state.shopItems;
+  check(
+    'a saved shop is restocked with no stat bundles',
+    restocked.length > 0 && restocked.every((i) => i.category !== ('stat_increase' as string)),
+    restocked.map((i) => i.category).join(', '),
+  );
+  check(
+    'restocked abilities carry a currency price',
+    restocked.filter((i) => i.category === 'ability').every((i) => 'currencyCost' in i),
+  );
+  check(
+    'a closed shop (before day 7) stays empty',
+    runMigrations({ ...migrated, shopItems: [] }, 10).state.shopItems.length === 0,
+  );
+
   console.log('\n── a save below the breaking floor is discarded ──');
   const stale = preConsolidationSave();
   const staleOutcome = runMigrations(stale, RESET_BEFORE_VERSION - 1);

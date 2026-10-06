@@ -96,7 +96,7 @@ import {
 } from '../analytics/analytics';
 
 import { random } from '../core/random';
-import { applyCurrency, purchase } from '../game/StatDevelopment';
+import { applyCurrency, canAfford, negate, purchase } from '../game/StatDevelopment';
 export interface AudioSettings {
   musicVolume: number; // 0–1
   sfxVolume: number; // 0–1
@@ -3375,15 +3375,6 @@ export const useGameStore = create<GameState>()(
         const markPurchased = (items: ShopItem[]) =>
           items.map((i) => (i.id === itemId ? { ...i, purchased: true } : i));
 
-        if (item.category === 'stat_increase') {
-          const updatedPlayer = PlayerManager.applyStatBoosts(player, item.statBoosts);
-          set({
-            player: { ...updatedPlayer, experience: updatedPlayer.experience - cost },
-            shopItems: markPurchased(shopItems),
-          });
-          return true;
-        }
-
         if (item.category === 'consumable') {
           const sourceItem = ALL_ITEMS.find((i) => i.id === item.sourceItemId);
           if (!sourceItem) return false;
@@ -3409,9 +3400,15 @@ export const useGameStore = create<GameState>()(
         }
 
         if (item.category === 'ability') {
+          // XP plus the ability's currency; both or neither.
+          if (!canAfford(player.wallet, item.currencyCost)) return false;
           const updatedPlayer = PlayerManager.addAbility(player, item.abilityId);
           set({
-            player: { ...updatedPlayer, experience: updatedPlayer.experience - cost },
+            player: {
+              ...updatedPlayer,
+              experience: updatedPlayer.experience - cost,
+              wallet: applyCurrency(updatedPlayer.wallet, negate(item.currencyCost)),
+            },
             shopItems: markPurchased(shopItems),
           });
           return true;
@@ -3423,7 +3420,7 @@ export const useGameStore = create<GameState>()(
       refreshShop: () => {
         const { player } = get();
         const ownedLevels = new Map(player?.abilities.map((a) => [a.name, a.level]) ?? []);
-        const newItems = generateDailyShopItems(player?.stats ?? null, ownedLevels);
+        const newItems = generateDailyShopItems(ownedLevels);
         set({ shopItems: newItems });
       },
 

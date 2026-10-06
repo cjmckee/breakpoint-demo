@@ -94,3 +94,27 @@ export const ABILITY_PRICES: Record<AbilityPriceRarity, { units: number; xp: num
   uncommon: { units: 28, xp: 140 },
   rare: { units: 40, xp: 250 },
 };
+
+/**
+ * The currency each on-court ability is priced in: shot power is Power, touch
+ * and spin are Technique, movement is Quickness, the mental game is Mind. An
+ * ability not listed here (an off-court one: mood, events, energy, XP,
+ * minigames) costs XP only.
+ */
+export const ABILITY_CURRENCY: Readonly<Record<string, Currency>> = {
+  heavy_hitter: 'power',
+  overhead_smash: 'power',
+  serve_cannon: 'power',
+  spin_master: 'technique',
+  soft_hands: 'technique',
+  baseliner: 'technique',
+  netcrasher: 'technique',
+  rangy_return: 'quickness',
+  slider: 'quickness',
+  speed_demon: 'quickness',
+  all_court_maestro: 'quickness',
+  clutch: 'mind',
+  mental_fortitude: 'mind',
+  pressure_cooker: 'mind',
+  iron_will: 'mind',
+};
