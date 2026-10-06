@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { grantCurrency, loadSave, readGame } from './helpers';
 // The real pricing, so the expected cost cannot drift from the game's.
-import { getStat, planCost } from '../src/game/StatDevelopment';
+import { getStat, planCost, priceOf } from '../src/game/StatDevelopment';
 
 /**
  * Drives the Development screen: plan a few +1s, confirm, and check the model.
@@ -22,22 +22,26 @@ test('a confirmed plan raises the stats and charges the plan cost', async ({ pag
   await expect(page.getByTestId('action-development')).toBeVisible();
   await page.getByTestId('action-development').click();
   await expect(page.getByTestId('development-wallet')).toBeVisible();
+  // The bar only appears once something is added.
+  await expect(page.getByTestId('development-plan-bar')).toHaveCount(0);
 
   await page.getByTestId('development-plus-focus').click();
   await page.getByTestId('development-plus-focus').click();
   await page.getByTestId('development-plus-serve').click();
   await expect(page.getByTestId('development-stat-focus')).toHaveAttribute('data-planned', '2');
-  // The row says what the planned points cost and what the next one would.
-  await expect(page.getByTestId('development-planned-focus')).toContainText('Planned +2');
-  await expect(page.getByTestId('development-next-focus')).toContainText('Next +1');
-  await expect(page.getByTestId('development-planned-forehand')).toHaveCount(0);
+  await expect(page.getByTestId('development-plan-bar')).toBeVisible();
+  // The row's cost is the next point's, so it moves as points are added.
+  const nextFocus = priceOf('focus', getStat(player.stats, 'focus') + 2);
+  await expect(
+    page.getByTestId('development-cost-focus').locator('[data-currency="mind"]'),
+  ).toHaveAttribute('data-amount', String(nextFocus.mind));
   // Only currencies the plan spends show their old balance.
   await expect(
     page.getByTestId('development-wallet').locator('[data-currency="quickness"]'),
   ).not.toContainText('→');
 
-  // Undo drops the last +1, not the first.
-  await page.getByTestId('development-undo').click();
+  // The row's − takes a point back off.
+  await page.getByTestId('development-minus-serve').click();
   await expect(page.getByTestId('development-stat-serve')).toHaveAttribute('data-planned', '0');
 
   const plan = ['focus', 'focus'] as const;
@@ -46,10 +50,10 @@ test('a confirmed plan raises the stats and charges the plan cost', async ({ pag
     page.getByTestId('development-wallet').locator('[data-currency="mind"]'),
   ).toHaveAttribute('data-amount', String(Math.floor(player.wallet.mind - (cost.mind ?? 0))));
 
-  await page.getByTestId('development-review').click();
-  await expect(page.getByTestId('development-confirm-panel')).toBeVisible();
+  // Buying is one tap: the costs are already on screen.
   await page.getByTestId('development-confirm').click();
   await expect(page.getByTestId('development-message')).toContainText('Bought 2');
+  await expect(page.getByTestId('development-plan-bar')).toHaveCount(0);
 
   const after = (await readGame(page)).player!;
   expect(getStat(after.stats, 'focus')).toBe(getStat(player.stats, 'focus') + 2);
@@ -63,7 +67,8 @@ test('a +1 the wallet cannot cover is disabled', async ({ page }) => {
 
   // The save starts with an empty wallet, so nothing is affordable.
   await expect(page.getByTestId('development-plus-focus')).toBeDisabled();
-  await expect(page.getByTestId('development-review')).toHaveCount(0);
+  await expect(page.getByTestId('development-needs-focus')).toBeVisible();
+  await expect(page.getByTestId('development-cost-focus')).toContainText('Needs');
 });
 
 test('training pays currency, which buys the anchor in Development', async ({ page }) => {
@@ -90,7 +95,6 @@ test('training pays currency, which buys the anchor in Development', async ({ pa
   await page.getByTestId('training-result-dismiss').click();
   await page.getByTestId('action-development').click();
   await page.getByTestId('development-plus-serve').click();
-  await page.getByTestId('development-review').click();
   await page.getByTestId('development-confirm').click();
   await expect(page.getByTestId('development-message')).toContainText('Bought 1');
   const bought = (await readGame(page)).player!;

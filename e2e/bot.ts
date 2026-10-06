@@ -355,7 +355,6 @@ async function step(
         planned++;
       }
       if (planned > 0) {
-        await page.getByTestId('development-review').click();
         await page.getByTestId('development-confirm').click();
         await expect(page.getByTestId('development-message')).toBeVisible();
         log.statPointsBought += planned;
