@@ -26,6 +26,14 @@ test('a story outcome pays its currency and clamps its losses at zero', async ({
   const before = (await readGame(page)).player!;
 
   await triggerStoryEvent(page, EVENT);
+  // The result shows the losses as losses (red), the gain as a gain.
+  const result = page.getByTestId('story-result-currency');
+  while (!(await result.isVisible().catch(() => false))) {
+    const next = page.getByTestId('story-advance').or(page.getByTestId('story-resolve'));
+    await next.first().click();
+  }
+  await expect(result.locator('[data-currency="quickness"]')).toHaveAttribute('data-loss', 'true');
+  await expect(result.locator('[data-currency="technique"]')).not.toHaveAttribute('data-loss');
   await drainToIdle(page);
 
   const after = (await readGame(page)).player!;
