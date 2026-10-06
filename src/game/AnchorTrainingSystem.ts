@@ -86,14 +86,14 @@ const BRONZE_MOOD_CHANGE = 2;
  * stays free of store/effect dependencies and testable on its own.
  */
 export interface TrainingBonuses {
-  /** Fraction more currency the session pays (0.1 = +10%). */
-  payoutBonus: number;
+  /** 0-1 chance the session pays double. */
+  doubleChance: number;
   /** 0-1 chance to count one extra rep beyond the reps the minigame earned. */
   bonusRepChance: number;
 }
 
 export const NO_TRAINING_BONUSES: TrainingBonuses = {
-  payoutBonus: 0,
+  doubleChance: 0,
   bonusRepChance: 0,
 };
 
@@ -111,6 +111,7 @@ export function buildAnchorTrainingResult(
   // would ship alongside a rep the player never earned.
   const bonusRep = landed > 0 && random() < bonuses.bonusRepChance ? 1 : 0;
   const reps = landed + bonusRep;
+  const doubled = random() < bonuses.doubleChance;
 
   return {
     id: generateId(),
@@ -119,7 +120,8 @@ export function buildAnchorTrainingResult(
     timestamp: new Date().toISOString(),
     anchor: core,
     reps,
-    currencyGained: trainingPayout(core, reps, bonuses.payoutBonus),
+    currencyGained: trainingPayout(core, reps, doubled),
+    doubled,
     energyCost: ANCHOR_TRAINING_ENERGY_COST,
     timeSlotsUsed: 1,
     trainingType: `${core}_anchor`,
@@ -130,7 +132,7 @@ export function buildAnchorTrainingResult(
     sessionTier: 'bronze',
     tier: 'bronze',
     sessionType: `${core}_anchor`,
-    message: buildMessage(anchor.name, landed, bonusRep > 0),
+    message: buildMessage(anchor.name, landed, bonusRep > 0) + (doubled ? ' Double gains!' : ''),
   };
 }
 

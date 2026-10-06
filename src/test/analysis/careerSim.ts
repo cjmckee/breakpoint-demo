@@ -30,10 +30,8 @@
  *           spread like authored content (statIncome.ts).
  * currency  The player picks the anchor that pays most of what its next few
  *           purchases are short of, leaning to its identity's anchors (ADAPT of
- *           the time; otherwise one of those anchors). Training pays
- *           (TRAIN_BASE + TRAIN_PER_REP × reps) × INCOME_SCALE units:
- *           TRAIN_GENERAL_SHARE split evenly, TRAIN_MIND_SHARE as Mind, the rest
- *           in the anchor's recipe ratio. Story and challenges pay the same stat
+ *           the time; otherwise one of those anchors). Training pays the
+ *           anchor's mix (TRAINING_MIXES) × (reps + 1). Story and challenges pay the same stat
  *           points as today through each stat's recipe; the shop no longer sells
  *           stats, so SHOP_SHARE of OTHER_PER_DAY is dropped. Matches pay
  *           CurrencyIncome.matchPayout: a base by result (lost 2/2/2/5, won
@@ -52,7 +50,6 @@
  *      DAYS=23  CHECK=15,19,23  MATCH_EVERY=2  REPS_P=0.7  ADAPT=0.7
  *      KEY_W=0.8,1.2  OFF_W=0.25,0.55
  *      OTHER_PER_DAY=2.2  SHOP_SHARE=0.25  INCOME_SCALE=1.2
- *      TRAIN_BASE=2  TRAIN_PER_REP=3  TRAIN_GENERAL_SHARE=0.2  TRAIN_MIND_SHARE=0.1
  *      MATCH_POOL=20  EXCHANGE=0
  *      SPEND=patient|affordable|impatient  (see buyTowardShape)  OVERBUILD=8
  *      SYSTEMS=today,currency  STEP_FROM=40 (statEconomy price steps)
@@ -82,7 +79,7 @@ import { PlayerProfile } from '../../core/PlayerProfile';
 import {
   INCOME_SCALE as ECONOMY_INCOME_SCALE,
   MATCH_PAYOUT,
-  TRAINING_PAYOUT,
+  TRAINING_MIXES,
 } from '../../config/economy';
 import { abilityEffects } from '../../core/EffectAggregator';
 import { ABILITY_DEFINITIONS } from '../../data/abilities';
@@ -147,19 +144,8 @@ const REPS_P = env('REPS_P', 0.7);
 const OTHER_PER_DAY = env('OTHER_PER_DAY', 2.2);
 const SHOP_SHARE = env('SHOP_SHARE', 0.25);
 const INCOME_SCALE = env('INCOME_SCALE', ECONOMY_INCOME_SCALE);
-const TRAIN_BASE = env('TRAIN_BASE', TRAINING_PAYOUT.base);
-const TRAIN_PER_REP = env('TRAIN_PER_REP', TRAINING_PAYOUT.perRep);
 const MATCH_POOL = env('MATCH_POOL', MATCH_PAYOUT.pool);
-const TRAIN_MIND_SHARE = env('TRAIN_MIND_SHARE', TRAINING_PAYOUT.mindShare);
-const TRAIN_GENERAL_SHARE = env('TRAIN_GENERAL_SHARE', TRAINING_PAYOUT.generalShare);
 /** The game's payout functions, at the rates above (env overrides included). */
-const TRAINING_RATES = {
-  base: TRAIN_BASE,
-  perRep: TRAIN_PER_REP,
-  generalShare: TRAIN_GENERAL_SHARE,
-  mindShare: TRAIN_MIND_SHARE,
-  scale: INCOME_SCALE,
-};
 const MATCH_RATES = { ...MATCH_PAYOUT, pool: MATCH_POOL };
 /** Ability shopping (abilityEconomy.ts). ABILITIES=0 turns it off. */
 const ABILITIES_ON = process.env.ABILITIES !== '0';
@@ -627,8 +613,10 @@ function anchorCurrency(s: PlayerStats, wallet: Wallet, w: Weights, id: Identity
   for (const c of CURRENCIES) need[c] = Math.max(0, need[c] - wallet[c]);
   if (unitsOf(need) === 0) return pick(id.anchors);
   const score = (a: CoreStat): number =>
-    CURRENCIES.reduce((t, c) => t + need[c] * ((RECIPES[a][c] ?? 0) / unitsOf(RECIPES[a])), 0) *
-    (id.anchors.includes(a) ? 1 : 0.6);
+    CURRENCIES.reduce(
+      (t, c) => t + need[c] * ((TRAINING_MIXES[a][c] ?? 0) / unitsOf(TRAINING_MIXES[a])),
+      0,
+    ) * (id.anchors.includes(a) ? 1 : 0.6);
   return [...ANCHORS].sort((x, y) => score(y) - score(x))[0];
 }
 
@@ -867,7 +855,7 @@ function career(
           recent = legacyTrainingBoosts(core, n, recent);
           applyBoosts(stats, recent);
         } else {
-          earn(wallet, trainingPayout(core, n, 0, TRAINING_RATES));
+          earn(wallet, trainingPayout(core, n));
           credit('training', walletBefore);
           note(
             `  ${slotName} train ${core} — ${n}/3 reps → +${fmtAmounts(diffWallet(wallet, walletBefore))}`,
@@ -1100,9 +1088,8 @@ function main(): void {
   console.log(
     `careerSim  RUNS=${RUNS} N=${N} DAYS=${DAYS} SPEND=${SPEND} ADAPT=${ADAPT} KEY_W=${KEY_W} ` +
       `OFF_W=${OFF_W} MATCH_EVERY=${MATCH_EVERY} REPS_P=${REPS_P} OTHER_PER_DAY=${OTHER_PER_DAY} ` +
-      `SHOP_SHARE=${SHOP_SHARE} INCOME_SCALE=${INCOME_SCALE} TRAIN_BASE=${TRAIN_BASE} ` +
-      `TRAIN_PER_REP=${TRAIN_PER_REP} TRAIN_GENERAL_SHARE=${TRAIN_GENERAL_SHARE} ` +
-      `TRAIN_MIND_SHARE=${TRAIN_MIND_SHARE} MATCH_POOL=${MATCH_POOL} EXCHANGE=${EXCHANGE}`,
+      `SHOP_SHARE=${SHOP_SHARE} INCOME_SCALE=${INCOME_SCALE} MATCH_POOL=${MATCH_POOL} ` +
+      `EXCHANGE=${EXCHANGE}`,
   );
   console.log(
     [

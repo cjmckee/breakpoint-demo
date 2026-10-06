@@ -152,22 +152,35 @@ function main(): void {
   );
   const serve3 = trainingPayout('serve', 3);
   check(
-    'a clean serve session pays 13 units ((2 + 3×3) × 1.2), mostly Power',
-    unitsOf(serve3) === 13 &&
-      (serve3.power ?? 0) > unitsOf(serve3) / 2 &&
-      (serve3.quickness ?? 0) > 0 &&
-      (serve3.mind ?? 0) > 0,
+    'a clean serve session pays its mix four times: 8 Power, 4 Mind',
+    serve3.power === 8 && serve3.mind === 4 && Object.keys(serve3).length === 2,
     JSON.stringify(serve3),
   );
   check(
-    'a session with no clean reps still pays the base',
-    unitsOf(trainingPayout('serve', 0)) === 2,
+    'a session with no clean reps pays the mix once',
+    JSON.stringify(trainingPayout('serve', 0)) === JSON.stringify({ power: 2, mind: 1 }),
   );
-  const ret = trainingPayout('return', 3);
   check(
-    'return training pays mostly Quickness',
-    CURRENCIES.every((c) => (ret[c] ?? 0) <= (ret.quickness ?? 0)),
-    JSON.stringify(ret),
+    'every rep adds the same currencies — no strays from rounding',
+    (['serve', 'forehand', 'backhand', 'return', 'net'] as const).every((a) =>
+      [0, 1, 2, 3].every(
+        (r) =>
+          JSON.stringify(Object.keys(trainingPayout(a, r))) ===
+          JSON.stringify(Object.keys(trainingPayout(a, 0))),
+      ),
+    ),
+  );
+  check(
+    'a doubled session pays twice',
+    JSON.stringify(trainingPayout('backhand', 2, true)) ===
+      JSON.stringify({ quickness: 6, technique: 12 }),
+    JSON.stringify(trainingPayout('backhand', 2, true)),
+  );
+  check(
+    'every clean session pays the same total, 12 units',
+    (['serve', 'forehand', 'backhand', 'return', 'net'] as const).every(
+      (a) => unitsOf(trainingPayout(a, 3)) === 12,
+    ),
   );
   const perf = {
     servingScore: 80,
