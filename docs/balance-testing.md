@@ -67,11 +67,18 @@ fool yourself" below — copy one when you need to ask about a specific constant
 
 ---
 
-## Two conventions, and why they exist
+## Three conventions, and why they exist
 
 **Every ablation prints a `control` column.** It re-measures the _unmodified_ config, so the table
 reports its own noise floor. Any column smaller than the control is a mechanism you could delete
 without anyone noticing. Three separate mechanisms looked real before this column existed.
+
+**Every match result reports point, game and match win rates.** Use
+`src/test/analysis/matchTally.ts` (`tallyMatch`, `formatRates`), which also splits games into
+service holds and return breaks. Match win rate swings hard on small edges: a 52% point-winner
+wins most matches. Point win rate is the direct read of the stats. Game win rate sits between,
+and its hold/break split shows whether serve and return stats are doing their jobs. A change that
+moves match win rate without moving the other two is noise or a format effect.
 
 **Every rate names its denominator.** "Players reach the net 6% of the time" and "13% of the time"
 were both true at once — of all points, and of rallies that got past the return. If you are

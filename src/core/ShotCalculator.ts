@@ -824,7 +824,10 @@ export class ShotCalculator {
    * Fatigue 0 = 1.0x (no effect), fatigue 100 = 0.8x (20% penalty)
    */
   private getFatigueModifier(fatigue: number): number {
-    return 1.0 - (fatigue / 100) * (1.0 - FATIGUE_MODIFIER.minModifier);
+    return (
+      1.0 -
+      Math.pow(fatigue / 100, FATIGUE_MODIFIER.exponent) * (1.0 - FATIGUE_MODIFIER.minModifier)
+    );
   }
 
   /**

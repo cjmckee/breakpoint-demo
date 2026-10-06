@@ -11,10 +11,10 @@
 
 import type { MatchFormat, MatchState, PlayerStats, ShotType, PointResult } from '../../types';
 import type { ArchetypeProfile, PhaseSpec, GamePhase } from '../../types/archetype';
+import { fatigueAfterPoint } from '../../core/fatigue';
 import { PlayerProfile } from '../../core/PlayerProfile';
 import { PointSimulator } from '../../core/PointSimulator';
 import { ScoreTracker } from '../../core/ScoreTracker';
-import { MATCH_FATIGUE } from '../../config/shotThresholds';
 import { aggregateArchetypeEffects } from '../../data/archetypeTree';
 
 const N_MATCHES = Number(process.env.N ?? 60);
@@ -58,16 +58,10 @@ function family(shotType: ShotType): string {
   return 'groundstroke';
 }
 
+// Recovery reads stamina too; the extra argument is kept so call sites read as before.
 function calcFatigue(cur: number, rally: number, stam: number, rec: number): number {
-  const sf = MATCH_FATIGUE.minFatigueRate + (1 - MATCH_FATIGUE.minFatigueRate) * (1 - stam / 100);
-  let gain = rally * MATCH_FATIGUE.basePerShot * sf;
-  if (rally > MATCH_FATIGUE.longRallyThreshold) {
-    gain += (rally - MATCH_FATIGUE.longRallyThreshold) * MATCH_FATIGUE.longRallyExtra * sf;
-  }
-  const recovery =
-    MATCH_FATIGUE.baseRecoveryPerPoint +
-    (rec / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
-  return Math.max(0, Math.min(100, cur + gain - recovery));
+  void rec;
+  return fatigueAfterPoint(cur, rally, stam);
 }
 
 interface Tally {

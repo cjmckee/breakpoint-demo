@@ -76,6 +76,7 @@ import type {
 } from '../../types/archetype';
 import type { StatBoosts } from '../../types/game';
 import { PlayerProfile } from '../../core/PlayerProfile';
+import { RATE_HEADERS, emptyRates, formatRates, tallyMatch, type Rates } from './matchTally';
 import {
   CURRENCIES,
   RECIPES,
@@ -357,7 +358,13 @@ function playMatch(
   format: MatchFormat,
   surface: CourtSurface = 'hard',
   energy = 100,
-): { won: number; points: number; winner: 'player' | 'opponent'; stats: IMatchStatistics } {
+): {
+  won: number;
+  points: number;
+  winner: 'player' | 'opponent';
+  stats: IMatchStatistics;
+  pointList: Array<{ server: 'player' | 'opponent'; winner: 'player' | 'opponent' }>;
+} {
   const player = new PlayerProfile('p', 'P', a.stats, a.profile);
   player.energy = energy;
   const sim = new MatchSimulator({
@@ -373,6 +380,7 @@ function playMatch(
     points: points.length,
     winner: result.winner,
     stats: sim.getStatistics(),
+    pointList: points,
   };
 }
 
@@ -810,21 +818,14 @@ function meanStats(list: PlayerStats[]): PlayerStats {
 }
 
 /** Point-win % and match-win % over N best-of-three matches against `opp`. */
-function readiness(
-  s: PlayerStats,
-  profile: ArchetypeProfile,
-  team: TeamMatchConfig,
-): [number, number] {
-  let won = 0;
-  let pts = 0;
-  let matches = 0;
+/** Point, game (hold / break) and match win rates over N best-of-three matches against `team`. */
+function readiness(s: PlayerStats, profile: ArchetypeProfile, team: TeamMatchConfig): Rates {
+  const rates = emptyRates();
   for (let i = 0; i < N; i++) {
     const r = playMatch({ stats: s, profile }, teamSide(team), BO3, team.surface);
-    won += r.won;
-    pts += r.points;
-    if (r.winner === 'player') matches++;
+    tallyMatch(r.pointList, BO3, rates);
   }
-  return [(won / pts) * 100, (matches / N) * 100];
+  return rates;
 }
 
 function traceCareer(name: string): void {
@@ -876,8 +877,7 @@ function main(): void {
       'opponent',
       'total',
       'OVR',
-      'pt-win%',
-      'match-win%',
+      ...RATE_HEADERS,
       'won in career',
       'unspent P/Q/T/M',
       'lowest 3 / top 3 stats',
@@ -891,9 +891,9 @@ function main(): void {
         const s = meanStats(snaps.map((x) => x.stats));
         const total = ALL_STATS.reduce((a, k) => a + get(s, k), 0);
         const team = TEAM_MATCHES.get(day);
-        const [pt, mw] = team
+        const rates = team
           ? readiness(s, day >= ARCHETYPE_DAY ? id.profile : createEmptyArchetypeProfile(), team)
-          : [NaN, NaN];
+          : null;
         const inCareer = team ? (snaps.filter((x) => x.teamWon.get(day)).length / RUNS) * 100 : NaN;
         const w = CURRENCIES.map((c) =>
           (snaps.reduce((a, x) => a + x.wallet[c], 0) / RUNS).toFixed(0),
@@ -908,8 +908,7 @@ function main(): void {
             team?.opponent.name ?? '',
             total,
             calculateOverallRating(s),
-            Number.isNaN(pt) ? '' : pt.toFixed(1),
-            Number.isNaN(mw) ? '' : mw.toFixed(0),
+            ...(rates ? formatRates(rates) : RATE_HEADERS.map(() => '')),
             Number.isNaN(inCareer) ? '' : `${inCareer.toFixed(0)}%`,
             system === 'currency' ? w : '',
             process.env.STATS === '1'

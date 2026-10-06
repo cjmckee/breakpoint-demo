@@ -18,11 +18,11 @@ import type {
 } from '../../types';
 import type { Ability } from '../../types/game';
 import type { ArchetypeProfile } from '../../types/archetype';
+import { fatigueAfterPoint } from '../../core/fatigue';
 import { PlayerProfile } from '../../core/PlayerProfile';
 import { PointSimulator } from '../../core/PointSimulator';
 import { ScoreTracker } from '../../core/ScoreTracker';
 import { MatchStatistics } from '../../core/MatchStatistics';
-import { MATCH_FATIGUE } from '../../config/shotThresholds';
 import { aggregateArchetypeEffects } from '../../data/archetypeTree';
 import {
   OPPONENTS_BY_TIER,
@@ -69,28 +69,15 @@ interface RunResult {
   serveTotal: { player: number; opponent: number };
 }
 
+// Recovery reads stamina too; the extra argument is kept so call sites read as before.
 function calculateNewFatigue(
   currentFatigue: number,
   rallyLength: number,
   staminaStat: number,
   recoveryStat: number,
 ): number {
-  const staminaFactor =
-    MATCH_FATIGUE.minFatigueRate + (1 - MATCH_FATIGUE.minFatigueRate) * (1 - staminaStat / 100);
-
-  let fatigueGain = rallyLength * MATCH_FATIGUE.basePerShot * staminaFactor;
-  if (rallyLength > MATCH_FATIGUE.longRallyThreshold) {
-    fatigueGain +=
-      (rallyLength - MATCH_FATIGUE.longRallyThreshold) *
-      MATCH_FATIGUE.longRallyExtra *
-      staminaFactor;
-  }
-
-  const recovery =
-    MATCH_FATIGUE.baseRecoveryPerPoint +
-    (recoveryStat / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
-
-  return Math.max(0, Math.min(100, currentFatigue + fatigueGain - recovery));
+  void recoveryStat;
+  return fatigueAfterPoint(currentFatigue, rallyLength, staminaStat);
 }
 
 /** Ability "additional" effects + archetype behavior effects, as the orchestrator builds them. */

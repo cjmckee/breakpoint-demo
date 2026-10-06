@@ -1,10 +1,11 @@
-# Stamina at tier 1 — what the stat buys, and the lever that would raise it
+# Stamina at tier 1 — what the stat buys, and the change that followed
 
-**Status:** findings and a measured candidate. **Not applied:** the lever changes how much fatigue
-costs every player in every match, which is a game-feel decision (§4).
+**Status:** findings, a design decision, and the change it led to (applied, §6). §2–§4 describe
+the model before the change.
 **Scope:** the stamina stat at the ratings the game ships, through the real `MatchSimulator`
 **Harnesses:** [`staminaAnatomy.ts`](../../src/test/analysis/staminaAnatomy.ts),
-[`staminaProbe.ts`](../../src/test/analysis/staminaProbe.ts)
+[`staminaProbe.ts`](../../src/test/analysis/staminaProbe.ts),
+[`staminaCurve.ts`](../../src/test/analysis/staminaCurve.ts)
 
 ---
 
@@ -92,7 +93,7 @@ stamina-50 player's match is unchanged.
   +1.6 in best-of-one. That is a little under a standard stat, which is right for a cheap-priced
   one (2 units against 3).
 
-## 4. Why it is not applied
+## 4. The penalty alone, and why it was not the answer
 
 The penalty is global. Fatigue costs more for everyone, not only for low-stamina players. A
 quick check on the early team matches, real `MatchSimulator`, 800 best-of-three each:
@@ -133,4 +134,88 @@ recorded baselines stay comparable.
 N=600 npx tsx src/test/analysis/staminaAnatomy.ts
 npx tsx src/test/analysis/staminaProbe.ts                        # BO3, ~2 min per lever
 FORMAT=bo1 N=3000 npx tsx src/test/analysis/staminaProbe.ts
+```
+
+## 6. The decision, and the change
+
+**Decision (from review).**
+
+- Nobody starts a match tired: remove the starting fatigue that low energy brought.
+- Widen the gap between low- and high-stamina players. A high-stamina player should tire
+  noticeably slower and recover more easily, and it should show late in long matches.
+- The test case is team match 1. Coach Gonzalez warns that Aspen Slopes "practice at a higher
+  altitude … which gives them an advantage when it comes to endurance", and Chet Vale's stamina
+  (39) is his second-best stat.
+
+**What the curve showed first.** `staminaCurve` splits best-of-three matches by point number
+and tracks both players' fatigue. The fatigue spread was already wide: late in a match, stamina
+20 sat at ~80 fatigue, stamina 40 at ~55, and stamina 60–80 at under 16. The gap barely mattered,
+because the penalty was linear and capped at 20%. Widening the build-up and recovery rates
+instead pushed _average_ players to ~80 too, so everyone was exhausted and the late difference
+shrank. The lever was the shape of the penalty.
+
+**The change.**
+
+| setting                                      | before     | after       |
+| -------------------------------------------- | ---------- | ----------- |
+| starting fatigue from low energy             | up to 20   | **none**    |
+| `FATIGUE_MODIFIER` at exhaustion             | ×0.80      | ×0.65       |
+| `FATIGUE_MODIFIER.exponent`                  | 1 (linear) | **2**       |
+| `MATCH_FATIGUE.minFatigueRate` (stamina 100) | 0.30       | 0.20        |
+| `MATCH_FATIGUE.maxRecoveryPerPoint`          | 0.25       | 0.30        |
+| changeover recovery                          | 2 + 4 × s  | 1.5 + 5 × s |
+| set-break recovery                           | 8 + 10 × s | 5 + 20 × s  |
+
+Here s = stamina / 100. Squared, fatigue 30 costs 3% of quality, 50 costs 9% and 80 costs 22%,
+so a tired opponent is a late-match story. Recovery now leans much harder on stamina at set
+breaks: a stamina-80 player gets 21 fatigue back, a stamina-20 player 9.
+
+The fatigue rules also moved into one module, `src/core/fatigue.ts`, which both match engines
+and every analysis harness now call. There had been four drifting copies.
+
+**Result.** `staminaCurve`, 600 best-of-three matches per row, against a uniform-32 opponent at
+stamina 40. Cells are point-win %, then mean fatigue (player v opponent) in that stretch.
+
+| stamina | pt-win% | game-win% | hold% | break% | match-win% | points 1–40   | 41–80          | 81–120         |
+| ------- | ------- | --------- | ----- | ------ | ---------- | ------------- | -------------- | -------------- |
+| 20      | 47.0    | 44.0      | 40.3  | 47.8   | 36         | 50.0 (16 v 8) | 46.5 (42 v 18) | 42.1 (71 v 33) |
+| 40      | 50.5    | 50.8      | 47.4  | 54.3   | 49         | 51.0 (8 v 8)  | 50.3 (18 v 18) | 49.6 (36 v 36) |
+| 60      | 51.0    | 52.0      | 47.4  | 56.6   | 55         | 49.9 (3 v 8)  | 51.0 (4 v 18)  | 52.5 (6 v 33)  |
+| 80      | 51.8    | 53.8      | 50.5  | 57.2   | 58         | 50.2 (1 v 8)  | 51.7 (1 v 19)  | 53.6 (2 v 36)  |
+
+Before the change, the same rows read 48.1 / 49.7 / 51.9 / 52.6 point-win, with a 81–120 gap of
+46.5 against 52.9.
+
+- **It shows late, not early.** In the first 40 points stamina is worth under a point. By points
+  81–120, stamina 20 against stamina 80 is 42.1% against 53.6%.
+- **The fatigue tanks separate.** Late in a match, a stamina-20 player sits at ~70 while its
+  opponent has recovered to ~33. A stamina-80 player stays under 3.
+- **Ignore the last bucket's point-win.** Points past 120 only exist in close matches, so that
+  column is biased toward whoever stayed in it. Read the fatigue there, not the win rate.
+
+**Team match 1, Chet Vale** (hard court, best of three; a day-15 build of uniform 28):
+
+| player stamina | pt-win% | game-win% | hold% | break% | match-win% | late fatigue, player v Chet |
+| -------------- | ------- | --------- | ----- | ------ | ---------- | --------------------------- |
+| 21 (new)       | 43.4    | 37.2      | 28.2  | 46.3   | 26         | 79 v 45                     |
+| 28             | 44.4    | 39.1      | 28.9  | 49.2   | 29         | 69 v 44                     |
+| 40             | 46.3    | 42.8      | 33.4  | 52.1   | 37         | 47 v 51                     |
+
+Before the change, a stamina-28 player won 33% and finished at 71 v 53. Now Chet's endurance is
+visible in the tanks and in the result. A player who trained stamina to 40 erases it, as the
+Coach's warning implies they should.
+
+**Texture.** `matchAnatomy` at L=30, 200 best-of-three per build, against the pre-change run:
+rally length, point endings, shot mix and net play are all within noise.
+
+**Career.** `careerSim` on the real engine still calibrates to income ×1.2 through day 27 and
+×1.3 by day 31 (proposal §9.9).
+
+**Not fixed here:** the hand-rolled point loops in most analysis harnesses (§5) still skip
+changeover and set-break recovery. That recovery now carries much of stamina's effect, so those
+harnesses understate stamina until they move onto `MatchSimulator`.
+
+```
+CHET=1 npx tsx src/test/analysis/staminaCurve.ts                 # ~4 min
+VARIANTS=current,curve,curveRecover CHET=1 npx tsx src/test/analysis/staminaCurve.ts
 ```

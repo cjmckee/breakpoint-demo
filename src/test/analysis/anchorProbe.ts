@@ -41,8 +41,8 @@ import { PointSimulator } from '../../core/PointSimulator';
 import { ScoreTracker } from '../../core/ScoreTracker';
 import { ShotCalculator } from '../../core/ShotCalculator';
 import { getQualityThresholds } from '../../utils/qualityThresholds';
-import { MATCH_FATIGUE } from '../../config/shotThresholds';
 import { aggregateArchetypeEffects } from '../../data/archetypeTree';
+import { fatigueAfterPoint } from '../../core/fatigue';
 
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
 const MODE = process.env.ML_MODE ?? 'mean';
@@ -69,16 +69,10 @@ function profileOf(
   return { broad, phases, specializationPoints: 0, respecTokens: 0 };
 }
 
+// Recovery reads stamina too; the extra argument is kept so call sites read as before.
 function calcFatigue(cur: number, rally: number, stam: number, rec: number): number {
-  const sf = MATCH_FATIGUE.minFatigueRate + (1 - MATCH_FATIGUE.minFatigueRate) * (1 - stam / 100);
-  let gain = rally * MATCH_FATIGUE.basePerShot * sf;
-  if (rally > MATCH_FATIGUE.longRallyThreshold) {
-    gain += (rally - MATCH_FATIGUE.longRallyThreshold) * MATCH_FATIGUE.longRallyExtra * sf;
-  }
-  const rec2 =
-    MATCH_FATIGUE.baseRecoveryPerPoint +
-    (rec / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
-  return Math.max(0, Math.min(100, cur + gain - rec2));
+  void rec;
+  return fatigueAfterPoint(cur, rally, stam);
 }
 
 interface PointStats {

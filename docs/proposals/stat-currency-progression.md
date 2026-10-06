@@ -690,6 +690,23 @@ Settled since:
   chip-return composite, bonus-only bands on slices and stat-driven slice selection.
 - **Matches pay Mind plus currencies by performance area** (§6.2).
 
+Settled in the second review:
+
+- **Stamina.** Nobody starts a match tired, and the gap between low- and high-stamina players
+  widens, showing late in long matches. Applied; see
+  [`stamina-at-tier-1.md` §6](../research/stamina-at-tier-1.md).
+- **Specialisation (§3.6).** Intent: committing to a skill set should land at a reasonably
+  similar win rate. A build that buys the cheapest stats will probably have the highest overall,
+  but one that spends in line with its archetype should be able to match or beat it on win
+  rate, despite lower overall stats. That needs more balance work. The measure is PART B of
+  `allocationProbe CURVES=recipes` with archetypes on.
+- **Focus** stays as it is for now.
+- **Every investigation reports point, game (hold / break) and match win rates**
+  (`src/test/analysis/matchTally.ts`). Match win rate swings on small edges. Game win rate,
+  driven by serve and return stats, and point win rate show whether the stats are working.
+  At tier 1 the returner is favoured: in an even match players hold only ~45–47% of service
+  games, because of the double-fault rate.
+
 Still open:
 
 - **Income growth over the career** (§9.3). By tier, by level, or by session quality?

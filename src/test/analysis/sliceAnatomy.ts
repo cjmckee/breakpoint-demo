@@ -20,10 +20,10 @@
 import type { MatchFormat, MatchState, PlayerStats, ShotDetail } from '../../types';
 import { PointType } from '../../types';
 import type { ArchetypeProfile, SpecialtyTier } from '../../types/archetype';
+import { fatigueAfterPoint } from '../../core/fatigue';
 import { PlayerProfile } from '../../core/PlayerProfile';
 import { PointSimulator } from '../../core/PointSimulator';
 import { ScoreTracker } from '../../core/ScoreTracker';
-import { MATCH_FATIGUE } from '../../config/shotThresholds';
 import { aggregateArchetypeEffects } from '../../data/archetypeTree';
 import { getQualityThresholds } from '../../utils/qualityThresholds';
 
@@ -98,12 +98,7 @@ const zero = (): Row => ({
 });
 
 function fatigue(cur: number, rally: number, stam: number): number {
-  const sf = MATCH_FATIGUE.minFatigueRate + (1 - MATCH_FATIGUE.minFatigueRate) * (1 - stam / 100);
-  const gain = rally * MATCH_FATIGUE.basePerShot * sf;
-  const rec =
-    MATCH_FATIGUE.baseRecoveryPerPoint +
-    (stam / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
-  return Math.max(0, Math.min(100, cur + gain - rec));
+  return fatigueAfterPoint(cur, rally, stam);
 }
 
 interface PointSplit {

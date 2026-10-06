@@ -50,7 +50,6 @@ import { PlayerProfile } from '../../core/PlayerProfile';
 import { PointSimulator } from '../../core/PointSimulator';
 import { ScoreTracker } from '../../core/ScoreTracker';
 import {
-  MATCH_FATIGUE,
   RELATIVE_QUALITY_REQUIREMENTS,
   MINIMUM_WINNER_THRESHOLDS,
   STAT_MODIFIER_BANDS,
@@ -60,6 +59,7 @@ import {
 } from '../../config/shotThresholds';
 import type { SpecialtyTier } from '../../types/archetype';
 import { aggregateArchetypeEffects } from '../../data/archetypeTree';
+import { fatigueAfterPoint } from '../../core/fatigue';
 
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
 
@@ -101,15 +101,7 @@ function withSlice(base: number, slice: number): PlayerStats {
 }
 
 function calcFatigue(cur: number, rally: number, stam: number): number {
-  const sf = MATCH_FATIGUE.minFatigueRate + (1 - MATCH_FATIGUE.minFatigueRate) * (1 - stam / 100);
-  let gain = rally * MATCH_FATIGUE.basePerShot * sf;
-  if (rally > MATCH_FATIGUE.longRallyThreshold) {
-    gain += (rally - MATCH_FATIGUE.longRallyThreshold) * MATCH_FATIGUE.longRallyExtra * sf;
-  }
-  const rec =
-    MATCH_FATIGUE.baseRecoveryPerPoint +
-    (stam / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
-  return Math.max(0, Math.min(100, cur + gain - rec));
+  return fatigueAfterPoint(cur, rally, stam);
 }
 
 function runMatch(

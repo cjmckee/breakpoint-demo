@@ -963,7 +963,14 @@ export const MATCH_FORM = {
 // MATCH FATIGUE & MOMENTUM
 // =======================
 
-/** Match fatigue accumulation and recovery constants */
+/**
+ * Match fatigue accumulation and recovery constants. Applied by core/fatigue.ts.
+ *
+ * Stamina is meant to show: a high-stamina player tires slower, recovers more
+ * at every break, and the difference is most visible late in long matches
+ * (FATIGUE_MODIFIER is curved for that). Nobody starts a match tired — energy
+ * is a between-matches resource. See docs/research/stamina-at-tier-1.md.
+ */
 export const MATCH_FATIGUE = {
   /** Base fatigue gained per rally shot */
   basePerShot: 0.6,
@@ -971,25 +978,26 @@ export const MATCH_FATIGUE = {
   longRallyExtra: 0.2,
   /** Rally length threshold for extra fatigue */
   longRallyThreshold: 8,
-  /** Minimum fatigue rate as fraction of base (stamina 100 player) */
-  minFatigueRate: 0.3,
+  /** Fatigue build-up rate, as a fraction of basePerShot, at stamina 0 */
+  maxFatigueRate: 1.0,
+  /** Fatigue build-up rate at stamina 100 */
+  minFatigueRate: 0.2,
   /** Base recovery per point (before recovery stat scaling) */
   baseRecoveryPerPoint: 0.08,
   /** Max recovery per point (recovery stat 100) */
-  maxRecoveryPerPoint: 0.25,
-  /**
-   * Starting fatigue factor from low energy.
-   * Formula: Math.max(0, (energyFullStaminaThreshold - energy) * energyToFatigueFactor)
-   * energy=0  → fatigue=20 → stamina=80
-   * energy=50 → fatigue=0  → stamina=100
-   */
-  energyFullStaminaThreshold: 50,
-  energyToFatigueFactor: 0.4,
+  maxRecoveryPerPoint: 0.3,
 };
 
-/** Fatigue quality modifier: linear from 1.0 (fatigue=0) to minModifier (fatigue=100) */
+/**
+ * Fatigue quality modifier: 1 − (fatigue/100)^exponent × (1 − minModifier).
+ * minModifier is the multiplier at total exhaustion; an exponent above 1 bends
+ * the curve so light fatigue costs little and heavy fatigue costs a lot.
+ */
 export const FATIGUE_MODIFIER = {
-  minModifier: 0.8, // 20% max penalty at total exhaustion
+  minModifier: 0.65, // 35% penalty at total exhaustion
+  // Squared: fatigue 30 costs 3%, 50 costs 9%, 80 costs 22%. A tired opponent
+  // is a late-match story, not an early one.
+  exponent: 2,
 };
 
 /** Momentum quality modifier */
@@ -1077,13 +1085,13 @@ export const MOMENTUM = {
  */
 export const STAMINA_RECOVERY = {
   /** Fatigue removed at each changeover (game end), before recovery-stat scaling. */
-  perGameBase: 2.0,
+  perGameBase: 1.5,
   /** Extra fatigue removed at a changeover at recovery stat 100. */
-  perGameScale: 4.0,
+  perGameScale: 5.0,
   /** Fatigue removed at the end of a set, before recovery-stat scaling. */
-  perSetBase: 8.0,
+  perSetBase: 5.0,
   /** Extra fatigue removed at the end of a set at recovery stat 100. */
-  perSetScale: 10.0,
+  perSetScale: 20.0,
 };
 
 /**
