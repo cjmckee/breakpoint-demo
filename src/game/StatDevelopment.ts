@@ -180,6 +180,14 @@ export function hasNewCurrency(player: Player): boolean {
   return unitsOf(newCurrency(player)) > 0 && canBuyAny(player);
 }
 
+/**
+ * Specialization points ready to spend on the Specialties tab: none until the
+ * player has an archetype (the coach event), since there is nothing to buy.
+ */
+export function unspentSpecPoints(player: Player): number {
+  return player.archetypeProfile.broad ? player.archetypeProfile.specializationPoints : 0;
+}
+
 /** Whether the player can afford at least one +1 right now. */
 export function canBuyAny(player: Player): boolean {
   return STAT_NAMES.some((stat) => {

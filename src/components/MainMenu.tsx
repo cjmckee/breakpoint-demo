@@ -33,7 +33,7 @@ import { useTutorialSpotlight } from '../hooks/useTutorialSpotlight';
 import { TutorialCallout } from './tutorial/TutorialCallout';
 import { MAIN_MENU_TUTORIAL_STEPS, MainMenuTarget } from '../data/tutorialSteps';
 import { ANCHOR_TRAINING_ENERGY_COST } from '../game/AnchorTrainingSystem';
-import { hasNewCurrency, newCurrency, unitsOf } from '../game/StatDevelopment';
+import { hasNewCurrency, newCurrency, unitsOf, unspentSpecPoints } from '../game/StatDevelopment';
 
 interface MainMenuProps {
   overlay: OverlayState | null;
@@ -218,8 +218,14 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
     : [];
 
   const hasNewHangouts = metHangoutCharacters.length > 0;
-  const canDevelop = hasNewCurrency(player);
-  const newUnits = unitsOf(newCurrency(player));
+  // Development covers both halves: new currency that buys a stat, and unspent
+  // specialization points.
+  const newUnits = hasNewCurrency(player) ? unitsOf(newCurrency(player)) : 0;
+  const specPoints = unspentSpecPoints(player);
+  const canDevelop = newUnits > 0 || specPoints > 0;
+  const developCaption = [newUnits > 0 && `+${newUnits}`, specPoints > 0 && `⭐${specPoints}`]
+    .filter(Boolean)
+    .join(' · ');
 
   // Challenge summary for the menu strip — the full list lives on its own screen.
   const challengeCount = activeChallenges.length;
@@ -554,7 +560,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
               variant="secondary"
               icon="📈"
               label="Develop"
-              caption={canDevelop ? `+${newUnits} to spend` : undefined}
+              caption={canDevelop ? `${developCaption} to spend` : undefined}
               badge={canDevelop}
               onClick={() => navigateTo('development')}
               className="w-full"

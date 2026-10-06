@@ -13,7 +13,7 @@ import { useMenuStore } from '../hooks/useMenuModal';
 import { audioManager } from '../audio/AudioManager';
 import { UnseenBadge } from './ui/UnseenBadge';
 import { CURRENCIES, CURRENCY_LABELS } from '../config/economy';
-import { hasNewCurrency } from '../game/StatDevelopment';
+import { hasNewCurrency, unspentSpecPoints } from '../game/StatDevelopment';
 import { CURRENCY_STYLE } from './currency/CurrencyAmounts';
 
 const TIME_SLOTS = [
@@ -56,7 +56,9 @@ export const StatusBar: React.FC<StatusBarProps> = ({ onBack }) => {
   const hasUnseenEvents = (player?.activeIndicators ?? []).includes('calendar');
   const mood = getMoodDisplay(currentStatus.mood);
   const currentSlot = calendar.currentTimeSlot;
-  const canDevelop = player ? hasNewCurrency(player) : false;
+  const newCurrencyIn = player ? hasNewCurrency(player) : false;
+  const specPoints = player ? unspentSpecPoints(player) : 0;
+  const canDevelop = newCurrencyIn || specPoints > 0;
 
   return (
     <div className="bg-pixel-card border-b-4 border-pixel-border px-4 py-2.5 mb-6">
@@ -153,7 +155,8 @@ export const StatusBar: React.FC<StatusBarProps> = ({ onBack }) => {
             className="relative flex items-center gap-2 rounded px-1.5 py-1 -my-1 hover:bg-pixel-secondary/50 transition-colors"
             title={`Training currency: ${CURRENCIES.map((c) => `${Math.floor(player.wallet[c])} ${CURRENCY_LABELS[c]}`).join(', ')}`}
             data-testid="status-wallet"
-            data-new-currency={canDevelop}
+            data-new-currency={newCurrencyIn}
+            data-spec-points={specPoints}
           >
             <span className="sm:hidden text-base leading-none">📈</span>
             {CURRENCIES.map((c) => (

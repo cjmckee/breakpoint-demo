@@ -1003,7 +1003,11 @@ Stats are bought, not granted. Activities pay currency (`power`, `quickness`,
 negate(price))` after checking `canAfford`.
 - **Content pays currency**: a story outcome's `effects.currency` and a challenge's
   `reward.currency`, negative for a penalty. Size a grant with `contentCurrency` from the
-  stat points it is meant to be worth rather than by hand.
+  stat points it is meant to be worth rather than by hand. A story outcome may instead
+  carry `effects.statChanges` (signed, clamped to 0-100), but keep that for rare or
+  hard-to-reach moments — most outcomes should pay currency.
+- **Development is one screen** with two tabs: Stats (currency) and Specialties
+  (specialization points from levelling). `navigateTo('archetype')` opens the Specialties tab.
 - **Display** amounts with `CurrencyAmounts` (`src/components/currency/`), so every
   currency has one icon and colour everywhere.
 

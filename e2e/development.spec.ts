@@ -123,3 +123,20 @@ test('the Develop badge lights on new currency and goes out on a visit', async (
   await page.getByRole('button', { name: '← Back' }).click();
   await expect(page.getByTestId('action-development')).not.toContainText('to spend');
 });
+
+test('Development holds both halves: stats and specialties', async ({ page }) => {
+  await loadSave(page, SAVE, 7);
+  await page.getByTestId('action-development').click();
+  await expect(page.getByTestId('development-stat-serve')).toBeVisible();
+  await expect(page.getByTestId('development-spec-points')).toBeVisible();
+
+  await page.getByTestId('development-tab-specialties').click();
+  // This save hasn't met the coach, so the tab explains how to unlock specialties.
+  await expect(page.getByText('Player Archetype')).toBeVisible();
+  await expect(page.getByTestId('development-stat-serve')).toHaveCount(0);
+  // The wallet stays: both resources are visible from either tab.
+  await expect(page.getByTestId('development-spec-points')).toBeVisible();
+
+  await page.getByTestId('development-tab-stats').click();
+  await expect(page.getByTestId('development-stat-serve')).toBeVisible();
+});

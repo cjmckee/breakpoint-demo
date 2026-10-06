@@ -1319,14 +1319,17 @@ export const useGameStore = create<GameState>()(
           case 'shop':
             set({ gamePhase: { type: 'shop' } });
             break;
-          case 'archetype':
-            set({ gamePhase: { type: 'archetype' } });
-            break;
-          case 'development': {
-            // Opening the screen is seeing the new currency, so the badge goes out.
+          case 'development':
+          case 'archetype': {
+            // One screen for all development: currency buys stats on one tab,
+            // specialization points buy specialties on the other. Opening it is
+            // seeing the new currency, so that part of the badge goes out.
             const { player } = get();
             set({
-              gamePhase: { type: 'development' },
+              gamePhase: {
+                type: 'development',
+                tab: target === 'archetype' ? 'specialties' : 'stats',
+              },
               ...(player ? { player: { ...player, walletSeen: player.wallet } } : {}),
             });
             break;

@@ -13,11 +13,19 @@ import type { Currency, CurrencyAmounts as Amounts, Wallet } from '../types/game
 import { CURRENCIES, CURRENCY_LABELS, PRICE_STEP } from '../config/economy';
 import { formatStatName, getStatIcon } from '../config/statIcons';
 import { useGameStore } from '../stores/gameStore';
-import { getStat, planCost, priceBand, priceOf, stepMultiplier } from '../game/StatDevelopment';
+import {
+  getStat,
+  planCost,
+  priceBand,
+  priceOf,
+  stepMultiplier,
+  unspentSpecPoints,
+} from '../game/StatDevelopment';
 import { StatusBar } from './StatusBar';
 import { Button } from './ui/Button';
 import { Card } from './ui/Card';
 import { CurrencyAmounts, CURRENCY_STYLE } from './currency/CurrencyAmounts';
+import { ArchetypeTree } from './ArchetypeTree';
 
 const GROUPS: Array<{ title: string; stats: StatName[] }> = [
   { title: 'Core', stats: ['serve', 'forehand', 'backhand', 'return', 'net'] },
@@ -63,6 +71,9 @@ export const DevelopmentScreen: React.FC = () => {
   const player = useGameStore((state) => state.player);
   const navigateTo = useGameStore((state) => state.navigateTo);
   const purchaseStats = useGameStore((state) => state.purchaseStats);
+  const tab = useGameStore((state) =>
+    state.gamePhase.type === 'development' ? state.gamePhase.tab : 'stats',
+  );
 
   const [plan, setPlan] = useState<StatName[]>([]);
   const [confirming, setConfirming] = useState(false);
@@ -111,6 +122,7 @@ export const DevelopmentScreen: React.FC = () => {
   }, [plan, purchaseStats]);
 
   if (!player || !left) return null;
+  const specPoints = player.archetypeProfile.specializationPoints;
 
   const summary = Object.entries(counts)
     .map(([s, n]) => `${formatStatName(s)} +${n}`)
@@ -120,12 +132,40 @@ export const DevelopmentScreen: React.FC = () => {
     <div className="min-h-screen bg-pixel-bg">
       <StatusBar onBack={() => navigateTo('idle')} />
 
-      <div className="max-w-4xl mx-auto px-4 pb-40">
+      <div className={`${tab === 'stats' ? 'max-w-4xl pb-40' : 'max-w-7xl pb-8'} mx-auto px-4`}>
         <h1 className="text-3xl font-bold text-pixel-text mb-1">Development</h1>
         <p className="text-sm text-pixel-text-muted mb-4">
-          Spend training currency on stats. Plan a few +1s, check the cost, then confirm. Bought
-          stats are permanent.
+          {tab === 'stats'
+            ? 'Spend training currency on stats. Plan a few +1s, check the cost, then confirm. Bought stats are permanent.'
+            : 'Spend specialization points, earned by levelling up, on how you play each phase of a point.'}
         </p>
+
+        <div className="flex gap-2 mb-4" role="tablist">
+          {(
+            [
+              ['stats', 'development', 'Stats'],
+              ['specialties', 'archetype', 'Specialties'],
+            ] as const
+          ).map(([id, screen, label]) => (
+            <button
+              key={id}
+              role="tab"
+              aria-selected={tab === id}
+              data-testid={`development-tab-${id}`}
+              onClick={() => navigateTo(screen)}
+              className={`px-4 py-2 border-4 font-bold text-sm ${
+                tab === id
+                  ? 'border-pixel-accent bg-pixel-card text-pixel-text'
+                  : 'border-pixel-border text-pixel-text-muted hover:border-pixel-accent'
+              }`}
+            >
+              {label}
+              {id === 'specialties' && unspentSpecPoints(player) > 0 && (
+                <span className="ml-2 text-yellow-300">⭐{unspentSpecPoints(player)}</span>
+              )}
+            </button>
+          ))}
+        </div>
 
         {/* Wallet stays pinned: every +1 is a comparison against it. */}
         <div
@@ -153,173 +193,200 @@ export const DevelopmentScreen: React.FC = () => {
               </span>
             </span>
           ))}
-        </div>
-
-        {message && (
-          <div
-            role="status"
-            data-testid="development-message"
-            className={`mb-4 border-4 px-4 py-2 font-bold ${
-              message.ok
-                ? 'border-pixel-success text-pixel-success'
-                : 'border-pixel-error text-pixel-error'
-            }`}
+          {/* Specialization points: the other half of development, spent on Specialties. */}
+          <span
+            className="inline-flex items-baseline gap-1.5 sm:ml-auto"
+            data-testid="development-spec-points"
+            data-amount={specPoints}
+            title="Specialization points, earned by levelling up"
           >
-            {message.text}
-          </div>
-        )}
-
-        <div className="grid gap-6">
-          {GROUPS.map((group) => (
-            <section key={group.title} aria-label={group.title}>
-              <h2 className="text-sm font-bold text-pixel-text-muted uppercase tracking-wider mb-2">
-                {group.title}
-              </h2>
-              <div className="grid gap-2">
-                {group.stats.map((stat) => {
-                  const planned = counts[stat] ?? 0;
-                  const now = getStat(player.stats, stat);
-                  const next = now + planned;
-                  const price = priceOf(stat, next);
-                  const short = shortfall(price, left);
-                  const atMax = next >= 100;
-                  const plannedCost = planned
-                    ? planCost(player.stats, Array<StatName>(planned).fill(stat))
-                    : null;
-                  const reason = atMax
-                    ? 'At 100'
-                    : short.length
-                      ? `Needs ${short.map(([c, n]) => `${n} more ${CURRENCY_LABELS[c]}`).join(' and ')}`
-                      : stepNote(next);
-                  return (
-                    <Card key={stat} padding="sm" className={planned ? 'border-pixel-accent' : ''}>
-                      <div
-                        className="flex items-center gap-3"
-                        data-testid={`development-stat-${stat}`}
-                        data-value={now}
-                        data-planned={planned}
-                      >
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-baseline gap-x-2">
-                            <span className="font-bold text-pixel-text">
-                              <span aria-hidden="true">{getStatIcon(stat)} </span>
-                              {formatStatName(stat)}
-                            </span>
-                            <span className="text-xl font-bold text-pixel-text">{now}</span>
-                            {planned > 0 && (
-                              <span className="text-xl font-bold text-pixel-accent">→ {next}</span>
-                            )}
-                          </div>
-                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm mt-1">
-                            <span className="text-xs uppercase tracking-wider text-pixel-text-muted">
-                              {BAND_LABEL[priceBand(stat)]}
-                            </span>
-                            {!atMax && (
-                              <span
-                                className="inline-flex items-center gap-1.5"
-                                data-testid={`development-next-${stat}`}
-                              >
-                                <span className="text-xs text-pixel-text-muted">Next +1</span>
-                                <CurrencyAmounts amounts={price} />
-                              </span>
-                            )}
-                            {plannedCost && (
-                              <span
-                                className="inline-flex items-center gap-1.5"
-                                data-testid={`development-planned-${stat}`}
-                              >
-                                <span className="text-xs text-pixel-accent">
-                                  Planned +{planned}
-                                </span>
-                                <CurrencyAmounts amounts={plannedCost} />
-                              </span>
-                            )}
-                          </div>
-                          {reason && (
-                            <div
-                              className={`text-xs mt-1 ${short.length ? 'text-pixel-warning' : 'text-pixel-text-muted'}`}
-                            >
-                              {reason}
-                            </div>
-                          )}
-                        </div>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          disabled={planned === 0}
-                          onClick={() => removeOne(stat)}
-                          testId={`development-minus-${stat}`}
-                        >
-                          −
-                        </Button>
-                        <Button
-                          size="sm"
-                          disabled={atMax || short.length > 0}
-                          onClick={() => add(stat)}
-                          testId={`development-plus-${stat}`}
-                        >
-                          +1
-                        </Button>
-                      </div>
-                    </Card>
-                  );
-                })}
-              </div>
-            </section>
-          ))}
+            <span aria-hidden="true">⭐</span>
+            <span className="text-xl font-bold text-pixel-text">{specPoints}</span>
+            <span className="hidden sm:inline text-xs text-pixel-text-muted">Spec Points</span>
+          </span>
         </div>
+
+        {tab === 'specialties' ? (
+          <ArchetypeTree embedded />
+        ) : (
+          <>
+            {message && (
+              <div
+                role="status"
+                data-testid="development-message"
+                className={`mb-4 border-4 px-4 py-2 font-bold ${
+                  message.ok
+                    ? 'border-pixel-success text-pixel-success'
+                    : 'border-pixel-error text-pixel-error'
+                }`}
+              >
+                {message.text}
+              </div>
+            )}
+
+            <div className="grid gap-6">
+              {GROUPS.map((group) => (
+                <section key={group.title} aria-label={group.title}>
+                  <h2 className="text-sm font-bold text-pixel-text-muted uppercase tracking-wider mb-2">
+                    {group.title}
+                  </h2>
+                  <div className="grid gap-2">
+                    {group.stats.map((stat) => {
+                      const planned = counts[stat] ?? 0;
+                      const now = getStat(player.stats, stat);
+                      const next = now + planned;
+                      const price = priceOf(stat, next);
+                      const short = shortfall(price, left);
+                      const atMax = next >= 100;
+                      const plannedCost = planned
+                        ? planCost(player.stats, Array<StatName>(planned).fill(stat))
+                        : null;
+                      const reason = atMax
+                        ? 'At 100'
+                        : short.length
+                          ? `Needs ${short.map(([c, n]) => `${n} more ${CURRENCY_LABELS[c]}`).join(' and ')}`
+                          : stepNote(next);
+                      return (
+                        <Card
+                          key={stat}
+                          padding="sm"
+                          className={planned ? 'border-pixel-accent' : ''}
+                        >
+                          <div
+                            className="flex items-center gap-3"
+                            data-testid={`development-stat-${stat}`}
+                            data-value={now}
+                            data-planned={planned}
+                          >
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-baseline gap-x-2">
+                                <span className="font-bold text-pixel-text">
+                                  <span aria-hidden="true">{getStatIcon(stat)} </span>
+                                  {formatStatName(stat)}
+                                </span>
+                                <span className="text-xl font-bold text-pixel-text">{now}</span>
+                                {planned > 0 && (
+                                  <span className="text-xl font-bold text-pixel-accent">
+                                    → {next}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm mt-1">
+                                <span className="text-xs uppercase tracking-wider text-pixel-text-muted">
+                                  {BAND_LABEL[priceBand(stat)]}
+                                </span>
+                                {!atMax && (
+                                  <span
+                                    className="inline-flex items-center gap-1.5"
+                                    data-testid={`development-next-${stat}`}
+                                  >
+                                    <span className="text-xs text-pixel-text-muted">Next +1</span>
+                                    <CurrencyAmounts amounts={price} />
+                                  </span>
+                                )}
+                                {plannedCost && (
+                                  <span
+                                    className="inline-flex items-center gap-1.5"
+                                    data-testid={`development-planned-${stat}`}
+                                  >
+                                    <span className="text-xs text-pixel-accent">
+                                      Planned +{planned}
+                                    </span>
+                                    <CurrencyAmounts amounts={plannedCost} />
+                                  </span>
+                                )}
+                              </div>
+                              {reason && (
+                                <div
+                                  className={`text-xs mt-1 ${short.length ? 'text-pixel-warning' : 'text-pixel-text-muted'}`}
+                                >
+                                  {reason}
+                                </div>
+                              )}
+                            </div>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              disabled={planned === 0}
+                              onClick={() => removeOne(stat)}
+                              testId={`development-minus-${stat}`}
+                            >
+                              −
+                            </Button>
+                            <Button
+                              size="sm"
+                              disabled={atMax || short.length > 0}
+                              onClick={() => add(stat)}
+                              testId={`development-plus-${stat}`}
+                            >
+                              +1
+                            </Button>
+                          </div>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       {/* The plan tray: what's pending, what it costs, and the one confirm. Actions sit
           right-aligned and stop short of the floating menu button in the corner. */}
-      <div className="fixed left-0 right-0 bottom-0 z-30 bg-pixel-card border-t-4 border-pixel-border pl-4 pr-24 py-3">
-        <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-3">
-          {plan.length === 0 ? (
-            <p className="text-sm text-pixel-text-muted">
-              Nothing planned. Tap +1 on a stat to start a plan.
-            </p>
-          ) : confirming ? (
-            <div className="w-full grid gap-2" data-testid="development-confirm-panel">
-              <p className="text-pixel-text">
-                Spend <CurrencyAmounts amounts={cost} labelled /> on {summary}?
+      {tab === 'stats' && (
+        <div className="fixed left-0 right-0 bottom-0 z-30 bg-pixel-card border-t-4 border-pixel-border pl-4 pr-24 py-3">
+          <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-3">
+            {plan.length === 0 ? (
+              <p className="text-sm text-pixel-text-muted">
+                Nothing planned. Tap +1 on a stat to start a plan.
               </p>
-              <p className="text-xs text-pixel-text-muted">Stats can't be refunded once bought.</p>
-              <div className="flex flex-wrap justify-end gap-2">
-                <Button variant="success" onClick={confirm} testId="development-confirm">
-                  Buy {plan.length} point{plan.length === 1 ? '' : 's'}
-                </Button>
-                <Button
-                  variant="secondary"
-                  onClick={() => setConfirming(false)}
-                  testId="development-cancel"
-                >
-                  Keep planning
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className="min-w-0 w-full sm:w-auto">
-                <div className="font-bold text-pixel-text" data-testid="development-plan">
-                  {summary}
+            ) : confirming ? (
+              <div className="w-full grid gap-2" data-testid="development-confirm-panel">
+                <p className="text-pixel-text">
+                  Spend <CurrencyAmounts amounts={cost} labelled /> on {summary}?
+                </p>
+                <p className="text-xs text-pixel-text-muted">
+                  Stats can't be refunded once bought.
+                </p>
+                <div className="flex flex-wrap justify-end gap-2">
+                  <Button variant="success" onClick={confirm} testId="development-confirm">
+                    Buy {plan.length} point{plan.length === 1 ? '' : 's'}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => setConfirming(false)}
+                    testId="development-cancel"
+                  >
+                    Keep planning
+                  </Button>
                 </div>
-                <CurrencyAmounts amounts={cost} className="text-sm" />
               </div>
-              <div className="ml-auto flex flex-wrap justify-end gap-2">
-                <Button variant="secondary" size="sm" onClick={undo} testId="development-undo">
-                  Undo
-                </Button>
-                <Button variant="secondary" size="sm" onClick={clear} testId="development-clear">
-                  Clear
-                </Button>
-                <Button size="sm" onClick={() => setConfirming(true)} testId="development-review">
-                  Review {plan.length} point{plan.length === 1 ? '' : 's'}
-                </Button>
-              </div>
-            </>
-          )}
+            ) : (
+              <>
+                <div className="min-w-0 w-full sm:w-auto">
+                  <div className="font-bold text-pixel-text" data-testid="development-plan">
+                    {summary}
+                  </div>
+                  <CurrencyAmounts amounts={cost} className="text-sm" />
+                </div>
+                <div className="ml-auto flex flex-wrap justify-end gap-2">
+                  <Button variant="secondary" size="sm" onClick={undo} testId="development-undo">
+                    Undo
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={clear} testId="development-clear">
+                    Clear
+                  </Button>
+                  <Button size="sm" onClick={() => setConfirming(true)} testId="development-review">
+                    Review {plan.length} point{plan.length === 1 ? '' : 's'}
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
