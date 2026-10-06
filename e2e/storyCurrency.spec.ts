@@ -35,3 +35,28 @@ test('a story outcome pays its currency and clamps its losses at zero', async ({
   expect(after.wallet.power, 'a loss from an empty balance stays at 0').toBe(0);
   expect(after.stats, 'story outcomes no longer change stats').toEqual(before.stats);
 });
+
+test('a rare story moment raises stats directly and shows them', async ({ page }) => {
+  // coach_secret_past is gated behind a close coach relationship, one of the few
+  // outcomes that still grant stats rather than currency.
+  const event = StoryEventRepository.getAllEvents().find((e) => e.id === 'coach_secret_past');
+  const changes = event?.defaultOutcome?.effects.statChanges;
+  expect(changes, 'coach_secret_past should grant stats').toBeDefined();
+
+  await loadSave(page, 'save-day7-1', 7);
+  const before = (await readGame(page)).player!;
+  await triggerStoryEvent(page, 'coach_secret_past');
+  const result = page.getByTestId('story-result-stats');
+  while (!(await result.isVisible().catch(() => false))) {
+    await page.getByTestId('story-advance').or(page.getByTestId('story-resolve')).first().click();
+  }
+  await expect(result.locator('[data-stat="focus"]')).toHaveAttribute(
+    'data-amount',
+    String(changes!.focus),
+  );
+  await drainToIdle(page);
+
+  const after = (await readGame(page)).player!;
+  expect(after.stats.mental.focus).toBe(before.stats.mental.focus + (changes!.focus ?? 0));
+  expect(after.wallet, 'a stat outcome pays no currency').toEqual(before.wallet);
+});

@@ -1736,7 +1736,14 @@ export const careerEvents: StoryEvent[] = [
             "You sign with the agent, who immediately begins making calls and setting up opportunities. But you didn't sell out, right?",
           ],
           effects: {
-            currency: { power: 6, quickness: 5, technique: 10, mind: 12 },
+            statChanges: {
+              anticipation: 3,
+              slice: 1,
+              placement: 1,
+              forehand: 1,
+              backhand: 1,
+              serve: 1,
+            },
             moodChange: 10,
             energyChange: -10,
             relationshipChanges: { coach_gonzalez: -25, agent: 10 },
@@ -1767,7 +1774,7 @@ export const careerEvents: StoryEvent[] = [
             'something for all their support.',
           ],
           effects: {
-            currency: { power: 2, quickness: 1, mind: -11 },
+            statChanges: { stamina: 2, focus: -3, anticipation: -1 },
             moodChange: -15,
             energyChange: 0,
           },
@@ -1803,7 +1810,7 @@ export const careerEvents: StoryEvent[] = [
         "You accept the invitation with excitement and gratitude. This is the opportunity you've been working toward. But are you ready?",
       ],
       effects: {
-        currency: { quickness: 5, technique: 5, mind: 17 },
+        statChanges: { focus: 1, net: 2, anticipation: 2, tactics: 2 },
         moodChange: 30,
         energyChange: -10,
       },

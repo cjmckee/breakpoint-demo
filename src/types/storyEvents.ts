@@ -3,7 +3,7 @@
  * Comprehensive types for the story event system
  */
 
-import type { Activity, CurrencyAmounts, ScheduledEventTemplate } from './game';
+import type { Activity, CurrencyAmounts, ScheduledEventTemplate, StatBoosts } from './game';
 import type { Challenge } from './challenges';
 import type { StatName } from './index';
 import type { Item } from './items';
@@ -144,6 +144,11 @@ export interface StoryEventOutcome {
   effects: {
     /** Training currency gained or lost; a loss clamps each currency at zero. */
     currency?: CurrencyAmounts;
+    /**
+     * Direct stat changes, positive or negative, clamped to 0-100. Reserved for
+     * rare or hard-to-reach moments; most outcomes pay currency instead.
+     */
+    statChanges?: StatBoosts;
     moodChange?: number;
     energyChange?: number;
     relationshipChanges?: Record<string, number>;
@@ -255,6 +260,7 @@ export interface StoryEventResult extends Activity {
 
   // Effects (for display in history/modal)
   currency: CurrencyAmounts;
+  statChanges: StatBoosts;
   relationshipChanges: Record<string, number>;
   abilitiesGained: string[];
   itemsGained: Item[];

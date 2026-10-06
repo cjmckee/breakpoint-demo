@@ -9,6 +9,13 @@ The first run of this report also counted two challenge reward _items_ (equipmen
 boosts stay item boosts) as conversion sites: `challenge_athletic_foundation` and
 `milestone_challenge_ten_wins`, 88 units. They are removed below, and the totals corrected.
 
+**Stats kept for rare moments.** After the conversion, eleven hard-to-reach or climactic events
+went back to granting stats directly, exactly as authored (penalties included):
+`tournament_invitation`, `riverside_open_victory`, `agent_approach`, `first_winning_streak`,
+`rival_unexpected_respect`, `coach_secret_past`, `romance_professional_match`, and the four
+tier-3 hangouts (coach, Jordan, Jen, Alex). Everything else pays currency. The tables below are the
+original conversion and still list those events.
+
 ## Summary
 
 |           | sites | stat points granted | penalty points |

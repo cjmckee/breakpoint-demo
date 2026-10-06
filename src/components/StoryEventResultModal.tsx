@@ -11,6 +11,7 @@ import { FormattedText } from './FormattedText';
 import { getCharacterName } from '../data/characters';
 import { usePlayerName } from '../hooks/usePlayerName';
 import { CurrencyAmounts } from './currency/CurrencyAmounts';
+import { formatStatName, getStatIcon } from '../config/statIcons';
 
 interface StoryEventResultModalProps {
   isOpen: boolean;
@@ -62,6 +63,7 @@ export const StoryEventResultModal: React.FC<StoryEventResultModalProps> = ({
 
       {/* Effects */}
       {(Object.keys(result.currency).length > 0 ||
+        Object.keys(result.statChanges).length > 0 ||
         Object.keys(result.relationshipChanges).length > 0 ||
         result.abilitiesGained.length > 0 ||
         result.itemsGained.length > 0) && (
@@ -73,6 +75,32 @@ export const StoryEventResultModal: React.FC<StoryEventResultModalProps> = ({
             <div data-testid="story-result-currency">
               <h4 className="font-semibold mb-2">💰 Training currency:</h4>
               <CurrencyAmounts amounts={result.currency} signed labelled />
+            </div>
+          )}
+
+          {/* Direct stat changes: rare outcomes only. Gains green, losses red. */}
+          {Object.keys(result.statChanges).length > 0 && (
+            <div data-testid="story-result-stats">
+              <h4 className="font-semibold mb-2">📊 Stats:</h4>
+              <div className="flex flex-wrap gap-x-4 gap-y-1">
+                {Object.entries(result.statChanges).map(([stat, value]) => (
+                  <span
+                    key={stat}
+                    className="inline-flex items-center gap-1 font-bold"
+                    data-stat={stat}
+                    data-amount={value}
+                  >
+                    <span aria-hidden="true">{getStatIcon(stat)}</span>
+                    <span className="font-normal text-pixel-text-muted">
+                      {formatStatName(stat)}
+                    </span>
+                    <span className={(value ?? 0) < 0 ? 'text-pixel-error' : 'text-pixel-success'}>
+                      {(value ?? 0) > 0 ? '+' : ''}
+                      {value}
+                    </span>
+                  </span>
+                ))}
+              </div>
             </div>
           )}
 

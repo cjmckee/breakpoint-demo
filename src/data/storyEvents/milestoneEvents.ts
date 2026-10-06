@@ -78,7 +78,7 @@ export const milestoneEvents: StoryEvent[] = [
         "The winning streak has transformed your confidence. You're starting to believe you belong at this level, and other players have noticed your improvement. You feel yourself becoming a legitimate competitor.",
       ],
       effects: {
-        currency: { power: 7, quickness: 2, technique: 17, mind: 4 },
+        statChanges: { spin: 4, placement: 3, stamina: 2 },
         moodChange: 40,
         energyChange: 0,
         relationshipChanges: { coach_gonzalez: 10 },

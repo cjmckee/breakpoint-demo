@@ -307,7 +307,7 @@ export const rivalEvents: StoryEvent[] = [
         " walks away before you can respond. You stand there for a moment processing what just happened. You're not sure if this is the beginning of a rivalry or the beginning of something else. Either way, it feels like a milestone.",
       ],
       effects: {
-        currency: { quickness: 2, technique: 1, mind: 18 },
+        statChanges: { focus: 3, anticipation: 2, tactics: 1 },
         moodChange: 25,
         energyChange: 0,
         relationshipChanges: { jordan_rival: 15 },
