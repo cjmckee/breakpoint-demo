@@ -33,7 +33,6 @@ import {
   priceBand,
   priceOf,
   purchase,
-  statsFedBy,
   stepMultiplier,
   unitsOf,
   withStat,
@@ -245,19 +244,6 @@ function main(): void {
     walletSeen: { power: 0, quickness: 0, technique: 0, mind: 0 },
   };
   check('new currency that buys nothing stays quiet', !hasNewCurrency(broke));
-
-  console.log('\n── what a payout buys ──');
-  const serveBuys = statsFedBy(trainingPayout('serve', 3));
-  check(
-    'serve training pays for serve and strength',
-    serveBuys.includes('serve') && serveBuys.includes('strength'),
-    serveBuys.join(', '),
-  );
-  check(
-    'return training pays for return',
-    statsFedBy(trainingPayout('return', 3)).includes('return'),
-  );
-  check('an empty payout buys nothing', statsFedBy({}).length === 0);
 
   console.log('\n── content ──');
   const grant = contentCurrency({ focus: 5, serve: 2 });

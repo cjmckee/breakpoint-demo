@@ -22,7 +22,7 @@ export const MAIN_MENU_TUTORIAL_STEPS: TutorialStep<MainMenuTarget>[] = [
   {
     target: 'actions',
     title: 'Where to start',
-    body: "Training is how you get better. Each session pays training currency — Power, Quickness, Technique and Mind — mostly in what the shot you train is made of. As one of the newest members of the Academy, your stats are quite weak to begin with, so you'll need to focus most of your early timeslots on training. Resting during the morning, afternoon, or evening uses a timeslot and only recovers 20 energy, so try to only Rest in a pinch!",
+    body: "Training is how you get better. Each session pays training currency — Power, Quickness, Technique and Mind — and each shot pays its own mix. As one of the newest members of the Academy, your stats are quite weak to begin with, so you'll need to focus most of your early timeslots on training. Resting during the morning, afternoon, or evening uses a timeslot and only recovers 20 energy, so try to only Rest in a pinch!",
   },
   {
     target: 'develop',

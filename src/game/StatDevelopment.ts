@@ -195,21 +195,3 @@ export function canBuyAny(player: Player): boolean {
     return value < MAX_STAT && canAfford(player.wallet, priceOf(stat, value));
   });
 }
-
-/**
- * The stats a mix of currency buys most of, best first: each stat scored by how
- * much of its recipe the mix covers, weighted by the mix's shares. A serve
- * session's pay (mostly Power) leads with strength, serve and forehand.
- */
-export function statsFedBy(amounts: CurrencyAmounts, limit: number = 3): StatName[] {
-  const total = unitsOf(amounts);
-  if (total <= 0) return [];
-  const score = (stat: StatName): number => {
-    const recipe = STAT_RECIPES[stat];
-    return (
-      CURRENCIES.reduce((sum, c) => sum + (recipe[c] ?? 0) * ((amounts[c] ?? 0) / total), 0) /
-      unitsOf(recipe)
-    );
-  };
-  return [...STAT_NAMES].sort((a, b) => score(b) - score(a)).slice(0, limit);
-}
