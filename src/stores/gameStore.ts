@@ -26,6 +26,7 @@ import {
   TIME_SLOT_NAMES,
   ShopItem,
   Ability,
+  CurrencyAmounts,
 } from '../types/game';
 import type { StoryEvent, StoryEventTag, StoryEventOption } from '../types/storyEvents';
 import { HANGOUT_CHARACTERS, HANGOUT_ENERGY_COST, getHangoutTier } from '../data/hangoutCharacters';
@@ -95,6 +96,7 @@ import {
 } from '../analytics/analytics';
 
 import { random } from '../core/random';
+import { applyCurrency } from '../game/StatDevelopment';
 export interface AudioSettings {
   musicVolume: number; // 0–1
   sfxVolume: number; // 0–1
@@ -218,6 +220,9 @@ interface GameState {
 
   // Hangout actions
   hangoutWithCharacter: (characterId: string) => void;
+
+  /** Add or remove training currency. Losses clamp each currency at zero. */
+  changeCurrency: (delta: CurrencyAmounts) => void;
 
   // Story event actions
   checkForStoryEventById: (eventId: string) => void;
@@ -2312,6 +2317,12 @@ export const useGameStore = create<GameState>()(
         });
 
         get().checkForStoryEventById(config.tierEventIds[currentTier]);
+      },
+
+      changeCurrency: (delta: CurrencyAmounts) => {
+        const { player } = get();
+        if (!player) return;
+        set({ player: { ...player, wallet: applyCurrency(player.wallet, delta) } });
       },
 
       checkForStoryEventById: (eventId: string) => {

@@ -1,52 +1,23 @@
 /**
- * Stat economy — the currency design in docs/proposals/stat-currency-progression.md
- * §6.1, as the analysis harnesses pay it. One copy, so the career sim and the
- * allocation probe cannot drift apart: change a recipe or the step curve here
- * and every harness that buys stats pays the new price.
+ * Stat economy — the game's own economy (config/economy.ts and
+ * game/StatDevelopment.ts), with the mutable helpers the harnesses spend with.
+ * Recipes and the step curve are not copied here, so the career sim always
+ * pays what the game charges.
+ *
+ * STEP_FROM overrides where the price steps start, for this process only.
  */
 
-import type { StatName } from '../../types';
+import type { Currency, CurrencyAmounts, Wallet } from '../../types/game';
+import { CURRENCIES, PRICE_STEP, STAT_RECIPES } from '../../config/economy';
+import { canAfford, priceOf, stepMultiplier, unitsOf } from '../../game/StatDevelopment';
 
-export type Currency = 'power' | 'quickness' | 'technique' | 'mind';
-export const CURRENCIES: Currency[] = ['power', 'quickness', 'technique', 'mind'];
-export type Wallet = Record<Currency, number>;
-export type Amounts = Partial<Wallet>;
+if (process.env.STEP_FROM) PRICE_STEP.from = Number(process.env.STEP_FROM);
 
-export const RECIPES: Record<StatName, Amounts> = {
-  serve: { power: 3, technique: 1 },
-  return: { quickness: 2, technique: 1, mind: 1 },
-  anticipation: { mind: 3, quickness: 1 },
-  speed: { quickness: 3, power: 1 },
-  tactics: { mind: 3, technique: 1 },
-  forehand: { power: 2, technique: 1 },
-  backhand: { technique: 2, quickness: 1 },
-  placement: { technique: 2, mind: 1 },
-  strength: { power: 3 },
-  spin: { technique: 2, power: 1 },
-  focus: { mind: 2 },
-  stamina: { power: 1, quickness: 1 },
-  net: { quickness: 1, technique: 1 },
-  slice: { technique: 2 },
-};
+export type { Currency, Wallet };
+export type Amounts = CurrencyAmounts;
+export { CURRENCIES, canAfford, priceOf, stepMultiplier, unitsOf };
+export const RECIPES = STAT_RECIPES;
 
-/**
- * ×1 below STEP_FROM (default 40), then one step more every 20 points: at 40,
- * ×2 in the 40s-50s, ×3 in the 60s-70s, ×4 from 80. STEP_FROM=50 moves every
- * step up 10 points.
- */
-const STEP_FROM = Number(process.env.STEP_FROM ?? 40);
-export const stepMultiplier = (v: number): number =>
-  1 + Math.floor(Math.max(0, v - (STEP_FROM - 20)) / 20);
-
-export const priceOf = (stat: StatName, value: number): Amounts => {
-  const m = stepMultiplier(value);
-  const out: Amounts = {};
-  for (const [c, n] of Object.entries(RECIPES[stat]) as Array<[Currency, number]>) out[c] = n * m;
-  return out;
-};
-export const unitsOf = (a: Amounts): number => Object.values(a).reduce((x, y) => x + (y ?? 0), 0);
-export const canAfford = (w: Wallet, p: Amounts): boolean =>
-  (Object.entries(p) as Array<[Currency, number]>).every(([c, n]) => w[c] >= n);
 export const pay = (w: Wallet, p: Amounts): void => {
   for (const [c, n] of Object.entries(p) as Array<[Currency, number]>) w[c] -= n;
 };

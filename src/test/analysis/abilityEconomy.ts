@@ -14,6 +14,7 @@
  */
 
 import { ABILITY_LEVEL_MULTIPLIER } from '../../config/shotThresholds';
+import { ABILITY_PRICES } from '../../config/economy';
 import type { Currency } from './statEconomy';
 
 export type Rarity = 'common' | 'uncommon' | 'rare';
@@ -72,12 +73,16 @@ const env = (k: string, d: number): number => Number(process.env[k] ?? d);
 
 /** Currency units at level 1, by rarity. */
 export const ABILITY_UNITS: Record<Rarity, number> = {
-  common: env('ABILITY_UNITS_C', 15),
-  uncommon: env('ABILITY_UNITS_U', 28),
-  rare: env('ABILITY_UNITS_R', 40),
+  common: env('ABILITY_UNITS_C', ABILITY_PRICES.common.units),
+  uncommon: env('ABILITY_UNITS_U', ABILITY_PRICES.uncommon.units),
+  rare: env('ABILITY_UNITS_R', ABILITY_PRICES.rare.units),
 };
-/** XP at level 1, by rarity: the shop's current ability prices. */
-export const ABILITY_XP: Record<Rarity, number> = { common: 70, uncommon: 140, rare: 250 };
+/** XP at level 1, by rarity. */
+export const ABILITY_XP: Record<Rarity, number> = {
+  common: ABILITY_PRICES.common.xp,
+  uncommon: ABILITY_PRICES.uncommon.xp,
+  rare: ABILITY_PRICES.rare.xp,
+};
 /** Shop offer weights by rarity, and offers per day. */
 const OFFER_WEIGHTS: Array<[Rarity, number]> = [
   ['common', 0.5],
