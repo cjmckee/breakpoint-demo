@@ -16,6 +16,7 @@ import type {
   AbilityItem,
   ShopItem,
   CurrencyAmounts as Amounts,
+  Currency,
   Wallet,
 } from '../types/game';
 import { SLOT_NAMES } from './Inventory';
@@ -24,6 +25,7 @@ import { formatAbilityName } from './AbilityDisplay';
 import { CurrencyAmounts } from './currency/CurrencyAmounts';
 import { canAfford as walletCovers } from '../game/StatDevelopment';
 import { CURRENCIES, CURRENCY_LABELS } from '../config/economy';
+import { levelMultiplier } from '../core/EffectAggregator';
 
 const RARITY_LABELS: Record<ItemRarity, string> = {
   common: 'Common',
@@ -59,9 +61,16 @@ const CostTag: React.FC<{
   canAfford: boolean;
   purchased?: boolean;
   currency?: Amounts;
-}> = ({ cost, canAfford, purchased, currency }) => (
+  short?: readonly Currency[];
+}> = ({ cost, canAfford, purchased, currency, short }) => (
   <div className="text-right">
-    {currency && <CurrencyAmounts amounts={currency} className="justify-end text-lg" />}
+    {currency && (
+      <CurrencyAmounts
+        amounts={currency}
+        short={purchased ? [] : short}
+        className="justify-end text-lg"
+      />
+    )}
     <div
       className={`text-xl font-bold ${
         purchased ? 'text-gray-500' : canAfford ? 'text-yellow-400' : 'text-red-400'
@@ -214,9 +223,14 @@ const AbilityShopCard: React.FC<{
   const enoughXp = playerExperience >= item.cost;
   const short = CURRENCIES.filter((c) => wallet[c] < (item.currencyCost[c] ?? 0));
   const canAfford = enoughXp && walletCovers(wallet, item.currencyCost);
-  const shortOf = enoughXp
-    ? `Not Enough ${short.map((c) => CURRENCY_LABELS[c]).join(' or ')}`
-    : 'Not Enough XP';
+  const needs = [
+    ...(enoughXp ? [] : [`${item.cost - playerExperience} XP`]),
+    ...short.map(
+      (c) => `${(item.currencyCost[c] ?? 0) - Math.floor(wallet[c])} ${CURRENCY_LABELS[c]}`,
+    ),
+  ];
+  const shortOf = `Need ${needs.join(' and ')}`;
+  const owned = item.level - 1;
   const rarityColor = getRarityColor(item.rarity);
   const rarityBg = RARITY_BG_COLORS[item.rarity];
 
@@ -236,10 +250,7 @@ const AbilityShopCard: React.FC<{
               <h3 className={`text-lg font-bold ${rarityColor}`}>
                 {formatAbilityName(item.abilityId)}
               </h3>
-              <span className={`text-xs ${rarityColor}`}>
-                {RARITY_LABELS[item.rarity]} Ability
-                {item.level > 1 ? ` · Level ${item.level}` : ''}
-              </span>
+              <span className={`text-xs ${rarityColor}`}>{RARITY_LABELS[item.rarity]} Ability</span>
             </div>
           </div>
           {/* The XP colour is about XP alone; the button names any currency short. */}
@@ -248,8 +259,24 @@ const AbilityShopCard: React.FC<{
             canAfford={enoughXp}
             purchased={item.purchased}
             currency={item.currencyCost}
+            short={short}
           />
         </div>
+
+        {owned > 0 && (
+          <div
+            className="border-2 border-pixel-accent px-3 py-2 text-sm"
+            data-testid={`shop-upgrade-${item.abilityId}`}
+          >
+            <div className="font-bold text-pixel-text">
+              Upgrade: you own Lv {owned} → buying Lv {item.level}
+            </div>
+            <div className="text-xs text-pixel-text-muted">
+              Effect ×{levelMultiplier(owned).toFixed(1)} → ×
+              {levelMultiplier(item.level).toFixed(1)}
+            </div>
+          </div>
+        )}
 
         <p className="text-sm text-gray-400 italic">{item.description}</p>
 
