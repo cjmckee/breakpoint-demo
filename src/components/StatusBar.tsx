@@ -12,6 +12,9 @@ import { useGameStore } from '../stores/gameStore';
 import { useMenuStore } from '../hooks/useMenuModal';
 import { audioManager } from '../audio/AudioManager';
 import { UnseenBadge } from './ui/UnseenBadge';
+import { CURRENCIES, CURRENCY_LABELS } from '../config/economy';
+import { canBuyAny } from '../game/StatDevelopment';
+import { CURRENCY_STYLE } from './currency/CurrencyAmounts';
 
 const TIME_SLOTS = [
   { name: 'Morning', emoji: '🌅' },
@@ -47,10 +50,13 @@ export const StatusBar: React.FC<StatusBarProps> = ({ onBack }) => {
   const { calendar, currentStatus, player } = useGameStore();
   const clearIndicator = useGameStore((state) => state.clearIndicator);
   const openCalendar = useMenuStore((state) => state.openCalendar);
+  const navigateTo = useGameStore((state) => state.navigateTo);
+  const onDevelopment = useGameStore((state) => state.gamePhase.type === 'development');
 
   const hasUnseenEvents = (player?.activeIndicators ?? []).includes('calendar');
   const mood = getMoodDisplay(currentStatus.mood);
   const currentSlot = calendar.currentTimeSlot;
+  const canDevelop = player ? canBuyAny(player) : false;
 
   return (
     <div className="bg-pixel-card border-b-4 border-pixel-border px-4 py-2.5 mb-6">
@@ -136,6 +142,34 @@ export const StatusBar: React.FC<StatusBarProps> = ({ onBack }) => {
             {mood.label}
           </span>
         </div>
+
+        {/* Wallet: the Development screen shows its own, live against the plan */}
+        {player && !onDevelopment && (
+          <button
+            onClick={() => {
+              audioManager.playSfx('ui_click');
+              navigateTo('development');
+            }}
+            className="relative flex items-center gap-2 rounded px-1.5 py-1 -my-1 hover:bg-pixel-secondary/50 transition-colors"
+            title={`Training currency: ${CURRENCIES.map((c) => `${Math.floor(player.wallet[c])} ${CURRENCY_LABELS[c]}`).join(', ')}`}
+            data-testid="status-wallet"
+            data-can-develop={canDevelop}
+          >
+            <span className="sm:hidden text-base leading-none">📈</span>
+            {CURRENCIES.map((c) => (
+              <span
+                key={c}
+                className={`hidden sm:inline-flex items-center gap-0.5 text-sm font-bold ${CURRENCY_STYLE[c].text}`}
+                data-currency={c}
+                data-amount={Math.floor(player.wallet[c])}
+              >
+                <span aria-hidden="true">{CURRENCY_STYLE[c].icon}</span>
+                {Math.floor(player.wallet[c])}
+              </span>
+            ))}
+            {canDevelop && <UnseenBadge size="sm" className="absolute -top-1 -right-1" />}
+          </button>
+        )}
       </div>
     </div>
   );

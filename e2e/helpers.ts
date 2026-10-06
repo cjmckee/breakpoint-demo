@@ -224,6 +224,22 @@ export async function grantItem(page: Page, itemId: string): Promise<void> {
 }
 
 /**
+ * Adds training currency to the wallet. Scenario setup, the same action the
+ * Debug Panel's currency buttons call: the bundled saves start with an empty
+ * wallet, and earning it by training would tie a spending spec to payouts.
+ */
+export async function grantCurrency(
+  page: Page,
+  amounts: Parameters<GameState['changeCurrency']>[0],
+): Promise<void> {
+  await page.evaluate((delta) => {
+    const handle = window.__test__;
+    if (!handle) throw new Error('window.__test__ missing — is this a dev build?');
+    handle.game.getState().changeCurrency(delta);
+  }, amounts);
+}
+
+/**
  * Re-seeds the RNG mid-session, so the *next* thing that happens is
  * reproducible regardless of what the run did to get here.
  */

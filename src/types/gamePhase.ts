@@ -50,6 +50,7 @@ export type GamePhase =
   | { type: 'relationships' }
   | { type: 'shop' }
   | { type: 'archetype' }
+  | { type: 'development' }
   | { type: 'challenges' };
 
 // ============================================================================

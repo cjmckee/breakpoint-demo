@@ -153,3 +153,11 @@ export function purchase(player: Player, plan: readonly StatName[]): OperationRe
     timestamp: Date.now(),
   };
 }
+
+/** Whether the player can afford at least one +1 right now (the menu's badge). */
+export function canBuyAny(player: Player): boolean {
+  return STAT_NAMES.some((stat) => {
+    const value = getStat(player.stats, stat);
+    return value < MAX_STAT && canAfford(player.wallet, priceOf(stat, value));
+  });
+}
