@@ -9,6 +9,7 @@ import { UnseenBadge } from './ui/UnseenBadge';
 import {
   TENNIS_TERMS,
   STATS_GUIDE,
+  CURRENCY_GUIDE,
   SURFACE_GUIDE,
   SCORING_GUIDE,
   KEY_SHORTCUTS_GUIDE,
@@ -19,7 +20,7 @@ import {
 const SECTION_CONTENT: Record<EncyclopediaSectionId, GlossarySection[]> = {
   scoring: SCORING_GUIDE,
   'tennis-terms': TENNIS_TERMS,
-  'stats-guide': STATS_GUIDE,
+  'stats-guide': [...STATS_GUIDE, ...CURRENCY_GUIDE],
   'surface-guide': SURFACE_GUIDE,
   'key-shortcuts': KEY_SHORTCUTS_GUIDE,
   'match-help': MATCH_HELP_GUIDE,

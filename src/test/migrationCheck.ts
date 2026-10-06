@@ -417,6 +417,16 @@ function main(): void {
     runMigrations({ ...migrated, shopItems: [] }, 10).state.shopItems.length === 0,
   );
 
+  console.log('\n  the 11 → 12 change itself:');
+  const held = { power: 7, quickness: 0, technique: 3, mind: 0 };
+  const seenSave = { ...migrated, player: { ...player, wallet: held, walletSeen: undefined } };
+  const seen = runMigrations(seenSave, 11).state.player!;
+  check(
+    'the last-seen wallet starts at the current wallet, so nothing reads as new',
+    JSON.stringify(seen.walletSeen) === JSON.stringify(held),
+    JSON.stringify(seen.walletSeen),
+  );
+
   console.log('\n── a save below the breaking floor is discarded ──');
   const stale = preConsolidationSave();
   const staleOutcome = runMigrations(stale, RESET_BEFORE_VERSION - 1);

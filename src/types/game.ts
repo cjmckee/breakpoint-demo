@@ -502,6 +502,8 @@ export interface Player {
 
   // Training currencies, earned from training, matches, story and challenges and spent on stats
   wallet: Wallet;
+  /** The wallet as it stood when Development was last opened; currency above it is new. */
+  walletSeen: Wallet;
 
   // Phase-based archetype identity (the DECISION layer; see types/archetype.ts)
   archetypeProfile: ArchetypeProfile;

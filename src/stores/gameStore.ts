@@ -1319,12 +1319,21 @@ export const useGameStore = create<GameState>()(
           case 'shop':
             set({ gamePhase: { type: 'shop' } });
             break;
-          case 'archetype':
-            set({ gamePhase: { type: 'archetype' } });
-            break;
           case 'development':
-            set({ gamePhase: { type: 'development' } });
+          case 'archetype': {
+            // One screen for all development: currency buys stats on one tab,
+            // specialization points buy specialties on the other. Opening it is
+            // seeing the new currency, so that part of the badge goes out.
+            const { player } = get();
+            set({
+              gamePhase: {
+                type: 'development',
+                tab: target === 'archetype' ? 'specialties' : 'stats',
+              },
+              ...(player ? { player: { ...player, walletSeen: player.wallet } } : {}),
+            });
             break;
+          }
           case 'challenges':
             set({ gamePhase: { type: 'challenges' } });
             break;
@@ -2347,7 +2356,7 @@ export const useGameStore = create<GameState>()(
         }
         const result = purchase(player, plan);
         if (result.success && result.data) {
-          set({ player: result.data });
+          set({ player: { ...result.data, walletSeen: result.data.wallet } });
           // A purchase can satisfy a statThreshold challenge.
           get().checkChallengeCompletion();
         }

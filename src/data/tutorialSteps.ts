@@ -3,7 +3,7 @@ import { TutorialStep } from '../hooks/useTutorialSpotlight';
 export type LiveMatchTarget = 'court' | 'log' | 'your-stats';
 export type KmTarget = 'header' | 'options-posture' | 'options-matchup' | 'options-effects';
 export type KmResultTarget = 'outcome' | 'tactic' | 'effects';
-export type MainMenuTarget = 'status' | 'stats' | 'actions' | 'challenges';
+export type MainMenuTarget = 'status' | 'stats' | 'actions' | 'develop' | 'challenges';
 
 // Runs once on day 1. Week one has no matches and no shop, so the daily loop is
 // all the player has — these steps say what a slot is worth, why Rest is not a
@@ -22,7 +22,12 @@ export const MAIN_MENU_TUTORIAL_STEPS: TutorialStep<MainMenuTarget>[] = [
   {
     target: 'actions',
     title: 'Where to start',
-    body: "Training is a surefire way to improve your stats. As one of the newest members of the Academy, your stats are quite weak to begin with, so you'll need to focus most of your early timeslots on developing your skills. Resting during the morning, afternoon, or evening uses a timeslot and only recovers 20 energy, so try to only Rest in a pinch!",
+    body: "Training is how you get better. Each session pays training currency — Power, Quickness, Technique and Mind — and each shot pays its own mix. As one of the newest members of the Academy, your stats are quite weak to begin with, so you'll need to focus most of your early timeslots on training. Resting during the morning, afternoon, or evening uses a timeslot and only recovers 20 energy, so try to only Rest in a pinch!",
+  },
+  {
+    target: 'develop',
+    title: 'Spend it here',
+    body: 'Develop is where currency becomes stats. Every stat has a recipe — a serve point costs mostly Power, a focus point costs Mind — and points get pricier as a stat climbs past 40, 60 and 80. Plan a few points, check the cost, then confirm. Bought stats are permanent, so spend on the shots you want to win with.',
   },
   {
     target: 'challenges',

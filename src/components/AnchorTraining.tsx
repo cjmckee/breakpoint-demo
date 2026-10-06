@@ -5,8 +5,8 @@
  *   1. Pick a CORE shot to work on.
  *   2. Play that shot's themed minigame — three pass/fail attempts, each clean rep
  *      adds to the payout — or Quick Sim for a guaranteed one rep.
- *   3. The session pays training currency, mostly in the shot's recipe currencies,
- *      to spend on the Development screen.
+ *   3. The session pays the shot's currency mix (TRAINING_MIXES), to spend on the
+ *      Development screen.
  */
 
 import React, { useState } from 'react';
@@ -116,7 +116,7 @@ export const AnchorTraining: React.FC = () => {
                   <span className="w-16 text-pixel-text-muted">
                     {reps} rep{reps === 1 ? '' : 's'}
                   </span>
-                  <CurrencyAmounts amounts={trainingPayout(step.core, reps)} />
+                  <CurrencyAmounts amounts={trainingPayout(step.core, reps)} labelled />
                 </div>
               ))}
             </div>
@@ -149,8 +149,7 @@ export const AnchorTraining: React.FC = () => {
           <div>
             <h1 className="text-3xl font-bold text-pixel-text">Training</h1>
             <p className="text-pixel-text-muted mt-1">
-              Pick a shot to work on. Each pays training currency — mostly in what that shot is made
-              of — to spend on stats in Development.
+              Pick a shot to work on. Each pays its own mix of currency to spend in Development.
             </p>
           </div>
           {/* The cost is the same for every shot, so it belongs here and not on all five cards. */}
@@ -219,7 +218,7 @@ export const AnchorTraining: React.FC = () => {
                       <span className="text-[10px] uppercase tracking-wider text-pixel-text-muted">
                         Up to
                       </span>
-                      <CurrencyAmounts amounts={best} />
+                      <CurrencyAmounts amounts={best} labelled />
                     </span>
                   </span>
                 </button>

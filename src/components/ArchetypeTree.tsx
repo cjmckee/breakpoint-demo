@@ -112,7 +112,12 @@ const RespecAction: React.FC<{ disabled?: boolean; onClick: () => void }> = ({
   </button>
 );
 
-export const ArchetypeTree: React.FC = () => {
+interface ArchetypeTreeProps {
+  /** Inside the Development screen: no page frame or back button of its own. */
+  embedded?: boolean;
+}
+
+export const ArchetypeTree: React.FC<ArchetypeTreeProps> = ({ embedded = false }) => {
   const player = useGameStore((state) => state.player);
   const navigateTo = useGameStore((state) => state.navigateTo);
   const specializePhase = useGameStore((state) => state.specializePhase);
@@ -130,8 +135,11 @@ export const ArchetypeTree: React.FC = () => {
   // Club Player (tier 1) is capped at specialty tier I — upgrading unlocks at Regional Competitor.
   const isTierCapped = player.tier <= 1;
 
-  if (!profile.broad) {
-    return (
+  /** The screen frame when standalone; nothing extra when embedded. */
+  const frame = (body: React.ReactNode): React.ReactElement =>
+    embedded ? (
+      <>{body}</>
+    ) : (
       <div className="min-h-screen bg-pixel-bg p-4">
         <div className="max-w-7xl mx-auto">
           <div className="mb-6">
@@ -139,14 +147,21 @@ export const ArchetypeTree: React.FC = () => {
               ← Back to Menu
             </Button>
           </div>
-          <Card title="Player Archetype">
-            <p className="text-pixel-text-muted">
-              You haven't defined your playing identity yet. Coach Gonzalez will help you choose
-              what kind of player you want to be — come back after meeting with him.
-            </p>
-          </Card>
+          {body}
         </div>
       </div>
+    );
+
+  if (!profile.broad) {
+    return frame(
+      <>
+        <Card title="Player Archetype">
+          <p className="text-pixel-text-muted">
+            You haven't defined your playing identity yet. Coach Gonzalez will help you choose what
+            kind of player you want to be — come back after meeting with him.
+          </p>
+        </Card>
+      </>,
     );
   }
 
@@ -313,134 +328,126 @@ export const ArchetypeTree: React.FC = () => {
     );
   };
 
-  return (
-    <div className="min-h-screen bg-pixel-bg p-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <Button variant="secondary" onClick={() => navigateTo('idle')}>
-            ← Back to Menu
-          </Button>
+  return frame(
+    <>
+      <Card title="Playing Identity" className="mb-4">
+        {/* role legend */}
+        <div className="flex flex-wrap gap-4 mb-3 text-[11px]">
+          {(Object.keys(ROLE_META) as SpecialtyRole[]).map((r) => (
+            <span
+              key={r}
+              className="inline-flex items-center gap-1.5 uppercase tracking-wide text-pixel-text-muted"
+            >
+              <span
+                className="inline-block w-3 h-3"
+                style={{
+                  backgroundColor: ROLE_META[r].color,
+                  boxShadow: `0 0 8px ${ROLE_META[r].color}`,
+                }}
+              />
+              {ROLE_META[r].label}
+            </span>
+          ))}
         </div>
 
-        <Card title="Playing Identity" className="mb-4">
-          {/* role legend */}
-          <div className="flex flex-wrap gap-4 mb-3 text-[11px]">
-            {(Object.keys(ROLE_META) as SpecialtyRole[]).map((r) => (
-              <span
-                key={r}
-                className="inline-flex items-center gap-1.5 uppercase tracking-wide text-pixel-text-muted"
+        <div className="flex flex-wrap gap-4 items-stretch">
+          {/* The court */}
+          <div className="flex-[3] min-w-[320px]">
+            <div className="relative w-full" style={{ aspectRatio: '560 / 300' }}>
+              <svg
+                className="absolute inset-0 w-full h-full"
+                viewBox="0 0 560 300"
+                preserveAspectRatio="none"
+                aria-hidden="true"
               >
-                <span
-                  className="inline-block w-3 h-3"
-                  style={{
-                    backgroundColor: ROLE_META[r].color,
-                    boxShadow: `0 0 8px ${ROLE_META[r].color}`,
-                  }}
+                <defs>
+                  <linearGradient id="courtGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stopColor="#3d75bd" />
+                    <stop offset="0.5" stopColor="#3a6fb4" />
+                    <stop offset="1" stopColor="#33639f" />
+                  </linearGradient>
+                </defs>
+                <rect x="0" y="0" width="560" height="300" fill="#26406a" />
+                <rect x="20" y="20" width="520" height="260" fill="url(#courtGrad)" />
+                <rect
+                  x="20"
+                  y="20"
+                  width="520"
+                  height="260"
+                  fill="none"
+                  stroke="#f3f6ff"
+                  strokeWidth="2.5"
                 />
-                {ROLE_META[r].label}
-              </span>
-            ))}
+                <line x1="20" y1="52" x2="540" y2="52" stroke="#f3f6ff" strokeWidth="2" />
+                <line x1="20" y1="248" x2="540" y2="248" stroke="#f3f6ff" strokeWidth="2" />
+                <line x1="140" y1="52" x2="140" y2="248" stroke="#f3f6ff" strokeWidth="2" />
+                <line x1="420" y1="52" x2="420" y2="248" stroke="#f3f6ff" strokeWidth="2" />
+                <line x1="140" y1="150" x2="280" y2="150" stroke="#f3f6ff" strokeWidth="2" />
+                <line x1="280" y1="150" x2="420" y2="150" stroke="#f3f6ff" strokeWidth="2" />
+                <line x1="20" y1="150" x2="32" y2="150" stroke="#f3f6ff" strokeWidth="2" />
+                <line x1="528" y1="150" x2="540" y2="150" stroke="#f3f6ff" strokeWidth="2" />
+                <line
+                  x1="280"
+                  y1="14"
+                  x2="280"
+                  y2="286"
+                  stroke="#0d1526"
+                  strokeWidth="6"
+                  opacity="0.55"
+                />
+                <line
+                  x1="280"
+                  y1="14"
+                  x2="280"
+                  y2="286"
+                  stroke="#f3f6ff"
+                  strokeWidth="2.5"
+                  strokeDasharray="3 3"
+                />
+              </svg>
+              {ALL_PHASES.map(renderNode)}
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-4 items-stretch">
-            {/* The court */}
-            <div className="flex-[3] min-w-[320px]">
-              <div className="relative w-full" style={{ aspectRatio: '560 / 300' }}>
-                <svg
-                  className="absolute inset-0 w-full h-full"
-                  viewBox="0 0 560 300"
-                  preserveAspectRatio="none"
-                  aria-hidden="true"
-                >
-                  <defs>
-                    <linearGradient id="courtGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0" stopColor="#3d75bd" />
-                      <stop offset="0.5" stopColor="#3a6fb4" />
-                      <stop offset="1" stopColor="#33639f" />
-                    </linearGradient>
-                  </defs>
-                  <rect x="0" y="0" width="560" height="300" fill="#26406a" />
-                  <rect x="20" y="20" width="520" height="260" fill="url(#courtGrad)" />
-                  <rect
-                    x="20"
-                    y="20"
-                    width="520"
-                    height="260"
-                    fill="none"
-                    stroke="#f3f6ff"
-                    strokeWidth="2.5"
-                  />
-                  <line x1="20" y1="52" x2="540" y2="52" stroke="#f3f6ff" strokeWidth="2" />
-                  <line x1="20" y1="248" x2="540" y2="248" stroke="#f3f6ff" strokeWidth="2" />
-                  <line x1="140" y1="52" x2="140" y2="248" stroke="#f3f6ff" strokeWidth="2" />
-                  <line x1="420" y1="52" x2="420" y2="248" stroke="#f3f6ff" strokeWidth="2" />
-                  <line x1="140" y1="150" x2="280" y2="150" stroke="#f3f6ff" strokeWidth="2" />
-                  <line x1="280" y1="150" x2="420" y2="150" stroke="#f3f6ff" strokeWidth="2" />
-                  <line x1="20" y1="150" x2="32" y2="150" stroke="#f3f6ff" strokeWidth="2" />
-                  <line x1="528" y1="150" x2="540" y2="150" stroke="#f3f6ff" strokeWidth="2" />
-                  <line
-                    x1="280"
-                    y1="14"
-                    x2="280"
-                    y2="286"
-                    stroke="#0d1526"
-                    strokeWidth="6"
-                    opacity="0.55"
-                  />
-                  <line
-                    x1="280"
-                    y1="14"
-                    x2="280"
-                    y2="286"
-                    stroke="#f3f6ff"
-                    strokeWidth="2.5"
-                    strokeDasharray="3 3"
-                  />
-                </svg>
-                {ALL_PHASES.map(renderNode)}
+          {/* Stat panel: archetype · currencies · live tendencies */}
+          <aside className="w-full sm:w-44 flex flex-col gap-3 border-2 border-pixel-border bg-pixel-card p-3">
+            <div>
+              <div className="text-[9px] uppercase tracking-widest text-pixel-text-muted">
+                Archetype
+              </div>
+              <div className="text-sm font-bold text-pixel-text leading-tight mt-0.5">
+                {BROAD_ARCHETYPE_LABELS[profile.broad] ?? profile.broad}
               </div>
             </div>
+            <div className="flex gap-2">
+              <div className="flex-1 border border-pixel-border bg-pixel-bg py-1.5 text-center">
+                <div className="font-mono text-lg font-bold text-pixel-accent leading-none">
+                  {points}
+                </div>
+                <div className="text-[8.5px] uppercase tracking-wide text-pixel-text-muted mt-1">
+                  Spec Points
+                </div>
+              </div>
+              <div className="flex-1 border border-pixel-border bg-pixel-bg py-1.5 text-center">
+                <div className="font-mono text-lg font-bold text-yellow-400 leading-none">
+                  {tokens}
+                </div>
+                <div className="text-[8.5px] uppercase tracking-wide text-pixel-text-muted mt-1">
+                  Respec Tokens
+                </div>
+              </div>
+            </div>
+            <div>
+              <div className="text-[9px] uppercase tracking-widest text-pixel-text-muted mb-1.5">
+                Tendencies
+              </div>
+              <TendencyBars playStyle={playStyle} />
+            </div>
+          </aside>
+        </div>
+      </Card>
 
-            {/* Stat panel: archetype · currencies · live tendencies */}
-            <aside className="w-full sm:w-44 flex flex-col gap-3 border-2 border-pixel-border bg-pixel-card p-3">
-              <div>
-                <div className="text-[9px] uppercase tracking-widest text-pixel-text-muted">
-                  Archetype
-                </div>
-                <div className="text-sm font-bold text-pixel-text leading-tight mt-0.5">
-                  {BROAD_ARCHETYPE_LABELS[profile.broad] ?? profile.broad}
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <div className="flex-1 border border-pixel-border bg-pixel-bg py-1.5 text-center">
-                  <div className="font-mono text-lg font-bold text-pixel-accent leading-none">
-                    {points}
-                  </div>
-                  <div className="text-[8.5px] uppercase tracking-wide text-pixel-text-muted mt-1">
-                    Spec Points
-                  </div>
-                </div>
-                <div className="flex-1 border border-pixel-border bg-pixel-bg py-1.5 text-center">
-                  <div className="font-mono text-lg font-bold text-yellow-400 leading-none">
-                    {tokens}
-                  </div>
-                  <div className="text-[8.5px] uppercase tracking-wide text-pixel-text-muted mt-1">
-                    Respec Tokens
-                  </div>
-                </div>
-              </div>
-              <div>
-                <div className="text-[9px] uppercase tracking-widest text-pixel-text-muted mb-1.5">
-                  Tendencies
-                </div>
-                <TendencyBars playStyle={playStyle} />
-              </div>
-            </aside>
-          </div>
-        </Card>
-
-        {renderDrawer()}
-      </div>
-    </div>
+      {renderDrawer()}
+    </>,
   );
 };

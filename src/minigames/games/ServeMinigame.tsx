@@ -3,14 +3,14 @@
  *
  * The toss floats up and drifts to a random side. Slide your strike zone under it and
  * strike while the ball is in the pocket. Each of three tosses is one attempt — a clean
- * strike banks a support. Slow ball + a wide pocket keep it fair despite the movement.
+ * strike banks a clean rep. Slow ball + a wide pocket keep it fair despite the movement.
  * See docs/training-redesign.md.
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { audioManager } from '../../audio/AudioManager';
 import { MinigameShell, RoundPips, MinigameActionButton } from '../shared/MinigameShell';
-import { SupportResult, countNote } from '../shared/trainingReadout';
+import { RepResult, countNote } from '../shared/trainingReadout';
 import type { MinigameProps } from '../types';
 import { useMinigameRounds } from '../shared/useMinigameRounds';
 import { Sparks, ComboBadge, useHitstop, type Burst } from '../shared/minigameJuice';
@@ -217,7 +217,7 @@ export const ServeMinigame: React.FC<MinigameProps> = ({
           </div>
 
           {rounds.phase === 'done' ? (
-            <SupportResult
+            <RepResult
               count={rounds.successes}
               note={countNote(
                 rounds.successes,

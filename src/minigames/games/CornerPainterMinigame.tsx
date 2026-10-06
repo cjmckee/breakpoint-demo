@@ -4,13 +4,13 @@
  * A two-axis placement game. A vertical sweep locks the sideline on the first press, a
  * horizontal sweep locks the depth on the second — land the ball on the target ring.
  * The target is large and forgiving; the skill is the double-lock. Three corners, each
- * a clean landing banks a support. See docs/training-redesign.md.
+ * a clean landing banks a clean rep. See docs/training-redesign.md.
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { audioManager } from '../../audio/AudioManager';
 import { MinigameShell, RoundPips, MinigameActionButton } from '../shared/MinigameShell';
-import { SupportResult, countNote } from '../shared/trainingReadout';
+import { RepResult, countNote } from '../shared/trainingReadout';
 import type { MinigameProps } from '../types';
 import { useMinigameRounds } from '../shared/useMinigameRounds';
 import { Sparks, ComboBadge, useHitstop, type Burst } from '../shared/minigameJuice';
@@ -141,7 +141,7 @@ export const CornerPainterMinigame: React.FC<MinigameProps> = ({
           </div>
 
           {rounds.phase === 'done' ? (
-            <SupportResult
+            <RepResult
               count={rounds.successes}
               note={countNote(
                 rounds.successes,

@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { grantCurrency, loadSave, readGame } from './helpers';
 // The real pricing, so the expected cost cannot drift from the game's.
-import { getStat, planCost } from '../src/game/StatDevelopment';
+import { getStat, planCost, priceOf } from '../src/game/StatDevelopment';
 
 /**
  * Drives the Development screen: plan a few +1s, confirm, and check the model.
@@ -22,22 +22,26 @@ test('a confirmed plan raises the stats and charges the plan cost', async ({ pag
   await expect(page.getByTestId('action-development')).toBeVisible();
   await page.getByTestId('action-development').click();
   await expect(page.getByTestId('development-wallet')).toBeVisible();
+  // The bar only appears once something is added.
+  await expect(page.getByTestId('development-plan-bar')).toHaveCount(0);
 
   await page.getByTestId('development-plus-focus').click();
   await page.getByTestId('development-plus-focus').click();
   await page.getByTestId('development-plus-serve').click();
   await expect(page.getByTestId('development-stat-focus')).toHaveAttribute('data-planned', '2');
-  // The row says what the planned points cost and what the next one would.
-  await expect(page.getByTestId('development-planned-focus')).toContainText('Planned +2');
-  await expect(page.getByTestId('development-next-focus')).toContainText('Next +1');
-  await expect(page.getByTestId('development-planned-forehand')).toHaveCount(0);
+  await expect(page.getByTestId('development-plan-bar')).toBeVisible();
+  // The row's cost is the next point's, so it moves as points are added.
+  const nextFocus = priceOf('focus', getStat(player.stats, 'focus') + 2);
+  await expect(
+    page.getByTestId('development-cost-focus').locator('[data-currency="mind"]'),
+  ).toHaveAttribute('data-amount', String(nextFocus.mind));
   // Only currencies the plan spends show their old balance.
   await expect(
     page.getByTestId('development-wallet').locator('[data-currency="quickness"]'),
   ).not.toContainText('→');
 
-  // Undo drops the last +1, not the first.
-  await page.getByTestId('development-undo').click();
+  // The row's − takes a point back off.
+  await page.getByTestId('development-minus-serve').click();
   await expect(page.getByTestId('development-stat-serve')).toHaveAttribute('data-planned', '0');
 
   const plan = ['focus', 'focus'] as const;
@@ -46,10 +50,10 @@ test('a confirmed plan raises the stats and charges the plan cost', async ({ pag
     page.getByTestId('development-wallet').locator('[data-currency="mind"]'),
   ).toHaveAttribute('data-amount', String(Math.floor(player.wallet.mind - (cost.mind ?? 0))));
 
-  await page.getByTestId('development-review').click();
-  await expect(page.getByTestId('development-confirm-panel')).toBeVisible();
+  // Buying is one tap: the costs are already on screen.
   await page.getByTestId('development-confirm').click();
   await expect(page.getByTestId('development-message')).toContainText('Bought 2');
+  await expect(page.getByTestId('development-plan-bar')).toHaveCount(0);
 
   const after = (await readGame(page)).player!;
   expect(getStat(after.stats, 'focus')).toBe(getStat(player.stats, 'focus') + 2);
@@ -63,7 +67,8 @@ test('a +1 the wallet cannot cover is disabled', async ({ page }) => {
 
   // The save starts with an empty wallet, so nothing is affordable.
   await expect(page.getByTestId('development-plus-focus')).toBeDisabled();
-  await expect(page.getByTestId('development-review')).toHaveCount(0);
+  await expect(page.getByTestId('development-needs-focus')).toBeVisible();
+  await expect(page.getByTestId('development-cost-focus')).toContainText('Needs');
 });
 
 test('training pays currency, which buys the anchor in Development', async ({ page }) => {
@@ -90,9 +95,52 @@ test('training pays currency, which buys the anchor in Development', async ({ pa
   await page.getByTestId('training-result-dismiss').click();
   await page.getByTestId('action-development').click();
   await page.getByTestId('development-plus-serve').click();
-  await page.getByTestId('development-review').click();
   await page.getByTestId('development-confirm').click();
   await expect(page.getByTestId('development-message')).toContainText('Bought 1');
   const bought = (await readGame(page)).player!;
   expect(bought.stats.core.serve).toBe(before.stats.core.serve + 1);
+});
+
+test('D opens Development from the menu and closes it again', async ({ page }) => {
+  await loadSave(page, SAVE, 7);
+  await page.keyboard.press('d');
+  await expect(page.getByTestId('development-wallet')).toBeVisible();
+  await page.keyboard.press('d');
+  await expect(page.getByTestId('action-development')).toBeVisible();
+});
+
+test('the Develop badge lights on new currency and goes out on a visit', async ({ page }) => {
+  await loadSave(page, SAVE, 7);
+  const badge = page.getByTestId('status-wallet');
+  await expect(badge).toHaveAttribute('data-new-currency', 'false');
+
+  // A session's pay is new currency; serve pays enough Power to buy something.
+  await page.getByTestId('action-training').click();
+  await page.getByTestId('training-anchor-serve').click();
+  await page.getByTestId('training-quick-sim').click();
+  await page.getByTestId('training-result-dismiss').click();
+  await expect(badge).toHaveAttribute('data-new-currency', 'true');
+  await expect(page.getByTestId('action-development')).toContainText('to spend');
+
+  // Looking at it is enough; nothing has to be bought.
+  await page.getByTestId('action-development').click();
+  await page.getByRole('button', { name: '← Back' }).click();
+  await expect(page.getByTestId('action-development')).not.toContainText('to spend');
+});
+
+test('Development holds both halves: stats and specialties', async ({ page }) => {
+  await loadSave(page, SAVE, 7);
+  await page.getByTestId('action-development').click();
+  await expect(page.getByTestId('development-stat-serve')).toBeVisible();
+  await expect(page.getByTestId('development-spec-points')).toBeVisible();
+
+  await page.getByTestId('development-tab-specialties').click();
+  // This save hasn't met the coach, so the tab explains how to unlock specialties.
+  await expect(page.getByText('Player Archetype')).toBeVisible();
+  await expect(page.getByTestId('development-stat-serve')).toHaveCount(0);
+  // The wallet stays: both resources are visible from either tab.
+  await expect(page.getByTestId('development-spec-points')).toBeVisible();
+
+  await page.getByTestId('development-tab-stats').click();
+  await expect(page.getByTestId('development-stat-serve')).toBeVisible();
 });

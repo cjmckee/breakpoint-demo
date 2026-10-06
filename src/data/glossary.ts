@@ -3,6 +3,11 @@
  * Tennis terminology and stat explanations for the in-game help system
  */
 
+import type { StatName } from '../types';
+import { CURRENCIES, CURRENCY_LABELS, PRICE_STEP, STAT_RECIPES } from '../config/economy';
+import { formatStatName } from '../config/statIcons';
+import { STAT_NAMES, priceBand } from '../game/StatDevelopment';
+
 export interface GlossaryEntry {
   term: string;
   definition: string;
@@ -243,6 +248,58 @@ export const STATS_GUIDE: GlossarySection[] = [
   },
 ];
 
+const recipeText = (stats: StatName[]): string =>
+  stats
+    .map(
+      (stat) =>
+        `${formatStatName(stat)} ${CURRENCIES.filter((c) => STAT_RECIPES[stat][c])
+          .map((c) => `${STAT_RECIPES[stat][c]} ${CURRENCY_LABELS[c]}`)
+          .join(' + ')}`,
+    )
+    .join('; ');
+
+const statsInBand = (band: 'cheap' | 'standard' | 'premium'): StatName[] =>
+  STAT_NAMES.filter((stat) => priceBand(stat) === band);
+
+/**
+ * How stats are bought. Recipes and steps are read from the economy config, so
+ * the guide cannot drift from the prices the Development screen charges.
+ */
+export const CURRENCY_GUIDE: GlossarySection[] = [
+  {
+    title: 'Training Currency',
+    entries: [
+      {
+        term: 'Power, Quickness, Technique, Mind',
+        definition:
+          'The four training currencies. Stats are not handed out — training, matches, story events and challenges pay currency, and you spend it on stats in Development.',
+      },
+      {
+        term: 'Earning',
+        definition:
+          'Each training shot pays its own mix (serve pays Power and Mind, backhand pays Technique and Quickness), more for every clean rep. A match pays mostly Mind, the rest by how each part of your game went. Story events and challenges pay too, and a bad decision can cost currency — never below zero.',
+      },
+      {
+        term: 'Recipes',
+        definition:
+          'Every stat has a recipe: the currency one point costs. Cheap stats cost 2 units, standard 3, premium 4.',
+      },
+      { term: 'Cheap', definition: recipeText(statsInBand('cheap')) },
+      { term: 'Standard', definition: recipeText(statsInBand('standard')) },
+      { term: 'Premium', definition: recipeText(statsInBand('premium')) },
+      {
+        term: 'Price steps',
+        definition: `A point costs its recipe below ${PRICE_STEP.from}, twice the recipe from ${PRICE_STEP.from}, three times from ${PRICE_STEP.from + PRICE_STEP.width}, and four times from ${PRICE_STEP.from + 2 * PRICE_STEP.width}. Spreading points is cheap; specialising is a choice you pay for.`,
+      },
+      {
+        term: 'Abilities',
+        definition:
+          'Abilities in the shop cost XP plus the currency their effect draws on — shot power costs Power, touch and spin Technique, movement Quickness, the mental game Mind. Off-court abilities cost XP only.',
+      },
+    ],
+  },
+];
+
 /**
  * Flat lookup of stat descriptions keyed by display label (e.g. "Serve", "Drop Shot").
  * Derived from STATS_GUIDE so the glossary stays the single source of truth — used by
@@ -300,6 +357,7 @@ export const KEY_SHORTCUTS_GUIDE: GlossarySection[] = [
       },
       { term: 'I', definition: 'Open / close your Inventory.' },
       { term: 'R', definition: 'Open / close the Relationships screen.' },
+      { term: 'D', definition: 'Open / close Development, where you spend training currency.' },
       { term: 'S', definition: 'Open / close the Shop. Only available once the shop is unlocked.' },
       { term: 'C', definition: 'Open / close the Calendar.' },
       { term: 'Escape', definition: 'Open / close the Main Menu.' },

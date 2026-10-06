@@ -26,6 +26,7 @@ import { readGame, playMatch, type TacticPolicy } from './helpers';
 import { calculateOverallRating } from '../src/utils/overallRating';
 import { TimeSlot } from '../src/types/game';
 import { ANCHOR_TRAINING_ENERGY_COST } from '../src/game/AnchorTrainingSystem';
+import { canBuyAny } from '../src/game/StatDevelopment';
 
 /**
  * True when the element is on screen and clickable.
@@ -56,6 +57,8 @@ export interface BotLog {
   /** Story event ids and the option taken, in order. */
   storyChoices: Array<{ event: string; option: string }>;
   itemsAcquired: number;
+  /** Stat points bought on the Development screen. */
+  statPointsBought: number;
   /** Phases the bot had no handler for — each one is a gap, not a pass. */
   unhandledPhases: string[];
   /** Snapshots of the headline numbers, one per in-game day. */
@@ -72,6 +75,7 @@ function emptyLog(): BotLog {
     storyEventsSeen: 0,
     storyChoices: [],
     itemsAcquired: 0,
+    statPointsBought: 0,
     unhandledPhases: [],
     daily: [],
   };
@@ -287,8 +291,15 @@ async function step(
           break;
       }
 
-      // Night has exactly one legal action, and it rolls the day over.
+      // Training pays currency, not stats, so a run that never spends never
+      // improves. Spend at night, once the day's earnings are in.
       const isNight = state.calendar.currentTimeSlot === TimeSlot.NIGHT;
+      if (isNight && state.player && canBuyAny(state.player)) {
+        await page.getByTestId('action-development').click();
+        return;
+      }
+
+      // Night has exactly one legal action, and it rolls the day over.
       if (isNight) {
         await page.getByTestId('action-rest').click();
         return;
@@ -330,6 +341,25 @@ async function step(
       await tile.click();
       await page.getByTestId('training-quick-sim').click();
       log.trainingSessions++;
+      return;
+    }
+
+    case 'development': {
+      // Plan up to a dozen points on whatever is affordable, top to bottom, then
+      // confirm. Each visit buys at least one point (the bot only comes here when
+      // canBuyAny), so repeated visits always make progress.
+      const plus = page.locator('[data-testid^="development-plus-"]:enabled');
+      let planned = 0;
+      while (planned < 12 && (await plus.count()) > 0) {
+        await plus.first().click();
+        planned++;
+      }
+      if (planned > 0) {
+        await page.getByTestId('development-confirm').click();
+        await expect(page.getByTestId('development-message')).toBeVisible();
+        log.statPointsBought += planned;
+      }
+      await page.getByRole('button', { name: '← Back' }).click();
       return;
     }
 
@@ -451,6 +481,7 @@ export function formatLog(log: BotLog): string {
   lines.push(`  key moments       : ${log.keyMomentsAnswered}`);
   lines.push(`  story events      : ${log.storyEventsSeen}`);
   lines.push(`  items acquired    : ${log.itemsAcquired}`);
+  lines.push(`  stat points bought: ${log.statPointsBought}`);
   lines.push('');
   lines.push('  day   energy  overall     xp');
   for (const d of log.daily) {

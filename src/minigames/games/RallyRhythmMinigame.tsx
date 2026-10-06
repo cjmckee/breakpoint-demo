@@ -3,7 +3,7 @@
  *
  * A three-track rhythm game. Each round fires a SET of three balls down random tracks
  * on a beat; tap that track's button the instant its ball crosses the strike line. Land
- * all three in the set to bank the support — three sets, nine balls. Fixed track
+ * all three in the set to bank a clean rep — three sets, nine balls. Fixed track
  * buttons (no moving), a dashed target ball on each track, and a pulsing strike line
  * keep the timing readable. See docs/training-redesign.md.
  */
@@ -11,7 +11,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { audioManager } from '../../audio/AudioManager';
 import { MinigameShell, RoundPips } from '../shared/MinigameShell';
-import { SupportResult, countNote } from '../shared/trainingReadout';
+import { RepResult, countNote } from '../shared/trainingReadout';
 import type { MinigameProps } from '../types';
 import { useMinigameRounds } from '../shared/useMinigameRounds';
 import { Sparks, ComboBadge, useHitstop, type Burst } from '../shared/minigameJuice';
@@ -220,7 +220,7 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({
           </div>
 
           {rounds.phase === 'done' ? (
-            <SupportResult
+            <RepResult
               count={rounds.successes}
               note={countNote(
                 rounds.successes,
