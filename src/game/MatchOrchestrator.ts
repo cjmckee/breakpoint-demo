@@ -36,6 +36,7 @@ import {
 import { PRESSURE_BANK, KEY_MOMENT_OPPONENT_DRAIN } from '../config/shotThresholds';
 import { abilityEffects } from '../core/EffectAggregator';
 import { fatigueAfterPoint, fatigueAfterRest } from '../core/fatigue';
+import { formAfterGame } from '../core/rhythm';
 import { MomentumEngine, ClutchLevel } from '../core/MomentumEngine';
 import { getPrimaryStatName } from '../core/shotStatMapping';
 import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds';
@@ -1225,7 +1226,7 @@ export class MatchOrchestrator {
 
   /**
    * Apply changeover (game end) or set-break stamina recovery to both players,
-   * scaled by each player's recovery stat.
+   * scaled by each player's recovery stat, and step each player's in-match form.
    */
   private applyRestRecovery(setCompleted: boolean): void {
     if (!this.playerStats || !this.opponentStats) return;
@@ -1239,6 +1240,9 @@ export class MatchOrchestrator {
       this.opponentStats.physical.stamina,
       setCompleted,
     );
+    for (const p of [this.playerProfile, this.opponentProfile]) {
+      if (p) p.matchForm = formAfterGame(p.matchForm, p.matchDayForm, p.stats.mental.focus);
+    }
   }
 
   /**

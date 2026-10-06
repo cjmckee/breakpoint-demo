@@ -213,6 +213,9 @@ export class PlayerProfile implements IPlayerProfile {
    */
   public matchForm: number = 0;
 
+  /** The match-day roll itself; in-match rhythm (core/rhythm.ts) drifts around it. */
+  public matchDayForm: number = 0;
+
   /**
    * Roll match-day form for the start of a match.
    *
@@ -230,6 +233,7 @@ export class PlayerProfile implements IPlayerProfile {
         : 0;
     const roll = Math.max(-1, Math.min(1, random() * 2 - 1 + moodBias));
     this.matchForm = roll * variance;
+    this.matchDayForm = this.matchForm;
   }
 
   // Experience

@@ -61,6 +61,7 @@ import {
   isOffensiveShot,
   SHOT_CLASSIFICATIONS,
   SLICE_TUNING,
+  BIG_POINT_NERVES,
 } from '../config/shotThresholds';
 
 import { random } from './random';
@@ -620,6 +621,21 @@ export class ShotCalculator {
       const totalVariance =
         RALLY_SHOT_VARIANCE.base + (incomingQuality / 100) * RALLY_SHOT_VARIANCE.qualityMultiplier;
       rallyVariance = (random() - 0.5) * 2 * totalVariance;
+    }
+
+    // Big-point nerves widen every source of shot variance on break, set and
+    // match points; focus steadies them.
+    const bigPoint = shotType.includes('serve')
+      ? context.pressure !== 'low'
+      : context.pressure === 'high';
+    if (bigPoint && BIG_POINT_NERVES.extraVariance > 0) {
+      const nerves =
+        1 +
+        BIG_POINT_NERVES.extraVariance *
+          (1 - BIG_POINT_NERVES.focusDamping * (stats.mental.focus / 100));
+      serveVariance *= nerves;
+      returnVariance *= nerves;
+      rallyVariance *= nerves;
     }
 
     // Situational modifiers

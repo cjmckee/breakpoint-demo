@@ -979,6 +979,38 @@ export const MATCH_FORM = {
   moodInfluence: 0.5,
 };
 
+/**
+ * In-match rhythm: form that moves during a match instead of being fixed at the
+ * first ball. After every game each player's form takes a random step and is
+ * pulled part of the way back toward their match-day roll, so it wanders in
+ * spells of a few games — a hot set, a cold patch — rather than deciding the
+ * match before it starts. Focus steadies it.
+ *
+ *   form += -reversion × (form - matchDayRoll) + swing × (1 - focusDamping × focus/100) × z
+ *
+ * with z roughly standard normal. Spread settles near swing / sqrt(2·reversion).
+ * swing 0 turns rhythm off (form stays at the match-day roll).
+ */
+export const MATCH_RHYTHM = {
+  swing: 0,
+  reversion: 0.2,
+  focusDamping: 0.5,
+};
+
+/**
+ * Big-point nerves: on break, set and match points, shot variance widens, so
+ * those points are less certain than routine ones. Focus narrows it.
+ *
+ *   variance × (1 + extraVariance × (1 - focusDamping × focus/100))
+ *
+ * Applies to serves at key moments and to rally and return shots under high
+ * pressure. extraVariance 0 turns nerves off.
+ */
+export const BIG_POINT_NERVES = {
+  extraVariance: 0,
+  focusDamping: 0.5,
+};
+
 // =======================
 // MATCH FATIGUE & MOMENTUM
 // =======================

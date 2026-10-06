@@ -18,6 +18,7 @@ import type {
   PointType,
 } from '../types';
 import { fatigueAfterPoint, fatigueAfterRest } from './fatigue';
+import { formAfterGame } from './rhythm';
 import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds';
 import { PlayerProfile } from './PlayerProfile';
 import { PointSimulator } from './PointSimulator';
@@ -319,9 +320,13 @@ export class MatchSimulator {
     });
     this.matchState.momentum = this.momentumEngine.get();
 
-    // Changeover / set-break stamina recovery, scaled by each player's recovery stat.
+    // Changeover / set-break stamina recovery, scaled by each player's recovery stat,
+    // and each player's form takes its game-to-game step.
     if (game) {
       this.applyRestRecovery(!!setWonBy);
+      for (const p of [this.config.player, this.config.opponent]) {
+        p.matchForm = formAfterGame(p.matchForm, p.matchDayForm, p.stats.mental.focus);
+      }
     }
   }
 
