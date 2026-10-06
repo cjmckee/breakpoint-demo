@@ -3,7 +3,7 @@
  * Ported from ai-slop-gaming and adapted for ai-slop-tennis
  */
 
-import type { StatName, PlayerStats } from './index';
+import type { CoreStats, StatName, PlayerStats } from './index';
 import type { ArchetypeProfile } from './archetype';
 import type { StoryEventResult } from './storyEvents';
 import type { Item, OwnedItem, EquipmentSlot } from './items';
@@ -67,10 +67,10 @@ export const EffectKey = {
   // --- Training effects ---
   // Fractional widening of training minigame success windows (0.10 = +10%).
   MINIGAME_WINDOW_BONUS: 'minigame_window_bonus',
-  // 0-1 chance that each stat a session grants is worth +2 instead of +1.
-  // A session grants ~3 stats, so 0.10 here really is ~+10% training gains.
+  // 0-1 chance a training session pays double. The key predates currency; saved
+  // items carry it, so it keeps its name.
   TRAINING_STAT_UPGRADE_CHANCE: 'training_stat_upgrade_chance',
-  // 0-1 chance a session draws one extra support beyond the reps it earned.
+  // 0-1 chance a session counts one extra rep beyond the reps it earned.
   // Only rolls on a session that landed at least one rep.
   TRAINING_BONUS_SUPPORT_CHANCE: 'training_bonus_support_chance',
 
@@ -372,7 +372,13 @@ export interface Activity {
 export interface TrainingResult extends Activity {
   type: 'training';
   source: 'training_activity';
-  statBoosts: StatBoosts;
+  /** The core stat the session was built around; its recipe shapes the payout. */
+  anchor: keyof CoreStats;
+  /** Clean reps landed, including a bonus rep from items. */
+  reps: number;
+  currencyGained: CurrencyAmounts;
+  /** The session's double-gains roll landed (EffectKey.TRAINING_STAT_UPGRADE_CHANCE). */
+  doubled: boolean;
   trainingType: string;
   trainingName: string;
   efficiency: number;
@@ -422,6 +428,8 @@ export interface MatchReward {
   abilitiesGained?: Ability[];
   itemsGained?: Item[];
   performanceBreakdown: PerformanceRewardBreakdown;
+  /** Training currency earned, split by how each area of the match went. */
+  currency: CurrencyAmounts;
 }
 
 export interface MatchResult extends Activity {

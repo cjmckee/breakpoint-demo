@@ -692,8 +692,11 @@ export const useGameStore = create<GameState>()(
         const { player, currentStatus } = get();
         if (!player) throw new Error('No player found');
 
-        // Apply stat boosts to player
-        let updatedPlayer = PlayerManager.applyStatBoosts(player, result.statBoosts);
+        // Training pays currency; stats are bought with it on the Development screen.
+        let updatedPlayer: Player = {
+          ...player,
+          wallet: applyCurrency(player.wallet, result.currencyGained),
+        };
 
         // Check for ability gained
         if (result.abilityGained) {
@@ -1685,7 +1688,10 @@ export const useGameStore = create<GameState>()(
         );
 
         // Apply rewards to player
-        let updatedPlayer = { ...state.player };
+        let updatedPlayer: Player = {
+          ...state.player,
+          wallet: applyCurrency(state.player.wallet, rewards.currency),
+        };
         if (rewards.abilitiesGained && rewards.abilitiesGained.length > 0) {
           // Only roll for abilities if this is non-tutorial
           if (countsForMilestones) {

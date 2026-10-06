@@ -30,16 +30,14 @@
  *           spread like authored content (statIncome.ts).
  * currency  The player picks the anchor that pays most of what its next few
  *           purchases are short of, leaning to its identity's anchors (ADAPT of
- *           the time; otherwise one of those anchors). Training pays
- *           (TRAIN_BASE + TRAIN_PER_REP × reps) × INCOME_SCALE units:
- *           TRAIN_GENERAL_SHARE split evenly, TRAIN_MIND_SHARE as Mind, the rest
- *           in the anchor's recipe ratio. Story and challenges pay the same stat
+ *           the time; otherwise one of those anchors). Training pays the
+ *           anchor's mix (TRAINING_MIXES) × (reps + 1). Story and challenges pay the same stat
  *           points as today through each stat's recipe; the shop no longer sells
  *           stats, so SHOP_SHARE of OTHER_PER_DAY is dropped. Matches pay
- *           MATCH_UNITS × (0.5 + overall/100) × INCOME_SCALE, MATCH_MIND_SHARE of
- *           it Mind and the rest by MatchRewardSystem's per-area scores
- *           (serving→Power, returning→Quickness, rally→Technique,
- *           net→Quickness+Technique, mental→Mind). Each evening the player buys
+ *           CurrencyIncome.matchPayout: a base by result (lost 2/2/2/5, won
+ *           3/3/3/6) plus MATCH_POOL × overall/100 by MatchRewardSystem's
+ *           per-area scores (serving→Power, returning→Quickness,
+ *           rally→Technique, net→Quickness+Technique, mental→Mind). Each evening the player buys
  *           toward its shape (SPEND, see buyTowardShape).
  *
  * Readiness is measured at each CHECK day against that day's team-match
@@ -52,8 +50,7 @@
  *      DAYS=23  CHECK=15,19,23  MATCH_EVERY=2  REPS_P=0.7  ADAPT=0.7
  *      KEY_W=0.8,1.2  OFF_W=0.25,0.55
  *      OTHER_PER_DAY=2.2  SHOP_SHARE=0.25  INCOME_SCALE=1.2
- *      TRAIN_BASE=2  TRAIN_PER_REP=3  TRAIN_GENERAL_SHARE=0.2  TRAIN_MIND_SHARE=0.1
- *      MATCH_UNITS=16  MATCH_MIND_SHARE=0.6  EXCHANGE=0
+ *      MATCH_POOL=20  EXCHANGE=0
  *      SPEND=patient|affordable|impatient  (see buyTowardShape)  OVERBUILD=8
  *      SYSTEMS=today,currency  STEP_FROM=40 (statEconomy price steps)
  *      STATS=1 prints every stat of the mean build instead of the lowest/top three
@@ -82,7 +79,7 @@ import { PlayerProfile } from '../../core/PlayerProfile';
 import {
   INCOME_SCALE as ECONOMY_INCOME_SCALE,
   MATCH_PAYOUT,
-  TRAINING_PAYOUT,
+  TRAINING_MIXES,
 } from '../../config/economy';
 import { abilityEffects } from '../../core/EffectAggregator';
 import { ABILITY_DEFINITIONS } from '../../data/abilities';
@@ -93,7 +90,6 @@ import {
   RECIPES,
   canAfford,
   earn,
-  inRatio,
   pay,
   priceOf,
   unitsOf,
@@ -105,11 +101,9 @@ import { MatchSimulator } from '../../core/MatchSimulator';
 import { calculateOverallRating } from '../../utils/overallRating';
 import { PlayerManager } from '../../game/PlayerManager';
 import { MatchRewardSystem } from '../../game/MatchRewardSystem';
-import {
-  buildAnchorTrainingResult,
-  recentSupportsFrom,
-  type CoreStat,
-} from '../../game/AnchorTrainingSystem';
+import type { CoreStat } from '../../game/AnchorTrainingSystem';
+import { matchPayout, trainingPayout } from '../../game/CurrencyIncome';
+import { legacyTrainingBoosts } from './legacyTraining';
 import {
   OPPONENTS_BY_TIER,
   getScaledOpponentStats,
@@ -150,12 +144,9 @@ const REPS_P = env('REPS_P', 0.7);
 const OTHER_PER_DAY = env('OTHER_PER_DAY', 2.2);
 const SHOP_SHARE = env('SHOP_SHARE', 0.25);
 const INCOME_SCALE = env('INCOME_SCALE', ECONOMY_INCOME_SCALE);
-const TRAIN_BASE = env('TRAIN_BASE', TRAINING_PAYOUT.base);
-const TRAIN_PER_REP = env('TRAIN_PER_REP', TRAINING_PAYOUT.perRep);
-const MATCH_UNITS = env('MATCH_UNITS', MATCH_PAYOUT.units);
-const MATCH_MIND_SHARE = env('MATCH_MIND_SHARE', MATCH_PAYOUT.mindShare);
-const TRAIN_MIND_SHARE = env('TRAIN_MIND_SHARE', TRAINING_PAYOUT.mindShare);
-const TRAIN_GENERAL_SHARE = env('TRAIN_GENERAL_SHARE', TRAINING_PAYOUT.generalShare);
+const MATCH_POOL = env('MATCH_POOL', MATCH_PAYOUT.pool);
+/** The game's payout functions, at the rates above (env overrides included). */
+const MATCH_RATES = { ...MATCH_PAYOUT, pool: MATCH_POOL };
 /** Ability shopping (abilityEconomy.ts). ABILITIES=0 turns it off. */
 const ABILITIES_ON = process.env.ABILITIES !== '0';
 /** Buy an ability when its point-win per currency unit is at least this (a typical stat buy). */
@@ -622,8 +613,10 @@ function anchorCurrency(s: PlayerStats, wallet: Wallet, w: Weights, id: Identity
   for (const c of CURRENCIES) need[c] = Math.max(0, need[c] - wallet[c]);
   if (unitsOf(need) === 0) return pick(id.anchors);
   const score = (a: CoreStat): number =>
-    CURRENCIES.reduce((t, c) => t + need[c] * ((RECIPES[a][c] ?? 0) / unitsOf(RECIPES[a])), 0) *
-    (id.anchors.includes(a) ? 1 : 0.6);
+    CURRENCIES.reduce(
+      (t, c) => t + need[c] * ((TRAINING_MIXES[a][c] ?? 0) / unitsOf(TRAINING_MIXES[a])),
+      0,
+    ) * (id.anchors.includes(a) ? 1 : 0.6);
   return [...ANCHORS].sort((x, y) => score(y) - score(x))[0];
 }
 
@@ -707,17 +700,7 @@ function payMatch(
 ): { perf: string; xp: number } {
   const rewards = silently(() => MatchRewardSystem.calculateRewards(ms, 1, won));
   const perf = rewards.performanceBreakdown;
-  const units = MATCH_UNITS * (0.5 + perf.overallScore / 100) * INCOME_SCALE;
-  const areaUnits = units * (1 - MATCH_MIND_SHARE);
-  const area = {
-    power: perf.servingScore,
-    quickness: perf.returningScore + perf.netPlayScore / 2,
-    technique: perf.rallyScore + perf.netPlayScore / 2,
-    mind: perf.mentalScore,
-  };
-  const areaTotal = Object.values(area).reduce((a, b) => a + b, 0) || 1;
-  for (const c of CURRENCIES) wallet[c] += (areaUnits * area[c]) / areaTotal;
-  wallet.mind += units * MATCH_MIND_SHARE;
+  earn(wallet, matchPayout(perf, won, MATCH_RATES));
   return {
     perf:
       `perf ${perf.overallScore.toFixed(0)} (serve ${perf.servingScore.toFixed(0)}, ` +
@@ -869,15 +852,10 @@ function career(
         ledger.slots.train++;
         ledger.anchors[core]++;
         if (system === 'today') {
-          const result = buildAnchorTrainingResult(core, n, recentSupportsFrom(recent));
-          recent = result.statBoosts;
-          applyBoosts(stats, result.statBoosts);
+          recent = legacyTrainingBoosts(core, n, recent);
+          applyBoosts(stats, recent);
         } else {
-          const units = (TRAIN_BASE + TRAIN_PER_REP * n) * INCOME_SCALE;
-          const general = units * TRAIN_GENERAL_SHARE;
-          earn(wallet, inRatio(RECIPES[core], units - general - units * TRAIN_MIND_SHARE));
-          wallet.mind += units * TRAIN_MIND_SHARE;
-          for (const c of CURRENCIES) wallet[c] += general / CURRENCIES.length;
+          earn(wallet, trainingPayout(core, n));
           credit('training', walletBefore);
           note(
             `  ${slotName} train ${core} — ${n}/3 reps → +${fmtAmounts(diffWallet(wallet, walletBefore))}`,
@@ -1110,10 +1088,8 @@ function main(): void {
   console.log(
     `careerSim  RUNS=${RUNS} N=${N} DAYS=${DAYS} SPEND=${SPEND} ADAPT=${ADAPT} KEY_W=${KEY_W} ` +
       `OFF_W=${OFF_W} MATCH_EVERY=${MATCH_EVERY} REPS_P=${REPS_P} OTHER_PER_DAY=${OTHER_PER_DAY} ` +
-      `SHOP_SHARE=${SHOP_SHARE} INCOME_SCALE=${INCOME_SCALE} TRAIN_BASE=${TRAIN_BASE} ` +
-      `TRAIN_PER_REP=${TRAIN_PER_REP} TRAIN_GENERAL_SHARE=${TRAIN_GENERAL_SHARE} ` +
-      `TRAIN_MIND_SHARE=${TRAIN_MIND_SHARE} MATCH_UNITS=${MATCH_UNITS} ` +
-      `MATCH_MIND_SHARE=${MATCH_MIND_SHARE} EXCHANGE=${EXCHANGE}`,
+      `SHOP_SHARE=${SHOP_SHARE} INCOME_SCALE=${INCOME_SCALE} MATCH_POOL=${MATCH_POOL} ` +
+      `EXCHANGE=${EXCHANGE}`,
   );
   console.log(
     [

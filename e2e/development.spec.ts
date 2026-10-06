@@ -65,3 +65,34 @@ test('a +1 the wallet cannot cover is disabled', async ({ page }) => {
   await expect(page.getByTestId('development-plus-focus')).toBeDisabled();
   await expect(page.getByTestId('development-review')).toHaveCount(0);
 });
+
+test('training pays currency, which buys the anchor in Development', async ({ page }) => {
+  await loadSave(page, SAVE, 7);
+  const before = (await readGame(page)).player!;
+
+  await page.getByTestId('action-training').click();
+  await page.getByTestId('training-anchor-serve').click();
+  await page.getByTestId('training-quick-sim').click();
+
+  // Quick Sim is one clean rep. The payout is the game's own function, so this
+  // pins that the wallet got exactly what the result says, not the formula.
+  await expect(page.getByTestId('training-result-currency')).toBeVisible();
+  const trained = (await readGame(page)).player!;
+  const last = (await readGame(page)).activityHistory[0];
+  expect(last.type).toBe('training');
+  if (last.type !== 'training') return;
+  for (const c of ['power', 'quickness', 'technique', 'mind'] as const) {
+    expect(trained.wallet[c]).toBe(before.wallet[c] + (last.currencyGained[c] ?? 0));
+  }
+  expect(trained.stats.core.serve, 'training no longer grants stats').toBe(before.stats.core.serve);
+
+  // One serve rep pays more than a serve point costs at the ×1 step.
+  await page.getByTestId('training-result-dismiss').click();
+  await page.getByTestId('action-development').click();
+  await page.getByTestId('development-plus-serve').click();
+  await page.getByTestId('development-review').click();
+  await page.getByTestId('development-confirm').click();
+  await expect(page.getByTestId('development-message')).toContainText('Bought 1');
+  const bought = (await readGame(page)).player!;
+  expect(bought.stats.core.serve).toBe(before.stats.core.serve + 1);
+});

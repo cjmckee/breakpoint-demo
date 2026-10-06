@@ -56,7 +56,8 @@ import type {
 import { PlayerProfile } from '../../core/PlayerProfile';
 import { calculateOverallRating } from '../../utils/overallRating';
 import { CURRENCIES, RECIPES, canAfford, pay, priceOf, unitsOf, type Wallet } from './statEconomy';
-import { CORE_ANCHORS, CORE_ANCHOR_ORDER } from '../../game/AnchorTrainingSystem';
+import { CORE_ANCHOR_ORDER } from '../../game/AnchorTrainingSystem';
+import { SUPPORT_POOLS } from './legacyTraining';
 import { profileForArchetype, type LegacyArchetype } from '../../data/archetypeTree';
 import { playMatch } from './simMatch';
 const NONE: ArchetypeProfile = {
@@ -252,7 +253,7 @@ function trainingTargets(): StatName[] {
   const seq: StatName[] = [];
   for (let rep = 0; rep < 12; rep++) {
     for (const core of CORE_ANCHOR_ORDER) {
-      const pool = CORE_ANCHORS[core].supportPool;
+      const pool = SUPPORT_POOLS[core];
       seq.push(core, pool[(rep * 2) % pool.length], pool[(rep * 2 + 1) % pool.length]);
     }
   }

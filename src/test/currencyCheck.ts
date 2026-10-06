@@ -6,6 +6,7 @@
  *   - a plan of +1s is priced at each point's starting value, in order
  *   - losses clamp each currency at zero, gains add
  *   - a purchase applies all of a plan or none of it, and refuses what it can't pay
+ *   - training and matches pay whole units, in the shapes the economy promises
  *
  * Run: npx tsx src/test/currencyCheck.ts  (part of npm test)
  */
@@ -13,6 +14,12 @@
 import type { Player } from '../types/game';
 import { CURRENCIES, STAT_RECIPES } from '../config/economy';
 import { PlayerManager } from '../game/PlayerManager';
+import {
+  matchPayout,
+  matchPayoutLines,
+  roundAmounts,
+  trainingPayout,
+} from '../game/CurrencyIncome';
 import {
   STAT_NAMES,
   applyCurrency,
@@ -135,6 +142,139 @@ function main(): void {
   );
   check('a stat at 100 cannot be bought', !capped.success, capped.error);
   check('an empty plan fails', !purchase(rich, []).success);
+
+  console.log('\n── income ──');
+  const rounded = roundAmounts({ power: 2.4, quickness: 2.4, technique: 2.4, mind: 0.8 });
+  check(
+    'rounding keeps the rounded total and pays whole units',
+    unitsOf(rounded) === 8 && CURRENCIES.every((c) => Number.isInteger(rounded[c] ?? 0)),
+    JSON.stringify(rounded),
+  );
+  const serve3 = trainingPayout('serve', 3);
+  check(
+    'a clean serve session pays its mix four times: 8 Power, 4 Mind',
+    serve3.power === 8 && serve3.mind === 4 && Object.keys(serve3).length === 2,
+    JSON.stringify(serve3),
+  );
+  check(
+    'a session with no clean reps pays the mix once',
+    JSON.stringify(trainingPayout('serve', 0)) === JSON.stringify({ power: 2, mind: 1 }),
+  );
+  check(
+    'every rep adds the same currencies — no strays from rounding',
+    (['serve', 'forehand', 'backhand', 'return', 'net'] as const).every((a) =>
+      [0, 1, 2, 3].every(
+        (r) =>
+          JSON.stringify(Object.keys(trainingPayout(a, r))) ===
+          JSON.stringify(Object.keys(trainingPayout(a, 0))),
+      ),
+    ),
+  );
+  check(
+    'a doubled session pays twice',
+    JSON.stringify(trainingPayout('backhand', 2, true)) ===
+      JSON.stringify({ quickness: 6, technique: 12 }),
+    JSON.stringify(trainingPayout('backhand', 2, true)),
+  );
+  check(
+    'every clean session pays the same total, 12 units',
+    (['serve', 'forehand', 'backhand', 'return', 'net'] as const).every(
+      (a) => unitsOf(trainingPayout(a, 3)) === 12,
+    ),
+  );
+  const perf = {
+    servingScore: 80,
+    returningScore: 20,
+    rallyScore: 20,
+    netPlayScore: 0,
+    mentalScore: 20,
+    overallScore: 50,
+  };
+  const lostFlat = matchPayout({ ...perf, overallScore: 0 }, false);
+  check(
+    'a loss with no performance still pays 2 of each currency and 5 Mind',
+    lostFlat.power === 2 &&
+      lostFlat.quickness === 2 &&
+      lostFlat.technique === 2 &&
+      lostFlat.mind === 5,
+    JSON.stringify(lostFlat),
+  );
+  const wonFlat = matchPayout({ ...perf, overallScore: 0 }, true);
+  check(
+    'a win raises the base to 3 of each and 6 Mind',
+    wonFlat.power === 3 && wonFlat.quickness === 3 && wonFlat.technique === 3 && wonFlat.mind === 6,
+    JSON.stringify(wonFlat),
+  );
+  const match = matchPayout(perf, true);
+  check(
+    'performance adds a pool of 20 × overall/100 on top of the base',
+    unitsOf(match) === 15 + Math.round(20 * 0.5),
+    JSON.stringify(match),
+  );
+  check(
+    'a serving-led match pays more Power than Quickness',
+    (match.power ?? 0) > (match.quickness ?? 0),
+    JSON.stringify(match),
+  );
+
+  console.log('\n── match pay, line by line ──');
+  let mismatches = 0;
+  for (let i = 0; i < 200; i++) {
+    const r = (): number => Math.round(Math.random() * 100);
+    const pf = {
+      servingScore: r(),
+      returningScore: r(),
+      rallyScore: r(),
+      netPlayScore: i % 3 === 0 ? 0 : r(),
+      mentalScore: r(),
+      overallScore: r(),
+    };
+    const won = i % 2 === 0;
+    const total = matchPayout(pf, won);
+    const lines = matchPayoutLines(pf, won);
+    for (const c of CURRENCIES) {
+      const summed = lines.reduce((s, l) => s + (l.amounts[c] ?? 0), 0);
+      if (summed !== (total[c] ?? 0)) mismatches++;
+    }
+  }
+  check(
+    'the lines add up to the pay exactly, for 200 random matches',
+    mismatches === 0,
+    `${mismatches} mismatches`,
+  );
+  const serveOnly = matchPayoutLines(
+    {
+      servingScore: 50,
+      returningScore: 0,
+      rallyScore: 0,
+      netPlayScore: 0,
+      mentalScore: 0,
+      overallScore: 50,
+    },
+    false,
+  );
+  check(
+    'the base is its own line, named for the result, and a scoreless area has none',
+    serveOnly[0].label === 'Lost match' &&
+      serveOnly[0].amounts.mind === 5 &&
+      !serveOnly.some((l) => l.label === 'Returning'),
+    JSON.stringify(serveOnly),
+  );
+  const nothing = matchPayoutLines(
+    {
+      servingScore: 0,
+      returningScore: 0,
+      rallyScore: 0,
+      netPlayScore: 0,
+      mentalScore: 0,
+      overallScore: 0,
+    },
+    true,
+  );
+  check(
+    'a match with no performance pays only the base',
+    nothing.length === 1 && nothing[0].label === 'Won match',
+  );
 
   console.log(
     failures === 0

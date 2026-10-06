@@ -9,7 +9,7 @@
  */
 
 import type { Currency, CurrencyAmounts } from '../types/game';
-import type { StatName } from '../types';
+import type { CoreStats, StatName } from '../types';
 
 export const CURRENCIES: readonly Currency[] = ['power', 'quickness', 'technique', 'mind'];
 
@@ -48,32 +48,42 @@ export const STAT_RECIPES: Record<StatName, CurrencyAmounts> = {
 export const PRICE_STEP = { from: 40, width: 20 };
 
 /**
- * Scales every income source. Calibrated so a career keeps pace with the story
- * team matches through day 31 (careerSim).
+ * Scales story and challenge grants (CONTENT_SCALE). Calibrated so a career
+ * keeps pace with the story team matches through day 31 (careerSim). Training
+ * and matches pay the literal amounts below.
  */
 export const INCOME_SCALE = 1.2;
 
 /**
- * A training session pays (base + perRep × reps) × INCOME_SCALE units:
- * generalShare split evenly across currencies, mindShare as Mind, the rest in
- * the anchor's recipe ratio.
+ * What each training pays per clean rep: two of its main currency and one of a
+ * secondary. A session pays its mix × (reps + 1), so even a session with no
+ * clean reps pays one mix. The five shots are five different mixes rather than
+ * a mirror of their stat recipes — each is a way to steer what you earn.
+ * Across the five, the supply (P 27%, Q 20%, T 33%, M 20%) sits close to what
+ * the stat recipes demand (P 26%, Q 21%, T 30%, M 23%); matches pay most Mind.
  */
-export const TRAINING_PAYOUT = {
-  base: 2,
-  perRep: 3,
-  generalShare: 0.2,
-  mindShare: 0.1,
+export const TRAINING_MIXES: Record<keyof CoreStats, CurrencyAmounts> = {
+  serve: { power: 2, mind: 1 },
+  forehand: { power: 2, technique: 1 },
+  backhand: { technique: 2, quickness: 1 },
+  return: { quickness: 2, mind: 1 },
+  net: { technique: 2, mind: 1 },
 };
 
 /**
- * A match pays units × (0.5 + overall/100) × INCOME_SCALE, by the performance
- * breakdown's overall score: mindShare as Mind, the rest by the per-area scores
- * (serving → Power, returning → Quickness, rally → Technique, net → Quickness
- * and Technique, mental → Mind).
+ * A match pays a base by result, the same however it went, plus a performance
+ * pool of pool × overall/100 split by the per-area scores (serving → Power,
+ * returning → Quickness, rally → Technique, net → Quickness and Technique,
+ * mental → Mind). The base means every match pays some of every currency; the
+ * pool means how you played still decides most of the difference. Amounts are
+ * literal units — INCOME_SCALE does not apply.
  */
 export const MATCH_PAYOUT = {
-  units: 16,
-  mindShare: 0.6,
+  base: {
+    lost: { power: 2, quickness: 2, technique: 2, mind: 5 },
+    won: { power: 3, quickness: 3, technique: 3, mind: 6 },
+  },
+  pool: 20,
 };
 
 /**
