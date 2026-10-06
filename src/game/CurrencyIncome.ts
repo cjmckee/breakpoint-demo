@@ -143,3 +143,83 @@ export function contentCurrency(grant: Partial<Record<StatName, number>>): Curre
   }
   return out;
 }
+
+/** One line of a match's pay: where it came from and what it paid. */
+export interface PayoutLine {
+  label: string;
+  amounts: CurrencyAmounts;
+}
+
+/**
+ * Split `total` whole units across exact parts by largest remainder, so the
+ * rounded parts add up to the total. The total is the same rounding of the
+ * parts' sum that matchPayout applies, so it never needs more than one extra
+ * unit per part.
+ */
+function apportion(total: number, parts: number[]): number[] {
+  const floors = parts.map((v) => Math.floor(v));
+  let left = total - floors.reduce((s, v) => s + v, 0);
+  const order = parts.map((v, i) => ({ i, rem: v - Math.floor(v) })).sort((a, b) => b.rem - a.rem);
+  for (const { i } of order) {
+    if (left <= 0) break;
+    floors[i]++;
+    left--;
+  }
+  return floors;
+}
+
+/**
+ * A match's pay line by line — the flat Mind share for playing, then what each
+ * area of the match earned — in whole units that add up to matchPayout exactly.
+ * Without it a match rated "Poor" on the mental game can pay mostly Mind, which
+ * reads as a bug rather than the flat share it is.
+ */
+export function matchPayoutLines(
+  perf: PerformanceRewardBreakdown,
+  p: MatchRates = GAME_MATCH_RATES,
+): PayoutLine[] {
+  const units = p.units * (0.5 + perf.overallScore / 100) * p.scale;
+  const base = units * p.mindShare;
+  const rest = units - base;
+  const areas =
+    perf.servingScore +
+    perf.returningScore +
+    perf.rallyScore +
+    perf.netPlayScore +
+    perf.mentalScore;
+  const share = (score: number): number => (areas > 0 ? (rest * score) / areas : 0);
+
+  const exact: PayoutLine[] = [
+    {
+      label: 'For playing',
+      amounts: areas > 0 ? { mind: base } : sum({ mind: base }, evenly(rest)),
+    },
+    { label: 'Serving', amounts: { power: share(perf.servingScore) } },
+    { label: 'Returning', amounts: { quickness: share(perf.returningScore) } },
+    { label: 'Rallies', amounts: { technique: share(perf.rallyScore) } },
+    {
+      label: 'Net play',
+      amounts: {
+        quickness: share(perf.netPlayScore) / 2,
+        technique: share(perf.netPlayScore) / 2,
+      },
+    },
+    { label: 'Mental game', amounts: { mind: share(perf.mentalScore) } },
+  ];
+
+  const total = matchPayout(perf, p);
+  const rounded: CurrencyAmounts[] = exact.map(() => ({}));
+  for (const c of CURRENCIES) {
+    const holders = exact.flatMap((line, i) => (line.amounts[c] ? [i] : []));
+    const parts = apportion(
+      total[c] ?? 0,
+      holders.map((i) => exact[i].amounts[c] ?? 0),
+    );
+    holders.forEach((i, k) => {
+      if (parts[k] > 0) rounded[i][c] = parts[k];
+    });
+  }
+  return exact
+    .map((line, i) => ({ label: line.label, amounts: rounded[i] }))
+    .filter((line) => Object.keys(line.amounts).length > 0);
+}

@@ -15,6 +15,7 @@ import type { AccumulatedMatchEffects } from '../game/MatchOrchestrator';
 import { getPrimaryStatName } from '../core/shotStatMapping';
 import { formatStatName } from '../config/statIcons';
 import { CurrencyAmounts } from './currency/CurrencyAmounts';
+import { matchPayoutLines } from '../game/CurrencyIncome';
 
 interface MatchSummaryModalProps {
   isOpen: boolean;
@@ -340,6 +341,19 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
               labelled
               className="justify-center text-lg"
             />
+            {/* Where it came from: the flat share for playing, then each area. */}
+            <div className="mt-3 space-y-1 text-sm text-left" data-testid="match-currency-lines">
+              {matchPayoutLines(matchRewards.performanceBreakdown).map((line) => (
+                <div
+                  key={line.label}
+                  className="flex justify-between gap-3"
+                  data-testid={`match-currency-line-${line.label.toLowerCase().replace(/ /g, '-')}`}
+                >
+                  <span className="text-pixel-text-muted">{line.label}</span>
+                  <CurrencyAmounts amounts={line.amounts} signed />
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* XP Breakdown */}
