@@ -1121,9 +1121,11 @@ export const MOMENTUM = {
    * with z roughly standard normal, in shot-quality points added to match-day
    * form. Spread settles near swing / sqrt(2·reversion); reversion 0.12 makes
    * spells about a set long. swing 0 turns rhythm off and draws no randomness.
+   * At swing 4, even best-of-threes go the distance ~22% of the time (11.5% with
+   * rhythm off) and a 10-point underdog wins ~7% (2%); docs/research/simulation-findings.md.
    */
   rhythm: {
-    swing: 0,
+    swing: 4,
     reversion: 0.12,
     focusDamping: 0.5,
   },
