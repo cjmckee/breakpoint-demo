@@ -8,9 +8,12 @@ import React from 'react';
 import type { Currency, CurrencyAmounts as Amounts } from '../../types/game';
 import { CURRENCIES, CURRENCY_LABELS } from '../../config/economy';
 
-/** One look per currency, used everywhere the currency appears. */
+/**
+ * One look per currency, used everywhere the currency appears. None of them is
+ * red: red is reserved for a loss, so a loss reads as one at a glance.
+ */
 export const CURRENCY_STYLE: Record<Currency, { icon: string; text: string; short: string }> = {
-  power: { icon: '💪', text: 'text-red-400', short: 'P' },
+  power: { icon: '💪', text: 'text-orange-400', short: 'P' },
   quickness: { icon: '⚡', text: 'text-green-400', short: 'Q' },
   technique: { icon: '🎯', text: 'text-purple-300', short: 'T' },
   mind: { icon: '🧠', text: 'text-yellow-300', short: 'M' },
@@ -50,13 +53,14 @@ export const CurrencyAmounts: React.FC<CurrencyAmountsProps> = ({
         return (
           <span
             key={c}
-            className={`inline-flex items-center gap-0.5 font-bold ${style.text} ${
-              short.includes(c) ? 'ring-2 ring-pixel-error px-1' : ''
-            }`}
+            className={`inline-flex items-center gap-0.5 font-bold ${
+              v < 0 ? 'text-pixel-error' : style.text
+            } ${short.includes(c) ? 'ring-2 ring-pixel-error px-1' : ''}`}
             data-short={short.includes(c) || undefined}
             title={CURRENCY_LABELS[c]}
             data-currency={c}
             data-amount={v}
+            data-loss={v < 0 || undefined}
           >
             <span aria-hidden="true">{style.icon}</span>
             {signed && v > 0 ? '+' : ''}
