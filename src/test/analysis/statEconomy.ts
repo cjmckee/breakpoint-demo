@@ -29,8 +29,14 @@ export const RECIPES: Record<StatName, Amounts> = {
   slice: { technique: 2 },
 };
 
-/** ×1 below 40, ×2 in the 40s-50s, ×3 in the 60s-70s, ×4 from 80. */
-export const stepMultiplier = (v: number): number => 1 + Math.floor(Math.max(0, v - 20) / 20);
+/**
+ * ×1 below STEP_FROM (default 40), then one step more every 20 points: at 40,
+ * ×2 in the 40s-50s, ×3 in the 60s-70s, ×4 from 80. STEP_FROM=50 moves every
+ * step up 10 points.
+ */
+const STEP_FROM = Number(process.env.STEP_FROM ?? 40);
+export const stepMultiplier = (v: number): number =>
+  1 + Math.floor(Math.max(0, v - (STEP_FROM - 20)) / 20);
 
 export const priceOf = (stat: StatName, value: number): Amounts => {
   const m = stepMultiplier(value);

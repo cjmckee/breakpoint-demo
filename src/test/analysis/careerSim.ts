@@ -55,6 +55,7 @@
  *      TRAIN_BASE=2  TRAIN_PER_REP=3  TRAIN_GENERAL_SHARE=0.2  TRAIN_MIND_SHARE=0.1
  *      MATCH_UNITS=16  MATCH_MIND_SHARE=0.6  EXCHANGE=0
  *      SPEND=patient|affordable|impatient  (see buyTowardShape)  OVERBUILD=8
+ *      SYSTEMS=today,currency  STEP_FROM=40 (statEconomy price steps)
  *      STATS=1 prints every stat of the mean build instead of the lowest/top three
  *      LEDGER=1 reports, per identity, slot use, currency earned by source, and
  *      currency spent per stat — no readiness matches, so it runs in seconds
@@ -998,7 +999,7 @@ function main(): void {
     ].join('\t'),
   );
   for (const id of IDENTITIES) {
-    for (const system of ['today', 'currency'] as System[]) {
+    for (const system of (process.env.SYSTEMS ?? 'today,currency').split(',') as System[]) {
       const careers = Array.from({ length: RUNS }, () => career(id, system));
       for (const day of CHECK) {
         const snaps = careers.map((c) => c.get(day)!);
