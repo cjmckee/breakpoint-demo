@@ -32,11 +32,30 @@ import {
   RALLY_CONFIG,
   DIFFICULTY_SCORE_FACTORS,
   DIFFICULTY_THRESHOLDS,
+  NET_RUSH,
 } from '../config/shotThresholds';
 import { EffectKey } from '../types/game';
 import { trace } from './trace';
 
 import { random } from './random';
+/** Chance a server comes in behind the serve, from SERVE_AND_VOLLEY_BIAS. */
+function serveAndVolleyChance(
+  effects: Record<string, number> | undefined,
+  secondServe: boolean,
+): number {
+  const bias = effects?.[EffectKey.SERVE_AND_VOLLEY_BIAS] ?? 0;
+  if (bias <= 0) return 0;
+  const chance = Math.min(NET_RUSH.maxChance, (bias / 100) * NET_RUSH.serveVolleyPerBias);
+  return secondServe ? chance * NET_RUSH.secondServeShare : chance;
+}
+
+/** Chance a returner follows a good return to the net, from NET_APPROACH_BIAS. */
+function chipAndChargeChance(effects: Record<string, number> | undefined): number {
+  const bias = effects?.[EffectKey.NET_APPROACH_BIAS] ?? 0;
+  if (bias <= 0) return 0;
+  return Math.min(NET_RUSH.maxChance, (bias / 100) * NET_RUSH.chipChargePerBias);
+}
+
 export class PointSimulator {
   private shotCalculator: ShotCalculator;
   private shotSelector: ShotSelector;
@@ -395,8 +414,14 @@ export class PointSimulator {
     const matchLevel = getMatchLevel(server.overallRating, returner.overallRating);
     const thresholds = getQualityThresholds(matchLevel);
 
-    // NEW: Track court positions throughout rally
-    let serverPosition: CourtPosition = 'well_positioned';
+    // Track court positions throughout rally. A serve-and-volleyer starts the
+    // rally already at the net: the returner has to pass or lob from ball one.
+    const serverEffects = currentServer === 'player' ? activeEffects : opponentActiveEffects;
+    const returnerEffects = currentServer === 'player' ? opponentActiveEffects : activeEffects;
+    let serverPosition: CourtPosition =
+      random() < serveAndVolleyChance(serverEffects, serveShot.shotType === 'serve_second')
+        ? 'at_net'
+        : 'well_positioned';
     let returnerPosition: CourtPosition = 'well_positioned';
 
     while (shotNumber < maxRallyLength) {
@@ -551,6 +576,16 @@ export class PointSimulator {
       } else {
         returnerPosition = newShooterPosition;
         serverPosition = newOpponentPosition;
+      }
+
+      // Chip-and-charge: a net-seeking returner follows a solid return in.
+      if (
+        rallyLength === 1 &&
+        currentShooter === 'returner' &&
+        shotResult.quality >= thresholds.good &&
+        random() < chipAndChargeChance(returnerEffects)
+      ) {
+        returnerPosition = 'at_net';
       }
 
       trace('Current shooter:', currentShooter);

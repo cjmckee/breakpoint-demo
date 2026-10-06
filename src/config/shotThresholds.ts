@@ -643,6 +643,26 @@ export const NET_APPROACH_BASE = 0.2;
  */
 export const NET_APPROACH_FLOOR = 0.05;
 
+/**
+ * Getting to the net from the first two balls, which rally approaches cannot:
+ * most points end within four shots, so a player gets about one baseline ball
+ * per rally to approach behind, and even approaching on every one capped
+ * arrival near a third of rallies.
+ *
+ * - serveVolleyPerBias: chance per point of SERVE_AND_VOLLEY_BIAS that the
+ *   server follows the serve in (bias 12 × 5 = 60% of first serves)
+ * - secondServeShare:   the share of that on second serves
+ * - chipChargePerBias:  chance per point of NET_APPROACH_BIAS that a returner
+ *   follows a good return in (bias 20 × 2 = 40%)
+ * - maxChance:          ceiling on either
+ */
+export const NET_RUSH = {
+  serveVolleyPerBias: 5,
+  secondServeShare: 0.4,
+  chipChargePerBias: 2,
+  maxChance: 0.8,
+};
+
 export const POSITION_ADJUSTMENTS: Record<CourtPosition, number> = {
   well_positioned: +3, // Opponent ready and centered
   slightly_off: +0, // Neutral
