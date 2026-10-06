@@ -17,12 +17,14 @@
  *
  * Run: npx tsx src/test/analysis/specialtySynergyProbe.ts
  * Env: N=600  BASE=35  HIGH=50  SEED=1  PHASES=first_serve,second_serve,return,forehand,backhand,net
+ *      ONLY_PATHS=fh_laserbeam,...  STRIP=power_variance,fault_risk (remove those effects from every path)
  */
 
 import type { PlayerStats } from '../../types';
 import type { ArchetypeProfile, GamePhase, PhasePathId } from '../../types/archetype';
 import { PlayerProfile } from '../../core/PlayerProfile';
 import { setSeed } from '../../core/random';
+import { PATH_DEFS } from '../../data/archetypeTree';
 import { BO3, playMatch } from './simMatch';
 import { withStat, type StatName } from './identityBuilds';
 
@@ -48,6 +50,15 @@ const PHASE_STAT: Record<GamePhase, StatName> = {
   net: 'net',
 };
 const PHASES = (process.env.PHASES?.split(',') ?? Object.keys(PATHS)) as GamePhase[];
+const ONLY_PATHS = process.env.ONLY_PATHS?.split(',');
+
+// Diagnostic: STRIP=power_variance,fault_risk removes those effect keys from every
+// path for this run, to see which part of a specialty drives its synergy.
+for (const key of process.env.STRIP?.split(',') ?? []) {
+  for (const def of Object.values(PATH_DEFS)) {
+    for (const tier of def.tierEffects) delete (tier as Record<string, number>)[key];
+  }
+}
 
 const uniform = (r: number): PlayerStats => ({
   core: { serve: r, forehand: r, backhand: r, return: r, net: r },
@@ -101,7 +112,7 @@ function main(): void {
     const stat = PHASE_STAT[phase];
     const high = withStat(uniform(BASE), stat, HIGH - BASE);
     const highBase = perMatch(high, NONE);
-    for (const path of PATHS[phase]) {
+    for (const path of PATHS[phase].filter((p) => !ONLY_PATHS || ONLY_PATHS.includes(p))) {
       const alone = diff(perMatch(uniform(BASE), withPath(phase, path)), base);
       const backed = diff(perMatch(high, withPath(phase, path)), highBase);
       const synergy = { mean: backed.mean - alone.mean, se: Math.hypot(alone.se, backed.se) };
