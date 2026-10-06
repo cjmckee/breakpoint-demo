@@ -68,7 +68,7 @@ import {
   PATHS_BY_PHASE,
 } from '../data/archetypeTree';
 import { useMenuStore } from '../hooks/useMenuModal';
-import type { PlayStyle } from '../types';
+import type { OperationResult, PlayStyle, StatName } from '../types';
 import type {
   ArchetypeProfile,
   GamePhase as ArchetypePhase,
@@ -96,7 +96,7 @@ import {
 } from '../analytics/analytics';
 
 import { random } from '../core/random';
-import { applyCurrency } from '../game/StatDevelopment';
+import { applyCurrency, purchase } from '../game/StatDevelopment';
 export interface AudioSettings {
   musicVolume: number; // 0–1
   sfxVolume: number; // 0–1
@@ -181,6 +181,7 @@ interface GameState {
       | 'relationships'
       | 'shop'
       | 'archetype'
+      | 'development'
       | 'challenges',
   ) => void;
   navigateToScheduledMatch: (matchType: 'tournament' | 'story') => void;
@@ -223,6 +224,11 @@ interface GameState {
 
   /** Add or remove training currency. Losses clamp each currency at zero. */
   changeCurrency: (delta: CurrencyAmounts) => void;
+  /**
+   * Buy a plan of stat +1s with training currency: all of it or none. Returns
+   * the result so the Development screen can say why a plan was refused.
+   */
+  purchaseStats: (plan: StatName[]) => OperationResult<Player>;
 
   // Story event actions
   checkForStoryEventById: (eventId: string) => void;
@@ -1313,6 +1319,9 @@ export const useGameStore = create<GameState>()(
           case 'archetype':
             set({ gamePhase: { type: 'archetype' } });
             break;
+          case 'development':
+            set({ gamePhase: { type: 'development' } });
+            break;
           case 'challenges':
             set({ gamePhase: { type: 'challenges' } });
             break;
@@ -2323,6 +2332,20 @@ export const useGameStore = create<GameState>()(
         const { player } = get();
         if (!player) return;
         set({ player: { ...player, wallet: applyCurrency(player.wallet, delta) } });
+      },
+
+      purchaseStats: (plan: StatName[]) => {
+        const { player } = get();
+        if (!player) {
+          return { success: false, error: 'No player', timestamp: Date.now() };
+        }
+        const result = purchase(player, plan);
+        if (result.success && result.data) {
+          set({ player: result.data });
+          // A purchase can satisfy a statThreshold challenge.
+          get().checkChallengeCompletion();
+        }
+        return result;
       },
 
       checkForStoryEventById: (eventId: string) => {

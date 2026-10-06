@@ -33,6 +33,7 @@ import { useTutorialSpotlight } from '../hooks/useTutorialSpotlight';
 import { TutorialCallout } from './tutorial/TutorialCallout';
 import { MAIN_MENU_TUTORIAL_STEPS, MainMenuTarget } from '../data/tutorialSteps';
 import { ANCHOR_TRAINING_ENERGY_COST } from '../game/AnchorTrainingSystem';
+import { canBuyAny } from '../game/StatDevelopment';
 
 interface MainMenuProps {
   overlay: OverlayState | null;
@@ -216,6 +217,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
     : [];
 
   const hasNewHangouts = metHangoutCharacters.length > 0;
+  const canDevelop = canBuyAny(player);
 
   // Challenge summary for the menu strip — the full list lives on its own screen.
   const challengeCount = activeChallenges.length;
@@ -496,10 +498,10 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
           />
         </div>
         <div
-          className={`grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4 mb-6 ${isNightTime ? 'night-exempt' : ''}`}
+          className={`grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-6 ${isNightTime ? 'night-exempt' : ''}`}
         >
-          {/* "Relationships" is too wide for a third-width tile in the pixel font,
-              so it takes the full first row on phones */}
+          {/* "Relationships" is too wide for a half-width tile in the pixel font,
+              so it takes the full first row on phones; Develop takes the last */}
           <ActionTile
             testId="action-relationships"
             size="sm"
@@ -536,6 +538,17 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
               clearIndicator('shop');
               navigateTo('shop');
             }}
+          />
+          <ActionTile
+            testId="action-development"
+            size="sm"
+            variant="secondary"
+            icon="📈"
+            label="Develop"
+            caption={canDevelop ? 'Points to buy' : undefined}
+            badge={canDevelop}
+            onClick={() => navigateTo('development')}
+            className="col-span-2 sm:col-span-1"
           />
         </div>
 
