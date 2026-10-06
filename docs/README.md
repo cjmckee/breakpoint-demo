@@ -6,7 +6,7 @@ Split by what you would use the document for, not by subject.
 docs/
 ├── balance-testing.md    how to verify a simulation change      <- start here
 ├── research/             what was measured, and what it settled
-└── proposals/            designs not yet built    <- currently empty
+└── proposals/            designs not yet built
 ```
 
 ## Active guidance
@@ -38,6 +38,21 @@ exactly the kind of thing that gets rediscovered otherwise.
   several mechanisms; which ones carry load. Settles that `bonus` was the band channel in different
   units, that `slice` is conditional rather than broken, and that the band channel earns its
   separate existence on two stats rather than eight.
+- **[`research/slice-at-tier-1.md`](./research/slice-at-tier-1.md)** — why the slice stat paid
+  almost nothing at the ratings that ship. At equal rating the slice was a dominated shot, taxed by
+  three below-neutral support bands no drive touches, and its usage could not grow with the stat.
+  Records five levers that did not help, and the three-part change that roughly doubled its value.
+- **[`research/stamina-at-tier-1.md`](./research/stamina-at-tier-1.md)** — why stamina was the
+  worst buy per unit, and the change that followed. Nobody starts a match tired now. The fatigue
+  penalty is squared and steeper, and recovery at set breaks leans on stamina. The result is
+  that stamina barely matters early and opens an 11-point gap late in long matches. Team match 1
+  against Chet Vale is the worked example. Fatigue rules now live in one module,
+  `src/core/fatigue.ts`.
+- **[`research/simulation-findings.md`](./research/simulation-findings.md)** — five findings
+  with before/after data. Net play was capped by rally structure (serve-and-volley and
+  chip-and-charge added). Double faults ended a quarter of early points. Upsets were near
+  impossible past a 6-point gap. Key stats are an identity's worst buys, though the price curve
+  isn't why identities differ. Four abilities are dead, rarity is inverted, and levels run away.
 
 Note the **measurement baseline** headers. Figures are only valid for the config they were taken
 under, and a behaviour change invalidates every number measured before it.
@@ -47,7 +62,15 @@ under, and a behaviour change invalidates every number measured before it.
 Designs that have not shipped. Check the code before trusting one — a proposal that has been built
 belongs in git history, not here.
 
-Nothing is currently proposed and unbuilt. `story-minigames.md` was executed and deleted; the
+- **[`proposals/stat-currency-progression.md`](./proposals/stat-currency-progression.md)** —
+  earning generic attribute points (Power, Quickness, Technique, Mind) and spending them on stats
+  instead of receiving stats directly. Measures that free allocation at a flat price is a solved
+  game, that escalating cost alone does not fix it, and that per-stat price bands do. Re-tests the
+  groundstroke baseliner with archetypes on: a trap build, caused by `slice` and by skipping serve and
+  return. Design direction agreed (§8). A 40-day career sim (§9) sizes the economy. It finds that pure
+  anchor supply starves identities and that escalating prices front-load progression.
+
+`story-minigames.md` was executed and deleted; the
 minigame runtime lives in [`src/minigames/`](../src/minigames/) and the story route runs through the
 `minigame_active` phase.
 

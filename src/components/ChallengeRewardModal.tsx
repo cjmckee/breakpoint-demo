@@ -9,6 +9,7 @@ import { Button } from './ui/Button';
 import type { Challenge } from '../types/challenges';
 import { getCharacterName } from '../data/characters';
 import { usePlayerName } from '../hooks/usePlayerName';
+import { CurrencyAmounts } from './currency/CurrencyAmounts';
 
 interface ChallengeRewardModalProps {
   isOpen: boolean;
@@ -47,20 +48,11 @@ export const ChallengeRewardModal: React.FC<ChallengeRewardModalProps> = ({
           <h3 className="text-lg font-bold text-pixel-text mb-3 text-center">Rewards Earned</h3>
 
           <div className="space-y-3">
-            {/* Stat Boosts */}
-            {challenge.reward.modifiers?.statBoosts && (
-              <div>
-                <div className="text-xs font-bold text-pixel-text mb-2">Stat Boosts:</div>
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(challenge.reward.modifiers.statBoosts).map(([stat, value]) => (
-                    <div
-                      key={stat}
-                      className="text-sm px-3 py-1 bg-green-500 bg-opacity-20 border-2 border-green-500 text-green-500 font-bold"
-                    >
-                      +{value} {stat}
-                    </div>
-                  ))}
-                </div>
+            {/* Currency */}
+            {challenge.reward.currency && (
+              <div data-testid="challenge-reward-currency">
+                <div className="text-xs font-bold text-pixel-text mb-2">Training currency:</div>
+                <CurrencyAmounts amounts={challenge.reward.currency} signed labelled />
               </div>
             )}
 

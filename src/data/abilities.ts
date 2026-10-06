@@ -2,7 +2,9 @@ import { Ability, AbilityRarity, AbilityName, EffectKey } from '../types/game';
 
 // Complete ability definitions with all rarities.
 // Abilities are effects-only — no stat boosts. Stats come from training and equipment.
-// All additional effects scale linearly with ability level (value × level).
+// Additional effects scale with level by ABILITY_LEVEL_MULTIPLIER (×1, ×1.6, ×2, ×2.3, ×2.5).
+// Match abilities are tuned to a point-win budget at level 1 on the build each suits:
+// common ~+1, uncommon +1.5–2, rare ~+2.5 (docs/research/simulation-findings.md).
 //
 // Design principles:
 //   Common    — single focused shot or positioning bonus
@@ -19,7 +21,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.PACE]: 7,
+        [EffectKey.PACE]: 2.5,
       },
     },
     description:
@@ -34,12 +36,12 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.SIDE_SPIN]: 7,
+        [EffectKey.SIDE_SPIN]: 9,
       },
     },
     description:
       'You can put incredible spin on the ball, making it bounce unpredictably and sit up awkwardly.',
-    effects: 'Bonus quality on spin shots.',
+    effects: 'Bonus quality on slices and drop shots, growing with your spin.',
   },
 
   [AbilityName.SOFT_HANDS]: {
@@ -49,7 +51,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.TOUCH]: 7,
+        [EffectKey.TOUCH]: 1.6,
       },
     },
     description:
@@ -79,12 +81,12 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.REACH]: 7,
+        [EffectKey.REACH]: 5.5,
       },
     },
     description:
       'Your exceptional reach lets you get to balls others would call winners. Nothing is truly out of range.',
-    effects: 'Reduces difficulty penalty when stretched out of position.',
+    effects: 'Eases shots hit when stretched, and adds quality on the ball when pushed deep.',
   },
 
   [AbilityName.BASELINER]: {
@@ -94,7 +96,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.RALLY_MOMENTUM]: 6,
+        [EffectKey.RALLY_MOMENTUM]: 2.4,
       },
     },
     description:
@@ -110,11 +112,12 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       statBoosts: {},
       additional: {
         [EffectKey.COURT_COVERAGE]: 6,
+        [EffectKey.REACH]: 7,
       },
     },
     description:
       "You move around the court like you're on ice skates. Your footwork is effortless — opponents can't open up the court.",
-    effects: 'Improved court coverage.',
+    effects: 'Often holds position when pushed out of it. Extra quality when stretched.',
   },
 
   [AbilityName.NETCRASHER]: {
@@ -124,8 +127,8 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.NET_GAME]: 5,
-        [EffectKey.TOUCH]: 2,
+        [EffectKey.NET_GAME]: 1.1,
+        [EffectKey.TOUCH]: 0.4,
       },
     },
     description:
@@ -175,11 +178,14 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       additional: {
         [EffectKey.COURT_COVERAGE]: 7,
         [EffectKey.RECOVERY_SPEED]: 4,
+        [EffectKey.REACH]: 8,
+        [EffectKey.RALLY_MOMENTUM]: 2,
       },
     },
     description:
       "You're so fast the cameras can barely keep up. You don't just get to balls — you arrive early.",
-    effects: 'Greatly improved court coverage. Faster position recovery between shots.',
+    effects:
+      'Holds position when pushed, recovers faster from a stretch, and digs in on long rallies.',
   },
 
   [AbilityName.IRON_LEGS]: {
@@ -205,13 +211,13 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.SMASH_POWER]: 6,
-        [EffectKey.PACE]: 4,
+        [EffectKey.SMASH_POWER]: 4,
+        [EffectKey.SERVE_SPEED]: 1.5,
       },
     },
     description:
       'Your serve is a weapon. First balls land like missiles, second serves still hurt, and overheads end points clean.',
-    effects: 'Bonus quality on overhead shots and power shots.',
+    effects: 'Bigger first serves. Bonus quality on overheads.',
   },
 
   [AbilityName.CLUTCH]: {
@@ -268,8 +274,8 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.PERFECT_TIMING]: 7,
-        [EffectKey.MENTAL_RESILIENCE]: 3,
+        [EffectKey.PERFECT_TIMING]: 14,
+        [EffectKey.MENTAL_RESILIENCE]: 6,
       },
     },
     description:
@@ -284,13 +290,15 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.COURT_COVERAGE]: 8,
-        [EffectKey.REACH]: 5,
+        [EffectKey.COURT_COVERAGE]: 12,
+        [EffectKey.REACH]: 8,
+        [EffectKey.RALLY_MOMENTUM]: 4,
       },
     },
     description:
       'You read the court like a chess grandmaster. Every ball is reachable, every corner covered.',
-    effects: 'Major court coverage improvement. Extended reach reduces difficulty when stretched.',
+    effects:
+      'Holds position almost every time it is tested, gets more on stretched balls, and stays strong in long rallies.',
   },
 
   [AbilityName.IRON_WILL]: {
@@ -300,13 +308,13 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.FOCUS_DURATION]: 2,
+        [EffectKey.FOCUS_DURATION]: 4,
         [EffectKey.ENERGY_COST_REDUCTION]: 1,
       },
     },
     description:
       'You are built for the long haul. Three-hour matches, five-setters, back-to-back days — you show up the same every time.',
-    effects: 'Reduces fatigue accumulation during matches. Minor energy cost reduction.',
+    effects: 'Slows fatigue during matches. Minor energy cost reduction.',
   },
 
   [AbilityName.GRINDER]: {

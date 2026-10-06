@@ -58,13 +58,10 @@
  * paths and never reached tier III at all.
  */
 
-import type { MatchFormat, MatchState, PlayerStats } from '../../types';
+import type { PlayerStats } from '../../types';
 import type { ArchetypeProfile, PhaseSpec, GamePhase } from '../../types/archetype';
 import { PlayerProfile } from '../../core/PlayerProfile';
-import { PointSimulator } from '../../core/PointSimulator';
-import { ScoreTracker } from '../../core/ScoreTracker';
 import {
-  MATCH_FATIGUE,
   SHOT_COMPOSITE_WEIGHTS,
   SERVE_QUALITY_WEIGHTS,
   SERVE_ACCURACY_WEIGHTS,
@@ -74,14 +71,9 @@ import {
   OPPONENT_STAT_ADJUSTMENTS,
   SHOOTER_STAT_ADJUSTMENTS,
 } from '../../config/shotThresholds';
-import {
-  aggregateArchetypeEffects,
-  profileForArchetype,
-  type LegacyArchetype,
-} from '../../data/archetypeTree';
+import { profileForArchetype, type LegacyArchetype } from '../../data/archetypeTree';
 import { drawPlayerProfile } from './playerFactory';
-
-const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
+import { playMatch } from './simMatch';
 
 // ─── Stat plumbing ───────────────────────────────────────────
 
@@ -275,73 +267,13 @@ function ablate(ch: Column): void {
 
 // ─── Match runner ────────────────────────────────────────────
 
-function calcFatigue(cur: number, rally: number, stam: number): number {
-  const sf = MATCH_FATIGUE.minFatigueRate + (1 - MATCH_FATIGUE.minFatigueRate) * (1 - stam / 100);
-  let gain = rally * MATCH_FATIGUE.basePerShot * sf;
-  if (rally > MATCH_FATIGUE.longRallyThreshold) {
-    gain += (rally - MATCH_FATIGUE.longRallyThreshold) * MATCH_FATIGUE.longRallyExtra * sf;
-  }
-  const rec =
-    MATCH_FATIGUE.baseRecoveryPerPoint +
-    (stam / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
-  return Math.max(0, Math.min(100, cur + gain - rec));
-}
-
 function runMatch(pair: Pairing): [number, number] {
-  const player = new PlayerProfile('p', 'P', pair.pStats, pair.pProf);
-  const opponent = new PlayerProfile('o', 'O', pair.oStats, pair.oProf);
-  const pEff = aggregateArchetypeEffects(pair.pProf);
-  const oEff = aggregateArchetypeEffects(pair.oProf);
-
-  const tracker = new ScoreTracker(BO3);
-  tracker.setInitialServer(pair.serveFirst ? 'player' : 'opponent');
-  player.rollMatchForm();
-  opponent.rollMatchForm();
-  const sim = new PointSimulator();
-
-  const ms: MatchState = {
-    score: tracker.getScore(),
-    currentServer: tracker.getCurrentServer(),
-    courtSurface: 'hard',
-    momentum: 0,
-    pressure: 'low',
-    matchLength: 0,
-    pointsPlayed: 0,
-    isKeyMoment: false,
-    fatigue: { player: 0, opponent: 0 },
-  };
-
-  let points = 0;
-  let playerPoints = 0;
-  while (!tracker.isComplete() && points < 600) {
-    const server = tracker.getCurrentServer();
-    ms.isKeyMoment = tracker.isKeyMoment();
-    const pr = sim.simulatePoint(
-      server,
-      server === 'player' ? player : opponent,
-      server === 'player' ? opponent : player,
-      ms,
-      pEff,
-      oEff,
-    );
-    const winner = pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player';
-    if (winner === 'player') playerPoints++;
-    tracker.addPoint(winner);
-    ms.fatigue.player = calcFatigue(
-      ms.fatigue.player,
-      pr.rallyLength,
-      player.stats.physical.stamina,
-    );
-    ms.fatigue.opponent = calcFatigue(
-      ms.fatigue.opponent,
-      pr.rallyLength,
-      opponent.stats.physical.stamina,
-    );
-    ms.score = tracker.getScore();
-    ms.currentServer = tracker.getCurrentServer();
-    ms.pointsPlayed = ++points;
-  }
-  return [playerPoints, points];
+  const { points } = playMatch(
+    new PlayerProfile('p', 'P', pair.pStats, pair.pProf),
+    new PlayerProfile('o', 'O', pair.oStats, pair.oProf),
+    { initialServer: pair.serveFirst ? 'player' : 'opponent' },
+  );
+  return [points.filter((pt) => pt.winner === 'player').length, points.length];
 }
 
 // ─── Regression ──────────────────────────────────────────────
@@ -583,52 +515,21 @@ function partM(levels: number[], matches: number): void {
         oProf: profileOf({}),
         serveFirst: i % 2 === 0,
       };
-      const player = new PlayerProfile('p', 'P', pair.pStats, pair.pProf);
-      const opponent = new PlayerProfile('o', 'O', pair.oStats, pair.oProf);
-      const tracker = new ScoreTracker(BO3);
-      tracker.setInitialServer(pair.serveFirst ? 'player' : 'opponent');
-      player.rollMatchForm();
-      opponent.rollMatchForm();
-      const sim = new PointSimulator();
-      const ms: MatchState = {
-        score: tracker.getScore(),
-        currentServer: tracker.getCurrentServer(),
-        courtSurface: 'hard',
-        momentum: 0,
-        pressure: 'low',
-        matchLength: 0,
-        pointsPlayed: 0,
-        isKeyMoment: false,
-        fatigue: { player: 0, opponent: 0 },
-      };
-      let points = 0;
-      while (!tracker.isComplete() && points < 600) {
-        const server = tracker.getCurrentServer();
-        const pr = sim.simulatePoint(
-          server,
-          server === 'player' ? player : opponent,
-          server === 'player' ? opponent : player,
-          ms,
-          {},
-          {},
-        );
-        for (const s of pr.shots) {
-          const m = s.modifiers;
-          const sp = m.spinModifier;
-          const pl = m.placementModifier;
-          phys += m.physicalModifier;
-          ment += m.mentalModifier;
-          spin += sp;
-          place += pl;
-          prod += m.physicalModifier * m.mentalModifier * sp * pl;
-          n++;
-        }
-        tracker.addPoint(
-          pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player',
-        );
-        ms.score = tracker.getScore();
-        ms.currentServer = tracker.getCurrentServer();
-        ms.pointsPlayed = ++points;
+      const { points } = playMatch(
+        new PlayerProfile('p', 'P', pair.pStats, pair.pProf),
+        new PlayerProfile('o', 'O', pair.oStats, pair.oProf),
+        { initialServer: pair.serveFirst ? 'player' : 'opponent' },
+      );
+      for (const s of points.flatMap((pt) => pt.shots)) {
+        const m = s.modifiers;
+        const sp = m.spinModifier;
+        const pl = m.placementModifier;
+        phys += m.physicalModifier;
+        ment += m.mentalModifier;
+        spin += sp;
+        place += pl;
+        prod += m.physicalModifier * m.mentalModifier * sp * pl;
+        n++;
       }
     }
     const mean = prod / n;

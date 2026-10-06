@@ -4,26 +4,20 @@
  *
  * Run with: npm run build:node && node dist/src/test/analysis/characterSim.js
  *
- * Mirrors MatchOrchestrator's non-key-moment path: PointSimulator per point,
- * ScoreTracker for scoring, MatchSimulator-style momentum/fatigue/pressure,
- * and ability + archetype effects passed through. Key moments are excluded
- * (they depend on live user choices).
+ * Plays every match on MatchSimulator, the game's own engine, with ability and
+ * archetype effects passed through as MatchOrchestrator builds them. Key
+ * moments are excluded (they depend on live user choices).
  */
 
 import type {
   MatchFormat,
-  MatchState,
   PlayerStats,
+  PointAnalysisData,
   MatchStatistics as IMatchStatistics,
 } from '../../types';
 import type { Ability } from '../../types/game';
-import type { ArchetypeProfile } from '../../types/archetype';
+import { abilityEffects } from '../../core/EffectAggregator';
 import { PlayerProfile } from '../../core/PlayerProfile';
-import { PointSimulator } from '../../core/PointSimulator';
-import { ScoreTracker } from '../../core/ScoreTracker';
-import { MatchStatistics } from '../../core/MatchStatistics';
-import { MATCH_FATIGUE } from '../../config/shotThresholds';
-import { aggregateArchetypeEffects } from '../../data/archetypeTree';
 import {
   OPPONENTS_BY_TIER,
   getScaledOpponentStats,
@@ -32,13 +26,12 @@ import {
 } from '../../data/opponents';
 import { riversideOpen } from '../../data/tournaments/riversideOpen';
 import { print, printBanner, printHeader, printTable, fmtNum } from './formatters';
+import { BO1, BO3, playMatch } from './simMatch';
+import { RATE_HEADERS, emptyRates, formatRates, tallyMatch, type Rates } from './matchTally';
 
 // ─── Configuration ───────────────────────────────────────────
 
-const N_MATCHES = 200;
-
-const BO1: MatchFormat = { bestOfSets: 1, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
-const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
+const N_MATCHES = Number(process.env.N ?? 200);
 
 // The day-39 character, as shown on the stats screen.
 // "Effective" = base stat + item boost (item boosts apply in matches).
@@ -56,60 +49,17 @@ const CHARACTER_BASE: PlayerStats = {
   mental: { focus: 45, anticipation: 42, tactics: 53 },
 };
 
-// ─── Match runner (mirrors MatchSimulator/MatchOrchestrator loop) ──
+// ─── Match runner ───────────────────────────────────────────
 
 interface RunResult {
   winner: 'player' | 'opponent';
   sets: Array<{ player: number; opponent: number }>;
   stats: IMatchStatistics;
   endFatigue: { player: number; opponent: number };
-  points: number;
+  points: PointAnalysisData[];
   // Direct tallies (independent of MatchStatistics attribution)
   serveWon: { player: number; opponent: number };
   serveTotal: { player: number; opponent: number };
-}
-
-function calculateNewFatigue(
-  currentFatigue: number,
-  rallyLength: number,
-  staminaStat: number,
-  recoveryStat: number,
-): number {
-  const staminaFactor =
-    MATCH_FATIGUE.minFatigueRate + (1 - MATCH_FATIGUE.minFatigueRate) * (1 - staminaStat / 100);
-
-  let fatigueGain = rallyLength * MATCH_FATIGUE.basePerShot * staminaFactor;
-  if (rallyLength > MATCH_FATIGUE.longRallyThreshold) {
-    fatigueGain +=
-      (rallyLength - MATCH_FATIGUE.longRallyThreshold) *
-      MATCH_FATIGUE.longRallyExtra *
-      staminaFactor;
-  }
-
-  const recovery =
-    MATCH_FATIGUE.baseRecoveryPerPoint +
-    (recoveryStat / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
-
-  return Math.max(0, Math.min(100, currentFatigue + fatigueGain - recovery));
-}
-
-/** Ability "additional" effects + archetype behavior effects, as the orchestrator builds them. */
-function buildEffects(
-  abilities?: Ability[],
-  archetypeProfile?: ArchetypeProfile,
-): Record<string, number> {
-  const effects: Record<string, number> = {};
-  for (const ability of abilities ?? []) {
-    for (const [key, value] of Object.entries(ability.modifiers?.additional ?? {})) {
-      effects[key] = (effects[key] || 0) + value;
-    }
-  }
-  if (archetypeProfile) {
-    for (const [key, value] of Object.entries(aggregateArchetypeEffects(archetypeProfile))) {
-      effects[key] = (effects[key] || 0) + value;
-    }
-  }
-  return effects;
 }
 
 function runMatch(
@@ -119,92 +69,19 @@ function runMatch(
   opponentEffects: Record<string, number>,
   format: MatchFormat,
 ): RunResult {
-  const tracker = new ScoreTracker(format);
-  tracker.setInitialServer(Math.random() < 0.5 ? 'player' : 'opponent');
-  player.rollMatchForm();
-  opponent.rollMatchForm();
-  const pointSim = new PointSimulator();
-  const stats = new MatchStatistics(player, opponent);
-
-  const matchState: MatchState = {
-    score: tracker.getScore(),
-    currentServer: tracker.getCurrentServer(),
-    courtSurface: 'hard',
-    momentum: 0,
-    pressure: 'low',
-    matchLength: 0,
-    pointsPlayed: 0,
-    isKeyMoment: false,
-    fatigue: { player: 0, opponent: 0 },
-  };
-
-  const recentWinners: Array<'player' | 'opponent'> = [];
+  const m = playMatch(player, opponent, { format, playerEffects, opponentEffects });
   const serveWon = { player: 0, opponent: 0 };
   const serveTotal = { player: 0, opponent: 0 };
-  let points = 0;
-  const maxPoints = 600;
-
-  while (!tracker.isComplete() && points < maxPoints) {
-    const server = tracker.getCurrentServer();
-    const serverProfile = server === 'player' ? player : opponent;
-    const returnerProfile = server === 'player' ? opponent : player;
-    matchState.isKeyMoment = tracker.isKeyMoment();
-    const breakPointFor = tracker.getBreakPointFor();
-
-    const pointResult = pointSim.simulatePoint(
-      server,
-      serverProfile,
-      returnerProfile,
-      matchState,
-      playerEffects,
-      opponentEffects,
-    );
-
-    const pointWinner =
-      pointResult.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player';
-    tracker.addPoint(pointWinner);
-    stats.addPointResult(pointResult, server, breakPointFor);
-    serveTotal[server]++;
-    if (pointWinner === server) serveWon[server]++;
-
-    // Momentum: last-5-points form, as in MatchSimulator
-    recentWinners.push(pointWinner);
-    if (recentWinners.length > 5) recentWinners.shift();
-    const pw = recentWinners.filter((w) => w === 'player').length;
-    matchState.momentum = ((pw - (recentWinners.length - pw)) / recentWinners.length) * 100;
-
-    // Fatigue
-    matchState.fatigue.player = calculateNewFatigue(
-      matchState.fatigue.player,
-      pointResult.rallyLength,
-      player.stats.physical.stamina,
-      player.stats.physical.stamina,
-    );
-    matchState.fatigue.opponent = calculateNewFatigue(
-      matchState.fatigue.opponent,
-      pointResult.rallyLength,
-      opponent.stats.physical.stamina,
-      opponent.stats.physical.stamina,
-    );
-
-    points++;
-    matchState.score = tracker.getScore();
-    matchState.currentServer = tracker.getCurrentServer();
-    matchState.pointsPlayed = points;
-    matchState.pressure = matchState.isKeyMoment ? 'high' : points > 30 ? 'medium' : 'low';
+  for (const pt of m.points) {
+    serveTotal[pt.server]++;
+    if (pt.winner === pt.server) serveWon[pt.server]++;
   }
-
-  stats.finalizeStatistics();
-
   return {
-    winner: tracker.getWinner() ?? 'player',
-    sets: tracker
-      .getScore()
-      .sets.filter((s) => s.isComplete)
-      .map((s) => ({ player: s.player, opponent: s.opponent })),
-    stats: stats.getStatistics(),
-    endFatigue: { ...matchState.fatigue },
-    points,
+    winner: m.winner,
+    sets: m.sets,
+    stats: m.statistics,
+    endFatigue: m.endFatigue,
+    points: m.points,
     serveWon,
     serveTotal,
   };
@@ -215,7 +92,7 @@ function runMatch(
 interface MatchupSummary {
   label: string;
   oppOvr: number;
-  winPct: number;
+  rates: Rates;
   gamesWon: number;
   gamesLost: number;
   bagelSetPct: number; // sets won 6-0 by player / total sets
@@ -244,8 +121,8 @@ function summarize(
   format: MatchFormat,
   n: number,
 ): MatchupSummary {
-  let wins = 0,
-    gamesWon = 0,
+  const rates = emptyRates();
+  let gamesWon = 0,
     gamesLost = 0,
     bagels = 0,
     setsLost = 0,
@@ -273,7 +150,7 @@ function summarize(
     oppOvr = opponent.overallRating;
     const r = runMatch(player, opponent, playerEffects, opponentEffects, format);
 
-    if (r.winner === 'player') wins++;
+    tallyMatch(r.points, format, rates);
     const scoreStr = r.sets.map((s) => `${s.player}-${s.opponent}`).join(' ');
     scoreCounts.set(scoreStr, (scoreCounts.get(scoreStr) ?? 0) + 1);
     for (const s of r.sets) {
@@ -309,7 +186,7 @@ function summarize(
   return {
     label,
     oppOvr,
-    winPct: (100 * wins) / n,
+    rates,
     gamesWon: gamesWon / n,
     gamesLost: gamesLost / n,
     bagelSetPct: totalSets ? (100 * bagels) / totalSets : 0,
@@ -334,7 +211,7 @@ function summaryRow(s: MatchupSummary): (string | number)[] {
   return [
     s.label,
     String(s.oppOvr),
-    fmtNum(s.winPct, 1) + '%',
+    ...formatRates(s.rates),
     `${fmtNum(s.gamesWon, 1)}-${fmtNum(s.gamesLost, 1)}`,
     fmtNum(s.bagelSetPct, 0) + '%',
     fmtNum(s.setsLostPct, 1) + '%',
@@ -354,7 +231,7 @@ function summaryRow(s: MatchupSummary): (string | number)[] {
 const SUMMARY_HEADER = [
   'Opponent',
   'OVR',
-  'Win%',
+  ...RATE_HEADERS,
   'AvgGames',
   'Bagel%',
   'SetLoss%',
@@ -404,7 +281,7 @@ function runPresetGroup(
         () => makeCharacter(playerStats),
         opponentFromPreset(preset, tierWins),
         {}, // player: no ability/archetype effects (unknown build) — see note in output
-        buildEffects(preset.abilities, getOpponentArchetypeProfile(preset)),
+        abilityEffects(preset.abilities),
         format,
         N_MATCHES,
       ),
@@ -441,7 +318,7 @@ function runRiverside(playerStats: PlayerStats): void {
         () => makeCharacter(playerStats),
         opponentFromPreset(preset, 0),
         {},
-        buildEffects(preset.abilities, getOpponentArchetypeProfile(preset)),
+        abilityEffects(preset.abilities),
         BO3,
         N_MATCHES,
       ),
@@ -472,7 +349,7 @@ function runServeSweep(): void {
         () => makeCharacter(stats),
         opponentFromPreset(jake, 0),
         {},
-        buildEffects(jake.abilities, getOpponentArchetypeProfile(jake)),
+        abilityEffects(jake.abilities),
         BO1,
         N_MATCHES,
       ),
@@ -501,7 +378,7 @@ function runReturnSweep(): void {
         () => makeCharacter(stats),
         opponentFromPreset(jake, 0),
         {},
-        buildEffects(jake.abilities, getOpponentArchetypeProfile(jake)),
+        abilityEffects(jake.abilities),
         BO1,
         N_MATCHES,
       ),
@@ -555,7 +432,7 @@ function runServeStyleShowcase(): void {
         () => new PlayerProfile('p', label, stats),
         opponentFromPreset(jake, 0),
         {},
-        buildEffects(jake.abilities, getOpponentArchetypeProfile(jake)),
+        abilityEffects(jake.abilities),
         BO1,
         N_MATCHES,
       ),

@@ -36,10 +36,9 @@ interface EffectMeta {
 const EFFECT_META: Record<EffectKeyValue, EffectMeta> = {
   // --- Training ---
   [EffectKey.MINIGAME_WINDOW_BONUS]: { label: 'Training Timing', icon: '🎯', kind: 'fraction' },
-  // A session grants ~3 stats and each rolls independently, so the upgrade chance
-  // and the expected lift in training gains are the same number.
+  // The chance a training session pays double.
   [EffectKey.TRAINING_STAT_UPGRADE_CHANCE]: {
-    label: 'Training Gains',
+    label: 'Double Training Chance',
     icon: '💪',
     kind: 'fraction',
   },

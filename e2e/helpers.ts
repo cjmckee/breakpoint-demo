@@ -82,7 +82,7 @@ export async function startNewGame(page: Page, name = 'Testy McTestface'): Promi
 }
 
 /** The walkthrough's steps, in order, ending on the button that closes it. */
-export const WALKTHROUGH_ADVANCE = ['Next', 'Next', 'Next', "Let's Train"] as const;
+export const WALKTHROUGH_ADVANCE = ['Next', 'Next', 'Next', 'Next', "Let's Train"] as const;
 
 /** Advances past the walkthrough so the plain menu is reachable. */
 export async function dismissWalkthrough(page: Page): Promise<void> {
@@ -221,6 +221,22 @@ export async function grantItem(page: Page, itemId: string): Promise<void> {
     },
     JSON.parse(JSON.stringify(item)) as typeof item,
   );
+}
+
+/**
+ * Adds training currency to the wallet. Scenario setup, the same action the
+ * Debug Panel's currency buttons call: the bundled saves start with an empty
+ * wallet, and earning it by training would tie a spending spec to payouts.
+ */
+export async function grantCurrency(
+  page: Page,
+  amounts: Parameters<GameState['changeCurrency']>[0],
+): Promise<void> {
+  await page.evaluate((delta) => {
+    const handle = window.__test__;
+    if (!handle) throw new Error('window.__test__ missing — is this a dev build?');
+    handle.game.getState().changeCurrency(delta);
+  }, amounts);
 }
 
 /**

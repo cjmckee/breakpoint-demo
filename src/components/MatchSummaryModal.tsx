@@ -14,6 +14,8 @@ import type { KeyMomentHistoryEntry } from '../types/gamePhase';
 import type { AccumulatedMatchEffects } from '../game/MatchOrchestrator';
 import { getPrimaryStatName } from '../core/shotStatMapping';
 import { formatStatName } from '../config/statIcons';
+import { CurrencyAmounts } from './currency/CurrencyAmounts';
+import { matchPayoutLines } from '../game/CurrencyIncome';
 
 interface MatchSummaryModalProps {
   isOpen: boolean;
@@ -324,6 +326,33 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
                 {matchRewards.moodChange >= 0 ? '+' : ''}
                 {matchRewards.moodChange}
               </div>
+            </div>
+          </div>
+
+          {/* Training currency, split by how each area of the match went */}
+          <div
+            className="mb-4 bg-pixel-bg border-2 border-pixel-border p-3 text-center"
+            data-testid="match-results-currency"
+          >
+            <div className="text-xs text-pixel-text-muted mb-1">Training currency</div>
+            <CurrencyAmounts
+              amounts={matchRewards.currency}
+              signed
+              labelled
+              className="justify-center text-lg"
+            />
+            {/* Where it came from: the base for the result, then each area. */}
+            <div className="mt-3 space-y-1 text-sm text-left" data-testid="match-currency-lines">
+              {matchPayoutLines(matchRewards.performanceBreakdown, isWinner).map((line) => (
+                <div
+                  key={line.label}
+                  className="flex justify-between gap-3"
+                  data-testid={`match-currency-line-${line.label.toLowerCase().replace(/ /g, '-')}`}
+                >
+                  <span className="text-pixel-text-muted">{line.label}</span>
+                  <CurrencyAmounts amounts={line.amounts} signed />
+                </div>
+              ))}
             </div>
           </div>
 

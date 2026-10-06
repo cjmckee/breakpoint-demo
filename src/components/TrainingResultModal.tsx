@@ -6,8 +6,8 @@
 import React from 'react';
 import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
-import { StatBoostList } from './ui/StatBoostList';
-import { TrainingResult } from '../types/game';
+import type { TrainingResult } from '../types/game';
+import { CurrencyAmounts } from './currency/CurrencyAmounts';
 
 interface TrainingResultModalProps {
   isOpen: boolean;
@@ -21,8 +21,6 @@ export const TrainingResultModal: React.FC<TrainingResultModalProps> = ({
   result,
 }) => {
   if (!result) return null;
-
-  const hasStatBoosts = Object.values(result.statBoosts).some((v) => v > 0);
 
   const getTierColor = (tier: string): string => {
     switch (tier) {
@@ -55,13 +53,17 @@ export const TrainingResultModal: React.FC<TrainingResultModalProps> = ({
           )}
         </div>
 
-        {/* Stat Improvements */}
-        {hasStatBoosts && (
-          <div className="bg-pixel-card border-4 border-pixel-border p-4">
-            <h3 className="text-lg font-bold text-pixel-text mb-3">💫 Stat Improvements</h3>
-            <StatBoostList statBoosts={result.statBoosts} variant="result" />
-          </div>
-        )}
+        {/* Currency earned; it's spent on the Development screen */}
+        <div className="bg-pixel-card border-4 border-pixel-border p-4">
+          <h3 className="text-lg font-bold text-pixel-text mb-3">💰 Earned</h3>
+          <CurrencyAmounts
+            amounts={result.currencyGained}
+            signed
+            labelled
+            className="text-lg"
+            testId="training-result-currency"
+          />
+        </div>
 
         {/* Ability Roll (Diamond Tier) */}
         {result.tier === 'diamond' &&

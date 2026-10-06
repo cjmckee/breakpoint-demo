@@ -9,6 +9,7 @@ import { createEmptyArchetypeProfile } from '../data/archetypeTree';
 import { addToEachStat } from '../core/statAccess';
 
 import { random } from '../core/random';
+import { emptyWallet } from './StatDevelopment';
 export class PlayerManager {
   /**
    * Create a new player with default stats and optional playstyle
@@ -43,6 +44,8 @@ export class PlayerManager {
       name,
       stats: baseStats,
       abilities: [],
+      wallet: emptyWallet(),
+      walletSeen: emptyWallet(),
 
       // Phase-based archetype is chosen later (Coach Gonzalez event)
       archetypeProfile: createEmptyArchetypeProfile(),
@@ -105,16 +108,19 @@ export class PlayerManager {
       // Map flat stat names to nested structure
       if (stat in updatedStats.core) {
         const key = stat as keyof typeof updatedStats.core;
-        updatedStats.core[key] = Math.min(100, updatedStats.core[key] + boost);
+        updatedStats.core[key] = Math.max(0, Math.min(100, updatedStats.core[key] + boost));
       } else if (stat in updatedStats.technical) {
         const key = stat as keyof typeof updatedStats.technical;
-        updatedStats.technical[key] = Math.min(100, updatedStats.technical[key] + boost);
+        updatedStats.technical[key] = Math.max(
+          0,
+          Math.min(100, updatedStats.technical[key] + boost),
+        );
       } else if (stat in updatedStats.physical) {
         const key = stat as keyof typeof updatedStats.physical;
-        updatedStats.physical[key] = Math.min(100, updatedStats.physical[key] + boost);
+        updatedStats.physical[key] = Math.max(0, Math.min(100, updatedStats.physical[key] + boost));
       } else if (stat in updatedStats.mental) {
         const key = stat as keyof typeof updatedStats.mental;
-        updatedStats.mental[key] = Math.min(100, updatedStats.mental[key] + boost);
+        updatedStats.mental[key] = Math.max(0, Math.min(100, updatedStats.mental[key] + boost));
       }
     }
 

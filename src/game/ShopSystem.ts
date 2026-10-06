@@ -1,110 +1,26 @@
+/**
+ * The daily shop: consumables and equipment for XP, abilities for XP plus the
+ * currency their effect draws on. Stats are not sold — they are bought on the
+ * Development screen.
+ */
+
 import type {
-  ShopItem,
-  ItemRarity,
-  StatIncreaseItem,
-  ConsumableItem,
-  EquipmentItem,
   AbilityItem,
-  StatBoosts,
   Ability,
+  ConsumableItem,
+  CurrencyAmounts,
+  EquipmentItem,
+  ItemRarity,
+  ShopItem,
+  StatBoosts,
 } from '../types/game';
-import type { PlayerStats, StatCategory, StatName } from '../types/index';
 import type { Item } from '../types/items';
 import { ABILITY_DEFINITIONS } from '../data/abilities';
-import { AbilityRarity, DEFAULT_PLAYER_STATS } from '../types/game';
+import { AbilityRarity } from '../types/game';
 import { ALL_CONSUMABLES, ALL_EQUIPMENT, CONSUMABLE_SHOP_COSTS } from '../data/items';
+import { ABILITY_CURRENCY, ABILITY_PRICES, type AbilityPriceRarity } from '../config/economy';
 
 import { random } from '../core/random';
-// Derived from DEFAULT_PLAYER_STATS rather than hand-listed, so a stat rename
-// or category move can't leave a retired name behind for applyStatBoosts to
-// silently swallow.
-const STATS_BY_CATEGORY: Record<StatCategory, readonly StatName[]> = {
-  core: Object.keys(DEFAULT_PLAYER_STATS.core) as StatName[],
-  technical: Object.keys(DEFAULT_PLAYER_STATS.technical) as StatName[],
-  physical: Object.keys(DEFAULT_PLAYER_STATS.physical) as StatName[],
-  mental: Object.keys(DEFAULT_PLAYER_STATS.mental) as StatName[],
-};
-
-function getStatValue(stats: PlayerStats, statName: StatName): number {
-  if (statName in stats.core) return stats.core[statName as keyof typeof stats.core];
-  if (statName in stats.technical) return stats.technical[statName as keyof typeof stats.technical];
-  if (statName in stats.physical) return stats.physical[statName as keyof typeof stats.physical];
-  if (statName in stats.mental) return stats.mental[statName as keyof typeof stats.mental];
-  return 0;
-}
-
-function calculateStatIncreaseCost(currentValue: number, increase: number): number {
-  const multiplier = Math.max(6, currentValue / 8);
-  return Math.round(Math.pow(increase, 1.5) * multiplier);
-}
-
-function randInt(min: number, max: number): number {
-  return Math.floor(random() * (max - min + 1)) + min;
-}
-
-function rollStatRarity(): ItemRarity {
-  const roll = random() * 100;
-  if (roll < 60) return 'common';
-  if (roll < 85) return 'uncommon';
-  if (roll < 97) return 'rare';
-  return 'legendary';
-}
-
-function createStatIncreaseItem(playerStats: PlayerStats | null): StatIncreaseItem {
-  const rarity = rollStatRarity();
-  const numStatsMap: Record<ItemRarity, number> = { common: 1, uncommon: 2, rare: 3, legendary: 4 };
-  const numStats = numStatsMap[rarity];
-
-  const category: StatCategory =
-    random() < 0.3
-      ? 'core'
-      : random() < 0.33
-        ? 'technical'
-        : random() < 0.5
-          ? 'physical'
-          : 'mental';
-
-  const statBoosts: StatBoosts = {};
-  const usedStats = new Set<StatName>();
-  let totalIncrease = 0;
-
-  const availableStats = STATS_BY_CATEGORY[category];
-  for (let i = 0; i < numStats; i++) {
-    const remaining = availableStats.filter((s) => !usedStats.has(s));
-    if (remaining.length === 0) break;
-    const stat = remaining[Math.floor(random() * remaining.length)];
-    usedStats.add(stat);
-    const boost = randInt(1, 5);
-    statBoosts[stat] = boost;
-    totalIncrease += boost;
-  }
-
-  const statKeys = Object.keys(statBoosts) as StatName[];
-  const avgCurrentValue = playerStats
-    ? statKeys.reduce((sum, stat) => sum + getStatValue(playerStats, stat), 0) / statKeys.length
-    : 0;
-  const cost = calculateStatIncreaseCost(avgCurrentValue, totalIncrease);
-  const affectedStats = Object.keys(statBoosts).join(' + ');
-  const total = Object.values(statBoosts).reduce((a, b) => a + b, 0);
-
-  const rarityName: Record<ItemRarity, string> = {
-    common: 'Common',
-    uncommon: 'Uncommon',
-    rare: 'Rare',
-    legendary: 'Legendary',
-  };
-
-  return {
-    id: `stat-${Date.now()}-${random().toString(36).slice(2, 5)}`,
-    category: 'stat_increase',
-    name: `${rarityName[rarity]} +${total} ${affectedStats}`,
-    description: `Increase ${affectedStats} by a total of +${total}`,
-    cost,
-    purchased: false,
-    statBoosts,
-    rarity,
-  };
-}
 
 const SHOP_CONSUMABLE_ITEMS: Item[] = ALL_CONSUMABLES.filter(
   (item) => item.shopAvailable !== false,
@@ -151,49 +67,50 @@ function createEquipmentItem(): EquipmentItem {
   };
 }
 
+// Legendaries are never sold: they come from the story and rewards only.
 const ABILITIES: Ability[] = Object.values(ABILITY_DEFINITIONS).filter(
-  (ability) => ability.shopAvailable !== false,
+  (ability) => ability.shopAvailable !== false && ability.rarity !== AbilityRarity.LEGENDARY,
 );
 
-const RARITY_MULTIPLIERS: Record<AbilityRarity, number> = {
-  [AbilityRarity.COMMON]: 70,
-  [AbilityRarity.UNCOMMON]: 140,
-  [AbilityRarity.RARE]: 250,
-  [AbilityRarity.LEGENDARY]: 350,
-};
-
-function calculateAbilityCost(statBoosts: StatBoosts, rarity: AbilityRarity): number {
-  const total = Object.values(statBoosts).reduce((a, b) => a + b, 0);
-  const multiplier = RARITY_MULTIPLIERS[rarity] ?? 0;
-  return Math.round(Math.pow(total, 1.5) + multiplier);
+/**
+ * What taking `ability` from `currentLevel` to the next level costs: a fixed
+ * amount per rarity in the ability's currency, plus XP. Learning it (level 0)
+ * costs the base; each level after costs base × (1.5 + 0.75 × currentLevel).
+ * An off-court ability (no entry in ABILITY_CURRENCY) costs XP only.
+ */
+export function abilityPrice(
+  ability: Pick<Ability, 'name' | 'rarity'>,
+  currentLevel: number,
+): { xp: number; currency: CurrencyAmounts } {
+  const base = ABILITY_PRICES[ability.rarity as AbilityPriceRarity];
+  const scale = currentLevel === 0 ? 1 : 1.5 + 0.75 * currentLevel;
+  const currency = ABILITY_CURRENCY[ability.name];
+  return {
+    xp: Math.round(base.xp * scale),
+    currency: currency ? { [currency]: Math.round(base.units * scale) } : {},
+  };
 }
 
 function createAbilityItem(ownedLevels: Map<string, number> = new Map()): AbilityItem | null {
   const roll = random();
   let pool: Ability[] = ABILITIES;
 
+  // How often a rarity appears depends on the rarity: half the offers are
+  // commons, a third uncommons, the rest rares.
   if (roll < 0.5) {
     pool = ABILITIES.filter((a) => a.rarity === AbilityRarity.COMMON);
-  } else if (roll < 0.75) {
-    pool = ABILITIES.filter((a) => a.rarity !== AbilityRarity.LEGENDARY);
-  } else if (roll < 0.9) {
-    pool = ABILITIES.filter(
-      (a) => a.rarity !== AbilityRarity.COMMON && a.rarity !== AbilityRarity.LEGENDARY,
-    );
+  } else if (roll < 0.85) {
+    pool = ABILITIES.filter((a) => a.rarity === AbilityRarity.UNCOMMON);
   } else {
-    pool = ABILITIES.filter((a) => a.rarity === AbilityRarity.LEGENDARY);
+    pool = ABILITIES.filter((a) => a.rarity === AbilityRarity.RARE);
   }
 
   if (pool.length === 0) return null;
   const template = pool[Math.floor(random() * pool.length)];
   const currentLevel = ownedLevels.get(template.name) ?? 0;
   const nextLevel = currentLevel + 1;
-  const hasAbility = currentLevel > 0;
 
-  const baseCost = calculateAbilityCost(template.modifiers.statBoosts, template.rarity);
-  const adjustedCost = hasAbility
-    ? Math.round(baseCost * 1.5 + baseCost * currentLevel * 0.75)
-    : baseCost;
+  const price = abilityPrice(template, currentLevel);
 
   return {
     id: `ability-${template.name}-${Date.now()}-${random().toString(36).slice(2, 5)}`,
@@ -201,29 +118,18 @@ function createAbilityItem(ownedLevels: Map<string, number> = new Map()): Abilit
     name: nextLevel > 1 ? `${template.name} Lv${nextLevel}` : template.name,
     description: template.description,
     effects: template.effects,
-    cost: adjustedCost,
+    cost: price.xp,
+    currencyCost: price.currency,
+    level: nextLevel,
     purchased: false,
     abilityId: template.name,
-    statBoosts: template.modifiers.statBoosts,
     rarity: template.rarity as unknown as ItemRarity,
   };
 }
 
-export function generateDailyShopItems(
-  playerStats: PlayerStats | null = null,
-  ownedLevels: Map<string, number> = new Map(),
-): ShopItem[] {
+export function generateDailyShopItems(ownedLevels: Map<string, number> = new Map()): ShopItem[] {
   const items: ShopItem[] = [];
   const usedNames = new Set<string>();
-
-  // Generate 4 stat increases
-  while (items.filter((i) => i.category === 'stat_increase').length < 4) {
-    const item = createStatIncreaseItem(playerStats);
-    if (!usedNames.has(item.name)) {
-      items.push(item);
-      usedNames.add(item.name);
-    }
-  }
 
   // Generate 2 consumables
   while (items.filter((i) => i.category === 'consumable').length < 2) {

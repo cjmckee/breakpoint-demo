@@ -2,7 +2,8 @@
  * Match Reward System
  *
  * Calculates rewards based on match performance across multiple categories.
- * Performance scores drive experience and drop rate scaling — no direct stat awards.
+ * Performance scores drive experience, drop rate scaling and the currency payout
+ * (CurrencyIncome.matchPayout) — no direct stat awards.
  */
 
 import type { MatchStatistics } from '../types/index';
@@ -38,6 +39,7 @@ import {
 } from '../config/performanceScoring';
 import { getRandomItem, getItemsByTier } from '../data/items';
 import { AbilitySystem } from './AbilitySystem';
+import { matchPayout } from './CurrencyIncome';
 
 import { random } from '../core/random';
 export class MatchRewardSystem {
@@ -82,6 +84,7 @@ export class MatchRewardSystem {
       abilitiesGained: abilities,
       itemsGained: items,
       performanceBreakdown: performance,
+      currency: matchPayout(performance, isWin),
     };
   }
 

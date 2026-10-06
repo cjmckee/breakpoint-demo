@@ -9,19 +9,16 @@
  * Env: N=60 (BO3 per build)  RATING=60 (uniform rating; use 35 for tier 1)
  */
 
-import type { MatchFormat, MatchState, PlayerStats, ShotType, PointResult } from '../../types';
+import type { PlayerStats, ShotType, PointAnalysisData } from '../../types';
 import type { ArchetypeProfile, PhaseSpec, GamePhase } from '../../types/archetype';
 import { PlayerProfile } from '../../core/PlayerProfile';
-import { PointSimulator } from '../../core/PointSimulator';
-import { ScoreTracker } from '../../core/ScoreTracker';
-import { MATCH_FATIGUE } from '../../config/shotThresholds';
+import { playMatch } from './simMatch';
 import { aggregateArchetypeEffects } from '../../data/archetypeTree';
 
 const N_MATCHES = Number(process.env.N ?? 60);
 /** Uniform rating for both players. The shipped ladder is OVR 20-49, so pass
  *  RATING=35 to see the mix a tier-1 player actually hits. */
 const RATING = Number(process.env.RATING ?? 60);
-const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
 
 function uniformStats(r: number): PlayerStats {
   return {
@@ -58,18 +55,6 @@ function family(shotType: ShotType): string {
   return 'groundstroke';
 }
 
-function calcFatigue(cur: number, rally: number, stam: number, rec: number): number {
-  const sf = MATCH_FATIGUE.minFatigueRate + (1 - MATCH_FATIGUE.minFatigueRate) * (1 - stam / 100);
-  let gain = rally * MATCH_FATIGUE.basePerShot * sf;
-  if (rally > MATCH_FATIGUE.longRallyThreshold) {
-    gain += (rally - MATCH_FATIGUE.longRallyThreshold) * MATCH_FATIGUE.longRallyExtra * sf;
-  }
-  const recovery =
-    MATCH_FATIGUE.baseRecoveryPerPoint +
-    (rec / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
-  return Math.max(0, Math.min(100, cur + gain - recovery));
-}
-
 interface Tally {
   rallyShots: number;
   byFamily: Map<string, number>;
@@ -93,43 +78,17 @@ function newTally(): Tally {
 function runMatch(
   player: PlayerProfile,
   opponent: PlayerProfile,
-  pEff: Record<string, number>,
-  oEff: Record<string, number>,
   tally: Tally,
-  capture: PointResult[] | null,
+  capture: PointAnalysisData[] | null,
 ): void {
-  const tracker = new ScoreTracker(BO3);
-  tracker.setInitialServer(Math.random() < 0.5 ? 'player' : 'opponent');
-  player.rollMatchForm();
-  opponent.rollMatchForm();
-  const sim = new PointSimulator();
-
-  const matchState: MatchState = {
-    score: tracker.getScore(),
-    currentServer: tracker.getCurrentServer(),
-    courtSurface: 'hard',
-    momentum: 0,
-    pressure: 'low',
-    matchLength: 0,
-    pointsPlayed: 0,
-    isKeyMoment: false,
-    fatigue: { player: 0, opponent: 0 },
-  };
-
-  let points = 0;
-  while (!tracker.isComplete() && points < 600) {
-    const server = tracker.getCurrentServer();
-    const serverProfile = server === 'player' ? player : opponent;
-    const returnerProfile = server === 'player' ? opponent : player;
-    matchState.isKeyMoment = tracker.isKeyMoment();
-
-    const pr = sim.simulatePoint(server, serverProfile, returnerProfile, matchState, pEff, oEff);
+  for (const pt of playMatch(player, opponent).points) {
+    const server = pt.server;
 
     // The player is 'server' in the shot stream when the player is serving.
     const playerRole = server === 'player' ? 'server' : 'returner';
     tally.points++;
     let enteredNet = false;
-    for (const shot of pr.shots) {
+    for (const shot of pt.shots) {
       if (shot.shooter !== playerRole) continue;
       const fam = family(shot.shotType);
       if (fam === 'serve') continue; // rally shots only, matching the doc
@@ -144,25 +103,7 @@ function runMatch(
         }
       }
     }
-    if (capture && capture.length < 400) capture.push(pr);
-
-    const winner = pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player';
-    tracker.addPoint(winner);
-    matchState.fatigue.player = calcFatigue(
-      matchState.fatigue.player,
-      pr.rallyLength,
-      player.stats.physical.stamina,
-      player.stats.physical.stamina,
-    );
-    matchState.fatigue.opponent = calcFatigue(
-      matchState.fatigue.opponent,
-      pr.rallyLength,
-      opponent.stats.physical.stamina,
-      opponent.stats.physical.stamina,
-    );
-    matchState.score = tracker.getScore();
-    matchState.currentServer = tracker.getCurrentServer();
-    matchState.pointsPlayed = ++points;
+    if (capture && capture.length < 400) capture.push(pt);
   }
 }
 
@@ -225,16 +166,16 @@ const FAMILY_ORDER = [
 
 function main(): void {
   const results: Array<{ label: string; tally: Tally; effects: Record<string, number> }> = [];
-  const caseStudies: Record<string, PointResult[]> = {};
+  const caseStudies: Record<string, PointAnalysisData[]> = {};
 
   for (const build of BUILDS) {
     const tally = newTally();
     const pEff = aggregateArchetypeEffects(build.profile);
-    const capture: PointResult[] = [];
+    const capture: PointAnalysisData[] = [];
     for (let i = 0; i < N_MATCHES; i++) {
       const player = new PlayerProfile('p', 'Player', uniformStats(RATING), build.profile);
       const opponent = new PlayerProfile('o', 'Opponent', uniformStats(RATING), profile({}));
-      runMatch(player, opponent, pEff, {}, tally, capture);
+      runMatch(player, opponent, tally, capture);
     }
     results.push({ label: build.label, tally, effects: pEff });
     caseStudies[build.label] = capture;
@@ -361,14 +302,13 @@ main();
 // ─── Addendum: how do lobs fare against a net player? ────────
 export function lobProbe(): void {
   const prof = profile({ net: { path: 'net_downhill', tier: 3 } }, 'net_attacker');
-  const pEff = aggregateArchetypeEffects(prof);
-  const capture: PointResult[] = [];
+  const capture: PointAnalysisData[] = [];
   const tally = newTally();
   for (let i = 0; i < 120; i++) {
     const player = new PlayerProfile('p', 'Player', uniformStats(RATING), prof);
     const opponent = new PlayerProfile('o', 'Opponent', uniformStats(RATING), profile({}));
-    const cap: PointResult[] = [];
-    runMatch(player, opponent, pEff, {}, tally, cap);
+    const cap: PointAnalysisData[] = [];
+    runMatch(player, opponent, tally, cap);
     capture.push(...cap);
   }
 

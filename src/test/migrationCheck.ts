@@ -30,6 +30,7 @@ import { PlayerProfile } from '../core/PlayerProfile';
 import { LUCKY_SPROUT } from '../data/items';
 import { EffectKey } from '../types/game';
 import { DEFAULT_MATCH_SPEED, MATCH_SPEED_DELAYS } from '../config/matchRewards';
+import { contentCurrency } from '../game/CurrencyIncome';
 
 let failures = 0;
 
@@ -342,6 +343,88 @@ function main(): void {
   check(
     'the default speed is one the delay table knows',
     MATCH_SPEED_DELAYS[migrated.matchSpeed] !== undefined,
+  );
+
+  console.log('\n  the 8 → 9 change itself:');
+  check(
+    'the player gains a wallet, empty in every currency',
+    player.wallet !== undefined &&
+      Object.values(player.wallet).length === 4 &&
+      Object.values(player.wallet).every((v) => v === 0),
+    JSON.stringify(player.wallet),
+  );
+  const walletRerun = runMigrations(
+    {
+      ...migrated,
+      player: { ...player, wallet: { power: 5, quickness: 0, technique: 0, mind: 2 } },
+    },
+    8,
+  ).state.player!;
+  check(
+    're-running the step keeps an existing wallet',
+    walletRerun.wallet.power === 5 && walletRerun.wallet.mind === 2,
+  );
+
+  console.log('\n  the 9 → 10 change itself:');
+  // A held challenge carries its own copy of the reward, saved in the old shape.
+  const heldChallenge = {
+    id: 'held',
+    name: 'Held',
+    description: '',
+    requirements: [],
+    reward: { modifiers: { statBoosts: { focus: 5, serve: 2 } }, experience: 10 },
+    status: 'active',
+    progress: { requirementProgress: [], isComplete: false, completionPercentage: 0 },
+    assignedAt: '2026-01-01T00:00:00.000Z',
+  };
+  const challengeSave = { ...migrated, activeChallenges: [heldChallenge] };
+  const [converted] = runMigrations(challengeSave, 9).state.activeChallenges;
+  const expected = contentCurrency({ focus: 5, serve: 2 });
+  check(
+    "a held challenge's stat boosts become the same currency the templates got",
+    JSON.stringify(converted.reward.currency) === JSON.stringify(expected),
+    JSON.stringify(converted.reward),
+  );
+  check(
+    'the rest of the reward is kept and the stat boosts are gone',
+    converted.reward.experience === 10 && !('modifiers' in converted.reward),
+  );
+
+  console.log('\n  the 10 → 11 change itself:');
+  const oldStock = [
+    {
+      id: 'stat-1',
+      category: 'stat_increase',
+      name: 'Common +3 serve',
+      description: '',
+      cost: 40,
+      purchased: false,
+      statBoosts: { serve: 3 },
+    },
+  ];
+  const restocked = runMigrations({ ...migrated, shopItems: oldStock }, 10).state.shopItems;
+  check(
+    'a saved shop is restocked with no stat bundles',
+    restocked.length > 0 && restocked.every((i) => i.category !== ('stat_increase' as string)),
+    restocked.map((i) => i.category).join(', '),
+  );
+  check(
+    'restocked abilities carry a currency price',
+    restocked.filter((i) => i.category === 'ability').every((i) => 'currencyCost' in i),
+  );
+  check(
+    'a closed shop (before day 7) stays empty',
+    runMigrations({ ...migrated, shopItems: [] }, 10).state.shopItems.length === 0,
+  );
+
+  console.log('\n  the 11 → 12 change itself:');
+  const held = { power: 7, quickness: 0, technique: 3, mind: 0 };
+  const seenSave = { ...migrated, player: { ...player, wallet: held, walletSeen: undefined } };
+  const seen = runMigrations(seenSave, 11).state.player!;
+  check(
+    'the last-seen wallet starts at the current wallet, so nothing reads as new',
+    JSON.stringify(seen.walletSeen) === JSON.stringify(held),
+    JSON.stringify(seen.walletSeen),
   );
 
   console.log('\n── a save below the breaking floor is discarded ──');

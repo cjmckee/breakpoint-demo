@@ -26,6 +26,7 @@ import {
   TIME_SLOT_NAMES,
   ShopItem,
   Ability,
+  CurrencyAmounts,
 } from '../types/game';
 import type { StoryEvent, StoryEventTag, StoryEventOption } from '../types/storyEvents';
 import { HANGOUT_CHARACTERS, HANGOUT_ENERGY_COST, getHangoutTier } from '../data/hangoutCharacters';
@@ -67,7 +68,7 @@ import {
   PATHS_BY_PHASE,
 } from '../data/archetypeTree';
 import { useMenuStore } from '../hooks/useMenuModal';
-import type { PlayStyle } from '../types';
+import type { OperationResult, PlayStyle, StatName } from '../types';
 import type {
   ArchetypeProfile,
   GamePhase as ArchetypePhase,
@@ -95,6 +96,7 @@ import {
 } from '../analytics/analytics';
 
 import { random } from '../core/random';
+import { applyCurrency, canAfford, negate, purchase } from '../game/StatDevelopment';
 export interface AudioSettings {
   musicVolume: number; // 0–1
   sfxVolume: number; // 0–1
@@ -179,6 +181,7 @@ interface GameState {
       | 'relationships'
       | 'shop'
       | 'archetype'
+      | 'development'
       | 'challenges',
   ) => void;
   navigateToScheduledMatch: (matchType: 'tournament' | 'story') => void;
@@ -218,6 +221,14 @@ interface GameState {
 
   // Hangout actions
   hangoutWithCharacter: (characterId: string) => void;
+
+  /** Add or remove training currency. Losses clamp each currency at zero. */
+  changeCurrency: (delta: CurrencyAmounts) => void;
+  /**
+   * Buy a plan of stat +1s with training currency: all of it or none. Returns
+   * the result so the Development screen can say why a plan was refused.
+   */
+  purchaseStats: (plan: StatName[]) => OperationResult<Player>;
 
   // Story event actions
   checkForStoryEventById: (eventId: string) => void;
@@ -681,8 +692,11 @@ export const useGameStore = create<GameState>()(
         const { player, currentStatus } = get();
         if (!player) throw new Error('No player found');
 
-        // Apply stat boosts to player
-        let updatedPlayer = PlayerManager.applyStatBoosts(player, result.statBoosts);
+        // Training pays currency; stats are bought with it on the Development screen.
+        let updatedPlayer: Player = {
+          ...player,
+          wallet: applyCurrency(player.wallet, result.currencyGained),
+        };
 
         // Check for ability gained
         if (result.abilityGained) {
@@ -1305,9 +1319,21 @@ export const useGameStore = create<GameState>()(
           case 'shop':
             set({ gamePhase: { type: 'shop' } });
             break;
-          case 'archetype':
-            set({ gamePhase: { type: 'archetype' } });
+          case 'development':
+          case 'archetype': {
+            // One screen for all development: currency buys stats on one tab,
+            // specialization points buy specialties on the other. Opening it is
+            // seeing the new currency, so that part of the badge goes out.
+            const { player } = get();
+            set({
+              gamePhase: {
+                type: 'development',
+                tab: target === 'archetype' ? 'specialties' : 'stats',
+              },
+              ...(player ? { player: { ...player, walletSeen: player.wallet } } : {}),
+            });
             break;
+          }
           case 'challenges':
             set({ gamePhase: { type: 'challenges' } });
             break;
@@ -1671,7 +1697,10 @@ export const useGameStore = create<GameState>()(
         );
 
         // Apply rewards to player
-        let updatedPlayer = { ...state.player };
+        let updatedPlayer: Player = {
+          ...state.player,
+          wallet: applyCurrency(state.player.wallet, rewards.currency),
+        };
         if (rewards.abilitiesGained && rewards.abilitiesGained.length > 0) {
           // Only roll for abilities if this is non-tutorial
           if (countsForMilestones) {
@@ -2314,6 +2343,26 @@ export const useGameStore = create<GameState>()(
         get().checkForStoryEventById(config.tierEventIds[currentTier]);
       },
 
+      changeCurrency: (delta: CurrencyAmounts) => {
+        const { player } = get();
+        if (!player) return;
+        set({ player: { ...player, wallet: applyCurrency(player.wallet, delta) } });
+      },
+
+      purchaseStats: (plan: StatName[]) => {
+        const { player } = get();
+        if (!player) {
+          return { success: false, error: 'No player', timestamp: Date.now() };
+        }
+        const result = purchase(player, plan);
+        if (result.success && result.data) {
+          set({ player: { ...result.data, walletSeen: result.data.wallet } });
+          // A purchase can satisfy a statThreshold challenge.
+          get().checkChallengeCompletion();
+        }
+        return result;
+      },
+
       checkForStoryEventById: (eventId: string) => {
         const { player, gamePhase } = get();
         if (!player) return;
@@ -2778,8 +2827,12 @@ export const useGameStore = create<GameState>()(
           minigameScore,
         );
 
-        // Apply stat changes to player
-        let updatedPlayer = { ...player };
+        // Apply currency (losses clamp each currency at zero), then any direct
+        // stat changes a rare outcome carries (clamped to 0-100).
+        let updatedPlayer: Player = {
+          ...player,
+          wallet: applyCurrency(player.wallet, outcome.effects.currency ?? {}),
+        };
         if (outcome.effects.statChanges) {
           updatedPlayer = PlayerManager.applyStatBoosts(updatedPlayer, outcome.effects.statChanges);
         }
@@ -3335,15 +3388,6 @@ export const useGameStore = create<GameState>()(
         const markPurchased = (items: ShopItem[]) =>
           items.map((i) => (i.id === itemId ? { ...i, purchased: true } : i));
 
-        if (item.category === 'stat_increase') {
-          const updatedPlayer = PlayerManager.applyStatBoosts(player, item.statBoosts);
-          set({
-            player: { ...updatedPlayer, experience: updatedPlayer.experience - cost },
-            shopItems: markPurchased(shopItems),
-          });
-          return true;
-        }
-
         if (item.category === 'consumable') {
           const sourceItem = ALL_ITEMS.find((i) => i.id === item.sourceItemId);
           if (!sourceItem) return false;
@@ -3369,9 +3413,15 @@ export const useGameStore = create<GameState>()(
         }
 
         if (item.category === 'ability') {
+          // XP plus the ability's currency; both or neither.
+          if (!canAfford(player.wallet, item.currencyCost)) return false;
           const updatedPlayer = PlayerManager.addAbility(player, item.abilityId);
           set({
-            player: { ...updatedPlayer, experience: updatedPlayer.experience - cost },
+            player: {
+              ...updatedPlayer,
+              experience: updatedPlayer.experience - cost,
+              wallet: applyCurrency(updatedPlayer.wallet, negate(item.currencyCost)),
+            },
             shopItems: markPurchased(shopItems),
           });
           return true;
@@ -3383,7 +3433,7 @@ export const useGameStore = create<GameState>()(
       refreshShop: () => {
         const { player } = get();
         const ownedLevels = new Map(player?.abilities.map((a) => [a.name, a.level]) ?? []);
-        const newItems = generateDailyShopItems(player?.stats ?? null, ownedLevels);
+        const newItems = generateDailyShopItems(ownedLevels);
         set({ shopItems: newItems });
       },
 

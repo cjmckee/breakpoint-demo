@@ -31,9 +31,7 @@ export const CHALLENGE_PUTTING_IN_THE_REPS: ChallengeTemplate = {
     },
   ],
   reward: {
-    modifiers: {
-      statBoosts: { stamina: 3, focus: 3, slice: 3 },
-    },
+    currency: { power: 4, quickness: 4, technique: 7, mind: 7 },
     experience: 20,
   },
 };
@@ -56,9 +54,7 @@ export const CHALLENGE_FOREHAND_FUNDAMENTALS: ChallengeTemplate = {
     },
   ],
   reward: {
-    modifiers: {
-      statBoosts: { placement: 5, spin: 3 },
-    },
+    currency: { power: 4, technique: 19, mind: 6 },
     relationshipChanges: { coach_gonzalez: 5 },
     experience: 15,
   },
@@ -77,9 +73,7 @@ export const CHALLENGE_FIRST_VICTORIES: ChallengeTemplate = {
     },
   ],
   reward: {
-    modifiers: {
-      statBoosts: { focus: 5, anticipation: 5 },
-    },
+    currency: { quickness: 6, mind: 30 },
     relationshipChanges: { coach_gonzalez: 10 },
     experience: 15,
   },
@@ -100,9 +94,7 @@ export const CHALLENGE_SERVE_MASTERY: ChallengeTemplate = {
   ],
   reward: {
     abilities: [AbilityName.HEAVY_HITTER],
-    modifiers: {
-      statBoosts: { serve: 5, strength: 3 },
-    },
+    currency: { power: 29, technique: 6 },
     relationshipChanges: { coach_gonzalez: 5 },
     experience: 15,
   },
@@ -129,9 +121,7 @@ export const CHALLENGE_BASELINE_WARRIOR: ChallengeTemplate = {
   ],
   reward: {
     abilities: [AbilityName.BASELINER],
-    modifiers: {
-      statBoosts: { placement: 5, tactics: 5, stamina: 3 },
-    },
+    currency: { power: 4, quickness: 4, technique: 18, mind: 24 },
     relationshipChanges: { coach_gonzalez: 5 },
     experience: 15,
   },
@@ -152,9 +142,7 @@ export const CHALLENGE_MENTAL_EDGE: ChallengeTemplate = {
   ],
   reward: {
     abilities: [AbilityName.CLUTCH],
-    modifiers: {
-      statBoosts: { focus: 5, anticipation: 5, tactics: 3 },
-    },
+    currency: { quickness: 6, technique: 4, mind: 41 },
     relationshipChanges: { coach_gonzalez: 10 },
     experience: 15,
   },
@@ -180,9 +168,7 @@ export const CHALLENGE_BALANCED_APPROACH: ChallengeTemplate = {
     },
   ],
   reward: {
-    modifiers: {
-      statBoosts: { spin: 8, placement: 4 },
-    },
+    currency: { power: 10, technique: 29, mind: 5 },
     relationshipChanges: { coach_gonzalez: 10 },
     experience: 15,
   },
@@ -208,9 +194,7 @@ export const CHALLENGE_ATHLETIC_FOUNDATION: ChallengeTemplate = {
     },
   ],
   reward: {
-    modifiers: {
-      statBoosts: { speed: 5, stamina: 5 },
-    },
+    currency: { power: 12, quickness: 24 },
     items: [STYLISH_HEADBAND],
     relationshipChanges: { coach_gonzalez: 10 },
     experience: 15,
@@ -234,9 +218,7 @@ export const CHALLENGE_TEN_WINS: ChallengeTemplate = {
     },
   ],
   reward: {
-    modifiers: {
-      statBoosts: { focus: 5, tactics: 5 },
-    },
+    currency: { technique: 6, mind: 30 },
     items: [CHAMPION_WRISTBAND],
     experience: 25,
   },
@@ -258,9 +240,7 @@ export const CHALLENGE_PROVE_THEM_WRONG: ChallengeTemplate = {
     },
   ],
   reward: {
-    modifiers: {
-      statBoosts: { tactics: 3 },
-    },
+    currency: { technique: 4, mind: 11 },
     experience: 40,
   },
 };
@@ -279,9 +259,7 @@ export const CHALLENGE_RIVAL_READY: ChallengeTemplate = {
     },
   ],
   reward: {
-    modifiers: {
-      statBoosts: { backhand: 3, anticipation: 3 },
-    },
+    currency: { quickness: 7, technique: 7, mind: 11 },
     relationshipChanges: { jordan_rival: -5 },
     experience: 40,
   },
@@ -304,9 +282,7 @@ export const CHALLENGE_MAKE_THEM_PROUD: ChallengeTemplate = {
     },
   ],
   reward: {
-    modifiers: {
-      statBoosts: { stamina: 3, focus: 3, spin: 3, placement: 2 },
-    },
+    currency: { power: 7, quickness: 4, technique: 12, mind: 10 },
     relationshipChanges: { family: 15 },
     experience: 25,
   },
@@ -331,9 +307,7 @@ export const CHALLENGE_TEAM_SPIRIT: ChallengeTemplate = {
     },
   ],
   reward: {
-    modifiers: {
-      statBoosts: { tactics: 3, return: 3, serve: 2, spin: 2 },
-    },
+    currency: { power: 10, quickness: 7, technique: 14, mind: 14 },
     experience: 15,
   },
 };
@@ -353,9 +327,7 @@ export const CHALLENGE_SPONSOR_WORTHY: ChallengeTemplate = {
     },
   ],
   reward: {
-    modifiers: {
-      statBoosts: { serve: 5 },
-    },
+    currency: { power: 18, technique: 6 },
     experience: 15,
   },
 };
@@ -377,9 +349,7 @@ export const CHALLENGE_IMPRESS_ALEX: ChallengeTemplate = {
     },
   ],
   reward: {
-    modifiers: {
-      statBoosts: { backhand: 2, spin: 2 },
-    },
+    currency: { power: 2, quickness: 2, technique: 10 },
     relationshipChanges: { alex_romance: 10 },
     experience: 25,
   },
@@ -402,9 +372,7 @@ export const CHALLENGE_SLICE_SPECIALIST: ChallengeTemplate = {
     },
   ],
   reward: {
-    modifiers: {
-      statBoosts: { slice: 3, spin: 2 },
-    },
+    currency: { power: 2, technique: 12 },
     experience: 15,
   },
 };
@@ -423,9 +391,7 @@ export const CHALLENGE_TOUCH_ARTIST: ChallengeTemplate = {
     },
   ],
   reward: {
-    modifiers: {
-      statBoosts: { placement: 5, net: 2 },
-    },
+    currency: { quickness: 2, technique: 14, mind: 6 },
     experience: 15,
   },
 };
@@ -443,9 +409,7 @@ export const CHALLENGE_OVERHEAD_AUTHORITY: ChallengeTemplate = {
     },
   ],
   reward: {
-    modifiers: {
-      statBoosts: { net: 5, strength: 2 },
-    },
+    currency: { power: 7, quickness: 6, technique: 6 },
     experience: 15,
   },
 };
@@ -464,9 +428,7 @@ export const CHALLENGE_NEED_FOR_SPEED: ChallengeTemplate = {
   ],
   reward: {
     abilities: [AbilityName.SPEED_DEMON],
-    modifiers: {
-      statBoosts: { speed: 3 },
-    },
+    currency: { power: 4, quickness: 11 },
     experience: 15,
   },
 };
@@ -485,9 +447,7 @@ export const CHALLENGE_NET_DOMINATOR: ChallengeTemplate = {
   ],
   reward: {
     abilities: [AbilityName.NETCRASHER],
-    modifiers: {
-      statBoosts: { net: 3, placement: 2 },
-    },
+    currency: { quickness: 4, technique: 8, mind: 2 },
     experience: 15,
   },
 };
@@ -505,9 +465,7 @@ export const CHALLENGE_IRON_RECOVERY: ChallengeTemplate = {
     },
   ],
   reward: {
-    modifiers: {
-      statBoosts: { stamina: 3 },
-    },
+    currency: { power: 4, quickness: 4 },
     experience: 15,
   },
 };
@@ -526,9 +484,7 @@ export const CHALLENGE_WINNER_MACHINE: ChallengeTemplate = {
     },
   ],
   reward: {
-    modifiers: {
-      statBoosts: { tactics: 3, strength: 2 },
-    },
+    currency: { power: 7, technique: 4, mind: 11 },
     experience: 25,
   },
 };
@@ -546,9 +502,7 @@ export const CHALLENGE_WALL_CLIMBER: ChallengeTemplate = {
     },
   ],
   reward: {
-    modifiers: {
-      statBoosts: { strength: 3, serve: 2 },
-    },
+    currency: { power: 18, technique: 2 },
     experience: 15,
   },
 };
@@ -566,9 +520,7 @@ export const CHALLENGE_PRECISION_CUTTER: ChallengeTemplate = {
     },
   ],
   reward: {
-    modifiers: {
-      statBoosts: { placement: 3 },
-    },
+    currency: { technique: 7, mind: 4 },
     experience: 15,
   },
 };
@@ -588,9 +540,7 @@ export const CHALLENGE_ESCAPE_ARTIST: ChallengeTemplate = {
     },
   ],
   reward: {
-    modifiers: {
-      statBoosts: { return: 3, anticipation: 2, speed: 3 },
-    },
+    currency: { power: 4, quickness: 20, technique: 4, mind: 11 },
     experience: 25,
   },
 };
@@ -613,9 +563,7 @@ export const CHALLENGE_PRACTICE_MAKES_PERFECT: ChallengeTemplate = {
     },
   ],
   reward: {
-    modifiers: {
-      statBoosts: { speed: 3, anticipation: 3, slice: 2, tactics: 4 },
-    },
+    currency: { power: 4, quickness: 14, technique: 10, mind: 25 },
     relationshipChanges: { alex_romance: 15 },
     experience: 10,
   },
@@ -639,9 +587,7 @@ export const CHALLENGE_SIBLING_TEACHER: ChallengeTemplate = {
     },
   ],
   reward: {
-    modifiers: {
-      statBoosts: { focus: 3, spin: 2, strength: 2 },
-    },
+    currency: { power: 10, technique: 5, mind: 7 },
     relationshipChanges: { family: 10 },
     experience: 15,
   },
@@ -671,9 +617,7 @@ export const CHALLENGE_TRICK_SHOT_MASTER: ChallengeTemplate = {
     },
   ],
   reward: {
-    modifiers: {
-      statBoosts: { placement: 4, spin: 4, tactics: 4, slice: 4 },
-    },
+    currency: { power: 5, technique: 34, mind: 19 },
     relationshipChanges: { coach_gonzalez: 5 },
     experience: 15,
   },
@@ -696,9 +640,7 @@ export const CHALLENGE_DOUBLES_INSTINCTS: ChallengeTemplate = {
     },
   ],
   reward: {
-    modifiers: {
-      statBoosts: { net: 3, return: 2, tactics: 2 },
-    },
+    currency: { quickness: 8, technique: 8, mind: 10 },
     experience: 25,
   },
 };

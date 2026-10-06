@@ -76,7 +76,10 @@ test('a fresh player reaches each early unlock by playing', async ({ page }) => 
   const archetypeButton = page.getByTestId('action-archetype');
   await expect(archetypeButton).toBeVisible();
   await archetypeButton.click();
-  expect((await readGame(page)).gamePhase.type).toBe('archetype');
+  // The archetype tree is the Specialties tab of the Development screen.
+  const phase = (await readGame(page)).gamePhase;
+  expect(phase.type).toBe('development');
+  expect(phase.type === 'development' && phase.tab).toBe('specialties');
 
   // Points are worthless if they cannot be spent, so spend one.
   const pointsBefore = state.player!.archetypeProfile.specializationPoints;

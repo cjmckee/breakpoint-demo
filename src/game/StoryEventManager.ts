@@ -314,11 +314,6 @@ export class StoryEventManager {
     // Get the outcome (from selected option or default)
     const outcome = this.getOutcome(event, selectedOption, minigameScore);
 
-    // Get stat changes from outcome
-    const statChanges: Record<string, number> = {
-      ...(outcome.effects.statChanges || {}),
-    };
-
     // Create result
     const result: StoryEventResult = {
       id: `story-${Date.now()}`,
@@ -338,7 +333,8 @@ export class StoryEventManager {
 
       resultText: outcome.resultText,
 
-      statChanges,
+      currency: outcome.effects.currency ?? {},
+      statChanges: outcome.effects.statChanges ?? {},
       relationshipChanges: outcome.effects.relationshipChanges || {},
       abilitiesGained: outcome.effects.abilitiesGained || [],
       itemsGained: outcome.effects.itemsGained || [],

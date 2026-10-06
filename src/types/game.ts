@@ -3,7 +3,7 @@
  * Ported from ai-slop-gaming and adapted for ai-slop-tennis
  */
 
-import type { StatName, PlayerStats } from './index';
+import type { CoreStats, StatName, PlayerStats } from './index';
 import type { ArchetypeProfile } from './archetype';
 import type { StoryEventResult } from './storyEvents';
 import type { Item, OwnedItem, EquipmentSlot } from './items';
@@ -67,10 +67,10 @@ export const EffectKey = {
   // --- Training effects ---
   // Fractional widening of training minigame success windows (0.10 = +10%).
   MINIGAME_WINDOW_BONUS: 'minigame_window_bonus',
-  // 0-1 chance that each stat a session grants is worth +2 instead of +1.
-  // A session grants ~3 stats, so 0.10 here really is ~+10% training gains.
+  // 0-1 chance a training session pays double. The key predates currency; saved
+  // items carry it, so it keeps its name.
   TRAINING_STAT_UPGRADE_CHANCE: 'training_stat_upgrade_chance',
-  // 0-1 chance a session draws one extra support beyond the reps it earned.
+  // 0-1 chance a session counts one extra rep beyond the reps it earned.
   // Only rolls on a session that landed at least one rep.
   TRAINING_BONUS_SUPPORT_CHANCE: 'training_bonus_support_chance',
 
@@ -372,7 +372,13 @@ export interface Activity {
 export interface TrainingResult extends Activity {
   type: 'training';
   source: 'training_activity';
-  statBoosts: StatBoosts;
+  /** The core stat the session was built around; its recipe shapes the payout. */
+  anchor: keyof CoreStats;
+  /** Clean reps landed, including a bonus rep from items. */
+  reps: number;
+  currencyGained: CurrencyAmounts;
+  /** The session's double-gains roll landed (EffectKey.TRAINING_STAT_UPGRADE_CHANCE). */
+  doubled: boolean;
   trainingType: string;
   trainingName: string;
   efficiency: number;
@@ -422,6 +428,8 @@ export interface MatchReward {
   abilitiesGained?: Ability[];
   itemsGained?: Item[];
   performanceBreakdown: PerformanceRewardBreakdown;
+  /** Training currency earned, split by how each area of the match went. */
+  currency: CurrencyAmounts;
 }
 
 export interface MatchResult extends Activity {
@@ -477,11 +485,25 @@ export const PlayerFlag = {
 export const getHangoutUnlockedFlag = (characterId: string): string =>
   `${PlayerFlag.HANGOUT_UNLOCKED_PREFIX}${characterId}`;
 
+/** The four training currencies a player spends on stats (docs/proposals/stat-currency-progression.md). */
+export type Currency = 'power' | 'quickness' | 'technique' | 'mind';
+
+/** An amount in each currency; missing means zero. Negative amounts are losses. */
+export type CurrencyAmounts = Partial<Record<Currency, number>>;
+
+/** A player's balance in every currency. Never negative. */
+export type Wallet = Record<Currency, number>;
+
 export interface Player {
   id: string;
   name: string;
   stats: PlayerStats;
   abilities: Ability[];
+
+  // Training currencies, earned from training, matches, story and challenges and spent on stats
+  wallet: Wallet;
+  /** The wallet as it stood when Development was last opened; currency above it is new. */
+  walletSeen: Wallet;
 
   // Phase-based archetype identity (the DECISION layer; see types/archetype.ts)
   archetypeProfile: ArchetypeProfile;
@@ -582,7 +604,7 @@ export const DEFAULT_CALENDAR: GameCalendar = {
 // SHOP TYPES
 // ============================================================================
 
-export type ShopItemCategory = 'stat_increase' | 'consumable' | 'equipment' | 'ability';
+export type ShopItemCategory = 'consumable' | 'equipment' | 'ability';
 
 export type ItemRarity = 'common' | 'uncommon' | 'rare' | 'legendary';
 
@@ -591,14 +613,10 @@ interface ShopItemBase {
   category: ShopItemCategory;
   name: string;
   description: string;
+  /** XP price. */
   cost: number;
   purchased: boolean;
   rarity?: ItemRarity;
-}
-
-export interface StatIncreaseItem extends ShopItemBase {
-  category: 'stat_increase';
-  statBoosts: StatBoosts;
 }
 
 export interface ConsumableItem extends ShopItemBase {
@@ -621,9 +639,12 @@ export interface EquipmentItem extends ShopItemBase {
 export interface AbilityItem extends ShopItemBase {
   category: 'ability';
   abilityId: string;
-  statBoosts: StatBoosts;
+  /** The level this purchase takes the ability to (1 = learning it). */
+  level: number;
+  /** Currency price on top of `cost` (XP); empty for an off-court ability. */
+  currencyCost: CurrencyAmounts;
   rarity: ItemRarity;
   effects: string;
 }
 
-export type ShopItem = StatIncreaseItem | ConsumableItem | EquipmentItem | AbilityItem;
+export type ShopItem = ConsumableItem | EquipmentItem | AbilityItem;

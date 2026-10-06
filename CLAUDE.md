@@ -988,6 +988,29 @@ All stats use 0-100 range:
 - Use `Math.max(0, Math.min(100, value))` when updating
 - Consider diminishing returns for high stats
 
+### Training Currency
+
+Stats are bought, not granted. Activities pay currency (`power`, `quickness`,
+`technique`, `mind`), and the Development screen spends it.
+
+- **One copy of the economy**: recipes, price steps, payouts and ability prices live in
+  `src/config/economy.ts`. The game and the analysis harnesses (`careerSim`,
+  `abilityEconomy`) both read it — never restate a number elsewhere.
+- **Pure logic**: pricing and purchases in `src/game/StatDevelopment.ts`, payouts in
+  `src/game/CurrencyIncome.ts`. Payouts are whole units.
+- **Wallet changes go through `applyCurrency`**, which clamps each currency at zero: a
+  loss bigger than the balance ends at 0. Charge a price with `applyCurrency(wallet,
+negate(price))` after checking `canAfford`.
+- **Content pays currency**: a story outcome's `effects.currency` and a challenge's
+  `reward.currency`, negative for a penalty. Size a grant with `contentCurrency` from the
+  stat points it is meant to be worth rather than by hand. A story outcome may instead
+  carry `effects.statChanges` (signed, clamped to 0-100), but keep that for rare or
+  hard-to-reach moments — most outcomes should pay currency.
+- **Development is one screen** with two tabs: Stats (currency) and Specialties
+  (specialization points from levelling). `navigateTo('archetype')` opens the Specialties tab.
+- **Display** amounts with `CurrencyAmounts` (`src/components/currency/`), so every
+  currency has one icon and colour everywhere.
+
 ### Match Simulation
 
 The simulation is deterministic with explicit randomness:

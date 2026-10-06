@@ -423,13 +423,16 @@ export const SERVE_ACCURACY_WEIGHTS = {
  * Composite stat weights for return quality and ace resistance.
  *
  * Returning is reading the serve (anticipation) and getting to it (speed)
- * as much as the return technique itself.
+ * as much as the return technique itself. `slice` is the chip and the block:
+ * without it the slice stat paid on ~10% of points, while the return is the
+ * most-hit shot in the game (see SLICE_TUNING).
  * Weights must sum to 1 so uniform-stat players keep their rating.
  */
-export const RETURN_COMPOSITE_WEIGHTS = {
-  return: 0.6,
+export const RETURN_COMPOSITE_WEIGHTS: Record<string, number> = {
+  return: 0.5,
   anticipation: 0.25,
   speed: 0.15,
+  slice: 0.1,
 };
 
 /**
@@ -640,6 +643,26 @@ export const NET_APPROACH_BASE = 0.2;
  */
 export const NET_APPROACH_FLOOR = 0.05;
 
+/**
+ * Getting to the net from the first two balls, which rally approaches cannot:
+ * most points end within four shots, so a player gets about one baseline ball
+ * per rally to approach behind, and even approaching on every one capped
+ * arrival near a third of rallies.
+ *
+ * - serveVolleyPerBias: chance per point of SERVE_AND_VOLLEY_BIAS that the
+ *   server follows the serve in (bias 12 × 5 = 60% of first serves)
+ * - secondServeShare:   the share of that on second serves
+ * - chipChargePerBias:  chance per point of NET_APPROACH_BIAS that a returner
+ *   follows a good return in (bias 20 × 2 = 40%)
+ * - maxChance:          ceiling on either
+ */
+export const NET_RUSH = {
+  serveVolleyPerBias: 5,
+  secondServeShare: 0.4,
+  chipChargePerBias: 2,
+  maxChance: 0.8,
+};
+
 export const POSITION_ADJUSTMENTS: Record<CourtPosition, number> = {
   well_positioned: +3, // Opponent ready and centered
   slightly_off: +0, // Neutral
@@ -817,6 +840,44 @@ export function getShotCategory(shotType: ShotType): 'offensive' | 'neutral' | '
 // RALLY & DIFFICULTY
 // =======================
 
+/**
+ * The slice at tier-1 ratings. See docs/research/slice-at-tier-1.md.
+ *
+ * Before this, +20 slice at tier 1 was worth about a fifth of +20 forehand, for
+ * two reasons, neither of them the shot's winner floor or requirement
+ * (stat-channels §10 rules those out):
+ *
+ * - **It was dominated at equal rating.** A slice passes three support bands no
+ *   drive touches — `shape` (spin), `courtCoverage` (speed, as a defensive
+ *   shot) and `tactics` (as a defensive shot). Every band is centred on
+ *   NEUTRAL_STAT, so below 50 each one subtracts, and the whole tier-1 ladder
+ *   sits below 50: a uniform-30 slice carried ×0.68–0.71 total adjustment
+ *   against a drive's ×0.98. `supportFloor` makes those bands bonus-only on
+ *   slices — the slice is the bail-out shot, and should not need above-average
+ *   supports to be playable.
+ * - **Its usage could not grow.** The wing ratio moves toward the better wing
+ *   (calculateShotPreference); slice usage came only from archetype effects,
+ *   so the stat paid on a fixed ~10% of points. `selectionPerStatPoint` slices
+ *   a routine groundstroke more often when the slice stat sits above that
+ *   wing's own, at the wing ratio's own slope. Never negative, so a weak slice
+ *   does not stop an archetype that prefers slicing.
+ *
+ * The third part is the chip return: RETURN_COMPOSITE_WEIGHTS carries slice.
+ *
+ * supportFloor          null leaves the bands symmetric on slices
+ * selectionPerStatPoint 0 disables stat-driven slice selection
+ * selectionCap          ceiling on the stat-driven share alone
+ */
+export const SLICE_TUNING: {
+  supportFloor: number | null;
+  selectionPerStatPoint: number;
+  selectionCap: number;
+} = {
+  supportFloor: 1,
+  selectionPerStatPoint: 0.005,
+  selectionCap: 0.35,
+};
+
 /** Rally length limits and point duration estimation */
 export const RALLY_CONFIG = {
   /** Maximum shots in a rally before forcing an outcome */
@@ -918,11 +979,86 @@ export const MATCH_FORM = {
   moodInfluence: 0.5,
 };
 
+/**
+ * Phase specialties amplify the stat behind them. A player with a path in a
+ * phase has that phase's shot stat count extra on the phase's own shots:
+ * forehand paths on forehand drives, serve paths on that serve, return paths on
+ * returns, net paths on volleys and overheads:
+ *
+ *   effective = stat + byTier[tier] × max(0, stat - from)
+ *
+ * The boost is a share of the stat's excess over `from`, so a specialty does
+ * little on a stat nobody has trained and a lot on one they have. That is what
+ * makes committing to an archetype pay with the stats behind it. A path's
+ * behaviour effects (biases, risks) still set how it plays.
+ */
+/**
+ * How the movement abilities act, per point of their effect value.
+ *
+ * - coveragePerPoint: COURT_COVERAGE is the chance, per point, that a player an
+ *   opponent's shot would push out of position holds one step better (pushed
+ *   wide or deep → slightly off; slightly off → well positioned).
+ * - recoveryPerPoint: RECOVERY_SPEED is the chance, per point, that a player
+ *   recovering after a stretch is back in position for their next ball.
+ * - reachQualityPerPoint: REACH adds this much shot quality per point on shots
+ *   hit from out of position, on top of easing their difficulty.
+ * - serveSpeedQualityPerPoint: positive SERVE_SPEED adds this much first-serve
+ *   quality per point (negative SERVE_SPEED softens serves, as before).
+ * - maxChance: ceiling on either chance.
+ */
+export const MOVEMENT_ABILITIES = {
+  coveragePerPoint: 0.12,
+  recoveryPerPoint: 0.15,
+  reachQualityPerPoint: 1.5,
+  serveSpeedQualityPerPoint: 1.5,
+  maxChance: 0.9,
+};
+
+/**
+ * Ability strength by level: effects are value × LEVEL_MULTIPLIER[level].
+ * Diminishing, so a level-3 ability is twice a level-1 one rather than three
+ * times; ability levels cost more as they rise, and their value should grow
+ * more slowly than their price.
+ */
+export const ABILITY_LEVEL_MULTIPLIER = [0, 1, 1.6, 2, 2.3, 2.5];
+
+export const SPECIALTY_AMPLIFY = {
+  from: 30,
+  byTier: [0, 0.5, 0.75, 1.0],
+  /**
+   * net_apologist stays back, so a boost on net shots would never apply. Its
+   * boost goes to the baseline game it chooses instead: this share of its tier's
+   * boost on both forehand and backhand drives.
+   */
+  apologistRallyShare: 0.5,
+};
+
+/**
+ * Big-point nerves: on break, set and match points, shot variance widens, so
+ * those points are less certain than routine ones. Focus narrows it.
+ *
+ *   variance × (1 + extraVariance × (1 - focusDamping × focus/100))
+ *
+ * Applies to serves at key moments and to rally and return shots under high
+ * pressure. extraVariance 0 turns nerves off.
+ */
+export const BIG_POINT_NERVES = {
+  extraVariance: 0,
+  focusDamping: 0.5,
+};
+
 // =======================
 // MATCH FATIGUE & MOMENTUM
 // =======================
 
-/** Match fatigue accumulation and recovery constants */
+/**
+ * Match fatigue accumulation and recovery constants. Applied by core/fatigue.ts.
+ *
+ * Stamina is meant to show: a high-stamina player tires slower, recovers more
+ * at every break, and the difference is most visible late in long matches
+ * (FATIGUE_MODIFIER is curved for that). Nobody starts a match tired — energy
+ * is a between-matches resource. See docs/research/stamina-at-tier-1.md.
+ */
 export const MATCH_FATIGUE = {
   /** Base fatigue gained per rally shot */
   basePerShot: 0.6,
@@ -930,25 +1066,26 @@ export const MATCH_FATIGUE = {
   longRallyExtra: 0.2,
   /** Rally length threshold for extra fatigue */
   longRallyThreshold: 8,
-  /** Minimum fatigue rate as fraction of base (stamina 100 player) */
-  minFatigueRate: 0.3,
+  /** Fatigue build-up rate, as a fraction of basePerShot, at stamina 0 */
+  maxFatigueRate: 1.0,
+  /** Fatigue build-up rate at stamina 100 */
+  minFatigueRate: 0.2,
   /** Base recovery per point (before recovery stat scaling) */
   baseRecoveryPerPoint: 0.08,
   /** Max recovery per point (recovery stat 100) */
-  maxRecoveryPerPoint: 0.25,
-  /**
-   * Starting fatigue factor from low energy.
-   * Formula: Math.max(0, (energyFullStaminaThreshold - energy) * energyToFatigueFactor)
-   * energy=0  → fatigue=20 → stamina=80
-   * energy=50 → fatigue=0  → stamina=100
-   */
-  energyFullStaminaThreshold: 50,
-  energyToFatigueFactor: 0.4,
+  maxRecoveryPerPoint: 0.3,
 };
 
-/** Fatigue quality modifier: linear from 1.0 (fatigue=0) to minModifier (fatigue=100) */
+/**
+ * Fatigue quality modifier: 1 − (fatigue/100)^exponent × (1 − minModifier).
+ * minModifier is the multiplier at total exhaustion; an exponent above 1 bends
+ * the curve so light fatigue costs little and heavy fatigue costs a lot.
+ */
 export const FATIGUE_MODIFIER = {
-  minModifier: 0.8, // 20% max penalty at total exhaustion
+  minModifier: 0.65, // 35% penalty at total exhaustion
+  // Squared: fatigue 30 costs 3%, 50 costs 9%, 80 costs 22%. A tired opponent
+  // is a late-match story, not an early one.
+  exponent: 2,
 };
 
 /** Momentum quality modifier */
@@ -1011,6 +1148,24 @@ export const MOMENTUM = {
    * lerps momentum a large fraction of the way to a strong value in the breaker's
    * favour, so it can flip the sign outright even against a prior run of play.
    */
+  /**
+   * Rhythm: the slow, uncaused part of momentum (see MomentumEngine). After every
+   * game each player's rhythm moves by
+   *
+   *   -reversion × rhythm + swing × (1 - focusDamping × focus/100) × z
+   *
+   * with z roughly standard normal, in shot-quality points added to match-day
+   * form. Spread settles near swing / sqrt(2·reversion); reversion 0.12 makes
+   * spells about a set long. swing 0 turns rhythm off and draws no randomness.
+   * At swing 4, even best-of-threes go the distance ~22% of the time (11.5% with
+   * rhythm off) and a 10-point underdog wins ~7% (2%); docs/research/simulation-findings.md.
+   */
+  rhythm: {
+    swing: 4,
+    reversion: 0.12,
+    focusDamping: 0.5,
+  },
+
   breakOfServe: {
     target: 45, // absolute momentum a break pulls toward (signed to the breaker)
     takeover: 0.5, // fraction of the way to target (still flips through 0, a touch gentler)
@@ -1036,13 +1191,13 @@ export const MOMENTUM = {
  */
 export const STAMINA_RECOVERY = {
   /** Fatigue removed at each changeover (game end), before recovery-stat scaling. */
-  perGameBase: 2.0,
+  perGameBase: 1.5,
   /** Extra fatigue removed at a changeover at recovery stat 100. */
-  perGameScale: 4.0,
+  perGameScale: 5.0,
   /** Fatigue removed at the end of a set, before recovery-stat scaling. */
-  perSetBase: 8.0,
+  perSetBase: 5.0,
   /** Extra fatigue removed at the end of a set at recovery stat 100. */
-  perSetScale: 10.0,
+  perSetScale: 20.0,
 };
 
 /**

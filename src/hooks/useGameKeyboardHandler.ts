@@ -128,6 +128,15 @@ export function useGameKeyboardHandler() {
             navigateTo('idle');
           }
           break;
+        case 'd':
+          if (onIdle) {
+            event.preventDefault();
+            navigateTo('development');
+          } else if (phase === 'development') {
+            event.preventDefault();
+            navigateTo('idle');
+          }
+          break;
         case 's':
           if (onIdle && isShopUnlocked()) {
             event.preventDefault();

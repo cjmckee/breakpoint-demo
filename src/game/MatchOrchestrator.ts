@@ -33,12 +33,9 @@ import {
   ShotDetail,
   ShotType,
 } from '../types';
-import {
-  MATCH_FATIGUE,
-  PRESSURE_BANK,
-  STAMINA_RECOVERY,
-  KEY_MOMENT_OPPONENT_DRAIN,
-} from '../config/shotThresholds';
+import { PRESSURE_BANK, KEY_MOMENT_OPPONENT_DRAIN } from '../config/shotThresholds';
+import { abilityEffects } from '../core/EffectAggregator';
+import { fatigueAfterPoint, fatigueAfterRest } from '../core/fatigue';
 import { MomentumEngine, ClutchLevel } from '../core/MomentumEngine';
 import { getPrimaryStatName } from '../core/shotStatMapping';
 import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds';
@@ -176,17 +173,8 @@ export class MatchOrchestrator {
     abilities?: Ability[],
     archetypeProfile?: ArchetypeProfile,
   ): Record<string, number> {
-    const effects: Record<string, number> = {};
-
-    // Ability effects (quality keys, read by ShotCalculator)
-    for (const ability of abilities ?? []) {
-      const additional = ability.modifiers?.additional;
-      if (additional) {
-        for (const [key, value] of Object.entries(additional)) {
-          effects[key] = (effects[key] || 0) + value;
-        }
-      }
-    }
+    // Ability effects (quality keys, read by ShotCalculator), scaled by level
+    const effects = abilityEffects(abilities);
 
     // Archetype behavior effects (decision keys, read by ShotSelector/PointSimulator)
     if (archetypeProfile) {
@@ -293,22 +281,19 @@ export class MatchOrchestrator {
     this.playerStats = playerStatsWithBoosts;
     this.opponentStats = config.opponentStats;
 
-    // Initialize fatigue from pre-match energy
-    this.fatigue = {
-      player: Math.max(
-        0,
-        (MATCH_FATIGUE.energyFullStaminaThreshold - (config.energy ?? 100)) *
-          MATCH_FATIGUE.energyToFatigueFactor,
-      ),
-      opponent: 0,
-    };
+    // Everyone walks on court fresh: energy is a between-matches resource, and
+    // stamina — not how the day went — decides how a player holds up in one.
+    this.fatigue = { player: 0, opponent: 0 };
 
     // Initialize live energy/mood tracking
     this.matchEnergy = config.energy ?? 100;
     this.matchMood = config.mood ?? 0;
     this.accumulatedEffects = { energyDelta: 0, moodDelta: 0, opponentEnergyDelta: 0 };
     this.momentum = 0;
-    this.momentumEngine.reset();
+    this.momentumEngine.reset({
+      player: player.stats.mental.focus,
+      opponent: opponent.stats.mental.focus,
+    });
     this.pressureBank = 0;
 
     // Reset tiebreak tracking state for this match
@@ -1220,6 +1205,12 @@ export class MatchOrchestrator {
     }
 
     this.momentum = this.momentumEngine.get();
+    if (this.playerProfile && this.opponentProfile) {
+      this.playerProfile.matchForm =
+        this.playerProfile.matchDayForm + this.momentumEngine.getRhythm('player');
+      this.opponentProfile.matchForm =
+        this.opponentProfile.matchDayForm + this.momentumEngine.getRhythm('opponent');
+    }
   }
 
   /**
@@ -1285,23 +1276,16 @@ export class MatchOrchestrator {
    */
   private applyRestRecovery(setCompleted: boolean): void {
     if (!this.playerStats || !this.opponentStats) return;
-    this.fatigue.player = this.recoverFatigue(
+    this.fatigue.player = fatigueAfterRest(
       this.fatigue.player,
       this.playerStats.physical.stamina,
       setCompleted,
     );
-    this.fatigue.opponent = this.recoverFatigue(
+    this.fatigue.opponent = fatigueAfterRest(
       this.fatigue.opponent,
       this.opponentStats.physical.stamina,
       setCompleted,
     );
-  }
-
-  private recoverFatigue(current: number, recoveryStat: number, setCompleted: boolean): number {
-    const base = setCompleted ? STAMINA_RECOVERY.perSetBase : STAMINA_RECOVERY.perGameBase;
-    const scale = setCompleted ? STAMINA_RECOVERY.perSetScale : STAMINA_RECOVERY.perGameScale;
-    const recovered = base + (recoveryStat / 100) * scale;
-    return Math.max(0, current - recovered);
   }
 
   /**
@@ -1312,52 +1296,20 @@ export class MatchOrchestrator {
 
     // focus_duration: reduces player fatigue accumulation rate
     const focusDuration = this.activeEffects[EffectKey.FOCUS_DURATION] ?? 0;
-    const fatigueMultiplier = Math.max(0.8, 1 - focusDuration * 0.05);
+    const fatigueMultiplier = Math.max(0.5, 1 - focusDuration * 0.05);
 
-    this.fatigue.player = this.calculateNewFatigue(
+    this.fatigue.player = fatigueAfterPoint(
       this.fatigue.player,
       rallyLength,
-      this.playerStats.physical.stamina,
       this.playerStats.physical.stamina,
       fatigueMultiplier,
     );
 
-    this.fatigue.opponent = this.calculateNewFatigue(
+    this.fatigue.opponent = fatigueAfterPoint(
       this.fatigue.opponent,
       rallyLength,
       this.opponentStats.physical.stamina,
-      this.opponentStats.physical.stamina,
     );
-  }
-
-  /**
-   * Calculate new fatigue value after a point
-   */
-  private calculateNewFatigue(
-    currentFatigue: number,
-    rallyLength: number,
-    staminaStat: number,
-    recoveryStat: number,
-    fatigueMultiplier: number = 1,
-  ): number {
-    const staminaFactor =
-      MATCH_FATIGUE.minFatigueRate + (1 - MATCH_FATIGUE.minFatigueRate) * (1 - staminaStat / 100);
-
-    let fatigueGain = rallyLength * MATCH_FATIGUE.basePerShot * staminaFactor * fatigueMultiplier;
-
-    if (rallyLength > MATCH_FATIGUE.longRallyThreshold) {
-      fatigueGain +=
-        (rallyLength - MATCH_FATIGUE.longRallyThreshold) *
-        MATCH_FATIGUE.longRallyExtra *
-        staminaFactor;
-    }
-
-    const recovery =
-      MATCH_FATIGUE.baseRecoveryPerPoint +
-      (recoveryStat / 100) *
-        (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
-
-    return Math.max(0, Math.min(100, currentFatigue + fatigueGain - recovery));
   }
 
   /**

@@ -12,27 +12,34 @@ test('day-1 walkthrough explains the loop and hands off to the training goal', a
   const card = callout(page);
 
   // Step 1 — the day economy
-  await expect(card.getByText('Tutorial — Step 1 / 4')).toBeVisible();
+  await expect(card.getByText('Tutorial — Step 1 / 5')).toBeVisible();
   await expect(card.getByRole('heading', { name: 'Your Day' })).toBeVisible();
   await expect(card.getByText(/four timeslots/i)).toBeVisible();
 
   // Step 2 — the ratings, anchored on the grades in the hero header
   await card.getByRole('button', { name: 'Next' }).click();
-  await expect(card.getByText('Tutorial — Step 2 / 4')).toBeVisible();
+  await expect(card.getByText('Tutorial — Step 2 / 5')).toBeVisible();
   await expect(card.getByRole('heading', { name: 'Your stats' })).toBeVisible();
   await expect(card.getByText(/14 ratings/i)).toBeVisible();
 
   // Step 3 — must state Training's payoff *and* push back on Rest, since defaulting
   // to Rest is the behaviour this walkthrough exists to correct.
   await card.getByRole('button', { name: 'Next' }).click();
-  await expect(card.getByText('Tutorial — Step 3 / 4')).toBeVisible();
+  await expect(card.getByText('Tutorial — Step 3 / 5')).toBeVisible();
   await expect(card.getByRole('heading', { name: 'Where to start' })).toBeVisible();
-  await expect(card.getByText(/Training is a surefire way to improve your stats/i)).toBeVisible();
+  await expect(card.getByText(/Each session pays training currency/i)).toBeVisible();
   await expect(card.getByText(/only recovers 20 energy/i)).toBeVisible();
 
-  // Step 4 — points at the goal
+  // Step 4 — where the currency is spent, spotlighting the Develop tile itself
   await card.getByRole('button', { name: 'Next' }).click();
-  await expect(card.getByText('Tutorial — Step 4 / 4')).toBeVisible();
+  await expect(card.getByText('Tutorial — Step 4 / 5')).toBeVisible();
+  await expect(card.getByRole('heading', { name: 'Spend it here' })).toBeVisible();
+  await expect(card.getByText(/currency becomes stats/i)).toBeVisible();
+  await expect(page.locator('[data-spotlit]').getByTestId('action-development')).toBeVisible();
+
+  // Step 5 — points at the goal
+  await card.getByRole('button', { name: 'Next' }).click();
+  await expect(card.getByText('Tutorial — Step 5 / 5')).toBeVisible();
   await expect(card.getByRole('heading', { name: 'Challenges' })).toBeVisible();
   await expect(card.getByText(/eight training sessions/i)).toBeVisible();
 

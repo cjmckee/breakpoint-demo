@@ -33,6 +33,7 @@ import { useTutorialSpotlight } from '../hooks/useTutorialSpotlight';
 import { TutorialCallout } from './tutorial/TutorialCallout';
 import { MAIN_MENU_TUTORIAL_STEPS, MainMenuTarget } from '../data/tutorialSteps';
 import { ANCHOR_TRAINING_ENERGY_COST } from '../game/AnchorTrainingSystem';
+import { hasNewCurrency, newCurrency, unitsOf, unspentSpecPoints } from '../game/StatDevelopment';
 
 interface MainMenuProps {
   overlay: OverlayState | null;
@@ -105,6 +106,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
     status: null,
     stats: null,
     actions: null,
+    develop: null,
     challenges: null,
   });
 
@@ -216,6 +218,14 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
     : [];
 
   const hasNewHangouts = metHangoutCharacters.length > 0;
+  // Development covers both halves: new currency that buys a stat, and unspent
+  // specialization points.
+  const newUnits = hasNewCurrency(player) ? unitsOf(newCurrency(player)) : 0;
+  const specPoints = unspentSpecPoints(player);
+  const canDevelop = newUnits > 0 || specPoints > 0;
+  const developCaption = [newUnits > 0 && `+${newUnits}`, specPoints > 0 && `⭐${specPoints}`]
+    .filter(Boolean)
+    .join(' · ');
 
   // Challenge summary for the menu strip — the full list lives on its own screen.
   const challengeCount = activeChallenges.length;
@@ -496,10 +506,10 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
           />
         </div>
         <div
-          className={`grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4 mb-6 ${isNightTime ? 'night-exempt' : ''}`}
+          className={`grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-6 ${isNightTime ? 'night-exempt' : ''}`}
         >
-          {/* "Relationships" is too wide for a third-width tile in the pixel font,
-              so it takes the full first row on phones */}
+          {/* "Relationships" is too wide for a half-width tile in the pixel font,
+              so it takes the full first row on phones; Develop takes the last */}
           <ActionTile
             testId="action-relationships"
             size="sm"
@@ -537,6 +547,25 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
               navigateTo('shop');
             }}
           />
+          <div
+            ref={(el) => {
+              sectionRefs.current.develop = el;
+            }}
+            data-spotlit={isSpotlit('develop') || undefined}
+            className={`col-span-2 sm:col-span-1 flex ${spotlightClass('develop')}`}
+          >
+            <ActionTile
+              testId="action-development"
+              size="sm"
+              variant="secondary"
+              icon="📈"
+              label="Develop"
+              caption={canDevelop ? `${developCaption} to spend` : undefined}
+              badge={canDevelop}
+              onClick={() => navigateTo('development')}
+              className="w-full"
+            />
+          </div>
         </div>
 
         {/* Challenges — compact summary strip; the full list lives on its own screen */}

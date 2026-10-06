@@ -40,6 +40,10 @@ import { TimeManager } from '../game/TimeManager';
 import { ItemManager } from '../game/ItemManager';
 import { ALL_ITEMS } from '../data/items';
 import { DEFAULT_MATCH_SPEED, type MatchSpeed } from '../config/matchRewards';
+import { emptyWallet } from '../game/StatDevelopment';
+import { contentCurrency } from '../game/CurrencyIncome';
+import { generateDailyShopItems } from '../game/ShopSystem';
+import type { StatName } from '../types';
 
 export interface AudioSettings {
   musicVolume: number;
@@ -72,7 +76,11 @@ export interface PersistedStoreState {
 //    which adds a key to Player.equippedItems that older saves don't carry.
 // 7: held items gained a per-copy `instanceId`, so duplicates can be told apart.
 // 8: match speed became a persisted setting.
-export const CURRENT_STORE_VERSION = 8;
+// 9: the player gained a training-currency wallet.
+// 10: challenge rewards pay currency instead of stat boosts.
+// 11: the shop stopped selling stats, and abilities cost currency as well as XP.
+// 12: the player remembers the wallet as last seen, for the Develop badge.
+export const CURRENT_STORE_VERSION = 12;
 
 /** Saves below this version are wiped instead of migrated. See the header. */
 export const RESET_BEFORE_VERSION = 5;
@@ -184,10 +192,66 @@ function migrate7to8(state: PersistedStoreState): PersistedStoreState {
   return { ...state, matchSpeed: DEFAULT_MATCH_SPEED };
 }
 
+/** 8 → 9: the training-currency wallet; existing saves start it empty and keep their stats. */
+function migrate8to9(state: PersistedStoreState): PersistedStoreState {
+  const player = state.player;
+  if (!player || player.wallet) return state;
+  return { ...state, player: { ...player, wallet: emptyWallet() } };
+}
+
+/** A challenge reward as saved before 10: stat boosts under `modifiers`. */
+interface StatBoostReward {
+  modifiers?: { statBoosts?: Partial<Record<StatName, number>> };
+}
+
+const hasStatBoostReward = (reward: object): reward is StatBoostReward => 'modifiers' in reward;
+
+/**
+ * 9 → 10: a challenge a save already holds carries its reward, so convert its
+ * stat boosts the same way the templates were converted (contentCurrency).
+ */
+function migrate9to10(state: PersistedStoreState): PersistedStoreState {
+  return {
+    ...state,
+    activeChallenges: state.activeChallenges.map((challenge) => {
+      const reward = challenge.reward;
+      if (!hasStatBoostReward(reward)) return challenge;
+      const { modifiers, ...rest } = reward;
+      const boosts = modifiers?.statBoosts ?? {};
+      return {
+        ...challenge,
+        reward: Object.keys(boosts).length ? { ...rest, currency: contentCurrency(boosts) } : rest,
+      };
+    }),
+  };
+}
+
+/**
+ * 10 → 11: a saved day's stock may hold stat bundles, which are no longer
+ * sold, and abilities priced in XP alone. Restock it under the new rules; an
+ * empty shop (before day 7) stays empty.
+ */
+function migrate10to11(state: PersistedStoreState): PersistedStoreState {
+  if (state.shopItems.length === 0) return state;
+  const owned = new Map(state.player?.abilities.map((a) => [a.name, a.level]) ?? []);
+  return { ...state, shopItems: generateDailyShopItems(owned) };
+}
+
+/** 11 → 12: start the last-seen wallet at the current one, so nothing reads as new. */
+function migrate11to12(state: PersistedStoreState): PersistedStoreState {
+  const player = state.player;
+  if (!player || player.walletSeen) return state;
+  return { ...state, player: { ...player, walletSeen: { ...player.wallet } } };
+}
+
 const MIGRATIONS: Readonly<Record<number, MigrationFn | typeof NO_CHANGE>> = {
   6: migrate5to6,
   7: migrate6to7,
   8: migrate7to8,
+  9: migrate8to9,
+  10: migrate9to10,
+  11: migrate10to11,
+  12: migrate11to12,
 };
 
 // ----------------------------------------------------------------------------

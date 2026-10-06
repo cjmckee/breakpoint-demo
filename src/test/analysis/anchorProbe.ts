@@ -34,17 +34,14 @@
  * negative sign in Part 3, which is what the audit's section 4 predicted.
  */
 
-import type { MatchFormat, MatchState, PlayerStats, ShotDetail } from '../../types';
+import type { PlayerStats, ShotDetail } from '../../types';
 import type { ArchetypeProfile, PhaseSpec, GamePhase } from '../../types/archetype';
 import { PlayerProfile } from '../../core/PlayerProfile';
-import { PointSimulator } from '../../core/PointSimulator';
-import { ScoreTracker } from '../../core/ScoreTracker';
+import { BO3, playMatch } from './simMatch';
+import { RATE_HEADERS, emptyRates, formatRates, tallyMatch, type Rates } from './matchTally';
 import { ShotCalculator } from '../../core/ShotCalculator';
 import { getQualityThresholds } from '../../utils/qualityThresholds';
-import { MATCH_FATIGUE } from '../../config/shotThresholds';
-import { aggregateArchetypeEffects } from '../../data/archetypeTree';
 
-const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
 const MODE = process.env.ML_MODE ?? 'mean';
 
 function uniformStats(r: number): PlayerStats {
@@ -69,92 +66,33 @@ function profileOf(
   return { broad, phases, specializationPoints: 0, respecTokens: 0 };
 }
 
-function calcFatigue(cur: number, rally: number, stam: number, rec: number): number {
-  const sf = MATCH_FATIGUE.minFatigueRate + (1 - MATCH_FATIGUE.minFatigueRate) * (1 - stam / 100);
-  let gain = rally * MATCH_FATIGUE.basePerShot * sf;
-  if (rally > MATCH_FATIGUE.longRallyThreshold) {
-    gain += (rally - MATCH_FATIGUE.longRallyThreshold) * MATCH_FATIGUE.longRallyExtra * sf;
-  }
-  const rec2 =
-    MATCH_FATIGUE.baseRecoveryPerPoint +
-    (rec / 100) * (MATCH_FATIGUE.maxRecoveryPerPoint - MATCH_FATIGUE.baseRecoveryPerPoint);
-  return Math.max(0, Math.min(100, cur + gain - rec2));
-}
-
 interface PointStats {
   points: number;
   playerWon: number;
   rallySum: number;
   short: number;
+  rates: Rates;
 }
 
-function runMatch(
-  p: PlayerProfile,
-  o: PlayerProfile,
-  pe: Record<string, number>,
-  oe: Record<string, number>,
-  acc: PointStats,
-): void {
-  const tracker = new ScoreTracker(BO3);
-  tracker.setInitialServer(Math.random() < 0.5 ? 'player' : 'opponent');
-  p.rollMatchForm();
-  o.rollMatchForm();
-  const sim = new PointSimulator();
-  const ms: MatchState = {
-    score: tracker.getScore(),
-    currentServer: tracker.getCurrentServer(),
-    courtSurface: 'hard',
-    momentum: 0,
-    pressure: 'low',
-    matchLength: 0,
-    pointsPlayed: 0,
-    isKeyMoment: false,
-    fatigue: { player: 0, opponent: 0 },
-  };
-  let pts = 0;
-  while (!tracker.isComplete() && pts < 600) {
-    const server = tracker.getCurrentServer();
-    ms.isKeyMoment = tracker.isKeyMoment();
-    const pr = sim.simulatePoint(
-      server,
-      server === 'player' ? p : o,
-      server === 'player' ? o : p,
-      ms,
-      pe,
-      oe,
-    );
-    const w = pr.winner === 'server' ? server : server === 'player' ? 'opponent' : 'player';
+function runMatch(p: PlayerProfile, o: PlayerProfile, acc: PointStats): void {
+  const { points } = playMatch(p, o);
+  tallyMatch(points, BO3, acc.rates);
+  for (const pt of points) {
+    const w = pt.winner;
     acc.points++;
-    acc.rallySum += pr.rallyLength;
-    if (pr.rallyLength <= 2) acc.short++;
+    acc.rallySum += pt.rallyLength;
+    if (pt.rallyLength <= 2) acc.short++;
     if (w === 'player') acc.playerWon++;
-    tracker.addPoint(w);
-    ms.fatigue.player = calcFatigue(
-      ms.fatigue.player,
-      pr.rallyLength,
-      p.stats.physical.stamina,
-      p.stats.physical.stamina,
-    );
-    ms.fatigue.opponent = calcFatigue(
-      ms.fatigue.opponent,
-      pr.rallyLength,
-      o.stats.physical.stamina,
-      o.stats.physical.stamina,
-    );
-    ms.score = tracker.getScore();
-    ms.currentServer = tracker.getCurrentServer();
-    ms.pointsPlayed = ++pts;
   }
 }
 
 function matchup(strong: number, weak: number, n: number): PointStats {
   const prof = profileOf({});
-  const eff = aggregateArchetypeEffects(prof);
-  const acc: PointStats = { points: 0, playerWon: 0, rallySum: 0, short: 0 };
+  const acc: PointStats = { points: 0, playerWon: 0, rallySum: 0, short: 0, rates: emptyRates() };
   for (let i = 0; i < n; i++) {
     const p = new PlayerProfile('p', 'P', uniformStats(strong), prof);
     const o = new PlayerProfile('o', 'O', uniformStats(weak), prof);
-    runMatch(p, o, eff, eff, acc);
+    runMatch(p, o, acc);
   }
   return acc;
 }
@@ -165,12 +103,11 @@ function taxTrial(
   prof: ArchetypeProfile,
   n: number,
 ): number {
-  const eff = aggregateArchetypeEffects(prof);
-  const acc: PointStats = { points: 0, playerWon: 0, rallySum: 0, short: 0 };
+  const acc: PointStats = { points: 0, playerWon: 0, rallySum: 0, short: 0, rates: emptyRates() };
   for (let i = 0; i < n; i++) {
     const p = new PlayerProfile('p', 'P', bump(50, bucket, key, 90), prof);
     const o = new PlayerProfile('o', 'O', uniformStats(50), prof);
-    runMatch(p, o, eff, eff, acc);
+    runMatch(p, o, acc);
   }
   return (acc.playerWon / acc.points) * 100 - 50;
 }
@@ -238,12 +175,12 @@ function part2(n: number): void {
   console.log(
     [
       'matchup'.padEnd(14),
-      'strong pt-win%'.padStart(15),
+      ...RATE_HEADERS.map((h) => h.padStart(11)),
       'mean rally'.padStart(12),
       '≤2-shot pts%'.padStart(14),
     ].join(''),
   );
-  console.log('-'.repeat(55));
+  console.log('-'.repeat(95));
   for (const [s, w] of [
     [90, 40],
     [80, 55],
@@ -253,7 +190,7 @@ function part2(n: number): void {
     console.log(
       [
         `${s} v ${w}`.padEnd(14),
-        ((a.playerWon / a.points) * 100).toFixed(1).padStart(15),
+        ...formatRates(a.rates).map((r) => r.padStart(11)),
         (a.rallySum / a.points).toFixed(2).padStart(12),
         ((a.short / a.points) * 100).toFixed(1).padStart(14),
       ].join(''),
@@ -265,8 +202,8 @@ function part3(n: number): void {
   console.log(`\n── Part 3: the tax, ML_MODE=${MODE} (${n} BO3 per row) ────────────────`);
   const SAMURAI = profileOf({ backhand: { path: 'bh_samurai', tier: 3 } }, 'baseliner');
   const NONE = profileOf({});
-  const a = taxTrial('core', 'slice', NONE, n);
-  const b = taxTrial('core', 'slice', SAMURAI, n);
+  const a = taxTrial('technical', 'slice', NONE, n);
+  const b = taxTrial('technical', 'slice', SAMURAI, n);
   console.log(`  slice 50→90, never slices     : ${f(a)}`);
   console.log(`  slice 50→90, slice specialist : ${f(b)}`);
   console.log(

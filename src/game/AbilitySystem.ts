@@ -9,6 +9,7 @@ import { Ability, AbilityRarity, StatBoosts } from '../types/game';
 import { ABILITY_DEFINITIONS } from '../data/abilities';
 
 import { random } from '../core/random';
+import { levelMultiplier } from '../core/EffectAggregator';
 export class AbilitySystem {
   /**
    * Get ability definition by name
@@ -142,7 +143,7 @@ export class AbilitySystem {
     let description = ability.description;
 
     if (ability.level > 1) {
-      description += ` (Level ${ability.level} - ${ability.level}x effectiveness)`;
+      description += ` (Level ${ability.level} - ${levelMultiplier(ability.level)}x effectiveness)`;
     }
 
     return description;

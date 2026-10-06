@@ -47,7 +47,7 @@ export const milestoneEvents: StoryEvent[] = [
         "You've proven that you can win at this level. Your confidence is growing, but everything else hurts. I don't think it was supposed to be that hard.",
       ],
       effects: {
-        statChanges: { return: 1, speed: 1, anticipation: 1, tactics: 1 },
+        currency: { power: 1, quickness: 7, technique: 2, mind: 8 },
         itemsGained: [SPORTS_DRINK],
       },
     },

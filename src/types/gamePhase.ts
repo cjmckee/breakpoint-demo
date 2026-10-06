@@ -33,6 +33,9 @@ import type { MinigameRequest } from '../minigames/types';
 // GAME PHASE — the single source of truth for "where are we?"
 // ============================================================================
 
+/** Development's two tabs: stats bought with currency, specialties with points. */
+export type DevelopmentTab = 'stats' | 'specialties';
+
 export type GamePhase =
   | { type: 'uninitialized' }
   | { type: 'welcome' }
@@ -49,7 +52,7 @@ export type GamePhase =
   | { type: 'inventory' }
   | { type: 'relationships' }
   | { type: 'shop' }
-  | { type: 'archetype' }
+  | { type: 'development'; tab: DevelopmentTab }
   | { type: 'challenges' };
 
 // ============================================================================
