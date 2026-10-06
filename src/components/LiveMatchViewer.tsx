@@ -5,6 +5,8 @@
 
 import React, { useEffect, useCallback, useRef } from 'react';
 import { useMatchStore } from '../stores/matchStore';
+import { useGameStore } from '../stores/gameStore';
+import { MATCH_SPEED_DELAYS } from '../config/matchRewards';
 import { Card } from './ui/Card';
 import { MatchCockpit } from './match/MatchCockpit';
 import { MatchStatsCompare } from './match/MatchStatsCompare';
@@ -45,6 +47,8 @@ export const LiveMatchViewer: React.FC = () => {
   const matchHistory = useMatchStore((state) => state.matchHistory);
 
   const matchLog = useMatchStore((state) => state.matchLog);
+  const matchSpeed = useGameStore((state) => state.matchSpeed);
+  const setPointDelay = useMatchStore((state) => state.setPointDelay);
 
   const {
     currentStep,
@@ -60,6 +64,12 @@ export const LiveMatchViewer: React.FC = () => {
     isSpotlit(target)
       ? 'relative z-[60] ring-4 ring-yellow-400 ring-offset-2 ring-offset-black rounded transition-all duration-300'
       : 'relative z-0 transition-all duration-300';
+
+  // ─── Match speed: the delay is read at match start, so push changes made
+  // from the settings menu mid-match into the running orchestrator ───────────
+  useEffect(() => {
+    setPointDelay(MATCH_SPEED_DELAYS[matchSpeed]);
+  }, [matchSpeed, setPointDelay]);
 
   // ─── Scroll page to top when match screen mounts ──────────────────────────
   useEffect(() => {

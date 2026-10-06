@@ -71,3 +71,42 @@ test('the same seed replays the same match', async ({ page }) => {
   expect(first.length).toBeGreaterThan(0);
   expect(second).toEqual(first);
 });
+
+test('changing match speed mid-match takes effect at once', async ({ page }) => {
+  // The point delay used to be copied into the match config when the match
+  // started, so a speed picked from the menu mid-match did nothing until the
+  // next one. Starting on `slow` (1.5s between points) and switching to
+  // `instant` straight after a point lands separates the two outcomes: the fix
+  // plays several points within a second, the bug at most one. The window is
+  // also shorter than the pause already under way, so it catches a fix that
+  // only reads the new speed after waiting out the old pause.
+  await loadSave(page, SAVE, 1234);
+  await setMatchSpeed(page, 'slow');
+
+  await page.getByTestId('action-match').click();
+  await page.getByTestId('preview-match').click();
+  await page.getByTestId('start-match-footer').click();
+
+  // Wait for a point to land: the match is now sitting in a slow pause.
+  await expect
+    .poll(async () => (await readMatch(page)).pointSeq, { timeout: 15_000 })
+    .toBeGreaterThan(0);
+  const before = await readMatch(page);
+  expect(before.isWaitingForChoice, 'should not be stopped on a key moment').toBe(false);
+
+  await setMatchSpeed(page, 'instant');
+  expect((await readGame(page)).matchSpeed).toBe('instant');
+  const switchedAt = await readMatch(page);
+
+  // Key moments still stop play at instant speed, so reaching one also proves
+  // the match sped up — at slow speed it could not get there this quickly.
+  await expect
+    .poll(
+      async () => {
+        const match = await readMatch(page);
+        return match.isWaitingForChoice || match.pointSeq - switchedAt.pointSeq >= 3;
+      },
+      { timeout: 1_000, message: 'instant speed should apply to the running match' },
+    )
+    .toBe(true);
+});
