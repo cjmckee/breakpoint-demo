@@ -1025,6 +1025,12 @@ export const ABILITY_LEVEL_MULTIPLIER = [0, 1, 1.6, 2, 2.3, 2.5];
 export const SPECIALTY_AMPLIFY = {
   from: 30,
   byTier: [0, 0.5, 0.75, 1.0],
+  /**
+   * net_apologist stays back, so a boost on net shots would never apply. Its
+   * boost goes to the baseline game it chooses instead: this share of its tier's
+   * boost on both forehand and backhand drives.
+   */
+  apologistRallyShare: 0.5,
 };
 
 /**

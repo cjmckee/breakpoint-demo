@@ -72,9 +72,16 @@ import { random } from './random';
 /** The shot's stat with the shooter's specialty boost, when the shot is in one of their phases. */
 function amplifyForSpecialty(shooter: PlayerProfile, shotType: ShotType, stat: number): number {
   const phase = phaseOfShot(shotType);
-  const spec = phase ? resolvePhaseSpec(shooter.archetypeProfile, phase) : null;
-  if (!spec) return stat;
-  const boost = SPECIALTY_AMPLIFY.byTier[spec.tier] ?? 0;
+  if (!phase) return stat;
+  const spec = resolvePhaseSpec(shooter.archetypeProfile, phase);
+  let boost = spec ? (SPECIALTY_AMPLIFY.byTier[spec.tier] ?? 0) : 0;
+  // net_apologist's boost lives on the drives it stays back to hit.
+  if (phase === 'forehand' || phase === 'backhand') {
+    const net = resolvePhaseSpec(shooter.archetypeProfile, 'net');
+    if (net?.path === 'net_apologist') {
+      boost += (SPECIALTY_AMPLIFY.byTier[net.tier] ?? 0) * SPECIALTY_AMPLIFY.apologistRallyShare;
+    }
+  }
   return stat + boost * Math.max(0, stat - SPECIALTY_AMPLIFY.from);
 }
 /**

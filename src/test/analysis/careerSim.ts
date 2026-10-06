@@ -79,6 +79,9 @@ import type {
 } from '../../types/archetype';
 import type { StatBoosts } from '../../types/game';
 import { PlayerProfile } from '../../core/PlayerProfile';
+import { abilityEffects } from '../../core/EffectAggregator';
+import { ABILITY_DEFINITIONS } from '../../data/abilities';
+import { dailyOffers, priceFor, valueGain, type IdentityName, type Rarity } from './abilityEconomy';
 import { RATE_HEADERS, emptyRates, formatRates, tallyMatch, type Rates } from './matchTally';
 import {
   CURRENCIES,
@@ -148,6 +151,12 @@ const MATCH_UNITS = env('MATCH_UNITS', 16);
 const MATCH_MIND_SHARE = env('MATCH_MIND_SHARE', 0.6);
 const TRAIN_MIND_SHARE = env('TRAIN_MIND_SHARE', 0.1);
 const TRAIN_GENERAL_SHARE = env('TRAIN_GENERAL_SHARE', 0.2);
+/** Ability shopping (abilityEconomy.ts). ABILITIES=0 turns it off. */
+const ABILITIES_ON = process.env.ABILITIES !== '0';
+/** Buy an ability when its point-win per currency unit is at least this (a typical stat buy). */
+const ABILITY_BAR = env('ABILITY_BAR', 0.05);
+/** XP from challenges per day, on top of match XP. */
+const CHALLENGE_XP = env('CHALLENGE_XP', 10);
 
 const BO1: MatchFormat = { bestOfSets: 1, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
@@ -347,7 +356,13 @@ const IDENTITIES: Identity[] = [
 interface Side {
   stats: PlayerStats;
   profile: ArchetypeProfile;
+  /** Ability effects, if the side owns any. */
+  effects?: Record<string, number>;
 }
+
+type Owned = Map<string, number>;
+const effectsOf = (owned: Owned): Record<string, number> =>
+  abilityEffects([...owned].map(([id, level]) => ({ ...ABILITY_DEFINITIONS[id], level })));
 
 /**
  * One match through the game's own MatchSimulator, so fatigue, changeover and
@@ -375,6 +390,7 @@ function playMatch(
     opponent: new PlayerProfile('o', 'O', b.stats, b.profile),
     courtSurface: surface,
     matchFormat: format,
+    playerEffects: a.effects,
   });
   const result = silently(() => sim.simulateMatch());
   const points = sim.exportMatchData().points;
@@ -403,6 +419,9 @@ interface Snapshot {
   teamWon: Map<number, boolean>;
   /** Where currency came from and went, and how the slots were spent. */
   ledger: Ledger;
+  /** Abilities owned, by id → level, and unspent XP. */
+  abilities: Owned;
+  xp: number;
 }
 
 type Source = 'training' | 'practice' | 'team' | 'story';
@@ -415,6 +434,11 @@ interface Ledger {
   spentOn: Record<StatName, Wallet>;
   slots: Record<SlotUse, number>;
   anchors: Record<CoreStat, number>;
+  /** Currency and XP spent on abilities, XP earned, and levels bought by rarity. */
+  abilitySpend: Wallet;
+  abilityXp: number;
+  xpEarned: number;
+  abilityLevels: Record<Rarity, number>;
 }
 
 const zeroWallet = (): Wallet => ({ power: 0, quickness: 0, technique: 0, mind: 0 });
@@ -423,6 +447,10 @@ const emptyLedger = (): Ledger => ({
   spentOn: Object.fromEntries(ALL_STATS.map((k) => [k, zeroWallet()])) as Record<StatName, Wallet>,
   slots: Object.fromEntries(SLOT_USES.map((k) => [k, 0])) as Record<SlotUse, number>,
   anchors: { serve: 0, forehand: 0, backhand: 0, return: 0, net: 0 },
+  abilitySpend: zeroWallet(),
+  abilityXp: 0,
+  xpEarned: 0,
+  abilityLevels: { common: 0, uncommon: 0, rare: 0 },
 });
 const cloneLedger = (l: Ledger): Ledger => JSON.parse(JSON.stringify(l)) as Ledger;
 const addInto = (into: Wallet, a: Amounts): void => {
@@ -667,8 +695,13 @@ function silently<T>(fn: () => T): T {
 }
 
 /** Match currency: Mind share plus per-area scores (serving→Power, …). */
-function payMatch(wallet: Wallet, ms: IMatchStatistics, won: boolean): string {
-  const perf = silently(() => MatchRewardSystem.calculateRewards(ms, 1, won)).performanceBreakdown;
+function payMatch(
+  wallet: Wallet,
+  ms: IMatchStatistics,
+  won: boolean,
+): { perf: string; xp: number } {
+  const rewards = silently(() => MatchRewardSystem.calculateRewards(ms, 1, won));
+  const perf = rewards.performanceBreakdown;
   const units = MATCH_UNITS * (0.5 + perf.overallScore / 100) * INCOME_SCALE;
   const areaUnits = units * (1 - MATCH_MIND_SHARE);
   const area = {
@@ -680,11 +713,49 @@ function payMatch(wallet: Wallet, ms: IMatchStatistics, won: boolean): string {
   const areaTotal = Object.values(area).reduce((a, b) => a + b, 0) || 1;
   for (const c of CURRENCIES) wallet[c] += (areaUnits * area[c]) / areaTotal;
   wallet.mind += units * MATCH_MIND_SHARE;
-  return (
-    `perf ${perf.overallScore.toFixed(0)} (serve ${perf.servingScore.toFixed(0)}, ` +
-    `return ${perf.returningScore.toFixed(0)}, rally ${perf.rallyScore.toFixed(0)}, ` +
-    `net ${perf.netPlayScore.toFixed(0)}, mental ${perf.mentalScore.toFixed(0)})`
-  );
+  return {
+    perf:
+      `perf ${perf.overallScore.toFixed(0)} (serve ${perf.servingScore.toFixed(0)}, ` +
+      `return ${perf.returningScore.toFixed(0)}, rally ${perf.rallyScore.toFixed(0)}, ` +
+      `net ${perf.netPlayScore.toFixed(0)}, mental ${perf.mentalScore.toFixed(0)})`,
+    xp: rewards.experience,
+  };
+}
+
+/**
+ * The day's ability offers: buy the best one whose point-win per currency unit
+ * clears ABILITY_BAR and that the player can afford, at most one a day.
+ * Abilities come before stats in the evening, so Mind and other spare
+ * currency go to them when they are worth it.
+ */
+function shopAbilities(
+  identity: IdentityName,
+  wallet: Wallet,
+  owned: Owned,
+  xp: number,
+  ledger: Ledger,
+): { label: string; xp: number } | null {
+  const offers = dailyOffers()
+    .map((a) => {
+      const level = owned.get(a.id) ?? 0;
+      const price = priceFor(a, level);
+      return { a, level, price, perUnit: valueGain(a, identity, level) / price.units };
+    })
+    .filter(
+      (o) => o.perUnit >= ABILITY_BAR && wallet[o.a.currency] >= o.price.units && xp >= o.price.xp,
+    )
+    .sort((x, y) => y.perUnit - x.perUnit);
+  const best = offers[0];
+  if (!best) return null;
+  wallet[best.a.currency] -= best.price.units;
+  ledger.abilitySpend[best.a.currency] += best.price.units;
+  ledger.abilityXp += best.price.xp;
+  ledger.abilityLevels[best.a.rarity]++;
+  owned.set(best.a.id, best.level + 1);
+  return {
+    label: `${best.a.id} Lv${best.level + 1} for ${best.price.units} ${best.a.currency} + ${best.price.xp} XP`,
+    xp: best.price.xp,
+  };
 }
 
 function career(
@@ -710,6 +781,15 @@ function career(
   let sessions = 0;
   const snaps = new Map<number, Snapshot>();
   const ledger = emptyLedger();
+  const owned: Owned = new Map();
+  let xp = 0;
+  const paid = (r: { winner: 'player' | 'opponent'; stats: IMatchStatistics }): string => {
+    if (system !== 'currency') return '';
+    const p = payMatch(wallet, r.stats, r.winner === 'player');
+    xp += p.xp;
+    ledger.xpEarned += p.xp;
+    return p.perf;
+  };
   const credit = (source: Source, before: Wallet): void =>
     addInto(ledger.earned[source], diffWallet(wallet, before));
 
@@ -728,7 +808,7 @@ function career(
         note(`  ${slotName} story event`);
       } else if (team && slot === 1) {
         const r = playMatch(
-          { stats, profile },
+          { stats, profile, effects: effectsOf(owned) },
           teamSide(team),
           BO3_FOR[team.matchFormat] ?? BO3,
           team.surface,
@@ -737,7 +817,7 @@ function career(
         energy -= Math.min(50, energy);
         teamWon.set(day, r.winner === 'player');
         ledger.slots.team++;
-        const perf = system === 'currency' ? payMatch(wallet, r.stats, r.winner === 'player') : '';
+        const perf = paid(r);
         credit('team', walletBefore);
         note(
           `  ${slotName} TEAM MATCH vs ${team.opponent.name} on ${team.surface} — ` +
@@ -748,7 +828,7 @@ function career(
         const opp = roster[matchesPlayed % roster.length];
         const bump = Math.min(tierWins * 2, 20);
         const r = playMatch(
-          { stats, profile },
+          { stats, profile, effects: effectsOf(owned) },
           {
             stats: getScaledOpponentStats(opp.stats, tierWins),
             profile: getOpponentArchetypeProfile(opp),
@@ -764,7 +844,7 @@ function career(
           tierWins++;
         }
         ledger.slots.practice++;
-        const perf = system === 'currency' ? payMatch(wallet, r.stats, r.winner === 'player') : '';
+        const perf = paid(r);
         credit('practice', walletBefore);
         note(
           `  ${slotName} practice vs ${opp.name} (+${bump}) — ` +
@@ -823,6 +903,15 @@ function career(
       credit('story', beforeOther);
       const otherGain = diffWallet(wallet, beforeOther);
       if (unitsOf(otherGain) > 0.05) note(`  story/challenges → +${fmtAmounts(otherGain)}`);
+      xp += CHALLENGE_XP;
+      ledger.xpEarned += CHALLENGE_XP;
+      if (ABILITIES_ON) {
+        const bought = shopAbilities(id.name as IdentityName, wallet, owned, xp, ledger);
+        if (bought) {
+          xp -= bought.xp;
+          note(`  shop: bought ${bought.label}`);
+        }
+      }
       const before = { ...wallet };
       const statsBefore = clone(stats);
       if (traceLog) note('  evening spend:');
@@ -844,12 +933,16 @@ function career(
       snaps.set(day, {
         stats: clone(stats),
         wallet: { ...wallet },
-        earned: Object.fromEntries(CURRENCIES.map((c) => [c, wallet[c] + spent[c]])) as Wallet,
+        earned: Object.fromEntries(
+          CURRENCIES.map((c) => [c, wallet[c] + spent[c] + ledger.abilitySpend[c]]),
+        ) as Wallet,
         matchesWon,
         matchesPlayed,
         sessions,
         teamWon: new Map(teamWon),
         ledger: cloneLedger(ledger),
+        abilities: new Map(owned),
+        xp,
       });
     }
   }
@@ -857,6 +950,23 @@ function career(
 }
 
 // ─── Report ──────────────────────────────────────────────────
+
+/** Mean ability levels owned, and the most-owned abilities with how many careers own them. */
+function abilitySummary(snaps: Snapshot[], top = 4): string {
+  const levels = snaps.reduce(
+    (a, x) => a + [...x.abilities.values()].reduce((b, l) => b + l, 0),
+    0,
+  );
+  const owners = new Map<string, number>();
+  for (const x of snaps)
+    for (const id of x.abilities.keys()) owners.set(id, (owners.get(id) ?? 0) + 1);
+  const most = [...owners]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, top)
+    .map(([id, n]) => `${id} ${((n / snaps.length) * 100).toFixed(0)}%`)
+    .join(', ');
+  return `${(levels / snaps.length).toFixed(1)} levels${most ? `: ${most}` : ''}`;
+}
 
 function meanStats(list: PlayerStats[]): PlayerStats {
   const out = clone(list[0]);
@@ -867,10 +977,16 @@ function meanStats(list: PlayerStats[]): PlayerStats {
 }
 
 /** Point, game (hold / break) and match win rates over N best-of-three matches against `team`. */
-function readiness(s: PlayerStats, profile: ArchetypeProfile, team: TeamMatchConfig): Rates {
+function readiness(
+  s: PlayerStats,
+  profile: ArchetypeProfile,
+  team: TeamMatchConfig,
+  effectSets: Array<Record<string, number>> = [{}],
+): Rates {
   const rates = emptyRates();
   for (let i = 0; i < N; i++) {
-    const r = playMatch({ stats: s, profile }, teamSide(team), BO3, team.surface);
+    const effects = effectSets[i % effectSets.length];
+    const r = playMatch({ stats: s, profile, effects }, teamSide(team), BO3, team.surface);
     tallyMatch(r.pointList, BO3, rates);
   }
   return rates;
@@ -948,6 +1064,16 @@ function ledgerReport(): void {
     console.log(['earned', f(unitsOf(earnedAll)), '', split(earnedAll)].join('\t'));
     const unspent = meanWallet((l) => l.wallet);
     console.log(['unspent', f(unitsOf(unspent)), '', split(unspent)].join('\t'));
+    const onAbilities = meanWallet((l) => l.ledger.abilitySpend);
+    console.log(['on abilities', f(unitsOf(onAbilities)), '', split(onAbilities)].join('\t'));
+    console.log(
+      `XP: earned ${f(mean((l) => l.ledger.xpEarned))}, on abilities ${f(mean((l) => l.ledger.abilityXp))}, ` +
+        `unspent ${f(mean((l) => l.xp))}  |  levels bought: ` +
+        (['common', 'uncommon', 'rare'] as Rarity[])
+          .map((r) => `${r} ${mean((l) => l.ledger.abilityLevels[r]).toFixed(1)}`)
+          .join(', ') +
+        `  |  ${abilitySummary(ls, 6)}`,
+    );
 
     console.log('stat\tunits spent\tshare\tP / Q / T / M\tstat at day ' + day);
     const spentTotal = ALL_STATS.reduce(
@@ -995,6 +1121,7 @@ function main(): void {
       ...RATE_HEADERS,
       'won in career',
       'unspent P/Q/T/M',
+      'abilities (mean levels: most owned)',
       'lowest 3 / top 3 stats',
     ].join('\t'),
   );
@@ -1007,7 +1134,12 @@ function main(): void {
         const total = ALL_STATS.reduce((a, k) => a + get(s, k), 0);
         const team = TEAM_MATCHES.get(day);
         const rates = team
-          ? readiness(s, day >= ARCHETYPE_DAY ? id.profile : createEmptyArchetypeProfile(), team)
+          ? readiness(
+              s,
+              day >= ARCHETYPE_DAY ? id.profile : createEmptyArchetypeProfile(),
+              team,
+              snaps.map((x) => effectsOf(x.abilities)),
+            )
           : null;
         const inCareer = team ? (snaps.filter((x) => x.teamWon.get(day)).length / RUNS) * 100 : NaN;
         const w = CURRENCIES.map((c) =>
@@ -1026,6 +1158,7 @@ function main(): void {
             ...(rates ? formatRates(rates) : RATE_HEADERS.map(() => '')),
             Number.isNaN(inCareer) ? '' : `${inCareer.toFixed(0)}%`,
             system === 'currency' ? w : '',
+            system === 'currency' ? abilitySummary(snaps) : '',
             process.env.STATS === '1'
               ? ALL_STATS.map((k) => `${k} ${get(s, k)}`).join(', ')
               : `${fmt(sorted.slice(0, 3))} / ${fmt(sorted.slice(-3).reverse())}`,

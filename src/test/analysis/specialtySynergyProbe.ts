@@ -49,6 +49,10 @@ const PHASE_STAT: Record<GamePhase, StatName> = {
   backhand: 'backhand',
   net: 'net',
 };
+/** Paths whose boost lives on other stats than their phase's (SPECIALTY_AMPLIFY). */
+const PATH_STATS: Partial<Record<PhasePathId, StatName[]>> = {
+  net_apologist: ['forehand', 'backhand'],
+};
 const PHASES = (process.env.PHASES?.split(',') ?? Object.keys(PATHS)) as GamePhase[];
 const ONLY_PATHS = process.env.ONLY_PATHS?.split(',');
 
@@ -109,10 +113,11 @@ function main(): void {
   const base = perMatch(uniform(BASE), NONE);
   const lines: string[] = [];
   for (const phase of PHASES) {
-    const stat = PHASE_STAT[phase];
-    const high = withStat(uniform(BASE), stat, HIGH - BASE);
-    const highBase = perMatch(high, NONE);
     for (const path of PATHS[phase].filter((p) => !ONLY_PATHS || ONLY_PATHS.includes(p))) {
+      const stats = PATH_STATS[path] ?? [PHASE_STAT[phase]];
+      const stat = stats.join('+');
+      const high = stats.reduce((s, k) => withStat(s, k, HIGH - BASE), uniform(BASE));
+      const highBase = perMatch(high, NONE);
       const alone = diff(perMatch(uniform(BASE), withPath(phase, path)), base);
       const backed = diff(perMatch(high, withPath(phase, path)), highBase);
       const synergy = { mean: backed.mean - alone.mean, se: Math.hypot(alone.se, backed.se) };
