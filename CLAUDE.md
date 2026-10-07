@@ -965,6 +965,7 @@ standalone ShotCalculator class for better testability.
    - Build UI in `src/components/`
    - Use proper TypeScript types
    - Follow React best practices
+   - Follow **UI and Visual Design** below: `ScreenFrame`, `Modal` footer, colour meanings
 
 5. **Test**
    - Test core logic in isolation
@@ -1043,6 +1044,64 @@ Use Zustand persistence:
 Prettier owns formatting (`.prettierrc`: single quotes, 100 columns). Run
 `npm run format` before committing; `npm run format:check` verifies without writing.
 Don't hand-align comments or values into columns — Prettier collapses them.
+
+### UI and Visual Design
+
+Draw the player's eye to what matters and what to do next, without making them
+read. If a line of text explains where a control is or how to use it, move the
+control instead. The tutorials are the exception. Desktop comes first, but about
+30% of players are on phones, so check every UI change on the `mobile` e2e
+project (Pixel 5) as well.
+
+**Every screen sits in the same frame.** Full-screen phases render inside
+`ScreenFrame` (`src/components/ui/ScreenFrame.tsx`). It owns the status bar, the
+title row and the back control (`screen-back`, in a fixed slot), so none of these
+move between screens. Use one of its two widths: `standard` (4xl) for lists and
+forms, `wide` (6xl) for the menu, the inventory and the court. Don't set your own
+`max-w-*`, add a second back button, or let tabs change the page width.
+`screenLayout.spec.ts` checks that the status bar, title and tabs hold their place.
+
+- A screen whose main action costs or restores energy passes `energyPreview`, so the
+  status bar shows the change. Don't write the cost out as a sentence.
+- Scroll resets on every `screenKey` change. A second page inside one phase needs its
+  own key, or a `useScrollToTopOn` call.
+
+**Modals** come in two sizes: `notice` for one fact to acknowledge, `scene` for
+something to read or decide. They hang from a fixed top edge. The main action
+(Confirm, Continue, Go!) goes in `footer`, which stays on screen however long the
+body runs. Never put it at the end of a scrolling body.
+
+**Colour has one meaning each:**
+
+| Colour               | Means                                    | Use                                                   |
+| -------------------- | ---------------------------------------- | ----------------------------------------------------- |
+| Accent (grass green) | Primary action, selection, highlight     | `pixel-accent`, `text-pixel-on-accent` for text on it |
+| Red                  | Error, loss, the opponent, "against you" | `pixel-error` / `red-*`                               |
+| Success green        | Gains, ahead, "for you"                  | `pixel-success` / `green-*`                           |
+| Yellow               | Neutral but important (a key rally)      | `yellow-*`                                            |
+
+- The accent is four CSS variables in `src/index.css`. Never hard-code its hex; in an
+  inline style or SVG, use `rgb(var(--pixel-accent))`.
+- Posture colours belong to key moment tactics only.
+- Key moment headers are coloured by `keyMomentStakes`.
+
+**The dark theme is the only theme.** No white or pastel cards. Show a selection
+with an accent border and a check, not a light fill. Wrap hover styles in
+`[@media(hover:hover)]:` where a stuck hover on a phone would look like a selection.
+
+**Badges and states:**
+
+- `UnseenBadge` is a still dot meaning "new". Something the player can claim says so
+  in words ("2 ready to collect").
+- Don't add red or bouncing badges, or a second badge for something already flagged.
+- A disabled `ActionTile` turns grey on its own. Its caption says why ("Unlocks Day 5").
+
+**Show comparisons and costs, don't describe them.** Use bars, chips, icons and
+before→after previews over sentences: head-to-head bars rather than two stat lists,
+"100→50" on the energy bar rather than "You have 80 / 100 energy available".
+
+**Phones:** the floating ☰ hides while a modal is open. `ScreenFrame` leaves bottom
+padding for it, so don't dock your own controls in the bottom-right corner.
 
 ### Test IDs
 
