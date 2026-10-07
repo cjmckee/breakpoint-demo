@@ -14,7 +14,6 @@
 import React, { useState } from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { Card } from './ui/Card';
-import { Button } from './ui/Button';
 import { TendencyBars } from './TendencyBars';
 import { audioManager } from '../audio/AudioManager';
 import { buildPlayStyle } from '../core/PlayerProfile';
@@ -28,7 +27,7 @@ import type { GamePhase, PhasePathId, SpecialtyRole, SpecialtyTier } from '../ty
 
 /** Presentation for each tactical role. Colors are UI-only; role lives in data. */
 const ROLE_META: Record<SpecialtyRole, { label: string; color: string }> = {
-  offense: { label: 'Offense', color: '#e94560' }, // pixel-accent
+  offense: { label: 'Offense', color: '#e94560' },
   balanced: { label: 'Balanced', color: '#f39c12' }, // pixel-warning
   defense: { label: 'Defense', color: '#4aa3df' }, // court blue
 };
@@ -84,7 +83,7 @@ const PrimaryAction: React.FC<{
       audioManager.playSfx('ui_click');
       onClick();
     }}
-    className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold border-2 border-pixel-accent bg-pixel-accent text-white transition-[filter] hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100"
+    className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold border-2 border-pixel-accent bg-pixel-accent text-pixel-on-accent transition-[filter] hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100"
   >
     {label}
     <span className="font-mono text-[10px] font-extrabold px-1.5 py-px rounded-full bg-white text-pixel-accent">
@@ -112,14 +111,9 @@ const RespecAction: React.FC<{ disabled?: boolean; onClick: () => void }> = ({
   </button>
 );
 
-interface ArchetypeTreeProps {
-  /** Inside the Development screen: no page frame or back button of its own. */
-  embedded?: boolean;
-}
-
-export const ArchetypeTree: React.FC<ArchetypeTreeProps> = ({ embedded = false }) => {
+/** The Specialties tab of the Development screen, which supplies the page frame. */
+export const ArchetypeTree: React.FC = () => {
   const player = useGameStore((state) => state.player);
-  const navigateTo = useGameStore((state) => state.navigateTo);
   const specializePhase = useGameStore((state) => state.specializePhase);
   const upgradePhase = useGameStore((state) => state.upgradePhase);
   const respecPhase = useGameStore((state) => state.respecPhase);
@@ -135,25 +129,8 @@ export const ArchetypeTree: React.FC<ArchetypeTreeProps> = ({ embedded = false }
   // Club Player (tier 1) is capped at specialty tier I — upgrading unlocks at Regional Competitor.
   const isTierCapped = player.tier <= 1;
 
-  /** The screen frame when standalone; nothing extra when embedded. */
-  const frame = (body: React.ReactNode): React.ReactElement =>
-    embedded ? (
-      <>{body}</>
-    ) : (
-      <div className="min-h-screen bg-pixel-bg p-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-6">
-            <Button variant="secondary" onClick={() => navigateTo('idle')}>
-              ← Back to Menu
-            </Button>
-          </div>
-          {body}
-        </div>
-      </div>
-    );
-
   if (!profile.broad) {
-    return frame(
+    return (
       <>
         <Card title="Player Archetype">
           <p className="text-pixel-text-muted">
@@ -161,7 +138,7 @@ export const ArchetypeTree: React.FC<ArchetypeTreeProps> = ({ embedded = false }
             kind of player you want to be — come back after meeting with him.
           </p>
         </Card>
-      </>,
+      </>
     );
   }
 
@@ -328,7 +305,7 @@ export const ArchetypeTree: React.FC<ArchetypeTreeProps> = ({ embedded = false }
     );
   };
 
-  return frame(
+  return (
     <>
       <Card title="Playing Identity" className="mb-4">
         {/* role legend */}
@@ -448,6 +425,6 @@ export const ArchetypeTree: React.FC<ArchetypeTreeProps> = ({ embedded = false }
       </Card>
 
       {renderDrawer()}
-    </>,
+    </>
   );
 };

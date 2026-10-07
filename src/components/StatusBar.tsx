@@ -3,8 +3,9 @@
  * Compact game-progression strip: calendar/day, time-slot pips, energy, and mood.
  * The player's name lives in the MainMenu hero header, not here.
  *
- * Subpages (training, shop, ...) pass `onBack` to get a consistent back control
- * plus the energy/time context right where spending decisions happen.
+ * Rendered by ScreenFrame on every screen, identically, so the energy/time context
+ * sits in the same place wherever a spending decision happens. Back lives in the
+ * frame's title row rather than here, so nothing in this bar shifts between screens.
  */
 
 import React from 'react';
@@ -42,11 +43,16 @@ const getEnergyColor = (energy: number): string => {
 };
 
 interface StatusBarProps {
-  /** When set, renders a back button on the left (subpage mode) */
-  onBack?: () => void;
+  /**
+   * Energy the action in focus would change, signed: -50 for a match, +20 for a
+   * rest. The bar marks the slice it would spend (or add) and the readout shows
+   * where energy would land, so a cost is seen against what you have rather than
+   * read as a sentence ("You have 80 / 100 energy available").
+   */
+  energyPreview?: number;
 }
 
-export const StatusBar: React.FC<StatusBarProps> = ({ onBack }) => {
+export const StatusBar: React.FC<StatusBarProps> = ({ energyPreview = 0 }) => {
   const { calendar, currentStatus, player } = useGameStore();
   const clearIndicator = useGameStore((state) => state.clearIndicator);
   const openCalendar = useMenuStore((state) => state.openCalendar);
@@ -58,25 +64,14 @@ export const StatusBar: React.FC<StatusBarProps> = ({ onBack }) => {
   const currentSlot = calendar.currentTimeSlot;
   const newCurrencyIn = player ? hasNewCurrency(player) : false;
   const specPoints = player ? unspentSpecPoints(player) : 0;
-  const canDevelop = newCurrencyIn || specPoints > 0;
+  const afterPreview = Math.max(0, Math.min(100, currentStatus.energy + energyPreview));
 
   return (
-    <div className="bg-pixel-card border-b-4 border-pixel-border px-4 py-2.5 mb-6">
-      <div className="max-w-7xl mx-auto flex items-center gap-x-3 sm:gap-x-5">
-        {/* Back (subpage mode) */}
-        {onBack && (
-          <button
-            onClick={() => {
-              audioManager.playSfx('ui_click');
-              onBack();
-            }}
-            className="flex items-center gap-1.5 text-sm font-bold text-pixel-text border-2 border-pixel-border bg-pixel-secondary px-2.5 py-1 hover:bg-pixel-secondary-light transition-colors whitespace-nowrap"
-            title="Back to menu"
-          >
-            ← Back
-          </button>
-        )}
-
+    <div
+      className="bg-pixel-card border-b-4 border-pixel-border px-4 py-2.5 mb-6"
+      data-testid="status-bar"
+    >
+      <div className="max-w-6xl mx-auto flex items-center gap-x-3 sm:gap-x-5">
         {/* Calendar / day */}
         <button
           onClick={() => {
@@ -85,6 +80,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({ onBack }) => {
           }}
           className="flex items-center gap-2 cursor-pointer hover:bg-pixel-secondary/50 rounded px-1.5 py-1 -my-1 -ml-1.5 transition-colors"
           title="Open calendar"
+          data-testid="status-calendar"
         >
           <span className="relative text-xl leading-none">
             📅
@@ -121,19 +117,57 @@ export const StatusBar: React.FC<StatusBarProps> = ({ onBack }) => {
         </div>
 
         {/* Energy */}
-        <div className="flex items-center gap-2 flex-1 min-w-0 sm:min-w-[150px]">
+        <div
+          className="flex items-center gap-2 flex-1 min-w-0 sm:min-w-[150px]"
+          data-testid="status-energy"
+        >
           <span className="text-sm leading-none" title="Energy">
             ⚡
           </span>
-          <div className="flex-1 h-3.5 bg-pixel-bg border-2 border-pixel-border">
+          <div
+            className="relative flex-1 h-3.5 bg-pixel-bg border-2 border-pixel-border"
+            data-preview={energyPreview || undefined}
+          >
             <div
               className={`h-full ${getEnergyColor(currentStatus.energy)} transition-all`}
               style={{ width: `${currentStatus.energy}%` }}
             />
+            {energyPreview < 0 && (
+              // The slice this would spend, struck through the end of the fill.
+              <div
+                className="absolute inset-y-0 bg-[repeating-linear-gradient(-45deg,rgba(26,26,46,0.85)_0_3px,transparent_3px_6px)] border-l-2 border-pixel-text"
+                style={{
+                  left: `${afterPreview}%`,
+                  width: `${currentStatus.energy - afterPreview}%`,
+                }}
+              />
+            )}
+            {energyPreview > 0 && (
+              // The energy this would add, as a ghost past the end of the fill.
+              <div
+                className="absolute inset-y-0 bg-green-300/40 border-r-2 border-green-300"
+                style={{
+                  left: `${currentStatus.energy}%`,
+                  width: `${afterPreview - currentStatus.energy}%`,
+                }}
+              />
+            )}
           </div>
-          <span className="text-sm font-bold text-pixel-text whitespace-nowrap">
-            {currentStatus.energy}
-            <span className="hidden sm:inline text-pixel-text-muted font-normal">/100</span>
+          {/* Fixed width, so the bar does not resize when the readout grows. */}
+          <span className="text-sm font-bold text-pixel-text whitespace-nowrap sm:w-[4.5rem]">
+            {energyPreview !== 0 ? (
+              <>
+                {currentStatus.energy}
+                <span className={energyPreview < 0 ? 'text-pixel-warning' : 'text-green-300'}>
+                  →{afterPreview}
+                </span>
+              </>
+            ) : (
+              <>
+                {currentStatus.energy}
+                <span className="hidden sm:inline text-pixel-text-muted font-normal">/100</span>
+              </>
+            )}
           </span>
         </div>
 
@@ -146,13 +180,16 @@ export const StatusBar: React.FC<StatusBarProps> = ({ onBack }) => {
         </div>
 
         {/* Wallet: the Development screen shows its own, live against the plan */}
-        {player && !onDevelopment && (
+        {player && (
           <button
             onClick={() => {
               audioManager.playSfx('ui_click');
               navigateTo('development');
             }}
-            className="relative flex items-center gap-2 rounded px-1.5 py-1 -my-1 hover:bg-pixel-secondary/50 transition-colors"
+            // Hidden rather than removed on Development, so the energy bar keeps its width.
+            disabled={onDevelopment}
+            aria-hidden={onDevelopment || undefined}
+            className={`relative flex items-center gap-2 rounded px-1.5 py-1 -my-1 hover:bg-pixel-secondary/50 transition-colors ${onDevelopment ? 'invisible' : ''}`}
             title={`Training currency: ${CURRENCIES.map((c) => `${Math.floor(player.wallet[c])} ${CURRENCY_LABELS[c]}`).join(', ')}`}
             data-testid="status-wallet"
             data-new-currency={newCurrencyIn}
@@ -170,7 +207,6 @@ export const StatusBar: React.FC<StatusBarProps> = ({ onBack }) => {
                 {Math.floor(player.wallet[c])}
               </span>
             ))}
-            {canDevelop && <UnseenBadge size="sm" className="absolute -top-1 -right-1" />}
           </button>
         )}
       </div>

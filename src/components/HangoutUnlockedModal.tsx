@@ -32,7 +32,7 @@ export const HangoutUnlockedModal: React.FC<HangoutUnlockedModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title="Hangout Unlocked"
-      size="sm"
+      size="notice"
       testId="hangout-unlocked"
     >
       <div className="text-center space-y-6 py-2">
@@ -40,9 +40,7 @@ export const HangoutUnlockedModal: React.FC<HangoutUnlockedModalProps> = ({
         <p className="text-lg font-semibold text-pixel-text">
           You can now hang out with <span className="text-pixel-accent">{characterName}</span>!
         </p>
-        <p className="text-sm text-pixel-text-muted">
-          Visit the Hang Out option from the main menu to spend time together.
-        </p>
+        <p className="text-sm text-pixel-text-muted">Find them under 🤝 Relationships.</p>
       </div>
       <div className="flex justify-center mt-6">
         <Button onClick={onClose} variant="primary" testId="hangout-unlocked-dismiss">

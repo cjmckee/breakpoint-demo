@@ -10,7 +10,7 @@
 import React, { useState } from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { Card } from './ui/Card';
-import { StatusBar } from './StatusBar';
+import { ScreenFrame } from './ui/ScreenFrame';
 import { ItemManager } from '../game/ItemManager';
 import type { OwnedItem } from '../types/items';
 import { EQUIPMENT_SLOTS } from './inventory/itemHelpers';
@@ -116,178 +116,172 @@ export const Inventory: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-pixel-bg">
-      <StatusBar onBack={() => navigateTo('idle')} />
+    <ScreenFrame title="Inventory" onBack={() => navigateTo('idle')} width="wide">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(280px,340px)_1fr] gap-6">
+        {/* ---- Left: Loadout ---- */}
+        <div className="flex flex-col gap-6">
+          <Card title="Equipment" padding="md">
+            <div className="flex flex-col gap-3">
+              {EQUIPMENT_SLOTS.map((slot) => (
+                <EquipmentSlotCard
+                  key={slot}
+                  slot={slot}
+                  equippedItem={player.equippedItems[slot] ?? null}
+                  draggingItem={draggingItem}
+                  hoveredItem={hoveredItem}
+                  onEquip={handleEquip}
+                  onClickEquipped={openItem}
+                  onDragStartEquipped={handleDragStart}
+                  onDragEnd={() => setDraggingItem(null)}
+                />
+              ))}
+            </div>
+          </Card>
+        </div>
 
-      <div className="max-w-6xl mx-auto px-4 pb-8">
-        <h1 className="text-3xl font-bold text-pixel-text mb-4">Inventory</h1>
-
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(280px,340px)_1fr] gap-6">
-          {/* ---- Left: Loadout ---- */}
-          <div className="flex flex-col gap-6">
-            <Card title="Equipment" padding="md">
+        {/* ---- Right: Inventory grid ---- */}
+        <div className="flex flex-col gap-6">
+          <Card title="Passive Boosts" padding="md">
+            {hasStatBoosts || hasPassiveEffects ? (
               <div className="flex flex-col gap-3">
-                {EQUIPMENT_SLOTS.map((slot) => (
-                  <EquipmentSlotCard
-                    key={slot}
-                    slot={slot}
-                    equippedItem={player.equippedItems[slot] ?? null}
-                    draggingItem={draggingItem}
-                    hoveredItem={hoveredItem}
-                    onEquip={handleEquip}
-                    onClickEquipped={openItem}
-                    onDragStartEquipped={handleDragStart}
-                    onDragEnd={() => setDraggingItem(null)}
-                  />
+                {hasStatBoosts && <StatPills statBoosts={passiveBoosts} />}
+                {hasPassiveEffects && <EffectChips additional={passiveEffects} />}
+              </div>
+            ) : (
+              <div className="text-sm text-pixel-text-muted">No passive boosts active</div>
+            )}
+          </Card>
+
+          <Card padding="md">
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <h2 className="text-2xl font-bold text-pixel-text">
+                Inventory{' '}
+                <span className="text-base text-pixel-text-muted font-normal">
+                  ({player.inventory.length}/{MAX_INVENTORY_SIZE})
+                </span>
+              </h2>
+              <div className="flex gap-1 flex-wrap">
+                {FILTER_TABS.map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setFilter(tab.id)}
+                    className={`px-3 py-1 text-xs font-bold border-2 transition-colors ${
+                      filter === tab.id
+                        ? 'bg-pixel-accent border-pixel-accent-dark text-pixel-on-accent'
+                        : 'bg-pixel-bg border-pixel-border text-pixel-text-muted hover:border-pixel-accent'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
                 ))}
               </div>
-            </Card>
-          </div>
+            </div>
 
-          {/* ---- Right: Inventory grid ---- */}
-          <div className="flex flex-col gap-6">
-            <Card title="Passive Boosts" padding="md">
-              {hasStatBoosts || hasPassiveEffects ? (
-                <div className="flex flex-col gap-3">
-                  {hasStatBoosts && <StatPills statBoosts={passiveBoosts} />}
-                  {hasPassiveEffects && <EffectChips additional={passiveEffects} />}
+            {/* Drop zone for unequipping (drag an equipped item back here). */}
+            <div
+              onDragOver={(e) => {
+                if (isDraggingEquipped) {
+                  e.preventDefault();
+                  setIsGridDropTarget(true);
+                }
+              }}
+              onDragLeave={() => setIsGridDropTarget(false)}
+              onDrop={handleGridDrop}
+              className={`border-2 border-dashed p-2 transition-colors ${
+                isDraggingEquipped && isGridDropTarget
+                  ? 'border-pixel-accent bg-pixel-accent/5'
+                  : isDraggingEquipped
+                    ? 'border-pixel-accent/50'
+                    : 'border-transparent'
+              }`}
+            >
+              {isDraggingEquipped && (
+                <div className="text-xs text-pixel-accent text-center mb-2">
+                  Drop here to unequip
                 </div>
-              ) : (
-                <div className="text-sm text-pixel-text-muted">No passive boosts active</div>
               )}
-            </Card>
 
-            <Card padding="md">
-              <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-                <h2 className="text-2xl font-bold text-pixel-text">
-                  Inventory{' '}
-                  <span className="text-base text-pixel-text-muted font-normal">
-                    ({player.inventory.length}/{MAX_INVENTORY_SIZE})
-                  </span>
-                </h2>
-                <div className="flex gap-1 flex-wrap">
-                  {FILTER_TABS.map((tab) => (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => setFilter(tab.id)}
-                      className={`px-3 py-1 text-xs font-bold border-2 transition-colors ${
-                        filter === tab.id
-                          ? 'bg-pixel-accent border-pixel-accent-dark text-white'
-                          : 'bg-pixel-bg border-pixel-border text-pixel-text-muted hover:border-pixel-accent'
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Drop zone for unequipping (drag an equipped item back here). */}
-              <div
-                onDragOver={(e) => {
-                  if (isDraggingEquipped) {
-                    e.preventDefault();
-                    setIsGridDropTarget(true);
-                  }
-                }}
-                onDragLeave={() => setIsGridDropTarget(false)}
-                onDrop={handleGridDrop}
-                className={`border-2 border-dashed p-2 transition-colors ${
-                  isDraggingEquipped && isGridDropTarget
-                    ? 'border-pixel-accent bg-pixel-accent/5'
-                    : isDraggingEquipped
-                      ? 'border-pixel-accent/50'
-                      : 'border-transparent'
-                }`}
-              >
-                {isDraggingEquipped && (
-                  <div className="text-xs text-pixel-accent text-center mb-2">
-                    Drop here to unequip
-                  </div>
-                )}
-
-                {filteredInventory.length > 0 ? (
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                    {filteredInventory.map((item) => (
-                      <InventoryItem
-                        key={item.instanceId}
-                        item={item}
-                        isNew={isItemNew(item)}
-                        equippedInSlot={equippedInSlot(item)}
-                        onClick={openItem}
-                        onDragStart={handleDragStart}
-                        onDragEnd={() => setDraggingItem(null)}
-                        onHoverStart={setHoveredItem}
-                        onHoverEnd={() => setHoveredItem(null)}
-                      />
-                    ))}
-                    {/* Fill empty slots only in the unfiltered view. */}
-                    {filter === 'all' &&
-                      Array.from({ length: MAX_INVENTORY_SIZE - player.inventory.length }).map(
-                        (_, i) => (
-                          <Card
-                            key={`empty-${i}`}
-                            padding="sm"
-                            className="opacity-40 flex items-center justify-center min-h-[7rem]"
-                          >
-                            <div className="text-center text-pixel-text-muted text-xs">Empty</div>
-                          </Card>
-                        ),
-                      )}
-                  </div>
-                ) : (
-                  <div className="text-sm text-pixel-text-muted text-center py-8">
-                    No{' '}
-                    {filter === 'all'
-                      ? ''
-                      : FILTER_TABS.find((t) => t.id === filter)?.label.toLowerCase()}{' '}
-                    items.
-                  </div>
-                )}
-              </div>
-            </Card>
-
-            {/* Story Items */}
-            {player.storyItems.length > 0 && (
-              <Card padding="md" className="border-4 border-yellow-600">
-                <h2 className="text-2xl font-bold text-yellow-600 mb-4">Story Items</h2>
+              {filteredInventory.length > 0 ? (
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                  {player.storyItems.map((item) => (
+                  {filteredInventory.map((item) => (
                     <InventoryItem
                       key={item.instanceId}
                       item={item}
                       isNew={isItemNew(item)}
-                      equippedInSlot={null}
+                      equippedInSlot={equippedInSlot(item)}
                       onClick={openItem}
-                      onDragStart={() => {}}
-                      onDragEnd={() => {}}
-                      onHoverStart={() => {}}
-                      onHoverEnd={() => {}}
+                      onDragStart={handleDragStart}
+                      onDragEnd={() => setDraggingItem(null)}
+                      onHoverStart={setHoveredItem}
+                      onHoverEnd={() => setHoveredItem(null)}
                     />
                   ))}
+                  {/* Fill empty slots only in the unfiltered view. */}
+                  {filter === 'all' &&
+                    Array.from({ length: MAX_INVENTORY_SIZE - player.inventory.length }).map(
+                      (_, i) => (
+                        <Card
+                          key={`empty-${i}`}
+                          padding="sm"
+                          className="opacity-40 flex items-center justify-center min-h-[7rem]"
+                        >
+                          <div className="text-center text-pixel-text-muted text-xs">Empty</div>
+                        </Card>
+                      ),
+                    )}
                 </div>
-              </Card>
-            )}
-          </div>
-        </div>
+              ) : (
+                <div className="text-sm text-pixel-text-muted text-center py-8">
+                  No{' '}
+                  {filter === 'all'
+                    ? ''
+                    : FILTER_TABS.find((t) => t.id === filter)?.label.toLowerCase()}{' '}
+                  items.
+                </div>
+              )}
+            </div>
+          </Card>
 
-        <ItemDetailModal
-          item={selectedItem}
-          equippedInSlot={selectedItem ? equippedInSlot(selectedItem) : null}
-          isEquipped={
-            selectedItem?.equipmentSlot
-              ? player.equippedItems[selectedItem.equipmentSlot]?.instanceId ===
-                selectedItem.instanceId
-              : false
-          }
-          onClose={() => setSelectedItem(null)}
-          onEquip={handleEquip}
-          onUnequip={handleUnequip}
-          onUseConsumable={handleUse}
-          onTrash={handleTrash}
-        />
+          {/* Story Items */}
+          {player.storyItems.length > 0 && (
+            <Card padding="md" className="border-4 border-yellow-600">
+              <h2 className="text-2xl font-bold text-yellow-600 mb-4">Story Items</h2>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                {player.storyItems.map((item) => (
+                  <InventoryItem
+                    key={item.instanceId}
+                    item={item}
+                    isNew={isItemNew(item)}
+                    equippedInSlot={null}
+                    onClick={openItem}
+                    onDragStart={() => {}}
+                    onDragEnd={() => {}}
+                    onHoverStart={() => {}}
+                    onHoverEnd={() => {}}
+                  />
+                ))}
+              </div>
+            </Card>
+          )}
+        </div>
       </div>
-    </div>
+
+      <ItemDetailModal
+        item={selectedItem}
+        equippedInSlot={selectedItem ? equippedInSlot(selectedItem) : null}
+        isEquipped={
+          selectedItem?.equipmentSlot
+            ? player.equippedItems[selectedItem.equipmentSlot]?.instanceId ===
+              selectedItem.instanceId
+            : false
+        }
+        onClose={() => setSelectedItem(null)}
+        onEquip={handleEquip}
+        onUnequip={handleUnequip}
+        onUseConsumable={handleUse}
+        onTrash={handleTrash}
+      />
+    </ScreenFrame>
   );
 };

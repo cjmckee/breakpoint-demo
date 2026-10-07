@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { grantCurrency, loadSave, readGame } from './helpers';
 // The real pricing, so the expected cost cannot drift from the game's.
-import { getStat, planCost, priceOf } from '../src/game/StatDevelopment';
+import { STAT_NAMES, canAfford, getStat, planCost, priceOf } from '../src/game/StatDevelopment';
 
 /**
  * Drives the Development screen: plan a few +1s, confirm, and check the model.
@@ -22,6 +22,8 @@ test('a confirmed plan raises the stats and charges the plan cost', async ({ pag
   await expect(page.getByTestId('action-development')).toBeVisible();
   await page.getByTestId('action-development').click();
   await expect(page.getByTestId('development-wallet')).toBeVisible();
+  // With this much in the wallet a Focus point is affordable, and the row says so.
+  await expect(page.getByTestId('development-stat-focus')).toHaveAttribute('data-buyable', 'true');
   // The bar only appears once something is added.
   await expect(page.getByTestId('development-plan-bar')).toHaveCount(0);
 
@@ -91,14 +93,20 @@ test('training pays currency, which buys the anchor in Development', async ({ pa
   }
   expect(trained.stats.core.serve, 'training no longer grants stats').toBe(before.stats.core.serve);
 
-  // One serve rep pays more than a serve point costs at the ×1 step.
+  // One rep pays for a point of something at the ×1 step. Which stat depends on the
+  // recipes, so ask the game's own pricing rather than naming one here.
+  const buyable = STAT_NAMES.find((s) =>
+    canAfford(trained.wallet, priceOf(s, getStat(trained.stats, s) + 1)),
+  );
+  expect(buyable, 'a single training session should pay for at least one point').toBeDefined();
+  if (!buyable) return;
   await page.getByTestId('training-result-dismiss').click();
   await page.getByTestId('action-development').click();
-  await page.getByTestId('development-plus-serve').click();
+  await page.getByTestId(`development-plus-${buyable}`).click();
   await page.getByTestId('development-confirm').click();
   await expect(page.getByTestId('development-message')).toContainText('Bought 1');
   const bought = (await readGame(page)).player!;
-  expect(bought.stats.core.serve).toBe(before.stats.core.serve + 1);
+  expect(getStat(bought.stats, buyable)).toBe(getStat(trained.stats, buyable) + 1);
 });
 
 test('D opens Development from the menu and closes it again', async ({ page }) => {
@@ -121,11 +129,14 @@ test('the Develop badge lights on new currency and goes out on a visit', async (
   await page.getByTestId('training-result-dismiss').click();
   await expect(badge).toHaveAttribute('data-new-currency', 'true');
   await expect(page.getByTestId('action-development')).toContainText('to spend');
+  const dot = page.getByTestId('action-development').getByTestId('unseen-badge');
+  await expect(dot).toBeVisible();
 
   // Looking at it is enough; nothing has to be bought.
   await page.getByTestId('action-development').click();
-  await page.getByRole('button', { name: '← Back' }).click();
+  await page.getByTestId('screen-back').click();
   await expect(page.getByTestId('action-development')).not.toContainText('to spend');
+  await expect(dot).toBeHidden();
 });
 
 test('Development holds both halves: stats and specialties', async ({ page }) => {

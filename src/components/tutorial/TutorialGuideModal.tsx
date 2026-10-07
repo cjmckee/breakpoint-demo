@@ -70,7 +70,7 @@ export const TutorialGuideModal: React.FC<TutorialGuideModalProps> = ({ isOpen, 
   const nextLabel = isLastStepInSection ? (isLastSection ? 'Finish' : 'Next Section →') : undefined;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Match Tutorial" size="md">
+    <Modal isOpen={isOpen} onClose={onClose} title="Match Tutorial" size="notice">
       <div className="space-y-3">
         <div className="text-xs font-bold text-pixel-text-muted uppercase tracking-wider">
           Section {sectionIndex + 1} of {SECTIONS.length}: {section.title}

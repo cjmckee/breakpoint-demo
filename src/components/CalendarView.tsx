@@ -147,7 +147,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ isOpen, onClose }) =
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Schedule" size="lg">
+    <Modal isOpen={isOpen} onClose={onClose} title="Schedule" size="scene">
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>

@@ -49,7 +49,7 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
     <Modal
       isOpen={item !== null}
       onClose={onClose}
-      size="md"
+      size="notice"
       title={item.name}
       testId="item-detail"
     >

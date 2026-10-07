@@ -335,7 +335,7 @@ async function step(
       const anchor = nextAnchor();
       const tile = page.getByTestId(`training-anchor-${anchor}`);
       if (!(await usable(tile))) {
-        await page.getByRole('button', { name: '← Back' }).click();
+        await page.getByTestId('screen-back').click();
         return;
       }
       await tile.click();
@@ -359,7 +359,7 @@ async function step(
         await expect(page.getByTestId('development-message')).toBeVisible();
         log.statPointsBought += planned;
       }
-      await page.getByRole('button', { name: '← Back' }).click();
+      await page.getByTestId('screen-back').click();
       return;
     }
 
@@ -383,7 +383,7 @@ async function step(
       // (StoryMatchManager.calculateMatchEnergyCost), so those are always
       // playable and correctly have no back button. Getting here means a
       // pre-match screen is offering nothing at all.
-      const back = page.getByRole('button', { name: /Back/ });
+      const back = page.getByTestId('screen-back');
       if ((await back.count()) === 0) {
         throw new Error(
           'pre-match screen with nothing usable: Start is disabled and there is ' +
@@ -402,11 +402,7 @@ async function step(
 
     case 'match_results': {
       if (phase.finalScore?.winner === 'player') log.matchesWon++;
-      await page
-        .getByTestId('match-results')
-        .getByRole('button', { name: /Continue|Close modal|Back/ })
-        .first()
-        .click();
+      await page.getByTestId('match-results-continue').click();
       return;
     }
 
