@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { grantCurrency, loadSave, readGame } from './helpers';
 // The real pricing, so the expected cost cannot drift from the game's.
-import { getStat, planCost, priceOf } from '../src/game/StatDevelopment';
+import { STAT_NAMES, canAfford, getStat, planCost, priceOf } from '../src/game/StatDevelopment';
 
 /**
  * Drives the Development screen: plan a few +1s, confirm, and check the model.
@@ -91,14 +91,20 @@ test('training pays currency, which buys the anchor in Development', async ({ pa
   }
   expect(trained.stats.core.serve, 'training no longer grants stats').toBe(before.stats.core.serve);
 
-  // One serve rep pays more than a serve point costs at the ×1 step.
+  // One rep pays for a point of something at the ×1 step. Which stat depends on the
+  // recipes, so ask the game's own pricing rather than naming one here.
+  const buyable = STAT_NAMES.find((s) =>
+    canAfford(trained.wallet, priceOf(s, getStat(trained.stats, s) + 1)),
+  );
+  expect(buyable, 'a single training session should pay for at least one point').toBeDefined();
+  if (!buyable) return;
   await page.getByTestId('training-result-dismiss').click();
   await page.getByTestId('action-development').click();
-  await page.getByTestId('development-plus-serve').click();
+  await page.getByTestId(`development-plus-${buyable}`).click();
   await page.getByTestId('development-confirm').click();
   await expect(page.getByTestId('development-message')).toContainText('Bought 1');
   const bought = (await readGame(page)).player!;
-  expect(bought.stats.core.serve).toBe(before.stats.core.serve + 1);
+  expect(getStat(bought.stats, buyable)).toBe(getStat(trained.stats, buyable) + 1);
 });
 
 test('D opens Development from the menu and closes it again', async ({ page }) => {
