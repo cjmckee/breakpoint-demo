@@ -54,7 +54,6 @@ export const StatusBar: React.FC = () => {
   const currentSlot = calendar.currentTimeSlot;
   const newCurrencyIn = player ? hasNewCurrency(player) : false;
   const specPoints = player ? unspentSpecPoints(player) : 0;
-  const canDevelop = newCurrencyIn || specPoints > 0;
 
   return (
     <div
@@ -162,7 +161,6 @@ export const StatusBar: React.FC = () => {
                 {Math.floor(player.wallet[c])}
               </span>
             ))}
-            {canDevelop && <UnseenBadge size="sm" className="absolute -top-1 -right-1" />}
           </button>
         )}
       </div>

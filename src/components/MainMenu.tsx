@@ -390,34 +390,18 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                 <span className={`text-sm font-bold ${getTierColor(player.tier)}`}>
                   {getTierName(player.tier)}
                 </span>
-                {player.archetypeProfile.broad ? (
-                  /* Split chip: a pronounced identity pill that grows a red DEVELOP
-                     call-to-action only when there are specialization points to spend. */
-                  <button
-                    data-testid="action-archetype"
-                    onClick={() => navigateTo('archetype')}
-                    title="Open archetype tree"
-                    className="inline-flex items-stretch text-sm font-bold shadow-[0_0_12px_rgba(233,69,96,0.35)] hover:shadow-[0_0_18px_rgba(233,69,96,0.6)] transition-shadow"
-                  >
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-pixel-accent bg-opacity-20 border-2 border-pixel-accent text-pixel-accent">
-                      <span aria-hidden="true">⬡</span>
-                      {archetypeLabel}
-                    </span>
-                    {player.archetypeProfile.specializationPoints > 0 && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-pixel-accent border-2 border-l-0 border-pixel-accent text-white">
-                        DEVELOP
-                        <span className="min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-white text-pixel-accent text-xs leading-none animate-pulse">
-                          {player.archetypeProfile.specializationPoints}
-                        </span>
-                      </span>
-                    )}
-                  </button>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 text-sm px-3 py-1 bg-pixel-accent bg-opacity-20 border-2 border-pixel-accent text-pixel-accent font-bold">
-                    <span aria-hidden="true">⬡</span>
-                    {archetypeLabel}
-                  </span>
-                )}
+                {/* Identity pill. Spare specialization points are counted on the Develop
+                    tile, which is where they get spent, so the pill stays a plain link. */}
+                <button
+                  data-testid="action-archetype"
+                  onClick={() => navigateTo('archetype')}
+                  disabled={!player.archetypeProfile.broad}
+                  title={player.archetypeProfile.broad ? 'Open archetype tree' : undefined}
+                  className="inline-flex items-center gap-1.5 text-sm px-3 py-1 bg-pixel-accent bg-opacity-20 border-2 border-pixel-accent text-pixel-accent font-bold enabled:hover:bg-opacity-30 transition-colors"
+                >
+                  <span aria-hidden="true">⬡</span>
+                  {archetypeLabel}
+                </button>
               </div>
               <div className="flex items-center gap-2 mt-2">
                 <span className="text-xs text-pixel-text-muted">Matches:</span>
@@ -484,7 +468,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
             label="Play Match"
             caption={matchCaption}
             disabled={isBlocked || isNightTime || !matchUnlocked || !canAffordMatch}
-            badge={hasUnseenMatch && matchUnlocked && !isBlocked && !isNightTime && canAffordMatch}
+            badge={hasUnseenMatch}
             onClick={() => navigateTo('match_setup')}
           />
           <ActionTile
@@ -542,7 +526,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
             label="Shop"
             caption={calendar.currentDay < 7 ? 'Unlocks Day 7' : undefined}
             disabled={calendar.currentDay < 7}
-            badge={hasUnseenShop && calendar.currentDay >= 7}
+            badge={hasUnseenShop}
             onClick={() => {
               clearIndicator('shop');
               navigateTo('shop');
@@ -569,6 +553,14 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
           </div>
         </div>
 
+        {/* Active tournament / upcoming team match — the next thing on the schedule, so it
+            sits straight under the actions. Flat full-width strips that self-hide when
+            inactive, so the wrapper collapses (empty:hidden) rather than leaving a gap */}
+        <div className="space-y-3 mb-6 empty:hidden">
+          <ActiveTournamentCard />
+          <UpcomingTeamMatchCard />
+        </div>
+
         {/* Challenges — compact summary strip; the full list lives on its own screen */}
         <button
           ref={(el) => {
@@ -581,7 +573,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
         >
           <span className="text-2xl relative shrink-0">
             📋
-            {hasUnseenChallenge && <UnseenBadge size="sm" className="absolute -top-2 -right-2" />}
+            {hasUnseenChallenge && claimableCount === 0 && (
+              <UnseenBadge size="sm" className="absolute -top-1 -right-1" />
+            )}
           </span>
           <div className="flex-1 min-w-0">
             <div className="font-bold text-pixel-text">Challenges</div>
@@ -598,13 +592,6 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
           )}
           <span className="text-pixel-text-muted shrink-0">▸</span>
         </button>
-
-        {/* Active tournament / upcoming team match — flat full-width strips that self-hide
-            when inactive, so the wrapper collapses (empty:hidden) rather than leaving a gap */}
-        <div className="space-y-3 mb-6 empty:hidden">
-          <ActiveTournamentCard />
-          <UpcomingTeamMatchCard />
-        </div>
 
         {/* Full-width player stats — the walkthrough points here for the full 14-stat
             breakdown, so it starts open on every viewport rather than as a closed drawer */}

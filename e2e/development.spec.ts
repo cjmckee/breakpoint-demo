@@ -127,11 +127,14 @@ test('the Develop badge lights on new currency and goes out on a visit', async (
   await page.getByTestId('training-result-dismiss').click();
   await expect(badge).toHaveAttribute('data-new-currency', 'true');
   await expect(page.getByTestId('action-development')).toContainText('to spend');
+  const dot = page.getByTestId('action-development').getByTestId('unseen-badge');
+  await expect(dot).toBeVisible();
 
   // Looking at it is enough; nothing has to be bought.
   await page.getByTestId('action-development').click();
   await page.getByTestId('screen-back').click();
   await expect(page.getByTestId('action-development')).not.toContainText('to spend');
+  await expect(dot).toBeHidden();
 });
 
 test('Development holds both halves: stats and specialties', async ({ page }) => {
