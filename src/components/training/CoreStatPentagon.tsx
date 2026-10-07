@@ -94,8 +94,8 @@ export const CoreStatPentagon: React.FC<CoreStatPentagonProps> = ({
 
       <polygon
         points={shapePoints}
-        fill="rgba(233, 69, 96, 0.22)"
-        stroke="#e94560"
+        fill="rgb(var(--pixel-accent) / 0.22)"
+        stroke="rgb(var(--pixel-accent))"
         strokeWidth={2}
         className="transition-all duration-200"
       />
@@ -116,7 +116,7 @@ export const CoreStatPentagon: React.FC<CoreStatPentagonProps> = ({
               cx={nx}
               cy={ny}
               r={hot ? 5 : 3.5}
-              fill={hot ? '#ccff00' : highlighted ? '#4a5473' : '#e94560'}
+              fill={hot ? '#ccff00' : highlighted ? '#4a5473' : 'rgb(var(--pixel-accent))'}
               className="transition-all duration-150"
             />
             <text

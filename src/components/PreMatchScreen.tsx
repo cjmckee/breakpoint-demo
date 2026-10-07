@@ -6,8 +6,9 @@
 
 import React, { useState } from 'react';
 import { Card } from './ui/Card';
+import { ScreenFrame } from './ui/ScreenFrame';
 import { Button } from './ui/Button';
-import { TendencyBars } from './TendencyBars';
+import { HeadToHead } from './match/HeadToHead';
 import { SURFACE_EFFECTS } from '../config/shotThresholds';
 import { ARCHETYPE_DATA } from '../data/archetypes';
 import type { PlayerStats, PlayStyle, CourtSurface, StatName } from '../types';
@@ -16,13 +17,8 @@ import type { ArchetypeType } from '../data/archetypes';
 import { describeEffects } from '../utils/effectLabels';
 import {
   calculateOverallRating,
-  getTierLabel,
-  getTierColor,
   getSurfaceEmoji,
   getArchetypeLabel,
-  getTopNStats,
-  getBottomNStats,
-  getLetterGrade,
   STAT_LABELS,
 } from '../utils/playerStats';
 
@@ -38,10 +34,8 @@ interface PreMatchScreenProps {
 
   // Player
   playerName: string;
-  playerTier: number;
   playerOverallRating: number;
   playerStats: PlayerStats;
-  playerPlayStyle: PlayStyle;
   playerDescription?: string;
 
   // Abilities
@@ -50,7 +44,6 @@ interface PreMatchScreenProps {
 
   // Opponent
   opponentName: string;
-  opponentTier: number;
   opponentDescription?: string;
   opponentStats: PlayerStats;
   opponentPlayStyle: PlayStyle;
@@ -137,145 +130,26 @@ const RARITY_STYLES: Record<string, { badge: string; text: string; label: string
   },
 };
 
-interface PlayerCardProps {
-  name: string;
-  tier?: number;
-  overallRating: number;
-  stats: PlayerStats;
-  playStyle: PlayStyle;
-  abilities?: Ability[];
-  isPlayer: boolean;
-}
-
-function PlayerCard({
-  name,
-  tier,
-  overallRating,
-  stats,
-  playStyle,
-  abilities,
-  isPlayer,
-}: PlayerCardProps) {
-  const topStats = getTopNStats(stats, 5);
-  const bottomStats = getBottomNStats(stats, 5);
-  // Opponents are hand-authored to a legacy archetype (drives their tactical
-  // counters), so that label is trustworthy for them. For the player it's a
-  // lossy projection of their real phase specialization — show the actual
-  // tendencies instead of a label that can misdescribe them.
-  const archetypeLabel = isPlayer ? null : getArchetypeLabel(playStyle.type);
-
-  const borderColor = isPlayer ? 'border-blue-500' : getTierColor(tier ?? 1);
-  const bgColor = isPlayer ? 'bg-blue-950/30' : 'bg-pixel-card';
-
+/** A side's abilities, compact: rarity, name, and what it does. */
+function AbilityList({ title, abilities }: { title: string; abilities: Ability[] }) {
   return (
-    <div className={`border-4 ${borderColor} p-4 ${bgColor}`}>
-      <div className="flex items-start justify-between mb-3">
-        <div>
-          <h3 className="text-xl font-bold text-pixel-text mb-1">{name}</h3>
-          <div className="flex items-center gap-2">
-            {tier !== undefined && (
-              <span className="text-sm px-2 py-0.5 bg-pixel-bg border-2 border-pixel-border text-pixel-text uppercase">
-                {getTierLabel(tier)}
-              </span>
-            )}
-            <span className="text-sm px-2 py-0.5 bg-pixel-bg border-2 border-pixel-border text-pixel-text">
-              Overall: {overallRating}
-            </span>
-          </div>
-        </div>
-        <span className="text-3xl">{isPlayer ? '🎾' : '⚔️'}</span>
-      </div>
-
-      <div className="space-y-3">
-        <div>
-          <div className="text-xs text-pixel-text-muted mb-1 uppercase tracking-wide">
-            Strengths
-          </div>
-          <div className="space-y-1">
-            {topStats.map((stat) => {
-              const grade = getLetterGrade(stat.value);
-              return (
-                <div key={stat.name} className="flex justify-between items-center text-sm">
-                  <span className="text-green-400 flex items-center gap-1">
-                    <span className="text-green-600">▲</span>
-                    {stat.label}
-                  </span>
-                  <span className="text-green-400 font-bold flex items-center gap-2">
-                    <span className="text-green-400/70">{stat.value}</span>
-                    <span style={{ color: grade.color }} className="w-6 text-right">
-                      {grade.grade}
-                    </span>
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div>
-          <div className="text-xs text-pixel-text-muted mb-1 uppercase tracking-wide">
-            Weaknesses
-          </div>
-          <div className="space-y-1">
-            {bottomStats.map((stat) => {
-              const grade = getLetterGrade(stat.value);
-              return (
-                <div key={stat.name} className="flex justify-between items-center text-sm">
-                  <span className="text-orange-400 flex items-center gap-1">
-                    <span className="text-orange-600">▼</span>
-                    {stat.label}
-                  </span>
-                  <span className="text-orange-400 font-bold flex items-center gap-2">
-                    <span className="text-orange-400/70">{stat.value}</span>
-                    <span style={{ color: grade.color }} className="w-6 text-right">
-                      {grade.grade}
-                    </span>
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div>
-          <div className="text-xs text-pixel-text-muted mb-1 uppercase tracking-wide">
-            {isPlayer ? 'Tendencies' : 'Playstyle'}
-          </div>
-          {isPlayer ? (
-            <TendencyBars playStyle={playStyle} />
-          ) : (
-            <div className="text-sm">
-              <div className="text-pixel-text font-medium">{archetypeLabel}</div>
-              <div className="text-pixel-text-muted text-xs">{playStyle.description}</div>
+    <div className="bg-pixel-card border-2 border-pixel-border p-3">
+      <div className="text-xs text-pixel-text-muted mb-1.5 uppercase tracking-wide">{title}</div>
+      <div className="space-y-1.5">
+        {abilities.map((ability) => {
+          const style = RARITY_STYLES[ability.rarity as string] ?? RARITY_STYLES.common;
+          return (
+            <div key={ability.name}>
+              <div className="flex items-center gap-2">
+                <span className={`text-xs px-1.5 py-0.5 border ${style.badge} shrink-0`}>
+                  {style.label}
+                </span>
+                <span className={`text-sm font-medium ${style.text}`}>{ability.name}</span>
+              </div>
+              <div className="text-xs text-pixel-text-muted ml-1 mt-0.5">{ability.effects}</div>
             </div>
-          )}
-        </div>
-
-        {abilities && abilities.length > 0 && (
-          <div>
-            <div className="text-xs text-pixel-text-muted mb-1 uppercase tracking-wide">
-              Abilities
-            </div>
-            <div className="space-y-1.5">
-              {abilities.map((ability) => {
-                const style = RARITY_STYLES[ability.rarity as string] ?? RARITY_STYLES.common;
-                return (
-                  <div key={ability.name}>
-                    <div className="flex items-center gap-2">
-                      <span className={`text-xs px-1.5 py-0.5 border ${style.badge} shrink-0`}>
-                        {style.label}
-                      </span>
-                      <span className={`text-sm font-medium ${style.text}`}>{ability.name}</span>
-                    </div>
-                    <div className="text-xs text-pixel-text-muted ml-1 mt-0.5">
-                      {ability.effects}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
+          );
+        })}
       </div>
     </div>
   );
@@ -284,12 +158,11 @@ function PlayerCard({
 function SurfaceEffectsDisplay({ surface }: { surface: CourtSurface }) {
   const effects = getSurfaceEffects(surface);
 
-  if (effects.length === 0) {
-    return <span className="text-pixel-text-muted text-sm">No surface effects</span>;
-  }
+  // A surface with no effects says nothing worth reading.
+  if (effects.length === 0) return null;
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <>
       {effects.map((effect) => (
         <span
           key={effect.label}
@@ -302,7 +175,7 @@ function SurfaceEffectsDisplay({ surface }: { surface: CourtSurface }) {
           {effect.label}: {effect.direction === 'up' ? '▲' : '▼'}
         </span>
       ))}
-    </div>
+    </>
   );
 }
 
@@ -379,15 +252,12 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
   subtitle,
   headerContent,
   playerName,
-  playerTier,
   playerOverallRating,
   playerStats,
-  playerPlayStyle,
   playerDescription,
   playerAbilities,
   opponentAbilities,
   opponentName,
-  opponentTier,
   opponentDescription,
   opponentStats,
   opponentPlayStyle,
@@ -405,139 +275,115 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
   const opponentOverallRating = calculateOverallRating(opponentStats);
 
   return (
-    <div className="min-h-screen bg-pixel-bg p-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          {onBack ? (
-            <Button variant="secondary" onClick={onBack}>
-              ← Back to Menu
-            </Button>
-          ) : (
-            <div />
-          )}
-          <Button
-            // The screen offers the same action top and bottom, so the ids name the
-            // position rather than the action — a bare `start-match` would be ambiguous.
-            testId="start-match-header"
-            variant="primary"
-            size="lg"
-            onClick={onStartMatch}
-            disabled={!canAfford}
-          >
-            {!canAfford ? <>Not Enough Energy ({energyCost})</> : <>🎾 Start Match</>}
-          </Button>
-        </div>
+    <ScreenFrame
+      title={title}
+      subtitle={subtitle}
+      onBack={onBack}
+      energyPreview={-energyCost}
+      actions={
+        <Button
+          // The screen offers the same action top and bottom, so the ids name the
+          // position rather than the action — a bare `start-match` would be ambiguous.
+          testId="start-match-header"
+          variant="primary"
+          onClick={onStartMatch}
+          disabled={!canAfford}
+        >
+          {!canAfford ? <>Not Enough Energy ({energyCost})</> : <>🎾 Start Match</>}
+        </Button>
+      }
+    >
+      {headerContent && <div className="mb-6">{headerContent}</div>}
 
-        {headerContent ?? (
-          <Card title={title} className="mb-6">
-            {subtitle && <p className="text-pixel-text-muted mb-4">{subtitle}</p>}
-          </Card>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <PlayerCard
-            name={playerName}
-            tier={playerTier}
-            overallRating={playerOverallRating}
-            stats={playerStats}
-            playStyle={playerPlayStyle}
-            abilities={playerAbilities}
-            isPlayer={true}
-          />
-
-          <PlayerCard
-            name={opponentName}
-            tier={opponentTier}
-            overallRating={opponentOverallRating}
-            stats={opponentStats}
-            playStyle={opponentPlayStyle}
-            abilities={opponentAbilities}
-            isPlayer={false}
-          />
-        </div>
-
-        {playerDescription && opponentDescription ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div className="p-3 bg-blue-950/30 border-2 border-blue-500">
-              <p className="text-sm text-pixel-text-muted">{playerDescription}</p>
-            </div>
-            <div className="p-3 bg-pixel-card border-2 border-pixel-border">
-              <p className="text-sm text-pixel-text-muted">{opponentDescription}</p>
-            </div>
-          </div>
-        ) : playerDescription ? (
-          <div className="mb-6">
-            <div className="p-3 bg-blue-950/30 border-2 border-blue-500">
-              <p className="text-sm text-pixel-text-muted">{playerDescription}</p>
-            </div>
-          </div>
-        ) : opponentDescription ? (
-          <div className="mb-6">
-            <div className="p-3 bg-pixel-card border-2 border-pixel-border">
-              <p className="text-sm text-pixel-text-muted">{opponentDescription}</p>
-            </div>
-          </div>
-        ) : null}
-
-        <Card title="Surface" className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-pixel-text font-bold">
-              {getSurfaceEmoji(surface)} {surface.toUpperCase()}
+      <div className="mb-4">
+        <HeadToHead
+          playerName={playerName}
+          playerOverall={playerOverallRating}
+          playerStats={playerStats}
+          opponentName={opponentName}
+          opponentOverall={opponentOverallRating}
+          opponentStats={opponentStats}
+          opponentTag={
+            <span className="px-2 py-0.5 text-xs font-bold border-2 border-pixel-accent text-pixel-accent">
+              {getArchetypeLabel(opponentPlayStyle.type)}
             </span>
-          </div>
-          <SurfaceEffectsDisplay surface={surface} />
-        </Card>
-
-        <Card className="mb-6">
-          <ScoutingReport playStyle={opponentPlayStyle} />
-        </Card>
-
-        <Card title="Match Details" className="mb-6">
-          <div className="space-y-3">
-            <div className="p-3 bg-pixel-card border-2 border-pixel-border">
-              <div className="flex justify-between items-center">
-                <span className="text-pixel-text-muted">Energy Cost:</span>
-                <span
-                  className={`text-xl font-bold ${canAfford ? 'text-green-500' : 'text-red-500'}`}
-                >
-                  {energyCost} Energy
-                </span>
-              </div>
-              <div className="mt-1 text-xs text-pixel-text-muted">
-                You have {currentEnergy} / 100 energy available
-              </div>
-            </div>
-
-            <div className="p-3 bg-pixel-card border-2 border-pixel-border">
-              <div className="flex justify-between items-center">
-                <span className="text-pixel-text-muted">Match Format:</span>
-                <span className="text-pixel-text font-bold">{getFormatLabel(matchFormat)}</span>
-              </div>
-            </div>
-
-            {activeBuffs && <ActiveBuffsDisplay buffs={activeBuffs} />}
-          </div>
-        </Card>
-
-        <div className="mb-6">
-          <Button
-            testId="start-match-footer"
-            variant="primary"
-            size="lg"
-            fullWidth
-            onClick={onStartMatch}
-            disabled={!canAfford}
-          >
-            {!canAfford ? (
-              <>Not Enough Energy (Need {energyCost})</>
-            ) : (
-              <>🎾 Start Match vs {opponentName}</>
-            )}
-          </Button>
-        </div>
-
-        {contextContent}
+          }
+        />
       </div>
-    </div>
+
+      {((playerAbilities?.length ?? 0) > 0 || (opponentAbilities?.length ?? 0) > 0) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          {playerAbilities && playerAbilities.length > 0 && (
+            <AbilityList title="Your abilities" abilities={playerAbilities} />
+          )}
+          {opponentAbilities && opponentAbilities.length > 0 && (
+            <AbilityList title="Their abilities" abilities={opponentAbilities} />
+          )}
+        </div>
+      )}
+
+      {playerDescription && opponentDescription ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="p-3 bg-blue-950/30 border-2 border-blue-500">
+            <p className="text-sm text-pixel-text-muted">{playerDescription}</p>
+          </div>
+          <div className="p-3 bg-pixel-card border-2 border-pixel-border">
+            <p className="text-sm text-pixel-text-muted">{opponentDescription}</p>
+          </div>
+        </div>
+      ) : playerDescription ? (
+        <div className="mb-6">
+          <div className="p-3 bg-blue-950/30 border-2 border-blue-500">
+            <p className="text-sm text-pixel-text-muted">{playerDescription}</p>
+          </div>
+        </div>
+      ) : opponentDescription ? (
+        <div className="mb-6">
+          <div className="p-3 bg-pixel-card border-2 border-pixel-border">
+            <p className="text-sm text-pixel-text-muted">{opponentDescription}</p>
+          </div>
+        </div>
+      ) : null}
+
+      {/* The conditions, as one strip: format, surface (and what it changes), buffs */}
+      <div className="flex flex-wrap items-center gap-2 mb-4 text-sm">
+        <span className="px-2 py-1 bg-pixel-card border-2 border-pixel-border text-pixel-text font-bold">
+          {getFormatLabel(matchFormat)}
+        </span>
+        <span className="px-2 py-1 bg-pixel-card border-2 border-pixel-border text-pixel-text font-bold capitalize">
+          {getSurfaceEmoji(surface)} {surface}
+        </span>
+        <SurfaceEffectsDisplay surface={surface} />
+      </div>
+
+      {activeBuffs && (
+        <div className="mb-4">
+          <ActiveBuffsDisplay buffs={activeBuffs} />
+        </div>
+      )}
+
+      <Card className="mb-6" padding="sm">
+        <ScoutingReport playStyle={opponentPlayStyle} />
+      </Card>
+
+      <div className="mb-6">
+        <Button
+          testId="start-match-footer"
+          variant="primary"
+          size="lg"
+          fullWidth
+          onClick={onStartMatch}
+          disabled={!canAfford}
+        >
+          {!canAfford ? (
+            <>Not Enough Energy (Need {energyCost})</>
+          ) : (
+            <>🎾 Start Match vs {opponentName}</>
+          )}
+        </Button>
+      </div>
+
+      {contextContent}
+    </ScreenFrame>
   );
 };

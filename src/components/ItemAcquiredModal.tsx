@@ -2,6 +2,7 @@ import React from 'react';
 import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
 import type { Item } from '../types/items';
+import { ItemEffects } from './inventory/ItemEffects';
 
 interface ItemAcquiredModalProps {
   isOpen: boolean;
@@ -36,11 +37,21 @@ export const ItemAcquiredModal: React.FC<ItemAcquiredModalProps> = ({
   onClose,
 }) => {
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Item Acquired" size="sm" testId="item-acquired">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Item Acquired"
+      size="notice"
+      testId="item-acquired"
+    >
       <div className="text-center space-y-4 py-2">
         <div className="text-5xl">{itemEmoji(item)}</div>
         <p className="text-lg font-semibold text-pixel-accent">{item.name}</p>
         <p className="text-sm text-pixel-text-muted">{item.description}</p>
+        {/* What it does, in the same chips the inventory uses */}
+        <div className="flex justify-center text-left">
+          <ItemEffects item={item} compact />
+        </div>
       </div>
       <div className="flex justify-center mt-6">
         <Button onClick={onClose} variant="primary" testId="item-acquired-dismiss">

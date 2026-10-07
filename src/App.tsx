@@ -29,6 +29,8 @@ import { CalendarModal } from './components/CalendarModal';
 import { FloatingMenuButtonWithPointerEvents } from './components/FloatingMenuButton';
 import { useMenuKeyboardHandler } from './hooks/useMenuModal';
 import { useGameKeyboardHandler } from './hooks/useGameKeyboardHandler';
+import { useScrollToTopOn } from './hooks/useScrollToTopOn';
+import { screenKey } from './utils/screenKey';
 import { DebugPanel } from './debug/DebugPanel';
 
 function App() {
@@ -40,6 +42,7 @@ function App() {
   useAudioTransitions();
   useMenuKeyboardHandler();
   useGameKeyboardHandler();
+  useScrollToTopOn(screenKey(gamePhase));
 
   useEffect(() => {
     if (!isInitialized) {

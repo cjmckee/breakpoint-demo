@@ -16,11 +16,13 @@ interface ActionTileProps {
   caption?: string;
   onClick?: () => void;
   disabled?: boolean;
-  /** Show the attention badge in the top-right corner */
+  /** Show the "new" dot in the top-right corner. Never shown on a disabled tile. */
   badge?: boolean;
   size?: 'lg' | 'sm';
   variant?: 'primary' | 'secondary' | 'success';
   className?: string;
+  /** Pointer or focus entered (true) or left (false) — drives the energy preview. */
+  onHoverChange?: (hovering: boolean) => void;
   /** Stable hook for e2e. See the test id convention in CLAUDE.md. */
   testId?: string;
 }
@@ -35,12 +37,15 @@ export const ActionTile: React.FC<ActionTileProps> = ({
   size = 'lg',
   variant = 'primary',
   className = '',
+  onHoverChange,
   testId,
 }) => {
   const variantStyles = {
-    primary: 'bg-pixel-accent border-pixel-accent-dark hover:bg-pixel-accent-light',
-    secondary: 'bg-pixel-secondary border-pixel-secondary-dark hover:bg-pixel-secondary-light',
-    success: 'bg-green-600 border-green-800 hover:bg-green-500',
+    primary:
+      'bg-pixel-accent border-pixel-accent-dark text-pixel-on-accent hover:bg-pixel-accent-light',
+    secondary:
+      'bg-pixel-secondary border-pixel-secondary-dark text-white hover:bg-pixel-secondary-light',
+    success: 'bg-green-600 border-green-800 text-white hover:bg-green-500',
   };
 
   const sizeStyles = size === 'lg' ? 'p-3 sm:p-4 gap-1.5' : 'p-2 sm:p-2.5 gap-1';
@@ -59,11 +64,23 @@ export const ActionTile: React.FC<ActionTileProps> = ({
     <button
       onClick={handleClick}
       disabled={disabled}
+      onMouseEnter={() => onHoverChange?.(true)}
+      onMouseLeave={() => onHoverChange?.(false)}
+      onFocus={() => onHoverChange?.(true)}
+      onBlur={() => onHoverChange?.(false)}
       data-testid={testId}
-      className={`relative flex flex-col items-center justify-center border-4 text-white font-bold transition-all duration-150 ease-in-out cursor-pointer active:translate-y-1 disabled:cursor-not-allowed disabled:opacity-50 disabled:active:translate-y-0 ${variantStyles[variant]} ${sizeStyles} ${className}`}
+      // Disabled tiles drop their colour altogether: a faded red Play Match still read
+      // as a primary action. Grey says "not now"; the caption says why.
+      className={`relative flex flex-col items-center justify-center border-4 font-bold transition-all duration-150 ease-in-out ${
+        disabled
+          ? 'cursor-not-allowed bg-pixel-card border-pixel-border text-pixel-text-muted'
+          : `cursor-pointer active:translate-y-1 ${variantStyles[variant]}`
+      } ${sizeStyles} ${className}`}
     >
-      {badge && <UnseenBadge className="absolute -top-2 -right-2 z-10" />}
-      <span className={`${iconStyles} leading-none`}>{icon}</span>
+      {badge && !disabled && <UnseenBadge className="absolute top-1.5 right-1.5 z-10" />}
+      <span className={`${iconStyles} leading-none ${disabled ? 'grayscale opacity-60' : ''}`}>
+        {icon}
+      </span>
       <span className={`${labelStyles} leading-tight text-center`}>{label}</span>
       {caption && (
         <span className={`${captionStyles} font-normal opacity-90 leading-tight text-center`}>

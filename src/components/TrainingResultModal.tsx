@@ -38,7 +38,17 @@ export const TrainingResultModal: React.FC<TrainingResultModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Training Complete!" size="md">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Training Complete!"
+      size="notice"
+      footer={
+        <Button variant="primary" fullWidth onClick={onClose} testId="training-result-dismiss">
+          Back to Menu
+        </Button>
+      }
+    >
       <div className="space-y-6">
         {/* Success Message */}
         <div className="text-center">
@@ -53,16 +63,30 @@ export const TrainingResultModal: React.FC<TrainingResultModalProps> = ({
           )}
         </div>
 
-        {/* Currency earned; it's spent on the Development screen */}
-        <div className="bg-pixel-card border-4 border-pixel-border p-4">
-          <h3 className="text-lg font-bold text-pixel-text mb-3">💰 Earned</h3>
+        {/* Currency earned is the point of the session, so it gets the room; energy
+            and mood ride along as small chips underneath. */}
+        <div className="bg-pixel-card border-4 border-pixel-border p-4 text-center">
           <CurrencyAmounts
             amounts={result.currencyGained}
             signed
             labelled
-            className="text-lg"
+            className="text-2xl justify-center"
             testId="training-result-currency"
           />
+          <div className="flex justify-center gap-2 mt-3 text-sm font-bold">
+            <span className="px-2 py-0.5 border-2 border-pixel-border bg-pixel-bg">
+              ⚡ <span className="text-pixel-error">-{result.energyCost}</span>
+            </span>
+            {result.moodChange !== 0 && (
+              <span className="px-2 py-0.5 border-2 border-pixel-border bg-pixel-bg">
+                {result.moodChange > 0 ? '😊' : '😞'}{' '}
+                <span className={result.moodChange > 0 ? 'text-pixel-success' : 'text-pixel-error'}>
+                  {result.moodChange > 0 ? '+' : ''}
+                  {result.moodChange}
+                </span>
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Ability Roll (Diamond Tier) */}
@@ -156,36 +180,6 @@ export const TrainingResultModal: React.FC<TrainingResultModalProps> = ({
             </p>
           </div>
         )}
-
-        {/* Energy & Mood Changes */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-pixel-card border-2 border-pixel-border p-3">
-            <div className="text-sm text-pixel-text-muted mb-1">Energy Cost</div>
-            <div className="text-xl font-bold text-red-500">-{result.energyCost}</div>
-          </div>
-          <div className="bg-pixel-card border-2 border-pixel-border p-3">
-            <div className="text-sm text-pixel-text-muted mb-1">Mood Change</div>
-            <div
-              className={`text-xl font-bold ${result.moodChange >= 0 ? 'text-green-500' : 'text-red-500'}`}
-            >
-              {result.moodChange >= 0 ? '+' : ''}
-              {result.moodChange}
-            </div>
-          </div>
-        </div>
-
-        {/* Close Button */}
-        <div className="pt-4">
-          <Button
-            variant="primary"
-            fullWidth
-            size="lg"
-            onClick={onClose}
-            testId="training-result-dismiss"
-          >
-            Back to Menu
-          </Button>
-        </div>
       </div>
     </Modal>
   );

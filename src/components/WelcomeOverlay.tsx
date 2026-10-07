@@ -22,7 +22,7 @@ export const WelcomeOverlay: React.FC<WelcomeOverlayProps> = ({ isOpen, onClose 
       isOpen={isOpen}
       onClose={onClose}
       title="Welcome to the Breakpoint demo"
-      size="xl"
+      size="scene"
       showCloseButton={false}
     >
       {/* Welcome */}

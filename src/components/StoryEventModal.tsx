@@ -189,7 +189,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
       <>
         {/* Block all interaction with the menu behind */}
         <div className="fixed inset-0 z-40 pointer-events-auto" style={{ cursor: 'default' }} />
-        <div className="fixed inset-x-0 bottom-6 z-[60] flex justify-center px-4">
+        <div className="fixed inset-x-0 bottom-6 z-[60] flex justify-center pl-4 pr-20 sm:px-4">
           <button
             onClick={() => setIsHidden(false)}
             className="max-w-2xl w-full py-4 border-4 border-pixel-accent bg-pixel-card text-pixel-accent font-bold text-base hover:bg-pixel-accent hover:bg-opacity-20 transition-colors animate-pulse"
@@ -210,193 +210,196 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
     </button>
   );
 
+  // Every step's buttons dock in the modal footer, so Continue and Confirm sit in the
+  // same place on every line and choice, and never scroll off the bottom.
+  const canGoBack = currentDialogueIndex > 0;
+  const backButton = canGoBack ? (
+    <Button onClick={goBackDialogue} variant="secondary">
+      Back
+    </Button>
+  ) : (
+    <div />
+  );
+  const footer = !allDialogueShown ? (
+    <div className="flex justify-between gap-2">
+      {backButton}
+      <Button onClick={advanceDialogue} variant="primary" testId="story-advance">
+        Continue
+      </Button>
+    </div>
+  ) : !hasChoice ? (
+    <div className="flex justify-between gap-2">
+      {backButton}
+      <div className="flex gap-2">
+        {canSkip && (
+          <Button onClick={onClose} variant="secondary">
+            Skip Event
+          </Button>
+        )}
+        {/* The no-choice path: its label is the option's own text, so the id is the
+            only stable handle on it. */}
+        <Button onClick={handleContinue} variant="primary" testId="story-resolve">
+          {onlyOption ? onlyOption.text : 'Continue'}
+        </Button>
+      </div>
+    </div>
+  ) : (
+    <div className="flex justify-between gap-2">
+      {backButton}
+      <div className="flex gap-2">
+        {canSkip && (
+          <Button onClick={onClose} variant="secondary">
+            Cancel
+          </Button>
+        )}
+        <Button
+          onClick={handleContinue}
+          variant="primary"
+          disabled={!selectedOptionId}
+          testId="story-confirm"
+        >
+          Confirm Choice
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
       title={event.name}
-      size="xl"
+      size="scene"
       showCloseButton={false}
       belowContent={hideButton}
+      footer={footer}
       testId="story-event"
     >
-      {/* Tags and time slots */}
-      <div className="flex gap-2 mb-4 flex-wrap">
-        {event.tags.map((tag) => (
-          <span
-            key={tag}
-            className="px-2 py-1 bg-gray-600 text-white rounded text-sm font-semibold"
-          >
-            #{tag}
-          </span>
-        ))}
-        <span className="px-2 py-1 bg-blue-600 text-white rounded text-sm font-semibold">
-          ⏱️ {event.timeSlotsRequired} time slot{event.timeSlotsRequired > 1 ? 's' : ''}
-        </span>
-      </div>
-
       {/* Description */}
       <div className="mb-4">
         <p className="text-lg">{event.description}</p>
       </div>
 
-      {/* Dialogue */}
+      {/* Dialogue. Every line is laid out in the same grid cell and only the current
+          one is visible, so the box is as tall as the event's longest line: it hugs
+          short events, and the Continue button below never moves between lines. */}
       {hasDialogue && currentDialogueIndex < dialogue!.length && (
-        <div
-          key={currentDialogueIndex}
-          className="relative bg-pixel-primary border-4 border-pixel-border p-5 mb-6 h-64 flex flex-col"
-        >
+        <div className="relative bg-pixel-primary border-4 border-pixel-border p-5 mb-6">
           {/* Decorative accent bar */}
           <div className="absolute top-0 left-0 w-full h-1 bg-pixel-accent" />
-          <div className="flex-1 min-h-0 overflow-y-auto">
-            {(() => {
-              const [characterId, text] = dialogue![currentDialogueIndex];
+          <div className="grid">
+            {dialogue!.map(([characterId, text], index) => {
               const characterName = getCharacterName(characterId, playerName);
               const isCharacterSpeaking = !!characterName;
+              const isCurrent = index === currentDialogueIndex;
+              const quoted = (body: React.ReactNode): React.ReactNode =>
+                isCharacterSpeaking ? (
+                  <>
+                    {'\u201c'}
+                    {body}
+                    {'\u201d'}
+                  </>
+                ) : (
+                  body
+                );
 
               return (
-                <>
+                <div
+                  key={index}
+                  className={`[grid-area:1/1] ${isCurrent ? '' : 'invisible'}`}
+                  aria-hidden={!isCurrent || undefined}
+                >
                   {characterName && (
                     <div className="font-bold text-pixel-accent mb-2 text-lg">{characterName}</div>
                   )}
                   <p
                     className={`text-lg leading-relaxed ${isCharacterSpeaking ? 'ml-3 italic' : 'italic'}`}
                   >
-                    {isCharacterSpeaking ? '\u201c' : ''}
-                    <AnimatedWords
-                      content={text}
-                      intensity={isCharacterSpeaking ? 'full' : 'subtle'}
-                    />
-                    {isCharacterSpeaking ? '\u201d' : ''}
+                    {/* Hidden lines render the same way so they size the box exactly. */}
+                    {quoted(
+                      <AnimatedWords
+                        key={index}
+                        content={text}
+                        intensity={isCharacterSpeaking ? 'full' : 'subtle'}
+                      />,
+                    )}
                   </p>
-                </>
+                </div>
               );
-            })()}
+            })}
           </div>
-          {currentDialogueIndex < dialogue!.length - 1 && (
-            <div className="text-xs text-pixel-text-muted mt-3 shrink-0">
-              ({currentDialogueIndex + 1} / {dialogue!.length})
+          {dialogue!.length > 1 && (
+            <div className="text-xs text-pixel-text-muted mt-3">
+              {currentDialogueIndex + 1} / {dialogue!.length}
             </div>
           )}
         </div>
       )}
 
-      {/* Show dialogue continue button if not all dialogue shown */}
-      {!allDialogueShown ? (
-        <div className="flex justify-between">
-          {currentDialogueIndex > 0 ? (
-            <Button onClick={goBackDialogue} variant="secondary">
-              Back
-            </Button>
-          ) : (
-            <div />
-          )}
-          <Button onClick={advanceDialogue} variant="primary" testId="story-advance">
-            Continue
-          </Button>
-        </div>
-      ) : (
-        <>
-          {/* Options or Continue Button */}
-          {!hasChoice ? (
-            // Linear or single-option event - one button, no choice to make
-            <>
-              {onlyOption?.description && (
-                <p className="mb-4 text-pixel-text-muted">
-                  {onlyOption.emoji && <span className="mr-2">{onlyOption.emoji}</span>}
-                  {onlyOption.description}
-                </p>
-              )}
-              <div className="flex justify-between">
-                {hasDialogue && dialogue!.length > 1 ? (
-                  <Button onClick={goBackDialogue} variant="secondary">
-                    Back
-                  </Button>
-                ) : (
-                  <div />
-                )}
-                <div className="flex gap-2">
-                  {canSkip && (
-                    <Button onClick={onClose} variant="secondary">
-                      Skip Event
-                    </Button>
-                  )}
-                  {/* The no-choice path: its label is the option's own text, so the id
-                    is the only stable handle on it. */}
-                  <Button onClick={handleContinue} variant="primary" testId="story-resolve">
-                    {onlyOption ? onlyOption.text : 'Continue'}
-                  </Button>
-                </div>
-              </div>
-            </>
-          ) : (
-            // Choice event - show options
-            <div>
-              <h3 className="font-bold mb-3 text-lg">Choose your action:</h3>
-              <div className="space-y-3 mb-6">
-                {event.options.map((option) => {
-                  const isAvailable = availableOptions.some((o) => o.id === option.id);
-                  const isSelected = selectedOptionId === option.id;
+      {/* A single-option event says what its one button will do. */}
+      {allDialogueShown && !hasChoice && onlyOption?.description && (
+        <p className="mb-2 text-pixel-text-muted">
+          {onlyOption.emoji && <span className="mr-2">{onlyOption.emoji}</span>}
+          {onlyOption.description}
+        </p>
+      )}
 
-                  return (
-                    <button
-                      key={option.id}
-                      data-testid={`story-option-${option.id}`}
-                      data-available={isAvailable}
-                      onClick={() => isAvailable && handleOptionSelect(option.id)}
-                      disabled={!isAvailable}
-                      className={`
-                    w-full p-4 rounded border-2 text-left transition
-                    ${isSelected ? 'border-blue-500 bg-blue-100' : 'border-gray-400 bg-white'}
-                    ${!isAvailable ? 'opacity-50 cursor-not-allowed' : 'hover:border-blue-400 hover:bg-gray-50 cursor-pointer'}
-                  `}
-                    >
-                      <div className="flex items-center gap-3">
-                        {option.emoji && <span className="text-3xl">{option.emoji}</span>}
-                        <div className="flex-1">
-                          <div className="font-bold text-lg text-gray-900">{option.text}</div>
-                          {option.description && (
-                            <div className="text-sm text-gray-700 mt-1">{option.description}</div>
-                          )}
-                          {!isAvailable && (
-                            <div className="text-sm text-red-700 mt-1 font-semibold">
-                              ❌ Requirements not met
-                            </div>
-                          )}
-                        </div>
+      {allDialogueShown && hasChoice && (
+        <div className="space-y-3" role="radiogroup" aria-label="Choices">
+          {event.options.map((option) => {
+            const isAvailable = availableOptions.some((o) => o.id === option.id);
+            const isSelected = selectedOptionId === option.id;
+
+            return (
+              <button
+                key={option.id}
+                role="radio"
+                aria-checked={isSelected}
+                data-testid={`story-option-${option.id}`}
+                data-available={isAvailable}
+                onClick={() => isAvailable && handleOptionSelect(option.id)}
+                disabled={!isAvailable}
+                className={`w-full p-4 border-4 text-left transition-colors ${
+                  isSelected
+                    ? 'border-pixel-accent bg-pixel-secondary'
+                    : 'border-pixel-border bg-pixel-card'
+                } ${
+                  isAvailable
+                    ? '[@media(hover:hover)]:hover:border-pixel-accent cursor-pointer'
+                    : 'opacity-50 cursor-not-allowed'
+                }`}
+              >
+                <div className="flex items-center gap-4">
+                  {/* Fixed-width icon column, so titles line up with or without an emoji. */}
+                  <span className="w-10 shrink-0 text-center text-3xl" aria-hidden="true">
+                    {option.emoji ?? ''}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-lg text-pixel-text">{option.text}</div>
+                    {option.description && (
+                      <div className="text-sm text-pixel-text-muted mt-1">{option.description}</div>
+                    )}
+                    {!isAvailable && (
+                      <div className="text-sm text-pixel-error mt-1 font-semibold">
+                        🔒 Requirements not met
                       </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="flex justify-between">
-                {hasDialogue && dialogue!.length > 1 ? (
-                  <Button onClick={goBackDialogue} variant="secondary">
-                    Back
-                  </Button>
-                ) : (
-                  <div />
-                )}
-                <div className="flex gap-2">
-                  {canSkip && (
-                    <Button onClick={onClose} variant="secondary">
-                      Cancel
-                    </Button>
-                  )}
-                  <Button
-                    onClick={handleContinue}
-                    variant="primary"
-                    disabled={!selectedOptionId}
-                    testId="story-confirm"
+                    )}
+                  </div>
+                  <span
+                    className={`w-6 h-6 shrink-0 border-4 flex items-center justify-center text-xs font-bold ${
+                      isSelected
+                        ? 'border-pixel-accent bg-pixel-accent text-pixel-on-accent'
+                        : 'border-pixel-border'
+                    }`}
+                    aria-hidden="true"
                   >
-                    Confirm Choice
-                  </Button>
+                    {isSelected ? '✓' : ''}
+                  </span>
                 </div>
-              </div>
-            </div>
-          )}
-        </>
+              </button>
+            );
+          })}
+        </div>
       )}
     </Modal>
   );

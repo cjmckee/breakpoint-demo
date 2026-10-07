@@ -51,7 +51,7 @@ test('a fresh player reaches each early unlock by playing', async ({ page }) => 
   // Enabled is not the same as reachable — follow it through to the screen.
   await matchTile.click();
   expect((await readGame(page)).gamePhase.type).toBe('match_setup');
-  await page.getByRole('button', { name: /Back/ }).first().click();
+  await page.getByTestId('screen-back').click();
   expect((await readGame(page)).gamePhase.type).toBe('idle');
 
   // ── Day 7: the shop opens, with something in it ──────────────────────────
@@ -61,7 +61,7 @@ test('a fresh player reaches each early unlock by playing', async ({ page }) => 
   expect((await readGame(page)).gamePhase.type).toBe('shop');
   // An empty shop would pass a "the screen opened" check while being useless.
   expect((await readGame(page)).shopItems.length).toBeGreaterThan(0);
-  await page.getByRole('button', { name: /Back/ }).first().click();
+  await page.getByTestId('screen-back').click();
 
   // ── Day 12: the archetype tree, once the coach has introduced it ──────────
   // The chip on the hero header is only a button after a broad archetype is

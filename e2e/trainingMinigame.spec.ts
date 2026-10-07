@@ -11,8 +11,8 @@ import { startNewGame, dismissWalkthrough } from './helpers';
  * links is a plain function call that typechecks whether or not it is wired up.
  */
 
-/** Reaches the minigame for a given core stat, already started. */
-async function startMinigame(page: Page, shot: string): Promise<void> {
+/** Reaches the minigame for a given core stat, on its start gate. */
+async function openMinigame(page: Page, shot: string): Promise<void> {
   await startNewGame(page);
   await dismissWalkthrough(page);
 
@@ -21,18 +21,19 @@ async function startMinigame(page: Page, shot: string): Promise<void> {
 
   await page.getByRole('button', { name: new RegExp(`^Train ${shot},`) }).click();
   await expect(page.getByRole('heading', { name: `${shot} Training` })).toBeVisible();
-
-  // The start gate is the shell's, not the game's — every minigame opens on it.
-  await page.getByRole('button', { name: '▶ Start' }).click();
 }
 
 test('a training minigame mounts, scores, and pays out a session', async ({ page }) => {
-  await startMinigame(page, 'Serve');
+  await openMinigame(page, 'Serve');
 
-  // Quick Sim is only offered before the first attempt, so its disappearance is
-  // proof the game committed a rep rather than merely rendering.
-  const quickSim = page.getByRole('button', { name: /Quick Sim/ });
+  // Quick Sim is only offered until the player passes the start gate, so its
+  // disappearance is proof the game reported its start rather than merely rendering.
+  const quickSim = page.getByTestId('training-quick-sim');
   await expect(quickSim).toBeVisible();
+
+  // The start gate is the shell's, not the game's — every minigame opens on it.
+  await page.getByRole('button', { name: '▶ Start' }).click();
+  await expect(quickSim).toBeHidden();
 
   // Space commits an attempt in every game. Whether these land is irrelevant —
   // all three attempts always play out, and a miss scores as legitimately as a hit.
@@ -40,7 +41,6 @@ test('a training minigame mounts, scores, and pays out a session', async ({ page
     await page.keyboard.press('Space');
     await page.waitForTimeout(500);
   }
-  await expect(quickSim).toBeHidden();
 
   // Reaching this modal means the score survived the whole chain: the hook built
   // it, the training screen read it as a support count, and the store applied the
@@ -66,7 +66,7 @@ test('every core anchor resolves to a mountable minigame', async ({ page }) => {
 
     // Backing out of the play screen returns to the shot picker without spending
     // the slot, so all five can be checked in one session's worth of energy.
-    await page.getByRole('button', { name: '← Back' }).click();
+    await page.getByTestId('screen-back').click();
     await expect(page.getByRole('heading', { name: 'Training' })).toBeVisible();
   }
 });

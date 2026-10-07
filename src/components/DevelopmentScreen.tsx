@@ -14,7 +14,7 @@ import { CURRENCIES, CURRENCY_LABELS } from '../config/economy';
 import { formatStatName, getStatIcon } from '../config/statIcons';
 import { useGameStore } from '../stores/gameStore';
 import { getStat, planCost, priceOf, unspentSpecPoints } from '../game/StatDevelopment';
-import { StatusBar } from './StatusBar';
+import { ScreenFrame } from './ui/ScreenFrame';
 import { Button } from './ui/Button';
 import { Card } from './ui/Card';
 import { CurrencyAmounts, CURRENCY_STYLE } from './currency/CurrencyAmounts';
@@ -93,182 +93,195 @@ export const DevelopmentScreen: React.FC = () => {
     .join(', ');
 
   return (
-    <div className="min-h-screen bg-pixel-bg">
-      <StatusBar onBack={() => navigateTo('idle')} />
+    // One width for both tabs, so switching tabs never moves the tabs themselves.
+    // The stats tab leaves room at the bottom for the docked plan bar.
+    <ScreenFrame
+      title="Development"
+      onBack={() => navigateTo('idle')}
+      className={tab === 'stats' ? 'pb-40' : 'pb-8'}
+    >
+      <div className="flex gap-2 mb-4" role="tablist">
+        {(
+          [
+            ['stats', 'development', 'Stats'],
+            ['specialties', 'archetype', 'Specialties'],
+          ] as const
+        ).map(([id, screen, label]) => (
+          <button
+            key={id}
+            role="tab"
+            aria-selected={tab === id}
+            data-testid={`development-tab-${id}`}
+            onClick={() => navigateTo(screen)}
+            className={`px-4 py-2 border-4 font-bold text-sm ${
+              tab === id
+                ? 'border-pixel-accent bg-pixel-card text-pixel-text'
+                : 'border-pixel-border text-pixel-text-muted hover:border-pixel-accent'
+            }`}
+          >
+            {label}
+            {id === 'specialties' && unspentSpecPoints(player) > 0 && (
+              <span className="ml-2 text-yellow-300">⭐{unspentSpecPoints(player)}</span>
+            )}
+          </button>
+        ))}
+      </div>
 
-      <div className={`${tab === 'stats' ? 'max-w-4xl pb-40' : 'max-w-7xl pb-8'} mx-auto px-4`}>
-        <h1 className="text-3xl font-bold text-pixel-text mb-1">Development</h1>
-        <div className="flex gap-2 mb-4" role="tablist">
-          {(
-            [
-              ['stats', 'development', 'Stats'],
-              ['specialties', 'archetype', 'Specialties'],
-            ] as const
-          ).map(([id, screen, label]) => (
-            <button
-              key={id}
-              role="tab"
-              aria-selected={tab === id}
-              data-testid={`development-tab-${id}`}
-              onClick={() => navigateTo(screen)}
-              className={`px-4 py-2 border-4 font-bold text-sm ${
-                tab === id
-                  ? 'border-pixel-accent bg-pixel-card text-pixel-text'
-                  : 'border-pixel-border text-pixel-text-muted hover:border-pixel-accent'
+      {/* Wallet stays pinned: every +1 is a comparison against it. */}
+      <div
+        className="sticky top-2 z-20 mb-6 bg-pixel-card border-4 border-pixel-border px-3 sm:px-4 py-2 flex flex-nowrap sm:flex-wrap items-center justify-between sm:justify-start gap-x-3 sm:gap-x-5 gap-y-2"
+        data-testid="development-wallet"
+      >
+        {CURRENCIES.map((c) => (
+          <span
+            key={c}
+            className="inline-flex items-baseline gap-1.5"
+            data-currency={c}
+            data-amount={Math.floor(left[c])}
+          >
+            <span aria-hidden="true">{CURRENCY_STYLE[c].icon}</span>
+            {(cost[c] ?? 0) > 0 && (
+              <span className="text-xs text-pixel-text-muted whitespace-nowrap">
+                {Math.floor(player.wallet[c])} →
+              </span>
+            )}
+            <span className={`text-xl font-bold ${CURRENCY_STYLE[c].text}`}>
+              {Math.floor(left[c])}
+            </span>
+            <span className="hidden sm:inline text-xs text-pixel-text-muted">
+              {CURRENCY_LABELS[c]}
+            </span>
+          </span>
+        ))}
+        {/* Specialization points: the other half of development, spent on Specialties. */}
+        <span
+          className="inline-flex items-baseline gap-1.5 sm:ml-auto"
+          data-testid="development-spec-points"
+          data-amount={specPoints}
+          title="Specialization points, earned by levelling up"
+        >
+          <span aria-hidden="true">⭐</span>
+          <span className="text-xl font-bold text-pixel-text">{specPoints}</span>
+          <span className="hidden sm:inline text-xs text-pixel-text-muted">Spec Points</span>
+        </span>
+      </div>
+
+      {tab === 'specialties' ? (
+        <ArchetypeTree />
+      ) : (
+        <>
+          {message && (
+            <div
+              role="status"
+              data-testid="development-message"
+              className={`mb-4 border-4 px-4 py-2 font-bold ${
+                message.ok
+                  ? 'border-pixel-success text-pixel-success'
+                  : 'border-pixel-error text-pixel-error'
               }`}
             >
-              {label}
-              {id === 'specialties' && unspentSpecPoints(player) > 0 && (
-                <span className="ml-2 text-yellow-300">⭐{unspentSpecPoints(player)}</span>
-              )}
-            </button>
-          ))}
-        </div>
-
-        {/* Wallet stays pinned: every +1 is a comparison against it. */}
-        <div
-          className="sticky top-2 z-20 mb-6 bg-pixel-card border-4 border-pixel-border px-3 sm:px-4 py-2 flex flex-nowrap sm:flex-wrap items-center justify-between sm:justify-start gap-x-3 sm:gap-x-5 gap-y-2"
-          data-testid="development-wallet"
-        >
-          {CURRENCIES.map((c) => (
-            <span
-              key={c}
-              className="inline-flex items-baseline gap-1.5"
-              data-currency={c}
-              data-amount={Math.floor(left[c])}
-            >
-              <span aria-hidden="true">{CURRENCY_STYLE[c].icon}</span>
-              {(cost[c] ?? 0) > 0 && (
-                <span className="text-xs text-pixel-text-muted whitespace-nowrap">
-                  {Math.floor(player.wallet[c])} →
-                </span>
-              )}
-              <span className={`text-xl font-bold ${CURRENCY_STYLE[c].text}`}>
-                {Math.floor(left[c])}
-              </span>
-              <span className="hidden sm:inline text-xs text-pixel-text-muted">
-                {CURRENCY_LABELS[c]}
-              </span>
-            </span>
-          ))}
-          {/* Specialization points: the other half of development, spent on Specialties. */}
-          <span
-            className="inline-flex items-baseline gap-1.5 sm:ml-auto"
-            data-testid="development-spec-points"
-            data-amount={specPoints}
-            title="Specialization points, earned by levelling up"
-          >
-            <span aria-hidden="true">⭐</span>
-            <span className="text-xl font-bold text-pixel-text">{specPoints}</span>
-            <span className="hidden sm:inline text-xs text-pixel-text-muted">Spec Points</span>
-          </span>
-        </div>
-
-        {tab === 'specialties' ? (
-          <ArchetypeTree embedded />
-        ) : (
-          <>
-            {message && (
-              <div
-                role="status"
-                data-testid="development-message"
-                className={`mb-4 border-4 px-4 py-2 font-bold ${
-                  message.ok
-                    ? 'border-pixel-success text-pixel-success'
-                    : 'border-pixel-error text-pixel-error'
-                }`}
-              >
-                {message.text}
-              </div>
-            )}
-
-            <div className="grid gap-6">
-              {GROUPS.map((group) => (
-                <section key={group.title} aria-label={group.title}>
-                  <h2 className="text-sm font-bold text-pixel-text-muted uppercase tracking-wider mb-2">
-                    {group.title}
-                  </h2>
-                  <div className="grid gap-2">
-                    {group.stats.map((stat) => {
-                      const planned = counts[stat] ?? 0;
-                      const now = getStat(player.stats, stat);
-                      const next = now + planned;
-                      const price = priceOf(stat, next);
-                      const needs = shortfall(price, left);
-                      const short = Object.keys(needs).length > 0;
-                      const atMax = next >= 100;
-                      return (
-                        <Card
-                          key={stat}
-                          padding="sm"
-                          className={planned ? 'border-pixel-accent' : ''}
-                        >
-                          <div
-                            className="flex items-center gap-3"
-                            data-testid={`development-stat-${stat}`}
-                            data-value={now}
-                            data-planned={planned}
-                          >
-                            <div className="min-w-0 flex-1">
-                              <div className="flex flex-wrap items-baseline gap-x-2">
-                                <span className="font-bold text-pixel-text">
-                                  <span aria-hidden="true">{getStatIcon(stat)} </span>
-                                  {formatStatName(stat)}
-                                </span>
-                                <span className="text-xl font-bold text-pixel-text">{now}</span>
-                                {planned > 0 && (
-                                  <span className="text-xl font-bold text-pixel-accent">
-                                    → {next}
-                                  </span>
-                                )}
-                              </div>
-                              <div
-                                className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm mt-1"
-                                data-testid={`development-cost-${stat}`}
-                              >
-                                {atMax ? (
-                                  <span className="text-xs text-pixel-text-muted">Max</span>
-                                ) : short ? (
-                                  <>
-                                    <span className="text-xs text-pixel-warning">Needs</span>
-                                    <CurrencyAmounts
-                                      amounts={needs}
-                                      testId={`development-needs-${stat}`}
-                                    />
-                                  </>
-                                ) : (
-                                  <CurrencyAmounts amounts={price} />
-                                )}
-                              </div>
-                            </div>
-                            <Button
-                              variant="secondary"
-                              size="sm"
-                              disabled={planned === 0}
-                              onClick={() => removeOne(stat)}
-                              testId={`development-minus-${stat}`}
-                            >
-                              −
-                            </Button>
-                            <Button
-                              size="sm"
-                              disabled={atMax || short}
-                              onClick={() => add(stat)}
-                              testId={`development-plus-${stat}`}
-                            >
-                              +1
-                            </Button>
-                          </div>
-                        </Card>
-                      );
-                    })}
-                  </div>
-                </section>
-              ))}
+              {message.text}
             </div>
-          </>
-        )}
-      </div>
+          )}
+
+          <div className="grid gap-6">
+            {GROUPS.map((group) => (
+              <section key={group.title} aria-label={group.title}>
+                <h2 className="text-sm font-bold text-pixel-text-muted uppercase tracking-wider mb-2">
+                  {group.title}
+                </h2>
+                <div className="grid gap-2">
+                  {group.stats.map((stat) => {
+                    const planned = counts[stat] ?? 0;
+                    const now = getStat(player.stats, stat);
+                    const next = now + planned;
+                    const price = priceOf(stat, next);
+                    const needs = shortfall(price, left);
+                    const short = Object.keys(needs).length > 0;
+                    const atMax = next >= 100;
+                    // What you can buy right now stands out (green edge, green +1); what
+                    // you cannot recedes. Every row used to look the same whatever the
+                    // wallet held, so the screen had to be read to find a purchase.
+                    const buyable = !short && !atMax;
+                    return (
+                      <Card
+                        key={stat}
+                        padding="sm"
+                        className={`transition-opacity ${
+                          planned
+                            ? 'border-pixel-accent'
+                            : buyable
+                              ? 'border-l-pixel-success'
+                              : 'opacity-70'
+                        }`}
+                      >
+                        <div
+                          className="flex items-center gap-3"
+                          data-testid={`development-stat-${stat}`}
+                          data-value={now}
+                          data-planned={planned}
+                          data-buyable={buyable}
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-baseline gap-x-2">
+                              <span className="font-bold text-pixel-text">
+                                <span aria-hidden="true">{getStatIcon(stat)} </span>
+                                {formatStatName(stat)}
+                              </span>
+                              <span className="text-xl font-bold text-pixel-text">{now}</span>
+                              {planned > 0 && (
+                                <span className="text-xl font-bold text-pixel-accent">
+                                  → {next}
+                                </span>
+                              )}
+                            </div>
+                            <div
+                              className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm mt-1"
+                              data-testid={`development-cost-${stat}`}
+                            >
+                              {atMax ? (
+                                <span className="text-xs text-pixel-text-muted">Max</span>
+                              ) : short ? (
+                                <>
+                                  <span className="text-xs text-pixel-warning">Needs</span>
+                                  <CurrencyAmounts
+                                    amounts={needs}
+                                    testId={`development-needs-${stat}`}
+                                  />
+                                </>
+                              ) : (
+                                <CurrencyAmounts amounts={price} />
+                              )}
+                            </div>
+                          </div>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            disabled={planned === 0}
+                            onClick={() => removeOne(stat)}
+                            testId={`development-minus-${stat}`}
+                          >
+                            −
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant={buyable ? 'success' : 'secondary'}
+                            disabled={atMax || short}
+                            onClick={() => add(stat)}
+                            testId={`development-plus-${stat}`}
+                          >
+                            +1
+                          </Button>
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </section>
+            ))}
+          </div>
+        </>
+      )}
 
       {/* Points added so far, what they cost, and the buy. Sits on the left 70% of the
           stat column, so the − / +1 buttons down the right edge stay clear and usable. */}
@@ -297,6 +310,6 @@ export const DevelopmentScreen: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </ScreenFrame>
   );
 };

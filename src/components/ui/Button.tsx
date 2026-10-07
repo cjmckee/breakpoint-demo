@@ -33,7 +33,7 @@ export const Button: React.FC<ButtonProps> = ({
 
   const variantStyles = {
     primary:
-      'bg-pixel-accent border-pixel-accent-dark text-white hover:bg-pixel-accent-light active:translate-y-1',
+      'bg-pixel-accent border-pixel-accent-dark text-pixel-on-accent hover:bg-pixel-accent-light active:translate-y-1',
     secondary:
       'bg-pixel-secondary border-pixel-secondary-dark text-white hover:bg-pixel-secondary-light active:translate-y-1',
     danger: 'bg-red-600 border-red-800 text-white hover:bg-red-500 active:translate-y-1',

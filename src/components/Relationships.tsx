@@ -1,16 +1,15 @@
 /**
  * Relationships Component
- * Displays all met characters and their relationship status — this is also the
- * hangout menu: characters with a new tier event float to the top with a
- * Hang Out button. Key characters show threshold notches (the next locked
- * notch pulses to mark the goal) and a tier label.
+ * Everyone the player has met. This is also the hangout menu: a key character with
+ * a new tier event floats to the top with a Hang Out button. Key characters show a
+ * bond track with an icon per tier; everyone else is a compact row below.
  */
 
 import React from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
-import { StatusBar } from './StatusBar';
+import { ScreenFrame } from './ui/ScreenFrame';
 import { CHARACTERS } from '../data/characters';
 import {
   HANGOUT_CHARACTERS,
@@ -18,7 +17,6 @@ import {
   getHangoutTier,
   hasUnseenTierEvent,
 } from '../data/hangoutCharacters';
-import { UnseenBadge } from './ui/UnseenBadge';
 import { TimeSlot } from '../types/game';
 
 export const Relationships: React.FC = () => {
@@ -59,185 +57,186 @@ export const Relationships: React.FC = () => {
     return 0;
   });
 
-  const getBarColor = (value: number): string => {
-    if (value > 20) return 'bg-green-500';
-    if (value < -20) return 'bg-red-500';
-    return 'bg-gray-400';
-  };
-
-  const getBarWidth = (value: number): string => {
-    const normalized = ((value + 100) / 200) * 100;
-    return `${normalized}%`;
-  };
-
-  const formatValue = (value: number): string => {
-    if (value > 0) return `+${value}`;
-    return value.toString();
-  };
-
-  const getTierLabel = (characterId: string, relValue: number): string => {
-    const tier = getHangoutTier(characterId, relValue);
-    const labels = ['Acquaintance', 'Friend', 'Close', 'Trusted'];
-    return labels[tier] ?? 'Acquaintance';
-  };
+  const keyCharacters = sorted.filter((c) => c.isKeyCharacter === true);
+  const others = sorted.filter((c) => c.isKeyCharacter !== true);
+  const isHangoutDisabled = isNightTime || !canAffordHangout;
 
   return (
-    <div className="min-h-screen bg-pixel-bg">
-      <StatusBar onBack={() => navigateTo('idle')} />
-
-      <div className="max-w-4xl mx-auto px-4 pb-8">
-        <h1 className="text-3xl font-bold text-pixel-text mb-4">Relationships</h1>
-
-        {sorted.length === 0 ? (
-          <Card>
-            <div className="text-center py-8">
-              <div className="text-6xl mb-4">👥</div>
-              <h2 className="text-2xl font-bold text-pixel-text mb-2">No Relationships Yet</h2>
-              <p className="text-pixel-text-muted">
-                As you play the game and complete story events, you'll meet characters and build
-                relationships with them.
-              </p>
-            </div>
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            {sorted.map((character) => {
-              const relationshipValue = relationships[character.id] ?? 0;
-              const isKey = character.isKeyCharacter === true;
-              const hangoutConfig = HANGOUT_CHARACTERS[character.id];
-              const currentTier = isKey ? getHangoutTier(character.id, relationshipValue) : 0;
-              const hasNewTierEvent = isHangoutReady(character.id);
-              const isHangoutDisabled = isNightTime || !canAffordHangout;
-              // The first locked threshold is the player's current goal — it pulses
-              const nextThreshold =
-                isKey && hangoutConfig
-                  ? hangoutConfig.thresholds.find((t) => relationshipValue < t)
-                  : undefined;
-
+    <ScreenFrame title="Relationships" onBack={() => navigateTo('idle')}>
+      {sorted.length === 0 ? (
+        <Card>
+          <div className="text-center py-8">
+            <div className="text-6xl mb-4">👥</div>
+            <p className="text-pixel-text-muted">You'll meet people as the story goes on.</p>
+          </div>
+        </Card>
+      ) : (
+        <div className="space-y-6">
+          <div className="space-y-3">
+            {keyCharacters.map((character) => {
+              const value = relationships[character.id] ?? 0;
+              const config = HANGOUT_CHARACTERS[character.id];
+              const ready = isHangoutReady(character.id);
               return (
                 <Card
                   key={character.id}
-                  padding="md"
-                  className={hasNewTierEvent ? 'border-pixel-accent' : ''}
+                  padding="sm"
+                  className={ready ? 'border-pixel-accent' : ''}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="text-4xl">
-                      {character.role === 'Coach'
-                        ? '👨‍🏫'
-                        : character.role === 'Rival'
-                          ? '⚔️'
-                          : character.role === 'Family'
-                            ? '👨‍👩‍👧'
-                            : character.role === 'Friend'
-                              ? '🤝'
-                              : character.role === 'Sponsor'
-                                ? '💼'
-                                : character.role === 'Career'
-                                  ? '📈'
-                                  : character.role === 'Media'
-                                    ? '📰'
-                                    : character.role === 'Official'
-                                      ? '🏆'
-                                      : character.role === 'Romance'
-                                        ? '💖'
-                                        : '🎾'}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-center mb-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-xl font-bold text-pixel-text">{character.name}</h3>
-                          {isKey && (
-                            <span className="text-xs px-1.5 py-0.5 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent font-bold">
-                              KEY
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-3">
-                          {isKey && (
-                            <span className="text-xs text-pixel-text-muted">
-                              {getTierLabel(character.id, relationshipValue)} (Tier {currentTier})
-                            </span>
-                          )}
-                          <span className="text-sm text-pixel-text-muted">{character.role}</span>
-                        </div>
-                      </div>
-
-                      {/* Relationship Bar with threshold notches */}
-                      <div className="relative h-6 bg-gray-700 rounded-full overflow-visible mb-1">
-                        {/* Fill */}
-                        <div
-                          className={`absolute left-0 top-0 h-full rounded-full ${getBarColor(relationshipValue)} transition-all duration-300`}
-                          style={{ width: getBarWidth(relationshipValue) }}
-                        />
-                        {/* Center line */}
-                        <div className="absolute left-1/2 top-0 h-full w-0.5 bg-white opacity-50 transform -translate-x-1/2" />
-                        {/* Threshold notches for key characters */}
-                        {isKey &&
-                          hangoutConfig &&
-                          hangoutConfig.thresholds.map((threshold) => {
-                            const notchPct = ((threshold + 100) / 200) * 100;
-                            const isUnlocked = relationshipValue >= threshold;
-                            const isNext = threshold === nextThreshold;
-                            return (
-                              <div
-                                key={threshold}
-                                className="absolute top-0 h-full flex flex-col items-center"
-                                style={{ left: `${notchPct}%`, transform: 'translateX(-50%)' }}
-                                title={
-                                  isUnlocked
-                                    ? `Unlocked at ${formatValue(threshold)}`
-                                    : `Next event at ${formatValue(threshold)}`
-                                }
-                              >
-                                <div
-                                  className={`h-full ${
-                                    isUnlocked
-                                      ? 'w-1 bg-yellow-300'
-                                      : isNext
-                                        ? 'w-1.5 bg-yellow-300 animate-pulse'
-                                        : 'w-1 bg-white opacity-60'
-                                  }`}
-                                />
-                              </div>
-                            );
-                          })}
-                      </div>
-
-                      <div className="text-center text-xs mt-1 font-bold text-pixel-text">
-                        {formatValue(relationshipValue)}
+                  <div
+                    className="flex flex-wrap sm:flex-nowrap items-center gap-x-4 gap-y-3"
+                    data-testid={`relationship-${character.id}`}
+                    data-value={value}
+                    data-tier={getHangoutTier(character.id, value)}
+                  >
+                    <div className="flex items-center gap-3 min-w-0 sm:w-44 shrink-0">
+                      <span className="text-3xl" aria-hidden="true">
+                        {roleIcon(character.role)}
+                      </span>
+                      <div className="min-w-0">
+                        <div className="font-bold text-pixel-text truncate">{character.name}</div>
+                        <div className="text-xs text-pixel-text-muted">{character.role}</div>
                       </div>
                     </div>
 
-                    {/* Hang Out button — only shown when a new tier event is available */}
-                    {isKey && hasNewTierEvent && (
-                      <div className="flex-shrink-0 relative">
-                        {!isHangoutDisabled && (
-                          <UnseenBadge className="absolute -top-2 -right-2 z-10" />
-                        )}
+                    <div className="flex-1 min-w-[12rem] order-last sm:order-none basis-full sm:basis-auto">
+                      {config && <BondTrack value={value} thresholds={config.thresholds} />}
+                    </div>
+
+                    {/* The action column is reserved on every card, so the tracks (and their tier
+                        icons) line up down the list whether or not a hangout is ready. */}
+                    <div className="ml-auto sm:ml-0 shrink-0 sm:w-48 flex sm:justify-end">
+                      {ready && (
                         <Button
                           variant="primary"
                           size="sm"
                           disabled={isHangoutDisabled}
                           onClick={() => hangoutWithCharacter(character.id)}
+                          testId={`relationship-hangout-${character.id}`}
                         >
-                          {isNightTime
-                            ? 'Unavailable'
-                            : !canAffordHangout
-                              ? 'Low Energy'
-                              : '★ Hang Out'}
+                          {isNightTime ? '🌙 Tomorrow' : `★ Hang Out · ⚡${HANGOUT_ENERGY_COST}`}
                         </Button>
-                        <div className="text-xs text-center text-pixel-text-muted mt-1">
-                          {HANGOUT_ENERGY_COST} energy
-                        </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </Card>
               );
             })}
           </div>
+
+          {/* People without a bond track: just who they are and how it's going. */}
+          {others.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {others.map((character) => {
+                const value = relationships[character.id] ?? 0;
+                return (
+                  <div
+                    key={character.id}
+                    className="flex items-center gap-3 bg-pixel-card border-2 border-pixel-border px-3 py-2"
+                    data-testid={`relationship-${character.id}`}
+                    data-value={value}
+                  >
+                    <span className="text-2xl" aria-hidden="true">
+                      {roleIcon(character.role)}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-bold text-pixel-text truncate">{character.name}</div>
+                      <div className="text-xs text-pixel-text-muted">{character.role}</div>
+                    </div>
+                    <Mood value={value} />
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </ScreenFrame>
+  );
+};
+
+const ROLE_ICONS: Record<string, string> = {
+  Coach: '👨‍🏫',
+  Rival: '⚔️',
+  Family: '👨‍👩‍👧',
+  Friend: '🤝',
+  Sponsor: '💼',
+  Career: '📈',
+  Media: '📰',
+  Official: '🏆',
+  Romance: '💖',
+};
+const roleIcon = (role: string | undefined): string => (role && ROLE_ICONS[role]) || '🎾';
+
+/** One icon and name per hangout tier, so a tier reads as a place, not a number. */
+const TIERS = [
+  { icon: '🤝', label: 'Acquaintance' },
+  { icon: '😊', label: 'Friend' },
+  { icon: '💛', label: 'Close' },
+  { icon: '💎', label: 'Trusted' },
+] as const;
+
+/**
+ * The bond with a key character, 0–100, cut at the hangout thresholds. Each
+ * threshold carries the icon of the tier it opens: reached tiers are lit, the next
+ * one says how far off it is. A bond below zero shows as strained rather than as
+ * a bar running backwards from a centre line.
+ */
+const BondTrack: React.FC<{ value: number; thresholds: readonly number[] }> = ({
+  value,
+  thresholds,
+}) => {
+  const tier = thresholds.filter((t) => value >= t).length;
+  const next = thresholds[tier];
+  const fill = Math.max(0, Math.min(100, value));
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1.5 text-xs">
+        <span className="font-bold text-pixel-text">
+          <span aria-hidden="true">{TIERS[tier].icon} </span>
+          {TIERS[tier].label}
+        </span>
+        {value < 0 ? (
+          <span className="font-bold text-pixel-error">🧊 Strained {value}</span>
+        ) : next !== undefined ? (
+          <span className="text-pixel-text-muted">
+            {TIERS[tier + 1].icon} in {next - value}
+          </span>
+        ) : (
+          <span className="text-pixel-text-muted">Max</span>
         )}
+      </div>
+      <div className="relative h-3 bg-pixel-bg border-2 border-pixel-border">
+        <div className="h-full bg-pixel-accent transition-all" style={{ width: `${fill}%` }} />
+        {thresholds.map((t, i) => {
+          const reached = value >= t;
+          return (
+            <span
+              key={t}
+              className={`absolute top-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-sm border-2 ${
+                reached
+                  ? 'bg-pixel-card border-pixel-accent'
+                  : 'bg-pixel-bg border-pixel-border grayscale opacity-60'
+              }`}
+              style={{ left: `${t}%` }}
+              title={`${TIERS[i + 1].label} at ${t}`}
+              aria-hidden="true"
+            >
+              {TIERS[i + 1].icon}
+            </span>
+          );
+        })}
       </div>
     </div>
   );
 };
+
+/** For people without tiers: one word for how it's going. */
+const Mood: React.FC<{ value: number }> = ({ value }) =>
+  value > 10 ? (
+    <span className="text-xs font-bold text-pixel-success">Warm</span>
+  ) : value < -10 ? (
+    <span className="text-xs font-bold text-pixel-error">Cold</span>
+  ) : (
+    <span className="text-xs font-bold text-pixel-text-muted">Neutral</span>
+  );

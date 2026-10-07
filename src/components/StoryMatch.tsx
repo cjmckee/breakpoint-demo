@@ -10,7 +10,6 @@ import { Card } from './ui/Card';
 import { PreMatchScreen } from './PreMatchScreen';
 import { ItemManager } from '../game/ItemManager';
 import { StoryMatchManager } from '../game/StoryMatchManager';
-import { buildPlayStyle } from '../core/PlayerProfile';
 import type { PreMatchConfig } from '../types/gamePhase';
 import type { PlayerStats, PlayStyle } from '../types';
 import { calculateOverallRating } from '../utils/playerStats';
@@ -31,7 +30,6 @@ export const StoryMatch: React.FC<StoryMatchProps> = ({ matchConfig }) => {
   }
 
   const playerOverallRating = calculateOverallRating(player.stats);
-  const playerPlayStyle = buildPlayStyle(player.archetypeProfile);
 
   const energyCost = StoryMatchManager.calculateMatchEnergyCost(currentStatus.energy);
   const pendingBuffs = ItemManager.mergeNextActivityBuffs(player.nextActivityBuffs);
@@ -80,14 +78,11 @@ export const StoryMatch: React.FC<StoryMatchProps> = ({ matchConfig }) => {
     <PreMatchScreen
       title={matchConfig.matchTitle || 'Team Match'}
       playerName={player.name}
-      playerTier={player.tier}
       playerOverallRating={playerOverallRating}
       playerStats={player.stats}
-      playerPlayStyle={playerPlayStyle}
       playerAbilities={player.abilities}
       opponentAbilities={matchConfig.opponentAbilities}
       opponentName={matchConfig.opponentName}
-      opponentTier={matchConfig.opponentTier}
       opponentDescription={matchConfig.opponentDescription}
       opponentStats={matchConfig.opponentStats}
       opponentPlayStyle={matchConfig.opponentPlayStyle}

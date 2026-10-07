@@ -6,6 +6,7 @@
 import React, { useEffect, useCallback, useRef } from 'react';
 import { useMatchStore } from '../stores/matchStore';
 import { useGameStore } from '../stores/gameStore';
+import { ScreenFrame } from './ui/ScreenFrame';
 import { MATCH_SPEED_DELAYS } from '../config/matchRewards';
 import { Card } from './ui/Card';
 import { MatchCockpit } from './match/MatchCockpit';
@@ -70,11 +71,6 @@ export const LiveMatchViewer: React.FC = () => {
   useEffect(() => {
     setPointDelay(MATCH_SPEED_DELAYS[matchSpeed]);
   }, [matchSpeed, setPointDelay]);
-
-  // ─── Scroll page to top when match screen mounts ──────────────────────────
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
 
   // ─── Match log auto-scroll (contained within the log box) ─────────────────
   const logContainerRef = useRef<HTMLDivElement>(null);
@@ -214,7 +210,9 @@ export const LiveMatchViewer: React.FC = () => {
   const visibleLog = isTutorialPaused && matchLog.length === 0 ? TUTORIAL_MOCK_LOG : matchLog;
 
   return (
-    <div className="min-h-screen bg-pixel-bg p-4">
+    // The scoreboard is the live match's status bar, so the shared one steps aside and
+    // the court gets the room. Same wide column as the menu, so nothing jumps sideways.
+    <ScreenFrame width="wide" hideStatusBar className="pt-4 pb-8">
       {/* ── Tutorial spotlight overlay ─────────────────────────────────────────── */}
       {activeStep !== null && (
         <>
@@ -237,12 +235,7 @@ export const LiveMatchViewer: React.FC = () => {
         </>
       )}
 
-      <div className="max-w-6xl mx-auto space-y-4">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-pixel-text">🎾 Live Match</h1>
-        </div>
-
+      <div className="space-y-4">
         {/* Tier 1: Cockpit — scoreboard + court + stamina/momentum (full width) */}
         <div className={spotlightClass('court')}>
           {matchConfig && (
@@ -297,6 +290,6 @@ export const LiveMatchViewer: React.FC = () => {
           </Card>
         </div>
       </div>
-    </div>
+    </ScreenFrame>
   );
 };
