@@ -41,9 +41,11 @@ export const ActionTile: React.FC<ActionTileProps> = ({
   testId,
 }) => {
   const variantStyles = {
-    primary: 'bg-pixel-accent border-pixel-accent-dark hover:bg-pixel-accent-light',
-    secondary: 'bg-pixel-secondary border-pixel-secondary-dark hover:bg-pixel-secondary-light',
-    success: 'bg-green-600 border-green-800 hover:bg-green-500',
+    primary:
+      'bg-pixel-accent border-pixel-accent-dark text-pixel-on-accent hover:bg-pixel-accent-light',
+    secondary:
+      'bg-pixel-secondary border-pixel-secondary-dark text-white hover:bg-pixel-secondary-light',
+    success: 'bg-green-600 border-green-800 text-white hover:bg-green-500',
   };
 
   const sizeStyles = size === 'lg' ? 'p-3 sm:p-4 gap-1.5' : 'p-2 sm:p-2.5 gap-1';
@@ -72,7 +74,7 @@ export const ActionTile: React.FC<ActionTileProps> = ({
       className={`relative flex flex-col items-center justify-center border-4 font-bold transition-all duration-150 ease-in-out ${
         disabled
           ? 'cursor-not-allowed bg-pixel-card border-pixel-border text-pixel-text-muted'
-          : `cursor-pointer text-white active:translate-y-1 ${variantStyles[variant]}`
+          : `cursor-pointer active:translate-y-1 ${variantStyles[variant]}`
       } ${sizeStyles} ${className}`}
     >
       {badge && !disabled && <UnseenBadge className="absolute top-1.5 right-1.5 z-10" />}

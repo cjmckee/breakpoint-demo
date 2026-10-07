@@ -13,7 +13,17 @@ module.exports = {
         //  so those surfaces rendered transparent.)
         'pixel-card': '#1e2846',
         'pixel-secondary': '#0f3460',
-        'pixel-accent': '#e94560',
+        // Hover and edge shades for secondary buttons. Referenced since the start but
+        // never defined, so those borders fell back to Tailwind's light grey default.
+        'pixel-secondary-light': '#174a85',
+        'pixel-secondary-dark': '#0a2342',
+        // The accent (primary actions, selection, highlights) is a CSS variable so
+        // it is defined in one place — see the accent block in src/index.css. The -light/-dark steps are hover and button-edge shades;
+        // on-accent is the text colour that reads on top of the accent.
+        'pixel-accent': 'rgb(var(--pixel-accent) / <alpha-value>)',
+        'pixel-accent-light': 'rgb(var(--pixel-accent-light) / <alpha-value>)',
+        'pixel-accent-dark': 'rgb(var(--pixel-accent-dark) / <alpha-value>)',
+        'pixel-on-accent': 'rgb(var(--pixel-on-accent) / <alpha-value>)',
         // Default tennis-ball fill — regulation optic yellow. Distinct from
         // pixel-success so a ball at rest never reads as a "clean hit" cue.
         'pixel-ball': '#ccff00',
