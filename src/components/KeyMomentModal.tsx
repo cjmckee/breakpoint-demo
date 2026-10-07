@@ -12,7 +12,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Modal } from './ui/Modal';
 import { KeyMoment } from '../types/keyMoments';
-import { TacticalOption, SecondaryEffect } from '../data/tacticalOptions';
+import { TacticalOption, SecondaryEffect, keyMomentStakes } from '../data/tacticalOptions';
+import type { KeyMomentStakes } from '../data/tacticalOptions';
 import type { KeyMomentRisk } from '../data/tacticalOptions';
 import { getRelevantTendency, getArchetypeLabel } from '../data/archetypes';
 import { POSTURE_META, getMatchup } from '../data/postures';
@@ -135,6 +136,19 @@ const isBeneficial = (effect: {
   value: number;
 }): boolean => (effect.type === 'pressure' ? effect.value < 0 : effect.value > 0);
 
+/**
+ * The header is coloured by whose point it is, not by its kind: green when the
+ * point is yours to win, red when it is theirs, yellow for a key rally. Three
+ * colours a player learns once. The kind (break, set, match point) is in the
+ * icon and the words. Orange used to mark break points, which read as one of
+ * the posture colours on the tactic cards below it.
+ */
+const STAKES_STYLE: Record<KeyMomentStakes, string> = {
+  for: 'border-green-500 bg-green-500',
+  against: 'border-red-500 bg-red-500',
+  neutral: 'border-yellow-400 bg-yellow-400',
+};
+
 interface KeyMomentModalProps {
   isOpen: boolean;
   keyMoment: KeyMoment | null;
@@ -246,17 +260,13 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   const getMomentTypeIcon = (type: string): string => {
     if (type.includes('match-point')) return '👑';
     if (type.includes('set-point')) return '⭐';
+    // A break point against is a warning, one for you is a chance.
+    if (type === 'break-point-serve') return '🚨';
     if (type.includes('break-point')) return '🔥';
     return '💡';
   };
 
-  const getMomentTypeColor = (type: string): string => {
-    if (type.includes('match-point')) return 'border-red-500 bg-red-500';
-    if (type.includes('set-point')) return 'border-yellow-500 bg-yellow-500';
-    if (type.includes('break-point')) return 'border-orange-500 bg-orange-500';
-    return 'border-pixel-accent bg-pixel-accent';
-  };
-
+  const stakes = keyMomentStakes(activeKeyMoment.type);
   const opponentIsServing = activeKeyMoment.matchContext.server === 'opponent';
   const tendency = getRelevantTendency(activeKeyMoment.opponentArchetype, opponentIsServing);
 
@@ -388,14 +398,18 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   // One row for the situation and who you face, then the conditions. Kept short so
   // the tactics start above the fold: this header is read nine times a match.
   const headerStrip = (
-    <div className={`border-4 ${getMomentTypeColor(activeKeyMoment.type)} bg-opacity-20`}>
+    <div
+      className={`border-4 ${STAKES_STYLE[stakes]} bg-opacity-20`}
+      data-testid="km-header"
+      data-stakes={stakes}
+    >
       <div className="px-4 py-3">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <span className="text-2xl leading-none">{getMomentTypeIcon(activeKeyMoment.type)}</span>
           <h2 className="text-base sm:text-lg font-bold text-pixel-text">
             {activeKeyMoment.situation}
           </h2>
-          <span className="sm:ml-auto px-2 py-0.5 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent text-sm font-bold whitespace-nowrap">
+          <span className="sm:ml-auto px-2 py-0.5 bg-pixel-bg border-2 border-pixel-border text-pixel-text text-sm font-bold whitespace-nowrap">
             vs {getArchetypeLabel(activeKeyMoment.opponentArchetype)}
           </span>
         </div>
