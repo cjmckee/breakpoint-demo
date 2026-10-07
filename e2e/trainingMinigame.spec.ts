@@ -66,7 +66,7 @@ test('every core anchor resolves to a mountable minigame', async ({ page }) => {
 
     // Backing out of the play screen returns to the shot picker without spending
     // the slot, so all five can be checked in one session's worth of energy.
-    await page.getByRole('button', { name: '← Back' }).click();
+    await page.getByTestId('screen-back').click();
     await expect(page.getByRole('heading', { name: 'Training' })).toBeVisible();
   }
 });

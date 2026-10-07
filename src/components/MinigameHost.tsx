@@ -15,7 +15,7 @@ import { useGameStore } from '../stores/gameStore';
 import { MINIGAMES } from '../minigames/registry';
 import { EffectAggregator } from '../core/EffectAggregator';
 import { EffectKey } from '../types/game';
-import { StatusBar } from './StatusBar';
+import { ScreenFrame } from './ui/ScreenFrame';
 
 export const MinigameHost: React.FC = () => {
   const gamePhase = useGameStore((state) => state.gamePhase);
@@ -32,18 +32,16 @@ export const MinigameHost: React.FC = () => {
   const windowBonus = EffectAggregator.getEffect(effects, EffectKey.MINIGAME_WINDOW_BONUS);
 
   return (
-    <div className="min-h-screen bg-pixel-bg">
-      {/* No back control: the player already committed to this by choosing the
-          option that led here, and leaving would strand the event mid-resolution. */}
-      <StatusBar />
-
-      <div className="max-w-2xl mx-auto px-4 pb-8">
+    // No back control: the player already committed to this by choosing the option
+    // that led here, and leaving would strand the event mid-resolution.
+    <ScreenFrame>
+      <div className="max-w-2xl mx-auto">
         <Minigame
           onComplete={completeMinigame}
           windowBonus={windowBonus}
           config={gamePhase.request.config}
         />
       </div>
-    </div>
+    </ScreenFrame>
   );
 };

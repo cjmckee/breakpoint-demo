@@ -14,6 +14,7 @@ import { useGameStore, defaultRestEnergy, defaultSleepBonus } from '../stores/ga
 import { EffectAggregator } from '../core/EffectAggregator';
 import { Card } from './ui/Card';
 import { ActionTile } from './ui/ActionTile';
+import { SCREEN_WIDTHS } from './ui/ScreenFrame';
 import { UnseenBadge } from './ui/UnseenBadge';
 import { StatusBar } from './StatusBar';
 import { PlayerStatsDisplay } from './PlayerStatsDisplay';
@@ -376,7 +377,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
         <StatusBar />
       </div>
 
-      <div className="px-4 md:px-8 max-w-7xl mx-auto pb-8">
+      <div className={`px-4 ${SCREEN_WIDTHS.wide} mx-auto pb-8`}>
         {/* Hero Header: who the player is, at a glance */}
         <Card className="mb-6" padding="md">
           <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-4">
