@@ -30,6 +30,7 @@ import { CurrencyAmounts } from './currency/CurrencyAmounts';
 import { CoreStatPentagon } from './training/CoreStatPentagon';
 import { audioManager } from '../audio/AudioManager';
 import { MINIGAMES } from '../minigames/registry';
+import { useScrollToTopOn } from '../hooks/useScrollToTopOn';
 
 type Step = { kind: 'pick' } | { kind: 'play'; core: CoreStat };
 
@@ -44,6 +45,8 @@ export const AnchorTraining: React.FC = () => {
   const [hasStarted, setHasStarted] = useState(false);
   /** Shot under the cursor/focus on the pick screen — drives the pentagon highlight. */
   const [hovered, setHovered] = useState<CoreStat | null>(null);
+  // The pick list and the minigame are separate pages under one phase.
+  useScrollToTopOn(step.kind === 'play' ? step.core : 'pick');
 
   if (!player) return null;
 
