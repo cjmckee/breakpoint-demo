@@ -71,7 +71,18 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="" size="scene" testId="match-results">
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title=""
+      size="scene"
+      testId="match-results"
+      footer={
+        <Button variant="primary" fullWidth onClick={handleClose} testId="match-results-continue">
+          {isWinner ? 'Continue Training 💪' : 'Train Harder 🔥'}
+        </Button>
+      }
+    >
       <div className="space-y-6">
         {/* Result Header */}
         <div
@@ -869,13 +880,6 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
               )}
             </div>
           )}
-        </div>
-
-        {/* Close Button */}
-        <div className="pt-4">
-          <Button variant="primary" fullWidth size="lg" onClick={handleClose}>
-            {isWinner ? 'Continue Training 💪' : 'Train Harder 🔥'}
-          </Button>
         </div>
       </div>
     </Modal>

@@ -52,7 +52,7 @@ export const ScreenFrame: React.FC<ScreenFrameProps> = ({
   actions,
   width = 'standard',
   hideStatusBar = false,
-  className = 'pb-8',
+  className = 'pb-24 sm:pb-8',
   children,
 }) => {
   return (

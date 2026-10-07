@@ -29,6 +29,14 @@ body {
   min-height: 100vh;
 }
 
+/* On a phone the floating menu button covers a modal's docked footer. Modal marks
+   the body while one is open (useModalOpenMarker); the menu is back once it closes. */
+@media (max-width: 639px) {
+  body[data-open-modals] .floating-menu-button {
+    display: none;
+  }
+}
+
 /* Pixel art utilities */
 .pixel-card {
   @apply bg-pixel-primary rounded-lg p-4 border-2 border-pixel-accent shadow-lg;

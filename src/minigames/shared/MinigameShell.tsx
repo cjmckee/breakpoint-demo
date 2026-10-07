@@ -19,6 +19,7 @@ import React, { useEffect } from 'react';
 import type { MinigameRounds, RoundPhase } from './useMinigameRounds';
 import { isActionKey } from '../../utils/gameKeys';
 import { isGamePaused } from './minigameJuice';
+import { ARENA_MAX_WIDTH } from './MinigameArena';
 
 /** Start overlay shown over the arena while phase === 'ready'. Space/Enter (or the button) begins. */
 const StartGate: React.FC<{ onStart: () => void; controls?: string }> = ({ onStart, controls }) => {
@@ -36,16 +37,13 @@ const StartGate: React.FC<{ onStart: () => void; controls?: string }> = ({ onSta
 
   return (
     <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-pixel-bg/95 border-2 border-pixel-border p-4 text-center">
-      {/* Keyboard shortcuts, then the reminder that the buttons below are already the
-          real controls — this is the only place that's stated. */}
-      <div className="flex flex-col items-center gap-2">
-        {controls && (
-          <p className="text-sm text-pixel-text uppercase tracking-wide leading-relaxed">
-            {controls}
-          </p>
-        )}
-        <p className="text-xs text-pixel-text-muted">or use the buttons below once you start</p>
-      </div>
+      {/* Keyboard shortcuts, only where there is likely a keyboard. On a touch screen
+          the buttons below the arena are the controls, and they are already in view. */}
+      {controls && (
+        <p className="text-sm text-pixel-text uppercase tracking-wide leading-relaxed [@media(pointer:coarse)]:hidden">
+          {controls}
+        </p>
+      )}
       <button
         type="button"
         data-testid="minigame-start"
@@ -57,7 +55,9 @@ const StartGate: React.FC<{ onStart: () => void; controls?: string }> = ({ onSta
       >
         ▶ Start
       </button>
-      <p className="text-xs text-pixel-text-muted">Space or Enter to begin</p>
+      <p className="text-xs text-pixel-text-muted [@media(pointer:coarse)]:hidden">
+        Space or Enter to begin
+      </p>
     </div>
   );
 };
@@ -77,12 +77,12 @@ export const MinigameShell: React.FC<{
 }> = ({ title, subtitle, phase, onStart, controls, children, footer }) => {
   const ready = phase === 'ready';
   return (
-    <div className="bg-pixel-card border-4 border-pixel-border p-6">
-      <div className="text-center mb-4">
+    <div className="bg-pixel-card border-4 border-pixel-border p-4 sm:p-5">
+      <div className="text-center mb-3">
         <h3 className="text-xl font-bold text-pixel-text">{title}</h3>
         <p className="text-sm text-pixel-text-muted">{subtitle}</p>
       </div>
-      <div className="relative">
+      <div className="relative mx-auto" style={{ maxWidth: ARENA_MAX_WIDTH }}>
         {children}
         {ready && <StartGate onStart={onStart} controls={controls} />}
       </div>
