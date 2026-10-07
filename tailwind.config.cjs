@@ -18,8 +18,7 @@ module.exports = {
         'pixel-secondary-light': '#174a85',
         'pixel-secondary-dark': '#0a2342',
         // The accent (primary actions, selection, highlights) is a CSS variable so
-        // the palette can be swapped in one place — see the palette block in
-        // src/index.css. The -light/-dark steps are hover and button-edge shades;
+        // it is defined in one place — see the accent block in src/index.css. The -light/-dark steps are hover and button-edge shades;
         // on-accent is the text colour that reads on top of the accent.
         'pixel-accent': 'rgb(var(--pixel-accent) / <alpha-value>)',
         'pixel-accent-light': 'rgb(var(--pixel-accent-light) / <alpha-value>)',

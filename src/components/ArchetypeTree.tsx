@@ -27,7 +27,7 @@ import type { GamePhase, PhasePathId, SpecialtyRole, SpecialtyTier } from '../ty
 
 /** Presentation for each tactical role. Colors are UI-only; role lives in data. */
 const ROLE_META: Record<SpecialtyRole, { label: string; color: string }> = {
-  offense: { label: 'Offense', color: '#e94560' }, // pixel-accent
+  offense: { label: 'Offense', color: '#e94560' },
   balanced: { label: 'Balanced', color: '#f39c12' }, // pixel-warning
   defense: { label: 'Defense', color: '#4aa3df' }, // court blue
 };
