@@ -76,7 +76,7 @@ const clamp = (v: number, lo: number, hi: number): number => Math.max(lo, Math.m
 export const FishingCastMinigame: React.FC<MinigameProps> = ({
   onComplete,
   windowBonus = 0,
-  onFirstAttempt,
+  onStart,
   config,
 }) => {
   // The game's own shape first, then whatever the caller asked for — so an event
@@ -84,7 +84,7 @@ export const FishingCastMinigame: React.FC<MinigameProps> = ({
   const rounds = useMinigameRounds(
     { minigame: 'fishing_cast', config: { rounds: CASTS, speedRamp: SPEED_RAMP, ...config } },
     onComplete,
-    onFirstAttempt,
+    onStart,
   );
   const { frozen, trigger: hitstop } = useHitstop();
   const lureHalf = (LURE_SIZE * (1 + windowBonus)) / 2;

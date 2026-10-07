@@ -94,10 +94,10 @@ function planServe(speed: number): Serve {
 export const ReadReturnMinigame: React.FC<MinigameProps> = ({
   onComplete,
   windowBonus = 0,
-  onFirstAttempt,
+  onStart,
   config,
 }) => {
-  const rounds = useMinigameRounds({ minigame: 'read_return', config }, onComplete, onFirstAttempt);
+  const rounds = useMinigameRounds({ minigame: 'read_return', config }, onComplete, onStart);
   const { frozen, trigger: hitstop } = useHitstop();
 
   const half = { x: (ZONE_W * (1 + windowBonus)) / 2, y: (ZONE_H * (1 + windowBonus)) / 2 };

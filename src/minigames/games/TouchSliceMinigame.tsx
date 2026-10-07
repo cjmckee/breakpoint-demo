@@ -33,10 +33,10 @@ const STRIP_H = 11;
 export const TouchSliceMinigame: React.FC<MinigameProps> = ({
   onComplete,
   windowBonus = 0,
-  onFirstAttempt,
+  onStart,
   config,
 }) => {
-  const rounds = useMinigameRounds({ minigame: 'touch_slice', config }, onComplete, onFirstAttempt);
+  const rounds = useMinigameRounds({ minigame: 'touch_slice', config }, onComplete, onStart);
   const { frozen, trigger: hitstop } = useHitstop();
   const zoneHalf = 10 * (1 + windowBonus);
 

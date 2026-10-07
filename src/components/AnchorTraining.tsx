@@ -41,7 +41,7 @@ export const AnchorTraining: React.FC = () => {
   const advanceTime = useGameStore((state) => state.advanceTime);
 
   const [step, setStep] = useState<Step>({ kind: 'pick' });
-  const [hasAttempted, setHasAttempted] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
   /** Shot under the cursor/focus on the pick screen — drives the pentagon highlight. */
   const [hovered, setHovered] = useState<CoreStat | null>(null);
 
@@ -70,7 +70,7 @@ export const AnchorTraining: React.FC = () => {
 
   const handlePickCore = (core: CoreStat): void => {
     audioManager.playSfx('ui_click');
-    setHasAttempted(false);
+    setHasStarted(false);
     setStep({ kind: 'play', core });
   };
 
@@ -97,42 +97,45 @@ export const AnchorTraining: React.FC = () => {
                 // Training reads the score as its rep count — a clean rep is one point.
                 onComplete={(score) => resolve(step.core, score.score)}
                 windowBonus={windowBonus}
-                onFirstAttempt={() => setHasAttempted(true)}
+                onStart={() => setHasStarted(true)}
               />
             );
           })()}
 
-          {/* What the session can pay, so the reps have a visible stake */}
-          <div
-            className="bg-pixel-card border-2 border-pixel-border p-4 mt-4"
-            data-testid="training-payout-preview"
-          >
-            <div className="text-xs font-bold text-pixel-text-muted mb-2 uppercase tracking-wide">
-              Pays
-            </div>
-            <div className="grid gap-1 text-sm">
-              {[0, 1, 2, 3].map((reps) => (
-                <div key={reps} className="flex items-center gap-3">
-                  <span className="w-16 text-pixel-text-muted">
-                    {reps} rep{reps === 1 ? '' : 's'}
-                  </span>
-                  <CurrencyAmounts amounts={trainingPayout(step.core, reps)} labelled />
+          {/* What the session can pay, so the reps have a visible stake — and the
+              Quick Sim escape hatch. Both go once the minigame starts. */}
+          {!hasStarted && (
+            <>
+              <div
+                className="bg-pixel-card border-2 border-pixel-border p-4 mt-4"
+                data-testid="training-payout-preview"
+              >
+                <div className="text-xs font-bold text-pixel-text-muted mb-2 uppercase tracking-wide">
+                  Pays
                 </div>
-              ))}
-            </div>
-          </div>
+                <div className="grid gap-1 text-sm">
+                  {[0, 1, 2, 3].map((reps) => (
+                    <div key={reps} className="flex items-center gap-3">
+                      <span className="w-16 text-pixel-text-muted">
+                        {reps} rep{reps === 1 ? '' : 's'}
+                      </span>
+                      <CurrencyAmounts amounts={trainingPayout(step.core, reps)} labelled />
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-          {!hasAttempted && (
-            <Button
-              testId="training-quick-sim"
-              variant="secondary"
-              fullWidth
-              className="mt-4"
-              disabled={!canAfford}
-              onClick={() => resolve(step.core, 1)}
-            >
-              Quick Sim (skip · 1 rep)
-            </Button>
+              <Button
+                testId="training-quick-sim"
+                variant="secondary"
+                fullWidth
+                className="mt-4"
+                disabled={!canAfford}
+                onClick={() => resolve(step.core, 1)}
+              >
+                Quick Sim (skip · 1 rep)
+              </Button>
+            </>
           )}
         </div>
       </div>

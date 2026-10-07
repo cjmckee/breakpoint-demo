@@ -48,14 +48,10 @@ const LANE_GLYPH = ['◀', '●', '▶'];
 export const RallyRhythmMinigame: React.FC<MinigameProps> = ({
   onComplete,
   windowBonus = 0,
-  onFirstAttempt,
+  onStart,
   config,
 }) => {
-  const rounds = useMinigameRounds(
-    { minigame: 'rally_rhythm', config },
-    onComplete,
-    onFirstAttempt,
-  );
+  const rounds = useMinigameRounds({ minigame: 'rally_rhythm', config }, onComplete, onStart);
   const { frozen, trigger: hitstop } = useHitstop();
   const hitWin = 155 * (1 + windowBonus);
 
