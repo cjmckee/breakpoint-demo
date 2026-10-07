@@ -52,14 +52,10 @@ const randomToss = (speed: number): Toss => ({
 export const ServeMinigame: React.FC<MinigameProps> = ({
   onComplete,
   windowBonus = 0,
-  onFirstAttempt,
+  onStart,
   config,
 }) => {
-  const rounds = useMinigameRounds(
-    { minigame: 'toss_and_strike', config },
-    onComplete,
-    onFirstAttempt,
-  );
+  const rounds = useMinigameRounds({ minigame: 'toss_and_strike', config }, onComplete, onStart);
   const { frozen, trigger: hitstop } = useHitstop();
 
   const half = { x: (POCKET_W * (1 + windowBonus)) / 2, y: (POCKET_H * (1 + windowBonus)) / 2 };

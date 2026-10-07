@@ -62,8 +62,8 @@ export interface MinigameProps {
   onComplete: (score: MinigameScore) => void;
   /** Fractional widening of the success window from EffectKey.MINIGAME_WINDOW_BONUS (0.10 = +10%). */
   windowBonus?: number;
-  /** Called once, the moment the player commits their first attempt. */
-  onFirstAttempt?: () => void;
+  /** Called once, when the player starts the run from the start gate. */
+  onStart?: () => void;
   /** Overrides the game's default shape. */
   config?: MinigameConfig;
 }

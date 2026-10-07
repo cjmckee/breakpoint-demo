@@ -84,7 +84,7 @@ function speedFor(ramp: number[], round: number): number {
 export function useMinigameRounds(
   request: { minigame: MinigameId; config?: MinigameConfig },
   onComplete: (score: MinigameScore) => void,
-  onFirstAttempt?: () => void,
+  onStart?: () => void,
 ): MinigameRounds {
   const { minigame, config } = request;
   const total = config?.rounds ?? DEFAULT_ROUNDS;
@@ -106,8 +106,9 @@ export function useMinigameRounds(
 
   const begin = useCallback(() => {
     if (phaseRef.current !== 'ready') return;
+    onStart?.();
     setPhase('playing');
-  }, []);
+  }, [onStart]);
 
   const finish = useCallback(
     (finalScore: number) => {
@@ -125,7 +126,6 @@ export function useMinigameRounds(
   const commit = useCallback(
     (passed: boolean, points?: number) => {
       if (doneRef.current || phaseRef.current !== 'playing') return;
-      if (resultsRef.current.length === 0) onFirstAttempt?.();
       setLastPass(passed);
       audioManager.playSfx(passed ? 'stat_up' : 'net');
 
@@ -151,7 +151,7 @@ export function useMinigameRounds(
         setPhase('playing');
       }, TRANSITION_MS);
     },
-    [finish, onFirstAttempt, total],
+    [finish, total],
   );
 
   return {

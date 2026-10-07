@@ -30,14 +30,10 @@ const SWEEP_MAX = 5.0;
 export const CornerPainterMinigame: React.FC<MinigameProps> = ({
   onComplete,
   windowBonus = 0,
-  onFirstAttempt,
+  onStart,
   config,
 }) => {
-  const rounds = useMinigameRounds(
-    { minigame: 'corner_paint', config },
-    onComplete,
-    onFirstAttempt,
-  );
+  const rounds = useMinigameRounds({ minigame: 'corner_paint', config }, onComplete, onStart);
   const { frozen, trigger: hitstop } = useHitstop();
   const tol = TOLERANCE * (1 + windowBonus);
 
