@@ -13,6 +13,32 @@ import { usePlayerName } from '../hooks/usePlayerName';
 import { CurrencyAmounts } from './currency/CurrencyAmounts';
 import { formatStatName, getStatIcon } from '../config/statIcons';
 
+/** One effect of the outcome. Gold marks something new to own, not a number. */
+const EffectChip: React.FC<{
+  children: React.ReactNode;
+  tone?: 'plain' | 'gold';
+  testId?: string;
+}> = ({ children, tone = 'plain', testId }) => (
+  <span
+    className={`inline-flex items-center gap-1.5 px-2.5 py-1 border-2 text-sm font-bold ${
+      tone === 'gold'
+        ? 'border-yellow-600 bg-yellow-950/50 text-yellow-300'
+        : 'border-pixel-border bg-pixel-card'
+    }`}
+    data-testid={testId}
+  >
+    {children}
+  </span>
+);
+
+/** A signed amount: gains green, losses red. */
+const Signed: React.FC<{ value: number }> = ({ value }) => (
+  <span className={value < 0 ? 'text-pixel-error' : 'text-pixel-success'}>
+    {value > 0 ? '+' : ''}
+    {value}
+  </span>
+);
+
 interface StoryEventResultModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -27,155 +53,113 @@ export const StoryEventResultModal: React.FC<StoryEventResultModalProps> = ({
   // Get player name for character references
   const playerName = usePlayerName();
 
+  const hasEffects =
+    Object.keys(result.currency).length > 0 ||
+    Object.keys(result.statChanges).length > 0 ||
+    Object.keys(result.relationshipChanges).length > 0 ||
+    result.abilitiesGained.length > 0 ||
+    result.itemsGained.length > 0 ||
+    result.moodResult !== 0 ||
+    result.energyCost > 0;
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
       title={result.eventName}
-      size="lg"
+      size="scene"
       testId="story-result"
     >
-      {/* Tags */}
-      <div className="flex gap-2 mb-4 flex-wrap">
-        {result.tags.map((tag) => (
-          <span
-            key={tag}
-            className="px-2 py-1 bg-gray-600 text-white rounded text-sm font-semibold"
-          >
-            #{tag}
-          </span>
-        ))}
-      </div>
-
-      {/* Selected choice (if applicable) */}
+      {/* What you picked, quietly — the result text is the point. */}
       {result.selectedOptionText && (
-        <div className="mb-4 p-3 bg-blue-600 text-white border-l-4 border-blue-800 rounded">
-          <span className="font-semibold">Your choice:</span> {result.selectedOptionText}
+        <div className="mb-3 text-sm text-pixel-text-muted">
+          You chose <span className="font-bold text-pixel-text">{result.selectedOptionText}</span>
         </div>
       )}
 
       {/* Result text */}
-      <div className="bg-gray-700 text-white p-4 rounded mb-6">
-        <p className="text-lg">
+      <div className="bg-pixel-primary border-4 border-pixel-border p-4 mb-6">
+        <p className="text-lg leading-relaxed">
           <FormattedText content={result.resultText} />
         </p>
       </div>
 
-      {/* Effects */}
-      {(Object.keys(result.currency).length > 0 ||
-        Object.keys(result.statChanges).length > 0 ||
-        Object.keys(result.relationshipChanges).length > 0 ||
-        result.abilitiesGained.length > 0 ||
-        result.itemsGained.length > 0) && (
-        <div className="space-y-4 mb-6">
-          <h3 className="font-bold text-lg">Effects:</h3>
+      {/* Effects, as one row of chips in the dark palette every other result uses */}
+      {hasEffects && (
+        <div className="mb-6">
+          <div className="text-xs font-bold uppercase tracking-wider text-pixel-text-muted mb-2">
+            Effects
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {/* Currency: losses clamp each currency at zero when applied */}
+            {Object.keys(result.currency).length > 0 && (
+              <EffectChip testId="story-result-currency">
+                <CurrencyAmounts amounts={result.currency} signed labelled />
+              </EffectChip>
+            )}
 
-          {/* Currency: losses clamp each currency at zero when applied */}
-          {Object.keys(result.currency).length > 0 && (
-            <div data-testid="story-result-currency">
-              <h4 className="font-semibold mb-2">💰 Training currency:</h4>
-              <CurrencyAmounts amounts={result.currency} signed labelled />
-            </div>
-          )}
-
-          {/* Direct stat changes: rare outcomes only. Gains green, losses red. */}
-          {Object.keys(result.statChanges).length > 0 && (
-            <div data-testid="story-result-stats">
-              <h4 className="font-semibold mb-2">📊 Stats:</h4>
-              <div className="flex flex-wrap gap-x-4 gap-y-1">
-                {Object.entries(result.statChanges).map(([stat, value]) => (
-                  <span
-                    key={stat}
-                    className="inline-flex items-center gap-1 font-bold"
-                    data-stat={stat}
-                    data-amount={value}
-                  >
-                    <span aria-hidden="true">{getStatIcon(stat)}</span>
-                    <span className="font-normal text-pixel-text-muted">
-                      {formatStatName(stat)}
+            {/* Direct stat changes: rare outcomes only. Gains green, losses red. */}
+            {Object.keys(result.statChanges).length > 0 && (
+              <EffectChip testId="story-result-stats">
+                <span className="flex flex-wrap gap-x-3 gap-y-1">
+                  {Object.entries(result.statChanges).map(([stat, value]) => (
+                    <span
+                      key={stat}
+                      className="inline-flex items-center gap-1 font-bold"
+                      data-stat={stat}
+                      data-amount={value}
+                    >
+                      <span aria-hidden="true">{getStatIcon(stat)}</span>
+                      <span className="font-normal text-pixel-text-muted">
+                        {formatStatName(stat)}
+                      </span>
+                      <Signed value={value ?? 0} />
                     </span>
-                    <span className={(value ?? 0) < 0 ? 'text-pixel-error' : 'text-pixel-success'}>
-                      {(value ?? 0) > 0 ? '+' : ''}
-                      {value}
-                    </span>
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
+                  ))}
+                </span>
+              </EffectChip>
+            )}
 
-          {/* Relationship changes */}
-          {Object.keys(result.relationshipChanges).length > 0 && (
-            <div>
-              <h4 className="font-semibold mb-2">💜 Relationships:</h4>
-              <div className="space-y-1">
-                {Object.entries(result.relationshipChanges).map(([char, value]) => (
-                  <div
-                    key={char}
-                    className={`px-3 py-2 rounded font-semibold ${
-                      value > 0 ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'
-                    }`}
-                  >
-                    {getCharacterName(char, playerName) ||
-                      char.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
-                    : {value > 0 ? '+' : ''}
-                    {value}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+            {Object.entries(result.relationshipChanges).map(([char, value]) => (
+              <EffectChip key={char}>
+                <span aria-hidden="true">{value >= 0 ? '💜' : '💔'}</span>
+                <span className="text-pixel-text">
+                  {getCharacterName(char, playerName) ||
+                    char.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                </span>
+                <Signed value={value} />
+              </EffectChip>
+            ))}
 
-          {/* Abilities gained */}
-          {result.abilitiesGained.length > 0 && (
-            <div>
-              <h4 className="font-semibold mb-2">🌟 New Abilities:</h4>
-              <div className="space-y-2">
-                {result.abilitiesGained.map((abilityName) => (
-                  <div
-                    key={abilityName}
-                    className="px-3 py-2 bg-yellow-950/50 border border-yellow-600 text-yellow-300 rounded font-semibold"
-                  >
-                    ⭐ {abilityName.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Items gained */}
-          {result.itemsGained.length > 0 && (
-            <div>
-              <h4 className="font-semibold mb-2">🎒 Items Received:</h4>
-              <div className="space-y-2">
-                {result.itemsGained.map((item) => (
-                  <div key={item.id} className="px-3 py-2 bg-indigo-100 text-indigo-800 rounded">
-                    <span className="font-semibold">{item.name}</span>
-                    <span className="text-sm ml-2 opacity-75">({item.type})</span>
-                    <p className="text-sm mt-1 opacity-80">{item.description}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Mood and Energy changes */}
-          <div className="flex gap-4">
             {result.moodResult !== 0 && (
-              <div
-                className={`flex-1 px-3 py-2 rounded font-semibold ${
-                  result.moodResult > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                }`}
-              >
-                {result.moodResult > 0 ? '😊' : '😞'} Mood: {result.moodResult > 0 ? '+' : ''}
-                {result.moodResult}
-              </div>
+              <EffectChip>
+                <span aria-hidden="true">{result.moodResult > 0 ? '😊' : '😞'}</span>
+                <span className="text-pixel-text">Mood</span>
+                <Signed value={result.moodResult} />
+              </EffectChip>
             )}
+
             {result.energyCost > 0 && (
-              <div className="flex-1 px-3 py-2 rounded font-semibold bg-orange-100 text-orange-800">
-                ⚡ Energy: -{result.energyCost}
-              </div>
+              <EffectChip>
+                <span aria-hidden="true">⚡</span>
+                <span className="text-pixel-text">Energy</span>
+                <Signed value={-result.energyCost} />
+              </EffectChip>
             )}
+
+            {result.abilitiesGained.map((abilityName) => (
+              <EffectChip key={abilityName} tone="gold">
+                <span aria-hidden="true">⭐</span>
+                {abilityName.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+              </EffectChip>
+            ))}
+
+            {result.itemsGained.map((item) => (
+              <EffectChip key={item.id} tone="gold">
+                <span aria-hidden="true">🎒</span>
+                {item.name}
+              </EffectChip>
+            ))}
           </div>
         </div>
       )}

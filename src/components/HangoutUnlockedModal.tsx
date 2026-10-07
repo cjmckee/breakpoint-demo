@@ -32,7 +32,7 @@ export const HangoutUnlockedModal: React.FC<HangoutUnlockedModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title="Hangout Unlocked"
-      size="sm"
+      size="notice"
       testId="hangout-unlocked"
     >
       <div className="text-center space-y-6 py-2">

@@ -36,7 +36,13 @@ export const ItemAcquiredModal: React.FC<ItemAcquiredModalProps> = ({
   onClose,
 }) => {
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Item Acquired" size="sm" testId="item-acquired">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Item Acquired"
+      size="notice"
+      testId="item-acquired"
+    >
       <div className="text-center space-y-4 py-2">
         <div className="text-5xl">{itemEmoji(item)}</div>
         <p className="text-lg font-semibold text-pixel-accent">{item.name}</p>

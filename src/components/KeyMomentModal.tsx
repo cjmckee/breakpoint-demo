@@ -527,7 +527,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
       <Modal
         isOpen={isOpen}
         title=""
-        size="xl"
+        size="scene"
         showCloseButton={false}
         belowContent={peekButton}
         testId="km-result"
@@ -842,7 +842,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     <Modal
       isOpen={isOpen}
       title=""
-      size="xl"
+      size="scene"
       showCloseButton={false}
       belowContent={peekButton}
       testId="km-choice"

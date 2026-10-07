@@ -38,7 +38,7 @@ export const TrainingResultModal: React.FC<TrainingResultModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Training Complete!" size="md">
+    <Modal isOpen={isOpen} onClose={onClose} title="Training Complete!" size="notice">
       <div className="space-y-6">
         {/* Success Message */}
         <div className="text-center">
