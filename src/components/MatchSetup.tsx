@@ -109,7 +109,7 @@ export const MatchSetup: React.FC = () => {
                   key={info.tier}
                   onClick={() => isUnlocked && setSelectedTier(info.tier)}
                   disabled={!isUnlocked}
-                  className={`p-4 border-4 text-left transition-all relative ${
+                  className={`flex flex-col p-4 border-4 text-left transition-all relative ${
                     !isUnlocked
                       ? 'opacity-50 cursor-not-allowed border-pixel-border bg-pixel-bg'
                       : isSelected
@@ -117,11 +117,12 @@ export const MatchSetup: React.FC = () => {
                         : getTierColor(info.tier)
                   } ${isUnlocked && 'hover:scale-105'}`}
                 >
-                  {!isUnlocked && <div className="absolute top-2 right-2 text-3xl">🔒</div>}
                   <div className="flex justify-between items-start mb-2">
                     <h4 className="text-lg font-bold text-pixel-text">{info.name}</h4>
+                    {/* A locked tier shows the lock where the tier badge goes, so the
+                        two never overlap. */}
                     <span className="text-xs px-2 py-1 bg-pixel-bg border-2 border-pixel-border text-pixel-text uppercase">
-                      Tier {info.tier}
+                      {isUnlocked ? `Tier ${info.tier}` : `🔒 Tier ${info.tier}`}
                     </span>
                   </div>
                   <p className="text-sm text-pixel-text-muted mb-3">

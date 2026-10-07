@@ -165,7 +165,7 @@ export const DebugPanel: React.FC = () => {
           <div className="flex gap-2">
             <button
               onClick={handleExport}
-              className="flex-1 bg-pixel-accent border-4 border-pixel-accent-dark text-white font-bold px-3 py-2 text-sm hover:bg-pixel-accent-light"
+              className="flex-1 bg-pixel-accent border-4 border-pixel-accent-dark text-pixel-on-accent font-bold px-3 py-2 text-sm hover:bg-pixel-accent-light"
             >
               Export
             </button>
@@ -202,7 +202,7 @@ export const DebugPanel: React.FC = () => {
             }}
             className={`w-full border-4 font-bold px-3 py-2 text-sm ${
               tracing
-                ? 'bg-pixel-accent border-pixel-accent-dark text-white hover:bg-pixel-accent-light'
+                ? 'bg-pixel-accent border-pixel-accent-dark text-pixel-on-accent hover:bg-pixel-accent-light'
                 : 'bg-pixel-bg-dark border-pixel-border text-pixel-text hover:border-pixel-accent'
             }`}
           >
@@ -284,7 +284,7 @@ export const DebugPanel: React.FC = () => {
 
         <button
           onClick={() => setIsOpen(false)}
-          className="font-bold border-4 bg-pixel-accent border-pixel-accent-dark text-white hover:bg-pixel-accent-light px-6 py-2 text-base w-full mt-auto"
+          className="font-bold border-4 bg-pixel-accent border-pixel-accent-dark text-pixel-on-accent hover:bg-pixel-accent-light px-6 py-2 text-base w-full mt-auto"
         >
           Close
         </button>

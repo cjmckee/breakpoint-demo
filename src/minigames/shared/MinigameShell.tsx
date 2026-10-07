@@ -51,7 +51,7 @@ const StartGate: React.FC<{ onStart: () => void; controls?: string }> = ({ onSta
           e.preventDefault();
           onStart();
         }}
-        className="font-bold border-4 transition-all duration-150 ease-in-out cursor-pointer bg-pixel-accent border-pixel-accent-dark text-white hover:bg-pixel-accent-light active:translate-y-1 px-8 py-2 text-base select-none touch-none"
+        className="font-bold border-4 transition-all duration-150 ease-in-out cursor-pointer bg-pixel-accent border-pixel-accent-dark text-pixel-on-accent hover:bg-pixel-accent-light active:translate-y-1 px-8 py-2 text-base select-none touch-none"
       >
         ▶ Start
       </button>
@@ -147,7 +147,7 @@ export const MinigameActionButton: React.FC<{
       e.preventDefault();
       if (!disabled) onPress();
     }}
-    className="font-bold border-4 transition-all duration-150 ease-in-out cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 bg-pixel-accent border-pixel-accent-dark text-white hover:bg-pixel-accent-light active:translate-y-1 px-8 py-10 text-lg w-full select-none touch-none"
+    className="font-bold border-4 transition-all duration-150 ease-in-out cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 bg-pixel-accent border-pixel-accent-dark text-pixel-on-accent hover:bg-pixel-accent-light active:translate-y-1 px-8 py-10 text-lg w-full select-none touch-none"
   >
     {children}
   </button>

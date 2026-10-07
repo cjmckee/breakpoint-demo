@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { loadSave, readGame, readMatch, setMatchSpeed, triggerStoryEvent } from './helpers';
+import { keyMomentStakes } from '../src/data/tacticalOptions';
 
 /**
  * Screens share one document and one frame, so anything that is not reset or
@@ -102,6 +103,14 @@ test('a key moment commits from a footer that stays on screen', async ({ page })
   await page.getByTestId('preview-match').click();
   await page.getByTestId('start-match-footer').click();
   await expect(page.getByTestId('km-choice')).toBeVisible({ timeout: 30_000 });
+
+  // The header is coloured by whose point it is, from the game's own reading of the type.
+  const moment = (await readMatch(page)).currentKeyMoment;
+  expect(moment, 'a key moment should be waiting for a choice').not.toBeNull();
+  await expect(page.getByTestId('km-header')).toHaveAttribute(
+    'data-stakes',
+    keyMomentStakes(moment!.type),
+  );
 
   const commit = page.getByTestId('km-commit');
   await expect(commit).toBeInViewport();
