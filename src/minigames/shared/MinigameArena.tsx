@@ -32,17 +32,26 @@ export const uMin = (n: number, minPx: number): string => `max(${minPx}px, ${n}c
 export const pctY = (y: number): number => (y / ARENA_H) * 100;
 
 /**
- * Tallest share of the viewport the arena may take. Keeps the title and the
- * controls below it on screen; the arena narrows to fit rather than overflow.
+ * Room the page needs around the arena: the status bar and title row above, the
+ * shell's heading, and the round pips and control buttons below. The arena takes
+ * whatever height is left, so the controls stay on screen; it narrows to fit rather
+ * than overflow, down to a floor where the game is still readable.
  */
-const MAX_VIEWPORT_HEIGHT = 0.55;
+const CHROME_PX = 400;
+const MIN_ARENA_HEIGHT_PX = 220;
+
+/**
+ * The arena's width cap. MinigameShell applies it to the box that holds both the
+ * arena and its start overlay, so the overlay covers the arena exactly.
+ */
+export const ARENA_MAX_WIDTH = `calc(max(${MIN_ARENA_HEIGHT_PX}px, 100dvh - ${CHROME_PX}px) * ${ARENA_W / ARENA_H})`;
 
 export const MinigameArena: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   // The border lives on the outside so the inner box is exactly 16:10: container
   // units measure the content box, and a border inside it would skew the height.
   <div
     className="mx-auto mb-4 border-2 border-pixel-border bg-pixel-bg"
-    style={{ width: `min(100%, calc(${MAX_VIEWPORT_HEIGHT * 100}vh * ${ARENA_W / ARENA_H}))` }}
+    style={{ width: `min(100%, ${ARENA_MAX_WIDTH})` }}
   >
     <div
       className="relative w-full overflow-hidden"

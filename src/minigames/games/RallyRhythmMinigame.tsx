@@ -274,7 +274,7 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({
 
         {/* Strike line (pulses on the beat) */}
         <div
-          className={`absolute inset-x-0 h-1 transition-all duration-75 ${pulse ? 'bg-pixel-accent shadow-[0_0_10px_2px_rgba(233,69,96,0.7)]' : 'bg-pixel-accent/50'}`}
+          className={`absolute inset-x-0 h-1 transition-all duration-75 ${pulse ? 'bg-pixel-accent shadow-[0_0_10px_2px_rgb(var(--pixel-accent)/0.7)]' : 'bg-pixel-accent/50'}`}
           style={{ top: `${STRIKE_Y}%` }}
         />
 

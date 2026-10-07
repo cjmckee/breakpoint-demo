@@ -9,7 +9,6 @@ import { useMatchStore } from '../stores/matchStore';
 import { Card } from './ui/Card';
 import { PreMatchScreen } from './PreMatchScreen';
 import { ItemManager } from '../game/ItemManager';
-import { buildPlayStyle } from '../core/PlayerProfile';
 import type { PreMatchConfig } from '../types/gamePhase';
 import { DEFAULT_MATCH_ENERGY_COST, MATCH_SPEED_DELAYS } from '../config/matchRewards';
 import { calculateOverallRating, getTierLabel } from '../utils/playerStats';
@@ -28,7 +27,6 @@ export const PracticeMatch: React.FC<{ matchConfig: PreMatchConfig | null }> = (
   }
 
   const playerOverallRating = calculateOverallRating(player.stats);
-  const playerPlayStyle = buildPlayStyle(player.archetypeProfile);
 
   const energyCost = DEFAULT_MATCH_ENERGY_COST;
   const pendingBuffs = ItemManager.mergeNextActivityBuffs(player.nextActivityBuffs);
@@ -81,14 +79,11 @@ export const PracticeMatch: React.FC<{ matchConfig: PreMatchConfig | null }> = (
       title="Practice Match"
       subtitle={`vs ${matchConfig.opponentName}`}
       playerName={player.name}
-      playerTier={player.tier}
       playerOverallRating={playerOverallRating}
       playerStats={player.stats}
-      playerPlayStyle={playerPlayStyle}
       playerAbilities={player.abilities}
       opponentAbilities={matchConfig.opponentAbilities}
       opponentName={matchConfig.opponentName}
-      opponentTier={matchConfig.opponentTier}
       opponentStats={matchConfig.opponentStats}
       opponentPlayStyle={matchConfig.opponentPlayStyle}
       surface={matchConfig.surface}

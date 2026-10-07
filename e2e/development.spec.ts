@@ -22,6 +22,8 @@ test('a confirmed plan raises the stats and charges the plan cost', async ({ pag
   await expect(page.getByTestId('action-development')).toBeVisible();
   await page.getByTestId('action-development').click();
   await expect(page.getByTestId('development-wallet')).toBeVisible();
+  // With this much in the wallet a Focus point is affordable, and the row says so.
+  await expect(page.getByTestId('development-stat-focus')).toHaveAttribute('data-buyable', 'true');
   // The bar only appears once something is added.
   await expect(page.getByTestId('development-plan-bar')).toHaveCount(0);
 
@@ -127,11 +129,14 @@ test('the Develop badge lights on new currency and goes out on a visit', async (
   await page.getByTestId('training-result-dismiss').click();
   await expect(badge).toHaveAttribute('data-new-currency', 'true');
   await expect(page.getByTestId('action-development')).toContainText('to spend');
+  const dot = page.getByTestId('action-development').getByTestId('unseen-badge');
+  await expect(dot).toBeVisible();
 
   // Looking at it is enough; nothing has to be bought.
   await page.getByTestId('action-development').click();
   await page.getByTestId('screen-back').click();
   await expect(page.getByTestId('action-development')).not.toContainText('to spend');
+  await expect(dot).toBeHidden();
 });
 
 test('Development holds both halves: stats and specialties', async ({ page }) => {
