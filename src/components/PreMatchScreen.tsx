@@ -6,6 +6,7 @@
 
 import React, { useState } from 'react';
 import { Card } from './ui/Card';
+import { ScreenFrame } from './ui/ScreenFrame';
 import { Button } from './ui/Button';
 import { TendencyBars } from './TendencyBars';
 import { SURFACE_EFFECTS } from '../config/shotThresholds';
@@ -405,139 +406,128 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
   const opponentOverallRating = calculateOverallRating(opponentStats);
 
   return (
-    <div className="min-h-screen bg-pixel-bg p-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          {onBack ? (
-            <Button variant="secondary" onClick={onBack}>
-              ← Back to Menu
-            </Button>
-          ) : (
-            <div />
-          )}
-          <Button
-            // The screen offers the same action top and bottom, so the ids name the
-            // position rather than the action — a bare `start-match` would be ambiguous.
-            testId="start-match-header"
-            variant="primary"
-            size="lg"
-            onClick={onStartMatch}
-            disabled={!canAfford}
-          >
-            {!canAfford ? <>Not Enough Energy ({energyCost})</> : <>🎾 Start Match</>}
-          </Button>
-        </div>
+    <ScreenFrame
+      title={title}
+      subtitle={subtitle}
+      onBack={onBack}
+      actions={
+        <Button
+          // The screen offers the same action top and bottom, so the ids name the
+          // position rather than the action — a bare `start-match` would be ambiguous.
+          testId="start-match-header"
+          variant="primary"
+          onClick={onStartMatch}
+          disabled={!canAfford}
+        >
+          {!canAfford ? <>Not Enough Energy ({energyCost})</> : <>🎾 Start Match</>}
+        </Button>
+      }
+    >
+      {headerContent && <div className="mb-6">{headerContent}</div>}
 
-        {headerContent ?? (
-          <Card title={title} className="mb-6">
-            {subtitle && <p className="text-pixel-text-muted mb-4">{subtitle}</p>}
-          </Card>
-        )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <PlayerCard
+          name={playerName}
+          tier={playerTier}
+          overallRating={playerOverallRating}
+          stats={playerStats}
+          playStyle={playerPlayStyle}
+          abilities={playerAbilities}
+          isPlayer={true}
+        />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <PlayerCard
-            name={playerName}
-            tier={playerTier}
-            overallRating={playerOverallRating}
-            stats={playerStats}
-            playStyle={playerPlayStyle}
-            abilities={playerAbilities}
-            isPlayer={true}
-          />
-
-          <PlayerCard
-            name={opponentName}
-            tier={opponentTier}
-            overallRating={opponentOverallRating}
-            stats={opponentStats}
-            playStyle={opponentPlayStyle}
-            abilities={opponentAbilities}
-            isPlayer={false}
-          />
-        </div>
-
-        {playerDescription && opponentDescription ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div className="p-3 bg-blue-950/30 border-2 border-blue-500">
-              <p className="text-sm text-pixel-text-muted">{playerDescription}</p>
-            </div>
-            <div className="p-3 bg-pixel-card border-2 border-pixel-border">
-              <p className="text-sm text-pixel-text-muted">{opponentDescription}</p>
-            </div>
-          </div>
-        ) : playerDescription ? (
-          <div className="mb-6">
-            <div className="p-3 bg-blue-950/30 border-2 border-blue-500">
-              <p className="text-sm text-pixel-text-muted">{playerDescription}</p>
-            </div>
-          </div>
-        ) : opponentDescription ? (
-          <div className="mb-6">
-            <div className="p-3 bg-pixel-card border-2 border-pixel-border">
-              <p className="text-sm text-pixel-text-muted">{opponentDescription}</p>
-            </div>
-          </div>
-        ) : null}
-
-        <Card title="Surface" className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-pixel-text font-bold">
-              {getSurfaceEmoji(surface)} {surface.toUpperCase()}
-            </span>
-          </div>
-          <SurfaceEffectsDisplay surface={surface} />
-        </Card>
-
-        <Card className="mb-6">
-          <ScoutingReport playStyle={opponentPlayStyle} />
-        </Card>
-
-        <Card title="Match Details" className="mb-6">
-          <div className="space-y-3">
-            <div className="p-3 bg-pixel-card border-2 border-pixel-border">
-              <div className="flex justify-between items-center">
-                <span className="text-pixel-text-muted">Energy Cost:</span>
-                <span
-                  className={`text-xl font-bold ${canAfford ? 'text-green-500' : 'text-red-500'}`}
-                >
-                  {energyCost} Energy
-                </span>
-              </div>
-              <div className="mt-1 text-xs text-pixel-text-muted">
-                You have {currentEnergy} / 100 energy available
-              </div>
-            </div>
-
-            <div className="p-3 bg-pixel-card border-2 border-pixel-border">
-              <div className="flex justify-between items-center">
-                <span className="text-pixel-text-muted">Match Format:</span>
-                <span className="text-pixel-text font-bold">{getFormatLabel(matchFormat)}</span>
-              </div>
-            </div>
-
-            {activeBuffs && <ActiveBuffsDisplay buffs={activeBuffs} />}
-          </div>
-        </Card>
-
-        <div className="mb-6">
-          <Button
-            testId="start-match-footer"
-            variant="primary"
-            size="lg"
-            fullWidth
-            onClick={onStartMatch}
-            disabled={!canAfford}
-          >
-            {!canAfford ? (
-              <>Not Enough Energy (Need {energyCost})</>
-            ) : (
-              <>🎾 Start Match vs {opponentName}</>
-            )}
-          </Button>
-        </div>
-
-        {contextContent}
+        <PlayerCard
+          name={opponentName}
+          tier={opponentTier}
+          overallRating={opponentOverallRating}
+          stats={opponentStats}
+          playStyle={opponentPlayStyle}
+          abilities={opponentAbilities}
+          isPlayer={false}
+        />
       </div>
-    </div>
+
+      {playerDescription && opponentDescription ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="p-3 bg-blue-950/30 border-2 border-blue-500">
+            <p className="text-sm text-pixel-text-muted">{playerDescription}</p>
+          </div>
+          <div className="p-3 bg-pixel-card border-2 border-pixel-border">
+            <p className="text-sm text-pixel-text-muted">{opponentDescription}</p>
+          </div>
+        </div>
+      ) : playerDescription ? (
+        <div className="mb-6">
+          <div className="p-3 bg-blue-950/30 border-2 border-blue-500">
+            <p className="text-sm text-pixel-text-muted">{playerDescription}</p>
+          </div>
+        </div>
+      ) : opponentDescription ? (
+        <div className="mb-6">
+          <div className="p-3 bg-pixel-card border-2 border-pixel-border">
+            <p className="text-sm text-pixel-text-muted">{opponentDescription}</p>
+          </div>
+        </div>
+      ) : null}
+
+      <Card title="Surface" className="mb-6">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-pixel-text font-bold">
+            {getSurfaceEmoji(surface)} {surface.toUpperCase()}
+          </span>
+        </div>
+        <SurfaceEffectsDisplay surface={surface} />
+      </Card>
+
+      <Card className="mb-6">
+        <ScoutingReport playStyle={opponentPlayStyle} />
+      </Card>
+
+      <Card title="Match Details" className="mb-6">
+        <div className="space-y-3">
+          <div className="p-3 bg-pixel-card border-2 border-pixel-border">
+            <div className="flex justify-between items-center">
+              <span className="text-pixel-text-muted">Energy Cost:</span>
+              <span
+                className={`text-xl font-bold ${canAfford ? 'text-green-500' : 'text-red-500'}`}
+              >
+                {energyCost} Energy
+              </span>
+            </div>
+            <div className="mt-1 text-xs text-pixel-text-muted">
+              You have {currentEnergy} / 100 energy available
+            </div>
+          </div>
+
+          <div className="p-3 bg-pixel-card border-2 border-pixel-border">
+            <div className="flex justify-between items-center">
+              <span className="text-pixel-text-muted">Match Format:</span>
+              <span className="text-pixel-text font-bold">{getFormatLabel(matchFormat)}</span>
+            </div>
+          </div>
+
+          {activeBuffs && <ActiveBuffsDisplay buffs={activeBuffs} />}
+        </div>
+      </Card>
+
+      <div className="mb-6">
+        <Button
+          testId="start-match-footer"
+          variant="primary"
+          size="lg"
+          fullWidth
+          onClick={onStartMatch}
+          disabled={!canAfford}
+        >
+          {!canAfford ? (
+            <>Not Enough Energy (Need {energyCost})</>
+          ) : (
+            <>🎾 Start Match vs {opponentName}</>
+          )}
+        </Button>
+      </div>
+
+      {contextContent}
+    </ScreenFrame>
   );
 };

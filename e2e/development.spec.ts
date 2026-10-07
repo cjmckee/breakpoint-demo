@@ -130,7 +130,7 @@ test('the Develop badge lights on new currency and goes out on a visit', async (
 
   // Looking at it is enough; nothing has to be bought.
   await page.getByTestId('action-development').click();
-  await page.getByRole('button', { name: '← Back' }).click();
+  await page.getByTestId('screen-back').click();
   await expect(page.getByTestId('action-development')).not.toContainText('to spend');
 });
 
