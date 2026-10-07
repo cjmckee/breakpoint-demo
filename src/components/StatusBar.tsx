@@ -42,7 +42,17 @@ const getEnergyColor = (energy: number): string => {
   return 'bg-red-500';
 };
 
-export const StatusBar: React.FC = () => {
+interface StatusBarProps {
+  /**
+   * Energy the action in focus would change, signed: -50 for a match, +20 for a
+   * rest. The bar marks the slice it would spend (or add) and the readout shows
+   * where energy would land, so a cost is seen against what you have rather than
+   * read as a sentence ("You have 80 / 100 energy available").
+   */
+  energyPreview?: number;
+}
+
+export const StatusBar: React.FC<StatusBarProps> = ({ energyPreview = 0 }) => {
   const { calendar, currentStatus, player } = useGameStore();
   const clearIndicator = useGameStore((state) => state.clearIndicator);
   const openCalendar = useMenuStore((state) => state.openCalendar);
@@ -54,6 +64,7 @@ export const StatusBar: React.FC = () => {
   const currentSlot = calendar.currentTimeSlot;
   const newCurrencyIn = player ? hasNewCurrency(player) : false;
   const specPoints = player ? unspentSpecPoints(player) : 0;
+  const afterPreview = Math.max(0, Math.min(100, currentStatus.energy + energyPreview));
 
   return (
     <div
@@ -113,15 +124,50 @@ export const StatusBar: React.FC = () => {
           <span className="text-sm leading-none" title="Energy">
             ⚡
           </span>
-          <div className="flex-1 h-3.5 bg-pixel-bg border-2 border-pixel-border">
+          <div
+            className="relative flex-1 h-3.5 bg-pixel-bg border-2 border-pixel-border"
+            data-preview={energyPreview || undefined}
+          >
             <div
               className={`h-full ${getEnergyColor(currentStatus.energy)} transition-all`}
               style={{ width: `${currentStatus.energy}%` }}
             />
+            {energyPreview < 0 && (
+              // The slice this would spend, struck through the end of the fill.
+              <div
+                className="absolute inset-y-0 bg-[repeating-linear-gradient(-45deg,rgba(26,26,46,0.85)_0_3px,transparent_3px_6px)] border-l-2 border-pixel-text"
+                style={{
+                  left: `${afterPreview}%`,
+                  width: `${currentStatus.energy - afterPreview}%`,
+                }}
+              />
+            )}
+            {energyPreview > 0 && (
+              // The energy this would add, as a ghost past the end of the fill.
+              <div
+                className="absolute inset-y-0 bg-green-300/40 border-r-2 border-green-300"
+                style={{
+                  left: `${currentStatus.energy}%`,
+                  width: `${afterPreview - currentStatus.energy}%`,
+                }}
+              />
+            )}
           </div>
-          <span className="text-sm font-bold text-pixel-text whitespace-nowrap">
-            {currentStatus.energy}
-            <span className="hidden sm:inline text-pixel-text-muted font-normal">/100</span>
+          {/* Fixed width, so the bar does not resize when the readout grows. */}
+          <span className="text-sm font-bold text-pixel-text whitespace-nowrap sm:w-[4.5rem]">
+            {energyPreview !== 0 ? (
+              <>
+                {currentStatus.energy}
+                <span className={energyPreview < 0 ? 'text-pixel-warning' : 'text-green-300'}>
+                  →{afterPreview}
+                </span>
+              </>
+            ) : (
+              <>
+                {currentStatus.energy}
+                <span className="hidden sm:inline text-pixel-text-muted font-normal">/100</span>
+              </>
+            )}
           </span>
         </div>
 

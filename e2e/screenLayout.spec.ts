@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { loadSave, readGame, readMatch, setMatchSpeed, triggerStoryEvent } from './helpers';
+import { keyMomentStakes } from '../src/data/tacticalOptions';
 
 /**
  * Screens share one document and one frame, so anything that is not reset or
@@ -103,6 +104,14 @@ test('a key moment commits from a footer that stays on screen', async ({ page })
   await page.getByTestId('start-match-footer').click();
   await expect(page.getByTestId('km-choice')).toBeVisible({ timeout: 30_000 });
 
+  // The header is coloured by whose point it is, from the game's own reading of the type.
+  const moment = (await readMatch(page)).currentKeyMoment;
+  expect(moment, 'a key moment should be waiting for a choice').not.toBeNull();
+  await expect(page.getByTestId('km-header')).toHaveAttribute(
+    'data-stakes',
+    keyMomentStakes(moment!.type),
+  );
+
   const commit = page.getByTestId('km-commit');
   await expect(commit).toBeInViewport();
   // Nothing is picked until the player picks it, so a stray click cannot commit.
@@ -118,4 +127,20 @@ test('a key moment commits from a footer that stays on screen', async ({ page })
   await expect(page.getByTestId('km-result-continue')).toBeInViewport();
   const history = (await readMatch(page)).keyMomentHistory;
   expect(history.at(-1)?.chosenOption.id, 'Go! should play the picked tactic').toBe(picked);
+});
+
+test('a cost is shown on the energy bar, not spelled out', async ({ page }) => {
+  // Match Setup and Pre-match used to say "You have 80 / 100 energy available" in
+  // a box each. The status bar now marks the slice a match would spend.
+  await loadSave(page, SAVE, 7);
+  const bar = page.getByTestId('status-energy').locator('[data-preview]');
+  await expect(bar).toHaveCount(0);
+
+  await page.getByTestId('action-match').hover();
+  await expect(bar).toHaveAttribute('data-preview', '-50');
+  await page.getByTestId('action-match').click();
+  await expect(bar).toHaveAttribute('data-preview', '-50');
+  await page.getByTestId('preview-match').click();
+  await expect(page.getByTestId('head-to-head')).toBeVisible();
+  await expect(bar).toHaveAttribute('data-preview', '-50');
 });

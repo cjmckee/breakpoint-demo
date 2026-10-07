@@ -103,6 +103,11 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const scheduledStoryMatch = getScheduledStoryMatch();
   const isStoryMatchScheduled = scheduledStoryMatch !== null;
 
+  // Energy change of the action tile under the pointer, previewed on the status bar.
+  const [energyPreview, setEnergyPreview] = useState(0);
+  const previewOn = (delta: number) => (hovering: boolean) =>
+    setEnergyPreview(hovering ? delta : 0);
+
   const sectionRefs = useRef<Record<MainMenuTarget, HTMLElement | null>>({
     status: null,
     stats: null,
@@ -374,7 +379,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
         data-spotlit={isSpotlit('status') || undefined}
         className={spotlightClass('status')}
       >
-        <StatusBar />
+        <StatusBar energyPreview={energyPreview} />
       </div>
 
       <div className={`px-4 ${SCREEN_WIDTHS.wide} mx-auto pb-8`}>
@@ -460,6 +465,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
             caption={trainingCaption}
             disabled={isBlocked || isNightTime || !canAffordTraining}
             badge={hasUnseenTraining}
+            onHoverChange={previewOn(-ANCHOR_TRAINING_ENERGY_COST)}
             onClick={() => navigateTo('training')}
           />
           <ActionTile
@@ -469,6 +475,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
             caption={matchCaption}
             disabled={isBlocked || isNightTime || !matchUnlocked || !canAffordMatch}
             badge={hasUnseenMatch}
+            onHoverChange={previewOn(-MATCH_ENERGY_COST)}
             onClick={() => navigateTo('match_setup')}
           />
           <ActionTile
@@ -487,7 +494,11 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
             disabled={!isNightTime && isEnergyFull}
             variant={isNightTime ? 'success' : 'primary'}
             className={isNightTime ? 'night-exempt' : ''}
-            onClick={() => rest()}
+            onHoverChange={previewOn(isNightTime ? sleepEnergyGain : restEnergyGain)}
+            onClick={() => {
+              setEnergyPreview(0);
+              rest();
+            }}
           />
         </div>
         <div

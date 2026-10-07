@@ -388,7 +388,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
                   <span
                     className={`w-6 h-6 shrink-0 border-4 flex items-center justify-center text-xs font-bold ${
                       isSelected
-                        ? 'border-pixel-accent bg-pixel-accent text-white'
+                        ? 'border-pixel-accent bg-pixel-accent text-pixel-on-accent'
                         : 'border-pixel-border'
                     }`}
                     aria-hidden="true"
