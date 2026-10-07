@@ -199,17 +199,28 @@ export const DevelopmentScreen: React.FC = () => {
                     const needs = shortfall(price, left);
                     const short = Object.keys(needs).length > 0;
                     const atMax = next >= 100;
+                    // What you can buy right now stands out (green edge, green +1); what
+                    // you cannot recedes. Every row used to look the same whatever the
+                    // wallet held, so the screen had to be read to find a purchase.
+                    const buyable = !short && !atMax;
                     return (
                       <Card
                         key={stat}
                         padding="sm"
-                        className={planned ? 'border-pixel-accent' : ''}
+                        className={`transition-opacity ${
+                          planned
+                            ? 'border-pixel-accent'
+                            : buyable
+                              ? 'border-l-pixel-success'
+                              : 'opacity-70'
+                        }`}
                       >
                         <div
                           className="flex items-center gap-3"
                           data-testid={`development-stat-${stat}`}
                           data-value={now}
                           data-planned={planned}
+                          data-buyable={buyable}
                         >
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-baseline gap-x-2">
@@ -254,6 +265,7 @@ export const DevelopmentScreen: React.FC = () => {
                           </Button>
                           <Button
                             size="sm"
+                            variant={buyable ? 'success' : 'secondary'}
                             disabled={atMax || short}
                             onClick={() => add(stat)}
                             testId={`development-plus-${stat}`}

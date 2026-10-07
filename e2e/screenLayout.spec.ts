@@ -119,3 +119,19 @@ test('a key moment commits from a footer that stays on screen', async ({ page })
   const history = (await readMatch(page)).keyMomentHistory;
   expect(history.at(-1)?.chosenOption.id, 'Go! should play the picked tactic').toBe(picked);
 });
+
+test('a cost is shown on the energy bar, not spelled out', async ({ page }) => {
+  // Match Setup and Pre-match used to say "You have 80 / 100 energy available" in
+  // a box each. The status bar now marks the slice a match would spend.
+  await loadSave(page, SAVE, 7);
+  const bar = page.getByTestId('status-energy').locator('[data-preview]');
+  await expect(bar).toHaveCount(0);
+
+  await page.getByTestId('action-match').hover();
+  await expect(bar).toHaveAttribute('data-preview', '-50');
+  await page.getByTestId('action-match').click();
+  await expect(bar).toHaveAttribute('data-preview', '-50');
+  await page.getByTestId('preview-match').click();
+  await expect(page.getByTestId('head-to-head')).toBeVisible();
+  await expect(bar).toHaveAttribute('data-preview', '-50');
+});

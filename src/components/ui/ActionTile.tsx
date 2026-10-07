@@ -21,6 +21,8 @@ interface ActionTileProps {
   size?: 'lg' | 'sm';
   variant?: 'primary' | 'secondary' | 'success';
   className?: string;
+  /** Pointer or focus entered (true) or left (false) — drives the energy preview. */
+  onHoverChange?: (hovering: boolean) => void;
   /** Stable hook for e2e. See the test id convention in CLAUDE.md. */
   testId?: string;
 }
@@ -35,6 +37,7 @@ export const ActionTile: React.FC<ActionTileProps> = ({
   size = 'lg',
   variant = 'primary',
   className = '',
+  onHoverChange,
   testId,
 }) => {
   const variantStyles = {
@@ -59,6 +62,10 @@ export const ActionTile: React.FC<ActionTileProps> = ({
     <button
       onClick={handleClick}
       disabled={disabled}
+      onMouseEnter={() => onHoverChange?.(true)}
+      onMouseLeave={() => onHoverChange?.(false)}
+      onFocus={() => onHoverChange?.(true)}
+      onBlur={() => onHoverChange?.(false)}
       data-testid={testId}
       // Disabled tiles drop their colour altogether: a faded red Play Match still read
       // as a primary action. Grey says "not now"; the caption says why.

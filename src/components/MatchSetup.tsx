@@ -93,21 +93,9 @@ export const MatchSetup: React.FC = () => {
       title="Match Setup"
       subtitle="A random opponent from the tier you pick"
       onBack={() => navigateTo('idle')}
+      energyPreview={-matchEnergyCost}
     >
       <Card className="mb-6">
-        {/* Energy Cost Warning */}
-        <div className="mb-6 p-4 bg-pixel-card border-2 border-pixel-border">
-          <div className="flex justify-between items-center">
-            <span className="text-pixel-text font-bold">Energy Cost:</span>
-            <span className={`text-xl font-bold ${canAfford ? 'text-green-500' : 'text-red-500'}`}>
-              {matchEnergyCost} Energy
-            </span>
-          </div>
-          <div className="mt-2 text-sm text-pixel-text-muted">
-            You have {currentStatus.energy} / 100 energy available
-          </div>
-        </div>
-
         {/* Tier Selection */}
         <div className="mb-6">
           <h3 className="text-xl font-bold text-pixel-text mb-3">Choose Opponent Tier</h3>

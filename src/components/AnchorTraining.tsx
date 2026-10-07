@@ -85,6 +85,7 @@ export const AnchorTraining: React.FC = () => {
         title={`${anchor.name} Training`}
         icon={STAT_ICONS[step.core]}
         onBack={() => setStep({ kind: 'pick' })}
+        energyPreview={-ANCHOR_TRAINING_ENERGY_COST}
       >
         {/* The minigame sizes itself to its column; a narrower one keeps it on screen. */}
         <div className="max-w-2xl mx-auto">
@@ -145,6 +146,7 @@ export const AnchorTraining: React.FC = () => {
     <ScreenFrame
       title="Training"
       onBack={() => navigateTo('idle')}
+      energyPreview={-ANCHOR_TRAINING_ENERGY_COST}
       actions={
         // The cost is the same for every shot, so it belongs here and not on all five cards.
         <div className="px-3 py-1.5 bg-pixel-card border-2 border-pixel-border text-sm font-bold text-pixel-text">

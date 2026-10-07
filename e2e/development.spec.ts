@@ -22,6 +22,8 @@ test('a confirmed plan raises the stats and charges the plan cost', async ({ pag
   await expect(page.getByTestId('action-development')).toBeVisible();
   await page.getByTestId('action-development').click();
   await expect(page.getByTestId('development-wallet')).toBeVisible();
+  // With this much in the wallet a Focus point is affordable, and the row says so.
+  await expect(page.getByTestId('development-stat-focus')).toHaveAttribute('data-buyable', 'true');
   // The bar only appears once something is added.
   await expect(page.getByTestId('development-plan-bar')).toHaveCount(0);
 
