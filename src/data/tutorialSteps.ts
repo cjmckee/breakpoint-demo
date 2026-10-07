@@ -1,7 +1,8 @@
 import { TutorialStep } from '../hooks/useTutorialSpotlight';
 
 export type LiveMatchTarget = 'court' | 'log' | 'your-stats';
-export type KmTarget = 'header' | 'options-posture' | 'options-matchup' | 'options-effects';
+export type KmTarget =
+  'header' | 'options-posture' | 'options-stats' | 'options-matchup' | 'options-effects';
 export type KmResultTarget = 'outcome' | 'tactic' | 'effects';
 export type MainMenuTarget = 'status' | 'stats' | 'actions' | 'develop' | 'challenges';
 
@@ -27,7 +28,7 @@ export const MAIN_MENU_TUTORIAL_STEPS: TutorialStep<MainMenuTarget>[] = [
   {
     target: 'develop',
     title: 'Spend it here',
-    body: 'Develop is where currency becomes stats. Every stat has a recipe — a serve point costs mostly Power, a focus point costs Mind — and points get pricier as a stat climbs past 40, 60 and 80. Plan a few points, check the cost, then confirm. Bought stats are permanent, so spend on the shots you want to win with.',
+    body: 'Develop is where currency becomes stats. Every stat has a recipe — a serve point costs mostly Power, a focus point costs Mind — and points get pricier as a stat climbs past 40, 60 and 80. Will you focus on only a few stats, or will you spread out your skills and become well-rounded?',
   },
   {
     target: 'challenges',
@@ -63,17 +64,22 @@ export const KM_TUTORIAL_STEPS: TutorialStep<KmTarget>[] = [
   {
     target: 'header',
     title: 'What Is a Key Moment?',
-    body: "Most points play themselves — the match only stops for the ones that can swing a game. Serving is an advantage, so a break (the returner taking the server's game) is usually what decides a set. You will mostly see three: a break point for you, where the next point takes their service game; a break point against you, where they take yours; and a key rally, a tied game at 30-30 or deuce where the next point decides whether a break point happens at all. Set and match points are the same idea with more riding on them.",
+    body: "Most points play themselves — the match only stops for the ones that can swing a game. A key rally or a break point (winning the game on the opponent's serve) will bring up a special set of options for the player.",
   },
   {
     target: 'header',
     title: 'The Situation',
-    body: 'What is on the line, and who you are facing. Every opponent plays to an archetype — the animal is their badge, and you will see the same one in match setup and the preview. Below that, the conditions nudging this point: momentum, energy, mood, and the pressure of the moment tested against your focus.',
+    body: "What is on the line, and who you are facing. Every opponent plays to an archetype — some thrive on offense, some play the net, and some love to extend rallies. You'll want to keep this in mind mid-match. Below that, the conditions affecting this point: momentum, energy, mood, and the pressure of the moment tested against your focus.",
   },
   {
     target: 'options-posture',
     title: 'Postures',
-    body: "Every tactic is one of six postures — Power, Net, Neutralize, Deception, Attrition, Variety — each with its own colour. Posture is the thing an opponent's archetype is strong or weak against, so it matters more than the individual shot. The diamonds beside it are risk: Safe, Balanced or Bold. Risk is how big the swing is, not how likely you are to win — a Bold tactic does not succeed more often, it succeeds and fails harder.",
+    body: "Every tactic is one of six postures — Power, Net, Neutralize, Deception, Attrition, Variety — each with its own colour. Selecting a posture that matches up well against your opponent's archetype will boost your chances of success. The diamonds beside it are risk: Safe, Balanced or Bold. Risk is how big the swing is, not how likely you are to win — a Bold tactic does not succeed more often, it succeeds and fails harder.",
+  },
+  {
+    target: 'options-stats',
+    title: 'The Numbers',
+    body: 'Your stats also play into selecting the best option! See how well your stats suit that tactic, in green, against how well theirs defend against it, in red. The ★ stat is the one that counts most, and the smaller chips support it. Better stats help your odds, but anything can happen!',
   },
   {
     target: 'options-matchup',
