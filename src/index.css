@@ -29,6 +29,33 @@ body {
   min-height: 100vh;
 }
 
+/* Accent palette, as space-separated RGB so Tailwind's opacity modifiers work
+   (bg-pixel-accent/20). The default is the original red; `data-palette` on <html>
+   swaps it (see src/theme/palette.ts). Red stays the error and loss colour in
+   every palette, which is the point of moving the accent off it. */
+:root {
+  --pixel-accent: 233 69 96; /* #e94560 */
+  --pixel-accent-light: 255 107 129;
+  --pixel-accent-dark: 184 50 80;
+  --pixel-on-accent: 255 255 255;
+}
+
+/* Tennis-ball optic yellow-green. Bright enough that text on it has to be dark. */
+:root[data-palette='ball'] {
+  --pixel-accent: 204 255 0; /* #ccff00 */
+  --pixel-accent-light: 222 255 92;
+  --pixel-accent-dark: 138 173 0;
+  --pixel-on-accent: 26 26 46;
+}
+
+/* Grass-court green: natural, mid-tone, white text. */
+:root[data-palette='grass'] {
+  --pixel-accent: 58 158 95; /* #3a9e5f */
+  --pixel-accent-light: 82 184 120;
+  --pixel-accent-dark: 38 112 66;
+  --pixel-on-accent: 255 255 255;
+}
+
 /* On a phone the floating menu button covers a modal's docked footer. Modal marks
    the body while one is open (useModalOpenMarker); the menu is back once it closes. */
 @media (max-width: 639px) {
