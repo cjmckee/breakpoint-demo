@@ -670,10 +670,13 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     );
   };
 
-  // During the matchup/effects tutorial steps, force focus to the first option so the
+  // During the tutorial steps that point at the options, force focus to the first one so the
   // walkthrough always points at populated detail.
   const forcedFocus =
-    kmSpotlit('options-posture') || kmSpotlit('options-matchup') || kmSpotlit('options-effects')
+    kmSpotlit('options-posture') ||
+    kmSpotlit('options-stats') ||
+    kmSpotlit('options-matchup') ||
+    kmSpotlit('options-effects')
       ? 0
       : null;
   const activeIdx = forcedFocus ?? focusIdx;
@@ -929,8 +932,14 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                       <RiskIndicator risk={option.risk} />
                     </div>
                     {/* Composites + the stats that drive them, per side. Grid so the You/Opp rows
-                        share columns and the chips line up regardless of abbreviation length. */}
-                    <div className="grid grid-cols-[auto_auto_auto_auto_auto] gap-x-3 gap-y-2 items-center justify-items-start border-t border-pixel-border pt-2.5">
+                        share columns and the chips line up regardless of abbreviation length.
+                        Spotlit on every card for the numbers step — reading them is a scan down
+                        the column, not a look at one option. */}
+                    <div
+                      className={`grid grid-cols-[auto_auto_auto_auto_auto] gap-x-3 gap-y-2 items-center justify-items-start border-t border-pixel-border pt-2.5 ${
+                        kmSpotlit('options-stats') ? 'ring-4 ring-yellow-400 ring-inset' : ''
+                      }`}
+                    >
                       <CardStatLine option={option} side="player" composite={playerScore} />
                       <CardStatLine option={option} side="opponent" composite={opponentScore} />
                     </div>
