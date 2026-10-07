@@ -27,7 +27,7 @@ import type { GamePhase, PhasePathId, SpecialtyRole, SpecialtyTier } from '../ty
 
 /** Presentation for each tactical role. Colors are UI-only; role lives in data. */
 const ROLE_META: Record<SpecialtyRole, { label: string; color: string }> = {
-  offense: { label: 'Offense', color: '#e94560' }, // pixel-accent
+  offense: { label: 'Offense', color: '#e94560' },
   balanced: { label: 'Balanced', color: '#f39c12' }, // pixel-warning
   defense: { label: 'Defense', color: '#4aa3df' }, // court blue
 };
@@ -83,7 +83,7 @@ const PrimaryAction: React.FC<{
       audioManager.playSfx('ui_click');
       onClick();
     }}
-    className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold border-2 border-pixel-accent bg-pixel-accent text-white transition-[filter] hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100"
+    className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold border-2 border-pixel-accent bg-pixel-accent text-pixel-on-accent transition-[filter] hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100"
   >
     {label}
     <span className="font-mono text-[10px] font-extrabold px-1.5 py-px rounded-full bg-white text-pixel-accent">

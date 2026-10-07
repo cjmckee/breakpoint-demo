@@ -10,7 +10,6 @@ import { TournamentRegistry } from '../data/tournaments';
 import { TournamentManager } from '../game/TournamentManager';
 import { Card } from './ui/Card';
 import { PreMatchScreen } from './PreMatchScreen';
-import { buildPlayStyle } from '../core/PlayerProfile';
 import { ItemManager } from '../game/ItemManager';
 import type { PreMatchConfig } from '../types/gamePhase';
 import { calculateOverallRating } from '../utils/playerStats';
@@ -32,7 +31,6 @@ export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig })
   }
 
   const playerOverallRating = calculateOverallRating(player.stats);
-  const playerPlayStyle = buildPlayStyle(player.archetypeProfile);
 
   // Get tournament configuration for display purposes
   const tournament = TournamentRegistry.getTournament(activeTournament.tournamentId);
@@ -131,14 +129,11 @@ export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig })
       title={tournament.name}
       headerContent={headerContent}
       playerName={player.name}
-      playerTier={player.tier}
       playerOverallRating={playerOverallRating}
       playerStats={player.stats}
-      playerPlayStyle={playerPlayStyle}
       playerAbilities={player.abilities}
       opponentAbilities={matchConfig.opponentAbilities}
       opponentName={matchConfig.opponentName}
-      opponentTier={matchConfig.opponentTier}
       opponentDescription={matchConfig.opponentDescription}
       opponentStats={matchConfig.opponentStats}
       opponentPlayStyle={matchConfig.opponentPlayStyle}

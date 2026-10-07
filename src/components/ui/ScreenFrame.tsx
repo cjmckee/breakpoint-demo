@@ -39,6 +39,8 @@ interface ScreenFrameProps {
   width?: ScreenWidth;
   /** Hide the status bar — only for screens that bring their own (the live match). */
   hideStatusBar?: boolean;
+  /** Signed energy change of the screen's main action, previewed on the status bar. */
+  energyPreview?: number;
   /** Extra classes for the content column, e.g. bottom room for a docked bar. */
   className?: string;
   children: React.ReactNode;
@@ -52,12 +54,13 @@ export const ScreenFrame: React.FC<ScreenFrameProps> = ({
   actions,
   width = 'standard',
   hideStatusBar = false,
+  energyPreview,
   className = 'pb-24 sm:pb-8',
   children,
 }) => {
   return (
     <div className="min-h-screen bg-pixel-bg">
-      {!hideStatusBar && <StatusBar />}
+      {!hideStatusBar && <StatusBar energyPreview={energyPreview} />}
 
       <main className={`${SCREEN_WIDTHS[width]} mx-auto px-4 ${className}`}>
         {title !== undefined && (
