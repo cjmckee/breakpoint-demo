@@ -3,15 +3,17 @@
  * Two-phase: decision (pick a tactic) → result (see what happened).
  * The modal stays open through both phases; the result requires explicit Continue.
  *
- * Decision phase: compact resting cards (tactic + one-liner + effects + an advantage chip).
- * Hovering a card opens a big modal — left = the matchup (good/bad against), right = the
- * ratings (yours + opponent's, priority stat enlarged, advantage chip between them).
+ * Decision phase: tactic cards (posture, risk, the stats on each side) with the focused
+ * tactic's matchup and effects beside them on desktop, or inside the card on a phone.
+ * Clicking a card selects it; the docked footer names the selection and commits it, so
+ * the action is always on screen and never depends on where the pointer has been.
  */
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Modal } from './ui/Modal';
 import { KeyMoment } from '../types/keyMoments';
-import { TacticalOption, SecondaryEffect } from '../data/tacticalOptions';
+import { TacticalOption, SecondaryEffect, keyMomentStakes } from '../data/tacticalOptions';
+import type { KeyMomentStakes } from '../data/tacticalOptions';
 import type { KeyMomentRisk } from '../data/tacticalOptions';
 import { getRelevantTendency, getArchetypeLabel } from '../data/archetypes';
 import { POSTURE_META, getMatchup } from '../data/postures';
@@ -134,6 +136,19 @@ const isBeneficial = (effect: {
   value: number;
 }): boolean => (effect.type === 'pressure' ? effect.value < 0 : effect.value > 0);
 
+/**
+ * The header is coloured by whose point it is, not by its kind: green when the
+ * point is yours to win, red when it is theirs, yellow for a key rally. Three
+ * colours a player learns once. The kind (break, set, match point) is in the
+ * icon and the words. Orange used to mark break points, which read as one of
+ * the posture colours on the tactic cards below it.
+ */
+const STAKES_STYLE: Record<KeyMomentStakes, string> = {
+  for: 'border-green-500 bg-green-500',
+  against: 'border-red-500 bg-red-500',
+  neutral: 'border-yellow-400 bg-yellow-400',
+};
+
 interface KeyMomentModalProps {
   isOpen: boolean;
   keyMoment: KeyMoment | null;
@@ -149,6 +164,9 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   // Which tactic's detail is shown in the right pane. Persists so options are easy to compare
   // side by side; hover (desktop) or tap (touch) moves focus, an explicit button commits.
   const [focusIdx, setFocusIdx] = useState(0);
+  // The tactic the footer will commit. Separate from focus: hovering previews a card,
+  // only a click picks it, so moving the pointer to the footer cannot change the pick.
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [hoveredCondition, setHoveredCondition] = useState<number | null>(null);
   const hoverTimer = useRef<number | null>(null);
 
@@ -175,6 +193,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   // the last key moment would otherwise land on this one's menu.
   useEffect(() => {
     setFocusIdx(0);
+    setSelectedIdx(null);
     return cancelHoverFocus;
   }, [isOpen, keyMoment?.id]);
 
@@ -241,17 +260,13 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   const getMomentTypeIcon = (type: string): string => {
     if (type.includes('match-point')) return '👑';
     if (type.includes('set-point')) return '⭐';
+    // A break point against is a warning, one for you is a chance.
+    if (type === 'break-point-serve') return '🚨';
     if (type.includes('break-point')) return '🔥';
     return '💡';
   };
 
-  const getMomentTypeColor = (type: string): string => {
-    if (type.includes('match-point')) return 'border-red-500 bg-red-500';
-    if (type.includes('set-point')) return 'border-yellow-500 bg-yellow-500';
-    if (type.includes('break-point')) return 'border-orange-500 bg-orange-500';
-    return 'border-pixel-accent bg-pixel-accent';
-  };
-
+  const stakes = keyMomentStakes(activeKeyMoment.type);
   const opponentIsServing = activeKeyMoment.matchContext.server === 'opponent';
   const tendency = getRelevantTendency(activeKeyMoment.opponentArchetype, opponentIsServing);
 
@@ -350,12 +365,12 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
         : 'border-pixel-border text-pixel-text-muted';
 
   const conditionsStrip = (
-    <div className="px-5 py-4 border-t-2 border-pixel-border">
-      <div className="flex flex-wrap gap-2 mb-3 relative">
+    <div className="px-4 py-2.5 border-t-2 border-pixel-border flex flex-wrap items-center gap-x-3 gap-y-2">
+      <div className="flex flex-wrap gap-2 relative">
         {conditions.map((c, i) => (
           <span
             key={i}
-            className={`text-sm px-2.5 py-1.5 border-2 rounded flex items-center gap-1.5 cursor-help relative ${conditionColor(c.helps)}`}
+            className={`text-xs sm:text-sm px-2 py-1 border-2 rounded flex items-center gap-1.5 cursor-help relative ${conditionColor(c.helps)}`}
             onMouseEnter={() => setHoveredCondition(i)}
             onMouseLeave={() => setHoveredCondition(null)}
           >
@@ -371,8 +386,8 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
           </span>
         ))}
       </div>
-      <div className={`text-xs font-bold ${netTone}`}>
-        Overall effects: {net > 0 ? '+' : ''}
+      <div className={`text-xs font-bold ${netTone} ml-auto`}>
+        Overall {net > 0 ? '+' : ''}
         {Math.round(net)}%
       </div>
     </div>
@@ -380,25 +395,25 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
 
   // ── Header strip (shared between phases) ─────────────────────────────────────
 
+  // One row for the situation and who you face, then the conditions. Kept short so
+  // the tactics start above the fold: this header is read nine times a match.
   const headerStrip = (
-    <div className={`border-4 ${getMomentTypeColor(activeKeyMoment.type)} bg-opacity-20`}>
-      <div className="px-5 py-4">
-        <div className="flex items-center gap-3 mb-3">
-          <span className="text-3xl">{getMomentTypeIcon(activeKeyMoment.type)}</span>
-          <h2 className="text-lg font-bold text-pixel-text">{activeKeyMoment.situation}</h2>
+    <div
+      className={`border-4 ${STAKES_STYLE[stakes]} bg-opacity-20`}
+      data-testid="km-header"
+      data-stakes={stakes}
+    >
+      <div className="px-4 py-3">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span className="text-2xl leading-none">{getMomentTypeIcon(activeKeyMoment.type)}</span>
+          <h2 className="text-base sm:text-lg font-bold text-pixel-text">
+            {activeKeyMoment.situation}
+          </h2>
+          <span className="sm:ml-auto px-2 py-0.5 bg-pixel-bg border-2 border-pixel-border text-pixel-text text-sm font-bold whitespace-nowrap">
+            vs {getArchetypeLabel(activeKeyMoment.opponentArchetype)}
+          </span>
         </div>
-
-        <div>
-          <div className="text-sm font-bold text-pixel-text-muted mb-1 uppercase tracking-wide">
-            Opponent Archetype
-          </div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="px-2 py-0.5 bg-pixel-accent bg-opacity-20 border border-pixel-accent text-pixel-accent font-bold whitespace-nowrap">
-              {getArchetypeLabel(activeKeyMoment.opponentArchetype)}
-            </span>
-          </div>
-          <p className="text-sm text-pixel-text-muted italic">"{tendency}"</p>
-        </div>
+        <p className="text-sm text-pixel-text-muted italic mt-1.5">"{tendency}"</p>
       </div>
 
       {conditionsStrip}
@@ -409,7 +424,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   const peekButton = (
     <button
       onClick={() => setIsHidden((h) => !h)}
-      className="w-full py-5 border-4 border-pixel-border bg-pixel-card text-pixel-text font-bold text-lg hover:border-pixel-accent transition-colors"
+      className="w-full py-3 border-4 border-pixel-border bg-pixel-card text-pixel-text font-bold text-base hover:border-pixel-accent transition-colors"
     >
       {isHidden ? '⚡ Show Decision' : '👁 Peek at Match'}
     </button>
@@ -417,7 +432,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
 
   if (isHidden) {
     return (
-      <div className="fixed inset-x-0 bottom-6 z-[60] flex justify-center px-4">
+      <div className="fixed inset-x-0 bottom-6 z-[60] flex justify-center pl-4 pr-20 sm:px-4">
         <button
           onClick={() => setIsHidden(false)}
           className="max-w-2xl w-full py-4 border-4 border-pixel-accent bg-pixel-card text-pixel-accent font-bold text-base hover:bg-pixel-accent hover:bg-opacity-20 transition-colors animate-pulse"
@@ -527,9 +542,20 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
       <Modal
         isOpen={isOpen}
         title=""
-        size="xl"
+        size="scene"
         showCloseButton={false}
         belowContent={peekButton}
+        footer={
+          // Continue — blocked while result tutorial is active
+          <button
+            data-testid="km-result-continue"
+            onClick={kmResultTutorialActive ? undefined : hideKeyMomentResult}
+            disabled={kmResultTutorialActive}
+            className="w-full py-3 border-4 border-pixel-accent bg-pixel-accent bg-opacity-20 text-pixel-accent font-bold hover:bg-opacity-30 transition-colors text-base disabled:opacity-40 disabled:cursor-default disabled:hover:bg-opacity-20"
+          >
+            Continue →
+          </button>
+        }
         testId="km-result"
       >
         <div className="space-y-5">
@@ -644,16 +670,6 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                 </div>
               );
             })()}
-
-          {/* Continue — blocked while result tutorial is active */}
-          <button
-            data-testid="km-result-continue"
-            onClick={kmResultTutorialActive ? undefined : hideKeyMomentResult}
-            disabled={kmResultTutorialActive}
-            className="w-full py-4 border-4 border-pixel-accent bg-pixel-accent bg-opacity-20 text-pixel-accent font-bold hover:bg-opacity-30 transition-colors text-base disabled:opacity-40 disabled:cursor-default disabled:hover:bg-opacity-20"
-          >
-            Continue →
-          </button>
         </div>
       </Modal>
     );
@@ -725,52 +741,50 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     );
   };
 
-  // Right pane: the qualitative read on the focused tactic (matchup + effects) + commit button.
-  const DetailPane: React.FC<{ option: TacticalOption }> = ({ option }) => (
-    // The whole panel takes the posture's colour, not just its banner — the frame
-    // around the option you are about to commit to is the strongest available cue
-    // for "this is a net play", and it costs no space at all.
-    <div
-      className="flex flex-col border-2 rounded bg-pixel-card overflow-hidden"
-      style={{ borderColor: POSTURE_META[option.posture].color }}
-    >
-      {/* Posture banner — the kind of play this is, and the thing the opponent's
+  // The qualitative read on a tactic: posture, matchup, effects. The desktop side pane
+  // and the expanded card on a phone both render this, so the two cannot drift.
+  const DetailBody: React.FC<{ option: TacticalOption; inCard?: boolean }> = ({
+    option,
+    inCard = false,
+  }) => (
+    <>
+      {/* Inside a card the card already names the tactic and its posture. */}
+      {!inCard && (
+        <>
+          {/* Posture banner — the kind of play this is, and the thing the opponent's
           style is actually strong or weak against. Given its own band, in its own
           colour, because "which of the six is this" is the decision underneath the
-          decision: a player who learns the colours has learned the matchup.
-          Label and risk share the top line; the summary gets its own so it is not
-          competing for width and truncating. */}
-      <div
-        className={`px-3 py-2 border-b-2 ${kmSpotlit('options-posture') ? 'ring-4 ring-yellow-400 ring-inset' : ''}`}
-        style={{
-          backgroundColor: `${POSTURE_META[option.posture].color}22`,
-          borderColor: POSTURE_META[option.posture].color,
-        }}
-      >
-        <div className="flex items-center gap-2">
-          <span
-            className="text-sm font-bold uppercase tracking-wider"
-            style={{ color: POSTURE_META[option.posture].color }}
+          decision: a player who learns the colours has learned the matchup. */}
+          <div
+            className={`px-3 py-2 border-b-2 ${kmSpotlit('options-posture') ? 'ring-4 ring-yellow-400 ring-inset' : ''}`}
+            style={{
+              backgroundColor: `${POSTURE_META[option.posture].color}22`,
+              borderColor: POSTURE_META[option.posture].color,
+            }}
           >
-            {POSTURE_META[option.posture].label}
-          </span>
-          <span className="ml-auto shrink-0">
-            <RiskIndicator risk={option.risk} />
-          </span>
-        </div>
-        {/* <p className="text-xs text-pixel-text-muted leading-snug mt-0.5">
-          {POSTURE_META[option.posture].summary}
-        </p> */}
-      </div>
+            <div className="flex items-center gap-2">
+              <span
+                className="text-sm font-bold uppercase tracking-wider"
+                style={{ color: POSTURE_META[option.posture].color }}
+              >
+                {POSTURE_META[option.posture].label}
+              </span>
+              <span className="ml-auto shrink-0">
+                <RiskIndicator risk={option.risk} />
+              </span>
+            </div>
+          </div>
 
-      {/* Tactic header */}
-      <div className="p-3 border-b-2 border-pixel-border">
-        <div className="flex items-center gap-2 mb-0.5">
-          <span className="text-lg">{option.emoji}</span>
-          <h4 className="text-base font-bold text-pixel-text">{option.name}</h4>
-        </div>
-        <p className="text-sm text-pixel-text-muted leading-snug">{option.description}</p>
-      </div>
+          {/* Tactic header */}
+          <div className="p-3 border-b-2 border-pixel-border">
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="text-lg">{option.emoji}</span>
+              <h4 className="text-base font-bold text-pixel-text">{option.name}</h4>
+            </div>
+            <p className="text-sm text-pixel-text-muted leading-snug">{option.description}</p>
+          </div>
+        </>
+      )}
 
       {/* Matchup */}
       <div className="p-3 border-b-2 border-pixel-border flex flex-col gap-2">
@@ -812,23 +826,43 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
           })}
         </div>
       </div>
+    </>
+  );
 
-      {/* Commit — pushed to the bottom so the pane fills the column height cleanly.
-          Takes the posture's colour along with the frame; left on the app accent it
-          read as an error state inside a green or blue panel. Size and position
-          still carry "this is the primary action". */}
+  const selectedOption = selectedIdx === null ? null : activeKeyMoment.options[selectedIdx];
+  const commit = (): void => {
+    if (selectedOption && !kmTutorialActive) handleKeyMomentChoice(selectedOption);
+  };
+
+  // Docked footer: the pick and the one button that plays it. The button takes the
+  // posture's colour, so what you are about to commit reads before its name does.
+  const commitFooter = (
+    <div className="flex items-center gap-3">
+      <div className="min-w-0 flex-1">
+        {selectedOption ? (
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-xl shrink-0">{selectedOption.emoji}</span>
+            <span className="font-bold text-pixel-text truncate">{selectedOption.name}</span>
+          </div>
+        ) : (
+          <span className="text-sm text-pixel-text-muted">Pick a tactic</span>
+        )}
+      </div>
       <button
         data-testid="km-commit"
-        onClick={() => (kmTutorialActive ? undefined : handleKeyMomentChoice(option))}
-        disabled={kmTutorialActive}
-        style={{
-          borderColor: POSTURE_META[option.posture].color,
-          color: POSTURE_META[option.posture].color,
-          backgroundColor: `${POSTURE_META[option.posture].color}33`,
-        }}
-        className="mt-auto mx-3 mb-3 py-3 border-4 font-bold uppercase text-sm tracking-wide hover:brightness-125 transition-all disabled:opacity-40 disabled:cursor-default flex items-center justify-center gap-2 leading-none"
+        onClick={commit}
+        disabled={!selectedOption || kmTutorialActive}
+        style={
+          selectedOption
+            ? {
+                borderColor: POSTURE_META[selectedOption.posture].color,
+                color: POSTURE_META[selectedOption.posture].color,
+                backgroundColor: `${POSTURE_META[selectedOption.posture].color}33`,
+              }
+            : undefined
+        }
+        className="shrink-0 px-6 py-3 border-4 border-pixel-border text-pixel-text-muted font-bold uppercase text-sm tracking-wide hover:brightness-125 transition-all disabled:opacity-40 disabled:cursor-default flex items-center justify-center gap-2 leading-none"
       >
-        <span className="text-2xl leading-none relative -top-1">{option.emoji}</span>
         <span className="leading-none">Go!</span>
         {/* SVG triangle instead of a Unicode arrow — renders crisply regardless of the pixel font */}
         <svg viewBox="0 0 8 10" aria-hidden="true" className="w-2.5 h-2.5 fill-current shrink-0">
@@ -842,12 +876,13 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     <Modal
       isOpen={isOpen}
       title=""
-      size="xl"
+      size="scene"
       showCloseButton={false}
       belowContent={peekButton}
+      footer={commitFooter}
       testId="km-choice"
     >
-      <div className="space-y-5">
+      <div className="space-y-4">
         {kmActiveStep && (
           <TutorialCallout
             step={kmStep!}
@@ -864,59 +899,77 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
         {/* Header strip + conditions — spotlit on step 0 */}
         <div className={kmSectionClass('header')}>{headerStrip}</div>
 
-        {/* Tactical Options — compact list (left) for at-a-glance comparison, detail pane (right) */}
-        <div>
-          <h3 className="text-base font-bold text-pixel-text mb-1">⚔️ Choose Your Tactic</h3>
-          <p className="text-xs text-pixel-text-muted mb-4">
-            Hover a tactic to inspect it — commit with the button in the panel.
-          </p>
-          <div
-            className={`grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] gap-4 ${
-              kmSpotlit('options-matchup')
-                ? 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-black rounded transition-all duration-200'
-                : ''
-            }`}
-          >
-            {/* Left: option cards — each carries its own composite + driving stats for comparison */}
-            <div className="flex flex-col gap-2.5">
-              {activeKeyMoment.options.map((option, index) => {
-                const { playerScore, opponentScore } = scoresFor(option);
-                const isActive = index === activeIdx;
-                const postureColor = POSTURE_META[option.posture].color;
-                return (
-                  <button
-                    key={index}
-                    // Index picks the Nth card; the tactic id and posture let a driver
-                    // choose a strategy ("always aggressive") without knowing the layout.
-                    data-testid={`km-tactic-${index}`}
-                    data-tactic-id={option.id}
-                    data-posture={option.posture}
-                    onMouseMove={(event) => scheduleHoverFocus(event, index)}
-                    onMouseLeave={cancelHoverFocus}
-                    onFocus={() => setFocusIdx(index)}
-                    onClick={() => {
-                      cancelHoverFocus();
-                      setFocusIdx(index);
-                    }}
-                    // The card wears its posture's colour the same way the detail pane
-                    // does, so the menu reads as "one of each kind" before a single word
-                    // is. Focus is carried by the strength of that colour rather than by
-                    // swapping in the app accent, which is itself near-identical to the
-                    // Power red and so made every Power card look permanently selected.
-                    // The inset shadow tints the card body over bg-pixel-card; an inline
-                    // background would replace that card colour instead of sitting on it.
-                    className="w-full text-left p-3 border-4 bg-pixel-card transition-all"
-                    style={{
-                      borderColor: isActive ? postureColor : `${postureColor}59`,
-                      boxShadow: isActive ? `inset 0 0 0 9999px ${postureColor}1a` : undefined,
-                    }}
-                  >
+        {/* Tactical Options — cards (left) for at-a-glance comparison, detail pane (right).
+            On a phone the detail opens inside the focused card instead. */}
+        <div
+          className={`grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 items-start ${
+            kmSpotlit('options-matchup')
+              ? 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-black rounded transition-all duration-200'
+              : ''
+          }`}
+          onMouseLeave={() => {
+            // Leaving the menu returns the detail to the pick, so the pane always
+            // describes what Go! will play once the pointer heads for the footer.
+            cancelHoverFocus();
+            if (selectedIdx !== null) setFocusIdx(selectedIdx);
+          }}
+        >
+          <div className="flex flex-col gap-2.5" role="radiogroup" aria-label="Tactics">
+            {activeKeyMoment.options.map((option, index) => {
+              const { playerScore, opponentScore } = scoresFor(option);
+              const isActive = index === activeIdx;
+              const isSelected = index === selectedIdx;
+              const postureColor = POSTURE_META[option.posture].color;
+              return (
+                <button
+                  key={index}
+                  role="radio"
+                  aria-checked={isSelected}
+                  // Index picks the Nth card; the tactic id and posture let a driver
+                  // choose a strategy ("always aggressive") without knowing the layout.
+                  data-testid={`km-tactic-${index}`}
+                  data-tactic-id={option.id}
+                  data-posture={option.posture}
+                  data-selected={isSelected}
+                  onMouseMove={(event) => scheduleHoverFocus(event, index)}
+                  onFocus={() => setFocusIdx(index)}
+                  onClick={() => {
+                    cancelHoverFocus();
+                    setFocusIdx(index);
+                    setSelectedIdx(index);
+                  }}
+                  // A second click on the pick plays it, for players who would
+                  // rather not travel to the footer.
+                  onDoubleClick={() => {
+                    if (!kmTutorialActive) handleKeyMomentChoice(option);
+                  }}
+                  // The card wears its posture's colour, so the menu reads as "one of
+                  // each kind" before a single word is. Selection is the strongest
+                  // treatment (full colour, tint and a check); a hovered card only
+                  // brightens its border.
+                  className="w-full text-left border-4 bg-pixel-card transition-all overflow-hidden"
+                  style={{
+                    borderColor: isSelected || isActive ? postureColor : `${postureColor}59`,
+                    boxShadow: isSelected ? `inset 0 0 0 9999px ${postureColor}22` : undefined,
+                  }}
+                >
+                  <div className="p-3">
                     {/* Row 1: the tactic, full width — names are long and were truncating. */}
                     <div className="flex items-center gap-2 mb-1.5 min-w-0">
                       <span className="text-xl shrink-0">{option.emoji}</span>
-                      <h4 className="text-base font-bold text-pixel-text truncate">
+                      <h4 className="text-base font-bold text-pixel-text truncate flex-1">
                         {option.name}
                       </h4>
+                      <span
+                        className="w-6 h-6 shrink-0 border-4 flex items-center justify-center text-xs font-bold text-white"
+                        style={{
+                          borderColor: isSelected ? postureColor : '#2d3748',
+                          backgroundColor: isSelected ? postureColor : undefined,
+                        }}
+                        aria-hidden="true"
+                      >
+                        {isSelected ? '✓' : ''}
+                      </span>
                     </div>
                     {/* Row 2: what kind of play it is (posture + risk), then the stat read. */}
                     <div className="flex items-center gap-4 mb-2">
@@ -943,14 +996,27 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                       <CardStatLine option={option} side="player" composite={playerScore} />
                       <CardStatLine option={option} side="opponent" composite={opponentScore} />
                     </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Right: detail pane for the focused tactic */}
-            {activeOption && <DetailPane option={activeOption} />}
+                  </div>
+                  {/* Phone: the focused card opens to show its matchup and effects. */}
+                  {isActive && (
+                    <div className="lg:hidden border-t-2" style={{ borderColor: postureColor }}>
+                      <DetailBody option={option} inCard />
+                    </div>
+                  )}
+                </button>
+              );
+            })}
           </div>
+
+          {/* Desktop: detail pane for the focused tactic, held in view while the list scrolls */}
+          {activeOption && (
+            <div
+              className="hidden lg:flex flex-col border-2 rounded bg-pixel-card overflow-hidden sticky top-0"
+              style={{ borderColor: POSTURE_META[activeOption.posture].color }}
+            >
+              <DetailBody option={activeOption} />
+            </div>
+          )}
         </div>
       </div>
     </Modal>

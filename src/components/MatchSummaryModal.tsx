@@ -71,7 +71,21 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="" size="lg" testId="match-results">
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title=""
+      // The footer's Continue is the way out, and without a title or a close button
+      // the empty header band goes too.
+      showCloseButton={false}
+      size="scene"
+      testId="match-results"
+      footer={
+        <Button variant="primary" fullWidth onClick={handleClose} testId="match-results-continue">
+          {isWinner ? 'Continue Training 💪' : 'Train Harder 🔥'}
+        </Button>
+      }
+    >
       <div className="space-y-6">
         {/* Result Header */}
         <div
@@ -109,24 +123,26 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
             ))}
           </div>
 
-          {/* Overall Score */}
-          <div className="pt-4 border-t-2 border-pixel-border">
-            <div className="grid grid-cols-3 gap-4 items-center">
-              <div className="text-right">
-                <div className="text-sm text-pixel-text-muted mb-1">You</div>
-                <div className="text-4xl font-bold text-green-500">
-                  {finalScore.sets.filter((s) => s.player > s.opponent).length}
+          {/* Sets won — only a separate line when there was more than one set */}
+          {finalScore.sets.length > 1 && (
+            <div className="pt-4 border-t-2 border-pixel-border">
+              <div className="grid grid-cols-3 gap-4 items-center">
+                <div className="text-right">
+                  <div className="text-sm text-pixel-text-muted mb-1">You</div>
+                  <div className="text-4xl font-bold text-green-500">
+                    {finalScore.sets.filter((s) => s.player > s.opponent).length}
+                  </div>
                 </div>
-              </div>
-              <div className="text-center text-2xl font-bold text-pixel-text-muted">-</div>
-              <div className="text-left">
-                <div className="text-sm text-pixel-text-muted mb-1">Opponent</div>
-                <div className="text-4xl font-bold text-red-500">
-                  {finalScore.sets.filter((s) => s.opponent > s.player).length}
+                <div className="text-center text-2xl font-bold text-pixel-text-muted">-</div>
+                <div className="text-left">
+                  <div className="text-sm text-pixel-text-muted mb-1">Opponent</div>
+                  <div className="text-4xl font-bold text-red-500">
+                    {finalScore.sets.filter((s) => s.opponent > s.player).length}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Match Highlights */}
@@ -869,13 +885,6 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
               )}
             </div>
           )}
-        </div>
-
-        {/* Close Button */}
-        <div className="pt-4">
-          <Button variant="primary" fullWidth size="lg" onClick={handleClose}>
-            {isWinner ? 'Continue Training 💪' : 'Train Harder 🔥'}
-          </Button>
         </div>
       </div>
     </Modal>

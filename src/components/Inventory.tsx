@@ -168,7 +168,7 @@ export const Inventory: React.FC = () => {
                     onClick={() => setFilter(tab.id)}
                     className={`px-3 py-1 text-xs font-bold border-2 transition-colors ${
                       filter === tab.id
-                        ? 'bg-pixel-accent border-pixel-accent-dark text-white'
+                        ? 'bg-pixel-accent border-pixel-accent-dark text-pixel-on-accent'
                         : 'bg-pixel-bg border-pixel-border text-pixel-text-muted hover:border-pixel-accent'
                     }`}
                   >

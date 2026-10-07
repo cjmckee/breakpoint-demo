@@ -1826,6 +1826,21 @@ export type KeyMomentType =
   | 'match-point-opponent-return'
   | 'key-rally';
 
+/** Whose point it is to win: the stakes a key moment's header is coloured by. */
+export type KeyMomentStakes = 'for' | 'against' | 'neutral';
+
+/**
+ * A break point on the player's serve is against them, on their return it is for
+ * them; set and match points say whose they are in the name. A key rally is a
+ * big point for nobody in particular.
+ */
+export function keyMomentStakes(type: KeyMomentType): KeyMomentStakes {
+  if (type === 'key-rally') return 'neutral';
+  if (type === 'break-point-serve') return 'against';
+  if (type === 'break-point-return') return 'for';
+  return type.includes('-opponent-') ? 'against' : 'for';
+}
+
 /**
  * Which side of the ball each detected moment is played from. Stakes are carried
  * by the score and by updatePressure(), not by the option pool.

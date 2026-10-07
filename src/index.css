@@ -29,6 +29,25 @@ body {
   min-height: 100vh;
 }
 
+/* Accent colour: grass-court green, as space-separated RGB so Tailwind's opacity
+   modifiers work (bg-pixel-accent/20). Red is kept for errors, losses and the
+   opponent, so a primary action never looks like a warning. To change the accent,
+   change these four values. */
+:root {
+  --pixel-accent: 58 158 95; /* #3a9e5f */
+  --pixel-accent-light: 82 184 120;
+  --pixel-accent-dark: 38 112 66;
+  --pixel-on-accent: 255 255 255;
+}
+
+/* On a phone the floating menu button covers a modal's docked footer. Modal marks
+   the body while one is open (useModalOpenMarker); the menu is back once it closes. */
+@media (max-width: 639px) {
+  body[data-open-modals] .floating-menu-button {
+    display: none;
+  }
+}
+
 /* Pixel art utilities */
 .pixel-card {
   @apply bg-pixel-primary rounded-lg p-4 border-2 border-pixel-accent shadow-lg;

@@ -93,21 +93,9 @@ export const MatchSetup: React.FC = () => {
       title="Match Setup"
       subtitle="A random opponent from the tier you pick"
       onBack={() => navigateTo('idle')}
+      energyPreview={-matchEnergyCost}
     >
       <Card className="mb-6">
-        {/* Energy Cost Warning */}
-        <div className="mb-6 p-4 bg-pixel-card border-2 border-pixel-border">
-          <div className="flex justify-between items-center">
-            <span className="text-pixel-text font-bold">Energy Cost:</span>
-            <span className={`text-xl font-bold ${canAfford ? 'text-green-500' : 'text-red-500'}`}>
-              {matchEnergyCost} Energy
-            </span>
-          </div>
-          <div className="mt-2 text-sm text-pixel-text-muted">
-            You have {currentStatus.energy} / 100 energy available
-          </div>
-        </div>
-
         {/* Tier Selection */}
         <div className="mb-6">
           <h3 className="text-xl font-bold text-pixel-text mb-3">Choose Opponent Tier</h3>
@@ -121,7 +109,7 @@ export const MatchSetup: React.FC = () => {
                   key={info.tier}
                   onClick={() => isUnlocked && setSelectedTier(info.tier)}
                   disabled={!isUnlocked}
-                  className={`p-4 border-4 text-left transition-all relative ${
+                  className={`flex flex-col p-4 border-4 text-left transition-all relative ${
                     !isUnlocked
                       ? 'opacity-50 cursor-not-allowed border-pixel-border bg-pixel-bg'
                       : isSelected
@@ -129,11 +117,12 @@ export const MatchSetup: React.FC = () => {
                         : getTierColor(info.tier)
                   } ${isUnlocked && 'hover:scale-105'}`}
                 >
-                  {!isUnlocked && <div className="absolute top-2 right-2 text-3xl">🔒</div>}
                   <div className="flex justify-between items-start mb-2">
                     <h4 className="text-lg font-bold text-pixel-text">{info.name}</h4>
+                    {/* A locked tier shows the lock where the tier badge goes, so the
+                        two never overlap. */}
                     <span className="text-xs px-2 py-1 bg-pixel-bg border-2 border-pixel-border text-pixel-text uppercase">
-                      Tier {info.tier}
+                      {isUnlocked ? `Tier ${info.tier}` : `🔒 Tier ${info.tier}`}
                     </span>
                   </div>
                   <p className="text-sm text-pixel-text-muted mb-3">

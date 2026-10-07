@@ -402,11 +402,7 @@ async function step(
 
     case 'match_results': {
       if (phase.finalScore?.winner === 'player') log.matchesWon++;
-      await page
-        .getByTestId('match-results')
-        .getByRole('button', { name: /Continue|Close modal|Back/ })
-        .first()
-        .click();
+      await page.getByTestId('match-results-continue').click();
       return;
     }
 

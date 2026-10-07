@@ -64,7 +64,7 @@ export const Encyclopedia: React.FC = () => {
             onClick={() => handleSectionClick(section.id)}
             className={`flex items-center gap-1.5 px-3 py-2 rounded text-sm font-bold transition-colors ${
               activeSection === section.id
-                ? 'bg-pixel-accent text-white'
+                ? 'bg-pixel-accent text-pixel-on-accent'
                 : 'bg-pixel-bg-dark text-pixel-text-muted hover:text-pixel-text'
             }`}
           >

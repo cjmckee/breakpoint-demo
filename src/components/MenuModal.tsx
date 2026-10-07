@@ -338,7 +338,7 @@ function SettingsContent({ onOpenTutorialGuide }: SettingsContentProps) {
                 onClick={() => setMatchSpeed(speed)}
                 className={`border-2 px-2 py-2 text-xs font-bold transition-colors ${
                   isActive
-                    ? 'border-pixel-accent bg-pixel-accent text-white'
+                    ? 'border-pixel-accent bg-pixel-accent text-pixel-on-accent'
                     : 'border-pixel-border text-pixel-text hover:border-pixel-accent'
                 }`}
               >
@@ -499,7 +499,7 @@ export const MenuModal: React.FC = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-1.5 px-3 py-2 rounded text-sm font-bold transition-colors relative ${
                 activeTab === tab.id
-                  ? 'bg-pixel-accent text-white'
+                  ? 'bg-pixel-accent text-pixel-on-accent'
                   : 'bg-pixel-bg-dark text-pixel-text-muted hover:text-pixel-text'
               }`}
             >
