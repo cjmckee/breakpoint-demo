@@ -14,8 +14,10 @@
  * are synthesized) fall back to a simple serve → outcome animation.
  *
  * The players are pixel sprites drawn over the SVG court as HTML, because the court SVG
- * stretches to fit (preserveAspectRatio="none") and would squash them. They run while a
- * rally plays, swing on the frame they strike the ball, and idle between points.
+ * stretches to fit (preserveAspectRatio="none") and would squash them. They are drawn
+ * side-on, facing each other across the net, and well over real scale so the art reads.
+ * They run while a rally plays, swing on the frame they strike the ball, and idle
+ * between points.
  */
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -24,6 +26,7 @@ import type { PointResult as SimplePointResult } from '../../types/keyMoments';
 import type { Appearance, SpritePose } from '../../types/appearance';
 import { useMatchStore } from '../../stores/matchStore';
 import { PixelSprite } from '../sprites/PixelSprite';
+import { SPRITE_HEIGHT, SPRITE_WIDTH } from '../../data/sprites/layers';
 
 interface MatchCourtProps {
   courtSurface: CourtSurface;
@@ -80,18 +83,25 @@ const pctX = (x: number): string => `${(x / 300) * 100}%`;
 const pctY = (y: number): string => `${(y / 150) * 100}%`;
 
 /**
- * Sprite pixel size for a court this wide: 2× on a phone, up to 4× on desktop, so the
- * figures keep roughly the same share of the court at any width.
+ * Sprite pixel size for a court this wide: 3× on a phone, up to 7× on desktop. Players
+ * stand about a third of the court's height — far bigger than life, as pixel art wants.
  */
 const spriteScaleFor = (courtWidth: number): number =>
-  Math.max(2, Math.min(4, Math.round(courtWidth / 230)));
+  Math.max(3, Math.min(7, Math.round(courtWidth / 135)));
+
+/** The players face each other: the player (left half) faces right, the opponent left. */
+const FACING: Record<Side, 'left' | 'right'> = { player: 'right', opponent: 'left' };
 
 /**
  * Where the racquet head sits relative to a swinging figure's anchor, in sprite pixels:
- * six columns out to the racquet side and about eight rows up (the anchor is 60% of the
- * way down a 21-row sprite; the raised racquet head is row 5).
+ * six columns toward the net and about seven rows up (the anchor is 60% of the way down
+ * a 21-row sprite; the raised racquet head is row 6).
  */
-const RACQUET_REACH = { x: 6, y: -7.6 };
+const RACQUET_REACH = { x: 6, y: -6.6 };
+
+/** A figure's anchor, held far enough inside the court that the sprite isn't clipped. */
+const insideCourt = (pct: string, before: number, after: number): string =>
+  `clamp(${before}px, ${pct}, calc(100% - ${after}px))`;
 
 // Depth (x) within a player's own half, by court position.
 const depthX = (side: Side, cp?: string): number => {
@@ -117,9 +127,10 @@ const lateralY = (shotType?: string, cp?: string): number => {
 const readyPos = (side: Side): Pt => ({ x: side === 'player' ? 36 : 264, y: 75 });
 // A player who isn't hitting drifts back toward their ready position (this also pulls the
 // server "in" off the baseline after the serve).
+// Where they settle varies a little each time, so recovery doesn't look rehearsed.
 const recover = (pos: Pt, side: Side): Pt => ({
-  x: side === 'player' ? 38 : 262,
-  y: clamp(75 + (pos.y - 75) * 0.4, 42, 108),
+  x: side === 'player' ? rand(28, 48) : rand(252, 272),
+  y: clamp(75 + (pos.y - 75) * rand(0.25, 0.6) + rand(-8, 8), 42, 108),
 });
 const deepCorner = (side: Side): Pt =>
   side === 'player' ? { x: rand(18, 50), y: cornerY() } : { x: rand(250, 282), y: cornerY() };
@@ -286,10 +297,11 @@ export const MatchCourt: React.FC<MatchCourtProps> = ({
     frame.hitter === side ? 'swing' : rallying ? 'run' : 'idle';
 
   // On a contact frame the ball meets the racquet, not the hitter's chest.
-  const hitterAppearance = frame.hitter === 'opponent' ? opponentAppearance : playerAppearance;
-  const reachSide = hitterAppearance.handedness === 'left' ? -1 : 1;
   const ballOffset = frame.hitter
-    ? { x: RACQUET_REACH.x * reachSide * spriteScale, y: RACQUET_REACH.y * spriteScale }
+    ? {
+        x: RACQUET_REACH.x * (FACING[frame.hitter] === 'left' ? -1 : 1) * spriteScale,
+        y: RACQUET_REACH.y * spriteScale,
+      }
     : { x: 0, y: 0 };
 
   return (
@@ -367,17 +379,28 @@ interface CourtFigureProps {
 }
 
 /** A player sprite standing on a court point, feet slightly below it. */
-const CourtFigure: React.FC<CourtFigureProps> = ({ side, at, dur, pose, appearance, scale }) => (
-  <div
-    className="absolute -translate-x-1/2 -translate-y-[60%]"
-    style={{
-      left: pctX(at.x),
-      top: pctY(at.y),
-      transition: `left ${dur}ms ease-out, top ${dur}ms ease-out`,
-    }}
-    data-testid={`court-figure-${side}`}
-    data-pose={pose}
-  >
-    <PixelSprite appearance={appearance} pose={pose} scale={scale} fps={8} />
-  </div>
-);
+const CourtFigure: React.FC<CourtFigureProps> = ({ side, at, dur, pose, appearance, scale }) => {
+  const w = SPRITE_WIDTH * scale;
+  const h = SPRITE_HEIGHT * scale;
+  return (
+    <div
+      className="absolute -translate-x-1/2 -translate-y-[60%]"
+      style={{
+        left: insideCourt(pctX(at.x), w / 2, w / 2),
+        top: insideCourt(pctY(at.y), h * 0.6, h * 0.4),
+        transition: `left ${dur}ms ease-out, top ${dur}ms ease-out`,
+      }}
+      data-testid={`court-figure-${side}`}
+      data-pose={pose}
+    >
+      <PixelSprite
+        appearance={appearance}
+        pose={pose}
+        scale={scale}
+        fps={8}
+        facing={FACING[side]}
+        className="block"
+      />
+    </div>
+  );
+};

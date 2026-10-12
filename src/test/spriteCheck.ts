@@ -12,6 +12,7 @@ import {
   ACCESSORIES,
   HAIR_STYLES,
   POSE_FRAMES,
+  SIDE_POSE_FRAMES,
   SPRITE_HEIGHT,
   SPRITE_WIDTH,
   type SpriteLayer,
@@ -64,19 +65,26 @@ function checkLayer(name: string, layer: SpriteLayer): void {
 }
 
 console.log('── layer grids ──');
-for (const [pose, frames] of Object.entries(POSE_FRAMES)) {
-  frames.forEach((frame, i) => {
-    checkLayer(`${pose}[${i}] body`, frame.body);
-    checkLayer(`${pose}[${i}] racquet`, frame.racquet);
-  });
+for (const [view, poseFrames] of [
+  ['front', POSE_FRAMES],
+  ['side', SIDE_POSE_FRAMES],
+] as const) {
+  for (const [pose, frames] of Object.entries(poseFrames)) {
+    frames.forEach((frame, i) => {
+      checkLayer(`${view} ${pose}[${i}] body`, frame.body);
+      checkLayer(`${view} ${pose}[${i}] racquet`, frame.racquet);
+    });
+  }
 }
 for (const [style, layers] of Object.entries(HAIR_STYLES)) {
   checkLayer(`hair ${style} front`, layers.front);
   if (layers.back) checkLayer(`hair ${style} back`, layers.back);
+  checkLayer(`hair ${style} side`, layers.side);
 }
 
-for (const [accessory, { layer }] of Object.entries(ACCESSORIES)) {
+for (const [accessory, { layer, side }] of Object.entries(ACCESSORIES)) {
   checkLayer(`accessory ${accessory}`, layer);
+  checkLayer(`accessory ${accessory} side`, side);
 }
 
 console.log('\n── every appearance composes in every pose ──');
@@ -88,11 +96,18 @@ for (const skinTone of SKIN_TONE_KEYS)
     for (const hairColor of HAIR_COLOR_KEYS)
       for (const kitColor of KIT_COLOR_KEYS)
         for (const handedness of ['right', 'left'] as const)
-          for (const pose of poses) {
-            const appearance: Appearance = { skinTone, hairStyle, hairColor, kitColor, handedness };
-            combos++;
-            if (composeSprite(appearance, pose).length === 0) empty++;
-          }
+          for (const pose of poses)
+            for (const facing of [undefined, 'left', 'right'] as const) {
+              const appearance: Appearance = {
+                skinTone,
+                hairStyle,
+                hairColor,
+                kitColor,
+                handedness,
+              };
+              combos++;
+              if (composeSprite(appearance, pose, 0, { facing }).length === 0) empty++;
+            }
 check(`${combos} combinations all draw something`, empty === 0, `${empty} drew nothing`);
 
 const right = composeSprite({ ...appearanceFromSeed('mirror'), handedness: 'right' }, 'swing');
@@ -107,6 +122,16 @@ const mirrored = right.every((run) =>
   ),
 );
 check('a left-hander is the right-hander mirrored', mirrored && left.length === right.length);
+
+const faceRight = composeSprite(appearanceFromSeed('facing'), 'run', 0, { facing: 'right' });
+const faceLeft = composeSprite(appearanceFromSeed('facing'), 'run', 0, { facing: 'left' });
+check(
+  'facing left is facing right mirrored',
+  faceRight.length === faceLeft.length &&
+    faceRight.every((run) =>
+      faceLeft.some((l) => l.y === run.y && l.x === SPRITE_WIDTH - run.x - run.w),
+    ),
+);
 
 check(
   'a seeded appearance is stable',
