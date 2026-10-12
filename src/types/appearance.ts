@@ -16,8 +16,11 @@ export type KitColor = 'white' | 'navy' | 'crimson' | 'forest' | 'sky' | 'violet
 
 export type Handedness = 'right' | 'left';
 
-/** A signature item drawn over the head: worn by key characters, not offered in the creator. */
-export type Accessory = 'glasses' | 'cap' | 'headband' | 'visor';
+/**
+ * An item drawn over the head: a key character's signature, or the player's equipped hat.
+ * Not offered in the creator.
+ */
+export type Accessory = 'glasses' | 'cap' | 'headband' | 'visor' | 'chef_hat';
 
 export interface Appearance {
   skinTone: SkinTone;

@@ -12,8 +12,7 @@ import type { CourtSurface } from '../../types';
 import type { MatchScore } from '../../types/keyMoments';
 import type { InteractiveMatchConfig } from '../../types/keyMoments';
 import { MatchCourt } from './MatchCourt';
-import { useGameStore } from '../../stores/gameStore';
-import { DEFAULT_APPEARANCE } from '../../core/spriteComposer';
+import { usePlayerAppearance } from '../../hooks/usePlayerAppearance';
 import { getOpponentAppearance } from '../../data/characters';
 import { MATCH_FORM } from '../../config/shotThresholds';
 
@@ -182,7 +181,7 @@ export const MatchCockpit: React.FC<MatchCockpitProps> = ({
   matchFormat,
   overlay,
 }) => {
-  const playerAppearance = useGameStore((state) => state.player?.appearance ?? DEFAULT_APPEARANCE);
+  const playerAppearance = usePlayerAppearance();
   const opponentAppearance = useMemo(
     () => getOpponentAppearance(opponentCharacterId, opponentName),
     [opponentCharacterId, opponentName],

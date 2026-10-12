@@ -26,6 +26,7 @@ import {
   SPRITE_WIDTH,
   type SpriteLayer,
 } from '../data/sprites/layers';
+import { GEAR_LOOKS } from '../data/sprites/gearLooks';
 import {
   FIXED_COLORS,
   HAIR_COLORS,
@@ -154,6 +155,20 @@ export function composeSprite(
 }
 
 // ─── Appearance helpers ────────────────────────────────────────────────────
+
+/**
+ * The look with equipped gear on: a hat becomes the accessory, an outfit recolours the
+ * kit. Items without a gear look leave it alone.
+ */
+export function appearanceWithGear(
+  appearance: Appearance,
+  equipped: readonly ({ id: string } | null)[],
+): Appearance {
+  return equipped.reduce<Appearance>(
+    (look, item) => (item && GEAR_LOOKS[item.id] ? { ...look, ...GEAR_LOOKS[item.id] } : look),
+    appearance,
+  );
+}
 
 export const SKIN_TONE_KEYS = Object.keys(SKIN_TONES) as SkinTone[];
 export const HAIR_STYLE_KEYS = Object.keys(HAIR_STYLES) as HairStyle[];

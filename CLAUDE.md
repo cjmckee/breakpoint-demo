@@ -1028,6 +1028,10 @@ Characters are paper-doll sprites built in code, not image files.
   court, where the players face each other. Every hairstyle and accessory needs a
   `side` layer too, drawn facing right.
 - **Pixel art, not real scale.** Court players stand about a third of the court's height.
+- **Gear shows on the player.** `src/data/sprites/gearLooks.ts` maps a hat item to an
+  accessory and an outfit to a kit colour, by catalogue id. Read the player's drawn
+  look with `usePlayerAppearance()`, never `player.appearance` directly. `spriteCheck`
+  fails if a hat has no look.
 - **Every character has a fixed look**: `CHARACTERS` entries carry an `appearance`, and a
   new dialogue speaker must be registered there (`spriteCheck` fails otherwise). Dialogue
   portraits use `getCharacterAppearance`; match opponents use `getOpponentAppearance`

@@ -9,7 +9,7 @@ import { Button } from './ui/Button';
 import type { StoryEvent, StoryEventOption } from '../types/storyEvents';
 import { AnimatedWords } from './AnimatedWords';
 import { getCharacterAppearance, getCharacterName } from '../data/characters';
-import { DEFAULT_APPEARANCE } from '../core/spriteComposer';
+import { usePlayerAppearance } from '../hooks/usePlayerAppearance';
 import { PixelSprite } from './sprites/PixelSprite';
 import { usePlayerName } from '../hooks/usePlayerName';
 import { useGameStore } from '../stores/gameStore';
@@ -78,7 +78,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
 
   // Get player name for dialogue attribution
   const playerName = usePlayerName();
-  const playerAppearance = useGameStore((s) => s.player?.appearance ?? DEFAULT_APPEARANCE);
+  const playerAppearance = usePlayerAppearance();
 
   const isLinearEvent = event.options.length === 0;
   // One option is not a choice: the event runs it straight from a single button, so an
