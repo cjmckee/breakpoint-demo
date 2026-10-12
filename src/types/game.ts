@@ -5,6 +5,7 @@
 
 import type { CoreStats, StatName, PlayerStats } from './index';
 import type { ArchetypeProfile } from './archetype';
+import type { Appearance } from './appearance';
 import type { StoryEventResult } from './storyEvents';
 import type { Item, OwnedItem, EquipmentSlot } from './items';
 import type { ActiveTournament, TournamentMatchMetadata, MatchOpponent } from './tournaments';
@@ -497,6 +498,8 @@ export type Wallet = Record<Currency, number>;
 export interface Player {
   id: string;
   name: string;
+  /** How the player looks, chosen in the player creator. */
+  appearance: Appearance;
   stats: PlayerStats;
   abilities: Ability[];
 

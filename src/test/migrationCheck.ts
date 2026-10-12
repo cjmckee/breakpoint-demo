@@ -31,6 +31,7 @@ import { LUCKY_SPROUT } from '../data/items';
 import { EffectKey } from '../types/game';
 import { DEFAULT_MATCH_SPEED, MATCH_SPEED_DELAYS } from '../config/matchRewards';
 import { contentCurrency } from '../game/CurrencyIncome';
+import { DEFAULT_APPEARANCE } from '../core/spriteComposer';
 
 let failures = 0;
 
@@ -425,6 +426,19 @@ function main(): void {
     'the last-seen wallet starts at the current wallet, so nothing reads as new',
     JSON.stringify(seen.walletSeen) === JSON.stringify(held),
     JSON.stringify(seen.walletSeen),
+  );
+
+  console.log('\n  the 12 → 13 change itself:');
+  check(
+    'a player from before the creator gets the default appearance',
+    JSON.stringify(player.appearance) === JSON.stringify(DEFAULT_APPEARANCE),
+    JSON.stringify(player.appearance),
+  );
+  const styled = { ...DEFAULT_APPEARANCE, hairStyle: 'ponytail' as const };
+  const kept = runMigrations({ ...migrated, player: { ...player, appearance: styled } }, 12).state;
+  check(
+    'an appearance already on the save is kept',
+    kept.player?.appearance.hairStyle === 'ponytail',
   );
 
   console.log('\n── a save below the breaking floor is discarded ──');

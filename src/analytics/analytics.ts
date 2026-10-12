@@ -109,22 +109,21 @@ function statsSnapshot(player: Player): Record<string, number> {
  * Call once after a new player is created.
  * Updates the Mixpanel profile with high-level metadata.
  */
-export function trackPlayerCreated(
-  playstyle: 'offensive' | 'defensive' | 'balanced',
-  player: Player,
-): void {
+export function trackPlayerCreated(player: Player): void {
   if (ENABLED) {
     // Register player_name as a super property so it's included on every
     // subsequent event automatically, persisted across page reloads.
     mixpanel.register({ player_name: player.name });
     mixpanel.people.set({
       $name: player.name,
-      playstyle,
+      hair_style: player.appearance.hairStyle,
+      handedness: player.appearance.handedness,
       created_at: player.createdAt,
     });
   }
   track('player_created', {
-    playstyle,
+    hair_style: player.appearance.hairStyle,
+    handedness: player.appearance.handedness,
     player_level: player.level,
     player_tier: player.tier,
   });

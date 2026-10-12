@@ -1011,6 +1011,20 @@ negate(price))` after checking `canAfford`.
 - **Display** amounts with `CurrencyAmounts` (`src/components/currency/`), so every
   currency has one icon and colour everywhere.
 
+### Pixel-Art Characters
+
+Characters are paper-doll sprites built in code, not image files.
+
+- **Layers** live in `src/data/sprites/layers.ts` as 16×21 string grids (hair back →
+  body → hair front → racquet), drawn in palette _symbols_ rather than colours.
+- **Palettes** in `src/data/sprites/palettes.ts` fill the symbols from an `Appearance`
+  (`src/types/appearance.ts`), so a new hair colour or kit is one palette entry.
+- **Composition** is pure: `composeSprite` in `src/core/spriteComposer.ts`. Render with
+  `<PixelSprite appearance pose />`. Left-handers are the whole sprite mirrored.
+- A character without an authored look gets `appearanceFromSeed(name)`, which is stable
+  and never draws from the simulation's random stream.
+- `src/test/spriteCheck.ts` validates every grid; run it after editing art.
+
 ### Match Simulation
 
 The simulation is deterministic with explicit randomness:

@@ -42,7 +42,7 @@ const THIRD_PARTY: ReadonlyArray<{ pattern: string; contentType: string }> = [
 ];
 
 /** Stubs every THIRD_PARTY host. Called by both boot helpers, so every spec gets it. */
-async function stubThirdParty(page: Page): Promise<void> {
+export async function stubThirdParty(page: Page): Promise<void> {
   for (const { pattern, contentType } of THIRD_PARTY) {
     await page.route(pattern, (route) => route.fulfill({ status: 200, contentType, body: '' }));
   }
@@ -57,7 +57,7 @@ export async function startNewGame(page: Page, name = 'Testy McTestface'): Promi
   await page.getByRole('button', { name: 'Start Your Journey' }).click();
 
   await page.locator('#player-name').fill(name);
-  await page.getByRole('button', { name: 'Create Player' }).click();
+  await page.getByTestId('creator-submit').click();
 
   // welcome_to_tennis_rpg runs dialogue, resolves, then grants two items — so the chain
   // is Continue through the dialogue and result, then Next/Got it through the item

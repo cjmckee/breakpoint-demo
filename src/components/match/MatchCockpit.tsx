@@ -7,11 +7,13 @@
  * Court tokens are static for now — rally animation lands in a later stage.
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { CourtSurface } from '../../types';
 import type { MatchScore } from '../../types/keyMoments';
 import type { InteractiveMatchConfig } from '../../types/keyMoments';
 import { MatchCourt } from './MatchCourt';
+import { useGameStore } from '../../stores/gameStore';
+import { DEFAULT_APPEARANCE, appearanceFromSeed } from '../../core/spriteComposer';
 import { MATCH_FORM } from '../../config/shotThresholds';
 
 interface MatchCockpitProps {
@@ -177,6 +179,10 @@ export const MatchCockpit: React.FC<MatchCockpitProps> = ({
   matchFormat,
   overlay,
 }) => {
+  const playerAppearance = useGameStore((state) => state.player?.appearance ?? DEFAULT_APPEARANCE);
+  // Opponents have no authored look yet; their name seeds a stable one.
+  const opponentAppearance = useMemo(() => appearanceFromSeed(opponentName), [opponentName]);
+
   const server = score.server;
   const momentum = score.momentum ?? 0;
   const isTiebreak = score.isTiebreak ?? false;
@@ -299,7 +305,12 @@ export const MatchCockpit: React.FC<MatchCockpitProps> = ({
           <StaminaTank value={playerStamina} owner="player" />
         </div>
 
-        <MatchCourt courtSurface={courtSurface} overlay={overlay} />
+        <MatchCourt
+          courtSurface={courtSurface}
+          playerAppearance={playerAppearance}
+          opponentAppearance={opponentAppearance}
+          overlay={overlay}
+        />
 
         <div className="hidden sm:contents">
           <StaminaTank value={opponentStamina} owner="opponent" />
