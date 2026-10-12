@@ -118,11 +118,11 @@ export const MatchToasts: React.FC<MatchToastsProps> = ({ playerName, opponentNa
   if (toasts.length === 0) return null;
 
   return (
-    <div className="pointer-events-none absolute top-2 left-0 right-0 z-10 flex flex-col items-center gap-2 px-2">
+    <div className="pointer-events-none absolute top-1 sm:top-2 left-0 right-0 z-10 flex flex-col items-center gap-1 sm:gap-2 px-2">
       {toasts.map((t) => (
         <div
           key={t.id}
-          className={`transition-opacity duration-1000 ease-out ${t.dying ? 'opacity-0' : 'opacity-100'} px-6 py-4 rounded-full border-2 bg-pixel-bg bg-opacity-90 text-xs font-bold uppercase tracking-wide ${TONE_CLASS[t.tone]}`}
+          className={`transition-opacity duration-1000 ease-out ${t.dying ? 'opacity-0' : 'opacity-100'} px-3 py-1.5 sm:px-6 sm:py-4 rounded-full border-2 leading-tight bg-pixel-bg bg-opacity-90 text-xs font-bold uppercase tracking-wide ${TONE_CLASS[t.tone]}`}
         >
           {t.text}
         </div>

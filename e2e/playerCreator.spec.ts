@@ -1,8 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { readGame, stubThirdParty } from './helpers';
+import { loadSave, readGame, stubThirdParty } from './helpers';
 
 /**
- * The player creator builds a pixel-art look and saves it on the player.
+ * The player creator builds a pixel-art look, and that look is the one on court.
+ *
+ * The creator's choices are only data until something draws them, so the spec follows
+ * one through: chosen on the form, saved on the player, and standing on the court once
+ * a match starts.
  */
 
 test('the creator saves the chosen look', async ({ page }) => {
@@ -33,4 +37,15 @@ test('the creator saves the chosen look', async ({ page }) => {
     kitColor: 'crimson',
     handedness: 'left',
   });
+});
+
+test('both players stand on the court as sprites', async ({ page }) => {
+  await loadSave(page, 'save-day7-1', 1234);
+
+  await page.getByTestId('action-match').click();
+  await page.getByTestId('preview-match').click();
+  await page.getByTestId('start-match-footer').click();
+
+  await expect(page.getByTestId('court-figure-player')).toBeVisible();
+  await expect(page.getByTestId('court-figure-opponent')).toBeVisible();
 });
