@@ -91,9 +91,14 @@ export function spriteFrameCount(pose: SpritePose): number {
 
 /**
  * Compose one frame of a character into pixel runs. `frame` wraps, so a caller can pass
- * an ever-increasing tick.
+ * an ever-increasing tick. `racquet: false` draws empty hands, for people who don't play.
  */
-export function composeSprite(appearance: Appearance, pose: SpritePose, frame = 0): PixelRun[] {
+export function composeSprite(
+  appearance: Appearance,
+  pose: SpritePose,
+  frame = 0,
+  { racquet = true }: { racquet?: boolean } = {},
+): PixelRun[] {
   const frames = POSE_FRAMES[pose];
   const poseFrame = frames[((frame % frames.length) + frames.length) % frames.length];
   const hair = HAIR_STYLES[appearance.hairStyle];
@@ -106,7 +111,7 @@ export function composeSprite(appearance: Appearance, pose: SpritePose, frame = 
   stamp(canvas, poseFrame.body, palette);
   stamp(canvas, hair.front, palette);
   if (appearance.accessory) stamp(canvas, ACCESSORIES[appearance.accessory].layer, palette);
-  stamp(canvas, poseFrame.racquet, palette);
+  if (racquet) stamp(canvas, poseFrame.racquet, palette);
 
   if (appearance.handedness === 'left') canvas.forEach((row) => row.reverse());
 

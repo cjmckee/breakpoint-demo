@@ -29,6 +29,8 @@ interface PixelSpriteProps {
   framing?: SpriteFraming;
   /** False holds the first frame — for sprites that are rendered but not on show. */
   animate?: boolean;
+  /** Whether they hold a racquet. Only people who play — see `holdsRacquet`. */
+  racquet?: boolean;
   className?: string;
   testId?: string;
 }
@@ -40,6 +42,7 @@ export const PixelSprite: React.FC<PixelSpriteProps> = ({
   fps = 6,
   framing = 'full',
   animate = true,
+  racquet = true,
   className,
   testId,
 }) => {
@@ -53,7 +56,10 @@ export const PixelSprite: React.FC<PixelSpriteProps> = ({
     return () => window.clearInterval(id);
   }, [pose, fps, frameCount, animate]);
 
-  const runs = useMemo(() => composeSprite(appearance, pose, tick), [appearance, pose, tick]);
+  const runs = useMemo(
+    () => composeSprite(appearance, pose, tick, { racquet }),
+    [appearance, pose, tick, racquet],
+  );
   const view = FRAMINGS[framing];
 
   return (

@@ -79,6 +79,20 @@ const IDLE: Frame = {
 const pctX = (x: number): string => `${(x / 300) * 100}%`;
 const pctY = (y: number): string => `${(y / 150) * 100}%`;
 
+/**
+ * Sprite pixel size for a court this wide: 2× on a phone, up to 4× on desktop, so the
+ * figures keep roughly the same share of the court at any width.
+ */
+const spriteScaleFor = (courtWidth: number): number =>
+  Math.max(2, Math.min(4, Math.round(courtWidth / 230)));
+
+/**
+ * Where the racquet head sits relative to a swinging figure's anchor, in sprite pixels:
+ * six columns out to the racquet side and about eight rows up (the anchor is 60% of the
+ * way down a 21-row sprite; the raised racquet head is row 5).
+ */
+const RACQUET_REACH = { x: 6, y: -7.6 };
+
 // Depth (x) within a player's own half, by court position.
 const depthX = (side: Side, cp?: string): number => {
   const pos = cp ?? 'baseline';
@@ -223,8 +237,20 @@ export const MatchCourt: React.FC<MatchCourtProps> = ({
 
   const [frame, setFrame] = useState<Frame>(IDLE);
   const [rallying, setRallying] = useState(false);
+  const [spriteScale, setSpriteScale] = useState(2);
+  const courtRef = useRef<HTMLDivElement>(null);
   const timer = useRef<number | null>(null);
   const seenSeq = useRef(0);
+
+  useEffect(() => {
+    const el = courtRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(([entry]) =>
+      setSpriteScale(spriteScaleFor(entry.contentRect.width)),
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (!lastPointResult || pointSeq === seenSeq.current) return;
@@ -259,8 +285,16 @@ export const MatchCourt: React.FC<MatchCourtProps> = ({
   const poseFor = (side: Side): SpritePose =>
     frame.hitter === side ? 'swing' : rallying ? 'run' : 'idle';
 
+  // On a contact frame the ball meets the racquet, not the hitter's chest.
+  const hitterAppearance = frame.hitter === 'opponent' ? opponentAppearance : playerAppearance;
+  const reachSide = hitterAppearance.handedness === 'left' ? -1 : 1;
+  const ballOffset = frame.hitter
+    ? { x: RACQUET_REACH.x * reachSide * spriteScale, y: RACQUET_REACH.y * spriteScale }
+    : { x: 0, y: 0 };
+
   return (
     <div
+      ref={courtRef}
       className="relative rounded-sm overflow-hidden border-2"
       style={{ borderColor: colors.lines }}
     >
@@ -286,14 +320,17 @@ export const MatchCourt: React.FC<MatchCourtProps> = ({
         <line x1="70" y1="75" x2="230" y2="75" stroke={colors.lines} strokeWidth="1" />
       </svg>
 
-      {/* Players and ball, positioned over the court */}
-      <div className="absolute inset-0 pointer-events-none">
+      {overlay}
+
+      {/* Players and ball, above the captions so a caption never hides a player */}
+      <div className="absolute inset-0 z-20 pointer-events-none">
         <CourtFigure
           side="player"
           at={frame.p}
           dur={frame.dur}
           pose={poseFor('player')}
           appearance={playerAppearance}
+          scale={spriteScale}
         />
         <CourtFigure
           side="opponent"
@@ -301,19 +338,21 @@ export const MatchCourt: React.FC<MatchCourtProps> = ({
           dur={frame.dur}
           pose={poseFor('opponent')}
           appearance={opponentAppearance}
+          scale={spriteScale}
         />
         <div
-          className="absolute w-[9px] h-[9px] rounded-full -translate-x-1/2 -translate-y-1/2"
+          className="absolute w-[9px] h-[9px] rounded-full"
+          data-testid="court-ball"
           style={{
             left: pctX(frame.ball.x),
             top: pctY(frame.ball.y),
+            transform: `translate(calc(-50% + ${ballOffset.x}px), calc(-50% + ${ballOffset.y}px))`,
             backgroundColor: '#F4E04A',
             border: '1px solid #B59A00',
-            transition: `left ${frame.dur}ms linear, top ${frame.dur}ms linear`,
+            transition: `left ${frame.dur}ms linear, top ${frame.dur}ms linear, transform ${frame.dur}ms linear`,
           }}
         />
       </div>
-      {overlay}
     </div>
   );
 };
@@ -324,10 +363,11 @@ interface CourtFigureProps {
   dur: number;
   pose: SpritePose;
   appearance: Appearance;
+  scale: number;
 }
 
 /** A player sprite standing on a court point, feet slightly below it. */
-const CourtFigure: React.FC<CourtFigureProps> = ({ side, at, dur, pose, appearance }) => (
+const CourtFigure: React.FC<CourtFigureProps> = ({ side, at, dur, pose, appearance, scale }) => (
   <div
     className="absolute -translate-x-1/2 -translate-y-[60%]"
     style={{
@@ -338,6 +378,6 @@ const CourtFigure: React.FC<CourtFigureProps> = ({ side, at, dur, pose, appearan
     data-testid={`court-figure-${side}`}
     data-pose={pose}
   >
-    <PixelSprite appearance={appearance} pose={pose} scale={2} fps={8} />
+    <PixelSprite appearance={appearance} pose={pose} scale={scale} fps={8} />
   </div>
 );

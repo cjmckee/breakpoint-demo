@@ -14,6 +14,11 @@ export interface Character {
   isKeyCharacter?: boolean;
   /** Fixed pixel-art look, used for dialogue portraits and on court. */
   appearance: Appearance;
+  /**
+   * How they meet the player on court, if they play at all. Only players hold a racquet:
+   * a coach, parent or journalist is drawn empty-handed.
+   */
+  plays?: 'opponent' | 'teammate';
 }
 
 /**
@@ -49,6 +54,7 @@ export const CHARACTERS: Record<string, Character> = {
       handedness: 'left',
       accessory: 'headband',
     },
+    plays: 'opponent',
     isKeyCharacter: true,
   },
 
@@ -65,6 +71,7 @@ export const CHARACTERS: Record<string, Character> = {
       handedness: 'right',
       accessory: 'glasses',
     },
+    plays: 'teammate',
     isKeyCharacter: true,
   },
 
@@ -80,6 +87,7 @@ export const CHARACTERS: Record<string, Character> = {
       handedness: 'right',
       accessory: 'visor',
     },
+    plays: 'teammate',
     isKeyCharacter: true,
   },
 
@@ -94,6 +102,7 @@ export const CHARACTERS: Record<string, Character> = {
       kitColor: 'white',
       handedness: 'right',
     },
+    plays: 'opponent',
   },
 
   max: {
@@ -107,6 +116,7 @@ export const CHARACTERS: Record<string, Character> = {
       kitColor: 'sky',
       handedness: 'right',
     },
+    plays: 'opponent',
   },
 
   /** Romance */
@@ -205,6 +215,7 @@ export const CHARACTERS: Record<string, Character> = {
       kitColor: 'white',
       handedness: 'right',
     },
+    plays: 'opponent',
   },
 
   /** Supporting cast */
@@ -219,6 +230,7 @@ export const CHARACTERS: Record<string, Character> = {
       kitColor: 'crimson',
       handedness: 'right',
     },
+    plays: 'teammate',
   },
 
   alison: {
@@ -232,6 +244,7 @@ export const CHARACTERS: Record<string, Character> = {
       kitColor: 'violet',
       handedness: 'left',
     },
+    plays: 'teammate',
   },
 
   richard_soil: {
@@ -245,6 +258,7 @@ export const CHARACTERS: Record<string, Character> = {
       kitColor: 'forest',
       handedness: 'right',
     },
+    plays: 'opponent',
   },
 
   reginald_werther: {
@@ -258,6 +272,7 @@ export const CHARACTERS: Record<string, Character> = {
       kitColor: 'violet',
       handedness: 'right',
     },
+    plays: 'opponent',
   },
 
   old_man: {
@@ -284,6 +299,7 @@ export const CHARACTERS: Record<string, Character> = {
       kitColor: 'sky',
       handedness: 'right',
     },
+    plays: 'opponent',
   },
 
   olivia_gulp: {
@@ -297,6 +313,7 @@ export const CHARACTERS: Record<string, Character> = {
       kitColor: 'crimson',
       handedness: 'right',
     },
+    plays: 'opponent',
   },
 
   opponent: {
@@ -310,6 +327,7 @@ export const CHARACTERS: Record<string, Character> = {
       kitColor: 'crimson',
       handedness: 'right',
     },
+    plays: 'opponent',
   },
 
   juggler: {
@@ -375,6 +393,11 @@ export function getCharacterAppearance(
 ): Appearance {
   if (characterId === 'player') return playerAppearance;
   return CHARACTERS[characterId]?.appearance ?? appearanceFromSeed(characterId);
+}
+
+/** Whether this person is drawn holding a racquet: only opponents and teammates are. */
+export function holdsRacquet(characterId: string): boolean {
+  return characterId === 'player' || CHARACTERS[characterId]?.plays !== undefined;
 }
 
 /**
