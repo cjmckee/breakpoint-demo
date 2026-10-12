@@ -244,6 +244,7 @@ export const LiveMatchViewer: React.FC = () => {
               score={currentScore ?? TUTORIAL_MOCK_SCORE}
               playerName={matchConfig.playerName || 'You'}
               opponentName={matchConfig.opponentName || 'Opponent'}
+              opponentCharacterId={matchConfig.opponentCharacterId}
               matchFormat={matchConfig.matchFormat}
               overlay={
                 <MatchToasts

@@ -26,6 +26,10 @@ import {
   SKIN_TONE_KEYS,
 } from '../core/spriteComposer';
 import type { Appearance, SpritePose } from '../types/appearance';
+import { CHARACTERS } from '../data/characters';
+import { StoryEventRepository } from '../data/storyEvents';
+import { TournamentRegistry } from '../data/tournaments';
+import * as TeamMatches from '../data/teamMatches';
 
 let failures = 0;
 
@@ -108,6 +112,58 @@ check(
   'a seeded appearance is stable',
   JSON.stringify(appearanceFromSeed('Jordan')) === JSON.stringify(appearanceFromSeed('Jordan')),
 );
+
+console.log('\n── every speaker has a look ──');
+const speakers = new Set<string>();
+const opponents = new Set<string>();
+// Dialogue sits on events and on their outcomes at varying depths, so walk the lot.
+const collectSpeakers = (node: unknown): void => {
+  if (Array.isArray(node)) {
+    node.forEach(collectSpeakers);
+    return;
+  }
+  if (typeof node !== 'object' || node === null) return;
+  for (const [key, value] of Object.entries(node)) {
+    if (key === 'dialogue' && Array.isArray(value)) {
+      for (const line of value) {
+        if (Array.isArray(line) && typeof line[0] === 'string') speakers.add(line[0]);
+      }
+    } else if (key === 'characters' && Array.isArray(value)) {
+      value.forEach((id) => typeof id === 'string' && speakers.add(id));
+    } else if (key === 'opponentId' && typeof value === 'string') {
+      opponents.add(value);
+    } else {
+      collectSpeakers(value);
+    }
+  }
+};
+collectSpeakers(StoryEventRepository.getAllEvents());
+speakers.delete('player');
+const unregistered = [...speakers].filter((id) => !(id in CHARACTERS));
+check(
+  `all ${speakers.size} story characters are registered with an appearance`,
+  unregistered.length === 0,
+  `not in CHARACTERS: ${unregistered.join(', ')}`,
+);
+for (const tournament of TournamentRegistry.getAllTournaments()) {
+  for (const round of tournament.rounds) opponents.add(round.opponent.characterId);
+}
+for (const config of Object.values(TeamMatches)) {
+  if (typeof config === 'object' && config !== null && 'opponent' in config) {
+    opponents.add(config.opponent.characterId);
+  }
+}
+const emptyHanded = [...opponents].filter((id) => CHARACTERS[id]?.plays === undefined);
+check(
+  `all ${opponents.size} match opponents hold a racquet`,
+  emptyHanded.length === 0,
+  `no \`plays\`: ${emptyHanded.join(', ')}`,
+);
+
+const keyLooks = Object.values(CHARACTERS)
+  .filter((c) => c.isKeyCharacter)
+  .map((c) => JSON.stringify(c.appearance));
+check('key characters all look different', new Set(keyLooks).size === keyLooks.length);
 
 if (failures > 0) {
   console.log(`\n${failures} sprite check(s) failed`);

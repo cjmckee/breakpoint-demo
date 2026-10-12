@@ -1024,8 +1024,15 @@ Characters are paper-doll sprites built in code, not image files.
   (`src/types/appearance.ts`), so a new hair colour or kit is one palette entry.
 - **Composition** is pure: `composeSprite` in `src/core/spriteComposer.ts`. Render with
   `<PixelSprite appearance pose />`. Left-handers are the whole sprite mirrored.
-- `appearanceFromSeed(name)` gives a stable look to anyone without an authored one, and
-  never draws from the simulation's random stream.
+- **Every character has a fixed look**: `CHARACTERS` entries carry an `appearance`, and a
+  new dialogue speaker must be registered there (`spriteCheck` fails otherwise). Dialogue
+  portraits use `getCharacterAppearance`; match opponents use `getOpponentAppearance`
+  with the config's `opponentCharacterId`, so a named opponent looks the same on court.
+- **Only players hold a racquet.** A character's `plays` (`opponent` or `teammate`)
+  marks someone who plays; everyone else is drawn empty-handed (`holdsRacquet`).
+  `spriteCheck` fails if a match opponent has no `plays`.
+- `appearanceFromSeed(name)` gives a generated opponent a stable look, and never draws
+  from the simulation's random stream.
 - `src/test/spriteCheck.ts` validates every grid; run it after editing art.
 
 ### Match Simulation
