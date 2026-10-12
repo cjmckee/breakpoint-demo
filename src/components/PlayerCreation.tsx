@@ -21,6 +21,7 @@ import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { WelcomeOverlay } from './WelcomeOverlay';
 import { PixelSprite } from './sprites/PixelSprite';
+import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
 
 /** The preview plays these on a loop, so the look is seen moving without a control. */
 const PREVIEW_SEQUENCE: readonly { pose: SpritePose; ms: number }[] = [
@@ -144,13 +145,15 @@ export const PlayerCreation: React.FC = () => {
     }
   };
 
+  const reducedMotion = usePrefersReducedMotion();
   useEffect(() => {
+    if (reducedMotion) return;
     const id = window.setTimeout(
       () => setStep((s) => (s + 1) % PREVIEW_SEQUENCE.length),
       PREVIEW_SEQUENCE[step].ms,
     );
     return () => window.clearTimeout(id);
-  }, [step]);
+  }, [step, reducedMotion]);
 
   const pose = PREVIEW_SEQUENCE[step].pose;
 

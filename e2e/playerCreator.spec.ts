@@ -42,12 +42,24 @@ test('the creator saves the chosen look', async ({ page }) => {
 test('both players stand on the court as sprites', async ({ page }) => {
   await loadSave(page, 'save-day7-1', 1234);
 
+  await expect(page.getByTestId('menu-avatar')).toBeVisible();
   await page.getByTestId('action-match').click();
   await page.getByTestId('preview-match').click();
+
+  // Pre-match, the two players face each other over the head-to-head.
+  await expect(page.getByTestId('head-to-head-player-sprite')).toBeVisible();
+  await expect(page.getByTestId('head-to-head-opponent-sprite')).toBeVisible();
   await page.getByTestId('start-match-footer').click();
 
   await expect(page.getByTestId('court-figure-player')).toBeVisible();
   await expect(page.getByTestId('court-figure-opponent')).toBeVisible();
+
+  // When a point ends, its winner cheers and the loser slumps.
+  const figures = page.locator('[data-testid^="court-figure-"]');
+  await expect(figures.and(page.locator('[data-pose="cheer"]'))).toHaveCount(1, {
+    timeout: 20_000,
+  });
+  await expect(figures.and(page.locator('[data-pose="slump"]'))).toHaveCount(1);
 });
 
 test('a named character speaks with their portrait', async ({ page }) => {
@@ -62,4 +74,16 @@ test('a named character speaks with their portrait', async ({ page }) => {
   }
   await expect(portrait).toBeVisible();
   await expect(portrait).toHaveAttribute('data-character-id', 'keith');
+});
+
+test('with reduced motion the preview holds still', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await stubThirdParty(page);
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Start Your Journey' }).click();
+
+  // The loop would have moved on to the run pose by now.
+  const preview = page.getByTestId('creator-preview');
+  await page.waitForTimeout(3_000);
+  await expect(preview).toHaveAttribute('data-pose', 'idle');
 });

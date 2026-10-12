@@ -16,8 +16,8 @@
  * The players are pixel sprites drawn over the SVG court as HTML, because the court SVG
  * stretches to fit (preserveAspectRatio="none") and would squash them. They are drawn
  * side-on, facing each other across the net, and well over real scale so the art reads.
- * They run while a rally plays, swing on the frame they strike the ball, and idle
- * between points.
+ * They run while a rally plays, swing on the frame they strike the ball, react when the
+ * point ends (the winner cheers, the loser slumps), and idle between points.
  */
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -26,6 +26,7 @@ import type { PointResult as SimplePointResult } from '../../types/keyMoments';
 import type { Appearance, SpritePose } from '../../types/appearance';
 import { useMatchStore } from '../../stores/matchStore';
 import { PixelSprite } from '../sprites/PixelSprite';
+import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 import { SPRITE_HEIGHT, SPRITE_WIDTH } from '../../data/sprites/layers';
 
 interface MatchCourtProps {
@@ -88,6 +89,9 @@ const pctY = (y: number): string => `${(y / 150) * 100}%`;
  */
 const spriteScaleFor = (courtWidth: number): number =>
   Math.max(3, Math.min(7, Math.round(courtWidth / 135)));
+
+/** How long the point-end reaction holds before both players settle back to idle. */
+const REACTION_MS = 900;
 
 /** The players face each other: the player (left half) faces right, the opponent left. */
 const FACING: Record<Side, 'left' | 'right'> = { player: 'right', opponent: 'left' };
@@ -248,7 +252,11 @@ export const MatchCourt: React.FC<MatchCourtProps> = ({
 
   const [frame, setFrame] = useState<Frame>(IDLE);
   const [rallying, setRallying] = useState(false);
+  const [pointWinner, setPointWinner] = useState<Side | null>(null);
+  const reactionTimer = useRef<number | null>(null);
   const [spriteScale, setSpriteScale] = useState(2);
+  // With reduced motion, players and ball step from place to place instead of gliding.
+  const glide = usePrefersReducedMotion() ? 0 : 1;
   const courtRef = useRef<HTMLDivElement>(null);
   const timer = useRef<number | null>(null);
   const seenSeq = useRef(0);
@@ -271,11 +279,16 @@ export const MatchCourt: React.FC<MatchCourtProps> = ({
     if (timer.current) window.clearTimeout(timer.current);
 
     let i = 0;
+    const winner: Side = lastPointResult.winner;
+    if (reactionTimer.current) window.clearTimeout(reactionTimer.current);
+    setPointWinner(null);
     setRallying(true);
     const tick = (): void => {
       if (i >= frames.length) {
         timer.current = null;
         setRallying(false);
+        setPointWinner(winner);
+        reactionTimer.current = window.setTimeout(() => setPointWinner(null), REACTION_MS);
         return;
       }
       const f = frames[i];
@@ -289,12 +302,16 @@ export const MatchCourt: React.FC<MatchCourtProps> = ({
   useEffect(
     () => () => {
       if (timer.current) window.clearTimeout(timer.current);
+      if (reactionTimer.current) window.clearTimeout(reactionTimer.current);
     },
     [],
   );
 
-  const poseFor = (side: Side): SpritePose =>
-    frame.hitter === side ? 'swing' : rallying ? 'run' : 'idle';
+  const poseFor = (side: Side): SpritePose => {
+    if (pointWinner) return pointWinner === side ? 'cheer' : 'slump';
+    if (frame.hitter === side) return 'swing';
+    return rallying ? 'run' : 'idle';
+  };
 
   // On a contact frame the ball meets the racquet, not the hitter's chest.
   const ballOffset = frame.hitter
@@ -339,7 +356,7 @@ export const MatchCourt: React.FC<MatchCourtProps> = ({
         <CourtFigure
           side="player"
           at={frame.p}
-          dur={frame.dur}
+          dur={frame.dur * glide}
           pose={poseFor('player')}
           appearance={playerAppearance}
           scale={spriteScale}
@@ -347,7 +364,7 @@ export const MatchCourt: React.FC<MatchCourtProps> = ({
         <CourtFigure
           side="opponent"
           at={frame.o}
-          dur={frame.dur}
+          dur={frame.dur * glide}
           pose={poseFor('opponent')}
           appearance={opponentAppearance}
           scale={spriteScale}
@@ -361,7 +378,7 @@ export const MatchCourt: React.FC<MatchCourtProps> = ({
             transform: `translate(calc(-50% + ${ballOffset.x}px), calc(-50% + ${ballOffset.y}px))`,
             backgroundColor: '#F4E04A',
             border: '1px solid #B59A00',
-            transition: `left ${frame.dur}ms linear, top ${frame.dur}ms linear, transform ${frame.dur}ms linear`,
+            transition: `left ${frame.dur * glide}ms linear, top ${frame.dur * glide}ms linear, transform ${frame.dur * glide}ms linear`,
           }}
         />
       </div>
