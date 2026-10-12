@@ -11,6 +11,8 @@
 import React from 'react';
 import type { CoreStats, PlayerStats, StatName } from '../../types';
 import { STAT_NAMES, getStat } from '../../game/StatDevelopment';
+import type { Appearance } from '../../types/appearance';
+import { PixelSprite } from '../sprites/PixelSprite';
 import { STAT_ICONS, formatStatName } from '../../config/statIcons';
 
 const CORE_ROWS: Array<keyof CoreStats> = ['serve', 'forehand', 'backhand', 'return', 'net'];
@@ -65,6 +67,8 @@ interface HeadToHeadProps {
   opponentStats: PlayerStats;
   /** Under the opponent's name: their archetype, typically. */
   opponentTag?: React.ReactNode;
+  playerAppearance: Appearance;
+  opponentAppearance: Appearance;
 }
 
 export const HeadToHead: React.FC<HeadToHeadProps> = ({
@@ -75,6 +79,8 @@ export const HeadToHead: React.FC<HeadToHeadProps> = ({
   opponentOverall,
   opponentStats,
   opponentTag,
+  playerAppearance,
+  opponentAppearance,
 }) => {
   const edges = biggestEdges(playerStats, opponentStats);
   const overallGap = playerOverall - opponentOverall;
@@ -83,25 +89,43 @@ export const HeadToHead: React.FC<HeadToHeadProps> = ({
     <div className="bg-pixel-card border-4 border-pixel-border p-4" data-testid="head-to-head">
       {/* Names and overall ratings, the headline comparison */}
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 mb-4">
-        <div className="min-w-0">
-          <div className="font-bold text-pixel-text truncate">{playerName}</div>
-          <div
-            className={`text-3xl font-bold tabular-nums ${overallGap >= EVEN_WITHIN ? 'text-pixel-success' : 'text-pixel-text'}`}
-          >
-            {playerOverall}
+        <div className="flex items-end gap-3 min-w-0">
+          <PixelSprite
+            appearance={playerAppearance}
+            facing="right"
+            scale={4}
+            className="block shrink-0 w-12 h-auto sm:w-16"
+            testId="head-to-head-player-sprite"
+          />
+          <div className="min-w-0">
+            <div className="font-bold text-pixel-text truncate">{playerName}</div>
+            <div
+              className={`text-3xl font-bold tabular-nums ${overallGap >= EVEN_WITHIN ? 'text-pixel-success' : 'text-pixel-text'}`}
+            >
+              {playerOverall}
+            </div>
           </div>
         </div>
         <div className="text-xs font-bold uppercase tracking-wider text-pixel-text-muted">
           Overall
         </div>
-        <div className="min-w-0 text-right">
-          <div className="font-bold text-pixel-text truncate">{opponentName}</div>
-          <div
-            className={`text-3xl font-bold tabular-nums ${-overallGap >= EVEN_WITHIN ? 'text-pixel-error' : 'text-pixel-text'}`}
-          >
-            {opponentOverall}
+        <div className="flex items-end justify-end gap-3 min-w-0">
+          <div className="min-w-0 text-right">
+            <div className="font-bold text-pixel-text truncate">{opponentName}</div>
+            <div
+              className={`text-3xl font-bold tabular-nums ${-overallGap >= EVEN_WITHIN ? 'text-pixel-error' : 'text-pixel-text'}`}
+            >
+              {opponentOverall}
+            </div>
+            {opponentTag && <div className="mt-1 flex justify-end">{opponentTag}</div>}
           </div>
-          {opponentTag && <div className="mt-1 flex justify-end">{opponentTag}</div>}
+          <PixelSprite
+            appearance={opponentAppearance}
+            facing="left"
+            scale={4}
+            className="block shrink-0 w-12 h-auto sm:w-16"
+            testId="head-to-head-opponent-sprite"
+          />
         </div>
       </div>
 

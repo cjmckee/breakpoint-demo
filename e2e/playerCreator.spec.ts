@@ -42,8 +42,13 @@ test('the creator saves the chosen look', async ({ page }) => {
 test('both players stand on the court as sprites', async ({ page }) => {
   await loadSave(page, 'save-day7-1', 1234);
 
+  await expect(page.getByTestId('menu-avatar')).toBeVisible();
   await page.getByTestId('action-match').click();
   await page.getByTestId('preview-match').click();
+
+  // Pre-match, the two players face each other over the head-to-head.
+  await expect(page.getByTestId('head-to-head-player-sprite')).toBeVisible();
+  await expect(page.getByTestId('head-to-head-opponent-sprite')).toBeVisible();
   await page.getByTestId('start-match-footer').click();
 
   await expect(page.getByTestId('court-figure-player')).toBeVisible();
