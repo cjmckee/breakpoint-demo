@@ -26,6 +26,7 @@ import type { PointResult as SimplePointResult } from '../../types/keyMoments';
 import type { Appearance, SpritePose } from '../../types/appearance';
 import { useMatchStore } from '../../stores/matchStore';
 import { PixelSprite } from '../sprites/PixelSprite';
+import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 import { SPRITE_HEIGHT, SPRITE_WIDTH } from '../../data/sprites/layers';
 
 interface MatchCourtProps {
@@ -254,6 +255,8 @@ export const MatchCourt: React.FC<MatchCourtProps> = ({
   const [pointWinner, setPointWinner] = useState<Side | null>(null);
   const reactionTimer = useRef<number | null>(null);
   const [spriteScale, setSpriteScale] = useState(2);
+  // With reduced motion, players and ball step from place to place instead of gliding.
+  const glide = usePrefersReducedMotion() ? 0 : 1;
   const courtRef = useRef<HTMLDivElement>(null);
   const timer = useRef<number | null>(null);
   const seenSeq = useRef(0);
@@ -353,7 +356,7 @@ export const MatchCourt: React.FC<MatchCourtProps> = ({
         <CourtFigure
           side="player"
           at={frame.p}
-          dur={frame.dur}
+          dur={frame.dur * glide}
           pose={poseFor('player')}
           appearance={playerAppearance}
           scale={spriteScale}
@@ -361,7 +364,7 @@ export const MatchCourt: React.FC<MatchCourtProps> = ({
         <CourtFigure
           side="opponent"
           at={frame.o}
-          dur={frame.dur}
+          dur={frame.dur * glide}
           pose={poseFor('opponent')}
           appearance={opponentAppearance}
           scale={spriteScale}
@@ -375,7 +378,7 @@ export const MatchCourt: React.FC<MatchCourtProps> = ({
             transform: `translate(calc(-50% + ${ballOffset.x}px), calc(-50% + ${ballOffset.y}px))`,
             backgroundColor: '#F4E04A',
             border: '1px solid #B59A00',
-            transition: `left ${frame.dur}ms linear, top ${frame.dur}ms linear, transform ${frame.dur}ms linear`,
+            transition: `left ${frame.dur * glide}ms linear, top ${frame.dur * glide}ms linear, transform ${frame.dur * glide}ms linear`,
           }}
         />
       </div>

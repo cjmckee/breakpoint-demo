@@ -1030,10 +1030,14 @@ Characters are paper-doll sprites built in code, not image files.
 - **Poses**: idle, run, swing, and the point-end `cheer` and `slump`. A frame that moves
   the head sets `headDy` so hair and accessories follow; a hop sets `dy`.
 - **Pixel art, not real scale.** Court players stand about a third of the court's height.
-- **Gear shows on the player.** `src/data/sprites/gearLooks.ts` maps a hat item to an
-  accessory and an outfit to a kit colour, by catalogue id. Read the player's drawn
-  look with `usePlayerAppearance()`, never `player.appearance` directly. `spriteCheck`
-  fails if a hat has no look.
+- **Gear shows on the player.** `src/data/sprites/gearLooks.ts` maps, by catalogue id, a
+  hat to an accessory, an outfit to a kit colour, and a racquet or shoes to a gear
+  colour. Read the player's drawn look with `usePlayerAppearance()`, never
+  `player.appearance` directly. `spriteCheck` fails if a hat, racquet or pair of shoes
+  has no look.
+- **Reduced motion.** `PixelSprite` holds its first frame when the player's system asks
+  for less motion (`usePrefersReducedMotion`). Anything else that animates sprites —
+  gliding, looping previews — checks the same hook.
 - **Every character has a fixed look**: `CHARACTERS` entries carry an `appearance`, and a
   new dialogue speaker must be registered there (`spriteCheck` fails otherwise). Dialogue
   portraits use `getCharacterAppearance`; match opponents use `getOpponentAppearance`

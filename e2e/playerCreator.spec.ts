@@ -75,3 +75,15 @@ test('a named character speaks with their portrait', async ({ page }) => {
   await expect(portrait).toBeVisible();
   await expect(portrait).toHaveAttribute('data-character-id', 'keith');
 });
+
+test('with reduced motion the preview holds still', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await stubThirdParty(page);
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Start Your Journey' }).click();
+
+  // The loop would have moved on to the run pose by now.
+  const preview = page.getByTestId('creator-preview');
+  await page.waitForTimeout(3_000);
+  await expect(preview).toHaveAttribute('data-pose', 'idle');
+});

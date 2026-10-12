@@ -29,6 +29,7 @@ import {
 import { GEAR_LOOKS } from '../data/sprites/gearLooks';
 import {
   FIXED_COLORS,
+  GEAR_COLORS,
   HAIR_COLORS,
   KIT_COLORS,
   SKIN_TONES,
@@ -65,6 +66,8 @@ function paletteFor(appearance: Appearance): Record<SpriteSymbol, string> {
     L: hair.light,
     O: kit.base,
     o: kit.shade,
+    B: appearance.shoeColor ? GEAR_COLORS[appearance.shoeColor].ramp.base : kit.shade,
+    ...(appearance.racquetColor && { R: GEAR_COLORS[appearance.racquetColor].ramp.base }),
   };
 }
 
