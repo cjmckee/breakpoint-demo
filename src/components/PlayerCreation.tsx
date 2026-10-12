@@ -4,7 +4,7 @@
  * Gonzalez sets the archetype early in the story.
  */
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useGameStore } from '../stores/gameStore';
 import type { Appearance, Handedness, SpritePose } from '../types/appearance';
 import {
@@ -22,7 +22,12 @@ import { Button } from './ui/Button';
 import { WelcomeOverlay } from './WelcomeOverlay';
 import { PixelSprite } from './sprites/PixelSprite';
 
-const PREVIEW_POSES: readonly SpritePose[] = ['idle', 'run', 'swing'];
+/** The preview plays these on a loop, so the look is seen moving without a control. */
+const PREVIEW_SEQUENCE: readonly { pose: SpritePose; ms: number }[] = [
+  { pose: 'idle', ms: 2400 },
+  { pose: 'run', ms: 1200 },
+  { pose: 'swing', ms: 600 },
+];
 const HANDEDNESS: readonly Handedness[] = ['right', 'left'];
 
 interface SwatchRowProps<K extends string> {
@@ -59,11 +64,19 @@ function SwatchRow<K extends string>({
             aria-label={`${label} ${nameOf(key)}`}
             aria-pressed={key === selected}
             data-testid={`${testIdPrefix}-${key}`}
-            className={`w-9 h-9 border-4 transition-transform ${
-              key === selected ? 'border-pixel-accent scale-110' : 'border-pixel-border'
+            className={`w-9 h-9 border-4 flex items-center justify-center ${
+              key === selected
+                ? 'border-pixel-accent'
+                : 'border-pixel-border [@media(hover:hover)]:hover:border-pixel-secondary'
             }`}
             style={{ backgroundColor: colorOf(key) }}
-          />
+          >
+            {key === selected && (
+              <span className="text-white text-lg leading-none font-black [text-shadow:0_0_2px_#000,0_0_3px_#000]">
+                ✓
+              </span>
+            )}
+          </button>
         ))}
       </div>
     </div>
@@ -98,12 +111,13 @@ function ChoiceRow<K extends string>({
             onClick={() => onSelect(key)}
             aria-pressed={key === selected}
             data-testid={`${testIdPrefix}-${key}`}
-            className={`px-3 py-1 border-4 text-sm font-bold ${
+            className={`px-3 py-1 border-4 bg-pixel-card text-sm font-bold ${
               key === selected
-                ? 'border-pixel-accent bg-pixel-secondary text-pixel-text'
-                : 'border-pixel-border bg-pixel-card text-pixel-text-muted hover:border-pixel-secondary'
+                ? 'border-pixel-accent text-pixel-text'
+                : 'border-pixel-border text-pixel-text-muted [@media(hover:hover)]:hover:border-pixel-secondary'
             }`}
           >
+            {key === selected && <span className="text-pixel-accent">✓ </span>}
             {nameOf(key)}
           </button>
         ))}
@@ -115,7 +129,7 @@ function ChoiceRow<K extends string>({
 export const PlayerCreation: React.FC = () => {
   const [name, setName] = useState('');
   const [appearance, setAppearance] = useState<Appearance>(DEFAULT_APPEARANCE);
-  const [poseIndex, setPoseIndex] = useState(0);
+  const [step, setStep] = useState(0);
   const [showWelcome, setShowWelcome] = useState(true);
   const createPlayer = useGameStore((state) => state.createPlayer);
 
@@ -130,7 +144,15 @@ export const PlayerCreation: React.FC = () => {
     }
   };
 
-  const pose = PREVIEW_POSES[poseIndex];
+  useEffect(() => {
+    const id = window.setTimeout(
+      () => setStep((s) => (s + 1) % PREVIEW_SEQUENCE.length),
+      PREVIEW_SEQUENCE[step].ms,
+    );
+    return () => window.clearTimeout(id);
+  }, [step]);
+
+  const pose = PREVIEW_SEQUENCE[step].pose;
 
   return (
     <>
@@ -165,19 +187,15 @@ export const PlayerCreation: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-6 items-start">
-              {/* Live preview — tap to cycle poses */}
+              {/* Live preview, playing idle → run → swing on a loop */}
               <div className="flex flex-col items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setPoseIndex((i) => (i + 1) % PREVIEW_POSES.length)}
-                  className="bg-pixel-primary border-4 border-pixel-border p-4 hover:border-pixel-secondary"
-                  aria-label="Cycle preview pose"
+                <div
+                  className="bg-pixel-primary border-4 border-pixel-border p-4"
                   data-testid="creator-preview"
                   data-pose={pose}
                 >
                   <PixelSprite appearance={appearance} pose={pose} scale={8} />
-                </button>
-                <p className="text-xs text-pixel-text-muted">Tap to see them move</p>
+                </div>
                 <Button
                   type="button"
                   variant="secondary"

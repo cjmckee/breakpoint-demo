@@ -21,10 +21,9 @@ test('the creator saves the chosen look', async ({ page }) => {
   await page.getByTestId('creator-kit-crimson').click();
   await page.getByTestId('creator-hand-left').click();
 
-  // The preview is the sprite itself, so tapping it should move through the poses.
+  // The preview plays the poses on its own, so the look is seen in motion.
   const preview = page.getByTestId('creator-preview');
   await expect(preview).toHaveAttribute('data-pose', 'idle');
-  await preview.click();
   await expect(preview).toHaveAttribute('data-pose', 'run');
 
   await page.getByTestId('creator-submit').click();
