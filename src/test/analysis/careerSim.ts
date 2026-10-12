@@ -751,7 +751,7 @@ function career(
   system: System,
   weights: Weights = drawWeights(id),
 ): Map<number, Snapshot> {
-  const stats = clone(PlayerManager.createPlayer('c', 'balanced').stats);
+  const stats = clone(PlayerManager.createPlayer('c').stats);
   const wallet: Wallet = { power: 0, quickness: 0, technique: 0, mind: 0 };
   const spent: Wallet = { power: 0, quickness: 0, technique: 0, mind: 0 };
   const other: Record<StatName, number> = Object.fromEntries(
