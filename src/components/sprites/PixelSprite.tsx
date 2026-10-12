@@ -31,6 +31,8 @@ interface PixelSpriteProps {
   animate?: boolean;
   /** Whether they hold a racquet. Only people who play — see `holdsRacquet`. */
   racquet?: boolean;
+  /** Side-on, facing this way, instead of front-facing. */
+  facing?: 'left' | 'right';
   className?: string;
   testId?: string;
 }
@@ -43,6 +45,7 @@ export const PixelSprite: React.FC<PixelSpriteProps> = ({
   framing = 'full',
   animate = true,
   racquet = true,
+  facing,
   className,
   testId,
 }) => {
@@ -57,8 +60,8 @@ export const PixelSprite: React.FC<PixelSpriteProps> = ({
   }, [pose, fps, frameCount, animate]);
 
   const runs = useMemo(
-    () => composeSprite(appearance, pose, tick, { racquet }),
-    [appearance, pose, tick, racquet],
+    () => composeSprite(appearance, pose, tick, { racquet, facing }),
+    [appearance, pose, tick, racquet, facing],
   );
   const view = FRAMINGS[framing];
 

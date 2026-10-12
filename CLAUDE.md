@@ -1024,6 +1024,10 @@ Characters are paper-doll sprites built in code, not image files.
   (`src/types/appearance.ts`), so a new hair colour or kit is one palette entry.
 - **Composition** is pure: `composeSprite` in `src/core/spriteComposer.ts`. Render with
   `<PixelSprite appearance pose />`. Left-handers are the whole sprite mirrored.
+- **Two views.** Front-facing for portraits and the creator; side-on (`facing`) on the
+  court, where the players face each other. Every hairstyle and accessory needs a
+  `side` layer too, drawn facing right.
+- **Pixel art, not real scale.** Court players stand about a third of the court's height.
 - **Every character has a fixed look**: `CHARACTERS` entries carry an `appearance`, and a
   new dialogue speaker must be registered there (`spriteCheck` fails otherwise). Dialogue
   portraits use `getCharacterAppearance`; match opponents use `getOpponentAppearance`

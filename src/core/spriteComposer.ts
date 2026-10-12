@@ -21,6 +21,7 @@ import {
   ACCESSORIES,
   HAIR_STYLES,
   POSE_FRAMES,
+  SIDE_POSE_FRAMES,
   SPRITE_HEIGHT,
   SPRITE_WIDTH,
   type SpriteLayer,
@@ -89,31 +90,50 @@ export function spriteFrameCount(pose: SpritePose): number {
   return POSE_FRAMES[pose].length;
 }
 
+export interface ComposeOptions {
+  /** False draws empty hands, for people who don't play. */
+  racquet?: boolean;
+  /**
+   * Draw side-on, facing this way, instead of front-facing. The side view ignores
+   * handedness: which way they face decides the mirror.
+   */
+  facing?: 'left' | 'right';
+}
+
 /**
  * Compose one frame of a character into pixel runs. `frame` wraps, so a caller can pass
- * an ever-increasing tick. `racquet: false` draws empty hands, for people who don't play.
+ * an ever-increasing tick.
  */
 export function composeSprite(
   appearance: Appearance,
   pose: SpritePose,
   frame = 0,
-  { racquet = true }: { racquet?: boolean } = {},
+  { racquet = true, facing }: ComposeOptions = {},
 ): PixelRun[] {
-  const frames = POSE_FRAMES[pose];
+  const side = facing !== undefined;
+  const frames = (side ? SIDE_POSE_FRAMES : POSE_FRAMES)[pose];
   const poseFrame = frames[((frame % frames.length) + frames.length) % frames.length];
   const hair = HAIR_STYLES[appearance.hairStyle];
+  const accessory = appearance.accessory ? ACCESSORIES[appearance.accessory] : null;
   const palette = paletteFor(appearance);
 
   const canvas: (string | null)[][] = Array.from({ length: SPRITE_HEIGHT }, () =>
     Array<string | null>(SPRITE_WIDTH).fill(null),
   );
-  if (hair.back) stamp(canvas, hair.back, palette);
-  stamp(canvas, poseFrame.body, palette);
-  stamp(canvas, hair.front, palette);
-  if (appearance.accessory) stamp(canvas, ACCESSORIES[appearance.accessory].layer, palette);
+  if (side) {
+    stamp(canvas, poseFrame.body, palette);
+    stamp(canvas, hair.side, palette);
+    if (accessory) stamp(canvas, accessory.side, palette);
+  } else {
+    if (hair.back) stamp(canvas, hair.back, palette);
+    stamp(canvas, poseFrame.body, palette);
+    stamp(canvas, hair.front, palette);
+    if (accessory) stamp(canvas, accessory.layer, palette);
+  }
   if (racquet) stamp(canvas, poseFrame.racquet, palette);
 
-  if (appearance.handedness === 'left') canvas.forEach((row) => row.reverse());
+  const mirror = side ? facing === 'left' : appearance.handedness === 'left';
+  if (mirror) canvas.forEach((row) => row.reverse());
 
   const runs: PixelRun[] = [];
   canvas.forEach((row, y) => {
