@@ -8,6 +8,17 @@ import type { Appearance, SpritePose } from '../../types/appearance';
 import { composeSprite, spriteFrameCount } from '../../core/spriteComposer';
 import { SPRITE_HEIGHT, SPRITE_WIDTH } from '../../data/sprites/layers';
 
+/**
+ * What part of the grid to show. A portrait is head and shoulders: columns 1-14 keep a
+ * ponytail in frame, rows 0-11 stop above the racquet.
+ */
+const FRAMINGS = {
+  full: { x: 0, y: 0, w: SPRITE_WIDTH, h: SPRITE_HEIGHT },
+  portrait: { x: 1, y: 0, w: 14, h: 12 },
+} as const;
+
+export type SpriteFraming = keyof typeof FRAMINGS;
+
 interface PixelSpriteProps {
   appearance: Appearance;
   pose?: SpritePose;
@@ -15,6 +26,9 @@ interface PixelSpriteProps {
   scale?: number;
   /** Frames per second for multi-frame poses. */
   fps?: number;
+  framing?: SpriteFraming;
+  /** False holds the first frame — for sprites that are rendered but not on show. */
+  animate?: boolean;
   className?: string;
   testId?: string;
 }
@@ -24,6 +38,8 @@ export const PixelSprite: React.FC<PixelSpriteProps> = ({
   pose = 'idle',
   scale = 4,
   fps = 6,
+  framing = 'full',
+  animate = true,
   className,
   testId,
 }) => {
@@ -32,18 +48,19 @@ export const PixelSprite: React.FC<PixelSpriteProps> = ({
 
   useEffect(() => {
     setTick(0);
-    if (frameCount <= 1) return;
+    if (!animate || frameCount <= 1) return;
     const id = window.setInterval(() => setTick((t) => t + 1), 1000 / fps);
     return () => window.clearInterval(id);
-  }, [pose, fps, frameCount]);
+  }, [pose, fps, frameCount, animate]);
 
   const runs = useMemo(() => composeSprite(appearance, pose, tick), [appearance, pose, tick]);
+  const view = FRAMINGS[framing];
 
   return (
     <svg
-      viewBox={`0 0 ${SPRITE_WIDTH} ${SPRITE_HEIGHT}`}
-      width={SPRITE_WIDTH * scale}
-      height={SPRITE_HEIGHT * scale}
+      viewBox={`${view.x} ${view.y} ${view.w} ${view.h}`}
+      width={view.w * scale}
+      height={view.h * scale}
       shapeRendering="crispEdges"
       className={className}
       data-testid={testId}

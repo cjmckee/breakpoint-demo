@@ -1154,6 +1154,7 @@ export const useGameStore = create<GameState>()(
                   );
                   const matchConfig: PreMatchConfig = {
                     opponentName: opponent?.name || 'Opponent',
+                    opponentCharacterId: opponent?.characterId,
                     opponentStats: opponent?.stats ?? ({} as PlayerStats),
                     opponentTier: tournamentTier,
                     opponentDescription: opponent?.description,
@@ -1205,6 +1206,7 @@ export const useGameStore = create<GameState>()(
                 metadata.opponentArchetypeProfile ?? createEmptyArchetypeProfile();
               const matchConfig: PreMatchConfig = {
                 opponentName: metadata.opponentName,
+                opponentCharacterId: metadata.opponentId,
                 opponentStats: metadata.opponentStats,
                 opponentTier: storyTier,
                 opponentDescription: metadata.opponentDescription,
@@ -1375,6 +1377,7 @@ export const useGameStore = create<GameState>()(
               );
               const matchConfig: PreMatchConfig = {
                 opponentName: opponent?.name || 'Opponent',
+                opponentCharacterId: opponent?.characterId,
                 opponentStats: opponent?.stats ?? ({} as PlayerStats),
                 opponentTier: tournamentTier,
                 opponentDescription: opponent?.description,
@@ -1429,6 +1432,7 @@ export const useGameStore = create<GameState>()(
                 metadata.opponentArchetypeProfile ?? createEmptyArchetypeProfile();
               const matchConfig: PreMatchConfig = {
                 opponentName: metadata.opponentName,
+                opponentCharacterId: metadata.opponentId,
                 opponentStats: metadata.opponentStats,
                 opponentTier: storyTier,
                 opponentDescription: metadata.opponentDescription,
@@ -1479,6 +1483,7 @@ export const useGameStore = create<GameState>()(
                 metadata.opponentArchetypeProfile ?? createEmptyArchetypeProfile();
               const matchConfig: PreMatchConfig = {
                 opponentName: metadata.opponentName,
+                opponentCharacterId: metadata.opponentId,
                 opponentStats: metadata.opponentStats,
                 opponentTier: metadata.opponentTier as OpponentTier,
                 opponentDescription: metadata.opponentDescription,

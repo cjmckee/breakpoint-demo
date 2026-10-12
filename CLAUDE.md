@@ -1016,13 +1016,19 @@ negate(price))` after checking `canAfford`.
 Characters are paper-doll sprites built in code, not image files.
 
 - **Layers** live in `src/data/sprites/layers.ts` as 16×21 string grids (hair back →
-  body → hair front → racquet), drawn in palette _symbols_ rather than colours.
+  body → hair front → accessory → racquet), drawn in palette _symbols_ rather than
+  colours. Accessories (glasses, cap, headband, visor) are signature items for key
+  characters; hats take the kit colour.
 - **Palettes** in `src/data/sprites/palettes.ts` fill the symbols from an `Appearance`
   (`src/types/appearance.ts`), so a new hair colour or kit is one palette entry.
 - **Composition** is pure: `composeSprite` in `src/core/spriteComposer.ts`. Render with
   `<PixelSprite appearance pose />`. Left-handers are the whole sprite mirrored.
-- A character without an authored look gets `appearanceFromSeed(name)`, which is stable
-  and never draws from the simulation's random stream.
+- **Every character has a fixed look**: `CHARACTERS` entries carry an `appearance`, and a
+  new dialogue speaker must be registered there (`spriteCheck` fails otherwise). Dialogue
+  portraits use `getCharacterAppearance`; match opponents use `getOpponentAppearance`
+  with the config's `opponentCharacterId`, so a named opponent looks the same on court.
+- A generated opponent gets `appearanceFromSeed(name)`, which is stable and never draws
+  from the simulation's random stream.
 - `src/test/spriteCheck.ts` validates every grid; run it after editing art.
 
 ### Match Simulation

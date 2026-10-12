@@ -48,6 +48,7 @@ export const StoryMatch: React.FC<StoryMatchProps> = ({ matchConfig }) => {
       },
       opponentStats: matchConfig.opponentStats,
       opponentName: matchConfig.opponentName,
+      opponentCharacterId: matchConfig.opponentCharacterId,
       opponentTier: matchConfig.opponentTier,
       surface: matchConfig.surface || 'hard',
       mood: currentStatus.mood,

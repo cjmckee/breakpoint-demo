@@ -2,7 +2,7 @@
  * Sprite layer grids — the paper doll.
  *
  * Every character is a stack of layers drawn on the same 16×21 grid, front-facing and
- * right-handed: hair (back) → body → hair (front) → racquet. Left-handers are the same
+ * right-handed: hair (back) → body → hair (front) → accessory → racquet. Left-handers are the same
  * stack mirrored. Each grid row is one string; each character is a palette symbol from
  * `palettes.ts`, and `.` leaves whatever is underneath.
  *
@@ -10,7 +10,7 @@
  * lines rather than a full canvas. `spriteCheck` verifies widths and symbols.
  */
 
-import type { HairStyle, SpritePose } from '../../types/appearance';
+import type { Accessory, HairStyle, SpritePose } from '../../types/appearance';
 
 export const SPRITE_WIDTH = 16;
 export const SPRITE_HEIGHT = 21;
@@ -194,5 +194,35 @@ export const HAIR_STYLES: Record<HairStyle, HairLayers> = {
         '...KKK....KKK...',
       ],
     },
+  },
+};
+
+// ─── Accessories ───────────────────────────────────────────────────────────
+
+export interface AccessoryLayer {
+  label: string;
+  layer: SpriteLayer;
+}
+
+/** Signature items. Hats take the kit colour, so a character's look stays one palette. */
+export const ACCESSORIES: Record<Accessory, AccessoryLayer> = {
+  glasses: {
+    label: 'Glasses',
+    layer: { top: 5, rows: ['.....KlKKlK.....'] },
+  },
+  cap: {
+    label: 'Cap',
+    layer: {
+      top: 1,
+      rows: ['.....KKKKKK.....', '....KOOWWOOK....', '....KOOOOOOK....', '...KooooooooK...'],
+    },
+  },
+  headband: {
+    label: 'Headband',
+    layer: { top: 3, rows: ['...KWWWWWWWWK...'] },
+  },
+  visor: {
+    label: 'Visor',
+    layer: { top: 3, rows: ['...KOOOOOOOOK...', '...KooooooooK...'] },
   },
 };

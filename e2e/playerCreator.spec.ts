@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { loadSave, readGame, stubThirdParty } from './helpers';
+import { loadSave, readGame, stubThirdParty, triggerStoryEvent } from './helpers';
 
 /**
  * The player creator builds a pixel-art look, and that look is the one on court.
  *
  * The creator's choices are only data until something draws them, so the spec follows
  * one through: chosen on the form, saved on the player, and standing on the court once
- * a match starts.
+ * a match starts. Named characters carry fixed looks into dialogue the same way.
  */
 
 test('the creator saves the chosen look', async ({ page }) => {
@@ -49,4 +49,18 @@ test('both players stand on the court as sprites', async ({ page }) => {
 
   await expect(page.getByTestId('court-figure-player')).toBeVisible();
   await expect(page.getByTestId('court-figure-opponent')).toBeVisible();
+});
+
+test('a named character speaks with their portrait', async ({ page }) => {
+  await loadSave(page, 'save-day7-1', 1234);
+  await triggerStoryEvent(page, 'pond_with_keith');
+
+  // Step through the dialogue until Keith speaks: his line shows his own portrait.
+  const portrait = page.getByTestId('dialogue-portrait');
+  for (let i = 0; i < 15; i++) {
+    if ((await portrait.getAttribute('data-character-id').catch(() => null)) === 'keith') break;
+    await page.getByTestId('story-advance').click();
+  }
+  await expect(portrait).toBeVisible();
+  await expect(portrait).toHaveAttribute('data-character-id', 'keith');
 });

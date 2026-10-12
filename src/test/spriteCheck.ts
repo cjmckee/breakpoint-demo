@@ -9,6 +9,7 @@
  */
 
 import {
+  ACCESSORIES,
   HAIR_STYLES,
   POSE_FRAMES,
   SPRITE_HEIGHT,
@@ -25,6 +26,8 @@ import {
   SKIN_TONE_KEYS,
 } from '../core/spriteComposer';
 import type { Appearance, SpritePose } from '../types/appearance';
+import { CHARACTERS } from '../data/characters';
+import { StoryEventRepository } from '../data/storyEvents';
 
 let failures = 0;
 
@@ -70,6 +73,10 @@ for (const [style, layers] of Object.entries(HAIR_STYLES)) {
   if (layers.back) checkLayer(`hair ${style} back`, layers.back);
 }
 
+for (const [accessory, { layer }] of Object.entries(ACCESSORIES)) {
+  checkLayer(`accessory ${accessory}`, layer);
+}
+
 console.log('\n── every appearance composes in every pose ──');
 const poses = Object.keys(POSE_FRAMES) as SpritePose[];
 let combos = 0;
@@ -103,6 +110,40 @@ check(
   'a seeded appearance is stable',
   JSON.stringify(appearanceFromSeed('Jordan')) === JSON.stringify(appearanceFromSeed('Jordan')),
 );
+
+console.log('\n── every speaker has a look ──');
+const speakers = new Set<string>();
+// Dialogue sits on events and on their outcomes at varying depths, so walk the lot.
+const collectSpeakers = (node: unknown): void => {
+  if (Array.isArray(node)) {
+    node.forEach(collectSpeakers);
+    return;
+  }
+  if (typeof node !== 'object' || node === null) return;
+  for (const [key, value] of Object.entries(node)) {
+    if (key === 'dialogue' && Array.isArray(value)) {
+      for (const line of value) {
+        if (Array.isArray(line) && typeof line[0] === 'string') speakers.add(line[0]);
+      }
+    } else if (key === 'characters' && Array.isArray(value)) {
+      value.forEach((id) => typeof id === 'string' && speakers.add(id));
+    } else {
+      collectSpeakers(value);
+    }
+  }
+};
+collectSpeakers(StoryEventRepository.getAllEvents());
+speakers.delete('player');
+const unregistered = [...speakers].filter((id) => !(id in CHARACTERS));
+check(
+  `all ${speakers.size} story characters are registered with an appearance`,
+  unregistered.length === 0,
+  `not in CHARACTERS: ${unregistered.join(', ')}`,
+);
+const keyLooks = Object.values(CHARACTERS)
+  .filter((c) => c.isKeyCharacter)
+  .map((c) => JSON.stringify(c.appearance));
+check('key characters all look different', new Set(keyLooks).size === keyLooks.length);
 
 if (failures > 0) {
   console.log(`\n${failures} sprite check(s) failed`);

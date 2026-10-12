@@ -24,7 +24,8 @@ export type SpriteSymbol =
   | 'W' // socks
   | 'R' // racquet frame
   | 'G' // racquet strings
-  | 'T'; // racquet grip
+  | 'T' // racquet grip
+  | 'l'; // glasses lens
 
 interface Ramp {
   base: string;
@@ -50,7 +51,7 @@ export const SKIN_TONES: Record<SkinTone, PaletteEntry<Ramp>> = {
 };
 
 export const HAIR_COLORS: Record<HairColor, PaletteEntry<HairRamp>> = {
-  black: { label: 'Black', ramp: { base: '#2f2f3b', shade: '#1c1c25', light: '#55556a' } },
+  black: { label: 'Black', ramp: { base: '#3b3b4c', shade: '#26262f', light: '#62627a' } },
   brown: { label: 'Brown', ramp: { base: '#6b4226', shade: '#4e2f1a', light: '#8f5c37' } },
   auburn: { label: 'Auburn', ramp: { base: '#8f3a24', shade: '#6b2818', light: '#b8553b' } },
   blonde: { label: 'Blonde', ramp: { base: '#e3bf5f', shade: '#c09a40', light: '#f6e3a0' } },
@@ -76,4 +77,5 @@ export const FIXED_COLORS = {
   R: '#e94560',
   G: '#e8e8e8',
   T: '#3b3b4f',
+  l: '#cfe6ff',
 } as const satisfies Partial<Record<SpriteSymbol, string>>;

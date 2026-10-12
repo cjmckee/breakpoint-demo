@@ -18,6 +18,7 @@ import type {
   SpritePose,
 } from '../types/appearance';
 import {
+  ACCESSORIES,
   HAIR_STYLES,
   POSE_FRAMES,
   SPRITE_HEIGHT,
@@ -104,6 +105,7 @@ export function composeSprite(appearance: Appearance, pose: SpritePose, frame = 
   if (hair.back) stamp(canvas, hair.back, palette);
   stamp(canvas, poseFrame.body, palette);
   stamp(canvas, hair.front, palette);
+  if (appearance.accessory) stamp(canvas, ACCESSORIES[appearance.accessory].layer, palette);
   stamp(canvas, poseFrame.racquet, palette);
 
   if (appearance.handedness === 'left') canvas.forEach((row) => row.reverse());

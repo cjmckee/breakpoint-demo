@@ -16,6 +16,9 @@ export type KitColor = 'white' | 'navy' | 'crimson' | 'forest' | 'sky' | 'violet
 
 export type Handedness = 'right' | 'left';
 
+/** A signature item drawn over the head: worn by key characters, not offered in the creator. */
+export type Accessory = 'glasses' | 'cap' | 'headband' | 'visor';
+
 export interface Appearance {
   skinTone: SkinTone;
   hairStyle: HairStyle;
@@ -23,6 +26,7 @@ export interface Appearance {
   kitColor: KitColor;
   /** Which hand holds the racquet; mirrors the racquet layer. */
   handedness: Handedness;
+  accessory?: Accessory;
 }
 
 /** A sprite pose. Each pose has one or more frames that the renderer cycles through. */
