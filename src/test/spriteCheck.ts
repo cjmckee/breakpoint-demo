@@ -28,6 +28,8 @@ import {
 } from '../core/spriteComposer';
 import type { Appearance, SpritePose } from '../types/appearance';
 import { CHARACTERS } from '../data/characters';
+import { GEAR_LOOKS } from '../data/sprites/gearLooks';
+import { ALL_ITEMS } from '../data/items';
 import { StoryEventRepository } from '../data/storyEvents';
 import { TournamentRegistry } from '../data/tournaments';
 import * as TeamMatches from '../data/teamMatches';
@@ -189,6 +191,21 @@ const keyLooks = Object.values(CHARACTERS)
   .filter((c) => c.isKeyCharacter)
   .map((c) => JSON.stringify(c.appearance));
 check('key characters all look different', new Set(keyLooks).size === keyLooks.length);
+
+console.log('\n── gear looks ──');
+const misfiled = Object.entries(GEAR_LOOKS).filter(([id, look]) => {
+  const item = ALL_ITEMS.find((candidate) => candidate.id === id);
+  if (!item) return true;
+  if (look.accessory && item.equipmentSlot !== 'hat') return true;
+  return look.kitColor !== undefined && item.equipmentSlot !== 'outfit';
+});
+check(
+  'every gear look names a real hat (accessory) or outfit (kit)',
+  misfiled.length === 0,
+  misfiled.map(([id]) => id).join(', '),
+);
+const bareHats = ALL_ITEMS.filter((i) => i.equipmentSlot === 'hat' && !GEAR_LOOKS[i.id]?.accessory);
+check('every hat shows on the sprite', bareHats.length === 0, bareHats.map((i) => i.id).join(', '));
 
 if (failures > 0) {
   console.log(`\n${failures} sprite check(s) failed`);

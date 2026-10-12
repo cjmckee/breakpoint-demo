@@ -379,4 +379,27 @@ export const ACCESSORIES: Record<Accessory, AccessoryLayer> = {
     layer: { top: 3, rows: ['...KOOOOOOOOK...', '...KooooooooK...'] },
     side: { top: 3, rows: ['....KOOOOOOOK...', '..........oooK..'] },
   },
+  chef_hat: {
+    label: "Chef's Hat",
+    layer: {
+      top: 0,
+      rows: [
+        '....KKKKKKKK....',
+        '...KWWWWWWWWK...',
+        '...KWWWWWWWWK...',
+        '....KWWWWWWK....',
+        '....KWWWWWWK....',
+      ],
+    },
+    side: {
+      top: 0,
+      rows: [
+        '.....KKKKKKK....',
+        '....KWWWWWWWK...',
+        '....KWWWWWWWK...',
+        '.....KWWWWWK....',
+        '.....KWWWWWK....',
+      ],
+    },
+  },
 };
