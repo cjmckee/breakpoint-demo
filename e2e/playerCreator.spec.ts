@@ -48,6 +48,13 @@ test('both players stand on the court as sprites', async ({ page }) => {
 
   await expect(page.getByTestId('court-figure-player')).toBeVisible();
   await expect(page.getByTestId('court-figure-opponent')).toBeVisible();
+
+  // When a point ends, its winner cheers and the loser slumps.
+  const figures = page.locator('[data-testid^="court-figure-"]');
+  await expect(figures.and(page.locator('[data-pose="cheer"]'))).toHaveCount(1, {
+    timeout: 20_000,
+  });
+  await expect(figures.and(page.locator('[data-pose="slump"]'))).toHaveCount(1);
 });
 
 test('a named character speaks with their portrait', async ({ page }) => {

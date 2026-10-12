@@ -76,9 +76,11 @@ function stamp(
   canvas: (string | null)[][],
   layer: SpriteLayer,
   palette: Record<SpriteSymbol, string>,
+  dy = 0,
 ): void {
   layer.rows.forEach((row, r) => {
-    const y = layer.top + r;
+    const y = layer.top + r + dy;
+    if (y < 0 || y >= canvas.length) return;
     for (let x = 0; x < row.length; x++) {
       const ch = row[x];
       if (isSpriteSymbol(ch, palette)) canvas[y][x] = palette[ch];
@@ -121,17 +123,26 @@ export function composeSprite(
   const canvas: (string | null)[][] = Array.from({ length: SPRITE_HEIGHT }, () =>
     Array<string | null>(SPRITE_WIDTH).fill(null),
   );
+  const headDy = poseFrame.headDy ?? 0;
   if (side) {
     stamp(canvas, poseFrame.body, palette);
-    stamp(canvas, hair.side, palette);
-    if (accessory) stamp(canvas, accessory.side, palette);
+    stamp(canvas, hair.side, palette, headDy);
+    if (accessory) stamp(canvas, accessory.side, palette, headDy);
   } else {
-    if (hair.back) stamp(canvas, hair.back, palette);
+    if (hair.back) stamp(canvas, hair.back, palette, headDy);
     stamp(canvas, poseFrame.body, palette);
-    stamp(canvas, hair.front, palette);
-    if (accessory) stamp(canvas, accessory.layer, palette);
+    stamp(canvas, hair.front, palette, headDy);
+    if (accessory) stamp(canvas, accessory.layer, palette, headDy);
   }
   if (racquet) stamp(canvas, poseFrame.racquet, palette);
+
+  // A hop moves the whole figure; rows pushed off the grid are dropped.
+  const dy = poseFrame.dy ?? 0;
+  if (dy !== 0) {
+    const empty = (): (string | null)[] => Array<string | null>(SPRITE_WIDTH).fill(null);
+    const shifted = canvas.map((_, y) => canvas[y - dy] ?? empty());
+    canvas.splice(0, canvas.length, ...shifted);
+  }
 
   const mirror = side ? facing === 'left' : appearance.handedness === 'left';
   if (mirror) canvas.forEach((row) => row.reverse());

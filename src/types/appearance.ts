@@ -33,4 +33,4 @@ export interface Appearance {
 }
 
 /** A sprite pose. Each pose has one or more frames that the renderer cycles through. */
-export type SpritePose = 'idle' | 'run' | 'swing';
+export type SpritePose = 'idle' | 'run' | 'swing' | 'cheer' | 'slump';

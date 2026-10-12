@@ -1027,6 +1027,8 @@ Characters are paper-doll sprites built in code, not image files.
 - **Two views.** Front-facing for portraits and the creator; side-on (`facing`) on the
   court, where the players face each other. Every hairstyle and accessory needs a
   `side` layer too, drawn facing right.
+- **Poses**: idle, run, swing, and the point-end `cheer` and `slump`. A frame that moves
+  the head sets `headDy` so hair and accessories follow; a hop sets `dy`.
 - **Pixel art, not real scale.** Court players stand about a third of the court's height.
 - **Gear shows on the player.** `src/data/sprites/gearLooks.ts` maps a hat item to an
   accessory and an outfit to a kit colour, by catalogue id. Read the player's drawn
