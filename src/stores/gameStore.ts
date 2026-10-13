@@ -5,6 +5,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { GAME_STORE_KEY } from '../config/channel';
 import {
   migrateStore,
   runMigrations,
@@ -1089,8 +1090,9 @@ export const useGameStore = create<GameState>()(
           gamePhase: { type: 'player_creation' },
         });
 
-        // Also clear localStorage to ensure clean slate
-        localStorage.clear();
+        // Drop this channel's save outright. Only our key: staging and the live game share
+        // an origin, so clearing all of localStorage would wipe the other one's save too.
+        localStorage.removeItem(GAME_STORE_KEY);
         console.log('All game data cleared');
       },
 
@@ -3745,7 +3747,7 @@ export const useGameStore = create<GameState>()(
       },
     }),
     {
-      name: 'tennis-rpg-game-store',
+      name: GAME_STORE_KEY,
       version: CURRENT_STORE_VERSION,
       migrate: (persistedState, version) => migrateStore(persistedState, version),
       partialize: (state) => ({
