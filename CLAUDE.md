@@ -1040,7 +1040,7 @@ Use Zustand persistence:
 - Clear persistence keys on version changes
 - **Staging shares the live origin.** The `staging` branch deploys to `/staging/` on the
   same Pages site, so it shares localStorage with the live game. Key anything stored
-  per channel (`GAME_STORE_KEY` in `src/config/channel.ts`) and never call
+  per channel (`GAME_STORE_KEY` in `src/stores/channel.ts`) and never call
   `localStorage.clear()`, which would wipe the other build's save.
 
 ### Formatting

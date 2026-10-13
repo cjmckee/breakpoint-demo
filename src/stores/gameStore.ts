@@ -5,7 +5,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { GAME_STORE_KEY } from '../config/channel';
+import { GAME_STORE_KEY } from './channel';
 import {
   migrateStore,
   runMigrations,

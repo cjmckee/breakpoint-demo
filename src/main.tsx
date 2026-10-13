@@ -5,7 +5,7 @@ import './index.css';
 import { initAnalytics } from './analytics/analytics';
 import { setSeed } from './core/random';
 import { installTestHandle } from './debug/testHandle';
-import { CHANNEL } from './config/channel';
+import { CHANNEL } from './stores/channel';
 
 initAnalytics();
 installTestHandle();
