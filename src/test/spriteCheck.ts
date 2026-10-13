@@ -45,7 +45,18 @@ function check(label: string, condition: boolean, detail?: string): void {
   }
 }
 
-const SYMBOLS = new Set(['.', ...Object.keys(FIXED_COLORS), 'S', 's', 'H', 'h', 'L', 'O', 'o', 'B']);
+const SYMBOLS = new Set([
+  '.',
+  ...Object.keys(FIXED_COLORS),
+  'S',
+  's',
+  'H',
+  'h',
+  'L',
+  'O',
+  'o',
+  'B',
+]);
 
 function checkLayer(name: string, layer: SpriteLayer): void {
   const badWidth = layer.rows.findIndex((row) => row.length !== SPRITE_WIDTH);
