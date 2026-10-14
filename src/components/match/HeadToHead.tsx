@@ -65,7 +65,7 @@ interface HeadToHeadProps {
   opponentName: string;
   opponentOverall: number;
   opponentStats: PlayerStats;
-  /** Under the opponent's name: their archetype, typically. */
+  /** Under the opponent's stat column: their archetype, typically. */
   opponentTag?: React.ReactNode;
   playerAppearance: Appearance;
   opponentAppearance: Appearance;
@@ -121,7 +121,6 @@ export const HeadToHead: React.FC<HeadToHeadProps> = ({
             >
               {opponentOverall}
             </div>
-            {opponentTag && <div className="mt-1 flex justify-end max-w-full">{opponentTag}</div>}
           </div>
           <PixelSprite
             appearance={opponentAppearance}
@@ -169,6 +168,14 @@ export const HeadToHead: React.FC<HeadToHeadProps> = ({
           );
         })}
       </div>
+
+      {/* Under the opponent's column, so the header holds only names and ratings and both
+          sides line up. */}
+      {opponentTag && (
+        <div className="mt-3 flex justify-end" data-testid="head-to-head-opponent-tag">
+          {opponentTag}
+        </div>
+      )}
 
       {/* Where the match will be won and lost, across every stat */}
       {(edges.ours.length > 0 || edges.theirs.length > 0) && (
