@@ -74,7 +74,7 @@ export const StatCard: React.FC<StatCardProps> = ({
   const card = (
     <div
       className={`
-        relative p-3 sm:p-4 rounded-lg border-2 border-pixel-border
+        relative px-1.5 py-3 sm:p-4 rounded-lg border-2 border-pixel-border
         bg-pixel-card h-full
         transition-all duration-300
         ${description ? 'hover:border-pixel-accent cursor-pointer' : ''}
