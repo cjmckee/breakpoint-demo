@@ -35,6 +35,8 @@ import { TutorialCallout } from './tutorial/TutorialCallout';
 import { MAIN_MENU_TUTORIAL_STEPS, MainMenuTarget } from '../data/tutorialSteps';
 import { ANCHOR_TRAINING_ENERGY_COST } from '../game/AnchorTrainingSystem';
 import { hasNewCurrency, newCurrency, unitsOf, unspentSpecPoints } from '../game/StatDevelopment';
+import { PixelSprite } from './sprites/PixelSprite';
+import { usePlayerAppearance } from '../hooks/usePlayerAppearance';
 
 interface MainMenuProps {
   overlay: OverlayState | null;
@@ -44,6 +46,7 @@ const MATCH_ENERGY_COST = 50;
 
 export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const player = useGameStore((state) => state.player);
+  const playerAppearance = usePlayerAppearance();
   const currentStatus = useGameStore((state) => state.currentStatus);
   const calendar = useGameStore((state) => state.calendar);
   const navigateTo = useGameStore((state) => state.navigateTo);
@@ -386,31 +389,39 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
         {/* Hero Header: who the player is, at a glance */}
         <Card className="mb-6" padding="md">
           <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-4">
-            {/* Identity */}
-            <div className="min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-bold text-pixel-text leading-tight truncate">
-                {player.name}
-              </h1>
-              <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                <span className={`text-sm font-bold ${getTierColor(player.tier)}`}>
-                  {getTierName(player.tier)}
-                </span>
-                {/* Identity pill. Spare specialization points are counted on the Develop
-                    tile, which is where they get spent, so the pill stays a plain link. */}
-                <button
-                  data-testid="action-archetype"
-                  onClick={() => navigateTo('archetype')}
-                  disabled={!player.archetypeProfile.broad}
-                  title={player.archetypeProfile.broad ? 'Open archetype tree' : undefined}
-                  className="inline-flex items-center gap-1.5 text-sm px-3 py-1 bg-pixel-accent bg-opacity-20 border-2 border-pixel-accent text-pixel-accent font-bold enabled:hover:bg-opacity-30 transition-colors"
-                >
-                  <span aria-hidden="true">⬡</span>
-                  {archetypeLabel}
-                </button>
+            {/* Identity: the player as they look today, gear and all */}
+            <div className="flex items-center gap-4 min-w-0">
+              <div
+                className="shrink-0 bg-pixel-bg border-2 border-pixel-border px-1 pt-1"
+                data-testid="menu-avatar"
+              >
+                <PixelSprite appearance={playerAppearance} scale={4} className="block" />
               </div>
-              <div className="flex items-center gap-2 mt-2">
-                <span className="text-xs text-pixel-text-muted">Matches:</span>
-                {renderMatchRecord()}
+              <div className="min-w-0">
+                <h1 className="text-xl sm:text-3xl font-bold text-pixel-text leading-tight break-words">
+                  {player.name}
+                </h1>
+                <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                  <span className={`text-sm font-bold ${getTierColor(player.tier)}`}>
+                    {getTierName(player.tier)}
+                  </span>
+                  {/* Identity pill. Spare specialization points are counted on the Develop
+                    tile, which is where they get spent, so the pill stays a plain link. */}
+                  <button
+                    data-testid="action-archetype"
+                    onClick={() => navigateTo('archetype')}
+                    disabled={!player.archetypeProfile.broad}
+                    title={player.archetypeProfile.broad ? 'Open archetype tree' : undefined}
+                    className="inline-flex items-center gap-1.5 text-sm px-3 py-1 bg-pixel-accent bg-opacity-20 border-2 border-pixel-accent text-pixel-accent font-bold enabled:hover:bg-opacity-30 transition-colors"
+                  >
+                    <span aria-hidden="true">⬡</span>
+                    {archetypeLabel}
+                  </button>
+                </div>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-xs text-pixel-text-muted">Matches:</span>
+                  {renderMatchRecord()}
+                </div>
               </div>
             </div>
 
@@ -617,12 +628,13 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
         </div>
       </div>
 
-      {/* First-run walkthrough: dim everything, lift the spotlit section, dock the callout */}
+      {/* First-run walkthrough: dim everything, lift the spotlit section, dock the callout.
+          Wider on desktop so the pixel font's long steps stay short enough to dock clear. */}
       {activeStep && (
         <>
           <div className="fixed inset-0 z-50 bg-black bg-opacity-75 pointer-events-none" />
           <div
-            className={`fixed left-1/2 -translate-x-1/2 z-[70] w-full max-w-md px-4 overflow-y-auto ${
+            className={`fixed left-1/2 -translate-x-1/2 z-[70] w-full max-w-md lg:max-w-2xl px-4 overflow-y-auto ${
               dock?.atTop ? 'top-2' : 'bottom-2'
             }`}
             style={dock ? { maxHeight: `${dock.maxHeight}px` } : undefined}

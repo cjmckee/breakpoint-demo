@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+// The pixel font ships with the build, so every player (and every test) sees the same text.
+import '@fontsource/press-start-2p/latin-400.css';
 import './index.css';
 import { initAnalytics } from './analytics/analytics';
 import { setSeed } from './core/random';

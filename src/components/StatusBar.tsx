@@ -154,7 +154,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({ energyPreview = 0 }) => {
             )}
           </div>
           {/* Fixed width, so the bar does not resize when the readout grows. */}
-          <span className="text-sm font-bold text-pixel-text whitespace-nowrap sm:w-[4.5rem]">
+          <span className="text-sm font-bold text-pixel-text whitespace-nowrap tabular-nums sm:w-[7rem]">
             {energyPreview !== 0 ? (
               <>
                 {currentStatus.energy}

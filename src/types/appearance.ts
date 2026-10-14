@@ -22,6 +22,10 @@ export type Handedness = 'right' | 'left';
  */
 export type Accessory = 'glasses' | 'cap' | 'headband' | 'visor' | 'chef_hat';
 
+/** Colours for gear that shows on the sprite: racquet frames and shoes. */
+export type GearColor =
+  'red' | 'black' | 'white' | 'gold' | 'blue' | 'green' | 'orange' | 'silver' | 'clay';
+
 export interface Appearance {
   skinTone: SkinTone;
   hairStyle: HairStyle;
@@ -30,7 +34,11 @@ export interface Appearance {
   /** Which hand holds the racquet; mirrors the racquet layer. */
   handedness: Handedness;
   accessory?: Accessory;
+  /** Racquet frame colour from equipped gear; the classic red when unset. */
+  racquetColor?: GearColor;
+  /** Shoe colour from equipped gear; a shade of the kit when unset. */
+  shoeColor?: GearColor;
 }
 
 /** A sprite pose. Each pose has one or more frames that the renderer cycles through. */
-export type SpritePose = 'idle' | 'run' | 'swing';
+export type SpritePose = 'idle' | 'run' | 'swing' | 'cheer' | 'slump';
