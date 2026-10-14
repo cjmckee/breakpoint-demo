@@ -21,12 +21,15 @@ import {
   ACCESSORIES,
   HAIR_STYLES,
   POSE_FRAMES,
+  SIDE_POSE_FRAMES,
   SPRITE_HEIGHT,
   SPRITE_WIDTH,
   type SpriteLayer,
 } from '../data/sprites/layers';
+import { GEAR_LOOKS } from '../data/sprites/gearLooks';
 import {
   FIXED_COLORS,
+  GEAR_COLORS,
   HAIR_COLORS,
   KIT_COLORS,
   SKIN_TONES,
@@ -63,6 +66,8 @@ function paletteFor(appearance: Appearance): Record<SpriteSymbol, string> {
     L: hair.light,
     O: kit.base,
     o: kit.shade,
+    B: appearance.shoeColor ? GEAR_COLORS[appearance.shoeColor].ramp.base : kit.shade,
+    ...(appearance.racquetColor && { R: GEAR_COLORS[appearance.racquetColor].ramp.base }),
   };
 }
 
@@ -74,9 +79,11 @@ function stamp(
   canvas: (string | null)[][],
   layer: SpriteLayer,
   palette: Record<SpriteSymbol, string>,
+  dy = 0,
 ): void {
   layer.rows.forEach((row, r) => {
-    const y = layer.top + r;
+    const y = layer.top + r + dy;
+    if (y < 0 || y >= canvas.length) return;
     for (let x = 0; x < row.length; x++) {
       const ch = row[x];
       if (isSpriteSymbol(ch, palette)) canvas[y][x] = palette[ch];
@@ -89,31 +96,59 @@ export function spriteFrameCount(pose: SpritePose): number {
   return POSE_FRAMES[pose].length;
 }
 
+export interface ComposeOptions {
+  /** False draws empty hands, for people who don't play. */
+  racquet?: boolean;
+  /**
+   * Draw side-on, facing this way, instead of front-facing. The side view ignores
+   * handedness: which way they face decides the mirror.
+   */
+  facing?: 'left' | 'right';
+}
+
 /**
  * Compose one frame of a character into pixel runs. `frame` wraps, so a caller can pass
- * an ever-increasing tick. `racquet: false` draws empty hands, for people who don't play.
+ * an ever-increasing tick.
  */
 export function composeSprite(
   appearance: Appearance,
   pose: SpritePose,
   frame = 0,
-  { racquet = true }: { racquet?: boolean } = {},
+  { racquet = true, facing }: ComposeOptions = {},
 ): PixelRun[] {
-  const frames = POSE_FRAMES[pose];
+  const side = facing !== undefined;
+  const frames = (side ? SIDE_POSE_FRAMES : POSE_FRAMES)[pose];
   const poseFrame = frames[((frame % frames.length) + frames.length) % frames.length];
   const hair = HAIR_STYLES[appearance.hairStyle];
+  const accessory = appearance.accessory ? ACCESSORIES[appearance.accessory] : null;
   const palette = paletteFor(appearance);
 
   const canvas: (string | null)[][] = Array.from({ length: SPRITE_HEIGHT }, () =>
     Array<string | null>(SPRITE_WIDTH).fill(null),
   );
-  if (hair.back) stamp(canvas, hair.back, palette);
-  stamp(canvas, poseFrame.body, palette);
-  stamp(canvas, hair.front, palette);
-  if (appearance.accessory) stamp(canvas, ACCESSORIES[appearance.accessory].layer, palette);
+  const headDy = poseFrame.headDy ?? 0;
+  if (side) {
+    stamp(canvas, poseFrame.body, palette);
+    stamp(canvas, hair.side, palette, headDy);
+    if (accessory) stamp(canvas, accessory.side, palette, headDy);
+  } else {
+    if (hair.back) stamp(canvas, hair.back, palette, headDy);
+    stamp(canvas, poseFrame.body, palette);
+    stamp(canvas, hair.front, palette, headDy);
+    if (accessory) stamp(canvas, accessory.layer, palette, headDy);
+  }
   if (racquet) stamp(canvas, poseFrame.racquet, palette);
 
-  if (appearance.handedness === 'left') canvas.forEach((row) => row.reverse());
+  // A hop moves the whole figure; rows pushed off the grid are dropped.
+  const dy = poseFrame.dy ?? 0;
+  if (dy !== 0) {
+    const empty = (): (string | null)[] => Array<string | null>(SPRITE_WIDTH).fill(null);
+    const shifted = canvas.map((_, y) => canvas[y - dy] ?? empty());
+    canvas.splice(0, canvas.length, ...shifted);
+  }
+
+  const mirror = side ? facing === 'left' : appearance.handedness === 'left';
+  if (mirror) canvas.forEach((row) => row.reverse());
 
   const runs: PixelRun[] = [];
   canvas.forEach((row, y) => {
@@ -134,6 +169,20 @@ export function composeSprite(
 }
 
 // ─── Appearance helpers ────────────────────────────────────────────────────
+
+/**
+ * The look with equipped gear on: a hat becomes the accessory, an outfit recolours the
+ * kit. Items without a gear look leave it alone.
+ */
+export function appearanceWithGear(
+  appearance: Appearance,
+  equipped: readonly ({ id: string } | null)[],
+): Appearance {
+  return equipped.reduce<Appearance>(
+    (look, item) => (item && GEAR_LOOKS[item.id] ? { ...look, ...GEAR_LOOKS[item.id] } : look),
+    appearance,
+  );
+}
 
 export const SKIN_TONE_KEYS = Object.keys(SKIN_TONES) as SkinTone[];
 export const HAIR_STYLE_KEYS = Object.keys(HAIR_STYLES) as HairStyle[];

@@ -107,6 +107,8 @@ export interface InteractiveMatchConfig {
   opponentStats: PlayerStats;
   playerName?: string; // Player's display name
   opponentName?: string; // Opponent's display name
+  /** CHARACTERS id when the opponent is a named character, for their fixed look. */
+  opponentCharacterId?: string;
   opponentTier?: number; // Opponent tier (1-4) for reward calculation
   playerArchetypeProfile?: ArchetypeProfile; // Drives player shot-selection behavior
   opponentArchetypeProfile?: ArchetypeProfile; // Drives opponent shot-selection behavior

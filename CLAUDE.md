@@ -1024,8 +1024,29 @@ Characters are paper-doll sprites built in code, not image files.
   (`src/types/appearance.ts`), so a new hair colour or kit is one palette entry.
 - **Composition** is pure: `composeSprite` in `src/core/spriteComposer.ts`. Render with
   `<PixelSprite appearance pose />`. Left-handers are the whole sprite mirrored.
-- `appearanceFromSeed(name)` gives a stable look to anyone without an authored one, and
-  never draws from the simulation's random stream.
+- **Two views.** Front-facing for portraits and the creator; side-on (`facing`) on the
+  court, where the players face each other. Every hairstyle and accessory needs a
+  `side` layer too, drawn facing right.
+- **Poses**: idle, run, swing, and the point-end `cheer` and `slump`. A frame that moves
+  the head sets `headDy` so hair and accessories follow; a hop sets `dy`.
+- **Pixel art, not real scale.** Court players stand about a third of the court's height.
+- **Gear shows on the player.** `src/data/sprites/gearLooks.ts` maps, by catalogue id, a
+  hat to an accessory, an outfit to a kit colour, and a racquet or shoes to a gear
+  colour. Read the player's drawn look with `usePlayerAppearance()`, never
+  `player.appearance` directly. `spriteCheck` fails if a hat, racquet or pair of shoes
+  has no look.
+- **Reduced motion.** `PixelSprite` holds its first frame when the player's system asks
+  for less motion (`usePrefersReducedMotion`). Anything else that animates sprites —
+  gliding, looping previews — checks the same hook.
+- **Every character has a fixed look**: `CHARACTERS` entries carry an `appearance`, and a
+  new dialogue speaker must be registered there (`spriteCheck` fails otherwise). Dialogue
+  portraits use `getCharacterAppearance`; match opponents use `getOpponentAppearance`
+  with the config's `opponentCharacterId`, so a named opponent looks the same on court.
+- **Only players hold a racquet.** A character's `plays` (`opponent` or `teammate`)
+  marks someone who plays; everyone else is drawn empty-handed (`holdsRacquet`).
+  `spriteCheck` fails if a match opponent has no `plays`.
+- `appearanceFromSeed(name)` gives a generated opponent a stable look, and never draws
+  from the simulation's random stream.
 - `src/test/spriteCheck.ts` validates every grid; run it after editing art.
 
 ### Match Simulation
@@ -1069,6 +1090,14 @@ control instead. The tutorials are the exception. Desktop comes first, but about
 30% of players are on phones, so check every UI change on the `mobile` e2e
 project (Pixel 5) as well.
 
+**Text has to fit in the pixel font.** Press Start 2P is far wider than a system
+font. It ships with the build (`@fontsource/press-start-2p`, imported in `main.tsx`),
+so never load a font from a CDN: a blocked request swaps in a narrow fallback and
+hides overflow. Let long labels wrap rather than `truncate`, and on phones drop words
+the screen already shows ("Start Match", not "Start Match vs Danny Park").
+`textFit.spec.ts` walks the main screens on both projects and fails on any cut-off
+text or sideways scroll; add a screen there when you build one.
+
 **Every screen sits in the same frame.** Full-screen phases render inside
 `ScreenFrame` (`src/components/ui/ScreenFrame.tsx`). It owns the status bar, the
 title row and the back control (`screen-back`, in a fixed slot), so none of these
@@ -1102,7 +1131,7 @@ body runs. Never put it at the end of a scrolling body.
 - Key moment headers are coloured by `keyMomentStakes`.
 
 **The dark theme is the only theme.** No white or pastel cards. Show a selection
-with an accent border and a check, not a light fill. Wrap hover styles in
+with an accent border and a check (`PixelCheckbox`), not a light fill. Wrap hover styles in
 `[@media(hover:hover)]:` where a stuck hover on a phone would look like a selection.
 
 **Badges and states:**

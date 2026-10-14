@@ -18,6 +18,9 @@ import { EquipmentSlot as EquipmentSlotCard } from './inventory/EquipmentSlot';
 import { InventoryItem } from './inventory/InventoryItem';
 import { ItemDetailModal } from './inventory/ItemDetailModal';
 import { StatPills, EffectChips } from './inventory/ItemEffects';
+import { PixelSprite } from './sprites/PixelSprite';
+import { usePlayerAppearance } from '../hooks/usePlayerAppearance';
+import { appearanceWithGear } from '../core/spriteComposer';
 
 // Re-exported for Shop.tsx which reads slot display names.
 export { SLOT_NAMES } from './inventory/itemHelpers';
@@ -47,8 +50,13 @@ export const Inventory: React.FC = () => {
   const [hoveredItem, setHoveredItem] = useState<OwnedItem | null>(null);
   const [filter, setFilter] = useState<FilterTab>('all');
   const [isGridDropTarget, setIsGridDropTarget] = useState(false);
+  const wearing = usePlayerAppearance();
 
   if (!player) return null;
+
+  // Hovering or dragging a piece of gear tries it on.
+  const tryingOn = draggingItem ?? hoveredItem;
+  const look = tryingOn?.equipmentSlot ? appearanceWithGear(wearing, [tryingOn]) : wearing;
 
   const passiveBoosts = ItemManager.getTotalPassiveBoosts(player);
   const passiveEffects = ItemManager.getTotalPassiveEffects(player);
@@ -120,6 +128,18 @@ export const Inventory: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(280px,340px)_1fr] gap-6">
         {/* ---- Left: Loadout ---- */}
         <div className="flex flex-col gap-6">
+          <Card padding="md">
+            <div className="flex justify-center">
+              <div
+                className="bg-pixel-primary border-4 border-pixel-border p-3"
+                data-testid="inventory-avatar"
+                data-accessory={look.accessory ?? ''}
+                data-kit={look.kitColor}
+              >
+                <PixelSprite appearance={look} scale={6} className="block w-16 h-auto lg:w-24" />
+              </div>
+            </div>
+          </Card>
           <Card title="Equipment" padding="md">
             <div className="flex flex-col gap-3">
               {EQUIPMENT_SLOTS.map((slot) => (

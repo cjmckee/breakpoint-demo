@@ -61,6 +61,7 @@ export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig })
       },
       opponentStats: matchConfig.opponentStats,
       opponentName: matchConfig.opponentName,
+      opponentCharacterId: matchConfig.opponentCharacterId,
       opponentTier: matchConfig.opponentTier,
       surface: matchConfig.surface,
       mood: currentStatus.mood,
@@ -134,6 +135,7 @@ export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig })
       playerAbilities={player.abilities}
       opponentAbilities={matchConfig.opponentAbilities}
       opponentName={matchConfig.opponentName}
+      opponentCharacterId={matchConfig.opponentCharacterId}
       opponentDescription={matchConfig.opponentDescription}
       opponentStats={matchConfig.opponentStats}
       opponentPlayStyle={matchConfig.opponentPlayStyle}

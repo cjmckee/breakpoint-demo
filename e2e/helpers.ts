@@ -28,21 +28,18 @@ export const callout = (page: Page) => page.getByTestId('tutorial-callout');
  * Third-party hosts the app loads from, answered with an empty body of the right
  * type so no spec depends on reaching them.
  *
- * src/index.css imports the pixel font from Google Fonts on every page load, and the
- * menu's Feedback tab loads the giscus comments widget. Where those hosts are
+ * The menu's Feedback tab loads the giscus comments widget. Where that host is
  * unreachable (offline, a CI runner, a sandbox behind a proxy) the failed load
  * logs a console error, which fails any spec watching for them over something
  * that is not the game. Fulfilled rather than aborted, since an abort logs the
- * same error. The font falls back to the system one, which no spec reads.
+ * same error. The pixel font is bundled, so specs render the real text widths.
  */
 const THIRD_PARTY: ReadonlyArray<{ pattern: string; contentType: string }> = [
-  { pattern: 'https://fonts.googleapis.com/**', contentType: 'text/css' },
-  { pattern: 'https://fonts.gstatic.com/**', contentType: 'font/woff2' },
   { pattern: 'https://giscus.app/**', contentType: 'text/javascript' },
 ];
 
 /** Stubs every THIRD_PARTY host. Called by both boot helpers, so every spec gets it. */
-async function stubThirdParty(page: Page): Promise<void> {
+export async function stubThirdParty(page: Page): Promise<void> {
   for (const { pattern, contentType } of THIRD_PARTY) {
     await page.route(pattern, (route) => route.fulfill({ status: 200, contentType, body: '' }));
   }
@@ -57,7 +54,7 @@ export async function startNewGame(page: Page, name = 'Testy McTestface'): Promi
   await page.getByRole('button', { name: 'Start Your Journey' }).click();
 
   await page.locator('#player-name').fill(name);
-  await page.getByRole('button', { name: 'Create Player' }).click();
+  await page.getByTestId('creator-submit').click();
 
   // welcome_to_tennis_rpg runs dialogue, resolves, then grants two items — so the chain
   // is Continue through the dialogue and result, then Next/Got it through the item

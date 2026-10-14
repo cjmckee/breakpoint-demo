@@ -7,7 +7,7 @@
  * tone and kit.
  */
 
-import type { HairColor, KitColor, SkinTone } from '../../types/appearance';
+import type { GearColor, HairColor, KitColor, SkinTone } from '../../types/appearance';
 
 /** Placeholder symbols used in layer grids. `.` is transparent. */
 export type SpriteSymbol =
@@ -21,6 +21,7 @@ export type SpriteSymbol =
   | 'O' // kit
   | 'o' // kit shade
   | 'P' // shorts
+  | 'B' // shoes
   | 'W' // socks
   | 'R' // racquet frame
   | 'G' // racquet strings
@@ -57,6 +58,18 @@ export const HAIR_COLORS: Record<HairColor, PaletteEntry<HairRamp>> = {
   blonde: { label: 'Blonde', ramp: { base: '#e3bf5f', shade: '#c09a40', light: '#f6e3a0' } },
   ginger: { label: 'Ginger', ramp: { base: '#d9762b', shade: '#ad571b', light: '#f29d55' } },
   silver: { label: 'Silver', ramp: { base: '#c3c7d3', shade: '#989cab', light: '#eef0f5' } },
+};
+
+export const GEAR_COLORS: Record<GearColor, PaletteEntry<Ramp>> = {
+  red: { label: 'Red', ramp: { base: '#e94560', shade: '#b8304a' } },
+  black: { label: 'Black', ramp: { base: '#3a3a48', shade: '#24242e' } },
+  white: { label: 'White', ramp: { base: '#f2f2f2', shade: '#c4c8d4' } },
+  gold: { label: 'Gold', ramp: { base: '#f2c14e', shade: '#c8952a' } },
+  blue: { label: 'Blue', ramp: { base: '#3d7be0', shade: '#2a5aa8' } },
+  green: { label: 'Green', ramp: { base: '#47c46a', shade: '#2f8f4b' } },
+  orange: { label: 'Orange', ramp: { base: '#f08a3c', shade: '#c0631f' } },
+  silver: { label: 'Silver', ramp: { base: '#b9bfcc', shade: '#8a90a0' } },
+  clay: { label: 'Clay', ramp: { base: '#c8643a', shade: '#9a4826' } },
 };
 
 export const KIT_COLORS: Record<KitColor, PaletteEntry<Ramp>> = {

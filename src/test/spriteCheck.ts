@@ -12,6 +12,7 @@ import {
   ACCESSORIES,
   HAIR_STYLES,
   POSE_FRAMES,
+  SIDE_POSE_FRAMES,
   SPRITE_HEIGHT,
   SPRITE_WIDTH,
   type SpriteLayer,
@@ -26,6 +27,12 @@ import {
   SKIN_TONE_KEYS,
 } from '../core/spriteComposer';
 import type { Appearance, SpritePose } from '../types/appearance';
+import { CHARACTERS } from '../data/characters';
+import { GEAR_LOOKS } from '../data/sprites/gearLooks';
+import { ALL_ITEMS } from '../data/items';
+import { StoryEventRepository } from '../data/storyEvents';
+import { TournamentRegistry } from '../data/tournaments';
+import * as TeamMatches from '../data/teamMatches';
 
 let failures = 0;
 
@@ -38,7 +45,18 @@ function check(label: string, condition: boolean, detail?: string): void {
   }
 }
 
-const SYMBOLS = new Set(['.', ...Object.keys(FIXED_COLORS), 'S', 's', 'H', 'h', 'L', 'O', 'o']);
+const SYMBOLS = new Set([
+  '.',
+  ...Object.keys(FIXED_COLORS),
+  'S',
+  's',
+  'H',
+  'h',
+  'L',
+  'O',
+  'o',
+  'B',
+]);
 
 function checkLayer(name: string, layer: SpriteLayer): void {
   const badWidth = layer.rows.findIndex((row) => row.length !== SPRITE_WIDTH);
@@ -60,19 +78,26 @@ function checkLayer(name: string, layer: SpriteLayer): void {
 }
 
 console.log('── layer grids ──');
-for (const [pose, frames] of Object.entries(POSE_FRAMES)) {
-  frames.forEach((frame, i) => {
-    checkLayer(`${pose}[${i}] body`, frame.body);
-    checkLayer(`${pose}[${i}] racquet`, frame.racquet);
-  });
+for (const [view, poseFrames] of [
+  ['front', POSE_FRAMES],
+  ['side', SIDE_POSE_FRAMES],
+] as const) {
+  for (const [pose, frames] of Object.entries(poseFrames)) {
+    frames.forEach((frame, i) => {
+      checkLayer(`${view} ${pose}[${i}] body`, frame.body);
+      checkLayer(`${view} ${pose}[${i}] racquet`, frame.racquet);
+    });
+  }
 }
 for (const [style, layers] of Object.entries(HAIR_STYLES)) {
   checkLayer(`hair ${style} front`, layers.front);
   if (layers.back) checkLayer(`hair ${style} back`, layers.back);
+  checkLayer(`hair ${style} side`, layers.side);
 }
 
-for (const [accessory, { layer }] of Object.entries(ACCESSORIES)) {
+for (const [accessory, { layer, side }] of Object.entries(ACCESSORIES)) {
   checkLayer(`accessory ${accessory}`, layer);
+  checkLayer(`accessory ${accessory} side`, side);
 }
 
 console.log('\n── every appearance composes in every pose ──');
@@ -84,11 +109,18 @@ for (const skinTone of SKIN_TONE_KEYS)
     for (const hairColor of HAIR_COLOR_KEYS)
       for (const kitColor of KIT_COLOR_KEYS)
         for (const handedness of ['right', 'left'] as const)
-          for (const pose of poses) {
-            const appearance: Appearance = { skinTone, hairStyle, hairColor, kitColor, handedness };
-            combos++;
-            if (composeSprite(appearance, pose).length === 0) empty++;
-          }
+          for (const pose of poses)
+            for (const facing of [undefined, 'left', 'right'] as const) {
+              const appearance: Appearance = {
+                skinTone,
+                hairStyle,
+                hairColor,
+                kitColor,
+                handedness,
+              };
+              combos++;
+              if (composeSprite(appearance, pose, 0, { facing }).length === 0) empty++;
+            }
 check(`${combos} combinations all draw something`, empty === 0, `${empty} drew nothing`);
 
 const right = composeSprite({ ...appearanceFromSeed('mirror'), handedness: 'right' }, 'swing');
@@ -104,9 +136,98 @@ const mirrored = right.every((run) =>
 );
 check('a left-hander is the right-hander mirrored', mirrored && left.length === right.length);
 
+const faceRight = composeSprite(appearanceFromSeed('facing'), 'run', 0, { facing: 'right' });
+const faceLeft = composeSprite(appearanceFromSeed('facing'), 'run', 0, { facing: 'left' });
+check(
+  'facing left is facing right mirrored',
+  faceRight.length === faceLeft.length &&
+    faceRight.every((run) =>
+      faceLeft.some((l) => l.y === run.y && l.x === SPRITE_WIDTH - run.x - run.w),
+    ),
+);
+
 check(
   'a seeded appearance is stable',
   JSON.stringify(appearanceFromSeed('Jordan')) === JSON.stringify(appearanceFromSeed('Jordan')),
+);
+
+console.log('\n── every speaker has a look ──');
+const speakers = new Set<string>();
+const opponents = new Set<string>();
+// Dialogue sits on events and on their outcomes at varying depths, so walk the lot.
+const collectSpeakers = (node: unknown): void => {
+  if (Array.isArray(node)) {
+    node.forEach(collectSpeakers);
+    return;
+  }
+  if (typeof node !== 'object' || node === null) return;
+  for (const [key, value] of Object.entries(node)) {
+    if (key === 'dialogue' && Array.isArray(value)) {
+      for (const line of value) {
+        if (Array.isArray(line) && typeof line[0] === 'string') speakers.add(line[0]);
+      }
+    } else if (key === 'characters' && Array.isArray(value)) {
+      value.forEach((id) => typeof id === 'string' && speakers.add(id));
+    } else if (key === 'opponentId' && typeof value === 'string') {
+      opponents.add(value);
+    } else {
+      collectSpeakers(value);
+    }
+  }
+};
+collectSpeakers(StoryEventRepository.getAllEvents());
+speakers.delete('player');
+const unregistered = [...speakers].filter((id) => !(id in CHARACTERS));
+check(
+  `all ${speakers.size} story characters are registered with an appearance`,
+  unregistered.length === 0,
+  `not in CHARACTERS: ${unregistered.join(', ')}`,
+);
+for (const tournament of TournamentRegistry.getAllTournaments()) {
+  for (const round of tournament.rounds) opponents.add(round.opponent.characterId);
+}
+for (const config of Object.values(TeamMatches)) {
+  if (typeof config === 'object' && config !== null && 'opponent' in config) {
+    opponents.add(config.opponent.characterId);
+  }
+}
+const emptyHanded = [...opponents].filter((id) => CHARACTERS[id]?.plays === undefined);
+check(
+  `all ${opponents.size} match opponents hold a racquet`,
+  emptyHanded.length === 0,
+  `no \`plays\`: ${emptyHanded.join(', ')}`,
+);
+
+const keyLooks = Object.values(CHARACTERS)
+  .filter((c) => c.isKeyCharacter)
+  .map((c) => JSON.stringify(c.appearance));
+check('key characters all look different', new Set(keyLooks).size === keyLooks.length);
+
+console.log('\n── gear looks ──');
+const misfiled = Object.entries(GEAR_LOOKS).filter(([id, look]) => {
+  const item = ALL_ITEMS.find((candidate) => candidate.id === id);
+  if (!item) return true;
+  if (look.accessory && item.equipmentSlot !== 'hat') return true;
+  if (look.racquetColor && item.equipmentSlot !== 'racquet') return true;
+  if (look.shoeColor && item.equipmentSlot !== 'shoes') return true;
+  return look.kitColor !== undefined && item.equipmentSlot !== 'outfit';
+});
+check(
+  'every gear look names a real item in the slot it draws',
+  misfiled.length === 0,
+  misfiled.map(([id]) => id).join(', '),
+);
+const unseen = ALL_ITEMS.filter((i) => {
+  const look = GEAR_LOOKS[i.id];
+  if (i.equipmentSlot === 'hat') return !look?.accessory;
+  if (i.equipmentSlot === 'racquet') return !look?.racquetColor;
+  if (i.equipmentSlot === 'shoes') return !look?.shoeColor;
+  return false;
+});
+check(
+  'every hat, racquet and pair of shoes shows on the sprite',
+  unseen.length === 0,
+  unseen.map((i) => i.id).join(', '),
 );
 
 if (failures > 0) {

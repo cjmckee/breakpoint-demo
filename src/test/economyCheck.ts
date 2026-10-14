@@ -54,7 +54,7 @@ function check(label: string, condition: boolean, detail?: string): void {
 }
 
 function freshPlayer(): Player {
-  return PlayerManager.createPlayer('Economy Test', 'balanced');
+  return PlayerManager.createPlayer('Economy Test');
 }
 
 /** Mirrors a shop purchase: spend from the balance, leave lifetime XP alone. */

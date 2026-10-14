@@ -7,11 +7,13 @@
  * Court tokens are static for now — rally animation lands in a later stage.
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { CourtSurface } from '../../types';
 import type { MatchScore } from '../../types/keyMoments';
 import type { InteractiveMatchConfig } from '../../types/keyMoments';
 import { MatchCourt } from './MatchCourt';
+import { usePlayerAppearance } from '../../hooks/usePlayerAppearance';
+import { getOpponentAppearance } from '../../data/characters';
 import { MATCH_FORM } from '../../config/shotThresholds';
 
 interface MatchCockpitProps {
@@ -19,6 +21,7 @@ interface MatchCockpitProps {
   score: MatchScore;
   playerName: string;
   opponentName: string;
+  opponentCharacterId?: string;
   matchFormat?: InteractiveMatchConfig['matchFormat'];
   /** Optional overlay (e.g. toasts) rendered absolutely over the court region. */
   overlay?: React.ReactNode;
@@ -174,9 +177,16 @@ export const MatchCockpit: React.FC<MatchCockpitProps> = ({
   score,
   playerName,
   opponentName,
+  opponentCharacterId,
   matchFormat,
   overlay,
 }) => {
+  const playerAppearance = usePlayerAppearance();
+  const opponentAppearance = useMemo(
+    () => getOpponentAppearance(opponentCharacterId, opponentName),
+    [opponentCharacterId, opponentName],
+  );
+
   const server = score.server;
   const momentum = score.momentum ?? 0;
   const isTiebreak = score.isTiebreak ?? false;
@@ -299,7 +309,12 @@ export const MatchCockpit: React.FC<MatchCockpitProps> = ({
           <StaminaTank value={playerStamina} owner="player" />
         </div>
 
-        <MatchCourt courtSurface={courtSurface} overlay={overlay} />
+        <MatchCourt
+          courtSurface={courtSurface}
+          playerAppearance={playerAppearance}
+          opponentAppearance={opponentAppearance}
+          overlay={overlay}
+        />
 
         <div className="hidden sm:contents">
           <StaminaTank value={opponentStamina} owner="opponent" />

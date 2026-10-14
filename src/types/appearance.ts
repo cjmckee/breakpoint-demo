@@ -16,8 +16,15 @@ export type KitColor = 'white' | 'navy' | 'crimson' | 'forest' | 'sky' | 'violet
 
 export type Handedness = 'right' | 'left';
 
-/** A signature item drawn over the head: worn by key characters, not offered in the creator. */
-export type Accessory = 'glasses' | 'cap' | 'headband' | 'visor';
+/**
+ * An item drawn over the head: a key character's signature, or the player's equipped hat.
+ * Not offered in the creator.
+ */
+export type Accessory = 'glasses' | 'cap' | 'headband' | 'visor' | 'chef_hat';
+
+/** Colours for gear that shows on the sprite: racquet frames and shoes. */
+export type GearColor =
+  'red' | 'black' | 'white' | 'gold' | 'blue' | 'green' | 'orange' | 'silver' | 'clay';
 
 export interface Appearance {
   skinTone: SkinTone;
@@ -27,7 +34,11 @@ export interface Appearance {
   /** Which hand holds the racquet; mirrors the racquet layer. */
   handedness: Handedness;
   accessory?: Accessory;
+  /** Racquet frame colour from equipped gear; the classic red when unset. */
+  racquetColor?: GearColor;
+  /** Shoe colour from equipped gear; a shade of the kit when unset. */
+  shoeColor?: GearColor;
 }
 
 /** A sprite pose. Each pose has one or more frames that the renderer cycles through. */
-export type SpritePose = 'idle' | 'run' | 'swing';
+export type SpritePose = 'idle' | 'run' | 'swing' | 'cheer' | 'slump';
