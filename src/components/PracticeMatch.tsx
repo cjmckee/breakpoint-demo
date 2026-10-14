@@ -85,6 +85,7 @@ export const PracticeMatch: React.FC<{ matchConfig: PreMatchConfig | null }> = (
       playerAbilities={player.abilities}
       opponentAbilities={matchConfig.opponentAbilities}
       opponentName={matchConfig.opponentName}
+      opponentCharacterId={matchConfig.opponentCharacterId}
       opponentStats={matchConfig.opponentStats}
       opponentPlayStyle={matchConfig.opponentPlayStyle}
       surface={matchConfig.surface}

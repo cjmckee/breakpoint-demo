@@ -74,7 +74,7 @@ export const StatCard: React.FC<StatCardProps> = ({
   const card = (
     <div
       className={`
-        relative p-3 sm:p-4 rounded-lg border-2 border-pixel-border
+        relative px-1.5 py-3 sm:p-4 rounded-lg border-2 border-pixel-border
         bg-pixel-card h-full
         transition-all duration-300
         ${description ? 'hover:border-pixel-accent cursor-pointer' : ''}
@@ -84,7 +84,7 @@ export const StatCard: React.FC<StatCardProps> = ({
     >
       {/* Stat Label */}
       <div className="text-center mb-2">
-        <h4 className="text-xs sm:text-sm font-medium text-pixel-text-muted uppercase tracking-wide truncate">
+        <h4 className="text-[10px] sm:text-sm font-medium text-pixel-text-muted uppercase sm:tracking-wide truncate">
           {label}
         </h4>
       </div>

@@ -19,10 +19,13 @@ import {
   getLetterGrade,
 } from '../utils/playerStats';
 import type { ArchetypeType } from '../data/archetypes';
+import { PixelSprite } from './sprites/PixelSprite';
+import { getOpponentAppearance } from '../data/characters';
 import type { StatName } from '../types';
 
 interface OpponentPreviewCardProps {
   opponentName: string;
+  opponentCharacterId?: string;
   opponentTier: number;
   opponentDescription?: string;
   opponentStats: PlayerStats;
@@ -32,6 +35,7 @@ interface OpponentPreviewCardProps {
 
 export const OpponentPreviewCard: React.FC<OpponentPreviewCardProps> = ({
   opponentName,
+  opponentCharacterId,
   opponentTier,
   opponentDescription,
   opponentStats,
@@ -60,7 +64,14 @@ export const OpponentPreviewCard: React.FC<OpponentPreviewCardProps> = ({
             </span>
           </div>
         </div>
-        <span className="text-3xl">⚔️</span>
+        <div className="shrink-0 bg-pixel-bg border-2 border-pixel-border">
+          <PixelSprite
+            appearance={getOpponentAppearance(opponentCharacterId, opponentName)}
+            framing="portrait"
+            scale={4}
+            className="block"
+          />
+        </div>
       </div>
 
       <div className="space-y-3 text-sm">

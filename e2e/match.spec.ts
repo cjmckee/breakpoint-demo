@@ -35,6 +35,9 @@ test('a practice match plays through its key moments to a result', async ({ page
   // "results are visible" check while proving nothing about key moments.
   expect(run.keyMoments).toBeGreaterThan(0);
   await expect(page.getByTestId('match-results')).toBeVisible();
+  // The result shows both players reacting: one cheering, one slumped.
+  await expect(page.getByTestId('result-player')).toBeVisible();
+  await expect(page.getByTestId('result-opponent')).toBeVisible();
 
   // The store is the only place some of this is legible at all — the modal
   // shows a scoreline, not how many decisions were recorded against it.
