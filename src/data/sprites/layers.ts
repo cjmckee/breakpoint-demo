@@ -63,7 +63,7 @@ const LEGS_STAND: readonly string[] = [
   '.....KSKKSK.....',
   '.....KSKKSK.....',
   '.....KWKKWK.....',
-  '....KooKKooK....',
+  '....KBBKKBBK....',
   '....KKKKKKKK....',
 ];
 
@@ -71,7 +71,7 @@ const LEGS_STRIDE: readonly string[] = [
   '....KSKKKKSK....',
   '...KSK....KSK...',
   '...KWK....KWK...',
-  '..KooK....KooK..',
+  '..KBBK....KBBK..',
   '..KKK......KKK..',
 ];
 
@@ -159,7 +159,7 @@ const LEGS_SIDE_STAND: readonly string[] = [
   '......KSSK......',
   '......KSSK......',
   '......KWWK......',
-  '......KoooK.....',
+  '......KBBBK.....',
   '......KKKKK.....',
 ];
 
@@ -167,7 +167,7 @@ const LEGS_SIDE_STRIDE: readonly string[] = [
   '.....KSKKSK.....',
   '....KSK..KSK....',
   '....KWK...KWK...',
-  '...KooK...KoooK.',
+  '...KBBK...KBBBK.',
   '...KKK....KKKKK.',
 ];
 
