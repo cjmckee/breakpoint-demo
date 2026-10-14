@@ -299,7 +299,14 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
           onClick={onStartMatch}
           disabled={!canAfford}
         >
-          {!canAfford ? <>Not Enough Energy ({energyCost})</> : <>🎾 Start Match</>}
+          {!canAfford ? (
+            <>
+              <span className="sm:hidden">Need ⚡{energyCost}</span>
+              <span className="hidden sm:inline">Not Enough Energy ({energyCost})</span>
+            </>
+          ) : (
+            <>🎾 Start Match</>
+          )}
         </Button>
       }
     >
@@ -388,9 +395,16 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
           disabled={!canAfford}
         >
           {!canAfford ? (
-            <>Not Enough Energy (Need {energyCost})</>
+            <>
+              <span className="sm:hidden">Need ⚡{energyCost}</span>
+              <span className="hidden sm:inline">Not Enough Energy (Need {energyCost})</span>
+            </>
           ) : (
-            <>🎾 Start Match vs {opponentName}</>
+            <>
+              🎾 Start Match
+              {/* The opponent is named in the subtitle; phones have no room to repeat it. */}
+              <span className="hidden sm:inline"> vs {opponentName}</span>
+            </>
           )}
         </Button>
       </div>

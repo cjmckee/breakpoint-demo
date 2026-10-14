@@ -105,7 +105,7 @@ export const Relationships: React.FC = () => {
 
                     {/* The action column is reserved on every card, so the tracks (and their tier
                         icons) line up down the list whether or not a hangout is ready. */}
-                    <div className="ml-auto sm:ml-0 shrink-0 sm:w-48 flex sm:justify-end">
+                    <div className="ml-auto sm:ml-0 shrink-0 sm:w-64 flex sm:justify-end">
                       {ready && (
                         <Button
                           variant="primary"
@@ -183,13 +183,13 @@ const BondTrack: React.FC<{ value: number; thresholds: readonly number[] }> = ({
   const fill = Math.max(0, Math.min(100, value));
   return (
     <div>
-      <div className="flex items-center justify-between mb-1.5 text-xs">
-        <span className="font-bold text-pixel-text">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 mb-1.5 text-xs">
+        <span className="font-bold text-pixel-text whitespace-nowrap">
           <span aria-hidden="true">{TIERS[tier].icon} </span>
           {TIERS[tier].label}
         </span>
         {value < 0 ? (
-          <span className="font-bold text-pixel-error">🧊 Strained {value}</span>
+          <span className="font-bold text-pixel-error whitespace-nowrap">🧊 Strained {value}</span>
         ) : next !== undefined ? (
           <span className="text-pixel-text-muted">
             {TIERS[tier + 1].icon} in {next - value}
