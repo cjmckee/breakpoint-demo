@@ -11,6 +11,8 @@ import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { ScreenFrame } from './ui/ScreenFrame';
 import { CHARACTERS } from '../data/characters';
+import { PixelSprite } from './sprites/PixelSprite';
+import type { Appearance } from '../types/appearance';
 import {
   HANGOUT_CHARACTERS,
   HANGOUT_ENERGY_COST,
@@ -89,10 +91,8 @@ export const Relationships: React.FC = () => {
                     data-value={value}
                     data-tier={getHangoutTier(character.id, value)}
                   >
-                    <div className="flex items-center gap-3 min-w-0 sm:w-44 shrink-0">
-                      <span className="text-3xl" aria-hidden="true">
-                        {roleIcon(character.role)}
-                      </span>
+                    <div className="flex items-center gap-3 min-w-0 sm:w-56 shrink-0">
+                      <Portrait appearance={character.appearance} scale={4} />
                       <div className="min-w-0">
                         <div className="font-bold text-pixel-text truncate">{character.name}</div>
                         <div className="text-xs text-pixel-text-muted">{character.role}</div>
@@ -105,7 +105,7 @@ export const Relationships: React.FC = () => {
 
                     {/* The action column is reserved on every card, so the tracks (and their tier
                         icons) line up down the list whether or not a hangout is ready. */}
-                    <div className="ml-auto sm:ml-0 shrink-0 sm:w-48 flex sm:justify-end">
+                    <div className="ml-auto sm:ml-0 shrink-0 sm:w-64 flex sm:justify-end">
                       {ready && (
                         <Button
                           variant="primary"
@@ -136,9 +136,7 @@ export const Relationships: React.FC = () => {
                     data-testid={`relationship-${character.id}`}
                     data-value={value}
                   >
-                    <span className="text-2xl" aria-hidden="true">
-                      {roleIcon(character.role)}
-                    </span>
+                    <Portrait appearance={character.appearance} scale={3} />
                     <div className="min-w-0 flex-1">
                       <div className="font-bold text-pixel-text truncate">{character.name}</div>
                       <div className="text-xs text-pixel-text-muted">{character.role}</div>
@@ -155,18 +153,12 @@ export const Relationships: React.FC = () => {
   );
 };
 
-const ROLE_ICONS: Record<string, string> = {
-  Coach: '👨‍🏫',
-  Rival: '⚔️',
-  Family: '👨‍👩‍👧',
-  Friend: '🤝',
-  Sponsor: '💼',
-  Career: '📈',
-  Media: '📰',
-  Official: '🏆',
-  Romance: '💖',
-};
-const roleIcon = (role: string | undefined): string => (role && ROLE_ICONS[role]) || '🎾';
+/** A character's head-and-shoulders sprite in a small frame. */
+const Portrait: React.FC<{ appearance: Appearance; scale: number }> = ({ appearance, scale }) => (
+  <div className="shrink-0 bg-pixel-secondary border-2 border-pixel-border">
+    <PixelSprite appearance={appearance} framing="portrait" scale={scale} animate={false} />
+  </div>
+);
 
 /** One icon and name per hangout tier, so a tier reads as a place, not a number. */
 const TIERS = [
@@ -191,13 +183,13 @@ const BondTrack: React.FC<{ value: number; thresholds: readonly number[] }> = ({
   const fill = Math.max(0, Math.min(100, value));
   return (
     <div>
-      <div className="flex items-center justify-between mb-1.5 text-xs">
-        <span className="font-bold text-pixel-text">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 mb-1.5 text-xs">
+        <span className="font-bold text-pixel-text whitespace-nowrap">
           <span aria-hidden="true">{TIERS[tier].icon} </span>
           {TIERS[tier].label}
         </span>
         {value < 0 ? (
-          <span className="font-bold text-pixel-error">🧊 Strained {value}</span>
+          <span className="font-bold text-pixel-error whitespace-nowrap">🧊 Strained {value}</span>
         ) : next !== undefined ? (
           <span className="text-pixel-text-muted">
             {TIERS[tier + 1].icon} in {next - value}

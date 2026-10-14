@@ -6,9 +6,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
+import { PixelCheckbox } from './ui/PixelCheckbox';
 import type { StoryEvent, StoryEventOption } from '../types/storyEvents';
 import { AnimatedWords } from './AnimatedWords';
-import { getCharacterName } from '../data/characters';
+import { getCharacterAppearance, getCharacterName } from '../data/characters';
+import { usePlayerAppearance } from '../hooks/usePlayerAppearance';
+import { PixelSprite } from './sprites/PixelSprite';
 import { usePlayerName } from '../hooks/usePlayerName';
 import { useGameStore } from '../stores/gameStore';
 import { directionFromKey, isActionKey } from '../utils/gameKeys';
@@ -76,6 +79,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
 
   // Get player name for dialogue attribution
   const playerName = usePlayerName();
+  const playerAppearance = usePlayerAppearance();
 
   const isLinearEvent = event.options.length === 0;
   // One option is not a choice: the event runs it straight from a single button, so an
@@ -306,24 +310,44 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
               return (
                 <div
                   key={index}
-                  className={`[grid-area:1/1] ${isCurrent ? '' : 'invisible'}`}
+                  className={`[grid-area:1/1] flex items-start gap-4 ${isCurrent ? '' : 'invisible'}`}
                   aria-hidden={!isCurrent || undefined}
                 >
-                  {characterName && (
-                    <div className="font-bold text-pixel-accent mb-2 text-lg">{characterName}</div>
+                  {characterId && characterName && (
+                    <div
+                      className="shrink-0 bg-pixel-secondary border-4 border-pixel-border"
+                      data-testid={isCurrent ? 'dialogue-portrait' : undefined}
+                      data-character-id={characterId}
+                    >
+                      <PixelSprite
+                        appearance={getCharacterAppearance(characterId, playerAppearance)}
+                        framing="portrait"
+                        scale={4}
+                        fps={3}
+                        animate={isCurrent}
+                        className="block w-14 h-12 sm:w-[84px] sm:h-[72px]"
+                      />
+                    </div>
                   )}
-                  <p
-                    className={`text-lg leading-relaxed ${isCharacterSpeaking ? 'ml-3 italic' : 'italic'}`}
-                  >
-                    {/* Hidden lines render the same way so they size the box exactly. */}
-                    {quoted(
-                      <AnimatedWords
-                        key={index}
-                        content={text}
-                        intensity={isCharacterSpeaking ? 'full' : 'subtle'}
-                      />,
+                  <div className="min-w-0 flex-1">
+                    {characterName && (
+                      <div className="font-bold text-pixel-accent mb-2 text-lg">
+                        {characterName}
+                      </div>
                     )}
-                  </p>
+                    <p
+                      className={`text-lg leading-relaxed ${isCharacterSpeaking ? 'ml-3 italic' : 'italic'}`}
+                    >
+                      {/* Hidden lines render the same way so they size the box exactly. */}
+                      {quoted(
+                        <AnimatedWords
+                          key={index}
+                          content={text}
+                          intensity={isCharacterSpeaking ? 'full' : 'subtle'}
+                        />,
+                      )}
+                    </p>
+                  </div>
                 </div>
               );
             })}
@@ -385,16 +409,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
                       </div>
                     )}
                   </div>
-                  <span
-                    className={`w-6 h-6 shrink-0 border-4 flex items-center justify-center text-xs font-bold ${
-                      isSelected
-                        ? 'border-pixel-accent bg-pixel-accent text-pixel-on-accent'
-                        : 'border-pixel-border'
-                    }`}
-                    aria-hidden="true"
-                  >
-                    {isSelected ? '✓' : ''}
-                  </span>
+                  <PixelCheckbox checked={isSelected} />
                 </div>
               </button>
             );

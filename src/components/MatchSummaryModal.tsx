@@ -4,7 +4,7 @@
  * Purely presentational — rewards are already applied by gameStore.onMatchComplete.
  */
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
 import { MatchScore, InteractiveMatchConfig } from '../types/keyMoments';
@@ -16,6 +16,9 @@ import { getPrimaryStatName } from '../core/shotStatMapping';
 import { formatStatName } from '../config/statIcons';
 import { CurrencyAmounts } from './currency/CurrencyAmounts';
 import { matchPayoutLines } from '../game/CurrencyIncome';
+import { PixelSprite } from './sprites/PixelSprite';
+import { usePlayerAppearance } from '../hooks/usePlayerAppearance';
+import { getOpponentAppearance } from '../data/characters';
 
 interface MatchSummaryModalProps {
   isOpen: boolean;
@@ -40,6 +43,11 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
   const [showDetailedStats, setShowDetailedStats] = useState(false);
 
   const isWinner = finalScore.winner === 'player';
+  const playerAppearance = usePlayerAppearance();
+  const opponentAppearance = useMemo(
+    () => getOpponentAppearance(matchConfig.opponentCharacterId, matchConfig.opponentName ?? ''),
+    [matchConfig.opponentCharacterId, matchConfig.opponentName],
+  );
 
   const handleClose = () => {
     onClose();
@@ -91,7 +99,27 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
         <div
           className={`border-4 ${isWinner ? 'border-green-500 bg-green-500' : 'border-red-500 bg-red-500'} bg-opacity-20 p-6 text-center`}
         >
-          <div className="text-6xl mb-4">{isWinner ? '🏆' : '😔'}</div>
+          {/* The winner cheers, the loser slumps — the same reactions as on court */}
+          <div className="flex justify-center items-end gap-6 mb-4" data-testid="result-figures">
+            <PixelSprite
+              appearance={playerAppearance}
+              pose={isWinner ? 'cheer' : 'slump'}
+              facing="right"
+              scale={4}
+              fps={4}
+              className="block"
+              testId="result-player"
+            />
+            <PixelSprite
+              appearance={opponentAppearance}
+              pose={isWinner ? 'slump' : 'cheer'}
+              facing="left"
+              scale={4}
+              fps={4}
+              className="block"
+              testId="result-opponent"
+            />
+          </div>
           <h2 className="text-3xl font-bold text-pixel-text mb-2">
             {isWinner ? 'VICTORY!' : 'DEFEAT'}
           </h2>

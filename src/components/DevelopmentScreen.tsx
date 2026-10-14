@@ -129,7 +129,7 @@ export const DevelopmentScreen: React.FC = () => {
 
       {/* Wallet stays pinned: every +1 is a comparison against it. */}
       <div
-        className="sticky top-2 z-20 mb-6 bg-pixel-card border-4 border-pixel-border px-3 sm:px-4 py-2 flex flex-nowrap sm:flex-wrap items-center justify-between sm:justify-start gap-x-3 sm:gap-x-5 gap-y-2"
+        className="sticky top-2 z-20 mb-6 bg-pixel-card border-4 border-pixel-border px-3 sm:px-4 py-2 flex flex-wrap items-center justify-between sm:justify-start gap-x-3 sm:gap-x-5 gap-y-2"
         data-testid="development-wallet"
       >
         {CURRENCIES.map((c) => (
@@ -145,7 +145,7 @@ export const DevelopmentScreen: React.FC = () => {
                 {Math.floor(player.wallet[c])} →
               </span>
             )}
-            <span className={`text-xl font-bold ${CURRENCY_STYLE[c].text}`}>
+            <span className={`text-base sm:text-xl font-bold ${CURRENCY_STYLE[c].text}`}>
               {Math.floor(left[c])}
             </span>
             <span className="hidden sm:inline text-xs text-pixel-text-muted">
@@ -161,7 +161,7 @@ export const DevelopmentScreen: React.FC = () => {
           title="Specialization points, earned by levelling up"
         >
           <span aria-hidden="true">⭐</span>
-          <span className="text-xl font-bold text-pixel-text">{specPoints}</span>
+          <span className="text-base sm:text-xl font-bold text-pixel-text">{specPoints}</span>
           <span className="hidden sm:inline text-xs text-pixel-text-muted">Spec Points</span>
         </span>
       </div>

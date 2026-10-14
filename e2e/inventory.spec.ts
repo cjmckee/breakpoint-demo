@@ -102,3 +102,21 @@ test('an equipped item actually changes what the match is told about the player'
 
   expect(boosts.serve ?? 0).toBeGreaterThan(before.serve ?? 0);
 });
+
+test('an equipped hat shows on the player', async ({ page }) => {
+  await loadSave(page, SAVE);
+  await grantItem(page, 'cap');
+  const granted = (await readGame(page)).player!.inventory.find((i) => i.id === 'cap');
+
+  await page.getByTestId('action-inventory').click();
+  // Hovering gear tries it on, so keep the pointer off the bag while reading the avatar.
+  await page.mouse.move(0, 0);
+  const avatar = page.getByTestId('inventory-avatar');
+  await expect(avatar).toHaveAttribute('data-accessory', '');
+
+  await page.getByTestId(`inventory-item-${granted!.instanceId}`).click();
+  await page.getByTestId('item-equip').click();
+  await page.keyboard.press('Escape');
+  await page.mouse.move(0, 0);
+  await expect(avatar).toHaveAttribute('data-accessory', 'cap');
+});

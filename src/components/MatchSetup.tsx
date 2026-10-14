@@ -183,9 +183,15 @@ export const MatchSetup: React.FC = () => {
             {!isOpponentUnlocked(selectedTier) ? (
               <>🔒 Tier Locked</>
             ) : !canAfford ? (
-              <>Not Enough Energy (Need {matchEnergyCost})</>
+              <>
+                <span className="sm:hidden">Need ⚡{matchEnergyCost}</span>
+                <span className="hidden sm:inline">Not Enough Energy (Need {matchEnergyCost})</span>
+              </>
             ) : (
-              <>🎾 Preview Match — Tier {selectedTier}</>
+              <>
+                🎾 Preview Match
+                <span className="hidden sm:inline"> — Tier {selectedTier}</span>
+              </>
             )}
           </Button>
         </div>

@@ -9,8 +9,9 @@
  * the action is always on screen and never depends on where the pointer has been.
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
+import { PixelCheckbox } from './ui/PixelCheckbox';
 import { KeyMoment } from '../types/keyMoments';
 import { TacticalOption, SecondaryEffect, keyMomentStakes } from '../data/tacticalOptions';
 import type { KeyMomentStakes } from '../data/tacticalOptions';
@@ -154,11 +155,6 @@ interface KeyMomentModalProps {
   keyMoment: KeyMoment | null;
 }
 
-// How long the pointer must stay on a tactic card before hovering it moves focus. Without
-// it, a pointer crossing other cards on its way to the commit button swaps the detail pane,
-// and the button then commits that tactic.
-const HOVER_INTENT_MS = 150;
-
 export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMoment }) => {
   const [isHidden, setIsHidden] = useState(false);
   // Which tactic's detail is shown in the right pane. Persists so options are easy to compare
@@ -168,25 +164,13 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   // only a click picks it, so moving the pointer to the footer cannot change the pick.
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [hoveredCondition, setHoveredCondition] = useState<number | null>(null);
-  const hoverTimer = useRef<number | null>(null);
 
-  const cancelHoverFocus = (): void => {
-    if (hoverTimer.current !== null) {
-      window.clearTimeout(hoverTimer.current);
-      hoverTimer.current = null;
-    }
-  };
-
-  // Starts on pointer movement rather than on enter: when the modal scrolls a card under a
-  // still pointer, the browser fires enter (and a move with no movement) on that card, and
-  // the commit button would again take a tactic nobody pointed at.
-  const scheduleHoverFocus = (event: React.MouseEvent, index: number): void => {
+  // Moves the detail pane on pointer movement rather than on enter: when the modal scrolls a
+  // card under a still pointer, the browser fires enter (and a move with no movement) on
+  // that card. Immediate, since only a click picks what the footer commits.
+  const hoverFocus = (event: React.MouseEvent, index: number): void => {
     if (event.movementX === 0 && event.movementY === 0) return;
-    if (hoverTimer.current !== null) return;
-    hoverTimer.current = window.setTimeout(() => {
-      hoverTimer.current = null;
-      setFocusIdx(index);
-    }, HOVER_INTENT_MS);
+    setFocusIdx(index);
   };
 
   // Reset focus when the modal opens or a new key moment arrives. A hover still pending from
@@ -194,7 +178,6 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   useEffect(() => {
     setFocusIdx(0);
     setSelectedIdx(null);
-    return cancelHoverFocus;
   }, [isOpen, keyMoment?.id]);
 
   const handleKeyMomentChoice = useMatchStore((state) => state.handleKeyMomentChoice);
@@ -718,7 +701,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
         <span className={`text-base font-bold tabular-nums ${tone}`}>{composite}</span>
         <span className={`text-[10px] font-bold uppercase tracking-wide ${tone}`}>{label}</span>
         <span
-          className={`text-[10px] font-bold px-2 py-1 rounded bg-pixel-bg whitespace-nowrap text-center ${tone}`}
+          className={`text-[10px] font-bold px-1 sm:px-2 py-1 rounded bg-pixel-bg whitespace-nowrap text-center ${tone}`}
           title={`${formatStatName(weights.primary)} — priority stat (weighted most)`}
         >
           ★ {abbrevStat(weights.primary)} {primaryVal}
@@ -727,7 +710,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
           w ? (
             <span
               key={i}
-              className="text-[10px] px-2 py-1 rounded bg-pixel-bg text-pixel-text-muted whitespace-nowrap text-center"
+              className="text-[10px] px-1 sm:px-2 py-1 rounded bg-pixel-bg text-pixel-text-muted whitespace-nowrap text-center"
               title={formatStatName(w.stat)}
             >
               {abbrevStat(w.stat)}{' '}
@@ -910,7 +893,6 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
           onMouseLeave={() => {
             // Leaving the menu returns the detail to the pick, so the pane always
             // describes what Go! will play once the pointer heads for the footer.
-            cancelHoverFocus();
             if (selectedIdx !== null) setFocusIdx(selectedIdx);
           }}
         >
@@ -931,10 +913,9 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                   data-tactic-id={option.id}
                   data-posture={option.posture}
                   data-selected={isSelected}
-                  onMouseMove={(event) => scheduleHoverFocus(event, index)}
+                  onMouseMove={(event) => hoverFocus(event, index)}
                   onFocus={() => setFocusIdx(index)}
                   onClick={() => {
-                    cancelHoverFocus();
                     setFocusIdx(index);
                     setSelectedIdx(index);
                   }}
@@ -957,19 +938,14 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                     {/* Row 1: the tactic, full width — names are long and were truncating. */}
                     <div className="flex items-center gap-2 mb-1.5 min-w-0">
                       <span className="text-xl shrink-0">{option.emoji}</span>
-                      <h4 className="text-base font-bold text-pixel-text truncate flex-1">
+                      <h4 className="text-sm sm:text-base font-bold text-pixel-text break-words min-w-0 flex-1">
                         {option.name}
                       </h4>
-                      <span
-                        className="w-6 h-6 shrink-0 border-4 flex items-center justify-center text-xs font-bold text-white"
-                        style={{
-                          borderColor: isSelected ? postureColor : '#2d3748',
-                          backgroundColor: isSelected ? postureColor : undefined,
-                        }}
-                        aria-hidden="true"
-                      >
-                        {isSelected ? '✓' : ''}
-                      </span>
+                      <PixelCheckbox
+                        checked={isSelected}
+                        color={postureColor}
+                        tickColor="#ffffff"
+                      />
                     </div>
                     {/* Row 2: what kind of play it is (posture + risk), then the stat read. */}
                     <div className="flex items-center gap-4 mb-2">
@@ -989,7 +965,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                         Spotlit on every card for the numbers step — reading them is a scan down
                         the column, not a look at one option. */}
                     <div
-                      className={`grid grid-cols-[auto_auto_auto_auto_auto] gap-x-3 gap-y-2 items-center justify-items-start border-t border-pixel-border pt-2.5 ${
+                      className={`grid grid-cols-[auto_auto_auto_auto_auto] gap-x-2 sm:gap-x-3 gap-y-2 items-center justify-items-start border-t border-pixel-border pt-2.5 ${
                         kmSpotlit('options-stats') ? 'ring-4 ring-yellow-400 ring-inset' : ''
                       }`}
                     >

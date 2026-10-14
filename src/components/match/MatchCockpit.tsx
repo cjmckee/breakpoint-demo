@@ -12,8 +12,8 @@ import type { CourtSurface } from '../../types';
 import type { MatchScore } from '../../types/keyMoments';
 import type { InteractiveMatchConfig } from '../../types/keyMoments';
 import { MatchCourt } from './MatchCourt';
-import { useGameStore } from '../../stores/gameStore';
-import { DEFAULT_APPEARANCE, appearanceFromSeed } from '../../core/spriteComposer';
+import { usePlayerAppearance } from '../../hooks/usePlayerAppearance';
+import { getOpponentAppearance } from '../../data/characters';
 import { MATCH_FORM } from '../../config/shotThresholds';
 
 interface MatchCockpitProps {
@@ -21,6 +21,7 @@ interface MatchCockpitProps {
   score: MatchScore;
   playerName: string;
   opponentName: string;
+  opponentCharacterId?: string;
   matchFormat?: InteractiveMatchConfig['matchFormat'];
   /** Optional overlay (e.g. toasts) rendered absolutely over the court region. */
   overlay?: React.ReactNode;
@@ -176,12 +177,15 @@ export const MatchCockpit: React.FC<MatchCockpitProps> = ({
   score,
   playerName,
   opponentName,
+  opponentCharacterId,
   matchFormat,
   overlay,
 }) => {
-  const playerAppearance = useGameStore((state) => state.player?.appearance ?? DEFAULT_APPEARANCE);
-  // Opponents have no authored look yet; their name seeds a stable one.
-  const opponentAppearance = useMemo(() => appearanceFromSeed(opponentName), [opponentName]);
+  const playerAppearance = usePlayerAppearance();
+  const opponentAppearance = useMemo(
+    () => getOpponentAppearance(opponentCharacterId, opponentName),
+    [opponentCharacterId, opponentName],
+  );
 
   const server = score.server;
   const momentum = score.momentum ?? 0;
