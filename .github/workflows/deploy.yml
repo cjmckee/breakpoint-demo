@@ -1,5 +1,12 @@
 name: Deploy to GitHub Pages
 
+# One Pages site holds two builds: `main` at the root (the live game) and the
+# `staging` branch at /staging/ (for trying a branch on a phone). Pages replaces the
+# whole site on every deploy, so each run builds both.
+#
+# Pushes to `staging` reach this through staging.yml, which dispatches it on `main`:
+# the github-pages environment only accepts deployments from `main`.
+
 on:
   push:
     branches:
@@ -32,6 +39,30 @@ jobs:
         env:
           NODE_ENV: production
           VITE_MIXPANEL_TOKEN: ${{ secrets.VITE_MIXPANEL_TOKEN }}
+
+      - name: Look for a staging branch
+        id: staging
+        run: |
+          if git ls-remote --exit-code --heads origin staging > /dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.staging.outputs.exists == 'true'
+        with:
+          ref: staging
+          path: staging-src
+
+      # No Mixpanel token: staging play shouldn't count in the live game's analytics.
+      - name: Build staging into /staging/
+        if: steps.staging.outputs.exists == 'true'
+        working-directory: staging-src
+        run: |
+          npm ci
+          npm run build -- --outDir ../dist/staging --emptyOutDir
+        env:
+          NODE_ENV: production
+          VITE_CHANNEL: staging
 
       - uses: actions/upload-pages-artifact@v3
         with:
