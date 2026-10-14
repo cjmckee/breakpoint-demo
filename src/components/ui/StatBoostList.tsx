@@ -53,7 +53,8 @@ export const StatBoostList: React.FC<StatBoostListProps> = ({
   if (variant === 'grid') {
     return (
       <div className="flex flex-col gap-1">
-        <div className="grid grid-cols-2 gap-1">
+        {/* Two columns only where the longest stat name fits, so values never leave the card. */}
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(15rem,1fr))] gap-x-4 gap-y-1">
           {entries.map(([stat, value]) => (
             <div key={stat} className="flex items-center gap-1 text-sm">
               <span>{getStatIcon(stat)}</span>

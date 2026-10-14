@@ -54,10 +54,15 @@ test('an ability needs its currency as well as XP, and charges both', async ({ p
   const before = (await readGame(page)).player!;
   expect(before.experience).toBeGreaterThanOrEqual(offer.cost);
   await expect(buy).toBeDisabled();
-  await expect(buy).toContainText(`Need ${offer.currencyCost.power} Power`);
+  // The button shows the shortfall as an amount with its icon.
+  await expect(buy.locator('[data-currency="power"]')).toHaveAttribute(
+    'data-amount',
+    String(offer.currencyCost.power),
+  );
   // The short currency is flagged in the price itself, not only on the button.
   await expect(
-    page.getByTestId(`shop-ability-${ABILITY}`).locator('[data-currency="power"]'),
+    // The price comes first; the button below repeats the shortfall.
+    page.getByTestId(`shop-ability-${ABILITY}`).locator('[data-currency="power"]').first(),
   ).toHaveAttribute('data-short', 'true');
 
   await grantCurrency(page, { power: 50 });
@@ -82,8 +87,8 @@ test('an upgrade offer says what is owned and how much stronger the next level i
   await expect(upgrade).toContainText('you own Lv 1 → buying Lv 2');
   await expect(upgrade).toContainText('×1.0 → ×1.6');
 
-  // Short on both XP and Power: the button names both, with amounts.
+  // Short on both XP and Power: the button shows both amounts.
   const buy = page.getByTestId(`shop-buy-${ABILITY}`);
   await expect(buy).toContainText('XP');
-  await expect(buy).toContainText('Power');
+  await expect(buy.locator('[data-currency="power"]')).toBeVisible();
 });

@@ -12,15 +12,27 @@
  * from the shot type), tokens chase the ball and recover between shots, the serve starts from
  * the baseline, and the point ends where the last shot lands. Key-moment points (whose shots
  * are synthesized) fall back to a simple serve → outcome animation.
+ *
+ * The players are pixel sprites drawn over the SVG court as HTML, because the court SVG
+ * stretches to fit (preserveAspectRatio="none") and would squash them. They are drawn
+ * side-on, facing each other across the net, and well over real scale so the art reads.
+ * They run while a rally plays, swing on the frame they strike the ball, react when the
+ * point ends (the winner cheers, the loser slumps), and idle between points.
  */
 
 import React, { useEffect, useRef, useState } from 'react';
 import type { CourtSurface } from '../../types';
 import type { PointResult as SimplePointResult } from '../../types/keyMoments';
+import type { Appearance, SpritePose } from '../../types/appearance';
 import { useMatchStore } from '../../stores/matchStore';
+import { PixelSprite } from '../sprites/PixelSprite';
+import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
+import { SPRITE_HEIGHT, SPRITE_WIDTH } from '../../data/sprites/layers';
 
 interface MatchCourtProps {
   courtSurface: CourtSurface;
+  playerAppearance: Appearance;
+  opponentAppearance: Appearance;
   overlay?: React.ReactNode;
 }
 
@@ -56,6 +68,8 @@ interface Frame {
   p: Pt;
   o: Pt;
   dur: number;
+  /** Who strikes the ball on this frame, if anyone. */
+  hitter?: Side;
 }
 
 const IDLE: Frame = {
@@ -64,6 +78,37 @@ const IDLE: Frame = {
   o: { x: 260, y: 75 },
   dur: 200,
 };
+
+// Viewbox units → percentages of the court box, for the HTML layer over the SVG.
+const pctX = (x: number): string => `${(x / 300) * 100}%`;
+const pctY = (y: number): string => `${(y / 150) * 100}%`;
+
+/**
+ * Sprite pixel size for a court this wide: 3× on a phone, up to 7× on desktop. Players
+ * stand about a third of the court's height — far bigger than life, as pixel art wants.
+ */
+/** Ball diameter in sprite pixels: half a head, pixel-art scale rather than real life. */
+const BALL_SPRITE_PIXELS = 4;
+
+const spriteScaleFor = (courtWidth: number): number =>
+  Math.max(3, Math.min(7, Math.round(courtWidth / 135)));
+
+/** How long the point-end reaction holds before both players settle back to idle. */
+const REACTION_MS = 900;
+
+/** The players face each other: the player (left half) faces right, the opponent left. */
+const FACING: Record<Side, 'left' | 'right'> = { player: 'right', opponent: 'left' };
+
+/**
+ * Where the racquet head sits relative to a swinging figure's anchor, in sprite pixels:
+ * six columns toward the net and about seven rows up (the anchor is 60% of the way down
+ * a 21-row sprite; the raised racquet head is row 6).
+ */
+const RACQUET_REACH = { x: 6, y: -6.6 };
+
+/** A figure's anchor, held far enough inside the court that the sprite isn't clipped. */
+const insideCourt = (pct: string, before: number, after: number): string =>
+  `clamp(${before}px, ${pct}, calc(100% - ${after}px))`;
 
 // Depth (x) within a player's own half, by court position.
 const depthX = (side: Side, cp?: string): number => {
@@ -89,9 +134,10 @@ const lateralY = (shotType?: string, cp?: string): number => {
 const readyPos = (side: Side): Pt => ({ x: side === 'player' ? 36 : 264, y: 75 });
 // A player who isn't hitting drifts back toward their ready position (this also pulls the
 // server "in" off the baseline after the serve).
+// Where they settle varies a little each time, so recovery doesn't look rehearsed.
 const recover = (pos: Pt, side: Side): Pt => ({
-  x: side === 'player' ? 38 : 262,
-  y: clamp(75 + (pos.y - 75) * 0.4, 42, 108),
+  x: side === 'player' ? rand(28, 48) : rand(252, 272),
+  y: clamp(75 + (pos.y - 75) * rand(0.25, 0.6) + rand(-8, 8), 42, 108),
 });
 const deepCorner = (side: Side): Pt =>
   side === 'player' ? { x: rand(18, 50), y: cornerY() } : { x: rand(250, 282), y: cornerY() };
@@ -135,7 +181,7 @@ function buildFromShots(r: SimplePointResult): Frame[] {
       o = contact;
       p = recover(p, 'player');
     }
-    frames.push({ ball: contact, p, o, dur: k === 0 ? 100 : 72 });
+    frames.push({ ball: contact, p, o, dur: k === 0 ? 100 : 72, hitter: side });
   });
 
   const last = shots[shots.length - 1];
@@ -169,7 +215,7 @@ function buildFallback(r: SimplePointResult): Frame[] {
       o = c;
       p = recover(p, 'player');
     }
-    frames.push({ ball: c, p, o, dur });
+    frames.push({ ball: c, p, o, dur, hitter: side });
   };
 
   hit(server, 'baseline', 'serve', 100);
@@ -197,14 +243,36 @@ function buildFallback(r: SimplePointResult): Frame[] {
 const buildRally = (r: SimplePointResult): Frame[] =>
   r.shots && r.shots.length > 0 ? buildFromShots(r) : buildFallback(r);
 
-export const MatchCourt: React.FC<MatchCourtProps> = ({ courtSurface, overlay }) => {
+export const MatchCourt: React.FC<MatchCourtProps> = ({
+  courtSurface,
+  playerAppearance,
+  opponentAppearance,
+  overlay,
+}) => {
   const colors = getCourtColors(courtSurface);
   const lastPointResult = useMatchStore((s) => s.lastPointResult);
   const pointSeq = useMatchStore((s) => s.pointSeq);
 
   const [frame, setFrame] = useState<Frame>(IDLE);
+  const [rallying, setRallying] = useState(false);
+  const [pointWinner, setPointWinner] = useState<Side | null>(null);
+  const reactionTimer = useRef<number | null>(null);
+  const [spriteScale, setSpriteScale] = useState(2);
+  // With reduced motion, players and ball step from place to place instead of gliding.
+  const glide = usePrefersReducedMotion() ? 0 : 1;
+  const courtRef = useRef<HTMLDivElement>(null);
   const timer = useRef<number | null>(null);
   const seenSeq = useRef(0);
+
+  useEffect(() => {
+    const el = courtRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(([entry]) =>
+      setSpriteScale(spriteScaleFor(entry.contentRect.width)),
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (!lastPointResult || pointSeq === seenSeq.current) return;
@@ -214,9 +282,16 @@ export const MatchCourt: React.FC<MatchCourtProps> = ({ courtSurface, overlay })
     if (timer.current) window.clearTimeout(timer.current);
 
     let i = 0;
+    const winner: Side = lastPointResult.winner;
+    if (reactionTimer.current) window.clearTimeout(reactionTimer.current);
+    setPointWinner(null);
+    setRallying(true);
     const tick = (): void => {
       if (i >= frames.length) {
         timer.current = null;
+        setRallying(false);
+        setPointWinner(winner);
+        reactionTimer.current = window.setTimeout(() => setPointWinner(null), REACTION_MS);
         return;
       }
       const f = frames[i];
@@ -230,12 +305,31 @@ export const MatchCourt: React.FC<MatchCourtProps> = ({ courtSurface, overlay })
   useEffect(
     () => () => {
       if (timer.current) window.clearTimeout(timer.current);
+      if (reactionTimer.current) window.clearTimeout(reactionTimer.current);
     },
     [],
   );
 
+  const poseFor = (side: Side): SpritePose => {
+    if (pointWinner) return pointWinner === side ? 'cheer' : 'slump';
+    if (frame.hitter === side) return 'swing';
+    return rallying ? 'run' : 'idle';
+  };
+
+  // On a contact frame the ball meets the racquet, not the hitter's chest.
+  // The ball is drawn on the sprites' pixel grid, a few sprite-pixels across, so it
+  // grows with the players rather than staying a speck beside them.
+  const ballSize = spriteScale * BALL_SPRITE_PIXELS;
+  const ballOffset = frame.hitter
+    ? {
+        x: RACQUET_REACH.x * (FACING[frame.hitter] === 'left' ? -1 : 1) * spriteScale,
+        y: RACQUET_REACH.y * spriteScale,
+      }
+    : { x: 0, y: 0 };
+
   return (
     <div
+      ref={courtRef}
       className="relative rounded-sm overflow-hidden border-2"
       style={{ borderColor: colors.lines }}
     >
@@ -259,44 +353,81 @@ export const MatchCourt: React.FC<MatchCourtProps> = ({ courtSurface, overlay })
         <line x1="70" y1="10" x2="70" y2="140" stroke={colors.lines} strokeWidth="1" />
         <line x1="230" y1="10" x2="230" y2="140" stroke={colors.lines} strokeWidth="1" />
         <line x1="70" y1="75" x2="230" y2="75" stroke={colors.lines} strokeWidth="1" />
-
-        {/* Player token (left half) */}
-        <g
-          style={{
-            transform: `translate(${frame.p.x}px, ${frame.p.y}px)`,
-            transition: `transform ${frame.dur}ms ease-out`,
-          }}
-        >
-          <circle r="12" fill="#10B981" stroke="#FFFFFF" strokeWidth="2" />
-          <text x="0" y="4" textAnchor="middle" className="fill-white" style={{ fontSize: 11 }}>
-            P
-          </text>
-        </g>
-
-        {/* Opponent token (right half) */}
-        <g
-          style={{
-            transform: `translate(${frame.o.x}px, ${frame.o.y}px)`,
-            transition: `transform ${frame.dur}ms ease-out`,
-          }}
-        >
-          <circle r="12" fill="#EF4444" stroke="#FFFFFF" strokeWidth="2" />
-          <text x="0" y="4" textAnchor="middle" className="fill-white" style={{ fontSize: 11 }}>
-            O
-          </text>
-        </g>
-
-        {/* Ball */}
-        <g
-          style={{
-            transform: `translate(${frame.ball.x}px, ${frame.ball.y}px)`,
-            transition: `transform ${frame.dur}ms linear`,
-          }}
-        >
-          <circle r="4.5" fill="#F4E04A" stroke="#B59A00" strokeWidth="1" />
-        </g>
       </svg>
+
       {overlay}
+
+      {/* Players and ball, above the captions so a caption never hides a player */}
+      <div className="absolute inset-0 z-20 pointer-events-none">
+        <CourtFigure
+          side="player"
+          at={frame.p}
+          dur={frame.dur * glide}
+          pose={poseFor('player')}
+          appearance={playerAppearance}
+          scale={spriteScale}
+        />
+        <CourtFigure
+          side="opponent"
+          at={frame.o}
+          dur={frame.dur * glide}
+          pose={poseFor('opponent')}
+          appearance={opponentAppearance}
+          scale={spriteScale}
+        />
+        <div
+          className="absolute rounded-full"
+          data-testid="court-ball"
+          style={{
+            width: ballSize,
+            height: ballSize,
+            borderWidth: Math.max(1, Math.round(spriteScale / 3)),
+            borderStyle: 'solid',
+            left: pctX(frame.ball.x),
+            top: pctY(frame.ball.y),
+            transform: `translate(calc(-50% + ${ballOffset.x}px), calc(-50% + ${ballOffset.y}px))`,
+            backgroundColor: '#F4E04A',
+            borderColor: '#B59A00',
+            transition: `left ${frame.dur * glide}ms linear, top ${frame.dur * glide}ms linear, transform ${frame.dur * glide}ms linear`,
+          }}
+        />
+      </div>
+    </div>
+  );
+};
+
+interface CourtFigureProps {
+  side: Side;
+  at: Pt;
+  dur: number;
+  pose: SpritePose;
+  appearance: Appearance;
+  scale: number;
+}
+
+/** A player sprite standing on a court point, feet slightly below it. */
+const CourtFigure: React.FC<CourtFigureProps> = ({ side, at, dur, pose, appearance, scale }) => {
+  const w = SPRITE_WIDTH * scale;
+  const h = SPRITE_HEIGHT * scale;
+  return (
+    <div
+      className="absolute -translate-x-1/2 -translate-y-[60%]"
+      style={{
+        left: insideCourt(pctX(at.x), w / 2, w / 2),
+        top: insideCourt(pctY(at.y), h * 0.6, h * 0.4),
+        transition: `left ${dur}ms ease-out, top ${dur}ms ease-out`,
+      }}
+      data-testid={`court-figure-${side}`}
+      data-pose={pose}
+    >
+      <PixelSprite
+        appearance={appearance}
+        pose={pose}
+        scale={scale}
+        fps={8}
+        facing={FACING[side]}
+        className="block"
+      />
     </div>
   );
 };
