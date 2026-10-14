@@ -16,6 +16,8 @@ interface ButtonProps {
   className?: string;
   /** Stable hook for e2e. See the test id convention in CLAUDE.md. */
   testId?: string;
+  /** Inside a form, `button` keeps a click from submitting it. */
+  type?: 'button' | 'submit';
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -27,6 +29,7 @@ export const Button: React.FC<ButtonProps> = ({
   fullWidth = false,
   className = '',
   testId,
+  type = 'submit',
 }) => {
   const baseStyles =
     'font-bold border-4 transition-all duration-150 ease-in-out cursor-pointer disabled:cursor-not-allowed disabled:opacity-50';
@@ -57,6 +60,7 @@ export const Button: React.FC<ButtonProps> = ({
 
   return (
     <button
+      type={type}
       onClick={handleClick}
       disabled={disabled}
       data-testid={testId}

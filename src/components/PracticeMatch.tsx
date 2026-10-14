@@ -45,6 +45,7 @@ export const PracticeMatch: React.FC<{ matchConfig: PreMatchConfig | null }> = (
       },
       opponentStats: matchConfig.opponentStats,
       opponentName: matchConfig.opponentName,
+      opponentCharacterId: matchConfig.opponentCharacterId,
       opponentTier: matchConfig.opponentTier,
       surface: matchConfig.surface,
       mood: currentStatus.mood,
@@ -84,6 +85,7 @@ export const PracticeMatch: React.FC<{ matchConfig: PreMatchConfig | null }> = (
       playerAbilities={player.abilities}
       opponentAbilities={matchConfig.opponentAbilities}
       opponentName={matchConfig.opponentName}
+      opponentCharacterId={matchConfig.opponentCharacterId}
       opponentStats={matchConfig.opponentStats}
       opponentPlayStyle={matchConfig.opponentPlayStyle}
       surface={matchConfig.surface}

@@ -31,6 +31,7 @@ import {
 import type { StoryEvent, StoryEventTag, StoryEventOption } from '../types/storyEvents';
 import { HANGOUT_CHARACTERS, HANGOUT_ENERGY_COST, getHangoutTier } from '../data/hangoutCharacters';
 import type { Challenge } from '../types/challenges';
+import type { Appearance } from '../types/appearance';
 import type { Item, OwnedItem, EquipmentSlot } from '../types/items';
 import type { ActiveTournament, TournamentMatchMetadata } from '../types/tournaments';
 import { PlayerManager } from '../game/PlayerManager';
@@ -157,7 +158,7 @@ interface GameState {
 
   // Actions
   initializeGame: () => void;
-  createPlayer: (name: string, playstyle: 'offensive' | 'defensive' | 'balanced') => void;
+  createPlayer: (name: string, appearance: Appearance) => void;
   applyTrainingResult: (result: TrainingResult) => Player;
   advanceTime: () => void;
   rest: () => void;
@@ -538,8 +539,8 @@ export const useGameStore = create<GameState>()(
       },
 
       // Create new player
-      createPlayer: (name: string, playstyle: 'offensive' | 'defensive' | 'balanced') => {
-        const player = PlayerManager.createPlayer(name, playstyle);
+      createPlayer: (name: string, appearance: Appearance) => {
+        const player = PlayerManager.createPlayer(name, appearance);
 
         // Schedule initial story events so they fire reliably in the correct order
         // rather than relying on random chance triggers
@@ -681,7 +682,7 @@ export const useGameStore = create<GameState>()(
           },
         });
 
-        trackPlayerCreated(playstyle, player);
+        trackPlayerCreated(player);
 
         // Trigger welcome event (guaranteed, no probability roll)
         get().checkForStoryEventById('welcome_to_tennis_rpg');
@@ -1153,6 +1154,7 @@ export const useGameStore = create<GameState>()(
                   );
                   const matchConfig: PreMatchConfig = {
                     opponentName: opponent?.name || 'Opponent',
+                    opponentCharacterId: opponent?.characterId,
                     opponentStats: opponent?.stats ?? ({} as PlayerStats),
                     opponentTier: tournamentTier,
                     opponentDescription: opponent?.description,
@@ -1204,6 +1206,7 @@ export const useGameStore = create<GameState>()(
                 metadata.opponentArchetypeProfile ?? createEmptyArchetypeProfile();
               const matchConfig: PreMatchConfig = {
                 opponentName: metadata.opponentName,
+                opponentCharacterId: metadata.opponentId,
                 opponentStats: metadata.opponentStats,
                 opponentTier: storyTier,
                 opponentDescription: metadata.opponentDescription,
@@ -1374,6 +1377,7 @@ export const useGameStore = create<GameState>()(
               );
               const matchConfig: PreMatchConfig = {
                 opponentName: opponent?.name || 'Opponent',
+                opponentCharacterId: opponent?.characterId,
                 opponentStats: opponent?.stats ?? ({} as PlayerStats),
                 opponentTier: tournamentTier,
                 opponentDescription: opponent?.description,
@@ -1428,6 +1432,7 @@ export const useGameStore = create<GameState>()(
                 metadata.opponentArchetypeProfile ?? createEmptyArchetypeProfile();
               const matchConfig: PreMatchConfig = {
                 opponentName: metadata.opponentName,
+                opponentCharacterId: metadata.opponentId,
                 opponentStats: metadata.opponentStats,
                 opponentTier: storyTier,
                 opponentDescription: metadata.opponentDescription,
@@ -1478,6 +1483,7 @@ export const useGameStore = create<GameState>()(
                 metadata.opponentArchetypeProfile ?? createEmptyArchetypeProfile();
               const matchConfig: PreMatchConfig = {
                 opponentName: metadata.opponentName,
+                opponentCharacterId: metadata.opponentId,
                 opponentStats: metadata.opponentStats,
                 opponentTier: metadata.opponentTier as OpponentTier,
                 opponentDescription: metadata.opponentDescription,

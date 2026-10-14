@@ -133,6 +133,8 @@ export type MatchType = 'regular' | 'tournament' | 'story' | 'tutorial';
 /** Pre-resolved match configuration for tournament/story matches. */
 export interface PreMatchConfig {
   opponentName: string;
+  /** CHARACTERS id when the opponent is a named character, for their fixed look. */
+  opponentCharacterId?: string;
   opponentStats: PlayerStats;
   opponentTier: OpponentTier;
   opponentDescription?: string;

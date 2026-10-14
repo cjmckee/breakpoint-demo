@@ -4,7 +4,9 @@
  * Used by both tournament matches and story matches.
  */
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import { usePlayerAppearance } from '../hooks/usePlayerAppearance';
+import { getOpponentAppearance } from '../data/characters';
 import { Card } from './ui/Card';
 import { ScreenFrame } from './ui/ScreenFrame';
 import { Button } from './ui/Button';
@@ -44,6 +46,8 @@ interface PreMatchScreenProps {
 
   // Opponent
   opponentName: string;
+  /** CHARACTERS id when the opponent is a named character, for their fixed look. */
+  opponentCharacterId?: string;
   opponentDescription?: string;
   opponentStats: PlayerStats;
   opponentPlayStyle: PlayStyle;
@@ -258,6 +262,7 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
   playerAbilities,
   opponentAbilities,
   opponentName,
+  opponentCharacterId,
   opponentDescription,
   opponentStats,
   opponentPlayStyle,
@@ -273,6 +278,11 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
   const canAfford = currentEnergy >= energyCost;
 
   const opponentOverallRating = calculateOverallRating(opponentStats);
+  const playerAppearance = usePlayerAppearance();
+  const opponentAppearance = useMemo(
+    () => getOpponentAppearance(opponentCharacterId, opponentName),
+    [opponentCharacterId, opponentName],
+  );
 
   return (
     <ScreenFrame
@@ -289,7 +299,14 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
           onClick={onStartMatch}
           disabled={!canAfford}
         >
-          {!canAfford ? <>Not Enough Energy ({energyCost})</> : <>🎾 Start Match</>}
+          {!canAfford ? (
+            <>
+              <span className="sm:hidden">Need ⚡{energyCost}</span>
+              <span className="hidden sm:inline">Not Enough Energy ({energyCost})</span>
+            </>
+          ) : (
+            <>🎾 Start Match</>
+          )}
         </Button>
       }
     >
@@ -303,6 +320,8 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
           opponentName={opponentName}
           opponentOverall={opponentOverallRating}
           opponentStats={opponentStats}
+          playerAppearance={playerAppearance}
+          opponentAppearance={opponentAppearance}
           opponentTag={
             <span className="px-2 py-0.5 text-xs font-bold border-2 border-pixel-accent text-pixel-accent">
               {getArchetypeLabel(opponentPlayStyle.type)}
@@ -376,9 +395,16 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
           disabled={!canAfford}
         >
           {!canAfford ? (
-            <>Not Enough Energy (Need {energyCost})</>
+            <>
+              <span className="sm:hidden">Need ⚡{energyCost}</span>
+              <span className="hidden sm:inline">Not Enough Energy (Need {energyCost})</span>
+            </>
           ) : (
-            <>🎾 Start Match vs {opponentName}</>
+            <>
+              🎾 Start Match
+              {/* The opponent is named in the subtitle; phones have no room to repeat it. */}
+              <span className="hidden sm:inline"> vs {opponentName}</span>
+            </>
           )}
         </Button>
       </div>

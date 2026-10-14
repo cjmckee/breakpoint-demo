@@ -15,6 +15,8 @@ import { Modal } from './ui/Modal';
 import { OpponentPreviewCard } from './OpponentPreviewCard';
 import { buildPlayStyle } from '../core/PlayerProfile';
 import { createEmptyArchetypeProfile } from '../data/archetypeTree';
+import { PixelSprite } from './sprites/PixelSprite';
+import { getOpponentAppearance } from '../data/characters';
 import type { CourtSurface, PlayerStats, PlayStyle } from '../types';
 
 interface CalendarViewProps {
@@ -77,6 +79,7 @@ function getDayLabel(day: number, currentDay: number): string {
 
 interface MatchPreviewData {
   opponentName: string;
+  opponentCharacterId?: string;
   opponentTier: number;
   opponentDescription?: string;
   opponentStats: PlayerStats;
@@ -96,6 +99,7 @@ function getMatchPreviewData(event: ScheduledEvent): MatchPreviewData | null {
     const opponent = round.opponent;
     return {
       opponentName: opponent.name,
+      opponentCharacterId: opponent.characterId,
       opponentTier: opponent.tier,
       opponentDescription: opponent.description,
       opponentStats: opponent.stats,
@@ -108,6 +112,7 @@ function getMatchPreviewData(event: ScheduledEvent): MatchPreviewData | null {
     const meta = event.metadata as StoryMatchMetadata;
     return {
       opponentName: meta.opponentName,
+      opponentCharacterId: meta.opponentId,
       opponentTier: meta.opponentTier,
       opponentDescription: meta.opponentDescription,
       opponentStats: meta.opponentStats,
@@ -118,6 +123,22 @@ function getMatchPreviewData(event: ScheduledEvent): MatchPreviewData | null {
 
   return null;
 }
+
+/** The opponent's face on a match slot, so the week reads as who you're playing. */
+const OpponentFace: React.FC<{ event: ScheduledEvent }> = ({ event }) => {
+  const preview = getMatchPreviewData(event);
+  if (!preview) return null;
+  return (
+    <PixelSprite
+      appearance={getOpponentAppearance(preview.opponentCharacterId, preview.opponentName)}
+      framing="portrait"
+      scale={2}
+      animate={false}
+      className="block"
+      testId="calendar-opponent"
+    />
+  );
+};
 
 export const CalendarView: React.FC<CalendarViewProps> = ({ isOpen, onClose }) => {
   const calendar = useGameStore((state) => state.calendar);
@@ -212,7 +233,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ isOpen, onClose }) =
                           )}
                           {event && (
                             <div className="flex flex-col items-center gap-0.5 text-center">
-                              <span className="text-base leading-none">
+                              <span className="flex items-center gap-1 text-base leading-none">
+                                <OpponentFace event={event} />
                                 {getEventDisplay(event).icon}
                               </span>
                               <span className="text-pixel-text font-medium leading-tight line-clamp-2">
