@@ -63,7 +63,7 @@ const LEGS_STAND: readonly string[] = [
   '.....KSKKSK.....',
   '.....KSKKSK.....',
   '.....KWKKWK.....',
-  '....KooKKooK....',
+  '....KBBKKBBK....',
   '....KKKKKKKK....',
 ];
 
@@ -71,7 +71,7 @@ const LEGS_STRIDE: readonly string[] = [
   '....KSKKKKSK....',
   '...KSK....KSK...',
   '...KWK....KWK...',
-  '..KooK....KooK..',
+  '..KBBK....KBBK..',
   '..KKK......KKK..',
 ];
 
@@ -81,6 +81,40 @@ const BODY_IDLE = body(HEAD, TORSO, LEGS_STAND);
 const BODY_BLINK = body(HEAD_BLINK, TORSO, LEGS_STAND);
 const BODY_RUN = body(HEAD, TORSO, LEGS_STRIDE);
 const BODY_SWING = body(HEAD, TORSO_SWING, LEGS_STRIDE);
+
+/** Racquet arm thrown up beside the head: the point is won. */
+const BODY_CHEER = body(
+  [
+    '................',
+    '................',
+    '.....KKKKKK.....',
+    '....KSSSSSSK....',
+    '....KSSSSSSK....',
+    '....KSESSESK.KSK',
+    '....KSSSSSSK.KSK',
+    '....KsSSSSsK.KSK',
+    '.....KKssKK..KOK',
+    '....KOOOOOOKKOK.',
+    '...KOOOOOOOOOK..',
+    '...KSOOOOOOK....',
+    '...KSOooooOK....',
+    '...KSKPPPPKK....',
+    '....KKPPPPKK....',
+    '.....KPPPPK.....',
+  ],
+  LEGS_STAND,
+);
+
+/**
+ * Head dropped a row and eyes down, shoulders gone: the point is lost. Hair follows the
+ * head through the frame's `headDy`.
+ */
+const BODY_SLUMP = body(
+  ['................', '................', '................'],
+  HEAD_BLINK.slice(2),
+  TORSO.slice(1),
+  LEGS_STAND,
+);
 
 // Side view, facing right: the back of the head is on the left, the nose on the right.
 
@@ -125,7 +159,7 @@ const LEGS_SIDE_STAND: readonly string[] = [
   '......KSSK......',
   '......KSSK......',
   '......KWWK......',
-  '......KoooK.....',
+  '......KBBBK.....',
   '......KKKKK.....',
 ];
 
@@ -133,7 +167,7 @@ const LEGS_SIDE_STRIDE: readonly string[] = [
   '.....KSKKSK.....',
   '....KSK..KSK....',
   '....KWK...KWK...',
-  '...KooK...KoooK.',
+  '...KBBK...KBBBK.',
   '...KKK....KKKKK.',
 ];
 
@@ -141,6 +175,35 @@ const SIDE_IDLE = body(HEAD_SIDE, TORSO_SIDE, LEGS_SIDE_STAND);
 const SIDE_BLINK = body(HEAD_SIDE_BLINK, TORSO_SIDE, LEGS_SIDE_STAND);
 const SIDE_RUN = body(HEAD_SIDE, TORSO_SIDE, LEGS_SIDE_STRIDE);
 const SIDE_SWING = body(HEAD_SIDE, TORSO_SIDE_SWING, LEGS_SIDE_STRIDE);
+
+const SIDE_CHEER = body(
+  [
+    '................',
+    '................',
+    '......KKKKK.....',
+    '.....KSSSSSK....',
+    '.....KSSSSSK....',
+    '.....KSSSSEK.KSK',
+    '.....KSSSSSSKKSK',
+    '.....KsSSSSK.KSK',
+    '......KKssK..KOK',
+    '......KOOOKKKOK.',
+    '.....KOOOOOOOK..',
+    '.....KOOOOOK....',
+    '.....KoooOOK....',
+    '.....KPPPPK.....',
+    '.....KPPPPK.....',
+    '......KPPK......',
+  ],
+  LEGS_SIDE_STAND,
+);
+
+const SIDE_SLUMP = body(
+  ['................', '................', '................'],
+  HEAD_SIDE_BLINK.slice(2),
+  TORSO_SIDE.slice(1),
+  LEGS_SIDE_STAND,
+);
 
 // ─── Racquet ───────────────────────────────────────────────────────────────
 
@@ -193,11 +256,34 @@ const RACQUET_SIDE_UP: SpriteLayer = {
   ],
 };
 
+/** Held high in a raised fist, for a cheer. Front and side share it. */
+const RACQUET_RAISED: SpriteLayer = {
+  top: 0,
+  rows: [
+    '.............RR.',
+    '............RGGR',
+    '............RGGR',
+    '.............RR.',
+    '..............T.',
+  ],
+};
+
+/** Head of the racquet resting on the ground, for a slump. */
+const RACQUET_DRAGGED: SpriteLayer = { ...RACQUET_DOWN, top: RACQUET_DOWN.top + 1 };
+const RACQUET_SIDE_DRAGGED: SpriteLayer = {
+  ...RACQUET_SIDE_DOWN,
+  top: RACQUET_SIDE_DOWN.top + 1,
+};
+
 // ─── Poses ─────────────────────────────────────────────────────────────────
 
 export interface PoseFrame {
   body: SpriteLayer;
   racquet: SpriteLayer;
+  /** Rows the head sits below its usual place; hair and accessories follow it. */
+  headDy?: number;
+  /** Rows the whole frame is raised (negative) or lowered, for a hop. */
+  dy?: number;
 }
 
 /**
@@ -218,6 +304,11 @@ export const POSE_FRAMES: Record<SpritePose, readonly PoseFrame[]> = {
     { body: BODY_IDLE, racquet: RACQUET_DOWN },
   ],
   swing: [{ body: BODY_SWING, racquet: RACQUET_UP }],
+  cheer: [
+    { body: BODY_CHEER, racquet: RACQUET_RAISED },
+    { body: BODY_CHEER, racquet: RACQUET_RAISED, dy: -1 },
+  ],
+  slump: [{ body: BODY_SLUMP, racquet: RACQUET_DRAGGED, headDy: 1 }],
 };
 
 /** The same poses side-on, facing right. */
@@ -235,6 +326,11 @@ export const SIDE_POSE_FRAMES: Record<SpritePose, readonly PoseFrame[]> = {
     { body: SIDE_IDLE, racquet: RACQUET_SIDE_DOWN },
   ],
   swing: [{ body: SIDE_SWING, racquet: RACQUET_SIDE_UP }],
+  cheer: [
+    { body: SIDE_CHEER, racquet: RACQUET_RAISED },
+    { body: SIDE_CHEER, racquet: RACQUET_RAISED, dy: -1 },
+  ],
+  slump: [{ body: SIDE_SLUMP, racquet: RACQUET_SIDE_DRAGGED, headDy: 1 }],
 };
 
 // ─── Hair ──────────────────────────────────────────────────────────────────
@@ -378,5 +474,28 @@ export const ACCESSORIES: Record<Accessory, AccessoryLayer> = {
     label: 'Visor',
     layer: { top: 3, rows: ['...KOOOOOOOOK...', '...KooooooooK...'] },
     side: { top: 3, rows: ['....KOOOOOOOK...', '..........oooK..'] },
+  },
+  chef_hat: {
+    label: "Chef's Hat",
+    layer: {
+      top: 0,
+      rows: [
+        '....KKKKKKKK....',
+        '...KWWWWWWWWK...',
+        '...KWWWWWWWWK...',
+        '....KWWWWWWK....',
+        '....KWWWWWWK....',
+      ],
+    },
+    side: {
+      top: 0,
+      rows: [
+        '.....KKKKKKK....',
+        '....KWWWWWWWK...',
+        '....KWWWWWWWK...',
+        '.....KWWWWWK....',
+        '.....KWWWWWK....',
+      ],
+    },
   },
 };

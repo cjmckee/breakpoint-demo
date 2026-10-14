@@ -122,6 +122,10 @@ test('a key moment commits from a footer that stays on screen', async ({ page })
   await expect(tactic).toHaveAttribute('data-selected', 'true');
   await expect(commit).toBeEnabled();
   const picked = await tactic.getAttribute('data-tactic-id');
+  // Hovering another card previews it at once, but Go! still plays the pick.
+  await page.getByTestId('km-tactic-0').hover();
+  await expect(tactic.locator('svg[data-checked="true"]')).toBeVisible();
+  await page.screenshot({ path: test.info().outputPath('key-moment.png') });
   await commit.click();
 
   await expect(page.getByTestId('km-result-continue')).toBeInViewport();

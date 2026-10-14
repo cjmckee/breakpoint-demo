@@ -7,6 +7,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import type { Appearance, SpritePose } from '../../types/appearance';
 import { composeSprite, spriteFrameCount } from '../../core/spriteComposer';
 import { SPRITE_HEIGHT, SPRITE_WIDTH } from '../../data/sprites/layers';
+import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 
 /**
  * What part of the grid to show. A portrait is head and shoulders: columns 1-14 keep a
@@ -51,13 +52,15 @@ export const PixelSprite: React.FC<PixelSpriteProps> = ({
 }) => {
   const [tick, setTick] = useState(0);
   const frameCount = spriteFrameCount(pose);
+  const reducedMotion = usePrefersReducedMotion();
+  const cycling = animate && !reducedMotion && frameCount > 1;
 
   useEffect(() => {
     setTick(0);
-    if (!animate || frameCount <= 1) return;
+    if (!cycling) return;
     const id = window.setInterval(() => setTick((t) => t + 1), 1000 / fps);
     return () => window.clearInterval(id);
-  }, [pose, fps, frameCount, animate]);
+  }, [pose, fps, cycling]);
 
   const runs = useMemo(
     () => composeSprite(appearance, pose, tick, { racquet, facing }),

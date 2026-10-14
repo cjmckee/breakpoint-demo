@@ -28,6 +28,8 @@ import {
 } from '../core/spriteComposer';
 import type { Appearance, SpritePose } from '../types/appearance';
 import { CHARACTERS } from '../data/characters';
+import { GEAR_LOOKS } from '../data/sprites/gearLooks';
+import { ALL_ITEMS } from '../data/items';
 import { StoryEventRepository } from '../data/storyEvents';
 import { TournamentRegistry } from '../data/tournaments';
 import * as TeamMatches from '../data/teamMatches';
@@ -43,7 +45,18 @@ function check(label: string, condition: boolean, detail?: string): void {
   }
 }
 
-const SYMBOLS = new Set(['.', ...Object.keys(FIXED_COLORS), 'S', 's', 'H', 'h', 'L', 'O', 'o']);
+const SYMBOLS = new Set([
+  '.',
+  ...Object.keys(FIXED_COLORS),
+  'S',
+  's',
+  'H',
+  'h',
+  'L',
+  'O',
+  'o',
+  'B',
+]);
 
 function checkLayer(name: string, layer: SpriteLayer): void {
   const badWidth = layer.rows.findIndex((row) => row.length !== SPRITE_WIDTH);
@@ -189,6 +202,33 @@ const keyLooks = Object.values(CHARACTERS)
   .filter((c) => c.isKeyCharacter)
   .map((c) => JSON.stringify(c.appearance));
 check('key characters all look different', new Set(keyLooks).size === keyLooks.length);
+
+console.log('\n── gear looks ──');
+const misfiled = Object.entries(GEAR_LOOKS).filter(([id, look]) => {
+  const item = ALL_ITEMS.find((candidate) => candidate.id === id);
+  if (!item) return true;
+  if (look.accessory && item.equipmentSlot !== 'hat') return true;
+  if (look.racquetColor && item.equipmentSlot !== 'racquet') return true;
+  if (look.shoeColor && item.equipmentSlot !== 'shoes') return true;
+  return look.kitColor !== undefined && item.equipmentSlot !== 'outfit';
+});
+check(
+  'every gear look names a real item in the slot it draws',
+  misfiled.length === 0,
+  misfiled.map(([id]) => id).join(', '),
+);
+const unseen = ALL_ITEMS.filter((i) => {
+  const look = GEAR_LOOKS[i.id];
+  if (i.equipmentSlot === 'hat') return !look?.accessory;
+  if (i.equipmentSlot === 'racquet') return !look?.racquetColor;
+  if (i.equipmentSlot === 'shoes') return !look?.shoeColor;
+  return false;
+});
+check(
+  'every hat, racquet and pair of shoes shows on the sprite',
+  unseen.length === 0,
+  unseen.map((i) => i.id).join(', '),
+);
 
 if (failures > 0) {
   console.log(`\n${failures} sprite check(s) failed`);
