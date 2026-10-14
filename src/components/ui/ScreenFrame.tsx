@@ -64,7 +64,7 @@ export const ScreenFrame: React.FC<ScreenFrameProps> = ({
 
       <main className={`${SCREEN_WIDTHS[width]} mx-auto px-4 ${className}`}>
         {title !== undefined && (
-          <div className="flex items-start gap-3 mb-4">
+          <div className="flex flex-wrap sm:flex-nowrap items-start gap-3 mb-4">
             {/* Fixed slot: the title starts at the same x whether or not there is a way back. */}
             <div className="w-10 h-10 shrink-0">
               {onBack && (
@@ -84,7 +84,7 @@ export const ScreenFrame: React.FC<ScreenFrameProps> = ({
             </div>
             <div className="min-w-0 flex-1 pt-0.5">
               <h1
-                className="text-2xl sm:text-3xl font-bold text-pixel-text leading-tight truncate"
+                className="text-xl sm:text-3xl font-bold text-pixel-text leading-tight break-words"
                 data-testid="screen-title"
               >
                 {icon && (
@@ -96,7 +96,12 @@ export const ScreenFrame: React.FC<ScreenFrameProps> = ({
               </h1>
               {subtitle && <p className="text-sm text-pixel-text-muted mt-1">{subtitle}</p>}
             </div>
-            {actions && <div className="shrink-0 flex items-center gap-2">{actions}</div>}
+            {/* On phones the actions take their own row, so they never squeeze the title. */}
+            {actions && (
+              <div className="basis-full sm:basis-auto shrink-0 flex flex-wrap items-center justify-end gap-2">
+                {actions}
+              </div>
+            )}
           </div>
         )}
         {children}
