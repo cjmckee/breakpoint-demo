@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { loadSave, setMatchSpeed } from './helpers';
+import { grantCurrency, loadSave, setMatchSpeed } from './helpers';
 
 /**
  * Text fits its box on every main screen.
@@ -29,9 +29,13 @@ async function clippedText(page: Page): Promise<string[]> {
 
 test('no text is cut off on the main screens', async ({ page }) => {
   await loadSave(page, SAVE, 7);
+  // Double-digit wallets, so Development's before → after readout is at its widest.
+  await grantCurrency(page, { power: 16, quickness: 18, technique: 16, mind: 19 });
   const found: string[] = [];
   const check = async (screen: string): Promise<void> => {
     for (const text of await clippedText(page)) found.push(`${screen}: ${text.slice(0, 40)}`);
+    const wide = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
+    if (wide) found.push(`${screen}: the page scrolls sideways`);
   };
 
   await check('menu');
@@ -39,6 +43,13 @@ test('no text is cut off on the main screens', async ({ page }) => {
     await page.getByTestId(`action-${screen}`).click();
     await expect(page.getByTestId('screen-title')).toBeVisible();
     await check(screen);
+    if (screen === 'development') {
+      // A plan shows each wallet as before → after, its widest state.
+      // Plan the way a player would: the first affordable +1, over and over.
+      const plus = page.locator('[data-testid^="development-plus-"]:enabled');
+      for (let i = 0; i < 12 && (await plus.count()) > 0; i++) await plus.first().click();
+      await check('development with a plan');
+    }
     await page.getByTestId('screen-back').click();
   }
 

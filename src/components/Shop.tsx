@@ -24,7 +24,7 @@ import { StatBoostList } from './ui/StatBoostList';
 import { formatAbilityName } from './AbilityDisplay';
 import { CurrencyAmounts } from './currency/CurrencyAmounts';
 import { canAfford as walletCovers } from '../game/StatDevelopment';
-import { CURRENCIES, CURRENCY_LABELS } from '../config/economy';
+import { CURRENCIES } from '../config/economy';
 import { levelMultiplier } from '../core/EffectAggregator';
 
 const RARITY_LABELS: Record<ItemRarity, string> = {
@@ -87,7 +87,7 @@ const BuyButton: React.FC<{
   canAfford: boolean;
   onBuy: (itemId: string) => void;
   /** Why it can't be bought, when it can't. */
-  shortOf?: string;
+  shortOf?: React.ReactNode;
   testId: string;
 }> = ({ item, canAfford, onBuy, shortOf = 'Not Enough XP', testId }) => {
   if (item.purchased) {
@@ -223,13 +223,18 @@ const AbilityShopCard: React.FC<{
   const enoughXp = playerExperience >= item.cost;
   const short = CURRENCIES.filter((c) => wallet[c] < (item.currencyCost[c] ?? 0));
   const canAfford = enoughXp && walletCovers(wallet, item.currencyCost);
-  const needs = [
-    ...(enoughXp ? [] : [`${item.cost - playerExperience} XP`]),
-    ...short.map(
-      (c) => `${(item.currencyCost[c] ?? 0) - Math.floor(wallet[c])} ${CURRENCY_LABELS[c]}`,
-    ),
-  ];
-  const shortOf = `Need ${needs.join(' and ')}`;
+  const xpShort = item.cost - playerExperience;
+  const currencyShort: Amounts = Object.fromEntries(
+    short.map((c) => [c, (item.currencyCost[c] ?? 0) - Math.floor(wallet[c])]),
+  );
+  // The shortfall as amounts with their icons, not a sentence, so it fits the button.
+  const shortOf = (
+    <span className="inline-flex flex-wrap items-center justify-center gap-x-2">
+      Need
+      {!enoughXp && <span>{xpShort} XP</span>}
+      <CurrencyAmounts amounts={currencyShort} />
+    </span>
+  );
   const owned = item.level - 1;
   const rarityColor = getRarityColor(item.rarity);
   const rarityBg = RARITY_BG_COLORS[item.rarity];
@@ -323,7 +328,9 @@ export const Shop: React.FC = () => {
             comparison against this number */}
       <div className="sticky top-2 z-20 mb-6 bg-yellow-900 border-4 border-yellow-500 px-4 py-2 flex items-center justify-between gap-3">
         <div className="flex items-baseline gap-3 min-w-0">
-          <span className="text-sm font-bold text-yellow-200 whitespace-nowrap">💰 Balance</span>
+          <span className="text-sm font-bold text-yellow-200 whitespace-nowrap">
+            💰<span className="hidden sm:inline"> Balance</span>
+          </span>
         </div>
         <span className="flex flex-wrap items-center justify-end gap-x-3">
           <CurrencyAmounts amounts={player.wallet} testId="shop-wallet" />

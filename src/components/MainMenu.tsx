@@ -628,12 +628,13 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
         </div>
       </div>
 
-      {/* First-run walkthrough: dim everything, lift the spotlit section, dock the callout */}
+      {/* First-run walkthrough: dim everything, lift the spotlit section, dock the callout.
+          Wider on desktop so the pixel font's long steps stay short enough to dock clear. */}
       {activeStep && (
         <>
           <div className="fixed inset-0 z-50 bg-black bg-opacity-75 pointer-events-none" />
           <div
-            className={`fixed left-1/2 -translate-x-1/2 z-[70] w-full max-w-md px-4 overflow-y-auto ${
+            className={`fixed left-1/2 -translate-x-1/2 z-[70] w-full max-w-md lg:max-w-2xl px-4 overflow-y-auto ${
               dock?.atTop ? 'top-2' : 'bottom-2'
             }`}
             style={dock ? { maxHeight: `${dock.maxHeight}px` } : undefined}
