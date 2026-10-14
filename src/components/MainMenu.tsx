@@ -398,7 +398,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                 <PixelSprite appearance={playerAppearance} scale={4} className="block" />
               </div>
               <div className="min-w-0">
-                <h1 className="text-2xl sm:text-3xl font-bold text-pixel-text leading-tight truncate">
+                <h1 className="text-xl sm:text-3xl font-bold text-pixel-text leading-tight break-words">
                   {player.name}
                 </h1>
                 <div className="flex flex-wrap items-center gap-2 mt-1.5">

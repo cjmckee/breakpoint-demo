@@ -84,7 +84,7 @@ export const StatCard: React.FC<StatCardProps> = ({
     >
       {/* Stat Label */}
       <div className="text-center mb-2">
-        <h4 className="text-xs sm:text-sm font-medium text-pixel-text-muted uppercase tracking-wide truncate">
+        <h4 className="text-[10px] sm:text-sm font-medium text-pixel-text-muted uppercase sm:tracking-wide truncate">
           {label}
         </h4>
       </div>
