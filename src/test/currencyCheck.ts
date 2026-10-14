@@ -60,7 +60,7 @@ function playerWith(
   wallet: Player['wallet'],
   stats?: Partial<Record<(typeof STAT_NAMES)[number], number>>,
 ): Player {
-  const base = PlayerManager.createPlayer('Check', 'balanced');
+  const base = PlayerManager.createPlayer('Check');
   let s = base.stats;
   for (const [k, v] of Object.entries(stats ?? {}))
     s = withStat(s, k as (typeof STAT_NAMES)[number], v);
@@ -106,7 +106,7 @@ function main(): void {
   );
 
   console.log('\n── plan cost ──');
-  const stats39 = withStat(PlayerManager.createPlayer('x', 'balanced').stats, 'focus', 39);
+  const stats39 = withStat(PlayerManager.createPlayer('x').stats, 'focus', 39);
   const cost = planCost(stats39, ['focus', 'focus']);
   check(
     'two focus points from 39 cost 2 + 4 Mind (the second crosses 40)',

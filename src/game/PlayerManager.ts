@@ -6,15 +6,17 @@
 import { Player, PlayerStats, DEFAULT_PLAYER_STATS, StatBoosts, Ability } from '../types/game';
 import { AbilitySystem } from './AbilitySystem';
 import { createEmptyArchetypeProfile } from '../data/archetypeTree';
-import { addToEachStat } from '../core/statAccess';
+import type { Appearance } from '../types/appearance';
+import { DEFAULT_APPEARANCE } from '../core/spriteComposer';
 
 import { random } from '../core/random';
 import { emptyWallet } from './StatDevelopment';
 export class PlayerManager {
   /**
-   * Create a new player with default stats and optional playstyle
+   * Create a new player with default stats. Playstyle is not chosen here: Coach Gonzalez
+   * sets the archetype early in the story.
    */
-  static createPlayer(name: string, playstyle?: 'offensive' | 'defensive' | 'balanced'): Player {
+  static createPlayer(name: string, appearance: Appearance = DEFAULT_APPEARANCE): Player {
     const baseStats: PlayerStats = {
       core: { ...DEFAULT_PLAYER_STATS.core },
       technical: { ...DEFAULT_PLAYER_STATS.technical },
@@ -22,26 +24,10 @@ export class PlayerManager {
       mental: { ...DEFAULT_PLAYER_STATS.mental },
     };
 
-    // Apply playstyle bonuses
-    if (playstyle === 'offensive') {
-      baseStats.core.forehand += 5;
-      baseStats.core.backhand += 5;
-      baseStats.physical.strength += 3;
-    } else if (playstyle === 'defensive') {
-      baseStats.physical.speed += 5;
-      baseStats.physical.stamina += 5;
-      baseStats.mental.tactics += 3;
-    } else if (playstyle === 'balanced') {
-      // Small bonus to all stats
-      addToEachStat(baseStats.core, 1);
-      addToEachStat(baseStats.technical, 1);
-      addToEachStat(baseStats.physical, 1);
-      addToEachStat(baseStats.mental, 1);
-    }
-
     return {
       id: this.generateId(),
       name,
+      appearance: { ...appearance },
       stats: baseStats,
       abilities: [],
       wallet: emptyWallet(),

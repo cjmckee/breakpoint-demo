@@ -80,10 +80,14 @@ export const InventoryItem: React.FC<InventoryItemProps> = ({
 
         <div className="text-center">
           <div className="text-3xl mb-1">{getItemIcon(item)}</div>
-          <div className={`text-xs px-2 py-0.5 ${meta.badge} text-white mb-1`}>
+          <div
+            className={`text-[10px] sm:text-xs px-1 py-0.5 max-w-full truncate ${meta.badge} text-white mb-1`}
+          >
             {meta.label.toUpperCase()}
           </div>
-          <div className="text-sm font-bold text-pixel-text truncate">{item.name}</div>
+          <div className="text-xs sm:text-sm font-bold text-pixel-text break-words">
+            {item.name}
+          </div>
         </div>
       </Card>
     </button>

@@ -44,6 +44,7 @@ import { emptyWallet } from '../game/StatDevelopment';
 import { contentCurrency } from '../game/CurrencyIncome';
 import { generateDailyShopItems } from '../game/ShopSystem';
 import type { StatName } from '../types';
+import { DEFAULT_APPEARANCE } from '../core/spriteComposer';
 
 export interface AudioSettings {
   musicVolume: number;
@@ -80,7 +81,8 @@ export interface PersistedStoreState {
 // 10: challenge rewards pay currency instead of stat boosts.
 // 11: the shop stopped selling stats, and abilities cost currency as well as XP.
 // 12: the player remembers the wallet as last seen, for the Develop badge.
-export const CURRENT_STORE_VERSION = 12;
+// 13: the player gained a pixel-art appearance.
+export const CURRENT_STORE_VERSION = 13;
 
 /** Saves below this version are wiped instead of migrated. See the header. */
 export const RESET_BEFORE_VERSION = 5;
@@ -244,6 +246,13 @@ function migrate11to12(state: PersistedStoreState): PersistedStoreState {
   return { ...state, player: { ...player, walletSeen: { ...player.wallet } } };
 }
 
+/** 12 → 13: players from before the creator had an appearance get the default look. */
+function migrate12to13(state: PersistedStoreState): PersistedStoreState {
+  const player = state.player;
+  if (!player || player.appearance) return state;
+  return { ...state, player: { ...player, appearance: { ...DEFAULT_APPEARANCE } } };
+}
+
 const MIGRATIONS: Readonly<Record<number, MigrationFn | typeof NO_CHANGE>> = {
   6: migrate5to6,
   7: migrate6to7,
@@ -252,6 +261,7 @@ const MIGRATIONS: Readonly<Record<number, MigrationFn | typeof NO_CHANGE>> = {
   10: migrate9to10,
   11: migrate10to11,
   12: migrate11to12,
+  13: migrate12to13,
 };
 
 // ----------------------------------------------------------------------------
