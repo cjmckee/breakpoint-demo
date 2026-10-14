@@ -102,7 +102,15 @@ const BuyButton: React.FC<{
     );
   }
   return (
-    <Button onClick={() => onBuy(item.id)} disabled={!canAfford} className="w-full" testId={testId}>
+    <Button
+      onClick={() => onBuy(item.id)}
+      disabled={!canAfford}
+      // Out of reach, the button turns navy and fades less than a disabled green one, so
+      // the shortfall's currency colours stay readable on it.
+      variant={canAfford ? 'primary' : 'secondary'}
+      className={`w-full ${canAfford ? '' : 'disabled:opacity-80'}`}
+      testId={testId}
+    >
       {canAfford ? 'Buy' : shortOf}
     </Button>
   );
