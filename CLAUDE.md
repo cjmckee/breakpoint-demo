@@ -1090,6 +1090,14 @@ control instead. The tutorials are the exception. Desktop comes first, but about
 30% of players are on phones, so check every UI change on the `mobile` e2e
 project (Pixel 5) as well.
 
+**Text has to fit in the pixel font.** Press Start 2P is far wider than a system
+font. It ships with the build (`@fontsource/press-start-2p`, imported in `main.tsx`),
+so never load a font from a CDN: a blocked request swaps in a narrow fallback and
+hides overflow. Let long labels wrap rather than `truncate`, and on phones drop words
+the screen already shows ("Start Match", not "Start Match vs Danny Park").
+`textFit.spec.ts` walks the main screens on both projects and fails on any cut-off
+text or sideways scroll; add a screen there when you build one.
+
 **Every screen sits in the same frame.** Full-screen phases render inside
 `ScreenFrame` (`src/components/ui/ScreenFrame.tsx`). It owns the status bar, the
 title row and the back control (`screen-back`, in a fixed slot), so none of these
@@ -1123,7 +1131,7 @@ body runs. Never put it at the end of a scrolling body.
 - Key moment headers are coloured by `keyMomentStakes`.
 
 **The dark theme is the only theme.** No white or pastel cards. Show a selection
-with an accent border and a check, not a light fill. Wrap hover styles in
+with an accent border and a check (`PixelCheckbox`), not a light fill. Wrap hover styles in
 `[@media(hover:hover)]:` where a stuck hover on a phone would look like a selection.
 
 **Badges and states:**
