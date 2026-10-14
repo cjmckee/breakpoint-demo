@@ -87,6 +87,9 @@ const pctY = (y: number): string => `${(y / 150) * 100}%`;
  * Sprite pixel size for a court this wide: 3× on a phone, up to 7× on desktop. Players
  * stand about a third of the court's height — far bigger than life, as pixel art wants.
  */
+/** Ball diameter in sprite pixels: half a head, pixel-art scale rather than real life. */
+const BALL_SPRITE_PIXELS = 4;
+
 const spriteScaleFor = (courtWidth: number): number =>
   Math.max(3, Math.min(7, Math.round(courtWidth / 135)));
 
@@ -314,6 +317,9 @@ export const MatchCourt: React.FC<MatchCourtProps> = ({
   };
 
   // On a contact frame the ball meets the racquet, not the hitter's chest.
+  // The ball is drawn on the sprites' pixel grid, a few sprite-pixels across, so it
+  // grows with the players rather than staying a speck beside them.
+  const ballSize = spriteScale * BALL_SPRITE_PIXELS;
   const ballOffset = frame.hitter
     ? {
         x: RACQUET_REACH.x * (FACING[frame.hitter] === 'left' ? -1 : 1) * spriteScale,
@@ -370,14 +376,18 @@ export const MatchCourt: React.FC<MatchCourtProps> = ({
           scale={spriteScale}
         />
         <div
-          className="absolute w-[9px] h-[9px] rounded-full"
+          className="absolute rounded-full"
           data-testid="court-ball"
           style={{
+            width: ballSize,
+            height: ballSize,
+            borderWidth: Math.max(1, Math.round(spriteScale / 3)),
+            borderStyle: 'solid',
             left: pctX(frame.ball.x),
             top: pctY(frame.ball.y),
             transform: `translate(calc(-50% + ${ballOffset.x}px), calc(-50% + ${ballOffset.y}px))`,
             backgroundColor: '#F4E04A',
-            border: '1px solid #B59A00',
+            borderColor: '#B59A00',
             transition: `left ${frame.dur * glide}ms linear, top ${frame.dur * glide}ms linear, transform ${frame.dur * glide}ms linear`,
           }}
         />

@@ -49,10 +49,31 @@ test('both players stand on the court as sprites', async ({ page }) => {
   // Pre-match, the two players face each other over the head-to-head.
   await expect(page.getByTestId('head-to-head-player-sprite')).toBeVisible();
   await expect(page.getByTestId('head-to-head-opponent-sprite')).toBeVisible();
+
+  // Every stat label sits between its two bars, never over them — the pixel font is
+  // wide, and a fixed label column let "Forehand" run into the bars.
+  const overlaps = await page
+    .locator('[data-testid^="head-to-head-"][data-gap]')
+    .evaluateAll((rows) =>
+      rows.flatMap((row) => {
+        const [, left, label, right] = Array.from(row.children).map((c) =>
+          c.getBoundingClientRect(),
+        );
+        return left.right <= label.left + 0.5 && label.right <= right.left + 0.5
+          ? []
+          : [row.getAttribute('data-testid')];
+      }),
+    );
+  expect(overlaps).toEqual([]);
   await page.getByTestId('start-match-footer').click();
 
   await expect(page.getByTestId('court-figure-player')).toBeVisible();
   await expect(page.getByTestId('court-figure-opponent')).toBeVisible();
+
+  // The ball is drawn on the players' pixel grid, so it grows with them.
+  const sprite = await page.getByTestId('court-figure-player').locator('svg').boundingBox();
+  const ball = await page.getByTestId('court-ball').boundingBox();
+  expect(ball!.width).toBeGreaterThan(sprite!.width / 8);
 
   // When a point ends, its winner cheers and the loser slumps.
   const figures = page.locator('[data-testid^="court-figure-"]');

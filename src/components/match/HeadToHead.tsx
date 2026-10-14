@@ -88,7 +88,7 @@ export const HeadToHead: React.FC<HeadToHeadProps> = ({
   return (
     <div className="bg-pixel-card border-4 border-pixel-border p-4" data-testid="head-to-head">
       {/* Names and overall ratings, the headline comparison */}
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-[1fr_auto_1fr] items-center gap-3 mb-4">
         <div className="flex items-end gap-3 min-w-0">
           <PixelSprite
             appearance={playerAppearance}
@@ -98,7 +98,9 @@ export const HeadToHead: React.FC<HeadToHeadProps> = ({
             testId="head-to-head-player-sprite"
           />
           <div className="min-w-0">
-            <div className="font-bold text-pixel-text truncate">{playerName}</div>
+            <div className="text-sm sm:text-base font-bold text-pixel-text break-words">
+              {playerName}
+            </div>
             <div
               className={`text-3xl font-bold tabular-nums ${overallGap >= EVEN_WITHIN ? 'text-pixel-success' : 'text-pixel-text'}`}
             >
@@ -106,18 +108,20 @@ export const HeadToHead: React.FC<HeadToHeadProps> = ({
             </div>
           </div>
         </div>
-        <div className="text-xs font-bold uppercase tracking-wider text-pixel-text-muted">
+        <div className="hidden sm:block text-xs font-bold uppercase tracking-wider text-pixel-text-muted">
           Overall
         </div>
         <div className="flex items-end justify-end gap-3 min-w-0">
           <div className="min-w-0 text-right">
-            <div className="font-bold text-pixel-text truncate">{opponentName}</div>
+            <div className="text-sm sm:text-base font-bold text-pixel-text break-words">
+              {opponentName}
+            </div>
             <div
               className={`text-3xl font-bold tabular-nums ${-overallGap >= EVEN_WITHIN ? 'text-pixel-error' : 'text-pixel-text'}`}
             >
               {opponentOverall}
             </div>
-            {opponentTag && <div className="mt-1 flex justify-end">{opponentTag}</div>}
+            {opponentTag && <div className="mt-1 flex justify-end max-w-full">{opponentTag}</div>}
           </div>
           <PixelSprite
             appearance={opponentAppearance}
@@ -129,8 +133,9 @@ export const HeadToHead: React.FC<HeadToHeadProps> = ({
         </div>
       </div>
 
-      {/* Core skills, mirrored */}
-      <div className="grid gap-2">
+      {/* Core skills, mirrored. One grid for every row, so the label column fits the
+          widest label and the bars still line up. */}
+      <div className="grid grid-cols-[auto_minmax(1.5rem,1fr)_auto_minmax(1.5rem,1fr)_auto] items-center gap-x-2 gap-y-2 text-xs sm:text-sm">
         {CORE_ROWS.map((stat) => {
           const ours = playerStats.core[stat];
           const theirs = opponentStats.core[stat];
@@ -140,7 +145,7 @@ export const HeadToHead: React.FC<HeadToHeadProps> = ({
           return (
             <div
               key={stat}
-              className="grid grid-cols-[2rem_1fr_6.5rem_1fr_2rem] items-center gap-2 text-sm"
+              className="contents"
               data-testid={`head-to-head-${stat}`}
               data-gap={gap}
             >
