@@ -54,9 +54,9 @@ export const DEFAULT_APPEARANCE: Appearance = {
 
 /** Resolve every palette symbol to a colour for this appearance. */
 function paletteFor(appearance: Appearance): Record<SpriteSymbol, string> {
-  const skin = SKIN_TONES[appearance.skinTone].ramp;
-  const hair = HAIR_COLORS[appearance.hairColor].ramp;
-  const kit = KIT_COLORS[appearance.kitColor].ramp;
+  const skin = SKIN_TONES[appearance.skinTone];
+  const hair = HAIR_COLORS[appearance.hairColor];
+  const kit = KIT_COLORS[appearance.kitColor];
   return {
     ...FIXED_COLORS,
     S: skin.base,
@@ -66,8 +66,8 @@ function paletteFor(appearance: Appearance): Record<SpriteSymbol, string> {
     L: hair.light,
     O: kit.base,
     o: kit.shade,
-    B: appearance.shoeColor ? GEAR_COLORS[appearance.shoeColor].ramp.base : kit.shade,
-    ...(appearance.racquetColor && { R: GEAR_COLORS[appearance.racquetColor].ramp.base }),
+    B: appearance.shoeColor ? GEAR_COLORS[appearance.shoeColor].base : kit.shade,
+    ...(appearance.racquetColor && { R: GEAR_COLORS[appearance.racquetColor].base }),
   };
 }
 
