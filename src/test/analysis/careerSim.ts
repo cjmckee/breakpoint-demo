@@ -6,7 +6,7 @@
  * the currency system to be as ready for the story's team matches as the same
  * player is today — and does any player end up starved of a currency?
  *
- * THE CALENDAR is the game's own (gameStore's initial story schedule). Story
+ * THE CALENDAR is the game's own (the Club season, src/data/seasons/club.ts). Story
  * events take the slots their definitions say they take, the archetype is
  * chosen on day 11 (no specialties before that), and the team matches are
  * played on their afternoons: day 15 Chet Vale, 19 Rich Soil, 23 Martia
@@ -124,6 +124,7 @@ import {
   profileForArchetype,
 } from '../../data/archetypeTree';
 import { StoryEventRepository } from '../../data/storyEvents';
+import { CLUB_SEASON } from '../../data/seasons/club';
 import {
   TEAM_MATCH_1,
   TEAM_MATCH_2,
@@ -244,29 +245,11 @@ const OTHER_TOTAL = Object.values(OTHER_WEIGHTS).reduce((a, b) => a + b, 0);
 
 // ─── Calendar ────────────────────────────────────────────────
 
-/** gameStore's initial story schedule: [day, story event id]. */
-const STORY_SCHEDULE: Array<[number, string]> = [
-  [2, 'making_connections'],
-  [3, 'food_hall_gossip'],
-  [4, 'player_tier_intro'],
-  [5, 'match_play_basics'],
-  [5, 'training_session_intro'],
-  [6, 'relationship_basics'],
-  [7, 'shop_basics'],
-  [8, 'rival_first_encounter'],
-  [9, 'club_team_intro'],
-  [10, 'coach_first_meeting'],
-  [11, 'coach_archetype_selection'],
-  [11, 'club_team_first_practice'],
-  [12, 'coach_training_focus'],
-  [13, 'first_team_match_scheduled'],
-  [16, 'coach_balanced_development'],
-  [17, 'second_team_match_scheduled'],
-  [21, 'third_team_match_scheduled'],
-  [25, 'fourth_team_match_scheduled'],
-  [29, 'fifth_team_match_scheduled'],
-  [33, 'riverside_open_prep'],
-];
+/** The Club season's fixed beats, the game's own schedule: [day, story event id]. */
+const STORY_SCHEDULE: Array<[number, string]> = CLUB_SEASON.beats.map((b) => [
+  b.day,
+  b.storyEventId,
+]);
 
 /** Slots each day's story events take, from their own definitions. */
 const STORY_SLOTS: Map<number, number> = STORY_SCHEDULE.reduce((m, [day, eventId]) => {

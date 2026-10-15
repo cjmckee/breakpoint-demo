@@ -321,6 +321,24 @@ export interface ScheduledEvent {
   metadata?: ScheduledEventMetadata;
 }
 
+/** One fixed beat of a season's spine: a story event on a given day of the season. */
+export interface SeasonBeat {
+  /** Day of the season, counted from 1 on the day the season starts. */
+  day: number;
+  slot: TimeSlot;
+  storyEventId: string;
+}
+
+/**
+ * A tier's season: the story events that fire on fixed days, scheduled all at
+ * once when the season starts. Everything else in a season chains off these
+ * (an announcement schedules its own match) or fires at random.
+ */
+export interface SeasonSchedule {
+  tier: OpponentTier;
+  beats: SeasonBeat[];
+}
+
 /**
  * Scheduled event template for story event outcomes
  * Uses relative days instead of absolute days, resolved at runtime

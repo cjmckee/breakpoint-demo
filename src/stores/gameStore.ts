@@ -46,6 +46,8 @@ import { ItemManager } from '../game/ItemManager';
 import { TournamentRegistry } from '../data/tournaments';
 import { TournamentManager } from '../game/TournamentManager';
 import { ScheduledEventManager } from '../game/ScheduledEventManager';
+import { SeasonManager } from '../game/SeasonManager';
+import { CLUB_SEASON } from '../data/seasons/club';
 import { StoryMatchManager } from '../game/StoryMatchManager';
 import { generateDailyShopItems } from '../game/ShopSystem';
 import { ALL_ITEMS } from '../data/items';
@@ -543,136 +545,8 @@ export const useGameStore = create<GameState>()(
       createPlayer: (name: string, appearance: Appearance) => {
         const player = PlayerManager.createPlayer(name, appearance);
 
-        // Schedule initial story events so they fire reliably in the correct order
-        // rather than relying on random chance triggers
-        const initialStorySchedule: ScheduledEvent[] = [
-          // Tutorial events - spaced out so the player has time to explore between them
-          {
-            eventType: 'story',
-            scheduledDay: 2,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'making_connections' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 3,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'food_hall_gossip' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 4,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'player_tier_intro' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 5,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'match_play_basics' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 5,
-            scheduledTimeSlot: TimeSlot.EVENING,
-            metadata: { storyEventId: 'training_session_intro' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 6,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'relationship_basics' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 7,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'shop_basics' },
-          },
-          // Post-tutorial storyline events
-          {
-            eventType: 'story',
-            scheduledDay: 8,
-            scheduledTimeSlot: TimeSlot.AFTERNOON,
-            metadata: { storyEventId: 'rival_first_encounter' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 9,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'club_team_intro' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 10,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'coach_first_meeting' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 11,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'coach_archetype_selection' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 11,
-            scheduledTimeSlot: TimeSlot.AFTERNOON,
-            metadata: { storyEventId: 'club_team_first_practice' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 12,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'coach_training_focus' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 13,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'first_team_match_scheduled' },
-          },
-          // Continue coach storyline between matches
-          {
-            eventType: 'story',
-            scheduledDay: 16,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'coach_balanced_development' },
-          },
-          // Team matches 2-5 - all before the Riverside Open
-          // Each announcement fires 2 days before the match plays (relativeDays: 2 in each event)
-          {
-            eventType: 'story',
-            scheduledDay: 17,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'second_team_match_scheduled' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 21,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'third_team_match_scheduled' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 25,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'fourth_team_match_scheduled' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 29,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'fifth_team_match_scheduled' },
-          },
-          // Tournament trigger - after all 5 team matches (day 31 is last match, prep on day 33, ceremony day 36)
-          {
-            eventType: 'story',
-            scheduledDay: 33,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'riverside_open_prep' },
-          },
-        ];
+        // The Club season's fixed beats fire on schedule rather than by chance
+        const initialStorySchedule = SeasonManager.scheduleSeason(CLUB_SEASON, 1);
 
         set({
           player,
