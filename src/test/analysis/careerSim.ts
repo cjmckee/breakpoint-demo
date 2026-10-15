@@ -366,11 +366,14 @@ const effectsOf = (owned: Owned): Record<string, number> =>
  * (`energy`, the player's energy going in) are all the real thing. The
  * opponent always arrives fresh.
  */
+/** Where a match is played: a bare surface (practice), or a team match's venue. */
+type Court = CourtSurface | Pick<TeamMatchConfig, 'venue' | 'home'>;
+
 function playMatch(
   a: Side,
   b: Side,
   format: MatchFormat,
-  surface: CourtSurface = 'hard',
+  court: Court = 'hard',
   energy = 100,
 ): {
   won: number;
@@ -384,7 +387,9 @@ function playMatch(
   const sim = new MatchSimulator({
     player,
     opponent: new PlayerProfile('o', 'O', b.stats, b.profile),
-    courtSurface: surface,
+    courtSurface: typeof court === 'string' ? court : court.venue.surface,
+    venue: typeof court === 'string' ? undefined : court.venue,
+    home: typeof court === 'string' ? undefined : court.home,
     matchFormat: format,
     playerEffects: a.effects,
   });
@@ -804,7 +809,7 @@ function career(
           { stats, profile, effects: effectsOf(owned) },
           teamSide(team),
           BO3_FOR[team.matchFormat] ?? BO3,
-          team.surface,
+          team,
           energy,
         );
         energy -= Math.min(50, energy);
@@ -813,7 +818,7 @@ function career(
         const perf = paid(r);
         credit('team', walletBefore);
         note(
-          `  ${slotName} TEAM MATCH vs ${team.opponent.name} on ${team.surface} — ` +
+          `  ${slotName} TEAM MATCH vs ${team.opponent.name} on ${team.venue.surface} — ` +
             `${r.winner === 'player' ? 'WON' : 'lost'}, ${r.won}/${r.points} points. ${perf} ` +
             `→ +${fmtAmounts(diffWallet(wallet, walletBefore))}`,
         );
@@ -974,7 +979,7 @@ function readiness(
   const rates = emptyRates();
   for (let i = 0; i < N; i++) {
     const effects = effectSets[i % effectSets.length];
-    const r = playMatch({ stats: s, profile, effects }, teamSide(team), BO3, team.surface);
+    const r = playMatch({ stats: s, profile, effects }, teamSide(team), BO3, team);
     tallyMatch(r.pointList, BO3, rates);
   }
   return rates;
@@ -1114,7 +1119,7 @@ function winShareAt(
       { stats: s, profile, effects: effectSets[i % effectSets.length] },
       { stats: shifted(t.opponent.stats, offset), profile: teamSide(t).profile },
       BO3,
-      t.surface,
+      t,
     );
     if (r.winner === 'player') won++;
   }

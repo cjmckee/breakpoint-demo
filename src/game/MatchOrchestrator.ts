@@ -23,6 +23,7 @@ import {
   PointResult as SimplePointResult,
 } from '../types/keyMoments';
 import { PlayerStats, Ability, StatBoosts, EffectKey } from '../types/game';
+import type { Venue } from '../types/game';
 import {
   MatchStatistics as IMatchStatistics,
   MatchState,
@@ -36,6 +37,7 @@ import {
 import { PRESSURE_BANK, KEY_MOMENT_OPPONENT_DRAIN } from '../config/shotThresholds';
 import { abilityEffects } from '../core/EffectAggregator';
 import { fatigueAfterPoint, fatigueAfterRest } from '../core/fatigue';
+import { addEffects, venueCrowd, venueEffects, venueFatigue } from '../core/venue';
 import { MomentumEngine, ClutchLevel } from '../core/MomentumEngine';
 import { getPrimaryStatName } from '../core/shotStatMapping';
 import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds';
@@ -119,6 +121,8 @@ export class MatchOrchestrator {
   // Live pause between points. Seeded from config at match start, then changed
   // mid-match through setPointDelay when the player picks another match speed.
   private pointDelayMs = DEFAULT_POINT_DELAY_MS;
+  /** Where the match is played, for the fatigue its conditions add. */
+  private venue: Venue | undefined;
   /** Points played with no delay since the loop last gave the event loop back. */
   private pointsSinceYield = 0;
   // Ends the pending between-point pause early so a new delay applies at once.
@@ -199,9 +203,11 @@ export class MatchOrchestrator {
   public static extractActiveEffects(
     abilities?: Ability[],
     archetypeProfile?: ArchetypeProfile,
+    venue?: Venue,
   ): Record<string, number> {
-    // Ability effects (quality keys, read by ShotCalculator), scaled by level
-    const effects = abilityEffects(abilities);
+    // Ability effects (quality keys, read by ShotCalculator), scaled by level,
+    // plus the venue's conditions, which both players feel
+    const effects = addEffects(abilityEffects(abilities), venueEffects(venue));
 
     // Archetype behavior effects (decision keys, read by ShotSelector/PointSimulator)
     if (archetypeProfile) {
@@ -241,11 +247,14 @@ export class MatchOrchestrator {
     this.activeEffects = MatchOrchestrator.extractActiveEffects(
       config.playerAbilities,
       config.playerArchetypeProfile,
+      config.venue,
     );
     this.opponentActiveEffects = MatchOrchestrator.extractActiveEffects(
       config.opponentAbilities,
       config.opponentArchetypeProfile,
+      config.venue,
     );
+    this.venue = config.venue;
 
     // Initialize match simulator with PlayerProfile objects, carrying their
     // archetype identities so shot selection reflects their chosen specialties.
@@ -317,10 +326,13 @@ export class MatchOrchestrator {
     this.matchMood = config.mood ?? 0;
     this.accumulatedEffects = { energyDelta: 0, moodDelta: 0, opponentEnergyDelta: 0 };
     this.momentum = 0;
-    this.momentumEngine.reset({
-      player: player.stats.mental.focus,
-      opponent: opponent.stats.mental.focus,
-    });
+    this.momentumEngine.reset(
+      {
+        player: player.stats.mental.focus,
+        opponent: opponent.stats.mental.focus,
+      },
+      venueCrowd(config.venue, config.home),
+    );
     this.pressureBank = 0;
 
     // Reset tiebreak tracking state for this match
@@ -1332,9 +1344,10 @@ export class MatchOrchestrator {
   private updateMatchFatigue(rallyLength: number): void {
     if (!this.playerStats || !this.opponentStats) return;
 
-    // focus_duration: reduces player fatigue accumulation rate
+    // The venue's heat tires both players; focus_duration slows the player's build-up
+    const heat = venueFatigue(this.venue);
     const focusDuration = this.activeEffects[EffectKey.FOCUS_DURATION] ?? 0;
-    const fatigueMultiplier = Math.max(0.5, 1 - focusDuration * 0.05);
+    const fatigueMultiplier = Math.max(0.5, 1 - focusDuration * 0.05) * heat;
 
     this.fatigue.player = fatigueAfterPoint(
       this.fatigue.player,
@@ -1347,6 +1360,7 @@ export class MatchOrchestrator {
       this.fatigue.opponent,
       rallyLength,
       this.opponentStats.physical.stamina,
+      heat,
     );
   }
 

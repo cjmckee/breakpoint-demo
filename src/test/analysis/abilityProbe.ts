@@ -232,7 +232,7 @@ function run(c: Condition, profile: ArchetypeProfile): Result {
       new PlayerProfile('o', 'O', TEAM.opponent.stats, oppProfile),
       {
         format: BO3,
-        surface: TEAM.surface,
+        surface: TEAM.venue.surface,
         initialServer: i % 2 === 0 ? 'player' : 'opponent',
         playerEffects: c.effects,
       },
@@ -282,7 +282,7 @@ function main(): void {
   );
 
   log(
-    `abilityProbe  N=${N} BO3 paired  ${ID} day-23 build v ${TEAM.opponent.name} (${TEAM.surface})  ` +
+    `abilityProbe  N=${N} BO3 paired  ${ID} day-23 build v ${TEAM.opponent.name} (${TEAM.venue.surface})  ` +
       `LEVEL=${LEVEL} CAL=+${CAL} SEED=${SEED}`,
   );
 

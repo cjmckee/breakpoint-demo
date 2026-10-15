@@ -105,7 +105,7 @@ function getMatchPreviewData(event: ScheduledEvent): MatchPreviewData | null {
       opponentDescription: opponent.description,
       opponentStats: opponent.stats,
       opponentPlayStyle: buildPlayStyle(createEmptyArchetypeProfile()),
-      surface: tournament.surface as CourtSurface,
+      surface: tournament.venue.surface as CourtSurface,
     };
   }
 

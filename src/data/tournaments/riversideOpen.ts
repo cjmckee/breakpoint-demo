@@ -6,6 +6,7 @@
 import type { TournamentConfig, MatchOpponent } from '../../types/tournaments';
 import { AbilityName } from '../../types/game';
 import { ABILITY_DEFINITIONS } from '../abilities';
+import { RIVERSIDE_ACADEMY } from '../venues';
 
 // ============================================================================
 // OPPONENT DEFINITIONS
@@ -85,7 +86,7 @@ export const riversideOpen: TournamentConfig = {
   description:
     'A local club tournament featuring rising players in the region. This is your chance to prove yourself against increasingly skilled opponents.',
 
-  surface: 'hard',
+  venue: RIVERSIDE_ACADEMY,
 
   // Prerequisites
   minPlayerTier: 1,

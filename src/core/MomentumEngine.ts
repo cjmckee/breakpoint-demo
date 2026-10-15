@@ -60,6 +60,8 @@ export class MomentumEngine {
   private value = 0;
   private rhythm: Record<Side, number> = { player: 0, opponent: 0 };
   private focus: Record<Side, number> = { player: 0, opponent: 0 };
+  /** A home crowd: the side it backs gains this much more momentum from its points. */
+  private crowd: { side: Side; gain: number } | null = null;
 
   /** Current momentum, player-positive, in [-clamp, +clamp]. */
   public get(): number {
@@ -73,12 +75,17 @@ export class MomentumEngine {
 
   /**
    * Reset to neutral (start of a match). Each player's focus steadies their
-   * rhythm; leave it out and rhythm runs unsteadied.
+   * rhythm; leave it out and rhythm runs unsteadied. A home crowd scales the
+   * per-point bump for the side it backs (core/venue.ts venueCrowd).
    */
-  public reset(focus: Record<Side, number> = { player: 0, opponent: 0 }): void {
+  public reset(
+    focus: Record<Side, number> = { player: 0, opponent: 0 },
+    crowd: { side: Side; gain: number } | null = null,
+  ): void {
     this.value = 0;
     this.rhythm = { player: 0, opponent: 0 };
     this.focus = { ...focus };
+    this.crowd = crowd;
   }
 
   /**
@@ -104,6 +111,9 @@ export class MomentumEngine {
     }
     if (event.isKeyMoment) {
       multiplier *= MOMENTUM.clutchMultiplier.keyMoment;
+    }
+    if (this.crowd && event.winner === this.crowd.side) {
+      multiplier *= this.crowd.gain;
     }
     const direction = event.winner === 'player' ? 1 : -1;
     this.value = clamp(this.value + direction * base * multiplier);

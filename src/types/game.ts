@@ -3,7 +3,7 @@
  * Ported from ai-slop-gaming and adapted for ai-slop-tennis
  */
 
-import type { CoreStats, StatName, PlayerStats } from './index';
+import type { CoreStats, CourtSurface, StatName, PlayerStats } from './index';
 import type { ArchetypeProfile } from './archetype';
 import type { Appearance } from './appearance';
 import type { StoryEventResult } from './storyEvents';
@@ -147,6 +147,40 @@ export const EffectKey = {
  */
 export type EffectKeyValue = (typeof EffectKey)[keyof typeof EffectKey];
 
+// ============================================================================
+// VENUES
+// ============================================================================
+
+/**
+ * What a venue does to a match. Every condition is felt by both players, on top
+ * of the venue's surface (SURFACE_EFFECTS), except the crowd, which backs the
+ * home side.
+ */
+export interface VenueConditions {
+  /** Effects added to both players, by EffectKey: wind as fault risk, altitude as pace. */
+  effects?: Partial<Record<EffectKeyValue, number>>;
+  /** Multiplies how fast both players tire: 1.2 is a hot day. Unset is 1. */
+  fatigue?: number;
+  /**
+   * Multiplies the momentum the home side gains from each point it wins. Only
+   * matters in a match that names a home side.
+   */
+  crowd?: number;
+}
+
+/** Where a match is played: a named court with its surface and conditions. */
+export interface Venue {
+  id: string;
+  name: string;
+  /** One line of flavour for the pre-match screen. */
+  description?: string;
+  surface: CourtSurface;
+  conditions?: VenueConditions;
+}
+
+/** Whose home court a match is on, for the crowd. */
+export type HomeSide = 'player' | 'opponent';
+
 export const AbilityName = {
   // common
   BASELINER: 'baseliner',
@@ -279,6 +313,10 @@ export interface StoryMatchMetadata {
 
   // Match configuration
   surface?: 'hard' | 'clay' | 'grass' | 'carpet';
+  /** VENUES id; the match's surface is that venue's. */
+  venueId?: string;
+  /** Whose home court it is, for the venue's crowd. */
+  home?: HomeSide;
   matchFormat?: 'best-of-1' | 'best-of-3';
 
   // Display info
@@ -305,8 +343,10 @@ export interface StoryMatchMetadata {
 export interface TeamMatchConfig {
   opponent: MatchOpponent;
 
-  // Match configuration
-  surface: 'hard' | 'clay' | 'grass' | 'carpet';
+  // Match configuration. The court's surface is the venue's.
+  venue: Venue;
+  /** Whose home court it is, for the venue's crowd. Unset is neutral. */
+  home?: HomeSide;
   matchFormat: 'best-of-1' | 'best-of-3';
   matchTitle: string;
   matchDescription: string;

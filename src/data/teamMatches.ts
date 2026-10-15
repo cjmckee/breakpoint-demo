@@ -9,6 +9,13 @@ import type { StoryMatchMetadata, TeamMatchConfig } from '../types/game';
 import { AbilityName } from '../types/game';
 import { ABILITY_DEFINITIONS } from './abilities';
 import { profileForArchetype } from './archetypeTree';
+import {
+  ASPEN_SLOPES_ACADEMY,
+  AZALEA_FOREST_CLUB,
+  COSMO_COMET,
+  DOBRY_POMIDOR,
+  SUNSET_DRIVE,
+} from './venues';
 
 // ============================================================================
 // OPPONENT DEFINITIONS
@@ -97,7 +104,7 @@ const oliviaGulp: MatchOpponent = {
 
 export const TEAM_MATCH_1: TeamMatchConfig = {
   opponent: chetVale,
-  surface: 'hard',
+  venue: ASPEN_SLOPES_ACADEMY,
   matchFormat: 'best-of-3',
   matchTitle: 'Team Match: Riverside vs Aspen Slopes',
   matchDescription: 'Your first official team match',
@@ -108,7 +115,7 @@ export const TEAM_MATCH_1: TeamMatchConfig = {
 
 export const TEAM_MATCH_2: TeamMatchConfig = {
   opponent: richSoil,
-  surface: 'grass',
+  venue: AZALEA_FOREST_CLUB,
   matchFormat: 'best-of-3',
   matchTitle: 'Team Match: Riverside vs Azalea Forest',
   matchDescription: 'Your second official team match',
@@ -119,7 +126,7 @@ export const TEAM_MATCH_2: TeamMatchConfig = {
 
 export const TEAM_MATCH_3: TeamMatchConfig = {
   opponent: martiaEstrella,
-  surface: 'clay',
+  venue: COSMO_COMET,
   matchFormat: 'best-of-3',
   matchTitle: 'Team Match: Riverside vs Cosmo Comet',
   matchDescription: 'Your third official team match',
@@ -130,7 +137,7 @@ export const TEAM_MATCH_3: TeamMatchConfig = {
 
 export const TEAM_MATCH_4: TeamMatchConfig = {
   opponent: reginaldWerther,
-  surface: 'hard',
+  venue: SUNSET_DRIVE,
   matchFormat: 'best-of-3',
   matchTitle: 'Team Match: Riverside vs Sunset Drive',
   matchDescription: 'Your fourth official team match',
@@ -141,7 +148,7 @@ export const TEAM_MATCH_4: TeamMatchConfig = {
 
 export const TEAM_MATCH_5: TeamMatchConfig = {
   opponent: oliviaGulp,
-  surface: 'clay',
+  venue: DOBRY_POMIDOR,
   matchFormat: 'best-of-3',
   matchTitle: 'Team Match: Riverside vs Dobry Pomidor',
   matchDescription: 'Your fifth official team match',
@@ -169,7 +176,9 @@ export function buildStoryMatchMetadata(config: TeamMatchConfig): StoryMatchMeta
     prematchEventId: config.prematchEventId,
     winEventId: config.winEventId,
     lossEventId: config.lossEventId,
-    surface: config.surface,
+    surface: config.venue.surface,
+    venueId: config.venue.id,
+    home: config.home,
     matchFormat: config.matchFormat,
     matchTitle: config.matchTitle,
     matchDescription: config.matchDescription,

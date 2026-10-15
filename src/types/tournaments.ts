@@ -3,7 +3,7 @@
  * Defines types for multi-round tournaments with scheduled matches
  */
 
-import type { PlayerStats, OpponentTier, TimeSlot, Ability } from './game';
+import type { PlayerStats, OpponentTier, TimeSlot, Ability, Venue } from './game';
 import type { PlayStyle } from './index';
 
 // ============================================================================
@@ -72,7 +72,8 @@ export interface TournamentConfig {
 
   // Tournament structure
   rounds: TournamentRound[]; // Array of rounds (flexible length)
-  surface: 'hard' | 'clay' | 'grass' | 'carpet';
+  /** Where it is played; its surface is the tournament's. */
+  venue: Venue;
 
   // Prerequisites
   minPlayerTier?: OpponentTier;

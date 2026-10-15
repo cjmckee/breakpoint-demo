@@ -17,6 +17,7 @@ import type {
   PlayerMatchFatigue,
   PointType,
 } from '../types';
+import type { HomeSide, Venue } from '../types/game';
 import { fatigueAfterPoint, fatigueAfterRest } from './fatigue';
 import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds';
 import { PlayerProfile } from './PlayerProfile';
@@ -26,6 +27,7 @@ import { MatchStatistics } from './MatchStatistics';
 import { MomentumEngine, ClutchLevel } from './MomentumEngine';
 import { aggregateArchetypeEffects } from '../data/archetypeTree';
 import { trace } from './trace';
+import { addEffects, venueCrowd, venueEffects, venueFatigue } from './venue';
 
 import { random } from './random';
 export interface MatchConfig {
@@ -44,17 +46,10 @@ export interface MatchConfig {
    */
   playerEffects?: Record<string, number>;
   opponentEffects?: Record<string, number>;
-}
-
-function addEffects(
-  base: Record<string, number>,
-  extra: Record<string, number> = {},
-): Record<string, number> {
-  const out = { ...base };
-  for (const [key, value] of Object.entries(extra)) {
-    out[key] = (out[key] || 0) + value;
-  }
-  return out;
+  /** Where the match is played. Its conditions reach both players (core/venue.ts). */
+  venue?: Venue;
+  /** Whose home court it is, for the venue's crowd. */
+  home?: HomeSide;
 }
 
 export class MatchSimulator {
@@ -77,22 +72,29 @@ export class MatchSimulator {
 
   constructor(config: MatchConfig) {
     this.config = config;
+    const atVenue = venueEffects(config.venue);
     this.playerEffects = addEffects(
-      aggregateArchetypeEffects(config.player.archetypeProfile),
-      config.playerEffects,
+      addEffects(aggregateArchetypeEffects(config.player.archetypeProfile), config.playerEffects),
+      atVenue,
     );
     this.opponentEffects = addEffects(
-      aggregateArchetypeEffects(config.opponent.archetypeProfile),
-      config.opponentEffects,
+      addEffects(
+        aggregateArchetypeEffects(config.opponent.archetypeProfile),
+        config.opponentEffects,
+      ),
+      atVenue,
     );
     this.pointSimulator = new PointSimulator();
     this.scoreTracker = new ScoreTracker(config.matchFormat);
     this.matchStatistics = new MatchStatistics(config.player, config.opponent);
     this.momentumEngine = new MomentumEngine();
-    this.momentumEngine.reset({
-      player: config.player.stats.mental.focus,
-      opponent: config.opponent.stats.mental.focus,
-    });
+    this.momentumEngine.reset(
+      {
+        player: config.player.stats.mental.focus,
+        opponent: config.opponent.stats.mental.focus,
+      },
+      venueCrowd(config.venue, config.home),
+    );
 
     // Set initial server
     const initialServer = config.initialServer || this.determineInitialServer();
@@ -404,16 +406,20 @@ export class MatchSimulator {
   private updateFatigue(pointResult: PointResult): void {
     const rallyLength = pointResult.rallyLength;
 
+    const heat = venueFatigue(this.config.venue);
+
     this.matchState.fatigue.player = fatigueAfterPoint(
       this.matchState.fatigue.player,
       rallyLength,
       this.config.player.stats.physical.stamina,
+      heat,
     );
 
     this.matchState.fatigue.opponent = fatigueAfterPoint(
       this.matchState.fatigue.opponent,
       rallyLength,
       this.config.opponent.stats.physical.stamina,
+      heat,
     );
   }
 

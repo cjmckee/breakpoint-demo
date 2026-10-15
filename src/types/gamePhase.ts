@@ -21,6 +21,7 @@ import type {
   StoryMatchMetadata,
   PlayerStats,
   Ability,
+  HomeSide,
 } from './game';
 import type { StoryEvent, StoryEventOption, StoryEventResult } from './storyEvents';
 import type { TacticalOption } from '../data/tacticalOptions';
@@ -142,6 +143,10 @@ export interface PreMatchConfig {
   opponentArchetypeProfile?: ArchetypeProfile;
   opponentAbilities?: Ability[];
   surface: 'hard' | 'clay' | 'grass' | 'carpet';
+  /** VENUES id when the match is at a named venue (team matches, tournaments). */
+  venueId?: string;
+  /** Whose home court it is, for the venue's crowd. */
+  home?: HomeSide;
   matchFormat: 'best-of-1' | 'best-of-3';
   matchTitle?: string;
   matchDescription?: string;
