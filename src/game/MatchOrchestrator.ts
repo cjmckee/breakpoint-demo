@@ -76,6 +76,22 @@ export interface AccumulatedMatchEffects {
   opponentEnergyDelta: number; // Net opponent energy change from key moment outcomes
 }
 
+/**
+ * Resolves on the next macrotask. A MessageChannel rather than setTimeout(0),
+ * which browsers clamp to 4ms once nested: this costs microseconds a point, so
+ * Instant speed and the analysis probes stay fast.
+ */
+function yieldToEventLoop(): Promise<void> {
+  return new Promise((resolve) => {
+    const channel = new MessageChannel();
+    channel.port1.onmessage = () => {
+      channel.port1.close();
+      resolve();
+    };
+    channel.port2.postMessage(null);
+  });
+}
+
 export class MatchOrchestrator {
   private keyMomentsTriggered = 0;
   private pointsPlayed = 0;
@@ -925,11 +941,18 @@ export class MatchOrchestrator {
 
   /**
    * Wait out the between-point pause, re-reading the live delay whenever
-   * setPointDelay wakes it. Returns without awaiting when the delay is 0.
+   * setPointDelay wakes it. With no delay (Instant speed, headless probes) it
+   * still hands the event loop back once: otherwise every point between two key
+   * moments runs as one synchronous burst of store updates, which trips React's
+   * nested-update limit and stops the match dead.
    */
   private async waitBetweenPoints(): Promise<void> {
     const startedAt = Date.now();
     let remaining = this.pointDelayMs;
+    if (remaining <= 0) {
+      await yieldToEventLoop();
+      return;
+    }
     while (remaining > 0 && !this.cancelled) {
       await new Promise<void>((resolve) => {
         const wake = (): void => {
