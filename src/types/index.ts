@@ -131,6 +131,8 @@ export interface ShotContext {
   rallyLength: number;
   courtSurface: CourtSurface;
   isFirstPointOfGame?: boolean;
+  /** The venue's wind, which unsettles serves (SERVE_WIND). Unset is calm. */
+  wind?: number;
 }
 
 // =======================
@@ -407,6 +409,8 @@ export interface MatchState {
   pointsPlayed: number;
   isKeyMoment: boolean;
   fatigue: PlayerMatchFatigue;
+  /** The venue's wind (core/venue.ts venueWind); 0 is calm. */
+  wind?: number;
 }
 
 /**

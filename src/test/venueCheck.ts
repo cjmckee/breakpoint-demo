@@ -170,13 +170,13 @@ console.log('\n── a home crowd backs one side ──');
   );
 }
 
-console.log('\n── wind and heat cost both players ──');
+console.log('\n── effects and heat cost both players ──');
 {
   const MATCHES = 40;
   const calm = tally(MATCHES, CLAY);
   const windy = tally(MATCHES, { ...CLAY, conditions: { effects: { fault_risk: 30 } } });
   check(
-    'a windy court (fault risk) means more double faults for the player',
+    'a fault-risk effect means more double faults for the player',
     windy.doubleFaults.player > calm.doubleFaults.player,
     `${calm.doubleFaults.player} → ${windy.doubleFaults.player}`,
   );
@@ -217,12 +217,18 @@ async function liveMatch(): Promise<void> {
   console.log = (): void => {};
   const calm = await sum(CLAY);
   const windy = await sum({ ...CLAY, conditions: { effects: { fault_risk: 30 } } });
+  const gusty = await sum({ ...CLAY, conditions: { wind: 30 } });
   const hot = await sum({ ...CLAY, conditions: { fatigue: 3 } });
   console.log = log;
   check(
-    'wind: more double faults for both players',
+    'a fault-risk effect: more double faults for both players',
     windy.df[0] > calm.df[0] && windy.df[1] > calm.df[1],
     `player ${calm.df[0]} → ${windy.df[0]}, opponent ${calm.df[1]} → ${windy.df[1]}`,
+  );
+  check(
+    'wind: more double faults for both players',
+    gusty.df[0] > calm.df[0] && gusty.df[1] > calm.df[1],
+    `player ${calm.df[0]} → ${gusty.df[0]}, opponent ${calm.df[1]} → ${gusty.df[1]}`,
   );
   check(
     'heat: more unforced errors for both players',
@@ -232,6 +238,75 @@ async function liveMatch(): Promise<void> {
 }
 
 await liveMatch();
+console.log('\n── wind tests the serve: accurate and reliable servers ride it out ──');
+{
+  /** First serves in, as a share, over seeded matches: player's and opponent's. */
+  const firstIn = (
+    venue: Venue,
+    player: PlayerStats,
+    opponent: PlayerStats,
+    playerEffects?: Record<string, number>,
+  ): { player: number; opponent: number } => {
+    let p = 0;
+    let o = 0;
+    const MATCHES = 40;
+    for (let seed = 1; seed <= MATCHES; seed++) {
+      setSeed(seed);
+      const sim = new MatchSimulator({
+        player: new PlayerProfile('p', 'P', player),
+        opponent: new PlayerProfile('o', 'O', opponent),
+        courtSurface: venue.surface,
+        matchFormat: BO3,
+        venue,
+        playerEffects,
+      });
+      const log = console.log;
+      console.log = (): void => {};
+      try {
+        sim.simulateMatch();
+      } finally {
+        console.log = log;
+      }
+      const stats = sim.getStatistics();
+      p += stats.firstServePercentage.player;
+      o += stats.firstServePercentage.opponent;
+    }
+    return { player: p / MATCHES, opponent: o / MATCHES };
+  };
+  const windy: Venue = { ...CLAY, conditions: { wind: 30 } };
+
+  // Same player both sides, but one serves accurately: serve, placement, focus and spin.
+  const accurate = uniform(40);
+  accurate.core.serve = 75;
+  accurate.technical.placement = 75;
+  accurate.technical.spin = 75;
+  accurate.mental.focus = 75;
+  const calm = firstIn(CLAY, accurate, uniform(40));
+  const blown = firstIn(windy, accurate, uniform(40));
+  const accurateDrop = calm.player - blown.player;
+  const wildDrop = calm.opponent - blown.opponent;
+  check(
+    'wind costs both servers first serves',
+    accurateDrop > 0 && wildDrop > 0,
+    `accurate ${calm.player.toFixed(1)} → ${blown.player.toFixed(1)}, wild ${calm.opponent.toFixed(1)} → ${blown.opponent.toFixed(1)}`,
+  );
+  check(
+    'and costs the inaccurate server more',
+    wildDrop > accurateDrop,
+    `accurate −${accurateDrop.toFixed(1)}, wild −${wildDrop.toFixed(1)}`,
+  );
+
+  const risky = firstIn(windy, uniform(40), uniform(40), { fault_risk: 20 });
+  const riskyCalm = firstIn(CLAY, uniform(40), uniform(40), { fault_risk: 20 });
+  const reliable = firstIn(windy, uniform(40), uniform(40), { fault_risk: -20 });
+  const reliableCalm = firstIn(CLAY, uniform(40), uniform(40), { fault_risk: -20 });
+  check(
+    'a risky server (fault risk) loses more to the wind than a reliable one',
+    riskyCalm.player - risky.player > reliableCalm.player - reliable.player,
+    `risky −${(riskyCalm.player - risky.player).toFixed(1)}, reliable −${(reliableCalm.player - reliable.player).toFixed(1)}`,
+  );
+}
+
 clearSeed();
 
 if (failures > 0) {

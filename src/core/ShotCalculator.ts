@@ -40,6 +40,7 @@ import {
   OUTCOME_MULTIPLIERS,
   SERVE_CONSISTENCY,
   SERVE_CONTEST,
+  SERVE_WIND,
   OPPONENT_STAT_ADJUSTMENTS,
   SHOOTER_STAT_ADJUSTMENTS,
   NEUTRAL_STAT,
@@ -255,7 +256,13 @@ export class ShotCalculator {
       );
       const serveAccuracy = Math.min(
         100,
-        Math.max(0, expectedAccuracy + accuracyVariance + shooterProfile.matchForm),
+        Math.max(
+          0,
+          expectedAccuracy +
+            accuracyVariance +
+            shooterProfile.matchForm -
+            this.windPenalty(context.wind ?? 0, expectedAccuracy, activeEffects),
+        ),
       );
       modifiers.serveAccuracy = serveAccuracy;
 
@@ -480,6 +487,24 @@ export class ShotCalculator {
       `  Outcome cascade → winner? ${(pWinner * 100).toFixed(1)}% → miss | inPlay? ${(pInPlay * 100).toFixed(1)}% → miss | forcedError? ${(pForcedError * 100).toFixed(1)}% → miss → UNFORCED_ERROR`,
     );
     return PointType.UNFORCED_ERROR;
+  }
+
+  /**
+   * What the wind takes off a serve's accuracy roll (SERVE_WIND): most from an
+   * inaccurate or risky server, least from an accurate, reliable one.
+   */
+  private windPenalty(
+    wind: number,
+    expectedAccuracy: number,
+    effects: Record<string, number> | undefined,
+  ): number {
+    if (wind <= 0) return 0;
+    const faultRisk = effects?.[EffectKey.FAULT_RISK] ?? 0;
+    const risk = Math.min(
+      SERVE_WIND.maxRisk,
+      Math.max(SERVE_WIND.minRisk, 1 + faultRisk / SERVE_WIND.riskPer),
+    );
+    return wind * (1 - expectedAccuracy / 100) * risk;
   }
 
   /**

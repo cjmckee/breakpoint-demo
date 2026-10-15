@@ -37,7 +37,7 @@ import {
 import { PRESSURE_BANK, KEY_MOMENT_OPPONENT_DRAIN } from '../config/shotThresholds';
 import { abilityEffects } from '../core/EffectAggregator';
 import { fatigueAfterPoint, fatigueAfterRest } from '../core/fatigue';
-import { addEffects, venueCrowd, venueEffects, venueFatigue } from '../core/venue';
+import { addEffects, venueCrowd, venueEffects, venueFatigue, venueWind } from '../core/venue';
 import { MomentumEngine, ClutchLevel } from '../core/MomentumEngine';
 import { getPrimaryStatName } from '../core/shotStatMapping';
 import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds';
@@ -889,6 +889,7 @@ export class MatchOrchestrator {
       },
       currentServer: currentServer,
       courtSurface: this.courtSurface,
+      wind: venueWind(this.venue),
       momentum: this.momentum,
       pressure:
         this.pressure > 60

@@ -23,6 +23,11 @@ export function venueFatigue(venue?: Venue): number {
   return venue?.conditions?.fatigue ?? 1;
 }
 
+/** The venue's wind, in serve-accuracy points (0 = calm). */
+export function venueWind(venue?: Venue): number {
+  return venue?.conditions?.wind ?? 0;
+}
+
 /** The side the crowd backs and how much it multiplies that side's momentum, if any. */
 export function venueCrowd(
   venue: Venue | undefined,

@@ -445,25 +445,32 @@ What each condition is worth, from `venueProbe`. Change in point-win % against t
 (Martia), N=300 best-of-threes per cell, paired seeds, ±0.8-1.1 standard error, so read
 anything under 2 as a tie:
 
-| condition                    | bigServer | counter | netRusher | baseliner |
-| ---------------------------- | --------- | ------- | --------- | --------- |
-| calm court (point-win %)     | 44.6      | 46.0    | 50.4      | 37.7      |
-| `fault_risk` +20 ("wind")    | −1.3      | −0.2    | +1.4      | −1.1      |
-| `fault_risk` +40             | +0.9      | −0.8    | +1.1      | −0.3      |
-| `power_variance` +10 (gusty) | −1.5      | +0.2    | +1.5      | +0.5      |
-| `serve_speed` +15 (altitude) | **+3.8**  | +0.1    | +1.3      | **+4.4**  |
-| `fatigue` ×1.5 (heat)        | −1.4      | +0.5    | 0.0       | +1.4      |
-| `fatigue` ×2 (heatwave)      | −1.1      | +1.2    | +0.6      | **+4.1**  |
-| crowd ×1.5, your home        | +1.1      | +0.6    | **+3.2**  | +0.6      |
-| crowd ×1.5, their home       | **−3.4**  | −1.9    | +0.3      | −1.6      |
-| crowd ×2, their home         | −3.0      | −2.8    | −1.4      | −1.9      |
+| condition                    | bigServer | counter  | netRusher | baseliner |
+| ---------------------------- | --------- | -------- | --------- | --------- |
+| calm court (point-win %)     | 44.6      | 46.0     | 50.4      | 37.7      |
+| `fault_risk` +20             | −1.3      | −0.2     | +1.4      | −1.1      |
+| `wind` 10                    | +0.8      | +0.5     | +2.3      | +4.1      |
+| `wind` 20                    | **+4.0**  | **+3.0** | +1.1      | **+7.3**  |
+| `wind` 40                    | **+4.8**  | **+3.7** | −0.3      | **+10.9** |
+| `power_variance` +10 (gusty) | −1.5      | +0.2     | +1.5      | +0.5      |
+| `serve_speed` +15 (altitude) | **+3.8**  | +0.1     | +1.3      | **+4.4**  |
+| `fatigue` ×1.5 (heat)        | −1.4      | +0.5     | 0.0       | +1.4      |
+| `fatigue` ×2 (heatwave)      | −1.1      | +1.2     | +0.6      | **+4.1**  |
+| crowd ×1.5, your home        | +1.1      | +0.6     | **+3.2**  | +0.6      |
+| crowd ×1.5, their home       | **−3.4**  | −1.9     | +0.3      | −1.6      |
+| crowd ×2, their home         | −3.0      | −2.8     | −1.4      | −1.9      |
 
 What it means for writing venues:
 
 - **Conditions that hit both players mostly cancel.** A venue tilts a match when one playstyle
   copes better: heat suits high stamina, thin air suits big serves.
-- **`fault_risk` is not wind.** Both players lose serves alike, so even +40 does nothing
-  measurable. If wind matters, it wants its own condition.
+- **Wind tests the serve.** `wind` lowers the serve's accuracy roll by
+  `wind × (1 − expected accuracy / 100) × risk`, where a positive `fault_risk` (Bomber, Gambler)
+  raises the risk and a negative one (Sniper) lowers it (`SERVE_WIND`). Martia plays a tier-II
+  Bomber first serve, so wind costs her more than any of the four builds, and every one of them
+  gains: up to +11 for the accurate-serving baseliner at wind 40. Against a careful server the
+  same venue would cut the other way. A `fault_risk` effect, by contrast, costs both players alike
+  and barely registers.
 - **The crowd is a flat home advantage** of about 2-3 points against you, and it stops growing
   past ×1.5.
 - **Size.** +5 to a useful stat is worth about +1 point-win. So heatwave and altitude venues are

@@ -17,7 +17,7 @@ import type { PlayerStats, PlayStyle, CourtSurface, StatName } from '../types';
 import type { Modifiers, Ability, AbilityRarity, HomeSide, Venue } from '../types/game';
 import type { ArchetypeType } from '../data/archetypes';
 import { describeEffects } from '../utils/effectLabels';
-import { venueCrowd, venueEffects, venueFatigue } from '../core/venue';
+import { venueCrowd, venueEffects, venueFatigue, venueWind } from '../core/venue';
 import {
   calculateOverallRating,
   getSurfaceEmoji,
@@ -203,6 +203,7 @@ function VenueConditionChips({
 }): React.JSX.Element {
   const effects = describeEffects(venueEffects(venue));
   const fatigue = venueFatigue(venue);
+  const wind = venueWind(venue);
   const crowd = venueCrowd(venue, home);
   const neutral = 'px-2 py-1 font-medium bg-yellow-900/40 text-yellow-300';
 
@@ -213,6 +214,11 @@ function VenueConditionChips({
           {effect.icon} {effect.label} {effect.value}
         </span>
       ))}
+      {wind > 0 && (
+        <span className={neutral} data-testid="venue-wind">
+          💨 Wind {wind}
+        </span>
+      )}
       {fatigue !== 1 && (
         <span className={neutral} data-testid="venue-fatigue">
           🥵 Tiring ×{fatigue}

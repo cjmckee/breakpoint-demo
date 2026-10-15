@@ -27,7 +27,7 @@ import { MatchStatistics } from './MatchStatistics';
 import { MomentumEngine, ClutchLevel } from './MomentumEngine';
 import { aggregateArchetypeEffects } from '../data/archetypeTree';
 import { trace } from './trace';
-import { addEffects, venueCrowd, venueEffects, venueFatigue } from './venue';
+import { addEffects, venueCrowd, venueEffects, venueFatigue, venueWind } from './venue';
 
 import { random } from './random';
 export interface MatchConfig {
@@ -440,6 +440,7 @@ export class MatchSimulator {
       score: this.scoreTracker.getScore(),
       currentServer: this.scoreTracker.getCurrentServer(),
       courtSurface: this.config.courtSurface,
+      wind: venueWind(this.config.venue),
       momentum: 0,
       pressure: 'low',
       matchLength: 0,

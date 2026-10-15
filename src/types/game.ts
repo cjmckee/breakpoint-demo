@@ -162,6 +162,12 @@ export interface VenueConditions {
   /** Multiplies how fast both players tire: 1.2 is a hot day. Unset is 1. */
   fatigue?: number;
   /**
+   * Wind, in serve-accuracy points: it knocks this much off an inaccurate
+   * server's accuracy roll, less off an accurate one's, and more off a server
+   * who plays risky (SERVE_WIND). 20 is a stiff breeze.
+   */
+  wind?: number;
+  /**
    * Multiplies the momentum the home side gains from each point it wins. Only
    * matters in a match that names a home side.
    */

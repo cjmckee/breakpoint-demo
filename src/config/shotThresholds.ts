@@ -370,6 +370,21 @@ export const WINNER_REQUIREMENTS: Record<ShotType, number> = {
  *
  *   midpoint = base + perAccuracy x (accuracyComposite x finalAdjustment)
  */
+/**
+ * Wind on the serve. It lowers the serve's accuracy roll (not the expected
+ * accuracy the serve-in bar is set from), so it reads as serves landing less
+ * often, and it does so unevenly:
+ *
+ *   penalty = wind × (1 − expectedAccuracy / 100) × risk
+ *   risk    = clamp(1 + faultRisk / riskPer, minRisk, maxRisk)
+ *
+ * An accurate server loses little; a wild one loses most of the wind. A server
+ * who plays risky (positive fault_risk: the Bomber first serve, the Gambler
+ * second) loses more again, and a reliable one (negative: the Sniper) less.
+ * Measured with venueProbe.
+ */
+export const SERVE_WIND = { riskPer: 30, minRisk: 0.5, maxRisk: 2 };
+
 export const SERVE_CONSISTENCY = {
   serve_first: { base: 5.1, perAccuracy: 0.817 },
   serve_second: { base: 11.3, perAccuracy: 0.376 },

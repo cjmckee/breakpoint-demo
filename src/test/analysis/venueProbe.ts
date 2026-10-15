@@ -37,9 +37,10 @@ interface Condition {
 }
 
 const CONDITIONS: Condition[] = [
-  { label: 'wind: fault_risk +10', conditions: { effects: { fault_risk: 10 } } },
-  { label: 'wind: fault_risk +20', conditions: { effects: { fault_risk: 20 } } },
-  { label: 'gale: fault_risk +40', conditions: { effects: { fault_risk: 40 } } },
+  { label: 'fault_risk +20 (not wind)', conditions: { effects: { fault_risk: 20 } } },
+  { label: 'wind 10', conditions: { wind: 10 } },
+  { label: 'wind 20', conditions: { wind: 20 } },
+  { label: 'wind 40', conditions: { wind: 40 } },
   { label: 'gusty: power_variance +10', conditions: { effects: { power_variance: 10 } } },
   { label: 'altitude: serve_speed +5', conditions: { effects: { serve_speed: 5 } } },
   { label: 'altitude: serve_speed +15', conditions: { effects: { serve_speed: 15 } } },

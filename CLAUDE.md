@@ -1071,13 +1071,15 @@ Team matches and tournaments are played at a venue (`src/data/venues.ts`): a nam
 its surface and optional `conditions`. Practice matches pick a surface and have no venue.
 
 - **Conditions reach both players** through `src/core/venue.ts`, in the quick sim and the live
-  match alike: `effects` (EffectKeys added to each side), `fatigue` (how fast both tire) and
+  match alike: `effects` (EffectKeys added to each side), `fatigue` (how fast both tire),
+  `wind` (knocks serve accuracy, most for inaccurate and risky servers, `SERVE_WIND`) and
   `crowd` (momentum the home side gains). A match names its `home` side for the crowd.
 - **The venue owns the surface.** A team match or tournament says `venue`, not `surface`.
 - **Size conditions with `venueProbe`.** Conditions that hit both players mostly cancel. What
   tilts a match is a condition one playstyle copes with better: heat (`fatigue`) helps high
-  stamina, thin air (`serve_speed`) helps big serves. `fault_risk` makes a poor "wind": both
-  players lose serves alike, so even +40 barely moves a match.
+  stamina, thin air (`serve_speed`) helps big serves, `wind` punishes a wild or risky server.
+  Wind is strong: 10-20 is noticeable, 40 can swing a match by 10 points against a Bomber.
+  Use `wind`, not a `fault_risk` effect, which costs both players alike and barely registers.
 - The pre-match screen shows the venue and its conditions. A new condition needs a chip there.
 
 ### Match Simulation
