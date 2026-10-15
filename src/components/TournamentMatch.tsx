@@ -143,6 +143,8 @@ export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig })
       opponentStats={matchConfig.opponentStats}
       opponentPlayStyle={matchConfig.opponentPlayStyle}
       surface={matchConfig.surface}
+      venue={getVenue(matchConfig.venueId)}
+      home={matchConfig.home}
       matchFormat={matchConfig.matchFormat === 'best-of-3' ? 'best-of-3' : 'best-of-1'}
       energyCost={energyCost}
       currentEnergy={currentStatus.energy}

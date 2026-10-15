@@ -14,9 +14,10 @@ import { HeadToHead } from './match/HeadToHead';
 import { SURFACE_EFFECTS } from '../config/shotThresholds';
 import { ARCHETYPE_DATA } from '../data/archetypes';
 import type { PlayerStats, PlayStyle, CourtSurface, StatName } from '../types';
-import type { Modifiers, Ability, AbilityRarity } from '../types/game';
+import type { Modifiers, Ability, AbilityRarity, HomeSide, Venue } from '../types/game';
 import type { ArchetypeType } from '../data/archetypes';
 import { describeEffects } from '../utils/effectLabels';
+import { venueCrowd, venueEffects, venueFatigue } from '../core/venue';
 import {
   calculateOverallRating,
   getSurfaceEmoji,
@@ -54,6 +55,10 @@ interface PreMatchScreenProps {
 
   // Match config
   surface: CourtSurface;
+  /** Where the match is played, when it is somewhere in particular. */
+  venue?: Venue;
+  /** Whose home court it is, for the venue's crowd. */
+  home?: HomeSide;
   matchFormat: 'best-of-1' | 'best-of-3';
   energyCost: number;
   currentEnergy: number;
@@ -183,6 +188,53 @@ function SurfaceEffectsDisplay({ surface }: { surface: CourtSurface }) {
   );
 }
 
+/**
+ * What the venue changes. Its conditions hit both players, so they read in the
+ * neutral-but-important yellow; the crowd is for you (green) or against you (red).
+ */
+function VenueConditionChips({
+  venue,
+  home,
+  opponentName,
+}: {
+  venue: Venue;
+  home?: HomeSide;
+  opponentName: string;
+}): React.JSX.Element {
+  const effects = describeEffects(venueEffects(venue));
+  const fatigue = venueFatigue(venue);
+  const crowd = venueCrowd(venue, home);
+  const neutral = 'px-2 py-1 font-medium bg-yellow-900/40 text-yellow-300';
+
+  return (
+    <>
+      {effects.map((effect) => (
+        <span key={effect.key} className={neutral} data-testid={`venue-effect-${effect.key}`}>
+          {effect.icon} {effect.label} {effect.value}
+        </span>
+      ))}
+      {fatigue !== 1 && (
+        <span className={neutral} data-testid="venue-fatigue">
+          🥵 Tiring ×{fatigue}
+        </span>
+      )}
+      {crowd && (
+        <span
+          data-testid="venue-crowd"
+          data-backs={crowd.side}
+          className={`px-2 py-1 font-medium ${
+            crowd.side === 'player'
+              ? 'bg-green-900/50 text-green-400'
+              : 'bg-red-900/50 text-red-400'
+          }`}
+        >
+          📣 Crowd: {crowd.side === 'player' ? 'You' : opponentName}
+        </span>
+      )}
+    </>
+  );
+}
+
 function ScoutingReport({ playStyle }: { playStyle: PlayStyle }) {
   const [isOpen, setIsOpen] = useState(false);
   const archetype = ARCHETYPE_DATA[playStyle.type as ArchetypeType];
@@ -267,6 +319,8 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
   opponentStats,
   opponentPlayStyle,
   surface,
+  venue,
+  home,
   matchFormat,
   energyCost,
   currentEnergy,
@@ -364,16 +418,34 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
         </div>
       ) : null}
 
-      {/* The conditions, as one strip: format, surface (and what it changes), buffs */}
+      {/* The conditions, as one strip: format, venue, surface (and what each changes) */}
       <div className="flex flex-wrap items-center gap-2 mb-4 text-sm">
         <span className="px-2 py-1 bg-pixel-card border-2 border-pixel-border text-pixel-text font-bold">
           {getFormatLabel(matchFormat)}
         </span>
+        {venue && (
+          <span
+            className="px-2 py-1 bg-pixel-card border-2 border-pixel-border text-pixel-text font-bold"
+            data-testid="prematch-venue"
+            data-venue-id={venue.id}
+          >
+            📍 {venue.name}
+          </span>
+        )}
         <span className="px-2 py-1 bg-pixel-card border-2 border-pixel-border text-pixel-text font-bold capitalize">
           {getSurfaceEmoji(surface)} {surface}
         </span>
         <SurfaceEffectsDisplay surface={surface} />
+        {venue && <VenueConditionChips venue={venue} home={home} opponentName={opponentName} />}
       </div>
+      {venue?.description && (
+        <p
+          className="-mt-2 mb-4 text-sm text-pixel-text-muted"
+          data-testid="prematch-venue-description"
+        >
+          {venue.description}
+        </p>
+      )}
 
       {activeBuffs && (
         <div className="mb-4">

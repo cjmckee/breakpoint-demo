@@ -92,6 +92,8 @@ export const StoryMatch: React.FC<StoryMatchProps> = ({ matchConfig }) => {
       opponentStats={matchConfig.opponentStats}
       opponentPlayStyle={matchConfig.opponentPlayStyle}
       surface={matchConfig.surface || 'hard'}
+      venue={getVenue(matchConfig.venueId)}
+      home={matchConfig.home}
       matchFormat={matchConfig.matchFormat || 'best-of-1'}
       energyCost={energyCost}
       currentEnergy={currentStatus.energy}
