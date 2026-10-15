@@ -1049,6 +1049,22 @@ Characters are paper-doll sprites built in code, not image files.
   from the simulation's random stream.
 - `src/test/spriteCheck.ts` validates every grid; run it after editing art.
 
+### Seasons
+
+Each tier is one season of the career: Club, Regional, Tour, World.
+
+- **Two days.** `calendar.currentDay` is the career day and never resets; scheduling, unlock
+  gates and "days until" count on it. `TimeManager.seasonDay` is the day of the current
+  season, and it's what the player sees and what story `minDay`/`maxDay` read.
+- **A season's fixed beats are data**: `src/data/seasons/<tier>.ts`, on season days, listed in
+  `src/data/seasons/index.ts`. List only the first event of each chain (a team match
+  announcement schedules its own match).
+- **Promotion starts the next season.** An outcome with `tierChange` queues that tier's season
+  for the next morning (`SeasonManager.promote`) and schedules its file.
+- **Gate events by tier** with `prerequisites.tier: { min, max }`, so Club flavour stops on the
+  Tour. An event that must fire more than once (a promotion playoff) sets `repeatable: true`.
+- Design and pacing: `docs/proposals/mid-late-progression.md`.
+
 ### Match Simulation
 
 The simulation is deterministic with explicit randomness:
