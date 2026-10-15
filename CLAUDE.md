@@ -1009,6 +1009,11 @@ negate(price))` after checking `canAfford`.
   hard-to-reach moments — most outcomes should pay currency.
 - **Development is one screen** with two tabs: Stats (currency) and Specialties
   (specialization points from levelling). `navigateTo('archetype')` opens the Specialties tab.
+- **Training tiers.** A player's tier sets their training tier (`trainingTierFor`: Club bronze,
+  Regional silver, then gold). From silver a session takes a **focus**: the currency that
+  replaces each shot's secondary one (`focusedMix`). It changes what a session pays, never how
+  much. Pay is flat across tiers; a new training feature that adds pay has to come out of the
+  same budget (`docs/proposals/mid-late-progression.md` §2.1).
 - **Display** amounts with `CurrencyAmounts` (`src/components/currency/`), so every
   currency has one icon and colour everywhere.
 

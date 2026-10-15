@@ -364,7 +364,7 @@ new training: its new thing is best-of-five (§5). T4 waits until specialties ha
 at tier II. T5 fits better as a one-off story event ("the coach sends you to clay camp") than as
 a system.
 
-### 4.1 Silver, concretely
+### 4.1 Silver, concretely (built)
 
 Today's screen is five anchor cards, each showing what a perfect session pays ("up to 8 Power,
 4 Mind" for serve). Silver adds one row above the cards: **Focus**, four currency chips, starting
@@ -382,7 +382,26 @@ choice is shown, not explained.
 - The minigame's ramp starts faster at silver (`speedRamp`), so training feels like a step up.
   Tune it so a typical player still lands about two clean reps in three, or it quietly slows
   the curve in §2.1.
-- The silver intro event (a season-2 system intro, §3.1) is where the coach explains it.
+- The silver intro event (a season-2 system intro, §3.1) is where the coach explains it. That
+  event is still to write.
+
+Built as described. The training tier comes from the player's tier (`trainingTierFor`: Club
+bronze, Regional silver, Tour and World gold), and the pick is remembered on the player. Silver
+and gold play on a slightly faster ramp (`TRAINING_SPEED_RAMPS`). Those steps are a guess that
+wants a playtest, because a ramp that costs reps is a pay cut.
+
+**Does focus speed up the curve?** No. It saves waste, not pay. `careerSim PAR=1` with the sim
+picking the focus its next purchases most need from day 41 (`FOCUS_FROM=41`), against the same
+careers without (16 careers per identity):
+
+| day | OVR, no focus → focus | key avg     | par         |
+| --- | --------------------- | ----------- | ----------- |
+| 61  | 49.8 → 50.2           | 63.8 → 64.2 | 51.0 → 50.5 |
+| 81  | 56.0 → 56.5           | 72.8 → 73.5 | 56.5 → 56.8 |
+| 120 | 66.0 → 67.0           | 88.0 → 89.2 | 66.5 → 65.2 |
+
+About one OVR point by the end of the Tour, and par within noise. The flat-pay contract (§2.1)
+stands.
 
 ### 4.2 Gold, concretely
 
