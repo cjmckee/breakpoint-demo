@@ -60,6 +60,15 @@
  *      §9.6–9.7 were run with SPEND=impatient EXCHANGE=2
  *      TRACE=<identity> prints one currency career day by day: every slot, match
  *      payout, purchase, exchange, and what the player is saving for
+ *      TIER_PAY=41:2,81:3 multiplies everything the currency career earns (training,
+ *      matches, story) and the currency price of abilities from each day on, to
+ *      model a promotion. Bronze's calendar ends at day 31; after it every free
+ *      day trains or plays practice.
+ *      PAR=1 reports, per identity and CHECK day, the mean build's OVR and the
+ *      opponent OVR it beats half the time (best of three). "Par" is measured
+ *      against each team-match opponent's stat shape, shifted to the target OVR,
+ *      on that opponent's surface and archetype, and averaged over the five.
+ *      Bronze days also show the team match actually played, for calibration.
  */
 
 import type {
@@ -153,6 +162,14 @@ const ABILITIES_ON = process.env.ABILITIES !== '0';
 const ABILITY_BAR = env('ABILITY_BAR', 0.05);
 /** XP from challenges per day, on top of match XP. */
 const CHALLENGE_XP = env('CHALLENGE_XP', 10);
+/** [fromDay, multiplier], ascending. Empty means ×1 throughout. */
+const TIER_PAY: Array<[number, number]> = (process.env.TIER_PAY ?? '')
+  .split(',')
+  .filter(Boolean)
+  .map((pair) => pair.split(':').map(Number) as [number, number])
+  .sort((a, b) => a[0] - b[0]);
+const payOn = (day: number): number =>
+  TIER_PAY.reduce((m, [from, mult]) => (day >= from ? mult : m), 1);
 
 const BO1: MatchFormat = { bestOfSets: 1, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
@@ -697,10 +714,11 @@ function payMatch(
   wallet: Wallet,
   ms: IMatchStatistics,
   won: boolean,
+  scale = 1,
 ): { perf: string; xp: number } {
   const rewards = silently(() => MatchRewardSystem.calculateRewards(ms, 1, won));
   const perf = rewards.performanceBreakdown;
-  earn(wallet, matchPayout(perf, won, MATCH_RATES));
+  earn(wallet, matchPayout(perf, won, MATCH_RATES), scale);
   return {
     perf:
       `perf ${perf.overallScore.toFixed(0)} (serve ${perf.servingScore.toFixed(0)}, ` +
@@ -722,11 +740,13 @@ function shopAbilities(
   owned: Owned,
   xp: number,
   ledger: Ledger,
+  scale = 1,
 ): { label: string; xp: number } | null {
   const offers = dailyOffers()
     .map((a) => {
       const level = owned.get(a.id) ?? 0;
-      const price = priceFor(a, level);
+      const base = priceFor(a, level);
+      const price = { ...base, units: base.units * scale };
       return { a, level, price, perUnit: valueGain(a, identity, level) / price.units };
     })
     .filter(
@@ -771,9 +791,10 @@ function career(
   const ledger = emptyLedger();
   const owned: Owned = new Map();
   let xp = 0;
+  let mult = 1;
   const paid = (r: { winner: 'player' | 'opponent'; stats: IMatchStatistics }): string => {
     if (system !== 'currency') return '';
-    const p = payMatch(wallet, r.stats, r.winner === 'player');
+    const p = payMatch(wallet, r.stats, r.winner === 'player', mult);
     xp += p.xp;
     ledger.xpEarned += p.xp;
     return p.perf;
@@ -782,6 +803,7 @@ function career(
     addInto(ledger.earned[source], diffWallet(wallet, before));
 
   for (let day = 1; day <= DAYS; day++) {
+    mult = payOn(day);
     const team = TEAM_MATCHES.get(day);
     const practiceDay = !team && day >= 5 && (day - 5) % MATCH_EVERY === 0;
     const profile = day >= ARCHETYPE_DAY ? id.profile : unchosen;
@@ -855,7 +877,7 @@ function career(
           recent = legacyTrainingBoosts(core, n, recent);
           applyBoosts(stats, recent);
         } else {
-          earn(wallet, trainingPayout(core, n));
+          earn(wallet, trainingPayout(core, n), mult);
           credit('training', walletBefore);
           note(
             `  ${slotName} train ${core} — ${n}/3 reps → +${fmtAmounts(diffWallet(wallet, walletBefore))}`,
@@ -879,7 +901,7 @@ function career(
       if (whole <= 0) continue;
       other[k] -= whole;
       if (system === 'today') set(stats, k, Math.min(100, get(stats, k) + whole));
-      else earn(wallet, RECIPES[k], whole * INCOME_SCALE);
+      else earn(wallet, RECIPES[k], whole * INCOME_SCALE * mult);
     }
 
     if (system === 'currency') {
@@ -889,7 +911,7 @@ function career(
       xp += CHALLENGE_XP;
       ledger.xpEarned += CHALLENGE_XP;
       if (ABILITIES_ON) {
-        const bought = shopAbilities(id.name as IdentityName, wallet, owned, xp, ledger);
+        const bought = shopAbilities(id.name as IdentityName, wallet, owned, xp, ledger, mult);
         if (bought) {
           xp -= bought.xp;
           note(`  shop: bought ${bought.label}`);
@@ -1082,9 +1104,99 @@ function ledgerReport(): void {
   }
 }
 
+/** Every stat moved by `offset`, clamped to 1-100, so OVR moves by about the same. */
+function shifted(s: PlayerStats, offset: number): PlayerStats {
+  const out = clone(s);
+  for (const k of ALL_STATS) set(out, k, Math.max(1, Math.min(100, get(s, k) + offset)));
+  return out;
+}
+
+/**
+ * The share of best-of-three matches `s` wins against every team-match
+ * opponent's shape moved to `targetOvr`, `n` matches split across the five.
+ */
+function winShareAt(
+  s: PlayerStats,
+  profile: ArchetypeProfile,
+  effectSets: Array<Record<string, number>>,
+  targetOvr: number,
+  n: number,
+): number {
+  const teams = [...TEAM_MATCHES.values()];
+  let won = 0;
+  for (let i = 0; i < n; i++) {
+    const t = teams[i % teams.length];
+    const offset = targetOvr - calculateOverallRating(t.opponent.stats);
+    const r = playMatch(
+      { stats: s, profile, effects: effectSets[i % effectSets.length] },
+      { stats: shifted(t.opponent.stats, offset), profile: teamSide(t).profile },
+      BO3,
+      t.surface,
+    );
+    if (r.winner === 'player') won++;
+  }
+  return won / n;
+}
+
+/** The opponent OVR the build beats half the time, by bisection to the nearest point. */
+function parOvr(
+  s: PlayerStats,
+  profile: ArchetypeProfile,
+  effectSets: Array<Record<string, number>>,
+): number {
+  let lo = 10;
+  let hi = 100;
+  while (hi - lo > 1) {
+    const mid = Math.round((lo + hi) / 2);
+    if (winShareAt(s, profile, effectSets, mid, N) >= 0.5) lo = mid;
+    else hi = mid;
+  }
+  return lo;
+}
+
+function parReport(): void {
+  console.log(
+    `careerSim PAR  RUNS=${RUNS} N=${N} DAYS=${DAYS} TIER_PAY=${process.env.TIER_PAY ?? ''} ` +
+      `SPEND=${SPEND} INCOME_SCALE=${INCOME_SCALE}`,
+  );
+  console.log(
+    ['identity', 'day', 'pay', 'OVR', 'key avg', 'other avg', 'par OVR', 'team match (OVR)'].join(
+      '\t',
+    ),
+  );
+  for (const id of IDENTITIES) {
+    const careers = Array.from({ length: RUNS }, () => career(id, 'currency'));
+    for (const day of CHECK) {
+      const snaps = careers.map((c) => c.get(day)!);
+      const s = meanStats(snaps.map((x) => x.stats));
+      const avg = (ks: StatName[]): string =>
+        (ks.reduce((a, k) => a + get(s, k), 0) / ks.length).toFixed(0);
+      const profile = day >= ARCHETYPE_DAY ? id.profile : createEmptyArchetypeProfile();
+      const team = TEAM_MATCHES.get(day);
+      console.log(
+        [
+          id.name,
+          day,
+          `x${payOn(day)}`,
+          calculateOverallRating(s),
+          avg(id.buys),
+          avg(ALL_STATS.filter((k) => !id.buys.includes(k))),
+          parOvr(
+            s,
+            profile,
+            snaps.map((x) => effectsOf(x.abilities)),
+          ),
+          team ? `${team.opponent.name} (${calculateOverallRating(team.opponent.stats)})` : '',
+        ].join('\t'),
+      );
+    }
+  }
+}
+
 function main(): void {
   if (TRACE) return traceCareer(TRACE);
   if (process.env.LEDGER === '1') return ledgerReport();
+  if (process.env.PAR === '1') return parReport();
   console.log(
     `careerSim  RUNS=${RUNS} N=${N} DAYS=${DAYS} SPEND=${SPEND} ADAPT=${ADAPT} KEY_W=${KEY_W} ` +
       `OFF_W=${OFF_W} MATCH_EVERY=${MATCH_EVERY} REPS_P=${REPS_P} OTHER_PER_DAY=${OTHER_PER_DAY} ` +

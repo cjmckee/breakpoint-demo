@@ -159,7 +159,11 @@ the pacing probe (§8) measures them.**
 Wipe `TIER_2_OPPONENTS` and up and rebuild against the bands above. Keep the five-archetype
 shape per tier, since key moments are tuned on that variety. Also give the rebuilt rosters:
 
-- **specialties at tier II/III.** Today opponents only carry a broad archetype profile;
+- **specialties that grow with the tier.** Today `profileForArchetype` gives every opponent of
+  an archetype the same profile, a mix of tier I and II specialties, whether it is Chet Vale or a
+  tier 4 champion. (So Club opponents already play specialties at tier II while the player is
+  capped at I.) Make the profile take the tier: mostly I at Club, II at Regional, III at Tour and
+  World;
 - **two abilities** from Tour on;
 - **a stat spread that grows with the tier.** A World player has a 90 and a 60, not 14 stats at 84. Once everyone is good, the shape is what makes opponents feel different.
 
@@ -288,6 +292,42 @@ multiplier (§2.1) is the bigger number and applies whichever options ship.
 new training: its new thing is best-of-five (§5). T4 waits until specialties have been measured
 at tier II. T5 fits better as a one-off story event ("the coach sends you to clay camp") than as
 a system.
+
+### 4.1 Silver, concretely
+
+Today's screen is five anchor cards, each showing what a perfect session pays ("up to 8 Power,
+4 Mind" for serve). Silver adds one row above the cards: **Focus**, four currency chips, starting
+on "Natural" (the anchor's own secondary). Picking a chip rewrites every card's preview, so the
+choice is shown, not explained.
+
+| session (3 clean reps)              | Club (today)         | Regional, natural     | Regional, Technique focus  |
+| ----------------------------------- | -------------------- | --------------------- | -------------------------- |
+| Serve: main Power, second Mind      | 8 Power · 4 Mind     | 16 Power · 8 Mind     | 16 Power · 8 Technique     |
+| Return: main Quickness, second Mind | 8 Quickness · 4 Mind | 16 Quickness · 8 Mind | 16 Quickness · 8 Technique |
+
+- The formula stays `mix × (reps + 1)`, now × the tier multiplier, with the mix's secondary
+  swapped for the focus. It's one extra argument to `trainingPayout`.
+- Focus never touches the main currency. The shot you train still decides most of what you earn.
+- The minigame's ramp starts faster at silver (`speedRamp`), so a clean rep is worth more because
+  it is harder.
+- The silver intro event (a season-2 system intro, §3.1) is where the coach explains it.
+
+### 4.2 Gold, concretely
+
+Gold keeps the focus row and adds a **partner** row: whoever you're close enough to train with.
+A partner adds one unit of their currency per rep, and a little relationship.
+
+| partner        | pays      | unlocked at            | flavour slot                                   |
+| -------------- | --------- | ---------------------- | ---------------------------------------------- |
+| Keith          | Power     | hangout tier 2         | hits every ball as hard as he can              |
+| Jen            | Quickness | hangout tier 2         | makes you chase                                |
+| Coach Gonzalez | Mind      | hangout tier 2         | brutal drills: costs a little mood             |
+| Jordan         | Technique | hangout tier 2 (rival) | turns every drill into a competition           |
+| Alex           | any       | hangout tier 3         | rotates. Romance points instead of a currency? |
+
+- Each partner needs three to five lines for the result screen. That's the content cost.
+- Training alone stays available, and pays the same as silver at ×3.
+- Partners are why hangouts matter for progression, which they don't today.
 
 ---
 
