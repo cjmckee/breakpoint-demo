@@ -46,11 +46,10 @@ is wanted later.
    and a named playoff opponent is scheduled a few days later. Win, you're promoted. Lose, it
    comes round again. The player keeps growing in between, so the playoff is always eventually
    won. It needs one engine change: story events can't fire twice today.
-5. **Each season needs a schedule of its own (§3.4).** Bronze's spine is a hard-coded list in
-   `createPlayer`. Seasons should be data files, scheduled when the season starts, with days
-   counted from that start, so Regional can be written exactly like bronze ("day 15: first team
-   match"). The 90-day calendar rollover has to go first: it resets `currentDay` to 1 and breaks
-   every `minDay` and `scheduledDay`.
+5. **Seasons are data, and the calendar counts them (§3.4, built).** Each season is a file of
+   beats on season days, scheduled when a promotion starts it, so Regional is written exactly
+   like bronze ("day 15: first team match"). The 90-day reset is gone. Story events can be gated
+   by tier and marked repeatable.
 6. **Silver and gold training (§4).** Silver: a harder ramp and a **focus** that picks
    the secondary currency. That fixes the "big server trains backhand for Technique" finding.
    Gold: **training partners** (relationship-gated, they pay what they're good at). Each tier adds
@@ -308,34 +307,38 @@ World is the exception, because its tier-final is the ending. Losing the Slam fi
 schedule "next season". There, the playoff is a **rematch**: the same final against the same
 opponent, rescheduled the same way, with rematch dialogue. The ending only plays on a win.
 
-### 3.4 Seasons in the calendar
+### 3.4 Seasons in the calendar (built)
 
-Two changes, needed before anything above Club ships:
+- **The career day never resets.** `calendar.currentDay` counts from the first day of the
+  career. It used to reset at day 90, which would have broken every schedule partway through
+  the Tour. Scheduling, unlock gates and "days until" use it.
+- **Season days.** `calendar.seasonStartDay` marks where the current season began, and
+  `TimeManager.seasonDay` counts from it. Story `minDay`/`maxDay`, the status bar
+  ("S2 · Day 15") and the calendar's labels read the season day.
+- **Season files.** Each season's fixed beats are data, on season days. The Club season is
+  `src/data/seasons/club.ts`, moved out of `createPlayer` unchanged. A new season is one file
+  plus its registry line in `src/data/seasons/index.ts`:
 
-1. **Remove the 90-day rollover.** `TimeManager.advanceDay` resets `currentDay` to 1 after day 90. A Club-plus-Regional career reaches day ~85, so Tour would hit it. Today the reset breaks
-   every `minDay`/`maxDay`, every absolute `scheduledDay`, and the "event is in the past"
-   pruning in `ScheduledEventManager`.
-2. **Season = tier, with season days.** Keep an absolute day for ordering, and add the day the
-   current season started. "S2 · Day 15" is shown, and `minDay` and season schedules read the
-   season day. Promotion starts the next season.
+  ```ts
+  // src/data/seasons/regional.ts
+  export const REGIONAL_SEASON: SeasonSchedule = {
+    tier: 2,
+    beats: [
+      { day: 1, slot: TimeSlot.MORNING, storyEventId: 'regional_opener' },
+      { day: 13, slot: TimeSlot.MORNING, storyEventId: 'regional_team_match_1_scheduled' },
+      // ...
+    ],
+  };
+  ```
 
-Then each season's spine becomes data instead of the hard-coded list in `createPlayer`:
+- **Promotion.** Any outcome with `tierChange` queues that tier's season for the next morning
+  (`SeasonManager.promote`). The rest of the promotion day stays in the old season. If the tier
+  has a season file, its beats are scheduled then.
+- **The number of team matches is just how many announcements the file lists,** so cutting a
+  season to three is a data change.
 
-```ts
-// src/data/seasons/regional.ts
-export const REGIONAL_SEASON: SeasonSchedule = {
-  tier: 2,
-  events: [
-    { day: 1, slot: TimeSlot.MORNING, storyEventId: 'regional_opener' },
-    { day: 13, slot: TimeSlot.MORNING, storyEventId: 'regional_team_match_1_scheduled' },
-    // ...
-  ],
-};
-```
-
-The promotion outcome (`tierChange`) schedules the next season's file. Bronze's list moves into
-`seasons/club.ts` with no behaviour change. That move is a safe first PR. Writing a season then
-means writing events and one schedule file, which the `story-flow-manager` skill can wire.
+Writing a season is now: write the events, list the first event of each chain in the season
+file. The `story-flow-manager` skill can wire the chains.
 
 ---
 
@@ -467,17 +470,17 @@ Where today's events go:
 
 Ordered by how badly they would bite.
 
-1. **The 90-day rollover** (§3.4). It resets the day, so Tour would break.
-2. **Story events have no tier prerequisite.** `StoryEventPrerequisite` has `minSeason` but no
-   tier. Random club events (the juggler, the old man) would keep firing on the Tour, and Tour
-   events could fire at Club. Fix: add `tier: { min, max }`, and tag bronze random events
-   `max: 1` (or `max: 2` for the ones that still fit). Once season = tier, `minSeason` is nearly
-   the same thing, but tier says what the author means.
-3. **Events and tournaments only fire once.** `completedStoryEvents` blocks repeats, and
-   `getEligibleTournaments` drops anything in `completedTournaments`. The playoff (§3.3) needs a
-   repeatable event.
+1. ~~**The 90-day rollover**~~. Fixed (§3.4).
+2. ~~**Story events have no tier prerequisite.**~~ Added: `prerequisites.tier: { min, max }`.
+   **Not yet done:** tagging the Club's random events (the juggler, the old man) `max: 1`, or
+   `max: 2` for the ones that still fit at Regional. That's a content call. Untagged events fire
+   at any tier.
+3. ~~**Events only fire once.**~~ `repeatable: true` lets an event fire again by id (scheduled or
+   chained). Random rolls still take it once. Tournaments still play once
+   (`completedTournaments`), which is fine as long as the retry is a playoff and not a replay.
 4. **Training has no tier.** `buildAnchorTrainingResult` hard-codes `sessionTier: 'bronze'`.
    `TrainingSessionTier` and the copy in `types/index.ts` disagree (one has `'platinum'`).
+   Fix it with silver training.
 5. **Dead tier state.** Nothing calls `unlockedTiers`/`unlockNextTier`. `player.tier` is the real
    gate. Delete it while touching tiers.
 6. **BO5 isn't plumbed** through story and tournament types (§5).
