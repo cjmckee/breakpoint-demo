@@ -27,6 +27,7 @@ import {
   TIME_SLOT_NAMES,
   ShopItem,
   Ability,
+  Currency,
   CurrencyAmounts,
 } from '../types/game';
 import type { StoryEvent, StoryEventTag, StoryEventOption } from '../types/storyEvents';
@@ -158,6 +159,8 @@ interface GameState {
   // Audio settings action
   updateAudioSettings: (settings: Partial<AudioSettings>) => void;
   setMatchSpeed: (speed: MatchSpeed) => void;
+  /** Remember the training focus (silver and up); undefined trains the natural mix. */
+  setTrainingFocus: (focus: Currency | undefined) => void;
 
   // Actions
   initializeGame: () => void;
@@ -539,6 +542,12 @@ export const useGameStore = create<GameState>()(
 
       setMatchSpeed: (speed: MatchSpeed) => {
         set({ matchSpeed: speed });
+      },
+
+      setTrainingFocus: (focus: Currency | undefined) => {
+        const { player } = get();
+        if (!player) return;
+        set({ player: { ...player, trainingFocus: focus } });
       },
 
       // Create new player

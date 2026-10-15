@@ -231,7 +231,12 @@ export const AbilityName = {
 // TRAINING SYSTEM
 // ============================================================================
 
-export type TrainingSessionTier = 'bronze' | 'silver' | 'gold' | 'diamond';
+/**
+ * The tier of training a player has access to, from their own tier
+ * (AnchorTrainingSystem.trainingTierFor): Club trains bronze, Regional silver,
+ * the Tour and above gold. Silver adds the focus choice and harder drills.
+ */
+export type TrainingSessionTier = 'bronze' | 'silver' | 'gold';
 
 export type TierModification = 'promoted' | 'demoted';
 
@@ -464,13 +469,11 @@ export interface TrainingResult extends Activity {
   abilityGained?: string;
   abilityLevel?: number;
   tierModification?: TierModification;
-  sessionTier?: TrainingSessionTier;
-  tier?: TrainingSessionTier; // Alias for sessionTier
+  sessionTier: TrainingSessionTier;
+  /** The currency that stood in for the shot's secondary one (silver and up). */
+  focus?: Currency;
   sessionType?: string;
   ability?: string;
-  roll?: number;
-  threshold?: number;
-  baseChance?: number;
   message?: string; // Success message
   moodChange: number; // Mood change from training
 }
@@ -620,6 +623,12 @@ export interface Player {
     netPoints: number;
     breakPoints: number;
   };
+
+  /**
+   * The training focus last picked (silver and up): the currency that replaces
+   * a session's secondary one. Unset trains each shot's natural mix.
+   */
+  trainingFocus?: Currency;
 
   // Progression flags - simple booleans/values that track milestones and unlocks
   flags: Record<string, boolean | number | string>;

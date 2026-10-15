@@ -22,7 +22,14 @@
 import { PlayerManager } from '../game/PlayerManager';
 import { ChallengeManager } from '../game/ChallengeManager';
 import { MatchRewardSystem } from '../game/MatchRewardSystem';
-import { buildAnchorTrainingResult, NO_TRAINING_BONUSES } from '../game/AnchorTrainingSystem';
+import {
+  buildAnchorTrainingResult,
+  CORE_ANCHOR_ORDER,
+  NO_TRAINING_BONUSES,
+  trainingTierFor,
+} from '../game/AnchorTrainingSystem';
+import type { Currency, TrainingResult } from '../types/game';
+import { TRAINING_MIXES } from '../config/economy';
 import { unitsOf } from '../game/StatDevelopment';
 import { MatchStatistics } from '../core/MatchStatistics';
 import { PlayerProfile } from '../core/PlayerProfile';
@@ -223,6 +230,59 @@ function main(): void {
       'a bonus rep never rescues a session that landed nothing',
       whiffed.reps === 0,
       `${whiffed.reps} reps: ${whiffed.message}`,
+    );
+  }
+
+  console.log('\n── silver training: a focus swaps the secondary, never the total ──');
+  {
+    const silver = (focus?: Currency): TrainingResult =>
+      buildAnchorTrainingResult('serve', 3, NO_TRAINING_BONUSES, { sessionTier: 'silver', focus });
+    const natural = silver();
+    const technique = silver('technique');
+    check(
+      'a focus pays exactly what the natural mix pays',
+      unitsOf(technique.currencyGained) === unitsOf(natural.currencyGained),
+      `${unitsOf(natural.currencyGained)} → ${unitsOf(technique.currencyGained)}`,
+    );
+    check(
+      "it keeps the shot's main currency and swaps the secondary",
+      technique.currencyGained.power === natural.currencyGained.power &&
+        !technique.currencyGained.mind &&
+        (technique.currencyGained.technique ?? 0) === (natural.currencyGained.mind ?? 0),
+      JSON.stringify(technique.currencyGained),
+    );
+    check(
+      'focusing on the main currency makes the session all main',
+      JSON.stringify(silver('power').currencyGained) ===
+        JSON.stringify({ power: unitsOf(natural.currencyGained) }),
+      JSON.stringify(silver('power').currencyGained),
+    );
+    check(
+      'every shot has one main and one secondary currency, so a focus is well defined',
+      CORE_ANCHOR_ORDER.every((core) => {
+        const amounts = Object.values(TRAINING_MIXES[core]).filter((n) => (n ?? 0) > 0);
+        return amounts.length === 2 && amounts[0] !== amounts[1];
+      }),
+    );
+    const bronze = buildAnchorTrainingResult('serve', 3, NO_TRAINING_BONUSES, {
+      sessionTier: 'bronze',
+      focus: 'technique',
+    });
+    check(
+      'bronze ignores a focus left over from a higher tier',
+      bronze.focus === undefined &&
+        JSON.stringify(bronze.currencyGained) === JSON.stringify(natural.currencyGained),
+    );
+    check(
+      'the session carries its tier and focus',
+      technique.sessionTier === 'silver' && technique.focus === 'technique',
+    );
+    check(
+      'Club trains bronze, Regional silver, the Tour and World gold',
+      trainingTierFor(1) === 'bronze' &&
+        trainingTierFor(2) === 'silver' &&
+        trainingTierFor(3) === 'gold' &&
+        trainingTierFor(4) === 'gold',
     );
   }
 

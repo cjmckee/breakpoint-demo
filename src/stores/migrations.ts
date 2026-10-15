@@ -83,7 +83,8 @@ export interface PersistedStoreState {
 // 12: the player remembers the wallet as last seen, for the Develop badge.
 // 13: the player gained a pixel-art appearance.
 // 14: the calendar counts seasons: the day it began, and a season queued by a promotion.
-export const CURRENT_STORE_VERSION = 14;
+// 15: the player can remember a training focus (silver and up). Optional, so no change.
+export const CURRENT_STORE_VERSION = 15;
 
 /** Saves below this version are wiped instead of migrated. See the header. */
 export const RESET_BEFORE_VERSION = 5;
@@ -274,6 +275,7 @@ const MIGRATIONS: Readonly<Record<number, MigrationFn | typeof NO_CHANGE>> = {
   12: migrate11to12,
   13: migrate12to13,
   14: migrate13to14,
+  15: NO_CHANGE,
 };
 
 // ----------------------------------------------------------------------------

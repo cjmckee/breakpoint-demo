@@ -64,6 +64,8 @@
  *      matches, story) and the currency price of abilities from each day on, to
  *      model a promotion. Bronze's calendar ends at day 31; after it every free
  *      day trains or plays practice.
+ *      FOCUS_FROM=41 lets the currency career pick a silver training focus from that
+ *      day: the currency its next purchases are most short of (CurrencyIncome.focusedMix).
  *      PAR=1 reports, per identity and CHECK day, the mean build's OVR and the
  *      opponent OVR it beats half the time (best of three). "Par" is measured
  *      against each team-match opponent's stat shape, shifted to the target OVR,
@@ -169,6 +171,7 @@ const TIER_PAY: Array<[number, number]> = (process.env.TIER_PAY ?? '')
   .filter(Boolean)
   .map((pair) => pair.split(':').map(Number) as [number, number])
   .sort((a, b) => a[0] - b[0]);
+const FOCUS_FROM = env('FOCUS_FROM', Infinity);
 const payOn = (day: number): number =>
   TIER_PAY.reduce((m, [from, mult]) => (day >= from ? mult : m), 1);
 
@@ -625,6 +628,15 @@ function anchorCurrency(s: PlayerStats, wallet: Wallet, w: Weights, id: Identity
   return [...ANCHORS].sort((x, y) => score(y) - score(x))[0];
 }
 
+/** The silver focus a player picks: the currency its next few purchases are most short of. */
+function focusFor(s: PlayerStats, wallet: Wallet, w: Weights): Currency | undefined {
+  const need: Wallet = { power: 0, quickness: 0, technique: 0, mind: 0 };
+  for (const k of shapeOrder(s, w).slice(0, 3)) earn(need, priceOf(k, get(s, k)));
+  for (const c of CURRENCIES) need[c] = Math.max(0, need[c] - wallet[c]);
+  if (unitsOf(need) === 0) return undefined;
+  return [...CURRENCIES].sort((x, y) => need[y] - need[x])[0];
+}
+
 function spend(s: PlayerStats, w: Wallet, buys: StatName[], weights: Weights): void {
   if (SPEND !== 'level' && SPEND !== 'rr') return buyTowardShape(s, w, weights);
   if (SPEND === 'rr') {
@@ -865,7 +877,8 @@ function career(
           recent = legacyTrainingBoosts(core, n, recent);
           applyBoosts(stats, recent);
         } else {
-          earn(wallet, trainingPayout(core, n), mult);
+          const focus = day >= FOCUS_FROM ? focusFor(stats, wallet, weights) : undefined;
+          earn(wallet, trainingPayout(core, n, false, undefined, focus), mult);
           credit('training', walletBefore);
           note(
             `  ${slotName} train ${core} — ${n}/3 reps → +${fmtAmounts(diffWallet(wallet, walletBefore))}`,

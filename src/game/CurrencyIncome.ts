@@ -63,9 +63,26 @@ export type MatchRates = typeof MATCH_PAYOUT;
 const GAME_MATCH_RATES: MatchRates = MATCH_PAYOUT;
 
 /**
+ * A mix with its secondary currency (the one it pays least of) swapped for
+ * `focus`. The main currency is untouched, so the shot trained still decides
+ * most of what a session pays; focusing on the main currency makes it all main.
+ */
+export function focusedMix(mix: CurrencyAmounts, focus?: Currency): CurrencyAmounts {
+  if (!focus) return mix;
+  const held = CURRENCIES.filter((c) => (mix[c] ?? 0) > 0);
+  const secondary = held.reduce((least, c) => ((mix[c] ?? 0) < (mix[least] ?? 0) ? c : least));
+  const out: CurrencyAmounts = { ...mix };
+  const moved = out[secondary] ?? 0;
+  delete out[secondary];
+  out[focus] = (out[focus] ?? 0) + moved;
+  return out;
+}
+
+/**
  * A training session on `anchor` pays its mix (TRAINING_MIXES) once, plus once
  * more per clean rep — whole units, the same currencies every time — doubled
- * when the session's double-gains roll lands.
+ * when the session's double-gains roll lands. From silver, a `focus` swaps the
+ * mix's secondary currency (focusedMix); the total paid is the same.
  *
  * @param mixes  the game's mixes unless a harness is sweeping them.
  */
@@ -74,11 +91,13 @@ export function trainingPayout(
   reps: number,
   doubled: boolean = false,
   mixes: Record<keyof CoreStats, CurrencyAmounts> = TRAINING_MIXES,
+  focus?: Currency,
 ): CurrencyAmounts {
   const times = (Math.max(0, Math.floor(reps)) + 1) * (doubled ? 2 : 1);
+  const mix = focusedMix(mixes[anchor], focus);
   const out: CurrencyAmounts = {};
   for (const c of CURRENCIES) {
-    const n = mixes[anchor][c] ?? 0;
+    const n = mix[c] ?? 0;
     if (n > 0) out[c] = n * times;
   }
   return out;

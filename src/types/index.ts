@@ -683,37 +683,6 @@ export interface PlayStyle {
 }
 
 // =======================
-// TRAINING SYSTEM
-// =======================
-
-/**
- * Training session result
- */
-export interface TrainingResult {
-  type: 'training';
-  timestamp: string;
-
-  // Training details
-  trainingType: string;
-  trainingName: string;
-  sessionTier: 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond';
-
-  // Costs and effects
-  energyCost: number;
-  timeSlotsUsed: number;
-
-  // Stat improvements
-  statBoosts: Partial<PlayerStats['technical'] & PlayerStats['physical'] & PlayerStats['mental']>;
-
-  // Additional effects
-  efficiency: number; // 0-100
-  moodResult: number; // Effect on player mood
-  abilityGained?: string;
-  abilityLevel?: number;
-  tierModification?: 'promoted' | 'demoted';
-}
-
-// =======================
 // UTILITY TYPES
 // =======================
 
