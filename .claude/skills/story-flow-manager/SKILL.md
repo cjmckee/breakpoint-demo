@@ -149,7 +149,9 @@ When the user says "event X isn't showing up" or "why can't I trigger X":
    - `completedEvents`: Are all listed events actually reachable? Do their IDs match exactly?
    - `excludedEvents`: Could any of these be completed before reaching this point?
    - `completedEventChoices`: Does the referenced event actually have the specified option ID?
-   - `stats/relationships/day/season`: Are the thresholds reasonable given the game state at that point?
+   - `stats/relationships/day/season`: Are the thresholds reasonable given the game state at that point? `minDay`/`maxDay` are **season** days (`TimeManager.seasonDay`), not career days
+   - `tier`: Is the player's tier in the range? Club events tagged `max: 1` stop after promotion
+   - Already run: an event fires once unless it sets `repeatable: true`, and even then only by id (scheduled or chained), never from a random roll
    - `activeTournament/tournamentRound/tournamentBracket`: Is the event properly connected to tournament config?
 3. Report findings clearly
 
@@ -165,6 +167,7 @@ When the user says "event X isn't showing up" or "why can't I trigger X":
 - **StoryEventManager**: `src/game/StoryEventManager.ts`
 - **TournamentManager**: `src/game/TournamentManager.ts`
 - **ScheduledEventManager**: `src/game/ScheduledEventManager.ts`
+- **Season schedules** (each tier's fixed beats, on season days): `src/data/seasons/*.ts`, scheduled by `src/game/SeasonManager.ts`
 
 ## Important rules
 
@@ -173,8 +176,9 @@ When the user says "event X isn't showing up" or "why can't I trigger X":
 3. **Preserve existing prerequisites** - when updating `completedEvents`, keep any other prerequisite fields (stats, relationships, etc.) unchanged
 4. **Use exact event IDs** - IDs are snake_case strings, must match exactly
 5. **Register new storyline files** in `src/data/storyEvents/index.ts` if creating a new storyline
-6. **Tag events correctly** - use appropriate `StoryEventTag` values; tournament-related events need `tournament_match` or `tournament_ceremony` tags
-7. **Events with `timeSlotsRequired: 0`** are instant/informational and don't consume a time slot
-8. **Tournament events are manually queued** - they're triggered by the tournament system, not by the general event eligibility check. Their prerequisites are checked but they aren't surfaced in `getAllEligibleEvents()`
-9. When creating new events, follow the patterns in existing storyline files for consistency (dialogue format, outcome structure, etc.)
-10. **Use the dialogue-converter skill** if the user provides plain-text dialogue for new events
+6. **A chain that starts on a fixed day of a season** gets its first event listed in that tier's season file (`src/data/seasons/`), not scheduled from `createPlayer`
+7. **Tag events correctly** - use appropriate `StoryEventTag` values; tournament-related events need `tournament_match` or `tournament_ceremony` tags
+8. **Events with `timeSlotsRequired: 0`** are instant/informational and don't consume a time slot
+9. **Tournament events are manually queued** - they're triggered by the tournament system, not by the general event eligibility check. Their prerequisites are checked but they aren't surfaced in `getAllEligibleEvents()`
+10. When creating new events, follow the patterns in existing storyline files for consistency (dialogue format, outcome structure, etc.)
+11. **Use the dialogue-converter skill** if the user provides plain-text dialogue for new events
