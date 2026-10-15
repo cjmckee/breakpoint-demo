@@ -15,6 +15,7 @@
 import type { CourtSurface, MatchFormat, MatchStatistics, PointAnalysisData } from '../../types';
 import { MatchSimulator, type MatchConfig } from '../../core/MatchSimulator';
 import type { PlayerProfile } from '../../core/PlayerProfile';
+import type { HomeSide, Venue } from '../../types/game';
 
 export const BO1: MatchFormat = {
   bestOfSets: 1,
@@ -39,6 +40,10 @@ export interface MatchOptions {
   opponentEffects?: Record<string, number>;
   /** Overrides the match-day form roll; 0 disables it. */
   matchFormVariance?: number;
+  /** Where the match is played; its surface wins over `surface`. */
+  venue?: Venue;
+  /** Whose home court it is, for the venue's crowd. */
+  home?: HomeSide;
 }
 
 export interface PlayedMatch {
@@ -66,12 +71,14 @@ export function playMatch(
   const config: MatchConfig = {
     player,
     opponent,
-    courtSurface: options.surface ?? 'hard',
+    courtSurface: options.venue?.surface ?? options.surface ?? 'hard',
     matchFormat: options.format ?? BO3,
     initialServer: options.initialServer,
     playerEffects: options.playerEffects,
     opponentEffects: options.opponentEffects,
     matchFormVariance: options.matchFormVariance,
+    venue: options.venue,
+    home: options.home,
   };
   const sim = new MatchSimulator(config);
   const result = sim.simulateMatch();

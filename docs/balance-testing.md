@@ -73,6 +73,7 @@ fool yourself" below — copy one when you need to ask about a specific constant
 | `balanceAnalysis` | broad ratings sweep, `npm run analyze`                                                             | older, pre-consolidation framing                                         |
 | `statsCheck`      | quick distribution sanity check                                                                    | fine                                                                     |
 | `characterSim`    | the shipped character against the real roster, with score distributions and per-opponent win rates | current — the closest thing to "how does the game actually play"         |
+| `venueProbe`      | what each venue condition is worth to each identity, paired seeds against team match 3             | current — read it before giving a venue a condition                      |
 
 ---
 

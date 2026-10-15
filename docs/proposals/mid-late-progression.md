@@ -412,7 +412,7 @@ the work is choosing which tier opens which, and what's new each season besides 
 
 | season   | new systems                                                                                                                                 | other changes                                                                                 |
 | -------- | ------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| Regional | silver training with focus (T2). Specialty tier II (`gameStore` stops at `player.tier <= 1`)                                                | uncommon abilities in the shop. Hangout tier 2 events. The sponsor and media events move here |
+| Regional | silver training with focus (T2). Specialty tier II (`gameStore` stops at `player.tier <= 1`). **Venues with conditions** (§5.1, built)      | uncommon abilities in the shop. Hangout tier 2 events. The sponsor and media events move here |
 | Tour     | gold training with partners (T3). Specialty tier III. **Scouting**: the archetype and abilities are hidden until you spend a slot (or Mind) | rare abilities. Opponents with two abilities. The agent arc. Hangout tier 3 events            |
 | World    | **best-of-five** at the Slam. Stamina gets a late-match job (`stamina-at-tier-1.md`)                                                        | legendary abilities as story rewards. Opponents counter your most-used key-moment tactic      |
 
@@ -431,6 +431,47 @@ Notes:
   `TeamMatchConfig` and the game phase only allow BO1/BO3.
 
 ---
+
+### 5.1 Venues (built)
+
+Agreed as the first mid-game system: from Regional on, a team match or tier-final can be played
+somewhere with conditions. Signature abilities for World players wait until the mid-game is done.
+
+A venue is a court with its surface and optional conditions (`src/data/venues.ts`). The engines
+apply the conditions to both players (`src/core/venue.ts`), and the pre-match screen shows them.
+The Club tier's six venues have no conditions, so bronze plays as it did.
+
+What each condition is worth, from `venueProbe`. Change in point-win % against team match 3
+(Martia), N=300 best-of-threes per cell, paired seeds, ±0.8-1.1 standard error, so read
+anything under 2 as a tie:
+
+| condition                    | bigServer | counter | netRusher | baseliner |
+| ---------------------------- | --------- | ------- | --------- | --------- |
+| calm court (point-win %)     | 44.6      | 46.0    | 50.4      | 37.7      |
+| `fault_risk` +20 ("wind")    | −1.3      | −0.2    | +1.4      | −1.1      |
+| `fault_risk` +40             | +0.9      | −0.8    | +1.1      | −0.3      |
+| `power_variance` +10 (gusty) | −1.5      | +0.2    | +1.5      | +0.5      |
+| `serve_speed` +15 (altitude) | **+3.8**  | +0.1    | +1.3      | **+4.4**  |
+| `fatigue` ×1.5 (heat)        | −1.4      | +0.5    | 0.0       | +1.4      |
+| `fatigue` ×2 (heatwave)      | −1.1      | +1.2    | +0.6      | **+4.1**  |
+| crowd ×1.5, your home        | +1.1      | +0.6    | **+3.2**  | +0.6      |
+| crowd ×1.5, their home       | **−3.4**  | −1.9    | +0.3      | −1.6      |
+| crowd ×2, their home         | −3.0      | −2.8    | −1.4      | −1.9      |
+
+What it means for writing venues:
+
+- **Conditions that hit both players mostly cancel.** A venue tilts a match when one playstyle
+  copes better: heat suits high stamina, thin air suits big serves.
+- **`fault_risk` is not wind.** Both players lose serves alike, so even +40 does nothing
+  measurable. If wind matters, it wants its own condition.
+- **The crowd is a flat home advantage** of about 2-3 points against you, and it stops growing
+  past ×1.5.
+- **Size.** +5 to a useful stat is worth about +1 point-win. So heatwave and altitude venues are
+  worth a few stat points to the right build: noticeable, not decisive.
+
+```
+npx tsx src/test/analysis/venueProbe.ts      # ~2.5 min
+```
 
 ## 6. Where content goes
 
