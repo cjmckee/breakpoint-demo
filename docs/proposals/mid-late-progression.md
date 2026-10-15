@@ -223,7 +223,17 @@ The first is the real answer, and it's the biggest balance job this proposal unc
 
 ### 2.4 The rosters
 
-Wipe `TIER_2_OPPONENTS` and up and rebuild against the bands above. Keep the five-archetype
+**Practice rosters rebuilt (built).** Tiers 2-4 keep their names, archetypes and abilities
+(tiers 3-4 already had two each). Each stat block is its old shape moved to the season's practice
+band and widened with the tier (spread ×1, ×1.15, ×1.6), then checked with `bandCheck`: all 15
+play within 2 of their band. Written OVRs run 42-46 at Regional, 56-63 on the Tour and 63-72 at
+World, because a flat all-courter plays about 4-7 below its OVR and a serve-volleyer 2-6 above.
+
+`bandCheck` also shows identity drift (§2.3) on real builds. Against the Tour and World rosters
+the net rusher wins 90-100% and the baseliner 0-30%. Regional is fine (27-68%). Fix this before
+writing Tour opponents.
+
+The original plan: wipe `TIER_2_OPPONENTS` and up and rebuild against the bands above. Keep the five-archetype
 shape per tier, since key moments are tuned on that variety. Also give the rebuilt rosters:
 
 - **specialties that grow with the tier** (built). `profileForArchetype(archetype, tier)` raises
@@ -570,8 +580,23 @@ Ordered by how badly they would bite.
   PAR=1 ... TIER_PAY=41:2,81:3 npx tsx src/test/analysis/careerSim.ts    # the ×tier curve
   ```
 
-- **A `tierProbe`** generalising `tier1Probe`: check that each spine opponent is beatable by the
-  mean build of each identity on its scheduled day (point-win 45-60%, say).
+- **`bandCheck`** (built) is the spine check. Every opponent fills a slot (`bandSlots.ts`: a
+  season's practice, `tm1`-`tm5`, `final-r1`… and `playoff`, each with its §2.2 target). It plays
+  the mean career build of each identity on that day against the opponent, specialties raised to
+  the season's cap, and reports the opponent's **effective OVR**: the OVR of the Club team-match
+  shapes that the same builds beat as often. Within ±2 of the target is on band. Against bronze
+  it agrees with the feel-tuned opponents: 7 of 9 are on band, and Chet and Martia are 2-3
+  over because of their abilities. To check a new opponent, list it in `AUTHORED` with its slot.
+  The builds come from `careerSim BUILDS=` (`careerBuilds.json`, committed); regenerate it when
+  the economy or the calendar changes.
+
+  ```
+  npx tsx src/test/analysis/bandCheck.ts                   # everything, ~4 min
+  ONLY=regional npx tsx src/test/analysis/bandCheck.ts     # one season, or one name
+  SLOTS=1 npx tsx src/test/analysis/bandCheck.ts           # slot ids, days and targets
+  BUILDS=src/test/analysis/careerBuilds.json RUNS=20 npx tsx src/test/analysis/careerSim.ts
+  ```
+
 - **Saves.** Record end-of-bronze saves for each broad archetype (`src/debug/saves/`). They are
   the starting point for every Regional playtest. The bot can make them, but its spending is not
   a real player's (one bot career finished bronze with focus 91 and slice 21), so set the stats

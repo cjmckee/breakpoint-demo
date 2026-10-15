@@ -71,6 +71,12 @@
  *      against each team-match opponent's stat shape, shifted to the target OVR,
  *      on that opponent's surface and archetype, and averaged over the five.
  *      Bronze days also show the team match actually played, for calibration.
+ *      BUILDS=<path> writes each identity's mean currency build, its specialty profile and
+ *      its careers' ability effects, on every career day an opponent slot falls on
+ *      (bandSlots.ts), as JSON for bandCheck. It plays to the last slot day with flat pay
+ *      and a training focus from day 41 (FOCUS_FROM), so DAYS and CHECK are ignored.
+ *      Regenerate it when the economy or the Club calendar changes:
+ *      BUILDS=src/test/analysis/careerBuilds.json RUNS=12 npx tsx src/test/analysis/careerSim.ts
  */
 
 import type {
@@ -136,14 +142,17 @@ import {
 } from '../../data/teamMatches';
 import type { TeamMatchConfig } from '../../types/game';
 import type { CourtSurface } from '../../types';
+import { writeFileSync } from 'node:fs';
+import { BAND_DAYS, type CareerBuilds } from './bandSlots';
 
 // ─── Configuration ───────────────────────────────────────────
 
 const env = (k: string, d: number): number => Number(process.env[k] ?? d);
 const RUNS = env('RUNS', 20);
 const N = env('N', 200);
-const DAYS = env('DAYS', 23);
-const CHECK = (process.env.CHECK ?? '15,19,23').split(',').map(Number);
+const BUILDS = process.env.BUILDS;
+const DAYS = BUILDS ? Math.max(...BAND_DAYS) : env('DAYS', 23);
+const CHECK = BUILDS ? BAND_DAYS : (process.env.CHECK ?? '15,19,23').split(',').map(Number);
 const ADAPT = env('ADAPT', 0.7);
 const range = (k: string, d: string): [number, number] => {
   const [lo, hi] = (process.env[k] ?? d).split(',').map(Number);
@@ -171,7 +180,7 @@ const TIER_PAY: Array<[number, number]> = (process.env.TIER_PAY ?? '')
   .filter(Boolean)
   .map((pair) => pair.split(':').map(Number) as [number, number])
   .sort((a, b) => a[0] - b[0]);
-const FOCUS_FROM = env('FOCUS_FROM', Infinity);
+const FOCUS_FROM = env('FOCUS_FROM', BUILDS ? 41 : Infinity);
 const payOn = (day: number): number =>
   TIER_PAY.reduce((m, [from, mult]) => (day >= from ? mult : m), 1);
 
@@ -1194,7 +1203,33 @@ function parReport(): void {
   }
 }
 
+/** Ability effect sets kept per build day: enough for a spread, small enough to commit. */
+const BUILD_EFFECT_SETS = 8;
+
+function buildsReport(path: string): void {
+  const out: CareerBuilds = {
+    generated: `careerSim BUILDS RUNS=${RUNS} DAYS=${DAYS} FOCUS_FROM=${FOCUS_FROM} SPEND=${SPEND}`,
+    identities: {},
+  };
+  for (const id of IDENTITIES) {
+    const careers = Array.from({ length: RUNS }, () => career(id, 'currency'));
+    const days: CareerBuilds['identities'][string]['days'] = {};
+    for (const day of CHECK) {
+      const snaps = careers.map((c) => c.get(day)!);
+      days[day] = {
+        stats: meanStats(snaps.map((x) => x.stats)),
+        effects: snaps.slice(0, BUILD_EFFECT_SETS).map((x) => effectsOf(x.abilities)),
+      };
+    }
+    out.identities[id.name] = { profile: id.profile, archetypeDay: ARCHETYPE_DAY, days };
+    console.log(`${id.name}: ${RUNS} careers to day ${DAYS}`);
+  }
+  writeFileSync(path, `${JSON.stringify(out)}\n`);
+  console.log(`wrote ${path}`);
+}
+
 function main(): void {
+  if (BUILDS) return buildsReport(BUILDS);
   if (TRACE) return traceCareer(TRACE);
   if (process.env.LEDGER === '1') return ledgerReport();
   if (process.env.PAR === '1') return parReport();
