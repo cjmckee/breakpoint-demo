@@ -448,6 +448,8 @@ export const RETURN_COMPOSITE_WEIGHTS: Record<string, number> = {
   anticipation: 0.25,
   speed: 0.15,
   slice: 0.1,
+  forehand: 0,
+  backhand: 0,
 };
 
 /**
@@ -1036,6 +1038,14 @@ export const MOVEMENT_ABILITIES = {
  * more slowly than their price.
  */
 export const ABILITY_LEVEL_MULTIPLIER = [0, 1, 1.6, 2, 2.3, 2.5];
+
+/**
+ * A rushed ball (no time to set up) multiplies quality by floor + (1 − floor) ×
+ * speed/100: a slow player keeps `floor` of the shot, a fast one nearly all of it.
+ */
+export const RUSHED_SHOT = {
+  floor: 0.6,
+};
 
 export const SPECIALTY_AMPLIFY = {
   from: 30,

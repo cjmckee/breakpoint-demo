@@ -66,6 +66,10 @@
  *      day trains or plays practice.
  *      FUND_W=lo,hi weights serve and return at least that for every identity, to model a
  *      player who keeps the two shots of every point up whatever their style.
+ *      SHARPEN=chance,gap: match sharpness. After every match, serve and return each gain 1
+ *      with that chance while more than gap below the best core stat.
+ *      CATCHUP=gap: serve and return cost the cheapest price step while more than gap below
+ *      the best core stat.
  *      FOCUS_FROM=41 lets the currency career pick a silver training focus from that
  *      day: the currency its next purchases are most short of (CurrencyIncome.focusedMix).
  *      PAR=1 reports, per identity and CHECK day, the mean build's OVR and the
@@ -165,6 +169,17 @@ const OFF_W = range('OFF_W', '0.25,0.55');
 /** FUND_W=lo,hi: serve and return weighted at least this, whatever the identity. */
 const FUND_W = process.env.FUND_W ? range('FUND_W', '0.7,0.9') : undefined;
 const FUNDAMENTALS: StatName[] = ['serve', 'return'];
+/**
+ * SHARPEN=chance,gap: after every match, serve and return each go up 1 with this
+ * chance while they sit more than `gap` below the player's best core stat.
+ */
+const SHARPEN = process.env.SHARPEN ? range('SHARPEN', '0.5,15') : undefined;
+/** CATCHUP=gap: serve and return cost the cheapest step while that far below the best core stat. */
+const CATCHUP = process.env.CATCHUP ? Number(process.env.CATCHUP) : undefined;
+const CORE_STATS: StatName[] = ['serve', 'forehand', 'backhand', 'return', 'net'];
+const bestCore = (s: PlayerStats): number => Math.max(...CORE_STATS.map((k) => get(s, k)));
+const behindFundamentals = (s: PlayerStats, k: StatName, gap: number): boolean =>
+  FUNDAMENTALS.includes(k) && get(s, k) < bestCore(s) - gap;
 const MATCH_EVERY = env('MATCH_EVERY', 2);
 const REPS_P = env('REPS_P', 0.7);
 const OTHER_PER_DAY = env('OTHER_PER_DAY', 2.2);
@@ -543,8 +558,24 @@ function exchangeFor(w: Wallet, price: Amounts): boolean {
 const usesOnly = (stat: StatName, allowed: Set<Currency>): boolean =>
   (Object.keys(RECIPES[stat]) as Currency[]).every((c) => allowed.has(c));
 
+/** What the next point of a stat costs, at the catch-up price when CATCHUP applies. */
+function statPrice(s: PlayerStats, k: StatName): Amounts {
+  return CATCHUP !== undefined && behindFundamentals(s, k, CATCHUP)
+    ? priceOf(k, Math.min(get(s, k), 39))
+    : priceOf(k, get(s, k));
+}
+
+/** Match sharpness (SHARPEN): playing keeps serve and return within reach. */
+function sharpen(s: PlayerStats): void {
+  if (!SHARPEN) return;
+  for (const k of FUNDAMENTALS) {
+    if (behindFundamentals(s, k, SHARPEN[1]) && Math.random() < SHARPEN[0])
+      set(s, k, get(s, k) + 1);
+  }
+}
+
 function buy(s: PlayerStats, w: Wallet, k: StatName): boolean {
-  const price = priceOf(k, get(s, k));
+  const price = statPrice(s, k);
   if (get(s, k) >= 100 || !canAfford(w, price)) return false;
   pay(w, price);
   if (spendLedger) addInto(spendLedger[k], price);
@@ -843,6 +874,7 @@ function career(
         );
         energy -= Math.min(50, energy);
         teamWon.set(day, r.winner === 'player');
+        sharpen(stats);
         ledger.slots.team++;
         const perf = paid(r);
         credit('team', walletBefore);
@@ -866,6 +898,7 @@ function career(
         );
         energy -= 50;
         matchesPlayed++;
+        sharpen(stats);
         if (r.winner === 'player') {
           matchesWon++;
           tierWins++;
@@ -1218,7 +1251,9 @@ function buildsReport(path: string): void {
   const out: CareerBuilds = {
     generated:
       `careerSim BUILDS RUNS=${RUNS} DAYS=${DAYS} FOCUS_FROM=${FOCUS_FROM} SPEND=${SPEND}` +
-      (FUND_W ? ` FUND_W=${FUND_W}` : ''),
+      (FUND_W ? ` FUND_W=${FUND_W}` : '') +
+      (SHARPEN ? ` SHARPEN=${SHARPEN}` : '') +
+      (CATCHUP !== undefined ? ` CATCHUP=${CATCHUP}` : ''),
     identities: {},
   };
   for (const id of IDENTITIES) {

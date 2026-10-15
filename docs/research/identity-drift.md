@@ -147,28 +147,8 @@ the counter's). That needs its own change. See the proposal.
 
 ## Proposal
 
-1. **Keep serve and return growing for every identity.** The engine is right to punish a Tour
-   player with a 45 serve; the build shouldn't get there. This needs a game mechanism, because
-   the player decides what to buy. Options, in order of preference:
-   - **Fundamentals pricing:** serve and return price their step from how far they sit below
-     your best core stat, so catching them up is cheap (×1) and the Development screen shows it.
-     Pure economy, but it relies on the player choosing to buy.
-   - **Match sharpness:** each match nudges serve and return up while they sit more than N
-     below your level. It works whatever the player buys, but it breaks "stats are bought, not
-     granted".
-   - **Specialty prerequisite:** a phase specialty past tier I requires serve and return within
-     N of that phase's stat. Gatekeeping, least preferred.
-2. **Bound specialty amplification** (`SPECIALTY_AMPLIFY.excessCap` 10-15). Club is nearly
-   unchanged: player stats there sit within 18 of `from`. Check Club opponents with tier-II
-   specialties in `bandCheck` before shipping, because their boost shrinks a little.
-3. **Net rusher:** take one of `speed` or `anticipation` out of the return composite or reduce
-   its weight, and/or make `rt_sneaky_beaky`'s approach depend on the return's quality, so a
-   weak return chipped in gets passed. Re-measure with `driftProbe paths`.
-4. **Give groundstroke specialties a job.** They're worth 0 at every tier. Rallies are a fifth
-   of points, so a path that only amplifies the rally stat can't compete with serve and return
-   paths. Each could also touch the serve +1 or return +1 ball, the first rally shot after the
-   serve, where points are actually decided.
-5. **Later:** OVR weights from measured value (finding 5); stamina's job (measure best of five).
+Measured proposals, with the package and its Club check:
+[`proposals/identity-drift-fixes.md`](../proposals/identity-drift-fixes.md).
 
 ## Reproducing
 

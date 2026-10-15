@@ -15,9 +15,15 @@
  *         specialties, its serve and return raised to the four identities'
  *         average, and its net raised the same way.
  *   paths What each specialty is worth: the build with that one path removed.
+ *   stats One stat at a time set to the identities' average (STATS=), to trace a lead.
+ *   curve Point-win as a stat (or stats together, CURVE=) runs from 30 to 100.
  *   value What +5 on each stat is worth to it there, in point-win, and per 10
  *         currency units at the build's prices: which stats the engine over- or
  *         under-pays as ratings climb.
+ *
+ * After `who` on several days, it reports whether the contests a player could be
+ * shown (my serve v their return, my return v their serve) predict hold, break
+ * and point-win, and whether OVR does.
  *
  * Matches share seeds by index, so two conditions meet the same luck. Specialties
  * are raised to the season's cap, and each career's abilities ride along, as in
@@ -233,6 +239,29 @@ function buildsTable(day: number): void {
   }
 }
 
+/** Per identity per day from `who`: the contest gaps, OVR against the field, and results. */
+interface WhoRow {
+  serveGap: number;
+  returnGap: number;
+  ovrGap: number;
+  hold: number;
+  brk: number;
+  pointWin: number;
+}
+const whoRows: WhoRow[] = [];
+
+const meanOf = (sides: Side[], f: (p: PlayerProfile) => number): number =>
+  mean(sides.map((o) => f(new PlayerProfile('o', 'O', o.stats))));
+
+function corr(x: number[], y: number[]): number {
+  const mx = mean(x);
+  const my = mean(y);
+  const n = x.reduce((a, v, i) => a + (v - mx) * (y[i] - my), 0);
+  const dx = Math.sqrt(x.reduce((a, v) => a + (v - mx) ** 2, 0));
+  const dy = Math.sqrt(y.reduce((a, v) => a + (v - my) ** 2, 0));
+  return n / (dx * dy);
+}
+
 function who(day: number, ref: Side[]): void {
   console.log(`\n── day ${day}: against a common opponent (Club team shapes at the mean OVR) ──`);
   console.log(
@@ -251,9 +280,19 @@ function who(day: number, ref: Side[]): void {
     ].join('\t'),
   );
   const ids = Object.keys(builds.identities);
+  const fieldOvr = mean(ids.map((id) => calculateOverallRating(player(id, day).stats)));
   for (const id of ids) {
     const t = quietly(() => play(player(id, day), ref));
     const r = t.rates;
+    const me = new PlayerProfile('p', 'P', player(id, day).stats);
+    whoRows.push({
+      serveGap: me.getStatForShot('serve_first') - meanOf(ref, (o) => o.getReturnComposite()),
+      returnGap: me.getReturnComposite() - meanOf(ref, (o) => o.getStatForShot('serve_first')),
+      ovrGap: calculateOverallRating(me.stats) - fieldOvr,
+      hold: r.holds / r.serviceGames,
+      brk: r.breaks / r.returnGames,
+      pointWin: r.pointsWon / r.points,
+    });
     console.log(
       [
         id,
@@ -323,6 +362,32 @@ function swap(day: number, ref: Side[]): void {
   }
 }
 
+/**
+ * STATS=a,b,c: each stat in turn set to the four identities' average, one column
+ * per stat, so a lead can be traced to the stats behind it.
+ */
+function statSwap(day: number, ref: Side[]): void {
+  const ids = Object.keys(builds.identities);
+  const stats = (process.env.STATS ?? 'serve,return,speed,anticipation,tactics,net').split(
+    ',',
+  ) as StatName[];
+  const avg = (k: StatName): number =>
+    mean(ids.map((id) => statOf(builds.identities[id].days[day].stats, k)));
+  console.log(
+    `\n── day ${day}: one stat set to the four identities' average (point-win change v own build) ──`,
+  );
+  console.log(['identity', 'own', ...stats.map((k) => `${k} → ${avg(k).toFixed(0)}`)].join('\t'));
+  for (const id of IDS) {
+    const me = player(id, day);
+    const own = quietly(() => play(me, ref));
+    const cells = stats.map((k) => {
+      const t = quietly(() => play({ ...me, stats: setStat(me.stats, k, avg(k)) }, ref));
+      return `${fmt(paired(t.shares, own.shares))} (${statOf(me.stats, k)})`;
+    });
+    console.log([id, pct(own.rates.pointsWon, own.rates.points), ...cells].join('\t'));
+  }
+}
+
 function paths(day: number, ref: Side[]): void {
   console.log(
     `\n── day ${day}: each specialty's share (point-win lost when that one path is removed) ──`,
@@ -361,6 +426,66 @@ function value(day: number, ref: Side[]): void {
   }
 }
 
+/**
+ * Do the contests a player can see predict the match? Across every identity and
+ * day `who` ran: the serve gap (my first-serve composite − their return
+ * composite) against hold %, the return gap against break %, and OVR against the
+ * field's against point-win.
+ */
+function contestReport(): void {
+  if (whoRows.length < 3) return;
+  const col = (f: (r: WhoRow) => number): number[] => whoRows.map(f);
+  console.log(
+    `\n── do the visible contests predict the match? (${whoRows.length} identity-days) ──`,
+  );
+  console.log(
+    `r(serve gap, hold %)      ${corr(
+      col((r) => r.serveGap),
+      col((r) => r.hold),
+    ).toFixed(2)}`,
+  );
+  console.log(
+    `r(return gap, break %)    ${corr(
+      col((r) => r.returnGap),
+      col((r) => r.brk),
+    ).toFixed(2)}`,
+  );
+  console.log(
+    `r(serve+return gap, point-win) ${corr(
+      col((r) => r.serveGap + r.returnGap),
+      col((r) => r.pointWin),
+    ).toFixed(2)}`,
+  );
+  console.log(
+    `r(OVR v field, point-win)  ${corr(
+      col((r) => r.ovrGap),
+      col((r) => r.pointWin),
+    ).toFixed(2)}`,
+  );
+}
+
+/**
+ * CURVE=forehand+backhand (stats set together; several curves comma-separated):
+ * point-win as those stats run from 30 to 100 on each identity in IDS.
+ */
+function curve(day: number, ref: Side[]): void {
+  for (const group of (process.env.CURVE ?? 'forehand+backhand,serve,speed').split(',')) {
+    const stats = group.split('+') as StatName[];
+    console.log(`\n── day ${day}: point-win as ${group} runs from 30 to 100 ──`);
+    console.log(['identity', ...[30, 40, 50, 60, 70, 80, 90, 100].map(String)].join('\t'));
+    for (const id of IDS) {
+      const me = player(id, day);
+      const cells = [30, 40, 50, 60, 70, 80, 90, 100].map((v) => {
+        const t = quietly(() =>
+          play({ ...me, stats: stats.reduce((s, k) => setStat(s, k, v), me.stats) }, ref),
+        );
+        return pct(t.rates.pointsWon, t.rates.points);
+      });
+      console.log([id, ...cells].join('\t'));
+    }
+  }
+}
+
 function main(): void {
   console.log(`driftProbe  N=${N} BO3 per cell, SEED=${SEED}  builds: ${builds.generated}`);
   for (const day of DAYS) {
@@ -372,8 +497,11 @@ function main(): void {
     if (SECTIONS.has('who')) who(day, ref);
     if (SECTIONS.has('swap')) swap(day, ref);
     if (SECTIONS.has('paths')) paths(day, ref);
+    if (SECTIONS.has('stats')) statSwap(day, ref);
     if (SECTIONS.has('value')) value(day, ref);
+    if (SECTIONS.has('curve')) curve(day, ref);
   }
+  if (SECTIONS.has('who')) contestReport();
   clearSeed();
 }
 

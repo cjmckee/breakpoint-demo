@@ -66,6 +66,7 @@ import {
   BIG_POINT_NERVES,
   SPECIALTY_AMPLIFY,
   MOVEMENT_ABILITIES,
+  RUSHED_SHOT,
 } from '../config/shotThresholds';
 
 import { random } from './random';
@@ -1168,9 +1169,8 @@ export class ShotCalculator {
     // Time pressure based on speed/agility
     if (ballQuality.timeAvailable === 'rushed') {
       // Players with high speed and agility handle rushed shots better
-      const rushHandling = physical.speed;
-      // 0 speed/agility = 0.6x, 100 speed/agility = 1.0x
-      modifier *= 0.6 + (rushHandling / 100) * 0.4;
+      // RUSHED_SHOT.floor at speed 0, 1.0 at speed 100
+      modifier *= RUSHED_SHOT.floor + (physical.speed / 100) * (1 - RUSHED_SHOT.floor);
     } else if (ballQuality.timeAvailable === 'plenty') {
       modifier *= 1.05; // Slight bonus for plenty of time
     }
