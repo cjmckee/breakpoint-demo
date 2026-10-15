@@ -12,12 +12,14 @@ pools, drop rates, and the `TrainingSessionTier` values nothing uses yet.
 
 ## 0. Decisions
 
-| question                            | decision                                                                                                                                         |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Structure                           | **Repeat bronze each tier.** A team season, then a tier-final tournament                                                                         |
-| Pacing                              | **Same speed per tier**: each tier takes about as long as bronze. Measured, this means **flat pay** (§2): no tier multiplier. Needs a re-confirm |
-| Losing the tier-final (Regional on) | **Retry, never stuck.** Promotion is earned, a loss always leads to another shot, nobody is demoted                                              |
-| Length and ending                   | **Hard ending.** Four seasons, then the story ends at the top. No post-game                                                                      |
+| question                            | decision                                                                                                                                                                   |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Structure                           | **Repeat bronze each tier.** A team season, then a tier-final tournament                                                                                                   |
+| Pacing                              | **Same speed per tier, flat pay.** Each tier takes about as long as bronze. Measured, that needs no tier multiplier: the price steps taper gains inside each season (§2.1) |
+| Losing the tier-final (Regional on) | **Retry, never stuck.** Promotion is earned, a loss always leads to another shot, nobody is demoted                                                                        |
+| Length and ending                   | **Hard ending.** Four seasons, then the story ends at the top. No post-game                                                                                                |
+| Tour team matches                   | **A pro team league** with sponsor-named franchises (§3.2)                                                                                                                 |
+| Content per season                  | **The full template** (~60 events). Team matches stay in every season, but how many is a number in the season file, so it can drop to three once balancing says so         |
 
 What that rules out: the open circuit, rankings as a promotion gate, stat caps, and anything
 open-ended (aging, records). Those ideas are still in git history (`1d01e22`) if one is wanted
@@ -260,12 +262,12 @@ Repeating bronze means a team match slot at every tier, which needs a fiction th
 turning pro. Real tennis has one: pros play team events (Davis Cup, United Cup, Laver Cup)
 alongside the tour.
 
-| tier     | team matches                                                                                                    | tier-final                                          |
-| -------- | --------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| Club     | the Academy team, lowest division                                                                               | the Riverside Open                                  |
-| Regional | the Academy team, promoted to the regional division                                                             | a Regional Championship                             |
-| Tour     | **pick one:** a pro team league with sponsor-named franchises, your sponsor's team, or national-team qualifying | a Tour Finals / Masters event                       |
-| World    | the national team in a world team cup                                                                           | a Grand Slam, best-of-five. The final is the ending |
+| tier     | team matches                                               | tier-final                                          |
+| -------- | ---------------------------------------------------------- | --------------------------------------------------- |
+| Club     | the Academy team, lowest division                          | the Riverside Open                                  |
+| Regional | the Academy team, promoted to the regional division        | a Regional Championship                             |
+| Tour     | a pro team league: sponsor-named franchises, new teammates | a Tour Finals / Masters event                       |
+| World    | the national team in a world team cup                      | a Grand Slam, best-of-five. The final is the ending |
 
 Keith and Jen work as teammates through Regional. Jordan is the obvious final-round opponent of
 each tier-final. That's a lot of Jordan, so one tier-final could go to someone who knocked him
@@ -510,17 +512,10 @@ Ordered by how badly they would bite.
 
 ## 9. Open questions
 
-1. **Pacing, re-confirmed.** You chose "same speed per tier" on my numbers, which assumed
-   flat pay would make tiers much longer. Measured, flat pay _is_ the same speed in days, with
-   gains tapering inside each season. Keep flat?
-2. **The Tour team fiction (§3.2).** A pro team league, your sponsor's team, or national-team
-   qualifying?
-3. **Who comes with you.** Do Keith and Jen stay teammates through Regional? Does anyone come
+1. **Who comes with you.** Do Keith and Jen stay teammates through Regional? Does anyone come
    onto the Tour?
-4. **Content budget.** Is ~60 events a season realistic, or should the template thin out
-   (§6 lists the cuts)?
-5. **The playoff safety net.** Should the opponent visibly get weaker each attempt, invisibly, or
+2. **The playoff safety net.** Should the opponent visibly get weaker each attempt, invisibly, or
    not at all?
-6. **XP.** Is pricing gear and abilities by tier enough of an outlet, or does it want a new job?
-7. **Doubles.** In scope ever? `rival_doubles_disaster` hints at it, but it is a simulation
+3. **XP.** Is pricing gear and abilities by tier enough of an outlet, or does it want a new job?
+4. **Doubles.** In scope ever? `rival_doubles_disaster` hints at it, but it is a simulation
    rewrite.
