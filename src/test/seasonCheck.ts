@@ -13,14 +13,16 @@
  *
  * It also pins the two story gates seasons need: a tier range, so Club events
  * stop on the Tour, and repeatable events, so a promotion playoff can be lost
- * and come round again.
+ * and come round again. And the playoff itself: each loss schedules the same
+ * match again a few days on, with that attempt's loss event, and every playoff
+ * a tier-final names exists, with the events it plays more than once repeatable.
  *
  * Exits non-zero on the first failure, so it can gate a release.
  *
  * Run: npx tsx src/test/seasonCheck.ts
  */
 
-import type { GameCalendar, SeasonSchedule } from '../types/game';
+import type { GameCalendar, PlayoffConfig, SeasonSchedule } from '../types/game';
 import { DEFAULT_CALENDAR, TimeSlot } from '../types/game';
 import { TimeManager } from '../game/TimeManager';
 import { SeasonManager } from '../game/SeasonManager';
@@ -29,6 +31,10 @@ import { StoryEventManager } from '../game/StoryEventManager';
 import { CLUB_SEASON } from '../data/seasons/club';
 import { SEASON_SCHEDULES } from '../data/seasons';
 import { StoryEventRepository } from '../data/storyEvents';
+import { PlayoffManager } from '../game/PlayoffManager';
+import { PLAYOFFS, getPlayoff } from '../data/playoffs';
+import { TEAM_MATCH_1 } from '../data/teamMatches';
+import { TournamentRegistry } from '../data/tournaments';
 
 let failures = 0;
 
@@ -170,6 +176,74 @@ console.log('\n── tier gating and repeatable events ──');
     !StoryEventManager.isUsedUp({ ...anyEvent, repeatable: true }, completed),
   );
   check('an event that has never run is not used up', !StoryEventManager.isUsedUp(anyEvent, []));
+}
+
+console.log('\n── a lost playoff comes round again ──');
+{
+  const { lossEventId: _single, ...match } = TEAM_MATCH_1;
+  const playoff: PlayoffConfig = {
+    ...match,
+    id: 'test_playoff',
+    lossEventIds: ['loss_once', 'loss_twice', 'loss_again'],
+    retryDays: 6,
+  };
+  check(
+    'each attempt plays its own loss event, and the last one repeats',
+    [1, 2, 3, 4, 9].map((a) => PlayoffManager.lossEventFor(playoff, a)).join() ===
+      'loss_once,loss_twice,loss_again,loss_again,loss_again',
+  );
+
+  const second = PlayoffManager.metadataFor(playoff, 2);
+  check(
+    'an attempt is the same match, marked with its playoff and attempt',
+    second.playoff?.id === 'test_playoff' &&
+      second.playoff.attempt === 2 &&
+      second.lossEventId === 'loss_twice' &&
+      second.winEventId === playoff.winEventId &&
+      second.prematchEventId === playoff.prematchEventId &&
+      JSON.stringify(second.opponentStats) === JSON.stringify(playoff.opponent.stats),
+  );
+
+  const [scheduled] = PlayoffManager.scheduleAttempt([], playoff, 2, 50);
+  check(
+    'the next attempt is retryDays on, in the afternoon',
+    scheduled.eventType === 'story_match' &&
+      scheduled.scheduledDay === 56 &&
+      scheduled.scheduledTimeSlot === TimeSlot.AFTERNOON,
+    JSON.stringify({ day: scheduled.scheduledDay, slot: scheduled.scheduledTimeSlot }),
+  );
+  const crowded = PlayoffManager.scheduleAttempt([scheduled], playoff, 3, 50);
+  check(
+    'and moves to the next free slot if that one is taken',
+    crowded.length === 2 &&
+      !(crowded[1].scheduledDay === 56 && crowded[1].scheduledTimeSlot === TimeSlot.AFTERNOON),
+  );
+
+  const named = TournamentRegistry.getAllTournaments()
+    .map((t) => t.playoffId)
+    .filter((id): id is string => id !== undefined);
+  check(
+    'every playoff a tournament names exists',
+    named.every((id) => getPlayoff(id) !== undefined),
+    named.join(', '),
+  );
+  for (const p of Object.values(PLAYOFFS)) {
+    const event = (id: string | undefined): ReturnType<typeof StoryEventRepository.getEventById> =>
+      id === undefined ? undefined : StoryEventRepository.getEventById(id);
+    const last = p.lossEventIds[p.lossEventIds.length - 1];
+    check(`${p.id}: filed under its own id`, PLAYOFFS[p.id] === p);
+    check(`${p.id}: has a loss event`, p.lossEventIds.length > 0);
+    check(
+      `${p.id}: its events exist`,
+      [p.prematchEventId, p.winEventId, ...p.lossEventIds].every((id) => event(id)),
+      [p.prematchEventId, p.winEventId, ...p.lossEventIds].filter((id) => !event(id)).join(', '),
+    );
+    check(
+      `${p.id}: its prematch and last loss events are repeatable`,
+      event(p.prematchEventId)?.repeatable === true && event(last)?.repeatable === true,
+    );
+    check(`${p.id}: comes round again after some days`, p.retryDays >= 1);
+  }
 }
 
 if (failures > 0) {

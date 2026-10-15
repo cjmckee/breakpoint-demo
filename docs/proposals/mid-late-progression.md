@@ -282,21 +282,19 @@ Keith and Jen work as teammates through Regional. Jordan is the obvious final-ro
 each tier-final. That's a lot of Jordan, so one tier-final could go to someone who knocked him
 out.
 
-### 3.3 Losing the tier-final: the promotion playoff
+### 3.3 Losing the tier-final: the promotion playoff (built)
 
 Bronze's consolation promotion (the pasta heist) stays as it is. From Regional on, promotion is
 earned, with a loop that always gives you another shot:
 
 1. Lose in the tier-final and the elimination ceremony plays as it does today.
-2. A few days later (5-7, so there is time to train), a **playoff match** is scheduled against
-   one named opponent at about the tier's exit band (§2.2). This is a story match with the usual
-   prematch, win and loss events.
-3. **Win:** the promotion ceremony, and the next season starts.
-4. **Lose:** a loss event, then the playoff is rescheduled 5-7 days on. The player keeps
-   training in between, so they grow and the opponent doesn't.
-5. **Safety net:** each failed attempt takes 2 OVR off the playoff opponent ("they had a tough
-   week"), so even a player who doesn't train wins it eventually. That's optional, and it can be
-   invisible.
+2. A few days later (`retryDays`, 5-7 so there is time to train), a **playoff match** is
+   scheduled against one named opponent at the tier's playoff band (§2.2, `bandCheck` slot
+   `<season>-playoff`). It's a story match with the usual prematch, win and loss events.
+3. **Win:** the win event carries the promotion (`tierChange`), and the next season starts.
+4. **Lose:** that attempt's loss event, and the same match is scheduled `retryDays` on. The
+   opponent stays exactly as strong; the player trains in between, so they grow and the opponent
+   doesn't. There is no safety net that weakens the opponent.
 
 Why a playoff instead of replaying the tournament:
 
@@ -304,18 +302,26 @@ Why a playoff instead of replaying the tournament:
 - **No dead time.** It's a few days away, not a whole season.
 - **It fits the existing story-match machinery.** Team matches already work this way.
 
-What it needs from the engine:
+**How it's built.** A playoff is a `PlayoffConfig` in `src/data/playoffs.ts`: a team match (opponent,
+venue, prematch and win events) plus `lossEventIds`, one per attempt, and `retryDays`. The
+tier-final names it with `playoffId`. The engine does the rest (`PlayoffManager`): elimination
+schedules attempt 1, and each loss schedules the next with that attempt's loss event. The first
+loss plays `lossEventIds[0]`, the second `[1]`, and the last one plays for every loss after
+that. So content is only events:
 
-- **Repeatable events.** `StoryEventManager` refuses any event in `completedStoryEvents`, so a
-  loss event can't fire twice. Either add `repeatable: true` to `StoryEvent`, or author two loss
-  variants and make only the third repeatable. The second is better comedy: "lost to the same
-  guy twice" deserves its own lines.
-- **A rescheduling loss outcome.** The loss outcome schedules the next attempt with
-  `scheduledEvents`. That already works.
+| event             | runs                 | note                                            |
+| ----------------- | -------------------- | ----------------------------------------------- |
+| prematch          | before every attempt | `repeatable: true`                              |
+| win               | once                 | `tierChange` to the next tier                   |
+| loss 1, loss 2, … | once each            | "lost to the same guy twice" gets its own lines |
+| last loss         | every loss after     | `repeatable: true`                              |
+
+`seasonCheck` fails if a named playoff is missing, or its events don't exist or don't repeat
+where they must.
 
 World is the exception, because its tier-final is the ending. Losing the Slam final can't
 schedule "next season". There, the playoff is a **rematch**: the same final against the same
-opponent, rescheduled the same way, with rematch dialogue. The ending only plays on a win.
+opponent, with rematch dialogue, through the same machinery. The ending is the win event.
 
 ### 3.4 Seasons in the calendar (built)
 
@@ -610,8 +616,8 @@ Ordered by how badly they would bite.
 
 1. **Who comes with you.** Do Keith and Jen stay teammates through Regional? Does anyone come
    onto the Tour?
-2. **The playoff safety net.** Should the opponent visibly get weaker each attempt, invisibly, or
-   not at all?
+2. ~~**The playoff safety net.**~~ Decided: none. The opponent stays the same; the days between
+   attempts are for training.
 3. **XP.** Is pricing gear and abilities by tier enough of an outlet, or does it want a new job?
 4. **Doubles.** In scope ever? `rival_doubles_disaster` hints at it, but it is a simulation
    rewrite.

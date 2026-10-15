@@ -50,6 +50,8 @@ import { ScheduledEventManager } from '../game/ScheduledEventManager';
 import { SeasonManager } from '../game/SeasonManager';
 import { CLUB_SEASON } from '../data/seasons/club';
 import { StoryMatchManager } from '../game/StoryMatchManager';
+import { PlayoffManager } from '../game/PlayoffManager';
+import { getPlayoff } from '../data/playoffs';
 import { generateDailyShopItems } from '../game/ShopSystem';
 import { ALL_ITEMS } from '../data/items';
 import {
@@ -1868,6 +1870,20 @@ export const useGameStore = create<GameState>()(
         if (matchType === 'story' || matchType === 'tutorial') {
           // Check for post-match story event
           const storyMeta = phase.storyMatchMetadata;
+
+          // A lost playoff comes round again, the same match a few days on.
+          const playoff = getPlayoff(storyMeta?.playoff?.id);
+          if (playoff && storyMeta?.playoff && result === 'loss') {
+            const scheduledEvents = PlayoffManager.scheduleAttempt(
+              state.calendar.scheduledEvents,
+              playoff,
+              storyMeta.playoff.attempt + 1,
+              state.calendar.currentDay,
+            );
+            set((prev) => ({ calendar: { ...prev.calendar, scheduledEvents } }));
+            get().setIndicator('calendar');
+          }
+
           if (storyMeta) {
             const postMatchEventId = StoryMatchManager.getPostMatchEventId(storyMeta, result);
             if (postMatchEventId && state.player) {
@@ -1988,6 +2004,19 @@ export const useGameStore = create<GameState>()(
                   set((prev) => ({
                     calendar: { ...prev.calendar, scheduledEvents: updatedEvents },
                   }));
+                  get().setIndicator('calendar');
+                }
+
+                // From Regional on, losing the tier-final means the promotion playoff.
+                const playoff = getPlayoff(config.playoffId);
+                if (!lastCompleted.won && playoff) {
+                  const scheduledEvents = PlayoffManager.scheduleAttempt(
+                    get().calendar.scheduledEvents,
+                    playoff,
+                    1,
+                    state.calendar.currentDay,
+                  );
+                  set((prev) => ({ calendar: { ...prev.calendar, scheduledEvents } }));
                   get().setIndicator('calendar');
                 }
               }

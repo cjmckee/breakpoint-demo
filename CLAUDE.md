@@ -1068,6 +1068,10 @@ Each tier is one season of the career: Club, Regional, Tour, World.
   for the next morning (`SeasonManager.promote`) and schedules its file.
 - **Gate events by tier** with `prerequisites.tier: { min, max }`, so Club flavour stops on the
   Tour. An event that must fire more than once (a promotion playoff) sets `repeatable: true`.
+- **Promotion playoffs** (`src/data/playoffs.ts`): from Regional, a tier-final names a `playoffId`.
+  Losing the tier-final schedules it; each loss schedules it again `retryDays` on, against the
+  same opponent at the same strength, with that attempt's loss event (`lossEventIds`, the last
+  repeating). The win event carries the `tierChange`. Mark the prematch and last loss repeatable.
 - Design and pacing: `docs/proposals/mid-late-progression.md`.
 
 ### Venues

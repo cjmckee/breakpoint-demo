@@ -119,6 +119,16 @@ When tying a story event to a tournament round:
    - `winEventId` / `lossEventId` for post-match events
 3. Tag the event appropriately: `tournament_match`, `tournament_ceremony`
 
+### 6a. Hook up a promotion playoff
+
+From Regional on, losing the tier-final leads to a playoff instead of a consolation promotion:
+
+1. Add a `PlayoffConfig` to `src/data/playoffs.ts` (opponent, venue, `prematchEventId`, `winEventId`, `lossEventIds`, `retryDays`) and set `playoffId` on the tier-final's `TournamentConfig`
+2. The engine schedules every attempt (`PlayoffManager`); don't schedule the next attempt from a loss outcome
+3. Mark the prematch event and the **last** loss event `repeatable: true`. Earlier loss events play once each, in order
+4. Put the `tierChange` on the win event's outcome
+5. `npx tsx src/test/seasonCheck.ts` checks the playoff's events exist and repeat where they must
+
 ### 7. Analyze event flow
 
 When the user asks "what events come after X" or "show me the flow":
@@ -168,6 +178,7 @@ When the user says "event X isn't showing up" or "why can't I trigger X":
 - **TournamentManager**: `src/game/TournamentManager.ts`
 - **ScheduledEventManager**: `src/game/ScheduledEventManager.ts`
 - **Season schedules** (each tier's fixed beats, on season days): `src/data/seasons/*.ts`, scheduled by `src/game/SeasonManager.ts`
+- **Promotion playoffs**: `src/data/playoffs.ts`, scheduled by `src/game/PlayoffManager.ts`
 
 ## Important rules
 

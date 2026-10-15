@@ -344,6 +344,9 @@ export interface StoryMatchMetadata {
   countsForMilestones?: boolean; // defaults to true
   isTutorial?: boolean; // show in-match tutorial guidance
   disableMatchForm?: boolean; // zero out match-day form variance for a predictable outcome
+
+  /** Set on a promotion playoff: which one (PLAYOFFS id), and which attempt this is (from 1). */
+  playoff?: { id: string; attempt: number };
 }
 
 /**
@@ -366,6 +369,26 @@ export interface TeamMatchConfig {
   prematchEventId: string;
   winEventId: string;
   lossEventId: string;
+}
+
+/**
+ * A promotion playoff (docs/proposals/mid-late-progression.md §3.3): one named
+ * opponent after the tier-final is lost, played until it is won.
+ *
+ * Losing schedules the same match again `retryDays` later, against the same
+ * opponent at the same strength: the days between are for training. The win
+ * event carries the promotion (`tierChange`). The prematch event plays before
+ * every attempt, so mark it `repeatable`.
+ */
+export interface PlayoffConfig extends Omit<TeamMatchConfig, 'lossEventId'> {
+  id: string;
+  /**
+   * The loss event for each attempt: the first loss plays [0], the second [1],
+   * and the last one plays for every loss after that, so mark it `repeatable`.
+   */
+  lossEventIds: string[];
+  /** Days from the tier-final elimination to the first attempt, and between attempts. */
+  retryDays: number;
 }
 
 /**
