@@ -78,6 +78,10 @@ belongs in git history, not here.
   on bronze, and identities drifting ~20 OVR apart by Tour. Also the season template and its
   calendar groundwork, silver and gold training, and content slots.
 
+- **[`proposals/regional-season-worksheet.md`](./proposals/regional-season-worksheet.md)** — the
+  Regional season's content to write: every event id, the day it runs, what fires it and what it
+  must do, plus each opponent slot's target and how to fit stats to it with `bandCheck FIT=1`.
+
 `story-minigames.md` was executed and deleted; the
 minigame runtime lives in [`src/minigames/`](../src/minigames/) and the story route runs through the
 `minigame_active` phase.

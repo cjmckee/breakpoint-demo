@@ -23,9 +23,17 @@
  * Add an opponent by listing it in AUTHORED with its slot id. Practice rosters
  * are checked from OPPONENTS_BY_TIER on their own.
  *
+ * FIT=1 writes the stat block for you: it moves every stat of the opponent up or
+ * down together until it plays on its slot's band, and prints the block to
+ * paste. With SLOT=, any opponent's shape can be fitted to any slot, so a new
+ * opponent can start from the nearest existing one:
+ *   SLOT=regional-tm3 ONLY="marcus cole" FIT=1   (an aggressive shape, for TM3)
+ *
  * Run: npx tsx src/test/analysis/bandCheck.ts
  * Env: N=40 (matches per identity per cell)  SEED=1
  *      ONLY=<text> checks only opponents or slots whose name or slot id contains it
+ *      SLOT=<slot id> checks the chosen opponents as if they filled that slot
+ *      FIT=1 fits each one's stat block to its slot's target and prints it
  *      SLOTS=1 lists the slot ids and targets, and exits
  */
 
@@ -65,6 +73,8 @@ import {
 const N = Number(process.env.N ?? 40);
 const SEED = Number(process.env.SEED ?? 1);
 const ONLY = process.env.ONLY?.toLowerCase();
+const SLOT = process.env.SLOT;
+const FIT = process.env.FIT === '1';
 
 /** Within this many points of the target, an opponent is on band. */
 const TOLERANCE = 2;
@@ -238,7 +248,14 @@ function verdict(gap: number): string {
   return gap > 0 ? `too hard (+${gap.toFixed(1)})` : `too soft (${gap.toFixed(1)})`;
 }
 
-function check(candidate: Candidate): string[] {
+interface Measured {
+  slot: BandSlot;
+  /** Win share of each identity's build against the opponent. */
+  shares: number[];
+  effective: number;
+}
+
+function measure(candidate: Candidate): Measured {
   const slot = getBandSlot(candidate.slot);
   if (!slot) throw new Error(`${candidate.opponent.name}: no slot "${candidate.slot}"`);
   const o = candidate.opponent;
@@ -251,16 +268,60 @@ function check(candidate: Candidate): string[] {
     home: candidate.home,
   };
   const shares = players.map((p) => winShare(p, () => opponent));
-  const effective = effectiveOvr(slot, players, mean(shares));
+  return { slot, shares, effective: effectiveOvr(slot, players, mean(shares)) };
+}
+
+function row(candidate: Candidate, m: Measured): string[] {
   return [
-    slot.id,
-    o.name,
-    String(calculateOverallRating(o.stats)),
-    effective.toFixed(1),
-    String(slot.target),
-    verdict(effective - slot.target),
-    ...shares.map((s) => `${(s * 100).toFixed(0)}%`),
+    m.slot.id,
+    candidate.opponent.name,
+    String(calculateOverallRating(candidate.opponent.stats)),
+    m.effective.toFixed(1),
+    String(m.slot.target),
+    verdict(m.effective - m.slot.target),
+    ...m.shares.map((s) => `${(s * 100).toFixed(0)}%`),
   ];
+}
+
+/**
+ * Move the whole stat block until its effective OVR is within half a point of
+ * the target. Effective OVR tracks a uniform shift closely, so a few rounds of
+ * "shift by the gap" settle it; each round shifts the original block, so
+ * rounding doesn't build up.
+ */
+function fit(candidate: Candidate): { candidate: Candidate; measured: Measured } {
+  const original = candidate.opponent.stats;
+  let offset = 0;
+  let current = candidate;
+  let measured = measure(current);
+  for (
+    let round = 0;
+    round < 5 && Math.abs(measured.effective - measured.slot.target) > 0.5;
+    round++
+  ) {
+    offset += measured.slot.target - measured.effective;
+    current = {
+      ...candidate,
+      opponent: { ...candidate.opponent, stats: shifted(original, offset) },
+    };
+    measured = measure(current);
+  }
+  return { candidate: current, measured };
+}
+
+function statBlock(stats: PlayerStats): string {
+  const line = (group: object): string =>
+    `{ ${Object.entries(group)
+      .map(([k, v]) => `${k}: ${v}`)
+      .join(', ')} }`;
+  return [
+    'stats: {',
+    `  core: ${line(stats.core)},`,
+    `  technical: ${line(stats.technical)},`,
+    `  physical: ${line(stats.physical)},`,
+    `  mental: ${line(stats.mental)},`,
+    '},',
+  ].join('\n');
 }
 
 function main(): void {
@@ -271,13 +332,24 @@ function main(): void {
     }
     return;
   }
-  const candidates = [...AUTHORED, ...PRACTICE].filter(
+  const chosen = [...AUTHORED, ...PRACTICE].filter(
     (c) =>
       !ONLY || c.slot.toLowerCase().includes(ONLY) || c.opponent.name.toLowerCase().includes(ONLY),
   );
+  const target = SLOT === undefined ? undefined : getBandSlot(SLOT);
+  if (SLOT !== undefined && !target) throw new Error(`no slot "${SLOT}" (SLOTS=1 lists them)`);
+  const candidates = target
+    ? chosen.map((c) => ({
+        slot: target.id,
+        opponent: { ...c.opponent, tier: target.tier },
+        venue: c.venue,
+        home: c.home,
+      }))
+    : chosen;
+
   const log = console.log;
   console.log = (): void => {};
-  const rows = candidates.map(check);
+  const results = candidates.map((c) => (FIT ? fit(c) : { candidate: c, measured: measure(c) }));
   console.log = log;
   clearSeed();
 
@@ -293,7 +365,17 @@ function main(): void {
       ...Object.keys(builds.identities).map((id) => `${id} win`),
     ].join('\t'),
   );
-  for (const row of rows) console.log(row.join('\t'));
+  for (const r of results) console.log(row(r.candidate, r.measured).join('\t'));
+  if (FIT) {
+    for (const r of results) {
+      console.log(
+        `\n// ${r.candidate.opponent.name}, fitted to ${r.measured.slot.id} ` +
+          `(OVR ${calculateOverallRating(r.candidate.opponent.stats)}, ` +
+          `effective ${r.measured.effective.toFixed(1)})`,
+      );
+      console.log(statBlock(r.candidate.opponent.stats));
+    }
+  }
 }
 
 main();

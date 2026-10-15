@@ -29,7 +29,7 @@ import { SeasonManager } from '../game/SeasonManager';
 import { PrerequisiteChecker } from '../game/PrerequisiteChecker';
 import { StoryEventManager } from '../game/StoryEventManager';
 import { CLUB_SEASON } from '../data/seasons/club';
-import { SEASON_SCHEDULES } from '../data/seasons';
+import { DRAFT_SEASONS, SEASON_SCHEDULES } from '../data/seasons';
 import { StoryEventRepository } from '../data/storyEvents';
 import { PlayoffManager } from '../game/PlayoffManager';
 import { PLAYOFFS, getPlayoff } from '../data/playoffs';
@@ -66,16 +66,35 @@ console.log('── the career day never resets ──');
   check('a new career is on season day 1', TimeManager.seasonDay(DEFAULT_CALENDAR) === 1);
 }
 
+const unwritten = (schedule: SeasonSchedule): string[] =>
+  schedule.beats.map((b) => b.storyEventId).filter((id) => !StoryEventRepository.getEventById(id));
+
+console.log('\n── every season that is scheduled is written ──');
+for (const schedule of Object.values(SEASON_SCHEDULES)) {
+  check(
+    `tier ${schedule.tier}: every beat names a story event that exists`,
+    unwritten(schedule).length === 0,
+    unwritten(schedule).join(', '),
+  );
+  check(
+    `tier ${schedule.tier}: beats are in season-day order`,
+    schedule.beats.every((b, i) => i === 0 || schedule.beats[i - 1].day <= b.day),
+  );
+}
+for (const schedule of Object.values(DRAFT_SEASONS)) {
+  check(
+    `tier ${schedule.tier} is drafted, not scheduled`,
+    SEASON_SCHEDULES[schedule.tier] === undefined,
+  );
+  const todo = unwritten(schedule);
+  console.log(
+    `  info  tier ${schedule.tier} draft: ${schedule.beats.length - todo.length} of ` +
+      `${schedule.beats.length} beats written${todo.length ? `; to write: ${todo.join(', ')}` : ''}`,
+  );
+}
+
 console.log('\n── the Club season ──');
 {
-  check(
-    'every beat names a story event that exists',
-    CLUB_SEASON.beats.every((b) => StoryEventRepository.getEventById(b.storyEventId)),
-    CLUB_SEASON.beats
-      .filter((b) => !StoryEventRepository.getEventById(b.storyEventId))
-      .map((b) => b.storyEventId)
-      .join(', '),
-  );
   const events = SeasonManager.scheduleSeason(CLUB_SEASON, 1);
   const prep = events.find(
     (e) =>
