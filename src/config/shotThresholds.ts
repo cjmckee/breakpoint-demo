@@ -1037,9 +1037,20 @@ export const MOVEMENT_ABILITIES = {
  */
 export const ABILITY_LEVEL_MULTIPLIER = [0, 1, 1.6, 2, 2.3, 2.5];
 
+/**
+ * The highest quality each kind of shot can reach.
+ */
+export const QUALITY_CEILING = {
+  serve: 100,
+  return: 100,
+  rally: 100,
+};
+
 export const SPECIALTY_AMPLIFY = {
   from: 30,
   byTier: [0, 0.5, 0.75, 1.0],
+  /** The most stat above `from` that is amplified. */
+  excessCap: Infinity,
   /**
    * net_apologist stays back, so a boost on net shots would never apply. Its
    * boost goes to the baseline game it chooses instead: this share of its tier's
