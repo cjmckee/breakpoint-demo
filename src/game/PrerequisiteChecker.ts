@@ -7,6 +7,7 @@ import type { PlayerStats } from '../types';
 import type { Player, GameCalendar, Ability } from '../types/game';
 import type { StoryEventPrerequisite, StoryEventOption, StoryEvent } from '../types/storyEvents';
 import type { ActiveTournament } from '../types/tournaments';
+import { TimeManager } from './TimeManager';
 
 export class PrerequisiteChecker {
   /**
@@ -119,10 +120,13 @@ export class PrerequisiteChecker {
   ): boolean {
     if (!requirements) return true;
 
-    if (requirements.minDay !== undefined && calendar.currentDay < requirements.minDay) {
+    // Story days are season days, so a season's events are written the same
+    // way wherever it falls in the career.
+    const day = TimeManager.seasonDay(calendar);
+    if (requirements.minDay !== undefined && day < requirements.minDay) {
       return false;
     }
-    if (requirements.maxDay !== undefined && calendar.currentDay > requirements.maxDay) {
+    if (requirements.maxDay !== undefined && day > requirements.maxDay) {
       return false;
     }
     if (requirements.minSeason !== undefined && calendar.currentSeason < requirements.minSeason) {

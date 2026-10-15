@@ -220,8 +220,22 @@ export interface TournamentCompletion {
 }
 
 export interface GameCalendar {
+  /** The season being played. Each tier is one season, so this is the tier it belongs to. */
   currentSeason: number;
+  /**
+   * Days since the career began, starting at 1. It never resets: scheduled
+   * events, unlock gates and "days until" all count on it. What the player
+   * sees, and what story `minDay`/`maxDay` read, is the season day
+   * (TimeManager.seasonDay).
+   */
   currentDay: number;
+  /** The `currentDay` on which the current season began. */
+  seasonStartDay: number;
+  /**
+   * A promotion starts the next season the following morning, so the rest of
+   * the promotion day still belongs to the old one. Cleared when it begins.
+   */
+  upcomingSeason: { season: number; startDay: number } | null;
   currentTimeSlot: TimeSlot;
   // Note: energy and mood are tracked in CurrentStatus, not in the calendar
 
@@ -614,6 +628,8 @@ export const DEFAULT_PLAYER_STATS: PlayerStats = {
 export const DEFAULT_CALENDAR: GameCalendar = {
   currentSeason: 1,
   currentDay: 1,
+  seasonStartDay: 1,
+  upcomingSeason: null,
   currentTimeSlot: TimeSlot.MORNING,
   practiceOpponents: {},
   scheduledEvents: [],

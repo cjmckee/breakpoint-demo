@@ -7,7 +7,9 @@
  * career. Pure logic, no store access.
  */
 
-import type { ScheduledEvent, SeasonSchedule } from '../types/game';
+import type { GameCalendar, OpponentTier, ScheduledEvent, SeasonSchedule } from '../types/game';
+import { SEASON_SCHEDULES } from '../data/seasons';
+import { TimeManager } from './TimeManager';
 
 export class SeasonManager {
   /**
@@ -21,5 +23,20 @@ export class SeasonManager {
       scheduledTimeSlot: beat.slot,
       metadata: { storyEventId: beat.storyEventId },
     }));
+  }
+
+  /**
+   * Promotion to `tier`: its season begins tomorrow morning, and that season's
+   * beats (if it has been written) join the calendar. Returns the calendar with
+   * the season queued, and the events to add.
+   */
+  static promote(
+    calendar: GameCalendar,
+    tier: OpponentTier,
+  ): { calendar: GameCalendar; events: ScheduledEvent[] } {
+    const queued = TimeManager.queueSeason(calendar, tier);
+    const schedule = SEASON_SCHEDULES[tier];
+    const events = schedule ? this.scheduleSeason(schedule, calendar.currentDay + 1) : [];
+    return { calendar: queued, events };
   }
 }

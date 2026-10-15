@@ -2831,6 +2831,17 @@ export const useGameStore = create<GameState>()(
           }
         }
 
+        // A promotion begins the next tier's season tomorrow morning, with its fixed beats
+        let seasonCalendar = newCalendar;
+        if (outcome.effects.tierChange !== undefined) {
+          const promoted = SeasonManager.promote(
+            newCalendar,
+            outcome.effects.tierChange as OpponentTier,
+          );
+          seasonCalendar = promoted.calendar;
+          updatedScheduledEvents = [...updatedScheduledEvents, ...promoted.events];
+        }
+
         // Check if we need to schedule a tournament match
         const shouldScheduleTournamentMatch = outcome.effects.scheduleNextTournamentMatch === true;
 
@@ -2847,7 +2858,7 @@ export const useGameStore = create<GameState>()(
             lastActivity: result,
           },
           calendar: {
-            ...newCalendar,
+            ...seasonCalendar,
             scheduledEvents: updatedScheduledEvents,
           },
           activityHistory: [result, ...get().activityHistory].slice(0, 10),

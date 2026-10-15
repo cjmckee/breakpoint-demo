@@ -107,7 +107,7 @@ export interface StoryEventPrerequisite {
   completedEventChoices?: Record<string, string | string[]>; // eventId -> optionId(s) that must have been chosen (array = OR)
   excludedEventChoices?: Record<string, string | string[]>; // eventId -> optionId(s) that blocks this event (array = OR)
 
-  // Time/season requirements
+  // Time/season requirements. Days are days of the current season (TimeManager.seasonDay).
   minDay?: number;
   maxDay?: number;
   minSeason?: number;

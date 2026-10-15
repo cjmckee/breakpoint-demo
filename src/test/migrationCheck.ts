@@ -441,6 +441,22 @@ function main(): void {
     kept.player?.appearance.hairStyle === 'ponytail',
   );
 
+  console.log('\n  the 13 → 14 change itself:');
+  check(
+    'a save from before seasons is in the season that began on day 1',
+    migrated.calendar.seasonStartDay === 1 && migrated.calendar.upcomingSeason === null,
+    JSON.stringify(migrated.calendar),
+  );
+  const queued = { season: 2, startDay: 44 };
+  const midPromotion = runMigrations(
+    { ...migrated, calendar: { ...migrated.calendar, seasonStartDay: 1, upcomingSeason: queued } },
+    13,
+  ).state.calendar;
+  check(
+    'a calendar that already counts seasons is left alone',
+    midPromotion.upcomingSeason?.startDay === 44,
+  );
+
   console.log('\n── a save below the breaking floor is discarded ──');
   const stale = preConsolidationSave();
   const staleOutcome = runMigrations(stale, RESET_BEFORE_VERSION - 1);

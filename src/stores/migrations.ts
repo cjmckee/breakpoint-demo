@@ -82,7 +82,8 @@ export interface PersistedStoreState {
 // 11: the shop stopped selling stats, and abilities cost currency as well as XP.
 // 12: the player remembers the wallet as last seen, for the Develop badge.
 // 13: the player gained a pixel-art appearance.
-export const CURRENT_STORE_VERSION = 13;
+// 14: the calendar counts seasons: the day it began, and a season queued by a promotion.
+export const CURRENT_STORE_VERSION = 14;
 
 /** Saves below this version are wiped instead of migrated. See the header. */
 export const RESET_BEFORE_VERSION = 5;
@@ -253,6 +254,16 @@ function migrate12to13(state: PersistedStoreState): PersistedStoreState {
   return { ...state, player: { ...player, appearance: { ...DEFAULT_APPEARANCE } } };
 }
 
+/**
+ * 13 → 14: the season began on day 1. Before this the day only reset at day
+ * 90, so every save is still in the season it started in.
+ */
+function migrate13to14(state: PersistedStoreState): PersistedStoreState {
+  const calendar = state.calendar;
+  if (calendar.seasonStartDay !== undefined) return state;
+  return { ...state, calendar: { ...calendar, seasonStartDay: 1, upcomingSeason: null } };
+}
+
 const MIGRATIONS: Readonly<Record<number, MigrationFn | typeof NO_CHANGE>> = {
   6: migrate5to6,
   7: migrate6to7,
@@ -262,6 +273,7 @@ const MIGRATIONS: Readonly<Record<number, MigrationFn | typeof NO_CHANGE>> = {
   11: migrate10to11,
   12: migrate11to12,
   13: migrate12to13,
+  14: migrate13to14,
 };
 
 // ----------------------------------------------------------------------------
