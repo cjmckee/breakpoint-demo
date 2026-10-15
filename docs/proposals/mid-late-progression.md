@@ -1,6 +1,7 @@
 # Mid-to-late progression: Regional, Tour and World
 
-**Status:** brainstorm. Nothing is agreed yet. The open questions are in §9.
+**Status:** structure agreed (§0). The season template (§3) and pacing bands (§2) are proposals
+waiting on review. The open questions are in §9.
 **Scope:** everything after the Riverside Open: how the three tiers above Club are structured,
 how fast the player grows through them, what silver and gold training are, and where content
 goes. This doc does not write any content. It names the slots that content goes into.
@@ -9,45 +10,51 @@ pools, drop rates, and the `TrainingSessionTier` values nothing uses yet.
 
 ---
 
+## 0. Decisions
+
+| question                            | decision                                                                                            |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Structure                           | **Repeat bronze each tier.** A team season, then a tier-final tournament                            |
+| Pacing                              | **Same speed per tier.** Pay scales with the tier, so each tier takes about as long as bronze       |
+| Losing the tier-final (Regional on) | **Retry, never stuck.** Promotion is earned, a loss always leads to another shot, nobody is demoted |
+| Length and ending                   | **Hard ending.** Four seasons, then the story ends at the top. No post-game                         |
+
+What that rules out: the open circuit, rankings as a promotion gate, stat caps, and anything
+open-ended (aging, records). Those ideas are still in git history (`1d01e22`) if one is wanted
+later.
+
+---
+
 ## Summary
 
-1. **Bronze works as a template.** It is a 36-day authored spine. Tutorial, then the team, the
-   coach and your archetype. Then five team matches, four days apart, then a four-round
-   tournament that always promotes you. Free slots in between go to training (68% of slots),
-   practice and random events. The player goes from OVR 20 to about 40. Key stats reach the high
-   40s, the rest the low 30s.
-2. **The price curve sets the pacing problem.** Each tier costs more than the last: +1 on every
-   stat costs 43 units at ×1. Bronze income is ~30 units a day.
-
-   | band     | units | days at bronze income | days if income scales with the step |
-   | -------- | ----- | --------------------- | ----------------------------------- |
-   | 20 → 40  | 860   | ~29 (this is bronze)  | ~29                                 |
-   | 40 → 60  | 1,720 | ~57                   | ~29 (×2)                            |
-   | 60 → 80  | 2,580 | ~86                   | ~29 (×3)                            |
-   | 80 → 100 | 3,440 | ~115                  | ~29 (×4)                            |
-
-   At flat income, Club-to-World is ~260 more days of grind. The first decision is whether each
-   tier lasts about as long as bronze (income scales with the tier) or gets longer and slower (§2).
-
+1. **Bronze is the template, and it repeats.** Each tier is one season of about 40 days. It
+   opens with intros for the tier's new systems, has five team matches four days apart, and
+   ends with a tier-final tournament. Four seasons, Club to World, run about 160 in-game days
+   plus any retries (§3).
+2. **Pacing: pay scales with the price step.** Prices step up ×2 in the 40s-50s, ×3 at 60-70s
+   and ×4 from 80. Paying silver ×2, gold ×3 and World ×4 keeps every 20-point band at about
+   bronze's 30 days. At bronze rates, Club to World would take ~260 more days (§2).
 3. **The existing tier 2-4 rosters are a cliff.** The player leaves bronze at ~OVR 40 against a
    Jordan of 46. The tier 2 practice roster is 56-57, tier 3 is 66-69 and tier 4 is 81-85.
-   Rebuild them as overlapping bands (§2.3).
-4. **Structure: an authored spine plus a circuit (§3, option C).** Every tier keeps a bronze-style
-   authored spine: a team season, a rival beat, a tier-final tournament. From Regional on, a
-   circuit of repeatable tournaments sits around it, so the player chooses where to play and
-   isn't stuck waiting for the next scheduled event. Content cost per tier stays close to
-   bronze's.
-5. **Silver and gold training (§4).** Silver: same minigames, a harder speed ramp, ×2 pay, and
-   a **focus** that steers the secondary currency. That fixes the "big server trains backhand
-   for Technique" finding. Gold: **training partners** (relationship-gated, they pay what they're
-   good at) and multi-day **camps**. Each tier adds one new decision, not just a bigger number.
-6. **Late game, progression moves from stats to decisions (§5).** Stats cost ×3-4, so specialty
-   tiers II/III, ability levels, scouting, adaptive opponents and longer formats have to carry
-   more of the growth. Most of these are already scaffolded.
-7. **Six engineering gaps need fixing before any of this is safe to build (§7).** The worst:
-   the calendar rolls over at day 90 and resets `currentDay` to 1. That breaks every `minDay`
-   prerequisite and every absolute `scheduledDay`. There is also no tier prerequisite for story
-   events, so club-flavoured random events would keep firing on the Tour.
+   Rebuild them against the bands in §2.2.
+4. **Retrying is a promotion playoff, not a replayed tournament (§3.3).** Lose the tier-final
+   and a named playoff opponent is scheduled a few days later. Win, you're promoted. Lose, it
+   comes round again. The player keeps growing in between, so the playoff is always eventually
+   won. It needs one engine change: story events can't fire twice today.
+5. **Each season needs a schedule of its own (§3.4).** Bronze's spine is a hard-coded list in
+   `createPlayer`. Seasons should be data files, scheduled when the season starts, with days
+   counted from that start, so Regional can be written exactly like bronze ("day 15: first team
+   match"). The 90-day calendar rollover has to go first: it resets `currentDay` to 1 and breaks
+   every `minDay` and `scheduledDay`.
+6. **Silver and gold training (§4).** Silver: ×2 pay, a harder ramp, and a **focus** that picks
+   the secondary currency. That fixes the "big server trains backhand for Technique" finding.
+   Gold: **training partners** (relationship-gated, they pay what they're good at). Each tier adds
+   one new decision, not just a bigger number.
+7. **Each season opens one new system (§5).** Regional opens specialty tier II and silver training.
+   Tour opens tier III, gold training and scouting. World opens best-of-five. This is the
+   equivalent of bronze's tutorial week.
+8. **Content is roughly 60 events and 10 named opponents per tier (§6),** about 180 events for
+   the three. Most of it fills the same slots bronze has.
 
 ---
 
@@ -55,16 +62,17 @@ pools, drop rates, and the `TrainingSessionTier` values nothing uses yet.
 
 ### 1.1 The calendar
 
-| days  | what happens                                                                                    |
-| ----- | ----------------------------------------------------------------------------------------------- |
-| 1-7   | tutorial chain, one scheduled event per morning (`gameStore.createPlayer`)                      |
-| 8-12  | rival encounter, club team intro, coach, archetype pick, first practice                         |
-| 13-31 | five team matches on days 15, 19, 23, 27, 31. Each announcement fires two days before its match |
-| 33-36 | Riverside Open prep, then the ceremony, then four rounds with a winner and a loser bracket      |
-| 37    | `thanks_for_playing`. Winning and the consolation bracket both set `tierChange: 2`              |
+| days  | what happens                                                                                                                                      |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1-7   | tutorial chain, one scheduled event per morning (`gameStore.createPlayer`)                                                                        |
+| 8-12  | rival encounter, club team intro, coach, archetype pick, first practice                                                                           |
+| 13-31 | five team matches on days 15, 19, 23, 27, 31. Each announcement fires two days before its match                                                   |
+| 33-39 | Riverside Open prep, then the ceremony, then four rounds with a winner and a loser bracket                                                        |
+| 40-43 | a winner gets `thanks_for_playing` the next day. A loser gets the consolation promotion three days after the last round. Both set `tierChange: 2` |
 
 The whole spine is scheduled by absolute day in `createPlayer`. Random events (40% trigger
-chance) and hangouts fill the gaps.
+chance) and hangouts fill the gaps. In a bot career that lost in round 2, the tournament ended on
+day 39 and the promotion was queued for day 42.
 
 ### 1.2 Content per unit
 
@@ -102,195 +110,245 @@ Opponent OVR, for the ladder:
 Content can only be balanced against a known player. So first, write down how strong the player
 is at each point in each tier, then build the opponents to that.
 
-### 2.1 Three ways to pace it
+### 2.1 Pay scales with the step
 
-**A. Income scales with the tier (recommended).** Silver training and matches pay ×2, gold ×3,
-World ×4: the same step the price curve takes. Each 20-point band then takes about as long as
-bronze did (~30 days of play), and the player's sense of speed doesn't change.
++1 on every stat costs 43 units at ×1 (the recipe lengths summed). The step makes each band
+dearer:
 
-- One side effect: stats below 40 still cost ×1, so off-stats get cheap to backfill once income
-  doubles. Most players round out early in Regional. That is probably fine, and it closes the
-  "specialisation tax" gap from `stat-currency-progression.md` §10.5 by itself.
-- Implemented as a tier multiplier in `CurrencyIncome`. One number per tier in `economy.ts`.
+| band     | units | days at bronze income | days at ×tier income |
+| -------- | ----- | --------------------- | -------------------- |
+| 20 → 40  | 860   | ~29 (this is bronze)  | ~29                  |
+| 40 → 60  | 1,720 | ~57                   | ~29 (×2)             |
+| 60 → 80  | 2,580 | ~86                   | ~29 (×3)             |
+| 80 → 100 | 3,440 | ~115                  | ~29 (×4)             |
 
-**B. Flat income, longer tiers.** Keep bronze income and let each tier take longer: ~57, ~86 and
-~115 days. That is a classic RPG slow-down, but it is 260 days of mostly training. It only works
-if the non-stat systems (§5) carry the late game.
+So the tier multiplier is the price step: Club ×1, Regional ×2, Tour ×3, World ×4. One table in
+`economy.ts`, read by `CurrencyIncome`.
 
-**C. Scale income, cap stats per tier.** Do A, and also add a ceiling per tier. A stat can't be
-bought past it until you are promoted. For example: Club 50, Regional 65, Tour 80, World 100.
-
-- This makes the player's strength at each tier predictable, which is what balancing needs.
-  It also stops a player out-grinding the tier.
-- It costs something real. A struggling player is never near the cap, so it only bites the
-  strong one, and that player may feel walled. The Development screen would need to show it
-  (a cap marker on the bar).
+- **What it applies to:** training and match payouts, and `contentCurrency`. Story and challenge
+  grants are sized in stat points, and a "+3 points" outcome at Regional should still buy about
+  three points.
+- **Side effect:** stats below 40 still cost ×1, so off-stats get cheap to backfill once pay
+  doubles. Most players will round out early in Regional. That is probably fine. It also closes
+  most of the "specialisation tax" gap (`stat-currency-progression.md` §10.5).
+- **Ability prices** (`ABILITY_PRICES`) are flat units. They will need the same multiplier,
+  or abilities get 2-4× cheaper relative to stats each tier.
 
 ### 2.2 Target bands
 
-These follow from A, with each tier about the same length as bronze. They are the first thing to
-agree on, because every opponent stat block is written against them.
+These follow from ×tier pay with each tier about as long as bronze. They are the first thing to
+agree on, because every opponent stat block is written against them. **They are estimates until
+the pacing probe (§8) measures them.**
 
-| tier     | player OVR in → out | key stats out | spine opponents | practice base |
-| -------- | ------------------- | ------------- | --------------- | ------------- |
-| Club     | 20 → 40             | 45-50         | 29 → 46         | 26-29         |
-| Regional | 40 → 55             | 60-65         | 42 → 58         | 40-44         |
-| Tour     | 55 → 70             | 72-78         | 56 → 72         | 54-58         |
-| World    | 70 → 85             | 85-92         | 70 → 88         | 68-72         |
+| tier     | player OVR in → out | key stats out | team matches | tier-final rounds | playoff | practice base |
+| -------- | ------------------- | ------------- | ------------ | ----------------- | ------- | ------------- |
+| Club     | 20 → 40             | 45-50         | 29 → 41      | 36 → 46           | none    | 26-29         |
+| Regional | 40 → 55             | 60-65         | 42 → 53      | 50 → 58           | ~55     | 40-44         |
+| Tour     | 55 → 70             | 72-78         | 56 → 67      | 64 → 72           | ~70     | 54-58         |
+| World    | 70 → 85             | 85-92         | 70 → 81      | 78 → 88           | ~85     | 68-72         |
 
-- The first opponent of each tier sits just above where the player arrives. That matches how
-  bronze opens (Chet Vale is 29 against a ~25 player).
-- The bands overlap by four points or so. Jordan at 46 and Regional's first team match at ~42
-  means promotion feels like a step up, not a wall.
+- The first opponent of each tier sits just above where the player arrives. That's how bronze
+  opens: Chet Vale is 29 against a ~25 player.
+- Each new tier opens a few points below the last tier-final, so promotion feels like a step up,
+  not a wall.
 - Growth per tier shrinks from +20 to +15 because steps get dearer while each tier also adds
-  non-stat strength (specialty tiers, abilities). That's a guess; `careerSim` would set it (§8).
+  strength that isn't stats (specialty tiers, abilities). That's a guess. The probe sets it.
 
 ### 2.3 The rosters
 
 Wipe `TIER_2_OPPONENTS` and up and rebuild against the bands above. Keep the five-archetype
-shape per tier, since it is the variety key moments are tuned on. Also give the rebuilt rosters:
+shape per tier, since key moments are tuned on that variety. Also give the rebuilt rosters:
 
-- **specialties at tier II/III.** Today opponents carry a broad archetype profile only;
+- **specialties at tier II/III.** Today opponents only carry a broad archetype profile;
 - **two abilities** from Tour on;
-- **a stat spread that grows with the tier.** A World player has a 90 and a 60, not 14 stats
-  at 84. Shape is what makes opponents feel different once everyone is good.
+- **a stat spread that grows with the tier.** A World player has a 90 and a 60, not 14 stats at 84. Once everyone is good, the shape is what makes opponents feel different.
 
 ---
 
-## 3. Structure options for a tier
+## 3. The season template
 
-### A. Repeat the bronze season
+### 3.1 What a season is
 
-Each tier is a new team season. A new division, five team matches, one tier-final tournament,
-promotion.
+One tier, about 40 days, laid out like bronze. Days are counted from the start of the season
+(§3.4), so these numbers are the same in every tier.
 
-- **For:** proven, and the content pipeline is the one you already use. Easy to balance because
-  the schedule is fixed.
-- **Against:** a fourth time through the same rhythm is a lot. The player still never chooses
-  what to play. It also keeps the team going into the Tour, which doesn't fit the fiction past
-  Regional.
-- **Content:** ~50 events and ~9 named opponents per tier, so ~150 for the three.
+| season days | slot                     | Club (exists)                         | Regional, Tour, World                                                    |
+| ----------- | ------------------------ | ------------------------------------- | ------------------------------------------------------------------------ |
+| 1-2         | season opener            | welcome, making connections           | the promotion aftermath, a new venue, who moved up with you              |
+| 2-8         | system intros            | the tutorial chain, one system a day  | one event per new system: training tier, specialty tier, what's new (§5) |
+| 8-12        | team intro               | club team intro, first practice       | the new team or division, first practice, the season's rival team        |
+| 13-31       | five team matches        | days 15, 19, 23, 27, 31               | same days. Same four events each                                         |
+| 13-31       | storyline beats          | coach, rival, family, romance, career | the same storylines, one or two beats each, gated by tier (§7.2)         |
+| 33-39       | tier-final               | Riverside Open prep, four rounds      | prep, four rounds (five at World)                                        |
+| 40+         | promotion or the playoff | always promoted                       | win and you're promoted. Lose and you go to the playoff (§3.3)           |
 
-### B. Open circuit
+Between scheduled events the loop is bronze's: training, practice matches, random events, hangouts.
 
-After bronze the calendar opens up. Tournaments run on fixed weeks, and the player chooses which
-to enter. Each entry costs a fee or a prep day, and tournaments overlap so you can't play
-everything. Results earn **ranking points**, and promotion comes at a ranking threshold.
+### 3.2 What "team" means at each tier
 
-- **For:** player agency, replay value, and a real reason to manage energy and form across
-  weeks. Rankings give XP and "how am I doing" a home.
-- **Against:** the most systems work: rankings, generated draws, generic events for rounds
-  nobody wrote. Harder to balance because the player chooses the order. Authored story has to
-  hang off flexible hooks.
-- **Content:** fewer bespoke events, but many short generic ones (a draw announcement, an
-  opponent intro, win and loss lines) that work for any round.
+Repeating bronze means a team match slot at every tier, which needs a fiction that survives
+turning pro. Real tennis has one: pros play team events (Davis Cup, United Cup, Laver Cup)
+alongside the tour.
 
-### C. Authored spine plus circuit (recommended)
+| tier     | team matches                                                                                                    | tier-final                                          |
+| -------- | --------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| Club     | the Academy team, lowest division                                                                               | the Riverside Open                                  |
+| Regional | the Academy team, promoted to the regional division                                                             | a Regional Championship                             |
+| Tour     | **pick one:** a pro team league with sponsor-named franchises, your sponsor's team, or national-team qualifying | a Tour Finals / Masters event                       |
+| World    | the national team in a world team cup                                                                           | a Grand Slam, best-of-five. The final is the ending |
 
-Every tier keeps a short authored spine, and a circuit fills the time around it.
+Keith and Jen work as teammates through Regional. Jordan is the obvious final-round opponent of
+each tier-final. That's a lot of Jordan, so one tier-final could go to someone who knocked him
+out.
 
-- **Spine:** tier opener, a team or rival arc of 3-4 scheduled matches, a mid-tier story beat,
-  and the tier-final tournament. It is fixed in the calendar, written like bronze, and it is
-  where the comedy lives.
-- **Circuit:** 2-4 repeatable tournaments per tier with drawn opponents from the tier roster.
-  Each pays currency, XP and ranking points. The circuit gives a player who is behind somewhere
-  to catch up, and a player who is ahead somewhere to spend the time.
-- **Promotion:** comes from the tier-final, but entry needs a ranking. Play enough of the
-  circuit to earn the wildcard. Failing the final means another circuit swing and another try,
-  never a dead end.
+### 3.3 Losing the tier-final: the promotion playoff
 
-It also lets the structure change from tier to tier:
+Bronze's consolation promotion (the pasta heist) stays as it is. From Regional on, promotion is
+earned, with a loop that always gives you another shot:
 
-| tier     | shape                                                                                                                                                                                                           |
-| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Regional | mostly A. The Academy moves up a division (Keith, Jen and Jordan come with you). Four team matches, one circuit event, then the Regional Championship. It introduces rankings while the frame is still familiar |
-| Tour     | mostly B. The team is behind you. Agent, sponsor, travel. A season of circuit events by surface (clay swing, grass swing), and an authored spine for the rival and the agent                                    |
-| World    | short and authored. Qualify for the slams, best-of-five, the last rival meeting, an ending                                                                                                                      |
+1. Lose in the tier-final and the elimination ceremony plays as it does today.
+2. A few days later (5-7, so there is time to train), a **playoff match** is scheduled against
+   one named opponent at about the tier's exit band (§2.2). This is a story match with the usual
+   prematch, win and loss events.
+3. **Win:** the promotion ceremony, and the next season starts.
+4. **Lose:** a loss event, then the playoff is rescheduled 5-7 days on. The player keeps
+   training in between, so they grow and the opponent doesn't.
+5. **Safety net:** each failed attempt takes 2 OVR off the playoff opponent ("they had a tough
+   week"), so even a player who doesn't train wins it eventually. That's optional, and it can be
+   invisible.
 
-The circuit can be built once and reused in all three tiers, and its generic events stay short.
+Why a playoff instead of replaying the tournament:
+
+- **Content.** A playoff is about 5 events. A replayed tournament needs rematch versions of 20.
+- **No dead time.** It's a few days away, not a whole season.
+- **It fits the existing story-match machinery.** Team matches already work this way.
+
+What it needs from the engine:
+
+- **Repeatable events.** `StoryEventManager` refuses any event in `completedStoryEvents`, so a
+  loss event can't fire twice. Either add `repeatable: true` to `StoryEvent`, or author two loss
+  variants and make only the third repeatable. The second is better comedy: "lost to the same
+  guy twice" deserves its own lines.
+- **A rescheduling loss outcome.** The loss outcome schedules the next attempt with
+  `scheduledEvents`. That already works.
+
+World is the exception, because its tier-final is the ending. Losing the Slam final can't
+schedule "next season". There, the playoff is a **rematch**: the same final against the same
+opponent, rescheduled the same way, with rematch dialogue. The ending only plays on a win.
+
+### 3.4 Seasons in the calendar
+
+Two changes, needed before anything above Club ships:
+
+1. **Remove the 90-day rollover.** `TimeManager.advanceDay` resets `currentDay` to 1 after day 90. A Club-plus-Regional career reaches day ~85, so Tour would hit it. Today the reset breaks
+   every `minDay`/`maxDay`, every absolute `scheduledDay`, and the "event is in the past"
+   pruning in `ScheduledEventManager`.
+2. **Season = tier, with season days.** Keep an absolute day for ordering, and add the day the
+   current season started. "S2 · Day 15" is shown, and `minDay` and season schedules read the
+   season day. Promotion starts the next season.
+
+Then each season's spine becomes data instead of the hard-coded list in `createPlayer`:
+
+```ts
+// src/data/seasons/regional.ts
+export const REGIONAL_SEASON: SeasonSchedule = {
+  tier: 2,
+  events: [
+    { day: 1, slot: TimeSlot.MORNING, storyEventId: 'regional_opener' },
+    { day: 13, slot: TimeSlot.MORNING, storyEventId: 'regional_team_match_1_scheduled' },
+    // ...
+  ],
+};
+```
+
+The promotion outcome (`tierChange`) schedules the next season's file. Bronze's list moves into
+`seasons/club.ts` with no behaviour change. That move is a safe first PR. Writing a season then
+means writing events and one schedule file, which the `story-flow-manager` skill can wire.
 
 ---
 
 ## 4. Silver and gold training
 
 What exists: five anchors, each a minigame. Three reps, a speed ramp, and a payout of the
-anchor's mix × (reps + 1). `sessionTier` is hard-coded to `'bronze'`, and the minigame API
-already takes `rounds`, `speedRamp` and `maxScore`. The code notes "DR via cost scaling is
-deferred".
+anchor's mix × (reps + 1). `sessionTier` is hard-coded to `'bronze'`. The minigame API already
+takes `rounds`, `speedRamp` and `maxScore`. The code notes "DR via cost scaling is deferred".
 
-Rule: each tier's training should add **one new decision**, not only a bigger number.
+Rule: each tier's training should add **one new decision**, not only a bigger number. The ×tier
+multiplier (§2.1) is the bigger number and applies whichever options ship.
 
-| option                    | what it is                                                                                                                                       | for                                                                                                                           | against                                                                         | cost   |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ------ |
-| **T1. Better drills**     | Silver ×2 pay and a faster ramp. Gold ×3, four reps out of four, faster still                                                                    | Trivial. Matches the price step (§2.1A)                                                                                       | No new decision. A harder minigame only adds pay for players who can execute it | small  |
-| **T2. Focus**             | From silver, a session also picks a focus currency that replaces the anchor's secondary. A serve with a Technique focus pays Power and Technique | Fixes `stat-currency-progression` §9.10: players train the shot they care about and still earn what their next purchase needs | Weakens the anchor-recipe link, which was a design goal                         | small  |
-| **T3. Training partners** | Train with Keith, Jen, Jordan and others. A partner adds their own currency lean and relationship points, gated on hangout tier                  | Ties relationships to progression. Partner banter is a natural content slot                                                   | Needs a partner picker and one line set per partner                             | medium |
-| **T4. Specialty drills**  | Gold sessions on a specialty instead of a shot. They pay towards specialization points                                                           | A second track once stats cost ×3-4                                                                                           | Spec points are scarce and tuned through levelling today                        | medium |
-| **T5. Camps**             | A multi-day block at a facility, such as a clay camp. It pays a lot and costs the days, and opens with a story event                             | Real time trade-offs against the circuit. Very good with B or C                                                               | Needs calendar blocking                                                         | medium |
-| **T6. Facilities**        | The training tier is bought (XP or prize money) rather than given at promotion                                                                   | Gives XP an outlet                                                                                                            | Promotion feels less like a reward                                              | small  |
+| option                    | what it is                                                                                                                                       | for                                                                                                                           | against                                                                              | cost   |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ------ |
+| **T1. Better drills**     | A faster ramp each tier. Gold adds a fourth rep                                                                                                  | Trivial, and the minigames get harder as the player does                                                                      | No new decision. A harder minigame pays less to a player who can't execute it        | small  |
+| **T2. Focus**             | From silver, a session also picks a focus currency that replaces the anchor's secondary. A serve with a Technique focus pays Power and Technique | Fixes `stat-currency-progression` §9.10: players train the shot they care about and still earn what their next purchase needs | Weakens the anchor-recipe link, which was a design goal                              | small  |
+| **T3. Training partners** | From gold, train with Keith, Jen, Jordan and others. A partner adds their own currency lean and relationship points, gated on hangout tier       | Ties relationships to progression. Partner banter is a natural content slot                                                   | Needs a partner picker and a set of lines per partner                                | medium |
+| **T4. Specialty drills**  | Gold sessions on a specialty instead of a shot. They pay towards specialization points                                                           | A second track once stats cost ×3-4                                                                                           | Spec points are scarce and tuned through levelling today                             | medium |
+| **T5. Camps**             | A multi-day block at a facility, such as a clay camp. It pays a lot and costs the days                                                           | A real time trade-off                                                                                                         | A fixed season calendar leaves little room to give up days. Better as a story reward | medium |
 
-**Recommendation.** Silver is T1 + T2: double pay, a harder ramp, and a focus. Gold is T1 + T3,
-and T5 if the circuit ships. T4 waits until specialties have been measured at tier II.
+**Recommendation.** Silver is T1 + T2: a harder ramp and a focus. Gold is T1 + T3. World adds no
+new training: its new thing is best-of-five (§5). T4 waits until specialties have been measured
+at tier II. T5 fits better as a one-off story event ("the coach sends you to clay camp") than as
+a system.
 
 ---
 
-## 5. Other progression vectors, by tier
+## 5. What each season opens
 
-These are mostly scaffolded. The question is which tier opens each one, so each tier has
-something new besides bigger numbers.
+Each season's system-intro events (§3.1) introduce what's new. These are mostly scaffolded, so
+the work is choosing which tier opens which, and what's new each season besides bigger numbers.
 
-| vector           | today                                                                                                                                          | proposal                                                                                                                                                                                                        |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Specialty tiers  | Tier I only at Club (`gameStore` checks `player.tier <= 1`). Tiers II/III exist in data                                                        | Regional opens II, Tour opens III. Points still come from levels                                                                                                                                                |
-| Abilities        | 28: 10 common, 5 uncommon, 6 rare, 7 legendary. Drop rates by opponent tier. Rarity is inverted and levels run away (`simulation-findings` §5) | Fix rarity before Tour. Gate shop rarity by tier: uncommon at Regional, rare at Tour. Legendaries are story rewards in Tour and World                                                                           |
-| Gear             | Item pools by tier 1-4 exist                                                                                                                   | Keep the four pools and rebuild their boosts against §2.2. Surface shoes matter at Tour, where the surfaces swing                                                                                               |
-| XP               | Shop currency plus levels. ~600 unspent at the end of bronze                                                                                   | Pick one job. **(a)** XP keeps buying things, and facilities (T6) and coaching soak it up. **(b)** A new prize-money currency from tournaments and sponsors buys gear, and XP becomes levels and abilities only |
-| Relationships    | Hangout tiers 0-3 at 25/50/75                                                                                                                  | Hangout tier 2 lands in Regional and tier 3 in Tour, so the tier 3 events are late-game content. Partners (T3) give them a gameplay job                                                                         |
-| Rankings         | none                                                                                                                                           | Regional introduces them, the circuit (option C) runs on them, and promotion needs them                                                                                                                         |
-| Scouting         | The opponent's archetype is always shown before a match                                                                                        | From Tour, hide the archetype and abilities until scouted. Scouting costs a slot (or Mind) and makes key-moment reads a skill again                                                                             |
-| Opponent tactics | Opponents don't adapt in key moments                                                                                                           | From Tour, opponents counter your most-used tactic. Progression in reading, not stats                                                                                                                           |
-| Formats          | The engine supports best-of-five (`MatchFormat.bestOfSets`). Story and tournament types only allow BO1/BO3                                     | Slams are best-of-five. Stamina's late-match value grows with match length (`stamina-at-tier-1.md`), which gives it a late-game job                                                                             |
-| Surfaces         | Per match, cosmetic in strategy terms                                                                                                          | The Tour season runs by surface. Your build has a best and a worst swing                                                                                                                                        |
+| season   | new systems                                                                                                                                 | other changes                                                                                 |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Regional | silver training with focus (T2). Specialty tier II (`gameStore` stops at `player.tier <= 1`)                                                | uncommon abilities in the shop. Hangout tier 2 events. The sponsor and media events move here |
+| Tour     | gold training with partners (T3). Specialty tier III. **Scouting**: the archetype and abilities are hidden until you spend a slot (or Mind) | rare abilities. Opponents with two abilities. The agent arc. Hangout tier 3 events            |
+| World    | **best-of-five** at the Slam. Stamina gets a late-match job (`stamina-at-tier-1.md`)                                                        | legendary abilities as story rewards. Opponents counter your most-used key-moment tactic      |
+
+Notes:
+
+- **Abilities.** There are 28: 10 common, 5 uncommon, 6 rare, 7 legendary. Rarity is inverted and
+  levels run away (`simulation-findings` §5). Fix that before Tour, where rares arrive.
+- **Gear.** The item pools for tiers 1-4 exist. Keep the four pools and rebuild their boosts
+  against §2.2.
+- **XP.** It buys shop items and levels, and ~600 sits unspent at the end of bronze. Under a
+  repeated-season structure the simplest outlet is pricing gear and abilities by tier. Whether
+  XP should also buy something new is open (§9).
+- **Opponent tactics.** Key moments resolve your posture against a fixed archetype chart. The
+  opponent never chooses. An opponent that adapts is new engine work, so it goes last.
+- **Best-of-five.** The engine supports it (`MatchFormat.bestOfSets`), but `StoryMatchMetadata`,
+  `TeamMatchConfig` and the game phase only allow BO1/BO3.
 
 ---
 
 ## 6. Where content goes
 
-Per tier, under option C. Every slot is something you would write. "Named" means it needs a
-character with an `appearance` and `plays` (see `spriteCheck`).
+Per season, in the template's slots. Every slot is something you would write. "Named" means it
+needs a character with an `appearance` and `plays` (see `spriteCheck`).
 
-**Regional (Academy, second division).**
+| slot            | events per season                         | named opponents | notes                                                                   |
+| --------------- | ----------------------------------------- | --------------- | ----------------------------------------------------------------------- |
+| season opener   | 2-3                                       | —               | Regional can pay off the pasta heist                                    |
+| system intros   | 2-3                                       | —               | one per new system (§5), told in a character's voice like the tutorial  |
+| team intro      | 2                                         | —               | the new team or division and the season's rival team                    |
+| team matches    | 20 (5 × 4)                                | 5               | the same shape as bronze, opponent flavour and all                      |
+| storyline beats | 8-10                                      | —               | coach, rival, family, romance, career. Existing career events move here |
+| tier-final      | 20 (4 ceremonies + 4 × 4)                 | 4               | World has five rounds, best-of-five                                     |
+| playoff         | 5 (intro, prematch, win, 2 loss variants) | 1               | the World version is the final rematch                                  |
+| **per season**  | **~60**                                   | **~10**         |                                                                         |
 
-- Opener. A new division, who made it up with you, and a new rival team. Payoff for the
-  consolation-promotion gag ("the pasta heist") in the press.
-- A Regional team season: four team matches, 4 events each, 4 named opponents.
-- One circuit event: short generic lines plus one bespoke round of comedy.
-- Mid-tier beats: the sponsor offer and the media interview move here from bronze (they gate
-  only on day and wins today). Rival arc beat two, and family investment.
-- The Regional Championship: 4-5 rounds, 4 events each. The final is Jordan, or someone who beat
-  him.
-- Promotion and consolation: the team breaks up. Turning pro.
+That's about 180 events and 30 named opponents for the three seasons. Ways to cut it if needed:
 
-**Tour.**
+- **Loser-bracket prematch events.** These are 4 of the 20 tier-final events. They could become
+  one generic line per round.
+- **Storyline beats** can thin out at World, which is short on purpose.
+- **Random misc events** need tier gating (§7.2), but not new content. Bronze's work at Regional
+  if they're tagged `max: 2`.
 
-- Opener. The agent (`agent_approach` moves here), moving out, a travel montage.
-- Circuit by surface: 4-6 tournaments, one bespoke character per swing.
-- Spine: the agent and sponsor arc, the rival on tour, the romance's long-distance turn, the
-  coach deciding whether to come with you.
-- The Tour Finals: the tier-final tournament.
+Where today's events go:
 
-**World.**
-
-- Qualifying for the slams. Each slam is a short bespoke tournament.
-- Last rival meeting, an ending, and post-game (§9).
-
-Rough counts. The generic circuit lines are written once and reused.
-
-| tier     | bespoke events | generic lines | named opponents |
-| -------- | -------------- | ------------- | --------------- |
-| Regional | ~40            | ~15           | ~9              |
-| Tour     | ~35            | reuse         | ~8              |
-| World    | ~25            | reuse         | ~5              |
+- `sponsor_first_offer` (day 15, 3 wins) and `media_interview` (day 20, 5 wins) fire in bronze
+  today. They fit Regional.
+- `agent_approach` (day 30) and `equipment_upgrade` fit Tour.
+- `romance_professional_match` and `family_care_package` sit late in their chains, and are natural
+  Regional beats.
 
 ---
 
@@ -298,56 +356,50 @@ Rough counts. The generic circuit lines are written once and reused.
 
 Ordered by how badly they would bite.
 
-1. **The season rollover resets the day.** `TimeManager.advanceDay` sets `currentDay: 1` after
-   day 90. That breaks every `minDay`/`maxDay`, every absolute `scheduledDay`, and the "past
-   event" pruning in `ScheduledEventManager`. Regional would cross day 90. Fix: an absolute day,
-   with the season derived from it.
+1. **The 90-day rollover** (§3.4). It resets the day, so Tour would break.
 2. **Story events have no tier prerequisite.** `StoryEventPrerequisite` has `minSeason` but no
-   `minTier`/`maxTier`. Random club events (the juggler, the old man) would keep firing on the
-   Tour, and Tour events could fire at Club. Fix: add `tier: { min, max }`, and tag bronze
-   random events `max: 1` (or `max: 2` for the ones that still fit).
-3. **Training has no tier.** `buildAnchorTrainingResult` hard-codes `sessionTier: 'bronze'`.
-   `TrainingSessionTier` and `index.ts` disagree (`'platinum'`). Fix it when T1 lands.
-4. **Tournaments only play once.** `getEligibleTournaments` drops anything in
-   `completedTournaments`, and rounds are fixed opponents. The circuit needs a recurring
-   tournament and a draw generator.
-5. **Dead tier state.** `unlockedTiers`/`unlockNextTier` is never called. `player.tier` is the
-   real gate. Delete it while touching tiers.
-6. **BO5 isn't plumbed.** The engine takes it, but `StoryMatchMetadata`, `TeamMatchConfig` and
-   the game phase only allow BO1/BO3.
+   tier. Random club events (the juggler, the old man) would keep firing on the Tour, and Tour
+   events could fire at Club. Fix: add `tier: { min, max }`, and tag bronze random events
+   `max: 1` (or `max: 2` for the ones that still fit). Once season = tier, `minSeason` is nearly
+   the same thing, but tier says what the author means.
+3. **Events and tournaments only fire once.** `completedStoryEvents` blocks repeats, and
+   `getEligibleTournaments` drops anything in `completedTournaments`. The playoff (§3.3) needs a
+   repeatable event.
+4. **Training has no tier.** `buildAnchorTrainingResult` hard-codes `sessionTier: 'bronze'`.
+   `TrainingSessionTier` and the copy in `types/index.ts` disagree (one has `'platinum'`).
+5. **Dead tier state.** Nothing calls `unlockedTiers`/`unlockNextTier`. `player.tier` is the real
+   gate. Delete it while touching tiers.
+6. **BO5 isn't plumbed** through story and tournament types (§5).
 7. **`progress.ts` is stale.** It says tiebreaks are missing, but `ScoreTracker` plays them.
 
 ---
 
 ## 8. How we would test it
 
-- **Extend `careerSim` past day 31,** through the Riverside Open and into a Regional calendar with
-  the tier multiplier. This is the harness that turns §2.2 from a guess into a table. Do it
-  before writing any Regional opponent.
-- **A `tierProbe`** generalising `tier1Probe`: given a tier's band, check that each spine
-  opponent is beatable by the mean build of each identity at its scheduled day (point-win
-  45-60%, say).
+- **A pacing probe** (next step). Start from end-of-bronze builds, run a Regional season's
+  calendar at ×2 pay, and report OVR and key stats by season day. That turns §2.2 from a guess
+  into a table, and it should come before any Regional opponent is written.
+- **A `tierProbe`** generalising `tier1Probe`: check that each spine opponent is beatable by the
+  mean build of each identity on its scheduled day (point-win 45-60%, say).
 - **Saves.** Record end-of-bronze saves for each broad archetype (`src/debug/saves/`). They are
-  the starting point for every Regional playtest, and the bot can produce them.
-- **Bot runs.** `runBot` already plays the bronze career end to end. A Regional soak needs the
-  circuit phases handled.
+  the starting point for every Regional playtest. The bot can make them, but its spending is not
+  a real player's (one bot career finished bronze with focus 91 and slice 21), so set the stats
+  up by hand.
+- **Bot runs.** `runBot` already plays the bronze career end to end (`e2e/bot.ts`). A Regional
+  soak needs the playoff loop and the season start handled.
 
 ---
 
 ## 9. Open questions
 
-The answers change which option above is right.
-
-1. **Length and ending.** How long should the whole game be, in days or hours? Does it end, with
-   credits after a slam, or is there a post-game (defend titles, new seasons)?
-2. **Structure.** Repeat-bronze (A), open circuit (B), or the hybrid (C)? And should Regional
-   still be an Academy team season?
-3. **Failure.** Bronze always promotes. From Regional on, can a player fail the tier-final and
-   go again, or stay stuck? Should demotion ever exist (`TierModification` has it)?
-4. **Pacing.** Should each tier feel as fast as bronze (income ×tier), or slower and more
-   precious? Is a stat cap per tier acceptable?
-5. **Content budget.** Roughly how many events can you write per tier? That sets how much the
-   circuit has to carry.
+1. **The Tour team fiction (§3.2).** A pro team league, your sponsor's team, or national-team
+   qualifying?
+2. **Who comes with you.** Do Keith and Jen stay teammates through Regional? Does anyone come
+   onto the Tour?
+3. **Content budget.** Is ~60 events a season realistic, or should the template thin out
+   (§6 lists the cuts)?
+4. **The playoff safety net.** Should the opponent visibly get weaker each attempt, invisibly, or
+   not at all?
+5. **XP.** Is pricing gear and abilities by tier enough of an outlet, or does it want a new job?
 6. **Doubles.** In scope ever? `rival_doubles_disaster` hints at it, but it is a simulation
    rewrite.
-7. **XP's job.** Keep XP as shop money, or add prize money?

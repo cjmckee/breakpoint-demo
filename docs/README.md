@@ -70,11 +70,12 @@ belongs in git history, not here.
   return. Design direction agreed (§8). A 40-day career sim (§9) sizes the economy. It finds that pure
   anchor supply starves identities and that escalating prices front-load progression.
 
-- **[`proposals/mid-late-progression.md`](./proposals/mid-late-progression.md)** — brainstorm for
-  everything after the Riverside Open: the pacing contract each tier is balanced against (the price
-  curve makes flat income a 260-day grind), structure options for Regional, Tour and World, silver
-  and gold training, which tier opens which system, where content goes, and the engineering gaps
-  that block it (the day-90 calendar reset, no tier prerequisite on story events).
+- **[`proposals/mid-late-progression.md`](./proposals/mid-late-progression.md)** — everything
+  after the Riverside Open. Agreed: each tier repeats bronze's season (team matches, then a
+  tier-final), pay scales with the price step so every tier takes about as long as bronze, a
+  promotion playoff means a loss is never a dead end, and the game ends at the top. Proposed: the
+  season template and its calendar groundwork (the day-90 reset has to go first), target OVR
+  bands per tier, silver and gold training, what each season opens, and content slots.
 
 `story-minigames.md` was executed and deleted; the
 minigame runtime lives in [`src/minigames/`](../src/minigames/) and the story route runs through the
