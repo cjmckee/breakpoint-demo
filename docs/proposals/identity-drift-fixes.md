@@ -1,262 +1,249 @@
 # Identity drift: proposals
 
-**Status:** proposal, measured, nothing applied. Every engine change below is a config value,
-reproducible in memory with `tuneRun`; every economy change is a `careerSim` switch.
-Diagnosis: [`research/identity-drift.md`](../research/identity-drift.md).
+**Status:** proposal, measured, nothing applied. Every engine change is a config value, off by
+default, reproducible with `tuneRun`. Diagnosis: [`research/identity-drift.md`](../research/identity-drift.md).
 
-**Measurement baseline.** The engine as of the progression stack (#135-#144). Career builds:
-`careerSim BUILDS=` (20 careers per identity, flat pay, focus from day 41). Matches: the
-identity's mean build against the common opponent (the five Club team-match shapes moved to the
-day's mean OVR, with that season's specialty tier), N=120 best of three per cell, so ± about 1
-point-win. "Spread" is the strongest identity's point-win minus the weakest's. The days are
-Club TM5 (31), Regional TM3 (64), Tour TM3 (104) and World TM3 (144).
+## Direction
 
-## The problem in one table
+1. **OVR tracks the chance to win.** It's the yardstick progression is balanced against (bands,
+   `bandCheck`, rosters), so a higher OVR should mean a better player whatever the build.
+2. **Core stats carry the most weight**, in the sim and so in OVR. Serve and return help every
+   player and rise with every good player. A baseliner and a big server both live on core
+   stats, just different ones.
+3. **Support stats matter, in proportion.** Speed and anticipation can be important. They
+   shouldn't be worth ten times a forehand.
 
-| day         | big server | counter | net rusher | baseliner | spread |
-| ----------- | ---------- | ------- | ---------- | --------- | ------ |
-| 31 Club     | 50.7       | 52.4    | 54.3       | 49.6      | 4.7    |
-| 64 Regional | 53.3       | 49.5    | 68.2       | 41.0      | 27.2   |
-| 104 Tour    | 47.5       | 49.3    | 74.5       | 35.9      | 38.6   |
-| 144 World   | 37.8       | 52.0    | 76.0       | 42.8      | 38.2   |
+## The measure
 
-Club is fine. Each season after it opens the gap further. **Goal:** keep the Tour and World
-spread inside about 15 (a bad matchup, not a wall) without moving Club.
+`statLadder` plays random pairings at each level of the career (every stat uniform in the band,
+specialties to the season's cap, authored opponents at the season's tier) and fits point-win
+margin on all 14 stat differences at once. Each stat's coefficient is what +10 of it is worth
+with the others held equal. Two numbers summarise a band:
 
-## Recommendation
+- **OVR fit:** how much of the predictable result OVR explains, as a share of what the 14 stats
+  explain together. 100% means OVR is as good a predictor as the full stat line.
+- **Core / others:** the mean value of a core stat against the mean of the rest.
 
-Apply P1 and P2 together, ship P5 alongside them, and follow up with P3, P4 and P6 in that
-order:
+N=6000-8000 pairings per band, so ±0.35-0.45 point-win per stat. The bands are Club U(25,50), Regional
+U(40,70), Tour U(55,85) and World U(65,95).
 
-| #   | proposal                                       | kind    | measured effect                                                                                        | Club        |
-| --- | ---------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------ | ----------- |
-| P1  | Returns are groundstrokes (return composite)   | config  | baseliner break 33 → 62% on the Tour; spread 38.6 → 27.1                                               | unchanged   |
-| P2  | Bound specialty amplification (`excessCap` 15) | config  | with P1: spread 22.9 Tour, 22.2 World                                                                  | 9/9 on band |
-| P3  | Trim speed and anticipation support            | config  | with P1+P2: spread 17.5 Tour, 19.9 World                                                               | 9/9 on band |
-| P4  | Give groundstrokes a job at high level         | engine  | target: groundstroke curve on the Tour as steep as at Club                                             | to measure  |
-| P5  | Show the player where points go                | UI      | contest bars predict hold (r 0.81) and break (r 0.86); a sim tip is right 7/8 only when one stat leads | —           |
-| P6  | OVR weights from measured value                | config  | OVR v point-win r −0.66 → +0.82 (in-sample)                                                            | re-measure  |
-| —   | Serve and return pricing or grants (economy)   | economy | absorbed by the build shape: +0 to +5.6 (ceiling +7.8)                                                 | —           |
+## Today
 
-The combined package (P1 + P2 + P3) takes the spread from 4.7 / 27.2 / 38.6 / 38.2 to
-**2.0 / 16.5 / 17.5 / 19.9** and keeps every Club story opponent on band. The net rusher is still
-first by 10-15; that remainder is P4's job (see "What's left").
+| point-win per +10 | Club        | Regional    | Tour        | World           |
+| ----------------- | ----------- | ----------- | ----------- | --------------- |
+| serve             | 3.36        | 5.75        | 3.73        | 1.62            |
+| forehand          | 1.60        | 0.84        | **0.41**    | **0.08**        |
+| backhand          | 1.22        | 0.56        | **0.18**    | **0.25**        |
+| return            | 3.63        | 4.30        | 3.57        | 1.46            |
+| net               | 1.12        | 0.86        | 0.57        | 0.96            |
+| slice             | 1.52        | 1.66        | 1.47        | 2.35            |
+| spin              | 1.63        | 1.89        | 1.62        | 1.41            |
+| placement         | 1.28        | 1.63        | 1.41        | 3.20            |
+| speed             | 2.97        | 3.34        | 4.36        | **4.97**        |
+| stamina           | 1.04        | 0.23        | −0.01       | 0.20            |
+| strength          | 1.75        | 2.34        | 1.68        | 0.66            |
+| focus             | 2.16        | 2.59        | 1.71        | 1.68            |
+| anticipation      | 3.76        | 4.24        | 3.31        | 2.59            |
+| tactics           | 1.90        | 2.57        | 1.45        | 2.38            |
+| **core / others** | 2.19 / 2.00 | 2.46 / 2.28 | 1.69 / 1.89 | **0.87 / 2.16** |
+| **OVR fit**       | 76%         | 63%         | 59%         | **50%**         |
 
----
+OVR asks for core ×1.47 the rest. The sim gives ×1.1 at Club and ×0.4 at World. By World,
+speed is worth sixty times a forehand, and OVR explains half of what the stats do.
 
-## P1. Returns are groundstrokes
+## Why: five mechanisms
 
-**Change.** `RETURN_COMPOSITE_WEIGHTS` from return 0.5, anticipation 0.25, speed 0.15, slice 0.1
-to **return 0.3, forehand 0.15, backhand 0.15, anticipation 0.15, speed 0.15, slice 0.1**. A
-return is a forehand or backhand hit off a serve. Today the composite ignores both, so a
-baseliner with 86 groundstrokes returns like a 53.
+Measured on uniform players with `rallyMixProbe` unless noted.
 
-**Why it is the first lever.** Grants and pricing for serve and return get absorbed (see
-"Economy" below). This changes what the stats a player already buys are worth, so it can't be
-absorbed.
+1. **Support stats are measured from an absolute 50.** The bands (`statModifier`), the threshold
+   adjustments, rushed balls and focus under pressure all read `stat − 50`. At Club every stat is
+   below 50, so they're small penalties both players share. On the Tour they're large bonuses
+   that keep growing with the career, while a primary stat's effect doesn't.
+2. **Support bands multiply quality.** The same ±10% band moves an 80-quality shot twice as far
+   as a 40 one. A primary stat adds the same points at any level. So every band's value doubles
+   from Club to Tour by construction.
+3. **The shot selector goes defensive at high level.** A ball at or above `thresholds.high`
+   (`matchLevel + 5`) forces a defensive slice or a lob. Because of 1 and 2, quality outgrows the
+   level: a uniform-40 player's rally shots come out at about 37, a uniform-80 player's at 86-88.
+   At level 80 the rally mix is **0.83 lobs and 0.68 defensive slices per point** against 0.25
+   and 0.14 at level 40. Those shots read placement and slice, not forehand or backhand.
+4. **Specialty amplification pins groundstrokes at the ceiling.** `byTier × (stat − 30)` with no
+   cap turns a tier III forehand of 85 into 140, so more forehand changes nothing.
+5. **Speed and anticipation reach every shot through up to six channels:** the return composite,
+   threshold adjustments, two bands, rushed balls, and the volley, lob, passing, angle and
+   drop composites. Forehand reaches only the drives it's chosen for.
 
-| day | baseliner break %, today → P1 | baseliner point-win | net rusher point-win | spread      |
-| --- | ----------------------------- | ------------------- | -------------------- | ----------- |
-| 31  | 50.6 → 59.5                   | 49.6 → 51.9         | 54.3 → 54.1          | 4.7 → 3.7   |
-| 64  | 33.7 → 60.2                   | 41.0 → 47.6         | 68.2 → 65.2          | 27.2 → 19.3 |
-| 104 | 33.0 → 61.9                   | 35.9 → 43.3         | 74.5 → 70.4          | 38.6 → 27.1 |
-| 144 | 48.9 → 66.2                   | 42.8 → 46.8         | 76.0 → 73.2          | 38.2 → 33.5 |
+Proof that 1-3 are what kills the forehand: at level 80, +15 on both groundstrokes is worth +0.8
+point-win today and **+6.4** with fix A alone (speed +15: +5.4 → +8.1).
 
-Two milder weightings were measured too. One moves 0.075 each from return to forehand and
-backhand (Tour spread 36.4). The other also takes 0.05 from anticipation (spread 28.7). The full
-version is the one that moves the needle.
+## The package
 
-## P2. Bound specialty amplification
+Five changes. Club is left alone wherever a change can be gated on level. Each row adds to the
+one above.
 
-**Change.** `SPECIALTY_AMPLIFY.excessCap` 15: a specialty amplifies at most 15 points of stat
-above 30, so its boost tops out at +7.5 / +11 / +15 by tier. Today the boost is
-`byTier × (stat − 30)` with no ceiling: about +7 at Club, up to +50 on the Tour. It pins return
-quality at 100, and return quality decides breaks.
+| step | change                                                                                          | OVR fit Club / Regional / Tour / World |
+| ---- | ----------------------------------------------------------------------------------------------- | -------------------------------------- |
+| —    | today                                                                                           | 76 / 63 / 59 / 50%                     |
+| A    | support stats measured from the match level above 50 (`SUPPORT_NEUTRAL.followLevelFrom` 50)     | 76 / 62 / 64 / 59%                     |
+| B    | + specialty amplification capped at 15 of excess; returns read forehand and backhand            | 82 / – / 69 / –                        |
+| C    | + speed, anticipation and tactics adjustments and bands halved                                  | 84 / – / 74 / –                        |
+| D    | + support bands narrow with level (`SUPPORT_NEUTRAL.scaleBands` 1), focus included              | 84 / 75 / 78 / 77%                     |
+| E    | + OVR weights by measured value, core heaviest (`STAT_CATEGORY_WEIGHTS`, `STAT_WEIGHTS_WITHIN`) | **94 / 94 / 93 / 95%**                 |
 
-| package            | 31  | 64   | 104  | 144  |
-| ------------------ | --- | ---- | ---- | ---- |
-| P1                 | 3.7 | 19.3 | 27.1 | 33.5 |
-| P1 + cap 15        | 3.2 | 15.9 | 22.9 | 22.2 |
-| P1 + cap 10        | 5.9 | 9.2  | 19.8 | 20.7 |
-| (no amplification) | 7.6 | 13.0 | 19.3 | 23.4 |
+In detail:
 
-**Cap 15, not 10.** Cap 10 starts to move Club: the big server goes 50.7 → 48.4 on day 31, and the
-Club spread 4.7 → 5.9. Cap 15 leaves Club alone and gets most of cap 10's gain on the Tour.
+- **A. Support stats measured from the match level.** Below a match level of 50 (all of Club),
+  nothing changes. Above it, every support stat counts by how far it sits above or below the level
+  being played. Fixes 1 and, with D, 2 and 3.
+- **B. Specialty cap and groundstroke returns.** `SPECIALTY_AMPLIFY.excessCap` 15: Club players
+  sit within 18 of 30, so this barely touches Club. `RETURN_COMPOSITE_WEIGHTS`: return 0.5 → 0.3,
+  forehand 0 → 0.15, backhand 0 → 0.15, anticipation 0.25 → 0.15, speed 0.15, slice 0.1. A return
+  is a forehand or backhand off a serve.
+- **C. Support trim.** `OPPONENT_STAT_ADJUSTMENTS` tactics and speed 0.12 → 0.06,
+  `SHOOTER_STAT_ADJUSTMENTS.anticipation` 0.1 → 0.05, `STAT_MODIFIER_BANDS` reactions
+  0.15 → 0.075, reading 0.1 → 0.05 and courtCoverage 0.1 → 0.05. This is your P3 direction.
+- **D. Bands narrow with level.** Above the neutral point, a support band's effect is scaled by
+  50 / neutral, so in points of quality it stays what it is at 50. The same goes for focus under
+  pressure, stamina in long rallies, focus's momentum mitigation and rhythm steadiness.
+- **E. OVR weights** (sum 1):
 
-**Club check** (`bandCheck`, N=60, effective OVR v target): all 9 Club story opponents stay on
-band under P1+P2. Chet and Martia actually move from +2.4/+2.6 over to on band. The practice
-roster stays within ±2.9, as today.
+  | stat         | today | proposed |
+  | ------------ | ----- | -------- |
+  | serve        | 0.09  | 0.12     |
+  | forehand     | 0.09  | 0.09     |
+  | backhand     | 0.09  | 0.08     |
+  | return       | 0.09  | 0.09     |
+  | net          | 0.09  | 0.04     |
+  | slice        | 0.05  | 0.05     |
+  | spin         | 0.05  | 0.05     |
+  | placement    | 0.05  | 0.05     |
+  | speed        | 0.083 | 0.08     |
+  | stamina      | 0.083 | 0.03     |
+  | strength     | 0.083 | 0.07     |
+  | focus        | 0.05  | 0.08     |
+  | anticipation | 0.05  | 0.08     |
+  | tactics      | 0.05  | 0.09     |
+  | **core**     | 0.45  | **0.42** |
 
-After P1+P2 the return paths are worth about the same for every identity (−9 to −11 point-win
-when removed, from −15 to −19), and serve paths 2-5.
+  As config: category weights core 0.42, technical 0.15, physical 0.18 and mental 0.25, split
+  within each category by `STAT_WEIGHTS_WITHIN`: serve 12, forehand 9, backhand 8, return 9 and
+  net 4; speed 8, stamina 3 and strength 7; focus 8, anticipation 8 and tactics 9; technical
+  even. These are the measured values under A-D (the mean over the four bands), rounded with core
+  kept heaviest. The unrounded fit scores 96-99%; the rounding costs 1-3 points of fit. **Net**
+  is worth little except to players who come forward, and **stamina** almost nothing in best of
+  three, so both drop. OVR feeds the engine (match level, 40% of ace resistance), so E is measured
+  in the sim, not just re-scored.
 
-## P3. Trim speed and anticipation support
+### After the package
 
-**Change.** Halve the support adjustments for speed, anticipation and tactics.
-`OPPONENT_STAT_ADJUSTMENTS` tactics 0.12 → 0.06 and speed 0.12 → 0.06;
-`SHOOTER_STAT_ADJUSTMENTS.anticipation` 0.1 → 0.05; `STAT_MODIFIER_BANDS` reactions
-0.15 → 0.075, reading 0.1 → 0.05 and courtCoverage 0.1 → 0.05.
+| point-win per +10 | Club        | Regional    | Tour        | World       |
+| ----------------- | ----------- | ----------- | ----------- | ----------- |
+| serve             | 3.58        | 4.67        | 4.31        | 3.53        |
+| forehand          | 2.80        | 1.94        | 2.12        | 2.22        |
+| backhand          | 2.54        | 1.62        | 1.76        | 1.76        |
+| return            | 2.43        | 2.23        | 2.37        | 2.12        |
+| net               | 1.21        | 0.60        | 0.52        | 0.72        |
+| slice             | 1.62        | 1.49        | 1.31        | 1.42        |
+| spin              | 2.06        | 1.72        | 1.92        | 1.17        |
+| placement         | 1.58        | 1.83        | 1.84        | 1.55        |
+| speed             | 2.38        | 2.70        | 2.59        | 3.03        |
+| stamina           | 0.64        | 0.66        | 0.19        | 0.45        |
+| strength          | 1.72        | 1.97        | 2.84        | 2.07        |
+| focus             | 1.97        | 2.40        | 3.03        | 2.94        |
+| anticipation      | 2.56        | 2.59        | 2.47        | 2.49        |
+| tactics           | 1.59        | 2.81        | 2.37        | 2.90        |
+| **core / others** | 2.51 / 1.79 | 2.21 / 2.02 | 2.21 / 2.06 | 2.07 / 2.00 |
+| **OVR fit**       | **94%**     | **94%**     | **93%**     | **95%**     |
 
-**Why.** On the Tour, speed and anticipation are the most valuable stats in the game. Each one
-reaches every shot through absolute adjustments anchored at 50, and they're the net rusher's key
-stats. Setting the net rusher's speed to the four-identity average costs it 6.1 point-win, and
-its anticipation 5.3. Raising the baseliner's speed gains 9.2. The baseliner's speed curve runs
-29.9 → 55.3 point-win from 30 to 100, against +3.6 for forehand and backhand together.
+The correlation between a stat's value and its OVR weight goes from 0.04 / −0.05 / −0.02 / −0.42
+to **0.86 / 0.88 / 0.87 / 0.90**. Speed and anticipation sit at 1.1-1.4 times forehand, no longer
+5-60 times. Serve is the most valuable stat at every level.
 
-| package      | 31  | 64   | 104  | 144  | net rusher (104) | counter (104) |
-| ------------ | --- | ---- | ---- | ---- | ---------------- | ------------- |
-| P1 + P2      | 3.2 | 15.9 | 22.9 | 22.2 | 66.7             | 47.7          |
-| P1 + P2 + P3 | 2.0 | 16.5 | 17.5 | 19.9 | 63.3             | 45.8          |
+### Checks
 
-**Cost.** The counter also buys speed and anticipation, so it slips about 2. Club stays on band
-(9/9). Halving is the only setting measured; sweep 0.6-0.8× before shipping. Also measured: the
-rushed-shot multiplier (`RUSHED_SHOT.floor` 0.6 → 0.8) made no difference.
+- **Club.** `bandCheck`: all 9 Club story opponents stay on band (today 7). Two practice
+  opponents read +2.6 and +2.8 over, as they did before (±2.9). The Club identity spread is 3.9
+  (today 4.7).
+- **Identities** (`driftProbe`, career builds, the gap between the best and worst identity's
+  point-win):
 
-## P4. Give groundstrokes a job at high level
+  | day         | big server | counter | net rusher | baseliner | spread      |
+  | ----------- | ---------- | ------- | ---------- | --------- | ----------- |
+  | 31 Club     | 50.1       | 48.3    | 52.2       | 49.1      | 4.7 → 3.9   |
+  | 64 Regional | 54.4       | 46.8    | 62.3       | 50.3      | 27.2 → 15.5 |
+  | 104 Tour    | 53.9       | 45.6    | 65.3       | 49.9      | 38.6 → 19.7 |
+  | 144 World   | 54.0       | 42.1    | 64.4       | 51.7      | 38.2 → 22.3 |
 
-**Measured.** On the baseliner's own build, setting forehand and backhand together from 30 to 100
-moves point-win by **+11.0 at Club and +3.6 on the Tour**, flat from 50 up. Over the same range,
-serve moves it +19.0 and speed +25.4. Groundstroke specialties are worth about 0 at every tier.
+  The baseliner is fixed: 36 → 50 point-win on the Tour. The counter is now last and the net
+  rusher still first. See "What's left".
 
-On the Tour 80% of points end within four shots, and the baseliner already wins 57% of its
-rallies. So the cheapest place for groundstrokes to matter is the first ball after the serve or
-return, where points are actually decided. P1 does some of that for the return. The serve +1 is
-the open part.
+- **Tests.** `npm test` passes with every switch at its default.
 
-**Proposal.** Investigate before changing anything. First find why the forehand curve goes flat
-above 50 (the quality ceiling was tested and isn't it: lifting it changed nothing). Then give each
-groundstroke specialty an effect on the serve +1 or return +1 ball. Target: the Tour groundstroke
-curve at least as steep as at Club, and groundstroke paths worth 3+ point-win when removed.
+## What's left: specialties
 
-## P5. Show the player where the points go
+With the package, OVR explains 93-95% of what the stats do. Measured on the identities' own
+builds, though, it explains much less (correlation 0.29). The rest is the specialty layer. On the
+Tour (day 104), without any specialties the identities sit at 43.8 (big server), 34.0 (counter),
+35.3 (net rusher) and 31.1 (baseliner). Their packages then add 10, 12, **30** and 19.
 
-The answer to "why am I losing?" exists in the engine. Today the results screen scores each area
-against fixed ranges (first serves in mapped from 40-75%, return points won from 25-50%). That
-says how you did against a fixed bar, not against this opponent, and never which part of your
-game lost it. Three ideas, measured for whether they'd tell the truth:
+| point-win lost when one path is removed (Tour)      | value     |
+| --------------------------------------------------- | --------- |
+| return paths (extinguisher, sneaky beaky, redliner) | 10-13     |
+| first serve (bomber)                                | 5.5-6.8   |
+| net (downhill)                                      | 5.4       |
+| second serve (kicker)                               | 1.9-3.8   |
+| forehand (laserbeam, survivor)                      | 0-2.9     |
+| backhand (bazooka, samurai), net apologist          | −0.3 to 3 |
 
-**a. Contest bars (recommended).** Two head-to-head bars on the pre-match screen and again on the
-results screen. On the pre-match screen: your serve against their return, and your return against
-their serve, from the composites the engine uses (`getStatForShot('serve_first')` and
-`getReturnComposite()`). On the results screen: the points actually won on serve and on return,
-next to those bars. They're cheap (no simulation) and they predict the match:
+The net rusher has specialised the four most valuable phases; the counter has one valuable phase
+and three cheap ones. **Next proposal:** bring specialty phases toward parity. Each path at a
+given tier should be worth about the same (target: 5-8 at tier III), by tuning each path's
+`tierEffects` and amplification share, measured with `driftProbe SECTIONS=paths`. This is a
+separate pass with its own data, not part of this package.
 
-| relationship (16 builds: 4 identities × 4 days)              | r         |
-| ------------------------------------------------------------ | --------- |
-| your serve composite − their return composite → your hold %  | **0.81**  |
-| your return composite − their serve composite → your break % | **0.86**  |
-| serve gap + return gap → your point-win                      | 0.68      |
-| your OVR − the field's mean OVR → your point-win             | **−0.66** |
+## Follow-ups the package needs
 
-A red "your return v their serve" bar points at return, speed and anticipation without saying
-so: it's the comparison CLAUDE.md asks for ("show comparisons, don't describe them"). On the
-Development screen, the same two bars can preview a purchase (before → after), so buying speed
-visibly moves the return bar.
+- **Re-fit the Regional, Tour and World practice rosters** (`bandCheck FIT=1`). Their stat blocks
+  were fitted to today's engine.
+- **Re-run `careerSim PAR=1`.** The season bands (§2.2 of the progression proposal) are in OVR
+  terms, and OVR's weights change.
+- **Stamina's job.** It's worth about nothing in best of three at every level. Measure best of five
+  (the World finale) and heat venues before deciding whether it needs more weight in the sim or
+  less in OVR. E already gives it 0.03.
+- **Net.** It's worth little except to net players. That's arguably right; OVR now says so (0.04).
 
-**b. Where the points went.** On the results screen, split the points lost by phase (on your
-serve, on your return, in rallies, at the net), each against this opponent's share rather than a
-fixed standard. It's all in the match's own point records (point type, server, shots, court
-position). It tells the player which phase lost the match; the contest bars say which side of
-their game that phase depends on.
+## Player feedback (unchanged from the first version)
 
-**c. A coach's read from simulation (only when it's sure).** After a loss, re-simulate the
-matchup with more of each stat and name the one that would have helped most. Measured against a
-300-match ground truth, 8 trials per budget, at about 10 ms per best of three in Node:
+These were measured on today's sim; re-measure after the package.
 
-| counterfactual | matchup                        | budget per stat | #1 is a true top-3 stat | top-3 overlap |
-| -------------- | ------------------------------ | --------------- | ----------------------- | ------------- |
-| +5             | Club baseliner v Olivia        | 10-40 matches   | 3-4 of 8                | 0.9-1.3 of 3  |
-| +5             | Tour baseliner v Tour practice | 10-40 matches   | 2-4 of 8                | 1.0-1.5 of 3  |
-| +15            | Club baseliner v Olivia        | 10-40 matches   | 4-5 of 8                | 1.0 of 3      |
-| +15            | Tour baseliner v Tour practice | 20 matches      | **7 of 8**              | 2.0 of 3      |
+- **Contest bars.** Your serve against their return, and your return against their serve, from the
+  composites the engine uses. They predict hold (r 0.81) and break (r 0.86), while OVR predicted
+  point-win at r −0.66 across identities. Show them before and after a match, and as a
+  before → after preview on the Development screen.
+- **Where the points went.** Points lost by phase (on serve, on return, in rallies, at the net),
+  against this opponent rather than the results screen's fixed ranges.
+- **A simulated tip, only when sure.** +15 counterfactuals name a true top-3 stat 7 times in 8
+  when one stat clearly leads (Tour), and are a coin flip when several are close (Club). Show one
+  only when the leading stat clearly beats the next.
 
-A +5 read is noise. A +15 read is right when one stat clearly leads (on the Tour, serve +6.3
-against the next best +3.6) and a coin flip when several are close (at Club, return +6.2,
-anticipation +5.3 and serve +4.8). So: run it in a worker after a loss (14 stats × 20 matches is
-about 3 seconds), and show a tip only when the leading stat beats the second by a clear margin.
-Otherwise show nothing. That's honest, and it stays as a hint, not an instruction. a and b need
-no simulation and should come first.
+## Economy (unchanged): why grants and pricing alone don't fix drift
 
-## P6. OVR weights from measured value
-
-OVR weights a stat by category: core 0.09 each, stamina and strength 0.083, anticipation and
-tactics 0.05. Weighting by what +5 is measured to be worth (the mean of the `value` tables on days
-64, 104 and 144) gives:
-
-| stat         | today | by value |
-| ------------ | ----- | -------- |
-| speed        | 0.083 | 0.150    |
-| anticipation | 0.050 | 0.141    |
-| return       | 0.090 | 0.137    |
-| serve        | 0.090 | 0.099    |
-| tactics      | 0.050 | 0.087    |
-| placement    | 0.050 | 0.078    |
-| slice        | 0.050 | 0.074    |
-| forehand     | 0.090 | 0.045    |
-| spin         | 0.050 | 0.044    |
-| focus        | 0.050 | 0.044    |
-| strength     | 0.083 | 0.043    |
-| backhand     | 0.090 | 0.031    |
-| stamina      | 0.083 | 0.015    |
-| net          | 0.090 | 0.014    |
-
-On the same 16 builds, OVR relative to the field tracks point-win at r = **−0.66 today** and
-**+0.82 by value**. That's in-sample: the weights come from these builds' own value tables. It's
-still the right direction.
-
-**Don't apply it before P1-P4.** Weights fitted to today's lopsided values would make OVR read the
-imbalance faithfully instead of fixing it. Refit after the engine changes. OVR also feeds the
-engine (`getMatchLevel` sets every quality threshold, and OVR is 40% of ace resistance), so a
-reweight needs a `bandCheck` re-run of every roster.
-
-## Economy: why pricing and grants don't fix this alone
-
-careerSim models a player who builds toward a shape: key stats about 2.5 times as fast as the
-rest. Three mechanisms for keeping serve and return up, measured on the Tour (day 104,
-baseliner):
-
-| mechanism                                                | serve / return | baseliner point-win |
-| -------------------------------------------------------- | -------------- | ------------------- |
-| today                                                    | 45 / 48        | 35.9                |
-| catch-up pricing (cheapest step while 15 behind)         | 45 / 46        | 34.6                |
-| match sharpness, 0.5 per match, while 15 behind          | 47 / 49        | 35.2                |
-| match sharpness, 1 per match, while 10 behind            | 56 / 58        | 41.5                |
-| the player keeps them up (`FUND_W` 0.7-0.9; upper bound) | 70 / 68        | 43.7                |
-
-Free or cheap serve and return points replace points the player would have bought. Only a
-mechanism strong enough to push past the player's own shape gets through. In the real game the
-shape is a person's choice, and the strongest lever on that choice is P5: show them that serve
-and return are where they lose. P1 makes the baseliner's own stats count for the return, which
-does what a grant would without fighting the player.
-
-## What's left
-
-With P1+P2+P3 the net rusher is still 10-15 clear on the Tour and World (63-65 point-win against
-46-53). Its key stats feed both the serve (serve, placement) and the return composite (speed,
-anticipation). Its chip-and-charge is not the cause: switching chip-and-charge off costs it about 2. P4 should narrow this, because the identities it beats are the ones whose investment
-(groundstrokes) is under-paid. Re-measure after P4 before touching the net rusher directly.
-
-Untested: stamina (worth about 0 in every best of three measured) may matter in World's best of
-five; measure it there.
+A player who builds toward a shape absorbs free or cheap serve and return points: they stop
+buying what they were given. On the Tour, the baseliner's point-win was 35.9 today, 34.6 with
+catch-up pricing, 35.2 with gentle match sharpness, 41.5 with strong sharpness, and 43.7 if the
+player simply keeps serve and return up. The package does better (49.9) by making the stats the
+baseliner already buys count.
 
 ## Reproducing
 
 ```
-P1='RETURN_COMPOSITE_WEIGHTS.return=0.3;RETURN_COMPOSITE_WEIGHTS.forehand=0.15;RETURN_COMPOSITE_WEIGHTS.backhand=0.15;RETURN_COMPOSITE_WEIGHTS.anticipation=0.15;RETURN_COMPOSITE_WEIGHTS.speed=0.15'
-P2='SPECIALTY_AMPLIFY.excessCap=15'
-P3='OPPONENT_STAT_ADJUSTMENTS.tactics=0.06;OPPONENT_STAT_ADJUSTMENTS.speed=0.06;SHOOTER_STAT_ADJUSTMENTS.anticipation=0.05;STAT_MODIFIER_BANDS.reactions=0.075;STAT_MODIFIER_BANDS.reading=0.05;STAT_MODIFIER_BANDS.courtCoverage=0.05'
-TUNE="$P1;$P2;$P3" PROBE=driftProbe H2H=0 DAYS=104 SECTIONS=who N=120 npx tsx src/test/analysis/tuneRun.ts
-TUNE="$P1;$P2" PROBE=bandCheck ONLY=club- N=60 npx tsx src/test/analysis/tuneRun.ts
-SHARPEN=1,10 BUILDS=/tmp/sharpen.json RUNS=20 npx tsx src/test/analysis/careerSim.ts
-CATCHUP=15 BUILDS=/tmp/catchup.json RUNS=20 npx tsx src/test/analysis/careerSim.ts
-BUILDS_FILE=/tmp/sharpen.json H2H=0 DAYS=104 SECTIONS=who npx tsx src/test/analysis/driftProbe.ts
-STATS=serve,speed,anticipation H2H=0 DAYS=104 SECTIONS=stats npx tsx src/test/analysis/driftProbe.ts
-IDS=baseliner CURVE=forehand+backhand,serve,speed DAYS=31,104 SECTIONS=curve N=150 \
-  npx tsx src/test/analysis/driftProbe.ts                        # P4's curves
-H2H=0 DAYS=31,64,104,144 SECTIONS=who npx tsx src/test/analysis/driftProbe.ts  # P5a's r values
-DAY=104 BUMP=15 npx tsx src/test/analysis/coachReadProbe.ts         # P5c
-DAY=31 BUMP=5 npx tsx src/test/analysis/coachReadProbe.ts
+npx tsx src/test/analysis/statLadder.ts                        # today, all bands
+PKG='SUPPORT_NEUTRAL.followLevelFrom=50;SPECIALTY_AMPLIFY.excessCap=15;RETURN_COMPOSITE_WEIGHTS.return=0.3;RETURN_COMPOSITE_WEIGHTS.forehand=0.15;RETURN_COMPOSITE_WEIGHTS.backhand=0.15;RETURN_COMPOSITE_WEIGHTS.anticipation=0.15;RETURN_COMPOSITE_WEIGHTS.speed=0.15;OPPONENT_STAT_ADJUSTMENTS.tactics=0.06;OPPONENT_STAT_ADJUSTMENTS.speed=0.06;SHOOTER_STAT_ADJUSTMENTS.anticipation=0.05;STAT_MODIFIER_BANDS.reactions=0.075;STAT_MODIFIER_BANDS.reading=0.05;STAT_MODIFIER_BANDS.courtCoverage=0.05;SUPPORT_NEUTRAL.scaleBands=1;STAT_CATEGORY_WEIGHTS.core=0.42;STAT_CATEGORY_WEIGHTS.technical=0.15;STAT_CATEGORY_WEIGHTS.physical=0.18;STAT_CATEGORY_WEIGHTS.mental=0.25;STAT_WEIGHTS_WITHIN.core.serve=12;STAT_WEIGHTS_WITHIN.core.forehand=9;STAT_WEIGHTS_WITHIN.core.backhand=8;STAT_WEIGHTS_WITHIN.core.return=9;STAT_WEIGHTS_WITHIN.core.net=4;STAT_WEIGHTS_WITHIN.physical.speed=8;STAT_WEIGHTS_WITHIN.physical.stamina=3;STAT_WEIGHTS_WITHIN.physical.strength=7;STAT_WEIGHTS_WITHIN.mental.focus=8;STAT_WEIGHTS_WITHIN.mental.anticipation=8;STAT_WEIGHTS_WITHIN.mental.tactics=9'
+TUNE="$PKG" PROBE=statLadder N=6000 npx tsx src/test/analysis/tuneRun.ts
+TUNE="$PKG" PROBE=driftProbe H2H=0 DAYS=31,64,104,144 SECTIONS=who npx tsx src/test/analysis/tuneRun.ts
+TUNE="$PKG" PROBE=driftProbe DAYS=104 SECTIONS=swap,paths npx tsx src/test/analysis/tuneRun.ts
+TUNE="$PKG" PROBE=bandCheck ONLY=club- N=60 npx tsx src/test/analysis/tuneRun.ts
+OVR_W=serve:0.12,forehand:0.09,... npx tsx src/test/analysis/statLadder.ts   # score OVR weights only
+LEVELS=40,80 npx tsx src/test/analysis/rallyMixProbe.ts            # mechanisms 1-3 (shot mix, +15 boosts)
+TUNE='SUPPORT_NEUTRAL.followLevelFrom=50' LEVELS=80 PROBE=rallyMixProbe npx tsx src/test/analysis/tuneRun.ts
 ```
-
-P6's weights are the mean of `SECTIONS=value` on days 64, 104 and 144 (gains below 0 counted as
-0, maxed stats left out), normalised to sum to 1.

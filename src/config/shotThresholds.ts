@@ -585,8 +585,51 @@ export const STAT_MODIFIER_BANDS = {
 } as const;
 
 /** Support-stat multiplier: 1.0 at NEUTRAL_STAT, band-wide at the extremes. */
-export function statModifier(stat: number, band: number): number {
-  return 1 + ((stat - NEUTRAL_STAT) / NEUTRAL_STAT) * band * MODIFIER_SPREAD;
+export function statModifier(stat: number, band: number, neutral = NEUTRAL_STAT): number {
+  return 1 + ((stat - neutral) / NEUTRAL_STAT) * band * MODIFIER_SPREAD * bandScale(neutral);
+}
+
+/**
+ * Where support stats are measured from. Every support effect (the bands above,
+ * the threshold adjustments, rushed balls, focus under pressure, stamina in long
+ * rallies) reads a stat against a neutral point. At NEUTRAL_STAT that point is
+ * absolute, so as a career rises every support stat sits further above it and
+ * its effect keeps growing while the primary stats' does not.
+ *
+ * Above `followLevelFrom`, the neutral point rises one for one with the match
+ * level, so a support stat counts by how far it sits above or below the level
+ * being played. Infinity keeps it absolute.
+ */
+export const SUPPORT_NEUTRAL = {
+  followLevelFrom: Infinity,
+  /**
+   * 1 also narrows the multiplicative support effects (the bands, focus under
+   * pressure, stamina in long rallies) as the neutral point rises, by
+   * NEUTRAL_STAT / neutral. A band multiplies shot quality, so the same ±10%
+   * moves an 80-quality shot twice as far as a 40 one, while a primary stat adds
+   * the same points at any level. Scaling keeps a support stat's effect, in
+   * points of quality, what it is at the neutral point. 0 leaves bands whole.
+   */
+  scaleBands: 0,
+};
+
+/**
+ * A support stat read on the 0-100 scale but measured from this match's neutral
+ * point: at NEUTRAL_STAT it is the stat itself; above it, the stat less how far
+ * the neutral point has risen, clamped to 0-100.
+ */
+export function relativeSupport(stat: number, matchLevel: number): number {
+  return Math.max(0, Math.min(100, stat - (supportNeutral(matchLevel) - NEUTRAL_STAT)));
+}
+
+/** How much of a support band applies at this neutral point (SUPPORT_NEUTRAL.scaleBands). */
+export function bandScale(neutral: number): number {
+  return SUPPORT_NEUTRAL.scaleBands ? Math.min(1, NEUTRAL_STAT / neutral) : 1;
+}
+
+/** The neutral point for support stats in a match at this level (SUPPORT_NEUTRAL). */
+export function supportNeutral(matchLevel: number): number {
+  return NEUTRAL_STAT + Math.max(0, matchLevel - SUPPORT_NEUTRAL.followLevelFrom);
 }
 
 /**

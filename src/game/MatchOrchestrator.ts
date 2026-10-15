@@ -34,7 +34,11 @@ import {
   ShotDetail,
   ShotType,
 } from '../types';
-import { PRESSURE_BANK, KEY_MOMENT_OPPONENT_DRAIN } from '../config/shotThresholds';
+import {
+  PRESSURE_BANK,
+  KEY_MOMENT_OPPONENT_DRAIN,
+  relativeSupport,
+} from '../config/shotThresholds';
 import { abilityEffects } from '../core/EffectAggregator';
 import { fatigueAfterPoint, fatigueAfterRest } from '../core/fatigue';
 import { addEffects, venueCrowd, venueEffects, venueFatigue, venueWind } from '../core/venue';
@@ -326,10 +330,11 @@ export class MatchOrchestrator {
     this.matchMood = config.mood ?? 0;
     this.accumulatedEffects = { energyDelta: 0, moodDelta: 0, opponentEnergyDelta: 0 };
     this.momentum = 0;
+    // Focus steadies rhythm, measured from the match's support neutral.
     this.momentumEngine.reset(
       {
-        player: player.stats.mental.focus,
-        opponent: opponent.stats.mental.focus,
+        player: relativeSupport(player.stats.mental.focus, matchLevel),
+        opponent: relativeSupport(opponent.stats.mental.focus, matchLevel),
       },
       venueCrowd(config.venue, config.home),
     );

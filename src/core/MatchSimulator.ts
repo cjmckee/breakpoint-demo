@@ -30,6 +30,7 @@ import { trace } from './trace';
 import { addEffects, venueCrowd, venueEffects, venueFatigue, venueWind } from './venue';
 
 import { random } from './random';
+import { relativeSupport } from '../config/shotThresholds';
 export interface MatchConfig {
   player: PlayerProfile;
   opponent: PlayerProfile;
@@ -88,10 +89,12 @@ export class MatchSimulator {
     this.scoreTracker = new ScoreTracker(config.matchFormat);
     this.matchStatistics = new MatchStatistics(config.player, config.opponent);
     this.momentumEngine = new MomentumEngine();
+    // Focus steadies rhythm, measured from the match's support neutral.
+    const level = getMatchLevel(config.player.overallRating, config.opponent.overallRating);
     this.momentumEngine.reset(
       {
-        player: config.player.stats.mental.focus,
-        opponent: config.opponent.stats.mental.focus,
+        player: relativeSupport(config.player.stats.mental.focus, level),
+        opponent: relativeSupport(config.opponent.stats.mental.focus, level),
       },
       venueCrowd(config.venue, config.home),
     );

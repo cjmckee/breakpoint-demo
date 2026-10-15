@@ -5,6 +5,10 @@
  * UI helpers (playerStats) need it, and PlayerProfile should not depend on the
  * display-facing utilities to compute a number. There used to be two copies of
  * this function that had to be edited in lockstep whenever a stat moved bucket.
+ *
+ * OVR is the yardstick progression is balanced against, so it should predict
+ * who wins: each stat should weigh what it is worth in a match. `statLadder`
+ * measures that (the share of the predictable result OVR explains, by level).
  */
 
 import type { PlayerStats } from '../types';
@@ -19,17 +23,52 @@ export const STAT_CATEGORY_WEIGHTS = {
   technical: 0.15,
   physical: 0.25,
   mental: 0.15,
-} as const;
+};
+
+/**
+ * How a category's weight is shared between its stats: relative weights, so
+ * equal numbers split it evenly. A stat's share of OVR is its category weight
+ * × its relative weight / the category's total.
+ */
+export const STAT_WEIGHTS_WITHIN = {
+  core: { serve: 1, forehand: 1, backhand: 1, return: 1, net: 1 },
+  technical: { slice: 1, spin: 1, placement: 1 },
+  physical: { speed: 1, stamina: 1, strength: 1 },
+  mental: { focus: 1, anticipation: 1, tactics: 1 },
+};
+
+/** A category's average, weighted by STAT_WEIGHTS_WITHIN (a plain mean when they're equal). */
+function categoryAverage(group: object, within: object): number {
+  const values = Object.values(group) as number[];
+  const weights = Object.entries(group).map(([k]) => (within as Record<string, number>)[k] ?? 0);
+  if (weights.every((w) => w === weights[0])) {
+    return values.reduce((sum, v) => sum + v, 0) / values.length;
+  }
+  const total = weights.reduce((sum, w) => sum + w, 0);
+  return values.reduce((sum, v, i) => sum + v * weights[i], 0) / total;
+}
 
 export function calculateOverallRating(stats: PlayerStats): number {
-  const avg = (group: object): number => {
-    const values = Object.values(group) as number[];
-    return values.reduce((sum, v) => sum + v, 0) / values.length;
-  };
+  const w = STAT_CATEGORY_WEIGHTS;
+  const within = STAT_WEIGHTS_WITHIN;
   return Math.round(
-    avg(stats.core) * STAT_CATEGORY_WEIGHTS.core +
-      avg(stats.technical) * STAT_CATEGORY_WEIGHTS.technical +
-      avg(stats.physical) * STAT_CATEGORY_WEIGHTS.physical +
-      avg(stats.mental) * STAT_CATEGORY_WEIGHTS.mental,
+    categoryAverage(stats.core, within.core) * w.core +
+      categoryAverage(stats.technical, within.technical) * w.technical +
+      categoryAverage(stats.physical, within.physical) * w.physical +
+      categoryAverage(stats.mental, within.mental) * w.mental,
   );
+}
+
+/** Each stat's share of OVR, by name, summing to 1. */
+export function ovrStatShares(): Record<string, number> {
+  const out: Record<string, number> = {};
+  const total = Object.values(STAT_CATEGORY_WEIGHTS).reduce((a, b) => a + b, 0);
+  for (const [category, weights] of Object.entries(STAT_WEIGHTS_WITHIN)) {
+    const sum = Object.values(weights).reduce((a, b) => a + b, 0);
+    for (const [stat, w] of Object.entries(weights)) {
+      out[stat] =
+        (STAT_CATEGORY_WEIGHTS[category as keyof typeof STAT_CATEGORY_WEIGHTS] * w) / sum / total;
+    }
+  }
+  return out;
 }

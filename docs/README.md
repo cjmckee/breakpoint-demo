@@ -84,12 +84,12 @@ belongs in git history, not here.
   on bronze, and identities drifting ~20 OVR apart by Tour. Also the season template and its
   calendar groundwork, silver and gold training, and content slots.
 
-- **[`proposals/identity-drift-fixes.md`](./proposals/identity-drift-fixes.md)** — measured
-  fixes for identity drift. Returns read groundstrokes; specialty amplification is capped; speed
-  and anticipation are trimmed. Together they take the Tour spread from 38.6 to 17.5 point-win
-  with every Club opponent still on band. Also why serve/return pricing and grants get absorbed
-  by the player's build, player feedback that predicts results (contest bars, r 0.81-0.86), and
-  OVR weights by measured value.
+- **[`proposals/identity-drift-fixes.md`](./proposals/identity-drift-fixes.md)** — make every
+  stat worth its OVR weight, with core stats heaviest. Five measured mechanisms cause drift:
+  support stats anchored at 50, multiplicative bands, the shot selector going defensive, specialty
+  amplification, and speed and anticipation's many channels. A five-step package takes OVR from
+  explaining 50-76% of the predictable result to 93-95% at every level, keeps all 9 Club story
+  opponents on band, and halves the Tour identity spread. Next: specialty parity.
 
 - **[`proposals/regional-season-worksheet.md`](./proposals/regional-season-worksheet.md)** — the
   Regional season's content to write: every event id, the day it runs, what fires it and what it

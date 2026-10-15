@@ -44,6 +44,8 @@ import {
   OPPONENT_STAT_ADJUSTMENTS,
   SHOOTER_STAT_ADJUSTMENTS,
   NEUTRAL_STAT,
+  supportNeutral,
+  bandScale,
   STAT_MODIFIER_BANDS,
   statModifier,
   POSITION_ADJUSTMENTS,
@@ -112,6 +114,11 @@ const SHOT_RANGES = {
 export class ShotCalculator {
   /** Current match level, set at start of calculateShotSuccess for use by internal methods */
   private currentMatchLevel: number = 50;
+
+  /** Where this match's support stats are measured from (SUPPORT_NEUTRAL). */
+  private neutral(): number {
+    return supportNeutral(this.currentMatchLevel);
+  }
 
   /**
    * Calculate shot success using relative quality threshold system
@@ -377,17 +384,19 @@ export class ShotCalculator {
 
     // Opponent defensive stat adjustment, scaled by court surface
     const surfaceEffects = SURFACE_EFFECTS[courtSurface];
-    const rawDefensiveAdj = (opponentStats.mental.tactics - 50) * OPPONENT_STAT_ADJUSTMENTS.tactics;
+    const neutral = supportNeutral(matchLevel);
+    const rawDefensiveAdj =
+      (opponentStats.mental.tactics - neutral) * OPPONENT_STAT_ADJUSTMENTS.tactics;
     const defensiveAdj = rawDefensiveAdj * surfaceEffects.defensiveAdjustmentMultiplier;
     inPlayReq += defensiveAdj;
 
     // Opponent speed adjustment
-    const speedAdj = (opponentStats.physical.speed - 50) * OPPONENT_STAT_ADJUSTMENTS.speed;
+    const speedAdj = (opponentStats.physical.speed - neutral) * OPPONENT_STAT_ADJUSTMENTS.speed;
     inPlayReq += speedAdj;
 
     // Shooter anticipation adjustment — reading the ball lowers the difficulty
     const anticipationAdj =
-      (shooterStats.mental.anticipation - 50) * SHOOTER_STAT_ADJUSTMENTS.anticipation;
+      (shooterStats.mental.anticipation - neutral) * SHOOTER_STAT_ADJUSTMENTS.anticipation;
     inPlayReq -= anticipationAdj;
 
     // Position adjustment
@@ -396,8 +405,7 @@ export class ShotCalculator {
     // threaded, a bad one is standing in the way of a ball he cannot reach.
     let positionAdj = POSITION_ADJUSTMENTS[opponentPosition];
     if (opponentPosition === 'at_net') {
-      const coverage =
-        (opponentStats.core.net - NEUTRAL_STAT) * OPPONENT_STAT_ADJUSTMENTS.netCoverage;
+      const coverage = (opponentStats.core.net - neutral) * OPPONENT_STAT_ADJUSTMENTS.netCoverage;
       // Never below `well_positioned`: a weak volleyer at the net is easier to
       // pass than a good one, but he is still standing between you and the
       // court, so he cannot be softer than a baseliner who is set and ready.
@@ -650,9 +658,18 @@ export class ShotCalculator {
       physicalModifier *= statModifier(
         stats.physical.strength,
         SERVE_MODIFIER_BANDS.first.strength,
+        this.neutral(),
       );
-      mentalModifier *= statModifier(stats.mental.tactics, SERVE_MODIFIER_BANDS.first.tactics);
-      spinModifier *= statModifier(stats.technical.spin, SERVE_MODIFIER_BANDS.first.spin);
+      mentalModifier *= statModifier(
+        stats.mental.tactics,
+        SERVE_MODIFIER_BANDS.first.tactics,
+        this.neutral(),
+      );
+      spinModifier *= statModifier(
+        stats.technical.spin,
+        SERVE_MODIFIER_BANDS.first.spin,
+        this.neutral(),
+      );
 
       serveVariance = (random() - 0.5) * 2 * SERVE_VARIANCE.first;
     } else if (shotType === 'serve_second') {
@@ -660,8 +677,12 @@ export class ShotCalculator {
       // together, and spin is what makes a second serve safe at all.
       mentalModifier *=
         statModifier(playStyle.consistency, SERVE_MODIFIER_BANDS.second.consistency) *
-        statModifier(stats.mental.tactics, SERVE_MODIFIER_BANDS.second.tactics);
-      spinModifier *= statModifier(stats.technical.spin, SERVE_MODIFIER_BANDS.second.spin);
+        statModifier(stats.mental.tactics, SERVE_MODIFIER_BANDS.second.tactics, this.neutral());
+      spinModifier *= statModifier(
+        stats.technical.spin,
+        SERVE_MODIFIER_BANDS.second.spin,
+        this.neutral(),
+      );
 
       serveVariance = (random() - 0.5) * 2 * SERVE_VARIANCE.second;
     }
@@ -771,7 +792,7 @@ export class ShotCalculator {
       return 1;
     }
 
-    return statModifier(spinStat, STAT_MODIFIER_BANDS.shape);
+    return statModifier(spinStat, STAT_MODIFIER_BANDS.shape, this.neutral());
   }
 
   /** Placement's modifier on shots that are made of placement — drop, angle, lob. */
@@ -780,7 +801,7 @@ export class ShotCalculator {
       return 1;
     }
 
-    return statModifier(placementStat, STAT_MODIFIER_BANDS.precision);
+    return statModifier(placementStat, STAT_MODIFIER_BANDS.precision, this.neutral());
   }
 
   /**
@@ -799,18 +820,18 @@ export class ShotCalculator {
       SHOT_CLASSIFICATIONS.defensiveShots.includes(shotType) ||
       context.courtPosition === 'defensive'
     ) {
-      modifier *= statModifier(physical.speed, STAT_MODIFIER_BANDS.courtCoverage);
+      modifier *= statModifier(physical.speed, STAT_MODIFIER_BANDS.courtCoverage, this.neutral());
     }
 
     // Strength helps with power shots
     if (SHOT_CLASSIFICATIONS.powerShots.includes(shotType)) {
-      modifier *= statModifier(physical.strength, STAT_MODIFIER_BANDS.power);
+      modifier *= statModifier(physical.strength, STAT_MODIFIER_BANDS.power, this.neutral());
     }
 
     // Agility helps with net shots and quick reactions (check ballQuality for time pressure)
     const isRushed = ballQuality?.timeAvailable === 'rushed';
     if (SHOT_CLASSIFICATIONS.netShots.includes(shotType) || isRushed) {
-      modifier *= statModifier(physical.speed, STAT_MODIFIER_BANDS.reactions);
+      modifier *= statModifier(physical.speed, STAT_MODIFIER_BANDS.reactions, this.neutral());
     }
 
     return modifier;
@@ -840,19 +861,19 @@ export class ShotCalculator {
 
     // Anticipation helps when opponent is well-positioned (at net or excellent position)
     if (opponentPosition === 'at_net' || opponentPosition === 'well_positioned') {
-      modifier *= statModifier(mental.anticipation, STAT_MODIFIER_BANDS.reading);
+      modifier *= statModifier(mental.anticipation, STAT_MODIFIER_BANDS.reading, this.neutral());
     }
 
     // Touch shots — drop, angle, lob, passing — reward shaping the ball.
     if (isTacticalShot(shotType)) {
-      modifier *= statModifier(technical.spin, STAT_MODIFIER_BANDS.touch);
+      modifier *= statModifier(technical.spin, STAT_MODIFIER_BANDS.touch, this.neutral());
     }
 
     // Tactics applies to whichever kind of shot this is — digging out a defensive
     // ball or executing an attacking one. Never both, since the classifications
     // are disjoint.
     if (isDefensiveShot(shotType) || isOffensiveShot(shotType)) {
-      modifier *= statModifier(mental.tactics, STAT_MODIFIER_BANDS.tactics);
+      modifier *= statModifier(mental.tactics, STAT_MODIFIER_BANDS.tactics, this.neutral());
     }
 
     return modifier;
@@ -877,8 +898,12 @@ export class ShotCalculator {
   private getPressureModifier(pressure: ShotContext['pressure'], focusStat: number): number {
     const range = SHOT_RANGES.pressureModifiers[pressure];
 
-    // Linear interpolation based on focus stat
-    return range.min + (focusStat / 100) * (range.max - range.min);
+    // Linear interpolation based on focus, measured from the support neutral;
+    // focus's share narrows with the level like the bands (bandScale)
+    const focus = Math.max(0, Math.min(100, focusStat - (this.neutral() - NEUTRAL_STAT)));
+    const atNeutral = range.min + (NEUTRAL_STAT / 100) * (range.max - range.min);
+    const atFocus = range.min + (focus / 100) * (range.max - range.min);
+    return atNeutral + (atFocus - atNeutral) * bandScale(this.neutral());
   }
 
   /**
@@ -897,8 +922,12 @@ export class ShotCalculator {
       range = SHOT_RANGES.rallyLengthModifiers.extreme;
     }
 
-    // Linear interpolation based on stamina stat
-    return range.min + (staminaStat / 100) * (range.max - range.min);
+    // Linear interpolation based on stamina, measured from the support neutral;
+    // stamina's share narrows with the level like the bands (bandScale)
+    const stamina = Math.max(0, Math.min(100, staminaStat - (this.neutral() - NEUTRAL_STAT)));
+    const atNeutral = range.min + (NEUTRAL_STAT / 100) * (range.max - range.min);
+    const atStamina = range.min + (stamina / 100) * (range.max - range.min);
+    return atNeutral + (atStamina - atNeutral) * bandScale(this.neutral());
   }
 
   /**
@@ -923,7 +952,9 @@ export class ShotCalculator {
     }
 
     const rawPenalty = (-momentum / 100) * MOMENTUM_MODIFIER.maxPenalty;
-    const mitigation = 1.0 - (focusStat / 100) * MOMENTUM_MODIFIER.focusMitigation;
+    const focus = focusStat - (this.neutral() - NEUTRAL_STAT);
+    const mitigation =
+      1.0 - (Math.max(0, Math.min(100, focus)) / 100) * MOMENTUM_MODIFIER.focusMitigation;
     return 1.0 - rawPenalty * mitigation;
   }
 
@@ -1170,7 +1201,8 @@ export class ShotCalculator {
     if (ballQuality.timeAvailable === 'rushed') {
       // Players with high speed and agility handle rushed shots better
       // RUSHED_SHOT.floor at speed 0, 1.0 at speed 100
-      modifier *= RUSHED_SHOT.floor + (physical.speed / 100) * (1 - RUSHED_SHOT.floor);
+      const speed = physical.speed - (this.neutral() - NEUTRAL_STAT);
+      modifier *= RUSHED_SHOT.floor + (speed / 100) * (1 - RUSHED_SHOT.floor);
     } else if (ballQuality.timeAvailable === 'plenty') {
       modifier *= 1.05; // Slight bonus for plenty of time
     }
