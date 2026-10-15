@@ -72,10 +72,11 @@ belongs in git history, not here.
 
 - **[`proposals/mid-late-progression.md`](./proposals/mid-late-progression.md)** — everything
   after the Riverside Open. Agreed: each tier repeats bronze's season (team matches, then a
-  tier-final), pay scales with the price step so every tier takes about as long as bronze, a
-  promotion playoff means a loss is never a dead end, and the game ends at the top. Proposed: the
-  season template and its calendar groundwork (the day-90 reset has to go first), target OVR
-  bands per tier, silver and gold training, what each season opens, and content slots.
+  tier-final), a promotion playoff means a loss is never a dead end, and the game ends at the
+  top. Measured with `careerSim PAR=1`: flat pay already fits four ~40-day seasons into 0-100
+  (any tier multiplier maxes key stats by mid-Tour), target opponent OVRs per tier calibrated
+  on bronze, and identities drifting ~20 OVR apart by Tour. Also the season template and its
+  calendar groundwork, silver and gold training, and content slots.
 
 `story-minigames.md` was executed and deleted; the
 minigame runtime lives in [`src/minigames/`](../src/minigames/) and the story route runs through the

@@ -12,12 +12,12 @@ pools, drop rates, and the `TrainingSessionTier` values nothing uses yet.
 
 ## 0. Decisions
 
-| question                            | decision                                                                                            |
-| ----------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Structure                           | **Repeat bronze each tier.** A team season, then a tier-final tournament                            |
-| Pacing                              | **Same speed per tier.** Pay scales with the tier, so each tier takes about as long as bronze       |
-| Losing the tier-final (Regional on) | **Retry, never stuck.** Promotion is earned, a loss always leads to another shot, nobody is demoted |
-| Length and ending                   | **Hard ending.** Four seasons, then the story ends at the top. No post-game                         |
+| question                            | decision                                                                                                                                         |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Structure                           | **Repeat bronze each tier.** A team season, then a tier-final tournament                                                                         |
+| Pacing                              | **Same speed per tier**: each tier takes about as long as bronze. Measured, this means **flat pay** (§2): no tier multiplier. Needs a re-confirm |
+| Losing the tier-final (Regional on) | **Retry, never stuck.** Promotion is earned, a loss always leads to another shot, nobody is demoted                                              |
+| Length and ending                   | **Hard ending.** Four seasons, then the story ends at the top. No post-game                                                                      |
 
 What that rules out: the open circuit, rankings as a promotion gate, stat caps, and anything
 open-ended (aging, records). Those ideas are still in git history (`1d01e22`) if one is wanted
@@ -31,9 +31,12 @@ later.
    opens with intros for the tier's new systems, has five team matches four days apart, and
    ends with a tier-final tournament. Four seasons, Club to World, run about 160 in-game days
    plus any retries (§3).
-2. **Pacing: pay scales with the price step.** Prices step up ×2 in the 40s-50s, ×3 at 60-70s
-   and ×4 from 80. Paying silver ×2, gold ×3 and World ×4 keeps every 20-point band at about
-   bronze's 30 days. At bronze rates, Club to World would take ~260 more days (§2).
+2. **Pacing: keep pay flat. The price curve already fits four seasons (§2).** Measured over a
+   160-day career, flat pay takes the average build's key stats from 52 at promotion to 73, 89
+   and 99 at the end of each later season. OVR goes 42 → 56 → 66 → 77. Pay that scales with the
+   tier (×2/×3) maxes key stats in the middle of Tour, and ×1.5/×2/×2.5 by the end of Tour. Gains
+   taper by tier (+21, +15, +10 key stat points), so new systems carry the late-game feeling of
+   progress (§5).
 3. **The existing tier 2-4 rosters are a cliff.** The player leaves bronze at ~OVR 40 against a
    Jordan of 46. The tier 2 practice roster is 56-57, tier 3 is 66-69 and tier 4 is 81-85.
    Rebuild them against the bands in §2.2.
@@ -46,7 +49,7 @@ later.
    counted from that start, so Regional can be written exactly like bronze ("day 15: first team
    match"). The 90-day calendar rollover has to go first: it resets `currentDay` to 1 and breaks
    every `minDay` and `scheduledDay`.
-6. **Silver and gold training (§4).** Silver: ×2 pay, a harder ramp, and a **focus** that picks
+6. **Silver and gold training (§4).** Silver: a harder ramp and a **focus** that picks
    the secondary currency. That fixes the "big server trains backhand for Technique" finding.
    Gold: **training partners** (relationship-gated, they pay what they're good at). Each tier adds
    one new decision, not just a bigger number.
@@ -55,6 +58,10 @@ later.
    equivalent of bronze's tutorial week.
 8. **Content is roughly 60 events and 10 named opponents per tier (§6),** about 180 events for
    the three. Most of it fills the same slots bronze has.
+9. **Identities drift apart as stats rise (§2.3).** At promotion the four identities play within
+   ±3 OVR of their rating. By the end of Tour the net rusher plays 10-12 points above its OVR and
+   the baseliner 10-12 below. That is the bronze-era baseliner trap growing with the stat range.
+   It has to be fixed before Tour opponents can be balanced for everyone.
 
 ---
 
@@ -110,51 +117,110 @@ Opponent OVR, for the ladder:
 Content can only be balanced against a known player. So first, write down how strong the player
 is at each point in each tier, then build the opponents to that.
 
-### 2.1 Pay scales with the step
+### 2.1 Pay: flat, because the price curve already tapers
 
-+1 on every stat costs 43 units at ×1 (the recipe lengths summed). The step makes each band
-dearer:
+The first draft of this section did the arithmetic for raising **all 14 stats** together: +1 on
+every stat costs 43 units at ×1, so 40 → 60 costs 1,720 units, 60 → 80 costs 2,580 and 80 → 100
+costs 3,440. At bronze income that is ~260 days, which suggested the tier multiplier. It was the
+wrong model. Players concentrate on six key stats, and those reach the top of the range long
+before OVR does.
 
-| band     | units | days at bronze income | days at ×tier income |
-| -------- | ----- | --------------------- | -------------------- |
-| 20 → 40  | 860   | ~29 (this is bronze)  | ~29                  |
-| 40 → 60  | 1,720 | ~57                   | ~29 (×2)             |
-| 60 → 80  | 2,580 | ~86                   | ~29 (×3)             |
-| 80 → 100 | 3,440 | ~115                  | ~29 (×4)             |
+`careerSim PAR=1` measures it. It plays bronze's calendar, then keeps training and playing
+practice matches, with the patient spender and abilities on (20 careers per identity to day 120,
+12 from day 121). Season starts are taken as days 41, 81 and 121. Mean of the four identities:
 
-So the tier multiplier is the price step: Club ×1, Regional ×2, Tour ×3, World ×4. One table in
-`economy.ts`, read by `CurrencyIncome`.
+| day | season          | flat: OVR | flat: key avg | ×2/×3: OVR | ×2/×3: key avg | ×1.5/2/2.5: key avg |
+| --- | --------------- | --------- | ------------- | ---------- | -------------- | ------------------- |
+| 31  | Club, TM5       | 38        | 46            | 38         | 46             | 46                  |
+| 41  | Regional starts | 42        | 52            | 43         | 53             | 53                  |
+| 56  | Regional, TM1   | 48        | 61            | 53         | 69             | 66                  |
+| 72  | Regional, TM5   | 53        | 69            | 62         | 82             | 76                  |
+| 81  | Tour starts     | 56        | 73            | 67         | 90             | 82                  |
+| 96  | Tour, TM1       | 60        | 79            | 78         | **100**        | 92                  |
+| 112 | Tour, TM5       | 64        | 85            | 87         | 100            | **100**             |
+| 121 | World starts    | 66        | 89            | 91         | 100            | 100                 |
+| 136 | World, TM1      | 70        | 94            | —          | —              | 100                 |
+| 160 | World ends      | 77        | 99            | —          | —              | 100                 |
 
-- **What it applies to:** training and match payouts, and `contentCurrency`. Story and challenge
-  grants are sized in stat points, and a "+3 points" outcome at Regional should still buy about
-  three points.
-- **Side effect:** stats below 40 still cost ×1, so off-stats get cheap to backfill once pay
-  doubles. Most players will round out early in Regional. That is probably fine. It also closes
-  most of the "specialisation tax" gap (`stat-currency-progression.md` §10.5).
-- **Ability prices** (`ABILITY_PRICES`) are flat units. They will need the same multiplier,
-  or abilities get 2-4× cheaper relative to stats each tier.
+- **Flat pay ends the career at the top of the range.** Key stats reach ~99 on the last day of
+  World. Any multiplier above ×1 hits the ceiling before the story does, and leaves World with
+  nothing to buy.
+- **"Same days per tier" holds.** Each season is ~40 days. What tapers is the gain inside it:
+  key stats +32, +21, +15, +10, and OVR +20, +14, +10, +10.
+- **The price steps are doing their job.** They are why a 160-day career fits 0-100 at all. Keep
+  `PRICE_STEP` as it is.
+- **Any new pay source has to come out of this budget.** Sponsors, partners and prize money all
+  push key stats to 100 sooner. Where one is added, take the same amount from somewhere else,
+  or raise the step.
+- **Ability prices** (`ABILITY_PRICES`) are flat units and stay flat. Against dearer stats they
+  get relatively cheaper each tier, which is fine: late-game growth should lean on them.
+
+One thing this does change: training numbers on screen don't grow. A Tour session pays what a
+Club session pays, and buys a third as much. If that feels flat, the fix is presentational
+(scale pay and prices by the same factor, so numbers grow but the pacing doesn't), not economic.
 
 ### 2.2 Target bands
 
-These follow from ×tier pay with each tier about as long as bronze. They are the first thing to
-agree on, because every opponent stat block is written against them. **They are estimates until
-the pacing probe (§8) measures them.**
+The probe also finds each build's **par**: the opponent OVR it beats in half its best-of-three
+matches, against the team-match opponents' stat shapes moved to that OVR. On average par sits
+within a point of the player's own OVR, so a band is written as "expected OVR on that day,
+plus N".
 
-| tier     | player OVR in → out | key stats out | team matches | tier-final rounds | playoff | practice base |
-| -------- | ------------------- | ------------- | ------------ | ----------------- | ------- | ------------- |
-| Club     | 20 → 40             | 45-50         | 29 → 41      | 36 → 46           | none    | 26-29         |
-| Regional | 40 → 55             | 60-65         | 42 → 53      | 50 → 58           | ~55     | 40-44         |
-| Tour     | 55 → 70             | 72-78         | 56 → 67      | 64 → 72           | ~70     | 54-58         |
-| World    | 70 → 85             | 85-92         | 70 → 81      | 78 → 88           | ~85     | 68-72         |
+Bronze, which you've tuned by feel, calibrates N:
 
-- The first opponent of each tier sits just above where the player arrives. That's how bronze
-  opens: Chet Vale is 29 against a ~25 player.
-- Each new tier opens a few points below the last tier-final, so promotion feels like a step up,
-  not a wall.
-- Growth per tier shrinks from +20 to +15 because steps get dearer while each tier also adds
-  strength that isn't stats (specialty tiers, abilities). That's a guess. The probe sets it.
+| bronze opponent | day | player OVR (mean) | opponent OVR | N   |
+| --------------- | --- | ----------------- | ------------ | --- |
+| Chet Vale, TM1  | 15  | 29                | 29           | +0  |
+| Martia, TM3     | 23  | 34                | 36           | +2  |
+| Olivia, TM5     | 31  | 38                | 41           | +3  |
+| Keith, R1       | ~36 | ~40               | 36           | −4  |
+| Chris, R2       | ~37 | ~40               | 39           | −1  |
+| Max, R3         | ~38 | ~40               | 44           | +4  |
+| Jordan, R4      | ~39 | ~41               | 46           | +5  |
 
-### 2.3 The rosters
+Applied to the flat curve, with each season's days laid out like bronze (§3.1):
+
+| tier     | player OVR in → out | key stats out | team matches 1-5   | tier-final rounds        | playoff | practice base |
+| -------- | ------------------- | ------------- | ------------------ | ------------------------ | ------- | ------------- |
+| Club     | 20 → 41             | 46-52         | 29, 34, 36, 38, 41 | 36, 39, 44, 46           | none    | 26-29         |
+| Regional | 42 → 56             | 70-75         | 48, 50, 52, 54, 56 | 51, 54, 58, 60           | ~57     | 42-45         |
+| Tour     | 56 → 66             | 86-90         | 60, 62, 64, 66, 67 | 61, 64, 68, 70           | ~67     | 56-59         |
+| World    | 66 → 77             | 97-100        | 70, 72, 74, 76, 77 | 72, 75, 77, 79, 81 (BO5) | rematch | 66-69         |
+
+- Each new tier opens below the last tier-final (Regional TM1 at 48, against Jordan's 46 plus
+  the days in between), so promotion is a step up, not a wall.
+- These are averages across identities, which hides the problem in §2.3.
+- Specialty tiers II/III and abilities aren't in OVR. The probe's careers buy abilities, but
+  stay on tier I specialties. Re-measure once tier II is in the sim.
+
+### 2.3 Identities drift apart as stats rise
+
+Par minus OVR, per identity, flat pay:
+
+| day | bigServer | counter | netRusher | baseliner |
+| --- | --------- | ------- | --------- | --------- |
+| 31  | −1        | 0       | +2        | −2        |
+| 56  | +2        | +1      | +6        | −6        |
+| 81  | +1        | 0       | +9        | −8        |
+| 112 | +1        | 0       | +10       | −10       |
+| 160 | −6        | +3      | +13       | −11       |
+
+At the end of bronze, every identity plays within two points of its rating. By the end of Tour
+the net rusher and the baseliner, at the same OVR, play about 20 OVR apart. Against an opponent
+set at par+3, one finds the Tour easy and the other can't win. That's the baseliner trap
+`stat-currency-progression.md` §3.4 measured at tier 1, getting worse as stats climb.
+
+Before Tour opponents are written, either:
+
+- **fix the cause.** The tier-1 finding was that the baseliner's key stats (slice, spin, strength,
+  stamina) are worth less than the net rusher's (anticipation, speed, tactics, serve). Re-run
+  `statChannels` at a Tour-level baseline to see which stats stop paying at 70-90; or
+- **balance per identity.** That isn't possible for authored opponents, who meet every player
+  the same way.
+
+The first is the real answer, and it's the biggest balance job this proposal uncovers.
+
+### 2.4 The rosters
 
 Wipe `TIER_2_OPPONENTS` and up and rebuild against the bands above. Keep the five-archetype
 shape per tier, since key moments are tuned on that variety. Also give the rebuilt rosters:
@@ -277,16 +343,16 @@ What exists: five anchors, each a minigame. Three reps, a speed ramp, and a payo
 anchor's mix × (reps + 1). `sessionTier` is hard-coded to `'bronze'`. The minigame API already
 takes `rounds`, `speedRamp` and `maxScore`. The code notes "DR via cost scaling is deferred".
 
-Rule: each tier's training should add **one new decision**, not only a bigger number. The ×tier
-multiplier (§2.1) is the bigger number and applies whichever options ship.
+Rule: each tier's training adds **one new decision**, not a bigger number. Pay stays flat (§2.1),
+so no option below may raise what a session pays on average. Each one changes _what_ it pays.
 
-| option                    | what it is                                                                                                                                       | for                                                                                                                           | against                                                                              | cost   |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ------ |
-| **T1. Better drills**     | A faster ramp each tier. Gold adds a fourth rep                                                                                                  | Trivial, and the minigames get harder as the player does                                                                      | No new decision. A harder minigame pays less to a player who can't execute it        | small  |
-| **T2. Focus**             | From silver, a session also picks a focus currency that replaces the anchor's secondary. A serve with a Technique focus pays Power and Technique | Fixes `stat-currency-progression` §9.10: players train the shot they care about and still earn what their next purchase needs | Weakens the anchor-recipe link, which was a design goal                              | small  |
-| **T3. Training partners** | From gold, train with Keith, Jen, Jordan and others. A partner adds their own currency lean and relationship points, gated on hangout tier       | Ties relationships to progression. Partner banter is a natural content slot                                                   | Needs a partner picker and a set of lines per partner                                | medium |
-| **T4. Specialty drills**  | Gold sessions on a specialty instead of a shot. They pay towards specialization points                                                           | A second track once stats cost ×3-4                                                                                           | Spec points are scarce and tuned through levelling today                             | medium |
-| **T5. Camps**             | A multi-day block at a facility, such as a clay camp. It pays a lot and costs the days                                                           | A real time trade-off                                                                                                         | A fixed season calendar leaves little room to give up days. Better as a story reward | medium |
+| option                    | what it is                                                                                                                                       | for                                                                                                                           | against                                                                                                        | cost   |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------ |
+| **T1. Better drills**     | A faster ramp each tier                                                                                                                          | Trivial, and the minigames get harder as the player does                                                                      | No new decision. A harder minigame is a hidden pay cut unless the typical clean-rep rate is held near bronze's | small  |
+| **T2. Focus**             | From silver, a session also picks a focus currency that replaces the anchor's secondary. A serve with a Technique focus pays Power and Technique | Fixes `stat-currency-progression` §9.10: players train the shot they care about and still earn what their next purchase needs | Weakens the anchor-recipe link, which was a design goal                                                        | small  |
+| **T3. Training partners** | From gold, train with Keith, Jen, Jordan and others. A partner adds their own currency lean and relationship points, gated on hangout tier       | Ties relationships to progression. Partner banter is a natural content slot                                                   | Needs a partner picker and a set of lines per partner                                                          | medium |
+| **T4. Specialty drills**  | Gold sessions on a specialty instead of a shot. They pay towards specialization points                                                           | A second track once stats cost ×3-4                                                                                           | Spec points are scarce and tuned through levelling today                                                       | medium |
+| **T5. Camps**             | A multi-day block at a facility, such as a clay camp. It pays a lot and costs the days                                                           | A real time trade-off                                                                                                         | A fixed season calendar leaves little room to give up days. Better as a story reward                           | medium |
 
 **Recommendation.** Silver is T1 + T2: a harder ramp and a focus. Gold is T1 + T3. World adds no
 new training: its new thing is best-of-five (§5). T4 waits until specialties have been measured
@@ -300,22 +366,25 @@ Today's screen is five anchor cards, each showing what a perfect session pays ("
 on "Natural" (the anchor's own secondary). Picking a chip rewrites every card's preview, so the
 choice is shown, not explained.
 
-| session (3 clean reps)              | Club (today)         | Regional, natural     | Regional, Technique focus  |
-| ----------------------------------- | -------------------- | --------------------- | -------------------------- |
-| Serve: main Power, second Mind      | 8 Power · 4 Mind     | 16 Power · 8 Mind     | 16 Power · 8 Technique     |
-| Return: main Quickness, second Mind | 8 Quickness · 4 Mind | 16 Quickness · 8 Mind | 16 Quickness · 8 Technique |
+| session (3 clean reps)              | Club (today)         | Regional, natural    | Regional, Technique focus |
+| ----------------------------------- | -------------------- | -------------------- | ------------------------- |
+| Serve: main Power, second Mind      | 8 Power · 4 Mind     | 8 Power · 4 Mind     | 8 Power · 4 Technique     |
+| Return: main Quickness, second Mind | 8 Quickness · 4 Mind | 8 Quickness · 4 Mind | 8 Quickness · 4 Technique |
 
-- The formula stays `mix × (reps + 1)`, now × the tier multiplier, with the mix's secondary
-  swapped for the focus. It's one extra argument to `trainingPayout`.
+- The formula stays `mix × (reps + 1)`, with the mix's secondary swapped for the focus. It's one
+  extra argument to `trainingPayout`.
 - Focus never touches the main currency. The shot you train still decides most of what you earn.
-- The minigame's ramp starts faster at silver (`speedRamp`), so a clean rep is worth more because
-  it is harder.
+- The minigame's ramp starts faster at silver (`speedRamp`), so training feels like a step up.
+  Tune it so a typical player still lands about two clean reps in three, or it quietly slows
+  the curve in §2.1.
 - The silver intro event (a season-2 system intro, §3.1) is where the coach explains it.
 
 ### 4.2 Gold, concretely
 
 Gold keeps the focus row and adds a **partner** row: whoever you're close enough to train with.
-A partner adds one unit of their currency per rep, and a little relationship.
+A partner takes the focus slot: their currency instead of one you pick, plus a little
+relationship and a line of banter. That keeps the pay flat. A partner who _added_ a unit per rep
+would raise training pay by a third and cap key stats a season early.
 
 | partner        | pays      | unlocked at            | flavour slot                                   |
 | -------------- | --------- | ---------------------- | ---------------------------------------------- |
@@ -326,7 +395,7 @@ A partner adds one unit of their currency per rep, and a little relationship.
 | Alex           | any       | hangout tier 3         | rotates. Romance points instead of a currency? |
 
 - Each partner needs three to five lines for the result screen. That's the content cost.
-- Training alone stays available, and pays the same as silver at ×3.
+- Training alone stays available and pays the same as silver.
 - Partners are why hangouts matter for progression, which they don't today.
 
 ---
@@ -416,9 +485,18 @@ Ordered by how badly they would bite.
 
 ## 8. How we would test it
 
-- **A pacing probe** (next step). Start from end-of-bronze builds, run a Regional season's
-  calendar at ×2 pay, and report OVR and key stats by season day. That turns §2.2 from a guess
-  into a table, and it should come before any Regional opponent is written.
+- **The pacing probe** (done, §2.1-2.3): `careerSim PAR=1`, with `TIER_PAY` to try a
+  multiplier. It still models the time after bronze as training and practice only. Give it each
+  season's calendar (team matches, the tier-final) and specialty tier II/III once those are
+  decided, then re-run §2.2.
+
+  ```
+  PAR=1 RUNS=20 N=150 DAYS=120 CHECK=15,23,31,41,48,56,64,72,81,88,96,104,112,120 \
+    npx tsx src/test/analysis/careerSim.ts                       # flat, ~35 min
+  PAR=1 RUNS=12 N=100 DAYS=160 CHECK=121,136,152,160 npx tsx src/test/analysis/careerSim.ts
+  PAR=1 ... TIER_PAY=41:2,81:3 npx tsx src/test/analysis/careerSim.ts    # the ×tier curve
+  ```
+
 - **A `tierProbe`** generalising `tier1Probe`: check that each spine opponent is beatable by the
   mean build of each identity on its scheduled day (point-win 45-60%, say).
 - **Saves.** Record end-of-bronze saves for each broad archetype (`src/debug/saves/`). They are
@@ -432,14 +510,17 @@ Ordered by how badly they would bite.
 
 ## 9. Open questions
 
-1. **The Tour team fiction (§3.2).** A pro team league, your sponsor's team, or national-team
+1. **Pacing, re-confirmed.** You chose "same speed per tier" on my numbers, which assumed
+   flat pay would make tiers much longer. Measured, flat pay _is_ the same speed in days, with
+   gains tapering inside each season. Keep flat?
+2. **The Tour team fiction (§3.2).** A pro team league, your sponsor's team, or national-team
    qualifying?
-2. **Who comes with you.** Do Keith and Jen stay teammates through Regional? Does anyone come
+3. **Who comes with you.** Do Keith and Jen stay teammates through Regional? Does anyone come
    onto the Tour?
-3. **Content budget.** Is ~60 events a season realistic, or should the template thin out
+4. **Content budget.** Is ~60 events a season realistic, or should the template thin out
    (§6 lists the cuts)?
-4. **The playoff safety net.** Should the opponent visibly get weaker each attempt, invisibly, or
+5. **The playoff safety net.** Should the opponent visibly get weaker each attempt, invisibly, or
    not at all?
-5. **XP.** Is pricing gear and abilities by tier enough of an outlet, or does it want a new job?
-6. **Doubles.** In scope ever? `rival_doubles_disaster` hints at it, but it is a simulation
+6. **XP.** Is pricing gear and abilities by tier enough of an outlet, or does it want a new job?
+7. **Doubles.** In scope ever? `rival_doubles_disaster` hints at it, but it is a simulation
    rewrite.
