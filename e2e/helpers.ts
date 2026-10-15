@@ -331,9 +331,14 @@ export async function playMatch(
       const count = await tactics.count();
       if (count > 0) {
         const tactic = tactics.nth(policy === 'first' ? 0 : count - 1);
-        run.chosen.push((await tactic.getAttribute('data-tactic-id')) ?? '?');
         await tactic.click();
-        await page.getByTestId('km-commit').click();
+        // A tutorial callout can mount a beat after the choice screen, and it
+        // disables the commit until dismissed. Go round again so the tutorial
+        // branch above deals with it, rather than waiting on a disabled button.
+        const commit = page.getByTestId('km-commit');
+        if (!(await commit.isEnabled())) continue;
+        run.chosen.push((await tactic.getAttribute('data-tactic-id')) ?? '?');
+        await commit.click();
         run.keyMoments++;
         continue;
       }

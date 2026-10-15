@@ -81,6 +81,15 @@ export interface AccumulatedMatchEffects {
  * which browsers clamp to 4ms once nested: this costs microseconds a point, so
  * Instant speed and the analysis probes stay fast.
  */
+/**
+ * With no point delay, how many points run before the loop yields a macrotask.
+ * Each point is a couple of chained React commits (the store update, then the
+ * court's and toasts' effects), and React throws once a chain passes 50. Every
+ * point would be safe but slow: the court's rally-animation timers then run
+ * between every point, which roughly doubles how long an Instant match takes.
+ */
+const INSTANT_POINTS_PER_YIELD = 8;
+
 function yieldToEventLoop(): Promise<void> {
   return new Promise((resolve) => {
     const channel = new MessageChannel();
@@ -110,6 +119,8 @@ export class MatchOrchestrator {
   // Live pause between points. Seeded from config at match start, then changed
   // mid-match through setPointDelay when the player picks another match speed.
   private pointDelayMs = DEFAULT_POINT_DELAY_MS;
+  /** Points played with no delay since the loop last gave the event loop back. */
+  private pointsSinceYield = 0;
   // Ends the pending between-point pause early so a new delay applies at once.
   private wakePointDelay: (() => void) | null = null;
   private playerStats: PlayerStats | null = null;
@@ -942,15 +953,19 @@ export class MatchOrchestrator {
   /**
    * Wait out the between-point pause, re-reading the live delay whenever
    * setPointDelay wakes it. With no delay (Instant speed, headless probes) it
-   * still hands the event loop back once: otherwise every point between two key
-   * moments runs as one synchronous burst of store updates, which trips React's
-   * nested-update limit and stops the match dead.
+   * still hands the event loop back every few points: otherwise every point
+   * between two key moments runs as one unbroken chain of React commits, which
+   * trips React's nested-update limit and stops the match dead.
    */
   private async waitBetweenPoints(): Promise<void> {
     const startedAt = Date.now();
     let remaining = this.pointDelayMs;
     if (remaining <= 0) {
-      await yieldToEventLoop();
+      this.pointsSinceYield += 1;
+      if (this.pointsSinceYield >= INSTANT_POINTS_PER_YIELD) {
+        this.pointsSinceYield = 0;
+        await yieldToEventLoop();
+      }
       return;
     }
     while (remaining > 0 && !this.cancelled) {
