@@ -112,6 +112,19 @@ export class PrerequisiteChecker {
   }
 
   /**
+   * Check the player's tier against an inclusive range
+   */
+  static checkTierPrerequisites(
+    tier: Player['tier'],
+    requirements?: StoryEventPrerequisite['tier'],
+  ): boolean {
+    if (!requirements) return true;
+    if (requirements.min !== undefined && tier < requirements.min) return false;
+    if (requirements.max !== undefined && tier > requirements.max) return false;
+    return true;
+  }
+
+  /**
    * Check time requirements
    */
   static checkTimePrerequisites(
@@ -277,6 +290,7 @@ export class PrerequisiteChecker {
           excludedEventChoices: prerequisites.excludedEventChoices,
         },
       ) &&
+      this.checkTierPrerequisites(player.tier, prerequisites.tier) &&
       this.checkTimePrerequisites(gameState.calendar, prerequisites) &&
       this.checkAbilityPrerequisites(player.abilities, prerequisites) &&
       this.checkMatchHistoryPrerequisites(player, prerequisites) &&

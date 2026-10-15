@@ -11,6 +11,10 @@
  *     on the right calendar days, while the promotion day stays in the old one;
  *   - story `minDay`/`maxDay` read the season day, not the career day.
  *
+ * It also pins the two story gates seasons need: a tier range, so Club events
+ * stop on the Tour, and repeatable events, so a promotion playoff can be lost
+ * and come round again.
+ *
  * Exits non-zero on the first failure, so it can gate a release.
  *
  * Run: npx tsx src/test/seasonCheck.ts
@@ -21,6 +25,7 @@ import { DEFAULT_CALENDAR, TimeSlot } from '../types/game';
 import { TimeManager } from '../game/TimeManager';
 import { SeasonManager } from '../game/SeasonManager';
 import { PrerequisiteChecker } from '../game/PrerequisiteChecker';
+import { StoryEventManager } from '../game/StoryEventManager';
 import { CLUB_SEASON } from '../data/seasons/club';
 import { SEASON_SCHEDULES } from '../data/seasons';
 import { StoryEventRepository } from '../data/storyEvents';
@@ -135,6 +140,36 @@ console.log('\n── story days are season days ──');
     'maxDay 1 is met again on the first day of a season',
     PrerequisiteChecker.checkTimePrerequisites(onDay(43, { seasonStartDay: 43 }), { maxDay: 1 }),
   );
+}
+
+console.log('\n── tier gating and repeatable events ──');
+{
+  check('no tier range admits any tier', PrerequisiteChecker.checkTierPrerequisites(3, undefined));
+  check(
+    'a Club-only event still fires at Club',
+    PrerequisiteChecker.checkTierPrerequisites(1, { max: 1 }),
+  );
+  check(
+    'a Club-only event stops at Regional',
+    !PrerequisiteChecker.checkTierPrerequisites(2, { max: 1 }),
+  );
+  check(
+    'a Tour event waits for the Tour',
+    !PrerequisiteChecker.checkTierPrerequisites(2, { min: 3 }) &&
+      PrerequisiteChecker.checkTierPrerequisites(3, { min: 3 }),
+  );
+
+  const anyEvent = StoryEventRepository.getAllEvents()[0];
+  const completed = [anyEvent.id];
+  check(
+    'an ordinary event is used up once it has run',
+    StoryEventManager.isUsedUp({ ...anyEvent, repeatable: undefined }, completed),
+  );
+  check(
+    'a repeatable event can run again',
+    !StoryEventManager.isUsedUp({ ...anyEvent, repeatable: true }, completed),
+  );
+  check('an event that has never run is not used up', !StoryEventManager.isUsedUp(anyEvent, []));
 }
 
 if (failures > 0) {

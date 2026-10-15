@@ -3,7 +3,13 @@
  * Comprehensive types for the story event system
  */
 
-import type { Activity, CurrencyAmounts, ScheduledEventTemplate, StatBoosts } from './game';
+import type {
+  Activity,
+  CurrencyAmounts,
+  OpponentTier,
+  ScheduledEventTemplate,
+  StatBoosts,
+} from './game';
 import type { Challenge } from './challenges';
 import type { StatName } from './index';
 import type { Item } from './items';
@@ -106,6 +112,12 @@ export interface StoryEventPrerequisite {
   // Choice-based requirements (for branching storylines)
   completedEventChoices?: Record<string, string | string[]>; // eventId -> optionId(s) that must have been chosen (array = OR)
   excludedEventChoices?: Record<string, string | string[]>; // eventId -> optionId(s) that blocks this event (array = OR)
+
+  /**
+   * The player's tier, inclusive. A random event written for the Club tier
+   * says `tier: { max: 1 }`, so it stops turning up on the Tour.
+   */
+  tier?: { min?: OpponentTier; max?: OpponentTier };
 
   // Time/season requirements. Days are days of the current season (TimeManager.seasonDay).
   minDay?: number;
@@ -236,6 +248,13 @@ export interface StoryEvent {
 
   // Scheduled events to create after this event completes
   scheduledEvents?: ScheduledEventTemplate[];
+
+  /**
+   * Can fire again after it has run, when it is scheduled or chained to by id
+   * (a promotion playoff's loss event reschedules the playoff). Random rolls
+   * still pick it at most once.
+   */
+  repeatable?: boolean;
 }
 
 // ============================================================================

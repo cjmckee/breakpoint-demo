@@ -2778,7 +2778,11 @@ export const useGameStore = create<GameState>()(
         }
 
         // Track event completion and choice
-        const updatedCompletedEvents = [...get().completedStoryEvents, eventId];
+        // A repeatable event is recorded once, however often it runs
+        const completedBefore = get().completedStoryEvents;
+        const updatedCompletedEvents = completedBefore.includes(eventId)
+          ? completedBefore
+          : [...completedBefore, eventId];
         const updatedCompletedChoices = { ...get().completedStoryEventChoices };
         if (optionId) {
           updatedCompletedChoices[eventId] = optionId;
