@@ -22,8 +22,8 @@ pools, drop rates, and the `TrainingSessionTier` values nothing uses yet.
 | Content per season                  | **The full template** (~60 events). Team matches stay in every season, but how many is a number in the season file, so it can drop to three once balancing says so         |
 
 What that rules out: the open circuit, rankings as a promotion gate, stat caps, and anything
-open-ended (aging, records). Those ideas are still in git history (`1d01e22`) if one is wanted
-later.
+open-ended (aging, records). Those ideas are in the first version of this file in git history if one
+is wanted later.
 
 ---
 
