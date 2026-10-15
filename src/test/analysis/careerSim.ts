@@ -64,6 +64,8 @@
  *      matches, story) and the currency price of abilities from each day on, to
  *      model a promotion. Bronze's calendar ends at day 31; after it every free
  *      day trains or plays practice.
+ *      FUND_W=lo,hi weights serve and return at least that for every identity, to model a
+ *      player who keeps the two shots of every point up whatever their style.
  *      FOCUS_FROM=41 lets the currency career pick a silver training focus from that
  *      day: the currency its next purchases are most short of (CurrencyIncome.focusedMix).
  *      PAR=1 reports, per identity and CHECK day, the mean build's OVR and the
@@ -160,6 +162,9 @@ const range = (k: string, d: string): [number, number] => {
 };
 const KEY_W = range('KEY_W', '0.8,1.2');
 const OFF_W = range('OFF_W', '0.25,0.55');
+/** FUND_W=lo,hi: serve and return weighted at least this, whatever the identity. */
+const FUND_W = process.env.FUND_W ? range('FUND_W', '0.7,0.9') : undefined;
+const FUNDAMENTALS: StatName[] = ['serve', 'return'];
 const MATCH_EVERY = env('MATCH_EVERY', 2);
 const REPS_P = env('REPS_P', 0.7);
 const OTHER_PER_DAY = env('OTHER_PER_DAY', 2.2);
@@ -555,7 +560,10 @@ const uniformIn = ([lo, hi]: [number, number]): number => lo + Math.random() * (
 /** One player's preferences: key stats heavy, the rest light, all a little random. */
 function drawWeights(id: Identity): Weights {
   return Object.fromEntries(
-    ALL_STATS.map((k) => [k, uniformIn(id.buys.includes(k) ? KEY_W : OFF_W)]),
+    ALL_STATS.map((k) => {
+      const w = uniformIn(id.buys.includes(k) ? KEY_W : OFF_W);
+      return [k, FUND_W && FUNDAMENTALS.includes(k) ? Math.max(w, uniformIn(FUND_W)) : w];
+    }),
   ) as Weights;
 }
 
@@ -1208,7 +1216,9 @@ const BUILD_EFFECT_SETS = 8;
 
 function buildsReport(path: string): void {
   const out: CareerBuilds = {
-    generated: `careerSim BUILDS RUNS=${RUNS} DAYS=${DAYS} FOCUS_FROM=${FOCUS_FROM} SPEND=${SPEND}`,
+    generated:
+      `careerSim BUILDS RUNS=${RUNS} DAYS=${DAYS} FOCUS_FROM=${FOCUS_FROM} SPEND=${SPEND}` +
+      (FUND_W ? ` FUND_W=${FUND_W}` : ''),
     identities: {},
   };
   for (const id of IDENTITIES) {

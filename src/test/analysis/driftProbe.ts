@@ -25,6 +25,7 @@
  *
  * Run: npx tsx src/test/analysis/driftProbe.ts
  * Env: N=150 (BO3 per cell)  DAYS=31,64,104,144  SECTIONS=who,swap,value  SEED=1
+ *      BUILDS_FILE=<path> reads another careerSim BUILDS= file
  *      H2H=0 skips the head-to-head table in who
  *      IDS=bigServer,counter,netRusher,baseliner (the identities in value)
  */
@@ -78,7 +79,7 @@ const STATS: StatName[] = [
 ];
 
 const builds = JSON.parse(
-  readFileSync(new URL('./careerBuilds.json', import.meta.url), 'utf8'),
+  readFileSync(process.env.BUILDS_FILE ?? new URL('./careerBuilds.json', import.meta.url), 'utf8'),
 ) as CareerBuilds;
 const IDS = (process.env.IDS ?? Object.keys(builds.identities).join(',')).split(',');
 

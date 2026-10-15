@@ -54,6 +54,12 @@ exactly the kind of thing that gets rediscovered otherwise.
   impossible past a 6-point gap. Key stats are an identity's worst buys, though the price curve
   isn't why identities differ. Four abilities are dead, rarity is inverted, and levels run away.
 
+- **[`research/identity-drift.md`](./research/identity-drift.md)** — why identities even at Club
+  end up 40 points of point-win apart on the Tour. Builds let serve and return lag, and the Tour
+  plays as a serve-and-return game. Serve and return specialties grow from +1-5 to +7-18 while
+  groundstroke specialties stay at 0. OVR reads strength almost backwards. Measures the levers
+  (several dead ends) and proposes a fix in parts.
+
 Note the **measurement baseline** headers. Figures are only valid for the config they were taken
 under, and a behaviour change invalidates every number measured before it.
 

@@ -66,17 +66,9 @@ import {
   BIG_POINT_NERVES,
   SPECIALTY_AMPLIFY,
   MOVEMENT_ABILITIES,
-  QUALITY_CEILING,
 } from '../config/shotThresholds';
 
 import { random } from './random';
-
-/** The highest quality a shot of this kind can reach (QUALITY_CEILING). */
-function qualityCeiling(shotType: ShotType): number {
-  if (shotType.includes('serve')) return QUALITY_CEILING.serve;
-  if (shotType.includes('return')) return QUALITY_CEILING.return;
-  return QUALITY_CEILING.rally;
-}
 
 /** The shot's stat with the shooter's specialty boost, when the shot is in one of their phases. */
 function amplifyForSpecialty(shooter: PlayerProfile, shotType: ShotType, stat: number): number {
@@ -200,11 +192,10 @@ export class ShotCalculator {
     }
 
     // Step 3: Apply modifiers to get shot quality
-    const ceiling = qualityCeiling(shotType);
-    let quality = this.applyModifiers(primaryStat, modifiers, ceiling);
+    let quality = this.applyModifiers(primaryStat, modifiers);
 
     // Step 3a: Apply match-day form (rolled once per match, same for every shot)
-    quality = Math.min(ceiling, Math.max(0, quality + shooterProfile.matchForm));
+    quality = Math.min(100, Math.max(0, quality + shooterProfile.matchForm));
 
     // Step 3b: Apply ability additional effects
     if (activeEffects) {
@@ -939,7 +930,7 @@ export class ShotCalculator {
    * Apply all modifiers to base stat (keeping it within 0-100 range)
    * Includes serve/return/rally variance if applicable
    */
-  private applyModifiers(baseStat: number, modifiers: ShotModifiers, ceiling: number): number {
+  private applyModifiers(baseStat: number, modifiers: ShotModifiers): number {
     let quality = baseStat * modifiers.finalAdjustment;
 
     // Apply serve variance if present
@@ -957,7 +948,7 @@ export class ShotCalculator {
       quality += modifiers.rallyVariance;
     }
 
-    return Math.min(ceiling, Math.max(0, quality));
+    return Math.min(100, Math.max(0, quality));
   }
 
   /**
@@ -1061,7 +1052,7 @@ export class ShotCalculator {
       bonus += (random() - 0.5) * 2 * powerVariance;
     }
 
-    return Math.min(qualityCeiling(shotType), Math.max(0, quality + bonus));
+    return Math.min(100, Math.max(0, quality + bonus));
   }
 
   /**
@@ -1256,7 +1247,7 @@ export class ShotCalculator {
   ): string {
     const primaryStat = shooterProfile.getStatForShot(shotType);
     const modifiers = this.calculateModifiers(shooterProfile, shotType, context);
-    const quality = this.applyModifiers(primaryStat, modifiers, qualityCeiling(shotType));
+    const quality = this.applyModifiers(primaryStat, modifiers);
 
     let explanation = `Shot Calculation for ${shotType}:\n`;
     explanation += `Primary Stat (${getPrimaryStatName(shotType)}): ${primaryStat}\n`;
@@ -1296,15 +1287,11 @@ export class ShotCalculator {
     // Calculate current quality
     const beforeStat = shooterProfile.getStatForShot(shotType);
     const beforeModifiers = this.calculateModifiers(shooterProfile, shotType, context);
-    const beforeQuality = this.applyModifiers(
-      beforeStat,
-      beforeModifiers,
-      qualityCeiling(shotType),
-    );
+    const beforeQuality = this.applyModifiers(beforeStat, beforeModifiers);
 
     // Calculate quality after stat improvement
     const afterStat = Math.min(100, beforeStat + statImprovement);
-    const afterQuality = this.applyModifiers(afterStat, beforeModifiers, qualityCeiling(shotType));
+    const afterQuality = this.applyModifiers(afterStat, beforeModifiers);
 
     return {
       beforeRate: beforeQuality,

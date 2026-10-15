@@ -75,6 +75,7 @@ fool yourself" below — copy one when you need to ask about a specific constant
 | `characterSim`    | the shipped character against the real roster, with score distributions and per-opponent win rates | current — the closest thing to "how does the game actually play"         |
 | `venueProbe`      | what each venue condition is worth to each identity, paired seeds against team match 3             | current — read it before giving a venue a condition                      |
 | `bandCheck`       | each opponent's effective OVR against its career slot's target (§2.2), and its win % per identity  | current — run it on every new opponent stat block; `SLOTS=1` lists slots |
+| `driftProbe`      | identities on real career builds: hold/break, specialty shares, +5 per stat, swaps, by day         | current — read it before touching specialties or the return composite    |
 
 ---
 
