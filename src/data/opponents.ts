@@ -363,8 +363,9 @@ export function getRandomOpponent(tier: OpponentTier): OpponentPreset {
  */
 export function getOpponentArchetypeProfile(preset: {
   archetype: ArchetypeType;
+  tier: OpponentTier;
 }): ArchetypeProfile {
-  return profileForArchetype(preset.archetype);
+  return profileForArchetype(preset.archetype, preset.tier);
 }
 
 /**

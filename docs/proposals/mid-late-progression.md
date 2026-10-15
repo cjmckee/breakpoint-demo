@@ -226,11 +226,11 @@ The first is the real answer, and it's the biggest balance job this proposal unc
 Wipe `TIER_2_OPPONENTS` and up and rebuild against the bands above. Keep the five-archetype
 shape per tier, since key moments are tuned on that variety. Also give the rebuilt rosters:
 
-- **specialties that grow with the tier.** Today `profileForArchetype` gives every opponent of
-  an archetype the same profile, a mix of tier I and II specialties, whether it is Chet Vale or a
-  tier 4 champion. (So Club opponents already play specialties at tier II while the player is
-  capped at I.) Make the profile take the tier: mostly I at Club, II at Regional, III at Tour and
-  World;
+- **specialties that grow with the tier** (built). `profileForArchetype(archetype, tier)` raises
+  every specialty to at least the tier the player can reach in that season: II at Regional, III
+  from the Tour. Club keeps its authored mix of I and II, which is what bronze was tuned against,
+  so Club opponents still play some tier II specialties while the player is capped at I. The
+  player's cap is `maxSpecialtyTier(player.tier)`: I at Club, II at Regional, III from the Tour;
 - **two abilities** from Tour on;
 - **a stat spread that grows with the tier.** A World player has a 90 and a 60, not 14 stats at 84. Once everyone is good, the shape is what makes opponents feel different.
 
@@ -429,11 +429,11 @@ would raise training pay by a third and cap key stats a season early.
 Each season's system-intro events (§3.1) introduce what's new. These are mostly scaffolded, so
 the work is choosing which tier opens which, and what's new each season besides bigger numbers.
 
-| season   | new systems                                                                                                                                 | other changes                                                                                 |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| Regional | silver training with focus (T2). Specialty tier II (`gameStore` stops at `player.tier <= 1`). **Venues with conditions** (§5.1, built)      | uncommon abilities in the shop. Hangout tier 2 events. The sponsor and media events move here |
-| Tour     | gold training with partners (T3). Specialty tier III. **Scouting**: the archetype and abilities are hidden until you spend a slot (or Mind) | rare abilities. Opponents with two abilities. The agent arc. Hangout tier 3 events            |
-| World    | **best-of-five** at the Slam. Stamina gets a late-match job (`stamina-at-tier-1.md`)                                                        | legendary abilities as story rewards. Opponents counter your most-used key-moment tactic      |
+| season   | new systems                                                                                                                                         | other changes                                                                                 |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Regional | silver training with focus (T2). Specialty tier II (`maxSpecialtyTier`, built). **Venues with conditions** (§5.1, built)                            | uncommon abilities in the shop. Hangout tier 2 events. The sponsor and media events move here |
+| Tour     | gold training with partners (T3). Specialty tier III (built). **Scouting**: the archetype and abilities are hidden until you spend a slot (or Mind) | rare abilities. Opponents with two abilities. The agent arc. Hangout tier 3 events            |
+| World    | **best-of-five** at the Slam. Stamina gets a late-match job (`stamina-at-tier-1.md`)                                                                | legendary abilities as story rewards. Opponents counter your most-used key-moment tactic      |
 
 Notes:
 
@@ -545,13 +545,14 @@ Ordered by how badly they would bite.
 3. ~~**Events only fire once.**~~ `repeatable: true` lets an event fire again by id (scheduled or
    chained). Random rolls still take it once. Tournaments still play once
    (`completedTournaments`), which is fine as long as the retry is a playoff and not a replay.
-4. **Training has no tier.** `buildAnchorTrainingResult` hard-codes `sessionTier: 'bronze'`.
-   `TrainingSessionTier` and the copy in `types/index.ts` disagree (one has `'platinum'`).
-   Fix it with silver training.
+4. ~~**Training has no tier.**~~ Fixed with silver training (§4.1).
 5. **Dead tier state.** Nothing calls `unlockedTiers`/`unlockNextTier`. `player.tier` is the real
    gate. Delete it while touching tiers.
 6. **BO5 isn't plumbed** through story and tournament types (§5).
 7. **`progress.ts` is stale.** It says tiebreaks are missing, but `ScoreTracker` plays them.
+8. ~~**Regional opened specialty tiers II and III together.**~~ The upgrade only checked
+   `player.tier <= 1`. Fixed: the cap is `maxSpecialtyTier(player.tier)`, and the Specialties tab
+   names the season that opens the next tier.
 
 ---
 

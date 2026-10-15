@@ -275,7 +275,7 @@ const ARCHETYPE_DAY = 11;
 
 const teamSide = (t: TeamMatchConfig): Side => ({
   stats: t.opponent.stats,
-  profile: profileForArchetype(t.opponent.archetype),
+  profile: profileForArchetype(t.opponent.archetype, t.opponent.tier),
 });
 
 const BO3_FOR: Record<string, MatchFormat> = { 'best-of-3': BO3, 'best-of-1': BO1 };

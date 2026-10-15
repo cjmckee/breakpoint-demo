@@ -172,7 +172,7 @@ export function buildStoryMatchMetadata(config: TeamMatchConfig): StoryMatchMeta
     opponentTier: config.opponent.tier,
     opponentDescription: config.opponent.description,
     opponentAbilities: config.opponent.abilities,
-    opponentArchetypeProfile: profileForArchetype(config.opponent.archetype),
+    opponentArchetypeProfile: profileForArchetype(config.opponent.archetype, config.opponent.tier),
     prematchEventId: config.prematchEventId,
     winEventId: config.winEventId,
     lossEventId: config.lossEventId,

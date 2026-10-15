@@ -11,6 +11,7 @@
  */
 
 import { EffectKey } from '../types/game';
+import type { OpponentTier } from '../types/game';
 import type {
   ArchetypeProfile,
   BroadArchetype,
@@ -519,11 +520,30 @@ export type LegacyArchetype =
   'aggressive' | 'defensive' | 'counterpuncher' | 'serve_volley' | 'all_court';
 
 /**
+ * The highest specialty tier a player can reach in each career tier: tier I at
+ * Club, II at Regional, III from the Tour.
+ */
+export function maxSpecialtyTier(playerTier: number): SpecialtyTier {
+  return Math.max(1, Math.min(3, playerTier)) as SpecialtyTier;
+}
+
+/** The season that opens each specialty tier past I, for the locked caption. */
+export const SPECIALTY_TIER_SEASON: Record<2 | 3, string> = { 2: 'Regional', 3: 'Tour' };
+
+/**
  * Build a full archetype profile from a legacy archetype label. Opponents (and
  * any code that only knows the coarse archetype) use this so they play with a
  * coherent, authored phase identity rather than a stat-derived one.
+ *
+ * The authored profiles are the Club ones, a mix of tier I and II that bronze is
+ * balanced against. From Regional every specialty plays at least the tier the
+ * player can reach there (`maxSpecialtyTier`), so an opponent is never a
+ * specialty tier behind the player they meet.
  */
-export function profileForArchetype(legacy: LegacyArchetype): ArchetypeProfile {
+export function profileForArchetype(
+  legacy: LegacyArchetype,
+  tier: OpponentTier = 1,
+): ArchetypeProfile {
   const phasesByArchetype: Record<LegacyArchetype, Partial<Record<GamePhase, PhaseSpec>>> = {
     aggressive: {
       first_serve: { path: 'fs_bomber', tier: 2 },
@@ -563,9 +583,17 @@ export function profileForArchetype(legacy: LegacyArchetype): ArchetypeProfile {
     all_court: 'all_courter',
   };
 
+  const floor = maxSpecialtyTier(tier);
+  const phases = Object.fromEntries(
+    Object.entries(phasesByArchetype[legacy]).map(([phase, spec]) => [
+      phase,
+      { path: spec.path, tier: Math.max(spec.tier, floor) as SpecialtyTier },
+    ]),
+  ) as Partial<Record<GamePhase, PhaseSpec>>;
+
   return {
     broad: broadByArchetype[legacy],
-    phases: phasesByArchetype[legacy],
+    phases,
     specializationPoints: 0,
     respecTokens: 0,
   };

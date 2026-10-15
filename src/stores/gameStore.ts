@@ -67,6 +67,7 @@ import { EffectKey } from '../types/game';
 import { buildPlayStyle } from '../core/PlayerProfile';
 import {
   createEmptyArchetypeProfile,
+  maxSpecialtyTier,
   profileForArchetype,
   STARTING_SPECIALIZATION_POINTS,
   PATH_DEFS,
@@ -1036,6 +1037,7 @@ export const useGameStore = create<GameState>()(
                   const tournamentTier = (opponent?.tier || 1) as OpponentTier;
                   const opponentArchetypeProfile = profileForArchetype(
                     opponent?.archetype ?? 'all_court',
+                    tournamentTier,
                   );
                   const matchConfig: PreMatchConfig = {
                     opponentName: opponent?.name || 'Opponent',
@@ -1262,6 +1264,7 @@ export const useGameStore = create<GameState>()(
               const tournamentTier = (opponent?.tier || 1) as OpponentTier;
               const opponentArchetypeProfile = profileForArchetype(
                 opponent?.archetype ?? 'all_court',
+                tournamentTier,
               );
               const matchConfig: PreMatchConfig = {
                 opponentName: opponent?.name || 'Opponent',
@@ -1440,8 +1443,7 @@ export const useGameStore = create<GameState>()(
         const profile = player.archetypeProfile;
         const current = profile.phases[phase];
         if (!current) return; // can only upgrade a chosen specialty
-        if (current.tier >= 3) return; // max tier
-        if (player.tier <= 1) return; // Club Player (tier 1) is capped at specialty tier I
+        if (current.tier >= maxSpecialtyTier(player.tier)) return;
         if (profile.specializationPoints < 1) return;
 
         set({

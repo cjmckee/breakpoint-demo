@@ -22,6 +22,8 @@ import {
   PHASE_LABELS,
   PATHS_BY_PHASE,
   BROAD_ARCHETYPE_LABELS,
+  maxSpecialtyTier,
+  SPECIALTY_TIER_SEASON,
 } from '../data/archetypeTree';
 import type { GamePhase, PhasePathId, SpecialtyRole, SpecialtyTier } from '../types/archetype';
 
@@ -126,8 +128,7 @@ export const ArchetypeTree: React.FC = () => {
   const points = profile.specializationPoints;
   const tokens = profile.respecTokens;
   const playStyle = buildPlayStyle(profile);
-  // Club Player (tier 1) is capped at specialty tier I — upgrading unlocks at Regional Competitor.
-  const isTierCapped = player.tier <= 1;
+  const tierCap = maxSpecialtyTier(player.tier);
 
   if (!profile.broad) {
     return (
@@ -263,15 +264,17 @@ export const ArchetypeTree: React.FC = () => {
                   {isChosen && (
                     <>
                       {chosen!.tier < 3 ? (
-                        isTierCapped ? (
+                        chosen!.tier >= tierCap ? (
                           <span
+                            data-testid="archetype-tier-locked"
                             className="text-[11px] text-center text-pixel-text-muted py-1.5"
-                            title="Reach Regional Competitor to upgrade specialties past tier I"
                           >
-                            Tier {chosen!.tier + 1} locked
+                            Tier {chosen!.tier === 1 ? 'II' : 'III'} · Unlocks at{' '}
+                            {SPECIALTY_TIER_SEASON[(chosen!.tier + 1) as 2 | 3]}
                           </span>
                         ) : (
                           <PrimaryAction
+                            testId="archetype-upgrade"
                             label="Upgrade"
                             cost="1 pt"
                             disabled={points < 1}
