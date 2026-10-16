@@ -109,7 +109,7 @@ the least valuable.
 
 ### 5. OVR misreads strength, and the engine reads OVR
 
-OVR weights a stat by its category (core 0.45, physical 0.25, technical and mental 0.15 each).
+Before the drift package, OVR weighted a stat by its category (core 0.45, physical 0.25, technical and mental 0.15 each).
 It gives stamina and strength 0.083 each and anticipation and tactics 0.05 each, almost the
 reverse of what they're worth in a match (finding 4). On day 104 the baseliner has the highest
 OVR (66) and the lowest point-win (36); the net rusher has 62 and 75.

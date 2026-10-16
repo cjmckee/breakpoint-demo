@@ -15,6 +15,7 @@ import type { TacticalOption } from '../data/tacticalOptions';
 import type { KeyMomentResult } from '../game/KeyMomentResolver';
 import type { MatchScore } from '../types/keyMoments';
 import type { OpponentTier } from '../types/game';
+import { calculateOverallRating } from '../utils/overallRating';
 
 const TOKEN = import.meta.env.VITE_MIXPANEL_TOKEN as string | undefined;
 const ENABLED = Boolean(TOKEN && TOKEN !== 'your-mixpanel-token-here');
@@ -70,11 +71,7 @@ function statsSnapshot(player: Player): Record<string, number> {
   // Simple mean of all 20 stats
   const statAverage = avg([coreAvg, technicalAvg, physicalAvg, mentalAvg]);
 
-  // Weighted overall rating — mirrors PlayerProfile.overallRating
-  // Core has the most impact on match outcomes
-  const overallRating = Math.round(
-    coreAvg * 0.45 + technicalAvg * 0.15 + physicalAvg * 0.25 + mentalAvg * 0.15,
-  );
+  const overallRating = calculateOverallRating(player.stats);
 
   return {
     // Derived summaries
