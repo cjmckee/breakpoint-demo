@@ -2,7 +2,7 @@
  * Training Screen
  *
  * Training flow:
- *   1. The time slot offers three of the six drills (trainingOffer). Each card
+ *   1. The time slot offers four of the six drills (trainingOffer). Each card
  *      shows the drill and what a clean session pays, in full currency names. From
  *      silver, pick a focus too: the currency that stands in for a drill's
  *      secondary one.
@@ -197,7 +197,7 @@ export const TrainingScreen: React.FC = () => {
           theme, two pay lines), so a long name never changes a card's height. On
           phones each card is a compact row: icon beside name and theme, pay under. */}
       <div
-        className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3"
+        className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3"
         data-testid="training-offer"
       >
         {offer.map(({ drill: id }) => {
