@@ -13,8 +13,14 @@
  *          point-win, and the player's and opponent's groundstroke quality, bar,
  *          errors and winners, so you can see where a stat's edge is lost.
  *
+ * Both sections also report the player's net points (share of points, share
+ * won) and each side's fatigue at the end of the match: what `net` and
+ * `stamina` act on.
+ *
  * Run: npx tsx src/test/analysis/rallyMixProbe.ts
  * Env: LEVELS=40,80  N=150  SECTIONS=mix,boost  BOOST=forehand+backhand,speed
+ *      PROFILE=serve_volley gives the player that authored archetype (at the
+ *      level's tier) instead of none, to measure a stat on the players who use it
  *      With tuneRun: TUNE='…' PROBE=rallyMixProbe npx tsx src/test/analysis/tuneRun.ts
  */
 
@@ -22,13 +28,21 @@ import type { PlayerStats, PointAnalysisData, ShotDetail } from '../../types';
 import { PointType } from '../../types';
 import { PlayerProfile } from '../../core/PlayerProfile';
 import { setSeed, clearSeed } from '../../core/random';
-import { createEmptyArchetypeProfile } from '../../data/archetypeTree';
+import type { OpponentTier } from '../../types/game';
+import {
+  createEmptyArchetypeProfile,
+  profileForArchetype,
+  type LegacyArchetype,
+} from '../../data/archetypeTree';
 import { playMatch, BO3 } from './simMatch';
 
 const N = Number(process.env.N ?? 150);
 const LEVELS = (process.env.LEVELS ?? '40,80').split(',').map(Number);
 const SECTIONS = new Set((process.env.SECTIONS ?? 'mix,boost').split(','));
 const BOOSTS = (process.env.BOOST ?? 'forehand+backhand,speed').split(',');
+const PROFILE = process.env.PROFILE as LegacyArchetype | undefined;
+const tierFor = (level: number): OpponentTier =>
+  level >= 66 ? 4 : level >= 56 ? 3 : level >= 42 ? 2 : 1;
 const GROUNDSTROKES = new Set(['forehand', 'backhand', 'forehand_power', 'backhand_power']);
 
 const uniform = (r: number): PlayerStats => ({
@@ -46,18 +60,47 @@ function boosted(level: number, stats: string[], by: number): PlayerStats {
   return s;
 }
 
-function matches(player: PlayerStats, opponent: PlayerStats): PointAnalysisData[] {
+interface Played {
+  points: PointAnalysisData[];
+  /** Mean fatigue at the end of the match, player and opponent. */
+  endFatigue: { player: number; opponent: number };
+}
+
+function matches(player: PlayerStats, opponent: PlayerStats, level: number): Played {
   const points: PointAnalysisData[] = [];
+  const endFatigue = { player: 0, opponent: 0 };
+  const profile = PROFILE
+    ? profileForArchetype(PROFILE, tierFor(level))
+    : createEmptyArchetypeProfile();
   for (let i = 0; i < N; i++) {
     setSeed(1000 + i);
     const m = playMatch(
-      new PlayerProfile('p', 'P', player, createEmptyArchetypeProfile()),
+      new PlayerProfile('p', 'P', player, profile),
       new PlayerProfile('o', 'O', opponent, createEmptyArchetypeProfile()),
       { format: BO3, initialServer: i % 2 === 0 ? 'player' : 'opponent' },
     );
     points.push(...m.points);
+    endFatigue.player += m.endFatigue.player / N;
+    endFatigue.opponent += m.endFatigue.opponent / N;
   }
-  return points;
+  return { points, endFatigue };
+}
+
+/** The player's net points: share of all points, and share of those won. */
+function netAndFatigue(played: Played): string {
+  let net = 0;
+  let netWon = 0;
+  for (const pt of played.points) {
+    const me = pt.server === 'player' ? 'server' : 'returner';
+    if (pt.shots.some((s) => s.shooter === me && s.context.courtPosition === 'net')) {
+      net++;
+      if (pt.winner === 'player') netWon++;
+    }
+  }
+  return (
+    `\n  my net points        ${pct(net, played.points.length)} of points, ${net ? pct(netWon, net) : '-'} won` +
+    `\n  fatigue at the end   mine ${played.endFatigue.player.toFixed(0)}, theirs ${played.endFatigue.opponent.toFixed(0)}`
+  );
 }
 
 interface Tally {
@@ -87,7 +130,8 @@ const describe = (t: Tally, points: number): string =>
   `winners ${pct(t.winners, t.n)}  errors ${pct(t.errors, t.n)}`;
 
 function mix(level: number, out: string[]): void {
-  const points = matches(uniform(level), uniform(level));
+  const played = matches(uniform(level), uniform(level), level);
+  const points = played.points;
   const byType = new Map<string, { stat: string; t: Tally }>();
   let shots = 0;
   for (const pt of points) {
@@ -104,12 +148,14 @@ function mix(level: number, out: string[]): void {
   for (const [type, { stat, t }] of [...byType].sort((a, b) => b[1].t.n - a[1].t.n)) {
     out.push(`${type}\t${stat}\t${describe(t, points.length)}`);
   }
+  out.push(netAndFatigue(played).trimStart());
 }
 
 function boost(level: number, out: string[]): void {
   for (const group of ['', ...BOOSTS]) {
     const stats = group ? group.split('+') : [];
-    const points = matches(boosted(level, stats, 15), uniform(level));
+    const played = matches(boosted(level, stats, 15), uniform(level), level);
+    const points = played.points;
     const mine = empty();
     const theirs = empty();
     let won = 0;
@@ -124,7 +170,8 @@ function boost(level: number, out: string[]): void {
     out.push(
       `\nlevel ${level}, ${group ? `${group} +15` : 'even'}: point-win ${pct(won, points.length)}` +
         `\n  my groundstrokes     ${describe(mine, points.length)}` +
-        `\n  their groundstrokes  ${describe(theirs, points.length)}`,
+        `\n  their groundstrokes  ${describe(theirs, points.length)}` +
+        netAndFatigue(played),
     );
   }
 }
@@ -142,7 +189,10 @@ function main(): void {
     console.log = log;
   }
   clearSeed();
-  log(`rallyMixProbe  N=${N} BO3 per cell, uniform players, no specialties`);
+  log(
+    `rallyMixProbe  N=${N} BO3 per cell, uniform players, ` +
+      `${PROFILE ? `the player as ${PROFILE}` : 'no specialties'}`,
+  );
   for (const line of out) log(line);
 }
 

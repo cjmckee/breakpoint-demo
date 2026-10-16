@@ -58,6 +58,8 @@ export class MatchSimulator {
   private scoreTracker: ScoreTracker;
   private matchStatistics: MatchStatistics;
   private momentumEngine: MomentumEngine;
+  /** Stamina as the fatigue rules read it: from the match's support neutral. */
+  private stamina: { player: number; opponent: number } = { player: 0, opponent: 0 };
   private config: MatchConfig;
 
   // Match state
@@ -89,8 +91,13 @@ export class MatchSimulator {
     this.scoreTracker = new ScoreTracker(config.matchFormat);
     this.matchStatistics = new MatchStatistics(config.player, config.opponent);
     this.momentumEngine = new MomentumEngine();
-    // Focus steadies rhythm, measured from the match's support neutral.
+    // Focus steadies rhythm, and stamina sets how fast fatigue builds and goes,
+    // both measured from the match's support neutral.
     const level = getMatchLevel(config.player.overallRating, config.opponent.overallRating);
+    this.stamina = {
+      player: relativeSupport(config.player.stats.physical.stamina, level),
+      opponent: relativeSupport(config.opponent.stats.physical.stamina, level),
+    };
     this.momentumEngine.reset(
       {
         player: relativeSupport(config.player.stats.mental.focus, level),
@@ -345,12 +352,12 @@ export class MatchSimulator {
   private applyRestRecovery(setCompleted: boolean): void {
     this.matchState.fatigue.player = fatigueAfterRest(
       this.matchState.fatigue.player,
-      this.config.player.stats.physical.stamina,
+      this.stamina.player,
       setCompleted,
     );
     this.matchState.fatigue.opponent = fatigueAfterRest(
       this.matchState.fatigue.opponent,
-      this.config.opponent.stats.physical.stamina,
+      this.stamina.opponent,
       setCompleted,
     );
   }
@@ -414,14 +421,14 @@ export class MatchSimulator {
     this.matchState.fatigue.player = fatigueAfterPoint(
       this.matchState.fatigue.player,
       rallyLength,
-      this.config.player.stats.physical.stamina,
+      this.stamina.player,
       heat,
     );
 
     this.matchState.fatigue.opponent = fatigueAfterPoint(
       this.matchState.fatigue.opponent,
       rallyLength,
-      this.config.opponent.stats.physical.stamina,
+      this.stamina.opponent,
       heat,
     );
   }
