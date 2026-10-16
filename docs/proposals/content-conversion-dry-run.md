@@ -1,13 +1,15 @@
 # Content conversion
 
 The review copy for converting story and challenge stat grants to currency (INCOME_SCALE 1.2).
-Each stat point is paid through its stat's recipe; penalties become losses. **Applied** in the
-currency stack's step 4 with `contentCurrency` (`src/game/CurrencyIncome.ts`); the generator
-script was removed with it, since the data it read no longer exists.
+Each stat point is paid through its stat's recipe; penalties become losses. **Applied** in #104
+with `contentCurrency` (`src/game/CurrencyIncome.ts`); the generator script was removed with it,
+since the data it read no longer exists.
 
-The first run of this report also counted two challenge reward _items_ (equipment, whose stat
-boosts stay item boosts) as conversion sites: `challenge_athletic_foundation` and
-`milestone_challenge_ten_wins`, 88 units. They are removed below, and the totals corrected.
+The first run of this report also counted the stat boosts of two challenge reward _items_ as
+conversion sites: the equipment that `challenge_athletic_foundation` and
+`milestone_challenge_ten_wins` give (`reward.items[0]`), 88 units. Equipment keeps its item
+boosts, so those two rows are removed below and the totals corrected. The two challenges' own
+reward boosts were converted and are still listed.
 
 **Stats kept for rare moments.** After the conversion, eleven hard-to-reach or climactic events
 went back to granting stats directly, exactly as authored (penalties included):

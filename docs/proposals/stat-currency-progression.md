@@ -1,6 +1,8 @@
 # Stat currency — earning attribute points and spending them on stats
 
-**Status:** design direction agreed (§8); calibration and pricing still open (§9)
+**Status:** built (#101–106) and since superseded where it differs from the code: the economy's
+numbers live in `src/config/economy.ts`, which is the source of truth. Kept for the measurements
+in §3 and §9.
 **Scope:** replacing direct stat grants with typed currencies the player spends: what it does to
 balance, what it makes possible, and what it would take to build
 **Harnesses:** [`allocationProbe.ts`](../../src/test/analysis/allocationProbe.ts),
@@ -591,6 +593,24 @@ identity per system, income ×1.2, patient player (§9.8). Each cell is today / 
 
 ## 7. What would need to be built
 
+**Built in #101–106.** Where this list and the code differ, the code is right:
+
+- The currency type is `Currency` (`src/types/game.ts`), not `AttributeCurrency`.
+- There is no `src/data/statRecipes.ts`: the recipes are `STAT_RECIPES` in `src/config/economy.ts`,
+  next to the step curve (`PRICE_STEP`). There is no `STAT_CAP_BY_TIER`.
+- Training pays a fixed 3-unit mix per shot (`TRAINING_MIXES`) × (reps + 1), not the anchor's
+  recipe ratio with general and Mind shares (`trainingPayout`, `src/game/CurrencyIncome.ts`). The
+  upgrade-chance effect doubles a session; the bonus-support effect adds a rep.
+- Matches pay `MATCH_PAYOUT` (`matchPayout`): a base by result plus a 20-unit pool split by
+  area.
+- Abilities are priced by id (`ABILITY_CURRENCY`) at a fixed amount per rarity (`ABILITY_PRICES`).
+- The purchase function is `purchase(player, plan)`, for a whole plan.
+- The Development screen's test ids are `development-*` (`development-stat-${stat}`,
+  `development-plus-${stat}`, `development-minus-${stat}`, `development-clear`,
+  `development-confirm`); the wallet chip is `status-wallet`.
+- The invariants live in `src/test/currencyCheck.ts`. `economyCheck.ts` checks XP and effect
+  keys.
+
 ### Types (`src/types/`)
 
 - `AttributeCurrency = 'power' | 'quickness' | 'technique' | 'mind'`
@@ -708,6 +728,11 @@ Settled in the second review:
   games, because of the double-fault rate.
 
 Still open:
+
+**Since then:** income growth is decided as flat pay: training and matches pay the same at every
+tier, and story and challenge grants use a flat `INCOME_SCALE` of 1.2
+([`mid-late-progression.md` §2.1](./mid-late-progression.md)). The bands are still 2 / 3 / 4
+(`STAT_RECIPES`).
 
 - **Income growth over the career** (§9.3). By tier, by level, or by session quality?
 - **Whether the bands should widen** (§9.4). Recipe lengths of 2 / 3 / 4 are flatter than the
@@ -1002,7 +1027,9 @@ Mean point-win % against each team-match opponent. "Today" is pooled over both r
   front-loading of §9.3 again, about 15–20% growth across tier 1, now on the real engine. The
   earlier "flat ×1.2" (§9.8) sat inside the old loop's error.
 - **Recommendation:** start income at ×1.1 and step it up to ×1.3 by the fifth team match. About
-  +5% per team match does it.
+  +5% per team match does it. _Since then:_ not adopted. Story and challenge grants use a flat
+  `INCOME_SCALE` of 1.2, and pay stays flat across tiers
+  ([`mid-late-progression.md` §2.1](./mid-late-progression.md)).
 - **Every check is a slight underdog fight under both systems:** 32–43% match wins for today's player, 33–50% for currency at ×1.2.
 
 ---
@@ -1136,6 +1163,8 @@ Will — act only in the live MatchOrchestrator and are not here):
 
 - **Rarity is inverted.** The two strongest abilities are commons (Heavy Hitter, Baseliner:
   +1.4 to +4.3, i.e. 7–20 stat points). The rares sit at +0.5; two uncommons do nothing.
+  _Since then:_ abilities were retuned to rarity budgets, and rarity is now in order
+  ([`simulation-findings.md` round 4](../research/simulation-findings.md)).
 - **Fit shows.** Heavy Hitter is worth +4.3 to the baseliner (power shots in 22% of its points)
   and +1.6 elsewhere (6–8%). The net abilities are worth most to the big server, whose net stat
   is lowest, so a flat quality bonus matters most there.
@@ -1143,6 +1172,7 @@ Will — act only in the live MatchOrchestrator and are not here):
   below 1 under 50, the slice problem again). Court coverage is an on/off switch at ≥2, so
   Slider, Speed Demon and the coverage half of All-Court Maestro do almost nothing.
 - **Serve Cannon has no serve effect.** It is pace and smash power: a second Heavy Hitter.
+  _Since then:_ it has one (`serve_speed`, `src/data/abilities.ts`).
 
 **Engine issues found, and the one-pass fix.** The table above is the pre-fix state; ability
 strengths are not retuned yet (decided).
@@ -1180,6 +1210,22 @@ Run: `N=1000 ID=baseliner npx tsx src/test/analysis/abilityProbe.ts` (~2 minutes
 ---
 
 ## 10. Next avenues
+
+**Since then** (#101–106 and after), where the list below went another way:
+
+- 2: income is not ×1.1 rising to ×1.3. Story and challenge grants use a flat `INCOME_SCALE` of
+  1.2, training and matches pay fixed amounts, and pay is flat across tiers (§8).
+- 4 and 10: `careerSim` buys abilities (`abilityEconomy.ts`), priced at a fixed amount per rarity
+  (`ABILITY_PRICES`), and the abilities were retuned to rarity budgets
+  ([`simulation-findings.md` round 4](../research/simulation-findings.md)).
+- 6: the fatigue change is applied (§8); the stamina recipe is unchanged.
+- 8: matches pay `MATCH_PAYOUT`, a base plus a 20-unit pool split by area, with no fixed Mind
+  share.
+- 9: every shot pays a fixed 3-unit mix (`TRAINING_MIXES`), not its recipe ratio. From silver a
+  session takes a focus that swaps the mix's secondary currency (`focusedMix`).
+- 11 and 12: built. The Development screen is `src/components/DevelopmentScreen.tsx`, and the
+  content conversion is recorded in
+  [`content-conversion-dry-run.md`](./content-conversion-dry-run.md).
 
 Updated priority order:
 

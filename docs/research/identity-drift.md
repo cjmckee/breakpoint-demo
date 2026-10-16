@@ -1,5 +1,9 @@
 # Identity drift: why even identities end up 40 points apart
 
+**Status:** the fixes are applied
+([`proposals/identity-drift-fixes.md`](../proposals/identity-drift-fixes.md)), so the figures
+here, "today" included, are from before that package.
+
 **Measurement baseline:** the engine as of the progression PR stack (#135-#144), career builds
 from `careerSim BUILDS=` (20 careers per identity, flat pay, focus from day 41). Every figure is
 point-win % of best-of-three matches. The opponents are "the common opponent": the five Club
@@ -153,10 +157,10 @@ Measured proposals, with the package and its Club check:
 ## Reproducing
 
 ```
-npx tsx src/test/analysis/driftProbe.ts                              # all sections, 4 days, ~1 h
+npx tsx src/test/analysis/driftProbe.ts                              # who,swap,value, 4 days
 H2H=0 DAYS=104 SECTIONS=who,swap npx tsx src/test/analysis/driftProbe.ts
 TUNE='SPECIALTY_AMPLIFY.excessCap=15' PROBE=driftProbe DAYS=104 SECTIONS=who \
-  npx tsx src/test/analysis/tuneRun.ts
+  npx tsx src/test/analysis/tuneRun.ts                       # excessCap 15 is the default now
 FUND_W=0.7,0.9 BUILDS=/tmp/fund.json RUNS=20 npx tsx src/test/analysis/careerSim.ts
 BUILDS_FILE=/tmp/fund.json DAYS=104 SECTIONS=who npx tsx src/test/analysis/driftProbe.ts
 ```
