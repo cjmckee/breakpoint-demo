@@ -1,6 +1,6 @@
 # Training revamp: drills that pay currency, not shots that train stats
 
-**Status:** in design. The decisions below replace §3, §5 and §7 where they differ. Prototype, on real
+**Status:** being built as a stack of five PRs (#157 onward): Development and the area names, the main menu, Split-Step Sprint, the training roll, then match pay. The decisions below replace §3, §5 and §7 where they differ. Prototype, on real
 game numbers: https://claude.ai/artifact/SMELHgGvkDiXZ7FLdToRaX
 **Why now:** training was built when a session raised the stat of the shot it practised. Since the
 currency rework a session pays currency and stats are bought in Development, so the five shot
