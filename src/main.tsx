@@ -28,6 +28,22 @@ if (import.meta.env.DEV) {
   }
 }
 
+// When a new service worker takes over a page the old one served, reload so the player runs
+// the new build rather than the one already in memory. The first install has no previous
+// controller, so it doesn't reload. Staging has no service worker of its own.
+if (
+  CHANNEL === 'production' &&
+  'serviceWorker' in navigator &&
+  navigator.serviceWorker.controller
+) {
+  let reloading = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (reloading) return;
+    reloading = true;
+    window.location.reload();
+  });
+}
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />

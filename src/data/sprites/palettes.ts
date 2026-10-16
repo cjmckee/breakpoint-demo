@@ -37,48 +37,42 @@ interface HairRamp extends Ramp {
   light: string;
 }
 
-/** A labelled colour choice, as offered by the player creator. */
-interface PaletteEntry<R> {
-  label: string;
-  ramp: R;
-}
-
-export const SKIN_TONES: Record<SkinTone, PaletteEntry<Ramp>> = {
-  porcelain: { label: 'Porcelain', ramp: { base: '#f6dcc8', shade: '#e0b49a' } },
-  fair: { label: 'Fair', ramp: { base: '#f1c27d', shade: '#d49c5e' } },
-  tan: { label: 'Tan', ramp: { base: '#d39b6a', shade: '#ad744a' } },
-  brown: { label: 'Brown', ramp: { base: '#a86b45', shade: '#83502f' } },
-  deep: { label: 'Deep', ramp: { base: '#6e4129', shade: '#4f2d1b' } },
+export const SKIN_TONES: Record<SkinTone, Ramp> = {
+  porcelain: { base: '#f6dcc8', shade: '#e0b49a' },
+  fair: { base: '#f1c27d', shade: '#d49c5e' },
+  tan: { base: '#d39b6a', shade: '#ad744a' },
+  brown: { base: '#a86b45', shade: '#83502f' },
+  deep: { base: '#6e4129', shade: '#4f2d1b' },
 };
 
-export const HAIR_COLORS: Record<HairColor, PaletteEntry<HairRamp>> = {
-  black: { label: 'Black', ramp: { base: '#3b3b4c', shade: '#26262f', light: '#62627a' } },
-  brown: { label: 'Brown', ramp: { base: '#6b4226', shade: '#4e2f1a', light: '#8f5c37' } },
-  auburn: { label: 'Auburn', ramp: { base: '#8f3a24', shade: '#6b2818', light: '#b8553b' } },
-  blonde: { label: 'Blonde', ramp: { base: '#e3bf5f', shade: '#c09a40', light: '#f6e3a0' } },
-  ginger: { label: 'Ginger', ramp: { base: '#d9762b', shade: '#ad571b', light: '#f29d55' } },
-  silver: { label: 'Silver', ramp: { base: '#c3c7d3', shade: '#989cab', light: '#eef0f5' } },
+export const HAIR_COLORS: Record<HairColor, HairRamp> = {
+  black: { base: '#3b3b4c', shade: '#26262f', light: '#62627a' },
+  brown: { base: '#6b4226', shade: '#4e2f1a', light: '#8f5c37' },
+  auburn: { base: '#8f3a24', shade: '#6b2818', light: '#b8553b' },
+  blonde: { base: '#e3bf5f', shade: '#c09a40', light: '#f6e3a0' },
+  ginger: { base: '#d9762b', shade: '#ad571b', light: '#f29d55' },
+  silver: { base: '#c3c7d3', shade: '#989cab', light: '#eef0f5' },
 };
 
-export const GEAR_COLORS: Record<GearColor, PaletteEntry<Ramp>> = {
-  red: { label: 'Red', ramp: { base: '#e94560', shade: '#b8304a' } },
-  black: { label: 'Black', ramp: { base: '#3a3a48', shade: '#24242e' } },
-  white: { label: 'White', ramp: { base: '#f2f2f2', shade: '#c4c8d4' } },
-  gold: { label: 'Gold', ramp: { base: '#f2c14e', shade: '#c8952a' } },
-  blue: { label: 'Blue', ramp: { base: '#3d7be0', shade: '#2a5aa8' } },
-  green: { label: 'Green', ramp: { base: '#47c46a', shade: '#2f8f4b' } },
-  orange: { label: 'Orange', ramp: { base: '#f08a3c', shade: '#c0631f' } },
-  silver: { label: 'Silver', ramp: { base: '#b9bfcc', shade: '#8a90a0' } },
-  clay: { label: 'Clay', ramp: { base: '#c8643a', shade: '#9a4826' } },
+export const GEAR_COLORS: Record<GearColor, Ramp> = {
+  red: { base: '#e94560', shade: '#b8304a' },
+  black: { base: '#3a3a48', shade: '#24242e' },
+  white: { base: '#f2f2f2', shade: '#c4c8d4' },
+  gold: { base: '#f2c14e', shade: '#c8952a' },
+  blue: { base: '#3d7be0', shade: '#2a5aa8' },
+  green: { base: '#47c46a', shade: '#2f8f4b' },
+  orange: { base: '#f08a3c', shade: '#c0631f' },
+  silver: { base: '#b9bfcc', shade: '#8a90a0' },
+  clay: { base: '#c8643a', shade: '#9a4826' },
 };
 
-export const KIT_COLORS: Record<KitColor, PaletteEntry<Ramp>> = {
-  white: { label: 'White', ramp: { base: '#f2f2f2', shade: '#c4c8d4' } },
-  navy: { label: 'Navy', ramp: { base: '#34499c', shade: '#233371' } },
-  crimson: { label: 'Crimson', ramp: { base: '#c8392b', shade: '#922a20' } },
-  forest: { label: 'Forest', ramp: { base: '#2e8b57', shade: '#1f6640' } },
-  sky: { label: 'Sky', ramp: { base: '#4fb3e8', shade: '#3389b8' } },
-  violet: { label: 'Violet', ramp: { base: '#8e5cc8', shade: '#6a3fa0' } },
+export const KIT_COLORS: Record<KitColor, Ramp> = {
+  white: { base: '#f2f2f2', shade: '#c4c8d4' },
+  navy: { base: '#34499c', shade: '#233371' },
+  crimson: { base: '#c8392b', shade: '#922a20' },
+  forest: { base: '#2e8b57', shade: '#1f6640' },
+  sky: { base: '#4fb3e8', shade: '#3389b8' },
+  violet: { base: '#8e5cc8', shade: '#6a3fa0' },
 };
 
 /** Symbols whose colour never changes with appearance. */

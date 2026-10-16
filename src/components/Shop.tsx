@@ -255,6 +255,7 @@ const AbilityShopCard: React.FC<{
         className="flex flex-col gap-2 flex-1"
         data-testid={`shop-ability-${item.abilityId}`}
         data-level={item.level}
+        data-rarity={item.rarity}
       >
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-2">

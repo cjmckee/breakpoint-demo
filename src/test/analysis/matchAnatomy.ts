@@ -18,7 +18,7 @@
  *   D  the net funnel, with every denominator
  *   E  the slice split
  *
- * Run: npm run build:node && node dist/src/test/analysis/matchAnatomy.js
+ * Run: npx tsx src/test/analysis/matchAnatomy.ts
  * Env: N=150 (BO3 per build)  L=45 (uniform rating)  BUILDS=all|baseline
  */
 

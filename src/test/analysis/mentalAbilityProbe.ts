@@ -70,7 +70,7 @@ async function run(
       playerArchetypeProfile: profile,
       opponentArchetypeProfile: profileForArchetype(TEAM.opponent.archetype),
       playerAbilities: abilities,
-      surface: TEAM.surface,
+      surface: TEAM.venue.surface,
       mood: 0,
       energy: 100,
       enableKeyMoments: true,
@@ -123,7 +123,7 @@ async function main(): Promise<void> {
   console.log = log;
   log(
     `\nmentalAbilityProbe  N=${N} ${FORMAT} live orchestrator, random key-moment picks  ` +
-      `${ID} day-23 build v ${TEAM.opponent.name} (${TEAM.surface})  LEVEL=${LEVEL} KM=${KM}`,
+      `${ID} day-23 build v ${TEAM.opponent.name} (${TEAM.venue.surface})  LEVEL=${LEVEL} KM=${KM}`,
   );
   log(['condition', ...RATE_HEADERS, 'Δpt-win (paired)', 'KM won', 'KMs/match'].join('\t'));
   for (const r of rows) log(r.join('\t'));

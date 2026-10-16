@@ -11,6 +11,7 @@ import type {
   CurrencyAmounts,
   EquipmentItem,
   ItemRarity,
+  OpponentTier,
   ShopItem,
   StatBoosts,
 } from '../types/game';
@@ -18,7 +19,12 @@ import type { Item } from '../types/items';
 import { ABILITY_DEFINITIONS } from '../data/abilities';
 import { AbilityRarity } from '../types/game';
 import { ALL_CONSUMABLES, ALL_EQUIPMENT, CONSUMABLE_SHOP_COSTS } from '../data/items';
-import { ABILITY_CURRENCY, ABILITY_PRICES, type AbilityPriceRarity } from '../config/economy';
+import {
+  ABILITY_CURRENCY,
+  abilityLevelPrice,
+  offerRarity,
+  type AbilityPriceRarity,
+} from '../config/economy';
 
 import { random } from '../core/random';
 
@@ -45,7 +51,8 @@ function createConsumableItem(): ConsumableItem {
 
 const SHOP_EQUIPMENT_ITEMS: Item[] = ALL_EQUIPMENT.filter((item) => item.shopAvailable !== false);
 
-function calculateEquipmentCost(statBoosts: StatBoosts): number {
+/** What a piece of gear costs in XP: it grows faster than its total boost. */
+export function equipmentPrice(statBoosts: StatBoosts): number {
   const total = Object.values(statBoosts).reduce((a, b) => a + b, 0);
   return Math.round(Math.pow(total, 1.4) * 4);
 }
@@ -61,7 +68,7 @@ function createEquipmentItem(): EquipmentItem {
     description: sourceItem.description,
     statBoosts,
     slot: sourceItem.equipmentSlot ?? 'racquet',
-    cost: calculateEquipmentCost(statBoosts),
+    cost: equipmentPrice(statBoosts),
     purchased: false,
     rarity: 'uncommon',
   };
@@ -73,37 +80,29 @@ const ABILITIES: Ability[] = Object.values(ABILITY_DEFINITIONS).filter(
 );
 
 /**
- * What taking `ability` from `currentLevel` to the next level costs: a fixed
- * amount per rarity in the ability's currency, plus XP. Learning it (level 0)
- * costs the base; each level after costs base × (1.5 + 0.75 × currentLevel).
+ * What taking `ability` from `currentLevel` to the next level costs
+ * (abilityLevelPrice): its rarity's price in the ability's currency, plus XP.
  * An off-court ability (no entry in ABILITY_CURRENCY) costs XP only.
  */
 export function abilityPrice(
   ability: Pick<Ability, 'name' | 'rarity'>,
   currentLevel: number,
 ): { xp: number; currency: CurrencyAmounts } {
-  const base = ABILITY_PRICES[ability.rarity as AbilityPriceRarity];
-  const scale = currentLevel === 0 ? 1 : 1.5 + 0.75 * currentLevel;
+  const price = abilityLevelPrice(ability.rarity as AbilityPriceRarity, currentLevel);
   const currency = ABILITY_CURRENCY[ability.name];
   return {
-    xp: Math.round(base.xp * scale),
-    currency: currency ? { [currency]: Math.round(base.units * scale) } : {},
+    xp: price.xp,
+    currency: currency && price.units > 0 ? { [currency]: price.units } : {},
   };
 }
 
-function createAbilityItem(ownedLevels: Map<string, number> = new Map()): AbilityItem | null {
-  const roll = random();
-  let pool: Ability[] = ABILITIES;
-
-  // How often a rarity appears depends on the rarity: half the offers are
-  // commons, a third uncommons, the rest rares.
-  if (roll < 0.5) {
-    pool = ABILITIES.filter((a) => a.rarity === AbilityRarity.COMMON);
-  } else if (roll < 0.85) {
-    pool = ABILITIES.filter((a) => a.rarity === AbilityRarity.UNCOMMON);
-  } else {
-    pool = ABILITIES.filter((a) => a.rarity === AbilityRarity.RARE);
-  }
+function createAbilityItem(
+  ownedLevels: Map<string, number>,
+  tier: OpponentTier,
+): AbilityItem | null {
+  // Each season opens a rarity (ABILITY_OFFER_WEIGHTS).
+  const rarity = offerRarity(random(), tier);
+  const pool = ABILITIES.filter((a) => a.rarity === (rarity as string));
 
   if (pool.length === 0) return null;
   const template = pool[Math.floor(random() * pool.length)];
@@ -127,7 +126,10 @@ function createAbilityItem(ownedLevels: Map<string, number> = new Map()): Abilit
   };
 }
 
-export function generateDailyShopItems(ownedLevels: Map<string, number> = new Map()): ShopItem[] {
+export function generateDailyShopItems(
+  ownedLevels: Map<string, number> = new Map(),
+  tier: OpponentTier = 1,
+): ShopItem[] {
   const items: ShopItem[] = [];
   const usedNames = new Set<string>();
 
@@ -151,7 +153,7 @@ export function generateDailyShopItems(ownedLevels: Map<string, number> = new Ma
 
   // Generate 2 abilities
   while (items.filter((i) => i.category === 'ability').length < 2) {
-    const abilityItem = createAbilityItem(ownedLevels);
+    const abilityItem = createAbilityItem(ownedLevels, tier);
     if (abilityItem && !usedNames.has(abilityItem.name)) {
       items.push(abilityItem);
       usedNames.add(abilityItem.name);

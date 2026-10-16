@@ -83,7 +83,7 @@ function opponent(): { stats: PlayerStats; profile: ArchetypeProfile; surface: C
   return {
     stats: team.opponent.stats,
     profile: profileForArchetype(team.opponent.archetype),
-    surface: team.surface,
+    surface: team.venue.surface,
   };
 }
 

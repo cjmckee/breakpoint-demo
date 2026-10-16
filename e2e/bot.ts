@@ -25,8 +25,9 @@ import { readGame, playMatch, type TacticPolicy } from './helpers';
 // idea of how good the player is.
 import { calculateOverallRating } from '../src/utils/overallRating';
 import { TimeSlot } from '../src/types/game';
-import { ANCHOR_TRAINING_ENERGY_COST } from '../src/game/AnchorTrainingSystem';
+import { TRAINING_ENERGY_COST } from '../src/game/TrainingSystem';
 import { canBuyAny } from '../src/game/StatDevelopment';
+import { SeasonManager } from '../src/game/SeasonManager';
 
 /**
  * True when the element is on screen and clickable.
@@ -61,6 +62,8 @@ export interface BotLog {
   statPointsBought: number;
   /** Phases the bot had no handler for — each one is a gap, not a pass. */
   unhandledPhases: string[];
+  /** The run stopped at the end of the written story, before `untilDay`. */
+  contentEnded: boolean;
   /** Snapshots of the headline numbers, one per in-game day. */
   daily: Array<{ day: number; energy: number; overall: number; xp: number }>;
 }
@@ -77,6 +80,7 @@ function emptyLog(): BotLog {
     itemsAcquired: 0,
     statPointsBought: 0,
     unhandledPhases: [],
+    contentEnded: false,
     daily: [],
   };
 }
@@ -95,9 +99,6 @@ export interface BotOptions {
   maxActions?: number;
 }
 
-/** Which of the five core anchors to train, cycled so the build stays even. */
-const ANCHORS = ['serve', 'forehand', 'backhand', 'return', 'net'] as const;
-
 /**
  * Plays until `untilDay`, then returns what happened.
  *
@@ -108,7 +109,7 @@ export async function runBot(page: Page, options: BotOptions): Promise<BotLog> {
   const { untilDay, tactics = 'first', playMatches = true, maxActions = 600 } = options;
   const log = emptyLog();
 
-  let anchorIndex = 0;
+  let pickIndex = 0;
   let actions = 0;
   let lastDaySnapshotted = -1;
   // Softlock detection, in two shapes. A phase that never changes is the easy
@@ -140,6 +141,17 @@ export async function runBot(page: Page, options: BotOptions): Promise<BotLog> {
     }
 
     if (day >= untilDay && phase.type === 'idle' && !phase.overlay) break;
+    // The end of the written story has no menu to act on: the run is over.
+    if (
+      phase.type === 'idle' &&
+      !phase.overlay &&
+      state.player &&
+      SeasonManager.contentEnded(state.player.tier, state.completedStoryEvents)
+    ) {
+      await expect(page.getByTestId('content-end')).toBeVisible();
+      log.contentEnded = true;
+      break;
+    }
 
     const overlay = phase.type === 'idle' ? (phase.overlay?.type ?? 'none') : '';
     const slot = state.calendar.currentTimeSlot;
@@ -184,14 +196,7 @@ export async function runBot(page: Page, options: BotOptions): Promise<BotLog> {
     }
 
     actions++;
-    await step(
-      page,
-      state,
-      phase,
-      log,
-      { tactics, playMatches },
-      () => ANCHORS[anchorIndex++ % ANCHORS.length],
-    );
+    await step(page, state, phase, log, { tactics, playMatches }, () => pickIndex++);
   }
 
   if (actions >= maxActions) {
@@ -225,7 +230,7 @@ export async function drainToIdle(
 ): Promise<BotLog> {
   const { maxActions = 60, tactics = 'first' } = opts;
   const log = emptyLog();
-  let anchorIndex = 0;
+  let pickIndex = 0;
 
   for (let i = 0; i < maxActions; i++) {
     const state = await readGame(page);
@@ -241,14 +246,7 @@ export async function drainToIdle(
       return log;
     }
 
-    await step(
-      page,
-      state,
-      phase,
-      log,
-      { tactics, playMatches: true },
-      () => ANCHORS[anchorIndex++ % ANCHORS.length],
-    );
+    await step(page, state, phase, log, { tactics, playMatches: true }, () => pickIndex++);
   }
 
   const where = (await readGame(page)).gamePhase;
@@ -265,7 +263,7 @@ async function step(
   phase: Awaited<ReturnType<typeof readGame>>['gamePhase'],
   log: BotLog,
   policy: { tactics: TacticPolicy; playMatches: boolean },
-  nextAnchor: () => string,
+  nextPick: () => number,
 ): Promise<void> {
   switch (phase.type) {
     case 'idle': {
@@ -314,11 +312,11 @@ async function step(
       }
 
       // Check the cost here rather than trusting the tile: the bot used to walk
-      // into Training on fumes, find every anchor disabled, back out, and walk
+      // into Training on fumes, find every drill disabled, back out, and walk
       // straight back in — a loop that burned a whole run without the calendar
       // moving. The menu now disables the tile too, so this is belt and braces.
       const trainTile = page.getByTestId('action-training');
-      if (state.currentStatus.energy >= ANCHOR_TRAINING_ENERGY_COST && (await usable(trainTile))) {
+      if (state.currentStatus.energy >= TRAINING_ENERGY_COST && (await usable(trainTile))) {
         await trainTile.click();
         return;
       }
@@ -332,9 +330,11 @@ async function step(
       // Quick Sim rather than the minigame: it banks a guaranteed support without
       // depending on reflexes, which is what a soak run wants. The minigames
       // themselves are covered by trainingMinigame.spec.ts.
-      const anchor = nextAnchor();
-      const tile = page.getByTestId(`training-anchor-${anchor}`);
-      if (!(await usable(tile))) {
+      // The slot offers three drills; take them in turn so the pay stays mixed.
+      const cards = page.locator('[data-testid="training-offer"] [data-drill]');
+      const offered = await cards.count();
+      const tile = cards.nth(nextPick() % Math.max(1, offered));
+      if (offered === 0 || !(await usable(tile))) {
         await page.getByTestId('screen-back').click();
         return;
       }

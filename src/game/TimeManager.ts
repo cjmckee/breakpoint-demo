@@ -39,26 +39,47 @@ export class TimeManager {
   }
 
   /**
-   * Advance to next day
+   * Advance to the next day, and begin a season that a promotion queued for it.
    */
   static advanceDay(calendar: GameCalendar): GameCalendar {
-    const daysPerSeason = 90; // ~3 months
-
-    if (calendar.currentDay >= daysPerSeason) {
-      // Move to next season
-      return {
-        ...calendar,
-        currentSeason: calendar.currentSeason + 1,
-        currentDay: 1,
-        currentTimeSlot: TimeSlot.MORNING,
-      };
-    }
+    const currentDay = calendar.currentDay + 1;
+    const upcoming = calendar.upcomingSeason;
+    const begins = upcoming !== null && currentDay >= upcoming.startDay;
 
     return {
       ...calendar,
-      currentDay: calendar.currentDay + 1,
+      currentDay,
       currentTimeSlot: TimeSlot.MORNING,
+      ...(begins && {
+        currentSeason: upcoming.season,
+        seasonStartDay: upcoming.startDay,
+        upcomingSeason: null,
+      }),
     };
+  }
+
+  /**
+   * Queue `season` to begin on the morning after the current day. Promotion
+   * calls this, so the rest of the promotion day still reads as the old season.
+   */
+  static queueSeason(calendar: GameCalendar, season: number): GameCalendar {
+    return { ...calendar, upcomingSeason: { season, startDay: calendar.currentDay + 1 } };
+  }
+
+  /** Today's day of the season, counted from 1. */
+  static seasonDay(calendar: GameCalendar): number {
+    return this.seasonDayOf(calendar, calendar.currentDay);
+  }
+
+  /**
+   * The season day a calendar day falls on, as the player will see it then. A
+   * day on or after a queued season's start counts from that season.
+   */
+  static seasonDayOf(calendar: GameCalendar, day: number): number {
+    const upcoming = calendar.upcomingSeason;
+    const start =
+      upcoming && day >= upcoming.startDay ? upcoming.startDay : calendar.seasonStartDay;
+    return day - start + 1;
   }
 
   /**
@@ -75,10 +96,10 @@ export class TimeManager {
   static getTimeDisplay(calendar: GameCalendar): TimeDisplayInfo {
     return {
       season: calendar.currentSeason,
-      day: calendar.currentDay,
+      day: this.seasonDay(calendar),
       timeSlot: calendar.currentTimeSlot,
       timeSlotName: TIME_SLOT_NAMES[calendar.currentTimeSlot],
-      formattedDisplay: `Season ${calendar.currentSeason}, Day ${calendar.currentDay} - ${TIME_SLOT_NAMES[calendar.currentTimeSlot]}`,
+      formattedDisplay: `Season ${calendar.currentSeason}, Day ${this.seasonDay(calendar)} - ${TIME_SLOT_NAMES[calendar.currentTimeSlot]}`,
     };
   }
 

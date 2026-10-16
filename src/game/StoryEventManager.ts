@@ -19,6 +19,14 @@ import type { MinigameScore } from '../minigames/types';
 import { random } from '../core/random';
 export class StoryEventManager {
   /**
+   * Whether an event can no longer fire by id: it has run, and it isn't
+   * repeatable. Random rolls ignore `repeatable` and take each event once.
+   */
+  static isUsedUp(event: StoryEvent, completedStoryEvents: string[]): boolean {
+    return !event.repeatable && completedStoryEvents.includes(event.id);
+  }
+
+  /**
    * Check if the current day has scheduled events or an active tournament.
    * On busy days, time-consuming story events (timeSlotsRequired > 0) should
    * not randomly trigger, to avoid causing the player to miss matches or
@@ -78,8 +86,8 @@ export class StoryEventManager {
       return null;
     }
 
-    // Skip if already completed
-    if (gameState.completedStoryEvents.includes(event.id)) {
+    // Skip if already completed, unless it is written to run again
+    if (this.isUsedUp(event, gameState.completedStoryEvents)) {
       console.log(`❌ Event already completed: ${eventId}`);
       return null;
     }

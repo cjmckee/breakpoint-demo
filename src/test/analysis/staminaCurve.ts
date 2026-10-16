@@ -219,7 +219,7 @@ function main(): void {
             return new PlayerProfile('p', 'P', st);
           },
           () => new PlayerProfile('o', 'O', chet.stats, profileForArchetype(chet.archetype)),
-          TEAM_MATCH_1.surface,
+          TEAM_MATCH_1.venue.surface,
         );
         console.log = log;
         printRow(`${name} / day-15 (28s, stamina ${s}) v Chet`, row);

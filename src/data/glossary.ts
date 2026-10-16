@@ -277,7 +277,7 @@ export const CURRENCY_GUIDE: GlossarySection[] = [
       {
         term: 'Earning',
         definition:
-          'Each training shot pays its own mix (serve pays Power and Mind, backhand pays Technique and Quickness), more for every clean rep. A match pays mostly Mind, the rest by how each part of your game went. Story events and challenges pay too, and a bad decision can cost currency — never below zero.',
+          'Each training shot pays its own mix (serve pays Power and Mind, backhand pays Technique and Quickness), more for every clean rep. A match pays a little of every currency, and more for each part of your game that went well. Story events and challenges pay too, and a bad decision can cost currency — never below zero.',
       },
       {
         term: 'Recipes',

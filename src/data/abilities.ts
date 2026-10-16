@@ -96,7 +96,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.RALLY_MOMENTUM]: 2.4,
+        [EffectKey.RALLY_MOMENTUM]: 4,
       },
     },
     description:
@@ -212,7 +212,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
       statBoosts: {},
       additional: {
         [EffectKey.SMASH_POWER]: 4,
-        [EffectKey.SERVE_SPEED]: 1.5,
+        [EffectKey.SERVE_SPEED]: 2.5,
       },
     },
     description:
@@ -274,7 +274,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.PERFECT_TIMING]: 14,
+        [EffectKey.PERFECT_TIMING]: 10,
         [EffectKey.MENTAL_RESILIENCE]: 6,
       },
     },

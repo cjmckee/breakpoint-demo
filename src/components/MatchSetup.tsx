@@ -39,7 +39,8 @@ export const MatchSetup: React.FC = () => {
   const setMatchSetup = useGameStore((state) => state.setMatchSetup);
   const getPracticeOpponent = useGameStore((state) => state.getPracticeOpponent);
 
-  const [selectedTier, setSelectedTier] = useState<OpponentTier>(1);
+  // A player practises at their own tier by default; lower tiers stay a click away.
+  const [selectedTier, setSelectedTier] = useState<OpponentTier>(player?.tier ?? 1);
   const [selectedSurface, setSelectedSurface] = useState<CourtSurface>('hard');
 
   if (!player) {
@@ -107,6 +108,8 @@ export const MatchSetup: React.FC = () => {
               return (
                 <button
                   key={info.tier}
+                  data-testid={`practice-tier-${info.tier}`}
+                  data-selected={isSelected}
                   onClick={() => isUnlocked && setSelectedTier(info.tier)}
                   disabled={!isUnlocked}
                   className={`flex flex-col p-4 border-4 text-left transition-all relative ${

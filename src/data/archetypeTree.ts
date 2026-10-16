@@ -11,6 +11,7 @@
  */
 
 import { EffectKey } from '../types/game';
+import type { OpponentTier } from '../types/game';
 import type {
   ArchetypeProfile,
   BroadArchetype,
@@ -127,7 +128,11 @@ const PATHS: PhasePathDef[] = [
         [EffectKey.SERVE_SPEED]: -4,
         [EffectKey.SECOND_SERVE_AGGRESSION]: -8,
       },
-      { [EffectKey.FAULT_RISK]: -4, [EffectKey.SECOND_SERVE_AGGRESSION]: 3 },
+      {
+        [EffectKey.FAULT_RISK]: -4,
+        [EffectKey.SERVE_SPEED]: 2,
+        [EffectKey.SECOND_SERVE_AGGRESSION]: 5,
+      },
       {
         [EffectKey.FAULT_RISK]: -4,
         [EffectKey.SERVE_SPEED]: 2,
@@ -221,11 +226,11 @@ const PATHS: PhasePathDef[] = [
     description:
       "Find ways to take time from the opponent. Chip the return and follow it in. By the time they look up, you're at the net again.",
     tradeoff: 'Gets to the net quickly but exposed to the pass.',
-    leveling: 'Sharpens your net finish.',
+    leveling: 'Picks its moments: charges a little less often, behind a better return.',
     tierEffects: [
       { [EffectKey.RETURN_AGGRESSION]: 6, [EffectKey.NET_APPROACH_BIAS]: 14 },
-      { [EffectKey.RALLY_WINNER_BIAS]: 3 },
-      { [EffectKey.RALLY_WINNER_BIAS]: 3 },
+      { [EffectKey.NET_APPROACH_BIAS]: -7 },
+      { [EffectKey.NET_APPROACH_BIAS]: -7 },
     ],
   },
 
@@ -317,15 +322,19 @@ const PATHS: PhasePathDef[] = [
     description:
       "A low, knifing slice — change the rhythm and look for your opportunity. You've spent years studying the Wilson Blade.",
     tradeoff: 'Great variety and defense, but cedes pace and offense.',
-    leveling: 'Deepens the slice and improves rally tolerance further.',
+    leveling: 'Your backhand boost carries into the slice, and rallies run longer.',
     tierEffects: [
       {
         [EffectKey.SLICE_PREFERENCE_BACKHAND]: 10,
         [EffectKey.RALLY_PATIENCE]: 4,
         [EffectKey.DROP_SHOT_BIAS]: 8,
       },
-      { [EffectKey.SLICE_PREFERENCE_BACKHAND]: 7, [EffectKey.DROP_SHOT_BIAS]: 5 },
-      { [EffectKey.SLICE_PREFERENCE_BACKHAND]: 7, [EffectKey.RALLY_PATIENCE]: 2 },
+      {
+        [EffectKey.SLICE_PREFERENCE_BACKHAND]: 3,
+        [EffectKey.RALLY_PATIENCE]: 3,
+        [EffectKey.DROP_SHOT_BIAS]: 3,
+      },
+      { [EffectKey.RALLY_PATIENCE]: 3 },
     ],
   },
   {
@@ -368,11 +377,11 @@ const PATHS: PhasePathDef[] = [
     description:
       "Come forward only on a genuine short ball — controlled aggression. You're only as good as your approach shot.",
     tradeoff: 'Balanced — picks good moments without overexposing.',
-    leveling: 'Improves net approach frequency further.',
+    leveling: 'Comes in more often, and your net boost carries into the approach.',
     tierEffects: [
       { [EffectKey.NET_APPROACH_BIAS]: 5, [EffectKey.PUTAWAY_VOLLEY_BIAS]: 3 },
-      { [EffectKey.NET_APPROACH_BIAS]: 3, [EffectKey.PUTAWAY_VOLLEY_BIAS]: 3 },
-      { [EffectKey.NET_APPROACH_BIAS]: 3, [EffectKey.PUTAWAY_VOLLEY_BIAS]: 2 },
+      { [EffectKey.NET_APPROACH_BIAS]: 6, [EffectKey.PUTAWAY_VOLLEY_BIAS]: 3 },
+      { [EffectKey.NET_APPROACH_BIAS]: 6, [EffectKey.PUTAWAY_VOLLEY_BIAS]: 3 },
     ],
   },
   {
@@ -519,11 +528,30 @@ export type LegacyArchetype =
   'aggressive' | 'defensive' | 'counterpuncher' | 'serve_volley' | 'all_court';
 
 /**
+ * The highest specialty tier a player can reach in each career tier: tier I at
+ * Club, II at Regional, III from the Tour.
+ */
+export function maxSpecialtyTier(playerTier: number): SpecialtyTier {
+  return Math.max(1, Math.min(3, playerTier)) as SpecialtyTier;
+}
+
+/** The season that opens each specialty tier past I, for the locked caption. */
+export const SPECIALTY_TIER_SEASON: Record<2 | 3, string> = { 2: 'Regional', 3: 'Tour' };
+
+/**
  * Build a full archetype profile from a legacy archetype label. Opponents (and
  * any code that only knows the coarse archetype) use this so they play with a
  * coherent, authored phase identity rather than a stat-derived one.
+ *
+ * The authored profiles are the Club ones, a mix of tier I and II that bronze is
+ * balanced against. From Regional every specialty plays at least the tier the
+ * player can reach there (`maxSpecialtyTier`), so an opponent is never a
+ * specialty tier behind the player they meet.
  */
-export function profileForArchetype(legacy: LegacyArchetype): ArchetypeProfile {
+export function profileForArchetype(
+  legacy: LegacyArchetype,
+  tier: OpponentTier = 1,
+): ArchetypeProfile {
   const phasesByArchetype: Record<LegacyArchetype, Partial<Record<GamePhase, PhaseSpec>>> = {
     aggressive: {
       first_serve: { path: 'fs_bomber', tier: 2 },
@@ -563,9 +591,17 @@ export function profileForArchetype(legacy: LegacyArchetype): ArchetypeProfile {
     all_court: 'all_courter',
   };
 
+  const floor = maxSpecialtyTier(tier);
+  const phases = Object.fromEntries(
+    Object.entries(phasesByArchetype[legacy]).map(([phase, spec]) => [
+      phase,
+      { path: spec.path, tier: Math.max(spec.tier, floor) as SpecialtyTier },
+    ]),
+  ) as Partial<Record<GamePhase, PhaseSpec>>;
+
   return {
     broad: broadByArchetype[legacy],
-    phases: phasesByArchetype[legacy],
+    phases,
     specializationPoints: 0,
     respecTokens: 0,
   };

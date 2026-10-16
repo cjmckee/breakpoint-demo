@@ -6,9 +6,10 @@
 import React, { useState } from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { CalendarService } from '../game/CalendarService';
+import { TimeManager } from '../game/TimeManager';
 import { TournamentRegistry } from '../data/tournaments';
 import { TimeSlot } from '../types/game';
-import type { ScheduledEvent } from '../types/game';
+import type { GameCalendar, ScheduledEvent } from '../types/game';
 import type { TournamentMatchMetadata } from '../types/tournaments';
 import type { StoryMatchMetadata } from '../types/game';
 import { Modal } from './ui/Modal';
@@ -71,10 +72,10 @@ function getEventDisplay(event: ScheduledEvent): EventDisplay {
   }
 }
 
-function getDayLabel(day: number, currentDay: number): string {
-  if (day === currentDay) return 'Today';
-  if (day === currentDay + 1) return 'Tomorrow';
-  return `Day ${day}`;
+function getDayLabel(day: number, calendar: GameCalendar): string {
+  if (day === calendar.currentDay) return 'Today';
+  if (day === calendar.currentDay + 1) return 'Tomorrow';
+  return `Day ${TimeManager.seasonDayOf(calendar, day)}`;
 }
 
 interface MatchPreviewData {
@@ -104,7 +105,7 @@ function getMatchPreviewData(event: ScheduledEvent): MatchPreviewData | null {
       opponentDescription: opponent.description,
       opponentStats: opponent.stats,
       opponentPlayStyle: buildPlayStyle(createEmptyArchetypeProfile()),
-      surface: tournament.surface as CourtSurface,
+      surface: tournament.venue.surface as CourtSurface,
     };
   }
 
@@ -188,7 +189,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ isOpen, onClose }) =
               return (
                 <tr key={day} className={isToday ? 'bg-pixel-secondary/30' : ''}>
                   <td className="p-2 text-sm font-bold text-pixel-text whitespace-nowrap">
-                    {getDayLabel(day, calendar.currentDay)}
+                    {getDayLabel(day, calendar)}
                   </td>
                   {slots.map((slot) => {
                     const event = eventMap.get(`${day}-${slot}`);

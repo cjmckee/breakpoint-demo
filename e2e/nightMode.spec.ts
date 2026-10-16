@@ -15,7 +15,7 @@ import { startNewGame, dismissWalkthrough } from './helpers';
 /** Burns one time slot with a Quick Sim training session. */
 async function trainOnce(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Training' }).click();
-  await page.getByRole('button', { name: /^Train Serve,/ }).click();
+  await page.locator('[data-testid="training-offer"] [data-drill]').first().click();
   await page.getByRole('button', { name: /Quick Sim/ }).click();
   await page.getByRole('button', { name: 'Back to Menu' }).click();
 }

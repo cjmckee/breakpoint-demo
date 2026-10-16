@@ -3,12 +3,13 @@
  * Ported from ai-slop-gaming and adapted for ai-slop-tennis
  */
 
-import type { CoreStats, StatName, PlayerStats } from './index';
+import type { CourtSurface, StatName, PlayerStats } from './index';
 import type { ArchetypeProfile } from './archetype';
 import type { Appearance } from './appearance';
 import type { StoryEventResult } from './storyEvents';
 import type { Item, OwnedItem, EquipmentSlot } from './items';
 import type { ActiveTournament, TournamentMatchMetadata, MatchOpponent } from './tournaments';
+import type { DrillId } from '../minigames/types';
 
 export type { PlayerStats };
 
@@ -53,7 +54,7 @@ export interface Modifiers {
  * Game systems query these keys to apply effects.
  *
  * Sections:
- *   Training    — AnchorTraining.tsx reads these, then AnchorTrainingSystem
+ *   Training    — TrainingScreen.tsx reads these, then TrainingSystem
  *                 applies them to the session payout
  *   Event       — gameStore.ts story event logic
  *   Mood/Energy — gameStore.ts training/match/rest
@@ -147,6 +148,46 @@ export const EffectKey = {
  */
 export type EffectKeyValue = (typeof EffectKey)[keyof typeof EffectKey];
 
+// ============================================================================
+// VENUES
+// ============================================================================
+
+/**
+ * What a venue does to a match. Every condition is felt by both players, on top
+ * of the venue's surface (SURFACE_EFFECTS), except the crowd, which backs the
+ * home side.
+ */
+export interface VenueConditions {
+  /** Effects added to both players, by EffectKey: wind as fault risk, altitude as pace. */
+  effects?: Partial<Record<EffectKeyValue, number>>;
+  /** Multiplies how fast both players tire: 1.2 is a hot day. Unset is 1. */
+  fatigue?: number;
+  /**
+   * Wind, in serve-accuracy points: it knocks this much off an inaccurate
+   * server's accuracy roll, less off an accurate one's, and more off a server
+   * who plays risky (SERVE_WIND). 20 is a stiff breeze.
+   */
+  wind?: number;
+  /**
+   * Multiplies the momentum the home side gains from each point it wins. Only
+   * matters in a match that names a home side.
+   */
+  crowd?: number;
+}
+
+/** Where a match is played: a named court with its surface and conditions. */
+export interface Venue {
+  id: string;
+  name: string;
+  /** One line of flavour for the pre-match screen. */
+  description?: string;
+  surface: CourtSurface;
+  conditions?: VenueConditions;
+}
+
+/** Whose home court a match is on, for the crowd. */
+export type HomeSide = 'player' | 'opponent';
+
 export const AbilityName = {
   // common
   BASELINER: 'baseliner',
@@ -191,7 +232,12 @@ export const AbilityName = {
 // TRAINING SYSTEM
 // ============================================================================
 
-export type TrainingSessionTier = 'bronze' | 'silver' | 'gold' | 'diamond';
+/**
+ * The tier of training a player has access to, from their own tier
+ * (TrainingSystem.trainingTierFor): Club trains bronze, Regional silver,
+ * the Tour and above gold. Silver adds the focus choice and harder drills.
+ */
+export type TrainingSessionTier = 'bronze' | 'silver' | 'gold';
 
 export type TierModification = 'promoted' | 'demoted';
 
@@ -220,8 +266,22 @@ export interface TournamentCompletion {
 }
 
 export interface GameCalendar {
+  /** The season being played. Each tier is one season, so this is the tier it belongs to. */
   currentSeason: number;
+  /**
+   * Days since the career began, starting at 1. It never resets: scheduled
+   * events, unlock gates and "days until" all count on it. What the player
+   * sees, and what story `minDay`/`maxDay` read, is the season day
+   * (TimeManager.seasonDay).
+   */
   currentDay: number;
+  /** The `currentDay` on which the current season began. */
+  seasonStartDay: number;
+  /**
+   * A promotion starts the next season the following morning, so the rest of
+   * the promotion day still belongs to the old one. Cleared when it begins.
+   */
+  upcomingSeason: { season: number; startDay: number } | null;
   currentTimeSlot: TimeSlot;
   // Note: energy and mood are tracked in CurrentStatus, not in the calendar
 
@@ -265,6 +325,10 @@ export interface StoryMatchMetadata {
 
   // Match configuration
   surface?: 'hard' | 'clay' | 'grass' | 'carpet';
+  /** VENUES id; the match's surface is that venue's. */
+  venueId?: string;
+  /** Whose home court it is, for the venue's crowd. */
+  home?: HomeSide;
   matchFormat?: 'best-of-1' | 'best-of-3';
 
   // Display info
@@ -281,6 +345,9 @@ export interface StoryMatchMetadata {
   countsForMilestones?: boolean; // defaults to true
   isTutorial?: boolean; // show in-match tutorial guidance
   disableMatchForm?: boolean; // zero out match-day form variance for a predictable outcome
+
+  /** Set on a promotion playoff: which one (PLAYOFFS id), and which attempt this is (from 1). */
+  playoff?: { id: string; attempt: number };
 }
 
 /**
@@ -291,8 +358,10 @@ export interface StoryMatchMetadata {
 export interface TeamMatchConfig {
   opponent: MatchOpponent;
 
-  // Match configuration
-  surface: 'hard' | 'clay' | 'grass' | 'carpet';
+  // Match configuration. The court's surface is the venue's.
+  venue: Venue;
+  /** Whose home court it is, for the venue's crowd. Unset is neutral. */
+  home?: HomeSide;
   matchFormat: 'best-of-1' | 'best-of-3';
   matchTitle: string;
   matchDescription: string;
@@ -301,6 +370,26 @@ export interface TeamMatchConfig {
   prematchEventId: string;
   winEventId: string;
   lossEventId: string;
+}
+
+/**
+ * A promotion playoff (docs/proposals/mid-late-progression.md §3.3): one named
+ * opponent after the tier-final is lost, played until it is won.
+ *
+ * Losing schedules the same match again `retryDays` later, against the same
+ * opponent at the same strength: the days between are for training. The win
+ * event carries the promotion (`tierChange`). The prematch event plays before
+ * every attempt, so mark it `repeatable`.
+ */
+export interface PlayoffConfig extends Omit<TeamMatchConfig, 'lossEventId'> {
+  id: string;
+  /**
+   * The loss event for each attempt: the first loss plays [0], the second [1],
+   * and the last one plays for every loss after that, so mark it `repeatable`.
+   */
+  lossEventIds: string[];
+  /** Days from the tier-final elimination to the first attempt, and between attempts. */
+  retryDays: number;
 }
 
 /**
@@ -319,6 +408,24 @@ export interface ScheduledEvent {
   scheduledDay: number;
   scheduledTimeSlot: TimeSlot;
   metadata?: ScheduledEventMetadata;
+}
+
+/** One fixed beat of a season's spine: a story event on a given day of the season. */
+export interface SeasonBeat {
+  /** Day of the season, counted from 1 on the day the season starts. */
+  day: number;
+  slot: TimeSlot;
+  storyEventId: string;
+}
+
+/**
+ * A tier's season: the story events that fire on fixed days, scheduled all at
+ * once when the season starts. Everything else in a season chains off these
+ * (an announcement schedules its own match) or fires at random.
+ */
+export interface SeasonSchedule {
+  tier: OpponentTier;
+  beats: SeasonBeat[];
 }
 
 /**
@@ -373,8 +480,8 @@ export interface Activity {
 export interface TrainingResult extends Activity {
   type: 'training';
   source: 'training_activity';
-  /** The core stat the session was built around; its recipe shapes the payout. */
-  anchor: keyof CoreStats;
+  /** The drill played; its mix (TRAINING_MIXES) shapes the payout. */
+  drill: DrillId;
   /** Clean reps landed, including a bonus rep from items. */
   reps: number;
   currencyGained: CurrencyAmounts;
@@ -386,13 +493,11 @@ export interface TrainingResult extends Activity {
   abilityGained?: string;
   abilityLevel?: number;
   tierModification?: TierModification;
-  sessionTier?: TrainingSessionTier;
-  tier?: TrainingSessionTier; // Alias for sessionTier
+  sessionTier: TrainingSessionTier;
+  /** The currency that stood in for the drill's secondary one (silver and up). */
+  focus?: Currency;
   sessionType?: string;
   ability?: string;
-  roll?: number;
-  threshold?: number;
-  baseChance?: number;
   message?: string; // Success message
   moodChange: number; // Mood change from training
 }
@@ -543,6 +648,12 @@ export interface Player {
     breakPoints: number;
   };
 
+  /**
+   * The training focus last picked (silver and up): the currency that replaces
+   * a session's secondary one. Unset trains each shot's natural mix.
+   */
+  trainingFocus?: Currency;
+
   // Progression flags - simple booleans/values that track milestones and unlocks
   flags: Record<string, boolean | number | string>;
 }
@@ -596,6 +707,8 @@ export const DEFAULT_PLAYER_STATS: PlayerStats = {
 export const DEFAULT_CALENDAR: GameCalendar = {
   currentSeason: 1,
   currentDay: 1,
+  seasonStartDay: 1,
+  upcomingSeason: null,
   currentTimeSlot: TimeSlot.MORNING,
   practiceOpponents: {},
   scheduledEvents: [],

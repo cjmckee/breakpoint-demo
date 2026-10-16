@@ -5,7 +5,7 @@
 
 import { TacticalOption, KeyMomentType } from '../data/tacticalOptions';
 import { KeyMomentResult } from '../game/KeyMomentResolver';
-import { Ability, StatBoosts, PlayerStats } from './game';
+import { Ability, HomeSide, StatBoosts, PlayerStats, Venue } from './game';
 import { MatchStatistics, ShotDetail } from './index';
 import type { ArchetypeType } from '../data/archetypes';
 import type { ArchetypeProfile } from './archetype';
@@ -116,6 +116,10 @@ export interface InteractiveMatchConfig {
   opponentAbilities?: Ability[]; // Opponent abilities to apply during match
   itemBoosts?: StatBoosts; // Stat boosts from equipped/passive items
   surface: 'hard' | 'clay' | 'grass' | 'carpet';
+  /** Where the match is played. Its surface is `surface`; its conditions reach both players. */
+  venue?: Venue;
+  /** Whose home court it is, for the venue's crowd. */
+  home?: HomeSide;
 
   // Game state context
   mood: number;

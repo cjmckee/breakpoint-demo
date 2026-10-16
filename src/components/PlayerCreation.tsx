@@ -36,7 +36,6 @@ interface SwatchRowProps<K extends string> {
   options: readonly K[];
   selected: K;
   colorOf: (key: K) => string;
-  nameOf: (key: K) => string;
   testIdPrefix: string;
   onSelect: (key: K) => void;
 }
@@ -46,23 +45,19 @@ function SwatchRow<K extends string>({
   options,
   selected,
   colorOf,
-  nameOf,
   testIdPrefix,
   onSelect,
 }: SwatchRowProps<K>): React.ReactElement {
   return (
     <div>
-      <div className="text-sm font-bold text-pixel-text mb-2">
-        {label}: <span className="text-pixel-text-muted font-normal">{nameOf(selected)}</span>
-      </div>
+      <div className="text-sm font-bold text-pixel-text mb-2">{label}</div>
       <div className="flex flex-wrap gap-2">
-        {options.map((key) => (
+        {options.map((key, index) => (
           <button
             key={key}
             type="button"
             onClick={() => onSelect(key)}
-            title={nameOf(key)}
-            aria-label={`${label} ${nameOf(key)}`}
+            aria-label={`${label} ${index + 1}`}
             aria-pressed={key === selected}
             data-testid={`${testIdPrefix}-${key}`}
             className={`w-9 h-9 border-4 flex items-center justify-center ${
@@ -223,8 +218,7 @@ export const PlayerCreation: React.FC = () => {
                   label="Hair Color"
                   options={HAIR_COLOR_KEYS}
                   selected={appearance.hairColor}
-                  colorOf={(key) => HAIR_COLORS[key].ramp.base}
-                  nameOf={(key) => HAIR_COLORS[key].label}
+                  colorOf={(key) => HAIR_COLORS[key].base}
                   testIdPrefix="creator-hair-color"
                   onSelect={(key) => update('hairColor', key)}
                 />
@@ -232,8 +226,7 @@ export const PlayerCreation: React.FC = () => {
                   label="Skin Tone"
                   options={SKIN_TONE_KEYS}
                   selected={appearance.skinTone}
-                  colorOf={(key) => SKIN_TONES[key].ramp.base}
-                  nameOf={(key) => SKIN_TONES[key].label}
+                  colorOf={(key) => SKIN_TONES[key].base}
                   testIdPrefix="creator-skin"
                   onSelect={(key) => update('skinTone', key)}
                 />
@@ -241,8 +234,7 @@ export const PlayerCreation: React.FC = () => {
                   label="Kit"
                   options={KIT_COLOR_KEYS}
                   selected={appearance.kitColor}
-                  colorOf={(key) => KIT_COLORS[key].ramp.base}
-                  nameOf={(key) => KIT_COLORS[key].label}
+                  colorOf={(key) => KIT_COLORS[key].base}
                   testIdPrefix="creator-kit"
                   onSelect={(key) => update('kitColor', key)}
                 />

@@ -4,6 +4,10 @@
  * and tier events unlocked at each relationship milestone.
  */
 
+import type { OpponentTier } from '../types/game';
+import { PrerequisiteChecker } from '../game/PrerequisiteChecker';
+import { StoryEventRepository } from './storyEvents';
+
 export interface HangoutCharacterConfig {
   /** The three tier thresholds [tier1, tier2, tier3] — tier 0 starts at any met relationship */
   thresholds: readonly [number, number, number];
@@ -83,15 +87,25 @@ export function isHangoutCharacter(characterId: string): boolean {
 }
 
 /**
- * Returns true if the character has an unlocked tier event that hasn't been seen yet.
- * Used to determine whether the hang out option should be shown for this character.
+ * Returns true if the character has an unlocked tier event that hasn't been seen
+ * yet and belongs to the player's season. Used to show the hang out option, and
+ * checked again before a hangout marks its tier seen: a Club hangout found at
+ * Regional stays unseen rather than being spent on nothing.
  */
 export function hasUnseenTierEvent(
   characterId: string,
   relationshipValue: number,
   hangoutThresholdsSeen: Record<string, number[]>,
+  playerTier: OpponentTier,
 ): boolean {
   const seenForChar = hangoutThresholdsSeen[characterId] ?? [];
   const currentTier = getHangoutTier(characterId, relationshipValue);
-  return !seenForChar.includes(currentTier);
+  if (seenForChar.includes(currentTier)) return false;
+  const event = StoryEventRepository.getEventById(
+    HANGOUT_CHARACTERS[characterId].tierEventIds[currentTier],
+  );
+  return (
+    event !== undefined &&
+    PrerequisiteChecker.checkTierPrerequisites(playerTier, event.prerequisites.tier)
+  );
 }

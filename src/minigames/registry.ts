@@ -14,6 +14,7 @@ import { CornerPainterMinigame } from './games/CornerPainterMinigame';
 import { ReadReturnMinigame } from './games/ReadReturnMinigame';
 import { TouchSliceMinigame } from './games/TouchSliceMinigame';
 import { FishingCastMinigame } from './games/FishingCastMinigame';
+import { SplitStepSprintMinigame } from './games/SplitStepSprintMinigame';
 
 export const MINIGAMES: Record<MinigameId, React.FC<MinigameProps>> = {
   toss_and_strike: ServeMinigame,
@@ -22,4 +23,5 @@ export const MINIGAMES: Record<MinigameId, React.FC<MinigameProps>> = {
   read_return: ReadReturnMinigame,
   touch_slice: TouchSliceMinigame,
   fishing_cast: FishingCastMinigame,
+  split_step: SplitStepSprintMinigame,
 };

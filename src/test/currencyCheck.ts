@@ -12,10 +12,11 @@
  */
 
 import type { Player } from '../types/game';
-import { ABILITY_CURRENCY, CURRENCIES, STAT_RECIPES } from '../config/economy';
+import { ABILITY_CURRENCY, CURRENCIES, MATCH_PAYOUT, STAT_RECIPES } from '../config/economy';
 import { ABILITY_DEFINITIONS } from '../data/abilities';
 import { abilityPrice, generateDailyShopItems } from '../game/ShopSystem';
 import { PlayerManager } from '../game/PlayerManager';
+import { DRILL_ORDER } from '../game/TrainingSystem';
 import {
   contentCurrency,
   matchPayout,
@@ -162,19 +163,20 @@ function main(): void {
     unitsOf(rounded) === 8 && CURRENCIES.every((c) => Number.isInteger(rounded[c] ?? 0)),
     JSON.stringify(rounded),
   );
-  const serve3 = trainingPayout('serve', 3);
+  const rally3 = trainingPayout('rally_rhythm', 3);
   check(
-    'a clean serve session pays its mix four times: 8 Power, 4 Mind',
-    serve3.power === 8 && serve3.mind === 4 && Object.keys(serve3).length === 2,
-    JSON.stringify(serve3),
+    'a clean Rally Rhythm pays its mix four times: 8 Power, 4 Technique',
+    rally3.power === 8 && rally3.technique === 4 && Object.keys(rally3).length === 2,
+    JSON.stringify(rally3),
   );
   check(
     'a session with no clean reps pays the mix once',
-    JSON.stringify(trainingPayout('serve', 0)) === JSON.stringify({ power: 2, mind: 1 }),
+    JSON.stringify(trainingPayout('rally_rhythm', 0)) ===
+      JSON.stringify({ power: 2, technique: 1 }),
   );
   check(
     'every rep adds the same currencies — no strays from rounding',
-    (['serve', 'forehand', 'backhand', 'return', 'net'] as const).every((a) =>
+    DRILL_ORDER.every((a) =>
       [0, 1, 2, 3].every(
         (r) =>
           JSON.stringify(Object.keys(trainingPayout(a, r))) ===
@@ -184,15 +186,13 @@ function main(): void {
   );
   check(
     'a doubled session pays twice',
-    JSON.stringify(trainingPayout('backhand', 2, true)) ===
+    JSON.stringify(trainingPayout('corner_paint', 2, true)) ===
       JSON.stringify({ quickness: 6, technique: 12 }),
-    JSON.stringify(trainingPayout('backhand', 2, true)),
+    JSON.stringify(trainingPayout('corner_paint', 2, true)),
   );
   check(
     'every clean session pays the same total, 12 units',
-    (['serve', 'forehand', 'backhand', 'return', 'net'] as const).every(
-      (a) => unitsOf(trainingPayout(a, 3)) === 12,
-    ),
+    DRILL_ORDER.every((a) => unitsOf(trainingPayout(a, 3)) === 12),
   );
   const perf = {
     servingScore: 80,
@@ -204,17 +204,17 @@ function main(): void {
   };
   const lostFlat = matchPayout({ ...perf, overallScore: 0 }, false);
   check(
-    'a loss with no performance still pays 2 of each currency and 5 Mind',
-    lostFlat.power === 2 &&
-      lostFlat.quickness === 2 &&
-      lostFlat.technique === 2 &&
-      lostFlat.mind === 5,
+    'a loss with no performance still pays some of every currency: 3 Power, 1 Quickness, 3 Technique, 4 Mind',
+    lostFlat.power === 3 &&
+      lostFlat.quickness === 1 &&
+      lostFlat.technique === 3 &&
+      lostFlat.mind === 4,
     JSON.stringify(lostFlat),
   );
   const wonFlat = matchPayout({ ...perf, overallScore: 0 }, true);
   check(
-    'a win raises the base to 3 of each and 6 Mind',
-    wonFlat.power === 3 && wonFlat.quickness === 3 && wonFlat.technique === 3 && wonFlat.mind === 6,
+    'a win raises the base by one of each',
+    wonFlat.power === 4 && wonFlat.quickness === 2 && wonFlat.technique === 4 && wonFlat.mind === 5,
     JSON.stringify(wonFlat),
   );
   const match = matchPayout(perf, true);
@@ -294,6 +294,28 @@ function main(): void {
     stock.every((i) => i.category !== ('stat_increase' as string)),
     stock.map((i) => i.category).join(', '),
   );
+  const offeredRarities = (tier: 1 | 2 | 3 | 4): Set<string> => {
+    const seen = new Set<string>();
+    for (let day = 0; day < 200; day++) {
+      for (const item of generateDailyShopItems(new Map(), tier)) {
+        if (item.category === 'ability') seen.add(item.rarity);
+      }
+    }
+    return seen;
+  };
+  const club = offeredRarities(1);
+  const regional = offeredRarities(2);
+  const tour = offeredRarities(3);
+  check(
+    'the Club shop sells only common abilities',
+    [...club].join() === 'common',
+    [...club].join(),
+  );
+  check(
+    'Regional adds uncommons, and rares wait for the Tour',
+    regional.has('uncommon') && !regional.has('rare') && tour.has('rare'),
+    `regional ${[...regional].join()}, tour ${[...tour].join()}`,
+  );
 
   console.log('\n── match pay, line by line ──');
   let mismatches = 0;
@@ -334,7 +356,7 @@ function main(): void {
   check(
     'the base is its own line, named for the result, and a scoreless area has none',
     serveOnly[0].label === 'Lost match' &&
-      serveOnly[0].amounts.mind === 5 &&
+      serveOnly[0].amounts.mind === MATCH_PAYOUT.base.lost.mind &&
       !serveOnly.some((l) => l.label === 'Returning'),
     JSON.stringify(serveOnly),
   );

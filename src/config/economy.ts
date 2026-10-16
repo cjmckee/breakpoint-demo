@@ -8,8 +8,9 @@
  * docs/research/simulation-findings.md.
  */
 
-import type { Currency, CurrencyAmounts } from '../types/game';
-import type { CoreStats, StatName } from '../types';
+import type { Currency, CurrencyAmounts, OpponentTier } from '../types/game';
+import type { StatName } from '../types';
+import type { DrillId } from '../minigames/types';
 
 export const CURRENCIES: readonly Currency[] = ['power', 'quickness', 'technique', 'mind'];
 
@@ -55,19 +56,21 @@ export const PRICE_STEP = { from: 40, width: 20 };
 export const INCOME_SCALE = 1.2;
 
 /**
- * What each training pays per clean rep: two of its main currency and one of a
+ * What each drill pays per clean rep: two of its main currency and one of a
  * secondary. A session pays its mix × (reps + 1), so even a session with no
- * clean reps pays one mix. The five shots are five different mixes rather than
- * a mirror of their stat recipes — each is a way to steer what you earn.
- * Across the five, the supply (P 27%, Q 20%, T 33%, M 20%) sits close to what
- * the stat recipes demand (P 26%, Q 21%, T 30%, M 23%); matches pay most Mind.
+ * clean reps pays one mix. Four currencies make six pairs, one drill each, so
+ * every currency is in three drills and a roll of three drills offers each
+ * currency in all but about one slot in twenty. Across the six, the supply
+ * (P 28%, Q 22%, T 28%, M 22%) sits close to what the stat recipes demand
+ * (P 26%, Q 21%, T 30%, M 23%).
  */
-export const TRAINING_MIXES: Record<keyof CoreStats, CurrencyAmounts> = {
-  serve: { power: 2, mind: 1 },
-  forehand: { power: 2, technique: 1 },
-  backhand: { technique: 2, quickness: 1 },
-  return: { quickness: 2, mind: 1 },
-  net: { technique: 2, mind: 1 },
+export const TRAINING_MIXES: Record<DrillId, CurrencyAmounts> = {
+  rally_rhythm: { power: 2, technique: 1 },
+  split_step: { power: 2, quickness: 1 },
+  corner_paint: { technique: 2, quickness: 1 },
+  touch_slice: { technique: 2, mind: 1 },
+  read_return: { quickness: 2, mind: 1 },
+  toss_and_strike: { mind: 2, power: 1 },
 };
 
 /**
@@ -77,11 +80,15 @@ export const TRAINING_MIXES: Record<keyof CoreStats, CurrencyAmounts> = {
  * mental → Mind). The base means every match pays some of every currency; the
  * pool means how you played still decides most of the difference. Amounts are
  * literal units — INCOME_SCALE does not apply.
+ *
+ * The base leans to Mind, which matches are where the mental game pays, and is
+ * light on Quickness, which three drills already pay: measured with careerSim on
+ * the drill roll, a heavier Quickness base left Power builds holding 35-45 of it.
  */
 export const MATCH_PAYOUT = {
   base: {
-    lost: { power: 2, quickness: 2, technique: 2, mind: 5 },
-    won: { power: 3, quickness: 3, technique: 3, mind: 6 },
+    lost: { power: 3, quickness: 1, technique: 3, mind: 4 },
+    won: { power: 4, quickness: 2, technique: 4, mind: 5 },
   },
   pool: 20,
 };
@@ -96,14 +103,63 @@ export type AbilityPriceRarity = 'common' | 'uncommon' | 'rare';
 
 /**
  * Abilities cost a fixed amount per rarity in the currency their effect draws
- * on, plus XP. Level n → n+1 costs base × (1.5 + 0.75 × n). Legendaries are
- * never sold.
+ * on, plus XP. Levels cost more (ABILITY_LEVEL_PRICE). Legendaries are never sold.
  */
 export const ABILITY_PRICES: Record<AbilityPriceRarity, { units: number; xp: number }> = {
   common: { units: 15, xp: 70 },
   uncommon: { units: 28, xp: 140 },
   rare: { units: 40, xp: 250 },
 };
+
+/**
+ * What a level costs once the ability is owned: level n → n+1 costs the base ×
+ * (step + perLevel × n). From `xpOnlyFrom` owned levels on, a level costs XP
+ * only, at `xpOnlyScale` × its XP price: currency buys the ability, XP grows it.
+ * Infinity charges currency for every level.
+ */
+export const ABILITY_LEVEL_PRICE = {
+  step: 1.5,
+  perLevel: 0.75,
+  xpOnlyFrom: Infinity,
+  xpOnlyScale: 1,
+};
+
+/**
+ * How the shop's ability offers split by rarity, by the player's tier. Each
+ * season opens a rarity: commons at Club, uncommons from Regional, rares from the
+ * Tour (mid-late-progression.md §5), so a stronger ability is something to grow
+ * into rather than a lucky day-7 roll.
+ */
+export const ABILITY_OFFER_WEIGHTS: Record<OpponentTier, Record<AbilityPriceRarity, number>> = {
+  1: { common: 1, uncommon: 0, rare: 0 },
+  2: { common: 0.6, uncommon: 0.4, rare: 0 },
+  3: { common: 0.5, uncommon: 0.35, rare: 0.15 },
+  4: { common: 0.5, uncommon: 0.35, rare: 0.15 },
+};
+
+/** The rarity a roll in [0, 1) picks for an offer at this tier. */
+export function offerRarity(roll: number, tier: OpponentTier): AbilityPriceRarity {
+  let left = roll;
+  for (const [rarity, weight] of Object.entries(ABILITY_OFFER_WEIGHTS[tier])) {
+    left -= weight;
+    if (left < 0) return rarity as AbilityPriceRarity;
+  }
+  return 'common';
+}
+
+/** What taking an ability of this rarity from `currentLevel` to the next costs. */
+export function abilityLevelPrice(
+  rarity: AbilityPriceRarity,
+  currentLevel: number,
+): { units: number; xp: number } {
+  const base = ABILITY_PRICES[rarity];
+  const p = ABILITY_LEVEL_PRICE;
+  const scale = currentLevel === 0 ? 1 : p.step + p.perLevel * currentLevel;
+  if (currentLevel >= p.xpOnlyFrom) {
+    return { units: 0, xp: Math.round(base.xp * scale * p.xpOnlyScale) };
+  }
+  return { units: Math.round(base.units * scale), xp: Math.round(base.xp * scale) };
+}
 
 /**
  * The currency each on-court ability is priced in: shot power is Power, touch

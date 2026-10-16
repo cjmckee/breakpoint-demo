@@ -22,7 +22,16 @@
 import { PlayerManager } from '../game/PlayerManager';
 import { ChallengeManager } from '../game/ChallengeManager';
 import { MatchRewardSystem } from '../game/MatchRewardSystem';
-import { buildAnchorTrainingResult, NO_TRAINING_BONUSES } from '../game/AnchorTrainingSystem';
+import {
+  buildTrainingResult,
+  DRILL_ORDER,
+  DRILLS_PER_SLOT,
+  NO_TRAINING_BONUSES,
+  trainingOffer,
+  trainingTierFor,
+} from '../game/TrainingSystem';
+import { TimeSlot, type Currency, type TrainingResult } from '../types/game';
+import { TRAINING_MIXES } from '../config/economy';
 import { unitsOf } from '../game/StatDevelopment';
 import { MatchStatistics } from '../core/MatchStatistics';
 import { PlayerProfile } from '../core/PlayerProfile';
@@ -189,7 +198,7 @@ function main(): void {
   console.log('\n── training effects change the session payout ──');
   {
     const paid = (bonuses = NO_TRAINING_BONUSES, reps = 2): number =>
-      unitsOf(buildAnchorTrainingResult('serve', reps, bonuses).currencyGained);
+      unitsOf(buildTrainingResult('rally_rhythm', reps, bonuses).currencyGained);
 
     const plain = paid();
     const doubled = paid({ doubleChance: 1, bonusRepChance: 0 });
@@ -200,8 +209,8 @@ function main(): void {
     );
 
     const certainBonus = { doubleChance: 0, bonusRepChance: 1 };
-    const withBonus = buildAnchorTrainingResult('serve', 2, certainBonus);
-    const withoutBonus = buildAnchorTrainingResult('serve', 2, NO_TRAINING_BONUSES);
+    const withBonus = buildTrainingResult('rally_rhythm', 2, certainBonus);
+    const withoutBonus = buildTrainingResult('rally_rhythm', 2, NO_TRAINING_BONUSES);
     check('two reps count two on their own', withoutBonus.reps === 2, `${withoutBonus.reps} reps`);
     check(
       'a certain bonus rep adds one rep, and pays for it',
@@ -218,11 +227,126 @@ function main(): void {
       bonusMessage,
     );
 
-    const whiffed = buildAnchorTrainingResult('serve', 0, certainBonus);
+    const whiffed = buildTrainingResult('rally_rhythm', 0, certainBonus);
     check(
       'a bonus rep never rescues a session that landed nothing',
       whiffed.reps === 0,
       `${whiffed.reps} reps: ${whiffed.message}`,
+    );
+  }
+
+  console.log('\n── each time slot offers three drills ──');
+  {
+    const offer = trainingOffer('p1', 12, TimeSlot.AFTERNOON).map((o) => o.drill);
+    check(
+      `an offer is ${DRILLS_PER_SLOT} different drills, in the drills' own order`,
+      offer.length === DRILLS_PER_SLOT &&
+        new Set(offer).size === offer.length &&
+        offer.every(
+          (d, i) => i === 0 || DRILL_ORDER.indexOf(d) > DRILL_ORDER.indexOf(offer[i - 1]),
+        ),
+      offer.join(', '),
+    );
+    check(
+      'asking again offers the same drills',
+      JSON.stringify(trainingOffer('p1', 12, TimeSlot.AFTERNOON)) ===
+        JSON.stringify(trainingOffer('p1', 12, TimeSlot.AFTERNOON)),
+    );
+    check(
+      'nothing sets a partner yet',
+      trainingOffer('p1', 12, TimeSlot.AFTERNOON).every((o) => o.partner === undefined),
+    );
+    const seen: Record<string, number> = {};
+    const missing: Record<Currency, number> = { power: 0, quickness: 0, technique: 0, mind: 0 };
+    const slots: string[] = [];
+    for (let day = 1; day <= 400; day++) {
+      for (const slot of [TimeSlot.MORNING, TimeSlot.AFTERNOON, TimeSlot.EVENING]) {
+        const drills = trainingOffer('p1', day, slot).map((o) => o.drill);
+        slots.push(drills.join());
+        for (const d of drills) seen[d] = (seen[d] ?? 0) + 1;
+        for (const c of Object.keys(missing) as Currency[]) {
+          if (!drills.some((d) => (TRAINING_MIXES[d][c] ?? 0) > 0)) missing[c] += 1;
+        }
+      }
+    }
+    const share = DRILL_ORDER.map((d) => (seen[d] ?? 0) / (slots.length * DRILLS_PER_SLOT));
+    check(
+      'over many slots each drill is offered about as often as the others (within 3 points)',
+      share.every((x) => Math.abs(x - 1 / DRILL_ORDER.length) < 0.03),
+      share.map((x) => (x * 100).toFixed(1) + '%').join(' '),
+    );
+    check(
+      'the offer changes from slot to slot',
+      new Set(slots).size > 10 && slots.some((s, i) => i > 0 && s !== slots[i - 1]),
+    );
+    const worst = Math.max(...Object.values(missing)) / slots.length;
+    check(
+      'a slot offers every currency all but about one time in twenty',
+      worst < 0.08,
+      Object.entries(missing)
+        .map(([c, n]) => `${c} missing ${((n / slots.length) * 100).toFixed(1)}%`)
+        .join(', '),
+    );
+    check(
+      'every currency is paid by exactly three drills, one pair each',
+      (['power', 'quickness', 'technique', 'mind'] as const).every(
+        (c) => DRILL_ORDER.filter((d) => (TRAINING_MIXES[d][c] ?? 0) > 0).length === 3,
+      ) &&
+        new Set(DRILL_ORDER.map((d) => Object.keys(TRAINING_MIXES[d]).sort().join())).size ===
+          DRILL_ORDER.length,
+    );
+  }
+
+  console.log('\n── silver training: a focus swaps the secondary, never the total ──');
+  {
+    const silver = (focus?: Currency): TrainingResult =>
+      buildTrainingResult('rally_rhythm', 3, NO_TRAINING_BONUSES, { sessionTier: 'silver', focus });
+    const natural = silver();
+    const mind = silver('mind');
+    check(
+      'a focus pays exactly what the natural mix pays',
+      unitsOf(mind.currencyGained) === unitsOf(natural.currencyGained),
+      `${unitsOf(natural.currencyGained)} → ${unitsOf(mind.currencyGained)}`,
+    );
+    check(
+      "it keeps the drill's main currency and swaps the secondary",
+      mind.currencyGained.power === natural.currencyGained.power &&
+        !mind.currencyGained.technique &&
+        (mind.currencyGained.mind ?? 0) === (natural.currencyGained.technique ?? 0),
+      JSON.stringify(mind.currencyGained),
+    );
+    check(
+      'focusing on the main currency makes the session all main',
+      JSON.stringify(silver('power').currencyGained) ===
+        JSON.stringify({ power: unitsOf(natural.currencyGained) }),
+      JSON.stringify(silver('power').currencyGained),
+    );
+    check(
+      'every drill has one main and one secondary currency, so a focus is well defined',
+      DRILL_ORDER.every((drill) => {
+        const amounts = Object.values(TRAINING_MIXES[drill]).filter((n) => (n ?? 0) > 0);
+        return amounts.length === 2 && amounts[0] !== amounts[1];
+      }),
+    );
+    const bronze = buildTrainingResult('rally_rhythm', 3, NO_TRAINING_BONUSES, {
+      sessionTier: 'bronze',
+      focus: 'technique',
+    });
+    check(
+      'bronze ignores a focus left over from a higher tier',
+      bronze.focus === undefined &&
+        JSON.stringify(bronze.currencyGained) === JSON.stringify(natural.currencyGained),
+    );
+    check(
+      'the session carries its tier and focus',
+      mind.sessionTier === 'silver' && mind.focus === 'mind',
+    );
+    check(
+      'Club trains bronze, Regional silver, the Tour and World gold',
+      trainingTierFor(1) === 'bronze' &&
+        trainingTierFor(2) === 'silver' &&
+        trainingTierFor(3) === 'gold' &&
+        trainingTierFor(4) === 'gold',
     );
   }
 

@@ -284,8 +284,8 @@ function main(): void {
       migrated.relationships.jen === 30,
   );
   check(
-    'tier progression survives',
-    JSON.stringify(migrated.unlockedTiers) === JSON.stringify([1, 2]),
+    'the old tier-unlock list is dropped (player.tier is the tier)',
+    !('unlockedTiers' in migrated),
   );
   check('current status survives', migrated.currentStatus.energy === 62);
 
@@ -441,6 +441,22 @@ function main(): void {
     kept.player?.appearance.hairStyle === 'ponytail',
   );
 
+  console.log('\n  the 13 → 14 change itself:');
+  check(
+    'a save from before seasons is in the season that began on day 1',
+    migrated.calendar.seasonStartDay === 1 && migrated.calendar.upcomingSeason === null,
+    JSON.stringify(migrated.calendar),
+  );
+  const queued = { season: 2, startDay: 44 };
+  const midPromotion = runMigrations(
+    { ...migrated, calendar: { ...migrated.calendar, seasonStartDay: 1, upcomingSeason: queued } },
+    13,
+  ).state.calendar;
+  check(
+    'a calendar that already counts seasons is left alone',
+    midPromotion.upcomingSeason?.startDay === 44,
+  );
+
   console.log('\n── a save below the breaking floor is discarded ──');
   const stale = preConsolidationSave();
   const staleOutcome = runMigrations(stale, RESET_BEFORE_VERSION - 1);
@@ -458,10 +474,6 @@ function main(): void {
     JSON.stringify(reset.currentStatus) === JSON.stringify(fresh.currentStatus),
   );
   check('reset shopItems is empty', reset.shopItems.length === 0);
-  check(
-    'reset unlockedTiers is just tier 1',
-    JSON.stringify(reset.unlockedTiers) === JSON.stringify([1]),
-  );
   check(
     "reset never carries the stale player's data forward",
     JSON.stringify(reset) !== JSON.stringify(stale),

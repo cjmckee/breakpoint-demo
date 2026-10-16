@@ -260,6 +260,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   const playerEffects = MatchOrchestrator.extractActiveEffects(
     matchConfig?.playerAbilities,
     matchConfig?.playerArchetypeProfile,
+    matchConfig?.venue,
   );
   const modifiers = KeyMomentResolver.getContextModifiers(
     {
