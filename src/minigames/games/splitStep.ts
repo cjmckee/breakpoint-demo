@@ -23,11 +23,11 @@ export type MashButton = (typeof MASH_BUTTONS)[number];
 /** The split step: how long the player waits before the arrow, in seconds. */
 export const CUE_DELAY = { min: 0.7, max: 1.6 };
 /** Seconds to push the arrow's direction, at speed ×1. */
-export const REACT_WINDOW = 0.9;
+export const REACT_WINDOW = 1.2;
 /** Presses that fill the meter. */
 export const MASH_TARGET = 8;
-/** Seconds to fill it, at speed ×1: about 3.6 presses a second. */
-export const MASH_WINDOW = 2.2;
+/** Seconds to fill it, at speed ×1: under 3 presses a second, so a phone thumb keeps up. */
+export const MASH_WINDOW = 2.8;
 
 export interface RepPlan {
   cueAt: number;
