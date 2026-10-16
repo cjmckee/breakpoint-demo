@@ -12,7 +12,8 @@ buys from the shop: gear, consumables and abilities. An ability costs both XP an
 the base × (1.5 + 0.75 × level)).
 
 `careerSim LEDGER=1` follows 10 careers per identity with the patient spender, which buys stats
-and abilities but no gear:
+and abilities but no gear. This table and the X1/X2 tables below were measured at commit 93adf1f,
+before the shop offered abilities by season (05b0b87).
 
 | career day      | XP earned | XP on abilities | XP unspent  | ability levels bought |
 | --------------- | --------- | --------------- | ----------- | --------------------- |
@@ -60,18 +61,20 @@ mean of the four identities, ±1-2):
 a slot (its own abilities removed), against team match 3's shape at that season's target. Mean
 point-win gain over the four identities, N=300 per cell, ±0.5-1:
 
-| ability                | rarity   | Club | Regional | Tour | World |
-| ---------------------- | -------- | ---- | -------- | ---- | ----- |
-| Pressure Cooker        | rare     | +1.3 | +1.2     | +1.7 | +2.1  |
-| All-Court Maestro      | rare     | +0.7 | +1.4     | +1.0 | +2.1  |
-| Speed Demon            | uncommon | +0.4 | +1.3     | +1.2 | +1.8  |
-| Serve Cannon           | uncommon | +1.1 | +1.2     | +1.3 | +1.2  |
-| Rangy Return           | common   | +1.0 | +1.7     | +1.3 | +1.1  |
-| Slider                 | common   | +0.4 | +0.8     | +0.9 | +1.5  |
-| Heavy Hitter           | common   | +0.8 | +0.6     | +0.7 | +0.9  |
-| Baseliner, Spin Master | common   | ~0   | +0.1-0.5 | ~0.2 | ~0.4  |
-| Netcrasher, Soft Hands | common   | ~0   | +0.3     | -0.3 | +0.3  |
-| Overhead Smash         | common   | 0    | 0        | 0    | 0     |
+| ability                 | rarity   | Club | Regional | Tour     | World    |
+| ----------------------- | -------- | ---- | -------- | -------- | -------- |
+| Pressure Cooker         | rare     | +1.3 | +1.2     | +1.7     | +2.1     |
+| All-Court Maestro       | rare     | +0.7 | +1.4     | +1.0     | +2.1     |
+| Speed Demon             | uncommon | +0.4 | +1.3     | +1.2     | +1.8     |
+| Serve Cannon            | uncommon | +1.1 | +1.2     | +1.3     | +1.2     |
+| Rangy Return            | common   | +1.0 | +1.7     | +1.3     | +1.1     |
+| Slider                  | common   | +0.4 | +0.8     | +0.9     | +1.5     |
+| Heavy Hitter            | common   | +0.8 | +0.6     | +0.7     | +0.9     |
+| Spin Master             | common   | ~0   | +0.1-0.5 | ~0.2     | ~0.4     |
+| Baseliner, momentum 2.4 | common   | ~0   | +0.1-0.5 | ~0.2     | ~0.4     |
+| Baseliner, momentum 4   | common   | ~+1  | ~+1      | +0.3-0.4 | +0.3-0.4 |
+| Netcrasher, Soft Hands  | common   | ~0   | +0.3     | -0.3     | +0.3     |
+| Overhead Smash          | common   | 0    | 0        | 0        | 0        |
 
 - **Rarity now reads in the right order** at every season (rares and uncommons ahead of commons),
   and the abilities the first research found dead (Slider, Speed Demon, All-Court Maestro) work.

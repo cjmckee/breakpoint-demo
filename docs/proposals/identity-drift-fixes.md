@@ -1,7 +1,10 @@
 # Identity drift: proposals
 
-**Status:** applied. Every engine change is a config value; the defaults are the package below,
-and any step can be undone with `tuneRun` to compare. Diagnosis: [`research/identity-drift.md`](../research/identity-drift.md).
+**Status:** applied. Every change in the package is a config value in `shotThresholds.ts` or
+`overallRating.ts`; the defaults are the package below, and `tuneRun` can undo any step to compare
+(see "Reproducing"). Specialty parity is partly data: its tier II and III effects for Samurai,
+Opportunist, Pancake and Sneaky Beaky are in `src/data/archetypeTree.ts`, which `tuneRun` can't
+reach, so comparing against them means editing that file. Diagnosis: [`research/identity-drift.md`](../research/identity-drift.md).
 
 ## Direction
 
@@ -24,10 +27,13 @@ with the others held equal. Two numbers summarise a band:
   explain together. 100% means OVR is as good a predictor as the full stat line.
 - **Core / others:** the mean value of a core stat against the mean of the rest.
 
-N=6000-8000 pairings per band, so ±0.35-0.45 point-win per stat. The bands are Club U(25,50), Regional
-U(40,70), Tour U(55,85) and World U(65,95).
+The table before the package used N=6000-8000 pairings per band, so ±0.35-0.45 point-win per
+stat, and the one after it N=4000. `statLadder` defaults to N=2000, so these runs set `N`. The
+bands are Club U(25,50), Regional U(40,70), Tour U(55,85) and World U(65,95).
 
-## Before the package ("today" below)
+## Before the package
+
+Where this doc says "today", it means this state, before the package.
 
 | point-win per +10 | Club        | Regional    | Tour        | World           |
 | ----------------- | ----------- | ----------- | ----------- | --------------- |
@@ -83,7 +89,7 @@ one above.
 
 | step | change                                                                                          | OVR fit Club / Regional / Tour / World |
 | ---- | ----------------------------------------------------------------------------------------------- | -------------------------------------- |
-| —    | today                                                                                           | 76 / 63 / 59 / 50%                     |
+| —    | before the package                                                                              | 76 / 63 / 59 / 50%                     |
 | A    | support stats measured from the match level above 50 (`SUPPORT_NEUTRAL.followLevelFrom` 50)     | 76 / 62 / 64 / 59%                     |
 | B    | + specialty amplification capped at 15 of excess; returns read forehand and backhand            | 82 / – / 69 / –                        |
 | C    | + speed, anticipation and tactics adjustments and bands halved                                  | 84 / – / 74 / –                        |
@@ -274,6 +280,8 @@ the volleys a net boost lands on.
 | 104 Tour    | 54.1       | 46.6    | 61.0       | 50.3      | 18.4 → 14.4 |
 | 144 World   | 55.3       | 45.7    | 57.5       | 53.0      | 16.3 → 11.8 |
 
+The path table and this one were both measured before Sneaky Beaky's further trim (below).
+
 **What's still open**, with the data:
 
 - **The net rusher's specialties compound.** Without specialties it plays at 36.4, level with the
@@ -285,9 +293,9 @@ the volleys a net boost lands on.
   applied. A softer option is to let stacked approach biases saturate, which leaves one path alone
   unchanged. Club-safe trims alone can't close it: Club's serve-volley opponents play the same
   tier-I stack, so only the tier II/III increments Club never plays are free to change. Sneaky
-  Beaky's (net approach −4 → −7 per tier) brings that path from 8.9 to 6.2 at tier III, level with
-  the other return paths, and moves the net rusher by under a point. Downhill's and Bomber's tier
-  III increments changed nothing measurable.
+  Beaky's shipped (net approach −4 → −7 per tier, commit 931eb11): it brings that path from 8.9 to
+  6.2 at tier III, level with the other return paths, and moves the net rusher by under a point.
+  Downhill's and Bomber's tier III increments changed nothing measurable.
 - **Stat boosts saturate on a build that already has the stat.** The baseliner's forehand and
   backhand paths are worth about 6 each on an even player, but about 1 on its own build, whose
   wings sit at 82-89: the shot is near the quality ceiling already. Paths that change behaviour keep
@@ -318,14 +326,18 @@ the volleys a net boost lands on.
   World season was meant to give stamina, so OVR stays as it is. Venues are sized by season in
   §5.1 of the progression proposal: heat is now the strongest condition past Club.
 
-## Player feedback (unchanged from the first version)
+## Player feedback
 
-These were measured on today's sim; re-measure after the package.
+The first version proposed contest bars for the pre-match card: your serve against their return,
+and your return against their serve. They were superseded. The card now rates both players in five
+areas (`src/core/gameAreas.ts`): on serve, on return, baseline, at net and court coverage, each a
+blend of the stats the engine uses there. Measured on random builds, the two contests alone explain
+about 55-60% of the spread in point-win, the five areas 88-89%, and all fourteen stats 91-92%.
+`statLadder` prints the card's R² beside OVR's; there the areas capture 91-95% of what the stats
+can, and serve v return alone 69-79%.
 
-- **Contest bars.** Your serve against their return, and your return against their serve, from the
-  composites the engine uses. They predict hold (r 0.81) and break (r 0.86), while OVR predicted
-  point-win at r −0.66 across identities. Show them before and after a match, and as a
-  before → after preview on the Development screen.
+Two ideas from the first version are not built. The tip's numbers are from before the package:
+
 - **Where the points went.** Points lost by phase (on serve, on return, in rallies, at the net),
   against this opponent rather than the results screen's fixed ranges.
 - **A simulated tip, only when sure.** +15 counterfactuals name a true top-3 stat 7 times in 8
@@ -342,15 +354,24 @@ baseliner already buys count.
 
 ## Reproducing
 
+The package is the default, so the harnesses measure after it as they are. Before it means passing
+the old values through `TUNE`. `BEFORE` below undoes the package and the `SPECIALTY_AMPLIFY` part of
+specialty parity; parity's tier effects in `archetypeTree.ts` and later changes stay, so the
+numbers won't match the tables exactly.
+
 ```
-npx tsx src/test/analysis/statLadder.ts                        # today, all bands
-PKG='SUPPORT_NEUTRAL.followLevelFrom=50;SPECIALTY_AMPLIFY.excessCap=15;RETURN_COMPOSITE_WEIGHTS.return=0.3;RETURN_COMPOSITE_WEIGHTS.forehand=0.15;RETURN_COMPOSITE_WEIGHTS.backhand=0.15;RETURN_COMPOSITE_WEIGHTS.anticipation=0.15;RETURN_COMPOSITE_WEIGHTS.speed=0.15;OPPONENT_STAT_ADJUSTMENTS.tactics=0.06;OPPONENT_STAT_ADJUSTMENTS.speed=0.06;SHOOTER_STAT_ADJUSTMENTS.anticipation=0.05;SUPPORT_NEUTRAL.scaleBands=1;SUPPORT_NEUTRAL.scaleContests=1;SUPPORT_NEUTRAL.scaleWinnerFloors=1;SHOT_COMPOSITE_WEIGHTS.approach.primary=0.4;SHOT_COMPOSITE_WEIGHTS.approach.net=0.5;SHOT_COMPOSITE_WEIGHTS.approach.placement=0.1;DIFFICULTY_SCORE_FACTORS.opponentPosition.at_net=0;OPPONENT_STAT_ADJUSTMENTS.netCoverage=0.6;STAT_CATEGORY_WEIGHTS.core=0.40;STAT_CATEGORY_WEIGHTS.technical=0.16;STAT_CATEGORY_WEIGHTS.physical=0.21;STAT_CATEGORY_WEIGHTS.mental=0.23;STAT_WEIGHTS_WITHIN.core.serve=14;STAT_WEIGHTS_WITHIN.core.forehand=7;STAT_WEIGHTS_WITHIN.core.backhand=6;STAT_WEIGHTS_WITHIN.core.return=8;STAT_WEIGHTS_WITHIN.core.net=4;STAT_WEIGHTS_WITHIN.technical.slice=5;STAT_WEIGHTS_WITHIN.technical.spin=5;STAT_WEIGHTS_WITHIN.technical.placement=6;STAT_WEIGHTS_WITHIN.physical.speed=10;STAT_WEIGHTS_WITHIN.physical.stamina=4;STAT_WEIGHTS_WITHIN.physical.strength=7;STAT_MODIFIER_BANDS.reactions=0.075;STAT_MODIFIER_BANDS.reading=0.05;STAT_MODIFIER_BANDS.courtCoverage=0.05'
-TUNE="$PKG" PROBE=statLadder N=4000 npx tsx src/test/analysis/tuneRun.ts
-TUNE="$PKG" PROBE=driftProbe H2H=0 DAYS=31,64,104,144 SECTIONS=who npx tsx src/test/analysis/tuneRun.ts
-TUNE="$PKG" PROBE=driftProbe DAYS=104 SECTIONS=swap,paths npx tsx src/test/analysis/tuneRun.ts
-TUNE="$PKG" PROBE=bandCheck ONLY=club- N=60 npx tsx src/test/analysis/tuneRun.ts
+# after the package (the defaults)
+N=4000 npx tsx src/test/analysis/statLadder.ts
+H2H=0 DAYS=31,64,104,144 SECTIONS=who npx tsx src/test/analysis/driftProbe.ts
+DAYS=104 SECTIONS=swap,paths npx tsx src/test/analysis/driftProbe.ts
+ONLY=club- N=60 npx tsx src/test/analysis/bandCheck.ts
 OVR_W=serve:0.12,forehand:0.09,... npx tsx src/test/analysis/statLadder.ts   # score OVR weights only
-LEVELS=40,80 npx tsx src/test/analysis/rallyMixProbe.ts            # mechanisms 1-3 (shot mix, +15 boosts)
-TUNE='SUPPORT_NEUTRAL.followLevelFrom=50' LEVELS=80 PROBE=rallyMixProbe npx tsx src/test/analysis/tuneRun.ts
-TUNE="$PKG" PROFILE=serve_volley SECTIONS=net BOOST=net BY=-15 LEVELS=50,80 PROBE=rallyMixProbe npx tsx src/test/analysis/tuneRun.ts
+PROFILE=serve_volley SECTIONS=net BOOST=net BY=-15 LEVELS=50,80 npx tsx src/test/analysis/rallyMixProbe.ts
+
+# before the package
+BEFORE='SUPPORT_NEUTRAL.followLevelFrom=Infinity;SUPPORT_NEUTRAL.scaleBands=0;SUPPORT_NEUTRAL.scaleContests=0;SUPPORT_NEUTRAL.scaleWinnerFloors=0;SPECIALTY_AMPLIFY.excessCap=Infinity;RETURN_COMPOSITE_WEIGHTS.return=0.5;RETURN_COMPOSITE_WEIGHTS.forehand=0;RETURN_COMPOSITE_WEIGHTS.backhand=0;RETURN_COMPOSITE_WEIGHTS.anticipation=0.25;OPPONENT_STAT_ADJUSTMENTS.tactics=0.12;OPPONENT_STAT_ADJUSTMENTS.speed=0.12;SHOOTER_STAT_ADJUSTMENTS.anticipation=0.1;STAT_MODIFIER_BANDS.reactions=0.15;STAT_MODIFIER_BANDS.reading=0.1;STAT_MODIFIER_BANDS.courtCoverage=0.1;SHOT_COMPOSITE_WEIGHTS.approach.primary=0.5;SHOT_COMPOSITE_WEIGHTS.approach.net=0.35;SHOT_COMPOSITE_WEIGHTS.approach.placement=0.15;DIFFICULTY_SCORE_FACTORS.opponentPosition.at_net=8;OPPONENT_STAT_ADJUSTMENTS.netCoverage=0.2;STAT_CATEGORY_WEIGHTS.core=0.45;STAT_CATEGORY_WEIGHTS.technical=0.15;STAT_CATEGORY_WEIGHTS.physical=0.25;STAT_CATEGORY_WEIGHTS.mental=0.15;STAT_WEIGHTS_WITHIN.core.serve=1;STAT_WEIGHTS_WITHIN.core.forehand=1;STAT_WEIGHTS_WITHIN.core.backhand=1;STAT_WEIGHTS_WITHIN.core.return=1;STAT_WEIGHTS_WITHIN.core.net=1;STAT_WEIGHTS_WITHIN.technical.slice=1;STAT_WEIGHTS_WITHIN.technical.spin=1;STAT_WEIGHTS_WITHIN.technical.placement=1;STAT_WEIGHTS_WITHIN.physical.speed=1;STAT_WEIGHTS_WITHIN.physical.stamina=1;STAT_WEIGHTS_WITHIN.physical.strength=1;SPECIALTY_AMPLIFY.phaseWeight.first_serve=1;SPECIALTY_AMPLIFY.phaseWeight.second_serve=1;SPECIALTY_AMPLIFY.phaseWeight.return=1;SPECIALTY_AMPLIFY.phaseWeight.forehand=1;SPECIALTY_AMPLIFY.phaseWeight.backhand=1;SPECIALTY_AMPLIFY.phaseWeight.net=1;SPECIALTY_AMPLIFY.samuraiSliceShare=0;SPECIALTY_AMPLIFY.opportunistApproachShare=0'
+TUNE="$BEFORE" PROBE=statLadder N=6000 npx tsx src/test/analysis/tuneRun.ts
+TUNE="$BEFORE" PROBE=driftProbe H2H=0 DAYS=31,64,104,144 SECTIONS=who npx tsx src/test/analysis/tuneRun.ts
+TUNE="$BEFORE" LEVELS=40,80 PROBE=rallyMixProbe npx tsx src/test/analysis/tuneRun.ts                       # mechanisms 1-3 (shot mix, +15 boosts)
+TUNE="$BEFORE;SUPPORT_NEUTRAL.followLevelFrom=50" LEVELS=80 PROBE=rallyMixProbe npx tsx src/test/analysis/tuneRun.ts   # fix A alone
 ```
