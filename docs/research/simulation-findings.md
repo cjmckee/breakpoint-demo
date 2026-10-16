@@ -2,20 +2,21 @@
 
 Measured on the real MatchSimulator (and the live MatchOrchestrator for key moments), after the
 one-pass fixes in `be89530` (ability level scaling, the clay net multiplier, Spin Master). Each
-finding has the probe that found it, a proposal, and the before/after data. Only finding 1 is
-applied; 2–4 are proposals, reproducible in memory with `tuneRun.ts` without editing config;
-5 is a proposal only (abilities are not to be retuned yet).
+finding has the probe that found it, a proposal, and the before/after data. Finding 1 was applied
+in round 1. The later rounds below settled the rest: 2 is not an issue, 3 became in-match rhythm,
+4 became specialty amplification, and 5 the ability retune. The round-1 proposals for 2 and 3 are
+reproducible in memory with `tuneRun.ts` without editing config.
 
 The question behind all five: does a player's choice of stats matter, and can a weaker player
 still win sometimes?
 
-| #   | finding                                                                        | status                                     |
-| --- | ------------------------------------------------------------------------------ | ------------------------------------------ |
-| 1   | Net play was capped by rally structure, not by archetype                       | applied, `efac2ed`                         |
-| 2   | Double faults end a quarter of early-game points; servers can't hold           | not an issue (decided)                     |
-| 3   | Upsets are near impossible past a 6-point rating gap                           | proposed: in-match rhythm (round 2)        |
-| 4   | Key stats are an identity's worst buys; specialties don't grow with their stat | investigating: specialty synergy (round 2) |
-| 5   | Abilities: four are dead, rarity is inverted, levels make commons dominant     | proposal only                              |
+| #   | finding                                                                        | status                                                              |
+| --- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| 1   | Net play was capped by rally structure, not by archetype                       | applied, `efac2ed`                                                  |
+| 2   | Double faults end a quarter of early-game points; servers can't hold           | not an issue (decided)                                              |
+| 3   | Upsets are near impossible past a 6-point rating gap                           | applied: in-match rhythm on, `cad6547` (round 4)                    |
+| 4   | Key stats are an identity's worst buys; specialties don't grow with their stat | price curve kept; applied: `SPECIALTY_AMPLIFY`, `0ac2fcc` (round 3) |
+| 5   | Abilities: four are dead, rarity is inverted, levels make commons dominant     | applied: retuned to rarity budgets, `5dd874c` (round 4)             |
 
 ---
 
@@ -94,14 +95,14 @@ cannot fix this (it averages out: rally variance 9 → 14 moved a 10-point gap f
 
 **Proposal.** `MATCH_FORM.variance` 8 → **14**.
 
-| gap | point-win, before → after                            | game-win                            | weaker player's match-win |
-| --- | ---------------------------------------------------- | ----------------------------------- | ------------------------- |
-| 0   | 50.6 → 52.1                                          | 51.6 → 53.5                         | 53.0 → 54.5               |
-| 3   | Upsets are near impossible past a 6-point rating gap | proposed: in-match rhythm (round 2) |
-| 6   | 34.5 → 37.0                                          | 23.1 → 29.9                         | 15.5 → **26.0**           |
-| 10  | 23.6 → 29.2                                          | 9.5 → 20.1                          | 2.3 → **14.8**            |
-| 15  | 12.0 → 16.8                                          | 1.2 → 7.2                           | 0.0 → **3.0**             |
-| 20  | 7.5 → 9.1                                            | 0.2 → 2.0                           | 0.0 → 0.0                 |
+| gap | point-win, before → after | game-win    | weaker player's match-win |
+| --- | ------------------------- | ----------- | ------------------------- |
+| 0   | 50.6 → 52.1               | 51.6 → 53.5 | 53.0 → 54.5               |
+| 3   | 42.7 → 45.5               | 36.6 → 42.9 | 29.3 → **41.0**           |
+| 6   | 34.5 → 37.0               | 23.1 → 29.9 | 15.5 → **26.0**           |
+| 10  | 23.6 → 29.2               | 9.5 → 20.1  | 2.3 → **14.8**            |
+| 15  | 12.0 → 16.8               | 1.2 → 7.2   | 0.0 → **3.0**             |
+| 20  | 7.5 → 9.1                 | 0.2 → 2.0   | 0.0 → 0.0                 |
 
 Stats still decide most matches (a 10-point edge wins 85%), but a one-tier-up story opponent is
 beatable on a good day. Tested alternatives: variance 12 gives 25% / 11% / 1% at gaps 6/10/15;
@@ -215,7 +216,7 @@ Live engine, level 1 (key moments won, baseline 33–36%):
 - **The mental abilities are healthy:** similar value on every build, ordered roughly by rarity,
   and a natural Mind sink.
 
-**Proposal (not applied).**
+**Proposal** (applied in round 4, below).
 
 1. Give each rarity a point-win budget at level 1 on the build it suits: common ~+1, uncommon
    ~+1.5–2, rare ~+2.5. Today's Heavy Hitter and Baseliner would drop to about a third; the
@@ -441,16 +442,19 @@ become the match → ability pipeline if Mind is rebalanced.
 - `net_apologist`'s specialty boost goes to forehand and backhand drives at half strength; its
   synergy with those stats −1.5 → +1.8.
 - The shop no longer offers legendaries (one was still buyable, and they were 10% of offers);
-  offers are 50% common, 35% uncommon, 15% rare.
-- Content conversion dry run: `docs/proposals/content-conversion-dry-run.md`, 158 sites, 835 stat
-  points → 3,034 currency units; 13 story penalties need a decision. (Corrected when applied:
-  156 sites, 808 points, 2,923 units gained; two challenge reward items had been miscounted.)
+  offers are 50% common, 35% uncommon, 15% rare. _Since then:_ offers are weighted by tier
+  (`ABILITY_OFFER_WEIGHTS` in `src/config/economy.ts`): commons only at Club, uncommons from
+  Regional, rares from the Tour.
+- Content conversion dry run: `docs/proposals/content-conversion-dry-run.md`; 13 story penalties
+  need a decision. The first run's totals counted two challenge reward items by mistake; the
+  corrected numbers are in that doc.
 - Development screen: a clickable paper prototype with the real recipes and price steps.
 
 ---
 
 ## Reproducing
 
-All probes take `N`, and the career-sim comparisons take `STEP_FROM`, `INCOME_SCALE` and
-`SYSTEMS=currency`. `tuneRun.ts` overrides any number inside an exported config object for one
+All probes take `N`, and the career-sim comparisons take `INCOME_SCALE` and `SYSTEMS=currency`.
+`STEP_FROM` is read by `statEconomy.ts`, so it moves the price steps for every harness that prices
+stats through it. `tuneRun.ts` overrides any number inside an exported config object for one
 run: `TUNE='A.b=1;C.d=2' PROBE=<harness> npx tsx src/test/analysis/tuneRun.ts`.

@@ -6,7 +6,7 @@
  * the currency system to be as ready for the story's team matches as the same
  * player is today — and does any player end up starved of a currency?
  *
- * THE CALENDAR is the game's own (gameStore's initial story schedule). Story
+ * THE CALENDAR is the game's own (the Club season, src/data/seasons/club.ts). Story
  * events take the slots their definitions say they take, the archetype is
  * chosen on day 11 (no specialties before that), and the team matches are
  * played on their afternoons: day 15 Chet Vale, 19 Rich Soil, 23 Martia
@@ -60,6 +60,34 @@
  *      §9.6–9.7 were run with SPEND=impatient EXCHANGE=2
  *      TRACE=<identity> prints one currency career day by day: every slot, match
  *      payout, purchase, exchange, and what the player is saving for
+ *      TIER_PAY=41:2,81:3 multiplies everything the currency career earns (training,
+ *      matches, story) and the currency price of abilities from each day on, to
+ *      model a promotion. Bronze's calendar ends at day 31; after it every free
+ *      day trains or plays practice.
+ *      FUND_W=lo,hi weights serve and return at least that for every identity, to model a
+ *      player who keeps the two shots of every point up whatever their style.
+ *      SHARPEN=chance,gap: match sharpness. After every match, serve and return each gain 1
+ *      with that chance while more than gap below the best core stat.
+ *      CATCHUP=gap: serve and return cost the cheapest price step while more than gap below
+ *      the best core stat.
+ *      GEAR=all|tier buys gear with XP: the shop's two equipment offers a day, the one that
+ *      adds most to the identity's stats (key stats count double) if it beats what that slot
+ *      holds. all is today's shop (every piece from day 7); tier sells only gear from the
+ *      season's pool and below. Matches play the geared stats, and PAR reports both OVRs.
+ *      Off by default.
+ *      FOCUS_FROM=41 lets the currency career pick a silver training focus from that
+ *      day: the currency its next purchases are most short of (CurrencyIncome.focusedMix).
+ *      PAR=1 reports, per identity and CHECK day, the mean build's OVR and the
+ *      opponent OVR it beats half the time (best of three). "Par" is measured
+ *      against each team-match opponent's stat shape, shifted to the target OVR,
+ *      on that opponent's surface and archetype, and averaged over the five.
+ *      Bronze days also show the team match actually played, for calibration.
+ *      BUILDS=<path> writes each identity's mean currency build, its specialty profile and
+ *      its careers' ability effects, on every career day an opponent slot falls on
+ *      (bandSlots.ts), as JSON for bandCheck. It plays to the last slot day with flat pay
+ *      and a training focus from day 41 (FOCUS_FROM), so DAYS and CHECK are ignored.
+ *      Regenerate it when the economy or the Club calendar changes:
+ *      BUILDS=src/test/analysis/careerBuilds.json RUNS=12 npx tsx src/test/analysis/careerSim.ts
  */
 
 import type {
@@ -74,7 +102,7 @@ import type {
   GamePhase,
   PhasePathId,
 } from '../../types/archetype';
-import type { StatBoosts } from '../../types/game';
+import type { OpponentTier, StatBoosts } from '../../types/game';
 import { PlayerProfile } from '../../core/PlayerProfile';
 import {
   INCOME_SCALE as ECONOMY_INCOME_SCALE,
@@ -115,6 +143,7 @@ import {
   profileForArchetype,
 } from '../../data/archetypeTree';
 import { StoryEventRepository } from '../../data/storyEvents';
+import { CLUB_SEASON } from '../../data/seasons/club';
 import {
   TEAM_MATCH_1,
   TEAM_MATCH_2,
@@ -124,14 +153,20 @@ import {
 } from '../../data/teamMatches';
 import type { TeamMatchConfig } from '../../types/game';
 import type { CourtSurface } from '../../types';
+import { writeFileSync } from 'node:fs';
+import { BAND_DAYS, type CareerBuilds } from './bandSlots';
+import { ALL_EQUIPMENT, getItemsByTier } from '../../data/items';
+import type { Item } from '../../types/items';
+import { equipmentPrice } from '../../game/ShopSystem';
 
 // ─── Configuration ───────────────────────────────────────────
 
 const env = (k: string, d: number): number => Number(process.env[k] ?? d);
 const RUNS = env('RUNS', 20);
 const N = env('N', 200);
-const DAYS = env('DAYS', 23);
-const CHECK = (process.env.CHECK ?? '15,19,23').split(',').map(Number);
+const BUILDS = process.env.BUILDS;
+const DAYS = BUILDS ? Math.max(...BAND_DAYS) : env('DAYS', 23);
+const CHECK = BUILDS ? BAND_DAYS : (process.env.CHECK ?? '15,19,23').split(',').map(Number);
 const ADAPT = env('ADAPT', 0.7);
 const range = (k: string, d: string): [number, number] => {
   const [lo, hi] = (process.env[k] ?? d).split(',').map(Number);
@@ -139,6 +174,20 @@ const range = (k: string, d: string): [number, number] => {
 };
 const KEY_W = range('KEY_W', '0.8,1.2');
 const OFF_W = range('OFF_W', '0.25,0.55');
+/** FUND_W=lo,hi: serve and return weighted at least this, whatever the identity. */
+const FUND_W = process.env.FUND_W ? range('FUND_W', '0.7,0.9') : undefined;
+const FUNDAMENTALS: StatName[] = ['serve', 'return'];
+/**
+ * SHARPEN=chance,gap: after every match, serve and return each go up 1 with this
+ * chance while they sit more than `gap` below the player's best core stat.
+ */
+const SHARPEN = process.env.SHARPEN ? range('SHARPEN', '0.5,15') : undefined;
+/** CATCHUP=gap: serve and return cost the cheapest step while that far below the best core stat. */
+const CATCHUP = process.env.CATCHUP ? Number(process.env.CATCHUP) : undefined;
+const CORE_STATS: StatName[] = ['serve', 'forehand', 'backhand', 'return', 'net'];
+const bestCore = (s: PlayerStats): number => Math.max(...CORE_STATS.map((k) => get(s, k)));
+const behindFundamentals = (s: PlayerStats, k: StatName, gap: number): boolean =>
+  FUNDAMENTALS.includes(k) && get(s, k) < bestCore(s) - gap;
 const MATCH_EVERY = env('MATCH_EVERY', 2);
 const REPS_P = env('REPS_P', 0.7);
 const OTHER_PER_DAY = env('OTHER_PER_DAY', 2.2);
@@ -153,6 +202,32 @@ const ABILITIES_ON = process.env.ABILITIES !== '0';
 const ABILITY_BAR = env('ABILITY_BAR', 0.05);
 /** XP from challenges per day, on top of match XP. */
 const CHALLENGE_XP = env('CHALLENGE_XP', 10);
+const GEAR = (process.env.GEAR ?? 'off') as 'off' | 'all' | 'tier';
+const SHOP_GEAR = ALL_EQUIPMENT.filter((i) => i.shopAvailable !== false && i.equipmentSlot);
+
+/** The gear the shop can offer at this tier: everything, or the season's pool and below. */
+function gearPool(tier: OpponentTier): Item[] {
+  if (GEAR === 'all') return SHOP_GEAR;
+  const ids = new Set(
+    ([1, 2, 3, 4] as OpponentTier[])
+      .filter((t) => t <= tier)
+      .flatMap((t) => getItemsByTier(t))
+      .map((i) => i.id),
+  );
+  return SHOP_GEAR.filter((i) => ids.has(i.id));
+}
+
+/** Equipped gear by slot. */
+type Gear = Map<string, { id: string; boosts: StatBoosts }>;
+/** [fromDay, multiplier], ascending. Empty means ×1 throughout. */
+const TIER_PAY: Array<[number, number]> = (process.env.TIER_PAY ?? '')
+  .split(',')
+  .filter(Boolean)
+  .map((pair) => pair.split(':').map(Number) as [number, number])
+  .sort((a, b) => a[0] - b[0]);
+const FOCUS_FROM = env('FOCUS_FROM', BUILDS ? 41 : Infinity);
+const payOn = (day: number): number =>
+  TIER_PAY.reduce((m, [from, mult]) => (day >= from ? mult : m), 1);
 
 const BO1: MatchFormat = { bestOfSets: 1, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
 const BO3: MatchFormat = { bestOfSets: 3, gamesPerSet: 6, enableTiebreaks: true, tiebreakAt: 6 };
@@ -227,29 +302,11 @@ const OTHER_TOTAL = Object.values(OTHER_WEIGHTS).reduce((a, b) => a + b, 0);
 
 // ─── Calendar ────────────────────────────────────────────────
 
-/** gameStore's initial story schedule: [day, story event id]. */
-const STORY_SCHEDULE: Array<[number, string]> = [
-  [2, 'making_connections'],
-  [3, 'food_hall_gossip'],
-  [4, 'player_tier_intro'],
-  [5, 'match_play_basics'],
-  [5, 'training_session_intro'],
-  [6, 'relationship_basics'],
-  [7, 'shop_basics'],
-  [8, 'rival_first_encounter'],
-  [9, 'club_team_intro'],
-  [10, 'coach_first_meeting'],
-  [11, 'coach_archetype_selection'],
-  [11, 'club_team_first_practice'],
-  [12, 'coach_training_focus'],
-  [13, 'first_team_match_scheduled'],
-  [16, 'coach_balanced_development'],
-  [17, 'second_team_match_scheduled'],
-  [21, 'third_team_match_scheduled'],
-  [25, 'fourth_team_match_scheduled'],
-  [29, 'fifth_team_match_scheduled'],
-  [33, 'riverside_open_prep'],
-];
+/** The Club season's fixed beats, the game's own schedule: [day, story event id]. */
+const STORY_SCHEDULE: Array<[number, string]> = CLUB_SEASON.beats.map((b) => [
+  b.day,
+  b.storyEventId,
+]);
 
 /** Slots each day's story events take, from their own definitions. */
 const STORY_SLOTS: Map<number, number> = STORY_SCHEDULE.reduce((m, [day, eventId]) => {
@@ -272,7 +329,7 @@ const ARCHETYPE_DAY = 11;
 
 const teamSide = (t: TeamMatchConfig): Side => ({
   stats: t.opponent.stats,
-  profile: profileForArchetype(t.opponent.archetype),
+  profile: profileForArchetype(t.opponent.archetype, t.opponent.tier),
 });
 
 const BO3_FOR: Record<string, MatchFormat> = { 'best-of-3': BO3, 'best-of-1': BO1 };
@@ -366,11 +423,14 @@ const effectsOf = (owned: Owned): Record<string, number> =>
  * (`energy`, the player's energy going in) are all the real thing. The
  * opponent always arrives fresh.
  */
+/** Where a match is played: a bare surface (practice), or a team match's venue. */
+type Court = CourtSurface | Pick<TeamMatchConfig, 'venue' | 'home'>;
+
 function playMatch(
   a: Side,
   b: Side,
   format: MatchFormat,
-  surface: CourtSurface = 'hard',
+  court: Court = 'hard',
   energy = 100,
 ): {
   won: number;
@@ -384,7 +444,9 @@ function playMatch(
   const sim = new MatchSimulator({
     player,
     opponent: new PlayerProfile('o', 'O', b.stats, b.profile),
-    courtSurface: surface,
+    courtSurface: typeof court === 'string' ? court : court.venue.surface,
+    venue: typeof court === 'string' ? undefined : court.venue,
+    home: typeof court === 'string' ? undefined : court.home,
     matchFormat: format,
     playerEffects: a.effects,
   });
@@ -418,6 +480,8 @@ interface Snapshot {
   /** Abilities owned, by id → level, and unspent XP. */
   abilities: Owned;
   xp: number;
+  /** Everything the equipped gear adds, stat by stat. */
+  gear: StatBoosts;
 }
 
 type Source = 'training' | 'practice' | 'team' | 'story';
@@ -435,6 +499,9 @@ interface Ledger {
   abilityXp: number;
   xpEarned: number;
   abilityLevels: Record<Rarity, number>;
+  /** XP spent on gear, and pieces bought. */
+  gearXp: number;
+  gearBought: number;
 }
 
 const zeroWallet = (): Wallet => ({ power: 0, quickness: 0, technique: 0, mind: 0 });
@@ -447,6 +514,8 @@ const emptyLedger = (): Ledger => ({
   abilityXp: 0,
   xpEarned: 0,
   abilityLevels: { common: 0, uncommon: 0, rare: 0 },
+  gearXp: 0,
+  gearBought: 0,
 });
 const cloneLedger = (l: Ledger): Ledger => JSON.parse(JSON.stringify(l)) as Ledger;
 const addInto = (into: Wallet, a: Amounts): void => {
@@ -521,8 +590,24 @@ function exchangeFor(w: Wallet, price: Amounts): boolean {
 const usesOnly = (stat: StatName, allowed: Set<Currency>): boolean =>
   (Object.keys(RECIPES[stat]) as Currency[]).every((c) => allowed.has(c));
 
+/** What the next point of a stat costs, at the catch-up price when CATCHUP applies. */
+function statPrice(s: PlayerStats, k: StatName): Amounts {
+  return CATCHUP !== undefined && behindFundamentals(s, k, CATCHUP)
+    ? priceOf(k, Math.min(get(s, k), 39))
+    : priceOf(k, get(s, k));
+}
+
+/** Match sharpness (SHARPEN): playing keeps serve and return within reach. */
+function sharpen(s: PlayerStats): void {
+  if (!SHARPEN) return;
+  for (const k of FUNDAMENTALS) {
+    if (behindFundamentals(s, k, SHARPEN[1]) && Math.random() < SHARPEN[0])
+      set(s, k, get(s, k) + 1);
+  }
+}
+
 function buy(s: PlayerStats, w: Wallet, k: StatName): boolean {
-  const price = priceOf(k, get(s, k));
+  const price = statPrice(s, k);
   if (get(s, k) >= 100 || !canAfford(w, price)) return false;
   pay(w, price);
   if (spendLedger) addInto(spendLedger[k], price);
@@ -538,7 +623,10 @@ const uniformIn = ([lo, hi]: [number, number]): number => lo + Math.random() * (
 /** One player's preferences: key stats heavy, the rest light, all a little random. */
 function drawWeights(id: Identity): Weights {
   return Object.fromEntries(
-    ALL_STATS.map((k) => [k, uniformIn(id.buys.includes(k) ? KEY_W : OFF_W)]),
+    ALL_STATS.map((k) => {
+      const w = uniformIn(id.buys.includes(k) ? KEY_W : OFF_W);
+      return [k, FUND_W && FUNDAMENTALS.includes(k) ? Math.max(w, uniformIn(FUND_W)) : w];
+    }),
   ) as Weights;
 }
 
@@ -620,6 +708,15 @@ function anchorCurrency(s: PlayerStats, wallet: Wallet, w: Weights, id: Identity
   return [...ANCHORS].sort((x, y) => score(y) - score(x))[0];
 }
 
+/** The silver focus a player picks: the currency its next few purchases are most short of. */
+function focusFor(s: PlayerStats, wallet: Wallet, w: Weights): Currency | undefined {
+  const need: Wallet = { power: 0, quickness: 0, technique: 0, mind: 0 };
+  for (const k of shapeOrder(s, w).slice(0, 3)) earn(need, priceOf(k, get(s, k)));
+  for (const c of CURRENCIES) need[c] = Math.max(0, need[c] - wallet[c]);
+  if (unitsOf(need) === 0) return undefined;
+  return [...CURRENCIES].sort((x, y) => need[y] - need[x])[0];
+}
+
 function spend(s: PlayerStats, w: Wallet, buys: StatName[], weights: Weights): void {
   if (SPEND !== 'level' && SPEND !== 'rr') return buyTowardShape(s, w, weights);
   if (SPEND === 'rr') {
@@ -697,10 +794,11 @@ function payMatch(
   wallet: Wallet,
   ms: IMatchStatistics,
   won: boolean,
+  scale = 1,
 ): { perf: string; xp: number } {
   const rewards = silently(() => MatchRewardSystem.calculateRewards(ms, 1, won));
   const perf = rewards.performanceBreakdown;
-  earn(wallet, matchPayout(perf, won, MATCH_RATES));
+  earn(wallet, matchPayout(perf, won, MATCH_RATES), scale);
   return {
     perf:
       `perf ${perf.overallScore.toFixed(0)} (serve ${perf.servingScore.toFixed(0)}, ` +
@@ -716,17 +814,81 @@ function payMatch(
  * Abilities come before stats in the evening, so Mind and other spare
  * currency go to them when they are worth it.
  */
+/** All the boosts the equipped gear adds. */
+function gearTotal(gear: Gear): StatBoosts {
+  const out: StatBoosts = {};
+  for (const { boosts } of gear.values()) {
+    for (const [k, v] of Object.entries(boosts) as Array<[StatName, number]>) {
+      out[k] = (out[k] ?? 0) + v;
+    }
+  }
+  return out;
+}
+
+/** A copy of the stats with boosts added, clamped to 100. */
+function withBoosts(s: PlayerStats, b: StatBoosts): PlayerStats {
+  const out = clone(s);
+  applyBoosts(out, b);
+  return out;
+}
+
+/**
+ * The day's two equipment offers: buy the one that adds most to this identity
+ * (key stats count double) over what its slot holds, if the XP is there.
+ */
+function shopGear(
+  keyStats: StatName[],
+  gear: Gear,
+  xp: number,
+  ledger: Ledger,
+  tier: OpponentTier,
+): { label: string; xp: number } | null {
+  const pool = gearPool(tier);
+  const worth = (b: StatBoosts): number =>
+    (Object.entries(b) as Array<[StatName, number]>).reduce(
+      (a, [k, v]) => a + v * (keyStats.includes(k) ? 1 : 0.5),
+      0,
+    );
+  const offers = [0, 1].map(() => pool[Math.floor(Math.random() * pool.length)]);
+  const best = offers
+    .map((item) => {
+      const boosts = item.modifiers?.statBoosts ?? {};
+      const held = gear.get(item.equipmentSlot!);
+      return {
+        item,
+        boosts,
+        gain: worth(boosts) - (held ? worth(held.boosts) : 0),
+        price: equipmentPrice(boosts),
+      };
+    })
+    .filter((o) => o.gain > 0 && o.price <= xp)
+    .sort((a, b) => b.gain - a.gain)[0];
+  if (!best) return null;
+  gear.set(best.item.equipmentSlot!, { id: best.item.id, boosts: best.boosts });
+  ledger.gearXp += best.price;
+  ledger.gearBought++;
+  return { label: `${best.item.id} for ${best.price} XP`, xp: best.price };
+}
+
+/** The tier a career is in on a day: seasons start at days 41, 81 and 121 (§2.1). */
+function tierOnDay(day: number): OpponentTier {
+  return day >= 121 ? 4 : day >= 81 ? 3 : day >= 41 ? 2 : 1;
+}
+
 function shopAbilities(
   identity: IdentityName,
   wallet: Wallet,
   owned: Owned,
   xp: number,
   ledger: Ledger,
+  day: number,
+  scale = 1,
 ): { label: string; xp: number } | null {
-  const offers = dailyOffers()
+  const offers = dailyOffers(tierOnDay(day))
     .map((a) => {
       const level = owned.get(a.id) ?? 0;
-      const price = priceFor(a, level);
+      const base = priceFor(a, level);
+      const price = { ...base, units: base.units * scale };
       return { a, level, price, perUnit: valueGain(a, identity, level) / price.units };
     })
     .filter(
@@ -770,10 +932,12 @@ function career(
   const snaps = new Map<number, Snapshot>();
   const ledger = emptyLedger();
   const owned: Owned = new Map();
+  const gear: Gear = new Map();
   let xp = 0;
+  let mult = 1;
   const paid = (r: { winner: 'player' | 'opponent'; stats: IMatchStatistics }): string => {
     if (system !== 'currency') return '';
-    const p = payMatch(wallet, r.stats, r.winner === 'player');
+    const p = payMatch(wallet, r.stats, r.winner === 'player', mult);
     xp += p.xp;
     ledger.xpEarned += p.xp;
     return p.perf;
@@ -782,6 +946,7 @@ function career(
     addInto(ledger.earned[source], diffWallet(wallet, before));
 
   for (let day = 1; day <= DAYS; day++) {
+    mult = payOn(day);
     const team = TEAM_MATCHES.get(day);
     const practiceDay = !team && day >= 5 && (day - 5) % MATCH_EVERY === 0;
     const profile = day >= ARCHETYPE_DAY ? id.profile : unchosen;
@@ -796,19 +961,20 @@ function career(
         note(`  ${slotName} story event`);
       } else if (team && slot === 1) {
         const r = playMatch(
-          { stats, profile, effects: effectsOf(owned) },
+          { stats: withBoosts(stats, gearTotal(gear)), profile, effects: effectsOf(owned) },
           teamSide(team),
           BO3_FOR[team.matchFormat] ?? BO3,
-          team.surface,
+          team,
           energy,
         );
         energy -= Math.min(50, energy);
         teamWon.set(day, r.winner === 'player');
+        sharpen(stats);
         ledger.slots.team++;
         const perf = paid(r);
         credit('team', walletBefore);
         note(
-          `  ${slotName} TEAM MATCH vs ${team.opponent.name} on ${team.surface} — ` +
+          `  ${slotName} TEAM MATCH vs ${team.opponent.name} on ${team.venue.surface} — ` +
             `${r.winner === 'player' ? 'WON' : 'lost'}, ${r.won}/${r.points} points. ${perf} ` +
             `→ +${fmtAmounts(diffWallet(wallet, walletBefore))}`,
         );
@@ -816,7 +982,7 @@ function career(
         const opp = roster[matchesPlayed % roster.length];
         const bump = Math.min(tierWins * 2, 20);
         const r = playMatch(
-          { stats, profile, effects: effectsOf(owned) },
+          { stats: withBoosts(stats, gearTotal(gear)), profile, effects: effectsOf(owned) },
           {
             stats: getScaledOpponentStats(opp.stats, tierWins),
             profile: getOpponentArchetypeProfile(opp),
@@ -827,6 +993,7 @@ function career(
         );
         energy -= 50;
         matchesPlayed++;
+        sharpen(stats);
         if (r.winner === 'player') {
           matchesWon++;
           tierWins++;
@@ -855,7 +1022,8 @@ function career(
           recent = legacyTrainingBoosts(core, n, recent);
           applyBoosts(stats, recent);
         } else {
-          earn(wallet, trainingPayout(core, n));
+          const focus = day >= FOCUS_FROM ? focusFor(stats, wallet, weights) : undefined;
+          earn(wallet, trainingPayout(core, n, false, undefined, focus), mult);
           credit('training', walletBefore);
           note(
             `  ${slotName} train ${core} — ${n}/3 reps → +${fmtAmounts(diffWallet(wallet, walletBefore))}`,
@@ -879,7 +1047,7 @@ function career(
       if (whole <= 0) continue;
       other[k] -= whole;
       if (system === 'today') set(stats, k, Math.min(100, get(stats, k) + whole));
-      else earn(wallet, RECIPES[k], whole * INCOME_SCALE);
+      else earn(wallet, RECIPES[k], whole * INCOME_SCALE * mult);
     }
 
     if (system === 'currency') {
@@ -889,10 +1057,17 @@ function career(
       xp += CHALLENGE_XP;
       ledger.xpEarned += CHALLENGE_XP;
       if (ABILITIES_ON) {
-        const bought = shopAbilities(id.name as IdentityName, wallet, owned, xp, ledger);
+        const bought = shopAbilities(id.name as IdentityName, wallet, owned, xp, ledger, day, mult);
         if (bought) {
           xp -= bought.xp;
           note(`  shop: bought ${bought.label}`);
+        }
+      }
+      if (GEAR !== 'off' && day >= 7) {
+        const piece = shopGear(id.buys, gear, xp, ledger, tierOnDay(day));
+        if (piece) {
+          xp -= piece.xp;
+          note(`  shop: bought ${piece.label}`);
         }
       }
       const before = { ...wallet };
@@ -926,6 +1101,7 @@ function career(
         ledger: cloneLedger(ledger),
         abilities: new Map(owned),
         xp,
+        gear: gearTotal(gear),
       });
     }
   }
@@ -969,7 +1145,7 @@ function readiness(
   const rates = emptyRates();
   for (let i = 0; i < N; i++) {
     const effects = effectSets[i % effectSets.length];
-    const r = playMatch({ stats: s, profile, effects }, teamSide(team), BO3, team.surface);
+    const r = playMatch({ stats: s, profile, effects }, teamSide(team), BO3, team);
     tallyMatch(r.pointList, BO3, rates);
   }
   return rates;
@@ -1051,7 +1227,8 @@ function ledgerReport(): void {
     console.log(['on abilities', f(unitsOf(onAbilities)), '', split(onAbilities)].join('\t'));
     console.log(
       `XP: earned ${f(mean((l) => l.ledger.xpEarned))}, on abilities ${f(mean((l) => l.ledger.abilityXp))}, ` +
-        `unspent ${f(mean((l) => l.xp))}  |  levels bought: ` +
+        `unspent ${f(mean((l) => l.xp))}, on gear ${f(mean((l) => l.ledger.gearXp))} ` +
+        `(${mean((l) => l.ledger.gearBought).toFixed(1)} pieces)  |  levels bought: ` +
         (['common', 'uncommon', 'rare'] as Rarity[])
           .map((r) => `${r} ${mean((l) => l.ledger.abilityLevels[r]).toFixed(1)}`)
           .join(', ') +
@@ -1082,9 +1259,139 @@ function ledgerReport(): void {
   }
 }
 
+/** Every stat moved by `offset`, clamped to 1-100, so OVR moves by about the same. */
+function shifted(s: PlayerStats, offset: number): PlayerStats {
+  const out = clone(s);
+  for (const k of ALL_STATS) set(out, k, Math.max(1, Math.min(100, get(s, k) + offset)));
+  return out;
+}
+
+/**
+ * The share of best-of-three matches `s` wins against every team-match
+ * opponent's shape moved to `targetOvr`, `n` matches split across the five.
+ */
+function winShareAt(
+  s: PlayerStats,
+  profile: ArchetypeProfile,
+  effectSets: Array<Record<string, number>>,
+  targetOvr: number,
+  n: number,
+): number {
+  const teams = [...TEAM_MATCHES.values()];
+  let won = 0;
+  for (let i = 0; i < n; i++) {
+    const t = teams[i % teams.length];
+    const offset = targetOvr - calculateOverallRating(t.opponent.stats);
+    const r = playMatch(
+      { stats: s, profile, effects: effectSets[i % effectSets.length] },
+      { stats: shifted(t.opponent.stats, offset), profile: teamSide(t).profile },
+      BO3,
+      t,
+    );
+    if (r.winner === 'player') won++;
+  }
+  return won / n;
+}
+
+/** The opponent OVR the build beats half the time, by bisection to the nearest point. */
+function parOvr(
+  s: PlayerStats,
+  profile: ArchetypeProfile,
+  effectSets: Array<Record<string, number>>,
+): number {
+  let lo = 10;
+  let hi = 100;
+  while (hi - lo > 1) {
+    const mid = Math.round((lo + hi) / 2);
+    if (winShareAt(s, profile, effectSets, mid, N) >= 0.5) lo = mid;
+    else hi = mid;
+  }
+  return lo;
+}
+
+function parReport(): void {
+  console.log(
+    `careerSim PAR  RUNS=${RUNS} N=${N} DAYS=${DAYS} TIER_PAY=${process.env.TIER_PAY ?? ''} ` +
+      `SPEND=${SPEND} INCOME_SCALE=${INCOME_SCALE}`,
+  );
+  console.log(
+    [
+      'identity',
+      'day',
+      'pay',
+      'OVR',
+      'OVR+gear',
+      'key avg',
+      'other avg',
+      'par OVR',
+      'team match (OVR)',
+    ].join('\t'),
+  );
+  for (const id of IDENTITIES) {
+    const careers = Array.from({ length: RUNS }, () => career(id, 'currency'));
+    for (const day of CHECK) {
+      const snaps = careers.map((c) => c.get(day)!);
+      const s = meanStats(snaps.map((x) => x.stats));
+      const geared = meanStats(snaps.map((x) => withBoosts(x.stats, x.gear)));
+      const avg = (ks: StatName[]): string =>
+        (ks.reduce((a, k) => a + get(s, k), 0) / ks.length).toFixed(0);
+      const profile = day >= ARCHETYPE_DAY ? id.profile : createEmptyArchetypeProfile();
+      const team = TEAM_MATCHES.get(day);
+      console.log(
+        [
+          id.name,
+          day,
+          `x${payOn(day)}`,
+          calculateOverallRating(s),
+          calculateOverallRating(geared),
+          avg(id.buys),
+          avg(ALL_STATS.filter((k) => !id.buys.includes(k))),
+          parOvr(
+            geared,
+            profile,
+            snaps.map((x) => effectsOf(x.abilities)),
+          ),
+          team ? `${team.opponent.name} (${calculateOverallRating(team.opponent.stats)})` : '',
+        ].join('\t'),
+      );
+    }
+  }
+}
+
+/** Ability effect sets kept per build day: enough for a spread, small enough to commit. */
+const BUILD_EFFECT_SETS = 8;
+
+function buildsReport(path: string): void {
+  const out: CareerBuilds = {
+    generated:
+      `careerSim BUILDS RUNS=${RUNS} DAYS=${DAYS} FOCUS_FROM=${FOCUS_FROM} SPEND=${SPEND}` +
+      (FUND_W ? ` FUND_W=${FUND_W}` : '') +
+      (SHARPEN ? ` SHARPEN=${SHARPEN}` : '') +
+      (CATCHUP !== undefined ? ` CATCHUP=${CATCHUP}` : ''),
+    identities: {},
+  };
+  for (const id of IDENTITIES) {
+    const careers = Array.from({ length: RUNS }, () => career(id, 'currency'));
+    const days: CareerBuilds['identities'][string]['days'] = {};
+    for (const day of CHECK) {
+      const snaps = careers.map((c) => c.get(day)!);
+      days[day] = {
+        stats: meanStats(snaps.map((x) => x.stats)),
+        effects: snaps.slice(0, BUILD_EFFECT_SETS).map((x) => effectsOf(x.abilities)),
+      };
+    }
+    out.identities[id.name] = { profile: id.profile, archetypeDay: ARCHETYPE_DAY, days };
+    console.log(`${id.name}: ${RUNS} careers to day ${DAYS}`);
+  }
+  writeFileSync(path, `${JSON.stringify(out)}\n`);
+  console.log(`wrote ${path}`);
+}
+
 function main(): void {
+  if (BUILDS) return buildsReport(BUILDS);
   if (TRACE) return traceCareer(TRACE);
   if (process.env.LEDGER === '1') return ledgerReport();
+  if (process.env.PAR === '1') return parReport();
   console.log(
     `careerSim  RUNS=${RUNS} N=${N} DAYS=${DAYS} SPEND=${SPEND} ADAPT=${ADAPT} KEY_W=${KEY_W} ` +
       `OFF_W=${OFF_W} MATCH_EVERY=${MATCH_EVERY} REPS_P=${REPS_P} OTHER_PER_DAY=${OTHER_PER_DAY} ` +

@@ -27,10 +27,16 @@ import {
   TIME_SLOT_NAMES,
   ShopItem,
   Ability,
+  Currency,
   CurrencyAmounts,
 } from '../types/game';
 import type { StoryEvent, StoryEventTag, StoryEventOption } from '../types/storyEvents';
-import { HANGOUT_CHARACTERS, HANGOUT_ENERGY_COST, getHangoutTier } from '../data/hangoutCharacters';
+import {
+  HANGOUT_CHARACTERS,
+  HANGOUT_ENERGY_COST,
+  getHangoutTier,
+  hasUnseenTierEvent,
+} from '../data/hangoutCharacters';
 import type { Challenge } from '../types/challenges';
 import type { Appearance } from '../types/appearance';
 import type { Item, OwnedItem, EquipmentSlot } from '../types/items';
@@ -46,7 +52,11 @@ import { ItemManager } from '../game/ItemManager';
 import { TournamentRegistry } from '../data/tournaments';
 import { TournamentManager } from '../game/TournamentManager';
 import { ScheduledEventManager } from '../game/ScheduledEventManager';
+import { SeasonManager } from '../game/SeasonManager';
+import { CLUB_SEASON } from '../data/seasons/club';
 import { StoryMatchManager } from '../game/StoryMatchManager';
+import { PlayoffManager } from '../game/PlayoffManager';
+import { getPlayoff } from '../data/playoffs';
 import { generateDailyShopItems } from '../game/ShopSystem';
 import { ALL_ITEMS } from '../data/items';
 import {
@@ -64,6 +74,7 @@ import { EffectKey } from '../types/game';
 import { buildPlayStyle } from '../core/PlayerProfile';
 import {
   createEmptyArchetypeProfile,
+  maxSpecialtyTier,
   profileForArchetype,
   STARTING_SPECIALIZATION_POINTS,
   PATH_DEFS,
@@ -132,9 +143,6 @@ interface GameState {
   activeChallenges: Challenge[];
   completedChallenges: string[];
 
-  // Opponent tier progression
-  unlockedTiers: OpponentTier[];
-
   // Audio settings (persisted)
   audioSettings: AudioSettings;
 
@@ -156,6 +164,8 @@ interface GameState {
   // Audio settings action
   updateAudioSettings: (settings: Partial<AudioSettings>) => void;
   setMatchSpeed: (speed: MatchSpeed) => void;
+  /** Remember the training focus (silver and up); undefined trains the natural mix. */
+  setTrainingFocus: (focus: Currency | undefined) => void;
 
   // Actions
   initializeGame: () => void;
@@ -164,7 +174,6 @@ interface GameState {
   advanceTime: () => void;
   rest: () => void;
   updateMood: (change: number) => void;
-  unlockNextTier: () => OpponentTier | null;
   exportSave: () => string;
   importSave: (jsonData: string) => boolean;
   clearAllData: () => void;
@@ -324,7 +333,6 @@ export const useGameStore = create<GameState>()(
       completedChallenges: [],
 
       // Opponent tier progression initial state
-      unlockedTiers: [1], // Start with only tier 1 unlocked
 
       audioSettings: {
         musicVolume: 0.5,
@@ -539,140 +547,18 @@ export const useGameStore = create<GameState>()(
         set({ matchSpeed: speed });
       },
 
+      setTrainingFocus: (focus: Currency | undefined) => {
+        const { player } = get();
+        if (!player) return;
+        set({ player: { ...player, trainingFocus: focus } });
+      },
+
       // Create new player
       createPlayer: (name: string, appearance: Appearance) => {
         const player = PlayerManager.createPlayer(name, appearance);
 
-        // Schedule initial story events so they fire reliably in the correct order
-        // rather than relying on random chance triggers
-        const initialStorySchedule: ScheduledEvent[] = [
-          // Tutorial events - spaced out so the player has time to explore between them
-          {
-            eventType: 'story',
-            scheduledDay: 2,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'making_connections' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 3,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'food_hall_gossip' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 4,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'player_tier_intro' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 5,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'match_play_basics' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 5,
-            scheduledTimeSlot: TimeSlot.EVENING,
-            metadata: { storyEventId: 'training_session_intro' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 6,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'relationship_basics' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 7,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'shop_basics' },
-          },
-          // Post-tutorial storyline events
-          {
-            eventType: 'story',
-            scheduledDay: 8,
-            scheduledTimeSlot: TimeSlot.AFTERNOON,
-            metadata: { storyEventId: 'rival_first_encounter' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 9,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'club_team_intro' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 10,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'coach_first_meeting' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 11,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'coach_archetype_selection' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 11,
-            scheduledTimeSlot: TimeSlot.AFTERNOON,
-            metadata: { storyEventId: 'club_team_first_practice' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 12,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'coach_training_focus' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 13,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'first_team_match_scheduled' },
-          },
-          // Continue coach storyline between matches
-          {
-            eventType: 'story',
-            scheduledDay: 16,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'coach_balanced_development' },
-          },
-          // Team matches 2-5 - all before the Riverside Open
-          // Each announcement fires 2 days before the match plays (relativeDays: 2 in each event)
-          {
-            eventType: 'story',
-            scheduledDay: 17,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'second_team_match_scheduled' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 21,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'third_team_match_scheduled' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 25,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'fourth_team_match_scheduled' },
-          },
-          {
-            eventType: 'story',
-            scheduledDay: 29,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'fifth_team_match_scheduled' },
-          },
-          // Tournament trigger - after all 5 team matches (day 31 is last match, prep on day 33, ceremony day 36)
-          {
-            eventType: 'story',
-            scheduledDay: 33,
-            scheduledTimeSlot: TimeSlot.MORNING,
-            metadata: { storyEventId: 'riverside_open_prep' },
-          },
-        ];
+        // The Club season's fixed beats fire on schedule rather than by chance
+        const initialStorySchedule = SeasonManager.scheduleSeason(CLUB_SEASON, 1);
 
         set({
           player,
@@ -963,21 +849,6 @@ export const useGameStore = create<GameState>()(
         });
       },
 
-      // Unlock next tier (only if winning against current max unlocked tier)
-      unlockNextTier: () => {
-        const { unlockedTiers } = get();
-        const maxUnlocked = Math.max(...unlockedTiers);
-        const nextTier = (maxUnlocked + 1) as OpponentTier;
-
-        if (nextTier <= 4 && !unlockedTiers.includes(nextTier)) {
-          set({
-            unlockedTiers: [...unlockedTiers, nextTier].sort() as OpponentTier[],
-          });
-          return nextTier;
-        }
-        return null;
-      },
-
       // Export entire save as JSON string
       exportSave: (): string => {
         const state = get();
@@ -993,7 +864,6 @@ export const useGameStore = create<GameState>()(
           storyEventTriggerChance: state.storyEventTriggerChance,
           activeChallenges: state.activeChallenges,
           completedChallenges: state.completedChallenges,
-          unlockedTiers: state.unlockedTiers,
           shopItems: state.shopItems,
           audioSettings: state.audioSettings,
           eventRecovery: state.eventRecovery,
@@ -1034,7 +904,6 @@ export const useGameStore = create<GameState>()(
             storyEventTriggerChance: data.storyEventTriggerChance || 40,
             activeChallenges: data.activeChallenges || [],
             completedChallenges: data.completedChallenges || [],
-            unlockedTiers: data.unlockedTiers || [1],
             shopItems: data.shopItems || [],
             audioSettings: data.audioSettings || {
               musicVolume: 0.7,
@@ -1086,7 +955,6 @@ export const useGameStore = create<GameState>()(
           pendingRandomEvent: null,
           activeChallenges: [],
           completedChallenges: [],
-          unlockedTiers: [1],
           isInitialized: true,
           gamePhase: { type: 'player_creation' },
         });
@@ -1153,6 +1021,7 @@ export const useGameStore = create<GameState>()(
                   const tournamentTier = (opponent?.tier || 1) as OpponentTier;
                   const opponentArchetypeProfile = profileForArchetype(
                     opponent?.archetype ?? 'all_court',
+                    tournamentTier,
                   );
                   const matchConfig: PreMatchConfig = {
                     opponentName: opponent?.name || 'Opponent',
@@ -1163,7 +1032,8 @@ export const useGameStore = create<GameState>()(
                     opponentPlayStyle: buildPlayStyle(opponentArchetypeProfile),
                     opponentArchetypeProfile,
                     opponentAbilities: opponent?.abilities,
-                    surface: config.surface || 'hard',
+                    surface: config.venue.surface,
+                    venueId: config.venue.id,
                     matchFormat: 'best-of-3',
                     matchTitle: `${config.name} - Round ${calendar.activeTournament!.currentRound + 1}`,
                   };
@@ -1216,6 +1086,8 @@ export const useGameStore = create<GameState>()(
                 opponentPlayStyle: buildPlayStyle(opponentArchetypeProfile),
                 opponentArchetypeProfile,
                 surface: metadata.surface || 'hard',
+                venueId: metadata.venueId,
+                home: metadata.home,
                 matchFormat: metadata.matchFormat || 'best-of-1',
                 matchTitle: metadata.matchTitle,
                 matchDescription: metadata.matchDescription,
@@ -1376,6 +1248,7 @@ export const useGameStore = create<GameState>()(
               const tournamentTier = (opponent?.tier || 1) as OpponentTier;
               const opponentArchetypeProfile = profileForArchetype(
                 opponent?.archetype ?? 'all_court',
+                tournamentTier,
               );
               const matchConfig: PreMatchConfig = {
                 opponentName: opponent?.name || 'Opponent',
@@ -1386,7 +1259,8 @@ export const useGameStore = create<GameState>()(
                 opponentPlayStyle: buildPlayStyle(opponentArchetypeProfile),
                 opponentArchetypeProfile,
                 opponentAbilities: opponent?.abilities,
-                surface: config.surface || 'hard',
+                surface: config.venue.surface,
+                venueId: config.venue.id,
                 matchFormat: 'best-of-3',
                 matchTitle: `${config.name} - Round ${calendar.activeTournament!.currentRound + 1}`,
               };
@@ -1442,6 +1316,8 @@ export const useGameStore = create<GameState>()(
                 opponentPlayStyle: buildPlayStyle(opponentArchetypeProfile),
                 opponentArchetypeProfile,
                 surface: metadata.surface || 'hard',
+                venueId: metadata.venueId,
+                home: metadata.home,
                 matchFormat: metadata.matchFormat || 'best-of-1',
                 matchTitle: metadata.matchTitle,
                 matchDescription: metadata.matchDescription,
@@ -1493,6 +1369,8 @@ export const useGameStore = create<GameState>()(
                 opponentPlayStyle: buildPlayStyle(opponentArchetypeProfile),
                 opponentArchetypeProfile,
                 surface: metadata.surface || 'hard',
+                venueId: metadata.venueId,
+                home: metadata.home,
                 matchFormat: metadata.matchFormat || 'best-of-1',
                 matchTitle: metadata.matchTitle,
                 matchDescription: metadata.matchDescription,
@@ -1549,8 +1427,7 @@ export const useGameStore = create<GameState>()(
         const profile = player.archetypeProfile;
         const current = profile.phases[phase];
         if (!current) return; // can only upgrade a chosen specialty
-        if (current.tier >= 3) return; // max tier
-        if (player.tier <= 1) return; // Club Player (tier 1) is capped at specialty tier I
+        if (current.tier >= maxSpecialtyTier(player.tier)) return;
         if (profile.specializationPoints < 1) return;
 
         set({
@@ -1975,6 +1852,20 @@ export const useGameStore = create<GameState>()(
         if (matchType === 'story' || matchType === 'tutorial') {
           // Check for post-match story event
           const storyMeta = phase.storyMatchMetadata;
+
+          // A lost playoff comes round again, the same match a few days on.
+          const playoff = getPlayoff(storyMeta?.playoff?.id);
+          if (playoff && storyMeta?.playoff && result === 'loss') {
+            const scheduledEvents = PlayoffManager.scheduleAttempt(
+              state.calendar.scheduledEvents,
+              playoff,
+              storyMeta.playoff.attempt + 1,
+              state.calendar.currentDay,
+            );
+            set((prev) => ({ calendar: { ...prev.calendar, scheduledEvents } }));
+            get().setIndicator('calendar');
+          }
+
           if (storyMeta) {
             const postMatchEventId = StoryMatchManager.getPostMatchEventId(storyMeta, result);
             if (postMatchEventId && state.player) {
@@ -2095,6 +1986,19 @@ export const useGameStore = create<GameState>()(
                   set((prev) => ({
                     calendar: { ...prev.calendar, scheduledEvents: updatedEvents },
                   }));
+                  get().setIndicator('calendar');
+                }
+
+                // From Regional on, losing the tier-final means the promotion playoff.
+                const playoff = getPlayoff(config.playoffId);
+                if (!lastCompleted.won && playoff) {
+                  const scheduledEvents = PlayoffManager.scheduleAttempt(
+                    get().calendar.scheduledEvents,
+                    playoff,
+                    1,
+                    state.calendar.currentDay,
+                  );
+                  set((prev) => ({ calendar: { ...prev.calendar, scheduledEvents } }));
                   get().setIndicator('calendar');
                 }
               }
@@ -2337,8 +2241,8 @@ export const useGameStore = create<GameState>()(
         const currentTier = getHangoutTier(characterId, relValue);
         const seenForChar = hangoutThresholdsSeen[characterId] ?? [];
 
-        // Only fire the tier event if it hasn't been seen yet
-        if (seenForChar.includes(currentTier)) return;
+        // Only fire the tier event if it hasn't been seen yet and belongs to this season
+        if (!hasUnseenTierEvent(characterId, relValue, hangoutThresholdsSeen, player.tier)) return;
 
         // Mark tier as seen immediately to prevent double-firing
         set({
@@ -2904,7 +2808,11 @@ export const useGameStore = create<GameState>()(
         }
 
         // Track event completion and choice
-        const updatedCompletedEvents = [...get().completedStoryEvents, eventId];
+        // A repeatable event is recorded once, however often it runs
+        const completedBefore = get().completedStoryEvents;
+        const updatedCompletedEvents = completedBefore.includes(eventId)
+          ? completedBefore
+          : [...completedBefore, eventId];
         const updatedCompletedChoices = { ...get().completedStoryEventChoices };
         if (optionId) {
           updatedCompletedChoices[eventId] = optionId;
@@ -2957,6 +2865,17 @@ export const useGameStore = create<GameState>()(
           }
         }
 
+        // A promotion begins the next tier's season tomorrow morning, with its fixed beats
+        let seasonCalendar = newCalendar;
+        if (outcome.effects.tierChange !== undefined) {
+          const promoted = SeasonManager.promote(
+            newCalendar,
+            outcome.effects.tierChange as OpponentTier,
+          );
+          seasonCalendar = promoted.calendar;
+          updatedScheduledEvents = [...updatedScheduledEvents, ...promoted.events];
+        }
+
         // Check if we need to schedule a tournament match
         const shouldScheduleTournamentMatch = outcome.effects.scheduleNextTournamentMatch === true;
 
@@ -2973,7 +2892,7 @@ export const useGameStore = create<GameState>()(
             lastActivity: result,
           },
           calendar: {
-            ...newCalendar,
+            ...seasonCalendar,
             scheduledEvents: updatedScheduledEvents,
           },
           activityHistory: [result, ...get().activityHistory].slice(0, 10),
@@ -3441,7 +3360,7 @@ export const useGameStore = create<GameState>()(
       refreshShop: () => {
         const { player } = get();
         const ownedLevels = new Map(player?.abilities.map((a) => [a.name, a.level]) ?? []);
-        const newItems = generateDailyShopItems(ownedLevels);
+        const newItems = generateDailyShopItems(ownedLevels, player?.tier ?? 1);
         set({ shopItems: newItems });
       },
 
@@ -3775,9 +3694,6 @@ export const useGameStore = create<GameState>()(
 
         // Note: Tournament state and scheduled events are now part of calendar
         // and are persisted automatically via state.calendar
-
-        // Opponent tier progression
-        unlockedTiers: state.unlockedTiers,
 
         // Shop state
         shopItems: state.shopItems,

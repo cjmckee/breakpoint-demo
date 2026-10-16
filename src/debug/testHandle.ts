@@ -22,6 +22,7 @@
 import { useGameStore } from '../stores/gameStore';
 import { useMatchStore } from '../stores/matchStore';
 import { setSeed, clearSeed, getSeed } from '../core/random';
+import { PLAYOFFS } from '../data/playoffs';
 
 export interface TestHandle {
   /** The persisted game store — player, calendar, inventory, progression. */
@@ -35,6 +36,11 @@ export interface TestHandle {
    * reproduce is what makes that piece repeatable.
    */
   seed: { set: typeof setSeed; clear: typeof clearSeed; get: typeof getSeed };
+  /**
+   * The playoff registry, so a spec can stand one up before its content is
+   * written. Arrange only: register a fixture, then play it through the UI.
+   */
+  playoffs: typeof PLAYOFFS;
 }
 
 declare global {
@@ -51,5 +57,6 @@ export function installTestHandle(): void {
     game: useGameStore,
     match: useMatchStore,
     seed: { set: setSeed, clear: clearSeed, get: getSeed },
+    playoffs: PLAYOFFS,
   };
 }

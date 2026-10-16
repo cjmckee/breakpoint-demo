@@ -1,6 +1,7 @@
 import { useEffect, useCallback } from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { useMenuStore } from './useMenuModal';
+import { useContentEnded } from './useContentEnded';
 
 function isInputFocused(): boolean {
   const el = document.activeElement as HTMLElement | null;
@@ -20,6 +21,7 @@ export function useGameKeyboardHandler() {
   const dismissHangoutUnlock = useGameStore((state) => state.dismissHangoutUnlock);
   const dismissItemAcquired = useGameStore((state) => state.dismissItemAcquired);
   const dismissOverlay = useGameStore((state) => state.dismissOverlay);
+  const contentEnded = useContentEnded();
   const isMenuOpen = useMenuStore((state) => state.isOpen);
   const isCalendarOpen = useMenuStore((state) => state.isCalendarOpen);
   const openCalendar = useMenuStore((state) => state.openCalendar);
@@ -75,7 +77,8 @@ export function useGameKeyboardHandler() {
       }
 
       const phase = gamePhase.type;
-      const onIdle = phase === 'idle' && !gamePhase.overlay;
+      // At the end of the story the menu isn't there, so neither are its shortcuts.
+      const onIdle = phase === 'idle' && !gamePhase.overlay && !contentEnded;
 
       // Prevent space/enter from accidentally clicking focused buttons
       if (key === 'Enter' || key === ' ') {
@@ -161,6 +164,7 @@ export function useGameKeyboardHandler() {
       dismissItemAcquired,
       dismissOverlay,
       isMenuOpen,
+      contentEnded,
       isCalendarOpen,
       openCalendar,
       closeCalendar,

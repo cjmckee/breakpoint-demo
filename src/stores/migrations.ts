@@ -26,14 +26,7 @@
  * gap, and at runtime such a save resets rather than loading half-shaped.
  */
 
-import type {
-  Player,
-  GameCalendar,
-  CurrentStatus,
-  ActivityResult,
-  ShopItem,
-  OpponentTier,
-} from '../types/game';
+import type { Player, GameCalendar, CurrentStatus, ActivityResult, ShopItem } from '../types/game';
 import type { Challenge } from '../types/challenges';
 import type { EquipmentSlot, OwnedItem } from '../types/items';
 import { TimeManager } from '../game/TimeManager';
@@ -66,7 +59,6 @@ export interface PersistedStoreState {
   storyEventTriggerChance: number;
   activeChallenges: Challenge[];
   completedChallenges: string[];
-  unlockedTiers: OpponentTier[];
   shopItems: ShopItem[];
   audioSettings: AudioSettings;
   matchSpeed: MatchSpeed;
@@ -82,7 +74,10 @@ export interface PersistedStoreState {
 // 11: the shop stopped selling stats, and abilities cost currency as well as XP.
 // 12: the player remembers the wallet as last seen, for the Develop badge.
 // 13: the player gained a pixel-art appearance.
-export const CURRENT_STORE_VERSION = 13;
+// 14: the calendar counts seasons: the day it began, and a season queued by a promotion.
+// 15: the player can remember a training focus (silver and up). Optional, so no change.
+// 16: the unused tier-unlock list is gone; player.tier is the only tier.
+export const CURRENT_STORE_VERSION = 16;
 
 /** Saves below this version are wiped instead of migrated. See the header. */
 export const RESET_BEFORE_VERSION = 5;
@@ -101,7 +96,6 @@ export function createDefaultPersistedState(): PersistedStoreState {
     storyEventTriggerChance: 40,
     activeChallenges: [],
     completedChallenges: [],
-    unlockedTiers: [1],
     shopItems: [],
     audioSettings: { musicVolume: 0.5, sfxVolume: 0.7, muteMusic: false, muteSfx: false },
     matchSpeed: DEFAULT_MATCH_SPEED,
@@ -236,7 +230,7 @@ function migrate9to10(state: PersistedStoreState): PersistedStoreState {
 function migrate10to11(state: PersistedStoreState): PersistedStoreState {
   if (state.shopItems.length === 0) return state;
   const owned = new Map(state.player?.abilities.map((a) => [a.name, a.level]) ?? []);
-  return { ...state, shopItems: generateDailyShopItems(owned) };
+  return { ...state, shopItems: generateDailyShopItems(owned, state.player?.tier ?? 1) };
 }
 
 /** 11 → 12: start the last-seen wallet at the current one, so nothing reads as new. */
@@ -253,6 +247,24 @@ function migrate12to13(state: PersistedStoreState): PersistedStoreState {
   return { ...state, player: { ...player, appearance: { ...DEFAULT_APPEARANCE } } };
 }
 
+/**
+ * 13 → 14: the season began on day 1. Before this the day only reset at day
+ * 90, so every save is still in the season it started in.
+ */
+function migrate13to14(state: PersistedStoreState): PersistedStoreState {
+  const calendar = state.calendar;
+  if (calendar.seasonStartDay !== undefined) return state;
+  return { ...state, calendar: { ...calendar, seasonStartDay: 1, upcomingSeason: null } };
+}
+
+/** 15 → 16: drop the tier-unlock list nothing read; the player's tier is `player.tier`. */
+function migrate15to16(state: PersistedStoreState): PersistedStoreState {
+  const { unlockedTiers: _dropped, ...rest } = state as PersistedStoreState & {
+    unlockedTiers?: unknown;
+  };
+  return rest;
+}
+
 const MIGRATIONS: Readonly<Record<number, MigrationFn | typeof NO_CHANGE>> = {
   6: migrate5to6,
   7: migrate6to7,
@@ -262,6 +274,9 @@ const MIGRATIONS: Readonly<Record<number, MigrationFn | typeof NO_CHANGE>> = {
   11: migrate10to11,
   12: migrate11to12,
   13: migrate12to13,
+  14: migrate13to14,
+  15: NO_CHANGE,
+  16: migrate15to16,
 };
 
 // ----------------------------------------------------------------------------

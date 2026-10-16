@@ -2,7 +2,8 @@
  * Anchor Training Screen
  *
  * Training flow:
- *   1. Pick a CORE shot to work on.
+ *   1. Pick a CORE shot to work on. From silver, pick a focus too: the currency
+ *      that stands in for the shot's secondary one.
  *   2. Play that shot's themed minigame — three pass/fail attempts, each clean rep
  *      adds to the payout — or Quick Sim for a guaranteed one rep.
  *   3. The session pays the shot's currency mix (TRAINING_MIXES), to spend on the
@@ -15,7 +16,10 @@ import {
   CORE_ANCHORS,
   CORE_ANCHOR_ORDER,
   ANCHOR_TRAINING_ENERGY_COST,
+  TRAINING_SPEED_RAMPS,
   buildAnchorTrainingResult,
+  offersFocus,
+  trainingTierFor,
   type CoreStat,
   type TrainingBonuses,
 } from '../game/AnchorTrainingSystem';
@@ -28,6 +32,7 @@ import { CURRENCIES, CURRENCY_LABELS } from '../config/economy';
 import { trainingPayout } from '../game/CurrencyIncome';
 import { CurrencyAmounts } from './currency/CurrencyAmounts';
 import { CoreStatPentagon } from './training/CoreStatPentagon';
+import { FocusPicker } from './training/FocusPicker';
 import { audioManager } from '../audio/AudioManager';
 import { MINIGAMES } from '../minigames/registry';
 import { useScrollToTopOn } from '../hooks/useScrollToTopOn';
@@ -40,6 +45,7 @@ export const AnchorTraining: React.FC = () => {
   const navigateTo = useGameStore((state) => state.navigateTo);
   const applyTrainingResult = useGameStore((state) => state.applyTrainingResult);
   const advanceTime = useGameStore((state) => state.advanceTime);
+  const setTrainingFocus = useGameStore((state) => state.setTrainingFocus);
 
   const [step, setStep] = useState<Step>({ kind: 'pick' });
   const [hasStarted, setHasStarted] = useState(false);
@@ -51,6 +57,13 @@ export const AnchorTraining: React.FC = () => {
   if (!player) return null;
 
   const canAfford = currentStatus.energy >= ANCHOR_TRAINING_ENERGY_COST;
+  const sessionTier = trainingTierFor(player.tier);
+  const hasFocus = offersFocus(sessionTier);
+  const focus = hasFocus ? player.trainingFocus : undefined;
+  const subtitle =
+    sessionTier === 'bronze'
+      ? undefined
+      : `${sessionTier[0].toUpperCase()}${sessionTier.slice(1)} drills`;
 
   const { effects } = EffectAggregator.getActiveEffects(player);
   const windowBonus = EffectAggregator.getEffect(effects, EffectKey.MINIGAME_WINDOW_BONUS);
@@ -61,10 +74,13 @@ export const AnchorTraining: React.FC = () => {
     bonusRepChance: EffectAggregator.getEffect(effects, EffectKey.TRAINING_BONUS_SUPPORT_CHANCE),
   };
   /** What a clean three-for-three session on `core` pays — the card's headline. */
-  const bestPayout = (core: CoreStat): Amounts => trainingPayout(core, 3);
+  const bestPayout = (core: CoreStat): Amounts => trainingPayout(core, 3, false, undefined, focus);
 
   const resolve = (core: CoreStat, count: number): void => {
-    const result = buildAnchorTrainingResult(core, count, trainingBonuses);
+    const result = buildAnchorTrainingResult(core, count, trainingBonuses, {
+      sessionTier,
+      focus,
+    });
     // applyTrainingResult transitions to idle with the training_result overlay,
     // then advanceTime moves the clock forward — mirrors the old training flow.
     applyTrainingResult(result);
@@ -83,6 +99,7 @@ export const AnchorTraining: React.FC = () => {
     return (
       <ScreenFrame
         title={`${anchor.name} Training`}
+        subtitle={subtitle}
         icon={STAT_ICONS[step.core]}
         onBack={() => setStep({ kind: 'pick' })}
         energyPreview={-ANCHOR_TRAINING_ENERGY_COST}
@@ -96,6 +113,7 @@ export const AnchorTraining: React.FC = () => {
                 // Training reads the score as its rep count — a clean rep is one point.
                 onComplete={(score) => resolve(step.core, score.score)}
                 windowBonus={windowBonus}
+                config={{ speedRamp: TRAINING_SPEED_RAMPS[sessionTier] }}
                 onStart={() => setHasStarted(true)}
               />
             );
@@ -118,7 +136,10 @@ export const AnchorTraining: React.FC = () => {
                       <span className="w-16 text-pixel-text-muted">
                         {reps} rep{reps === 1 ? '' : 's'}
                       </span>
-                      <CurrencyAmounts amounts={trainingPayout(step.core, reps)} labelled />
+                      <CurrencyAmounts
+                        amounts={trainingPayout(step.core, reps, false, undefined, focus)}
+                        labelled
+                      />
                     </div>
                   ))}
                 </div>
@@ -145,6 +166,7 @@ export const AnchorTraining: React.FC = () => {
   return (
     <ScreenFrame
       title="Training"
+      subtitle={subtitle}
       onBack={() => navigateTo('idle')}
       energyPreview={-ANCHOR_TRAINING_ENERGY_COST}
       actions={
@@ -160,6 +182,12 @@ export const AnchorTraining: React.FC = () => {
       {!canAfford && (
         <div className="mt-4 p-3 bg-pixel-card border-2 border-pixel-error text-pixel-error text-sm font-bold">
           <>Not enough energy — (Need {ANCHOR_TRAINING_ENERGY_COST})</>
+        </div>
+      )}
+
+      {hasFocus && (
+        <div className="mt-4">
+          <FocusPicker value={focus} onChange={setTrainingFocus} />
         </div>
       )}
 

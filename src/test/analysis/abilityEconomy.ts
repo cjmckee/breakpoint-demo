@@ -14,7 +14,13 @@
  */
 
 import { ABILITY_LEVEL_MULTIPLIER } from '../../config/shotThresholds';
-import { ABILITY_CURRENCY, ABILITY_PRICES } from '../../config/economy';
+import type { OpponentTier } from '../../types/game';
+import {
+  ABILITY_CURRENCY,
+  ABILITY_PRICES,
+  abilityLevelPrice,
+  offerRarity,
+} from '../../config/economy';
 import type { Currency } from './statEconomy';
 
 export type Rarity = 'common' | 'uncommon' | 'rare';
@@ -77,37 +83,22 @@ const IDENTITY_INDEX: Record<IdentityName, number> = {
 
 const env = (k: string, d: number): number => Number(process.env[k] ?? d);
 
-/** Currency units at level 1, by rarity. */
-export const ABILITY_UNITS: Record<Rarity, number> = {
-  common: env('ABILITY_UNITS_C', ABILITY_PRICES.common.units),
-  uncommon: env('ABILITY_UNITS_U', ABILITY_PRICES.uncommon.units),
-  rare: env('ABILITY_UNITS_R', ABILITY_PRICES.rare.units),
-};
-/** XP at level 1, by rarity. */
-export const ABILITY_XP: Record<Rarity, number> = {
-  common: ABILITY_PRICES.common.xp,
-  uncommon: ABILITY_PRICES.uncommon.xp,
-  rare: ABILITY_PRICES.rare.xp,
-};
-/** Shop offer weights by rarity, and offers per day. */
-const OFFER_WEIGHTS: Array<[Rarity, number]> = [
-  ['common', 0.5],
-  ['uncommon', 0.35],
-  ['rare', 0.15],
-];
+// ABILITY_UNITS_C / _U / _R try another level-1 currency price per rarity: the
+// override is written into the shared table, so the shop's own pricing uses it.
+for (const [rarity, key] of [
+  ['common', 'ABILITY_UNITS_C'],
+  ['uncommon', 'ABILITY_UNITS_U'],
+  ['rare', 'ABILITY_UNITS_R'],
+] as const) {
+  ABILITY_PRICES[rarity].units = env(key, ABILITY_PRICES[rarity].units);
+}
+/** Offers per day; their rarity follows the shop's ABILITY_OFFER_WEIGHTS for the tier. */
 export const OFFERS_PER_DAY = env('ABILITY_OFFERS', 2);
 const MAX_LEVEL = ABILITY_LEVEL_MULTIPLIER.length - 1;
 
-/**
- * Price to go from `level` to `level + 1` (level 0 = buying it): the shop's own
- * escalation, base × (1.5 + 0.75 × level) once owned, applied to currency and XP.
- */
+/** Price to go from `level` to `level + 1` (level 0 = buying it): the shop's own (abilityLevelPrice). */
 export function priceFor(a: BuyableAbility, level: number): { units: number; xp: number } {
-  const scale = level === 0 ? 1 : 1.5 + 0.75 * level;
-  return {
-    units: Math.round(ABILITY_UNITS[a.rarity] * scale),
-    xp: Math.round(ABILITY_XP[a.rarity] * scale),
-  };
+  return abilityLevelPrice(a.rarity, level);
 }
 
 /** Point-win gained by going from `level` to `level + 1`, on this identity. */
@@ -117,12 +108,11 @@ export function valueGain(a: BuyableAbility, identity: IdentityName, level: numb
   return base * (ABILITY_LEVEL_MULTIPLIER[level + 1] - ABILITY_LEVEL_MULTIPLIER[level]);
 }
 
-/** One day's offers, rarity first, then an ability of that rarity. */
-export function dailyOffers(rng: () => number = Math.random): BuyableAbility[] {
+/** One day's offers at this tier, rarity first, then an ability of that rarity. */
+export function dailyOffers(tier: OpponentTier, rng: () => number = Math.random): BuyableAbility[] {
   const out: BuyableAbility[] = [];
   for (let i = 0; i < OFFERS_PER_DAY; i++) {
-    let roll = rng();
-    const rarity = OFFER_WEIGHTS.find(([, w]) => (roll -= w) < 0)?.[0] ?? 'common';
+    const rarity = offerRarity(rng(), tier);
     const pool = BUYABLE.filter((a) => a.rarity === rarity);
     out.push(pool[Math.floor(rng() * pool.length)]);
   }

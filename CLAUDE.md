@@ -1009,6 +1009,11 @@ negate(price))` after checking `canAfford`.
   hard-to-reach moments — most outcomes should pay currency.
 - **Development is one screen** with two tabs: Stats (currency) and Specialties
   (specialization points from levelling). `navigateTo('archetype')` opens the Specialties tab.
+- **Training tiers.** A player's tier sets their training tier (`trainingTierFor`: Club bronze,
+  Regional silver, then gold). From silver a session takes a **focus**: the currency that
+  replaces each shot's secondary one (`focusedMix`). It changes what a session pays, never how
+  much. Pay is flat across tiers; a new training feature that adds pay has to come out of the
+  same budget (`docs/proposals/mid-late-progression.md` §2.1).
 - **Display** amounts with `CurrencyAmounts` (`src/components/currency/`), so every
   currency has one icon and colour everywhere.
 
@@ -1048,6 +1053,49 @@ Characters are paper-doll sprites built in code, not image files.
 - `appearanceFromSeed(name)` gives a generated opponent a stable look, and never draws
   from the simulation's random stream.
 - `src/test/spriteCheck.ts` validates every grid; run it after editing art.
+
+### Seasons
+
+Each tier is one season of the career: Club, Regional, Tour, World.
+
+- **Two days.** `calendar.currentDay` is the career day and never resets; scheduling, unlock
+  gates and "days until" count on it. `TimeManager.seasonDay` is the day of the current
+  season, and it's what the player sees and what story `minDay`/`maxDay` read.
+- **A season's fixed beats are data**: `src/data/seasons/<tier>.ts`, on season days, listed in
+  `src/data/seasons/index.ts`. List only the first event of each chain (a team match
+  announcement schedules its own match).
+- **Promotion starts the next season.** An outcome with `tierChange` queues that tier's season
+  for the next morning (`SeasonManager.promote`) and schedules its file.
+- **Gate events by tier** with `prerequisites.tier: { min, max }`, so Club flavour stops on the
+  Tour. An event that must fire more than once (a promotion playoff) sets `repeatable: true`.
+- **Promotion playoffs** (`src/data/playoffs.ts`): from Regional, a tier-final names a `playoffId`.
+  Losing the tier-final schedules it; each loss schedules it again `retryDays` on, against the
+  same opponent at the same strength, with that attempt's loss event (`lossEventIds`, the last
+  repeating). The win event carries the `tierChange`. Mark the prematch and last loss repeatable.
+- **The game stops where the writing does.** Once `CONTENT_END_EVENT` (`thanks_for_playing`) has
+  played and the player's tier has no entry in `SEASON_SCHEDULES`, the menu gives way to the end
+  screen (`SeasonManager.contentEnded`, `ContentEnd`), shortcuts included. Writing the season
+  (moving it out of `DRAFT_SEASONS`) lifts it, and the Regional specs that skip until then re-arm.
+- Design and pacing: `docs/proposals/mid-late-progression.md`.
+
+### Venues
+
+Team matches and tournaments are played at a venue (`src/data/venues.ts`): a named court with
+its surface and optional `conditions`. Practice matches pick a surface and have no venue.
+
+- **Conditions reach both players** through `src/core/venue.ts`, in the quick sim and the live
+  match alike: `effects` (EffectKeys added to each side), `fatigue` (how fast both tire),
+  `wind` (knocks serve accuracy, most for inaccurate and risky servers, `SERVE_WIND`) and
+  `crowd` (momentum the home side gains). A match names its `home` side for the crowd.
+- **The venue owns the surface.** A team match or tournament says `venue`, not `surface`.
+- **Size conditions with `venueProbe`** (`SLOT=regional-tm3` for any season's slot). Conditions
+  that hit both players mostly cancel. What tilts a match is a condition one playstyle copes with
+  better: heat (`fatigue`) helps high stamina, `wind` punishes a wild or risky server, thin air
+  (`serve_speed`) helps the baseliner and hurts the net rusher. Heat is the strongest past Club:
+  ×1.5 tilts a match by 4-8 points, ×2 by up to 15 at World, so keep a heatwave for a story
+  moment. Wind 40 can swing a match by 10-15 points against a Bomber. Use `wind`, not a
+  `fault_risk` effect, which costs both players alike and barely registers.
+- The pre-match screen shows the venue and its conditions. A new condition needs a chip there.
 
 ### Match Simulation
 

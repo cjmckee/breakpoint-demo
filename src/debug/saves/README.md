@@ -27,3 +27,16 @@ the game you're currently playing.
 The two saves that used to live here were removed at store version 6 — they
 predated the `storeVersion` field entirely and still carried the pre-consolidation
 20-stat shape (`slice` in `core` rather than `net`), which is below the floor.
+
+## Season-start saves
+
+`save-regional-day1-<identity>.json` are the first morning of Regional for each career identity
+(big server, counter, net rusher, baseliner): the identity's mean career build at the end of Club
+(`careerBuilds.json`), promoted by the Riverside Open's victory ceremony and slept into season 2,
+with Keith and Jen met and a hangout ready. They are the starting point for Regional playtests.
+Re-record them, then run `npm run format`, when the store shape, the career builds or the Club
+ending changes:
+
+```
+RECORD_SAVES=1 npx playwright test e2e/recordSaves.spec.ts --project=chromium
+```

@@ -23,6 +23,7 @@ import {
   PointResult as SimplePointResult,
 } from '../types/keyMoments';
 import { PlayerStats, Ability, StatBoosts, EffectKey } from '../types/game';
+import type { Venue } from '../types/game';
 import {
   MatchStatistics as IMatchStatistics,
   MatchState,
@@ -33,9 +34,14 @@ import {
   ShotDetail,
   ShotType,
 } from '../types';
-import { PRESSURE_BANK, KEY_MOMENT_OPPONENT_DRAIN } from '../config/shotThresholds';
+import {
+  PRESSURE_BANK,
+  KEY_MOMENT_OPPONENT_DRAIN,
+  relativeSupport,
+} from '../config/shotThresholds';
 import { abilityEffects } from '../core/EffectAggregator';
 import { fatigueAfterPoint, fatigueAfterRest } from '../core/fatigue';
+import { addEffects, venueCrowd, venueEffects, venueFatigue, venueWind } from '../core/venue';
 import { MomentumEngine, ClutchLevel } from '../core/MomentumEngine';
 import { getPrimaryStatName } from '../core/shotStatMapping';
 import { getMatchLevel, getQualityThresholds } from '../utils/qualityThresholds';
@@ -76,11 +82,38 @@ export interface AccumulatedMatchEffects {
   opponentEnergyDelta: number; // Net opponent energy change from key moment outcomes
 }
 
+/**
+ * Resolves on the next macrotask. A MessageChannel rather than setTimeout(0),
+ * which browsers clamp to 4ms once nested: this costs microseconds a point, so
+ * Instant speed and the analysis probes stay fast.
+ */
+/**
+ * With no point delay, how many points run before the loop yields a macrotask.
+ * Each point is a couple of chained React commits (the store update, then the
+ * court's and toasts' effects), and React throws once a chain passes 50. Every
+ * point would be safe but slow: the court's rally-animation timers then run
+ * between every point, which roughly doubles how long an Instant match takes.
+ */
+const INSTANT_POINTS_PER_YIELD = 8;
+
+function yieldToEventLoop(): Promise<void> {
+  return new Promise((resolve) => {
+    const channel = new MessageChannel();
+    channel.port1.onmessage = () => {
+      channel.port1.close();
+      resolve();
+    };
+    channel.port2.postMessage(null);
+  });
+}
+
 export class MatchOrchestrator {
   private keyMomentsTriggered = 0;
   private pointsPlayed = 0;
   private momentum = 0; // Mirror of momentumEngine, read across the orchestrator
   private momentumEngine = new MomentumEngine();
+  /** Stamina as the fatigue rules read it: from the match's support neutral. */
+  private stamina: { player: number; opponent: number } = { player: 0, opponent: 0 };
   private pressure = 0;
   private pressureBank = 0; // Persistent pressure from key moment effects (decays slowly)
   private matchEnergy = 100; // Tracked mid-match, starts at config.energy
@@ -94,6 +127,10 @@ export class MatchOrchestrator {
   // Live pause between points. Seeded from config at match start, then changed
   // mid-match through setPointDelay when the player picks another match speed.
   private pointDelayMs = DEFAULT_POINT_DELAY_MS;
+  /** Where the match is played, for the fatigue its conditions add. */
+  private venue: Venue | undefined;
+  /** Points played with no delay since the loop last gave the event loop back. */
+  private pointsSinceYield = 0;
   // Ends the pending between-point pause early so a new delay applies at once.
   private wakePointDelay: (() => void) | null = null;
   private playerStats: PlayerStats | null = null;
@@ -172,9 +209,11 @@ export class MatchOrchestrator {
   public static extractActiveEffects(
     abilities?: Ability[],
     archetypeProfile?: ArchetypeProfile,
+    venue?: Venue,
   ): Record<string, number> {
-    // Ability effects (quality keys, read by ShotCalculator), scaled by level
-    const effects = abilityEffects(abilities);
+    // Ability effects (quality keys, read by ShotCalculator), scaled by level,
+    // plus the venue's conditions, which both players feel
+    const effects = addEffects(abilityEffects(abilities), venueEffects(venue));
 
     // Archetype behavior effects (decision keys, read by ShotSelector/PointSimulator)
     if (archetypeProfile) {
@@ -214,11 +253,14 @@ export class MatchOrchestrator {
     this.activeEffects = MatchOrchestrator.extractActiveEffects(
       config.playerAbilities,
       config.playerArchetypeProfile,
+      config.venue,
     );
     this.opponentActiveEffects = MatchOrchestrator.extractActiveEffects(
       config.opponentAbilities,
       config.opponentArchetypeProfile,
+      config.venue,
     );
+    this.venue = config.venue;
 
     // Initialize match simulator with PlayerProfile objects, carrying their
     // archetype identities so shot selection reflects their chosen specialties.
@@ -290,10 +332,19 @@ export class MatchOrchestrator {
     this.matchMood = config.mood ?? 0;
     this.accumulatedEffects = { energyDelta: 0, moodDelta: 0, opponentEnergyDelta: 0 };
     this.momentum = 0;
-    this.momentumEngine.reset({
-      player: player.stats.mental.focus,
-      opponent: opponent.stats.mental.focus,
-    });
+    // Focus steadies rhythm, measured from the match's support neutral.
+    // Stamina, like focus, is measured from the match's support neutral.
+    this.stamina = {
+      player: relativeSupport(player.stats.physical.stamina, matchLevel),
+      opponent: relativeSupport(opponent.stats.physical.stamina, matchLevel),
+    };
+    this.momentumEngine.reset(
+      {
+        player: relativeSupport(player.stats.mental.focus, matchLevel),
+        opponent: relativeSupport(opponent.stats.mental.focus, matchLevel),
+      },
+      venueCrowd(config.venue, config.home),
+    );
     this.pressureBank = 0;
 
     // Reset tiebreak tracking state for this match
@@ -850,6 +901,7 @@ export class MatchOrchestrator {
       },
       currentServer: currentServer,
       courtSurface: this.courtSurface,
+      wind: venueWind(this.venue),
       momentum: this.momentum,
       pressure:
         this.pressure > 60
@@ -925,11 +977,22 @@ export class MatchOrchestrator {
 
   /**
    * Wait out the between-point pause, re-reading the live delay whenever
-   * setPointDelay wakes it. Returns without awaiting when the delay is 0.
+   * setPointDelay wakes it. With no delay (Instant speed, headless probes) it
+   * still hands the event loop back every few points: otherwise every point
+   * between two key moments runs as one unbroken chain of React commits, which
+   * trips React's nested-update limit and stops the match dead.
    */
   private async waitBetweenPoints(): Promise<void> {
     const startedAt = Date.now();
     let remaining = this.pointDelayMs;
+    if (remaining <= 0) {
+      this.pointsSinceYield += 1;
+      if (this.pointsSinceYield >= INSTANT_POINTS_PER_YIELD) {
+        this.pointsSinceYield = 0;
+        await yieldToEventLoop();
+      }
+      return;
+    }
     while (remaining > 0 && !this.cancelled) {
       await new Promise<void>((resolve) => {
         const wake = (): void => {
@@ -1276,14 +1339,10 @@ export class MatchOrchestrator {
    */
   private applyRestRecovery(setCompleted: boolean): void {
     if (!this.playerStats || !this.opponentStats) return;
-    this.fatigue.player = fatigueAfterRest(
-      this.fatigue.player,
-      this.playerStats.physical.stamina,
-      setCompleted,
-    );
+    this.fatigue.player = fatigueAfterRest(this.fatigue.player, this.stamina.player, setCompleted);
     this.fatigue.opponent = fatigueAfterRest(
       this.fatigue.opponent,
-      this.opponentStats.physical.stamina,
+      this.stamina.opponent,
       setCompleted,
     );
   }
@@ -1294,21 +1353,23 @@ export class MatchOrchestrator {
   private updateMatchFatigue(rallyLength: number): void {
     if (!this.playerStats || !this.opponentStats) return;
 
-    // focus_duration: reduces player fatigue accumulation rate
+    // The venue's heat tires both players; focus_duration slows the player's build-up
+    const heat = venueFatigue(this.venue);
     const focusDuration = this.activeEffects[EffectKey.FOCUS_DURATION] ?? 0;
-    const fatigueMultiplier = Math.max(0.5, 1 - focusDuration * 0.05);
+    const fatigueMultiplier = Math.max(0.5, 1 - focusDuration * 0.05) * heat;
 
     this.fatigue.player = fatigueAfterPoint(
       this.fatigue.player,
       rallyLength,
-      this.playerStats.physical.stamina,
+      this.stamina.player,
       fatigueMultiplier,
     );
 
     this.fatigue.opponent = fatigueAfterPoint(
       this.fatigue.opponent,
       rallyLength,
-      this.opponentStats.physical.stamina,
+      this.stamina.opponent,
+      heat,
     );
   }
 

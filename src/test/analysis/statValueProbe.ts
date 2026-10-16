@@ -62,7 +62,11 @@ function perMatch(stats: PlayerStats): { perMatch: number[]; ptWin: number } {
         TEAM.opponent.stats,
         profileForArchetype(TEAM.opponent.archetype),
       ),
-      { format: BO3, surface: TEAM.surface, initialServer: i % 2 === 0 ? 'player' : 'opponent' },
+      {
+        format: BO3,
+        surface: TEAM.venue.surface,
+        initialServer: i % 2 === 0 ? 'player' : 'opponent',
+      },
     );
     tallyMatch(points, BO3, rates);
     out.push(points.filter((p) => p.winner === 'player').length / points.length);
@@ -89,7 +93,7 @@ function main(): void {
   }
   console.log = log;
   log(
-    `\nstatValueProbe  N=${N} BO3  ${ID} day-23 build v ${TEAM.opponent.name} (${TEAM.surface})  ` +
+    `\nstatValueProbe  N=${N} BO3  ${ID} day-23 build v ${TEAM.opponent.name} (${TEAM.venue.surface})  ` +
       `+${BUMP} per stat; baseline point-win ${base.ptWin.toFixed(1)}%`,
   );
   log(['stat', 'from', 'Δpt-win', 'cost (units)', 'Δpt-win per 10 units'].join('\t'));

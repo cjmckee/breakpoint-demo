@@ -77,12 +77,14 @@ export const ActiveTournamentCard: React.FC = () => {
 
     return (
       <div className="w-full flex items-center gap-3 border-4 border-yellow-400 bg-yellow-500 bg-opacity-10 px-4 py-3">
-        <span className="text-2xl shrink-0">{getSurfaceEmoji(scheduledTournament.surface)}</span>
+        <span className="text-2xl shrink-0">
+          {getSurfaceEmoji(scheduledTournament.venue.surface)}
+        </span>
         <div className="flex-1 min-w-0">
           <div className="font-bold text-pixel-text truncate">
             {scheduledTournament.name}
             <span className="ml-2 text-xs font-normal text-pixel-text-muted">
-              {scheduledTournament.surface.toUpperCase()}
+              {scheduledTournament.venue.surface.toUpperCase()}
             </span>
           </div>
           <div className="text-xs text-pixel-text-muted truncate">
@@ -144,7 +146,7 @@ export const ActiveTournamentCard: React.FC = () => {
 
   const row = (
     <>
-      <span className="text-2xl shrink-0">{getSurfaceEmoji(tournament.surface)}</span>
+      <span className="text-2xl shrink-0">{getSurfaceEmoji(tournament.venue.surface)}</span>
       <div className="flex-1 min-w-0">
         <div className="font-bold text-pixel-text truncate">
           {tournament.name}

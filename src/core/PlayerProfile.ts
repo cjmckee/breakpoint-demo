@@ -22,6 +22,7 @@ import {
   SERVE_ACCURACY_WEIGHTS,
   RETURN_COMPOSITE_WEIGHTS,
   SHOT_COMPOSITE_WEIGHTS,
+  WING_SHARE,
   MATCH_FORM,
 } from '../config/shotThresholds';
 
@@ -134,8 +135,22 @@ export function getShotStatWeights(shotType: ShotType): Record<string, number> {
   }
   const { primary, ...supports } = SHOT_COMPOSITE_WEIGHTS[entry.family];
   const weights: Record<string, number> = { ...supports };
-  weights[entry.stat] = (weights[entry.stat] ?? 0) + primary;
+  const wing = wingShare(shotType, entry.family);
+  weights[entry.stat] = (weights[entry.stat] ?? 0) + primary * (1 - wing.share);
+  if (wing.share > 0) weights[wing.stat] = (weights[wing.stat] ?? 0) + primary * wing.share;
   return weights;
+}
+
+/**
+ * The share of a passing shot's or lob's primary stat that comes from the wing
+ * it is hit off (WING_SHARE): a pass is a forehand or a backhand.
+ */
+function wingShare(
+  shotType: ShotType,
+  family: string,
+): { share: number; stat: 'forehand' | 'backhand' } {
+  const share = family === 'passing' || family === 'lob' ? WING_SHARE[family] : 0;
+  return { share, stat: shotType.endsWith('_backhand') ? 'backhand' : 'forehand' };
 }
 
 /**
@@ -376,8 +391,10 @@ export class PlayerProfile implements IPlayerProfile {
   ): { primaryValue: number; weights: { primary: number; [stat: string]: number } } | null {
     const entry = RALLY_SHOT_FAMILIES[shotType];
     if (!entry) return null;
+    const wing = wingShare(shotType, entry.family);
     return {
-      primaryValue: this.getStat(entry.stat),
+      primaryValue:
+        this.getStat(entry.stat) * (1 - wing.share) + this.getStat(wing.stat) * wing.share,
       weights: SHOT_COMPOSITE_WEIGHTS[entry.family],
     };
   }

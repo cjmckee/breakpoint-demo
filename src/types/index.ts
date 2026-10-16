@@ -131,6 +131,8 @@ export interface ShotContext {
   rallyLength: number;
   courtSurface: CourtSurface;
   isFirstPointOfGame?: boolean;
+  /** The venue's wind, which unsettles serves (SERVE_WIND). Unset is calm. */
+  wind?: number;
 }
 
 // =======================
@@ -407,6 +409,8 @@ export interface MatchState {
   pointsPlayed: number;
   isKeyMoment: boolean;
   fatigue: PlayerMatchFatigue;
+  /** The venue's wind (core/venue.ts venueWind); 0 is calm. */
+  wind?: number;
 }
 
 /**
@@ -676,37 +680,6 @@ export interface PlayStyle {
   consistency: number; // 0-100
   power: number; // 0-100
   description: string;
-}
-
-// =======================
-// TRAINING SYSTEM
-// =======================
-
-/**
- * Training session result
- */
-export interface TrainingResult {
-  type: 'training';
-  timestamp: string;
-
-  // Training details
-  trainingType: string;
-  trainingName: string;
-  sessionTier: 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond';
-
-  // Costs and effects
-  energyCost: number;
-  timeSlotsUsed: number;
-
-  // Stat improvements
-  statBoosts: Partial<PlayerStats['technical'] & PlayerStats['physical'] & PlayerStats['mental']>;
-
-  // Additional effects
-  efficiency: number; // 0-100
-  moodResult: number; // Effect on player mood
-  abilityGained?: string;
-  abilityLevel?: number;
-  tierModification?: 'promoted' | 'demoted';
 }
 
 // =======================

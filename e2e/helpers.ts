@@ -192,6 +192,25 @@ export async function triggerStoryEvent(page: Page, eventId: string): Promise<vo
   }, eventId);
 }
 
+/**
+ * Records story events as already played, for a scenario that starts partway
+ * through a chain: triggering a late event directly skips the earlier ones its
+ * follow-ups require (the Riverside Open's epilogue needs its opening ceremony).
+ */
+export async function markStoryEventsCompleted(page: Page, eventIds: string[]): Promise<void> {
+  await page.evaluate((ids) => {
+    const handle = window.__test__;
+    if (!handle) throw new Error('window.__test__ missing — is this a dev build?');
+    const { completedStoryEvents } = handle.game.getState();
+    handle.game.setState({
+      completedStoryEvents: [
+        ...completedStoryEvents,
+        ...ids.filter((id) => !completedStoryEvents.includes(id)),
+      ],
+    });
+  }, eventIds);
+}
+
 /** Every story event id the game knows about, for a sweep. */
 export function allStoryEventIds(): string[] {
   return StoryEventRepository.getAllEvents().map((event) => event.id);
@@ -331,9 +350,14 @@ export async function playMatch(
       const count = await tactics.count();
       if (count > 0) {
         const tactic = tactics.nth(policy === 'first' ? 0 : count - 1);
-        run.chosen.push((await tactic.getAttribute('data-tactic-id')) ?? '?');
         await tactic.click();
-        await page.getByTestId('km-commit').click();
+        // A tutorial callout can mount a beat after the choice screen, and it
+        // disables the commit until dismissed. Go round again so the tutorial
+        // branch above deals with it, rather than waiting on a disabled button.
+        const commit = page.getByTestId('km-commit');
+        if (!(await commit.isEnabled())) continue;
+        run.chosen.push((await tactic.getAttribute('data-tactic-id')) ?? '?');
+        await commit.click();
         run.keyMoments++;
         continue;
       }

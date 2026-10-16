@@ -342,12 +342,7 @@ export const tournamentEvents: StoryEvent[] = [
           'Unfortunately, this is the end of the story content for now. Stay tuned for updates in the future to continue etching your name in tennis history.',
         ],
       ],
-      [
-        null,
-        [
-          "You can continue to train and beat up on that poor regional tier guy if you want, but I'll be adding more content soon.",
-        ],
-      ],
+      [null, ["I'll be adding more content soon!"]],
     ],
     characters: [],
     options: [],

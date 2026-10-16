@@ -169,7 +169,7 @@ export const TournamentList: React.FC = () => {
             return (
               <div
                 key={tournament.id}
-                className={`border-4 ${getSurfaceColor(tournament.surface)} p-4 bg-pixel-card ${
+                className={`border-4 ${getSurfaceColor(tournament.venue.surface)} p-4 bg-pixel-card ${
                   !eligible && !completion ? 'opacity-60' : ''
                 }`}
               >
@@ -186,10 +186,11 @@ export const TournamentList: React.FC = () => {
                     </div>
                     <span
                       className={`inline-block px-2 py-1 text-sm font-bold border-2 ${getSurfaceColor(
-                        tournament.surface,
+                        tournament.venue.surface,
                       )}`}
                     >
-                      {getSurfaceEmoji(tournament.surface)} {tournament.surface.toUpperCase()}
+                      {getSurfaceEmoji(tournament.venue.surface)}{' '}
+                      {tournament.venue.surface.toUpperCase()}
                     </span>
                     {completion && (
                       <div className="mt-2">

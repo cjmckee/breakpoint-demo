@@ -15,6 +15,7 @@ import type { PlayerStats, PlayStyle } from '../types';
 import { calculateOverallRating } from '../utils/playerStats';
 
 import { MATCH_SPEED_DELAYS } from '../config/matchRewards';
+import { getVenue } from '../data/venues';
 interface StoryMatchProps {
   matchConfig: PreMatchConfig | null;
 }
@@ -51,6 +52,8 @@ export const StoryMatch: React.FC<StoryMatchProps> = ({ matchConfig }) => {
       opponentCharacterId: matchConfig.opponentCharacterId,
       opponentTier: matchConfig.opponentTier,
       surface: matchConfig.surface || 'hard',
+      venue: getVenue(matchConfig.venueId),
+      home: matchConfig.home,
       mood: currentStatus.mood,
       energy: currentStatus.energy,
       enableKeyMoments: true,
@@ -89,6 +92,8 @@ export const StoryMatch: React.FC<StoryMatchProps> = ({ matchConfig }) => {
       opponentStats={matchConfig.opponentStats}
       opponentPlayStyle={matchConfig.opponentPlayStyle}
       surface={matchConfig.surface || 'hard'}
+      venue={getVenue(matchConfig.venueId)}
+      home={matchConfig.home}
       matchFormat={matchConfig.matchFormat || 'best-of-1'}
       energyCost={energyCost}
       currentEnergy={currentStatus.energy}

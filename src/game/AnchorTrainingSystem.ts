@@ -2,17 +2,17 @@
  * Anchor Training System
  *
  * The player picks a CORE stat to "anchor" a session on, then plays that shot's
- * themed minigame. The session pays training currency: a base amount plus more
- * per clean rep, mostly in the anchor's recipe currencies (serve pays Power,
- * return pays Quickness), with a general share and a Mind share on top. Stats
- * are bought with it on the Development screen.
+ * themed minigame. The session pays training currency: the anchor's mix
+ * (TRAINING_MIXES: serve pays Power and Mind, backhand Technique and Quickness)
+ * once, plus once more per clean rep. From silver, a focus swaps the mix's
+ * secondary currency. Stats are bought with it on the Development screen.
  *
  * Pure logic, no React. Produces a TrainingResult for gameStore.applyTrainingResult().
  * Rates: config/economy.ts. Payout: CurrencyIncome.trainingPayout.
  */
 
 import type { CoreStats } from '../types';
-import type { TrainingResult } from '../types/game';
+import type { Currency, OpponentTier, TrainingResult, TrainingSessionTier } from '../types/game';
 import type { MinigameId } from '../minigames/types';
 
 import { random } from '../core/random';
@@ -74,11 +74,44 @@ export const CORE_ANCHORS: Record<CoreStat, CoreAnchorConfig> = {
 /** Ordered list of anchors for stable UI rendering. */
 export const CORE_ANCHOR_ORDER: CoreStat[] = ['serve', 'forehand', 'backhand', 'return', 'net'];
 
-/** Flat energy cost per bronze session (DR via cost scaling is deferred). */
+/** Flat energy cost per session, at every training tier. */
 export const ANCHOR_TRAINING_ENERGY_COST = 20;
 
-/** Mood bump for completing a bronze session. */
-const BRONZE_MOOD_CHANGE = 2;
+/** Mood bump for completing a session. */
+const SESSION_MOOD_CHANGE = 2;
+
+/** The training tier a player's tier trains at: Club bronze, Regional silver, then gold. */
+export function trainingTierFor(tier: OpponentTier): TrainingSessionTier {
+  if (tier <= 1) return 'bronze';
+  if (tier === 2) return 'silver';
+  return 'gold';
+}
+
+/** Silver and up let a session pick a focus currency (CurrencyIncome.focusedMix). */
+export function offersFocus(sessionTier: TrainingSessionTier): boolean {
+  return sessionTier !== 'bronze';
+}
+
+/**
+ * The minigame's per-attempt speed ramp at each training tier. Bronze is the
+ * minigames' own default. Each tier runs a little faster, so a clean rep asks
+ * more of the player as their career does — gently, because pay is flat across
+ * tiers (docs/proposals/mid-late-progression.md §2.1) and a harder drill that
+ * costs reps is a pay cut. Playtest before raising.
+ */
+export const TRAINING_SPEED_RAMPS: Record<TrainingSessionTier, number[]> = {
+  bronze: [1, 1.1, 1.22],
+  silver: [1.05, 1.16, 1.28],
+  gold: [1.1, 1.22, 1.35],
+};
+
+/** How a session is played: the player's training tier and, from silver, a focus. */
+export interface SessionOptions {
+  sessionTier: TrainingSessionTier;
+  focus?: Currency;
+}
+
+const BRONZE_SESSION: SessionOptions = { sessionTier: 'bronze' };
 
 /**
  * Effect-driven improvements to a session's payout, aggregated from the player's
@@ -102,7 +135,10 @@ export function buildAnchorTrainingResult(
   core: CoreStat,
   count: number,
   bonuses: TrainingBonuses = NO_TRAINING_BONUSES,
+  session: SessionOptions = BRONZE_SESSION,
 ): TrainingResult {
+  // Bronze has no focus, whatever a stale preference says.
+  const focus = offersFocus(session.sessionTier) ? session.focus : undefined;
   const anchor = CORE_ANCHORS[core];
   const landed = Math.min(Math.max(0, Math.floor(count)), 3);
 
@@ -120,17 +156,17 @@ export function buildAnchorTrainingResult(
     timestamp: new Date().toISOString(),
     anchor: core,
     reps,
-    currencyGained: trainingPayout(core, reps, doubled),
+    currencyGained: trainingPayout(core, reps, doubled, undefined, focus),
+    focus,
     doubled,
     energyCost: ANCHOR_TRAINING_ENERGY_COST,
     timeSlotsUsed: 1,
     trainingType: `${core}_anchor`,
     trainingName: `${anchor.name} Training`,
     efficiency: 1.0,
-    moodResult: BRONZE_MOOD_CHANGE,
-    moodChange: BRONZE_MOOD_CHANGE,
-    sessionTier: 'bronze',
-    tier: 'bronze',
+    moodResult: SESSION_MOOD_CHANGE,
+    moodChange: SESSION_MOOD_CHANGE,
+    sessionTier: session.sessionTier,
     sessionType: `${core}_anchor`,
     message: buildMessage(anchor.name, landed, bonusRep > 0) + (doubled ? ' Double gains!' : ''),
   };

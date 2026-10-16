@@ -16,6 +16,7 @@ import { UnseenBadge } from './ui/UnseenBadge';
 import { CURRENCIES, CURRENCY_LABELS } from '../config/economy';
 import { hasNewCurrency, unspentSpecPoints } from '../game/StatDevelopment';
 import { CURRENCY_STYLE } from './currency/CurrencyAmounts';
+import { TimeManager } from '../game/TimeManager';
 
 const TIME_SLOTS = [
   { name: 'Morning', emoji: '🌅' },
@@ -87,7 +88,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({ energyPreview = 0 }) => {
             {hasUnseenEvents && <UnseenBadge size="sm" className="absolute -top-2 -right-3" />}
           </span>
           <span className="hidden sm:inline text-sm font-bold text-pixel-text whitespace-nowrap">
-            S{calendar.currentSeason} · Day {calendar.currentDay}
+            S{calendar.currentSeason} · Day {TimeManager.seasonDay(calendar)}
           </span>
         </button>
 
