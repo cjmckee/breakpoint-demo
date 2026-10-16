@@ -453,6 +453,16 @@ export const RETURN_COMPOSITE_WEIGHTS: Record<string, number> = {
 };
 
 /**
+ * Passing shots and lobs are struck off a wing: this share of their primary
+ * stat (placement) comes from the forehand or backhand they are hit with. 0 is
+ * placement alone.
+ */
+export const WING_SHARE = {
+  passing: 0,
+  lob: 0,
+};
+
+/**
  * Composite stat weights for rally shots, keyed by shot family.
  *
  * `primary` weights the shot's own mapped stat (forehand, volley, ...);
@@ -611,7 +621,20 @@ export const SUPPORT_NEUTRAL = {
    * points of quality, what it is at the neutral point. 0 leaves bands whole.
    */
   scaleBands: 0,
+  /**
+   * 1 also flattens every outcome curve (PROBABILITY_STEEPNESS) by the same
+   * NEUTRAL_STAT / neutral. Qualities and the bars they are judged against both
+   * grow with the level, so the gap between them grows too, and a fixed
+   * steepness turns the same relative edge into a near-certainty at high level
+   * (net points won 71% at level 40, 88% at level 80). 0 keeps the curves fixed.
+   */
+  scaleContests: 0,
 };
+
+/** How much of each outcome curve's steepness applies at this neutral point (scaleContests). */
+export function contestScale(neutral: number): number {
+  return SUPPORT_NEUTRAL.scaleContests ? Math.min(1, NEUTRAL_STAT / neutral) : 1;
+}
 
 /**
  * A support stat read on the 0-100 scale but measured from this match's neutral

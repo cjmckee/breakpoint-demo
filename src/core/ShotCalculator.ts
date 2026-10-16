@@ -46,6 +46,7 @@ import {
   NEUTRAL_STAT,
   supportNeutral,
   bandScale,
+  contestScale,
   STAT_MODIFIER_BANDS,
   statModifier,
   POSITION_ADJUSTMENTS,
@@ -463,7 +464,7 @@ export class ShotCalculator {
     const pWinner = sigmoidProbability(
       quality,
       thresholds.winner,
-      PROBABILITY_STEEPNESS.rally.winner,
+      PROBABILITY_STEEPNESS.rally.winner * contestScale(this.neutral()),
     );
     if (random() < pWinner) {
       trace(`  Outcome cascade → winner? ${(pWinner * 100).toFixed(1)}% chance → hit! WINNER`);
@@ -473,7 +474,7 @@ export class ShotCalculator {
     const pInPlay = sigmoidProbability(
       quality,
       thresholds.inPlay,
-      PROBABILITY_STEEPNESS.rally.inPlay,
+      PROBABILITY_STEEPNESS.rally.inPlay * contestScale(this.neutral()),
     );
     if (random() < pInPlay) {
       trace(
@@ -485,7 +486,7 @@ export class ShotCalculator {
     const pForcedError = sigmoidProbability(
       quality,
       thresholds.forcedError,
-      PROBABILITY_STEEPNESS.rally.forcedError,
+      PROBABILITY_STEEPNESS.rally.forcedError * contestScale(this.neutral()),
     );
     if (random() < pForcedError) {
       trace(
@@ -563,7 +564,7 @@ export class ShotCalculator {
     const pServeIn = sigmoidProbability(
       serveAccuracy,
       scaledInPlayThreshold,
-      PROBABILITY_STEEPNESS.serve.inPlay,
+      PROBABILITY_STEEPNESS.serve.inPlay * contestScale(this.neutral()),
     );
 
     trace(`  🎯 ${serveType} sigmoid calculation:`);
@@ -588,7 +589,11 @@ export class ShotCalculator {
     }
 
     // Sigmoid probability for ace
-    const pAce = sigmoidProbability(serveQuality, aceThreshold, PROBABILITY_STEEPNESS.serve.ace);
+    const pAce = sigmoidProbability(
+      serveQuality,
+      aceThreshold,
+      PROBABILITY_STEEPNESS.serve.ace * contestScale(this.neutral()),
+    );
     if (random() < pAce) {
       trace(
         `  Serve cascade → in? ${(pServeIn * 100).toFixed(1)}% → hit | ace? ${(pAce * 100).toFixed(1)}% chance → hit! ACE`,
