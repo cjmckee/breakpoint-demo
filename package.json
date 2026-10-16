@@ -43,6 +43,7 @@
     "typescript": "^5.0.0",
     "vite": "^4.5.14",
     "vite-plugin-pwa": "^0.17.5",
+    "workbox-core": "^7.4.1",
     "workbox-expiration": "^7.4.1",
     "workbox-precaching": "^7.4.1",
     "workbox-range-requests": "^7.4.1",
