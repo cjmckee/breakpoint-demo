@@ -32,6 +32,13 @@ Free days between beats are the usual loop: training, practice, random events, h
 beats (coach, rival, family, romance) can go anywhere in 13-31. Give each a
 `prerequisites.tier: { min: 2, max: 2 }` so it can't fire in another season.
 
+Everything written before Regional is the Club season's and stops at promotion, random flavour
+events and hangouts included. So Regional's free days are empty until it has its own: write a few
+random events and hangouts for it, or tag a Club event `tier: { max: 2 }` in its own file to bring
+it along. Keith and Jen come up with you, for the story only: they appear in Regional's events and
+hangouts, not as match teammates or training partners. Put Regional's events in their own file and
+list it in `src/data/storyEvents/index.ts` outside the Club files, so it isn't gated to Club.
+
 ## Events by chain
 
 Ids follow the Club season's pattern. Anything marked _wired_ is fired by the engine from a

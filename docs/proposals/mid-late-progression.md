@@ -277,7 +277,8 @@ alongside the tour.
 | Tour     | a pro team league: sponsor-named franchises, new teammates | a Tour Finals / Masters event                       |
 | World    | the national team in a world team cup                      | a Grand Slam, best-of-five. The final is the ending |
 
-Keith and Jen work as teammates through Regional. Jordan is the obvious final-round opponent of
+Keith and Jen come up to Regional with you, in the story only: they appear in its events and
+hangouts, but they aren't match teammates or training partners there. Jordan is the obvious final-round opponent of
 each tier-final. That's a lot of Jordan, so one tier-final could go to someone who knocked him
 out.
 
@@ -559,9 +560,10 @@ Ordered by how badly they would bite.
 
 1. ~~**The 90-day rollover**~~. Fixed (§3.4).
 2. ~~**Story events have no tier prerequisite.**~~ Added: `prerequisites.tier: { min, max }`.
-   **Not yet done:** tagging the Club's random events (the juggler, the old man) `max: 1`, or
-   `max: 2` for the ones that still fit at Regional. That's a content call. Untagged events fire
-   at any tier.
+   **Done:** everything written so far is the Club season's, so every event in today's files is
+   gated `max: 1` where the files are combined (`src/data/storyEvents/index.ts`), except the end
+   card after promotion. `seasonCheck` fails if an event is left ungated. That includes the
+   random flavour events and the hangouts: Regional has none until its own are written.
 3. ~~**Events only fire once.**~~ `repeatable: true` lets an event fire again by id (scheduled or
    chained). Random rolls still take it once. Tournaments still play once
    (`completedTournaments`), which is fine as long as the retry is a playoff and not a replay.
@@ -618,10 +620,11 @@ Ordered by how badly they would bite.
 
 ## 9. Open questions
 
-1. **Who comes with you.** Do Keith and Jen stay teammates through Regional? Does anyone come
-   onto the Tour?
+1. ~~**Who comes with you.**~~ Decided: Keith and Jen come to Regional, for the story only.
+   Who comes onto the Tour is still open.
 2. ~~**The playoff safety net.**~~ Decided: none. The opponent stays the same; the days between
    attempts are for training.
-3. **XP.** Is pricing gear and abilities by tier enough of an outlet, or does it want a new job?
+3. **XP.** Direction: explore XP as a currency for abilities, on top of what they cost today.
+   Measured in `xp-for-abilities.md`.
 4. **Doubles.** In scope ever? `rival_doubles_disaster` hints at it, but it is a simulation
    rewrite.

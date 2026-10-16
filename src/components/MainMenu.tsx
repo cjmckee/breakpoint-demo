@@ -222,7 +222,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
         (id) =>
           id in relationships &&
           player.flags[`hangoutUnlocked_${id}`] === true &&
-          hasUnseenTierEvent(id, relationships[id] ?? 0, hangoutThresholdsSeen),
+          hasUnseenTierEvent(id, relationships[id] ?? 0, hangoutThresholdsSeen, player.tier),
       )
     : [];
 

@@ -15,8 +15,24 @@ import { tournamentEvents } from './tournamentStoryline';
 import { miscEvents } from './miscEvents';
 import { interactionEvents } from './interactionEvents';
 
-// Combine all events from different storylines
-const ALL_EVENTS: StoryEvent[] = [
+/**
+ * Events that play after the Club season ends but belong to it: the end card the
+ * morning after promotion.
+ */
+const CLUB_EPILOGUE = new Set(['thanks_for_playing']);
+
+/**
+ * Everything in these files is the Club season's: the tutorial, Club storylines,
+ * the Riverside Open, Club flavour and hangouts. Each is gated to tier 1 unless it
+ * names its own tier, so none of it turns up once the player is promoted. A later
+ * season's events live in their own files and set their own `tier`.
+ */
+function clubSeason(event: StoryEvent): StoryEvent {
+  if (event.prerequisites.tier || CLUB_EPILOGUE.has(event.id)) return event;
+  return { ...event, prerequisites: { ...event.prerequisites, tier: { max: 1 } } };
+}
+
+const CLUB_EVENTS: StoryEvent[] = [
   ...welcomeEvents,
   ...coachEvents,
   ...romanceEvents,
@@ -27,7 +43,10 @@ const ALL_EVENTS: StoryEvent[] = [
   ...tournamentEvents,
   ...miscEvents,
   ...interactionEvents,
-];
+].map(clubSeason);
+
+// Later seasons' files go after the Club's, each setting its own tier.
+const ALL_EVENTS: StoryEvent[] = [...CLUB_EVENTS];
 
 /**
  * Story Event Repository

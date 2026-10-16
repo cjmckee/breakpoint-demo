@@ -12,7 +12,7 @@
  *   - story `minDay`/`maxDay` read the season day, not the career day.
  *
  * It also pins the two story gates seasons need: a tier range, so Club events
- * stop on the Tour, and repeatable events, so a promotion playoff can be lost
+ * stop at Regional (every event written so far is the Club season's), and repeatable events, so a promotion playoff can be lost
  * and come round again. And the playoff itself: each loss schedules the same
  * match again a few days on, with that attempt's loss event, and every playoff
  * a tier-final names exists, with the events it plays more than once repeatable.
@@ -31,6 +31,7 @@ import { StoryEventManager } from '../game/StoryEventManager';
 import { CLUB_SEASON } from '../data/seasons/club';
 import { DRAFT_SEASONS, SEASON_SCHEDULES } from '../data/seasons';
 import { StoryEventRepository } from '../data/storyEvents';
+import { hasUnseenTierEvent } from '../data/hangoutCharacters';
 import { PlayoffManager } from '../game/PlayoffManager';
 import { PLAYOFFS, getPlayoff } from '../data/playoffs';
 import { TEAM_MATCH_1 } from '../data/teamMatches';
@@ -195,6 +196,28 @@ console.log('\n── tier gating and repeatable events ──');
     !StoryEventManager.isUsedUp({ ...anyEvent, repeatable: true }, completed),
   );
   check('an event that has never run is not used up', !StoryEventManager.isUsedUp(anyEvent, []));
+}
+
+console.log('\n── Club content stays in the Club season ──');
+{
+  const ungated = StoryEventRepository.getAllEvents().filter((e) => !e.prerequisites.tier);
+  check(
+    'every written event names a tier, except the end card after promotion',
+    ungated.every((e) => e.id === 'thanks_for_playing'),
+    ungated.map((e) => e.id).join(', '),
+  );
+  const clubOnly = StoryEventRepository.getAllEvents().filter(
+    (e) => e.prerequisites.tier?.max === 1,
+  );
+  check(
+    'none of the Club events can fire at Regional',
+    clubOnly.length > 0 &&
+      clubOnly.every((e) => !PrerequisiteChecker.checkTierPrerequisites(2, e.prerequisites.tier)),
+  );
+  check(
+    'a Club hangout is ready at Club and not at Regional, so it is not spent there',
+    hasUnseenTierEvent('keith', 0, {}, 1) && !hasUnseenTierEvent('keith', 0, {}, 2),
+  );
 }
 
 console.log('\n── a lost playoff comes round again ──');

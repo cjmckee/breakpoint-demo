@@ -31,7 +31,12 @@ import {
   CurrencyAmounts,
 } from '../types/game';
 import type { StoryEvent, StoryEventTag, StoryEventOption } from '../types/storyEvents';
-import { HANGOUT_CHARACTERS, HANGOUT_ENERGY_COST, getHangoutTier } from '../data/hangoutCharacters';
+import {
+  HANGOUT_CHARACTERS,
+  HANGOUT_ENERGY_COST,
+  getHangoutTier,
+  hasUnseenTierEvent,
+} from '../data/hangoutCharacters';
 import type { Challenge } from '../types/challenges';
 import type { Appearance } from '../types/appearance';
 import type { Item, OwnedItem, EquipmentSlot } from '../types/items';
@@ -2259,8 +2264,8 @@ export const useGameStore = create<GameState>()(
         const currentTier = getHangoutTier(characterId, relValue);
         const seenForChar = hangoutThresholdsSeen[characterId] ?? [];
 
-        // Only fire the tier event if it hasn't been seen yet
-        if (seenForChar.includes(currentTier)) return;
+        // Only fire the tier event if it hasn't been seen yet and belongs to this season
+        if (!hasUnseenTierEvent(characterId, relValue, hangoutThresholdsSeen, player.tier)) return;
 
         // Mark tier as seen immediately to prevent double-firing
         set({

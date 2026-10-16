@@ -46,7 +46,12 @@ export const Relationships: React.FC = () => {
       calendar.currentDay >= 6 && player.flags[`hangoutUnlocked_${characterId}`] === true;
     return (
       isUnlocked &&
-      hasUnseenTierEvent(characterId, relationships[characterId] ?? 0, hangoutThresholdsSeen)
+      hasUnseenTierEvent(
+        characterId,
+        relationships[characterId] ?? 0,
+        hangoutThresholdsSeen,
+        player.tier,
+      )
     );
   };
 
