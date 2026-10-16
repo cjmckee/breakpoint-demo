@@ -6,7 +6,8 @@
  * same amounts. Payouts are whole units: the wallet never holds fractions.
  */
 
-import type { CoreStats, StatName } from '../types';
+import type { StatName } from '../types';
+import type { DrillId } from '../minigames/types';
 import type { Currency, CurrencyAmounts, PerformanceRewardBreakdown } from '../types/game';
 import {
   CONTENT_SCALE,
@@ -64,7 +65,7 @@ const GAME_MATCH_RATES: MatchRates = MATCH_PAYOUT;
 
 /**
  * A mix with its secondary currency (the one it pays least of) swapped for
- * `focus`. The main currency is untouched, so the shot trained still decides
+ * `focus`. The main currency is untouched, so the drill played still decides
  * most of what a session pays; focusing on the main currency makes it all main.
  */
 export function focusedMix(mix: CurrencyAmounts, focus?: Currency): CurrencyAmounts {
@@ -79,7 +80,7 @@ export function focusedMix(mix: CurrencyAmounts, focus?: Currency): CurrencyAmou
 }
 
 /**
- * A training session on `anchor` pays its mix (TRAINING_MIXES) once, plus once
+ * A training session on `drill` pays its mix (TRAINING_MIXES) once, plus once
  * more per clean rep — whole units, the same currencies every time — doubled
  * when the session's double-gains roll lands. From silver, a `focus` swaps the
  * mix's secondary currency (focusedMix); the total paid is the same.
@@ -87,14 +88,14 @@ export function focusedMix(mix: CurrencyAmounts, focus?: Currency): CurrencyAmou
  * @param mixes  the game's mixes unless a harness is sweeping them.
  */
 export function trainingPayout(
-  anchor: keyof CoreStats,
+  drill: DrillId,
   reps: number,
   doubled: boolean = false,
-  mixes: Record<keyof CoreStats, CurrencyAmounts> = TRAINING_MIXES,
+  mixes: Record<DrillId, CurrencyAmounts> = TRAINING_MIXES,
   focus?: Currency,
 ): CurrencyAmounts {
   const times = (Math.max(0, Math.floor(reps)) + 1) * (doubled ? 2 : 1);
-  const mix = focusedMix(mixes[anchor], focus);
+  const mix = focusedMix(mixes[drill], focus);
   const out: CurrencyAmounts = {};
   for (const c of CURRENCIES) {
     const n = mix[c] ?? 0;

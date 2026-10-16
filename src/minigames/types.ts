@@ -6,19 +6,22 @@
  * played. Training reads the score as a support count; a story event will read it
  * against a pass line. The caller owns the meaning.
  *
- * Pure types, no React — so game logic (AnchorTrainingSystem) can name a minigame
+ * Pure types, no React — so game logic (TrainingSystem) can name a minigame
  * without reaching into the component layer.
  */
 
 /** Every minigame the game can launch. */
 export type MinigameId =
-  | 'toss_and_strike' // serve
-  | 'rally_rhythm' // forehand
-  | 'corner_paint' // backhand
-  | 'read_return' // return
-  | 'touch_slice' // net (reuses the touch minigame until a net-specific one exists)
-  | 'split_step' // react to an arrow, then mash: Power + Quickness
+  | 'toss_and_strike'
+  | 'rally_rhythm'
+  | 'corner_paint'
+  | 'read_return'
+  | 'touch_slice'
+  | 'split_step' // react to an arrow, then mash
   | 'fishing_cast'; // story-only: five casts at the fish, no tennis involved
+
+/** The minigames training offers as drills: every one but the story's fishing. */
+export type DrillId = Exclude<MinigameId, 'fishing_cast'>;
 
 /**
  * The shape of a run.

@@ -12,6 +12,8 @@ import type { TestHandle } from '../src/debug/testHandle';
 // instead of keeping its own copy in sync.
 import { StoryEventRepository } from '../src/data/storyEvents/index';
 import { ALL_ITEMS } from '../src/data/items';
+import { trainingOffer } from '../src/game/TrainingSystem';
+import type { DrillId } from '../src/minigames/types';
 
 /** Re-exported so a spec can name the handle's shape without reaching into src. */
 export type { TestHandle };
@@ -253,6 +255,32 @@ export async function grantCurrency(
     if (!handle) throw new Error('window.__test__ missing — is this a dev build?');
     handle.game.getState().changeCurrency(delta);
   }, amounts);
+}
+
+/**
+ * Makes the current time slot offer `drill`. Each slot offers three of the six
+ * drills, rolled from the player's id, the day and the slot (trainingOffer), so a
+ * spec that needs one drill gives the player an id whose roll includes it, found
+ * with the game's own function. Scenario setup: which drills a slot offers is not
+ * what such a spec is testing.
+ */
+export async function offerDrill(page: Page, drill: DrillId): Promise<void> {
+  const game = await readGame(page);
+  const { currentDay, currentTimeSlot } = game.calendar;
+  let id = '';
+  for (let n = 0; n < 200 && !id; n++) {
+    const candidate = `e2e-${drill}-${n}`;
+    if (trainingOffer(candidate, currentDay, currentTimeSlot).some((o) => o.drill === drill)) {
+      id = candidate;
+    }
+  }
+  await page.evaluate((playerId) => {
+    const handle = window.__test__;
+    if (!handle) throw new Error('window.__test__ missing — is this a dev build?');
+    const player = handle.game.getState().player;
+    if (!player) throw new Error('no player to give an id');
+    handle.game.setState({ player: { ...player, id: playerId } });
+  }, id);
 }
 
 /**

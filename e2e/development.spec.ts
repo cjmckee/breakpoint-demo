@@ -126,12 +126,12 @@ test('a +1 the wallet cannot cover is disabled', async ({ page }) => {
   await expect(page.getByTestId('development-cost-focus')).toContainText('Needs');
 });
 
-test('training pays currency, which buys the anchor in Development', async ({ page }) => {
+test('training pays currency, which buys a stat in Development', async ({ page }) => {
   await loadSave(page, SAVE, 7);
   const before = (await readGame(page)).player!;
 
   await page.getByTestId('action-training').click();
-  await page.getByTestId('training-anchor-serve').click();
+  await page.locator('[data-testid="training-offer"] [data-drill]').first().click();
   await page.getByTestId('training-quick-sim').click();
 
   // Quick Sim is one clean rep. The payout is the game's own function, so this
@@ -175,9 +175,9 @@ test('the Develop badge lights on new currency and goes out on a visit', async (
   const badge = page.getByTestId('status-wallet');
   await expect(badge).toHaveAttribute('data-new-currency', 'false');
 
-  // A session's pay is new currency; serve pays enough Power to buy something.
+  // A session's pay is new currency.
   await page.getByTestId('action-training').click();
-  await page.getByTestId('training-anchor-serve').click();
+  await page.locator('[data-testid="training-offer"] [data-drill]').first().click();
   await page.getByTestId('training-quick-sim').click();
   await page.getByTestId('training-result-dismiss').click();
   await expect(badge).toHaveAttribute('data-new-currency', 'true');

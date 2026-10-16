@@ -9,7 +9,8 @@
  */
 
 import type { Currency, CurrencyAmounts, OpponentTier } from '../types/game';
-import type { CoreStats, StatName } from '../types';
+import type { StatName } from '../types';
+import type { DrillId } from '../minigames/types';
 
 export const CURRENCIES: readonly Currency[] = ['power', 'quickness', 'technique', 'mind'];
 
@@ -55,19 +56,21 @@ export const PRICE_STEP = { from: 40, width: 20 };
 export const INCOME_SCALE = 1.2;
 
 /**
- * What each training pays per clean rep: two of its main currency and one of a
+ * What each drill pays per clean rep: two of its main currency and one of a
  * secondary. A session pays its mix × (reps + 1), so even a session with no
- * clean reps pays one mix. The five shots are five different mixes rather than
- * a mirror of their stat recipes — each is a way to steer what you earn.
- * Across the five, the supply (P 27%, Q 20%, T 33%, M 20%) sits close to what
- * the stat recipes demand (P 26%, Q 21%, T 30%, M 23%); matches pay most Mind.
+ * clean reps pays one mix. Four currencies make six pairs, one drill each, so
+ * every currency is in three drills and a roll of three drills offers each
+ * currency in all but about one slot in twenty. Across the six, the supply
+ * (P 28%, Q 22%, T 28%, M 22%) sits close to what the stat recipes demand
+ * (P 26%, Q 21%, T 30%, M 23%).
  */
-export const TRAINING_MIXES: Record<keyof CoreStats, CurrencyAmounts> = {
-  serve: { power: 2, mind: 1 },
-  forehand: { power: 2, technique: 1 },
-  backhand: { technique: 2, quickness: 1 },
-  return: { quickness: 2, mind: 1 },
-  net: { technique: 2, mind: 1 },
+export const TRAINING_MIXES: Record<DrillId, CurrencyAmounts> = {
+  rally_rhythm: { power: 2, technique: 1 },
+  split_step: { power: 2, quickness: 1 },
+  corner_paint: { technique: 2, quickness: 1 },
+  touch_slice: { technique: 2, mind: 1 },
+  read_return: { quickness: 2, mind: 1 },
+  toss_and_strike: { mind: 2, power: 1 },
 };
 
 /**

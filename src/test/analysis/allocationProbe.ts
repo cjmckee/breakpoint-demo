@@ -9,7 +9,7 @@
  * Every build starts at the uniform-20 new player and spends the same budget.
  * Strategies:
  *   spread     +1 to every stat in turn
- *   training   the spread AnchorTrainingSystem actually produces: anchors
+ *   training   the spread the old shot training produced: anchors
  *              chosen uniformly, two supports per session drawn from the pool
  *   core       all five core stats only
  *   top5       the five highest-value stats at tier-1 ratings (statChannels
@@ -56,7 +56,6 @@ import type {
 import { PlayerProfile } from '../../core/PlayerProfile';
 import { calculateOverallRating } from '../../utils/overallRating';
 import { CURRENCIES, RECIPES, canAfford, pay, priceOf, unitsOf, type Wallet } from './statEconomy';
-import { CORE_ANCHOR_ORDER } from '../../game/AnchorTrainingSystem';
 import { SUPPORT_POOLS } from './legacyTraining';
 import { profileForArchetype, type LegacyArchetype } from '../../data/archetypeTree';
 import { playMatch } from './simMatch';
@@ -252,7 +251,7 @@ function spendRoundRobin(budget: number, targets: StatName[], cost: Cost): Flat 
 function trainingTargets(): StatName[] {
   const seq: StatName[] = [];
   for (let rep = 0; rep < 12; rep++) {
-    for (const core of CORE_ANCHOR_ORDER) {
+    for (const core of ['serve', 'forehand', 'backhand', 'return', 'net'] as const) {
       const pool = SUPPORT_POOLS[core];
       seq.push(core, pool[(rep * 2) % pool.length], pool[(rep * 2 + 1) % pool.length]);
     }

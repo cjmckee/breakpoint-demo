@@ -137,7 +137,7 @@ export function trackTrainingCompleted(result: TrainingResult, player: Player): 
     training_type: result.trainingType,
     session_tier: result.sessionTier,
     session_focus: result.focus ?? 'natural',
-    anchor: result.anchor,
+    drill: result.drill,
     reps: result.reps,
     currency_power: earned.power ?? 0,
     currency_quickness: earned.quickness ?? 0,

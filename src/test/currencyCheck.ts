@@ -16,6 +16,7 @@ import { ABILITY_CURRENCY, CURRENCIES, STAT_RECIPES } from '../config/economy';
 import { ABILITY_DEFINITIONS } from '../data/abilities';
 import { abilityPrice, generateDailyShopItems } from '../game/ShopSystem';
 import { PlayerManager } from '../game/PlayerManager';
+import { DRILL_ORDER } from '../game/TrainingSystem';
 import {
   contentCurrency,
   matchPayout,
@@ -162,19 +163,20 @@ function main(): void {
     unitsOf(rounded) === 8 && CURRENCIES.every((c) => Number.isInteger(rounded[c] ?? 0)),
     JSON.stringify(rounded),
   );
-  const serve3 = trainingPayout('serve', 3);
+  const rally3 = trainingPayout('rally_rhythm', 3);
   check(
-    'a clean serve session pays its mix four times: 8 Power, 4 Mind',
-    serve3.power === 8 && serve3.mind === 4 && Object.keys(serve3).length === 2,
-    JSON.stringify(serve3),
+    'a clean Rally Rhythm pays its mix four times: 8 Power, 4 Technique',
+    rally3.power === 8 && rally3.technique === 4 && Object.keys(rally3).length === 2,
+    JSON.stringify(rally3),
   );
   check(
     'a session with no clean reps pays the mix once',
-    JSON.stringify(trainingPayout('serve', 0)) === JSON.stringify({ power: 2, mind: 1 }),
+    JSON.stringify(trainingPayout('rally_rhythm', 0)) ===
+      JSON.stringify({ power: 2, technique: 1 }),
   );
   check(
     'every rep adds the same currencies — no strays from rounding',
-    (['serve', 'forehand', 'backhand', 'return', 'net'] as const).every((a) =>
+    DRILL_ORDER.every((a) =>
       [0, 1, 2, 3].every(
         (r) =>
           JSON.stringify(Object.keys(trainingPayout(a, r))) ===
@@ -184,15 +186,13 @@ function main(): void {
   );
   check(
     'a doubled session pays twice',
-    JSON.stringify(trainingPayout('backhand', 2, true)) ===
+    JSON.stringify(trainingPayout('corner_paint', 2, true)) ===
       JSON.stringify({ quickness: 6, technique: 12 }),
-    JSON.stringify(trainingPayout('backhand', 2, true)),
+    JSON.stringify(trainingPayout('corner_paint', 2, true)),
   );
   check(
     'every clean session pays the same total, 12 units',
-    (['serve', 'forehand', 'backhand', 'return', 'net'] as const).every(
-      (a) => unitsOf(trainingPayout(a, 3)) === 12,
-    ),
+    DRILL_ORDER.every((a) => unitsOf(trainingPayout(a, 3)) === 12),
   );
   const perf = {
     servingScore: 80,

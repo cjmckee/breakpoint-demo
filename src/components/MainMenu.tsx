@@ -34,7 +34,7 @@ import { HANGOUT_CHARACTERS, hasUnseenTierEvent } from '../data/hangoutCharacter
 import { useTutorialSpotlight } from '../hooks/useTutorialSpotlight';
 import { TutorialCallout } from './tutorial/TutorialCallout';
 import { MAIN_MENU_TUTORIAL_STEPS, MainMenuTarget } from '../data/tutorialSteps';
-import { ANCHOR_TRAINING_ENERGY_COST } from '../game/AnchorTrainingSystem';
+import { TRAINING_ENERGY_COST } from '../game/TrainingSystem';
 import { hasNewCurrency, newCurrency, unitsOf, unspentSpecPoints } from '../game/StatDevelopment';
 import { PixelSprite } from './sprites/PixelSprite';
 import { usePlayerAppearance } from '../hooks/usePlayerAppearance';
@@ -297,7 +297,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const isBlocked = isEventPending || isMatchScheduled;
   const blockedReason = isEventPending ? 'Event pending' : 'Match scheduled';
   const canAffordMatch = currentStatus.energy >= MATCH_ENERGY_COST;
-  const canAffordTraining = currentStatus.energy >= ANCHOR_TRAINING_ENERGY_COST;
+  const canAffordTraining = currentStatus.energy >= TRAINING_ENERGY_COST;
   const isEnergyFull = currentStatus.energy >= 100;
   const energyGainBonus = EffectAggregator.getEffect(
     EffectAggregator.getActiveEffects(player).effects,
@@ -311,8 +311,8 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
     : isNightTime
       ? 'Asleep'
       : !canAffordTraining
-        ? `Needs ${ANCHOR_TRAINING_ENERGY_COST} energy`
-        : `${ANCHOR_TRAINING_ENERGY_COST} energy`;
+        ? `Needs ${TRAINING_ENERGY_COST} energy`
+        : `${TRAINING_ENERGY_COST} energy`;
   const matchCaption = !matchUnlocked
     ? 'Unlocks Day 5'
     : isBlocked
@@ -478,7 +478,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
             caption={trainingCaption}
             disabled={isBlocked || isNightTime || !canAffordTraining}
             badge={hasUnseenTraining}
-            onHoverChange={previewOn(-ANCHOR_TRAINING_ENERGY_COST)}
+            onHoverChange={previewOn(-TRAINING_ENERGY_COST)}
             onClick={() => navigateTo('training')}
           />
           <ActionTile
