@@ -18,7 +18,7 @@ import type { Item } from '../types/items';
 import { ABILITY_DEFINITIONS } from '../data/abilities';
 import { AbilityRarity } from '../types/game';
 import { ALL_CONSUMABLES, ALL_EQUIPMENT, CONSUMABLE_SHOP_COSTS } from '../data/items';
-import { ABILITY_CURRENCY, ABILITY_PRICES, type AbilityPriceRarity } from '../config/economy';
+import { ABILITY_CURRENCY, abilityLevelPrice, type AbilityPriceRarity } from '../config/economy';
 
 import { random } from '../core/random';
 
@@ -73,21 +73,19 @@ const ABILITIES: Ability[] = Object.values(ABILITY_DEFINITIONS).filter(
 );
 
 /**
- * What taking `ability` from `currentLevel` to the next level costs: a fixed
- * amount per rarity in the ability's currency, plus XP. Learning it (level 0)
- * costs the base; each level after costs base × (1.5 + 0.75 × currentLevel).
+ * What taking `ability` from `currentLevel` to the next level costs
+ * (abilityLevelPrice): its rarity's price in the ability's currency, plus XP.
  * An off-court ability (no entry in ABILITY_CURRENCY) costs XP only.
  */
 export function abilityPrice(
   ability: Pick<Ability, 'name' | 'rarity'>,
   currentLevel: number,
 ): { xp: number; currency: CurrencyAmounts } {
-  const base = ABILITY_PRICES[ability.rarity as AbilityPriceRarity];
-  const scale = currentLevel === 0 ? 1 : 1.5 + 0.75 * currentLevel;
+  const price = abilityLevelPrice(ability.rarity as AbilityPriceRarity, currentLevel);
   const currency = ABILITY_CURRENCY[ability.name];
   return {
-    xp: Math.round(base.xp * scale),
-    currency: currency ? { [currency]: Math.round(base.units * scale) } : {},
+    xp: price.xp,
+    currency: currency && price.units > 0 ? { [currency]: price.units } : {},
   };
 }
 

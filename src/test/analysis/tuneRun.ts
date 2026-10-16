@@ -7,8 +7,8 @@
  * reaches the engine. Top-level primitive constants (export const X = 5) cannot
  * be overridden this way; only values inside exported objects.
  *
- * Overrides reach shotThresholds and OVR's weights (STAT_CATEGORY_WEIGHTS.core=0.42,
- * STAT_WEIGHTS_WITHIN.core.serve=12).
+ * Overrides reach shotThresholds, OVR's weights (STAT_CATEGORY_WEIGHTS.core=0.42,
+ * STAT_WEIGHTS_WITHIN.core.serve=12) and the economy (ABILITY_LEVEL_PRICE.xpOnlyFrom=1).
  *
  * Run: TUNE='SERVE_CONSISTENCY.serve_second.base=-2.7;MATCH_FORM.variance=12' \
  *      PROBE=serveAndUpsetProbe npx tsx src/test/analysis/tuneRun.ts
@@ -16,8 +16,9 @@
 
 import * as thresholds from '../../config/shotThresholds';
 import * as overallRating from '../../utils/overallRating';
+import * as economy from '../../config/economy';
 
-const root = { ...thresholds, ...overallRating } as unknown as Record<string, unknown>;
+const root = { ...thresholds, ...overallRating, ...economy } as unknown as Record<string, unknown>;
 for (const assignment of (process.env.TUNE ?? '').split(';').filter(Boolean)) {
   const [path, value] = assignment.split('=');
   const keys = path.trim().split('.');

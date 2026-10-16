@@ -96,14 +96,40 @@ export type AbilityPriceRarity = 'common' | 'uncommon' | 'rare';
 
 /**
  * Abilities cost a fixed amount per rarity in the currency their effect draws
- * on, plus XP. Level n → n+1 costs base × (1.5 + 0.75 × n). Legendaries are
- * never sold.
+ * on, plus XP. Levels cost more (ABILITY_LEVEL_PRICE). Legendaries are never sold.
  */
 export const ABILITY_PRICES: Record<AbilityPriceRarity, { units: number; xp: number }> = {
   common: { units: 15, xp: 70 },
   uncommon: { units: 28, xp: 140 },
   rare: { units: 40, xp: 250 },
 };
+
+/**
+ * What a level costs once the ability is owned: level n → n+1 costs the base ×
+ * (step + perLevel × n). From `xpOnlyFrom` owned levels on, a level costs XP
+ * only, at `xpOnlyScale` × its XP price: currency buys the ability, XP grows it.
+ * Infinity charges currency for every level.
+ */
+export const ABILITY_LEVEL_PRICE = {
+  step: 1.5,
+  perLevel: 0.75,
+  xpOnlyFrom: Infinity,
+  xpOnlyScale: 1,
+};
+
+/** What taking an ability of this rarity from `currentLevel` to the next costs. */
+export function abilityLevelPrice(
+  rarity: AbilityPriceRarity,
+  currentLevel: number,
+): { units: number; xp: number } {
+  const base = ABILITY_PRICES[rarity];
+  const p = ABILITY_LEVEL_PRICE;
+  const scale = currentLevel === 0 ? 1 : p.step + p.perLevel * currentLevel;
+  if (currentLevel >= p.xpOnlyFrom) {
+    return { units: 0, xp: Math.round(base.xp * scale * p.xpOnlyScale) };
+  }
+  return { units: Math.round(base.units * scale), xp: Math.round(base.xp * scale) };
+}
 
 /**
  * The currency each on-court ability is priced in: shot power is Power, touch
