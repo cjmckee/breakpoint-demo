@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { startNewGame, dismissWalkthrough, offerDrill, readGame } from './helpers';
-import { DRILL_ORDER, DRILLS, trainingOffer } from '../src/game/TrainingSystem';
+import { DRILL_ORDER, DRILLS, DRILLS_PER_SLOT, trainingOffer } from '../src/game/TrainingSystem';
 import { trainingPayout } from '../src/game/CurrencyIncome';
 import type { DrillId } from '../src/minigames/types';
 
@@ -28,7 +28,7 @@ async function openDrill(page: Page, drill: DrillId): Promise<void> {
   await expect(page.getByRole('heading', { name: DRILLS[drill].name })).toBeVisible();
 }
 
-test('the slot offers the three drills its roll names, paying what they pay', async ({ page }) => {
+test('the slot offers the drills its roll names, paying what they pay', async ({ page }) => {
   await freshPlayer(page);
   const game = await readGame(page);
   const expected = trainingOffer(
@@ -39,7 +39,7 @@ test('the slot offers the three drills its roll names, paying what they pay', as
 
   await page.getByTestId('action-training').click();
   const cards = page.locator('[data-testid="training-offer"] [data-drill]');
-  await expect(cards).toHaveCount(3);
+  await expect(cards).toHaveCount(DRILLS_PER_SLOT);
   expect(await cards.evaluateAll((els) => els.map((el) => el.getAttribute('data-drill')))).toEqual(
     expected,
   );
@@ -51,7 +51,7 @@ test('the slot offers the three drills its roll names, paying what they pay', as
     }
   }
 
-  // Leaving and coming back in the same slot offers the same three.
+  // Leaving and coming back in the same slot offers the same drills.
   await page.getByTestId('screen-back').click();
   await page.getByTestId('action-training').click();
   expect(await cards.evaluateAll((els) => els.map((el) => el.getAttribute('data-drill')))).toEqual(

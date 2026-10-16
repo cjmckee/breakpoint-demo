@@ -258,7 +258,7 @@ export async function grantCurrency(
 }
 
 /**
- * Makes the current time slot offer `drill`. Each slot offers three of the six
+ * Makes the current time slot offer `drill`. Each slot offers four of the six
  * drills, rolled from the player's id, the day and the slot (trainingOffer), so a
  * spec that needs one drill gives the player an id whose roll includes it, found
  * with the game's own function. Scenario setup: which drills a slot offers is not

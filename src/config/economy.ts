@@ -59,8 +59,8 @@ export const INCOME_SCALE = 1.2;
  * What each drill pays per clean rep: two of its main currency and one of a
  * secondary. A session pays its mix × (reps + 1), so even a session with no
  * clean reps pays one mix. Four currencies make six pairs, one drill each, so
- * every currency is in three drills and a roll of three drills offers each
- * currency in all but about one slot in twenty. Across the six, the supply
+ * every currency is in three drills and a slot offering four of the six always
+ * offers every currency. Across the six, the supply
  * (P 28%, Q 22%, T 28%, M 22%) sits close to what the stat recipes demand
  * (P 26%, Q 21%, T 30%, M 23%).
  */

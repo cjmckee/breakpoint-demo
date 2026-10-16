@@ -1011,8 +1011,8 @@ negate(price))` after checking `canAfford`.
   (specialization points from levelling). `navigateTo('archetype')` opens the Specialties tab.
 - **Training is drills.** Six minigames (`DRILLS` in `src/game/TrainingSystem.ts`), each paying
   one pair of currencies (`TRAINING_MIXES`, two of its main and one of its secondary per rep).
-  Each time slot offers three (`trainingOffer`), rolled from the player, the day and the slot on
-  its own seed, so reopening the screen offers the same three. An offer may carry a `partner`,
+  Each time slot offers four (`trainingOffer`), rolled from the player, the day and the slot on
+  its own seed, so reopening the screen offers the same four. An offer may carry a `partner`,
   which nothing sets yet. A new drill is a minigame plus a mix that keeps every currency in
   three drills.
 - **Training tiers.** A player's tier sets their training tier (`trainingTierFor`: Club bronze,
