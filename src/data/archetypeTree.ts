@@ -229,8 +229,8 @@ const PATHS: PhasePathDef[] = [
     leveling: 'Picks its moments: charges a little less often, behind a better return.',
     tierEffects: [
       { [EffectKey.RETURN_AGGRESSION]: 6, [EffectKey.NET_APPROACH_BIAS]: 14 },
-      { [EffectKey.NET_APPROACH_BIAS]: -4 },
-      { [EffectKey.NET_APPROACH_BIAS]: -4 },
+      { [EffectKey.NET_APPROACH_BIAS]: -7 },
+      { [EffectKey.NET_APPROACH_BIAS]: -7 },
     ],
   },
 

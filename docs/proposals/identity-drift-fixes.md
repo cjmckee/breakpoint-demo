@@ -283,7 +283,11 @@ the volleys a net boost lands on.
   chip-and-charge back (`NET_RUSH.serveVolleyPerBias` 5 → 3, `chipChargePerBias` 2 → 1.2) takes the
   Regional spread from 15.8 to 9.9, but it changes how Club's serve-volley opponents play, so it isn't
   applied. A softer option is to let stacked approach biases saturate, which leaves one path alone
-  unchanged.
+  unchanged. Club-safe trims alone can't close it: Club's serve-volley opponents play the same
+  tier-I stack, so only the tier II/III increments Club never plays are free to change. Sneaky
+  Beaky's (net approach −4 → −7 per tier) brings that path from 8.9 to 6.2 at tier III, level with
+  the other return paths, and moves the net rusher by under a point. Downhill's and Bomber's tier
+  III increments changed nothing measurable.
 - **Stat boosts saturate on a build that already has the stat.** The baseliner's forehand and
   backhand paths are worth about 6 each on an even player, but about 1 on its own build, whose
   wings sit at 82-89: the shot is near the quality ceiling already. Paths that change behaviour keep

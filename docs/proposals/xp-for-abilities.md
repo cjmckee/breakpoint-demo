@@ -80,11 +80,17 @@ point-win gain over the four identities, N=300 per cell, ±0.5-1:
 - **The shop opens a rarity per season** (`ABILITY_OFFER_WEIGHTS`): commons only at Club, uncommons
   from Regional, rares from the Tour, as §5 of the progression plan has it. It used to sell rares
   from day 7. This makes Club a little harder for a player who bought an uncommon or a rare there.
-- **Still weak:** Overhead Smash does nothing because overheads already win (their quality is at
-  the 100 cap). Baseliner, Netcrasher, Soft Hands and Spin Master are worth well under 1, even for the
-  builds they suit. Scaling their flat bonuses with the level was tried and changed nothing, so
-  they need new effects rather than bigger numbers. Clutch, Mental Fortitude and Iron Will act
-  through key moments, which this probe doesn't play (`mentalAbilityProbe` does, at Club).
+- **Baseliner** rally momentum 2.4 → 4: about +1 at Club and Regional (it was 0-0.5), +0.3-0.4
+  later.
+- **Overhead Smash needs a new job.** It's worth 0 in every season, and no number fixes it. Its
+  quality bonus can't help a shot that's already at the 100 cap, and lowering the overhead's
+  winner bar instead (by 14 at level 1) still measured 0: the points an overhead would win, the net
+  player was winning anyway. What would reach play is holding the net against a good lob, which
+  today always sends the net player back to the baseline. That's new mechanics, so it isn't built.
+- **Netcrasher, Soft Hands and Spin Master** are about +1 for the builds they suit (the net rusher,
+  the counter) and near 0 for the rest, which is a common's budget. Scaling flat bonuses with the
+  level was tried and changed nothing. Clutch, Mental Fortitude and Iron Will act through key
+  moments, which this probe doesn't play (`mentalAbilityProbe` does, at Club).
 
 ## Gear, the other XP sink
 

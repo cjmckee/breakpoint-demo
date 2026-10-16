@@ -96,7 +96,7 @@ export const ABILITY_DEFINITIONS: Record<string, Ability> = {
     modifiers: {
       statBoosts: {},
       additional: {
-        [EffectKey.RALLY_MOMENTUM]: 2.4,
+        [EffectKey.RALLY_MOMENTUM]: 4,
       },
     },
     description:
