@@ -78,7 +78,7 @@ point-win today and **+6.4** with fix A alone (speed +15: +5.4 → +8.1).
 
 ## The package
 
-Five changes. Club is left alone wherever a change can be gated on level. Each row adds to the
+Seven changes. Club is left alone wherever a change can be gated on level. Each row adds to the
 one above.
 
 | step | change                                                                                          | OVR fit Club / Regional / Tour / World |
@@ -88,7 +88,13 @@ one above.
 | B    | + specialty amplification capped at 15 of excess; returns read forehand and backhand            | 82 / – / 69 / –                        |
 | C    | + speed, anticipation and tactics adjustments and bands halved                                  | 84 / – / 74 / –                        |
 | D    | + support bands narrow with level (`SUPPORT_NEUTRAL.scaleBands` 1), focus included              | 84 / 75 / 78 / 77%                     |
-| E    | + OVR weights by measured value, core heaviest (`STAT_CATEGORY_WEIGHTS`, `STAT_WEIGHTS_WITHIN`) | **94 / 94 / 93 / 95%**                 |
+| E    | + outcome curves and winner floors follow the level (`scaleContests`, `scaleWinnerFloors` 1)    | 93 / 91 / 91 / 92%                     |
+| F    | + the net stat earns the net player's edge (approach reads more net, smaller fixed edge)        | 93 / 95 / 93 / 92%                     |
+| G    | + OVR weights by measured value, core heaviest (`STAT_CATEGORY_WEIGHTS`, `STAT_WEIGHTS_WITHIN`) | **94 / 97 / 94 / 94%**                 |
+
+E and F come from asking why net and stamina were worth so little, rather than weighing them
+less in OVR. See "Net and stamina" below. Rows E and F are scored with G's weights from the
+first version, rows A-D with today's.
 
 In detail:
 
@@ -105,77 +111,123 @@ In detail:
 - **D. Bands narrow with level.** Above the neutral point, a support band's effect is scaled by
   50 / neutral, so in points of quality it stays what it is at 50. The same goes for focus under
   pressure, stamina in long rallies, focus's momentum mitigation and rhythm steadiness.
-- **E. OVR weights** (sum 1):
+- **E. Contests and winner floors follow the level.** Above the neutral point, every outcome
+  curve's steepness is scaled by 50 / neutral (`SUPPORT_NEUTRAL.scaleContests`), and so is the
+  fixed part of every winner floor, the 65% that `WINNER_FLOOR_RETRIEVAL_WEIGHT` leaves absolute
+  (`scaleWinnerFloors`). With both, an even match at level 80 is a scaled copy of one at 50:
+  qualities, bars and the gaps between them all grow by the same factor, and the curves read the
+  gaps in proportion. Contests alone shorten high-level rallies (4.1 → 3.4 shots a point at level 80) and stamina loses its job again. The floors bring the rallies back (3.9) because winners
+  stop coming easier as the career goes on.
+- **F. Net earns its edge.** `SHOT_COMPOSITE_WEIGHTS.approach` reads net 0.35 → 0.5 (wing
+  0.5 → 0.4, placement 0.15 → 0.1). The passer's fixed at-net difficulty
+  (`DIFFICULTY_SCORE_FACTORS.opponentPosition.at_net`) 8 → 0, and the volleyer's own coverage
+  (`OPPONENT_STAT_ADJUSTMENTS.netCoverage`) 0.2 → 0.6, so more of the bar the pass faces comes
+  from the net player's rating and less from standing there.
+- **G. OVR weights** (sum 1), refit on the sim after A-F:
 
-  | stat         | today | proposed |
-  | ------------ | ----- | -------- |
-  | serve        | 0.09  | 0.12     |
-  | forehand     | 0.09  | 0.09     |
-  | backhand     | 0.09  | 0.08     |
-  | return       | 0.09  | 0.09     |
-  | net          | 0.09  | 0.04     |
-  | slice        | 0.05  | 0.05     |
-  | spin         | 0.05  | 0.05     |
-  | placement    | 0.05  | 0.05     |
-  | speed        | 0.083 | 0.08     |
-  | stamina      | 0.083 | 0.03     |
-  | strength     | 0.083 | 0.07     |
-  | focus        | 0.05  | 0.08     |
-  | anticipation | 0.05  | 0.08     |
-  | tactics      | 0.05  | 0.09     |
-  | **core**     | 0.45  | **0.42** |
+  | stat         | today | first version | proposed |
+  | ------------ | ----- | ------------- | -------- |
+  | serve        | 0.09  | 0.12          | 0.144    |
+  | forehand     | 0.09  | 0.09          | 0.072    |
+  | backhand     | 0.09  | 0.08          | 0.062    |
+  | return       | 0.09  | 0.09          | 0.082    |
+  | net          | 0.09  | 0.04          | 0.041    |
+  | slice        | 0.05  | 0.05          | 0.050    |
+  | spin         | 0.05  | 0.05          | 0.050    |
+  | placement    | 0.05  | 0.05          | 0.060    |
+  | speed        | 0.083 | 0.08          | 0.100    |
+  | stamina      | 0.083 | 0.03          | 0.040    |
+  | strength     | 0.083 | 0.07          | 0.070    |
+  | focus        | 0.05  | 0.08          | 0.077    |
+  | anticipation | 0.05  | 0.08          | 0.077    |
+  | tactics      | 0.05  | 0.09          | 0.077    |
+  | **core**     | 0.45  | 0.42          | **0.40** |
 
-  As config: category weights core 0.42, technical 0.15, physical 0.18 and mental 0.25, split
-  within each category by `STAT_WEIGHTS_WITHIN`: serve 12, forehand 9, backhand 8, return 9 and
-  net 4; speed 8, stamina 3 and strength 7; focus 8, anticipation 8 and tactics 9; technical
-  even. These are the measured values under A-D (the mean over the four bands), rounded with core
-  kept heaviest. The unrounded fit scores 96-99%; the rounding costs 1-3 points of fit. **Net**
-  is worth little except to players who come forward, and **stamina** almost nothing in best of
-  three, so both drop. OVR feeds the engine (match level, 40% of ace resistance), so E is measured
-  in the sim, not just re-scored.
+  As config: category weights core 0.40, technical 0.16, physical 0.21 and mental 0.23, split
+  within each category by `STAT_WEIGHTS_WITHIN`: serve 14, forehand 7, backhand 6, return 8 and
+  net 4; slice 5, spin 5 and placement 6; speed 10, stamina 4 and strength 7; mental even. These
+  are the measured values under A-F (the mean over the four bands), rounded. Core is still the
+  heaviest category and serve the heaviest stat. OVR feeds the engine (match level, 40% of ace
+  resistance), so G is measured in the sim, not just re-scored.
 
 ### After the package
 
 | point-win per +10 | Club        | Regional    | Tour        | World       |
 | ----------------- | ----------- | ----------- | ----------- | ----------- |
-| serve             | 3.58        | 4.67        | 4.31        | 3.53        |
-| forehand          | 2.80        | 1.94        | 2.12        | 2.22        |
-| backhand          | 2.54        | 1.62        | 1.76        | 1.76        |
-| return            | 2.43        | 2.23        | 2.37        | 2.12        |
-| net               | 1.21        | 0.60        | 0.52        | 0.72        |
-| slice             | 1.62        | 1.49        | 1.31        | 1.42        |
-| spin              | 2.06        | 1.72        | 1.92        | 1.17        |
-| placement         | 1.58        | 1.83        | 1.84        | 1.55        |
-| speed             | 2.38        | 2.70        | 2.59        | 3.03        |
-| stamina           | 0.64        | 0.66        | 0.19        | 0.45        |
-| strength          | 1.72        | 1.97        | 2.84        | 2.07        |
-| focus             | 1.97        | 2.40        | 3.03        | 2.94        |
-| anticipation      | 2.56        | 2.59        | 2.47        | 2.49        |
-| tactics           | 1.59        | 2.81        | 2.37        | 2.90        |
-| **core / others** | 2.51 / 1.79 | 2.21 / 2.02 | 2.21 / 2.06 | 2.07 / 2.00 |
-| **OVR fit**       | **94%**     | **94%**     | **93%**     | **95%**     |
+| serve             | 3.60        | 4.55        | 3.41        | 2.98        |
+| forehand          | 2.68        | 1.84        | 1.85        | 1.56        |
+| backhand          | 2.21        | 1.71        | 1.27        | 1.22        |
+| return            | 2.37        | 2.44        | 1.85        | 1.54        |
+| net               | 1.40        | 1.27        | 0.79        | 1.07        |
+| slice             | 1.27        | 1.61        | 1.04        | 1.12        |
+| spin              | 1.66        | 1.67        | 1.37        | 1.21        |
+| placement         | 1.73        | 2.00        | 1.82        | 1.56        |
+| speed             | 3.05        | 3.05        | 2.73        | 2.81        |
+| stamina           | 0.55        | 1.02        | 1.41        | 1.82        |
+| strength          | 1.67        | 2.03        | 2.46        | 1.52        |
+| focus             | 1.80        | 2.40        | 2.45        | 2.20        |
+| anticipation      | 2.99        | 3.25        | 3.13        | 2.63        |
+| tactics           | 1.56        | 2.65        | 2.07        | 2.29        |
+| **core / others** | 2.45 / 1.81 | 2.36 / 2.19 | 1.83 / 2.05 | 1.67 / 1.91 |
+| **OVR fit**       | **94%**     | **97%**     | **94%**     | **94%**     |
 
-The correlation between a stat's value and its OVR weight goes from 0.04 / −0.05 / −0.02 / −0.42
-to **0.86 / 0.88 / 0.87 / 0.90**. Speed and anticipation sit at 1.1-1.4 times forehand, no longer
-5-60 times. Serve is the most valuable stat at every level.
+N=4000 pairings per band (±0.5-0.6). The correlation between a stat's value and its OVR weight
+goes from 0.04 / −0.05 / −0.02 / −0.42 today to **0.84 / 0.95 / 0.84 / 0.79**. Speed and
+anticipation sit at 1.2-1.8 times forehand, no longer 5-60 times. Serve is the most valuable stat
+at every level. Stamina now grows with the career (0.6 → 1.8 from Club to World), as it should
+when longer, harder matches come later. Core per stat still beats the rest at Club and Regional,
+and falls just under it on the Tour and at World: the forehand and backhand are the stats still
+under their weight there.
 
-### Checks
+## Net and stamina
 
-- **Club.** `bandCheck`: all 9 Club story opponents stay on band (today 7). Two practice
-  opponents read +2.6 and +2.8 over, as they did before (±2.9). The Club identity spread is 3.9
-  (today 4.7).
+The first version weighed both less in OVR because the sim paid them little. The better question
+is why, and how much of it is a bug.
+
+**Stamina was a bug.** Fatigue read absolute stamina, so by the Tour every player had enough not
+to tire: end-of-match fatigue was about 0 at level 80. Measured from the match's neutral point
+(D) it comes back (18 at level 80), and it took E to keep it, since flatter contests alone
+shortened the rallies that make players tired. Stamina is now worth 1.0-1.8 per +10 past Club,
+from 0.2-0.7. It's still the cheapest stat at Club, where best of three is short and nobody tires.
+
+**Net is mostly how often it's used, and partly a bug.** `rallyMixProbe SECTIONS=net` traces the
+player's net points: how they end, the passer's modifiers, and the net player's bars.
+
+- **Usage.** A player with no net identity is at the net on 3-5% of points; a serve-volleyer on
+  15-20%. Playstyle owns that number by design, and a stat used on one point in twenty can't be
+  worth what the serve is.
+- **The position did the stat's job.** At even stats, coming forward won 80-89% of net points. The
+  passer's ball came out at about half their stat: fixed penalties for the opponent being at the
+  net, whoever that opponent was. So −15 net cost 8-19 points of net points won and +15 added only
+  4-6.
+- **The overhead stopped reading the stat at high level.** At level 80 its quality hit the 100
+  cap on 40-60% of swings, against a winner floor that had risen only 57 → 69 since level 40. A
+  net-65 and a net-95 volleyer smashed alike. E lifts the floor with the level (91 at level 80).
+- **To its users, net was already worth its keep.** For a serve-volleyer at level 80, +15 on net,
+  serve or return each added about 2 points of point-win.
+
+F moves the edge from the position to the rating, and puts more of the approach, which everyone
+hits about 0.3 times a point, on the net stat. Net's mean value goes 0.58 → 1.13 per +10.
+Pushing it further would mean every player coming forward more often. That's a playstyle decision,
+not a tuning one, so it isn't proposed here.
+
+## Checks
+
+- **Club.** `bandCheck`: 8 of 9 Club story opponents stay on band (today 7). Martia Estrella
+  (team match 3) reads +2.2 over, and two practice opponents +2.3 and +2.5, as before (±2.9). The
+  Club identity spread is 2.8 (today 4.7).
 - **Identities** (`driftProbe`, career builds, the gap between the best and worst identity's
   point-win):
 
   | day         | big server | counter | net rusher | baseliner | spread      |
   | ----------- | ---------- | ------- | ---------- | --------- | ----------- |
-  | 31 Club     | 50.1       | 48.3    | 52.2       | 49.1      | 4.7 → 3.9   |
-  | 64 Regional | 54.4       | 46.8    | 62.3       | 50.3      | 27.2 → 15.5 |
-  | 104 Tour    | 53.9       | 45.6    | 65.3       | 49.9      | 38.6 → 19.7 |
-  | 144 World   | 54.0       | 42.1    | 64.4       | 51.7      | 38.2 → 22.3 |
+  | 31 Club     | 51.4       | 51.9    | 54.2       | 53.6      | 4.7 → 2.8   |
+  | 64 Regional | 52.5       | 48.0    | 64.6       | 50.6      | 27.2 → 16.6 |
+  | 104 Tour    | 53.2       | 48.5    | 66.1       | 49.0      | 38.6 → 17.6 |
+  | 144 World   | 51.2       | 46.2    | 64.0       | 50.7      | 38.2 → 17.8 |
 
-  The baseliner is fixed: 36 → 50 point-win on the Tour. The counter is now last and the net
-  rusher still first. See "What's left".
+  The baseliner is fixed: 36 → 49 point-win on the Tour. The counter is now last and the net
+  rusher still first, winning 86% of its net points. See "What's left".
 
 - **Tests.** `npm test` passes with every switch at its default.
 
@@ -207,10 +259,8 @@ separate pass with its own data, not part of this package.
   were fitted to today's engine.
 - **Re-run `careerSim PAR=1`.** The season bands (§2.2 of the progression proposal) are in OVR
   terms, and OVR's weights change.
-- **Stamina's job.** It's worth about nothing in best of three at every level. Measure best of five
-  (the World finale) and heat venues before deciding whether it needs more weight in the sim or
-  less in OVR. E already gives it 0.03.
-- **Net.** It's worth little except to net players. That's arguably right; OVR now says so (0.04).
+- **Stamina in best of five and heat.** It now earns its weight in best of three past Club.
+  Measure the World finale's best of five and heat venues, where it should count for more.
 
 ## Player feedback (unchanged from the first version)
 
@@ -238,12 +288,13 @@ baseliner already buys count.
 
 ```
 npx tsx src/test/analysis/statLadder.ts                        # today, all bands
-PKG='SUPPORT_NEUTRAL.followLevelFrom=50;SPECIALTY_AMPLIFY.excessCap=15;RETURN_COMPOSITE_WEIGHTS.return=0.3;RETURN_COMPOSITE_WEIGHTS.forehand=0.15;RETURN_COMPOSITE_WEIGHTS.backhand=0.15;RETURN_COMPOSITE_WEIGHTS.anticipation=0.15;RETURN_COMPOSITE_WEIGHTS.speed=0.15;OPPONENT_STAT_ADJUSTMENTS.tactics=0.06;OPPONENT_STAT_ADJUSTMENTS.speed=0.06;SHOOTER_STAT_ADJUSTMENTS.anticipation=0.05;STAT_MODIFIER_BANDS.reactions=0.075;STAT_MODIFIER_BANDS.reading=0.05;STAT_MODIFIER_BANDS.courtCoverage=0.05;SUPPORT_NEUTRAL.scaleBands=1;STAT_CATEGORY_WEIGHTS.core=0.42;STAT_CATEGORY_WEIGHTS.technical=0.15;STAT_CATEGORY_WEIGHTS.physical=0.18;STAT_CATEGORY_WEIGHTS.mental=0.25;STAT_WEIGHTS_WITHIN.core.serve=12;STAT_WEIGHTS_WITHIN.core.forehand=9;STAT_WEIGHTS_WITHIN.core.backhand=8;STAT_WEIGHTS_WITHIN.core.return=9;STAT_WEIGHTS_WITHIN.core.net=4;STAT_WEIGHTS_WITHIN.physical.speed=8;STAT_WEIGHTS_WITHIN.physical.stamina=3;STAT_WEIGHTS_WITHIN.physical.strength=7;STAT_WEIGHTS_WITHIN.mental.focus=8;STAT_WEIGHTS_WITHIN.mental.anticipation=8;STAT_WEIGHTS_WITHIN.mental.tactics=9'
-TUNE="$PKG" PROBE=statLadder N=6000 npx tsx src/test/analysis/tuneRun.ts
+PKG='SUPPORT_NEUTRAL.followLevelFrom=50;SPECIALTY_AMPLIFY.excessCap=15;RETURN_COMPOSITE_WEIGHTS.return=0.3;RETURN_COMPOSITE_WEIGHTS.forehand=0.15;RETURN_COMPOSITE_WEIGHTS.backhand=0.15;RETURN_COMPOSITE_WEIGHTS.anticipation=0.15;RETURN_COMPOSITE_WEIGHTS.speed=0.15;OPPONENT_STAT_ADJUSTMENTS.tactics=0.06;OPPONENT_STAT_ADJUSTMENTS.speed=0.06;SHOOTER_STAT_ADJUSTMENTS.anticipation=0.05;SUPPORT_NEUTRAL.scaleBands=1;SUPPORT_NEUTRAL.scaleContests=1;SUPPORT_NEUTRAL.scaleWinnerFloors=1;SHOT_COMPOSITE_WEIGHTS.approach.primary=0.4;SHOT_COMPOSITE_WEIGHTS.approach.net=0.5;SHOT_COMPOSITE_WEIGHTS.approach.placement=0.1;DIFFICULTY_SCORE_FACTORS.opponentPosition.at_net=0;OPPONENT_STAT_ADJUSTMENTS.netCoverage=0.6;STAT_CATEGORY_WEIGHTS.core=0.40;STAT_CATEGORY_WEIGHTS.technical=0.16;STAT_CATEGORY_WEIGHTS.physical=0.21;STAT_CATEGORY_WEIGHTS.mental=0.23;STAT_WEIGHTS_WITHIN.core.serve=14;STAT_WEIGHTS_WITHIN.core.forehand=7;STAT_WEIGHTS_WITHIN.core.backhand=6;STAT_WEIGHTS_WITHIN.core.return=8;STAT_WEIGHTS_WITHIN.core.net=4;STAT_WEIGHTS_WITHIN.technical.slice=5;STAT_WEIGHTS_WITHIN.technical.spin=5;STAT_WEIGHTS_WITHIN.technical.placement=6;STAT_WEIGHTS_WITHIN.physical.speed=10;STAT_WEIGHTS_WITHIN.physical.stamina=4;STAT_WEIGHTS_WITHIN.physical.strength=7'
+TUNE="$PKG" PROBE=statLadder N=4000 npx tsx src/test/analysis/tuneRun.ts
 TUNE="$PKG" PROBE=driftProbe H2H=0 DAYS=31,64,104,144 SECTIONS=who npx tsx src/test/analysis/tuneRun.ts
 TUNE="$PKG" PROBE=driftProbe DAYS=104 SECTIONS=swap,paths npx tsx src/test/analysis/tuneRun.ts
 TUNE="$PKG" PROBE=bandCheck ONLY=club- N=60 npx tsx src/test/analysis/tuneRun.ts
 OVR_W=serve:0.12,forehand:0.09,... npx tsx src/test/analysis/statLadder.ts   # score OVR weights only
 LEVELS=40,80 npx tsx src/test/analysis/rallyMixProbe.ts            # mechanisms 1-3 (shot mix, +15 boosts)
 TUNE='SUPPORT_NEUTRAL.followLevelFrom=50' LEVELS=80 PROBE=rallyMixProbe npx tsx src/test/analysis/tuneRun.ts
+TUNE="$PKG" PROFILE=serve_volley SECTIONS=net BOOST=net BY=-15 LEVELS=50,80 PROBE=rallyMixProbe npx tsx src/test/analysis/tuneRun.ts
 ```
