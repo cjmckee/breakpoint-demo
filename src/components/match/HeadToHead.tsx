@@ -3,21 +3,28 @@
  *
  * The question before a match is "who is ahead, and where?". Two lists of stat
  * names answered it only after the player cross-referenced them; mirrored bars
- * answer it at a glance. Each row is one core skill, your bar growing left from
- * the centre and theirs growing right, and whichever side is ahead is coloured.
- * The two service contests lead (serviceContests): they are what holds and breaks
- * are decided on. The biggest gaps across all fourteen stats follow as chips.
+ * answer it at a glance. Each row is one area of the game (gameAreas), your bar
+ * growing left from the centre and theirs growing right, and whichever side is
+ * ahead is coloured. The areas blend all fourteen stats the way the engine uses
+ * them, so a row reads as "who is better here", not as one stat. The biggest gaps
+ * in single stats follow as chips, to say why.
  */
 
 import React from 'react';
-import type { CoreStats, PlayerStats, StatName } from '../../types';
+import type { PlayerStats, StatName } from '../../types';
 import { STAT_NAMES, getStat } from '../../game/StatDevelopment';
 import type { Appearance } from '../../types/appearance';
 import { PixelSprite } from '../sprites/PixelSprite';
 import { STAT_ICONS, formatStatName } from '../../config/statIcons';
-import { serviceContests, type Contest } from '../../core/serviceContests';
+import { GAME_AREAS, gameAreaRatings, type GameArea } from '../../core/gameAreas';
 
-const CORE_ROWS: Array<keyof CoreStats> = ['serve', 'forehand', 'backhand', 'return', 'net'];
+const AREA_LABELS: Record<GameArea, string> = {
+  serve: 'On serve',
+  return: 'On return',
+  baseline: 'Baseline',
+  net: 'At net',
+  coverage: 'Court coverage',
+};
 
 /** A gap smaller than this reads as even: the bars stay neutral. */
 const EVEN_WITHIN = 2;
@@ -114,7 +121,8 @@ export const HeadToHead: React.FC<HeadToHeadProps> = ({
   opponentAppearance,
 }) => {
   const edges = biggestEdges(playerStats, opponentStats);
-  const contests = serviceContests(playerStats, opponentStats);
+  const ours = gameAreaRatings(playerStats);
+  const theirs = gameAreaRatings(opponentStats);
   const overallGap = playerOverall - opponentOverall;
 
   return (
@@ -164,42 +172,16 @@ export const HeadToHead: React.FC<HeadToHeadProps> = ({
         </div>
       </div>
 
-      {/* Service contests, then core skills, mirrored. One grid for every row, so the label column fits the
+      {/* Areas of the game, mirrored. One grid for every row, so the label column fits the
           widest label and the bars still line up. */}
       <div className="grid grid-cols-[auto_minmax(1.5rem,1fr)_auto_minmax(1.5rem,1fr)_auto] items-center gap-x-2 gap-y-2 text-xs sm:text-sm">
-        {/* On your serve: your serve against their return; on theirs, the reverse. */}
-        {(
-          [
-            ['serve', 'On serve', contests.serve],
-            ['return', 'On return', contests.return],
-          ] as Array<['serve' | 'return', string, Contest]>
-        ).map(([key, label, contest]) => (
+        {GAME_AREAS.map((area) => (
           <MirroredRow
-            key={key}
-            testId={`head-to-head-contest-${key}`}
-            ours={contest.mine}
-            theirs={contest.theirs}
-            label={
-              <>
-                <span aria-hidden="true">{STAT_ICONS[key]} </span>
-                {label}
-              </>
-            }
-          />
-        ))}
-        <div className="col-span-5 border-t-2 border-pixel-border" aria-hidden="true" />
-        {CORE_ROWS.map((stat) => (
-          <MirroredRow
-            key={stat}
-            testId={`head-to-head-${stat}`}
-            ours={playerStats.core[stat]}
-            theirs={opponentStats.core[stat]}
-            label={
-              <>
-                <span aria-hidden="true">{STAT_ICONS[stat]} </span>
-                {formatStatName(stat)}
-              </>
-            }
+            key={area}
+            testId={`head-to-head-area-${area}`}
+            ours={ours[area]}
+            theirs={theirs[area]}
+            label={AREA_LABELS[area]}
           />
         ))}
       </div>

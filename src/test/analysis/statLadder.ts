@@ -20,6 +20,8 @@
  *   share   the stat's share of all the value, against its share of OVR
  *   R²      how much of the margin the 14 stats explain, how much OVR alone
  *           explains, and OVR's share of what is explainable
+ *   card    the same for the pre-match card's five areas (gameAreas), and for
+ *           serve v return alone, with each area's worth per +10 of gap
  *
  * The target is value roughly in proportion to OVR weight (core stats heaviest)
  * and OVR's share near 100%.
@@ -37,6 +39,7 @@ import type { PlayerStats } from '../../types';
 import type { ArchetypeProfile, SpecialtyTier } from '../../types/archetype';
 import type { OpponentTier, Venue } from '../../types/game';
 import { PlayerProfile } from '../../core/PlayerProfile';
+import { GAME_AREAS, gameAreaRatings } from '../../core/gameAreas';
 import { setSeed, clearSeed } from '../../core/random';
 import { calculateOverallRating, ovrStatShares } from '../../utils/overallRating';
 import { profileForArchetype, type LegacyArchetype } from '../../data/archetypeTree';
@@ -208,6 +211,8 @@ function measure(band: Band, bandIndex: number): string[] {
   const diffs: number[][] = [];
   const ovrDiffs: number[][] = [];
   const candidateDiffs: number[][] = [];
+  const areaDiffs: number[][] = [];
+  const contestDiffs: number[][] = [];
   const ys: number[] = [];
   for (let i = 0; i < N; i++) {
     const p = drawStats(rng, band);
@@ -226,6 +231,10 @@ function measure(band: Band, bandIndex: number): string[] {
     const of = flat(o);
     diffs.push(pf.map((v, j) => v - of[j]));
     ovrDiffs.push([calculateOverallRating(p) - calculateOverallRating(o)]);
+    const pa = gameAreaRatings(p);
+    const oa = gameAreaRatings(o);
+    areaDiffs.push(GAME_AREAS.map((a) => pa[a] - oa[a]));
+    contestDiffs.push([pa.serve - oa.return, pa.return - oa.serve]);
     if (CANDIDATE_WEIGHT) {
       candidateDiffs.push([pf.reduce((a, v, j) => a + (v - of[j]) * CANDIDATE_WEIGHT[j], 0)]);
     }
@@ -275,6 +284,14 @@ function measure(band: Band, bandIndex: number): string[] {
   out.push(
     `R²: 14 stats ${full.r2.toFixed(2)}, OVR alone ${byOvr.r2.toFixed(2)} ` +
       `→ OVR explains ${((byOvr.r2 / full.r2) * 100).toFixed(0)}% of what the stats can`,
+  );
+  const byAreas = ols(areaDiffs, ys);
+  const byContests = ols(contestDiffs, ys);
+  out.push(
+    `pre-match card: 5 areas R² ${byAreas.r2.toFixed(2)} → ${((byAreas.r2 / full.r2) * 100).toFixed(0)}% ` +
+      `of what the stats can; serve v return alone ${byContests.r2.toFixed(2)} → ` +
+      `${((byContests.r2 / full.r2) * 100).toFixed(0)}%. Per +10 of area gap: ` +
+      GAME_AREAS.map((a, j) => `${a} ${f(byAreas.coef[j] * 10, 1)}`).join(', '),
   );
   if (CANDIDATE_WEIGHT) {
     const byCandidate = ols(candidateDiffs, ys);
