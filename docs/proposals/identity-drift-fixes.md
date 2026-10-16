@@ -90,7 +90,7 @@ one above.
 | D    | + support bands narrow with level (`SUPPORT_NEUTRAL.scaleBands` 1), focus included              | 84 / 75 / 78 / 77%                     |
 | E    | + outcome curves and winner floors follow the level (`scaleContests`, `scaleWinnerFloors` 1)    | 93 / 91 / 91 / 92%                     |
 | F    | + the net stat earns the net player's edge (approach reads more net, smaller fixed edge)        | 93 / 95 / 93 / 92%                     |
-| G    | + OVR weights by measured value, core heaviest (`STAT_CATEGORY_WEIGHTS`, `STAT_WEIGHTS_WITHIN`) | **94 / 97 / 94 / 94%**                 |
+| G    | + OVR weights by measured value, core heaviest (`STAT_CATEGORY_WEIGHTS`, `STAT_WEIGHTS_WITHIN`) | **94 / 98 / 96 / 96%**                 |
 
 E and F come from asking why net and stamina were worth so little, rather than weighing them
 less in OVR. See "Net and stamina" below. Rows E and F are scored with G's weights from the
@@ -154,30 +154,29 @@ In detail:
 
 | point-win per +10 | Club        | Regional    | Tour        | World       |
 | ----------------- | ----------- | ----------- | ----------- | ----------- |
-| serve             | 3.60        | 4.55        | 3.41        | 2.98        |
-| forehand          | 2.68        | 1.84        | 1.85        | 1.56        |
-| backhand          | 2.21        | 1.71        | 1.27        | 1.22        |
-| return            | 2.37        | 2.44        | 1.85        | 1.54        |
-| net               | 1.40        | 1.27        | 0.79        | 1.07        |
-| slice             | 1.27        | 1.61        | 1.04        | 1.12        |
-| spin              | 1.66        | 1.67        | 1.37        | 1.21        |
-| placement         | 1.73        | 2.00        | 1.82        | 1.56        |
-| speed             | 3.05        | 3.05        | 2.73        | 2.81        |
-| stamina           | 0.55        | 1.02        | 1.41        | 1.82        |
-| strength          | 1.67        | 2.03        | 2.46        | 1.52        |
-| focus             | 1.80        | 2.40        | 2.45        | 2.20        |
-| anticipation      | 2.99        | 3.25        | 3.13        | 2.63        |
-| tactics           | 1.56        | 2.65        | 2.07        | 2.29        |
-| **core / others** | 2.45 / 1.81 | 2.36 / 2.19 | 1.83 / 2.05 | 1.67 / 1.91 |
-| **OVR fit**       | **94%**     | **97%**     | **94%**     | **94%**     |
+| serve             | 3.85        | 4.46        | 3.50        | 3.14        |
+| forehand          | 2.86        | 1.76        | 1.85        | 1.40        |
+| backhand          | 2.18        | 1.88        | 1.37        | 1.41        |
+| return            | 2.37        | 2.02        | 2.06        | 1.81        |
+| net               | 1.60        | 1.29        | 0.70        | 1.14        |
+| slice             | 1.25        | 1.54        | 0.98        | 1.33        |
+| spin              | 1.77        | 1.87        | 1.24        | 1.24        |
+| placement         | 1.75        | 1.83        | 1.50        | 1.86        |
+| speed             | 2.67        | 2.53        | 2.50        | 2.43        |
+| stamina           | 0.46        | 1.24        | 1.49        | 1.58        |
+| strength          | 1.54        | 2.14        | 2.46        | 1.40        |
+| focus             | 1.86        | 2.11        | 2.22        | 2.32        |
+| anticipation      | 2.42        | 2.27        | 2.08        | 2.11        |
+| tactics           | 1.41        | 2.38        | 2.00        | 2.43        |
+| **core / others** | 2.57 / 1.68 | 2.28 / 1.99 | 1.90 / 1.83 | 1.78 / 1.86 |
+| **OVR fit**       | **94%**     | **98%**     | **96%**     | **96%**     |
 
 N=4000 pairings per band (±0.5-0.6). The correlation between a stat's value and its OVR weight
-goes from 0.04 / −0.05 / −0.02 / −0.42 today to **0.84 / 0.95 / 0.84 / 0.79**. Speed and
-anticipation sit at 1.2-1.8 times forehand, no longer 5-60 times. Serve is the most valuable stat
-at every level. Stamina now grows with the career (0.6 → 1.8 from Club to World), as it should
-when longer, harder matches come later. Core per stat still beats the rest at Club and Regional,
-and falls just under it on the Tour and at World: the forehand and backhand are the stats still
-under their weight there.
+goes from 0.04 / −0.05 / −0.02 / −0.42 today to **0.84 / 0.95 / 0.92 / 0.86**. Speed and
+anticipation sit at 0.9-1.7 times forehand, no longer 5-60 times. Serve is the most valuable stat
+at every level. Stamina now grows with the career (0.5 → 1.6 from Club to World), as it should
+when longer, harder matches come later. Core per stat beats the rest through the Tour and falls
+just under it at World, where the forehand and backhand are the stats still under their weight.
 
 ## Net and stamina
 
@@ -187,7 +186,7 @@ is why, and how much of it is a bug.
 **Stamina was a bug.** Fatigue read absolute stamina, so by the Tour every player had enough not
 to tire: end-of-match fatigue was about 0 at level 80. Measured from the match's neutral point
 (D) it comes back (18 at level 80), and it took E to keep it, since flatter contests alone
-shortened the rallies that make players tired. Stamina is now worth 1.0-1.8 per +10 past Club,
+shortened the rallies that make players tired. Stamina is now worth 1.2-1.6 per +10 past Club,
 from 0.2-0.7. It's still the cheapest stat at Club, where best of three is short and nobody tires.
 
 **Net is mostly how often it's used, and partly a bug.** `rallyMixProbe SECTIONS=net` traces the
@@ -207,27 +206,28 @@ player's net points: how they end, the passer's modifiers, and the net player's 
   serve or return each added about 2 points of point-win.
 
 F moves the edge from the position to the rating, and puts more of the approach, which everyone
-hits about 0.3 times a point, on the net stat. Net's mean value goes 0.58 → 1.13 per +10.
+hits about 0.3 times a point, on the net stat. Net's mean value goes 0.58 → 1.18 per +10.
 Pushing it further would mean every player coming forward more often. That's a playstyle decision,
 not a tuning one, so it isn't proposed here.
 
 ## Checks
 
 - **Club.** `bandCheck`: 8 of 9 Club story opponents stay on band (today 7). Martia Estrella
-  (team match 3) reads +2.2 over, and two practice opponents +2.3 and +2.5, as before (±2.9). The
-  Club identity spread is 2.8 (today 4.7).
+  (team match 3) reads +2.4 over, and three practice opponents +2.2 to +2.5 (today two, +2.6 and
+  +2.8; the noise at N=60 is ±2.9). The Club identity spread is 2.9 (today 4.7).
 - **Identities** (`driftProbe`, career builds, the gap between the best and worst identity's
   point-win):
 
   | day         | big server | counter | net rusher | baseliner | spread      |
   | ----------- | ---------- | ------- | ---------- | --------- | ----------- |
-  | 31 Club     | 51.4       | 51.9    | 54.2       | 53.6      | 4.7 → 2.8   |
-  | 64 Regional | 52.5       | 48.0    | 64.6       | 50.6      | 27.2 → 16.6 |
-  | 104 Tour    | 53.2       | 48.5    | 66.1       | 49.0      | 38.6 → 17.6 |
-  | 144 World   | 51.2       | 46.2    | 64.0       | 50.7      | 38.2 → 17.8 |
+  | 31 Club     | 51.4       | 52.5    | 52.9       | 54.3      | 4.7 → 2.9   |
+  | 64 Regional | 53.9       | 46.9    | 63.6       | 52.1      | 27.2 → 16.7 |
+  | 104 Tour    | 54.8       | 46.4    | 64.8       | 49.4      | 38.6 → 18.4 |
+  | 144 World   | 52.6       | 44.7    | 61.0       | 49.4      | 38.2 → 16.3 |
 
   The baseliner is fixed: 36 → 49 point-win on the Tour. The counter is now last and the net
-  rusher still first, winning 86% of its net points. See "What's left".
+  rusher still first. See "What's left". OVR against the field now predicts the identities'
+  point-win at r 0.61 (today −0.66).
 
 - **Tests.** `npm test` passes with every switch at its default.
 
@@ -288,7 +288,7 @@ baseliner already buys count.
 
 ```
 npx tsx src/test/analysis/statLadder.ts                        # today, all bands
-PKG='SUPPORT_NEUTRAL.followLevelFrom=50;SPECIALTY_AMPLIFY.excessCap=15;RETURN_COMPOSITE_WEIGHTS.return=0.3;RETURN_COMPOSITE_WEIGHTS.forehand=0.15;RETURN_COMPOSITE_WEIGHTS.backhand=0.15;RETURN_COMPOSITE_WEIGHTS.anticipation=0.15;RETURN_COMPOSITE_WEIGHTS.speed=0.15;OPPONENT_STAT_ADJUSTMENTS.tactics=0.06;OPPONENT_STAT_ADJUSTMENTS.speed=0.06;SHOOTER_STAT_ADJUSTMENTS.anticipation=0.05;SUPPORT_NEUTRAL.scaleBands=1;SUPPORT_NEUTRAL.scaleContests=1;SUPPORT_NEUTRAL.scaleWinnerFloors=1;SHOT_COMPOSITE_WEIGHTS.approach.primary=0.4;SHOT_COMPOSITE_WEIGHTS.approach.net=0.5;SHOT_COMPOSITE_WEIGHTS.approach.placement=0.1;DIFFICULTY_SCORE_FACTORS.opponentPosition.at_net=0;OPPONENT_STAT_ADJUSTMENTS.netCoverage=0.6;STAT_CATEGORY_WEIGHTS.core=0.40;STAT_CATEGORY_WEIGHTS.technical=0.16;STAT_CATEGORY_WEIGHTS.physical=0.21;STAT_CATEGORY_WEIGHTS.mental=0.23;STAT_WEIGHTS_WITHIN.core.serve=14;STAT_WEIGHTS_WITHIN.core.forehand=7;STAT_WEIGHTS_WITHIN.core.backhand=6;STAT_WEIGHTS_WITHIN.core.return=8;STAT_WEIGHTS_WITHIN.core.net=4;STAT_WEIGHTS_WITHIN.technical.slice=5;STAT_WEIGHTS_WITHIN.technical.spin=5;STAT_WEIGHTS_WITHIN.technical.placement=6;STAT_WEIGHTS_WITHIN.physical.speed=10;STAT_WEIGHTS_WITHIN.physical.stamina=4;STAT_WEIGHTS_WITHIN.physical.strength=7'
+PKG='SUPPORT_NEUTRAL.followLevelFrom=50;SPECIALTY_AMPLIFY.excessCap=15;RETURN_COMPOSITE_WEIGHTS.return=0.3;RETURN_COMPOSITE_WEIGHTS.forehand=0.15;RETURN_COMPOSITE_WEIGHTS.backhand=0.15;RETURN_COMPOSITE_WEIGHTS.anticipation=0.15;RETURN_COMPOSITE_WEIGHTS.speed=0.15;OPPONENT_STAT_ADJUSTMENTS.tactics=0.06;OPPONENT_STAT_ADJUSTMENTS.speed=0.06;SHOOTER_STAT_ADJUSTMENTS.anticipation=0.05;SUPPORT_NEUTRAL.scaleBands=1;SUPPORT_NEUTRAL.scaleContests=1;SUPPORT_NEUTRAL.scaleWinnerFloors=1;SHOT_COMPOSITE_WEIGHTS.approach.primary=0.4;SHOT_COMPOSITE_WEIGHTS.approach.net=0.5;SHOT_COMPOSITE_WEIGHTS.approach.placement=0.1;DIFFICULTY_SCORE_FACTORS.opponentPosition.at_net=0;OPPONENT_STAT_ADJUSTMENTS.netCoverage=0.6;STAT_CATEGORY_WEIGHTS.core=0.40;STAT_CATEGORY_WEIGHTS.technical=0.16;STAT_CATEGORY_WEIGHTS.physical=0.21;STAT_CATEGORY_WEIGHTS.mental=0.23;STAT_WEIGHTS_WITHIN.core.serve=14;STAT_WEIGHTS_WITHIN.core.forehand=7;STAT_WEIGHTS_WITHIN.core.backhand=6;STAT_WEIGHTS_WITHIN.core.return=8;STAT_WEIGHTS_WITHIN.core.net=4;STAT_WEIGHTS_WITHIN.technical.slice=5;STAT_WEIGHTS_WITHIN.technical.spin=5;STAT_WEIGHTS_WITHIN.technical.placement=6;STAT_WEIGHTS_WITHIN.physical.speed=10;STAT_WEIGHTS_WITHIN.physical.stamina=4;STAT_WEIGHTS_WITHIN.physical.strength=7;STAT_MODIFIER_BANDS.reactions=0.075;STAT_MODIFIER_BANDS.reading=0.05;STAT_MODIFIER_BANDS.courtCoverage=0.05'
 TUNE="$PKG" PROBE=statLadder N=4000 npx tsx src/test/analysis/tuneRun.ts
 TUNE="$PKG" PROBE=driftProbe H2H=0 DAYS=31,64,104,144 SECTIONS=who npx tsx src/test/analysis/tuneRun.ts
 TUNE="$PKG" PROBE=driftProbe DAYS=104 SECTIONS=swap,paths npx tsx src/test/analysis/tuneRun.ts
