@@ -33,6 +33,13 @@ import { ALL_ITEMS } from '../data/items';
 import { StoryEventRepository } from '../data/storyEvents';
 import { TournamentRegistry } from '../data/tournaments';
 import * as TeamMatches from '../data/teamMatches';
+import {
+  DRILL_ICONS,
+  ICON_PALETTE,
+  MENU_ICONS,
+  SECTION_ICONS,
+  type PixelGrid,
+} from '../data/pixelIcons';
 
 let failures = 0;
 
@@ -228,6 +235,33 @@ check(
   'every hat, racquet and pair of shoes shows on the sprite',
   unseen.length === 0,
   unseen.map((i) => i.id).join(', '),
+);
+
+console.log('\n── pixel icons ──');
+/** Every row the same width, square, and drawn only in symbols the icon can colour. */
+function iconProblems(set: Record<string, PixelGrid>, symbols: string): string[] {
+  return Object.entries(set).flatMap(([name, grid]) => {
+    const width = grid[0]?.length ?? 0;
+    const out: string[] = [];
+    if (grid.length !== width || grid.some((row) => row.length !== width)) {
+      out.push(`${name} is not square`);
+    }
+    const stray = [...new Set(grid.join(''))].filter((ch) => !symbols.includes(ch));
+    if (stray.length > 0) out.push(`${name} uses ${stray.join('')}`);
+    return out;
+  });
+}
+const oneColour = [...iconProblems(SECTION_ICONS, '.#'), ...iconProblems(DRILL_ICONS, '.#')];
+check(
+  'one-colour icons are square and drawn in # only',
+  oneColour.length === 0,
+  oneColour.join(', '),
+);
+const menu = iconProblems(MENU_ICONS, '.' + Object.keys(ICON_PALETTE).join(''));
+check(
+  'menu icons are square and use only ICON_PALETTE colours',
+  menu.length === 0,
+  menu.join(', '),
 );
 
 if (failures > 0) {

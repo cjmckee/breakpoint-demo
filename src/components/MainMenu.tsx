@@ -28,6 +28,23 @@ import { BROAD_ARCHETYPE_LABELS, DEFAULT_ARCHETYPE_LABEL } from '../data/archety
 import { calculateOverallRating } from '../core/PlayerProfile';
 import { getLetterGrade } from '../utils/playerStats';
 import { GAME_AREAS, GAME_AREA_LABELS, gameAreaRatings } from '../core/gameAreas';
+import { PixelIcon } from './ui/PixelIcon';
+import { ICON_PALETTE, MENU_ICONS } from '../data/pixelIcons';
+
+/**
+ * A menu action's pixel icon, at whole-pixel sizes so it stays crisp: 32px on
+ * phones, 48px wider.
+ */
+function MenuIcon({ name }: { name: keyof typeof MENU_ICONS }): JSX.Element {
+  return (
+    <PixelIcon
+      grid={MENU_ICONS[name]}
+      palette={ICON_PALETTE}
+      scale={2}
+      className="w-8 h-8 sm:w-12 sm:h-12"
+    />
+  );
+}
 import type { OverlayState } from '../types/gamePhase';
 import { EffectKey, PlayerFlag, TimeSlot } from '../types/game';
 import { HANGOUT_CHARACTERS, hasUnseenTierEvent } from '../data/hangoutCharacters';
@@ -474,7 +491,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
         >
           <ActionTile
             testId="action-training"
-            icon="🏋️"
+            icon={<MenuIcon name="training" />}
             label="Training"
             caption={trainingCaption}
             disabled={isBlocked || isNightTime || !canAffordTraining}
@@ -484,7 +501,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
           />
           <ActionTile
             testId="action-match"
-            icon="🎾"
+            icon={<MenuIcon name="match" />}
             label="Play Match"
             caption={matchCaption}
             disabled={isBlocked || isNightTime || !matchUnlocked || !canAffordMatch}
@@ -496,7 +513,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
             // One tile, two actions — the id follows the slot, not the label, so a
             // driver can burn the slot without first checking the clock.
             testId="action-rest"
-            icon={isNightTime ? '🌙' : '😴'}
+            icon={<MenuIcon name={isNightTime ? 'sleep' : 'rest'} />}
             label={isNightTime ? 'Sleep' : 'Rest'}
             caption={
               isNightTime
@@ -524,7 +541,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
             testId="action-relationships"
             size="sm"
             variant="secondary"
-            icon="🤝"
+            icon={<MenuIcon name="relationships" />}
             label="Relationships"
             caption={hasNewHangouts ? 'New hangout!' : undefined}
             badge={hasNewHangouts}
@@ -535,7 +552,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
             testId="action-inventory"
             size="sm"
             variant="secondary"
-            icon="🎒"
+            icon={<MenuIcon name="inventory" />}
             label="Inventory"
             badge={hasUnseenInventory || hasUnseenItems}
             onClick={() => {
@@ -547,7 +564,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
             testId="action-shop"
             size="sm"
             variant="secondary"
-            icon="🛒"
+            icon={<MenuIcon name="shop" />}
             label="Shop"
             caption={calendar.currentDay < 7 ? 'Unlocks Day 7' : undefined}
             disabled={calendar.currentDay < 7}
@@ -568,7 +585,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
               testId="action-development"
               size="sm"
               variant="secondary"
-              icon="📈"
+              icon={<MenuIcon name="develop" />}
               label="Develop"
               caption={canDevelop ? `${developCaption} to spend` : undefined}
               badge={canDevelop}
@@ -596,8 +613,8 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
           onClick={() => navigateTo('challenges')}
           className={`w-full mb-6 flex items-center gap-3 bg-pixel-card border-4 border-pixel-border hover:border-pixel-accent px-4 py-3 transition-colors text-left ${spotlightClass('challenges')}`}
         >
-          <span className="text-2xl relative shrink-0">
-            📋
+          <span className="relative shrink-0">
+            <MenuIcon name="challenges" />
             {hasUnseenChallenge && claimableCount === 0 && (
               <UnseenBadge size="sm" className="absolute -top-1 -right-1" />
             )}
