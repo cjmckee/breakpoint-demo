@@ -138,8 +138,10 @@ five walls in a row.
 1. `npx tsx src/test/seasonCheck.ts`: no beats left to write, and the playoff passes.
 2. `ONLY=regional npx tsx src/test/analysis/bandCheck.ts`: every opponent on band.
 3. `npx tsx src/test/spriteCheck.ts`: every new character has a look and `plays`.
-4. Every Club event is already Club-only (`seasonCheck` enforces it). Tag any that should follow
-   you to Regional with `tier: { max: 2 }`.
+4. Club's season content stops at promotion, and its hangouts, storylines and random events carry
+   on (`seasonCheck` holds both). Tag any of those that only make sense at Club `tier: { max: 1 }`.
+   New hangout scenes go on the end of the character's list in `src/data/hangoutCharacters.ts`,
+   with `prerequisites.tier: { min: 2 }` on the event.
 5. Move the end of the game to the end of Regional:
    - Move `REGIONAL_SEASON` into `SEASON_SCHEDULES`.
    - Point `CONTENT_END_EVENT` (`src/data/seasons/index.ts`) at Regional's last event, so the game

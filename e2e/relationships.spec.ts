@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
-import { loadSave, readGame } from './helpers';
-import { getHangoutTier } from '../src/data/hangoutCharacters';
+import { drainToIdle } from './bot';
+import { loadSave, readGame, setRelationships } from './helpers';
+import { HANGOUT_CHARACTERS, getHangoutTier } from '../src/data/hangoutCharacters';
 
 /**
  * The Relationships screen is also the hangout menu. The day-7 save has Jen's
@@ -46,4 +47,37 @@ test('Hang Out on a ready card starts that tier event', async ({ page }) => {
         ? phase.overlay.event.id
         : null;
   expect(eventId).toBe('jen_hangout_tier0');
+});
+
+test('a relationship that jumps past a milestone still plays every scene, in order', async ({
+  page,
+}) => {
+  // Jen's first scene is ready in the save. Past her second milestone with neither
+  // scene played, she used to offer only the second, and the first was lost.
+  await loadSave(page, SAVE, 7);
+  await setRelationships(page, { jen: 60 });
+  const scenes = HANGOUT_CHARACTERS.jen.scenes.map((s) => s.eventId);
+
+  for (const expected of scenes.slice(0, 3)) {
+    await page.getByTestId('action-relationships').click();
+    await page.getByTestId('relationship-hangout-jen').click();
+    await expect(page.getByTestId('story-event')).toBeVisible();
+    const phase = (await readGame(page)).gamePhase;
+    const eventId =
+      phase.type === 'story_event'
+        ? phase.event.id
+        : phase.type === 'idle' && phase.overlay?.type === 'story_event'
+          ? phase.overlay.event.id
+          : null;
+    expect(eventId).toBe(expected);
+    await drainToIdle(page);
+  }
+  // The fourth scene needs a relationship of 75, and the scenes have moved it on
+  // from 60 only by what they pay, so whether it is offered is the game's call.
+  const { relationships, hangoutThresholdsSeen } = await readGame(page);
+  expect(hangoutThresholdsSeen.jen).toEqual([0, 1, 2]);
+  await page.getByTestId('action-relationships').click();
+  await expect(page.getByTestId('relationship-hangout-jen')).toHaveCount(
+    (relationships.jen ?? 0) >= HANGOUT_CHARACTERS.jen.scenes[3].minRelationship ? 1 : 0,
+  );
 });

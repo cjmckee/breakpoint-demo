@@ -10,8 +10,7 @@ import { SEASON_SCHEDULES } from '../src/data/seasons';
  * Everything written so far is the Club season's and stops at promotion, and
  * Regional's own content isn't written yet, so a promoted player's free days are
  * practice, training and the shop. That's exactly where a Regional-only bug would
- * hide: a Club event leaking past its tier gate, a hangout spent on an event that
- * can no longer fire, a rare in a shop that should only open uncommons, a tier-2
+ * hide: a Club season event leaking past its tier gate, a rare in a shop that should only open uncommons, a tier-2
  * practice opponent or silver training session the menu can't get through, or a
  * practice screen that still opens on Club opponents (it did, and that's fixed). The
  * Node checks pin each rule; this checks they hold together over two weeks of
@@ -62,11 +61,10 @@ for (const identity of IDENTITIES) {
     expect(before.player?.tier, 'the save should be a Regional player').toBe(2);
     const start = before.calendar.currentDay;
 
-    // Keith's next hangout is a Club event, so Regional must not offer it: a ready
-    // button here would spend the tier on an event that can no longer fire.
+    // Keith comes with you, so the Club hangout the save never played is still on
+    // offer at Regional rather than lost with the season.
     await page.getByTestId('action-relationships').click();
-    await expect(page.getByTestId('relationship-keith')).toBeVisible();
-    await expect(page.getByTestId('relationship-hangout-keith')).toHaveCount(0);
+    await expect(page.getByTestId('relationship-hangout-keith')).toBeVisible();
     await page.getByTestId('screen-back').click();
 
     // Rares open with the Tour. Checked on screen and in the stock behind it.
@@ -98,9 +96,6 @@ for (const identity of IDENTITIES) {
       (id) => StoryEventRepository.getEventById(id)?.prerequisites.tier?.max === 1,
     );
     expect(clubLeftovers, 'no Club event should fire at Regional').toEqual([]);
-    expect(after.hangoutThresholdsSeen, 'no hangout tier should be spent').toEqual(
-      before.hangoutThresholdsSeen,
-    );
     const stock = after.shopItems.filter((i) => i.category === 'ability');
     expect(stock.map((i) => i.rarity)).not.toContain('rare');
     expect(await shopRarities(page)).not.toContain('rare');
