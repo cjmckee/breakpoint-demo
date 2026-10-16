@@ -31,7 +31,7 @@ import { StoryEventManager } from '../game/StoryEventManager';
 import { CLUB_SEASON } from '../data/seasons/club';
 import { DRAFT_SEASONS, SEASON_SCHEDULES } from '../data/seasons';
 import { StoryEventRepository } from '../data/storyEvents';
-import { hasUnseenTierEvent } from '../data/hangoutCharacters';
+import { HANGOUT_CHARACTERS, nextHangout } from '../data/hangoutCharacters';
 import { PlayoffManager } from '../game/PlayoffManager';
 import { PLAYOFFS, getPlayoff } from '../data/playoffs';
 import { TEAM_MATCH_1 } from '../data/teamMatches';
@@ -198,26 +198,82 @@ console.log('\n── tier gating and repeatable events ──');
   check('an event that has never run is not used up', !StoryEventManager.isUsedUp(anyEvent, []));
 }
 
-console.log('\n── Club content stays in the Club season ──');
+console.log('\n── the Club season stays in Club; its people come with you ──');
 {
-  const ungated = StoryEventRepository.getAllEvents().filter((e) => !e.prerequisites.tier);
+  const all = StoryEventRepository.getAllEvents();
+  const ungated = all.filter((e) => !e.prerequisites.tier);
   check(
     'every written event names a tier, except the end card after promotion',
     ungated.every((e) => e.id === 'thanks_for_playing'),
     ungated.map((e) => e.id).join(', '),
   );
-  const clubOnly = StoryEventRepository.getAllEvents().filter(
-    (e) => e.prerequisites.tier?.max === 1,
+  const seasonal = all.filter((e) =>
+    e.tags.some((t) => ['team', 'story_match', 'tournament_match', 'tutorial'].includes(t)),
   );
   check(
-    'none of the Club events can fire at Regional',
-    clubOnly.length > 0 &&
-      clubOnly.every((e) => !PrerequisiteChecker.checkTierPrerequisites(2, e.prerequisites.tier)),
+    "the Club season's team matches, tournament and tutorial can't fire at Regional",
+    seasonal.length > 0 &&
+      seasonal.every((e) => !PrerequisiteChecker.checkTierPrerequisites(2, e.prerequisites.tier)),
+    seasonal
+      .filter((e) => PrerequisiteChecker.checkTierPrerequisites(2, e.prerequisites.tier))
+      .map((e) => e.id)
+      .join(', '),
+  );
+  const personal = all.filter((e) =>
+    e.tags.some((t) => ['interaction', 'misc', 'romance', 'family', 'rival'].includes(t)),
+  );
+  // A season beat is the calendar's, even when it's a character moment (the rival's
+  // first appearance), so it stays with its season.
+  const beats = new Set(CLUB_SEASON.beats.map((b) => b.storyEventId));
+  const staysBehind = personal.filter(
+    (e) =>
+      !beats.has(e.id) &&
+      !e.tags.includes('team') &&
+      !PrerequisiteChecker.checkTierPrerequisites(2, e.prerequisites.tier),
   );
   check(
-    'a Club hangout is ready at Club and not at Regional, so it is not spent there',
-    hasUnseenTierEvent('keith', 0, {}, 1) && !hasUnseenTierEvent('keith', 0, {}, 2),
+    'hangouts, storylines and random events can still fire at Regional',
+    personal.length > 0 && staysBehind.length === 0,
+    staysBehind.map((e) => e.id).join(', '),
   );
+}
+
+console.log('\n── hangouts play in order, and none is skipped ──');
+{
+  const scenes = HANGOUT_CHARACTERS.keith.scenes;
+  check(
+    'a relationship that jumps past a milestone still gets the first scene first',
+    nextHangout('keith', 60, {}, 1)?.eventId === scenes[0].eventId,
+  );
+  check(
+    'then the next scene, not the one for the current milestone',
+    nextHangout('keith', 60, { keith: [0] }, 1)?.eventId === scenes[1].eventId,
+  );
+  check(
+    'a later scene waits until the relationship reaches the one in front of it',
+    nextHangout('keith', 30, { keith: [0, 1] }, 1) === null,
+  );
+  check(
+    'a Club scene not played in Club is still offered at Regional',
+    nextHangout('keith', 0, {}, 2)?.eventId === scenes[0].eventId,
+  );
+  check(
+    'every scene played: nothing left to offer',
+    nextHangout('keith', 100, { keith: scenes.map((_, i) => i) }, 2) === null,
+  );
+  for (const [id, config] of Object.entries(HANGOUT_CHARACTERS)) {
+    const missing = config.scenes.filter((sc) => !StoryEventRepository.getEventById(sc.eventId));
+    check(
+      `${id}: every hangout scene is a written event`,
+      missing.length === 0,
+      missing.map((sc) => sc.eventId).join(', '),
+    );
+    const order = config.scenes.map((sc) => sc.minRelationship);
+    check(
+      `${id}: scenes ask for no less relationship than the one before`,
+      order.every((v, i) => i === 0 || v >= order[i - 1]),
+    );
+  }
 }
 
 console.log('\n── a lost playoff comes round again ──');

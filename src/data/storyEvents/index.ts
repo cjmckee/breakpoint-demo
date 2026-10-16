@@ -15,6 +15,7 @@ import { tournamentEvents } from './tournamentStoryline';
 import { miscEvents } from './miscEvents';
 import { interactionEvents } from './interactionEvents';
 import { CONTENT_END_EVENT } from '../seasons';
+import { CLUB_SEASON } from '../seasons/club';
 
 /**
  * Events that play after the Club season ends but belong to it: the end card the
@@ -23,14 +24,38 @@ import { CONTENT_END_EVENT } from '../seasons';
 const CLUB_EPILOGUE = new Set([CONTENT_END_EVENT]);
 
 /**
- * Everything in these files is the Club season's: the tutorial, Club storylines,
- * the Riverside Open, Club flavour and hangouts. Each is gated to tier 1 unless it
- * names its own tier, so none of it turns up once the player is promoted. A later
- * season's events live in their own files and set their own `tier`.
+ * What makes an event the Club season's own: its calendar (the beats and the
+ * chains they start), its team matches and tournament, and the tutorial. Those
+ * are written again for each season.
+ */
+const SEASON_TAGS: readonly StoryEventTag[] = [
+  'team',
+  'story_match',
+  'tournament_match',
+  'tournament_ceremony',
+  'tutorial',
+];
+const CLUB_BEATS = new Set(CLUB_SEASON.beats.map((beat) => beat.storyEventId));
+/** Club-only for what they say: the first-day welcome, and an invitation "up" to Regional. */
+const CLUB_ONLY = new Set(['welcome_to_tennis_rpg', 'tournament_invitation']);
+
+/**
+ * Gates every event in these files by season, unless it names its own tier.
+ * The Club season's own content stops at promotion. Everything else, the
+ * characters' storylines, hangouts and random events, is available from Club
+ * on: the people come with you, so what you didn't get to with them is still
+ * there. A later season's events live in their own files and set their own tier.
  */
 function clubSeason(event: StoryEvent): StoryEvent {
   if (event.prerequisites.tier || CLUB_EPILOGUE.has(event.id)) return event;
-  return { ...event, prerequisites: { ...event.prerequisites, tier: { max: 1 } } };
+  const seasonal =
+    CLUB_ONLY.has(event.id) ||
+    CLUB_BEATS.has(event.id) ||
+    event.tags.some((tag) => SEASON_TAGS.includes(tag));
+  return {
+    ...event,
+    prerequisites: { ...event.prerequisites, tier: seasonal ? { max: 1 } : { min: 1 } },
+  };
 }
 
 const CLUB_EVENTS: StoryEvent[] = [

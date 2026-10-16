@@ -1066,8 +1066,16 @@ Each tier is one season of the career: Club, Regional, Tour, World.
   announcement schedules its own match).
 - **Promotion starts the next season.** An outcome with `tierChange` queues that tier's season
   for the next morning (`SeasonManager.promote`) and schedules its file.
-- **Gate events by tier** with `prerequisites.tier: { min, max }`, so Club flavour stops on the
-  Tour. An event that must fire more than once (a promotion playoff) sets `repeatable: true`.
+- **What carries over.** A season's own content (its beats and the chains they start, its team
+  matches, tournament and tutorial) is gated to that season with `prerequisites.tier`. The
+  characters' hangouts, storylines and random events are available from their season on, since
+  the people come with you. `clubSeason` in `src/data/storyEvents/index.ts` applies this to
+  the Club files; `seasonCheck` holds it. An event that must fire more than once (a promotion
+  playoff) sets `repeatable: true`.
+- **Hangouts play in order.** Each key character's scenes are one ordered list
+  (`HANGOUT_CHARACTERS[id].scenes`). The next is the first one not played, offered once the
+  relationship reaches its `minRelationship` and its event's tier allows (`nextHangout`), so a
+  scene is never skipped. A later season's scenes go on the end of the list.
 - **Promotion playoffs** (`src/data/playoffs.ts`): from Regional, a tier-final names a `playoffId`.
   Losing the tier-final schedules it; each loss schedules it again `retryDays` on, against the
   same opponent at the same strength, with that attempt's loss event (`lossEventIds`, the last

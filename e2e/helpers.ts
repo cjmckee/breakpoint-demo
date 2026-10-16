@@ -211,6 +211,19 @@ export async function markStoryEventsCompleted(page: Page, eventIds: string[]): 
   }, eventIds);
 }
 
+/**
+ * Sets relationship values, for scenarios that depend on how close the player is to
+ * someone (a hangout milestone) without playing the weeks it takes to get there.
+ */
+export async function setRelationships(page: Page, values: Record<string, number>): Promise<void> {
+  await page.evaluate((v) => {
+    const handle = window.__test__;
+    if (!handle) throw new Error('window.__test__ missing — is this a dev build?');
+    const { relationships } = handle.game.getState();
+    handle.game.setState({ relationships: { ...relationships, ...v } });
+  }, values);
+}
+
 /** Every story event id the game knows about, for a sweep. */
 export function allStoryEventIds(): string[] {
   return StoryEventRepository.getAllEvents().map((event) => event.id);

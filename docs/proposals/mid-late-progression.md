@@ -24,6 +24,9 @@ pools, drop rates, and the gold training tier, which nothing uses yet.
 | Length and ending                   | **Hard ending.** Four seasons, then the story ends at the top. No post-game                                                                                                |
 | Tour team matches                   | **A pro team league** with sponsor-named franchises (§3.2)                                                                                                                 |
 | Content per season                  | **The full template** (~60 events). Team matches stay in every season, but how many is a number in the season file, so it can drop to three once balancing says so         |
+| What carries over                   | **The people do.** Season content (beats, team matches, tier-final) stays in its season; hangouts, storylines and random events carry on, hangouts in order (§7.2)         |
+| Training partners                   | **Not at silver.** They enhance training and come with gold; design to revisit then (§4.2)                                                                                 |
+| Numbers on screen                   | **Grow with the career.** Session pay and stat prices scale together by tier, so the numbers rise while pacing stays flat (§2.1). To build                                 |
 
 What that rules out: the open circuit, rankings as a promotion gate, stat caps, and anything
 open-ended (aging, records). Those ideas are in the first version of this file in git history if one
@@ -440,6 +443,13 @@ stands.
 
 ### 4.2 Gold, concretely
 
+**Decided:** no partners at silver. Partners are for enhancing training, and come with gold;
+the design below is a first sketch to revisit then. Its weakness: a partner that only fills the
+focus slot is a focus with a face, an obvious pick with nothing new to play. The stronger version
+changes how the drill plays, each as a trade-off even on average (a faster ball that pays more per
+clean rep, an extra rep that costs energy, a duel against the rival's score), with the bond
+improving the partner's edge.
+
 Gold keeps the focus row and adds a **partner** row: whoever you're close enough to train with.
 A partner takes the focus slot: their currency instead of one you pick, plus a little
 relationship and a line of banter. That keeps the pay flat. A partner who _added_ a unit per rep
@@ -562,11 +572,11 @@ That's about 180 events and 30 named opponents for the three seasons. Ways to cu
 - **Loser-bracket prematch events.** These are 4 of the 20 tier-final events. They could become
   one generic line per round.
 - **Storyline beats** can thin out at World, which is short on purpose.
-- **Random misc events** need no new content. Every event in today's files is gated to Club
-  (§7.2); tag one `tier: { max: 2 }` to let it follow the player to Regional.
+- **Random misc events** need no new content. Today's carry on into later seasons (§7.2); tag
+  one `tier: { max: 1 }` if it only makes sense at Club.
 
-Where today's events go. All of them are Club-only now (§7.2), so moving one means giving it its
-own `tier`:
+Where today's events go. They can all fire from Club on (§7.2), so moving one later means giving
+it a `tier: { min }`:
 
 - `sponsor_first_offer` (day 15, 3 wins) and `media_interview` (day 20, 5 wins) fire in bronze
   today. They fit Regional.
@@ -582,10 +592,15 @@ Ordered by how badly they would bite.
 
 1. ~~**The 90-day rollover**~~. Fixed (§3.4).
 2. ~~**Story events have no tier prerequisite.**~~ Added: `prerequisites.tier: { min, max }`.
-   **Done:** everything written so far is the Club season's, so every event in today's files is
-   gated `max: 1` where the files are combined (`src/data/storyEvents/index.ts`), except the end
-   card after promotion, which is also where the game ends for now (§3.4). `seasonCheck` fails if an event is left ungated. That includes the
-   random flavour events and the hangouts: Regional has none until its own are written.
+   **Done**, and decided: the Club season's own content (its beats and their chains, team
+   matches, the Riverside Open, the tutorial, the welcome and the "regional invitation") is
+   gated `max: 1`. The characters' hangouts, storylines and random events are `min: 1`, so they
+   carry on into Regional: the people come with you, and what you didn't get to with them is
+   still there. `clubSeason` in `src/data/storyEvents/index.ts` applies it, except to the end
+   card after promotion (§3.4); `seasonCheck` holds both halves. Hangouts play in order per
+   character (`nextHangout`): a Club scene not played in Club is offered at Regional, before any
+   Regional scene. That also fixes a Club bug where a relationship that jumped past a milestone
+   skipped that milestone's scene for good.
 3. ~~**Events only fire once.**~~ `repeatable: true` lets an event fire again by id (scheduled or
    chained). Random rolls still take it once. Tournaments still play once
    (`completedTournaments`), which is fine as long as the retry is a playoff and not a replay.

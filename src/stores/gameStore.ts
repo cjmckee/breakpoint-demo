@@ -31,12 +31,7 @@ import {
   CurrencyAmounts,
 } from '../types/game';
 import type { StoryEvent, StoryEventTag, StoryEventOption } from '../types/storyEvents';
-import {
-  HANGOUT_CHARACTERS,
-  HANGOUT_ENERGY_COST,
-  getHangoutTier,
-  hasUnseenTierEvent,
-} from '../data/hangoutCharacters';
+import { HANGOUT_CHARACTERS, HANGOUT_ENERGY_COST, nextHangout } from '../data/hangoutCharacters';
 import type { Challenge } from '../types/challenges';
 import type { Appearance } from '../types/appearance';
 import type { Item, OwnedItem, EquipmentSlot } from '../types/items';
@@ -134,7 +129,7 @@ interface GameState {
   completedStoryEvents: string[];
   completedStoryEventChoices: Record<string, string>;
   relationships: Record<string, number>;
-  /** Tracks which tier threshold events have been seen per key character */
+  /** The hangout scenes each key character has played, by index (HANGOUT_CHARACTERS scenes) */
   hangoutThresholdsSeen: Record<string, number[]>;
   storyEventTriggerChance: number;
   pendingRandomEvent: { event: StoryEvent; availableOptions: StoryEventOption[] } | null;
@@ -2237,22 +2232,23 @@ export const useGameStore = create<GameState>()(
         if (calendar.currentTimeSlot === TimeSlot.NIGHT) return;
         if (currentStatus.energy < HANGOUT_ENERGY_COST) return;
 
-        const relValue = relationships[characterId] ?? 0;
-        const currentTier = getHangoutTier(characterId, relValue);
-        const seenForChar = hangoutThresholdsSeen[characterId] ?? [];
+        const next = nextHangout(
+          characterId,
+          relationships[characterId] ?? 0,
+          hangoutThresholdsSeen,
+          player.tier,
+        );
+        if (!next) return;
 
-        // Only fire the tier event if it hasn't been seen yet and belongs to this season
-        if (!hasUnseenTierEvent(characterId, relValue, hangoutThresholdsSeen, player.tier)) return;
-
-        // Mark tier as seen immediately to prevent double-firing
+        // Mark the scene seen immediately to prevent double-firing
         set({
           hangoutThresholdsSeen: {
             ...hangoutThresholdsSeen,
-            [characterId]: [...seenForChar, currentTier],
+            [characterId]: [...(hangoutThresholdsSeen[characterId] ?? []), next.index],
           },
         });
 
-        get().checkForStoryEventById(config.tierEventIds[currentTier]);
+        get().checkForStoryEventById(next.eventId);
       },
 
       changeCurrency: (delta: CurrencyAmounts) => {
