@@ -172,7 +172,8 @@ console.log('\n── a home crowd backs one side ──');
 
 console.log('\n── effects and heat cost both players ──');
 {
-  const MATCHES = 40;
+  // Heat moves unforced errors by a few percent, inside the noise of 40 matches.
+  const MATCHES = 150;
   const calm = tally(MATCHES, CLAY);
   const windy = tally(MATCHES, { ...CLAY, conditions: { effects: { fault_risk: 30 } } });
   check(
