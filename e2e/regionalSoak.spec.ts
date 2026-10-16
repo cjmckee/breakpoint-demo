@@ -2,6 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 import { loadSave, readGame, setMatchSpeed } from './helpers';
 import { runBot, formatLog, expectProductiveRun } from './bot';
 import { StoryEventRepository } from '../src/data/storyEvents/index';
+import { SEASON_SCHEDULES } from '../src/data/seasons';
 
 /**
  * Plays the first stretch of Regional for each career identity, through the UI.
@@ -19,6 +20,10 @@ import { StoryEventRepository } from '../src/data/storyEvents/index';
  * It fails on softlocks, unhandled phases and page errors, and on those rules.
  * The numbers print for reading, without thresholds.
  */
+
+// Until Regional is written the game ends at the Club epilogue (contentEnd.spec), so
+// there is no Regional to play. This lifts itself when the season is written.
+test.skip(!SEASON_SCHEDULES[2], 'Regional is not written yet: the game ends after Club');
 
 const IDENTITIES = ['bigServer', 'counter', 'netRusher', 'baseliner'] as const;
 /** Regional days to play from the save's first morning. */

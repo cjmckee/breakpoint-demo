@@ -14,12 +14,13 @@ import { milestoneEvents } from './milestoneEvents';
 import { tournamentEvents } from './tournamentStoryline';
 import { miscEvents } from './miscEvents';
 import { interactionEvents } from './interactionEvents';
+import { CONTENT_END_EVENT } from '../seasons';
 
 /**
  * Events that play after the Club season ends but belong to it: the end card the
  * morning after promotion.
  */
-const CLUB_EPILOGUE = new Set(['thanks_for_playing']);
+const CLUB_EPILOGUE = new Set([CONTENT_END_EVENT]);
 
 /**
  * Everything in these files is the Club season's: the tutorial, Club storylines,

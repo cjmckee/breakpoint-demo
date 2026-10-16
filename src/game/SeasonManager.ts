@@ -8,7 +8,7 @@
  */
 
 import type { GameCalendar, OpponentTier, ScheduledEvent, SeasonSchedule } from '../types/game';
-import { SEASON_SCHEDULES } from '../data/seasons';
+import { CONTENT_END_EVENT, SEASON_SCHEDULES } from '../data/seasons';
 import { TimeManager } from './TimeManager';
 
 export class SeasonManager {
@@ -38,5 +38,15 @@ export class SeasonManager {
     const schedule = SEASON_SCHEDULES[tier];
     const events = schedule ? this.scheduleSeason(schedule, calendar.currentDay + 1) : [];
     return { calendar: queued, events };
+  }
+
+  /**
+   * Whether the player has played everything written: the closing event has run
+   * and their tier has no season yet. The game stops there rather than leave them
+   * training on an empty calendar. Writing the season (moving it into
+   * SEASON_SCHEDULES) lifts it.
+   */
+  static contentEnded(tier: OpponentTier, completedStoryEvents: readonly string[]): boolean {
+    return !SEASON_SCHEDULES[tier] && completedStoryEvents.includes(CONTENT_END_EVENT);
   }
 }

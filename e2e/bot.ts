@@ -27,6 +27,7 @@ import { calculateOverallRating } from '../src/utils/overallRating';
 import { TimeSlot } from '../src/types/game';
 import { ANCHOR_TRAINING_ENERGY_COST } from '../src/game/AnchorTrainingSystem';
 import { canBuyAny } from '../src/game/StatDevelopment';
+import { SeasonManager } from '../src/game/SeasonManager';
 
 /**
  * True when the element is on screen and clickable.
@@ -61,6 +62,8 @@ export interface BotLog {
   statPointsBought: number;
   /** Phases the bot had no handler for — each one is a gap, not a pass. */
   unhandledPhases: string[];
+  /** The run stopped at the end of the written story, before `untilDay`. */
+  contentEnded: boolean;
   /** Snapshots of the headline numbers, one per in-game day. */
   daily: Array<{ day: number; energy: number; overall: number; xp: number }>;
 }
@@ -77,6 +80,7 @@ function emptyLog(): BotLog {
     itemsAcquired: 0,
     statPointsBought: 0,
     unhandledPhases: [],
+    contentEnded: false,
     daily: [],
   };
 }
@@ -140,6 +144,17 @@ export async function runBot(page: Page, options: BotOptions): Promise<BotLog> {
     }
 
     if (day >= untilDay && phase.type === 'idle' && !phase.overlay) break;
+    // The end of the written story has no menu to act on: the run is over.
+    if (
+      phase.type === 'idle' &&
+      !phase.overlay &&
+      state.player &&
+      SeasonManager.contentEnded(state.player.tier, state.completedStoryEvents)
+    ) {
+      await expect(page.getByTestId('content-end')).toBeVisible();
+      log.contentEnded = true;
+      break;
+    }
 
     const overlay = phase.type === 'idle' ? (phase.overlay?.type ?? 'none') : '';
     const slot = state.calendar.currentTimeSlot;

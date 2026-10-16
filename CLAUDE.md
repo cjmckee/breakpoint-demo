@@ -1072,6 +1072,10 @@ Each tier is one season of the career: Club, Regional, Tour, World.
   Losing the tier-final schedules it; each loss schedules it again `retryDays` on, against the
   same opponent at the same strength, with that attempt's loss event (`lossEventIds`, the last
   repeating). The win event carries the `tierChange`. Mark the prematch and last loss repeatable.
+- **The game stops where the writing does.** Once `CONTENT_END_EVENT` (`thanks_for_playing`) has
+  played and the player's tier has no entry in `SEASON_SCHEDULES`, the menu gives way to the end
+  screen (`SeasonManager.contentEnded`, `ContentEnd`), shortcuts included. Writing the season
+  (moving it out of `DRAFT_SEASONS`) lifts it, and the Regional specs that skip until then re-arm.
 - Design and pacing: `docs/proposals/mid-late-progression.md`.
 
 ### Venues

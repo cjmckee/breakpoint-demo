@@ -192,6 +192,25 @@ export async function triggerStoryEvent(page: Page, eventId: string): Promise<vo
   }, eventId);
 }
 
+/**
+ * Records story events as already played, for a scenario that starts partway
+ * through a chain: triggering a late event directly skips the earlier ones its
+ * follow-ups require (the Riverside Open's epilogue needs its opening ceremony).
+ */
+export async function markStoryEventsCompleted(page: Page, eventIds: string[]): Promise<void> {
+  await page.evaluate((ids) => {
+    const handle = window.__test__;
+    if (!handle) throw new Error('window.__test__ missing — is this a dev build?');
+    const { completedStoryEvents } = handle.game.getState();
+    handle.game.setState({
+      completedStoryEvents: [
+        ...completedStoryEvents,
+        ...ids.filter((id) => !completedStoryEvents.includes(id)),
+      ],
+    });
+  }, eventIds);
+}
+
 /** Every story event id the game knows about, for a sweep. */
 export function allStoryEventIds(): string[] {
   return StoryEventRepository.getAllEvents().map((event) => event.id);

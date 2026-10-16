@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
-import { grantCurrency, loadSave, setMatchSpeed } from './helpers';
+import { grantCurrency, loadSave, markStoryEventsCompleted, setMatchSpeed } from './helpers';
+import { CONTENT_END_EVENT } from '../src/data/seasons';
 
 /**
  * Text fits its box on every main screen.
@@ -65,4 +66,14 @@ test('no text is cut off on the main screens', async ({ page }) => {
   await check('key moment');
 
   expect(found).toEqual([]);
+});
+
+test('no text is cut off on the end screen', async ({ page }) => {
+  // A promoted player who has seen the epilogue, with the confirm step open: its widest state.
+  await loadSave(page, 'save-regional-day1-baseliner', 41);
+  await markStoryEventsCompleted(page, [CONTENT_END_EVENT]);
+  await page.getByTestId('content-end-new-career').click();
+  await expect(page.getByTestId('content-end-confirm')).toBeVisible();
+  expect(await clippedText(page)).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
 });

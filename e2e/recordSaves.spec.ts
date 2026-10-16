@@ -5,6 +5,7 @@ import { drainToIdle, runBot } from './bot';
 // The career model's mean builds: a player's spending rather than the bot's,
 // which buys whatever is affordable top to bottom.
 import type { CareerBuilds } from '../src/test/analysis/bandSlots';
+import { SEASON_SCHEDULES } from '../src/data/seasons';
 
 /**
  * Records the season-start saves: one per career identity on Regional's first
@@ -22,6 +23,10 @@ import type { CareerBuilds } from '../src/test/analysis/bandSlots';
  * Keith and Jen are met with a hangout ready, so a Regional spec can check
  * that a Club hangout isn't spent there.
  */
+
+// Until Regional is written the game ends at the Club epilogue (contentEnd.spec), so
+// there is no Regional to play. This lifts itself when the season is written.
+test.skip(!SEASON_SCHEDULES[2], 'Regional is not written yet: the game ends after Club');
 
 const IDENTITIES = ['bigServer', 'counter', 'netRusher', 'baseliner'] as const;
 /** The last Club day the career builds record (the Riverside Open final). */

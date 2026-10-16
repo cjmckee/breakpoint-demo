@@ -619,6 +619,8 @@ Ordered by how badly they would bite.
   practice opening on Club opponents. That last one was a real bug: the practice screen always
   opened on tier 1, so a promoted player who clicked through kept meeting Club opponents. The
   playoff loop is covered by `playoff.spec.ts`; a soak through it waits for Regional's tier-final.
+  Until Regional is written the game ends at the Club epilogue (`contentEnd.spec.ts`), so the soak
+  and the save recorder skip themselves; moving Regional into `SEASON_SCHEDULES` re-arms them.
 
 ---
 

@@ -32,12 +32,16 @@ import { useGameKeyboardHandler } from './hooks/useGameKeyboardHandler';
 import { useScrollToTopOn } from './hooks/useScrollToTopOn';
 import { screenKey } from './utils/screenKey';
 import { DebugPanel } from './debug/DebugPanel';
+import { ContentEnd } from './components/ContentEnd';
+import { useContentEnded } from './hooks/useContentEnded';
 
 function App() {
   const { isInitialized, gamePhase, initializeGame } = useGameStore();
   const currentKeyMoment = useMatchStore((state) => state.currentKeyMoment);
   const isWaitingForChoice = useMatchStore((state) => state.isWaitingForChoice);
   const showKeyMomentResult = useMatchStore((state) => state.showKeyMomentResult);
+
+  const contentEnded = useContentEnded();
 
   useAudioTransitions();
   useMenuKeyboardHandler();
@@ -168,6 +172,8 @@ function App() {
         );
 
       case 'idle':
+        // The end screen waits for anything still on show, like the closing event's result.
+        if (contentEnded && !gamePhase.overlay) return <ContentEnd />;
         if (gamePhase.overlay?.type === 'item_acquired') {
           const { item, remaining, hangoutsUnlocked } = gamePhase.overlay;
           return (
