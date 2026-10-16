@@ -1,7 +1,7 @@
 /**
  * Training System
  *
- * Each time slot offers three of the six drills (trainingOffer), rolled from the
+ * Each time slot offers four of the six drills (trainingOffer), rolled from the
  * player, the day and the slot, so reopening the screen offers the same three. A
  * drill is a minigame and the pair of currencies it pays (TRAINING_MIXES): its mix
  * once, plus once more per clean rep. From silver, a focus swaps the mix's
@@ -39,8 +39,12 @@ export const DRILLS: Record<DrillId, DrillConfig> = {
 /** Every drill, in a fixed order: the order an offer lists its drills in. */
 export const DRILL_ORDER = Object.keys(DRILLS) as DrillId[];
 
-/** Drills offered each time slot. An ability or item may raise it later. */
-export const DRILLS_PER_SLOT = 3;
+/**
+ * Drills offered each time slot. Every currency is in three drills, so leaving
+ * out two never leaves one out: any slot can pay what the player needs, and the
+ * two missing drills still keep a build off its two favourites every time.
+ */
+export const DRILLS_PER_SLOT = 4;
 
 /**
  * One option on the training screen: a drill, and later the teammate who turns

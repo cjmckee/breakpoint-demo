@@ -1,6 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import { loadSave, offerDrill, readGame } from './helpers';
 import { CURRENCY_LABELS } from '../src/config/economy';
+import { DRILLS_PER_SLOT } from '../src/game/TrainingSystem';
 
 /**
  * Silver training: from the Regional tier a session can pick a focus, the
@@ -24,7 +25,9 @@ async function setTier(page: Page, tier: 1 | 2): Promise<void> {
 test('bronze training has no focus to pick', async ({ page }) => {
   await loadSave(page, 'save-day7-1');
   await page.getByTestId('action-training').click();
-  await expect(page.locator('[data-testid="training-offer"] [data-drill]')).toHaveCount(3);
+  await expect(page.locator('[data-testid="training-offer"] [data-drill]')).toHaveCount(
+    DRILLS_PER_SLOT,
+  );
   await expect(page.getByTestId('training-focus')).toHaveCount(0);
 });
 
