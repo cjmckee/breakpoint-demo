@@ -61,6 +61,11 @@ exactly the kind of thing that gets rediscovered otherwise.
   groundstroke specialties stay at 0. OVR reads strength almost backwards. Measures the levers
   (several dead ends) and proposes a fix in parts, since applied.
 
+- **[`research/training-precedents.md`](./research/training-precedents.md)** — how Power Pros'
+  Success mode, Umamusume, Mario Tennis, Virtua Tennis, Top Spin and raising sims handle
+  training, and our own training by the numbers. They agree on a small stable menu where each
+  option pays one main currency, with daily variety from who turns up rather than a reshuffle.
+
 Note the **measurement baseline** headers. Figures are only valid for the config they were taken
 under, and a behaviour change invalidates every number measured before it.
 
@@ -87,6 +92,11 @@ Not shipped, or only in part:
 - **[`proposals/xp-for-abilities.md`](./proposals/xp-for-abilities.md)** — measured, not applied.
   XP piles up with little to spend it on. The option: currency buys an ability and XP buys its
   levels. It is a config value, off by default (`ABILITY_LEVEL_PRICE.xpOnlyFrom`).
+
+- **[`proposals/training-revamp.md`](./proposals/training-revamp.md)** — for review. Training
+  pays currency now, so its five shot cards and the pentagon describe a link that's gone. The
+  proposal: four currency stations whose drill rotates daily, a low-energy Mind station, about
+  four new minigames, and new drills as what each season opens.
 
 Applied, kept as records:
 
