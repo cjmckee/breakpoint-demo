@@ -1,13 +1,23 @@
 # Training revamp: drills that pay currency, not shots that train stats
 
-**Status:** proposal, for review before the training tiers are built any further. Decisions to
-make are in §7.
+**Status:** in design. The first review settled the menu; how the screens show what training
+buys is being prototyped. Round-one decisions below replace §3.1-3.2 and §5 where they differ.
 **Why now:** training was built when a session raised the stat of the shot it practised. Since the
 currency rework a session pays currency and stats are bought in Development, so the five shot
 cards, the pentagon and the "Serve Training" framing describe a link that no longer exists. Silver
 and gold are being built on top of that screen, so this is the moment to rethink it.
 **Research:** `docs/research/training-precedents.md` (Power Pros, Umamusume, Mario Tennis, Virtua
 Tennis, Top Spin and raising sims, plus our own numbers).
+
+## Decisions, round one
+
+| question          | decision                                                                                                                                                                                                                                                                                             |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Menu shape        | **Roll 3 or 4 drills each time slot** from the training set. The roll is the decision: train what's offered, train something else, or rest or play a match instead. Not four fixed stations                                                                                                          |
+| How many drills   | **Six.** Today's five games plus **one new minigame**. Fishing stays a story game. Wary of more than six                                                                                                                                                                                             |
+| What a drill pays | **One pair of currencies.** Four currencies make exactly six pairs; today's five games already pay five of them, so the new game is the missing **Power + Quickness** pair. Each currency is in three drills, so a roll of 4 always offers every currency; a roll of 3 misses one about 1 slot in 20 |
+| Mind              | **A normal currency.** Fix its pile-up at the source (the Mind-heavy base on match pay), with no special station or energy rule                                                                                                                                                                      |
+| The pentagon      | **Not committed.** Core stats no longer describe what training changes; the screens should show what currency buys in terms of how you win, as the pre-match card's five areas do. Being prototyped                                                                                                  |
 
 ---
 
