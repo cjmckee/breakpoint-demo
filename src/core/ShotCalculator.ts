@@ -25,6 +25,7 @@ import { PointType } from '../types';
 import { EffectKey } from '../types/game';
 import { PlayerProfile } from './PlayerProfile';
 import { getPrimaryStatName, phaseOfShot } from './shotStatMapping';
+import type { PhaseSpec } from '../types/archetype';
 import { resolvePhaseSpec } from '../data/archetypeTree';
 import { getQualityThresholds, getMatchLevel } from '../utils/qualityThresholds';
 import { trace, isTracing } from './trace';
@@ -77,17 +78,34 @@ import { random } from './random';
 
 /** The shot's stat with the shooter's specialty boost, when the shot is in one of their phases. */
 function amplifyForSpecialty(shooter: PlayerProfile, shotType: ShotType, stat: number): number {
+  const profile = shooter.archetypeProfile;
+  const tierBoost = (spec: PhaseSpec | null): number =>
+    spec ? (SPECIALTY_AMPLIFY.byTier[spec.tier] ?? 0) : 0;
   const phase = phaseOfShot(shotType);
-  if (!phase) return stat;
-  const spec = resolvePhaseSpec(shooter.archetypeProfile, phase);
-  let boost = spec ? (SPECIALTY_AMPLIFY.byTier[spec.tier] ?? 0) : 0;
-  // net_apologist's boost lives on the drives it stays back to hit.
-  if (phase === 'forehand' || phase === 'backhand') {
-    const net = resolvePhaseSpec(shooter.archetypeProfile, 'net');
-    if (net?.path === 'net_apologist') {
-      boost += (SPECIALTY_AMPLIFY.byTier[net.tier] ?? 0) * SPECIALTY_AMPLIFY.apologistRallyShare;
+  const net = resolvePhaseSpec(profile, 'net');
+  let boost = 0;
+  let weight = 1;
+  if (phase) {
+    boost = tierBoost(resolvePhaseSpec(profile, phase));
+    weight = SPECIALTY_AMPLIFY.phaseWeight[phase];
+    // net_apologist's boost lives on the drives it stays back to hit.
+    if ((phase === 'forehand' || phase === 'backhand') && net?.path === 'net_apologist') {
+      boost += tierBoost(net) * SPECIALTY_AMPLIFY.apologistRallyShare;
     }
   }
+  // bh_samurai's backhand is a slice; net_opportunist's net game starts with the approach.
+  const backhand = resolvePhaseSpec(profile, 'backhand');
+  if (backhand?.path === 'bh_samurai' && /^(defensive_)?slice_backhand$/.test(shotType)) {
+    boost += tierBoost(backhand) * SPECIALTY_AMPLIFY.samuraiSliceShare;
+    weight = SPECIALTY_AMPLIFY.phaseWeight.backhand;
+  }
+  if (net?.path === 'net_opportunist' && shotType.endsWith('_approach')) {
+    const share = tierBoost(net) * SPECIALTY_AMPLIFY.opportunistApproachShare;
+    // The approach is also a drive: weigh each part by its own phase.
+    boost = boost * weight + share * SPECIALTY_AMPLIFY.phaseWeight.net;
+    weight = 1;
+  }
+  boost *= weight;
   return (
     stat + boost * Math.min(SPECIALTY_AMPLIFY.excessCap, Math.max(0, stat - SPECIALTY_AMPLIFY.from))
   );

@@ -231,10 +231,10 @@ const TIER_3_OPPONENTS: OpponentPreset[] = [
     tier: 3,
     archetype: 'serve_volley',
     stats: {
-      core: { serve: 71, forehand: 48, backhand: 43, return: 36, net: 67 },
-      technical: { slice: 48, spin: 40, placement: 59 },
-      physical: { speed: 57, stamina: 43, strength: 59 },
-      mental: { focus: 54, anticipation: 59, tactics: 45 },
+      core: { serve: 73, forehand: 50, backhand: 45, return: 38, net: 69 },
+      technical: { slice: 50, spin: 42, placement: 61 },
+      physical: { speed: 59, stamina: 45, strength: 61 },
+      mental: { focus: 56, anticipation: 61, tactics: 47 },
     },
     abilities: [
       ABILITY_DEFINITIONS[AbilityName.NETCRASHER],
@@ -302,10 +302,10 @@ const TIER_4_OPPONENTS: OpponentPreset[] = [
     tier: 4,
     archetype: 'all_court',
     stats: {
-      core: { serve: 71, forehand: 76, backhand: 71, return: 71, net: 69 },
-      technical: { slice: 66, spin: 71, placement: 79 },
-      physical: { speed: 71, stamina: 76, strength: 66 },
-      mental: { focus: 79, anticipation: 76, tactics: 65 },
+      core: { serve: 68, forehand: 73, backhand: 68, return: 68, net: 66 },
+      technical: { slice: 63, spin: 68, placement: 76 },
+      physical: { speed: 68, stamina: 73, strength: 63 },
+      mental: { focus: 76, anticipation: 73, tactics: 62 },
     },
     abilities: [
       ABILITY_DEFINITIONS[AbilityName.SOFT_HANDS],

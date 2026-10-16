@@ -231,27 +231,67 @@ not a tuning one, so it isn't proposed here.
 
 - **Tests.** `npm test` passes with every switch at its default.
 
-## What's left: specialties
+## Specialty parity (applied)
 
-With the package, OVR explains 93-95% of what the stats do. Measured on the identities' own
-builds, though, it explains much less (correlation 0.29). The rest is the specialty layer. On the
-Tour (day 104), without any specialties the identities sit at 43.8 (big server), 34.0 (counter),
-35.3 (net rusher) and 31.1 (baseliner). Their packages then add 10, 12, **30** and 19.
+With the package, OVR explains 93-95% of what the stats do, but on the identities' own builds the
+specialty layer still decides a lot. Measured on the Tour (day 104), before this pass, the
+identities' packages added 10 (big server), 12 (counter), **30** (net rusher) and 19 (baseliner).
 
-| point-win lost when one path is removed (Tour)      | value     |
-| --------------------------------------------------- | --------- |
-| return paths (extinguisher, sneaky beaky, redliner) | 10-13     |
-| first serve (bomber)                                | 5.5-6.8   |
-| net (downhill)                                      | 5.4       |
-| second serve (kicker)                               | 1.9-3.8   |
-| forehand (laserbeam, survivor)                      | 0-2.9     |
-| backhand (bazooka, samurai), net apologist          | −0.3 to 3 |
+**What a path is worth.** `specialtySynergyProbe TIER=` plays each of the 18 paths alone on an even
+player at each season's level and tier, against the same player without it (N=400, ±1):
 
-The net rusher has specialised the four most valuable phases; the counter has one valuable phase
-and three cheap ones. **Next proposal:** bring specialty phases toward parity. Each path at a
-given tier should be worth about the same (target: 5-8 at tier III), by tuning each path's
-`tierEffects` and amplification share, measured with `driftProbe SECTIONS=paths`. This is a
-separate pass with its own data, not part of this package.
+| point-win from one path       | Regional, tier II | Tour, tier III | World, tier III |
+| ----------------------------- | ----------------- | -------------- | --------------- |
+| return paths, before          | 7.5-10.0          | 11.1-13.2      | 9.1-10.4        |
+| first serve paths, before     | 5.5-7.0           | 8.7-10.1       | 6.4-8.5         |
+| forehand and backhand, before | 2.3-3.8           | 2.4-5.2        | 0.1-3.5         |
+| net and second serve, before  | 1.3-3.6           | 3.6-6.6        | 2.0-5.4         |
+| **every path, after**         | **2.3-6.6**       | **4.8-8.9**    | **1.7-6.3**     |
+
+**Why they differed.** Most of a path's value is its stat boost (`SPECIALTY_AMPLIFY`), and the same
++15 on the phase stat is worth +10.2 on the return and +7.4 on the first serve, which play every
+point, against +4.2-4.9 on a wing and +2.0 on net. Two paths also worked against their own boost:
+Samurai levelled into more backhand slices, which read the slice stat, and Opportunist rarely hit
+the volleys a net boost lands on.
+
+**What changed.**
+
+- `SPECIALTY_AMPLIFY.phaseWeight` scales each phase's boost by what its stat is worth: first serve
+  0.61, second serve 1.1, return 0.62, forehand 1.21, backhand 1.37, net 1.5.
+- Samurai's boost carries into its backhand slices (`samuraiSliceShare` 0.6), and Opportunist's into
+  its approach (`opportunistApproachShare` 0.3), as the Apologist's already did into its drives.
+- Tier II and III effects only, so tier I plays as before: Sneaky Beaky charges a little less as it
+  levels (it was the strongest path at every tier), Samurai levels into rally tolerance rather than
+  more slice, Opportunist comes in more, and Pancake's second serve gets more bite.
+- Club stays on band: all nine story opponents. Three practice opponents moved more than 2 off their
+  band and were refitted (James Whitfield, Nadia Volkov, Thomas Lund).
+
+**The identities**, against the common opponent (point-win %):
+
+| day         | big server | counter | net rusher | baseliner | spread      |
+| ----------- | ---------- | ------- | ---------- | --------- | ----------- |
+| 64 Regional | 54.3       | 46.0    | 61.8       | 52.4      | 16.7 → 15.8 |
+| 104 Tour    | 54.1       | 46.6    | 61.0       | 50.3      | 18.4 → 14.4 |
+| 144 World   | 55.3       | 45.7    | 57.5       | 53.0      | 16.3 → 11.8 |
+
+**What's still open**, with the data:
+
+- **The net rusher's specialties compound.** Without specialties it plays at 36.4, level with the
+  counter (36.1). Its paths are worth 2-7 each on their own, but they all add to how often it comes
+  forward (approach, serve-volley and chip-and-charge biases), so the package is worth 24.6. Its
+  net weight is not the cause (net rusher 61.4 at weight 1.0, 62.2 at 0.7). Scaling serve-volley and
+  chip-and-charge back (`NET_RUSH.serveVolleyPerBias` 5 → 3, `chipChargePerBias` 2 → 1.2) takes the
+  Regional spread from 15.8 to 9.9, but it changes how Club's serve-volley opponents play, so it isn't
+  applied. A softer option is to let stacked approach biases saturate, which leaves one path alone
+  unchanged.
+- **Stat boosts saturate on a build that already has the stat.** The baseliner's forehand and
+  backhand paths are worth about 6 each on an even player, but about 1 on its own build, whose
+  wings sit at 82-89: the shot is near the quality ceiling already. Paths that change behaviour keep
+  paying however high the stats go.
+- **The counter's build doesn't fit its paths.** It takes a forehand path (Survivor) with a forehand
+  of 44, and Samurai with a slice of 51, so those two are worth under 3 together. Against Tour and
+  World practice opponents it wins 15-48% while the others win 28-90%. A player who picks those paths
+  would buy forehand and slice; the career model's counter does not.
 
 ## Follow-ups (done)
 

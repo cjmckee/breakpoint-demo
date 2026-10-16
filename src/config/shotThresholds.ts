@@ -6,6 +6,7 @@
  */
 
 import type { ShotType, CourtPosition, CourtSurface } from '../types';
+import type { GamePhase } from '../types/archetype';
 
 /**
  * Relative quality requirements for each shot type
@@ -1148,6 +1149,36 @@ export const SPECIALTY_AMPLIFY = {
    * boost on both forehand and backhand drives.
    */
   apologistRallyShare: 0.5,
+  /**
+   * bh_samurai plays its backhand as a slice, which reads the slice stat, so a
+   * boost on backhand drives alone shrank as it levelled into more slices. This
+   * share of its boost lands on its backhand slices too.
+   */
+  samuraiSliceShare: 0.6,
+  /**
+   * net_opportunist comes in on the right ball rather than often, so it rarely
+   * hits the volleys a net boost lands on. This share of its boost lands on the
+   * approach that takes it forward.
+   */
+  opportunistApproachShare: 0.3,
+  /**
+   * Scales a phase's boost by what its stat is worth, so a specialty in any phase
+   * buys about the same. The same +15 on the phase stat is worth very different
+   * amounts: the return and the first serve play every point, a forehand only the
+   * drives it is chosen for, net only the points a player comes forward on.
+   * net_apologist's boost lands on the drives, so it takes the wing's weight.
+   * Measured with specialtySynergyProbe at each season's level: unweighted, a
+   * tier III return path was worth 11-13 point-win and a backhand path 2-5;
+   * weighted, every path sits at 4-9.
+   */
+  phaseWeight: {
+    first_serve: 0.61,
+    second_serve: 1.1,
+    return: 0.62,
+    forehand: 1.21,
+    backhand: 1.37,
+    net: 1.5,
+  } as Record<GamePhase, number>,
 };
 
 /**

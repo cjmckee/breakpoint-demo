@@ -5,7 +5,7 @@
  * net to about zero, and that only the net rusher's grow with the stats it buys.
  * The design wants a player who commits to an archetype — specialty and the
  * stats behind it — to win more than one who doesn't. This measures each of the
- * 18 tier-1 phase paths alone:
+ * 18 phase paths alone, at one specialty tier (TIER):
  *
  *   alone   = path on uniform BASE − uniform BASE
  *   backed  = path on BASE with its phase stat at HIGH − the same build without the path
@@ -16,12 +16,18 @@
  * conditions shares its luck match by match.
  *
  * Run: npx tsx src/test/analysis/specialtySynergyProbe.ts
- * Env: N=600  BASE=35  HIGH=50  SEED=1  PHASES=first_serve,second_serve,return,forehand,backhand,net
- *      ONLY_PATHS=fh_laserbeam,...  STRIP=power_variance,fault_risk (remove those effects from every path)
+ * Env: N=600  BASE=35  HIGH=50  TIER=1  SEED=1  PHASES=first_serve,second_serve,return,forehand,backhand,net
+ *      ONLY_PATHS=fh_laserbeam,...  STRIP=power_variance,fault_risk (remove those effects from every path;
+ *      all leaves only the stat boost)
  */
 
 import type { PlayerStats } from '../../types';
-import type { ArchetypeProfile, GamePhase, PhasePathId } from '../../types/archetype';
+import type {
+  ArchetypeProfile,
+  GamePhase,
+  PhasePathId,
+  SpecialtyTier,
+} from '../../types/archetype';
 import { PlayerProfile } from '../../core/PlayerProfile';
 import { setSeed } from '../../core/random';
 import { PATH_DEFS } from '../../data/archetypeTree';
@@ -32,6 +38,7 @@ const N = Number(process.env.N ?? 600);
 const BASE = Number(process.env.BASE ?? 35);
 const HIGH = Number(process.env.HIGH ?? 50);
 const SEED = Number(process.env.SEED ?? 1);
+const TIER = Number(process.env.TIER ?? 1) as SpecialtyTier;
 
 const PATHS: Record<GamePhase, PhasePathId[]> = {
   first_serve: ['fs_bomber', 'fs_sniper', 'fs_curveball'],
@@ -58,7 +65,12 @@ const ONLY_PATHS = process.env.ONLY_PATHS?.split(',');
 
 // Diagnostic: STRIP=power_variance,fault_risk removes those effect keys from every
 // path for this run, to see which part of a specialty drives its synergy.
-for (const key of process.env.STRIP?.split(',') ?? []) {
+// STRIP=all removes every effect, leaving only the stat boost (SPECIALTY_AMPLIFY);
+// TUNE='SPECIALTY_AMPLIFY.byTier.3=0' (tuneRun) leaves only the effects.
+if (process.env.STRIP === 'all') {
+  for (const def of Object.values(PATH_DEFS)) def.tierEffects = def.tierEffects.map(() => ({}));
+}
+for (const key of process.env.STRIP === 'all' ? [] : (process.env.STRIP?.split(',') ?? [])) {
   for (const def of Object.values(PATH_DEFS)) {
     for (const tier of def.tierEffects) delete (tier as Record<string, number>)[key];
   }
@@ -78,7 +90,7 @@ const NONE: ArchetypeProfile = {
 };
 const withPath = (phase: GamePhase, path: PhasePathId): ArchetypeProfile => ({
   ...NONE,
-  phases: { [phase]: { path, tier: 1 } },
+  phases: { [phase]: { path, tier: TIER } },
 });
 
 /** Per-match point-win share, seeded by match index. */
@@ -127,7 +139,7 @@ function main(): void {
   }
   console.log = log;
   log(
-    `\nspecialtySynergyProbe  N=${N} BO3  uniform ${BASE} v uniform ${BASE} (no archetype, hard); ` +
+    `\nspecialtySynergyProbe  N=${N} BO3  tier ${TIER}  uniform ${BASE} v uniform ${BASE} (no archetype, hard); ` +
       `phase stat raised to ${HIGH} for "backed"`,
   );
   log(['phase', 'path', 'stat', 'alone', `backed (${stat(HIGH)})`, 'synergy'].join('\t'));
