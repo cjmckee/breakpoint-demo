@@ -610,12 +610,14 @@ Ordered by how badly they would bite.
   BUILDS=src/test/analysis/careerBuilds.json RUNS=20 npx tsx src/test/analysis/careerSim.ts
   ```
 
-- **Saves.** Record end-of-bronze saves for each broad archetype (`src/debug/saves/`). They are
-  the starting point for every Regional playtest. The bot can make them, but its spending is not
-  a real player's (one bot career finished bronze with focus 91 and slice 21), so set the stats
-  up by hand.
-- **Bot runs.** `runBot` already plays the bronze career end to end (`e2e/bot.ts`). A Regional
-  soak needs the playoff loop and the season start handled.
+- **Saves (built).** `save-regional-day1-<identity>.json` in `src/debug/saves/` are the first
+  morning of Regional for each career identity: its mean career build at the end of Club, promoted
+  by the real ceremony. `e2e/recordSaves.spec.ts` re-records them (`RECORD_SAVES=1`).
+- **Bot runs (built).** `e2e/regionalSoak.spec.ts` plays ten Regional days from each save through
+  the UI and fails on a softlock, a Club event firing, a rare in the shop, a hangout spent, or
+  practice opening on Club opponents. That last one was a real bug: the practice screen always
+  opened on tier 1, so a promoted player who clicked through kept meeting Club opponents. The
+  playoff loop is covered by `playoff.spec.ts`; a soak through it waits for Regional's tier-final.
 
 ---
 
