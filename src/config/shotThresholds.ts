@@ -437,19 +437,22 @@ export const SERVE_ACCURACY_WEIGHTS = {
 /**
  * Composite stat weights for return quality and ace resistance.
  *
- * Returning is reading the serve (anticipation) and getting to it (speed)
- * as much as the return technique itself. `slice` is the chip and the block:
+ * A return is a forehand or a backhand struck off a serve, so the wings carry
+ * a share beside the return technique, along with reading the serve
+ * (anticipation) and getting to it (speed). `slice` is the chip and the block:
  * without it the slice stat paid on ~10% of points, while the return is the
- * most-hit shot in the game (see SLICE_TUNING).
+ * most-hit shot in the game (see SLICE_TUNING). Without the wings, a baseliner
+ * who bought forehand and backhand lost every return game to the server
+ * (docs/proposals/identity-drift-fixes.md, step B).
  * Weights must sum to 1 so uniform-stat players keep their rating.
  */
 export const RETURN_COMPOSITE_WEIGHTS: Record<string, number> = {
-  return: 0.5,
-  anticipation: 0.25,
+  return: 0.3,
+  forehand: 0.15,
+  backhand: 0.15,
+  anticipation: 0.15,
   speed: 0.15,
   slice: 0.1,
-  forehand: 0,
-  backhand: 0,
 };
 
 /**
@@ -474,13 +477,12 @@ export const WING_SHARE = {
  */
 export const SHOT_COMPOSITE_WEIGHTS: Record<string, { primary: number; [stat: string]: number }> = {
   groundstroke: { primary: 0.8, strength: 0.1, spin: 0.1 },
-  // An approach is a groundstroke that starts the net phase, so the wing still
-  // leads but `net` carries a large share: it is the first shot of that phase,
-  // and it is what the net archetypes actually buy when they raise
-  // NET_APPROACH_BIAS. Without this the net stat only touched the volley and
-  // the overhead, about 10% of a net specialist's rally shots, while approaches
-  // were another 31% and paid the forehand instead.
-  approach: { primary: 0.5, net: 0.35, placement: 0.15 },
+  // An approach is the first shot of the net phase, so `net` carries as much
+  // as the wing it is hit off. It is the one net shot every player hits (about
+  // 0.3 a point), where volleys and overheads come only to those who come
+  // forward. At 0.35 net was worth half a forehand per +10 on the career
+  // ladder; at 0.5 it earns its OVR weight (statLadder).
+  approach: { primary: 0.4, net: 0.5, placement: 0.1 },
   powerGroundstroke: { primary: 0.7, strength: 0.25, spin: 0.05 },
   // volley and overhead share the `net` primary; the supports differ because a
   // volley is a reaction and an overhead is a strike.
@@ -507,27 +509,23 @@ export const OPPONENT_STAT_ADJUSTMENTS = {
   // Kept small: these apply to EVERY rally shot, so they compound across the
   // rally and then across the match. Large values turn small stat gaps into
   // near-certain match outcomes.
-  tactics: 0.12, // A tactically sharp defender makes winners harder
-  speed: 0.12, // Speed helps cover court
+  // Halved from 0.12: speed reaches every shot through several channels, and
+  // at 0.12 it was worth more than a forehand at every level past Club.
+  tactics: 0.06, // A tactically sharp defender makes winners harder
+  speed: 0.06, // Speed helps cover court
   // Only applies while the opponent is at the net, where it modulates
   // POSITION_ADJUSTMENTS.at_net. Larger than the others because it is
   // conditional: they apply to every rally shot, this one to the passing
   // attempts against a player who has actually come forward.
   //
-  // NOT A TUNING DIAL, despite looking like one — `netCoverageProbe.ts` sweeps
-  // it and the curve is flat. A net-75 attacker holds the net against a net-25
-  // one by 45.5pp with this switched off entirely, and by 48.0 at 0.30; every
-  // value between is inside the noise. Two things cap it. Downward it runs into
-  // the `Math.max(POSITION_ADJUSTMENTS.well_positioned, ...)` clamp in
-  // calculateQualityRequirements, so for a weak volleyer it can only pull the
-  // bar from +10 to +3 and then stops mattering above about 0.28. Upward there
-  // is nothing left to win: a net-75 attacker already takes 93% of net points,
-  // so raising the passer's bar further changes no outcomes.
-  //
-  // Keep it — the effect is real and the intent is right — but the thing that
-  // actually makes a bad volleyer easy to pass is the volley composite, not
-  // this. Tune the composite, not this constant.
-  netCoverage: 0.2, // Covering the net makes the pass harder to thread
+  // It only bites once the net position stops winning on its own. With the
+  // passer also paying a fixed at-net difficulty, coming forward took 80-89% of
+  // net points at even stats and this curve was flat (`netCoverageProbe.ts`).
+  // That difficulty is gone (DIFFICULTY_SCORE_FACTORS.opponentPosition.at_net),
+  // so the volleyer's rating sets more of the bar the pass faces. Downward it
+  // still stops at the `Math.max(POSITION_ADJUSTMENTS.well_positioned, ...)`
+  // clamp in calculateQualityRequirements.
+  netCoverage: 0.6, // Covering the net makes the pass harder to thread
 };
 
 /**
@@ -536,11 +534,11 @@ export const OPPONENT_STAT_ADJUSTMENTS = {
  * How the SHOOTER's own stats reduce incoming shot difficulty.
  * Formula: (shooterStat - 50) × multiplier, subtracted from inPlay requirement.
  *
- * Example: shooter anticipation 90 → (90-50) × 0.15 = -6 to threshold (easier to keep in play)
- * Example: shooter anticipation 10 → (10-50) × 0.15 = +6 to threshold (harder)
+ * Example: shooter anticipation 90 → (90-50) × 0.05 = -2 to threshold (easier to keep in play)
+ * Example: shooter anticipation 10 → (10-50) × 0.05 = +2 to threshold (harder)
  */
 export const SHOOTER_STAT_ADJUSTMENTS = {
-  anticipation: 0.1, // Reading the incoming ball makes responding easier
+  anticipation: 0.05, // Reading the incoming ball makes responding easier
 };
 
 /**
@@ -576,14 +574,17 @@ export const MODIFIER_SPREAD = 1.0;
  * stat 0 multiplies by 0.90 and stat 100 by 1.10.
  */
 export const STAT_MODIFIER_BANDS = {
+  // courtCoverage, reactions and reading are half the others' share: speed and
+  // anticipation also reach every shot through the return composite, the
+  // threshold adjustments and rushed balls.
   /** speed, on defensive shots and from a defensive court position */
-  courtCoverage: 0.1,
+  courtCoverage: 0.05,
   /** speed, on net shots and any ball that arrives rushed */
-  reactions: 0.15,
+  reactions: 0.075,
   /** strength, on power shots */
   power: 0.1,
   /** anticipation, when the opponent is at net or well positioned */
-  reading: 0.1,
+  reading: 0.05,
   /** spin, on tactical shots (drop, angle, lob, passing) */
   touch: 0.075,
   /** tactics, on whichever kind of shot was chosen — attacking or defending */
@@ -608,10 +609,11 @@ export function statModifier(stat: number, band: number, neutral = NEUTRAL_STAT)
  *
  * Above `followLevelFrom`, the neutral point rises one for one with the match
  * level, so a support stat counts by how far it sits above or below the level
- * being played. Infinity keeps it absolute.
+ * being played. Infinity keeps it absolute. At 50 all of Club is untouched,
+ * since every Club match is played below it.
  */
 export const SUPPORT_NEUTRAL = {
-  followLevelFrom: Infinity,
+  followLevelFrom: 50,
   /**
    * 1 also narrows the multiplicative support effects (the bands, focus under
    * pressure, stamina in long rallies) as the neutral point rises, by
@@ -620,7 +622,7 @@ export const SUPPORT_NEUTRAL = {
    * the same points at any level. Scaling keeps a support stat's effect, in
    * points of quality, what it is at the neutral point. 0 leaves bands whole.
    */
-  scaleBands: 0,
+  scaleBands: 1,
   /**
    * 1 also flattens every outcome curve (PROBABILITY_STEEPNESS) by the same
    * NEUTRAL_STAT / neutral. Qualities and the bars they are judged against both
@@ -628,7 +630,7 @@ export const SUPPORT_NEUTRAL = {
    * steepness turns the same relative edge into a near-certainty at high level
    * (net points won 71% at level 40, 88% at level 80). 0 keeps the curves fixed.
    */
-  scaleContests: 0,
+  scaleContests: 1,
   /**
    * 1 also moves the fixed part of every winner floor (the share
    * WINNER_FLOOR_RETRIEVAL_WEIGHT leaves absolute) with the neutral point. With
@@ -638,7 +640,7 @@ export const SUPPORT_NEUTRAL = {
    * volleyer's net rating, and so did every finishing shot above the floor.
    * 0 keeps that part absolute.
    */
-  scaleWinnerFloors: 0,
+  scaleWinnerFloors: 1,
 };
 
 /** The fixed part of a winner floor at this neutral point, as a multiple of its table value. */
@@ -1022,7 +1024,10 @@ export const DIFFICULTY_SCORE_FACTORS = {
 
   /** Opponent's court position impact on difficulty */
   opponentPosition: {
-    at_net: 8,
+    // Nothing here for a net player: the bar the pass faces already rises with
+    // the volleyer (POSITION_ADJUSTMENTS.at_net, netCoverage). A fixed 8 on top
+    // made the position win its points whoever was standing there.
+    at_net: 0,
     well_positioned: 5,
     way_out_wide: -15,
     way_back_deep: -15,
@@ -1131,8 +1136,12 @@ export const RUSHED_SHOT = {
 export const SPECIALTY_AMPLIFY = {
   from: 30,
   byTier: [0, 0.5, 0.75, 1.0],
-  /** The most stat above `from` that is amplified. */
-  excessCap: Infinity,
+  /**
+   * The most stat above `from` that is amplified. Uncapped, a tier III forehand
+   * of 85 played as 140 and more forehand changed nothing. Club players sit
+   * within 18 of `from`, so the cap barely reaches them.
+   */
+  excessCap: 15,
   /**
    * net_apologist stays back, so a boost on net shots would never apply. Its
    * boost goes to the baseline game it chooses instead: this share of its tier's

@@ -3,8 +3,8 @@
  * career?
  *
  * OVR is the yardstick progression is balanced against (bandCheck, the season
- * bands), so it should roughly predict who wins. It weights stats by category:
- * each core stat 0.09, each physical 0.083, each technical and mental 0.05
+ * bands), so it should roughly predict who wins. Its weights are what this
+ * ladder measured each stat to be worth, core heaviest
  * (utils/overallRating.ts). If the match engine pays stats in very different
  * proportions, OVR stops predicting results, and a build that buys the
  * under-paid stats falls behind at the same OVR. That is identity drift.

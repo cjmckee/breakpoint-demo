@@ -19,21 +19,25 @@ import type { PlayerStats } from '../types';
  * five (one per game phase) and the rest three each.
  */
 export const STAT_CATEGORY_WEIGHTS = {
-  core: 0.45,
-  technical: 0.15,
-  physical: 0.25,
-  mental: 0.15,
+  core: 0.4,
+  technical: 0.16,
+  physical: 0.21,
+  mental: 0.23,
 };
 
 /**
  * How a category's weight is shared between its stats: relative weights, so
  * equal numbers split it evenly. A stat's share of OVR is its category weight
  * × its relative weight / the category's total.
+ *
+ * Both tables are what each stat is measured to be worth (`statLadder`, the
+ * mean over the four career bands), rounded. Serve pays on every point and is
+ * the heaviest stat; net pays mostly to players who come forward.
  */
 export const STAT_WEIGHTS_WITHIN = {
-  core: { serve: 1, forehand: 1, backhand: 1, return: 1, net: 1 },
-  technical: { slice: 1, spin: 1, placement: 1 },
-  physical: { speed: 1, stamina: 1, strength: 1 },
+  core: { serve: 14, forehand: 7, backhand: 6, return: 8, net: 4 },
+  technical: { slice: 5, spin: 5, placement: 6 },
+  physical: { speed: 10, stamina: 4, strength: 7 },
   mental: { focus: 1, anticipation: 1, tactics: 1 },
 };
 

@@ -1,7 +1,7 @@
 # Identity drift: proposals
 
-**Status:** proposal, measured, nothing applied. Every engine change is a config value, off by
-default, reproducible with `tuneRun`. Diagnosis: [`research/identity-drift.md`](../research/identity-drift.md).
+**Status:** applied. Every engine change is a config value; the defaults are the package below,
+and any step can be undone with `tuneRun` to compare. Diagnosis: [`research/identity-drift.md`](../research/identity-drift.md).
 
 ## Direction
 
@@ -27,7 +27,7 @@ with the others held equal. Two numbers summarise a band:
 N=6000-8000 pairings per band, so ±0.35-0.45 point-win per stat. The bands are Club U(25,50), Regional
 U(40,70), Tour U(55,85) and World U(65,95).
 
-## Today
+## Before the package ("today" below)
 
 | point-win per +10 | Club        | Regional    | Tour        | World           |
 | ----------------- | ----------- | ----------- | ----------- | --------------- |
