@@ -107,6 +107,11 @@ export function addAmounts(a: CurrencyAmounts, b: CurrencyAmounts): CurrencyAmou
   return out;
 }
 
+/** `stats` with every +1 in a plan applied: what the player would have after buying it. */
+export function plannedStats(stats: PlayerStats, plan: readonly StatName[]): PlayerStats {
+  return plan.reduce((out, stat) => withStat(out, stat, getStat(out, stat) + 1), stats);
+}
+
 /** The cost of a plan of +1s taken in order, each priced at the value it starts from. */
 export function planCost(stats: PlayerStats, plan: readonly StatName[]): CurrencyAmounts {
   const raised: Partial<Record<StatName, number>> = {};

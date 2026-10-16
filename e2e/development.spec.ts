@@ -1,7 +1,16 @@
 import { test, expect } from '@playwright/test';
 import { grantCurrency, loadSave, readGame } from './helpers';
 // The real pricing, so the expected cost cannot drift from the game's.
-import { STAT_NAMES, canAfford, getStat, planCost, priceOf } from '../src/game/StatDevelopment';
+import {
+  STAT_NAMES,
+  canAfford,
+  getStat,
+  planCost,
+  plannedStats,
+  priceOf,
+} from '../src/game/StatDevelopment';
+import { GAME_AREAS, gameAreaRatings } from '../src/core/gameAreas';
+import { STAT_SECTIONS } from '../src/config/statSections';
 
 /**
  * Drives the Development screen: plan a few +1s, confirm, and check the model.
@@ -61,6 +70,50 @@ test('a confirmed plan raises the stats and charges the plan cost', async ({ pag
   expect(getStat(after.stats, 'focus')).toBe(getStat(player.stats, 'focus') + 2);
   expect(after.wallet.mind).toBe(player.wallet.mind - (cost.mind ?? 0));
   expect(after.wallet.power).toBe(player.wallet.power);
+});
+
+test('planned +1s move every area they feed, and the stats keep their order', async ({ page }) => {
+  await loadSave(page, SAVE, 7);
+  await grantCurrency(page, { power: 60, quickness: 60, technique: 60, mind: 60 });
+  const player = (await readGame(page)).player!;
+  await page.getByTestId('action-development').click();
+
+  // Every stat, in the sections' fixed order, so planning never reorders the rows.
+  const order = STAT_SECTIONS.flatMap((s) => s.stats);
+  const rows = page.locator('[data-testid^="development-stat-"]');
+  const ids = async (): Promise<string[]> =>
+    rows.evaluateAll((els) => els.map((el) => el.getAttribute('data-testid') ?? ''));
+  expect(await ids()).toEqual(order.map((s) => `development-stat-${s}`));
+
+  // Before anything is planned, each area shows the player's own rating.
+  const now = gameAreaRatings(player.stats);
+  for (const area of GAME_AREAS) {
+    await expect(page.getByTestId(`development-area-${area}`)).toHaveAttribute(
+      'data-planned',
+      String(now[area]),
+    );
+  }
+
+  // Speed feeds Returning, Netplay and Coverage at once; seven points move all three
+  // by at least one whole point.
+  const plan = Array<'speed'>(7).fill('speed');
+  for (const stat of plan) await page.getByTestId(`development-plus-${stat}`).click();
+  const after = gameAreaRatings(plannedStats(player.stats, plan));
+  let moved = 0;
+  for (const area of GAME_AREAS) {
+    const row = page.getByTestId(`development-area-${area}`);
+    await expect(row).toHaveAttribute('data-value', String(now[area]));
+    await expect(row).toHaveAttribute('data-planned', String(after[area]));
+    // A change shows on screen too, not only in the attribute.
+    if (after[area] > now[area]) {
+      moved += 1;
+      await expect(row).toContainText(`${now[area]}→${after[area]}`);
+    }
+  }
+  expect(moved, 'seven Speed should lift three areas').toBe(3);
+  expect(await ids(), 'planning should not reorder the rows').toEqual(
+    order.map((s) => `development-stat-${s}`),
+  );
 });
 
 test('a +1 the wallet cannot cover is disabled', async ({ page }) => {

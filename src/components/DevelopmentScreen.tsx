@@ -3,29 +3,35 @@
  * specialties.
  *
  * Light on copy by design: each row shows what its next point costs, and the
- * cost climbing as points are added is what teaches the price steps. Added
- * points gather in a floating bar that appears with the first one.
+ * cost climbing as points are added is what teaches the price steps. The five
+ * areas of the game sit pinned above the stats with the wallet, so each +1 shows
+ * what it buys, often in several areas at once. Added points gather in a floating
+ * bar that appears with the first one.
  */
 
 import React, { useCallback, useMemo, useState } from 'react';
 import type { StatName } from '../types';
 import type { CurrencyAmounts as Amounts, Wallet } from '../types/game';
 import { CURRENCIES, CURRENCY_LABELS } from '../config/economy';
-import { formatStatName, getStatIcon } from '../config/statIcons';
+import { formatStatName } from '../config/statIcons';
+import { STAT_SECTIONS } from '../config/statSections';
 import { useGameStore } from '../stores/gameStore';
-import { getStat, planCost, priceOf, unspentSpecPoints } from '../game/StatDevelopment';
+import {
+  getStat,
+  planCost,
+  plannedStats,
+  priceOf,
+  unspentSpecPoints,
+} from '../game/StatDevelopment';
 import { ScreenFrame } from './ui/ScreenFrame';
 import { Button } from './ui/Button';
-import { Card } from './ui/Card';
+import { StatSectionHeading } from './ui/StatSectionHeading';
 import { CurrencyAmounts, CURRENCY_STYLE } from './currency/CurrencyAmounts';
+import { AreaStrip } from './development/AreaStrip';
 import { ArchetypeTree } from './ArchetypeTree';
 
-const GROUPS: Array<{ title: string; stats: StatName[] }> = [
-  { title: 'Core', stats: ['serve', 'forehand', 'backhand', 'return', 'net'] },
-  { title: 'Technical', stats: ['slice', 'spin', 'placement'] },
-  { title: 'Physical', stats: ['speed', 'stamina', 'strength'] },
-  { title: 'Mental', stats: ['focus', 'anticipation', 'tactics'] },
-];
+/** Two columns on wider screens: Core and Technical, then Physical and Mental. */
+const COLUMNS = [STAT_SECTIONS.slice(0, 2), STAT_SECTIONS.slice(2)];
 
 const remaining = (wallet: Wallet, cost: Amounts): Wallet =>
   Object.fromEntries(CURRENCIES.map((c) => [c, wallet[c] - (cost[c] ?? 0)])) as Wallet;
@@ -52,6 +58,7 @@ export const DevelopmentScreen: React.FC = () => {
   const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null);
 
   const cost = useMemo(() => (player ? planCost(player.stats, plan) : {}), [player, plan]);
+  const after = useMemo(() => (player ? plannedStats(player.stats, plan) : null), [player, plan]);
   const left = useMemo(() => (player ? remaining(player.wallet, cost) : null), [player, cost]);
   const counts = useMemo(() => {
     const out: Partial<Record<StatName, number>> = {};
@@ -85,7 +92,7 @@ export const DevelopmentScreen: React.FC = () => {
     }
   }, [plan, purchaseStats]);
 
-  if (!player || !left) return null;
+  if (!player || !left || !after) return null;
   const specPoints = player.archetypeProfile.specializationPoints;
 
   const summary = Object.entries(counts)
@@ -127,43 +134,51 @@ export const DevelopmentScreen: React.FC = () => {
         ))}
       </div>
 
-      {/* Wallet stays pinned: every +1 is a comparison against it. */}
-      <div
-        className="sticky top-2 z-20 mb-6 bg-pixel-card border-4 border-pixel-border px-3 sm:px-4 py-2 flex flex-wrap items-center justify-between sm:justify-start gap-x-3 sm:gap-x-5 gap-y-2"
-        data-testid="development-wallet"
-      >
-        {CURRENCIES.map((c) => (
-          <span
-            key={c}
-            className="inline-flex items-baseline gap-1.5"
-            data-currency={c}
-            data-amount={Math.floor(left[c])}
-          >
-            <span aria-hidden="true">{CURRENCY_STYLE[c].icon}</span>
-            {(cost[c] ?? 0) > 0 && (
-              <span className="text-xs text-pixel-text-muted whitespace-nowrap">
-                {Math.floor(player.wallet[c])} →
-              </span>
-            )}
-            <span className={`text-base sm:text-xl font-bold ${CURRENCY_STYLE[c].text}`}>
-              {Math.floor(left[c])}
-            </span>
-            <span className="hidden sm:inline text-xs text-pixel-text-muted">
-              {CURRENCY_LABELS[c]}
-            </span>
-          </span>
-        ))}
-        {/* Specialization points: the other half of development, spent on Specialties. */}
-        <span
-          className="inline-flex items-baseline gap-1.5 sm:ml-auto"
-          data-testid="development-spec-points"
-          data-amount={specPoints}
-          title="Specialization points, earned by levelling up"
+      {/* Wallet and areas stay pinned: every +1 is a comparison against the one and a
+          change to the other. */}
+      <div className="sticky top-2 z-20 mb-6 bg-pixel-card border-4 border-pixel-border px-3 sm:px-4 py-2">
+        <div
+          className="flex flex-wrap items-center justify-between sm:justify-start gap-x-3 sm:gap-x-5 gap-y-2"
+          data-testid="development-wallet"
         >
-          <span aria-hidden="true">⭐</span>
-          <span className="text-base sm:text-xl font-bold text-pixel-text">{specPoints}</span>
-          <span className="hidden sm:inline text-xs text-pixel-text-muted">Spec Points</span>
-        </span>
+          {CURRENCIES.map((c) => (
+            <span
+              key={c}
+              className="inline-flex items-baseline gap-1.5"
+              data-currency={c}
+              data-amount={Math.floor(left[c])}
+            >
+              <span aria-hidden="true">{CURRENCY_STYLE[c].icon}</span>
+              {(cost[c] ?? 0) > 0 && (
+                <span className="text-xs text-pixel-text-muted whitespace-nowrap">
+                  {Math.floor(player.wallet[c])} →
+                </span>
+              )}
+              <span className={`text-base sm:text-xl font-bold ${CURRENCY_STYLE[c].text}`}>
+                {Math.floor(left[c])}
+              </span>
+              <span className="hidden sm:inline text-xs text-pixel-text-muted">
+                {CURRENCY_LABELS[c]}
+              </span>
+            </span>
+          ))}
+          {/* Specialization points: the other half of development, spent on Specialties. */}
+          <span
+            className="inline-flex items-baseline gap-1.5 sm:ml-auto"
+            data-testid="development-spec-points"
+            data-amount={specPoints}
+            title="Specialization points, earned by levelling up"
+          >
+            <span aria-hidden="true">⭐</span>
+            <span className="text-base sm:text-xl font-bold text-pixel-text">{specPoints}</span>
+            <span className="hidden sm:inline text-xs text-pixel-text-muted">Spec Points</span>
+          </span>
+        </div>
+        {tab === 'stats' && (
+          <div className="mt-2 pt-2 border-t-2 border-pixel-border">
+            <AreaStrip stats={player.stats} planned={after} />
+          </div>
+        )}
       </div>
 
       {tab === 'specialties' ? (
@@ -184,66 +199,49 @@ export const DevelopmentScreen: React.FC = () => {
             </div>
           )}
 
-          <div className="grid gap-6">
-            {GROUPS.map((group) => (
-              <section key={group.title} aria-label={group.title}>
-                <h2 className="text-sm font-bold text-pixel-text-muted uppercase tracking-wider mb-2">
-                  {group.title}
-                </h2>
-                <div className="grid gap-2">
-                  {group.stats.map((stat) => {
-                    const planned = counts[stat] ?? 0;
-                    const now = getStat(player.stats, stat);
-                    const next = now + planned;
-                    const price = priceOf(stat, next);
-                    const needs = shortfall(price, left);
-                    const short = Object.keys(needs).length > 0;
-                    const atMax = next >= 100;
-                    // What you can buy right now stands out (green edge, green +1); what
-                    // you cannot recedes. Every row used to look the same whatever the
-                    // wallet held, so the screen had to be read to find a purchase.
-                    const buyable = !short && !atMax;
-                    return (
-                      <Card
-                        key={stat}
-                        padding="sm"
-                        className={`transition-opacity ${
-                          planned
-                            ? 'border-pixel-accent'
-                            : buyable
-                              ? 'border-l-pixel-success'
-                              : 'opacity-70'
-                        }`}
-                      >
-                        <div
-                          className="flex items-center gap-3"
-                          data-testid={`development-stat-${stat}`}
-                          data-value={now}
-                          data-planned={planned}
-                          data-buyable={buyable}
-                        >
-                          <div className="min-w-0 flex-1">
-                            <div className="flex flex-wrap items-baseline gap-x-2">
-                              <span className="font-bold text-pixel-text">
-                                <span aria-hidden="true">{getStatIcon(stat)} </span>
-                                {formatStatName(stat)}
-                              </span>
-                              <span className="text-xl font-bold text-pixel-text">{now}</span>
-                              {planned > 0 && (
-                                <span className="text-xl font-bold text-pixel-accent">
-                                  → {next}
-                                </span>
-                              )}
-                            </div>
-                            <div
-                              className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm mt-1"
+          <div className="grid md:grid-cols-2 gap-x-6 gap-y-6 items-start">
+            {COLUMNS.map((sections, i) => (
+              <div key={i} className="grid gap-6">
+                {sections.map((section) => (
+                  <section key={section.id} aria-label={section.label}>
+                    <StatSectionHeading section={section} />
+                    <div className="divide-y-2 divide-pixel-border">
+                      {section.stats.map((stat) => {
+                        const planned = counts[stat] ?? 0;
+                        const now = getStat(player.stats, stat);
+                        const next = now + planned;
+                        const price = priceOf(stat, next);
+                        const needs = shortfall(price, left);
+                        const short = Object.keys(needs).length > 0;
+                        const atMax = next >= 100;
+                        // What you can buy right now stands out (a green +1); what you
+                        // cannot recedes.
+                        const buyable = !short && !atMax;
+                        return (
+                          // Name, value and buttons on one line, the price under the name:
+                          // the same two lines at every width, so rows never change height.
+                          <div
+                            key={stat}
+                            className={`grid grid-cols-[minmax(0,1fr)_auto_auto_auto] items-center gap-x-2 gap-y-1 py-1.5 transition-opacity ${
+                              buyable || planned ? '' : 'opacity-70'
+                            }`}
+                            data-testid={`development-stat-${stat}`}
+                            data-value={now}
+                            data-planned={planned}
+                            data-buyable={buyable}
+                          >
+                            <span className="text-xs font-bold text-pixel-text">
+                              {formatStatName(stat)}
+                            </span>
+                            <span
+                              className="col-span-full row-start-2 flex flex-wrap items-center gap-x-2 text-xs"
                               data-testid={`development-cost-${stat}`}
                             >
                               {atMax ? (
-                                <span className="text-xs text-pixel-text-muted">Max</span>
+                                <span className="text-pixel-text-muted">Max</span>
                               ) : short ? (
                                 <>
-                                  <span className="text-xs text-pixel-warning">Needs</span>
+                                  <span className="text-pixel-warning">Needs</span>
                                   <CurrencyAmounts
                                     amounts={needs}
                                     testId={`development-needs-${stat}`}
@@ -252,32 +250,39 @@ export const DevelopmentScreen: React.FC = () => {
                               ) : (
                                 <CurrencyAmounts amounts={price} />
                               )}
-                            </div>
+                            </span>
+                            <span
+                              className={`text-sm font-bold tabular-nums text-right whitespace-nowrap min-w-[6ch] ${
+                                planned ? 'text-pixel-success' : 'text-pixel-text'
+                              }`}
+                            >
+                              {planned ? `${now}→${next}` : now}
+                            </span>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              disabled={planned === 0}
+                              onClick={() => removeOne(stat)}
+                              testId={`development-minus-${stat}`}
+                            >
+                              −
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant={buyable ? 'success' : 'secondary'}
+                              disabled={atMax || short}
+                              onClick={() => add(stat)}
+                              testId={`development-plus-${stat}`}
+                            >
+                              +1
+                            </Button>
                           </div>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            disabled={planned === 0}
-                            onClick={() => removeOne(stat)}
-                            testId={`development-minus-${stat}`}
-                          >
-                            −
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant={buyable ? 'success' : 'secondary'}
-                            disabled={atMax || short}
-                            onClick={() => add(stat)}
-                            testId={`development-plus-${stat}`}
-                          >
-                            +1
-                          </Button>
-                        </div>
-                      </Card>
-                    );
-                  })}
-                </div>
-              </section>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ))}
+              </div>
             ))}
           </div>
         </>

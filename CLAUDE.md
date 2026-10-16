@@ -1193,6 +1193,15 @@ with an accent border and a check (`PixelCheckbox`), not a light fill. Wrap hove
 - Don't add red or bouncing badges, or a second badge for something already flagged.
 - A disabled `ActionTile` turns grey on its own. Its caption says why ("Unlocks Day 5").
 
+**Stats and areas have one look each.**
+
+- The fourteen stats sit in four sections (`STAT_SECTIONS` in `src/config/statSections.ts`), always
+  in that order and never sorted. Head a section with `StatSectionHeading`: its pixel icon and
+  colour. The colour is a cue only; the icon and name carry the section.
+- The five areas of the game go by one name each (`GAME_AREA_LABELS` in `src/core/gameAreas.ts`):
+  Serving, Returning, Baseline, Netplay, Coverage.
+- Small icons are pixel grids (`src/data/pixelIcons.ts`) drawn with `<PixelIcon>`, not emoji.
+
 **Show comparisons and costs, don't describe them.** Use bars, chips, icons and
 before→after previews over sentences: head-to-head bars rather than two stat lists,
 "100→50" on the energy bar rather than "You have 80 / 100 energy available".

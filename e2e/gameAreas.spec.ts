@@ -5,8 +5,8 @@ import { loadSave, readGame } from './helpers';
 import { GAME_AREAS, gameAreaRatings } from '../src/core/gameAreas';
 
 /**
- * The pre-match card compares the two players by area of the game (on serve, on
- * return, baseline, at net, court coverage), each a blend of the stats the engine
+ * The pre-match card compares the two players by area of the game (Serving,
+ * Returning, Baseline, Netplay, Coverage), each a blend of the stats the engine
  * uses there. This catches the card drifting from those blends, or a row going
  * missing, which no Node check can see.
  */
