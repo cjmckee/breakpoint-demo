@@ -47,6 +47,7 @@ import {
   supportNeutral,
   bandScale,
   contestScale,
+  winnerFloorLevel,
   STAT_MODIFIER_BANDS,
   statModifier,
   POSITION_ADJUSTMENTS,
@@ -430,8 +431,7 @@ export class ShotCalculator {
     // fixed number that means something different at 25 than at 60.
     const retrieval = (opponentStats.physical.speed + opponentStats.mental.tactics) / 2;
     const floorScale =
-      1 -
-      WINNER_FLOOR_RETRIEVAL_WEIGHT +
+      (1 - WINNER_FLOOR_RETRIEVAL_WEIGHT) * winnerFloorLevel(neutral) +
       WINNER_FLOOR_RETRIEVAL_WEIGHT * (retrieval / WINNER_FLOOR_RETRIEVAL_REF);
     const winnerThreshold = Math.max(
       calculatedWinner,

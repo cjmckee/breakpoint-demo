@@ -629,7 +629,22 @@ export const SUPPORT_NEUTRAL = {
    * (net points won 71% at level 40, 88% at level 80). 0 keeps the curves fixed.
    */
   scaleContests: 0,
+  /**
+   * 1 also moves the fixed part of every winner floor (the share
+   * WINNER_FLOOR_RETRIEVAL_WEIGHT leaves absolute) with the neutral point. With
+   * scaleContests, an even match at level 80 is then a scaled copy of one at 50.
+   * With it at 0, the overhead's floor rose 57 to 69 from level 40 to 80 while
+   * its quality rose 56 to 95. The overhead put the point away whatever the
+   * volleyer's net rating, and so did every finishing shot above the floor.
+   * 0 keeps that part absolute.
+   */
+  scaleWinnerFloors: 0,
 };
+
+/** The fixed part of a winner floor at this neutral point, as a multiple of its table value. */
+export function winnerFloorLevel(neutral: number): number {
+  return SUPPORT_NEUTRAL.scaleWinnerFloors ? neutral / NEUTRAL_STAT : 1;
+}
 
 /** How much of each outcome curve's steepness applies at this neutral point (scaleContests). */
 export function contestScale(neutral: number): number {

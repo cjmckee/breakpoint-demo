@@ -9,16 +9,22 @@
  *          in-play bar, and how often it ends the point as a winner or an error.
  *          A rally that swings to lobs and defensive slices at high level is a
  *          rally where forehand and backhand stop counting.
- *   boost  the same match with the player's BOOST stats (+-joined) raised by 15:
+ *   boost  the same match with the player's BOOST stats (+-joined) moved by BY (15):
  *          point-win, and the player's and opponent's groundstroke quality, bar,
  *          errors and winners, so you can see where a stat's edge is lost.
  *
- * Both sections also report the player's net points (share of points, share
+ *   net    the player's net points, by how they end: the last shot's striker,
+ *          type and outcome, and what the opponent hit back at the net player
+ *          (pass, lob or something else) with its quality and bar. Played with
+ *          the BOOST stats moved by BY too, so a stat's reach into the net
+ *          phase shows.
+ *
+ * All sections also report the player's net points (share of points, share
  * won) and each side's fatigue at the end of the match: what `net` and
  * `stamina` act on.
  *
  * Run: npx tsx src/test/analysis/rallyMixProbe.ts
- * Env: LEVELS=40,80  N=150  SECTIONS=mix,boost  BOOST=forehand+backhand,speed
+ * Env: LEVELS=40,80  N=150  SECTIONS=mix,boost,net  BOOST=forehand+backhand,speed  BY=15
  *      PROFILE=serve_volley gives the player that authored archetype (at the
  *      level's tier) instead of none, to measure a stat on the players who use it
  *      With tuneRun: TUNE='…' PROBE=rallyMixProbe npx tsx src/test/analysis/tuneRun.ts
@@ -40,6 +46,7 @@ const N = Number(process.env.N ?? 150);
 const LEVELS = (process.env.LEVELS ?? '40,80').split(',').map(Number);
 const SECTIONS = new Set((process.env.SECTIONS ?? 'mix,boost').split(','));
 const BOOSTS = (process.env.BOOST ?? 'forehand+backhand,speed').split(',');
+const BY = Number(process.env.BY ?? 15);
 const PROFILE = process.env.PROFILE as LegacyArchetype | undefined;
 const tierFor = (level: number): OpponentTier =>
   level >= 66 ? 4 : level >= 56 ? 3 : level >= 42 ? 2 : 1;
@@ -55,7 +62,7 @@ const uniform = (r: number): PlayerStats => ({
 function boosted(level: number, stats: string[], by: number): PlayerStats {
   const s = uniform(level);
   for (const group of Object.values(s) as Array<Record<string, number>>) {
-    for (const k of stats) if (k in group) group[k] = Math.min(100, level + by);
+    for (const k of stats) if (k in group) group[k] = Math.max(0, Math.min(100, level + by));
   }
   return s;
 }
@@ -154,7 +161,7 @@ function mix(level: number, out: string[]): void {
 function boost(level: number, out: string[]): void {
   for (const group of ['', ...BOOSTS]) {
     const stats = group ? group.split('+') : [];
-    const played = matches(boosted(level, stats, 15), uniform(level), level);
+    const played = matches(boosted(level, stats, BY), uniform(level), level);
     const points = played.points;
     const mine = empty();
     const theirs = empty();
@@ -168,11 +175,89 @@ function boost(level: number, out: string[]): void {
       }
     }
     out.push(
-      `\nlevel ${level}, ${group ? `${group} +15` : 'even'}: point-win ${pct(won, points.length)}` +
+      `\nlevel ${level}, ${group ? `${group} ${BY > 0 ? '+' : ''}${BY}` : 'even'}: point-win ${pct(won, points.length)}` +
         `\n  my groundstrokes     ${describe(mine, points.length)}` +
         `\n  their groundstrokes  ${describe(theirs, points.length)}` +
         netAndFatigue(played),
     );
+  }
+}
+
+/** How the player's net points end, and what the opponent hits at the net player. */
+function netEnds(level: number, out: string[]): void {
+  for (const group of ['', ...BOOSTS]) {
+    const stats = group ? group.split('+') : [];
+    const played = matches(boosted(level, stats, BY), uniform(level), level);
+    const ends = new Map<string, number>();
+    const replies = new Map<string, Tally>();
+    // Mean modifiers on those replies: the whole adjustment, difficulty, and the
+    // rest of it (incoming ball × tactical × the stat bands), multiplied out.
+    const mods = new Map<string, { n: number; total: number; difficulty: number; rest: number }>();
+    // The net player's own volleys and overheads, with the winner bar they face.
+    const mine = new Map<
+      string,
+      Tally & { winnerBar: number; adj: number; diff: number; capped: number }
+    >();
+    let net = 0;
+    for (const pt of played.points) {
+      const me = pt.server === 'player' ? 'server' : 'returner';
+      for (const s of pt.shots) {
+        if (s.shooter !== me || s.context.courtPosition !== 'net') continue;
+        const type = s.shotType.includes('overhead') ? 'overhead' : 'volley';
+        const t = mine.get(type) ?? { ...empty(), winnerBar: 0, adj: 0, diff: 0, capped: 0 };
+        add(t, s);
+        t.winnerBar += s.thresholds?.winner ?? 0;
+        t.adj += s.modifiers.finalAdjustment;
+        t.diff += s.modifiers.difficultyModifier;
+        if (s.quality >= 99.5) t.capped++;
+        mine.set(type, t);
+      }
+      const first = pt.shots.findIndex(
+        (s) => s.shooter === me && s.context.courtPosition === 'net',
+      );
+      if (first < 0) continue;
+      net++;
+      const last = pt.shots[pt.shots.length - 1];
+      const key = `${last.shooter === me ? 'mine  ' : 'theirs'} ${last.shotType.replace(/_(forehand|backhand)/, '')} ${last.outcome}`;
+      ends.set(key, (ends.get(key) ?? 0) + 1);
+      for (const s of pt.shots.slice(first)) {
+        if (s.shooter === me) continue;
+        const type = s.shotType.includes('passing')
+          ? 'pass'
+          : s.shotType.includes('lob')
+            ? 'lob'
+            : 'other';
+        const t = replies.get(type) ?? empty();
+        add(t, s);
+        replies.set(type, t);
+        const m = mods.get(type) ?? { n: 0, total: 0, difficulty: 0, rest: 0 };
+        const { finalAdjustment, difficultyModifier, pressureModifier } = s.modifiers;
+        m.n++;
+        m.total += finalAdjustment;
+        m.difficulty += difficultyModifier;
+        m.rest += finalAdjustment / (difficultyModifier * pressureModifier);
+        mods.set(type, m);
+      }
+    }
+    out.push(
+      `\nlevel ${level}, ${group ? `${group} ${BY > 0 ? '+' : ''}${BY}` : 'even'}: ${net} net points`,
+    );
+    for (const [key, n] of [...ends].sort((a, b) => b[1] - a[1]).slice(0, 8)) {
+      out.push(`  ends  ${key.padEnd(36)} ${pct(n, net)}`);
+    }
+    for (const [type, t] of mine) {
+      out.push(
+        `  my    ${type.padEnd(8)} ${describe(t, net)}  winner bar ${(t.winnerBar / t.n).toFixed(0)}` +
+          `  ×${(t.adj / t.n).toFixed(2)} (difficulty ×${(t.diff / t.n).toFixed(2)})  at 100: ${pct(t.capped, t.n)}`,
+      );
+    }
+    for (const [type, t] of replies) {
+      const m = mods.get(type)!;
+      out.push(
+        `  their ${type.padEnd(5)} ${describe(t, net)}  ×${(m.total / m.n).toFixed(2)} ` +
+          `(difficulty ×${(m.difficulty / m.n).toFixed(2)}, rest ×${(m.rest / m.n).toFixed(2)})`,
+      );
+    }
   }
 }
 
@@ -184,6 +269,7 @@ function main(): void {
     for (const level of LEVELS) {
       if (SECTIONS.has('mix')) mix(level, out);
       if (SECTIONS.has('boost')) boost(level, out);
+      if (SECTIONS.has('net')) netEnds(level, out);
     }
   } finally {
     console.log = log;
