@@ -14,7 +14,13 @@
  */
 
 import { ABILITY_LEVEL_MULTIPLIER } from '../../config/shotThresholds';
-import { ABILITY_CURRENCY, ABILITY_PRICES, abilityLevelPrice } from '../../config/economy';
+import type { OpponentTier } from '../../types/game';
+import {
+  ABILITY_CURRENCY,
+  ABILITY_PRICES,
+  abilityLevelPrice,
+  offerRarity,
+} from '../../config/economy';
 import type { Currency } from './statEconomy';
 
 export type Rarity = 'common' | 'uncommon' | 'rare';
@@ -86,12 +92,7 @@ for (const [rarity, key] of [
 ] as const) {
   ABILITY_PRICES[rarity].units = env(key, ABILITY_PRICES[rarity].units);
 }
-/** Shop offer weights by rarity, and offers per day. */
-const OFFER_WEIGHTS: Array<[Rarity, number]> = [
-  ['common', 0.5],
-  ['uncommon', 0.35],
-  ['rare', 0.15],
-];
+/** Offers per day; their rarity follows the shop's ABILITY_OFFER_WEIGHTS for the tier. */
 export const OFFERS_PER_DAY = env('ABILITY_OFFERS', 2);
 const MAX_LEVEL = ABILITY_LEVEL_MULTIPLIER.length - 1;
 
@@ -107,12 +108,11 @@ export function valueGain(a: BuyableAbility, identity: IdentityName, level: numb
   return base * (ABILITY_LEVEL_MULTIPLIER[level + 1] - ABILITY_LEVEL_MULTIPLIER[level]);
 }
 
-/** One day's offers, rarity first, then an ability of that rarity. */
-export function dailyOffers(rng: () => number = Math.random): BuyableAbility[] {
+/** One day's offers at this tier, rarity first, then an ability of that rarity. */
+export function dailyOffers(tier: OpponentTier, rng: () => number = Math.random): BuyableAbility[] {
   const out: BuyableAbility[] = [];
   for (let i = 0; i < OFFERS_PER_DAY; i++) {
-    let roll = rng();
-    const rarity = OFFER_WEIGHTS.find(([, w]) => (roll -= w) < 0)?.[0] ?? 'common';
+    const rarity = offerRarity(rng(), tier);
     const pool = BUYABLE.filter((a) => a.rarity === rarity);
     out.push(pool[Math.floor(rng() * pool.length)]);
   }

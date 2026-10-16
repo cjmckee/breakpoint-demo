@@ -97,7 +97,7 @@ import type {
   GamePhase,
   PhasePathId,
 } from '../../types/archetype';
-import type { StatBoosts } from '../../types/game';
+import type { OpponentTier, StatBoosts } from '../../types/game';
 import { PlayerProfile } from '../../core/PlayerProfile';
 import {
   INCOME_SCALE as ECONOMY_INCOME_SCALE,
@@ -782,15 +782,21 @@ function payMatch(
  * Abilities come before stats in the evening, so Mind and other spare
  * currency go to them when they are worth it.
  */
+/** The tier a career is in on a day: seasons start at days 41, 81 and 121 (§2.1). */
+function tierOnDay(day: number): OpponentTier {
+  return day >= 121 ? 4 : day >= 81 ? 3 : day >= 41 ? 2 : 1;
+}
+
 function shopAbilities(
   identity: IdentityName,
   wallet: Wallet,
   owned: Owned,
   xp: number,
   ledger: Ledger,
+  day: number,
   scale = 1,
 ): { label: string; xp: number } | null {
-  const offers = dailyOffers()
+  const offers = dailyOffers(tierOnDay(day))
     .map((a) => {
       const level = owned.get(a.id) ?? 0;
       const base = priceFor(a, level);
@@ -962,7 +968,7 @@ function career(
       xp += CHALLENGE_XP;
       ledger.xpEarned += CHALLENGE_XP;
       if (ABILITIES_ON) {
-        const bought = shopAbilities(id.name as IdentityName, wallet, owned, xp, ledger, mult);
+        const bought = shopAbilities(id.name as IdentityName, wallet, owned, xp, ledger, day, mult);
         if (bought) {
           xp -= bought.xp;
           note(`  shop: bought ${bought.label}`);

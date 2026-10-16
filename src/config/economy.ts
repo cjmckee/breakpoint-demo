@@ -8,7 +8,7 @@
  * docs/research/simulation-findings.md.
  */
 
-import type { Currency, CurrencyAmounts } from '../types/game';
+import type { Currency, CurrencyAmounts, OpponentTier } from '../types/game';
 import type { CoreStats, StatName } from '../types';
 
 export const CURRENCIES: readonly Currency[] = ['power', 'quickness', 'technique', 'mind'];
@@ -116,6 +116,29 @@ export const ABILITY_LEVEL_PRICE = {
   xpOnlyFrom: Infinity,
   xpOnlyScale: 1,
 };
+
+/**
+ * How the shop's ability offers split by rarity, by the player's tier. Each
+ * season opens a rarity: commons at Club, uncommons from Regional, rares from the
+ * Tour (mid-late-progression.md §5), so a stronger ability is something to grow
+ * into rather than a lucky day-7 roll.
+ */
+export const ABILITY_OFFER_WEIGHTS: Record<OpponentTier, Record<AbilityPriceRarity, number>> = {
+  1: { common: 1, uncommon: 0, rare: 0 },
+  2: { common: 0.6, uncommon: 0.4, rare: 0 },
+  3: { common: 0.5, uncommon: 0.35, rare: 0.15 },
+  4: { common: 0.5, uncommon: 0.35, rare: 0.15 },
+};
+
+/** The rarity a roll in [0, 1) picks for an offer at this tier. */
+export function offerRarity(roll: number, tier: OpponentTier): AbilityPriceRarity {
+  let left = roll;
+  for (const [rarity, weight] of Object.entries(ABILITY_OFFER_WEIGHTS[tier])) {
+    left -= weight;
+    if (left < 0) return rarity as AbilityPriceRarity;
+  }
+  return 'common';
+}
 
 /** What taking an ability of this rarity from `currentLevel` to the next costs. */
 export function abilityLevelPrice(

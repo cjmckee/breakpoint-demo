@@ -1,4 +1,4 @@
-# XP for abilities
+# XP, abilities and gear
 
 **Status:** measured, not applied. The option is a config value, off by default
 (`ABILITY_LEVEL_PRICE.xpOnlyFrom`, `src/config/economy.ts`), so it can be switched on as is.
@@ -54,15 +54,73 @@ mean of the four identities, ±1-2):
   enough that gear (100-300 XP an item) is a real choice against them, which the career model
   doesn't play and a player would.
 
-## What it needs first
+## Abilities by season (applied)
 
-- **Ability balance.** The career model buys levels of abilities that do almost nothing (Speed Demon,
-  All-Court Maestro), and the strongest abilities are commons. With XP levels, players reach level
-  5 far more often, so the level curve and rarity budgets matter more. That's the next pass.
+`abilityLadder` plays each on-court ability alone, at level 1, on every identity's career build for
+a slot (its own abilities removed), against team match 3's shape at that season's target. Mean
+point-win gain over the four identities, N=300 per cell, ±0.5-1:
+
+| ability                | rarity   | Club | Regional | Tour | World |
+| ---------------------- | -------- | ---- | -------- | ---- | ----- |
+| Pressure Cooker        | rare     | +1.3 | +1.2     | +1.7 | +2.1  |
+| All-Court Maestro      | rare     | +0.7 | +1.4     | +1.0 | +2.1  |
+| Speed Demon            | uncommon | +0.4 | +1.3     | +1.2 | +1.8  |
+| Serve Cannon           | uncommon | +1.1 | +1.2     | +1.3 | +1.2  |
+| Rangy Return           | common   | +1.0 | +1.7     | +1.3 | +1.1  |
+| Slider                 | common   | +0.4 | +0.8     | +0.9 | +1.5  |
+| Heavy Hitter           | common   | +0.8 | +0.6     | +0.7 | +0.9  |
+| Baseliner, Spin Master | common   | ~0   | +0.1-0.5 | ~0.2 | ~0.4  |
+| Netcrasher, Soft Hands | common   | ~0   | +0.3     | -0.3 | +0.3  |
+| Overhead Smash         | common   | 0    | 0        | 0    | 0     |
+
+- **Rarity now reads in the right order** at every season (rares and uncommons ahead of commons),
+  and the abilities the first research found dead (Slider, Speed Demon, All-Court Maestro) work.
+- **Changed:** Serve Cannon's serve speed 1.5 → 2.5 (it was +0.6-0.9, under an uncommon's budget),
+  and Pressure Cooker's perfect timing 14 → 10 (it reached +4-5 for the net rusher on the Tour).
+- **The shop opens a rarity per season** (`ABILITY_OFFER_WEIGHTS`): commons only at Club, uncommons
+  from Regional, rares from the Tour, as §5 of the progression plan has it. It used to sell rares
+  from day 7. This makes Club a little harder for a player who bought an uncommon or a rare there.
+- **Still weak:** Overhead Smash does nothing because overheads already win (their quality is at
+  the 100 cap). Baseliner, Netcrasher, Soft Hands and Spin Master are worth well under 1, even for the
+  builds they suit. Scaling their flat bonuses with the level was tried and changed nothing, so
+  they need new effects rather than bigger numbers. Clutch, Mental Fortitude and Iron Will act
+  through key moments, which this probe doesn't play (`mentalAbilityProbe` does, at Club).
+
+## Gear, the other XP sink
+
+Gear costs XP (`Math.pow(total boosts, 1.4) × 4`) and the shop sells every shop-listed piece from
+day 7, whatever the player's tier. The best kit from each tier's pool (racquet, shoes, outfit,
+hat, charm), on a player at that tier's level:
+
+| best kit from the pool of | adds       | costs    |
+| ------------------------- | ---------- | -------- |
+| Club                      | +1 OVR     | 172 XP   |
+| Regional                  | **+5 OVR** | 768 XP   |
+| Tour                      | +6 OVR     | 986 XP   |
+| World                     | +7 OVR     | 1,126 XP |
+
+A Club player earns about 850 XP by the end of the season, so a Regional kit (+5 OVR) is within
+reach before promotion. That's a third of a season's growth, and none of it is in the pacing:
+`careerSim` buys no gear, so the bands in §2.2 assume a player without any.
+
+Options, for a decision:
+
+- **G1. Sell gear from the player's tier pool and below**, as abilities now are. Club would sell
+  only Club gear (+1 OVR at most). Bronze was tuned by feel with every piece on sale, so this makes
+  Club harder for a player who shopped.
+- **G2. Count gear in the pacing.** Give the career model a gear buyer and re-measure the bands, so
+  opponents expect a kitted player.
+- **G3. Shrink the higher tiers' boosts** so a kit is worth +2-3 OVR at every tier and gear is about
+  style and fit more than power.
+
+G1 with G2 is the most honest: gear opens with the season like everything else, and the bands
+then count what a player can actually carry. With XP levels for abilities (above), gear and
+ability levels compete for the same XP, which is a real choice.
 
 ## Reproducing
 
 ```
+SLOT=regional-tm3 npx tsx src/test/analysis/abilityLadder.ts   # abilities in a season
 LEDGER=1 RUNS=10 DAYS=160 CHECK=160 npx tsx src/test/analysis/careerSim.ts
 TUNE='ABILITY_LEVEL_PRICE.xpOnlyFrom=1;ABILITY_LEVEL_PRICE.xpOnlyScale=2' PROBE=careerSim LEDGER=1 RUNS=10 DAYS=160 CHECK=160 npx tsx src/test/analysis/tuneRun.ts
 TUNE='ABILITY_LEVEL_PRICE.xpOnlyFrom=1;ABILITY_LEVEL_PRICE.xpOnlyScale=2' PROBE=careerSim PAR=1 RUNS=10 N=100 DAYS=152 CHECK=41,72,112,152 npx tsx src/test/analysis/tuneRun.ts

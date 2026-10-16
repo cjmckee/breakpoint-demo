@@ -453,10 +453,11 @@ the work is choosing which tier opens which, and what's new each season besides 
 
 Notes:
 
-- **Abilities.** There are 28: 10 common, 5 uncommon, 6 rare, 7 legendary. Rarity is inverted and
-  levels run away (`simulation-findings` §5). Fix that before Tour, where rares arrive.
-- **Gear.** The item pools for tiers 1-4 exist. Keep the four pools and rebuild their boosts
-  against §2.2.
+- **Abilities.** There are 28: 10 common, 5 uncommon, 6 rare, 7 legendary. Re-measured by season
+  in `xp-for-abilities.md`: rarity now reads in order, and the shop opens uncommons at Regional and
+  rares on the Tour (built). A few commons are still near zero.
+- **Gear.** The item pools for tiers 1-4 exist, but the shop sells every piece from day 7 and a
+  Regional kit is worth +5 OVR, outside the pacing. Options in `xp-for-abilities.md`.
 - **XP.** It buys shop items and levels, and ~600 sits unspent at the end of bronze. Under a
   repeated-season structure the simplest outlet is pricing gear and abilities by tier. Whether
   XP should also buy something new is open (§9).

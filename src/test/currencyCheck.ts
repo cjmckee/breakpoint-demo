@@ -294,6 +294,28 @@ function main(): void {
     stock.every((i) => i.category !== ('stat_increase' as string)),
     stock.map((i) => i.category).join(', '),
   );
+  const offeredRarities = (tier: 1 | 2 | 3 | 4): Set<string> => {
+    const seen = new Set<string>();
+    for (let day = 0; day < 200; day++) {
+      for (const item of generateDailyShopItems(new Map(), tier)) {
+        if (item.category === 'ability') seen.add(item.rarity);
+      }
+    }
+    return seen;
+  };
+  const club = offeredRarities(1);
+  const regional = offeredRarities(2);
+  const tour = offeredRarities(3);
+  check(
+    'the Club shop sells only common abilities',
+    [...club].join() === 'common',
+    [...club].join(),
+  );
+  check(
+    'Regional adds uncommons, and rares wait for the Tour',
+    regional.has('uncommon') && !regional.has('rare') && tour.has('rare'),
+    `regional ${[...regional].join()}, tour ${[...tour].join()}`,
+  );
 
   console.log('\n── match pay, line by line ──');
   let mismatches = 0;

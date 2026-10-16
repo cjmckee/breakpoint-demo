@@ -143,9 +143,6 @@ interface GameState {
   activeChallenges: Challenge[];
   completedChallenges: string[];
 
-  // Opponent tier progression
-  unlockedTiers: OpponentTier[];
-
   // Audio settings (persisted)
   audioSettings: AudioSettings;
 
@@ -177,7 +174,6 @@ interface GameState {
   advanceTime: () => void;
   rest: () => void;
   updateMood: (change: number) => void;
-  unlockNextTier: () => OpponentTier | null;
   exportSave: () => string;
   importSave: (jsonData: string) => boolean;
   clearAllData: () => void;
@@ -337,7 +333,6 @@ export const useGameStore = create<GameState>()(
       completedChallenges: [],
 
       // Opponent tier progression initial state
-      unlockedTiers: [1], // Start with only tier 1 unlocked
 
       audioSettings: {
         musicVolume: 0.5,
@@ -854,21 +849,6 @@ export const useGameStore = create<GameState>()(
         });
       },
 
-      // Unlock next tier (only if winning against current max unlocked tier)
-      unlockNextTier: () => {
-        const { unlockedTiers } = get();
-        const maxUnlocked = Math.max(...unlockedTiers);
-        const nextTier = (maxUnlocked + 1) as OpponentTier;
-
-        if (nextTier <= 4 && !unlockedTiers.includes(nextTier)) {
-          set({
-            unlockedTiers: [...unlockedTiers, nextTier].sort() as OpponentTier[],
-          });
-          return nextTier;
-        }
-        return null;
-      },
-
       // Export entire save as JSON string
       exportSave: (): string => {
         const state = get();
@@ -884,7 +864,6 @@ export const useGameStore = create<GameState>()(
           storyEventTriggerChance: state.storyEventTriggerChance,
           activeChallenges: state.activeChallenges,
           completedChallenges: state.completedChallenges,
-          unlockedTiers: state.unlockedTiers,
           shopItems: state.shopItems,
           audioSettings: state.audioSettings,
           eventRecovery: state.eventRecovery,
@@ -925,7 +904,6 @@ export const useGameStore = create<GameState>()(
             storyEventTriggerChance: data.storyEventTriggerChance || 40,
             activeChallenges: data.activeChallenges || [],
             completedChallenges: data.completedChallenges || [],
-            unlockedTiers: data.unlockedTiers || [1],
             shopItems: data.shopItems || [],
             audioSettings: data.audioSettings || {
               musicVolume: 0.7,
@@ -977,7 +955,6 @@ export const useGameStore = create<GameState>()(
           pendingRandomEvent: null,
           activeChallenges: [],
           completedChallenges: [],
-          unlockedTiers: [1],
           isInitialized: true,
           gamePhase: { type: 'player_creation' },
         });
@@ -3383,7 +3360,7 @@ export const useGameStore = create<GameState>()(
       refreshShop: () => {
         const { player } = get();
         const ownedLevels = new Map(player?.abilities.map((a) => [a.name, a.level]) ?? []);
-        const newItems = generateDailyShopItems(ownedLevels);
+        const newItems = generateDailyShopItems(ownedLevels, player?.tier ?? 1);
         set({ shopItems: newItems });
       },
 
@@ -3717,9 +3694,6 @@ export const useGameStore = create<GameState>()(
 
         // Note: Tournament state and scheduled events are now part of calendar
         // and are persisted automatically via state.calendar
-
-        // Opponent tier progression
-        unlockedTiers: state.unlockedTiers,
 
         // Shop state
         shopItems: state.shopItems,

@@ -284,8 +284,8 @@ function main(): void {
       migrated.relationships.jen === 30,
   );
   check(
-    'tier progression survives',
-    JSON.stringify(migrated.unlockedTiers) === JSON.stringify([1, 2]),
+    'the old tier-unlock list is dropped (player.tier is the tier)',
+    !('unlockedTiers' in migrated),
   );
   check('current status survives', migrated.currentStatus.energy === 62);
 
@@ -474,10 +474,6 @@ function main(): void {
     JSON.stringify(reset.currentStatus) === JSON.stringify(fresh.currentStatus),
   );
   check('reset shopItems is empty', reset.shopItems.length === 0);
-  check(
-    'reset unlockedTiers is just tier 1',
-    JSON.stringify(reset.unlockedTiers) === JSON.stringify([1]),
-  );
   check(
     "reset never carries the stale player's data forward",
     JSON.stringify(reset) !== JSON.stringify(stale),
