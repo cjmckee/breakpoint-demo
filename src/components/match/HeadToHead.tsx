@@ -5,7 +5,8 @@
  * names answered it only after the player cross-referenced them; mirrored bars
  * answer it at a glance. Each row is one core skill, your bar growing left from
  * the centre and theirs growing right, and whichever side is ahead is coloured.
- * The biggest gaps across all fourteen stats follow as chips.
+ * The two service contests lead (serviceContests): they are what holds and breaks
+ * are decided on. The biggest gaps across all fourteen stats follow as chips.
  */
 
 import React from 'react';
@@ -14,6 +15,7 @@ import { STAT_NAMES, getStat } from '../../game/StatDevelopment';
 import type { Appearance } from '../../types/appearance';
 import { PixelSprite } from '../sprites/PixelSprite';
 import { STAT_ICONS, formatStatName } from '../../config/statIcons';
+import { serviceContests, type Contest } from '../../core/serviceContests';
 
 const CORE_ROWS: Array<keyof CoreStats> = ['serve', 'forehand', 'backhand', 'return', 'net'];
 
@@ -47,6 +49,35 @@ function biggestEdges(
       .slice(0, EDGES_SHOWN),
   };
 }
+
+/** One mirrored row: the player's value and bar, the label, the opponent's bar and value. */
+const MirroredRow: React.FC<{
+  label: React.ReactNode;
+  ours: number;
+  theirs: number;
+  testId: string;
+}> = ({ label, ours, theirs, testId }) => {
+  const gap = ours - theirs;
+  const ahead = gap >= EVEN_WITHIN;
+  const behind = gap <= -EVEN_WITHIN;
+  return (
+    <div className="contents" data-testid={testId} data-gap={gap}>
+      <span
+        className={`text-right font-bold tabular-nums ${ahead ? 'text-pixel-success' : 'text-pixel-text-muted'}`}
+      >
+        {ours}
+      </span>
+      <Bar value={ours} side="left" tone={ahead ? 'bg-pixel-success' : 'bg-gray-500'} />
+      <span className="text-center text-pixel-text whitespace-nowrap">{label}</span>
+      <Bar value={theirs} side="right" tone={behind ? 'bg-pixel-error' : 'bg-gray-500'} />
+      <span
+        className={`font-bold tabular-nums ${behind ? 'text-pixel-error' : 'text-pixel-text-muted'}`}
+      >
+        {theirs}
+      </span>
+    </div>
+  );
+};
 
 const Bar: React.FC<{ value: number; side: 'left' | 'right'; tone: string }> = ({
   value,
@@ -83,6 +114,7 @@ export const HeadToHead: React.FC<HeadToHeadProps> = ({
   opponentAppearance,
 }) => {
   const edges = biggestEdges(playerStats, opponentStats);
+  const contests = serviceContests(playerStats, opponentStats);
   const overallGap = playerOverall - opponentOverall;
 
   return (
@@ -132,41 +164,44 @@ export const HeadToHead: React.FC<HeadToHeadProps> = ({
         </div>
       </div>
 
-      {/* Core skills, mirrored. One grid for every row, so the label column fits the
+      {/* Service contests, then core skills, mirrored. One grid for every row, so the label column fits the
           widest label and the bars still line up. */}
       <div className="grid grid-cols-[auto_minmax(1.5rem,1fr)_auto_minmax(1.5rem,1fr)_auto] items-center gap-x-2 gap-y-2 text-xs sm:text-sm">
-        {CORE_ROWS.map((stat) => {
-          const ours = playerStats.core[stat];
-          const theirs = opponentStats.core[stat];
-          const gap = ours - theirs;
-          const ahead = gap >= EVEN_WITHIN;
-          const behind = gap <= -EVEN_WITHIN;
-          return (
-            <div
-              key={stat}
-              className="contents"
-              data-testid={`head-to-head-${stat}`}
-              data-gap={gap}
-            >
-              <span
-                className={`text-right font-bold tabular-nums ${ahead ? 'text-pixel-success' : 'text-pixel-text-muted'}`}
-              >
-                {ours}
-              </span>
-              <Bar value={ours} side="left" tone={ahead ? 'bg-pixel-success' : 'bg-gray-500'} />
-              <span className="text-center text-pixel-text whitespace-nowrap">
+        {/* On your serve: your serve against their return; on theirs, the reverse. */}
+        {(
+          [
+            ['serve', 'On serve', contests.serve],
+            ['return', 'On return', contests.return],
+          ] as Array<['serve' | 'return', string, Contest]>
+        ).map(([key, label, contest]) => (
+          <MirroredRow
+            key={key}
+            testId={`head-to-head-contest-${key}`}
+            ours={contest.mine}
+            theirs={contest.theirs}
+            label={
+              <>
+                <span aria-hidden="true">{STAT_ICONS[key]} </span>
+                {label}
+              </>
+            }
+          />
+        ))}
+        <div className="col-span-5 border-t-2 border-pixel-border" aria-hidden="true" />
+        {CORE_ROWS.map((stat) => (
+          <MirroredRow
+            key={stat}
+            testId={`head-to-head-${stat}`}
+            ours={playerStats.core[stat]}
+            theirs={opponentStats.core[stat]}
+            label={
+              <>
                 <span aria-hidden="true">{STAT_ICONS[stat]} </span>
                 {formatStatName(stat)}
-              </span>
-              <Bar value={theirs} side="right" tone={behind ? 'bg-pixel-error' : 'bg-gray-500'} />
-              <span
-                className={`font-bold tabular-nums ${behind ? 'text-pixel-error' : 'text-pixel-text-muted'}`}
-              >
-                {theirs}
-              </span>
-            </div>
-          );
-        })}
+              </>
+            }
+          />
+        ))}
       </div>
 
       {/* Under the opponent's column, so the header holds only names and ratings and both
