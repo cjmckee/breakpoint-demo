@@ -17,6 +17,7 @@ export type MinigameId =
   | 'corner_paint' // backhand
   | 'read_return' // return
   | 'touch_slice' // net (reuses the touch minigame until a net-specific one exists)
+  | 'split_step' // react to an arrow, then mash: Power + Quickness
   | 'fishing_cast'; // story-only: five casts at the fish, no tennis involved
 
 /**
