@@ -6,7 +6,8 @@ practice roster and the promotion playoff. What's left is content. Design and pa
 [`mid-late-progression.md`](./mid-late-progression.md).
 
 The season is drafted in `src/data/seasons/regional.ts` and listed in `DRAFT_SEASONS`, so nothing
-is scheduled yet. A player promoted today gets an empty season rather than a half-written one.
+is scheduled yet. Until it is registered, the game ends after Club: once `thanks_for_playing` has
+played, a promoted player gets the end screen rather than a half-written season.
 `npx tsx src/test/seasonCheck.ts` prints which beats are still to write. When they all exist,
 move `REGIONAL_SEASON` into `SEASON_SCHEDULES` (`src/data/seasons/index.ts`).
 
@@ -128,16 +129,24 @@ SLOT=regional-tm3 ONLY="marcus cole" FIT=1 npx tsx src/test/analysis/bandCheck.t
 
 Targets are effective OVR, not written OVR. A flat all-courter is written about 4 above its
 target, and a serve-volleyer 2-3 below. The win % per identity in the output shows who an
-opponent is hard for. By mid-Regional the spread is already wide: a TM3-strength aggressive
-opponent is 93% for the net rusher and 25% for the baseliner (§2.3). Pick archetypes across the
-season so no single identity meets five walls in a row.
+opponent is hard for: the same opponent can be a wall for one identity and easy for another
+(`mid-late-progression.md` §2.3). Pick archetypes across the season so no single identity meets
+five walls in a row.
 
 ## Before registering the season
 
 1. `npx tsx src/test/seasonCheck.ts`: no beats left to write, and the playoff passes.
-2. `npx tsx src/test/analysis/bandCheck.ts ONLY=regional`: every opponent on band.
+2. `ONLY=regional npx tsx src/test/analysis/bandCheck.ts`: every opponent on band.
 3. `npx tsx src/test/spriteCheck.ts`: every new character has a look and `plays`.
-4. Tag the Club's random events that shouldn't follow you up with `tier: { max: 1 }`
-   (`mid-late-progression.md` §7).
-5. Move `REGIONAL_SEASON` into `SEASON_SCHEDULES`, then play it: an end-of-Club save, promoted,
-   through a team match, the final and a lost playoff.
+4. Every Club event is already Club-only (`seasonCheck` enforces it). Tag any that should follow
+   you to Regional with `tier: { max: 2 }`.
+5. Move the end of the game to the end of Regional:
+   - Move `REGIONAL_SEASON` into `SEASON_SCHEDULES`.
+   - Point `CONTENT_END_EVENT` (`src/data/seasons/index.ts`) at Regional's last event, so the game
+     ends after Regional instead of after Club. Today's `thanks_for_playing` then needs replacing
+     with a normal Club-to-Regional handover.
+   - Update the end screen's copy (`src/components/ContentEnd.tsx`), which says Regional is coming.
+6. Re-record the season-start saves (`RECORD_SAVES=1 npx playwright test e2e/recordSaves.spec.ts
+--project=chromium`). Registering the season re-arms `regionalSoak.spec.ts` and the recorder,
+   and `contentEnd.spec.ts` skips itself until it is pointed at the new last event.
+7. Play it: an end-of-Club save, promoted, through a team match, the final and a lost playoff.

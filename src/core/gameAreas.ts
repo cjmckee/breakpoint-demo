@@ -8,10 +8,11 @@
  * defender weights (SHOT_COMPOSITE_WEIGHTS, OPPONENT_STAT_ADJUSTMENTS), plus
  * stamina (fatigue) and focus (pressure and momentum), which act across the match.
  *
- * Measured with areaProbe (random builds, each stat drawn independently): the
+ * Measured on random builds, each stat drawn independently against one flat opponent: the
  * five areas explain 88-89% of the spread in point-win between builds at levels 45
  * and 70, against 91-92% for all fourteen stats. The two service contests alone
- * explain 55-60%, so they can't stand in for the match.
+ * explain 55-60%, so they can't stand in for the match. statLadder re-measures it
+ * on every run, with both players random and specialties on (the "pre-match card" line).
  */
 
 import type { PlayerStats, StatName } from '../types';
@@ -55,7 +56,7 @@ export const GAME_AREA_WEIGHTS: Record<GameArea, Weights> = {
   // the ball away.
   net: { net: 0.6, speed: 0.15, anticipation: 0.1, placement: 0.1, strength: 0.05 },
   // Getting to the ball, and still getting there late in a long match. Weighting
-  // stamina and focus here measured best (areaProbe): they act on every point.
+  // stamina and focus here measured best: they act on every point.
   coverage: { speed: 0.3, anticipation: 0.2, stamina: 0.3, focus: 0.2 },
 };
 

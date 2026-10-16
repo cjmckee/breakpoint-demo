@@ -2,8 +2,8 @@
  * Ability Ladder — what is each on-court ability worth in each season, and is
  * its rarity what it's worth?
  *
- * abilityProbe prices abilities on day-23 Club builds. Rares are sold from the
- * shop's first day, and from Regional on they are what a career buys, so this
+ * abilityProbe prices abilities on day-23 Club builds. The shop opens uncommons
+ * at Regional and rares on the Tour (ABILITY_OFFER_WEIGHTS), so this
  * measures them where they are used: each identity's career build on a slot's
  * day (careerBuilds.json, as bandCheck plays it, with the career's own
  * abilities removed) against team match 3's stat shape moved to the slot's

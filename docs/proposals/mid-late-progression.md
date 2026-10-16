@@ -1,12 +1,16 @@
 # Mid-to-late progression: Regional, Tour and World
 
-**Status:** structure agreed (§0). The season template (§3) and pacing bands (§2) are proposals
-waiting on review. The open questions are in §9.
+**Status:** structure agreed (§0), and the groundwork for it is built: season files and seasons
+in the calendar (§3.4), promotion playoffs (§3.3), venues (§5.1), silver training (§4.1), the
+specialty cap by season, rosters rebuilt to the bands (§2.4), bandCheck and the Regional saves
+and soak (§8). Until Regional is written the game ends after Club, at an end screen (§3.4).
+Still to build: gold training partners (§4.2), scouting (§5) and best-of-five (§7.6). The open
+questions are in §9.
 **Scope:** everything after the Riverside Open: how the three tiers above Club are structured,
 how fast the player grows through them, what silver and gold training are, and where content
 goes. This doc does not write any content. It names the slots that content goes into.
 **Ground rule:** anything above bronze can be wiped. That covers the tier 2-4 rosters, item tier
-pools, drop rates, and the `TrainingSessionTier` values nothing uses yet.
+pools, drop rates, and the gold training tier, which nothing uses yet.
 
 ---
 
@@ -39,13 +43,13 @@ is wanted later.
    tier (×2/×3) maxes key stats in the middle of Tour, and ×1.5/×2/×2.5 by the end of Tour. Gains
    taper by tier (+21, +15, +10 key stat points), so new systems carry the late-game feeling of
    progress (§5).
-3. **The existing tier 2-4 rosters are a cliff.** The player leaves bronze at ~OVR 40 against a
-   Jordan of 46. The tier 2 practice roster is 56-57, tier 3 is 66-69 and tier 4 is 81-85.
-   Rebuild them against the bands in §2.2.
+3. **The tier 2-4 rosters were a cliff (rebuilt, §2.4).** The player leaves bronze at ~OVR 40
+   against a Jordan of 46, and the tier 2 practice roster was 56-57, tier 3 66-69 and tier 4
+   81-85. They are rebuilt against the bands in §2.2.
 4. **Retrying is a promotion playoff, not a replayed tournament (§3.3).** Lose the tier-final
    and a named playoff opponent is scheduled a few days later. Win, you're promoted. Lose, it
    comes round again. The player keeps growing in between, so the playoff is always eventually
-   won. It needs one engine change: story events can't fire twice today.
+   won. It needed one engine change, now built: `repeatable` lets a story event fire again.
 5. **Seasons are data, and the calendar counts them (§3.4, built).** Each season is a file of
    beats on season days, scheduled when a promotion starts it, so Regional is written exactly
    like bronze ("day 15: first team match"). The 90-day reset is gone. Story events can be gated
@@ -62,7 +66,8 @@ is wanted later.
 9. **Identities drift apart as stats rise (§2.3).** At promotion the four identities play within
    ±3 OVR of their rating. By the end of Tour the net rusher plays 10-12 points above its OVR and
    the baseliner 10-12 below. That is the bronze-era baseliner trap growing with the stat range.
-   It has to be fixed before Tour opponents can be balanced for everyone.
+   It had to be fixed before Tour opponents could be balanced for everyone, and it was: the
+   identity drift package is the game's default (`identity-drift-fixes.md`).
 
 ---
 
@@ -72,13 +77,15 @@ is wanted later.
 
 | days  | what happens                                                                                                                                      |
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1-7   | tutorial chain, one scheduled event per morning (`gameStore.createPlayer`)                                                                        |
+| 1-7   | tutorial chain, one scheduled event per morning                                                                                                   |
 | 8-12  | rival encounter, club team intro, coach, archetype pick, first practice                                                                           |
 | 13-31 | five team matches on days 15, 19, 23, 27, 31. Each announcement fires two days before its match                                                   |
 | 33-39 | Riverside Open prep, then the ceremony, then four rounds with a winner and a loser bracket                                                        |
 | 40-43 | a winner gets `thanks_for_playing` the next day. A loser gets the consolation promotion three days after the last round. Both set `tierChange: 2` |
 
-The whole spine is scheduled by absolute day in `createPlayer`. Random events (40% trigger
+`thanks_for_playing` is the last event written, and the game ends after it (§3.4). The spine was
+scheduled by absolute day in `createPlayer` when this was measured; it is now the Club season
+file (`src/data/seasons/club.ts`). Random events (40% trigger
 chance) and hangouts fill the gaps. In a bot career that lost in round 2, the tournament ended on
 day 39 and the promotion was queued for day 42.
 
@@ -102,14 +109,14 @@ From `careerSim LEDGER=1 RUNS=30 DAYS=31` on the current economy:
 
 Opponent OVR, for the ladder:
 
-| opponents               | OVR                         |
-| ----------------------- | --------------------------- |
-| tier 1 practice (base)  | 26-29, +2 per win up to +20 |
-| team matches 1-5        | 29, 34, 36, 38, 41          |
-| Riverside R1-R4         | 36, 39, 44, 46              |
-| tier 2 practice (today) | 56-57                       |
-| tier 3 practice (today) | 66-69                       |
-| tier 4 practice (today) | 81-85                       |
+| opponents              | OVR                         |
+| ---------------------- | --------------------------- |
+| tier 1 practice (base) | 26-29, +2 per win up to +20 |
+| team matches 1-5       | 29, 34, 36, 38, 41          |
+| Riverside R1-R4        | 36, 39, 44, 46              |
+| tier 2 practice (old)  | 56-57                       |
+| tier 3 practice (old)  | 66-69                       |
+| tier 4 practice (old)  | 81-85                       |
 
 ---
 
@@ -153,8 +160,10 @@ practice matches, with the patient spender and abilities on (20 careers per iden
 - **Any new pay source has to come out of this budget.** Sponsors, partners and prize money all
   push key stats to 100 sooner. Where one is added, take the same amount from somewhere else,
   or raise the step.
-- **Ability prices** (`ABILITY_PRICES`) are flat units and stay flat. Against dearer stats they
-  get relatively cheaper each tier, which is fine: late-game growth should lean on them.
+- **Ability prices** (`ABILITY_PRICES`: units in the ability's currency, plus XP) don't change by
+  tier. Against dearer stats they get relatively cheaper each tier, which is fine: late-game
+  growth should lean on them. Paying for levels in XP alone is measured in `xp-for-abilities.md`
+  and is off by default (`ABILITY_LEVEL_PRICE.xpOnlyFrom`).
 
 One thing this does change: training numbers on screen don't grow. A Tour session pays what a
 Club session pays, and buys a third as much. If that feels flat, the fix is presentational
@@ -189,13 +198,14 @@ so the bands stand.
 | Club     | 20 → 41             | 46-52         | 29, 34, 36, 38, 41 | 36, 39, 44, 46           | none    | 26-29         |
 | Regional | 42 → 56             | 70-75         | 48, 50, 52, 54, 56 | 51, 54, 58, 60           | ~57     | 42-45         |
 | Tour     | 56 → 66             | 86-90         | 60, 62, 64, 66, 67 | 61, 64, 68, 70           | ~67     | 56-59         |
-| World    | 66 → 77             | 97-100        | 70, 72, 74, 76, 77 | 72, 75, 77, 79, 81 (BO5) | rematch | 66-69         |
+| World    | 66 → 77             | 97-100        | 70, 72, 74, 76, 77 | 72, 75, 77, 79, 81 (BO5) | 81      | 66-69         |
 
 - Each new tier opens below the last tier-final (Regional TM1 at 48, against Jordan's 46 plus
   the days in between), so promotion is a step up, not a wall.
 - These are averages across identities, which hides the problem in §2.3.
-- Specialty tiers II/III and abilities aren't in OVR. The probe's careers buy abilities, but
-  stay on tier I specialties. Re-measure once tier II is in the sim.
+- Specialty tiers II/III and abilities aren't in OVR. bandCheck raises each career's specialties
+  to the season's cap; careerSim's par still plays them at tier I.
+- The World playoff is the final's rematch, so its target is the last round's.
 
 ### 2.3 Identities drift apart as stats rise
 
@@ -218,7 +228,9 @@ fair yardstick for the stat line.
 cap (II at Regional, III from the Tour) the net rusher's package is still worth far more than the
 counter's or the baseliner's. Against an on-band team match 3 (`venueProbe SLOT=regional-tm3`)
 the net rusher wins 63% of points and the counter and baseliner 39%, and the gap holds through
-World. See "What's left" in `identity-drift-fixes.md`.
+World. See "What's left" in `identity-drift-fixes.md`: specialty parity has since narrowed every
+path's worth at tier III to 4.8-6.2 points of point-win. What remains of the net rusher's lead is
+tier I approach bonuses that Club's serve-volley opponents share, so closing it changes Club.
 
 ### 2.4 The rosters
 
@@ -229,8 +241,9 @@ play within 2 of their band. Written OVRs run 42-46 at Regional, 56-63 on the To
 World, because a flat all-courter plays about 4-7 below its OVR and a serve-volleyer 2-6 above.
 
 `bandCheck` also shows identity drift (§2.3) on real builds. Against the Tour and World rosters
-the net rusher wins 90-100% and the baseliner 0-30%. Regional is fine (27-68%). Fix this before
-writing Tour opponents.
+the net rusher won 90-100% and the baseliner 0-30%, before the drift package and specialty parity.
+Regional was fine (27-68%). Re-run bandCheck against the current builds before writing Tour
+opponents.
 
 The original plan: wipe `TIER_2_OPPONENTS` and up and rebuild against the bands above. Keep the five-archetype
 shape per tier, since key moments are tuned on that variety. Also give the rebuilt rosters:
@@ -340,8 +353,8 @@ opponent, with rematch dialogue, through the same machinery. The ending is the w
   export const REGIONAL_SEASON: SeasonSchedule = {
     tier: 2,
     beats: [
-      { day: 1, slot: TimeSlot.MORNING, storyEventId: 'regional_opener' },
-      { day: 13, slot: TimeSlot.MORNING, storyEventId: 'regional_team_match_1_scheduled' },
+      { day: 1, slot: TimeSlot.MORNING, storyEventId: 'regional_season_opener' },
+      { day: 13, slot: TimeSlot.MORNING, storyEventId: 'regional_tm1_scheduled' },
       // ...
     ],
   };
@@ -352,6 +365,12 @@ opponent, with rematch dialogue, through the same machinery. The ending is the w
   has a season file, its beats are scheduled then.
 - **The number of team matches is just how many announcements the file lists,** so cutting a
   season to three is a data change.
+- **Drafts and the end of the game.** A season laid out but not written sits in `DRAFT_SEASONS`
+  and is never scheduled (Regional is there now). Once `CONTENT_END_EVENT` (`thanks_for_playing`)
+  has played, a player whose tier has no season in `SEASON_SCHEDULES` gets the end screen instead
+  of the menu (`SeasonManager.contentEnded`, `ContentEnd`). Moving a season into
+  `SEASON_SCHEDULES` lifts it; point `CONTENT_END_EVENT` at the new season's last event at the
+  same time, so the game then ends after that season.
 
 Writing a season is now: write the events, list the first event of each chain in the season
 file. The `story-flow-manager` skill can wire the chains.
@@ -361,7 +380,7 @@ file. The `story-flow-manager` skill can wire the chains.
 ## 4. Silver and gold training
 
 What exists: five anchors, each a minigame. Three reps, a speed ramp, and a payout of the
-anchor's mix × (reps + 1). `sessionTier` is hard-coded to `'bronze'`. The minigame API already
+anchor's mix × (reps + 1). The session tier comes from the player's tier (§4.1). The minigame API already
 takes `rounds`, `speedRamp` and `maxScore`. The code notes "DR via cost scaling is deferred".
 
 Rule: each tier's training adds **one new decision**, not a bigger number. Pay stays flat (§2.1),
@@ -543,10 +562,11 @@ That's about 180 events and 30 named opponents for the three seasons. Ways to cu
 - **Loser-bracket prematch events.** These are 4 of the 20 tier-final events. They could become
   one generic line per round.
 - **Storyline beats** can thin out at World, which is short on purpose.
-- **Random misc events** need tier gating (§7.2), but not new content. Bronze's work at Regional
-  if they're tagged `max: 2`.
+- **Random misc events** need no new content. Every event in today's files is gated to Club
+  (§7.2); tag one `tier: { max: 2 }` to let it follow the player to Regional.
 
-Where today's events go:
+Where today's events go. All of them are Club-only now (§7.2), so moving one means giving it its
+own `tier`:
 
 - `sponsor_first_offer` (day 15, 3 wins) and `media_interview` (day 20, 5 wins) fire in bronze
   today. They fit Regional.
@@ -564,15 +584,16 @@ Ordered by how badly they would bite.
 2. ~~**Story events have no tier prerequisite.**~~ Added: `prerequisites.tier: { min, max }`.
    **Done:** everything written so far is the Club season's, so every event in today's files is
    gated `max: 1` where the files are combined (`src/data/storyEvents/index.ts`), except the end
-   card after promotion. `seasonCheck` fails if an event is left ungated. That includes the
+   card after promotion, which is also where the game ends for now (§3.4). `seasonCheck` fails if an event is left ungated. That includes the
    random flavour events and the hangouts: Regional has none until its own are written.
 3. ~~**Events only fire once.**~~ `repeatable: true` lets an event fire again by id (scheduled or
    chained). Random rolls still take it once. Tournaments still play once
    (`completedTournaments`), which is fine as long as the retry is a playoff and not a replay.
 4. ~~**Training has no tier.**~~ Fixed with silver training (§4.1).
-5. **Dead tier state.** Nothing calls `unlockedTiers`/`unlockNextTier`. `player.tier` is the real
-   gate. Delete it while touching tiers.
-6. **BO5 isn't plumbed** through story and tournament types (§5).
+5. ~~**Dead tier state.**~~ Removed: `unlockNextTier` is gone, and save version 16 drops
+   `unlockedTiers`. `player.tier` is the gate.
+6. **BO5 isn't plumbed.** `matchFormat` allows only best-of-one and best-of-three in the story,
+   team match and game phase types (§5).
 7. **`progress.ts` is stale.** It says tiebreaks are missing, but `ScoreTracker` plays them.
 8. ~~**Regional opened specialty tiers II and III together.**~~ The upgrade only checked
    `player.tier <= 1`. Fixed: the cap is `maxSpecialtyTier(player.tier)`, and the Specialties tab
@@ -583,9 +604,10 @@ Ordered by how badly they would bite.
 ## 8. How we would test it
 
 - **The pacing probe** (done, §2.1-2.3): `careerSim PAR=1`, with `TIER_PAY` to try a
-  multiplier. It still models the time after bronze as training and practice only. Give it each
-  season's calendar (team matches, the tier-final) and specialty tier II/III once those are
-  decided, then re-run §2.2.
+  multiplier, and `GEAR=all|tier` to let the modelled player buy shop gear with XP
+  (`xp-for-abilities.md`). It still models the time after bronze as training and practice only.
+  Give it each season's calendar (team matches, the tier-final) and specialty tier II/III once
+  those are decided, then re-run §2.2.
 
   ```
   PAR=1 RUNS=20 N=150 DAYS=120 CHECK=15,23,31,41,48,56,64,72,81,88,96,104,112,120 \
@@ -630,7 +652,8 @@ Ordered by how badly they would bite.
    Who comes onto the Tour is still open.
 2. ~~**The playoff safety net.**~~ Decided: none. The opponent stays the same; the days between
    attempts are for training.
-3. **XP.** Direction: explore XP as a currency for abilities, on top of what they cost today.
-   Measured in `xp-for-abilities.md`.
+3. **XP.** Abilities already cost XP as well as currency. Paying for later levels in XP alone is
+   measured in `xp-for-abilities.md` and built as a config option, off by default
+   (`ABILITY_LEVEL_PRICE.xpOnlyFrom`). Whether to turn it on, and at what price, is open.
 4. **Doubles.** In scope ever? `rival_doubles_disaster` hints at it, but it is a simulation
    rewrite.

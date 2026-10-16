@@ -2,10 +2,10 @@
  * Anchor Training System
  *
  * The player picks a CORE stat to "anchor" a session on, then plays that shot's
- * themed minigame. The session pays training currency: a base amount plus more
- * per clean rep, mostly in the anchor's recipe currencies (serve pays Power,
- * return pays Quickness), with a general share and a Mind share on top. Stats
- * are bought with it on the Development screen.
+ * themed minigame. The session pays training currency: the anchor's mix
+ * (TRAINING_MIXES: serve pays Power and Mind, backhand Technique and Quickness)
+ * once, plus once more per clean rep. From silver, a focus swaps the mix's
+ * secondary currency. Stats are bought with it on the Development screen.
  *
  * Pure logic, no React. Produces a TrainingResult for gameStore.applyTrainingResult().
  * Rates: config/economy.ts. Payout: CurrencyIncome.trainingPayout.
