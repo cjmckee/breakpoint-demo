@@ -1206,7 +1206,9 @@ with an accent border and a check (`PixelCheckbox`), not a light fill. Wrap hove
   colour. The colour is a cue only; the icon and name carry the section.
 - The five areas of the game go by one name each (`GAME_AREA_LABELS` in `src/core/gameAreas.ts`):
   Serving, Returning, Baseline, Netplay, Coverage.
-- Small icons are pixel grids (`src/data/pixelIcons.ts`) drawn with `<PixelIcon>`, not emoji.
+- Small icons are pixel grids (`src/data/pixelIcons.ts`) drawn with `<PixelIcon>`, not emoji: one
+  colour (`#`) for section and drill icons, `ICON_PALETTE` symbols for the menu's actions. Draw
+  them at whole multiples of the grid so they stay crisp; `spriteCheck` validates every grid.
 
 **Show comparisons and costs, don't describe them.** Use bars, chips, icons and
 before→after previews over sentences: head-to-head bars rather than two stat lists,

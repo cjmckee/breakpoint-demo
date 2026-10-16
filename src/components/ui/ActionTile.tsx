@@ -10,7 +10,8 @@ import { audioManager } from '../../audio/AudioManager';
 import { UnseenBadge } from './UnseenBadge';
 
 interface ActionTileProps {
-  icon: string;
+  /** A pixel icon (MENU_ICONS), or an emoji. */
+  icon: React.ReactNode;
   label: string;
   /** Status line under the label: cost, gain, or reason unavailable */
   caption?: string;

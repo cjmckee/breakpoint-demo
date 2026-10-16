@@ -1,5 +1,6 @@
 /**
- * Draws a pixel grid (src/data/pixelIcons.ts) as a crisp SVG in one colour.
+ * Draws a pixel grid (src/data/pixelIcons.ts) as a crisp SVG. `#` takes `color`;
+ * any other symbol takes its colour from `palette`, for the multi-colour icons.
  * Decorative: whatever it sits beside names the thing.
  */
 
@@ -10,8 +11,10 @@ interface PixelIconProps {
   grid: PixelGrid;
   /** Screen pixels per grid pixel. */
   scale?: number;
-  /** Any CSS colour; defaults to the surrounding text colour. */
+  /** The colour of `#`: any CSS colour, by default the surrounding text colour. */
   color?: string;
+  /** Colours for the other symbols, by symbol (ICON_PALETTE). */
+  palette?: Readonly<Record<string, string>>;
   className?: string;
 }
 
@@ -19,6 +22,7 @@ export const PixelIcon: React.FC<PixelIconProps> = ({
   grid,
   scale = 2,
   color = 'currentColor',
+  palette,
   className = '',
 }) => {
   const width = grid[0]?.length ?? 0;
@@ -35,7 +39,16 @@ export const PixelIcon: React.FC<PixelIconProps> = ({
     >
       {grid.flatMap((row, y) =>
         [...row].map((ch, x) =>
-          ch === '#' ? <rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} /> : null,
+          ch === '.' ? null : (
+            <rect
+              key={`${x}-${y}`}
+              x={x}
+              y={y}
+              width={1}
+              height={1}
+              fill={ch === '#' ? undefined : palette?.[ch]}
+            />
+          ),
         ),
       )}
     </svg>
