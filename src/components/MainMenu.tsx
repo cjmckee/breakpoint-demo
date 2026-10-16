@@ -420,9 +420,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
               </div>
             </div>
 
-            {/* Rating + area grades — ml-auto keeps this right-justified when it wraps
-                to its own line on narrow viewports */}
-            <div className="flex items-center gap-4 sm:gap-5 ml-auto">
+            {/* Rating + area grades — a line of its own, the full width of the card, so
+                the five grades get the room to read at a glance. */}
+            <div className="flex items-center gap-4 sm:gap-6 w-full">
               <div className="flex flex-col items-center">
                 <span className="text-4xl sm:text-5xl font-bold text-pixel-accent leading-none">
                   {overallRating}
@@ -431,9 +431,10 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                   Overall
                 </span>
               </div>
-              {/* Phones: two columns of name · letter rows. Wider: five tiles, letter on top. */}
+              {/* Phones: two columns of name · letter rows. Wider: five tiles sharing the
+                  width, letter on top. */}
               <div
-                className="grid grid-cols-2 gap-x-2 gap-y-1 sm:flex sm:gap-2"
+                className="flex-1 grid grid-cols-2 gap-x-2 gap-y-1 sm:grid-cols-5 sm:gap-3"
                 data-testid="menu-areas"
               >
                 {GAME_AREAS.map((area) => {
@@ -443,13 +444,13 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                       key={area}
                       data-testid={`menu-area-${area}`}
                       data-grade={grade}
-                      className="flex items-center justify-between gap-2 bg-pixel-bg border-2 border-pixel-border px-2 py-1 sm:flex-col-reverse sm:justify-center sm:gap-1 sm:py-1.5 sm:w-[5.5rem]"
+                      className="flex items-center justify-between gap-2 bg-pixel-bg border-2 border-pixel-border px-2 py-1 sm:flex-col-reverse sm:justify-center sm:gap-1.5 sm:py-2"
                     >
-                      <span className="text-[8px] text-pixel-text-muted">
+                      <span className="text-[8px] sm:text-[10px] text-pixel-text-muted">
                         {GAME_AREA_LABELS[area]}
                       </span>
                       <span
-                        className="text-base sm:text-lg font-bold leading-none"
+                        className="text-base sm:text-2xl font-bold leading-none"
                         style={{ color }}
                       >
                         {grade}
