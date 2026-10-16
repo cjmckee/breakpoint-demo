@@ -28,7 +28,7 @@
  *           and AnchorTrainingSystem pays +1 core, +1 per rep from the pool.
  *           Story, challenges and the shop arrive as OTHER_PER_DAY stat points
  *           spread like authored content (statIncome.ts).
- * currency  Each slot offers three of the six drills (TrainingSystem.trainingOffer).
+ * currency  Each slot offers four of the six drills (TrainingSystem.trainingOffer).
  *           The player picks the offered drill that pays most of what its next
  *           few purchases are short of, leaning to its identity's drills (ADAPT
  *           of the time; otherwise a favourite if one is offered, else any).

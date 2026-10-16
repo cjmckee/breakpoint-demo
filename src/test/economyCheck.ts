@@ -235,7 +235,7 @@ function main(): void {
     );
   }
 
-  console.log('\n── each time slot offers three drills ──');
+  console.log('\n── each time slot offers four of the six drills ──');
   {
     const offer = trainingOffer('p1', 12, TimeSlot.AFTERNOON).map((o) => o.drill);
     check(
@@ -281,8 +281,8 @@ function main(): void {
     );
     const worst = Math.max(...Object.values(missing)) / slots.length;
     check(
-      'a slot offers every currency all but about one time in twenty',
-      worst < 0.08,
+      'every slot offers every currency',
+      worst === 0,
       Object.entries(missing)
         .map(([c, n]) => `${c} missing ${((n / slots.length) * 100).toFixed(1)}%`)
         .join(', '),

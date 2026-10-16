@@ -330,7 +330,7 @@ async function step(
       // Quick Sim rather than the minigame: it banks a guaranteed support without
       // depending on reflexes, which is what a soak run wants. The minigames
       // themselves are covered by trainingMinigame.spec.ts.
-      // The slot offers three drills; take them in turn so the pay stays mixed.
+      // The slot offers four drills; take them in turn so the pay stays mixed.
       const cards = page.locator('[data-testid="training-offer"] [data-drill]');
       const offered = await cards.count();
       const tile = cards.nth(nextPick() % Math.max(1, offered));
