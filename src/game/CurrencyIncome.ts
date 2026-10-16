@@ -179,8 +179,8 @@ function poolLines(perf: PerformanceRewardBreakdown, p: MatchRates): PayoutLine[
 }
 
 /**
- * A match pays its result's base (a loss 2 of each currency and 5 Mind, a win
- * 3 and 6) plus a performance pool of pool × overall/100, split by how each
+ * A match pays its result's base (MATCH_PAYOUT: a loss 3 Power, 1 Quickness,
+ * 3 Technique and 4 Mind, a win one more of each) plus a performance pool of pool × overall/100, split by how each
  * area went: a good serving day pays in Power, which buys serve.
  */
 export function matchPayout(

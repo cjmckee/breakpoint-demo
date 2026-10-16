@@ -12,7 +12,7 @@
  */
 
 import type { Player } from '../types/game';
-import { ABILITY_CURRENCY, CURRENCIES, STAT_RECIPES } from '../config/economy';
+import { ABILITY_CURRENCY, CURRENCIES, MATCH_PAYOUT, STAT_RECIPES } from '../config/economy';
 import { ABILITY_DEFINITIONS } from '../data/abilities';
 import { abilityPrice, generateDailyShopItems } from '../game/ShopSystem';
 import { PlayerManager } from '../game/PlayerManager';
@@ -204,17 +204,17 @@ function main(): void {
   };
   const lostFlat = matchPayout({ ...perf, overallScore: 0 }, false);
   check(
-    'a loss with no performance still pays 2 of each currency and 5 Mind',
-    lostFlat.power === 2 &&
-      lostFlat.quickness === 2 &&
-      lostFlat.technique === 2 &&
-      lostFlat.mind === 5,
+    'a loss with no performance still pays some of every currency: 3 Power, 1 Quickness, 3 Technique, 4 Mind',
+    lostFlat.power === 3 &&
+      lostFlat.quickness === 1 &&
+      lostFlat.technique === 3 &&
+      lostFlat.mind === 4,
     JSON.stringify(lostFlat),
   );
   const wonFlat = matchPayout({ ...perf, overallScore: 0 }, true);
   check(
-    'a win raises the base to 3 of each and 6 Mind',
-    wonFlat.power === 3 && wonFlat.quickness === 3 && wonFlat.technique === 3 && wonFlat.mind === 6,
+    'a win raises the base by one of each',
+    wonFlat.power === 4 && wonFlat.quickness === 2 && wonFlat.technique === 4 && wonFlat.mind === 5,
     JSON.stringify(wonFlat),
   );
   const match = matchPayout(perf, true);
@@ -356,7 +356,7 @@ function main(): void {
   check(
     'the base is its own line, named for the result, and a scoreless area has none',
     serveOnly[0].label === 'Lost match' &&
-      serveOnly[0].amounts.mind === 5 &&
+      serveOnly[0].amounts.mind === MATCH_PAYOUT.base.lost.mind &&
       !serveOnly.some((l) => l.label === 'Returning'),
     JSON.stringify(serveOnly),
   );

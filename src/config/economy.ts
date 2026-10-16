@@ -80,11 +80,15 @@ export const TRAINING_MIXES: Record<DrillId, CurrencyAmounts> = {
  * mental → Mind). The base means every match pays some of every currency; the
  * pool means how you played still decides most of the difference. Amounts are
  * literal units — INCOME_SCALE does not apply.
+ *
+ * The base leans to Mind, which matches are where the mental game pays, and is
+ * light on Quickness, which three drills already pay: measured with careerSim on
+ * the drill roll, a heavier Quickness base left Power builds holding 35-45 of it.
  */
 export const MATCH_PAYOUT = {
   base: {
-    lost: { power: 2, quickness: 2, technique: 2, mind: 5 },
-    won: { power: 3, quickness: 3, technique: 3, mind: 6 },
+    lost: { power: 3, quickness: 1, technique: 3, mind: 4 },
+    won: { power: 4, quickness: 2, technique: 4, mind: 5 },
   },
   pool: 20,
 };

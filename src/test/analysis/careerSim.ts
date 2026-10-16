@@ -35,8 +35,8 @@
  *           Training pays the drill's mix (TRAINING_MIXES) × (reps + 1). Story and challenges pay the same stat
  *           points as today through each stat's recipe; the shop no longer sells
  *           stats, so SHOP_SHARE of OTHER_PER_DAY is dropped. Matches pay
- *           CurrencyIncome.matchPayout: a base by result (lost 2/2/2/5, won
- *           3/3/3/6) plus MATCH_POOL × overall/100 by MatchRewardSystem's
+ *           CurrencyIncome.matchPayout: a base by result (lost 3/1/3/4, won
+ *           4/2/4/5) plus MATCH_POOL × overall/100 by MatchRewardSystem's
  *           per-area scores (serving→Power, returning→Quickness,
  *           rally→Technique, net→Quickness+Technique, mental→Mind). Each evening the player buys
  *           toward its shape (SPEND, see buyTowardShape).
@@ -52,6 +52,7 @@
  *      KEY_W=0.8,1.2  OFF_W=0.25,0.55
  *      OTHER_PER_DAY=2.2  SHOP_SHARE=0.25  INCOME_SCALE=1.2
  *      MATCH_POOL=20  EXCHANGE=0
+ *      MATCH_BASE=3,1,3,4/4,2,4,5 overrides a match's base pay, lost/won, as P,Q,T,M
  *      SPEND=patient|affordable|impatient  (see buyTowardShape)  OVERBUILD=8
  *      SYSTEMS=today,currency  STEP_FROM=40 (statEconomy price steps)
  *      STATS=1 prints every stat of the mean build instead of the lowest/top three
@@ -200,8 +201,17 @@ const OTHER_PER_DAY = env('OTHER_PER_DAY', 2.2);
 const SHOP_SHARE = env('SHOP_SHARE', 0.25);
 const INCOME_SCALE = env('INCOME_SCALE', ECONOMY_INCOME_SCALE);
 const MATCH_POOL = env('MATCH_POOL', MATCH_PAYOUT.pool);
+function baseFromEnv(): typeof MATCH_PAYOUT.base {
+  const raw = process.env.MATCH_BASE;
+  if (!raw) return MATCH_PAYOUT.base;
+  const [lost, won] = raw.split('/').map((side) => {
+    const [power, quickness, technique, mind] = side.split(',').map(Number);
+    return { power, quickness, technique, mind };
+  });
+  return { lost, won };
+}
 /** The game's payout functions, at the rates above (env overrides included). */
-const MATCH_RATES = { ...MATCH_PAYOUT, pool: MATCH_POOL };
+const MATCH_RATES = { ...MATCH_PAYOUT, base: baseFromEnv(), pool: MATCH_POOL };
 /** Ability shopping (abilityEconomy.ts). ABILITIES=0 turns it off. */
 const ABILITIES_ON = process.env.ABILITIES !== '0';
 /** Buy an ability when its point-win per currency unit is at least this (a typical stat buy). */
