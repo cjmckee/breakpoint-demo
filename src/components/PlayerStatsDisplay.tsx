@@ -1,9 +1,9 @@
 /**
  * Player Stats Display Component
- * Option A layout: the 5 Core Skills are the personality showcase (big animated
- * grade cards), while the 15 supporting stats live below as a compact tile matrix
- * grouped by category — each group headed by its average grade for an at-a-glance
- * read. Every card and tile reveals its description on hover (desktop) / tap (mobile).
+ * The four stat sections, each headed by its pixel icon and colour (STAT_SECTIONS):
+ * Core as big grade cards, then Technical, Physical and Mental as a compact tile
+ * matrix, each headed by its average grade for an at-a-glance read. Every card and
+ * tile reveals its description on hover (desktop) / tap (mobile).
  */
 
 import React, { useMemo } from 'react';
@@ -11,6 +11,8 @@ import { useGameStore } from '../stores/gameStore';
 import { Card } from './ui/Card';
 import { StatCard } from './StatCard';
 import { StatTile } from './StatTile';
+import { StatSectionHeading } from './ui/StatSectionHeading';
+import { SECTION_BY_ID, type StatSection } from '../config/statSections';
 import { AbilityDisplay } from './AbilityDisplay';
 import { getLetterGrade } from '../utils/playerStats';
 import { EffectAggregator } from '../core/EffectAggregator';
@@ -60,9 +62,9 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
 
   // The 9 supporting skills — still important, so grouped and always visible, just
   // compact. Each group surfaces its average grade for the quick read.
-  const supportingGroups: { name: string; stats: StatEntry[] }[] = [
+  const supportingGroups: { id: StatSection; stats: StatEntry[] }[] = [
     {
-      name: 'Technical',
+      id: 'technical',
       stats: [
         { key: 'slice', label: 'Slice', value: stats.technical.slice },
         { key: 'spin', label: 'Spin', value: stats.technical.spin },
@@ -70,7 +72,7 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
       ],
     },
     {
-      name: 'Physical',
+      id: 'physical',
       stats: [
         { key: 'speed', label: 'Speed', value: stats.physical.speed },
         { key: 'stamina', label: 'Stamina', value: stats.physical.stamina },
@@ -78,7 +80,7 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
       ],
     },
     {
-      name: 'Mental',
+      id: 'mental',
       stats: [
         { key: 'focus', label: 'Focus', value: stats.mental.focus },
         { key: 'anticipation', label: 'Anticipation', value: stats.mental.anticipation },
@@ -92,11 +94,9 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
 
   return (
     <Card title="Player Stats" collapsible={collapsible} defaultCollapsed={defaultCollapsed}>
-      {/* Core Skills — the personality showcase */}
-      <div className="p-3 border-2 border-pixel-accent border-opacity-40 bg-pixel-accent bg-opacity-5 rounded mb-6">
-        <div className="flex items-center justify-between pb-2 mb-3 border-b-2 border-pixel-accent border-opacity-40">
-          <h4 className="font-semibold text-sm text-pixel-accent">★ Core Skills</h4>
-        </div>
+      {/* Core — the personality showcase */}
+      <div className="mb-6">
+        <StatSectionHeading section={SECTION_BY_ID.core} className="mb-3" />
         <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
           {coreStats.map((stat) => (
             <StatCard
@@ -116,19 +116,20 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
           const avg = groupAverage(group.stats);
           const { grade, color } = getLetterGrade(avg);
           return (
-            <div key={group.name}>
-              <div className="flex items-baseline justify-between border-b-2 border-pixel-border pb-1.5 mb-2.5">
-                <span className="text-xs font-semibold uppercase tracking-wide text-pixel-text-muted">
-                  {group.name}
-                </span>
-                <span
-                  className="text-base font-bold leading-none"
-                  style={{ color }}
-                  title={`Average: ${avg}`}
-                >
-                  {grade}
-                </span>
-              </div>
+            <div key={group.id}>
+              <StatSectionHeading
+                section={SECTION_BY_ID[group.id]}
+                className="mb-2.5"
+                trailing={
+                  <span
+                    className="text-base font-bold leading-none normal-case"
+                    style={{ color }}
+                    title={`Average: ${avg}`}
+                  >
+                    {grade}
+                  </span>
+                }
+              />
               <div className="flex flex-col gap-2">
                 {group.stats.map((stat) => (
                   <StatTile

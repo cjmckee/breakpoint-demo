@@ -3,7 +3,7 @@
  * Hub for player activities and navigation.
  *
  * Layout follows the cockpit philosophy: a hero header that defines the player at
- * a glance (name, OVR, archetype, core grades, recent matches), an action hub where the
+ * a glance (name, OVR, archetype, area grades, recent matches), an action hub where the
  * daily actions (Training / Play Match / Rest) are the biggest targets with their
  * cost/state baked in, challenges surfaced right below the actions, and detail
  * panels (full stats, tournament, activity log) below the fold.
@@ -27,6 +27,7 @@ import { HangoutUnlockedModal } from './HangoutUnlockedModal';
 import { BROAD_ARCHETYPE_LABELS, DEFAULT_ARCHETYPE_LABEL } from '../data/archetypeTree';
 import { calculateOverallRating } from '../core/PlayerProfile';
 import { getLetterGrade } from '../utils/playerStats';
+import { GAME_AREAS, GAME_AREA_LABELS, gameAreaRatings } from '../core/gameAreas';
 import type { OverlayState } from '../types/gamePhase';
 import { EffectKey, PlayerFlag, TimeSlot } from '../types/game';
 import { HANGOUT_CHARACTERS, hasUnseenTierEvent } from '../data/hangoutCharacters';
@@ -287,15 +288,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
     );
   };
 
-  // Core skills do the majority of the lifting in sim — they define the player at
-  // a glance, so they live in the hero header as letter grades.
-  const coreGlance = [
-    { label: 'SRV', name: 'Serve', value: player.stats.core.serve },
-    { label: 'FH', name: 'Forehand', value: player.stats.core.forehand },
-    { label: 'BH', name: 'Backhand', value: player.stats.core.backhand },
-    { label: 'RET', name: 'Return', value: player.stats.core.return },
-    { label: 'NET', name: 'Net', value: player.stats.core.net },
-  ];
+  // The five areas of the game define the player at a glance, as letter grades
+  // only: an area is a blend of stats, so there's no one number behind it to show.
+  const areaRatings = gameAreaRatings(player.stats);
 
   // Action-hub state
   const isMatchScheduled = isTournamentMatchScheduled || isStoryMatchScheduled;
@@ -425,7 +420,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
               </div>
             </div>
 
-            {/* Rating + core grades — ml-auto keeps this right-justified when it wraps
+            {/* Rating + area grades — ml-auto keeps this right-justified when it wraps
                 to its own line on narrow viewports */}
             <div className="flex items-center gap-4 sm:gap-5 ml-auto">
               <div className="flex flex-col items-center">
@@ -436,22 +431,29 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                   Overall
                 </span>
               </div>
-              <div className="flex gap-2">
-                {coreGlance.map(({ label, name, value }) => {
-                  const { grade, color } = getLetterGrade(value);
+              {/* Phones: two columns of name · letter rows. Wider: five tiles, letter on top. */}
+              <div
+                className="grid grid-cols-2 gap-x-2 gap-y-1 sm:flex sm:gap-2"
+                data-testid="menu-areas"
+              >
+                {GAME_AREAS.map((area) => {
+                  const { grade, color } = getLetterGrade(areaRatings[area]);
                   return (
                     <div
-                      key={label}
-                      className="flex flex-col items-center bg-pixel-bg border-2 border-pixel-border rounded px-1 py-1.5 w-10 sm:w-11"
-                      title={`${name}: ${value}`}
+                      key={area}
+                      data-testid={`menu-area-${area}`}
+                      data-grade={grade}
+                      className="flex items-center justify-between gap-2 bg-pixel-bg border-2 border-pixel-border px-2 py-1 sm:flex-col-reverse sm:justify-center sm:gap-1 sm:py-1.5 sm:w-[5.5rem]"
                     >
+                      <span className="text-[8px] text-pixel-text-muted">
+                        {GAME_AREA_LABELS[area]}
+                      </span>
                       <span
                         className="text-base sm:text-lg font-bold leading-none"
                         style={{ color }}
                       >
                         {grade}
                       </span>
-                      <span className="text-[8px] text-pixel-text-muted mt-1">{label}</span>
                     </div>
                   );
                 })}

@@ -3,6 +3,7 @@ import { loadSave, readGame } from './helpers';
 // The real area function: a pure stats → ratings call, so the expectation is the
 // game's own and can't drift from what the card shows.
 import { GAME_AREAS, gameAreaRatings } from '../src/core/gameAreas';
+import { getLetterGrade } from '../src/utils/playerStats';
 
 /**
  * The pre-match card compares the two players by area of the game (Serving,
@@ -31,5 +32,25 @@ test('the pre-match card rates both players in every area of the game', async ({
     // Both numbers are on screen, not only in the attribute.
     await expect(row.locator('span').first()).toHaveText(String(ours[area]));
     await expect(row.locator('span').last()).toHaveText(String(theirs[area]));
+  }
+});
+
+/**
+ * The main menu's hero grades the player in the same five areas, as letters only.
+ * Catches the hero drifting from the blends, or showing a number it shouldn't.
+ */
+test('the main menu grades the player in every area of the game', async ({ page }) => {
+  await loadSave(page, 'save-day7-1', 1234);
+  const game = await readGame(page);
+  const ratings = gameAreaRatings(game.player!.stats);
+
+  await expect(page.locator('[data-testid^="menu-area-"]')).toHaveCount(GAME_AREAS.length);
+  for (const area of GAME_AREAS) {
+    const { grade } = getLetterGrade(ratings[area]);
+    const tile = page.getByTestId(`menu-area-${area}`);
+    await expect(tile).toHaveAttribute('data-grade', grade);
+    await expect(tile, 'a letter, not the rating behind it').not.toContainText(
+      String(ratings[area]),
+    );
   }
 });
