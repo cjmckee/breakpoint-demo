@@ -109,24 +109,40 @@ A Club player earns about 850 XP by the end of the season, so a Regional kit (+5
 reach before promotion. That's a third of a season's growth, and none of it is in the pacing:
 `careerSim` buys no gear, so the bands in §2.2 assume a player without any.
 
-Options, for a decision:
+**Measured** with a gear buyer in the career model (`careerSim GEAR=all|tier`): each day it takes
+the shop's equipment offer that adds most to its key stats over what that slot holds, if the XP is
+there, and plays its matches on the geared stats. Par, the opponent OVR a build beats half the
+time, mean of the four identities, ±1:
 
-- **G1. Sell gear from the player's tier pool and below**, as abilities now are. Club would sell
-  only Club gear (+1 OVR at most). Bronze was tuned by feel with every piece on sale, so this makes
-  Club harder for a player who shopped.
-- **G2. Count gear in the pacing.** Give the career model a gear buyer and re-measure the bands, so
-  opponents expect a kitted player.
-- **G3. Shrink the higher tiers' boosts** so a kit is worth +2-3 OVR at every tier and gear is about
-  style and fit more than power.
+| career day          | no gear | today's shop | shop gated by tier |
+| ------------------- | ------- | ------------ | ------------------ |
+| 31, end of Club     | 38.5    | 41.8 (+3)    | 39.5 (+1)          |
+| 41, Regional starts | 42.8    | 46.0 (+3)    | 45.0 (+2)          |
+| 72, Regional        | 54.2    | 59.0 (+5)    | 58.8 (+5)          |
+| 112, Tour           | 66.2    | 69.2 (+3)    | 69.5 (+3)          |
+| 152, World          | 75.8    | 77.8 (+2)    | 78.5 (+3)          |
 
-G1 with G2 is the most honest: gear opens with the season like everything else, and the bands
-then count what a player can actually carry. With XP levels for abilities (above), gear and
-ability levels compete for the same XP, which is a real choice.
+Gear takes 1,700-2,300 of a career's XP and leaves 2,500-3,100 unspent, so it doesn't crowd out XP
+levels for abilities.
+
+**What it means.** The bands (§2.2 of the progression plan) assume no gear, but their margin was
+calibrated on bronze's opponents, which were tuned by feel against players who could buy gear. So
+the Club calibration already absorbs about +3 OVR of it. Past Club, gear adds +2 to +5, at most a
+point or two beyond that. Gating the shop by tier changes Club (+3 → +1, so Club gets harder for a
+player who shops) and barely touches the mid and late game.
+
+**Recommendation:** leave the shop as it is. If Regional plays easy, raise its band targets by 1-2
+OVR rather than gating gear. The options, for the record:
+
+- **G1. Sell gear from the player's tier pool and below.** Makes Club harder; little effect later.
+- **G2. Count gear in the pacing.** Done above: bands are within a point or two of right.
+- **G3. Shrink the higher tiers' boosts** so a kit is about style and fit more than power.
 
 ## Reproducing
 
 ```
 SLOT=regional-tm3 npx tsx src/test/analysis/abilityLadder.ts   # abilities in a season
+GEAR=all PAR=1 RUNS=10 N=100 DAYS=152 CHECK=31,41,72,112,152 npx tsx src/test/analysis/careerSim.ts
 LEDGER=1 RUNS=10 DAYS=160 CHECK=160 npx tsx src/test/analysis/careerSim.ts
 TUNE='ABILITY_LEVEL_PRICE.xpOnlyFrom=1;ABILITY_LEVEL_PRICE.xpOnlyScale=2' PROBE=careerSim LEDGER=1 RUNS=10 DAYS=160 CHECK=160 npx tsx src/test/analysis/tuneRun.ts
 TUNE='ABILITY_LEVEL_PRICE.xpOnlyFrom=1;ABILITY_LEVEL_PRICE.xpOnlyScale=2' PROBE=careerSim PAR=1 RUNS=10 N=100 DAYS=152 CHECK=41,72,112,152 npx tsx src/test/analysis/tuneRun.ts

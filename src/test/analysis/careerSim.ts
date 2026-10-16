@@ -70,6 +70,11 @@
  *      with that chance while more than gap below the best core stat.
  *      CATCHUP=gap: serve and return cost the cheapest price step while more than gap below
  *      the best core stat.
+ *      GEAR=all|tier buys gear with XP: the shop's two equipment offers a day, the one that
+ *      adds most to the identity's stats (key stats count double) if it beats what that slot
+ *      holds. all is today's shop (every piece from day 7); tier sells only gear from the
+ *      season's pool and below. Matches play the geared stats, and PAR reports both OVRs.
+ *      Off by default.
  *      FOCUS_FROM=41 lets the currency career pick a silver training focus from that
  *      day: the currency its next purchases are most short of (CurrencyIncome.focusedMix).
  *      PAR=1 reports, per identity and CHECK day, the mean build's OVR and the
@@ -150,6 +155,9 @@ import type { TeamMatchConfig } from '../../types/game';
 import type { CourtSurface } from '../../types';
 import { writeFileSync } from 'node:fs';
 import { BAND_DAYS, type CareerBuilds } from './bandSlots';
+import { ALL_EQUIPMENT, getItemsByTier } from '../../data/items';
+import type { Item } from '../../types/items';
+import { equipmentPrice } from '../../game/ShopSystem';
 
 // ─── Configuration ───────────────────────────────────────────
 
@@ -194,6 +202,23 @@ const ABILITIES_ON = process.env.ABILITIES !== '0';
 const ABILITY_BAR = env('ABILITY_BAR', 0.05);
 /** XP from challenges per day, on top of match XP. */
 const CHALLENGE_XP = env('CHALLENGE_XP', 10);
+const GEAR = (process.env.GEAR ?? 'off') as 'off' | 'all' | 'tier';
+const SHOP_GEAR = ALL_EQUIPMENT.filter((i) => i.shopAvailable !== false && i.equipmentSlot);
+
+/** The gear the shop can offer at this tier: everything, or the season's pool and below. */
+function gearPool(tier: OpponentTier): Item[] {
+  if (GEAR === 'all') return SHOP_GEAR;
+  const ids = new Set(
+    ([1, 2, 3, 4] as OpponentTier[])
+      .filter((t) => t <= tier)
+      .flatMap((t) => getItemsByTier(t))
+      .map((i) => i.id),
+  );
+  return SHOP_GEAR.filter((i) => ids.has(i.id));
+}
+
+/** Equipped gear by slot. */
+type Gear = Map<string, { id: string; boosts: StatBoosts }>;
 /** [fromDay, multiplier], ascending. Empty means ×1 throughout. */
 const TIER_PAY: Array<[number, number]> = (process.env.TIER_PAY ?? '')
   .split(',')
@@ -455,6 +480,8 @@ interface Snapshot {
   /** Abilities owned, by id → level, and unspent XP. */
   abilities: Owned;
   xp: number;
+  /** Everything the equipped gear adds, stat by stat. */
+  gear: StatBoosts;
 }
 
 type Source = 'training' | 'practice' | 'team' | 'story';
@@ -472,6 +499,9 @@ interface Ledger {
   abilityXp: number;
   xpEarned: number;
   abilityLevels: Record<Rarity, number>;
+  /** XP spent on gear, and pieces bought. */
+  gearXp: number;
+  gearBought: number;
 }
 
 const zeroWallet = (): Wallet => ({ power: 0, quickness: 0, technique: 0, mind: 0 });
@@ -484,6 +514,8 @@ const emptyLedger = (): Ledger => ({
   abilityXp: 0,
   xpEarned: 0,
   abilityLevels: { common: 0, uncommon: 0, rare: 0 },
+  gearXp: 0,
+  gearBought: 0,
 });
 const cloneLedger = (l: Ledger): Ledger => JSON.parse(JSON.stringify(l)) as Ledger;
 const addInto = (into: Wallet, a: Amounts): void => {
@@ -782,6 +814,62 @@ function payMatch(
  * Abilities come before stats in the evening, so Mind and other spare
  * currency go to them when they are worth it.
  */
+/** All the boosts the equipped gear adds. */
+function gearTotal(gear: Gear): StatBoosts {
+  const out: StatBoosts = {};
+  for (const { boosts } of gear.values()) {
+    for (const [k, v] of Object.entries(boosts) as Array<[StatName, number]>) {
+      out[k] = (out[k] ?? 0) + v;
+    }
+  }
+  return out;
+}
+
+/** A copy of the stats with boosts added, clamped to 100. */
+function withBoosts(s: PlayerStats, b: StatBoosts): PlayerStats {
+  const out = clone(s);
+  applyBoosts(out, b);
+  return out;
+}
+
+/**
+ * The day's two equipment offers: buy the one that adds most to this identity
+ * (key stats count double) over what its slot holds, if the XP is there.
+ */
+function shopGear(
+  keyStats: StatName[],
+  gear: Gear,
+  xp: number,
+  ledger: Ledger,
+  tier: OpponentTier,
+): { label: string; xp: number } | null {
+  const pool = gearPool(tier);
+  const worth = (b: StatBoosts): number =>
+    (Object.entries(b) as Array<[StatName, number]>).reduce(
+      (a, [k, v]) => a + v * (keyStats.includes(k) ? 1 : 0.5),
+      0,
+    );
+  const offers = [0, 1].map(() => pool[Math.floor(Math.random() * pool.length)]);
+  const best = offers
+    .map((item) => {
+      const boosts = item.modifiers?.statBoosts ?? {};
+      const held = gear.get(item.equipmentSlot!);
+      return {
+        item,
+        boosts,
+        gain: worth(boosts) - (held ? worth(held.boosts) : 0),
+        price: equipmentPrice(boosts),
+      };
+    })
+    .filter((o) => o.gain > 0 && o.price <= xp)
+    .sort((a, b) => b.gain - a.gain)[0];
+  if (!best) return null;
+  gear.set(best.item.equipmentSlot!, { id: best.item.id, boosts: best.boosts });
+  ledger.gearXp += best.price;
+  ledger.gearBought++;
+  return { label: `${best.item.id} for ${best.price} XP`, xp: best.price };
+}
+
 /** The tier a career is in on a day: seasons start at days 41, 81 and 121 (§2.1). */
 function tierOnDay(day: number): OpponentTier {
   return day >= 121 ? 4 : day >= 81 ? 3 : day >= 41 ? 2 : 1;
@@ -844,6 +932,7 @@ function career(
   const snaps = new Map<number, Snapshot>();
   const ledger = emptyLedger();
   const owned: Owned = new Map();
+  const gear: Gear = new Map();
   let xp = 0;
   let mult = 1;
   const paid = (r: { winner: 'player' | 'opponent'; stats: IMatchStatistics }): string => {
@@ -872,7 +961,7 @@ function career(
         note(`  ${slotName} story event`);
       } else if (team && slot === 1) {
         const r = playMatch(
-          { stats, profile, effects: effectsOf(owned) },
+          { stats: withBoosts(stats, gearTotal(gear)), profile, effects: effectsOf(owned) },
           teamSide(team),
           BO3_FOR[team.matchFormat] ?? BO3,
           team,
@@ -893,7 +982,7 @@ function career(
         const opp = roster[matchesPlayed % roster.length];
         const bump = Math.min(tierWins * 2, 20);
         const r = playMatch(
-          { stats, profile, effects: effectsOf(owned) },
+          { stats: withBoosts(stats, gearTotal(gear)), profile, effects: effectsOf(owned) },
           {
             stats: getScaledOpponentStats(opp.stats, tierWins),
             profile: getOpponentArchetypeProfile(opp),
@@ -974,6 +1063,13 @@ function career(
           note(`  shop: bought ${bought.label}`);
         }
       }
+      if (GEAR !== 'off' && day >= 7) {
+        const piece = shopGear(id.buys, gear, xp, ledger, tierOnDay(day));
+        if (piece) {
+          xp -= piece.xp;
+          note(`  shop: bought ${piece.label}`);
+        }
+      }
       const before = { ...wallet };
       const statsBefore = clone(stats);
       if (traceLog) note('  evening spend:');
@@ -1005,6 +1101,7 @@ function career(
         ledger: cloneLedger(ledger),
         abilities: new Map(owned),
         xp,
+        gear: gearTotal(gear),
       });
     }
   }
@@ -1130,7 +1227,8 @@ function ledgerReport(): void {
     console.log(['on abilities', f(unitsOf(onAbilities)), '', split(onAbilities)].join('\t'));
     console.log(
       `XP: earned ${f(mean((l) => l.ledger.xpEarned))}, on abilities ${f(mean((l) => l.ledger.abilityXp))}, ` +
-        `unspent ${f(mean((l) => l.xp))}  |  levels bought: ` +
+        `unspent ${f(mean((l) => l.xp))}, on gear ${f(mean((l) => l.ledger.gearXp))} ` +
+        `(${mean((l) => l.ledger.gearBought).toFixed(1)} pieces)  |  levels bought: ` +
         (['common', 'uncommon', 'rare'] as Rarity[])
           .map((r) => `${r} ${mean((l) => l.ledger.abilityLevels[r]).toFixed(1)}`)
           .join(', ') +
@@ -1217,15 +1315,24 @@ function parReport(): void {
       `SPEND=${SPEND} INCOME_SCALE=${INCOME_SCALE}`,
   );
   console.log(
-    ['identity', 'day', 'pay', 'OVR', 'key avg', 'other avg', 'par OVR', 'team match (OVR)'].join(
-      '\t',
-    ),
+    [
+      'identity',
+      'day',
+      'pay',
+      'OVR',
+      'OVR+gear',
+      'key avg',
+      'other avg',
+      'par OVR',
+      'team match (OVR)',
+    ].join('\t'),
   );
   for (const id of IDENTITIES) {
     const careers = Array.from({ length: RUNS }, () => career(id, 'currency'));
     for (const day of CHECK) {
       const snaps = careers.map((c) => c.get(day)!);
       const s = meanStats(snaps.map((x) => x.stats));
+      const geared = meanStats(snaps.map((x) => withBoosts(x.stats, x.gear)));
       const avg = (ks: StatName[]): string =>
         (ks.reduce((a, k) => a + get(s, k), 0) / ks.length).toFixed(0);
       const profile = day >= ARCHETYPE_DAY ? id.profile : createEmptyArchetypeProfile();
@@ -1236,10 +1343,11 @@ function parReport(): void {
           day,
           `x${payOn(day)}`,
           calculateOverallRating(s),
+          calculateOverallRating(geared),
           avg(id.buys),
           avg(ALL_STATS.filter((k) => !id.buys.includes(k))),
           parOvr(
-            s,
+            geared,
             profile,
             snaps.map((x) => effectsOf(x.abilities)),
           ),

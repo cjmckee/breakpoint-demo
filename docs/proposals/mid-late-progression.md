@@ -456,8 +456,9 @@ Notes:
 - **Abilities.** There are 28: 10 common, 5 uncommon, 6 rare, 7 legendary. Re-measured by season
   in `xp-for-abilities.md`: rarity now reads in order, and the shop opens uncommons at Regional and
   rares on the Tour (built). A few commons are still near zero.
-- **Gear.** The item pools for tiers 1-4 exist, but the shop sells every piece from day 7 and a
-  Regional kit is worth +5 OVR, outside the pacing. Options in `xp-for-abilities.md`.
+- **Gear.** The shop sells every piece from day 7, and gear is worth +2 to +5 OVR of par through
+  the career. Measured, the Club calibration of the bands already absorbs about +3 of it, so the
+  bands are within a point or two of right as they are (`xp-for-abilities.md`).
 - **XP.** It buys shop items and levels, and ~600 sits unspent at the end of bronze. Under a
   repeated-season structure the simplest outlet is pricing gear and abilities by tier. Whether
   XP should also buy something new is open (§9).

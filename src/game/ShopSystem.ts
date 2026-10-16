@@ -51,7 +51,8 @@ function createConsumableItem(): ConsumableItem {
 
 const SHOP_EQUIPMENT_ITEMS: Item[] = ALL_EQUIPMENT.filter((item) => item.shopAvailable !== false);
 
-function calculateEquipmentCost(statBoosts: StatBoosts): number {
+/** What a piece of gear costs in XP: it grows faster than its total boost. */
+export function equipmentPrice(statBoosts: StatBoosts): number {
   const total = Object.values(statBoosts).reduce((a, b) => a + b, 0);
   return Math.round(Math.pow(total, 1.4) * 4);
 }
@@ -67,7 +68,7 @@ function createEquipmentItem(): EquipmentItem {
     description: sourceItem.description,
     statBoosts,
     slot: sourceItem.equipmentSlot ?? 'racquet',
-    cost: calculateEquipmentCost(statBoosts),
+    cost: equipmentPrice(statBoosts),
     purchased: false,
     rarity: 'uncommon',
   };
