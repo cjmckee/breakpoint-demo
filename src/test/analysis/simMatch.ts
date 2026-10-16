@@ -29,6 +29,7 @@ export const BO3: MatchFormat = {
   enableTiebreaks: true,
   tiebreakAt: 6,
 };
+export const BO5: MatchFormat = { ...BO3, bestOfSets: 5 };
 
 export interface MatchOptions {
   format?: MatchFormat;

@@ -253,14 +253,26 @@ given tier should be worth about the same (target: 5-8 at tier III), by tuning e
 `tierEffects` and amplification share, measured with `driftProbe SECTIONS=paths`. This is a
 separate pass with its own data, not part of this package.
 
-## Follow-ups the package needs
+## Follow-ups (done)
 
-- **Re-fit the Regional, Tour and World practice rosters** (`bandCheck FIT=1`). Their stat blocks
-  were fitted to today's engine.
-- **Re-run `careerSim PAR=1`.** The season bands (§2.2 of the progression proposal) are in OVR
-  terms, and OVR's weights change.
-- **Stamina in best of five and heat.** It now earns its weight in best of three past Club.
-  Measure the World finale's best of five and heat venues, where it should count for more.
+- **Practice rosters re-fitted** (`bandCheck FIT=1`). Four opponents played 2.3-3.1 over their
+  band on the new engine (Marcus Cole, Diego Vargas, Alex Novak, James Whitfield) and were moved
+  onto it. Every other practice and story opponent was already on band.
+- **Pacing re-run** (`careerSim PAR=1`). The mean OVR curve moved by under a point, so the season
+  bands stand. Par minus OVR per identity is now within ±3 at every day (it was −11 to +13).
+- **Stamina in best of five and heat** (`statLadder FORMAT=bo5`, `HEAT=1.3`), per +10:
+
+  | stamina                  | Club | Regional | Tour | World    |
+  | ------------------------ | ---- | -------- | ---- | -------- |
+  | best of three            | 0.46 | 1.24     | 1.49 | 1.58     |
+  | best of five             | 1.64 | 1.70     | 2.40 | **2.92** |
+  | best of three, heat ×1.3 | 1.92 | 2.79     | 3.64 | **4.21** |
+
+  Best of five makes stamina as valuable as serve at World (2.92 against 2.94). On a hot court it
+  passes serve. OVR is fitted to best of three, so it reads a World best of five a
+  little less well (fit 89%) and a hot court less again (79%). That's the late-match job the
+  World season was meant to give stamina, so OVR stays as it is. Venues are sized by season in
+  §5.1 of the progression proposal: heat is now the strongest condition past Club.
 
 ## Player feedback (unchanged from the first version)
 

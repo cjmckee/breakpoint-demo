@@ -7,16 +7,20 @@
  * author reads before giving a venue a condition: which identities it tilts
  * towards, and by how much.
  *
- * Each of the four day-23 career identities (identityBuilds.ts) plays N best of
- * threes against team match 3's opponent (Martia Estrella, the day-23 team
- * match) on a plain hard court, then again under each condition, with the same
- * seed per match index (core/random), so a condition and the calm court share
- * their luck until the condition changes something. Reported: the change in
- * point-win %, points ± one standard error of the paired difference. For scale,
- * +5 to a useful stat is worth about +1 point-win (simulation-findings.md §5).
+ * The four career identities on a slot's day (careerBuilds.json, as bandCheck
+ * plays them) meet team match 3's stat shape moved to the slot's target OVR,
+ * with that season's specialties, on a plain hard court, then again under each
+ * condition, with the same seed per match index (core/random), so a condition
+ * and the calm court share their luck until the condition changes something.
+ * Reported: the change in point-win %, points ± one standard error of the
+ * paired difference. For scale, +5 to a useful stat is worth about +1
+ * point-win (simulation-findings.md §5).
+ *
+ * Conditions are worth more past Club: support stats count from the match
+ * level there, so heat finds the stamina gap between two good players.
  *
  * Run: npx tsx src/test/analysis/venueProbe.ts
- * Env: N=300 (matches per cell)  SEED=1
+ * Env: N=300 (matches per cell)  SEED=1  SLOT=club-tm3 (any bandCheck slot: regional-tm3, tour-tm1…)
  */
 
 import type { HomeSide, Venue, VenueConditions } from '../../types/game';
@@ -24,11 +28,23 @@ import { PlayerProfile } from '../../core/PlayerProfile';
 import { setSeed } from '../../core/random';
 import { profileForArchetype } from '../../data/archetypeTree';
 import { TEAM_MATCH_3 } from '../../data/teamMatches';
-import { IDENTITY_BUILDS } from './identityBuilds';
+import { calculateOverallRating } from '../../utils/overallRating';
+import { getBandSlot, playersOn, shifted, type CareerPlayer } from './bandSlots';
 import { playMatch, BO3 } from './simMatch';
 
 const N = Number(process.env.N ?? 300);
 const SEED = Number(process.env.SEED ?? 1);
+const SLOT_ID = process.env.SLOT ?? 'club-tm3';
+const SLOT = getBandSlot(SLOT_ID);
+if (!SLOT) throw new Error(`venueProbe: no slot "${SLOT_ID}" (bandCheck SLOTS=1 lists them)`);
+
+const SHAPE = TEAM_MATCH_3.opponent;
+const OPPONENT = new PlayerProfile(
+  'o',
+  'O',
+  shifted(SHAPE.stats, SLOT.target - calculateOverallRating(SHAPE.stats)),
+  profileForArchetype(SHAPE.archetype, SLOT.tier),
+);
 
 interface Condition {
   label: string;
@@ -56,20 +72,16 @@ const CONDITIONS: Condition[] = [
 const COURT: Venue = { id: 'probe', name: 'Probe Court', surface: 'hard' };
 
 /** Point-win share of each match, by match index, at a venue. */
-function pointShares(
-  build: (typeof IDENTITY_BUILDS)[string],
-  venue: Venue,
-  home?: HomeSide,
-): number[] {
-  const opponent = TEAM_MATCH_3.opponent;
+function pointShares(player: CareerPlayer, venue: Venue, home?: HomeSide): number[] {
   const out: number[] = [];
   for (let i = 0; i < N; i++) {
     setSeed(SEED * 1_000_003 + i);
-    const match = playMatch(
-      new PlayerProfile('p', 'P', build.stats, build.profile),
-      new PlayerProfile('o', 'O', opponent.stats, profileForArchetype(opponent.archetype)),
-      { format: BO3, venue, home },
-    );
+    const match = playMatch(new PlayerProfile('p', 'P', player.stats, player.profile), OPPONENT, {
+      format: BO3,
+      venue,
+      home,
+      playerEffects: player.effects[i % player.effects.length],
+    });
     const won = match.points.filter((p) => p.winner === 'player').length;
     out.push(won / match.points.length);
   }
@@ -84,26 +96,26 @@ function paired(a: number[], base: number[]): string {
 }
 
 function main(): void {
-  const ids = Object.keys(IDENTITY_BUILDS);
+  const players = playersOn(SLOT!);
   const log = console.log;
   console.log = (): void => {};
-  const calm = Object.fromEntries(ids.map((id) => [id, pointShares(IDENTITY_BUILDS[id], COURT)]));
+  const calm = players.map((p) => pointShares(p, COURT));
   const rows = CONDITIONS.map((c) => [
     c.label,
-    ...ids.map((id) =>
-      paired(
-        pointShares(IDENTITY_BUILDS[id], { ...COURT, conditions: c.conditions }, c.home),
-        calm[id],
-      ),
+    ...players.map((p, i) =>
+      paired(pointShares(p, { ...COURT, conditions: c.conditions }, c.home), calm[i]),
     ),
   ]);
   console.log = log;
 
   const mean = (xs: number[]): string =>
     ((xs.reduce((s, x) => s + x, 0) / xs.length) * 100).toFixed(1);
-  console.log(`venueProbe  N=${N} BO3 v ${TEAM_MATCH_3.opponent.name}, hard court, paired seeds`);
-  console.log(['condition', ...ids].join('\t'));
-  console.log(['calm court (point-win %)', ...ids.map((id) => mean(calm[id]))].join('\t'));
+  console.log(
+    `venueProbe  N=${N} BO3, ${SLOT!.id} (season day ${SLOT!.seasonDay}): ` +
+      `${SHAPE.name}'s shape at OVR ${SLOT!.target}, hard court, paired seeds`,
+  );
+  console.log(['condition', ...players.map((p) => p.name)].join('\t'));
+  console.log(['calm court (point-win %)', ...calm.map(mean)].join('\t'));
   for (const row of rows) console.log(row.join('\t'));
 }
 

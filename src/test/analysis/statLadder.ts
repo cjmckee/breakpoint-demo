@@ -26,6 +26,8 @@
  *
  * Run: npx tsx src/test/analysis/statLadder.ts
  * Env: N=2000 (pairings per band)  SEED=1  BANDS=club,regional,tour,world
+ *      FORMAT=bo5 plays best of five (the World finale)  HEAT=1.3 plays on a hot court
+ *      (venue fatigue 1.3: both players tire 30% faster)
  *      OVR_W=serve:0.1,forehand:0.1,... scores another set of OVR weights (stats left
  *      out weigh 0) beside today's
  *      With tuneRun: TUNE='…' PROBE=statLadder npx tsx src/test/analysis/tuneRun.ts
@@ -33,16 +35,22 @@
 
 import type { PlayerStats } from '../../types';
 import type { ArchetypeProfile, SpecialtyTier } from '../../types/archetype';
-import type { OpponentTier } from '../../types/game';
+import type { OpponentTier, Venue } from '../../types/game';
 import { PlayerProfile } from '../../core/PlayerProfile';
 import { setSeed, clearSeed } from '../../core/random';
 import { calculateOverallRating, ovrStatShares } from '../../utils/overallRating';
 import { profileForArchetype, type LegacyArchetype } from '../../data/archetypeTree';
 import { drawPlayerProfile } from './playerFactory';
-import { playMatch } from './simMatch';
+import { playMatch, BO3, BO5 } from './simMatch';
 
 const N = Number(process.env.N ?? 2000);
 const SEED = Number(process.env.SEED ?? 1);
+const FORMAT = process.env.FORMAT === 'bo5' ? BO5 : BO3;
+const HEAT = Number(process.env.HEAT ?? 1);
+const VENUE: Venue | undefined =
+  HEAT === 1
+    ? undefined
+    : { id: 'probe-heat', name: 'Hot court', surface: 'hard', conditions: { fatigue: HEAT } };
 
 interface Band {
   name: string;
@@ -211,7 +219,7 @@ function measure(band: Band, bandIndex: number): string[] {
     const { points } = playMatch(
       new PlayerProfile('p', 'P', p, pProf),
       new PlayerProfile('o', 'O', o, oProf),
-      { initialServer: serveFirst ? 'player' : 'opponent' },
+      { initialServer: serveFirst ? 'player' : 'opponent', format: FORMAT, venue: VENUE },
     );
     const won = points.filter((pt) => pt.winner === 'player').length;
     const pf = flat(p);
@@ -281,7 +289,10 @@ function measure(band: Band, bandIndex: number): string[] {
 function main(): void {
   const wanted = (process.env.BANDS ?? 'club,regional,tour,world').split(',');
   const log = console.log;
-  log(`statLadder  N=${N} per band, SEED=${SEED}, best of three`);
+  log(
+    `statLadder  N=${N} per band, SEED=${SEED}, best of ${FORMAT.bestOfSets}` +
+      (VENUE ? `, venue fatigue ×${HEAT}` : ''),
+  );
   BANDS.forEach((band, i) => {
     if (!wanted.includes(band.name)) return;
     console.log = (): void => {};

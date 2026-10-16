@@ -63,21 +63,21 @@ fool yourself" below — copy one when you need to ask about a specific constant
 
 ### The rest of what is in the folder
 
-| harness           | what it is                                                                                              | state                                                                    |
-| ----------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `tier1Probe`      | the shipped ladder: serve behaviour, real matchups, point endings, progression. `PARTS=ABCDE`           | current                                                                  |
-| `statSensitivity` | the original two designs — one-at-a-time and randomized regression                                      | superseded by `statChannels`, whose `full` column is the same regression |
-| `statExposure`    | composite exposure for hand-picked builds                                                               | generalised by `populationProbe`, still useful for one build             |
-| `anchorProbe`     | what `matchLevel` controls; the rating-tax falsification                                                | question resolved — the tax was withdrawn                                |
-| `breakEvenProbe`  | the break-even frequency a stat needs to pay                                                            | premise withdrawn; kept as the record                                    |
-| `balanceAnalysis` | broad ratings sweep, `npm run analyze`                                                                  | older, pre-consolidation framing                                         |
-| `statsCheck`      | quick distribution sanity check                                                                         | fine                                                                     |
-| `characterSim`    | the shipped character against the real roster, with score distributions and per-opponent win rates      | current — the closest thing to "how does the game actually play"         |
-| `venueProbe`      | what each venue condition is worth to each identity, paired seeds against team match 3                  | current — read it before giving a venue a condition                      |
-| `bandCheck`       | each opponent's effective OVR against its career slot's target (§2.2), and its win % per identity       | current — run it on every new opponent stat block; `SLOTS=1` lists slots |
-| `driftProbe`      | identities on real career builds: hold/break, specialty shares, +5 per stat, swaps, by day              | current — read it before touching specialties or the return composite    |
-| `statLadder`      | each stat's value by career level (random pairings, OLS), against its OVR weight; how much OVR predicts | current — run it before changing a stat's channels or OVR's weights      |
-| `rallyMixProbe`   | the rally at a level: shot types per point, the stat each reads, and what +15 on a stat buys            | current — use it to trace why a stat stops paying                        |
+| harness           | what it is                                                                                                                     | state                                                                    |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
+| `tier1Probe`      | the shipped ladder: serve behaviour, real matchups, point endings, progression. `PARTS=ABCDE`                                  | current                                                                  |
+| `statSensitivity` | the original two designs — one-at-a-time and randomized regression                                                             | superseded by `statChannels`, whose `full` column is the same regression |
+| `statExposure`    | composite exposure for hand-picked builds                                                                                      | generalised by `populationProbe`, still useful for one build             |
+| `anchorProbe`     | what `matchLevel` controls; the rating-tax falsification                                                                       | question resolved — the tax was withdrawn                                |
+| `breakEvenProbe`  | the break-even frequency a stat needs to pay                                                                                   | premise withdrawn; kept as the record                                    |
+| `balanceAnalysis` | broad ratings sweep, `npm run analyze`                                                                                         | older, pre-consolidation framing                                         |
+| `statsCheck`      | quick distribution sanity check                                                                                                | fine                                                                     |
+| `characterSim`    | the shipped character against the real roster, with score distributions and per-opponent win rates                             | current — the closest thing to "how does the game actually play"         |
+| `venueProbe`      | what each venue condition is worth to each identity, paired seeds against team match 3 of any season (`SLOT=`)                 | current — read it before giving a venue a condition                      |
+| `bandCheck`       | each opponent's effective OVR against its career slot's target (§2.2), and its win % per identity                              | current — run it on every new opponent stat block; `SLOTS=1` lists slots |
+| `driftProbe`      | identities on real career builds: hold/break, specialty shares, +5 per stat, swaps, by day                                     | current — read it before touching specialties or the return composite    |
+| `statLadder`      | each stat's value by career level (random pairings, OLS), against its OVR weight; how much OVR predicts; `FORMAT=bo5`, `HEAT=` | current — run it before changing a stat's channels or OVR's weights      |
+| `rallyMixProbe`   | the rally at a level: shot types per point, the stat each reads, and what +15 on a stat buys                                   | current — use it to trace why a stat stops paying                        |
 
 ---
 

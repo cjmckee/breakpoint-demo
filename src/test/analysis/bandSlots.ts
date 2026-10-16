@@ -12,9 +12,11 @@
  * a career day by adding the offset.
  */
 
+import { readFileSync } from 'node:fs';
 import type { PlayerStats } from '../../types';
-import type { ArchetypeProfile } from '../../types/archetype';
+import type { ArchetypeProfile, SpecialtyTier } from '../../types/archetype';
 import type { OpponentTier } from '../../types/game';
+import { createEmptyArchetypeProfile, maxSpecialtyTier } from '../../data/archetypeTree';
 
 export interface BandSlot {
   /** Stable id an author names in bandCheck: `regional-tm3`, `tour-final-r2`. */
@@ -114,4 +116,65 @@ export interface CareerBuilds {
       >;
     }
   >;
+}
+
+/** careerBuilds.json, read once. */
+export const CAREER_BUILDS = JSON.parse(
+  readFileSync(new URL('./careerBuilds.json', import.meta.url), 'utf8'),
+) as CareerBuilds;
+
+/** One identity's mean career build on a slot's day, as the slot's opponent meets it. */
+export interface CareerPlayer {
+  name: string;
+  stats: PlayerStats;
+  profile: ArchetypeProfile;
+  /** One ability effect set per career; play match i with effects[i % length]. */
+  effects: Array<Record<string, number>>;
+}
+
+/** The specialties a player of this identity has by then: raised to the season's cap. */
+function raised(profile: ArchetypeProfile, cap: SpecialtyTier): ArchetypeProfile {
+  return {
+    ...profile,
+    phases: Object.fromEntries(
+      Object.entries(profile.phases).map(([phase, spec]) => [phase, { ...spec, tier: cap }]),
+    ),
+  };
+}
+
+/** Each identity's career build on the slot's day (careerBuilds.json). */
+export function playersOn(slot: BandSlot): CareerPlayer[] {
+  const day = careerDay(slot);
+  return Object.entries(CAREER_BUILDS.identities).map(([name, identity]) => {
+    const build = identity.days[day];
+    if (!build) {
+      throw new Error(`careerBuilds.json has no day ${day}: regenerate it (careerSim BUILDS=)`);
+    }
+    return {
+      name,
+      stats: build.stats,
+      profile:
+        day >= identity.archetypeDay
+          ? raised(identity.profile, maxSpecialtyTier(slot.tier))
+          : createEmptyArchetypeProfile(),
+      effects: build.effects,
+    };
+  });
+}
+
+/** Every stat moved by `offset`, clamped to 1-100. */
+export function shifted(stats: PlayerStats, offset: number): PlayerStats {
+  const move = <T extends object>(group: T): T =>
+    Object.fromEntries(
+      Object.entries(group).map(([k, v]) => [
+        k,
+        Math.max(1, Math.min(100, Math.round(v + offset))),
+      ]),
+    ) as T;
+  return {
+    core: move(stats.core),
+    technical: move(stats.technical),
+    physical: move(stats.physical),
+    mental: move(stats.mental),
+  };
 }

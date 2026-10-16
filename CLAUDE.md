@@ -1084,11 +1084,13 @@ its surface and optional `conditions`. Practice matches pick a surface and have 
   `wind` (knocks serve accuracy, most for inaccurate and risky servers, `SERVE_WIND`) and
   `crowd` (momentum the home side gains). A match names its `home` side for the crowd.
 - **The venue owns the surface.** A team match or tournament says `venue`, not `surface`.
-- **Size conditions with `venueProbe`.** Conditions that hit both players mostly cancel. What
-  tilts a match is a condition one playstyle copes with better: heat (`fatigue`) helps high
-  stamina, thin air (`serve_speed`) helps big serves, `wind` punishes a wild or risky server.
-  Wind is strong: 10-20 is noticeable, 40 can swing a match by 10 points against a Bomber.
-  Use `wind`, not a `fault_risk` effect, which costs both players alike and barely registers.
+- **Size conditions with `venueProbe`** (`SLOT=regional-tm3` for any season's slot). Conditions
+  that hit both players mostly cancel. What tilts a match is a condition one playstyle copes with
+  better: heat (`fatigue`) helps high stamina, `wind` punishes a wild or risky server, thin air
+  (`serve_speed`) helps the baseliner and hurts the net rusher. Heat is the strongest past Club:
+  ×1.5 tilts a match by 4-8 points, ×2 by up to 15 at World, so keep a heatwave for a story
+  moment. Wind 40 can swing a match by 10-15 points against a Bomber. Use `wind`, not a
+  `fault_risk` effect, which costs both players alike and barely registers.
 - The pre-match screen shows the venue and its conditions. A new condition needs a chip there.
 
 ### Match Simulation

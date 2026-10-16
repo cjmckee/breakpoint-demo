@@ -37,20 +37,15 @@
  *      SLOTS=1 lists the slot ids and targets, and exits
  */
 
-import { readFileSync } from 'node:fs';
 import type { PlayerStats } from '../../types';
-import type { ArchetypeProfile, SpecialtyTier } from '../../types/archetype';
+import type { ArchetypeProfile } from '../../types/archetype';
 import type { Ability, HomeSide, OpponentTier, Venue } from '../../types/game';
 import type { MatchOpponent } from '../../types/tournaments';
 import { PlayerProfile } from '../../core/PlayerProfile';
 import { abilityEffects } from '../../core/EffectAggregator';
 import { setSeed, clearSeed } from '../../core/random';
 import { calculateOverallRating } from '../../utils/overallRating';
-import {
-  createEmptyArchetypeProfile,
-  maxSpecialtyTier,
-  profileForArchetype,
-} from '../../data/archetypeTree';
+import { profileForArchetype } from '../../data/archetypeTree';
 import { OPPONENTS_BY_TIER } from '../../data/opponents';
 import {
   TEAM_MATCH_1,
@@ -63,11 +58,14 @@ import { riversideOpen } from '../../data/tournaments/riversideOpen';
 import { BO3, playMatch } from './simMatch';
 import {
   BAND_SLOTS,
+  CAREER_BUILDS,
   SEASON_NAMES,
   careerDay,
   getBandSlot,
+  playersOn,
+  shifted,
   type BandSlot,
-  type CareerBuilds,
+  type CareerPlayer as Player,
 } from './bandSlots';
 
 const N = Number(process.env.N ?? 40);
@@ -109,63 +107,6 @@ const AUTHORED: Candidate[] = [
 const PRACTICE: Candidate[] = ([1, 2, 3, 4] as OpponentTier[]).flatMap((tier) =>
   OPPONENTS_BY_TIER[tier].map((o) => ({ slot: `${SEASON_NAMES[tier]}-practice`, opponent: o })),
 );
-
-const builds = JSON.parse(
-  readFileSync(new URL('./careerBuilds.json', import.meta.url), 'utf8'),
-) as CareerBuilds;
-
-interface Player {
-  name: string;
-  stats: PlayerStats;
-  profile: ArchetypeProfile;
-  effects: Array<Record<string, number>>;
-}
-
-/** The specialties a player of this identity has by then: raised to the season's cap. */
-function raised(profile: ArchetypeProfile, cap: SpecialtyTier): ArchetypeProfile {
-  return {
-    ...profile,
-    phases: Object.fromEntries(
-      Object.entries(profile.phases).map(([phase, spec]) => [phase, { ...spec, tier: cap }]),
-    ),
-  };
-}
-
-function playersOn(slot: BandSlot): Player[] {
-  const day = careerDay(slot);
-  return Object.entries(builds.identities).map(([name, identity]) => {
-    const build = identity.days[day];
-    if (!build) {
-      throw new Error(`careerBuilds.json has no day ${day}: regenerate it (careerSim BUILDS=)`);
-    }
-    return {
-      name,
-      stats: build.stats,
-      profile:
-        day >= identity.archetypeDay
-          ? raised(identity.profile, maxSpecialtyTier(slot.tier))
-          : createEmptyArchetypeProfile(),
-      effects: build.effects,
-    };
-  });
-}
-
-/** Every stat moved by `offset`, clamped to 1-100. */
-function shifted(stats: PlayerStats, offset: number): PlayerStats {
-  const move = <T extends object>(group: T): T =>
-    Object.fromEntries(
-      Object.entries(group).map(([k, v]) => [
-        k,
-        Math.max(1, Math.min(100, Math.round(v + offset))),
-      ]),
-    ) as T;
-  return {
-    core: move(stats.core),
-    technical: move(stats.technical),
-    physical: move(stats.physical),
-    mental: move(stats.mental),
-  };
-}
 
 interface Opponent {
   stats: PlayerStats;
@@ -353,7 +294,9 @@ function main(): void {
   console.log = log;
   clearSeed();
 
-  console.log(`bandCheck  N=${N} BO3 per identity, SEED=${SEED}  builds: ${builds.generated}`);
+  console.log(
+    `bandCheck  N=${N} BO3 per identity, SEED=${SEED}  builds: ${CAREER_BUILDS.generated}`,
+  );
   console.log(
     [
       'slot',
@@ -362,7 +305,7 @@ function main(): void {
       'effective',
       'target',
       'verdict',
-      ...Object.keys(builds.identities).map((id) => `${id} win`),
+      ...Object.keys(CAREER_BUILDS.identities).map((id) => `${id} win`),
     ].join('\t'),
   );
   for (const r of results) console.log(row(r.candidate, r.measured).join('\t'));

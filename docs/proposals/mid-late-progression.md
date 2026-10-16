@@ -179,7 +179,10 @@ Bronze, which you've tuned by feel, calibrates N:
 | Max, R3         | ~38 | ~40               | 44           | +4  |
 | Jordan, R4      | ~39 | ~41               | 46           | +5  |
 
-Applied to the flat curve, with each season's days laid out like bronze (§3.1):
+Applied to the flat curve, with each season's days laid out like bronze (§3.1). Re-measured
+after the identity drift package changed OVR's weights: the mean curve moved by under a point
+(OVR 38 / 42 / 48 / 53 / 56 / 60 / 64 / 66 / 70 / 77 at the table's days, key stats the same),
+so the bands stand.
 
 | tier     | player OVR in → out | key stats out | team matches 1-5   | tier-final rounds        | playoff | practice base |
 | -------- | ------------------- | ------------- | ------------------ | ------------------------ | ------- | ------------- |
@@ -196,30 +199,26 @@ Applied to the flat curve, with each season's days laid out like bronze (§3.1):
 
 ### 2.3 Identities drift apart as stats rise
 
-Par minus OVR, per identity, flat pay:
+Par minus OVR, per identity, flat pay, before and after the identity drift package
+(`identity-drift-fixes.md`, applied):
 
 | day | bigServer | counter | netRusher | baseliner |
 | --- | --------- | ------- | --------- | --------- |
-| 31  | −1        | 0       | +2        | −2        |
-| 56  | +2        | +1      | +6        | −6        |
-| 81  | +1        | 0       | +9        | −8        |
-| 112 | +1        | 0       | +10       | −10       |
-| 160 | −6        | +3      | +13       | −11       |
+| 31  | −1 → −1   | 0 → 0   | +2 → −1   | −2 → +1   |
+| 56  | +2 → −1   | +1 → −1 | +6 → +3   | −6 → +1   |
+| 81  | +1 → 0    | 0 → 0   | +9 → +3   | −8 → 0    |
+| 112 | +1 → 0    | 0 → +1  | +10 → +3  | −10 → +1  |
+| 160 | −6 → −2   | +3 → +2 | +13 → +2  | −11 → +1  |
 
-At the end of bronze, every identity plays within two points of its rating. By the end of Tour
-the net rusher and the baseliner, at the same OVR, play about 20 OVR apart. Against an opponent
-set at par+3, one finds the Tour easy and the other can't win. That's the baseliner trap
-`stat-currency-progression.md` §3.4 measured at tier 1, getting worse as stats climb.
+Before the package, the net rusher and the baseliner played about 20 OVR apart by the end of
+Tour at the same OVR. Now every identity plays within 3 of its rating at every day, so OVR is a
+fair yardstick for the stat line.
 
-Before Tour opponents are written, either:
-
-- **fix the cause.** The tier-1 finding was that the baseliner's key stats (slice, spin, strength,
-  stamina) are worth less than the net rusher's (anticipation, speed, tactics, serve). Re-run
-  `statChannels` at a Tour-level baseline to see which stats stop paying at 70-90; or
-- **balance per identity.** That isn't possible for authored opponents, who meet every player
-  the same way.
-
-The first is the real answer, and it's the biggest balance job this proposal uncovers.
+**What's left is the specialty layer.** These careers stay on tier I specialties. At the season's
+cap (II at Regional, III from the Tour) the net rusher's package is still worth far more than the
+counter's or the baseliner's. Against an on-band team match 3 (`venueProbe SLOT=regional-tm3`)
+the net rusher wins 63% of points and the counter and baseliner 39%, and the gap holds through
+World. See "What's left" in `identity-drift-fixes.md`.
 
 ### 2.4 The rosters
 
@@ -449,7 +448,7 @@ the work is choosing which tier opens which, and what's new each season besides 
 | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
 | Regional | silver training with focus (T2). Specialty tier II (`maxSpecialtyTier`, built). **Venues with conditions** (§5.1, built)                            | uncommon abilities in the shop. Hangout tier 2 events. The sponsor and media events move here |
 | Tour     | gold training with partners (T3). Specialty tier III (built). **Scouting**: the archetype and abilities are hidden until you spend a slot (or Mind) | rare abilities. Opponents with two abilities. The agent arc. Hangout tier 3 events            |
-| World    | **best-of-five** at the Slam. Stamina gets a late-match job (`stamina-at-tier-1.md`)                                                                | legendary abilities as story rewards. Opponents counter your most-used key-moment tactic      |
+| World    | **best-of-five** at the Slam. Stamina has its late-match job: best of five makes it worth 2.9 per +10, level with serve                             | legendary abilities as story rewards. Opponents counter your most-used key-moment tactic      |
 
 Notes:
 
@@ -476,43 +475,48 @@ A venue is a court with its surface and optional conditions (`src/data/venues.ts
 apply the conditions to both players (`src/core/venue.ts`), and the pre-match screen shows them.
 The Club tier's six venues have no conditions, so bronze plays as it did.
 
-What each condition is worth, from `venueProbe`. Change in point-win % against team match 3
-(Martia), N=300 best-of-threes per cell, paired seeds, ±0.8-1.1 standard error, so read
-anything under 2 as a tie:
+What each condition is worth, from `venueProbe`. Change in point-win % for each career identity
+against team match 3's shape at that season's target, N=300 best-of-threes per cell, paired
+seeds, ±0.5-1.1 standard error, so read anything under 2 as a tie. Measured after the identity
+drift package.
 
-| condition                    | bigServer | counter  | netRusher | baseliner |
-| ---------------------------- | --------- | -------- | --------- | --------- |
-| calm court (point-win %)     | 44.6      | 46.0     | 50.4      | 37.7      |
-| `fault_risk` +20             | −1.3      | −0.2     | +1.4      | −1.1      |
-| `wind` 10                    | +0.8      | +0.5     | +2.3      | +4.1      |
-| `wind` 20                    | **+4.0**  | **+3.0** | +1.1      | **+7.3**  |
-| `wind` 40                    | **+4.8**  | **+3.7** | −0.3      | **+10.9** |
-| `power_variance` +10 (gusty) | −1.5      | +0.2     | +1.5      | +0.5      |
-| `serve_speed` +15 (altitude) | **+3.8**  | +0.1     | +1.3      | **+4.4**  |
-| `fatigue` ×1.5 (heat)        | −1.4      | +0.5     | 0.0       | +1.4      |
-| `fatigue` ×2 (heatwave)      | −1.1      | +1.2     | +0.6      | **+4.1**  |
-| crowd ×1.5, your home        | +1.1      | +0.6     | **+3.2**  | +0.6      |
-| crowd ×1.5, their home       | **−3.4**  | −1.9     | +0.3      | −1.6      |
-| crowd ×2, their home         | −3.0      | −2.8     | −1.4      | −1.9      |
+| condition (Club / Regional / Tour / World) | bigServer          | counter             | netRusher         | baseliner           |
+| ------------------------------------------ | ------------------ | ------------------- | ----------------- | ------------------- |
+| calm court (point-win %)                   | 49 / 54 / 55 / 54  | 48 / 39 / 34 / 33   | 48 / 63 / 63 / 62 | 45 / 39 / 33 / 36   |
+| `wind` 20                                  | +2 / +7 / +4 / +2  | +3 / +3 / +1 / 0    | +2 / +1 / +2 / +1 | +4 / +4 / 0 / 0     |
+| `wind` 40                                  | 0 / +15 / +10 / +7 | +3 / +5 / +3 / 0    | +2 / +1 / +5 / +4 | +5 / +7 / +4 / +1   |
+| `serve_speed` +15 (altitude)               | +2 / 0 / −2 / −1   | −1 / −1 / 0 / −1    | +3 / −6 / −6 / −6 | +3 / +5 / +7 / +7   |
+| `fatigue` ×1.25 (warm)                     | −1 / −1 / −1 / −2  | 0 / +2 / +2 / +3    | −1 / 0 / −1 / −2  | +1 / +1 / +1 / +3   |
+| `fatigue` ×1.5 (heat)                      | −2 / −2 / −4 / −5  | +1 / +4 / +6 / +8   | −1 / −2 / −2 / −5 | +2 / +4 / +3 / +6   |
+| `fatigue` ×2 (heatwave)                    | −2 / −4 / −7 / −8  | −1 / +9 / +14 / +15 | 0 / −4 / −6 / −7  | +3 / +9 / +12 / +15 |
+| crowd ×1.5, your home                      | 0 / +2 / +2 / +3   | +1 / +2 / +2 / +3   | +2 / +4 / +2 / +3 | +2 / +2 / +2 / +3   |
+| crowd ×1.5, their home                     | −4 / −2 / −3 / −2  | −2 / −4 / −3 / −2   | −2 / −2 / −2 / −3 | −1 / −3 / −3 / −4   |
+| crowd ×2, their home                       | −5 / −4 / −5 / −4  | −4 / −5 / −4 / −5   | −2 / −5 / −5 / −6 | −1 / −4 / −5 / −6   |
+
+`fault_risk` +20, `power_variance` +10 and `pace` +5 stay within about 2 everywhere.
 
 What it means for writing venues:
 
-- **Conditions that hit both players mostly cancel.** A venue tilts a match when one playstyle
-  copes better: heat suits high stamina, thin air suits big serves.
+- **Heat is the big one past Club.** Stamina counts from the match level above 50, so heat finds
+  the stamina gap between two good players: the counter and the baseliner carry stamina, the big
+  server and the net rusher don't. ×1.25 is a nudge, ×1.5 a real tilt (±4-8), and a heatwave
+  swings a World match by 15 points either way, as much as the specialty gap. Keep ×2 for a
+  story moment.
 - **Wind tests the serve.** `wind` lowers the serve's accuracy roll by
   `wind × (1 − expected accuracy / 100) × risk`, where a positive `fault_risk` (Bomber, Gambler)
-  raises the risk and a negative one (Sniper) lowers it (`SERVE_WIND`). Martia plays a tier-II
-  Bomber first serve, so wind costs her more than any of the four builds, and every one of them
-  gains: up to +11 for the accurate-serving baseliner at wind 40. Against a careful server the
-  same venue would cut the other way. A `fault_risk` effect, by contrast, costs both players alike
-  and barely registers.
-- **The crowd is a flat home advantage** of about 2-3 points against you, and it stops growing
-  past ×1.5.
-- **Size.** +5 to a useful stat is worth about +1 point-win. So heatwave and altitude venues are
-  worth a few stat points to the right build: noticeable, not decisive.
+  raises the risk and a negative one (Sniper) lowers it (`SERVE_WIND`). Martia plays a Bomber
+  first serve, so wind costs her more than any of the four builds, most of all against the big
+  server's accurate serve (+15 at Regional, wind 40). Against a careful server the same venue
+  would cut the other way. It fades with the level, as serves get more accurate.
+- **Thin air (`serve_speed` +15) splits the net rusher from the baseliner** past Club: −6 for
+  the net rusher, +5-7 for the baseliner.
+- **Conditions that hit both players alike mostly cancel**: `fault_risk`, gusts, pace.
+- **The crowd is a flat home advantage** of about 2-3 points each way, and 4-6 against you at ×2.
+- **Size.** +5 to a useful stat is worth about +1 point-win.
 
 ```
-npx tsx src/test/analysis/venueProbe.ts      # ~2.5 min
+npx tsx src/test/analysis/venueProbe.ts                    # Club team match 3, ~2.5 min
+SLOT=regional-tm3 npx tsx src/test/analysis/venueProbe.ts   # any bandCheck slot
 ```
 
 ## 6. Where content goes
