@@ -53,6 +53,8 @@
  *      OTHER_PER_DAY=2.2  SHOP_SHARE=0.25  INCOME_SCALE=1.2
  *      MATCH_POOL=20  EXCHANGE=0
  *      MATCH_BASE=3,1,3,4/4,2,4,5 overrides a match's base pay, lost/won, as P,Q,T,M
+ *      MIX=2,1 sets every drill's pay per clean rep, main and secondary
+ *      TRAIN_BASE=1 sets the session's free mixes: it pays mix × (reps + TRAIN_BASE)
  *      SPEND=patient|affordable|impatient  (see buyTowardShape)  OVERBUILD=8
  *      SYSTEMS=today,currency  STEP_FROM=40 (statEconomy price steps)
  *      STATS=1 prints every stat of the mean build instead of the lowest/top three
@@ -201,6 +203,18 @@ const OTHER_PER_DAY = env('OTHER_PER_DAY', 2.2);
 const SHOP_SHARE = env('SHOP_SHARE', 0.25);
 const INCOME_SCALE = env('INCOME_SCALE', ECONOMY_INCOME_SCALE);
 const MATCH_POOL = env('MATCH_POOL', MATCH_PAYOUT.pool);
+/** MIX=main,secondary: what every drill pays per clean rep instead of TRAINING_MIXES' 2,1. */
+const MIX = process.env.MIX?.split(',').map(Number);
+const SIM_MIXES = MIX
+  ? (Object.fromEntries(
+      Object.entries(TRAINING_MIXES).map(([d, m]) => [
+        d,
+        Object.fromEntries(Object.entries(m).map(([c, n]) => [c, n === 2 ? MIX[0] : MIX[1]])),
+      ]),
+    ) as typeof TRAINING_MIXES)
+  : TRAINING_MIXES;
+/** TRAIN_BASE=n: a session pays its mix × (reps + n) instead of (reps + 1). */
+const TRAIN_BASE = env('TRAIN_BASE', 1);
 function baseFromEnv(): typeof MATCH_PAYOUT.base {
   const raw = process.env.MATCH_BASE;
   if (!raw) return MATCH_PAYOUT.base;
@@ -1068,7 +1082,7 @@ function career(
               : drillCurrency(stats, wallet, weights, id, offered);
           ledger.drills[drill]++;
           const focus = day >= FOCUS_FROM ? focusFor(stats, wallet, weights) : undefined;
-          earn(wallet, trainingPayout(drill, n, false, undefined, focus), mult);
+          earn(wallet, trainingPayout(drill, n + TRAIN_BASE - 1, false, SIM_MIXES, focus), mult);
           credit('training', walletBefore);
           note(
             `  ${slotName} train ${drill} (of ${offered.join(', ')}) — ${n}/3 reps → +${fmtAmounts(diffWallet(wallet, walletBefore))}`,
