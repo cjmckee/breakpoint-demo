@@ -16,15 +16,7 @@ import { STAT_NAMES, getStat } from '../../game/StatDevelopment';
 import type { Appearance } from '../../types/appearance';
 import { PixelSprite } from '../sprites/PixelSprite';
 import { STAT_ICONS, formatStatName } from '../../config/statIcons';
-import { GAME_AREAS, gameAreaRatings, type GameArea } from '../../core/gameAreas';
-
-const AREA_LABELS: Record<GameArea, string> = {
-  serve: 'On serve',
-  return: 'On return',
-  baseline: 'Baseline',
-  net: 'At net',
-  coverage: 'Court coverage',
-};
+import { GAME_AREAS, GAME_AREA_LABELS, gameAreaRatings } from '../../core/gameAreas';
 
 /** A gap smaller than this reads as even: the bars stay neutral. */
 const EVEN_WITHIN = 2;
@@ -181,7 +173,7 @@ export const HeadToHead: React.FC<HeadToHeadProps> = ({
             testId={`head-to-head-area-${area}`}
             ours={ours[area]}
             theirs={theirs[area]}
-            label={AREA_LABELS[area]}
+            label={GAME_AREA_LABELS[area]}
           />
         ))}
       </div>

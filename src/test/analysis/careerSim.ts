@@ -28,14 +28,15 @@
  *           and AnchorTrainingSystem pays +1 core, +1 per rep from the pool.
  *           Story, challenges and the shop arrive as OTHER_PER_DAY stat points
  *           spread like authored content (statIncome.ts).
- * currency  The player picks the anchor that pays most of what its next few
- *           purchases are short of, leaning to its identity's anchors (ADAPT of
- *           the time; otherwise one of those anchors). Training pays the
- *           anchor's mix (TRAINING_MIXES) × (reps + 1). Story and challenges pay the same stat
+ * currency  Each slot offers four of the six drills (TrainingSystem.trainingOffer).
+ *           The player picks the offered drill that pays most of what its next
+ *           few purchases are short of, leaning to its identity's drills (ADAPT
+ *           of the time; otherwise a favourite if one is offered, else any).
+ *           Training pays the drill's mix (TRAINING_MIXES) × (reps + 1). Story and challenges pay the same stat
  *           points as today through each stat's recipe; the shop no longer sells
  *           stats, so SHOP_SHARE of OTHER_PER_DAY is dropped. Matches pay
- *           CurrencyIncome.matchPayout: a base by result (lost 2/2/2/5, won
- *           3/3/3/6) plus MATCH_POOL × overall/100 by MatchRewardSystem's
+ *           CurrencyIncome.matchPayout: a base by result (lost 3/1/3/4, won
+ *           4/2/4/5) plus MATCH_POOL × overall/100 by MatchRewardSystem's
  *           per-area scores (serving→Power, returning→Quickness,
  *           rally→Technique, net→Quickness+Technique, mental→Mind). Each evening the player buys
  *           toward its shape (SPEND, see buyTowardShape).
@@ -51,6 +52,7 @@
  *      KEY_W=0.8,1.2  OFF_W=0.25,0.55
  *      OTHER_PER_DAY=2.2  SHOP_SHARE=0.25  INCOME_SCALE=1.2
  *      MATCH_POOL=20  EXCHANGE=0
+ *      MATCH_BASE=3,1,3,4/4,2,4,5 overrides a match's base pay, lost/won, as P,Q,T,M
  *      SPEND=patient|affordable|impatient  (see buyTowardShape)  OVERBUILD=8
  *      SYSTEMS=today,currency  STEP_FROM=40 (statEconomy price steps)
  *      STATS=1 prints every stat of the mean build instead of the lowest/top three
@@ -129,8 +131,11 @@ import { MatchSimulator } from '../../core/MatchSimulator';
 import { calculateOverallRating } from '../../utils/overallRating';
 import { PlayerManager } from '../../game/PlayerManager';
 import { MatchRewardSystem } from '../../game/MatchRewardSystem';
-import type { CoreStat } from '../../game/AnchorTrainingSystem';
+import type { CoreStats } from '../../types';
 import { matchPayout, trainingPayout } from '../../game/CurrencyIncome';
+import { DRILL_ORDER, trainingOffer } from '../../game/TrainingSystem';
+import type { DrillId } from '../../minigames/types';
+import { TimeSlot } from '../../types/game';
 import { legacyTrainingBoosts } from './legacyTraining';
 import {
   OPPONENTS_BY_TIER,
@@ -158,6 +163,8 @@ import { BAND_DAYS, type CareerBuilds } from './bandSlots';
 import { ALL_EQUIPMENT, getItemsByTier } from '../../data/items';
 import type { Item } from '../../types/items';
 import { equipmentPrice } from '../../game/ShopSystem';
+
+type CoreStat = keyof CoreStats;
 
 // ─── Configuration ───────────────────────────────────────────
 
@@ -194,8 +201,17 @@ const OTHER_PER_DAY = env('OTHER_PER_DAY', 2.2);
 const SHOP_SHARE = env('SHOP_SHARE', 0.25);
 const INCOME_SCALE = env('INCOME_SCALE', ECONOMY_INCOME_SCALE);
 const MATCH_POOL = env('MATCH_POOL', MATCH_PAYOUT.pool);
+function baseFromEnv(): typeof MATCH_PAYOUT.base {
+  const raw = process.env.MATCH_BASE;
+  if (!raw) return MATCH_PAYOUT.base;
+  const [lost, won] = raw.split('/').map((side) => {
+    const [power, quickness, technique, mind] = side.split(',').map(Number);
+    return { power, quickness, technique, mind };
+  });
+  return { lost, won };
+}
 /** The game's payout functions, at the rates above (env overrides included). */
-const MATCH_RATES = { ...MATCH_PAYOUT, pool: MATCH_POOL };
+const MATCH_RATES = { ...MATCH_PAYOUT, base: baseFromEnv(), pool: MATCH_POOL };
 /** Ability shopping (abilityEconomy.ts). ABILITIES=0 turns it off. */
 const ABILITIES_ON = process.env.ABILITIES !== '0';
 /** Buy an ability when its point-win per currency unit is at least this (a typical stat buy). */
@@ -350,8 +366,10 @@ const tier1 = (
 
 interface Identity {
   name: string;
-  /** The anchors this identity leans toward. */
+  /** The anchors this identity leans toward, in the old shot training ('today'). */
   anchors: CoreStat[];
+  /** The drills it leans toward: the ones paying its main currencies. */
+  drills: DrillId[];
   /** The identity's key stats: weighted KEY_W, everything else OFF_W. */
   buys: StatName[];
   profile: ArchetypeProfile;
@@ -361,6 +379,7 @@ const IDENTITIES: Identity[] = [
   {
     name: 'bigServer',
     anchors: ['serve', 'forehand', 'serve'],
+    drills: ['rally_rhythm', 'split_step'],
     buys: ['serve', 'strength', 'placement', 'spin', 'focus', 'forehand'],
     profile: tier1('all_courter', {
       first_serve: 'fs_bomber',
@@ -372,6 +391,7 @@ const IDENTITIES: Identity[] = [
   {
     name: 'counter',
     anchors: ['return', 'backhand'],
+    drills: ['read_return', 'corner_paint'],
     buys: ['return', 'speed', 'anticipation', 'tactics', 'stamina', 'backhand'],
     profile: tier1('baseliner', {
       return: 'rt_extinguisher',
@@ -383,6 +403,7 @@ const IDENTITIES: Identity[] = [
   {
     name: 'netRusher',
     anchors: ['net', 'serve', 'return'],
+    drills: ['corner_paint', 'read_return', 'split_step'],
     buys: ['net', 'speed', 'anticipation', 'placement', 'serve', 'tactics'],
     profile: tier1('net_attacker', {
       net: 'net_downhill',
@@ -394,6 +415,7 @@ const IDENTITIES: Identity[] = [
   {
     name: 'baseliner',
     anchors: ['forehand', 'backhand'],
+    drills: ['rally_rhythm', 'corner_paint'],
     buys: ['forehand', 'backhand', 'spin', 'strength', 'stamina', 'slice'],
     profile: tier1('baseliner', {
       forehand: 'fh_laserbeam',
@@ -494,6 +516,7 @@ interface Ledger {
   spentOn: Record<StatName, Wallet>;
   slots: Record<SlotUse, number>;
   anchors: Record<CoreStat, number>;
+  drills: Record<DrillId, number>;
   /** Currency and XP spent on abilities, XP earned, and levels bought by rarity. */
   abilitySpend: Wallet;
   abilityXp: number;
@@ -510,6 +533,7 @@ const emptyLedger = (): Ledger => ({
   spentOn: Object.fromEntries(ALL_STATS.map((k) => [k, zeroWallet()])) as Record<StatName, Wallet>,
   slots: Object.fromEntries(SLOT_USES.map((k) => [k, 0])) as Record<SlotUse, number>,
   anchors: { serve: 0, forehand: 0, backhand: 0, return: 0, net: 0 },
+  drills: Object.fromEntries(DRILL_ORDER.map((d) => [d, 0])) as Record<DrillId, number>,
   abilitySpend: zeroWallet(),
   abilityXp: 0,
   xpEarned: 0,
@@ -693,19 +717,32 @@ function anchorToday(s: PlayerStats, w: Weights, id: Identity): CoreStat {
   return [...ANCHORS].sort((x, y) => behind(s, w, x) - behind(s, w, y))[0];
 }
 
-/** Currency: train for what the next few purchases are short of, leaning to the identity. */
-function anchorCurrency(s: PlayerStats, wallet: Wallet, w: Weights, id: Identity): CoreStat {
-  if (Math.random() >= ADAPT) return pick(id.anchors);
+/**
+ * Currency: of the drills offered, train for what the next few purchases are short
+ * of, leaning to the identity's drills.
+ */
+function drillCurrency(
+  s: PlayerStats,
+  wallet: Wallet,
+  w: Weights,
+  id: Identity,
+  offered: DrillId[],
+): DrillId {
+  const habit = (): DrillId => {
+    const liked = offered.filter((d) => id.drills.includes(d));
+    return pick(liked.length > 0 ? liked : offered);
+  };
+  if (Math.random() >= ADAPT) return habit();
   const need: Wallet = { power: 0, quickness: 0, technique: 0, mind: 0 };
   for (const k of shapeOrder(s, w).slice(0, 3)) earn(need, priceOf(k, get(s, k)));
   for (const c of CURRENCIES) need[c] = Math.max(0, need[c] - wallet[c]);
-  if (unitsOf(need) === 0) return pick(id.anchors);
-  const score = (a: CoreStat): number =>
+  if (unitsOf(need) === 0) return habit();
+  const score = (d: DrillId): number =>
     CURRENCIES.reduce(
-      (t, c) => t + need[c] * ((TRAINING_MIXES[a][c] ?? 0) / unitsOf(TRAINING_MIXES[a])),
+      (t, c) => t + need[c] * ((TRAINING_MIXES[d][c] ?? 0) / unitsOf(TRAINING_MIXES[d])),
       0,
-    ) * (id.anchors.includes(a) ? 1 : 0.6);
-  return [...ANCHORS].sort((x, y) => score(y) - score(x))[0];
+    ) * (id.drills.includes(d) ? 1 : 0.6);
+  return [...offered].sort((x, y) => score(y) - score(x))[0];
 }
 
 /** The silver focus a player picks: the currency its next few purchases are most short of. */
@@ -908,6 +945,8 @@ function shopAbilities(
   };
 }
 
+let careersRun = 0;
+
 function career(
   id: Identity,
   system: System,
@@ -924,6 +963,8 @@ function career(
   const teamWon = new Map<number, boolean>();
   let energy = 100;
   let anchorIdx = 0;
+  // Each career rolls its own training offers, the same way the game rolls a player's.
+  const careerSeed = `${id.name}:${system}:${careersRun++}`;
   let recent: StatBoosts | undefined;
   let tierWins = 0;
   let matchesWon = 0;
@@ -1007,26 +1048,30 @@ function career(
             `→ +${fmtAmounts(diffWallet(wallet, walletBefore))}`,
         );
       } else if (energy >= 20) {
-        const core =
-          SPEND === 'level' || SPEND === 'rr'
-            ? id.anchors[anchorIdx++ % id.anchors.length]
-            : system === 'today'
-              ? anchorToday(stats, weights, id)
-              : anchorCurrency(stats, wallet, weights, id);
         const n = reps();
         sessions++;
         energy -= 20;
         ledger.slots.train++;
-        ledger.anchors[core]++;
         if (system === 'today') {
+          const core =
+            SPEND === 'level' || SPEND === 'rr'
+              ? id.anchors[anchorIdx++ % id.anchors.length]
+              : anchorToday(stats, weights, id);
+          ledger.anchors[core]++;
           recent = legacyTrainingBoosts(core, n, recent);
           applyBoosts(stats, recent);
         } else {
+          const offered = trainingOffer(careerSeed, day, slot as TimeSlot).map((o) => o.drill);
+          const drill =
+            SPEND === 'level' || SPEND === 'rr'
+              ? (offered.find((d) => id.drills.includes(d)) ?? offered[0])
+              : drillCurrency(stats, wallet, weights, id, offered);
+          ledger.drills[drill]++;
           const focus = day >= FOCUS_FROM ? focusFor(stats, wallet, weights) : undefined;
-          earn(wallet, trainingPayout(core, n, false, undefined, focus), mult);
+          earn(wallet, trainingPayout(drill, n, false, undefined, focus), mult);
           credit('training', walletBefore);
           note(
-            `  ${slotName} train ${core} — ${n}/3 reps → +${fmtAmounts(diffWallet(wallet, walletBefore))}`,
+            `  ${slotName} train ${drill} (of ${offered.join(', ')}) — ${n}/3 reps → +${fmtAmounts(diffWallet(wallet, walletBefore))}`,
           );
         }
       } else {
@@ -1205,8 +1250,8 @@ function ledgerReport(): void {
     console.log(
       'slots: ' +
         SLOT_USES.map((u) => `${u} ${mean((l) => l.ledger.slots[u]).toFixed(1)}`).join(', ') +
-        '  |  anchors trained: ' +
-        ANCHORS.map((a) => `${a} ${mean((l) => l.ledger.anchors[a]).toFixed(1)}`).join(', '),
+        '  |  drills trained: ' +
+        DRILL_ORDER.map((d) => `${d} ${mean((l) => l.ledger.drills[d]).toFixed(1)}`).join(', '),
     );
     const total = SOURCES.reduce(
       (t, src) => t + unitsOf(meanWallet((l) => l.ledger.earned[src])),

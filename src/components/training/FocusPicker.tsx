@@ -1,6 +1,6 @@
 /**
- * The training focus (silver and up): which currency stands in for each shot's
- * secondary one. Picking a chip rewrites every shot's preview on the screen, so
+ * The training focus (silver and up): which currency stands in for each drill's
+ * secondary one. Picking a chip rewrites every drill's pay on the screen, so
  * the choice explains itself.
  */
 
@@ -11,7 +11,7 @@ import { CURRENCY_STYLE } from '../currency/CurrencyAmounts';
 import { PixelCheckbox } from '../ui/PixelCheckbox';
 
 interface FocusPickerProps {
-  /** The focus picked, or undefined for each shot's natural mix. */
+  /** The focus picked, or undefined for each drill's natural mix. */
   value: Currency | undefined;
   onChange: (focus: Currency | undefined) => void;
 }

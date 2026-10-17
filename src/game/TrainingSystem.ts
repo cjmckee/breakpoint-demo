@@ -1,9 +1,9 @@
 /**
- * Anchor Training System
+ * Training System
  *
- * The player picks a CORE stat to "anchor" a session on, then plays that shot's
- * themed minigame. The session pays training currency: the anchor's mix
- * (TRAINING_MIXES: serve pays Power and Mind, backhand Technique and Quickness)
+ * Each time slot offers four of the six drills (trainingOffer), rolled from the
+ * player, the day and the slot, so reopening the screen offers the same three. A
+ * drill is a minigame and the pair of currencies it pays (TRAINING_MIXES): its mix
  * once, plus once more per clean rep. From silver, a focus swaps the mix's
  * secondary currency. Stats are bought with it on the Development screen.
  *
@@ -11,71 +11,74 @@
  * Rates: config/economy.ts. Payout: CurrencyIncome.trainingPayout.
  */
 
-import type { CoreStats } from '../types';
 import type { Currency, OpponentTier, TrainingResult, TrainingSessionTier } from '../types/game';
-import type { MinigameId } from '../minigames/types';
+import type { DrillId } from '../minigames/types';
+import { TimeSlot } from '../types/game';
 
 import { random } from '../core/random';
+import { seededRolls } from '../core/seededRoll';
 import { trainingPayout } from './CurrencyIncome';
 
-/** The five core stats a player can anchor a training session on. */
-export type CoreStat = keyof CoreStats;
-
-export interface CoreAnchorConfig {
-  core: CoreStat;
+export interface DrillConfig {
+  id: DrillId;
   name: string;
-  /** Minigame skin for this anchor. */
-  minigame: MinigameId;
-  /** Whether the minigame is actually playable yet (else routes to quick sim). */
-  playable: boolean;
-  /** One-liner shown on the anchor card. */
-  description: string;
+  /** What the drill works on, in a word or two, under its name. */
+  theme: string;
 }
 
-/** The five anchors: the shot, its minigame, and the card copy. */
-export const CORE_ANCHORS: Record<CoreStat, CoreAnchorConfig> = {
-  serve: {
-    core: 'serve',
-    name: 'Serve',
-    minigame: 'toss_and_strike',
-    playable: true,
-    description: 'One explosive strike. Power and placement, with a look to the net.',
-  },
-  forehand: {
-    core: 'forehand',
-    name: 'Forehand',
-    minigame: 'rally_rhythm',
-    playable: true,
-    description: 'Your topspin weapon from the baseline. Heavy, offensive, relentless.',
-  },
-  backhand: {
-    core: 'backhand',
-    name: 'Backhand',
-    minigame: 'corner_paint',
-    playable: true,
-    description: 'The steady wing. Redirect pace, read the ball, stay balanced.',
-  },
-  return: {
-    core: 'return',
-    name: 'Return',
-    minigame: 'read_return',
-    playable: true,
-    description: 'Anticipate the serve, read it off the bounce, step across and block it back.',
-  },
-  net: {
-    core: 'net',
-    name: 'Net',
-    minigame: 'touch_slice',
-    playable: true,
-    description: 'Close the court and finish. Volleys, half-volleys and the smash.',
-  },
+/** The six drills. Each is its own minigame; TRAINING_MIXES says what it pays. */
+export const DRILLS: Record<DrillId, DrillConfig> = {
+  rally_rhythm: { id: 'rally_rhythm', name: 'Rally Rhythm', theme: 'Baseline' },
+  split_step: { id: 'split_step', name: 'Split-Step Sprint', theme: 'Explosive' },
+  corner_paint: { id: 'corner_paint', name: 'Corner Painter', theme: 'Placement' },
+  touch_slice: { id: 'touch_slice', name: 'Touch & Slice', theme: 'Touch' },
+  read_return: { id: 'read_return', name: 'Read & Return', theme: 'Reading' },
+  toss_and_strike: { id: 'toss_and_strike', name: 'Toss & Strike', theme: 'Composure' },
 };
 
-/** Ordered list of anchors for stable UI rendering. */
-export const CORE_ANCHOR_ORDER: CoreStat[] = ['serve', 'forehand', 'backhand', 'return', 'net'];
+/** Every drill, in a fixed order: the order an offer lists its drills in. */
+export const DRILL_ORDER = Object.keys(DRILLS) as DrillId[];
+
+/**
+ * Drills offered each time slot. Every currency is in three drills, so leaving
+ * out two never leaves one out: any slot can pay what the player needs, and the
+ * two missing drills still keep a build off its two favourites every time.
+ */
+export const DRILLS_PER_SLOT = 4;
+
+/**
+ * One option on the training screen: a drill, and later the teammate who turns
+ * up for it (a character id). Nothing sets a partner yet; the screen and the
+ * offer carry it from the start so partners slot in without reshaping either.
+ */
+export interface TrainingOffer {
+  drill: DrillId;
+  partner?: string;
+}
+
+/**
+ * The drills offered to `playerId` on career day `day` in `slot`: the same every
+ * time it's asked, different from slot to slot, listed in DRILL_ORDER. Rolled
+ * from its own seed, never the simulation's random stream.
+ */
+export function trainingOffer(
+  playerId: string,
+  day: number,
+  slot: TimeSlot,
+  count: number = DRILLS_PER_SLOT,
+): TrainingOffer[] {
+  const roll = seededRolls(`training:${playerId}:${day}:${slot}`);
+  const pool = [...DRILL_ORDER];
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(roll() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  const picked = new Set(pool.slice(0, Math.min(count, pool.length)));
+  return DRILL_ORDER.filter((d) => picked.has(d)).map((drill) => ({ drill }));
+}
 
 /** Flat energy cost per session, at every training tier. */
-export const ANCHOR_TRAINING_ENERGY_COST = 20;
+export const TRAINING_ENERGY_COST = 20;
 
 /** Mood bump for completing a session. */
 const SESSION_MOOD_CHANGE = 2;
@@ -130,16 +133,16 @@ export const NO_TRAINING_BONUSES: TrainingBonuses = {
   bonusRepChance: 0,
 };
 
-/** Produce a TrainingResult for an anchor session with `count` clean reps (0-3). */
-export function buildAnchorTrainingResult(
-  core: CoreStat,
+/** Produce a TrainingResult for a session of `drill` with `count` clean reps (0-3). */
+export function buildTrainingResult(
+  drill: DrillId,
   count: number,
   bonuses: TrainingBonuses = NO_TRAINING_BONUSES,
   session: SessionOptions = BRONZE_SESSION,
 ): TrainingResult {
   // Bronze has no focus, whatever a stale preference says.
   const focus = offersFocus(session.sessionTier) ? session.focus : undefined;
-  const anchor = CORE_ANCHORS[core];
+  const { name } = DRILLS[drill];
   const landed = Math.min(Math.max(0, Math.floor(count)), 3);
 
   // A bonus rep rides along on a session that landed something. A session where
@@ -154,21 +157,21 @@ export function buildAnchorTrainingResult(
     type: 'training',
     source: 'training_activity',
     timestamp: new Date().toISOString(),
-    anchor: core,
+    drill,
     reps,
-    currencyGained: trainingPayout(core, reps, doubled, undefined, focus),
+    currencyGained: trainingPayout(drill, reps, doubled, undefined, focus),
     focus,
     doubled,
-    energyCost: ANCHOR_TRAINING_ENERGY_COST,
+    energyCost: TRAINING_ENERGY_COST,
     timeSlotsUsed: 1,
-    trainingType: `${core}_anchor`,
-    trainingName: `${anchor.name} Training`,
+    trainingType: drill,
+    trainingName: name,
     efficiency: 1.0,
     moodResult: SESSION_MOOD_CHANGE,
     moodChange: SESSION_MOOD_CHANGE,
     sessionTier: session.sessionTier,
-    sessionType: `${core}_anchor`,
-    message: buildMessage(anchor.name, landed, bonusRep > 0) + (doubled ? ' Double gains!' : ''),
+    sessionType: drill,
+    message: buildMessage(name, landed, bonusRep > 0) + (doubled ? ' Double gains!' : ''),
   };
 }
 
@@ -176,15 +179,14 @@ export function buildAnchorTrainingResult(
  * Reads off the reps the player actually landed, not counting a bonus rep —
  * which would otherwise let a 2-for-3 session claim "three for three".
  */
-function buildMessage(anchorName: string, reps: number, gotBonusRep: boolean): string {
-  const shot = anchorName.toLowerCase();
+function buildMessage(drillName: string, reps: number, gotBonusRep: boolean): string {
   const bonus = gotBonusRep ? ' Lucky bounce — a bonus rep on top!' : '';
-  if (reps >= 3) return `Perfect ${shot} session — three for three!${bonus || ' Keep it up!'}`;
-  if (reps === 2) return `Strong ${shot} work — two clean reps.${bonus || ' Almost there!'}`;
-  if (reps === 1) return `${anchorName} session — one clean rep.${bonus || ' Keep practicing!'}`;
-  return `Tough ${shot} session — you hate to see it.`;
+  if (reps >= 3) return `Perfect ${drillName} — three for three!${bonus || ' Keep it up!'}`;
+  if (reps === 2) return `Strong ${drillName} — two clean reps.${bonus || ' Almost there!'}`;
+  if (reps === 1) return `${drillName} — one clean rep.${bonus || ' Keep practicing!'}`;
+  return `Tough ${drillName} — you hate to see it.`;
 }
 
 function generateId(): string {
-  return `anchor-training-${Date.now()}-${random().toString(36).substring(2, 9)}`;
+  return `training-${Date.now()}-${random().toString(36).substring(2, 9)}`;
 }

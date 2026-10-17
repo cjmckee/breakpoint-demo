@@ -3,12 +3,13 @@
  * Ported from ai-slop-gaming and adapted for ai-slop-tennis
  */
 
-import type { CoreStats, CourtSurface, StatName, PlayerStats } from './index';
+import type { CourtSurface, StatName, PlayerStats } from './index';
 import type { ArchetypeProfile } from './archetype';
 import type { Appearance } from './appearance';
 import type { StoryEventResult } from './storyEvents';
 import type { Item, OwnedItem, EquipmentSlot } from './items';
 import type { ActiveTournament, TournamentMatchMetadata, MatchOpponent } from './tournaments';
+import type { DrillId } from '../minigames/types';
 
 export type { PlayerStats };
 
@@ -53,7 +54,7 @@ export interface Modifiers {
  * Game systems query these keys to apply effects.
  *
  * Sections:
- *   Training    — AnchorTraining.tsx reads these, then AnchorTrainingSystem
+ *   Training    — TrainingScreen.tsx reads these, then TrainingSystem
  *                 applies them to the session payout
  *   Event       — gameStore.ts story event logic
  *   Mood/Energy — gameStore.ts training/match/rest
@@ -233,7 +234,7 @@ export const AbilityName = {
 
 /**
  * The tier of training a player has access to, from their own tier
- * (AnchorTrainingSystem.trainingTierFor): Club trains bronze, Regional silver,
+ * (TrainingSystem.trainingTierFor): Club trains bronze, Regional silver,
  * the Tour and above gold. Silver adds the focus choice and harder drills.
  */
 export type TrainingSessionTier = 'bronze' | 'silver' | 'gold';
@@ -479,8 +480,8 @@ export interface Activity {
 export interface TrainingResult extends Activity {
   type: 'training';
   source: 'training_activity';
-  /** The core stat the session was built around; its recipe shapes the payout. */
-  anchor: keyof CoreStats;
+  /** The drill played; its mix (TRAINING_MIXES) shapes the payout. */
+  drill: DrillId;
   /** Clean reps landed, including a bonus rep from items. */
   reps: number;
   currencyGained: CurrencyAmounts;
@@ -493,7 +494,7 @@ export interface TrainingResult extends Activity {
   abilityLevel?: number;
   tierModification?: TierModification;
   sessionTier: TrainingSessionTier;
-  /** The currency that stood in for the shot's secondary one (silver and up). */
+  /** The currency that stood in for the drill's secondary one (silver and up). */
   focus?: Currency;
   sessionType?: string;
   ability?: string;

@@ -1,6 +1,7 @@
 /**
- * The areas of the game a player is rated on before a match: on serve, on return,
- * from the baseline, at the net, and covering the court.
+ * The areas of the game a player is rated on: Serving, Returning, Baseline, Netplay and
+ * Coverage. The pre-match card compares them, Development shows what a stat buys in
+ * them, and the main menu grades them.
  *
  * Each area is a blend of the stats the engine uses there, so every stat shows up
  * in the rating it actually pays into. Serve and return reuse the engine's own
@@ -62,19 +63,26 @@ export const GAME_AREA_WEIGHTS: Record<GameArea, Weights> = {
 
 export const GAME_AREAS = Object.keys(GAME_AREA_WEIGHTS) as GameArea[];
 
+/** The one name each area goes by, on every screen. */
+export const GAME_AREA_LABELS: Record<GameArea, string> = {
+  serve: 'Serving',
+  return: 'Returning',
+  baseline: 'Baseline',
+  net: 'Netplay',
+  coverage: 'Coverage',
+};
+
 function flatten(stats: PlayerStats): Record<StatName, number> {
   return { ...stats.core, ...stats.technical, ...stats.physical, ...stats.mental };
 }
 
-/** A player's rating in each area, 0-100, rounded. */
-export function gameAreaRatings(stats: PlayerStats): Record<GameArea, number> {
+/** A player's rating in each area, 0-100, unrounded: for bars that move a fraction at a time. */
+export function gameAreaValues(stats: PlayerStats): Record<GameArea, number> {
   const flat = flatten(stats);
   const rate = (weights: Weights): number =>
-    Math.round(
-      (Object.entries(weights) as Array<[StatName, number]>).reduce(
-        (sum, [stat, weight]) => sum + flat[stat] * weight,
-        0,
-      ),
+    (Object.entries(weights) as Array<[StatName, number]>).reduce(
+      (sum, [stat, weight]) => sum + flat[stat] * weight,
+      0,
     );
   return {
     serve: rate(GAME_AREA_WEIGHTS.serve),
@@ -83,4 +91,13 @@ export function gameAreaRatings(stats: PlayerStats): Record<GameArea, number> {
     net: rate(GAME_AREA_WEIGHTS.net),
     coverage: rate(GAME_AREA_WEIGHTS.coverage),
   };
+}
+
+/** A player's rating in each area, 0-100, rounded. */
+export function gameAreaRatings(stats: PlayerStats): Record<GameArea, number> {
+  const values = gameAreaValues(stats);
+  return Object.fromEntries(GAME_AREAS.map((a) => [a, Math.round(values[a])])) as Record<
+    GameArea,
+    number
+  >;
 }

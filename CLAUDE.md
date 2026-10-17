@@ -1009,9 +1009,15 @@ negate(price))` after checking `canAfford`.
   hard-to-reach moments — most outcomes should pay currency.
 - **Development is one screen** with two tabs: Stats (currency) and Specialties
   (specialization points from levelling). `navigateTo('archetype')` opens the Specialties tab.
+- **Training is drills.** Six minigames (`DRILLS` in `src/game/TrainingSystem.ts`), each paying
+  one pair of currencies (`TRAINING_MIXES`, two of its main and one of its secondary per rep).
+  Each time slot offers four (`trainingOffer`), rolled from the player, the day and the slot on
+  its own seed, so reopening the screen offers the same four. An offer may carry a `partner`,
+  which nothing sets yet. A new drill is a minigame plus a mix that keeps every currency in
+  three drills.
 - **Training tiers.** A player's tier sets their training tier (`trainingTierFor`: Club bronze,
   Regional silver, then gold). From silver a session takes a **focus**: the currency that
-  replaces each shot's secondary one (`focusedMix`). It changes what a session pays, never how
+  replaces each drill's secondary one (`focusedMix`). It changes what a session pays, never how
   much. Pay is flat across tiers; a new training feature that adds pay has to come out of the
   same budget (`docs/proposals/mid-late-progression.md` §2.1).
 - **Display** amounts with `CurrencyAmounts` (`src/components/currency/`), so every
@@ -1192,6 +1198,17 @@ with an accent border and a check (`PixelCheckbox`), not a light fill. Wrap hove
   in words ("2 ready to collect").
 - Don't add red or bouncing badges, or a second badge for something already flagged.
 - A disabled `ActionTile` turns grey on its own. Its caption says why ("Unlocks Day 5").
+
+**Stats and areas have one look each.**
+
+- The fourteen stats sit in four sections (`STAT_SECTIONS` in `src/config/statSections.ts`), always
+  in that order and never sorted. Head a section with `StatSectionHeading`: its pixel icon and
+  colour. The colour is a cue only; the icon and name carry the section.
+- The five areas of the game go by one name each (`GAME_AREA_LABELS` in `src/core/gameAreas.ts`):
+  Serving, Returning, Baseline, Netplay, Coverage.
+- Small icons are pixel grids (`src/data/pixelIcons.ts`) drawn with `<PixelIcon>`, not emoji: one
+  colour (`#`) for section and drill icons, `ICON_PALETTE` symbols for the menu's actions. Draw
+  them at whole multiples of the grid so they stay crisp; `spriteCheck` validates every grid.
 
 **Show comparisons and costs, don't describe them.** Use bars, chips, icons and
 before→after previews over sentences: head-to-head bars rather than two stat lists,

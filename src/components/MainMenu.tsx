@@ -3,7 +3,7 @@
  * Hub for player activities and navigation.
  *
  * Layout follows the cockpit philosophy: a hero header that defines the player at
- * a glance (name, OVR, archetype, core grades, recent matches), an action hub where the
+ * a glance (name, OVR, archetype, area grades, recent matches), an action hub where the
  * daily actions (Training / Play Match / Rest) are the biggest targets with their
  * cost/state baked in, challenges surfaced right below the actions, and detail
  * panels (full stats, tournament, activity log) below the fold.
@@ -27,13 +27,31 @@ import { HangoutUnlockedModal } from './HangoutUnlockedModal';
 import { BROAD_ARCHETYPE_LABELS, DEFAULT_ARCHETYPE_LABEL } from '../data/archetypeTree';
 import { calculateOverallRating } from '../core/PlayerProfile';
 import { getLetterGrade } from '../utils/playerStats';
+import { GAME_AREAS, GAME_AREA_LABELS, gameAreaRatings } from '../core/gameAreas';
+import { PixelIcon } from './ui/PixelIcon';
+import { ICON_PALETTE, MENU_ICONS } from '../data/pixelIcons';
+
+/**
+ * A menu action's pixel icon, at whole-pixel sizes so it stays crisp: 32px on
+ * phones, 48px wider.
+ */
+function MenuIcon({ name }: { name: keyof typeof MENU_ICONS }): JSX.Element {
+  return (
+    <PixelIcon
+      grid={MENU_ICONS[name]}
+      palette={ICON_PALETTE}
+      scale={2}
+      className="w-8 h-8 sm:w-12 sm:h-12"
+    />
+  );
+}
 import type { OverlayState } from '../types/gamePhase';
 import { EffectKey, PlayerFlag, TimeSlot } from '../types/game';
 import { HANGOUT_CHARACTERS, hasUnseenTierEvent } from '../data/hangoutCharacters';
 import { useTutorialSpotlight } from '../hooks/useTutorialSpotlight';
 import { TutorialCallout } from './tutorial/TutorialCallout';
 import { MAIN_MENU_TUTORIAL_STEPS, MainMenuTarget } from '../data/tutorialSteps';
-import { ANCHOR_TRAINING_ENERGY_COST } from '../game/AnchorTrainingSystem';
+import { TRAINING_ENERGY_COST } from '../game/TrainingSystem';
 import { hasNewCurrency, newCurrency, unitsOf, unspentSpecPoints } from '../game/StatDevelopment';
 import { PixelSprite } from './sprites/PixelSprite';
 import { usePlayerAppearance } from '../hooks/usePlayerAppearance';
@@ -287,22 +305,16 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
     );
   };
 
-  // Core skills do the majority of the lifting in sim — they define the player at
-  // a glance, so they live in the hero header as letter grades.
-  const coreGlance = [
-    { label: 'SRV', name: 'Serve', value: player.stats.core.serve },
-    { label: 'FH', name: 'Forehand', value: player.stats.core.forehand },
-    { label: 'BH', name: 'Backhand', value: player.stats.core.backhand },
-    { label: 'RET', name: 'Return', value: player.stats.core.return },
-    { label: 'NET', name: 'Net', value: player.stats.core.net },
-  ];
+  // The five areas of the game define the player at a glance, as letter grades
+  // only: an area is a blend of stats, so there's no one number behind it to show.
+  const areaRatings = gameAreaRatings(player.stats);
 
   // Action-hub state
   const isMatchScheduled = isTournamentMatchScheduled || isStoryMatchScheduled;
   const isBlocked = isEventPending || isMatchScheduled;
   const blockedReason = isEventPending ? 'Event pending' : 'Match scheduled';
   const canAffordMatch = currentStatus.energy >= MATCH_ENERGY_COST;
-  const canAffordTraining = currentStatus.energy >= ANCHOR_TRAINING_ENERGY_COST;
+  const canAffordTraining = currentStatus.energy >= TRAINING_ENERGY_COST;
   const isEnergyFull = currentStatus.energy >= 100;
   const energyGainBonus = EffectAggregator.getEffect(
     EffectAggregator.getActiveEffects(player).effects,
@@ -316,8 +328,8 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
     : isNightTime
       ? 'Asleep'
       : !canAffordTraining
-        ? `Needs ${ANCHOR_TRAINING_ENERGY_COST} energy`
-        : `${ANCHOR_TRAINING_ENERGY_COST} energy`;
+        ? `Needs ${TRAINING_ENERGY_COST} energy`
+        : `${TRAINING_ENERGY_COST} energy`;
   const matchCaption = !matchUnlocked
     ? 'Unlocks Day 5'
     : isBlocked
@@ -425,9 +437,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
               </div>
             </div>
 
-            {/* Rating + core grades — ml-auto keeps this right-justified when it wraps
-                to its own line on narrow viewports */}
-            <div className="flex items-center gap-4 sm:gap-5 ml-auto">
+            {/* Rating + area grades — a line of its own, the full width of the card, so
+                the five grades get the room to read at a glance. */}
+            <div className="flex items-center gap-4 sm:gap-6 w-full">
               <div className="flex flex-col items-center">
                 <span className="text-4xl sm:text-5xl font-bold text-pixel-accent leading-none">
                   {overallRating}
@@ -436,22 +448,30 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                   Overall
                 </span>
               </div>
-              <div className="flex gap-2">
-                {coreGlance.map(({ label, name, value }) => {
-                  const { grade, color } = getLetterGrade(value);
+              {/* Phones: two columns of name · letter rows. Wider: five tiles sharing the
+                  width, letter on top. */}
+              <div
+                className="flex-1 grid grid-cols-2 gap-x-2 gap-y-1 sm:grid-cols-5 sm:gap-3"
+                data-testid="menu-areas"
+              >
+                {GAME_AREAS.map((area) => {
+                  const { grade, color } = getLetterGrade(areaRatings[area]);
                   return (
                     <div
-                      key={label}
-                      className="flex flex-col items-center bg-pixel-bg border-2 border-pixel-border rounded px-1 py-1.5 w-10 sm:w-11"
-                      title={`${name}: ${value}`}
+                      key={area}
+                      data-testid={`menu-area-${area}`}
+                      data-grade={grade}
+                      className="flex items-center justify-between gap-2 bg-pixel-bg border-2 border-pixel-border px-2 py-1 sm:flex-col-reverse sm:justify-center sm:gap-1.5 sm:py-2"
                     >
+                      <span className="text-[8px] sm:text-[10px] text-pixel-text-muted">
+                        {GAME_AREA_LABELS[area]}
+                      </span>
                       <span
-                        className="text-base sm:text-lg font-bold leading-none"
+                        className="text-base sm:text-2xl font-bold leading-none"
                         style={{ color }}
                       >
                         {grade}
                       </span>
-                      <span className="text-[8px] text-pixel-text-muted mt-1">{label}</span>
                     </div>
                   );
                 })}
@@ -471,17 +491,17 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
         >
           <ActionTile
             testId="action-training"
-            icon="🏋️"
+            icon={<MenuIcon name="training" />}
             label="Training"
             caption={trainingCaption}
             disabled={isBlocked || isNightTime || !canAffordTraining}
             badge={hasUnseenTraining}
-            onHoverChange={previewOn(-ANCHOR_TRAINING_ENERGY_COST)}
+            onHoverChange={previewOn(-TRAINING_ENERGY_COST)}
             onClick={() => navigateTo('training')}
           />
           <ActionTile
             testId="action-match"
-            icon="🎾"
+            icon={<MenuIcon name="match" />}
             label="Play Match"
             caption={matchCaption}
             disabled={isBlocked || isNightTime || !matchUnlocked || !canAffordMatch}
@@ -493,7 +513,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
             // One tile, two actions — the id follows the slot, not the label, so a
             // driver can burn the slot without first checking the clock.
             testId="action-rest"
-            icon={isNightTime ? '🌙' : '😴'}
+            icon={<MenuIcon name={isNightTime ? 'sleep' : 'rest'} />}
             label={isNightTime ? 'Sleep' : 'Rest'}
             caption={
               isNightTime
@@ -521,7 +541,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
             testId="action-relationships"
             size="sm"
             variant="secondary"
-            icon="🤝"
+            icon={<MenuIcon name="relationships" />}
             label="Relationships"
             caption={hasNewHangouts ? 'New hangout!' : undefined}
             badge={hasNewHangouts}
@@ -532,7 +552,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
             testId="action-inventory"
             size="sm"
             variant="secondary"
-            icon="🎒"
+            icon={<MenuIcon name="inventory" />}
             label="Inventory"
             badge={hasUnseenInventory || hasUnseenItems}
             onClick={() => {
@@ -544,7 +564,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
             testId="action-shop"
             size="sm"
             variant="secondary"
-            icon="🛒"
+            icon={<MenuIcon name="shop" />}
             label="Shop"
             caption={calendar.currentDay < 7 ? 'Unlocks Day 7' : undefined}
             disabled={calendar.currentDay < 7}
@@ -565,7 +585,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
               testId="action-development"
               size="sm"
               variant="secondary"
-              icon="📈"
+              icon={<MenuIcon name="develop" />}
               label="Develop"
               caption={canDevelop ? `${developCaption} to spend` : undefined}
               badge={canDevelop}
@@ -593,8 +613,8 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
           onClick={() => navigateTo('challenges')}
           className={`w-full mb-6 flex items-center gap-3 bg-pixel-card border-4 border-pixel-border hover:border-pixel-accent px-4 py-3 transition-colors text-left ${spotlightClass('challenges')}`}
         >
-          <span className="text-2xl relative shrink-0">
-            📋
+          <span className="relative shrink-0">
+            <MenuIcon name="challenges" />
             {hasUnseenChallenge && claimableCount === 0 && (
               <UnseenBadge size="sm" className="absolute -top-1 -right-1" />
             )}

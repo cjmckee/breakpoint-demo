@@ -5,7 +5,7 @@ import { useMatchStore } from './stores/matchStore';
 import { useAudioTransitions } from './audio/AudioTransitionManager';
 import { PlayerCreation } from './components/PlayerCreation';
 import { MainMenu } from './components/MainMenu';
-import { AnchorTraining } from './components/AnchorTraining';
+import { TrainingScreen } from './components/TrainingScreen';
 import { MinigameHost } from './components/MinigameHost';
 import { MatchSetup } from './components/MatchSetup';
 import { LiveMatchViewer } from './components/LiveMatchViewer';
@@ -90,7 +90,7 @@ function App() {
         return <PlayerCreation />;
 
       case 'training':
-        return <AnchorTraining />;
+        return <TrainingScreen />;
 
       case 'minigame_active':
         return <MinigameHost />;

@@ -8,8 +8,10 @@
  */
 
 import type { StatBoosts } from '../../types/game';
-import type { CoreStat } from '../../game/AnchorTrainingSystem';
+import type { CoreStats } from '../../types';
 import { random } from '../../core/random';
+
+type CoreStat = keyof CoreStats;
 
 export type SupportStat = Exclude<keyof StatBoosts, CoreStat>;
 
