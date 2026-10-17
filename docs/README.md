@@ -89,6 +89,11 @@ Not shipped, or only in part:
   Regional season's content to write: every event id, the day it runs, what fires it and what it
   must do, plus each opponent slot's target and how to fit stats to it with `bandCheck FIT=1`.
 
+- **[`proposals/shorter-seasons.md`](./proposals/shorter-seasons.md)** — measured, not built.
+  Three team matches a season and ~28-day seasons (a ~114-day career). The player keeps up because
+  training and matches pay more from day 1, in whole units, so the bands hold by stage. Open: a
+  bigger drill mix or a bigger session base.
+
 - **[`proposals/xp-for-abilities.md`](./proposals/xp-for-abilities.md)** — measured, not applied.
   XP piles up with little to spend it on. The option: currency buys an ability and XP buys its
   levels. It is a config value, off by default (`ABILITY_LEVEL_PRICE.xpOnlyFrom`).
