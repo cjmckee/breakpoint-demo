@@ -586,9 +586,7 @@ export const careerEvents: StoryEvent[] = [
     defaultOutcome: {
       resultText: [
         "You head out onto the court for your second team match. You're getting a little better at this.",
-        'Actually, you can kinda see what ',
-        { characterId: 'richard_soil' },
-        ' was saying about the grass.',
+        'Actually, you can kinda see what Rich was saying about the grass.',
       ],
       effects: {
         moodChange: 5,
