@@ -345,17 +345,20 @@ const STORY_SLOTS: Map<number, number> = STORY_SCHEDULE.reduce((m, [day, eventId
   return m;
 }, new Map<number, number>());
 
-/** Each announcement schedules its match two days on, in the afternoon. */
-const TEAM_MATCHES: Map<number, TeamMatchConfig> = new Map([
-  [15, TEAM_MATCH_1],
-  [19, TEAM_MATCH_2],
-  [23, TEAM_MATCH_3],
-  [27, TEAM_MATCH_4],
-  [31, TEAM_MATCH_5],
-]);
+/**
+ * Each announcement schedules its match two days on, in the afternoon.
+ * TEAM_DAYS=15,19,23,27,31 moves them, to try a different Club calendar.
+ */
+const TEAM_DAYS = (process.env.TEAM_DAYS ?? '15,19,23,27,31').split(',').map(Number);
+const TEAM_MATCHES: Map<number, TeamMatchConfig> = new Map(
+  [TEAM_MATCH_1, TEAM_MATCH_2, TEAM_MATCH_3, TEAM_MATCH_4, TEAM_MATCH_5].map((t, i) => [
+    TEAM_DAYS[i],
+    t,
+  ]),
+);
 
-/** coach_archetype_selection: no broad identity or specialties before this. */
-const ARCHETYPE_DAY = 11;
+/** coach_archetype_selection: no broad identity or specialties before this. ARCHETYPE_DAY moves it. */
+const ARCHETYPE_DAY = env('ARCHETYPE_DAY', 11);
 
 const teamSide = (t: TeamMatchConfig): Side => ({
   stats: t.opponent.stats,

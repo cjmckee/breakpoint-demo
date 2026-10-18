@@ -90,9 +90,10 @@ Not shipped, or only in part:
   must do, plus each opponent slot's target and how to fit stats to it with `bandCheck FIT=1`.
 
 - **[`proposals/shorter-seasons.md`](./proposals/shorter-seasons.md)** — measured, not built.
-  Three team matches a season and ~28-day seasons (a ~114-day career). The player keeps up because
-  training and matches pay more from day 1, in whole units, so the bands hold by stage. Open: a
-  bigger drill mix or a bigger session base.
+  ~28-day seasons (a ~112-day career), Club keeping its five matches three days apart, and later
+  seasons free to mix team matches, tournaments and story matches. Training and matches pay more
+  from day 1 in whole units, and opponent targets come from the player's curve by day, not a
+  fixed slot list. Open: a bigger drill mix or a bigger session base.
 
 - **[`proposals/xp-for-abilities.md`](./proposals/xp-for-abilities.md)** — measured, not applied.
   XP piles up with little to spend it on. The option: currency buys an ability and XP buys its
