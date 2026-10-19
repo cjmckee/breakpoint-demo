@@ -32,9 +32,9 @@
  *           The player picks the offered drill that pays most of what its next
  *           few purchases are short of, leaning to its identity's drills (ADAPT
  *           of the time; otherwise a favourite if one is offered, else any).
- *           Training pays the drill's mix (TRAINING_MIXES) × (reps + 1). Story and challenges pay the same stat
- *           points as today through each stat's recipe; the shop no longer sells
- *           stats, so SHOP_SHARE of OTHER_PER_DAY is dropped. Matches pay
+ *           Training pays the drill's mix (TRAINING_MIXES) × (reps + 1). Story and
+ *           challenges are the game's own events, played as they come (STORY=stream),
+ *           and the shop no longer sells stats. Matches pay
  *           CurrencyIncome.matchPayout: a base by result (lost 1/1/2/1, won
  *           2/2/3/2) plus MATCH_POOL × overall/100 by MatchRewardSystem's
  *           per-area scores, each paid in the currencies that buy its stats
@@ -50,6 +50,12 @@
  * Env: RUNS=20 (careers per identity per system)  N=200 (BO3 per readiness cell)
  *      DAYS=23  CHECK=15,19,23  MATCH_EVERY=2  REPS_P=0.7  ADAPT=0.7
  *      KEY_W=0.8,1.2  OFF_W=0.25,0.55
+ *      STORY=stream|flat  STORY_PICK=random|best  STORY_CHANCE=40  CHALLENGE_P=0.5
+ *      MINIGAME_PASS=0.6: the currency career plays the game's own story (storyStream.ts):
+ *      scheduled beats and their chains, the random roll each free daytime slot, team
+ *      match result events and milestones, each paying its outcome and taking its slots.
+ *      STORY=flat pays OTHER_PER_DAY instead, as the economy was first calibrated. A
+ *      skilled player is about REPS_P=0.9 STORY_PICK=best MINIGAME_PASS=0.85 CHALLENGE_P=0.8.
  *      OTHER_PER_DAY=2.2  SHOP_SHARE=0.25  INCOME_SCALE=1.2
  *      MATCH_POOL=30  EXCHANGE=0
  *      MATCH_BASE=1,1,2,1/2,2,3,2 overrides a match's base pay, lost/won, as P,Q,T,M
@@ -130,6 +136,7 @@ import {
 import { MatchSimulator } from '../../core/MatchSimulator';
 import { calculateOverallRating } from '../../utils/overallRating';
 import { PlayerManager } from '../../game/PlayerManager';
+import { StoryStream, type PlayedEvent, type StoryPick } from './storyStream';
 import { MatchRewardSystem } from '../../game/MatchRewardSystem';
 import { PERFORMANCE_AREAS } from '../../config/performanceScoring';
 import type { CoreStats } from '../../types';
@@ -199,6 +206,15 @@ const behindFundamentals = (s: PlayerStats, k: StatName, gap: number): boolean =
 const MATCH_EVERY = env('MATCH_EVERY', 2);
 const REPS_P = env('REPS_P', 0.7);
 const OTHER_PER_DAY = env('OTHER_PER_DAY', 2.2);
+/**
+ * How the currency career meets the story: `stream` plays the game's own story
+ * events (storyStream.ts), `flat` is the old trickle of OTHER_PER_DAY stat points.
+ */
+const STORY = (process.env.STORY ?? 'stream') as 'stream' | 'flat';
+const STORY_PICK = (process.env.STORY_PICK ?? 'random') as StoryPick;
+const STORY_CHANCE = env('STORY_CHANCE', 40);
+const CHALLENGE_P = env('CHALLENGE_P', 0.5);
+const MINIGAME_PASS = env('MINIGAME_PASS', 0.6);
 const SHOP_SHARE = env('SHOP_SHARE', 0.25);
 const INCOME_SCALE = env('INCOME_SCALE', ECONOMY_INCOME_SCALE);
 const MATCH_POOL = env('MATCH_POOL', MATCH_PAYOUT.pool);
@@ -526,6 +542,8 @@ interface Ledger {
   /** XP spent on gear, and pieces bought. */
   gearXp: number;
   gearBought: number;
+  /** Story events played (STORY=stream). */
+  storyEvents: number;
 }
 
 const zeroWallet = (): Wallet => ({ power: 0, quickness: 0, technique: 0, mind: 0 });
@@ -541,6 +559,7 @@ const emptyLedger = (): Ledger => ({
   abilityLevels: { common: 0, uncommon: 0, rare: 0 },
   gearXp: 0,
   gearBought: 0,
+  storyEvents: 0,
 });
 const cloneLedger = (l: Ledger): Ledger => JSON.parse(JSON.stringify(l)) as Ledger;
 const addInto = (into: Wallet, a: Amounts): void => {
@@ -987,15 +1006,74 @@ function career(
   const credit = (source: Source, before: Wallet): void =>
     addInto(ledger.earned[source], diffWallet(wallet, before));
 
-  for (let day = 1; day <= DAYS; day++) {
+  // The game's story, played event by event (currency careers, STORY=stream).
+  const stream =
+    system === 'currency' && STORY === 'stream'
+      ? new StoryStream({
+          pick: STORY_PICK,
+          triggerChance: STORY_CHANCE,
+          challengeRate: CHALLENGE_P,
+          minigamePass: MINIGAME_PASS,
+        })
+      : null;
+  const storyPlayer = PlayerManager.createPlayer('c');
+  const results: Array<'win' | 'loss'> = [];
+  const playerNow = (): typeof storyPlayer => ({
+    ...storyPlayer,
+    stats,
+    matchesPlayed: results.length,
+    matchesWon: results.filter((r) => r === 'win').length,
+    latestMatchResults: results.slice(0, 10),
+  });
+  /** Pay out an event; returns the slots it takes. */
+  const story = (played: PlayedEvent | null, slotName: string): number => {
+    if (!played) return 0;
+    const before = { ...wallet };
+    earn(wallet, played.currency, mult);
+    // A penalty bigger than the balance stops at zero, as applyCurrency does.
+    for (const c of CURRENCIES) wallet[c] = Math.max(0, wallet[c]);
+    for (const [k, v] of Object.entries(played.statChanges) as Array<[StatName, number]>) {
+      if (v) set(stats, k, Math.max(0, Math.min(100, get(stats, k) + v)));
+    }
+    energy = Math.max(0, Math.min(100, energy + played.energyChange));
+    credit('story', before);
+    ledger.storyEvents++;
+    note(
+      `  ${slotName} story ${played.eventId} → +${fmtAmounts(diffWallet(wallet, before))}` +
+        (Object.keys(played.statChanges).length ? ` ${JSON.stringify(played.statChanges)}` : ''),
+    );
+    return played.slots;
+  };
+  /** After a match: its result, any team-match result event, then milestones. */
+  const afterMatch = (
+    won: boolean,
+    slot: number,
+    slotName: string,
+    resultEvent?: string,
+  ): number => {
+    results.unshift(won ? 'win' : 'loss');
+    if (!stream) return 0;
+    let slots = resultEvent
+      ? story(stream.fire(playerNow(), resultEvent, day, slot as TimeSlot), slotName)
+      : 0;
+    for (const m of stream.milestones(playerNow(), day, slot as TimeSlot))
+      slots += story(m, slotName);
+    return slots;
+  };
+  let day = 0;
+
+  for (day = 1; day <= DAYS; day++) {
     mult = payOn(day);
     const team = TEAM_MATCHES.get(day);
     const practiceDay = !team && day >= 5 && (day - 5) % MATCH_EVERY === 0;
     const profile = day >= ARCHETYPE_DAY ? id.profile : unchosen;
-    let storySlots = STORY_SLOTS.get(day) ?? 0;
+    let storySlots = stream ? 0 : (STORY_SLOTS.get(day) ?? 0);
     note(`Day ${day}  (energy ${energy})`);
     for (let slot = 0; slot < 3; slot++) {
       const slotName = ['morning  ', 'afternoon', 'evening  '][slot];
+      if (stream && storySlots === 0) {
+        storySlots = story(stream.slotStart(playerNow(), day, slot as TimeSlot), slotName);
+      }
       const walletBefore = { ...wallet };
       if (storySlots > 0) {
         storySlots--;
@@ -1020,6 +1098,8 @@ function career(
             `${r.winner === 'player' ? 'WON' : 'lost'}, ${r.won}/${r.points} points. ${perf} ` +
             `→ +${fmtAmounts(diffWallet(wallet, walletBefore))}`,
         );
+        const won = r.winner === 'player';
+        storySlots += afterMatch(won, slot, slotName, won ? team.winEventId : team.lossEventId);
       } else if (practiceDay && slot === 1 && energy >= 50) {
         const opp = roster[matchesPlayed % roster.length];
         const bump = Math.min(tierWins * 2, 20);
@@ -1048,6 +1128,7 @@ function career(
             `${r.winner === 'player' ? 'WON' : 'lost'}, ${r.won}/${r.points} points. ${perf} ` +
             `→ +${fmtAmounts(diffWallet(wallet, walletBefore))}`,
         );
+        storySlots += afterMatch(r.winner === 'player', slot, slotName);
       } else if (energy >= 20) {
         const n = reps();
         sessions++;
@@ -1085,8 +1166,13 @@ function career(
     note(`  night     sleep (energy ${energy})`);
     const beforeOther = { ...wallet };
 
-    // Story, challenges and (today only) the shop, as a steady trickle.
-    const otherToday = system === 'today' ? OTHER_PER_DAY : OTHER_PER_DAY * (1 - SHOP_SHARE);
+    // Story, challenges and (today only) the shop, as a steady trickle — unless the
+    // story stream is playing the real thing.
+    const otherToday = stream
+      ? 0
+      : system === 'today'
+        ? OTHER_PER_DAY
+        : OTHER_PER_DAY * (1 - SHOP_SHARE);
     for (const k of ALL_STATS) {
       other[k] += (otherToday * OTHER_WEIGHTS[k]) / OTHER_TOTAL;
       const whole = Math.floor(other[k]);
@@ -1251,6 +1337,7 @@ function ledgerReport(): void {
     console.log(
       'slots: ' +
         SLOT_USES.map((u) => `${u} ${mean((l) => l.ledger.slots[u]).toFixed(1)}`).join(', ') +
+        `  |  story events ${mean((l) => l.ledger.storyEvents).toFixed(1)}` +
         '  |  drills trained: ' +
         DRILL_ORDER.map((d) => `${d} ${mean((l) => l.ledger.drills[d]).toFixed(1)}`).join(', '),
     );
