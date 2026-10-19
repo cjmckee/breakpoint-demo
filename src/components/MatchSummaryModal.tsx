@@ -20,6 +20,7 @@ import {
   PERFORMANCE_AREAS,
   PERFORMANCE_AREA_LABELS,
   performanceGrade,
+  type PerformanceGrade,
 } from '../config/performanceScoring';
 import { PixelSprite } from './sprites/PixelSprite';
 import { usePlayerAppearance } from '../hooks/usePlayerAppearance';
@@ -62,15 +63,14 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
     return `${set.player}-${set.opponent}`;
   };
 
-  // Green for a good showing, yellow for an even one, red for a poor one.
+  // A letter grade, green from B up, yellow for an even C, red for D and F.
   const getPerformanceDisplay = (
     score: number,
-  ): { color: string; bgColor: string; label: string } => {
-    if (score >= 75)
-      return { color: 'text-green-500', bgColor: 'bg-green-500', label: 'Excellent' };
-    if (score >= 60) return { color: 'text-green-500', bgColor: 'bg-green-500', label: 'Good' };
-    if (score >= 45) return { color: 'text-yellow-500', bgColor: 'bg-yellow-500', label: 'Even' };
-    return { color: 'text-red-500', bgColor: 'bg-red-500', label: 'Poor' };
+  ): { color: string; bgColor: string; grade: PerformanceGrade } => {
+    const grade = performanceGrade(score);
+    if (score >= 60) return { color: 'text-green-500', bgColor: 'bg-green-500', grade };
+    if (score >= 45) return { color: 'text-yellow-500', bgColor: 'bg-yellow-500', grade };
+    return { color: 'text-red-500', bgColor: 'bg-red-500', grade };
   };
 
   return (
@@ -275,7 +275,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
               <div
                 className={`text-6xl font-bold ${getPerformanceDisplay(matchRewards.performanceBreakdown.overallScore).color}`}
               >
-                {performanceGrade(matchRewards.performanceBreakdown.overallScore)}
+                {getPerformanceDisplay(matchRewards.performanceBreakdown.overallScore).grade}
               </div>
               <div className="text-sm text-pixel-text-muted mt-2">Overall Grade</div>
             </div>
@@ -310,8 +310,9 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
                     <div className="flex justify-between items-center mb-1">
                       <span className="text-sm font-bold text-pixel-text">{name}</span>
                       {counted ? (
-                        <span className={`text-sm font-bold ${display.color}`}>
-                          {Math.round(score)} - {display.label}
+                        <span className="text-sm" data-grade={display.grade}>
+                          <span className={`font-bold ${display.color}`}>{display.grade}</span>
+                          <span className="text-pixel-text-muted ml-2">{Math.round(score)}</span>
                         </span>
                       ) : (
                         <span className="text-sm text-pixel-text-muted">—</span>
