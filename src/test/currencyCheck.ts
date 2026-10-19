@@ -222,23 +222,23 @@ function main(): void {
   );
   const lostFlat = matchPayout({ ...perf, overallScore: 0 }, false);
   check(
-    'a loss with no performance still pays some of every currency: 3 Power, 2 Quickness, 4 Technique, 2 Mind',
-    lostFlat.power === 3 &&
-      lostFlat.quickness === 2 &&
-      lostFlat.technique === 4 &&
-      lostFlat.mind === 2,
+    'a loss with no performance still pays some of every currency: 1 Power, 1 Quickness, 2 Technique, 1 Mind',
+    lostFlat.power === 1 &&
+      lostFlat.quickness === 1 &&
+      lostFlat.technique === 2 &&
+      lostFlat.mind === 1,
     JSON.stringify(lostFlat),
   );
   const wonFlat = matchPayout({ ...perf, overallScore: 0 }, true);
   check(
     'a win raises the base by one of each',
-    wonFlat.power === 4 && wonFlat.quickness === 3 && wonFlat.technique === 5 && wonFlat.mind === 3,
+    wonFlat.power === 2 && wonFlat.quickness === 2 && wonFlat.technique === 3 && wonFlat.mind === 2,
     JSON.stringify(wonFlat),
   );
   const match = matchPayout(perf, true);
   check(
-    'performance adds a pool of 16 × overall/100 on top of the base',
-    unitsOf(match) === 15 + Math.round(MATCH_PAYOUT.pool * 0.5),
+    'performance adds a pool of 30 × overall/100 on top of the base',
+    unitsOf(match) === 9 + Math.round(MATCH_PAYOUT.pool * 0.5),
     JSON.stringify(match),
   );
   check(

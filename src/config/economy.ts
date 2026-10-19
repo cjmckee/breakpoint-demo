@@ -82,18 +82,17 @@ export const TRAINING_MIXES: Record<DrillId, CurrencyAmounts> = {
  * pool means how you played still decides most of the difference. Amounts are
  * literal units — INCOME_SCALE does not apply.
  *
- * The base leans to Technique, which the most stats need, and is light on
- * Quickness, which three drills already pay: measured with careerSim on the drill
- * roll, a heavier Quickness base left Power builds holding 35-45 of it. The pool is
- * sized so a career earns what it did before matches were rated by area: Clutch
- * and Coverage pay Mind and Quickness, so the base carries less of both.
+ * The base is small, so how the match went decides most of what it pays and a
+ * player strong in one area sees it in that area's currencies; it leans to
+ * Technique, which the most stats need. The pool is sized with careerSim LEDGER so
+ * a career earns what it did when the base was most of a match's pay.
  */
 export const MATCH_PAYOUT = {
   base: {
-    lost: { power: 3, quickness: 2, technique: 4, mind: 2 },
-    won: { power: 4, quickness: 3, technique: 5, mind: 3 },
+    lost: { power: 1, quickness: 1, technique: 2, mind: 1 },
+    won: { power: 2, quickness: 2, technique: 3, mind: 2 },
   },
-  pool: 16,
+  pool: 30,
   clutch: { mind: 1 },
 };
 

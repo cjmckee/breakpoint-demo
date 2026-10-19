@@ -35,8 +35,8 @@
  *           Training pays the drill's mix (TRAINING_MIXES) × (reps + 1). Story and challenges pay the same stat
  *           points as today through each stat's recipe; the shop no longer sells
  *           stats, so SHOP_SHARE of OTHER_PER_DAY is dropped. Matches pay
- *           CurrencyIncome.matchPayout: a base by result (lost 3/2/4/2, won
- *           4/3/5/3) plus MATCH_POOL × overall/100 by MatchRewardSystem's
+ *           CurrencyIncome.matchPayout: a base by result (lost 1/1/2/1, won
+ *           2/2/3/2) plus MATCH_POOL × overall/100 by MatchRewardSystem's
  *           per-area scores, each paid in the currencies that buy its stats
  *           (areaCurrencyMix). Each evening the player buys
  *           toward its shape (SPEND, see buyTowardShape).
@@ -51,8 +51,8 @@
  *      DAYS=23  CHECK=15,19,23  MATCH_EVERY=2  REPS_P=0.7  ADAPT=0.7
  *      KEY_W=0.8,1.2  OFF_W=0.25,0.55
  *      OTHER_PER_DAY=2.2  SHOP_SHARE=0.25  INCOME_SCALE=1.2
- *      MATCH_POOL=16  EXCHANGE=0
- *      MATCH_BASE=3,2,4,2/4,3,5,3 overrides a match's base pay, lost/won, as P,Q,T,M
+ *      MATCH_POOL=30  EXCHANGE=0
+ *      MATCH_BASE=1,1,2,1/2,2,3,2 overrides a match's base pay, lost/won, as P,Q,T,M
  *      SPEND=patient|affordable|impatient  (see buyTowardShape)  OVERBUILD=8
  *      SYSTEMS=today,currency  STEP_FROM=40 (statEconomy price steps)
  *      STATS=1 prints every stat of the mean build instead of the lowest/top three
