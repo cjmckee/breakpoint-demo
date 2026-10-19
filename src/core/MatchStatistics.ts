@@ -17,6 +17,7 @@ import {
   PointType,
 } from '../types';
 import { PlayerProfile } from './PlayerProfile';
+import { LONG_RALLY_LENGTH } from '../config/performanceScoring';
 
 export class MatchStatistics {
   private statistics: IMatchStatistics;
@@ -76,8 +77,12 @@ export class MatchStatistics {
       averageRallyLengthWon: { player: 0, opponent: 0 },
       longestRallyWon: { player: 0, opponent: 0 },
       netPointsWon: { player: 0, opponent: 0 },
+      netPointsPlayed: { player: 0, opponent: 0 },
       rallyPointsPlayed: { player: 0, opponent: 0 },
       rallyPointsWon: { player: 0, opponent: 0 },
+      rallyPointsOutplayed: { player: 0, opponent: 0 },
+      longRallyPointsPlayed: 0,
+      longRallyPointsWon: { player: 0, opponent: 0 },
       shotTypeStats: {},
       statCorrelation: {},
       keyMomentsWon: { player: 0, opponent: 0 },
@@ -274,8 +279,14 @@ export class MatchStatistics {
       }
     });
 
-    // A "net point won" = the point ended while that player was at the net and they won
-    // This includes winners, forcing errors from net position, or opponent errors while you're at net
+    // A "net point played" = that player came to the net at some point in the point.
+    // A "net point won" = they did, and won it: winners, forced errors from the net, or
+    // the opponent's errors while they were there.
+    for (const side of ['server', 'returner'] as const) {
+      if (atNet[side]) {
+        this.statistics.netPointsPlayed[this.convertPointWinnerToPlayer(side, currentServer)]++;
+      }
+    }
     if (atNet.server || atNet.returner) {
       const winnerIdentity =
         pointWinner === 'server'
@@ -308,6 +319,16 @@ export class MatchStatistics {
       this.statistics.rallyPointsPlayed.player++;
       this.statistics.rallyPointsPlayed.opponent++;
       this.statistics.rallyPointsWon[winner]++;
+      if (
+        pointResult.pointType === PointType.WINNER ||
+        pointResult.pointType === PointType.FORCED_ERROR
+      ) {
+        this.statistics.rallyPointsOutplayed[winner === 'player' ? 'opponent' : 'player']++;
+      }
+    }
+    if (rallyLength >= LONG_RALLY_LENGTH) {
+      this.statistics.longRallyPointsPlayed++;
+      this.statistics.longRallyPointsWon[winner]++;
     }
 
     // Average rally length only counts actual rallies

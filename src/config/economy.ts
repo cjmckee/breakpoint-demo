@@ -75,22 +75,26 @@ export const TRAINING_MIXES: Record<DrillId, CurrencyAmounts> = {
 
 /**
  * A match pays a base by result, the same however it went, plus a performance
- * pool of pool × overall/100 split by the per-area scores (serving → Power,
- * returning → Quickness, rally → Technique, net → Quickness and Technique,
- * mental → Mind). The base means every match pays some of every currency; the
+ * pool of pool × overall/100 split by what each area added to the overall. An
+ * area pays the currencies that buy its stats (GAME_AREA_WEIGHTS through
+ * STAT_RECIPES), so a good serving day pays mostly Power; Clutch pays `clutch`.
+ * The base means every match pays some of every currency; the
  * pool means how you played still decides most of the difference. Amounts are
  * literal units — INCOME_SCALE does not apply.
  *
- * The base leans to Mind, which matches are where the mental game pays, and is
- * light on Quickness, which three drills already pay: measured with careerSim on
- * the drill roll, a heavier Quickness base left Power builds holding 35-45 of it.
+ * The base leans to Technique, which the most stats need, and is light on
+ * Quickness, which three drills already pay: measured with careerSim on the drill
+ * roll, a heavier Quickness base left Power builds holding 35-45 of it. The pool is
+ * sized so a career earns what it did before matches were rated by area: Clutch
+ * and Coverage pay Mind and Quickness, so the base carries less of both.
  */
 export const MATCH_PAYOUT = {
   base: {
-    lost: { power: 3, quickness: 1, technique: 3, mind: 4 },
-    won: { power: 4, quickness: 2, technique: 4, mind: 5 },
+    lost: { power: 3, quickness: 2, technique: 4, mind: 2 },
+    won: { power: 4, quickness: 3, technique: 5, mind: 3 },
   },
-  pool: 20,
+  pool: 16,
+  clutch: { mind: 1 },
 };
 
 /**

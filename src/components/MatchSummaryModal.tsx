@@ -16,6 +16,11 @@ import { getPrimaryStatName } from '../core/shotStatMapping';
 import { formatStatName } from '../config/statIcons';
 import { CurrencyAmounts } from './currency/CurrencyAmounts';
 import { matchPayoutLines } from '../game/CurrencyIncome';
+import {
+  PERFORMANCE_AREAS,
+  PERFORMANCE_AREA_LABELS,
+  performanceGrade,
+} from '../config/performanceScoring';
 import { PixelSprite } from './sprites/PixelSprite';
 import { usePlayerAppearance } from '../hooks/usePlayerAppearance';
 import { getOpponentAppearance } from '../data/characters';
@@ -57,25 +62,15 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
     return `${set.player}-${set.opponent}`;
   };
 
-  // Helper function to get performance level color and label
+  // Green for a good showing, yellow for an even one, red for a poor one.
   const getPerformanceDisplay = (
     score: number,
   ): { color: string; bgColor: string; label: string } => {
     if (score >= 75)
       return { color: 'text-green-500', bgColor: 'bg-green-500', label: 'Excellent' };
-    if (score >= 60) return { color: 'text-blue-500', bgColor: 'bg-blue-500', label: 'Good' };
-    if (score >= 45)
-      return { color: 'text-yellow-500', bgColor: 'bg-yellow-500', label: 'Average' };
+    if (score >= 60) return { color: 'text-green-500', bgColor: 'bg-green-500', label: 'Good' };
+    if (score >= 45) return { color: 'text-yellow-500', bgColor: 'bg-yellow-500', label: 'Even' };
     return { color: 'text-red-500', bgColor: 'bg-red-500', label: 'Poor' };
-  };
-
-  // Helper function to get overall grade
-  const getOverallGrade = (score: number): string => {
-    if (score >= 90) return 'S';
-    if (score >= 75) return 'A';
-    if (score >= 60) return 'B';
-    if (score >= 45) return 'C';
-    return 'D';
   };
 
   return (
@@ -280,7 +275,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
               <div
                 className={`text-6xl font-bold ${getPerformanceDisplay(matchRewards.performanceBreakdown.overallScore).color}`}
               >
-                {getOverallGrade(matchRewards.performanceBreakdown.overallScore)}
+                {performanceGrade(matchRewards.performanceBreakdown.overallScore)}
               </div>
               <div className="text-sm text-pixel-text-muted mt-2">Overall Grade</div>
             </div>
@@ -299,48 +294,33 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
             🎯 Performance Breakdown
           </h3>
           <div className="space-y-3">
-            {[
-              {
-                name: 'Serving',
-                score: matchRewards.performanceBreakdown.servingScore,
-                icon: '🎾',
-              },
-              {
-                name: 'Returning',
-                score: matchRewards.performanceBreakdown.returningScore,
-                icon: '↩️',
-              },
-              {
-                name: 'Rally Play',
-                score: matchRewards.performanceBreakdown.rallyScore,
-                icon: '🔁',
-              },
-              {
-                name: 'Net Play',
-                score: matchRewards.performanceBreakdown.netPlayScore,
-                icon: '🥅',
-              },
-              {
-                name: 'Mental Game',
-                score: matchRewards.performanceBreakdown.mentalScore,
-                icon: '🧠',
-              },
-            ].map(({ name, score, icon }) => {
+            {PERFORMANCE_AREAS.map((area) => {
+              const score = matchRewards.performanceBreakdown.areas[area];
+              const name = PERFORMANCE_AREA_LABELS[area];
+              // Net play only counts once you came in; a player who stayed back has no score there.
+              const counted = matchRewards.performanceBreakdown.weights[area] > 0;
               const display = getPerformanceDisplay(score);
               return (
-                <div key={name} className="flex items-center gap-3">
-                  <div className="text-2xl w-8">{icon}</div>
+                <div
+                  key={area}
+                  className="flex items-center gap-3"
+                  data-testid={`performance-area-${area}`}
+                >
                   <div className="flex-1">
                     <div className="flex justify-between items-center mb-1">
                       <span className="text-sm font-bold text-pixel-text">{name}</span>
-                      <span className={`text-sm font-bold ${display.color}`}>
-                        {Math.round(score)} - {display.label}
-                      </span>
+                      {counted ? (
+                        <span className={`text-sm font-bold ${display.color}`}>
+                          {Math.round(score)} - {display.label}
+                        </span>
+                      ) : (
+                        <span className="text-sm text-pixel-text-muted">—</span>
+                      )}
                     </div>
                     <div className="w-full bg-pixel-bg border-2 border-pixel-border h-4">
                       <div
                         className={`${display.bgColor} h-full bg-opacity-50 transition-all`}
-                        style={{ width: `${Math.min(100, score)}%` }}
+                        style={{ width: `${counted ? Math.min(100, score) : 0}%` }}
                       />
                     </div>
                   </div>

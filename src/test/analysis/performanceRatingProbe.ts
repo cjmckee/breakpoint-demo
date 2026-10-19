@@ -19,6 +19,7 @@ import { MatchOrchestrator } from '../../game/MatchOrchestrator';
 import { MatchRewardSystem } from '../../game/MatchRewardSystem';
 import { profileForArchetype, type LegacyArchetype } from '../../data/archetypeTree';
 import { gameAreaValues } from '../../core/gameAreas';
+import { PERFORMANCE_AREAS } from '../../config/performanceScoring';
 
 const N_MATCHES = Number(process.env.N_MATCHES ?? 400);
 const FORMAT = (process.env.FORMAT ?? 'best-of-1') as 'best-of-1' | 'best-of-3';
@@ -82,8 +83,10 @@ async function playOne(): Promise<Record<string, unknown>> {
   );
   const pw = stats.totalPoints.player;
   const po = stats.totalPoints.opponent;
-  const servePlayed = stats.pointsWon.player.serve + stats.pointsWon.opponent.return;
-  const returnPlayed = stats.pointsWon.opponent.serve + stats.pointsWon.player.return;
+  const servePlayed =
+    stats.pointsWon.player.serve + stats.pointsWon.opponent.return + stats.doubleFaults.player;
+  const returnPlayed =
+    stats.pointsWon.opponent.serve + stats.pointsWon.player.return + stats.doubleFaults.opponent;
 
   return {
     won,
@@ -96,25 +99,21 @@ async function playOne(): Promise<Record<string, unknown>> {
     rallyShare: stats.rallyPointsPlayed.player
       ? stats.rallyPointsWon.player / stats.rallyPointsPlayed.player
       : null,
-    netPlayed: stats.netPointsWon.player + stats.netPointsWon.opponent,
+    netPlayed: stats.netPointsPlayed.player,
     netWon: stats.netPointsWon.player,
+    longRallies: stats.longRallyPointsPlayed,
+    longRalliesWon: stats.longRallyPointsWon.player,
+    outplayed: stats.rallyPointsOutplayed.player,
+    outplayedOpponent: stats.rallyPointsOutplayed.opponent,
     kmWon: stats.keyMomentsWon.player,
     kmLost: stats.keyMomentsWon.opponent,
-    aces: stats.aces.player,
-    dfs: stats.doubleFaults.player,
-    firstServePct: stats.firstServePercentage.player,
     bpFor: stats.breakPointOpportunities.player,
     bpConv: stats.breakPointsConverted.player,
     bpFaced: stats.breakPointOpportunities.opponent,
     bpLost: stats.breakPointsConverted.opponent,
-    winners: stats.winners.player,
-    ues: stats.unforcedErrors.player,
     totalPoints: pw + po,
-    serving: p.servingScore,
-    returning: p.returningScore,
-    rally: p.rallyScore,
-    netPlay: p.netPlayScore,
-    mental: p.mentalScore,
+    ...Object.fromEntries(PERFORMANCE_AREAS.map((a) => [a, p.areas[a]])),
+    netWeight: p.weights.net,
     overall: p.overallScore,
     currency: rewards.currency,
     playerArch,

@@ -561,10 +561,17 @@ export interface MatchStatistics {
   averageRallyLengthWon: { player: number; opponent: number };
   longestRallyWon: { player: number; opponent: number };
   netPointsWon: { player: number; opponent: number };
+  /** Points where that side came to the net (approach, volley or overhead), won or lost. */
+  netPointsPlayed: { player: number; opponent: number };
 
   // Rally points where the rally extended beyond serve + return (shot count > 2)
   rallyPointsPlayed: { player: number; opponent: number };
   rallyPointsWon: { player: number; opponent: number };
+  /** Rally points that side lost to a winner or a forced error: run off the court. */
+  rallyPointsOutplayed: { player: number; opponent: number };
+  /** Rallies of LONG_RALLY_LENGTH shots or more, and who won them. */
+  longRallyPointsPlayed: number;
+  longRallyPointsWon: { player: number; opponent: number };
 
   // Shot type breakdown
   shotTypeStats: {
