@@ -44,9 +44,12 @@ export const STAT_RECIPES: Record<StatName, CurrencyAmounts> = {
 
 /**
  * The price step: a recipe costs ×1 below `from`, and one step more every
- * `width` points after (×2 in the 40s–50s, ×3 in the 60s–70s, ×4 from 80).
+ * `width` points after (×2 from 35, ×3 from 50, ×4 from 65, ×5 from 80). Sized
+ * so a Club career reaches the Riverside Open with about the stats of its last
+ * two rounds: the average player at Max's and Jordan's (~45), a strong one a little
+ * above (careerSim, practising daily).
  */
-export const PRICE_STEP = { from: 40, width: 20 };
+export const PRICE_STEP = { from: 35, width: 15 };
 
 /**
  * Scales story and challenge grants (CONTENT_SCALE). Calibrated so a career

@@ -80,9 +80,9 @@
  *      the best core stat.
  *      GEAR=all|tier buys gear with XP: the shop's two equipment offers a day, the one that
  *      adds most to the identity's stats (key stats count double) if it beats what that slot
- *      holds. all is today's shop (every piece from day 7); tier sells only gear from the
- *      season's pool and below. Matches play the geared stats, and PAR reports both OVRs.
- *      all by default, as the game's shop sells every piece at every tier; GEAR=off leaves it out.
+ *      holds. tier (the default) is the game's shop, the season's pool and the next one's
+ *      (ShopSystem.shopGearForTier); all sells every piece from day 7. Matches play the
+ *      geared stats, and PAR reports both OVRs. GEAR=off leaves the shop out.
  *      FOCUS_FROM=41 lets the currency career pick a silver training focus from that
  *      day: the currency its next purchases are most short of (CurrencyIncome.focusedMix).
  *      PAR=1 reports, per identity and CHECK day, the mean build's OVR and the
@@ -182,7 +182,7 @@ import { riversideOpen } from '../../data/tournaments/riversideOpen';
 import { BAND_DAYS, type CareerBuilds } from './bandSlots';
 import { ALL_EQUIPMENT, getItemsByTier } from '../../data/items';
 import type { Item } from '../../types/items';
-import { equipmentPrice } from '../../game/ShopSystem';
+import { equipmentPrice, shopGearForTier } from '../../game/ShopSystem';
 
 type CoreStat = keyof CoreStats;
 
@@ -268,19 +268,12 @@ const ABILITIES_ON = process.env.ABILITIES !== '0';
 const ABILITY_BAR = env('ABILITY_BAR', 0.05);
 /** XP from challenges per day, on top of match XP. */
 const CHALLENGE_XP = env('CHALLENGE_XP', 10);
-const GEAR = (process.env.GEAR ?? 'all') as 'off' | 'all' | 'tier';
+const GEAR = (process.env.GEAR ?? 'tier') as 'off' | 'all' | 'tier';
 const SHOP_GEAR = ALL_EQUIPMENT.filter((i) => i.shopAvailable !== false && i.equipmentSlot);
 
 /** The gear the shop can offer at this tier: everything, or the season's pool and below. */
 function gearPool(tier: OpponentTier): Item[] {
-  if (GEAR === 'all') return SHOP_GEAR;
-  const ids = new Set(
-    ([1, 2, 3, 4] as OpponentTier[])
-      .filter((t) => t <= tier)
-      .flatMap((t) => getItemsByTier(t))
-      .map((i) => i.id),
-  );
-  return SHOP_GEAR.filter((i) => ids.has(i.id));
+  return GEAR === 'all' ? SHOP_GEAR : shopGearForTier(tier);
 }
 
 /** Equipped gear by slot. */
@@ -1594,7 +1587,7 @@ function careersReport(path: string): void {
   const ids = process.env.IDS?.split(',');
   const settings = Object.fromEntries(
     Object.entries(process.env).filter(([k]) =>
-      /^(RUNS|DAYS|REPS_P|ADAPT|SPEND|STORY|STORY_PICK|STORY_CHANCE|CHALLENGE_P|MINIGAME_PASS|MATCH_EVERY|KEY_W|OFF_W|GEAR|ABILITIES|TEAM_ABILITIES|TAG|SKILL)$/.test(
+      /^(RUNS|DAYS|STEP_FROM|STEP_WIDTH|REPS_P|ADAPT|SPEND|STORY|STORY_PICK|STORY_CHANCE|CHALLENGE_P|MINIGAME_PASS|MATCH_EVERY|KEY_W|OFF_W|GEAR|ABILITIES|TEAM_ABILITIES|TAG|SKILL)$/.test(
         k,
       ),
     ),

@@ -18,7 +18,12 @@ import type {
 import type { Item } from '../types/items';
 import { ABILITY_DEFINITIONS } from '../data/abilities';
 import { AbilityRarity } from '../types/game';
-import { ALL_CONSUMABLES, ALL_EQUIPMENT, CONSUMABLE_SHOP_COSTS } from '../data/items';
+import {
+  ALL_CONSUMABLES,
+  ALL_EQUIPMENT,
+  CONSUMABLE_SHOP_COSTS,
+  getItemsByTier,
+} from '../data/items';
 import {
   ABILITY_STATS,
   OFF_COURT_ABILITY_PRICE,
@@ -55,14 +60,30 @@ function createConsumableItem(): ConsumableItem {
 
 const SHOP_EQUIPMENT_ITEMS: Item[] = ALL_EQUIPMENT.filter((item) => item.shopAvailable !== false);
 
+/**
+ * The gear the shop stocks for a tier: its own season's pool and the next one's
+ * (getItemsByTier), so a Club player can save up for Regional gear but the
+ * late-career pieces wait for their seasons.
+ */
+export function shopGearForTier(tier: OpponentTier): Item[] {
+  const ids = new Set(
+    ([1, 2, 3, 4] as const)
+      .filter((t) => t <= tier + 1)
+      .flatMap((t) => getItemsByTier(t))
+      .map((i) => i.id),
+  );
+  return SHOP_EQUIPMENT_ITEMS.filter((item) => ids.has(item.id));
+}
+
 /** What a piece of gear costs in XP: it grows faster than its total boost. */
 export function equipmentPrice(statBoosts: StatBoosts): number {
   const total = Object.values(statBoosts).reduce((a, b) => a + b, 0);
-  return Math.round(Math.pow(total, 1.4) * 4);
+  return Math.round(Math.pow(total, 1.4) * 6);
 }
 
-function createEquipmentItem(): EquipmentItem {
-  const sourceItem = SHOP_EQUIPMENT_ITEMS[Math.floor(random() * SHOP_EQUIPMENT_ITEMS.length)];
+function createEquipmentItem(tier: OpponentTier): EquipmentItem {
+  const stock = shopGearForTier(tier);
+  const sourceItem = stock[Math.floor(random() * stock.length)];
   const statBoosts = sourceItem.modifiers?.statBoosts ?? {};
   return {
     id: `equipment-${Date.now()}-${random().toString(36).slice(2, 5)}`,
@@ -160,7 +181,7 @@ export function generateDailyShopItems(
 
   // Generate 2 equipment
   while (items.filter((i) => i.category === 'equipment').length < 2) {
-    const item = createEquipmentItem();
+    const item = createEquipmentItem(tier);
     if (!usedNames.has(item.name)) {
       items.push(item);
       usedNames.add(item.name);

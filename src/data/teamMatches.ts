@@ -28,10 +28,10 @@ const chetVale: MatchOpponent = {
   archetype: 'counterpuncher',
   description: 'A speedy but inexperienced player from Aspen Slopes Academy',
   stats: {
-    core: { serve: 31, forehand: 29, backhand: 24, return: 28, net: 20 },
-    technical: { slice: 22, spin: 24, placement: 26 },
-    physical: { speed: 49, stamina: 39, strength: 22 },
-    mental: { focus: 29, anticipation: 34, tactics: 32 },
+    core: { serve: 30, forehand: 28, backhand: 23, return: 27, net: 19 },
+    technical: { slice: 21, spin: 23, placement: 25 },
+    physical: { speed: 48, stamina: 38, strength: 21 },
+    mental: { focus: 28, anticipation: 33, tactics: 31 },
   },
   abilities: [ABILITY_DEFINITIONS[AbilityName.SLIDER]],
 };
@@ -58,10 +58,10 @@ const martiaEstrella: MatchOpponent = {
   archetype: 'serve_volley',
   description: 'An up-and-coming star known for her volleys and court coverage.',
   stats: {
-    core: { serve: 37, forehand: 39, backhand: 33, return: 37, net: 34 },
-    technical: { slice: 39, spin: 34, placement: 38 },
-    physical: { speed: 44, stamina: 36, strength: 20 },
-    mental: { focus: 42, anticipation: 38, tactics: 35 },
+    core: { serve: 36, forehand: 38, backhand: 32, return: 36, net: 33 },
+    technical: { slice: 38, spin: 33, placement: 37 },
+    physical: { speed: 43, stamina: 35, strength: 19 },
+    mental: { focus: 41, anticipation: 37, tactics: 34 },
   },
   abilities: [ABILITY_DEFINITIONS[AbilityName.NETCRASHER]],
 };
@@ -74,10 +74,10 @@ const reginaldWerther: MatchOpponent = {
   description:
     'A steady, patient player from Sunset Drive. He won tournaments 100 years before you were born.',
   stats: {
-    core: { serve: 40, forehand: 43, backhand: 39, return: 40, net: 35 },
-    technical: { slice: 39, spin: 37, placement: 42 },
-    physical: { speed: 38, stamina: 42, strength: 37 },
-    mental: { focus: 39, anticipation: 42, tactics: 38 },
+    core: { serve: 39, forehand: 42, backhand: 38, return: 39, net: 34 },
+    technical: { slice: 38, spin: 36, placement: 41 },
+    physical: { speed: 37, stamina: 41, strength: 36 },
+    mental: { focus: 38, anticipation: 41, tactics: 37 },
   },
   abilities: [ABILITY_DEFINITIONS[AbilityName.BASELINER]],
 };
@@ -90,10 +90,10 @@ const oliviaGulp: MatchOpponent = {
   description:
     "A talented chef with a variety of skills on the court. If you can't take the heat, you could get burned.",
   stats: {
-    core: { serve: 43, forehand: 47, backhand: 40, return: 45, net: 35 },
-    technical: { slice: 47, spin: 40, placement: 42 },
-    physical: { speed: 37, stamina: 49, strength: 36 },
-    mental: { focus: 42, anticipation: 44, tactics: 42 },
+    core: { serve: 41, forehand: 45, backhand: 38, return: 43, net: 33 },
+    technical: { slice: 45, spin: 38, placement: 40 },
+    physical: { speed: 35, stamina: 47, strength: 34 },
+    mental: { focus: 40, anticipation: 42, tactics: 40 },
   },
   abilities: [ABILITY_DEFINITIONS[AbilityName.SOFT_HANDS]],
 };
