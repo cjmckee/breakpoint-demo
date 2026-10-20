@@ -383,12 +383,23 @@ export function getOpponentsForTier(tier: OpponentTier): OpponentPreset[] {
 }
 
 /**
+ * The most practice wins can add to a tier's roster. The Club roster starts 10
+ * lower than the others, so the season's first matches are winnable, and climbs
+ * 10 further to finish where it did.
+ */
+export const PRACTICE_BOOST_CAP: Record<OpponentTier, number> = { 1: 30, 2: 20, 3: 20, 4: 20 };
+
+/**
  * Apply difficulty scaling to an opponent's stats based on how many practice
  * wins the player has accumulated against that tier. Each win adds +2 to all
- * stats, capped at +20 (reached after 10 wins). Stats are clamped to 100.
+ * stats, up to the tier's PRACTICE_BOOST_CAP. Stats are clamped to 100.
  */
-export function getScaledOpponentStats(stats: PlayerStats, tierWins: number): PlayerStats {
-  const boost = Math.min(tierWins * 2, 20);
+export function getScaledOpponentStats(
+  stats: PlayerStats,
+  tierWins: number,
+  tier: OpponentTier,
+): PlayerStats {
+  const boost = Math.min(tierWins * 2, PRACTICE_BOOST_CAP[tier]);
   if (boost === 0) return stats;
 
   // Generic so it survives stats moving bucket — it was a hand-written list of

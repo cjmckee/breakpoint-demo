@@ -1497,7 +1497,7 @@ export const useGameStore = create<GameState>()(
 
         const opponent = getRandomOpponent(tier);
         const tierWins = player?.practiceWinsPerTier?.[tier] ?? 0;
-        const stats = getScaledOpponentStats(opponent.stats, tierWins);
+        const stats = getScaledOpponentStats(opponent.stats, tierWins, tier);
 
         const newOpponent = {
           opponentId: opponent.name,

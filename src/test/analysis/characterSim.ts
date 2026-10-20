@@ -254,7 +254,7 @@ function makeCharacter(stats: PlayerStats): PlayerProfile {
 }
 
 function opponentFromPreset(preset: OpponentPreset, tierWins: number): () => PlayerProfile {
-  const stats = getScaledOpponentStats(preset.stats, tierWins);
+  const stats = getScaledOpponentStats(preset.stats, tierWins, preset.tier);
   const profile = getOpponentArchetypeProfile(preset);
   return () => new PlayerProfile(`opp_${preset.name}`, preset.name, stats, profile);
 }

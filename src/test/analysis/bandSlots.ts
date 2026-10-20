@@ -53,7 +53,7 @@ interface SeasonBands {
 
 /**
  * §2.2, by season. Practice is the roster's base on season day 1 (each practice
- * win then adds +2, to +20); its target is the middle of the band.
+ * win then adds +2, to the tier's PRACTICE_BOOST_CAP); its target is the middle of the band.
  */
 const BANDS: Record<OpponentTier, SeasonBands> = {
   1: { practice: 28, team: [29, 34, 36, 38, 41], final: [36, 39, 44, 46] },
