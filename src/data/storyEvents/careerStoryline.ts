@@ -273,7 +273,7 @@ export const careerEvents: StoryEvent[] = [
         scheduledEvents: [
           {
             eventType: 'story_match',
-            relativeDays: 2,
+            relativeDays: 1,
             scheduledTimeSlot: 1, // AFTERNOON
             metadata: buildStoryMatchMetadata(TEAM_MATCH_1),
           },
@@ -535,7 +535,7 @@ export const careerEvents: StoryEvent[] = [
         scheduledEvents: [
           {
             eventType: 'story_match',
-            relativeDays: 2,
+            relativeDays: 1,
             scheduledTimeSlot: 1, // AFTERNOON
             metadata: buildStoryMatchMetadata(TEAM_MATCH_2),
           },
@@ -802,7 +802,7 @@ export const careerEvents: StoryEvent[] = [
         scheduledEvents: [
           {
             eventType: 'story_match',
-            relativeDays: 2,
+            relativeDays: 1,
             scheduledTimeSlot: 1, // AFTERNOON
             metadata: buildStoryMatchMetadata(TEAM_MATCH_3),
           },
@@ -1087,7 +1087,7 @@ export const careerEvents: StoryEvent[] = [
         scheduledEvents: [
           {
             eventType: 'story_match',
-            relativeDays: 2,
+            relativeDays: 1,
             scheduledTimeSlot: 1, // AFTERNOON
             metadata: buildStoryMatchMetadata(TEAM_MATCH_4),
           },
@@ -1369,7 +1369,7 @@ export const careerEvents: StoryEvent[] = [
         scheduledEvents: [
           {
             eventType: 'story_match',
-            relativeDays: 2,
+            relativeDays: 1,
             scheduledTimeSlot: 1, // AFTERNOON
             metadata: buildStoryMatchMetadata(TEAM_MATCH_5),
           },

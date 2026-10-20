@@ -2,7 +2,7 @@
  * The Club season (tier 1): the tutorial week, the Academy team's five matches
  * and the Riverside Open.
  *
- * Each team match announcement schedules its own match two days later, and the
+ * Each team match announcement schedules its own match the next day, and the
  * Riverside Open prep leads into the tournament, so only the first event of
  * each chain is listed here.
  */
@@ -28,14 +28,14 @@ export const CLUB_SEASON: SeasonSchedule = {
     { day: 11, slot: TimeSlot.MORNING, storyEventId: 'coach_archetype_selection' },
     { day: 11, slot: TimeSlot.AFTERNOON, storyEventId: 'club_team_first_practice' },
     { day: 12, slot: TimeSlot.MORNING, storyEventId: 'coach_training_focus' },
-    // Team matches play on days 15, 19, 23, 27 and 31
+    // Team matches play on days 14, 17, 20, 23 and 26, the day after each announcement
     { day: 13, slot: TimeSlot.MORNING, storyEventId: 'first_team_match_scheduled' },
-    { day: 16, slot: TimeSlot.MORNING, storyEventId: 'coach_balanced_development' },
-    { day: 17, slot: TimeSlot.MORNING, storyEventId: 'second_team_match_scheduled' },
-    { day: 21, slot: TimeSlot.MORNING, storyEventId: 'third_team_match_scheduled' },
-    { day: 25, slot: TimeSlot.MORNING, storyEventId: 'fourth_team_match_scheduled' },
-    { day: 29, slot: TimeSlot.MORNING, storyEventId: 'fifth_team_match_scheduled' },
-    // The tier-final: prep on day 33, the opening ceremony on day 36
-    { day: 33, slot: TimeSlot.MORNING, storyEventId: 'riverside_open_prep' },
+    { day: 15, slot: TimeSlot.MORNING, storyEventId: 'coach_balanced_development' },
+    { day: 16, slot: TimeSlot.MORNING, storyEventId: 'second_team_match_scheduled' },
+    { day: 19, slot: TimeSlot.MORNING, storyEventId: 'third_team_match_scheduled' },
+    { day: 22, slot: TimeSlot.MORNING, storyEventId: 'fourth_team_match_scheduled' },
+    { day: 25, slot: TimeSlot.MORNING, storyEventId: 'fifth_team_match_scheduled' },
+    // The tier-final: prep on day 28, the opening ceremony on day 30
+    { day: 28, slot: TimeSlot.MORNING, storyEventId: 'riverside_open_prep' },
   ],
 };

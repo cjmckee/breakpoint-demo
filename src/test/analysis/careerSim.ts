@@ -9,9 +9,9 @@
  * THE CALENDAR is the game's own (the Club season, src/data/seasons/club.ts). Story
  * events take the slots their definitions say they take, the archetype is
  * chosen on day 11 (no specialties before that), and the team matches are
- * played on their afternoons: day 15 Chet Vale, 19 Rich Soil, 23 Martia
- * Estrella, 27 Reginald Werther, 31 Olivia Gulp — best of three, on their
- * surfaces. Every other free slot trains (20 energy) or, every MATCH_EVERY days
+ * played on their afternoons, on the days the calendar schedules them (today day
+ * 14 Chet Vale, 17 Rich Soil, 20 Martia Estrella, 23 Reginald Werther, 26 Olivia
+ * Gulp) — best of three, at their venues. Every other free slot trains (20 energy) or, every MATCH_EVERY days
  * from day 5, plays a practice match (50 energy) against the tier-1 roster,
  * scaled per win the way the game scales it. Short of energy, the player rests
  * for 20; night sleeps for 50. Training reps are Binomial(3, REPS_P).
@@ -70,7 +70,7 @@
  *      payout, purchase, exchange, and what the player is saving for
  *      TIER_PAY=41:2,81:3 multiplies everything the currency career earns (training,
  *      matches, story) and the currency price of abilities from each day on, to
- *      model a promotion. Bronze's calendar ends at day 31; after it every free
+ *      model a promotion. Bronze's calendar ends at day 26; after it every free
  *      day trains or plays practice.
  *      FUND_W=lo,hi weights serve and return at least that for every identity, to model a
  *      player who keeps the two shots of every point up whatever their style.
@@ -97,7 +97,9 @@
  *      Regenerate it when the economy or the Club calendar changes:
  *      BUILDS=src/test/analysis/careerBuilds.json RUNS=12 npx tsx src/test/analysis/careerSim.ts
  *      CAREERS=<path> appends one JSON line per currency career, RUNS per identity (IDS=a,b
- *      narrows them), played to DAYS (default 35, the eve of the Riverside Open): its build,
+ *      narrows them), played to DAYS (default the Riverside Open's opening ceremony): its build
+ *      the evening before each opponent slot (day 4 for the tutorial and first practice,
+ *      each team match's eve, DAYS for the open) for difficultyProbe, its
  *      wallet, ledger, team-match results and abilities, then the Riverside Open played with
  *      that build — once as a bracket (rounds until the first loss), and RO_N=20 BO3s a round
  *      for each round's win share. Every env setting is echoed on each line, for sweeps.
@@ -189,12 +191,25 @@ const RUNS = env('RUNS', 20);
 const N = env('N', 200);
 const BUILDS = process.env.BUILDS;
 const CAREERS = process.env.CAREERS;
-const DAYS = BUILDS ? Math.max(...BAND_DAYS) : env('DAYS', CAREERS ? 35 : 23);
+const DAYS = BUILDS ? Math.max(...BAND_DAYS) : env('DAYS', CAREERS ? riversideEve() : 23);
 const CHECK = BUILDS
   ? BAND_DAYS
   : CAREERS
-    ? [DAYS]
+    ? Array.from({ length: DAYS }, (_, i) => i + 1)
     : (process.env.CHECK ?? '15,19,23').split(',').map(Number);
+
+/** The Riverside Open's opening ceremony: the prep beat's day plus the delay it schedules. */
+function riversideEve(): number {
+  const prep = CLUB_SEASON.beats.find((b) => b.storyEventId === 'riverside_open_prep')!;
+  const event = StoryEventRepository.getEventById(prep.storyEventId);
+  const ceremony = (event?.defaultOutcome?.effects?.scheduledEvents ?? []).find(
+    (e) =>
+      e.metadata !== undefined &&
+      'storyEventId' in e.metadata &&
+      e.metadata.storyEventId === 'riverside_open_opening_ceremony',
+  );
+  return prep.day + (ceremony?.relativeDays ?? 0);
+}
 const ADAPT = env('ADAPT', 0.7);
 const range = (k: string, d: string): [number, number] => {
   const [lo, hi] = (process.env[k] ?? d).split(',').map(Number);
@@ -364,14 +379,29 @@ const STORY_SLOTS: Map<number, number> = STORY_SCHEDULE.reduce((m, [day, eventId
   return m;
 }, new Map<number, number>());
 
-/** Each announcement schedules its match two days on, in the afternoon. */
-const TEAM_MATCHES: Map<number, TeamMatchConfig> = new Map([
-  [15, TEAM_MATCH_1],
-  [19, TEAM_MATCH_2],
-  [23, TEAM_MATCH_3],
-  [27, TEAM_MATCH_4],
-  [31, TEAM_MATCH_5],
-]);
+/**
+ * Team match days, from the calendar itself: the announcement beat that schedules
+ * each team match, plus the `relativeDays` it schedules it on (in the afternoon).
+ */
+const TEAM_MATCHES: Map<number, TeamMatchConfig> = new Map(
+  [TEAM_MATCH_1, TEAM_MATCH_2, TEAM_MATCH_3, TEAM_MATCH_4, TEAM_MATCH_5].map((team) => {
+    for (const b of CLUB_SEASON.beats) {
+      const event = StoryEventRepository.getEventById(b.storyEventId);
+      const outcomes = [event?.defaultOutcome, ...(event?.options ?? []).map((o) => o.outcome)];
+      const match = outcomes
+        .flatMap((o) => o?.effects?.scheduledEvents ?? [])
+        .find(
+          (e) =>
+            e.eventType === 'story_match' &&
+            e.metadata !== undefined &&
+            'opponentId' in e.metadata &&
+            e.metadata.opponentId === team.opponent.characterId,
+        );
+      if (match) return [b.day + match.relativeDays, team] as const;
+    }
+    throw new Error(`no announcement schedules the team match against ${team.opponent.name}`);
+  }),
+);
 
 /** coach_archetype_selection: no broad identity or specialties before this. */
 const ARCHETYPE_DAY = 11;
@@ -1575,7 +1605,25 @@ function careersReport(path: string): void {
   const lines: string[] = [];
   for (const id of IDENTITIES.filter((i) => !ids || ids.includes(i.name))) {
     for (let run = 0; run < RUNS; run++) {
-      const snap = career(id, 'currency').get(DAYS)!;
+      const snaps = career(id, 'currency');
+      const snap = snaps.get(DAYS)!;
+      // The build each opponent meets: the evening before its match. Day 5 opens with
+      // the tutorial matches and the first practice; the open plays from DAYS's build.
+      const buildOn = (day: number): Side => {
+        const b = snaps.get(day)!;
+        return {
+          stats: withBoosts(b.stats, b.gear),
+          profile: day >= ARCHETYPE_DAY ? id.profile : createEmptyArchetypeProfile(),
+          effects: effectsOf(b.abilities),
+        };
+      };
+      const builds: Record<string, Side & { day: number }> = {
+        early: { day: 4, ...buildOn(4) },
+        ...Object.fromEntries(
+          [...TEAM_MATCHES.keys()].map((d, i) => [`tm${i + 1}`, { day: d, ...buildOn(d - 1) }]),
+        ),
+        riverside: { day: DAYS, ...buildOn(DAYS) },
+      };
       const me: Side = {
         stats: withBoosts(snap.stats, snap.gear),
         profile: id.profile,
@@ -1609,6 +1657,7 @@ function careersReport(path: string): void {
           teamWon: Object.fromEntries(snap.teamWon),
           abilities: Object.fromEntries(snap.abilities),
           ledger: snap.ledger,
+          builds,
           riverside: {
             roundsWon: reached,
             champion: reached === rounds.length,
