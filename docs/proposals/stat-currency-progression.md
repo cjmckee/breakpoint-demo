@@ -601,9 +601,10 @@ identity per system, income ×1.2, patient player (§9.8). Each cell is today / 
 - Training pays a fixed 3-unit mix per shot (`TRAINING_MIXES`) × (reps + 1), not the anchor's
   recipe ratio with general and Mind shares (`trainingPayout`, `src/game/CurrencyIncome.ts`). The
   upgrade-chance effect doubles a session; the bonus-support effect adds a rep.
-- Matches pay `MATCH_PAYOUT` (`matchPayout`): a base by result plus a 20-unit pool split by
-  area.
-- Abilities are priced by id (`ABILITY_CURRENCY`) at a fixed amount per rarity (`ABILITY_PRICES`).
+- Matches pay `MATCH_PAYOUT` (`matchPayout`): a small base by result plus a 30-unit pool split
+  by area, each area paying the currencies that buy its stats.
+- Abilities cost XP plus a fixed number of units per rarity (`ABILITY_PRICES`), paid in the mix of
+  the stats the ability works through (`ABILITY_STATS`); off-court abilities pay half in Mind.
 - The purchase function is `purchase(player, plan)`, for a whole plan.
 - The Development screen's test ids are `development-*` (`development-stat-${stat}`,
   `development-plus-${stat}`, `development-minus-${stat}`, `development-clear`,

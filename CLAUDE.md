@@ -1009,6 +1009,11 @@ negate(price))` after checking `canAfford`.
   hard-to-reach moments — most outcomes should pay currency.
 - **Development is one screen** with two tabs: Stats (currency) and Specialties
   (specialization points from levelling). `navigateTo('archetype')` opens the Specialties tab.
+- **Matches pay by area.** The results screen rates the five pre-match areas plus Clutch
+  (`MatchRewardSystem.analyzePerformance`, `src/config/performanceScoring.ts`), each as the share
+  of its points won, so an even match rates about 50 and the grade follows the scoreline. Each
+  area's slice of the pool pays the currencies that buy its stats (`areaCurrencyMix`). Re-measure
+  changes with `performanceRatingProbe`, and economy changes with careerSim's `LEDGER=1`.
 - **Training is drills.** Six minigames (`DRILLS` in `src/game/TrainingSystem.ts`), each paying
   one pair of currencies (`TRAINING_MIXES`, two of its main and one of its secondary per rep).
   Each time slot offers four (`trainingOffer`), rolled from the player, the day and the slot on

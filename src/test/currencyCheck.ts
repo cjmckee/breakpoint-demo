@@ -11,13 +11,26 @@
  * Run: npx tsx src/test/currencyCheck.ts  (part of npm test)
  */
 
-import type { Player } from '../types/game';
-import { ABILITY_CURRENCY, CURRENCIES, MATCH_PAYOUT, STAT_RECIPES } from '../config/economy';
+import type { PerformanceRewardBreakdown, Player } from '../types/game';
+import {
+  ABILITY_PRICES,
+  ABILITY_STATS,
+  CURRENCIES,
+  MATCH_PAYOUT,
+  STAT_RECIPES,
+} from '../config/economy';
 import { ABILITY_DEFINITIONS } from '../data/abilities';
+import {
+  PERFORMANCE_AREAS,
+  PERFORMANCE_AREA_LABELS,
+  PERFORMANCE_WEIGHTS,
+  type PerformanceArea,
+} from '../config/performanceScoring';
 import { abilityPrice, generateDailyShopItems } from '../game/ShopSystem';
 import { PlayerManager } from '../game/PlayerManager';
 import { DRILL_ORDER } from '../game/TrainingSystem';
 import {
+  areaCurrencyMix,
   contentCurrency,
   matchPayout,
   matchPayoutLines,
@@ -66,6 +79,21 @@ function playerWith(
   for (const [k, v] of Object.entries(stats ?? {}))
     s = withStat(s, k as (typeof STAT_NAMES)[number], v);
   return { ...base, stats: s, wallet };
+}
+
+/** A match's performance with these area scores (the rest 0) at the default weights. */
+function perfOf(
+  areas: Partial<Record<PerformanceArea, number>>,
+  overallScore: number,
+): PerformanceRewardBreakdown {
+  return {
+    areas: Object.fromEntries(PERFORMANCE_AREAS.map((a) => [a, areas[a] ?? 0])) as Record<
+      PerformanceArea,
+      number
+    >,
+    weights: { ...PERFORMANCE_WEIGHTS },
+    overallScore,
+  };
 }
 
 function main(): void {
@@ -194,39 +222,56 @@ function main(): void {
     'every clean session pays the same total, 12 units',
     DRILL_ORDER.every((a) => unitsOf(trainingPayout(a, 3)) === 12),
   );
-  const perf = {
-    servingScore: 80,
-    returningScore: 20,
-    rallyScore: 20,
-    netPlayScore: 0,
-    mentalScore: 20,
-    overallScore: 50,
-  };
+  const perf = perfOf(
+    { serve: 80, return: 20, baseline: 20, net: 0, coverage: 20, clutch: 20 },
+    50,
+  );
   const lostFlat = matchPayout({ ...perf, overallScore: 0 }, false);
   check(
-    'a loss with no performance still pays some of every currency: 3 Power, 1 Quickness, 3 Technique, 4 Mind',
-    lostFlat.power === 3 &&
+    'a loss with no performance still pays some of every currency: 1 Power, 1 Quickness, 2 Technique, 1 Mind',
+    lostFlat.power === 1 &&
       lostFlat.quickness === 1 &&
-      lostFlat.technique === 3 &&
-      lostFlat.mind === 4,
+      lostFlat.technique === 2 &&
+      lostFlat.mind === 1,
     JSON.stringify(lostFlat),
   );
   const wonFlat = matchPayout({ ...perf, overallScore: 0 }, true);
   check(
     'a win raises the base by one of each',
-    wonFlat.power === 4 && wonFlat.quickness === 2 && wonFlat.technique === 4 && wonFlat.mind === 5,
+    wonFlat.power === 2 && wonFlat.quickness === 2 && wonFlat.technique === 3 && wonFlat.mind === 2,
     JSON.stringify(wonFlat),
   );
   const match = matchPayout(perf, true);
   check(
-    'performance adds a pool of 20 × overall/100 on top of the base',
-    unitsOf(match) === 15 + Math.round(20 * 0.5),
+    'performance adds a pool of 30 × overall/100 on top of the base',
+    unitsOf(match) === 9 + Math.round(MATCH_PAYOUT.pool * 0.5),
     JSON.stringify(match),
   );
   check(
     'a serving-led match pays more Power than Quickness',
     (match.power ?? 0) > (match.quickness ?? 0),
     JSON.stringify(match),
+  );
+  const leading = (area: PerformanceArea): string => {
+    const mix = areaCurrencyMix(area);
+    return CURRENCIES.reduce((a, b) => ((mix[b] ?? 0) > (mix[a] ?? 0) ? b : a));
+  };
+  check(
+    'each area pays most in the currency that buys its stats: Serving Power, Baseline Technique, Coverage Quickness, Clutch Mind',
+    leading('serve') === 'power' &&
+      leading('baseline') === 'technique' &&
+      leading('coverage') === 'quickness' &&
+      leading('clutch') === 'mind',
+    PERFORMANCE_AREAS.map((a) => `${a} ${leading(a)}`).join(', '),
+  );
+  const stayedBack = matchPayoutLines(
+    { ...perfOf({ serve: 60, net: 90 }, 50), weights: { ...PERFORMANCE_WEIGHTS, net: 0 } },
+    true,
+  );
+  check(
+    'net play that carried no weight (the player never came in) pays nothing',
+    !stayedBack.some((l) => l.label === PERFORMANCE_AREA_LABELS.net),
+    JSON.stringify(stayedBack),
   );
 
   console.log('\n── the Develop badge ──');
@@ -268,25 +313,37 @@ function main(): void {
   const hh = ABILITY_DEFINITIONS.heavy_hitter;
   const learn = abilityPrice(hh, 0);
   check(
-    'a common on-court ability costs 15 of its currency and 70 XP',
-    learn.currency.power === 15 && learn.xp === 70,
+    "a common on-court ability costs its rarity's units in its stats' mix, plus XP: Heavy Hitter is mostly Power",
+    unitsOf(learn.currency) === ABILITY_PRICES.common.units &&
+      (learn.currency.power ?? 0) > (learn.currency.technique ?? 0) &&
+      !learn.currency.mind &&
+      learn.xp === ABILITY_PRICES.common.xp,
     JSON.stringify(learn),
   );
   const level2 = abilityPrice(hh, 1);
   check(
     'the next level costs base × 2.25',
-    level2.currency.power === 34 && level2.xp === 158,
+    unitsOf(level2.currency) === Math.round(ABILITY_PRICES.common.units * 2.25) &&
+      level2.xp === Math.round(ABILITY_PRICES.common.xp * 2.25),
     JSON.stringify(level2),
+  );
+  const clutch = abilityPrice(ABILITY_DEFINITIONS.clutch, 0);
+  check(
+    'a key-moment ability is paid mostly in Mind',
+    (clutch.currency.mind ?? 0) > unitsOf(clutch.currency) / 2,
+    JSON.stringify(clutch),
   );
   const offCourt = abilityPrice(ABILITY_DEFINITIONS.grinder, 0);
   check(
-    'an off-court ability costs XP only',
-    Object.keys(offCourt.currency).length === 0 && offCourt.xp === 250,
+    'an off-court ability costs XP and half its rarity in Mind',
+    offCourt.currency.mind === ABILITY_PRICES.rare.units / 2 &&
+      unitsOf(offCourt.currency) === offCourt.currency.mind &&
+      offCourt.xp === ABILITY_PRICES.rare.xp,
     JSON.stringify(offCourt),
   );
   check(
     'every priced ability exists',
-    Object.keys(ABILITY_CURRENCY).every((id) => ABILITY_DEFINITIONS[id] !== undefined),
+    Object.keys(ABILITY_STATS).every((id) => ABILITY_DEFINITIONS[id] !== undefined),
   );
   const stock = generateDailyShopItems();
   check(
@@ -321,14 +378,17 @@ function main(): void {
   let mismatches = 0;
   for (let i = 0; i < 200; i++) {
     const r = (): number => Math.round(Math.random() * 100);
-    const pf = {
-      servingScore: r(),
-      returningScore: r(),
-      rallyScore: r(),
-      netPlayScore: i % 3 === 0 ? 0 : r(),
-      mentalScore: r(),
-      overallScore: r(),
-    };
+    const pf = perfOf(
+      {
+        serve: r(),
+        return: r(),
+        baseline: r(),
+        net: i % 3 === 0 ? 0 : r(),
+        coverage: r(),
+        clutch: r(),
+      },
+      r(),
+    );
     const won = i % 2 === 0;
     const total = matchPayout(pf, won);
     const lines = matchPayoutLines(pf, won);
@@ -342,17 +402,7 @@ function main(): void {
     mismatches === 0,
     `${mismatches} mismatches`,
   );
-  const serveOnly = matchPayoutLines(
-    {
-      servingScore: 50,
-      returningScore: 0,
-      rallyScore: 0,
-      netPlayScore: 0,
-      mentalScore: 0,
-      overallScore: 50,
-    },
-    false,
-  );
+  const serveOnly = matchPayoutLines(perfOf({ serve: 50 }, 50), false);
   check(
     'the base is its own line, named for the result, and a scoreless area has none',
     serveOnly[0].label === 'Lost match' &&
@@ -360,17 +410,7 @@ function main(): void {
       !serveOnly.some((l) => l.label === 'Returning'),
     JSON.stringify(serveOnly),
   );
-  const nothing = matchPayoutLines(
-    {
-      servingScore: 0,
-      returningScore: 0,
-      rallyScore: 0,
-      netPlayScore: 0,
-      mentalScore: 0,
-      overallScore: 0,
-    },
-    true,
-  );
+  const nothing = matchPayoutLines(perfOf({}, 0), true);
   check(
     'a match with no performance pays only the base',
     nothing.length === 1 && nothing[0].label === 'Won match',

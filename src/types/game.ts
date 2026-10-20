@@ -10,6 +10,7 @@ import type { StoryEventResult } from './storyEvents';
 import type { Item, OwnedItem, EquipmentSlot } from './items';
 import type { ActiveTournament, TournamentMatchMetadata, MatchOpponent } from './tournaments';
 import type { DrillId } from '../minigames/types';
+import type { PerformanceArea } from '../config/performanceScoring';
 
 export type { PlayerStats };
 
@@ -510,12 +511,13 @@ export type OpponentTier = 1 | 2 | 3 | 4;
 
 export type PerformanceLevel = 'excellent' | 'good' | 'average' | 'bad';
 
+/** How a match went, area by area (config/performanceScoring.ts). */
 export interface PerformanceRewardBreakdown {
-  servingScore: number;
-  returningScore: number;
-  rallyScore: number;
-  netPlayScore: number;
-  mentalScore: number;
+  /** Each area's score, 0-100: about 50 for breaking even in it. */
+  areas: Record<PerformanceArea, number>;
+  /** Each area's share of the overall score and of the currency pool, summing to 1. */
+  weights: Record<PerformanceArea, number>;
+  /** The weighted average of the areas, 0-100. */
   overallScore: number;
 }
 

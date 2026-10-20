@@ -6,9 +6,10 @@ import { abilityPrice } from '../src/game/ShopSystem';
 import type { AbilityItem } from '../src/types/game';
 
 /**
- * Abilities cost XP and the currency their effect draws on: Heavy Hitter is
- * shot power, so Power. The day's stock is random, so the spec arranges one
- * known offer and then buys it through the shop screen like a player.
+ * Abilities cost XP and currency in the mix of the stats they work through:
+ * Heavy Hitter is forehand and strength, so mostly Power. The day's stock is
+ * random, so the spec arranges one known offer and then buys it through the shop
+ * screen like a player.
  */
 
 const ABILITY = 'heavy_hitter';
@@ -65,14 +66,15 @@ test('an ability needs its currency as well as XP, and charges both', async ({ p
     page.getByTestId(`shop-ability-${ABILITY}`).locator('[data-currency="power"]').first(),
   ).toHaveAttribute('data-short', 'true');
 
-  await grantCurrency(page, { power: 50 });
+  // Exactly the price: every currency in it is charged in full.
+  await grantCurrency(page, offer.currencyCost);
   await expect(buy).toBeEnabled();
   await buy.click();
   await expect(buy).toContainText('Sold Out');
 
   const after = (await readGame(page)).player!;
   expect(after.experience).toBe(before.experience - offer.cost);
-  expect(after.wallet.power).toBe(50 - (offer.currencyCost.power ?? 0));
+  expect(after.wallet).toEqual(before.wallet);
   expect(after.abilities.find((a) => a.name === ABILITY)?.level).toBe(1);
 });
 
