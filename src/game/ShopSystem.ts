@@ -1,6 +1,6 @@
 /**
- * The daily shop: consumables and equipment for XP, abilities for XP plus the
- * currency their effect draws on. Stats are not sold — they are bought on the
+ * The daily shop: consumables and equipment for XP, abilities for XP plus
+ * currency in the mix of the stats they work through. Stats are not sold — they are bought on the
  * Development screen.
  */
 
@@ -20,12 +20,16 @@ import { ABILITY_DEFINITIONS } from '../data/abilities';
 import { AbilityRarity } from '../types/game';
 import { ALL_CONSUMABLES, ALL_EQUIPMENT, CONSUMABLE_SHOP_COSTS } from '../data/items';
 import {
-  ABILITY_CURRENCY,
+  ABILITY_STATS,
+  OFF_COURT_ABILITY_PRICE,
+  STAT_RECIPES,
   abilityLevelPrice,
   offerRarity,
   type AbilityPriceRarity,
 } from '../config/economy';
 
+import { addAmounts } from './StatDevelopment';
+import { roundAmounts, splitUnits } from './CurrencyIncome';
 import { random } from '../core/random';
 
 const SHOP_CONSUMABLE_ITEMS: Item[] = ALL_CONSUMABLES.filter(
@@ -80,19 +84,31 @@ const ABILITIES: Ability[] = Object.values(ABILITY_DEFINITIONS).filter(
 );
 
 /**
+ * The currencies an ability is paid in, in proportion: the recipes of the stats it
+ * works through (ABILITY_STATS), or Mind for an off-court ability.
+ */
+export function abilityCurrencyMix(abilityName: string): CurrencyAmounts {
+  const stats = ABILITY_STATS[abilityName];
+  if (!stats) return OFF_COURT_ABILITY_PRICE.currency;
+  return stats.reduce<CurrencyAmounts>((mix, stat) => addAmounts(mix, STAT_RECIPES[stat]), {});
+}
+
+/**
  * What taking `ability` from `currentLevel` to the next level costs
- * (abilityLevelPrice): its rarity's price in the ability's currency, plus XP.
- * An off-court ability (no entry in ABILITY_CURRENCY) costs XP only.
+ * (abilityLevelPrice): its rarity's units split across abilityCurrencyMix in whole
+ * units, plus XP. An off-court ability pays OFF_COURT_ABILITY_PRICE.share of the units.
  */
 export function abilityPrice(
   ability: Pick<Ability, 'name' | 'rarity'>,
   currentLevel: number,
 ): { xp: number; currency: CurrencyAmounts } {
   const price = abilityLevelPrice(ability.rarity as AbilityPriceRarity, currentLevel);
-  const currency = ABILITY_CURRENCY[ability.name];
+  const units = ABILITY_STATS[ability.name]
+    ? price.units
+    : price.units * OFF_COURT_ABILITY_PRICE.share;
   return {
     xp: price.xp,
-    currency: currency && price.units > 0 ? { [currency]: price.units } : {},
+    currency: roundAmounts(splitUnits(units, abilityCurrencyMix(ability.name))),
   };
 }
 

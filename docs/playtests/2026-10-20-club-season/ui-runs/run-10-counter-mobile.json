@@ -1,0 +1,683 @@
+{
+  "config": {
+    "run": 10,
+    "identity": "counter",
+    "project": "mobile",
+    "tactics": "first",
+    "stories": "random",
+    "shaped": true
+  },
+  "minutes": 4.8,
+  "failure": null,
+  "errors": [
+    "console.error: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.",
+    "console.error: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.",
+    "console.error: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.",
+    "console.error: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render."
+  ],
+  "day": 44,
+  "tier": 2,
+  "overall": 45,
+  "stats": {
+    "core": {
+      "serve": 39,
+      "forehand": 29,
+      "backhand": 47,
+      "return": 40,
+      "net": 29
+    },
+    "technical": {
+      "slice": 67,
+      "spin": 33,
+      "placement": 44
+    },
+    "physical": {
+      "speed": 45,
+      "stamina": 73,
+      "strength": 57
+    },
+    "mental": {
+      "focus": 48,
+      "anticipation": 42,
+      "tactics": 57
+    }
+  },
+  "archetype": {
+    "broad": "baseliner",
+    "phases": {
+      "return": {
+        "path": "rt_extinguisher",
+        "tier": 1
+      },
+      "forehand": {
+        "path": "fh_survivor",
+        "tier": 1
+      },
+      "backhand": {
+        "path": "bh_samurai",
+        "tier": 1
+      },
+      "net": {
+        "path": "net_apologist",
+        "tier": 1
+      }
+    },
+    "specializationPoints": 1,
+    "respecTokens": 0
+  },
+  "level": 4,
+  "wallet": {
+    "power": 5,
+    "quickness": 1,
+    "technique": 0,
+    "mind": 1
+  },
+  "abilities": ["baseliner"],
+  "completedStoryEvents": [
+    "welcome_to_tennis_rpg",
+    "making_connections",
+    "food_hall_gossip",
+    "player_tier_intro",
+    "match_play_basics",
+    "tutorial_keith_loss",
+    "tutorial_jen_loss",
+    "training_session_intro",
+    "relationship_basics",
+    "shop_basics",
+    "family_support",
+    "rival_first_encounter",
+    "club_team_intro",
+    "coach_first_meeting",
+    "coach_archetype_selection",
+    "club_team_first_practice",
+    "coach_training_focus",
+    "first_team_match_scheduled",
+    "club_team_keith_story",
+    "ping_pong_hustler",
+    "first_team_match_prematch",
+    "first_team_match_loss",
+    "first_match_win",
+    "coach_balanced_development",
+    "second_team_match_scheduled",
+    "old_social_media_posts",
+    "second_team_match_prematch",
+    "second_team_match_win",
+    "first_winning_streak",
+    "third_team_match_scheduled",
+    "third_team_match_prematch",
+    "third_team_match_loss",
+    "romance_meet_tournament",
+    "fourth_team_match_scheduled",
+    "kitchen_duty",
+    "escape_room_challenge",
+    "fourth_team_match_prematch",
+    "fourth_team_match_win",
+    "romance_coffee_date",
+    "fifth_team_match_scheduled",
+    "romance_park_practice",
+    "fifth_team_match_prematch",
+    "fifth_team_match_win",
+    "attend_football_game",
+    "riverside_open_prep",
+    "sponsor_first_offer",
+    "riverside_open_opening_ceremony",
+    "riverside_r1_prematch_winner",
+    "riverside_r1_win",
+    "riverside_r2_prematch_winner",
+    "riverside_r2_win",
+    "riverside_r3_prematch_winner",
+    "riverside_r3_loss",
+    "riverside_r4_prematch_loser",
+    "riverside_r4_loss",
+    "riverside_open_elimination",
+    "romance_movie_night",
+    "equipment_upgrade",
+    "riverside_open_consolation_promotion",
+    "thanks_for_playing"
+  ],
+  "log": {
+    "day": 44,
+    "trainingSessions": 54,
+    "matchesPlayed": 20,
+    "matchesWon": 14,
+    "keyMomentsAnswered": 280,
+    "storyEventsSeen": 59,
+    "storyChoices": [
+      {
+        "event": "coach_archetype_selection",
+        "option": "choose_baseliner"
+      },
+      {
+        "event": "coach_training_focus",
+        "option": "focus_serve"
+      },
+      {
+        "event": "ping_pong_hustler",
+        "option": "play_ping_pong"
+      },
+      {
+        "event": "coach_balanced_development",
+        "option": "focus_fitness"
+      },
+      {
+        "event": "escape_room_challenge",
+        "option": "puzzle_focus"
+      },
+      {
+        "event": "romance_coffee_date",
+        "option": "fun_outing"
+      },
+      {
+        "event": "romance_park_practice",
+        "option": "let_alex_show_off"
+      },
+      {
+        "event": "sponsor_first_offer",
+        "option": "negotiate"
+      },
+      {
+        "event": "romance_movie_night",
+        "option": "watch_romcom"
+      },
+      {
+        "event": "equipment_upgrade",
+        "option": "power_setup"
+      }
+    ],
+    "matches": [
+      {
+        "day": 5,
+        "type": "story",
+        "opponent": "Keith",
+        "score": "2-6",
+        "won": false
+      },
+      {
+        "day": 5,
+        "type": "story",
+        "opponent": "Jen",
+        "score": "1-6",
+        "won": false
+      },
+      {
+        "day": 5,
+        "type": "regular",
+        "opponent": "Danny Park",
+        "score": "2-6",
+        "won": false
+      },
+      {
+        "day": 7,
+        "type": "regular",
+        "opponent": "Lin Chen",
+        "score": "0-6",
+        "won": false
+      },
+      {
+        "day": 9,
+        "type": "regular",
+        "opponent": "Marta Ruiz",
+        "score": "0-6",
+        "won": false
+      },
+      {
+        "day": 11,
+        "type": "regular",
+        "opponent": "Lin Chen",
+        "score": "0-6",
+        "won": false
+      },
+      {
+        "day": 13,
+        "type": "regular",
+        "opponent": "Marta Ruiz",
+        "score": "2-6",
+        "won": false
+      },
+      {
+        "day": 15,
+        "type": "regular",
+        "opponent": "Big Steve",
+        "score": "6-0",
+        "won": true
+      },
+      {
+        "day": 15,
+        "type": "story",
+        "opponent": "Chet Vale",
+        "score": "6-7 7-5 4-6",
+        "won": false
+      },
+      {
+        "day": 17,
+        "type": "regular",
+        "opponent": "Lin Chen",
+        "score": "6-0",
+        "won": true
+      },
+      {
+        "day": 19,
+        "type": "regular",
+        "opponent": "Big Steve",
+        "score": "6-0",
+        "won": true
+      },
+      {
+        "day": 19,
+        "type": "story",
+        "opponent": "Rich Soil",
+        "score": "6-4 6-4",
+        "won": true
+      },
+      {
+        "day": 21,
+        "type": "regular",
+        "opponent": "Marta Ruiz",
+        "score": "6-4",
+        "won": true
+      },
+      {
+        "day": 23,
+        "type": "regular",
+        "opponent": "Lin Chen",
+        "score": "6-0",
+        "won": true
+      },
+      {
+        "day": 23,
+        "type": "story",
+        "opponent": "Martia Estrella",
+        "score": "6-2 2-6 0-6",
+        "won": false
+      },
+      {
+        "day": 25,
+        "type": "regular",
+        "opponent": "Danny Park",
+        "score": "0-6",
+        "won": false
+      },
+      {
+        "day": 27,
+        "type": "regular",
+        "opponent": "Rick Tanaka",
+        "score": "6-3",
+        "won": true
+      },
+      {
+        "day": 27,
+        "type": "story",
+        "opponent": "Reginald Werther",
+        "score": "6-0 6-0",
+        "won": true
+      },
+      {
+        "day": 29,
+        "type": "regular",
+        "opponent": "Danny Park",
+        "score": "7-5",
+        "won": true
+      },
+      {
+        "day": 31,
+        "type": "regular",
+        "opponent": "Big Steve",
+        "score": "1-6",
+        "won": false
+      },
+      {
+        "day": 31,
+        "type": "story",
+        "opponent": "Olivia Gulp",
+        "score": "6-4 6-1",
+        "won": true
+      },
+      {
+        "day": 33,
+        "type": "regular",
+        "opponent": "Big Steve",
+        "score": "6-2",
+        "won": true
+      },
+      {
+        "day": 35,
+        "type": "regular",
+        "opponent": "Rick Tanaka",
+        "score": "7-6",
+        "won": true
+      },
+      {
+        "day": 37,
+        "type": "regular",
+        "opponent": "Marta Ruiz",
+        "score": "1-6",
+        "won": false
+      },
+      {
+        "day": 37,
+        "type": "tournament",
+        "opponent": "Keith",
+        "score": "6-4 6-2",
+        "won": true
+      },
+      {
+        "day": 38,
+        "type": "tournament",
+        "opponent": "Chris",
+        "score": "6-0 4-6 6-0",
+        "won": true
+      },
+      {
+        "day": 39,
+        "type": "regular",
+        "opponent": "Marta Ruiz",
+        "score": "1-6",
+        "won": false
+      },
+      {
+        "day": 39,
+        "type": "tournament",
+        "opponent": "Max",
+        "score": "0-6 0-6",
+        "won": false
+      },
+      {
+        "day": 40,
+        "type": "tournament",
+        "opponent": "Jordan",
+        "score": "4-6 0-6",
+        "won": false
+      },
+      {
+        "day": 41,
+        "type": "regular",
+        "opponent": "Lin Chen",
+        "score": "0-6",
+        "won": false
+      },
+      {
+        "day": 43,
+        "type": "regular",
+        "opponent": "Danny Park",
+        "score": "1-6",
+        "won": false
+      }
+    ],
+    "specialties": [
+      "return:rt_extinguisher",
+      "forehand:fh_survivor",
+      "backhand:bh_samurai",
+      "net:net_apologist"
+    ],
+    "itemsAcquired": 13,
+    "statPointsBought": 361,
+    "unhandledPhases": [],
+    "contentEnded": true,
+    "daily": [
+      {
+        "day": 1,
+        "energy": 100,
+        "overall": 20,
+        "xp": 0
+      },
+      {
+        "day": 2,
+        "energy": 90,
+        "overall": 20,
+        "xp": 0
+      },
+      {
+        "day": 3,
+        "energy": 100,
+        "overall": 21,
+        "xp": 0
+      },
+      {
+        "day": 4,
+        "energy": 100,
+        "overall": 21,
+        "xp": 0
+      },
+      {
+        "day": 5,
+        "energy": 90,
+        "overall": 21,
+        "xp": 0
+      },
+      {
+        "day": 6,
+        "energy": 65,
+        "overall": 22,
+        "xp": 95
+      },
+      {
+        "day": 7,
+        "energy": 55,
+        "overall": 23,
+        "xp": 95
+      },
+      {
+        "day": 8,
+        "energy": 70,
+        "overall": 23,
+        "xp": 126
+      },
+      {
+        "day": 9,
+        "energy": 80,
+        "overall": 24,
+        "xp": 126
+      },
+      {
+        "day": 10,
+        "energy": 75,
+        "overall": 25,
+        "xp": 150
+      },
+      {
+        "day": 11,
+        "energy": 75,
+        "overall": 25,
+        "xp": 150
+      },
+      {
+        "day": 12,
+        "energy": 70,
+        "overall": 26,
+        "xp": 177
+      },
+      {
+        "day": 13,
+        "energy": 60,
+        "overall": 27,
+        "xp": 177
+      },
+      {
+        "day": 14,
+        "energy": 70,
+        "overall": 28,
+        "xp": 213
+      },
+      {
+        "day": 15,
+        "energy": 65,
+        "overall": 28,
+        "xp": 213
+      },
+      {
+        "day": 16,
+        "energy": 50,
+        "overall": 30,
+        "xp": 337
+      },
+      {
+        "day": 17,
+        "energy": 55,
+        "overall": 31,
+        "xp": 337
+      },
+      {
+        "day": 18,
+        "energy": 60,
+        "overall": 31,
+        "xp": 417
+      },
+      {
+        "day": 19,
+        "energy": 60,
+        "overall": 32,
+        "xp": 417
+      },
+      {
+        "day": 20,
+        "energy": 50,
+        "overall": 33,
+        "xp": 564
+      },
+      {
+        "day": 21,
+        "energy": 80,
+        "overall": 34,
+        "xp": 564
+      },
+      {
+        "day": 22,
+        "energy": 80,
+        "overall": 34,
+        "xp": 632
+      },
+      {
+        "day": 23,
+        "energy": 70,
+        "overall": 35,
+        "xp": 632
+      },
+      {
+        "day": 24,
+        "energy": 70,
+        "overall": 36,
+        "xp": 748
+      },
+      {
+        "day": 25,
+        "energy": 80,
+        "overall": 36,
+        "xp": 748
+      },
+      {
+        "day": 26,
+        "energy": 50,
+        "overall": 37,
+        "xp": 771
+      },
+      {
+        "day": 27,
+        "energy": 60,
+        "overall": 37,
+        "xp": 771
+      },
+      {
+        "day": 28,
+        "energy": 70,
+        "overall": 38,
+        "xp": 924
+      },
+      {
+        "day": 29,
+        "energy": 100,
+        "overall": 38,
+        "xp": 924
+      },
+      {
+        "day": 30,
+        "energy": 60,
+        "overall": 39,
+        "xp": 994
+      },
+      {
+        "day": 31,
+        "energy": 75,
+        "overall": 39,
+        "xp": 994
+      },
+      {
+        "day": 32,
+        "energy": 55,
+        "overall": 40,
+        "xp": 1100
+      },
+      {
+        "day": 33,
+        "energy": 75,
+        "overall": 40,
+        "xp": 1100
+      },
+      {
+        "day": 34,
+        "energy": 75,
+        "overall": 41,
+        "xp": 1165
+      },
+      {
+        "day": 35,
+        "energy": 95,
+        "overall": 42,
+        "xp": 1165
+      },
+      {
+        "day": 36,
+        "energy": 55,
+        "overall": 42,
+        "xp": 1233
+      },
+      {
+        "day": 37,
+        "energy": 85,
+        "overall": 42,
+        "xp": 1233
+      },
+      {
+        "day": 38,
+        "energy": 70,
+        "overall": 43,
+        "xp": 1330
+      },
+      {
+        "day": 39,
+        "energy": 70,
+        "overall": 43,
+        "xp": 1401
+      },
+      {
+        "day": 40,
+        "energy": 70,
+        "overall": 44,
+        "xp": 1460
+      },
+      {
+        "day": 41,
+        "energy": 70,
+        "overall": 44,
+        "xp": 1492
+      },
+      {
+        "day": 42,
+        "energy": 60,
+        "overall": 44,
+        "xp": 1519
+      },
+      {
+        "day": 43,
+        "energy": 80,
+        "overall": 45,
+        "xp": 1519
+      },
+      {
+        "day": 44,
+        "energy": 80,
+        "overall": 45,
+        "xp": 1555
+      }
+    ]
+  }
+}

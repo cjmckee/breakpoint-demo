@@ -10,6 +10,7 @@ import type { Challenge } from '../types/challenges';
 import { getCharacterName } from '../data/characters';
 import { usePlayerName } from '../hooks/usePlayerName';
 import { CurrencyAmounts } from './currency/CurrencyAmounts';
+import { storyPay } from '../game/CurrencyIncome';
 
 interface ChallengeRewardModalProps {
   isOpen: boolean;
@@ -52,7 +53,7 @@ export const ChallengeRewardModal: React.FC<ChallengeRewardModalProps> = ({
             {challenge.reward.currency && (
               <div data-testid="challenge-reward-currency">
                 <div className="text-xs font-bold text-pixel-text mb-2">Training currency:</div>
-                <CurrencyAmounts amounts={challenge.reward.currency} signed labelled />
+                <CurrencyAmounts amounts={storyPay(challenge.reward.currency)} signed labelled />
               </div>
             )}
 

@@ -68,10 +68,10 @@ const jordan: MatchOpponent = {
   description:
     "Your rival. He's been preparing for this tournament seriously and it shows. Well-rounded, competitive, and dangerous in every situation.",
   stats: {
-    core: { serve: 50, forehand: 50, backhand: 46, return: 47, net: 43 },
-    technical: { slice: 48, spin: 40, placement: 48 },
-    physical: { speed: 44, stamina: 48, strength: 46 },
-    mental: { focus: 46, anticipation: 40, tactics: 40 },
+    core: { serve: 47, forehand: 47, backhand: 43, return: 44, net: 40 },
+    technical: { slice: 45, spin: 37, placement: 45 },
+    physical: { speed: 41, stamina: 45, strength: 43 },
+    mental: { focus: 43, anticipation: 37, tactics: 37 },
   },
   abilities: [ABILITY_DEFINITIONS[AbilityName.SERVE_CANNON]],
 };

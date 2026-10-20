@@ -104,8 +104,8 @@ console.log('\n── the Club season ──');
       e.metadata.storyEventId === 'riverside_open_prep',
   );
   check(
-    'a season starting on day 1 puts its day-33 beat on day 33',
-    prep?.scheduledDay === 33 && prep.scheduledTimeSlot === TimeSlot.MORNING,
+    'a season starting on day 1 puts its day-28 beat on day 28',
+    prep?.scheduledDay === 28 && prep.scheduledTimeSlot === TimeSlot.MORNING,
   );
 }
 

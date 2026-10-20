@@ -146,7 +146,9 @@ export const MOOD_PERFORMANCE_BONUS: Record<PerformanceLevel, number> = {
 // At overallScore=100 the player earns this many bonus XP before tier scaling.
 // At overallScore=0 the player earns 0 bonus XP.
 // Formula: experience = BASE_EXPERIENCE + round(overallScore * (MAX / 100) * tierMultiplier)
-export const PERFORMANCE_EXP_MAX_BONUS = 60;
+// Sized with careerSim so a career earns the XP it did before the area rework, whose
+// scale rates an even match 50 rather than about 45.
+export const PERFORMANCE_EXP_MAX_BONUS = 48;
 
 // ============================================================================
 // PERFORMANCE-SCALED DROP RATES

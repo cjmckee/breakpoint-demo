@@ -46,7 +46,9 @@ balance, what it makes possible, and what it would take to build
      instead of trading it. Dropping the exchange makes players stronger at the same income
      (§9.8).
    - **Income ×1.2 tracks today's player at all five team matches** (§9.8). Growth over tier 1 is
-     at most a few percent. The "income must grow" findings in §9.3 and §9.7 came from players
+     at most a few percent. _Superseded by §9.13:_ that sim paid story as a flat trickle. Played
+     as the game plays it, story pays about 3.5× as much, and the Club target is now a typical
+     player winning about 58% of team matches and a skilled one about 73%. The "income must grow" findings in §9.3 and §9.7 came from players
      that traded currency away at a loss.
    - **Mind is an ability budget.** A baseliner banks ~60 Mind by day 31 that no stat it wants
      uses. That stockpile is what Mind-priced abilities should be sized against.
@@ -601,9 +603,10 @@ identity per system, income ×1.2, patient player (§9.8). Each cell is today / 
 - Training pays a fixed 3-unit mix per shot (`TRAINING_MIXES`) × (reps + 1), not the anchor's
   recipe ratio with general and Mind shares (`trainingPayout`, `src/game/CurrencyIncome.ts`). The
   upgrade-chance effect doubles a session; the bonus-support effect adds a rep.
-- Matches pay `MATCH_PAYOUT` (`matchPayout`): a base by result plus a 20-unit pool split by
-  area.
-- Abilities are priced by id (`ABILITY_CURRENCY`) at a fixed amount per rarity (`ABILITY_PRICES`).
+- Matches pay `MATCH_PAYOUT` (`matchPayout`): a small base by result plus a 30-unit pool split
+  by area, each area paying the currencies that buy its stats.
+- Abilities cost XP plus a fixed number of units per rarity (`ABILITY_PRICES`), paid in the mix of
+  the stats the ability works through (`ABILITY_STATS`); off-court abilities pay half in Mind.
 - The purchase function is `purchase(player, plan)`, for a whole plan.
 - The Development screen's test ids are `development-*` (`development-stat-${stat}`,
   `development-plus-${stat}`, `development-minus-${stat}`, `development-clear`,
@@ -913,7 +916,8 @@ four identities against that day's opponent. "Today" is pooled over the three ru
 
 Match-win % for today's player against the same opponents: 45, 44, 36, 41, 42.
 
-- **The story keeps pace with today's player.** A typical player is a slight underdog at every
+- **The story keeps pace with today's player** (on the flat story model; see §9.13 for the real
+  story and the current target). A typical player is a slight underdog at every
   team match: 46–48% of points and 36–45% of matches. Team match 3 is the hardest of the five.
 - **The parity scale drifts up slowly.** From about ×1.15 at day 15 to ×1.2 at day 23, ×1.35 at
   day 27 and ×1.4 at day 31. That is about 20% growth across the stretch, or roughly +5% per
@@ -1209,18 +1213,69 @@ Run: `N=1000 ID=baseliner npx tsx src/test/analysis/abilityProbe.ts` (~2 minutes
 
 ---
 
+### 9.13 Real story income, and the Club target
+
+**Why it was re-measured.** A playtester finished Club with every stat in the 40s, one at 60, 280
+units unspent and 10-12 abilities, well past anything §9 predicted. §9 paid story and challenges as
+a flat `OTHER_PER_DAY` of 2.2 stat points, about 160 units by day 31. The game rolls a story event
+at 40% every free daytime slot, chains follow-ups onto the calendar, and plays team-match result
+events and milestones, so story pays far more. `careerSim` now plays the game's own story
+(`storyStream.ts`, `STORY=stream`, the default): scheduled beats and chains, the random roll and
+category draw, each outcome's currency, stats, energy and slots.
+
+**Income to day 31** (`LEDGER=1`, 40 careers per identity). The skilled player is
+`REPS_P=0.9 STORY_PICK=best MINIGAME_PASS=0.85 CHALLENGE_P=0.8`:
+
+|                    | flat story (§9) | real story, random choices | real story, skilled |
+| ------------------ | --------------- | -------------------------- | ------------------- |
+| story              | 161             | 520-580                    | ~810                |
+| total earned       | ~960            | ~1,230                     | ~1,590              |
+| stat range, day 31 | 30-48           | 32-55                      | 34-63               |
+
+The skilled column reproduces the playtester. Story income is spread over about 43 events per
+career: the coach chain and team intros are about a quarter of it, the rest a long tail.
+
+**Team-match readiness** with the PR #163 economy (match pay by area, abilities priced by the
+stats they work through), match-win %, mean of the four identities, typical / skilled. 20 careers
+per identity, 100 best-of-three per cell, so about ±3.5. The columns scale story and challenge
+currency (`STORY_PAY.scale`, `storyPay`):
+
+| day  | opponent         | ×1 (applied) | ×0.6    | ×0.5    | ×0.4    | ×0.3    |
+| ---- | ---------------- | ------------ | ------- | ------- | ------- | ------- |
+| 15   | Chet Vale        | 58 / 72      | 49 / 64 | 51 / 64 | 45 / 60 | 46 / 51 |
+| 19   | Rich Soil        | 65 / 75      | 48 / 62 | 48 / 62 | 42 / 58 | 44 / 57 |
+| 23   | Martia Estrella  | 49 / 67      | 38 / 55 | 34 / 47 | 39 / 46 | 31 / 42 |
+| 27   | Reginald Werther | 60 / 76      | 41 / 59 | 32 / 60 | 36 / 52 | 30 / 46 |
+| 31   | Olivia Gulp      | 57 / 77      | 39 / 54 | 35 / 54 | 32 / 48 | 28 / 47 |
+| mean |                  | 58 / 73      | 43 / 59 | 40 / 57 | 39 / 53 | 36 / 49 |
+
+- **The Club target is the ×1 column.** A typical player wins about 58% of team matches and a
+  skilled one about 73%. The "slight underdog" target (36-45%) of §9.6-9.9 is retired: it was met
+  only because the flat model underpaid story.
+- **Skill is worth about 15 points of match-win at every scale**, and team match 3 is the
+  hardest at every scale.
+- **`STORY_PAY.scale` is the lever** if the pace needs to come down: most of the effect is
+  between ×1 and ×0.6. Re-run with
+  `STORY_PAY=0.6 RUNS=20 N=100 DAYS=31 CHECK=15,19,23,27,31 SYSTEMS=currency npx tsx src/test/analysis/careerSim.ts`.
+- **Not yet measured with real story:** Regional and later, and the leftover currency (a
+  skilled career banks 65-160 units by day 31; the playtester had 280).
+
+---
+
 ## 10. Next avenues
 
 **Since then** (#101–106 and after), where the list below went another way:
 
 - 2: income is not ×1.1 rising to ×1.3. Story and challenge grants use a flat `INCOME_SCALE` of
-  1.2, training and matches pay fixed amounts, and pay is flat across tiers (§8).
-- 4 and 10: `careerSim` buys abilities (`abilityEconomy.ts`), priced at a fixed amount per rarity
-  (`ABILITY_PRICES`), and the abilities were retuned to rarity budgets
+  1.2, training and matches pay fixed amounts, and pay is flat across tiers (§8). Played as the
+  game plays it, story pays about 3.5× what §9 assumed (§9.13).
+- 4 and 10: `careerSim` buys abilities (`abilityEconomy.ts`), priced per rarity (`ABILITY_PRICES`)
+  in the mix of the stats each works through (`ABILITY_STATS`), sized to what they're worth in
+  stats; the abilities were retuned to rarity budgets
   ([`simulation-findings.md` round 4](../research/simulation-findings.md)).
 - 6: the fatigue change is applied (§8); the stamina recipe is unchanged.
-- 8: matches pay `MATCH_PAYOUT`, a base plus a 20-unit pool split by area, with no fixed Mind
-  share.
+- 8: matches pay `MATCH_PAYOUT`, a small base plus a 30-unit pool split by the five pre-match
+  areas and Clutch, each paying the currencies that buy its stats (`areaCurrencyMix`).
 - 9: every shot pays a fixed 3-unit mix (`TRAINING_MIXES`), not its recipe ratio. From silver a
   session takes a focus that swaps the mix's secondary currency (`focusedMix`).
 - 11 and 12: built. The Development screen is `src/components/DevelopmentScreen.tsx`, and the

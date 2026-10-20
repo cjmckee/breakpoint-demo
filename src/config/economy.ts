@@ -75,22 +75,25 @@ export const TRAINING_MIXES: Record<DrillId, CurrencyAmounts> = {
 
 /**
  * A match pays a base by result, the same however it went, plus a performance
- * pool of pool × overall/100 split by the per-area scores (serving → Power,
- * returning → Quickness, rally → Technique, net → Quickness and Technique,
- * mental → Mind). The base means every match pays some of every currency; the
+ * pool of pool × overall/100 split by what each area added to the overall. An
+ * area pays the currencies that buy its stats (GAME_AREA_WEIGHTS through
+ * STAT_RECIPES), so a good serving day pays mostly Power; Clutch pays `clutch`.
+ * The base means every match pays some of every currency; the
  * pool means how you played still decides most of the difference. Amounts are
  * literal units — INCOME_SCALE does not apply.
  *
- * The base leans to Mind, which matches are where the mental game pays, and is
- * light on Quickness, which three drills already pay: measured with careerSim on
- * the drill roll, a heavier Quickness base left Power builds holding 35-45 of it.
+ * The base is small, so how the match went decides most of what it pays and a
+ * player strong in one area sees it in that area's currencies; it leans to
+ * Technique, which the most stats need. The pool is sized with careerSim LEDGER so
+ * a career earns what it did when the base was most of a match's pay.
  */
 export const MATCH_PAYOUT = {
   base: {
-    lost: { power: 3, quickness: 1, technique: 3, mind: 4 },
-    won: { power: 4, quickness: 2, technique: 4, mind: 5 },
+    lost: { power: 1, quickness: 1, technique: 2, mind: 1 },
+    won: { power: 2, quickness: 2, technique: 3, mind: 2 },
   },
-  pool: 20,
+  pool: 30,
+  clutch: { mind: 1 },
 };
 
 /**
@@ -99,16 +102,33 @@ export const MATCH_PAYOUT = {
  */
 export const CONTENT_SCALE = INCOME_SCALE;
 
+/**
+ * What story outcomes and challenge rewards actually pay: their authored currency ×
+ * `scale` (CurrencyIncome.storyPay). The authored amounts were sized against a
+ * careerSim that paid story as a flat trickle; played as the game plays it
+ * (storyStream), story paid about 3.5× that. A field rather than a constant so
+ * careerSim can sweep it (STORY_PAY=…).
+ */
+export const STORY_PAY = { scale: 1 };
+
 export type AbilityPriceRarity = 'common' | 'uncommon' | 'rare';
 
 /**
- * Abilities cost a fixed amount per rarity in the currency their effect draws
- * on, plus XP. Levels cost more (ABILITY_LEVEL_PRICE). Legendaries are never sold.
+ * Abilities cost XP plus `units` of currency per rarity. An on-court ability pays
+ * them in the mix of the stats it works through (ABILITY_STATS); an off-court one
+ * pays OFF_COURT_ABILITY_PRICE. Levels cost more (ABILITY_LEVEL_PRICE).
+ * Legendaries are never sold.
+ *
+ * Sized to what an ability is worth in stats (abilityProbe, statValueProbe): on
+ * the Club build it suits, a common adds about as much point-win as 18 units of
+ * stats. Uncommons and rares were worth about 33 and 54 units on Club builds;
+ * they're sold from Regional and the Tour, where stats cost ×2 and ×3
+ * (PRICE_STEP), so they're priced at about that multiple.
  */
 export const ABILITY_PRICES: Record<AbilityPriceRarity, { units: number; xp: number }> = {
-  common: { units: 15, xp: 70 },
-  uncommon: { units: 28, xp: 140 },
-  rare: { units: 40, xp: 250 },
+  common: { units: 20, xp: 70 },
+  uncommon: { units: 60, xp: 140 },
+  rare: { units: 150, xp: 250 },
 };
 
 /**
@@ -162,25 +182,31 @@ export function abilityLevelPrice(
 }
 
 /**
- * The currency each on-court ability is priced in: shot power is Power, touch
- * and spin are Technique, movement is Quickness, the mental game is Mind. An
- * ability not listed here (an off-court one: mood, events, energy, XP,
- * minigames) costs XP only.
+ * The stats each on-court ability works through. Its price is paid in their
+ * recipes (STAT_RECIPES) added together, so a power shot costs mostly Power, a
+ * movement ability Quickness and a key-moment ability Mind. An ability not listed
+ * here is off-court (mood, events, energy, XP, minigames).
  */
-export const ABILITY_CURRENCY: Readonly<Record<string, Currency>> = {
-  heavy_hitter: 'power',
-  overhead_smash: 'power',
-  serve_cannon: 'power',
-  spin_master: 'technique',
-  soft_hands: 'technique',
-  baseliner: 'technique',
-  netcrasher: 'technique',
-  rangy_return: 'quickness',
-  slider: 'quickness',
-  speed_demon: 'quickness',
-  all_court_maestro: 'quickness',
-  clutch: 'mind',
-  mental_fortitude: 'mind',
-  pressure_cooker: 'mind',
-  iron_will: 'mind',
+export const ABILITY_STATS: Readonly<Record<string, readonly StatName[]>> = {
+  heavy_hitter: ['forehand', 'strength'],
+  overhead_smash: ['net', 'strength'],
+  serve_cannon: ['serve', 'strength'],
+  spin_master: ['spin', 'slice'],
+  soft_hands: ['net', 'placement'],
+  baseliner: ['forehand', 'backhand', 'stamina'],
+  netcrasher: ['net', 'placement'],
+  rangy_return: ['return', 'speed'],
+  slider: ['speed', 'stamina'],
+  speed_demon: ['speed', 'stamina', 'anticipation'],
+  all_court_maestro: ['speed', 'anticipation', 'forehand', 'backhand', 'net'],
+  clutch: ['focus', 'tactics'],
+  mental_fortitude: ['focus'],
+  pressure_cooker: ['focus', 'tactics', 'placement'],
+  iron_will: ['focus', 'stamina'],
+};
+
+/** An off-court ability costs XP plus `share` of its rarity's units, in `currency`. */
+export const OFF_COURT_ABILITY_PRICE: { currency: CurrencyAmounts; share: number } = {
+  currency: { mind: 1 },
+  share: 0.5,
 };

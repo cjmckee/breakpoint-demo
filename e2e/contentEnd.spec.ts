@@ -67,3 +67,31 @@ test('a promoted player who has seen the epilogue is held there, and can start o
   expect(fresh.player).toBeNull();
   await expect(page.locator('#player-name')).toBeVisible();
 });
+
+test('the end screen shows the career: rating, record, team matches and every stat', async ({
+  page,
+}) => {
+  await loadSave(page, 'save-regional-day1-baseliner', 41);
+  await markStoryEventsCompleted(page, [CONTENT_END_EVENT]);
+  await expect(page.getByTestId('content-end')).toBeVisible();
+
+  const game = await readGame(page);
+  const player = game.player!;
+  const won = player.matchesWon ?? 0;
+  const lost = (player.matchesPlayed ?? 0) - won;
+  await expect(page.getByTestId('career-win-loss')).toContainText(`${won}`);
+  await expect(page.getByTestId('career-win-loss')).toContainText(`${lost}`);
+  await expect(page.getByTestId('career-stat-serve')).toContainText(`${player.stats.core.serve}`);
+  await expect(page.getByTestId('career-stat-tactics')).toContainText(
+    `${player.stats.mental.tactics}`,
+  );
+  await expect(page.getByTestId('career-areas').locator('[data-grade]')).toHaveCount(5);
+
+  // A team match reads as won when its win event played, lost when its loss event did.
+  const firstWon = game.completedStoryEvents.includes('first_team_match_win');
+  const firstLost = game.completedStoryEvents.includes('first_team_match_loss');
+  await expect(page.getByTestId('career-team-match-1')).toHaveAttribute(
+    'data-result',
+    firstWon ? 'win' : firstLost ? 'loss' : 'unplayed',
+  );
+});

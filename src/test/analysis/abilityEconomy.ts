@@ -1,11 +1,10 @@
 /**
  * Ability economy — abilities as the career sim buys them.
  *
- * Decisions (stat-currency-progression.md §8): abilities cost a fixed price
- * per rarity in the currency their effect draws on, plus XP; levels cost more
- * as they rise; legendaries are never sold; how often a rarity is offered
- * depends on the rarity. The currency follows §6.4: shot power is Power, touch
- * and spin are Technique, movement is Quickness, the mental keys are Mind.
+ * Abilities cost what the shop charges (ShopSystem.abilityPrice): a fixed number
+ * of units per rarity, paid in the mix of the stats the ability works through
+ * (ABILITY_STATS), plus XP; levels cost more as they rise; legendaries are never
+ * sold; how often a rarity is offered depends on the tier.
  *
  * Values are each ability's level-1 point-win gain on each career identity's
  * day-23 build, measured after the rarity retune (abilityProbe and
@@ -15,13 +14,10 @@
 
 import { ABILITY_LEVEL_MULTIPLIER } from '../../config/shotThresholds';
 import type { OpponentTier } from '../../types/game';
-import {
-  ABILITY_CURRENCY,
-  ABILITY_PRICES,
-  abilityLevelPrice,
-  offerRarity,
-} from '../../config/economy';
-import type { Currency } from './statEconomy';
+import type { CurrencyAmounts } from '../../types/game';
+import { ABILITY_PRICES, offerRarity } from '../../config/economy';
+import { ABILITY_DEFINITIONS } from '../../data/abilities';
+import { abilityPrice } from '../../game/ShopSystem';
 
 export type Rarity = 'common' | 'uncommon' | 'rare';
 export type IdentityName = 'bigServer' | 'counter' | 'netRusher' | 'baseliner';
@@ -29,11 +25,10 @@ export type IdentityName = 'bigServer' | 'counter' | 'netRusher' | 'baseliner';
 export interface BuyableAbility {
   id: string;
   rarity: Rarity;
-  currency: Currency;
 }
 
-/** The shop's on-court abilities; each is priced in ABILITY_CURRENCY (economy.ts). */
-const BUYABLE_IDS: Array<Omit<BuyableAbility, 'currency'>> = [
+/** The shop's on-court abilities, priced through the stats they work through (ABILITY_STATS). */
+export const BUYABLE: BuyableAbility[] = [
   { id: 'heavy_hitter', rarity: 'common' },
   { id: 'overhead_smash', rarity: 'common' },
   { id: 'spin_master', rarity: 'common' },
@@ -50,11 +45,6 @@ const BUYABLE_IDS: Array<Omit<BuyableAbility, 'currency'>> = [
   { id: 'pressure_cooker', rarity: 'rare' },
   { id: 'iron_will', rarity: 'rare' },
 ];
-
-export const BUYABLE: BuyableAbility[] = BUYABLE_IDS.map((a) => ({
-  ...a,
-  currency: ABILITY_CURRENCY[a.id],
-}));
 
 /** Level-1 point-win gain, by identity (bigServer, counter, netRusher, baseliner). */
 const VALUES: Record<string, [number, number, number, number]> = {
@@ -96,9 +86,12 @@ for (const [rarity, key] of [
 export const OFFERS_PER_DAY = env('ABILITY_OFFERS', 2);
 const MAX_LEVEL = ABILITY_LEVEL_MULTIPLIER.length - 1;
 
-/** Price to go from `level` to `level + 1` (level 0 = buying it): the shop's own (abilityLevelPrice). */
-export function priceFor(a: BuyableAbility, level: number): { units: number; xp: number } {
-  return abilityLevelPrice(a.rarity, level);
+/** Price to go from `level` to `level + 1` (level 0 = buying it): the shop's own. */
+export function priceFor(
+  a: BuyableAbility,
+  level: number,
+): { currency: CurrencyAmounts; xp: number } {
+  return abilityPrice(ABILITY_DEFINITIONS[a.id], level);
 }
 
 /** Point-win gained by going from `level` to `level + 1`, on this identity. */

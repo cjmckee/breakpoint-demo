@@ -110,6 +110,7 @@ import {
 
 import { random } from '../core/random';
 import { applyCurrency, canAfford, negate, purchase } from '../game/StatDevelopment';
+import { storyPay } from '../game/CurrencyIncome';
 export interface AudioSettings {
   musicVolume: number; // 0–1
   sfxVolume: number; // 0–1
@@ -1496,7 +1497,7 @@ export const useGameStore = create<GameState>()(
 
         const opponent = getRandomOpponent(tier);
         const tierWins = player?.practiceWinsPerTier?.[tier] ?? 0;
-        const stats = getScaledOpponentStats(opponent.stats, tierWins);
+        const stats = getScaledOpponentStats(opponent.stats, tierWins, tier);
 
         const newOpponent = {
           opponentId: opponent.name,
@@ -2743,7 +2744,7 @@ export const useGameStore = create<GameState>()(
         // stat changes a rare outcome carries (clamped to 0-100).
         let updatedPlayer: Player = {
           ...player,
-          wallet: applyCurrency(player.wallet, outcome.effects.currency ?? {}),
+          wallet: applyCurrency(player.wallet, storyPay(outcome.effects.currency ?? {})),
         };
         if (outcome.effects.statChanges) {
           updatedPlayer = PlayerManager.applyStatBoosts(updatedPlayer, outcome.effects.statChanges);

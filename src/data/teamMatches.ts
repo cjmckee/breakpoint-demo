@@ -58,10 +58,10 @@ const martiaEstrella: MatchOpponent = {
   archetype: 'serve_volley',
   description: 'An up-and-coming star known for her volleys and court coverage.',
   stats: {
-    core: { serve: 37, forehand: 39, backhand: 33, return: 37, net: 34 },
-    technical: { slice: 39, spin: 34, placement: 38 },
-    physical: { speed: 44, stamina: 36, strength: 20 },
-    mental: { focus: 42, anticipation: 38, tactics: 35 },
+    core: { serve: 36, forehand: 38, backhand: 32, return: 36, net: 33 },
+    technical: { slice: 38, spin: 33, placement: 37 },
+    physical: { speed: 43, stamina: 35, strength: 19 },
+    mental: { focus: 41, anticipation: 37, tactics: 34 },
   },
   abilities: [ABILITY_DEFINITIONS[AbilityName.NETCRASHER]],
 };

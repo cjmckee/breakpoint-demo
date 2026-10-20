@@ -8,6 +8,7 @@
 import React from 'react';
 import type { ChallengeReward } from '../types/challenges';
 import { CurrencyAmounts } from './currency/CurrencyAmounts';
+import { storyPay } from '../game/CurrencyIncome';
 
 interface ChallengeRewardChipsProps {
   reward: ChallengeReward;
@@ -18,7 +19,7 @@ export const ChallengeRewardChips: React.FC<ChallengeRewardChipsProps> = ({ rewa
     <div className="space-y-1">
       {reward.currency && (
         <div className="text-xs px-2 py-0.5 bg-pixel-bg border border-pixel-border inline-block mr-1">
-          <CurrencyAmounts amounts={reward.currency} signed />
+          <CurrencyAmounts amounts={storyPay(reward.currency)} signed />
         </div>
       )}
 

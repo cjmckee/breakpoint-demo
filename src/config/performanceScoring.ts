@@ -1,122 +1,126 @@
 /**
  * Performance Scoring Configuration
  *
- * All weights are easily adjustable to balance gameplay.
- * These weights determine how match statistics translate to 0-100 performance scores.
+ * A match is rated in the five areas of the game the pre-match card compares
+ * (GAME_AREA_LABELS) plus Clutch, the key moments the player chose their way through.
+ * Each area scores what happened in it, not how it was played: the share of its points
+ * the player won, mapped onto 0-100 so that breaking even with this opponent scores
+ * about 50 (`PerformanceRange`). The overall score is their weighted average, so a
+ * close match rates C and a one-sided one rates A, S, D or F.
+ *
+ * Small samples are pulled toward an even share (`priorPoints` of even points added),
+ * so one approach won or one key moment lost doesn't decide an area.
+ *
+ * Measure changes with src/test/analysis/performanceRatingProbe.ts.
  */
 
-// ============================================================================
-// SERVING PERFORMANCE WEIGHTS
-// ============================================================================
-export const SERVING_WEIGHTS = {
-  // Ace contribution (per ace)
-  acePoints: 2,
-  aceCap: 25,
+import { GAME_AREA_LABELS, type GameArea } from '../core/gameAreas';
 
-  // Double fault penalty (per fault)
-  doubleFaultPenalty: -3,
-  doubleFaultCap: -20,
+/** Everything a match is rated on. */
+export type PerformanceArea = GameArea | 'clutch';
 
-  // First serve percentage — normalized from 40-75% range to 0-35 points.
-  // Prevents first serve % from dominating the entire score.
-  firstServePercentMin: 40, // 40% first serve = 0 points
-  firstServePercentMax: 75, // 75% first serve = max points
-  firstServePercentMaxPoints: 35,
+export const PERFORMANCE_AREAS: PerformanceArea[] = [
+  'serve',
+  'return',
+  'baseline',
+  'net',
+  'coverage',
+  'clutch',
+];
 
-  // First serve points won (ratio * weight)
-  firstServeWinWeight: 20,
-  firstServeWinCap: 20,
-
-  // Service hold bonus
-  serviceHoldWeight: 20,
-  serviceHoldCap: 20,
+/** The one name each area goes by: the pre-match card's five, and Clutch. */
+export const PERFORMANCE_AREA_LABELS: Record<PerformanceArea, string> = {
+  ...GAME_AREA_LABELS,
+  clutch: 'Clutch',
 };
 
-// ============================================================================
-// RETURN PERFORMANCE WEIGHTS
-// ============================================================================
-export const RETURN_WEIGHTS = {
-  // Break point conversion rate (converted / opportunities) — up to 30 points.
-  // Rewards actually winning the break chances you create.
-  breakPointConversionRatePoints: 30,
+/** A share of points (0-1) mapped linearly onto 0-100, clamped: `zero` scores 0, `full` 100. */
+export interface PerformanceRange {
+  zero: number;
+  full: number;
+}
 
-  // Small bonus for creating break opportunities (volume of pressure applied)
-  breakOpportunityPoints: 3,
-  breakOpportunityCap: 20,
+/** Rallies this long or longer test getting to the ball: Coverage reads them. */
+export const LONG_RALLY_LENGTH = 5;
 
-  // Return points won (normalized from 25-50% range to 0-50 points)
-  returnWinMinRate: 0.25, // 25% return win rate = 0 points
-  returnWinMaxRate: 0.5, // 50% return win rate = 50 points
-  returnWinMaxPoints: 50,
+/**
+ * The share each area needs for 0 and for 100, centred on what a close match produces
+ * in the engine (performanceRatingProbe, matches within a few points of even): the
+ * server wins about 59% of points, an approach about two in three, and a key moment
+ * picked at random about 40%, so choosing well scores above 50.
+ */
+export const PERFORMANCE_RANGES: Record<PerformanceArea, PerformanceRange> = {
+  // Service points won.
+  serve: { zero: 0.28, full: 0.88 },
+  // Return points won.
+  return: { zero: 0.13, full: 0.73 },
+  // Rally points won (past serve and return).
+  baseline: { zero: 0.2, full: 0.8 },
+  // Points won when the player came to the net, out of every time they did.
+  net: { zero: 0.38, full: 0.98 },
+  // Long rallies won, and the share of rally points lost to pressure that the opponent lost.
+  coverage: { zero: 0.2, full: 0.8 },
+  // Key moments and break points won.
+  clutch: { zero: 0.14, full: 0.74 },
 };
 
-// ============================================================================
-// RALLY PERFORMANCE WEIGHTS
-// ============================================================================
-export const RALLY_WEIGHTS = {
-  // Rally win rate (won / played when shot count > 2) — primary metric (0-50 points).
-  // Directly measures how well the player performs once a rally develops.
-  // Normalized from 30-70% range so 50% (perfectly even) = 25pts, 70%+ = 50pts.
-  rallyWinRateMinRate: 0.3,
-  rallyWinRateMaxRate: 0.7,
-  rallyWinRateMaxPoints: 50,
-
-  // Consistency: unforced error rate penalty (0-30 points).
-  // 50 + (errorRate × -200) before clamping to 0-30.
-  unforcedErrorWeight: -200,
-  unforcedErrorBase: 50,
-  unforcedErrorMaxPoints: 30,
-
-  // Aggression: winner rate normalized from 5-15% of total points (0-20 points).
-  winnerRateMinRate: 0.05,
-  winnerRateMaxRate: 0.15,
-  winnerRateMaxPoints: 20,
+/** Even points added to a share before it's scored, so a handful of points stays near 50. */
+export const PERFORMANCE_PRIOR_POINTS: Record<PerformanceArea, number> = {
+  serve: 2,
+  return: 2,
+  baseline: 2,
+  net: 2,
+  coverage: 2,
+  clutch: 2,
 };
 
-// ============================================================================
-// NET PLAY PERFORMANCE WEIGHTS
-// ============================================================================
-export const NET_PLAY_WEIGHTS = {
-  // Net point win rate — primary metric (0-75 points)
-  netWinRateMaxPoints: 75,
+/**
+ * Coverage blends two shares: long rallies won, and the share of rally points lost to
+ * a winner or forced error that went against the opponent (who was run off the court).
+ */
+export const COVERAGE_BLEND = { longRallies: 0.5, outplayed: 0.5 };
 
-  // Volume bonus for actively attacking net (2 pts per net point won, up to 25)
-  netVolumePoints: 2,
-  netVolumeCap: 25,
+/** Clutch blends key moments won with break points won (saved and converted). */
+export const CLUTCH_BLEND = { keyMoments: 0.65, breakPoints: 0.35 };
 
-  // Volume scaling threshold: below this many total net points, the whole score is
-  // scaled down linearly. Prevents rarely-approaching players from scoring high
-  // just because they won the 1-2 net points they did play.
-  netVolumeScaleThreshold: 10,
+/**
+ * How much each area counts toward the overall score and toward the currency pool.
+ * They sum to 1. Serve and return cover every point between them, while Baseline and
+ * Coverage both read the rallies, so the service contests carry the most: weighted
+ * evenly, a big server who won on serve rated well below a returner with the same
+ * share of points. Net play counts in full only once the player has come in
+ * `NET_FULL_WEIGHT_APPROACHES` times; below that its weight shrinks in proportion and
+ * the others share the rest, so a baseliner isn't marked down for staying back.
+ */
+export const PERFORMANCE_WEIGHTS: Record<PerformanceArea, number> = {
+  serve: 0.25,
+  return: 0.25,
+  baseline: 0.2,
+  net: 0.1,
+  coverage: 0.08,
+  clutch: 0.12,
 };
 
-// ============================================================================
-// MENTAL PERFORMANCE WEIGHTS
-// ============================================================================
-export const MENTAL_WEIGHTS = {
-  // Key moment win rate (won / total key moments, scaled to 0-70 points).
-  // This is the primary mental metric — winning the moments that actually
-  // decide sets is the best single measure of mental performance.
-  keyMomentWinRatePoints: 70,
-
-  // Break points saved (when serving) — secondary bonus for holding under pressure.
-  breakPointSavePoints: 5,
-  breakPointSaveCap: 30,
-};
+export const NET_FULL_WEIGHT_APPROACHES = 8;
 
 // ============================================================================
-// OVERALL PERFORMANCE CATEGORY WEIGHTS
+// GRADES
 // ============================================================================
-// Weights must sum to 1.0.
-// Rallying is weighted most — it's the dominant skill in modern baseline tennis.
-// Net play is weighted least — many players reasonably avoid the net.
-export const OVERALL_SCORE_WEIGHTS = {
-  serving: 0.22,
-  returning: 0.22,
-  rallying: 0.3,
-  netPlay: 0.1,
-  mental: 0.16,
-};
+
+export type PerformanceGrade = 'S' | 'A' | 'B' | 'C' | 'D' | 'F';
+
+/** The lowest overall score for each grade, best first. Anything lower is F. */
+export const GRADE_THRESHOLDS: Array<{ grade: PerformanceGrade; min: number }> = [
+  { grade: 'S', min: 90 },
+  { grade: 'A', min: 75 },
+  { grade: 'B', min: 60 },
+  { grade: 'C', min: 45 },
+  { grade: 'D', min: 30 },
+];
+
+export function performanceGrade(score: number): PerformanceGrade {
+  return GRADE_THRESHOLDS.find((t) => score >= t.min)?.grade ?? 'F';
+}
 
 // ============================================================================
 // PERFORMANCE THRESHOLDS

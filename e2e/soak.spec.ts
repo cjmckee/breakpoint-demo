@@ -22,7 +22,9 @@ import { runBot, formatLog, expectProductiveRun } from './bot';
 const DAYS = 14;
 
 test('a fresh player can play two weeks without the game getting stuck', async ({ page }) => {
-  test.setTimeout(120_000);
+  // Two weeks of bot play now include the first team match (day 14, best of three),
+  // which put a 2-minute budget at the edge on a busy machine.
+  test.setTimeout(240_000);
 
   // A console error during a 14-day run is a real defect that would otherwise go
   // unseen — nothing else in the suite is watching for one over this much play.

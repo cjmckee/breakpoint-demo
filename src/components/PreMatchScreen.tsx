@@ -17,6 +17,7 @@ import type { PlayerStats, PlayStyle, CourtSurface, StatName } from '../types';
 import type { Modifiers, Ability, AbilityRarity, HomeSide, Venue } from '../types/game';
 import type { ArchetypeType } from '../data/archetypes';
 import { describeEffects } from '../utils/effectLabels';
+import { formatAbilityName } from './AbilityDisplay';
 import { venueCrowd, venueEffects, venueFatigue, venueWind } from '../core/venue';
 import {
   calculateOverallRating,
@@ -153,7 +154,9 @@ function AbilityList({ title, abilities }: { title: string; abilities: Ability[]
                 <span className={`text-xs px-1.5 py-0.5 border ${style.badge} shrink-0`}>
                   {style.label}
                 </span>
-                <span className={`text-sm font-medium ${style.text}`}>{ability.name}</span>
+                <span className={`text-sm font-medium ${style.text}`}>
+                  {formatAbilityName(ability.name)}
+                </span>
               </div>
               <div className="text-xs text-pixel-text-muted ml-1 mt-0.5">{ability.effects}</div>
             </div>

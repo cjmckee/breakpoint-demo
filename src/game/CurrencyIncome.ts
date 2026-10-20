@@ -12,10 +12,17 @@ import type { Currency, CurrencyAmounts, PerformanceRewardBreakdown } from '../t
 import {
   CONTENT_SCALE,
   CURRENCIES,
+  STORY_PAY,
   MATCH_PAYOUT,
   STAT_RECIPES,
   TRAINING_MIXES,
 } from '../config/economy';
+import { GAME_AREA_WEIGHTS } from '../core/gameAreas';
+import {
+  PERFORMANCE_AREAS,
+  PERFORMANCE_AREA_LABELS,
+  type PerformanceArea,
+} from '../config/performanceScoring';
 
 /** Split `units` across currencies in proportion to `weights` (fractions kept). */
 export function splitUnits(units: number, weights: CurrencyAmounts): CurrencyAmounts {
@@ -129,6 +136,20 @@ export function contentCurrency(grant: Partial<Record<StatName, number>>): Curre
   return out;
 }
 
+/**
+ * What a story outcome's or challenge's authored currency pays: × STORY_PAY.scale,
+ * whole units, each non-zero currency at least 1 either way (a gain or a penalty).
+ */
+export function storyPay(amounts: CurrencyAmounts): CurrencyAmounts {
+  const out: CurrencyAmounts = {};
+  for (const c of CURRENCIES) {
+    const n = amounts[c] ?? 0;
+    if (n === 0) continue;
+    out[c] = Math.sign(n) * Math.max(1, Math.round(Math.abs(n) * STORY_PAY.scale));
+  }
+  return out;
+}
+
 /** One line of a match's pay: where it came from and what it paid. */
 export interface PayoutLine {
   label: string;
@@ -152,36 +173,45 @@ function apportion(total: number, parts: number[]): number[] {
   return floors;
 }
 
+/**
+ * The currencies an area of the match pays, in proportion: the recipes of the stats
+ * it's rated on (GAME_AREA_WEIGHTS), weighted as the area weighs them. Clutch pays
+ * MATCH_PAYOUT.clutch.
+ */
+export function areaCurrencyMix(
+  area: PerformanceArea,
+  p: MatchRates = GAME_MATCH_RATES,
+): CurrencyAmounts {
+  if (area === 'clutch') return p.clutch;
+  const out: CurrencyAmounts = {};
+  for (const [stat, weight] of Object.entries(GAME_AREA_WEIGHTS[area]) as Array<
+    [StatName, number]
+  >) {
+    for (const [c, n] of Object.entries(STAT_RECIPES[stat]) as Array<[Currency, number]>) {
+      out[c] = (out[c] ?? 0) + weight * n;
+    }
+  }
+  return out;
+}
+
 /** The performance pool, area by area, in fractional units. */
 function poolLines(perf: PerformanceRewardBreakdown, p: MatchRates): PayoutLine[] {
   const pool = p.pool * (perf.overallScore / 100);
-  const areas =
-    perf.servingScore +
-    perf.returningScore +
-    perf.rallyScore +
-    perf.netPlayScore +
-    perf.mentalScore;
-  if (pool <= 0 || areas <= 0) return [];
-  const share = (score: number): number => (pool * score) / areas;
-  return [
-    { label: 'Serving', amounts: { power: share(perf.servingScore) } },
-    { label: 'Returning', amounts: { quickness: share(perf.returningScore) } },
-    { label: 'Rallies', amounts: { technique: share(perf.rallyScore) } },
-    {
-      label: 'Net play',
-      amounts: {
-        quickness: share(perf.netPlayScore) / 2,
-        technique: share(perf.netPlayScore) / 2,
-      },
-    },
-    { label: 'Mental game', amounts: { mind: share(perf.mentalScore) } },
-  ];
+  // Each area's slice is what it added to the overall score.
+  const added = PERFORMANCE_AREAS.map((a) => perf.areas[a] * perf.weights[a]);
+  const total = added.reduce((s, v) => s + v, 0);
+  if (pool <= 0 || total <= 0) return [];
+  return PERFORMANCE_AREAS.map((area, i) => ({
+    label: PERFORMANCE_AREA_LABELS[area],
+    amounts: splitUnits((pool * added[i]) / total, areaCurrencyMix(area, p)),
+  }));
 }
 
 /**
- * A match pays its result's base (MATCH_PAYOUT: a loss 3 Power, 1 Quickness,
- * 3 Technique and 4 Mind, a win one more of each) plus a performance pool of pool × overall/100, split by how each
- * area went: a good serving day pays in Power, which buys serve.
+ * A match pays its result's base (MATCH_PAYOUT: a loss 1 Power, 1 Quickness,
+ * 2 Technique and 1 Mind, a win one more of each) plus a performance pool of
+ * pool × overall/100, split by how each area went and paid in the currencies that
+ * buy its stats: a good serving day pays in Power, which buys serve.
  */
 export function matchPayout(
   perf: PerformanceRewardBreakdown,

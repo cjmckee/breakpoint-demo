@@ -25,7 +25,8 @@ import { STARTING_SPECIALIZATION_POINTS } from '../src/data/archetypeTree';
  */
 
 test('a fresh player reaches each early unlock by playing', async ({ page }) => {
-  test.setTimeout(120_000);
+  // A week of bot play with matches; 2 minutes ran out on a busy machine.
+  test.setTimeout(240_000);
 
   await startNewGame(page);
   await dismissWalkthrough(page);

@@ -22,6 +22,7 @@ import type { PlayerStats } from '../types';
 import { PlayerManager } from './PlayerManager';
 import { ItemManager } from './ItemManager';
 import { applyCurrency } from './StatDevelopment';
+import { storyPay } from './CurrencyIncome';
 
 export class ChallengeManager {
   /**
@@ -277,7 +278,7 @@ export class ChallengeManager {
     if (challenge.reward.currency) {
       updatedPlayer = {
         ...updatedPlayer,
-        wallet: applyCurrency(updatedPlayer.wallet, challenge.reward.currency),
+        wallet: applyCurrency(updatedPlayer.wallet, storyPay(challenge.reward.currency)),
       };
     }
 
