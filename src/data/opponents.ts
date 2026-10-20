@@ -385,10 +385,10 @@ export function getOpponentsForTier(tier: OpponentTier): OpponentPreset[] {
 /**
  * How much each practice win adds to a tier's roster, and the most it can add. The
  * Club roster starts 10 lower than the others, so the season's first matches are
- * winnable, and climbs faster and 10 further to finish where it did: a Club season
- * only fits a handful of practice matches.
+ * winnable, then climbs fast (+5 a win, back where it used to finish after six) so
+ * practice settles near even rather than paying out a win every time.
  */
-export const PRACTICE_BOOST_STEP: Record<OpponentTier, number> = { 1: 3, 2: 2, 3: 2, 4: 2 };
+export const PRACTICE_BOOST_STEP: Record<OpponentTier, number> = { 1: 5, 2: 2, 3: 2, 4: 2 };
 export const PRACTICE_BOOST_CAP: Record<OpponentTier, number> = { 1: 30, 2: 20, 3: 20, 4: 20 };
 
 /**
