@@ -16,6 +16,7 @@ import type { Player, GameCalendar } from '../types/game';
 import type { ActiveTournament } from '../types/tournaments';
 import type { MinigameScore } from '../minigames/types';
 
+import { storyPay } from './CurrencyIncome';
 import { random } from '../core/random';
 export class StoryEventManager {
   /**
@@ -341,7 +342,7 @@ export class StoryEventManager {
 
       resultText: outcome.resultText,
 
-      currency: outcome.effects.currency ?? {},
+      currency: storyPay(outcome.effects.currency ?? {}),
       statChanges: outcome.effects.statChanges ?? {},
       relationshipChanges: outcome.effects.relationshipChanges || {},
       abilitiesGained: outcome.effects.abilitiesGained || [],

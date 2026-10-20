@@ -12,6 +12,7 @@ import type { Currency, CurrencyAmounts, PerformanceRewardBreakdown } from '../t
 import {
   CONTENT_SCALE,
   CURRENCIES,
+  STORY_PAY,
   MATCH_PAYOUT,
   STAT_RECIPES,
   TRAINING_MIXES,
@@ -131,6 +132,20 @@ export function contentCurrency(grant: Partial<Record<StatName, number>>): Curre
   for (const c of CURRENCIES) {
     if (raw[c] === 0) continue;
     out[c] = Math.sign(raw[c]) * Math.max(1, Math.round(Math.abs(raw[c])));
+  }
+  return out;
+}
+
+/**
+ * What a story outcome's or challenge's authored currency pays: × STORY_PAY.scale,
+ * whole units, each non-zero currency at least 1 either way (a gain or a penalty).
+ */
+export function storyPay(amounts: CurrencyAmounts): CurrencyAmounts {
+  const out: CurrencyAmounts = {};
+  for (const c of CURRENCIES) {
+    const n = amounts[c] ?? 0;
+    if (n === 0) continue;
+    out[c] = Math.sign(n) * Math.max(1, Math.round(Math.abs(n) * STORY_PAY.scale));
   }
   return out;
 }

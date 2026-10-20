@@ -25,6 +25,7 @@ import { SeasonManager } from '../../game/SeasonManager';
 import { TimeManager } from '../../game/TimeManager';
 import { CLUB_SEASON } from '../../data/seasons/club';
 import { CURRENCIES } from '../../config/economy';
+import { storyPay } from '../../game/CurrencyIncome';
 
 export type StoryPick = 'random' | 'best';
 
@@ -177,12 +178,13 @@ export class StoryStream {
   private play(player: Player, event: StoryEvent): PlayedEvent {
     const outcome = this.outcomeOf(player, event);
     this.completed = [...this.completed, event.id];
-    const currency: CurrencyAmounts = { ...(outcome?.effects.currency ?? {}) };
+    // Paid as the game pays it (storyPay), challenge rewards on completion.
+    const currency: CurrencyAmounts = storyPay(outcome?.effects.currency ?? {});
     for (const challenge of outcome?.challengesAssigned ?? []) {
       if (Math.random() >= this.opts.challengeRate) continue;
+      const reward = storyPay(challenge.reward.currency ?? {});
       for (const c of CURRENCIES) {
-        const n = challenge.reward.currency?.[c] ?? 0;
-        if (n) currency[c] = (currency[c] ?? 0) + n;
+        if (reward[c]) currency[c] = (currency[c] ?? 0) + (reward[c] ?? 0);
       }
     }
     for (const [who, change] of Object.entries(outcome?.effects.relationshipChanges ?? {})) {

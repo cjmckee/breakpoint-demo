@@ -1014,6 +1014,10 @@ negate(price))` after checking `canAfford`.
   of its points won, so an even match rates about 50 and the grade follows the scoreline. Each
   area's slice of the pool pays the currencies that buy its stats (`areaCurrencyMix`). Re-measure
   changes with `performanceRatingProbe`, and economy changes with careerSim's `LEDGER=1`.
+- **Story pays through `storyPay`**: an outcome's `effects.currency` and a challenge's
+  `reward.currency` are authored amounts, paid and shown × `STORY_PAY.scale`. careerSim plays the
+  game's own story (`storyStream.ts`); measure pace against the Club target there
+  (`docs/proposals/stat-currency-progression.md` §9.13).
 - **Training is drills.** Six minigames (`DRILLS` in `src/game/TrainingSystem.ts`), each paying
   one pair of currencies (`TRAINING_MIXES`, two of its main and one of its secondary per rep).
   Each time slot offers four (`trainingOffer`), rolled from the player, the day and the slot on
