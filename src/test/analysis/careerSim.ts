@@ -96,6 +96,12 @@
  *      and a training focus from day 41 (FOCUS_FROM), so DAYS and CHECK are ignored.
  *      Regenerate it when the economy or the Club calendar changes:
  *      BUILDS=src/test/analysis/careerBuilds.json RUNS=12 npx tsx src/test/analysis/careerSim.ts
+ *      CAREERS=<path> appends one JSON line per currency career, RUNS per identity (IDS=a,b
+ *      narrows them), played to DAYS (default 35, the eve of the Riverside Open): its build,
+ *      wallet, ledger, team-match results and abilities, then the Riverside Open played with
+ *      that build — once as a bracket (rounds until the first loss), and RO_N=20 BO3s a round
+ *      for each round's win share. Every env setting is echoed on each line, for sweeps.
+ *      TEAM_ABILITIES=1 gives team-match opponents their abilities, as the game does.
  */
 
 import type {
@@ -167,7 +173,8 @@ import {
 } from '../../data/teamMatches';
 import type { TeamMatchConfig } from '../../types/game';
 import type { CourtSurface } from '../../types';
-import { writeFileSync } from 'node:fs';
+import { appendFileSync, writeFileSync } from 'node:fs';
+import { riversideOpen } from '../../data/tournaments/riversideOpen';
 import { BAND_DAYS, type CareerBuilds } from './bandSlots';
 import { ALL_EQUIPMENT, getItemsByTier } from '../../data/items';
 import type { Item } from '../../types/items';
@@ -181,8 +188,13 @@ const env = (k: string, d: number): number => Number(process.env[k] ?? d);
 const RUNS = env('RUNS', 20);
 const N = env('N', 200);
 const BUILDS = process.env.BUILDS;
-const DAYS = BUILDS ? Math.max(...BAND_DAYS) : env('DAYS', 23);
-const CHECK = BUILDS ? BAND_DAYS : (process.env.CHECK ?? '15,19,23').split(',').map(Number);
+const CAREERS = process.env.CAREERS;
+const DAYS = BUILDS ? Math.max(...BAND_DAYS) : env('DAYS', CAREERS ? 35 : 23);
+const CHECK = BUILDS
+  ? BAND_DAYS
+  : CAREERS
+    ? [DAYS]
+    : (process.env.CHECK ?? '15,19,23').split(',').map(Number);
 const ADAPT = env('ADAPT', 0.7);
 const range = (k: string, d: string): [number, number] => {
   const [lo, hi] = (process.env[k] ?? d).split(',').map(Number);
@@ -364,9 +376,13 @@ const TEAM_MATCHES: Map<number, TeamMatchConfig> = new Map([
 /** coach_archetype_selection: no broad identity or specialties before this. */
 const ARCHETYPE_DAY = 11;
 
+/** TEAM_ABILITIES=1 plays team-match opponents with their abilities, as the game does. */
+const TEAM_ABILITIES = process.env.TEAM_ABILITIES === '1';
+
 const teamSide = (t: TeamMatchConfig): Side => ({
   stats: t.opponent.stats,
   profile: profileForArchetype(t.opponent.archetype, t.opponent.tier),
+  effects: TEAM_ABILITIES ? abilityEffects(t.opponent.abilities ?? []) : undefined,
 });
 
 const BO3_FOR: Record<string, MatchFormat> = { 'best-of-3': BO3, 'best-of-1': BO1 };
@@ -492,6 +508,7 @@ function playMatch(
     home: typeof court === 'string' ? undefined : court.home,
     matchFormat: format,
     playerEffects: a.effects,
+    opponentEffects: b.effects,
   });
   const result = silently(() => sim.simulateMatch());
   const points = sim.exportMatchData().points;
@@ -1531,8 +1548,82 @@ function buildsReport(path: string): void {
   console.log(`wrote ${path}`);
 }
 
+/**
+ * CAREERS=<path>: one JSON line per career, for sweeps across player types. The
+ * Riverside Open is played with the career's day-DAYS build, fresh each round, at its
+ * venue, against each round's opponent with their abilities.
+ */
+function careersReport(path: string): void {
+  const roN = env('RO_N', 20);
+  const ids = process.env.IDS?.split(',');
+  const settings = Object.fromEntries(
+    Object.entries(process.env).filter(([k]) =>
+      /^(RUNS|DAYS|REPS_P|ADAPT|SPEND|STORY|STORY_PICK|STORY_CHANCE|CHALLENGE_P|MINIGAME_PASS|MATCH_EVERY|KEY_W|OFF_W|GEAR|ABILITIES|TEAM_ABILITIES|TAG|SKILL)$/.test(
+        k,
+      ),
+    ),
+  );
+  const rounds = riversideOpen.rounds.map((r) => ({
+    name: r.opponent.name,
+    side: {
+      stats: r.opponent.stats,
+      profile: profileForArchetype(r.opponent.archetype, r.opponent.tier),
+      effects: abilityEffects(r.opponent.abilities ?? []),
+    } satisfies Side,
+  }));
+  const court = { venue: riversideOpen.venue };
+  const lines: string[] = [];
+  for (const id of IDENTITIES.filter((i) => !ids || ids.includes(i.name))) {
+    for (let run = 0; run < RUNS; run++) {
+      const snap = career(id, 'currency').get(DAYS)!;
+      const me: Side = {
+        stats: withBoosts(snap.stats, snap.gear),
+        profile: id.profile,
+        effects: effectsOf(snap.abilities),
+      };
+      let reached = 0;
+      while (
+        reached < rounds.length &&
+        playMatch(me, rounds[reached].side, BO3, court).winner === 'player'
+      )
+        reached++;
+      const roundWinShare = rounds.map((r) => {
+        let won = 0;
+        for (let i = 0; i < roN; i++)
+          if (playMatch(me, r.side, BO3, court).winner === 'player') won++;
+        return roN ? won / roN : null;
+      });
+      lines.push(
+        JSON.stringify({
+          identity: id.name,
+          settings,
+          day: DAYS,
+          ovr: calculateOverallRating(snap.stats),
+          stats: Object.fromEntries(ALL_STATS.map((k) => [k, get(snap.stats, k)])),
+          gear: snap.gear,
+          wallet: snap.wallet,
+          earned: snap.earned,
+          xp: snap.xp,
+          practice: { won: snap.matchesWon, played: snap.matchesPlayed },
+          sessions: snap.sessions,
+          teamWon: Object.fromEntries(snap.teamWon),
+          abilities: Object.fromEntries(snap.abilities),
+          ledger: snap.ledger,
+          riverside: {
+            roundsWon: reached,
+            champion: reached === rounds.length,
+            winShare: Object.fromEntries(rounds.map((r, i) => [r.name, roundWinShare[i]])),
+          },
+        }),
+      );
+    }
+  }
+  appendFileSync(path, lines.join('\n') + '\n');
+}
+
 function main(): void {
   if (BUILDS) return buildsReport(BUILDS);
+  if (CAREERS) return careersReport(CAREERS);
   if (TRACE) return traceCareer(TRACE);
   if (process.env.LEDGER === '1') return ledgerReport();
   if (process.env.PAR === '1') return parReport();
