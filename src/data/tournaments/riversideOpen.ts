@@ -52,10 +52,10 @@ const max: MatchOpponent = {
   description:
     "A defensive specialist with great court coverage. His return game and placement are his biggest weapons. Don't let him get comfortable.",
   stats: {
-    core: { serve: 44, forehand: 42, backhand: 44, return: 52, net: 33 },
-    technical: { slice: 46, spin: 44, placement: 48 },
-    physical: { speed: 48, stamina: 46, strength: 34 },
-    mental: { focus: 46, anticipation: 44, tactics: 42 },
+    core: { serve: 43, forehand: 41, backhand: 43, return: 51, net: 32 },
+    technical: { slice: 45, spin: 43, placement: 47 },
+    physical: { speed: 47, stamina: 45, strength: 33 },
+    mental: { focus: 45, anticipation: 43, tactics: 41 },
   },
   abilities: [ABILITY_DEFINITIONS[AbilityName.SPEED_DEMON]],
 };
@@ -68,10 +68,10 @@ const jordan: MatchOpponent = {
   description:
     "Your rival. He's been preparing for this tournament seriously and it shows. Well-rounded, competitive, and dangerous in every situation.",
   stats: {
-    core: { serve: 50, forehand: 50, backhand: 46, return: 47, net: 43 },
-    technical: { slice: 48, spin: 40, placement: 48 },
-    physical: { speed: 44, stamina: 48, strength: 46 },
-    mental: { focus: 46, anticipation: 40, tactics: 40 },
+    core: { serve: 46, forehand: 46, backhand: 42, return: 43, net: 39 },
+    technical: { slice: 44, spin: 36, placement: 44 },
+    physical: { speed: 40, stamina: 44, strength: 42 },
+    mental: { focus: 42, anticipation: 36, tactics: 36 },
   },
   abilities: [ABILITY_DEFINITIONS[AbilityName.SERVE_CANNON]],
 };
