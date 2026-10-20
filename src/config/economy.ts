@@ -102,6 +102,15 @@ export const MATCH_PAYOUT = {
  */
 export const CONTENT_SCALE = INCOME_SCALE;
 
+/**
+ * What story outcomes and challenge rewards actually pay: their authored currency ×
+ * `scale` (CurrencyIncome.storyPay). The authored amounts were sized against a
+ * careerSim that paid story as a flat trickle; played as the game plays it
+ * (storyStream), story paid about 3.5× that. A field rather than a constant so
+ * careerSim can sweep it (STORY_PAY=…).
+ */
+export const STORY_PAY = { scale: 1 };
+
 export type AbilityPriceRarity = 'common' | 'uncommon' | 'rare';
 
 /**

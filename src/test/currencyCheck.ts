@@ -15,6 +15,7 @@ import type { PerformanceRewardBreakdown, Player } from '../types/game';
 import {
   ABILITY_PRICES,
   ABILITY_STATS,
+  STORY_PAY,
   CURRENCIES,
   MATCH_PAYOUT,
   STAT_RECIPES,
@@ -35,6 +36,7 @@ import {
   matchPayout,
   matchPayoutLines,
   roundAmounts,
+  storyPay,
   trainingPayout,
 } from '../game/CurrencyIncome';
 import {
@@ -414,6 +416,20 @@ function main(): void {
   check(
     'a match with no performance pays only the base',
     nothing.length === 1 && nothing[0].label === 'Won match',
+  );
+
+  console.log('\n── story pay ──');
+  const authored = { power: 10, technique: 3, mind: -4 };
+  const paid = storyPay(authored);
+  check(
+    'story currency pays its authored amount × STORY_PAY.scale, in whole units',
+    paid.power === Math.max(1, Math.round(10 * STORY_PAY.scale)) &&
+      paid.mind === -Math.max(1, Math.round(4 * STORY_PAY.scale)),
+    JSON.stringify(paid),
+  );
+  check(
+    'a small grant or penalty never rounds away to nothing',
+    storyPay({ quickness: 1 }).quickness === 1 && storyPay({ quickness: -1 }).quickness === -1,
   );
 
   console.log('\n── direct stat changes ──');

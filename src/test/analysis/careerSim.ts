@@ -115,6 +115,7 @@ import { PlayerProfile } from '../../core/PlayerProfile';
 import {
   INCOME_SCALE as ECONOMY_INCOME_SCALE,
   MATCH_PAYOUT,
+  STORY_PAY,
   TRAINING_MIXES,
 } from '../../config/economy';
 import { abilityEffects } from '../../core/EffectAggregator';
@@ -212,6 +213,9 @@ const OTHER_PER_DAY = env('OTHER_PER_DAY', 2.2);
  */
 const STORY = (process.env.STORY ?? 'stream') as 'stream' | 'flat';
 const STORY_PICK = (process.env.STORY_PICK ?? 'random') as StoryPick;
+// STORY_PAY=0.4 tries another story pay scale: written into the shared config, so
+// the game's own storyPay uses it.
+if (process.env.STORY_PAY) STORY_PAY.scale = Number(process.env.STORY_PAY);
 const STORY_CHANCE = env('STORY_CHANCE', 40);
 const CHALLENGE_P = env('CHALLENGE_P', 0.5);
 const MINIGAME_PASS = env('MINIGAME_PASS', 0.6);
