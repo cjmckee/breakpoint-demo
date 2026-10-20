@@ -50,7 +50,7 @@ export const romanceEvents: StoryEvent[] = [
     id: 'romance_coffee_date',
     name: 'Coffee with Alex',
     tags: ['romance', 'friend', 'decision'],
-    timeSlotsRequired: 2,
+    timeSlotsRequired: 1,
     prerequisites: {
       completedEvents: ['romance_meet_tournament'],
       relationships: { alex_romance: { min: 15 } },
@@ -133,7 +133,7 @@ export const romanceEvents: StoryEvent[] = [
     id: 'romance_park_practice',
     name: 'Practice at the Park',
     tags: ['romance', 'training'],
-    timeSlotsRequired: 2,
+    timeSlotsRequired: 1,
     prerequisites: {
       completedEvents: ['romance_coffee_date'],
       relationships: { alex_romance: { min: 25 } },
@@ -290,7 +290,7 @@ export const romanceEvents: StoryEvent[] = [
     id: 'romance_professional_match',
     name: 'Professional Match Date',
     tags: ['romance', 'decision'],
-    timeSlotsRequired: 2,
+    timeSlotsRequired: 1,
     prerequisites: {
       completedEvents: ['romance_movie_night'],
       relationships: { alex_romance: { min: 50 } },

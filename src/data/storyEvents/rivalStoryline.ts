@@ -107,7 +107,7 @@ export const rivalEvents: StoryEvent[] = [
     id: 'rival_doubles_disaster',
     name: 'Forced Partners',
     tags: ['rival', 'conflict', 'misc'],
-    timeSlotsRequired: 2,
+    timeSlotsRequired: 1,
     prerequisites: {
       completedEvents: ['rival_confrontation'],
     },

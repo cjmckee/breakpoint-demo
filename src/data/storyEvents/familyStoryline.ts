@@ -44,7 +44,7 @@ export const familyEvents: StoryEvent[] = [
     id: 'family_investment',
     name: 'Family Investment',
     tags: ['family', 'decision', 'conflict'],
-    timeSlotsRequired: 2,
+    timeSlotsRequired: 1,
     prerequisites: {
       minDay: 25,
       completedEvents: ['family_support'],
@@ -181,7 +181,7 @@ export const familyEvents: StoryEvent[] = [
     id: 'family_sibling_rivalry',
     name: 'The Backyard Challenge',
     tags: ['family', 'decision'],
-    timeSlotsRequired: 2,
+    timeSlotsRequired: 1,
     prerequisites: {
       completedEvents: ['family_support'],
       minDay: 20,

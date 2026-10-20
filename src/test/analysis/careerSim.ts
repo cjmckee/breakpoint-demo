@@ -1131,8 +1131,12 @@ function career(
     note(`Day ${day}  (energy ${energy})`);
     for (let slot = 0; slot < 3; slot++) {
       const slotName = ['morning  ', 'afternoon', 'evening  '][slot];
-      if (stream && storySlots === 0) {
-        storySlots = story(stream.slotStart(playerNow(), day, slot as TimeSlot), slotName);
+      // A slot an earlier event already took (a milestone after a match) still runs the
+      // beat scheduled in it; only a free slot rolls for a random event.
+      if (stream) {
+        const free = storySlots === 0;
+        const played = story(stream.slotStart(playerNow(), day, slot as TimeSlot, free), slotName);
+        storySlots = Math.max(storySlots, played);
       }
       const walletBefore = { ...wallet };
       if (storySlots > 0) {
