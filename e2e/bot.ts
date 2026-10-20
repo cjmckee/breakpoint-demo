@@ -76,6 +76,8 @@ export interface BotLog {
   /** Specialties taken on the Specialties tab, as `phase:path`. */
   specialties: string[];
   itemsAcquired: number;
+  /** Completed challenges collected on the Challenges screen. */
+  challengesClaimed: number;
   /** Stat points bought on the Development screen. */
   statPointsBought: number;
   /** Phases the bot had no handler for — each one is a gap, not a pass. */
@@ -98,6 +100,7 @@ export function emptyLog(): BotLog {
     matches: [],
     specialties: [],
     itemsAcquired: 0,
+    challengesClaimed: 0,
     statPointsBought: 0,
     unhandledPhases: [],
     contentEnded: false,
@@ -395,6 +398,12 @@ async function step(
           break;
       }
 
+      // A finished challenge pays nothing until it's collected, and collecting costs no slot.
+      if (state.activeChallenges.some((c) => c.status === 'completed')) {
+        await page.getByTestId('action-challenges').click();
+        return;
+      }
+
       // Training pays currency, not stats, so a run that never spends never
       // improves. Spend at night, once the day's earnings are in.
       const isNight = state.calendar.currentTimeSlot === TimeSlot.NIGHT;
@@ -545,6 +554,17 @@ async function step(
       return;
     }
 
+    case 'challenges': {
+      const collect = page.locator('[data-testid^="challenge-collect-"]');
+      if ((await collect.count()) > 0) {
+        await collect.first().click();
+        log.challengesClaimed++;
+        return;
+      }
+      await page.getByTestId('screen-back').click();
+      return;
+    }
+
     case 'match_active': {
       const run = await playMatch(page, policy.tactics, undefined, policy.rng);
       log.keyMomentsAnswered += run.keyMoments;
@@ -650,6 +670,7 @@ export function formatLog(log: BotLog): string {
   lines.push(`  key moments       : ${log.keyMomentsAnswered}`);
   lines.push(`  story events      : ${log.storyEventsSeen}`);
   lines.push(`  items acquired    : ${log.itemsAcquired}`);
+  lines.push(`  challenges claimed: ${log.challengesClaimed}`);
   lines.push(`  stat points bought: ${log.statPointsBought}`);
   lines.push('');
   lines.push('  day   energy  overall     xp');

@@ -82,7 +82,7 @@
  *      adds most to the identity's stats (key stats count double) if it beats what that slot
  *      holds. all is today's shop (every piece from day 7); tier sells only gear from the
  *      season's pool and below. Matches play the geared stats, and PAR reports both OVRs.
- *      Off by default.
+ *      all by default, as the game's shop sells every piece at every tier; GEAR=off leaves it out.
  *      FOCUS_FROM=41 lets the currency career pick a silver training focus from that
  *      day: the currency its next purchases are most short of (CurrencyIncome.focusedMix).
  *      PAR=1 reports, per identity and CHECK day, the mean build's OVR and the
@@ -101,7 +101,7 @@
  *      wallet, ledger, team-match results and abilities, then the Riverside Open played with
  *      that build — once as a bracket (rounds until the first loss), and RO_N=20 BO3s a round
  *      for each round's win share. Every env setting is echoed on each line, for sweeps.
- *      TEAM_ABILITIES=1 gives team-match opponents their abilities, as the game does.
+ *      TEAM_ABILITIES=0 plays team-match opponents without their abilities (the game gives them).
  */
 
 import type {
@@ -251,7 +251,7 @@ const ABILITIES_ON = process.env.ABILITIES !== '0';
 const ABILITY_BAR = env('ABILITY_BAR', 0.05);
 /** XP from challenges per day, on top of match XP. */
 const CHALLENGE_XP = env('CHALLENGE_XP', 10);
-const GEAR = (process.env.GEAR ?? 'off') as 'off' | 'all' | 'tier';
+const GEAR = (process.env.GEAR ?? 'all') as 'off' | 'all' | 'tier';
 const SHOP_GEAR = ALL_EQUIPMENT.filter((i) => i.shopAvailable !== false && i.equipmentSlot);
 
 /** The gear the shop can offer at this tier: everything, or the season's pool and below. */
@@ -376,8 +376,8 @@ const TEAM_MATCHES: Map<number, TeamMatchConfig> = new Map([
 /** coach_archetype_selection: no broad identity or specialties before this. */
 const ARCHETYPE_DAY = 11;
 
-/** TEAM_ABILITIES=1 plays team-match opponents with their abilities, as the game does. */
-const TEAM_ABILITIES = process.env.TEAM_ABILITIES === '1';
+/** Team-match opponents play with their abilities, as the game does; TEAM_ABILITIES=0 drops them. */
+const TEAM_ABILITIES = process.env.TEAM_ABILITIES !== '0';
 
 const teamSide = (t: TeamMatchConfig): Side => ({
   stats: t.opponent.stats,
