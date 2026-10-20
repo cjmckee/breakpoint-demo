@@ -158,6 +158,7 @@ import {
   OPPONENTS_BY_TIER,
   getScaledOpponentStats,
   PRACTICE_BOOST_CAP,
+  PRACTICE_BOOST_STEP,
   getOpponentArchetypeProfile,
 } from '../../data/opponents';
 import {
@@ -1161,7 +1162,7 @@ function career(
         storySlots += afterMatch(won, slot, slotName, won ? team.winEventId : team.lossEventId);
       } else if (practiceDay && slot === 1 && energy >= 50) {
         const opp = roster[matchesPlayed % roster.length];
-        const bump = Math.min(tierWins * 2, PRACTICE_BOOST_CAP[1]);
+        const bump = Math.min(tierWins * PRACTICE_BOOST_STEP[1], PRACTICE_BOOST_CAP[1]);
         const r = playMatch(
           { stats: withBoosts(stats, gearTotal(gear)), profile, effects: effectsOf(owned) },
           {
