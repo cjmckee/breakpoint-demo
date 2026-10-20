@@ -27,8 +27,9 @@ Chains schedule more events at runtime, so the real number of free days is lower
 
 careerSim's story stream goes through the same `getAllEligibleEvents`, so it already plays this
 rule. Story events per day held up (1.37/day before, 1.43/day now), because most story is
-scheduled chains and zero-slot events, but the story slots a career spends fell from 35.6 to 27.8.
-That is the time-consuming random events — hangouts, side storylines — mostly disappearing.
+scheduled chains and zero-slot events. The slots a career spends on story fell from 35.6 (to day 35) to 27.8 (to day 30): 1.02 a day before, 0.93 now. Most of that is the shorter season; the
+per-day drop of about 9% is the time-consuming random events losing their days. careerSim doesn't
+split random from scheduled events, so measure that before choosing.
 
 ## Options
 
