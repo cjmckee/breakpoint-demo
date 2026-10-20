@@ -110,14 +110,16 @@ export type AbilityPriceRarity = 'common' | 'uncommon' | 'rare';
  * pays OFF_COURT_ABILITY_PRICE. Levels cost more (ABILITY_LEVEL_PRICE).
  * Legendaries are never sold.
  *
- * A common is about eight stat points in the 40s, so an ability is a choice
- * against the stats rather than a side purchase: at 15 units a skilled player
- * bought 10-12 of them by the end of Club on top of every stat in the 40s.
+ * Sized to what an ability is worth in stats (abilityProbe, statValueProbe): on
+ * the Club build it suits, a common adds about as much point-win as 18 units of
+ * stats. Uncommons and rares were worth about 33 and 54 units on Club builds;
+ * they're sold from Regional and the Tour, where stats cost ×2 and ×3
+ * (PRICE_STEP), so they're priced at about that multiple.
  */
 export const ABILITY_PRICES: Record<AbilityPriceRarity, { units: number; xp: number }> = {
-  common: { units: 50, xp: 70 },
-  uncommon: { units: 90, xp: 140 },
-  rare: { units: 140, xp: 250 },
+  common: { units: 20, xp: 70 },
+  uncommon: { units: 60, xp: 140 },
+  rare: { units: 150, xp: 250 },
 };
 
 /**
