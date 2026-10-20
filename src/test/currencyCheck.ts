@@ -12,7 +12,13 @@
  */
 
 import type { PerformanceRewardBreakdown, Player } from '../types/game';
-import { ABILITY_CURRENCY, CURRENCIES, MATCH_PAYOUT, STAT_RECIPES } from '../config/economy';
+import {
+  ABILITY_PRICES,
+  ABILITY_STATS,
+  CURRENCIES,
+  MATCH_PAYOUT,
+  STAT_RECIPES,
+} from '../config/economy';
 import { ABILITY_DEFINITIONS } from '../data/abilities';
 import {
   PERFORMANCE_AREAS,
@@ -307,25 +313,37 @@ function main(): void {
   const hh = ABILITY_DEFINITIONS.heavy_hitter;
   const learn = abilityPrice(hh, 0);
   check(
-    'a common on-court ability costs 15 of its currency and 70 XP',
-    learn.currency.power === 15 && learn.xp === 70,
+    "a common on-court ability costs its rarity's units in its stats' mix, plus XP: Heavy Hitter is mostly Power",
+    unitsOf(learn.currency) === ABILITY_PRICES.common.units &&
+      (learn.currency.power ?? 0) > (learn.currency.technique ?? 0) &&
+      !learn.currency.mind &&
+      learn.xp === ABILITY_PRICES.common.xp,
     JSON.stringify(learn),
   );
   const level2 = abilityPrice(hh, 1);
   check(
     'the next level costs base × 2.25',
-    level2.currency.power === 34 && level2.xp === 158,
+    unitsOf(level2.currency) === Math.round(ABILITY_PRICES.common.units * 2.25) &&
+      level2.xp === Math.round(ABILITY_PRICES.common.xp * 2.25),
     JSON.stringify(level2),
+  );
+  const clutch = abilityPrice(ABILITY_DEFINITIONS.clutch, 0);
+  check(
+    'a key-moment ability is paid mostly in Mind',
+    (clutch.currency.mind ?? 0) > unitsOf(clutch.currency) / 2,
+    JSON.stringify(clutch),
   );
   const offCourt = abilityPrice(ABILITY_DEFINITIONS.grinder, 0);
   check(
-    'an off-court ability costs XP only',
-    Object.keys(offCourt.currency).length === 0 && offCourt.xp === 250,
+    'an off-court ability costs XP and half its rarity in Mind',
+    offCourt.currency.mind === ABILITY_PRICES.rare.units / 2 &&
+      unitsOf(offCourt.currency) === offCourt.currency.mind &&
+      offCourt.xp === ABILITY_PRICES.rare.xp,
     JSON.stringify(offCourt),
   );
   check(
     'every priced ability exists',
-    Object.keys(ABILITY_CURRENCY).every((id) => ABILITY_DEFINITIONS[id] !== undefined),
+    Object.keys(ABILITY_STATS).every((id) => ABILITY_DEFINITIONS[id] !== undefined),
   );
   const stock = generateDailyShopItems();
   check(

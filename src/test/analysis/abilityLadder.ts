@@ -23,7 +23,7 @@
 
 import type { Ability } from '../../types/game';
 import { ABILITY_DEFINITIONS } from '../../data/abilities';
-import { ABILITY_CURRENCY } from '../../config/economy';
+import { ABILITY_STATS } from '../../config/economy';
 import { abilityEffects } from '../../core/EffectAggregator';
 import { PlayerProfile } from '../../core/PlayerProfile';
 import { setSeed, clearSeed } from '../../core/random';
@@ -51,7 +51,7 @@ const OPPONENT = new PlayerProfile(
 
 /** The shop's on-court abilities: everything priced in a currency. */
 const ABILITIES: Ability[] = Object.values(ABILITY_DEFINITIONS).filter(
-  (a) => a.name in ABILITY_CURRENCY && (!ONLY || ONLY.includes(a.name)),
+  (a) => a.name in ABILITY_STATS && (!ONLY || ONLY.includes(a.name)),
 );
 
 /** Per-match point-win share against the slot's opponent, seeded by match index. */

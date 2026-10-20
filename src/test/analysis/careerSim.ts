@@ -945,22 +945,29 @@ function shopAbilities(
     .map((a) => {
       const level = owned.get(a.id) ?? 0;
       const base = priceFor(a, level);
-      const price = { ...base, units: base.units * scale };
+      const cost: Wallet = zeroWallet();
+      for (const c of CURRENCIES) cost[c] = (base.currency[c] ?? 0) * scale;
+      const price = { xp: base.xp, cost, units: unitsOf(cost) };
       return { a, level, price, perUnit: valueGain(a, identity, level) / price.units };
     })
     .filter(
-      (o) => o.perUnit >= ABILITY_BAR && wallet[o.a.currency] >= o.price.units && xp >= o.price.xp,
+      (o) =>
+        o.perUnit >= ABILITY_BAR &&
+        CURRENCIES.every((c) => wallet[c] >= o.price.cost[c]) &&
+        xp >= o.price.xp,
     )
     .sort((x, y) => y.perUnit - x.perUnit);
   const best = offers[0];
   if (!best) return null;
-  wallet[best.a.currency] -= best.price.units;
-  ledger.abilitySpend[best.a.currency] += best.price.units;
+  for (const c of CURRENCIES) {
+    wallet[c] -= best.price.cost[c];
+    ledger.abilitySpend[c] += best.price.cost[c];
+  }
   ledger.abilityXp += best.price.xp;
   ledger.abilityLevels[best.a.rarity]++;
   owned.set(best.a.id, best.level + 1);
   return {
-    label: `${best.a.id} Lv${best.level + 1} for ${best.price.units} ${best.a.currency} + ${best.price.xp} XP`,
+    label: `${best.a.id} Lv${best.level + 1} for ${fmtAmounts(best.price.cost)} + ${best.price.xp} XP`,
     xp: best.price.xp,
   };
 }

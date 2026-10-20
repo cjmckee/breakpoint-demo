@@ -105,13 +105,19 @@ export const CONTENT_SCALE = INCOME_SCALE;
 export type AbilityPriceRarity = 'common' | 'uncommon' | 'rare';
 
 /**
- * Abilities cost a fixed amount per rarity in the currency their effect draws
- * on, plus XP. Levels cost more (ABILITY_LEVEL_PRICE). Legendaries are never sold.
+ * Abilities cost XP plus `units` of currency per rarity. An on-court ability pays
+ * them in the mix of the stats it works through (ABILITY_STATS); an off-court one
+ * pays OFF_COURT_ABILITY_PRICE. Levels cost more (ABILITY_LEVEL_PRICE).
+ * Legendaries are never sold.
+ *
+ * A common is about eight stat points in the 40s, so an ability is a choice
+ * against the stats rather than a side purchase: at 15 units a skilled player
+ * bought 10-12 of them by the end of Club on top of every stat in the 40s.
  */
 export const ABILITY_PRICES: Record<AbilityPriceRarity, { units: number; xp: number }> = {
-  common: { units: 15, xp: 70 },
-  uncommon: { units: 28, xp: 140 },
-  rare: { units: 40, xp: 250 },
+  common: { units: 50, xp: 70 },
+  uncommon: { units: 90, xp: 140 },
+  rare: { units: 140, xp: 250 },
 };
 
 /**
@@ -165,25 +171,31 @@ export function abilityLevelPrice(
 }
 
 /**
- * The currency each on-court ability is priced in: shot power is Power, touch
- * and spin are Technique, movement is Quickness, the mental game is Mind. An
- * ability not listed here (an off-court one: mood, events, energy, XP,
- * minigames) costs XP only.
+ * The stats each on-court ability works through. Its price is paid in their
+ * recipes (STAT_RECIPES) added together, so a power shot costs mostly Power, a
+ * movement ability Quickness and a key-moment ability Mind. An ability not listed
+ * here is off-court (mood, events, energy, XP, minigames).
  */
-export const ABILITY_CURRENCY: Readonly<Record<string, Currency>> = {
-  heavy_hitter: 'power',
-  overhead_smash: 'power',
-  serve_cannon: 'power',
-  spin_master: 'technique',
-  soft_hands: 'technique',
-  baseliner: 'technique',
-  netcrasher: 'technique',
-  rangy_return: 'quickness',
-  slider: 'quickness',
-  speed_demon: 'quickness',
-  all_court_maestro: 'quickness',
-  clutch: 'mind',
-  mental_fortitude: 'mind',
-  pressure_cooker: 'mind',
-  iron_will: 'mind',
+export const ABILITY_STATS: Readonly<Record<string, readonly StatName[]>> = {
+  heavy_hitter: ['forehand', 'strength'],
+  overhead_smash: ['net', 'strength'],
+  serve_cannon: ['serve', 'strength'],
+  spin_master: ['spin', 'slice'],
+  soft_hands: ['net', 'placement'],
+  baseliner: ['forehand', 'backhand', 'stamina'],
+  netcrasher: ['net', 'placement'],
+  rangy_return: ['return', 'speed'],
+  slider: ['speed', 'stamina'],
+  speed_demon: ['speed', 'stamina', 'anticipation'],
+  all_court_maestro: ['speed', 'anticipation', 'forehand', 'backhand', 'net'],
+  clutch: ['focus', 'tactics'],
+  mental_fortitude: ['focus'],
+  pressure_cooker: ['focus', 'tactics', 'placement'],
+  iron_will: ['focus', 'stamina'],
+};
+
+/** An off-court ability costs XP plus `share` of its rarity's units, in `currency`. */
+export const OFF_COURT_ABILITY_PRICE: { currency: CurrencyAmounts; share: number } = {
+  currency: { mind: 1 },
+  share: 0.5,
 };
