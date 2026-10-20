@@ -68,43 +68,60 @@ export const MatchStatsCompare: React.FC<MatchStatsCompareProps> = ({
   playerName,
   opponentName,
 }) => {
-  // Keyed by `${statKey}:${side}` so each cell can flash independently.
-  const [flashes, setFlashes] = useState<Record<string, Flash>>({});
-  const prev = useRef<{ player: MatchStatsShape; opponent: MatchStatsShape } | null>(null);
-  const timers = useRef<Record<string, number>>({});
+  // Keyed by `${statKey}:${side}` so each cell can flash independently; `seq` tells a
+  // fresh flash of the same cell from the one already showing.
+  const [flashes, setFlashes] = useState<Record<string, Flash & { seq: number }>>({});
+  const [seen, setSeen] = useState({ player, opponent });
+  const seq = useRef(0);
+  const timers = useRef<Record<string, { seq: number; id: number }>>({});
 
-  useEffect(() => {
-    const p = prev.current;
-    if (p) {
-      const next: Record<string, Flash> = {};
-      for (const row of ROWS) {
-        (['player', 'opponent'] as const).forEach((side) => {
-          const cur = (side === 'player' ? player : opponent)[row.key];
-          const was = (side === 'player' ? p.player : p.opponent)[row.key];
-          if (cur === was) return;
-          const delta = cur - was;
-          // Beneficial to the owner of the stat, then flip for the opponent's cell.
-          const ownerBenefit = row.good ? delta > 0 : delta < 0;
-          const benefit = side === 'player' ? ownerBenefit : !ownerBenefit;
-          const fkey = `${row.key}:${side}`;
-          next[fkey] = { delta, benefit };
-          if (timers.current[fkey]) window.clearTimeout(timers.current[fkey]);
-          timers.current[fkey] = window.setTimeout(() => {
-            setFlashes((f) => {
-              const copy = { ...f };
-              delete copy[fkey];
-              return copy;
-            });
-          }, 1400);
-        });
-      }
-      if (Object.keys(next).length > 0) setFlashes((f) => ({ ...f, ...next }));
+  // A changed stat flashes. Worked out while rendering, not in an effect: an effect
+  // that sets state on every point warns about an update loop at Instant speed, where
+  // points arrive faster than React settles (see MatchToasts).
+  const same = (a: MatchStatsShape, b: MatchStatsShape): boolean =>
+    ROWS.every((row) => a[row.key] === b[row.key]);
+  if (!same(seen.player, player) || !same(seen.opponent, opponent)) {
+    const next: Record<string, Flash & { seq: number }> = {};
+    for (const row of ROWS) {
+      (['player', 'opponent'] as const).forEach((side) => {
+        const cur = (side === 'player' ? player : opponent)[row.key];
+        const was = (side === 'player' ? seen.player : seen.opponent)[row.key];
+        if (cur === was) return;
+        const delta = cur - was;
+        // Beneficial to the owner of the stat, then flip for the opponent's cell.
+        const ownerBenefit = row.good ? delta > 0 : delta < 0;
+        const benefit = side === 'player' ? ownerBenefit : !ownerBenefit;
+        next[`${row.key}:${side}`] = { delta, benefit, seq: ++seq.current };
+      });
     }
-    prev.current = { player: { ...player }, opponent: { ...opponent } };
-  }, [player, opponent]);
+    setSeen({ player, opponent });
+    if (Object.keys(next).length > 0) setFlashes((f) => ({ ...f, ...next }));
+  }
+
+  // Each flash fades after 1.4s; a fresh flash of the same cell restarts its timer.
+  useEffect(() => {
+    for (const [fkey, flash] of Object.entries(flashes)) {
+      const pending = timers.current[fkey];
+      if (pending?.seq === flash.seq) continue;
+      if (pending) window.clearTimeout(pending.id);
+      const id = window.setTimeout(() => {
+        delete timers.current[fkey];
+        setFlashes((f) => {
+          if (f[fkey]?.seq !== flash.seq) return f;
+          const copy = { ...f };
+          delete copy[fkey];
+          return copy;
+        });
+      }, 1400);
+      timers.current[fkey] = { seq: flash.seq, id };
+    }
+  }, [flashes]);
 
   // Clean up any pending timers on unmount.
-  useEffect(() => () => Object.values(timers.current).forEach((id) => window.clearTimeout(id)), []);
+  useEffect(
+    () => () => Object.values(timers.current).forEach((t) => window.clearTimeout(t.id)),
+    [],
+  );
 
   const leaderOf = (row: StatRow): 'player' | 'opponent' | null => {
     const pv = player[row.key];
