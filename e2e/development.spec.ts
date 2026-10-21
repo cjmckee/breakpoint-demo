@@ -61,10 +61,16 @@ test('a confirmed plan raises the stats and charges the plan cost', async ({ pag
     page.getByTestId('development-wallet').locator('[data-currency="mind"]'),
   ).toHaveAttribute('data-amount', String(Math.floor(player.wallet.mind - (cost.mind ?? 0))));
 
-  // Buying is one tap: the costs are already on screen.
+  // Buying is one tap: the costs are already on screen. The confirmation shows where the
+  // plan bar was and clears on its own, so the stats don't move under the next tap.
+  const rowTop = async (): Promise<number | undefined> =>
+    (await page.getByTestId('development-stat-serve').boundingBox())?.y;
+  const topBefore = await rowTop();
   await page.getByTestId('development-confirm').click();
   await expect(page.getByTestId('development-message')).toContainText('Bought 2');
   await expect(page.getByTestId('development-plan-bar')).toHaveCount(0);
+  expect(await rowTop()).toBe(topBefore);
+  await expect(page.getByTestId('development-message')).toBeHidden({ timeout: 4_000 });
 
   const after = (await readGame(page)).player!;
   expect(getStat(after.stats, 'focus')).toBe(getStat(player.stats, 'focus') + 2);

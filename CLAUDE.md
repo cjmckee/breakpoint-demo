@@ -1218,6 +1218,8 @@ with an accent border and a check (`PixelCheckbox`), not a light fill. Wrap hove
 - Small icons are pixel grids (`src/data/pixelIcons.ts`) drawn with `<PixelIcon>`, not emoji: one
   colour (`#`) for section and drill icons, `ICON_PALETTE` symbols for the menu's actions. Draw
   them at whole multiples of the grid so they stay crisp; `spriteCheck` validates every grid.
+- Emoji are on their way out in favour of pixel icons. `docs/emoji-inventory.md` lists where they
+  still are; don't add new ones.
 
 **Show comparisons and costs, don't describe them.** Use bars, chips, icons and
 before→after previews over sentences: head-to-head bars rather than two stat lists,
