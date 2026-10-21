@@ -209,6 +209,8 @@ export const StatusBar: React.FC<StatusBarProps> = ({ energyPreview = 0 }) => {
             aria-hidden={onDevelopment || undefined}
             className={`relative flex items-center gap-2 rounded px-1.5 py-1 -my-1 hover:bg-pixel-secondary/50 transition-colors ${onDevelopment ? 'invisible' : ''}`}
             title={`Training currency: ${CURRENCIES.map((c) => `${Math.floor(player.wallet[c])} ${CURRENCY_LABELS[c]}`).join(', ')}`}
+            // Named for where it goes: on a phone it shows only an icon.
+            aria-label="Development"
             data-testid="status-wallet"
             data-new-currency={newCurrencyIn}
             data-spec-points={specPoints}
