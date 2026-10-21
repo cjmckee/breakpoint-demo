@@ -12,7 +12,8 @@ import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { ItemEffects } from './ItemEffects';
 import { StatDeltaList } from './StatDeltaList';
-import { getItemIcon, SLOT_NAMES } from './itemHelpers';
+import { SLOT_NAMES } from './itemHelpers';
+import { ItemIcon } from './ItemIcon';
 
 interface ItemDetailModalProps {
   item: OwnedItem | null;
@@ -54,7 +55,7 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
       testId="item-detail"
     >
       <div className="flex items-start gap-3 mb-4">
-        <span className="text-4xl">{getItemIcon(item)}</span>
+        <ItemIcon item={item} scale={3} />
         <div>
           {isEquipped && <div className="text-xs text-pixel-accent font-bold mb-1">EQUIPPED</div>}
           <p className="text-sm text-pixel-text-muted">{item.description}</p>

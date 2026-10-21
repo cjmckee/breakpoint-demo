@@ -12,6 +12,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import { PixelCheckbox } from './ui/PixelCheckbox';
+import { PixelIcon } from './ui/PixelIcon';
 import { KeyMoment } from '../types/keyMoments';
 import { TacticalOption, SecondaryEffect, keyMomentStakes } from '../data/tacticalOptions';
 import type { KeyMomentStakes } from '../data/tacticalOptions';
@@ -32,6 +33,17 @@ import {
 } from '../data/tutorialSteps';
 import { formatStatName } from '../config/statIcons';
 import { KEY_MOMENT } from '../config/shotThresholds';
+
+/** A tactic's icon in its posture's colour. */
+function TacticIcon({
+  option,
+  scale = 2,
+}: {
+  option: TacticalOption;
+  scale?: number;
+}): React.JSX.Element {
+  return <PixelIcon grid={option.icon} color={POSTURE_META[option.posture].color} scale={scale} />;
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -601,7 +613,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
               </span>
             </div>
             <div className="flex items-center gap-4 p-4 bg-pixel-bg border-2 border-pixel-border border-t-0">
-              <span className="text-3xl">{chosenOption.emoji}</span>
+              <TacticIcon option={chosenOption} scale={3} />
               <div>
                 <div className="text-base font-bold text-pixel-text">{chosenOption.name}</div>
                 <div className="text-sm text-pixel-text-muted">{chosenOption.description}</div>
@@ -762,7 +774,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
           {/* Tactic header */}
           <div className="p-3 border-b-2 border-pixel-border">
             <div className="flex items-center gap-2 mb-0.5">
-              <span className="text-lg">{option.emoji}</span>
+              <TacticIcon option={option} />
               <h4 className="text-base font-bold text-pixel-text">{option.name}</h4>
             </div>
             <p className="text-sm text-pixel-text-muted leading-snug">{option.description}</p>
@@ -825,7 +837,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
       <div className="min-w-0 flex-1">
         {selectedOption ? (
           <div className="flex items-center gap-2 min-w-0">
-            <span className="text-xl shrink-0">{selectedOption.emoji}</span>
+            <TacticIcon option={selectedOption} />
             <span className="font-bold text-pixel-text truncate">{selectedOption.name}</span>
           </div>
         ) : (
@@ -938,7 +950,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                   <div className="p-3">
                     {/* Row 1: the tactic, full width — names are long and were truncating. */}
                     <div className="flex items-center gap-2 mb-1.5 min-w-0">
-                      <span className="text-xl shrink-0">{option.emoji}</span>
+                      <TacticIcon option={option} />
                       <h4 className="text-sm sm:text-base font-bold text-pixel-text break-words min-w-0 flex-1">
                         {option.name}
                       </h4>

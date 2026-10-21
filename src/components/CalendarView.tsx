@@ -19,14 +19,42 @@ import { createEmptyArchetypeProfile } from '../data/archetypeTree';
 import { PixelSprite } from './sprites/PixelSprite';
 import { getOpponentAppearance } from '../data/characters';
 import type { CourtSurface, PlayerStats, PlayStyle } from '../types';
+import { GLYPHS, ICON_PALETTE, MENU_ICONS, type PixelGrid } from '../data/pixelIcons';
+import { PixelIcon } from './ui/PixelIcon';
 
 interface CalendarViewProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+type EventType = ScheduledEvent['eventType'];
+
+/**
+ * Each kind of event's icon: training and rest are the menu's own, the rest one-colour
+ * glyphs in the event's colour.
+ */
+const EVENT_ICONS: Record<EventType, { grid: PixelGrid; color?: string }> = {
+  tournament_match: { grid: GLYPHS.trophy, color: '#facc15' },
+  story_match: { grid: GLYPHS.swords, color: '#c084fc' },
+  story: { grid: GLYPHS.book, color: '#60a5fa' },
+  training: { grid: MENU_ICONS.training },
+  rest: { grid: MENU_ICONS.rest },
+};
+
+function EventIcon({ type }: { type: EventType }): React.JSX.Element {
+  const { grid, color } = EVENT_ICONS[type];
+  return <PixelIcon grid={grid} color={color} palette={ICON_PALETTE} scale={1} />;
+}
+
+const LEGEND: Array<{ type: EventType; label: string }> = [
+  { type: 'tournament_match', label: 'Tournament' },
+  { type: 'story_match', label: 'Team Match' },
+  { type: 'story', label: 'Story' },
+  { type: 'training', label: 'Training' },
+  { type: 'rest', label: 'Rest' },
+];
+
 interface EventDisplay {
-  icon: string;
   label: string;
   colorClass: string;
   isMatch: boolean;
@@ -41,30 +69,27 @@ function getEventDisplay(event: ScheduledEvent): EventDisplay {
       const meta = event.metadata as TournamentMatchMetadata | undefined;
       const label =
         meta?.roundNumber != null ? `Tournament R${meta.roundNumber + 1}` : 'Tournament';
-      return { icon: '🏆', label, colorClass: 'bg-yellow-500/20 border-yellow-400', isMatch: true };
+      return { label, colorClass: 'bg-yellow-500/20 border-yellow-400', isMatch: true };
     }
     case 'story_match': {
       const meta = event.metadata as { opponentName?: string } | undefined;
       const label = meta?.opponentName ? `vs ${meta.opponentName}` : 'Team Match';
-      return { icon: '⚔️', label, colorClass: 'bg-purple-500/20 border-purple-400', isMatch: true };
+      return { label, colorClass: 'bg-purple-500/20 border-purple-400', isMatch: true };
     }
     case 'story':
       return {
-        icon: '📖',
         label: 'Story Event',
         colorClass: 'bg-blue-500/20 border-blue-400',
         isMatch: false,
       };
     case 'training':
       return {
-        icon: '🏋️',
         label: 'Training',
         colorClass: 'bg-green-500/20 border-green-400',
         isMatch: false,
       };
     case 'rest':
       return {
-        icon: '😴',
         label: 'Rest',
         colorClass: 'bg-gray-500/20 border-gray-400',
         isMatch: false,
@@ -255,7 +280,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ isOpen, onClose }) =
                             <div className="flex min-w-0 flex-col items-center gap-0.5 text-center">
                               <span className="flex flex-wrap items-center justify-center gap-1 text-base leading-none">
                                 <OpponentFace event={event} />
-                                {getEventDisplay(event).icon}
+                                <EventIcon type={event.eventType} />
                               </span>
                               {/* On a phone the icon carries it; the legend names them. */}
                               <span className="hidden sm:block w-full text-pixel-text font-medium leading-tight line-clamp-2 break-words">
@@ -279,11 +304,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ isOpen, onClose }) =
 
       {/* Legend */}
       <div className="mt-4 pt-3 border-t border-pixel-border/30 flex flex-wrap gap-3 text-xs text-pixel-text-muted">
-        <span>🏆 Tournament</span>
-        <span>⚔️ Team Match</span>
-        <span>📖 Story</span>
-        <span>🏋️ Training</span>
-        <span>😴 Rest</span>
+        {LEGEND.map(({ type, label }) => (
+          <span key={type} className="inline-flex items-center gap-1.5">
+            <EventIcon type={type} />
+            {label}
+          </span>
+        ))}
       </div>
 
       {/* Hover Preview Popup */}

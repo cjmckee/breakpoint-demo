@@ -39,6 +39,7 @@ import {
   DRILL_ICONS,
   GLYPHS,
   ICON_PALETTE,
+  ITEM_ICONS,
   MENU_ICONS,
   SECTION_ICONS,
   STAT_ICONS,
@@ -290,9 +291,12 @@ check(
   sameShape.length === 0,
   sameShape.join(', '),
 );
-const menu = iconProblems(MENU_ICONS, '.' + Object.keys(ICON_PALETTE).join(''));
+const menu = [
+  ...iconProblems(MENU_ICONS, '.' + Object.keys(ICON_PALETTE).join('')),
+  ...iconProblems(ITEM_ICONS, '.' + Object.keys(ICON_PALETTE).join('')),
+];
 check(
-  'menu icons are square and use only ICON_PALETTE colours',
+  'menu and item icons are square and use only ICON_PALETTE colours',
   menu.length === 0,
   menu.join(', '),
 );
