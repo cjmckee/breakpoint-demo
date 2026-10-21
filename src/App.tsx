@@ -26,6 +26,8 @@ import { HangoutUnlockedModal } from './components/HangoutUnlockedModal';
 import { ItemAcquiredModal } from './components/ItemAcquiredModal';
 import { MenuModal } from './components/MenuModal';
 import { CalendarModal } from './components/CalendarModal';
+import { DayTransition } from './components/DayTransition';
+import { SlotTransition } from './components/SlotTransition';
 import { FloatingMenuButtonWithPointerEvents } from './components/FloatingMenuButton';
 import { useMenuKeyboardHandler } from './hooks/useMenuModal';
 import { useGameKeyboardHandler } from './hooks/useGameKeyboardHandler';
@@ -218,6 +220,8 @@ function App() {
       {showFloatingUI && <FloatingMenuButtonWithPointerEvents />}
       <MenuModal />
       <CalendarModal />
+      <DayTransition />
+      <SlotTransition />
       {import.meta.env.DEV && <DebugPanel />}
     </>
   );

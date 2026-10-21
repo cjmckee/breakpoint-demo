@@ -1225,6 +1225,13 @@ with an accent border and a check (`PixelCheckbox`), not a light fill. Wrap hove
 before→after previews over sentences: head-to-head bars rather than two stat lists,
 "100→50" on the energy bar rather than "You have 80 / 100 energy available".
 
+**Time passing has a beat.** A new day plays a short card (`DayTransition`, about 1.6s) over
+whatever the morning opens with; its b-roll vignettes are picked from the day, never the
+simulation's random stream. A new slot inside a day plays a 0.5s icon beat (`SlotTransition`)
+using `TIME_SLOT_ICONS`; it waits until the old slot's result and notices are dismissed, since
+training and matches move the clock as their result opens. Both skip on a tap. E2E runs skip them
+(`transitionsEnabled`); a spec that wants them loads with `?transitions`.
+
 **Phones:** the floating ☰ hides while a modal is open. `ScreenFrame` leaves bottom
 padding for it, so don't dock your own controls in the bottom-right corner.
 

@@ -4,6 +4,7 @@
  */
 
 import type { DrillId } from '../minigames/types';
+import { TimeSlot } from '../types/game';
 
 export type PixelGrid = readonly string[];
 
@@ -70,6 +71,78 @@ export const SECTION_ICONS = {
     '............',
   ],
 } satisfies Record<string, PixelGrid>;
+
+/** The four time slots, for the status bar and the beat between slots. */
+export const TIME_SLOT_ICONS = {
+  // The sun coming up over the horizon.
+  [TimeSlot.MORNING]: [
+    '............',
+    '.....##.....',
+    '.#...##...#.',
+    '..#......#..',
+    '....####....',
+    '...######...',
+    '#.########.#',
+    '..########..',
+    '############',
+    '............',
+    '..########..',
+    '....####....',
+  ],
+  // The full sun.
+  [TimeSlot.AFTERNOON]: [
+    '.....##.....',
+    '.#...##...#.',
+    '..#......#..',
+    '....####....',
+    '...######...',
+    '##.######.##',
+    '##.######.##',
+    '...######...',
+    '....####....',
+    '..#......#..',
+    '.#...##...#.',
+    '.....##.....',
+  ],
+  // The sun going down, and its reflection.
+  [TimeSlot.EVENING]: [
+    '............',
+    '............',
+    '............',
+    '............',
+    '....####....',
+    '..########..',
+    '.##########.',
+    '############',
+    '............',
+    '..########..',
+    '............',
+    '....####....',
+  ],
+  // A crescent moon and a star.
+  [TimeSlot.NIGHT]: [
+    '...####.....',
+    '..###.......',
+    '.###.....#..',
+    '.##.....###.',
+    '###......#..',
+    '###.........',
+    '###.........',
+    '###.........',
+    '.##.........',
+    '.###........',
+    '..###.......',
+    '...####.....',
+  ],
+} satisfies Record<TimeSlot, PixelGrid>;
+
+/** Each slot icon's colour: from dawn gold to the moon's pale blue. */
+export const TIME_SLOT_COLOURS: Record<TimeSlot, string> = {
+  [TimeSlot.MORNING]: '#ffcf4a',
+  [TimeSlot.AFTERNOON]: '#ffe066',
+  [TimeSlot.EVENING]: '#fb923c',
+  [TimeSlot.NIGHT]: '#c9d4ff',
+};
 
 /** One icon per training drill, drawn for what the drill tests rather than a shot. */
 export const DRILL_ICONS = {
