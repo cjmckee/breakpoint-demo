@@ -17,11 +17,12 @@ export default defineConfig({
   // of a driven-browser suite is a fast answer. A spec that genuinely needs
   // longer raises it for itself with test.setTimeout, and should say why.
   timeout: 60_000,
-  // The whole suite, both projects, on two workers: about 10 minutes once the
-  // Regional soak joined (it plays ten in-game days per career identity). The
-  // per-test and per-action ceilings are what catch a hang fast; this one only
-  // has to sit above an honest full run.
-  globalTimeout: 900_000,
+  // The whole suite, both projects, on two workers took 19 minutes once the Club
+  // season's team matches joined the soak, which a 15-minute ceiling cut short.
+  // The bot runs (soak, progression, the Regional soak) now play on desktop only,
+  // which takes a few minutes off. The per-test and per-action ceilings are what
+  // catch a hang fast; this one only has to sit well above an honest full run.
+  globalTimeout: 1_800_000,
   expect: { timeout: 10_000 },
   use: {
     baseURL: 'http://localhost:3000',
