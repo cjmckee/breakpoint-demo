@@ -1229,8 +1229,9 @@ before→after previews over sentences: head-to-head bars rather than two stat l
 whatever the morning opens with; its b-roll vignettes are picked from the day, never the
 simulation's random stream. A new slot inside a day plays a 1s icon beat (`SlotTransition`)
 using `TIME_SLOT_ICONS`; it waits until the old slot's result and notices are dismissed, since
-training and matches move the clock as their result opens. Both skip on a tap. E2E runs skip them
-(`transitionsEnabled`); a spec that wants them loads with `?transitions`.
+training, matches and story choices that take time move the clock as their result opens. While
+either plays, modals stay hidden (`holdModals`) and fade in once it has gone. Both skip on a tap.
+E2E runs skip them (`transitionsEnabled`); a spec that wants them loads with `?transitions`.
 
 **Phones:** the floating ☰ hides while a modal is open. `ScreenFrame` leaves bottom
 padding for it, so don't dock your own controls in the bottom-right corner.
