@@ -120,6 +120,25 @@ body {
   }
 }
 
+/* While a day or slot transition plays, modals wait hidden behind it (holdModals), then
+   fade in once it has gone. Only this attribute changing animates; a modal opening at
+   any other time appears at once, as before. */
+[role='dialog'] {
+  transition: opacity 0.25s ease-out;
+}
+
+body[data-transition] [role='dialog'] {
+  opacity: 0;
+  pointer-events: none;
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [role='dialog'] {
+    transition: none;
+  }
+}
+
 /* Day transition (DayTransition.tsx). Every animation runs over the card's 2.4s:
    fade in, the day number rolls over at about 40%, fade out over the last 15%. */
 .day-tx {

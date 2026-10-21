@@ -10,7 +10,7 @@
  * Tapping skips it. With reduced motion it is a still card for a moment instead.
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { TimeManager } from '../game/TimeManager';
 import { usePlayerAppearance } from '../hooks/usePlayerAppearance';
@@ -18,7 +18,7 @@ import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
 import { PixelSprite } from './sprites/PixelSprite';
 import { CHARACTERS } from '../data/characters';
 import type { SpritePose } from '../types/appearance';
-import { transitionsEnabled } from '../utils/transitionsEnabled';
+import { holdModals, transitionsEnabled } from '../utils/transitionsEnabled';
 
 /** Whole transition, fade in to fade out. Kept in step with `day-tx-*` in index.css. */
 const DAY_TRANSITION_MS = 2400;
@@ -226,6 +226,8 @@ export const DayTransition: React.FC = () => {
       if (!TimeManager.isNewDay(prev.calendar, state.calendar)) return;
       if (state.calendar.currentDay < prev.calendar.currentDay) return;
       const toDay = TimeManager.seasonDay(state.calendar);
+      // Before anything renders: the morning's first modal may commit ahead of the card.
+      holdModals('day');
       setTransition((current) => ({
         key: (current?.key ?? 0) + 1,
         fromDay: TimeManager.seasonDay(prev.calendar),
@@ -239,6 +241,14 @@ export const DayTransition: React.FC = () => {
       }));
     });
   }, []);
+
+  // Modals wait hidden while the card plays and fade in once it has gone. A layout
+  // effect sets the hold before the browser paints the update that opened them.
+  useLayoutEffect(() => {
+    if (!transition) return;
+    holdModals('day');
+    return () => holdModals(null);
+  }, [transition]);
 
   useEffect(() => {
     if (!transition) return;

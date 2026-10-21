@@ -41,6 +41,44 @@ test('sleeping plays the day card, which clears itself', async ({ page }) => {
   await expect(card).toBeHidden({ timeout: 4_000 });
 });
 
+test("the morning's first modal waits for the day card, then fades in", async ({ page }) => {
+  await nightWithTransitions(page);
+  // Scenario setup: a story event waiting for tomorrow morning.
+  await page.evaluate((morning) => {
+    const handle = window.__test__;
+    if (!handle) throw new Error('window.__test__ missing — is this a dev build?');
+    const { calendar } = handle.game.getState();
+    handle.game.setState({
+      calendar: {
+        ...calendar,
+        scheduledEvents: [
+          ...calendar.scheduledEvents.filter((e) => e.scheduledDay !== calendar.currentDay + 1),
+          {
+            eventType: 'story',
+            scheduledDay: calendar.currentDay + 1,
+            scheduledTimeSlot: morning,
+            metadata: { storyEventId: 'rival_first_encounter' },
+          },
+        ],
+      },
+    });
+  }, TimeSlot.MORNING);
+
+  await page.getByTestId('action-rest').click();
+  const card = page.getByTestId('day-transition');
+  const story = page.getByTestId('story-event');
+  await expect(card).toBeVisible();
+  await expect(story).toBeAttached();
+
+  // Behind the card the modal is there but not shown.
+  const opacity = (): Promise<number> =>
+    story.evaluate((el) => Number(getComputedStyle(el).opacity));
+  expect(await opacity()).toBe(0);
+
+  await expect(card).toBeHidden({ timeout: 4_000 });
+  await expect.poll(opacity).toBe(1);
+});
+
 test('a tap skips the day card', async ({ page }) => {
   await nightWithTransitions(page);
   await page.getByTestId('action-rest').click();

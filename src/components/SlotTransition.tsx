@@ -6,21 +6,22 @@
  * turning, while the slot name rolls over underneath. The step from night to morning
  * is the day card's (DayTransition).
  *
- * Training and matches move the clock while their result is opening, so the beat
- * waits until the old slot's wrap-up (the result and the notices that follow it) has
- * been dismissed, then plays over whatever the new slot opens with.
+ * Training, matches and story choices that take time move the clock while their
+ * result is opening, so the beat waits until the old slot's wrap-up (the result and
+ * the notices that follow it) has been dismissed, then plays over whatever the new
+ * slot opens with.
  *
  * Tapping skips it. With reduced motion it is the end frame, held still.
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { TimeManager } from '../game/TimeManager';
 import { TimeSlot, TIME_SLOT_NAMES } from '../types/game';
 import type { GamePhase } from '../types/gamePhase';
 import { TIME_SLOT_COLOURS, TIME_SLOT_ICONS } from '../data/pixelIcons';
 import { PixelIcon } from './ui/PixelIcon';
-import { transitionsEnabled } from '../utils/transitionsEnabled';
+import { holdModals, transitionsEnabled } from '../utils/transitionsEnabled';
 
 /** Whole beat, fade in to fade out. Kept in step with `slot-tx-*` in index.css. */
 const SLOT_TRANSITION_MS = 1000;
@@ -44,19 +45,33 @@ const STARS: ReadonlyArray<readonly [number, number]> = [
 interface Step {
   from: TimeSlot;
   to: TimeSlot;
+  /** The clock moved while a story choice was being made; its result is still to come. */
+  awaitingStoryResult: boolean;
 }
 
-interface Transition extends Step {
+interface Transition extends Omit<Step, 'awaitingStoryResult'> {
   /** Bumps on every beat, so back-to-back beats restart the animation. */
   key: number;
 }
 
+/** A story event on screen, as a phase of its own or over the menu. */
+function isStoryEvent(phase: GamePhase): boolean {
+  return (
+    phase.type === 'story_event' || (phase.type === 'idle' && phase.overlay?.type === 'story_event')
+  );
+}
+
 /** What closes out a slot: its result and the notices that follow it. */
 function isWrapUp(phase: GamePhase): boolean {
-  if (phase.type === 'match_results') return true;
+  if (phase.type === 'match_results' || phase.type === 'story_event_result') return true;
   if (phase.type !== 'idle' || !phase.overlay) return false;
   const { type } = phase.overlay;
-  return type === 'training_result' || type === 'item_acquired' || type === 'hangout_unlock';
+  return (
+    type === 'training_result' ||
+    type === 'story_event_result' ||
+    type === 'item_acquired' ||
+    type === 'hangout_unlock'
+  );
 }
 
 /** Watches the clock and plays the beat whenever the slot moves on within a day. */
@@ -75,13 +90,37 @@ export const SlotTransition: React.FC = () => {
       }
       const from = prev.calendar.currentTimeSlot;
       const to = state.calendar.currentTimeSlot;
-      if (to > from) pending.current = { from: pending.current?.from ?? from, to };
+      if (to > from) {
+        pending.current = {
+          from: pending.current?.from ?? from,
+          to,
+          // A story event still on screen when the clock moves is the one being
+          // resolved, not the next slot's: its result belongs to the old slot.
+          awaitingStoryResult:
+            (pending.current?.awaitingStoryResult ?? false) || isStoryEvent(prev.gamePhase),
+        };
+      }
       const step = pending.current;
-      if (!step || isWrapUp(state.gamePhase)) return;
+      if (!step) return;
+      if (step.awaitingStoryResult) {
+        if (isStoryEvent(state.gamePhase)) return;
+        pending.current = { ...step, awaitingStoryResult: false };
+      }
+      if (isWrapUp(state.gamePhase)) return;
       pending.current = null;
-      setTransition((current) => ({ ...step, key: (current?.key ?? 0) + 1 }));
+      // Before anything renders: the new slot's first modal may commit ahead of the beat.
+      holdModals('slot');
+      setTransition((current) => ({ from: step.from, to: step.to, key: (current?.key ?? 0) + 1 }));
     });
   }, []);
+
+  // Modals wait hidden while the beat plays and fade in once it has gone. A layout
+  // effect sets the hold before the browser paints the update that opened them.
+  useLayoutEffect(() => {
+    if (!transition) return;
+    holdModals('slot');
+    return () => holdModals(null);
+  }, [transition]);
 
   useEffect(() => {
     if (!transition) return;
