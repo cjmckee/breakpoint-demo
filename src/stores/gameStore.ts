@@ -1497,7 +1497,7 @@ export const useGameStore = create<GameState>()(
 
         const opponent = getRandomOpponent(tier);
         const tierWins = player?.practiceWinsPerTier?.[tier] ?? 0;
-        const stats = getScaledOpponentStats(opponent.stats, tierWins);
+        const stats = getScaledOpponentStats(opponent.stats, tierWins, tier);
 
         const newOpponent = {
           opponentId: opponent.name,
@@ -2699,9 +2699,11 @@ export const useGameStore = create<GameState>()(
         // Check both NIGHT overflow AND scheduled event conflicts
         const slotsToAdvance = storyEvent.timeSlotsRequired;
         const currentSlot = calendar.currentTimeSlot;
-        let actualSlotsConsumed = slotsToAdvance;
+        let actualSlotsConsumed: number = slotsToAdvance;
 
-        // Check if any slot in the range has a scheduled event
+        // The event holds this slot and the ones after it up to its length; stop short
+        // of any of those that has something scheduled. The slot it lands on may hold a
+        // scheduled event, which navigateTo('idle') runs when the event closes.
         for (let i = 1; i <= slotsToAdvance; i++) {
           const slotToCheck = currentSlot + i;
 
@@ -2718,8 +2720,8 @@ export const useGameStore = create<GameState>()(
             slotToCheck as TimeSlot,
           );
 
-          if (hasScheduledEvent) {
-            actualSlotsConsumed = i - 1;
+          if (hasScheduledEvent && i < slotsToAdvance) {
+            actualSlotsConsumed = i;
             break;
           }
         }

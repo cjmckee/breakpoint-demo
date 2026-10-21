@@ -9,9 +9,9 @@
  * THE CALENDAR is the game's own (the Club season, src/data/seasons/club.ts). Story
  * events take the slots their definitions say they take, the archetype is
  * chosen on day 11 (no specialties before that), and the team matches are
- * played on their afternoons: day 15 Chet Vale, 19 Rich Soil, 23 Martia
- * Estrella, 27 Reginald Werther, 31 Olivia Gulp — best of three, on their
- * surfaces. Every other free slot trains (20 energy) or, every MATCH_EVERY days
+ * played on their afternoons, on the days the calendar schedules them (today day
+ * 14 Chet Vale, 17 Rich Soil, 20 Martia Estrella, 23 Reginald Werther, 26 Olivia
+ * Gulp) — best of three, at their venues. Every other free slot trains (20 energy) or, every MATCH_EVERY days
  * from day 5, plays a practice match (50 energy) against the tier-1 roster,
  * scaled per win the way the game scales it. Short of energy, the player rests
  * for 20; night sleeps for 50. Training reps are Binomial(3, REPS_P).
@@ -70,7 +70,7 @@
  *      payout, purchase, exchange, and what the player is saving for
  *      TIER_PAY=41:2,81:3 multiplies everything the currency career earns (training,
  *      matches, story) and the currency price of abilities from each day on, to
- *      model a promotion. Bronze's calendar ends at day 31; after it every free
+ *      model a promotion. Bronze's calendar ends at day 26; after it every free
  *      day trains or plays practice.
  *      FUND_W=lo,hi weights serve and return at least that for every identity, to model a
  *      player who keeps the two shots of every point up whatever their style.
@@ -80,9 +80,9 @@
  *      the best core stat.
  *      GEAR=all|tier buys gear with XP: the shop's two equipment offers a day, the one that
  *      adds most to the identity's stats (key stats count double) if it beats what that slot
- *      holds. all is today's shop (every piece from day 7); tier sells only gear from the
- *      season's pool and below. Matches play the geared stats, and PAR reports both OVRs.
- *      Off by default.
+ *      holds. tier (the default) is the game's shop, the season's pool and the next one's
+ *      (ShopSystem.shopGearForTier); all sells every piece from day 7. Matches play the
+ *      geared stats, and PAR reports both OVRs. GEAR=off leaves the shop out.
  *      FOCUS_FROM=41 lets the currency career pick a silver training focus from that
  *      day: the currency its next purchases are most short of (CurrencyIncome.focusedMix).
  *      PAR=1 reports, per identity and CHECK day, the mean build's OVR and the
@@ -96,6 +96,14 @@
  *      and a training focus from day 41 (FOCUS_FROM), so DAYS and CHECK are ignored.
  *      Regenerate it when the economy or the Club calendar changes:
  *      BUILDS=src/test/analysis/careerBuilds.json RUNS=12 npx tsx src/test/analysis/careerSim.ts
+ *      CAREERS=<path> appends one JSON line per currency career, RUNS per identity (IDS=a,b
+ *      narrows them), played to DAYS (default the Riverside Open's opening ceremony): its build
+ *      the evening before each opponent slot (day 4 for the tutorial and first practice,
+ *      each team match's eve, DAYS for the open) for difficultyProbe, its
+ *      wallet, ledger, team-match results and abilities, then the Riverside Open played with
+ *      that build — once as a bracket (rounds until the first loss), and RO_N=20 BO3s a round
+ *      for each round's win share. Every env setting is echoed on each line, for sweeps.
+ *      TEAM_ABILITIES=0 plays team-match opponents without their abilities (the game gives them).
  */
 
 import type {
@@ -149,6 +157,8 @@ import { legacyTrainingBoosts } from './legacyTraining';
 import {
   OPPONENTS_BY_TIER,
   getScaledOpponentStats,
+  PRACTICE_BOOST_CAP,
+  PRACTICE_BOOST_STEP,
   getOpponentArchetypeProfile,
 } from '../../data/opponents';
 import {
@@ -167,11 +177,12 @@ import {
 } from '../../data/teamMatches';
 import type { TeamMatchConfig } from '../../types/game';
 import type { CourtSurface } from '../../types';
-import { writeFileSync } from 'node:fs';
+import { appendFileSync, writeFileSync } from 'node:fs';
+import { riversideOpen } from '../../data/tournaments/riversideOpen';
 import { BAND_DAYS, type CareerBuilds } from './bandSlots';
 import { ALL_EQUIPMENT, getItemsByTier } from '../../data/items';
 import type { Item } from '../../types/items';
-import { equipmentPrice } from '../../game/ShopSystem';
+import { equipmentPrice, shopGearForTier } from '../../game/ShopSystem';
 
 type CoreStat = keyof CoreStats;
 
@@ -181,8 +192,26 @@ const env = (k: string, d: number): number => Number(process.env[k] ?? d);
 const RUNS = env('RUNS', 20);
 const N = env('N', 200);
 const BUILDS = process.env.BUILDS;
-const DAYS = BUILDS ? Math.max(...BAND_DAYS) : env('DAYS', 23);
-const CHECK = BUILDS ? BAND_DAYS : (process.env.CHECK ?? '15,19,23').split(',').map(Number);
+const CAREERS = process.env.CAREERS;
+const DAYS = BUILDS ? Math.max(...BAND_DAYS) : env('DAYS', CAREERS ? riversideEve() : 23);
+const CHECK = BUILDS
+  ? BAND_DAYS
+  : CAREERS
+    ? Array.from({ length: DAYS }, (_, i) => i + 1)
+    : (process.env.CHECK ?? '15,19,23').split(',').map(Number);
+
+/** The Riverside Open's opening ceremony: the prep beat's day plus the delay it schedules. */
+function riversideEve(): number {
+  const prep = CLUB_SEASON.beats.find((b) => b.storyEventId === 'riverside_open_prep')!;
+  const event = StoryEventRepository.getEventById(prep.storyEventId);
+  const ceremony = (event?.defaultOutcome?.effects?.scheduledEvents ?? []).find(
+    (e) =>
+      e.metadata !== undefined &&
+      'storyEventId' in e.metadata &&
+      e.metadata.storyEventId === 'riverside_open_opening_ceremony',
+  );
+  return prep.day + (ceremony?.relativeDays ?? 0);
+}
 const ADAPT = env('ADAPT', 0.7);
 const range = (k: string, d: string): [number, number] => {
   const [lo, hi] = (process.env[k] ?? d).split(',').map(Number);
@@ -239,19 +268,12 @@ const ABILITIES_ON = process.env.ABILITIES !== '0';
 const ABILITY_BAR = env('ABILITY_BAR', 0.05);
 /** XP from challenges per day, on top of match XP. */
 const CHALLENGE_XP = env('CHALLENGE_XP', 10);
-const GEAR = (process.env.GEAR ?? 'off') as 'off' | 'all' | 'tier';
+const GEAR = (process.env.GEAR ?? 'tier') as 'off' | 'all' | 'tier';
 const SHOP_GEAR = ALL_EQUIPMENT.filter((i) => i.shopAvailable !== false && i.equipmentSlot);
 
 /** The gear the shop can offer at this tier: everything, or the season's pool and below. */
 function gearPool(tier: OpponentTier): Item[] {
-  if (GEAR === 'all') return SHOP_GEAR;
-  const ids = new Set(
-    ([1, 2, 3, 4] as OpponentTier[])
-      .filter((t) => t <= tier)
-      .flatMap((t) => getItemsByTier(t))
-      .map((i) => i.id),
-  );
-  return SHOP_GEAR.filter((i) => ids.has(i.id));
+  return GEAR === 'all' ? SHOP_GEAR : shopGearForTier(tier);
 }
 
 /** Equipped gear by slot. */
@@ -352,21 +374,40 @@ const STORY_SLOTS: Map<number, number> = STORY_SCHEDULE.reduce((m, [day, eventId
   return m;
 }, new Map<number, number>());
 
-/** Each announcement schedules its match two days on, in the afternoon. */
-const TEAM_MATCHES: Map<number, TeamMatchConfig> = new Map([
-  [15, TEAM_MATCH_1],
-  [19, TEAM_MATCH_2],
-  [23, TEAM_MATCH_3],
-  [27, TEAM_MATCH_4],
-  [31, TEAM_MATCH_5],
-]);
+/**
+ * Team match days, from the calendar itself: the announcement beat that schedules
+ * each team match, plus the `relativeDays` it schedules it on (in the afternoon).
+ */
+const TEAM_MATCHES: Map<number, TeamMatchConfig> = new Map(
+  [TEAM_MATCH_1, TEAM_MATCH_2, TEAM_MATCH_3, TEAM_MATCH_4, TEAM_MATCH_5].map((team) => {
+    for (const b of CLUB_SEASON.beats) {
+      const event = StoryEventRepository.getEventById(b.storyEventId);
+      const outcomes = [event?.defaultOutcome, ...(event?.options ?? []).map((o) => o.outcome)];
+      const match = outcomes
+        .flatMap((o) => o?.effects?.scheduledEvents ?? [])
+        .find(
+          (e) =>
+            e.eventType === 'story_match' &&
+            e.metadata !== undefined &&
+            'opponentId' in e.metadata &&
+            e.metadata.opponentId === team.opponent.characterId,
+        );
+      if (match) return [b.day + match.relativeDays, team] as const;
+    }
+    throw new Error(`no announcement schedules the team match against ${team.opponent.name}`);
+  }),
+);
 
 /** coach_archetype_selection: no broad identity or specialties before this. */
 const ARCHETYPE_DAY = 11;
 
+/** Team-match opponents play with their abilities, as the game does; TEAM_ABILITIES=0 drops them. */
+const TEAM_ABILITIES = process.env.TEAM_ABILITIES !== '0';
+
 const teamSide = (t: TeamMatchConfig): Side => ({
   stats: t.opponent.stats,
   profile: profileForArchetype(t.opponent.archetype, t.opponent.tier),
+  effects: TEAM_ABILITIES ? abilityEffects(t.opponent.abilities ?? []) : undefined,
 });
 
 const BO3_FOR: Record<string, MatchFormat> = { 'best-of-3': BO3, 'best-of-1': BO1 };
@@ -492,6 +533,7 @@ function playMatch(
     home: typeof court === 'string' ? undefined : court.home,
     matchFormat: format,
     playerEffects: a.effects,
+    opponentEffects: b.effects,
   });
   const result = silently(() => sim.simulateMatch());
   const points = sim.exportMatchData().points;
@@ -1082,8 +1124,12 @@ function career(
     note(`Day ${day}  (energy ${energy})`);
     for (let slot = 0; slot < 3; slot++) {
       const slotName = ['morning  ', 'afternoon', 'evening  '][slot];
-      if (stream && storySlots === 0) {
-        storySlots = story(stream.slotStart(playerNow(), day, slot as TimeSlot), slotName);
+      // A slot an earlier event already took (a milestone after a match) still runs the
+      // beat scheduled in it; only a free slot rolls for a random event.
+      if (stream) {
+        const free = storySlots === 0;
+        const played = story(stream.slotStart(playerNow(), day, slot as TimeSlot, free), slotName);
+        storySlots = Math.max(storySlots, played);
       }
       const walletBefore = { ...wallet };
       if (storySlots > 0) {
@@ -1113,11 +1159,11 @@ function career(
         storySlots += afterMatch(won, slot, slotName, won ? team.winEventId : team.lossEventId);
       } else if (practiceDay && slot === 1 && energy >= 50) {
         const opp = roster[matchesPlayed % roster.length];
-        const bump = Math.min(tierWins * 2, 20);
+        const bump = Math.min(tierWins * PRACTICE_BOOST_STEP[1], PRACTICE_BOOST_CAP[1]);
         const r = playMatch(
           { stats: withBoosts(stats, gearTotal(gear)), profile, effects: effectsOf(owned) },
           {
-            stats: getScaledOpponentStats(opp.stats, tierWins),
+            stats: getScaledOpponentStats(opp.stats, tierWins, 1),
             profile: getOpponentArchetypeProfile(opp),
           },
           BO1,
@@ -1531,8 +1577,101 @@ function buildsReport(path: string): void {
   console.log(`wrote ${path}`);
 }
 
+/**
+ * CAREERS=<path>: one JSON line per career, for sweeps across player types. The
+ * Riverside Open is played with the career's day-DAYS build, fresh each round, at its
+ * venue, against each round's opponent with their abilities.
+ */
+function careersReport(path: string): void {
+  const roN = env('RO_N', 20);
+  const ids = process.env.IDS?.split(',');
+  const settings = Object.fromEntries(
+    Object.entries(process.env).filter(([k]) =>
+      /^(RUNS|DAYS|STEP_FROM|STEP_WIDTH|REPS_P|ADAPT|SPEND|STORY|STORY_PICK|STORY_CHANCE|CHALLENGE_P|MINIGAME_PASS|MATCH_EVERY|KEY_W|OFF_W|GEAR|ABILITIES|TEAM_ABILITIES|TAG|SKILL)$/.test(
+        k,
+      ),
+    ),
+  );
+  const rounds = riversideOpen.rounds.map((r) => ({
+    name: r.opponent.name,
+    side: {
+      stats: r.opponent.stats,
+      profile: profileForArchetype(r.opponent.archetype, r.opponent.tier),
+      effects: abilityEffects(r.opponent.abilities ?? []),
+    } satisfies Side,
+  }));
+  const court = { venue: riversideOpen.venue };
+  const lines: string[] = [];
+  for (const id of IDENTITIES.filter((i) => !ids || ids.includes(i.name))) {
+    for (let run = 0; run < RUNS; run++) {
+      const snaps = career(id, 'currency');
+      const snap = snaps.get(DAYS)!;
+      // The build each opponent meets: the evening before its match. Day 5 opens with
+      // the tutorial matches and the first practice; the open plays from DAYS's build.
+      const buildOn = (day: number): Side => {
+        const b = snaps.get(day)!;
+        return {
+          stats: withBoosts(b.stats, b.gear),
+          profile: day >= ARCHETYPE_DAY ? id.profile : createEmptyArchetypeProfile(),
+          effects: effectsOf(b.abilities),
+        };
+      };
+      const builds: Record<string, Side & { day: number }> = {
+        early: { day: 4, ...buildOn(4) },
+        ...Object.fromEntries(
+          [...TEAM_MATCHES.keys()].map((d, i) => [`tm${i + 1}`, { day: d, ...buildOn(d - 1) }]),
+        ),
+        riverside: { day: DAYS, ...buildOn(DAYS) },
+      };
+      const me: Side = {
+        stats: withBoosts(snap.stats, snap.gear),
+        profile: id.profile,
+        effects: effectsOf(snap.abilities),
+      };
+      let reached = 0;
+      while (
+        reached < rounds.length &&
+        playMatch(me, rounds[reached].side, BO3, court).winner === 'player'
+      )
+        reached++;
+      const roundWinShare = rounds.map((r) => {
+        let won = 0;
+        for (let i = 0; i < roN; i++)
+          if (playMatch(me, r.side, BO3, court).winner === 'player') won++;
+        return roN ? won / roN : null;
+      });
+      lines.push(
+        JSON.stringify({
+          identity: id.name,
+          settings,
+          day: DAYS,
+          ovr: calculateOverallRating(snap.stats),
+          stats: Object.fromEntries(ALL_STATS.map((k) => [k, get(snap.stats, k)])),
+          gear: snap.gear,
+          wallet: snap.wallet,
+          earned: snap.earned,
+          xp: snap.xp,
+          practice: { won: snap.matchesWon, played: snap.matchesPlayed },
+          sessions: snap.sessions,
+          teamWon: Object.fromEntries(snap.teamWon),
+          abilities: Object.fromEntries(snap.abilities),
+          ledger: snap.ledger,
+          builds,
+          riverside: {
+            roundsWon: reached,
+            champion: reached === rounds.length,
+            winShare: Object.fromEntries(rounds.map((r, i) => [r.name, roundWinShare[i]])),
+          },
+        }),
+      );
+    }
+  }
+  appendFileSync(path, lines.join('\n') + '\n');
+}
+
 function main(): void {
   if (BUILDS) return buildsReport(BUILDS);
+  if (CAREERS) return careersReport(CAREERS);
   if (TRACE) return traceCareer(TRACE);
   if (process.env.LEDGER === '1') return ledgerReport();
   if (process.env.PAR === '1') return parReport();

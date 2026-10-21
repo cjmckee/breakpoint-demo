@@ -154,6 +154,7 @@ export const ActiveChallenges: React.FC = () => {
                       variant="success"
                       size="sm"
                       onClick={() => handleClaimReward(challenge.id)}
+                      testId={`challenge-collect-${challenge.id}`}
                     >
                       Collect
                     </Button>

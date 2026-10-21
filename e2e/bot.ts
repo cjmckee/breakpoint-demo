@@ -26,8 +26,16 @@ import { readGame, playMatch, type TacticPolicy } from './helpers';
 import { calculateOverallRating } from '../src/utils/overallRating';
 import { TimeSlot } from '../src/types/game';
 import { TRAINING_ENERGY_COST } from '../src/game/TrainingSystem';
-import { canBuyAny } from '../src/game/StatDevelopment';
+import {
+  canAfford,
+  canBuyAny,
+  getStat,
+  priceOf,
+  unspentSpecPoints,
+  STAT_NAMES,
+} from '../src/game/StatDevelopment';
 import { SeasonManager } from '../src/game/SeasonManager';
+import type { GamePhase as CourtPhase } from '../src/types/archetype';
 
 /**
  * True when the element is on screen and clickable.
@@ -57,7 +65,19 @@ export interface BotLog {
   storyEventsSeen: number;
   /** Story event ids and the option taken, in order. */
   storyChoices: Array<{ event: string; option: string }>;
+  /** Every match finished, in order. */
+  matches: Array<{
+    day: number;
+    type: string;
+    opponent: string;
+    score: string;
+    won: boolean;
+  }>;
+  /** Specialties taken on the Specialties tab, as `phase:path`. */
+  specialties: string[];
   itemsAcquired: number;
+  /** Completed challenges collected on the Challenges screen. */
+  challengesClaimed: number;
   /** Stat points bought on the Development screen. */
   statPointsBought: number;
   /** Phases the bot had no handler for — each one is a gap, not a pass. */
@@ -68,7 +88,7 @@ export interface BotLog {
   daily: Array<{ day: number; energy: number; overall: number; xp: number }>;
 }
 
-function emptyLog(): BotLog {
+export function emptyLog(): BotLog {
   return {
     day: 0,
     trainingSessions: 0,
@@ -77,7 +97,10 @@ function emptyLog(): BotLog {
     keyMomentsAnswered: 0,
     storyEventsSeen: 0,
     storyChoices: [],
+    matches: [],
+    specialties: [],
     itemsAcquired: 0,
+    challengesClaimed: 0,
     statPointsBought: 0,
     unhandledPhases: [],
     contentEnded: false,
@@ -97,6 +120,77 @@ export interface BotOptions {
   playMatches?: boolean;
   /** Safety valve: give up after this many actions rather than hanging. */
   maxActions?: number;
+  /** How the bot answers story choices. Default: the first open option. */
+  stories?: StoryPolicy;
+  /** How the bot spends on the Development screen. Default: top to bottom, no specialties. */
+  spend?: SpendPolicy;
+  /** Randomness for the bot's own choices, so a seeded run picks the same way twice. */
+  rng?: () => number;
+  /** Practice matches at most every this many days (story and team matches always play). */
+  matchEvery?: number;
+  /** Log to fill in place, so a caller keeps what a run did even when it throws. */
+  log?: BotLog;
+}
+
+type StatName = (typeof STAT_NAMES)[number];
+
+export interface StoryPolicy {
+  /** Option ids taken whenever one is open (an archetype, say), before `pick` applies. */
+  prefer?: string[];
+  pick: 'first' | 'random';
+}
+
+export interface SpendPolicy {
+  /**
+   * Relative appetite per stat: each +1 goes to an affordable stat, drawn by weight.
+   * Stats below a fifth of the top weight are never bought, so the player saves for its
+   * build instead of spending whatever happens to be affordable.
+   */
+  weights?: Partial<Record<StatName, number>>;
+  /** Specialty path per court phase, taken in this order as points arrive. */
+  specialties?: Partial<Record<CourtPhase, string>>;
+}
+
+interface Policy {
+  tactics: TacticPolicy;
+  playMatches: boolean;
+  matchEvery?: number;
+  /** Day of the last practice match the bot started. */
+  lastPractice?: number;
+  stories: StoryPolicy;
+  spend: SpendPolicy;
+  rng: () => number;
+}
+
+/** The stats a weighted policy will buy at all; every stat without weights. */
+function wantedStats(spend: SpendPolicy): StatName[] {
+  const w = spend.weights;
+  if (!w) return [...STAT_NAMES];
+  const top = Math.max(...STAT_NAMES.map((k) => w[k] ?? 0));
+  return STAT_NAMES.filter((k) => (w[k] ?? 0) >= top / 5);
+}
+
+/** Whether a stat the policy wants is affordable now. */
+function canBuyWanted(
+  player: NonNullable<Awaited<ReturnType<typeof readGame>>['player']>,
+  spend: SpendPolicy,
+): boolean {
+  if (!spend.weights) return canBuyAny(player);
+  return wantedStats(spend).some((k) => {
+    const v = getStat(player.stats, k);
+    return v < 100 && canAfford(player.wallet, priceOf(k, v));
+  });
+}
+
+/** The first court phase in the plan with no specialty yet, when a point is there to spend it. */
+function nextSpecialty(
+  player: NonNullable<Awaited<ReturnType<typeof readGame>>['player']>,
+  spend: SpendPolicy,
+): CourtPhase | undefined {
+  if (!spend.specialties || unspentSpecPoints(player) < 1) return undefined;
+  return (Object.keys(spend.specialties) as CourtPhase[]).find(
+    (phase) => !player.archetypeProfile.phases[phase],
+  );
 }
 
 /**
@@ -107,7 +201,15 @@ export interface BotOptions {
  */
 export async function runBot(page: Page, options: BotOptions): Promise<BotLog> {
   const { untilDay, tactics = 'first', playMatches = true, maxActions = 600 } = options;
-  const log = emptyLog();
+  const policy: Policy = {
+    tactics,
+    playMatches,
+    matchEvery: options.matchEvery,
+    stories: options.stories ?? { pick: 'first' },
+    spend: options.spend ?? {},
+    rng: options.rng ?? Math.random,
+  };
+  const log = options.log ?? emptyLog();
 
   let pickIndex = 0;
   let actions = 0;
@@ -196,7 +298,7 @@ export async function runBot(page: Page, options: BotOptions): Promise<BotLog> {
     }
 
     actions++;
-    await step(page, state, phase, log, { tactics, playMatches }, () => pickIndex++);
+    await step(page, state, phase, log, policy, () => pickIndex++);
   }
 
   if (actions >= maxActions) {
@@ -246,7 +348,14 @@ export async function drainToIdle(
       return log;
     }
 
-    await step(page, state, phase, log, { tactics, playMatches: true }, () => pickIndex++);
+    await step(
+      page,
+      state,
+      phase,
+      log,
+      { tactics, playMatches: true, stories: { pick: 'first' }, spend: {}, rng: Math.random },
+      () => pickIndex++,
+    );
   }
 
   const where = (await readGame(page)).gamePhase;
@@ -262,7 +371,7 @@ async function step(
   state: Awaited<ReturnType<typeof readGame>>,
   phase: Awaited<ReturnType<typeof readGame>>['gamePhase'],
   log: BotLog,
-  policy: { tactics: TacticPolicy; playMatches: boolean },
+  policy: Policy,
   nextPick: () => number,
 ): Promise<void> {
   switch (phase.type) {
@@ -283,16 +392,27 @@ async function step(
         case 'story_event_result':
           // Rendered by MainMenu's overlay, but driven by the same modals as the
           // standalone phases, so reuse those handlers.
-          await handleStory(page, log);
+          await handleStory(page, log, policy, phase.overlay);
           return;
         default:
           break;
       }
 
+      // A finished challenge pays nothing until it's collected, and collecting costs no slot.
+      if (state.activeChallenges.some((c) => c.status === 'completed')) {
+        await page.getByTestId('action-challenges').click();
+        return;
+      }
+
       // Training pays currency, not stats, so a run that never spends never
       // improves. Spend at night, once the day's earnings are in.
       const isNight = state.calendar.currentTimeSlot === TimeSlot.NIGHT;
-      if (isNight && state.player && canBuyAny(state.player)) {
+      if (isNight && state.player && nextSpecialty(state.player, policy.spend)) {
+        await page.getByTestId('action-development').click();
+        await page.getByTestId('development-tab-specialties').click();
+        return;
+      }
+      if (isNight && state.player && canBuyWanted(state.player, policy.spend)) {
         await page.getByTestId('action-development').click();
         return;
       }
@@ -304,8 +424,14 @@ async function step(
       }
 
       const matchTile = page.getByTestId('action-match');
-      const canMatch = policy.playMatches && (await usable(matchTile));
+      const day = state.calendar.currentDay;
+      const due =
+        !policy.matchEvery ||
+        policy.lastPractice === undefined ||
+        day - policy.lastPractice >= policy.matchEvery;
+      const canMatch = policy.playMatches && due && (await usable(matchTile));
       if (canMatch) {
+        policy.lastPractice = day;
         log.matchesPlayed++;
         await matchTile.click();
         return;
@@ -345,13 +471,47 @@ async function step(
     }
 
     case 'development': {
-      // Plan up to a dozen points on whatever is affordable, top to bottom, then
-      // confirm. Each visit buys at least one point (the bot only comes here when
-      // canBuyAny), so repeated visits always make progress.
+      if (phase.tab === 'specialties') {
+        // One specialty per visit, on the plan's next open phase; the night loop
+        // comes back while points and open phases remain.
+        const court = state.player && nextSpecialty(state.player, policy.spend);
+        if (court) {
+          await page.getByTestId(`archetype-phase-${court}`).click();
+          const wanted = page.getByTestId(
+            `archetype-specialize-${policy.spend.specialties![court]}`,
+          );
+          const any = page.locator('[data-testid^="archetype-specialize-"]:enabled');
+          const pick = (await usable(wanted)) ? wanted : any.first();
+          const id = (await pick.getAttribute('data-testid')) ?? '?';
+          await pick.click();
+          log.specialties.push(`${court}:${id.replace('archetype-specialize-', '')}`);
+        }
+        await page.getByTestId('screen-back').click();
+        return;
+      }
+      // Plan up to a dozen points on whatever is affordable, then confirm: top to
+      // bottom, or drawn by the policy's weights. Each visit buys at least one point
+      // (the bot only comes here when canBuyAny), so repeated visits always make progress.
       const plus = page.locator('[data-testid^="development-plus-"]:enabled');
+      const weights = policy.spend.weights;
       let planned = 0;
       while (planned < 12 && (await plus.count()) > 0) {
-        await plus.first().click();
+        if (!weights) {
+          await plus.first().click();
+        } else {
+          const ids = await plus.evaluateAll((els) =>
+            els.map((el) =>
+              (el.getAttribute('data-testid') ?? '').replace('development-plus-', ''),
+            ),
+          );
+          const w = ids.map((id) => weights[id as StatName] ?? 0.05);
+          let roll = policy.rng() * w.reduce((a, b) => a + b, 0);
+          const at = Math.max(
+            0,
+            w.findIndex((x) => (roll -= x) < 0),
+          );
+          await page.getByTestId(`development-plus-${ids[at]}`).click();
+        }
         planned++;
       }
       if (planned > 0) {
@@ -394,21 +554,39 @@ async function step(
       return;
     }
 
+    case 'challenges': {
+      const collect = page.locator('[data-testid^="challenge-collect-"]');
+      if ((await collect.count()) > 0) {
+        await collect.first().click();
+        log.challengesClaimed++;
+        return;
+      }
+      await page.getByTestId('screen-back').click();
+      return;
+    }
+
     case 'match_active': {
-      const run = await playMatch(page, policy.tactics);
+      const run = await playMatch(page, policy.tactics, undefined, policy.rng);
       log.keyMomentsAnswered += run.keyMoments;
       return;
     }
 
     case 'match_results': {
       if (phase.finalScore?.winner === 'player') log.matchesWon++;
+      log.matches.push({
+        day: state.calendar.currentDay,
+        type: phase.matchType,
+        opponent: phase.matchConfig.opponentName ?? '?',
+        score: phase.finalScore.sets.map((s) => `${s.player}-${s.opponent}`).join(' '),
+        won: phase.finalScore.winner === 'player',
+      });
       await page.getByTestId('match-results-continue').click();
       return;
     }
 
     case 'story_event':
     case 'story_event_result':
-      await handleStory(page, log);
+      await handleStory(page, log, policy, phase);
       return;
 
     case 'minigame_active': {
@@ -430,8 +608,13 @@ async function step(
   }
 }
 
-/** Advances a story event: dialogue, then the first available option. */
-async function handleStory(page: Page, log: BotLog): Promise<void> {
+/** Advances a story event: dialogue, then an available option by the policy. */
+async function handleStory(
+  page: Page,
+  log: BotLog,
+  policy: Policy,
+  source: { type: string; event?: { id: string } },
+): Promise<void> {
   const advance = page.getByTestId('story-advance');
   if (await advance.isVisible().catch(() => false)) {
     await advance.click();
@@ -445,12 +628,22 @@ async function handleStory(page: Page, log: BotLog): Promise<void> {
     return;
   }
 
-  // A real choice: take the first option that is actually open.
+  // A real choice: a preferred option if one is open, else first or random.
   const options = page.getByTestId(/^story-option-/).and(page.locator('[data-available="true"]'));
-  if ((await options.count()) > 0) {
-    const first = options.first();
-    const id = (await first.getAttribute('data-testid')) ?? '?';
-    log.storyChoices.push({ event: 'unknown', option: id.replace('story-option-', '') });
+  const count = await options.count();
+  if (count > 0) {
+    const ids = await options.evaluateAll((els) =>
+      els.map((el) => (el.getAttribute('data-testid') ?? '').replace('story-option-', '')),
+    );
+    const preferred = ids.findIndex((id) => policy.stories.prefer?.includes(id));
+    const at =
+      preferred >= 0
+        ? preferred
+        : policy.stories.pick === 'random'
+          ? Math.floor(policy.rng() * count)
+          : 0;
+    const first = options.nth(at);
+    log.storyChoices.push({ event: source.event?.id ?? 'unknown', option: ids[at] });
     await first.click();
     await page.getByTestId('story-confirm').click();
     log.storyEventsSeen++;
@@ -477,6 +670,7 @@ export function formatLog(log: BotLog): string {
   lines.push(`  key moments       : ${log.keyMomentsAnswered}`);
   lines.push(`  story events      : ${log.storyEventsSeen}`);
   lines.push(`  items acquired    : ${log.itemsAcquired}`);
+  lines.push(`  challenges claimed: ${log.challengesClaimed}`);
   lines.push(`  stat points bought: ${log.statPointsBought}`);
   lines.push('');
   lines.push('  day   energy  overall     xp');

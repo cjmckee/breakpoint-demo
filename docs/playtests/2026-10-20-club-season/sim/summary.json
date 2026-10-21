@@ -1,0 +1,8357 @@
+{
+  "total": 1896,
+  "byTag": {
+    "baseline": {
+      "n": 200,
+      "ovr": 43.9,
+      "ovrSd": 2.6,
+      "ovrMin": 37,
+      "ovrMax": 50,
+      "teamWinsMean": 2.46,
+      "teamWinsDist": [20, 35, 45, 48, 37, 15],
+      "teamByMatch": {
+        "15": 55,
+        "19": 52,
+        "23": 44,
+        "27": 49,
+        "31": 46
+      },
+      "champion%": 18.5,
+      "roundsWonDist": [21, 32, 69, 41, 37],
+      "roundWinShare": {
+        "Keith": 87,
+        "Chris": 77,
+        "Max": 46,
+        "Jordan": 36
+      },
+      "pTitle%": 14.2,
+      "practiceWin%": 58,
+      "practicePlayed": 5.6,
+      "unspent": {
+        "power": 8,
+        "quickness": 50,
+        "technique": 16,
+        "mind": 23
+      },
+      "earned": {
+        "power": 362,
+        "quickness": 308,
+        "technique": 384,
+        "mind": 309
+      },
+      "earnedBySource": {
+        "training": 506,
+        "practice": 135,
+        "team": 104,
+        "story": 617
+      },
+      "slots": {
+        "train": 54.5,
+        "practice": 5.6,
+        "team": 4.5,
+        "story": 35.6,
+        "rest": 4.8
+      },
+      "storyEvents": 47.8,
+      "abilityLevels": 0.96,
+      "xpUnspent": 863,
+      "meanStats": {
+        "serve": 44.3,
+        "forehand": 44.7,
+        "backhand": 44.3,
+        "return": 38.5,
+        "net": 39.5,
+        "slice": 42.6,
+        "spin": 45.5,
+        "placement": 44.1,
+        "speed": 45.0,
+        "stamina": 45.9,
+        "strength": 46.6,
+        "focus": 43.3,
+        "anticipation": 45.9,
+        "tactics": 43.9
+      },
+      "lowestStat": 31.3,
+      "highestStat": 58.5
+    },
+    "baseline-noTeamAbilities": {
+      "n": 200,
+      "ovr": 44.0,
+      "ovrSd": 2.7,
+      "ovrMin": 36,
+      "ovrMax": 49,
+      "teamWinsMean": 2.48,
+      "teamWinsDist": [14, 37, 48, 50, 41, 10],
+      "teamByMatch": {
+        "15": 55,
+        "19": 56,
+        "23": 42,
+        "27": 46,
+        "31": 48
+      },
+      "champion%": 12.0,
+      "roundsWonDist": [18, 39, 76, 43, 24],
+      "roundWinShare": {
+        "Keith": 88,
+        "Chris": 78,
+        "Max": 48,
+        "Jordan": 37
+      },
+      "pTitle%": 15.5,
+      "practiceWin%": 56,
+      "practicePlayed": 5.5,
+      "unspent": {
+        "power": 8,
+        "quickness": 51,
+        "technique": 16,
+        "mind": 21
+      },
+      "earned": {
+        "power": 365,
+        "quickness": 310,
+        "technique": 381,
+        "mind": 310
+      },
+      "earnedBySource": {
+        "training": 505,
+        "practice": 132,
+        "team": 105,
+        "story": 625
+      },
+      "slots": {
+        "train": 54.3,
+        "practice": 5.5,
+        "team": 4.5,
+        "story": 36.0,
+        "rest": 4.7
+      },
+      "storyEvents": 48.0,
+      "abilityLevels": 0.97,
+      "xpUnspent": 857,
+      "meanStats": {
+        "serve": 44.5,
+        "forehand": 44.5,
+        "backhand": 44.1,
+        "return": 38.5,
+        "net": 39.2,
+        "slice": 42.7,
+        "spin": 45.0,
+        "placement": 44.2,
+        "speed": 45.4,
+        "stamina": 46.0,
+        "strength": 46.9,
+        "focus": 43.9,
+        "anticipation": 46.0,
+        "tactics": 43.9
+      },
+      "lowestStat": 30.9,
+      "highestStat": 58.7
+    },
+    "gear": {
+      "n": 100,
+      "ovr": 44.1,
+      "ovrSd": 3.0,
+      "ovrMin": 37,
+      "ovrMax": 50,
+      "teamWinsMean": 2.97,
+      "teamWinsDist": [9, 7, 16, 28, 26, 14],
+      "teamByMatch": {
+        "15": 57,
+        "19": 63,
+        "23": 50,
+        "27": 63,
+        "31": 64
+      },
+      "champion%": 33.0,
+      "roundsWonDist": [5, 6, 27, 29, 33],
+      "roundWinShare": {
+        "Keith": 95,
+        "Chris": 88,
+        "Max": 67,
+        "Jordan": 52
+      },
+      "pTitle%": 34.7,
+      "practiceWin%": 61,
+      "practicePlayed": 5.7,
+      "unspent": {
+        "power": 11,
+        "quickness": 54,
+        "technique": 19,
+        "mind": 24
+      },
+      "earned": {
+        "power": 371,
+        "quickness": 317,
+        "technique": 386,
+        "mind": 312
+      },
+      "earnedBySource": {
+        "training": 511,
+        "practice": 142,
+        "team": 114,
+        "story": 619
+      },
+      "slots": {
+        "train": 54.7,
+        "practice": 5.7,
+        "team": 4.3,
+        "story": 35.7,
+        "rest": 4.5
+      },
+      "storyEvents": 47.0,
+      "abilityLevels": 0.9,
+      "xpUnspent": 132,
+      "meanStats": {
+        "serve": 44.7,
+        "forehand": 44.7,
+        "backhand": 44.0,
+        "return": 38.9,
+        "net": 39.1,
+        "slice": 42.4,
+        "spin": 45.3,
+        "placement": 44.4,
+        "speed": 46.0,
+        "stamina": 46.3,
+        "strength": 47.4,
+        "focus": 43.2,
+        "anticipation": 45.4,
+        "tactics": 44.3
+      },
+      "lowestStat": 31.2,
+      "highestStat": 59.2
+    },
+    "storyHeavy": {
+      "n": 100,
+      "ovr": 44.6,
+      "ovrSd": 2.1,
+      "ovrMin": 39,
+      "ovrMax": 49,
+      "teamWinsMean": 2.96,
+      "teamWinsDist": [2, 9, 26, 25, 30, 8],
+      "teamByMatch": {
+        "15": 60,
+        "19": 55,
+        "23": 54,
+        "27": 64,
+        "31": 63
+      },
+      "champion%": 20.0,
+      "roundsWonDist": [8, 22, 28, 22, 20],
+      "roundWinShare": {
+        "Keith": 90,
+        "Chris": 79,
+        "Max": 51,
+        "Jordan": 39
+      },
+      "pTitle%": 16.6,
+      "practiceWin%": 55,
+      "practicePlayed": 4.1,
+      "unspent": {
+        "power": 9,
+        "quickness": 76,
+        "technique": 25,
+        "mind": 22
+      },
+      "earned": {
+        "power": 376,
+        "quickness": 338,
+        "technique": 401,
+        "mind": 313
+      },
+      "earnedBySource": {
+        "training": 375,
+        "practice": 96,
+        "team": 120,
+        "story": 836
+      },
+      "slots": {
+        "train": 40.6,
+        "practice": 4.1,
+        "team": 4.9,
+        "story": 52.9,
+        "rest": 2.4
+      },
+      "storyEvents": 66.1,
+      "abilityLevels": 1,
+      "xpUnspent": 804,
+      "meanStats": {
+        "serve": 45.5,
+        "forehand": 45.6,
+        "backhand": 44.7,
+        "return": 39.0,
+        "net": 40.2,
+        "slice": 43.7,
+        "spin": 46.0,
+        "placement": 44.7,
+        "speed": 45.4,
+        "stamina": 46.1,
+        "strength": 47.4,
+        "focus": 43.6,
+        "anticipation": 46.9,
+        "tactics": 44.5
+      },
+      "lowestStat": 31.6,
+      "highestStat": 59.2
+    },
+    "sweep": {
+      "n": 1296,
+      "ovr": 44.6,
+      "ovrSd": 3.9,
+      "ovrMin": 34,
+      "ovrMax": 54,
+      "teamWinsMean": 2.55,
+      "teamWinsDist": [130, 209, 282, 289, 261, 125],
+      "teamByMatch": {
+        "15": 52,
+        "19": 56,
+        "23": 44,
+        "27": 50,
+        "31": 53
+      },
+      "champion%": 20.5,
+      "roundsWonDist": [171, 232, 353, 274, 266],
+      "roundWinShare": {
+        "Keith": 87,
+        "Chris": 78,
+        "Max": 50,
+        "Jordan": 39
+      },
+      "pTitle%": 19.8,
+      "practiceWin%": 57,
+      "practicePlayed": 6.3,
+      "unspent": {
+        "power": 14,
+        "quickness": 52,
+        "technique": 26,
+        "mind": 28
+      },
+      "earned": {
+        "power": 377,
+        "quickness": 319,
+        "technique": 417,
+        "mind": 332
+      },
+      "earnedBySource": {
+        "training": 495,
+        "practice": 153,
+        "team": 106,
+        "story": 692
+      },
+      "slots": {
+        "train": 53.1,
+        "practice": 6.3,
+        "team": 4.5,
+        "story": 35.9,
+        "rest": 5.2
+      },
+      "storyEvents": 48.2,
+      "abilityLevels": 0.94,
+      "xpUnspent": 912,
+      "meanStats": {
+        "serve": 44.9,
+        "forehand": 45.2,
+        "backhand": 45.3,
+        "return": 39.5,
+        "net": 41.0,
+        "slice": 43.4,
+        "spin": 45.5,
+        "placement": 45.7,
+        "speed": 45.5,
+        "stamina": 45.9,
+        "strength": 46.5,
+        "focus": 44.5,
+        "anticipation": 46.1,
+        "tactics": 44.7
+      },
+      "lowestStat": 31.7,
+      "highestStat": 60.2
+    }
+  },
+  "baseline:identity": {
+    "baseliner": {
+      "n": 50,
+      "ovr": 42.6,
+      "ovrSd": 2.2,
+      "ovrMin": 37,
+      "ovrMax": 46,
+      "teamWinsMean": 2.62,
+      "teamWinsDist": [4, 8, 10, 15, 7, 6],
+      "teamByMatch": {
+        "15": 56,
+        "19": 60,
+        "23": 48,
+        "27": 56,
+        "31": 42
+      },
+      "champion%": 10.0,
+      "roundsWonDist": [6, 8, 16, 15, 5],
+      "roundWinShare": {
+        "Keith": 85,
+        "Chris": 80,
+        "Max": 48,
+        "Jordan": 23
+      },
+      "pTitle%": 9.0,
+      "practiceWin%": 61,
+      "practicePlayed": 5.5,
+      "unspent": {
+        "power": 2,
+        "quickness": 60,
+        "technique": 5,
+        "mind": 75
+      },
+      "earned": {
+        "power": 401,
+        "quickness": 265,
+        "technique": 446,
+        "mind": 265
+      },
+      "earnedBySource": {
+        "training": 507,
+        "practice": 136,
+        "team": 109,
+        "story": 625
+      },
+      "slots": {
+        "train": 54.6,
+        "practice": 5.5,
+        "team": 4.6,
+        "story": 35.2,
+        "rest": 5.1
+      },
+      "storyEvents": 48.0,
+      "abilityLevels": 1.88,
+      "xpUnspent": 811,
+      "meanStats": {
+        "serve": 33.8,
+        "forehand": 53.3,
+        "backhand": 55.0,
+        "return": 35.3,
+        "net": 36.1,
+        "slice": 56.0,
+        "spin": 54.5,
+        "placement": 35.5,
+        "speed": 33.9,
+        "stamina": 54.3,
+        "strength": 53.6,
+        "focus": 42.4,
+        "anticipation": 41.8,
+        "tactics": 36.0
+      },
+      "lowestStat": 31,
+      "highestStat": 59.7
+    },
+    "bigServer": {
+      "n": 50,
+      "ovr": 44.3,
+      "ovrSd": 2.4,
+      "ovrMin": 39,
+      "ovrMax": 49,
+      "teamWinsMean": 2.18,
+      "teamWinsDist": [10, 9, 8, 10, 11, 2],
+      "teamByMatch": {
+        "15": 50,
+        "19": 52,
+        "23": 36,
+        "27": 38,
+        "31": 42
+      },
+      "champion%": 14.0,
+      "roundsWonDist": [7, 10, 19, 7, 7],
+      "roundWinShare": {
+        "Keith": 85,
+        "Chris": 72,
+        "Max": 40,
+        "Jordan": 38
+      },
+      "pTitle%": 11.5,
+      "practiceWin%": 57,
+      "practicePlayed": 5.4,
+      "unspent": {
+        "power": 6,
+        "quickness": 101,
+        "technique": 6,
+        "mind": 10
+      },
+      "earned": {
+        "power": 442,
+        "quickness": 245,
+        "technique": 370,
+        "mind": 278
+      },
+      "earnedBySource": {
+        "training": 503,
+        "practice": 129,
+        "team": 95,
+        "story": 609
+      },
+      "slots": {
+        "train": 54.4,
+        "practice": 5.4,
+        "team": 4.4,
+        "story": 36.3,
+        "rest": 4.5
+      },
+      "storyEvents": 48.5,
+      "abilityLevels": 0,
+      "xpUnspent": 896,
+      "meanStats": {
+        "serve": 52.1,
+        "forehand": 52.4,
+        "backhand": 35.9,
+        "return": 34.1,
+        "net": 35.6,
+        "slice": 35.5,
+        "spin": 52.6,
+        "placement": 53.6,
+        "speed": 36.7,
+        "stamina": 37.2,
+        "strength": 53.6,
+        "focus": 57.6,
+        "anticipation": 39.2,
+        "tactics": 35.0
+      },
+      "lowestStat": 30.7,
+      "highestStat": 59.0
+    },
+    "counter": {
+      "n": 50,
+      "ovr": 43.7,
+      "ovrSd": 2.4,
+      "ovrMin": 38,
+      "ovrMax": 49,
+      "teamWinsMean": 2.3,
+      "teamWinsDist": [4, 11, 13, 12, 8, 2],
+      "teamByMatch": {
+        "15": 50,
+        "19": 40,
+        "23": 40,
+        "27": 52,
+        "31": 48
+      },
+      "champion%": 14.0,
+      "roundsWonDist": [6, 8, 17, 12, 7],
+      "roundWinShare": {
+        "Keith": 88,
+        "Chris": 74,
+        "Max": 43,
+        "Jordan": 31
+      },
+      "pTitle%": 10.5,
+      "practiceWin%": 53,
+      "practicePlayed": 5.5,
+      "unspent": {
+        "power": 12,
+        "quickness": 8,
+        "technique": 40,
+        "mind": 6
+      },
+      "earned": {
+        "power": 268,
+        "quickness": 374,
+        "technique": 362,
+        "mind": 348
+      },
+      "earnedBySource": {
+        "training": 510,
+        "practice": 129,
+        "team": 100,
+        "story": 613
+      },
+      "slots": {
+        "train": 54.7,
+        "practice": 5.5,
+        "team": 4.4,
+        "story": 35.6,
+        "rest": 4.7
+      },
+      "storyEvents": 46.4,
+      "abilityLevels": 0.98,
+      "xpUnspent": 837,
+      "meanStats": {
+        "serve": 36.8,
+        "forehand": 37.2,
+        "backhand": 51.8,
+        "return": 51.3,
+        "net": 33.3,
+        "slice": 40.2,
+        "spin": 38.5,
+        "placement": 36.5,
+        "speed": 52.2,
+        "stamina": 52.3,
+        "strength": 40.2,
+        "focus": 37.2,
+        "anticipation": 50.4,
+        "tactics": 52.8
+      },
+      "lowestStat": 31.8,
+      "highestStat": 56.4
+    },
+    "netRusher": {
+      "n": 50,
+      "ovr": 45.1,
+      "ovrSd": 2.7,
+      "ovrMin": 37,
+      "ovrMax": 50,
+      "teamWinsMean": 2.74,
+      "teamWinsDist": [2, 7, 14, 11, 11, 5],
+      "teamByMatch": {
+        "15": 62,
+        "19": 58,
+        "23": 50,
+        "27": 50,
+        "31": 54
+      },
+      "champion%": 36.0,
+      "roundsWonDist": [2, 6, 17, 7, 18],
+      "roundWinShare": {
+        "Keith": 91,
+        "Chris": 83,
+        "Max": 54,
+        "Jordan": 53
+      },
+      "pTitle%": 25.6,
+      "practiceWin%": 60,
+      "practicePlayed": 5.9,
+      "unspent": {
+        "power": 13,
+        "quickness": 31,
+        "technique": 13,
+        "mind": 2
+      },
+      "earned": {
+        "power": 337,
+        "quickness": 347,
+        "technique": 358,
+        "mind": 344
+      },
+      "earnedBySource": {
+        "training": 505,
+        "practice": 147,
+        "team": 113,
+        "story": 621
+      },
+      "slots": {
+        "train": 54.1,
+        "practice": 5.9,
+        "team": 4.6,
+        "story": 35.5,
+        "rest": 4.9
+      },
+      "storyEvents": 48.4,
+      "abilityLevels": 0.98,
+      "xpUnspent": 909,
+      "meanStats": {
+        "serve": 54.4,
+        "forehand": 35.9,
+        "backhand": 34.3,
+        "return": 33.4,
+        "net": 52.9,
+        "slice": 38.7,
+        "spin": 36.7,
+        "placement": 50.8,
+        "speed": 57.3,
+        "stamina": 39.7,
+        "strength": 38.9,
+        "focus": 36.1,
+        "anticipation": 52.2,
+        "tactics": 51.8
+      },
+      "lowestStat": 31.6,
+      "highestStat": 59.0
+    }
+  },
+  "baseline-noTeamAbilities:identity": {
+    "baseliner": {
+      "n": 50,
+      "ovr": 42.4,
+      "ovrSd": 2.2,
+      "ovrMin": 38,
+      "ovrMax": 46,
+      "teamWinsMean": 2.18,
+      "teamWinsDist": [4, 10, 17, 11, 8, 0],
+      "teamByMatch": {
+        "15": 54,
+        "19": 56,
+        "23": 34,
+        "27": 42,
+        "31": 32
+      },
+      "champion%": 6.0,
+      "roundsWonDist": [1, 9, 20, 17, 3],
+      "roundWinShare": {
+        "Keith": 85,
+        "Chris": 76,
+        "Max": 48,
+        "Jordan": 23
+      },
+      "pTitle%": 8.7,
+      "practiceWin%": 58,
+      "practicePlayed": 5.7,
+      "unspent": {
+        "power": 3,
+        "quickness": 56,
+        "technique": 4,
+        "mind": 66
+      },
+      "earned": {
+        "power": 396,
+        "quickness": 258,
+        "technique": 435,
+        "mind": 251
+      },
+      "earnedBySource": {
+        "training": 510,
+        "practice": 141,
+        "team": 102,
+        "story": 587
+      },
+      "slots": {
+        "train": 55.0,
+        "practice": 5.7,
+        "team": 4.4,
+        "story": 35.0,
+        "rest": 5.0
+      },
+      "storyEvents": 47.1,
+      "abilityLevels": 1.88,
+      "xpUnspent": 803,
+      "meanStats": {
+        "serve": 33.4,
+        "forehand": 53.1,
+        "backhand": 55.3,
+        "return": 35.1,
+        "net": 36.1,
+        "slice": 55.6,
+        "spin": 52.6,
+        "placement": 35.5,
+        "speed": 34,
+        "stamina": 53.3,
+        "strength": 53.7,
+        "focus": 41.9,
+        "anticipation": 41.2,
+        "tactics": 35.7
+      },
+      "lowestStat": 30.9,
+      "highestStat": 58.5
+    },
+    "bigServer": {
+      "n": 50,
+      "ovr": 44.7,
+      "ovrSd": 2.3,
+      "ovrMin": 39,
+      "ovrMax": 49,
+      "teamWinsMean": 2.14,
+      "teamWinsDist": [3, 13, 12, 18, 4, 0],
+      "teamByMatch": {
+        "15": 50,
+        "19": 60,
+        "23": 30,
+        "27": 34,
+        "31": 40
+      },
+      "champion%": 4.0,
+      "roundsWonDist": [8, 13, 22, 5, 2],
+      "roundWinShare": {
+        "Keith": 88,
+        "Chris": 74,
+        "Max": 41,
+        "Jordan": 40
+      },
+      "pTitle%": 13.1,
+      "practiceWin%": 56,
+      "practicePlayed": 5.7,
+      "unspent": {
+        "power": 4,
+        "quickness": 107,
+        "technique": 6,
+        "mind": 11
+      },
+      "earned": {
+        "power": 455,
+        "quickness": 253,
+        "technique": 372,
+        "mind": 286
+      },
+      "earnedBySource": {
+        "training": 498,
+        "practice": 136,
+        "team": 96,
+        "story": 636
+      },
+      "slots": {
+        "train": 53.7,
+        "practice": 5.7,
+        "team": 4.6,
+        "story": 36.0,
+        "rest": 5.1
+      },
+      "storyEvents": 48.2,
+      "abilityLevels": 0,
+      "xpUnspent": 916,
+      "meanStats": {
+        "serve": 52.6,
+        "forehand": 52.8,
+        "backhand": 35.3,
+        "return": 34.8,
+        "net": 35.7,
+        "slice": 35.9,
+        "spin": 53.5,
+        "placement": 53.1,
+        "speed": 37.1,
+        "stamina": 37.9,
+        "strength": 54.8,
+        "focus": 59.7,
+        "anticipation": 38.9,
+        "tactics": 34.8
+      },
+      "lowestStat": 31.2,
+      "highestStat": 60.5
+    },
+    "counter": {
+      "n": 50,
+      "ovr": 43.8,
+      "ovrSd": 2.6,
+      "ovrMin": 36,
+      "ovrMax": 47,
+      "teamWinsMean": 2.4,
+      "teamWinsDist": [5, 7, 12, 15, 11, 0],
+      "teamByMatch": {
+        "15": 58,
+        "19": 48,
+        "23": 36,
+        "27": 52,
+        "31": 46
+      },
+      "champion%": 16.0,
+      "roundsWonDist": [5, 8, 16, 13, 8],
+      "roundWinShare": {
+        "Keith": 86,
+        "Chris": 77,
+        "Max": 46,
+        "Jordan": 29
+      },
+      "pTitle%": 11.2,
+      "practiceWin%": 52,
+      "practicePlayed": 5.2,
+      "unspent": {
+        "power": 18,
+        "quickness": 7,
+        "technique": 41,
+        "mind": 5
+      },
+      "earned": {
+        "power": 272,
+        "quickness": 370,
+        "technique": 363,
+        "mind": 348
+      },
+      "earnedBySource": {
+        "training": 505,
+        "practice": 118,
+        "team": 100,
+        "story": 631
+      },
+      "slots": {
+        "train": 54.2,
+        "practice": 5.2,
+        "team": 4.4,
+        "story": 37.0,
+        "rest": 4.3
+      },
+      "storyEvents": 48.2,
+      "abilityLevels": 1,
+      "xpUnspent": 813,
+      "meanStats": {
+        "serve": 37.0,
+        "forehand": 37.5,
+        "backhand": 52.1,
+        "return": 50.5,
+        "net": 32.5,
+        "slice": 40.8,
+        "spin": 38.0,
+        "placement": 36.6,
+        "speed": 52.4,
+        "stamina": 52.2,
+        "strength": 39.4,
+        "focus": 37.6,
+        "anticipation": 50.9,
+        "tactics": 52.6
+      },
+      "lowestStat": 31.0,
+      "highestStat": 56.4
+    },
+    "netRusher": {
+      "n": 50,
+      "ovr": 45.3,
+      "ovrSd": 2.7,
+      "ovrMin": 38,
+      "ovrMax": 49,
+      "teamWinsMean": 3.22,
+      "teamWinsDist": [2, 7, 7, 6, 18, 10],
+      "teamByMatch": {
+        "15": 58,
+        "19": 62,
+        "23": 70,
+        "27": 58,
+        "31": 74
+      },
+      "champion%": 22.0,
+      "roundsWonDist": [4, 9, 18, 8, 11],
+      "roundWinShare": {
+        "Keith": 91,
+        "Chris": 86,
+        "Max": 58,
+        "Jordan": 55
+      },
+      "pTitle%": 29.1,
+      "practiceWin%": 59,
+      "practicePlayed": 5.5,
+      "unspent": {
+        "power": 7,
+        "quickness": 36,
+        "technique": 12,
+        "mind": 3
+      },
+      "earned": {
+        "power": 338,
+        "quickness": 360,
+        "technique": 354,
+        "mind": 357
+      },
+      "earnedBySource": {
+        "training": 506,
+        "practice": 134,
+        "team": 122,
+        "story": 646
+      },
+      "slots": {
+        "train": 54.5,
+        "practice": 5.5,
+        "team": 4.6,
+        "story": 35.9,
+        "rest": 4.5
+      },
+      "storyEvents": 48.4,
+      "abilityLevels": 1,
+      "xpUnspent": 898,
+      "meanStats": {
+        "serve": 55.1,
+        "forehand": 34.8,
+        "backhand": 33.6,
+        "return": 33.5,
+        "net": 52.7,
+        "slice": 38.4,
+        "spin": 36,
+        "placement": 51.7,
+        "speed": 58.0,
+        "stamina": 40.7,
+        "strength": 39.8,
+        "focus": 36.4,
+        "anticipation": 53.2,
+        "tactics": 52.4
+      },
+      "lowestStat": 30.7,
+      "highestStat": 59.5
+    }
+  },
+  "gear:identity": {
+    "baseliner": {
+      "n": 25,
+      "ovr": 42.2,
+      "ovrSd": 2.1,
+      "ovrMin": 37,
+      "ovrMax": 45,
+      "teamWinsMean": 2.8,
+      "teamWinsDist": [2, 3, 2, 10, 7, 1],
+      "teamByMatch": {
+        "15": 68,
+        "19": 60,
+        "23": 32,
+        "27": 64,
+        "31": 56
+      },
+      "champion%": 16.0,
+      "roundsWonDist": [3, 4, 6, 8, 4],
+      "roundWinShare": {
+        "Keith": 92,
+        "Chris": 85,
+        "Max": 62,
+        "Jordan": 33
+      },
+      "pTitle%": 18.3,
+      "practiceWin%": 62,
+      "practicePlayed": 5.8,
+      "unspent": {
+        "power": 3,
+        "quickness": 70,
+        "technique": 7,
+        "mind": 77
+      },
+      "earned": {
+        "power": 388,
+        "quickness": 269,
+        "technique": 434,
+        "mind": 264
+      },
+      "earnedBySource": {
+        "training": 519,
+        "practice": 146,
+        "team": 112,
+        "story": 578
+      },
+      "slots": {
+        "train": 56.0,
+        "practice": 5.8,
+        "team": 4.3,
+        "story": 34.0,
+        "rest": 5
+      },
+      "storyEvents": 45,
+      "abilityLevels": 1.72,
+      "xpUnspent": 126,
+      "meanStats": {
+        "serve": 33.6,
+        "forehand": 53.7,
+        "backhand": 54.2,
+        "return": 35.3,
+        "net": 34.6,
+        "slice": 56.1,
+        "spin": 52.2,
+        "placement": 35.5,
+        "speed": 34.2,
+        "stamina": 53.0,
+        "strength": 52.6,
+        "focus": 42.0,
+        "anticipation": 40.4,
+        "tactics": 36.6
+      },
+      "lowestStat": 30.7,
+      "highestStat": 59.1
+    },
+    "bigServer": {
+      "n": 25,
+      "ovr": 44.5,
+      "ovrSd": 2.9,
+      "ovrMin": 39,
+      "ovrMax": 49,
+      "teamWinsMean": 2.88,
+      "teamWinsDist": [3, 1, 6, 5, 6, 4],
+      "teamByMatch": {
+        "15": 44,
+        "19": 60,
+        "23": 56,
+        "27": 64,
+        "31": 64
+      },
+      "champion%": 28.0,
+      "roundsWonDist": [1, 1, 11, 5, 7],
+      "roundWinShare": {
+        "Keith": 94,
+        "Chris": 86,
+        "Max": 61,
+        "Jordan": 59
+      },
+      "pTitle%": 34.9,
+      "practiceWin%": 62,
+      "practicePlayed": 5.4,
+      "unspent": {
+        "power": 4,
+        "quickness": 103,
+        "technique": 7,
+        "mind": 12
+      },
+      "earned": {
+        "power": 458,
+        "quickness": 252,
+        "technique": 370,
+        "mind": 274
+      },
+      "earnedBySource": {
+        "training": 518,
+        "practice": 134,
+        "team": 109,
+        "story": 593
+      },
+      "slots": {
+        "train": 55.2,
+        "practice": 5.4,
+        "team": 4.3,
+        "story": 35.5,
+        "rest": 4.6
+      },
+      "storyEvents": 44.4,
+      "abilityLevels": 0,
+      "xpUnspent": 124,
+      "meanStats": {
+        "serve": 52.6,
+        "forehand": 52.3,
+        "backhand": 35.2,
+        "return": 34.8,
+        "net": 36.0,
+        "slice": 34.4,
+        "spin": 54.4,
+        "placement": 53.3,
+        "speed": 37.9,
+        "stamina": 37.8,
+        "strength": 55.4,
+        "focus": 57.4,
+        "anticipation": 37.8,
+        "tactics": 34.2
+      },
+      "lowestStat": 31.3,
+      "highestStat": 59.7
+    },
+    "counter": {
+      "n": 25,
+      "ovr": 44.9,
+      "ovrSd": 1.9,
+      "ovrMin": 38,
+      "ovrMax": 48,
+      "teamWinsMean": 3.2,
+      "teamWinsDist": [1, 1, 3, 10, 7, 3],
+      "teamByMatch": {
+        "15": 56,
+        "19": 76,
+        "23": 52,
+        "27": 56,
+        "31": 80
+      },
+      "champion%": 36.0,
+      "roundsWonDist": [1, 1, 4, 10, 9],
+      "roundWinShare": {
+        "Keith": 97,
+        "Chris": 91,
+        "Max": 73,
+        "Jordan": 51
+      },
+      "pTitle%": 34.8,
+      "practiceWin%": 57,
+      "practicePlayed": 5.8,
+      "unspent": {
+        "power": 21,
+        "quickness": 6,
+        "technique": 45,
+        "mind": 6
+      },
+      "earned": {
+        "power": 292,
+        "quickness": 390,
+        "technique": 378,
+        "mind": 369
+      },
+      "earnedBySource": {
+        "training": 491,
+        "practice": 141,
+        "team": 121,
+        "story": 677
+      },
+      "slots": {
+        "train": 53.1,
+        "practice": 5.8,
+        "team": 4.7,
+        "story": 37,
+        "rest": 4.4
+      },
+      "storyEvents": 52.1,
+      "abilityLevels": 0.92,
+      "xpUnspent": 142,
+      "meanStats": {
+        "serve": 37.8,
+        "forehand": 37.8,
+        "backhand": 53.3,
+        "return": 52.0,
+        "net": 33.8,
+        "slice": 40.8,
+        "spin": 39.2,
+        "placement": 36.6,
+        "speed": 53.4,
+        "stamina": 54.3,
+        "strength": 41.2,
+        "focus": 39.4,
+        "anticipation": 51.8,
+        "tactics": 54.3
+      },
+      "lowestStat": 32.6,
+      "highestStat": 58.8
+    },
+    "netRusher": {
+      "n": 25,
+      "ovr": 45.0,
+      "ovrSd": 3.8,
+      "ovrMin": 38,
+      "ovrMax": 50,
+      "teamWinsMean": 3,
+      "teamWinsDist": [3, 2, 5, 3, 6, 6],
+      "teamByMatch": {
+        "15": 60,
+        "19": 56,
+        "23": 60,
+        "27": 68,
+        "31": 56
+      },
+      "champion%": 52.0,
+      "roundsWonDist": [0, 0, 6, 6, 13],
+      "roundWinShare": {
+        "Keith": 95,
+        "Chris": 91,
+        "Max": 73,
+        "Jordan": 67
+      },
+      "pTitle%": 50.6,
+      "practiceWin%": 62,
+      "practicePlayed": 5.8,
+      "unspent": {
+        "power": 15,
+        "quickness": 36,
+        "technique": 17,
+        "mind": 2
+      },
+      "earned": {
+        "power": 347,
+        "quickness": 357,
+        "technique": 361,
+        "mind": 341
+      },
+      "earnedBySource": {
+        "training": 514,
+        "practice": 148,
+        "team": 114,
+        "story": 630
+      },
+      "slots": {
+        "train": 54.7,
+        "practice": 5.8,
+        "team": 4.1,
+        "story": 36.3,
+        "rest": 4.1
+      },
+      "storyEvents": 46.6,
+      "abilityLevels": 0.96,
+      "xpUnspent": 135,
+      "meanStats": {
+        "serve": 54.9,
+        "forehand": 35.1,
+        "backhand": 33.5,
+        "return": 33.3,
+        "net": 52.1,
+        "slice": 38.4,
+        "spin": 35.4,
+        "placement": 52.1,
+        "speed": 58.2,
+        "stamina": 39.9,
+        "strength": 40.5,
+        "focus": 34.1,
+        "anticipation": 51.6,
+        "tactics": 52
+      },
+      "lowestStat": 30.3,
+      "highestStat": 59.3
+    }
+  },
+  "storyHeavy:identity": {
+    "baseliner": {
+      "n": 25,
+      "ovr": 43.1,
+      "ovrSd": 1.6,
+      "ovrMin": 39,
+      "ovrMax": 45,
+      "teamWinsMean": 3.2,
+      "teamWinsDist": [1, 1, 7, 5, 5, 6],
+      "teamByMatch": {
+        "15": 88,
+        "19": 52,
+        "23": 52,
+        "27": 76,
+        "31": 52
+      },
+      "champion%": 24.0,
+      "roundsWonDist": [0, 4, 8, 7, 6],
+      "roundWinShare": {
+        "Keith": 88,
+        "Chris": 81,
+        "Max": 51,
+        "Jordan": 25
+      },
+      "pTitle%": 9.6,
+      "practiceWin%": 54,
+      "practicePlayed": 4.2,
+      "unspent": {
+        "power": 2,
+        "quickness": 104,
+        "technique": 10,
+        "mind": 79
+      },
+      "earned": {
+        "power": 410,
+        "quickness": 313,
+        "technique": 458,
+        "mind": 271
+      },
+      "earnedBySource": {
+        "training": 379,
+        "practice": 97,
+        "team": 124,
+        "story": 852
+      },
+      "slots": {
+        "train": 40.4,
+        "practice": 4.2,
+        "team": 4.9,
+        "story": 53.2,
+        "rest": 2.3
+      },
+      "storyEvents": 66.4,
+      "abilityLevels": 2,
+      "xpUnspent": 747,
+      "meanStats": {
+        "serve": 33.0,
+        "forehand": 54.2,
+        "backhand": 57.3,
+        "return": 36.0,
+        "net": 36.7,
+        "slice": 57.5,
+        "spin": 52.2,
+        "placement": 36.2,
+        "speed": 34.4,
+        "stamina": 54.2,
+        "strength": 55.3,
+        "focus": 41.8,
+        "anticipation": 42.2,
+        "tactics": 37.6
+      },
+      "lowestStat": 31.2,
+      "highestStat": 60.3
+    },
+    "bigServer": {
+      "n": 25,
+      "ovr": 44.5,
+      "ovrSd": 1.7,
+      "ovrMin": 40,
+      "ovrMax": 47,
+      "teamWinsMean": 2.44,
+      "teamWinsDist": [1, 5, 7, 6, 6, 0],
+      "teamByMatch": {
+        "15": 44,
+        "19": 64,
+        "23": 52,
+        "27": 44,
+        "31": 40
+      },
+      "champion%": 8.0,
+      "roundsWonDist": [5, 8, 7, 3, 2],
+      "roundWinShare": {
+        "Keith": 85,
+        "Chris": 72,
+        "Max": 39,
+        "Jordan": 37
+      },
+      "pTitle%": 10.1,
+      "practiceWin%": 54,
+      "practicePlayed": 4.1,
+      "unspent": {
+        "power": 2,
+        "quickness": 133,
+        "technique": 10,
+        "mind": 8
+      },
+      "earned": {
+        "power": 438,
+        "quickness": 277,
+        "technique": 379,
+        "mind": 273
+      },
+      "earnedBySource": {
+        "training": 377,
+        "practice": 94,
+        "team": 107,
+        "story": 790
+      },
+      "slots": {
+        "train": 41.3,
+        "practice": 4.1,
+        "team": 4.8,
+        "story": 52,
+        "rest": 2.8
+      },
+      "storyEvents": 64.7,
+      "abilityLevels": 0,
+      "xpUnspent": 841,
+      "meanStats": {
+        "serve": 52.4,
+        "forehand": 52.0,
+        "backhand": 36.1,
+        "return": 35.0,
+        "net": 36.8,
+        "slice": 37.4,
+        "spin": 52.6,
+        "placement": 53.5,
+        "speed": 36.8,
+        "stamina": 36.0,
+        "strength": 53.9,
+        "focus": 58.0,
+        "anticipation": 39.5,
+        "tactics": 34.5
+      },
+      "lowestStat": 30.9,
+      "highestStat": 59.4
+    },
+    "counter": {
+      "n": 25,
+      "ovr": 44.6,
+      "ovrSd": 1.7,
+      "ovrMin": 40,
+      "ovrMax": 48,
+      "teamWinsMean": 2.8,
+      "teamWinsDist": [0, 1, 10, 7, 7, 0],
+      "teamByMatch": {
+        "15": 56,
+        "19": 56,
+        "23": 52,
+        "27": 44,
+        "31": 72
+      },
+      "champion%": 16.0,
+      "roundsWonDist": [2, 7, 5, 7, 4],
+      "roundWinShare": {
+        "Keith": 90,
+        "Chris": 77,
+        "Max": 52,
+        "Jordan": 33
+      },
+      "pTitle%": 13.3,
+      "practiceWin%": 52,
+      "practicePlayed": 3.9,
+      "unspent": {
+        "power": 18,
+        "quickness": 18,
+        "technique": 58,
+        "mind": 1
+      },
+      "earned": {
+        "power": 295,
+        "quickness": 380,
+        "technique": 383,
+        "mind": 347
+      },
+      "earnedBySource": {
+        "training": 366,
+        "practice": 87,
+        "team": 115,
+        "story": 838
+      },
+      "slots": {
+        "train": 39.8,
+        "practice": 3.9,
+        "team": 5,
+        "story": 54.0,
+        "rest": 2.2
+      },
+      "storyEvents": 67.7,
+      "abilityLevels": 1,
+      "xpUnspent": 775,
+      "meanStats": {
+        "serve": 40.2,
+        "forehand": 39.1,
+        "backhand": 51.7,
+        "return": 50.3,
+        "net": 33.8,
+        "slice": 40.3,
+        "spin": 40.9,
+        "placement": 36.2,
+        "speed": 51.8,
+        "stamina": 53.7,
+        "strength": 40.2,
+        "focus": 37.6,
+        "anticipation": 52.6,
+        "tactics": 52.6
+      },
+      "lowestStat": 32.7,
+      "highestStat": 56.9
+    },
+    "netRusher": {
+      "n": 25,
+      "ovr": 46.4,
+      "ovrSd": 2.2,
+      "ovrMin": 40,
+      "ovrMax": 49,
+      "teamWinsMean": 3.4,
+      "teamWinsDist": [0, 2, 2, 7, 12, 2],
+      "teamByMatch": {
+        "15": 52,
+        "19": 48,
+        "23": 60,
+        "27": 92,
+        "31": 88
+      },
+      "champion%": 32.0,
+      "roundsWonDist": [1, 3, 8, 5, 8],
+      "roundWinShare": {
+        "Keith": 94,
+        "Chris": 86,
+        "Max": 61,
+        "Jordan": 62
+      },
+      "pTitle%": 33.4,
+      "practiceWin%": 60,
+      "practicePlayed": 4.3,
+      "unspent": {
+        "power": 13,
+        "quickness": 50,
+        "technique": 20,
+        "mind": 2
+      },
+      "earned": {
+        "power": 360,
+        "quickness": 380,
+        "technique": 383,
+        "mind": 360
+      },
+      "earnedBySource": {
+        "training": 380,
+        "practice": 105,
+        "team": 132,
+        "story": 866
+      },
+      "slots": {
+        "train": 41.0,
+        "practice": 4.3,
+        "team": 4.9,
+        "story": 52.5,
+        "rest": 2.3
+      },
+      "storyEvents": 65.7,
+      "abilityLevels": 1,
+      "xpUnspent": 852,
+      "meanStats": {
+        "serve": 56.4,
+        "forehand": 37.2,
+        "backhand": 33.5,
+        "return": 34.6,
+        "net": 53.5,
+        "slice": 39.6,
+        "spin": 38.1,
+        "placement": 53,
+        "speed": 58.8,
+        "stamina": 40.5,
+        "strength": 40.2,
+        "focus": 37.2,
+        "anticipation": 53.1,
+        "tactics": 53.4
+      },
+      "lowestStat": 31.6,
+      "highestStat": 60.3
+    }
+  },
+  "sweep:identity": {
+    "baseliner": {
+      "n": 324,
+      "ovr": 43.3,
+      "ovrSd": 3.6,
+      "ovrMin": 35,
+      "ovrMax": 51,
+      "teamWinsMean": 2.58,
+      "teamWinsDist": [31, 44, 79, 72, 73, 25],
+      "teamByMatch": {
+        "15": 56,
+        "19": 56,
+        "23": 44,
+        "27": 50,
+        "31": 52
+      },
+      "champion%": 14.2,
+      "roundsWonDist": [52, 42, 92, 92, 46],
+      "roundWinShare": {
+        "Keith": 86,
+        "Chris": 78,
+        "Max": 51,
+        "Jordan": 29
+      },
+      "pTitle%": 14.5,
+      "practiceWin%": 57,
+      "practicePlayed": 6.2,
+      "unspent": {
+        "power": 2,
+        "quickness": 57,
+        "technique": 13,
+        "mind": 75
+      },
+      "earned": {
+        "power": 414,
+        "quickness": 274,
+        "technique": 472,
+        "mind": 283
+      },
+      "earnedBySource": {
+        "training": 496,
+        "practice": 152,
+        "team": 107,
+        "story": 689
+      },
+      "slots": {
+        "train": 53.1,
+        "practice": 6.2,
+        "team": 4.5,
+        "story": 35.9,
+        "rest": 5.2
+      },
+      "storyEvents": 48.3,
+      "abilityLevels": 1.81,
+      "xpUnspent": 850,
+      "meanStats": {
+        "serve": 34.2,
+        "forehand": 54.3,
+        "backhand": 56.4,
+        "return": 36.0,
+        "net": 36.5,
+        "slice": 56.7,
+        "spin": 55.0,
+        "placement": 36.1,
+        "speed": 35.3,
+        "stamina": 54.8,
+        "strength": 54.2,
+        "focus": 43.6,
+        "anticipation": 41.8,
+        "tactics": 36.5
+      },
+      "lowestStat": 31.5,
+      "highestStat": 60.7
+    },
+    "bigServer": {
+      "n": 324,
+      "ovr": 45.4,
+      "ovrSd": 4.0,
+      "ovrMin": 36,
+      "ovrMax": 54,
+      "teamWinsMean": 2.46,
+      "teamWinsDist": [40, 57, 64, 73, 57, 33],
+      "teamByMatch": {
+        "15": 53,
+        "19": 59,
+        "23": 40,
+        "27": 46,
+        "31": 49
+      },
+      "champion%": 21.3,
+      "roundsWonDist": [38, 79, 85, 53, 69],
+      "roundWinShare": {
+        "Keith": 86,
+        "Chris": 74,
+        "Max": 44,
+        "Jordan": 44
+      },
+      "pTitle%": 19.0,
+      "practiceWin%": 58,
+      "practicePlayed": 6.4,
+      "unspent": {
+        "power": 6,
+        "quickness": 110,
+        "technique": 14,
+        "mind": 25
+      },
+      "earned": {
+        "power": 471,
+        "quickness": 262,
+        "technique": 408,
+        "mind": 304
+      },
+      "earnedBySource": {
+        "training": 491,
+        "practice": 152,
+        "team": 103,
+        "story": 699
+      },
+      "slots": {
+        "train": 52.6,
+        "practice": 6.4,
+        "team": 4.5,
+        "story": 36.3,
+        "rest": 5.2
+      },
+      "storyEvents": 49.1,
+      "abilityLevels": 0,
+      "xpUnspent": 972,
+      "meanStats": {
+        "serve": 53.7,
+        "forehand": 54.1,
+        "backhand": 36.6,
+        "return": 36.0,
+        "net": 37.1,
+        "slice": 36.2,
+        "spin": 53.9,
+        "placement": 56.1,
+        "speed": 37.3,
+        "stamina": 37.2,
+        "strength": 54.8,
+        "focus": 59.6,
+        "anticipation": 37.5,
+        "tactics": 35.1
+      },
+      "lowestStat": 31.6,
+      "highestStat": 62
+    },
+    "counter": {
+      "n": 324,
+      "ovr": 44.2,
+      "ovrSd": 3.7,
+      "ovrMin": 34,
+      "ovrMax": 53,
+      "teamWinsMean": 2.5,
+      "teamWinsDist": [30, 50, 87, 66, 66, 25],
+      "teamByMatch": {
+        "15": 51,
+        "19": 55,
+        "23": 46,
+        "27": 48,
+        "31": 50
+      },
+      "champion%": 13.3,
+      "roundsWonDist": [41, 67, 99, 74, 43],
+      "roundWinShare": {
+        "Keith": 88,
+        "Chris": 76,
+        "Max": 48,
+        "Jordan": 33
+      },
+      "pTitle%": 15.9,
+      "practiceWin%": 55,
+      "practicePlayed": 6.4,
+      "unspent": {
+        "power": 29,
+        "quickness": 6,
+        "technique": 60,
+        "mind": 10
+      },
+      "earned": {
+        "power": 281,
+        "quickness": 384,
+        "technique": 401,
+        "mind": 372
+      },
+      "earnedBySource": {
+        "training": 493,
+        "practice": 150,
+        "team": 105,
+        "story": 691
+      },
+      "slots": {
+        "train": 53.1,
+        "practice": 6.4,
+        "team": 4.5,
+        "story": 35.8,
+        "rest": 5.3
+      },
+      "storyEvents": 48.2,
+      "abilityLevels": 0.97,
+      "xpUnspent": 902,
+      "meanStats": {
+        "serve": 36.6,
+        "forehand": 36.9,
+        "backhand": 52.8,
+        "return": 52.1,
+        "net": 35.1,
+        "slice": 42.4,
+        "spin": 37.3,
+        "placement": 37.0,
+        "speed": 52.7,
+        "stamina": 52.9,
+        "strength": 38.6,
+        "focus": 38.1,
+        "anticipation": 51.9,
+        "tactics": 53.7
+      },
+      "lowestStat": 32.3,
+      "highestStat": 57.9
+    },
+    "netRusher": {
+      "n": 324,
+      "ovr": 45.5,
+      "ovrSd": 4.0,
+      "ovrMin": 35,
+      "ovrMax": 54,
+      "teamWinsMean": 2.67,
+      "teamWinsDist": [29, 58, 52, 78, 65, 42],
+      "teamByMatch": {
+        "15": 47,
+        "19": 55,
+        "23": 48,
+        "27": 55,
+        "31": 62
+      },
+      "champion%": 33.3,
+      "roundsWonDist": [40, 44, 77, 55, 108],
+      "roundWinShare": {
+        "Keith": 89,
+        "Chris": 82,
+        "Max": 58,
+        "Jordan": 53
+      },
+      "pTitle%": 29.9,
+      "practiceWin%": 59,
+      "practicePlayed": 6.3,
+      "unspent": {
+        "power": 20,
+        "quickness": 34,
+        "technique": 18,
+        "mind": 3
+      },
+      "earned": {
+        "power": 344,
+        "quickness": 358,
+        "technique": 385,
+        "mind": 369
+      },
+      "earnedBySource": {
+        "training": 499,
+        "practice": 157,
+        "team": 110,
+        "story": 690
+      },
+      "slots": {
+        "train": 53.7,
+        "practice": 6.3,
+        "team": 4.4,
+        "story": 35.6,
+        "rest": 5.0
+      },
+      "storyEvents": 47.0,
+      "abilityLevels": 0.98,
+      "xpUnspent": 924,
+      "meanStats": {
+        "serve": 55.0,
+        "forehand": 35.4,
+        "backhand": 35.3,
+        "return": 34.0,
+        "net": 55.3,
+        "slice": 38.2,
+        "spin": 35.6,
+        "placement": 53.5,
+        "speed": 56.8,
+        "stamina": 38.7,
+        "strength": 38.3,
+        "focus": 36.5,
+        "anticipation": 53.1,
+        "tactics": 53.7
+      },
+      "lowestStat": 31.3,
+      "highestStat": 60.1
+    }
+  },
+  "sweep:SKILL": {
+    "average": {
+      "n": 324,
+      "ovr": 43.9,
+      "ovrSd": 3.2,
+      "ovrMin": 36,
+      "ovrMax": 51,
+      "teamWinsMean": 2.5,
+      "teamWinsDist": [34, 47, 75, 83, 62, 23],
+      "teamByMatch": {
+        "15": 49,
+        "19": 58,
+        "23": 45,
+        "27": 46,
+        "31": 52
+      },
+      "champion%": 15.7,
+      "roundsWonDist": [53, 65, 92, 63, 51],
+      "roundWinShare": {
+        "Keith": 87,
+        "Chris": 76,
+        "Max": 46,
+        "Jordan": 36
+      },
+      "pTitle%": 15.5,
+      "practiceWin%": 56,
+      "practicePlayed": 6.4,
+      "unspent": {
+        "power": 14,
+        "quickness": 59,
+        "technique": 19,
+        "mind": 25
+      },
+      "earned": {
+        "power": 364,
+        "quickness": 318,
+        "technique": 390,
+        "mind": 316
+      },
+      "earnedBySource": {
+        "training": 491,
+        "practice": 153,
+        "team": 107,
+        "story": 637
+      },
+      "slots": {
+        "train": 52.6,
+        "practice": 6.4,
+        "team": 4.6,
+        "story": 36.2,
+        "rest": 5.2
+      },
+      "storyEvents": 49.3,
+      "abilityLevels": 0.93,
+      "xpUnspent": 916,
+      "meanStats": {
+        "serve": 44.3,
+        "forehand": 44.5,
+        "backhand": 44.6,
+        "return": 39.0,
+        "net": 40.3,
+        "slice": 42.2,
+        "spin": 44.6,
+        "placement": 44.7,
+        "speed": 45.0,
+        "stamina": 45.4,
+        "strength": 46.1,
+        "focus": 44.1,
+        "anticipation": 45.4,
+        "tactics": 44.1
+      },
+      "lowestStat": 31.2,
+      "highestStat": 59.3
+    },
+    "averageBest": {
+      "n": 324,
+      "ovr": 45.1,
+      "ovrSd": 3.3,
+      "ovrMin": 36,
+      "ovrMax": 52,
+      "teamWinsMean": 2.57,
+      "teamWinsDist": [29, 56, 68, 75, 65, 31],
+      "teamByMatch": {
+        "15": 48,
+        "19": 57,
+        "23": 40,
+        "27": 55,
+        "31": 56
+      },
+      "champion%": 24.7,
+      "roundsWonDist": [30, 46, 90, 78, 80],
+      "roundWinShare": {
+        "Keith": 89,
+        "Chris": 80,
+        "Max": 52,
+        "Jordan": 41
+      },
+      "pTitle%": 20.4,
+      "practiceWin%": 58,
+      "practicePlayed": 6.2,
+      "unspent": {
+        "power": 14,
+        "quickness": 49,
+        "technique": 31,
+        "mind": 30
+      },
+      "earned": {
+        "power": 387,
+        "quickness": 319,
+        "technique": 433,
+        "mind": 341
+      },
+      "earnedBySource": {
+        "training": 499,
+        "practice": 149,
+        "team": 106,
+        "story": 726
+      },
+      "slots": {
+        "train": 53.6,
+        "practice": 6.2,
+        "team": 4.4,
+        "story": 35.7,
+        "rest": 5.1
+      },
+      "storyEvents": 47.2,
+      "abilityLevels": 0.95,
+      "xpUnspent": 902,
+      "meanStats": {
+        "serve": 45.4,
+        "forehand": 46.0,
+        "backhand": 46.3,
+        "return": 39.9,
+        "net": 41.4,
+        "slice": 44.2,
+        "spin": 46.0,
+        "placement": 46.2,
+        "speed": 45.6,
+        "stamina": 45.9,
+        "strength": 47.2,
+        "focus": 44.5,
+        "anticipation": 46.7,
+        "tactics": 45.3
+      },
+      "lowestStat": 32.1,
+      "highestStat": 61.0
+    },
+    "casual": {
+      "n": 324,
+      "ovr": 41.4,
+      "ovrSd": 2.8,
+      "ovrMin": 34,
+      "ovrMax": 49,
+      "teamWinsMean": 2.04,
+      "teamWinsDist": [41, 76, 90, 70, 39, 8],
+      "teamByMatch": {
+        "15": 48,
+        "19": 46,
+        "23": 36,
+        "27": 36,
+        "31": 38
+      },
+      "champion%": 8.6,
+      "roundsWonDist": [67, 85, 99, 45, 28],
+      "roundWinShare": {
+        "Keith": 79,
+        "Chris": 65,
+        "Max": 34,
+        "Jordan": 25
+      },
+      "pTitle%": 6.9,
+      "practiceWin%": 52,
+      "practicePlayed": 6.4,
+      "unspent": {
+        "power": 12,
+        "quickness": 48,
+        "technique": 14,
+        "mind": 20
+      },
+      "earned": {
+        "power": 311,
+        "quickness": 276,
+        "technique": 331,
+        "mind": 267
+      },
+      "earnedBySource": {
+        "training": 396,
+        "practice": 144,
+        "team": 94,
+        "story": 551
+      },
+      "slots": {
+        "train": 53.0,
+        "practice": 6.4,
+        "team": 4.5,
+        "story": 35.9,
+        "rest": 5.3
+      },
+      "storyEvents": 48.5,
+      "abilityLevels": 0.93,
+      "xpUnspent": 870,
+      "meanStats": {
+        "serve": 41.4,
+        "forehand": 41.4,
+        "backhand": 41.7,
+        "return": 36.9,
+        "net": 38.1,
+        "slice": 39.6,
+        "spin": 42.3,
+        "placement": 42.2,
+        "speed": 43.1,
+        "stamina": 43.8,
+        "strength": 43.0,
+        "focus": 41.6,
+        "anticipation": 43.0,
+        "tactics": 41.0
+      },
+      "lowestStat": 30.0,
+      "highestStat": 54.8
+    },
+    "skilled": {
+      "n": 324,
+      "ovr": 47.9,
+      "ovrSd": 3.3,
+      "ovrMin": 38,
+      "ovrMax": 54,
+      "teamWinsMean": 3.1,
+      "teamWinsDist": [26, 30, 49, 61, 95, 63],
+      "teamByMatch": {
+        "15": 62,
+        "19": 65,
+        "23": 56,
+        "27": 62,
+        "31": 66
+      },
+      "champion%": 33.0,
+      "roundsWonDist": [21, 36, 72, 88, 107],
+      "roundWinShare": {
+        "Keith": 94,
+        "Chris": 89,
+        "Max": 68,
+        "Jordan": 55
+      },
+      "pTitle%": 36.6,
+      "practiceWin%": 62,
+      "practicePlayed": 6.4,
+      "unspent": {
+        "power": 17,
+        "quickness": 51,
+        "technique": 41,
+        "mind": 38
+      },
+      "earned": {
+        "power": 448,
+        "quickness": 365,
+        "technique": 513,
+        "mind": 404
+      },
+      "earnedBySource": {
+        "training": 593,
+        "practice": 163,
+        "team": 119,
+        "story": 855
+      },
+      "slots": {
+        "train": 53.3,
+        "practice": 6.4,
+        "team": 4.4,
+        "story": 35.8,
+        "rest": 5.1
+      },
+      "storyEvents": 47.6,
+      "abilityLevels": 0.96,
+      "xpUnspent": 960,
+      "meanStats": {
+        "serve": 48.3,
+        "forehand": 48.9,
+        "backhand": 48.5,
+        "return": 42.3,
+        "net": 44.1,
+        "slice": 47.5,
+        "spin": 48.9,
+        "placement": 49.6,
+        "speed": 48.4,
+        "stamina": 48.7,
+        "strength": 49.7,
+        "focus": 47.6,
+        "anticipation": 49.2,
+        "tactics": 48.7
+      },
+      "lowestStat": 33.4,
+      "highestStat": 65.7
+    }
+  },
+  "sweep:SKILLxidentity": {
+    "average / baseliner": {
+      "n": 81,
+      "ovr": 42.2,
+      "ovrSd": 2.8,
+      "ovrMin": 37,
+      "ovrMax": 49,
+      "teamWinsMean": 2.3,
+      "teamWinsDist": [9, 9, 27, 22, 13, 1],
+      "teamByMatch": {
+        "15": 47,
+        "19": 54,
+        "23": 42,
+        "27": 41,
+        "31": 46
+      },
+      "champion%": 7.4,
+      "roundsWonDist": [17, 12, 23, 23, 6],
+      "roundWinShare": {
+        "Keith": 85,
+        "Chris": 74,
+        "Max": 45,
+        "Jordan": 25
+      },
+      "pTitle%": 10.1,
+      "practiceWin%": 56,
+      "practicePlayed": 6.4,
+      "unspent": {
+        "power": 2,
+        "quickness": 63,
+        "technique": 8,
+        "mind": 68
+      },
+      "earned": {
+        "power": 388,
+        "quickness": 267,
+        "technique": 433,
+        "mind": 259
+      },
+      "earnedBySource": {
+        "training": 490,
+        "practice": 156,
+        "team": 101,
+        "story": 600
+      },
+      "slots": {
+        "train": 52.5,
+        "practice": 6.4,
+        "team": 4.4,
+        "story": 36.3,
+        "rest": 5.3
+      },
+      "storyEvents": 47.9,
+      "abilityLevels": 1.77,
+      "xpUnspent": 850,
+      "meanStats": {
+        "serve": 33.6,
+        "forehand": 52.8,
+        "backhand": 54.9,
+        "return": 35.1,
+        "net": 36.1,
+        "slice": 54.6,
+        "spin": 53.3,
+        "placement": 35.0,
+        "speed": 34.7,
+        "stamina": 53.2,
+        "strength": 53.0,
+        "focus": 42.5,
+        "anticipation": 40.6,
+        "tactics": 35.4
+      },
+      "lowestStat": 31.0,
+      "highestStat": 59.2
+    },
+    "average / bigServer": {
+      "n": 81,
+      "ovr": 44.8,
+      "ovrSd": 2.7,
+      "ovrMin": 37,
+      "ovrMax": 51,
+      "teamWinsMean": 2.42,
+      "teamWinsDist": [11, 14, 13, 22, 15, 6],
+      "teamByMatch": {
+        "15": 51,
+        "19": 56,
+        "23": 43,
+        "27": 48,
+        "31": 44
+      },
+      "champion%": 16.0,
+      "roundsWonDist": [9, 24, 22, 13, 13],
+      "roundWinShare": {
+        "Keith": 86,
+        "Chris": 73,
+        "Max": 40,
+        "Jordan": 41
+      },
+      "pTitle%": 13.3,
+      "practiceWin%": 55,
+      "practicePlayed": 6.4,
+      "unspent": {
+        "power": 6,
+        "quickness": 115,
+        "technique": 8,
+        "mind": 20
+      },
+      "earned": {
+        "power": 456,
+        "quickness": 264,
+        "technique": 384,
+        "mind": 292
+      },
+      "earnedBySource": {
+        "training": 489,
+        "practice": 149,
+        "team": 103,
+        "story": 655
+      },
+      "slots": {
+        "train": 52.2,
+        "practice": 6.4,
+        "team": 4.6,
+        "story": 36.4,
+        "rest": 5.4
+      },
+      "storyEvents": 50.2,
+      "abilityLevels": 0,
+      "xpUnspent": 967,
+      "meanStats": {
+        "serve": 52.5,
+        "forehand": 53.5,
+        "backhand": 36.0,
+        "return": 35.8,
+        "net": 36.0,
+        "slice": 35.5,
+        "spin": 53.5,
+        "placement": 54.9,
+        "speed": 37.1,
+        "stamina": 37.3,
+        "strength": 54.5,
+        "focus": 59.5,
+        "anticipation": 37.4,
+        "tactics": 34.4
+      },
+      "lowestStat": 31.1,
+      "highestStat": 61.3
+    },
+    "average / counter": {
+      "n": 81,
+      "ovr": 43.5,
+      "ovrSd": 3.3,
+      "ovrMin": 36,
+      "ovrMax": 51,
+      "teamWinsMean": 2.37,
+      "teamWinsDist": [8, 13, 25, 15, 16, 4],
+      "teamByMatch": {
+        "15": 48,
+        "19": 59,
+        "23": 42,
+        "27": 40,
+        "31": 48
+      },
+      "champion%": 8.6,
+      "roundsWonDist": [12, 22, 25, 15, 7],
+      "roundWinShare": {
+        "Keith": 86,
+        "Chris": 75,
+        "Max": 43,
+        "Jordan": 28
+      },
+      "pTitle%": 11.7,
+      "practiceWin%": 54,
+      "practicePlayed": 6.6,
+      "unspent": {
+        "power": 26,
+        "quickness": 12,
+        "technique": 44,
+        "mind": 8
+      },
+      "earned": {
+        "power": 271,
+        "quickness": 376,
+        "technique": 370,
+        "mind": 354
+      },
+      "earnedBySource": {
+        "training": 488,
+        "practice": 155,
+        "team": 104,
+        "story": 625
+      },
+      "slots": {
+        "train": 52.4,
+        "practice": 6.6,
+        "team": 4.5,
+        "story": 36.2,
+        "rest": 5.3
+      },
+      "storyEvents": 48.8,
+      "abilityLevels": 0.95,
+      "xpUnspent": 911,
+      "meanStats": {
+        "serve": 36.2,
+        "forehand": 36.4,
+        "backhand": 52.5,
+        "return": 51.2,
+        "net": 34.8,
+        "slice": 40.9,
+        "spin": 36.3,
+        "placement": 36.0,
+        "speed": 51.8,
+        "stamina": 52.2,
+        "strength": 38.6,
+        "focus": 38.1,
+        "anticipation": 50.7,
+        "tactics": 53.0
+      },
+      "lowestStat": 31.7,
+      "highestStat": 57.1
+    },
+    "average / netRusher": {
+      "n": 81,
+      "ovr": 45.2,
+      "ovrSd": 3.0,
+      "ovrMin": 38,
+      "ovrMax": 50,
+      "teamWinsMean": 2.9,
+      "teamWinsDist": [6, 11, 10, 24, 18, 12],
+      "teamByMatch": {
+        "15": 51,
+        "19": 62,
+        "23": 52,
+        "27": 56,
+        "31": 70
+      },
+      "champion%": 30.9,
+      "roundsWonDist": [15, 7, 22, 12, 25],
+      "roundWinShare": {
+        "Keith": 90,
+        "Chris": 82,
+        "Max": 57,
+        "Jordan": 52
+      },
+      "pTitle%": 26.8,
+      "practiceWin%": 60,
+      "practicePlayed": 6.2,
+      "unspent": {
+        "power": 21,
+        "quickness": 46,
+        "technique": 17,
+        "mind": 2
+      },
+      "earned": {
+        "power": 340,
+        "quickness": 363,
+        "technique": 373,
+        "mind": 361
+      },
+      "earnedBySource": {
+        "training": 496,
+        "practice": 153,
+        "team": 119,
+        "story": 668
+      },
+      "slots": {
+        "train": 53.4,
+        "practice": 6.2,
+        "team": 4.7,
+        "story": 35.8,
+        "rest": 4.9
+      },
+      "storyEvents": 50.4,
+      "abilityLevels": 0.99,
+      "xpUnspent": 937,
+      "meanStats": {
+        "serve": 54.7,
+        "forehand": 35.1,
+        "backhand": 34.9,
+        "return": 34.0,
+        "net": 54.3,
+        "slice": 38.0,
+        "spin": 35.3,
+        "placement": 53.0,
+        "speed": 56.5,
+        "stamina": 38.7,
+        "strength": 38.4,
+        "focus": 36.4,
+        "anticipation": 52.9,
+        "tactics": 53.5
+      },
+      "lowestStat": 31.1,
+      "highestStat": 59.5
+    },
+    "averageBest / baseliner": {
+      "n": 81,
+      "ovr": 44.1,
+      "ovrSd": 3.1,
+      "ovrMin": 36,
+      "ovrMax": 50,
+      "teamWinsMean": 2.86,
+      "teamWinsDist": [7, 8, 14, 20, 24, 8],
+      "teamByMatch": {
+        "15": 60,
+        "19": 62,
+        "23": 49,
+        "27": 57,
+        "31": 58
+      },
+      "champion%": 22.2,
+      "roundsWonDist": [8, 10, 24, 21, 18],
+      "roundWinShare": {
+        "Keith": 88,
+        "Chris": 82,
+        "Max": 55,
+        "Jordan": 31
+      },
+      "pTitle%": 16.8,
+      "practiceWin%": 56,
+      "practicePlayed": 6.1,
+      "unspent": {
+        "power": 2,
+        "quickness": 49,
+        "technique": 19,
+        "mind": 80
+      },
+      "earned": {
+        "power": 429,
+        "quickness": 277,
+        "technique": 497,
+        "mind": 299
+      },
+      "earnedBySource": {
+        "training": 501,
+        "practice": 148,
+        "team": 113,
+        "story": 740
+      },
+      "slots": {
+        "train": 53.8,
+        "practice": 6.1,
+        "team": 4.6,
+        "story": 35.3,
+        "rest": 5.2
+      },
+      "storyEvents": 48.6,
+      "abilityLevels": 1.84,
+      "xpUnspent": 853,
+      "meanStats": {
+        "serve": 34.2,
+        "forehand": 55.6,
+        "backhand": 58.7,
+        "return": 36.6,
+        "net": 36.8,
+        "slice": 57.8,
+        "spin": 56.2,
+        "placement": 36.7,
+        "speed": 35.8,
+        "stamina": 55.8,
+        "strength": 55.4,
+        "focus": 43.9,
+        "anticipation": 43.2,
+        "tactics": 36.7
+      },
+      "lowestStat": 32.0,
+      "highestStat": 62.3
+    },
+    "averageBest / bigServer": {
+      "n": 81,
+      "ovr": 46.0,
+      "ovrSd": 3.1,
+      "ovrMin": 37,
+      "ovrMax": 52,
+      "teamWinsMean": 2.4,
+      "teamWinsDist": [8, 16, 16, 24, 11, 6],
+      "teamByMatch": {
+        "15": 47,
+        "19": 58,
+        "23": 35,
+        "27": 51,
+        "31": 49
+      },
+      "champion%": 23.5,
+      "roundsWonDist": [8, 13, 22, 19, 19],
+      "roundWinShare": {
+        "Keith": 89,
+        "Chris": 77,
+        "Max": 45,
+        "Jordan": 44
+      },
+      "pTitle%": 18.4,
+      "practiceWin%": 59,
+      "practicePlayed": 6.2,
+      "unspent": {
+        "power": 7,
+        "quickness": 108,
+        "technique": 21,
+        "mind": 30
+      },
+      "earned": {
+        "power": 483,
+        "quickness": 260,
+        "technique": 427,
+        "mind": 315
+      },
+      "earnedBySource": {
+        "training": 488,
+        "practice": 151,
+        "team": 102,
+        "story": 743
+      },
+      "slots": {
+        "train": 52.6,
+        "practice": 6.2,
+        "team": 4.5,
+        "story": 36.6,
+        "rest": 5.0
+      },
+      "storyEvents": 48.9,
+      "abilityLevels": 0,
+      "xpUnspent": 966,
+      "meanStats": {
+        "serve": 54.7,
+        "forehand": 54.9,
+        "backhand": 37.7,
+        "return": 36.5,
+        "net": 38.0,
+        "slice": 36.2,
+        "spin": 54.5,
+        "placement": 57.4,
+        "speed": 37.1,
+        "stamina": 36.5,
+        "strength": 55.6,
+        "focus": 60.1,
+        "anticipation": 37.2,
+        "tactics": 35.7
+      },
+      "lowestStat": 32.1,
+      "highestStat": 62.6
+    },
+    "averageBest / counter": {
+      "n": 81,
+      "ovr": 44.6,
+      "ovrSd": 3.6,
+      "ovrMin": 37,
+      "ovrMax": 51,
+      "teamWinsMean": 2.48,
+      "teamWinsDist": [8, 14, 20, 17, 14, 8],
+      "teamByMatch": {
+        "15": 47,
+        "19": 56,
+        "23": 36,
+        "27": 53,
+        "31": 57
+      },
+      "champion%": 19.8,
+      "roundsWonDist": [7, 14, 25, 19, 16],
+      "roundWinShare": {
+        "Keith": 89,
+        "Chris": 78,
+        "Max": 50,
+        "Jordan": 34
+      },
+      "pTitle%": 16.6,
+      "practiceWin%": 56,
+      "practicePlayed": 6.0,
+      "unspent": {
+        "power": 30,
+        "quickness": 5,
+        "technique": 66,
+        "mind": 9
+      },
+      "earned": {
+        "power": 285,
+        "quickness": 385,
+        "technique": 419,
+        "mind": 384
+      },
+      "earnedBySource": {
+        "training": 497,
+        "practice": 142,
+        "team": 104,
+        "story": 729
+      },
+      "slots": {
+        "train": 53.5,
+        "practice": 6.0,
+        "team": 4.4,
+        "story": 35.9,
+        "rest": 5.1
+      },
+      "storyEvents": 47.3,
+      "abilityLevels": 0.96,
+      "xpUnspent": 883,
+      "meanStats": {
+        "serve": 36.7,
+        "forehand": 37.6,
+        "backhand": 53.2,
+        "return": 52.1,
+        "net": 35.1,
+        "slice": 44.2,
+        "spin": 37.4,
+        "placement": 37.5,
+        "speed": 53.1,
+        "stamina": 52.8,
+        "strength": 38.9,
+        "focus": 37.9,
+        "anticipation": 52.8,
+        "tactics": 55.1
+      },
+      "lowestStat": 32.6,
+      "highestStat": 58.9
+    },
+    "averageBest / netRusher": {
+      "n": 81,
+      "ovr": 45.8,
+      "ovrSd": 3.2,
+      "ovrMin": 38,
+      "ovrMax": 52,
+      "teamWinsMean": 2.53,
+      "teamWinsDist": [6, 18, 18, 14, 16, 9],
+      "teamByMatch": {
+        "15": 38,
+        "19": 54,
+        "23": 41,
+        "27": 59,
+        "31": 60
+      },
+      "champion%": 33.3,
+      "roundsWonDist": [7, 9, 19, 19, 27],
+      "roundWinShare": {
+        "Keith": 90,
+        "Chris": 85,
+        "Max": 60,
+        "Jordan": 53
+      },
+      "pTitle%": 29.9,
+      "practiceWin%": 61,
+      "practicePlayed": 6.2,
+      "unspent": {
+        "power": 16,
+        "quickness": 32,
+        "technique": 18,
+        "mind": 2
+      },
+      "earned": {
+        "power": 349,
+        "quickness": 354,
+        "technique": 389,
+        "mind": 368
+      },
+      "earnedBySource": {
+        "training": 508,
+        "practice": 157,
+        "team": 103,
+        "story": 691
+      },
+      "slots": {
+        "train": 54.7,
+        "practice": 6.2,
+        "team": 4.1,
+        "story": 35.0,
+        "rest": 5.0
+      },
+      "storyEvents": 44.0,
+      "abilityLevels": 0.99,
+      "xpUnspent": 908,
+      "meanStats": {
+        "serve": 56.2,
+        "forehand": 35.8,
+        "backhand": 35.5,
+        "return": 34.2,
+        "net": 55.9,
+        "slice": 38.5,
+        "spin": 36.2,
+        "placement": 53.3,
+        "speed": 56.6,
+        "stamina": 38.6,
+        "strength": 38.7,
+        "focus": 36.2,
+        "anticipation": 53.4,
+        "tactics": 53.6
+      },
+      "lowestStat": 31.5,
+      "highestStat": 60.2
+    },
+    "casual / baseliner": {
+      "n": 81,
+      "ovr": 40.4,
+      "ovrSd": 2.4,
+      "ovrMin": 35,
+      "ovrMax": 47,
+      "teamWinsMean": 2.06,
+      "teamWinsDist": [7, 23, 24, 16, 7, 4],
+      "teamByMatch": {
+        "15": 54,
+        "19": 43,
+        "23": 31,
+        "27": 33,
+        "31": 44
+      },
+      "champion%": 7.4,
+      "roundsWonDist": [22, 13, 24, 16, 6],
+      "roundWinShare": {
+        "Keith": 78,
+        "Chris": 67,
+        "Max": 37,
+        "Jordan": 16
+      },
+      "pTitle%": 4.2,
+      "practiceWin%": 53,
+      "practicePlayed": 6.3,
+      "unspent": {
+        "power": 2,
+        "quickness": 62,
+        "technique": 6,
+        "mind": 53
+      },
+      "earned": {
+        "power": 344,
+        "quickness": 246,
+        "technique": 381,
+        "mind": 230
+      },
+      "earnedBySource": {
+        "training": 395,
+        "practice": 147,
+        "team": 96,
+        "story": 562
+      },
+      "slots": {
+        "train": 52.7,
+        "practice": 6.3,
+        "team": 4.6,
+        "story": 36.1,
+        "rest": 5.3
+      },
+      "storyEvents": 49.2,
+      "abilityLevels": 1.77,
+      "xpUnspent": 820,
+      "meanStats": {
+        "serve": 32.4,
+        "forehand": 49.5,
+        "backhand": 51.0,
+        "return": 33.9,
+        "net": 34.1,
+        "slice": 51.3,
+        "spin": 51.1,
+        "placement": 34.0,
+        "speed": 33.9,
+        "stamina": 50.8,
+        "strength": 49.7,
+        "focus": 41,
+        "anticipation": 39.7,
+        "tactics": 34.5
+      },
+      "lowestStat": 30.1,
+      "highestStat": 55.2
+    },
+    "casual / bigServer": {
+      "n": 81,
+      "ovr": 41.5,
+      "ovrSd": 2.5,
+      "ovrMin": 36,
+      "ovrMax": 47,
+      "teamWinsMean": 1.77,
+      "teamWinsDist": [16, 19, 26, 9, 10, 1],
+      "teamByMatch": {
+        "15": 43,
+        "19": 49,
+        "23": 28,
+        "27": 23,
+        "31": 32
+      },
+      "champion%": 6.2,
+      "roundsWonDist": [17, 32, 22, 5, 5],
+      "roundWinShare": {
+        "Keith": 76,
+        "Chris": 58,
+        "Max": 25,
+        "Jordan": 27
+      },
+      "pTitle%": 4.5,
+      "practiceWin%": 52,
+      "practicePlayed": 6.4,
+      "unspent": {
+        "power": 5,
+        "quickness": 95,
+        "technique": 7,
+        "mind": 17
+      },
+      "earned": {
+        "power": 375,
+        "quickness": 226,
+        "technique": 316,
+        "mind": 235
+      },
+      "earnedBySource": {
+        "training": 396,
+        "practice": 140,
+        "team": 83,
+        "story": 533
+      },
+      "slots": {
+        "train": 52.6,
+        "practice": 6.4,
+        "team": 4.4,
+        "story": 36.4,
+        "rest": 5.2
+      },
+      "storyEvents": 47.8,
+      "abilityLevels": 0,
+      "xpUnspent": 907,
+      "meanStats": {
+        "serve": 48.6,
+        "forehand": 48.3,
+        "backhand": 33.4,
+        "return": 32.9,
+        "net": 34.2,
+        "slice": 33.0,
+        "spin": 49.3,
+        "placement": 49.9,
+        "speed": 36.2,
+        "stamina": 36.8,
+        "strength": 49.7,
+        "focus": 52.9,
+        "anticipation": 34.9,
+        "tactics": 32.9
+      },
+      "lowestStat": 29.5,
+      "highestStat": 55.2
+    },
+    "casual / counter": {
+      "n": 81,
+      "ovr": 41.7,
+      "ovrSd": 2.9,
+      "ovrMin": 34,
+      "ovrMax": 47,
+      "teamWinsMean": 2.17,
+      "teamWinsDist": [7, 17, 26, 19, 10, 2],
+      "teamByMatch": {
+        "15": 49,
+        "19": 52,
+        "23": 43,
+        "27": 41,
+        "31": 32
+      },
+      "champion%": 3.7,
+      "roundsWonDist": [14, 23, 26, 15, 3],
+      "roundWinShare": {
+        "Keith": 82,
+        "Chris": 64,
+        "Max": 34,
+        "Jordan": 24
+      },
+      "pTitle%": 6.8,
+      "practiceWin%": 49,
+      "practicePlayed": 6.3,
+      "unspent": {
+        "power": 21,
+        "quickness": 5,
+        "technique": 32,
+        "mind": 9
+      },
+      "earned": {
+        "power": 241,
+        "quickness": 334,
+        "technique": 319,
+        "mind": 307
+      },
+      "earnedBySource": {
+        "training": 396,
+        "practice": 142,
+        "team": 98,
+        "story": 565
+      },
+      "slots": {
+        "train": 53.2,
+        "practice": 6.3,
+        "team": 4.6,
+        "story": 35.5,
+        "rest": 5.3
+      },
+      "storyEvents": 49.6,
+      "abilityLevels": 0.98,
+      "xpUnspent": 868,
+      "meanStats": {
+        "serve": 34.8,
+        "forehand": 34.9,
+        "backhand": 49.6,
+        "return": 48.8,
+        "net": 33.9,
+        "slice": 38.9,
+        "spin": 35.7,
+        "placement": 35.4,
+        "speed": 49.5,
+        "stamina": 50.5,
+        "strength": 36.5,
+        "focus": 37.4,
+        "anticipation": 48.6,
+        "tactics": 48.2
+      },
+      "lowestStat": 30.7,
+      "highestStat": 53.8
+    },
+    "casual / netRusher": {
+      "n": 81,
+      "ovr": 42.0,
+      "ovrSd": 3.1,
+      "ovrMin": 35,
+      "ovrMax": 49,
+      "teamWinsMean": 2.17,
+      "teamWinsDist": [11, 17, 14, 26, 12, 1],
+      "teamByMatch": {
+        "15": 43,
+        "19": 38,
+        "23": 43,
+        "27": 48,
+        "31": 44
+      },
+      "champion%": 17.3,
+      "roundsWonDist": [14, 17, 27, 9, 14],
+      "roundWinShare": {
+        "Keith": 80,
+        "Chris": 72,
+        "Max": 40,
+        "Jordan": 35
+      },
+      "pTitle%": 12.0,
+      "practiceWin%": 54,
+      "practicePlayed": 6.4,
+      "unspent": {
+        "power": 21,
+        "quickness": 32,
+        "technique": 11,
+        "mind": 2
+      },
+      "earned": {
+        "power": 285,
+        "quickness": 300,
+        "technique": 308,
+        "mind": 296
+      },
+      "earnedBySource": {
+        "training": 397,
+        "practice": 149,
+        "team": 98,
+        "story": 545
+      },
+      "slots": {
+        "train": 53.4,
+        "practice": 6.4,
+        "team": 4.4,
+        "story": 35.5,
+        "rest": 5.3
+      },
+      "storyEvents": 47.3,
+      "abilityLevels": 0.96,
+      "xpUnspent": 884,
+      "meanStats": {
+        "serve": 49.9,
+        "forehand": 33.1,
+        "backhand": 32.8,
+        "return": 32.1,
+        "net": 50.2,
+        "slice": 35.3,
+        "spin": 33.2,
+        "placement": 49.3,
+        "speed": 52.7,
+        "stamina": 37.0,
+        "strength": 36.0,
+        "focus": 35.3,
+        "anticipation": 48.7,
+        "tactics": 48.3
+      },
+      "lowestStat": 29.7,
+      "highestStat": 55.0
+    },
+    "skilled / baseliner": {
+      "n": 81,
+      "ovr": 46.6,
+      "ovrSd": 3.0,
+      "ovrMin": 39,
+      "ovrMax": 51,
+      "teamWinsMean": 3.09,
+      "teamWinsDist": [8, 4, 14, 14, 29, 12],
+      "teamByMatch": {
+        "15": 62,
+        "19": 65,
+        "23": 54,
+        "27": 68,
+        "31": 59
+      },
+      "champion%": 19.8,
+      "roundsWonDist": [5, 7, 21, 32, 16],
+      "roundWinShare": {
+        "Keith": 94,
+        "Chris": 89,
+        "Max": 68,
+        "Jordan": 42
+      },
+      "pTitle%": 26.8,
+      "practiceWin%": 63,
+      "practicePlayed": 6.1,
+      "unspent": {
+        "power": 2,
+        "quickness": 53,
+        "technique": 19,
+        "mind": 99
+      },
+      "earned": {
+        "power": 496,
+        "quickness": 306,
+        "technique": 578,
+        "mind": 344
+      },
+      "earnedBySource": {
+        "training": 596,
+        "practice": 156,
+        "team": 119,
+        "story": 852
+      },
+      "slots": {
+        "train": 53.7,
+        "practice": 6.1,
+        "team": 4.4,
+        "story": 35.9,
+        "rest": 5.0
+      },
+      "storyEvents": 47.6,
+      "abilityLevels": 1.88,
+      "xpUnspent": 879,
+      "meanStats": {
+        "serve": 36.4,
+        "forehand": 59.4,
+        "backhand": 61.0,
+        "return": 38.3,
+        "net": 38.8,
+        "slice": 63.1,
+        "spin": 59.6,
+        "placement": 38.8,
+        "speed": 36.8,
+        "stamina": 59.4,
+        "strength": 58.9,
+        "focus": 46.8,
+        "anticipation": 43.7,
+        "tactics": 39.5
+      },
+      "lowestStat": 32.9,
+      "highestStat": 66.2
+    },
+    "skilled / bigServer": {
+      "n": 81,
+      "ovr": 49.3,
+      "ovrSd": 3.1,
+      "ovrMin": 42,
+      "ovrMax": 54,
+      "teamWinsMean": 3.26,
+      "teamWinsDist": [5, 8, 9, 18, 21, 20],
+      "teamByMatch": {
+        "15": 70,
+        "19": 72,
+        "23": 52,
+        "27": 62,
+        "31": 70
+      },
+      "champion%": 39.5,
+      "roundsWonDist": [4, 10, 19, 16, 32],
+      "roundWinShare": {
+        "Keith": 95,
+        "Chris": 89,
+        "Max": 65,
+        "Jordan": 63
+      },
+      "pTitle%": 40.0,
+      "practiceWin%": 65,
+      "practicePlayed": 6.4,
+      "unspent": {
+        "power": 5,
+        "quickness": 120,
+        "technique": 20,
+        "mind": 33
+      },
+      "earned": {
+        "power": 569,
+        "quickness": 298,
+        "technique": 504,
+        "mind": 376
+      },
+      "earnedBySource": {
+        "training": 590,
+        "practice": 166,
+        "team": 124,
+        "story": 866
+      },
+      "slots": {
+        "train": 53.1,
+        "practice": 6.4,
+        "team": 4.6,
+        "story": 35.6,
+        "rest": 5.2
+      },
+      "storyEvents": 49.5,
+      "abilityLevels": 0,
+      "xpUnspent": 1048,
+      "meanStats": {
+        "serve": 59.2,
+        "forehand": 59.4,
+        "backhand": 39.3,
+        "return": 38.8,
+        "net": 40.2,
+        "slice": 40.0,
+        "spin": 58.5,
+        "placement": 62.2,
+        "speed": 39,
+        "stamina": 38.5,
+        "strength": 59.4,
+        "focus": 66.1,
+        "anticipation": 40.3,
+        "tactics": 37.4
+      },
+      "lowestStat": 33.8,
+      "highestStat": 68.9
+    },
+    "skilled / counter": {
+      "n": 81,
+      "ovr": 47.1,
+      "ovrSd": 2.9,
+      "ovrMin": 42,
+      "ovrMax": 53,
+      "teamWinsMean": 2.99,
+      "teamWinsDist": [7, 6, 16, 15, 26, 11],
+      "teamByMatch": {
+        "15": 60,
+        "19": 54,
+        "23": 62,
+        "27": 60,
+        "31": 62
+      },
+      "champion%": 21.0,
+      "roundsWonDist": [8, 8, 23, 25, 17],
+      "roundWinShare": {
+        "Keith": 93,
+        "Chris": 86,
+        "Max": 65,
+        "Jordan": 46
+      },
+      "pTitle%": 28.6,
+      "practiceWin%": 60,
+      "practicePlayed": 6.4,
+      "unspent": {
+        "power": 38,
+        "quickness": 3,
+        "technique": 97,
+        "mind": 17
+      },
+      "earned": {
+        "power": 328,
+        "quickness": 441,
+        "technique": 498,
+        "mind": 444
+      },
+      "earnedBySource": {
+        "training": 591,
+        "practice": 162,
+        "team": 114,
+        "story": 844
+      },
+      "slots": {
+        "train": 53.2,
+        "practice": 6.4,
+        "team": 4.3,
+        "story": 35.8,
+        "rest": 5.3
+      },
+      "storyEvents": 47.3,
+      "abilityLevels": 0.98,
+      "xpUnspent": 945,
+      "meanStats": {
+        "serve": 38.8,
+        "forehand": 38.9,
+        "backhand": 56.0,
+        "return": 56.3,
+        "net": 36.5,
+        "slice": 45.6,
+        "spin": 39.8,
+        "placement": 39.1,
+        "speed": 56.2,
+        "stamina": 56.3,
+        "strength": 40.5,
+        "focus": 39.3,
+        "anticipation": 55.5,
+        "tactics": 58.6
+      },
+      "lowestStat": 34,
+      "highestStat": 61.8
+    },
+    "skilled / netRusher": {
+      "n": 81,
+      "ovr": 48.8,
+      "ovrSd": 3.5,
+      "ovrMin": 38,
+      "ovrMax": 54,
+      "teamWinsMean": 3.09,
+      "teamWinsDist": [6, 12, 10, 14, 19, 20],
+      "teamByMatch": {
+        "15": 57,
+        "19": 67,
+        "23": 57,
+        "27": 57,
+        "31": 72
+      },
+      "champion%": 51.9,
+      "roundsWonDist": [4, 11, 9, 15, 42],
+      "roundWinShare": {
+        "Keith": 95,
+        "Chris": 91,
+        "Max": 75,
+        "Jordan": 71
+      },
+      "pTitle%": 51.0,
+      "practiceWin%": 62,
+      "practicePlayed": 6.5,
+      "unspent": {
+        "power": 23,
+        "quickness": 28,
+        "technique": 28,
+        "mind": 4
+      },
+      "earned": {
+        "power": 400,
+        "quickness": 415,
+        "technique": 471,
+        "mind": 452
+      },
+      "earnedBySource": {
+        "training": 593,
+        "practice": 169,
+        "team": 119,
+        "story": 858
+      },
+      "slots": {
+        "train": 53.3,
+        "practice": 6.5,
+        "team": 4.2,
+        "story": 36.0,
+        "rest": 5.0
+      },
+      "storyEvents": 46.2,
+      "abilityLevels": 0.99,
+      "xpUnspent": 968,
+      "meanStats": {
+        "serve": 59.0,
+        "forehand": 37.8,
+        "backhand": 37.8,
+        "return": 35.8,
+        "net": 60.8,
+        "slice": 41.1,
+        "spin": 37.6,
+        "placement": 58.5,
+        "speed": 61.6,
+        "stamina": 40.5,
+        "strength": 40.1,
+        "focus": 38.2,
+        "anticipation": 57.5,
+        "tactics": 59.3
+      },
+      "lowestStat": 32.8,
+      "highestStat": 65.7
+    }
+  },
+  "sweep:SPEND": {
+    "affordable": {
+      "n": 432,
+      "ovr": 46.5,
+      "ovrSd": 3.7,
+      "ovrMin": 37,
+      "ovrMax": 54,
+      "teamWinsMean": 2.84,
+      "teamWinsDist": [40, 57, 66, 100, 108, 61],
+      "teamByMatch": {
+        "15": 56,
+        "19": 58,
+        "23": 50,
+        "27": 58,
+        "31": 61
+      },
+      "champion%": 31.9,
+      "roundsWonDist": [34, 57, 93, 110, 138],
+      "roundWinShare": {
+        "Keith": 92,
+        "Chris": 86,
+        "Max": 61,
+        "Jordan": 48
+      },
+      "pTitle%": 29.2,
+      "practiceWin%": 59,
+      "practicePlayed": 6.4,
+      "unspent": {
+        "power": 1,
+        "quickness": 28,
+        "technique": 0,
+        "mind": 1
+      },
+      "earned": {
+        "power": 382,
+        "quickness": 321,
+        "technique": 424,
+        "mind": 341
+      },
+      "earnedBySource": {
+        "training": 495,
+        "practice": 158,
+        "team": 114,
+        "story": 701
+      },
+      "slots": {
+        "train": 53.2,
+        "practice": 6.4,
+        "team": 4.4,
+        "story": 36.0,
+        "rest": 5.0
+      },
+      "storyEvents": 48.2,
+      "abilityLevels": 0.89,
+      "xpUnspent": 943,
+      "meanStats": {
+        "serve": 45.6,
+        "forehand": 46.3,
+        "backhand": 46.7,
+        "return": 41.1,
+        "net": 43.7,
+        "slice": 47.6,
+        "spin": 46.5,
+        "placement": 47.1,
+        "speed": 47.5,
+        "stamina": 47.9,
+        "strength": 48.0,
+        "focus": 49.5,
+        "anticipation": 48.4,
+        "tactics": 45.4
+      },
+      "lowestStat": 33.3,
+      "highestStat": 62.2
+    },
+    "impatient": {
+      "n": 432,
+      "ovr": 42.5,
+      "ovrSd": 3.5,
+      "ovrMin": 34,
+      "ovrMax": 53,
+      "teamWinsMean": 2.25,
+      "teamWinsDist": [55, 75, 120, 91, 71, 20],
+      "teamByMatch": {
+        "15": 50,
+        "19": 52,
+        "23": 38,
+        "27": 40,
+        "31": 45
+      },
+      "champion%": 11.3,
+      "roundsWonDist": [88, 106, 127, 62, 49],
+      "roundWinShare": {
+        "Keith": 81,
+        "Chris": 69,
+        "Max": 38,
+        "Jordan": 30
+      },
+      "pTitle%": 10.5,
+      "practiceWin%": 54,
+      "practicePlayed": 6.3,
+      "unspent": {
+        "power": 32,
+        "quickness": 74,
+        "technique": 53,
+        "mind": 56
+      },
+      "earned": {
+        "power": 370,
+        "quickness": 318,
+        "technique": 410,
+        "mind": 323
+      },
+      "earnedBySource": {
+        "training": 492,
+        "practice": 147,
+        "team": 98,
+        "story": 683
+      },
+      "slots": {
+        "train": 52.9,
+        "practice": 6.3,
+        "team": 4.5,
+        "story": 35.9,
+        "rest": 5.4
+      },
+      "storyEvents": 48.3,
+      "abilityLevels": 0.98,
+      "xpUnspent": 880,
+      "meanStats": {
+        "serve": 43.6,
+        "forehand": 43.7,
+        "backhand": 44.2,
+        "return": 38.3,
+        "net": 38.9,
+        "slice": 38.9,
+        "spin": 43.7,
+        "placement": 44.0,
+        "speed": 43.6,
+        "stamina": 43.6,
+        "strength": 43.9,
+        "focus": 39.4,
+        "anticipation": 43.2,
+        "tactics": 43.6
+      },
+      "lowestStat": 30.1,
+      "highestStat": 58.2
+    },
+    "patient": {
+      "n": 432,
+      "ovr": 44.8,
+      "ovrSd": 3.5,
+      "ovrMin": 36,
+      "ovrMax": 54,
+      "teamWinsMean": 2.57,
+      "teamWinsDist": [35, 77, 96, 98, 82, 44],
+      "teamByMatch": {
+        "15": 49,
+        "19": 59,
+        "23": 45,
+        "27": 51,
+        "31": 53
+      },
+      "champion%": 18.3,
+      "roundsWonDist": [49, 69, 133, 102, 79],
+      "roundWinShare": {
+        "Keith": 89,
+        "Chris": 79,
+        "Max": 51,
+        "Jordan": 40
+      },
+      "pTitle%": 19.7,
+      "practiceWin%": 58,
+      "practicePlayed": 6.3,
+      "unspent": {
+        "power": 9,
+        "quickness": 53,
+        "technique": 26,
+        "mind": 27
+      },
+      "earned": {
+        "power": 381,
+        "quickness": 319,
+        "technique": 416,
+        "mind": 333
+      },
+      "earnedBySource": {
+        "training": 497,
+        "practice": 152,
+        "team": 108,
+        "story": 693
+      },
+      "slots": {
+        "train": 53.3,
+        "practice": 6.3,
+        "team": 4.5,
+        "story": 35.7,
+        "rest": 5.2
+      },
+      "storyEvents": 48.0,
+      "abilityLevels": 0.96,
+      "xpUnspent": 913,
+      "meanStats": {
+        "serve": 45.4,
+        "forehand": 45.6,
+        "backhand": 44.9,
+        "return": 39.2,
+        "net": 40.4,
+        "slice": 43.6,
+        "spin": 46.1,
+        "placement": 46.0,
+        "speed": 45.5,
+        "stamina": 46.3,
+        "strength": 47.6,
+        "focus": 44.6,
+        "anticipation": 46.7,
+        "tactics": 45.2
+      },
+      "lowestStat": 31.6,
+      "highestStat": 60.1
+    }
+  },
+  "sweep:SPENDxidentity": {
+    "affordable / baseliner": {
+      "n": 108,
+      "ovr": 45.4,
+      "ovrSd": 3.5,
+      "ovrMin": 37,
+      "ovrMax": 51,
+      "teamWinsMean": 2.7,
+      "teamWinsDist": [14, 13, 17, 23, 29, 12],
+      "teamByMatch": {
+        "15": 51,
+        "19": 48,
+        "23": 51,
+        "27": 58,
+        "31": 62
+      },
+      "champion%": 27.8,
+      "roundsWonDist": [10, 8, 19, 41, 30],
+      "roundWinShare": {
+        "Keith": 92,
+        "Chris": 86,
+        "Max": 63,
+        "Jordan": 39
+      },
+      "pTitle%": 24.4,
+      "practiceWin%": 59,
+      "practicePlayed": 6.2,
+      "unspent": {
+        "power": 0,
+        "quickness": 27,
+        "technique": 0,
+        "mind": 1
+      },
+      "earned": {
+        "power": 416,
+        "quickness": 270,
+        "technique": 476,
+        "mind": 290
+      },
+      "earnedBySource": {
+        "training": 498,
+        "practice": 153,
+        "team": 111,
+        "story": 689
+      },
+      "slots": {
+        "train": 53.5,
+        "practice": 6.2,
+        "team": 4.4,
+        "story": 36.1,
+        "rest": 4.8
+      },
+      "storyEvents": 48.0,
+      "abilityLevels": 1.67,
+      "xpUnspent": 871,
+      "meanStats": {
+        "serve": 34.6,
+        "forehand": 54.9,
+        "backhand": 57.4,
+        "return": 37.1,
+        "net": 38.3,
+        "slice": 57.9,
+        "spin": 55.3,
+        "placement": 36.8,
+        "speed": 37.2,
+        "stamina": 55.1,
+        "strength": 54.3,
+        "focus": 53.9,
+        "anticipation": 49.1,
+        "tactics": 37.4
+      },
+      "lowestStat": 32.6,
+      "highestStat": 61.9
+    },
+    "affordable / bigServer": {
+      "n": 108,
+      "ovr": 47.0,
+      "ovrSd": 3.9,
+      "ovrMin": 38,
+      "ovrMax": 54,
+      "teamWinsMean": 2.81,
+      "teamWinsDist": [10, 16, 18, 21, 27, 16],
+      "teamByMatch": {
+        "15": 58,
+        "19": 66,
+        "23": 48,
+        "27": 53,
+        "31": 56
+      },
+      "champion%": 33.3,
+      "roundsWonDist": [10, 19, 22, 21, 36],
+      "roundWinShare": {
+        "Keith": 90,
+        "Chris": 81,
+        "Max": 53,
+        "Jordan": 50
+      },
+      "pTitle%": 26.6,
+      "practiceWin%": 59,
+      "practicePlayed": 6.6,
+      "unspent": {
+        "power": 0,
+        "quickness": 80,
+        "technique": 0,
+        "mind": 1
+      },
+      "earned": {
+        "power": 475,
+        "quickness": 262,
+        "technique": 414,
+        "mind": 312
+      },
+      "earnedBySource": {
+        "training": 488,
+        "practice": 162,
+        "team": 112,
+        "story": 701
+      },
+      "slots": {
+        "train": 52.5,
+        "practice": 6.6,
+        "team": 4.6,
+        "story": 36.1,
+        "rest": 5.2
+      },
+      "storyEvents": 49.0,
+      "abilityLevels": 0,
+      "xpUnspent": 1012,
+      "meanStats": {
+        "serve": 53.5,
+        "forehand": 54.1,
+        "backhand": 38.6,
+        "return": 38.2,
+        "net": 39.1,
+        "slice": 38.2,
+        "spin": 53.8,
+        "placement": 57.7,
+        "speed": 41,
+        "stamina": 41.0,
+        "strength": 55.3,
+        "focus": 63.5,
+        "anticipation": 38.8,
+        "tactics": 35.8
+      },
+      "lowestStat": 33.2,
+      "highestStat": 64.7
+    },
+    "affordable / counter": {
+      "n": 108,
+      "ovr": 46.4,
+      "ovrSd": 3.6,
+      "ovrMin": 38,
+      "ovrMax": 53,
+      "teamWinsMean": 2.86,
+      "teamWinsDist": [8, 15, 18, 24, 29, 14],
+      "teamByMatch": {
+        "15": 56,
+        "19": 60,
+        "23": 52,
+        "27": 60,
+        "31": 58
+      },
+      "champion%": 24.1,
+      "roundsWonDist": [6, 20, 28, 28, 26],
+      "roundWinShare": {
+        "Keith": 93,
+        "Chris": 85,
+        "Max": 60,
+        "Jordan": 44
+      },
+      "pTitle%": 27.0,
+      "practiceWin%": 58,
+      "practicePlayed": 6.5,
+      "unspent": {
+        "power": 1,
+        "quickness": 2,
+        "technique": 1,
+        "mind": 1
+      },
+      "earned": {
+        "power": 284,
+        "quickness": 391,
+        "technique": 408,
+        "mind": 384
+      },
+      "earnedBySource": {
+        "training": 493,
+        "practice": 161,
+        "team": 113,
+        "story": 700
+      },
+      "slots": {
+        "train": 53.0,
+        "practice": 6.5,
+        "team": 4.4,
+        "story": 36.0,
+        "rest": 5.1
+      },
+      "storyEvents": 47.8,
+      "abilityLevels": 0.92,
+      "xpUnspent": 945,
+      "meanStats": {
+        "serve": 38.6,
+        "forehand": 39.6,
+        "backhand": 53.5,
+        "return": 53.3,
+        "net": 38.3,
+        "slice": 52.5,
+        "spin": 40.3,
+        "placement": 39.5,
+        "speed": 52.9,
+        "stamina": 53.8,
+        "strength": 41.5,
+        "focus": 41.6,
+        "anticipation": 52.1,
+        "tactics": 54.7
+      },
+      "lowestStat": 34.6,
+      "highestStat": 59.8
+    },
+    "affordable / netRusher": {
+      "n": 108,
+      "ovr": 47.1,
+      "ovrSd": 3.3,
+      "ovrMin": 38,
+      "ovrMax": 54,
+      "teamWinsMean": 2.98,
+      "teamWinsDist": [8, 13, 13, 32, 23, 19],
+      "teamByMatch": {
+        "15": 58,
+        "19": 59,
+        "23": 50,
+        "27": 62,
+        "31": 69
+      },
+      "champion%": 42.6,
+      "roundsWonDist": [8, 10, 24, 20, 46],
+      "roundWinShare": {
+        "Keith": 93,
+        "Chris": 89,
+        "Max": 68,
+        "Jordan": 61
+      },
+      "pTitle%": 39.0,
+      "practiceWin%": 62,
+      "practicePlayed": 6.2,
+      "unspent": {
+        "power": 1,
+        "quickness": 6,
+        "technique": 0,
+        "mind": 1
+      },
+      "earned": {
+        "power": 351,
+        "quickness": 361,
+        "technique": 400,
+        "mind": 379
+      },
+      "earnedBySource": {
+        "training": 500,
+        "practice": 158,
+        "team": 118,
+        "story": 714
+      },
+      "slots": {
+        "train": 53.7,
+        "practice": 6.2,
+        "team": 4.4,
+        "story": 35.9,
+        "rest": 4.8
+      },
+      "storyEvents": 47.8,
+      "abilityLevels": 0.96,
+      "xpUnspent": 943,
+      "meanStats": {
+        "serve": 55.8,
+        "forehand": 36.5,
+        "backhand": 37.2,
+        "return": 35.7,
+        "net": 59.0,
+        "slice": 41.9,
+        "spin": 36.6,
+        "placement": 54.4,
+        "speed": 58.9,
+        "stamina": 41.8,
+        "strength": 40.8,
+        "focus": 39,
+        "anticipation": 53.6,
+        "tactics": 53.9
+      },
+      "lowestStat": 32.8,
+      "highestStat": 62.3
+    },
+    "impatient / baseliner": {
+      "n": 108,
+      "ovr": 41.3,
+      "ovrSd": 3.0,
+      "ovrMin": 35,
+      "ovrMax": 50,
+      "teamWinsMean": 2.39,
+      "teamWinsDist": [12, 16, 32, 20, 22, 6],
+      "teamByMatch": {
+        "15": 62,
+        "19": 54,
+        "23": 34,
+        "27": 44,
+        "31": 45
+      },
+      "champion%": 8.3,
+      "roundsWonDist": [27, 21, 30, 21, 9],
+      "roundWinShare": {
+        "Keith": 80,
+        "Chris": 71,
+        "Max": 39,
+        "Jordan": 20
+      },
+      "pTitle%": 6.6,
+      "practiceWin%": 53,
+      "practicePlayed": 6.3,
+      "unspent": {
+        "power": 3,
+        "quickness": 82,
+        "technique": 31,
+        "mind": 137
+      },
+      "earned": {
+        "power": 412,
+        "quickness": 276,
+        "technique": 469,
+        "mind": 276
+      },
+      "earnedBySource": {
+        "training": 489,
+        "practice": 147,
+        "team": 102,
+        "story": 694
+      },
+      "slots": {
+        "train": 52.4,
+        "practice": 6.3,
+        "team": 4.6,
+        "story": 36.1,
+        "rest": 5.6
+      },
+      "storyEvents": 49.6,
+      "abilityLevels": 1.92,
+      "xpUnspent": 824,
+      "meanStats": {
+        "serve": 33.6,
+        "forehand": 54.2,
+        "backhand": 55.5,
+        "return": 34.5,
+        "net": 34.4,
+        "slice": 55.2,
+        "spin": 54.4,
+        "placement": 34.8,
+        "speed": 34.1,
+        "stamina": 54.5,
+        "strength": 53.9,
+        "focus": 34.6,
+        "anticipation": 34.7,
+        "tactics": 34.6
+      },
+      "lowestStat": 30.5,
+      "highestStat": 59.4
+    },
+    "impatient / bigServer": {
+      "n": 108,
+      "ovr": 43.3,
+      "ovrSd": 3.3,
+      "ovrMin": 36,
+      "ovrMax": 50,
+      "teamWinsMean": 2.03,
+      "teamWinsDist": [18, 21, 28, 25, 13, 3],
+      "teamByMatch": {
+        "15": 46,
+        "19": 51,
+        "23": 28,
+        "27": 36,
+        "31": 42
+      },
+      "champion%": 11.1,
+      "roundsWonDist": [19, 31, 32, 14, 12],
+      "roundWinShare": {
+        "Keith": 80,
+        "Chris": 64,
+        "Max": 32,
+        "Jordan": 34
+      },
+      "pTitle%": 9.2,
+      "practiceWin%": 56,
+      "practicePlayed": 6.1,
+      "unspent": {
+        "power": 12,
+        "quickness": 139,
+        "technique": 33,
+        "mind": 61
+      },
+      "earned": {
+        "power": 460,
+        "quickness": 259,
+        "technique": 397,
+        "mind": 290
+      },
+      "earnedBySource": {
+        "training": 493,
+        "practice": 141,
+        "team": 91,
+        "story": 683
+      },
+      "slots": {
+        "train": 52.7,
+        "practice": 6.1,
+        "team": 4.4,
+        "story": 36.6,
+        "rest": 5.2
+      },
+      "storyEvents": 48.7,
+      "abilityLevels": 0,
+      "xpUnspent": 919,
+      "meanStats": {
+        "serve": 53.5,
+        "forehand": 53.6,
+        "backhand": 34.1,
+        "return": 33.8,
+        "net": 34.4,
+        "slice": 33.5,
+        "spin": 53.7,
+        "placement": 54.1,
+        "speed": 34.0,
+        "stamina": 33.9,
+        "strength": 53.7,
+        "focus": 53.9,
+        "anticipation": 33.8,
+        "tactics": 33.7
+      },
+      "lowestStat": 30.1,
+      "highestStat": 58.5
+    },
+    "impatient / counter": {
+      "n": 108,
+      "ovr": 41.4,
+      "ovrSd": 2.8,
+      "ovrMin": 34,
+      "ovrMax": 48,
+      "teamWinsMean": 2.14,
+      "teamWinsDist": [13, 17, 42, 17, 16, 3],
+      "teamByMatch": {
+        "15": 51,
+        "19": 50,
+        "23": 42,
+        "27": 33,
+        "31": 38
+      },
+      "champion%": 5.6,
+      "roundsWonDist": [22, 31, 38, 11, 6],
+      "roundWinShare": {
+        "Keith": 80,
+        "Chris": 64,
+        "Max": 33,
+        "Jordan": 19
+      },
+      "pTitle%": 5.1,
+      "practiceWin%": 51,
+      "practicePlayed": 6.3,
+      "unspent": {
+        "power": 63,
+        "quickness": 10,
+        "technique": 111,
+        "mind": 22
+      },
+      "earned": {
+        "power": 269,
+        "quickness": 378,
+        "technique": 391,
+        "mind": 356
+      },
+      "earnedBySource": {
+        "training": 496,
+        "practice": 141,
+        "team": 95,
+        "story": 663
+      },
+      "slots": {
+        "train": 53.5,
+        "practice": 6.3,
+        "team": 4.4,
+        "story": 35.4,
+        "rest": 5.4
+      },
+      "storyEvents": 47.4,
+      "abilityLevels": 0.99,
+      "xpUnspent": 859,
+      "meanStats": {
+        "serve": 32.9,
+        "forehand": 33.1,
+        "backhand": 52.5,
+        "return": 51.4,
+        "net": 33.1,
+        "slice": 33.4,
+        "spin": 33.1,
+        "placement": 33.3,
+        "speed": 52.2,
+        "stamina": 51.8,
+        "strength": 34.0,
+        "focus": 34.4,
+        "anticipation": 51.0,
+        "tactics": 51.9
+      },
+      "lowestStat": 29.6,
+      "highestStat": 56.2
+    },
+    "impatient / netRusher": {
+      "n": 108,
+      "ovr": 43.9,
+      "ovrSd": 4.1,
+      "ovrMin": 35,
+      "ovrMax": 53,
+      "teamWinsMean": 2.44,
+      "teamWinsDist": [12, 21, 18, 29, 20, 8],
+      "teamByMatch": {
+        "15": 43,
+        "19": 52,
+        "23": 47,
+        "27": 47,
+        "31": 56
+      },
+      "champion%": 20.4,
+      "roundsWonDist": [20, 23, 27, 16, 22],
+      "roundWinShare": {
+        "Keith": 84,
+        "Chris": 76,
+        "Max": 48,
+        "Jordan": 45
+      },
+      "pTitle%": 21.2,
+      "practiceWin%": 56,
+      "practicePlayed": 6.6,
+      "unspent": {
+        "power": 52,
+        "quickness": 63,
+        "technique": 36,
+        "mind": 5
+      },
+      "earned": {
+        "power": 338,
+        "quickness": 359,
+        "technique": 381,
+        "mind": 370
+      },
+      "earnedBySource": {
+        "training": 492,
+        "practice": 159,
+        "team": 105,
+        "story": 693
+      },
+      "slots": {
+        "train": 53.2,
+        "practice": 6.6,
+        "team": 4.4,
+        "story": 35.5,
+        "rest": 5.3
+      },
+      "storyEvents": 47.7,
+      "abilityLevels": 1,
+      "xpUnspent": 918,
+      "meanStats": {
+        "serve": 54.1,
+        "forehand": 34.0,
+        "backhand": 34.7,
+        "return": 33.5,
+        "net": 53.6,
+        "slice": 33.5,
+        "spin": 33.8,
+        "placement": 53.8,
+        "speed": 54.1,
+        "stamina": 34.1,
+        "strength": 34.0,
+        "focus": 34.5,
+        "anticipation": 53.2,
+        "tactics": 54.2
+      },
+      "lowestStat": 30.1,
+      "highestStat": 58.6
+    },
+    "patient / baseliner": {
+      "n": 108,
+      "ovr": 43.3,
+      "ovrSd": 3.1,
+      "ovrMin": 37,
+      "ovrMax": 51,
+      "teamWinsMean": 2.64,
+      "teamWinsDist": [5, 15, 30, 29, 22, 7],
+      "teamByMatch": {
+        "15": 55,
+        "19": 67,
+        "23": 47,
+        "27": 47,
+        "31": 48
+      },
+      "champion%": 6.5,
+      "roundsWonDist": [15, 13, 43, 30, 7],
+      "roundWinShare": {
+        "Keith": 87,
+        "Chris": 78,
+        "Max": 51,
+        "Jordan": 27
+      },
+      "pTitle%": 12.4,
+      "practiceWin%": 58,
+      "practicePlayed": 6.3,
+      "unspent": {
+        "power": 2,
+        "quickness": 62,
+        "technique": 9,
+        "mind": 86
+      },
+      "earned": {
+        "power": 415,
+        "quickness": 276,
+        "technique": 472,
+        "mind": 283
+      },
+      "earnedBySource": {
+        "training": 500,
+        "practice": 154,
+        "team": 109,
+        "story": 683
+      },
+      "slots": {
+        "train": 53.6,
+        "practice": 6.3,
+        "team": 4.5,
+        "story": 35.4,
+        "rest": 5.2
+      },
+      "storyEvents": 47.4,
+      "abilityLevels": 1.85,
+      "xpUnspent": 857,
+      "meanStats": {
+        "serve": 34.2,
+        "forehand": 53.9,
+        "backhand": 56.4,
+        "return": 36.2,
+        "net": 36.7,
+        "slice": 57.1,
+        "spin": 55.5,
+        "placement": 36.8,
+        "speed": 34.5,
+        "stamina": 54.8,
+        "strength": 54.4,
+        "focus": 42.1,
+        "anticipation": 41.7,
+        "tactics": 37.5
+      },
+      "lowestStat": 31.4,
+      "highestStat": 60.8
+    },
+    "patient / bigServer": {
+      "n": 108,
+      "ovr": 46.0,
+      "ovrSd": 3.7,
+      "ovrMin": 36,
+      "ovrMax": 54,
+      "teamWinsMean": 2.55,
+      "teamWinsDist": [12, 20, 18, 27, 17, 14],
+      "teamByMatch": {
+        "15": 54,
+        "19": 59,
+        "23": 43,
+        "27": 49,
+        "31": 50
+      },
+      "champion%": 19.4,
+      "roundsWonDist": [9, 29, 31, 18, 21],
+      "roundWinShare": {
+        "Keith": 89,
+        "Chris": 78,
+        "Max": 46,
+        "Jordan": 46
+      },
+      "pTitle%": 21.3,
+      "practiceWin%": 59,
+      "practicePlayed": 6.4,
+      "unspent": {
+        "power": 5,
+        "quickness": 110,
+        "technique": 9,
+        "mind": 13
+      },
+      "earned": {
+        "power": 477,
+        "quickness": 264,
+        "technique": 412,
+        "mind": 312
+      },
+      "earnedBySource": {
+        "training": 492,
+        "practice": 153,
+        "team": 108,
+        "story": 713
+      },
+      "slots": {
+        "train": 52.8,
+        "practice": 6.4,
+        "team": 4.7,
+        "story": 36.0,
+        "rest": 5.2
+      },
+      "storyEvents": 49.6,
+      "abilityLevels": 0,
+      "xpUnspent": 985,
+      "meanStats": {
+        "serve": 54.2,
+        "forehand": 54.5,
+        "backhand": 37.2,
+        "return": 35.9,
+        "net": 37.8,
+        "slice": 36.8,
+        "spin": 54.3,
+        "placement": 56.5,
+        "speed": 37.1,
+        "stamina": 36.9,
+        "strength": 55.4,
+        "focus": 61.5,
+        "anticipation": 39.8,
+        "tactics": 35.7
+      },
+      "lowestStat": 31.6,
+      "highestStat": 62.7
+    },
+    "patient / counter": {
+      "n": 108,
+      "ovr": 44.8,
+      "ovrSd": 2.8,
+      "ovrMin": 36,
+      "ovrMax": 51,
+      "teamWinsMean": 2.51,
+      "teamWinsDist": [9, 18, 27, 25, 21, 8],
+      "teamByMatch": {
+        "15": 47,
+        "19": 56,
+        "23": 44,
+        "27": 52,
+        "31": 53
+      },
+      "champion%": 10.2,
+      "roundsWonDist": [13, 16, 33, 35, 11],
+      "roundWinShare": {
+        "Keith": 89,
+        "Chris": 78,
+        "Max": 50,
+        "Jordan": 36
+      },
+      "pTitle%": 15.7,
+      "practiceWin%": 55,
+      "practicePlayed": 6.3,
+      "unspent": {
+        "power": 22,
+        "quickness": 6,
+        "technique": 68,
+        "mind": 8
+      },
+      "earned": {
+        "power": 290,
+        "quickness": 383,
+        "technique": 405,
+        "mind": 378
+      },
+      "earnedBySource": {
+        "training": 490,
+        "practice": 149,
+        "team": 107,
+        "story": 710
+      },
+      "slots": {
+        "train": 52.8,
+        "practice": 6.3,
+        "team": 4.6,
+        "story": 36.0,
+        "rest": 5.3
+      },
+      "storyEvents": 49.6,
+      "abilityLevels": 0.99,
+      "xpUnspent": 901,
+      "meanStats": {
+        "serve": 38.4,
+        "forehand": 38.1,
+        "backhand": 52.3,
+        "return": 51.6,
+        "net": 33.8,
+        "slice": 41.4,
+        "spin": 38.5,
+        "placement": 38.2,
+        "speed": 52.8,
+        "stamina": 53.2,
+        "strength": 40.3,
+        "focus": 38.4,
+        "anticipation": 52.5,
+        "tactics": 54.5
+      },
+      "lowestStat": 32.5,
+      "highestStat": 57.7
+    },
+    "patient / netRusher": {
+      "n": 108,
+      "ovr": 45.3,
+      "ovrSd": 3.8,
+      "ovrMin": 36,
+      "ovrMax": 53,
+      "teamWinsMean": 2.59,
+      "teamWinsDist": [9, 24, 21, 17, 22, 15],
+      "teamByMatch": {
+        "15": 41,
+        "19": 55,
+        "23": 47,
+        "27": 56,
+        "31": 61
+      },
+      "champion%": 37.0,
+      "roundsWonDist": [12, 11, 26, 19, 40],
+      "roundWinShare": {
+        "Keith": 89,
+        "Chris": 82,
+        "Max": 58,
+        "Jordan": 53
+      },
+      "pTitle%": 29.5,
+      "practiceWin%": 60,
+      "practicePlayed": 6.2,
+      "unspent": {
+        "power": 8,
+        "quickness": 34,
+        "technique": 20,
+        "mind": 2
+      },
+      "earned": {
+        "power": 343,
+        "quickness": 354,
+        "technique": 376,
+        "mind": 358
+      },
+      "earnedBySource": {
+        "training": 504,
+        "practice": 154,
+        "team": 107,
+        "story": 665
+      },
+      "slots": {
+        "train": 54.2,
+        "practice": 6.2,
+        "team": 4.3,
+        "story": 35.3,
+        "rest": 4.9
+      },
+      "storyEvents": 45.4,
+      "abilityLevels": 0.98,
+      "xpUnspent": 911,
+      "meanStats": {
+        "serve": 54.9,
+        "forehand": 35.9,
+        "backhand": 33.9,
+        "return": 32.9,
+        "net": 53.4,
+        "slice": 39.2,
+        "spin": 36.3,
+        "placement": 52.4,
+        "speed": 57.5,
+        "stamina": 40.1,
+        "strength": 40.2,
+        "focus": 36.1,
+        "anticipation": 52.6,
+        "tactics": 52.9
+      },
+      "lowestStat": 31.0,
+      "highestStat": 59.4
+    }
+  },
+  "sweep:ADAPT": {
+    "0.4": {
+      "n": 432,
+      "ovr": 44.3,
+      "ovrSd": 4.1,
+      "ovrMin": 34,
+      "ovrMax": 53,
+      "teamWinsMean": 2.47,
+      "teamWinsDist": [43, 74, 104, 96, 78, 37],
+      "teamByMatch": {
+        "15": 52,
+        "19": 54,
+        "23": 44,
+        "27": 47,
+        "31": 51
+      },
+      "champion%": 21.3,
+      "roundsWonDist": [63, 75, 116, 86, 92],
+      "roundWinShare": {
+        "Keith": 86,
+        "Chris": 77,
+        "Max": 49,
+        "Jordan": 38
+      },
+      "pTitle%": 19.1,
+      "practiceWin%": 56,
+      "practicePlayed": 6.3,
+      "unspent": {
+        "power": 15,
+        "quickness": 61,
+        "technique": 32,
+        "mind": 27
+      },
+      "earned": {
+        "power": 375,
+        "quickness": 329,
+        "technique": 418,
+        "mind": 322
+      },
+      "earnedBySource": {
+        "training": 496,
+        "practice": 150,
+        "team": 105,
+        "story": 693
+      },
+      "slots": {
+        "train": 53.2,
+        "practice": 6.3,
+        "team": 4.5,
+        "story": 35.9,
+        "rest": 5.2
+      },
+      "storyEvents": 47.8,
+      "abilityLevels": 0.93,
+      "xpUnspent": 902,
+      "meanStats": {
+        "serve": 44.4,
+        "forehand": 44.9,
+        "backhand": 45.4,
+        "return": 39.2,
+        "net": 41.0,
+        "slice": 43.5,
+        "spin": 45.1,
+        "placement": 45.2,
+        "speed": 46.0,
+        "stamina": 45.9,
+        "strength": 46.4,
+        "focus": 43.6,
+        "anticipation": 45.4,
+        "tactics": 44.4
+      },
+      "lowestStat": 31.6,
+      "highestStat": 60.2
+    },
+    "0.7": {
+      "n": 432,
+      "ovr": 44.8,
+      "ovrSd": 4.0,
+      "ovrMin": 35,
+      "ovrMax": 54,
+      "teamWinsMean": 2.64,
+      "teamWinsDist": [43, 60, 92, 94, 101, 42],
+      "teamByMatch": {
+        "15": 55,
+        "19": 56,
+        "23": 45,
+        "27": 52,
+        "31": 55
+      },
+      "champion%": 21.3,
+      "roundsWonDist": [43, 76, 118, 103, 92],
+      "roundWinShare": {
+        "Keith": 88,
+        "Chris": 78,
+        "Max": 51,
+        "Jordan": 40
+      },
+      "pTitle%": 20.7,
+      "practiceWin%": 58,
+      "practicePlayed": 6.4,
+      "unspent": {
+        "power": 15,
+        "quickness": 50,
+        "technique": 25,
+        "mind": 27
+      },
+      "earned": {
+        "power": 380,
+        "quickness": 319,
+        "technique": 420,
+        "mind": 338
+      },
+      "earnedBySource": {
+        "training": 493,
+        "practice": 155,
+        "team": 109,
+        "story": 700
+      },
+      "slots": {
+        "train": 53.0,
+        "practice": 6.4,
+        "team": 4.5,
+        "story": 35.9,
+        "rest": 5.3
+      },
+      "storyEvents": 48.7,
+      "abilityLevels": 0.95,
+      "xpUnspent": 922,
+      "meanStats": {
+        "serve": 45.1,
+        "forehand": 45.5,
+        "backhand": 45.3,
+        "return": 39.9,
+        "net": 41.0,
+        "slice": 43.6,
+        "spin": 45.7,
+        "placement": 46.2,
+        "speed": 45.3,
+        "stamina": 46.0,
+        "strength": 46.5,
+        "focus": 45.0,
+        "anticipation": 46.5,
+        "tactics": 45.0
+      },
+      "lowestStat": 31.8,
+      "highestStat": 60.4
+    },
+    "1.0": {
+      "n": 432,
+      "ovr": 44.6,
+      "ovrSd": 3.8,
+      "ovrMin": 35,
+      "ovrMax": 54,
+      "teamWinsMean": 2.55,
+      "teamWinsDist": [44, 75, 86, 99, 82, 46],
+      "teamByMatch": {
+        "15": 48,
+        "19": 59,
+        "23": 44,
+        "27": 50,
+        "31": 53
+      },
+      "champion%": 19.0,
+      "roundsWonDist": [65, 81, 119, 85, 82],
+      "roundWinShare": {
+        "Keith": 88,
+        "Chris": 78,
+        "Max": 50,
+        "Jordan": 40
+      },
+      "pTitle%": 19.8,
+      "practiceWin%": 58,
+      "practicePlayed": 6.3,
+      "unspent": {
+        "power": 13,
+        "quickness": 45,
+        "technique": 23,
+        "mind": 30
+      },
+      "earned": {
+        "power": 378,
+        "quickness": 311,
+        "technique": 411,
+        "mind": 337
+      },
+      "earnedBySource": {
+        "training": 494,
+        "practice": 153,
+        "team": 106,
+        "story": 684
+      },
+      "slots": {
+        "train": 53.3,
+        "practice": 6.3,
+        "team": 4.5,
+        "story": 35.9,
+        "rest": 5.1
+      },
+      "storyEvents": 48.1,
+      "abilityLevels": 0.93,
+      "xpUnspent": 912,
+      "meanStats": {
+        "serve": 45.1,
+        "forehand": 45.2,
+        "backhand": 45.2,
+        "return": 39.5,
+        "net": 41.0,
+        "slice": 43.0,
+        "spin": 45.6,
+        "placement": 45.7,
+        "speed": 45.3,
+        "stamina": 45.9,
+        "strength": 46.6,
+        "focus": 44.8,
+        "anticipation": 46.3,
+        "tactics": 44.8
+      },
+      "lowestStat": 31.6,
+      "highestStat": 59.9
+    }
+  },
+  "sweep:ADAPTxidentity": {
+    "0.4 / baseliner": {
+      "n": 108,
+      "ovr": 43.1,
+      "ovrSd": 3.5,
+      "ovrMin": 35,
+      "ovrMax": 51,
+      "teamWinsMean": 2.51,
+      "teamWinsDist": [9, 15, 30, 29, 16, 9],
+      "teamByMatch": {
+        "15": 55,
+        "19": 61,
+        "23": 41,
+        "27": 48,
+        "31": 46
+      },
+      "champion%": 11.1,
+      "roundsWonDist": [18, 15, 29, 34, 12],
+      "roundWinShare": {
+        "Keith": 86,
+        "Chris": 77,
+        "Max": 51,
+        "Jordan": 27
+      },
+      "pTitle%": 13.2,
+      "practiceWin%": 56,
+      "practicePlayed": 6.1,
+      "unspent": {
+        "power": 1,
+        "quickness": 65,
+        "technique": 22,
+        "mind": 75
+      },
+      "earned": {
+        "power": 404,
+        "quickness": 279,
+        "technique": 486,
+        "mind": 278
+      },
+      "earnedBySource": {
+        "training": 498,
+        "practice": 146,
+        "team": 106,
+        "story": 697
+      },
+      "slots": {
+        "train": 53.2,
+        "practice": 6.1,
+        "team": 4.5,
+        "story": 35.9,
+        "rest": 5.3
+      },
+      "storyEvents": 48.3,
+      "abilityLevels": 1.8,
+      "xpUnspent": 836,
+      "meanStats": {
+        "serve": 33.9,
+        "forehand": 53.4,
+        "backhand": 57.1,
+        "return": 36.1,
+        "net": 37.1,
+        "slice": 57.7,
+        "spin": 54.4,
+        "placement": 36.4,
+        "speed": 34.7,
+        "stamina": 53.7,
+        "strength": 54.1,
+        "focus": 42.8,
+        "anticipation": 41.2,
+        "tactics": 36.6
+      },
+      "lowestStat": 31.6,
+      "highestStat": 60.7
+    },
+    "0.4 / bigServer": {
+      "n": 108,
+      "ovr": 45.1,
+      "ovrSd": 4.1,
+      "ovrMin": 36,
+      "ovrMax": 53,
+      "teamWinsMean": 2.43,
+      "teamWinsDist": [12, 22, 22, 21, 22, 9],
+      "teamByMatch": {
+        "15": 56,
+        "19": 56,
+        "23": 39,
+        "27": 45,
+        "31": 45
+      },
+      "champion%": 25.0,
+      "roundsWonDist": [11, 24, 33, 13, 27],
+      "roundWinShare": {
+        "Keith": 86,
+        "Chris": 73,
+        "Max": 43,
+        "Jordan": 41
+      },
+      "pTitle%": 17.8,
+      "practiceWin%": 58,
+      "practicePlayed": 6.2,
+      "unspent": {
+        "power": 11,
+        "quickness": 113,
+        "technique": 13,
+        "mind": 23
+      },
+      "earned": {
+        "power": 477,
+        "quickness": 267,
+        "technique": 394,
+        "mind": 291
+      },
+      "earnedBySource": {
+        "training": 492,
+        "practice": 149,
+        "team": 102,
+        "story": 687
+      },
+      "slots": {
+        "train": 52.7,
+        "practice": 6.2,
+        "team": 4.5,
+        "story": 36.4,
+        "rest": 5.1
+      },
+      "storyEvents": 48.3,
+      "abilityLevels": 0,
+      "xpUnspent": 962,
+      "meanStats": {
+        "serve": 53.2,
+        "forehand": 54.0,
+        "backhand": 35.9,
+        "return": 35.6,
+        "net": 36.3,
+        "slice": 36.0,
+        "spin": 53.6,
+        "placement": 54.8,
+        "speed": 38.6,
+        "stamina": 37.9,
+        "strength": 55.2,
+        "focus": 58.8,
+        "anticipation": 36.6,
+        "tactics": 34.9
+      },
+      "lowestStat": 31.5,
+      "highestStat": 61.5
+    },
+    "0.4 / counter": {
+      "n": 108,
+      "ovr": 43.8,
+      "ovrSd": 4.3,
+      "ovrMin": 34,
+      "ovrMax": 52,
+      "teamWinsMean": 2.28,
+      "teamWinsDist": [13, 17, 35, 19, 18, 6],
+      "teamByMatch": {
+        "15": 46,
+        "19": 42,
+        "23": 44,
+        "27": 49,
+        "31": 46
+      },
+      "champion%": 14.8,
+      "roundsWonDist": [16, 19, 32, 25, 16],
+      "roundWinShare": {
+        "Keith": 85,
+        "Chris": 74,
+        "Max": 47,
+        "Jordan": 32
+      },
+      "pTitle%": 16.8,
+      "practiceWin%": 54,
+      "practicePlayed": 6.4,
+      "unspent": {
+        "power": 23,
+        "quickness": 11,
+        "technique": 68,
+        "mind": 8
+      },
+      "earned": {
+        "power": 270,
+        "quickness": 388,
+        "technique": 408,
+        "mind": 360
+      },
+      "earnedBySource": {
+        "training": 500,
+        "practice": 149,
+        "team": 99,
+        "story": 677
+      },
+      "slots": {
+        "train": 53.8,
+        "practice": 6.4,
+        "team": 4.4,
+        "story": 35.2,
+        "rest": 5.3
+      },
+      "storyEvents": 46.6,
+      "abilityLevels": 0.98,
+      "xpUnspent": 885,
+      "meanStats": {
+        "serve": 35.8,
+        "forehand": 36.3,
+        "backhand": 53.1,
+        "return": 51.3,
+        "net": 35.5,
+        "slice": 42.3,
+        "spin": 36.9,
+        "placement": 36.4,
+        "speed": 52.9,
+        "stamina": 53.0,
+        "strength": 37.9,
+        "focus": 37.1,
+        "anticipation": 51.2,
+        "tactics": 53.2
+      },
+      "lowestStat": 32.0,
+      "highestStat": 58.0
+    },
+    "0.4 / netRusher": {
+      "n": 108,
+      "ovr": 45.3,
+      "ovrSd": 3.9,
+      "ovrMin": 38,
+      "ovrMax": 53,
+      "teamWinsMean": 2.67,
+      "teamWinsDist": [9, 20, 17, 27, 22, 13],
+      "teamByMatch": {
+        "15": 52,
+        "19": 56,
+        "23": 50,
+        "27": 44,
+        "31": 65
+      },
+      "champion%": 34.3,
+      "roundsWonDist": [18, 17, 22, 14, 37],
+      "roundWinShare": {
+        "Keith": 88,
+        "Chris": 82,
+        "Max": 57,
+        "Jordan": 51
+      },
+      "pTitle%": 28.4,
+      "practiceWin%": 56,
+      "practicePlayed": 6.4,
+      "unspent": {
+        "power": 24,
+        "quickness": 53,
+        "technique": 25,
+        "mind": 2
+      },
+      "earned": {
+        "power": 347,
+        "quickness": 381,
+        "technique": 386,
+        "mind": 357
+      },
+      "earnedBySource": {
+        "training": 495,
+        "practice": 155,
+        "team": 111,
+        "story": 710
+      },
+      "slots": {
+        "train": 53.1,
+        "practice": 6.4,
+        "team": 4.4,
+        "story": 36.1,
+        "rest": 5.0
+      },
+      "storyEvents": 47.9,
+      "abilityLevels": 0.95,
+      "xpUnspent": 924,
+      "meanStats": {
+        "serve": 54.5,
+        "forehand": 35.8,
+        "backhand": 35.4,
+        "return": 34.0,
+        "net": 54.9,
+        "slice": 38.1,
+        "spin": 35.6,
+        "placement": 53.0,
+        "speed": 57.7,
+        "stamina": 38.9,
+        "strength": 38.2,
+        "focus": 35.6,
+        "anticipation": 52.7,
+        "tactics": 52.7
+      },
+      "lowestStat": 31.4,
+      "highestStat": 60.7
+    },
+    "0.7 / baseliner": {
+      "n": 108,
+      "ovr": 43.8,
+      "ovrSd": 3.9,
+      "ovrMin": 37,
+      "ovrMax": 51,
+      "teamWinsMean": 2.75,
+      "teamWinsDist": [10, 8, 30, 20, 31, 9],
+      "teamByMatch": {
+        "15": 62,
+        "19": 59,
+        "23": 45,
+        "27": 51,
+        "31": 57
+      },
+      "champion%": 16.7,
+      "roundsWonDist": [13, 11, 28, 38, 18],
+      "roundWinShare": {
+        "Keith": 87,
+        "Chris": 80,
+        "Max": 52,
+        "Jordan": 30
+      },
+      "pTitle%": 16.7,
+      "practiceWin%": 60,
+      "practicePlayed": 6.4,
+      "unspent": {
+        "power": 2,
+        "quickness": 53,
+        "technique": 11,
+        "mind": 74
+      },
+      "earned": {
+        "power": 420,
+        "quickness": 275,
+        "technique": 478,
+        "mind": 292
+      },
+      "earnedBySource": {
+        "training": 498,
+        "practice": 158,
+        "team": 112,
+        "story": 697
+      },
+      "slots": {
+        "train": 53.3,
+        "practice": 6.4,
+        "team": 4.6,
+        "story": 35.4,
+        "rest": 5.2
+      },
+      "storyEvents": 48.5,
+      "abilityLevels": 1.85,
+      "xpUnspent": 874,
+      "meanStats": {
+        "serve": 34.6,
+        "forehand": 55.1,
+        "backhand": 56.5,
+        "return": 36.4,
+        "net": 36.5,
+        "slice": 57.0,
+        "spin": 55.4,
+        "placement": 36.8,
+        "speed": 35.6,
+        "stamina": 55.2,
+        "strength": 54.0,
+        "focus": 44.3,
+        "anticipation": 42.7,
+        "tactics": 37.1
+      },
+      "lowestStat": 31.7,
+      "highestStat": 61.2
+    },
+    "0.7 / bigServer": {
+      "n": 108,
+      "ovr": 45.7,
+      "ovrSd": 4.0,
+      "ovrMin": 38,
+      "ovrMax": 54,
+      "teamWinsMean": 2.55,
+      "teamWinsDist": [14, 16, 22, 22, 21, 13],
+      "teamByMatch": {
+        "15": 56,
+        "19": 60,
+        "23": 42,
+        "27": 48,
+        "31": 49
+      },
+      "champion%": 21.3,
+      "roundsWonDist": [12, 27, 26, 20, 23],
+      "roundWinShare": {
+        "Keith": 87,
+        "Chris": 74,
+        "Max": 44,
+        "Jordan": 46
+      },
+      "pTitle%": 20.3,
+      "practiceWin%": 57,
+      "practicePlayed": 6.6,
+      "unspent": {
+        "power": 4,
+        "quickness": 108,
+        "technique": 13,
+        "mind": 24
+      },
+      "earned": {
+        "power": 470,
+        "quickness": 262,
+        "technique": 412,
+        "mind": 312
+      },
+      "earnedBySource": {
+        "training": 487,
+        "practice": 155,
+        "team": 104,
+        "story": 709
+      },
+      "slots": {
+        "train": 52.2,
+        "practice": 6.6,
+        "team": 4.5,
+        "story": 36.4,
+        "rest": 5.3
+      },
+      "storyEvents": 49.8,
+      "abilityLevels": 0,
+      "xpUnspent": 984,
+      "meanStats": {
+        "serve": 54.0,
+        "forehand": 54.0,
+        "backhand": 37.0,
+        "return": 36.4,
+        "net": 37.2,
+        "slice": 36.3,
+        "spin": 54.2,
+        "placement": 56.7,
+        "speed": 37.1,
+        "stamina": 37.4,
+        "strength": 54.8,
+        "focus": 60.5,
+        "anticipation": 38.1,
+        "tactics": 35.3
+      },
+      "lowestStat": 31.9,
+      "highestStat": 62.4
+    },
+    "0.7 / counter": {
+      "n": 108,
+      "ovr": 44.5,
+      "ovrSd": 3.4,
+      "ovrMin": 36,
+      "ovrMax": 52,
+      "teamWinsMean": 2.6,
+      "teamWinsDist": [10, 14, 25, 26, 26, 7],
+      "teamByMatch": {
+        "15": 55,
+        "19": 56,
+        "23": 48,
+        "27": 49,
+        "31": 53
+      },
+      "champion%": 13.0,
+      "roundsWonDist": [11, 26, 32, 25, 14],
+      "roundWinShare": {
+        "Keith": 89,
+        "Chris": 77,
+        "Max": 48,
+        "Jordan": 32
+      },
+      "pTitle%": 14.8,
+      "practiceWin%": 53,
+      "practicePlayed": 6.3,
+      "unspent": {
+        "power": 31,
+        "quickness": 4,
+        "technique": 58,
+        "mind": 10
+      },
+      "earned": {
+        "power": 286,
+        "quickness": 384,
+        "technique": 407,
+        "mind": 378
+      },
+      "earnedBySource": {
+        "training": 488,
+        "practice": 148,
+        "team": 107,
+        "story": 711
+      },
+      "slots": {
+        "train": 52.5,
+        "practice": 6.3,
+        "team": 4.5,
+        "story": 36.4,
+        "rest": 5.3
+      },
+      "storyEvents": 49.6,
+      "abilityLevels": 0.96,
+      "xpUnspent": 902,
+      "meanStats": {
+        "serve": 36.8,
+        "forehand": 37.4,
+        "backhand": 52.7,
+        "return": 52.7,
+        "net": 34.9,
+        "slice": 43.1,
+        "spin": 37.8,
+        "placement": 37.6,
+        "speed": 52.5,
+        "stamina": 53.2,
+        "strength": 38.8,
+        "focus": 38.6,
+        "anticipation": 52.1,
+        "tactics": 54.1
+      },
+      "lowestStat": 32.4,
+      "highestStat": 58.3
+    },
+    "0.7 / netRusher": {
+      "n": 108,
+      "ovr": 45.4,
+      "ovrSd": 4.2,
+      "ovrMin": 35,
+      "ovrMax": 54,
+      "teamWinsMean": 2.66,
+      "teamWinsDist": [9, 22, 15, 26, 23, 13],
+      "teamByMatch": {
+        "15": 48,
+        "19": 51,
+        "23": 45,
+        "27": 60,
+        "31": 61
+      },
+      "champion%": 34.3,
+      "roundsWonDist": [7, 12, 32, 20, 37],
+      "roundWinShare": {
+        "Keith": 88,
+        "Chris": 81,
+        "Max": 58,
+        "Jordan": 53
+      },
+      "pTitle%": 31.0,
+      "practiceWin%": 60,
+      "practicePlayed": 6.4,
+      "unspent": {
+        "power": 22,
+        "quickness": 34,
+        "technique": 16,
+        "mind": 2
+      },
+      "earned": {
+        "power": 345,
+        "quickness": 355,
+        "technique": 384,
+        "mind": 369
+      },
+      "earnedBySource": {
+        "training": 500,
+        "practice": 160,
+        "team": 110,
+        "story": 684
+      },
+      "slots": {
+        "train": 53.8,
+        "practice": 6.4,
+        "team": 4.4,
+        "story": 35.3,
+        "rest": 5.2
+      },
+      "storyEvents": 46.8,
+      "abilityLevels": 1,
+      "xpUnspent": 929,
+      "meanStats": {
+        "serve": 55.0,
+        "forehand": 35.5,
+        "backhand": 34.9,
+        "return": 34,
+        "net": 55.3,
+        "slice": 38.1,
+        "spin": 35.3,
+        "placement": 53.7,
+        "speed": 56.3,
+        "stamina": 38.4,
+        "strength": 38.4,
+        "focus": 36.5,
+        "anticipation": 53.3,
+        "tactics": 53.6
+      },
+      "lowestStat": 31.1,
+      "highestStat": 59.8
+    },
+    "1.0 / baseliner": {
+      "n": 108,
+      "ovr": 43.1,
+      "ovrSd": 3.5,
+      "ovrMin": 35,
+      "ovrMax": 51,
+      "teamWinsMean": 2.47,
+      "teamWinsDist": [12, 21, 19, 23, 26, 7],
+      "teamByMatch": {
+        "15": 51,
+        "19": 48,
+        "23": 46,
+        "27": 50,
+        "31": 52
+      },
+      "champion%": 14.8,
+      "roundsWonDist": [21, 16, 35, 20, 16],
+      "roundWinShare": {
+        "Keith": 86,
+        "Chris": 77,
+        "Max": 50,
+        "Jordan": 28
+      },
+      "pTitle%": 13.6,
+      "practiceWin%": 54,
+      "practicePlayed": 6.3,
+      "unspent": {
+        "power": 2,
+        "quickness": 52,
+        "technique": 7,
+        "mind": 75
+      },
+      "earned": {
+        "power": 419,
+        "quickness": 268,
+        "technique": 453,
+        "mind": 278
+      },
+      "earnedBySource": {
+        "training": 491,
+        "practice": 151,
+        "team": 104,
+        "story": 672
+      },
+      "slots": {
+        "train": 52.9,
+        "practice": 6.3,
+        "team": 4.4,
+        "story": 36.3,
+        "rest": 5.1
+      },
+      "storyEvents": 48.1,
+      "abilityLevels": 1.79,
+      "xpUnspent": 841,
+      "meanStats": {
+        "serve": 33.9,
+        "forehand": 54.5,
+        "backhand": 55.7,
+        "return": 35.5,
+        "net": 35.8,
+        "slice": 55.5,
+        "spin": 55.4,
+        "placement": 35.3,
+        "speed": 35.6,
+        "stamina": 55.5,
+        "strength": 54.6,
+        "focus": 43.5,
+        "anticipation": 41.6,
+        "tactics": 35.8
+      },
+      "lowestStat": 31.2,
+      "highestStat": 60.3
+    },
+    "1.0 / bigServer": {
+      "n": 108,
+      "ovr": 45.4,
+      "ovrSd": 3.8,
+      "ovrMin": 36,
+      "ovrMax": 53,
+      "teamWinsMean": 2.41,
+      "teamWinsDist": [14, 19, 20, 30, 14, 11],
+      "teamByMatch": {
+        "15": 46,
+        "19": 59,
+        "23": 38,
+        "27": 44,
+        "31": 53
+      },
+      "champion%": 17.6,
+      "roundsWonDist": [15, 28, 26, 20, 19],
+      "roundWinShare": {
+        "Keith": 86,
+        "Chris": 75,
+        "Max": 44,
+        "Jordan": 44
+      },
+      "pTitle%": 19.0,
+      "practiceWin%": 58,
+      "practicePlayed": 6.3,
+      "unspent": {
+        "power": 3,
+        "quickness": 108,
+        "technique": 16,
+        "mind": 28
+      },
+      "earned": {
+        "power": 465,
+        "quickness": 257,
+        "technique": 416,
+        "mind": 310
+      },
+      "earnedBySource": {
+        "training": 493,
+        "practice": 151,
+        "team": 103,
+        "story": 701
+      },
+      "slots": {
+        "train": 53.0,
+        "practice": 6.3,
+        "team": 4.6,
+        "story": 36,
+        "rest": 5.2
+      },
+      "storyEvents": 49.2,
+      "abilityLevels": 0,
+      "xpUnspent": 970,
+      "meanStats": {
+        "serve": 54.0,
+        "forehand": 54.1,
+        "backhand": 36.9,
+        "return": 36.0,
+        "net": 37.8,
+        "slice": 36.1,
+        "spin": 54.0,
+        "placement": 56.8,
+        "speed": 36.4,
+        "stamina": 36.5,
+        "strength": 54.4,
+        "focus": 59.5,
+        "anticipation": 37.6,
+        "tactics": 35.0
+      },
+      "lowestStat": 31.5,
+      "highestStat": 62.0
+    },
+    "1.0 / counter": {
+      "n": 108,
+      "ovr": 44.3,
+      "ovrSd": 3.4,
+      "ovrMin": 37,
+      "ovrMax": 53,
+      "teamWinsMean": 2.63,
+      "teamWinsDist": [7, 19, 27, 21, 22, 12],
+      "teamByMatch": {
+        "15": 53,
+        "19": 69,
+        "23": 44,
+        "27": 47,
+        "31": 50
+      },
+      "champion%": 12.0,
+      "roundsWonDist": [14, 22, 35, 24, 13],
+      "roundWinShare": {
+        "Keith": 89,
+        "Chris": 76,
+        "Max": 48,
+        "Jordan": 34
+      },
+      "pTitle%": 16.1,
+      "practiceWin%": 56,
+      "practicePlayed": 6.4,
+      "unspent": {
+        "power": 32,
+        "quickness": 3,
+        "technique": 53,
+        "mind": 14
+      },
+      "earned": {
+        "power": 288,
+        "quickness": 380,
+        "technique": 390,
+        "mind": 379
+      },
+      "earnedBySource": {
+        "training": 491,
+        "practice": 153,
+        "team": 109,
+        "story": 684
+      },
+      "slots": {
+        "train": 52.9,
+        "practice": 6.4,
+        "team": 4.5,
+        "story": 35.9,
+        "rest": 5.2
+      },
+      "storyEvents": 48.6,
+      "abilityLevels": 0.95,
+      "xpUnspent": 918,
+      "meanStats": {
+        "serve": 37.2,
+        "forehand": 37.1,
+        "backhand": 52.6,
+        "return": 52.3,
+        "net": 34.8,
+        "slice": 41.8,
+        "spin": 37.2,
+        "placement": 37.0,
+        "speed": 52.6,
+        "stamina": 52.6,
+        "strength": 39.2,
+        "focus": 38.8,
+        "anticipation": 52.4,
+        "tactics": 53.8
+      },
+      "lowestStat": 32.5,
+      "highestStat": 57.4
+    },
+    "1.0 / netRusher": {
+      "n": 108,
+      "ovr": 45.7,
+      "ovrSd": 3.9,
+      "ovrMin": 35,
+      "ovrMax": 54,
+      "teamWinsMean": 2.69,
+      "teamWinsDist": [11, 16, 20, 25, 20, 16],
+      "teamByMatch": {
+        "15": 42,
+        "19": 59,
+        "23": 49,
+        "27": 60,
+        "31": 59
+      },
+      "champion%": 31.5,
+      "roundsWonDist": [15, 15, 23, 21, 34],
+      "roundWinShare": {
+        "Keith": 90,
+        "Chris": 84,
+        "Max": 58,
+        "Jordan": 54
+      },
+      "pTitle%": 30.3,
+      "practiceWin%": 62,
+      "practicePlayed": 6.2,
+      "unspent": {
+        "power": 15,
+        "quickness": 16,
+        "technique": 14,
+        "mind": 4
+      },
+      "earned": {
+        "power": 339,
+        "quickness": 338,
+        "technique": 386,
+        "mind": 381
+      },
+      "earnedBySource": {
+        "training": 501,
+        "practice": 157,
+        "team": 108,
+        "story": 677
+      },
+      "slots": {
+        "train": 54.2,
+        "practice": 6.2,
+        "team": 4.3,
+        "story": 35.3,
+        "rest": 5.0
+      },
+      "storyEvents": 46.3,
+      "abilityLevels": 0.99,
+      "xpUnspent": 920,
+      "meanStats": {
+        "serve": 55.3,
+        "forehand": 35.1,
+        "backhand": 35.5,
+        "return": 34.2,
+        "net": 55.7,
+        "slice": 38.4,
+        "spin": 35.7,
+        "placement": 53.9,
+        "speed": 56.5,
+        "stamina": 38.8,
+        "strength": 38.4,
+        "focus": 37.5,
+        "anticipation": 53.4,
+        "tactics": 54.6
+      },
+      "lowestStat": 31.4,
+      "highestStat": 59.8
+    }
+  },
+  "sweep:MATCH_EVERY": {
+    "1": {
+      "n": 432,
+      "ovr": 45.1,
+      "ovrSd": 4.0,
+      "ovrMin": 35,
+      "ovrMax": 54,
+      "teamWinsMean": 2.61,
+      "teamWinsDist": [36, 78, 86, 95, 94, 43],
+      "teamByMatch": {
+        "15": 56,
+        "19": 58,
+        "23": 44,
+        "27": 48,
+        "31": 53
+      },
+      "champion%": 24.8,
+      "roundsWonDist": [62, 57, 113, 93, 107],
+      "roundWinShare": {
+        "Keith": 89,
+        "Chris": 80,
+        "Max": 53,
+        "Jordan": 42
+      },
+      "pTitle%": 22.5,
+      "practiceWin%": 56,
+      "practicePlayed": 9.3,
+      "unspent": {
+        "power": 15,
+        "quickness": 52,
+        "technique": 30,
+        "mind": 34
+      },
+      "earned": {
+        "power": 381,
+        "quickness": 325,
+        "technique": 428,
+        "mind": 351
+      },
+      "earnedBySource": {
+        "training": 450,
+        "practice": 222,
+        "team": 108,
+        "story": 705
+      },
+      "slots": {
+        "train": 48.3,
+        "practice": 9.3,
+        "team": 4.5,
+        "story": 36.3,
+        "rest": 6.6
+      },
+      "storyEvents": 48.8,
+      "abilityLevels": 0.96,
+      "xpUnspent": 1084,
+      "meanStats": {
+        "serve": 45.2,
+        "forehand": 45.5,
+        "backhand": 45.8,
+        "return": 39.9,
+        "net": 41.2,
+        "slice": 44.1,
+        "spin": 45.8,
+        "placement": 46.4,
+        "speed": 45.7,
+        "stamina": 46.2,
+        "strength": 46.7,
+        "focus": 45.4,
+        "anticipation": 47.2,
+        "tactics": 45.6
+      },
+      "lowestStat": 32.0,
+      "highestStat": 61.1
+    },
+    "2": {
+      "n": 432,
+      "ovr": 44.4,
+      "ovrSd": 3.9,
+      "ovrMin": 35,
+      "ovrMax": 54,
+      "teamWinsMean": 2.56,
+      "teamWinsDist": [51, 59, 93, 98, 87, 44],
+      "teamByMatch": {
+        "15": 51,
+        "19": 55,
+        "23": 45,
+        "27": 49,
+        "31": 56
+      },
+      "champion%": 20.1,
+      "roundsWonDist": [60, 90, 108, 87, 87],
+      "roundWinShare": {
+        "Keith": 86,
+        "Chris": 77,
+        "Max": 49,
+        "Jordan": 39
+      },
+      "pTitle%": 18.9,
+      "practiceWin%": 56,
+      "practicePlayed": 5.6,
+      "unspent": {
+        "power": 14,
+        "quickness": 53,
+        "technique": 24,
+        "mind": 26
+      },
+      "earned": {
+        "power": 378,
+        "quickness": 319,
+        "technique": 412,
+        "mind": 325
+      },
+      "earnedBySource": {
+        "training": 506,
+        "practice": 134,
+        "team": 106,
+        "story": 688
+      },
+      "slots": {
+        "train": 54.5,
+        "practice": 5.6,
+        "team": 4.5,
+        "story": 35.8,
+        "rest": 4.7
+      },
+      "storyEvents": 47.9,
+      "abilityLevels": 0.94,
+      "xpUnspent": 866,
+      "meanStats": {
+        "serve": 44.9,
+        "forehand": 45.0,
+        "backhand": 45.0,
+        "return": 39.4,
+        "net": 41.0,
+        "slice": 42.9,
+        "spin": 45.5,
+        "placement": 45.4,
+        "speed": 45.6,
+        "stamina": 45.9,
+        "strength": 46.5,
+        "focus": 44.1,
+        "anticipation": 45.4,
+        "tactics": 44.6
+      },
+      "lowestStat": 31.6,
+      "highestStat": 59.8
+    },
+    "4": {
+      "n": 432,
+      "ovr": 44.3,
+      "ovrSd": 3.9,
+      "ovrMin": 34,
+      "ovrMax": 53,
+      "teamWinsMean": 2.49,
+      "teamWinsDist": [43, 72, 103, 96, 80, 38],
+      "teamByMatch": {
+        "15": 48,
+        "19": 56,
+        "23": 43,
+        "27": 52,
+        "31": 50
+      },
+      "champion%": 16.7,
+      "roundsWonDist": [49, 85, 132, 94, 72],
+      "roundWinShare": {
+        "Keith": 87,
+        "Chris": 75,
+        "Max": 48,
+        "Jordan": 38
+      },
+      "pTitle%": 18.1,
+      "practiceWin%": 60,
+      "practicePlayed": 4.1,
+      "unspent": {
+        "power": 14,
+        "quickness": 50,
+        "technique": 25,
+        "mind": 24
+      },
+      "earned": {
+        "power": 374,
+        "quickness": 315,
+        "technique": 411,
+        "mind": 320
+      },
+      "earnedBySource": {
+        "training": 528,
+        "practice": 102,
+        "team": 105,
+        "story": 684
+      },
+      "slots": {
+        "train": 56.7,
+        "practice": 4.1,
+        "team": 4.4,
+        "story": 35.6,
+        "rest": 4.2
+      },
+      "storyEvents": 47.8,
+      "abilityLevels": 0.92,
+      "xpUnspent": 787,
+      "meanStats": {
+        "serve": 44.5,
+        "forehand": 45.1,
+        "backhand": 45.0,
+        "return": 39.3,
+        "net": 40.8,
+        "slice": 43.1,
+        "spin": 45.0,
+        "placement": 45.2,
+        "speed": 45.3,
+        "stamina": 45.6,
+        "strength": 46.3,
+        "focus": 43.9,
+        "anticipation": 45.6,
+        "tactics": 44.1
+      },
+      "lowestStat": 31.4,
+      "highestStat": 59.6
+    }
+  },
+  "sweep:MATCH_EVERYxidentity": {
+    "1 / baseliner": {
+      "n": 108,
+      "ovr": 43.6,
+      "ovrSd": 3.5,
+      "ovrMin": 35,
+      "ovrMax": 51,
+      "teamWinsMean": 2.53,
+      "teamWinsDist": [9, 18, 26, 25, 22, 8],
+      "teamByMatch": {
+        "15": 56,
+        "19": 55,
+        "23": 44,
+        "27": 47,
+        "31": 51
+      },
+      "champion%": 16.7,
+      "roundsWonDist": [18, 8, 29, 35, 18],
+      "roundWinShare": {
+        "Keith": 88,
+        "Chris": 81,
+        "Max": 53,
+        "Jordan": 29
+      },
+      "pTitle%": 15.5,
+      "practiceWin%": 55,
+      "practicePlayed": 9.2,
+      "unspent": {
+        "power": 2,
+        "quickness": 60,
+        "technique": 15,
+        "mind": 85
+      },
+      "earned": {
+        "power": 414,
+        "quickness": 281,
+        "technique": 475,
+        "mind": 303
+      },
+      "earnedBySource": {
+        "training": 452,
+        "practice": 221,
+        "team": 106,
+        "story": 694
+      },
+      "slots": {
+        "train": 48.6,
+        "practice": 9.2,
+        "team": 4.5,
+        "story": 36.0,
+        "rest": 6.6
+      },
+      "storyEvents": 48.9,
+      "abilityLevels": 1.85,
+      "xpUnspent": 1013,
+      "meanStats": {
+        "serve": 34.2,
+        "forehand": 53.9,
+        "backhand": 57.0,
+        "return": 35.7,
+        "net": 36.4,
+        "slice": 57.1,
+        "spin": 55.1,
+        "placement": 36.6,
+        "speed": 35.7,
+        "stamina": 55.4,
+        "strength": 54.4,
+        "focus": 44.6,
+        "anticipation": 43.2,
+        "tactics": 36.7
+      },
+      "lowestStat": 31.6,
+      "highestStat": 61.3
+    },
+    "1 / bigServer": {
+      "n": 108,
+      "ovr": 45.7,
+      "ovrSd": 4.2,
+      "ovrMin": 36,
+      "ovrMax": 54,
+      "teamWinsMean": 2.42,
+      "teamWinsDist": [14, 19, 22, 24, 19, 10],
+      "teamByMatch": {
+        "15": 55,
+        "19": 60,
+        "23": 36,
+        "27": 44,
+        "31": 47
+      },
+      "champion%": 23.1,
+      "roundsWonDist": [15, 22, 33, 13, 25],
+      "roundWinShare": {
+        "Keith": 87,
+        "Chris": 75,
+        "Max": 45,
+        "Jordan": 45
+      },
+      "pTitle%": 21.2,
+      "practiceWin%": 56,
+      "practicePlayed": 9.1,
+      "unspent": {
+        "power": 3,
+        "quickness": 114,
+        "technique": 19,
+        "mind": 33
+      },
+      "earned": {
+        "power": 462,
+        "quickness": 266,
+        "technique": 415,
+        "mind": 322
+      },
+      "earnedBySource": {
+        "training": 448,
+        "practice": 212,
+        "team": 102,
+        "story": 702
+      },
+      "slots": {
+        "train": 47.8,
+        "practice": 9.1,
+        "team": 4.5,
+        "story": 37.1,
+        "rest": 6.5
+      },
+      "storyEvents": 49.2,
+      "abilityLevels": 0,
+      "xpUnspent": 1119,
+      "meanStats": {
+        "serve": 53.6,
+        "forehand": 54.4,
+        "backhand": 37.3,
+        "return": 36.9,
+        "net": 37.6,
+        "slice": 37.2,
+        "spin": 53.5,
+        "placement": 56.3,
+        "speed": 36.6,
+        "stamina": 36.5,
+        "strength": 54.5,
+        "focus": 60.7,
+        "anticipation": 38.4,
+        "tactics": 35.4
+      },
+      "lowestStat": 31.9,
+      "highestStat": 62.9
+    },
+    "1 / counter": {
+      "n": 108,
+      "ovr": 44.8,
+      "ovrSd": 3.6,
+      "ovrMin": 36,
+      "ovrMax": 53,
+      "teamWinsMean": 2.69,
+      "teamWinsDist": [4, 20, 24, 25, 27, 8],
+      "teamByMatch": {
+        "15": 62,
+        "19": 58,
+        "23": 49,
+        "27": 46,
+        "31": 54
+      },
+      "champion%": 18.5,
+      "roundsWonDist": [15, 15, 29, 29, 20],
+      "roundWinShare": {
+        "Keith": 90,
+        "Chris": 78,
+        "Max": 50,
+        "Jordan": 35
+      },
+      "pTitle%": 17.8,
+      "practiceWin%": 54,
+      "practicePlayed": 9.3,
+      "unspent": {
+        "power": 34,
+        "quickness": 3,
+        "technique": 64,
+        "mind": 15
+      },
+      "earned": {
+        "power": 296,
+        "quickness": 390,
+        "technique": 414,
+        "mind": 387
+      },
+      "earnedBySource": {
+        "training": 448,
+        "practice": 217,
+        "team": 110,
+        "story": 711
+      },
+      "slots": {
+        "train": 48.0,
+        "practice": 9.3,
+        "team": 4.6,
+        "story": 36.3,
+        "rest": 6.7
+      },
+      "storyEvents": 49.5,
+      "abilityLevels": 0.99,
+      "xpUnspent": 1075,
+      "meanStats": {
+        "serve": 37.1,
+        "forehand": 37.4,
+        "backhand": 53.3,
+        "return": 52.8,
+        "net": 34.8,
+        "slice": 43.0,
+        "spin": 38.5,
+        "placement": 37.2,
+        "speed": 53.1,
+        "stamina": 53.8,
+        "strength": 39.4,
+        "focus": 38.6,
+        "anticipation": 52.4,
+        "tactics": 54.9
+      },
+      "lowestStat": 32.6,
+      "highestStat": 59.0
+    },
+    "1 / netRusher": {
+      "n": 108,
+      "ovr": 46.4,
+      "ovrSd": 3.9,
+      "ovrMin": 37,
+      "ovrMax": 54,
+      "teamWinsMean": 2.79,
+      "teamWinsDist": [9, 21, 14, 21, 26, 17],
+      "teamByMatch": {
+        "15": 52,
+        "19": 60,
+        "23": 49,
+        "27": 56,
+        "31": 62
+      },
+      "champion%": 40.7,
+      "roundsWonDist": [14, 12, 22, 16, 44],
+      "roundWinShare": {
+        "Keith": 91,
+        "Chris": 86,
+        "Max": 63,
+        "Jordan": 57
+      },
+      "pTitle%": 35.3,
+      "practiceWin%": 60,
+      "practicePlayed": 9.5,
+      "unspent": {
+        "power": 20,
+        "quickness": 30,
+        "technique": 22,
+        "mind": 3
+      },
+      "earned": {
+        "power": 353,
+        "quickness": 362,
+        "technique": 407,
+        "mind": 394
+      },
+      "earnedBySource": {
+        "training": 451,
+        "practice": 238,
+        "team": 115,
+        "story": 713
+      },
+      "slots": {
+        "train": 48.6,
+        "practice": 9.5,
+        "team": 4.5,
+        "story": 35.8,
+        "rest": 6.6
+      },
+      "storyEvents": 47.8,
+      "abilityLevels": 1,
+      "xpUnspent": 1127,
+      "meanStats": {
+        "serve": 55.9,
+        "forehand": 36.4,
+        "backhand": 35.7,
+        "return": 34.4,
+        "net": 56.2,
+        "slice": 39.2,
+        "spin": 36.2,
+        "placement": 55.5,
+        "speed": 57.2,
+        "stamina": 39.2,
+        "strength": 38.5,
+        "focus": 37.7,
+        "anticipation": 54.8,
+        "tactics": 55.3
+      },
+      "lowestStat": 31.7,
+      "highestStat": 61.2
+    },
+    "2 / baseliner": {
+      "n": 108,
+      "ovr": 43.2,
+      "ovrSd": 3.8,
+      "ovrMin": 35,
+      "ovrMax": 51,
+      "teamWinsMean": 2.69,
+      "teamWinsDist": [11, 11, 26, 21, 30, 9],
+      "teamByMatch": {
+        "15": 56,
+        "19": 55,
+        "23": 50,
+        "27": 48,
+        "31": 60
+      },
+      "champion%": 17.6,
+      "roundsWonDist": [17, 19, 27, 26, 19],
+      "roundWinShare": {
+        "Keith": 84,
+        "Chris": 78,
+        "Max": 51,
+        "Jordan": 29
+      },
+      "pTitle%": 14.6,
+      "practiceWin%": 56,
+      "practicePlayed": 5.4,
+      "unspent": {
+        "power": 2,
+        "quickness": 55,
+        "technique": 13,
+        "mind": 74
+      },
+      "earned": {
+        "power": 416,
+        "quickness": 271,
+        "technique": 469,
+        "mind": 276
+      },
+      "earnedBySource": {
+        "training": 508,
+        "practice": 130,
+        "team": 110,
+        "story": 685
+      },
+      "slots": {
+        "train": 54.6,
+        "practice": 5.4,
+        "team": 4.5,
+        "story": 36.0,
+        "rest": 4.6
+      },
+      "storyEvents": 48.0,
+      "abilityLevels": 1.81,
+      "xpUnspent": 803,
+      "meanStats": {
+        "serve": 34.3,
+        "forehand": 54.4,
+        "backhand": 56.3,
+        "return": 36.2,
+        "net": 36.5,
+        "slice": 56.3,
+        "spin": 54.9,
+        "placement": 35.8,
+        "speed": 35.3,
+        "stamina": 54.4,
+        "strength": 54.5,
+        "focus": 43.4,
+        "anticipation": 40.8,
+        "tactics": 36.4
+      },
+      "lowestStat": 31.5,
+      "highestStat": 60.6
+    },
+    "2 / bigServer": {
+      "n": 108,
+      "ovr": 45.3,
+      "ovrSd": 3.7,
+      "ovrMin": 38,
+      "ovrMax": 53,
+      "teamWinsMean": 2.46,
+      "teamWinsDist": [15, 16, 21, 27, 18, 11],
+      "teamByMatch": {
+        "15": 54,
+        "19": 56,
+        "23": 41,
+        "27": 44,
+        "31": 51
+      },
+      "champion%": 20.4,
+      "roundsWonDist": [13, 27, 25, 21, 22],
+      "roundWinShare": {
+        "Keith": 86,
+        "Chris": 75,
+        "Max": 42,
+        "Jordan": 43
+      },
+      "pTitle%": 17.5,
+      "practiceWin%": 57,
+      "practicePlayed": 5.7,
+      "unspent": {
+        "power": 4,
+        "quickness": 109,
+        "technique": 10,
+        "mind": 21
+      },
+      "earned": {
+        "power": 475,
+        "quickness": 261,
+        "technique": 403,
+        "mind": 294
+      },
+      "earnedBySource": {
+        "training": 500,
+        "practice": 135,
+        "team": 104,
+        "story": 695
+      },
+      "slots": {
+        "train": 53.7,
+        "practice": 5.7,
+        "team": 4.6,
+        "story": 35.9,
+        "rest": 5.0
+      },
+      "storyEvents": 49.4,
+      "abilityLevels": 0,
+      "xpUnspent": 933,
+      "meanStats": {
+        "serve": 54.2,
+        "forehand": 53.6,
+        "backhand": 36.1,
+        "return": 35.3,
+        "net": 36.9,
+        "slice": 35.4,
+        "spin": 54.7,
+        "placement": 55.8,
+        "speed": 37.9,
+        "stamina": 37.8,
+        "strength": 54.8,
+        "focus": 59.1,
+        "anticipation": 36.5,
+        "tactics": 35.3
+      },
+      "lowestStat": 31.5,
+      "highestStat": 61.5
+    },
+    "2 / counter": {
+      "n": 108,
+      "ovr": 44.1,
+      "ovrSd": 3.9,
+      "ovrMin": 35,
+      "ovrMax": 52,
+      "teamWinsMean": 2.46,
+      "teamWinsDist": [14, 13, 30, 21, 20, 10],
+      "teamByMatch": {
+        "15": 46,
+        "19": 54,
+        "23": 45,
+        "27": 49,
+        "31": 52
+      },
+      "champion%": 11.1,
+      "roundsWonDist": [15, 30, 31, 20, 12],
+      "roundWinShare": {
+        "Keith": 87,
+        "Chris": 76,
+        "Max": 48,
+        "Jordan": 32
+      },
+      "pTitle%": 16.3,
+      "practiceWin%": 54,
+      "practicePlayed": 5.7,
+      "unspent": {
+        "power": 27,
+        "quickness": 8,
+        "technique": 57,
+        "mind": 10
+      },
+      "earned": {
+        "power": 277,
+        "quickness": 386,
+        "technique": 398,
+        "mind": 370
+      },
+      "earnedBySource": {
+        "training": 502,
+        "practice": 135,
+        "team": 103,
+        "story": 691
+      },
+      "slots": {
+        "train": 54.3,
+        "practice": 5.7,
+        "team": 4.4,
+        "story": 35.7,
+        "rest": 4.8
+      },
+      "storyEvents": 47.6,
+      "abilityLevels": 0.96,
+      "xpUnspent": 861,
+      "meanStats": {
+        "serve": 36.4,
+        "forehand": 36.8,
+        "backhand": 52.6,
+        "return": 52.0,
+        "net": 35.3,
+        "slice": 42.3,
+        "spin": 37.3,
+        "placement": 37.3,
+        "speed": 52.8,
+        "stamina": 52.6,
+        "strength": 38.3,
+        "focus": 37.8,
+        "anticipation": 52.0,
+        "tactics": 53.2
+      },
+      "lowestStat": 32.2,
+      "highestStat": 57.5
+    },
+    "2 / netRusher": {
+      "n": 108,
+      "ovr": 45.1,
+      "ovrSd": 4.0,
+      "ovrMin": 35,
+      "ovrMax": 54,
+      "teamWinsMean": 2.63,
+      "teamWinsDist": [11, 19, 16, 29, 19, 14],
+      "teamByMatch": {
+        "15": 48,
+        "19": 54,
+        "23": 45,
+        "27": 54,
+        "31": 62
+      },
+      "champion%": 31.5,
+      "roundsWonDist": [15, 14, 25, 20, 34],
+      "roundWinShare": {
+        "Keith": 88,
+        "Chris": 81,
+        "Max": 56,
+        "Jordan": 50
+      },
+      "pTitle%": 27.3,
+      "practiceWin%": 59,
+      "practicePlayed": 5.5,
+      "unspent": {
+        "power": 23,
+        "quickness": 39,
+        "technique": 17,
+        "mind": 2
+      },
+      "earned": {
+        "power": 342,
+        "quickness": 357,
+        "technique": 376,
+        "mind": 362
+      },
+      "earnedBySource": {
+        "training": 513,
+        "practice": 135,
+        "team": 107,
+        "story": 682
+      },
+      "slots": {
+        "train": 55.3,
+        "practice": 5.5,
+        "team": 4.3,
+        "story": 35.4,
+        "rest": 4.5
+      },
+      "storyEvents": 46.4,
+      "abilityLevels": 0.97,
+      "xpUnspent": 866,
+      "meanStats": {
+        "serve": 54.6,
+        "forehand": 35.3,
+        "backhand": 34.8,
+        "return": 34.0,
+        "net": 55.1,
+        "slice": 37.7,
+        "spin": 35.2,
+        "placement": 52.7,
+        "speed": 56.3,
+        "stamina": 38.8,
+        "strength": 38.3,
+        "focus": 36.2,
+        "anticipation": 52.5,
+        "tactics": 53.4
+      },
+      "lowestStat": 31.2,
+      "highestStat": 59.6
+    },
+    "4 / baseliner": {
+      "n": 108,
+      "ovr": 43.1,
+      "ovrSd": 3.6,
+      "ovrMin": 36,
+      "ovrMax": 51,
+      "teamWinsMean": 2.51,
+      "teamWinsDist": [11, 15, 27, 26, 21, 8],
+      "teamByMatch": {
+        "15": 55,
+        "19": 59,
+        "23": 39,
+        "27": 54,
+        "31": 44
+      },
+      "champion%": 8.3,
+      "roundsWonDist": [17, 15, 36, 31, 9],
+      "roundWinShare": {
+        "Keith": 87,
+        "Chris": 76,
+        "Max": 50,
+        "Jordan": 27
+      },
+      "pTitle%": 13.3,
+      "practiceWin%": 61,
+      "practicePlayed": 4.1,
+      "unspent": {
+        "power": 2,
+        "quickness": 55,
+        "technique": 12,
+        "mind": 65
+      },
+      "earned": {
+        "power": 413,
+        "quickness": 270,
+        "technique": 473,
+        "mind": 269
+      },
+      "earnedBySource": {
+        "training": 527,
+        "practice": 104,
+        "team": 106,
+        "story": 687
+      },
+      "slots": {
+        "train": 56.2,
+        "practice": 4.1,
+        "team": 4.6,
+        "story": 35.7,
+        "rest": 4.4
+      },
+      "storyEvents": 48.0,
+      "abilityLevels": 1.77,
+      "xpUnspent": 736,
+      "meanStats": {
+        "serve": 33.9,
+        "forehand": 54.7,
+        "backhand": 55.9,
+        "return": 36.0,
+        "net": 36.6,
+        "slice": 56.8,
+        "spin": 55.2,
+        "placement": 36.0,
+        "speed": 34.9,
+        "stamina": 54.6,
+        "strength": 53.8,
+        "focus": 42.6,
+        "anticipation": 41.6,
+        "tactics": 36.5
+      },
+      "lowestStat": 31.3,
+      "highestStat": 60.2
+    },
+    "4 / bigServer": {
+      "n": 108,
+      "ovr": 45.3,
+      "ovrSd": 4.0,
+      "ovrMin": 36,
+      "ovrMax": 53,
+      "teamWinsMean": 2.5,
+      "teamWinsDist": [11, 22, 21, 22, 20, 12],
+      "teamByMatch": {
+        "15": 50,
+        "19": 59,
+        "23": 42,
+        "27": 50,
+        "31": 49
+      },
+      "champion%": 20.4,
+      "roundsWonDist": [10, 30, 27, 19, 22],
+      "roundWinShare": {
+        "Keith": 86,
+        "Chris": 72,
+        "Max": 44,
+        "Jordan": 43
+      },
+      "pTitle%": 18.4,
+      "practiceWin%": 63,
+      "practicePlayed": 4.3,
+      "unspent": {
+        "power": 10,
+        "quickness": 106,
+        "technique": 13,
+        "mind": 21
+      },
+      "earned": {
+        "power": 475,
+        "quickness": 259,
+        "technique": 405,
+        "mind": 298
+      },
+      "earnedBySource": {
+        "training": 524,
+        "practice": 108,
+        "team": 104,
+        "story": 701
+      },
+      "slots": {
+        "train": 56.3,
+        "practice": 4.3,
+        "team": 4.5,
+        "story": 35.8,
+        "rest": 4.1
+      },
+      "storyEvents": 48.7,
+      "abilityLevels": 0,
+      "xpUnspent": 864,
+      "meanStats": {
+        "serve": 53.4,
+        "forehand": 54.2,
+        "backhand": 36.5,
+        "return": 35.8,
+        "net": 36.8,
+        "slice": 35.9,
+        "spin": 53.6,
+        "placement": 56.1,
+        "speed": 37.5,
+        "stamina": 37.4,
+        "strength": 55.0,
+        "focus": 59.1,
+        "anticipation": 37.5,
+        "tactics": 34.6
+      },
+      "lowestStat": 31.6,
+      "highestStat": 61.6
+    },
+    "4 / counter": {
+      "n": 108,
+      "ovr": 43.8,
+      "ovrSd": 3.6,
+      "ovrMin": 34,
+      "ovrMax": 52,
+      "teamWinsMean": 2.35,
+      "teamWinsDist": [12, 17, 33, 20, 19, 7],
+      "teamByMatch": {
+        "15": 45,
+        "19": 54,
+        "23": 43,
+        "27": 50,
+        "31": 44
+      },
+      "champion%": 10.2,
+      "roundsWonDist": [11, 22, 39, 25, 11],
+      "roundWinShare": {
+        "Keith": 86,
+        "Chris": 73,
+        "Max": 45,
+        "Jordan": 31
+      },
+      "pTitle%": 13.7,
+      "practiceWin%": 57,
+      "practicePlayed": 4.1,
+      "unspent": {
+        "power": 25,
+        "quickness": 7,
+        "technique": 59,
+        "mind": 7
+      },
+      "earned": {
+        "power": 271,
+        "quickness": 376,
+        "technique": 392,
+        "mind": 360
+      },
+      "earnedBySource": {
+        "training": 529,
+        "practice": 99,
+        "team": 101,
+        "story": 671
+      },
+      "slots": {
+        "train": 56.9,
+        "practice": 4.1,
+        "team": 4.4,
+        "story": 35.4,
+        "rest": 4.2
+      },
+      "storyEvents": 47.6,
+      "abilityLevels": 0.94,
+      "xpUnspent": 769,
+      "meanStats": {
+        "serve": 36.4,
+        "forehand": 36.7,
+        "backhand": 52.5,
+        "return": 51.5,
+        "net": 35.1,
+        "slice": 41.9,
+        "spin": 36.1,
+        "placement": 36.4,
+        "speed": 52.0,
+        "stamina": 52.4,
+        "strength": 38.2,
+        "focus": 38.0,
+        "anticipation": 51.3,
+        "tactics": 53.0
+      },
+      "lowestStat": 32.0,
+      "highestStat": 57.2
+    },
+    "4 / netRusher": {
+      "n": 108,
+      "ovr": 44.9,
+      "ovrSd": 4.0,
+      "ovrMin": 35,
+      "ovrMax": 53,
+      "teamWinsMean": 2.6,
+      "teamWinsDist": [9, 18, 22, 28, 20, 11],
+      "teamByMatch": {
+        "15": 42,
+        "19": 52,
+        "23": 50,
+        "27": 56,
+        "31": 61
+      },
+      "champion%": 27.8,
+      "roundsWonDist": [11, 18, 30, 19, 30],
+      "roundWinShare": {
+        "Keith": 88,
+        "Chris": 80,
+        "Max": 54,
+        "Jordan": 51
+      },
+      "pTitle%": 27.1,
+      "practiceWin%": 59,
+      "practicePlayed": 4.0,
+      "unspent": {
+        "power": 18,
+        "quickness": 34,
+        "technique": 17,
+        "mind": 2
+      },
+      "earned": {
+        "power": 336,
+        "quickness": 355,
+        "technique": 373,
+        "mind": 352
+      },
+      "earnedBySource": {
+        "training": 532,
+        "practice": 99,
+        "team": 108,
+        "story": 676
+      },
+      "slots": {
+        "train": 57.3,
+        "practice": 4.0,
+        "team": 4.3,
+        "story": 35.6,
+        "rest": 3.9
+      },
+      "storyEvents": 46.8,
+      "abilityLevels": 0.97,
+      "xpUnspent": 779,
+      "meanStats": {
+        "serve": 54.4,
+        "forehand": 34.7,
+        "backhand": 35.3,
+        "return": 33.8,
+        "net": 54.6,
+        "slice": 37.7,
+        "spin": 35.2,
+        "placement": 52.4,
+        "speed": 57.0,
+        "stamina": 38.1,
+        "strength": 38.2,
+        "focus": 35.7,
+        "anticipation": 52.0,
+        "tactics": 52.3
+      },
+      "lowestStat": 30.9,
+      "highestStat": 59.5
+    }
+  },
+  "sweep:SKILLxSPEND": {
+    "average / affordable": {
+      "n": 108,
+      "ovr": 45.7,
+      "ovrSd": 2.8,
+      "ovrMin": 38,
+      "ovrMax": 51,
+      "teamWinsMean": 2.85,
+      "teamWinsDist": [8, 14, 17, 26, 33, 10],
+      "teamByMatch": {
+        "15": 57,
+        "19": 62,
+        "23": 53,
+        "27": 55,
+        "31": 58
+      },
+      "champion%": 24.1,
+      "roundsWonDist": [9, 13, 34, 26, 26],
+      "roundWinShare": {
+        "Keith": 91,
+        "Chris": 85,
+        "Max": 56,
+        "Jordan": 46
+      },
+      "pTitle%": 23.9,
+      "practiceWin%": 59,
+      "practicePlayed": 6.4,
+      "unspent": {
+        "power": 1,
+        "quickness": 30,
+        "technique": 0,
+        "mind": 1
+      },
+      "earned": {
+        "power": 368,
+        "quickness": 315,
+        "technique": 401,
+        "mind": 325
+      },
+      "earnedBySource": {
+        "training": 493,
+        "practice": 160,
+        "team": 114,
+        "story": 641
+      },
+      "slots": {
+        "train": 53.0,
+        "practice": 6.4,
+        "team": 4.5,
+        "story": 36.1,
+        "rest": 4.9
+      },
+      "storyEvents": 49.1,
+      "abilityLevels": 0.85,
+      "xpUnspent": 952,
+      "meanStats": {
+        "serve": 45.1,
+        "forehand": 45.1,
+        "backhand": 46.3,
+        "return": 40.4,
+        "net": 43.2,
+        "slice": 45.3,
+        "spin": 45.7,
+        "placement": 46.2,
+        "speed": 47.0,
+        "stamina": 47.6,
+        "strength": 47.6,
+        "focus": 49.0,
+        "anticipation": 47.3,
+        "tactics": 44.5
+      },
+      "lowestStat": 32.7,
+      "highestStat": 61.2
+    },
+    "average / impatient": {
+      "n": 108,
+      "ovr": 41.7,
+      "ovrSd": 2.7,
+      "ovrMin": 36,
+      "ovrMax": 47,
+      "teamWinsMean": 2.08,
+      "teamWinsDist": [18, 17, 30, 27, 13, 3],
+      "teamByMatch": {
+        "15": 47,
+        "19": 49,
+        "23": 38,
+        "27": 33,
+        "31": 41
+      },
+      "champion%": 6.5,
+      "roundsWonDist": [27, 33, 30, 11, 7],
+      "roundWinShare": {
+        "Keith": 80,
+        "Chris": 66,
+        "Max": 32,
+        "Jordan": 25
+      },
+      "pTitle%": 6.7,
+      "practiceWin%": 52,
+      "practicePlayed": 6.2,
+      "unspent": {
+        "power": 33,
+        "quickness": 85,
+        "technique": 41,
+        "mind": 46
+      },
+      "earned": {
+        "power": 350,
+        "quickness": 316,
+        "technique": 379,
+        "mind": 302
+      },
+      "earnedBySource": {
+        "training": 487,
+        "practice": 141,
+        "team": 96,
+        "story": 624
+      },
+      "slots": {
+        "train": 52.3,
+        "practice": 6.2,
+        "team": 4.5,
+        "story": 36.7,
+        "rest": 5.4
+      },
+      "storyEvents": 49.2,
+      "abilityLevels": 0.96,
+      "xpUnspent": 861,
+      "meanStats": {
+        "serve": 42.7,
+        "forehand": 43.0,
+        "backhand": 43.2,
+        "return": 37.6,
+        "net": 38.1,
+        "slice": 38.2,
+        "spin": 42.9,
+        "placement": 43,
+        "speed": 42.7,
+        "stamina": 42.6,
+        "strength": 42.9,
+        "focus": 39.3,
+        "anticipation": 42.7,
+        "tactics": 42.9
+      },
+      "lowestStat": 29.6,
+      "highestStat": 57.0
+    },
+    "average / patient": {
+      "n": 108,
+      "ovr": 44.4,
+      "ovrSd": 2.6,
+      "ovrMin": 36,
+      "ovrMax": 49,
+      "teamWinsMean": 2.56,
+      "teamWinsDist": [8, 16, 28, 30, 16, 10],
+      "teamByMatch": {
+        "15": 43,
+        "19": 62,
+        "23": 44,
+        "27": 50,
+        "31": 57
+      },
+      "champion%": 16.7,
+      "roundsWonDist": [17, 19, 28, 26, 18],
+      "roundWinShare": {
+        "Keith": 88,
+        "Chris": 78,
+        "Max": 50,
+        "Jordan": 38
+      },
+      "pTitle%": 15.9,
+      "practiceWin%": 58,
+      "practicePlayed": 6.6,
+      "unspent": {
+        "power": 8,
+        "quickness": 61,
+        "technique": 16,
+        "mind": 27
+      },
+      "earned": {
+        "power": 374,
+        "quickness": 322,
+        "technique": 391,
+        "mind": 322
+      },
+      "earnedBySource": {
+        "training": 492,
+        "practice": 159,
+        "team": 111,
+        "story": 646
+      },
+      "slots": {
+        "train": 52.5,
+        "practice": 6.6,
+        "team": 4.7,
+        "story": 35.8,
+        "rest": 5.4
+      },
+      "storyEvents": 49.7,
+      "abilityLevels": 0.96,
+      "xpUnspent": 936,
+      "meanStats": {
+        "serve": 45.0,
+        "forehand": 45.3,
+        "backhand": 44.2,
+        "return": 38.9,
+        "net": 39.6,
+        "slice": 43.2,
+        "spin": 45.3,
+        "placement": 45.0,
+        "speed": 45.4,
+        "stamina": 45.9,
+        "strength": 47.9,
+        "focus": 44.1,
+        "anticipation": 46.1,
+        "tactics": 44.8
+      },
+      "lowestStat": 31.4,
+      "highestStat": 59.6
+    },
+    "averageBest / affordable": {
+      "n": 108,
+      "ovr": 47.5,
+      "ovrSd": 2.6,
+      "ovrMin": 40,
+      "ovrMax": 52,
+      "teamWinsMean": 2.86,
+      "teamWinsDist": [10, 12, 20, 22, 29, 15],
+      "teamByMatch": {
+        "15": 52,
+        "19": 57,
+        "23": 45,
+        "27": 66,
+        "31": 66
+      },
+      "champion%": 40.7,
+      "roundsWonDist": [4, 10, 17, 33, 44],
+      "roundWinShare": {
+        "Keith": 95,
+        "Chris": 90,
+        "Max": 66,
+        "Jordan": 52
+      },
+      "pTitle%": 33.0,
+      "practiceWin%": 62,
+      "practicePlayed": 6.2,
+      "unspent": {
+        "power": 0,
+        "quickness": 27,
+        "technique": 1,
+        "mind": 1
+      },
+      "earned": {
+        "power": 398,
+        "quickness": 325,
+        "technique": 451,
+        "mind": 359
+      },
+      "earnedBySource": {
+        "training": 497,
+        "practice": 156,
+        "team": 117,
+        "story": 764
+      },
+      "slots": {
+        "train": 53.5,
+        "practice": 6.2,
+        "team": 4.5,
+        "story": 35.8,
+        "rest": 5.1
+      },
+      "storyEvents": 48.9,
+      "abilityLevels": 0.91,
+      "xpUnspent": 941,
+      "meanStats": {
+        "serve": 46.7,
+        "forehand": 47.9,
+        "backhand": 48.1,
+        "return": 41.9,
+        "net": 44.4,
+        "slice": 50.0,
+        "spin": 47.6,
+        "placement": 48.2,
+        "speed": 47.7,
+        "stamina": 47.5,
+        "strength": 49.0,
+        "focus": 49.8,
+        "anticipation": 50.1,
+        "tactics": 46.6
+      },
+      "lowestStat": 34.4,
+      "highestStat": 63.6
+    },
+    "averageBest / impatient": {
+      "n": 108,
+      "ovr": 43.0,
+      "ovrSd": 2.9,
+      "ovrMin": 36,
+      "ovrMax": 51,
+      "teamWinsMean": 2.43,
+      "teamWinsDist": [10, 18, 28, 26, 20, 6],
+      "teamByMatch": {
+        "15": 50,
+        "19": 58,
+        "23": 36,
+        "27": 47,
+        "31": 51
+      },
+      "champion%": 12.0,
+      "roundsWonDist": [18, 20, 38, 19, 13],
+      "roundWinShare": {
+        "Keith": 83,
+        "Chris": 71,
+        "Max": 39,
+        "Jordan": 30
+      },
+      "pTitle%": 9.9,
+      "practiceWin%": 55,
+      "practicePlayed": 6.2,
+      "unspent": {
+        "power": 31,
+        "quickness": 70,
+        "technique": 64,
+        "mind": 64
+      },
+      "earned": {
+        "power": 381,
+        "quickness": 319,
+        "technique": 428,
+        "mind": 334
+      },
+      "earnedBySource": {
+        "training": 498,
+        "practice": 146,
+        "team": 101,
+        "story": 718
+      },
+      "slots": {
+        "train": 53.5,
+        "practice": 6.2,
+        "team": 4.5,
+        "story": 35.7,
+        "rest": 5.1
+      },
+      "storyEvents": 47.7,
+      "abilityLevels": 0.99,
+      "xpUnspent": 883,
+      "meanStats": {
+        "serve": 44.2,
+        "forehand": 44.1,
+        "backhand": 45.3,
+        "return": 38.6,
+        "net": 39.1,
+        "slice": 38.9,
+        "spin": 44.2,
+        "placement": 44.5,
+        "speed": 44.1,
+        "stamina": 44.1,
+        "strength": 44.8,
+        "focus": 39.4,
+        "anticipation": 43.3,
+        "tactics": 43.9
+      },
+      "lowestStat": 30.1,
+      "highestStat": 59.2
+    },
+    "averageBest / patient": {
+      "n": 108,
+      "ovr": 44.9,
+      "ovrSd": 2.8,
+      "ovrMin": 39,
+      "ovrMax": 52,
+      "teamWinsMean": 2.42,
+      "teamWinsDist": [9, 26, 20, 27, 16, 10],
+      "teamByMatch": {
+        "15": 43,
+        "19": 56,
+        "23": 39,
+        "27": 52,
+        "31": 52
+      },
+      "champion%": 21.3,
+      "roundsWonDist": [8, 16, 35, 26, 23],
+      "roundWinShare": {
+        "Keith": 90,
+        "Chris": 81,
+        "Max": 51,
+        "Jordan": 39
+      },
+      "pTitle%": 18.3,
+      "practiceWin%": 57,
+      "practicePlayed": 6.1,
+      "unspent": {
+        "power": 10,
+        "quickness": 48,
+        "technique": 29,
+        "mind": 25
+      },
+      "earned": {
+        "power": 382,
+        "quickness": 312,
+        "technique": 419,
+        "mind": 331
+      },
+      "earnedBySource": {
+        "training": 501,
+        "practice": 147,
+        "team": 100,
+        "story": 696
+      },
+      "slots": {
+        "train": 54.0,
+        "practice": 6.1,
+        "team": 4.3,
+        "story": 35.6,
+        "rest": 5.1
+      },
+      "storyEvents": 45.0,
+      "abilityLevels": 0.94,
+      "xpUnspent": 883,
+      "meanStats": {
+        "serve": 45.4,
+        "forehand": 45.9,
+        "backhand": 45.4,
+        "return": 39.1,
+        "net": 40.9,
+        "slice": 43.6,
+        "spin": 46.2,
+        "placement": 46.0,
+        "speed": 45.2,
+        "stamina": 46.1,
+        "strength": 47.6,
+        "focus": 44.5,
+        "anticipation": 46.6,
+        "tactics": 45.2
+      },
+      "lowestStat": 31.7,
+      "highestStat": 60.2
+    },
+    "casual / affordable": {
+      "n": 108,
+      "ovr": 43.0,
+      "ovrSd": 2.6,
+      "ovrMin": 37,
+      "ovrMax": 49,
+      "teamWinsMean": 2.34,
+      "teamWinsDist": [13, 20, 21, 30, 19, 5],
+      "teamByMatch": {
+        "15": 52,
+        "19": 52,
+        "23": 41,
+        "27": 43,
+        "31": 47
+      },
+      "champion%": 13.0,
+      "roundsWonDist": [20, 25, 28, 21, 14],
+      "roundWinShare": {
+        "Keith": 85,
+        "Chris": 73,
+        "Max": 43,
+        "Jordan": 32
+      },
+      "pTitle%": 11.8,
+      "practiceWin%": 53,
+      "practicePlayed": 6.2,
+      "unspent": {
+        "power": 0,
+        "quickness": 28,
+        "technique": 0,
+        "mind": 1
+      },
+      "earned": {
+        "power": 314,
+        "quickness": 281,
+        "technique": 335,
+        "mind": 276
+      },
+      "earnedBySource": {
+        "training": 396,
+        "practice": 146,
+        "team": 102,
+        "story": 561
+      },
+      "slots": {
+        "train": 52.7,
+        "practice": 6.2,
+        "team": 4.5,
+        "story": 36.5,
+        "rest": 5.1
+      },
+      "storyEvents": 48.9,
+      "abilityLevels": 0.85,
+      "xpUnspent": 894,
+      "meanStats": {
+        "serve": 42.1,
+        "forehand": 42.0,
+        "backhand": 42.3,
+        "return": 38.0,
+        "net": 40.6,
+        "slice": 42.0,
+        "spin": 42.7,
+        "placement": 43.2,
+        "speed": 45.8,
+        "stamina": 46.0,
+        "strength": 44.3,
+        "focus": 45.9,
+        "anticipation": 44.9,
+        "tactics": 41.6
+      },
+      "lowestStat": 31.0,
+      "highestStat": 56.5
+    },
+    "casual / impatient": {
+      "n": 108,
+      "ovr": 39.5,
+      "ovrSd": 2.2,
+      "ovrMin": 34,
+      "ovrMax": 44,
+      "teamWinsMean": 1.77,
+      "teamWinsDist": [17, 29, 35, 18, 7, 2],
+      "teamByMatch": {
+        "15": 45,
+        "19": 38,
+        "23": 33,
+        "27": 28,
+        "31": 32
+      },
+      "champion%": 2.8,
+      "roundsWonDist": [30, 34, 32, 9, 3],
+      "roundWinShare": {
+        "Keith": 71,
+        "Chris": 55,
+        "Max": 24,
+        "Jordan": 18
+      },
+      "pTitle%": 2.4,
+      "practiceWin%": 49,
+      "practicePlayed": 6.5,
+      "unspent": {
+        "power": 29,
+        "quickness": 68,
+        "technique": 27,
+        "mind": 40
+      },
+      "earned": {
+        "power": 302,
+        "quickness": 272,
+        "technique": 322,
+        "mind": 256
+      },
+      "earnedBySource": {
+        "training": 397,
+        "practice": 143,
+        "team": 85,
+        "story": 528
+      },
+      "slots": {
+        "train": 53.1,
+        "practice": 6.5,
+        "team": 4.4,
+        "story": 35.3,
+        "rest": 5.6
+      },
+      "storyEvents": 47.5,
+      "abilityLevels": 0.99,
+      "xpUnspent": 846,
+      "meanStats": {
+        "serve": 40.1,
+        "forehand": 40.5,
+        "backhand": 41.1,
+        "return": 36.0,
+        "net": 36.2,
+        "slice": 36.4,
+        "spin": 41.0,
+        "placement": 40.9,
+        "speed": 40.5,
+        "stamina": 40.9,
+        "strength": 40.3,
+        "focus": 36.9,
+        "anticipation": 40.3,
+        "tactics": 40.1
+      },
+      "lowestStat": 28.8,
+      "highestStat": 53.0
+    },
+    "casual / patient": {
+      "n": 108,
+      "ovr": 41.8,
+      "ovrSd": 2.4,
+      "ovrMin": 36,
+      "ovrMax": 47,
+      "teamWinsMean": 2.02,
+      "teamWinsDist": [11, 27, 34, 22, 13, 1],
+      "teamByMatch": {
+        "15": 45,
+        "19": 47,
+        "23": 35,
+        "27": 39,
+        "31": 35
+      },
+      "champion%": 10.2,
+      "roundsWonDist": [17, 26, 39, 15, 11],
+      "roundWinShare": {
+        "Keith": 80,
+        "Chris": 68,
+        "Max": 34,
+        "Jordan": 26
+      },
+      "pTitle%": 6.3,
+      "practiceWin%": 53,
+      "practicePlayed": 6.3,
+      "unspent": {
+        "power": 7,
+        "quickness": 50,
+        "technique": 15,
+        "mind": 19
+      },
+      "earned": {
+        "power": 317,
+        "quickness": 276,
+        "technique": 336,
+        "mind": 270
+      },
+      "earnedBySource": {
+        "training": 396,
+        "practice": 144,
+        "team": 94,
+        "story": 565
+      },
+      "slots": {
+        "train": 53.1,
+        "practice": 6.3,
+        "team": 4.6,
+        "story": 35.8,
+        "rest": 5.2
+      },
+      "storyEvents": 49.0,
+      "abilityLevels": 0.94,
+      "xpUnspent": 870,
+      "meanStats": {
+        "serve": 42.1,
+        "forehand": 41.9,
+        "backhand": 41.7,
+        "return": 36.8,
+        "net": 37.5,
+        "slice": 40.5,
+        "spin": 43.3,
+        "placement": 42.3,
+        "speed": 42.8,
+        "stamina": 44.3,
+        "strength": 44.4,
+        "focus": 42.1,
+        "anticipation": 43.7,
+        "tactics": 41.2
+      },
+      "lowestStat": 30.2,
+      "highestStat": 54.9
+    },
+    "skilled / affordable": {
+      "n": 108,
+      "ovr": 49.7,
+      "ovrSd": 2.8,
+      "ovrMin": 43,
+      "ovrMax": 54,
+      "teamWinsMean": 3.3,
+      "teamWinsDist": [9, 11, 8, 22, 27, 31],
+      "teamByMatch": {
+        "15": 62,
+        "19": 62,
+        "23": 62,
+        "27": 70,
+        "31": 73
+      },
+      "champion%": 50.0,
+      "roundsWonDist": [1, 9, 14, 30, 54],
+      "roundWinShare": {
+        "Keith": 98,
+        "Chris": 94,
+        "Max": 78,
+        "Jordan": 63
+      },
+      "pTitle%": 48.3,
+      "practiceWin%": 63,
+      "practicePlayed": 6.6,
+      "unspent": {
+        "power": 1,
+        "quickness": 28,
+        "technique": 1,
+        "mind": 1
+      },
+      "earned": {
+        "power": 447,
+        "quickness": 363,
+        "technique": 510,
+        "mind": 405
+      },
+      "earnedBySource": {
+        "training": 594,
+        "practice": 172,
+        "team": 122,
+        "story": 837
+      },
+      "slots": {
+        "train": 53.4,
+        "practice": 6.6,
+        "team": 4.2,
+        "story": 35.9,
+        "rest": 4.9
+      },
+      "storyEvents": 45.8,
+      "abilityLevels": 0.94,
+      "xpUnspent": 985,
+      "meanStats": {
+        "serve": 48.6,
+        "forehand": 50.1,
+        "backhand": 50,
+        "return": 44.0,
+        "net": 46.5,
+        "slice": 53.0,
+        "spin": 50.0,
+        "placement": 50.8,
+        "speed": 49.6,
+        "stamina": 50.6,
+        "strength": 51.1,
+        "focus": 53.3,
+        "anticipation": 51.2,
+        "tactics": 49.0
+      },
+      "lowestStat": 35.2,
+      "highestStat": 67.5
+    },
+    "skilled / impatient": {
+      "n": 108,
+      "ovr": 45.8,
+      "ovrSd": 3.0,
+      "ovrMin": 38,
+      "ovrMax": 53,
+      "teamWinsMean": 2.72,
+      "teamWinsDist": [10, 11, 27, 20, 31, 9],
+      "teamByMatch": {
+        "15": 59,
+        "19": 61,
+        "23": 44,
+        "27": 52,
+        "31": 56
+      },
+      "champion%": 24.1,
+      "roundsWonDist": [13, 19, 27, 23, 26],
+      "roundWinShare": {
+        "Keith": 90,
+        "Chris": 82,
+        "Max": 56,
+        "Jordan": 45
+      },
+      "pTitle%": 23.1,
+      "practiceWin%": 60,
+      "practicePlayed": 6.4,
+      "unspent": {
+        "power": 38,
+        "quickness": 72,
+        "technique": 78,
+        "mind": 76
+      },
+      "earned": {
+        "power": 445,
+        "quickness": 365,
+        "technique": 509,
+        "mind": 399
+      },
+      "earnedBySource": {
+        "training": 587,
+        "practice": 158,
+        "team": 111,
+        "story": 864
+      },
+      "slots": {
+        "train": 52.8,
+        "practice": 6.4,
+        "team": 4.5,
+        "story": 35.9,
+        "rest": 5.4
+      },
+      "storyEvents": 48.9,
+      "abilityLevels": 0.96,
+      "xpUnspent": 931,
+      "meanStats": {
+        "serve": 47.2,
+        "forehand": 47.3,
+        "backhand": 47.1,
+        "return": 41.0,
+        "net": 42.1,
+        "slice": 42.1,
+        "spin": 46.9,
+        "placement": 47.6,
+        "speed": 47.1,
+        "stamina": 46.6,
+        "strength": 47.7,
+        "focus": 41.8,
+        "anticipation": 46.3,
+        "tactics": 47.5
+      },
+      "lowestStat": 31.7,
+      "highestStat": 63.6
+    },
+    "skilled / patient": {
+      "n": 108,
+      "ovr": 48.3,
+      "ovrSd": 2.9,
+      "ovrMin": 40,
+      "ovrMax": 54,
+      "teamWinsMean": 3.3,
+      "teamWinsDist": [7, 8, 14, 19, 37, 23],
+      "teamByMatch": {
+        "15": 66,
+        "19": 70,
+        "23": 63,
+        "27": 63,
+        "31": 68
+      },
+      "champion%": 25.0,
+      "roundsWonDist": [7, 8, 31, 35, 27],
+      "roundWinShare": {
+        "Keith": 96,
+        "Chris": 89,
+        "Max": 70,
+        "Jordan": 58
+      },
+      "pTitle%": 38.5,
+      "practiceWin%": 64,
+      "practicePlayed": 6.1,
+      "unspent": {
+        "power": 12,
+        "quickness": 52,
+        "technique": 44,
+        "mind": 38
+      },
+      "earned": {
+        "power": 453,
+        "quickness": 367,
+        "technique": 520,
+        "mind": 408
+      },
+      "earnedBySource": {
+        "training": 598,
+        "practice": 160,
+        "team": 125,
+        "story": 864
+      },
+      "slots": {
+        "train": 53.7,
+        "practice": 6.1,
+        "team": 4.5,
+        "story": 35.6,
+        "rest": 5.0
+      },
+      "storyEvents": 48.2,
+      "abilityLevels": 0.98,
+      "xpUnspent": 964,
+      "meanStats": {
+        "serve": 49.1,
+        "forehand": 49.3,
+        "backhand": 48.5,
+        "return": 42.0,
+        "net": 43.6,
+        "slice": 47.2,
+        "spin": 49.7,
+        "placement": 50.5,
+        "speed": 48.5,
+        "stamina": 48.7,
+        "strength": 50.4,
+        "focus": 47.6,
+        "anticipation": 50.2,
+        "tactics": 49.4
+      },
+      "lowestStat": 33.3,
+      "highestStat": 65.9
+    }
+  },
+  "sweep:SKILLxMATCH_EVERY": {
+    "average / 1": {
+      "n": 108,
+      "ovr": 44.6,
+      "ovrSd": 3.3,
+      "ovrMin": 37,
+      "ovrMax": 51,
+      "teamWinsMean": 2.7,
+      "teamWinsDist": [8, 15, 24, 27, 22, 12],
+      "teamByMatch": {
+        "15": 56,
+        "19": 60,
+        "23": 50,
+        "27": 48,
+        "31": 56
+      },
+      "champion%": 21.3,
+      "roundsWonDist": [17, 17, 30, 21, 23],
+      "roundWinShare": {
+        "Keith": 89,
+        "Chris": 80,
+        "Max": 50,
+        "Jordan": 42
+      },
+      "pTitle%": 20.0,
+      "practiceWin%": 57,
+      "practicePlayed": 9.5,
+      "unspent": {
+        "power": 16,
+        "quickness": 59,
+        "technique": 21,
+        "mind": 29
+      },
+      "earned": {
+        "power": 369,
+        "quickness": 325,
+        "technique": 402,
+        "mind": 341
+      },
+      "earnedBySource": {
+        "training": 441,
+        "practice": 227,
+        "team": 113,
+        "story": 656
+      },
+      "slots": {
+        "train": 47.6,
+        "practice": 9.5,
+        "team": 4.7,
+        "story": 36.6,
+        "rest": 6.6
+      },
+      "storyEvents": 50.9,
+      "abilityLevels": 0.96,
+      "xpUnspent": 1107,
+      "meanStats": {
+        "serve": 45.0,
+        "forehand": 45.0,
+        "backhand": 45.0,
+        "return": 39.6,
+        "net": 40.7,
+        "slice": 43.0,
+        "spin": 44.8,
+        "placement": 45.8,
+        "speed": 44.9,
+        "stamina": 45.8,
+        "strength": 45.9,
+        "focus": 45.7,
+        "anticipation": 46.9,
+        "tactics": 45.0
+      },
+      "lowestStat": 31.5,
+      "highestStat": 60.5
+    },
+    "average / 2": {
+      "n": 108,
+      "ovr": 43.7,
+      "ovrSd": 3.2,
+      "ovrMin": 36,
+      "ovrMax": 49,
+      "teamWinsMean": 2.44,
+      "teamWinsDist": [13, 14, 24, 30, 24, 3],
+      "teamByMatch": {
+        "15": 48,
+        "19": 57,
+        "23": 43,
+        "27": 46,
+        "31": 49
+      },
+      "champion%": 14.8,
+      "roundsWonDist": [23, 20, 27, 22, 16],
+      "roundWinShare": {
+        "Keith": 85,
+        "Chris": 75,
+        "Max": 45,
+        "Jordan": 33
+      },
+      "pTitle%": 13.7,
+      "practiceWin%": 55,
+      "practicePlayed": 5.5,
+      "unspent": {
+        "power": 14,
+        "quickness": 62,
+        "technique": 19,
+        "mind": 24
+      },
+      "earned": {
+        "power": 362,
+        "quickness": 318,
+        "technique": 386,
+        "mind": 309
+      },
+      "earnedBySource": {
+        "training": 503,
+        "practice": 129,
+        "team": 104,
+        "story": 640
+      },
+      "slots": {
+        "train": 53.7,
+        "practice": 5.5,
+        "team": 4.5,
+        "story": 36.6,
+        "rest": 4.8
+      },
+      "storyEvents": 49.0,
+      "abilityLevels": 0.91,
+      "xpUnspent": 852,
+      "meanStats": {
+        "serve": 44.2,
+        "forehand": 44.1,
+        "backhand": 44.4,
+        "return": 38.9,
+        "net": 40.3,
+        "slice": 41.9,
+        "spin": 44.7,
+        "placement": 44.1,
+        "speed": 45.2,
+        "stamina": 45.2,
+        "strength": 46.1,
+        "focus": 43.3,
+        "anticipation": 44.8,
+        "tactics": 43.8
+      },
+      "lowestStat": 31.1,
+      "highestStat": 58.9
+    },
+    "average / 4": {
+      "n": 108,
+      "ovr": 43.5,
+      "ovrSd": 3.0,
+      "ovrMin": 36,
+      "ovrMax": 49,
+      "teamWinsMean": 2.35,
+      "teamWinsDist": [13, 18, 27, 26, 16, 8],
+      "teamByMatch": {
+        "15": 44,
+        "19": 56,
+        "23": 42,
+        "27": 44,
+        "31": 51
+      },
+      "champion%": 11.1,
+      "roundsWonDist": [13, 28, 35, 20, 12],
+      "roundWinShare": {
+        "Keith": 86,
+        "Chris": 73,
+        "Max": 43,
+        "Jordan": 34
+      },
+      "pTitle%": 12.7,
+      "practiceWin%": 57,
+      "practicePlayed": 4.3,
+      "unspent": {
+        "power": 12,
+        "quickness": 56,
+        "technique": 18,
+        "mind": 21
+      },
+      "earned": {
+        "power": 360,
+        "quickness": 310,
+        "technique": 382,
+        "mind": 298
+      },
+      "earnedBySource": {
+        "training": 528,
+        "practice": 104,
+        "team": 104,
+        "story": 614
+      },
+      "slots": {
+        "train": 56.6,
+        "practice": 4.3,
+        "team": 4.5,
+        "story": 35.3,
+        "rest": 4.3
+      },
+      "storyEvents": 48.1,
+      "abilityLevels": 0.91,
+      "xpUnspent": 790,
+      "meanStats": {
+        "serve": 43.7,
+        "forehand": 44.3,
+        "backhand": 44.3,
+        "return": 38.4,
+        "net": 39.9,
+        "slice": 41.8,
+        "spin": 44.4,
+        "placement": 44.2,
+        "speed": 45.0,
+        "stamina": 45.1,
+        "strength": 46.4,
+        "focus": 43.3,
+        "anticipation": 44.4,
+        "tactics": 43.4
+      },
+      "lowestStat": 31.0,
+      "highestStat": 58.4
+    },
+    "averageBest / 1": {
+      "n": 108,
+      "ovr": 45.7,
+      "ovrSd": 3.3,
+      "ovrMin": 38,
+      "ovrMax": 52,
+      "teamWinsMean": 2.68,
+      "teamWinsDist": [8, 17, 22, 28, 21, 12],
+      "teamByMatch": {
+        "15": 56,
+        "19": 62,
+        "23": 38,
+        "27": 56,
+        "31": 56
+      },
+      "champion%": 29.6,
+      "roundsWonDist": [8, 10, 30, 28, 32],
+      "roundWinShare": {
+        "Keith": 91,
+        "Chris": 81,
+        "Max": 55,
+        "Jordan": 42
+      },
+      "pTitle%": 22.5,
+      "practiceWin%": 57,
+      "practicePlayed": 8.8,
+      "unspent": {
+        "power": 13,
+        "quickness": 48,
+        "technique": 32,
+        "mind": 36
+      },
+      "earned": {
+        "power": 390,
+        "quickness": 326,
+        "technique": 444,
+        "mind": 358
+      },
+      "earnedBySource": {
+        "training": 456,
+        "practice": 211,
+        "team": 109,
+        "story": 741
+      },
+      "slots": {
+        "train": 49.0,
+        "practice": 8.8,
+        "team": 4.5,
+        "story": 36.2,
+        "rest": 6.4
+      },
+      "storyEvents": 47.8,
+      "abilityLevels": 0.97,
+      "xpUnspent": 1058,
+      "meanStats": {
+        "serve": 46.0,
+        "forehand": 46.3,
+        "backhand": 47.1,
+        "return": 40.5,
+        "net": 41.7,
+        "slice": 45.4,
+        "spin": 46.5,
+        "placement": 46.9,
+        "speed": 45.9,
+        "stamina": 46.5,
+        "strength": 47.5,
+        "focus": 45.0,
+        "anticipation": 47.8,
+        "tactics": 46.0
+      },
+      "lowestStat": 32.4,
+      "highestStat": 62.3
+    },
+    "averageBest / 2": {
+      "n": 108,
+      "ovr": 45.0,
+      "ovrSd": 3.1,
+      "ovrMin": 37,
+      "ovrMax": 51,
+      "teamWinsMean": 2.54,
+      "teamWinsDist": [11, 18, 23, 24, 22, 10],
+      "teamByMatch": {
+        "15": 46,
+        "19": 53,
+        "23": 44,
+        "27": 52,
+        "31": 59
+      },
+      "champion%": 22.2,
+      "roundsWonDist": [13, 23, 26, 22, 24],
+      "roundWinShare": {
+        "Keith": 88,
+        "Chris": 82,
+        "Max": 52,
+        "Jordan": 40
+      },
+      "pTitle%": 19.7,
+      "practiceWin%": 57,
+      "practicePlayed": 5.6,
+      "unspent": {
+        "power": 13,
+        "quickness": 53,
+        "technique": 30,
+        "mind": 30
+      },
+      "earned": {
+        "power": 390,
+        "quickness": 320,
+        "technique": 430,
+        "mind": 338
+      },
+      "earnedBySource": {
+        "training": 509,
+        "practice": 134,
+        "team": 105,
+        "story": 729
+      },
+      "slots": {
+        "train": 55.0,
+        "practice": 5.6,
+        "team": 4.4,
+        "story": 35.3,
+        "rest": 4.8
+      },
+      "storyEvents": 47.5,
+      "abilityLevels": 0.96,
+      "xpUnspent": 863,
+      "meanStats": {
+        "serve": 45.5,
+        "forehand": 46.0,
+        "backhand": 45.5,
+        "return": 39.6,
+        "net": 41.2,
+        "slice": 43.5,
+        "spin": 46.5,
+        "placement": 46.2,
+        "speed": 45.7,
+        "stamina": 45.6,
+        "strength": 47.2,
+        "focus": 44.3,
+        "anticipation": 45.8,
+        "tactics": 45.3
+      },
+      "lowestStat": 31.8,
+      "highestStat": 60.4
+    },
+    "averageBest / 4": {
+      "n": 108,
+      "ovr": 44.7,
+      "ovrSd": 3.5,
+      "ovrMin": 36,
+      "ovrMax": 51,
+      "teamWinsMean": 2.49,
+      "teamWinsDist": [10, 21, 23, 23, 22, 9],
+      "teamByMatch": {
+        "15": 43,
+        "19": 57,
+        "23": 39,
+        "27": 56,
+        "31": 54
+      },
+      "champion%": 22.2,
+      "roundsWonDist": [9, 13, 34, 28, 24],
+      "roundWinShare": {
+        "Keith": 88,
+        "Chris": 78,
+        "Max": 51,
+        "Jordan": 39
+      },
+      "pTitle%": 19.0,
+      "practiceWin%": 62,
+      "practicePlayed": 4.1,
+      "unspent": {
+        "power": 14,
+        "quickness": 45,
+        "technique": 31,
+        "mind": 25
+      },
+      "earned": {
+        "power": 381,
+        "quickness": 311,
+        "technique": 424,
+        "mind": 329
+      },
+      "earnedBySource": {
+        "training": 531,
+        "practice": 104,
+        "team": 103,
+        "story": 707
+      },
+      "slots": {
+        "train": 56.9,
+        "practice": 4.1,
+        "team": 4.3,
+        "story": 35.5,
+        "rest": 4.1
+      },
+      "storyEvents": 46.3,
+      "abilityLevels": 0.91,
+      "xpUnspent": 787,
+      "meanStats": {
+        "serve": 44.8,
+        "forehand": 45.7,
+        "backhand": 46.3,
+        "return": 39.5,
+        "net": 41.4,
+        "slice": 43.6,
+        "spin": 45.1,
+        "placement": 45.6,
+        "speed": 45.3,
+        "stamina": 45.7,
+        "strength": 46.8,
+        "focus": 44.3,
+        "anticipation": 46.3,
+        "tactics": 44.5
+      },
+      "lowestStat": 32,
+      "highestStat": 60.2
+    },
+    "casual / 1": {
+      "n": 108,
+      "ovr": 41.8,
+      "ovrSd": 2.8,
+      "ovrMin": 35,
+      "ovrMax": 49,
+      "teamWinsMean": 2.03,
+      "teamWinsDist": [12, 33, 24, 22, 13, 4],
+      "teamByMatch": {
+        "15": 54,
+        "19": 45,
+        "23": 36,
+        "27": 30,
+        "31": 38
+      },
+      "champion%": 11.1,
+      "roundsWonDist": [27, 24, 31, 14, 12],
+      "roundWinShare": {
+        "Keith": 81,
+        "Chris": 69,
+        "Max": 36,
+        "Jordan": 25
+      },
+      "pTitle%": 7.9,
+      "practiceWin%": 51,
+      "practicePlayed": 9.5,
+      "unspent": {
+        "power": 12,
+        "quickness": 49,
+        "technique": 19,
+        "mind": 24
+      },
+      "earned": {
+        "power": 313,
+        "quickness": 281,
+        "technique": 340,
+        "mind": 281
+      },
+      "earnedBySource": {
+        "training": 360,
+        "practice": 212,
+        "team": 93,
+        "story": 551
+      },
+      "slots": {
+        "train": 47.8,
+        "practice": 9.5,
+        "team": 4.5,
+        "story": 36.5,
+        "rest": 6.7
+      },
+      "storyEvents": 48.7,
+      "abilityLevels": 0.93,
+      "xpUnspent": 1034,
+      "meanStats": {
+        "serve": 41.6,
+        "forehand": 41.9,
+        "backhand": 42.2,
+        "return": 37.3,
+        "net": 38.4,
+        "slice": 39.9,
+        "spin": 42.7,
+        "placement": 42.7,
+        "speed": 43.4,
+        "stamina": 43.9,
+        "strength": 43.1,
+        "focus": 42.4,
+        "anticipation": 43.5,
+        "tactics": 41.8
+      },
+      "lowestStat": 30.1,
+      "highestStat": 55.2
+    },
+    "casual / 2": {
+      "n": 108,
+      "ovr": 41.3,
+      "ovrSd": 2.9,
+      "ovrMin": 35,
+      "ovrMax": 47,
+      "teamWinsMean": 2.14,
+      "teamWinsDist": [16, 19, 30, 24, 15, 4],
+      "teamByMatch": {
+        "15": 46,
+        "19": 46,
+        "23": 39,
+        "27": 36,
+        "31": 46
+      },
+      "champion%": 8.3,
+      "roundsWonDist": [16, 34, 32, 17, 9],
+      "roundWinShare": {
+        "Keith": 78,
+        "Chris": 64,
+        "Max": 32,
+        "Jordan": 27
+      },
+      "pTitle%": 6.8,
+      "practiceWin%": 53,
+      "practicePlayed": 5.6,
+      "unspent": {
+        "power": 14,
+        "quickness": 48,
+        "technique": 11,
+        "mind": 19
+      },
+      "earned": {
+        "power": 313,
+        "quickness": 276,
+        "technique": 325,
+        "mind": 262
+      },
+      "earnedBySource": {
+        "training": 406,
+        "practice": 128,
+        "team": 97,
+        "story": 545
+      },
+      "slots": {
+        "train": 54.7,
+        "practice": 5.6,
+        "team": 4.6,
+        "story": 35.2,
+        "rest": 4.9
+      },
+      "storyEvents": 47.9,
+      "abilityLevels": 0.91,
+      "xpUnspent": 838,
+      "meanStats": {
+        "serve": 41.5,
+        "forehand": 41.2,
+        "backhand": 41.6,
+        "return": 36.7,
+        "net": 37.9,
+        "slice": 39.3,
+        "spin": 42.3,
+        "placement": 42.1,
+        "speed": 43.3,
+        "stamina": 43.7,
+        "strength": 43.1,
+        "focus": 41.4,
+        "anticipation": 42.9,
+        "tactics": 40.4
+      },
+      "lowestStat": 30.1,
+      "highestStat": 54.6
+    },
+    "casual / 4": {
+      "n": 108,
+      "ovr": 41.1,
+      "ovrSd": 2.6,
+      "ovrMin": 34,
+      "ovrMax": 47,
+      "teamWinsMean": 1.96,
+      "teamWinsDist": [13, 24, 36, 24, 11, 0],
+      "teamByMatch": {
+        "15": 43,
+        "19": 45,
+        "23": 34,
+        "27": 44,
+        "31": 31
+      },
+      "champion%": 6.5,
+      "roundsWonDist": [24, 27, 36, 14, 7],
+      "roundWinShare": {
+        "Keith": 78,
+        "Chris": 62,
+        "Max": 33,
+        "Jordan": 24
+      },
+      "pTitle%": 5.8,
+      "practiceWin%": 53,
+      "practicePlayed": 4.0,
+      "unspent": {
+        "power": 11,
+        "quickness": 49,
+        "technique": 13,
+        "mind": 17
+      },
+      "earned": {
+        "power": 307,
+        "quickness": 272,
+        "technique": 328,
+        "mind": 258
+      },
+      "earnedBySource": {
+        "training": 423,
+        "practice": 93,
+        "team": 92,
+        "story": 558
+      },
+      "slots": {
+        "train": 56.4,
+        "practice": 4.0,
+        "team": 4.5,
+        "story": 35.9,
+        "rest": 4.2
+      },
+      "storyEvents": 48.8,
+      "abilityLevels": 0.94,
+      "xpUnspent": 737,
+      "meanStats": {
+        "serve": 41.2,
+        "forehand": 41.3,
+        "backhand": 41.3,
+        "return": 36.8,
+        "net": 38.0,
+        "slice": 39.7,
+        "spin": 41.9,
+        "placement": 41.6,
+        "speed": 42.5,
+        "stamina": 43.6,
+        "strength": 42.7,
+        "focus": 41.2,
+        "anticipation": 42.5,
+        "tactics": 40.6
+      },
+      "lowestStat": 29.8,
+      "highestStat": 54.7
+    },
+    "skilled / 1": {
+      "n": 108,
+      "ovr": 48.4,
+      "ovrSd": 3.4,
+      "ovrMin": 40,
+      "ovrMax": 54,
+      "teamWinsMean": 3.02,
+      "teamWinsDist": [8, 13, 16, 18, 38, 15],
+      "teamByMatch": {
+        "15": 60,
+        "19": 66,
+        "23": 54,
+        "27": 58,
+        "31": 64
+      },
+      "champion%": 37.0,
+      "roundsWonDist": [10, 6, 22, 30, 40],
+      "roundWinShare": {
+        "Keith": 95,
+        "Chris": 90,
+        "Max": 70,
+        "Jordan": 57
+      },
+      "pTitle%": 39.4,
+      "practiceWin%": 61,
+      "practicePlayed": 9.4,
+      "unspent": {
+        "power": 18,
+        "quickness": 52,
+        "technique": 47,
+        "mind": 48
+      },
+      "earned": {
+        "power": 453,
+        "quickness": 367,
+        "technique": 524,
+        "mind": 426
+      },
+      "earnedBySource": {
+        "training": 542,
+        "practice": 238,
+        "team": 118,
+        "story": 871
+      },
+      "slots": {
+        "train": 48.7,
+        "practice": 9.4,
+        "team": 4.4,
+        "story": 35.9,
+        "rest": 6.7
+      },
+      "storyEvents": 48.0,
+      "abilityLevels": 0.98,
+      "xpUnspent": 1136,
+      "meanStats": {
+        "serve": 48.4,
+        "forehand": 48.8,
+        "backhand": 49.0,
+        "return": 42.4,
+        "net": 44.1,
+        "slice": 48.2,
+        "spin": 49.3,
+        "placement": 50.2,
+        "speed": 48.5,
+        "stamina": 48.7,
+        "strength": 50.3,
+        "focus": 48.6,
+        "anticipation": 50.6,
+        "tactics": 49.5
+      },
+      "lowestStat": 33.8,
+      "highestStat": 66.4
+    },
+    "skilled / 2": {
+      "n": 108,
+      "ovr": 47.8,
+      "ovrSd": 3.4,
+      "ovrMin": 38,
+      "ovrMax": 54,
+      "teamWinsMean": 3.14,
+      "teamWinsDist": [11, 8, 16, 20, 26, 27],
+      "teamByMatch": {
+        "15": 64,
+        "19": 62,
+        "23": 56,
+        "27": 61,
+        "31": 70
+      },
+      "champion%": 35.2,
+      "roundsWonDist": [8, 13, 23, 26, 38],
+      "roundWinShare": {
+        "Keith": 94,
+        "Chris": 88,
+        "Max": 67,
+        "Jordan": 54
+      },
+      "pTitle%": 35.5,
+      "practiceWin%": 62,
+      "practicePlayed": 5.6,
+      "unspent": {
+        "power": 15,
+        "quickness": 49,
+        "technique": 36,
+        "mind": 34
+      },
+      "earned": {
+        "power": 446,
+        "quickness": 361,
+        "technique": 505,
+        "mind": 392
+      },
+      "earnedBySource": {
+        "training": 604,
+        "practice": 143,
+        "team": 119,
+        "story": 838
+      },
+      "slots": {
+        "train": 54.5,
+        "practice": 5.6,
+        "team": 4.3,
+        "story": 36.0,
+        "rest": 4.6
+      },
+      "storyEvents": 47.1,
+      "abilityLevels": 0.97,
+      "xpUnspent": 911,
+      "meanStats": {
+        "serve": 48.3,
+        "forehand": 48.8,
+        "backhand": 48.4,
+        "return": 42.3,
+        "net": 44.4,
+        "slice": 47.0,
+        "spin": 48.6,
+        "placement": 49.2,
+        "speed": 48.2,
+        "stamina": 49.2,
+        "strength": 49.4,
+        "focus": 47.6,
+        "anticipation": 48.1,
+        "tactics": 48.8
+      },
+      "lowestStat": 33.4,
+      "highestStat": 65.4
+    },
+    "skilled / 4": {
+      "n": 108,
+      "ovr": 47.7,
+      "ovrSd": 3.1,
+      "ovrMin": 39,
+      "ovrMax": 53,
+      "teamWinsMean": 3.16,
+      "teamWinsDist": [7, 9, 17, 23, 31, 21],
+      "teamByMatch": {
+        "15": 63,
+        "19": 66,
+        "23": 58,
+        "27": 66,
+        "31": 63
+      },
+      "champion%": 26.9,
+      "roundsWonDist": [3, 17, 27, 32, 29],
+      "roundWinShare": {
+        "Keith": 93,
+        "Chris": 88,
+        "Max": 67,
+        "Jordan": 55
+      },
+      "pTitle%": 34.9,
+      "practiceWin%": 67,
+      "practicePlayed": 4.1,
+      "unspent": {
+        "power": 18,
+        "quickness": 52,
+        "technique": 39,
+        "mind": 33
+      },
+      "earned": {
+        "power": 447,
+        "quickness": 367,
+        "technique": 509,
+        "mind": 394
+      },
+      "earnedBySource": {
+        "training": 632,
+        "practice": 109,
+        "team": 120,
+        "story": 856
+      },
+      "slots": {
+        "train": 56.8,
+        "practice": 4.1,
+        "team": 4.4,
+        "story": 35.6,
+        "rest": 4.1
+      },
+      "storyEvents": 47.8,
+      "abilityLevels": 0.93,
+      "xpUnspent": 834,
+      "meanStats": {
+        "serve": 48.4,
+        "forehand": 49.0,
+        "backhand": 48.3,
+        "return": 42.3,
+        "net": 43.7,
+        "slice": 47.2,
+        "spin": 48.7,
+        "placement": 49.5,
+        "speed": 48.5,
+        "stamina": 48.1,
+        "strength": 49.4,
+        "focus": 46.6,
+        "anticipation": 49.1,
+        "tactics": 47.7
+      },
+      "lowestStat": 32.9,
+      "highestStat": 65.2
+    }
+  }
+}

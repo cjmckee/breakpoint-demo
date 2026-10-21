@@ -382,10 +382,10 @@ export const welcomeEvents: StoryEvent[] = [
               opponentId: 'keith',
               opponentName: 'Keith',
               opponentStats: {
-                core: { serve: 20, forehand: 18, backhand: 20, return: 22, net: 18 },
-                technical: { slice: 25, spin: 15, placement: 20 },
-                physical: { speed: 25, stamina: 20, strength: 18 },
-                mental: { focus: 15, anticipation: 18, tactics: 20 },
+                core: { serve: 16, forehand: 14, backhand: 16, return: 18, net: 14 },
+                technical: { slice: 21, spin: 11, placement: 16 },
+                physical: { speed: 21, stamina: 16, strength: 14 },
+                mental: { focus: 11, anticipation: 14, tactics: 16 },
               },
               opponentTier: 1,
               opponentDescription: 'A friendly but struggling player.',
@@ -409,10 +409,10 @@ export const welcomeEvents: StoryEvent[] = [
               opponentId: 'jen',
               opponentName: 'Jen',
               opponentStats: {
-                core: { serve: 23, forehand: 25, backhand: 21, return: 25, net: 20 },
-                technical: { slice: 20, spin: 30, placement: 23 },
-                physical: { speed: 30, stamina: 35, strength: 20 },
-                mental: { focus: 23, anticipation: 27, tactics: 27 },
+                core: { serve: 19, forehand: 21, backhand: 17, return: 21, net: 16 },
+                technical: { slice: 16, spin: 26, placement: 19 },
+                physical: { speed: 26, stamina: 31, strength: 16 },
+                mental: { focus: 19, anticipation: 23, tactics: 23 },
               },
               opponentTier: 1,
               opponentDescription:
@@ -784,7 +784,7 @@ export const welcomeEvents: StoryEvent[] = [
     tags: ['intro'],
     timeSlotsRequired: 0, // Doesn't consume time - informational event
     prerequisites: {
-      // This event is scheduled for day 33 (after all 5 team matches), do not require stats
+      // This event is scheduled for day 28 (after all 5 team matches), do not require stats
       completedEvents: ['shop_basics', 'relationship_basics'],
     },
     skippable: false,
@@ -817,7 +817,7 @@ export const welcomeEvents: StoryEvent[] = [
         relationshipChanges: { jen: 5 },
         scheduledEvents: [
           {
-            relativeDays: 3, // Prep fires on day 33, ceremony on day 36
+            relativeDays: 2, // Prep fires on day 28, ceremony on day 30
             scheduledTimeSlot: TimeSlot.MORNING,
             eventType: 'story' as const,
             metadata: { storyEventId: 'riverside_open_opening_ceremony' },

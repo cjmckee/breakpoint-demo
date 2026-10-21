@@ -273,7 +273,7 @@ export const careerEvents: StoryEvent[] = [
         scheduledEvents: [
           {
             eventType: 'story_match',
-            relativeDays: 2,
+            relativeDays: 1,
             scheduledTimeSlot: 1, // AFTERNOON
             metadata: buildStoryMatchMetadata(TEAM_MATCH_1),
           },
@@ -535,7 +535,7 @@ export const careerEvents: StoryEvent[] = [
         scheduledEvents: [
           {
             eventType: 'story_match',
-            relativeDays: 2,
+            relativeDays: 1,
             scheduledTimeSlot: 1, // AFTERNOON
             metadata: buildStoryMatchMetadata(TEAM_MATCH_2),
           },
@@ -802,7 +802,7 @@ export const careerEvents: StoryEvent[] = [
         scheduledEvents: [
           {
             eventType: 'story_match',
-            relativeDays: 2,
+            relativeDays: 1,
             scheduledTimeSlot: 1, // AFTERNOON
             metadata: buildStoryMatchMetadata(TEAM_MATCH_3),
           },
@@ -1087,7 +1087,7 @@ export const careerEvents: StoryEvent[] = [
         scheduledEvents: [
           {
             eventType: 'story_match',
-            relativeDays: 2,
+            relativeDays: 1,
             scheduledTimeSlot: 1, // AFTERNOON
             metadata: buildStoryMatchMetadata(TEAM_MATCH_4),
           },
@@ -1369,7 +1369,7 @@ export const careerEvents: StoryEvent[] = [
         scheduledEvents: [
           {
             eventType: 'story_match',
-            relativeDays: 2,
+            relativeDays: 1,
             scheduledTimeSlot: 1, // AFTERNOON
             metadata: buildStoryMatchMetadata(TEAM_MATCH_5),
           },
@@ -1567,7 +1567,7 @@ export const careerEvents: StoryEvent[] = [
     id: 'sponsor_first_offer',
     name: 'First Sponsorship Offer',
     tags: ['sponsor', 'decision', 'media'],
-    timeSlotsRequired: 2,
+    timeSlotsRequired: 1,
     prerequisites: { minMatchesWon: 3, minDay: 15 },
     skippable: false,
     description:
@@ -1700,7 +1700,7 @@ export const careerEvents: StoryEvent[] = [
     id: 'agent_approach',
     name: 'Agent Wants to Represent You',
     tags: ['agent', 'decision'],
-    timeSlotsRequired: 2,
+    timeSlotsRequired: 1,
     prerequisites: {
       minMatchesWon: 8,
       minDay: 30,
@@ -1821,7 +1821,7 @@ export const careerEvents: StoryEvent[] = [
     id: 'equipment_upgrade',
     name: 'Professional Equipment Upgrade',
     tags: ['equipment', 'decision'],
-    timeSlotsRequired: 2,
+    timeSlotsRequired: 1,
     prerequisites: {
       minMatchesWon: 4,
       minDay: 10,

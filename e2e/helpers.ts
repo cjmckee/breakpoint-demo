@@ -318,7 +318,7 @@ export async function setMatchSpeed(
 }
 
 /** How a driver picks a tactic when a key moment stops play. */
-export type TacticPolicy = 'first' | 'last';
+export type TacticPolicy = 'first' | 'last' | 'random';
 
 export interface MatchRun {
   /** Key moments answered before the match resolved. */
@@ -341,6 +341,7 @@ export async function playMatch(
   page: Page,
   policy: TacticPolicy = 'first',
   timeoutMs = 45_000,
+  rng: () => number = Math.random,
 ): Promise<MatchRun> {
   const run: MatchRun = { keyMoments: 0, chosen: [], tutorialSteps: 0 };
   const deadline = Date.now() + timeoutMs;
@@ -377,7 +378,9 @@ export async function playMatch(
       const tactics = choice.getByTestId(/^km-tactic-\d+$/);
       const count = await tactics.count();
       if (count > 0) {
-        const tactic = tactics.nth(policy === 'first' ? 0 : count - 1);
+        const at =
+          policy === 'first' ? 0 : policy === 'last' ? count - 1 : Math.floor(rng() * count);
+        const tactic = tactics.nth(at);
         await tactic.click();
         // A tutorial callout can mount a beat after the choice screen, and it
         // disables the commit until dismissed. Go round again so the tutorial

@@ -12,6 +12,7 @@ import { CURRENCIES, PRICE_STEP, STAT_RECIPES } from '../../config/economy';
 import { canAfford, priceOf, stepMultiplier, unitsOf } from '../../game/StatDevelopment';
 
 if (process.env.STEP_FROM) PRICE_STEP.from = Number(process.env.STEP_FROM);
+if (process.env.STEP_WIDTH) PRICE_STEP.width = Number(process.env.STEP_WIDTH);
 
 export type { Currency, Wallet };
 export type Amounts = CurrencyAmounts;

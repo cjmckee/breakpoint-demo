@@ -30,10 +30,6 @@ const TONE_CLASS: Record<Tone, string> = {
 };
 
 export const MatchToasts: React.FC<MatchToastsProps> = ({ playerName, opponentName }) => {
-  // Key the effect on currentScore: it's the last thing to update each point (after
-  // lastPointResult), so when it changes both the result and the score are current.
-  const currentScore = useMatchStore((s) => s.currentScore);
-
   const [toasts, setToasts] = useState<Toast[]>([]);
   const idRef = useRef(0);
   const seenSeq = useRef(0);
@@ -50,8 +46,13 @@ export const MatchToasts: React.FC<MatchToastsProps> = ({ playerName, opponentNa
     window.setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 2000);
   };
 
-  useEffect(() => {
-    const { lastPointResult: r, pointSeq, matchLog } = useMatchStore.getState();
+  // React to each point from a store subscription rather than an effect on the score.
+  // An effect that sets state on every point keeps React's passive-update counter
+  // climbing at Instant speed, where points arrive faster than React settles, and it
+  // warns about an update loop once that passes 50. Key on currentScore: it's the last
+  // thing to update each point (after lastPointResult), so both are current here.
+  const onScore = (state: ReturnType<typeof useMatchStore.getState>): void => {
+    const { currentScore, lastPointResult: r, pointSeq, matchLog } = state;
     if (!currentScore || !r || pointSeq === seenSeq.current) return;
     seenSeq.current = pointSeq;
 
@@ -113,7 +114,16 @@ export const MatchToasts: React.FC<MatchToastsProps> = ({ playerName, opponentNa
       default:
         break;
     }
-  }, [currentScore, playerName, opponentName]);
+  };
+
+  useEffect(
+    () =>
+      useMatchStore.subscribe((state, prev) => {
+        if (state.currentScore !== prev.currentScore) onScore(state);
+      }),
+    // onScore reads only refs, setters and the names.
+    [playerName, opponentName],
+  );
 
   if (toasts.length === 0) return null;
 

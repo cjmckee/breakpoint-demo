@@ -250,8 +250,6 @@ export const MatchCourt: React.FC<MatchCourtProps> = ({
   overlay,
 }) => {
   const colors = getCourtColors(courtSurface);
-  const lastPointResult = useMatchStore((s) => s.lastPointResult);
-  const pointSeq = useMatchStore((s) => s.pointSeq);
 
   const [frame, setFrame] = useState<Frame>(IDLE);
   const [rallying, setRallying] = useState(false);
@@ -262,7 +260,6 @@ export const MatchCourt: React.FC<MatchCourtProps> = ({
   const glide = usePrefersReducedMotion() ? 0 : 1;
   const courtRef = useRef<HTMLDivElement>(null);
   const timer = useRef<number | null>(null);
-  const seenSeq = useRef(0);
 
   useEffect(() => {
     const el = courtRef.current;
@@ -274,10 +271,10 @@ export const MatchCourt: React.FC<MatchCourtProps> = ({
     return () => observer.disconnect();
   }, []);
 
-  useEffect(() => {
-    if (!lastPointResult || pointSeq === seenSeq.current) return;
-    seenSeq.current = pointSeq;
-
+  // Each new point starts its rally from a store subscription, not an effect on the
+  // point: setting state from an effect on every point warns about an update loop at
+  // Instant speed, where points arrive faster than React settles (see MatchToasts).
+  const playRally = (lastPointResult: SimplePointResult): void => {
     const frames = buildRally(lastPointResult);
     if (timer.current) window.clearTimeout(timer.current);
 
@@ -300,7 +297,18 @@ export const MatchCourt: React.FC<MatchCourtProps> = ({
       timer.current = window.setTimeout(tick, f.dur);
     };
     tick();
-  }, [pointSeq, lastPointResult]);
+  };
+
+  useEffect(
+    () =>
+      useMatchStore.subscribe((state, prev) => {
+        if (state.lastPointResult && state.pointSeq !== prev.pointSeq) {
+          playRally(state.lastPointResult);
+        }
+      }),
+    // playRally reads only refs and setters.
+    [],
+  );
 
   useEffect(
     () => () => {
