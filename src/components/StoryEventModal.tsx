@@ -16,7 +16,7 @@ import { usePlayerName } from '../hooks/usePlayerName';
 import { useGameStore } from '../stores/gameStore';
 import { directionFromKey, isActionKey } from '../utils/gameKeys';
 import { PixelIcon } from './ui/PixelIcon';
-import { STORY_MOOD_ICONS } from '../data/pixelIcons';
+import { DRILL_ICONS, GLYPHS, STORY_MOOD_ICONS } from '../data/pixelIcons';
 
 interface StoryEventModalProps {
   isOpen: boolean;
@@ -200,7 +200,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
             onClick={() => setIsHidden(false)}
             className="max-w-2xl w-full py-4 border-4 border-pixel-accent bg-pixel-card text-pixel-accent font-bold text-base hover:bg-pixel-accent hover:bg-opacity-20 transition-colors animate-pulse"
           >
-            📜 Show Event
+            Show Event
           </button>
         </div>
       </>
@@ -210,9 +210,10 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
   const hideButton = (
     <button
       onClick={() => setIsHidden(true)}
-      className="w-full py-3 border-4 border-pixel-border bg-pixel-card text-pixel-text font-bold text-base hover:border-pixel-accent transition-colors"
+      className="w-full flex items-center justify-center gap-2 py-3 border-4 border-pixel-border bg-pixel-card text-pixel-text font-bold text-base hover:border-pixel-accent transition-colors"
     >
-      👁 Hide Event
+      <PixelIcon grid={DRILL_ICONS.read_return} scale={1} />
+      Hide Event
     </button>
   );
 
@@ -412,8 +413,9 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
                       <div className="text-sm text-pixel-text-muted mt-1">{option.description}</div>
                     )}
                     {!isAvailable && (
-                      <div className="text-sm text-pixel-error mt-1 font-semibold">
-                        🔒 Requirements not met
+                      <div className="flex items-center gap-1.5 text-sm text-pixel-error mt-1 font-semibold">
+                        <PixelIcon grid={GLYPHS.lock} scale={1} />
+                        Requirements not met
                       </div>
                     )}
                   </div>

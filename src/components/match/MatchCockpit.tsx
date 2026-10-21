@@ -15,6 +15,8 @@ import { MatchCourt } from './MatchCourt';
 import { usePlayerAppearance } from '../../hooks/usePlayerAppearance';
 import { getOpponentAppearance } from '../../data/characters';
 import { MATCH_FORM } from '../../config/shotThresholds';
+import { PixelIcon } from '../ui/PixelIcon';
+import { GLYPHS } from '../../data/pixelIcons';
 
 interface MatchCockpitProps {
   courtSurface: CourtSurface;
@@ -92,7 +94,8 @@ const FormBadge: React.FC<FormBadgeProps> = ({ form, who }) => {
       title={title}
       aria-label={`${label}: ${title}`}
     >
-      {isHot ? '🔥' : '🥶'} {label}
+      <PixelIcon grid={isHot ? GLYPHS.flame : GLYPHS.snowflake} scale={1} />
+      {label}
     </span>
   );
 };

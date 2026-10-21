@@ -21,7 +21,7 @@ import {
 } from '../data/hangoutCharacters';
 import { TimeSlot } from '../types/game';
 import { PixelIcon } from './ui/PixelIcon';
-import { GLYPHS } from '../data/pixelIcons';
+import { GLYPHS, ICON_PALETTE, MENU_ICONS, TIME_SLOT_ICONS } from '../data/pixelIcons';
 
 export const Relationships: React.FC = () => {
   const player = useGameStore((state) => state.player);
@@ -75,7 +75,12 @@ export const Relationships: React.FC = () => {
       {sorted.length === 0 ? (
         <Card>
           <div className="text-center py-8">
-            <div className="text-6xl mb-4">👥</div>
+            <PixelIcon
+              grid={MENU_ICONS.relationships}
+              palette={ICON_PALETTE}
+              scale={4}
+              className="mx-auto mb-4"
+            />
             <p className="text-pixel-text-muted">You'll meet people as the story goes on.</p>
           </div>
         </Card>
@@ -121,7 +126,20 @@ export const Relationships: React.FC = () => {
                           onClick={() => hangoutWithCharacter(character.id)}
                           testId={`relationship-hangout-${character.id}`}
                         >
-                          {isNightTime ? '🌙 Tomorrow' : `★ Hang Out · ⚡${HANGOUT_ENERGY_COST}`}
+                          <span className="inline-flex items-center gap-1.5 align-middle">
+                            {isNightTime ? (
+                              <>
+                                <PixelIcon grid={TIME_SLOT_ICONS[TimeSlot.NIGHT]} scale={1} />
+                                Tomorrow
+                              </>
+                            ) : (
+                              <>
+                                ★ Hang Out ·
+                                <PixelIcon grid={GLYPHS.energy} scale={1} />
+                                {HANGOUT_ENERGY_COST}
+                              </>
+                            )}
+                          </span>
                         </Button>
                       )}
                     </div>

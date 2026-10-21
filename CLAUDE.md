@@ -1222,8 +1222,8 @@ with an accent border and a check (`PixelCheckbox`), not a light fill. Wrap hove
 - One idea, one icon. Before drawing a new one, look in `GLYPHS` and the stat icons: an effect or
   tactic about a stat uses that stat's icon, and every lob is the lob. `spriteCheck` fails on two
   icons drawn the same.
-- Emoji are on their way out in favour of pixel icons. `docs/emoji-inventory.md` lists where they
-  still are; don't add new ones.
+- No emoji. `emojiCheck` (in `npm test`) fails on any in game source outside comments and
+  developer logging; draw a pixel icon instead. `docs/emoji-inventory.md` records where they went.
 
 **Show comparisons and costs, don't describe them.** Use bars, chips, icons and
 before→after previews over sentences: head-to-head bars rather than two stat lists,

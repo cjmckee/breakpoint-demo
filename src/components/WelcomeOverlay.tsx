@@ -8,6 +8,8 @@ import React, { useState } from 'react';
 import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
 import { GAME_PROGRESS } from '../data/progress';
+import { PixelIcon } from './ui/PixelIcon';
+import { BALL_ICON, ICON_PALETTE } from '../data/pixelIcons';
 
 interface WelcomeOverlayProps {
   isOpen: boolean;
@@ -28,7 +30,7 @@ export const WelcomeOverlay: React.FC<WelcomeOverlayProps> = ({ isOpen, onClose 
       {/* Welcome */}
       <div className="space-y-6">
         <div className="text-center">
-          <div className="text-5xl mb-3">🎾</div>
+          <PixelIcon grid={BALL_ICON} color={ICON_PALETTE.y} scale={4} className="mx-auto mb-3" />
           <p className="text-pixel-text leading-relaxed">
             Rise from amateur circuits to the top of the world rankings. Train your skills, navigate
             rivalries, compete in tournaments, and write your own tennis story.

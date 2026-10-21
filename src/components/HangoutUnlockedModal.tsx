@@ -8,6 +8,8 @@ import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
 import { getCharacterName } from '../data/characters';
 import { usePlayerName } from '../hooks/usePlayerName';
+import { PixelIcon } from './ui/PixelIcon';
+import { ICON_PALETTE, MENU_ICONS } from '../data/pixelIcons';
 
 interface HangoutUnlockedModalProps {
   isOpen: boolean;
@@ -36,11 +38,16 @@ export const HangoutUnlockedModal: React.FC<HangoutUnlockedModalProps> = ({
       testId="hangout-unlocked"
     >
       <div className="text-center space-y-6 py-2">
-        <div className="text-5xl">🎾</div>
+        <PixelIcon
+          grid={MENU_ICONS.relationships}
+          palette={ICON_PALETTE}
+          scale={4}
+          className="mx-auto"
+        />
         <p className="text-lg font-semibold text-pixel-text">
           You can now hang out with <span className="text-pixel-accent">{characterName}</span>!
         </p>
-        <p className="text-sm text-pixel-text-muted">Find them under 🤝 Relationships.</p>
+        <p className="text-sm text-pixel-text-muted">Find them under Relationships.</p>
       </div>
       <div className="flex justify-center mt-6">
         <Button onClick={onClose} variant="primary" testId="hangout-unlocked-dismiss">

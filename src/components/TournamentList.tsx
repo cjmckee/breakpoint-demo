@@ -11,6 +11,8 @@ import { Card } from './ui/Card';
 import { ScreenFrame } from './ui/ScreenFrame';
 import { Button } from './ui/Button';
 import { SurfaceIcon } from './ui/SurfaceIcon';
+import { PixelIcon } from './ui/PixelIcon';
+import { GLYPHS } from '../data/pixelIcons';
 
 export const TournamentList: React.FC = () => {
   const player = useGameStore((state) => state.player);
@@ -165,8 +167,8 @@ export const TournamentList: React.FC = () => {
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="text-xl font-bold text-pixel-text">{tournament.name}</h3>
                       {completion && completion.won && (
-                        <span className="text-yellow-400 text-xl" title="Champion">
-                          👑
+                        <span className="text-yellow-400" title="Champion">
+                          <PixelIcon grid={GLYPHS.crown} scale={2} />
                         </span>
                       )}
                     </div>
@@ -181,18 +183,19 @@ export const TournamentList: React.FC = () => {
                     {completion && (
                       <div className="mt-2">
                         <span
-                          className={`inline-block px-2 py-1 text-xs font-bold border-2 ${
+                          className={`inline-flex items-center gap-1.5 px-2 py-1 text-xs font-bold border-2 ${
                             completion.won
                               ? 'text-yellow-400 border-yellow-400 bg-yellow-400/10'
                               : 'text-gray-400 border-gray-400 bg-gray-400/10'
                           }`}
                         >
-                          {completion.won ? '✓ CHAMPION' : '✗ COMPLETED'}
+                          {completion.won && <PixelIcon grid={GLYPHS.check} scale={1} />}
+                          {completion.won ? 'CHAMPION' : 'COMPLETED'}
                         </span>
                       </div>
                     )}
                   </div>
-                  <span className="text-2xl">🏆</span>
+                  <PixelIcon grid={GLYPHS.trophy} scale={2} className="text-yellow-400" />
                 </div>
 
                 {/* Description */}

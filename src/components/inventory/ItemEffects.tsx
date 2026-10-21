@@ -10,6 +10,7 @@ import type { StatBoosts } from '../../types/game';
 import { getStatIcon, formatStatName } from '../../config/statIcons';
 import { PixelIcon } from '../ui/PixelIcon';
 import { describeEffects } from '../../utils/effectLabels';
+import { GLYPHS } from '../../data/pixelIcons';
 
 /** A single stat boost pill: icon, name, +5 */
 export const StatPill: React.FC<{ stat: string; value: number }> = ({ stat, value }) => (
@@ -108,7 +109,7 @@ export const ItemEffects: React.FC<ItemEffectsProps> = ({ item, compact = false 
                 {typeof consumable.instantEffects.moodChange === 'number' &&
                   consumable.instantEffects.moodChange !== 0 && (
                     <span className="inline-flex items-center gap-1 bg-pixel-bg border-2 border-pixel-border px-2 py-1 text-xs">
-                      <span>😊</span>
+                      <PixelIcon grid={GLYPHS.smile} scale={1} />
                       <span className="text-pixel-text-muted">Mood</span>
                       <span
                         className={
@@ -125,7 +126,7 @@ export const ItemEffects: React.FC<ItemEffectsProps> = ({ item, compact = false 
                 {typeof consumable.instantEffects.respecTokens === 'number' &&
                   consumable.instantEffects.respecTokens > 0 && (
                     <span className="inline-flex items-center gap-1 bg-pixel-bg border-2 border-pixel-border px-2 py-1 text-xs">
-                      <span>🔄</span>
+                      <PixelIcon grid={GLYPHS.loop} scale={1} />
                       <span className="text-pixel-text-muted">Respec Token</span>
                       <span className="text-green-400 font-bold">
                         +{consumable.instantEffects.respecTokens}

@@ -16,6 +16,8 @@ import { buildPlayStyle } from '../core/PlayerProfile';
 import { createEmptyArchetypeProfile } from '../data/archetypeTree';
 import { SurfaceIcon } from './ui/SurfaceIcon';
 import { ArchetypeLabel } from './ui/ArchetypeLabel';
+import { PixelIcon } from './ui/PixelIcon';
+import { BALL_ICON, GLYPHS, ICON_PALETTE } from '../data/pixelIcons';
 
 type CourtSurface = 'hard' | 'clay' | 'grass' | 'carpet';
 
@@ -124,8 +126,9 @@ export const MatchSetup: React.FC = () => {
                     <h4 className="text-lg font-bold text-pixel-text">{info.name}</h4>
                     {/* A locked tier shows the lock where the tier badge goes, so the
                         two never overlap. */}
-                    <span className="text-xs px-2 py-1 bg-pixel-bg border-2 border-pixel-border text-pixel-text uppercase">
-                      {isUnlocked ? `Tier ${info.tier}` : `🔒 Tier ${info.tier}`}
+                    <span className="inline-flex items-center gap-1.5 text-xs px-2 py-1 bg-pixel-bg border-2 border-pixel-border text-pixel-text uppercase">
+                      {!isUnlocked && <PixelIcon grid={GLYPHS.lock} scale={1} />}
+                      Tier {info.tier}
                     </span>
                   </div>
                   <p className="text-sm text-pixel-text-muted mb-3">
@@ -184,15 +187,24 @@ export const MatchSetup: React.FC = () => {
             disabled={!canPlayMatch}
           >
             {!isOpponentUnlocked(selectedTier) ? (
-              <>🔒 Tier Locked</>
+              <span className="inline-flex items-center gap-2 align-middle">
+                <PixelIcon grid={GLYPHS.lock} scale={1} />
+                Tier Locked
+              </span>
             ) : !canAfford ? (
               <>
-                <span className="sm:hidden">Need ⚡{matchEnergyCost}</span>
+                <span className="sm:hidden inline-flex items-center gap-1">
+                  Need <PixelIcon grid={GLYPHS.energy} scale={1} />
+                  {matchEnergyCost}
+                </span>
                 <span className="hidden sm:inline">Not Enough Energy (Need {matchEnergyCost})</span>
               </>
             ) : (
               <>
-                🎾 Preview Match
+                <span className="inline-flex items-center gap-2 align-middle">
+                  <PixelIcon grid={BALL_ICON} color={ICON_PALETTE.y} scale={1} />
+                  Preview Match
+                </span>
                 <span className="hidden sm:inline"> — Tier {selectedTier}</span>
               </>
             )}

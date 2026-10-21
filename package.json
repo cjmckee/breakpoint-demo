@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "tsc -p tsconfig.e2e.json && tsx src/test/migrationCheck.ts && tsx src/test/economyCheck.ts && tsx src/test/storyMinigameCheck.ts && tsx src/test/splitStepCheck.ts && tsx src/test/shotTypeMapCheck.ts && tsx src/test/currencyCheck.ts && tsx src/test/spriteCheck.ts && tsx src/test/seasonCheck.ts && tsx src/test/venueCheck.ts && tsx src/test/tierCheck.ts && tsx src/test/careerSummaryCheck.ts && tsx src/test/randomEventCheck.ts",
+    "test": "tsc -p tsconfig.e2e.json && tsx src/test/migrationCheck.ts && tsx src/test/economyCheck.ts && tsx src/test/storyMinigameCheck.ts && tsx src/test/splitStepCheck.ts && tsx src/test/shotTypeMapCheck.ts && tsx src/test/currencyCheck.ts && tsx src/test/spriteCheck.ts && tsx src/test/emojiCheck.ts && tsx src/test/seasonCheck.ts && tsx src/test/venueCheck.ts && tsx src/test/tierCheck.ts && tsx src/test/careerSummaryCheck.ts && tsx src/test/randomEventCheck.ts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:rally": "tsx test/testRallyAnalysis.ts",

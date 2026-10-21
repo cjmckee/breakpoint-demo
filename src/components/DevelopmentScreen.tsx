@@ -29,6 +29,8 @@ import { StatSectionHeading } from './ui/StatSectionHeading';
 import { CurrencyAmounts, CurrencyIcon, CURRENCY_STYLE } from './currency/CurrencyAmounts';
 import { AreaStrip } from './development/AreaStrip';
 import { ArchetypeTree } from './ArchetypeTree';
+import { PixelIcon } from './ui/PixelIcon';
+import { GLYPHS } from '../data/pixelIcons';
 
 /** How long the purchase confirmation stays in the floating bar. */
 const MESSAGE_MS = 1800;
@@ -138,7 +140,10 @@ export const DevelopmentScreen: React.FC = () => {
           >
             {label}
             {id === 'specialties' && unspentSpecPoints(player) > 0 && (
-              <span className="ml-2 text-yellow-300">⭐{unspentSpecPoints(player)}</span>
+              <span className="inline-flex items-center gap-1 ml-2 text-yellow-300">
+                <PixelIcon grid={GLYPHS.star} scale={1} />
+                {unspentSpecPoints(player)}
+              </span>
             )}
           </button>
         ))}
@@ -174,12 +179,12 @@ export const DevelopmentScreen: React.FC = () => {
           ))}
           {/* Specialization points: the other half of development, spent on Specialties. */}
           <span
-            className="inline-flex items-baseline gap-1.5 sm:ml-auto"
+            className="inline-flex items-center gap-1.5 sm:ml-auto"
             data-testid="development-spec-points"
             data-amount={specPoints}
             title="Specialization points, earned by levelling up"
           >
-            <span aria-hidden="true">⭐</span>
+            <PixelIcon grid={GLYPHS.star} scale={2} className="text-yellow-300" />
             <span className="text-base sm:text-xl font-bold text-pixel-text">{specPoints}</span>
             <span className="hidden sm:inline text-xs text-pixel-text-muted">Spec Points</span>
           </span>
