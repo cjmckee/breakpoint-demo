@@ -2,9 +2,10 @@
  * Day Transition
  *
  * A short card between one day and the next: a few seconds of "b-roll" (dawn over
- * the court, the player out for a morning jog, a ball knocking over the net) while
- * the day number rolls over. It covers whatever the new morning opens with, so the
- * first modal of the day fades in from it rather than cutting in on the night.
+ * the court, the player out for a morning jog, a ball knocking over the net, the ball
+ * machine, the clay being swept, the coach arriving) while the day number rolls over.
+ * It covers whatever the new morning opens with, so the first modal of the day fades
+ * in from it rather than cutting in on the night.
  *
  * Tapping skips it. With reduced motion it is a still card for a moment instead.
  */
@@ -15,6 +16,8 @@ import { TimeManager } from '../game/TimeManager';
 import { usePlayerAppearance } from '../hooks/usePlayerAppearance';
 import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
 import { PixelSprite } from './sprites/PixelSprite';
+import { CHARACTERS } from '../data/characters';
+import type { SpritePose } from '../types/appearance';
 import { transitionsEnabled } from '../utils/transitionsEnabled';
 
 /** Whole transition, fade in to fade out. Kept in step with `day-tx-*` in index.css. */
@@ -22,7 +25,7 @@ const DAY_TRANSITION_MS = 2400;
 /** With reduced motion: long enough to read the new day, nothing moves. */
 const STILL_TRANSITION_MS = 900;
 
-const VIGNETTES = ['sunrise', 'jog', 'rally'] as const;
+const VIGNETTES = ['sunrise', 'jog', 'rally', 'machine', 'sweep', 'coach'] as const;
 type Vignette = (typeof VIGNETTES)[number];
 
 interface Transition {
@@ -100,7 +103,114 @@ const Jog: React.FC = () => {
   );
 };
 
-const VIGNETTE_VIEWS: Record<Vignette, React.FC> = { sunrise: Sunrise, jog: Jog, rally: Rally };
+/** Three balls from a ball machine on the baseline, lobbed over the net one after another. */
+const BallMachine: React.FC = () => (
+  <svg viewBox="0 0 96 48" className="w-full h-full" shapeRendering="crispEdges">
+    <rect width="96" height="48" className="day-tx-sky day-tx-sky-early" />
+    <Court />
+    {[0, 1, 2].map((i) => (
+      <g key={i} className="day-tx-shot-x" style={{ animationDelay: `${0.25 + i * 0.6}s` }}>
+        <g className="day-tx-shot-y" style={{ animationDelay: `${0.25 + i * 0.6}s` }}>
+          <rect x="14" y="31" width="3" height="3" className="fill-[#d7f04a]" />
+        </g>
+      </g>
+    ))}
+    {/* The machine: a grey box with a dark mouth and a hopper of balls on top. */}
+    <rect x="5" y="31" width="9" height="7" className="fill-[#6b7280]" />
+    <rect x="12" y="32" width="2" height="2" className="fill-[#1f2937]" />
+    <rect x="6" y="29" width="7" height="2" className="fill-[#4b5563]" />
+    <rect x="7" y="28" width="2" height="1" className="fill-[#d7f04a]" />
+    <rect x="10" y="28" width="2" height="1" className="fill-[#d7f04a]" />
+    <rect x="6" y="38" width="2" height="1" className="fill-[#1f2937]" />
+    <rect x="11" y="38" width="2" height="1" className="fill-[#1f2937]" />
+  </svg>
+);
+
+/** Footmarks left on the clay from yesterday, which the drag brush smooths away. */
+const FOOTMARKS: ReadonlyArray<readonly [number, number]> = [
+  [14, 22],
+  [20, 26],
+  [31, 15],
+  [37, 19],
+  [52, 30],
+  [58, 34],
+  [70, 12],
+  [76, 16],
+  [84, 36],
+  [24, 40],
+  [44, 8],
+  [64, 42],
+];
+
+/** A clay court from above in early light, a drag brush pulled down it. */
+const Sweep: React.FC = () => (
+  <svg viewBox="0 0 96 48" className="w-full h-full" shapeRendering="crispEdges">
+    <rect width="96" height="48" className="fill-[#c4673e]" />
+    {FOOTMARKS.map(([x, y]) => (
+      <rect key={`${x}-${y}`} x={x} y={y} width="3" height="2" className="fill-[#a8532f]" />
+    ))}
+    {/* The swept clay grows down behind the brush. */}
+    <rect width="96" height="48" className="day-tx-swept fill-[#cd7147]" />
+    {/* Lines stay on top: a baseline, the singles sidelines and the service line. */}
+    <rect x="6" y="4" width="84" height="1" className="fill-[#f1ece4]" />
+    <rect x="6" y="4" width="1" height="44" className="fill-[#f1ece4]" />
+    <rect x="89" y="4" width="1" height="44" className="fill-[#f1ece4]" />
+    <rect x="6" y="30" width="84" height="1" className="fill-[#f1ece4]" />
+    <rect x="47" y="30" width="2" height="18" className="fill-[#f1ece4]" />
+    <g className="day-tx-brush">
+      <rect x="2" y="0" width="92" height="3" className="fill-[#5b3a24]" />
+      <rect x="2" y="3" width="92" height="1" className="fill-[#3d2716]" />
+      <rect x="47" y="-6" width="2" height="6" className="fill-[#8a6a4f]" />
+    </g>
+  </svg>
+);
+
+/** The coach walks on from the right, stops at the net and waves. */
+const COACH = CHARACTERS.coach_gonzalez;
+/** When the coach stops walking, as a share of the card; kept in step with `day-tx-coach`. */
+const COACH_STOPS = 0.55;
+
+const CoachArrives: React.FC = () => {
+  const reducedMotion = usePrefersReducedMotion();
+  const [walking, setWalking] = useState(true);
+  useEffect(() => {
+    const id = window.setTimeout(() => setWalking(false), DAY_TRANSITION_MS * COACH_STOPS);
+    return () => window.clearTimeout(id);
+  }, []);
+  // With reduced motion the card is still, so the coach has already arrived.
+  const pose: SpritePose = walking && !reducedMotion ? 'run' : 'cheer';
+  return (
+    <div className="relative w-full h-full">
+      <svg
+        viewBox="0 0 96 48"
+        className="absolute inset-0 w-full h-full"
+        shapeRendering="crispEdges"
+      >
+        <rect width="96" height="48" className="day-tx-sky day-tx-sky-early" />
+        <Court />
+      </svg>
+      <div className="day-tx-coach absolute bottom-[18%]">
+        <PixelSprite
+          appearance={COACH.appearance}
+          pose={pose}
+          facing={pose === 'run' ? 'left' : undefined}
+          scale={3}
+          fps={pose === 'run' ? 10 : 4}
+          racquet={false}
+        />
+      </div>
+    </div>
+  );
+};
+
+const VIGNETTE_VIEWS: Record<Vignette, React.FC> = {
+  sunrise: Sunrise,
+  jog: Jog,
+  rally: Rally,
+  machine: BallMachine,
+  sweep: Sweep,
+  coach: CoachArrives,
+};
 
 /** Watches the calendar and plays the card whenever the day turns over. */
 export const DayTransition: React.FC = () => {
