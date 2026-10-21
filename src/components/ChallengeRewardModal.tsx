@@ -11,6 +11,8 @@ import { getCharacterName } from '../data/characters';
 import { usePlayerName } from '../hooks/usePlayerName';
 import { CurrencyAmounts } from './currency/CurrencyAmounts';
 import { storyPay } from '../game/CurrencyIncome';
+import { PixelIcon } from './ui/PixelIcon';
+import { GLYPHS } from '../data/pixelIcons';
 
 interface ChallengeRewardModalProps {
   isOpen: boolean;
@@ -39,7 +41,7 @@ export const ChallengeRewardModal: React.FC<ChallengeRewardModalProps> = ({
       <div className="space-y-4">
         {/* Challenge Name */}
         <div className="text-center">
-          <div className="text-6xl mb-3">🏆</div>
+          <PixelIcon grid={GLYPHS.trophy} scale={4} className="mx-auto mb-3 text-yellow-400" />
           <h2 className="text-2xl font-bold text-pixel-text mb-2">{challenge.name}</h2>
           <p className="text-sm text-pixel-text-muted">{challenge.description}</p>
         </div>
@@ -65,9 +67,10 @@ export const ChallengeRewardModal: React.FC<ChallengeRewardModalProps> = ({
                   {challenge.reward.abilities.map((ability) => (
                     <div
                       key={ability}
-                      className="text-sm px-3 py-1 bg-orange-500 bg-opacity-20 border-2 border-orange-500 text-orange-500 font-bold"
+                      className="inline-flex items-center gap-1.5 text-sm px-3 py-1 bg-orange-500 bg-opacity-20 border-2 border-orange-500 text-orange-500 font-bold"
                     >
-                      ⭐ {ability}
+                      <PixelIcon grid={GLYPHS.sparkle} scale={1} />
+                      {ability}
                     </div>
                   ))}
                 </div>

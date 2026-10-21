@@ -15,10 +15,17 @@ import { audioManager } from '../audio/AudioManager';
 import { UnseenBadge } from './ui/UnseenBadge';
 import { CURRENCIES, CURRENCY_LABELS } from '../config/economy';
 import { hasNewCurrency, unspentSpecPoints } from '../game/StatDevelopment';
-import { CURRENCY_STYLE } from './currency/CurrencyAmounts';
+import { CurrencyIcon, CURRENCY_STYLE } from './currency/CurrencyAmounts';
 import { TimeManager } from '../game/TimeManager';
 import { TimeSlot, TIME_SLOT_NAMES } from '../types/game';
-import { TIME_SLOT_COLOURS, TIME_SLOT_ICONS } from '../data/pixelIcons';
+import {
+  GLYPHS,
+  ICON_PALETTE,
+  MENU_ICONS,
+  TIME_SLOT_COLOURS,
+  TIME_SLOT_ICONS,
+  type PixelGrid,
+} from '../data/pixelIcons';
 import { PixelIcon } from './ui/PixelIcon';
 
 const TIME_SLOTS = [TimeSlot.MORNING, TimeSlot.AFTERNOON, TimeSlot.EVENING, TimeSlot.NIGHT].map(
@@ -29,15 +36,16 @@ const TIME_SLOTS = [TimeSlot.MORNING, TimeSlot.AFTERNOON, TimeSlot.EVENING, Time
   }),
 );
 
-const getMoodDisplay = (mood: number): { label: string; emoji: string; color: string } => {
-  if (mood >= 75) return { label: 'Excellent', emoji: '😄', color: 'text-green-500' };
-  if (mood >= 50) return { label: 'Great', emoji: '😊', color: 'text-green-500' };
-  if (mood >= 25) return { label: 'Good', emoji: '🙂', color: 'text-yellow-500' };
-  if (mood >= 0) return { label: 'Okay', emoji: '😐', color: 'text-yellow-500' };
-  if (mood >= -25) return { label: 'Tired', emoji: '😕', color: 'text-orange-500' };
-  if (mood >= -50) return { label: 'Frustrated', emoji: '😖', color: 'text-orange-500' };
-  if (mood >= -75) return { label: 'Angry', emoji: '😠', color: 'text-red-500' };
-  return { label: 'Furious', emoji: '😡', color: 'text-red-500' };
+/** Five faces across eight moods; the colour tells neighbours apart. */
+const getMoodDisplay = (mood: number): { label: string; face: PixelGrid; color: string } => {
+  if (mood >= 75) return { label: 'Excellent', face: GLYPHS.grin, color: 'text-green-500' };
+  if (mood >= 50) return { label: 'Great', face: GLYPHS.smile, color: 'text-green-500' };
+  if (mood >= 25) return { label: 'Good', face: GLYPHS.smile, color: 'text-yellow-500' };
+  if (mood >= 0) return { label: 'Okay', face: GLYPHS.flat, color: 'text-yellow-500' };
+  if (mood >= -25) return { label: 'Tired', face: GLYPHS.flat, color: 'text-orange-500' };
+  if (mood >= -50) return { label: 'Frustrated', face: GLYPHS.frown, color: 'text-orange-500' };
+  if (mood >= -75) return { label: 'Angry', face: GLYPHS.angry, color: 'text-red-500' };
+  return { label: 'Furious', face: GLYPHS.angry, color: 'text-red-500' };
 };
 
 const getEnergyColor = (energy: number): string => {
@@ -87,8 +95,8 @@ export const StatusBar: React.FC<StatusBarProps> = ({ energyPreview = 0 }) => {
           title="Open calendar"
           data-testid="status-calendar"
         >
-          <span className="relative text-xl leading-none">
-            📅
+          <span className="relative text-pixel-text">
+            <PixelIcon grid={GLYPHS.calendar} scale={2} className="w-4 h-4 sm:w-6 sm:h-6" />
             {hasUnseenEvents && <UnseenBadge size="sm" className="absolute -top-2 -right-3" />}
           </span>
           <span className="hidden sm:inline text-sm font-bold text-pixel-text whitespace-nowrap">
@@ -131,8 +139,8 @@ export const StatusBar: React.FC<StatusBarProps> = ({ energyPreview = 0 }) => {
           className="flex items-center gap-2 flex-1 min-w-0 sm:min-w-[150px]"
           data-testid="status-energy"
         >
-          <span className="text-sm leading-none" title="Energy">
-            ⚡
+          <span className="text-yellow-300" title="Energy">
+            <PixelIcon grid={GLYPHS.energy} scale={1} />
           </span>
           <div
             className="relative flex-1 h-3.5 bg-pixel-bg border-2 border-pixel-border"
@@ -183,7 +191,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({ energyPreview = 0 }) => {
 
         {/* Mood */}
         <div className="flex items-center gap-1.5" title={`Mood: ${currentStatus.mood}`}>
-          <span className="text-base leading-none">{mood.emoji}</span>
+          <PixelIcon grid={mood.face} scale={1} className={mood.color} />
           <span className={`hidden sm:inline text-sm font-bold ${mood.color} whitespace-nowrap`}>
             {mood.label}
           </span>
@@ -201,11 +209,18 @@ export const StatusBar: React.FC<StatusBarProps> = ({ energyPreview = 0 }) => {
             aria-hidden={onDevelopment || undefined}
             className={`relative flex items-center gap-2 rounded px-1.5 py-1 -my-1 hover:bg-pixel-secondary/50 transition-colors ${onDevelopment ? 'invisible' : ''}`}
             title={`Training currency: ${CURRENCIES.map((c) => `${Math.floor(player.wallet[c])} ${CURRENCY_LABELS[c]}`).join(', ')}`}
+            // Named for where it goes: on a phone it shows only an icon.
+            aria-label="Development"
             data-testid="status-wallet"
             data-new-currency={newCurrencyIn}
             data-spec-points={specPoints}
           >
-            <span className="sm:hidden text-base leading-none">📈</span>
+            <PixelIcon
+              grid={MENU_ICONS.develop}
+              palette={ICON_PALETTE}
+              scale={1}
+              className="sm:hidden"
+            />
             {CURRENCIES.map((c) => (
               <span
                 key={c}
@@ -213,7 +228,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({ energyPreview = 0 }) => {
                 data-currency={c}
                 data-amount={Math.floor(player.wallet[c])}
               >
-                <span aria-hidden="true">{CURRENCY_STYLE[c].icon}</span>
+                <CurrencyIcon currency={c} />
                 {Math.floor(player.wallet[c])}
               </span>
             ))}

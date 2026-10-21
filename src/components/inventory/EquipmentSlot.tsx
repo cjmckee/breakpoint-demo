@@ -8,7 +8,10 @@
 
 import React, { useState } from 'react';
 import type { OwnedItem, EquipmentSlot as SlotType } from '../../types/items';
-import { SLOT_ICONS, SLOT_NAMES, getItemIcon, supportsHover } from './itemHelpers';
+import { SLOT_NAMES, supportsHover } from './itemHelpers';
+import { ItemIcon } from './ItemIcon';
+import { PixelIcon } from '../ui/PixelIcon';
+import { ICON_PALETTE, ITEM_ICONS } from '../../data/pixelIcons';
 import { StatDeltaList } from './StatDeltaList';
 import { StatPill, EffectChips } from './ItemEffects';
 import { describeEffects } from '../../utils/effectLabels';
@@ -87,7 +90,7 @@ export const EquipmentSlot: React.FC<EquipmentSlotProps> = ({
       className={`border-4 ${borderClass} bg-pixel-bg p-3 transition-colors`}
     >
       <div className="flex items-center gap-1.5 mb-2">
-        <span className="text-sm">{SLOT_ICONS[slot]}</span>
+        <PixelIcon grid={ITEM_ICONS[slot]} palette={ICON_PALETTE} scale={1} />
         <span className="text-xs font-bold uppercase tracking-wide text-pixel-text-muted">
           {SLOT_NAMES[slot]}
         </span>
@@ -108,7 +111,7 @@ export const EquipmentSlot: React.FC<EquipmentSlotProps> = ({
           className="w-full text-left cursor-pointer group"
         >
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-2xl">{getItemIcon(equippedItem)}</span>
+            <ItemIcon item={equippedItem} />
             <span className="text-sm font-bold text-pixel-text group-hover:text-pixel-accent transition-colors">
               {equippedItem.name}
             </span>
@@ -136,7 +139,7 @@ export const EquipmentSlot: React.FC<EquipmentSlotProps> = ({
       {compareItem && (
         <div className="mt-3 border-t-2 border-pixel-border pt-2">
           <div className="flex items-center gap-1.5 mb-1.5">
-            <span className="text-lg">{getItemIcon(compareItem)}</span>
+            <ItemIcon item={compareItem} scale={1} />
             <span className="text-xs font-bold text-pixel-accent truncate">{compareItem.name}</span>
           </div>
           <StatDeltaList current={equippedItem} candidate={compareItem} variant="compact" />

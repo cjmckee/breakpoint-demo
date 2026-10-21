@@ -34,11 +34,18 @@ import { StoryEventRepository } from '../data/storyEvents';
 import { TournamentRegistry } from '../data/tournaments';
 import * as TeamMatches from '../data/teamMatches';
 import {
+  BALL_ICON,
+  CURRENCY_ICONS,
   DRILL_ICONS,
+  GLYPHS,
   ICON_PALETTE,
+  ITEM_ICONS,
   MENU_ICONS,
   SECTION_ICONS,
+  STAT_ICONS,
+  SURFACE_ICONS,
   TIME_SLOT_ICONS,
+  UNKNOWN_STAT_ICON,
   type PixelGrid,
 } from '../data/pixelIcons';
 
@@ -256,15 +263,40 @@ const oneColour = [
   ...iconProblems(SECTION_ICONS, '.#'),
   ...iconProblems(DRILL_ICONS, '.#'),
   ...iconProblems(TIME_SLOT_ICONS, '.#'),
+  ...iconProblems(CURRENCY_ICONS, '.#'),
+  ...iconProblems(STAT_ICONS, '.#'),
+  ...iconProblems(GLYPHS, '.#'),
+  ...iconProblems(SURFACE_ICONS, '.#'),
+  ...iconProblems({ unknown_stat: UNKNOWN_STAT_ICON, ball: BALL_ICON }, '.#'),
 ];
 check(
   'one-colour icons are square and drawn in # only',
   oneColour.length === 0,
   oneColour.join(', '),
 );
-const menu = iconProblems(MENU_ICONS, '.' + Object.keys(ICON_PALETTE).join(''));
+/** Pairs of icons in a set drawn the same: a shape should name one thing. */
+function sameShapes(set: Record<string, PixelGrid>): string[] {
+  const entries = Object.entries(set);
+  return entries.flatMap(([name, grid], i) =>
+    entries
+      .slice(i + 1)
+      .filter(([, other]) => other.join() === grid.join())
+      .map(([otherName]) => `${name} = ${otherName}`),
+  );
+}
+// Stats and currencies sit side by side on the Development screen; glyphs share chips with both.
+const sameShape = sameShapes({ ...STAT_ICONS, ...CURRENCY_ICONS, ...GLYPHS, ...SURFACE_ICONS });
 check(
-  'menu icons are square and use only ICON_PALETTE colours',
+  'every stat, currency, glyph and surface icon is its own shape',
+  sameShape.length === 0,
+  sameShape.join(', '),
+);
+const menu = [
+  ...iconProblems(MENU_ICONS, '.' + Object.keys(ICON_PALETTE).join('')),
+  ...iconProblems(ITEM_ICONS, '.' + Object.keys(ICON_PALETTE).join('')),
+];
+check(
+  'menu and item icons are square and use only ICON_PALETTE colours',
   menu.length === 0,
   menu.join(', '),
 );

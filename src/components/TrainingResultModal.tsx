@@ -8,6 +8,8 @@ import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
 import type { TrainingResult } from '../types/game';
 import { CurrencyAmounts } from './currency/CurrencyAmounts';
+import { PixelIcon } from './ui/PixelIcon';
+import { GLYPHS, ICON_PALETTE, MENU_ICONS } from '../data/pixelIcons';
 
 interface TrainingResultModalProps {
   isOpen: boolean;
@@ -50,7 +52,12 @@ export const TrainingResultModal: React.FC<TrainingResultModalProps> = ({
       <div className="space-y-6">
         {/* Success Message */}
         <div className="text-center">
-          <div className="text-6xl mb-4">💪</div>
+          <PixelIcon
+            grid={MENU_ICONS.training}
+            palette={ICON_PALETTE}
+            scale={4}
+            className="mx-auto mb-4"
+          />
           <p className="text-xl font-bold text-pixel-text mb-2">{result.message}</p>
           <div
             className={`inline-block px-4 py-2 border-4 ${getTierColor(result.sessionTier)} font-bold text-lg`}
@@ -72,12 +79,17 @@ export const TrainingResultModal: React.FC<TrainingResultModalProps> = ({
             testId="training-result-currency"
           />
           <div className="flex justify-center gap-2 mt-3 text-sm font-bold">
-            <span className="px-2 py-0.5 border-2 border-pixel-border bg-pixel-bg">
-              ⚡ <span className="text-pixel-error">-{result.energyCost}</span>
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 border-2 border-pixel-border bg-pixel-bg">
+              <PixelIcon grid={GLYPHS.energy} scale={1} className="text-yellow-300" />
+              <span className="text-pixel-error">-{result.energyCost}</span>
             </span>
             {result.moodChange !== 0 && (
-              <span className="px-2 py-0.5 border-2 border-pixel-border bg-pixel-bg">
-                {result.moodChange > 0 ? '😊' : '😞'}{' '}
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 border-2 border-pixel-border bg-pixel-bg">
+                <PixelIcon
+                  grid={result.moodChange > 0 ? GLYPHS.smile : GLYPHS.frown}
+                  scale={1}
+                  className={result.moodChange > 0 ? 'text-pixel-success' : 'text-pixel-error'}
+                />
                 <span className={result.moodChange > 0 ? 'text-pixel-success' : 'text-pixel-error'}>
                   {result.moodChange > 0 ? '+' : ''}
                   {result.moodChange}
@@ -90,7 +102,7 @@ export const TrainingResultModal: React.FC<TrainingResultModalProps> = ({
         {/* Ability gained */}
         {result.abilityGained && (
           <div className="bg-orange-500 bg-opacity-20 border-4 border-orange-500 p-4">
-            <h3 className="text-lg font-bold text-orange-500 mb-2">🌟 NEW ABILITY UNLOCKED!</h3>
+            <h3 className="text-lg font-bold text-orange-500 mb-2">NEW ABILITY UNLOCKED!</h3>
             <div className="text-2xl font-bold text-pixel-text text-center py-4">
               {result.abilityGained}
             </div>

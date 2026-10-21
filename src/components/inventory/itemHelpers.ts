@@ -3,14 +3,7 @@
  */
 
 import type { Item, EquipmentSlot, ItemType } from '../../types/items';
-
-export const SLOT_ICONS: Record<EquipmentSlot, string> = {
-  racquet: '🎾',
-  shoes: '👟',
-  outfit: '👕',
-  hat: '🧢',
-  charm: '🍀',
-};
+import { ITEM_ICONS, type PixelGrid } from '../../data/pixelIcons';
 
 export const SLOT_NAMES: Record<EquipmentSlot, string> = {
   racquet: 'Racquet',
@@ -49,10 +42,10 @@ export const supportsHover =
   typeof window.matchMedia === 'function' &&
   window.matchMedia('(hover: hover)').matches;
 
-/** Emoji shown for an item — equipment uses its slot icon. */
-export function getItemIcon(item: Item): string {
-  if (item.equipmentSlot) return SLOT_ICONS[item.equipmentSlot];
-  if (item.type === 'consumable') return '💊';
-  if (item.type === 'lucky') return '🍀';
-  return '📜';
+/** The icon for an item (ITEM_ICONS, drawn with ICON_PALETTE): equipment uses its slot's. */
+export function getItemIcon(item: Item): PixelGrid {
+  if (item.equipmentSlot) return ITEM_ICONS[item.equipmentSlot];
+  if (item.type === 'consumable') return ITEM_ICONS.consumable;
+  if (item.type === 'lucky') return ITEM_ICONS.charm;
+  return ITEM_ICONS.story;
 }

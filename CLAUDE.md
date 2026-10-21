@@ -1216,10 +1216,14 @@ with an accent border and a check (`PixelCheckbox`), not a light fill. Wrap hove
 - The five areas of the game go by one name each (`GAME_AREA_LABELS` in `src/core/gameAreas.ts`):
   Serving, Returning, Baseline, Netplay, Coverage.
 - Small icons are pixel grids (`src/data/pixelIcons.ts`) drawn with `<PixelIcon>`, not emoji: one
-  colour (`#`) for section and drill icons, `ICON_PALETTE` symbols for the menu's actions. Draw
-  them at whole multiples of the grid so they stay crisp; `spriteCheck` validates every grid.
-- Emoji are on their way out in favour of pixel icons. `docs/emoji-inventory.md` lists where they
-  still are; don't add new ones.
+  colour (`#`, 12×12) for stats, currencies, effects, tactics and the shared `GLYPHS`;
+  `ICON_PALETTE` symbols (16×16) for the menu's actions and items. Draw them at whole multiples of
+  the grid so they stay crisp; `spriteCheck` validates every grid.
+- One idea, one icon. Before drawing a new one, look in `GLYPHS` and the stat icons: an effect or
+  tactic about a stat uses that stat's icon, and every lob is the lob. `spriteCheck` fails on two
+  icons drawn the same.
+- No emoji. `emojiCheck` (in `npm test`) fails on any in game source outside comments and
+  developer logging; draw a pixel icon instead. `docs/emoji-inventory.md` records where they went.
 
 **Show comparisons and costs, don't describe them.** Use bars, chips, icons and
 before→after previews over sentences: head-to-head bars rather than two stat lists,
@@ -1239,7 +1243,7 @@ padding for it, so don't dock your own controls in the bottom-right corner.
 ### Test IDs
 
 E2E specs address the UI through `data-testid`, not through visible text. Text
-changes whenever the copy does, several buttons carry only an emoji, and some
+changes whenever the copy does, several buttons carry only an icon, and some
 labels are authored data (a story option's `text`) rather than anything a spec
 can predict. A test id is a contract: renaming one should be a deliberate act.
 

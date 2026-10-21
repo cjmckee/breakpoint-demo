@@ -63,7 +63,7 @@ driver needs to choose on; two copies of the same action get two ids.
 Missing a test id is the normal case for a new spec. Add it to the component in
 the same change, and list the ids you added in the commit message. Never select
 by visible text or CSS class where a test id could exist — copy changes, and
-several buttons are emoji-only.
+several buttons are icon-only.
 
 ## Writing the spec
 

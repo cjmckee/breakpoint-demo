@@ -15,6 +15,8 @@ import { PixelSprite } from './sprites/PixelSprite';
 import { usePlayerName } from '../hooks/usePlayerName';
 import { useGameStore } from '../stores/gameStore';
 import { directionFromKey, isActionKey } from '../utils/gameKeys';
+import { PixelIcon } from './ui/PixelIcon';
+import { DRILL_ICONS, GLYPHS, STORY_MOOD_ICONS } from '../data/pixelIcons';
 
 interface StoryEventModalProps {
   isOpen: boolean;
@@ -198,7 +200,7 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
             onClick={() => setIsHidden(false)}
             className="max-w-2xl w-full py-4 border-4 border-pixel-accent bg-pixel-card text-pixel-accent font-bold text-base hover:bg-pixel-accent hover:bg-opacity-20 transition-colors animate-pulse"
           >
-            📜 Show Event
+            Show Event
           </button>
         </div>
       </>
@@ -208,9 +210,10 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
   const hideButton = (
     <button
       onClick={() => setIsHidden(true)}
-      className="w-full py-3 border-4 border-pixel-border bg-pixel-card text-pixel-text font-bold text-base hover:border-pixel-accent transition-colors"
+      className="w-full flex items-center justify-center gap-2 py-3 border-4 border-pixel-border bg-pixel-card text-pixel-text font-bold text-base hover:border-pixel-accent transition-colors"
     >
-      👁 Hide Event
+      <PixelIcon grid={DRILL_ICONS.read_return} scale={1} />
+      Hide Event
     </button>
   );
 
@@ -363,7 +366,13 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
       {/* A single-option event says what its one button will do. */}
       {allDialogueShown && !hasChoice && onlyOption?.description && (
         <p className="mb-2 text-pixel-text-muted">
-          {onlyOption.emoji && <span className="mr-2">{onlyOption.emoji}</span>}
+          {onlyOption.mood && (
+            <PixelIcon
+              grid={STORY_MOOD_ICONS[onlyOption.mood]}
+              scale={1}
+              className="inline-block mr-2 align-baseline"
+            />
+          )}
           {onlyOption.description}
         </p>
       )}
@@ -394,9 +403,9 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
                 }`}
               >
                 <div className="flex items-center gap-4">
-                  {/* Fixed-width icon column, so titles line up with or without an emoji. */}
-                  <span className="w-10 shrink-0 text-center text-3xl" aria-hidden="true">
-                    {option.emoji ?? ''}
+                  {/* Fixed-width icon column, so titles line up with or without a mood. */}
+                  <span className="w-10 shrink-0 flex justify-center text-pixel-text-muted">
+                    {option.mood && <PixelIcon grid={STORY_MOOD_ICONS[option.mood]} scale={2} />}
                   </span>
                   <div className="flex-1 min-w-0">
                     <div className="font-bold text-lg text-pixel-text">{option.text}</div>
@@ -404,8 +413,9 @@ export const StoryEventModal: React.FC<StoryEventModalProps> = ({
                       <div className="text-sm text-pixel-text-muted mt-1">{option.description}</div>
                     )}
                     {!isAvailable && (
-                      <div className="text-sm text-pixel-error mt-1 font-semibold">
-                        🔒 Requirements not met
+                      <div className="flex items-center gap-1.5 text-sm text-pixel-error mt-1 font-semibold">
+                        <PixelIcon grid={GLYPHS.lock} scale={1} />
+                        Requirements not met
                       </div>
                     )}
                   </div>

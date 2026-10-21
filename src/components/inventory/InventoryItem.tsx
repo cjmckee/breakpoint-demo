@@ -11,7 +11,8 @@ import type { OwnedItem } from '../../types/items';
 import { Card } from '../ui/Card';
 import { UnseenBadge } from '../ui/UnseenBadge';
 import { ItemManager } from '../../game/ItemManager';
-import { ITEM_TYPE_META, getItemIcon } from './itemHelpers';
+import { ITEM_TYPE_META } from './itemHelpers';
+import { ItemIcon } from './ItemIcon';
 import { NetRatingBadge } from './StatDeltaList';
 
 interface InventoryItemProps {
@@ -79,7 +80,7 @@ export const InventoryItem: React.FC<InventoryItemProps> = ({
         )}
 
         <div className="text-center">
-          <div className="text-3xl mb-1">{getItemIcon(item)}</div>
+          <ItemIcon item={item} className="mx-auto mb-1" />
           <div
             className={`text-[10px] sm:text-xs px-1 py-0.5 max-w-full truncate ${meta.badge} text-white mb-1`}
           >

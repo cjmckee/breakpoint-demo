@@ -11,6 +11,8 @@ import { useGameStore } from '../stores/gameStore';
 import { Card } from './ui/Card';
 import { ChallengeRewardChips } from './ChallengeRewardChips';
 import { CHALLENGE_TEMPLATES } from '../data/challengeTemplates';
+import { PixelIcon } from './ui/PixelIcon';
+import { GLYPHS } from '../data/pixelIcons';
 
 export const CompletedChallenges: React.FC = () => {
   const completedChallenges = useGameStore((state) => state.completedChallenges);
@@ -40,7 +42,7 @@ export const CompletedChallenges: React.FC = () => {
   return (
     <div className="mt-6">
       <h2 className="text-lg font-bold text-green-500 mb-2 flex items-center gap-2">
-        <span>✅</span>
+        <PixelIcon grid={GLYPHS.check} scale={1} />
         <span>Completed</span>
         <span className="text-sm font-normal text-pixel-text-muted">({completed.length})</span>
       </h2>
@@ -60,7 +62,7 @@ export const CompletedChallenges: React.FC = () => {
                   className="flex items-center gap-3 cursor-pointer"
                   onClick={() => toggle(template.id)}
                 >
-                  <span className="text-xl shrink-0">🏆</span>
+                  <PixelIcon grid={GLYPHS.trophy} scale={2} className="text-yellow-400" />
                   <div className="flex-1 min-w-0">
                     <span className="font-bold text-pixel-text text-sm truncate block">
                       {template.name}
@@ -85,7 +87,11 @@ export const CompletedChallenges: React.FC = () => {
                           key={idx}
                           className="flex items-start gap-1.5 text-xs text-pixel-text-muted"
                         >
-                          <span className="text-green-500 shrink-0">✓</span>
+                          <PixelIcon
+                            grid={GLYPHS.check}
+                            scale={1}
+                            className="text-green-500 mt-0.5"
+                          />
                           <span>{req.description}</span>
                         </div>
                       ))}

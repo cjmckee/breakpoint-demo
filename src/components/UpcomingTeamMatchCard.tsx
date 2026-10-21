@@ -7,6 +7,8 @@
 import React from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { StoryMatchManager } from '../game/StoryMatchManager';
+import { SurfaceIcon } from './ui/SurfaceIcon';
+import { PixelIcon } from './ui/PixelIcon';
 
 export const UpcomingTeamMatchCard: React.FC = () => {
   const calendar = useGameStore((state) => state.calendar);
@@ -45,21 +47,6 @@ export const UpcomingTeamMatchCard: React.FC = () => {
     }
   };
 
-  const getSurfaceEmoji = (surface?: string): string => {
-    switch (surface) {
-      case 'hard':
-        return '🏟️';
-      case 'clay':
-        return '🧱';
-      case 'grass':
-        return '🌱';
-      case 'carpet':
-        return '📋';
-      default:
-        return '🎾';
-    }
-  };
-
   const scheduleLabel =
     daysUntil === 0
       ? `${getTimeSlotLabel(nextTeamMatch.scheduledTimeSlot)} session`
@@ -69,14 +56,14 @@ export const UpcomingTeamMatchCard: React.FC = () => {
 
   // One-line detail: surface, format, and when the match happens
   const detailParts = [
-    `${getSurfaceEmoji(metadata.surface)} ${metadata.surface?.toUpperCase() || 'TBD'}`,
+    metadata.surface?.toUpperCase() || 'TBD',
     metadata.matchFormat,
     scheduleLabel,
   ].filter(Boolean);
 
   return (
     <div className="w-full flex items-center gap-3 border-4 border-purple-400 bg-purple-500 bg-opacity-10 px-4 py-3">
-      <span className="text-2xl shrink-0">{getSurfaceEmoji(metadata.surface)}</span>
+      <SurfaceIcon surface={metadata.surface} scale={2} />
       <div className="flex-1 min-w-0">
         <div className="font-bold text-pixel-text truncate">
           {metadata.matchTitle || 'Team Match'}
@@ -87,7 +74,7 @@ export const UpcomingTeamMatchCard: React.FC = () => {
         <div className="text-xs text-pixel-text-muted truncate">{detailParts.join(' · ')}</div>
       </div>
       <span className="shrink-0 text-xs font-bold px-2 py-1 bg-purple-500 bg-opacity-20 border border-purple-400 text-purple-400">
-        {daysUntil === 0 ? '⚡ Today' : `${daysUntil}d`}
+        {daysUntil === 0 ? 'Today' : `${daysUntil}d`}
       </span>
     </div>
   );

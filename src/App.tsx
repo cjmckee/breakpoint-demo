@@ -36,6 +36,8 @@ import { screenKey } from './utils/screenKey';
 import { DebugPanel } from './debug/DebugPanel';
 import { ContentEnd } from './components/ContentEnd';
 import { useContentEnded } from './hooks/useContentEnded';
+import { PixelIcon } from './components/ui/PixelIcon';
+import { BALL_ICON, ICON_PALETTE } from './data/pixelIcons';
 
 function App() {
   const { isInitialized, gamePhase, initializeGame } = useGameStore();
@@ -62,7 +64,12 @@ function App() {
         return (
           <div className="min-h-screen bg-pixel-bg text-pixel-text flex items-center justify-center">
             <div className="text-center">
-              <div className="text-6xl mb-4">🎾</div>
+              <PixelIcon
+                grid={BALL_ICON}
+                color={ICON_PALETTE.y}
+                scale={4}
+                className="mx-auto mb-4"
+              />
               <p className="text-xl font-bold">Loading Breakpoint...</p>
             </div>
           </div>
@@ -72,7 +79,7 @@ function App() {
         return (
           <div className="min-h-screen bg-pixel-bg text-pixel-text flex items-center justify-center p-4">
             <div className="text-center max-w-2xl">
-              <h1 className="text-5xl font-bold text-pixel-accent mb-4">🎾 Breakpoint</h1>
+              <h1 className="text-5xl font-bold text-pixel-accent mb-4">Breakpoint</h1>
               <p className="text-xl text-pixel-text-muted mb-8">
                 Rise from the lowest ranks to become a tennis legend!
               </p>

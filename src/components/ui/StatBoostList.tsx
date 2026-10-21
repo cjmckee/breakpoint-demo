@@ -1,6 +1,7 @@
 import React from 'react';
 import type { StatBoosts } from '../../types/game';
 import { getStatIcon, formatStatName } from '../../config/statIcons';
+import { PixelIcon } from './PixelIcon';
 
 interface StatBoostListProps {
   statBoosts: StatBoosts;
@@ -57,7 +58,7 @@ export const StatBoostList: React.FC<StatBoostListProps> = ({
         <div className="grid grid-cols-[repeat(auto-fit,minmax(15rem,1fr))] gap-x-4 gap-y-1">
           {entries.map(([stat, value]) => (
             <div key={stat} className="flex items-center gap-1 text-sm">
-              <span>{getStatIcon(stat)}</span>
+              <PixelIcon grid={getStatIcon(stat)} scale={1} />
               <span className="text-gray-300">{formatStatName(stat)}</span>
               <span className="text-green-400 ml-auto">+{value}</span>
             </div>
@@ -78,7 +79,7 @@ export const StatBoostList: React.FC<StatBoostListProps> = ({
     <div className="flex flex-col gap-1">
       {entries.map(([stat, value]) => (
         <div key={stat} className="flex items-center gap-2 text-sm">
-          <span>{getStatIcon(stat)}</span>
+          <PixelIcon grid={getStatIcon(stat)} scale={1} />
           <span className="text-gray-300">{formatStatName(stat)}</span>
           <span className="text-green-400 ml-auto">+{value}</span>
         </div>

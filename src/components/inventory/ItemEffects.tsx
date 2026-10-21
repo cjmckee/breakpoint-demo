@@ -8,18 +8,29 @@ import React from 'react';
 import type { Item } from '../../types/items';
 import type { StatBoosts } from '../../types/game';
 import { getStatIcon, formatStatName } from '../../config/statIcons';
+import { PixelIcon } from '../ui/PixelIcon';
 import { describeEffects } from '../../utils/effectLabels';
+import { GLYPHS, type PixelGrid } from '../../data/pixelIcons';
 
-/** A single stat boost pill, e.g. 🎾 Serve +5 */
-export const StatPill: React.FC<{ stat: string; value: number }> = ({ stat, value }) => (
+/** A pill: icon, name, signed value (+5). */
+const ValuePill: React.FC<{ icon: PixelGrid; label: string; value: number }> = ({
+  icon,
+  label,
+  value,
+}) => (
   <span className="inline-flex items-center gap-1 bg-pixel-bg border-2 border-pixel-border px-2 py-1 text-xs">
-    <span>{getStatIcon(stat)}</span>
-    <span className="text-pixel-text-muted">{formatStatName(stat)}</span>
+    <PixelIcon grid={icon} scale={1} />
+    <span className="text-pixel-text-muted">{label}</span>
     <span className={value >= 0 ? 'text-green-400 font-bold' : 'text-red-400 font-bold'}>
       {value >= 0 ? '+' : ''}
       {value}
     </span>
   </span>
+);
+
+/** A single stat boost pill: icon, name, +5 */
+export const StatPill: React.FC<{ stat: string; value: number }> = ({ stat, value }) => (
+  <ValuePill icon={getStatIcon(stat)} label={formatStatName(stat)} value={value} />
 );
 
 export const StatPills: React.FC<{ statBoosts: StatBoosts }> = ({ statBoosts }) => {
@@ -47,7 +58,7 @@ export const EffectChips: React.FC<{ additional?: Record<string, number> }> = ({
           key={effect.key}
           className="inline-flex items-center gap-1 bg-pixel-secondary/40 border-2 border-pixel-secondary px-2 py-1 text-xs"
         >
-          <span>{effect.icon}</span>
+          <PixelIcon grid={effect.icon} scale={1} />
           <span className="text-pixel-text-muted">{effect.label}</span>
           <span className={effect.positive ? 'text-green-400 font-bold' : 'text-red-400 font-bold'}>
             {effect.value}
@@ -102,34 +113,27 @@ export const ItemEffects: React.FC<ItemEffectsProps> = ({ item, compact = false 
               <div className="flex flex-wrap gap-1.5">
                 {typeof consumable.instantEffects.energyChange === 'number' &&
                   consumable.instantEffects.energyChange !== 0 && (
-                    <StatPill stat="stamina" value={consumable.instantEffects.energyChange} />
+                    <ValuePill
+                      icon={GLYPHS.energy}
+                      label="Energy"
+                      value={consumable.instantEffects.energyChange}
+                    />
                   )}
                 {typeof consumable.instantEffects.moodChange === 'number' &&
                   consumable.instantEffects.moodChange !== 0 && (
-                    <span className="inline-flex items-center gap-1 bg-pixel-bg border-2 border-pixel-border px-2 py-1 text-xs">
-                      <span>😊</span>
-                      <span className="text-pixel-text-muted">Mood</span>
-                      <span
-                        className={
-                          consumable.instantEffects.moodChange >= 0
-                            ? 'text-green-400 font-bold'
-                            : 'text-red-400 font-bold'
-                        }
-                      >
-                        {consumable.instantEffects.moodChange >= 0 ? '+' : ''}
-                        {consumable.instantEffects.moodChange}
-                      </span>
-                    </span>
+                    <ValuePill
+                      icon={consumable.instantEffects.moodChange > 0 ? GLYPHS.smile : GLYPHS.frown}
+                      label="Mood"
+                      value={consumable.instantEffects.moodChange}
+                    />
                   )}
                 {typeof consumable.instantEffects.respecTokens === 'number' &&
                   consumable.instantEffects.respecTokens > 0 && (
-                    <span className="inline-flex items-center gap-1 bg-pixel-bg border-2 border-pixel-border px-2 py-1 text-xs">
-                      <span>🔄</span>
-                      <span className="text-pixel-text-muted">Respec Token</span>
-                      <span className="text-green-400 font-bold">
-                        +{consumable.instantEffects.respecTokens}
-                      </span>
-                    </span>
+                    <ValuePill
+                      icon={GLYPHS.loop}
+                      label="Respec Token"
+                      value={consumable.instantEffects.respecTokens}
+                    />
                   )}
               </div>
             )}

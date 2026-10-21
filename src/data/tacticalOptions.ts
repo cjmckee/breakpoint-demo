@@ -13,6 +13,7 @@ import { PointType } from '../types';
 import type { StatName } from '../types';
 
 import { random } from '../core/random';
+import { DRILL_ICONS, GLYPHS, STAT_ICONS, type PixelGrid } from './pixelIcons';
 /**
  * Which side of the ball the option is played from — the hard constraint on what
  * can appear in a menu. Facing break point on your own serve, every option has to
@@ -53,7 +54,8 @@ export interface SecondaryEffect {
 
 export interface TacticalOption {
   id: string;
-  emoji: string;
+  /** Its pixel icon. One idea, one icon: every slice is the slice, every lob the lob. */
+  icon: PixelGrid;
   name: string;
   description: string;
   /** Which side of the ball this can be played from. */
@@ -113,7 +115,7 @@ const RISK_EFFECTS: Record<KeyMomentRisk, SecondaryEffect[]> = {
 export const TACTICAL_OPTIONS: TacticalOption[] = [
   {
     id: 's_solid_first',
-    emoji: '✅',
+    icon: GLYPHS.anchor,
     name: 'Solid first serve',
     description: 'Pace without chasing the lines',
     roles: ['serve'],
@@ -143,7 +145,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 's_body_jam',
-    emoji: '🎯',
+    icon: STAT_ICONS.placement,
     name: 'Flat serve into the body',
     description: 'Make the first serve and make the returner move',
     roles: ['serve'],
@@ -173,7 +175,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 's_power_t',
-    emoji: '🚀',
+    icon: GLYPHS.rocket,
     name: 'Power serve down the T',
     description: 'Overpower them before the rally starts',
     roles: ['serve'],
@@ -203,7 +205,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 's_kick_approach',
-    emoji: '👣',
+    icon: DRILL_ICONS.split_step,
     name: 'Sneak in behind a kick serve',
     description: 'The high ball buys you time to get forward',
     roles: ['serve'],
@@ -233,7 +235,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 's_wide_close',
-    emoji: '📐',
+    icon: GLYPHS.angle,
     name: 'Serve wide, close the angle',
     description: 'Pull them wide, then cover the line',
     roles: ['serve'],
@@ -263,7 +265,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 's_serve_volley',
-    emoji: '🏃',
+    icon: STAT_ICONS.speed,
     name: 'Serve and volley',
     description: 'Follow the serve in and finish at the net',
     roles: ['serve'],
@@ -293,7 +295,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 's_kick_heavy',
-    emoji: '🌪️',
+    icon: STAT_ICONS.spin,
     name: 'Heavy kick serve',
     description: 'Use the high bounce to make them uncomfortable',
     roles: ['serve'],
@@ -323,7 +325,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 's_slice_reset',
-    emoji: '🔄',
+    icon: GLYPHS.loop,
     name: 'Slice serve wide, reset the point',
     description: 'Get a neutral rally started',
     roles: ['serve'],
@@ -353,7 +355,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 's_carve_low',
-    emoji: '✂️',
+    icon: STAT_ICONS.slice,
     name: 'Slice it low over the net',
     description: 'A fine margin, but nothing comes back clean',
     roles: ['serve'],
@@ -383,7 +385,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 's_underhand',
-    emoji: '🃏',
+    icon: GLYPHS.card,
     name: 'Underhand serve',
     description: 'Catch them by surprise',
     roles: ['serve'],
@@ -413,7 +415,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 's_disguise_second',
-    emoji: '🎭',
+    icon: GLYPHS.mask,
     name: 'Disguised second serve',
     description: 'Same toss, different spin',
     roles: ['serve'],
@@ -443,7 +445,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 's_wide_then_drop',
-    emoji: '🩰',
+    icon: DRILL_ICONS.touch_slice,
     name: 'Serve wide and drop',
     description: 'Pull them out wide and get them on the run',
     roles: ['serve'],
@@ -473,7 +475,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 's_kick_grind',
-    emoji: '⛏️',
+    icon: GLYPHS.pickaxe,
     name: 'Kick serve deep and grind',
     description: 'Commit to the rally and outlast them',
     roles: ['serve'],
@@ -503,7 +505,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 's_hammer_weak',
-    emoji: '🔨',
+    icon: GLYPHS.hammer,
     name: 'Hammer their weaker wing',
     description: 'Serve there, then keep going there',
     roles: ['serve'],
@@ -534,7 +536,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 's_long_rally',
-    emoji: '🐘',
+    icon: GLYPHS.hourglass,
     name: 'Commit to the marathon',
     description: 'A track meet that will test your legs',
     roles: ['serve'],
@@ -564,7 +566,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 's_change_speed',
-    emoji: '🎚️',
+    icon: GLYPHS.faders,
     name: 'Change of pace, get them off balance',
     description: 'Take something off and mix up the spin',
     roles: ['serve'],
@@ -594,7 +596,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 's_slice_timing',
-    emoji: '🌀',
+    icon: GLYPHS.wave,
     name: 'Slice serve to break their timing',
     description: "Don't let them get in rhythm",
     roles: ['serve'],
@@ -624,7 +626,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 's_quick_serve',
-    emoji: '⏱️',
+    icon: GLYPHS.timer,
     name: 'Quick-serve them',
     description: 'Quicker motion to disrupt their return timing',
     roles: ['serve'],
@@ -654,7 +656,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'r_drive_safe',
-    emoji: '✅',
+    icon: GLYPHS.anchor,
     name: 'Firm drive, big margin',
     description: 'Hit through it without going near the lines',
     roles: ['return'],
@@ -684,7 +686,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'r_attack_cross',
-    emoji: '⚡',
+    icon: GLYPHS.burst,
     name: 'Aggressive crosscourt return',
     description: 'Attack with power and depth crosscourt',
     roles: ['return'],
@@ -714,7 +716,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'r_early_line',
-    emoji: '🎯',
+    icon: STAT_ICONS.placement,
     name: 'Step in and take it down the line',
     description: 'Take it early and go for the line',
     roles: ['return'],
@@ -744,7 +746,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'r_block_follow',
-    emoji: '🛡️',
+    icon: GLYPHS.shield,
     name: 'Block it and follow it in',
     description: 'Take the pace off and get forward',
     roles: ['return'],
@@ -774,7 +776,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'r_chip_charge',
-    emoji: '🏃',
+    icon: STAT_ICONS.speed,
     name: 'Chip and charge',
     description: 'Short slice return and rush the net',
     roles: ['return'],
@@ -804,7 +806,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'r_attack_short',
-    emoji: '🗡️',
+    icon: GLYPHS.swords,
     name: 'Attack the short reply',
     description: 'Wait for the ball to sit up, then come in',
     roles: ['return'],
@@ -834,7 +836,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'r_block_restart',
-    emoji: '🧱',
+    icon: GLYPHS.loop,
     name: 'Block it back and start again',
     description: 'Just get yourself into the point',
     roles: ['return'],
@@ -864,7 +866,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'r_deep_neutral',
-    emoji: '↩️',
+    icon: STAT_ICONS.return,
     name: 'Deep neutralizing return',
     description: 'Get it back with depth and extend the rally',
     roles: ['return'],
@@ -894,7 +896,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'r_lob_reset',
-    emoji: '☁️',
+    icon: GLYPHS.lob,
     name: 'Lob it and reset',
     description: 'Buy time, and hope it is deep enough',
     roles: ['return'],
@@ -924,7 +926,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'r_fake_drive',
-    emoji: '🃏',
+    icon: GLYPHS.card,
     name: 'Fake the drive, dump it over',
     description: 'Show the big swing, push it back instead',
     roles: ['return'],
@@ -954,7 +956,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'r_slice_short',
-    emoji: '🎭',
+    icon: GLYPHS.mask,
     name: 'Disguised slice, short and low',
     description: 'Punish anyone camped deep',
     roles: ['return'],
@@ -984,7 +986,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'r_drop_return',
-    emoji: '🩰',
+    icon: DRILL_ICONS.touch_slice,
     name: 'Drop shot off the return',
     description: 'Catch them flat-footed behind the baseline',
     roles: ['return'],
@@ -1014,7 +1016,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'r_deep_grind',
-    emoji: '⛏️',
+    icon: GLYPHS.pickaxe,
     name: 'Deep return and grind',
     description: 'Make them earn every ball',
     roles: ['return'],
@@ -1044,7 +1046,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'r_target_weak_wing',
-    emoji: '🔨',
+    icon: GLYPHS.hammer,
     name: 'Return to their weaker wing',
     description: 'Go to your highest percentage option',
     roles: ['return'],
@@ -1075,7 +1077,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'r_play_more',
-    emoji: '🐘',
+    icon: GLYPHS.hourglass,
     name: 'Make them play more shots',
     description: 'Chase down every ball, no matter how tough',
     roles: ['return'],
@@ -1105,7 +1107,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'r_stand_deep',
-    emoji: '🔙',
+    icon: GLYPHS.back,
     name: 'Stand deep, take the pace off',
     description: 'Change where the point starts',
     roles: ['return'],
@@ -1135,7 +1137,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'r_read_react',
-    emoji: '👁️',
+    icon: STAT_ICONS.anticipation,
     name: 'Read and react',
     description: 'Pick the direction and redirect with precision',
     roles: ['return'],
@@ -1165,7 +1167,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'r_sabr',
-    emoji: '💨',
+    icon: DRILL_ICONS.split_step,
     name: 'Charge the second serve',
     description: 'Sprint in and take it on the rise',
     roles: ['return'],
@@ -1195,7 +1197,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'y_steady_depth',
-    emoji: '✅',
+    icon: GLYPHS.anchor,
     name: 'Heavy and deep, low risk',
     description: 'Keep the pressure on without going for it',
     roles: ['rally'],
@@ -1225,7 +1227,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'y_flatten_line',
-    emoji: '💥',
+    icon: GLYPHS.bomb,
     name: 'Flatten it out down the line',
     description: 'Change direction with everything you have',
     roles: ['rally'],
@@ -1255,7 +1257,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'y_accelerate',
-    emoji: '🚀',
+    icon: GLYPHS.rocket,
     name: 'Push the accelerator',
     description: 'Take control and force the winner',
     roles: ['rally'],
@@ -1285,7 +1287,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'y_build_approach',
-    emoji: '📐',
+    icon: GLYPHS.angle,
     name: 'Build the approach, then close',
     description: 'Earn the short ball before you come in',
     roles: ['rally'],
@@ -1315,7 +1317,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'y_attack_net',
-    emoji: '🏃',
+    icon: STAT_ICONS.speed,
     name: 'Attack the net',
     description: 'Force the approach and close the point out',
     roles: ['rally'],
@@ -1345,7 +1347,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'y_reset_height',
-    emoji: '☁️',
+    icon: GLYPHS.lob,
     name: 'Reset with height and depth',
     description: 'Take the sting out and recover',
     roles: ['rally'],
@@ -1375,7 +1377,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'y_disguise_direction',
-    emoji: '🃏',
+    icon: GLYPHS.card,
     name: 'Disguised change of direction',
     description: 'Show one way, go the other',
     roles: ['rally'],
@@ -1405,7 +1407,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'y_drop_behind',
-    emoji: '🩰',
+    icon: DRILL_ICONS.touch_slice,
     name: 'Drop it behind them',
     description: 'Fake it short, push it deep into the court',
     roles: ['rally'],
@@ -1435,7 +1437,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'y_construct',
-    emoji: '🧩',
+    icon: STAT_ICONS.tactics,
     name: 'Patiently construct the point',
     description: 'Move them around and wait for the opening',
     roles: ['rally'],
@@ -1465,7 +1467,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'y_corner_to_corner',
-    emoji: '🏃',
+    icon: STAT_ICONS.speed,
     name: 'Run them corner to corner',
     description: 'Make the point cost them',
     roles: ['rally'],
@@ -1495,7 +1497,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'y_close_short',
-    emoji: '✅',
+    icon: GLYPHS.anchor,
     name: 'Close only on a short ball',
     description: 'Come in when the ball earns it, not before',
     roles: ['rally'],
@@ -1525,7 +1527,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'y_roll_deep',
-    emoji: '↩️',
+    icon: STAT_ICONS.return,
     name: 'Roll it deep crosscourt',
     description: 'Heavy and safe into the big part of the court',
     roles: ['rally'],
@@ -1555,7 +1557,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'y_carve_low',
-    emoji: '✂️',
+    icon: STAT_ICONS.slice,
     name: 'Skid a low slice at their feet',
     description: 'A fine margin, but nothing comes back clean',
     roles: ['rally'],
@@ -1585,7 +1587,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'y_show_drop',
-    emoji: '🃏',
+    icon: GLYPHS.card,
     name: 'Show the drop, hit it deep',
     description: 'Sell the short ball, then go long',
     roles: ['rally'],
@@ -1615,7 +1617,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'y_grind_backhand',
-    emoji: '⛏️',
+    icon: GLYPHS.pickaxe,
     name: 'Grind the backhand',
     description: 'Go there again. And again.',
     roles: ['rally'],
@@ -1645,7 +1647,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'y_sudden_change',
-    emoji: '🎲',
+    icon: GLYPHS.die,
     name: 'Change everything at once',
     description: 'New pace, new direction, new height',
     roles: ['rally'],
@@ -1675,7 +1677,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'y_two_speed',
-    emoji: '🎚️',
+    icon: GLYPHS.faders,
     name: 'Take one early, then take pace off',
     description: 'Never let them get a consistent speed',
     roles: ['rally'],
@@ -1705,7 +1707,7 @@ export const TACTICAL_OPTIONS: TacticalOption[] = [
   },
   {
     id: 'y_change_pattern',
-    emoji: '🔀',
+    icon: GLYPHS.shuffle,
     name: 'Change the pattern',
     description: 'Break your own rhythm before they read it',
     roles: ['rally'],

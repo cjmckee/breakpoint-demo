@@ -25,6 +25,8 @@ import {
 import { PixelSprite } from './sprites/PixelSprite';
 import { usePlayerAppearance } from '../hooks/usePlayerAppearance';
 import { getOpponentAppearance } from '../data/characters';
+import { PixelIcon } from './ui/PixelIcon';
+import { BALL_ICON, GLYPHS, STAT_ICONS, type PixelGrid } from '../data/pixelIcons';
 
 interface MatchSummaryModalProps {
   isOpen: boolean;
@@ -85,7 +87,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
       testId="match-results"
       footer={
         <Button variant="primary" fullWidth onClick={handleClose} testId="match-results-continue">
-          {isWinner ? 'Continue Training 💪' : 'Train Harder 🔥'}
+          {isWinner ? 'Continue Training' : 'Train Harder'}
         </Button>
       }
     >
@@ -125,7 +127,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
 
         {/* Final Score */}
         <div className="bg-pixel-card border-4 border-pixel-border p-4">
-          <h3 className="text-lg font-bold text-pixel-text mb-4 text-center">📊 Final Score</h3>
+          <h3 className="text-lg font-bold text-pixel-text mb-4 text-center">Final Score</h3>
 
           {/* Set-by-Set Scores */}
           <div className="space-y-3 mb-4">
@@ -173,32 +175,32 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
           <h3 className="text-lg font-bold text-pixel-text mb-4 text-center">Highlights</h3>
           <div className="space-y-2">
             {(() => {
-              const highlights: Array<{ icon: string; text: string }> = [];
+              const highlights: Array<{ icon: PixelGrid; text: string }> = [];
 
               if (matchStatistics.aces.player > 0) {
                 highlights.push({
-                  icon: matchStatistics.aces.player >= 5 ? '🔥' : '🎾',
+                  icon: STAT_ICONS.serve,
                   text: `${matchStatistics.aces.player} ace${matchStatistics.aces.player !== 1 ? 's' : ''} served`,
                 });
               }
 
               if (matchStatistics.winners.player > 0) {
                 highlights.push({
-                  icon: matchStatistics.winners.player >= 20 ? '💥' : '🎯',
+                  icon: matchStatistics.winners.player >= 20 ? GLYPHS.burst : STAT_ICONS.placement,
                   text: `${matchStatistics.winners.player} winner${matchStatistics.winners.player !== 1 ? 's' : ''} hit`,
                 });
               }
 
               if (matchStatistics.breakPointsConverted.player > 0) {
                 highlights.push({
-                  icon: '⚡',
+                  icon: GLYPHS.flame,
                   text: `${matchStatistics.breakPointsConverted.player}/${matchStatistics.breakPointOpportunities.player} break points converted`,
                 });
               }
 
               if (matchStatistics.longestRally > 10) {
                 highlights.push({
-                  icon: '🔁',
+                  icon: GLYPHS.loop,
                   text: `Epic ${matchStatistics.longestRally}-shot rally`,
                 });
               }
@@ -208,28 +210,28 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
                   (km) => km.result.pointWinner === 'player',
                 ).length;
                 highlights.push({
-                  icon: won > keyMomentHistory.length / 2 ? '🏅' : '⚡',
+                  icon: won > keyMomentHistory.length / 2 ? GLYPHS.trophy : GLYPHS.exclaim,
                   text: `${won}/${keyMomentHistory.length} key moments won`,
                 });
               }
 
               if (matchStatistics.unforcedErrors.player < matchStatistics.unforcedErrors.opponent) {
                 highlights.push({
-                  icon: '🧊',
+                  icon: GLYPHS.anchor,
                   text: `Fewer unforced errors (${matchStatistics.unforcedErrors.player} vs ${matchStatistics.unforcedErrors.opponent})`,
                 });
               }
 
               if (matchStatistics.firstServePercentage.player >= 70) {
                 highlights.push({
-                  icon: '📈',
+                  icon: GLYPHS.bars,
                   text: `${Math.round(matchStatistics.firstServePercentage.player)}% first serve rate`,
                 });
               }
 
               if (matchStatistics.netPointsWon.player >= 3) {
                 highlights.push({
-                  icon: '🥅',
+                  icon: STAT_ICONS.net,
                   text: `${matchStatistics.netPointsWon.player} net points won`,
                 });
               }
@@ -244,13 +246,13 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
                   ? `Came back from ${deficit.games}, ${deficit.gameScore}`
                   : `Came back from ${deficit.games}`;
                 highlights.push({
-                  icon: '💪',
+                  icon: GLYPHS.wave,
                   text: comebackText,
                 });
               }
 
               if (highlights.length === 0) {
-                highlights.push({ icon: '🎾', text: 'Hard-fought match!' });
+                highlights.push({ icon: BALL_ICON, text: 'Hard-fought match!' });
               }
 
               return highlights.map((h, idx) => (
@@ -258,7 +260,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
                   key={idx}
                   className="flex items-center gap-3 p-2 bg-yellow-500 bg-opacity-10 border border-yellow-500 border-opacity-30"
                 >
-                  <span className="text-xl">{h.icon}</span>
+                  <PixelIcon grid={h.icon} scale={2} className="text-yellow-300" />
                   <span className="text-sm text-pixel-text">{h.text}</span>
                 </div>
               ));
@@ -269,7 +271,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
         {/* Performance & Rewards Section */}
         {/* Overall Performance Grade */}
         <div className="bg-pixel-card border-4 border-pixel-accent p-6 text-center">
-          <h3 className="text-lg font-bold text-pixel-text mb-3">📊 Match Performance</h3>
+          <h3 className="text-lg font-bold text-pixel-text mb-3">Match Performance</h3>
           <div className="flex items-center justify-center gap-6">
             <div>
               <div
@@ -291,7 +293,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
         {/* Performance Breakdown */}
         <div className="bg-pixel-card border-2 border-pixel-border p-4">
           <h3 className="text-lg font-bold text-pixel-text mb-4 text-center">
-            🎯 Performance Breakdown
+            Performance Breakdown
           </h3>
           <div className="space-y-3">
             {PERFORMANCE_AREAS.map((area) => {
@@ -333,7 +335,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
 
         {/* Rewards Earned */}
         <div className="bg-pixel-card border-4 border-pixel-accent p-4">
-          <h3 className="text-lg font-bold text-pixel-text mb-4 text-center">🎁 Rewards Earned</h3>
+          <h3 className="text-lg font-bold text-pixel-text mb-4 text-center">Rewards Earned</h3>
 
           {/* Experience & Mood */}
           <div className="grid grid-cols-2 gap-4 mb-4">
@@ -412,7 +414,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
           {matchRewards.abilitiesGained && matchRewards.abilitiesGained.length > 0 && (
             <div className="mb-4">
               <h4 className="text-sm font-bold text-pixel-text mb-3 text-center">
-                ⭐ Abilities Unlocked
+                Abilities Unlocked
               </h4>
               <div className="space-y-2">
                 {matchRewards.abilitiesGained.map((ability, idx) => (
@@ -458,7 +460,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
             onClick={() => setShowDetailedStats(!showDetailedStats)}
             className="w-full p-4 flex items-center justify-between hover:bg-pixel-bg transition-colors"
           >
-            <h3 className="text-lg font-bold text-pixel-text">📊 Detailed Statistics</h3>
+            <h3 className="text-lg font-bold text-pixel-text">Detailed Statistics</h3>
             <span className="text-2xl text-pixel-text">{showDetailedStats ? '▼' : '▶'}</span>
           </button>
 
@@ -467,7 +469,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
               {/* Key Moments */}
               {keyMomentHistory && keyMomentHistory.length > 0 && (
                 <div className="border-t-2 border-pixel-border pt-4">
-                  <h4 className="text-md font-bold text-pixel-text mb-3">⚡ Key Moments</h4>
+                  <h4 className="text-md font-bold text-pixel-text mb-3">Key Moments</h4>
                   <div className="space-y-2">
                     {keyMomentHistory.map((km, idx) => (
                       <div
@@ -483,7 +485,15 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
                             {km.keyMoment.type.replace(/-/g, ' ').toUpperCase()}
                           </span>
                           <span className="text-xs text-pixel-text-muted">
-                            {km.result.pointWinner === 'player' ? '✅ Won' : '❌ Lost'}
+                            {km.result.pointWinner === 'player' ? (
+                              <span className="inline-flex items-center gap-1 text-green-400">
+                                <PixelIcon grid={GLYPHS.check} scale={1} /> Won
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-red-400">
+                                <PixelIcon grid={GLYPHS.cross} scale={1} /> Lost
+                              </span>
+                            )}
                           </span>
                         </div>
                         <div className="text-xs text-pixel-text-muted">
@@ -501,7 +511,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
 
               {/* Match Info */}
               <div className="border-t-2 border-pixel-border pt-4">
-                <h4 className="text-md font-bold text-pixel-text mb-3">🎾 Match Info</h4>
+                <h4 className="text-md font-bold text-pixel-text mb-3">Match Info</h4>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div className="flex justify-between">
                     <span className="text-pixel-text-muted">Surface:</span>
@@ -530,7 +540,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
 
               {/* Serving Statistics */}
               <div className="border-t-2 border-pixel-border pt-4">
-                <h4 className="text-md font-bold text-pixel-text mb-3">🎾 Serving</h4>
+                <h4 className="text-md font-bold text-pixel-text mb-3">Serving</h4>
                 <div className="space-y-3">
                   <div className="grid grid-cols-3 gap-2 text-sm">
                     <div className="text-pixel-text-muted">Stat</div>
@@ -590,7 +600,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
 
               {/* Points and Errors */}
               <div className="border-t-2 border-pixel-border pt-4">
-                <h4 className="text-md font-bold text-pixel-text mb-3">🎯 Points & Errors</h4>
+                <h4 className="text-md font-bold text-pixel-text mb-3">Points & Errors</h4>
                 <div className="space-y-3">
                   <div className="grid grid-cols-3 gap-2 text-sm">
                     <div className="text-pixel-text-muted">Stat</div>
@@ -642,7 +652,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
 
               {/* Break Points */}
               <div className="border-t-2 border-pixel-border pt-4">
-                <h4 className="text-md font-bold text-pixel-text mb-3">⚡ Break Points</h4>
+                <h4 className="text-md font-bold text-pixel-text mb-3">Break Points</h4>
                 <div className="space-y-3">
                   <div className="grid grid-cols-3 gap-2 text-sm">
                     <div className="text-pixel-text-muted">Stat</div>
@@ -698,7 +708,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
 
               {/* Rally Statistics */}
               <div className="border-t-2 border-pixel-border pt-4">
-                <h4 className="text-md font-bold text-pixel-text mb-3">📊 Rally Stats</h4>
+                <h4 className="text-md font-bold text-pixel-text mb-3">Rally Stats</h4>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div className="flex justify-between">
                     <span className="text-pixel-text-muted">Average Rally:</span>
@@ -730,7 +740,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
               {/* Shot Type Breakdown */}
               {Object.keys(matchStatistics.shotTypeStats).length > 0 && (
                 <div className="border-t-2 border-pixel-border pt-4">
-                  <h4 className="text-md font-bold text-pixel-text mb-3">🏸 Shot Breakdown</h4>
+                  <h4 className="text-md font-bold text-pixel-text mb-3">Shot Breakdown</h4>
                   <div className="space-y-2">
                     <div
                       className="grid gap-2 text-xs text-pixel-text-muted font-bold mb-1"
@@ -810,9 +820,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
 
                   return (
                     <div className="border-t-2 border-pixel-border pt-4">
-                      <h4 className="text-md font-bold text-pixel-text mb-3">
-                        📊 Stat Utilization
-                      </h4>
+                      <h4 className="text-md font-bold text-pixel-text mb-3">Stat Utilization</h4>
                       <p className="text-xs text-pixel-text-muted mb-3">
                         How often each stat was used as the primary stat for shots
                       </p>
@@ -872,7 +880,7 @@ export const MatchSummaryModal: React.FC<MatchSummaryModalProps> = ({
               {/* Key Moments Performance */}
               {keyMomentHistory && keyMomentHistory.length > 0 && (
                 <div className="border-t-2 border-pixel-border pt-4">
-                  <h4 className="text-md font-bold text-pixel-text mb-3">🔥 Key Moments</h4>
+                  <h4 className="text-md font-bold text-pixel-text mb-3">Key Moments</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-green-500 bg-opacity-10 border-2 border-green-500 p-3 text-center">
                       <div className="text-2xl font-bold text-green-500">

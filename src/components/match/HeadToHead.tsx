@@ -15,7 +15,9 @@ import type { PlayerStats, StatName } from '../../types';
 import { STAT_NAMES, getStat } from '../../game/StatDevelopment';
 import type { Appearance } from '../../types/appearance';
 import { PixelSprite } from '../sprites/PixelSprite';
-import { STAT_ICONS, formatStatName } from '../../config/statIcons';
+import { formatStatName } from '../../config/statIcons';
+import { STAT_ICONS } from '../../data/pixelIcons';
+import { PixelIcon } from '../ui/PixelIcon';
 import { GAME_AREAS, GAME_AREA_LABELS, gameAreaRatings } from '../../core/gameAreas';
 
 /** A gap smaller than this reads as even: the bars stay neutral. */
@@ -192,14 +194,19 @@ export const HeadToHead: React.FC<HeadToHeadProps> = ({
           {edges.ours.map(({ stat, gap }) => (
             <span
               key={stat}
-              className="px-2 py-1 border-2 border-green-700 text-green-400 font-bold"
+              className="inline-flex items-center gap-1.5 px-2 py-1 border-2 border-green-700 text-green-400 font-bold"
             >
-              {STAT_ICONS[stat]} {formatStatName(stat)} +{gap}
+              <PixelIcon grid={STAT_ICONS[stat]} scale={1} />
+              {formatStatName(stat)} +{gap}
             </span>
           ))}
           {edges.theirs.map(({ stat, gap }) => (
-            <span key={stat} className="px-2 py-1 border-2 border-red-800 text-red-400 font-bold">
-              {STAT_ICONS[stat]} {formatStatName(stat)} {gap}
+            <span
+              key={stat}
+              className="inline-flex items-center gap-1.5 px-2 py-1 border-2 border-red-800 text-red-400 font-bold"
+            >
+              <PixelIcon grid={STAT_ICONS[stat]} scale={1} />
+              {formatStatName(stat)} {gap}
             </span>
           ))}
         </div>

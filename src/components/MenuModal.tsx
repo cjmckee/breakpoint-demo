@@ -15,6 +15,8 @@ import { UnseenBadge } from './ui/UnseenBadge';
 import { Encyclopedia } from './Encyclopedia';
 import { TutorialGuideModal } from './tutorial/TutorialGuideModal';
 import { MATCH_SPEED_META, type MatchSpeed } from '../config/matchRewards';
+import { PixelIcon } from './ui/PixelIcon';
+import { GLYPHS } from '../data/pixelIcons';
 
 /** Speeds in the order the settings picker shows them, slowest first. */
 const MATCH_SPEEDS: readonly MatchSpeed[] = ['slow', 'normal', 'fast', 'instant'];
@@ -467,18 +469,18 @@ export const MenuModal: React.FC = () => {
   };
 
   const tabs = [
-    { id: 'settings', label: 'Settings', icon: '⚙️' },
+    { id: 'settings', label: 'Settings', icon: GLYPHS.gear },
     ...(encyclopediaSections.some((s) => s.isRevealed)
       ? [
           {
             id: 'encyclopedia',
             label: 'Encyclopedia',
-            icon: '📚',
+            icon: GLYPHS.book,
             hasNew: hasAnyNewSection,
           } as const,
         ]
       : []),
-    { id: 'feedback', label: 'Feedback', icon: '💬' },
+    { id: 'feedback', label: 'Feedback', icon: GLYPHS.speech },
   ];
 
   const modalContent = (
@@ -503,7 +505,7 @@ export const MenuModal: React.FC = () => {
                   : 'bg-pixel-bg-dark text-pixel-text-muted hover:text-pixel-text'
               }`}
             >
-              <span>{tab.icon}</span>
+              <PixelIcon grid={tab.icon} scale={1} />
               <span>{tab.label}</span>
               {tab.hasNew && <UnseenBadge size="sm" className="absolute -top-1 -right-1" />}
             </button>

@@ -16,6 +16,7 @@ import { calculateOverallRating } from '../utils/playerStats';
 
 import { MATCH_SPEED_DELAYS } from '../config/matchRewards';
 import { getVenue } from '../data/venues';
+import { PixelIcon } from './ui/PixelIcon';
 interface TournamentMatchProps {
   matchConfig: PreMatchConfig | null;
 }
@@ -94,7 +95,7 @@ export const TournamentMatch: React.FC<TournamentMatchProps> = ({ matchConfig })
         <div className="text-right">
           <div className="text-sm text-pixel-text-muted mb-1">Bracket</div>
           <div className={`text-2xl font-bold ${getBracketColor(activeTournament.currentBracket)}`}>
-            {activeTournament.currentBracket === 'winner' ? '🎾 Main Draw' : '🎗️ Consolation'}
+            {activeTournament.currentBracket === 'winner' ? 'Main Draw' : 'Consolation'}
           </div>
         </div>
       </div>

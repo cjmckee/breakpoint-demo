@@ -391,12 +391,9 @@ export const ReadReturnMinigame: React.FC<MinigameProps> = ({
               top: u(ball.y),
               width: uMin(6.2, 24),
               height: uMin(6.2, 24),
-              fontSize: uMin(2.7, 11),
               transform: 'translate(-50%, -50%)',
             }}
-          >
-            🎾
-          </div>
+          ></div>
         )}
 
         <Sparks burst={burst} />
