@@ -13,7 +13,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import { PixelCheckbox } from './ui/PixelCheckbox';
 import { PixelIcon } from './ui/PixelIcon';
-import { GLYPHS, STAT_ICONS, type PixelGrid } from '../data/pixelIcons';
+import { DRILL_ICONS, GLYPHS, STAT_ICONS, type PixelGrid } from '../data/pixelIcons';
 import { KeyMoment } from '../types/keyMoments';
 import { TacticalOption, SecondaryEffect, keyMomentStakes } from '../data/tacticalOptions';
 import type { KeyMomentStakes } from '../data/tacticalOptions';
@@ -436,9 +436,16 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
   const peekButton = (
     <button
       onClick={() => setIsHidden((h) => !h)}
-      className="w-full py-3 border-4 border-pixel-border bg-pixel-card text-pixel-text font-bold text-base hover:border-pixel-accent transition-colors"
+      className="w-full flex items-center justify-center gap-2 py-3 border-4 border-pixel-border bg-pixel-card text-pixel-text font-bold text-base hover:border-pixel-accent transition-colors"
     >
-      {isHidden ? '⚡ Show Decision' : '👁 Peek at Match'}
+      {isHidden ? (
+        'Show Decision'
+      ) : (
+        <>
+          <PixelIcon grid={DRILL_ICONS.read_return} scale={1} />
+          Peek at Match
+        </>
+      )}
     </button>
   );
 
@@ -449,22 +456,23 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
           onClick={() => setIsHidden(false)}
           className="max-w-2xl w-full py-4 border-4 border-pixel-accent bg-pixel-card text-pixel-accent font-bold text-base hover:bg-pixel-accent hover:bg-opacity-20 transition-colors animate-pulse"
         >
-          ⚡ Show Decision
+          Show Decision
         </button>
       </div>
     );
   }
 
-  const getEffectIcon = (effect: SecondaryEffect): string => {
+  // The same icons as the conditions strip: one per factor, coloured by which way it cuts.
+  const getEffectIcon = (effect: SecondaryEffect): PixelGrid => {
     switch (effect.type) {
       case 'momentum':
-        return effect.value > 0 ? '📈' : '📉';
+        return GLYPHS.wave;
       case 'energy':
-        return effect.value > 0 ? '⚡' : '🔋';
+        return GLYPHS.energy;
       case 'pressure':
-        return effect.value < 0 ? '😌' : '😰';
+        return STAT_ICONS.focus;
       case 'mood':
-        return effect.value > 0 ? '😊' : '😤';
+        return effect.value > 0 ? GLYPHS.smile : GLYPHS.frown;
     }
   };
 
@@ -847,11 +855,12 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
             return (
               <span
                 key={i}
-                className={`text-xs px-1.5 py-0.5 border border-pixel-border bg-pixel-bg ${
+                className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 border border-pixel-border bg-pixel-bg ${
                   isBeneficial(effect) ? 'text-green-400' : 'text-red-400'
                 }`}
               >
-                {getEffectIcon(effect)} {getEffectLabel(effect)}
+                <PixelIcon grid={getEffectIcon(effect)} scale={1} />
+                {getEffectLabel(effect)}
                 {condLabel && <span className="text-pixel-text-muted ml-1">({condLabel})</span>}
               </span>
             );

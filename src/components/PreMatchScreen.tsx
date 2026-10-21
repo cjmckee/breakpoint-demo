@@ -21,6 +21,7 @@ import { formatAbilityName } from './AbilityDisplay';
 import { venueCrowd, venueEffects, venueFatigue, venueWind } from '../core/venue';
 import { calculateOverallRating, STAT_LABELS } from '../utils/playerStats';
 import { PixelIcon } from './ui/PixelIcon';
+import { BALL_ICON, GLYPHS, ICON_PALETTE, ITEM_ICONS, STAT_ICONS } from '../data/pixelIcons';
 import { SurfaceIcon } from './ui/SurfaceIcon';
 import { ArchetypeLabel } from './ui/ArchetypeLabel';
 
@@ -221,26 +222,29 @@ function VenueConditionChips({
         </span>
       ))}
       {wind > 0 && (
-        <span className={neutral} data-testid="venue-wind">
-          💨 Wind {wind}
+        <span className={`inline-flex items-center gap-1.5 ${neutral}`} data-testid="venue-wind">
+          <PixelIcon grid={GLYPHS.wind} scale={1} />
+          Wind {wind}
         </span>
       )}
       {fatigue !== 1 && (
-        <span className={neutral} data-testid="venue-fatigue">
-          🥵 Tiring ×{fatigue}
+        <span className={`inline-flex items-center gap-1.5 ${neutral}`} data-testid="venue-fatigue">
+          <PixelIcon grid={GLYPHS.heat} scale={1} />
+          Tiring ×{fatigue}
         </span>
       )}
       {crowd && (
         <span
           data-testid="venue-crowd"
           data-backs={crowd.side}
-          className={`px-2 py-1 font-medium ${
+          className={`inline-flex items-center gap-1.5 px-2 py-1 font-medium ${
             crowd.side === 'player'
               ? 'bg-green-900/50 text-green-400'
               : 'bg-red-900/50 text-red-400'
           }`}
         >
-          📣 Crowd: {crowd.side === 'player' ? 'You' : opponentName}
+          <PixelIcon grid={GLYPHS.megaphone} scale={1} />
+          Crowd: {crowd.side === 'player' ? 'You' : opponentName}
         </span>
       )}
     </>
@@ -292,8 +296,9 @@ function ActiveBuffsDisplay({ buffs }: { buffs: Modifiers }) {
 
   return (
     <div className="p-3 bg-yellow-950/30 border-2 border-yellow-500">
-      <div className="text-xs text-yellow-400 uppercase tracking-wide font-bold mb-2">
-        ⚡ Active Consumable Buff
+      <div className="flex items-center gap-1.5 text-xs text-yellow-400 uppercase tracking-wide font-bold mb-2">
+        <PixelIcon grid={ITEM_ICONS.consumable} palette={ICON_PALETTE} scale={1} />
+        Active Consumable Buff
       </div>
       <div className="space-y-1">
         {statBoostEntries.map(([stat, value]) => (
@@ -368,11 +373,19 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
         >
           {!canAfford ? (
             <>
-              <span className="sm:hidden">Need ⚡{energyCost}</span>
+              <span className="sm:hidden inline-flex items-center gap-1">
+                Need <PixelIcon grid={GLYPHS.energy} scale={1} />
+                {energyCost}
+              </span>
               <span className="hidden sm:inline">Not Enough Energy ({energyCost})</span>
             </>
           ) : (
-            <>🎾 Start Match</>
+            <>
+              <span className="inline-flex items-center gap-2 align-middle">
+                <PixelIcon grid={BALL_ICON} color={ICON_PALETTE.y} scale={1} />
+                Start Match
+              </span>
+            </>
           )}
         </Button>
       }
@@ -438,11 +451,12 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
         </span>
         {venue && (
           <span
-            className="px-2 py-1 bg-pixel-card border-2 border-pixel-border text-pixel-text font-bold"
+            className="inline-flex items-center gap-1.5 px-2 py-1 bg-pixel-card border-2 border-pixel-border text-pixel-text font-bold"
             data-testid="prematch-venue"
             data-venue-id={venue.id}
           >
-            📍 {venue.name}
+            <PixelIcon grid={STAT_ICONS.placement} scale={1} />
+            {venue.name}
           </span>
         )}
         <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-pixel-card border-2 border-pixel-border text-pixel-text font-bold capitalize">
@@ -482,12 +496,18 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
         >
           {!canAfford ? (
             <>
-              <span className="sm:hidden">Need ⚡{energyCost}</span>
+              <span className="sm:hidden inline-flex items-center gap-1">
+                Need <PixelIcon grid={GLYPHS.energy} scale={1} />
+                {energyCost}
+              </span>
               <span className="hidden sm:inline">Not Enough Energy (Need {energyCost})</span>
             </>
           ) : (
             <>
-              🎾 Start Match
+              <span className="inline-flex items-center gap-2 align-middle">
+                <PixelIcon grid={BALL_ICON} color={ICON_PALETTE.y} scale={1} />
+                Start Match
+              </span>
               {/* The opponent is named in the subtitle; phones have no room to repeat it. */}
               <span className="hidden sm:inline"> vs {opponentName}</span>
             </>
