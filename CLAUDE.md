@@ -1243,7 +1243,7 @@ padding for it, so don't dock your own controls in the bottom-right corner.
 ### Test IDs
 
 E2E specs address the UI through `data-testid`, not through visible text. Text
-changes whenever the copy does, several buttons carry only an emoji, and some
+changes whenever the copy does, several buttons carry only an icon, and some
 labels are authored data (a story option's `text`) rather than anything a spec
 can predict. A test id is a contract: renaming one should be a deliberate act.
 
