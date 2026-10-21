@@ -38,6 +38,7 @@ import {
   ICON_PALETTE,
   MENU_ICONS,
   SECTION_ICONS,
+  TIME_SLOT_ICONS,
   type PixelGrid,
 } from '../data/pixelIcons';
 
@@ -251,7 +252,11 @@ function iconProblems(set: Record<string, PixelGrid>, symbols: string): string[]
     return out;
   });
 }
-const oneColour = [...iconProblems(SECTION_ICONS, '.#'), ...iconProblems(DRILL_ICONS, '.#')];
+const oneColour = [
+  ...iconProblems(SECTION_ICONS, '.#'),
+  ...iconProblems(DRILL_ICONS, '.#'),
+  ...iconProblems(TIME_SLOT_ICONS, '.#'),
+];
 check(
   'one-colour icons are square and drawn in # only',
   oneColour.length === 0,

@@ -17,13 +17,17 @@ import { CURRENCIES, CURRENCY_LABELS } from '../config/economy';
 import { hasNewCurrency, unspentSpecPoints } from '../game/StatDevelopment';
 import { CURRENCY_STYLE } from './currency/CurrencyAmounts';
 import { TimeManager } from '../game/TimeManager';
+import { TimeSlot, TIME_SLOT_NAMES } from '../types/game';
+import { TIME_SLOT_COLOURS, TIME_SLOT_ICONS } from '../data/pixelIcons';
+import { PixelIcon } from './ui/PixelIcon';
 
-const TIME_SLOTS = [
-  { name: 'Morning', emoji: '🌅' },
-  { name: 'Afternoon', emoji: '☀️' },
-  { name: 'Evening', emoji: '🌇' },
-  { name: 'Night', emoji: '🌙' },
-];
+const TIME_SLOTS = [TimeSlot.MORNING, TimeSlot.AFTERNOON, TimeSlot.EVENING, TimeSlot.NIGHT].map(
+  (slot) => ({
+    name: TIME_SLOT_NAMES[slot],
+    grid: TIME_SLOT_ICONS[slot],
+    color: TIME_SLOT_COLOURS[slot],
+  }),
+);
 
 const getMoodDisplay = (mood: number): { label: string; emoji: string; color: string } => {
   if (mood >= 75) return { label: 'Excellent', emoji: '😄', color: 'text-green-500' };
@@ -109,7 +113,12 @@ export const StatusBar: React.FC<StatusBarProps> = ({ energyPreview = 0 }) => {
                     : 'border-pixel-border opacity-70'
               }`}
             >
-              {slot.emoji}
+              <PixelIcon
+                grid={slot.grid}
+                color={slot.color}
+                scale={2}
+                className="w-3 h-3 sm:w-6 sm:h-6"
+              />
             </span>
           ))}
           <span className="hidden sm:inline text-sm font-bold text-pixel-text ml-1 whitespace-nowrap">

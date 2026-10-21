@@ -120,6 +120,548 @@ body {
   }
 }
 
+/* While a day or slot transition plays, modals wait hidden behind it (holdModals), then
+   fade in once it has gone. Only this attribute changing animates; a modal opening at
+   any other time appears at once, as before. */
+[role='dialog'] {
+  transition: opacity 0.25s ease-out;
+}
+
+body[data-transition] [role='dialog'] {
+  opacity: 0;
+  pointer-events: none;
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [role='dialog'] {
+    transition: none;
+  }
+}
+
+/* Day transition (DayTransition.tsx). Every animation runs over the card's 2.4s:
+   fade in, the day number rolls over at about 40%, fade out over the last 15%. */
+.day-tx {
+  animation: day-tx-fade 2.4s ease-in-out forwards;
+}
+
+.day-tx-card {
+  animation: day-tx-rise 2.4s ease-out forwards;
+}
+
+@keyframes day-tx-fade {
+  0% {
+    opacity: 0;
+  }
+  12%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes day-tx-rise {
+  0% {
+    transform: translateY(12px);
+  }
+  15%,
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.day-tx-old {
+  animation: day-tx-roll-out 2.4s steps(4, end) forwards;
+}
+
+.day-tx-new {
+  animation: day-tx-roll-in 2.4s steps(4, end) forwards;
+}
+
+@keyframes day-tx-roll-out {
+  0%,
+  35% {
+    transform: translateY(0);
+  }
+  50%,
+  100% {
+    transform: translateY(-100%);
+  }
+}
+
+@keyframes day-tx-roll-in {
+  0%,
+  35% {
+    transform: translateY(100%);
+  }
+  50%,
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* Night to morning. The rally and the jog start at first light. */
+.day-tx-sky {
+  animation: day-tx-dawn 2.4s linear forwards;
+}
+
+.day-tx-sky-early {
+  animation-delay: -0.9s;
+}
+
+@keyframes day-tx-dawn {
+  0% {
+    fill: #141a3a;
+  }
+  45% {
+    fill: #6b4a7a;
+  }
+  65% {
+    fill: #e08a5a;
+  }
+  100% {
+    fill: #7fb8e0;
+  }
+}
+
+.day-tx-moon {
+  animation: day-tx-set 2.4s ease-in forwards;
+}
+
+.day-tx-moon-shadow {
+  animation: day-tx-dawn 2.4s linear forwards;
+}
+
+.day-tx-sun {
+  animation: day-tx-up 2.4s ease-out forwards;
+}
+
+@keyframes day-tx-set {
+  0% {
+    transform: translateY(0);
+  }
+  60%,
+  100% {
+    transform: translateY(32px);
+  }
+}
+
+@keyframes day-tx-up {
+  0%,
+  30% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-30px);
+  }
+}
+
+/* SVG user units: the ball crosses the 96-wide court and bounces three times. */
+.day-tx-ball-x {
+  animation: day-tx-ball-across 2.4s linear forwards;
+}
+
+.day-tx-ball-y {
+  animation: day-tx-ball-bounce 0.8s ease-in infinite alternate;
+}
+
+/* Right to left, the other way from the ball machine's lobs. */
+@keyframes day-tx-ball-across {
+  from {
+    transform: translateX(98px);
+  }
+  to {
+    transform: translateX(-4px);
+  }
+}
+
+@keyframes day-tx-ball-bounce {
+  from {
+    transform: translateY(12px);
+  }
+  to {
+    transform: translateY(34px);
+  }
+}
+
+.day-tx-jogger {
+  animation: day-tx-jog 2.4s linear forwards;
+}
+
+@keyframes day-tx-jog {
+  from {
+    left: -20%;
+  }
+  to {
+    left: 105%;
+  }
+}
+
+/* Ball machine: each ball flies the court in 0.9s, rising to its peak over the net. */
+.day-tx-shot-x {
+  opacity: 0;
+  animation: day-tx-shot-across 0.9s linear both;
+}
+
+.day-tx-shot-y {
+  animation: day-tx-shot-arc 0.9s both;
+}
+
+@keyframes day-tx-shot-across {
+  0% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(62px);
+  }
+}
+
+@keyframes day-tx-shot-arc {
+  0% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+  45% {
+    transform: translateY(-20px);
+    animation-timing-function: ease-in;
+  }
+  100% {
+    transform: translateY(4px);
+  }
+}
+
+/* Sweep: the brush crosses the court top to bottom, the smoothed clay following it. */
+.day-tx-swept {
+  transform-origin: 0 0;
+  animation: day-tx-sweep-clay 2.4s ease-in-out forwards;
+}
+
+.day-tx-brush {
+  animation: day-tx-sweep-brush 2.4s ease-in-out forwards;
+}
+
+@keyframes day-tx-sweep-clay {
+  0%,
+  10% {
+    transform: scaleY(0);
+  }
+  85%,
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes day-tx-sweep-brush {
+  0%,
+  10% {
+    transform: translateY(0);
+  }
+  85%,
+  100% {
+    transform: translateY(48px);
+  }
+}
+
+/* Coach: walks on from the right and stops just past the net (CoachArrives' COACH_STOPS). */
+.day-tx-coach {
+  left: 105%;
+  animation: day-tx-coach-in 2.4s forwards;
+}
+
+@keyframes day-tx-coach-in {
+  0% {
+    left: 105%;
+    animation-timing-function: ease-out;
+  }
+  55%,
+  100% {
+    left: 56%;
+  }
+}
+
+/* Reduced motion: a still card. The sky shows morning, the new day is already in. */
+@media (prefers-reduced-motion: reduce) {
+  .day-tx,
+  .day-tx-card,
+  .day-tx-sky,
+  .day-tx-moon,
+  .day-tx-moon-shadow,
+  .day-tx-sun,
+  .day-tx-ball-x,
+  .day-tx-ball-y,
+  .day-tx-jogger,
+  .day-tx-shot-x,
+  .day-tx-shot-y,
+  .day-tx-swept,
+  .day-tx-brush,
+  .day-tx-coach {
+    animation: none;
+  }
+
+  .day-tx-shot-x {
+    opacity: 1;
+  }
+
+  .day-tx-brush {
+    opacity: 0;
+  }
+
+  .day-tx-coach {
+    left: 56%;
+  }
+
+  .day-tx-sky,
+  .day-tx-moon-shadow {
+    fill: #7fb8e0;
+  }
+
+  .day-tx-old {
+    animation: none;
+    transform: translateY(-100%);
+  }
+
+  .day-tx-new {
+    animation: none;
+  }
+
+  .day-tx-jogger {
+    left: 40%;
+  }
+}
+
+/* Slot transition (SlotTransition.tsx), 1s. Each icon rides an arm that turns about a
+   point 60px below it, like a dial; the icon turns back the other way to stay upright. */
+.slot-tx {
+  animation: slot-tx-fade 1s linear forwards;
+}
+
+@keyframes slot-tx-fade {
+  0% {
+    opacity: 0;
+  }
+  10%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.slot-tx-arm {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 48px;
+  height: 48px;
+  margin-left: -24px;
+  transform-origin: 24px 84px;
+}
+
+.slot-tx-icon {
+  display: block;
+}
+
+.slot-tx-arm-old {
+  animation: slot-tx-swing-off 1s forwards;
+}
+
+.slot-tx-icon-old {
+  animation: slot-tx-upright-off 1s forwards;
+}
+
+.slot-tx-arm-new {
+  opacity: 0;
+  transform: rotate(70deg);
+  animation: slot-tx-swing-on 1s forwards;
+}
+
+.slot-tx-icon-new {
+  transform: rotate(-70deg);
+  animation: slot-tx-upright-on 1s forwards;
+}
+
+@keyframes slot-tx-swing-off {
+  0%,
+  10% {
+    transform: rotate(0deg);
+    opacity: 1;
+    animation-timing-function: ease-in;
+  }
+  50%,
+  100% {
+    transform: rotate(-70deg);
+    opacity: 0;
+  }
+}
+
+@keyframes slot-tx-upright-off {
+  0%,
+  10% {
+    transform: rotate(0deg);
+    animation-timing-function: ease-in;
+  }
+  50%,
+  100% {
+    transform: rotate(70deg);
+  }
+}
+
+@keyframes slot-tx-swing-on {
+  0%,
+  20% {
+    transform: rotate(70deg);
+    opacity: 0;
+    animation-timing-function: ease-out;
+  }
+  40% {
+    opacity: 1;
+  }
+  60%,
+  100% {
+    transform: rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes slot-tx-upright-on {
+  0%,
+  20% {
+    transform: rotate(-70deg);
+    animation-timing-function: ease-out;
+  }
+  60%,
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+/* Afternoon: the full sun pops as it lands. */
+.slot-tx-icon-new.slot-tx-pop {
+  animation-name: slot-tx-upright-on-pop;
+}
+
+@keyframes slot-tx-upright-on-pop {
+  0%,
+  20% {
+    transform: rotate(-70deg);
+    animation-timing-function: ease-out;
+  }
+  60% {
+    transform: rotate(0deg) scale(1);
+  }
+  66% {
+    transform: rotate(0deg) scale(1.35);
+  }
+  74%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+/* Evening: the setting sun sinks a little as it settles. */
+.slot-tx-icon-new.slot-tx-settle {
+  animation-name: slot-tx-upright-on-settle;
+}
+
+@keyframes slot-tx-upright-on-settle {
+  0%,
+  20% {
+    transform: rotate(-70deg);
+    animation-timing-function: ease-out;
+  }
+  60% {
+    transform: rotate(0deg) translateY(0);
+  }
+  72%,
+  100% {
+    transform: rotate(0deg) translateY(4px);
+  }
+}
+
+/* Night: stars blink on around the moon once it is up. */
+.slot-tx-star {
+  opacity: 0;
+  animation: slot-tx-blink 1s step-end forwards;
+}
+
+@keyframes slot-tx-blink {
+  0%,
+  55% {
+    opacity: 0;
+  }
+  56%,
+  100% {
+    opacity: 1;
+  }
+}
+
+.slot-tx-name-old {
+  animation: slot-tx-roll-out 1s steps(4, end) forwards;
+}
+
+.slot-tx-name-new {
+  transform: translateY(100%);
+  animation: slot-tx-roll-in 1s steps(4, end) forwards;
+}
+
+@keyframes slot-tx-roll-out {
+  0%,
+  30% {
+    transform: translateY(0);
+  }
+  45%,
+  100% {
+    transform: translateY(-100%);
+  }
+}
+
+@keyframes slot-tx-roll-in {
+  0%,
+  30% {
+    transform: translateY(100%);
+  }
+  45%,
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* Reduced motion: the end frame, still. */
+@media (prefers-reduced-motion: reduce) {
+  .slot-tx,
+  .slot-tx-arm,
+  .slot-tx-icon,
+  .slot-tx-star,
+  .slot-tx-name-old,
+  .slot-tx-name-new {
+    animation: none;
+  }
+
+  .slot-tx-arm-old,
+  .slot-tx-name-old {
+    opacity: 0;
+  }
+
+  .slot-tx-arm-new,
+  .slot-tx-star {
+    opacity: 1;
+  }
+
+  .slot-tx-arm-new,
+  .slot-tx-icon-new,
+  .slot-tx-name-new {
+    transform: none;
+  }
+}
+
 /* Night mode overlay - darkens everything except exempt elements */
 .night-mode {
   position: relative;
