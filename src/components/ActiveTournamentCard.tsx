@@ -8,27 +8,13 @@ import React from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { TournamentRegistry } from '../data/tournaments';
 import { TournamentManager } from '../game/TournamentManager';
+import { SurfaceIcon } from './ui/SurfaceIcon';
 
 export const ActiveTournamentCard: React.FC = () => {
   const calendar = useGameStore((state) => state.calendar);
   const activeTournament = calendar.activeTournament;
   const scheduledEvents = calendar.scheduledEvents;
   const navigateToScheduledMatch = useGameStore((state) => state.navigateToScheduledMatch);
-
-  const getSurfaceEmoji = (surface: string): string => {
-    switch (surface) {
-      case 'hard':
-        return '🏟️';
-      case 'clay':
-        return '🧱';
-      case 'grass':
-        return '🌱';
-      case 'carpet':
-        return '📋';
-      default:
-        return '🎾';
-    }
-  };
 
   const getTimeSlotLabel = (slot: number): string => {
     switch (slot) {
@@ -77,9 +63,7 @@ export const ActiveTournamentCard: React.FC = () => {
 
     return (
       <div className="w-full flex items-center gap-3 border-4 border-yellow-400 bg-yellow-500 bg-opacity-10 px-4 py-3">
-        <span className="text-2xl shrink-0">
-          {getSurfaceEmoji(scheduledTournament.venue.surface)}
-        </span>
+        <SurfaceIcon surface={scheduledTournament.venue.surface} scale={2} />
         <div className="flex-1 min-w-0">
           <div className="font-bold text-pixel-text truncate">
             {scheduledTournament.name}
@@ -146,7 +130,7 @@ export const ActiveTournamentCard: React.FC = () => {
 
   const row = (
     <>
-      <span className="text-2xl shrink-0">{getSurfaceEmoji(tournament.venue.surface)}</span>
+      <SurfaceIcon surface={tournament.venue.surface} scale={2} />
       <div className="flex-1 min-w-0">
         <div className="font-bold text-pixel-text truncate">
           {tournament.name}

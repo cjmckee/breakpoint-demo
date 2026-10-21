@@ -10,6 +10,7 @@ import { TournamentConfig } from '../types/tournaments';
 import { Card } from './ui/Card';
 import { ScreenFrame } from './ui/ScreenFrame';
 import { Button } from './ui/Button';
+import { SurfaceIcon } from './ui/SurfaceIcon';
 
 export const TournamentList: React.FC = () => {
   const player = useGameStore((state) => state.player);
@@ -53,21 +54,6 @@ export const TournamentList: React.FC = () => {
         return 'text-purple-400 border-purple-400';
       default:
         return 'text-pixel-text border-pixel-border';
-    }
-  };
-
-  const getSurfaceEmoji = (surface: string): string => {
-    switch (surface) {
-      case 'hard':
-        return '🏟️';
-      case 'clay':
-        return '🟤';
-      case 'grass':
-        return '🌱';
-      case 'carpet':
-        return '🟣';
-      default:
-        return '🎾';
     }
   };
 
@@ -185,11 +171,11 @@ export const TournamentList: React.FC = () => {
                       )}
                     </div>
                     <span
-                      className={`inline-block px-2 py-1 text-sm font-bold border-2 ${getSurfaceColor(
+                      className={`inline-flex items-center gap-1.5 px-2 py-1 text-sm font-bold border-2 ${getSurfaceColor(
                         tournament.venue.surface,
                       )}`}
                     >
-                      {getSurfaceEmoji(tournament.venue.surface)}{' '}
+                      <SurfaceIcon surface={tournament.venue.surface} />
                       {tournament.venue.surface.toUpperCase()}
                     </span>
                     {completion && (

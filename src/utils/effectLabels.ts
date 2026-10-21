@@ -9,6 +9,13 @@
 
 import { EffectKey } from '../types/game';
 import type { EffectKeyValue } from '../types/game';
+import {
+  DRILL_ICONS,
+  GLYPHS,
+  STAT_ICONS,
+  UNKNOWN_STAT_ICON,
+  type PixelGrid,
+} from '../data/pixelIcons';
 
 /**
  * How an effect's numeric value should be turned into display text.
@@ -22,12 +29,13 @@ type EffectValueKind = 'flat' | 'reduction' | 'percent' | 'fraction' | 'tier';
 
 interface EffectMeta {
   label: string;
-  icon: string;
+  icon: PixelGrid;
   kind: EffectValueKind;
 }
 
 /**
- * Every effect key, with the text and icon the UI shows for it.
+ * Every effect key, with the text and icon the UI shows for it. An effect about a
+ * stat (Side Spin, Net Game) shares that stat's icon, so the two read as one idea.
  *
  * Keyed on `EffectKeyValue` rather than `string`, so adding an EffectKey without
  * display text is a compile error. This is the *only* such registry — a second
@@ -35,85 +43,125 @@ interface EffectMeta {
  */
 const EFFECT_META: Record<EffectKeyValue, EffectMeta> = {
   // --- Training ---
-  [EffectKey.MINIGAME_WINDOW_BONUS]: { label: 'Training Timing', icon: '🎯', kind: 'fraction' },
+  [EffectKey.MINIGAME_WINDOW_BONUS]: {
+    label: 'Training Timing',
+    icon: GLYPHS.timer,
+    kind: 'fraction',
+  },
   // The chance a training session pays double.
   [EffectKey.TRAINING_STAT_UPGRADE_CHANCE]: {
     label: 'Double Training Chance',
-    icon: '💪',
+    icon: GLYPHS.double,
     kind: 'fraction',
   },
   [EffectKey.TRAINING_BONUS_SUPPORT_CHANCE]: {
     label: 'Bonus Rep Chance',
-    icon: '🍀',
+    icon: GLYPHS.clover,
     kind: 'fraction',
   },
 
   // --- Events ---
-  [EffectKey.EVENT_TRIGGER_BONUS]: { label: 'Event Chance', icon: '❗', kind: 'percent' },
+  [EffectKey.EVENT_TRIGGER_BONUS]: { label: 'Event Chance', icon: GLYPHS.exclaim, kind: 'percent' },
 
   // --- Mood / energy / XP ---
-  [EffectKey.MOOD_GAIN_BONUS]: { label: 'Mood Gain', icon: '😊', kind: 'flat' },
-  [EffectKey.ENERGY_GAIN_BONUS]: { label: 'Energy Gain', icon: '⚡', kind: 'flat' },
-  [EffectKey.ENERGY_COST_REDUCTION]: { label: 'Energy Cost', icon: '🔋', kind: 'reduction' },
-  [EffectKey.EXPERIENCE_GAIN_BONUS]: { label: 'Match XP', icon: '📈', kind: 'fraction' },
-  [EffectKey.WIN_EXP_BONUS]: { label: 'Win XP', icon: '🏆', kind: 'flat' },
-  [EffectKey.LOSS_EXP_BONUS]: { label: 'Loss XP', icon: '📚', kind: 'flat' },
+  [EffectKey.MOOD_GAIN_BONUS]: { label: 'Mood Gain', icon: GLYPHS.smile, kind: 'flat' },
+  [EffectKey.ENERGY_GAIN_BONUS]: { label: 'Energy Gain', icon: GLYPHS.energy_up, kind: 'flat' },
+  [EffectKey.ENERGY_COST_REDUCTION]: {
+    label: 'Energy Cost',
+    icon: GLYPHS.energy_down,
+    kind: 'reduction',
+  },
+  [EffectKey.EXPERIENCE_GAIN_BONUS]: { label: 'Match XP', icon: GLYPHS.xp, kind: 'fraction' },
+  [EffectKey.WIN_EXP_BONUS]: { label: 'Win XP', icon: GLYPHS.trophy, kind: 'flat' },
+  [EffectKey.LOSS_EXP_BONUS]: { label: 'Loss XP', icon: GLYPHS.book, kind: 'flat' },
 
   // --- Drops ---
-  [EffectKey.ABILITY_DROP_BONUS]: { label: 'Ability Find Rate', icon: '✨', kind: 'fraction' },
+  [EffectKey.ABILITY_DROP_BONUS]: {
+    label: 'Ability Find Rate',
+    icon: GLYPHS.sparkle,
+    kind: 'fraction',
+  },
 
   // --- Relationships ---
-  [EffectKey.RELATIONSHIP_GAIN_BONUS]: { label: 'Relationship Gain', icon: '🤝', kind: 'flat' },
+  [EffectKey.RELATIONSHIP_GAIN_BONUS]: {
+    label: 'Relationship Gain',
+    icon: GLYPHS.heart,
+    kind: 'flat',
+  },
 
   // --- Match: shot quality ---
-  [EffectKey.PACE]: { label: 'Shot Pace', icon: '💥', kind: 'flat' },
-  [EffectKey.SIDE_SPIN]: { label: 'Side Spin', icon: '🌀', kind: 'flat' },
-  [EffectKey.TOUCH]: { label: 'Touch & Finesse', icon: '🪶', kind: 'flat' },
-  [EffectKey.SMASH_POWER]: { label: 'Smash Power', icon: '🔨', kind: 'flat' },
-  [EffectKey.NET_GAME]: { label: 'Net Game', icon: '🥅', kind: 'flat' },
-  [EffectKey.PERFECT_TIMING]: { label: 'Timing Precision', icon: '⏱️', kind: 'flat' },
-  [EffectKey.RALLY_MOMENTUM]: { label: 'Rally Momentum', icon: '🔁', kind: 'flat' },
-  [EffectKey.LOB_QUALITY]: { label: 'Lob Quality', icon: '🌈', kind: 'flat' },
-  [EffectKey.FIRST_POINT_STAT_BOOST]: { label: 'First Point Boost', icon: '🚀', kind: 'flat' },
+  [EffectKey.PACE]: { label: 'Shot Pace', icon: GLYPHS.burst, kind: 'flat' },
+  [EffectKey.SIDE_SPIN]: { label: 'Side Spin', icon: STAT_ICONS.spin, kind: 'flat' },
+  [EffectKey.TOUCH]: { label: 'Touch & Finesse', icon: DRILL_ICONS.touch_slice, kind: 'flat' },
+  [EffectKey.SMASH_POWER]: { label: 'Smash Power', icon: GLYPHS.hammer, kind: 'flat' },
+  [EffectKey.NET_GAME]: { label: 'Net Game', icon: STAT_ICONS.net, kind: 'flat' },
+  [EffectKey.PERFECT_TIMING]: { label: 'Timing Precision', icon: GLYPHS.timer, kind: 'flat' },
+  [EffectKey.RALLY_MOMENTUM]: { label: 'Rally Momentum', icon: GLYPHS.loop, kind: 'flat' },
+  [EffectKey.LOB_QUALITY]: { label: 'Lob Quality', icon: GLYPHS.lob, kind: 'flat' },
+  [EffectKey.FIRST_POINT_STAT_BOOST]: {
+    label: 'First Point Boost',
+    icon: GLYPHS.rocket,
+    kind: 'flat',
+  },
 
   // --- Match: positioning ---
-  [EffectKey.REACH]: { label: 'Extended Reach', icon: '🫸', kind: 'flat' },
-  [EffectKey.COURT_COVERAGE]: { label: 'Court Coverage', icon: '🏃', kind: 'flat' },
-  [EffectKey.RECOVERY_SPEED]: { label: 'Recovery Speed', icon: '↩️', kind: 'flat' },
+  [EffectKey.REACH]: { label: 'Extended Reach', icon: GLYPHS.reach, kind: 'flat' },
+  [EffectKey.COURT_COVERAGE]: { label: 'Court Coverage', icon: STAT_ICONS.speed, kind: 'flat' },
+  [EffectKey.RECOVERY_SPEED]: { label: 'Recovery Speed', icon: STAT_ICONS.return, kind: 'flat' },
 
   // --- Match: momentum / fatigue ---
-  [EffectKey.UNSTOPPABLE_MOMENTUM]: { label: 'Momentum Swing', icon: '🌊', kind: 'tier' },
-  [EffectKey.FOCUS_DURATION]: { label: 'Focus Duration', icon: '🧘', kind: 'tier' },
-  [EffectKey.CHAMPION_AURA]: { label: 'Champion Aura', icon: '👑', kind: 'tier' },
-  [EffectKey.MOMENTUM_SHIELD]: { label: 'Momentum Shield', icon: '🧱', kind: 'tier' },
+  [EffectKey.UNSTOPPABLE_MOMENTUM]: { label: 'Momentum Swing', icon: GLYPHS.wave, kind: 'tier' },
+  [EffectKey.FOCUS_DURATION]: { label: 'Focus Duration', icon: STAT_ICONS.focus, kind: 'tier' },
+  [EffectKey.CHAMPION_AURA]: { label: 'Champion Aura', icon: GLYPHS.crown, kind: 'tier' },
+  [EffectKey.MOMENTUM_SHIELD]: { label: 'Momentum Shield', icon: GLYPHS.anchor, kind: 'tier' },
 
   // --- Match: key moments ---
-  [EffectKey.CLUTCH_PERFORMANCE]: { label: 'Clutch Performance', icon: '🔥', kind: 'tier' },
-  [EffectKey.MENTAL_RESILIENCE]: { label: 'Mental Resilience', icon: '🛡️', kind: 'tier' },
+  [EffectKey.CLUTCH_PERFORMANCE]: { label: 'Clutch Performance', icon: GLYPHS.flame, kind: 'tier' },
+  [EffectKey.MENTAL_RESILIENCE]: { label: 'Mental Resilience', icon: GLYPHS.shield, kind: 'tier' },
 
   // --- Archetype behavior biases ---
   // Authored on archetype paths, which present themselves as prose, so these are
   // not rendered today. They carry labels so that an item or ability granting one
   // reads as English rather than as a raw key.
-  [EffectKey.RALLY_WINNER_BIAS]: { label: 'Winner Attempts', icon: '🎯', kind: 'flat' },
-  [EffectKey.NET_APPROACH_BIAS]: { label: 'Net Approaches', icon: '🥅', kind: 'flat' },
-  [EffectKey.RALLY_PATIENCE]: { label: 'Rally Patience', icon: '🧊', kind: 'flat' },
-  [EffectKey.RETURN_AGGRESSION]: { label: 'Return Aggression', icon: '⚔️', kind: 'flat' },
-  [EffectKey.SECOND_SERVE_AGGRESSION]: {
-    label: 'Second Serve Aggression',
-    icon: '🎾',
+  [EffectKey.RALLY_WINNER_BIAS]: {
+    label: 'Winner Attempts',
+    icon: STAT_ICONS.placement,
     kind: 'flat',
   },
-  [EffectKey.FIRST_SERVE_AGGRESSION]: { label: 'First Serve Aggression', icon: '💣', kind: 'flat' },
-  [EffectKey.FAULT_RISK]: { label: 'Fault Risk', icon: '⚠️', kind: 'flat' },
-  [EffectKey.SERVE_SPEED]: { label: 'Serve Speed', icon: '🚀', kind: 'flat' },
-  [EffectKey.POWER_VARIANCE]: { label: 'Power Variance', icon: '🎲', kind: 'flat' },
-  [EffectKey.SLICE_PREFERENCE_FOREHAND]: { label: 'Forehand Slice', icon: '🔪', kind: 'flat' },
-  [EffectKey.SLICE_PREFERENCE_BACKHAND]: { label: 'Backhand Slice', icon: '🔪', kind: 'flat' },
-  [EffectKey.SERVE_AND_VOLLEY_BIAS]: { label: 'Serve & Volley', icon: '🏃', kind: 'flat' },
-  [EffectKey.DROP_SHOT_BIAS]: { label: 'Drop Shots', icon: '🪶', kind: 'flat' },
-  [EffectKey.LOB_BIAS]: { label: 'Lobs', icon: '🌈', kind: 'flat' },
-  [EffectKey.PUTAWAY_VOLLEY_BIAS]: { label: 'Putaway Volleys', icon: '🔨', kind: 'flat' },
+  [EffectKey.NET_APPROACH_BIAS]: { label: 'Net Approaches', icon: STAT_ICONS.net, kind: 'flat' },
+  [EffectKey.RALLY_PATIENCE]: { label: 'Rally Patience', icon: GLYPHS.hourglass, kind: 'flat' },
+  [EffectKey.RETURN_AGGRESSION]: { label: 'Return Aggression', icon: GLYPHS.swords, kind: 'flat' },
+  [EffectKey.SECOND_SERVE_AGGRESSION]: {
+    label: 'Second Serve Aggression',
+    icon: STAT_ICONS.serve,
+    kind: 'flat',
+  },
+  [EffectKey.FIRST_SERVE_AGGRESSION]: {
+    label: 'First Serve Aggression',
+    icon: GLYPHS.bomb,
+    kind: 'flat',
+  },
+  [EffectKey.FAULT_RISK]: { label: 'Fault Risk', icon: GLYPHS.warning, kind: 'flat' },
+  [EffectKey.SERVE_SPEED]: { label: 'Serve Speed', icon: GLYPHS.rocket, kind: 'flat' },
+  [EffectKey.POWER_VARIANCE]: { label: 'Power Variance', icon: GLYPHS.die, kind: 'flat' },
+  [EffectKey.SLICE_PREFERENCE_FOREHAND]: {
+    label: 'Forehand Slice',
+    icon: STAT_ICONS.slice,
+    kind: 'flat',
+  },
+  [EffectKey.SLICE_PREFERENCE_BACKHAND]: {
+    label: 'Backhand Slice',
+    icon: STAT_ICONS.slice,
+    kind: 'flat',
+  },
+  [EffectKey.SERVE_AND_VOLLEY_BIAS]: {
+    label: 'Serve & Volley',
+    icon: STAT_ICONS.net,
+    kind: 'flat',
+  },
+  [EffectKey.DROP_SHOT_BIAS]: { label: 'Drop Shots', icon: DRILL_ICONS.touch_slice, kind: 'flat' },
+  [EffectKey.LOB_BIAS]: { label: 'Lobs', icon: GLYPHS.lob, kind: 'flat' },
+  [EffectKey.PUTAWAY_VOLLEY_BIAS]: { label: 'Putaway Volleys', icon: GLYPHS.hammer, kind: 'flat' },
 };
 
 /**
@@ -149,7 +197,7 @@ function formatValue(value: number, kind: EffectValueKind): string {
 export interface DisplayEffect {
   key: string;
   label: string;
-  icon: string;
+  icon: PixelGrid;
   /** Formatted value, e.g. "+2", "-3", "+10%" */
   value: string;
   /** Whether this effect is beneficial (drives coloring). Reductions are good. */
@@ -170,7 +218,7 @@ export function describeEffects(additional: Record<string, number> | undefined):
       return {
         key,
         label: meta?.label ?? titleCaseKey(key),
-        icon: meta?.icon ?? '⭐',
+        icon: meta?.icon ?? UNKNOWN_STAT_ICON,
         value: formatValue(value, kind),
         // Reductions of cost/penalty are beneficial when the raw value is positive.
         positive: kind === 'reduction' ? value > 0 : value >= 0,

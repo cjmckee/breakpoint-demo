@@ -19,12 +19,9 @@ import type { ArchetypeType } from '../data/archetypes';
 import { describeEffects } from '../utils/effectLabels';
 import { formatAbilityName } from './AbilityDisplay';
 import { venueCrowd, venueEffects, venueFatigue, venueWind } from '../core/venue';
-import {
-  calculateOverallRating,
-  getSurfaceEmoji,
-  getArchetypeLabel,
-  STAT_LABELS,
-} from '../utils/playerStats';
+import { calculateOverallRating, getArchetypeLabel, STAT_LABELS } from '../utils/playerStats';
+import { PixelIcon } from './ui/PixelIcon';
+import { SurfaceIcon } from './ui/SurfaceIcon';
 
 interface SurfaceEffectDisplay {
   label: string;
@@ -213,8 +210,13 @@ function VenueConditionChips({
   return (
     <>
       {effects.map((effect) => (
-        <span key={effect.key} className={neutral} data-testid={`venue-effect-${effect.key}`}>
-          {effect.icon} {effect.label} {effect.value}
+        <span
+          key={effect.key}
+          className={`inline-flex items-center gap-1.5 ${neutral}`}
+          data-testid={`venue-effect-${effect.key}`}
+        >
+          <PixelIcon grid={effect.icon} scale={1} />
+          {effect.label} {effect.value}
         </span>
       ))}
       {wind > 0 && (
@@ -301,8 +303,9 @@ function ActiveBuffsDisplay({ buffs }: { buffs: Modifiers }) {
         ))}
         {additionalEntries.map((effect) => (
           <div key={effect.key} className="flex justify-between items-center text-sm">
-            <span className="text-yellow-300">
-              {effect.icon} {effect.label}
+            <span className="inline-flex items-center gap-1.5 text-yellow-300">
+              <PixelIcon grid={effect.icon} scale={1} />
+              {effect.label}
             </span>
             <span className="text-yellow-400 font-bold">{effect.value}</span>
           </div>
@@ -441,8 +444,9 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
             📍 {venue.name}
           </span>
         )}
-        <span className="px-2 py-1 bg-pixel-card border-2 border-pixel-border text-pixel-text font-bold capitalize">
-          {getSurfaceEmoji(surface)} {surface}
+        <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-pixel-card border-2 border-pixel-border text-pixel-text font-bold capitalize">
+          <SurfaceIcon surface={surface} />
+          {surface}
         </span>
         <SurfaceEffectsDisplay surface={surface} />
         {venue && <VenueConditionChips venue={venue} home={home} opponentName={opponentName} />}

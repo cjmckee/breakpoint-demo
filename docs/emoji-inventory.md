@@ -8,28 +8,32 @@ Most of the count is in a handful of lookup tables. Swapping a table's value typ
 emoji string to a pixel icon id replaces every screen that reads it in one go, so do those
 first.
 
-Done so far: currencies (`CURRENCY_ICONS`) and stats (`STAT_ICONS`), both in
-`src/data/pixelIcons.ts`, where `spriteCheck` keeps every stat and currency a shape of its own.
+Done so far, all in `src/data/pixelIcons.ts`: currencies (`CURRENCY_ICONS`), stats
+(`STAT_ICONS`), effects (`EFFECT_META` draws from `GLYPHS` and the stat icons) and surfaces
+(`SURFACE_ICONS`, drawn with `<SurfaceIcon>`). `spriteCheck` keeps each of these a shape of its
+own.
+
+`GLYPHS` is the shared set to draw from before adding a new icon: it already has a trophy, crown,
+flame, heart, book, shield, warning, die, smile, sparkle and more, which cover much of what's left
+below (calendar 🏆, stakes 👑 🔥, mood 😊, Randomize 🎲).
 
 ## 1. Icon tables: one change each, many screens
 
-| Table                                    | Where                                                                                                 | What                                                                     | Count |
-| ---------------------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ----- |
-| `EFFECT_META`                            | `src/utils/effectLabels.ts`                                                                           | One per `EffectKey`: items, abilities, venue chips                       | ~45   |
-| Tactic `emoji`                           | `src/data/tacticalOptions.ts`                                                                         | Key moment tactic buttons (many repeat: ✅ 🃏 🩰 ⛏️ 🏃)                  | 52    |
-| Item slot and type icons                 | `src/components/inventory/itemHelpers.ts`                                                             | 🎾 👟 👕 🧢 🍀, 💊 🍀 📜                                                 | 8     |
-| Calendar event types                     | `src/components/CalendarView.tsx` (`getEventDisplay` and the legend)                                  | 🏆 ⚔️ 📖 🏋️ 😴                                                           | 10    |
-| Mood                                     | `src/components/StatusBar.tsx`                                                                        | Eight mood faces, 📅 ⚡ (time of day and the wallet are pixel icons now) | 10    |
-| Menu and help sections                   | `src/components/MenuModal.tsx`, `src/hooks/useMenuModal.ts`                                           | ⚙️ 📚 💬, 🎯 📖 📊 🏟️ ⌨️ ⚔️ 💝                                           | 10    |
-| Archetype glyphs                         | `src/data/archetypes.ts`                                                                              | 🐅 🐢 🦂 🦅 🦊                                                           | 5     |
-| Ability rarity                           | `src/game/AbilitySystem.ts`                                                                           | ⚪ 🟢 🔵 🟡                                                              | 4     |
-| Relationship tiers                       | `src/components/Relationships.tsx`                                                                    | 🤝 😊 💛 💎, 🧊 Strained                                                 | 5     |
-| Key moment results                       | `src/game/KeyMomentResolver.ts`, `src/components/KeyMomentModal.tsx`                                  | 🌟 ✅ ❌ 💥 (the same four in both), stakes 👑 ⭐ 🚨 🔥 💡               | ~20   |
-| Surface icon (**duplicated four times**) | `utils/playerStats.ts`, `ActiveTournamentCard.tsx`, `UpcomingTeamMatchCard.tsx`, `TournamentList.tsx` | 🏟️ 🧱 🌱 📋 🎾. `TournamentList` uses 🟤 🟣 for two of them instead      | 20    |
-| Item acquired icons                      | `src/components/ItemAcquiredModal.tsx`                                                                | Repeats `itemHelpers` with different picks (⚡ ⭐ 📖 🎁)                 | 8     |
+| Table                    | Where                                                                | What                                                                     | Count |
+| ------------------------ | -------------------------------------------------------------------- | ------------------------------------------------------------------------ | ----- |
+| Tactic `emoji`           | `src/data/tacticalOptions.ts`                                        | Key moment tactic buttons (many repeat: ✅ 🃏 🩰 ⛏️ 🏃)                  | 52    |
+| Item slot and type icons | `src/components/inventory/itemHelpers.ts`                            | 🎾 👟 👕 🧢 🍀, 💊 🍀 📜                                                 | 8     |
+| Calendar event types     | `src/components/CalendarView.tsx` (`getEventDisplay` and the legend) | 🏆 ⚔️ 📖 🏋️ 😴                                                           | 10    |
+| Mood                     | `src/components/StatusBar.tsx`                                       | Eight mood faces, 📅 ⚡ (time of day and the wallet are pixel icons now) | 10    |
+| Menu and help sections   | `src/components/MenuModal.tsx`, `src/hooks/useMenuModal.ts`          | ⚙️ 📚 💬, 🎯 📖 📊 🏟️ ⌨️ ⚔️ 💝                                           | 10    |
+| Archetype glyphs         | `src/data/archetypes.ts`                                             | 🐅 🐢 🦂 🦅 🦊                                                           | 5     |
+| Ability rarity           | `src/game/AbilitySystem.ts`                                          | ⚪ 🟢 🔵 🟡                                                              | 4     |
+| Relationship tiers       | `src/components/Relationships.tsx`                                   | 🤝 😊 💛 💎, 🧊 Strained                                                 | 5     |
+| Key moment results       | `src/game/KeyMomentResolver.ts`, `src/components/KeyMomentModal.tsx` | 🌟 ✅ ❌ 💥 (the same four in both), stakes 👑 ⭐ 🚨 🔥 💡               | ~20   |
+| Item acquired icons      | `src/components/ItemAcquiredModal.tsx`                               | Repeats `itemHelpers` with different picks (⚡ ⭐ 📖 🎁)                 | 8     |
 
-Fold the duplicates into one table first (surface, item type, key moment result), so each
-gets drawn once.
+Fold the duplicates into one table first (item type, key moment result), so each gets drawn
+once.
 
 ## 2. Story option emoji (authored data)
 

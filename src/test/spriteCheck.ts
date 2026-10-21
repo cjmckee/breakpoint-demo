@@ -37,10 +37,12 @@ import {
   BALL_ICON,
   CURRENCY_ICONS,
   DRILL_ICONS,
+  GLYPHS,
   ICON_PALETTE,
   MENU_ICONS,
   SECTION_ICONS,
   STAT_ICONS,
+  SURFACE_ICONS,
   TIME_SLOT_ICONS,
   UNKNOWN_STAT_ICON,
   type PixelGrid,
@@ -262,6 +264,8 @@ const oneColour = [
   ...iconProblems(TIME_SLOT_ICONS, '.#'),
   ...iconProblems(CURRENCY_ICONS, '.#'),
   ...iconProblems(STAT_ICONS, '.#'),
+  ...iconProblems(GLYPHS, '.#'),
+  ...iconProblems(SURFACE_ICONS, '.#'),
   ...iconProblems({ unknown_stat: UNKNOWN_STAT_ICON, ball: BALL_ICON }, '.#'),
 ];
 check(
@@ -269,16 +273,20 @@ check(
   oneColour.length === 0,
   oneColour.join(', '),
 );
-/** A shape names one stat or currency, and they appear side by side on the Development screen. */
-const statAndCurrency = Object.entries({ ...STAT_ICONS, ...CURRENCY_ICONS });
-const sameShape = statAndCurrency.flatMap(([name, grid], i) =>
-  statAndCurrency
-    .slice(i + 1)
-    .filter(([, other]) => other.join() === grid.join())
-    .map(([otherName]) => `${name} = ${otherName}`),
-);
+/** Pairs of icons in a set drawn the same: a shape should name one thing. */
+function sameShapes(set: Record<string, PixelGrid>): string[] {
+  const entries = Object.entries(set);
+  return entries.flatMap(([name, grid], i) =>
+    entries
+      .slice(i + 1)
+      .filter(([, other]) => other.join() === grid.join())
+      .map(([otherName]) => `${name} = ${otherName}`),
+  );
+}
+// Stats and currencies sit side by side on the Development screen; glyphs share chips with both.
+const sameShape = sameShapes({ ...STAT_ICONS, ...CURRENCY_ICONS, ...GLYPHS, ...SURFACE_ICONS });
 check(
-  'every stat and currency icon is its own shape',
+  'every stat, currency, glyph and surface icon is its own shape',
   sameShape.length === 0,
   sameShape.join(', '),
 );

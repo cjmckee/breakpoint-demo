@@ -41,21 +41,6 @@ export function getTierColor(tier: OpponentTier | number): string {
   }
 }
 
-export function getSurfaceEmoji(surface: CourtSurface | string): string {
-  switch (surface) {
-    case 'hard':
-      return '🏟️';
-    case 'clay':
-      return '🧱';
-    case 'grass':
-      return '🌱';
-    case 'carpet':
-      return '📋';
-    default:
-      return '🎾';
-  }
-}
-
 export interface StatDisplay {
   name: StatName;
   value: number;

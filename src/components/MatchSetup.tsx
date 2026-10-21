@@ -15,7 +15,7 @@ import { getArchetypeLabel } from '../data/archetypes';
 import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
 import { buildPlayStyle } from '../core/PlayerProfile';
 import { createEmptyArchetypeProfile } from '../data/archetypeTree';
-import { getSurfaceEmoji } from '../utils/playerStats';
+import { SurfaceIcon } from './ui/SurfaceIcon';
 
 type CourtSurface = 'hard' | 'clay' | 'grass' | 'carpet';
 
@@ -165,7 +165,7 @@ export const MatchSetup: React.FC = () => {
                       : 'border-pixel-border bg-pixel-card'
                   } hover:scale-105`}
                 >
-                  <div className="text-4xl mb-2">{getSurfaceEmoji(surface)}</div>
+                  <SurfaceIcon surface={surface} scale={3} className="mx-auto mb-2" />
                   <div className="font-bold text-pixel-text capitalize">{surface}</div>
                 </button>
               );

@@ -48,7 +48,7 @@ export const EffectChips: React.FC<{ additional?: Record<string, number> }> = ({
           key={effect.key}
           className="inline-flex items-center gap-1 bg-pixel-secondary/40 border-2 border-pixel-secondary px-2 py-1 text-xs"
         >
-          <span>{effect.icon}</span>
+          <PixelIcon grid={effect.icon} scale={1} />
           <span className="text-pixel-text-muted">{effect.label}</span>
           <span className={effect.positive ? 'text-green-400 font-bold' : 'text-red-400 font-bold'}>
             {effect.value}

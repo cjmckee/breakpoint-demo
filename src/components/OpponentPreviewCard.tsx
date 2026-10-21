@@ -9,7 +9,6 @@ import {
   calculateOverallRating,
   getTierLabel,
   getTierColor,
-  getSurfaceEmoji,
   getArchetypeLabel,
   getArchetypeData,
   STAT_LABELS,
@@ -22,6 +21,7 @@ import type { ArchetypeType } from '../data/archetypes';
 import { PixelSprite } from './sprites/PixelSprite';
 import { getOpponentAppearance } from '../data/characters';
 import type { StatName } from '../types';
+import { SurfaceIcon } from './ui/SurfaceIcon';
 
 interface OpponentPreviewCardProps {
   opponentName: string;
@@ -140,8 +140,9 @@ export const OpponentPreviewCard: React.FC<OpponentPreviewCardProps> = ({
         <div className="pt-2 border-t border-pixel-border">
           <div className="flex items-center justify-between">
             <span className="text-pixel-text-muted font-medium">Surface:</span>
-            <span className="text-pixel-text font-bold">
-              {getSurfaceEmoji(surface)} {surface.toUpperCase()}
+            <span className="inline-flex items-center gap-1.5 text-pixel-text font-bold">
+              <SurfaceIcon surface={surface} />
+              {surface.toUpperCase()}
             </span>
           </div>
         </div>
