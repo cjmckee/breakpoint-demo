@@ -19,7 +19,6 @@ export type EncyclopediaSectionId =
 export interface EncyclopediaSection {
   id: EncyclopediaSectionId;
   label: string;
-  icon: string;
   isRevealed: boolean;
   isNew: boolean;
 }
@@ -40,13 +39,13 @@ interface MenuState {
 }
 
 const DEFAULT_SECTIONS: EncyclopediaSection[] = [
-  { id: 'scoring', label: 'Scoring', icon: '🎯', isRevealed: false, isNew: false },
-  { id: 'tennis-terms', label: 'Lingo', icon: '📖', isRevealed: false, isNew: false },
-  { id: 'stats-guide', label: 'Stats', icon: '📊', isRevealed: false, isNew: false },
-  { id: 'surface-guide', label: 'Surfaces', icon: '🏟️', isRevealed: false, isNew: false },
-  { id: 'key-shortcuts', label: 'Shortcuts', icon: '⌨️', isRevealed: false, isNew: false },
-  { id: 'match-help', label: 'Match Help', icon: '⚔️', isRevealed: false, isNew: false },
-  { id: 'relationships', label: 'Relationships', icon: '💝', isRevealed: false, isNew: false },
+  { id: 'scoring', label: 'Scoring', isRevealed: false, isNew: false },
+  { id: 'tennis-terms', label: 'Lingo', isRevealed: false, isNew: false },
+  { id: 'stats-guide', label: 'Stats', isRevealed: false, isNew: false },
+  { id: 'surface-guide', label: 'Surfaces', isRevealed: false, isNew: false },
+  { id: 'key-shortcuts', label: 'Shortcuts', isRevealed: false, isNew: false },
+  { id: 'match-help', label: 'Match Help', isRevealed: false, isNew: false },
+  { id: 'relationships', label: 'Relationships', isRevealed: false, isNew: false },
 ];
 
 export const useMenuStore = create<MenuState>()(

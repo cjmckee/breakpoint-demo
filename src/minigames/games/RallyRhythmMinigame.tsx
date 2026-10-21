@@ -289,12 +289,9 @@ export const RallyRhythmMinigame: React.FC<MinigameProps> = ({
               top: `${n.y}%`,
               width: uMin(BALL, 32),
               height: uMin(BALL, 32),
-              fontSize: uMin(4.1, 16),
               transform: 'translate(-50%, -50%)',
             }}
-          >
-            🎾
-          </div>
+          ></div>
         ))}
 
         <Sparks burst={burst} />

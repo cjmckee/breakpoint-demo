@@ -70,7 +70,7 @@ export const romanceEvents: StoryEvent[] = [
       {
         id: 'serious_talk',
         text: 'Talk about tennis goals',
-        emoji: '🎾',
+        mood: 'social',
         description: 'Keep the conversation focused on tennis',
         outcome: {
           resultText: [
@@ -90,7 +90,7 @@ export const romanceEvents: StoryEvent[] = [
       {
         id: 'fun_outing',
         text: 'Get to know them better',
-        emoji: '☕',
+        mood: 'social',
         description: 'Learn more about Alex as a person',
         outcome: {
           resultText: [
@@ -109,7 +109,7 @@ export const romanceEvents: StoryEvent[] = [
       {
         id: 'reschedule',
         text: 'Reschedule for later',
-        emoji: '📅',
+        mood: 'decline',
         description: 'Too busy with training right now',
         outcome: {
           resultText: [
@@ -173,7 +173,7 @@ export const romanceEvents: StoryEvent[] = [
       {
         id: 'go_all_out',
         text: 'Go all out',
-        emoji: '😣',
+        mood: 'bold',
         description: "You're one of the best club players at the academy. Show your stuff!",
         outcome: {
           resultText: [
@@ -192,7 +192,7 @@ export const romanceEvents: StoryEvent[] = [
       {
         id: 'let_alex_show_off',
         text: 'Let Alex Show Off',
-        emoji: '😏',
+        mood: 'kind',
         description: 'Take a little off and let Alex be the star',
         outcome: {
           resultText: [
@@ -249,7 +249,7 @@ export const romanceEvents: StoryEvent[] = [
       {
         id: 'watch_serious_film',
         text: 'Watch a gritty tennis drama',
-        emoji: '🎬',
+        mood: 'social',
         description: 'Intense. Focused. Inspiring, but sad.',
         outcome: {
           resultText: [
@@ -268,7 +268,7 @@ export const romanceEvents: StoryEvent[] = [
       {
         id: 'watch_romcom',
         text: 'Watch a tennis romcom',
-        emoji: '💕',
+        mood: 'kind',
         description: 'Extremely unrealistic tennis. Great vibes.',
         outcome: {
           resultText: [

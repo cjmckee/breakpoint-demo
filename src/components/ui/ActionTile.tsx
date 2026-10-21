@@ -14,7 +14,7 @@ interface ActionTileProps {
   icon: React.ReactNode;
   label: string;
   /** Status line under the label: cost, gain, or reason unavailable */
-  caption?: string;
+  caption?: React.ReactNode;
   onClick?: () => void;
   disabled?: boolean;
   /** Show the "new" dot in the top-right corner. Never shown on a disabled tile. */

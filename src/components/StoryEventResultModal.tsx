@@ -12,6 +12,8 @@ import { getCharacterName } from '../data/characters';
 import { usePlayerName } from '../hooks/usePlayerName';
 import { CurrencyAmounts } from './currency/CurrencyAmounts';
 import { formatStatName, getStatIcon } from '../config/statIcons';
+import { PixelIcon } from './ui/PixelIcon';
+import { GLYPHS, ICON_PALETTE, MENU_ICONS } from '../data/pixelIcons';
 
 /** One effect of the outcome. Gold marks something new to own, not a number. */
 const EffectChip: React.FC<{
@@ -109,7 +111,7 @@ export const StoryEventResultModal: React.FC<StoryEventResultModalProps> = ({
                       data-stat={stat}
                       data-amount={value}
                     >
-                      <span aria-hidden="true">{getStatIcon(stat)}</span>
+                      <PixelIcon grid={getStatIcon(stat)} scale={1} />
                       <span className="font-normal text-pixel-text-muted">
                         {formatStatName(stat)}
                       </span>
@@ -122,7 +124,7 @@ export const StoryEventResultModal: React.FC<StoryEventResultModalProps> = ({
 
             {Object.entries(result.relationshipChanges).map(([char, value]) => (
               <EffectChip key={char}>
-                <span aria-hidden="true">{value >= 0 ? '💜' : '💔'}</span>
+                <PixelIcon grid={value >= 0 ? GLYPHS.heart : GLYPHS.heart_broken} scale={1} />
                 <span className="text-pixel-text">
                   {getCharacterName(char, playerName) ||
                     char.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
@@ -133,7 +135,7 @@ export const StoryEventResultModal: React.FC<StoryEventResultModalProps> = ({
 
             {result.moodResult !== 0 && (
               <EffectChip>
-                <span aria-hidden="true">{result.moodResult > 0 ? '😊' : '😞'}</span>
+                <PixelIcon grid={result.moodResult > 0 ? GLYPHS.smile : GLYPHS.frown} scale={1} />
                 <span className="text-pixel-text">Mood</span>
                 <Signed value={result.moodResult} />
               </EffectChip>
@@ -141,7 +143,7 @@ export const StoryEventResultModal: React.FC<StoryEventResultModalProps> = ({
 
             {result.energyCost > 0 && (
               <EffectChip>
-                <span aria-hidden="true">⚡</span>
+                <PixelIcon grid={GLYPHS.energy} scale={1} />
                 <span className="text-pixel-text">Energy</span>
                 <Signed value={-result.energyCost} />
               </EffectChip>
@@ -149,14 +151,14 @@ export const StoryEventResultModal: React.FC<StoryEventResultModalProps> = ({
 
             {result.abilitiesGained.map((abilityName) => (
               <EffectChip key={abilityName} tone="gold">
-                <span aria-hidden="true">⭐</span>
+                <PixelIcon grid={GLYPHS.sparkle} scale={1} />
                 {abilityName.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
               </EffectChip>
             ))}
 
             {result.itemsGained.map((item) => (
               <EffectChip key={item.id} tone="gold">
-                <span aria-hidden="true">🎒</span>
+                <PixelIcon grid={MENU_ICONS.inventory} palette={ICON_PALETTE} scale={1} />
                 {item.name}
               </EffectChip>
             ))}

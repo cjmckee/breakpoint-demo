@@ -102,7 +102,7 @@ export const coachEvents: StoryEvent[] = [
       {
         id: 'choose_baseliner',
         text: 'Baseliner',
-        emoji: '🎾',
+        mood: 'careful',
         description: 'Live at the back of the court. Outlast and out-rally your opponents.',
         outcome: {
           resultText: [
@@ -120,7 +120,7 @@ export const coachEvents: StoryEvent[] = [
       {
         id: 'choose_net_attacker',
         text: 'Net Attacker',
-        emoji: '⚡',
+        mood: 'bold',
         description: 'Get forward and finish at the net. End points early and apply pressure.',
         outcome: {
           resultText: [
@@ -138,7 +138,7 @@ export const coachEvents: StoryEvent[] = [
       {
         id: 'choose_all_courter',
         text: 'All-Courter',
-        emoji: '🌐',
+        mood: 'smart',
         description: 'Comfortable everywhere. Adapt your game to whatever the moment demands.',
         outcome: {
           resultText: [
@@ -178,7 +178,7 @@ export const coachEvents: StoryEvent[] = [
       {
         id: 'focus_serve',
         text: 'Serve Power',
-        emoji: '🚀',
+        mood: 'bold',
         description: 'Focus on developing a dominant serve',
         outcome: {
           resultText: [
@@ -204,7 +204,7 @@ export const coachEvents: StoryEvent[] = [
       {
         id: 'focus_baseline',
         text: 'Baseline Game',
-        emoji: '🎯',
+        mood: 'careful',
         description: 'Improve groundstrokes and consistency',
         outcome: {
           resultText: [
@@ -230,7 +230,7 @@ export const coachEvents: StoryEvent[] = [
       {
         id: 'focus_mental',
         text: 'Mental Game',
-        emoji: '🧠',
+        mood: 'smart',
         description: 'Develop focus and competitive mindset',
         outcome: {
           resultText: [
@@ -279,7 +279,7 @@ export const coachEvents: StoryEvent[] = [
       {
         id: 'focus_groundstrokes',
         text: 'Balance Groundstrokes',
-        emoji: '⚖️',
+        mood: 'careful',
         description: 'Work on becoming equally strong on both wings',
         outcome: {
           resultText: [
@@ -304,7 +304,7 @@ export const coachEvents: StoryEvent[] = [
       {
         id: 'focus_fitness',
         text: 'Athletic Foundation',
-        emoji: '💪',
+        mood: 'bold',
         description: 'Build your physical conditioning',
         outcome: {
           resultText: [
@@ -353,7 +353,7 @@ export const coachEvents: StoryEvent[] = [
       {
         id: 'stay_awake',
         text: 'Actually pay attention',
-        emoji: '👀',
+        mood: 'smart',
         description: 'Every minute of it',
         outcome: {
           resultText: [
@@ -372,7 +372,7 @@ export const coachEvents: StoryEvent[] = [
       {
         id: 'doze_off',
         text: 'Doze off halfway through',
-        emoji: '😴',
+        mood: 'cheeky',
         description: 'You tried your best',
         outcome: {
           resultText: [
@@ -391,7 +391,7 @@ export const coachEvents: StoryEvent[] = [
       {
         id: 'ask_questions',
         text: 'Ask questions constantly',
-        emoji: '🙋',
+        mood: 'smart',
         description: 'Make the most of it',
         outcome: {
           resultText: [
@@ -485,7 +485,7 @@ export const coachEvents: StoryEvent[] = [
       {
         id: 'actually_practice',
         text: 'Actually drill it',
-        emoji: '🎯',
+        mood: 'careful',
         description: 'Get the rep count up',
         prerequisites: {
           stats: { spin: { min: 20 } },
@@ -513,7 +513,7 @@ export const coachEvents: StoryEvent[] = [
       {
         id: 'wing_it',
         text: 'Try to wing it',
-        emoji: '🤞',
+        mood: 'cheeky',
         description: 'How hard can it be',
         outcome: {
           resultText: [
@@ -532,7 +532,7 @@ export const coachEvents: StoryEvent[] = [
       {
         id: 'negotiate_terms',
         text: 'Renegotiate the request',
-        emoji: '🤝',
+        mood: 'smart',
         description: 'Surely there are other options',
         outcome: {
           resultText: [

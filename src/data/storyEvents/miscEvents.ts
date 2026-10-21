@@ -71,7 +71,7 @@ export const miscEvents: StoryEvent[] = [
         id: 'try_to_outfish',
         text: 'Take the bet',
         description: 'Five casts, most fish wins. You will have to actually catch them.',
-        emoji: '🎣',
+        mood: 'bold',
         minigame: {
           request: { minigame: 'fishing_cast' },
           // Three of five. Keith is not good at this, but he is committed.
@@ -126,7 +126,7 @@ export const miscEvents: StoryEvent[] = [
         id: 'join_disc_golf',
         text: 'Join the disc golf game',
         description: 'Have some fun with your teammates!',
-        emoji: '🏌️‍♂️',
+        mood: 'social',
         outcome: {
           resultText: [
             'You decide to join your teammates for a game of disc golf!',
@@ -152,7 +152,7 @@ export const miscEvents: StoryEvent[] = [
         id: 'send_keith',
         text: 'Send Keith to join the game',
         description: 'You encourage Keith to join the game instead.',
-        emoji: '🪂',
+        mood: 'cheeky',
         outcome: {
           resultText: [
             'You suggest that Keith take your place in the game.',
@@ -171,7 +171,7 @@ export const miscEvents: StoryEvent[] = [
         id: 'decline_disc_golf',
         text: 'Decline the invitation',
         description: 'You have other plans. You need to get back to practice anyway.',
-        emoji: '🚫',
+        mood: 'decline',
         outcome: {
           resultText: [
             'You politely decline the invitation.',
@@ -216,7 +216,7 @@ export const miscEvents: StoryEvent[] = [
         id: 'dodge_and_weave_crowd',
         text: 'Dodge and weave through the crowd',
         description: 'You try to navigate through the crowd to reach the stall in time.',
-        emoji: '🏃‍♂️',
+        mood: 'bold',
         outcome: {
           resultText: [
             'You expertly weave through the crowd, avoiding slow walkers with ease.',
@@ -235,7 +235,7 @@ export const miscEvents: StoryEvent[] = [
         id: 'take_it_slow',
         text: 'Take it slow and steady',
         description: 'You decide to take your time and enjoy the atmosphere.',
-        emoji: '🚶‍♂️',
+        mood: 'careful',
         outcome: {
           resultText: [
             'You stroll through the market, taking in the sights and smells.',
@@ -566,7 +566,7 @@ export const miscEvents: StoryEvent[] = [
         id: 'play_ping_pong',
         text: 'Keep playing him',
         description: "You're not leaving until you beat this guy.",
-        emoji: '🏓',
+        mood: 'bold',
         outcome: {
           resultText: [
             'You play for two hours straight. You win zero games.',
@@ -589,7 +589,7 @@ export const miscEvents: StoryEvent[] = [
         id: 'challenge_doubles',
         text: 'Bring Keith as your doubles partner',
         description: 'Two on one should be fair, right?',
-        emoji: '👥',
+        mood: 'social',
         outcome: {
           resultText: [
             { characterId: 'keith' },
@@ -681,7 +681,7 @@ export const miscEvents: StoryEvent[] = [
         id: 'sprint_away',
         text: 'Sprint for your life',
         description: 'RUN.',
-        emoji: '🏃',
+        mood: 'bold',
         outcome: {
           resultText: [
             "You kick into a gear that you yourself didn't know you had.",
@@ -704,7 +704,7 @@ export const miscEvents: StoryEvent[] = [
         id: 'stand_ground',
         text: 'Stand your ground',
         description: 'You are a competitive athlete. You will not be bullied by birds.',
-        emoji: '🦆',
+        mood: 'cheeky',
         outcome: {
           resultText: [
             'You decide to take on the geese head on.',
@@ -749,7 +749,7 @@ export const miscEvents: StoryEvent[] = [
         id: 'race_keith',
         text: 'Accept the challenge',
         description: "You grab a cart. It's on.",
-        emoji: '🛒',
+        mood: 'bold',
         outcome: {
           resultText: [
             'You and ',
@@ -778,7 +778,7 @@ export const miscEvents: StoryEvent[] = [
         id: 'shop_normally',
         text: 'Shop like a normal person',
         description: 'You have a reputation to uphold.',
-        emoji: '🧺',
+        mood: 'careful',
         outcome: {
           resultText: [
             'You shop responsibly while ',
@@ -880,7 +880,7 @@ export const miscEvents: StoryEvent[] = [
         id: 'learn_juggling',
         text: 'Learn to juggle',
         description: 'How hard can it be?',
-        emoji: '🤹',
+        mood: 'cheeky',
         outcome: {
           resultText: [
             'Very hard, it turns out. You spend an hour dropping tennis balls before you get frustrated.',
@@ -897,7 +897,7 @@ export const miscEvents: StoryEvent[] = [
         id: 'watch_and_learn',
         text: 'Just watch the show',
         description: 'Observe the master at work.',
-        emoji: '👀',
+        mood: 'decline',
         outcome: {
           resultText: [
             'You sit and are mesmerized by his routine. His hand movements are incredibly precise.',
@@ -1043,7 +1043,7 @@ export const miscEvents: StoryEvent[] = [
         id: 'race_to_top',
         text: 'Race Max to the top',
         description: "You didn't come here to lose.",
-        emoji: '🧗',
+        mood: 'bold',
         outcome: {
           resultText: [
             'You both scramble up the wall with surprising speed. Reaching overhead, gripping holds, and pushing off with your legs.',
@@ -1069,7 +1069,7 @@ export const miscEvents: StoryEvent[] = [
         id: 'take_it_easy',
         text: 'Take the beginner wall',
         description: 'No shame in starting small.',
-        emoji: '🪨',
+        mood: 'careful',
         outcome: {
           resultText: [
             'You spend your time on the easier walls, focusing on technique over speed.',
@@ -1210,7 +1210,7 @@ export const miscEvents: StoryEvent[] = [
         id: 'take_challenge',
         text: 'Take the challenge',
         description: "You didn't come here to be a coward.",
-        emoji: '🌶️',
+        mood: 'bold',
         outcome: {
           resultText: [
             "You eat two wings before your vision blurs. You feel like a sailor who's gotten lost and can no longer turn back.",
@@ -1229,7 +1229,7 @@ export const miscEvents: StoryEvent[] = [
         id: 'skip_spicy',
         text: 'Order mild wings instead',
         description: 'Your body is a temple. A cowardly temple.',
-        emoji: '🍗',
+        mood: 'careful',
         outcome: {
           resultText: [
             'You order the mild wings and watch the carnage unfold.',
@@ -1332,7 +1332,7 @@ export const miscEvents: StoryEvent[] = [
         id: 'go_wild',
         text: 'Go absolutely wild',
         description: 'Flip city. Population: you.',
-        emoji: '🤸',
+        mood: 'cheeky',
         outcome: {
           resultText: [
             'You bounce, flip, and launch yourself with reckless abandon. You attempt a double backflip and land on your face in the foam pit.',
@@ -1352,7 +1352,7 @@ export const miscEvents: StoryEvent[] = [
         id: 'controlled_bouncing',
         text: 'Bounce responsibly',
         description: "Use it as actual training. You're fun at parties.",
-        emoji: '📋',
+        mood: 'careful',
         outcome: {
           resultText: [
             "You use the trampolines for controlled jumping exercises. Your teammates think you're insane.",
@@ -1522,7 +1522,7 @@ export const miscEvents: StoryEvent[] = [
         id: 'speed_run',
         text: 'Speed run the physical challenges',
         description: 'Treat every obstacle like a sprint drill.',
-        emoji: '⚡',
+        mood: 'bold',
         outcome: {
           resultText: [
             'You blitz through the crawling sections and sprint between stations like your life depends on it.',
@@ -1550,7 +1550,7 @@ export const miscEvents: StoryEvent[] = [
         id: 'puzzle_focus',
         text: 'Focus on solving the puzzles',
         description: 'Brains over brawn.',
-        emoji: '🧩',
+        mood: 'smart',
         outcome: {
           resultText: [
             'You let ',

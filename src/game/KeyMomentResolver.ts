@@ -380,55 +380,6 @@ export class KeyMomentResolver {
   }
 
   /**
-   * Get outcome description for UI
-   */
-  static getOutcomeDescription(result: KeyMomentResult): string {
-    const { outcome, shotOutcome } = result;
-
-    switch (outcome) {
-      case 'critical-success':
-        return `🌟 INCREDIBLE! ${this.formatShotOutcome(shotOutcome)}`;
-      case 'success':
-        return `✅ ${this.formatShotOutcome(shotOutcome)}`;
-      case 'failure':
-        return `❌ ${this.formatShotOutcome(shotOutcome)}`;
-      case 'critical-failure':
-        return `💥 DISASTER! ${this.formatShotOutcome(shotOutcome)}`;
-    }
-  }
-
-  /**
-   * Format shot outcome for display
-   */
-  private static formatShotOutcome(shotOutcome: {
-    outcome: string;
-    shotType: string;
-    shooter: 'player' | 'opponent';
-  }): string {
-    const subject = shotOutcome.shooter === 'player' ? 'You' : 'Opponent';
-    const action = shotOutcome.outcome.replace(/_/g, ' ');
-    const shot = shotOutcome.shotType.replace(/_/g, ' ');
-
-    return `${subject} ${action} on ${shot}`;
-  }
-
-  /**
-   * Get outcome emoji for UI
-   */
-  static getOutcomeEmoji(outcome: OutcomeType): string {
-    switch (outcome) {
-      case 'critical-success':
-        return '🌟';
-      case 'success':
-        return '✅';
-      case 'failure':
-        return '❌';
-      case 'critical-failure':
-        return '💥';
-    }
-  }
-
-  /**
    * Get outcome color for UI
    */
   static getOutcomeColor(outcome: OutcomeType): string {

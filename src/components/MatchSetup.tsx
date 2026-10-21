@@ -11,11 +11,13 @@ import { Button } from './ui/Button';
 import { ScreenFrame } from './ui/ScreenFrame';
 import { OpponentTier } from '../types/game';
 import { OPPONENTS_BY_TIER } from '../data/opponents';
-import { getArchetypeLabel } from '../data/archetypes';
 import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
 import { buildPlayStyle } from '../core/PlayerProfile';
 import { createEmptyArchetypeProfile } from '../data/archetypeTree';
-import { getSurfaceEmoji } from '../utils/playerStats';
+import { SurfaceIcon } from './ui/SurfaceIcon';
+import { ArchetypeLabel } from './ui/ArchetypeLabel';
+import { PixelIcon } from './ui/PixelIcon';
+import { BALL_ICON, GLYPHS, ICON_PALETTE } from '../data/pixelIcons';
 
 type CourtSurface = 'hard' | 'clay' | 'grass' | 'carpet';
 
@@ -124,8 +126,9 @@ export const MatchSetup: React.FC = () => {
                     <h4 className="text-lg font-bold text-pixel-text">{info.name}</h4>
                     {/* A locked tier shows the lock where the tier badge goes, so the
                         two never overlap. */}
-                    <span className="text-xs px-2 py-1 bg-pixel-bg border-2 border-pixel-border text-pixel-text uppercase">
-                      {isUnlocked ? `Tier ${info.tier}` : `🔒 Tier ${info.tier}`}
+                    <span className="inline-flex items-center gap-1.5 text-xs px-2 py-1 bg-pixel-bg border-2 border-pixel-border text-pixel-text uppercase">
+                      {!isUnlocked && <PixelIcon grid={GLYPHS.lock} scale={1} />}
+                      Tier {info.tier}
                     </span>
                   </div>
                   <p className="text-sm text-pixel-text-muted mb-3">
@@ -138,7 +141,7 @@ export const MatchSetup: React.FC = () => {
                           key={opp.name}
                           className="text-xs px-2 py-0.5 bg-pixel-bg border border-pixel-border text-pixel-text-muted"
                         >
-                          {getArchetypeLabel(opp.archetype)}
+                          <ArchetypeLabel archetype={opp.archetype} />
                         </span>
                       ))}
                     </div>
@@ -165,7 +168,7 @@ export const MatchSetup: React.FC = () => {
                       : 'border-pixel-border bg-pixel-card'
                   } hover:scale-105`}
                 >
-                  <div className="text-4xl mb-2">{getSurfaceEmoji(surface)}</div>
+                  <SurfaceIcon surface={surface} scale={3} className="mx-auto mb-2" />
                   <div className="font-bold text-pixel-text capitalize">{surface}</div>
                 </button>
               );
@@ -184,15 +187,24 @@ export const MatchSetup: React.FC = () => {
             disabled={!canPlayMatch}
           >
             {!isOpponentUnlocked(selectedTier) ? (
-              <>🔒 Tier Locked</>
+              <span className="inline-flex items-center gap-2 align-middle">
+                <PixelIcon grid={GLYPHS.lock} scale={1} />
+                Tier Locked
+              </span>
             ) : !canAfford ? (
               <>
-                <span className="sm:hidden">Need ⚡{matchEnergyCost}</span>
+                <span className="sm:hidden inline-flex items-center gap-1">
+                  Need <PixelIcon grid={GLYPHS.energy} scale={1} />
+                  {matchEnergyCost}
+                </span>
                 <span className="hidden sm:inline">Not Enough Energy (Need {matchEnergyCost})</span>
               </>
             ) : (
               <>
-                🎾 Preview Match
+                <span className="inline-flex items-center gap-2 align-middle">
+                  <PixelIcon grid={BALL_ICON} color={ICON_PALETTE.y} scale={1} />
+                  Preview Match
+                </span>
                 <span className="hidden sm:inline"> — Tier {selectedTier}</span>
               </>
             )}

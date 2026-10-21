@@ -26,6 +26,8 @@ import { CurrencyAmounts } from './currency/CurrencyAmounts';
 import { canAfford as walletCovers } from '../game/StatDevelopment';
 import { CURRENCIES } from '../config/economy';
 import { levelMultiplier } from '../core/EffectAggregator';
+import { PixelIcon } from './ui/PixelIcon';
+import { GLYPHS, ICON_PALETTE, ITEM_ICONS, MENU_ICONS } from '../data/pixelIcons';
 
 const RARITY_LABELS: Record<ItemRarity, string> = {
   common: 'Common',
@@ -132,7 +134,7 @@ const ConsumableShopCard: React.FC<{
       <div className="flex flex-col gap-2">
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">🧪</span>
+            <PixelIcon grid={ITEM_ICONS.consumable} palette={ICON_PALETTE} scale={2} />
             <div>
               <h3 className="text-lg font-bold text-pixel-text">{item.name}</h3>
               <span className="text-xs text-gray-400 uppercase">Consumable</span>
@@ -146,14 +148,14 @@ const ConsumableShopCard: React.FC<{
         )}
         {item.instantEffects?.energyChange && (
           <div className="flex items-center gap-2 text-sm">
-            <span>⚡</span>
+            <PixelIcon grid={GLYPHS.energy} scale={1} className="text-yellow-300" />
             <span className="text-gray-300">Energy</span>
             <span className="text-green-400 ml-auto">+{item.instantEffects.energyChange}</span>
           </div>
         )}
         {item.instantEffects?.moodChange && (
           <div className="flex items-center gap-2 text-sm">
-            <span>😊</span>
+            <PixelIcon grid={GLYPHS.smile} scale={1} className="text-yellow-300" />
             <span className="text-gray-300">Mood</span>
             <span className="text-green-400 ml-auto">+{item.instantEffects.moodChange}</span>
           </div>
@@ -195,7 +197,7 @@ const EquipmentShopCard: React.FC<{
       <div className="flex flex-col gap-2 flex-1">
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">⚔️</span>
+            <PixelIcon grid={ITEM_ICONS[item.slot]} palette={ICON_PALETTE} scale={2} />
             <div>
               <h3 className="text-lg font-bold text-pixel-text">{item.name}</h3>
             </div>
@@ -259,7 +261,7 @@ const AbilityShopCard: React.FC<{
       >
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">✨</span>
+            <PixelIcon grid={GLYPHS.sparkle} scale={2} className={rarityColor} />
             <div>
               <h3 className={`text-lg font-bold ${rarityColor}`}>
                 {formatAbilityName(item.abilityId)}
@@ -337,8 +339,9 @@ export const Shop: React.FC = () => {
             comparison against this number */}
       <div className="sticky top-2 z-20 mb-6 bg-yellow-900 border-4 border-yellow-500 px-4 py-2 flex items-center justify-between gap-3">
         <div className="flex items-baseline gap-3 min-w-0">
-          <span className="text-sm font-bold text-yellow-200 whitespace-nowrap">
-            💰<span className="hidden sm:inline"> Balance</span>
+          <span className="inline-flex items-center gap-2 text-sm font-bold text-yellow-200 whitespace-nowrap">
+            <PixelIcon grid={GLYPHS.coin} scale={2} />
+            <span className="hidden sm:inline">Balance</span>
           </span>
         </div>
         <span className="flex flex-wrap items-center justify-end gap-x-3">
@@ -352,7 +355,11 @@ export const Shop: React.FC = () => {
       {!isShopAvailable ? (
         <Card className="bg-gray-900 border-gray-600">
           <div className="text-center py-12">
-            <div className="text-6xl mb-4">🔒</div>
+            <PixelIcon
+              grid={GLYPHS.lock}
+              scale={4}
+              className="mx-auto mb-4 text-pixel-text-muted"
+            />
             <h2 className="text-2xl font-bold text-pixel-text mb-2">Shop Unlocks Day 7</h2>
             <p className="text-pixel-text-muted">
               Complete more matches and training to access the shop!
@@ -365,7 +372,12 @@ export const Shop: React.FC = () => {
       ) : shopItems.length === 0 ? (
         <Card className="bg-gray-900 border-gray-600">
           <div className="text-center py-12">
-            <div className="text-6xl mb-4">🛒</div>
+            <PixelIcon
+              grid={MENU_ICONS.shop}
+              palette={ICON_PALETTE}
+              scale={4}
+              className="mx-auto mb-4"
+            />
             <h2 className="text-2xl font-bold text-pixel-text mb-2">Shop Closed</h2>
             <p className="text-pixel-text-muted">
               The shop is closed for today. Check back tomorrow!

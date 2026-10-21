@@ -1585,7 +1585,7 @@ export const careerEvents: StoryEvent[] = [
       {
         id: 'accept_immediately',
         text: 'Accept Immediately',
-        emoji: '✅',
+        mood: 'bold',
         description: 'Take the deal as offered',
         outcome: {
           resultText: [
@@ -1608,7 +1608,7 @@ export const careerEvents: StoryEvent[] = [
       {
         id: 'negotiate',
         text: 'Negotiate Terms',
-        emoji: '💼',
+        mood: 'smart',
         description: 'Try to get a better deal',
         prerequisites: {
           stats: { anticipation: { min: 30 } },
@@ -1634,7 +1634,7 @@ export const careerEvents: StoryEvent[] = [
       {
         id: 'decline_politely',
         text: 'Decline Politely',
-        emoji: '🤝',
+        mood: 'decline',
         description: 'Turn down the offer to focus on development',
         outcome: {
           resultText: [
@@ -1729,7 +1729,7 @@ export const careerEvents: StoryEvent[] = [
       {
         id: 'sign_with_agent',
         text: 'Sign with Agent',
-        emoji: '📝',
+        mood: 'careful',
         description: 'Get professional representation',
         outcome: {
           resultText: [
@@ -1753,7 +1753,7 @@ export const careerEvents: StoryEvent[] = [
       {
         id: 'wait_and_see',
         text: 'Ask for Time to Think',
-        emoji: '⏳',
+        mood: 'careful',
         description: 'Not ready to commit yet',
         outcome: {
           resultText: [
@@ -1765,7 +1765,7 @@ export const careerEvents: StoryEvent[] = [
       {
         id: 'stay_independent',
         text: 'Stay Independent',
-        emoji: '💪',
+        mood: 'bold',
         description: 'Handle your own career for now',
         outcome: {
           resultText: [
@@ -1844,7 +1844,7 @@ export const careerEvents: StoryEvent[] = [
       {
         id: 'power_setup',
         text: 'Power Setup',
-        emoji: '💥',
+        mood: 'bold',
         description: 'Focus on power and aggressive play',
         outcome: {
           resultText: [
@@ -1861,7 +1861,7 @@ export const careerEvents: StoryEvent[] = [
       {
         id: 'control_setup',
         text: 'Control Setup',
-        emoji: '🎯',
+        mood: 'smart',
         description: 'Emphasize precision and consistency',
         outcome: {
           resultText: [
@@ -1878,7 +1878,7 @@ export const careerEvents: StoryEvent[] = [
       {
         id: 'balanced_setup',
         text: 'Balanced Setup',
-        emoji: '⚖️',
+        mood: 'careful',
         description: 'All-around versatility',
         outcome: {
           resultText: [

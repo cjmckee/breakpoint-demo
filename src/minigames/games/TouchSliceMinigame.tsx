@@ -268,10 +268,8 @@ export const TouchSliceMinigame: React.FC<MinigameProps> = ({
                 className={`rounded-full bg-pixel-ball border-4 flex items-center justify-center animate-pixel-scale ${
                   pop.good ? 'border-pixel-success' : 'border-pixel-error'
                 }`}
-                style={{ width: uMin(6.8, 28), height: uMin(6.8, 28), fontSize: uMin(3, 12) }}
-              >
-                🎾
-              </div>
+                style={{ width: uMin(6.8, 28), height: uMin(6.8, 28) }}
+              />
             </div>
           )}
         </div>

@@ -8,12 +8,14 @@ import React from 'react';
 import type { Item } from '../../types/items';
 import type { StatBoosts } from '../../types/game';
 import { getStatIcon, formatStatName } from '../../config/statIcons';
+import { PixelIcon } from '../ui/PixelIcon';
 import { describeEffects } from '../../utils/effectLabels';
+import { GLYPHS } from '../../data/pixelIcons';
 
-/** A single stat boost pill, e.g. 🎾 Serve +5 */
+/** A single stat boost pill: icon, name, +5 */
 export const StatPill: React.FC<{ stat: string; value: number }> = ({ stat, value }) => (
   <span className="inline-flex items-center gap-1 bg-pixel-bg border-2 border-pixel-border px-2 py-1 text-xs">
-    <span>{getStatIcon(stat)}</span>
+    <PixelIcon grid={getStatIcon(stat)} scale={1} />
     <span className="text-pixel-text-muted">{formatStatName(stat)}</span>
     <span className={value >= 0 ? 'text-green-400 font-bold' : 'text-red-400 font-bold'}>
       {value >= 0 ? '+' : ''}
@@ -47,7 +49,7 @@ export const EffectChips: React.FC<{ additional?: Record<string, number> }> = ({
           key={effect.key}
           className="inline-flex items-center gap-1 bg-pixel-secondary/40 border-2 border-pixel-secondary px-2 py-1 text-xs"
         >
-          <span>{effect.icon}</span>
+          <PixelIcon grid={effect.icon} scale={1} />
           <span className="text-pixel-text-muted">{effect.label}</span>
           <span className={effect.positive ? 'text-green-400 font-bold' : 'text-red-400 font-bold'}>
             {effect.value}
@@ -107,7 +109,7 @@ export const ItemEffects: React.FC<ItemEffectsProps> = ({ item, compact = false 
                 {typeof consumable.instantEffects.moodChange === 'number' &&
                   consumable.instantEffects.moodChange !== 0 && (
                     <span className="inline-flex items-center gap-1 bg-pixel-bg border-2 border-pixel-border px-2 py-1 text-xs">
-                      <span>😊</span>
+                      <PixelIcon grid={GLYPHS.smile} scale={1} />
                       <span className="text-pixel-text-muted">Mood</span>
                       <span
                         className={
@@ -124,7 +126,7 @@ export const ItemEffects: React.FC<ItemEffectsProps> = ({ item, compact = false 
                 {typeof consumable.instantEffects.respecTokens === 'number' &&
                   consumable.instantEffects.respecTokens > 0 && (
                     <span className="inline-flex items-center gap-1 bg-pixel-bg border-2 border-pixel-border px-2 py-1 text-xs">
-                      <span>🔄</span>
+                      <PixelIcon grid={GLYPHS.loop} scale={1} />
                       <span className="text-pixel-text-muted">Respec Token</span>
                       <span className="text-green-400 font-bold">
                         +{consumable.instantEffects.respecTokens}

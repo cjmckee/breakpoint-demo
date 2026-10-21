@@ -23,6 +23,8 @@ import { directionFromKey, type Direction } from '../../utils/gameKeys';
 import type { MinigameProps } from '../types';
 
 import { random } from '../../core/random';
+import { PixelIcon } from '../../components/ui/PixelIcon';
+import { GLYPHS, ICON_PALETTE } from '../../data/pixelIcons';
 /** Five casts, ramping. Longer than a training drill, so the ramp is gentler. */
 const CASTS = 5;
 const SPEED_RAMP = [1, 1.06, 1.13, 1.21, 1.3];
@@ -385,11 +387,12 @@ export const FishingCastMinigame: React.FC<MinigameProps> = ({
               style={{
                 left: u(view.fish.x),
                 top: u(view.fish.y),
-                fontSize: uMin(4.3, 16),
+                width: uMin(4.3, 16),
+                height: uMin(4.3, 16),
                 transform: `translate(-50%, -50%) scaleX(${view.facingRight ? -1 : 1})`,
               }}
             >
-              🐟
+              <PixelIcon grid={GLYPHS.fish} color={ICON_PALETTE.o} className="w-full h-full" />
             </div>
           </>
         )}
@@ -412,9 +415,13 @@ export const FishingCastMinigame: React.FC<MinigameProps> = ({
                   ? 'bg-pixel-success/30 border-pixel-success'
                   : 'bg-pixel-bg border-pixel-error'
               }`}
-              style={{ width: uMin(7.2, 28), height: uMin(7.2, 28), fontSize: uMin(3.2, 12) }}
+              style={{ width: uMin(7.2, 28), height: uMin(7.2, 28) }}
             >
-              {splash.caught ? '🐟' : '💧'}
+              <PixelIcon
+                grid={splash.caught ? GLYPHS.fish : GLYPHS.drop}
+                color={splash.caught ? ICON_PALETTE.o : ICON_PALETTE.b}
+                className="w-1/2 h-1/2"
+              />
             </div>
           </div>
         )}

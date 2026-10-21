@@ -7,17 +7,34 @@
 import React from 'react';
 import type { Currency, CurrencyAmounts as Amounts } from '../../types/game';
 import { CURRENCIES, CURRENCY_LABELS } from '../../config/economy';
+import { CURRENCY_ICONS } from '../../data/pixelIcons';
+import { PixelIcon } from '../ui/PixelIcon';
 
 /**
  * One look per currency, used everywhere the currency appears. None of them is
- * red: red is reserved for a loss, so a loss reads as one at a glance.
+ * red: red is reserved for a loss, so a loss reads as one at a glance. `colour` is
+ * `text` as a hex, for the icon, which keeps its colour when the amount turns red.
  */
-export const CURRENCY_STYLE: Record<Currency, { icon: string; text: string; short: string }> = {
-  power: { icon: '💪', text: 'text-orange-400', short: 'P' },
-  quickness: { icon: '⚡', text: 'text-green-400', short: 'Q' },
-  technique: { icon: '🎯', text: 'text-purple-300', short: 'T' },
-  mind: { icon: '🧠', text: 'text-yellow-300', short: 'M' },
+export const CURRENCY_STYLE: Record<Currency, { text: string; colour: string; short: string }> = {
+  power: { text: 'text-orange-400', colour: '#fb923c', short: 'P' },
+  quickness: { text: 'text-green-400', colour: '#4ade80', short: 'Q' },
+  technique: { text: 'text-purple-300', colour: '#d8b4fe', short: 'T' },
+  mind: { text: 'text-yellow-300', colour: '#fde047', short: 'M' },
 };
+
+/** A currency's pixel icon in its own colour. `scale` 1 sits in small text, 2 in headings. */
+export const CurrencyIcon: React.FC<{ currency: Currency; scale?: number; className?: string }> = ({
+  currency,
+  scale = 1,
+  className,
+}) => (
+  <PixelIcon
+    grid={CURRENCY_ICONS[currency]}
+    color={CURRENCY_STYLE[currency].colour}
+    scale={scale}
+    className={className}
+  />
+);
 
 interface CurrencyAmountsProps {
   amounts: Amounts;
@@ -62,7 +79,7 @@ export const CurrencyAmounts: React.FC<CurrencyAmountsProps> = ({
             data-amount={v}
             data-loss={v < 0 || undefined}
           >
-            <span aria-hidden="true">{style.icon}</span>
+            <CurrencyIcon currency={c} />
             {signed && v > 0 ? '+' : ''}
             {v}
             {labelled && (

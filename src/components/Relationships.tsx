@@ -20,6 +20,8 @@ import {
   hasUnseenTierEvent,
 } from '../data/hangoutCharacters';
 import { TimeSlot } from '../types/game';
+import { PixelIcon } from './ui/PixelIcon';
+import { GLYPHS, ICON_PALETTE, MENU_ICONS, TIME_SLOT_ICONS } from '../data/pixelIcons';
 
 export const Relationships: React.FC = () => {
   const player = useGameStore((state) => state.player);
@@ -73,7 +75,12 @@ export const Relationships: React.FC = () => {
       {sorted.length === 0 ? (
         <Card>
           <div className="text-center py-8">
-            <div className="text-6xl mb-4">👥</div>
+            <PixelIcon
+              grid={MENU_ICONS.relationships}
+              palette={ICON_PALETTE}
+              scale={4}
+              className="mx-auto mb-4"
+            />
             <p className="text-pixel-text-muted">You'll meet people as the story goes on.</p>
           </div>
         </Card>
@@ -119,7 +126,20 @@ export const Relationships: React.FC = () => {
                           onClick={() => hangoutWithCharacter(character.id)}
                           testId={`relationship-hangout-${character.id}`}
                         >
-                          {isNightTime ? '🌙 Tomorrow' : `★ Hang Out · ⚡${HANGOUT_ENERGY_COST}`}
+                          <span className="inline-flex items-center gap-1.5 align-middle">
+                            {isNightTime ? (
+                              <>
+                                <PixelIcon grid={TIME_SLOT_ICONS[TimeSlot.NIGHT]} scale={1} />
+                                Tomorrow
+                              </>
+                            ) : (
+                              <>
+                                ★ Hang Out ·
+                                <PixelIcon grid={GLYPHS.energy} scale={1} />
+                                {HANGOUT_ENERGY_COST}
+                              </>
+                            )}
+                          </span>
                         </Button>
                       )}
                     </div>
@@ -167,10 +187,10 @@ const Portrait: React.FC<{ appearance: Appearance; scale: number }> = ({ appeara
 
 /** One icon and name per hangout tier, so a tier reads as a place, not a number. */
 const TIERS = [
-  { icon: '🤝', label: 'Acquaintance' },
-  { icon: '😊', label: 'Friend' },
-  { icon: '💛', label: 'Close' },
-  { icon: '💎', label: 'Trusted' },
+  { icon: GLYPHS.speech, label: 'Acquaintance' },
+  { icon: GLYPHS.smile, label: 'Friend' },
+  { icon: GLYPHS.heart, label: 'Close' },
+  { icon: GLYPHS.gem, label: 'Trusted' },
 ] as const;
 
 /**
@@ -189,15 +209,19 @@ const BondTrack: React.FC<{ value: number; thresholds: readonly number[] }> = ({
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-x-3 mb-1.5 text-xs">
-        <span className="font-bold text-pixel-text whitespace-nowrap">
-          <span aria-hidden="true">{TIERS[tier].icon} </span>
+        <span className="inline-flex items-center gap-1.5 font-bold text-pixel-text whitespace-nowrap">
+          <PixelIcon grid={TIERS[tier].icon} scale={1} />
           {TIERS[tier].label}
         </span>
         {value < 0 ? (
-          <span className="font-bold text-pixel-error whitespace-nowrap">🧊 Strained {value}</span>
+          <span className="inline-flex items-center gap-1.5 font-bold text-pixel-error whitespace-nowrap">
+            <PixelIcon grid={GLYPHS.heart_broken} scale={1} />
+            Strained {value}
+          </span>
         ) : next !== undefined ? (
-          <span className="text-pixel-text-muted">
-            {TIERS[tier + 1].icon} in {next - value}
+          <span className="inline-flex items-center gap-1.5 text-pixel-text-muted">
+            <PixelIcon grid={TIERS[tier + 1].icon} scale={1} />
+            in {next - value}
           </span>
         ) : (
           <span className="text-pixel-text-muted">Max</span>
@@ -219,7 +243,7 @@ const BondTrack: React.FC<{ value: number; thresholds: readonly number[] }> = ({
               title={`${TIERS[i + 1].label} at ${t}`}
               aria-hidden="true"
             >
-              {TIERS[i + 1].icon}
+              <PixelIcon grid={TIERS[i + 1].icon} scale={1} />
             </span>
           );
         })}

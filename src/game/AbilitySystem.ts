@@ -90,20 +90,6 @@ export class AbilitySystem {
   }
 
   /**
-   * Get ability rarity emoji
-   */
-  static getRarityEmoji(rarity: AbilityRarity): string {
-    const emojis = {
-      common: '⚪',
-      uncommon: '🟢',
-      rare: '🔵',
-      legendary: '🟡',
-    };
-
-    return emojis[rarity];
-  }
-
-  /**
    * Calculate total stat boosts from multiple abilities
    */
   static calculateTotalBoosts(abilities: Ability[]): StatBoosts {

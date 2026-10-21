@@ -5,6 +5,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { useMenuModal, type EncyclopediaSectionId } from '../hooks/useMenuModal';
+import { GLYPHS, SURFACE_ICONS, type PixelGrid } from '../data/pixelIcons';
+import { PixelIcon } from './ui/PixelIcon';
+
+const SECTION_ICONS: Record<EncyclopediaSectionId, PixelGrid> = {
+  scoring: GLYPHS.scoreboard,
+  'tennis-terms': GLYPHS.letters,
+  'stats-guide': GLYPHS.bars,
+  'surface-guide': SURFACE_ICONS.hard,
+  'key-shortcuts': GLYPHS.keyboard,
+  'match-help': GLYPHS.swords,
+  relationships: GLYPHS.heart,
+};
 import { UnseenBadge } from './ui/UnseenBadge';
 import {
   TENNIS_TERMS,
@@ -68,7 +80,7 @@ export const Encyclopedia: React.FC = () => {
                 : 'bg-pixel-bg-dark text-pixel-text-muted hover:text-pixel-text'
             }`}
           >
-            <span>{section.icon}</span>
+            <PixelIcon grid={SECTION_ICONS[section.id]} scale={1} />
             <span>{section.label}</span>
             {section.isNew && <UnseenBadge size="sm" />}
           </button>

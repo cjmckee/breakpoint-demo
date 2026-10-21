@@ -128,7 +128,7 @@ export const rivalEvents: StoryEvent[] = [
       {
         id: 'win_without_them',
         text: 'Try to win without them',
-        emoji: '📣',
+        mood: 'bold',
         description: 'Focus on yourself and let Jordan embarrass themselves',
         outcome: {
           resultText: [
@@ -150,7 +150,7 @@ export const rivalEvents: StoryEvent[] = [
       {
         id: 'adapt_your_game',
         text: 'Adapt your game around them',
-        emoji: '🧩',
+        mood: 'smart',
         description: 'Try to play around Jordan',
         outcome: {
           resultText: [
@@ -174,7 +174,7 @@ export const rivalEvents: StoryEvent[] = [
       {
         id: 'aim_at_jordan',
         text: 'Aim a return at Jordan',
-        emoji: '🎯',
+        mood: 'cheeky',
         description: 'Purely accidental, of course',
         outcome: {
           resultText: [
@@ -216,7 +216,7 @@ export const rivalEvents: StoryEvent[] = [
       {
         id: 'offer_encouragement',
         text: 'Offer a word of encouragement',
-        emoji: '🤝',
+        mood: 'kind',
         description: 'Be the bigger person',
         outcome: {
           resultText: [
@@ -235,7 +235,7 @@ export const rivalEvents: StoryEvent[] = [
       {
         id: 'walk_past',
         text: 'Walk past without comment',
-        emoji: '🚶',
+        mood: 'decline',
         description: 'Let them have their moment',
         outcome: {
           resultText: [
@@ -254,7 +254,7 @@ export const rivalEvents: StoryEvent[] = [
       {
         id: 'say_something_cutting',
         text: 'Say something cutting',
-        emoji: '😈',
+        mood: 'cheeky',
         description: 'They had it coming',
         outcome: {
           resultText: [

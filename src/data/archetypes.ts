@@ -5,6 +5,7 @@
  */
 
 import type { PlayStyle } from '../types';
+import { GLYPHS, type PixelGrid } from './pixelIcons';
 
 export type ArchetypeType = PlayStyle['type'];
 
@@ -22,9 +23,10 @@ export interface ArchetypeTendency {
    * nothing for a colour to disambiguate.
    *
    * Animals rather than symbols because the silhouettes stay distinct at 12px,
-   * and because each one carries the playstyle without a legend.
+   * and because each one carries the playstyle without a legend. Draw it with
+   * `<ArchetypeLabel>`.
    */
-  glyph: string;
+  glyph: PixelGrid;
   servingTendency: string;
   returningTendency: string;
   rallyTendency: string;
@@ -33,7 +35,7 @@ export interface ArchetypeTendency {
 export const ARCHETYPE_DATA: Record<ArchetypeType, ArchetypeTendency> = {
   aggressive: {
     type: 'aggressive',
-    glyph: '🐅', // hunts, strikes early
+    glyph: GLYPHS.tiger, // hunts, strikes early
     label: 'Aggressive Baseliner',
     servingTendency: 'Goes for big serves, looks to end points early',
     returningTendency: 'Attacks the return with power, tries to take control immediately',
@@ -41,7 +43,7 @@ export const ARCHETYPE_DATA: Record<ArchetypeType, ArchetypeTendency> = {
   },
   defensive: {
     type: 'defensive',
-    glyph: '🐢', // retrieves everything, outlasts you
+    glyph: GLYPHS.turtle, // retrieves everything, outlasts you
     label: 'Defensive Pusher',
     servingTendency: 'Reliable placement, focuses on starting the rally',
     returningTendency: 'Gets everything back deep, waits for your mistakes',
@@ -49,7 +51,7 @@ export const ARCHETYPE_DATA: Record<ArchetypeType, ArchetypeTendency> = {
   },
   counterpuncher: {
     type: 'counterpuncher',
-    glyph: '🦂', // absorbs, then counters
+    glyph: GLYPHS.scorpion, // absorbs, then counters
     label: 'Counter-Puncher',
     servingTendency: 'Safe serves, sets up to defend and counter',
     returningTendency: 'Slices deep, neutralizes pace, resets the point',
@@ -57,7 +59,7 @@ export const ARCHETYPE_DATA: Record<ArchetypeType, ArchetypeTendency> = {
   },
   serve_volley: {
     type: 'serve_volley',
-    glyph: '🦅', // swoops forward at every chance
+    glyph: GLYPHS.eagle, // swoops forward at every chance
     label: 'Serve & Volleyer',
     servingTendency: 'Big serve then rushes the net immediately',
     returningTendency: 'Chips the return short, approaches the net',
@@ -65,7 +67,7 @@ export const ARCHETYPE_DATA: Record<ArchetypeType, ArchetypeTendency> = {
   },
   all_court: {
     type: 'all_court',
-    glyph: '🦊', // adapts, no obvious hole
+    glyph: GLYPHS.fox, // adapts, no obvious hole
     label: 'All-Court Player',
     servingTendency: 'Mixes up serve placement and power unpredictably',
     returningTendency: 'Adapts return based on serve, comfortable with any approach',
@@ -81,18 +83,4 @@ export const ARCHETYPE_DATA: Record<ArchetypeType, ArchetypeTendency> = {
 export function getRelevantTendency(archetype: ArchetypeType, isServing: boolean): string {
   const data = ARCHETYPE_DATA[archetype];
   return isServing ? data.servingTendency : data.returningTendency;
-}
-
-/**
- * Get archetype label for display, glyph included.
- *
- * The glyph lives here rather than at each call site so the same mark appears
- * everywhere the archetype is named — match setup, the pre-match screen, the
- * opponent preview and the key moment header — and a player has seen it several
- * times before a key moment asks them to act on it. `ARCHETYPE_DATA[t].label`
- * remains the plain text for anywhere that needs it without the glyph.
- */
-export function getArchetypeLabel(archetype: ArchetypeType): string {
-  const data = ARCHETYPE_DATA[archetype];
-  return `${data.glyph} ${data.label}`;
 }

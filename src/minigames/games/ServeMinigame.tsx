@@ -18,6 +18,8 @@ import { MinigameArena, ARENA_H, u, uMin, pctY } from '../shared/MinigameArena';
 import { directionFromKey, isActionKey } from '../../utils/gameKeys';
 
 import { random } from '../../core/random';
+import { PixelIcon } from '../../components/ui/PixelIcon';
+import { GLYPHS } from '../../data/pixelIcons';
 // Everything is in arena units (see MinigameArena). The toss is anchored to the
 // bottom of the court; the space above its apex is headroom.
 const START_Y = ARENA_H - 3.5; // where the toss leaves the hand
@@ -291,12 +293,9 @@ export const ServeMinigame: React.FC<MinigameProps> = ({
               top: u(ball.y),
               width: uMin(6.2, 24),
               height: uMin(6.2, 24),
-              fontSize: uMin(2.7, 11),
               transform: 'translate(-50%, -50%)',
             }}
-          >
-            🎾
-          </div>
+          ></div>
         )}
         {struck && (
           <div
@@ -304,11 +303,12 @@ export const ServeMinigame: React.FC<MinigameProps> = ({
             style={{
               left: u(ball.x),
               top: u(Math.max(2.6, ball.y - 8.8)),
-              fontSize: uMin(4.1, 16),
+              width: uMin(4.1, 16),
+              height: uMin(4.1, 16),
               transform: 'translate(-50%, -50%)',
             }}
           >
-            💥
+            <PixelIcon grid={GLYPHS.burst} color="#fde047" className="w-full h-full" />
           </div>
         )}
 

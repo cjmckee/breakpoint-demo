@@ -22,6 +22,8 @@ import { Button } from './ui/Button';
 import { WelcomeOverlay } from './WelcomeOverlay';
 import { PixelSprite } from './sprites/PixelSprite';
 import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
+import { PixelIcon } from './ui/PixelIcon';
+import { GLYPHS } from '../data/pixelIcons';
 
 /** The preview plays these on a loop, so the look is seen moving without a control. */
 const PREVIEW_SEQUENCE: readonly { pose: SpritePose; ms: number }[] = [
@@ -68,9 +70,12 @@ function SwatchRow<K extends string>({
             style={{ backgroundColor: colorOf(key) }}
           >
             {key === selected && (
-              <span className="text-white text-lg leading-none font-black [text-shadow:0_0_2px_#000,0_0_3px_#000]">
-                ✓
-              </span>
+              <PixelIcon
+                grid={GLYPHS.check}
+                color="#ffffff"
+                scale={1}
+                className="[filter:drop-shadow(0_0_1px_#000)_drop-shadow(0_0_1px_#000)]"
+              />
             )}
           </button>
         ))}
@@ -113,7 +118,13 @@ function ChoiceRow<K extends string>({
                 : 'border-pixel-border text-pixel-text-muted [@media(hover:hover)]:hover:border-pixel-secondary'
             }`}
           >
-            {key === selected && <span className="text-pixel-accent">✓ </span>}
+            {key === selected && (
+              <PixelIcon
+                grid={GLYPHS.check}
+                scale={1}
+                className="inline-block mr-1.5 text-pixel-accent"
+              />
+            )}
             {nameOf(key)}
           </button>
         ))}
@@ -201,7 +212,10 @@ export const PlayerCreation: React.FC = () => {
                   testId="creator-randomize"
                   onClick={() => setAppearance(randomAppearance(Math.random))}
                 >
-                  🎲 Randomize
+                  <span className="inline-flex items-center gap-2 align-middle">
+                    <PixelIcon grid={GLYPHS.die} scale={1} />
+                    Randomize
+                  </span>
                 </Button>
               </div>
 

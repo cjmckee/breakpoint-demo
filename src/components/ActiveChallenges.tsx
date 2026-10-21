@@ -10,6 +10,8 @@ import { UnseenBadge } from './ui/UnseenBadge';
 import { Button } from './ui/Button';
 import { ChallengeRewardChips } from './ChallengeRewardChips';
 import type { Challenge } from '../types/challenges';
+import { PixelIcon } from './ui/PixelIcon';
+import { GLYPHS, ICON_PALETTE, MENU_ICONS } from '../data/pixelIcons';
 
 export const ActiveChallenges: React.FC = () => {
   const activeChallenges = useGameStore((state) => state.activeChallenges);
@@ -93,7 +95,12 @@ export const ActiveChallenges: React.FC = () => {
     return (
       <Card padding="sm">
         <div className="text-center py-8">
-          <div className="text-5xl mb-3">📋</div>
+          <PixelIcon
+            grid={MENU_ICONS.challenges}
+            palette={ICON_PALETTE}
+            scale={3}
+            className="mx-auto mb-3"
+          />
           <p className="text-sm text-pixel-text-muted">
             No active challenges — new quests will appear here as you play.
           </p>
@@ -124,8 +131,12 @@ export const ActiveChallenges: React.FC = () => {
                 className="flex items-center gap-3 cursor-pointer"
                 onClick={() => toggleChallenge(challenge.id)}
               >
-                <span className="text-xl relative shrink-0">
-                  {isCompleted ? '✅' : '📋'}
+                <span className="relative shrink-0">
+                  {isCompleted ? (
+                    <PixelIcon grid={GLYPHS.check} scale={2} className="text-green-500" />
+                  ) : (
+                    <PixelIcon grid={MENU_ICONS.challenges} palette={ICON_PALETTE} scale={1} />
+                  )}
                   {!seenIds.includes(challenge.id) && (
                     <UnseenBadge size="sm" className="absolute -top-2 -right-3" />
                   )}

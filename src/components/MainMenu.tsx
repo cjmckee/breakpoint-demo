@@ -29,7 +29,7 @@ import { calculateOverallRating } from '../core/PlayerProfile';
 import { getLetterGrade } from '../utils/playerStats';
 import { GAME_AREAS, GAME_AREA_LABELS, gameAreaRatings } from '../core/gameAreas';
 import { PixelIcon } from './ui/PixelIcon';
-import { ICON_PALETTE, MENU_ICONS } from '../data/pixelIcons';
+import { GLYPHS, ICON_PALETTE, MENU_ICONS } from '../data/pixelIcons';
 
 /**
  * A menu action's pixel icon, at whole-pixel sizes so it stays crisp: 32px on
@@ -250,9 +250,19 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
   const newUnits = hasNewCurrency(player) ? unitsOf(newCurrency(player)) : 0;
   const specPoints = unspentSpecPoints(player);
   const canDevelop = newUnits > 0 || specPoints > 0;
-  const developCaption = [newUnits > 0 && `+${newUnits}`, specPoints > 0 && `⭐${specPoints}`]
-    .filter(Boolean)
-    .join(' · ');
+  const developCaption = (
+    <span className="inline-flex items-center gap-1">
+      {newUnits > 0 && `+${newUnits}`}
+      {newUnits > 0 && specPoints > 0 && ' · '}
+      {specPoints > 0 && (
+        <>
+          <PixelIcon grid={GLYPHS.star} scale={1} />
+          {specPoints}
+        </>
+      )}{' '}
+      to spend
+    </span>
+  );
 
   // Challenge summary for the menu strip — the full list lives on its own screen.
   const challengeCount = activeChallenges.length;
@@ -426,7 +436,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
                     title={player.archetypeProfile.broad ? 'Open archetype tree' : undefined}
                     className="inline-flex items-center gap-1.5 text-sm px-3 py-1 bg-pixel-accent bg-opacity-20 border-2 border-pixel-accent text-pixel-accent font-bold enabled:hover:bg-opacity-30 transition-colors"
                   >
-                    <span aria-hidden="true">⬡</span>
+                    <PixelIcon grid={GLYPHS.hexagon} scale={1} />
                     {archetypeLabel}
                   </button>
                 </div>
@@ -587,7 +597,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ overlay }) => {
               variant="secondary"
               icon={<MenuIcon name="develop" />}
               label="Develop"
-              caption={canDevelop ? `${developCaption} to spend` : undefined}
+              caption={canDevelop ? developCaption : undefined}
               badge={canDevelop}
               onClick={() => navigateTo('development')}
               className="w-full"

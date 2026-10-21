@@ -9,8 +9,6 @@ import {
   calculateOverallRating,
   getTierLabel,
   getTierColor,
-  getSurfaceEmoji,
-  getArchetypeLabel,
   getArchetypeData,
   STAT_LABELS,
   flattenStats,
@@ -22,6 +20,8 @@ import type { ArchetypeType } from '../data/archetypes';
 import { PixelSprite } from './sprites/PixelSprite';
 import { getOpponentAppearance } from '../data/characters';
 import type { StatName } from '../types';
+import { SurfaceIcon } from './ui/SurfaceIcon';
+import { ArchetypeLabel } from './ui/ArchetypeLabel';
 
 interface OpponentPreviewCardProps {
   opponentName: string;
@@ -45,7 +45,6 @@ export const OpponentPreviewCard: React.FC<OpponentPreviewCardProps> = ({
   const topStats = getTopNStats(opponentStats, 5);
   const bottomStats = getBottomNStats(opponentStats, 5);
   const overallRating = calculateOverallRating(opponentStats);
-  const archetypeLabel = getArchetypeLabel(opponentPlayStyle.type);
   const archetype = getArchetypeData(opponentPlayStyle.type);
 
   return (
@@ -129,7 +128,9 @@ export const OpponentPreviewCard: React.FC<OpponentPreviewCardProps> = ({
           <div className="text-pixel-text-muted mb-1 uppercase tracking-wide font-bold">
             Playstyle
           </div>
-          <div className="text-pixel-text font-medium">{archetypeLabel}</div>
+          <div className="text-pixel-text font-medium">
+            <ArchetypeLabel archetype={opponentPlayStyle.type} />
+          </div>
           {archetype && (
             <div className="text-xs text-pixel-text-muted mt-1 italic">
               "{archetype.servingTendency}"
@@ -140,8 +141,9 @@ export const OpponentPreviewCard: React.FC<OpponentPreviewCardProps> = ({
         <div className="pt-2 border-t border-pixel-border">
           <div className="flex items-center justify-between">
             <span className="text-pixel-text-muted font-medium">Surface:</span>
-            <span className="text-pixel-text font-bold">
-              {getSurfaceEmoji(surface)} {surface.toUpperCase()}
+            <span className="inline-flex items-center gap-1.5 text-pixel-text font-bold">
+              <SurfaceIcon surface={surface} />
+              {surface.toUpperCase()}
             </span>
           </div>
         </div>

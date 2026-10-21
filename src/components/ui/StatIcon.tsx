@@ -1,10 +1,9 @@
 /**
  * StatIcon
  *
- * Renders a stat as its canonical emoji, with the stat's name revealed on hover or
- * keyboard focus. Emoji alone is ambiguous to a screen reader (🩹 announces as
- * "adhesive bandage", not "Recovery"), so the name is always exposed via aria-label
- * and the raw glyph is hidden from the accessibility tree.
+ * Renders a stat as its pixel icon, with the stat's name revealed on hover or
+ * keyboard focus. The icon says nothing to a screen reader, so the name is always
+ * exposed via aria-label.
  *
  * Use `showLabel` when there's room for the name to sit alongside the icon; the
  * tooltip is then redundant and is suppressed.
@@ -13,6 +12,7 @@
 import React from 'react';
 import type { StatName } from '../../types';
 import { getStatIcon, formatStatName } from '../../config/statIcons';
+import { PixelIcon } from './PixelIcon';
 
 interface StatIconProps {
   stat: StatName | string;
@@ -40,7 +40,7 @@ export const StatIcon: React.FC<StatIconProps> = ({
   if (showLabel) {
     return (
       <span className={`inline-flex items-center gap-1 ${className}`}>
-        <span aria-hidden="true">{icon}</span>
+        <PixelIcon grid={icon} scale={1} />
         <span>{label}</span>
       </span>
     );
@@ -53,7 +53,7 @@ export const StatIcon: React.FC<StatIconProps> = ({
         ? { 'aria-hidden': true as const }
         : { tabIndex: 0, role: 'img', 'aria-label': label })}
     >
-      <span aria-hidden="true">{icon}</span>
+      <PixelIcon grid={icon} scale={1} />
       <span
         role="tooltip"
         className="pointer-events-none absolute top-full left-1/2 z-20 mt-1.5 -translate-x-1/2 whitespace-nowrap border-2 border-pixel-border bg-pixel-bg px-1.5 py-0.5 text-[11px] font-bold text-pixel-text opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100"
