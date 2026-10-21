@@ -67,7 +67,7 @@ const Rally: React.FC = () => (
   <svg viewBox="0 0 96 48" className="w-full h-full" shapeRendering="crispEdges">
     <rect width="96" height="48" className="day-tx-sky day-tx-sky-early" />
     <Court />
-    {/* Across the court, and three bounces on the way. */}
+    {/* Across the court from the right, and three bounces on the way. */}
     <g className="day-tx-ball-x">
       <g className="day-tx-ball-y">
         <rect x="0" y="0" width="3" height="3" className="fill-[#d7f04a]" />

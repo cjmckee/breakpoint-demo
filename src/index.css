@@ -248,12 +248,13 @@ body {
   animation: day-tx-ball-bounce 0.8s ease-in infinite alternate;
 }
 
+/* Right to left, the other way from the ball machine's lobs. */
 @keyframes day-tx-ball-across {
   from {
-    transform: translateX(-4px);
+    transform: translateX(98px);
   }
   to {
-    transform: translateX(98px);
+    transform: translateX(-4px);
   }
 }
 
