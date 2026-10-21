@@ -18,7 +18,7 @@ import { PixelSprite } from './sprites/PixelSprite';
 import { transitionsEnabled } from '../utils/transitionsEnabled';
 
 /** Whole transition, fade in to fade out. Kept in step with `day-tx-*` in index.css. */
-const DAY_TRANSITION_MS = 1600;
+const DAY_TRANSITION_MS = 2400;
 /** With reduced motion: long enough to read the new day, nothing moves. */
 const STILL_TRANSITION_MS = 900;
 

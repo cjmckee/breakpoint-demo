@@ -120,14 +120,14 @@ body {
   }
 }
 
-/* Day transition (DayTransition.tsx). Every animation runs over the card's 1.6s:
+/* Day transition (DayTransition.tsx). Every animation runs over the card's 2.4s:
    fade in, the day number rolls over at about 40%, fade out over the last 15%. */
 .day-tx {
-  animation: day-tx-fade 1.6s ease-in-out forwards;
+  animation: day-tx-fade 2.4s ease-in-out forwards;
 }
 
 .day-tx-card {
-  animation: day-tx-rise 1.6s ease-out forwards;
+  animation: day-tx-rise 2.4s ease-out forwards;
 }
 
 @keyframes day-tx-fade {
@@ -154,11 +154,11 @@ body {
 }
 
 .day-tx-old {
-  animation: day-tx-roll-out 1.6s steps(4, end) forwards;
+  animation: day-tx-roll-out 2.4s steps(4, end) forwards;
 }
 
 .day-tx-new {
-  animation: day-tx-roll-in 1.6s steps(4, end) forwards;
+  animation: day-tx-roll-in 2.4s steps(4, end) forwards;
 }
 
 @keyframes day-tx-roll-out {
@@ -185,11 +185,11 @@ body {
 
 /* Night to morning. The rally and the jog start at first light. */
 .day-tx-sky {
-  animation: day-tx-dawn 1.6s linear forwards;
+  animation: day-tx-dawn 2.4s linear forwards;
 }
 
 .day-tx-sky-early {
-  animation-delay: -0.6s;
+  animation-delay: -0.9s;
 }
 
 @keyframes day-tx-dawn {
@@ -208,15 +208,15 @@ body {
 }
 
 .day-tx-moon {
-  animation: day-tx-set 1.6s ease-in forwards;
+  animation: day-tx-set 2.4s ease-in forwards;
 }
 
 .day-tx-moon-shadow {
-  animation: day-tx-dawn 1.6s linear forwards;
+  animation: day-tx-dawn 2.4s linear forwards;
 }
 
 .day-tx-sun {
-  animation: day-tx-up 1.6s ease-out forwards;
+  animation: day-tx-up 2.4s ease-out forwards;
 }
 
 @keyframes day-tx-set {
@@ -241,11 +241,11 @@ body {
 
 /* SVG user units: the ball crosses the 96-wide court and bounces three times. */
 .day-tx-ball-x {
-  animation: day-tx-ball-across 1.6s linear forwards;
+  animation: day-tx-ball-across 2.4s linear forwards;
 }
 
 .day-tx-ball-y {
-  animation: day-tx-ball-bounce 0.53s ease-in infinite alternate;
+  animation: day-tx-ball-bounce 0.8s ease-in infinite alternate;
 }
 
 @keyframes day-tx-ball-across {
@@ -267,7 +267,7 @@ body {
 }
 
 .day-tx-jogger {
-  animation: day-tx-jog 1.6s linear forwards;
+  animation: day-tx-jog 2.4s linear forwards;
 }
 
 @keyframes day-tx-jog {

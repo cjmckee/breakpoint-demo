@@ -37,8 +37,8 @@ test('sleeping plays the day card, which clears itself', async ({ page }) => {
   expect(after.calendar.currentDay).toBe(before.calendar.currentDay + 1);
   await expect(card).toHaveAttribute('aria-label', `Day ${TimeManager.seasonDay(after.calendar)}`);
 
-  // About a second and a half, then the morning is back.
-  await expect(card).toBeHidden({ timeout: 3_000 });
+  // About two and a half seconds, then the morning is back.
+  await expect(card).toBeHidden({ timeout: 4_000 });
 });
 
 test('a tap skips the day card', async ({ page }) => {
