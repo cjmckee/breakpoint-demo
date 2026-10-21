@@ -279,6 +279,93 @@ body {
   }
 }
 
+/* Ball machine: each ball flies the court in 0.9s, rising to its peak over the net. */
+.day-tx-shot-x {
+  opacity: 0;
+  animation: day-tx-shot-across 0.9s linear both;
+}
+
+.day-tx-shot-y {
+  animation: day-tx-shot-arc 0.9s both;
+}
+
+@keyframes day-tx-shot-across {
+  0% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(62px);
+  }
+}
+
+@keyframes day-tx-shot-arc {
+  0% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+  45% {
+    transform: translateY(-20px);
+    animation-timing-function: ease-in;
+  }
+  100% {
+    transform: translateY(4px);
+  }
+}
+
+/* Sweep: the brush crosses the court top to bottom, the smoothed clay following it. */
+.day-tx-swept {
+  transform-origin: 0 0;
+  animation: day-tx-sweep-clay 2.4s ease-in-out forwards;
+}
+
+.day-tx-brush {
+  animation: day-tx-sweep-brush 2.4s ease-in-out forwards;
+}
+
+@keyframes day-tx-sweep-clay {
+  0%,
+  10% {
+    transform: scaleY(0);
+  }
+  85%,
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes day-tx-sweep-brush {
+  0%,
+  10% {
+    transform: translateY(0);
+  }
+  85%,
+  100% {
+    transform: translateY(48px);
+  }
+}
+
+/* Coach: walks on from the right and stops just past the net (CoachArrives' COACH_STOPS). */
+.day-tx-coach {
+  left: 105%;
+  animation: day-tx-coach-in 2.4s forwards;
+}
+
+@keyframes day-tx-coach-in {
+  0% {
+    left: 105%;
+    animation-timing-function: ease-out;
+  }
+  55%,
+  100% {
+    left: 56%;
+  }
+}
+
 /* Reduced motion: a still card. The sky shows morning, the new day is already in. */
 @media (prefers-reduced-motion: reduce) {
   .day-tx,
@@ -289,8 +376,25 @@ body {
   .day-tx-sun,
   .day-tx-ball-x,
   .day-tx-ball-y,
-  .day-tx-jogger {
+  .day-tx-jogger,
+  .day-tx-shot-x,
+  .day-tx-shot-y,
+  .day-tx-swept,
+  .day-tx-brush,
+  .day-tx-coach {
     animation: none;
+  }
+
+  .day-tx-shot-x {
+    opacity: 1;
+  }
+
+  .day-tx-brush {
+    opacity: 0;
+  }
+
+  .day-tx-coach {
+    left: 56%;
   }
 
   .day-tx-sky,
