@@ -47,9 +47,15 @@ interface Step {
   to: TimeSlot;
   /** The story event on screen when the clock moved: the one being resolved, if any. */
   resolving: string | null;
+  /**
+   * The clock moved on a match result. What follows a match (its post-match event, a
+   * tournament's round and ceremony events, item notices) comes as one chain that ends
+   * back on the menu, so the beat waits for the menu.
+   */
+  untilMenu: boolean;
 }
 
-interface Transition extends Omit<Step, 'resolving'> {
+interface Transition extends Omit<Step, 'resolving' | 'untilMenu'> {
   /** Bumps on every beat, so back-to-back beats restart the animation. */
   key: number;
 }
@@ -63,10 +69,12 @@ function storyEventOn(phase: GamePhase): string | null {
 
 /**
  * Whether the screen still belongs to the slot the clock just left: the story event
- * being resolved, its minigame, a result, and the notices that follow a result. The
- * beat holds through all of them and plays on whatever comes next.
+ * being resolved, its minigame, a result, the notices that follow a result, and after
+ * a match everything up to the menu. The beat holds through all of them and plays on
+ * whatever comes next.
  */
-function belongsToOldSlot(phase: GamePhase, resolving: string | null): boolean {
+function belongsToOldSlot(phase: GamePhase, step: Step): boolean {
+  if (step.untilMenu) return phase.type !== 'idle' || phase.overlay !== null;
   if (
     phase.type === 'match_results' ||
     phase.type === 'story_event_result' ||
@@ -75,7 +83,7 @@ function belongsToOldSlot(phase: GamePhase, resolving: string | null): boolean {
     return true;
   }
   const shown = storyEventOn(phase);
-  if (shown !== null) return shown === resolving;
+  if (shown !== null) return shown === step.resolving;
   if (phase.type !== 'idle' || !phase.overlay) return false;
   const { type } = phase.overlay;
   return (
@@ -109,10 +117,14 @@ export const SlotTransition: React.FC = () => {
           // A story event still on screen when the clock moves is the one being resolved,
           // not the next slot's, so it and its result belong to the old slot.
           resolving: pending.current?.resolving ?? storyEventOn(prev.gamePhase),
+          untilMenu:
+            (pending.current?.untilMenu ?? false) ||
+            prev.gamePhase.type === 'match_results' ||
+            state.gamePhase.type === 'match_results',
         };
       }
       const step = pending.current;
-      if (!step || belongsToOldSlot(state.gamePhase, step.resolving)) return;
+      if (!step || belongsToOldSlot(state.gamePhase, step)) return;
       pending.current = null;
       // Before anything renders: the new slot's first modal may commit ahead of the beat.
       holdModals('slot');
