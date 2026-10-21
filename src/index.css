@@ -312,10 +312,10 @@ body {
   }
 }
 
-/* Slot transition (SlotTransition.tsx), 0.5s. Each icon rides an arm that turns about a
+/* Slot transition (SlotTransition.tsx), 1s. Each icon rides an arm that turns about a
    point 60px below it, like a dial; the icon turns back the other way to stay upright. */
 .slot-tx {
-  animation: slot-tx-fade 0.5s linear forwards;
+  animation: slot-tx-fade 1s linear forwards;
 }
 
 @keyframes slot-tx-fade {
@@ -346,22 +346,22 @@ body {
 }
 
 .slot-tx-arm-old {
-  animation: slot-tx-swing-off 0.5s forwards;
+  animation: slot-tx-swing-off 1s forwards;
 }
 
 .slot-tx-icon-old {
-  animation: slot-tx-upright-off 0.5s forwards;
+  animation: slot-tx-upright-off 1s forwards;
 }
 
 .slot-tx-arm-new {
   opacity: 0;
   transform: rotate(70deg);
-  animation: slot-tx-swing-on 0.5s forwards;
+  animation: slot-tx-swing-on 1s forwards;
 }
 
 .slot-tx-icon-new {
   transform: rotate(-70deg);
-  animation: slot-tx-upright-on 0.5s forwards;
+  animation: slot-tx-upright-on 1s forwards;
 }
 
 @keyframes slot-tx-swing-off {
@@ -465,7 +465,7 @@ body {
 /* Night: stars blink on around the moon once it is up. */
 .slot-tx-star {
   opacity: 0;
-  animation: slot-tx-blink 0.5s step-end forwards;
+  animation: slot-tx-blink 1s step-end forwards;
 }
 
 @keyframes slot-tx-blink {
@@ -480,12 +480,12 @@ body {
 }
 
 .slot-tx-name-old {
-  animation: slot-tx-roll-out 0.5s steps(4, end) forwards;
+  animation: slot-tx-roll-out 1s steps(4, end) forwards;
 }
 
 .slot-tx-name-new {
   transform: translateY(100%);
-  animation: slot-tx-roll-in 0.5s steps(4, end) forwards;
+  animation: slot-tx-roll-in 1s steps(4, end) forwards;
 }
 
 @keyframes slot-tx-roll-out {

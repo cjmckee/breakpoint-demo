@@ -1,7 +1,7 @@
 /**
  * Slot Transition
  *
- * Half a second between one time slot and the next, inside a day: the old slot's icon
+ * A second between one time slot and the next, inside a day: the old slot's icon
  * swings off along an arc and the new one swings up into its place, like a dial
  * turning, while the slot name rolls over underneath. The step from night to morning
  * is the day card's (DayTransition).
@@ -23,7 +23,7 @@ import { PixelIcon } from './ui/PixelIcon';
 import { transitionsEnabled } from '../utils/transitionsEnabled';
 
 /** Whole beat, fade in to fade out. Kept in step with `slot-tx-*` in index.css. */
-const SLOT_TRANSITION_MS = 500;
+const SLOT_TRANSITION_MS = 1000;
 
 /** The one extra touch each new slot gets as its icon lands. */
 const FLOURISH: Record<TimeSlot, 'pop' | 'settle' | 'stars' | null> = {
@@ -115,7 +115,7 @@ export const SlotTransition: React.FC = () => {
               <i
                 key={i}
                 className="slot-tx-star absolute w-1 h-1 bg-[#e8ecff]"
-                style={{ left: 100 + x, top: y, animationDelay: `${i * 25}ms` }}
+                style={{ left: 100 + x, top: y, animationDelay: `${i * 50}ms` }}
               />
             ))}
           <span className="slot-tx-arm slot-tx-arm-old">

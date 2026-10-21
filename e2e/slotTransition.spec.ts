@@ -32,6 +32,6 @@ test('training waits for its result, then the slot beat plays', async ({ page })
   await expect(beat).toHaveAttribute('data-to', String(TimeSlot.AFTERNOON));
   await expect(beat).toHaveAttribute('aria-label', 'Afternoon');
 
-  // Half a second, then the afternoon is back.
-  await expect(beat).toBeHidden({ timeout: 2_000 });
+  // A second, then the afternoon is back.
+  await expect(beat).toBeHidden({ timeout: 3_000 });
 });
