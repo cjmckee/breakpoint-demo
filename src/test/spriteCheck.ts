@@ -34,11 +34,15 @@ import { StoryEventRepository } from '../data/storyEvents';
 import { TournamentRegistry } from '../data/tournaments';
 import * as TeamMatches from '../data/teamMatches';
 import {
+  BALL_ICON,
+  CURRENCY_ICONS,
   DRILL_ICONS,
   ICON_PALETTE,
   MENU_ICONS,
   SECTION_ICONS,
+  STAT_ICONS,
   TIME_SLOT_ICONS,
+  UNKNOWN_STAT_ICON,
   type PixelGrid,
 } from '../data/pixelIcons';
 
@@ -256,11 +260,27 @@ const oneColour = [
   ...iconProblems(SECTION_ICONS, '.#'),
   ...iconProblems(DRILL_ICONS, '.#'),
   ...iconProblems(TIME_SLOT_ICONS, '.#'),
+  ...iconProblems(CURRENCY_ICONS, '.#'),
+  ...iconProblems(STAT_ICONS, '.#'),
+  ...iconProblems({ unknown_stat: UNKNOWN_STAT_ICON, ball: BALL_ICON }, '.#'),
 ];
 check(
   'one-colour icons are square and drawn in # only',
   oneColour.length === 0,
   oneColour.join(', '),
+);
+/** A shape names one stat or currency, and they appear side by side on the Development screen. */
+const statAndCurrency = Object.entries({ ...STAT_ICONS, ...CURRENCY_ICONS });
+const sameShape = statAndCurrency.flatMap(([name, grid], i) =>
+  statAndCurrency
+    .slice(i + 1)
+    .filter(([, other]) => other.join() === grid.join())
+    .map(([otherName]) => `${name} = ${otherName}`),
+);
+check(
+  'every stat and currency icon is its own shape',
+  sameShape.length === 0,
+  sameShape.join(', '),
 );
 const menu = iconProblems(MENU_ICONS, '.' + Object.keys(ICON_PALETTE).join(''));
 check(

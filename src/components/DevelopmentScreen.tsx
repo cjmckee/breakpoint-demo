@@ -26,7 +26,7 @@ import {
 import { ScreenFrame } from './ui/ScreenFrame';
 import { Button } from './ui/Button';
 import { StatSectionHeading } from './ui/StatSectionHeading';
-import { CurrencyAmounts, CURRENCY_STYLE } from './currency/CurrencyAmounts';
+import { CurrencyAmounts, CurrencyIcon, CURRENCY_STYLE } from './currency/CurrencyAmounts';
 import { AreaStrip } from './development/AreaStrip';
 import { ArchetypeTree } from './ArchetypeTree';
 
@@ -154,11 +154,11 @@ export const DevelopmentScreen: React.FC = () => {
           {CURRENCIES.map((c) => (
             <span
               key={c}
-              className="inline-flex items-baseline gap-1.5"
+              className="inline-flex items-center gap-1.5"
               data-currency={c}
               data-amount={Math.floor(left[c])}
             >
-              <span aria-hidden="true">{CURRENCY_STYLE[c].icon}</span>
+              <CurrencyIcon currency={c} scale={2} />
               {(cost[c] ?? 0) > 0 && (
                 <span className="text-xs text-pixel-text-muted whitespace-nowrap">
                   {Math.floor(player.wallet[c])} →

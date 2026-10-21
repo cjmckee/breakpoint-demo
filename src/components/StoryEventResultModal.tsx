@@ -12,6 +12,7 @@ import { getCharacterName } from '../data/characters';
 import { usePlayerName } from '../hooks/usePlayerName';
 import { CurrencyAmounts } from './currency/CurrencyAmounts';
 import { formatStatName, getStatIcon } from '../config/statIcons';
+import { PixelIcon } from './ui/PixelIcon';
 
 /** One effect of the outcome. Gold marks something new to own, not a number. */
 const EffectChip: React.FC<{
@@ -109,7 +110,7 @@ export const StoryEventResultModal: React.FC<StoryEventResultModalProps> = ({
                       data-stat={stat}
                       data-amount={value}
                     >
-                      <span aria-hidden="true">{getStatIcon(stat)}</span>
+                      <PixelIcon grid={getStatIcon(stat)} scale={1} />
                       <span className="font-normal text-pixel-text-muted">
                         {formatStatName(stat)}
                       </span>

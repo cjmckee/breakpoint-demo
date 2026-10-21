@@ -15,10 +15,10 @@ import { audioManager } from '../audio/AudioManager';
 import { UnseenBadge } from './ui/UnseenBadge';
 import { CURRENCIES, CURRENCY_LABELS } from '../config/economy';
 import { hasNewCurrency, unspentSpecPoints } from '../game/StatDevelopment';
-import { CURRENCY_STYLE } from './currency/CurrencyAmounts';
+import { CurrencyIcon, CURRENCY_STYLE } from './currency/CurrencyAmounts';
 import { TimeManager } from '../game/TimeManager';
 import { TimeSlot, TIME_SLOT_NAMES } from '../types/game';
-import { TIME_SLOT_COLOURS, TIME_SLOT_ICONS } from '../data/pixelIcons';
+import { ICON_PALETTE, MENU_ICONS, TIME_SLOT_COLOURS, TIME_SLOT_ICONS } from '../data/pixelIcons';
 import { PixelIcon } from './ui/PixelIcon';
 
 const TIME_SLOTS = [TimeSlot.MORNING, TimeSlot.AFTERNOON, TimeSlot.EVENING, TimeSlot.NIGHT].map(
@@ -205,7 +205,12 @@ export const StatusBar: React.FC<StatusBarProps> = ({ energyPreview = 0 }) => {
             data-new-currency={newCurrencyIn}
             data-spec-points={specPoints}
           >
-            <span className="sm:hidden text-base leading-none">📈</span>
+            <PixelIcon
+              grid={MENU_ICONS.develop}
+              palette={ICON_PALETTE}
+              scale={1}
+              className="sm:hidden"
+            />
             {CURRENCIES.map((c) => (
               <span
                 key={c}
@@ -213,7 +218,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({ energyPreview = 0 }) => {
                 data-currency={c}
                 data-amount={Math.floor(player.wallet[c])}
               >
-                <span aria-hidden="true">{CURRENCY_STYLE[c].icon}</span>
+                <CurrencyIcon currency={c} />
                 {Math.floor(player.wallet[c])}
               </span>
             ))}

@@ -8,17 +8,18 @@ Most of the count is in a handful of lookup tables. Swapping a table's value typ
 emoji string to a pixel icon id replaces every screen that reads it in one go, so do those
 first.
 
+Done so far: currencies (`CURRENCY_ICONS`) and stats (`STAT_ICONS`), both in
+`src/data/pixelIcons.ts`, where `spriteCheck` keeps every stat and currency a shape of its own.
+
 ## 1. Icon tables: one change each, many screens
 
 | Table                                    | Where                                                                                                 | What                                                                     | Count |
 | ---------------------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ----- |
-| `CURRENCY_STYLE`                         | `src/components/currency/CurrencyAmounts.tsx`                                                         | 💪 ⚡ 🎯 🧠 for power, quickness, technique, mind. Shown on most screens | 4     |
-| Stat icons                               | `src/config/statIcons.ts`                                                                             | One per stat, plus `UNKNOWN_STAT_ICON` ⭐                                | 14    |
 | `EFFECT_META`                            | `src/utils/effectLabels.ts`                                                                           | One per `EffectKey`: items, abilities, venue chips                       | ~45   |
 | Tactic `emoji`                           | `src/data/tacticalOptions.ts`                                                                         | Key moment tactic buttons (many repeat: ✅ 🃏 🩰 ⛏️ 🏃)                  | 52    |
 | Item slot and type icons                 | `src/components/inventory/itemHelpers.ts`                                                             | 🎾 👟 👕 🧢 🍀, 💊 🍀 📜                                                 | 8     |
 | Calendar event types                     | `src/components/CalendarView.tsx` (`getEventDisplay` and the legend)                                  | 🏆 ⚔️ 📖 🏋️ 😴                                                           | 10    |
-| Mood                                     | `src/components/StatusBar.tsx`                                                                        | Eight mood faces, 📅 ⚡ 📈 (time of day is pixel icons now)              | 11    |
+| Mood                                     | `src/components/StatusBar.tsx`                                                                        | Eight mood faces, 📅 ⚡ (time of day and the wallet are pixel icons now) | 10    |
 | Menu and help sections                   | `src/components/MenuModal.tsx`, `src/hooks/useMenuModal.ts`                                           | ⚙️ 📚 💬, 🎯 📖 📊 🏟️ ⌨️ ⚔️ 💝                                           | 10    |
 | Archetype glyphs                         | `src/data/archetypes.ts`                                                                              | 🐅 🐢 🦂 🦅 🦊                                                           | 5     |
 | Ability rarity                           | `src/game/AbilitySystem.ts`                                                                           | ⚪ 🟢 🔵 🟡                                                              | 4     |
@@ -58,10 +59,9 @@ Headings, buttons and big decorative icons written straight into the markup:
 - **Live match** (`match/MatchCockpit.tsx`): 🔥 🥶 hot and cold streaks.
 - **Inventory** (`inventory/ItemEffects.tsx`): 😊 🔄.
 - **Smaller**: `App.tsx` 🎾 loading and welcome; `WelcomeOverlay.tsx` 🎾; `HangoutUnlockedModal.tsx` 🎾 🤝;
-  `PlayerCreation.tsx` 🎲 Randomize; `UpcomingTeamMatchCard.tsx` ⚡ Today;
-  `training/FocusPicker.tsx` 🎾 Natural.
+  `PlayerCreation.tsx` 🎲 Randomize; `UpcomingTeamMatchCard.tsx` ⚡ Today.
 - **Minigames**: the ball 🎾 in `CornerPainter`, `RallyRhythm`, `ReadReturn`, `Serve`, `TouchSlice`;
-  💥 in Serve; 🐟 💧 in `FishingCast`. A shared pixel ball sprite covers five of them.
+  💥 in Serve; 🐟 💧 in `FishingCast`. `BALL_ICON` (already on the training focus picker) covers five of them.
 - **Text**: `data/tutorialSteps.ts` and `data/glossary.ts` mention 🌟 💥 🎯 ⚠️ in their prose,
   so they need updating when those icons change.
 

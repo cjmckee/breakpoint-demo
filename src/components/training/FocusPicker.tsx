@@ -7,7 +7,9 @@
 import React from 'react';
 import type { Currency } from '../../types/game';
 import { CURRENCIES, CURRENCY_LABELS } from '../../config/economy';
-import { CURRENCY_STYLE } from '../currency/CurrencyAmounts';
+import { CurrencyIcon } from '../currency/CurrencyAmounts';
+import { BALL_ICON, ICON_PALETTE } from '../../data/pixelIcons';
+import { PixelIcon } from '../ui/PixelIcon';
 import { PixelCheckbox } from '../ui/PixelCheckbox';
 
 interface FocusPickerProps {
@@ -17,13 +19,23 @@ interface FocusPickerProps {
 }
 
 export function FocusPicker({ value, onChange }: FocusPickerProps): React.JSX.Element {
-  const options: Array<{ key: Currency | undefined; id: string; label: string; icon: string }> = [
-    { key: undefined, id: 'natural', label: 'Natural', icon: '🎾' },
+  const options: Array<{
+    key: Currency | undefined;
+    id: string;
+    label: string;
+    icon: React.JSX.Element;
+  }> = [
+    {
+      key: undefined,
+      id: 'natural',
+      label: 'Natural',
+      icon: <PixelIcon grid={BALL_ICON} color={ICON_PALETTE.y} scale={1} />,
+    },
     ...CURRENCIES.map((c) => ({
       key: c,
       id: c,
       label: CURRENCY_LABELS[c],
-      icon: CURRENCY_STYLE[c].icon,
+      icon: <CurrencyIcon currency={c} />,
     })),
   ];
 
@@ -49,7 +61,7 @@ export function FocusPicker({ value, onChange }: FocusPickerProps): React.JSX.El
             }`}
           >
             <PixelCheckbox checked={selected} className="w-4 h-4" />
-            <span aria-hidden="true">{option.icon}</span>
+            {option.icon}
             {option.label}
           </button>
         );
