@@ -82,7 +82,7 @@ export const familyEvents: StoryEvent[] = [
       {
         id: 'redouble_commitment',
         text: 'Redouble Commitment',
-        emoji: '💪',
+        mood: 'bold',
         description: 'Work even harder',
         outcome: {
           resultText: [
@@ -105,7 +105,7 @@ export const familyEvents: StoryEvent[] = [
       {
         id: 'find_sponsor',
         text: 'Seek Financial Help',
-        emoji: '💼',
+        mood: 'careful',
         description: 'Look for sponsors',
         outcome: {
           resultText: [
@@ -122,7 +122,7 @@ export const familyEvents: StoryEvent[] = [
       {
         id: 'become_salesman',
         text: 'Offer to Help',
-        emoji: '🤝',
+        mood: 'kind',
         description: 'Offer to help with their investment.',
         outcome: {
           resultText: [
@@ -201,7 +201,7 @@ export const familyEvents: StoryEvent[] = [
       {
         id: 'let_them_win',
         text: 'Let them win graciously',
-        emoji: '😊',
+        mood: 'kind',
         description: 'Be a good sport about it',
         outcome: {
           resultText: [
@@ -218,7 +218,7 @@ export const familyEvents: StoryEvent[] = [
       {
         id: 'actually_compete',
         text: 'Actually try your hardest',
-        emoji: '😤',
+        mood: 'bold',
         description: 'No mercy. Not even a little.',
         outcome: {
           resultText: [
@@ -235,7 +235,7 @@ export const familyEvents: StoryEvent[] = [
       {
         id: 'coach_them_instead',
         text: 'Turn it into a lesson',
-        emoji: '🎓',
+        mood: 'smart',
         description: 'Maybe you can teach them something',
         outcome: {
           resultText: [

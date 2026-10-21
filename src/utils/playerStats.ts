@@ -7,7 +7,7 @@ import type { PlayerStats, PlayStyle, StatName, CourtSurface } from '../types';
 export { calculateOverallRating, STAT_CATEGORY_WEIGHTS } from './overallRating';
 import type { OpponentTier } from '../types/game';
 import type { ArchetypeType } from '../data/archetypes';
-import { getArchetypeLabel as getArchetypeLabelRaw, ARCHETYPE_DATA } from '../data/archetypes';
+import { ARCHETYPE_DATA } from '../data/archetypes';
 
 export function getTierLabel(tier: OpponentTier | number): string {
   switch (tier) {
@@ -103,13 +103,6 @@ export function getBottomNStats(stats: PlayerStats, n: number): StatDisplay[] {
   return flattenStats(stats)
     .sort((a, b) => a.value - b.value)
     .slice(0, n);
-}
-
-export function getArchetypeLabel(playStyleType: string): string {
-  if (playStyleType in ARCHETYPE_DATA) {
-    return getArchetypeLabelRaw(playStyleType as ArchetypeType);
-  }
-  return 'Unknown';
 }
 
 export function getArchetypeData(playStyleType: string) {

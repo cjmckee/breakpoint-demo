@@ -19,9 +19,10 @@ import type { ArchetypeType } from '../data/archetypes';
 import { describeEffects } from '../utils/effectLabels';
 import { formatAbilityName } from './AbilityDisplay';
 import { venueCrowd, venueEffects, venueFatigue, venueWind } from '../core/venue';
-import { calculateOverallRating, getArchetypeLabel, STAT_LABELS } from '../utils/playerStats';
+import { calculateOverallRating, STAT_LABELS } from '../utils/playerStats';
 import { PixelIcon } from './ui/PixelIcon';
 import { SurfaceIcon } from './ui/SurfaceIcon';
+import { ArchetypeLabel } from './ui/ArchetypeLabel';
 
 interface SurfaceEffectDisplay {
   label: string;
@@ -390,7 +391,7 @@ export const PreMatchScreen: React.FC<PreMatchScreenProps> = ({
           opponentAppearance={opponentAppearance}
           opponentTag={
             <span className="px-2 py-0.5 text-xs font-bold border-2 border-pixel-accent text-pixel-accent">
-              {getArchetypeLabel(opponentPlayStyle.type)}
+              <ArchetypeLabel archetype={opponentPlayStyle.type} />
             </span>
           }
         />

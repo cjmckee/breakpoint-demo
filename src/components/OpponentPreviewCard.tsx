@@ -9,7 +9,6 @@ import {
   calculateOverallRating,
   getTierLabel,
   getTierColor,
-  getArchetypeLabel,
   getArchetypeData,
   STAT_LABELS,
   flattenStats,
@@ -22,6 +21,7 @@ import { PixelSprite } from './sprites/PixelSprite';
 import { getOpponentAppearance } from '../data/characters';
 import type { StatName } from '../types';
 import { SurfaceIcon } from './ui/SurfaceIcon';
+import { ArchetypeLabel } from './ui/ArchetypeLabel';
 
 interface OpponentPreviewCardProps {
   opponentName: string;
@@ -45,7 +45,6 @@ export const OpponentPreviewCard: React.FC<OpponentPreviewCardProps> = ({
   const topStats = getTopNStats(opponentStats, 5);
   const bottomStats = getBottomNStats(opponentStats, 5);
   const overallRating = calculateOverallRating(opponentStats);
-  const archetypeLabel = getArchetypeLabel(opponentPlayStyle.type);
   const archetype = getArchetypeData(opponentPlayStyle.type);
 
   return (
@@ -129,7 +128,9 @@ export const OpponentPreviewCard: React.FC<OpponentPreviewCardProps> = ({
           <div className="text-pixel-text-muted mb-1 uppercase tracking-wide font-bold">
             Playstyle
           </div>
-          <div className="text-pixel-text font-medium">{archetypeLabel}</div>
+          <div className="text-pixel-text font-medium">
+            <ArchetypeLabel archetype={opponentPlayStyle.type} />
+          </div>
           {archetype && (
             <div className="text-xs text-pixel-text-muted mt-1 italic">
               "{archetype.servingTendency}"

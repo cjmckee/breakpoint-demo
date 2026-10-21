@@ -11,11 +11,11 @@ import { Button } from './ui/Button';
 import { ScreenFrame } from './ui/ScreenFrame';
 import { OpponentTier } from '../types/game';
 import { OPPONENTS_BY_TIER } from '../data/opponents';
-import { getArchetypeLabel } from '../data/archetypes';
 import { DEFAULT_MATCH_ENERGY_COST } from '../config/matchRewards';
 import { buildPlayStyle } from '../core/PlayerProfile';
 import { createEmptyArchetypeProfile } from '../data/archetypeTree';
 import { SurfaceIcon } from './ui/SurfaceIcon';
+import { ArchetypeLabel } from './ui/ArchetypeLabel';
 
 type CourtSurface = 'hard' | 'clay' | 'grass' | 'carpet';
 
@@ -138,7 +138,7 @@ export const MatchSetup: React.FC = () => {
                           key={opp.name}
                           className="text-xs px-2 py-0.5 bg-pixel-bg border border-pixel-border text-pixel-text-muted"
                         >
-                          {getArchetypeLabel(opp.archetype)}
+                          <ArchetypeLabel archetype={opp.archetype} />
                         </span>
                       ))}
                     </div>

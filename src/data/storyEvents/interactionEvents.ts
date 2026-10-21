@@ -291,7 +291,7 @@ export const interactionEvents: StoryEvent[] = [
       {
         id: 'take_the_lead',
         text: 'Take the Lead',
-        emoji: '⚡',
+        mood: 'bold',
         description: 'Step up and show Jordan you belong at the net',
         outcome: {
           resultText: [
@@ -308,7 +308,7 @@ export const interactionEvents: StoryEvent[] = [
       {
         id: 'play_support',
         text: 'Play Support',
-        emoji: '🛡️',
+        mood: 'kind',
         description: 'Cover the baseline and let Jordan do their thing',
         outcome: {
           resultText: [

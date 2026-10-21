@@ -97,7 +97,7 @@ export const KM_RESULT_STEPS: TutorialStep<KmResultTarget>[] = [
   {
     target: 'outcome',
     title: 'The Result',
-    body: "Whether you won the point. A critical (🌟 / 💥) says the point ended emphatically — how often that happens is set by your tactic's risk, so a Bold play criticals far more often in both directions than a Safe one. You can pick the right option and still lose. That's tennis, baby.",
+    body: "Whether you won the point. A critical (the sparkle or the burst) says the point ended emphatically — how often that happens is set by your tactic's risk, so a Bold play criticals far more often in both directions than a Safe one. You can pick the right option and still lose. That's tennis, baby.",
   },
   {
     target: 'tactic',

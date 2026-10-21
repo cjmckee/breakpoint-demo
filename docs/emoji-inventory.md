@@ -4,43 +4,20 @@ Where the game still draws emoji, to be replaced with pixel icons (`src/data/pix
 drawn with `<PixelIcon>`). Taken 2026-10-21: about 480 uses of 166 distinct emoji in 71 files.
 Line numbers drift, so search for the file's emoji rather than trusting them.
 
-Most of the count is in a handful of lookup tables. Swapping a table's value type from an
-emoji string to a pixel icon id replaces every screen that reads it in one go, so do those
-first.
+## 1. Icon tables and story options: done
 
-Done so far, all in `src/data/pixelIcons.ts`: currencies (`CURRENCY_ICONS`), stats
-(`STAT_ICONS`), effects (`EFFECT_META`), tactics (`TacticalOption.icon`, in the posture's colour),
-surfaces (`SURFACE_ICONS`, drawn with `<SurfaceIcon>`), items (`ITEM_ICONS`, which
-`ItemAcquiredModal` now shares) and calendar events.
+Every lookup table is now pixel icons, all in `src/data/pixelIcons.ts`: currencies
+(`CURRENCY_ICONS`), stats (`STAT_ICONS`), effects (`EFFECT_META`), tactics (`TacticalOption.icon`,
+in the posture's colour), surfaces (`SURFACE_ICONS`, drawn with `<SurfaceIcon>`), items
+(`ITEM_ICONS`), calendar events, mood faces, menu and encyclopedia tabs, archetypes
+(`<ArchetypeLabel>`), relationship tiers, and key moment stakes, conditions and results.
 
-`GLYPHS` is the shared set to draw from before adding a new icon: it already has a trophy, crown,
-flame, heart, book, shield, warning, die, smile, sparkle and more, which cover much of what's left
-below (stakes 👑 🔥, mood 😊, Randomize 🎲).
+Story options name a `mood` (bold, careful, kind, cheeky, smart, social, decline) instead of
+an emoji, drawn from `STORY_MOOD_ICONS`. A new option picks one of the seven.
 
-## 1. Icon tables: one change each, many screens
-
-| Table                  | Where                                                                | What                                                                     | Count |
-| ---------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------ | ----- |
-| Mood                   | `src/components/StatusBar.tsx`                                       | Eight mood faces, 📅 ⚡ (time of day and the wallet are pixel icons now) | 10    |
-| Menu and help sections | `src/components/MenuModal.tsx`, `src/hooks/useMenuModal.ts`          | ⚙️ 📚 💬, 🎯 📖 📊 🏟️ ⌨️ ⚔️ 💝                                           | 10    |
-| Archetype glyphs       | `src/data/archetypes.ts`                                             | 🐅 🐢 🦂 🦅 🦊                                                           | 5     |
-| Ability rarity         | `src/game/AbilitySystem.ts`                                          | ⚪ 🟢 🔵 🟡                                                              | 4     |
-| Relationship tiers     | `src/components/Relationships.tsx`                                   | 🤝 😊 💛 💎, 🧊 Strained                                                 | 5     |
-| Key moment results     | `src/game/KeyMomentResolver.ts`, `src/components/KeyMomentModal.tsx` | 🌟 ✅ ❌ 💥 (the same four in both), stakes 👑 ⭐ 🚨 🔥 💡               | ~20   |
-
-Fold the key moment results (the same four in two files) into one table first, so they get
-drawn once.
-
-## 2. Story option emoji (authored data)
-
-Story options carry an `emoji` field, about 66 across `src/data/storyEvents/` (`miscEvents` 22,
-`coachStoryline` 14, `careerStoryline` 9, `romanceStoryline` 7, `familyStoryline` 6,
-`rivalStoryline` 6, `interactionEvents` 2). They're open-ended (🎣 🪂 🦆 🌶️ 🍗 🧗), so a
-one-to-one icon set would be large. Two ways to go:
-
-- a small set of option _moods_ (bold, careful, kind, cheeky, decline…) that each option
-  names, with one pixel icon per mood; or
-- drop the field and let the option text stand alone.
+`GLYPHS` is the shared set to draw from before adding a new icon: trophy, crown, flame, heart,
+book, shield, warning, die, smile, sparkle, star, check, cross and more already cover much of
+what's left below (🏆 👑 🔥 🎲 ✅ ⭐).
 
 ## 3. One-offs in components
 

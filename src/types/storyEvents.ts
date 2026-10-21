@@ -183,11 +183,18 @@ export interface StoryEventOutcome {
 // STORY EVENT OPTION (PLAYER CHOICES)
 // ============================================================================
 
+/**
+ * How an option plays, shown as its icon (STORY_MOOD_ICONS). A small set on purpose:
+ * the option's text says what it is, the mood says what kind of choice it is.
+ */
+export type StoryOptionMood =
+  'bold' | 'careful' | 'kind' | 'cheeky' | 'smart' | 'social' | 'decline';
+
 export interface StoryEventOption {
   id: string; // Unique within the event (e.g., 'accept_offer', 'decline')
   text: string; // Button text
   description?: string; // Tooltip/subtitle explaining the choice
-  emoji?: string; // Optional emoji for visual distinction
+  mood?: StoryOptionMood;
 
   // Requirements to show this option
   prerequisites?: StoryEventPrerequisite;

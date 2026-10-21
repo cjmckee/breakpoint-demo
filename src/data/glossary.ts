@@ -532,12 +532,12 @@ export const MATCH_HELP_GUIDE: GlossarySection[] = [
           'Even the best tactic can fail. Your stat advantage increases the odds in your favor, but there is always an element of randomness. A poor result does not necessarily mean you made the wrong choice — keep at it.',
       },
       {
-        term: 'Counter (🎯 Great Read)',
+        term: 'Counter (Great Read)',
         definition:
           "Your tactic specifically countered the opponent's archetype. This bonus improves your chance of success on the point.",
       },
       {
-        term: 'Bad Matchup (⚠️)',
+        term: 'Bad Matchup',
         definition:
           "Your tactic played into the opponent's strengths. This penalty reduces your chance of success on the point.",
       },

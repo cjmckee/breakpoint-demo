@@ -13,11 +13,12 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import { PixelCheckbox } from './ui/PixelCheckbox';
 import { PixelIcon } from './ui/PixelIcon';
+import { GLYPHS, STAT_ICONS, type PixelGrid } from '../data/pixelIcons';
 import { KeyMoment } from '../types/keyMoments';
 import { TacticalOption, SecondaryEffect, keyMomentStakes } from '../data/tacticalOptions';
 import type { KeyMomentStakes } from '../data/tacticalOptions';
 import type { KeyMomentRisk } from '../data/tacticalOptions';
-import { getRelevantTendency, getArchetypeLabel } from '../data/archetypes';
+import { ARCHETYPE_DATA, getRelevantTendency } from '../data/archetypes';
 import { POSTURE_META, getMatchup } from '../data/postures';
 import { KeyMomentResolver, KeyMomentResult, AppliedEffect } from '../game/KeyMomentResolver';
 import { MatchOrchestrator } from '../game/MatchOrchestrator';
@@ -33,6 +34,7 @@ import {
 } from '../data/tutorialSteps';
 import { formatStatName } from '../config/statIcons';
 import { KEY_MOMENT } from '../config/shotThresholds';
+import { ArchetypeLabel } from './ui/ArchetypeLabel';
 
 /** A tactic's icon in its posture's colour. */
 function TacticIcon({
@@ -162,6 +164,13 @@ const STAKES_STYLE: Record<KeyMomentStakes, string> = {
   neutral: 'border-yellow-400 bg-yellow-400',
 };
 
+/** The header icon's colour, matching its border. */
+const STAKES_TEXT: Record<KeyMomentStakes, string> = {
+  for: 'text-green-400',
+  against: 'text-red-400',
+  neutral: 'text-yellow-300',
+};
+
 interface KeyMomentModalProps {
   isOpen: boolean;
   keyMoment: KeyMoment | null;
@@ -252,13 +261,13 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
 
   // ── Shared helpers ──────────────────────────────────────────────────────────
 
-  const getMomentTypeIcon = (type: string): string => {
-    if (type.includes('match-point')) return '👑';
-    if (type.includes('set-point')) return '⭐';
+  const getMomentTypeIcon = (type: string): PixelGrid => {
+    if (type.includes('match-point')) return GLYPHS.crown;
+    if (type.includes('set-point')) return GLYPHS.star;
     // A break point against is a warning, one for you is a chance.
-    if (type === 'break-point-serve') return '🚨';
-    if (type.includes('break-point')) return '🔥';
-    return '💡';
+    if (type === 'break-point-serve') return GLYPHS.warning;
+    if (type.includes('break-point')) return GLYPHS.flame;
+    return GLYPHS.exclaim;
   };
 
   const stakes = keyMomentStakes(activeKeyMoment.type);
@@ -287,8 +296,9 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
 
   // ── Conditions strip: "how this moment tilts the point" ─────────────────────
 
+  // One icon per factor; the chip's colour says which way it cuts.
   interface Condition {
-    icon: string;
+    icon: PixelGrid;
     label: string;
     value: string;
     helps: boolean | null; // true = green, false = red, null = neutral
@@ -301,7 +311,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     const helps = modifiers.momentum > 0;
     const sign = modifiers.momentum > 0 ? '+' : '';
     conditions.push({
-      icon: helps ? '📈' : '📉',
+      icon: GLYPHS.wave,
       label: helps ? 'Momentum with you' : 'Momentum against you',
       value: `${sign}${modifiers.momentum}`,
       helps,
@@ -310,7 +320,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     });
   }
   conditions.push({
-    icon: modifiers.energy >= 1 ? '⚡' : '🔋',
+    icon: GLYPHS.energy,
     label: modifiers.energy >= 1 ? 'Fresh legs' : 'Energy',
     value: `${Math.round(ctx.energy)}%`,
     helps: modifiers.energy >= 1 ? true : modifiers.energy <= -1 ? false : null,
@@ -324,7 +334,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     const helps = modifiers.mood > 0;
     const sign = modifiers.mood > 0 ? '+' : '';
     conditions.push({
-      icon: helps ? '😊' : '😤',
+      icon: helps ? GLYPHS.smile : GLYPHS.frown,
       label: helps ? 'Confident' : 'Frustrated',
       value: `${sign}${modifiers.mood}`,
       helps,
@@ -338,7 +348,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     const helps = modifiers.pressure > 0;
     const sign = helps ? '+' : '';
     conditions.push({
-      icon: helps ? '🧊' : '😰',
+      icon: STAT_ICONS.focus,
       label: helps ? 'Ice in the veins' : 'Big-point pressure',
       value: `${sign}${modifiers.pressure}`,
       helps,
@@ -370,7 +380,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
             onMouseEnter={() => setHoveredCondition(i)}
             onMouseLeave={() => setHoveredCondition(null)}
           >
-            <span>{c.icon}</span>
+            <PixelIcon grid={c.icon} scale={1} />
             {c.label}
             <span className="font-bold">{c.value}</span>
             {hoveredCondition === i && (
@@ -401,12 +411,18 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
     >
       <div className="px-4 py-3">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <span className="text-2xl leading-none">{getMomentTypeIcon(activeKeyMoment.type)}</span>
+          <PixelIcon
+            grid={getMomentTypeIcon(activeKeyMoment.type)}
+            scale={2}
+            className={STAKES_TEXT[stakes]}
+          />
           <h2 className="text-base sm:text-lg font-bold text-pixel-text">
             {activeKeyMoment.situation}
           </h2>
           <span className="sm:ml-auto px-2 py-0.5 bg-pixel-bg border-2 border-pixel-border text-pixel-text text-sm font-bold whitespace-nowrap">
-            vs {getArchetypeLabel(activeKeyMoment.opponentArchetype)}
+            <span className="inline-flex items-center gap-1.5">
+              vs <ArchetypeLabel archetype={activeKeyMoment.opponentArchetype} />
+            </span>
           </span>
         </div>
         <p className="text-sm text-pixel-text-muted italic mt-1.5">"{tendency}"</p>
@@ -488,15 +504,31 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
         case 'critical-success':
           return {
             color: 'border-yellow-500 bg-yellow-500',
-            icon: '🌟',
+            icon: GLYPHS.sparkle,
+            iconColor: 'text-yellow-300',
             title: 'CRITICAL SUCCESS',
           };
         case 'success':
-          return { color: 'border-green-500 bg-green-500', icon: '✅', title: 'Success' };
+          return {
+            color: 'border-green-500 bg-green-500',
+            icon: GLYPHS.check,
+            iconColor: 'text-green-400',
+            title: 'Success',
+          };
         case 'failure':
-          return { color: 'border-red-500 bg-red-500', icon: '❌', title: 'Failure' };
+          return {
+            color: 'border-red-500 bg-red-500',
+            icon: GLYPHS.cross,
+            iconColor: 'text-red-400',
+            title: 'Failure',
+          };
         case 'critical-failure':
-          return { color: 'border-red-800 bg-red-800', icon: '💥', title: 'CRITICAL FAILURE' };
+          return {
+            color: 'border-red-800 bg-red-800',
+            icon: GLYPHS.burst,
+            iconColor: 'text-red-400',
+            title: 'CRITICAL FAILURE',
+          };
       }
     };
 
@@ -572,7 +604,11 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
           {/* Point result — spotlit on step 0 */}
           <div className={resultSectionClass('outcome')}>
             <div className={`border-4 ${style.color} bg-opacity-15 p-6 text-center`}>
-              <div className="text-5xl mb-2">{style.icon}</div>
+              <PixelIcon
+                grid={style.icon}
+                scale={4}
+                className={`mx-auto mb-2 ${style.iconColor}`}
+              />
               <h3 className="text-2xl font-bold text-pixel-text">{style.title}</h3>
               <p className="text-base text-pixel-text mt-1">{getOutcomeMessage()}</p>
             </div>
@@ -609,7 +645,7 @@ export const KeyMomentModal: React.FC<KeyMomentModalProps> = ({ isOpen, keyMomen
                   lesson only transfers if the player can attach it to something they
                   will see again in the header of the next match. */}
               <span className="font-bold text-pixel-text ml-1">
-                {getArchetypeLabel(activeKeyMoment.opponentArchetype)}s.
+                {ARCHETYPE_DATA[activeKeyMoment.opponentArchetype].label}s.
               </span>
             </div>
             <div className="flex items-center gap-4 p-4 bg-pixel-bg border-2 border-pixel-border border-t-0">
