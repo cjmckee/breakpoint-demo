@@ -9,7 +9,7 @@
  * bar that appears with the first one.
  */
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import type { StatName } from '../types';
 import type { CurrencyAmounts as Amounts, Wallet } from '../types/game';
 import { CURRENCIES, CURRENCY_LABELS } from '../config/economy';
@@ -29,6 +29,9 @@ import { StatSectionHeading } from './ui/StatSectionHeading';
 import { CurrencyAmounts, CURRENCY_STYLE } from './currency/CurrencyAmounts';
 import { AreaStrip } from './development/AreaStrip';
 import { ArchetypeTree } from './ArchetypeTree';
+
+/** How long the purchase confirmation stays in the floating bar. */
+const MESSAGE_MS = 1800;
 
 /** Two columns on wider screens: Core and Technical, then Physical and Mental. */
 const COLUMNS = [STAT_SECTIONS.slice(0, 2), STAT_SECTIONS.slice(2)];
@@ -65,6 +68,13 @@ export const DevelopmentScreen: React.FC = () => {
     for (const s of plan) out[s] = (out[s] ?? 0) + 1;
     return out;
   }, [plan]);
+
+  // The confirmation shows where the plan was, then clears on its own.
+  useEffect(() => {
+    if (!message) return;
+    const id = window.setTimeout(() => setMessage(null), MESSAGE_MS);
+    return () => window.clearTimeout(id);
+  }, [message]);
 
   const add = useCallback((stat: StatName) => {
     setPlan((p) => [...p, stat]);
@@ -185,20 +195,6 @@ export const DevelopmentScreen: React.FC = () => {
         <ArchetypeTree />
       ) : (
         <>
-          {message && (
-            <div
-              role="status"
-              data-testid="development-message"
-              className={`mb-4 border-4 px-4 py-2 font-bold ${
-                message.ok
-                  ? 'border-pixel-success text-pixel-success'
-                  : 'border-pixel-error text-pixel-error'
-              }`}
-            >
-              {message.text}
-            </div>
-          )}
-
           <div className="grid md:grid-cols-2 gap-x-6 gap-y-6 items-start">
             {COLUMNS.map((sections, i) => (
               <div key={i} className="grid gap-6">
@@ -289,29 +285,46 @@ export const DevelopmentScreen: React.FC = () => {
       )}
 
       {/* Points added so far, what they cost, and the buy. Sits on the left 70% of the
-          stat column, so the − / +1 buttons down the right edge stay clear and usable. */}
-      {tab === 'stats' && plan.length > 0 && (
+          stat column, so the − / +1 buttons down the right edge stay clear and usable.
+          After a purchase the same spot briefly confirms it, so nothing above the stats
+          appears and pushes them down. */}
+      {tab === 'stats' && (plan.length > 0 || message) && (
         <div className="fixed inset-x-0 bottom-4 z-30 pointer-events-none">
           <div className="max-w-4xl mx-auto px-4">
-            <div
-              className="pointer-events-auto w-[70%] rounded-2xl bg-pixel-card border-4 border-pixel-accent shadow-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2"
-              data-testid="development-plan-bar"
-            >
-              <div className="min-w-0">
-                <div className="font-bold text-pixel-text" data-testid="development-plan">
-                  {summary}
+            {message && (
+              <div
+                role="status"
+                data-testid="development-message"
+                className={`w-[70%] mb-2 rounded-2xl bg-pixel-card border-4 shadow-2xl px-4 py-3 font-bold ${
+                  message.ok
+                    ? 'border-pixel-success text-pixel-success'
+                    : 'border-pixel-error text-pixel-error'
+                }`}
+              >
+                {message.text}
+              </div>
+            )}
+            {plan.length > 0 && (
+              <div
+                className="pointer-events-auto w-[70%] rounded-2xl bg-pixel-card border-4 border-pixel-accent shadow-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2"
+                data-testid="development-plan-bar"
+              >
+                <div className="min-w-0">
+                  <div className="font-bold text-pixel-text" data-testid="development-plan">
+                    {summary}
+                  </div>
+                  <CurrencyAmounts amounts={cost} className="text-sm" />
                 </div>
-                <CurrencyAmounts amounts={cost} className="text-sm" />
+                <div className="ml-auto flex gap-2">
+                  <Button variant="secondary" size="sm" onClick={clear} testId="development-clear">
+                    Clear
+                  </Button>
+                  <Button variant="success" size="sm" onClick={buy} testId="development-confirm">
+                    Buy
+                  </Button>
+                </div>
               </div>
-              <div className="ml-auto flex gap-2">
-                <Button variant="secondary" size="sm" onClick={clear} testId="development-clear">
-                  Clear
-                </Button>
-                <Button variant="success" size="sm" onClick={buy} testId="development-confirm">
-                  Buy
-                </Button>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       )}
