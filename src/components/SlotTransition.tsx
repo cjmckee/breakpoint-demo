@@ -45,25 +45,37 @@ const STARS: ReadonlyArray<readonly [number, number]> = [
 interface Step {
   from: TimeSlot;
   to: TimeSlot;
-  /** The clock moved while a story choice was being made; its result is still to come. */
-  awaitingStoryResult: boolean;
+  /** The story event on screen when the clock moved: the one being resolved, if any. */
+  resolving: string | null;
 }
 
-interface Transition extends Omit<Step, 'awaitingStoryResult'> {
+interface Transition extends Omit<Step, 'resolving'> {
   /** Bumps on every beat, so back-to-back beats restart the animation. */
   key: number;
 }
 
-/** A story event on screen, as a phase of its own or over the menu. */
-function isStoryEvent(phase: GamePhase): boolean {
-  return (
-    phase.type === 'story_event' || (phase.type === 'idle' && phase.overlay?.type === 'story_event')
-  );
+/** The id of the story event on screen, as a phase of its own or over the menu. */
+function storyEventOn(phase: GamePhase): string | null {
+  if (phase.type === 'story_event') return phase.event.id;
+  if (phase.type === 'idle' && phase.overlay?.type === 'story_event') return phase.overlay.event.id;
+  return null;
 }
 
-/** What closes out a slot: its result and the notices that follow it. */
-function isWrapUp(phase: GamePhase): boolean {
-  if (phase.type === 'match_results' || phase.type === 'story_event_result') return true;
+/**
+ * Whether the screen still belongs to the slot the clock just left: the story event
+ * being resolved, its minigame, a result, and the notices that follow a result. The
+ * beat holds through all of them and plays on whatever comes next.
+ */
+function belongsToOldSlot(phase: GamePhase, resolving: string | null): boolean {
+  if (
+    phase.type === 'match_results' ||
+    phase.type === 'story_event_result' ||
+    phase.type === 'minigame_active'
+  ) {
+    return true;
+  }
+  const shown = storyEventOn(phase);
+  if (shown !== null) return shown === resolving;
   if (phase.type !== 'idle' || !phase.overlay) return false;
   const { type } = phase.overlay;
   return (
@@ -94,19 +106,13 @@ export const SlotTransition: React.FC = () => {
         pending.current = {
           from: pending.current?.from ?? from,
           to,
-          // A story event still on screen when the clock moves is the one being
-          // resolved, not the next slot's: its result belongs to the old slot.
-          awaitingStoryResult:
-            (pending.current?.awaitingStoryResult ?? false) || isStoryEvent(prev.gamePhase),
+          // A story event still on screen when the clock moves is the one being resolved,
+          // not the next slot's, so it and its result belong to the old slot.
+          resolving: pending.current?.resolving ?? storyEventOn(prev.gamePhase),
         };
       }
       const step = pending.current;
-      if (!step) return;
-      if (step.awaitingStoryResult) {
-        if (isStoryEvent(state.gamePhase)) return;
-        pending.current = { ...step, awaitingStoryResult: false };
-      }
-      if (isWrapUp(state.gamePhase)) return;
+      if (!step || belongsToOldSlot(state.gamePhase, step.resolving)) return;
       pending.current = null;
       // Before anything renders: the new slot's first modal may commit ahead of the beat.
       holdModals('slot');

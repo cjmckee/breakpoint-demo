@@ -37,40 +37,60 @@ test('training waits for its result, then the slot beat plays', async ({ page })
   await expect(beat).toBeHidden({ timeout: 3_000 });
 });
 
-test('a story choice that takes time waits for its result, then the slot beat plays', async ({
-  page,
-}) => {
-  await loadSave(page, 'save-day7-1');
-  await page.goto('/?transitions');
-  await expect(page.getByTestId('action-training')).toBeVisible();
-  expect((await readGame(page)).calendar.currentTimeSlot).toBe(TimeSlot.MORNING);
+// One event with a single option (a plain Continue), one with a real choice to confirm.
+for (const [eventId, name] of [
+  ['rival_first_encounter', 'Meeting Your Rival'],
+  ['coach_training_focus', 'Choose Your Focus'],
+] as const) {
+  test(`${name}: the slot beat waits for the story result`, async ({ page }) => {
+    await loadSave(page, 'save-day7-1');
+    await page.goto('/?transitions');
+    await expect(page.getByTestId('action-training')).toBeVisible();
+    expect((await readGame(page)).calendar.currentTimeSlot).toBe(TimeSlot.MORNING);
 
-  // Meeting Your Rival takes a slot: the clock moves as the choice is confirmed.
-  await triggerStoryEvent(page, 'rival_first_encounter');
-  // Through the dialogue, then take its first open choice (a lone one is a plain Continue).
-  const advance = page.getByTestId('story-advance');
-  const resolve = page.getByTestId('story-resolve');
-  const option = page
-    .getByTestId(/^story-option-/)
-    .and(page.locator('[data-available="true"]'))
-    .first();
-  await expect(advance.or(resolve).or(option)).toBeVisible();
-  while (await advance.isVisible()) await advance.click();
-  if (await resolve.isVisible()) {
-    await resolve.click();
-  } else {
-    await option.click();
-    await page.getByTestId('story-confirm').click();
-  }
+    // The event takes a slot: the clock moves as the choice is confirmed.
+    await triggerStoryEvent(page, eventId);
 
-  // The result is still the morning's, with the clock already on the afternoon.
-  await expect(page.getByTestId('story-result-dismiss')).toBeVisible();
-  expect((await readGame(page)).calendar.currentTimeSlot).toBe(TimeSlot.AFTERNOON);
-  const beat = page.getByTestId('slot-transition');
-  await expect(beat).toHaveCount(0);
+    // Through the dialogue, then take its first open choice (a lone one is a plain Continue).
+    const advance = page.getByTestId('story-advance');
+    const resolve = page.getByTestId('story-resolve');
+    const option = page
+      .getByTestId(/^story-option-/)
+      .and(page.locator('[data-available="true"]'))
+      .first();
+    await expect(advance.or(resolve).or(option)).toBeVisible();
+    while (await advance.isVisible()) await advance.click();
+    if (await resolve.isVisible()) {
+      await resolve.click();
+    } else {
+      await option.click();
+      await page.getByTestId('story-confirm').click();
+    }
 
-  await page.getByTestId('story-result-dismiss').click();
-  await expect(beat).toBeVisible();
-  await expect(beat).toHaveAttribute('data-from', String(TimeSlot.MORNING));
-  await expect(beat).toHaveAttribute('data-to', String(TimeSlot.AFTERNOON));
-});
+    // The result is still the morning's, with the clock already on the afternoon, and
+    // the beat stays away the whole time it is up.
+    const dismiss = page.getByTestId('story-result-dismiss');
+    await expect(dismiss).toBeVisible();
+    expect((await readGame(page)).calendar.currentTimeSlot).toBe(TimeSlot.AFTERNOON);
+    const beat = page.getByTestId('slot-transition');
+    for (let i = 0; i < 6; i++) {
+      await expect(beat).toHaveCount(0);
+      await page.waitForTimeout(250);
+    }
+
+    // Any notices the result brings (Choose Your Focus unlocks a hangout) still belong
+    // to the morning, so the beat waits through those as well.
+    await dismiss.click();
+    const notice = page
+      .getByTestId('hangout-unlocked-dismiss')
+      .or(page.getByTestId('item-acquired-dismiss'));
+    await expect(beat.or(notice)).toBeVisible();
+    while (await notice.isVisible()) {
+      await expect(beat).toHaveCount(0);
+      await notice.click();
+    }
+    await expect(beat).toBeVisible();
+    await expect(beat).toHaveAttribute('data-from', String(TimeSlot.MORNING));
+    await expect(beat).toHaveAttribute('data-to', String(TimeSlot.AFTERNOON));
+  });
+}
