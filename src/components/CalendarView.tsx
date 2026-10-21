@@ -78,6 +78,13 @@ function getDayLabel(day: number, calendar: GameCalendar): string {
   return `Day ${TimeManager.seasonDayOf(calendar, day)}`;
 }
 
+/** The same, short enough for the narrow day column on a phone. */
+function getShortDayLabel(day: number, calendar: GameCalendar): string {
+  if (day === calendar.currentDay) return 'Today';
+  if (day === calendar.currentDay + 1) return 'Tmrw';
+  return `D${TimeManager.seasonDayOf(calendar, day)}`;
+}
+
 interface MatchPreviewData {
   opponentName: string;
   opponentCharacterId?: string;
@@ -170,13 +177,24 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ isOpen, onClose }) =
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Schedule" size="scene">
+      {/* Fixed layout: the columns are set by the header, never by what's scheduled, so
+          adding an event doesn't resize the grid. */}
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
+        <table className="w-full table-fixed border-collapse" data-testid="calendar-grid">
+          <colgroup>
+            <col className="w-[4.5rem] sm:w-36" />
+            {slots.map((slot) => (
+              <col key={slot} />
+            ))}
+          </colgroup>
           <thead>
             <tr>
-              <th className="p-2 text-left text-sm font-bold text-pixel-text-muted w-24" />
+              <th className="p-2 text-left text-sm font-bold text-pixel-text-muted" />
               {slots.map((slot) => (
-                <th key={slot} className="p-2 text-center text-sm font-bold text-pixel-text-muted">
+                <th
+                  key={slot}
+                  className="p-1 sm:p-2 text-center text-[10px] sm:text-sm font-bold text-pixel-text-muted"
+                >
                   <span className="hidden sm:inline">{TIME_SLOT_LABELS[slot]}</span>
                   <span className="sm:hidden">{TIME_SLOT_SHORT[slot]}</span>
                 </th>
@@ -188,8 +206,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ isOpen, onClose }) =
               const isToday = day === calendar.currentDay;
               return (
                 <tr key={day} className={isToday ? 'bg-pixel-secondary/30' : ''}>
-                  <td className="p-2 text-sm font-bold text-pixel-text whitespace-nowrap">
-                    {getDayLabel(day, calendar)}
+                  <td className="p-1 sm:p-2 text-[10px] sm:text-sm font-bold text-pixel-text">
+                    <span className="hidden sm:inline">{getDayLabel(day, calendar)}</span>
+                    <span className="sm:hidden">{getShortDayLabel(day, calendar)}</span>
                   </td>
                   {slots.map((slot) => {
                     const event = eventMap.get(`${day}-${slot}`);
@@ -201,7 +220,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ isOpen, onClose }) =
                       <td key={slot} className="p-1 relative">
                         <div
                           className={`
-                            h-14 border-2 flex items-center justify-center text-xs p-1 transition-all cursor-pointer
+                            h-16 overflow-hidden border-2 flex items-center justify-center text-xs p-1 transition-all cursor-pointer
                             ${
                               current
                                 ? 'border-pixel-accent bg-pixel-accent/10 ring-2 ring-pixel-accent/40'
@@ -233,12 +252,13 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ isOpen, onClose }) =
                             <span className="text-pixel-accent font-bold text-xs">NOW</span>
                           )}
                           {event && (
-                            <div className="flex flex-col items-center gap-0.5 text-center">
-                              <span className="flex items-center gap-1 text-base leading-none">
+                            <div className="flex min-w-0 flex-col items-center gap-0.5 text-center">
+                              <span className="flex flex-wrap items-center justify-center gap-1 text-base leading-none">
                                 <OpponentFace event={event} />
                                 {getEventDisplay(event).icon}
                               </span>
-                              <span className="text-pixel-text font-medium leading-tight line-clamp-2">
+                              {/* On a phone the icon carries it; the legend names them. */}
+                              <span className="hidden sm:block w-full text-pixel-text font-medium leading-tight line-clamp-2 break-words">
                                 {getEventDisplay(event).label}
                               </span>
                             </div>
