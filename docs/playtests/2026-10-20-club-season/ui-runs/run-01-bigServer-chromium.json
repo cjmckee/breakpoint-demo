@@ -1,0 +1,681 @@
+{
+  "config": {
+    "run": 1,
+    "identity": "bigServer",
+    "project": "chromium",
+    "tactics": "first",
+    "stories": "first",
+    "shaped": true
+  },
+  "minutes": 7.7,
+  "failure": null,
+  "errors": [
+    "console.error: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render."
+  ],
+  "day": 44,
+  "tier": 2,
+  "overall": 45,
+  "stats": {
+    "core": {
+      "serve": 45,
+      "forehand": 45,
+      "backhand": 41,
+      "return": 27,
+      "net": 44
+    },
+    "technical": {
+      "slice": 42,
+      "spin": 55,
+      "placement": 62
+    },
+    "physical": {
+      "speed": 40,
+      "stamina": 40,
+      "strength": 50
+    },
+    "mental": {
+      "focus": 76,
+      "anticipation": 41,
+      "tactics": 24
+    }
+  },
+  "archetype": {
+    "broad": "all_courter",
+    "phases": {
+      "first_serve": {
+        "path": "fs_bomber",
+        "tier": 1
+      },
+      "second_serve": {
+        "path": "ss_kicker",
+        "tier": 1
+      },
+      "forehand": {
+        "path": "fh_laserbeam",
+        "tier": 1
+      },
+      "net": {
+        "path": "net_opportunist",
+        "tier": 1
+      }
+    },
+    "specializationPoints": 1,
+    "respecTokens": 0
+  },
+  "level": 4,
+  "wallet": {
+    "power": 0,
+    "quickness": 128,
+    "technique": 1,
+    "mind": 0
+  },
+  "abilities": ["slider", "heavy_hitter"],
+  "completedStoryEvents": [
+    "welcome_to_tennis_rpg",
+    "making_connections",
+    "food_hall_gossip",
+    "player_tier_intro",
+    "match_play_basics",
+    "tutorial_keith_loss",
+    "tutorial_jen_loss",
+    "training_session_intro",
+    "relationship_basics",
+    "shop_basics",
+    "first_match_win",
+    "rival_first_encounter",
+    "club_team_intro",
+    "coach_first_meeting",
+    "coach_archetype_selection",
+    "club_team_first_practice",
+    "coach_training_focus",
+    "club_team_keith_story",
+    "first_team_match_scheduled",
+    "family_support",
+    "post_match_carpool",
+    "first_team_match_prematch",
+    "first_team_match_loss",
+    "coach_balanced_development",
+    "second_team_match_scheduled",
+    "romance_meet_tournament",
+    "second_team_match_prematch",
+    "second_team_match_loss",
+    "romance_coffee_date",
+    "third_team_match_scheduled",
+    "coach_video_analysis",
+    "family_dinner_disaster",
+    "third_team_match_prematch",
+    "third_team_match_win",
+    "fourth_team_match_scheduled",
+    "first_winning_streak",
+    "fourth_team_match_prematch",
+    "fourth_team_match_loss",
+    "rock_climbing_outing",
+    "fifth_team_match_scheduled",
+    "romance_park_practice",
+    "fifth_team_match_prematch",
+    "fifth_team_match_loss",
+    "romance_movie_night",
+    "riverside_open_prep",
+    "family_sibling_rivalry",
+    "family_investment",
+    "riverside_open_opening_ceremony",
+    "riverside_r1_prematch_winner",
+    "riverside_r1_win",
+    "riverside_r2_prematch_winner",
+    "riverside_r2_loss",
+    "riverside_r3_prematch_loser",
+    "riverside_r3_win",
+    "riverside_r4_prematch_loser",
+    "riverside_r4_loss",
+    "riverside_open_elimination",
+    "family_care_package",
+    "terrible_movie_night",
+    "riverside_open_consolation_promotion",
+    "thanks_for_playing"
+  ],
+  "log": {
+    "day": 44,
+    "trainingSessions": 57,
+    "matchesPlayed": 20,
+    "matchesWon": 12,
+    "keyMomentsAnswered": 294,
+    "storyEventsSeen": 60,
+    "storyChoices": [
+      {
+        "event": "coach_archetype_selection",
+        "option": "choose_all_courter"
+      },
+      {
+        "event": "coach_training_focus",
+        "option": "focus_serve"
+      },
+      {
+        "event": "coach_balanced_development",
+        "option": "focus_groundstrokes"
+      },
+      {
+        "event": "romance_coffee_date",
+        "option": "serious_talk"
+      },
+      {
+        "event": "coach_video_analysis",
+        "option": "stay_awake"
+      },
+      {
+        "event": "rock_climbing_outing",
+        "option": "race_to_top"
+      },
+      {
+        "event": "romance_park_practice",
+        "option": "go_all_out"
+      },
+      {
+        "event": "romance_movie_night",
+        "option": "watch_serious_film"
+      },
+      {
+        "event": "family_sibling_rivalry",
+        "option": "let_them_win"
+      },
+      {
+        "event": "family_investment",
+        "option": "redouble_commitment"
+      }
+    ],
+    "matches": [
+      {
+        "day": 5,
+        "type": "story",
+        "opponent": "Keith",
+        "score": "2-6",
+        "won": false
+      },
+      {
+        "day": 5,
+        "type": "story",
+        "opponent": "Jen",
+        "score": "0-6",
+        "won": false
+      },
+      {
+        "day": 5,
+        "type": "regular",
+        "opponent": "Danny Park",
+        "score": "0-6",
+        "won": false
+      },
+      {
+        "day": 7,
+        "type": "regular",
+        "opponent": "Lin Chen",
+        "score": "6-2",
+        "won": true
+      },
+      {
+        "day": 9,
+        "type": "regular",
+        "opponent": "Danny Park",
+        "score": "0-6",
+        "won": false
+      },
+      {
+        "day": 11,
+        "type": "regular",
+        "opponent": "Danny Park",
+        "score": "6-2",
+        "won": true
+      },
+      {
+        "day": 13,
+        "type": "regular",
+        "opponent": "Marta Ruiz",
+        "score": "6-0",
+        "won": true
+      },
+      {
+        "day": 15,
+        "type": "regular",
+        "opponent": "Big Steve",
+        "score": "1-6",
+        "won": false
+      },
+      {
+        "day": 15,
+        "type": "story",
+        "opponent": "Chet Vale",
+        "score": "5-7 2-6",
+        "won": false
+      },
+      {
+        "day": 17,
+        "type": "regular",
+        "opponent": "Danny Park",
+        "score": "3-6",
+        "won": false
+      },
+      {
+        "day": 19,
+        "type": "regular",
+        "opponent": "Marta Ruiz",
+        "score": "1-6",
+        "won": false
+      },
+      {
+        "day": 19,
+        "type": "story",
+        "opponent": "Rich Soil",
+        "score": "2-6 2-6",
+        "won": false
+      },
+      {
+        "day": 21,
+        "type": "regular",
+        "opponent": "Big Steve",
+        "score": "2-6",
+        "won": false
+      },
+      {
+        "day": 23,
+        "type": "regular",
+        "opponent": "Danny Park",
+        "score": "7-5",
+        "won": true
+      },
+      {
+        "day": 23,
+        "type": "story",
+        "opponent": "Martia Estrella",
+        "score": "6-1 6-3",
+        "won": true
+      },
+      {
+        "day": 25,
+        "type": "regular",
+        "opponent": "Marta Ruiz",
+        "score": "7-5",
+        "won": true
+      },
+      {
+        "day": 27,
+        "type": "regular",
+        "opponent": "Big Steve",
+        "score": "2-6",
+        "won": false
+      },
+      {
+        "day": 27,
+        "type": "story",
+        "opponent": "Reginald Werther",
+        "score": "2-6 0-6",
+        "won": false
+      },
+      {
+        "day": 29,
+        "type": "regular",
+        "opponent": "Marta Ruiz",
+        "score": "6-4",
+        "won": true
+      },
+      {
+        "day": 31,
+        "type": "regular",
+        "opponent": "Marta Ruiz",
+        "score": "5-7",
+        "won": false
+      },
+      {
+        "day": 31,
+        "type": "story",
+        "opponent": "Olivia Gulp",
+        "score": "0-6 0-6",
+        "won": false
+      },
+      {
+        "day": 33,
+        "type": "regular",
+        "opponent": "Big Steve",
+        "score": "7-5",
+        "won": true
+      },
+      {
+        "day": 35,
+        "type": "regular",
+        "opponent": "Marta Ruiz",
+        "score": "1-6",
+        "won": false
+      },
+      {
+        "day": 37,
+        "type": "regular",
+        "opponent": "Marta Ruiz",
+        "score": "6-3",
+        "won": true
+      },
+      {
+        "day": 37,
+        "type": "tournament",
+        "opponent": "Keith",
+        "score": "6-0 6-1",
+        "won": true
+      },
+      {
+        "day": 38,
+        "type": "tournament",
+        "opponent": "Chris",
+        "score": "3-6 5-7",
+        "won": false
+      },
+      {
+        "day": 39,
+        "type": "regular",
+        "opponent": "Rick Tanaka",
+        "score": "6-1",
+        "won": true
+      },
+      {
+        "day": 39,
+        "type": "tournament",
+        "opponent": "Max",
+        "score": "6-4 6-4",
+        "won": true
+      },
+      {
+        "day": 40,
+        "type": "tournament",
+        "opponent": "Jordan",
+        "score": "2-6 7-5 3-6",
+        "won": false
+      },
+      {
+        "day": 41,
+        "type": "regular",
+        "opponent": "Lin Chen",
+        "score": "1-6",
+        "won": false
+      },
+      {
+        "day": 43,
+        "type": "regular",
+        "opponent": "Marta Ruiz",
+        "score": "0-6",
+        "won": false
+      }
+    ],
+    "specialties": [
+      "first_serve:fs_bomber",
+      "second_serve:ss_kicker",
+      "forehand:fh_laserbeam",
+      "net:net_opportunist"
+    ],
+    "itemsAcquired": 11,
+    "statPointsBought": 343,
+    "unhandledPhases": [],
+    "contentEnded": true,
+    "daily": [
+      {
+        "day": 1,
+        "energy": 100,
+        "overall": 20,
+        "xp": 0
+      },
+      {
+        "day": 2,
+        "energy": 90,
+        "overall": 20,
+        "xp": 0
+      },
+      {
+        "day": 3,
+        "energy": 100,
+        "overall": 21,
+        "xp": 0
+      },
+      {
+        "day": 4,
+        "energy": 100,
+        "overall": 21,
+        "xp": 0
+      },
+      {
+        "day": 5,
+        "energy": 90,
+        "overall": 21,
+        "xp": 0
+      },
+      {
+        "day": 6,
+        "energy": 65,
+        "overall": 22,
+        "xp": 86
+      },
+      {
+        "day": 7,
+        "energy": 55,
+        "overall": 23,
+        "xp": 86
+      },
+      {
+        "day": 8,
+        "energy": 75,
+        "overall": 24,
+        "xp": 162
+      },
+      {
+        "day": 9,
+        "energy": 85,
+        "overall": 24,
+        "xp": 162
+      },
+      {
+        "day": 10,
+        "energy": 80,
+        "overall": 25,
+        "xp": 190
+      },
+      {
+        "day": 11,
+        "energy": 80,
+        "overall": 25,
+        "xp": 190
+      },
+      {
+        "day": 12,
+        "energy": 75,
+        "overall": 26,
+        "xp": 265
+      },
+      {
+        "day": 13,
+        "energy": 75,
+        "overall": 28,
+        "xp": 265
+      },
+      {
+        "day": 14,
+        "energy": 50,
+        "overall": 29,
+        "xp": 344
+      },
+      {
+        "day": 15,
+        "energy": 70,
+        "overall": 29,
+        "xp": 344
+      },
+      {
+        "day": 16,
+        "energy": 70,
+        "overall": 30,
+        "xp": 411
+      },
+      {
+        "day": 17,
+        "energy": 80,
+        "overall": 31,
+        "xp": 411
+      },
+      {
+        "day": 18,
+        "energy": 65,
+        "overall": 31,
+        "xp": 455
+      },
+      {
+        "day": 19,
+        "energy": 55,
+        "overall": 31,
+        "xp": 455
+      },
+      {
+        "day": 20,
+        "energy": 70,
+        "overall": 32,
+        "xp": 521
+      },
+      {
+        "day": 21,
+        "energy": 95,
+        "overall": 33,
+        "xp": 521
+      },
+      {
+        "day": 22,
+        "energy": 55,
+        "overall": 33,
+        "xp": 560
+      },
+      {
+        "day": 23,
+        "energy": 60,
+        "overall": 34,
+        "xp": 560
+      },
+      {
+        "day": 24,
+        "energy": 50,
+        "overall": 35,
+        "xp": 691
+      },
+      {
+        "day": 25,
+        "energy": 80,
+        "overall": 35,
+        "xp": 691
+      },
+      {
+        "day": 26,
+        "energy": 60,
+        "overall": 36,
+        "xp": 751
+      },
+      {
+        "day": 27,
+        "energy": 50,
+        "overall": 37,
+        "xp": 751
+      },
+      {
+        "day": 28,
+        "energy": 70,
+        "overall": 37,
+        "xp": 819
+      },
+      {
+        "day": 29,
+        "energy": 60,
+        "overall": 38,
+        "xp": 819
+      },
+      {
+        "day": 30,
+        "energy": 60,
+        "overall": 38,
+        "xp": 889
+      },
+      {
+        "day": 31,
+        "energy": 75,
+        "overall": 39,
+        "xp": 889
+      },
+      {
+        "day": 32,
+        "energy": 70,
+        "overall": 39,
+        "xp": 956
+      },
+      {
+        "day": 33,
+        "energy": 85,
+        "overall": 40,
+        "xp": 956
+      },
+      {
+        "day": 34,
+        "energy": 55,
+        "overall": 41,
+        "xp": 1021
+      },
+      {
+        "day": 35,
+        "energy": 85,
+        "overall": 41,
+        "xp": 1021
+      },
+      {
+        "day": 36,
+        "energy": 50,
+        "overall": 42,
+        "xp": 1050
+      },
+      {
+        "day": 37,
+        "energy": 80,
+        "overall": 42,
+        "xp": 1050
+      },
+      {
+        "day": 38,
+        "energy": 70,
+        "overall": 42,
+        "xp": 1194
+      },
+      {
+        "day": 39,
+        "energy": 70,
+        "overall": 43,
+        "xp": 1236
+      },
+      {
+        "day": 40,
+        "energy": 70,
+        "overall": 43,
+        "xp": 1376
+      },
+      {
+        "day": 41,
+        "energy": 70,
+        "overall": 44,
+        "xp": 1415
+      },
+      {
+        "day": 42,
+        "energy": 60,
+        "overall": 44,
+        "xp": 1448
+      },
+      {
+        "day": 43,
+        "energy": 100,
+        "overall": 44,
+        "xp": 1448
+      },
+      {
+        "day": 44,
+        "energy": 60,
+        "overall": 45,
+        "xp": 1472
+      }
+    ]
+  }
+}

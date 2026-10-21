@@ -55,8 +55,17 @@ export const PixelSprite: React.FC<PixelSpriteProps> = ({
   const reducedMotion = usePrefersReducedMotion();
   const cycling = animate && !reducedMotion && frameCount > 1;
 
-  useEffect(() => {
+  // A new pose starts from its first frame. Reset while rendering rather than in the
+  // effect: court sprites change pose on every rally frame, and an effect that sets
+  // state each time warns about an update loop at Instant match speed.
+  const cycle = `${pose}|${fps}|${cycling}`;
+  const [tickCycle, setTickCycle] = useState(cycle);
+  if (tickCycle !== cycle) {
+    setTickCycle(cycle);
     setTick(0);
+  }
+
+  useEffect(() => {
     if (!cycling) return;
     const id = window.setInterval(() => setTick((t) => t + 1), 1000 / fps);
     return () => window.clearInterval(id);

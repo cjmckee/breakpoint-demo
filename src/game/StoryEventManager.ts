@@ -13,11 +13,17 @@ import type {
   StoryEventTag,
 } from '../types/storyEvents';
 import type { Player, GameCalendar } from '../types/game';
+import { TimeSlot } from '../types/game';
 import type { ActiveTournament } from '../types/tournaments';
 import type { MinigameScore } from '../minigames/types';
 
 import { storyPay } from './CurrencyIncome';
 import { random } from '../core/random';
+import { ScheduledEventManager } from './ScheduledEventManager';
+
+/** Random story events wait for the tutorial week to end: its last beat is the shop. */
+export const RANDOM_EVENTS_AFTER = 'shop_basics';
+
 export class StoryEventManager {
   /**
    * Whether an event can no longer fire by id: it has run, and it isn't
@@ -28,21 +34,33 @@ export class StoryEventManager {
   }
 
   /**
-   * Check if the current day has scheduled events or an active tournament.
-   * On busy days, time-consuming story events (timeSlotsRequired > 0) should
-   * not randomly trigger, to avoid causing the player to miss matches or
-   * other important scheduled activities.
+   * Whether an event that takes time fits where the player is now, so it can't make
+   * them miss a match or a scheduled beat. It holds this slot and the ones after it
+   * up to its length; each of those later slots must be clear and before night. The
+   * slot it lands on may hold something scheduled, which then runs. During a
+   * tournament nothing that takes time fires.
    */
-  private static isDayBusy(
+  private static fitsNow(
+    event: StoryEvent,
     calendar: GameCalendar,
     activeTournament?: ActiveTournament | null,
   ): boolean {
-    if (activeTournament) return true;
-
-    const hasScheduledEventsToday = calendar.scheduledEvents.some(
-      (e) => e.scheduledDay === calendar.currentDay,
-    );
-    return hasScheduledEventsToday;
+    if (event.timeSlotsRequired === 0) return true;
+    if (activeTournament) return false;
+    for (let i = 1; i < event.timeSlotsRequired; i++) {
+      const slot = calendar.currentTimeSlot + i;
+      if (slot >= TimeSlot.NIGHT) return false;
+      if (
+        ScheduledEventManager.hasScheduledEvent(
+          calendar.scheduledEvents,
+          calendar.currentDay,
+          slot as TimeSlot,
+        )
+      ) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
@@ -128,7 +146,6 @@ export class StoryEventManager {
 
     // Get events by tag
     const taggedEvents = StoryEventRepository.getEventsByTag(tag);
-    const dayBusy = this.isDayBusy(gameState.calendar, gameState.activeTournament);
 
     const scheduledStoryEventIds = this.getScheduledStoryEventIds(gameState.calendar);
 
@@ -144,8 +161,8 @@ export class StoryEventManager {
         return false;
       }
 
-      // On busy days (scheduled events or active tournament), skip time-consuming events
-      if (dayBusy && event.timeSlotsRequired > 0) {
+      // Skip events that take time but don't fit before what's scheduled next
+      if (!this.fitsNow(event, gameState.calendar, gameState.activeTournament)) {
         return false;
       }
 
@@ -155,7 +172,8 @@ export class StoryEventManager {
   }
 
   /**
-   * Get all events the player currently qualifies for (no tag filter)
+   * Get all events the player currently qualifies for (no tag filter): the random
+   * roll's pool. Empty until the tutorial week is over (RANDOM_EVENTS_AFTER).
    */
   static getAllEligibleEvents(
     player: Player,
@@ -178,7 +196,7 @@ export class StoryEventManager {
     const allEvents = StoryEventRepository.getAllEvents();
 
     console.log('all events:', allEvents);
-    const dayBusy = this.isDayBusy(gameState.calendar, gameState.activeTournament);
+    if (!gameState.completedStoryEvents.includes(RANDOM_EVENTS_AFTER)) return [];
 
     const scheduledStoryEventIds = this.getScheduledStoryEventIds(gameState.calendar);
 
@@ -205,8 +223,8 @@ export class StoryEventManager {
         return false;
       }
 
-      // On busy days (scheduled events or active tournament), skip time-consuming events
-      if (dayBusy && event.timeSlotsRequired > 0) {
+      // Skip events that take time but don't fit before what's scheduled next
+      if (!this.fitsNow(event, gameState.calendar, gameState.activeTournament)) {
         return false;
       }
 

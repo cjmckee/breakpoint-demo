@@ -2,7 +2,7 @@
  * Currency check — the stat-currency rules the game relies on.
  *
  *   - every stat has a recipe, and its length is a price band (2, 3 or 4 units)
- *   - the price step: ×1 below 40, ×2 in the 40s-50s, ×3 in the 60s-70s, ×4 from 80
+ *   - the price step: ×1 below 35, ×2 from 35, ×3 from 50, ×4 from 65, ×5 from 80
  *   - a plan of +1s is priced at each point's starting value, in order
  *   - losses clamp each currency at zero, gains add
  *   - a purchase applies all of a plan or none of it, and refuses what it can't pay
@@ -121,13 +121,14 @@ function main(): void {
 
   console.log('\n── the price step ──');
   check(
-    '×1 below 40, ×2 at 40-59, ×3 at 60-79, ×4 from 80',
+    '×1 below 35, ×2 at 35-49, ×3 at 50-64, ×4 at 65-79, ×5 from 80',
     stepMultiplier(20) === 1 &&
-      stepMultiplier(39) === 1 &&
-      stepMultiplier(40) === 2 &&
-      stepMultiplier(59) === 2 &&
-      stepMultiplier(60) === 3 &&
-      stepMultiplier(80) === 4,
+      stepMultiplier(34) === 1 &&
+      stepMultiplier(35) === 2 &&
+      stepMultiplier(49) === 2 &&
+      stepMultiplier(50) === 3 &&
+      stepMultiplier(65) === 4 &&
+      stepMultiplier(80) === 5,
   );
   const serve45 = priceOf('serve', 45);
   check(
@@ -137,14 +138,14 @@ function main(): void {
   );
 
   console.log('\n── plan cost ──');
-  const stats39 = withStat(PlayerManager.createPlayer('x').stats, 'focus', 39);
-  const cost = planCost(stats39, ['focus', 'focus']);
+  const stats34 = withStat(PlayerManager.createPlayer('x').stats, 'focus', 34);
+  const cost = planCost(stats34, ['focus', 'focus']);
   check(
-    'two focus points from 39 cost 2 + 4 Mind (the second crosses 40)',
+    'two focus points from 34 cost 2 + 4 Mind (the second crosses 35)',
     cost.mind === 6,
     JSON.stringify(cost),
   );
-  check('an empty plan costs nothing', unitsOf(planCost(stats39, [])) === 0);
+  check('an empty plan costs nothing', unitsOf(planCost(stats34, [])) === 0);
 
   console.log('\n── applying currency ──');
   const w = { power: 40, quickness: 5, technique: 0, mind: 10 };

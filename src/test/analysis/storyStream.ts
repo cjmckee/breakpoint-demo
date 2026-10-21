@@ -63,6 +63,9 @@ function quietly<T>(fn: () => T): T {
   }
 }
 
+/** The event a new career opens on, before any slot is played. */
+const OPENING_EVENT = 'welcome_to_tennis_rpg';
+
 export class StoryStream {
   private completed: string[] = [];
   private choices: Record<string, string> = {};
@@ -98,10 +101,15 @@ export class StoryStream {
 
   /**
    * The start of a daytime slot: the story event scheduled for it if there is one,
-   * otherwise the random roll. Null when nothing fires.
+   * otherwise the random roll (unless `roll` is off: the slot is already taken, but a
+   * beat scheduled in it still runs, as arriving in a slot runs it in the game). Null
+   * when nothing fires.
    */
-  slotStart(player: Player, day: number, slot: TimeSlot): PlayedEvent | null {
+  slotStart(player: Player, day: number, slot: TimeSlot, roll = true): PlayedEvent | null {
     this.at(day, slot);
+    // The game opens on the welcome event when the player is created (createPlayer);
+    // the tutorial chain hangs off it, and random rolls wait for the tutorial to end.
+    if (!this.completed.includes(OPENING_EVENT)) return this.fire(player, OPENING_EVENT, day, slot);
     const due = ScheduledEventManager.getScheduledEvent(
       this.calendar.scheduledEvents,
       this.calendar,
@@ -127,7 +135,7 @@ export class StoryStream {
       }
       return null;
     }
-    if (Math.random() * 100 >= this.opts.triggerChance) return null;
+    if (!roll || Math.random() * 100 >= this.opts.triggerChance) return null;
     const event = quietly(() =>
       StoryEventManager.selectRandomEvent(
         StoryEventManager.getAllEligibleEvents(player, this.context()),

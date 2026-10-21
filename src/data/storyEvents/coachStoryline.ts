@@ -259,7 +259,7 @@ export const coachEvents: StoryEvent[] = [
     id: 'coach_balanced_development',
     name: 'Building a Complete Game',
     tags: ['coach', 'training', 'decision'],
-    timeSlotsRequired: 2,
+    timeSlotsRequired: 1,
     prerequisites: {
       completedEvents: ['coach_first_meeting'],
       minDay: 10,
@@ -332,7 +332,7 @@ export const coachEvents: StoryEvent[] = [
     id: 'coach_video_analysis',
     name: 'The Film Room',
     tags: ['coach', 'training', 'decision'],
-    timeSlotsRequired: 2,
+    timeSlotsRequired: 1,
     prerequisites: {
       completedEvents: ['coach_training_focus'],
       minDay: 15,
@@ -459,7 +459,7 @@ export const coachEvents: StoryEvent[] = [
     id: 'coach_trick_shot_challenge',
     name: 'The Trick Shot',
     tags: ['coach', 'training', 'decision'],
-    timeSlotsRequired: 2,
+    timeSlotsRequired: 1,
     prerequisites: {
       completedEvents: ['coach_video_analysis'],
     },
