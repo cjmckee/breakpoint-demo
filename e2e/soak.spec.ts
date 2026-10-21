@@ -25,6 +25,9 @@ test('a fresh player can play two weeks without the game getting stuck', async (
   // Two weeks of bot play now include the first team match (day 14, best of three),
   // which put a 2-minute budget at the edge on a busy machine.
   test.setTimeout(240_000);
+  // Rules, not layout: the phone layout of these screens is textFit's and
+  // screenLayout's job, and a second run of the same bot play only doubles the time.
+  test.skip(test.info().project.name === 'mobile', 'desktop only: checks rules, not layout');
 
   // A console error during a 14-day run is a real defect that would otherwise go
   // unseen — nothing else in the suite is watching for one over this much play.
@@ -51,6 +54,9 @@ test('a fresh player can play two weeks without the game getting stuck', async (
 
 test('a training-only run still progresses the build', async ({ page }) => {
   test.setTimeout(120_000);
+  // Rules, not layout: the phone layout of these screens is textFit's and
+  // screenLayout's job, and a second run of the same bot play only doubles the time.
+  test.skip(test.info().project.name === 'mobile', 'desktop only: checks rules, not layout');
 
   await startNewGame(page);
   await dismissWalkthrough(page);

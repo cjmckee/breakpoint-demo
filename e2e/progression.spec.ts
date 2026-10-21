@@ -27,6 +27,9 @@ import { STARTING_SPECIALIZATION_POINTS } from '../src/data/archetypeTree';
 test('a fresh player reaches each early unlock by playing', async ({ page }) => {
   // A week of bot play with matches; 2 minutes ran out on a busy machine.
   test.setTimeout(240_000);
+  // Rules, not layout: the phone layout of these screens is textFit's and
+  // screenLayout's job, and a second run of the same bot play only doubles the time.
+  test.skip(test.info().project.name === 'mobile', 'desktop only: checks rules, not layout');
 
   await startNewGame(page);
   await dismissWalkthrough(page);
