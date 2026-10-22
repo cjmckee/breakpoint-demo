@@ -22,6 +22,13 @@ import { MatchStatistics as IMatchStatistics } from '../types';
 import type { MatchCompletionData } from '../types/gamePhase';
 import { trackKeyMomentDecided } from '../analytics/analytics';
 
+/** Resolves after the next frame has been rendered and React's effects have run. */
+function waitForNextFrame(): Promise<void> {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => setTimeout(resolve, 0));
+  });
+}
+
 interface MatchState {
   // Match configuration (kept for LiveMatchViewer to read opponent name, surface, etc.)
   matchConfig: InteractiveMatchConfig | null;
@@ -217,6 +224,10 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       });
       set({ isTutorialPaused: false, tutorialPauseResolver: null });
     }
+
+    // The first point is simulated synchronously, and the court only animates points
+    // it sees arrive. Wait for the next frame so the live viewer has mounted first.
+    await waitForNextFrame();
 
     // Start match simulation (async)
     try {
