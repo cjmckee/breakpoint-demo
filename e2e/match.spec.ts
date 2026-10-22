@@ -113,3 +113,30 @@ test('changing match speed mid-match takes effect at once', async ({ page }) => 
     )
     .toBe(true);
 });
+
+test('the court animates the first point of a match', async ({ page }) => {
+  test.setTimeout(30_000);
+
+  await loadSave(page, SAVE, 1234);
+  await setMatchSpeed(page, 'slow');
+
+  await page.getByTestId('action-match').click();
+  await page.getByTestId('preview-match').click();
+  await page.getByTestId('start-match-footer').click();
+
+  // The ball idles on the net between rallies. It has to leave it while the first
+  // point is still the latest one, not wait for the second to arrive.
+  const firstMove = await expect
+    .poll(
+      () =>
+        page.evaluate(() => {
+          const ball = document.querySelector<HTMLElement>('[data-testid="court-ball"]');
+          const pointSeq = window.__test__?.match.getState().pointSeq ?? 0;
+          return ball && ball.style.left !== '50%' ? pointSeq : null;
+        }),
+      { intervals: [20], timeout: 10_000 },
+    )
+    .not.toBeNull()
+    .then(() => page.evaluate(() => window.__test__?.match.getState().pointSeq ?? 0));
+  expect(firstMove).toBe(1);
+});
