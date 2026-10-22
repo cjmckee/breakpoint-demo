@@ -118,7 +118,7 @@ export class MatchOrchestrator {
   private pressureBank = 0; // Persistent pressure from key moment effects (decays slowly)
   private matchEnergy = 100; // Tracked mid-match, starts at config.energy
   private matchMood = 0; // Tracked mid-match, starts at config.mood
-  private playerMatchForm = 0; // Rolled once at match start; surfaced to the UI as a form indicator
+  private playerMatchForm = 0; // Live form (match-day roll + rhythm); surfaced to the UI as a form indicator
   private opponentMatchForm = 0;
   private fatigue: PlayerMatchFatigue = { player: 0, opponent: 0 };
   private matchStatistics: MatchStatistics | null = null;
@@ -515,6 +515,8 @@ export class MatchOrchestrator {
       currentScore.opponentStamina = Math.max(0, Math.round(100 - this.fatigue.opponent));
       // Opponent has no separate "energy" resource — its bar mirrors its live stamina.
       currentScore.opponentEnergy = currentScore.opponentStamina;
+      currentScore.playerForm = this.playerMatchForm;
+      currentScore.opponentForm = this.opponentMatchForm;
 
       // Callback for score update
       if (config.onScoreUpdate) {
@@ -1273,6 +1275,8 @@ export class MatchOrchestrator {
         this.playerProfile.matchDayForm + this.momentumEngine.getRhythm('player');
       this.opponentProfile.matchForm =
         this.opponentProfile.matchDayForm + this.momentumEngine.getRhythm('opponent');
+      this.playerMatchForm = this.playerProfile.matchForm;
+      this.opponentMatchForm = this.opponentProfile.matchForm;
     }
   }
 

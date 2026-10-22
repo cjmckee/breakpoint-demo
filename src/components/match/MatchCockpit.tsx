@@ -14,7 +14,6 @@ import type { InteractiveMatchConfig } from '../../types/keyMoments';
 import { MatchCourt } from './MatchCourt';
 import { usePlayerAppearance } from '../../hooks/usePlayerAppearance';
 import { getOpponentAppearance } from '../../data/characters';
-import { MATCH_FORM } from '../../config/shotThresholds';
 import { PixelIcon } from '../ui/PixelIcon';
 import { GLYPHS } from '../../data/pixelIcons';
 
@@ -64,33 +63,81 @@ const ServeDot: React.FC = () => (
   />
 );
 
-// Fraction of MATCH_FORM.variance a form roll must clear before we bother telling the
-// player about it — small rolls near 0 aren't worth cluttering the scoreboard over.
-const FORM_INDICATOR_THRESHOLD = MATCH_FORM.variance * 0.35;
+// Live form (match-day roll + rhythm) runs on every shot, so a badge for any lean at all would
+// sit on the scoreboard most of the match. These thresholds, in shot-quality points, keep it for
+// spells worth noticing: Hot / Cold shows about 40% of the time, On fire / Ice cold about 15%.
+const FORM_TIER_AT = [6, 10] as const;
+// A shown tier holds until form falls this far below its threshold, so a value sitting on the
+// line doesn't flick the badge on and off from one game to the next.
+const FORM_TIER_HOLD = 1.5;
+
+type FormTier = -2 | -1 | 0 | 1 | 2;
+
+const FORM_TIERS: readonly FormTier[] = [-2, -1, 0, 1, 2];
+
+const formTier = (form: number, previous: FormTier): FormTier => {
+  const magnitude = Math.abs(form);
+  let level = FORM_TIER_AT.filter((at) => magnitude >= at).length;
+  const held = Math.abs(previous);
+  if (
+    held > level &&
+    Math.sign(previous) === Math.sign(form) &&
+    magnitude >= FORM_TIER_AT[held - 1] - FORM_TIER_HOLD
+  ) {
+    level = held;
+  }
+  const signed = Math.sign(form) * level;
+  return FORM_TIERS.find((tier) => tier === signed) ?? 0;
+};
+
+const FORM_LABEL: Record<Exclude<FormTier, 0>, string> = {
+  2: 'On fire',
+  1: 'Hot',
+  [-1]: 'Cold',
+  [-2]: 'Ice cold',
+};
 
 interface FormBadgeProps {
   form: number | undefined;
   who: 'player' | 'opponent';
 }
 
-// Small hot/cold streak badge next to a name, surfacing the hidden match-day form roll
-// (see MATCH_FORM in shotThresholds.ts) so a surprising run of good/bad luck reads as
-// "they're having a day" rather than a mysterious difficulty spike.
+// Hot/cold badge next to a name, surfacing live form (the match-day roll plus rhythm, which
+// drifts game to game) so a run of good or bad play reads as "they're in a spell" rather than
+// a mysterious difficulty spike. It pulses when the tier changes.
 const FormBadge: React.FC<FormBadgeProps> = ({ form, who }) => {
-  if (form === undefined || Math.abs(form) < FORM_INDICATOR_THRESHOLD) return null;
+  const [tier, setTier] = useState<FormTier>(() => formTier(form ?? 0, 0));
+  const [changes, setChanges] = useState(0);
+  const nextTier = formTier(form ?? 0, tier);
+  if (nextTier !== tier) {
+    setTier(nextTier);
+    setChanges((n) => n + 1);
+  }
 
-  const isHot = form > 0;
-  const label = isHot ? 'Hot' : 'Cold';
+  if (tier === 0) return null;
+
+  const isHot = tier > 0;
+  const strong = Math.abs(tier) === 2;
+  const label = FORM_LABEL[tier];
   const subject = who === 'player' ? 'You are' : 'They are';
-  const title = `${subject} playing ${isHot ? 'above' : 'below'} their normal level today`;
+  const title = `${subject} playing ${strong ? 'well ' : ''}${isHot ? 'above' : 'below'} their level right now`;
+  const colour = isHot
+    ? strong
+      ? 'text-pixel-primary bg-pixel-success border-pixel-success'
+      : 'text-pixel-success border-pixel-success bg-pixel-success/10'
+    : strong
+      ? 'text-pixel-primary bg-pixel-error border-pixel-error'
+      : 'text-pixel-error border-pixel-error bg-pixel-error/10';
 
   return (
     <span
-      className={`${who === 'player' ? 'self-start' : 'self-end'} inline-flex items-center gap-0.5 text-[9px] px-1 py-0.5 rounded border ${
-        isHot
-          ? 'text-pixel-success border-pixel-success bg-pixel-success/10'
-          : 'text-pixel-error border-pixel-error bg-pixel-error/10'
+      key={changes}
+      data-testid={`form-badge-${who}`}
+      data-form-tier={tier}
+      className={`${who === 'player' ? 'self-start' : 'self-end'} inline-flex items-center gap-0.5 text-[9px] px-1 py-0.5 rounded border ${colour} ${
+        changes > 0 ? 'animate-momentum-pulse' : ''
       }`}
+      style={{ '--pulse-color': PULSE_COLOR[isHot ? 'player' : 'opponent'] } as React.CSSProperties}
       title={title}
       aria-label={`${label}: ${title}`}
     >
@@ -227,7 +274,10 @@ export const MatchCockpit: React.FC<MatchCockpitProps> = ({
     momentum >= 0 ? { left: '50%', width: `${mag}%` } : { width: `${mag}%`, left: `${50 - mag}%` };
 
   return (
-    <div className="bg-pixel-primary rounded-lg p-4 shadow-lg border-2 border-pixel-border">
+    <div
+      data-testid="match-cockpit"
+      className="bg-pixel-primary rounded-lg p-4 shadow-lg border-2 border-pixel-border"
+    >
       {/* Scoreboard */}
       <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-3 sm:gap-4">
         {/* Player */}
