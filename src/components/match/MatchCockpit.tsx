@@ -119,9 +119,11 @@ const FormBadge: React.FC<FormBadgeProps> = ({ form, who }) => {
   const isHot = tier > 0;
   const strong = Math.abs(tier) === 2;
   const label = FORM_LABEL[tier];
-  const subject = who === 'player' ? 'You are' : 'They are';
-  const title = `${subject} playing ${strong ? 'well ' : ''}${isHot ? 'above' : 'below'} their level right now`;
-  const colour = isHot
+  const [subject, whose] = who === 'player' ? ['You are', 'your'] : ['They are', 'their'];
+  const title = `${subject} playing ${strong ? 'well ' : ''}${isHot ? 'above' : 'below'} ${whose} level right now`;
+  // Colour follows whose favour the form works in: an opponent on fire is bad news.
+  const forYou = isHot === (who === 'player');
+  const colour = forYou
     ? strong
       ? 'text-pixel-primary bg-pixel-success border-pixel-success'
       : 'text-pixel-success border-pixel-success bg-pixel-success/10'
@@ -137,7 +139,9 @@ const FormBadge: React.FC<FormBadgeProps> = ({ form, who }) => {
       className={`${who === 'player' ? 'self-start' : 'self-end'} inline-flex items-center gap-0.5 text-[9px] px-1 py-0.5 rounded border ${colour} ${
         changes > 0 ? 'animate-momentum-pulse' : ''
       }`}
-      style={{ '--pulse-color': PULSE_COLOR[isHot ? 'player' : 'opponent'] } as React.CSSProperties}
+      style={
+        { '--pulse-color': PULSE_COLOR[forYou ? 'player' : 'opponent'] } as React.CSSProperties
+      }
       title={title}
       aria-label={`${label}: ${title}`}
     >
