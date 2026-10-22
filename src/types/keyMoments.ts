@@ -94,7 +94,7 @@ export interface MatchScore {
   opponentStamina?: number;
   /** True while a tiebreak game is in progress (points scored numerically, not 15-30-40) */
   isTiebreak?: boolean;
-  /** Match-day form rolled at match start (see MATCH_FORM.variance); drives the hot/cold form indicator */
+  /** Live form: match-day roll plus rhythm (see MATCH_FORM, MOMENTUM.rhythm); drives the hot/cold form indicator */
   playerForm?: number;
   opponentForm?: number;
 }

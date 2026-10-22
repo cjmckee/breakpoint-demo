@@ -113,3 +113,70 @@ test('changing match speed mid-match takes effect at once', async ({ page }) => 
     )
     .toBe(true);
 });
+
+test('the court animates the first point of a match', async ({ page }) => {
+  test.setTimeout(30_000);
+
+  await loadSave(page, SAVE, 1234);
+  await setMatchSpeed(page, 'slow');
+
+  await page.getByTestId('action-match').click();
+  await page.getByTestId('preview-match').click();
+  await page.getByTestId('start-match-footer').click();
+
+  // The ball idles on the net between rallies. It has to leave it while the first
+  // point is still the latest one, not wait for the second to arrive.
+  const firstMove = await expect
+    .poll(
+      () =>
+        page.evaluate(() => {
+          const ball = document.querySelector<HTMLElement>('[data-testid="court-ball"]');
+          const pointSeq = window.__test__?.match.getState().pointSeq ?? 0;
+          return ball && ball.style.left !== '50%' ? pointSeq : null;
+        }),
+      { intervals: [20], timeout: 10_000 },
+    )
+    .not.toBeNull()
+    .then(() => page.evaluate(() => window.__test__?.match.getState().pointSeq ?? 0));
+  expect(firstMove).toBe(1);
+});
+
+test('the form badges follow live form through the match', async ({ page }) => {
+  test.setTimeout(60_000);
+
+  // Form drifts game to game (rhythm), so the badges must not stay on the
+  // opening roll. Record every tier each badge shows, absent included, from the
+  // scoreboard's first render to the result.
+  await loadSave(page, SAVE, 1234);
+  await setMatchSpeed(page, 'instant');
+  await page.getByTestId('action-match').click();
+  await page.getByTestId('preview-match').click();
+  await page.evaluate(() => {
+    const seen: Record<string, string[]> = { player: [], opponent: [] };
+    const record = (): void => {
+      // The badge mounting with the scoreboard is not a change of form.
+      if (!document.querySelector('[data-testid="match-cockpit"]')) return;
+      for (const who of ['player', 'opponent']) {
+        const badge = document.querySelector(`[data-testid="form-badge-${who}"]`);
+        const tier = badge?.getAttribute('data-form-tier') ?? '0';
+        const trail = seen[who];
+        if (trail[trail.length - 1] !== tier) trail.push(tier);
+      }
+    };
+    new MutationObserver(record).observe(document.body, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+    });
+    Object.assign(window, { __formTrail: seen });
+  });
+  await page.getByTestId('start-match-footer').click();
+  await playMatch(page);
+  await expect(page.getByTestId('match-results')).toBeVisible();
+
+  const trail = await page.evaluate(
+    () => (window as unknown as { __formTrail: Record<string, string[]> }).__formTrail,
+  );
+  const changes = trail.player.length + trail.opponent.length - 2;
+  expect(changes, `form tiers seen: ${JSON.stringify(trail)}`).toBeGreaterThan(0);
+});
